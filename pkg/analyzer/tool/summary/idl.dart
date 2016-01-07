@@ -406,9 +406,30 @@ enum UnlinkedExecutableKind {
 }
 
 /**
- * Unlinked summary information about an export declaration.
+ * Unlinked summary information about an export declaration (stored outside
+ * [UnlinkedPublicNamespace]).
  */
-class UnlinkedExport {
+class UnlinkedExportNonPublic {
+  /**
+   * Offset of the URI string (including quotes) relative to the beginning of
+   * the file.
+   */
+  @informative
+  int uriOffset;
+
+  /**
+   * End of the URI string (including quotes) relative to the beginning of the
+   * file.
+   */
+  @informative
+  int uriEnd;
+}
+
+/**
+ * Unlinked summary information about an export declaration (stored inside
+ * [UnlinkedPublicNamespace]).
+ */
+class UnlinkedExportPublic {
   /**
    * URI used in the source code to reference the exported library.
    */
@@ -458,6 +479,20 @@ class UnlinkedImport {
    * Indicates whether the import declaration is implicit.
    */
   bool isImplicit;
+
+  /**
+   * Offset of the URI string (including quotes) relative to the beginning of
+   * the file.  If [isImplicit] is true, zero.
+   */
+  @informative
+  int uriOffset;
+
+  /**
+   * End of the URI string (including quotes) relative to the beginning of the
+   * file.  If [isImplicit] is true, zero.
+   */
+  @informative
+  int uriEnd;
 }
 
 /**
@@ -531,9 +566,18 @@ enum UnlinkedParamKind {
  */
 class UnlinkedPart {
   /**
-   * String used in the compilation unit to refer to the part file.
+   * Offset of the URI string (including quotes) relative to the beginning of
+   * the file.
    */
-  String uri;
+  @informative
+  int uriOffset;
+
+  /**
+   * End of the URI string (including quotes) relative to the beginning of the
+   * file.
+   */
+  @informative
+  int uriEnd;
 }
 
 /**
@@ -586,12 +630,12 @@ class UnlinkedPublicNamespace {
   /**
    * Export declarations in the compilation unit.
    */
-  List<UnlinkedExport> exports;
+  List<UnlinkedExportPublic> exports;
 
   /**
-   * Part declarations in the compilation unit.
+   * URIs referenced by part declarations in the compilation unit.
    */
-  List<UnlinkedPart> parts;
+  List<String> parts;
 }
 
 /**
@@ -736,9 +780,19 @@ class UnlinkedUnit {
   List<UnlinkedExecutable> executables;
 
   /**
+   * Export declarations in the compilation unit.
+   */
+  List<UnlinkedExportNonPublic> exports;
+
+  /**
    * Import declarations in the compilation unit.
    */
   List<UnlinkedImport> imports;
+
+  /**
+   * Part declarations in the compilation unit.
+   */
+  List<UnlinkedPart> parts;
 
   /**
    * Typedefs declared in the compilation unit.

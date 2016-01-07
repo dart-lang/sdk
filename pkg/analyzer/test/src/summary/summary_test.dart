@@ -1759,6 +1759,14 @@ typedef F();
     expect(unlinkedUnits[0].publicNamespace.exports[0].combinators, isEmpty);
   }
 
+  test_export_offset() {
+    String libraryText = '    export "dart:async";';
+    serializeLibraryText(libraryText);
+    expect(unlinkedUnits[0].exports[0].uriOffset,
+        libraryText.indexOf('"dart:async"'));
+    expect(unlinkedUnits[0].exports[0].uriEnd, libraryText.indexOf(';'));
+  }
+
   test_export_show_order() {
     serializeLibraryText('export "dart:async" show Future, Stream;');
     expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
@@ -1860,6 +1868,8 @@ typedef F();
     expect(unlinkedUnits[0].imports, hasLength(1));
     checkDependency(prelinked.importDependencies[0], 'dart:core', 'dart:core');
     expect(unlinkedUnits[0].imports[0].uri, isEmpty);
+    expect(unlinkedUnits[0].imports[0].uriOffset, 0);
+    expect(unlinkedUnits[0].imports[0].uriEnd, 0);
     expect(unlinkedUnits[0].imports[0].prefixReference, 0);
     expect(unlinkedUnits[0].imports[0].combinators, isEmpty);
     expect(unlinkedUnits[0].imports[0].isImplicit, isTrue);
@@ -1904,6 +1914,9 @@ typedef F();
     String libraryText = '    import "dart:async"; Future x;';
     serializeLibraryText(libraryText);
     expect(unlinkedUnits[0].imports[0].offset, libraryText.indexOf('import'));
+    expect(unlinkedUnits[0].imports[0].uriOffset,
+        libraryText.indexOf('"dart:async"'));
+    expect(unlinkedUnits[0].imports[0].uriEnd, libraryText.indexOf('; Future'));
   }
 
   test_import_prefix_name() {
@@ -2003,6 +2016,17 @@ a.Stream s;
     expect(unlinkedUnits[0].libraryName, isEmpty);
   }
 
+  test_part_declaration() {
+    addNamedSource('/a.dart', 'part of my.lib;');
+    String text = 'library my.lib; part "a.dart"; // <-part';
+    serializeLibraryText(text);
+    expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.parts[0], 'a.dart');
+    expect(unlinkedUnits[0].parts, hasLength(1));
+    expect(unlinkedUnits[0].parts[0].uriOffset, text.indexOf('"a.dart"'));
+    expect(unlinkedUnits[0].parts[0].uriEnd, text.indexOf('; // <-part'));
+  }
+
   test_parts_defining_compilation_unit() {
     serializeLibraryText('');
     expect(prelinked.units, hasLength(1));
@@ -2016,7 +2040,7 @@ a.Stream s;
     serializeLibraryText(libraryText);
     expect(prelinked.units, hasLength(2));
     expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
-    expect(unlinkedUnits[0].publicNamespace.parts[0].uri, 'part1.dart');
+    expect(unlinkedUnits[0].publicNamespace.parts[0], 'part1.dart');
   }
 
   test_public_namespace_of_part() {

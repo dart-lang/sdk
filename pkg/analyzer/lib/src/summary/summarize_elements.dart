@@ -207,13 +207,17 @@ class _LibrarySerializer {
         b.libraryName = libraryElement.name;
       }
       b.publicNamespace = encodeUnlinkedPublicNamespace(ctx,
-          exports: libraryElement.exports.map(serializeExport).toList(),
+          exports: libraryElement.exports.map(serializeExportPublic).toList(),
           parts: libraryElement.parts
-              .map((CompilationUnitElement e) =>
-                  encodeUnlinkedPart(ctx, uri: e.uri))
+              .map((CompilationUnitElement e) => e.uri)
               .toList(),
           names: names);
+      b.exports = libraryElement.exports.map(serializeExportNonPublic).toList();
       b.imports = libraryElement.imports.map(serializeImport).toList();
+      b.parts = libraryElement.parts
+          .map((CompilationUnitElement e) =>
+              encodeUnlinkedPart(ctx, uriOffset: e.uriOffset, uriEnd: e.uriEnd))
+          .toList();
     } else {
       // TODO(paulberry): we need to figure out a way to record library, part,
       // import, and export declarations that appear in non-defining
@@ -432,10 +436,22 @@ class _LibrarySerializer {
   }
 
   /**
-   * Serialize the given [exportElement] into an [UnlinkedExport].
+   * Serialize the given [exportElement] into an [UnlinkedExportNonPublic].
    */
-  UnlinkedExportBuilder serializeExport(ExportElement exportElement) {
-    UnlinkedExportBuilder b = new UnlinkedExportBuilder(ctx);
+  UnlinkedExportNonPublicBuilder serializeExportNonPublic(
+      ExportElement exportElement) {
+    UnlinkedExportNonPublicBuilder b = new UnlinkedExportNonPublicBuilder(ctx);
+    b.uriOffset = exportElement.uriOffset;
+    b.uriEnd = exportElement.uriEnd;
+    return b;
+  }
+
+  /**
+   * Serialize the given [exportElement] into an [UnlinkedExportPublic].
+   */
+  UnlinkedExportPublicBuilder serializeExportPublic(
+      ExportElement exportElement) {
+    UnlinkedExportPublicBuilder b = new UnlinkedExportPublicBuilder(ctx);
     b.uri = exportElement.uri;
     b.combinators = exportElement.combinators.map(serializeCombinator).toList();
     return b;
@@ -457,6 +473,8 @@ class _LibrarySerializer {
       b.isImplicit = true;
     } else {
       b.uri = importElement.uri;
+      b.uriOffset = importElement.uriOffset;
+      b.uriEnd = importElement.uriEnd;
     }
     addTransitiveExportClosure(importElement.importedLibrary);
     prelinkedImports.add(serializeDependency(importElement.importedLibrary));

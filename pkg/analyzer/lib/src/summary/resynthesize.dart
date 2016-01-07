@@ -117,8 +117,8 @@ class SummaryResynthesizer extends ElementResynthesizer {
         getUnlinkedSummary(uri)
       ];
       Source librarySource = _getSource(uri);
-      for (UnlinkedPart part in serializedUnits[0].publicNamespace.parts) {
-        Source partSource = sourceFactory.resolveUri(librarySource, part.uri);
+      for (String part in serializedUnits[0].publicNamespace.parts) {
+        Source partSource = sourceFactory.resolveUri(librarySource, part);
         String partAbsUri = partSource.uri.toString();
         serializedUnits.add(getUnlinkedSummary(partAbsUri));
       }
@@ -484,18 +484,21 @@ class _LibraryResynthesizer {
   /**
    * Resynthesize an [ExportElement],
    */
-  ExportElement buildExport(UnlinkedExport serializedExport) {
+  ExportElement buildExport(UnlinkedExportPublic serializedExportPublic,
+      UnlinkedExportNonPublic serializedExportNonPublic) {
     ExportElementImpl exportElement = new ExportElementImpl(0);
     String exportedLibraryUri = summaryResynthesizer.sourceFactory
-        .resolveUri(librarySource, serializedExport.uri)
+        .resolveUri(librarySource, serializedExportPublic.uri)
         .uri
         .toString();
     exportElement.exportedLibrary = new LibraryElementHandle(
         summaryResynthesizer,
         new ElementLocationImpl.con3(<String>[exportedLibraryUri]));
-    exportElement.uri = serializedExport.uri;
+    exportElement.uri = serializedExportPublic.uri;
     exportElement.combinators =
-        serializedExport.combinators.map(buildCombinator).toList();
+        serializedExportPublic.combinators.map(buildCombinator).toList();
+    exportElement.uriOffset = serializedExportNonPublic.uriOffset;
+    exportElement.uriEnd = serializedExportNonPublic.uriEnd;
     return exportElement;
   }
 
@@ -612,6 +615,8 @@ class _LibraryResynthesizer {
       importElement.synthetic = true;
     } else {
       importElement.uri = serializedImport.uri;
+      importElement.uriOffset = serializedImport.uriOffset;
+      importElement.uriEnd = serializedImport.uriEnd;
     }
     if (serializedImport.prefixReference != 0) {
       UnlinkedReference serializedPrefix =
@@ -641,7 +646,8 @@ class _LibraryResynthesizer {
         prelinkedLibrary.units.length);
     for (int i = 1; i < prelinkedLibrary.units.length; i++) {
       CompilationUnitElementImpl part = buildPart(
-          unlinkedDefiningUnit.publicNamespace.parts[i - 1].uri,
+          unlinkedDefiningUnit.publicNamespace.parts[i - 1],
+          unlinkedDefiningUnit.parts[i - 1],
           unlinkedUnits[i]);
       parts.add(part);
     }
@@ -652,8 +658,14 @@ class _LibraryResynthesizer {
           prelinkedLibrary.importDependencies[i]));
     }
     libraryElement.imports = imports;
-    libraryElement.exports =
-        unlinkedDefiningUnit.publicNamespace.exports.map(buildExport).toList();
+    List<ExportElement> exports = <ExportElement>[];
+    assert(unlinkedDefiningUnit.exports.length ==
+        unlinkedDefiningUnit.publicNamespace.exports.length);
+    for (int i = 0; i < unlinkedDefiningUnit.exports.length; i++) {
+      exports.add(buildExport(unlinkedDefiningUnit.publicNamespace.exports[i],
+          unlinkedDefiningUnit.exports[i]));
+    }
+    libraryElement.exports = exports;
     populateUnit(definingCompilationUnit, 0);
     for (int i = 0; i < parts.length; i++) {
       populateUnit(parts[i], i + 1);
@@ -712,11 +724,13 @@ class _LibraryResynthesizer {
    * than the defining compilation unit.
    */
   CompilationUnitElementImpl buildPart(
-      String uri, UnlinkedUnit serializedPart) {
+      String uri, UnlinkedPart partDecl, UnlinkedUnit serializedPart) {
     Source unitSource =
         summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
     CompilationUnitElementImpl partUnit =
         new CompilationUnitElementImpl(unitSource.shortName);
+    partUnit.uriOffset = partDecl.uriOffset;
+    partUnit.uriEnd = partDecl.uriEnd;
     partUnit.source = unitSource;
     partUnit.librarySource = librarySource;
     partUnit.uri = uri;
@@ -758,7 +772,7 @@ class _LibraryResynthesizer {
           UnlinkedUnit referencedLibraryDefiningUnit =
               summaryResynthesizer.getUnlinkedSummary(referencedLibraryUri);
           String uri = referencedLibraryDefiningUnit.publicNamespace.parts[
-              referenceResolution.unit - 1].uri;
+              referenceResolution.unit - 1];
           Source partSource = summaryResynthesizer.sourceFactory
               .resolveUri(referencedLibrarySource, uri);
           partUri = partSource.uri.toString();
@@ -774,7 +788,7 @@ class _LibraryResynthesizer {
         referencedLibraryUri = librarySource.uri.toString();
         if (referenceResolution.unit != 0) {
           String uri = unlinkedUnits[0].publicNamespace.parts[
-              referenceResolution.unit - 1].uri;
+              referenceResolution.unit - 1];
           Source partSource =
               summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
           partUri = partSource.uri.toString();

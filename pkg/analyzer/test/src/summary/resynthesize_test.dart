@@ -56,7 +56,7 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.imports.length, original.imports.length);
     for (int i = 0; i < resynthesized.imports.length; i++) {
       compareImportElements(resynthesized.imports[i], original.imports[i],
-          'import ${original.imports[i].name}');
+          'import ${original.imports[i].uri}');
     }
     expect(resynthesized.exports.length, original.exports.length);
     for (int i = 0; i < resynthesized.exports.length; i++) {
@@ -129,7 +129,8 @@ class ResynthTest extends ResolverTestCase {
 
   void compareCompilationUnitElements(CompilationUnitElementImpl resynthesized,
       CompilationUnitElementImpl original) {
-    compareUriReferencedElements(resynthesized, original, '(compilation unit)');
+    String desc = 'Compilation unit ${original.source.uri}';
+    compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.source, original.source);
     expect(resynthesized.librarySource, original.librarySource);
     expect(resynthesized.types.length, original.types.length);
@@ -445,6 +446,8 @@ class ResynthTest extends ResolverTestCase {
       UriReferencedElementImpl original, String desc) {
     compareElements(resynthesized, original, desc);
     expect(resynthesized.uri, original.uri);
+    expect(resynthesized.uriOffset, original.uriOffset, reason: desc);
+    expect(resynthesized.uriEnd, original.uriEnd, reason: desc);
   }
 
   void compareVariableElements(VariableElementImpl resynthesized,

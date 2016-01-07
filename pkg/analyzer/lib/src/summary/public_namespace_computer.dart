@@ -42,8 +42,9 @@ class _CombinatorEncoder extends SimpleAstVisitor<UnlinkedCombinatorBuilder> {
 class _PublicNamespaceVisitor extends RecursiveAstVisitor {
   final BuilderContext ctx;
   final List<UnlinkedPublicNameBuilder> names = <UnlinkedPublicNameBuilder>[];
-  final List<UnlinkedExportBuilder> exports = <UnlinkedExportBuilder>[];
-  final List<UnlinkedPartBuilder> parts = <UnlinkedPartBuilder>[];
+  final List<UnlinkedExportPublicBuilder> exports =
+      <UnlinkedExportPublicBuilder>[];
+  final List<String> parts = <String>[];
 
   _PublicNamespaceVisitor(this.ctx);
 
@@ -76,7 +77,7 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
 
   @override
   visitExportDirective(ExportDirective node) {
-    exports.add(encodeUnlinkedExport(ctx,
+    exports.add(encodeUnlinkedExportPublic(ctx,
         uri: node.uri.stringValue,
         combinators: node.combinators
             .map((Combinator c) => c.accept(new _CombinatorEncoder(ctx)))
@@ -101,7 +102,7 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
 
   @override
   visitPartDirective(PartDirective node) {
-    parts.add(encodeUnlinkedPart(ctx, uri: node.uri.stringValue));
+    parts.add(node.uri.stringValue);
   }
 
   @override

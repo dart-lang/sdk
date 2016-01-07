@@ -1216,13 +1216,90 @@ UnlinkedExecutableBuilder encodeUnlinkedExecutable(base.BuilderContext builderCo
 }
 
 /**
- * Unlinked summary information about an export declaration.
+ * Unlinked summary information about an export declaration (stored outside
+ * [UnlinkedPublicNamespace]).
  */
-class UnlinkedExport extends base.SummaryClass {
+class UnlinkedExportNonPublic extends base.SummaryClass {
+  int _uriOffset;
+  int _uriEnd;
+
+  UnlinkedExportNonPublic.fromJson(Map json)
+    : _uriOffset = json["uriOffset"],
+      _uriEnd = json["uriEnd"];
+
+  @override
+  Map<String, Object> toMap() => {
+    "uriOffset": uriOffset,
+    "uriEnd": uriEnd,
+  };
+
+  /**
+   * Offset of the URI string (including quotes) relative to the beginning of
+   * the file.
+   */
+  int get uriOffset => _uriOffset ?? 0;
+
+  /**
+   * End of the URI string (including quotes) relative to the beginning of the
+   * file.
+   */
+  int get uriEnd => _uriEnd ?? 0;
+}
+
+class UnlinkedExportNonPublicBuilder {
+  final Map _json = {};
+
+  bool _finished = false;
+
+  UnlinkedExportNonPublicBuilder(base.BuilderContext context);
+
+  /**
+   * Offset of the URI string (including quotes) relative to the beginning of
+   * the file.
+   */
+  void set uriOffset(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("uriOffset"));
+    if (_value != null) {
+      _json["uriOffset"] = _value;
+    }
+  }
+
+  /**
+   * End of the URI string (including quotes) relative to the beginning of the
+   * file.
+   */
+  void set uriEnd(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("uriEnd"));
+    if (_value != null) {
+      _json["uriEnd"] = _value;
+    }
+  }
+
+  Map finish() {
+    assert(!_finished);
+    _finished = true;
+    return _json;
+  }
+}
+
+UnlinkedExportNonPublicBuilder encodeUnlinkedExportNonPublic(base.BuilderContext builderContext, {int uriOffset, int uriEnd}) {
+  UnlinkedExportNonPublicBuilder builder = new UnlinkedExportNonPublicBuilder(builderContext);
+  builder.uriOffset = uriOffset;
+  builder.uriEnd = uriEnd;
+  return builder;
+}
+
+/**
+ * Unlinked summary information about an export declaration (stored inside
+ * [UnlinkedPublicNamespace]).
+ */
+class UnlinkedExportPublic extends base.SummaryClass {
   String _uri;
   List<UnlinkedCombinator> _combinators;
 
-  UnlinkedExport.fromJson(Map json)
+  UnlinkedExportPublic.fromJson(Map json)
     : _uri = json["uri"],
       _combinators = json["combinators"]?.map((x) => new UnlinkedCombinator.fromJson(x))?.toList();
 
@@ -1243,12 +1320,12 @@ class UnlinkedExport extends base.SummaryClass {
   List<UnlinkedCombinator> get combinators => _combinators ?? const <UnlinkedCombinator>[];
 }
 
-class UnlinkedExportBuilder {
+class UnlinkedExportPublicBuilder {
   final Map _json = {};
 
   bool _finished = false;
 
-  UnlinkedExportBuilder(base.BuilderContext context);
+  UnlinkedExportPublicBuilder(base.BuilderContext context);
 
   /**
    * URI used in the source code to reference the exported library.
@@ -1279,8 +1356,8 @@ class UnlinkedExportBuilder {
   }
 }
 
-UnlinkedExportBuilder encodeUnlinkedExport(base.BuilderContext builderContext, {String uri, List<UnlinkedCombinatorBuilder> combinators}) {
-  UnlinkedExportBuilder builder = new UnlinkedExportBuilder(builderContext);
+UnlinkedExportPublicBuilder encodeUnlinkedExportPublic(base.BuilderContext builderContext, {String uri, List<UnlinkedCombinatorBuilder> combinators}) {
+  UnlinkedExportPublicBuilder builder = new UnlinkedExportPublicBuilder(builderContext);
   builder.uri = uri;
   builder.combinators = combinators;
   return builder;
@@ -1296,6 +1373,8 @@ class UnlinkedImport extends base.SummaryClass {
   List<UnlinkedCombinator> _combinators;
   bool _isDeferred;
   bool _isImplicit;
+  int _uriOffset;
+  int _uriEnd;
 
   UnlinkedImport.fromJson(Map json)
     : _uri = json["uri"],
@@ -1303,7 +1382,9 @@ class UnlinkedImport extends base.SummaryClass {
       _prefixReference = json["prefixReference"],
       _combinators = json["combinators"]?.map((x) => new UnlinkedCombinator.fromJson(x))?.toList(),
       _isDeferred = json["isDeferred"],
-      _isImplicit = json["isImplicit"];
+      _isImplicit = json["isImplicit"],
+      _uriOffset = json["uriOffset"],
+      _uriEnd = json["uriEnd"];
 
   @override
   Map<String, Object> toMap() => {
@@ -1313,6 +1394,8 @@ class UnlinkedImport extends base.SummaryClass {
     "combinators": combinators,
     "isDeferred": isDeferred,
     "isImplicit": isImplicit,
+    "uriOffset": uriOffset,
+    "uriEnd": uriEnd,
   };
 
   /**
@@ -1348,6 +1431,18 @@ class UnlinkedImport extends base.SummaryClass {
    * Indicates whether the import declaration is implicit.
    */
   bool get isImplicit => _isImplicit ?? false;
+
+  /**
+   * Offset of the URI string (including quotes) relative to the beginning of
+   * the file.  If [isImplicit] is true, zero.
+   */
+  int get uriOffset => _uriOffset ?? 0;
+
+  /**
+   * End of the URI string (including quotes) relative to the beginning of the
+   * file.  If [isImplicit] is true, zero.
+   */
+  int get uriEnd => _uriEnd ?? 0;
 }
 
 class UnlinkedImportBuilder {
@@ -1427,6 +1522,30 @@ class UnlinkedImportBuilder {
     }
   }
 
+  /**
+   * Offset of the URI string (including quotes) relative to the beginning of
+   * the file.  If [isImplicit] is true, zero.
+   */
+  void set uriOffset(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("uriOffset"));
+    if (_value != null) {
+      _json["uriOffset"] = _value;
+    }
+  }
+
+  /**
+   * End of the URI string (including quotes) relative to the beginning of the
+   * file.  If [isImplicit] is true, zero.
+   */
+  void set uriEnd(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("uriEnd"));
+    if (_value != null) {
+      _json["uriEnd"] = _value;
+    }
+  }
+
   Map finish() {
     assert(!_finished);
     _finished = true;
@@ -1434,7 +1553,7 @@ class UnlinkedImportBuilder {
   }
 }
 
-UnlinkedImportBuilder encodeUnlinkedImport(base.BuilderContext builderContext, {String uri, int offset, int prefixReference, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit}) {
+UnlinkedImportBuilder encodeUnlinkedImport(base.BuilderContext builderContext, {String uri, int offset, int prefixReference, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit, int uriOffset, int uriEnd}) {
   UnlinkedImportBuilder builder = new UnlinkedImportBuilder(builderContext);
   builder.uri = uri;
   builder.offset = offset;
@@ -1442,6 +1561,8 @@ UnlinkedImportBuilder encodeUnlinkedImport(base.BuilderContext builderContext, {
   builder.combinators = combinators;
   builder.isDeferred = isDeferred;
   builder.isImplicit = isImplicit;
+  builder.uriOffset = uriOffset;
+  builder.uriEnd = uriEnd;
   return builder;
 }
 
@@ -1632,20 +1753,30 @@ UnlinkedParamBuilder encodeUnlinkedParam(base.BuilderContext builderContext, {St
  * Unlinked summary information about a part declaration.
  */
 class UnlinkedPart extends base.SummaryClass {
-  String _uri;
+  int _uriOffset;
+  int _uriEnd;
 
   UnlinkedPart.fromJson(Map json)
-    : _uri = json["uri"];
+    : _uriOffset = json["uriOffset"],
+      _uriEnd = json["uriEnd"];
 
   @override
   Map<String, Object> toMap() => {
-    "uri": uri,
+    "uriOffset": uriOffset,
+    "uriEnd": uriEnd,
   };
 
   /**
-   * String used in the compilation unit to refer to the part file.
+   * Offset of the URI string (including quotes) relative to the beginning of
+   * the file.
    */
-  String get uri => _uri ?? '';
+  int get uriOffset => _uriOffset ?? 0;
+
+  /**
+   * End of the URI string (including quotes) relative to the beginning of the
+   * file.
+   */
+  int get uriEnd => _uriEnd ?? 0;
 }
 
 class UnlinkedPartBuilder {
@@ -1656,13 +1787,26 @@ class UnlinkedPartBuilder {
   UnlinkedPartBuilder(base.BuilderContext context);
 
   /**
-   * String used in the compilation unit to refer to the part file.
+   * Offset of the URI string (including quotes) relative to the beginning of
+   * the file.
    */
-  void set uri(String _value) {
+  void set uriOffset(int _value) {
     assert(!_finished);
-    assert(!_json.containsKey("uri"));
+    assert(!_json.containsKey("uriOffset"));
     if (_value != null) {
-      _json["uri"] = _value;
+      _json["uriOffset"] = _value;
+    }
+  }
+
+  /**
+   * End of the URI string (including quotes) relative to the beginning of the
+   * file.
+   */
+  void set uriEnd(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("uriEnd"));
+    if (_value != null) {
+      _json["uriEnd"] = _value;
     }
   }
 
@@ -1673,9 +1817,10 @@ class UnlinkedPartBuilder {
   }
 }
 
-UnlinkedPartBuilder encodeUnlinkedPart(base.BuilderContext builderContext, {String uri}) {
+UnlinkedPartBuilder encodeUnlinkedPart(base.BuilderContext builderContext, {int uriOffset, int uriEnd}) {
   UnlinkedPartBuilder builder = new UnlinkedPartBuilder(builderContext);
-  builder.uri = uri;
+  builder.uriOffset = uriOffset;
+  builder.uriEnd = uriEnd;
   return builder;
 }
 
@@ -1790,13 +1935,13 @@ UnlinkedPublicNameBuilder encodeUnlinkedPublicName(base.BuilderContext builderCo
  */
 class UnlinkedPublicNamespace extends base.SummaryClass {
   List<UnlinkedPublicName> _names;
-  List<UnlinkedExport> _exports;
-  List<UnlinkedPart> _parts;
+  List<UnlinkedExportPublic> _exports;
+  List<String> _parts;
 
   UnlinkedPublicNamespace.fromJson(Map json)
     : _names = json["names"]?.map((x) => new UnlinkedPublicName.fromJson(x))?.toList(),
-      _exports = json["exports"]?.map((x) => new UnlinkedExport.fromJson(x))?.toList(),
-      _parts = json["parts"]?.map((x) => new UnlinkedPart.fromJson(x))?.toList();
+      _exports = json["exports"]?.map((x) => new UnlinkedExportPublic.fromJson(x))?.toList(),
+      _parts = json["parts"];
 
   @override
   Map<String, Object> toMap() => {
@@ -1818,12 +1963,12 @@ class UnlinkedPublicNamespace extends base.SummaryClass {
   /**
    * Export declarations in the compilation unit.
    */
-  List<UnlinkedExport> get exports => _exports ?? const <UnlinkedExport>[];
+  List<UnlinkedExportPublic> get exports => _exports ?? const <UnlinkedExportPublic>[];
 
   /**
-   * Part declarations in the compilation unit.
+   * URIs referenced by part declarations in the compilation unit.
    */
-  List<UnlinkedPart> get parts => _parts ?? const <UnlinkedPart>[];
+  List<String> get parts => _parts ?? const <String>[];
 }
 
 class UnlinkedPublicNamespaceBuilder {
@@ -1850,7 +1995,7 @@ class UnlinkedPublicNamespaceBuilder {
   /**
    * Export declarations in the compilation unit.
    */
-  void set exports(List<UnlinkedExportBuilder> _value) {
+  void set exports(List<UnlinkedExportPublicBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("exports"));
     if (!(_value == null || _value.isEmpty)) {
@@ -1859,13 +2004,13 @@ class UnlinkedPublicNamespaceBuilder {
   }
 
   /**
-   * Part declarations in the compilation unit.
+   * URIs referenced by part declarations in the compilation unit.
    */
-  void set parts(List<UnlinkedPartBuilder> _value) {
+  void set parts(List<String> _value) {
     assert(!_finished);
     assert(!_json.containsKey("parts"));
     if (!(_value == null || _value.isEmpty)) {
-      _json["parts"] = _value.map((b) => b.finish()).toList();
+      _json["parts"] = _value.toList();
     }
   }
 
@@ -1878,7 +2023,7 @@ class UnlinkedPublicNamespaceBuilder {
   }
 }
 
-UnlinkedPublicNamespaceBuilder encodeUnlinkedPublicNamespace(base.BuilderContext builderContext, {List<UnlinkedPublicNameBuilder> names, List<UnlinkedExportBuilder> exports, List<UnlinkedPartBuilder> parts}) {
+UnlinkedPublicNamespaceBuilder encodeUnlinkedPublicNamespace(base.BuilderContext builderContext, {List<UnlinkedPublicNameBuilder> names, List<UnlinkedExportPublicBuilder> exports, List<String> parts}) {
   UnlinkedPublicNamespaceBuilder builder = new UnlinkedPublicNamespaceBuilder(builderContext);
   builder.names = names;
   builder.exports = exports;
@@ -2295,7 +2440,9 @@ class UnlinkedUnit extends base.SummaryClass {
   List<UnlinkedClass> _classes;
   List<UnlinkedEnum> _enums;
   List<UnlinkedExecutable> _executables;
+  List<UnlinkedExportNonPublic> _exports;
   List<UnlinkedImport> _imports;
+  List<UnlinkedPart> _parts;
   List<UnlinkedTypedef> _typedefs;
   List<UnlinkedVariable> _variables;
 
@@ -2306,7 +2453,9 @@ class UnlinkedUnit extends base.SummaryClass {
       _classes = json["classes"]?.map((x) => new UnlinkedClass.fromJson(x))?.toList(),
       _enums = json["enums"]?.map((x) => new UnlinkedEnum.fromJson(x))?.toList(),
       _executables = json["executables"]?.map((x) => new UnlinkedExecutable.fromJson(x))?.toList(),
+      _exports = json["exports"]?.map((x) => new UnlinkedExportNonPublic.fromJson(x))?.toList(),
       _imports = json["imports"]?.map((x) => new UnlinkedImport.fromJson(x))?.toList(),
+      _parts = json["parts"]?.map((x) => new UnlinkedPart.fromJson(x))?.toList(),
       _typedefs = json["typedefs"]?.map((x) => new UnlinkedTypedef.fromJson(x))?.toList(),
       _variables = json["variables"]?.map((x) => new UnlinkedVariable.fromJson(x))?.toList();
 
@@ -2318,7 +2467,9 @@ class UnlinkedUnit extends base.SummaryClass {
     "classes": classes,
     "enums": enums,
     "executables": executables,
+    "exports": exports,
     "imports": imports,
+    "parts": parts,
     "typedefs": typedefs,
     "variables": variables,
   };
@@ -2359,9 +2510,19 @@ class UnlinkedUnit extends base.SummaryClass {
   List<UnlinkedExecutable> get executables => _executables ?? const <UnlinkedExecutable>[];
 
   /**
+   * Export declarations in the compilation unit.
+   */
+  List<UnlinkedExportNonPublic> get exports => _exports ?? const <UnlinkedExportNonPublic>[];
+
+  /**
    * Import declarations in the compilation unit.
    */
   List<UnlinkedImport> get imports => _imports ?? const <UnlinkedImport>[];
+
+  /**
+   * Part declarations in the compilation unit.
+   */
+  List<UnlinkedPart> get parts => _parts ?? const <UnlinkedPart>[];
 
   /**
    * Typedefs declared in the compilation unit.
@@ -2451,6 +2612,17 @@ class UnlinkedUnitBuilder {
   }
 
   /**
+   * Export declarations in the compilation unit.
+   */
+  void set exports(List<UnlinkedExportNonPublicBuilder> _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("exports"));
+    if (!(_value == null || _value.isEmpty)) {
+      _json["exports"] = _value.map((b) => b.finish()).toList();
+    }
+  }
+
+  /**
    * Import declarations in the compilation unit.
    */
   void set imports(List<UnlinkedImportBuilder> _value) {
@@ -2458,6 +2630,17 @@ class UnlinkedUnitBuilder {
     assert(!_json.containsKey("imports"));
     if (!(_value == null || _value.isEmpty)) {
       _json["imports"] = _value.map((b) => b.finish()).toList();
+    }
+  }
+
+  /**
+   * Part declarations in the compilation unit.
+   */
+  void set parts(List<UnlinkedPartBuilder> _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("parts"));
+    if (!(_value == null || _value.isEmpty)) {
+      _json["parts"] = _value.map((b) => b.finish()).toList();
     }
   }
 
@@ -2492,7 +2675,7 @@ class UnlinkedUnitBuilder {
   }
 }
 
-UnlinkedUnitBuilder encodeUnlinkedUnit(base.BuilderContext builderContext, {String libraryName, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedImportBuilder> imports, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
+UnlinkedUnitBuilder encodeUnlinkedUnit(base.BuilderContext builderContext, {String libraryName, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedPartBuilder> parts, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
   UnlinkedUnitBuilder builder = new UnlinkedUnitBuilder(builderContext);
   builder.libraryName = libraryName;
   builder.publicNamespace = publicNamespace;
@@ -2500,7 +2683,9 @@ UnlinkedUnitBuilder encodeUnlinkedUnit(base.BuilderContext builderContext, {Stri
   builder.classes = classes;
   builder.enums = enums;
   builder.executables = executables;
+  builder.exports = exports;
   builder.imports = imports;
+  builder.parts = parts;
   builder.typedefs = typedefs;
   builder.variables = variables;
   return builder;
