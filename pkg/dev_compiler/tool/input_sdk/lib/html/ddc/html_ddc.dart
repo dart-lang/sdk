@@ -19434,7 +19434,7 @@ wrap_jso(jso) {
     name = JS('String', '#.name', constructor);
     f = getHtmlCreateFunction(name);
     if (f == null) {
-      console.error('Could not instantiate $name');
+      console.warn('Could not instantiate $name');
       skip = true;
       constructor = JS('', '#.__proto__', constructor);
     }

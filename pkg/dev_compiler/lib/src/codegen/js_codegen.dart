@@ -3588,7 +3588,11 @@ class JSGenerator extends CodeGenerator {
         new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields);
     var module = codegen.emitLibrary(unit);
     var out = compiler.getOutputPath(library.source.uri);
-    return writeJsLibrary(module, out,
+    var flags = compiler.options;
+    var serverUri = flags.serverMode
+        ? Uri.parse('http://${flags.host}:${flags.port}/')
+        : null;
+    return writeJsLibrary(module, out, compiler.inputBaseDir, serverUri,
         emitSourceMaps: options.emitSourceMaps,
         arrowFnBindThisWorkaround: options.arrowFnBindThisWorkaround);
   }

@@ -134,6 +134,7 @@ class ServerCompiler extends AbstractCompiler {
   }
 
   void _buildDartLibrary(DartSourceNode node) {
+    print('Compiling ${node.uri}');
     var source = node.source;
     // TODO(sigmund): find out from analyzer team if there is a better way
     context.applyChanges(new ChangeSet()..changedSource(source));
@@ -253,10 +254,22 @@ class DevServer {
     var out = new Directory(outDir);
     if (!await out.exists()) await out.create(recursive: true);
 
+    var mainHandler =
+        shelf_static.createStaticHandler(outDir, defaultDocument: _entryPath);
+    var sourceHandler = shelf_static.createStaticHandler(compiler.inputBaseDir,
+        serveFilesOutsidePath: true);
+    var topLevelHandler = (shelf.Request request) {
+      var path = request.url.path;
+      if (path.endsWith('.dart')) {
+        return sourceHandler(request);
+      } else {
+        return mainHandler(request);
+      }
+    };
+
     var handler = const shelf.Pipeline()
         .addMiddleware(rebuildAndCache)
-        .addHandler(shelf_static.createStaticHandler(outDir,
-            defaultDocument: _entryPath));
+        .addHandler(topLevelHandler);
     await shelf.serve(handler, host, port);
     print('Serving $_entryPath at http://$host:$port/');
     // Give the compiler a head start. This is not needed for correctness,
@@ -267,7 +280,6 @@ class DevServer {
   }
 
   shelf.Handler rebuildAndCache(shelf.Handler handler) => (request) {
-        print('requested $GREEN_COLOR${request.url}$NO_COLOR');
         // Trigger recompile only when requesting the HTML page.
         var segments = request.url.pathSegments;
         bool isEntryPage = segments.length == 0 || segments[0] == _entryPath;

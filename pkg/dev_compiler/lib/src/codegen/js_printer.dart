@@ -18,7 +18,8 @@ import '../utils.dart' show computeHash, locationForOffset;
 
 import 'js_names.dart' show TemporaryNamer;
 
-String writeJsLibrary(JS.Program jsTree, String outputPath,
+String writeJsLibrary(
+    JS.Program jsTree, String outputPath, String inputDir, Uri serverUri,
     {bool emitSourceMaps: false, bool arrowFnBindThisWorkaround: false}) {
   var outFilename = path.basename(outputPath);
   var outDir = path.dirname(outputPath);
@@ -27,7 +28,8 @@ String writeJsLibrary(JS.Program jsTree, String outputPath,
   JS.JavaScriptPrintingContext context;
   if (emitSourceMaps) {
     var printer = new srcmaps.Printer(outFilename);
-    context = new SourceMapPrintingContext(printer, outDir);
+    context =
+        new SourceMapPrintingContext(printer, outDir, inputDir, serverUri);
   } else {
     context = new JS.SimpleJavaScriptPrintingContext();
   }
@@ -73,11 +75,17 @@ String writeJsLibrary(JS.Program jsTree, String outputPath,
 class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {
   final srcmaps.Printer printer;
   final String outputDir;
+  final String inputDir;
+
+  // TODO(vsm): we could abstract this out and have a generic Uri mapping
+  // instead of hardcoding a notion of a server uri.
+  final Uri serverUri;
 
   CompilationUnit unit;
   Uri uri;
 
-  SourceMapPrintingContext(this.printer, this.outputDir);
+  SourceMapPrintingContext(
+      this.printer, this.outputDir, this.inputDir, this.serverUri);
 
   void emit(String string) {
     printer.add(string);
@@ -96,6 +104,7 @@ class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {
       unit = node.getAncestor((n) => n is CompilationUnit);
       uri = _makeRelativeUri(unit.element.source.uri);
     }
+    if (unit == null) return;
 
     assert(unit != null);
     var loc = _location(node.offset);
@@ -114,7 +123,15 @@ class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {
       locationForOffset(unit.lineInfo, uri, offset);
 
   Uri _makeRelativeUri(Uri src) {
-    return new Uri(path: path.relative(src.path, from: outputDir));
+    if (serverUri == null) {
+      return new Uri(path: path.relative(src.path, from: outputDir));
+    } else {
+      if (src.path.startsWith('/')) {
+        return serverUri.resolve(path.relative(src.path, from: inputDir));
+      } else {
+        return serverUri.resolve(path.join('packages', src.path));
+      }
+    }
   }
 
   void exitNode(JS.Node jsNode) {

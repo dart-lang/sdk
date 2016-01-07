@@ -12435,7 +12435,7 @@ dart_library.library('dart/html', null, /* Imports */[
       name = constructor.name;
       f = getHtmlCreateFunction(name);
       if (f == null) {
-        dart.dsend(/* Unimplemented unknown name */console, 'error', `Could not instantiate ${name}`);
+        dart.dsend(/* Unimplemented unknown name */console, 'warn', `Could not instantiate ${name}`);
         skip = true;
         constructor = constructor.__proto__;
       }
