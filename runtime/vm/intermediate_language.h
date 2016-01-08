@@ -69,6 +69,7 @@ class ClassifyingTokenPositions : public AllStatic {
 #undef DEFINE_CASE
       default:
         UNIMPLEMENTED();
+        return NULL;
     }
   }
 };
