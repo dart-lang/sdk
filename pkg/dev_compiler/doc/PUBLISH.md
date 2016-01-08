@@ -2,6 +2,14 @@
 
 There are the steps for developers on the Dart Dev Compiler team to publish a new version to pub.  The edit steps can be done directly on github if preferred.
 
+## Obtain permission
+
+If you have not uploaded before, you may need to ask [an existing uploader](https://pub.dartlang.org/packages/dev_compiler) to grant you permission.  They'll need to run:
+
+```
+> pub uploader add <your-email-address>
+```
+
 ## Update the version number
 
 Update the following files with the new version number:
