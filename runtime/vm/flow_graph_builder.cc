@@ -1116,7 +1116,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   // statements for which there is no associated source position.
   const Function& function = owner()->function();
   if (FLAG_support_debugger &&
-      (node->token_pos() != Scanner::kNoSourcePos) && !function.is_native()) {
+      (node->token_pos() >= 0) && !function.is_native()) {
     AddInstruction(new(Z) DebugStepCheckInstr(node->token_pos(),
                                               RawPcDescriptors::kRuntimeCall));
   }
@@ -3624,7 +3624,7 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
             !node->value()->AsLoadLocalNode()->local().IsInternal()) ||
         node->value()->IsClosureNode()) &&
         !node->local().IsInternal() &&
-        (node->token_pos() != Scanner::kNoSourcePos)) {
+        (node->token_pos() >= 0)) {
       AddInstruction(new(Z) DebugStepCheckInstr(
           node->token_pos(), RawPcDescriptors::kRuntimeCall));
     }
@@ -4071,10 +4071,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       const LocalVariable& parameter = *scope->VariableAt(num_params - 1);
       check_pos = parameter.token_pos();
     }
-    if (check_pos == Scanner::kNoSourcePos) {
+    if (check_pos < 0) {
       // No parameters or synthetic parameters.
       check_pos = node->token_pos();
-      ASSERT(check_pos != Scanner::kNoSourcePos);
+      ASSERT(check_pos >= 0);
     }
     AddInstruction(new(Z) DebugStepCheckInstr(check_pos,
                                               RawPcDescriptors::kRuntimeCall));

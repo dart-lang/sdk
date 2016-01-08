@@ -444,7 +444,7 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 
 
 void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
-  if ((instr->token_pos() == Scanner::kNoSourcePos) || (instr->env() == NULL)) {
+  if ((instr->token_pos() < 0) || (instr->env() == NULL)) {
     return;
   }
   const Script& script =

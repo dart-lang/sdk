@@ -1420,7 +1420,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
       __ BranchLinkPatchable(
           *StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
     }
-    if (token_pos != Scanner::kNoSourcePos) {
+    if (token_pos >= 0) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
                            Thread::kNoDeoptId,
                            token_pos);
@@ -1454,7 +1454,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
       __ BranchLinkPatchable(
           *StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
     }
-    if (token_pos != Scanner::kNoSourcePos) {
+    if (token_pos >= 0) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
                            Thread::kNoDeoptId,
                            token_pos);

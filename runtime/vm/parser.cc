@@ -7567,7 +7567,7 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
   ASSERT(current_block_ != NULL);
   const intptr_t previous_pos =
       current_block_->scope->PreviousReferencePos(ident);
-  if (previous_pos != Scanner::kNoSourcePos) {
+  if (previous_pos >= 0) {
     ASSERT(!script_.IsNull());
     if (previous_pos > ident_pos) {
       ReportError(ident_pos,
