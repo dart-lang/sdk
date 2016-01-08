@@ -48,7 +48,6 @@ DEFINE_FLAG(bool, load_deferred_eagerly, false,
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
-DEFINE_FLAG(bool, move_super, true, "Move super initializer to end of list.");
 DEFINE_FLAG(bool, conditional_directives, false,
     "Enable conditional directives");
 DEFINE_FLAG(bool, warn_super, false,
@@ -952,13 +951,11 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   switch (func.kind()) {
     case RawFunction::kClosureFunction:
       if (func.IsImplicitClosureFunction()) {
-        node_sequence =
-            parser.ParseImplicitClosure(func);
+        node_sequence = parser.ParseImplicitClosure(func);
         break;
       }
       if (func.IsConstructorClosureFunction()) {
-        node_sequence =
-            parser.ParseConstructorClosure(func);
+        node_sequence = parser.ParseConstructorClosure(func);
         break;
       }
       // Fall-through: Handle non-implicit closures.
@@ -1371,8 +1368,8 @@ SequenceNode* Parser::ParseConstructorClosure(const Function& func) {
   ASSERT(!constructor.IsNull());
 
   ParamList params;
-  // The first parameter of the closure function is the implicit closure
-  // argument.
+  // The first parameter of the closure function is the
+  // implicit closure argument.
   params.AddFinalParameter(token_pos,
                            &Symbols::ClosureParameter(),
                            &Object::dynamic_type());
@@ -2374,7 +2371,6 @@ StaticCallNode* Parser::GenerateSuperConstructorCall(
       const Class& cls,
       intptr_t supercall_pos,
       LocalVariable* receiver,
-      AstNode* phase_parameter,
       ArgumentListNode* forwarding_args) {
   const Class& super_class = Class::Handle(Z, cls.SuperClass());
   // Omit the implicit super() if there is no super class (i.e.
@@ -2392,8 +2388,6 @@ StaticCallNode* Parser::GenerateSuperConstructorCall(
   // Implicit 'this' parameter is the first argument.
   AstNode* implicit_argument = new LoadLocalNode(supercall_pos, receiver);
   arguments->Add(implicit_argument);
-  // Implicit construction phase parameter is second argument.
-  arguments->Add(phase_parameter);
 
   // If this is a super call in a forwarding constructor, add the user-
   // defined arguments to the super call and adjust the the super
@@ -2459,14 +2453,7 @@ StaticCallNode* Parser::ParseSuperInitializer(const Class& cls,
   // 'this' parameter is the first argument to super class constructor.
   AstNode* implicit_argument = new LoadLocalNode(supercall_pos, receiver);
   arguments->Add(implicit_argument);
-  // Second implicit parameter is the construction phase. We optimistically
-  // assume that we can execute both the super initializer and the super
-  // constructor body. We may later change this to only execute the
-  // super initializer.
-  AstNode* phase_parameter =
-      new LiteralNode(supercall_pos,
-                      Smi::ZoneHandle(Z, Smi::New(Function::kCtorPhaseAll)));
-  arguments->Add(phase_parameter);
+
   // 'this' parameter must not be accessible to the other super call arguments.
   receiver->set_invisible(true);
   ParseActualParameters(arguments, kAllowConst);
@@ -2794,17 +2781,15 @@ void Parser::ParseInitializers(const Class& cls,
   if (super_init_call == NULL) {
     // Generate implicit super() if we haven't seen an explicit super call
     // or constructor redirection.
-    AstNode* phase_parameter = new LiteralNode(
-        TokenPos(), Smi::ZoneHandle(Z, Smi::New(Function::kCtorPhaseAll)));
-    super_init_call = GenerateSuperConstructorCall(
-        cls, TokenPos(), receiver, phase_parameter, NULL);
+    super_init_call =
+        GenerateSuperConstructorCall(cls, TokenPos(), receiver, NULL);
     if (super_init_call != NULL) {
       super_init_index = current_block_->statements->length();
       current_block_->statements->Add(super_init_call);
       super_init_is_last = true;
     }
   }
-  if (FLAG_move_super && (super_init_call != NULL) && !super_init_is_last) {
+  if ((super_init_call != NULL) && !super_init_is_last) {
     // If the super initializer call is not at the end of the initializer
     // list, implicitly move it to the end. The actual parameter values
     // are evaluated at the original position in the list and preserved
@@ -2820,10 +2805,10 @@ void Parser::ParseInitializers(const Class& cls,
     ASSERT(super_init_index >= 0);
     ArgumentListNode* ctor_args = super_init_call->arguments();
     LetNode* saved_args = new(Z) LetNode(super_init_call->token_pos());
-    // The super initializer call has at least 2 arguments: the
-    // implicit receiver, and the hidden construction phase.
-    ASSERT(ctor_args->length() >= 2);
-    for (int i = 2; i < ctor_args->length(); i++) {
+    // The super initializer call has at least 1 arguments: the
+    // implicit receiver.
+    ASSERT(ctor_args->length() >= 1);
+    for (int i = 1; i < ctor_args->length(); i++) {
       AstNode* arg = ctor_args->NodeAt(i);
       LocalVariable* temp = CreateTempConstVariable(arg->token_pos(), "sca");
       AstNode* save_temp = new(Z) StoreLocalNode(arg->token_pos(), temp, arg);
@@ -2859,11 +2844,7 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   // 'this' parameter is the first argument to constructor.
   AstNode* implicit_argument = new LoadLocalNode(call_pos, receiver);
   arguments->Add(implicit_argument);
-  // Construction phase parameter is second argument.
-  LocalVariable* phase_param = LookupPhaseParameter();
-  ASSERT(phase_param != NULL);
-  AstNode* phase_argument = new LoadLocalNode(call_pos, phase_param);
-  arguments->Add(phase_argument);
+
   receiver->set_invisible(true);
   ParseActualParameters(arguments, kAllowConst);
   receiver->set_invisible(false);
@@ -2896,12 +2877,6 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   LocalVariable* receiver = new LocalVariable(
       Scanner::kNoSourcePos, Symbols::This(), *ReceiverType(current_class()));
   current_block_->scope->InsertParameterAt(0, receiver);
-
-  LocalVariable* phase_parameter =
-      new LocalVariable(Scanner::kNoSourcePos,
-                        Symbols::PhaseParameter(),
-                        Type::ZoneHandle(Z, Type::SmiType()));
-  current_block_->scope->InsertParameterAt(1, phase_parameter);
 
   // Parse expressions of instance fields that have an explicit
   // initializer expression.
@@ -2942,9 +2917,9 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
     }
 
     // Prepare user-defined arguments to be forwarded to super call.
-    // The first user-defined argument is at position 2.
+    // The first user-defined argument is at position 1.
     forwarding_args = new ArgumentListNode(Scanner::kNoSourcePos);
-    for (int i = 2; i < func.NumParameters(); i++) {
+    for (int i = 1; i < func.NumParameters(); i++) {
       LocalVariable* param = new LocalVariable(
           Scanner::kNoSourcePos,
           String::ZoneHandle(Z, func.ParameterNameAt(i)),
@@ -2958,7 +2933,6 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
       current_class(),
       Scanner::kNoSourcePos,
       receiver,
-      new LoadLocalNode(Scanner::kNoSourcePos, phase_parameter),
       forwarding_args);
   if (super_call != NULL) {
     current_block_->statements->Add(super_call);
@@ -3021,12 +2995,6 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
   ASSERT(current_class().raw() == func.Owner());
   params.AddReceiver(ReceiverType(current_class()), func.token_pos());
 
-  // Add implicit parameter for construction phase.
-  params.AddFinalParameter(
-      TokenPos(),
-      &Symbols::PhaseParameter(),
-      &Type::ZoneHandle(Z, Type::SmiType()));
-
   if (func.is_const()) {
     params.SetImplicitlyFinal();
   }
@@ -3066,9 +3034,9 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
 
   // Turn formal field parameters into field initializers.
   if (params.has_field_initializer) {
-    // First two parameters are implicit receiver and phase.
-    ASSERT(params.parameters->length() >= 2);
-    for (int i = 2; i < params.parameters->length(); i++) {
+    // The first parameter is the implicit receiver.
+    ASSERT(params.parameters->length() >= 1);
+    for (int i = 1; i < params.parameters->length(); i++) {
       ParamDesc& param = (*params.parameters)[i];
       if (param.is_field_initializer) {
         const String& field_name = *param.name;
@@ -3125,124 +3093,10 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
   }
 
   SequenceNode* init_statements = CloseBlock();
-  if (FLAG_move_super) {
-    // Ignore the phase parameter.
-    current_block_->statements->Add(init_statements);
-  } else if (is_redirecting_constructor) {
-    // A redirecting super constructor simply passes the phase parameter on to
-    // the target which executes the corresponding phase.
-    current_block_->statements->Add(init_statements);
-  } else if (init_statements->length() > 0) {
-    // Generate guard around the initializer code.
-    LocalVariable* phase_param = LookupPhaseParameter();
-    AstNode* phase_value = new
-        LoadLocalNode(Scanner::kNoSourcePos, phase_param);
-    AstNode* phase_check = new BinaryOpNode(
-        Scanner::kNoSourcePos, Token::kBIT_AND, phase_value,
-        new LiteralNode(Scanner::kNoSourcePos,
-            Smi::ZoneHandle(Z, Smi::New(Function::kCtorPhaseInit))));
-    AstNode* comparison =
-        new ComparisonNode(Scanner::kNoSourcePos,
-                           Token::kNE_STRICT,
-                           phase_check,
-                           new LiteralNode(TokenPos(),
-                                           Smi::ZoneHandle(Z, Smi::New(0))));
-    AstNode* guarded_init_statements =
-        new IfNode(Scanner::kNoSourcePos,
-                   comparison,
-                   init_statements,
-                   NULL);
-    current_block_->statements->Add(guarded_init_statements);
-  }
+  current_block_->statements->Add(init_statements);
 
-  // Parsing of initializers done. Now we parse the constructor body
-  // and add the implicit super call to the super constructor's body
-  // if necessary.
-  StaticCallNode* super_call = NULL;
-  // Look for the super initializer call in the sequence of initializer
-  // statements. If it exists and is not the last initializer statement,
-  // we need to create an implicit super call to the super constructor's
-  // body.
-  // Thus, iterate over all but the last initializer to see whether
-  // it's a super constructor call.
-  for (int i = 0; i < init_statements->length() - 1; i++) {
-    if (init_statements->NodeAt(i)->IsStaticCallNode()) {
-      StaticCallNode* static_call =
-      init_statements->NodeAt(i)->AsStaticCallNode();
-      if (static_call->function().IsGenerativeConstructor()) {
-        super_call = static_call;
-        break;
-      }
-    }
-  }
-  if (super_call != NULL) {
-    ASSERT(!FLAG_move_super);
-    // Generate an implicit call to the super constructor's body.
-    // We need to patch the super _initializer_ call so that it
-    // saves the evaluated actual arguments in temporary variables.
-    // The temporary variables are necessary so that the argument
-    // expressions are not evaluated twice.
-    // Note: we should never get here in the case of a redirecting
-    // constructor. In that case, the call to the target constructor
-    // is the "super call" and is implicitly at the end of the
-    // initializer list.
-    ASSERT(!is_redirecting_constructor);
-    ArgumentListNode* ctor_args = super_call->arguments();
-    // The super initializer call has at least 2 arguments: the
-    // implicit receiver, and the hidden construction phase.
-    ASSERT(ctor_args->length() >= 2);
-    for (int i = 2; i < ctor_args->length(); i++) {
-      AstNode* arg = ctor_args->NodeAt(i);
-      if (!IsSimpleLocalOrLiteralNode(arg)) {
-        LocalVariable* temp = CreateTempConstVariable(arg->token_pos(), "sca");
-        AstNode* save_temp = new StoreLocalNode(arg->token_pos(), temp, arg);
-        ctor_args->SetNodeAt(i, save_temp);
-      }
-    }
-  }
+  // Parsing of initializers done. Now we parse the constructor body.
   OpenBlock();  // Block to collect constructor body nodes.
-  intptr_t body_pos = TokenPos();
-
-  // Insert the implicit super call to the super constructor body.
-  if (super_call != NULL) {
-    ASSERT(!FLAG_move_super);
-    ArgumentListNode* initializer_args = super_call->arguments();
-    const Function& super_ctor = super_call->function();
-    // Patch the initializer call so it only executes the super initializer.
-    initializer_args->SetNodeAt(1, new LiteralNode(
-        body_pos, Smi::ZoneHandle(Z, Smi::New(Function::kCtorPhaseInit))));
-
-    ArgumentListNode* super_call_args = new ArgumentListNode(body_pos);
-    // First argument is the receiver.
-    super_call_args->Add(new LoadLocalNode(body_pos, receiver));
-    // Second argument is the construction phase argument.
-    AstNode* phase_parameter = new(Z) LiteralNode(
-        body_pos, Smi::ZoneHandle(Z, Smi::New(Function::kCtorPhaseBody)));
-    super_call_args->Add(phase_parameter);
-    super_call_args->set_names(initializer_args->names());
-    for (int i = 2; i < initializer_args->length(); i++) {
-      AstNode* arg = initializer_args->NodeAt(i);
-      if (arg->IsLiteralNode()) {
-        LiteralNode* lit = arg->AsLiteralNode();
-        super_call_args->Add(new LiteralNode(body_pos, lit->literal()));
-      } else {
-        ASSERT(arg->IsLoadLocalNode() || arg->IsStoreLocalNode());
-        if (arg->IsLoadLocalNode()) {
-          const LocalVariable& temp = arg->AsLoadLocalNode()->local();
-          super_call_args->Add(new LoadLocalNode(body_pos, &temp));
-        } else if (arg->IsStoreLocalNode()) {
-          const LocalVariable& temp = arg->AsStoreLocalNode()->local();
-          super_call_args->Add(new LoadLocalNode(body_pos, &temp));
-        }
-      }
-    }
-    ASSERT(super_ctor.AreValidArguments(super_call_args->length(),
-                                        super_call_args->names(),
-                                        NULL));
-    current_block_->statements->Add(
-        new StaticCallNode(body_pos, super_ctor, super_call_args));
-  }
-
   if (CurrentToken() == Token::kLBRACE) {
     // We checked in the top-level parse phase that a redirecting
     // constructor does not have a body.
@@ -3275,29 +3129,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
 
   SequenceNode* ctor_block = CloseBlock();
   if (ctor_block->length() > 0) {
-    if (FLAG_move_super) {
-      // Ignore the phase parameter.
-      current_block_->statements->Add(ctor_block);
-    } else {
-      // Generate guard around the constructor body code.
-      LocalVariable* phase_param = LookupPhaseParameter();
-      AstNode* phase_value =
-          new LoadLocalNode(Scanner::kNoSourcePos, phase_param);
-      AstNode* phase_check =
-          new BinaryOpNode(Scanner::kNoSourcePos, Token::kBIT_AND,
-              phase_value,
-              new LiteralNode(Scanner::kNoSourcePos,
-                  Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody))));
-      AstNode* comparison =
-          new ComparisonNode(Scanner::kNoSourcePos,
-                             Token::kNE_STRICT,
-                             phase_check,
-                             new LiteralNode(body_pos,
-                                             Smi::ZoneHandle(Smi::New(0))));
-      AstNode* guarded_block_statements =
-          new IfNode(Scanner::kNoSourcePos, comparison, ctor_block, NULL);
-      current_block_->statements->Add(guarded_block_statements);
-    }
+    current_block_->statements->Add(ctor_block);
   }
   current_block_->statements->Add(new ReturnNode(func.end_token_pos()));
   SequenceNode* statements = CloseBlock();
@@ -3716,13 +3548,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
         formal_param_pos,
         &Symbols::TypeArgumentsParameter(),
         &Object::dynamic_type());
-  }
-  // Constructors have an implicit parameter for the construction phase.
-  if (method->IsConstructor()) {
-    method->params.AddFinalParameter(
-        TokenPos(),
-        &Symbols::PhaseParameter(),
-        &Type::ZoneHandle(Z, Type::SmiType()));
   }
   if (are_implicitly_final) {
     method->params.SetImplicitlyFinal();
@@ -4960,10 +4785,6 @@ void Parser::AddImplicitConstructor(const Class& cls) {
   // Add implicit 'this' parameter.
   const AbstractType* receiver_type = ReceiverType(cls);
   params.AddReceiver(receiver_type, cls.token_pos());
-  // Add implicit parameter for construction phase.
-  params.AddFinalParameter(cls.token_pos(),
-                           &Symbols::PhaseParameter(),
-                           &Type::ZoneHandle(Z, Type::SmiType()));
 
   AddFormalParamsToFunction(&params, ctor);
   // The body of the constructor cannot modify the type of the constructed
@@ -7487,13 +7308,6 @@ LocalVariable* Parser::LookupTypeArgumentsParameter(LocalScope* from_scope,
   ASSERT(current_function().IsInFactoryScope());
   return from_scope->LookupVariable(Symbols::TypeArgumentsParameter(),
                                     test_only);
-}
-
-
-LocalVariable* Parser::LookupPhaseParameter() {
-  const bool kTestOnly = false;
-  return current_block_->scope->LookupVariable(Symbols::PhaseParameter(),
-                                               kTestOnly);
 }
 
 
@@ -12258,8 +12072,8 @@ RawObject* Parser::EvaluateConstConstructorCall(
     const Function& constructor,
     ArgumentListNode* arguments) {
   // Factories have one extra argument: the type arguments.
-  // Constructors have 2 extra arguments: rcvr and construction phase.
-  const int kNumExtraArgs = constructor.IsFactory() ? 1 : 2;
+  // Constructors have 1 extra arguments: receiver.
+  const int kNumExtraArgs = 1;
   const int num_arguments = arguments->length() + kNumExtraArgs;
   const Array& arg_values =
       Array::Handle(Z, Array::New(num_arguments, Heap::kOld));
@@ -12274,7 +12088,6 @@ RawObject* Parser::EvaluateConstConstructorCall(
           TypeArguments::Handle(Z, type_arguments.Canonicalize()));
     }
     arg_values.SetAt(0, instance);
-    arg_values.SetAt(1, Smi::Handle(Z, Smi::New(Function::kCtorPhaseAll)));
   } else {
     // Prepend type_arguments to list of arguments to factory.
     ASSERT(type_arguments.IsZoneHandle());
@@ -13506,8 +13319,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
 
   // A constructor has an implicit 'this' parameter (instance to construct)
   // and a factory has an implicit 'this' parameter (type_arguments).
-  // A constructor has a second implicit 'phase' parameter.
-  intptr_t arguments_length = arguments->length() + 2;
+  intptr_t arguments_length = arguments->length() + 1;
 
   // An additional type check of the result of a redirecting factory may be
   // required.
@@ -13604,10 +13416,6 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       constructor = constructor.RedirectionTarget();
       constructor_name = constructor.name();
       ASSERT(!constructor.IsNull());
-    }
-    if (constructor.IsFactory()) {
-      // A factory does not have the implicit 'phase' parameter.
-      arguments_length -= 1;
     }
   }
   ASSERT(!constructor.IsNull());

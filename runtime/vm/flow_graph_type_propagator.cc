@@ -695,7 +695,7 @@ CompileType ParameterInstr::ComputeType() const {
   // verifying the run time type of the passed-in parameter and this check would
   // always be wrongly eliminated.
   // However there are parameters that are known to match their declared type:
-  // for example receiver and construction phase.
+  // for example receiver.
   GraphEntryInstr* graph_entry = block_->AsGraphEntry();
   // Parameters at catch blocks and OSR entries have type dynamic.
   //
@@ -726,11 +726,6 @@ CompileType ParameterInstr::ComputeType() const {
 
   LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
   const AbstractType& type = scope->VariableAt(index())->type();
-
-  // Parameter is the constructor phase.
-  if ((index() == 1) && function.IsGenerativeConstructor()) {
-    return CompileType::FromAbstractType(type, CompileType::kNonNullable);
-  }
 
   // Parameter is the receiver.
   if ((index() == 0) &&

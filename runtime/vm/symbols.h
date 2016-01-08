@@ -57,7 +57,6 @@ class ObjectPointerVisitor;
   V(AnonymousClosure, "<anonymous closure>")                                   \
   V(ImplicitClosure, "<implicit closure>")                                     \
   V(ClosureParameter, ":closure")                                              \
-  V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
   V(AssertionError, "_AssertionError")                                         \
   V(CastError, "_CastError")                                                   \

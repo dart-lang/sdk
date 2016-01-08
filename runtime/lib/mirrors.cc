@@ -1726,8 +1726,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
   }
 
   const intptr_t num_explicit_args = explicit_args.Length();
-  const intptr_t num_implicit_args =
-      redirected_constructor.IsGenerativeConstructor() ? 2 : 1;
+  const intptr_t num_implicit_args = 1;
   const Array& args =
       Array::Handle(Array::New(num_implicit_args + num_explicit_args));
 
@@ -1758,9 +1757,9 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
 
   Instance& new_object = Instance::Handle();
   if (redirected_constructor.IsGenerativeConstructor()) {
-    // Constructors get the uninitialized object and a constructor phase. Note
-    // we have delayed allocation until after the function type and argument
-    // matching checks.
+    // Constructors get the uninitialized object.
+    // Note we have delayed allocation until after the function
+    // type and argument matching checks.
     new_object = Instance::New(redirected_klass);
     if (!type_arguments.IsNull()) {
       // The type arguments will be null if the class has no type parameters, in
@@ -1769,7 +1768,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
       new_object.SetTypeArguments(type_arguments);
     }
     args.SetAt(0, new_object);
-    args.SetAt(1, Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
   } else {
     // Factories get type arguments.
     args.SetAt(0, type_arguments);

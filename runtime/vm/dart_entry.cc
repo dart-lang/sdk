@@ -411,13 +411,11 @@ RawObject* DartLibraryCalls::InstanceCreate(const Library& lib,
   const Class& cls = Class::Handle(lib.LookupClassAllowPrivate(class_name));
   ASSERT(!cls.IsNull());
   // For now, we only support a non-parameterized or raw type.
-  const int kNumExtraArgs = 2;  // implicit rcvr and construction phase args.
+  const int kNumExtraArgs = 1;  // implicit rcvr arg.
   const Instance& exception_object = Instance::Handle(Instance::New(cls));
   const Array& constructor_arguments =
     Array::Handle(Array::New(arguments.Length() + kNumExtraArgs));
   constructor_arguments.SetAt(0, exception_object);
-  constructor_arguments.SetAt(
-      1, Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
   Object& obj = Object::Handle();
   for (intptr_t i = 0; i < arguments.Length(); i++) {
     obj = arguments.At(i);

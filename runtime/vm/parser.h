@@ -484,7 +484,6 @@ class Parser : public ValueObject {
       const Class& cls,
       intptr_t supercall_pos,
       LocalVariable* receiver,
-      AstNode* phase_parameter,
       ArgumentListNode* forwarding_args);
   StaticCallNode* ParseSuperInitializer(
       const Class& cls,
@@ -585,7 +584,6 @@ class Parser : public ValueObject {
   void AddAsyncClosureVariables();
   void AddAsyncGeneratorVariables();
 
-  LocalVariable* LookupPhaseParameter();
   LocalVariable* LookupReceiver(LocalScope* from_scope, bool test_only);
   LocalVariable* LookupTypeArgumentsParameter(LocalScope* from_scope,
                                               bool test_only);

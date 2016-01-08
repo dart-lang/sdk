@@ -5872,13 +5872,8 @@ intptr_t Function::NumParameters() const {
 
 intptr_t Function::NumImplicitParameters() const {
   if (kind() == RawFunction::kConstructor) {
-    if (is_static()) {
-      ASSERT(IsFactory());
-      return 1;  // Type arguments.
-    } else {
-      ASSERT(IsGenerativeConstructor());
-      return 2;  // Instance, phase.
-    }
+    // Type arguments for factory; instance for generative constructor.
+    return 1;
   }
   if ((kind() == RawFunction::kClosureFunction) ||
       (kind() == RawFunction::kSignatureFunction)) {
@@ -6257,10 +6252,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
   const intptr_t other_num_opt_named_params =
       other.NumOptionalNamedParameters();
   // This function requires the same arguments or less and accepts the same
-  // arguments or more.
-  // A generative constructor may be compared to a redirecting factory and be
-  // compatible although it has an additional phase parameter.
-  // More generally, we can ignore implicit parameters.
+  // arguments or more. We can ignore implicit parameters.
   const intptr_t num_ignored_params = NumImplicitParameters();
   const intptr_t other_num_ignored_params = other.NumImplicitParameters();
   if (((num_fixed_params - num_ignored_params) >

@@ -2801,14 +2801,10 @@ Value* EffectGraphVisitor::BuildObjectAllocation(ConstructorCallNode* node) {
 void EffectGraphVisitor::BuildConstructorCall(
     ConstructorCallNode* node,
     PushArgumentInstr* push_alloc_value) {
-  Value* ctor_arg = Bind(new(Z) ConstantInstr(
-      Smi::ZoneHandle(Z, Smi::New(Function::kCtorPhaseAll))));
-  PushArgumentInstr* push_ctor_arg = PushArgument(ctor_arg);
 
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
   arguments->Add(push_alloc_value);
-  arguments->Add(push_ctor_arg);
 
   BuildPushArguments(*node->arguments(), arguments);
   Do(new(Z) StaticCallInstr(node->token_pos(),
@@ -4100,12 +4096,11 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   if (Isolate::Current()->flags().type_checks() && is_top_level_sequence) {
     const int num_params = function.NumParameters();
     int pos = 0;
-    if (function.IsGenerativeConstructor()) {
-      // Skip type checking of receiver and phase for constructor functions.
-      pos = 2;
-    } else if (function.IsFactory() || function.IsDynamicFunction()) {
+    if (function.IsFactory() ||
+        function.IsDynamicFunction() ||
+        function.IsGenerativeConstructor()) {
       // Skip type checking of type arguments for factory functions.
-      // Skip type checking of receiver for instance functions.
+      // Skip type checking of receiver for instance functions and constructors.
       pos = 1;
     }
     while (pos < num_params) {
