@@ -1341,23 +1341,6 @@ DART_EXPORT void Dart_ExitIsolate() {
 }
 
 
-// TODO(iposva): Remove this API and instead expose the underlying flags.
-DART_EXPORT Dart_Handle Dart_IsolateSetStrictCompilation(bool value) {
-  CHECK_ISOLATE(Isolate::Current());
-  Isolate* isolate = Isolate::Current();
-  if (isolate->has_compiled_code()) {
-    return Api::NewError(
-        "%s expects that the isolate has not yet compiled code.", CURRENT_FUNC);
-  }
-  if (!value) {
-    return Api::NewError(
-        "%s expects that the value is set to true only.", CURRENT_FUNC);
-  }
-  Isolate::Current()->set_strict_compilation();
-  return Api::Null();
-}
-
-
 static uint8_t* ApiReallocate(uint8_t* ptr,
                               intptr_t old_size,
                               intptr_t new_size) {

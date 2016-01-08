@@ -696,6 +696,8 @@ void Isolate::Flags::CopyFrom(const Flags& orig) {
 void Isolate::Flags::CopyFrom(const Dart_IsolateFlags& api_flags) {
   type_checks_ = api_flags.enable_type_checks;
   asserts_ = api_flags.enable_asserts;
+  error_on_bad_type_ = api_flags.enable_error_on_bad_type;
+  error_on_bad_override_ = api_flags.enable_error_on_bad_override;
   // Leave others at defaults.
 }
 
@@ -704,6 +706,8 @@ void Isolate::Flags::CopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
   api_flags->enable_type_checks = type_checks();
   api_flags->enable_asserts = asserts();
+  api_flags->enable_error_on_bad_type = error_on_bad_type();
+  api_flags->enable_error_on_bad_override = error_on_bad_override();
 }
 
 

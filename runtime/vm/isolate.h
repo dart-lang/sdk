@@ -348,17 +348,6 @@ class Isolate : public BaseIsolate {
 
   const Flags& flags() const { return flags_; }
 
-  // Set the checks in the compiler to the highest level. Statically and when
-  // executing generated code. Needs to be called before any code has been
-  // compiled.
-  void set_strict_compilation() {
-    ASSERT(!has_compiled_code());
-    flags_.type_checks_ = true;
-    flags_.asserts_ = true;
-    flags_.error_on_bad_type_ = true;
-    flags_.error_on_bad_override_ = true;
-  }
-
   // Requests that the debugger resume execution.
   void Resume() {
     resume_request_ = true;
