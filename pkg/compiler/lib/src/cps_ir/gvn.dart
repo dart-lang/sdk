@@ -64,10 +64,6 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
   final Map<Primitive, Continuation> loopHeaderFor =
       <Primitive, Continuation>{};
 
-  /// The loop to which a given trivial primitive can be hoisted.
-  final Map<Primitive, Continuation> potentialLoopHeaderFor =
-      <Primitive, Continuation>{};
-
   /// The GVNs for primitives that have been hoisted outside the given loop.
   ///
   /// These should be removed from the environment when exiting the loop.
@@ -155,7 +151,7 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     Primitive existing = environment[gvn];
     if (existing != null &&
         canReplaceWithExistingValue(prim) &&
-        !isTrivialPrimitive(prim)) {
+        !isFastConstant(prim)) {
       if (prim is Interceptor) {
         Interceptor interceptor = existing;
         interceptor.interceptedClasses.addAll(prim.interceptedClasses);
@@ -201,21 +197,18 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
       if (canIgnoreRefinementGuards(prim)) {
         input = input.effectiveDefinition;
       }
-      Continuation loopHeader;
-      if (potentialLoopHeaderFor.containsKey(input)) {
-        // This is a reference to a value that can be hoisted further out than
-        // it currently is.  If we decide to hoist [prim], we must also hoist
-        // such dependent values.
-        loopHeader = potentialLoopHeaderFor[input];
+      if (isFastConstant(input)) {
+        // Fast constants can be hoisted all the way out, but should only be
+        // hoisted if needed to hoist something else.
         inputsHoistedOnDemand.add(input);
       } else {
-        loopHeader = loopHeaderFor[input];
-      }
-      Continuation referencedLoop =
-          loopHierarchy.lowestCommonAncestor(loopHeader, currentLoopHeader);
-      int depth = loopHierarchy.getDepth(referencedLoop);
-      if (depth > hoistDepth) {
-        hoistDepth = depth;
+        Continuation loopHeader = loopHeaderFor[input];
+        Continuation referencedLoop =
+            loopHierarchy.lowestCommonAncestor(loopHeader, currentLoopHeader);
+        int depth = loopHierarchy.getDepth(referencedLoop);
+        if (depth > hoistDepth) {
+          hoistDepth = depth;
+        }
       }
     });
 
@@ -235,11 +228,10 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     // Bail out if heap dependencies prohibit any hoisting at all.
     if (hoistTarget == null) return false;
 
-    if (isTrivialPrimitive(prim)) {
+    if (isFastConstant(prim)) {
       // The overhead from introducting a temporary might be greater than
       // the overhead of evaluating this primitive at every iteration.
       // Only hoist if this enables hoisting of a non-trivial primitive.
-      potentialLoopHeaderFor[prim] = enclosingLoop;
       return true;
     }
 
@@ -286,8 +278,7 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
   void hoistTrivialPrimitive(Primitive prim,
                              LetCont loopBinding,
                              Continuation enclosingLoop) {
-    if (!potentialLoopHeaderFor.containsKey(prim)) return;
-    assert(isTrivialPrimitive(prim));
+    assert(isFastConstant(prim));
 
     // The primitive might already be bound in an outer scope.  Do not relocate
     // the primitive unless we are lifting it. For example;
@@ -312,26 +303,15 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     binding.remove();
     binding.insertAbove(loopBinding);
     loopHeaderFor[prim] = enclosingLoop;
-
-    if (potentialLoopHeaderFor[prim] == enclosingLoop) {
-      potentialLoopHeaderFor.remove(prim);
-    }
   }
 
   bool canIgnoreRefinementGuards(Primitive primitive) {
     return primitive is Interceptor;
   }
 
-  /// Returns true if the given primitive is so cheap at runtime that it is
-  /// better to (redundantly) recompute it rather than introduce a temporary.
-  bool isTrivialPrimitive(Primitive primitive) {
-    return primitive is ApplyBuiltinOperator ||
-           primitive is Constant && isTrivialConstant(primitive.value);
-  }
-
-  /// Returns true if the given constant has almost no runtime cost.
-  bool isTrivialConstant(ConstantValue value) {
-    return value.isPrimitive || value.isDummy;
+  /// Returns true if [prim] is a constant that has no significant runtime cost.
+  bool isFastConstant(Primitive prim) {
+    return prim is Constant && (prim.value.isPrimitive || prim.value.isDummy);
   }
 
   /// True if [element] is a final or constant field or a function.
