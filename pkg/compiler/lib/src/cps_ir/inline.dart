@@ -371,10 +371,17 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     Reference<Primitive> dartReceiver = invoke.dartReceiverReference;
     TypeMask abstractReceiver =
         dartReceiver == null ? null : abstractType(dartReceiver);
+    // The receiver is non-null in a method body, unless the receiver is known
+    // to be `null` (isEmpty covers `null` and unreachable).
+    TypeMask abstractReceiverInMethod = abstractReceiver == null
+        ? null
+        : abstractReceiver.isEmpty
+            ? abstractReceiver
+            : abstractReceiver.nonNullable();
     List<TypeMask> abstractArguments =
         invoke.arguments.map(abstractType).toList();
     var cachedResult = _inliner.cache.get(target, callStructure,
-        abstractReceiver,
+        abstractReceiverInMethod,
         abstractArguments);
 
     // Negative inlining result in the cache.
@@ -409,8 +416,8 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     // before.  Make an inlining decision.
     assert(cachedResult == InliningCache.ABSENT);
     Primitive doNotInline() {
-      _inliner.cache.putNegative(target, callStructure, abstractReceiver,
-          abstractArguments);
+      _inliner.cache.putNegative(
+          target, callStructure, abstractReceiverInMethod, abstractArguments);
       return null;
     }
     if (backend.annotations.noInline(target)) return doNotInline();
@@ -429,11 +436,19 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       void setValue(Variable variable, Reference<Primitive> value) {
         variable.type = value.definition.type;
       }
-      if (invoke.receiver != null) {
+      if (invoke.callingConvention == CallingConvention.Intercepted) {
         setValue(function.thisParameter, invoke.receiver);
-      }
-      for (int i = 0; i < invoke.arguments.length; ++i) {
-        setValue(function.parameters[i], invoke.arguments[i]);
+        function.parameters[0].type = abstractReceiverInMethod;
+        for (int i = 1; i < invoke.arguments.length; ++i) {
+          setValue(function.parameters[i], invoke.arguments[i]);
+        }
+      } else {
+        if (invoke.receiver != null) {
+          function.thisParameter.type = abstractReceiverInMethod;
+        }
+        for (int i = 0; i < invoke.arguments.length; ++i) {
+          setValue(function.parameters[i], invoke.arguments[i]);
+        }
       }
       optimizeBeforeInlining(function);
     }
@@ -446,7 +461,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     int size = SizeVisitor.sizeOf(invoke, function);
     if (!_inliner.isCalledOnce(target) && size > 11) return doNotInline();
 
-    _inliner.cache.putPositive(target, callStructure, abstractReceiver,
+    _inliner.cache.putPositive(target, callStructure, abstractReceiverInMethod,
         abstractArguments, function);
     return finish(function);
   }
