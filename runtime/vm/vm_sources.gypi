@@ -174,6 +174,7 @@
     'flow_graph_allocator.h',
     'flow_graph_builder.cc',
     'flow_graph_builder.h',
+    'flow_graph_builder_test.cc',
     'flow_graph_compiler.cc',
     'flow_graph_compiler.h',
     'flow_graph_compiler_arm.cc',
