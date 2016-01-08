@@ -9964,8 +9964,14 @@ class ElementKind implements Enum {
 
   static const TYPE_PARAMETER = const ElementKind._("TYPE_PARAMETER");
 
+  /**
+   * Deprecated: support for tests was removed.
+   */
   static const UNIT_TEST_GROUP = const ElementKind._("UNIT_TEST_GROUP");
 
+  /**
+   * Deprecated: support for tests was removed.
+   */
   static const UNIT_TEST_TEST = const ElementKind._("UNIT_TEST_TEST");
 
   static const UNKNOWN = const ElementKind._("UNKNOWN");
