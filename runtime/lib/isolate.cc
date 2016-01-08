@@ -143,6 +143,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     char* error = NULL;
     Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
     if (callback == NULL) {
+      state_->DecrementSpawnCount();
       ReportError(
           "Isolate spawn is not supported by this Dart implementation\n");
       delete state_;
@@ -161,6 +162,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
                    &api_flags,
                    state_->init_data(),
                    &error));
+    state_->DecrementSpawnCount();
     if (isolate == NULL) {
       ReportError(error);
       delete state_;
@@ -225,17 +227,21 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
       Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
       Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
 
-      ThreadPool::Task* spawn_task =
-          new SpawnIsolateTask(
-              new IsolateSpawnState(port.Id(),
-                                    isolate->origin_id(),
-                                    isolate->init_callback_data(),
-                                    func,
-                                    message,
-                                    paused.value(),
-                                    fatal_errors,
-                                    on_exit_port,
-                                    on_error_port));
+      IsolateSpawnState* state =
+          new IsolateSpawnState(port.Id(),
+                                isolate->origin_id(),
+                                isolate->init_callback_data(),
+                                func,
+                                message,
+                                isolate->spawn_count_monitor(),
+                                isolate->spawn_count(),
+                                paused.value(),
+                                fatal_errors,
+                                on_exit_port,
+                                on_error_port);
+      ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
+
+      isolate->IncrementSpawnCount();
       if (FLAG_i_like_slow_isolate_spawn) {
         // We block the parent isolate while the child isolate loads.
         Isolate* saved = Isolate::Current();
@@ -244,8 +250,13 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
         delete spawn_task;
         spawn_task = NULL;
         Thread::EnterIsolate(saved);
-      } else {
-        Dart::thread_pool()->Run(spawn_task);
+      } else if (!Dart::thread_pool()->Run(spawn_task)) {
+        // Running on the thread pool failed. Clean up everything.
+        state->DecrementSpawnCount();
+        delete state;
+        state = NULL;
+        delete spawn_task;
+        spawn_task = NULL;
       }
       return Object::null();
     }
@@ -375,6 +386,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
           utf8_package_map,
           args,
           message,
+          isolate->spawn_count_monitor(),
+          isolate->spawn_count(),
           paused.value(),
           fatal_errors,
           on_exit_port,
@@ -387,6 +400,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   }
 
   ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
+
+  isolate->IncrementSpawnCount();
   if (FLAG_i_like_slow_isolate_spawn) {
     // We block the parent isolate while the child isolate loads.
     Isolate* saved = Isolate::Current();
@@ -395,8 +410,13 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
     delete spawn_task;
     spawn_task = NULL;
     Thread::EnterIsolate(saved);
-  } else {
-    Dart::thread_pool()->Run(spawn_task);
+  } else if (!Dart::thread_pool()->Run(spawn_task)) {
+    // Running on the thread pool failed. Clean up everything.
+    state->DecrementSpawnCount();
+    delete state;
+    state = NULL;
+    delete spawn_task;
+    spawn_task = NULL;
   }
   return Object::null();
 }

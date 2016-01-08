@@ -344,6 +344,7 @@ class RunServiceTask : public ThreadPool::Task {
     ASSERT(ServiceIsolate::IsServiceIsolate(I));
     ServiceIsolate::SetServiceIsolate(NULL);
     ServiceIsolate::SetServicePort(ILLEGAL_PORT);
+    I->WaitForOutstandingSpawns();
     {
       // Print the error if there is one.  This may execute dart code to
       // print the exception object, so we need to use a StartIsolateScope.

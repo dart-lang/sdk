@@ -1266,6 +1266,7 @@ DART_EXPORT void Dart_ShutdownIsolate() {
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
   CHECK_ISOLATE(I);
+  I->WaitForOutstandingSpawns();
   {
     StackZone zone(T);
     HandleScope handle_scope(T);

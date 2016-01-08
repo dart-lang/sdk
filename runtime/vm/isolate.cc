@@ -796,7 +796,9 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       pause_loop_monitor_(NULL),
       cha_invalidation_gen_(kInvalidGen),
       field_invalidation_gen_(kInvalidGen),
-      prefix_invalidation_gen_(kInvalidGen) {
+      prefix_invalidation_gen_(kInvalidGen),
+      spawn_count_monitor_(new Monitor()),
+      spawn_count_(0) {
   flags_.CopyFrom(api_flags);
   // TODO(asiva): A Thread is not available here, need to figure out
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
@@ -828,6 +830,8 @@ Isolate::~Isolate() {
   object_id_ring_ = NULL;
   delete pause_loop_monitor_;
   pause_loop_monitor_ = NULL;
+  ASSERT(spawn_count_ == 0);
+  delete spawn_count_monitor_;
   if (compiler_stats_ != NULL) {
     delete compiler_stats_;
     compiler_stats_ = NULL;
@@ -1403,6 +1407,9 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
 
 static void ShutdownIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
+  // We must wait for any outstanding spawn calls to complete before
+  // running the shutdown callback.
+  isolate->WaitForOutstandingSpawns();
   {
     // Print the error if there is one.  This may execute dart code to
     // print the exception object, so we need to use a StartIsolateScope.
@@ -2308,6 +2315,20 @@ void Isolate::KillIfExists(Isolate* isolate, LibMsgId msg_id) {
 }
 
 
+void Isolate::IncrementSpawnCount() {
+  MonitorLocker ml(spawn_count_monitor_);
+  spawn_count_++;
+}
+
+
+void Isolate::WaitForOutstandingSpawns() {
+  MonitorLocker ml(spawn_count_monitor_);
+  while (spawn_count_ > 0) {
+    ml.Wait();
+  }
+}
+
+
 static RawInstance* DeserializeObject(Thread* thread,
                                       uint8_t* obj_data,
                                       intptr_t obj_len) {
@@ -2337,6 +2358,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      void* init_data,
                                      const Function& func,
                                      const Instance& message,
+                                     Monitor* spawn_count_monitor,
+                                     intptr_t* spawn_count,
                                      bool paused,
                                      bool errors_are_fatal,
                                      Dart_Port on_exit_port,
@@ -2357,6 +2380,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_args_len_(0),
       serialized_message_(NULL),
       serialized_message_len_(0),
+      spawn_count_monitor_(spawn_count_monitor),
+      spawn_count_(spawn_count),
       isolate_flags_(),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
@@ -2388,6 +2413,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const char** package_map,
                                      const Instance& args,
                                      const Instance& message,
+                                     Monitor* spawn_count_monitor,
+                                     intptr_t* spawn_count,
                                      bool paused,
                                      bool errors_are_fatal,
                                      Dart_Port on_exit_port,
@@ -2408,6 +2435,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_args_len_(0),
       serialized_message_(NULL),
       serialized_message_len_(0),
+      spawn_count_monitor_(spawn_count_monitor),
+      spawn_count_(spawn_count),
       isolate_flags_(),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
@@ -2524,5 +2553,14 @@ RawInstance* IsolateSpawnState::BuildMessage(Thread* thread) {
                            serialized_message_, serialized_message_len_);
 }
 
+
+void IsolateSpawnState::DecrementSpawnCount() {
+  ASSERT(spawn_count_monitor_ != NULL);
+  ASSERT(spawn_count_ != NULL);
+  MonitorLocker ml(spawn_count_monitor_);
+  ASSERT(*spawn_count_ > 0);
+  *spawn_count_ = *spawn_count_ - 1;
+  ml.Notify();
+}
 
 }  // namespace dart

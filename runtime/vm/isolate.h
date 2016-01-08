@@ -412,6 +412,12 @@ class Isolate : public BaseIsolate {
     gc_epilogue_callback_ = callback;
   }
 
+  Monitor* spawn_count_monitor() const { return spawn_count_monitor_; }
+  intptr_t* spawn_count() { return &spawn_count_; }
+
+  void IncrementSpawnCount();
+  void WaitForOutstandingSpawns();
+
   static void SetCreateCallback(Dart_IsolateCreateCallback cb) {
     create_callback_ = cb;
   }
@@ -812,6 +818,11 @@ class Isolate : public BaseIsolate {
   uint32_t field_invalidation_gen_;
   uint32_t prefix_invalidation_gen_;
 
+  // This guards spawn_count_. An isolate cannot complete shutdown and be
+  // destroyed while there are child isolates in the midst of a spawn.
+  Monitor* spawn_count_monitor_;
+  intptr_t spawn_count_;
+
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
@@ -906,6 +917,8 @@ class IsolateSpawnState {
                     void* init_data,
                     const Function& func,
                     const Instance& message,
+                    Monitor* spawn_count_monitor,
+                    intptr_t* spawn_count,
                     bool paused,
                     bool errorsAreFatal,
                     Dart_Port onExit,
@@ -917,6 +930,8 @@ class IsolateSpawnState {
                     const char** package_map,
                     const Instance& args,
                     const Instance& message,
+                    Monitor* spawn_count_monitor,
+                    intptr_t* spawn_count,
                     bool paused,
                     bool errorsAreFatal,
                     Dart_Port onExit,
@@ -946,6 +961,8 @@ class IsolateSpawnState {
   RawInstance* BuildArgs(Thread* thread);
   RawInstance* BuildMessage(Thread* thread);
 
+  void DecrementSpawnCount();
+
  private:
   Isolate* isolate_;
   Dart_Port parent_port_;
@@ -963,6 +980,12 @@ class IsolateSpawnState {
   intptr_t serialized_args_len_;
   uint8_t* serialized_message_;
   intptr_t serialized_message_len_;
+
+  // This counter tracks the number of outstanding calls to spawn by the parent
+  // isolate.
+  Monitor* spawn_count_monitor_;
+  intptr_t* spawn_count_;
+
   Isolate::Flags isolate_flags_;
   bool paused_;
   bool errors_are_fatal_;
