@@ -50,6 +50,23 @@ analyzer:
     expect(analysisOptions.strongMode, false);
   }
 
+  test_configure_enableAsync() {
+    configureContext('''
+analyzer:
+  language:
+''');
+    expect(analysisOptions.enableAsync, true);
+  }
+
+  test_configure_enableAsync_false() {
+    configureContext('''
+analyzer:
+  language:
+    enableAsync: false
+''');
+    expect(analysisOptions.enableAsync, false);
+  }
+
   test_configure_enableGenericMethods() {
     expect(analysisOptions.enableGenericMethods, false);
     configureContext('''

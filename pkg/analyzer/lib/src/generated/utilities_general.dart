@@ -8,6 +8,12 @@ import 'dart:collection';
 import 'dart:developer' show UserTag;
 
 /**
+ * Test if the given [value] is `false` or the string "false" (case-insensitive).
+ */
+bool isFalse(Object value) =>
+    value is bool ? !value : toLowerCase(value) == 'false';
+
+/**
  * Test if the given [value] is `true` or the string "true" (case-insensitive).
  */
 bool isTrue(Object value) =>

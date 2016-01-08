@@ -2993,6 +2993,41 @@ class B {}''');
     expect(outputs[UNITS], hasLength(1));
   }
 
+  test_perform_enableAsync_false() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableAsync = false;
+    prepareAnalysisContext(options);
+    _performParseTask(r'''
+import 'dart:async';
+class B {void foo() async {}}''');
+    expect(outputs, hasLength(9));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
+    expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
+    expect(outputs[PARSE_ERRORS], hasLength(1));
+    expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+    expect(outputs[UNITS], hasLength(1));
+  }
+
+  test_perform_enableAsync_true() {
+    _performParseTask(r'''
+import 'dart:async';
+class B {void foo() async {}}''');
+    expect(outputs, hasLength(9));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
+    expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
+    expect(outputs[PARSE_ERRORS], hasLength(0));
+    expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+    expect(outputs[UNITS], hasLength(1));
+  }
+
   test_perform_computeSourceKind_noDirectives_hasContainingLibrary() {
     // Parse "lib.dart" to let the context know that "test.dart" is included.
     computeResult(

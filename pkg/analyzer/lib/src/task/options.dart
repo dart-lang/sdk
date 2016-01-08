@@ -39,6 +39,7 @@ void configureContextOptions(
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
   static const String analyzer = 'analyzer';
+  static const String enableAsync = 'enableAsync';
   static const String enableGenericMethods = 'enableGenericMethods';
   static const String enableSuperMixins = 'enableSuperMixins';
   static const String errors = 'errors';
@@ -71,6 +72,7 @@ class AnalyzerOptions {
 
   /// Supported `analyzer` language configuration options.
   static const List<String> languageOptions = const [
+    enableAsync,
     enableGenericMethods,
     enableSuperMixins
   ];
@@ -425,6 +427,14 @@ class _OptionsProcessor {
 
   void setLanguageOption(
       AnalysisContext context, Object feature, Object value) {
+    if (feature == AnalyzerOptions.enableAsync) {
+      if (isFalse(value)) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.enableAsync = false;
+        context.analysisOptions = options;
+      }
+    }
     if (feature == AnalyzerOptions.enableSuperMixins) {
       if (isTrue(value)) {
         AnalysisOptionsImpl options =

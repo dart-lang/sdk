@@ -1047,6 +1047,11 @@ abstract class AnalysisOptions {
   bool get enableAssertMessage;
 
   /**
+   * Return `true` to if analysis is to enable async support.
+   */
+  bool get enableAsync;
+
+  /**
    * Return `true` to enable interface libraries (DEP 40).
    */
   bool get enableConditionalDirectives;
@@ -1155,6 +1160,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableAssertMessage = false;
 
   /**
+   * A flag indicating whether analysis is to enable async support.
+   */
+  bool enableAsync = true;
+
+  /**
    * A flag indicating whether interface libraries are to be supported (DEP 40).
    */
   bool enableConditionalDirectives = false;
@@ -1249,6 +1259,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
     enableAssertMessage = options.enableAssertMessage;
+    enableAsync = options.enableAsync;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;

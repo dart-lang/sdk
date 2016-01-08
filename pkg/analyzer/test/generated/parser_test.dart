@@ -937,6 +937,18 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT]);
   }
 
+  void test_enableAsync_false_1() {
+    parseAsync = false;
+    parse4("parseFunctionDeclarationStatement",
+        "foo() async {}", [ParserErrorCode.ASYNC_NOT_SUPPORTED]);
+  }
+
+  void test_enableAsync_false_2() {
+    parseAsync = false;
+    parse4("parseFunctionDeclarationStatement",
+        "foo() sync* {}", [ParserErrorCode.ASYNC_NOT_SUPPORTED]);
+  }
+
   void test_emptyEnumBody() {
     parse3("parseEnumDeclaration", <Object>[emptyCommentAndMetadata()],
         "enum E {}", [ParserErrorCode.EMPTY_ENUM_BODY]);
@@ -2647,6 +2659,11 @@ class ParserTestCase extends EngineTestCase {
   static bool parseFunctionBodies = true;
 
   /**
+   * A flag indicating whether parser is to parse async.
+   */
+  bool parseAsync = true;
+
+  /**
    * A flag indicating whether conditional directives support should be enabled
    * for a specific test.
    */
@@ -2713,6 +2730,7 @@ class ParserTestCase extends EngineTestCase {
     // Parse the source.
     //
     Parser parser = createParser(listener);
+    parser.parseAsync = parseAsync;
     parser.parseConditionalDirectives = enableConditionalDirectives;
     parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
