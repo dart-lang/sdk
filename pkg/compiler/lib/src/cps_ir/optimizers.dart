@@ -54,7 +54,8 @@ bool isTruthyConstant(ConstantValue value, {bool strict: false}) {
   return strict ? value.isTrue : !isFalsyConstant(value);
 }
 
-/// Selector that do not throw when invoked on the null class.
+/// Selectors that do not throw when invoked on the null value.
 final List<Selector> selectorsOnNull = <Selector>[
     Selectors.equals, Selectors.hashCode_, Selectors.runtimeType_,
-    Selectors.toString_];
+    Selectors.toString_, Selectors.toStringGetter,
+    Selectors.noSuchMethodGetter];
