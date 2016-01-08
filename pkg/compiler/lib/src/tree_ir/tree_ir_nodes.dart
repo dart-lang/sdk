@@ -67,18 +67,6 @@ abstract class Statement extends Node {
  * Labels name [LabeledStatement]s.
  */
 class Label {
-  // A counter used to generate names.  The counter is reset to 0 for each
-  // function emitted.
-  static int counter = 0;
-  static String _newName() => 'L${counter++}';
-
-  String cachedName;
-
-  String get name {
-    if (cachedName == null) cachedName = _newName();
-    return cachedName;
-  }
-
   /// Number of [Break] or [Continue] statements that target this label.
   /// The [Break] constructor will increment this automatically, but the
   /// counter must be decremented by hand when a [Break] becomes orphaned.

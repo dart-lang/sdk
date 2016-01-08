@@ -81,7 +81,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   /// [Unreachable] statements whether they may use fallthrough or not.
   List<bool> emitUnreachableAsReturn = <bool>[false];
 
-  Set<tree_ir.Label> usedLabels = new Set<tree_ir.Label>();
+  final Map<tree_ir.Label, String> labelNames = <tree_ir.Label, String>{};
 
   List<js.Statement> accumulator = new List<js.Statement>();
 
@@ -581,8 +581,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       shortContinue.use();
       accumulator.add(new js.Continue(null));
     } else {
-      usedLabels.add(node.target);
-      accumulator.add(new js.Continue(node.target.name));
+      accumulator.add(new js.Continue(makeLabel(node.target)));
     }
   }
 
@@ -614,8 +613,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       shortContinue.use();
       accumulator.add(new js.Continue(null));
     } else {
-      usedLabels.add(node.target);
-      accumulator.add(new js.Break(node.target.name));
+      accumulator.add(new js.Break(makeLabel(node.target)));
     }
   }
 
@@ -670,13 +668,18 @@ class CodeGenerator extends tree_ir.StatementVisitor
     visitStatement(node.next);
   }
 
+  /// Creates a name for [label] if it does not already have one.
+  ///
+  /// This also marks the label as being used.
+  String makeLabel(tree_ir.Label label) {
+    return labelNames.putIfAbsent(label, () => 'L${labelNames.length}');
+  }
+
   /// Wraps a node in a labeled statement unless the label is unused.
   js.Statement insertLabel(tree_ir.Label label, js.Statement node) {
-    if (usedLabels.remove(label)) {
-      return new js.LabeledStatement(label.name, node);
-    } else {
-      return node;
-    }
+    String name = labelNames[label];
+    if (name == null) return node; // Label is unused.
+    return new js.LabeledStatement(name, node);
   }
 
   /// Returns the current [accumulator] wrapped in a block if neccessary.
