@@ -69,6 +69,11 @@ class BufferPointer {
 class Builder {
   final int initialSize;
 
+  /**
+   * The list of existing VTable(s).
+   */
+  final List<_VTable> _vTables = <_VTable>[];
+
   ByteData _buf;
 
   /**
@@ -90,7 +95,7 @@ class Builder {
    */
   int _currentTableEndTail;
 
-  _VTableBuilder _currentVTableBuilder;
+  _VTable _currentVTable;
 
   Builder({this.initialSize: 1024}) {
     reset();
@@ -101,7 +106,7 @@ class Builder {
    * not added if the [value] is equal to [def].
    */
   void addInt32(int field, int value, [int def]) {
-    if (_currentVTableBuilder == null) {
+    if (_currentVTable == null) {
       throw new StateError('Start a table before adding values.');
     }
     if (value != def) {
@@ -117,7 +122,7 @@ class Builder {
    * not added if the [value] is equal to [def].
    */
   void addInt64(int field, int value, [int def]) {
-    if (_currentVTableBuilder == null) {
+    if (_currentVTable == null) {
       throw new StateError('Start a table before adding values.');
     }
     if (value != def) {
@@ -133,7 +138,7 @@ class Builder {
    * not added if the [value] is equal to [def].
    */
   void addInt8(int field, int value, [int def]) {
-    if (_currentVTableBuilder == null) {
+    if (_currentVTable == null) {
       throw new StateError('Start a table before adding values.');
     }
     if (value != def) {
@@ -148,7 +153,7 @@ class Builder {
    * Add the [field] referencing an object with the given [offset].
    */
   void addOffset(int field, Offset offset) {
-    if (_currentVTableBuilder == null) {
+    if (_currentVTable == null) {
       throw new StateError('Start a table before adding values.');
     }
     if (offset != null) {
@@ -162,23 +167,37 @@ class Builder {
    * End the current table and return its offset.
    */
   Offset endTable() {
-    if (_currentVTableBuilder == null) {
+    if (_currentVTable == null) {
       throw new StateError('Start a table before ending it.');
     }
     // Prepare the size of the current table.
-    int tableSize = _tail - _currentTableEndTail;
+    _currentVTable.tableSize = _tail - _currentTableEndTail;
     // Prepare for writing the VTable.
     _prepare(4, 1);
     int tableTail = _tail;
-    // Write the VTable.
-    // TODO(scheglov) implement VTable(s) sharing
-    _prepare(2, _currentVTableBuilder.numOfUint16);
-    _currentVTableBuilder.output(
-        _buf, _buf.lengthInBytes - _tail, tableTail, tableSize);
+    // Prepare the VTable to use for the current table.
+    int vTableTail;
+    {
+      _currentVTable.computeFieldOffsets(tableTail);
+      // Try to find an existing compatible VTable.
+      for (_VTable vTable in _vTables) {
+        if (_currentVTable.canUseExistingVTable(vTable)) {
+          vTableTail = vTable.tail;
+        }
+      }
+      // Write a new VTable.
+      if (vTableTail == null) {
+        _prepare(2, _currentVTable.numOfUint16);
+        vTableTail = _tail;
+        _currentVTable.tail = vTableTail;
+        _currentVTable.output(_buf, _buf.lengthInBytes - _tail);
+        _vTables.add(_currentVTable);
+      }
+    }
     // Set the VTable offset.
-    _setInt32AtTail(_buf, tableTail, _tail - tableTail);
+    _setInt32AtTail(_buf, tableTail, vTableTail - tableTail);
     // Done with this table.
-    _currentVTableBuilder = null;
+    _currentVTable = null;
     return new Offset(tableTail);
   }
 
@@ -242,17 +261,17 @@ class Builder {
     _buf = new ByteData(initialSize);
     _maxAlign = 1;
     _tail = 0;
-    _currentVTableBuilder = null;
+    _currentVTable = null;
   }
 
   /**
    * Start a new table.  Must be finished with [endTable] invocation.
    */
   void startTable() {
-    if (_currentVTableBuilder != null) {
+    if (_currentVTable != null) {
       throw new StateError('Inline tables are not supported.');
     }
-    _currentVTableBuilder = new _VTableBuilder();
+    _currentVTable = new _VTable();
     _currentTableEndTail = _tail;
   }
 
@@ -260,7 +279,7 @@ class Builder {
    * Write the given list of [values].
    */
   Offset writeList(List<Offset> values) {
-    if (_currentVTableBuilder != null) {
+    if (_currentVTable != null) {
       throw new StateError(
           'Cannot write a non-scalar value while writing a table.');
     }
@@ -280,7 +299,7 @@ class Builder {
    * Write the given list of signed 32-bit integer [values].
    */
   Offset writeListInt32(List<int> values) {
-    if (_currentVTableBuilder != null) {
+    if (_currentVTable != null) {
       throw new StateError(
           'Cannot write a non-scalar value while writing a table.');
     }
@@ -301,7 +320,7 @@ class Builder {
    * the [value] is equal to [def].
    */
   Offset<String> writeString(String value, [String def]) {
-    if (_currentVTableBuilder != null) {
+    if (_currentVTable != null) {
       throw new StateError(
           'Cannot write a non-scalar value while writing a table.');
     }
@@ -358,7 +377,7 @@ class Builder {
    * Record the offset of the given [field].
    */
   void _trackField(int field) {
-    _currentVTableBuilder.addField(field, _tail);
+    _currentVTable.addField(field, _tail);
   }
 
   static void _setInt32AtTail(ByteData _buf, int tail, int x) {
@@ -543,10 +562,22 @@ class _FbList<E> extends Object with ListMixin<E> implements List<E> {
 }
 
 /**
- * Class for building VTable(s).
+ * Class that describes the structure of a table.
  */
-class _VTableBuilder {
+class _VTable {
   final List<int> fieldTails = <int>[];
+  final List<int> fieldOffsets = <int>[];
+
+  /**
+   * The size of the table that uses this VTable.
+   */
+  int tableSize;
+
+  /**
+   * The tail of this VTable.  It is used to share the same VTable between
+   * multiple tables of identical structure.
+   */
+  int tail;
 
   int get numOfUint16 => 1 + 1 + fieldTails.length;
 
@@ -558,10 +589,39 @@ class _VTableBuilder {
   }
 
   /**
+   * Return `true` if the [existing] VTable can be used instead of this.
+   */
+  bool canUseExistingVTable(_VTable existing) {
+    assert(tail == null);
+    assert(existing.tail != null);
+    if (tableSize == existing.tableSize &&
+        fieldOffsets.length == existing.fieldOffsets.length) {
+      for (int i = 0; i < fieldOffsets.length; i++) {
+        if (fieldOffsets[i] != existing.fieldOffsets[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Fill the [fieldOffsets] field.
+   */
+  void computeFieldOffsets(int tableTail) {
+    assert(fieldOffsets.isEmpty);
+    for (int fieldTail in fieldTails) {
+      int fieldOffset = fieldTail == null ? 0 : tableTail - fieldTail;
+      fieldOffsets.add(fieldOffset);
+    }
+  }
+
+  /**
    * Outputs this VTable to [buf], which is is expected to be aligned to 16-bit
    * and have at least [numOfUint16] 16-bit words available.
    */
-  void output(ByteData buf, int bufOffset, int tableTail, int tableSize) {
+  void output(ByteData buf, int bufOffset) {
     // VTable size.
     buf.setUint16(bufOffset, numOfUint16 * 2, Endianness.LITTLE_ENDIAN);
     bufOffset += 2;
@@ -569,8 +629,7 @@ class _VTableBuilder {
     buf.setUint16(bufOffset, tableSize, Endianness.LITTLE_ENDIAN);
     bufOffset += 2;
     // Field offsets.
-    for (int fieldTail in fieldTails) {
-      int fieldOffset = fieldTail == null ? 0 : tableTail - fieldTail;
+    for (int fieldOffset in fieldOffsets) {
       buf.setUint16(bufOffset, fieldOffset, Endianness.LITTLE_ENDIAN);
       bufOffset += 2;
     }
