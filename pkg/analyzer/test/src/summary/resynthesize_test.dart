@@ -64,7 +64,14 @@ class ResynthTest extends ResolverTestCase {
           'export ${original.exports[i].uri}');
     }
     expect(resynthesized.nameLength, original.nameLength);
-    // TODO(paulberry): test entryPoint, exportNamespace, publicNamespace,
+    if (original.entryPoint == null) {
+      expect(resynthesized.entryPoint, isNull);
+    } else {
+      expect(resynthesized.entryPoint, isNotNull);
+      compareFunctionElements(
+          resynthesized.entryPoint, original.entryPoint, '(entry point)');
+    }
+    // TODO(paulberry): test exportNamespace, publicNamespace,
     // and metadata.
   }
 
@@ -458,6 +465,11 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test initializer
   }
 
+  fail_function_entry_point_in_export() {
+    addLibrarySource('/a.dart', 'library a; main() {}');
+    checkLibrary('export "a.dart";');
+  }
+
   LibraryElementImpl resynthesizeLibrary(
       Source source, LibraryElementImpl original, bool allowErrors) {
     if (!allowErrors) {
@@ -797,6 +809,20 @@ class E {
     addLibrarySource('/a.dart', 'library a;');
     addLibrarySource('/b.dart', 'library b;');
     checkLibrary('export "a.dart"; export "b.dart";');
+  }
+
+  test_function_entry_point() {
+    checkLibrary('main() {}');
+  }
+
+  test_function_entry_point_in_export_hidden() {
+    addLibrarySource('/a.dart', 'library a; main() {}');
+    checkLibrary('export "a.dart" hide main;');
+  }
+
+  test_function_entry_point_in_part() {
+    addNamedSource('/a.dart', 'part of my.lib; main() {}');
+    checkLibrary('library my.lib; part "a.dart";');
   }
 
   test_function_external() {

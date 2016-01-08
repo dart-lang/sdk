@@ -673,10 +673,15 @@ class _LibraryResynthesizer {
           unlinkedDefiningUnit.exports[i]));
     }
     libraryElement.exports = exports;
-    populateUnit(definingCompilationUnit, 0);
+    FunctionElement entryPoint = populateUnit(definingCompilationUnit, 0);
     for (int i = 0; i < parts.length; i++) {
-      populateUnit(parts[i], i + 1);
+      FunctionElement unitEntryPoint = populateUnit(parts[i], i + 1);
+      if (entryPoint == null) {
+        entryPoint = unitEntryPoint;
+      }
     }
+    // TODO(paulberry): also look for entry points in exports.
+    libraryElement.entryPoint = entryPoint;
     if (isCoreLibrary) {
       ClassElement objectElement = libraryElement.getType('Object');
       assert(objectElement != null);
@@ -930,8 +935,10 @@ class _LibraryResynthesizer {
   /**
    * Populate a [CompilationUnitElement] by deserializing all the elements
    * contained in it.
+   *
+   * If the compilation unit has an entry point, it is returned.
    */
-  void populateUnit(CompilationUnitElementImpl unit, int unitNum) {
+  FunctionElement populateUnit(CompilationUnitElementImpl unit, int unitNum) {
     prelinkedUnit = prelinkedLibrary.units[unitNum];
     unlinkedUnit = unlinkedUnits[unitNum];
     unitHolder = new ElementHolder();
@@ -963,9 +970,17 @@ class _LibraryResynthesizer {
     for (FunctionTypeAliasElement typeAlias in unit.functionTypeAliases) {
       elementMap[typeAlias.name] = typeAlias;
     }
+    FunctionElement entryPoint = null;
+    for (FunctionElement function in unit.functions) {
+      if (function.isEntryPoint) {
+        entryPoint = function;
+        break;
+      }
+    }
     resummarizedElements[absoluteUri] = elementMap;
     unitHolder = null;
     prelinkedUnit = null;
     unlinkedUnit = null;
+    return entryPoint;
   }
 }
