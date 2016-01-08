@@ -604,7 +604,24 @@ static int ParseArguments(int argc,
   if ((commandline_package_root != NULL) &&
       (commandline_packages_file != NULL)) {
     Log::PrintErr("Specifying both a packages directory and a packages "
-                  "file is invalid.");
+                  "file is invalid.\n");
+    return -1;
+  }
+  if (has_noopt) {
+    if (has_gen_precompiled_snapshot) {
+      Log::PrintErr("Specifying --noopt and --gen_precompiled_snapshot"
+                    " is invalid.\n");
+      return -1;
+    }
+    if (has_run_precompiled_snapshot) {
+      Log::PrintErr("Specifying --noopt and --run_precompiled_snapshot"
+                    " is invalid.\n");
+      return -1;
+    }
+  }
+  if (has_gen_precompiled_snapshot && has_run_precompiled_snapshot) {
+    Log::PrintErr("Specifying --gen_precompiled_snapshot and"
+                  " --run_precompiled_snapshot is invalid.\n");
     return -1;
   }
 
@@ -1207,6 +1224,11 @@ bool RunMainIsolate(const char* script_name,
       }
     }
 
+    if (has_compile_all) {
+      result = Dart_CompileAll();
+      CHECK_RESULT(result);
+    }
+
     if (has_noopt || has_gen_precompiled_snapshot) {
       Dart_QualifiedFunctionName standalone_entry_points[] = {
         { "dart:_builtin", "::", "_getMainClosure" },
@@ -1267,11 +1289,6 @@ bool RunMainIsolate(const char* script_name,
                                    instructions_buffer,
                                    instructions_size);
     } else {
-      if (has_compile_all) {
-        result = Dart_CompileAll();
-        CHECK_RESULT(result);
-      }
-
       if (Dart_IsNull(root_lib)) {
         ErrorExit(kErrorExitCode,
                   "Unable to find root library for '%s'\n",
