@@ -207,6 +207,7 @@ class _LibrarySerializer {
         b.libraryName = libraryElement.name;
         b.libraryNameOffset = libraryElement.nameOffset;
         b.libraryNameLength = libraryElement.nameLength;
+        b.libraryDocumentationComment = serializeDocumentation(libraryElement);
       }
       b.publicNamespace = encodeUnlinkedPublicNamespace(ctx,
           exports: libraryElement.exports.map(serializeExportPublic).toList(),
@@ -347,6 +348,7 @@ class _LibrarySerializer {
     b.executables = executables;
     b.isAbstract = classElement.isAbstract;
     b.isMixinApplication = classElement.isMixinApplication;
+    b.documentationComment = serializeDocumentation(classElement);
     return b;
   }
 
@@ -379,6 +381,20 @@ class _LibrarySerializer {
   }
 
   /**
+   * Serialize documentation from the given [element], creating an
+   * [UnlinkedDocumentationComment].
+   *
+   * If [element] has no documentation, `null` is returned.
+   */
+  UnlinkedDocumentationCommentBuilder serializeDocumentation(Element element) {
+    if (element.documentationComment == null) {
+      return null;
+    }
+    return encodeUnlinkedDocumentationComment(ctx,
+        text: element.documentationComment);
+  }
+
+  /**
    * Return the index of the entry in the references table
    * ([UnlinkedLibrary.references] and [PrelinkedLibrary.references])
    * representing the pseudo-type `dynamic`.
@@ -396,10 +412,13 @@ class _LibrarySerializer {
     for (FieldElement field in enumElement.fields) {
       if (field.isConst && field.type.element == enumElement) {
         values.add(encodeUnlinkedEnumValue(ctx,
-            name: field.name, nameOffset: field.nameOffset));
+            name: field.name,
+            nameOffset: field.nameOffset,
+            documentationComment: serializeDocumentation(field)));
       }
     }
     b.values = values;
+    b.documentationComment = serializeDocumentation(enumElement);
     return b;
   }
 
@@ -438,6 +457,7 @@ class _LibrarySerializer {
         executableElement.enclosingElement is ClassElement;
     b.hasImplicitReturnType = executableElement.hasImplicitReturnType;
     b.isExternal = executableElement.isExternal;
+    b.documentationComment = serializeDocumentation(executableElement);
     return b;
   }
 
@@ -574,6 +594,7 @@ class _LibrarySerializer {
           serializeTypeRef(typedefElement.returnType, typedefElement);
     }
     b.parameters = typedefElement.parameters.map(serializeParam).toList();
+    b.documentationComment = serializeDocumentation(typedefElement);
     return b;
   }
 
@@ -681,6 +702,7 @@ class _LibrarySerializer {
     b.isFinal = variable.isFinal;
     b.isConst = variable.isConst;
     b.hasImplicitType = variable.hasImplicitType;
+    b.documentationComment = serializeDocumentation(variable);
     return b;
   }
 }

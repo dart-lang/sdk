@@ -288,6 +288,7 @@ class _LibraryResynthesizer {
       classElement.methods = memberHolder.methods;
       correspondingType.typeArguments = currentTypeArguments;
       classElement.type = correspondingType;
+      buildDocumentation(classElement, serializedClass.documentationComment);
       unitHolder.addType(classElement);
     } finally {
       currentTypeParameters = <TypeParameterElement>[];
@@ -331,6 +332,17 @@ class _LibraryResynthesizer {
   }
 
   /**
+   * Build the documentation for the given [element].  Does nothing if
+   * [serializedDocumentationComment] is `null`.
+   */
+  void buildDocumentation(ElementImpl element,
+      UnlinkedDocumentationComment serializedDocumentationComment) {
+    if (serializedDocumentationComment != null) {
+      element.documentationComment = serializedDocumentationComment.text;
+    }
+  }
+
+  /**
    * Resynthesize the [ClassElement] corresponding to an enum, along with the
    * associated fields and implicit accessors.
    */
@@ -343,6 +355,7 @@ class _LibraryResynthesizer {
     InterfaceType enumType = new InterfaceTypeImpl(classElement);
     classElement.type = enumType;
     classElement.supertype = summaryResynthesizer.typeProvider.objectType;
+    buildDocumentation(classElement, serializedEnum.documentationComment);
     ElementHolder memberHolder = new ElementHolder();
     FieldElementImpl indexField = new FieldElementImpl('index', -1);
     indexField.final2 = true;
@@ -481,6 +494,8 @@ class _LibraryResynthesizer {
     executableElement.external = serializedExecutable.isExternal;
     currentTypeParameters.removeRange(
         oldTypeParametersLength, currentTypeParameters.length);
+    buildDocumentation(
+        executableElement, serializedExecutable.documentationComment);
   }
 
   /**
@@ -642,6 +657,8 @@ class _LibraryResynthesizer {
         unlinkedUnits[0].libraryName,
         hasName ? unlinkedUnits[0].libraryNameOffset : -1,
         unlinkedUnits[0].libraryNameLength);
+    buildDocumentation(
+        libraryElement, unlinkedUnits[0].libraryDocumentationComment);
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl(librarySource.shortName);
     libraryElement.definingCompilationUnit = definingCompilationUnit;
@@ -868,6 +885,8 @@ class _LibraryResynthesizer {
       functionTypeAliasElement.type =
           new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
       functionTypeAliasElement.typeParameters = currentTypeParameters;
+      buildDocumentation(
+          functionTypeAliasElement, serializedTypedef.documentationComment);
       unitHolder.addTypeAlias(functionTypeAliasElement);
     } finally {
       currentTypeParameters = <TypeParameterElement>[];
@@ -920,6 +939,7 @@ class _LibraryResynthesizer {
     element.type = buildType(serializedVariable.type);
     element.const3 = serializedVariable.isConst;
     element.hasImplicitType = serializedVariable.hasImplicitType;
+    buildDocumentation(element, serializedVariable.documentationComment);
   }
 
   /**

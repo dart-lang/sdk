@@ -511,6 +511,7 @@ SdkBundleBuilder encodeSdkBundle(base.BuilderContext builderContext, {List<Strin
 class UnlinkedClass extends base.SummaryClass {
   String _name;
   int _nameOffset;
+  UnlinkedDocumentationComment _documentationComment;
   List<UnlinkedTypeParam> _typeParameters;
   UnlinkedTypeRef _supertype;
   List<UnlinkedTypeRef> _mixins;
@@ -524,6 +525,7 @@ class UnlinkedClass extends base.SummaryClass {
   UnlinkedClass.fromJson(Map json)
     : _name = json["name"],
       _nameOffset = json["nameOffset"],
+      _documentationComment = json["documentationComment"] == null ? null : new UnlinkedDocumentationComment.fromJson(json["documentationComment"]),
       _typeParameters = json["typeParameters"]?.map((x) => new UnlinkedTypeParam.fromJson(x))?.toList(),
       _supertype = json["supertype"] == null ? null : new UnlinkedTypeRef.fromJson(json["supertype"]),
       _mixins = json["mixins"]?.map((x) => new UnlinkedTypeRef.fromJson(x))?.toList(),
@@ -538,6 +540,7 @@ class UnlinkedClass extends base.SummaryClass {
   Map<String, Object> toMap() => {
     "name": name,
     "nameOffset": nameOffset,
+    "documentationComment": documentationComment,
     "typeParameters": typeParameters,
     "supertype": supertype,
     "mixins": mixins,
@@ -558,6 +561,12 @@ class UnlinkedClass extends base.SummaryClass {
    * Offset of the class name relative to the beginning of the file.
    */
   int get nameOffset => _nameOffset ?? 0;
+
+  /**
+   * Documentation comment for the class, or `null` if there is no
+   * documentation comment.
+   */
+  UnlinkedDocumentationComment get documentationComment => _documentationComment;
 
   /**
    * Type parameters of the class, if any.
@@ -634,6 +643,18 @@ class UnlinkedClassBuilder {
     assert(!_json.containsKey("nameOffset"));
     if (_value != null) {
       _json["nameOffset"] = _value;
+    }
+  }
+
+  /**
+   * Documentation comment for the class, or `null` if there is no
+   * documentation comment.
+   */
+  void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("documentationComment"));
+    if (_value != null) {
+      _json["documentationComment"] = _value.finish();
     }
   }
 
@@ -746,10 +767,11 @@ class UnlinkedClassBuilder {
   }
 }
 
-UnlinkedClassBuilder encodeUnlinkedClass(base.BuilderContext builderContext, {String name, int nameOffset, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder supertype, List<UnlinkedTypeRefBuilder> mixins, List<UnlinkedTypeRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication, bool hasNoSupertype}) {
+UnlinkedClassBuilder encodeUnlinkedClass(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder supertype, List<UnlinkedTypeRefBuilder> mixins, List<UnlinkedTypeRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication, bool hasNoSupertype}) {
   UnlinkedClassBuilder builder = new UnlinkedClassBuilder(builderContext);
   builder.name = name;
   builder.nameOffset = nameOffset;
+  builder.documentationComment = documentationComment;
   builder.typeParameters = typeParameters;
   builder.supertype = supertype;
   builder.mixins = mixins;
@@ -835,22 +857,82 @@ UnlinkedCombinatorBuilder encodeUnlinkedCombinator(base.BuilderContext builderCo
 }
 
 /**
+ * Unlinked summary information about a documentation comment.
+ */
+class UnlinkedDocumentationComment extends base.SummaryClass {
+  String _text;
+
+  UnlinkedDocumentationComment.fromJson(Map json)
+    : _text = json["text"];
+
+  @override
+  Map<String, Object> toMap() => {
+    "text": text,
+  };
+
+  /**
+   * Text of the documentation comment, with '\r\n' replaced by '\n'.
+   *
+   * References appearing within the doc comment in square brackets are not
+   * specially encoded.
+   */
+  String get text => _text ?? '';
+}
+
+class UnlinkedDocumentationCommentBuilder {
+  final Map _json = {};
+
+  bool _finished = false;
+
+  UnlinkedDocumentationCommentBuilder(base.BuilderContext context);
+
+  /**
+   * Text of the documentation comment, with '\r\n' replaced by '\n'.
+   *
+   * References appearing within the doc comment in square brackets are not
+   * specially encoded.
+   */
+  void set text(String _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("text"));
+    if (_value != null) {
+      _json["text"] = _value;
+    }
+  }
+
+  Map finish() {
+    assert(!_finished);
+    _finished = true;
+    return _json;
+  }
+}
+
+UnlinkedDocumentationCommentBuilder encodeUnlinkedDocumentationComment(base.BuilderContext builderContext, {String text}) {
+  UnlinkedDocumentationCommentBuilder builder = new UnlinkedDocumentationCommentBuilder(builderContext);
+  builder.text = text;
+  return builder;
+}
+
+/**
  * Unlinked summary information about an enum declaration.
  */
 class UnlinkedEnum extends base.SummaryClass {
   String _name;
   int _nameOffset;
+  UnlinkedDocumentationComment _documentationComment;
   List<UnlinkedEnumValue> _values;
 
   UnlinkedEnum.fromJson(Map json)
     : _name = json["name"],
       _nameOffset = json["nameOffset"],
+      _documentationComment = json["documentationComment"] == null ? null : new UnlinkedDocumentationComment.fromJson(json["documentationComment"]),
       _values = json["values"]?.map((x) => new UnlinkedEnumValue.fromJson(x))?.toList();
 
   @override
   Map<String, Object> toMap() => {
     "name": name,
     "nameOffset": nameOffset,
+    "documentationComment": documentationComment,
     "values": values,
   };
 
@@ -863,6 +945,12 @@ class UnlinkedEnum extends base.SummaryClass {
    * Offset of the enum name relative to the beginning of the file.
    */
   int get nameOffset => _nameOffset ?? 0;
+
+  /**
+   * Documentation comment for the enum, or `null` if there is no documentation
+   * comment.
+   */
+  UnlinkedDocumentationComment get documentationComment => _documentationComment;
 
   /**
    * Values listed in the enum declaration, in declaration order.
@@ -900,6 +988,18 @@ class UnlinkedEnumBuilder {
   }
 
   /**
+   * Documentation comment for the enum, or `null` if there is no documentation
+   * comment.
+   */
+  void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("documentationComment"));
+    if (_value != null) {
+      _json["documentationComment"] = _value.finish();
+    }
+  }
+
+  /**
    * Values listed in the enum declaration, in declaration order.
    */
   void set values(List<UnlinkedEnumValueBuilder> _value) {
@@ -917,10 +1017,11 @@ class UnlinkedEnumBuilder {
   }
 }
 
-UnlinkedEnumBuilder encodeUnlinkedEnum(base.BuilderContext builderContext, {String name, int nameOffset, List<UnlinkedEnumValueBuilder> values}) {
+UnlinkedEnumBuilder encodeUnlinkedEnum(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedEnumValueBuilder> values}) {
   UnlinkedEnumBuilder builder = new UnlinkedEnumBuilder(builderContext);
   builder.name = name;
   builder.nameOffset = nameOffset;
+  builder.documentationComment = documentationComment;
   builder.values = values;
   return builder;
 }
@@ -932,15 +1033,18 @@ UnlinkedEnumBuilder encodeUnlinkedEnum(base.BuilderContext builderContext, {Stri
 class UnlinkedEnumValue extends base.SummaryClass {
   String _name;
   int _nameOffset;
+  UnlinkedDocumentationComment _documentationComment;
 
   UnlinkedEnumValue.fromJson(Map json)
     : _name = json["name"],
-      _nameOffset = json["nameOffset"];
+      _nameOffset = json["nameOffset"],
+      _documentationComment = json["documentationComment"] == null ? null : new UnlinkedDocumentationComment.fromJson(json["documentationComment"]);
 
   @override
   Map<String, Object> toMap() => {
     "name": name,
     "nameOffset": nameOffset,
+    "documentationComment": documentationComment,
   };
 
   /**
@@ -952,6 +1056,12 @@ class UnlinkedEnumValue extends base.SummaryClass {
    * Offset of the enum value name relative to the beginning of the file.
    */
   int get nameOffset => _nameOffset ?? 0;
+
+  /**
+   * Documentation comment for the enum value, or `null` if there is no
+   * documentation comment.
+   */
+  UnlinkedDocumentationComment get documentationComment => _documentationComment;
 }
 
 class UnlinkedEnumValueBuilder {
@@ -983,6 +1093,18 @@ class UnlinkedEnumValueBuilder {
     }
   }
 
+  /**
+   * Documentation comment for the enum value, or `null` if there is no
+   * documentation comment.
+   */
+  void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("documentationComment"));
+    if (_value != null) {
+      _json["documentationComment"] = _value.finish();
+    }
+  }
+
   Map finish() {
     assert(!_finished);
     _finished = true;
@@ -990,10 +1112,11 @@ class UnlinkedEnumValueBuilder {
   }
 }
 
-UnlinkedEnumValueBuilder encodeUnlinkedEnumValue(base.BuilderContext builderContext, {String name, int nameOffset}) {
+UnlinkedEnumValueBuilder encodeUnlinkedEnumValue(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment}) {
   UnlinkedEnumValueBuilder builder = new UnlinkedEnumValueBuilder(builderContext);
   builder.name = name;
   builder.nameOffset = nameOffset;
+  builder.documentationComment = documentationComment;
   return builder;
 }
 
@@ -1004,6 +1127,7 @@ UnlinkedEnumValueBuilder encodeUnlinkedEnumValue(base.BuilderContext builderCont
 class UnlinkedExecutable extends base.SummaryClass {
   String _name;
   int _nameOffset;
+  UnlinkedDocumentationComment _documentationComment;
   List<UnlinkedTypeParam> _typeParameters;
   UnlinkedTypeRef _returnType;
   List<UnlinkedParam> _parameters;
@@ -1018,6 +1142,7 @@ class UnlinkedExecutable extends base.SummaryClass {
   UnlinkedExecutable.fromJson(Map json)
     : _name = json["name"],
       _nameOffset = json["nameOffset"],
+      _documentationComment = json["documentationComment"] == null ? null : new UnlinkedDocumentationComment.fromJson(json["documentationComment"]),
       _typeParameters = json["typeParameters"]?.map((x) => new UnlinkedTypeParam.fromJson(x))?.toList(),
       _returnType = json["returnType"] == null ? null : new UnlinkedTypeRef.fromJson(json["returnType"]),
       _parameters = json["parameters"]?.map((x) => new UnlinkedParam.fromJson(x))?.toList(),
@@ -1033,6 +1158,7 @@ class UnlinkedExecutable extends base.SummaryClass {
   Map<String, Object> toMap() => {
     "name": name,
     "nameOffset": nameOffset,
+    "documentationComment": documentationComment,
     "typeParameters": typeParameters,
     "returnType": returnType,
     "parameters": parameters,
@@ -1059,6 +1185,12 @@ class UnlinkedExecutable extends base.SummaryClass {
    * offset of the second "C" in "class C { C(); }").
    */
   int get nameOffset => _nameOffset ?? 0;
+
+  /**
+   * Documentation comment for the executable, or `null` if there is no
+   * documentation comment.
+   */
+  UnlinkedDocumentationComment get documentationComment => _documentationComment;
 
   /**
    * Type parameters of the executable, if any.  Empty if support for generic
@@ -1153,6 +1285,18 @@ class UnlinkedExecutableBuilder {
     assert(!_json.containsKey("nameOffset"));
     if (_value != null) {
       _json["nameOffset"] = _value;
+    }
+  }
+
+  /**
+   * Documentation comment for the executable, or `null` if there is no
+   * documentation comment.
+   */
+  void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("documentationComment"));
+    if (_value != null) {
+      _json["documentationComment"] = _value.finish();
     }
   }
 
@@ -1284,10 +1428,11 @@ class UnlinkedExecutableBuilder {
   }
 }
 
-UnlinkedExecutableBuilder encodeUnlinkedExecutable(base.BuilderContext builderContext, {String name, int nameOffset, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType, bool isExternal}) {
+UnlinkedExecutableBuilder encodeUnlinkedExecutable(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType, bool isExternal}) {
   UnlinkedExecutableBuilder builder = new UnlinkedExecutableBuilder(builderContext);
   builder.name = name;
   builder.nameOffset = nameOffset;
+  builder.documentationComment = documentationComment;
   builder.typeParameters = typeParameters;
   builder.returnType = returnType;
   builder.parameters = parameters;
@@ -2261,6 +2406,7 @@ UnlinkedReferenceBuilder encodeUnlinkedReference(base.BuilderContext builderCont
 class UnlinkedTypedef extends base.SummaryClass {
   String _name;
   int _nameOffset;
+  UnlinkedDocumentationComment _documentationComment;
   List<UnlinkedTypeParam> _typeParameters;
   UnlinkedTypeRef _returnType;
   List<UnlinkedParam> _parameters;
@@ -2268,6 +2414,7 @@ class UnlinkedTypedef extends base.SummaryClass {
   UnlinkedTypedef.fromJson(Map json)
     : _name = json["name"],
       _nameOffset = json["nameOffset"],
+      _documentationComment = json["documentationComment"] == null ? null : new UnlinkedDocumentationComment.fromJson(json["documentationComment"]),
       _typeParameters = json["typeParameters"]?.map((x) => new UnlinkedTypeParam.fromJson(x))?.toList(),
       _returnType = json["returnType"] == null ? null : new UnlinkedTypeRef.fromJson(json["returnType"]),
       _parameters = json["parameters"]?.map((x) => new UnlinkedParam.fromJson(x))?.toList();
@@ -2276,6 +2423,7 @@ class UnlinkedTypedef extends base.SummaryClass {
   Map<String, Object> toMap() => {
     "name": name,
     "nameOffset": nameOffset,
+    "documentationComment": documentationComment,
     "typeParameters": typeParameters,
     "returnType": returnType,
     "parameters": parameters,
@@ -2290,6 +2438,12 @@ class UnlinkedTypedef extends base.SummaryClass {
    * Offset of the typedef name relative to the beginning of the file.
    */
   int get nameOffset => _nameOffset ?? 0;
+
+  /**
+   * Documentation comment for the typedef, or `null` if there is no
+   * documentation comment.
+   */
+  UnlinkedDocumentationComment get documentationComment => _documentationComment;
 
   /**
    * Type parameters of the typedef, if any.
@@ -2337,6 +2491,18 @@ class UnlinkedTypedefBuilder {
   }
 
   /**
+   * Documentation comment for the typedef, or `null` if there is no
+   * documentation comment.
+   */
+  void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("documentationComment"));
+    if (_value != null) {
+      _json["documentationComment"] = _value.finish();
+    }
+  }
+
+  /**
    * Type parameters of the typedef, if any.
    */
   void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
@@ -2376,10 +2542,11 @@ class UnlinkedTypedefBuilder {
   }
 }
 
-UnlinkedTypedefBuilder encodeUnlinkedTypedef(base.BuilderContext builderContext, {String name, int nameOffset, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters}) {
+UnlinkedTypedefBuilder encodeUnlinkedTypedef(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters}) {
   UnlinkedTypedefBuilder builder = new UnlinkedTypedefBuilder(builderContext);
   builder.name = name;
   builder.nameOffset = nameOffset;
+  builder.documentationComment = documentationComment;
   builder.typeParameters = typeParameters;
   builder.returnType = returnType;
   builder.parameters = parameters;
@@ -2625,6 +2792,7 @@ class UnlinkedUnit extends base.SummaryClass {
   String _libraryName;
   int _libraryNameOffset;
   int _libraryNameLength;
+  UnlinkedDocumentationComment _libraryDocumentationComment;
   UnlinkedPublicNamespace _publicNamespace;
   List<UnlinkedReference> _references;
   List<UnlinkedClass> _classes;
@@ -2640,6 +2808,7 @@ class UnlinkedUnit extends base.SummaryClass {
     : _libraryName = json["libraryName"],
       _libraryNameOffset = json["libraryNameOffset"],
       _libraryNameLength = json["libraryNameLength"],
+      _libraryDocumentationComment = json["libraryDocumentationComment"] == null ? null : new UnlinkedDocumentationComment.fromJson(json["libraryDocumentationComment"]),
       _publicNamespace = json["publicNamespace"] == null ? null : new UnlinkedPublicNamespace.fromJson(json["publicNamespace"]),
       _references = json["references"]?.map((x) => new UnlinkedReference.fromJson(x))?.toList(),
       _classes = json["classes"]?.map((x) => new UnlinkedClass.fromJson(x))?.toList(),
@@ -2656,6 +2825,7 @@ class UnlinkedUnit extends base.SummaryClass {
     "libraryName": libraryName,
     "libraryNameOffset": libraryNameOffset,
     "libraryNameLength": libraryNameLength,
+    "libraryDocumentationComment": libraryDocumentationComment,
     "publicNamespace": publicNamespace,
     "references": references,
     "classes": classes,
@@ -2686,6 +2856,12 @@ class UnlinkedUnit extends base.SummaryClass {
    * library has no name).
    */
   int get libraryNameLength => _libraryNameLength ?? 0;
+
+  /**
+   * Documentation comment for the library, or `null` if there is no
+   * documentation comment.
+   */
+  UnlinkedDocumentationComment get libraryDocumentationComment => _libraryDocumentationComment;
 
   /**
    * Unlinked public namespace of this compilation unit.
@@ -2780,6 +2956,18 @@ class UnlinkedUnitBuilder {
     assert(!_json.containsKey("libraryNameLength"));
     if (_value != null) {
       _json["libraryNameLength"] = _value;
+    }
+  }
+
+  /**
+   * Documentation comment for the library, or `null` if there is no
+   * documentation comment.
+   */
+  void set libraryDocumentationComment(UnlinkedDocumentationCommentBuilder _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("libraryDocumentationComment"));
+    if (_value != null) {
+      _json["libraryDocumentationComment"] = _value.finish();
     }
   }
 
@@ -2905,11 +3093,12 @@ class UnlinkedUnitBuilder {
   }
 }
 
-UnlinkedUnitBuilder encodeUnlinkedUnit(base.BuilderContext builderContext, {String libraryName, int libraryNameOffset, int libraryNameLength, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedPartBuilder> parts, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
+UnlinkedUnitBuilder encodeUnlinkedUnit(base.BuilderContext builderContext, {String libraryName, int libraryNameOffset, int libraryNameLength, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedPartBuilder> parts, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
   UnlinkedUnitBuilder builder = new UnlinkedUnitBuilder(builderContext);
   builder.libraryName = libraryName;
   builder.libraryNameOffset = libraryNameOffset;
   builder.libraryNameLength = libraryNameLength;
+  builder.libraryDocumentationComment = libraryDocumentationComment;
   builder.publicNamespace = publicNamespace;
   builder.references = references;
   builder.classes = classes;
@@ -2930,6 +3119,7 @@ UnlinkedUnitBuilder encodeUnlinkedUnit(base.BuilderContext builderContext, {Stri
 class UnlinkedVariable extends base.SummaryClass {
   String _name;
   int _nameOffset;
+  UnlinkedDocumentationComment _documentationComment;
   UnlinkedTypeRef _type;
   bool _isStatic;
   bool _isFinal;
@@ -2939,6 +3129,7 @@ class UnlinkedVariable extends base.SummaryClass {
   UnlinkedVariable.fromJson(Map json)
     : _name = json["name"],
       _nameOffset = json["nameOffset"],
+      _documentationComment = json["documentationComment"] == null ? null : new UnlinkedDocumentationComment.fromJson(json["documentationComment"]),
       _type = json["type"] == null ? null : new UnlinkedTypeRef.fromJson(json["type"]),
       _isStatic = json["isStatic"],
       _isFinal = json["isFinal"],
@@ -2949,6 +3140,7 @@ class UnlinkedVariable extends base.SummaryClass {
   Map<String, Object> toMap() => {
     "name": name,
     "nameOffset": nameOffset,
+    "documentationComment": documentationComment,
     "type": type,
     "isStatic": isStatic,
     "isFinal": isFinal,
@@ -2965,6 +3157,12 @@ class UnlinkedVariable extends base.SummaryClass {
    * Offset of the variable name relative to the beginning of the file.
    */
   int get nameOffset => _nameOffset ?? 0;
+
+  /**
+   * Documentation comment for the variable, or `null` if there is no
+   * documentation comment.
+   */
+  UnlinkedDocumentationComment get documentationComment => _documentationComment;
 
   /**
    * Declared type of the variable.  Note that when strong mode is enabled, the
@@ -3023,6 +3221,18 @@ class UnlinkedVariableBuilder {
     assert(!_json.containsKey("nameOffset"));
     if (_value != null) {
       _json["nameOffset"] = _value;
+    }
+  }
+
+  /**
+   * Documentation comment for the variable, or `null` if there is no
+   * documentation comment.
+   */
+  void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("documentationComment"));
+    if (_value != null) {
+      _json["documentationComment"] = _value.finish();
     }
   }
 
@@ -3093,10 +3303,11 @@ class UnlinkedVariableBuilder {
   }
 }
 
-UnlinkedVariableBuilder encodeUnlinkedVariable(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedTypeRefBuilder type, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType}) {
+UnlinkedVariableBuilder encodeUnlinkedVariable(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, UnlinkedTypeRefBuilder type, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType}) {
   UnlinkedVariableBuilder builder = new UnlinkedVariableBuilder(builderContext);
   builder.name = name;
   builder.nameOffset = nameOffset;
+  builder.documentationComment = documentationComment;
   builder.type = type;
   builder.isStatic = isStatic;
   builder.isFinal = isFinal;

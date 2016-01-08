@@ -198,6 +198,8 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.location, original.location, reason: desc);
     expect(resynthesized.name, original.name);
     expect(resynthesized.nameOffset, original.nameOffset, reason: desc);
+    expect(resynthesized.documentationComment, original.documentationComment,
+        reason: desc);
     for (Modifier modifier in Modifier.values) {
       if (modifier == Modifier.MIXIN) {
         // Skipping for now.  TODO(paulberry): fix.
@@ -531,6 +533,18 @@ class ResynthTest extends ResolverTestCase {
     checkLibrary('class C = D with E, F; class D {} class E {} class F {}');
   }
 
+  test_class_alias_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+class C = D with E;
+
+class D {}
+class E {}''');
+  }
+
   test_class_alias_with_forwarding_constructors() {
     addLibrarySource(
         '/a.dart',
@@ -665,6 +679,30 @@ class E {
     checkLibrary('class C { C.foo(); C.bar(); }');
   }
 
+  test_class_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+class C {}''');
+  }
+
+  test_class_documented_with_references() {
+    checkLibrary('''
+/**
+ * Docs referring to [D] and [E]
+ */
+class C {}
+
+class D {}
+class E {}''');
+  }
+
+  test_class_documented_with_windows_line_endings() {
+    checkLibrary('/**\r\n * Docs\r\n */\r\nclass C {}');
+  }
+
   test_class_field_const() {
     checkLibrary('class C { static const int i = 0; }');
   }
@@ -773,6 +811,16 @@ class E {
     checkLibrary('class C {} class D {}');
   }
 
+  test_constructor_documented() {
+    checkLibrary('''
+class C {
+  /**
+   * Docs
+   */
+  C();
+}''');
+  }
+
   test_core() {
     String uri = 'dart:core';
     LibraryElementImpl original =
@@ -780,6 +828,25 @@ class E {
     LibraryElementImpl resynthesized =
         resynthesizeLibraryElement(uri, original);
     checkLibraryElements(original, resynthesized);
+  }
+
+  test_enum_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+enum E { v }''');
+  }
+
+  test_enum_value_documented() {
+    checkLibrary('''
+enum E {
+  /**
+   * Docs
+   */
+  v
+}''');
   }
 
   test_enum_values() {
@@ -809,6 +876,25 @@ class E {
     addLibrarySource('/a.dart', 'library a;');
     addLibrarySource('/b.dart', 'library b;');
     checkLibrary('export "a.dart"; export "b.dart";');
+  }
+
+  test_field_documented() {
+    checkLibrary('''
+class C {
+  /**
+   * Docs
+   */
+  var x;
+}''');
+  }
+
+  test_function_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+f() {}''');
   }
 
   test_function_entry_point() {
@@ -889,6 +975,15 @@ class E {
     checkLibrary('f() {} g() {}');
   }
 
+  test_getter_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+get x => null;''');
+  }
+
   test_getter_external() {
     checkLibrary('external int get x;');
   }
@@ -927,12 +1022,31 @@ class E {
     checkLibrary('');
   }
 
+  test_library_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+library foo;''');
+  }
+
   test_library_name_with_spaces() {
     checkLibrary('library foo . bar ;');
   }
 
   test_library_named() {
     checkLibrary('library foo.bar;');
+  }
+
+  test_method_documented() {
+    checkLibrary('''
+class C {
+  /**
+   * Docs
+   */
+  f() {}
+}''');
   }
 
   test_method_parameter_parameters() {
@@ -998,6 +1112,15 @@ class E {
     addNamedSource('/a.dart', 'part of my.lib;');
     addNamedSource('/b.dart', 'part of my.lib;');
     checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+  }
+
+  test_setter_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+void set x(value) {}''');
   }
 
   test_setter_external() {
@@ -1142,6 +1265,15 @@ class E {
     checkLibrary('import "dart:core" as core; core.C c;', allowErrors: true);
   }
 
+  test_typedef_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+typedef F();''');
+  }
+
   test_typedef_parameter_parameters() {
     checkLibrary('typedef F(g(x, y));');
   }
@@ -1204,6 +1336,15 @@ class E {
 
   test_variable_const() {
     checkLibrary('const int i = 0;');
+  }
+
+  test_variable_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+var x;''');
   }
 
   test_variable_implicit_type() {

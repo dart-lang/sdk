@@ -222,6 +222,13 @@ class UnlinkedClass {
   int nameOffset;
 
   /**
+   * Documentation comment for the class, or `null` if there is no
+   * documentation comment.
+   */
+  @informative
+  UnlinkedDocumentationComment documentationComment;
+
+  /**
    * Type parameters of the class, if any.
    */
   List<UnlinkedTypeParam> typeParameters;
@@ -287,6 +294,19 @@ class UnlinkedCombinator {
 }
 
 /**
+ * Unlinked summary information about a documentation comment.
+ */
+class UnlinkedDocumentationComment {
+  /**
+   * Text of the documentation comment, with '\r\n' replaced by '\n'.
+   *
+   * References appearing within the doc comment in square brackets are not
+   * specially encoded.
+   */
+  String text;
+}
+
+/**
  * Unlinked summary information about an enum declaration.
  */
 class UnlinkedEnum {
@@ -300,6 +320,13 @@ class UnlinkedEnum {
    */
   @informative
   int nameOffset;
+
+  /**
+   * Documentation comment for the enum, or `null` if there is no documentation
+   * comment.
+   */
+  @informative
+  UnlinkedDocumentationComment documentationComment;
 
   /**
    * Values listed in the enum declaration, in declaration order.
@@ -322,6 +349,13 @@ class UnlinkedEnumValue {
    */
   @informative
   int nameOffset;
+
+  /**
+   * Documentation comment for the enum value, or `null` if there is no
+   * documentation comment.
+   */
+  @informative
+  UnlinkedDocumentationComment documentationComment;
 }
 
 /**
@@ -344,6 +378,13 @@ class UnlinkedExecutable {
    */
   @informative
   int nameOffset;
+
+  /**
+   * Documentation comment for the executable, or `null` if there is no
+   * documentation comment.
+   */
+  @informative
+  UnlinkedDocumentationComment documentationComment;
 
   /**
    * Type parameters of the executable, if any.  Empty if support for generic
@@ -718,6 +759,13 @@ class UnlinkedTypedef {
   int nameOffset;
 
   /**
+   * Documentation comment for the typedef, or `null` if there is no
+   * documentation comment.
+   */
+  @informative
+  UnlinkedDocumentationComment documentationComment;
+
+  /**
    * Type parameters of the typedef, if any.
    */
   List<UnlinkedTypeParam> typeParameters;
@@ -824,6 +872,13 @@ class UnlinkedUnit {
   int libraryNameLength;
 
   /**
+   * Documentation comment for the library, or `null` if there is no
+   * documentation comment.
+   */
+  @informative
+  UnlinkedDocumentationComment libraryDocumentationComment;
+
+  /**
    * Unlinked public namespace of this compilation unit.
    */
   UnlinkedPublicNamespace publicNamespace;
@@ -892,6 +947,13 @@ class UnlinkedVariable {
    */
   @informative
   int nameOffset;
+
+  /**
+   * Documentation comment for the variable, or `null` if there is no
+   * documentation comment.
+   */
+  @informative
+  UnlinkedDocumentationComment documentationComment;
 
   /**
    * Declared type of the variable.  Note that when strong mode is enabled, the

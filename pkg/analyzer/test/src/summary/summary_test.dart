@@ -226,6 +226,26 @@ abstract class SummaryTest {
   }
 
   /**
+   * Check that the given [documentationComment] matches the first
+   * Javadoc-style comment found in [text].
+   *
+   * Note that the algorithm for finding the Javadoc-style comment in [text] is
+   * a simple-minded text search; it is easily confused by corner cases such as
+   * strings containing comments, nested comments, etc.
+   */
+  void checkDocumentationComment(
+      UnlinkedDocumentationComment documentationComment, String text) {
+    expect(documentationComment, isNotNull);
+    int commentStart = text.indexOf('/*');
+    expect(commentStart, isNot(-1));
+    int commentEnd = text.indexOf('*/');
+    expect(commentEnd, isNot(-1));
+    commentEnd += 2;
+    String expectedCommentText = text.substring(commentStart, commentEnd);
+    expect(documentationComment.text, expectedCommentText);
+  }
+
+  /**
    * Verify that the given [typeRef] represents the type `dynamic`.
    */
   void checkDynamicTypeRef(UnlinkedTypeRef typeRef) {
@@ -366,6 +386,20 @@ abstract class SummaryTest {
     checkTypeRef(typeRef, null, null, checkAstDerivedData ? expectedName : null,
         expectedPrefix: expectedPrefix,
         expectedKind: PrelinkedReferenceKind.unresolved);
+  }
+
+  fail_enum_value_documented() {
+    // TODO(paulberry): currently broken because of dartbug.com/25385
+    String text = '''
+enum E {
+  /**
+   * Docs
+   */
+  v
+}''';
+    UnlinkedEnumValue value = serializeEnumText(text).values[0];
+    expect(value.documentationComment, isNotNull);
+    checkDocumentationComment(value.documentationComment, text);
   }
 
   fail_test_import_missing() {
@@ -724,6 +758,21 @@ C c;
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
 
+  test_class_alias_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+class C = D with E;
+
+class D {}
+class E {}''';
+    UnlinkedClass cls = serializeClassText(text);
+    expect(cls.documentationComment, isNotNull);
+    checkDocumentationComment(cls.documentationComment, text);
+  }
+
   test_class_alias_flag() {
     UnlinkedClass cls =
         serializeClassText('class C = D with E; class D {} class E {}');
@@ -794,6 +843,41 @@ class E {}
         PrelinkedReferenceKind.classOrEnum);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
+  }
+
+  test_class_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+class C {}''';
+    UnlinkedClass cls = serializeClassText(text);
+    expect(cls.documentationComment, isNotNull);
+    checkDocumentationComment(cls.documentationComment, text);
+  }
+
+  test_class_documented_with_references() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs referring to [D] and [E]
+ */
+class C {}
+
+class D {}
+class E {}''';
+    UnlinkedClass cls = serializeClassText(text);
+    expect(cls.documentationComment, isNotNull);
+    checkDocumentationComment(cls.documentationComment, text);
+  }
+
+  test_class_documented_with_with_windows_line_endings() {
+    String text = '/**\r\n * Docs\r\n */\r\nclass C {}';
+    String convertedText = text.replaceAll('\r\n', '\n');
+    UnlinkedClass cls = serializeClassText(text);
+    expect(cls.documentationComment, isNotNull);
+    checkDocumentationComment(cls.documentationComment, convertedText);
   }
 
   test_class_interface() {
@@ -961,6 +1045,19 @@ class E {}
             serializeClassText('class C { external const C(); }').executables);
     expect(executable.isConst, isTrue);
     expect(executable.isExternal, isTrue);
+  }
+
+  test_constructor_documented() {
+    String text = '''
+class C {
+  /**
+   * Docs
+   */
+  C();
+}''';
+    UnlinkedExecutable executable = serializeClassText(text).executables[0];
+    expect(executable.documentationComment, isNotNull);
+    checkDocumentationComment(executable.documentationComment, text);
   }
 
   test_constructor_external() {
@@ -1267,6 +1364,18 @@ typedef F();
         PrelinkedReferenceKind.classOrEnum);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'E');
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
+  }
+
+  test_enum_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+enum E { v }''';
+    UnlinkedEnum enm = serializeEnumText(text);
+    expect(enm.documentationComment, isNotNull);
+    checkDocumentationComment(enm.documentationComment, text);
   }
 
   test_enum_order() {
@@ -1826,6 +1935,19 @@ typedef F();
     expect(variable.isConst, isTrue);
   }
 
+  test_field_documented() {
+    String text = '''
+class C {
+  /**
+   * Docs
+   */
+  var v;
+}''';
+    UnlinkedVariable variable = serializeClassText(text).fields[0];
+    expect(variable.documentationComment, isNotNull);
+    checkDocumentationComment(variable.documentationComment, text);
+  }
+
   test_field_final() {
     UnlinkedVariable variable =
         serializeClassText('class C { final int i = 0; }').fields[0];
@@ -1838,6 +1960,18 @@ typedef F();
     expect(variable.isStatic, isTrue);
   }
 
+  test_function_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+f() {}''';
+    UnlinkedExecutable executable = serializeExecutableText(text);
+    expect(executable.documentationComment, isNotNull);
+    checkDocumentationComment(executable.documentationComment, text);
+  }
+
   test_generic_method_in_generic_class() {
     UnlinkedClass cls = serializeClassText(
         'class C<T, U> { void m<V, W>(T t, U u, V v, W w) {} }');
@@ -1846,6 +1980,18 @@ typedef F();
     checkParamTypeRef(params[1].type, 3);
     checkParamTypeRef(params[2].type, 2);
     checkParamTypeRef(params[3].type, 1);
+  }
+
+  test_getter_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+get f => null;''';
+    UnlinkedExecutable executable = serializeExecutableText(text);
+    expect(executable.documentationComment, isNotNull);
+    checkDocumentationComment(executable.documentationComment, text);
   }
 
   test_import_deferred() {
@@ -2024,6 +2170,19 @@ a.Stream s;
     expect(unlinkedUnits[0].imports[0].uri, 'dart:async');
   }
 
+  test_library_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+library foo;''';
+    serializeLibraryText(text);
+    expect(unlinkedUnits[0].libraryDocumentationComment, isNotNull);
+    checkDocumentationComment(
+        unlinkedUnits[0].libraryDocumentationComment, text);
+  }
+
   test_library_name_with_spaces() {
     String text = 'library foo . bar ;';
     serializeLibraryText(text);
@@ -2045,6 +2204,19 @@ a.Stream s;
     expect(unlinkedUnits[0].libraryName, isEmpty);
     expect(unlinkedUnits[0].libraryNameOffset, 0);
     expect(unlinkedUnits[0].libraryNameLength, 0);
+  }
+
+  test_method_documented() {
+    String text = '''
+class C {
+  /**
+   * Docs
+   */
+  f() {}
+}''';
+    UnlinkedExecutable executable = serializeClassText(text).executables[0];
+    expect(executable.documentationComment, isNotNull);
+    checkDocumentationComment(executable.documentationComment, text);
   }
 
   test_part_declaration() {
@@ -2080,6 +2252,18 @@ a.Stream s;
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
     expect(unlinkedUnits[1].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[1].publicNamespace.names[0].name, 'C');
+  }
+
+  test_setter_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+void set f(value) {}''';
+    UnlinkedExecutable executable = serializeExecutableText(text, 'f=');
+    expect(executable.documentationComment, isNotNull);
+    checkDocumentationComment(executable.documentationComment, text);
   }
 
   test_type_arguments_explicit() {
@@ -2283,6 +2467,18 @@ a.Stream s;
     checkUnresolvedTypeRef(typeRef, null, 'Foo');
   }
 
+  test_typedef_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+typedef F();''';
+    UnlinkedTypedef typedef = serializeTypedefText(text);
+    expect(typedef.documentationComment, isNotNull);
+    checkDocumentationComment(typedef.documentationComment, text);
+  }
+
   test_typedef_name() {
     String text = 'typedef F();';
     UnlinkedTypedef type = serializeTypedefText(text);
@@ -2376,6 +2572,18 @@ a.Stream s;
     UnlinkedVariable variable =
         serializeVariableText('const int i = 0;', variableName: 'i');
     expect(variable.isConst, isTrue);
+  }
+
+  test_variable_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+var v;''';
+    UnlinkedVariable variable = serializeVariableText(text);
+    expect(variable.documentationComment, isNotNull);
+    checkDocumentationComment(variable.documentationComment, text);
   }
 
   test_variable_explicit_dynamic() {
