@@ -159,7 +159,6 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
       if (prim is Interceptor) {
         Interceptor interceptor = existing;
         interceptor.interceptedClasses.addAll(prim.interceptedClasses);
-        interceptor.flags |= prim.flags;
       }
       prim..replaceUsesWith(existing)..destroy();
       node.remove();

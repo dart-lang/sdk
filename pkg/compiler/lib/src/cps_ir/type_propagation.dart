@@ -1835,6 +1835,30 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     return cps;
   }
 
+  visitInterceptor(Interceptor node) {
+    // Replace the interceptor with its input if the value is not intercepted.
+    // If the input might be null, we cannot do this since the interceptor
+    // might have to return JSNull.  That case is handled by visitInvokeMethod
+    // and visitInvokeMethodDirectly which can sometimes tolerate that null
+    // is used instead of JSNull.
+    Primitive input = node.input.definition;
+    if (!input.type.isNullable &&
+        typeSystem.areDisjoint(input.type, typeSystem.interceptorType)) {
+      node.replaceUsesWith(input);
+    }
+  }
+
+  visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    TypeMask receiverType = node.dartReceiver.type;
+    if (node.callingConvention == CallingConvention.Intercepted &&
+        typeSystem.areDisjoint(receiverType, typeSystem.interceptorType)) {
+      // Some direct calls take an interceptor because the target class is
+      // mixed into a native class.  If it is known at the call site that the
+      // receiver is non-intercepted, get rid of the interceptor.
+      node.receiver.changeTo(node.dartReceiver);
+    }
+  }
+
   visitInvokeMethod(InvokeMethod node) {
     var specialized =
         specializeOperatorCall(node) ??
@@ -1845,15 +1869,19 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         specializeClosureCall(node);
     if (specialized != null) return specialized;
 
-    node.mask =
-      typeSystem.intersection(node.mask, getValue(node.dartReceiver).type);
+    TypeMask receiverType = node.dartReceiver.type;
+    node.mask = typeSystem.intersection(node.mask, receiverType);
 
-    AbstractConstantValue receiver = getValue(node.receiver.definition);
+    bool canBeNonThrowingCallOnNull =
+        selectorsOnNull.contains(node.selector) &&
+        receiverType.isNullable;
 
     if (node.callingConvention == CallingConvention.Intercepted &&
-        node.receiver.definition.sameValue(node.arguments[0].definition)) {
-      // The receiver and first argument are the same; that means we already
-      // determined in visitInterceptor that we are targeting a non-interceptor.
+        !canBeNonThrowingCallOnNull &&
+        typeSystem.areDisjoint(receiverType, typeSystem.interceptorType)) {
+      // Use the Dart receiver as the JS receiver. This changes the wording of
+      // the error message when the receiver is null, but we accept this.
+      node.receiver.changeTo(node.dartReceiver);
 
       // Check if any of the possible targets depend on the extra receiver
       // argument. Mixins do this, and tear-offs always needs the extra receiver
@@ -1866,7 +1894,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         return typeSystem.methodUsesReceiverArgument(function) ||
                node.selector.isGetter && !function.isGetter;
       }
-      if (!getAllTargets(receiver.type, node.selector).any(needsReceiver)) {
+      if (!getAllTargets(receiverType, node.selector).any(needsReceiver)) {
         // Replace the extra receiver argument with a dummy value if the
         // target definitely does not use it.
         Constant dummy = makeConstantPrimitive(new IntConstantValue(0));
@@ -2220,7 +2248,6 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     CpsFragment cps = new CpsFragment(node.sourceInformation);
     Interceptor interceptor =
         cps.letPrim(new Interceptor(prim, node.sourceInformation));
-    interceptor.interceptedClasses.addAll(backend.interceptedClasses);
     Primitive testViaFlag =
         cps.letPrim(new TypeTestViaFlag(interceptor, dartType));
     node.replaceUsesWith(testViaFlag);
@@ -2229,163 +2256,6 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
   Primitive visitTypeTestViaFlag(TypeTestViaFlag node) {
     return null;
-  }
-
-  Primitive visitInterceptor(Interceptor node) {
-    AbstractConstantValue value = getValue(node.input.definition);
-    TypeMask interceptedInputs = value.type.intersection(
-        typeSystem.interceptorType.nullable(), classWorld);
-    bool interceptNull =
-        node.interceptedClasses.contains(helpers.jsNullClass) ||
-        node.interceptedClasses.contains(helpers.jsInterceptorClass);
-
-    void filterInterceptedClasses() {
-      if (lattice.isDefinitelyInt(value, allowNull: !interceptNull)) {
-        node.interceptedClasses..clear()..add(helpers.jsIntClass);
-        return;
-      }
-      if (lattice.isDefinitelyNum(value, allowNull: !interceptNull) &&
-                  jsNumberClassSuffices(node)) {
-        node.interceptedClasses..clear()..add(helpers.jsNumberClass);
-        return;
-      }
-
-      // TODO(asgerf): Avoid adding non-instantiated intercepted classes
-      // in the first place.  (This should also happen in later pass).
-      node.interceptedClasses.retainWhere(classWorld.isInstantiated);
-
-      TypeMask interceptedClassesType = new TypeMask.unionOf(
-          node.interceptedClasses.map(typeSystem.getInterceptorSubtypes),
-          classWorld);
-      TypeMask interceptedAndCaught =
-          interceptedInputs.intersection(interceptedClassesType, classWorld);
-      ClassElement single = interceptedAndCaught.singleClass(classWorld);
-      if (single != null) {
-        node.interceptedClasses..clear()..add(backend.getRuntimeClass(single));
-        return;
-      }
-
-      // Filter out intercepted classes that do not match the input type.
-      node.interceptedClasses.retainWhere((ClassElement clazz) {
-        return !typeSystem.areDisjoint(
-            value.type,
-            typeSystem.getInterceptorSubtypes(clazz));
-      });
-
-      // The interceptor root class will usually not be filtered out because all
-      // intercepted values are subtypes of it.  But it can be "shadowed" by a
-      // more specific interceptor classes if all possible intercepted values
-      // will hit one of the more specific classes.
-      //
-      // For example, if all classes can respond to a given call, but we know
-      // the input is a string or an unknown JavaScript object, we want to
-      // use a specialized interceptor:
-      //
-      //   getInterceptor(x).get$hashCode(x);
-      //     ==>
-      //   getInterceptor$su(x).get$hashCode(x)
-      //
-      // In this case, the intercepted classes that were not filtered out above
-      // are {UnknownJavaScriptObject, JSString, Interceptor}, but there is no
-      // need to include the Interceptor class.
-      //
-      // We only do this optimization if the resulting interceptor call is
-      // sufficiently specialized to be worth it (#classes <= 2).
-      // TODO(asgerf): Reconsider when TypeTestViaFlag interceptors don't
-      //               intercept ALL interceptor classes.
-      if (node.interceptedClasses.length > 1 &&
-          node.interceptedClasses.length < 4 &&
-          node.interceptedClasses.contains(helpers.jsInterceptorClass)) {
-        TypeMask specificInterceptors = new TypeMask.unionOf(
-            node.interceptedClasses
-              .where((cl) => cl != helpers.jsInterceptorClass)
-              .map(typeSystem.getInterceptorSubtypes),
-            classWorld);
-        if (specificInterceptors.containsMask(interceptedInputs, classWorld)) {
-          // All possible inputs are caught by an Interceptor subclass (or are
-          // self-interceptors), so there is no need to have the check for
-          // the Interceptor root class (which is expensive).
-          node.interceptedClasses.remove(helpers.jsInterceptorClass);
-        }
-      }
-    }
-
-    filterInterceptedClasses();
-
-    // Remove the interceptor call if it can only return its input.
-    if (node.interceptedClasses.isEmpty) {
-      node.replaceUsesWith(node.input.definition);
-      return null;
-    }
-
-    node.flags = Interceptor.ALL_FLAGS;
-
-    // If there is only one caught interceptor class, determine more precisely
-    // how this might resolve at runtime.  Later optimizations depend on this,
-    // but do not have refined type information available.
-    if (node.interceptedClasses.length == 1) {
-      ClassElement class_ = node.interceptedClasses.single;
-      if (value.isDefinitelyNotNull) {
-        node.clearFlag(Interceptor.NULL);
-      } else if (interceptNull) {
-        node.clearFlag(Interceptor.NULL_BYPASS);
-        if (class_ == helpers.jsNullClass) {
-          node.clearFlag(Interceptor.NULL_INTERCEPT_SUBCLASS);
-        } else {
-          node.clearFlag(Interceptor.NULL_INTERCEPT_EXACT);
-        }
-      } else {
-        node.clearFlag(Interceptor.NULL_INTERCEPT);
-      }
-      if (typeSystem.isDefinitelyIntercepted(value.type, allowNull: true)) {
-        node.clearFlag(Interceptor.SELF_INTERCEPT);
-      }
-      TypeMask interceptedInputsNonNullable = interceptedInputs.nonNullable();
-      TypeMask interceptedType = typeSystem.getInterceptorSubtypes(class_);
-      if (interceptedType.containsMask(interceptedInputsNonNullable,
-              classWorld)) {
-        node.clearFlag(Interceptor.NON_NULL_BYPASS);
-      }
-      if (class_ == helpers.jsNumberClass) {
-        // See [jsNumberClassSuffices].  We know that JSInt and JSDouble are
-        // not intercepted classes so JSNumber is sufficient.
-        node.clearFlag(Interceptor.NON_NULL_INTERCEPT_SUBCLASS);
-      } else if (class_ == helpers.jsArrayClass) {
-        // JSArray has compile-time subclasses like JSFixedArray, but should
-        // still be considered "exact" if the input is any subclass of JSArray.
-        if (typeSystem.isDefinitelyArray(interceptedInputsNonNullable)) {
-          node.clearFlag(Interceptor.NON_NULL_INTERCEPT_SUBCLASS);
-        }
-      } else {
-        TypeMask exactInterceptedType = typeSystem.nonNullExact(class_);
-        if (exactInterceptedType.containsMask(interceptedInputsNonNullable,
-                classWorld)) {
-          node.clearFlag(Interceptor.NON_NULL_INTERCEPT_SUBCLASS);
-        }
-      }
-    }
-    return null;
-  }
-
-  bool jsNumberClassSuffices(Interceptor node) {
-    // No methods on JSNumber call 'down' to methods on JSInt or JSDouble.  If
-    // all uses of the interceptor are for methods is defined only on JSNumber
-    // then JSNumber will suffice in place of choosing between JSInt or
-    // JSDouble.
-    for (Reference ref = node.firstRef; ref != null; ref = ref.next) {
-      if (ref.parent is InvokeMethod) {
-        InvokeMethod invoke = ref.parent;
-        if (invoke.receiver != ref) return false;
-        var interceptedClasses =
-            functionCompiler.glue.getInterceptedClassesOn(invoke.selector);
-        if (interceptedClasses.contains(helpers.jsDoubleClass)) return false;
-        if (interceptedClasses.contains(helpers.jsIntClass)) return false;
-        continue;
-      }
-      // Other uses need full distinction.
-      return false;
-    }
-    return true;
   }
 
   visitBoundsCheck(BoundsCheck node) {

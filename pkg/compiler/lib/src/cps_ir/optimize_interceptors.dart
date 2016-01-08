@@ -14,22 +14,28 @@ import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../types/types.dart' show TypeMask;
 import '../io/source_information.dart' show SourceInformation;
+import '../world.dart';
+import 'type_mask_system.dart';
 
 /// Replaces `getInterceptor` calls with interceptor constants when possible,
 /// or with "almost constant" expressions like "x && CONST" when the input
 /// is either null or has a known interceptor.
-//
-//  TODO(asgerf): Compute intercepted classes in this pass.
+///
+/// Narrows the set of intercepted classes for interceptor calls.
+///
+/// Replaces calls on interceptors with one-shot interceptors.
 class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
   String get passName => 'Optimize interceptors';
 
-  JavaScriptBackend backend;
+  final TypeMaskSystem typeSystem;
+  final JavaScriptBackend backend;
   LoopHierarchy loopHierarchy;
   Continuation currentLoopHeader;
 
-  OptimizeInterceptors(this.backend);
+  OptimizeInterceptors(this.backend, this.typeSystem);
 
   BackendHelpers get helpers => backend.helpers;
+  World get classWorld => backend.compiler.world;
 
   Map<Interceptor, Continuation> loopHeaderFor = <Interceptor, Continuation>{};
 
@@ -49,17 +55,6 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
       currentLoopHeader = oldLoopHeader;
     });
     return cont.body;
-  }
-
-  /// If only one method table can be returned by the given interceptor,
-  /// returns a constant for that method table.
-  InterceptorConstantValue getInterceptorConstant(Interceptor node) {
-    if (node.interceptedClasses.length == 1 &&
-        node.isInterceptedClassAlwaysExact) {
-      ClassElement interceptorClass = node.interceptedClasses.single;
-      return new InterceptorConstantValue(interceptorClass.rawType);
-    }
-    return null;
   }
 
   bool hasNoFalsyValues(ClassElement class_) {
@@ -103,13 +98,113 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
     return prim;
   }
 
+  void computeInterceptedClasses(Interceptor interceptor) {
+    Set<ClassElement> intercepted = interceptor.interceptedClasses;
+    intercepted.clear();
+    for (Reference ref = interceptor.firstRef; ref != null; ref = ref.next) {
+      Node use = ref.parent;
+      if (use is InvokeMethod) {
+        TypeMask type = use.dartReceiver.type;
+        bool canOccurAsReceiver(ClassElement elem) {
+          return classWorld.isInstantiated(elem) &&
+              !typeSystem.areDisjoint(type,
+                  typeSystem.getInterceptorSubtypes(elem));
+        }
+        Iterable<ClassElement> classes =
+            backend.getInterceptedClassesOn(use.selector.name);
+        intercepted.addAll(classes.where(canOccurAsReceiver));
+      } else {
+        intercepted.clear();
+        intercepted.add(backend.helpers.jsInterceptorClass);
+        break;
+      }
+    }
+    if (intercepted.contains(backend.helpers.jsInterceptorClass) ||
+        intercepted.contains(backend.helpers.jsNullClass)) {
+      // If the null value is intercepted, update the type of the interceptor.
+      // The Tree IR uses this information to determine if the method lookup
+      // on an InvokeMethod might throw.
+      interceptor.type = interceptor.type.nonNullable();
+    }
+  }
+
+  /// True if [node] may return [JSNumber] instead of [JSInt] or [JSDouble].
+  bool jsNumberClassSuffices(Interceptor node) {
+    // No methods on JSNumber call 'down' to methods on JSInt or JSDouble.  If
+    // all uses of the interceptor are for methods is defined only on JSNumber
+    // then JSNumber will suffice in place of choosing between JSInt or
+    // JSDouble.
+    for (Reference ref = node.firstRef; ref != null; ref = ref.next) {
+      if (ref.parent is InvokeMethod) {
+        InvokeMethod invoke = ref.parent;
+        if (invoke.receiver != ref) return false;
+        var interceptedClasses =
+            backend.getInterceptedClassesOn(invoke.selector.name);
+        if (interceptedClasses.contains(helpers.jsDoubleClass)) return false;
+        if (interceptedClasses.contains(helpers.jsIntClass)) return false;
+        continue;
+      }
+      // Other uses need full distinction.
+      return false;
+    }
+    return true;
+  }
+
+  /// True if [node] can intercept a `null` value and return the [JSNull]
+  /// interceptor.
+  bool canInterceptNull(Interceptor node) {
+    for (Reference ref = node.firstRef; ref != null; ref = ref.next) {
+      Node use = ref.parent;
+      if (use is InvokeMethod) {
+        if (selectorsOnNull.contains(use.selector) &&
+            use.dartReceiver.type.isNullable) {
+          return true;
+        }
+      } else {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Returns the only interceptor class that may be returned by [node], or
+  /// `null` if no such class could be found.
+  ClassElement getSingleInterceptorClass(Interceptor node) {
+    // TODO(asgerf): This could be more precise if we used the use-site type,
+    // since the interceptor may have been hoisted out of a loop, where a less
+    // precise type is known.
+    Primitive input = node.input.definition;
+    TypeMask type = input.type;
+    if (canInterceptNull(node)) return null;
+    type = type.nonNullable();
+    if (typeSystem.isDefinitelyArray(type)) {
+      return backend.helpers.jsArrayClass;
+    }
+    if (typeSystem.isDefinitelyInt(type)) {
+      return backend.helpers.jsIntClass;
+    }
+    if (typeSystem.isDefinitelyNum(type) && jsNumberClassSuffices(node)) {
+      return backend.helpers.jsNumberClass;
+    }
+    ClassElement singleClass = type.singleClass(classWorld);
+    if (singleClass != null &&
+        singleClass.isSubclassOf(backend.helpers.jsInterceptorClass)) {
+      return singleClass;
+    }
+    return null;
+  }
+
+  /// Try to replace [interceptor] with a constant, and return `true` if
+  /// successful.
   bool constifyInterceptor(Interceptor interceptor) {
     LetPrim let = interceptor.parent;
-    InterceptorConstantValue constant = getInterceptorConstant(interceptor);
+    Primitive input = interceptor.input.definition;
+    ClassElement classElement = getSingleInterceptorClass(interceptor);
 
-    if (constant == null) return false;
+    if (classElement == null) return false;
+    ConstantValue constant = new InterceptorConstantValue(classElement.rawType);
 
-    if (interceptor.isAlwaysIntercepted) {
+    if (!input.type.isNullable) {
       Primitive constantPrim = makeConstantFor(constant,
           useSite: let,
           type: interceptor.type,
@@ -117,8 +212,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
       constantPrim.useElementAsHint(interceptor.hint);
       interceptor..replaceUsesWith(constantPrim)..destroy();
       let.remove();
-    } else if (interceptor.isAlwaysNullOrIntercepted) {
-      Primitive input = interceptor.input.definition;
+    } else {
       Primitive constantPrim = makeConstantFor(constant,
           useSite: let,
           type: interceptor.type.nonNullable(),
@@ -127,7 +221,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
       Parameter param = new Parameter(interceptor.hint);
       param.type = interceptor.type;
       Continuation cont = cps.letCont(<Parameter>[param]);
-      if (interceptor.interceptedClasses.every(hasNoFalsyValues)) {
+      if (hasNoFalsyValues(classElement)) {
         // If null is the only falsy value, compile as "x && CONST".
         cps.ifFalsy(input).invokeContinuation(cont, [input]);
       } else {
@@ -156,6 +250,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
   @override
   void visitInterceptor(Interceptor node) {
     if (constifyInterceptor(node)) return;
+    computeInterceptedClasses(node);
     if (node.hasExactlyOneUse) {
       // Set the loop header on single-use interceptors so [visitInvokeMethod]
       // can determine if it should become a one-shot interceptor.

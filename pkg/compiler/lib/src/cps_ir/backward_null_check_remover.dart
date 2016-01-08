@@ -1,7 +1,7 @@
 library dart2js.cps_ir.backward_null_check_remover;
 
 import 'cps_ir_nodes.dart';
-import 'optimizers.dart' show Pass;
+import 'optimizers.dart';
 import '../common/names.dart';
 import '../universe/selector.dart';
 import 'type_mask_system.dart';
@@ -59,15 +59,11 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
     if (prim is GetIndex) return prim.object;
     if (prim is SetField) return prim.object;
     if (prim is SetIndex) return prim.object;
-    if (prim is InvokeMethod && !nullSelectors.contains(prim.selector)) {
+    if (prim is InvokeMethod && !selectorsOnNull.contains(prim.selector)) {
       return prim.dartReceiverReference;
     }
     return null;
   }
-
-  static final List<Selector> nullSelectors = <Selector>[
-      Selectors.equals, Selectors.hashCode_, Selectors.noSuchMethod_,
-      Selectors.runtimeType_];
 
   /// It has been determined that the null check in [prim] made redundant by
   /// [newNullCheck].  Eliminate [prim] if it is not needed any more.

@@ -6,6 +6,8 @@ library dart2js.cps_ir.optimizers;
 
 import 'cps_ir_nodes.dart';
 import '../constants/values.dart';
+import '../common/names.dart';
+import '../universe/selector.dart';
 
 export 'type_propagation.dart' show TypePropagator;
 export 'scalar_replacement.dart' show ScalarReplacer;
@@ -51,3 +53,8 @@ bool isFalsyConstant(ConstantValue value) {
 bool isTruthyConstant(ConstantValue value, {bool strict: false}) {
   return strict ? value.isTrue : !isFalsyConstant(value);
 }
+
+/// Selector that do not throw when invoked on the null class.
+final List<Selector> selectorsOnNull = <Selector>[
+    Selectors.equals, Selectors.hashCode_, Selectors.runtimeType_,
+    Selectors.toString_];

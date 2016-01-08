@@ -863,8 +863,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitInterceptor(tree_ir.Interceptor node) {
     registry.registerUseInterceptor();
-    registry.registerSpecializedGetInterceptor(node.interceptedClasses);
-    js.Name helperName = glue.getInterceptorName(node.interceptedClasses);
+    // Default to all intercepted classes if they have not been computed.
+    // This is to ensure we can run codegen without prior optimization passes.
+    Set<ClassElement> interceptedClasses = node.interceptedClasses.isEmpty
+        ? glue.interceptedClasses
+        : node.interceptedClasses;
+    registry.registerSpecializedGetInterceptor(interceptedClasses);
+    js.Name helperName = glue.getInterceptorName(interceptedClasses);
     js.Expression globalHolder = glue.getInterceptorLibrary();
     return js.js('#.#(#)',
         [globalHolder, helperName, visitExpression(node.input)])
