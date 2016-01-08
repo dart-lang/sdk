@@ -129,6 +129,20 @@ class BuilderTest {
     expect(const Int32Reader().vTableGet(object, 3), 40);
   }
 
+  void test_writeList_ofInt32() {
+    List<int> byteList;
+    {
+      Builder builder = new Builder(initialSize: 0);
+      Offset offset = builder.writeListInt32(<int>[1, 2, 3, 4, 5]);
+      byteList = builder.finish(offset);
+    }
+    // read and verify
+    BufferPointer root = new BufferPointer.fromBytes(byteList);
+    List<int> items = const ListReader<int>(const Int32Reader()).read(root);
+    expect(items, hasLength(5));
+    expect(items, orderedEquals(<int>[1, 2, 3, 4, 5]));
+  }
+
   void test_writeList_ofObjects() {
     List<int> byteList;
     {
@@ -149,7 +163,7 @@ class BuilderTest {
         builder.addInt32(1, 200);
         object2 = builder.endTable();
       }
-      // write the line
+      // write the list
       Offset offset = builder.writeList([object1, object2]);
       byteList = builder.finish(offset);
     }

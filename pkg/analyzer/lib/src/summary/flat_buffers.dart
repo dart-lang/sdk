@@ -277,6 +277,26 @@ class Builder {
   }
 
   /**
+   * Write the given list of signed 32-bit integer [values].
+   */
+  Offset writeListInt32(List<int> values) {
+    if (_currentVTableBuilder != null) {
+      throw new StateError(
+          'Cannot write a non-scalar value while writing a table.');
+    }
+    _prepare(4, 1 + values.length);
+    Offset result = new Offset(_tail);
+    int tail = _tail;
+    _setUint32AtTail(_buf, tail, values.length);
+    tail -= 4;
+    for (int value in values) {
+      _setInt32AtTail(_buf, tail, value);
+      tail -= 4;
+    }
+    return result;
+  }
+
+  /**
    * Write the given string [value] and return its [Offset], or `null` if
    * the [value] is equal to [def].
    */
@@ -398,7 +418,7 @@ class Int8Reader extends Reader<int> {
 }
 
 /**
- * The reader of object.
+ * The reader of lists of objects.
  *
  * The returned unmodifiable lists lazily read objects on access.
  */
