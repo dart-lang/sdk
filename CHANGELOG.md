@@ -1,6 +1,10 @@
 ## 1.14.0
 
 ### Core library changes
+* `dart:async`
+  * Added `Future.any` static method.
+  * Added `Stream.fromFutures` constructor.
+  
 * `dart:convert`
   * `Base64Decoder.convert` now takes optional `start` and `end` parameters.
 

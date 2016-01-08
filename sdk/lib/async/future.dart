@@ -317,6 +317,31 @@ abstract class Future<T> {
   }
 
   /**
+   * Returns the result of the first future in [futures] to complete.
+   *
+   * The returned future is completed with the result of the first
+   * future in [futures] to report that it is complete.
+   * The results of all the other futures are discarded.
+   *
+   * If [futures] is empty, or if none of its futures complete,
+   * the returned future never completes.
+   */
+  static Future/*<T>*/ any/*<T>*/(Iterable<Future/*<T>*/> futures) {
+    var completer = new Completer.sync();
+    var onValue = (value) {
+      if (!completer.isCompleted) completer.complete(value);
+    };
+    var onError = (error, stack) {
+      if (!completer.isCompleted) completer.completeError(error, stack);
+    };
+    for (var future in futures) {
+      future.then(onValue, onError: onError);
+    }
+    return completer.future;
+  }
+
+
+  /**
    * Perform an async operation for each element of the iterable, in turn.
    *
    * Runs [f] for each element in [input] in order, moving to the next element
