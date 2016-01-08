@@ -4,7 +4,7 @@
 
 library dart2js.ir_builder;
 
-import '../closure.dart' hide ClosureScope;
+import '../closure.dart' as closure;
 import '../common.dart';
 import '../common/names.dart' show
     Names,
@@ -2467,24 +2467,24 @@ class IrBuilder {
 
   /// Add [functionElement] to the environment with provided [definition].
   void declareLocalFunction(LocalFunctionElement functionElement,
-                            ClosureClassElement classElement,
+                            closure.ClosureClassElement classElement,
                             SourceInformation sourceInformation) {
     ir.Primitive closure =
          buildFunctionExpression(classElement, sourceInformation);
     declareLocalVariable(functionElement, initialValue: closure);
   }
 
-  ir.Primitive buildFunctionExpression(ClosureClassElement classElement,
+  ir.Primitive buildFunctionExpression(closure.ClosureClassElement classElement,
                                        SourceInformation sourceInformation) {
     List<ir.Primitive> arguments = <ir.Primitive>[];
-    for (ClosureFieldElement field in classElement.closureFields) {
+    for (closure.ClosureFieldElement field in classElement.closureFields) {
       // Captured 'this' and type variables are not always available as locals
       // in the environment, so treat those specially.
       ir.Primitive value;
-      if (field.local is ThisLocal) {
+      if (field.local is closure.ThisLocal) {
         value = buildThis();
-      } else if (field.local is TypeVariableLocal) {
-        TypeVariableLocal variable = field.local;
+      } else if (field.local is closure.TypeVariableLocal) {
+        closure.TypeVariableLocal variable = field.local;
         value = buildTypeVariableAccess(variable.typeVariable);
       } else {
         value = environment.lookup(field.local);
@@ -2689,7 +2689,7 @@ class IrBuilder {
     // If the local exists in the environment, use that.
     // This is put here when we are inside a constructor or field initializer,
     // (or possibly a closure inside one of these).
-    Local local = new TypeVariableLocal(variable, state.currentElement);
+    Local local = new closure.TypeVariableLocal(variable, state.currentElement);
     if (environment.contains(local)) {
       return environment.lookup(local);
     }
@@ -2705,7 +2705,7 @@ class IrBuilder {
   /// with the value of [binding].
   void declareTypeVariable(TypeVariableType variable, DartType binding) {
     environment.extend(
-        new TypeVariableLocal(variable, state.currentElement),
+        new closure.TypeVariableLocal(variable, state.currentElement),
         buildTypeExpression(binding));
   }
 
@@ -2852,7 +2852,7 @@ class ClosureLocation {
   /// The location of [box] can be obtained separately from an
   /// enclosing [ClosureEnvironment] or [ClosureScope].
   /// If `null`, then the location is [field] on the enclosing function object.
-  final BoxLocal box;
+  final closure.BoxLocal box;
 
   /// The field in which the variable is stored.
   final Entity field;
@@ -2860,6 +2860,21 @@ class ClosureLocation {
   bool get isBox => box != null;
 
   ClosureLocation(this.box, this.field);
+
+  /// Converts a map containing closure.dart's [CapturedVariable]s into one
+  /// containing [ClosureLocation]s.
+  ///
+  /// There is a 1:1 corresponce between these; we do this because the
+  /// IR builder should not depend on synthetic elements.
+  static Map<Local, ClosureLocation> mapFrom(
+      Map<Local, closure.CapturedVariable> map) {
+    Map result = {};
+    map.forEach((Local k, closure.CapturedVariable v) {
+      closure.BoxLocal box = v is closure.BoxFieldElement ? v.box : null;
+      result[k] = new ClosureLocation(box, v);
+    });
+    return result;
+  }
 }
 
 /// Introduces a new box and binds local variables to this box.
@@ -2869,7 +2884,7 @@ class ClosureLocation {
 /// [ClosureScope] when a given scope has no boxed variables.
 class ClosureScope {
   /// This box is now in scope and [capturedVariables] may use it.
-  final BoxLocal box;
+  final closure.BoxLocal box;
 
   /// Maps [LocalElement]s to their location.
   final Map<Local, ClosureLocation> capturedVariables;
@@ -2878,7 +2893,14 @@ class ClosureScope {
   /// of boxed variables that are declared in the initializer.
   final List<VariableElement> boxedLoopVariables;
 
-  ClosureScope(this.box, this.capturedVariables, this.boxedLoopVariables);
+  factory ClosureScope(closure.ClosureScope scope) {
+    return scope == null ? null : new ClosureScope._internal(scope);
+  }
+
+  ClosureScope._internal(closure.ClosureScope scope)
+      : box = scope.boxElement,
+        capturedVariables = ClosureLocation.mapFrom(scope.capturedVariables),
+        boxedLoopVariables = scope.boxedLoopVariables;
 }
 
 /// Environment passed when building a nested function, describing how
@@ -2890,12 +2912,21 @@ class ClosureEnvironment {
 
   /// If non-null, [thisLocal] has an entry in [freeVariables] describing where
   /// to find the captured value of `this`.
-  final ThisLocal thisLocal;
+  final closure.ThisLocal thisLocal;
 
   /// Maps [LocalElement]s, [BoxLocal]s and [ThisLocal] to their location.
   final Map<Local, ClosureLocation> freeVariables;
 
-  ClosureEnvironment(this.selfReference, this.thisLocal, this.freeVariables);
+  factory ClosureEnvironment(closure.ClosureClassMap closureClassMap) {
+    if (closureClassMap.closureElement == null) return null;
+    return new ClosureEnvironment._internal(closureClassMap);
+  }
+
+  ClosureEnvironment._internal(closure.ClosureClassMap closureClassMap)
+      : selfReference = closureClassMap.closureElement,
+        thisLocal = closureClassMap.thisLocal,
+        freeVariables =
+            ClosureLocation.mapFrom(closureClassMap.freeVariableMap);
 }
 
 class TryStatementInfo {
