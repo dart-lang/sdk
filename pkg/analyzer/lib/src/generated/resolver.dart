@@ -2755,6 +2755,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
     interfaceType.typeArguments = typeArguments;
     element.type = interfaceType;
+    _setDoc(element, node);
     _currentHolder.addType(element);
     className.staticElement = element;
     holder.validate();

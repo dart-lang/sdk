@@ -35,6 +35,24 @@ E e() {
     verify([source]);
   }
 
+  void test_class_type_alias_documentationComment() {
+    Source source = addSource('''
+/**
+ * Documentation
+ */
+class C = D with E;
+
+class D {}
+class E {}''');
+    computeLibrarySourceErrors(source);
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = _getResolvedLibraryUnit(source);
+    ClassElement classC = unit.element.getType('C');
+    expect(classC.documentationComment, isNotNull);
+  }
+
   void test_ambiguousExport() {
     Source source = addSource(r'''
 library L;
