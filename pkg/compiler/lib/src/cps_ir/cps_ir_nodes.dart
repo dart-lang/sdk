@@ -850,10 +850,13 @@ class BoundsCheck extends Primitive {
 ///
 /// In the simplest form this compiles to `value.toString;`.
 ///
-/// If [selector] is set, `toString` is replaced with the (possibly minified)
-/// invocation name of the selector.  This can be shorter and generate a more
-/// meaningful error message, but is expensive if [value] is non-null and does
-/// not have that property at runtime.
+/// [selector] holds the selector that is the cause of the null check. This is
+/// usually a method that was inlined where [value] the receiver.
+///
+/// If [selector] is set and [useSelector] is true, `toString` is replaced with
+/// the (possibly minified) invocation name of the selector.  This can be
+/// shorter and generate a more meaningful error message, but is expensive if
+/// [value] is non-null and does not have that property at runtime.
 ///
 /// If [condition] is set, it is assumed that [condition] is true if and only
 /// if [value] is null.  The check then compiles to:
@@ -864,17 +867,24 @@ class BoundsCheck extends Primitive {
 /// runtime, such as a `typeof` test.
 class NullCheck extends Primitive {
   final Reference<Primitive> value;
-  Selector selector;
-  Reference<Primitive> condition;
+  final Selector selector;
+  final bool useSelector;
+  final Reference<Primitive> condition;
   final SourceInformation sourceInformation;
 
-  NullCheck(Primitive value, this.sourceInformation)
-      : this.value = new Reference<Primitive>(value);
+  NullCheck(Primitive value, this.sourceInformation,
+            {Primitive condition,
+             this.selector,
+             this.useSelector: false})
+      : this.value = new Reference<Primitive>(value),
+        this.condition =
+            condition == null ? null : new Reference<Primitive>(condition);
 
   NullCheck.guarded(Primitive condition, Primitive value, this.selector,
         this.sourceInformation)
       : this.condition = new Reference<Primitive>(condition),
-        this.value = new Reference<Primitive>(value);
+        this.value = new Reference<Primitive>(value),
+        this.useSelector = true;
 
   bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
@@ -2640,7 +2650,10 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitNullCheck(NullCheck node) {
-    return new NullCheck(getCopy(node.value), node.sourceInformation);
+    return new NullCheck(getCopy(node.value), node.sourceInformation,
+        condition: node.condition == null ? null : getCopy(node.condition),
+        selector: node.selector,
+        useSelector: node.useSelector);
   }
 
   Definition visitForeignCode(ForeignCode node) {

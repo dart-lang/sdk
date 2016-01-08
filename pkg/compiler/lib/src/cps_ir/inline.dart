@@ -470,7 +470,8 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     }
 
     Primitive check = _fragment.letPrim(
-        new NullCheck(dartReceiver, invoke.sourceInformation));
+        new NullCheck(dartReceiver, invoke.sourceInformation,
+                      selector: selector));
     check.type = abstractReceiver.nonNullable();
     return check;
   }

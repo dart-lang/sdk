@@ -718,6 +718,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
         condition: getVariableUseOrNull(node.condition),
         value: getVariableUse(node.value),
         selector: node.selector,
+        useSelector: node.useSelector,
         next: next,
         sourceInformation: node.sourceInformation);
   };

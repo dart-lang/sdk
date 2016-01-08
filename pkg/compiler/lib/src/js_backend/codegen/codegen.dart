@@ -1026,7 +1026,15 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   void visitNullCheck(tree_ir.NullCheck node) {
     js.Expression value = visitExpression(node.value);
-    js.Expression access = node.selector != null
+    // TODO(sra): Try to use the selector even when [useSelector] is false. The
+    // reason we use 'toString' is that it is always defined so avoids a slow
+    // lookup (in V8) of an absent property. We could use the property for the
+    // selector if we knew it was present. The property is present if the
+    // associated method was not inlined away, or if there is a noSuchMethod
+    // hook for that selector. We don't know these things here, but the decision
+    // could be deferred by creating a deferred property that was resolved after
+    // codegen.
+    js.Expression access = node.selector != null && node.useSelector
         ? js.js('#.#', [value, glue.invocationName(node.selector)])
         : js.js('#.toString', [value]);
     if (node.condition != null) {

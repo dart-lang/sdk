@@ -995,11 +995,12 @@ class NullCheck extends Statement {
   Expression condition;
   Expression value;
   Selector selector;
+  bool useSelector;
   Statement next;
   SourceInformation sourceInformation;
 
-  NullCheck({this.condition, this.value, this.selector, this.next,
-      this.sourceInformation});
+  NullCheck({this.condition, this.value, this.selector, this.useSelector,
+      this.next, this.sourceInformation});
 
   accept(StatementVisitor visitor) {
     return visitor.visitNullCheck(this);
