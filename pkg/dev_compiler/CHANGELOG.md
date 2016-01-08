@@ -1,5 +1,8 @@
 # dev_compiler changelog
 
+## 0.1.14
+- updates to unpin analyzer and move forward to ^0.27.1+2
+
 ## 0.1.13
 - various fixes in js codegen
 - pinned to analyzer 0.26.2+1 to avoid breaking upstream changes

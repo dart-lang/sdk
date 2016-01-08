@@ -13,6 +13,10 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 # Check minimum SDK version
 ./tool/sdk_version_check.dart 1.9.0-dev.4.0 || fail
 
+# Delete codegen expectation files to be sure that if a test fails to compile
+# we don't erroneously pick up the old version.
+rm -r test/codegen/expect || fail
+
 # Make sure we don't run tests in code coverage mode.
 # this will cause us to generate files that are not part of the baseline
 # TODO(jmesserly): we should move diff into Dart code, so we don't need to
