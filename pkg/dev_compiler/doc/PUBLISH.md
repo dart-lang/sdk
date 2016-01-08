@@ -14,7 +14,7 @@ Update the following files with the new version number:
 
 Update [CHANGELOG.md](https://github.com/dart-lang/dev_compiler/blob/master/CHANGELOG.md) with notable changes since the last release.
 
-# Update your local master
+## Update your local master
 
 Make sure the above is committed to github master.  Make sure you have those updates in your local master:
 
@@ -22,13 +22,13 @@ Make sure the above is committed to github master.  Make sure you have those upd
 > git pull
 ```
 
-# Tag the new version locally
+## Tag the new version locally
 
 ```
 > git tag <new-version-number> # E.g., git tag 0.1.14
 ```
 
-# Push the tag
+## Push the tag
 
 ```
 > git push --tags
@@ -36,7 +36,7 @@ Make sure the above is committed to github master.  Make sure you have those upd
 
 Check the [github site](https://github.com/dart-lang/dev_compiler) to make sure the tag appears there under the `Branch` button.
 
-# Publish the new version to pub
+## Publish the new version to pub
 
 ```
 > pub lish
