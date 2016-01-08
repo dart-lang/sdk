@@ -38,6 +38,41 @@ class RangeAnalysis;
 class RangeBoundary;
 class UnboxIntegerInstr;
 
+// These token positions are used to classify instructions that can't be
+// directly tied to an actual source position.
+#define CLASSIFYING_TOKEN_POSITIONS(V)                                         \
+    V(Box, -2)                                                                 \
+    V(ParallelMove, -3)                                                        \
+    V(TempMove, -4)
+
+// COMPILE_ASSERT that all CLASSIFYING_TOKEN_POSITIONS are less than
+// Scanner::kNoSourcePos.
+#define SANITY_CHECK_VALUES(name, value)                                       \
+  COMPILE_ASSERT(value < Scanner::kNoSourcePos);
+  CLASSIFYING_TOKEN_POSITIONS(SANITY_CHECK_VALUES);
+#undef SANITY_CHECK_VALUES
+
+class ClassifyingTokenPositions : public AllStatic {
+ public:
+#define DEFINE_VALUES(name, value)                                             \
+  static const intptr_t k##name = value;
+  CLASSIFYING_TOKEN_POSITIONS(DEFINE_VALUES);
+#undef DEFINE_VALUES
+
+  static const char* ToCString(intptr_t token_pos) {
+    ASSERT(token_pos < 0);
+    switch (token_pos) {
+      case Scanner::kNoSourcePos: return "NoSource";
+#define DEFINE_CASE(name, value)                                               \
+      case value: return #name;
+      CLASSIFYING_TOKEN_POSITIONS(DEFINE_CASE);
+#undef DEFINE_CASE
+      default:
+        UNIMPLEMENTED();
+    }
+  }
+};
+
 // CompileType describes type of the value produced by the definition.
 //
 // It captures the following properties:
@@ -1052,6 +1087,10 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
   bool IsRedundant() const;
 
   virtual void PrintTo(BufferFormatter* f) const;
+
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kParallelMove;
+  }
 
  private:
   GrowableArray<MoveOperands*> moves_;   // Elements cannot be null.
@@ -3302,6 +3341,10 @@ class PushTempInstr : public TemplateDefinition<1, NoThrow> {
     return EffectSet::None();
   }
 
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kTempMove;
+  }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(PushTempInstr);
 };
@@ -3342,6 +3385,10 @@ class DropTempsInstr : public Definition {
   virtual bool MayThrow() const {
     UNREACHABLE();
     return false;
+  }
+
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kTempMove;
   }
 
  private:
@@ -4741,6 +4788,10 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kBox;
+  }
+
  protected:
   BoxInstr(Representation from_representation, Value* value)
       : from_representation_(from_representation) {
@@ -4861,6 +4912,10 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual intptr_t DeoptimizationTarget() const {
     return GetDeoptId();
+  }
+
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kBox;
   }
 
  protected:
