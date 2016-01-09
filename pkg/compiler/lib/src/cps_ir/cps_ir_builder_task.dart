@@ -470,7 +470,10 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         for (Local param in getConstructorBodyParameters(bodyElement)) {
           bodyArguments.add(irBuilder.environment.lookup(param));
         }
-        irBuilder.buildInvokeDirectly(bodyElement, instance, bodyArguments);
+        Selector selector = new Selector.call(target.memberName,
+            new CallStructure(bodyArguments.length));
+        irBuilder.addPrimitive(new ir.InvokeMethodDirectly(
+            instance, bodyElement, selector, bodyArguments, null));
       }
 
       // --- step 4: return the created object ----
@@ -1062,13 +1065,15 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   visitAwait(ast.Await node) {
+    assert(irBuilder.isOpen);
     ir.Primitive value = visit(node.expression);
-    return irBuilder.buildAwait(value);
+    return irBuilder.addPrimitive(new ir.Await(value));
   }
 
   visitYield(ast.Yield node) {
+    assert(irBuilder.isOpen);
     ir.Primitive value = visit(node.expression);
-    return irBuilder.buildYield(value, node.hasStar);
+    return irBuilder.addPrimitive(new ir.Yield(value, node.hasStar));
   }
 
   visitSyncForIn(ast.SyncForIn node) {
@@ -1103,7 +1108,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive checkType(ir.Primitive value, DartType dartType) {
     if (!compiler.trustTypeAnnotations) return value;
     TypeMask type = typeMaskSystem.subtypesOf(dartType).nullable();
-    return irBuilder.buildRefinement(value, type);
+    return irBuilder.addPrimitive(new ir.Refinement(value, type));
   }
 
   ir.Primitive checkTypeVsElement(ir.Primitive value, TypedElement element) {
@@ -1391,13 +1396,14 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive buildCheckDeferredIsLoaded(PrefixElement prefix, ast.Send node) {
     SourceInformation sourceInformation =
         sourceInformationBuilder.buildCall(node, node.selector);
+    ir.Primitive name = irBuilder.buildStringConstant(
+        compiler.deferredLoadTask.getImportDeferName(node, prefix));
+    ir.Primitive uri =
+        irBuilder.buildStringConstant('${prefix.deferredImport.uri}');
     return irBuilder.buildStaticFunctionInvocation(
         helpers.checkDeferredIsLoaded,
-        CallStructure.TWO_ARGS, <ir.Primitive>[
-          irBuilder.buildStringConstant(
-              compiler.deferredLoadTask.getImportDeferName(node, prefix)),
-          irBuilder.buildStringConstant('${prefix.deferredImport.uri}'),
-        ], sourceInformation: sourceInformation);
+        <ir.Primitive>[name, uri],
+        sourceInformation: sourceInformation);
   }
 
   ir.Primitive visitNamedArgument(ast.NamedArgument node) {
@@ -1531,7 +1537,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           compiler.deferredLoadTask.getImportDeferName(node, prefix));
       return irBuilder.buildStaticFunctionInvocation(
           compiler.loadLibraryFunction,
-          CallStructure.ONE_ARG, <ir.Primitive>[loadId],
+          <ir.Primitive>[loadId],
           sourceInformation: sourceInformation);
     } else {
       return irBuilder.buildStaticGetterGet(getter, sourceInformation);
@@ -2004,10 +2010,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       List<ir.Primitive> arguments = <ir.Primitive>[];
       callStructure = translateStaticArguments(argumentsNode, function,
           callStructure, arguments);
-      return irBuilder.buildStaticFunctionInvocation(function,
-          callStructure,
-          arguments,
-          sourceInformation:
+      Selector selector = new Selector.call(function.memberName, callStructure);
+      return irBuilder.buildInvokeStatic(function, selector, arguments,
           sourceInformationBuilder.buildCall(node, node.selector));
     }
   }
@@ -2788,11 +2792,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       List<ir.Primitive> arguments = <ir.Primitive>[];
       callStructure = translateStaticArguments(argumentList, element,
           callStructure, arguments);
-      return irBuilder.buildStaticFunctionInvocation(
-          element,
-          callStructure,
-          arguments,
-          sourceInformation:
+      Selector selector = new Selector.call(element.memberName, callStructure);
+      return irBuilder.buildInvokeStatic(element, selector, arguments,
           sourceInformationBuilder.buildCall(node, node.selector));
     }
 
@@ -3013,7 +3014,9 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       buildStringParts(node.expression, accumulator);
     } else {
       ir.Primitive value = visit(node);
-      accumulator.add(irBuilder.buildStringify(value));
+      accumulator.add(irBuilder.buildStaticFunctionInvocation(
+          helpers.stringInterpolationHelper,
+          <ir.Primitive>[value]));
     }
   }
 
@@ -3055,20 +3058,6 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         [irBuilder.buildInvocationMirror(selector, arguments)]);
   }
 
-  ir.Primitive buildRuntimeError(String message) {
-    return irBuilder.buildStaticFunctionInvocation(
-        helpers.throwRuntimeError,
-        new CallStructure.unnamed(1),
-        [irBuilder.buildStringConstant(message)]);
-  }
-
-  ir.Primitive buildAbstractClassInstantiationError(ClassElement element) {
-    return irBuilder.buildStaticFunctionInvocation(
-        helpers.throwAbstractClassInstantiationError,
-        new CallStructure.unnamed(1),
-        [irBuilder.buildStringConstant(element.name)]);
-  }
-
   @override
   ir.Primitive visitUnresolvedCompound(
       ast.Send node,
@@ -3088,7 +3077,11 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.NodeList arguments,
       Selector selector, _) {
     // If the class is missing it's a runtime error.
-    return buildRuntimeError("Unresolved class: '${element.name}'");
+    ir.Primitive message =
+        irBuilder.buildStringConstant("Unresolved class: '${element.name}'");
+    return irBuilder.buildStaticFunctionInvocation(
+        helpers.throwRuntimeError,
+        <ir.Primitive>[message]);
   }
 
   @override
@@ -3255,7 +3248,11 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.NodeList arguments,
       CallStructure callStructure, _) {
     for (ast.Node argument in arguments) visit(argument);
-    return buildAbstractClassInstantiationError(element.enclosingClass);
+    ir.Primitive name =
+        irBuilder.buildStringConstant(element.enclosingClass.name);
+    return irBuilder.buildStaticFunctionInvocation(
+        helpers.throwAbstractClassInstantiationError,
+        <ir.Primitive>[name]);
   }
 
   @override
@@ -3595,10 +3592,6 @@ class GlobalProgramInformation {
   /// arguments for the class [cls] are never used in the program.
   bool requiresRuntimeTypesFor(ClassElement cls) {
     return cls.typeVariables.isNotEmpty && _backend.classNeedsRti(cls);
-  }
-
-  FunctionElement get stringifyFunction {
-    return _backend.helpers.stringInterpolationHelper;
   }
 
   FunctionElement get throwTypeErrorHelper => _backend.helpers.throwTypeError;

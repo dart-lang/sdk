@@ -653,10 +653,10 @@ class IrBuilder {
     return primitive;
   }
 
-  ir.Primitive _buildInvokeStatic(Element element,
-                                  Selector selector,
-                                  List<ir.Primitive> arguments,
-                                  SourceInformation sourceInformation) {
+  ir.Primitive buildInvokeStatic(Element element,
+                                 Selector selector,
+                                 List<ir.Primitive> arguments,
+                                 SourceInformation sourceInformation) {
     assert(!element.isLocal);
     assert(!element.isInstanceMember);
     assert(isOpen);
@@ -697,17 +697,14 @@ class IrBuilder {
 
   ir.Primitive buildStaticNoSuchMethod(Selector selector,
                                        List<ir.Primitive> arguments) {
-    Element thrower = program.throwNoSuchMethod;
     ir.Primitive receiver = buildStringConstant('');
     ir.Primitive name = buildStringConstant(selector.name);
     ir.Primitive argumentList = buildListLiteral(null, arguments);
     ir.Primitive expectedArgumentNames = buildNullConstant();
     return buildStaticFunctionInvocation(
-        thrower,
-        new CallStructure.unnamed(4),
-        [receiver, name, argumentList, expectedArgumentNames]);
+        program.throwNoSuchMethod,
+        <ir.Primitive>[receiver, name, argumentList, expectedArgumentNames]);
   }
-
 
   /// Create a [ir.Constant] from [value] and add it to the CPS term.
   ir.Constant buildConstant(ConstantValue value,
@@ -1026,18 +1023,16 @@ class IrBuilder {
         sourceInformation: sourceInformation);
   }
 
-  /// Create a static invocation of [function] where argument structure is
-  /// defined by [callStructure] and the argument values are defined by
-  /// [arguments].
+  /// Create a static invocation of [function].
+  ///
+  /// The arguments are not named and their values are defined by [arguments].
   ir.Primitive buildStaticFunctionInvocation(
       MethodElement function,
-      CallStructure callStructure,
       List<ir.Primitive> arguments,
       {SourceInformation sourceInformation}) {
-    Selector selector =
-        new Selector(SelectorKind.CALL, function.memberName, callStructure);
-    return _buildInvokeStatic(
-        function, selector, arguments, sourceInformation);
+    Selector selector = new Selector.call(
+        function.memberName, new CallStructure(arguments.length));
+    return buildInvokeStatic(function, selector, arguments, sourceInformation);
   }
 
   /// Create a read access of the static [field].
@@ -1057,7 +1052,7 @@ class IrBuilder {
   ir.Primitive buildStaticGetterGet(MethodElement getter,
                                     SourceInformation sourceInformation) {
     Selector selector = new Selector.getter(getter.memberName);
-    return _buildInvokeStatic(
+    return buildInvokeStatic(
         getter, selector, const <ir.Primitive>[], sourceInformation);
   }
 
@@ -1081,7 +1076,7 @@ class IrBuilder {
                                     ir.Primitive value,
                                     {SourceInformation sourceInformation}) {
     Selector selector = new Selector.setter(setter.memberName);
-    _buildInvokeStatic(
+    buildInvokeStatic(
         setter, selector, <ir.Primitive>[value], sourceInformation);
     return value;
   }
@@ -1094,13 +1089,10 @@ class IrBuilder {
       Selector selector,
       List<ir.Primitive> arguments) {
     // TODO(johnniwinther): This should have its own ir node.
-    return _buildInvokeStatic(element, selector, arguments, null);
+    return buildInvokeStatic(element, selector, arguments, null);
   }
 
-  /// Concatenate string values.
-  ///
-  /// The arguments must be strings; usually a call to [buildStringify] is
-  /// needed to ensure the proper conversion takes places.
+  /// Concatenate string values.  The arguments must be strings.
   ir.Primitive buildStringConcatenation(List<ir.Primitive> arguments,
                                         {SourceInformation sourceInformation}) {
     assert(isOpen);
@@ -1699,7 +1691,7 @@ class IrBuilder {
         if (caseInfo == cases.last && defaultCase == null) {
           thenBuilder.jumpTo(join);
         } else {
-          ir.Primitive exception = thenBuilder._buildInvokeStatic(
+          ir.Primitive exception = thenBuilder.buildInvokeStatic(
               error,
               new Selector.fromElement(error),
               <ir.Primitive>[],
@@ -2073,16 +2065,6 @@ class IrBuilder {
     jumpTo(state.returnCollector, value, sourceInformation);
   }
 
-  /// Build a call to the closure conversion helper for the [Function] typed
-  /// value in [value].
-  ir.Primitive _convertDartClosure(ir.Primitive value, FunctionType type) {
-    ir.Constant arity = buildIntegerConstant(type.computeArity());
-    return buildStaticFunctionInvocation(
-        program.closureConverter,
-        CallStructure.TWO_ARGS,
-        <ir.Primitive>[value, arity]);
-  }
-
   /// Generate the body for a native function [function] that is annotated with
   /// an implementation in JavaScript (provided as string in [javaScriptCode]).
   void buildNativeFunctionBody(FunctionElement function,
@@ -2124,7 +2106,9 @@ class IrBuilder {
       if (type is FunctionType) {
         // The parameter type is a function type either directly or through
         // typedef(s).
-        input = _convertDartClosure(input, type);
+        ir.Constant arity = buildIntegerConstant(type.computeArity());
+        input = buildStaticFunctionInvocation(
+            program.closureConverter, <ir.Primitive>[input, arity]);
       }
       arguments.add(input);
       argumentTemplates.add('#');
@@ -2601,17 +2585,6 @@ class IrBuilder {
     return value;
   }
 
-  ir.Primitive buildInvokeDirectly(MethodElement target,
-                                   ir.Primitive receiver,
-                                   List<ir.Primitive> arguments,
-                                   {SourceInformation sourceInformation}) {
-    assert(isOpen);
-    Selector selector =
-        new Selector.call(target.memberName, new CallStructure(arguments.length));
-    return addPrimitive(new ir.InvokeMethodDirectly(
-        receiver, target, selector, arguments, sourceInformation));
-  }
-
   /// Loads parameters to a constructor body into the environment.
   ///
   /// The header for a constructor body differs from other functions in that
@@ -2753,12 +2726,10 @@ class IrBuilder {
     type = program.unaliasType(type);
 
     if (type.isMalformed) {
-      FunctionElement helper = program.throwTypeErrorHelper;
       ErroneousElement element = type.element;
       ir.Primitive message = buildStringConstant(element.message);
       return buildStaticFunctionInvocation(
-          helper,
-          CallStructure.ONE_ARG,
+          program.throwTypeErrorHelper,
           <ir.Primitive>[message]);
     }
 
@@ -2823,26 +2794,6 @@ class IrBuilder {
     assert(isOpen);
     return buildIdentical(value, buildNullConstant(),
         sourceInformation: sourceInformation);
-  }
-
-  /// Convert the given value to a string.
-  ir.Primitive buildStringify(ir.Primitive value) {
-    return buildStaticFunctionInvocation(
-        program.stringifyFunction,
-        new CallStructure.unnamed(1),
-        <ir.Primitive>[value]);
-  }
-
-  ir.Primitive buildAwait(ir.Primitive value) {
-    return addPrimitive(new ir.Await(value));
-  }
-
-  void buildYield(ir.Primitive value, bool hasStar) {
-    addPrimitive(new ir.Yield(value, hasStar));
-  }
-
-  ir.Primitive buildRefinement(ir.Primitive value, TypeMask type) {
-    return addPrimitive(new ir.Refinement(value, type));
   }
 }
 
