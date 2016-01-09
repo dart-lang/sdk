@@ -98,12 +98,14 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
     summarize_elements.LibrarySerializationResult serializedLib =
         summarize_elements.serializeLibrary(
             builderContext, library, typeProvider);
-    prelinked =
-        new PrelinkedLibrary.fromBuffer(serializedLib.prelinked.toBuffer());
-    unlinkedUnits = serializedLib.unlinkedUnits
-        .map((UnlinkedUnitBuilder b) =>
-            new UnlinkedUnit.fromBuffer(b.toBuffer()))
-        .toList();
+    {
+      List<int> buffer = serializedLib.prelinked.toBuffer();
+      prelinked = new PrelinkedLibrary.fromBuffer(buffer);
+    }
+    unlinkedUnits = serializedLib.unlinkedUnits.map((UnlinkedUnitBuilder b) {
+      List<int> buffer = b.toBuffer();
+      return new UnlinkedUnit.fromBuffer(buffer);
+    }).toList();
     unitUris = serializedLib.unitUris;
   }
 
@@ -598,7 +600,8 @@ enum E {
   UnlinkedTypeRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
-        allowErrors: allowErrors).type;
+            allowErrors: allowErrors)
+        .type;
   }
 
   /**
@@ -1624,7 +1627,8 @@ enum E { v }''';
 
   test_executable_operator_index_set() {
     UnlinkedExecutable executable = serializeClassText(
-        'class C { void operator[]=(int i, bool v) => null; }').executables[0];
+            'class C { void operator[]=(int i, bool v) => null; }')
+        .executables[0];
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.name, '[]=');
     expect(executable.hasImplicitReturnType, false);

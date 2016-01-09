@@ -260,8 +260,8 @@ class _CodeGenerator {
     out();
     out('library analyzer.src.summary.format;');
     out();
-    out("import 'dart:convert';");
     out("import 'base.dart' as base;");
+    out("import 'flat_buffers.dart' as fb;");
     out();
     _idl.enums.forEach((String name, idlModel.EnumDeclaration enm) {
       outDoc(enm.documentation);
@@ -274,146 +274,16 @@ class _CodeGenerator {
       out('}');
       out();
     });
-    _idl.classes.forEach((String name, idlModel.ClassDeclaration cls) {
-      outDoc(cls.documentation);
-      out('class $name extends base.SummaryClass {');
-      indent(() {
-        for (idlModel.FieldDeclaration field in cls.fields) {
-          String fieldName = field.name;
-          idlModel.FieldType type = field.type;
-          out('${dartType(type)} _$fieldName;');
-        }
-        out();
-        out('$name.fromJson(Map json)');
-        indent(() {
-          List<String> initializers = <String>[];
-          for (idlModel.FieldDeclaration field in cls.fields) {
-            String fieldName = field.name;
-            idlModel.FieldType type = field.type;
-            String convert = 'json[${quoted(fieldName)}]';
-            if (type.isList) {
-              if (type.typeName == 'int' || type.typeName == 'String') {
-                // No conversion necessary.
-              } else {
-                convert =
-                    '$convert?.map((x) => new ${type.typeName}.fromJson(x))?.toList()';
-              }
-            } else if (_idl.classes.containsKey(type.typeName)) {
-              convert =
-                  '$convert == null ? null : new ${type.typeName}.fromJson($convert)';
-            } else if (_idl.enums.containsKey(type.typeName)) {
-              convert =
-                  '$convert == null ? null : ${type.typeName}.values[$convert]';
-            }
-            initializers.add('_$fieldName = $convert');
-          }
-          for (int i = 0; i < initializers.length; i++) {
-            String prefix = i == 0 ? ': ' : '  ';
-            String suffix = i == initializers.length - 1 ? ';' : ',';
-            out('$prefix${initializers[i]}$suffix');
-          }
-        });
-        out();
-        out('@override');
-        out('Map<String, Object> toMap() => {');
-        indent(() {
-          for (idlModel.FieldDeclaration field in cls.fields) {
-            String fieldName = field.name;
-            out('${quoted(fieldName)}: $fieldName,');
-          }
-        });
-        out('};');
-        out();
-        if (cls.isTopLevel) {
-          out('$name.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));');
-          out();
-        }
-        cls.fields.asMap().forEach((index, field) {
-          String fieldName = field.name;
-          idlModel.FieldType type = field.type;
-          if (index != 0) {
-            out();
-          }
-          String def = defaultValue(type);
-          String defaultSuffix = def == null ? '' : ' ?? $def';
-          outDoc(field.documentation);
-          out('${dartType(type)} get $fieldName => _$fieldName$defaultSuffix;');
-        });
-      });
-      out('}');
+    for (var cls in _idl.classes.values) {
+      List<String> builderParams = _generateBuilder(cls);
       out();
-      List<String> builderParams = <String>[];
-      out('class ${name}Builder {');
-      indent(() {
-        out('final Map _json = {};');
-        out();
-        out('bool _finished = false;');
-        out();
-        out('${name}Builder(base.BuilderContext context);');
-        for (idlModel.FieldDeclaration field in cls.fields) {
-          String fieldName = field.name;
-          idlModel.FieldType type = field.type;
-          out();
-          outDoc(field.documentation);
-          String conversion = '_value';
-          String condition = '';
-          if (type.isList) {
-            if (_idl.classes.containsKey(type.typeName)) {
-              conversion = '$conversion.map((b) => b.finish()).toList()';
-            } else {
-              conversion = '$conversion.toList()';
-            }
-            condition = ' || _value.isEmpty';
-          } else if (_idl.enums.containsKey(type.typeName)) {
-            conversion = '$conversion.index';
-            condition = ' || _value == ${defaultValue(type)}';
-          } else if (_idl.classes.containsKey(type.typeName)) {
-            conversion = '$conversion.finish()';
-          }
-          builderParams.add('${encodedType(type)} $fieldName');
-          out('void set $fieldName(${encodedType(type)} _value) {');
-          indent(() {
-            out('assert(!_finished);');
-            out('assert(!_json.containsKey(${quoted(fieldName)}));');
-            if (condition.isEmpty) {
-              out('if (_value != null) {');
-            } else {
-              out('if (!(_value == null$condition)) {');
-            }
-            indent(() {
-              out('_json[${quoted(fieldName)}] = $conversion;');
-            });
-            out('}');
-          });
-          out('}');
-        }
-        if (cls.isTopLevel) {
-          out();
-          out('List<int> toBuffer() => UTF8.encode(JSON.encode(finish()));');
-        }
-        out();
-        out('Map finish() {');
-        indent(() {
-          out('assert(!_finished);');
-          out('_finished = true;');
-          out('return _json;');
-        });
-        out('}');
-      });
-      out('}');
+      _generateEncodeFunction(cls, builderParams);
       out();
-      out('${name}Builder encode$name(base.BuilderContext builderContext, {${builderParams.join(', ')}}) {');
-      indent(() {
-        out('${name}Builder builder = new ${name}Builder(builderContext);');
-        for (idlModel.FieldDeclaration field in cls.fields) {
-          String fieldName = field.name;
-          out('builder.$fieldName = $fieldName;');
-        }
-        out('return builder;');
-      });
-      out('}');
+      _generateInterface(cls);
       out();
-    });
+      _generateReader(cls);
+      out();
+    }
   }
 
   /**
@@ -421,6 +291,261 @@ class _CodeGenerator {
    */
   String quoted(String s) {
     return JSON.encode(s);
+  }
+
+  List<String> _generateBuilder(idlModel.ClassDeclaration cls) {
+    String builderName = cls.name + 'Builder';
+    List<String> builderParams = <String>[];
+    out('class $builderName {');
+    indent(() {
+      out('bool _finished = false;');
+      // Generate fields.
+      out();
+      for (idlModel.FieldDeclaration field in cls.fields) {
+        String fieldName = field.name;
+        idlModel.FieldType type = field.type;
+        String typeStr = encodedType(type);
+        out('$typeStr _$fieldName;');
+      }
+      // Generate constructor.
+      out();
+      out('$builderName(base.BuilderContext context);');
+      // Generate setters.
+      for (idlModel.FieldDeclaration field in cls.fields) {
+        String fieldName = field.name;
+        String typeStr = encodedType(field.type);
+        out();
+        outDoc(field.documentation);
+        builderParams.add('$typeStr $fieldName');
+        out('void set $fieldName($typeStr _value) {');
+        indent(() {
+          String stateFieldName = '_' + fieldName;
+          out('assert(!_finished);');
+          out('$stateFieldName = _value;');
+        });
+        out('}');
+      }
+      // Generate finish.
+      if (cls.isTopLevel) {
+        out();
+        out('List<int> toBuffer() {');
+        indent(() {
+          out('fb.Builder fbBuilder = new fb.Builder();');
+          out('return fbBuilder.finish(finish(fbBuilder));');
+        });
+        out('}');
+      }
+      out();
+      out('fb.Offset finish(fb.Builder fbBuilder) {');
+      indent(() {
+        out('assert(!_finished);');
+        out('_finished = true;');
+        // Write objects and remember Offset(s).
+        cls.fields.asMap().forEach((index, idlModel.FieldDeclaration field) {
+          idlModel.FieldType fieldType = field.type;
+          String offsetName = 'offset_' + field.name;
+          if (fieldType.isList ||
+              fieldType.typeName == 'String' ||
+              _idl.classes.containsKey(fieldType.typeName)) {
+            out('fb.Offset $offsetName;');
+          }
+        });
+        cls.fields.asMap().forEach((index, idlModel.FieldDeclaration field) {
+          idlModel.FieldType fieldType = field.type;
+          String valueName = '_' + field.name;
+          String offsetName = 'offset_' + field.name;
+          String condition;
+          String writeCode;
+          if (fieldType.isList) {
+            condition = ' || $valueName.isEmpty';
+            if (_idl.classes.containsKey(fieldType.typeName)) {
+              String itemCode = 'b.finish(fbBuilder)';
+              String listCode = '$valueName.map((b) => $itemCode).toList()';
+              writeCode = '$offsetName = fbBuilder.writeList($listCode);';
+            } else if (fieldType.typeName == 'int') {
+              writeCode = '$offsetName = fbBuilder.writeListInt32($valueName);';
+            } else {
+              assert(fieldType.typeName == 'String');
+              String itemCode = 'fbBuilder.writeString(b)';
+              String listCode = '$valueName.map((b) => $itemCode).toList()';
+              writeCode = '$offsetName = fbBuilder.writeList($listCode);';
+            }
+          } else if (fieldType.typeName == 'String') {
+            writeCode = '$offsetName = fbBuilder.writeString($valueName);';
+          } else if (_idl.classes.containsKey(fieldType.typeName)) {
+            writeCode = '$offsetName = $valueName.finish(fbBuilder);';
+          }
+          if (writeCode != null) {
+            if (condition == null) {
+              out('if ($valueName != null) {');
+            } else {
+              out('if (!($valueName == null$condition)) {');
+            }
+            indent(() {
+              out(writeCode);
+            });
+            out('}');
+          }
+        });
+        // Write the table.
+        out('fbBuilder.startTable();');
+        cls.fields.asMap().forEach((index, idlModel.FieldDeclaration field) {
+          idlModel.FieldType fieldType = field.type;
+          String valueName = '_' + field.name;
+          String condition = '$valueName != null';
+          String writeCode;
+          if (fieldType.isList ||
+              fieldType.typeName == 'String' ||
+              _idl.classes.containsKey(fieldType.typeName)) {
+            String offsetName = 'offset_' + field.name;
+            condition = '$offsetName != null';
+            writeCode = 'fbBuilder.addOffset($index, $offsetName);';
+          } else if (fieldType.typeName == 'bool') {
+            // TODO(scheglov) implement booleans merging?
+            condition = '$valueName == true';
+            writeCode = 'fbBuilder.addInt8($index, 1);';
+          } else if (fieldType.typeName == 'int') {
+            condition += ' && $valueName != ${defaultValue(fieldType)}';
+            writeCode = 'fbBuilder.addInt32($index, $valueName);';
+          } else if (_idl.enums.containsKey(fieldType.typeName)) {
+            condition += ' && $valueName != ${defaultValue(fieldType)}';
+            writeCode = 'fbBuilder.addInt32($index, $valueName.index);';
+          }
+          if (writeCode == null) {
+            throw new UnimplementedError('Writing type ${fieldType.typeName}');
+          }
+          out('if ($condition) {');
+          indent(() {
+            out(writeCode);
+          });
+          out('}');
+        });
+        out('return fbBuilder.endTable();');
+      });
+      out('}');
+    });
+    out('}');
+    return builderParams;
+  }
+
+  void _generateEncodeFunction(
+      idlModel.ClassDeclaration cls, List<String> builderParams) {
+    String className = cls.name;
+    String builderName = className + 'Builder';
+    out('$builderName encode$className(base.BuilderContext builderContext, {${builderParams.join(', ')}}) {');
+    indent(() {
+      out('$builderName builder = new $builderName(builderContext);');
+      for (idlModel.FieldDeclaration field in cls.fields) {
+        String fieldName = field.name;
+        out('builder.$fieldName = $fieldName;');
+      }
+      out('return builder;');
+    });
+    out('}');
+  }
+
+  void _generateInterface(idlModel.ClassDeclaration cls) {
+    String name = cls.name;
+    outDoc(cls.documentation);
+    out('abstract class $name extends base.SummaryClass {');
+    indent(() {
+      if (cls.isTopLevel) {
+        out('factory $name.fromBuffer(List<int> buffer) {');
+        indent(() {
+          out('fb.BufferPointer rootRef = new fb.BufferPointer.fromBytes(buffer);');
+          out('return const _${name}Reader().read(rootRef);');
+        });
+        out('}');
+      }
+      cls.fields.asMap().forEach((index, field) {
+        String fieldName = field.name;
+        idlModel.FieldType type = field.type;
+        out();
+        outDoc(field.documentation);
+        out('${dartType(type)} get $fieldName;');
+      });
+    });
+    out('}');
+  }
+
+  void _generateReader(idlModel.ClassDeclaration cls) {
+    String name = cls.name;
+    String readerName = '_${name}Reader';
+    out('class $readerName extends fb.TableReader<$readerName> implements $name {');
+    indent(() {
+      out('final fb.BufferPointer _bp;');
+      out();
+      out('const $readerName([this._bp]);');
+      out();
+      out('@override');
+      out('$readerName createReader(fb.BufferPointer bp) => new $readerName(bp);');
+      out();
+      // Write toMap().
+      out('@override');
+      out('Map<String, Object> toMap() => {');
+      indent(() {
+        for (idlModel.FieldDeclaration field in cls.fields) {
+          String fieldName = field.name;
+          out('${quoted(fieldName)}: $fieldName,');
+        }
+      });
+      out('};');
+      // Write getters.
+      cls.fields.asMap().forEach((index, field) {
+        String fieldName = field.name;
+        idlModel.FieldType type = field.type;
+        String typeName = type.typeName;
+        // Prepare "readLines" or "readCode" + "def" + "readSuffix"
+        List<String> readLines;
+        String readCode;
+        String def = defaultValue(type);
+        String readSuffix = '';
+        if (type.isList) {
+          if (typeName == 'int') {
+            String itemCode = 'const fb.Int32Reader()';
+            readCode = 'const fb.ListReader<int>($itemCode)';
+          } else if (typeName == 'String') {
+            String itemCode = 'const fb.StringReader()';
+            readCode = 'const fb.ListReader<String>($itemCode)';
+          } else {
+            String itemCode = '$typeName>(const _${typeName}Reader()';
+            readCode = 'const fb.ListReader<$itemCode)';
+          }
+        } else if (typeName == 'bool') {
+          // TODO(scheglov) implement booleans merging?
+          def = '0';
+          readCode = 'const fb.Int8Reader()';
+          readSuffix = ' == 1';
+        } else if (typeName == 'int') {
+          readCode = 'const fb.Int32Reader()';
+        } else if (typeName == 'String') {
+          readCode = 'const fb.StringReader()';
+        } else if (_idl.enums.containsKey(typeName)) {
+          readLines = <String>[
+            'int index = const fb.Int32Reader().vTableGet(_bp, $index, 0);',
+            'return $typeName.values[index];'
+          ];
+        } else if (_idl.classes.containsKey(typeName)) {
+          readCode = 'const _${typeName}Reader()';
+        }
+        assert(readCode != null || readLines != null);
+        // Write the getter implementation.
+        out();
+        out('@override');
+        String returnType = dartType(type);
+        if (readLines != null) {
+          out('$returnType get $fieldName {');
+          indent(() {
+            readLines.forEach(out);
+          });
+          out('}');
+        } else {
+          String expr = '$readCode.vTableGet(_bp, $index, $def)$readSuffix';
+          out('$returnType get $fieldName => $expr;');
+        }
+      });
+    });
+    out('}');
   }
 
   /**
