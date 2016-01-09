@@ -32,6 +32,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -397,6 +398,14 @@ class AnalysisContextFactory {
     elementMap[asyncSource] = asyncLibrary;
     elementMap[htmlSource] = htmlLibrary;
     elementMap[mathSource] = mathLibrary;
+    //
+    // Set the public and export namespaces.  We don't use exports in the fake
+    // core library so public and export namespaces are the same.
+    //
+    for (LibraryElementImpl library in elementMap.values) {
+      library.exportNamespace =
+          library.publicNamespace = new PublicNamespaceBuilder().build(library);
+    }
     context.recordLibraryElements(elementMap);
     return context;
   }

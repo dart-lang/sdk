@@ -138,6 +138,12 @@ class _LibrarySerializer {
    */
   final BuilderContext ctx;
 
+  /**
+   * Map from imported element to the prefix which may be used to refer to that
+   * element; elements for which no prefix is needed are absent from this map.
+   */
+  final Map<Element, PrefixElement> prefixMap = <Element, PrefixElement>{};
+
   _LibrarySerializer(this.ctx, this.libraryElement, this.typeProvider) {
     dependencies.add(encodePrelinkedDependency(ctx));
     dependencyMap[libraryElement] = 0;
@@ -272,6 +278,40 @@ class _LibrarySerializer {
           in exportedLibrary.exportedLibraries) {
         addTransitiveExportClosure(transitiveExport);
       }
+    }
+  }
+
+  /**
+   * Fill in [prefixMap] using information from [libraryElement.imports].
+   */
+  void computePrefixMap() {
+    for (ImportElement import in libraryElement.imports) {
+      if (import.prefix == null) {
+        continue;
+      }
+      import.importedLibrary.exportNamespace.definedNames
+          .forEach((String name, Element e) {
+        if (import.combinators.any((NamespaceCombinator combinator) =>
+            doesCombinatorReject(combinator, name))) {
+          return;
+        }
+        prefixMap[e] = import.prefix;
+      });
+    }
+  }
+
+  /**
+   * Determine if the given [combinator] would reject an element having the
+   * given [name].
+   */
+  bool doesCombinatorReject(NamespaceCombinator combinator, String name) {
+    if (combinator is ShowElementCombinator) {
+      return !combinator.shownNames.contains(name);
+    } else if (combinator is HideElementCombinator) {
+      return combinator.hiddenNames.contains(name);
+    } else {
+      throw new StateError(
+          'Unexpected combinator type ${combinator.runtimeType}');
     }
   }
 
@@ -519,6 +559,7 @@ class _LibrarySerializer {
    * absolute URIs are stored in [unitUris].
    */
   PrelinkedLibraryBuilder serializeLibrary() {
+    computePrefixMap();
     PrelinkedLibraryBuilder pb = new PrelinkedLibraryBuilder(ctx);
     addCompilationUnitElements(libraryElement.definingCompilationUnit, 0);
     for (int i = 0; i < libraryElement.parts.length; i++) {
@@ -643,9 +684,18 @@ class _LibrarySerializer {
             numTypeParameters = element.typeParameters.length;
           }
           int index = unlinkedReferences.length;
-          // TODO(paulberry): set UnlinkedReference.prefix.
-          unlinkedReferences
-              .add(encodeUnlinkedReference(ctx, name: element.name));
+          // Figure out a prefix that may be used to refer to the given type.
+          // TODO(paulberry): to avoid subtle relinking inconsistencies we
+          // should use the actual prefix from the AST (a given type may be
+          // reachable via multiple prefixes), but sadly, this information is
+          // not recorded in the element model.
+          int prefixReference = 0;
+          PrefixElement prefix = prefixMap[element];
+          if (prefix != null) {
+            prefixReference = serializePrefix(prefix);
+          }
+          unlinkedReferences.add(encodeUnlinkedReference(ctx,
+              name: element.name, prefixReference: prefixReference));
           prelinkedReferences.add(encodePrelinkedReference(ctx,
               dependency: serializeDependency(dependentLibrary),
               kind: element is FunctionTypeAliasElement

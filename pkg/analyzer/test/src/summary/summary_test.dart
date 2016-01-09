@@ -368,12 +368,10 @@ abstract class SummaryTest {
     } else {
       expect(reference.name, expectedName);
     }
-    if (checkAstDerivedData) {
-      if (expectedPrefix == null) {
-        expect(reference.prefixReference, 0);
-      } else {
-        checkPrefix(reference.prefixReference, expectedPrefix);
-      }
+    if (expectedPrefix == null) {
+      expect(reference.prefixReference, 0);
+    } else {
+      checkPrefix(reference.prefixReference, expectedPrefix);
     }
     expect(referenceResolution.kind, expectedKind);
     expect(referenceResolution.unit, expectedTargetUnit);
@@ -417,6 +415,43 @@ enum E {
     expect(unlinkedUnits[0].imports, hasLength(2));
     checkDependency(
         prelinked.importDependencies[0], absUri('/foo.dart'), 'foo.dart');
+  }
+
+  fail_type_reference_to_nonexistent_file_via_prefix() {
+    // TODO(paulberry): this test currently fails because there is not enough
+    // information in the element model to figure out that the unresolved
+    // reference `p.C` uses the prefix `p`.
+    UnlinkedTypeRef typeRef = serializeTypeText('p.C',
+        otherDeclarations: 'import "foo.dart" as p;', allowErrors: true);
+    checkUnresolvedTypeRef(typeRef, 'p', 'C');
+  }
+
+  fail_type_reference_to_type_visible_via_multiple_import_prefixes() {
+    // TODO(paulberry): this test currently fails because the element model
+    // doesn't record enough information to track which prefix is used to refer
+    // to a type.
+    addNamedSource('/lib1.dart', 'class C');
+    addNamedSource('/lib2.dart', 'export "lib1.dart";');
+    addNamedSource('/lib3.dart', 'export "lib1.dart";');
+    addNamedSource('/lib4.dart', 'export "lib1.dart";');
+    serializeLibraryText('''
+import 'lib2.dart';
+import 'lib3.dart' as a;
+import 'lib4.dart' as b;
+C c2;
+a.C c3;
+b.C c4;''');
+    // Note: it is important that each reference to class C records the prefix
+    // used to find it; otherwise it's possible that relinking might produce an
+    // incorrect result after a change to lib2.dart, lib3.dart, or lib4.dart.
+    checkTypeRef(
+        findVariable('c2').type, absUri('/lib1.dart'), 'lib1.dart', 'C');
+    checkTypeRef(
+        findVariable('c3').type, absUri('/lib1.dart'), 'lib1.dart', 'C',
+        expectedPrefix: 'a');
+    checkTypeRef(
+        findVariable('c4').type, absUri('/lib1.dart'), 'lib1.dart', 'C',
+        expectedPrefix: 'b');
   }
 
   /**
@@ -2433,12 +2468,6 @@ void set f(value) {}''';
         null,
         'C',
         expectedTargetUnit: 1);
-  }
-
-  test_type_reference_to_nonexistent_file_via_prefix() {
-    UnlinkedTypeRef typeRef = serializeTypeText('p.C',
-        otherDeclarations: 'import "foo.dart" as p;', allowErrors: true);
-    checkUnresolvedTypeRef(typeRef, 'p', 'C');
   }
 
   test_type_reference_to_part() {
