@@ -861,13 +861,19 @@ UnlinkedCombinatorBuilder encodeUnlinkedCombinator(base.BuilderContext builderCo
  */
 class UnlinkedDocumentationComment extends base.SummaryClass {
   String _text;
+  int _offset;
+  int _length;
 
   UnlinkedDocumentationComment.fromJson(Map json)
-    : _text = json["text"];
+    : _text = json["text"],
+      _offset = json["offset"],
+      _length = json["length"];
 
   @override
   Map<String, Object> toMap() => {
     "text": text,
+    "offset": offset,
+    "length": length,
   };
 
   /**
@@ -877,6 +883,17 @@ class UnlinkedDocumentationComment extends base.SummaryClass {
    * specially encoded.
    */
   String get text => _text ?? '';
+
+  /**
+   * Offset of the beginning of the documentation comment relative to the
+   * beginning of the file.
+   */
+  int get offset => _offset ?? 0;
+
+  /**
+   * Length of the documentation comment (prior to replacing '\r\n' with '\n').
+   */
+  int get length => _length ?? 0;
 }
 
 class UnlinkedDocumentationCommentBuilder {
@@ -900,6 +917,29 @@ class UnlinkedDocumentationCommentBuilder {
     }
   }
 
+  /**
+   * Offset of the beginning of the documentation comment relative to the
+   * beginning of the file.
+   */
+  void set offset(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("offset"));
+    if (_value != null) {
+      _json["offset"] = _value;
+    }
+  }
+
+  /**
+   * Length of the documentation comment (prior to replacing '\r\n' with '\n').
+   */
+  void set length(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("length"));
+    if (_value != null) {
+      _json["length"] = _value;
+    }
+  }
+
   Map finish() {
     assert(!_finished);
     _finished = true;
@@ -907,9 +947,11 @@ class UnlinkedDocumentationCommentBuilder {
   }
 }
 
-UnlinkedDocumentationCommentBuilder encodeUnlinkedDocumentationComment(base.BuilderContext builderContext, {String text}) {
+UnlinkedDocumentationCommentBuilder encodeUnlinkedDocumentationComment(base.BuilderContext builderContext, {String text, int offset, int length}) {
   UnlinkedDocumentationCommentBuilder builder = new UnlinkedDocumentationCommentBuilder(builderContext);
   builder.text = text;
+  builder.offset = offset;
+  builder.length = length;
   return builder;
 }
 

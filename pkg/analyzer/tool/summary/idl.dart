@@ -304,6 +304,17 @@ class UnlinkedDocumentationComment {
    * specially encoded.
    */
   String text;
+
+  /**
+   * Offset of the beginning of the documentation comment relative to the
+   * beginning of the file.
+   */
+  int offset;
+
+  /**
+   * Length of the documentation comment (prior to replacing '\r\n' with '\n').
+   */
+  int length;
 }
 
 /**

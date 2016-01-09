@@ -339,6 +339,8 @@ class _LibraryResynthesizer {
       UnlinkedDocumentationComment serializedDocumentationComment) {
     if (serializedDocumentationComment != null) {
       element.documentationComment = serializedDocumentationComment.text;
+      element.setDocRange(serializedDocumentationComment.offset,
+          serializedDocumentationComment.length);
     }
   }
 

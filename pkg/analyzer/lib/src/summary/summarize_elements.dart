@@ -391,7 +391,9 @@ class _LibrarySerializer {
       return null;
     }
     return encodeUnlinkedDocumentationComment(ctx,
-        text: element.documentationComment);
+        text: element.documentationComment,
+        offset: element.docRange.offset,
+        length: element.docRange.length);
   }
 
   /**

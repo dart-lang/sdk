@@ -200,6 +200,7 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.nameOffset, original.nameOffset, reason: desc);
     expect(resynthesized.documentationComment, original.documentationComment,
         reason: desc);
+    expect(resynthesized.docRange, original.docRange, reason: desc);
     for (Modifier modifier in Modifier.values) {
       if (modifier == Modifier.MIXIN) {
         // Skipping for now.  TODO(paulberry): fix.

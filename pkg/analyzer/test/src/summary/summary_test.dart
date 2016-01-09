@@ -241,8 +241,11 @@ abstract class SummaryTest {
     int commentEnd = text.indexOf('*/');
     expect(commentEnd, isNot(-1));
     commentEnd += 2;
-    String expectedCommentText = text.substring(commentStart, commentEnd);
+    String expectedCommentText =
+        text.substring(commentStart, commentEnd).replaceAll('\r\n', '\n');
     expect(documentationComment.text, expectedCommentText);
+    expect(documentationComment.offset, commentStart);
+    expect(documentationComment.length, commentEnd - commentStart);
   }
 
   /**
@@ -874,10 +877,9 @@ class E {}''';
 
   test_class_documented_with_with_windows_line_endings() {
     String text = '/**\r\n * Docs\r\n */\r\nclass C {}';
-    String convertedText = text.replaceAll('\r\n', '\n');
     UnlinkedClass cls = serializeClassText(text);
     expect(cls.documentationComment, isNotNull);
-    checkDocumentationComment(cls.documentationComment, convertedText);
+    checkDocumentationComment(cls.documentationComment, text);
   }
 
   test_class_interface() {
