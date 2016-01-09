@@ -797,13 +797,13 @@ class UnlinkedClassBuilder {
       fbBuilder.addOffset(8, offset_executables);
     }
     if (_isAbstract == true) {
-      fbBuilder.addInt8(9, 1);
+      fbBuilder.addBool(9, true);
     }
     if (_isMixinApplication == true) {
-      fbBuilder.addInt8(10, 1);
+      fbBuilder.addBool(10, true);
     }
     if (_hasNoSupertype == true) {
-      fbBuilder.addInt8(11, 1);
+      fbBuilder.addBool(11, true);
     }
     return fbBuilder.endTable();
   }
@@ -948,13 +948,13 @@ class _UnlinkedClassReader extends fb.TableReader<_UnlinkedClassReader> implemen
   List<UnlinkedExecutable> get executables => const fb.ListReader<UnlinkedExecutable>(const _UnlinkedExecutableReader()).vTableGet(_bp, 8, const <UnlinkedExecutable>[]);
 
   @override
-  bool get isAbstract => const fb.Int8Reader().vTableGet(_bp, 9, 0) == 1;
+  bool get isAbstract => const fb.BoolReader().vTableGet(_bp, 9, false);
 
   @override
-  bool get isMixinApplication => const fb.Int8Reader().vTableGet(_bp, 10, 0) == 1;
+  bool get isMixinApplication => const fb.BoolReader().vTableGet(_bp, 10, false);
 
   @override
-  bool get hasNoSupertype => const fb.Int8Reader().vTableGet(_bp, 11, 0) == 1;
+  bool get hasNoSupertype => const fb.BoolReader().vTableGet(_bp, 11, false);
 }
 
 class UnlinkedCombinatorBuilder {
@@ -1605,22 +1605,22 @@ class UnlinkedExecutableBuilder {
       fbBuilder.addInt32(6, _kind.index);
     }
     if (_isAbstract == true) {
-      fbBuilder.addInt8(7, 1);
+      fbBuilder.addBool(7, true);
     }
     if (_isStatic == true) {
-      fbBuilder.addInt8(8, 1);
+      fbBuilder.addBool(8, true);
     }
     if (_isConst == true) {
-      fbBuilder.addInt8(9, 1);
+      fbBuilder.addBool(9, true);
     }
     if (_isFactory == true) {
-      fbBuilder.addInt8(10, 1);
+      fbBuilder.addBool(10, true);
     }
     if (_hasImplicitReturnType == true) {
-      fbBuilder.addInt8(11, 1);
+      fbBuilder.addBool(11, true);
     }
     if (_isExternal == true) {
-      fbBuilder.addInt8(12, 1);
+      fbBuilder.addBool(12, true);
     }
     return fbBuilder.endTable();
   }
@@ -1783,22 +1783,22 @@ class _UnlinkedExecutableReader extends fb.TableReader<_UnlinkedExecutableReader
   }
 
   @override
-  bool get isAbstract => const fb.Int8Reader().vTableGet(_bp, 7, 0) == 1;
+  bool get isAbstract => const fb.BoolReader().vTableGet(_bp, 7, false);
 
   @override
-  bool get isStatic => const fb.Int8Reader().vTableGet(_bp, 8, 0) == 1;
+  bool get isStatic => const fb.BoolReader().vTableGet(_bp, 8, false);
 
   @override
-  bool get isConst => const fb.Int8Reader().vTableGet(_bp, 9, 0) == 1;
+  bool get isConst => const fb.BoolReader().vTableGet(_bp, 9, false);
 
   @override
-  bool get isFactory => const fb.Int8Reader().vTableGet(_bp, 10, 0) == 1;
+  bool get isFactory => const fb.BoolReader().vTableGet(_bp, 10, false);
 
   @override
-  bool get hasImplicitReturnType => const fb.Int8Reader().vTableGet(_bp, 11, 0) == 1;
+  bool get hasImplicitReturnType => const fb.BoolReader().vTableGet(_bp, 11, false);
 
   @override
-  bool get isExternal => const fb.Int8Reader().vTableGet(_bp, 12, 0) == 1;
+  bool get isExternal => const fb.BoolReader().vTableGet(_bp, 12, false);
 }
 
 class UnlinkedExportNonPublicBuilder {
@@ -2120,10 +2120,10 @@ class UnlinkedImportBuilder {
       fbBuilder.addOffset(3, offset_combinators);
     }
     if (_isDeferred == true) {
-      fbBuilder.addInt8(4, 1);
+      fbBuilder.addBool(4, true);
     }
     if (_isImplicit == true) {
-      fbBuilder.addInt8(5, 1);
+      fbBuilder.addBool(5, true);
     }
     if (_uriOffset != null && _uriOffset != 0) {
       fbBuilder.addInt32(6, _uriOffset);
@@ -2244,10 +2244,10 @@ class _UnlinkedImportReader extends fb.TableReader<_UnlinkedImportReader> implem
   List<UnlinkedCombinator> get combinators => const fb.ListReader<UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bp, 3, const <UnlinkedCombinator>[]);
 
   @override
-  bool get isDeferred => const fb.Int8Reader().vTableGet(_bp, 4, 0) == 1;
+  bool get isDeferred => const fb.BoolReader().vTableGet(_bp, 4, false);
 
   @override
-  bool get isImplicit => const fb.Int8Reader().vTableGet(_bp, 5, 0) == 1;
+  bool get isImplicit => const fb.BoolReader().vTableGet(_bp, 5, false);
 
   @override
   int get uriOffset => const fb.Int32Reader().vTableGet(_bp, 6, 0);
@@ -2375,13 +2375,13 @@ class UnlinkedParamBuilder {
       fbBuilder.addInt32(4, _kind.index);
     }
     if (_isFunctionTyped == true) {
-      fbBuilder.addInt8(5, 1);
+      fbBuilder.addBool(5, true);
     }
     if (_isInitializingFormal == true) {
-      fbBuilder.addInt8(6, 1);
+      fbBuilder.addBool(6, true);
     }
     if (_hasImplicitType == true) {
-      fbBuilder.addInt8(7, 1);
+      fbBuilder.addBool(7, true);
     }
     return fbBuilder.endTable();
   }
@@ -2491,13 +2491,13 @@ class _UnlinkedParamReader extends fb.TableReader<_UnlinkedParamReader> implemen
   }
 
   @override
-  bool get isFunctionTyped => const fb.Int8Reader().vTableGet(_bp, 5, 0) == 1;
+  bool get isFunctionTyped => const fb.BoolReader().vTableGet(_bp, 5, false);
 
   @override
-  bool get isInitializingFormal => const fb.Int8Reader().vTableGet(_bp, 6, 0) == 1;
+  bool get isInitializingFormal => const fb.BoolReader().vTableGet(_bp, 6, false);
 
   @override
-  bool get hasImplicitType => const fb.Int8Reader().vTableGet(_bp, 7, 0) == 1;
+  bool get hasImplicitType => const fb.BoolReader().vTableGet(_bp, 7, false);
 }
 
 class UnlinkedPartBuilder {
@@ -3924,16 +3924,16 @@ class UnlinkedVariableBuilder {
       fbBuilder.addOffset(3, offset_type);
     }
     if (_isStatic == true) {
-      fbBuilder.addInt8(4, 1);
+      fbBuilder.addBool(4, true);
     }
     if (_isFinal == true) {
-      fbBuilder.addInt8(5, 1);
+      fbBuilder.addBool(5, true);
     }
     if (_isConst == true) {
-      fbBuilder.addInt8(6, 1);
+      fbBuilder.addBool(6, true);
     }
     if (_hasImplicitType == true) {
-      fbBuilder.addInt8(7, 1);
+      fbBuilder.addBool(7, true);
     }
     return fbBuilder.endTable();
   }
@@ -4038,15 +4038,15 @@ class _UnlinkedVariableReader extends fb.TableReader<_UnlinkedVariableReader> im
   UnlinkedTypeRef get type => const _UnlinkedTypeRefReader().vTableGet(_bp, 3, null);
 
   @override
-  bool get isStatic => const fb.Int8Reader().vTableGet(_bp, 4, 0) == 1;
+  bool get isStatic => const fb.BoolReader().vTableGet(_bp, 4, false);
 
   @override
-  bool get isFinal => const fb.Int8Reader().vTableGet(_bp, 5, 0) == 1;
+  bool get isFinal => const fb.BoolReader().vTableGet(_bp, 5, false);
 
   @override
-  bool get isConst => const fb.Int8Reader().vTableGet(_bp, 6, 0) == 1;
+  bool get isConst => const fb.BoolReader().vTableGet(_bp, 6, false);
 
   @override
-  bool get hasImplicitType => const fb.Int8Reader().vTableGet(_bp, 7, 0) == 1;
+  bool get hasImplicitType => const fb.BoolReader().vTableGet(_bp, 7, false);
 }
 

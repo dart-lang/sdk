@@ -401,9 +401,8 @@ class _CodeGenerator {
             condition = '$offsetName != null';
             writeCode = 'fbBuilder.addOffset($index, $offsetName);';
           } else if (fieldType.typeName == 'bool') {
-            // TODO(scheglov) implement booleans merging?
             condition = '$valueName == true';
-            writeCode = 'fbBuilder.addInt8($index, 1);';
+            writeCode = 'fbBuilder.addBool($index, true);';
           } else if (fieldType.typeName == 'int') {
             condition += ' && $valueName != ${defaultValue(fieldType)}';
             writeCode = 'fbBuilder.addInt32($index, $valueName);';
@@ -499,7 +498,6 @@ class _CodeGenerator {
         List<String> readLines;
         String readCode;
         String def = defaultValue(type);
-        String readSuffix = '';
         if (type.isList) {
           if (typeName == 'int') {
             String itemCode = 'const fb.Int32Reader()';
@@ -512,10 +510,7 @@ class _CodeGenerator {
             readCode = 'const fb.ListReader<$itemCode)';
           }
         } else if (typeName == 'bool') {
-          // TODO(scheglov) implement booleans merging?
-          def = '0';
-          readCode = 'const fb.Int8Reader()';
-          readSuffix = ' == 1';
+          readCode = 'const fb.BoolReader()';
         } else if (typeName == 'int') {
           readCode = 'const fb.Int32Reader()';
         } else if (typeName == 'String') {
@@ -540,7 +535,7 @@ class _CodeGenerator {
           });
           out('}');
         } else {
-          String expr = '$readCode.vTableGet(_bp, $index, $def)$readSuffix';
+          String expr = '$readCode.vTableGet(_bp, $index, $def)';
           out('$returnType get $fieldName => $expr;');
         }
       });
