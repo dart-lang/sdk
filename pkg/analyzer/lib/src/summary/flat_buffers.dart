@@ -10,6 +10,19 @@ import 'dart:math';
 import 'dart:typed_data';
 
 /**
+ * The reader of booleans.
+ */
+class BoolReader extends Reader<bool> {
+  const BoolReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  bool read(BufferPointer bp) => bp._getInt8() != 0;
+}
+
+/**
  * A pointer to some data.
  */
 class BufferPointer {
@@ -99,6 +112,23 @@ class Builder {
   }
 
   /**
+   * Add the [field] with the given boolean [value].  The field is not added if
+   * the [value] is equal to [def].  Booleans are stored as 8-bit fields with
+   * `0` for `false` and `1` for `true`.
+   */
+  void addBool(int field, bool value, [bool def]) {
+    if (_currentVTable == null) {
+      throw new StateError('Start a table before adding values.');
+    }
+    if (value != null && value != def) {
+      int size = 1;
+      _prepare(size, 1);
+      _trackField(field);
+      _buf.setInt8(_buf.lengthInBytes - _tail, value ? 1 : 0);
+    }
+  }
+
+  /**
    * Add the [field] with the given 32-bit signed integer [value].  The field is
    * not added if the [value] is equal to [def].
    */
@@ -106,7 +136,7 @@ class Builder {
     if (_currentVTable == null) {
       throw new StateError('Start a table before adding values.');
     }
-    if (value != def) {
+    if (value != null && value != def) {
       int size = 4;
       _prepare(size, 1);
       _trackField(field);
@@ -122,7 +152,7 @@ class Builder {
     if (_currentVTable == null) {
       throw new StateError('Start a table before adding values.');
     }
-    if (value != def) {
+    if (value != null && value != def) {
       int size = 1;
       _prepare(size, 1);
       _trackField(field);

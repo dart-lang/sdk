@@ -92,19 +92,21 @@ class BuilderTest {
       Builder builder = new Builder(initialSize: 0);
       Offset<String> stringOffset = builder.writeString('12345');
       builder.startTable();
-      builder.addInt8(0, 10);
-      builder.addInt32(1, 20);
-      builder.addOffset(2, stringOffset);
-      builder.addInt32(3, 40);
+      builder.addBool(0, true);
+      builder.addInt8(1, 10);
+      builder.addInt32(2, 20);
+      builder.addOffset(3, stringOffset);
+      builder.addInt32(4, 40);
       Offset offset = builder.endTable();
       byteList = builder.finish(offset);
     }
     // read and verify
     BufferPointer object = new BufferPointer.fromBytes(byteList).derefObject();
-    expect(const Int8Reader().vTableGet(object, 0), 10);
-    expect(const Int32Reader().vTableGet(object, 1), 20);
-    expect(const StringReader().vTableGet(object, 2), '12345');
-    expect(const Int32Reader().vTableGet(object, 3), 40);
+    expect(const BoolReader().vTableGet(object, 0), true);
+    expect(const Int8Reader().vTableGet(object, 1), 10);
+    expect(const Int32Reader().vTableGet(object, 2), 20);
+    expect(const StringReader().vTableGet(object, 3), '12345');
+    expect(const Int32Reader().vTableGet(object, 4), 40);
   }
 
   void test_writeList_ofInt32() {
