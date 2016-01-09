@@ -86,28 +86,6 @@ class BuilderTest {
     expect(const Int32Reader().vTableGet(object, 1, 15), 20);
   }
 
-  void test_table_int64() {
-    List<int> byteList;
-    {
-      Builder builder = new Builder(initialSize: 0);
-      builder.startTable();
-      builder.addInt8(0, 10);
-      builder.addInt64(1, 20);
-      builder.addInt8(2, 30);
-      builder.addInt8(3, 40);
-      builder.addInt8(4, 50);
-      Offset offset = builder.endTable();
-      byteList = builder.finish(offset);
-    }
-    // read and verify
-    BufferPointer object = new BufferPointer.fromBytes(byteList).derefObject();
-    expect(const Int8Reader().vTableGet(object, 0), 10);
-    expect(const Int64Reader().vTableGet(object, 1), 20);
-    expect(const Int8Reader().vTableGet(object, 2), 30);
-    expect(const Int8Reader().vTableGet(object, 3), 40);
-    expect(const Int8Reader().vTableGet(object, 4), 50);
-  }
-
   void test_table_types() {
     List<int> byteList;
     {

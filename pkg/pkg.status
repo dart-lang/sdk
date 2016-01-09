@@ -65,7 +65,6 @@ analyzer/test/generated/utilities_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/cache_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/context_test: Pass, Timeout # dartbug.com/23658
 analyzer/test/src/dart/element/element_test: Pass, Slow # Issue 21628
-analyzer/test/src/summary/flat_buffers_test: Skip # uses Int64
 analyzer/test/src/summary/resynthesize_test: Pass, Slow
 analyzer/test/src/summary/summary_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/dart_test: Pass, Slow # Issue 21628

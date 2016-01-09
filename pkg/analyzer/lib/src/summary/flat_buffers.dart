@@ -39,9 +39,6 @@ class BufferPointer {
   int _getInt32([int delta = 0]) =>
       _buffer.getInt32(_offset + delta, Endianness.LITTLE_ENDIAN);
 
-  int _getInt64([int delta = 0]) =>
-      _buffer.getInt64(_offset + delta, Endianness.LITTLE_ENDIAN);
-
   int _getInt8([int delta = 0]) => _buffer.getInt8(_offset + delta);
 
   int _getUint16([int delta = 0]) =>
@@ -114,22 +111,6 @@ class Builder {
       _prepare(size, 1);
       _trackField(field);
       _setInt32AtTail(_buf, _tail, value);
-    }
-  }
-
-  /**
-   * Add the [field] with the given 64-bit signed integer [value].  The field is
-   * not added if the [value] is equal to [def].
-   */
-  void addInt64(int field, int value, [int def]) {
-    if (_currentVTable == null) {
-      throw new StateError('Start a table before adding values.');
-    }
-    if (value != def) {
-      int size = 8;
-      _prepare(size, 1);
-      _trackField(field);
-      _setInt64AtTail(_buf, _tail, value);
     }
   }
 
@@ -236,14 +217,6 @@ class Builder {
   void lowWriteUint32(int value) {
     _prepare(4, 1);
     _setUint32AtTail(_buf, _tail, value);
-  }
-
-  /**
-   * This is a low-level method, it should not be invoked by clients.
-   */
-  void lowWriteUint64(int value) {
-    _prepare(8, 1);
-    _setUint64AtTail(_buf, _tail, value);
   }
 
   /**
@@ -384,16 +357,8 @@ class Builder {
     _buf.setInt32(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
   }
 
-  static void _setInt64AtTail(ByteData _buf, int tail, int x) {
-    _buf.setInt64(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
-  }
-
   static void _setUint32AtTail(ByteData _buf, int tail, int x) {
     _buf.setUint32(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
-  }
-
-  static void _setUint64AtTail(ByteData _buf, int tail, int x) {
-    _buf.setUint64(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
   }
 }
 
@@ -408,19 +373,6 @@ class Int32Reader extends Reader<int> {
 
   @override
   int read(BufferPointer bp) => bp._getInt32();
-}
-
-/**
- * The reader of 64-bit signed integers.
- */
-class Int64Reader extends Reader<int> {
-  const Int64Reader() : super();
-
-  @override
-  int get size => 8;
-
-  @override
-  int read(BufferPointer bp) => bp._getInt64();
 }
 
 /**
