@@ -2783,7 +2783,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
     /// Call a helper method from the isolate library. The isolate library uses
     /// its own isolate structure, that encapsulates dart2js's isolate.
-    ir.Primitive buildIsolateHelperInvocation(Element element,
+    ir.Primitive buildIsolateHelperInvocation(MethodElement element,
         CallStructure callStructure) {
       if (element == null) {
         reporter.internalError(node,
