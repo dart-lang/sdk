@@ -46,7 +46,7 @@ class PrelinkedDependencyBuilder {
 
   String _uri;
 
-  PrelinkedDependencyBuilder(base.BuilderContext context);
+  PrelinkedDependencyBuilder();
 
   /**
    * The relative URI used to import one library from the other.
@@ -71,8 +71,8 @@ class PrelinkedDependencyBuilder {
   }
 }
 
-PrelinkedDependencyBuilder encodePrelinkedDependency(base.BuilderContext builderContext, {String uri}) {
-  PrelinkedDependencyBuilder builder = new PrelinkedDependencyBuilder(builderContext);
+PrelinkedDependencyBuilder encodePrelinkedDependency({String uri}) {
+  PrelinkedDependencyBuilder builder = new PrelinkedDependencyBuilder();
   builder.uri = uri;
   return builder;
 }
@@ -113,7 +113,7 @@ class PrelinkedLibraryBuilder {
   List<PrelinkedDependencyBuilder> _dependencies;
   List<int> _importDependencies;
 
-  PrelinkedLibraryBuilder(base.BuilderContext context);
+  PrelinkedLibraryBuilder();
 
   /**
    * The pre-linked summary of all the compilation units constituting the
@@ -186,8 +186,8 @@ class PrelinkedLibraryBuilder {
   }
 }
 
-PrelinkedLibraryBuilder encodePrelinkedLibrary(base.BuilderContext builderContext, {List<PrelinkedUnitBuilder> units, List<PrelinkedDependencyBuilder> dependencies, List<int> importDependencies}) {
-  PrelinkedLibraryBuilder builder = new PrelinkedLibraryBuilder(builderContext);
+PrelinkedLibraryBuilder encodePrelinkedLibrary({List<PrelinkedUnitBuilder> units, List<PrelinkedDependencyBuilder> dependencies, List<int> importDependencies}) {
+  PrelinkedLibraryBuilder builder = new PrelinkedLibraryBuilder();
   builder.units = units;
   builder.dependencies = dependencies;
   builder.importDependencies = importDependencies;
@@ -265,7 +265,7 @@ class PrelinkedReferenceBuilder {
   int _unit;
   int _numTypeParameters;
 
-  PrelinkedReferenceBuilder(base.BuilderContext context);
+  PrelinkedReferenceBuilder();
 
   /**
    * Index into [PrelinkedLibrary.dependencies] indicating which imported library
@@ -325,8 +325,8 @@ class PrelinkedReferenceBuilder {
   }
 }
 
-PrelinkedReferenceBuilder encodePrelinkedReference(base.BuilderContext builderContext, {int dependency, PrelinkedReferenceKind kind, int unit, int numTypeParameters}) {
-  PrelinkedReferenceBuilder builder = new PrelinkedReferenceBuilder(builderContext);
+PrelinkedReferenceBuilder encodePrelinkedReference({int dependency, PrelinkedReferenceKind kind, int unit, int numTypeParameters}) {
+  PrelinkedReferenceBuilder builder = new PrelinkedReferenceBuilder();
   builder.dependency = dependency;
   builder.kind = kind;
   builder.unit = unit;
@@ -403,7 +403,7 @@ class PrelinkedUnitBuilder {
 
   List<PrelinkedReferenceBuilder> _references;
 
-  PrelinkedUnitBuilder(base.BuilderContext context);
+  PrelinkedUnitBuilder();
 
   /**
    * For each reference in [UnlinkedUnit.references], information about how
@@ -429,8 +429,8 @@ class PrelinkedUnitBuilder {
   }
 }
 
-PrelinkedUnitBuilder encodePrelinkedUnit(base.BuilderContext builderContext, {List<PrelinkedReferenceBuilder> references}) {
-  PrelinkedUnitBuilder builder = new PrelinkedUnitBuilder(builderContext);
+PrelinkedUnitBuilder encodePrelinkedUnit({List<PrelinkedReferenceBuilder> references}) {
+  PrelinkedUnitBuilder builder = new PrelinkedUnitBuilder();
   builder.references = references;
   return builder;
 }
@@ -472,7 +472,7 @@ class SdkBundleBuilder {
   List<String> _unlinkedUnitUris;
   List<UnlinkedUnitBuilder> _unlinkedUnits;
 
-  SdkBundleBuilder(base.BuilderContext context);
+  SdkBundleBuilder();
 
   /**
    * The list of URIs of items in [prelinkedLibraries], e.g. `dart:core`.
@@ -547,8 +547,8 @@ class SdkBundleBuilder {
   }
 }
 
-SdkBundleBuilder encodeSdkBundle(base.BuilderContext builderContext, {List<String> prelinkedLibraryUris, List<PrelinkedLibraryBuilder> prelinkedLibraries, List<String> unlinkedUnitUris, List<UnlinkedUnitBuilder> unlinkedUnits}) {
-  SdkBundleBuilder builder = new SdkBundleBuilder(builderContext);
+SdkBundleBuilder encodeSdkBundle({List<String> prelinkedLibraryUris, List<PrelinkedLibraryBuilder> prelinkedLibraries, List<String> unlinkedUnitUris, List<UnlinkedUnitBuilder> unlinkedUnits}) {
+  SdkBundleBuilder builder = new SdkBundleBuilder();
   builder.prelinkedLibraryUris = prelinkedLibraryUris;
   builder.prelinkedLibraries = prelinkedLibraries;
   builder.unlinkedUnitUris = unlinkedUnitUris;
@@ -631,7 +631,7 @@ class UnlinkedClassBuilder {
   bool _isMixinApplication;
   bool _hasNoSupertype;
 
-  UnlinkedClassBuilder(base.BuilderContext context);
+  UnlinkedClassBuilder();
 
   /**
    * Name of the class.
@@ -809,8 +809,8 @@ class UnlinkedClassBuilder {
   }
 }
 
-UnlinkedClassBuilder encodeUnlinkedClass(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder supertype, List<UnlinkedTypeRefBuilder> mixins, List<UnlinkedTypeRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication, bool hasNoSupertype}) {
-  UnlinkedClassBuilder builder = new UnlinkedClassBuilder(builderContext);
+UnlinkedClassBuilder encodeUnlinkedClass({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder supertype, List<UnlinkedTypeRefBuilder> mixins, List<UnlinkedTypeRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication, bool hasNoSupertype}) {
+  UnlinkedClassBuilder builder = new UnlinkedClassBuilder();
   builder.name = name;
   builder.nameOffset = nameOffset;
   builder.documentationComment = documentationComment;
@@ -963,7 +963,7 @@ class UnlinkedCombinatorBuilder {
   List<String> _shows;
   List<String> _hides;
 
-  UnlinkedCombinatorBuilder(base.BuilderContext context);
+  UnlinkedCombinatorBuilder();
 
   /**
    * List of names which are shown.  Empty if this is a `hide` combinator.
@@ -1003,8 +1003,8 @@ class UnlinkedCombinatorBuilder {
   }
 }
 
-UnlinkedCombinatorBuilder encodeUnlinkedCombinator(base.BuilderContext builderContext, {List<String> shows, List<String> hides}) {
-  UnlinkedCombinatorBuilder builder = new UnlinkedCombinatorBuilder(builderContext);
+UnlinkedCombinatorBuilder encodeUnlinkedCombinator({List<String> shows, List<String> hides}) {
+  UnlinkedCombinatorBuilder builder = new UnlinkedCombinatorBuilder();
   builder.shows = shows;
   builder.hides = hides;
   return builder;
@@ -1055,7 +1055,7 @@ class UnlinkedDocumentationCommentBuilder {
   int _offset;
   int _length;
 
-  UnlinkedDocumentationCommentBuilder(base.BuilderContext context);
+  UnlinkedDocumentationCommentBuilder();
 
   /**
    * Text of the documentation comment, with '\r\n' replaced by '\n'.
@@ -1106,8 +1106,8 @@ class UnlinkedDocumentationCommentBuilder {
   }
 }
 
-UnlinkedDocumentationCommentBuilder encodeUnlinkedDocumentationComment(base.BuilderContext builderContext, {String text, int offset, int length}) {
-  UnlinkedDocumentationCommentBuilder builder = new UnlinkedDocumentationCommentBuilder(builderContext);
+UnlinkedDocumentationCommentBuilder encodeUnlinkedDocumentationComment({String text, int offset, int length}) {
+  UnlinkedDocumentationCommentBuilder builder = new UnlinkedDocumentationCommentBuilder();
   builder.text = text;
   builder.offset = offset;
   builder.length = length;
@@ -1172,7 +1172,7 @@ class UnlinkedEnumBuilder {
   UnlinkedDocumentationCommentBuilder _documentationComment;
   List<UnlinkedEnumValueBuilder> _values;
 
-  UnlinkedEnumBuilder(base.BuilderContext context);
+  UnlinkedEnumBuilder();
 
   /**
    * Name of the enum type.
@@ -1239,8 +1239,8 @@ class UnlinkedEnumBuilder {
   }
 }
 
-UnlinkedEnumBuilder encodeUnlinkedEnum(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedEnumValueBuilder> values}) {
-  UnlinkedEnumBuilder builder = new UnlinkedEnumBuilder(builderContext);
+UnlinkedEnumBuilder encodeUnlinkedEnum({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedEnumValueBuilder> values}) {
+  UnlinkedEnumBuilder builder = new UnlinkedEnumBuilder();
   builder.name = name;
   builder.nameOffset = nameOffset;
   builder.documentationComment = documentationComment;
@@ -1311,7 +1311,7 @@ class UnlinkedEnumValueBuilder {
   int _nameOffset;
   UnlinkedDocumentationCommentBuilder _documentationComment;
 
-  UnlinkedEnumValueBuilder(base.BuilderContext context);
+  UnlinkedEnumValueBuilder();
 
   /**
    * Name of the enumerated value.
@@ -1363,8 +1363,8 @@ class UnlinkedEnumValueBuilder {
   }
 }
 
-UnlinkedEnumValueBuilder encodeUnlinkedEnumValue(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment}) {
-  UnlinkedEnumValueBuilder builder = new UnlinkedEnumValueBuilder(builderContext);
+UnlinkedEnumValueBuilder encodeUnlinkedEnumValue({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment}) {
+  UnlinkedEnumValueBuilder builder = new UnlinkedEnumValueBuilder();
   builder.name = name;
   builder.nameOffset = nameOffset;
   builder.documentationComment = documentationComment;
@@ -1436,7 +1436,7 @@ class UnlinkedExecutableBuilder {
   bool _hasImplicitReturnType;
   bool _isExternal;
 
-  UnlinkedExecutableBuilder(base.BuilderContext context);
+  UnlinkedExecutableBuilder();
 
   /**
    * Name of the executable.  For setters, this includes the trailing "=".  For
@@ -1626,8 +1626,8 @@ class UnlinkedExecutableBuilder {
   }
 }
 
-UnlinkedExecutableBuilder encodeUnlinkedExecutable(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType, bool isExternal}) {
-  UnlinkedExecutableBuilder builder = new UnlinkedExecutableBuilder(builderContext);
+UnlinkedExecutableBuilder encodeUnlinkedExecutable({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType, bool isExternal}) {
+  UnlinkedExecutableBuilder builder = new UnlinkedExecutableBuilder();
   builder.name = name;
   builder.nameOffset = nameOffset;
   builder.documentationComment = documentationComment;
@@ -1808,7 +1808,7 @@ class UnlinkedExportNonPublicBuilder {
   int _uriOffset;
   int _uriEnd;
 
-  UnlinkedExportNonPublicBuilder(base.BuilderContext context);
+  UnlinkedExportNonPublicBuilder();
 
   /**
    * Offset of the "export" keyword.
@@ -1853,8 +1853,8 @@ class UnlinkedExportNonPublicBuilder {
   }
 }
 
-UnlinkedExportNonPublicBuilder encodeUnlinkedExportNonPublic(base.BuilderContext builderContext, {int offset, int uriOffset, int uriEnd}) {
-  UnlinkedExportNonPublicBuilder builder = new UnlinkedExportNonPublicBuilder(builderContext);
+UnlinkedExportNonPublicBuilder encodeUnlinkedExportNonPublic({int offset, int uriOffset, int uriEnd}) {
+  UnlinkedExportNonPublicBuilder builder = new UnlinkedExportNonPublicBuilder();
   builder.offset = offset;
   builder.uriOffset = uriOffset;
   builder.uriEnd = uriEnd;
@@ -1916,7 +1916,7 @@ class UnlinkedExportPublicBuilder {
   String _uri;
   List<UnlinkedCombinatorBuilder> _combinators;
 
-  UnlinkedExportPublicBuilder(base.BuilderContext context);
+  UnlinkedExportPublicBuilder();
 
   /**
    * URI used in the source code to reference the exported library.
@@ -1956,8 +1956,8 @@ class UnlinkedExportPublicBuilder {
   }
 }
 
-UnlinkedExportPublicBuilder encodeUnlinkedExportPublic(base.BuilderContext builderContext, {String uri, List<UnlinkedCombinatorBuilder> combinators}) {
-  UnlinkedExportPublicBuilder builder = new UnlinkedExportPublicBuilder(builderContext);
+UnlinkedExportPublicBuilder encodeUnlinkedExportPublic({String uri, List<UnlinkedCombinatorBuilder> combinators}) {
+  UnlinkedExportPublicBuilder builder = new UnlinkedExportPublicBuilder();
   builder.uri = uri;
   builder.combinators = combinators;
   return builder;
@@ -2014,7 +2014,7 @@ class UnlinkedImportBuilder {
   int _uriEnd;
   int _prefixOffset;
 
-  UnlinkedImportBuilder(base.BuilderContext context);
+  UnlinkedImportBuilder();
 
   /**
    * URI used in the source code to reference the imported library.
@@ -2138,8 +2138,8 @@ class UnlinkedImportBuilder {
   }
 }
 
-UnlinkedImportBuilder encodeUnlinkedImport(base.BuilderContext builderContext, {String uri, int offset, int prefixReference, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit, int uriOffset, int uriEnd, int prefixOffset}) {
-  UnlinkedImportBuilder builder = new UnlinkedImportBuilder(builderContext);
+UnlinkedImportBuilder encodeUnlinkedImport({String uri, int offset, int prefixReference, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit, int uriOffset, int uriEnd, int prefixOffset}) {
+  UnlinkedImportBuilder builder = new UnlinkedImportBuilder();
   builder.uri = uri;
   builder.offset = offset;
   builder.prefixReference = prefixReference;
@@ -2271,7 +2271,7 @@ class UnlinkedParamBuilder {
   bool _isInitializingFormal;
   bool _hasImplicitType;
 
-  UnlinkedParamBuilder(base.BuilderContext context);
+  UnlinkedParamBuilder();
 
   /**
    * Name of the parameter.
@@ -2387,8 +2387,8 @@ class UnlinkedParamBuilder {
   }
 }
 
-UnlinkedParamBuilder encodeUnlinkedParam(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedTypeRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, bool hasImplicitType}) {
-  UnlinkedParamBuilder builder = new UnlinkedParamBuilder(builderContext);
+UnlinkedParamBuilder encodeUnlinkedParam({String name, int nameOffset, UnlinkedTypeRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, bool hasImplicitType}) {
+  UnlinkedParamBuilder builder = new UnlinkedParamBuilder();
   builder.name = name;
   builder.nameOffset = nameOffset;
   builder.type = type;
@@ -2506,7 +2506,7 @@ class UnlinkedPartBuilder {
   int _uriOffset;
   int _uriEnd;
 
-  UnlinkedPartBuilder(base.BuilderContext context);
+  UnlinkedPartBuilder();
 
   /**
    * Offset of the URI string (including quotes) relative to the beginning of
@@ -2540,8 +2540,8 @@ class UnlinkedPartBuilder {
   }
 }
 
-UnlinkedPartBuilder encodeUnlinkedPart(base.BuilderContext builderContext, {int uriOffset, int uriEnd}) {
-  UnlinkedPartBuilder builder = new UnlinkedPartBuilder(builderContext);
+UnlinkedPartBuilder encodeUnlinkedPart({int uriOffset, int uriEnd}) {
+  UnlinkedPartBuilder builder = new UnlinkedPartBuilder();
   builder.uriOffset = uriOffset;
   builder.uriEnd = uriEnd;
   return builder;
@@ -2593,7 +2593,7 @@ class UnlinkedPublicNameBuilder {
   PrelinkedReferenceKind _kind;
   int _numTypeParameters;
 
-  UnlinkedPublicNameBuilder(base.BuilderContext context);
+  UnlinkedPublicNameBuilder();
 
   /**
    * The name itself.
@@ -2641,8 +2641,8 @@ class UnlinkedPublicNameBuilder {
   }
 }
 
-UnlinkedPublicNameBuilder encodeUnlinkedPublicName(base.BuilderContext builderContext, {String name, PrelinkedReferenceKind kind, int numTypeParameters}) {
-  UnlinkedPublicNameBuilder builder = new UnlinkedPublicNameBuilder(builderContext);
+UnlinkedPublicNameBuilder encodeUnlinkedPublicName({String name, PrelinkedReferenceKind kind, int numTypeParameters}) {
+  UnlinkedPublicNameBuilder builder = new UnlinkedPublicNameBuilder();
   builder.name = name;
   builder.kind = kind;
   builder.numTypeParameters = numTypeParameters;
@@ -2717,7 +2717,7 @@ class UnlinkedPublicNamespaceBuilder {
   List<UnlinkedExportPublicBuilder> _exports;
   List<String> _parts;
 
-  UnlinkedPublicNamespaceBuilder(base.BuilderContext context);
+  UnlinkedPublicNamespaceBuilder();
 
   /**
    * Public names defined in the compilation unit.
@@ -2780,8 +2780,8 @@ class UnlinkedPublicNamespaceBuilder {
   }
 }
 
-UnlinkedPublicNamespaceBuilder encodeUnlinkedPublicNamespace(base.BuilderContext builderContext, {List<UnlinkedPublicNameBuilder> names, List<UnlinkedExportPublicBuilder> exports, List<String> parts}) {
-  UnlinkedPublicNamespaceBuilder builder = new UnlinkedPublicNamespaceBuilder(builderContext);
+UnlinkedPublicNamespaceBuilder encodeUnlinkedPublicNamespace({List<UnlinkedPublicNameBuilder> names, List<UnlinkedExportPublicBuilder> exports, List<String> parts}) {
+  UnlinkedPublicNamespaceBuilder builder = new UnlinkedPublicNamespaceBuilder();
   builder.names = names;
   builder.exports = exports;
   builder.parts = parts;
@@ -2849,7 +2849,7 @@ class UnlinkedReferenceBuilder {
   String _name;
   int _prefixReference;
 
-  UnlinkedReferenceBuilder(base.BuilderContext context);
+  UnlinkedReferenceBuilder();
 
   /**
    * Name of the entity being referred to.  The empty string refers to the
@@ -2887,8 +2887,8 @@ class UnlinkedReferenceBuilder {
   }
 }
 
-UnlinkedReferenceBuilder encodeUnlinkedReference(base.BuilderContext builderContext, {String name, int prefixReference}) {
-  UnlinkedReferenceBuilder builder = new UnlinkedReferenceBuilder(builderContext);
+UnlinkedReferenceBuilder encodeUnlinkedReference({String name, int prefixReference}) {
+  UnlinkedReferenceBuilder builder = new UnlinkedReferenceBuilder();
   builder.name = name;
   builder.prefixReference = prefixReference;
   return builder;
@@ -2944,7 +2944,7 @@ class UnlinkedTypedefBuilder {
   UnlinkedTypeRefBuilder _returnType;
   List<UnlinkedParamBuilder> _parameters;
 
-  UnlinkedTypedefBuilder(base.BuilderContext context);
+  UnlinkedTypedefBuilder();
 
   /**
    * Name of the typedef.
@@ -3041,8 +3041,8 @@ class UnlinkedTypedefBuilder {
   }
 }
 
-UnlinkedTypedefBuilder encodeUnlinkedTypedef(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters}) {
-  UnlinkedTypedefBuilder builder = new UnlinkedTypedefBuilder(builderContext);
+UnlinkedTypedefBuilder encodeUnlinkedTypedef({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters}) {
+  UnlinkedTypedefBuilder builder = new UnlinkedTypedefBuilder();
   builder.name = name;
   builder.nameOffset = nameOffset;
   builder.documentationComment = documentationComment;
@@ -3133,7 +3133,7 @@ class UnlinkedTypeParamBuilder {
   int _nameOffset;
   UnlinkedTypeRefBuilder _bound;
 
-  UnlinkedTypeParamBuilder(base.BuilderContext context);
+  UnlinkedTypeParamBuilder();
 
   /**
    * Name of the type parameter.
@@ -3185,8 +3185,8 @@ class UnlinkedTypeParamBuilder {
   }
 }
 
-UnlinkedTypeParamBuilder encodeUnlinkedTypeParam(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedTypeRefBuilder bound}) {
-  UnlinkedTypeParamBuilder builder = new UnlinkedTypeParamBuilder(builderContext);
+UnlinkedTypeParamBuilder encodeUnlinkedTypeParam({String name, int nameOffset, UnlinkedTypeRefBuilder bound}) {
+  UnlinkedTypeParamBuilder builder = new UnlinkedTypeParamBuilder();
   builder.name = name;
   builder.nameOffset = nameOffset;
   builder.bound = bound;
@@ -3247,7 +3247,7 @@ class UnlinkedTypeRefBuilder {
   int _paramReference;
   List<UnlinkedTypeRefBuilder> _typeArguments;
 
-  UnlinkedTypeRefBuilder(base.BuilderContext context);
+  UnlinkedTypeRefBuilder();
 
   /**
    * Index into [UnlinkedUnit.references] for the type being referred to, or
@@ -3318,8 +3318,8 @@ class UnlinkedTypeRefBuilder {
   }
 }
 
-UnlinkedTypeRefBuilder encodeUnlinkedTypeRef(base.BuilderContext builderContext, {int reference, int paramReference, List<UnlinkedTypeRefBuilder> typeArguments}) {
-  UnlinkedTypeRefBuilder builder = new UnlinkedTypeRefBuilder(builderContext);
+UnlinkedTypeRefBuilder encodeUnlinkedTypeRef({int reference, int paramReference, List<UnlinkedTypeRefBuilder> typeArguments}) {
+  UnlinkedTypeRefBuilder builder = new UnlinkedTypeRefBuilder();
   builder.reference = reference;
   builder.paramReference = paramReference;
   builder.typeArguments = typeArguments;
@@ -3414,7 +3414,7 @@ class UnlinkedUnitBuilder {
   List<UnlinkedTypedefBuilder> _typedefs;
   List<UnlinkedVariableBuilder> _variables;
 
-  UnlinkedUnitBuilder(base.BuilderContext context);
+  UnlinkedUnitBuilder();
 
   /**
    * Name of the library (from a "library" declaration, if present).
@@ -3637,8 +3637,8 @@ class UnlinkedUnitBuilder {
   }
 }
 
-UnlinkedUnitBuilder encodeUnlinkedUnit(base.BuilderContext builderContext, {String libraryName, int libraryNameOffset, int libraryNameLength, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedPartBuilder> parts, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
-  UnlinkedUnitBuilder builder = new UnlinkedUnitBuilder(builderContext);
+UnlinkedUnitBuilder encodeUnlinkedUnit({String libraryName, int libraryNameOffset, int libraryNameLength, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedPartBuilder> parts, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
+  UnlinkedUnitBuilder builder = new UnlinkedUnitBuilder();
   builder.libraryName = libraryName;
   builder.libraryNameOffset = libraryNameOffset;
   builder.libraryNameLength = libraryNameLength;
@@ -3823,7 +3823,7 @@ class UnlinkedVariableBuilder {
   bool _isConst;
   bool _hasImplicitType;
 
-  UnlinkedVariableBuilder(base.BuilderContext context);
+  UnlinkedVariableBuilder();
 
   /**
    * Name of the variable.
@@ -3939,8 +3939,8 @@ class UnlinkedVariableBuilder {
   }
 }
 
-UnlinkedVariableBuilder encodeUnlinkedVariable(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, UnlinkedTypeRefBuilder type, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType}) {
-  UnlinkedVariableBuilder builder = new UnlinkedVariableBuilder(builderContext);
+UnlinkedVariableBuilder encodeUnlinkedVariable({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, UnlinkedTypeRefBuilder type, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType}) {
+  UnlinkedVariableBuilder builder = new UnlinkedVariableBuilder();
   builder.name = name;
   builder.nameOffset = nameOffset;
   builder.documentationComment = documentationComment;

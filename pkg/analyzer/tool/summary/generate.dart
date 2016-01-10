@@ -13,11 +13,9 @@
  * - A "builder" class which can be used to generate serialized summary data.
  *   This class has write-only semantics.
  *
- * Each of the "builder" classes has a single `finish` method which finalizes
- * the entity being built and returns it as an [Object].  This object should
- * only be passed to other builders (or to [BuilderContext.getBuffer]);
- * otherwise the client should treat it as opaque, since it exposes
- * implementation details of the underlying summary infrastructure.
+ * Each of the "builder" classes has a single `finish` method which writes
+ * the entity being built into the given FlatBuffer and returns the `Offset`
+ * reference to it.
  */
 library analyzer.tool.summary.generate;
 
@@ -309,7 +307,7 @@ class _CodeGenerator {
       }
       // Generate constructor.
       out();
-      out('$builderName(base.BuilderContext context);');
+      out('$builderName();');
       // Generate setters.
       for (idlModel.FieldDeclaration field in cls.fields) {
         String fieldName = field.name;
@@ -431,9 +429,9 @@ class _CodeGenerator {
       idlModel.ClassDeclaration cls, List<String> builderParams) {
     String className = cls.name;
     String builderName = className + 'Builder';
-    out('$builderName encode$className(base.BuilderContext builderContext, {${builderParams.join(', ')}}) {');
+    out('$builderName encode$className({${builderParams.join(', ')}}) {');
     indent(() {
-      out('$builderName builder = new $builderName(builderContext);');
+      out('$builderName builder = new $builderName();');
       for (idlModel.FieldDeclaration field in cls.fields) {
         String fieldName = field.name;
         out('builder.$fieldName = $fieldName;');

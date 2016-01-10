@@ -7,7 +7,6 @@ library test.src.serialization.elements_test;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
@@ -487,9 +486,8 @@ class ResynthTest extends ResolverTestCase {
       String uri, LibraryElementImpl original) {
     Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
     PrelinkedLibrary getPrelinkedSummaryFor(LibraryElement lib) {
-      BuilderContext ctx = new BuilderContext();
       LibrarySerializationResult serialized =
-          serializeLibrary(ctx, lib, typeProvider);
+          serializeLibrary(lib, typeProvider);
       for (int i = 0; i < serialized.unlinkedUnits.length; i++) {
         unlinkedSummaries[serialized.unitUris[i]] =
             new UnlinkedUnit.fromBuffer(serialized.unlinkedUnits[i].toBuffer());

@@ -34,8 +34,6 @@ main() {
  */
 @reflectiveTest
 class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
-  final BuilderContext builderContext = new BuilderContext();
-
   /**
    * The list of absolute unit URIs corresponding to the compilation units in
    * [unlinkedUnits].
@@ -96,8 +94,7 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
    */
   void serializeLibraryElement(LibraryElement library) {
     summarize_elements.LibrarySerializationResult serializedLib =
-        summarize_elements.serializeLibrary(
-            builderContext, library, typeProvider);
+        summarize_elements.serializeLibrary(library, typeProvider);
     {
       List<int> buffer = serializedLib.prelinked.toBuffer();
       prelinked = new PrelinkedLibrary.fromBuffer(buffer);
@@ -156,9 +153,8 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
       parser.parseGenericMethods = true;
       CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
       UnlinkedPublicNamespace namespace =
-          new UnlinkedPublicNamespace.fromBuffer(public_namespace
-              .computePublicNamespace(builderContext, unit)
-              .toBuffer());
+          new UnlinkedPublicNamespace.fromBuffer(
+              public_namespace.computePublicNamespace(unit).toBuffer());
       expect(canonicalize(namespace),
           canonicalize(unlinkedUnits[i].publicNamespace),
           reason: 'publicNamespace(${unitUris[i]})');

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/format.dart';
 
 /**
@@ -17,8 +16,8 @@ import 'package:analyzer/src/summary/format.dart';
  * for building the summary, and using [typeProvider] to find built-in types.
  */
 LibrarySerializationResult serializeLibrary(
-    BuilderContext ctx, LibraryElement lib, TypeProvider typeProvider) {
-  var serializer = new _LibrarySerializer(ctx, lib, typeProvider);
+    LibraryElement lib, TypeProvider typeProvider) {
+  var serializer = new _LibrarySerializer(lib, typeProvider);
   PrelinkedLibraryBuilder prelinked = serializer.serializeLibrary();
   return new LibrarySerializationResult(
       prelinked, serializer.unlinkedUnits, serializer.unitUris);
@@ -134,18 +133,13 @@ class _LibrarySerializer {
       new Set<LibraryElement>();
 
   /**
-   * [BuilderContext] used to serialize the output summary.
-   */
-  final BuilderContext ctx;
-
-  /**
    * Map from imported element to the prefix which may be used to refer to that
    * element; elements for which no prefix is needed are absent from this map.
    */
   final Map<Element, PrefixElement> prefixMap = <Element, PrefixElement>{};
 
-  _LibrarySerializer(this.ctx, this.libraryElement, this.typeProvider) {
-    dependencies.add(encodePrelinkedDependency(ctx));
+  _LibrarySerializer(this.libraryElement, this.typeProvider) {
+    dependencies.add(encodePrelinkedDependency());
     dependencyMap[libraryElement] = 0;
   }
 
@@ -161,18 +155,16 @@ class _LibrarySerializer {
    * library.
    */
   void addCompilationUnitElements(CompilationUnitElement element, int unitNum) {
-    UnlinkedUnitBuilder b = new UnlinkedUnitBuilder(ctx);
+    UnlinkedUnitBuilder b = new UnlinkedUnitBuilder();
     referenceMap.clear();
-    unlinkedReferences = <UnlinkedReferenceBuilder>[
-      encodeUnlinkedReference(ctx)
-    ];
+    unlinkedReferences = <UnlinkedReferenceBuilder>[encodeUnlinkedReference()];
     prelinkedReferences = <PrelinkedReferenceBuilder>[
-      encodePrelinkedReference(ctx, kind: PrelinkedReferenceKind.classOrEnum)
+      encodePrelinkedReference(kind: PrelinkedReferenceKind.classOrEnum)
     ];
     List<UnlinkedPublicNameBuilder> names = <UnlinkedPublicNameBuilder>[];
     for (PropertyAccessorElement accessor in element.accessors) {
       if (accessor.isPublic) {
-        names.add(encodeUnlinkedPublicName(ctx,
+        names.add(encodeUnlinkedPublicName(
             kind: PrelinkedReferenceKind.other,
             name: accessor.name,
             numTypeParameters: accessor.typeParameters.length));
@@ -180,7 +172,7 @@ class _LibrarySerializer {
     }
     for (ClassElement cls in element.types) {
       if (cls.isPublic) {
-        names.add(encodeUnlinkedPublicName(ctx,
+        names.add(encodeUnlinkedPublicName(
             kind: PrelinkedReferenceKind.classOrEnum,
             name: cls.name,
             numTypeParameters: cls.typeParameters.length));
@@ -188,13 +180,13 @@ class _LibrarySerializer {
     }
     for (ClassElement enm in element.enums) {
       if (enm.isPublic) {
-        names.add(encodeUnlinkedPublicName(ctx,
+        names.add(encodeUnlinkedPublicName(
             kind: PrelinkedReferenceKind.classOrEnum, name: enm.name));
       }
     }
     for (FunctionElement function in element.functions) {
       if (function.isPublic) {
-        names.add(encodeUnlinkedPublicName(ctx,
+        names.add(encodeUnlinkedPublicName(
             kind: PrelinkedReferenceKind.other,
             name: function.name,
             numTypeParameters: function.typeParameters.length));
@@ -202,7 +194,7 @@ class _LibrarySerializer {
     }
     for (FunctionTypeAliasElement typedef in element.functionTypeAliases) {
       if (typedef.isPublic) {
-        names.add(encodeUnlinkedPublicName(ctx,
+        names.add(encodeUnlinkedPublicName(
             kind: PrelinkedReferenceKind.typedef,
             name: typedef.name,
             numTypeParameters: typedef.typeParameters.length));
@@ -215,7 +207,7 @@ class _LibrarySerializer {
         b.libraryNameLength = libraryElement.nameLength;
         b.libraryDocumentationComment = serializeDocumentation(libraryElement);
       }
-      b.publicNamespace = encodeUnlinkedPublicNamespace(ctx,
+      b.publicNamespace = encodeUnlinkedPublicNamespace(
           exports: libraryElement.exports.map(serializeExportPublic).toList(),
           parts: libraryElement.parts
               .map((CompilationUnitElement e) => e.uri)
@@ -225,7 +217,7 @@ class _LibrarySerializer {
       b.imports = libraryElement.imports.map(serializeImport).toList();
       b.parts = libraryElement.parts
           .map((CompilationUnitElement e) =>
-              encodeUnlinkedPart(ctx, uriOffset: e.uriOffset, uriEnd: e.uriEnd))
+              encodeUnlinkedPart(uriOffset: e.uriOffset, uriEnd: e.uriEnd))
           .toList();
     } else {
       // TODO(paulberry): we need to figure out a way to record library, part,
@@ -234,7 +226,7 @@ class _LibrarySerializer {
       // language), so that if the user makes code changes that cause a
       // non-defining compilation unit to become a defining compilation unit,
       // we can create a correct summary by simply re-linking.
-      b.publicNamespace = encodeUnlinkedPublicNamespace(ctx, names: names);
+      b.publicNamespace = encodeUnlinkedPublicNamespace(names: names);
     }
     b.classes = element.types.map(serializeClass).toList();
     b.enums = element.enums.map(serializeEnum).toList();
@@ -260,8 +252,7 @@ class _LibrarySerializer {
     b.variables = variables;
     b.references = unlinkedReferences;
     unlinkedUnits.add(b);
-    prelinkedUnits
-        .add(encodePrelinkedUnit(ctx, references: prelinkedReferences));
+    prelinkedUnits.add(encodePrelinkedUnit(references: prelinkedReferences));
     unitUris.add(element.source.uri.toString());
     unlinkedReferences = null;
     prelinkedReferences = null;
@@ -348,7 +339,7 @@ class _LibrarySerializer {
    * Serialize the given [classElement], creating an [UnlinkedClass].
    */
   UnlinkedClassBuilder serializeClass(ClassElement classElement) {
-    UnlinkedClassBuilder b = new UnlinkedClassBuilder(ctx);
+    UnlinkedClassBuilder b = new UnlinkedClassBuilder();
     b.name = classElement.name;
     b.nameOffset = classElement.nameOffset;
     b.typeParameters =
@@ -397,7 +388,7 @@ class _LibrarySerializer {
    */
   UnlinkedCombinatorBuilder serializeCombinator(
       NamespaceCombinator combinator) {
-    UnlinkedCombinatorBuilder b = new UnlinkedCombinatorBuilder(ctx);
+    UnlinkedCombinatorBuilder b = new UnlinkedCombinatorBuilder();
     if (combinator is ShowElementCombinator) {
       b.shows = combinator.shownNames;
     } else if (combinator is HideElementCombinator) {
@@ -414,7 +405,7 @@ class _LibrarySerializer {
   int serializeDependency(LibraryElement dependentLibrary) {
     return dependencyMap.putIfAbsent(dependentLibrary, () {
       int index = dependencies.length;
-      dependencies.add(encodePrelinkedDependency(ctx,
+      dependencies.add(encodePrelinkedDependency(
           uri: dependentLibrary.source.uri.toString()));
       return index;
     });
@@ -430,7 +421,7 @@ class _LibrarySerializer {
     if (element.documentationComment == null) {
       return null;
     }
-    return encodeUnlinkedDocumentationComment(ctx,
+    return encodeUnlinkedDocumentationComment(
         text: element.documentationComment,
         offset: element.docRange.offset,
         length: element.docRange.length);
@@ -447,13 +438,13 @@ class _LibrarySerializer {
    * Serialize the given [enumElement], creating an [UnlinkedEnum].
    */
   UnlinkedEnumBuilder serializeEnum(ClassElement enumElement) {
-    UnlinkedEnumBuilder b = new UnlinkedEnumBuilder(ctx);
+    UnlinkedEnumBuilder b = new UnlinkedEnumBuilder();
     b.name = enumElement.name;
     b.nameOffset = enumElement.nameOffset;
     List<UnlinkedEnumValueBuilder> values = <UnlinkedEnumValueBuilder>[];
     for (FieldElement field in enumElement.fields) {
       if (field.isConst && field.type.element == enumElement) {
-        values.add(encodeUnlinkedEnumValue(ctx,
+        values.add(encodeUnlinkedEnumValue(
             name: field.name,
             nameOffset: field.nameOffset,
             documentationComment: serializeDocumentation(field)));
@@ -469,7 +460,7 @@ class _LibrarySerializer {
    */
   UnlinkedExecutableBuilder serializeExecutable(
       ExecutableElement executableElement) {
-    UnlinkedExecutableBuilder b = new UnlinkedExecutableBuilder(ctx);
+    UnlinkedExecutableBuilder b = new UnlinkedExecutableBuilder();
     b.name = executableElement.name;
     b.nameOffset = executableElement.nameOffset;
     if (executableElement is! ConstructorElement &&
@@ -508,7 +499,7 @@ class _LibrarySerializer {
    */
   UnlinkedExportNonPublicBuilder serializeExportNonPublic(
       ExportElement exportElement) {
-    UnlinkedExportNonPublicBuilder b = new UnlinkedExportNonPublicBuilder(ctx);
+    UnlinkedExportNonPublicBuilder b = new UnlinkedExportNonPublicBuilder();
     b.offset = exportElement.nameOffset;
     b.uriOffset = exportElement.uriOffset;
     b.uriEnd = exportElement.uriEnd;
@@ -520,7 +511,7 @@ class _LibrarySerializer {
    */
   UnlinkedExportPublicBuilder serializeExportPublic(
       ExportElement exportElement) {
-    UnlinkedExportPublicBuilder b = new UnlinkedExportPublicBuilder(ctx);
+    UnlinkedExportPublicBuilder b = new UnlinkedExportPublicBuilder();
     b.uri = exportElement.uri;
     b.combinators = exportElement.combinators.map(serializeCombinator).toList();
     return b;
@@ -531,7 +522,7 @@ class _LibrarySerializer {
    * Also, add pre-linked information about it to the [prelinkedImports] list.
    */
   UnlinkedImportBuilder serializeImport(ImportElement importElement) {
-    UnlinkedImportBuilder b = new UnlinkedImportBuilder(ctx);
+    UnlinkedImportBuilder b = new UnlinkedImportBuilder();
     b.isDeferred = importElement.isDeferred;
     b.offset = importElement.nameOffset;
     b.combinators = importElement.combinators.map(serializeCombinator).toList();
@@ -560,7 +551,7 @@ class _LibrarySerializer {
    */
   PrelinkedLibraryBuilder serializeLibrary() {
     computePrefixMap();
-    PrelinkedLibraryBuilder pb = new PrelinkedLibraryBuilder(ctx);
+    PrelinkedLibraryBuilder pb = new PrelinkedLibraryBuilder();
     addCompilationUnitElements(libraryElement.definingCompilationUnit, 0);
     for (int i = 0; i < libraryElement.parts.length; i++) {
       addCompilationUnitElements(libraryElement.parts[i], i + 1);
@@ -577,7 +568,7 @@ class _LibrarySerializer {
   UnlinkedParamBuilder serializeParam(ParameterElement parameter,
       [Element context]) {
     context ??= parameter;
-    UnlinkedParamBuilder b = new UnlinkedParamBuilder(ctx);
+    UnlinkedParamBuilder b = new UnlinkedParamBuilder();
     b.name = parameter.name;
     b.nameOffset = parameter.nameOffset;
     switch (parameter.parameterKind) {
@@ -615,9 +606,9 @@ class _LibrarySerializer {
     return referenceMap.putIfAbsent(element, () {
       assert(unlinkedReferences.length == prelinkedReferences.length);
       int index = unlinkedReferences.length;
-      unlinkedReferences.add(encodeUnlinkedReference(ctx, name: element.name));
-      prelinkedReferences.add(
-          encodePrelinkedReference(ctx, kind: PrelinkedReferenceKind.prefix));
+      unlinkedReferences.add(encodeUnlinkedReference(name: element.name));
+      prelinkedReferences
+          .add(encodePrelinkedReference(kind: PrelinkedReferenceKind.prefix));
       return index;
     });
   }
@@ -627,7 +618,7 @@ class _LibrarySerializer {
    */
   UnlinkedTypedefBuilder serializeTypedef(
       FunctionTypeAliasElement typedefElement) {
-    UnlinkedTypedefBuilder b = new UnlinkedTypedefBuilder(ctx);
+    UnlinkedTypedefBuilder b = new UnlinkedTypedefBuilder();
     b.name = typedefElement.name;
     b.nameOffset = typedefElement.nameOffset;
     b.typeParameters =
@@ -646,7 +637,7 @@ class _LibrarySerializer {
    */
   UnlinkedTypeParamBuilder serializeTypeParam(
       TypeParameterElement typeParameter) {
-    UnlinkedTypeParamBuilder b = new UnlinkedTypeParamBuilder(ctx);
+    UnlinkedTypeParamBuilder b = new UnlinkedTypeParamBuilder();
     b.name = typeParameter.name;
     b.nameOffset = typeParameter.nameOffset;
     if (typeParameter.bound != null) {
@@ -659,7 +650,7 @@ class _LibrarySerializer {
    * Serialize the given [type] into an [UnlinkedTypeRef].
    */
   UnlinkedTypeRefBuilder serializeTypeRef(DartType type, Element context) {
-    UnlinkedTypeRefBuilder b = new UnlinkedTypeRefBuilder(ctx);
+    UnlinkedTypeRefBuilder b = new UnlinkedTypeRefBuilder();
     if (type is TypeParameterType) {
       b.paramReference = findTypeParameterIndex(type, context);
     } else {
@@ -694,9 +685,9 @@ class _LibrarySerializer {
           if (prefix != null) {
             prefixReference = serializePrefix(prefix);
           }
-          unlinkedReferences.add(encodeUnlinkedReference(ctx,
+          unlinkedReferences.add(encodeUnlinkedReference(
               name: element.name, prefixReference: prefixReference));
-          prelinkedReferences.add(encodePrelinkedReference(ctx,
+          prelinkedReferences.add(encodePrelinkedReference(
               dependency: serializeDependency(dependentLibrary),
               kind: element is FunctionTypeAliasElement
                   ? PrelinkedReferenceKind.typedef
@@ -735,9 +726,9 @@ class _LibrarySerializer {
     if (unresolvedReferenceIndex == null) {
       assert(unlinkedReferences.length == prelinkedReferences.length);
       unresolvedReferenceIndex = unlinkedReferences.length;
-      unlinkedReferences.add(encodeUnlinkedReference(ctx));
-      prelinkedReferences.add(encodePrelinkedReference(ctx,
-          kind: PrelinkedReferenceKind.unresolved));
+      unlinkedReferences.add(encodeUnlinkedReference());
+      prelinkedReferences.add(
+          encodePrelinkedReference(kind: PrelinkedReferenceKind.unresolved));
     }
     return unresolvedReferenceIndex;
   }
@@ -746,7 +737,7 @@ class _LibrarySerializer {
    * Serialize the given [variable], creating an [UnlinkedVariable].
    */
   UnlinkedVariableBuilder serializeVariable(PropertyInducingElement variable) {
-    UnlinkedVariableBuilder b = new UnlinkedVariableBuilder(ctx);
+    UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
     b.name = variable.name;
     b.nameOffset = variable.nameOffset;
     b.type = serializeTypeRef(variable.type, variable);

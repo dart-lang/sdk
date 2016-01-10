@@ -5,53 +5,48 @@
 library analyzer.src.summary.public_namespace_visitor;
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/format.dart';
 
 /**
  * Compute the public namespace portion of the summary for the given [unit],
  * which is presumed to be an unresolved AST.
  */
-UnlinkedPublicNamespaceBuilder computePublicNamespace(
-    BuilderContext ctx, CompilationUnit unit) {
-  _PublicNamespaceVisitor visitor = new _PublicNamespaceVisitor(ctx);
+UnlinkedPublicNamespaceBuilder computePublicNamespace(CompilationUnit unit) {
+  _PublicNamespaceVisitor visitor = new _PublicNamespaceVisitor();
   unit.accept(visitor);
-  return encodeUnlinkedPublicNamespace(ctx,
+  return encodeUnlinkedPublicNamespace(
       names: visitor.names, exports: visitor.exports, parts: visitor.parts);
 }
 
 class _CombinatorEncoder extends SimpleAstVisitor<UnlinkedCombinatorBuilder> {
-  final BuilderContext ctx;
-
-  _CombinatorEncoder(this.ctx);
+  _CombinatorEncoder();
 
   List<String> encodeNames(NodeList<SimpleIdentifier> names) =>
       names.map((SimpleIdentifier id) => id.name).toList();
 
   @override
   UnlinkedCombinatorBuilder visitHideCombinator(HideCombinator node) {
-    return encodeUnlinkedCombinator(ctx, hides: encodeNames(node.hiddenNames));
+    return encodeUnlinkedCombinator(hides: encodeNames(node.hiddenNames));
   }
 
   @override
   UnlinkedCombinatorBuilder visitShowCombinator(ShowCombinator node) {
-    return encodeUnlinkedCombinator(ctx, shows: encodeNames(node.shownNames));
+    return encodeUnlinkedCombinator(shows: encodeNames(node.shownNames));
   }
 }
 
 class _PublicNamespaceVisitor extends RecursiveAstVisitor {
-  final BuilderContext ctx;
   final List<UnlinkedPublicNameBuilder> names = <UnlinkedPublicNameBuilder>[];
   final List<UnlinkedExportPublicBuilder> exports =
       <UnlinkedExportPublicBuilder>[];
   final List<String> parts = <String>[];
 
-  _PublicNamespaceVisitor(this.ctx);
+  _PublicNamespaceVisitor();
 
   void addNameIfPublic(
       String name, PrelinkedReferenceKind kind, int numTypeParameters) {
     if (isPublic(name)) {
-      names.add(encodeUnlinkedPublicName(ctx,
+      names.add(encodeUnlinkedPublicName(
           name: name, kind: kind, numTypeParameters: numTypeParameters));
     }
   }
@@ -77,10 +72,10 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
 
   @override
   visitExportDirective(ExportDirective node) {
-    exports.add(encodeUnlinkedExportPublic(ctx,
+    exports.add(encodeUnlinkedExportPublic(
         uri: node.uri.stringValue,
         combinators: node.combinators
-            .map((Combinator c) => c.accept(new _CombinatorEncoder(ctx)))
+            .map((Combinator c) => c.accept(new _CombinatorEncoder()))
             .toList()));
   }
 
