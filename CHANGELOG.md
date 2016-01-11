@@ -57,6 +57,11 @@
   * `pub global run` now detects when a global executable's SDK constraint is no
     longer met and errors out, rather than trying to run the executable anyway.
 
+  * Pub commands that check whether the lockfile is up-to-date (`pub run`, `pub
+    deps`, `pub serve`, and `pub build`) now do additional verification. They
+    ensure that any path dependencies' pubspecs haven't been changed, and they
+    ensure that the current SDK version is compatible with all dependencies.
+
   * Fixed a crashing bug when using `pub global run` on a global script that
     didn't exist.
 
