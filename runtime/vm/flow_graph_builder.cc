@@ -1218,7 +1218,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
 
 // <Expression> ::= Literal { literal: Instance }
 void EffectGraphVisitor::VisitLiteralNode(LiteralNode* node) {
-  ReturnDefinition(new(Z) ConstantInstr(node->literal()));
+  ReturnDefinition(new(Z) ConstantInstr(node->literal(), node->token_pos()));
 }
 
 

@@ -75,11 +75,20 @@ class SourcePositionTest : public ValueObject {
   void InstanceCallAt(intptr_t line,
                       intptr_t column = -1,
                       Token::Kind kind = Token::kNumTokens) {
-    Instruction* instr = FindFirstInstructionAt(line, column);
-    DUMP_EXPECT(instr->IsInstanceCall());
-    if (kind != Token::kNumTokens) {
-      DUMP_EXPECT(instr->AsInstanceCall()->token_kind() == kind);
+    ZoneGrowableArray<Instruction*>* instructions =
+        FindInstructionsAt(line, column);
+    DUMP_EXPECT(instructions->length() > 0);
+    for (intptr_t i = 0; i < instructions->length(); i++) {
+      Instruction* instr = instructions->At(i);
+      EXPECT(instr != NULL);
+      if (instr->IsInstanceCall()) {
+        if (kind != Token::kNumTokens) {
+          DUMP_EXPECT(instr->AsInstanceCall()->token_kind() == kind);
+        }
+        return;
+      }
     }
+    DUMP_EXPECT(false);
   }
 
   // Expect that at least one of the instructions found at |line| and |column|
@@ -105,12 +114,14 @@ class SourcePositionTest : public ValueObject {
   void Dump() {
     for (intptr_t i = 0; i < blocks_->length(); i++) {
       BlockEntryInstr* entry = (*blocks_)[i];
+      THR_Print("B%" Pd ":\n", entry->block_id());
       for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
         Instruction* instr = it.Current();
         const intptr_t token_pos = instr->token_pos();
         if (token_pos < 0) {
-          THR_Print("%5d -- %s\n",
-                    static_cast<int>(token_pos), instr->ToCString());
+          const char* token_pos_string =
+              ClassifyingTokenPositions::ToCString(token_pos);
+          THR_Print("%12s -- %s\n", token_pos_string, instr->ToCString());
           continue;
         }
         intptr_t token_line = -1;
@@ -119,7 +130,7 @@ class SourcePositionTest : public ValueObject {
                                       &token_line,
                                       &token_column,
                                       NULL);
-        THR_Print("%02d:%02d -- %s\n",
+        THR_Print("       %02d:%02d -- %s\n",
                   static_cast<int>(token_line),
                   static_cast<int>(token_column),
                   instr->ToCString());
@@ -131,7 +142,9 @@ class SourcePositionTest : public ValueObject {
   Instruction* FindFirstInstructionAt(intptr_t line, intptr_t column) {
     ZoneGrowableArray<Instruction*>* instructions =
         FindInstructionsAt(line, column);
-    DUMP_EXPECT(instructions->length() > 0);
+    if (instructions->length() == 0) {
+      return NULL;
+    }
     return instructions->At(0);
   }
 
@@ -226,6 +239,109 @@ TEST_CASE(SourcePosition_InstanceCalls) {
   spt.InstanceCallAt(4, 13, Token::kADD);
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 5, 3);
   spt.FuzzyInstructionMatchAt("Return", 5, 3);
+}
+
+
+TEST_CASE(SourcePosition_If) {
+  const char* kScript =
+      "var x = 5;\n"
+      "var y = 5;\n"
+      "main() {\n"
+      "  if (x != 0) {\n"
+      "    return x;\n"
+      "  }\n"
+      "  return y;\n"
+      "}\n";
+
+  SourcePositionTest spt(thread, kScript);
+  spt.BuildGraphFor("main");
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 4, 7);
+  spt.InstanceCallAt(4, 9, Token::kEQ);
+  spt.FuzzyInstructionMatchAt("Branch if StrictCompare", 4, 9);
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 5, 12);
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 5, 5);
+  spt.FuzzyInstructionMatchAt("Return", 5, 5);
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 7, 10);
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 7, 3);
+  spt.FuzzyInstructionMatchAt("Return", 7, 3);
+}
+
+
+TEST_CASE(SourcePosition_ForLoop) {
+  const char* kScript =
+      "var x = 0;\n"
+      "var y = 5;\n"
+      "main() {\n"
+      "  for (var i = 0; i < 10; i++) {\n"
+      "    x += i;\n"
+      "  }\n"
+      "  return x;\n"
+      "}\n";
+
+  SourcePositionTest spt(thread, kScript);
+  spt.BuildGraphFor("main");
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("StoreLocal", 4, 14);
+  spt.FuzzyInstructionMatchAt("LoadLocal", 4, 19);
+  spt.InstanceCallAt(4, 21, Token::kLT);
+  spt.FuzzyInstructionMatchAt("Branch if StrictCompare", 4, 21);
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 5, 5);
+  spt.FuzzyInstructionMatchAt("StoreStaticField", 5, 5);
+  spt.InstanceCallAt(5, 7, Token::kADD);
+  spt.FuzzyInstructionMatchAt("LoadLocal", 5, 10);
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 7, 10);
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 7, 3);
+  spt.FuzzyInstructionMatchAt("Return", 7, 3);
+}
+
+
+TEST_CASE(SourcePosition_While) {
+  const char* kScript =
+      "var x = 0;\n"
+      "var y = 5;\n"
+      "main() {\n"
+      "  while (x < 10) {\n"
+      "    if (y == 5) {\n"
+      "      return y;\n"
+      "    }\n"
+      "    x++;\n"
+      "  }\n"
+      "  return x;\n"
+      "}\n";
+
+  SourcePositionTest spt(thread, kScript);
+  spt.BuildGraphFor("main");
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 4, 3);
+  spt.FuzzyInstructionMatchAt("Constant", 4, 10);
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 4, 10);
+  spt.InstanceCallAt(4, 12, Token::kLT);
+  spt.FuzzyInstructionMatchAt("Branch if StrictCompare", 4, 12);
+
+  spt.FuzzyInstructionMatchAt("Constant", 5, 9);
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 5, 9);
+  spt.InstanceCallAt(5, 11, Token::kEQ);
+  spt.FuzzyInstructionMatchAt("Branch if StrictCompare", 5, 11);
+
+  spt.FuzzyInstructionMatchAt("Constant", 6, 14);
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 6, 14);
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 6, 7);
+  spt.FuzzyInstructionMatchAt("Return", 6, 7);
+
+  spt.FuzzyInstructionMatchAt("Constant", 8, 5);
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 8, 5);
+  spt.FuzzyInstructionMatchAt("Constant(#1)", 8, 6);
+  spt.InstanceCallAt(8, 6, Token::kADD);
+  spt.FuzzyInstructionMatchAt("StoreStaticField", 8, 5);
+
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 10, 10);
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 10, 3);
+  spt.FuzzyInstructionMatchAt("Return", 10, 3);
 }
 
 }  // namespace dart

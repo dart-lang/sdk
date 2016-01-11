@@ -11693,6 +11693,7 @@ AstNode* Parser::ParsePostfixExpr() {
       ReportError(expr_pos, "expression is not assignable");
     }
     Token::Kind incr_op = CurrentToken();
+    const intptr_t op_pos = TokenPos();
     ConsumeToken();
     // Not prefix.
     LetNode* let_expr = PrepareCompoundAssignmentNodes(&expr);
@@ -11700,17 +11701,17 @@ AstNode* Parser::ParsePostfixExpr() {
     Token::Kind binary_op =
         (incr_op == Token::kINCR) ? Token::kADD : Token::kSUB;
     BinaryOpNode* add = new(Z) BinaryOpNode(
-        expr_pos,
+        op_pos,
         binary_op,
-        new(Z) LoadLocalNode(expr_pos, temp),
-        new(Z) LiteralNode(expr_pos, Smi::ZoneHandle(Z, Smi::New(1))));
+        new(Z) LoadLocalNode(op_pos, temp),
+        new(Z) LiteralNode(op_pos, Smi::ZoneHandle(Z, Smi::New(1))));
     AstNode* store =
         CreateAssignmentNode(expr, add, expr_ident, expr_pos, true);
     ASSERT(store != NULL);
     // The result is a pair of the (side effects of the) store followed by
     // the (value of the) initial value temp variable load.
     let_expr->AddNode(store);
-    let_expr->AddNode(new(Z) LoadLocalNode(expr_pos, temp));
+    let_expr->AddNode(new(Z) LoadLocalNode(op_pos, temp));
     return let_expr;
   }
   return expr;

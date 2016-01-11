@@ -43,7 +43,8 @@ class UnboxIntegerInstr;
 #define CLASSIFYING_TOKEN_POSITIONS(V)                                         \
     V(Box, -2)                                                                 \
     V(ParallelMove, -3)                                                        \
-    V(TempMove, -4)
+    V(TempMove, -4)                                                            \
+    V(Constant, -5)
 
 // COMPILE_ASSERT that all CLASSIFYING_TOKEN_POSITIONS are less than
 // Scanner::kNoSourcePos.
@@ -2582,7 +2583,7 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
 class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
   ConstantInstr(const Object& value,
-                intptr_t token_pos = Scanner::kNoSourcePos);
+                intptr_t token_pos = ClassifyingTokenPositions::kConstant);
 
   DECLARE_INSTRUCTION(Constant)
   virtual CompileType ComputeType() const;
@@ -2598,6 +2599,8 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual intptr_t token_pos() const { return token_pos_; }
 
  private:
   const Object& value_;
