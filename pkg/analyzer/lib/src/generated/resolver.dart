@@ -3045,6 +3045,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           setter.variable = variable;
           setter.setter = true;
           setter.static = true;
+          if (node.returnType == null) {
+            setter.hasImplicitReturnType = true;
+          }
           variable.setter = setter;
           variable.final2 = false;
           _currentHolder.addAccessor(setter);
@@ -3271,6 +3274,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           setter.abstract = node.isAbstract;
           setter.setter = true;
           setter.static = isStatic;
+          if (node.returnType == null) {
+            setter.hasImplicitReturnType = true;
+          }
           field.setter = setter;
           field.final2 = false;
           _currentHolder.addAccessor(setter);
@@ -11850,6 +11856,11 @@ class TypeResolverVisitor extends ScopedVisitor {
   bool _hasReferenceToSuper = false;
 
   /**
+   * True if we're analyzing in strong mode.
+   */
+  bool _strongMode;
+
+  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
    * [definingLibrary] is the element for the library containing the node being
@@ -11871,6 +11882,7 @@ class TypeResolverVisitor extends ScopedVisitor {
             nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
     _undefinedType = typeProvider.undefinedType;
+    _strongMode = definingLibrary.context.analysisOptions.strongMode;
   }
 
   @override
@@ -12111,6 +12123,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     }
     element.returnType = _computeReturnType(node.returnType);
     element.type = new FunctionTypeImpl(element);
+    _inferSetterReturnType(element);
     return null;
   }
 
@@ -12159,6 +12172,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     }
     element.returnType = _computeReturnType(node.returnType);
     element.type = new FunctionTypeImpl(element);
+    _inferSetterReturnType(element);
     if (element is PropertyAccessorElement) {
       PropertyAccessorElement accessor = element as PropertyAccessorElement;
       PropertyInducingElementImpl variable =
@@ -12685,6 +12699,20 @@ class TypeResolverVisitor extends ScopedVisitor {
       }
     }
     return type;
+  }
+
+  /**
+   * In strong mode we infer "void" as the setter return type (as void is the
+   * only legal return type for a setter). This allows us to give better
+   * errors later if an invalid type is returned.
+   */
+  void _inferSetterReturnType(ExecutableElementImpl element) {
+    if (_strongMode &&
+        element is PropertyAccessorElementImpl &&
+        element.isSetter &&
+        element.hasImplicitReturnType) {
+      element.returnType = VoidTypeImpl.instance;
+    }
   }
 
   DartType _instantiateType(DartType type, List<DartType> typeArguments) {

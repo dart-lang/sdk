@@ -5335,7 +5335,7 @@ class ElementBuilderTest extends EngineTestCase {
     PropertyAccessorElement accessor = accessors[0];
     expect(accessor, isNotNull);
     _assertHasDocRange(accessor, 50, 7);
-    expect(accessor.hasImplicitReturnType, isFalse);
+    expect(accessor.hasImplicitReturnType, isTrue);
     expect(accessor.name, "$functionName=");
     expect(declaration.element, same(accessor));
     expect(declaration.functionExpression.element, same(accessor));
@@ -5762,7 +5762,7 @@ class ElementBuilderTest extends EngineTestCase {
     PropertyAccessorElement setter = field.setter;
     expect(setter, isNotNull);
     _assertHasDocRange(setter, 50, 7);
-    expect(setter.hasImplicitReturnType, isFalse);
+    expect(setter.hasImplicitReturnType, isTrue);
     expect(setter.isAbstract, isFalse);
     expect(setter.isExternal, isFalse);
     expect(setter.isSetter, isTrue);
@@ -5800,7 +5800,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(field.getter, isNull);
     PropertyAccessorElement setter = field.setter;
     expect(setter, isNotNull);
-    expect(setter.hasImplicitReturnType, isFalse);
+    expect(setter.hasImplicitReturnType, isTrue);
     expect(setter.isAbstract, isTrue);
     expect(setter.isExternal, isFalse);
     expect(setter.isSetter, isTrue);
@@ -5839,7 +5839,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(field.getter, isNull);
     PropertyAccessorElement setter = field.setter;
     expect(setter, isNotNull);
-    expect(setter.hasImplicitReturnType, isFalse);
+    expect(setter.hasImplicitReturnType, isTrue);
     expect(setter.isAbstract, isFalse);
     expect(setter.isExternal, isTrue);
     expect(setter.isSetter, isTrue);

@@ -1709,7 +1709,6 @@ enum E { v }''';
     UnlinkedExecutable executable =
         findExecutable('f=', executables: cls.executables, failIfAbsent: true);
     expect(executable.kind, UnlinkedExecutableKind.setter);
-    // For setters, hasImplicitReturnType is always false.
     expect(executable.hasImplicitReturnType, isFalse);
     expect(executable.isExternal, isFalse);
     expect(findVariable('f', variables: cls.fields), isNull);
@@ -1728,7 +1727,7 @@ enum E { v }''';
     UnlinkedClass cls = serializeClassText('class C { set f(value) {} }');
     UnlinkedExecutable executable =
         findExecutable('f=', executables: cls.executables, failIfAbsent: true);
-    expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.hasImplicitReturnType, isTrue);
     checkDynamicTypeRef(executable.returnType);
   }
 
@@ -1981,8 +1980,7 @@ enum E { v }''';
   test_executable_setter_implicit_return() {
     UnlinkedExecutable executable =
         serializeExecutableText('set f(value) {}', 'f=');
-    // For setters, hasImplicitReturnType is always false.
-    expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.hasImplicitReturnType, isTrue);
     checkDynamicTypeRef(executable.returnType);
   }
 

@@ -13737,6 +13737,79 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
+  void test_setterWithDynamicTypeIsError() {
+    Source source = addSource(r'''
+class A {
+  dynamic set f(String s) => null;
+}
+dynamic set g(int x) => null;
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      StaticWarningCode.NON_VOID_RETURN_FOR_SETTER,
+      StaticWarningCode.NON_VOID_RETURN_FOR_SETTER
+    ]);
+    verify([source]);
+  }
+
+  void test_setterWithExplicitVoidType_returningVoid() {
+    Source source = addSource(r'''
+void returnsVoid() {}
+class A {
+  void set f(String s) => returnsVoid();
+}
+void set g(int x) => returnsVoid();
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_setterWithNoVoidType() {
+    Source source = addSource(r'''
+class A {
+  set f(String s) {
+    return '42';
+  }
+}
+set g(int x) => 42;
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+      StaticTypeWarningCode.RETURN_OF_INVALID_TYPE
+    ]);
+    verify([source]);
+  }
+
+  void test_setterWithNoVoidType_returningVoid() {
+    Source source = addSource(r'''
+void returnsVoid() {}
+class A {
+  set f(String s) => returnsVoid();
+}
+set g(int x) => returnsVoid();
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_setterWithOtherTypeIsError() {
+    Source source = addSource(r'''
+class A {
+  String set f(String s) => null;
+}
+Object set g(x) => null;
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      StaticWarningCode.NON_VOID_RETURN_FOR_SETTER,
+      StaticWarningCode.NON_VOID_RETURN_FOR_SETTER
+    ]);
+    verify([source]);
+  }
+
   void test_ternaryOperator_null_left() {
     String code = r'''
 main() {
