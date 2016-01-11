@@ -95,7 +95,7 @@ class LoopInvariantBranchMotion extends BlockVisitor implements Pass {
   /// corresponding parameter values as arguments. Thus, the parameters are
   /// passed in explicitly instead of being captured.
   ///
-  /// This only works because [AlphaRenamer] cleans up after this pass.
+  /// This only works because [AlphaRenamer] cleans up at the end of this pass.
   ///
   /// Schematically:
   ///
