@@ -6,6 +6,7 @@ library dart2js.cps_ir.shrinking_reductions;
 
 import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
+import 'cps_fragment.dart';
 
 /**
  * [ShrinkingReducer] applies shrinking reductions to CPS terms as described
@@ -91,7 +92,8 @@ class ShrinkingReducer extends Pass {
     assert(_isDeadVal(task.node));
 
     // Remove dead primitive.
-    LetPrim letPrim = task.node;;
+    LetPrim letPrim = task.node;
+    destroyRefinementsOfDeadPrimitive(letPrim.primitive);
     _removeNode(letPrim);
 
     // Perform bookkeeping on removed body and scan for new redexes.
@@ -242,7 +244,8 @@ class ShrinkingReducer extends Pass {
 /// Returns true iff the bound primitive is unused, and has no effects
 /// preventing it from being eliminated.
 bool _isDeadVal(LetPrim node) {
-  return node.primitive.hasNoUses && node.primitive.isSafeForElimination;
+  return node.primitive.hasNoEffectiveUses &&
+         node.primitive.isSafeForElimination;
 }
 
 /// Returns true iff the continuation is unused.

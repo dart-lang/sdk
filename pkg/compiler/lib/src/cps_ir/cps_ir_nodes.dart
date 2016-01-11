@@ -732,7 +732,7 @@ class Refinement extends Primitive {
     : value = new Reference<Primitive>(value);
 
   bool get hasValue => true;
-  bool get isSafeForElimination => true;
+  bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
 
   accept(Visitor visitor) => visitor.visitRefinement(this);
