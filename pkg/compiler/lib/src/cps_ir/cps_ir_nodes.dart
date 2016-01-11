@@ -18,7 +18,7 @@ export 'builtin_operator.dart';
 // These imports are only used for the JavaScript specific nodes.  If we want to
 // support more than one native backend, we should probably create better
 // abstractions for native code and its type and effect system.
-import '../js/js.dart' as js show Template, isNullGuardOnFirstArgument;
+import '../js/js.dart' as js show Template;
 import '../native/native.dart' as native show NativeBehavior;
 
 abstract class Node {
@@ -1544,15 +1544,6 @@ class ForeignCode extends UnsafePrimitive {
 
   void setParentPointers() {
     _setParentsOnList(arguments, this);
-  }
-
-  bool isNullGuardOnNullFirstArgument() {
-    if (arguments.length < 1) return false;
-    // TODO(sra): Fix NativeThrowBehavior to distinguish MAY from
-    // throws-nsm-on-null-followed-by-MAY and remove
-    // [isNullGuardForFirstArgument].
-    if (nativeBehavior.throwBehavior.isNullNSMGuard) return true;
-    return js.isNullGuardOnFirstArgument(codeTemplate);
   }
 }
 
