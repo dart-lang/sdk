@@ -13030,7 +13030,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
  */
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends _StaticTypeAnalyzer2TestShared {
-  void fail_genericMethod_functionExpressionInvocation_explicit() {
+  void test_genericMethod_functionExpressionInvocation_explicit() {
     _resolveTestUnit(r'''
 class C<E> {
   /*=T*/ f/*<T>*/(/*=T*/ e) => null;

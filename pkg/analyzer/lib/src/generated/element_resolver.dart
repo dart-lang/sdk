@@ -426,17 +426,26 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    // TODO(brianwilkerson) Can we ever resolve the function being invoked?
-    Expression expression = node.function;
-    if (expression is FunctionExpression) {
-      FunctionExpression functionExpression = expression;
-      ExecutableElement functionElement = functionExpression.element;
-      ArgumentList argumentList = node.argumentList;
-      List<ParameterElement> parameters =
-          _resolveArgumentsToFunction(false, argumentList, functionElement);
-      if (parameters != null) {
-        argumentList.correspondingStaticParameters = parameters;
-      }
+    Expression function = node.function;
+    DartType staticInvokeType =
+        _resolveGenericMethod(function.staticType, node.typeArguments, node);
+    DartType propagatedInvokeType = _resolveGenericMethod(
+        function.propagatedType, node.typeArguments, node);
+
+    node.staticInvokeType = staticInvokeType;
+    node.propagatedInvokeType =
+        _propagatedInvokeTypeIfBetter(propagatedInvokeType, staticInvokeType);
+
+    List<ParameterElement> parameters =
+        _computeCorrespondingParameters(node.argumentList, staticInvokeType);
+    if (parameters != null) {
+      node.argumentList.correspondingStaticParameters = parameters;
+    }
+
+    parameters = _computeCorrespondingParameters(
+        node.argumentList, propagatedInvokeType);
+    if (parameters != null) {
+      node.argumentList.correspondingPropagatedParameters = parameters;
     }
     return null;
   }
@@ -652,17 +661,16 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     methodName.propagatedElement = propagatedElement;
 
     node.staticInvokeType = staticInvokeType;
-    if (propagatedInvokeType != null &&
-        (staticInvokeType == null ||
-            propagatedInvokeType.isMoreSpecificThan(staticInvokeType))) {
-      // Don't store the propagated invoke type unless it's more specific than
-      // the static type. We still need to record the propagated parameter
-      // elements however, as that is used for the propagatedType downwards
-      // inference of lambda parameters.
-      node.propagatedInvokeType = propagatedInvokeType;
-    } else {
-      node.propagatedInvokeType = null;
-    }
+    //
+    // Store the propagated invoke type if it's more specific than the static
+    // type.
+    //
+    // We still need to record the propagated parameter elements however,
+    // as they are used in propagatedType downwards inference of lambda
+    // parameters. So we don't want to clear the propagatedInvokeType variable.
+    //
+    node.propagatedInvokeType =
+        _propagatedInvokeTypeIfBetter(propagatedInvokeType, staticInvokeType);
 
     ArgumentList argumentList = node.argumentList;
     if (staticInvokeType != null) {
@@ -1328,6 +1336,30 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  DartType _computeMethodInvokeType(MethodInvocation node, Element element) {
+    if (element == null) {
+      // TODO(jmesserly): should we return `dynamic` in this case?
+      // Otherwise we have to guard against `null` every time we use
+      // `staticInvokeType`.
+      // If we do return `dynamic` we need to be careful that this doesn't
+      // adversely affect propagatedType code path. But it shouldn't because
+      // we'll discard `dynamic` anyway (see _propagatedInvokeTypeIfBetter).
+      return null;
+    }
+
+    DartType invokeType;
+    if (element is PropertyAccessorElement) {
+      invokeType = element.returnType;
+    } else if (element is ExecutableElement) {
+      invokeType = element.type;
+    } else if (element is VariableElement) {
+      invokeType = _promoteManager.getStaticType(element);
+    }
+
+    return _resolveGenericMethod(
+        invokeType, node.typeArguments, node.methodName);
+  }
+
   /**
    * If the given [element] is a setter, return the getter associated with it.
    * Otherwise, return the element unchanged.
@@ -1462,49 +1494,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       staticType = _resolver.typeProvider.functionType;
     }
     return staticType;
-  }
-
-  DartType _computeMethodInvokeType(MethodInvocation node, Element element) {
-    if (element == null) {
-      return null;
-    }
-
-    DartType invokeType;
-    if (element is PropertyAccessorElement) {
-      invokeType = element.returnType;
-    } else if (element is ExecutableElement) {
-      invokeType = element.type;
-    } else if (element is VariableElement) {
-      invokeType = _promoteManager.getStaticType(element);
-    }
-
-    //
-    // Check for a generic method & apply type arguments if any were passed.
-    //
-    // TODO(jmesserly): support generic "call" methods on InterfaceType.
-    if (invokeType is FunctionType) {
-      FunctionType type = invokeType;
-      List<TypeParameterElement> parameters = type.typeFormals;
-
-      NodeList<TypeName> arguments = node.typeArguments?.arguments;
-      if (arguments != null && arguments.length != parameters.length) {
-        // Wrong number of type arguments. Ignore them
-        arguments = null;
-        _resolver.reportErrorForNode(
-            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
-            node.methodName,
-            [type, parameters.length, arguments?.length ?? 0]);
-      }
-      if (parameters.isNotEmpty) {
-        if (arguments == null) {
-          invokeType = _resolver.typeSystem.instantiateToBounds(type);
-        } else {
-          invokeType = type.instantiate(arguments.map((n) => n.type).toList());
-        }
-      }
-    }
-
-    return invokeType;
   }
 
   /**
@@ -1747,6 +1736,24 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         return operator;
       }
       break;
+    }
+  }
+
+  /**
+   * Determines if the [propagatedType] of the invoke is better (more specific)
+   * than the [staticType]. If so it will be returned, otherwise returns null.
+   */
+  // TODO(jmesserly): can we refactor Resolver.recordPropagatedTypeIfBetter to
+  // get some code sharing? Right now, this method is to support
+  // `staticInvokeType` and `propagatedInvokeType`, and the one in Resolver is
+  // for `staticType` and `propagatedType` on Expression.
+  DartType _propagatedInvokeTypeIfBetter(
+      DartType propagatedType, DartType staticType) {
+    if (propagatedType != null &&
+        (staticType == null || propagatedType.isMoreSpecificThan(staticType))) {
+      return propagatedType;
+    } else {
+      return null;
     }
   }
 
@@ -2071,6 +2078,36 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return element;
     }
     return null;
+  }
+
+  /**
+   * Check for a generic method & apply type arguments if any were passed.
+   */
+  DartType _resolveGenericMethod(
+      DartType invokeType, TypeArgumentList typeArguments, AstNode node) {
+    // TODO(jmesserly): support generic "call" methods on InterfaceType.
+    if (invokeType is FunctionType) {
+      FunctionType type = invokeType;
+      List<TypeParameterElement> parameters = type.typeFormals;
+
+      NodeList<TypeName> arguments = typeArguments?.arguments;
+      if (arguments != null && arguments.length != parameters.length) {
+        // Wrong number of type arguments. Ignore them
+        arguments = null;
+        _resolver.reportErrorForNode(
+            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+            node,
+            [type, parameters.length, arguments?.length ?? 0]);
+      }
+      if (parameters.isNotEmpty) {
+        if (arguments == null) {
+          invokeType = _resolver.typeSystem.instantiateToBounds(type);
+        } else {
+          invokeType = type.instantiate(arguments.map((n) => n.type).toList());
+        }
+      }
+    }
+    return invokeType;
   }
 
   /**

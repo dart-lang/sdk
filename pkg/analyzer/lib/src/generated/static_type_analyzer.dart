@@ -493,15 +493,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    DartType functionStaticType = _getStaticType(node.function);
-    DartType staticType;
-    if (functionStaticType is FunctionType) {
-      staticType = functionStaticType.returnType;
-    } else {
-      staticType = _dynamicType;
-    }
+    DartType staticType = _computeInvokeReturnType(node.staticInvokeType);
     _recordStaticType(node, staticType);
-    DartType functionPropagatedType = node.function.propagatedType;
+    DartType functionPropagatedType = node.propagatedInvokeType;
     if (functionPropagatedType is FunctionType) {
       DartType propagatedType = functionPropagatedType.returnType;
       _resolver.recordPropagatedTypeIfBetter(node, propagatedType);

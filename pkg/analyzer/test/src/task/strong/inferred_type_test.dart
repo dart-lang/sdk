@@ -1533,7 +1533,7 @@ main() {
       }'''
   });
 
-  group('quasi-generics', () {
+  group('generic methods', () {
     testChecker('dart:math min/max', {
       '/main.dart': '''
         import 'dart:math';
