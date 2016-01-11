@@ -834,8 +834,13 @@ class SourceFactory {
 
     // Check .packages and update target and actual URIs as appropriate.
     if (_packages != null && containedUri.scheme == 'package') {
-      Uri packageUri =
-          _packages.resolve(containedUri, notFound: (Uri packageUri) => null);
+      Uri packageUri = null;
+      try {
+        packageUri =
+            _packages.resolve(containedUri, notFound: (Uri packageUri) => null);
+      } on ArgumentError {
+        // Fall through to try resolvers.
+      }
 
       if (packageUri != null) {
         // Ensure scheme is set.

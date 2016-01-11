@@ -423,9 +423,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
    */
   bool _equalErrors(AnalysisError firstError, AnalysisError secondError) =>
       identical(firstError.errorCode, secondError.errorCode) &&
-      firstError.offset == secondError.offset &&
-      firstError.length == secondError.length &&
-      _equalSources(firstError.source, secondError.source);
+          firstError.offset == secondError.offset &&
+          firstError.length == secondError.length &&
+          _equalSources(firstError.source, secondError.source);
 
   /**
    * Return `true` if the two sources are equivalent.
@@ -537,23 +537,18 @@ class GatheringErrorListener implements AnalysisErrorListener {
  */
 class TestLogger implements Logger {
   /**
-   * The number of error messages that were logged.
+   * All logged messages.
    */
-  int errorCount = 0;
-
-  /**
-   * The number of informational messages that were logged.
-   */
-  int infoCount = 0;
+  List<String> log = [];
 
   @override
   void logError(String message, [CaughtException exception]) {
-    errorCount++;
+    log.add("error: $message");
   }
 
   @override
   void logInformation(String message, [CaughtException exception]) {
-    infoCount++;
+    log.add("info: $message");
   }
 }
 
