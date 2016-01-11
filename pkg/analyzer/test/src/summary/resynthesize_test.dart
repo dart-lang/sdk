@@ -991,6 +991,14 @@ get x => null;''');
     checkLibrary('int get x => null; get y => null;');
   }
 
+  test_implicitTopLevelVariable_getterFirst() {
+    checkLibrary('int get x => 0; void set x(int value) {}');
+  }
+
+  test_implicitTopLevelVariable_setterFirst() {
+    checkLibrary('void set x(int value) {} int get x => 0;');
+  }
+
   test_import_hide() {
     addLibrary('dart:async');
     checkLibrary('import "dart:async" hide Stream, Completer; Future f;');

@@ -599,18 +599,17 @@ class _LibraryResynthesizer {
    */
   PropertyInducingElementImpl buildImplicitTopLevelVariable(
       String name, UnlinkedExecutableKind kind, ElementHolder holder) {
-    if (holder.getTopLevelVariable(name) == null) {
-      TopLevelVariableElementImpl variable =
-          new TopLevelVariableElementImpl(name, -1);
+    TopLevelVariableElementImpl variable = holder.getTopLevelVariable(name);
+    if (variable == null) {
+      variable = new TopLevelVariableElementImpl(name, -1);
       variable.synthetic = true;
       variable.final2 = kind == UnlinkedExecutableKind.getter;
       holder.addTopLevelVariable(variable);
       return variable;
     } else {
-      // TODO(paulberry): if adding a setter where there was previously
-      // only a getter, remove "final" modifier.
       // TODO(paulberry): what if the getter and setter have a type mismatch?
-      throw new UnimplementedError();
+      variable.final2 = false;
+      return variable;
     }
   }
 
@@ -778,7 +777,8 @@ class _LibraryResynthesizer {
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
-          currentTypeParameters.length - type.paramReference].type;
+              currentTypeParameters.length - type.paramReference]
+          .type;
     } else {
       // TODO(paulberry): handle references to things other than classes (note:
       // this should only occur in the case of erroneous code).
