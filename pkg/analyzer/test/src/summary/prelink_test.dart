@@ -32,6 +32,24 @@ class MockUnlinkedCombinator implements UnlinkedCombinator {
 
 @reflectiveTest
 class NameFilterTest {
+  test_accepts_accessors_hide() {
+    NameFilter filter = new NameFilter.forCombinator(
+        new MockUnlinkedCombinator(hides: ['bar']));
+    expect(filter.accepts('foo'), isTrue);
+    expect(filter.accepts('foo='), isTrue);
+    expect(filter.accepts('bar'), isFalse);
+    expect(filter.accepts('bar='), isFalse);
+  }
+
+  test_accepts_accessors_show() {
+    NameFilter filter = new NameFilter.forCombinator(
+        new MockUnlinkedCombinator(shows: ['foo']));
+    expect(filter.accepts('foo'), isTrue);
+    expect(filter.accepts('foo='), isTrue);
+    expect(filter.accepts('bar'), isFalse);
+    expect(filter.accepts('bar='), isFalse);
+  }
+
   test_forCombinator_hide() {
     NameFilter filter = new NameFilter.forCombinator(
         new MockUnlinkedCombinator(hides: ['foo', 'bar']));

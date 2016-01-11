@@ -92,6 +92,9 @@ class NameFilter {
    * Determine if the given [name] is accepted by this [NameFilter].
    */
   bool accepts(String name) {
+    if (name.endsWith('=')) {
+      name = name.substring(0, name.length - 1);
+    }
     if (shownNames != null) {
       return shownNames.contains(name);
     } else {
