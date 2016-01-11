@@ -6,6 +6,7 @@ library test.src.serialization.elements_test;
 
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/resolver.dart' show Namespace;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
@@ -70,8 +71,9 @@ class ResynthTest extends ResolverTestCase {
       compareFunctionElements(
           resynthesized.entryPoint, original.entryPoint, '(entry point)');
     }
-    // TODO(paulberry): test exportNamespace, publicNamespace,
-    // and metadata.
+    compareNamespaces(resynthesized.publicNamespace, original.publicNamespace,
+        '(public namespace)');
+    // TODO(paulberry): test exportNamespace and metadata.
   }
 
   void compareClassElements(
@@ -313,6 +315,19 @@ class ResynthTest extends ResolverTestCase {
           'Type mismatch: expected ${original.runtimeType}, got ${resynthesized.runtimeType}');
     } else {
       fail('Unimplemented comparison for ${original.runtimeType}');
+    }
+  }
+
+  void compareNamespaces(
+      Namespace resynthesized, Namespace original, String desc) {
+    Map<String, Element> resynthesizedMap = resynthesized.definedNames;
+    Map<String, Element> originalMap = original.definedNames;
+    expect(resynthesizedMap.keys.toSet(), originalMap.keys.toSet(),
+        reason: desc);
+    for (String key in originalMap.keys) {
+      Element resynthesizedElement = resynthesizedMap[key];
+      Element originalElement = originalMap[key];
+      compareElements(resynthesizedElement, originalElement, key);
     }
   }
 

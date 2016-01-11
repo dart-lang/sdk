@@ -707,6 +707,10 @@ class _LibraryResynthesizer {
         classElement.supertype = objectElement.type;
       }
     }
+    // Compute public namespace.
+    libraryElement.publicNamespace =
+        new NamespaceBuilder().createPublicNamespaceForLibrary(libraryElement);
+    // Done.
     return libraryElement;
   }
 
