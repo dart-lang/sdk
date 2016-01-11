@@ -60,16 +60,10 @@ def perf_test_done(source):
   source = source[index + len(string):end_index]
   return 'Score:' in source
 
-def dromaeo_test_done(source):
-  """Tests to see if our performance test is done by printing a score."""
-  #TODO(efortuna): Access these elements in a nicer way using DOM parser.
-  return '<body class="alldone">' in source
-
 # TODO(vsm): Ideally, this wouldn't live in this file.
 CONFIGURATIONS = {
     'correctness': correctness_test_done,
-    'perf': perf_test_done,
-    'dromaeo': dromaeo_test_done
+    'perf': perf_test_done
 }
 
 def run_test_in_browser(browser, html_out, timeout, mode, refresh):
@@ -247,7 +241,6 @@ def close_browser(browser):
   browser.quit()
 
 def report_results(mode, source, browser):
-  # TODO(vsm): Add a failure check for Dromaeo.
   if mode != 'correctness':
     # We're running a performance test.
     print source.encode('utf8')
