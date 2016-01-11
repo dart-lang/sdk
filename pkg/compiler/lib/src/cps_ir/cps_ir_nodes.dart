@@ -1196,21 +1196,26 @@ class Branch extends TailExpression {
   /// boolean.
   bool isStrictCheck;
 
-  Branch.strict(Primitive condition,
-                Continuation trueCont,
-                Continuation falseCont)
+  Branch(Primitive condition,
+         Continuation trueCont,
+         Continuation falseCont,
+         {bool strict})
       : this.condition = new Reference<Primitive>(condition),
         trueContinuation = new Reference<Continuation>(trueCont),
         falseContinuation = new Reference<Continuation>(falseCont),
-        isStrictCheck = true;
+        isStrictCheck = strict {
+    assert(strict != null);
+  }
+
+  Branch.strict(Primitive condition,
+                Continuation trueCont,
+                Continuation falseCont)
+        : this(condition, trueCont, falseCont, strict: true);
 
   Branch.loose(Primitive condition,
                Continuation trueCont,
                Continuation falseCont)
-      : this.condition = new Reference<Primitive>(condition),
-        trueContinuation = new Reference<Continuation>(trueCont),
-        falseContinuation = new Reference<Continuation>(falseCont),
-        this.isStrictCheck = false;
+      : this(condition, trueCont, falseCont, strict: false);
 
   accept(BlockVisitor visitor) => visitor.visitBranch(this);
 
@@ -1908,6 +1913,33 @@ abstract class BlockVisitor<T> {
       walkBlock(stack.removeLast());
     }
     nodes.reversed.forEach(v.visit);
+  }
+
+  /// Visits block-level nodes in lexical pre-order.
+  ///
+  /// The IR may be transformed during the traversal, but the currently
+  /// visited node should not be removed, as its 'body' pointer is needed
+  /// for the traversal.
+  static void traverseInPreOrder(FunctionDefinition root, BlockVisitor v) {
+    List<Continuation> stack = <Continuation>[];
+    void walkBlock(InteriorNode block) {
+      v.visit(block);
+      Expression node = block.body;
+      v.visit(node);
+      while (node.next != null) {
+        if (node is LetCont) {
+          stack.addAll(node.continuations);
+        } else if (node is LetHandler) {
+          stack.add(node.handler);
+        }
+        node = node.next;
+        v.visit(node);
+      }
+    }
+    walkBlock(root);
+    while (stack.isNotEmpty) {
+      walkBlock(stack.removeLast());
+    }
   }
 }
 
