@@ -12,9 +12,7 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/plugin/plugin_configuration.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer_cli/src/bootloader.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
@@ -351,56 +349,7 @@ linter:
 //    });
   });
 
-  group('Bootloader', () {
-    group('plugin processing', () {
-      test('bad format', () {
-        BootLoader loader = new BootLoader();
-        loader.createImage([
-          '--options',
-          path.join(testDirectory, 'data/bad_plugin_options.yaml'),
-          path.join(testDirectory, 'data/test_file.dart')
-        ]);
-        expect(
-            errorSink.toString(),
-            equals('Plugin configuration skipped: Unrecognized plugin config '
-                'format, expected `YamlMap`, got `YamlList` '
-                '(line 2, column 4)\n'));
-      });
-      test('plugin config', () {
-        BootLoader loader = new BootLoader();
-        Image image = loader.createImage([
-          '--options',
-          path.join(testDirectory, 'data/plugin_options.yaml'),
-          path.join(testDirectory, 'data/test_file.dart')
-        ]);
-        var plugins = image.config.plugins;
-        expect(plugins, hasLength(1));
-        expect(plugins.first.name, equals('my_plugin1'));
-      });
-      group('plugin validation', () {
-        test('requires class name', () {
-          expect(
-              validate(new PluginInfo(
-                  name: 'test_plugin', libraryUri: 'my_package/foo.dart')),
-              isNotNull);
-        });
-        test('requires library URI', () {
-          expect(
-              validate(
-                  new PluginInfo(name: 'test_plugin', className: 'MyPlugin')),
-              isNotNull);
-        });
-        test('check', () {
-          expect(
-              validate(new PluginInfo(
-                  name: 'test_plugin',
-                  className: 'MyPlugin',
-                  libraryUri: 'my_package/foo.dart')),
-              isNull);
-        });
-      });
-    });
-  });
+
 }
 
 const emptyOptionsFile = 'data/empty_options.yaml';

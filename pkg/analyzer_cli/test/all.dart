@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'boot_loader_test.dart' as boot_loader;
 import 'driver_test.dart' as driver;
 import 'error_test.dart' as error;
 import 'options_test.dart' as options;
@@ -13,6 +14,7 @@ import 'super_mixin_test.dart' as super_mixin;
 //import 'strong_mode_test.dart' as strong_mode;
 
 main() {
+  boot_loader.main();
   driver.main();
   // TODO(pq): fix tests to run safely on the bots
   // https://github.com/dart-lang/sdk/issues/25001
