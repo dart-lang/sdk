@@ -30,13 +30,13 @@ enum Register {
   R17 = 17,  // IP1 aka TMP2
   R18 = 18,  // "platform register" on iOS.
   R19 = 19,
-  R20 = 20,  // THR
+  R20 = 20,
   R21 = 21,
   R22 = 22,
   R23 = 23,
   R24 = 24,
   R25 = 25,
-  R26 = 26,
+  R26 = 26,  // THR
   R27 = 27,  // PP
   R28 = 28,  // CTX
   R29 = 29,  // FP
@@ -116,7 +116,7 @@ const Register SPREG = R15;  // Stack pointer register.
 const Register LRREG = LR;  // Link register.
 const Register ICREG = R5;  // IC data register.
 const Register ARGS_DESC_REG = R4;  // Arguments descriptor register.
-const Register THR = R20;  // Caches current thread in generated code.
+const Register THR = R26;  // Caches current thread in generated code.
 
 
 // Exception object is passed in this register to the catch handlers when an

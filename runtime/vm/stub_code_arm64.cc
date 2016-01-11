@@ -101,7 +101,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // We are entering runtime code, so the C stack pointer must be restored from
   // the stack limit to the top of the stack. We cache the stack limit address
   // in a callee-saved register.
-  __ mov(R26, CSP);
+  __ mov(R25, CSP);
   __ mov(CSP, SP);
 
   __ blr(R5);
@@ -109,7 +109,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Restore SP and CSP.
   __ mov(SP, CSP);
-  __ mov(CSP, R26);
+  __ mov(CSP, R25);
 
   // Retval is next to 1st argument.
   // Mark that the thread is executing Dart code.
@@ -204,7 +204,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // We are entering runtime code, so the C stack pointer must be restored from
   // the stack limit to the top of the stack. We cache the stack limit address
   // in the Dart SP register, which is callee-saved in the C ABI.
-  __ mov(R26, CSP);
+  __ mov(R25, CSP);
   __ mov(CSP, SP);
 
   __ mov(R1, R5);  // Pass the function entrypoint to call.
@@ -215,7 +215,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Restore SP and CSP.
   __ mov(SP, CSP);
-  __ mov(CSP, R26);
+  __ mov(CSP, R25);
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
@@ -297,7 +297,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // We are entering runtime code, so the C stack pointer must be restored from
   // the stack limit to the top of the stack. We cache the stack limit address
   // in the Dart SP register, which is callee-saved in the C ABI.
-  __ mov(R26, CSP);
+  __ mov(R25, CSP);
   __ mov(CSP, SP);
 
   // Call native function or redirection via simulator.
@@ -305,7 +305,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Restore SP and CSP.
   __ mov(SP, CSP);
-  __ mov(CSP, R26);
+  __ mov(CSP, R25);
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
