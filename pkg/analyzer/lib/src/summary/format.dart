@@ -2863,6 +2863,10 @@ class UnlinkedReferenceBuilder {
   /**
    * Prefix used to refer to the entity, or zero if no prefix is used.  This is
    * an index into [UnlinkedUnit.references].
+   *
+   * Prefix references must always point backward; that is, for all i, if
+   * UnlinkedUnit.references[i].prefixReference != 0, then
+   * UnlinkedUnit.references[i].prefixReference < i.
    */
   void set prefixReference(int _value) {
     assert(!_finished);
@@ -2909,6 +2913,10 @@ abstract class UnlinkedReference extends base.SummaryClass {
   /**
    * Prefix used to refer to the entity, or zero if no prefix is used.  This is
    * an index into [UnlinkedUnit.references].
+   *
+   * Prefix references must always point backward; that is, for all i, if
+   * UnlinkedUnit.references[i].prefixReference != 0, then
+   * UnlinkedUnit.references[i].prefixReference < i.
    */
   int get prefixReference;
 }

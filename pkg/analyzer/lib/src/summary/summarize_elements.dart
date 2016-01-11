@@ -722,11 +722,13 @@ class _LibrarySerializer {
   int serializeUnresolvedReference() {
     // TODO(paulberry): in order for relinking to work, we need to record the
     // name and prefix of the unresolved symbol.  This is not (yet) encoded in
-    // the element model.
+    // the element model.  For the moment we use a name that can't possibly
+    // ever exist.
     if (unresolvedReferenceIndex == null) {
       assert(unlinkedReferences.length == prelinkedReferences.length);
       unresolvedReferenceIndex = unlinkedReferences.length;
-      unlinkedReferences.add(encodeUnlinkedReference());
+      unlinkedReferences
+          .add(encodeUnlinkedReference(name: '*unresolved*'));
       prelinkedReferences.add(
           encodePrelinkedReference(kind: PrelinkedReferenceKind.unresolved));
     }
