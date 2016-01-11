@@ -193,11 +193,24 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
    */
   List<String> unitUris;
 
+  /**
+   * Map containing all source files in this test, and their corresponding file
+   * contents.
+   */
+  final Map<Source, String> _fileContents = <Source, String>{};
+
   @override
   bool get checkAstDerivedData => false;
 
   @override
   bool get expectAbsoluteUrisInDependencies => true;
+
+  @override
+  Source addNamedSource(String filePath, String contents) {
+    Source source = super.addNamedSource(filePath, contents);
+    _fileContents[source] = contents;
+    return source;
+  }
 
   /**
    * Serialize the library containing the given class [element], then
@@ -229,6 +242,7 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
   @override
   void serializeLibraryText(String text, {bool allowErrors: false}) {
     Source source = addSource(text);
+    _fileContents[source] = text;
     LibraryElement library = resolve2(source);
     if (!allowErrors) {
       assertNoErrors(source);
@@ -265,12 +279,19 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
   void verifyPublicNamespace() {
     for (int i = 0; i < unlinkedUnits.length; i++) {
       Source source = analysisContext.sourceFactory.forUri(unitUris[i]);
-      String text = analysisContext.getContents(source).data;
-      UnlinkedPublicNamespace namespace =
-          computePublicNamespaceFromText(text, source);
-      expect(canonicalize(namespace),
-          canonicalize(unlinkedUnits[i].publicNamespace),
-          reason: 'publicNamespace(${unitUris[i]})');
+      String text = _fileContents[source];
+      if (text == null) {
+        if (!allowMissingFiles) {
+          fail('Could not find file while verifying public namespace: '
+              '${unitUris[i]}');
+        }
+      } else {
+        UnlinkedPublicNamespace namespace =
+            computePublicNamespaceFromText(text, source);
+        expect(canonicalize(namespace),
+            canonicalize(unlinkedUnits[i].publicNamespace),
+            reason: 'publicNamespace(${unitUris[i]})');
+      }
     }
   }
 }
@@ -2416,6 +2437,17 @@ library foo;''';
     expect(unlinkedUnits[0].libraryName, isEmpty);
     expect(unlinkedUnits[0].libraryNameOffset, 0);
     expect(unlinkedUnits[0].libraryNameLength, 0);
+  }
+
+  test_library_with_missing_part() {
+    // References to other parts should still be resolved.
+    allowMissingFiles = true;
+    addNamedSource('/bar.dart', 'part of my.lib; class C {}');
+    serializeLibraryText(
+        'library my.lib; part "foo.dart"; part "bar.dart"; C c;',
+        allowErrors: true);
+    checkTypeRef(findVariable('c').type, null, null, 'C',
+        expectedTargetUnit: 2);
   }
 
   test_local_names_take_precedence_over_imported_names() {
