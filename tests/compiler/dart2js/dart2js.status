@@ -61,6 +61,8 @@ js_backend_cps_ir_operators_test: Skip
 js_backend_cps_ir_runtime_types_test: Skip
 js_backend_cps_ir_supercall_test: Skip
 
+js_backend_cps_ir_argument_refinement_test: Pass, Slow # we invoke dart2js many times
+
 # Source information is not correct due to inlining.
 js_backend_cps_ir_source_information_test: Fail
 sourcemaps/source_mapping_operators_test: Fail # Issue 25304 for checked mode, was: Pass, Slow
