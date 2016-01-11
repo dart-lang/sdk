@@ -295,6 +295,16 @@ bool Thread::IsMutatorThread() const {
 }
 
 
+bool Thread::CanCollectGarbage() const {
+  // We have non mutator threads grow the heap instead of triggering
+  // a garbage collection when they are at a safepoint (e.g: background
+  // compiler thread finalizing and installing code at a safepoint).
+  // Note: This code will change once the new Safepoint logic is in place.
+  return (IsMutatorThread() ||
+          (isolate_ != NULL && !isolate_->thread_registry()->AtSafepoint()));
+}
+
+
 bool Thread::IsExecutingDartCode() const {
   return (top_exit_frame_info() == 0) &&
          (vm_tag() == VMTag::kDartTagId);
