@@ -281,6 +281,8 @@ class _CodeGenerator {
       out();
       _generateReader(cls);
       out();
+      _generateImpl(cls);
+      out();
     }
   }
 
@@ -441,6 +443,83 @@ class _CodeGenerator {
     out('}');
   }
 
+  void _generateImpl(idlModel.ClassDeclaration cls) {
+    String name = cls.name;
+    String implName = '_${name}Impl';
+    out('class $implName implements $name {');
+    indent(() {
+      out('final fb.BufferPointer _bp;');
+      out();
+      out('$implName(this._bp);');
+      out();
+      // Write cache fields.
+      for (idlModel.FieldDeclaration field in cls.fields) {
+        String returnType = dartType(field.type);
+        String fieldName = field.name;
+        out('$returnType _$fieldName;');
+      }
+      out();
+      // Write toMap().
+      out('@override');
+      out('Map<String, Object> toMap() => {');
+      indent(() {
+        for (idlModel.FieldDeclaration field in cls.fields) {
+          String fieldName = field.name;
+          out('${quoted(fieldName)}: $fieldName,');
+        }
+      });
+      out('};');
+      // Write getters.
+      cls.fields.asMap().forEach((index, field) {
+        String fieldName = field.name;
+        idlModel.FieldType type = field.type;
+        String typeName = type.typeName;
+        // Prepare "readExpr" or "readCode" + "def"
+        String readExpr;
+        String readCode;
+        String def = defaultValue(type);
+        if (type.isList) {
+          if (typeName == 'int') {
+            String itemCode = 'const fb.Int32Reader()';
+            readCode = 'const fb.ListReader<int>($itemCode)';
+          } else if (typeName == 'String') {
+            String itemCode = 'const fb.StringReader()';
+            readCode = 'const fb.ListReader<String>($itemCode)';
+          } else {
+            String itemCode = '$typeName>(const _${typeName}Reader()';
+            readCode = 'const fb.ListReader<$itemCode)';
+          }
+        } else if (typeName == 'bool') {
+          readCode = 'const fb.BoolReader()';
+        } else if (typeName == 'int') {
+          readCode = 'const fb.Int32Reader()';
+        } else if (typeName == 'String') {
+          readCode = 'const fb.StringReader()';
+        } else if (_idl.enums.containsKey(typeName)) {
+          readExpr =
+              '$typeName.values[const fb.Int32Reader().vTableGet(_bp, $index, 0)]';
+        } else if (_idl.classes.containsKey(typeName)) {
+          readCode = 'const _${typeName}Reader()';
+        }
+        if (readExpr == null) {
+          assert(readCode != null);
+          readExpr = '$readCode.vTableGet(_bp, $index, $def)';
+        }
+        // Write the getter implementation.
+        out();
+        out('@override');
+        String returnType = dartType(type);
+        out('$returnType get $fieldName {');
+        indent(() {
+          out('_$fieldName ??= $readExpr;');
+          out('return _$fieldName;');
+        });
+        out('}');
+      });
+    });
+    out('}');
+  }
+
   void _generateInterface(idlModel.ClassDeclaration cls) {
     String name = cls.name;
     outDoc(cls.documentation);
@@ -468,75 +547,13 @@ class _CodeGenerator {
   void _generateReader(idlModel.ClassDeclaration cls) {
     String name = cls.name;
     String readerName = '_${name}Reader';
-    out('class $readerName extends fb.TableReader<$readerName> implements $name {');
+    String implName = '_${name}Impl';
+    out('class $readerName extends fb.TableReader<$implName> {');
     indent(() {
-      out('final fb.BufferPointer _bp;');
-      out();
-      out('const $readerName([this._bp]);');
+      out('const $readerName();');
       out();
       out('@override');
-      out('$readerName createReader(fb.BufferPointer bp) => new $readerName(bp);');
-      out();
-      // Write toMap().
-      out('@override');
-      out('Map<String, Object> toMap() => {');
-      indent(() {
-        for (idlModel.FieldDeclaration field in cls.fields) {
-          String fieldName = field.name;
-          out('${quoted(fieldName)}: $fieldName,');
-        }
-      });
-      out('};');
-      // Write getters.
-      cls.fields.asMap().forEach((index, field) {
-        String fieldName = field.name;
-        idlModel.FieldType type = field.type;
-        String typeName = type.typeName;
-        // Prepare "readLines" or "readCode" + "def" + "readSuffix"
-        List<String> readLines;
-        String readCode;
-        String def = defaultValue(type);
-        if (type.isList) {
-          if (typeName == 'int') {
-            String itemCode = 'const fb.Int32Reader()';
-            readCode = 'const fb.ListReader<int>($itemCode)';
-          } else if (typeName == 'String') {
-            String itemCode = 'const fb.StringReader()';
-            readCode = 'const fb.ListReader<String>($itemCode)';
-          } else {
-            String itemCode = '$typeName>(const _${typeName}Reader()';
-            readCode = 'const fb.ListReader<$itemCode)';
-          }
-        } else if (typeName == 'bool') {
-          readCode = 'const fb.BoolReader()';
-        } else if (typeName == 'int') {
-          readCode = 'const fb.Int32Reader()';
-        } else if (typeName == 'String') {
-          readCode = 'const fb.StringReader()';
-        } else if (_idl.enums.containsKey(typeName)) {
-          readLines = <String>[
-            'int index = const fb.Int32Reader().vTableGet(_bp, $index, 0);',
-            'return $typeName.values[index];'
-          ];
-        } else if (_idl.classes.containsKey(typeName)) {
-          readCode = 'const _${typeName}Reader()';
-        }
-        assert(readCode != null || readLines != null);
-        // Write the getter implementation.
-        out();
-        out('@override');
-        String returnType = dartType(type);
-        if (readLines != null) {
-          out('$returnType get $fieldName {');
-          indent(() {
-            readLines.forEach(out);
-          });
-          out('}');
-        } else {
-          String expr = '$readCode.vTableGet(_bp, $index, $def)';
-          out('$returnType get $fieldName => $expr;');
-        }
-      });
+      out('$implName createObject(fb.BufferPointer bp) => new $implName(bp);');
     });
     out('}');
   }

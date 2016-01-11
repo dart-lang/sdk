@@ -149,8 +149,8 @@ class BuilderTest {
     }
     // read and verify
     BufferPointer root = new BufferPointer.fromBytes(byteList);
-    List<TestPointReader> items =
-        const ListReader<TestPointReader>(const TestPointReader()).read(root);
+    List<TestPointImpl> items =
+        const ListReader<TestPointImpl>(const TestPointReader()).read(root);
     expect(items, hasLength(2));
     expect(items[0].x, 10);
     expect(items[0].y, 20);
@@ -189,7 +189,7 @@ class BuilderTest {
     }
     // read and verify
     BufferPointer root = new BufferPointer.fromBytes(byteList);
-    StringListWrapperReader reader = new StringListWrapperReader().read(root);
+    StringListWrapperImpl reader = new StringListWrapperReader().read(root);
     List<String> items = reader.items;
     expect(items, hasLength(2));
     expect(items, contains('12345'));
@@ -197,35 +197,39 @@ class BuilderTest {
   }
 }
 
-class StringListWrapperReader extends TableReader<StringListWrapperReader> {
+class StringListWrapperImpl {
   final BufferPointer bp;
 
-  const StringListWrapperReader() : bp = null;
-
-  StringListWrapperReader._(this.bp);
+  StringListWrapperImpl(this.bp);
 
   List<String> get items =>
       const ListReader<String>(const StringReader()).vTableGet(bp, 0);
+}
+
+class StringListWrapperReader extends TableReader<StringListWrapperImpl> {
+  const StringListWrapperReader();
 
   @override
-  StringListWrapperReader createReader(BufferPointer object) {
-    return new StringListWrapperReader._(object);
+  StringListWrapperImpl createObject(BufferPointer object) {
+    return new StringListWrapperImpl(object);
   }
 }
 
-class TestPointReader extends TableReader<TestPointReader> {
+class TestPointImpl {
   final BufferPointer bp;
 
-  const TestPointReader() : bp = null;
-
-  TestPointReader._(this.bp);
+  TestPointImpl(this.bp);
 
   int get x => const Int32Reader().vTableGet(bp, 0, 0);
 
   int get y => const Int32Reader().vTableGet(bp, 1, 0);
+}
+
+class TestPointReader extends TableReader<TestPointImpl> {
+  const TestPointReader();
 
   @override
-  TestPointReader createReader(BufferPointer object) {
-    return new TestPointReader._(object);
+  TestPointImpl createObject(BufferPointer object) {
+    return new TestPointImpl(object);
   }
 }

@@ -501,21 +501,21 @@ class StringReader extends Reader<String> {
 /**
  * An abstract reader for tables.
  */
-abstract class TableReader<T extends TableReader<T>> extends Reader<T> {
+abstract class TableReader<T> extends Reader<T> {
   const TableReader();
 
   @override
   int get size => 4;
 
   /**
-   * Return the [Reader] for reading fields of the object at [bp].
+   * Return the object at [bp].
    */
-  T createReader(BufferPointer bp);
+  T createObject(BufferPointer bp);
 
   @override
   T read(BufferPointer bp) {
     bp = bp.derefObject();
-    return createReader(bp);
+    return createObject(bp);
   }
 }
 
@@ -523,10 +523,16 @@ class _FbList<E> extends Object with ListMixin<E> implements List<E> {
   final Reader<E> elementReader;
   final BufferPointer bp;
 
+  int _length;
+  List<E> _items;
+
   _FbList(this.elementReader, this.bp);
 
   @override
-  int get length => bp._getUint32();
+  int get length {
+    _length ??= bp._getUint32();
+    return _length;
+  }
 
   @override
   void set length(int i) =>
@@ -534,8 +540,14 @@ class _FbList<E> extends Object with ListMixin<E> implements List<E> {
 
   @override
   E operator [](int i) {
-    BufferPointer ref = bp._advance(4 + elementReader.size * i);
-    return elementReader.read(ref);
+    _items ??= new List<E>(length);
+    E item = _items[i];
+    if (item == null) {
+      BufferPointer ref = bp._advance(4 + elementReader.size * i);
+      item = elementReader.read(ref);
+      _items[i] = item;
+    }
+    return item;
   }
 
   @override
