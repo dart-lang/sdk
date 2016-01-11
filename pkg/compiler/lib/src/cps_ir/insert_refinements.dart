@@ -128,6 +128,7 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
   }
 
   void visitInvokeStatic(InvokeStatic node) {
+    node.arguments.forEach(processReference);
     _refineArguments(node,
         _getSuccessTypesForStaticMethod(types, node.target));
   }
