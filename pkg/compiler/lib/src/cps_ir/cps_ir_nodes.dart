@@ -509,7 +509,28 @@ abstract class InvocationPrimitive extends UnsafePrimitive {
   SourceInformation get sourceInformation;
 
   Reference<Primitive> get dartReceiverReference => null;
+  Primitive get dartReceiver => dartReceiverReference.definition;
+
   CallingConvention get callingConvention => CallingConvention.Normal;
+
+  Reference<Primitive> dartArgumentReference(int n) {
+    switch (callingConvention) {
+      case CallingConvention.Normal:
+      case CallingConvention.OneShotIntercepted:
+        return arguments[n];
+
+      case CallingConvention.Intercepted:
+      case CallingConvention.DummyIntercepted:
+        return arguments[n + 1];
+    }
+  }
+
+  Primitive dartArgument(int n) => dartArgumentReference(n).definition;
+
+  int get dartArgumentsLength =>
+      arguments.length -
+      (callingConvention == CallingConvention.Intercepted ||
+          callingConvention == CallingConvention.DummyIntercepted ? 1 : 0);
 }
 
 /// Invoke a static function.
@@ -570,22 +591,6 @@ class InvokeMethod extends InvocationPrimitive {
         : receiver;
   }
 
-  Primitive get dartReceiver => dartReceiverReference.definition;
-
-  Reference<Primitive> dartArgumentReference(int n) {
-    switch (callingConvention) {
-      case CallingConvention.Normal:
-      case CallingConvention.OneShotIntercepted:
-        return arguments[n];
-
-      case CallingConvention.Intercepted:
-      case CallingConvention.DummyIntercepted:
-        return arguments[n + 1];
-    }
-  }
-
-  Primitive dartArgument(int n) => dartArgumentReference(n).definition;
-
   /// If true, it is known that the receiver cannot be `null`.
   bool receiverIsNotNull = false;
 
@@ -641,16 +646,6 @@ class InvokeMethodDirectly extends InvocationPrimitive {
         ? arguments[0]
         : receiver;
   }
-
-  Primitive get dartReceiver => dartReceiverReference.definition;
-
-  Reference<Primitive> dartArgumentReference(int n) {
-    return callingConvention == CallingConvention.Normal
-        ? arguments[n]
-        : arguments[n + 1];
-  }
-
-  Primitive dartArgument(int n) => dartArgumentReference(n).definition;
 
   InvokeMethodDirectly(Primitive receiver,
                        this.target,

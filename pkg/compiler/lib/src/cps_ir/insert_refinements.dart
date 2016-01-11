@@ -4,10 +4,13 @@
 
 library cps_ir.optimization.insert_refinements;
 
+import 'dart:math' show min;
 import 'optimizers.dart' show Pass;
 import 'cps_ir_nodes.dart';
+import '../elements/elements.dart';
 import '../common/names.dart';
 import '../types/types.dart' show TypeMask;
+import '../universe/selector.dart';
 import 'type_mask_system.dart';
 
 /// Inserts [Refinement] nodes in the IR to allow for sparse path-sensitive
@@ -104,6 +107,31 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
     });
   }
 
+  /// Refine the type of each argument on [node] according to the provided
+  /// type masks.
+  void _refineArguments(
+      InvocationPrimitive node, List<TypeMask> argumentSuccessTypes) {
+    if (argumentSuccessTypes == null) return;
+
+    // Note: node.dartArgumentsLength is shorter when the call doesn't include
+    // some optional arguments.
+    int length = min(argumentSuccessTypes.length, node.dartArgumentsLength);
+    for (int i = 0; i < length; i++) {
+      TypeMask argSuccessType = argumentSuccessTypes[i];
+
+      // Skip arguments that provide no refinement.
+      if (argSuccessType == types.dynamicType) continue;
+
+      applyRefinement(node.parent,
+          new Refinement(node.dartArgument(i), argSuccessType));
+    }
+  }
+
+  void visitInvokeStatic(InvokeStatic node) {
+    _refineArguments(node,
+        _getSuccessTypesForStaticMethod(types, node.target));
+  }
+
   void visitInvokeMethod(InvokeMethod node) {
     // Update references to their current refined values.
     processReference(node.receiver);
@@ -115,12 +143,18 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
 
     // Do not try to refine the receiver of closure calls; the class world
     // does not know about closure classes.
-    if (!node.selector.isClosureCall) {
+    Selector selector = node.selector;
+    if (!selector.isClosureCall) {
       // Filter away receivers that throw on this selector.
-      TypeMask type = types.receiverTypeFor(node.selector, node.mask);
+      TypeMask type = types.receiverTypeFor(selector, node.mask);
       Refinement refinement = new Refinement(receiver, type);
       LetPrim letPrim = node.parent;
       applyRefinement(letPrim, refinement);
+
+      // Refine arguments of methods on numbers which we know will throw on
+      // invalid argument values.
+      _refineArguments(node,
+          _getSuccessTypesForInstanceMethod(types, type, selector));
     }
   }
 
@@ -232,4 +266,169 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
     }
     return node.body;
   }
+}
+
+// TODO(sigmund): ideally this whitelist information should be stored as
+// metadata annotations on the runtime libraries so we can keep it in sync with
+// the implementation more easily.
+// TODO(sigmund): add support for constructors.
+// TODO(sigmund): add checks for RegExp and DateTime (currently not exposed as
+// easily in TypeMaskSystem).
+// TODO(sigmund): after the above TODOs are fixed, add:
+//   ctor JSArray.fixed: [types.uint32Type],
+//   ctor JSArray.growable: [types.uintType],
+//   ctor DateTime': [int, int, int, int, int, int, int],
+//   ctor DateTime.utc': [int, int, int, int, int, int, int],
+//   ctor DateTime._internal': [int, int, int, int, int, int, int, bool],
+//   ctor RegExp': [string, dynamic, dynamic],
+//   method RegExp.allMatches: [string, int],
+//   method RegExp.firstMatch: [string],
+//   method RegExp.hasMatch: [string],
+List<TypeMask> _getSuccessTypesForInstanceMethod(
+    TypeMaskSystem types, TypeMask receiver, Selector selector) {
+  if (types.isDefinitelyInt(receiver)) {
+    switch (selector.name) {
+      case 'toSigned':
+      case 'toUnsigned':
+      case 'modInverse':
+      case 'gcd':
+        return [types.intType];
+
+      case 'modPow':
+       return [types.intType, types.intType];
+    }
+    // Note: num methods on int values are handled below.
+  }
+
+  if (types.isDefinitelyNum(receiver)) {
+    switch (selector.name) {
+      case 'clamp':
+          return [types.numType, types.numType];
+      case 'toStringAsFixed':
+      case 'toStringAsPrecision':
+      case 'toRadixString':
+          return [types.intType];
+      case 'toStringAsExponential':
+          return [types.intType.nullable()];
+      case 'compareTo':
+      case 'remainder':
+      case '+':
+      case '-':
+      case '/':
+      case '*':
+      case '%':
+      case '~/':
+      case '<<':
+      case '>>':
+      case '&':
+      case '|':
+      case '^':
+      case '<':
+      case '>':
+      case '<=':
+      case '>=':
+          return [types.numType];
+      default:
+        return null;
+    }
+  }
+
+  if (types.isDefinitelyString(receiver)) {
+    switch (selector.name) {
+      case 'allMatches':
+        return [types.stringType, types.intType];
+      case 'endsWith':
+        return [types.stringType];
+      case 'replaceAll':
+        return [types.dynamicType, types.stringType];
+      case 'replaceFirst':
+        return [types.dynamicType, types.stringType, types.intType];
+      case 'replaceFirstMapped':
+        return [
+          types.dynamicType,
+          types.dynamicType.nonNullable(),
+          types.intType
+        ];
+      case 'split':
+        return [types.dynamicType.nonNullable()];
+      case 'replaceRange':
+        return [types.intType, types.intType, types.stringType];
+      case 'startsWith':
+        return [types.dynamicType, types.intType];
+      case 'substring':
+        return [types.intType, types.uintType.nullable()];
+      case 'indexOf':
+        return [types.dynamicType.nonNullable(), types.uintType];
+      case 'lastIndexOf':
+        return [types.dynamicType.nonNullable(), types.uintType.nullable()];
+      case 'contains':
+        return [
+          types.dynamicType.nonNullable(),
+          // TODO(sigmund): update runtime to add check for int?
+          types.dynamicType
+        ];
+      case 'codeUnitAt':
+        return [types.uintType];
+      case '+':
+        return [types.stringType];
+      case '*':
+        return [types.uint32Type];
+      case '[]':
+        return [types.uintType];
+      default:
+        return null;
+    }
+  }
+
+  if (types.isDefinitelyArray(receiver)) {
+    switch (selector.name) {
+      case 'removeAt':
+      case 'insert':
+        return [types.uintType];
+      case 'sublist':
+        return [types.uintType, types.uintType.nullable()];
+      case 'length':
+         return selector.isSetter ? [types.uintType] : null;
+      case '[]':
+      case '[]=':
+        return [types.uintType];
+      default:
+        return null;
+    }
+  }
+  return null;
+}
+
+List<TypeMask> _getSuccessTypesForStaticMethod(
+    TypeMaskSystem types, FunctionElement target) {
+  var lib = target.library;
+  if (lib.isDartCore) {
+    var cls = target.enclosingClass?.name;
+    if (cls == 'int' && target.name == 'parse') {
+      // source, onError, radix
+      return [types.stringType, types.dynamicType, types.uint31Type.nullable()];
+    } else if (cls == 'double' && target.name == 'parse') {
+      return [types.stringType, types.dynamicType];
+    }
+  }
+
+  if (lib.isPlatformLibrary && '${lib.canonicalUri}' == 'dart:math') {
+    switch(target.name) {
+      case 'sqrt':
+      case 'sin':
+      case 'cos':
+      case 'tan':
+      case 'acos':
+      case 'asin':
+      case 'atan':
+      case 'atan2':
+      case 'exp':
+      case 'log':
+        return [types.numType];
+      case 'pow':
+        return [types.numType, types.numType];
+    }
+  }
+
+  return null;
 }

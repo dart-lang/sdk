@@ -64,6 +64,8 @@ runTests(List<TestEntry> tests) {
     Map files = {TEST_MAIN_FILE: test.source};
     asyncTest(() async {
       Uri uri = Uri.parse('memory:$TEST_MAIN_FILE');
+      String expected = test.expectation;
+      String found = null;
       try {
         CompilationResult result = await runCompiler(
             entryPoint: uri,
@@ -71,21 +73,22 @@ runTests(List<TestEntry> tests) {
             options: <String>['--use-cps-ir']);
         Expect.isTrue(result.isSuccess);
         CompilerImpl compiler = result.compiler;
-        String expectation = test.expectation;
-        if (expectation != null) {
-          String expected = test.expectation;
-          String found = test.elementName == null
+        if (expected != null) {
+          found = test.elementName == null
               ? getCodeForMain(compiler)
               : getCodeForMethod(compiler, test.elementName);
-          if (expected != found) {
-            Expect.fail('Expected:\n$expected\nbut found\n$found');
-          }
         }
       } catch (e, st) {
         print(e);
         print(st);
         Expect.fail('The following test failed to compile:\n'
                     '${formatTest(files)}');
+      }
+      if (expected != found) {
+        Expect.fail('Unexpected output for test:\n  '
+            '${formatTest(files).replaceAll('\n', '\n  ')}\n'
+            'Expected:\n  ${expected.replaceAll('\n', '\n  ')}\n'
+            'but found:\n  ${found?.replaceAll('\n', '\n  ')}');
       }
     });
   }
