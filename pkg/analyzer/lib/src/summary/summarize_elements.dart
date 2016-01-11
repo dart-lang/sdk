@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/name_filter.dart';
 
 /**
  * Serialize all the elements in [lib] to a summary using [ctx] as the context
@@ -282,27 +283,11 @@ class _LibrarySerializer {
       }
       import.importedLibrary.exportNamespace.definedNames
           .forEach((String name, Element e) {
-        if (import.combinators.any((NamespaceCombinator combinator) =>
-            doesCombinatorReject(combinator, name))) {
-          return;
+        if (new NameFilter.forNamespaceCombinators(import.combinators)
+            .accepts(name)) {
+          prefixMap[e] = import.prefix;
         }
-        prefixMap[e] = import.prefix;
       });
-    }
-  }
-
-  /**
-   * Determine if the given [combinator] would reject an element having the
-   * given [name].
-   */
-  bool doesCombinatorReject(NamespaceCombinator combinator, String name) {
-    if (combinator is ShowElementCombinator) {
-      return !combinator.shownNames.contains(name);
-    } else if (combinator is HideElementCombinator) {
-      return combinator.hiddenNames.contains(name);
-    } else {
-      throw new StateError(
-          'Unexpected combinator type ${combinator.runtimeType}');
     }
   }
 
@@ -727,8 +712,7 @@ class _LibrarySerializer {
     if (unresolvedReferenceIndex == null) {
       assert(unlinkedReferences.length == prelinkedReferences.length);
       unresolvedReferenceIndex = unlinkedReferences.length;
-      unlinkedReferences
-          .add(encodeUnlinkedReference(name: '*unresolved*'));
+      unlinkedReferences.add(encodeUnlinkedReference(name: '*unresolved*'));
       prelinkedReferences.add(
           encodePrelinkedReference(kind: PrelinkedReferenceKind.unresolved));
     }
