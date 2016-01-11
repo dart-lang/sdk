@@ -14,12 +14,14 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, allow_absolute_addresses);
+DECLARE_FLAG(bool, check_code_pointer);
+DECLARE_FLAG(bool, inline_alloc);
 #if defined(USING_SIMULATOR)
 DECLARE_FLAG(int, trace_sim_after);
 #endif
-DECLARE_FLAG(bool, allow_absolute_addresses);
+
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
-DECLARE_FLAG(bool, inline_alloc);
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   ASSERT(Utils::IsAligned(data, 4));
@@ -461,6 +463,9 @@ void Assembler::SubuDetectOverflow(Register rd, Register rs, Register rt,
 
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
+  if (!FLAG_check_code_pointer) {
+    return;
+  }
   Comment("CheckCodePointer");
   Label cid_ok, instructions_ok;
   Push(CMPRES1);
