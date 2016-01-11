@@ -19,6 +19,9 @@
 
 namespace dart {
 
+// Defined in vm/os_thread_win.cc
+extern bool private_flag_windows_run_tls_destructors;
+
 const char* OS::Name() {
   return "windows";
 }
@@ -404,12 +407,18 @@ void OS::Shutdown() {
 
 
 void OS::Abort() {
+  // TODO(zra): Remove once VM shuts down cleanly.
+  private_flag_windows_run_tls_destructors = false;
   abort();
 }
 
 
 void OS::Exit(int code) {
-  exit(code);
+  // TODO(zra): Remove once VM shuts down cleanly.
+  private_flag_windows_run_tls_destructors = false;
+  // On Windows we use ExitProcess so that threads can't clobber the exit_code.
+  // See: https://code.google.com/p/nativeclient/issues/detail?id=2870
+  ::ExitProcess(code);
 }
 
 }  // namespace dart
