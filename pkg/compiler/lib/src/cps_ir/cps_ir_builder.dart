@@ -1426,8 +1426,6 @@ class IrBuilder {
             Selectors.current,
             currentMask,
             emptyArguments));
-    // TODO(sra): Does this cover all cases? The general setter case include
-    // super.
     // TODO(johnniwinther): Extract this as a provided strategy.
     if (Elements.isLocal(variableElement)) {
       bodyBuilder.buildLocalVariableSet(variableElement, currentValue);
