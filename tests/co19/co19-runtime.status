@@ -81,6 +81,10 @@ LibTest/collection/ListBase/ListBase_class_A01_t01: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip  # Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t02: Skip  # Timeout
 
+[ ($compiler == none || $compiler == precompiler) && $system == windows ]
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
+LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow
+
 [ ($runtime == vm || $runtime == dart_precompiled) ]
 LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.
