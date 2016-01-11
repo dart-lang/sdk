@@ -674,7 +674,6 @@ class _LibrarySerializer {
           if (element is TypeParameterizedElement) {
             numTypeParameters = element.typeParameters.length;
           }
-          int index = unlinkedReferences.length;
           // Figure out a prefix that may be used to refer to the given type.
           // TODO(paulberry): to avoid subtle relinking inconsistencies we
           // should use the actual prefix from the AST (a given type may be
@@ -685,6 +684,7 @@ class _LibrarySerializer {
           if (prefix != null) {
             prefixReference = serializePrefix(prefix);
           }
+          int index = unlinkedReferences.length;
           unlinkedReferences.add(encodeUnlinkedReference(
               name: element.name, prefixReference: prefixReference));
           prelinkedReferences.add(encodePrelinkedReference(

@@ -112,9 +112,10 @@ class PrelinkerTest extends SummarizeElementsTest {
             summarize_elements.serializeLibrary(
                 library, analysisContext.typeProvider);
         for (int i = 0; i < serializedLibrary.unlinkedUnits.length; i++) {
-          uriToNamespace[
-              serializedLibrary.unitUris[i]] = new UnlinkedUnit.fromBuffer(
-              serializedLibrary.unlinkedUnits[i].toBuffer()).publicNamespace;
+          uriToNamespace[serializedLibrary.unitUris[i]] =
+              new UnlinkedUnit.fromBuffer(
+                      serializedLibrary.unlinkedUnits[i].toBuffer())
+                  .publicNamespace;
         }
       }
       return uriToNamespace;
@@ -764,7 +765,8 @@ b.C c4;''');
   UnlinkedTypeRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
-        allowErrors: allowErrors).type;
+            allowErrors: allowErrors)
+        .type;
   }
 
   /**
@@ -1790,7 +1792,8 @@ enum E { v }''';
 
   test_executable_operator_index_set() {
     UnlinkedExecutable executable = serializeClassText(
-        'class C { void operator[]=(int i, bool v) => null; }').executables[0];
+            'class C { void operator[]=(int i, bool v) => null; }')
+        .executables[0];
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.name, '[]=');
     expect(executable.hasImplicitReturnType, false);
@@ -2558,6 +2561,19 @@ void set f(value) {}''';
     checkTypeRef(findVariable('v', variables: unlinkedUnits[1].variables).type,
         null, null, 'C',
         expectedKind: PrelinkedReferenceKind.classOrEnum,
+        prelinkedSourceUnit: prelinked.units[1],
+        unlinkedSourceUnit: unlinkedUnits[1]);
+  }
+
+  test_type_reference_from_part_withPrefix() {
+    addNamedSource('/a.dart', 'class C {}');
+    addNamedSource('/p.dart', 'part of foo; a.C v;');
+    serializeLibraryText(
+        'library foo; import "a.dart"; import "a.dart" as a; part "p.dart";',
+        allowErrors: true);
+    checkTypeRef(findVariable('v', variables: unlinkedUnits[1].variables).type,
+        absUri('/a.dart'), 'a.dart', 'C',
+        expectedPrefix: 'a',
         prelinkedSourceUnit: prelinked.units[1],
         unlinkedSourceUnit: unlinkedUnits[1]);
   }
