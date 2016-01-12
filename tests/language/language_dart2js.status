@@ -15,13 +15,6 @@ try_catch_on_syntax_test/11: Fail # Issue 19823
 
 call_function_apply_test: RuntimeError # Issue 23873
 
-# The following tests are supposed to fail.
-# When run for testing dart2js supports all dart:X libraries (because it
-# uses '--categories=all').
-library_env_test/has_no_html_support: RuntimeError, OK
-library_env_test/has_no_io_support: RuntimeError, OK
-library_env_test/has_no_mirror_support: RuntimeError, OK
-
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
