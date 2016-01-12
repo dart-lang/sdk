@@ -341,7 +341,6 @@ history_test/history: Skip # Issue 22050
 xhr_test/xhr: Pass, Fail # Issue 11602
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 webgl_1_test: Pass, Fail   # Issue 8219
-canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass, Fail # Firefox pre-38 does not like dataUrl videos for drawImage Issue 23479
 text_event_test: Fail # Issue 17893
 
 # Firefox Feature support statuses-
