@@ -41,10 +41,13 @@ class UnboxIntegerInstr;
 // These token positions are used to classify instructions that can't be
 // directly tied to an actual source position.
 #define CLASSIFYING_TOKEN_POSITIONS(V)                                         \
-    V(Box, -2)                                                                 \
-    V(ParallelMove, -3)                                                        \
-    V(TempMove, -4)                                                            \
-    V(Constant, -5)
+    V(Private, -2)                                                             \
+    V(Box, -3)                                                                 \
+    V(ParallelMove, -4)                                                        \
+    V(TempMove, -5)                                                            \
+    V(Constant, -6)                                                            \
+    V(PushArgument, -7)                                                        \
+    V(ControlFlow, -8)
 
 // COMPILE_ASSERT that all CLASSIFYING_TOKEN_POSITIONS are less than
 // Scanner::kNoSourcePos.
@@ -1226,6 +1229,10 @@ class BlockEntryInstr : public Instruction {
     return this;
   }
 
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kControlFlow;
+  }
+
   // Helper to mutate the graph during inlining. This block should be
   // replaced with new_block as a predecessor of all of this block's
   // successors.
@@ -2075,6 +2082,10 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kPushArgument;
+  }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
@@ -2248,6 +2259,10 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
   }
 
   virtual void PrintTo(BufferFormatter* f) const;
+
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kControlFlow;
+  }
 
  private:
   BlockEntryInstr* block_;

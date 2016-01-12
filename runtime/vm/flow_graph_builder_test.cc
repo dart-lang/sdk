@@ -537,5 +537,33 @@ TEST_CASE(SourcePosition_BitwiseOperations) {
   spt.FuzzyInstructionMatchAt("Return", 9, 3);
 }
 
+
+TEST_CASE(SourcePosition_IfElse) {
+  const char* kScript =
+      "var x = 5;\n"
+      "var y = 5;\n"
+      "main() {\n"
+      "  if (x != 0) {\n"
+      "    return x;\n"
+      "  } else {\n"
+      "    return y;\n"
+      "  }\n"
+      "}\n";
+
+  SourcePositionTest spt(thread, kScript);
+  spt.BuildGraphFor("main");
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 4, 7);
+  spt.InstanceCallAt(4, 9, Token::kEQ);
+  spt.FuzzyInstructionMatchAt("Branch if StrictCompare", 4, 9);
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 5, 12);
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 5, 5);
+  spt.FuzzyInstructionMatchAt("Return", 5, 5);
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 7, 10);
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 7, 3);
+  spt.FuzzyInstructionMatchAt("Return", 7, 3);
+}
+
 }  // namespace dart
 

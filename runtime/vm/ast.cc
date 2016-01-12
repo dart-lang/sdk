@@ -6,14 +6,21 @@
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/isolate.h"
+#include "vm/log.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 
 
 namespace dart {
 
+DEFINE_FLAG(bool, trace_ast_visitor, false,
+            "Trace AstVisitor.");
+
 #define DEFINE_VISIT_FUNCTION(BaseName)                                        \
 void BaseName##Node::Visit(AstNodeVisitor* visitor) {                          \
+  if (FLAG_trace_ast_visitor) {                                                \
+    THR_Print("Visiting %s\n", PrettyName());                                  \
+  }                                                                            \
   visitor->Visit##BaseName##Node(this);                                        \
 }
 
