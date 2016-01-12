@@ -12,9 +12,9 @@
 // }
 
 function(x) {
-  var v0 = new V.Foo_getter_closure();
+  var notTearOff = new V.Foo_getter_closure();
   V.Foo$();
   P.print("getter");
-  P.print(v0.call$1(123));
-  P.print(v0.call$1(321));
+  P.print(notTearOff.call$1(123));
+  P.print(notTearOff.call$1(321));
 }

@@ -9,14 +9,14 @@
 // }
 
 function() {
-  var v0 = "Instance of '" + H.Primitives_objectTypeName(new V.Foo(5)) + "'";
+  var res = "Instance of '" + H.Primitives_objectTypeName(new V.Foo(5)) + "'";
   if (typeof dartPrint == "function")
-    dartPrint(v0);
+    dartPrint(res);
   else if (typeof console == "object" && typeof console.log != "undefined")
-    console.log(v0);
+    console.log(res);
   else if (!(typeof window == "object")) {
     if (!(typeof print == "function"))
-      throw "Unable to print message: " + String(v0);
-    print(v0);
+      throw "Unable to print message: " + String(res);
+    print(res);
   }
 }

@@ -141,6 +141,7 @@ class ShrinkingReducer extends Pass {
     // Substitute the invocation argument for the continuation parameter.
     for (int i = 0; i < invoke.arguments.length; i++) {
       cont.parameters[i].replaceUsesWith(invoke.arguments[i].definition);
+      invoke.arguments[i].definition.useElementAsHint(cont.parameters[i].hint);
     }
 
     // Perform bookkeeping on substituted body and scan for new redexes.
@@ -167,6 +168,10 @@ class ShrinkingReducer extends Pass {
 
     InvokeContinuation invoke = cont.body;
     Continuation wrappedCont = invoke.continuation.definition;
+
+    for (int i = 0; i < cont.parameters.length; ++i) {
+      wrappedCont.parameters[i].useElementAsHint(cont.parameters[i].hint);
+    }
 
     // If the invocation of wrappedCont is escaping, then all invocations of
     // cont will be as well, after the reduction.
