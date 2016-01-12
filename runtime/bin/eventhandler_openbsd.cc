@@ -6,6 +6,7 @@
 #if defined(TARGET_OS_OPENBSD)
 
 #include "bin/eventhandler.h"
+#include "bin/eventhandler_openbsd.h"
 
 #include <errno.h>  // NOLINT
 #include <pthread.h>  // NOLINT
