@@ -3423,8 +3423,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
 
     // Dart "extension" methods. Used for JS Array, Boolean, Number, String.
+    var baseType = type;
+    while (baseType is TypeParameterType) {
+      baseType = baseType.element.bound;
+    }
     if (allowExtensions &&
-        _extensionTypes.contains(type.element) &&
+        _extensionTypes.contains(baseType.element) &&
         !_isObjectProperty(name)) {
       return js.call('dartx.#', _propertyName(name));
     }

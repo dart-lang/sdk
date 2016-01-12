@@ -269,7 +269,7 @@ dart_library.library('dart/math', null, /* Imports */[
           return (dart.notNull(a) + dart.notNull(b)) * dart.notNull(a) * dart.notNull(b);
         }
       }
-      if (a == 0 && dart.notNull(b.isNegative) || dart.notNull(b.isNaN)) return b;
+      if (a == 0 && dart.notNull(b[dartx.isNegative]) || dart.notNull(b[dartx.isNaN])) return b;
       return a;
     }
     return a;
@@ -286,10 +286,10 @@ dart_library.library('dart/math', null, /* Imports */[
           return dart.notNull(a) + dart.notNull(b);
         }
       }
-      if (dart.notNull(b.isNaN)) return b;
+      if (dart.notNull(b[dartx.isNaN])) return b;
       return a;
     }
-    if (b == 0 && dart.notNull(a.isNegative)) return b;
+    if (b == 0 && dart.notNull(a[dartx.isNegative])) return b;
     return a;
   }
   dart.fn(max, () => dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
