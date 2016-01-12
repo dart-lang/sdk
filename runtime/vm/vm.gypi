@@ -70,6 +70,13 @@
             ],
           },
         }],
+        ['OS=="openbsd"', {
+          'link_settings': {
+            'libraries': [
+              '-lpthread',
+            ],
+          },
+        }],
         ['OS=="win"', {
           'sources/' : [
             ['exclude', 'gdbjit.cc'],
@@ -121,6 +128,13 @@
               '-lpthread',
               '-lrt',
               '-ldl',
+            ],
+          },
+        }],
+        ['OS=="openbsd"', {
+          'link_settings': {
+            'libraries': [
+              '-lpthread',
             ],
           },
         }],
@@ -184,6 +198,13 @@
               '-lpthread',
               '-lrt',
               '-ldl',
+            ],
+          },
+        }],
+        ['OS=="openbsd"', {
+          'link_settings': {
+            'libraries': [
+              '-lpthread',
             ],
           },
         }],

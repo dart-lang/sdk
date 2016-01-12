@@ -108,7 +108,8 @@ def ProcessOptions(options, args):
       return False
   options.os = [ProcessOsOption(os_name) for os_name in options.os]
   for os_name in options.os:
-    if not os_name in ['android', 'freebsd', 'linux', 'macos', 'win32']:
+    if not os_name in ['android', 'freebsd', 'linux', 'macos', 'openbsd',
+                       'win32']:
       print "Unknown os %s" % os_name
       return False
     if os_name != HOST_OS:
@@ -432,7 +433,7 @@ def BuildOneConfig(options, target, target_os, mode, arch, override_tools):
              ]
   else:
     make = 'make'
-    if HOST_OS == 'freebsd':
+    if HOST_OS in ('freebsd', 'openbsd'):
       make = 'gmake'
       # work around lack of flock
       os.environ['LINK'] = '$(CXX)'

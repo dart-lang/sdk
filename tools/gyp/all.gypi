@@ -21,6 +21,11 @@
         'ldflags': [ '-pthread', ],
       },
     }],
+    [ 'OS=="openbsd"', {
+      'target_defaults': {
+        'ldflags': [ '-pthread', ],
+      },
+    }],
     [ 'OS=="win"', {
       'target_defaults': {
         'msvs_cygwin_dirs': ['<(DEPTH)/third_party/cygwin'],

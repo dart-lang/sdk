@@ -599,6 +599,8 @@ class DescriptorInfoMultipleMixin : public DI {
 #include "bin/eventhandler_linux.h"
 #elif defined(TARGET_OS_MACOS)
 #include "bin/eventhandler_macos.h"
+#elif defined(TARGET_OS_OPENBSD)
+#include "bin/eventhandler_openbsd.h"
 #elif defined(TARGET_OS_WINDOWS)
 #include "bin/eventhandler_win.h"
 #else

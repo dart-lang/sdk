@@ -137,6 +137,7 @@
         'log_android.cc',
         'log_linux.cc',
         'log_macos.cc',
+	'log_openbsd.cc',
         'log_win.cc',
       ],
       'includes': [
@@ -215,6 +216,7 @@
         'log_android.cc',
         'log_linux.cc',
         'log_macos.cc',
+	'log_openbsd.cc',
         'log_win.cc',
         'vmservice_dartium.h',
         'vmservice_dartium.cc',
@@ -394,6 +396,7 @@
         'platform_android.cc',
         'platform_linux.cc',
         'platform_macos.cc',
+	'platform_openbsd.cc',
         'platform_win.cc',
         'platform.h',
         'vmservice_impl.cc',
@@ -891,6 +894,11 @@
           },
         }],
         ['OS=="linux"', {
+          'cflags': [
+            '-fPIC',
+          ],
+        }],
+        ['OS=="openbsd"', {
           'cflags': [
             '-fPIC',
           ],

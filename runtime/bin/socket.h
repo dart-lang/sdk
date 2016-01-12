@@ -18,6 +18,8 @@
 #include "bin/socket_linux.h"
 #elif defined(TARGET_OS_MACOS)
 #include "bin/socket_macos.h"
+#elif defined(TARGET_OS_OPENBSD)
+#include "bin/socket_openbsd.h"
 #elif defined(TARGET_OS_WINDOWS)
 #include "bin/socket_win.h"
 #else

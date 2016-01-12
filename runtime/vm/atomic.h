@@ -56,6 +56,8 @@ class AtomicOperations : public AllStatic {
 #include "vm/atomic_linux.h"
 #elif defined(TARGET_OS_MACOS)
 #include "vm/atomic_macos.h"
+#elif defined(TARGET_OS_OPENBSD)
+#include "vm/atomic_openbsd.h"
 #elif defined(TARGET_OS_WINDOWS)
 #include "vm/atomic_win.h"
 #else

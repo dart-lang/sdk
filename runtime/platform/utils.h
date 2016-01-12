@@ -226,6 +226,8 @@ class Utils {
 #include "platform/utils_linux.h"
 #elif defined(TARGET_OS_MACOS)
 #include "platform/utils_macos.h"
+#elif defined(TARGET_OS_OPENBSD)
+#include "platform/utils_openbsd.h"
 #elif defined(TARGET_OS_WINDOWS)
 #include "platform/utils_win.h"
 #else
