@@ -33,11 +33,13 @@ class ResynthTest extends ResolverTestCase {
     otherLibrarySources.add(addNamedSource(filePath, contents));
   }
 
-  void checkLibrary(String text, {bool allowErrors: false}) {
+  void checkLibrary(String text,
+      {bool allowErrors: false, int resynthesisCount: 1}) {
     Source source = addSource(text);
     LibraryElementImpl original = resolve2(source);
-    LibraryElementImpl resynthesized =
-        resynthesizeLibrary(source, original, allowErrors);
+    LibraryElementImpl resynthesized = resynthesizeLibrary(
+        source, original, allowErrors,
+        resynthesisCount: resynthesisCount);
     checkLibraryElements(original, resynthesized);
   }
 
@@ -73,7 +75,9 @@ class ResynthTest extends ResolverTestCase {
     }
     compareNamespaces(resynthesized.publicNamespace, original.publicNamespace,
         '(public namespace)');
-    // TODO(paulberry): test exportNamespace and metadata.
+    compareNamespaces(resynthesized.exportNamespace, original.exportNamespace,
+        '(export namespace)');
+    // TODO(paulberry): test metadata.
   }
 
   void compareClassElements(
@@ -482,23 +486,21 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test initializer
   }
 
-  fail_function_entry_point_in_export() {
-    addLibrarySource('/a.dart', 'library a; main() {}');
-    checkLibrary('export "a.dart";');
-  }
-
   LibraryElementImpl resynthesizeLibrary(
-      Source source, LibraryElementImpl original, bool allowErrors) {
+      Source source, LibraryElementImpl original, bool allowErrors,
+      {int resynthesisCount: 1}) {
     if (!allowErrors) {
       assertNoErrors(source);
     }
     String uri = source.uri.toString();
     addLibrary('dart:core');
-    return resynthesizeLibraryElement(uri, original);
+    return resynthesizeLibraryElement(uri, original,
+        resynthesisCount: resynthesisCount);
   }
 
   LibraryElementImpl resynthesizeLibraryElement(
-      String uri, LibraryElementImpl original) {
+      String uri, LibraryElementImpl original,
+      {int resynthesisCount: 1}) {
     Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
     PrelinkedLibrary getPrelinkedSummaryFor(LibraryElement lib) {
       LibrarySerializationResult serialized =
@@ -539,7 +541,9 @@ class ResynthTest extends ResolverTestCase {
     LibraryElementImpl resynthesized = resynthesizer.getLibraryElement(uri);
     // Check that no other summaries needed to be resynthesized to resynthesize
     // the library element.
-    expect(resynthesizer.resynthesisCount, 1);
+    // TODO(paulberry): once export namespaces are resynthesized from
+    // prelinked data, resynthesisCount should be hardcoded to 1.
+    expect(resynthesizer.resynthesisCount, resynthesisCount);
     return resynthesized;
   }
 
@@ -873,23 +877,26 @@ enum E {
 
   test_export_hide() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" hide Stream, Future;');
+    checkLibrary('export "dart:async" hide Stream, Future;',
+        resynthesisCount: 2);
   }
 
   test_export_multiple_combinators() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" hide Stream show Future;');
+    checkLibrary('export "dart:async" hide Stream show Future;',
+        resynthesisCount: 2);
   }
 
   test_export_show() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" show Future, Stream;');
+    checkLibrary('export "dart:async" show Future, Stream;',
+        resynthesisCount: 2);
   }
 
   test_exports() {
     addLibrarySource('/a.dart', 'library a;');
     addLibrarySource('/b.dart', 'library b;');
-    checkLibrary('export "a.dart"; export "b.dart";');
+    checkLibrary('export "a.dart"; export "b.dart";', resynthesisCount: 3);
   }
 
   test_field_documented() {
@@ -915,9 +922,14 @@ f() {}''');
     checkLibrary('main() {}');
   }
 
+  test_function_entry_point_in_export() {
+    addLibrarySource('/a.dart', 'library a; main() {}');
+    checkLibrary('export "a.dart";', resynthesisCount: 2);
+  }
+
   test_function_entry_point_in_export_hidden() {
     addLibrarySource('/a.dart', 'library a; main() {}');
-    checkLibrary('export "a.dart" hide main;');
+    checkLibrary('export "a.dart" hide main;', resynthesisCount: 2);
   }
 
   test_function_entry_point_in_part() {

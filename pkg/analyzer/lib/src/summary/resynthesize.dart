@@ -691,15 +691,10 @@ class _LibraryResynthesizer {
           unlinkedDefiningUnit.exports[i]));
     }
     libraryElement.exports = exports;
-    FunctionElement entryPoint = populateUnit(definingCompilationUnit, 0);
+    populateUnit(definingCompilationUnit, 0);
     for (int i = 0; i < parts.length; i++) {
-      FunctionElement unitEntryPoint = populateUnit(parts[i], i + 1);
-      if (entryPoint == null) {
-        entryPoint = unitEntryPoint;
-      }
+      populateUnit(parts[i], i + 1);
     }
-    // TODO(paulberry): also look for entry points in exports.
-    libraryElement.entryPoint = entryPoint;
     if (isCoreLibrary) {
       ClassElement objectElement = libraryElement.getType('Object');
       assert(objectElement != null);
@@ -707,9 +702,18 @@ class _LibraryResynthesizer {
         classElement.supertype = objectElement.type;
       }
     }
-    // Compute public namespace.
+    // Compute namespaces.
     libraryElement.publicNamespace =
         new NamespaceBuilder().createPublicNamespaceForLibrary(libraryElement);
+    // TODO(paulberry): compute the export namespace from prelinked data, so
+    // that exported libraries won't be unnecessarily resynthesized.
+    libraryElement.exportNamespace =
+        new NamespaceBuilder().createExportNamespaceForLibrary(libraryElement);
+    // Find the entry point.
+    libraryElement.entryPoint =
+        libraryElement.exportNamespace.definedNames.values.firstWhere(
+            (element) => element is FunctionElement && element.isEntryPoint,
+            orElse: () => null);
     // Done.
     return libraryElement;
   }
@@ -961,10 +965,8 @@ class _LibraryResynthesizer {
   /**
    * Populate a [CompilationUnitElement] by deserializing all the elements
    * contained in it.
-   *
-   * If the compilation unit has an entry point, it is returned.
    */
-  FunctionElement populateUnit(CompilationUnitElementImpl unit, int unitNum) {
+  void populateUnit(CompilationUnitElementImpl unit, int unitNum) {
     prelinkedUnit = prelinkedLibrary.units[unitNum];
     unlinkedUnit = unlinkedUnits[unitNum];
     unitHolder = new ElementHolder();
@@ -996,17 +998,9 @@ class _LibraryResynthesizer {
     for (FunctionTypeAliasElement typeAlias in unit.functionTypeAliases) {
       elementMap[typeAlias.name] = typeAlias;
     }
-    FunctionElement entryPoint = null;
-    for (FunctionElement function in unit.functions) {
-      if (function.isEntryPoint) {
-        entryPoint = function;
-        break;
-      }
-    }
     resummarizedElements[absoluteUri] = elementMap;
     unitHolder = null;
     prelinkedUnit = null;
     unlinkedUnit = null;
-    return entryPoint;
   }
 }
