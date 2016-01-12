@@ -32,7 +32,6 @@ Dart_Handle Extensions::GetError() {
   return Dart_Null();
 }
 
-
 }  // namespace bin
 }  // namespace dart
 
