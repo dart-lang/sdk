@@ -310,15 +310,12 @@ class ProgramBuilder {
 
   List<StaticField> _buildStaticLazilyInitializedFields(
       LibrariesMap librariesMap) {
-    // TODO(floitsch): lazy fields should just be in their respective
-    // libraries.
-    if (librariesMap != _registry.mainLibrariesMap) {
-      return const <StaticField>[];
-    }
-
     JavaScriptConstantCompiler handler = backend.constants;
-    List<VariableElement> lazyFields =
-        handler.getLazilyInitializedFieldsForEmission();
+    DeferredLoadTask loadTask = _compiler.deferredLoadTask;
+    List<VariableElement> lazyFields = handler
+        .getLazilyInitializedFieldsForEmission()
+        .where((element) =>
+            loadTask.outputUnitForElement(element) == librariesMap.outputUnit);
     return Elements.sortedByPosition(lazyFields)
         .map(_buildLazyField)
         .where((field) => field != null)  // Happens when the field was unused.
