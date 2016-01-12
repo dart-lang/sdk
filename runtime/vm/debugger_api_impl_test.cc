@@ -1511,8 +1511,8 @@ static void InterruptIsolateRun(uword unused) {
 
 
 TEST_CASE(Debug_InterruptIsolate) {
-  Dart_SetIsolateEventHandler(&TestInterruptIsolate);
   sync = new Monitor();
+  Dart_SetIsolateEventHandler(&TestInterruptIsolate);
   EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
   Dart_SetPausedEventHandler(InterruptIsolateHandler);
   int result = OSThread::Start("DebugInterruptIsolate", InterruptIsolateRun, 0);
