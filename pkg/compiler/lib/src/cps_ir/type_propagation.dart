@@ -1388,6 +1388,28 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         assert(node.hasNoUses);
         return cps;
 
+      case 'isEmpty':
+        if (!node.selector.isGetter) return null;
+        CpsFragment cps = new CpsFragment(node.sourceInformation);
+        Primitive length = cps.letPrim(new GetLength(receiver));
+        Constant zero = cps.makeZero();
+        ApplyBuiltinOperator op = cps.applyBuiltin(BuiltinOperator.StrictEq,
+                                                   [length, zero]);
+        node.replaceUsesWith(op);
+        op.hint = node.hint;
+        return cps;
+
+      case 'isNotEmpty':
+        if (!node.selector.isGetter) return null;
+        CpsFragment cps = new CpsFragment(node.sourceInformation);
+        Primitive length = cps.letPrim(new GetLength(receiver));
+        Constant zero = cps.makeZero();
+        ApplyBuiltinOperator op = cps.applyBuiltin(BuiltinOperator.StrictNeq,
+                                                   [length, zero]);
+        node.replaceUsesWith(op);
+        op.hint = node.hint;
+        return cps;
+
       default:
         return null;
     }
