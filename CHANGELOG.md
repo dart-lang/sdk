@@ -70,7 +70,7 @@
 
 ## 1.13.2 - 2016-01-06
 
-Patch release, resolves one issues:
+Patch release, resolves one issue:
 
 * dart2js: Stack traces are not captured correctly (SDK issue [25235]
 (https://github.com/dart-lang/sdk/issues/25235))
