@@ -17688,10 +17688,17 @@ class HashChangeEvent extends Event {
   factory HashChangeEvent(String type,
       {bool canBubble: true, bool cancelable: true, String oldUrl,
       String newUrl}) {
-    var event = document._createEvent("HashChangeEvent");
-    event._initHashChangeEvent(type, canBubble, cancelable, oldUrl, newUrl);
-    return event;
+
+    var options = {
+      'canBubble' : canBubble,
+      'cancelable' : cancelable,
+      'oldURL': oldUrl,
+      'newURL': newUrl,
+    };
+    return JS('HashChangeEvent', 'new HashChangeEvent(#, #)',
+        type, convertDartToNative_Dictionary(options));
   }
+
   // To suppress missing implicit constructor warnings.
   factory HashChangeEvent._() { throw new UnsupportedError("Not supported"); }
 

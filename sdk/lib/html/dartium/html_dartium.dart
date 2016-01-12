@@ -19702,10 +19702,14 @@ class HashChangeEvent extends Event {
   factory HashChangeEvent(String type,
       {bool canBubble: true, bool cancelable: true, String oldUrl,
       String newUrl}) {
+
+    // TODO(alanknight): This is required while we're on Dartium 39, but will need
+    // to look like dart2js with later versions when initHashChange is removed.
     var event = document._createEvent("HashChangeEvent");
     event._initHashChangeEvent(type, canBubble, cancelable, oldUrl, newUrl);
     return event;
   }
+
   // To suppress missing implicit constructor warnings.
   factory HashChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
