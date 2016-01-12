@@ -1,4 +1,5 @@
 library CssTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
@@ -14,12 +15,8 @@ main() {
 
   group('functional', () {
     test('DomPoint', () {
-      var expectation = Window.supportsPointConversions ?
-          returnsNormally : throws;
-      expect(() {
-        Element element = new Element.tag('div');
-        element.attributes['style'] =
-          '''
+      Element element = new Element.tag('div');
+      element.attributes['style'] = '''
           position: absolute;
           width: 60px;
           height: 100px;
@@ -29,13 +26,12 @@ main() {
           -webkit-transform: translate3d(250px, 100px, 0px);
           -moz-transform: translate3d(250px, 100px, 0px);
           ''';
-        document.body.append(element);
+      document.body.append(element);
 
-        var elemRect = element.getBoundingClientRect();
+      var elemRect = element.getBoundingClientRect();
 
-        checkPoint(250, 100, new Point(elemRect.left, elemRect.top));
-        checkPoint(310, 200, new Point(elemRect.right, elemRect.bottom));
-      }, expectation);
+      checkPoint(250, 100, new Point(elemRect.left, elemRect.top));
+      checkPoint(310, 200, new Point(elemRect.right, elemRect.bottom));
     });
   });
 }

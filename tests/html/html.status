@@ -154,7 +154,6 @@ request_animation_frame_test: Skip # Times out. Issue 22167
 audiobuffersourcenode_test/supported: Fail
 audiocontext_test/supported: Fail
 crypto_test/supported: Fail
-css_test/supportsPointConversions: Fail
 document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
@@ -197,10 +196,6 @@ transferables_test: Fail # Issue 9846
 [ $compiler == dart2js && $minified ]
 canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605
 
-[ $compiler == dart2js && $runtime == chrome ]
-css_test/supportsPointConversions: Fail # Issues 21710
-css_test/functional: Fail # Issues 21710
-
 [ $runtime == ie11 ]
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
 canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
@@ -213,7 +208,6 @@ transferables_test: Pass, Fail # Issues 20659.
 audiobuffersourcenode_test/supported: Fail
 audiocontext_test/supported: Fail
 crypto_test/supported: Fail
-css_test/supportsPointConversions: Fail
 document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
@@ -333,7 +327,6 @@ url_test: Fail
 audiobuffersourcenode_test/supported: Fail
 audiocontext_test/supported: Fail
 crypto_test/supported: Fail
-css_test/supportsPointConversions: Fail
 document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_template: Fail
 indexeddb_1_test/supported: Fail
