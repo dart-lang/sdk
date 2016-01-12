@@ -462,6 +462,34 @@ abstract class ChildNode extends DartHtmlDomObject {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable()
+@DomName('Comment')
+@Native("Comment")
+class Comment extends CharacterData {
+  factory Comment([String data]) {
+    if (data != null) {
+      return wrap_jso(JS('Comment', '#.createComment(#)', document.raw, data));
+    }
+    return wrap_jso(JS('Comment', '#.createComment("")', document.raw));
+  }
+  // To suppress missing implicit constructor warnings.
+  factory Comment._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static Comment internalCreateComment() {
+    return new Comment.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  Comment.internal_() : super.internal_();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 @DomName('Console')
 class Console extends DartHtmlDomObject {
 
@@ -19434,7 +19462,7 @@ wrap_jso(jso) {
     name = JS('String', '#.name', constructor);
     f = getHtmlCreateFunction(name);
     if (f == null) {
-      console.warn('Could not instantiate $name');
+      console.error('Could not instantiate $name');
       skip = true;
       constructor = JS('', '#.__proto__', constructor);
     }
@@ -19465,6 +19493,7 @@ final htmlBlinkMap = {
   'CharacterData': () => CharacterData,
   'ChildNode': () => ChildNode,
   'ClientRect': () => _ClientRect,
+  'Comment': () => Comment,
   'Console': () => Console,
   'ConsoleBase': () => ConsoleBase,
   'DOMImplementation': () => DomImplementation,
@@ -19514,6 +19543,7 @@ final htmlBlinkFunctionMap = {
   'CSSStyleDeclaration': () => CssStyleDeclaration.internalCreateCssStyleDeclaration,
   'CharacterData': () => CharacterData.internalCreateCharacterData,
   'ClientRect': () => _ClientRect.internalCreate_ClientRect,
+  'Comment': () => Comment.internalCreateComment,
   'Console': () => Console.internalCreateConsole,
   'ConsoleBase': () => ConsoleBase.internalCreateConsoleBase,
   'DOMImplementation': () => DomImplementation.internalCreateDomImplementation,
