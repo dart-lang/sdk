@@ -390,8 +390,11 @@ class _LibrarySerializer {
   int serializeDependency(LibraryElement dependentLibrary) {
     return dependencyMap.putIfAbsent(dependentLibrary, () {
       int index = dependencies.length;
+      List<String> parts = dependentLibrary.parts
+          .map((CompilationUnitElement e) => e.source.uri.toString())
+          .toList();
       dependencies.add(encodePrelinkedDependency(
-          uri: dependentLibrary.source.uri.toString()));
+          uri: dependentLibrary.source.uri.toString(), parts: parts));
       return index;
     });
   }

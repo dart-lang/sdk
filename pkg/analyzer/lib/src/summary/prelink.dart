@@ -156,11 +156,13 @@ class _Prelinker {
     assert(dependencies.length == dependencyToPublicNamespace.length);
     int dependency = dependencies.length;
     uriToDependency[relativeUri] = dependency;
-    dependencies.add(encodePrelinkedDependency(uri: relativeUri));
+    List<String> unitUris = getUnitUris(relativeUri);
+    PrelinkedDependencyBuilder prelinkedDependency =
+        encodePrelinkedDependency(uri: relativeUri, parts: unitUris.sublist(1));
+    dependencies.add(prelinkedDependency);
 
     Map<String, _Meaning> aggregated = <String, _Meaning>{};
 
-    List<String> unitUris = getUnitUris(relativeUri);
     for (int unitNum = 0; unitNum < unitUris.length; unitNum++) {
       String unitUri = unitUris[unitNum];
       UnlinkedPublicNamespace importedNamespace = getImportCached(unitUri);

@@ -68,9 +68,19 @@ const topLevel = null;
  */
 class PrelinkedDependency {
   /**
-   * The relative URI used to import one library from the other.
+   * The relative URI of the dependent library.  This URI is relative to the
+   * importing library, even if there are intervening `export` declarations.
+   * So, for example, if `a.dart` imports `b/c.dart` and `b/c.dart` exports
+   * `d/e.dart`, the URI listed for `a.dart`'s dependency on `e.dart` will be
+   * `b/d/e.dart`.
    */
   String uri;
+
+  /**
+   * URI for the compilation units listed in the library's `part` declarations.
+   * These URIs are relative to the importing library.
+   */
+  List<String> parts;
 }
 
 /**

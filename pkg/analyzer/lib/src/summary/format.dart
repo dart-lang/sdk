@@ -45,35 +45,57 @@ class PrelinkedDependencyBuilder {
   bool _finished = false;
 
   String _uri;
+  List<String> _parts;
 
   PrelinkedDependencyBuilder();
 
   /**
-   * The relative URI used to import one library from the other.
+   * The relative URI of the dependent library.  This URI is relative to the
+   * importing library, even if there are intervening `export` declarations.
+   * So, for example, if `a.dart` imports `b/c.dart` and `b/c.dart` exports
+   * `d/e.dart`, the URI listed for `a.dart`'s dependency on `e.dart` will be
+   * `b/d/e.dart`.
    */
   void set uri(String _value) {
     assert(!_finished);
     _uri = _value;
   }
 
+  /**
+   * URI for the compilation units listed in the library's `part` declarations.
+   * These URIs are relative to the importing library.
+   */
+  void set parts(List<String> _value) {
+    assert(!_finished);
+    _parts = _value;
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
     fb.Offset offset_uri;
+    fb.Offset offset_parts;
     if (_uri != null) {
       offset_uri = fbBuilder.writeString(_uri);
+    }
+    if (!(_parts == null || _parts.isEmpty)) {
+      offset_parts = fbBuilder.writeList(_parts.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
     if (offset_uri != null) {
       fbBuilder.addOffset(0, offset_uri);
     }
+    if (offset_parts != null) {
+      fbBuilder.addOffset(1, offset_parts);
+    }
     return fbBuilder.endTable();
   }
 }
 
-PrelinkedDependencyBuilder encodePrelinkedDependency({String uri}) {
+PrelinkedDependencyBuilder encodePrelinkedDependency({String uri, List<String> parts}) {
   PrelinkedDependencyBuilder builder = new PrelinkedDependencyBuilder();
   builder.uri = uri;
+  builder.parts = parts;
   return builder;
 }
 
@@ -84,9 +106,19 @@ PrelinkedDependencyBuilder encodePrelinkedDependency({String uri}) {
 abstract class PrelinkedDependency extends base.SummaryClass {
 
   /**
-   * The relative URI used to import one library from the other.
+   * The relative URI of the dependent library.  This URI is relative to the
+   * importing library, even if there are intervening `export` declarations.
+   * So, for example, if `a.dart` imports `b/c.dart` and `b/c.dart` exports
+   * `d/e.dart`, the URI listed for `a.dart`'s dependency on `e.dart` will be
+   * `b/d/e.dart`.
    */
   String get uri;
+
+  /**
+   * URI for the compilation units listed in the library's `part` declarations.
+   * These URIs are relative to the importing library.
+   */
+  List<String> get parts;
 }
 
 class _PrelinkedDependencyReader extends fb.TableReader<_PrelinkedDependencyImpl> {
@@ -102,16 +134,24 @@ class _PrelinkedDependencyImpl implements PrelinkedDependency {
   _PrelinkedDependencyImpl(this._bp);
 
   String _uri;
+  List<String> _parts;
 
   @override
   Map<String, Object> toMap() => {
     "uri": uri,
+    "parts": parts,
   };
 
   @override
   String get uri {
     _uri ??= const fb.StringReader().vTableGet(_bp, 0, '');
     return _uri;
+  }
+
+  @override
+  List<String> get parts {
+    _parts ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 1, const <String>[]);
+    return _parts;
   }
 }
 

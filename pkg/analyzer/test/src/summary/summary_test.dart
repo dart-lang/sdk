@@ -112,10 +112,9 @@ class PrelinkerTest extends SummarizeElementsTest {
             summarize_elements.serializeLibrary(
                 library, analysisContext.typeProvider);
         for (int i = 0; i < serializedLibrary.unlinkedUnits.length; i++) {
-          uriToNamespace[serializedLibrary.unitUris[i]] =
-              new UnlinkedUnit.fromBuffer(
-                      serializedLibrary.unlinkedUnits[i].toBuffer())
-                  .publicNamespace;
+          uriToNamespace[
+              serializedLibrary.unitUris[i]] = new UnlinkedUnit.fromBuffer(
+              serializedLibrary.unlinkedUnits[i].toBuffer()).publicNamespace;
         }
       }
       return uriToNamespace;
@@ -371,6 +370,21 @@ abstract class SummaryTest {
   }
 
   /**
+   * Verify that the given [dependency] lists the given [absoluteUris] or
+   * [relativeUris] as its parts.
+   */
+  void checkDependencyParts(PrelinkedDependency dependency,
+      List<String> absoluteUris, List<String> relativeUris) {
+    if (expectAbsoluteUrisInDependencies) {
+      // The element model doesn't (yet) store enough information to recover
+      // relative URIs, so we have to use the absolute URI.
+      // TODO(paulberry): fix this.
+      relativeUris = absoluteUris;
+    }
+    expect(dependency.parts, relativeUris);
+  }
+
+  /**
    * Check that the given [documentationComment] matches the first
    * Javadoc-style comment found in [text].
    *
@@ -403,8 +417,11 @@ abstract class SummaryTest {
   /**
    * Verify that the dependency table contains an entry for a file reachable
    * via the given [absoluteUri] and [relativeUri].
+   *
+   * The [PrelinkedDependency] is returned.
    */
-  void checkHasDependency(String absoluteUri, String relativeUri) {
+  PrelinkedDependency checkHasDependency(
+      String absoluteUri, String relativeUri) {
     if (expectAbsoluteUrisInDependencies) {
       // The element model doesn't (yet) store enough information to recover
       // relative URIs, so we have to use the absolute URI.
@@ -414,11 +431,12 @@ abstract class SummaryTest {
     List<String> found = <String>[];
     for (PrelinkedDependency dep in prelinked.dependencies) {
       if (dep.uri == relativeUri) {
-        return;
+        return dep;
       }
       found.add(dep.uri);
     }
     fail('Did not find dependency $relativeUri.  Found: $found');
+    return null;
   }
 
   /**
@@ -786,8 +804,7 @@ b.C c4;''');
   UnlinkedTypeRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
-            allowErrors: allowErrors)
-        .type;
+        allowErrors: allowErrors).type;
   }
 
   /**
@@ -1441,6 +1458,8 @@ class C {
   test_dependencies_export_none() {
     // Exports are not listed as dependencies since no change to the exported
     // file can change the summary of the exporting file.
+    // TODO(paulberry): this needs to change since the element model for a
+    // library includes its export namespace.
     addNamedSource('/a.dart', 'library a; export "b.dart";');
     addNamedSource('/b.dart', 'library b;');
     serializeLibraryText('export "a.dart";');
@@ -1519,6 +1538,32 @@ class C {
     // The main test library doesn't depend on b.dart, because no change to
     // b.dart can possibly affect the serialized element model for it.
     checkLacksDependency(absUri('/b.dart'), 'b.dart');
+  }
+
+  test_dependencies_parts() {
+    addNamedSource(
+        '/a.dart', 'library a; part "b.dart"; part "c.dart"; class A {}');
+    addNamedSource('/b.dart', 'part of a;');
+    addNamedSource('/c.dart', 'part of a;');
+    serializeLibraryText('import "a.dart"; A a;');
+    PrelinkedDependency dep = checkHasDependency(absUri('/a.dart'), 'a.dart');
+    checkDependencyParts(
+        dep, [absUri('/b.dart'), absUri('/c.dart')], ['b.dart', 'c.dart']);
+  }
+
+  test_dependencies_parts_relative_to_importing_library() {
+    addNamedSource('/a/b.dart', 'export "c/d.dart";');
+    addNamedSource('/a/c/d.dart',
+        'library d; part "e/f.dart"; part "g/h.dart"; class D {}');
+    addNamedSource('/a/c/e/f.dart', 'part of d;');
+    addNamedSource('/a/c/g/h.dart', 'part of d;');
+    serializeLibraryText('import "a/b.dart"; D d;');
+    PrelinkedDependency dep =
+        checkHasDependency(absUri('/a/c/d.dart'), 'a/c/d.dart');
+    checkDependencyParts(
+        dep,
+        [absUri('/a/c/e/f.dart'), absUri('/a/c/g/h.dart')],
+        ['a/c/e/f.dart', 'a/c/g/h.dart']);
   }
 
   test_elements_in_part() {
@@ -1812,8 +1857,7 @@ enum E { v }''';
 
   test_executable_operator_index_set() {
     UnlinkedExecutable executable = serializeClassText(
-            'class C { void operator[]=(int i, bool v) => null; }')
-        .executables[0];
+        'class C { void operator[]=(int i, bool v) => null; }').executables[0];
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.name, '[]=');
     expect(executable.hasImplicitReturnType, false);
