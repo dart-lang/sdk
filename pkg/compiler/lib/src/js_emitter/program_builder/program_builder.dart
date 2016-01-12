@@ -312,7 +312,7 @@ class ProgramBuilder {
       LibrariesMap librariesMap) {
     JavaScriptConstantCompiler handler = backend.constants;
     DeferredLoadTask loadTask = _compiler.deferredLoadTask;
-    List<VariableElement> lazyFields = handler
+    Iterable<VariableElement> lazyFields = handler
         .getLazilyInitializedFieldsForEmission()
         .where((element) =>
             loadTask.outputUnitForElement(element) == librariesMap.outputUnit);
