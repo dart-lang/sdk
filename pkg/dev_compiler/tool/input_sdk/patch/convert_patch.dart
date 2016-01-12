@@ -33,7 +33,7 @@ _parseJson(String source, reviver(key, value)) {
   var parsed;
   try {
     parsed = JS('=Object|JSExtendableArray|Null|bool|num|String',
-                'JSON.parse(#)',
+                'dart.global.JSON.parse(#)',
                 source);
   } catch (e) {
     throw new FormatException(JS('String', 'String(#)', e));

@@ -1050,7 +1050,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     if (!(typeof source == 'string')) dart.throw(new core.ArgumentError(source));
     let parsed = null;
     try {
-      parsed = JSON.parse(source);
+      parsed = dart.global.JSON.parse(source);
     } catch (e) {
       dart.throw(new core.FormatException(String(e)));
     }
