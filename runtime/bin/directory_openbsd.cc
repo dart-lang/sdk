@@ -28,19 +28,23 @@ PathBuffer::PathBuffer() : length_(0) {
   data_ = calloc(PATH_MAX + 1,  sizeof(char));  // NOLINT
 }
 
+
 bool PathBuffer::AddW(const wchar_t* name) {
   UNREACHABLE();
   return false;
 }
 
+
 char* PathBuffer::AsString() const {
   return reinterpret_cast<char*>(data_);
 }
+
 
 wchar_t* PathBuffer::AsStringW() const {
   UNREACHABLE();
   return NULL;
 }
+
 
 bool PathBuffer::Add(const char* name) {
   char* data = AsString();
@@ -59,6 +63,7 @@ bool PathBuffer::Add(const char* name) {
     return false;
   }
 }
+
 
 void PathBuffer::Reset(int new_length) {
   length_ = new_length;
@@ -364,6 +369,7 @@ bool Directory::Create(const char* dir_name) {
   return (result == 0);
 }
 
+
 char* Directory::SystemTemp() {
   const char* temp_dir = getenv("TMPDIR");
   if (temp_dir == NULL) {
@@ -380,6 +386,7 @@ char* Directory::SystemTemp() {
   }
   return result;
 }
+
 
 char* Directory::CreateTemp(const char* prefix) {
   // Returns a new, unused directory name, adding characters to the end
