@@ -800,7 +800,7 @@ class BoundsCheck extends Primitive {
       [this.checks = BOTH_BOUNDS, this.sourceInformation])
       : this.object = new Reference<Primitive>(object),
         this.index = new Reference<Primitive>(index),
-        this.length = new Reference<Primitive>(length);
+        this.length = length == null ? null : new Reference<Primitive>(length);
 
   BoundsCheck.noCheck(Primitive object, [this.sourceInformation])
       : this.object = new Reference<Primitive>(object),
@@ -2679,7 +2679,7 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
           node.sourceInformation);
     } else {
       return new BoundsCheck(getCopy(node.object), getCopy(node.index),
-          getCopy(node.length),
+          node.length == null ? null : getCopy(node.length),
           node.checks,
           node.sourceInformation);
     }
