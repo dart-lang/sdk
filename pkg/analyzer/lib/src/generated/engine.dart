@@ -675,7 +675,7 @@ class AnalysisDelta {
   }
 
   /**
-   * Appendto the given [buffer] all sources with the given analysis [level],
+   * Append to the given [buffer] all sources with the given analysis [level],
    * prefixed with a label and a separator if [needsSeparator] is `true`.
    */
   bool _appendSources(
@@ -1780,7 +1780,7 @@ class ChangeSet_ContentChange {
   /**
    * Initialize a newly created change object to represent a change to the
    * content of a source. The [contents] is the new contents of the source. The
-   * [offse] ist the offset into the current contents. The [oldLength] is the
+   * [offset] is the offset into the current contents. The [oldLength] is the
    * number of characters in the original contents that were replaced. The
    * [newLength] is the number of characters in the replacement text.
    */
@@ -2116,7 +2116,7 @@ class PerformanceStatistics {
   /**
    * The [PerformanceTag] for time spent in other phases of analysis.
    */
-  static PerformanceTag performAnaysis = new PerformanceTag('performAnaysis');
+  static PerformanceTag performAnalysis = new PerformanceTag('performAnalysis');
 
   /**
    * The [PerformanceTag] for time spent in the analysis task visitor after
@@ -2137,6 +2137,11 @@ class PerformanceStatistics {
    */
   static PerformanceTag incrementalAnalysis =
       new PerformanceTag('incrementalAnalysis');
+
+  /**
+   * The [PerformanceTag] for time spent in summaries support.
+   */
+  static PerformanceTag summary = new PerformanceTag('summary');
 }
 
 /**
