@@ -560,9 +560,9 @@ TEST_CASE(SourcePosition_IfElse) {
   spt.FuzzyInstructionMatchAt("LoadStaticField", 5, 12);
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 5, 5);
   spt.FuzzyInstructionMatchAt("Return", 5, 5);
-  spt.FuzzyInstructionMatchAt("LoadStaticField", 7, 10);
-  spt.FuzzyInstructionMatchAt("DebugStepCheck", 7, 3);
-  spt.FuzzyInstructionMatchAt("Return", 7, 3);
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 7, 12);
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 7, 5);
+  spt.FuzzyInstructionMatchAt("Return", 7, 5);
 }
 
 }  // namespace dart
