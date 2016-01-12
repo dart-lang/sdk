@@ -393,6 +393,7 @@ int64_t OS::GetCurrentTimeMicros() {
   return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
 }
 
+
 int64_t OS::GetCurrentMonotonicMicros() {
   struct timespec ts;
   if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
@@ -405,6 +406,7 @@ int64_t OS::GetCurrentMonotonicMicros() {
   result += (ts.tv_nsec / kNanosecondsPerMicrosecond);
   return result;
 }
+
 
 void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
   const int kMinimumAlignment = 16;
@@ -547,6 +549,7 @@ int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
   return retval;
 }
 
+
 char* OS::SCreate(Zone* zone, const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -554,6 +557,7 @@ char* OS::SCreate(Zone* zone, const char* format, ...) {
   va_end(args);
   return buffer;
 }
+
 
 char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
@@ -577,6 +581,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   va_end(print_args);
   return buffer;
 }
+
 
 bool OS::StringToInt64(const char* str, int64_t* value) {
   ASSERT(str != NULL && strlen(str) > 0 && value != NULL);
