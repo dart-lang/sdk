@@ -410,10 +410,6 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return new Throw(value);
   }
 
-  Statement visitRethrow(cps_ir.Rethrow node) {
-    return new Rethrow();
-  }
-
   Statement visitUnreachable(cps_ir.Unreachable node) {
     return new Unreachable();
   }
@@ -744,11 +740,6 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return (Statement next) => next; // Compile to nothing.
   }
 
-  @override
-  Expression visitBoundsCheck(cps_ir.BoundsCheck node) {
-    throw 'Unexpected BoundsCheck node in tree builder';
-  }
-
   /********** UNUSED VISIT METHODS *************/
 
   unexpectedNode(cps_ir.Node node) {
@@ -761,4 +752,6 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   visitParameter(cps_ir.Parameter node) => unexpectedNode(node);
   visitContinuation(cps_ir.Continuation node) => unexpectedNode(node);
   visitMutableVariable(cps_ir.MutableVariable node) => unexpectedNode(node);
+  visitRethrow(cps_ir.Rethrow node) => unexpectedNode(node);
+  visitBoundsCheck(cps_ir.BoundsCheck node) => unexpectedNode(node);
 }

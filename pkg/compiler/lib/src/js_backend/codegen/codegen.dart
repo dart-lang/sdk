@@ -789,11 +789,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  void visitRethrow(tree_ir.Rethrow node) {
-    glue.reportInternalError('rethrow seen in JavaScript output');
-  }
-
-  @override
   void visitUnreachable(tree_ir.Unreachable node) {
     if (emitUnreachableAsReturn.last) {
       // Emit a return to assist local analysis in the VM.

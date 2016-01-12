@@ -607,21 +607,6 @@ class Throw extends Statement {
   accept1(StatementVisitor1 visitor, arg) => visitor.visitThrow(this, arg);
 }
 
-/// A rethrow of an exception.
-///
-/// Rethrow can only occur nested inside a catch block.  It implicitly throws
-/// the block's caught exception value without changing the caught stack
-/// trace.  It does not have a successor statement.
-class Rethrow extends Statement {
-  Statement get next => null;
-  void set next(Statement s) => throw 'UNREACHABLE';
-
-  Rethrow();
-
-  accept(StatementVisitor visitor) => visitor.visitRethrow(this);
-  accept1(StatementVisitor1 visitor, arg) => visitor.visitRethrow(this, arg);
-}
-
 /**
  * A conditional branch based on the true value of an [Expression].
  */
@@ -1080,7 +1065,6 @@ abstract class StatementVisitor<S> {
   S visitLabeledStatement(LabeledStatement node);
   S visitReturn(Return node);
   S visitThrow(Throw node);
-  S visitRethrow(Rethrow node);
   S visitBreak(Break node);
   S visitContinue(Continue node);
   S visitIf(If node);
@@ -1099,7 +1083,6 @@ abstract class StatementVisitor1<S, A> {
   S visitLabeledStatement(LabeledStatement node, A arg);
   S visitReturn(Return node, A arg);
   S visitThrow(Throw node, A arg);
-  S visitRethrow(Rethrow node, A arg);
   S visitBreak(Break node, A arg);
   S visitContinue(Continue node, A arg);
   S visitIf(If node, A arg);
@@ -1197,8 +1180,6 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   visitThrow(Throw node) {
     visitExpression(node.value);
   }
-
-  visitRethrow(Rethrow node) {}
 
   visitBreak(Break node) {}
 
@@ -1438,8 +1419,6 @@ class RecursiveTransformer extends Transformer {
     node.value = visitExpression(node.value);
     return node;
   }
-
-  visitRethrow(Rethrow node) => node;
 
   visitBreak(Break node) => node;
 

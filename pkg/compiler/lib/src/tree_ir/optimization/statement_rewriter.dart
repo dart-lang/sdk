@@ -611,10 +611,6 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
-  Statement visitRethrow(Rethrow node) {
-    return node;
-  }
-
   Statement visitUnreachable(Unreachable node) {
     return node;
   }
