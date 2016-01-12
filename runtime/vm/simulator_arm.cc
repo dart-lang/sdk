@@ -1174,8 +1174,10 @@ uword Simulator::CompareExchange(uword* address,
 uint32_t Simulator::CompareExchangeUint32(uint32_t* address,
                                           uint32_t compare_value,
                                           uint32_t new_value) {
-  ASSERT(sizeof(uword) == sizeof(uint32_t));
-  return CompareExchange(address, compare_value, new_value);
+  COMPILE_ASSERT(sizeof(uword) == sizeof(uint32_t));
+  return CompareExchange(reinterpret_cast<uword*>(address),
+                         static_cast<uword>(compare_value),
+                         static_cast<uword>(new_value));
 }
 
 
