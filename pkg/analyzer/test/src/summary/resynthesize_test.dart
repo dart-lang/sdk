@@ -49,6 +49,7 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.displayName, original.displayName);
     expect(original.enclosingElement, isNull);
     expect(resynthesized.enclosingElement, isNull);
+    expect(resynthesized.hasExtUri, original.hasExtUri);
     compareCompilationUnitElements(resynthesized.definingCompilationUnit,
         original.definingCompilationUnit);
     expect(resynthesized.parts.length, original.parts.length);
@@ -484,6 +485,10 @@ class ResynthTest extends ResolverTestCase {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
     // TODO(paulberry): test initializer
+  }
+
+  fail_library_hasExtUri() {
+    checkLibrary('import "dart-ext:doesNotExist.dart";');
   }
 
   LibraryElementImpl resynthesizeLibrary(
