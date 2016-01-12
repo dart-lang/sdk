@@ -49,6 +49,7 @@ const List<String> SKIP_LIST = const <String>[
   "path%20with%20spaces/",
   "one_line_dart_program.dart",
   "sourcemaps/invokes_test_file.dart",
+  "cps_ir/input/",
   // No longer maintained:
   "backend_dart/",
   // Broken tests:

@@ -1,0 +1,1 @@
+main() { return 42; }
