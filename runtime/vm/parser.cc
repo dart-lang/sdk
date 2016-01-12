@@ -6287,7 +6287,9 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
 
     // Suspend after the close.
     AwaitMarkerNode* await_marker =
-        new(Z) AwaitMarkerNode(async_temp_scope_, current_block_->scope);
+        new(Z) AwaitMarkerNode(async_temp_scope_,
+                               current_block_->scope,
+                               Scanner::kNoSourcePos);
     current_block_->statements->Add(await_marker);
     ReturnNode* continuation_ret = new(Z) ReturnNode(try_end_pos);
     continuation_ret->set_return_type(ReturnNode::kContinuationTarget);
@@ -9823,7 +9825,9 @@ AstNode* Parser::ParseYieldStatement() {
       yield->AddNode(set_is_yield_each);
     }
     AwaitMarkerNode* await_marker =
-        new(Z) AwaitMarkerNode(async_temp_scope_, current_block_->scope);
+        new(Z) AwaitMarkerNode(async_temp_scope_,
+                               current_block_->scope,
+                               Scanner::kNoSourcePos);
     yield->AddNode(await_marker);
     // Return true to indicate that a value has been generated.
     ReturnNode* return_true = new(Z) ReturnNode(yield_pos,
@@ -9891,7 +9895,9 @@ AstNode* Parser::ParseYieldStatement() {
     yield->AddNode(if_is_cancelled);
 
     AwaitMarkerNode* await_marker =
-        new(Z) AwaitMarkerNode(async_temp_scope_, current_block_->scope);
+        new(Z) AwaitMarkerNode(async_temp_scope_,
+                               current_block_->scope,
+                               Scanner::kNoSourcePos);
     yield->AddNode(await_marker);
     ReturnNode* continuation_return = new(Z) ReturnNode(yield_pos);
     continuation_return->set_return_type(ReturnNode::kContinuationTarget);

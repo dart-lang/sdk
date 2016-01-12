@@ -212,8 +212,10 @@ class AwaitNode : public AstNode {
 //   <AwaitMarker> -> ...
 class AwaitMarkerNode : public AstNode {
  public:
-  AwaitMarkerNode(LocalScope* async_scope, LocalScope* await_scope)
-    : AstNode(Scanner::kNoSourcePos),
+  AwaitMarkerNode(LocalScope* async_scope,
+                  LocalScope* await_scope,
+                  intptr_t token_pos)
+    : AstNode(token_pos),
       async_scope_(async_scope),
       await_scope_(await_scope) {
     ASSERT(async_scope != NULL);

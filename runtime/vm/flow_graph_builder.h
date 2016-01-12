@@ -396,11 +396,13 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildConstructorCall(ConstructorCallNode* node,
                             PushArgumentInstr* alloc_value);
 
-  void BuildSaveContext(const LocalVariable& variable);
-  void BuildRestoreContext(const LocalVariable& variable);
+  void BuildSaveContext(const LocalVariable& variable,
+                        intptr_t token_pos);
+  void BuildRestoreContext(const LocalVariable& variable,
+                           intptr_t token_pos);
 
-  Definition* BuildStoreContext(Value* value);
-  Definition* BuildCurrentContext();
+  Definition* BuildStoreContext(Value* value, intptr_t token_pos);
+  Definition* BuildCurrentContext(intptr_t token_pos);
 
   void BuildThrowNode(ThrowNode* node);
 

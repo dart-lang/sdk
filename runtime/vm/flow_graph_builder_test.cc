@@ -565,5 +565,99 @@ TEST_CASE(SourcePosition_IfElse) {
   spt.FuzzyInstructionMatchAt("Return", 7, 5);
 }
 
+
+TEST_CASE(SourcePosition_Switch) {
+  const char* kScript =
+      "var x = 5;\n"
+      "var y = 5;\n"
+      "main() {\n"
+      "  switch (x) {\n"
+      "    case 1: return 3;\n"
+      "    case 2: return 4;\n"
+      "    default: return 5;\n"
+      "  }\n"
+      "}\n";
+
+
+  SourcePositionTest spt(thread, kScript);
+  spt.BuildGraphFor("main");
+
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("Constant(#Field", 4, 11);
+  spt.FuzzyInstructionMatchAt("LoadStaticField", 4, 11);
+  spt.FuzzyInstructionMatchAt("StoreLocal(:switch_expr", 4, 11);
+
+  spt.FuzzyInstructionMatchAt("Constant(#1", 5, 10);
+  spt.FuzzyInstructionMatchAt("LoadLocal(:switch_expr", 5, 5);   // 'c'
+  spt.InstanceCallAt(5, 10, Token::kEQ);                         // '1'
+
+  spt.FuzzyInstructionMatchAt("Constant(#3", 5, 20);             // '3'
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 5, 13);
+  spt.FuzzyInstructionMatchAt("Return", 5, 13);
+
+  spt.FuzzyInstructionMatchAt("Constant(#2", 6, 10);
+  spt.FuzzyInstructionMatchAt("LoadLocal(:switch_expr", 6, 5);   // 'c'
+  spt.InstanceCallAt(6, 10, Token::kEQ);                         // '2'
+
+  spt.FuzzyInstructionMatchAt("Constant(#4", 6, 20);             // '4'
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 6, 13);
+  spt.FuzzyInstructionMatchAt("Return", 6, 13);
+
+  spt.FuzzyInstructionMatchAt("Constant(#5", 7, 21);             // '5'
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 7, 14);
+  spt.FuzzyInstructionMatchAt("Return", 7, 14);
+}
+
+
+TEST_CASE(SourcePosition_TryCatchFinally) {
+  const char* kScript =
+      "var x = 5;\n"
+      "var y = 5;\n"
+      "main() {\n"
+      "  try {\n"
+      "    throw 'A';\n"
+      "  } catch (e) {\n"
+      "    print(e);\n"
+      "    return 77;\n"
+      "  } finally {\n"
+      "    return 99;\n"
+      "  }\n"
+      "}\n";
+
+  SourcePositionTest spt(thread, kScript);
+  spt.BuildGraphFor("main");
+
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+
+  spt.FuzzyInstructionMatchAt("LoadLocal(:current_context", 4, 3);     // 't'
+  spt.FuzzyInstructionMatchAt("StoreLocal(:saved_try_context", 4, 3);
+
+  spt.FuzzyInstructionMatchAt("Constant(#A", 5, 11);                   // 'A'
+  spt.FuzzyInstructionMatchAt("Throw", 5, 5);                          // 't'
+
+  spt.FuzzyInstructionMatchAt("LoadLocal(:saved_try_context", 6, 5);   // 'c'
+  spt.FuzzyInstructionMatchAt("StoreLocal(:current_context", 6, 5);    // 'c'
+  spt.FuzzyInstructionMatchAt("LoadLocal(:exception_var", 6, 5);       // 'c'
+  spt.FuzzyInstructionMatchAt("StoreLocal(e", 6, 5);                   // 'c'
+
+  spt.FuzzyInstructionMatchAt("LoadLocal(e", 7, 11);                   // 'e'
+
+  spt.FuzzyInstructionMatchAt("StaticCall", 7, 5);                     // 'p'
+
+  spt.FuzzyInstructionMatchAt("Constant(#77", 8, 12);                  // '7'
+  spt.FuzzyInstructionMatchAt("StoreLocal(:finally_ret_val", 8, 5);    // 'r'
+
+  spt.FuzzyInstructionMatchAt("Constant(#99", 10, 12);                 // '9'
+  spt.FuzzyInstructionMatchAt("Return", 10, 5);                        // 'r'
+
+  spt.FuzzyInstructionMatchAt("LoadLocal(:saved_try_context", 9, 13);  // '{'
+  spt.FuzzyInstructionMatchAt("StoreLocal(:current_context", 9, 13);   // '{'
+
+  spt.FuzzyInstructionMatchAt("Constant(#99", 10, 12);                 // '9'
+  spt.FuzzyInstructionMatchAt("Return", 10, 5);                        // 'r'
+}
+
 }  // namespace dart
 

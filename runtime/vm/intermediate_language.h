@@ -47,7 +47,8 @@ class UnboxIntegerInstr;
     V(TempMove, -5)                                                            \
     V(Constant, -6)                                                            \
     V(PushArgument, -7)                                                        \
-    V(ControlFlow, -8)
+    V(ControlFlow, -8)                                                         \
+    V(Context, -9)
 
 // COMPILE_ASSERT that all CLASSIFYING_TOKEN_POSITIONS are less than
 // Scanner::kNoSourcePos.
