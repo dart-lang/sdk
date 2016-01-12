@@ -225,6 +225,14 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
       // finalized yet.
       return false;
     }
+    // Do not run the optimization below if in background compilation since
+    // resolution of method extractor functions may create new signature
+    // classes.
+    // TODO(regis): Remove test for background compilation once signature
+    // classes are not generated any longer.
+    if (!thread()->IsMutatorThread()) {
+      return false;
+    }
     const Array& args_desc_array = Array::Handle(Z,
         ArgumentsDescriptor::New(call->ArgumentCount(),
                                  call->argument_names()));
