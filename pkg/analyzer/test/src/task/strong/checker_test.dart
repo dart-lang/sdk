@@ -1493,6 +1493,23 @@ void main() {
        '''
   });
 
+  testChecker('null coalescing operator', {
+    '/main.dart': '''
+          class A {}
+          class C<T> {}
+          main() {
+            A a, b;
+            a ??= new A();
+            b = b ?? new A();
+
+            // downwards inference
+            C<int> c, d;
+            c ??= /*info:INFERRED_TYPE_ALLOCATION*/new C();
+            d = d ?? /*info:INFERRED_TYPE_ALLOCATION*/new C();
+          }
+       '''
+  });
+
   testChecker('compound assignments', {
     '/main.dart': '''
           class A {

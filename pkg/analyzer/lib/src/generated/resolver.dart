@@ -8435,7 +8435,11 @@ class ResolverVisitor extends ScopedVisitor {
       }
     } else {
       // TODO(leafp): Do downwards inference using the declared type
-      // of the binary operator.
+      // of the binary operator for other cases.
+      if (operatorType == TokenType.QUESTION_QUESTION) {
+        InferenceContext.setTypeFromNode(leftOperand, node);
+        InferenceContext.setTypeFromNode(rightOperand, node);
+      }
       safelyVisit(leftOperand);
       safelyVisit(rightOperand);
     }

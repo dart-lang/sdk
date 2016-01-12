@@ -189,11 +189,12 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     var token = node.operator;
-    if (token.type != TokenType.EQ) {
-      _checkCompoundAssignment(node);
-    } else {
+    if (token.type == TokenType.EQ ||
+        token.type == TokenType.QUESTION_QUESTION_EQ) {
       DartType staticType = _getStaticType(node.leftHandSide);
       checkAssignment(node.rightHandSide, staticType);
+    } else {
+      _checkCompoundAssignment(node);
     }
     node.visitChildren(this);
   }
