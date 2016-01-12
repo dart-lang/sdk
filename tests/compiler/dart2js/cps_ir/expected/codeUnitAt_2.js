@@ -15,8 +15,9 @@ function() {
   for (; i < v0; sum += "ABC".charCodeAt(i), ++i)
     ;
   P.print(sum);
+  v0 = "Hello".length;
   sum = 0;
-  for (i = 0; i < "Hello".length; sum += "Hello".charCodeAt(i), ++i)
+  for (i = 0; i < v0; sum += "Hello".charCodeAt(i), ++i)
     ;
   P.print(sum);
 }

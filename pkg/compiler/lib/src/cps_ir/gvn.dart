@@ -176,14 +176,47 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     return next;
   }
 
+  bool isFirstImpureExpressionInLoop(Expression exp) {
+    InteriorNode node = exp.parent;
+    for (; node is Expression; node = node.parent) {
+      if (node is LetPrim && node.primitive.isSafeForElimination) {
+        continue;
+      }
+      if (node is LetCont) {
+        continue;
+      }
+      return false;
+    }
+    return node == currentLoopHeader;
+  }
+
+  bool isHoistablePrimitive(Primitive prim) {
+    if (prim.isSafeForElimination) return true;
+    if (prim is NullCheck ||
+        prim is BoundsCheck ||
+        prim is GetLength ||
+        prim is GetField ||
+        prim is GetIndex) {
+      // Expressions that potentially throw but have no other effects can be
+      // hoisted if they occur as the first impure expression in a loop.
+      // Note regarding BoundsCheck: the current array length is an input to
+      // check, so the check itself has no heap dependency.  It will only be
+      // hoisted if the length was hoisted.
+      // TODO(asgerf): In general we could hoist these out of multiple loops,
+      //   but the trick we use here only works for one loop level.
+      return isFirstImpureExpressionInLoop(prim.parent);
+    }
+    return false;
+  }
+
   /// Try to hoist the binding of [prim] out of loops. Returns `true` if it was
   /// hoisted or marked as a trivial hoist-on-demand primitive.
   bool tryToHoistOutOfLoop(Primitive prim, int gvn) {
-    // Do not hoist primitives with side effects.
-    if (!prim.isSafeForElimination) return false;
-
     // Bail out fast if the primitive is not inside a loop.
     if (currentLoopHeader == null) return false;
+
+    // Do not hoist primitives with side effects.
+    if (!isHoistablePrimitive(prim)) return false;
 
     LetPrim letPrim = prim.parent;
 
@@ -327,9 +360,15 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
   }
 
   /// Assuming [prim] has no side effects, returns true if it can safely
-  /// be hoisted out of [loop] without changing its value.
+  /// be hoisted out of [loop] without changing its value or changing the timing
+  /// of a thrown exception.
   bool canHoistHeapDependencyOutOfLoop(Primitive prim, Continuation loop) {
-    assert(prim.isSafeForElimination);
+    // If the primitive might throw, we have to check that it is the first
+    // impure expression in the loop.  This has already been checked if
+    // [loop] is the current loop header, but for other loops we just give up.
+    if (!prim.isSafeForElimination && loop != currentLoopHeader) {
+      return false;
+    }
     if (prim is GetLength && !isImmutableLength(prim)) {
       return !loopEffects.loopChangesLength(loop);
     } else if (prim is GetField && !isImmutable(prim.field)) {
@@ -342,7 +381,6 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
       return true;
     }
   }
-
 
   // ------------------ TRAVERSAL AND EFFECT NUMBERING ---------------------
   //
