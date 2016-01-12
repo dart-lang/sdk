@@ -297,10 +297,11 @@ super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSe
 switch_label2_test: Crash # (switch (target){cas...  continue to a labeled switch case
 switch_label_test: Crash # (switch (animal){cas...  continue to a labeled switch case
 switch_try_catch_test: Crash # (switch (0){_0:case ...  continue to a labeled switch case
-type_variable_closure2_test: RuntimeError # Please triage this failure.
-type_variable_field_initializer_closure_test: RuntimeError # Please triage this failure.
-type_variable_field_initializer_test: RuntimeError # Please triage this failure.
-type_variable_nested_test: RuntimeError # Please triage this failure.
+type_variable_closure2_test: RuntimeError # Issue 25309: T lost in List<T>
+type_variable_closure4_test: RuntimeError # T lost in <T,T>{}
+type_variable_field_initializer_closure_test: RuntimeError # Issue 25309: T lost in List<T>
+type_variable_field_initializer_test: RuntimeError # Issue 25309: T lost in List<T>
+type_variable_nested_test: RuntimeError # Issue 25309: T lost in List<T>
 
 [ $compiler == dart2js && $cps_ir && $host_checked == false ]
 regress_21795_test: Pass, RuntimeError # Due to inlining?
