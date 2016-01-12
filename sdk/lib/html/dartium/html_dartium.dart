@@ -20103,7 +20103,9 @@ class HtmlDocument extends Document {
     _body = value;
   }
 
+  /// UNSTABLE: Chrome-only - create a Range from the given point.
   @DomName('Document.caretRangeFromPoint')
+  @Unstable()
   Range caretRangeFromPoint(int x, int y) {
     return _caretRangeFromPoint(x, y);
   }
