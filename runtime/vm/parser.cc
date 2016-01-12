@@ -52,6 +52,8 @@ DEFINE_FLAG(bool, conditional_directives, false,
     "Enable conditional directives");
 DEFINE_FLAG(bool, warn_super, false,
     "Warning if super initializer not last in initializer list.");
+DEFINE_FLAG(bool, await_is_keyword, false,
+    "await and yield are treated as proper keywords in synchronous code.");
 
 DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, load_deferred_eagerly);
@@ -10180,12 +10182,14 @@ String* Parser::ExpectIdentifier(const char* msg) {
 
 
 bool Parser::IsAwaitKeyword() {
-  return await_is_keyword_ && IsSymbol(Symbols::Await());
+  return (FLAG_await_is_keyword || await_is_keyword_) &&
+      IsSymbol(Symbols::Await());
 }
 
 
 bool Parser::IsYieldKeyword() {
-  return await_is_keyword_ && IsSymbol(Symbols::YieldKw());
+  return (FLAG_await_is_keyword || await_is_keyword_) &&
+      IsSymbol(Symbols::YieldKw());
 }
 
 
