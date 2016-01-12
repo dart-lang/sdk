@@ -209,7 +209,7 @@ abstract class JumpCollector {
     for (Iterable<LocalVariableElement> boxedOnEntry in _boxedTryVariables) {
       for (LocalVariableElement variable in boxedOnEntry) {
         assert(builder.isInMutableVariable(variable));
-        ir.Primitive value = builder.buildLocalVariableGet(variable);
+        ir.Primitive value = builder.buildLocalGet(variable);
         builder.environment.update(variable, value);
       }
     }
@@ -755,24 +755,6 @@ class IrBuilder {
         allocationSiteType: allocationSiteType));
   }
 
-  /// Creates a non-constant map literal of the provided [type] and with the
-  /// entries build from the [keys] and [values] using [build].
-  ir.Primitive buildMapLiteral(InterfaceType type,
-                               Iterable keys,
-                               Iterable values,
-                               BuildFunction build) {
-    assert(isOpen);
-    List<ir.LiteralMapEntry> entries = <ir.LiteralMapEntry>[];
-    Iterator key = keys.iterator;
-    Iterator value = values.iterator;
-    while (key.moveNext() && value.moveNext()) {
-      entries.add(new ir.LiteralMapEntry(
-          build(key.current), build(value.current)));
-    }
-    assert(!key.moveNext() && !value.moveNext());
-    return addPrimitive(new ir.LiteralMap(type, entries));
-  }
-
   /// Creates a conditional expression with the provided [condition] where the
   /// then and else expression are created through the [buildThenExpression]
   /// and [buildElseExpression] functions, respectively.
@@ -983,32 +965,6 @@ class IrBuilder {
     return value;
   }
 
-  /// Create a read access of the [local] variable or parameter.
-  ir.Primitive buildLocalVariableGet(LocalElement local) {
-    // TODO(johnniwinther): Separate function access from variable access.
-    return _buildLocalGet(local);
-  }
-
-  /// Create a read access of the local [function], i.e. closurization of
-  /// [function].
-  ir.Primitive buildLocalFunctionGet(LocalFunctionElement function) {
-    // TODO(johnniwinther): Separate function access from variable access.
-    return _buildLocalGet(function);
-  }
-
-  /// Create an invocation of the the [local] variable or parameter where
-  /// argument structure is defined by [callStructure] and the argument values
-  /// are defined by [arguments].
-  ir.Primitive buildLocalVariableInvocation(
-      LocalVariableElement local,
-      CallStructure callStructure,
-      List<ir.Primitive> arguments,
-      {SourceInformation callSourceInformation}) {
-    return buildCallInvocation(
-        buildLocalVariableGet(local), callStructure, arguments,
-        sourceInformation: callSourceInformation);
-  }
-
   /// Create an invocation of the local [function] where argument structure is
   /// defined by [callStructure] and the argument values are defined by
   /// [arguments].
@@ -1019,7 +975,7 @@ class IrBuilder {
       SourceInformation sourceInformation) {
     // TODO(johnniwinther): Maybe this should have its own ir node.
     return buildCallInvocation(
-        buildLocalFunctionGet(function), callStructure, arguments,
+        buildLocalGet(function), callStructure, arguments,
         sourceInformation: sourceInformation);
   }
 
@@ -1035,32 +991,12 @@ class IrBuilder {
     return buildInvokeStatic(function, selector, arguments, sourceInformation);
   }
 
-  /// Create a read access of the static [field].
-  ir.Primitive buildStaticFieldGet(FieldElement field,
-                                   SourceInformation sourceInformation) {
-    return addPrimitive(new ir.GetStatic(field, sourceInformation));
-  }
-
-  /// Create a read access of a static [field] that might not have been
-  /// initialized yet.
-  ir.Primitive buildStaticFieldLazyGet(FieldElement field,
-                                       SourceInformation sourceInformation) {
-    return addPrimitive(new ir.GetLazyStatic(field, sourceInformation));
-  }
-
   /// Create a getter invocation of the static [getter].
   ir.Primitive buildStaticGetterGet(MethodElement getter,
                                     SourceInformation sourceInformation) {
     Selector selector = new Selector.getter(getter.memberName);
     return buildInvokeStatic(
         getter, selector, const <ir.Primitive>[], sourceInformation);
-  }
-
-  /// Create a read access of the static [function], i.e. a closurization of
-  /// [function].
-  ir.Primitive buildStaticFunctionGet(MethodElement function,
-                                      {SourceInformation sourceInformation}) {
-    return addPrimitive(new ir.GetStatic(function, sourceInformation));
   }
 
   /// Create a write access to the static [field] with the [value].
@@ -1443,7 +1379,8 @@ class IrBuilder {
       }
     } else if (Elements.isStaticOrTopLevel(variableElement)) {
       if (variableElement.isField) {
-        bodyBuilder.buildStaticFieldSet(variableElement, currentValue);
+        bodyBuilder.addPrimitive(
+            new ir.SetStatic(variableElement, currentValue));
       } else {
         bodyBuilder.buildStaticSetterSet(variableElement, currentValue);
       }
@@ -1757,7 +1694,7 @@ class IrBuilder {
         new Map<Local, ir.MutableVariable>.from(mutableVariables);
     for (LocalVariableElement variable in variables.boxedOnEntry) {
       assert(!tryCatchBuilder.isInMutableVariable(variable));
-      ir.Primitive value = tryCatchBuilder.buildLocalVariableGet(variable);
+      ir.Primitive value = tryCatchBuilder.buildLocalGet(variable);
       tryCatchBuilder.makeMutableVariable(variable);
       tryCatchBuilder.declareLocalVariable(variable, initialValue: value);
     }
@@ -1775,7 +1712,7 @@ class IrBuilder {
     IrBuilder catchBuilder = tryCatchBuilder.makeDelimitedBuilder();
     for (LocalVariableElement variable in variables.boxedOnEntry) {
       assert(catchBuilder.isInMutableVariable(variable));
-      ir.Primitive value = catchBuilder.buildLocalVariableGet(variable);
+      ir.Primitive value = catchBuilder.buildLocalGet(variable);
       // After this point, the variables that were boxed on entry to the try
       // are no longer treated as mutable.
       catchBuilder.removeMutableVariable(variable);
@@ -2477,8 +2414,8 @@ class IrBuilder {
         classElement, arguments, const <ir.Primitive>[], sourceInformation));
   }
 
-  /// Create a read access of [local] variable or parameter.
-  ir.Primitive _buildLocalGet(LocalElement local) {
+  /// Create a read access of [local] function, variable, or parameter.
+  ir.Primitive buildLocalGet(LocalElement local) {
     assert(isOpen);
     ClosureLocation location = state.boxedVariables[local];
     if (location != null) {
