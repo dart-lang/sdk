@@ -134,10 +134,11 @@ class _Proxy {
  * member access.
  * The runtime type of the object is unaffected.
  * It is not considered to implement any special interfaces,
- * so assigning it to a typed variable may fail in checked mode, and
- * testing it witsh the `is` operator will not work for any type except the
- * ones it actually implements. Accessing a member which isn't implemented by
- * the classs will cause the `noSuchMethod` method to be called normally -
+ * so assigning it to a typed variable may fail in checked mode,
+ * and testing it with the `is` operator
+ * will only return true for types it actually implements or extends.
+ * Accessing a member which isn't implemented by the classs
+ * will cause the `noSuchMethod` method to be called normally,
  * the `@proxy` annotation merely states the intent to handle (some of) those
  * `noSuchMethod` calls gracefully.
  *
