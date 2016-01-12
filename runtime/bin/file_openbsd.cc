@@ -289,6 +289,7 @@ bool File::Copy(const char* old_path, const char* new_path) {
                                              buffer,
                                              kBufferSize))) > 0) {
       int wrote = TEMP_FAILURE_RETRY(write(new_fd, buffer, result));
+      // TODO(mulander): deal with short writes: http://dartbug.com/25399
       if (wrote != result) {
         result = -1;
         break;
