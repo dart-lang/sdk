@@ -825,7 +825,6 @@ LibTest/isolate/ReceivePort/asBroadcastStream_A03_t03: Pass, RuntimeError # Issu
 LibTest/isolate/ReceivePort/close_A01_t01: Pass, RuntimeError # Issue 13921, co19 issue for false pass https://github.com/dart-lang/co19/issues/13
 LibTest/isolate/ReceivePort/close_A02_t01: Pass, RuntimeError # Issue 13921, co19 issue for false pass https://github.com/dart-lang/co19/issues/13
 LibTest/isolate/ReceivePort/sendPort_A01_t01: RuntimeError # Issue 13921
-LibTest/isolate/SendPort/send_A01_t04: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/isolate/SendPort/send_A02_t04: Fail # Issue 13921
 LibTest/isolate/SendPort/send_A02_t05: Fail # Issue 13921
 LibTest/isolate/SendPort/send_A02_t06: Fail # Issue 13921
