@@ -3100,10 +3100,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     if (_functionTypesToFix != null) {
       _functionTypesToFix.add(element);
     } else {
-      // TODO(jmesserly): for local functions inside of top-level generic
-      // functions, this is probably not right. The function type should be set
-      // after the enclosingElement is set, otherwise we won't be able to
-      // substitute those type parameters later.
       element.type = new FunctionTypeImpl(element);
     }
     element.hasImplicitReturnType = true;

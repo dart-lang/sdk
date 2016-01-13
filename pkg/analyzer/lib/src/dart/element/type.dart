@@ -216,22 +216,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * Private constructor.
    */
   FunctionTypeImpl._(TypeParameterizedElement element, String name,
-      this.prunedTypedefs, List<DartType> typeArguments, this._isInstantiated)
-      : super(element, name) {
-    if (typeArguments == null) {
-      // TODO(jmesserly): reuse TypeParameterTypeImpl.getTypes once we can
-      // make it generic, which will allow it to return List<DartType> instead
-      // of List<TypeParameterType>.
-      if (typeParameters.isEmpty) {
-        typeArguments = DartType.EMPTY_LIST;
-      } else {
-        typeArguments = new List<DartType>.from(
-            typeParameters.map((t) => t.type),
-            growable: false);
-      }
-    }
-    _typeArguments = typeArguments;
-  }
+      this.prunedTypedefs, this._typeArguments, this._isInstantiated)
+      : super(element, name);
 
   /**
    * Return the base parameter elements of this function element.
@@ -493,7 +479,21 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   /**
    * A list containing the actual types of the type arguments.
    */
-  List<DartType> get typeArguments => _typeArguments;
+  List<DartType> get typeArguments {
+    if (_typeArguments == null) {
+      // TODO(jmesserly): reuse TypeParameterTypeImpl.getTypes once we can
+      // make it generic, which will allow it to return List<DartType> instead
+      // of List<TypeParameterType>.
+      if (typeParameters.isEmpty) {
+        _typeArguments = DartType.EMPTY_LIST;
+      } else {
+        _typeArguments = new List<DartType>.from(
+            typeParameters.map((t) => t.type),
+            growable: false);
+      }
+    }
+    return _typeArguments;
+  }
 
   @override
   List<TypeParameterElement> get typeParameters {

@@ -13043,6 +13043,8 @@ var topG = topF;
 void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var c = new C<int>();
   /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+
+  var lambdaCall = (/*<E>*/(/*=E*/ e) => e)/*<int>*/(3);
   var methodCall = (c.f)/*<int>*/(3);
   var staticCall = (C.g)/*<int>*/(3);
   var staticFieldCall = (C.h)/*<int>*/(3);
@@ -13059,6 +13061,7 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
     expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
     expect(_findIdentifier('localCall').staticType.toString(), "int");
     expect(_findIdentifier('paramCall').staticType.toString(), "int");
+    expect(_findIdentifier('lambdaCall').staticType.toString(), "int");
   }
 
   void fail_genericMethod_functionExpressionInvocation_inferred() {
@@ -13074,6 +13077,8 @@ var topG = topF;
 void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var c = new C<int>();
   /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+
+  var lambdaCall = (/*<E>*/(/*=E*/ e) => e)(3);
   var methodCall = (c.f)(3);
   var staticCall = (C.g)(3);
   var staticFieldCall = (C.h)(3);
@@ -13090,6 +13095,7 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
     expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
     expect(_findIdentifier('localCall').staticType.toString(), "int");
     expect(_findIdentifier('paramCall').staticType.toString(), "int");
+    expect(_findIdentifier('lambdaCall').staticType.toString(), "int");
   }
 
   void fail_genericMethod_functionInvocation_inferred() {
