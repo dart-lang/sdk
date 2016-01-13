@@ -91,6 +91,7 @@ io/process_exit_negative_test: Fail, OK # relies on a static error that is a war
 package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issue 3051
 package/package_test: Fail, OK # dart2js does not support 'package:foo.dart' imports
 package/package1_test: Fail, OK # dart2js does not support 'package:foo.dart' imports
+package/scenarios/invalid/*: CompileTimeError  # Negative tests expecting CompileTimeErrors.
 full_coverage_test: Skip
 left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.
 pow_test: Skip # Precision > 53 bits.
