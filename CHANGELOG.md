@@ -12,6 +12,8 @@
   * Added `current` getter to `StackTrace` class.
   * Added `Uri.data` getter for `data:` URIs, and `UriData` class for the
     return type.
+  * Addad `Uri.queryParametersAll` to handle multiple query parameters with
+    the same name.
   * Added `growable` parameter to `List.filled` constructor.
   * Added microsecond support to `DateTime`: `DateTime.microsecond`,
     `DateTime.microsecondsSinceEpoch`, and
