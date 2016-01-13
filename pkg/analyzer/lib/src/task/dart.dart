@@ -1488,9 +1488,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     for (Directive directive in directivesToResolve) {
       directive.element = libraryElement;
     }
-    if (sourcedCompilationUnits.isNotEmpty) {
-      _patchTopLevelAccessors(libraryElement);
-    }
+      BuildLibraryElementUtils.patchTopLevelAccessors(libraryElement);
     if (libraryDirective != null) {
       _setDoc(libraryElement, libraryDirective);
     }
@@ -1500,25 +1498,6 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     outputs[BUILD_LIBRARY_ERRORS] = errors;
     outputs[LIBRARY_ELEMENT1] = libraryElement;
     outputs[IS_LAUNCHABLE] = entryPoint != null;
-  }
-
-  /**
-   * Add all of the non-synthetic [getters] and [setters] defined in the given
-   * [unit] that have no corresponding accessor to one of the given collections.
-   */
-  void _collectAccessors(Map<String, PropertyAccessorElement> getters,
-      List<PropertyAccessorElement> setters, CompilationUnitElement unit) {
-    for (PropertyAccessorElement accessor in unit.accessors) {
-      if (accessor.isGetter) {
-        if (!accessor.isSynthetic && accessor.correspondingSetter == null) {
-          getters[accessor.displayName] = accessor;
-        }
-      } else {
-        if (!accessor.isSynthetic && accessor.correspondingGetter == null) {
-          setters.add(accessor);
-        }
-      }
-    }
   }
 
   /**
@@ -1550,33 +1529,6 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       }
     }
     return null;
-  }
-
-  /**
-   * Look through all of the compilation units defined for the given [library],
-   * looking for getters and setters that are defined in different compilation
-   * units but that have the same names. If any are found, make sure that they
-   * have the same variable element.
-   */
-  void _patchTopLevelAccessors(LibraryElementImpl library) {
-    HashMap<String, PropertyAccessorElement> getters =
-        new HashMap<String, PropertyAccessorElement>();
-    List<PropertyAccessorElement> setters = <PropertyAccessorElement>[];
-    _collectAccessors(getters, setters, library.definingCompilationUnit);
-    for (CompilationUnitElement unit in library.parts) {
-      _collectAccessors(getters, setters, unit);
-    }
-    for (PropertyAccessorElement setter in setters) {
-      PropertyAccessorElement getter = getters[setter.displayName];
-      if (getter != null) {
-        TopLevelVariableElementImpl variable = getter.variable;
-        TopLevelVariableElementImpl setterVariable = setter.variable;
-        CompilationUnitElementImpl setterUnit = setterVariable.enclosingElement;
-        setterUnit.replaceTopLevelVariable(setterVariable, variable);
-        variable.setter = setter;
-        (setter as PropertyAccessorElementImpl).variable = variable;
-      }
-    }
   }
 
   /**

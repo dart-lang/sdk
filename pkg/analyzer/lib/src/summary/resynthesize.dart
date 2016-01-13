@@ -697,6 +697,8 @@ class _LibraryResynthesizer {
     for (int i = 0; i < parts.length; i++) {
       populateUnit(parts[i], i + 1);
     }
+    BuildLibraryElementUtils.patchTopLevelAccessors(libraryElement);
+    // Update delayed Object class references.
     if (isCoreLibrary) {
       ClassElement objectElement = libraryElement.getType('Object');
       assert(objectElement != null);

@@ -1455,8 +1455,30 @@ var x;''');
     checkLibrary('final int x = 0;');
   }
 
+  test_variable_getterInLib_setterInPart() {
+    addNamedSource('/a.dart', 'part of my.lib; void set x(int _) {}');
+    checkLibrary('library my.lib; part "a.dart"; int get x => 42;');
+  }
+
+  test_variable_getterInPart_setterInLib() {
+    addNamedSource('/a.dart', 'part of my.lib; int get x => 42;');
+    checkLibrary('library my.lib; part "a.dart"; void set x(int _) {}');
+  }
+
+  test_variable_getterInPart_setterInPart() {
+    addNamedSource('/a.dart', 'part of my.lib; int get x => 42;');
+    addNamedSource('/b.dart', 'part of my.lib; void set x(int _) {}');
+    checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+  }
+
   test_variable_implicit_type() {
     checkLibrary('var x;');
+  }
+
+  test_variable_setterInPart_getterInPart() {
+    addNamedSource('/a.dart', 'part of my.lib; void set x(int _) {}');
+    addNamedSource('/b.dart', 'part of my.lib; int get x => 42;');
+    checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
   }
 
   test_variables() {

@@ -906,6 +906,63 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 }
 
 /**
+ * Utilities for [LibraryElementImpl] building.
+ */
+class BuildLibraryElementUtils {
+  /**
+   * Look through all of the compilation units defined for the given [library],
+   * looking for getters and setters that are defined in different compilation
+   * units but that have the same names. If any are found, make sure that they
+   * have the same variable element.
+   */
+  static void patchTopLevelAccessors(LibraryElementImpl library) {
+    // Without parts getters/setters already share the same variable element.
+    if (library.parts.isEmpty) {
+      return;
+    }
+    // Collect getters and setters.
+    HashMap<String, PropertyAccessorElement> getters =
+        new HashMap<String, PropertyAccessorElement>();
+    List<PropertyAccessorElement> setters = <PropertyAccessorElement>[];
+    _collectAccessors(getters, setters, library.definingCompilationUnit);
+    for (CompilationUnitElement unit in library.parts) {
+      _collectAccessors(getters, setters, unit);
+    }
+    // Move every setter to the corresponding getter's variable (if exists).
+    for (PropertyAccessorElement setter in setters) {
+      PropertyAccessorElement getter = getters[setter.displayName];
+      if (getter != null) {
+        TopLevelVariableElementImpl variable = getter.variable;
+        TopLevelVariableElementImpl setterVariable = setter.variable;
+        CompilationUnitElementImpl setterUnit = setterVariable.enclosingElement;
+        setterUnit.replaceTopLevelVariable(setterVariable, variable);
+        variable.setter = setter;
+        (setter as PropertyAccessorElementImpl).variable = variable;
+      }
+    }
+  }
+
+  /**
+   * Add all of the non-synthetic [getters] and [setters] defined in the given
+   * [unit] that have no corresponding accessor to one of the given collections.
+   */
+  static void _collectAccessors(Map<String, PropertyAccessorElement> getters,
+      List<PropertyAccessorElement> setters, CompilationUnitElement unit) {
+    for (PropertyAccessorElement accessor in unit.accessors) {
+      if (accessor.isGetter) {
+        if (!accessor.isSynthetic && accessor.correspondingSetter == null) {
+          getters[accessor.displayName] = accessor;
+        }
+      } else {
+        if (!accessor.isSynthetic && accessor.correspondingGetter == null) {
+          setters.add(accessor);
+        }
+      }
+    }
+  }
+}
+
+/**
  * Instances of the class `ClassScope` implement the scope defined by a class.
  */
 class ClassScope extends EnclosedScope {
@@ -6938,16 +6995,6 @@ class LibraryImportScope extends Scope {
 }
 
 /**
- * Instances of the class `LibraryResolver` are used to resolve one or more mutually dependent
- * libraries within a single context.
- */
-
-/**
- * Instances of the class `LibraryResolver` are used to resolve one or more mutually dependent
- * libraries within a single context.
- */
-
-/**
  * Instances of the class `LibraryScope` implement a scope containing all of the names defined
  * in a given library.
  */
@@ -9165,105 +9212,6 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
-  /**
-   * Given an [argumentList] and the [parameters] related to the element that
-   * will be invoked using those arguments, compute the list of parameters that
-   * correspond to the list of arguments.
-   *
-   * An error will be reported to [onError] if any of the arguments cannot be
-   * matched to a parameter. onError can be null to ignore the error.
-   *
-   * The flag [reportAsError] should be `true` if a compile-time error should be
-   * reported; or `false` if a compile-time warning should be reported
-   *
-   * Returns the parameters that correspond to the arguments.
-   */
-  static List<ParameterElement> resolveArgumentsToParameters(
-      ArgumentList argumentList,
-      List<ParameterElement> parameters,
-      void onError(ErrorCode errorCode, AstNode node, [List<Object> arguments]),
-      {bool reportAsError: false}) {
-    List<ParameterElement> requiredParameters = new List<ParameterElement>();
-    List<ParameterElement> positionalParameters = new List<ParameterElement>();
-    HashMap<String, ParameterElement> namedParameters =
-        new HashMap<String, ParameterElement>();
-    for (ParameterElement parameter in parameters) {
-      ParameterKind kind = parameter.parameterKind;
-      if (kind == ParameterKind.REQUIRED) {
-        requiredParameters.add(parameter);
-      } else if (kind == ParameterKind.POSITIONAL) {
-        positionalParameters.add(parameter);
-      } else {
-        namedParameters[parameter.name] = parameter;
-      }
-    }
-    List<ParameterElement> unnamedParameters =
-        new List<ParameterElement>.from(requiredParameters);
-    unnamedParameters.addAll(positionalParameters);
-    int unnamedParameterCount = unnamedParameters.length;
-    int unnamedIndex = 0;
-    NodeList<Expression> arguments = argumentList.arguments;
-    int argumentCount = arguments.length;
-    List<ParameterElement> resolvedParameters =
-        new List<ParameterElement>(argumentCount);
-    int positionalArgumentCount = 0;
-    HashSet<String> usedNames = new HashSet<String>();
-    bool noBlankArguments = true;
-    for (int i = 0; i < argumentCount; i++) {
-      Expression argument = arguments[i];
-      if (argument is NamedExpression) {
-        SimpleIdentifier nameNode = argument.name.label;
-        String name = nameNode.name;
-        ParameterElement element = namedParameters[name];
-        if (element == null) {
-          ErrorCode errorCode = (reportAsError
-              ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER
-              : StaticWarningCode.UNDEFINED_NAMED_PARAMETER);
-          if (onError != null) {
-            onError(errorCode, nameNode, [name]);
-          }
-        } else {
-          resolvedParameters[i] = element;
-          nameNode.staticElement = element;
-        }
-        if (!usedNames.add(name)) {
-          if (onError != null) {
-            onError(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode,
-                [name]);
-          }
-        }
-      } else {
-        if (argument is SimpleIdentifier && argument.name.isEmpty) {
-          noBlankArguments = false;
-        }
-        positionalArgumentCount++;
-        if (unnamedIndex < unnamedParameterCount) {
-          resolvedParameters[i] = unnamedParameters[unnamedIndex++];
-        }
-      }
-    }
-    if (positionalArgumentCount < requiredParameters.length &&
-        noBlankArguments) {
-      ErrorCode errorCode = (reportAsError
-          ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
-          : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
-      if (onError != null) {
-        onError(errorCode, argumentList,
-            [requiredParameters.length, positionalArgumentCount]);
-      }
-    } else if (positionalArgumentCount > unnamedParameterCount &&
-        noBlankArguments) {
-      ErrorCode errorCode = (reportAsError
-          ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
-          : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
-      if (onError != null) {
-        onError(errorCode, argumentList,
-            [unnamedParameterCount, positionalArgumentCount]);
-      }
-    }
-    return resolvedParameters;
-  }
-
   @override
   Object visitNamedExpression(NamedExpression node) {
     InferenceContext.setType(node.expression, InferenceContext.getType(node));
@@ -9889,6 +9837,105 @@ class ResolverVisitor extends ScopedVisitor {
     } else if (condition is ParenthesizedExpression) {
       _propagateTrueState(condition.expression);
     }
+  }
+
+  /**
+   * Given an [argumentList] and the [parameters] related to the element that
+   * will be invoked using those arguments, compute the list of parameters that
+   * correspond to the list of arguments.
+   *
+   * An error will be reported to [onError] if any of the arguments cannot be
+   * matched to a parameter. onError can be null to ignore the error.
+   *
+   * The flag [reportAsError] should be `true` if a compile-time error should be
+   * reported; or `false` if a compile-time warning should be reported
+   *
+   * Returns the parameters that correspond to the arguments.
+   */
+  static List<ParameterElement> resolveArgumentsToParameters(
+      ArgumentList argumentList,
+      List<ParameterElement> parameters,
+      void onError(ErrorCode errorCode, AstNode node, [List<Object> arguments]),
+      {bool reportAsError: false}) {
+    List<ParameterElement> requiredParameters = new List<ParameterElement>();
+    List<ParameterElement> positionalParameters = new List<ParameterElement>();
+    HashMap<String, ParameterElement> namedParameters =
+        new HashMap<String, ParameterElement>();
+    for (ParameterElement parameter in parameters) {
+      ParameterKind kind = parameter.parameterKind;
+      if (kind == ParameterKind.REQUIRED) {
+        requiredParameters.add(parameter);
+      } else if (kind == ParameterKind.POSITIONAL) {
+        positionalParameters.add(parameter);
+      } else {
+        namedParameters[parameter.name] = parameter;
+      }
+    }
+    List<ParameterElement> unnamedParameters =
+        new List<ParameterElement>.from(requiredParameters);
+    unnamedParameters.addAll(positionalParameters);
+    int unnamedParameterCount = unnamedParameters.length;
+    int unnamedIndex = 0;
+    NodeList<Expression> arguments = argumentList.arguments;
+    int argumentCount = arguments.length;
+    List<ParameterElement> resolvedParameters =
+        new List<ParameterElement>(argumentCount);
+    int positionalArgumentCount = 0;
+    HashSet<String> usedNames = new HashSet<String>();
+    bool noBlankArguments = true;
+    for (int i = 0; i < argumentCount; i++) {
+      Expression argument = arguments[i];
+      if (argument is NamedExpression) {
+        SimpleIdentifier nameNode = argument.name.label;
+        String name = nameNode.name;
+        ParameterElement element = namedParameters[name];
+        if (element == null) {
+          ErrorCode errorCode = (reportAsError
+              ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER
+              : StaticWarningCode.UNDEFINED_NAMED_PARAMETER);
+          if (onError != null) {
+            onError(errorCode, nameNode, [name]);
+          }
+        } else {
+          resolvedParameters[i] = element;
+          nameNode.staticElement = element;
+        }
+        if (!usedNames.add(name)) {
+          if (onError != null) {
+            onError(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode,
+                [name]);
+          }
+        }
+      } else {
+        if (argument is SimpleIdentifier && argument.name.isEmpty) {
+          noBlankArguments = false;
+        }
+        positionalArgumentCount++;
+        if (unnamedIndex < unnamedParameterCount) {
+          resolvedParameters[i] = unnamedParameters[unnamedIndex++];
+        }
+      }
+    }
+    if (positionalArgumentCount < requiredParameters.length &&
+        noBlankArguments) {
+      ErrorCode errorCode = (reportAsError
+          ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
+          : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
+      if (onError != null) {
+        onError(errorCode, argumentList,
+            [requiredParameters.length, positionalArgumentCount]);
+      }
+    } else if (positionalArgumentCount > unnamedParameterCount &&
+        noBlankArguments) {
+      ErrorCode errorCode = (reportAsError
+          ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
+          : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
+      if (onError != null) {
+        onError(errorCode, argumentList,
+            [unnamedParameterCount, positionalArgumentCount]);
+      }
+    }
+    return resolvedParameters;
   }
 }
 
