@@ -1657,6 +1657,15 @@ void main() {
         '''
   });
 
+  testChecker('loadLibrary', {
+    '/lib1.dart': '''library lib1;''',
+    '/main.dart': r'''
+        import 'lib1.dart' deferred as lib1;
+        main() {
+          Future f = lib1.loadLibrary();
+        }'''
+  });
+
   group('invalid overrides', () {
     testChecker('child override', {
       '/main.dart': '''
