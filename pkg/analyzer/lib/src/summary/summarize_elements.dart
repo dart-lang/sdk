@@ -166,7 +166,7 @@ class _LibrarySerializer {
     for (PropertyAccessorElement accessor in element.accessors) {
       if (accessor.isPublic) {
         names.add(encodeUnlinkedPublicName(
-            kind: PrelinkedReferenceKind.other,
+            kind: PrelinkedReferenceKind.topLevelPropertyAccessor,
             name: accessor.name,
             numTypeParameters: accessor.typeParameters.length));
       }
@@ -188,7 +188,7 @@ class _LibrarySerializer {
     for (FunctionElement function in element.functions) {
       if (function.isPublic) {
         names.add(encodeUnlinkedPublicName(
-            kind: PrelinkedReferenceKind.other,
+            kind: PrelinkedReferenceKind.topLevelFunction,
             name: function.name,
             numTypeParameters: function.typeParameters.length));
       }
@@ -499,6 +499,7 @@ class _LibrarySerializer {
    */
   UnlinkedExportPublicBuilder serializeExportPublic(
       ExportElement exportElement) {
+    addTransitiveExportClosure(exportElement.exportedLibrary);
     UnlinkedExportPublicBuilder b = new UnlinkedExportPublicBuilder();
     b.uri = exportElement.uri;
     b.combinators = exportElement.combinators.map(serializeCombinator).toList();
@@ -547,6 +548,40 @@ class _LibrarySerializer {
     pb.units = prelinkedUnits;
     pb.dependencies = dependencies;
     pb.importDependencies = prelinkedImports;
+    List<String> exportedNames =
+        libraryElement.exportNamespace.definedNames.keys.toList();
+    exportedNames.sort();
+    List<PrelinkedExportNameBuilder> exportNames =
+        <PrelinkedExportNameBuilder>[];
+    for (String name in exportedNames) {
+      if (libraryElement.publicNamespace.definedNames.containsKey(name)) {
+        continue;
+      }
+      Element element = libraryElement.exportNamespace.get(name);
+      LibraryElement dependentLibrary = element.library;
+      CompilationUnitElement unitElement =
+          element.getAncestor((Element e) => e is CompilationUnitElement);
+      int unit = dependentLibrary.units.indexOf(unitElement);
+      assert(unit != -1);
+      PrelinkedReferenceKind kind;
+      if (element is PropertyAccessorElement) {
+        kind = PrelinkedReferenceKind.topLevelPropertyAccessor;
+      } else if (element is FunctionTypeAliasElement) {
+        kind = PrelinkedReferenceKind.typedef;
+      } else if (element is ClassElement) {
+        kind = PrelinkedReferenceKind.classOrEnum;
+      } else if (element is FunctionElement) {
+        kind = PrelinkedReferenceKind.topLevelFunction;
+      } else {
+        throw new Exception('Unexpected element kind: ${element.runtimeType}');
+      }
+      exportNames.add(encodePrelinkedExportName(
+          name: name,
+          dependency: serializeDependency(dependentLibrary),
+          unit: unit,
+          kind: kind));
+    }
+    pb.exportNames = exportNames;
     return pb;
   }
 

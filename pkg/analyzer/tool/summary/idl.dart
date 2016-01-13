@@ -84,6 +84,37 @@ class PrelinkedDependency {
 }
 
 /**
+ * Information about a single name in the export namespace of the library that
+ * is not in the public namespace.
+ */
+class PrelinkedExportName {
+  /**
+   * Name of the exported entity.  TODO(paulberry): do we include the trailing
+   * '=' for a setter?
+   */
+  String name;
+
+  /**
+   * Index into [PrelinkedLibrary.dependencies] for the library in which the
+   * entity is defined.
+   */
+  int dependency;
+
+  /**
+   * Integer index indicating which unit in the exported library contains the
+   * definition of the entity.  As with indices into [PrelinkedLibrary.units],
+   * zero represents the defining compilation unit, and nonzero values
+   * represent parts in the order of the corresponding `part` declarations.
+   */
+  int unit;
+
+  /**
+   * The kind of the entity being referred to.
+   */
+  PrelinkedReferenceKind kind;
+}
+
+/**
  * Pre-linked summary of a library.
  */
 @topLevel
@@ -115,6 +146,15 @@ class PrelinkedLibrary {
    * well, since there will effectively be a one-to-one mapping.
    */
   List<int> importDependencies;
+
+  /**
+   * Information about entities in the export namespace of the library that are
+   * not in the public namespace of the library (that is, entities that are
+   * brought into the namespace via `export` directives).
+   *
+   * Sorted by name.
+   */
+  List<PrelinkedExportName> exportNames;
 }
 
 /**
@@ -164,9 +204,14 @@ enum PrelinkedReferenceKind {
   typedef,
 
   /**
-   * The entity is a variable or executable.
+   * The entity is a top level function.
    */
-  other,
+  topLevelFunction,
+
+  /**
+   * The entity is a top level getter or setter.
+   */
+  topLevelPropertyAccessor,
 
   /**
    * The entity is a prefix.

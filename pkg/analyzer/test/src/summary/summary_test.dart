@@ -415,6 +415,30 @@ abstract class SummaryTest {
   }
 
   /**
+   * Verify that the given [exportName] represents a reference to an entity
+   * declared in a file reachable via [absoluteUri] and [relativeUri], having
+   * name [expectedName].  [expectedKind] is the kind of object referenced.
+   * [expectedTargetUnit] is the index of the compilation unit in which the
+   * target of the [exportName] is expected to appear; if not specified it is
+   * assumed to be the defining compilation unit.
+   */
+  void checkExportName(
+      PrelinkedExportName exportName,
+      String absoluteUri,
+      String relativeUri,
+      String expectedName,
+      PrelinkedReferenceKind expectedKind,
+      {int expectedTargetUnit: 0}) {
+    expect(exportName, new isInstanceOf<PrelinkedExportName>());
+    // Exported names must come from other libraries.
+    expect(exportName.dependency, isNot(0));
+    checkDependency(exportName.dependency, absoluteUri, relativeUri);
+    expect(exportName.name, expectedName);
+    expect(exportName.kind, expectedKind);
+    expect(exportName.unit, expectedTargetUnit);
+  }
+
+  /**
    * Verify that the dependency table contains an entry for a file reachable
    * via the given [absoluteUri] and [relativeUri].
    *
@@ -558,7 +582,7 @@ abstract class SummaryTest {
         expectedKind: PrelinkedReferenceKind.unresolved);
   }
 
-  fail_dependencies_export_to_export_unused() {
+  test_dependencies_export_to_export_unused() {
     // TODO(paulberry): fix this test.
     addNamedSource('/a.dart', 'export "b.dart";');
     addNamedSource('/b.dart', '');
@@ -570,7 +594,7 @@ abstract class SummaryTest {
     checkHasDependency(absUri('/b.dart'), 'b.dart');
   }
 
-  fail_dependencies_export_unused() {
+  test_dependencies_export_unused() {
     // TODO(paulberry): fix this test.
     addNamedSource('/a.dart', '');
     serializeLibraryText('export "a.dart";');
@@ -1478,18 +1502,6 @@ class C {
     expect(executable.returnType, isNull);
   }
 
-  test_dependencies_export_none() {
-    // Exports are not listed as dependencies since no change to the exported
-    // file can change the summary of the exporting file.
-    // TODO(paulberry): this needs to change since the element model for a
-    // library includes its export namespace.
-    addNamedSource('/a.dart', 'library a; export "b.dart";');
-    addNamedSource('/b.dart', 'library b;');
-    serializeLibraryText('export "a.dart";');
-    checkLacksDependency(absUri('/a.dart'), 'a.dart');
-    checkLacksDependency(absUri('/b.dart'), 'b.dart');
-  }
-
   test_dependencies_import_to_export() {
     addNamedSource('/a.dart', 'library a; export "b.dart"; class A {}');
     addNamedSource('/b.dart', 'library b;');
@@ -1690,7 +1702,7 @@ enum E { v }''';
     expect(executable.nameOffset, text.indexOf('f'));
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
-        PrelinkedReferenceKind.other);
+        PrelinkedReferenceKind.topLevelFunction);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'f');
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
@@ -1723,7 +1735,7 @@ enum E { v }''';
     expect(findExecutable('f='), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
-        PrelinkedReferenceKind.other);
+        PrelinkedReferenceKind.topLevelPropertyAccessor);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'f');
   }
 
@@ -2053,7 +2065,7 @@ enum E { v }''';
     expect(findExecutable('f'), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
-        PrelinkedReferenceKind.other);
+        PrelinkedReferenceKind.topLevelPropertyAccessor);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'f=');
   }
 
@@ -2140,6 +2152,65 @@ enum E { v }''';
     checkParamTypeRef(ex.returnType, 1);
   }
 
+  test_export_class() {
+    addNamedSource('/a.dart', 'class C {}');
+    serializeLibraryText('export "a.dart";');
+    expect(prelinked.exportNames, hasLength(1));
+    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'C',
+        PrelinkedReferenceKind.classOrEnum);
+  }
+
+  test_export_class_alias() {
+    addNamedSource(
+        '/a.dart', 'class C extends _D with _E {} class _D {} class _E {}');
+    serializeLibraryText('export "a.dart";');
+    expect(prelinked.exportNames, hasLength(1));
+    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'C',
+        PrelinkedReferenceKind.classOrEnum);
+  }
+
+  test_export_enum() {
+    addNamedSource('/a.dart', 'enum E { v }');
+    serializeLibraryText('export "a.dart";');
+    expect(prelinked.exportNames, hasLength(1));
+    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'E',
+        PrelinkedReferenceKind.classOrEnum);
+  }
+
+  test_export_from_part() {
+    addNamedSource('/a.dart', 'library foo; part "b.dart";');
+    addNamedSource('/b.dart', 'part of foo; f() {}');
+    serializeLibraryText('export "a.dart";');
+    expect(prelinked.exportNames, hasLength(1));
+    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
+        PrelinkedReferenceKind.topLevelFunction,
+        expectedTargetUnit: 1);
+  }
+
+  test_export_function() {
+    addNamedSource('/a.dart', 'f() {}');
+    serializeLibraryText('export "a.dart";');
+    expect(prelinked.exportNames, hasLength(1));
+    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
+        PrelinkedReferenceKind.topLevelFunction);
+  }
+
+  test_export_getter() {
+    addNamedSource('/a.dart', 'get f => null');
+    serializeLibraryText('export "a.dart";');
+    expect(prelinked.exportNames, hasLength(1));
+    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
+        PrelinkedReferenceKind.topLevelPropertyAccessor);
+  }
+
+  test_export_hide() {
+    addNamedSource('/a.dart', 'f() {} g() {}');
+    serializeLibraryText('export "a.dart" hide g;');
+    expect(prelinked.exportNames, hasLength(1));
+    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
+        PrelinkedReferenceKind.topLevelFunction);
+  }
+
   test_export_hide_order() {
     serializeLibraryText('export "dart:async" hide Future, Stream;');
     expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
@@ -2153,12 +2224,27 @@ enum E { v }''';
         'Future');
     expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides[1],
         'Stream');
+    expect(prelinked.exportNames, isNotEmpty);
+  }
+
+  test_export_names_excludes_names_from_library() {
+    addNamedSource('/a.dart', 'part of my.lib; int y; int _y;');
+    serializeLibraryText('library my.lib; part "a.dart"; int x; int _x;');
+    expect(prelinked.exportNames, isEmpty);
   }
 
   test_export_no_combinators() {
     serializeLibraryText('export "dart:async";');
     expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.exports[0].combinators, isEmpty);
+  }
+
+  test_export_not_shadowed_by_prefix() {
+    addNamedSource('/a.dart', 'f() {}');
+    serializeLibraryText('export "a.dart"; import "dart:core" as f; f.int _x;');
+    expect(prelinked.exportNames, hasLength(1));
+    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
+        PrelinkedReferenceKind.topLevelFunction);
   }
 
   test_export_offset() {
@@ -2168,6 +2254,65 @@ enum E { v }''';
         libraryText.indexOf('"dart:async"'));
     expect(unlinkedUnits[0].exports[0].uriEnd, libraryText.indexOf(';'));
     expect(unlinkedUnits[0].exports[0].offset, libraryText.indexOf('export'));
+  }
+
+  test_export_private() {
+    // Private names should not be exported.
+    addNamedSource('/a.dart', '_f() {}');
+    serializeLibraryText('export "a.dart";');
+    expect(prelinked.exportNames, isEmpty);
+  }
+
+  test_export_setter() {
+    addNamedSource('/a.dart', 'void set f(value) {}');
+    serializeLibraryText('export "a.dart";');
+    expect(prelinked.exportNames, hasLength(1));
+    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f=',
+        PrelinkedReferenceKind.topLevelPropertyAccessor);
+  }
+
+  test_export_shadowed() {
+    // f() is not shown in exportNames because it is already defined at top
+    // level in the library.
+    addNamedSource('/a.dart', 'f() {}');
+    serializeLibraryText('export "a.dart"; f() {}');
+    expect(prelinked.exportNames, isEmpty);
+  }
+
+  test_export_shadowed_variable() {
+    // Neither `v` nor `v=` is shown in exportNames because both are defined at
+    // top level in the library by the declaration `var v;`.
+    addNamedSource('/a.dart', 'var v;');
+    serializeLibraryText('export "a.dart"; var v;');
+    expect(prelinked.exportNames, isEmpty);
+  }
+
+  test_export_shadowed_variable_const() {
+    // `v=` is shown in exportNames because the top level declaration
+    // `const v = 0;` only shadows `v`, not `v=`.
+    addNamedSource('/a.dart', 'var v;');
+    serializeLibraryText('export "a.dart"; const v = 0;');
+    expect(prelinked.exportNames, hasLength(1));
+    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'v=',
+        PrelinkedReferenceKind.topLevelPropertyAccessor);
+  }
+
+  test_export_shadowed_variable_final() {
+    // `v=` is shown in exportNames because the top level declaration
+    // `final v = 0;` only shadows `v`, not `v=`.
+    addNamedSource('/a.dart', 'var v;');
+    serializeLibraryText('export "a.dart"; final v = 0;');
+    expect(prelinked.exportNames, hasLength(1));
+    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'v=',
+        PrelinkedReferenceKind.topLevelPropertyAccessor);
+  }
+
+  test_export_show() {
+    addNamedSource('/a.dart', 'f() {} g() {}');
+    serializeLibraryText('export "a.dart" show f;');
+    expect(prelinked.exportNames, hasLength(1));
+    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
+        PrelinkedReferenceKind.topLevelFunction);
   }
 
   test_export_show_order() {
@@ -2185,6 +2330,14 @@ enum E { v }''';
         'Stream');
   }
 
+  test_export_typedef() {
+    addNamedSource('/a.dart', 'typedef F();');
+    serializeLibraryText('export "a.dart";');
+    expect(prelinked.exportNames, hasLength(1));
+    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'F',
+        PrelinkedReferenceKind.typedef);
+  }
+
   test_export_uri() {
     addNamedSource('/a.dart', 'library my.lib;');
     String uriString = '"a.dart"';
@@ -2192,6 +2345,22 @@ enum E { v }''';
     serializeLibraryText(libraryText);
     expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.exports[0].uri, 'a.dart');
+  }
+
+  test_export_variable() {
+    addNamedSource('/a.dart', 'var v;');
+    serializeLibraryText('export "a.dart";');
+    expect(prelinked.exportNames, hasLength(2));
+    PrelinkedExportName getter =
+        prelinked.exportNames.firstWhere((e) => e.name == 'v');
+    expect(getter, isNotNull);
+    checkExportName(getter, absUri('/a.dart'), 'a.dart', 'v',
+        PrelinkedReferenceKind.topLevelPropertyAccessor);
+    PrelinkedExportName setter =
+        prelinked.exportNames.firstWhere((e) => e.name == 'v=');
+    expect(setter, isNotNull);
+    checkExportName(setter, absUri('/a.dart'), 'a.dart', 'v=',
+        PrelinkedReferenceKind.topLevelPropertyAccessor);
   }
 
   test_field() {
@@ -2905,11 +3074,11 @@ typedef F();''';
     expect(findExecutable('i='), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(2));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
-        PrelinkedReferenceKind.other);
+        PrelinkedReferenceKind.topLevelPropertyAccessor);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'i');
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
     expect(unlinkedUnits[0].publicNamespace.names[1].kind,
-        PrelinkedReferenceKind.other);
+        PrelinkedReferenceKind.topLevelPropertyAccessor);
     expect(unlinkedUnits[0].publicNamespace.names[1].name, 'i=');
     expect(unlinkedUnits[0].publicNamespace.names[1].numTypeParameters, 0);
   }

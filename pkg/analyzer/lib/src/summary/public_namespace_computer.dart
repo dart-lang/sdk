@@ -85,7 +85,11 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
     if (node.isSetter) {
       name += '=';
     }
-    addNameIfPublic(name, PrelinkedReferenceKind.other,
+    addNameIfPublic(
+        name,
+        node.isGetter || node.isSetter
+            ? PrelinkedReferenceKind.topLevelPropertyAccessor
+            : PrelinkedReferenceKind.topLevelFunction,
         node.functionExpression.typeParameters?.typeParameters?.length ?? 0);
   }
 
@@ -103,9 +107,10 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     String name = node.name.name;
-    addNameIfPublic(name, PrelinkedReferenceKind.other, 0);
+    addNameIfPublic(name, PrelinkedReferenceKind.topLevelPropertyAccessor, 0);
     if (!node.isFinal && !node.isConst) {
-      addNameIfPublic('$name=', PrelinkedReferenceKind.other, 0);
+      addNameIfPublic(
+          '$name=', PrelinkedReferenceKind.topLevelPropertyAccessor, 0);
     }
   }
 }

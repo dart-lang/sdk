@@ -5,6 +5,7 @@
 library test.src.serialization.elements_test;
 
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart' show Namespace;
 import 'package:analyzer/src/generated/source.dart';
@@ -33,13 +34,11 @@ class ResynthTest extends ResolverTestCase {
     otherLibrarySources.add(addNamedSource(filePath, contents));
   }
 
-  void checkLibrary(String text,
-      {bool allowErrors: false, int resynthesisCount: 1}) {
+  void checkLibrary(String text, {bool allowErrors: false}) {
     Source source = addSource(text);
     LibraryElementImpl original = resolve2(source);
-    LibraryElementImpl resynthesized = resynthesizeLibrary(
-        source, original, allowErrors,
-        resynthesisCount: resynthesisCount);
+    LibraryElementImpl resynthesized =
+        resynthesizeLibrary(source, original, allowErrors);
     checkLibraryElements(original, resynthesized);
   }
 
@@ -67,6 +66,10 @@ class ResynthTest extends ResolverTestCase {
           'export ${original.exports[i].uri}');
     }
     expect(resynthesized.nameLength, original.nameLength);
+    compareNamespaces(resynthesized.publicNamespace, original.publicNamespace,
+        '(public namespace)');
+    compareNamespaces(resynthesized.exportNamespace, original.exportNamespace,
+        '(export namespace)');
     if (original.entryPoint == null) {
       expect(resynthesized.entryPoint, isNull);
     } else {
@@ -74,10 +77,6 @@ class ResynthTest extends ResolverTestCase {
       compareFunctionElements(
           resynthesized.entryPoint, original.entryPoint, '(entry point)');
     }
-    compareNamespaces(resynthesized.publicNamespace, original.publicNamespace,
-        '(public namespace)');
-    compareNamespaces(resynthesized.exportNamespace, original.exportNamespace,
-        '(export namespace)');
     compareExecutableElements(
         resynthesized.loadLibraryFunction as ExecutableElementImpl,
         original.loadLibraryFunction as ExecutableElementImpl,
@@ -201,8 +200,7 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test redirectedConstructor and constantInitializers
   }
 
-  void compareElements(
-      ElementImpl resynthesized, ElementImpl original, String desc) {
+  void compareElements(Element resynthesized, Element original, String desc) {
     expect(resynthesized, isNotNull);
     expect(resynthesized.kind, original.kind);
     expect(resynthesized.location, original.location, reason: desc);
@@ -211,20 +209,24 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.documentationComment, original.documentationComment,
         reason: desc);
     expect(resynthesized.docRange, original.docRange, reason: desc);
+    // Modifiers are a pain to test via handles.  So just test them via the
+    // actual element.
+    ElementImpl actualResynthesized = getActualElement(resynthesized, desc);
+    ElementImpl actualOriginal = getActualElement(original, desc);
     for (Modifier modifier in Modifier.values) {
       if (modifier == Modifier.MIXIN) {
         // Skipping for now.  TODO(paulberry): fix.
         continue;
       }
-      bool got = resynthesized.hasModifier(modifier);
-      bool want = original.hasModifier(modifier);
+      bool got = actualResynthesized.hasModifier(modifier);
+      bool want = actualOriginal.hasModifier(modifier);
       expect(got, want,
           reason: 'Mismatch in $desc.$modifier: got $got, want $want');
     }
   }
 
-  void compareExecutableElements(ExecutableElementImpl resynthesized,
-      ExecutableElementImpl original, String desc) {
+  void compareExecutableElements(ExecutableElement resynthesized,
+      ExecutableElement original, String desc) {
     compareElements(resynthesized, original, desc);
     expect(resynthesized.parameters.length, original.parameters.length);
     for (int i = 0; i < resynthesized.parameters.length; i++) {
@@ -256,8 +258,8 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test evaluationResult
   }
 
-  void compareFunctionElements(FunctionElementImpl resynthesized,
-      FunctionElementImpl original, String desc) {
+  void compareFunctionElements(
+      FunctionElement resynthesized, FunctionElement original, String desc) {
     compareExecutableElements(resynthesized, original, desc);
   }
 
@@ -555,21 +557,30 @@ class C {
     checkLibrary('final i = 0;');
   }
 
+  ElementImpl getActualElement(Element element, String desc) {
+    if (element is ElementHandle) {
+      return element.actualElement;
+    } else if (element is ElementImpl) {
+      return element;
+    } else {
+      fail('Unexpected type for resynthesized ($desc):'
+          ' ${element.runtimeType}');
+      return null;
+    }
+  }
+
   LibraryElementImpl resynthesizeLibrary(
-      Source source, LibraryElementImpl original, bool allowErrors,
-      {int resynthesisCount: 1}) {
+      Source source, LibraryElementImpl original, bool allowErrors) {
     if (!allowErrors) {
       assertNoErrors(source);
     }
     String uri = source.uri.toString();
     addLibrary('dart:core');
-    return resynthesizeLibraryElement(uri, original,
-        resynthesisCount: resynthesisCount);
+    return resynthesizeLibraryElement(uri, original);
   }
 
   LibraryElementImpl resynthesizeLibraryElement(
-      String uri, LibraryElementImpl original,
-      {int resynthesisCount: 1}) {
+      String uri, LibraryElementImpl original) {
     Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
     PrelinkedLibrary getPrelinkedSummaryFor(LibraryElement lib) {
       LibrarySerializationResult serialized =
@@ -610,9 +621,7 @@ class C {
     LibraryElementImpl resynthesized = resynthesizer.getLibraryElement(uri);
     // Check that no other summaries needed to be resynthesized to resynthesize
     // the library element.
-    // TODO(paulberry): once export namespaces are resynthesized from
-    // prelinked data, resynthesisCount should be hardcoded to 1.
-    expect(resynthesizer.resynthesisCount, resynthesisCount);
+    expect(resynthesizer.resynthesisCount, 1);
     return resynthesized;
   }
 
@@ -944,28 +953,71 @@ enum E {
     checkLibrary('enum E1 { v1 } enum E2 { v2 }');
   }
 
+  test_export_class() {
+    addLibrarySource('/a.dart', 'class C {}');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_export_class_type_alias() {
+    addLibrarySource(
+        '/a.dart', 'class C {} exends _D with _E; class _D {} class _E {}');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_export_function() {
+    addLibrarySource('/a.dart', 'f() {}');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_export_getter() {
+    addLibrarySource('/a.dart', 'get f() => null;');
+    checkLibrary('export "a.dart";');
+  }
+
   test_export_hide() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" hide Stream, Future;',
-        resynthesisCount: 2);
+    checkLibrary('export "dart:async" hide Stream, Future;');
   }
 
   test_export_multiple_combinators() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" hide Stream show Future;',
-        resynthesisCount: 2);
+    checkLibrary('export "dart:async" hide Stream show Future;');
+  }
+
+  test_export_setter() {
+    addLibrarySource('/a.dart', 'void set f(value) {}');
+    checkLibrary('export "a.dart";');
   }
 
   test_export_show() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" show Future, Stream;',
-        resynthesisCount: 2);
+    checkLibrary('export "dart:async" show Future, Stream;');
+  }
+
+  test_export_typedef() {
+    addLibrarySource('/a.dart', 'typedef F();');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_export_variable() {
+    addLibrarySource('/a.dart', 'var x;');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_export_variable_const() {
+    addLibrarySource('/a.dart', 'const x = 0;');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_export_variable_final() {
+    addLibrarySource('/a.dart', 'final x = 0;');
+    checkLibrary('export "a.dart";');
   }
 
   test_exports() {
     addLibrarySource('/a.dart', 'library a;');
     addLibrarySource('/b.dart', 'library b;');
-    checkLibrary('export "a.dart"; export "b.dart";', resynthesisCount: 3);
+    checkLibrary('export "a.dart"; export "b.dart";');
   }
 
   test_field_documented() {
@@ -993,12 +1045,12 @@ f() {}''');
 
   test_function_entry_point_in_export() {
     addLibrarySource('/a.dart', 'library a; main() {}');
-    checkLibrary('export "a.dart";', resynthesisCount: 2);
+    checkLibrary('export "a.dart";');
   }
 
   test_function_entry_point_in_export_hidden() {
     addLibrarySource('/a.dart', 'library a; main() {}');
-    checkLibrary('export "a.dart" hide main;', resynthesisCount: 2);
+    checkLibrary('export "a.dart" hide main;');
   }
 
   test_function_entry_point_in_part() {
@@ -1145,6 +1197,51 @@ library foo;''');
 
   test_library_named() {
     checkLibrary('library foo.bar;');
+  }
+
+  test_main_class() {
+    checkLibrary('class main {}');
+  }
+
+  test_main_class_alias() {
+    checkLibrary('class main = C with D; class C {} class D {}');
+  }
+
+  test_main_class_alias_via_export() {
+    addLibrarySource('/a.dart', 'class main = C with D; class C {} class D {}');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_main_class_via_export() {
+    addLibrarySource('/a.dart', 'class main {}');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_main_getter() {
+    checkLibrary('get main => null;');
+  }
+
+  test_main_getter_via_export() {
+    addLibrarySource('/a.dart', 'get main => null;');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_main_typedef() {
+    checkLibrary('typedef main();');
+  }
+
+  test_main_typedef_via_export() {
+    addLibrarySource('/a.dart', 'typedef main();');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_main_variable() {
+    checkLibrary('var main;');
+  }
+
+  test_main_variable_via_export() {
+    addLibrarySource('/a.dart', 'var main;');
+    checkLibrary('export "a.dart";');
   }
 
   test_method_documented() {

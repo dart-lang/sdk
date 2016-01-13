@@ -70,9 +70,17 @@ class _Meaning {
   _Meaning(this.unit, this.kind, this.dependency, this.numTypeParameters);
 
   /**
+ * Encode this [_Meaning] as a [PrelinkedExportName], using the given [name].
+ */
+  PrelinkedExportName encodeExportName(String name) {
+    return encodePrelinkedExportName(
+        name: name, dependency: dependency, unit: unit, kind: kind);
+  }
+
+/**
    * Encode this [_Meaning] as a [PrelinkedReference].
    */
-  PrelinkedReferenceBuilder encode() {
+  PrelinkedReferenceBuilder encodeReference() {
     return encodePrelinkedReference(
         unit: unit,
         kind: kind,
@@ -185,10 +193,14 @@ class _Prelinker {
    * Compute the export namespace for the library whose URI is reachable from
    * [definingUnit] via [relativeUri], by aggregating together public namespace
    * information from the library and the transitive closure of its exports.
+   *
+   * If [relativeUri] is `null` (meaning the export namespace of [definingUnit]
+   * should be computed), then names defined in [definingUnit] are ignored.
    */
   Map<String, _Meaning> computeExportNamespace(String relativeUri) {
-    Map<String, _Meaning> exportNamespace =
-        aggregatePublicNamespace(relativeUri);
+    Map<String, _Meaning> exportNamespace = relativeUri == null
+        ? <String, _Meaning>{}
+        : aggregatePublicNamespace(relativeUri);
     void chaseExports(
         NameFilter filter, String relativeUri, Set<String> seenUris) {
       if (seenUris.add(relativeUri)) {
@@ -197,17 +209,16 @@ class _Prelinker {
         if (exportedNamespace != null) {
           for (UnlinkedExportPublic export in exportedNamespace.exports) {
             String exportUri = resolveUri(relativeUri, export.uri);
+            NameFilter newFilter = filter.merge(
+                new NameFilter.forUnlinkedCombinators(export.combinators));
             aggregatePublicNamespace(exportUri)
                 .forEach((String name, _Meaning meaning) {
-              if (filter.accepts(name) && !exportNamespace.containsKey(name)) {
+              if (newFilter.accepts(name) &&
+                  !exportNamespace.containsKey(name)) {
                 exportNamespace[name] = meaning;
               }
             });
-            chaseExports(
-                filter.merge(
-                    new NameFilter.forUnlinkedCombinators(export.combinators)),
-                exportUri,
-                seenUris);
+            chaseExports(newFilter, exportUri, seenUris);
           }
         }
         seenUris.remove(relativeUri);
@@ -238,7 +249,12 @@ class _Prelinker {
     for (UnlinkedExecutable executable in unit.executables) {
       privateNamespace.putIfAbsent(
           executable.name,
-          () => new _Meaning(unitNum, PrelinkedReferenceKind.other, 0,
+          () => new _Meaning(
+              unitNum,
+              executable.kind == UnlinkedExecutableKind.functionOrMethod
+                  ? PrelinkedReferenceKind.topLevelFunction
+                  : PrelinkedReferenceKind.topLevelPropertyAccessor,
+              0,
               executable.typeParameters.length));
     }
     for (UnlinkedTypedef typedef in unit.typedefs) {
@@ -248,8 +264,16 @@ class _Prelinker {
               typedef.typeParameters.length));
     }
     for (UnlinkedVariable variable in unit.variables) {
-      privateNamespace.putIfAbsent(variable.name,
-          () => new _Meaning(unitNum, PrelinkedReferenceKind.other, 0, 0));
+      privateNamespace.putIfAbsent(
+          variable.name,
+          () => new _Meaning(
+              unitNum, PrelinkedReferenceKind.topLevelPropertyAccessor, 0, 0));
+      if (!(variable.isConst || variable.isFinal)) {
+        privateNamespace.putIfAbsent(
+            variable.name + '=',
+            () => new _Meaning(unitNum,
+                PrelinkedReferenceKind.topLevelPropertyAccessor, 0, 0));
+      }
     }
   }
 
@@ -355,7 +379,7 @@ class _Prelinker {
         if (meaning is _PrefixMeaning) {
           prefixNamespaces[i] = meaning.namespace;
         }
-        references.add(meaning.encode());
+        references.add(meaning.encodeReference());
       } else {
         references.add(
             encodePrelinkedReference(kind: PrelinkedReferenceKind.unresolved));
@@ -382,6 +406,17 @@ class _Prelinker {
       }
     }
 
+    // Fill in exported names.  This must be done before filling in prefixes
+    // defined in import declarations, because prefixes shouldn't shadow
+    // exports.
+    List<PrelinkedExportNameBuilder> exportNames =
+        <PrelinkedExportNameBuilder>[];
+    computeExportNamespace(null).forEach((String name, _Meaning meaning) {
+      if (!privateNamespace.containsKey(name)) {
+        exportNames.add(meaning.encodeExportName(name));
+      }
+    });
+
     // Fill in prefixes defined in import declarations.
     for (UnlinkedImport import in units[0].imports) {
       if (import.prefixReference != 0) {
@@ -401,7 +436,8 @@ class _Prelinker {
     return encodePrelinkedLibrary(
         units: linkedUnits,
         dependencies: dependencies,
-        importDependencies: importDependencies);
+        importDependencies: importDependencies,
+        exportNames: exportNames);
   }
 
   /**

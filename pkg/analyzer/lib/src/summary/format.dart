@@ -17,7 +17,8 @@ import 'flat_buffers.dart' as fb;
 enum PrelinkedReferenceKind {
   classOrEnum,
   typedef,
-  other,
+  topLevelFunction,
+  topLevelPropertyAccessor,
   prefix,
   unresolved,
 }
@@ -163,12 +164,189 @@ abstract class _PrelinkedDependencyMixin implements PrelinkedDependency {
   };
 }
 
+class PrelinkedExportNameBuilder extends Object with _PrelinkedExportNameMixin implements PrelinkedExportName {
+  bool _finished = false;
+
+  String _name;
+  int _dependency;
+  int _unit;
+  PrelinkedReferenceKind _kind;
+
+  PrelinkedExportNameBuilder();
+
+  @override
+  String get name => _name ?? '';
+
+  /**
+   * Name of the exported entity.  TODO(paulberry): do we include the trailing
+   * '=' for a setter?
+   */
+  void set name(String _value) {
+    assert(!_finished);
+    _name = _value;
+  }
+
+  @override
+  int get dependency => _dependency ?? 0;
+
+  /**
+   * Index into [PrelinkedLibrary.dependencies] for the library in which the
+   * entity is defined.
+   */
+  void set dependency(int _value) {
+    assert(!_finished);
+    _dependency = _value;
+  }
+
+  @override
+  int get unit => _unit ?? 0;
+
+  /**
+   * Integer index indicating which unit in the exported library contains the
+   * definition of the entity.  As with indices into [PrelinkedLibrary.units],
+   * zero represents the defining compilation unit, and nonzero values
+   * represent parts in the order of the corresponding `part` declarations.
+   */
+  void set unit(int _value) {
+    assert(!_finished);
+    _unit = _value;
+  }
+
+  @override
+  PrelinkedReferenceKind get kind => _kind ?? PrelinkedReferenceKind.classOrEnum;
+
+  /**
+   * The kind of the entity being referred to.
+   */
+  void set kind(PrelinkedReferenceKind _value) {
+    assert(!_finished);
+    _kind = _value;
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    assert(!_finished);
+    _finished = true;
+    fb.Offset offset_name;
+    if (_name != null) {
+      offset_name = fbBuilder.writeString(_name);
+    }
+    fbBuilder.startTable();
+    if (offset_name != null) {
+      fbBuilder.addOffset(0, offset_name);
+    }
+    if (_dependency != null && _dependency != 0) {
+      fbBuilder.addInt32(1, _dependency);
+    }
+    if (_unit != null && _unit != 0) {
+      fbBuilder.addInt32(2, _unit);
+    }
+    if (_kind != null && _kind != PrelinkedReferenceKind.classOrEnum) {
+      fbBuilder.addInt32(3, _kind.index);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+PrelinkedExportNameBuilder encodePrelinkedExportName({String name, int dependency, int unit, PrelinkedReferenceKind kind}) {
+  PrelinkedExportNameBuilder builder = new PrelinkedExportNameBuilder();
+  builder.name = name;
+  builder.dependency = dependency;
+  builder.unit = unit;
+  builder.kind = kind;
+  return builder;
+}
+
+/**
+ * Information about a single name in the export namespace of the library that
+ * is not in the public namespace.
+ */
+abstract class PrelinkedExportName extends base.SummaryClass {
+
+  /**
+   * Name of the exported entity.  TODO(paulberry): do we include the trailing
+   * '=' for a setter?
+   */
+  String get name;
+
+  /**
+   * Index into [PrelinkedLibrary.dependencies] for the library in which the
+   * entity is defined.
+   */
+  int get dependency;
+
+  /**
+   * Integer index indicating which unit in the exported library contains the
+   * definition of the entity.  As with indices into [PrelinkedLibrary.units],
+   * zero represents the defining compilation unit, and nonzero values
+   * represent parts in the order of the corresponding `part` declarations.
+   */
+  int get unit;
+
+  /**
+   * The kind of the entity being referred to.
+   */
+  PrelinkedReferenceKind get kind;
+}
+
+class _PrelinkedExportNameReader extends fb.TableReader<_PrelinkedExportNameImpl> {
+  const _PrelinkedExportNameReader();
+
+  @override
+  _PrelinkedExportNameImpl createObject(fb.BufferPointer bp) => new _PrelinkedExportNameImpl(bp);
+}
+
+class _PrelinkedExportNameImpl extends Object with _PrelinkedExportNameMixin implements PrelinkedExportName {
+  final fb.BufferPointer _bp;
+
+  _PrelinkedExportNameImpl(this._bp);
+
+  String _name;
+  int _dependency;
+  int _unit;
+  PrelinkedReferenceKind _kind;
+
+  @override
+  String get name {
+    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    return _name;
+  }
+
+  @override
+  int get dependency {
+    _dependency ??= const fb.Int32Reader().vTableGet(_bp, 1, 0);
+    return _dependency;
+  }
+
+  @override
+  int get unit {
+    _unit ??= const fb.Int32Reader().vTableGet(_bp, 2, 0);
+    return _unit;
+  }
+
+  @override
+  PrelinkedReferenceKind get kind {
+    _kind ??= PrelinkedReferenceKind.values[const fb.Int32Reader().vTableGet(_bp, 3, 0)];
+    return _kind;
+  }
+}
+
+abstract class _PrelinkedExportNameMixin implements PrelinkedExportName {
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "dependency": dependency,
+    "unit": unit,
+    "kind": kind,
+  };
+}
+
 class PrelinkedLibraryBuilder extends Object with _PrelinkedLibraryMixin implements PrelinkedLibrary {
   bool _finished = false;
 
   List<PrelinkedUnitBuilder> _units;
   List<PrelinkedDependencyBuilder> _dependencies;
   List<int> _importDependencies;
+  List<PrelinkedExportNameBuilder> _exportNames;
 
   PrelinkedLibraryBuilder();
 
@@ -218,6 +396,21 @@ class PrelinkedLibraryBuilder extends Object with _PrelinkedLibraryMixin impleme
     _importDependencies = _value;
   }
 
+  @override
+  List<PrelinkedExportName> get exportNames => _exportNames ?? const <PrelinkedExportName>[];
+
+  /**
+   * Information about entities in the export namespace of the library that are
+   * not in the public namespace of the library (that is, entities that are
+   * brought into the namespace via `export` directives).
+   *
+   * Sorted by name.
+   */
+  void set exportNames(List<PrelinkedExportNameBuilder> _value) {
+    assert(!_finished);
+    _exportNames = _value;
+  }
+
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
     return fbBuilder.finish(finish(fbBuilder));
@@ -229,6 +422,7 @@ class PrelinkedLibraryBuilder extends Object with _PrelinkedLibraryMixin impleme
     fb.Offset offset_units;
     fb.Offset offset_dependencies;
     fb.Offset offset_importDependencies;
+    fb.Offset offset_exportNames;
     if (!(_units == null || _units.isEmpty)) {
       offset_units = fbBuilder.writeList(_units.map((b) => b.finish(fbBuilder)).toList());
     }
@@ -237,6 +431,9 @@ class PrelinkedLibraryBuilder extends Object with _PrelinkedLibraryMixin impleme
     }
     if (!(_importDependencies == null || _importDependencies.isEmpty)) {
       offset_importDependencies = fbBuilder.writeListInt32(_importDependencies);
+    }
+    if (!(_exportNames == null || _exportNames.isEmpty)) {
+      offset_exportNames = fbBuilder.writeList(_exportNames.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_units != null) {
@@ -248,15 +445,19 @@ class PrelinkedLibraryBuilder extends Object with _PrelinkedLibraryMixin impleme
     if (offset_importDependencies != null) {
       fbBuilder.addOffset(2, offset_importDependencies);
     }
+    if (offset_exportNames != null) {
+      fbBuilder.addOffset(3, offset_exportNames);
+    }
     return fbBuilder.endTable();
   }
 }
 
-PrelinkedLibraryBuilder encodePrelinkedLibrary({List<PrelinkedUnitBuilder> units, List<PrelinkedDependencyBuilder> dependencies, List<int> importDependencies}) {
+PrelinkedLibraryBuilder encodePrelinkedLibrary({List<PrelinkedUnitBuilder> units, List<PrelinkedDependencyBuilder> dependencies, List<int> importDependencies, List<PrelinkedExportNameBuilder> exportNames}) {
   PrelinkedLibraryBuilder builder = new PrelinkedLibraryBuilder();
   builder.units = units;
   builder.dependencies = dependencies;
   builder.importDependencies = importDependencies;
+  builder.exportNames = exportNames;
   return builder;
 }
 
@@ -296,6 +497,15 @@ abstract class PrelinkedLibrary extends base.SummaryClass {
    * well, since there will effectively be a one-to-one mapping.
    */
   List<int> get importDependencies;
+
+  /**
+   * Information about entities in the export namespace of the library that are
+   * not in the public namespace of the library (that is, entities that are
+   * brought into the namespace via `export` directives).
+   *
+   * Sorted by name.
+   */
+  List<PrelinkedExportName> get exportNames;
 }
 
 class _PrelinkedLibraryReader extends fb.TableReader<_PrelinkedLibraryImpl> {
@@ -313,6 +523,7 @@ class _PrelinkedLibraryImpl extends Object with _PrelinkedLibraryMixin implement
   List<PrelinkedUnit> _units;
   List<PrelinkedDependency> _dependencies;
   List<int> _importDependencies;
+  List<PrelinkedExportName> _exportNames;
 
   @override
   List<PrelinkedUnit> get units {
@@ -331,6 +542,12 @@ class _PrelinkedLibraryImpl extends Object with _PrelinkedLibraryMixin implement
     _importDependencies ??= const fb.ListReader<int>(const fb.Int32Reader()).vTableGet(_bp, 2, const <int>[]);
     return _importDependencies;
   }
+
+  @override
+  List<PrelinkedExportName> get exportNames {
+    _exportNames ??= const fb.ListReader<PrelinkedExportName>(const _PrelinkedExportNameReader()).vTableGet(_bp, 3, const <PrelinkedExportName>[]);
+    return _exportNames;
+  }
 }
 
 abstract class _PrelinkedLibraryMixin implements PrelinkedLibrary {
@@ -339,6 +556,7 @@ abstract class _PrelinkedLibraryMixin implements PrelinkedLibrary {
     "units": units,
     "dependencies": dependencies,
     "importDependencies": importDependencies,
+    "exportNames": exportNames,
   };
 }
 

@@ -4,6 +4,8 @@
 
 library summary_resynthesizer;
 
+import 'dart:collection';
+
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/element_handle.dart';
@@ -523,6 +525,58 @@ class _LibraryResynthesizer {
   }
 
   /**
+   * Build an [ElementHandle] referring to the entity referred to by the given
+   * [exportName].
+   */
+  ElementHandle buildExportName(PrelinkedExportName exportName) {
+    String name = exportName.name;
+    if (exportName.kind == PrelinkedReferenceKind.topLevelPropertyAccessor &&
+        !name.endsWith('=')) {
+      name += '?';
+    }
+    ElementLocationImpl location = getReferencedLocation(
+        prelinkedLibrary.dependencies[exportName.dependency],
+        exportName.unit,
+        name);
+    switch (exportName.kind) {
+      case PrelinkedReferenceKind.classOrEnum:
+        return new ClassElementHandle(summaryResynthesizer, location);
+      case PrelinkedReferenceKind.typedef:
+        return new FunctionTypeAliasElementHandle(
+            summaryResynthesizer, location);
+      case PrelinkedReferenceKind.topLevelFunction:
+        return new FunctionElementHandle(summaryResynthesizer, location);
+      case PrelinkedReferenceKind.topLevelPropertyAccessor:
+        return new PropertyAccessorElementHandle(
+            summaryResynthesizer, location);
+      case PrelinkedReferenceKind.prefix:
+      case PrelinkedReferenceKind.unresolved:
+        // Should never happen.  Exported names never refer to import prefixes,
+        // and they always refer to defined entities.
+        throw new StateError('Unexpected export name kind: ${exportName.kind}');
+    }
+  }
+
+  /**
+   * Build the export namespace for the library by aggregating together its
+   * [publicNamespace] and [exportNames].
+   */
+  Namespace buildExportNamespace(
+      Namespace publicNamespace, List<PrelinkedExportName> exportNames) {
+    HashMap<String, Element> definedNames = new HashMap<String, Element>();
+    // Start by populating all the public names from [publicNamespace].
+    publicNamespace.definedNames.forEach((String name, Element element) {
+      definedNames[name] = element;
+    });
+    // Add all the names from [exportNames].
+    for (PrelinkedExportName exportName in exportNames) {
+      definedNames.putIfAbsent(
+          exportName.name, () => buildExportName(exportName));
+    }
+    return new Namespace(definedNames);
+  }
+
+  /**
    * Resynthesize a [FieldElement].
    */
   FieldElement buildField(UnlinkedVariable serializedField) {
@@ -709,15 +763,15 @@ class _LibraryResynthesizer {
     // Compute namespaces.
     libraryElement.publicNamespace =
         new NamespaceBuilder().createPublicNamespaceForLibrary(libraryElement);
-    // TODO(paulberry): compute the export namespace from prelinked data, so
-    // that exported libraries won't be unnecessarily resynthesized.
-    libraryElement.exportNamespace =
-        new NamespaceBuilder().createExportNamespaceForLibrary(libraryElement);
-    // Find the entry point.
-    libraryElement.entryPoint =
-        libraryElement.exportNamespace.definedNames.values.firstWhere(
-            (element) => element is FunctionElement && element.isEntryPoint,
-            orElse: () => null);
+    libraryElement.exportNamespace = buildExportNamespace(
+        libraryElement.publicNamespace, prelinkedLibrary.exportNames);
+    // Find the entry point.  Note: we can't use element.isEntryPoint because
+    // that will trigger resynthesis of exported libraries.
+    Element entryPoint =
+        libraryElement.exportNamespace.get(FunctionElement.MAIN_FUNCTION_NAME);
+    if (entryPoint is FunctionElement) {
+      libraryElement.entryPoint = entryPoint;
+    }
     // Create the synthetic element for `loadLibrary`.
     libraryElement.createLoadLibraryFunction(summaryResynthesizer.typeProvider);
     // Done.
@@ -791,8 +845,7 @@ class _LibraryResynthesizer {
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
-              currentTypeParameters.length - type.paramReference]
-          .type;
+          currentTypeParameters.length - type.paramReference].type;
     } else {
       // TODO(paulberry): handle references to things other than classes (note:
       // this should only occur in the case of erroneous code).
@@ -802,35 +855,20 @@ class _LibraryResynthesizer {
       UnlinkedReference reference = unlinkedUnit.references[type.reference];
       PrelinkedReference referenceResolution =
           prelinkedUnit.references[type.reference];
-      String referencedLibraryUri;
-      String partUri;
+      ElementLocationImpl location;
       if (referenceResolution.dependency != 0) {
-        PrelinkedDependency dependency =
-            prelinkedLibrary.dependencies[referenceResolution.dependency];
-        Source referencedLibrarySource = summaryResynthesizer.sourceFactory
-            .resolveUri(librarySource, dependency.uri);
-        referencedLibraryUri = referencedLibrarySource.uri.toString();
-        // TODO(paulberry): consider changing Location format so that this is
-        // not necessary (2nd string in location should just be the unit
-        // number).
-        if (referenceResolution.unit != 0) {
-          UnlinkedUnit referencedLibraryDefiningUnit =
-              summaryResynthesizer.getUnlinkedSummary(referencedLibraryUri);
-          String uri = referencedLibraryDefiningUnit.publicNamespace.parts[
-              referenceResolution.unit - 1];
-          Source partSource = summaryResynthesizer.sourceFactory
-              .resolveUri(referencedLibrarySource, uri);
-          partUri = partSource.uri.toString();
-        } else {
-          partUri = referencedLibraryUri;
-        }
+        location = getReferencedLocation(
+            prelinkedLibrary.dependencies[referenceResolution.dependency],
+            referenceResolution.unit,
+            reference.name);
       } else if (referenceResolution.kind ==
           PrelinkedReferenceKind.unresolved) {
         return summaryResynthesizer.typeProvider.undefinedType;
       } else if (reference.name.isEmpty) {
         return summaryResynthesizer.typeProvider.dynamicType;
       } else {
-        referencedLibraryUri = librarySource.uri.toString();
+        String referencedLibraryUri = librarySource.uri.toString();
+        String partUri;
         if (referenceResolution.unit != 0) {
           String uri = unlinkedUnits[0].publicNamespace.parts[
               referenceResolution.unit - 1];
@@ -840,9 +878,9 @@ class _LibraryResynthesizer {
         } else {
           partUri = referencedLibraryUri;
         }
+        location = new ElementLocationImpl.con3(
+            <String>[referencedLibraryUri, partUri, reference.name]);
       }
-      ElementLocationImpl location = new ElementLocationImpl.con3(
-          <String>[referencedLibraryUri, partUri, reference.name]);
       List<DartType> typeArguments = const <DartType>[];
       if (referenceResolution.numTypeParameters != 0) {
         typeArguments = <DartType>[];
@@ -970,6 +1008,34 @@ class _LibraryResynthesizer {
   }
 
   /**
+   * Build an [ElementLocationImpl] for the entity in the given [unit] of the
+   * given [dependency], having the given [name].
+   */
+  ElementLocationImpl getReferencedLocation(
+      PrelinkedDependency dependency, int unit, String name) {
+    Source referencedLibrarySource = summaryResynthesizer.sourceFactory
+        .resolveUri(librarySource, dependency.uri);
+    String referencedLibraryUri = referencedLibrarySource.uri.toString();
+    // TODO(paulberry): consider changing Location format so that this is
+    // not necessary (2nd string in location should just be the unit
+    // number).
+    String partUri;
+    if (unit != 0) {
+      UnlinkedUnit referencedLibraryDefiningUnit =
+          summaryResynthesizer.getUnlinkedSummary(referencedLibraryUri);
+      String uri =
+          referencedLibraryDefiningUnit.publicNamespace.parts[unit - 1];
+      Source partSource = summaryResynthesizer.sourceFactory
+          .resolveUri(referencedLibrarySource, uri);
+      partUri = partSource.uri.toString();
+    } else {
+      partUri = referencedLibraryUri;
+    }
+    return new ElementLocationImpl.con3(
+        <String>[referencedLibraryUri, partUri, name]);
+  }
+
+  /**
    * Populate a [CompilationUnitElement] by deserializing all the elements
    * contained in it.
    */
@@ -1004,6 +1070,12 @@ class _LibraryResynthesizer {
     }
     for (FunctionTypeAliasElement typeAlias in unit.functionTypeAliases) {
       elementMap[typeAlias.name] = typeAlias;
+    }
+    for (FunctionElement function in unit.functions) {
+      elementMap[function.name] = function;
+    }
+    for (PropertyAccessorElementImpl accessor in unit.accessors) {
+      elementMap[accessor.identifier] = accessor;
     }
     resummarizedElements[absoluteUri] = elementMap;
     unitHolder = null;
