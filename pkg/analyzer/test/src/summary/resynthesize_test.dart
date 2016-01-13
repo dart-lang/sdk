@@ -1091,6 +1091,11 @@ get x => null;''');
     checkLibrary('void set x(int value) {} int get x => 0;');
   }
 
+  test_import_deferred() {
+    addLibrarySource('/a.dart', 'f() {}');
+    checkLibrary('import "a.dart" deferred as p; main() { p.f(); }');
+  }
+
   test_import_hide() {
     addLibrary('dart:async');
     checkLibrary('import "dart:async" hide Stream, Completer; Future f;');
