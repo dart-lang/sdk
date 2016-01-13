@@ -9,7 +9,7 @@ final SPAWN_PACKAGE_ROOT = "file:///no/such/package/root/";
 final PACKAGE_URI = "package:foo/bar.dart";
 final PACKAGE_PATH = "file:///no/such/package/root/foo/bar.dart";
 
-void main([args, port]) async {
+main([args, port]) async {
   if (port != null) {
     testPackageResolution(port);
     return;

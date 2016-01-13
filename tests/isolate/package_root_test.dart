@@ -7,7 +7,7 @@ import 'dart:isolate';
 
 final SPAWN_PACKAGE_ROOT = "file:///no/such/file/";
 
-void main([args, port]) async {
+main([args, port]) async {
   if (port != null) {
     testPackageRoot(port);
     return;

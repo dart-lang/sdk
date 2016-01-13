@@ -8,7 +8,7 @@ import 'dart:isolate';
 final PACKAGE_URI = "package:foo/bar.dart";
 final PACKAGE_PATH = "file:///no/such/directory/bar.dart";
 
-void main([args, port]) async {
+main([args, port]) async {
   if (port != null) {
     testPackageResolution(port);
     return;

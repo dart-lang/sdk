@@ -7,7 +7,7 @@ import 'dart:isolate';
 
 final SPAWN_PACKAGE_CONFIG = "foobar:///no/such/file/";
 
-void main([args, port]) async {
+main([args, port]) async {
   if (port != null) {
     testPackageConfig(port);
     return;
