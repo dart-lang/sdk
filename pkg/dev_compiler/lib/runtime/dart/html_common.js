@@ -618,7 +618,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
   dart.fn(convertNativePromiseToDartFuture, async.Future, [dart.dynamic]);
   class Device extends core.Object {
     static get userAgent() {
-      return dart.as(dart.dload(html.window.navigator, 'userAgent'), core.String);
+      return dart.as(dart.dload(html.window.navigator.raw, 'userAgent'), core.String);
     }
     static get isOpera() {
       if (Device._isOpera == null) {

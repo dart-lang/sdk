@@ -20,7 +20,7 @@ class Device {
    * the user agent.
  * Returns the user agent.
    */
-  static String get userAgent => window.navigator.userAgent;
+  static String get userAgent => window.navigator.raw.userAgent;
 
   /**
    * Determines if the current device is running Opera.
