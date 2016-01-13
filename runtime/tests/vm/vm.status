@@ -21,6 +21,8 @@ cc/CorelibIsolateStartup: Skip
 # TODO(koda): Improve support for negative tests.
 cc/VerifyImplicit_Crash: Crash, Timeout  # Timeout: Issue #24596
 cc/VerifyExplicit_Crash: Crash, Timeout  # Timeout: Issue #24596
+# It can take some time for all the isolates to shutdown in a Debug build.
+dart/spawn_shutdown_test: Pass, Slow  # VM Shutdown test
 
 # The following section refers to the dart vm tests which live under
 # runtime/tests/vm/dart.
