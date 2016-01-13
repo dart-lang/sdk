@@ -41,13 +41,16 @@ enum UnlinkedParamKind {
   named,
 }
 
-class PrelinkedDependencyBuilder {
+class PrelinkedDependencyBuilder extends Object with _PrelinkedDependencyMixin implements PrelinkedDependency {
   bool _finished = false;
 
   String _uri;
   List<String> _parts;
 
   PrelinkedDependencyBuilder();
+
+  @override
+  String get uri => _uri ?? '';
 
   /**
    * The relative URI of the dependent library.  This URI is relative to the
@@ -60,6 +63,9 @@ class PrelinkedDependencyBuilder {
     assert(!_finished);
     _uri = _value;
   }
+
+  @override
+  List<String> get parts => _parts ?? const <String>[];
 
   /**
    * URI for the compilation units listed in the library's `part` declarations.
@@ -128,19 +134,13 @@ class _PrelinkedDependencyReader extends fb.TableReader<_PrelinkedDependencyImpl
   _PrelinkedDependencyImpl createObject(fb.BufferPointer bp) => new _PrelinkedDependencyImpl(bp);
 }
 
-class _PrelinkedDependencyImpl implements PrelinkedDependency {
+class _PrelinkedDependencyImpl extends Object with _PrelinkedDependencyMixin implements PrelinkedDependency {
   final fb.BufferPointer _bp;
 
   _PrelinkedDependencyImpl(this._bp);
 
   String _uri;
   List<String> _parts;
-
-  @override
-  Map<String, Object> toMap() => {
-    "uri": uri,
-    "parts": parts,
-  };
 
   @override
   String get uri {
@@ -155,7 +155,15 @@ class _PrelinkedDependencyImpl implements PrelinkedDependency {
   }
 }
 
-class PrelinkedLibraryBuilder {
+abstract class _PrelinkedDependencyMixin implements PrelinkedDependency {
+  @override
+  Map<String, Object> toMap() => {
+    "uri": uri,
+    "parts": parts,
+  };
+}
+
+class PrelinkedLibraryBuilder extends Object with _PrelinkedLibraryMixin implements PrelinkedLibrary {
   bool _finished = false;
 
   List<PrelinkedUnitBuilder> _units;
@@ -163,6 +171,9 @@ class PrelinkedLibraryBuilder {
   List<int> _importDependencies;
 
   PrelinkedLibraryBuilder();
+
+  @override
+  List<PrelinkedUnit> get units => _units ?? const <PrelinkedUnit>[];
 
   /**
    * The pre-linked summary of all the compilation units constituting the
@@ -174,6 +185,9 @@ class PrelinkedLibraryBuilder {
     assert(!_finished);
     _units = _value;
   }
+
+  @override
+  List<PrelinkedDependency> get dependencies => _dependencies ?? const <PrelinkedDependency>[];
 
   /**
    * The libraries that this library depends on (either via an explicit import
@@ -188,6 +202,9 @@ class PrelinkedLibraryBuilder {
     assert(!_finished);
     _dependencies = _value;
   }
+
+  @override
+  List<int> get importDependencies => _importDependencies ?? const <int>[];
 
   /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
@@ -288,7 +305,7 @@ class _PrelinkedLibraryReader extends fb.TableReader<_PrelinkedLibraryImpl> {
   _PrelinkedLibraryImpl createObject(fb.BufferPointer bp) => new _PrelinkedLibraryImpl(bp);
 }
 
-class _PrelinkedLibraryImpl implements PrelinkedLibrary {
+class _PrelinkedLibraryImpl extends Object with _PrelinkedLibraryMixin implements PrelinkedLibrary {
   final fb.BufferPointer _bp;
 
   _PrelinkedLibraryImpl(this._bp);
@@ -296,13 +313,6 @@ class _PrelinkedLibraryImpl implements PrelinkedLibrary {
   List<PrelinkedUnit> _units;
   List<PrelinkedDependency> _dependencies;
   List<int> _importDependencies;
-
-  @override
-  Map<String, Object> toMap() => {
-    "units": units,
-    "dependencies": dependencies,
-    "importDependencies": importDependencies,
-  };
 
   @override
   List<PrelinkedUnit> get units {
@@ -323,7 +333,16 @@ class _PrelinkedLibraryImpl implements PrelinkedLibrary {
   }
 }
 
-class PrelinkedReferenceBuilder {
+abstract class _PrelinkedLibraryMixin implements PrelinkedLibrary {
+  @override
+  Map<String, Object> toMap() => {
+    "units": units,
+    "dependencies": dependencies,
+    "importDependencies": importDependencies,
+  };
+}
+
+class PrelinkedReferenceBuilder extends Object with _PrelinkedReferenceMixin implements PrelinkedReference {
   bool _finished = false;
 
   int _dependency;
@@ -332,6 +351,9 @@ class PrelinkedReferenceBuilder {
   int _numTypeParameters;
 
   PrelinkedReferenceBuilder();
+
+  @override
+  int get dependency => _dependency ?? 0;
 
   /**
    * Index into [PrelinkedLibrary.dependencies] indicating which imported library
@@ -342,6 +364,9 @@ class PrelinkedReferenceBuilder {
     _dependency = _value;
   }
 
+  @override
+  PrelinkedReferenceKind get kind => _kind ?? PrelinkedReferenceKind.classOrEnum;
+
   /**
    * The kind of the entity being referred to.  For the pseudo-type `dynamic`,
    * the kind is [PrelinkedReferenceKind.classOrEnum].
@@ -350,6 +375,9 @@ class PrelinkedReferenceBuilder {
     assert(!_finished);
     _kind = _value;
   }
+
+  @override
+  int get unit => _unit ?? 0;
 
   /**
    * Integer index indicating which unit in the imported library contains the
@@ -361,6 +389,9 @@ class PrelinkedReferenceBuilder {
     assert(!_finished);
     _unit = _value;
   }
+
+  @override
+  int get numTypeParameters => _numTypeParameters ?? 0;
 
   /**
    * If the entity being referred to is generic, the number of type parameters
@@ -439,7 +470,7 @@ class _PrelinkedReferenceReader extends fb.TableReader<_PrelinkedReferenceImpl> 
   _PrelinkedReferenceImpl createObject(fb.BufferPointer bp) => new _PrelinkedReferenceImpl(bp);
 }
 
-class _PrelinkedReferenceImpl implements PrelinkedReference {
+class _PrelinkedReferenceImpl extends Object with _PrelinkedReferenceMixin implements PrelinkedReference {
   final fb.BufferPointer _bp;
 
   _PrelinkedReferenceImpl(this._bp);
@@ -448,14 +479,6 @@ class _PrelinkedReferenceImpl implements PrelinkedReference {
   PrelinkedReferenceKind _kind;
   int _unit;
   int _numTypeParameters;
-
-  @override
-  Map<String, Object> toMap() => {
-    "dependency": dependency,
-    "kind": kind,
-    "unit": unit,
-    "numTypeParameters": numTypeParameters,
-  };
 
   @override
   int get dependency {
@@ -482,12 +505,25 @@ class _PrelinkedReferenceImpl implements PrelinkedReference {
   }
 }
 
-class PrelinkedUnitBuilder {
+abstract class _PrelinkedReferenceMixin implements PrelinkedReference {
+  @override
+  Map<String, Object> toMap() => {
+    "dependency": dependency,
+    "kind": kind,
+    "unit": unit,
+    "numTypeParameters": numTypeParameters,
+  };
+}
+
+class PrelinkedUnitBuilder extends Object with _PrelinkedUnitMixin implements PrelinkedUnit {
   bool _finished = false;
 
   List<PrelinkedReferenceBuilder> _references;
 
   PrelinkedUnitBuilder();
+
+  @override
+  List<PrelinkedReference> get references => _references ?? const <PrelinkedReference>[];
 
   /**
    * For each reference in [UnlinkedUnit.references], information about how
@@ -538,17 +574,12 @@ class _PrelinkedUnitReader extends fb.TableReader<_PrelinkedUnitImpl> {
   _PrelinkedUnitImpl createObject(fb.BufferPointer bp) => new _PrelinkedUnitImpl(bp);
 }
 
-class _PrelinkedUnitImpl implements PrelinkedUnit {
+class _PrelinkedUnitImpl extends Object with _PrelinkedUnitMixin implements PrelinkedUnit {
   final fb.BufferPointer _bp;
 
   _PrelinkedUnitImpl(this._bp);
 
   List<PrelinkedReference> _references;
-
-  @override
-  Map<String, Object> toMap() => {
-    "references": references,
-  };
 
   @override
   List<PrelinkedReference> get references {
@@ -557,7 +588,14 @@ class _PrelinkedUnitImpl implements PrelinkedUnit {
   }
 }
 
-class SdkBundleBuilder {
+abstract class _PrelinkedUnitMixin implements PrelinkedUnit {
+  @override
+  Map<String, Object> toMap() => {
+    "references": references,
+  };
+}
+
+class SdkBundleBuilder extends Object with _SdkBundleMixin implements SdkBundle {
   bool _finished = false;
 
   List<String> _prelinkedLibraryUris;
@@ -567,6 +605,9 @@ class SdkBundleBuilder {
 
   SdkBundleBuilder();
 
+  @override
+  List<String> get prelinkedLibraryUris => _prelinkedLibraryUris ?? const <String>[];
+
   /**
    * The list of URIs of items in [prelinkedLibraries], e.g. `dart:core`.
    */
@@ -574,6 +615,9 @@ class SdkBundleBuilder {
     assert(!_finished);
     _prelinkedLibraryUris = _value;
   }
+
+  @override
+  List<PrelinkedLibrary> get prelinkedLibraries => _prelinkedLibraries ?? const <PrelinkedLibrary>[];
 
   /**
    * Pre-linked libraries.
@@ -583,6 +627,9 @@ class SdkBundleBuilder {
     _prelinkedLibraries = _value;
   }
 
+  @override
+  List<String> get unlinkedUnitUris => _unlinkedUnitUris ?? const <String>[];
+
   /**
    * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
    */
@@ -590,6 +637,9 @@ class SdkBundleBuilder {
     assert(!_finished);
     _unlinkedUnitUris = _value;
   }
+
+  @override
+  List<UnlinkedUnit> get unlinkedUnits => _unlinkedUnits ?? const <UnlinkedUnit>[];
 
   /**
    * Unlinked information for the compilation units constituting the SDK.
@@ -686,7 +736,7 @@ class _SdkBundleReader extends fb.TableReader<_SdkBundleImpl> {
   _SdkBundleImpl createObject(fb.BufferPointer bp) => new _SdkBundleImpl(bp);
 }
 
-class _SdkBundleImpl implements SdkBundle {
+class _SdkBundleImpl extends Object with _SdkBundleMixin implements SdkBundle {
   final fb.BufferPointer _bp;
 
   _SdkBundleImpl(this._bp);
@@ -695,14 +745,6 @@ class _SdkBundleImpl implements SdkBundle {
   List<PrelinkedLibrary> _prelinkedLibraries;
   List<String> _unlinkedUnitUris;
   List<UnlinkedUnit> _unlinkedUnits;
-
-  @override
-  Map<String, Object> toMap() => {
-    "prelinkedLibraryUris": prelinkedLibraryUris,
-    "prelinkedLibraries": prelinkedLibraries,
-    "unlinkedUnitUris": unlinkedUnitUris,
-    "unlinkedUnits": unlinkedUnits,
-  };
 
   @override
   List<String> get prelinkedLibraryUris {
@@ -729,7 +771,17 @@ class _SdkBundleImpl implements SdkBundle {
   }
 }
 
-class UnlinkedClassBuilder {
+abstract class _SdkBundleMixin implements SdkBundle {
+  @override
+  Map<String, Object> toMap() => {
+    "prelinkedLibraryUris": prelinkedLibraryUris,
+    "prelinkedLibraries": prelinkedLibraries,
+    "unlinkedUnitUris": unlinkedUnitUris,
+    "unlinkedUnits": unlinkedUnits,
+  };
+}
+
+class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements UnlinkedClass {
   bool _finished = false;
 
   String _name;
@@ -747,6 +799,9 @@ class UnlinkedClassBuilder {
 
   UnlinkedClassBuilder();
 
+  @override
+  String get name => _name ?? '';
+
   /**
    * Name of the class.
    */
@@ -755,6 +810,9 @@ class UnlinkedClassBuilder {
     _name = _value;
   }
 
+  @override
+  int get nameOffset => _nameOffset ?? 0;
+
   /**
    * Offset of the class name relative to the beginning of the file.
    */
@@ -762,6 +820,9 @@ class UnlinkedClassBuilder {
     assert(!_finished);
     _nameOffset = _value;
   }
+
+  @override
+  UnlinkedDocumentationComment get documentationComment => _documentationComment;
 
   /**
    * Documentation comment for the class, or `null` if there is no
@@ -772,6 +833,9 @@ class UnlinkedClassBuilder {
     _documentationComment = _value;
   }
 
+  @override
+  List<UnlinkedTypeParam> get typeParameters => _typeParameters ?? const <UnlinkedTypeParam>[];
+
   /**
    * Type parameters of the class, if any.
    */
@@ -779,6 +843,9 @@ class UnlinkedClassBuilder {
     assert(!_finished);
     _typeParameters = _value;
   }
+
+  @override
+  UnlinkedTypeRef get supertype => _supertype;
 
   /**
    * Supertype of the class, or `null` if either (a) the class doesn't
@@ -790,6 +857,9 @@ class UnlinkedClassBuilder {
     _supertype = _value;
   }
 
+  @override
+  List<UnlinkedTypeRef> get mixins => _mixins ?? const <UnlinkedTypeRef>[];
+
   /**
    * Mixins appearing in a `with` clause, if any.
    */
@@ -797,6 +867,9 @@ class UnlinkedClassBuilder {
     assert(!_finished);
     _mixins = _value;
   }
+
+  @override
+  List<UnlinkedTypeRef> get interfaces => _interfaces ?? const <UnlinkedTypeRef>[];
 
   /**
    * Interfaces appearing in an `implements` clause, if any.
@@ -806,6 +879,9 @@ class UnlinkedClassBuilder {
     _interfaces = _value;
   }
 
+  @override
+  List<UnlinkedVariable> get fields => _fields ?? const <UnlinkedVariable>[];
+
   /**
    * Field declarations contained in the class.
    */
@@ -813,6 +889,9 @@ class UnlinkedClassBuilder {
     assert(!_finished);
     _fields = _value;
   }
+
+  @override
+  List<UnlinkedExecutable> get executables => _executables ?? const <UnlinkedExecutable>[];
 
   /**
    * Executable objects (methods, getters, and setters) contained in the class.
@@ -822,6 +901,9 @@ class UnlinkedClassBuilder {
     _executables = _value;
   }
 
+  @override
+  bool get isAbstract => _isAbstract ?? false;
+
   /**
    * Indicates whether the class is declared with the `abstract` keyword.
    */
@@ -830,6 +912,9 @@ class UnlinkedClassBuilder {
     _isAbstract = _value;
   }
 
+  @override
+  bool get isMixinApplication => _isMixinApplication ?? false;
+
   /**
    * Indicates whether the class is declared using mixin application syntax.
    */
@@ -837,6 +922,9 @@ class UnlinkedClassBuilder {
     assert(!_finished);
     _isMixinApplication = _value;
   }
+
+  @override
+  bool get hasNoSupertype => _hasNoSupertype ?? false;
 
   /**
    * Indicates whether this class is the core "Object" class (and hence has no
@@ -1017,7 +1105,7 @@ class _UnlinkedClassReader extends fb.TableReader<_UnlinkedClassImpl> {
   _UnlinkedClassImpl createObject(fb.BufferPointer bp) => new _UnlinkedClassImpl(bp);
 }
 
-class _UnlinkedClassImpl implements UnlinkedClass {
+class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements UnlinkedClass {
   final fb.BufferPointer _bp;
 
   _UnlinkedClassImpl(this._bp);
@@ -1034,22 +1122,6 @@ class _UnlinkedClassImpl implements UnlinkedClass {
   bool _isAbstract;
   bool _isMixinApplication;
   bool _hasNoSupertype;
-
-  @override
-  Map<String, Object> toMap() => {
-    "name": name,
-    "nameOffset": nameOffset,
-    "documentationComment": documentationComment,
-    "typeParameters": typeParameters,
-    "supertype": supertype,
-    "mixins": mixins,
-    "interfaces": interfaces,
-    "fields": fields,
-    "executables": executables,
-    "isAbstract": isAbstract,
-    "isMixinApplication": isMixinApplication,
-    "hasNoSupertype": hasNoSupertype,
-  };
 
   @override
   String get name {
@@ -1124,13 +1196,34 @@ class _UnlinkedClassImpl implements UnlinkedClass {
   }
 }
 
-class UnlinkedCombinatorBuilder {
+abstract class _UnlinkedClassMixin implements UnlinkedClass {
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "nameOffset": nameOffset,
+    "documentationComment": documentationComment,
+    "typeParameters": typeParameters,
+    "supertype": supertype,
+    "mixins": mixins,
+    "interfaces": interfaces,
+    "fields": fields,
+    "executables": executables,
+    "isAbstract": isAbstract,
+    "isMixinApplication": isMixinApplication,
+    "hasNoSupertype": hasNoSupertype,
+  };
+}
+
+class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin implements UnlinkedCombinator {
   bool _finished = false;
 
   List<String> _shows;
   List<String> _hides;
 
   UnlinkedCombinatorBuilder();
+
+  @override
+  List<String> get shows => _shows ?? const <String>[];
 
   /**
    * List of names which are shown.  Empty if this is a `hide` combinator.
@@ -1139,6 +1232,9 @@ class UnlinkedCombinatorBuilder {
     assert(!_finished);
     _shows = _value;
   }
+
+  @override
+  List<String> get hides => _hides ?? const <String>[];
 
   /**
    * List of names which are hidden.  Empty if this is a `show` combinator.
@@ -1201,19 +1297,13 @@ class _UnlinkedCombinatorReader extends fb.TableReader<_UnlinkedCombinatorImpl> 
   _UnlinkedCombinatorImpl createObject(fb.BufferPointer bp) => new _UnlinkedCombinatorImpl(bp);
 }
 
-class _UnlinkedCombinatorImpl implements UnlinkedCombinator {
+class _UnlinkedCombinatorImpl extends Object with _UnlinkedCombinatorMixin implements UnlinkedCombinator {
   final fb.BufferPointer _bp;
 
   _UnlinkedCombinatorImpl(this._bp);
 
   List<String> _shows;
   List<String> _hides;
-
-  @override
-  Map<String, Object> toMap() => {
-    "shows": shows,
-    "hides": hides,
-  };
 
   @override
   List<String> get shows {
@@ -1228,7 +1318,15 @@ class _UnlinkedCombinatorImpl implements UnlinkedCombinator {
   }
 }
 
-class UnlinkedDocumentationCommentBuilder {
+abstract class _UnlinkedCombinatorMixin implements UnlinkedCombinator {
+  @override
+  Map<String, Object> toMap() => {
+    "shows": shows,
+    "hides": hides,
+  };
+}
+
+class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumentationCommentMixin implements UnlinkedDocumentationComment {
   bool _finished = false;
 
   String _text;
@@ -1236,6 +1334,9 @@ class UnlinkedDocumentationCommentBuilder {
   int _length;
 
   UnlinkedDocumentationCommentBuilder();
+
+  @override
+  String get text => _text ?? '';
 
   /**
    * Text of the documentation comment, with '\r\n' replaced by '\n'.
@@ -1248,6 +1349,9 @@ class UnlinkedDocumentationCommentBuilder {
     _text = _value;
   }
 
+  @override
+  int get offset => _offset ?? 0;
+
   /**
    * Offset of the beginning of the documentation comment relative to the
    * beginning of the file.
@@ -1256,6 +1360,9 @@ class UnlinkedDocumentationCommentBuilder {
     assert(!_finished);
     _offset = _value;
   }
+
+  @override
+  int get length => _length ?? 0;
 
   /**
    * Length of the documentation comment (prior to replacing '\r\n' with '\n').
@@ -1326,7 +1433,7 @@ class _UnlinkedDocumentationCommentReader extends fb.TableReader<_UnlinkedDocume
   _UnlinkedDocumentationCommentImpl createObject(fb.BufferPointer bp) => new _UnlinkedDocumentationCommentImpl(bp);
 }
 
-class _UnlinkedDocumentationCommentImpl implements UnlinkedDocumentationComment {
+class _UnlinkedDocumentationCommentImpl extends Object with _UnlinkedDocumentationCommentMixin implements UnlinkedDocumentationComment {
   final fb.BufferPointer _bp;
 
   _UnlinkedDocumentationCommentImpl(this._bp);
@@ -1334,13 +1441,6 @@ class _UnlinkedDocumentationCommentImpl implements UnlinkedDocumentationComment 
   String _text;
   int _offset;
   int _length;
-
-  @override
-  Map<String, Object> toMap() => {
-    "text": text,
-    "offset": offset,
-    "length": length,
-  };
 
   @override
   String get text {
@@ -1361,7 +1461,16 @@ class _UnlinkedDocumentationCommentImpl implements UnlinkedDocumentationComment 
   }
 }
 
-class UnlinkedEnumBuilder {
+abstract class _UnlinkedDocumentationCommentMixin implements UnlinkedDocumentationComment {
+  @override
+  Map<String, Object> toMap() => {
+    "text": text,
+    "offset": offset,
+    "length": length,
+  };
+}
+
+class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements UnlinkedEnum {
   bool _finished = false;
 
   String _name;
@@ -1371,6 +1480,9 @@ class UnlinkedEnumBuilder {
 
   UnlinkedEnumBuilder();
 
+  @override
+  String get name => _name ?? '';
+
   /**
    * Name of the enum type.
    */
@@ -1378,6 +1490,9 @@ class UnlinkedEnumBuilder {
     assert(!_finished);
     _name = _value;
   }
+
+  @override
+  int get nameOffset => _nameOffset ?? 0;
 
   /**
    * Offset of the enum name relative to the beginning of the file.
@@ -1387,6 +1502,9 @@ class UnlinkedEnumBuilder {
     _nameOffset = _value;
   }
 
+  @override
+  UnlinkedDocumentationComment get documentationComment => _documentationComment;
+
   /**
    * Documentation comment for the enum, or `null` if there is no documentation
    * comment.
@@ -1395,6 +1513,9 @@ class UnlinkedEnumBuilder {
     assert(!_finished);
     _documentationComment = _value;
   }
+
+  @override
+  List<UnlinkedEnumValue> get values => _values ?? const <UnlinkedEnumValue>[];
 
   /**
    * Values listed in the enum declaration, in declaration order.
@@ -1479,7 +1600,7 @@ class _UnlinkedEnumReader extends fb.TableReader<_UnlinkedEnumImpl> {
   _UnlinkedEnumImpl createObject(fb.BufferPointer bp) => new _UnlinkedEnumImpl(bp);
 }
 
-class _UnlinkedEnumImpl implements UnlinkedEnum {
+class _UnlinkedEnumImpl extends Object with _UnlinkedEnumMixin implements UnlinkedEnum {
   final fb.BufferPointer _bp;
 
   _UnlinkedEnumImpl(this._bp);
@@ -1488,14 +1609,6 @@ class _UnlinkedEnumImpl implements UnlinkedEnum {
   int _nameOffset;
   UnlinkedDocumentationComment _documentationComment;
   List<UnlinkedEnumValue> _values;
-
-  @override
-  Map<String, Object> toMap() => {
-    "name": name,
-    "nameOffset": nameOffset,
-    "documentationComment": documentationComment,
-    "values": values,
-  };
 
   @override
   String get name {
@@ -1522,7 +1635,17 @@ class _UnlinkedEnumImpl implements UnlinkedEnum {
   }
 }
 
-class UnlinkedEnumValueBuilder {
+abstract class _UnlinkedEnumMixin implements UnlinkedEnum {
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "nameOffset": nameOffset,
+    "documentationComment": documentationComment,
+    "values": values,
+  };
+}
+
+class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin implements UnlinkedEnumValue {
   bool _finished = false;
 
   String _name;
@@ -1530,6 +1653,9 @@ class UnlinkedEnumValueBuilder {
   UnlinkedDocumentationCommentBuilder _documentationComment;
 
   UnlinkedEnumValueBuilder();
+
+  @override
+  String get name => _name ?? '';
 
   /**
    * Name of the enumerated value.
@@ -1539,6 +1665,9 @@ class UnlinkedEnumValueBuilder {
     _name = _value;
   }
 
+  @override
+  int get nameOffset => _nameOffset ?? 0;
+
   /**
    * Offset of the enum value name relative to the beginning of the file.
    */
@@ -1546,6 +1675,9 @@ class UnlinkedEnumValueBuilder {
     assert(!_finished);
     _nameOffset = _value;
   }
+
+  @override
+  UnlinkedDocumentationComment get documentationComment => _documentationComment;
 
   /**
    * Documentation comment for the enum value, or `null` if there is no
@@ -1619,7 +1751,7 @@ class _UnlinkedEnumValueReader extends fb.TableReader<_UnlinkedEnumValueImpl> {
   _UnlinkedEnumValueImpl createObject(fb.BufferPointer bp) => new _UnlinkedEnumValueImpl(bp);
 }
 
-class _UnlinkedEnumValueImpl implements UnlinkedEnumValue {
+class _UnlinkedEnumValueImpl extends Object with _UnlinkedEnumValueMixin implements UnlinkedEnumValue {
   final fb.BufferPointer _bp;
 
   _UnlinkedEnumValueImpl(this._bp);
@@ -1627,13 +1759,6 @@ class _UnlinkedEnumValueImpl implements UnlinkedEnumValue {
   String _name;
   int _nameOffset;
   UnlinkedDocumentationComment _documentationComment;
-
-  @override
-  Map<String, Object> toMap() => {
-    "name": name,
-    "nameOffset": nameOffset,
-    "documentationComment": documentationComment,
-  };
 
   @override
   String get name {
@@ -1654,7 +1779,16 @@ class _UnlinkedEnumValueImpl implements UnlinkedEnumValue {
   }
 }
 
-class UnlinkedExecutableBuilder {
+abstract class _UnlinkedEnumValueMixin implements UnlinkedEnumValue {
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "nameOffset": nameOffset,
+    "documentationComment": documentationComment,
+  };
+}
+
+class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin implements UnlinkedExecutable {
   bool _finished = false;
 
   String _name;
@@ -1673,6 +1807,9 @@ class UnlinkedExecutableBuilder {
 
   UnlinkedExecutableBuilder();
 
+  @override
+  String get name => _name ?? '';
+
   /**
    * Name of the executable.  For setters, this includes the trailing "=".  For
    * named constructors, this excludes the class name and excludes the ".".
@@ -1682,6 +1819,9 @@ class UnlinkedExecutableBuilder {
     assert(!_finished);
     _name = _value;
   }
+
+  @override
+  int get nameOffset => _nameOffset ?? 0;
 
   /**
    * Offset of the executable name relative to the beginning of the file.  For
@@ -1694,6 +1834,9 @@ class UnlinkedExecutableBuilder {
     _nameOffset = _value;
   }
 
+  @override
+  UnlinkedDocumentationComment get documentationComment => _documentationComment;
+
   /**
    * Documentation comment for the executable, or `null` if there is no
    * documentation comment.
@@ -1703,6 +1846,9 @@ class UnlinkedExecutableBuilder {
     _documentationComment = _value;
   }
 
+  @override
+  List<UnlinkedTypeParam> get typeParameters => _typeParameters ?? const <UnlinkedTypeParam>[];
+
   /**
    * Type parameters of the executable, if any.  Empty if support for generic
    * method syntax is disabled.
@@ -1711,6 +1857,9 @@ class UnlinkedExecutableBuilder {
     assert(!_finished);
     _typeParameters = _value;
   }
+
+  @override
+  UnlinkedTypeRef get returnType => _returnType;
 
   /**
    * Declared return type of the executable.  Absent if the return type is
@@ -1722,6 +1871,9 @@ class UnlinkedExecutableBuilder {
     _returnType = _value;
   }
 
+  @override
+  List<UnlinkedParam> get parameters => _parameters ?? const <UnlinkedParam>[];
+
   /**
    * Parameters of the executable, if any.  Note that getters have no
    * parameters (hence this will be the empty list), and setters have a single
@@ -1732,6 +1884,9 @@ class UnlinkedExecutableBuilder {
     _parameters = _value;
   }
 
+  @override
+  UnlinkedExecutableKind get kind => _kind ?? UnlinkedExecutableKind.functionOrMethod;
+
   /**
    * The kind of the executable (function/method, getter, setter, or
    * constructor).
@@ -1741,6 +1896,9 @@ class UnlinkedExecutableBuilder {
     _kind = _value;
   }
 
+  @override
+  bool get isAbstract => _isAbstract ?? false;
+
   /**
    * Indicates whether the executable is declared using the `abstract` keyword.
    */
@@ -1748,6 +1906,9 @@ class UnlinkedExecutableBuilder {
     assert(!_finished);
     _isAbstract = _value;
   }
+
+  @override
+  bool get isStatic => _isStatic ?? false;
 
   /**
    * Indicates whether the executable is declared using the `static` keyword.
@@ -1761,6 +1922,9 @@ class UnlinkedExecutableBuilder {
     _isStatic = _value;
   }
 
+  @override
+  bool get isConst => _isConst ?? false;
+
   /**
    * Indicates whether the executable is declared using the `const` keyword.
    */
@@ -1768,6 +1932,9 @@ class UnlinkedExecutableBuilder {
     assert(!_finished);
     _isConst = _value;
   }
+
+  @override
+  bool get isFactory => _isFactory ?? false;
 
   /**
    * Indicates whether the executable is declared using the `factory` keyword.
@@ -1777,6 +1944,9 @@ class UnlinkedExecutableBuilder {
     _isFactory = _value;
   }
 
+  @override
+  bool get hasImplicitReturnType => _hasImplicitReturnType ?? false;
+
   /**
    * Indicates whether the executable lacks an explicit return type
    * declaration.  False for constructors and setters.
@@ -1785,6 +1955,9 @@ class UnlinkedExecutableBuilder {
     assert(!_finished);
     _hasImplicitReturnType = _value;
   }
+
+  @override
+  bool get isExternal => _isExternal ?? false;
 
   /**
    * Indicates whether the executable is declared using the `external` keyword.
@@ -1975,7 +2148,7 @@ class _UnlinkedExecutableReader extends fb.TableReader<_UnlinkedExecutableImpl> 
   _UnlinkedExecutableImpl createObject(fb.BufferPointer bp) => new _UnlinkedExecutableImpl(bp);
 }
 
-class _UnlinkedExecutableImpl implements UnlinkedExecutable {
+class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin implements UnlinkedExecutable {
   final fb.BufferPointer _bp;
 
   _UnlinkedExecutableImpl(this._bp);
@@ -1993,23 +2166,6 @@ class _UnlinkedExecutableImpl implements UnlinkedExecutable {
   bool _isFactory;
   bool _hasImplicitReturnType;
   bool _isExternal;
-
-  @override
-  Map<String, Object> toMap() => {
-    "name": name,
-    "nameOffset": nameOffset,
-    "documentationComment": documentationComment,
-    "typeParameters": typeParameters,
-    "returnType": returnType,
-    "parameters": parameters,
-    "kind": kind,
-    "isAbstract": isAbstract,
-    "isStatic": isStatic,
-    "isConst": isConst,
-    "isFactory": isFactory,
-    "hasImplicitReturnType": hasImplicitReturnType,
-    "isExternal": isExternal,
-  };
 
   @override
   String get name {
@@ -2090,7 +2246,26 @@ class _UnlinkedExecutableImpl implements UnlinkedExecutable {
   }
 }
 
-class UnlinkedExportNonPublicBuilder {
+abstract class _UnlinkedExecutableMixin implements UnlinkedExecutable {
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "nameOffset": nameOffset,
+    "documentationComment": documentationComment,
+    "typeParameters": typeParameters,
+    "returnType": returnType,
+    "parameters": parameters,
+    "kind": kind,
+    "isAbstract": isAbstract,
+    "isStatic": isStatic,
+    "isConst": isConst,
+    "isFactory": isFactory,
+    "hasImplicitReturnType": hasImplicitReturnType,
+    "isExternal": isExternal,
+  };
+}
+
+class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPublicMixin implements UnlinkedExportNonPublic {
   bool _finished = false;
 
   int _offset;
@@ -2098,6 +2273,9 @@ class UnlinkedExportNonPublicBuilder {
   int _uriEnd;
 
   UnlinkedExportNonPublicBuilder();
+
+  @override
+  int get offset => _offset ?? 0;
 
   /**
    * Offset of the "export" keyword.
@@ -2107,6 +2285,9 @@ class UnlinkedExportNonPublicBuilder {
     _offset = _value;
   }
 
+  @override
+  int get uriOffset => _uriOffset ?? 0;
+
   /**
    * Offset of the URI string (including quotes) relative to the beginning of
    * the file.
@@ -2115,6 +2296,9 @@ class UnlinkedExportNonPublicBuilder {
     assert(!_finished);
     _uriOffset = _value;
   }
+
+  @override
+  int get uriEnd => _uriEnd ?? 0;
 
   /**
    * End of the URI string (including quotes) relative to the beginning of the
@@ -2181,7 +2365,7 @@ class _UnlinkedExportNonPublicReader extends fb.TableReader<_UnlinkedExportNonPu
   _UnlinkedExportNonPublicImpl createObject(fb.BufferPointer bp) => new _UnlinkedExportNonPublicImpl(bp);
 }
 
-class _UnlinkedExportNonPublicImpl implements UnlinkedExportNonPublic {
+class _UnlinkedExportNonPublicImpl extends Object with _UnlinkedExportNonPublicMixin implements UnlinkedExportNonPublic {
   final fb.BufferPointer _bp;
 
   _UnlinkedExportNonPublicImpl(this._bp);
@@ -2189,13 +2373,6 @@ class _UnlinkedExportNonPublicImpl implements UnlinkedExportNonPublic {
   int _offset;
   int _uriOffset;
   int _uriEnd;
-
-  @override
-  Map<String, Object> toMap() => {
-    "offset": offset,
-    "uriOffset": uriOffset,
-    "uriEnd": uriEnd,
-  };
 
   @override
   int get offset {
@@ -2216,13 +2393,25 @@ class _UnlinkedExportNonPublicImpl implements UnlinkedExportNonPublic {
   }
 }
 
-class UnlinkedExportPublicBuilder {
+abstract class _UnlinkedExportNonPublicMixin implements UnlinkedExportNonPublic {
+  @override
+  Map<String, Object> toMap() => {
+    "offset": offset,
+    "uriOffset": uriOffset,
+    "uriEnd": uriEnd,
+  };
+}
+
+class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin implements UnlinkedExportPublic {
   bool _finished = false;
 
   String _uri;
   List<UnlinkedCombinatorBuilder> _combinators;
 
   UnlinkedExportPublicBuilder();
+
+  @override
+  String get uri => _uri ?? '';
 
   /**
    * URI used in the source code to reference the exported library.
@@ -2231,6 +2420,9 @@ class UnlinkedExportPublicBuilder {
     assert(!_finished);
     _uri = _value;
   }
+
+  @override
+  List<UnlinkedCombinator> get combinators => _combinators ?? const <UnlinkedCombinator>[];
 
   /**
    * Combinators contained in this import declaration.
@@ -2293,19 +2485,13 @@ class _UnlinkedExportPublicReader extends fb.TableReader<_UnlinkedExportPublicIm
   _UnlinkedExportPublicImpl createObject(fb.BufferPointer bp) => new _UnlinkedExportPublicImpl(bp);
 }
 
-class _UnlinkedExportPublicImpl implements UnlinkedExportPublic {
+class _UnlinkedExportPublicImpl extends Object with _UnlinkedExportPublicMixin implements UnlinkedExportPublic {
   final fb.BufferPointer _bp;
 
   _UnlinkedExportPublicImpl(this._bp);
 
   String _uri;
   List<UnlinkedCombinator> _combinators;
-
-  @override
-  Map<String, Object> toMap() => {
-    "uri": uri,
-    "combinators": combinators,
-  };
 
   @override
   String get uri {
@@ -2320,7 +2506,15 @@ class _UnlinkedExportPublicImpl implements UnlinkedExportPublic {
   }
 }
 
-class UnlinkedImportBuilder {
+abstract class _UnlinkedExportPublicMixin implements UnlinkedExportPublic {
+  @override
+  Map<String, Object> toMap() => {
+    "uri": uri,
+    "combinators": combinators,
+  };
+}
+
+class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements UnlinkedImport {
   bool _finished = false;
 
   String _uri;
@@ -2335,6 +2529,9 @@ class UnlinkedImportBuilder {
 
   UnlinkedImportBuilder();
 
+  @override
+  String get uri => _uri ?? '';
+
   /**
    * URI used in the source code to reference the imported library.
    */
@@ -2342,6 +2539,9 @@ class UnlinkedImportBuilder {
     assert(!_finished);
     _uri = _value;
   }
+
+  @override
+  int get offset => _offset ?? 0;
 
   /**
    * If [isImplicit] is false, offset of the "import" keyword.  If [isImplicit]
@@ -2351,6 +2551,9 @@ class UnlinkedImportBuilder {
     assert(!_finished);
     _offset = _value;
   }
+
+  @override
+  int get prefixReference => _prefixReference ?? 0;
 
   /**
    * Index into [UnlinkedUnit.references] of the prefix declared by this
@@ -2363,6 +2566,9 @@ class UnlinkedImportBuilder {
     _prefixReference = _value;
   }
 
+  @override
+  List<UnlinkedCombinator> get combinators => _combinators ?? const <UnlinkedCombinator>[];
+
   /**
    * Combinators contained in this import declaration.
    */
@@ -2370,6 +2576,9 @@ class UnlinkedImportBuilder {
     assert(!_finished);
     _combinators = _value;
   }
+
+  @override
+  bool get isDeferred => _isDeferred ?? false;
 
   /**
    * Indicates whether the import declaration uses the `deferred` keyword.
@@ -2379,6 +2588,9 @@ class UnlinkedImportBuilder {
     _isDeferred = _value;
   }
 
+  @override
+  bool get isImplicit => _isImplicit ?? false;
+
   /**
    * Indicates whether the import declaration is implicit.
    */
@@ -2386,6 +2598,9 @@ class UnlinkedImportBuilder {
     assert(!_finished);
     _isImplicit = _value;
   }
+
+  @override
+  int get uriOffset => _uriOffset ?? 0;
 
   /**
    * Offset of the URI string (including quotes) relative to the beginning of
@@ -2396,6 +2611,9 @@ class UnlinkedImportBuilder {
     _uriOffset = _value;
   }
 
+  @override
+  int get uriEnd => _uriEnd ?? 0;
+
   /**
    * End of the URI string (including quotes) relative to the beginning of the
    * file.  If [isImplicit] is true, zero.
@@ -2404,6 +2622,9 @@ class UnlinkedImportBuilder {
     assert(!_finished);
     _uriEnd = _value;
   }
+
+  @override
+  int get prefixOffset => _prefixOffset ?? 0;
 
   /**
    * Offset of the prefix name relative to the beginning of the file, or zero
@@ -2536,7 +2757,7 @@ class _UnlinkedImportReader extends fb.TableReader<_UnlinkedImportImpl> {
   _UnlinkedImportImpl createObject(fb.BufferPointer bp) => new _UnlinkedImportImpl(bp);
 }
 
-class _UnlinkedImportImpl implements UnlinkedImport {
+class _UnlinkedImportImpl extends Object with _UnlinkedImportMixin implements UnlinkedImport {
   final fb.BufferPointer _bp;
 
   _UnlinkedImportImpl(this._bp);
@@ -2550,19 +2771,6 @@ class _UnlinkedImportImpl implements UnlinkedImport {
   int _uriOffset;
   int _uriEnd;
   int _prefixOffset;
-
-  @override
-  Map<String, Object> toMap() => {
-    "uri": uri,
-    "offset": offset,
-    "prefixReference": prefixReference,
-    "combinators": combinators,
-    "isDeferred": isDeferred,
-    "isImplicit": isImplicit,
-    "uriOffset": uriOffset,
-    "uriEnd": uriEnd,
-    "prefixOffset": prefixOffset,
-  };
 
   @override
   String get uri {
@@ -2619,7 +2827,22 @@ class _UnlinkedImportImpl implements UnlinkedImport {
   }
 }
 
-class UnlinkedParamBuilder {
+abstract class _UnlinkedImportMixin implements UnlinkedImport {
+  @override
+  Map<String, Object> toMap() => {
+    "uri": uri,
+    "offset": offset,
+    "prefixReference": prefixReference,
+    "combinators": combinators,
+    "isDeferred": isDeferred,
+    "isImplicit": isImplicit,
+    "uriOffset": uriOffset,
+    "uriEnd": uriEnd,
+    "prefixOffset": prefixOffset,
+  };
+}
+
+class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements UnlinkedParam {
   bool _finished = false;
 
   String _name;
@@ -2633,6 +2856,9 @@ class UnlinkedParamBuilder {
 
   UnlinkedParamBuilder();
 
+  @override
+  String get name => _name ?? '';
+
   /**
    * Name of the parameter.
    */
@@ -2641,6 +2867,9 @@ class UnlinkedParamBuilder {
     _name = _value;
   }
 
+  @override
+  int get nameOffset => _nameOffset ?? 0;
+
   /**
    * Offset of the parameter name relative to the beginning of the file.
    */
@@ -2648,6 +2877,9 @@ class UnlinkedParamBuilder {
     assert(!_finished);
     _nameOffset = _value;
   }
+
+  @override
+  UnlinkedTypeRef get type => _type;
 
   /**
    * If [isFunctionTyped] is `true`, the declared return type.  If
@@ -2661,6 +2893,9 @@ class UnlinkedParamBuilder {
     _type = _value;
   }
 
+  @override
+  List<UnlinkedParam> get parameters => _parameters ?? const <UnlinkedParam>[];
+
   /**
    * If [isFunctionTyped] is `true`, the parameters of the function type.
    */
@@ -2668,6 +2903,9 @@ class UnlinkedParamBuilder {
     assert(!_finished);
     _parameters = _value;
   }
+
+  @override
+  UnlinkedParamKind get kind => _kind ?? UnlinkedParamKind.required;
 
   /**
    * Kind of the parameter.
@@ -2677,6 +2915,9 @@ class UnlinkedParamBuilder {
     _kind = _value;
   }
 
+  @override
+  bool get isFunctionTyped => _isFunctionTyped ?? false;
+
   /**
    * Indicates whether this is a function-typed parameter.
    */
@@ -2684,6 +2925,9 @@ class UnlinkedParamBuilder {
     assert(!_finished);
     _isFunctionTyped = _value;
   }
+
+  @override
+  bool get isInitializingFormal => _isInitializingFormal ?? false;
 
   /**
    * Indicates whether this is an initializing formal parameter (i.e. it is
@@ -2693,6 +2937,9 @@ class UnlinkedParamBuilder {
     assert(!_finished);
     _isInitializingFormal = _value;
   }
+
+  @override
+  bool get hasImplicitType => _hasImplicitType ?? false;
 
   /**
    * Indicates whether this parameter lacks an explicit type declaration.
@@ -2819,7 +3066,7 @@ class _UnlinkedParamReader extends fb.TableReader<_UnlinkedParamImpl> {
   _UnlinkedParamImpl createObject(fb.BufferPointer bp) => new _UnlinkedParamImpl(bp);
 }
 
-class _UnlinkedParamImpl implements UnlinkedParam {
+class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements UnlinkedParam {
   final fb.BufferPointer _bp;
 
   _UnlinkedParamImpl(this._bp);
@@ -2832,18 +3079,6 @@ class _UnlinkedParamImpl implements UnlinkedParam {
   bool _isFunctionTyped;
   bool _isInitializingFormal;
   bool _hasImplicitType;
-
-  @override
-  Map<String, Object> toMap() => {
-    "name": name,
-    "nameOffset": nameOffset,
-    "type": type,
-    "parameters": parameters,
-    "kind": kind,
-    "isFunctionTyped": isFunctionTyped,
-    "isInitializingFormal": isInitializingFormal,
-    "hasImplicitType": hasImplicitType,
-  };
 
   @override
   String get name {
@@ -2894,13 +3129,30 @@ class _UnlinkedParamImpl implements UnlinkedParam {
   }
 }
 
-class UnlinkedPartBuilder {
+abstract class _UnlinkedParamMixin implements UnlinkedParam {
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "nameOffset": nameOffset,
+    "type": type,
+    "parameters": parameters,
+    "kind": kind,
+    "isFunctionTyped": isFunctionTyped,
+    "isInitializingFormal": isInitializingFormal,
+    "hasImplicitType": hasImplicitType,
+  };
+}
+
+class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements UnlinkedPart {
   bool _finished = false;
 
   int _uriOffset;
   int _uriEnd;
 
   UnlinkedPartBuilder();
+
+  @override
+  int get uriOffset => _uriOffset ?? 0;
 
   /**
    * Offset of the URI string (including quotes) relative to the beginning of
@@ -2910,6 +3162,9 @@ class UnlinkedPartBuilder {
     assert(!_finished);
     _uriOffset = _value;
   }
+
+  @override
+  int get uriEnd => _uriEnd ?? 0;
 
   /**
    * End of the URI string (including quotes) relative to the beginning of the
@@ -2966,19 +3221,13 @@ class _UnlinkedPartReader extends fb.TableReader<_UnlinkedPartImpl> {
   _UnlinkedPartImpl createObject(fb.BufferPointer bp) => new _UnlinkedPartImpl(bp);
 }
 
-class _UnlinkedPartImpl implements UnlinkedPart {
+class _UnlinkedPartImpl extends Object with _UnlinkedPartMixin implements UnlinkedPart {
   final fb.BufferPointer _bp;
 
   _UnlinkedPartImpl(this._bp);
 
   int _uriOffset;
   int _uriEnd;
-
-  @override
-  Map<String, Object> toMap() => {
-    "uriOffset": uriOffset,
-    "uriEnd": uriEnd,
-  };
 
   @override
   int get uriOffset {
@@ -2993,7 +3242,15 @@ class _UnlinkedPartImpl implements UnlinkedPart {
   }
 }
 
-class UnlinkedPublicNameBuilder {
+abstract class _UnlinkedPartMixin implements UnlinkedPart {
+  @override
+  Map<String, Object> toMap() => {
+    "uriOffset": uriOffset,
+    "uriEnd": uriEnd,
+  };
+}
+
+class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin implements UnlinkedPublicName {
   bool _finished = false;
 
   String _name;
@@ -3001,6 +3258,9 @@ class UnlinkedPublicNameBuilder {
   int _numTypeParameters;
 
   UnlinkedPublicNameBuilder();
+
+  @override
+  String get name => _name ?? '';
 
   /**
    * The name itself.
@@ -3010,6 +3270,9 @@ class UnlinkedPublicNameBuilder {
     _name = _value;
   }
 
+  @override
+  PrelinkedReferenceKind get kind => _kind ?? PrelinkedReferenceKind.classOrEnum;
+
   /**
    * The kind of object referred to by the name.
    */
@@ -3017,6 +3280,9 @@ class UnlinkedPublicNameBuilder {
     assert(!_finished);
     _kind = _value;
   }
+
+  @override
+  int get numTypeParameters => _numTypeParameters ?? 0;
 
   /**
    * If the entity being referred to is generic, the number of type parameters
@@ -3096,7 +3362,7 @@ class _UnlinkedPublicNameReader extends fb.TableReader<_UnlinkedPublicNameImpl> 
   _UnlinkedPublicNameImpl createObject(fb.BufferPointer bp) => new _UnlinkedPublicNameImpl(bp);
 }
 
-class _UnlinkedPublicNameImpl implements UnlinkedPublicName {
+class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin implements UnlinkedPublicName {
   final fb.BufferPointer _bp;
 
   _UnlinkedPublicNameImpl(this._bp);
@@ -3104,13 +3370,6 @@ class _UnlinkedPublicNameImpl implements UnlinkedPublicName {
   String _name;
   PrelinkedReferenceKind _kind;
   int _numTypeParameters;
-
-  @override
-  Map<String, Object> toMap() => {
-    "name": name,
-    "kind": kind,
-    "numTypeParameters": numTypeParameters,
-  };
 
   @override
   String get name {
@@ -3131,7 +3390,16 @@ class _UnlinkedPublicNameImpl implements UnlinkedPublicName {
   }
 }
 
-class UnlinkedPublicNamespaceBuilder {
+abstract class _UnlinkedPublicNameMixin implements UnlinkedPublicName {
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "kind": kind,
+    "numTypeParameters": numTypeParameters,
+  };
+}
+
+class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespaceMixin implements UnlinkedPublicNamespace {
   bool _finished = false;
 
   List<UnlinkedPublicNameBuilder> _names;
@@ -3139,6 +3407,9 @@ class UnlinkedPublicNamespaceBuilder {
   List<String> _parts;
 
   UnlinkedPublicNamespaceBuilder();
+
+  @override
+  List<UnlinkedPublicName> get names => _names ?? const <UnlinkedPublicName>[];
 
   /**
    * Public names defined in the compilation unit.
@@ -3151,6 +3422,9 @@ class UnlinkedPublicNamespaceBuilder {
     _names = _value;
   }
 
+  @override
+  List<UnlinkedExportPublic> get exports => _exports ?? const <UnlinkedExportPublic>[];
+
   /**
    * Export declarations in the compilation unit.
    */
@@ -3158,6 +3432,9 @@ class UnlinkedPublicNamespaceBuilder {
     assert(!_finished);
     _exports = _value;
   }
+
+  @override
+  List<String> get parts => _parts ?? const <String>[];
 
   /**
    * URIs referenced by part declarations in the compilation unit.
@@ -3246,7 +3523,7 @@ class _UnlinkedPublicNamespaceReader extends fb.TableReader<_UnlinkedPublicNames
   _UnlinkedPublicNamespaceImpl createObject(fb.BufferPointer bp) => new _UnlinkedPublicNamespaceImpl(bp);
 }
 
-class _UnlinkedPublicNamespaceImpl implements UnlinkedPublicNamespace {
+class _UnlinkedPublicNamespaceImpl extends Object with _UnlinkedPublicNamespaceMixin implements UnlinkedPublicNamespace {
   final fb.BufferPointer _bp;
 
   _UnlinkedPublicNamespaceImpl(this._bp);
@@ -3254,13 +3531,6 @@ class _UnlinkedPublicNamespaceImpl implements UnlinkedPublicNamespace {
   List<UnlinkedPublicName> _names;
   List<UnlinkedExportPublic> _exports;
   List<String> _parts;
-
-  @override
-  Map<String, Object> toMap() => {
-    "names": names,
-    "exports": exports,
-    "parts": parts,
-  };
 
   @override
   List<UnlinkedPublicName> get names {
@@ -3281,13 +3551,25 @@ class _UnlinkedPublicNamespaceImpl implements UnlinkedPublicNamespace {
   }
 }
 
-class UnlinkedReferenceBuilder {
+abstract class _UnlinkedPublicNamespaceMixin implements UnlinkedPublicNamespace {
+  @override
+  Map<String, Object> toMap() => {
+    "names": names,
+    "exports": exports,
+    "parts": parts,
+  };
+}
+
+class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin implements UnlinkedReference {
   bool _finished = false;
 
   String _name;
   int _prefixReference;
 
   UnlinkedReferenceBuilder();
+
+  @override
+  String get name => _name ?? '';
 
   /**
    * Name of the entity being referred to.  The empty string refers to the
@@ -3297,6 +3579,9 @@ class UnlinkedReferenceBuilder {
     assert(!_finished);
     _name = _value;
   }
+
+  @override
+  int get prefixReference => _prefixReference ?? 0;
 
   /**
    * Prefix used to refer to the entity, or zero if no prefix is used.  This is
@@ -3366,19 +3651,13 @@ class _UnlinkedReferenceReader extends fb.TableReader<_UnlinkedReferenceImpl> {
   _UnlinkedReferenceImpl createObject(fb.BufferPointer bp) => new _UnlinkedReferenceImpl(bp);
 }
 
-class _UnlinkedReferenceImpl implements UnlinkedReference {
+class _UnlinkedReferenceImpl extends Object with _UnlinkedReferenceMixin implements UnlinkedReference {
   final fb.BufferPointer _bp;
 
   _UnlinkedReferenceImpl(this._bp);
 
   String _name;
   int _prefixReference;
-
-  @override
-  Map<String, Object> toMap() => {
-    "name": name,
-    "prefixReference": prefixReference,
-  };
 
   @override
   String get name {
@@ -3393,7 +3672,15 @@ class _UnlinkedReferenceImpl implements UnlinkedReference {
   }
 }
 
-class UnlinkedTypedefBuilder {
+abstract class _UnlinkedReferenceMixin implements UnlinkedReference {
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "prefixReference": prefixReference,
+  };
+}
+
+class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implements UnlinkedTypedef {
   bool _finished = false;
 
   String _name;
@@ -3405,6 +3692,9 @@ class UnlinkedTypedefBuilder {
 
   UnlinkedTypedefBuilder();
 
+  @override
+  String get name => _name ?? '';
+
   /**
    * Name of the typedef.
    */
@@ -3413,6 +3703,9 @@ class UnlinkedTypedefBuilder {
     _name = _value;
   }
 
+  @override
+  int get nameOffset => _nameOffset ?? 0;
+
   /**
    * Offset of the typedef name relative to the beginning of the file.
    */
@@ -3420,6 +3713,9 @@ class UnlinkedTypedefBuilder {
     assert(!_finished);
     _nameOffset = _value;
   }
+
+  @override
+  UnlinkedDocumentationComment get documentationComment => _documentationComment;
 
   /**
    * Documentation comment for the typedef, or `null` if there is no
@@ -3430,6 +3726,9 @@ class UnlinkedTypedefBuilder {
     _documentationComment = _value;
   }
 
+  @override
+  List<UnlinkedTypeParam> get typeParameters => _typeParameters ?? const <UnlinkedTypeParam>[];
+
   /**
    * Type parameters of the typedef, if any.
    */
@@ -3438,6 +3737,9 @@ class UnlinkedTypedefBuilder {
     _typeParameters = _value;
   }
 
+  @override
+  UnlinkedTypeRef get returnType => _returnType;
+
   /**
    * Return type of the typedef.  Absent if the return type is `void`.
    */
@@ -3445,6 +3747,9 @@ class UnlinkedTypedefBuilder {
     assert(!_finished);
     _returnType = _value;
   }
+
+  @override
+  List<UnlinkedParam> get parameters => _parameters ?? const <UnlinkedParam>[];
 
   /**
    * Parameters of the executable, if any.
@@ -3555,7 +3860,7 @@ class _UnlinkedTypedefReader extends fb.TableReader<_UnlinkedTypedefImpl> {
   _UnlinkedTypedefImpl createObject(fb.BufferPointer bp) => new _UnlinkedTypedefImpl(bp);
 }
 
-class _UnlinkedTypedefImpl implements UnlinkedTypedef {
+class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements UnlinkedTypedef {
   final fb.BufferPointer _bp;
 
   _UnlinkedTypedefImpl(this._bp);
@@ -3566,16 +3871,6 @@ class _UnlinkedTypedefImpl implements UnlinkedTypedef {
   List<UnlinkedTypeParam> _typeParameters;
   UnlinkedTypeRef _returnType;
   List<UnlinkedParam> _parameters;
-
-  @override
-  Map<String, Object> toMap() => {
-    "name": name,
-    "nameOffset": nameOffset,
-    "documentationComment": documentationComment,
-    "typeParameters": typeParameters,
-    "returnType": returnType,
-    "parameters": parameters,
-  };
 
   @override
   String get name {
@@ -3614,7 +3909,19 @@ class _UnlinkedTypedefImpl implements UnlinkedTypedef {
   }
 }
 
-class UnlinkedTypeParamBuilder {
+abstract class _UnlinkedTypedefMixin implements UnlinkedTypedef {
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "nameOffset": nameOffset,
+    "documentationComment": documentationComment,
+    "typeParameters": typeParameters,
+    "returnType": returnType,
+    "parameters": parameters,
+  };
+}
+
+class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin implements UnlinkedTypeParam {
   bool _finished = false;
 
   String _name;
@@ -3622,6 +3929,9 @@ class UnlinkedTypeParamBuilder {
   UnlinkedTypeRefBuilder _bound;
 
   UnlinkedTypeParamBuilder();
+
+  @override
+  String get name => _name ?? '';
 
   /**
    * Name of the type parameter.
@@ -3631,6 +3941,9 @@ class UnlinkedTypeParamBuilder {
     _name = _value;
   }
 
+  @override
+  int get nameOffset => _nameOffset ?? 0;
+
   /**
    * Offset of the type parameter name relative to the beginning of the file.
    */
@@ -3638,6 +3951,9 @@ class UnlinkedTypeParamBuilder {
     assert(!_finished);
     _nameOffset = _value;
   }
+
+  @override
+  UnlinkedTypeRef get bound => _bound;
 
   /**
    * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
@@ -3710,7 +4026,7 @@ class _UnlinkedTypeParamReader extends fb.TableReader<_UnlinkedTypeParamImpl> {
   _UnlinkedTypeParamImpl createObject(fb.BufferPointer bp) => new _UnlinkedTypeParamImpl(bp);
 }
 
-class _UnlinkedTypeParamImpl implements UnlinkedTypeParam {
+class _UnlinkedTypeParamImpl extends Object with _UnlinkedTypeParamMixin implements UnlinkedTypeParam {
   final fb.BufferPointer _bp;
 
   _UnlinkedTypeParamImpl(this._bp);
@@ -3718,13 +4034,6 @@ class _UnlinkedTypeParamImpl implements UnlinkedTypeParam {
   String _name;
   int _nameOffset;
   UnlinkedTypeRef _bound;
-
-  @override
-  Map<String, Object> toMap() => {
-    "name": name,
-    "nameOffset": nameOffset,
-    "bound": bound,
-  };
 
   @override
   String get name {
@@ -3745,7 +4054,16 @@ class _UnlinkedTypeParamImpl implements UnlinkedTypeParam {
   }
 }
 
-class UnlinkedTypeRefBuilder {
+abstract class _UnlinkedTypeParamMixin implements UnlinkedTypeParam {
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "nameOffset": nameOffset,
+    "bound": bound,
+  };
+}
+
+class UnlinkedTypeRefBuilder extends Object with _UnlinkedTypeRefMixin implements UnlinkedTypeRef {
   bool _finished = false;
 
   int _reference;
@@ -3753,6 +4071,9 @@ class UnlinkedTypeRefBuilder {
   List<UnlinkedTypeRefBuilder> _typeArguments;
 
   UnlinkedTypeRefBuilder();
+
+  @override
+  int get reference => _reference ?? 0;
 
   /**
    * Index into [UnlinkedUnit.references] for the type being referred to, or
@@ -3768,6 +4089,9 @@ class UnlinkedTypeRefBuilder {
     assert(!_finished);
     _reference = _value;
   }
+
+  @override
+  int get paramReference => _paramReference ?? 0;
 
   /**
    * If this is a reference to a type parameter, one-based index into the list
@@ -3792,6 +4116,9 @@ class UnlinkedTypeRefBuilder {
     assert(!_finished);
     _paramReference = _value;
   }
+
+  @override
+  List<UnlinkedTypeRef> get typeArguments => _typeArguments ?? const <UnlinkedTypeRef>[];
 
   /**
    * If this is an instantiation of a generic type, the type arguments used to
@@ -3883,7 +4210,7 @@ class _UnlinkedTypeRefReader extends fb.TableReader<_UnlinkedTypeRefImpl> {
   _UnlinkedTypeRefImpl createObject(fb.BufferPointer bp) => new _UnlinkedTypeRefImpl(bp);
 }
 
-class _UnlinkedTypeRefImpl implements UnlinkedTypeRef {
+class _UnlinkedTypeRefImpl extends Object with _UnlinkedTypeRefMixin implements UnlinkedTypeRef {
   final fb.BufferPointer _bp;
 
   _UnlinkedTypeRefImpl(this._bp);
@@ -3891,13 +4218,6 @@ class _UnlinkedTypeRefImpl implements UnlinkedTypeRef {
   int _reference;
   int _paramReference;
   List<UnlinkedTypeRef> _typeArguments;
-
-  @override
-  Map<String, Object> toMap() => {
-    "reference": reference,
-    "paramReference": paramReference,
-    "typeArguments": typeArguments,
-  };
 
   @override
   int get reference {
@@ -3918,7 +4238,16 @@ class _UnlinkedTypeRefImpl implements UnlinkedTypeRef {
   }
 }
 
-class UnlinkedUnitBuilder {
+abstract class _UnlinkedTypeRefMixin implements UnlinkedTypeRef {
+  @override
+  Map<String, Object> toMap() => {
+    "reference": reference,
+    "paramReference": paramReference,
+    "typeArguments": typeArguments,
+  };
+}
+
+class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements UnlinkedUnit {
   bool _finished = false;
 
   String _libraryName;
@@ -3938,6 +4267,9 @@ class UnlinkedUnitBuilder {
 
   UnlinkedUnitBuilder();
 
+  @override
+  String get libraryName => _libraryName ?? '';
+
   /**
    * Name of the library (from a "library" declaration, if present).
    */
@@ -3945,6 +4277,9 @@ class UnlinkedUnitBuilder {
     assert(!_finished);
     _libraryName = _value;
   }
+
+  @override
+  int get libraryNameOffset => _libraryNameOffset ?? 0;
 
   /**
    * Offset of the library name relative to the beginning of the file (or 0 if
@@ -3955,6 +4290,9 @@ class UnlinkedUnitBuilder {
     _libraryNameOffset = _value;
   }
 
+  @override
+  int get libraryNameLength => _libraryNameLength ?? 0;
+
   /**
    * Length of the library name as it appears in the source code (or 0 if the
    * library has no name).
@@ -3963,6 +4301,9 @@ class UnlinkedUnitBuilder {
     assert(!_finished);
     _libraryNameLength = _value;
   }
+
+  @override
+  UnlinkedDocumentationComment get libraryDocumentationComment => _libraryDocumentationComment;
 
   /**
    * Documentation comment for the library, or `null` if there is no
@@ -3973,6 +4314,9 @@ class UnlinkedUnitBuilder {
     _libraryDocumentationComment = _value;
   }
 
+  @override
+  UnlinkedPublicNamespace get publicNamespace => _publicNamespace;
+
   /**
    * Unlinked public namespace of this compilation unit.
    */
@@ -3980,6 +4324,9 @@ class UnlinkedUnitBuilder {
     assert(!_finished);
     _publicNamespace = _value;
   }
+
+  @override
+  List<UnlinkedReference> get references => _references ?? const <UnlinkedReference>[];
 
   /**
    * Top level and prefixed names referred to by this compilation unit.  The
@@ -3991,6 +4338,9 @@ class UnlinkedUnitBuilder {
     _references = _value;
   }
 
+  @override
+  List<UnlinkedClass> get classes => _classes ?? const <UnlinkedClass>[];
+
   /**
    * Classes declared in the compilation unit.
    */
@@ -3999,6 +4349,9 @@ class UnlinkedUnitBuilder {
     _classes = _value;
   }
 
+  @override
+  List<UnlinkedEnum> get enums => _enums ?? const <UnlinkedEnum>[];
+
   /**
    * Enums declared in the compilation unit.
    */
@@ -4006,6 +4359,9 @@ class UnlinkedUnitBuilder {
     assert(!_finished);
     _enums = _value;
   }
+
+  @override
+  List<UnlinkedExecutable> get executables => _executables ?? const <UnlinkedExecutable>[];
 
   /**
    * Top level executable objects (functions, getters, and setters) declared in
@@ -4016,6 +4372,9 @@ class UnlinkedUnitBuilder {
     _executables = _value;
   }
 
+  @override
+  List<UnlinkedExportNonPublic> get exports => _exports ?? const <UnlinkedExportNonPublic>[];
+
   /**
    * Export declarations in the compilation unit.
    */
@@ -4023,6 +4382,9 @@ class UnlinkedUnitBuilder {
     assert(!_finished);
     _exports = _value;
   }
+
+  @override
+  List<UnlinkedImport> get imports => _imports ?? const <UnlinkedImport>[];
 
   /**
    * Import declarations in the compilation unit.
@@ -4032,6 +4394,9 @@ class UnlinkedUnitBuilder {
     _imports = _value;
   }
 
+  @override
+  List<UnlinkedPart> get parts => _parts ?? const <UnlinkedPart>[];
+
   /**
    * Part declarations in the compilation unit.
    */
@@ -4040,6 +4405,9 @@ class UnlinkedUnitBuilder {
     _parts = _value;
   }
 
+  @override
+  List<UnlinkedTypedef> get typedefs => _typedefs ?? const <UnlinkedTypedef>[];
+
   /**
    * Typedefs declared in the compilation unit.
    */
@@ -4047,6 +4415,9 @@ class UnlinkedUnitBuilder {
     assert(!_finished);
     _typedefs = _value;
   }
+
+  @override
+  List<UnlinkedVariable> get variables => _variables ?? const <UnlinkedVariable>[];
 
   /**
    * Top level variables declared in the compilation unit.
@@ -4271,7 +4642,7 @@ class _UnlinkedUnitReader extends fb.TableReader<_UnlinkedUnitImpl> {
   _UnlinkedUnitImpl createObject(fb.BufferPointer bp) => new _UnlinkedUnitImpl(bp);
 }
 
-class _UnlinkedUnitImpl implements UnlinkedUnit {
+class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements UnlinkedUnit {
   final fb.BufferPointer _bp;
 
   _UnlinkedUnitImpl(this._bp);
@@ -4290,24 +4661,6 @@ class _UnlinkedUnitImpl implements UnlinkedUnit {
   List<UnlinkedPart> _parts;
   List<UnlinkedTypedef> _typedefs;
   List<UnlinkedVariable> _variables;
-
-  @override
-  Map<String, Object> toMap() => {
-    "libraryName": libraryName,
-    "libraryNameOffset": libraryNameOffset,
-    "libraryNameLength": libraryNameLength,
-    "libraryDocumentationComment": libraryDocumentationComment,
-    "publicNamespace": publicNamespace,
-    "references": references,
-    "classes": classes,
-    "enums": enums,
-    "executables": executables,
-    "exports": exports,
-    "imports": imports,
-    "parts": parts,
-    "typedefs": typedefs,
-    "variables": variables,
-  };
 
   @override
   String get libraryName {
@@ -4394,7 +4747,27 @@ class _UnlinkedUnitImpl implements UnlinkedUnit {
   }
 }
 
-class UnlinkedVariableBuilder {
+abstract class _UnlinkedUnitMixin implements UnlinkedUnit {
+  @override
+  Map<String, Object> toMap() => {
+    "libraryName": libraryName,
+    "libraryNameOffset": libraryNameOffset,
+    "libraryNameLength": libraryNameLength,
+    "libraryDocumentationComment": libraryDocumentationComment,
+    "publicNamespace": publicNamespace,
+    "references": references,
+    "classes": classes,
+    "enums": enums,
+    "executables": executables,
+    "exports": exports,
+    "imports": imports,
+    "parts": parts,
+    "typedefs": typedefs,
+    "variables": variables,
+  };
+}
+
+class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin implements UnlinkedVariable {
   bool _finished = false;
 
   String _name;
@@ -4408,6 +4781,9 @@ class UnlinkedVariableBuilder {
 
   UnlinkedVariableBuilder();
 
+  @override
+  String get name => _name ?? '';
+
   /**
    * Name of the variable.
    */
@@ -4416,6 +4792,9 @@ class UnlinkedVariableBuilder {
     _name = _value;
   }
 
+  @override
+  int get nameOffset => _nameOffset ?? 0;
+
   /**
    * Offset of the variable name relative to the beginning of the file.
    */
@@ -4423,6 +4802,9 @@ class UnlinkedVariableBuilder {
     assert(!_finished);
     _nameOffset = _value;
   }
+
+  @override
+  UnlinkedDocumentationComment get documentationComment => _documentationComment;
 
   /**
    * Documentation comment for the variable, or `null` if there is no
@@ -4433,6 +4815,9 @@ class UnlinkedVariableBuilder {
     _documentationComment = _value;
   }
 
+  @override
+  UnlinkedTypeRef get type => _type;
+
   /**
    * Declared type of the variable.  Note that when strong mode is enabled, the
    * actual type of the variable may be different due to type inference.
@@ -4441,6 +4826,9 @@ class UnlinkedVariableBuilder {
     assert(!_finished);
     _type = _value;
   }
+
+  @override
+  bool get isStatic => _isStatic ?? false;
 
   /**
    * Indicates whether the variable is declared using the `static` keyword.
@@ -4454,6 +4842,9 @@ class UnlinkedVariableBuilder {
     _isStatic = _value;
   }
 
+  @override
+  bool get isFinal => _isFinal ?? false;
+
   /**
    * Indicates whether the variable is declared using the `final` keyword.
    */
@@ -4462,6 +4853,9 @@ class UnlinkedVariableBuilder {
     _isFinal = _value;
   }
 
+  @override
+  bool get isConst => _isConst ?? false;
+
   /**
    * Indicates whether the variable is declared using the `const` keyword.
    */
@@ -4469,6 +4863,9 @@ class UnlinkedVariableBuilder {
     assert(!_finished);
     _isConst = _value;
   }
+
+  @override
+  bool get hasImplicitType => _hasImplicitType ?? false;
 
   /**
    * Indicates whether this variable lacks an explicit type declaration.
@@ -4595,7 +4992,7 @@ class _UnlinkedVariableReader extends fb.TableReader<_UnlinkedVariableImpl> {
   _UnlinkedVariableImpl createObject(fb.BufferPointer bp) => new _UnlinkedVariableImpl(bp);
 }
 
-class _UnlinkedVariableImpl implements UnlinkedVariable {
+class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implements UnlinkedVariable {
   final fb.BufferPointer _bp;
 
   _UnlinkedVariableImpl(this._bp);
@@ -4608,18 +5005,6 @@ class _UnlinkedVariableImpl implements UnlinkedVariable {
   bool _isFinal;
   bool _isConst;
   bool _hasImplicitType;
-
-  @override
-  Map<String, Object> toMap() => {
-    "name": name,
-    "nameOffset": nameOffset,
-    "documentationComment": documentationComment,
-    "type": type,
-    "isStatic": isStatic,
-    "isFinal": isFinal,
-    "isConst": isConst,
-    "hasImplicitType": hasImplicitType,
-  };
 
   @override
   String get name {
@@ -4668,5 +5053,19 @@ class _UnlinkedVariableImpl implements UnlinkedVariable {
     _hasImplicitType ??= const fb.BoolReader().vTableGet(_bp, 7, false);
     return _hasImplicitType;
   }
+}
+
+abstract class _UnlinkedVariableMixin implements UnlinkedVariable {
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "nameOffset": nameOffset,
+    "documentationComment": documentationComment,
+    "type": type,
+    "isStatic": isStatic,
+    "isFinal": isFinal,
+    "isConst": isConst,
+    "hasImplicitType": hasImplicitType,
+  };
 }
 

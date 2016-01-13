@@ -283,6 +283,8 @@ class _CodeGenerator {
       out();
       _generateImpl(cls);
       out();
+      _generateMixin(cls);
+      out();
     }
   }
 
@@ -294,9 +296,12 @@ class _CodeGenerator {
   }
 
   List<String> _generateBuilder(idlModel.ClassDeclaration cls) {
-    String builderName = cls.name + 'Builder';
+    String name = cls.name;
+    String builderName = name + 'Builder';
+    String mixinName = '_${name}Mixin';
     List<String> builderParams = <String>[];
-    out('class $builderName {');
+    out('class $builderName extends Object with $mixinName '
+        'implements $name {');
     indent(() {
       out('bool _finished = false;');
       // Generate fields.
@@ -310,10 +315,15 @@ class _CodeGenerator {
       // Generate constructor.
       out();
       out('$builderName();');
-      // Generate setters.
+      // Generate getters and setters.
       for (idlModel.FieldDeclaration field in cls.fields) {
         String fieldName = field.name;
         String typeStr = encodedType(field.type);
+        String def = defaultValue(field.type);
+        String defSuffix = def == null ? '' : ' ?? $def';
+        out();
+        out('@override');
+        out('${dartType(field.type)} get $fieldName => _$fieldName$defSuffix;');
         out();
         outDoc(field.documentation);
         builderParams.add('$typeStr $fieldName');
@@ -446,7 +456,8 @@ class _CodeGenerator {
   void _generateImpl(idlModel.ClassDeclaration cls) {
     String name = cls.name;
     String implName = '_${name}Impl';
-    out('class $implName implements $name {');
+    String mixinName = '_${name}Mixin';
+    out('class $implName extends Object with $mixinName implements $name {');
     indent(() {
       out('final fb.BufferPointer _bp;');
       out();
@@ -458,17 +469,6 @@ class _CodeGenerator {
         String fieldName = field.name;
         out('$returnType _$fieldName;');
       }
-      out();
-      // Write toMap().
-      out('@override');
-      out('Map<String, Object> toMap() => {');
-      indent(() {
-        for (idlModel.FieldDeclaration field in cls.fields) {
-          String fieldName = field.name;
-          out('${quoted(fieldName)}: $fieldName,');
-        }
-      });
-      out('};');
       // Write getters.
       cls.fields.asMap().forEach((index, field) {
         String fieldName = field.name;
@@ -540,6 +540,25 @@ class _CodeGenerator {
         outDoc(field.documentation);
         out('${dartType(type)} get $fieldName;');
       });
+    });
+    out('}');
+  }
+
+  void _generateMixin(idlModel.ClassDeclaration cls) {
+    String name = cls.name;
+    String mixinName = '_${name}Mixin';
+    out('abstract class $mixinName implements $name {');
+    indent(() {
+      // Write toMap().
+      out('@override');
+      out('Map<String, Object> toMap() => {');
+      indent(() {
+        for (idlModel.FieldDeclaration field in cls.fields) {
+          String fieldName = field.name;
+          out('${quoted(fieldName)}: $fieldName,');
+        }
+      });
+      out('};');
     });
     out('}');
   }
