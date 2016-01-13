@@ -1386,6 +1386,10 @@ typedef F();''');
 var x;''');
   }
 
+  test_variable_final() {
+    checkLibrary('final int x = 0;');
+  }
+
   test_variable_implicit_type() {
     checkLibrary('var x;');
   }

@@ -948,6 +948,7 @@ class _LibraryResynthesizer {
       UnlinkedVariable serializedVariable) {
     element.type = buildType(serializedVariable.type);
     element.const3 = serializedVariable.isConst;
+    element.final2 = serializedVariable.isFinal;
     element.hasImplicitType = serializedVariable.hasImplicitType;
     buildDocumentation(element, serializedVariable.documentationComment);
   }
