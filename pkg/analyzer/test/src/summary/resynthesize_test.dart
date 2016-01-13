@@ -371,6 +371,7 @@ class ResynthTest extends ResolverTestCase {
       PropertyInducingElementImpl original,
       String desc) {
     compareVariableElements(resynthesized, original, desc);
+    compareTypes(resynthesized.propagatedType, original.propagatedType, desc);
     if (original.getter == null) {
       expect(resynthesized.getter, isNull);
     } else {
@@ -487,8 +488,66 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test initializer
   }
 
+  fail_field_propagatedType_const_noDep() {
+    checkLibrary('''
+class C {
+  static const x = 0;
+}''');
+  }
+
+  fail_field_propagatedType_final_dep_inLib() {
+    addNamedSource('/a.dart', 'final a = 1;');
+    checkLibrary('''
+import "a.dart";
+class C {
+  final b = a / 2;
+}''');
+  }
+
+  fail_field_propagatedType_final_dep_inPart() {
+    addNamedSource('/a.dart', 'part of lib; final a = 1;');
+    checkLibrary('''
+library lib;
+part "a.dart";
+class C {
+  final b = a / 2;
+}''');
+  }
+
+  fail_field_propagatedType_final_noDep_instance() {
+    checkLibrary('''
+class C {
+  final x = 0;
+}''');
+  }
+
+  fail_field_propagatedType_final_noDep_static() {
+    checkLibrary('''
+class C {
+  static final x = 0;
+}''');
+  }
+
   fail_library_hasExtUri() {
     checkLibrary('import "dart-ext:doesNotExist.dart";');
+  }
+
+  fail_variable_propagatedType_const_noDep() {
+    checkLibrary('const i = 0;');
+  }
+
+  fail_variable_propagatedType_final_dep_inLib() {
+    addNamedSource('/a.dart', 'final a = 1;');
+    checkLibrary('import "a.dart"; final b = a / 2;');
+  }
+
+  fail_variable_propagatedType_final_dep_inPart() {
+    addNamedSource('/a.dart', 'part of lib; final a = 1;');
+    checkLibrary('library lib; part "a.dart"; final b = a / 2;');
+  }
+
+  fail_variable_propagatedType_final_noDep() {
+    checkLibrary('final i = 0;');
   }
 
   LibraryElementImpl resynthesizeLibrary(
