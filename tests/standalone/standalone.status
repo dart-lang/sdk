@@ -11,8 +11,8 @@ package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/empty_packages_file/empty_packages_file_discovery_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/empty_packages_file/empty_packages_file_option_test: Fail, OK # CompileTimeErrors intentionally
-package/scenarios/invalid/invalid_package_name_test: RuntimeError # RuntimeErrors intentionally
-package/scenarios/invalid/same_package_twice_test.dart: RuntimeError # RuntimeErrors intentionally
+package/scenarios/invalid/invalid_package_name_test: RuntimeError, CompileTimeError # Errors intentionally
+package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTimeError # Errors intentionally
 
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
