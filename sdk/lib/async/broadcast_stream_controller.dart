@@ -23,7 +23,7 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T>
   // TODO(lrn): Use the _state field on _ControllerSubscription to
   // also store this state. Requires that the subscription implementation
   // does not assume that it's use of the state integer is the only use.
-  int _eventState;
+  int _eventState = 0;  // Initialized to help dart2js type inference.
 
   _BroadcastSubscriptionLink _next;
   _BroadcastSubscriptionLink _previous;
