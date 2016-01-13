@@ -637,6 +637,7 @@ class _LibraryResynthesizer {
       importElement.uriOffset = serializedImport.uriOffset;
       importElement.uriEnd = serializedImport.uriEnd;
     }
+    importElement.prefixOffset = serializedImport.prefixOffset;
     if (serializedImport.prefixReference != 0) {
       UnlinkedReference serializedPrefix =
           unlinkedUnits[0].references[serializedImport.prefixReference];

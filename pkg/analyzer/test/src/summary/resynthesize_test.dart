@@ -286,6 +286,7 @@ class ResynthTest extends ResolverTestCase {
     compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.importedLibrary.location,
         original.importedLibrary.location);
+    expect(resynthesized.prefixOffset, original.prefixOffset);
     if (original.prefix == null) {
       expect(resynthesized.prefix, isNull);
     } else {
