@@ -28,7 +28,14 @@ String generateEntryHtml(HtmlSourceNode root, AbstractCompiler compiler) {
   var scripts = document.querySelectorAll('script[type="application/dart"]');
   if (scripts.isEmpty) {
     _log.warning('No <script type="application/dart"> found in ${root.uri}');
-    return '${document.outerHtml}\n';
+    // TODO(jacobr): we would rather return document.outerHtml to avoid future
+    // bugs that would only show up with html files include references to Dart
+    // scripts. Passing through the input content is needed to avoid breaking
+    // Angular ecause the spec-compliant HTML parser used modifies the HTML
+    // in a way that breaks Angular templates. An alternate fix would be to
+    // write an HTML emitter that preserves the structure of the input HTML as
+    // much as possible.
+    return root.contents;
   }
   scripts.skip(1).forEach((s) {
     // TODO(sigmund): allow more than one Dart script tags?
