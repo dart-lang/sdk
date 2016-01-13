@@ -749,7 +749,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   void visitWhileTrue(tree_ir.WhileTrue node) {
-    js.Expression condition = new js.LiteralBool(true);
     // A short break in the while will jump to the current fallthrough target.
     shortBreak.push(fallthrough.target);
     shortContinue.push(node);
@@ -764,7 +763,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       fallthrough.use();
     }
     shortBreak.pop();
-    accumulator.add(insertLabel(node.label, new js.While(condition, jsBody)));
+    accumulator.add(
+        insertLabel(node.label, new js.For(null, null, null, jsBody)));
   }
 
   bool isNull(tree_ir.Expression node) {

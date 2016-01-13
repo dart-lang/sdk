@@ -15,10 +15,10 @@
 
 function() {
   L1:
-    while (true)
+    for (;;)
       L0:
-        while (true)
-          while (true) {
+        for (;;)
+          for (;;) {
             P.print(true);
             if (false) {
               P.print(1);

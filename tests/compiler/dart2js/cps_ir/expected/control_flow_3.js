@@ -10,7 +10,7 @@
 // }
 
 function() {
-  while (true) {
+  for (;;) {
     P.print(true);
     if (true === true) {
       P.print(1);

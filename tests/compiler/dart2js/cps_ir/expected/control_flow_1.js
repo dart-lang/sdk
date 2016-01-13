@@ -4,6 +4,6 @@
 // }
 
 function() {
-  while (true)
+  for (;;)
     ;
 }
