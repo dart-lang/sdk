@@ -39008,9 +39008,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
     return _requestFileSystem(persistent? 1 : 0, size);
   }
 
-  /// Obsolete API for testing if Geometry APIs supported.
-  @Deprecated("Obsolete")
-  static bool get supportsPointConversions => true;
+  /**
+   * convertPointFromNodeToPage and convertPointFromPageToNode are removed.
+   * see http://dev.w3.org/csswg/cssom-view/#geometry
+   */
+  static bool get supportsPointConversions => DomPoint.supported;
   // To suppress missing implicit constructor warnings.
   factory Window._() { throw new UnsupportedError("Not supported"); }
 
