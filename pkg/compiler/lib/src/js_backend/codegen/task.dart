@@ -219,6 +219,8 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   void optimizeCpsAfterInlining(cps.FunctionDefinition cpsFunction) {
     cpsOptimizationTask.measure(() {
+      applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
+      applyCpsPass(new ShrinkingReducer(), cpsFunction);
       applyCpsPass(new RedundantRefinementEliminator(typeSystem), cpsFunction);
       applyCpsPass(new EagerlyLoadStatics(), cpsFunction);
       applyCpsPass(new GVN(compiler, typeSystem), cpsFunction);
