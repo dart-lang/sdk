@@ -129,14 +129,9 @@ class CodeChecker extends RecursiveAstVisitor {
       Expression arg = list[i];
       ParameterElement element = arg.staticParameterElement;
       if (element == null) {
-        if (type.parameters.length < len) {
-          // We found an argument mismatch, the analyzer will report this too,
-          // so no need to insert an error for this here.
-          continue;
-        }
-        element = type.parameters[i];
-        // TODO(vsm): When can this happen?
-        assert(element != null);
+        // We found an argument mismatch, the analyzer will report this too,
+        // so no need to insert an error for this here.
+        continue;
       }
       DartType expectedType = _elementType(element);
       if (expectedType == null) expectedType = DynamicTypeImpl.instance;

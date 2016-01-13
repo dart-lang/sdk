@@ -1813,16 +1813,18 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       if (fnType.typeFormals.isNotEmpty &&
           ts.instantiateToBounds(fnType) == invokeType) {
         // Get the parameters that correspond to the uninstantiated generic.
-        List<ParameterElement> genericParameters =
+        List<ParameterElement> rawParameters =
             ResolverVisitor.resolveArgumentsToParameters(
                 node.argumentList, fnType.parameters, null);
 
-        int length = genericParameters.length;
-        List<DartType> argTypes = new List<DartType>(length);
-        List<DartType> paramTypes = new List<DartType>(length);
-        for (int i = 0; i < length; i++) {
-          argTypes[i] = node.argumentList.arguments[i].staticType;
-          paramTypes[i] = genericParameters[i].type;
+        List<DartType> paramTypes = <DartType>[];
+        List<DartType> argTypes = <DartType>[];
+        for (int i = 0, length = rawParameters.length; i < length; i++) {
+          ParameterElement parameter = rawParameters[i];
+          if (parameter != null) {
+            paramTypes.add(parameter.type);
+            argTypes.add(node.argumentList.arguments[i].staticType);
+          }
         }
 
         FunctionType inferred = ts.inferCallFromArguments(

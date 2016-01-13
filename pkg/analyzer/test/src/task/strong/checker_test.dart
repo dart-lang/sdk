@@ -1404,7 +1404,32 @@ void main() {
           class DerivedFuture4<A> extends Future<A> {
             /*=B*/ then/*<B>*/(Object onValue(A a)) => null;
           }
-       '''
+      '''
+  });
+
+  testChecker('generic function wrong number of arguments', {
+      '/main.dart': r'''
+          /*=T*/ foo/*<T>*/(/*=T*/ x, /*=T*/ y) => x;
+          /*=T*/ bar/*<T>*/({/*=T*/ x, /*=T*/ y}) => x;
+
+          main() {
+            // resolving thses shouldn't crash.
+            foo(1, 2, 3);
+            String x = foo('1', '2', '3');
+            foo(1);
+            String x = foo('1');
+            x = /*severe:STATIC_TYPE_ERROR*/foo(1, 2, 3);
+            x = /*severe:STATIC_TYPE_ERROR*/foo(1);
+
+            // named arguments
+            bar(y: 1, x: 2, z: 3);
+            String x = bar(z: '1', x: '2', y: '3');
+            bar(y: 1);
+            x = bar(x: '1', z: 42);
+            x = /*severe:STATIC_TYPE_ERROR*/bar(y: 1, x: 2, z: 3);
+            x = /*severe:STATIC_TYPE_ERROR*/bar(x: 1);
+          }
+      '''
   });
 
   testChecker('unary operators', {

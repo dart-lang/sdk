@@ -9848,9 +9848,10 @@ class ResolverVisitor extends ScopedVisitor {
    * matched to a parameter. onError can be null to ignore the error.
    *
    * The flag [reportAsError] should be `true` if a compile-time error should be
-   * reported; or `false` if a compile-time warning should be reported
+   * reported; or `false` if a compile-time warning should be reported.
    *
-   * Returns the parameters that correspond to the arguments.
+   * Returns the parameters that correspond to the arguments. If no parameter
+   * matched an argument, that position will be `null` in the list.
    */
   static List<ParameterElement> resolveArgumentsToParameters(
       ArgumentList argumentList,
