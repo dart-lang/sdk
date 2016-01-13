@@ -1141,6 +1141,21 @@ void main() {
        '''
   });
 
+  testChecker('factory constructor downcast', {
+    '/main.dart': r'''
+        class Animal {
+          Animal();
+          factory Animal.cat() => return new Cat();
+        }
+
+        class Cat extends Animal {}
+
+        void main() {
+          Cat c = /*info:ASSIGNMENT_CAST*/new Animal.cat();
+          c = /*severe:STATIC_TYPE_ERROR*/new Animal();
+        }'''
+  });
+
   testChecker('field/field override', {
     '/main.dart': '''
           class A {}

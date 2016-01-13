@@ -133,9 +133,12 @@ abstract class DownCast extends CoercionInfo {
       return new UninferredClosure(rules, expression, cast);
     }
     if (expression is InstanceCreationExpression) {
-      // fromT should be an exact type - this will almost certainly fail at
-      // runtime.
-      return new StaticTypeError(rules, expression, toT, reason: reason);
+      ConstructorElement e = expression.staticElement;
+      if (e == null || !e.isFactory) {
+        // fromT should be an exact type - this will almost certainly fail at
+        // runtime.
+        return new StaticTypeError(rules, expression, toT, reason: reason);
+      }
     }
 
     // TODO(vsm): Change this to an assert when we have generic methods and
