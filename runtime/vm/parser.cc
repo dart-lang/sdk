@@ -12679,7 +12679,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
         Array::New(element_list.length(), Heap::kOld));
     const_list.SetTypeArguments(
         TypeArguments::Handle(Z, list_type_arguments.Canonicalize()));
-    Error& malformed_error = Error::Handle(Z);
+    Error& bound_error = Error::Handle(Z);
     for (int i = 0; i < element_list.length(); i++) {
       AstNode* elem = element_list[i];
       // Arguments have been evaluated to a literal value already.
@@ -12691,10 +12691,10 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
            !elem->AsLiteralNode()->literal().IsInstanceOf(
                element_type,
                TypeArguments::Handle(Z),
-               &malformed_error))) {
-        // If the failure is due to a malformed type error, display it instead.
-        if (!malformed_error.IsNull()) {
-          ReportError(malformed_error);
+               &bound_error))) {
+        // If the failure is due to a bound error, display it instead.
+        if (!bound_error.IsNull()) {
+          ReportError(bound_error);
         } else {
           ReportError(elem->AsLiteralNode()->token_pos(),
                       "list literal element at index %d must be "
@@ -12905,7 +12905,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     Array& key_value_array =
         Array::ZoneHandle(Z, Array::New(kv_pairs_list.length(), Heap::kOld));
     AbstractType& arg_type = Type::Handle(Z);
-    Error& malformed_error = Error::Handle(Z);
+    Error& bound_error = Error::Handle(Z);
     for (int i = 0; i < kv_pairs_list.length(); i++) {
       AstNode* arg = kv_pairs_list[i];
       // Arguments have been evaluated to a literal value already.
@@ -12924,10 +12924,10 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
              !arg->AsLiteralNode()->literal().IsInstanceOf(
                  arg_type,
                  Object::null_type_arguments(),
-                 &malformed_error))) {
-          // If the failure is due to a malformed type error, display it.
-          if (!malformed_error.IsNull()) {
-            ReportError(malformed_error);
+                 &bound_error))) {
+          // If the failure is due to a bound error, display it.
+          if (!bound_error.IsNull()) {
+            ReportError(bound_error);
           } else {
             ReportError(arg->AsLiteralNode()->token_pos(),
                         "map literal %s at index %d must be "
@@ -13541,13 +13541,13 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     new_object = new(Z) LiteralNode(new_pos, const_instance);
     if (!type_bound.IsNull()) {
       ASSERT(!type_bound.IsMalformed());
-      Error& malformed_error = Error::Handle(Z);
+      Error& bound_error = Error::Handle(Z);
       ASSERT(!is_top_level_);  // We cannot check unresolved types.
       if (!const_instance.IsInstanceOf(type_bound,
                                        TypeArguments::Handle(Z),
-                                       &malformed_error)) {
+                                       &bound_error)) {
         type_bound = ClassFinalizer::NewFinalizedMalformedType(
-            malformed_error,
+            bound_error,
             script_,
             new_pos,
             "const factory result is not an instance of '%s'",

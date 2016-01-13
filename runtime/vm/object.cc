@@ -3876,6 +3876,12 @@ bool Class::TypeTestNonRecursive(const Class& cls,
       if (!interface.IsFinalized()) {
         // We may be checking bounds at finalization time and can encounter
         // a still unfinalized interface.
+        if (interface.IsBeingFinalized()) {
+          // Interface is part of a still unfinalized recursive type graph.
+          // Skip it. The caller will create a bounded type to be checked at
+          // runtime if this type test returns false at compile time.
+          continue;
+        }
         ClassFinalizer::FinalizeType(
             thsi, interface, ClassFinalizer::kCanonicalize);
         interfaces.SetAt(i, interface);
@@ -15513,8 +15519,8 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     } else if (bound.IsType()) {
       const Class& cls = Class::Handle(zone, Type::Cast(bound).type_class());
       bound_name = cls.Name();
+      pieces.Add(bound_name);
       if (Type::Cast(bound).arguments() != TypeArguments::null()) {
-        pieces.Add(bound_name);
         pieces.Add(Symbols::OptimizedOut());
       }
     } else {
@@ -15725,6 +15731,11 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   }
   if (IsBoundedType() || other.IsBoundedType()) {
     if (Equals(other)) {
+      return true;
+    }
+    // Redundant check if other type is equal to the upper bound of this type.
+    if (IsBoundedType() &&
+        AbstractType::Handle(BoundedType::Cast(*this).bound()).Equals(other)) {
       return true;
     }
     return false;  // TODO(regis): We should return "maybe after instantiation".
@@ -16144,6 +16155,13 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
     for (intptr_t i = 0; i < from_index; i++) {
       type_arg = type_args.TypeAt(i);
       other_type_arg = other_type_args.TypeAt(i);
+      // Ignore bounds of bounded types.
+      while (type_arg.IsBoundedType()) {
+        type_arg = BoundedType::Cast(type_arg).type();
+      }
+      while (other_type_arg.IsBoundedType()) {
+        other_type_arg = BoundedType::Cast(other_type_arg).type();
+      }
       ASSERT(type_arg.IsEquivalent(other_type_arg, trail));
     }
   }
@@ -16973,13 +16991,20 @@ RawAbstractType* BoundedType::InstantiateFrom(
       // Instantiated upper_bound may not be finalized. See comment above.
     }
     if (bound_error->IsNull()) {
-      if (!type_param.CheckBound(bounded_type, upper_bound, bound_error) &&
-          bound_error->IsNull()) {
+      if (bounded_type.IsBeingFinalized() ||
+          upper_bound.IsBeingFinalized() ||
+          (!type_param.CheckBound(bounded_type, upper_bound, bound_error) &&
+           bound_error->IsNull())) {
         // We cannot determine yet whether the bounded_type is below the
-        // upper_bound, because one or both of them is still uninstantiated.
-        ASSERT(!bounded_type.IsInstantiated() || !upper_bound.IsInstantiated());
-        // Postpone bound check by returning a new BoundedType with partially
-        // instantiated bounded_type and upper_bound, but keeping type_param.
+        // upper_bound, because one or both of them is still being finalized or
+        // uninstantiated.
+        ASSERT(bounded_type.IsBeingFinalized() ||
+               upper_bound.IsBeingFinalized() ||
+               !bounded_type.IsInstantiated() ||
+               !upper_bound.IsInstantiated());
+        // Postpone bound check by returning a new BoundedType with unfinalized
+        // or partially instantiated bounded_type and upper_bound, but keeping
+        // type_param.
         bounded_type = BoundedType::New(bounded_type, upper_bound, type_param);
       }
     }
