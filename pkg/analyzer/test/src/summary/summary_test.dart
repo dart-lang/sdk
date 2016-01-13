@@ -558,6 +558,29 @@ abstract class SummaryTest {
         expectedKind: PrelinkedReferenceKind.unresolved);
   }
 
+  fail_dependencies_export_to_export_unused() {
+    // TODO(paulberry): fix this test.
+    addNamedSource('/a.dart', 'export "b.dart";');
+    addNamedSource('/b.dart', '');
+    serializeLibraryText('export "a.dart";');
+    // The main test library depends on b.dart, even though it doesn't
+    // re-export any names defined in b.dart, because a change to b.dart might
+    // cause it to start exporting a name that the main test library *does*
+    // use.
+    checkHasDependency(absUri('/b.dart'), 'b.dart');
+  }
+
+  fail_dependencies_export_unused() {
+    // TODO(paulberry): fix this test.
+    addNamedSource('/a.dart', '');
+    serializeLibraryText('export "a.dart";');
+    // The main test library depends on a.dart, even though it doesn't
+    // re-export any names defined in a.dart, because a change to a.dart might
+    // cause it to start exporting a name that the main test library *will*
+    // re-export.
+    checkHasDependency(absUri('/a.dart'), 'a.dart');
+  }
+
   fail_enum_value_documented() {
     // TODO(paulberry): currently broken because of dartbug.com/25385
     String text = '''
@@ -1529,6 +1552,16 @@ class C {
     checkHasDependency(absUri('/c.dart'), 'c.dart');
   }
 
+  test_dependencies_import_to_export_unused() {
+    addNamedSource('/a.dart', 'export "b.dart";');
+    addNamedSource('/b.dart', '');
+    serializeLibraryText('import "a.dart";', allowErrors: true);
+    // The main test library depends on b.dart, even though it doesn't use any
+    // names defined in b.dart, because a change to b.dart might cause it to
+    // start exporting a name that the main test library *does* use.
+    checkHasDependency(absUri('/b.dart'), 'b.dart');
+  }
+
   test_dependencies_import_transitive_closure() {
     addNamedSource(
         '/a.dart', 'library a; import "b.dart"; class A extends B {}');
@@ -1538,6 +1571,15 @@ class C {
     // The main test library doesn't depend on b.dart, because no change to
     // b.dart can possibly affect the serialized element model for it.
     checkLacksDependency(absUri('/b.dart'), 'b.dart');
+  }
+
+  test_dependencies_import_unused() {
+    addNamedSource('/a.dart', '');
+    serializeLibraryText('import "a.dart";', allowErrors: true);
+    // The main test library depends on a.dart, even though it doesn't use any
+    // names defined in a.dart, because a change to a.dart might cause it to
+    // start exporting a name that the main test library *does* use.
+    checkHasDependency(absUri('/a.dart'), 'a.dart');
   }
 
   test_dependencies_parts() {
