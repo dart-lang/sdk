@@ -687,7 +687,7 @@ LayoutTests/fast/canvas/webgl/uninitialized-test_t01: RuntimeError # Please tria
 LayoutTests/fast/canvas/webgl/webgl-depth-texture_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-layer-update_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css-generated-content/hit-test-generated-content_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css-generated-content/malformed-url_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css-generated-content/malformed-url_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css-generated-content/pseudo-animation-before-onload_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css-generated-content/pseudo-animation-display_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css-generated-content/pseudo-animation_t01: Pass, RuntimeError # Please triage this failure
