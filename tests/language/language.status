@@ -38,7 +38,10 @@ async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runti
 async_star_cancel_while_paused_test: RuntimeError
 async_star_await_pauses_test: Skip # Times out. Issue 23996
 
+library_env_test: RuntimeError
+
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) ]
+
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
