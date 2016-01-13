@@ -89,12 +89,19 @@ Uri _rootScript;
 
 // Packages are either resolved looking up in a map or resolved from within a
 // package root.
-bool _packagesReady() => (_packageRoot != null) || (_packageMap != null);
+bool get _packagesReady =>
+    (_packageRoot != null) || (_packageMap != null) || (_packageError != null);
+// Error string set if there was an error resolving package configuration.
+// For example not finding a .packages file or packages/ directory, malformed
+// .packages file or any other related error.
+String _packageError = null;
 // The directory to look in to resolve "package:" scheme URIs. By detault it is
 // the 'packages' directory right next to the script.
 Uri _packageRoot = null; // Used to be _rootScript.resolve('packages/');
 // The map describing how certain package names are mapped to Uris.
+Uri _packageConfig = null;
 Map<String, Uri> _packageMap = null;
+
 // A list of pending packags which have been requested while resolving the
 // location of the package root or the contents of the package map.
 List<_LoadRequest> _pendingPackageLoads = [];
@@ -109,8 +116,9 @@ bool _pendingLoads() => !_reqMap.isEmpty || !_pendingPackageLoads.isEmpty;
 bool _isWindows = false;
 
 // Logging from builtin.dart is prefixed with a '*'.
+String _logId = (Isolate.current.hashCode % 0x100000).toRadixString(16);
 _log(msg) {
-  _print("* $msg");
+  _print("* $_logId $msg");
 }
 
 // A class wrapping the load error message in an Error object.
@@ -235,8 +243,10 @@ _setPackageRoot(String packageRoot) {
     _packageRoot = _workingDirectory.resolveUri(new Uri.file(packageRoot));
   }
   // Now that we have determined the packageRoot value being used, set it
-  // up for use in Platform.packageRoot.
-  VMLibraryHooks.packageRoot = _packageRoot.toString();
+  // up for use in Platform.packageRoot. This is only set when the embedder
+  // sets up the package root. Automatically discovered package root will
+  // not update the VMLibraryHooks value.
+  VMLibraryHooks.packageRootString = _packageRoot.toString();
   if (_traceLoading) {
     _log('Package root URI: $_packageRoot');
   }
@@ -246,6 +256,9 @@ _setPackageRoot(String packageRoot) {
 // Given a uri with a 'package' scheme, return a Uri that is prefixed with
 // the package root.
 Uri _resolvePackageUri(Uri uri) {
+  assert(uri.scheme == "package");
+  assert(_packagesReady);
+
   if (!uri.host.isEmpty) {
     var path = '${uri.host}${uri.path}';
     var right = 'package:$path';
@@ -259,7 +272,12 @@ Uri _resolvePackageUri(Uri uri) {
     _log('Resolving package with uri path: ${uri.path}');
   }
   var resolvedUri;
-  if (_packageRoot != null) {
+  if (_packageError != null) {
+    if (_traceLoading) {
+      _log("Resolving package with pending resolution error: $_packageError");
+    }
+    throw _packageError;
+  } else if (_packageRoot != null) {
     resolvedUri = _packageRoot.resolve(uri.path);
   } else {
     var packageName = uri.pathSegments[0];
@@ -408,22 +426,33 @@ void _handlePackagesReply(msg) {
     if (_traceLoading) {
       _log("Got failure response on package port: '$msg'");
     }
-    throw msg;
-  }
-  if (msg.length == 1) {
-    if (_traceLoading) {
-      _log("Received package root: '${msg[0]}'");
+    // Remember the error message.
+    _packageError = msg;
+  } else if (msg is List) {
+    if (msg.length == 1) {
+      if (_traceLoading) {
+        _log("Received package root: '${msg[0]}'");
+      }
+      _packageRoot = Uri.parse(msg[0]);
+    } else {
+      // First entry contains the location of the loaded .packages file.
+      assert((msg.length % 2) == 0);
+      assert(msg.length >= 2);
+      assert(msg[1] == null);
+      _packageConfig = Uri.parse(msg[0]);
+      _packageMap = new Map<String, Uri>();
+      for (var i = 2; i < msg.length; i+=2) {
+        // TODO(iposva): Complain about duplicate entries.
+        _packageMap[msg[i]] = Uri.parse(msg[i+1]);
+      }
+      if (_traceLoading) {
+        _log("Setup package map: $_packageMap");
+      }
     }
-    _packageRoot = Uri.parse(msg[0]);
   } else {
-    assert((msg.length % 2) == 0);
-    _packageMap = new Map<String, Uri>();
-    for (var i = 0; i < msg.length; i+=2) {
-      // TODO(iposva): Complain about duplicate entries.
-      _packageMap[msg[i]] = Uri.parse(msg[i+1]);
-    }
+    _packageError = "Bad type of packages reply: ${msg.runtimeType}";
     if (_traceLoading) {
-      _log("Setup package map: $_packageMap");
+      _log(_packageError);
     }
   }
 
@@ -485,7 +514,8 @@ void _loadPackagesMap(String packagesParam) {
     // resolve it against the working directory.
     packagesUri = _workingDirectory.resolveUri(packagesUri);
   }
-  VMLibraryHooks.packageConfig = packagesUri.toString();
+  var packagesUriStr = packagesUri.toString();
+  VMLibraryHooks.packageConfigString = packagesUriStr;
   if (_traceLoading) {
     _log('Resolved packages map to: $packagesUri');
   }
@@ -500,7 +530,7 @@ void _loadPackagesMap(String packagesParam) {
   msg[0] = sp;
   msg[1] = _traceLoading;
   msg[2] = -2;
-  msg[3] = packagesUri.toString();
+  msg[3] = packagesUriStr;
   _loadPort.send(msg);
 
   // Signal that the resolution of the packages map has started. But in this
@@ -516,34 +546,6 @@ void _loadPackagesMap(String packagesParam) {
   if (_traceLoading) {
     _log("Requested packages map at '$packagesUri'.");
   }
-}
-
-
-// Embedder Entrypoint:
-// Add mapping from package name to URI.
-void _addPackageMapEntry(String key, String value) {
-  if (!_setupCompleted) {
-    _setupHooks();
-  }
-  if (_traceLoading) {
-    _log("Adding packages map entry: $key -> $value");
-  }
-  if (_packageRoot != null) {
-    if (_traceLoading) {
-      _log("_packageRoot already set: $_packageRoot");
-    }
-    throw "Cannot add package map entry to an exisiting package root.";
-  }
-  if (_packagesPort != null) {
-    if (_traceLoading) {
-      _log("Package map load request already pending.");
-    }
-    throw "Cannot add package map entry during package map resolution.";
-  }
-  if (_packageMap == null) {
-    _packageMap = new Map<String, Uri>();
-  }
-  _packageMap[key] = _workingDirectory.resolve(value);
 }
 
 
@@ -587,8 +589,22 @@ _loadDataFromLoadPort(int tag, String uri, Uri resourceUri, context) {
 // Loading a package URI needs to first map the package name to a loadable
 // URI.
 _loadPackage(int tag, String uri, Uri resourceUri, context) {
-  if (_packagesReady()) {
-    _loadData(tag, uri, _resolvePackageUri(resourceUri), context);
+  if (_packagesReady) {
+    var resolvedUri;
+    try {
+      resolvedUri = _resolvePackageUri(resourceUri);
+    } catch (e, s) {
+      if (_traceLoading) {
+        _log("Exception ($e) when resolving package URI: $resourceUri");
+      }
+      // Wrap inside a _LoadError unless we are already propagating a previously
+      // seen _LoadError.
+      var error = (e is _LoadError) ? e : new _LoadError(uri, e.toString());
+      // Register a dummy load request and fail to load it.
+      var req = new _LoadRequest(tag, uri, resourceUri, context);
+      _asyncLoadError(req, error, s);
+    }
+    _loadData(tag, uri, resolvedUri, context);
   } else {
     if (_pendingPackageLoads.isEmpty) {
       // Package resolution has not been setup yet, and this is the first
@@ -606,7 +622,7 @@ _loadPackage(int tag, String uri, Uri resourceUri, context) {
     });
     if (_traceLoading) {
       _log("Pending package load of '$uri': "
-      "${_pendingPackageLoads.length} pending");
+           "${_pendingPackageLoads.length} pending");
     }
   }
 }
@@ -669,7 +685,7 @@ String _resolveUri(String base, String userString) {
 
 // Handling of access to the package root or package map from user code.
 _triggerPackageResolution(action) {
-  if (_packagesReady()) {
+  if (_packagesReady) {
     // Packages are ready. Execute the action now.
     action();
   } else {
@@ -684,7 +700,7 @@ _triggerPackageResolution(action) {
 }
 
 
-Future<Uri> _getPackageRoot() {
+Future<Uri> _getPackageRootFuture() {
   if (_traceLoading) {
     _log("Request for package root from user code.");
   }
@@ -696,16 +712,44 @@ Future<Uri> _getPackageRoot() {
 }
 
 
-Future<Map<String, Uri>> _getPackageMap() {
+Future<Uri> _getPackageConfigFuture() {
   if (_traceLoading) {
-    _log("Request for package map from user code.");
+    _log("Request for package config from user code.");
   }
-  var completer = new Completer<Map<String, Uri>>();
+  var completer = new Completer<Uri>();
   _triggerPackageResolution(() {
-    var result = (_packageMap != null) ? new Map.from(_packageMap) : {};
-    completer.complete(result);
+    completer.complete(_packageConfig);
   });
   return completer.future;
+}
+
+
+Future<Uri> _resolvePackageUriFuture(Uri packageUri) async {
+  if (_traceLoading) {
+    _log("Request for package Uri resolution from user code: $packageUri");
+  }
+  if (packageUri.scheme != "package") {
+    if (_traceLoading) {
+      _log("Non-package Uri, returning unmodified: $packageUri");
+    }
+    // Return the incoming parameter if not passed a package: URI.
+    return packageUri;
+  }
+
+  if (!_packagesReady) {
+    if (_traceLoading) {
+      _log("Trigger loading by requesting the package config.");
+    }
+    // Make sure to trigger package resolution.
+    var dummy = await _getPackageConfigFuture();
+  }
+  assert(_packagesReady);
+
+  var result = _resolvePackageUri(packageUri);
+  if (_traceLoading) {
+    _log("Resolved '$packageUri' to '$result'");
+  }
+  return result;
 }
 
 
@@ -836,6 +880,8 @@ _extensionPathFromUri(String userUri) {
 _setupHooks() {
   _setupCompleted = true;
   VMLibraryHooks.resourceReadAsBytes = _resourceReadAsBytes;
-  VMLibraryHooks.getPackageRoot = _getPackageRoot;
-  VMLibraryHooks.getPackageMap = _getPackageMap;
+
+  VMLibraryHooks.packageRootUriFuture = _getPackageRootFuture;
+  VMLibraryHooks.packageConfigUriFuture = _getPackageConfigFuture;
+  VMLibraryHooks.resolvePackageUriFuture = _resolvePackageUriFuture;
 }

@@ -704,15 +704,14 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
 static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 const char* main,
                                                 const char* package_root,
-                                                const char** package_map,
-                                                const char* packages_file,
+                                                const char* packages_config,
                                                 Dart_IsolateFlags* flags,
                                                 char** error,
                                                 int* exit_code) {
   ASSERT(script_uri != NULL);
   IsolateData* isolate_data = new IsolateData(script_uri,
                                               package_root,
-                                              packages_file);
+                                              packages_config);
   Dart_Isolate isolate = NULL;
 
   isolate = Dart_CreateIsolate(script_uri,
@@ -768,8 +767,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   // Prepare for script loading by setting up the 'print' and 'timer'
   // closures and setting up 'package root' for URI resolution.
   result = DartUtils::PrepareForScriptLoading(package_root,
-                                              package_map,
-                                              packages_file,
+                                              packages_config,
                                               false,
                                               has_trace_loading,
                                               builtin_lib);
@@ -815,45 +813,23 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
 static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                           const char* main,
                                           const char* package_root,
-                                          const char** package_map,
+                                          const char* package_config,
                                           Dart_IsolateFlags* flags,
                                           void* data, char** error) {
   // The VM should never call the isolate helper with a NULL flags.
   ASSERT(flags != NULL);
   ASSERT(flags->version == DART_FLAGS_CURRENT_VERSION);
-  if ((package_root != NULL) && (package_map != NULL)) {
+  if ((package_root != NULL) && (package_config != NULL)) {
     *error = strdup("Invalid arguments - Cannot simultaneously specify "
                     "package root and package map.");
     return NULL;
-  }
-  IsolateData* parent_isolate_data = reinterpret_cast<IsolateData*>(data);
-  if (script_uri == NULL) {
-    if (data == NULL) {
-      *error = strdup("Invalid 'callback_data' - Unable to spawn new isolate");
-      return NULL;
-    }
-    script_uri = parent_isolate_data->script_url;
-    if (script_uri == NULL) {
-      *error = strdup("Invalid 'callback_data' - Unable to spawn new isolate");
-      return NULL;
-    }
-  }
-  const char* packages_file = NULL;
-  // If neither a package root nor a package map are requested pass on the
-  // inherited values.
-  if ((package_root == NULL) && (package_map == NULL)) {
-    if (parent_isolate_data != NULL) {
-      package_root = parent_isolate_data->package_root;
-      packages_file = parent_isolate_data->packages_file;
-    }
   }
 
   int exit_code = 0;
   return CreateIsolateAndSetupHelper(script_uri,
                                      main,
                                      package_root,
-                                     package_map,
-                                     packages_file,
+                                     package_config,
                                      flags,
                                      error,
                                      &exit_code);
@@ -1166,7 +1142,6 @@ bool RunMainIsolate(const char* script_name,
   Dart_Isolate isolate = CreateIsolateAndSetupHelper(script_name,
                                                      "main",
                                                      commandline_package_root,
-                                                     NULL,
                                                      commandline_packages_file,
                                                      NULL,
                                                      &error,
@@ -1237,7 +1212,6 @@ bool RunMainIsolate(const char* script_name,
         { "dart:_builtin", "::", "_resolveUri" },
         { "dart:_builtin", "::", "_setWorkingDirectory" },
         { "dart:_builtin", "::", "_setPackageRoot" },
-        { "dart:_builtin", "::", "_addPackageMapEntry" },
         { "dart:_builtin", "::", "_loadPackagesMap" },
         { "dart:_builtin", "::", "_loadDataAsync" },
         { "dart:io", "::", "_makeUint8ListView" },

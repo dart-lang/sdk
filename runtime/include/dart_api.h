@@ -645,7 +645,7 @@ typedef struct {
 typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
                                                    const char* main,
                                                    const char* package_root,
-                                                   const char** package_map,
+                                                   const char* package_config,
                                                    Dart_IsolateFlags* flags,
                                                    void* callback_data,
                                                    char** error);

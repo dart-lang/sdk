@@ -7285,7 +7285,7 @@ TEST_CASE(NativePortReceiveInteger) {
 static Dart_Isolate RunLoopTestCallback(const char* script_name,
                                         const char* main,
                                         const char* package_root,
-                                        const char** package_map,
+                                        const char* package_config,
                                         Dart_IsolateFlags* flags,
                                         void* data,
                                         char** error) {

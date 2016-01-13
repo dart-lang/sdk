@@ -2356,10 +2356,13 @@ static const char* NewConstChar(const char* chars) {
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      Dart_Port origin_id,
                                      void* init_data,
+                                     const char* script_url,
                                      const Function& func,
                                      const Instance& message,
                                      Monitor* spawn_count_monitor,
                                      intptr_t* spawn_count,
+                                     const char* package_root,
+                                     const char* package_config,
                                      bool paused,
                                      bool errors_are_fatal,
                                      Dart_Port on_exit_port,
@@ -2370,9 +2373,9 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       init_data_(init_data),
       on_exit_port_(on_exit_port),
       on_error_port_(on_error_port),
-      script_url_(NULL),
-      package_root_(NULL),
-      package_map_(NULL),
+      script_url_(script_url),
+      package_root_(package_root),
+      package_config_(package_config),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
@@ -2410,7 +2413,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      void* init_data,
                                      const char* script_url,
                                      const char* package_root,
-                                     const char** package_map,
+                                     const char* package_config,
                                      const Instance& args,
                                      const Instance& message,
                                      Monitor* spawn_count_monitor,
@@ -2427,7 +2430,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       on_error_port_(on_error_port),
       script_url_(script_url),
       package_root_(package_root),
-      package_map_(package_map),
+      package_config_(package_config),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
@@ -2459,14 +2462,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 IsolateSpawnState::~IsolateSpawnState() {
   delete[] script_url_;
   delete[] package_root_;
-  for (int i = 0; package_map_ != NULL; i++) {
-    if (package_map_[i] != NULL) {
-      delete[] package_map_[i];
-    } else {
-      delete[] package_map_;
-      package_map_ = NULL;
-    }
-  }
+  delete[] package_config_;
   delete[] library_url_;
   delete[] class_name_;
   delete[] function_name_;
@@ -2499,7 +2495,7 @@ RawObject* IsolateSpawnState::ResolveFunction() {
     return func.raw();
   }
 
-  ASSERT(script_url() == NULL);
+  // Lookup the to be spawned function for the Isolate.spawn implementation.
   // Resolve the library.
   const String& lib_url = String::Handle(String::New(library_url()));
   const Library& lib = Library::Handle(Library::LookupLibrary(lib_url));

@@ -955,7 +955,7 @@ static void SetupForGenericSnapshotCreation() {
 static Dart_Isolate CreateServiceIsolate(const char* script_uri,
                                          const char* main,
                                          const char* package_root,
-                                         const char** package_map,
+                                         const char* package_config,
                                          Dart_IsolateFlags* flags,
                                          void* data,
                                          char** error) {
@@ -1094,7 +1094,6 @@ int main(int argc, char** argv) {
     // closures and setting up 'package root' for URI resolution.
     result =
         DartUtils::PrepareForScriptLoading(package_root,
-                                           NULL,
                                            NULL,
                                            false,
                                            false,

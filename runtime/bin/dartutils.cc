@@ -658,8 +658,7 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                                              bool is_service_isolate,
                                              bool trace_loading,
                                              const char* package_root,
-                                             const char** package_map,
-                                             const char* packages_file) {
+                                             const char* packages_config) {
   // Setup the internal library's 'internalPrint' function.
   Dart_Handle print = Dart_Invoke(
       builtin_lib, NewString("_getPrintClosure"), 0, NULL);
@@ -693,8 +692,7 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
 
   // Set up package root if specified.
   if (package_root != NULL) {
-    ASSERT(package_map == NULL);
-    ASSERT(packages_file == NULL);
+    ASSERT(packages_config == NULL);
     result = NewString(package_root);
     RETURN_IF_ERROR(result);
     const int kNumArgs = 1;
@@ -705,35 +703,8 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                          kNumArgs,
                          dart_args);
     RETURN_IF_ERROR(result);
-  } else if (package_map != NULL) {
-    ASSERT(packages_file == NULL);
-    Dart_Handle func_name = NewString("_addPackageMapEntry");
-    RETURN_IF_ERROR(func_name);
-
-    for (int i = 0; package_map[i] != NULL; i +=2) {
-      const int kNumArgs = 2;
-      Dart_Handle dart_args[kNumArgs];
-      // Get the key.
-      result = NewString(package_map[i]);
-      RETURN_IF_ERROR(result);
-      dart_args[0] = result;
-      if (package_map[i + 1] == NULL) {
-        return Dart_NewUnhandledExceptionError(
-            NewDartArgumentError("Adding package map entry without value."));
-      }
-      // Get the value.
-      result = NewString(package_map[i + 1]);
-      RETURN_IF_ERROR(result);
-      dart_args[1] = result;
-      // Setup the next package map entry.
-      result = Dart_Invoke(builtin_lib,
-                           func_name,
-                           kNumArgs,
-                           dart_args);
-      RETURN_IF_ERROR(result);
-    }
-  } else if (packages_file != NULL) {
-    result = NewString(packages_file);
+  } else if (packages_config != NULL) {
+    result = NewString(packages_config);
     RETURN_IF_ERROR(result);
     const int kNumArgs = 1;
     Dart_Handle dart_args[kNumArgs];
@@ -789,8 +760,7 @@ Dart_Handle DartUtils::PrepareIsolateLibrary(Dart_Handle isolate_lib) {
 
 
 Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
-                                               const char** package_map,
-                                               const char* packages_file,
+                                               const char* packages_config,
                                                bool is_service_isolate,
                                                bool trace_loading,
                                                Dart_Handle builtin_lib) {
@@ -824,8 +794,7 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                  is_service_isolate,
                                  trace_loading,
                                  package_root,
-                                 package_map,
-                                 packages_file);
+                                 packages_config);
   RETURN_IF_ERROR(result);
 
   RETURN_IF_ERROR(PrepareAsyncLibrary(async_lib, isolate_lib));

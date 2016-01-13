@@ -915,10 +915,13 @@ class IsolateSpawnState {
   IsolateSpawnState(Dart_Port parent_port,
                     Dart_Port origin_id,
                     void* init_data,
+                    const char* script_url,
                     const Function& func,
                     const Instance& message,
                     Monitor* spawn_count_monitor,
                     intptr_t* spawn_count,
+                    const char* package_root,
+                    const char* package_config,
                     bool paused,
                     bool errorsAreFatal,
                     Dart_Port onExit,
@@ -927,7 +930,7 @@ class IsolateSpawnState {
                     void* init_data,
                     const char* script_url,
                     const char* package_root,
-                    const char** package_map,
+                    const char* package_config,
                     const Instance& args,
                     const Instance& message,
                     Monitor* spawn_count_monitor,
@@ -948,7 +951,7 @@ class IsolateSpawnState {
   Dart_Port on_error_port() const { return on_error_port_; }
   const char* script_url() const { return script_url_; }
   const char* package_root() const { return package_root_; }
-  const char** package_map() const { return package_map_; }
+  const char* package_config() const { return package_config_; }
   const char* library_url() const { return library_url_; }
   const char* class_name() const { return class_name_; }
   const char* function_name() const { return function_name_; }
@@ -972,7 +975,7 @@ class IsolateSpawnState {
   Dart_Port on_error_port_;
   const char* script_url_;
   const char* package_root_;
-  const char** package_map_;
+  const char* package_config_;
   const char* library_url_;
   const char* class_name_;
   const char* function_name_;
