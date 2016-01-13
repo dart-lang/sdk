@@ -2535,7 +2535,8 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   Definition visitInvokeConstructor(InvokeConstructor node) {
     return new InvokeConstructor(node.dartType, node.target, node.selector,
         getList(node.arguments),
-        node.sourceInformation);
+        node.sourceInformation)
+        ..allocationSiteType = node.allocationSiteType;
   }
 
   Definition visitTypeCast(TypeCast node) {
@@ -2569,7 +2570,8 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitLiteralList(LiteralList node) {
-    return new LiteralList(node.dartType, getList(node.values));
+    return new LiteralList(node.dartType, getList(node.values))
+        ..allocationSiteType = node.allocationSiteType;
   }
 
   Definition visitLiteralMap(LiteralMap node) {
