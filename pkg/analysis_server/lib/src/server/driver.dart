@@ -46,8 +46,9 @@ void _initIncrementalLogger(String spec) {
   // create logger
   if (spec == 'console') {
     logger = new StringSinkLogger(stdout);
-  }
-  if (spec.startsWith('file:')) {
+  } else if (spec == 'stderr') {
+    logger = new StringSinkLogger(stderr);
+  } else if (spec.startsWith('file:')) {
     String fileName = spec.substring('file:'.length);
     File file = new File(fileName);
     IOSink sink = file.openWrite();
@@ -485,7 +486,7 @@ class Driver implements ServerStarter {
         defaultsTo: false,
         negatable: false);
     parser.addOption(INCREMENTAL_RESOLUTION_LOG,
-        help: "the description of the incremental resolution log");
+        help: "set a destination for the incremental resolver's log");
     parser.addFlag(INCREMENTAL_RESOLUTION_VALIDATION,
         help: "enable validation of incremental resolution results (slow)",
         defaultsTo: false,
