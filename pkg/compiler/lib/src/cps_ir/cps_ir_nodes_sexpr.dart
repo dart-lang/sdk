@@ -71,24 +71,41 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   String visitLetPrim(LetPrim node) {
     String name = newValueName(node.primitive);
     String value = visit(node.primitive);
+    String bindings = '($name $value)';
+    String skip = ' ' * '(LetPrim ('.length;
+    while (node.body is LetPrim) {
+      node = node.body;
+      name = newValueName(node.primitive);
+      value = visit(node.primitive);
+      bindings += '\n${indentation}$skip($name $value)';
+    }
     String body = indentBlock(() => visit(node.body));
-    return '$indentation(LetPrim ($name $value)\n$body)';
+    return '$indentation(LetPrim ($bindings)\n$body)';
+  }
+
+  bool isBranchTarget(Continuation cont) {
+    return cont.hasExactlyOneUse && cont.firstRef.parent is Branch;
   }
 
   String visitLetCont(LetCont node) {
     String conts;
     bool first = true;
+    String skip = ' ' * '(LetCont ('.length;
     for (Continuation continuation in node.continuations) {
+      // Branch continuations will be printed at their use site.
+      if (isBranchTarget(continuation)) continue;
       if (first) {
         first = false;
         conts = visit(continuation);
       } else {
         // Each subsequent line is indented additional spaces to align it
         // with the previous continuation.
-        String indent = '$indentation${' ' * '(LetCont ('.length}';
-        conts = '$conts\n$indent${visit(continuation)}';
+        conts += '\n${indentation}$skip${visit(continuation)}';
       }
     }
+    // If there were no continuations printed, just print the body.
+    if (first) return visit(node.body);
+
     String body = indentBlock(() => visit(node.body));
     return '$indentation(LetCont ($conts)\n$body)';
   }
@@ -191,10 +208,14 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
 
   String visitBranch(Branch node) {
     String condition = access(node.condition);
-    String trueCont = access(node.trueContinuation);
-    String falseCont = access(node.falseContinuation);
+    assert(isBranchTarget(node.trueContinuation.definition));
+    assert(isBranchTarget(node.falseContinuation.definition));
+    String trueCont =
+        indentBlock(() => visit(node.trueContinuation.definition));
+    String falseCont =
+        indentBlock(() => visit(node.falseContinuation.definition));
     String strict = node.isStrictCheck ? 'Strict' : 'NonStrict';
-    return '$indentation(Branch $condition $trueCont $falseCont $strict)';
+    return '$indentation(Branch $strict $condition\n$trueCont\n$falseCont)';
   }
 
   String visitUnreachable(Unreachable node) {
@@ -207,11 +228,17 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String visitContinuation(Continuation node) {
+    if (isBranchTarget(node)) {
+      assert(node.parameters.isEmpty);
+      assert(!node.isRecursive);
+      return indentBlock(() => visit(node.body));
+    }
     String name = newContinuationName(node);
     if (node.isRecursive) name = 'rec $name';
-    // TODO(karlklose): this should be changed to `.map(visit).join(' ')`  and
-    // should recurse to [visit].  Currently we can't do that, because the
-    // unstringifier_test produces [LetConts] with dummy arguments on them.
+    // TODO(karlklose): this should be changed to `.map(visit).join(' ')`
+    // and should recurse to [visit].  Currently we can't do that, because
+    // the unstringifier_test produces [LetConts] with dummy arguments on
+    // them.
     String parameters = node.parameters
         .map((p) => '${decorator(p, newValueName(p))}')
         .join(' ');
