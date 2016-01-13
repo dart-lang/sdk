@@ -34,6 +34,22 @@ class DisableNativeProfileScope : public ValueObject {
 };
 
 
+class DisableBackgroundCompilationScope : public ValueObject {
+ public:
+  DisableBackgroundCompilationScope()
+      : FLAG_background_compilation_(FLAG_background_compilation) {
+    FLAG_background_compilation = false;
+  }
+
+  ~DisableBackgroundCompilationScope() {
+    FLAG_background_compilation = FLAG_background_compilation_;
+  }
+
+ private:
+  const bool FLAG_background_compilation_;
+};
+
+
 // Temporarily adjust the maximum profile depth.
 class MaxProfileDepthScope : public ValueObject {
  public:
@@ -139,11 +155,20 @@ TEST_CASE(Profiler_AllocationSampleTest) {
   delete sample_buffer;
 }
 
+
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(Symbols::New(name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
+}
+
+
+static RawFunction* GetFunction(const Library& lib, const char* name) {
+  const Function& func = Function::Handle(
+      lib.LookupFunctionAllowPrivate(String::Handle(Symbols::New(name))));
+  EXPECT(!func.IsNull());  // No ambiguity error expected.
+  return func.raw();
 }
 
 
@@ -1154,6 +1179,8 @@ TEST_CASE(Profiler_StringInterpolation) {
 
 TEST_CASE(Profiler_FunctionInline) {
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
+
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -1180,8 +1207,6 @@ TEST_CASE(Profiler_FunctionInline) {
       "  B.boo(true);\n"
       "}\n";
 
-  const bool old_flag = FLAG_background_compilation;
-  FLAG_background_compilation = false;
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Library& root_library = Library::Handle();
@@ -1398,7 +1423,133 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_STREQ("[Inline End]", walker.CurrentName());
     EXPECT(!walker.Down());
   }
-  FLAG_background_compilation = old_flag;
+}
+
+
+TEST_CASE(Profiler_InliningIntervalBoundry) {
+  // The PC of frames below the top frame is a call's return address,
+  // which can belong to a different inlining interval than the call.
+  // This test checks the profiler service takes this into account; see
+  // ProfileBuilder::ProcessFrame.
+
+  DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
+  const char* kScript =
+      "class A {\n"
+      "}\n"
+      "bool alloc = false;"
+      "maybeAlloc() {\n"
+      "  try {\n"
+      "    if (alloc) new A();\n"
+      "  } catch (e) {\n"
+      "  }\n"
+      "}\n"
+      "right() => maybeAlloc();\n"
+      "doNothing() {\n"
+      "  try {\n"
+      "  } catch (e) {\n"
+      "  }\n"
+      "}\n"
+      "wrong() => doNothing();\n"
+      "a() {\n"
+      "  try {\n"
+      "    right();\n"
+      "    wrong();\n"
+      "  } catch (e) {\n"
+      "  }\n"
+      "}\n"
+      "mainNoAlloc() {\n"
+      "  for (var i = 0; i < 20000; i++) {\n"
+      "    a();\n"
+      "  }\n"
+      "}\n"
+      "mainAlloc() {\n"
+      "  alloc = true;\n"
+      "  a();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  const Class& class_a = Class::Handle(GetClass(root_library, "A"));
+  EXPECT(!class_a.IsNull());
+
+  // Compile and optimize.
+  Dart_Handle result = Dart_Invoke(lib, NewString("mainNoAlloc"), 0, NULL);
+  EXPECT_VALID(result);
+  result = Dart_Invoke(lib, NewString("mainAlloc"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // At this point a should be optimized and have inlined both right and wrong,
+  // but not maybeAllocate or doNothing.
+  Function& func = Function::Handle();
+  func = GetFunction(root_library, "a");
+  EXPECT(!func.is_inlinable());
+  EXPECT(func.HasOptimizedCode());
+  func = GetFunction(root_library, "right");
+  EXPECT(func.is_inlinable());
+  func = GetFunction(root_library, "wrong");
+  EXPECT(func.is_inlinable());
+  func = GetFunction(root_library, "doNothing");
+  EXPECT(!func.is_inlinable());
+  func = GetFunction(root_library, "maybeAlloc");
+  EXPECT(!func.is_inlinable());
+
+  {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(thread, &filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  // Turn on allocation tracing for A.
+  class_a.SetTraceAllocation(true);
+
+  result = Dart_Invoke(lib, NewString("mainAlloc"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(thread, &filter, Profile::kNoTags);
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    // Inline expansion should show us the complete call chain:
+    walker.Reset(Profile::kExclusiveFunction);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("maybeAlloc", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("right", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("a", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("mainAlloc", walker.CurrentName());
+    EXPECT(!walker.Down());
+
+    // Inline expansion should show us the complete call chain:
+    walker.Reset(Profile::kInclusiveFunction);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("mainAlloc", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("a", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("right", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("maybeAlloc", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
 }
 
 

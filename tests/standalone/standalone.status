@@ -222,6 +222,7 @@ io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection 
 map_literal_oom_test: Pass, Crash # Issue 24678
 javascript*: SkipByDesign # JS overflow flag unsupported
 io/web_socket_test: Pass, RuntimeError # Issue 24674
+assert_test: RuntimeError # Expects line and column numbers
 
 [ $runtime == dart_precompiled ]
 debugger/*: Skip

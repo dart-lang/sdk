@@ -21600,6 +21600,23 @@ static intptr_t PrintOneStacktrace(Zone* zone,
 }
 
 
+static intptr_t PrintOneStacktraceNoCode(Zone* zone,
+                                         GrowableArray<char*>* frame_strings,
+                                         const Function& function,
+                                         intptr_t frame_index) {
+  const Script& script = Script::Handle(zone, function.script());
+  const String& function_name =
+      String::Handle(zone, function.QualifiedUserVisibleName());
+  const String& url = String::Handle(zone, script.url());
+  char* chars = NULL;
+  chars = OS::SCreate(zone,
+      "#%-6" Pd " %s (%s)\n",
+      frame_index, function_name.ToCString(), url.ToCString());
+  frame_strings->Add(chars);
+  return strlen(chars);
+}
+
+
 const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
                                           intptr_t max_frames) const {
   Zone* zone = Thread::Current()->zone();
@@ -21612,7 +21629,8 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
   for (intptr_t i = 0; (i < Length()) && (*frame_index < max_frames); i++) {
     function = FunctionAtFrame(i);
     if (function.IsNull()) {
-      // Check if null function object indicates a stack trace overflow.
+      // Check if null function object indicates a gap in a StackOverflow or
+      // OutOfMemory trace.
       if ((i < (Length() - 1)) &&
           (FunctionAtFrame(i + 1) != Function::null())) {
         const char* kTruncated = "...\n...\n";
@@ -21622,31 +21640,55 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         frame_strings.Add(chars);
         total_len += truncated_len;
       }
-    } else if (function.is_visible() || FLAG_show_invisible_frames) {
+    } else {
       code = CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
       uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
       if (code.is_optimized() && expand_inlined()) {
         // Traverse inlined frames.
-        for (InlinedFunctionsIterator it(code, pc);
-             !it.Done() && (*frame_index < max_frames); it.Advance()) {
-          function = it.function();
-          if (function.is_visible() || FLAG_show_invisible_frames) {
-            code = it.code();
-            ASSERT(function.raw() == code.function());
-            uword pc = it.pc();
-            ASSERT(pc != 0);
-            ASSERT(code.EntryPoint() <= pc);
-            ASSERT(pc < (code.EntryPoint() + code.Size()));
-            total_len += PrintOneStacktrace(
-                zone, &frame_strings, pc, function, code, *frame_index);
-            (*frame_index)++;  // To account for inlined frames.
+        if (Compiler::allow_recompilation()) {
+          for (InlinedFunctionsIterator it(code, pc);
+               !it.Done() && (*frame_index < max_frames); it.Advance()) {
+            function = it.function();
+            if (function.is_visible() || FLAG_show_invisible_frames) {
+              code = it.code();
+              ASSERT(function.raw() == code.function());
+              uword pc = it.pc();
+              ASSERT(pc != 0);
+              ASSERT(code.EntryPoint() <= pc);
+              ASSERT(pc < (code.EntryPoint() + code.Size()));
+              total_len += PrintOneStacktrace(
+                  zone, &frame_strings, pc, function, code, *frame_index);
+              (*frame_index)++;  // To account for inlined frames.
+            }
+          }
+        } else {
+          // Precompilation: we don't have deopt info, so we don't know the
+          // source position of inlined functions, but we can still name them.
+          intptr_t offset = Smi::Value(PcOffsetAtFrame(i));
+          // The PC of frames below the top frame is a call's return address,
+          // which can belong to a different inlining interval than the call.
+          intptr_t effective_offset = offset - 1;
+          GrowableArray<Function*> inlined_functions;
+          code.GetInlinedFunctionsAt(effective_offset, &inlined_functions);
+          ASSERT(inlined_functions.length() >= 1);  // At least the inliner.
+          for (intptr_t j = 0; j < inlined_functions.length(); j++) {
+            Function* inlined_function = inlined_functions[j];
+            ASSERT(inlined_function != NULL);
+            ASSERT(!inlined_function->IsNull());
+            if (inlined_function->is_visible() || FLAG_show_invisible_frames) {
+              total_len += PrintOneStacktraceNoCode(
+                  zone, &frame_strings, *inlined_function, *frame_index);
+              (*frame_index)++;
+            }
           }
         }
       } else {
-        total_len += PrintOneStacktrace(
-            zone, &frame_strings, pc, function, code, *frame_index);
-        (*frame_index)++;
+        if (function.is_visible() || FLAG_show_invisible_frames) {
+          total_len += PrintOneStacktrace(
+              zone, &frame_strings, pc, function, code, *frame_index);
+          (*frame_index)++;
+        }
       }
     }
   }

@@ -133,6 +133,7 @@ super_getter_setter_test: CompileTimeError
 vm/reflect_core_vm_test: CompileTimeError
 redirecting_factory_reflection_test: CompileTimeError
 deferred_constraints_constants_test: Skip # multitest gets confused
+vm/type_vm_test: RuntimeError # Expects line and column numbers
 
 # Deferred loading happens eagerly
 regress_23408_test: RuntimeError
@@ -143,7 +144,6 @@ deferred_load_constants_test: Skip # multitest gets confused
 deopt_inlined_function_lazy_test: Pass, Crash # Incompatible flag: --deoptimize-alot
 tearoff_basic_test: RuntimeError, Crash # Conflicting flag.
 vm/type_cast_vm_test: RuntimeError # Line number mismatch.
-stack_trace_test: Fail  # Issue 24783 - inlined frames missing
 
 [ $runtime == dart_precompiled ]
 ct_const2_test: Pass, Crash # Incompatible flag --compile_all
