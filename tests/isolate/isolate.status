@@ -100,7 +100,6 @@ isolate/spawn_uri_multi_test/01: Skip # Times out. Issue 24795
 typed_message_test: Skip # Issue 13921, 14400
 isolate_stress_test: Skip # Issue 13921 Dom isolates don't support spawnFunction
 object_leak_test: Skip # Issue 13921 Dom isolates don't support spawnFunction
-simple_message_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 spawn_uri_missing_from_isolate_test: Skip # Issue 17649
 spawn_uri_missing_test: SkipSlow # Times out.
 kill3_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
@@ -115,6 +114,7 @@ exit_at_spawn_test: SkipByDesign  # 13921 Dom isolates don't support spawnFuncti
 error_exit_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
 error_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
 exit_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+issue_21398_parent_isolate2_test/01: SkipByDesign  # Uses spawnFunction
 
 
 [ $compiler == dart2analyzer ]
