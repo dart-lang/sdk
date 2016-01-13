@@ -10,8 +10,8 @@
 
 namespace dart {
 
-SourceReport::SourceReport(ReportKind report_kind, CompileMode compile_mode)
-    : report_kind_(report_kind),
+SourceReport::SourceReport(intptr_t report_set, CompileMode compile_mode)
+    : report_set_(report_set),
       compile_mode_(compile_mode),
       thread_(NULL),
       script_(NULL),
@@ -32,6 +32,11 @@ void SourceReport::Init(Thread* thread,
   script_table_entries_.Clear();
   script_table_.Clear();
   next_script_index_ = 0;
+}
+
+
+bool SourceReport::IsReportRequested(ReportKind report_kind) {
+  return (report_set_ & report_kind) != 0;
 }
 
 
@@ -239,15 +244,25 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   }
   ASSERT(!code.IsNull());
 
+  // We skip compiled async functions.  Once an async function has
+  // been compiled, there is another function with the same range which
+  // actually contains the user code.
+  if (func.IsAsyncFunction() ||
+      func.IsAsyncGenerator() ||
+      func.IsSyncGenerator()) {
+    return;
+  }
+
   JSONObject range(jsarr);
   range.AddProperty("scriptIndex", GetScriptIndex(script));
   range.AddProperty("startPos", begin_pos);
   range.AddProperty("endPos", end_pos);
   range.AddProperty("compiled", true);
 
-  if (report_kind_ == kCallSites) {
+  if (IsReportRequested(kCallSites)) {
     PrintCallSitesData(&range, func, code);
-  } else if (report_kind_ == kCoverage) {
+  }
+  if (IsReportRequested(kCoverage)) {
     PrintCoverageData(&range, func, code);
   }
 }

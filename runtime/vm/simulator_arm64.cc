@@ -1253,6 +1253,26 @@ uword Simulator::CompareExchange(uword* address,
 }
 
 
+uint32_t Simulator::CompareExchangeUint32(uint32_t* address,
+                                          uint32_t compare_value,
+                                          uint32_t new_value) {
+  MutexLocker ml(exclusive_access_lock_);
+  // We do not get a reservation as it would be guaranteed to be found when
+  // writing below. No other thread is able to make a reservation while we
+  // hold the lock.
+  uint32_t value = *address;
+  if (value == compare_value) {
+    *address = new_value;
+    // Same effect on exclusive access state as a successful STREX.
+    HasExclusiveAccessAndOpen(reinterpret_cast<uword>(address));
+  } else {
+    // Same effect on exclusive access state as an LDREX.
+    SetExclusiveAccess(reinterpret_cast<uword>(address));
+  }
+  return value;
+}
+
+
 // Unsupported instructions use Format to print an error and stop execution.
 void Simulator::Format(Instr* instr, const char* format) {
   OS::Print("Simulator found unsupported instruction:\n 0x%p: %s\n",

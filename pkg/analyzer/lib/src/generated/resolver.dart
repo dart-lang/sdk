@@ -2755,6 +2755,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
     interfaceType.typeArguments = typeArguments;
     element.type = interfaceType;
+    _setDoc(element, node);
     _currentHolder.addType(element);
     className.staticElement = element;
     holder.validate();
@@ -3044,6 +3045,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           setter.variable = variable;
           setter.setter = true;
           setter.static = true;
+          if (node.returnType == null) {
+            setter.hasImplicitReturnType = true;
+          }
           variable.setter = setter;
           variable.final2 = false;
           _currentHolder.addAccessor(setter);
@@ -3096,10 +3100,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     if (_functionTypesToFix != null) {
       _functionTypesToFix.add(element);
     } else {
-      // TODO(jmesserly): for local functions inside of top-level generic
-      // functions, this is probably not right. The function type should be set
-      // after the enclosingElement is set, otherwise we won't be able to
-      // substitute those type parameters later.
       element.type = new FunctionTypeImpl(element);
     }
     element.hasImplicitReturnType = true;
@@ -3270,6 +3270,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           setter.abstract = node.isAbstract;
           setter.setter = true;
           setter.static = isStatic;
+          if (node.returnType == null) {
+            setter.hasImplicitReturnType = true;
+          }
           field.setter = setter;
           field.final2 = false;
           _currentHolder.addAccessor(setter);
@@ -8428,7 +8431,11 @@ class ResolverVisitor extends ScopedVisitor {
       }
     } else {
       // TODO(leafp): Do downwards inference using the declared type
-      // of the binary operator.
+      // of the binary operator for other cases.
+      if (operatorType == TokenType.QUESTION_QUESTION) {
+        InferenceContext.setTypeFromNode(leftOperand, node);
+        InferenceContext.setTypeFromNode(rightOperand, node);
+      }
       safelyVisit(leftOperand);
       safelyVisit(rightOperand);
     }
@@ -9149,21 +9156,112 @@ class ResolverVisitor extends ScopedVisitor {
     safelyVisit(node.typeArguments);
     node.accept(elementResolver);
     _inferFunctionExpressionsParametersTypes(node.argumentList);
-    Element methodElement = node.methodName.staticElement;
-    DartType contextType = null;
-    if (methodElement is PropertyAccessorElement && methodElement.isGetter) {
-      contextType = methodElement.returnType;
-    } else if (methodElement is VariableElement) {
-      contextType = methodElement.type;
-    } else if (methodElement is ExecutableElement) {
-      contextType = methodElement.type;
-    }
+    DartType contextType = node.staticInvokeType;
     if (contextType is FunctionType) {
       InferenceContext.setType(node.argumentList, contextType);
     }
     safelyVisit(node.argumentList);
     node.accept(typeAnalyzer);
     return null;
+  }
+
+  /**
+   * Given an [argumentList] and the [parameters] related to the element that
+   * will be invoked using those arguments, compute the list of parameters that
+   * correspond to the list of arguments.
+   *
+   * An error will be reported to [onError] if any of the arguments cannot be
+   * matched to a parameter. onError can be null to ignore the error.
+   *
+   * The flag [reportAsError] should be `true` if a compile-time error should be
+   * reported; or `false` if a compile-time warning should be reported
+   *
+   * Returns the parameters that correspond to the arguments.
+   */
+  static List<ParameterElement> resolveArgumentsToParameters(
+      ArgumentList argumentList,
+      List<ParameterElement> parameters,
+      void onError(ErrorCode errorCode, AstNode node, [List<Object> arguments]),
+      {bool reportAsError: false}) {
+    List<ParameterElement> requiredParameters = new List<ParameterElement>();
+    List<ParameterElement> positionalParameters = new List<ParameterElement>();
+    HashMap<String, ParameterElement> namedParameters =
+        new HashMap<String, ParameterElement>();
+    for (ParameterElement parameter in parameters) {
+      ParameterKind kind = parameter.parameterKind;
+      if (kind == ParameterKind.REQUIRED) {
+        requiredParameters.add(parameter);
+      } else if (kind == ParameterKind.POSITIONAL) {
+        positionalParameters.add(parameter);
+      } else {
+        namedParameters[parameter.name] = parameter;
+      }
+    }
+    List<ParameterElement> unnamedParameters =
+        new List<ParameterElement>.from(requiredParameters);
+    unnamedParameters.addAll(positionalParameters);
+    int unnamedParameterCount = unnamedParameters.length;
+    int unnamedIndex = 0;
+    NodeList<Expression> arguments = argumentList.arguments;
+    int argumentCount = arguments.length;
+    List<ParameterElement> resolvedParameters =
+        new List<ParameterElement>(argumentCount);
+    int positionalArgumentCount = 0;
+    HashSet<String> usedNames = new HashSet<String>();
+    bool noBlankArguments = true;
+    for (int i = 0; i < argumentCount; i++) {
+      Expression argument = arguments[i];
+      if (argument is NamedExpression) {
+        SimpleIdentifier nameNode = argument.name.label;
+        String name = nameNode.name;
+        ParameterElement element = namedParameters[name];
+        if (element == null) {
+          ErrorCode errorCode = (reportAsError
+              ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER
+              : StaticWarningCode.UNDEFINED_NAMED_PARAMETER);
+          if (onError != null) {
+            onError(errorCode, nameNode, [name]);
+          }
+        } else {
+          resolvedParameters[i] = element;
+          nameNode.staticElement = element;
+        }
+        if (!usedNames.add(name)) {
+          if (onError != null) {
+            onError(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode,
+                [name]);
+          }
+        }
+      } else {
+        if (argument is SimpleIdentifier && argument.name.isEmpty) {
+          noBlankArguments = false;
+        }
+        positionalArgumentCount++;
+        if (unnamedIndex < unnamedParameterCount) {
+          resolvedParameters[i] = unnamedParameters[unnamedIndex++];
+        }
+      }
+    }
+    if (positionalArgumentCount < requiredParameters.length &&
+        noBlankArguments) {
+      ErrorCode errorCode = (reportAsError
+          ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
+          : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
+      if (onError != null) {
+        onError(errorCode, argumentList,
+            [requiredParameters.length, positionalArgumentCount]);
+      }
+    } else if (positionalArgumentCount > unnamedParameterCount &&
+        noBlankArguments) {
+      ErrorCode errorCode = (reportAsError
+          ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
+          : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
+      if (onError != null) {
+        onError(errorCode, argumentList,
+            [unnamedParameterCount, positionalArgumentCount]);
+      }
+    }
+    return resolvedParameters;
   }
 
   @override
@@ -11758,6 +11856,11 @@ class TypeResolverVisitor extends ScopedVisitor {
   bool _hasReferenceToSuper = false;
 
   /**
+   * True if we're analyzing in strong mode.
+   */
+  bool _strongMode;
+
+  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
    * [definingLibrary] is the element for the library containing the node being
@@ -11779,6 +11882,7 @@ class TypeResolverVisitor extends ScopedVisitor {
             nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
     _undefinedType = typeProvider.undefinedType;
+    _strongMode = definingLibrary.context.analysisOptions.strongMode;
   }
 
   @override
@@ -12019,6 +12123,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     }
     element.returnType = _computeReturnType(node.returnType);
     element.type = new FunctionTypeImpl(element);
+    _inferSetterReturnType(element);
     return null;
   }
 
@@ -12067,6 +12172,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     }
     element.returnType = _computeReturnType(node.returnType);
     element.type = new FunctionTypeImpl(element);
+    _inferSetterReturnType(element);
     if (element is PropertyAccessorElement) {
       PropertyAccessorElement accessor = element as PropertyAccessorElement;
       PropertyInducingElementImpl variable =
@@ -12556,7 +12662,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (type is InterfaceType) {
       return type.typeArguments;
     } else if (type is FunctionType) {
-      return TypeParameterTypeImpl.getTypes(type.boundTypeParameters);
+      return TypeParameterTypeImpl.getTypes(type.typeFormals);
     }
     return DartType.EMPTY_LIST;
   }
@@ -12595,7 +12701,25 @@ class TypeResolverVisitor extends ScopedVisitor {
     return type;
   }
 
+  /**
+   * In strong mode we infer "void" as the setter return type (as void is the
+   * only legal return type for a setter). This allows us to give better
+   * errors later if an invalid type is returned.
+   */
+  void _inferSetterReturnType(ExecutableElementImpl element) {
+    if (_strongMode &&
+        element is PropertyAccessorElementImpl &&
+        element.isSetter &&
+        element.hasImplicitReturnType) {
+      element.returnType = VoidTypeImpl.instance;
+    }
+  }
+
   DartType _instantiateType(DartType type, List<DartType> typeArguments) {
+    // TODO(jmesserly): this should use TypeSystem.instantiateToBounds,
+    // from calling methods when they know they're just trying to fill in
+    // "dynamic" for the case of missing type arguments.
+
     if (type is InterfaceTypeImpl) {
       return type.substitute4(typeArguments);
     } else if (type is FunctionTypeImpl) {
@@ -12842,7 +12966,9 @@ class TypeResolverVisitor extends ScopedVisitor {
     functionElement.shareParameters(parameters);
     functionElement.returnType = _computeReturnType(returnType);
     functionElement.enclosingElement = element;
+    functionElement.shareTypeParameters(element.typeParameters);
     element.type = new FunctionTypeImpl(functionElement);
+    functionElement.type = element.type;
   }
 
   /**

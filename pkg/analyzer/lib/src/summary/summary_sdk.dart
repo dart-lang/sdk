@@ -79,9 +79,16 @@ class SummarySdkAnalysisContext extends SdkAnalysisContext {
         entry.setValue(result, true, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == SOURCE_KIND) {
-        // TODO(scheglov) not every source is a library
-        entry.setValue(result, SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
-        return true;
+        String uri = target.uri.toString();
+        if (bundle.prelinkedLibraryUris.contains(uri)) {
+          entry.setValue(result, SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
+          return true;
+        }
+        if (bundle.unlinkedUnitUris.contains(uri)) {
+          entry.setValue(result, SourceKind.PART, TargetedResult.EMPTY_LIST);
+          return true;
+        }
+        return false;
       } else {
 //        throw new UnimplementedError('$result of $target');
       }

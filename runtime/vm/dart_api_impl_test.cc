@@ -254,7 +254,7 @@ TEST_CASE(StackOverflowStacktraceInfo) {
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(2, line_number);
-  EXPECT_EQ(3, column_number);
+  EXPECT_EQ(13, column_number);
 
   // Out-of-bounds frames.
   result = Dart_GetActivationFrame(stacktrace, frame_count, &frame);
@@ -3341,7 +3341,7 @@ UNIT_TEST_CASE(CurrentIsolateData) {
 }
 
 
-TEST_CASE(IsolateSetCheckedMode) {
+UNIT_TEST_CASE(IsolateSetCheckedMode) {
   const char* kScriptChars =
       "int bad1() {\n"
       "  int foo = 'string';\n"
@@ -3352,23 +3352,49 @@ TEST_CASE(IsolateSetCheckedMode) {
       "  int five = 5;\n"
       "  return five;"
       "}\n";
-  Dart_Handle result;
 
-  // Create a test library and Load up a test script in it.
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  result = Dart_IsolateSetStrictCompilation(true);
-  EXPECT_VALID(result);
+  // Create an isolate with checked mode flags.
+  Dart_IsolateFlags api_flags;
+  api_flags.version = DART_FLAGS_CURRENT_VERSION;
+  api_flags.enable_type_checks = true;
+  api_flags.enable_asserts = true;
+  api_flags.enable_error_on_bad_type = true;
+  api_flags.enable_error_on_bad_override = true;
 
-  result = Dart_Invoke(lib, NewString("bad1"), 0, NULL);
-  EXPECT_ERROR(result, "Unhandled exception:\n"
-      "type 'String' is not a subtype of type 'int' of 'foo'");
+  char* err;
+  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL,
+                                            bin::isolate_snapshot_buffer,
+                                            &api_flags,
+                                            NULL, &err);
+  if (isolate == NULL) {
+    OS::Print("Creation of isolate failed '%s'\n", err);
+    free(err);
+  }
+  EXPECT(isolate != NULL);
 
-  result = Dart_Invoke(lib, NewString("good1"), 0, NULL);
-  EXPECT_VALID(result);
+  {
+    Dart_EnterScope();
+    Dart_Handle url = NewString(TestCase::url());
+    Dart_Handle source = NewString(kScriptChars);
+    Dart_Handle result = Dart_SetLibraryTagHandler(TestCase::library_handler);
+    EXPECT_VALID(result);
+    Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
+    EXPECT_VALID(lib);
+    result = Dart_FinalizeLoading(false);
+    EXPECT_VALID(result);
+    result = Dart_Invoke(lib, NewString("bad1"), 0, NULL);
+    EXPECT_ERROR(result, "Unhandled exception:\n"
+        "type 'String' is not a subtype of type 'int' of 'foo'");
 
-  result = Dart_IsolateSetStrictCompilation(false);
-  EXPECT_ERROR(result, "Dart_IsolateSetStrictCompilation expects that the "
-                       "isolate has not yet compiled code.");
+    result = Dart_Invoke(lib, NewString("good1"), 0, NULL);
+    EXPECT_VALID(result);
+    Dart_ExitScope();
+  }
+
+  EXPECT(isolate != NULL);
+
+  // Shutdown the isolate.
+  Dart_ShutdownIsolate();
 }
 
 
@@ -7259,7 +7285,7 @@ TEST_CASE(NativePortReceiveInteger) {
 static Dart_Isolate RunLoopTestCallback(const char* script_name,
                                         const char* main,
                                         const char* package_root,
-                                        const char** package_map,
+                                        const char* package_config,
                                         Dart_IsolateFlags* flags,
                                         void* data,
                                         char** error) {

@@ -1777,6 +1777,23 @@ part of library;
     'template': 'The library is imported here.',
   },
 
+  'MAIN_HAS_PART_OF': {
+    'id': 'MFMRRL',
+    'template': "The main application file must not have a 'part-of' "
+                "directive.",
+    'howToFix': "Try removing the 'part-of' directive or starting compilation "
+                "from another file.",
+    'examples': [
+      {
+        'main.dart': """
+part of library;
+
+main() {}
+"""
+      }
+    ],
+  },
+
   'LIBRARY_NAME_MISMATCH': {
     'id': 'AXGYPQ',
     'template': "Expected part of library name '#{libraryName}'.",

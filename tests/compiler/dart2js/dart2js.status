@@ -47,11 +47,6 @@ backend_dart/opt_constprop_test: Skip
 backend_dart/opt_shrinking_test: Skip
 backend_dart/opt_redundant_phi_test: Skip
 
-# These tests run the compiler multiple times.
-js_backend_cps_ir_basic_test: Pass, Slow
-js_backend_cps_ir_closures_test: Pass, Slow
-js_backend_cps_ir_constructor_test: Pass, Slow
-
 # Source information is not correct due to inlining.
 js_backend_cps_ir_source_information_test: Fail
 sourcemaps/source_mapping_operators_test: Fail # Issue 25304 for checked mode, was: Pass, Slow

@@ -35,7 +35,7 @@ main() {
     String name = 'foo';
     var element = cls.lookupLocalMember(name);
     Expect.isNotNull(element);
-    Selector selector = new Selector.getter(name, null);
+    Selector selector = new Selector.getter(new PublicName(name));
     Expect.isFalse(compiler.world.hasAnyUserDefinedGetter(selector, null));
   }));
 }

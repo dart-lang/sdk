@@ -6,7 +6,6 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 
@@ -51,14 +50,13 @@ main(List<String> args) {
       <PrelinkedLibraryBuilder>[];
   List<String> unlinkedUnitUris = <String>[];
   List<UnlinkedUnitBuilder> unlinkedUnits = <UnlinkedUnitBuilder>[];
-  BuilderContext builderContext = new BuilderContext();
   for (SdkLibrary lib in sdk.sdkLibraries) {
     print('Resolving and serializing: ${lib.shortName}');
     Source librarySource = sdk.mapDartUri(lib.shortName);
     LibraryElement libraryElement =
         context.computeLibraryElement(librarySource);
     LibrarySerializationResult libraryResult =
-        serializeLibrary(builderContext, libraryElement, context.typeProvider);
+        serializeLibrary(libraryElement, context.typeProvider);
     prelinkedLibraryUris.add(lib.shortName);
     prelinkedLibraries.add(libraryResult.prelinked);
     unlinkedUnitUris.addAll(libraryResult.unitUris);
@@ -67,7 +65,7 @@ main(List<String> args) {
   //
   // Write the whole SDK bundle.
   //
-  SdkBundleBuilder sdkBundle = encodeSdkBundle(builderContext,
+  SdkBundleBuilder sdkBundle = encodeSdkBundle(
       prelinkedLibraryUris: prelinkedLibraryUris,
       prelinkedLibraries: prelinkedLibraries,
       unlinkedUnitUris: unlinkedUnitUris,

@@ -67,18 +67,6 @@ abstract class Statement extends Node {
  * Labels name [LabeledStatement]s.
  */
 class Label {
-  // A counter used to generate names.  The counter is reset to 0 for each
-  // function emitted.
-  static int counter = 0;
-  static String _newName() => 'L${counter++}';
-
-  String cachedName;
-
-  String get name {
-    if (cachedName == null) cachedName = _newName();
-    return cachedName;
-  }
-
   /// Number of [Break] or [Continue] statements that target this label.
   /// The [Break] constructor will increment this automatically, but the
   /// counter must be decremented by hand when a [Break] becomes orphaned.
@@ -619,21 +607,6 @@ class Throw extends Statement {
   accept1(StatementVisitor1 visitor, arg) => visitor.visitThrow(this, arg);
 }
 
-/// A rethrow of an exception.
-///
-/// Rethrow can only occur nested inside a catch block.  It implicitly throws
-/// the block's caught exception value without changing the caught stack
-/// trace.  It does not have a successor statement.
-class Rethrow extends Statement {
-  Statement get next => null;
-  void set next(Statement s) => throw 'UNREACHABLE';
-
-  Rethrow();
-
-  accept(StatementVisitor visitor) => visitor.visitRethrow(this);
-  accept1(StatementVisitor1 visitor, arg) => visitor.visitRethrow(this, arg);
-}
-
 /**
  * A conditional branch based on the true value of an [Expression].
  */
@@ -743,7 +716,11 @@ class SetField extends Expression {
   Element field;
   Expression value;
 
-  SetField(this.object, this.field, this.value);
+  /// If non-null, this is a compound assignment to the field, using the given
+  /// operator.  The operator must be a compoundable operator.
+  BuiltinOperator compound;
+
+  SetField(this.object, this.field, this.value, {this.compound});
 
   accept(ExpressionVisitor visitor) => visitor.visitSetField(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitSetField(this, arg);
@@ -813,8 +790,9 @@ class SetIndex extends Expression {
   Expression object;
   Expression index;
   Expression value;
+  BuiltinOperator compound;
 
-  SetIndex(this.object, this.index, this.value);
+  SetIndex(this.object, this.index, this.value, {this.compound});
 
   accept(ExpressionVisitor v) => v.visitSetIndex(this);
   accept1(ExpressionVisitor1 v, arg) => v.visitSetIndex(this, arg);
@@ -990,11 +968,12 @@ class NullCheck extends Statement {
   Expression condition;
   Expression value;
   Selector selector;
+  bool useSelector;
   Statement next;
   SourceInformation sourceInformation;
 
-  NullCheck({this.condition, this.value, this.selector, this.next,
-      this.sourceInformation});
+  NullCheck({this.condition, this.value, this.selector, this.useSelector,
+      this.next, this.sourceInformation});
 
   accept(StatementVisitor visitor) {
     return visitor.visitNullCheck(this);
@@ -1086,7 +1065,6 @@ abstract class StatementVisitor<S> {
   S visitLabeledStatement(LabeledStatement node);
   S visitReturn(Return node);
   S visitThrow(Throw node);
-  S visitRethrow(Rethrow node);
   S visitBreak(Break node);
   S visitContinue(Continue node);
   S visitIf(If node);
@@ -1105,7 +1083,6 @@ abstract class StatementVisitor1<S, A> {
   S visitLabeledStatement(LabeledStatement node, A arg);
   S visitReturn(Return node, A arg);
   S visitThrow(Throw node, A arg);
-  S visitRethrow(Rethrow node, A arg);
   S visitBreak(Break node, A arg);
   S visitContinue(Continue node, A arg);
   S visitIf(If node, A arg);
@@ -1203,8 +1180,6 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   visitThrow(Throw node) {
     visitExpression(node.value);
   }
-
-  visitRethrow(Rethrow node) {}
 
   visitBreak(Break node) {}
 
@@ -1444,8 +1419,6 @@ class RecursiveTransformer extends Transformer {
     node.value = visitExpression(node.value);
     return node;
   }
-
-  visitRethrow(Rethrow node) => node;
 
   visitBreak(Break node) => node;
 

@@ -45,6 +45,12 @@ import 'elements.dart';
 import 'visitor.dart' show
     ElementVisitor;
 
+/// Object that identifies a declaration site.
+///
+/// For most elements, this is the element itself, but for variable declarations
+/// where multi-declarations like `var a, b, c` are allowed, the declaration
+/// site is a separate object.
+// TODO(johnniwinther): Add [beginToken] and [endToken] getters.
 abstract class DeclarationSite {
 }
 
@@ -2790,7 +2796,8 @@ abstract class ClassElementX extends BaseClassElementX {
   }
 }
 
-class EnumClassElementX extends ClassElementX implements EnumClassElement {
+class EnumClassElementX extends ClassElementX
+    implements EnumClassElement, DeclarationSite {
   final Enum node;
   List<FieldElement> _enumValues;
 
@@ -2827,6 +2834,9 @@ class EnumClassElementX extends ClassElementX implements EnumClassElement {
         message: "enumValues has already been computed for $this."));
     _enumValues = values;
   }
+
+  @override
+  DeclarationSite get declarationSite => this;
 }
 
 class EnumConstructorElementX extends ConstructorElementX {
@@ -2887,17 +2897,14 @@ class EnumFieldElementX extends FieldElementX {
   }
 }
 
-class MixinApplicationElementX extends BaseClassElementX
+abstract class MixinApplicationElementX extends BaseClassElementX
     implements MixinApplicationElement {
-  final Node node;
-  final Modifiers modifiers;
 
   Link<ConstructorElement> constructors = new Link<ConstructorElement>();
 
   InterfaceType mixinType;
 
-  MixinApplicationElementX(String name, Element enclosing, int id,
-                           this.node, this.modifiers)
+  MixinApplicationElementX(String name, Element enclosing, int id)
       : super(name, enclosing, id, STATE_NOT_STARTED);
 
   ClassElement get mixin => mixinType != null ? mixinType.element : null;
@@ -2972,6 +2979,35 @@ class MixinApplicationElementX extends BaseClassElementX
   accept(ElementVisitor visitor, arg) {
     return visitor.visitMixinApplicationElement(this, arg);
   }
+}
+
+class NamedMixinApplicationElementX extends MixinApplicationElementX
+    implements DeclarationSite {
+  final NamedMixinApplication node;
+
+  NamedMixinApplicationElementX(
+      String name,
+      CompilationUnitElement enclosing,
+      int id,
+      this.node)
+      : super(name, enclosing, id);
+
+  Modifiers get modifiers => node.modifiers;
+
+  DeclarationSite get declarationSite => this;
+}
+
+class UnnamedMixinApplicationElementX extends MixinApplicationElementX {
+  final Node node;
+
+  UnnamedMixinApplicationElementX(
+      String name,
+      CompilationUnitElement enclosing,
+      int id,
+      this.node)
+      : super(name, enclosing, id);
+
+  bool get isAbstract => true;
 }
 
 class LabelDefinitionX implements LabelDefinition {

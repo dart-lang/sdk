@@ -2,22 +2,15 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-samples/third_party/dromaeo: Pass, Slow
 samples/searchable_list: Pass, Slow
 
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
 samples/third_party/angular_todo: Fail # angular needs to be updated
-samples/third_party/todomvc_performance: Skip # dependencies are not in the repo
 
 [ $use_public_packages ]
 pkg/compiler: SkipByDesign # js_ast is not published
 samples/third_party/angular_todo: Pass, Slow
-samples/third_party/todomvc_performance: Pass, Slow
 
 [ $builder_tag == russian ]
 samples/third_party/angular_todo: Fail # Issue 16356
-samples/third_party/dromaeo: Fail # Issue 23760
-
-[ $use_public_packages && $system == windows ]
-samples/third_party/todomvc_performance: Fail # Issue 18086

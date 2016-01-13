@@ -696,6 +696,8 @@ void Isolate::Flags::CopyFrom(const Flags& orig) {
 void Isolate::Flags::CopyFrom(const Dart_IsolateFlags& api_flags) {
   type_checks_ = api_flags.enable_type_checks;
   asserts_ = api_flags.enable_asserts;
+  error_on_bad_type_ = api_flags.enable_error_on_bad_type;
+  error_on_bad_override_ = api_flags.enable_error_on_bad_override;
   // Leave others at defaults.
 }
 
@@ -704,6 +706,8 @@ void Isolate::Flags::CopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
   api_flags->enable_type_checks = type_checks();
   api_flags->enable_asserts = asserts();
+  api_flags->enable_error_on_bad_type = error_on_bad_type();
+  api_flags->enable_error_on_bad_override = error_on_bad_override();
 }
 
 
@@ -792,7 +796,9 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       pause_loop_monitor_(NULL),
       cha_invalidation_gen_(kInvalidGen),
       field_invalidation_gen_(kInvalidGen),
-      prefix_invalidation_gen_(kInvalidGen) {
+      prefix_invalidation_gen_(kInvalidGen),
+      spawn_count_monitor_(new Monitor()),
+      spawn_count_(0) {
   flags_.CopyFrom(api_flags);
   // TODO(asiva): A Thread is not available here, need to figure out
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
@@ -824,6 +830,8 @@ Isolate::~Isolate() {
   object_id_ring_ = NULL;
   delete pause_loop_monitor_;
   pause_loop_monitor_ = NULL;
+  ASSERT(spawn_count_ == 0);
+  delete spawn_count_monitor_;
   if (compiler_stats_ != NULL) {
     delete compiler_stats_;
     compiler_stats_ = NULL;
@@ -1399,6 +1407,9 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
 
 static void ShutdownIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
+  // We must wait for any outstanding spawn calls to complete before
+  // running the shutdown callback.
+  isolate->WaitForOutstandingSpawns();
   {
     // Print the error if there is one.  This may execute dart code to
     // print the exception object, so we need to use a StartIsolateScope.
@@ -2304,6 +2315,20 @@ void Isolate::KillIfExists(Isolate* isolate, LibMsgId msg_id) {
 }
 
 
+void Isolate::IncrementSpawnCount() {
+  MonitorLocker ml(spawn_count_monitor_);
+  spawn_count_++;
+}
+
+
+void Isolate::WaitForOutstandingSpawns() {
+  MonitorLocker ml(spawn_count_monitor_);
+  while (spawn_count_ > 0) {
+    ml.Wait();
+  }
+}
+
+
 static RawInstance* DeserializeObject(Thread* thread,
                                       uint8_t* obj_data,
                                       intptr_t obj_len) {
@@ -2331,8 +2356,13 @@ static const char* NewConstChar(const char* chars) {
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      Dart_Port origin_id,
                                      void* init_data,
+                                     const char* script_url,
                                      const Function& func,
                                      const Instance& message,
+                                     Monitor* spawn_count_monitor,
+                                     intptr_t* spawn_count,
+                                     const char* package_root,
+                                     const char* package_config,
                                      bool paused,
                                      bool errors_are_fatal,
                                      Dart_Port on_exit_port,
@@ -2343,9 +2373,9 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       init_data_(init_data),
       on_exit_port_(on_exit_port),
       on_error_port_(on_error_port),
-      script_url_(NULL),
-      package_root_(NULL),
-      package_map_(NULL),
+      script_url_(script_url),
+      package_root_(package_root),
+      package_config_(package_config),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
@@ -2353,6 +2383,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_args_len_(0),
       serialized_message_(NULL),
       serialized_message_len_(0),
+      spawn_count_monitor_(spawn_count_monitor),
+      spawn_count_(spawn_count),
       isolate_flags_(),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
@@ -2381,9 +2413,11 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      void* init_data,
                                      const char* script_url,
                                      const char* package_root,
-                                     const char** package_map,
+                                     const char* package_config,
                                      const Instance& args,
                                      const Instance& message,
+                                     Monitor* spawn_count_monitor,
+                                     intptr_t* spawn_count,
                                      bool paused,
                                      bool errors_are_fatal,
                                      Dart_Port on_exit_port,
@@ -2396,7 +2430,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       on_error_port_(on_error_port),
       script_url_(script_url),
       package_root_(package_root),
-      package_map_(package_map),
+      package_config_(package_config),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
@@ -2404,6 +2438,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_args_len_(0),
       serialized_message_(NULL),
       serialized_message_len_(0),
+      spawn_count_monitor_(spawn_count_monitor),
+      spawn_count_(spawn_count),
       isolate_flags_(),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
@@ -2426,14 +2462,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 IsolateSpawnState::~IsolateSpawnState() {
   delete[] script_url_;
   delete[] package_root_;
-  for (int i = 0; package_map_ != NULL; i++) {
-    if (package_map_[i] != NULL) {
-      delete[] package_map_[i];
-    } else {
-      delete[] package_map_;
-      package_map_ = NULL;
-    }
-  }
+  delete[] package_config_;
   delete[] library_url_;
   delete[] class_name_;
   delete[] function_name_;
@@ -2466,7 +2495,7 @@ RawObject* IsolateSpawnState::ResolveFunction() {
     return func.raw();
   }
 
-  ASSERT(script_url() == NULL);
+  // Lookup the to be spawned function for the Isolate.spawn implementation.
   // Resolve the library.
   const String& lib_url = String::Handle(String::New(library_url()));
   const Library& lib = Library::Handle(Library::LookupLibrary(lib_url));
@@ -2520,5 +2549,14 @@ RawInstance* IsolateSpawnState::BuildMessage(Thread* thread) {
                            serialized_message_, serialized_message_len_);
 }
 
+
+void IsolateSpawnState::DecrementSpawnCount() {
+  ASSERT(spawn_count_monitor_ != NULL);
+  ASSERT(spawn_count_ != NULL);
+  MonitorLocker ml(spawn_count_monitor_);
+  ASSERT(*spawn_count_ > 0);
+  *spawn_count_ = *spawn_count_ - 1;
+  ml.Notify();
+}
 
 }  // namespace dart

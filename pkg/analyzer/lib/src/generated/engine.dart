@@ -675,7 +675,7 @@ class AnalysisDelta {
   }
 
   /**
-   * Appendto the given [buffer] all sources with the given analysis [level],
+   * Append to the given [buffer] all sources with the given analysis [level],
    * prefixed with a label and a separator if [needsSeparator] is `true`.
    */
   bool _appendSources(
@@ -1047,6 +1047,11 @@ abstract class AnalysisOptions {
   bool get enableAssertMessage;
 
   /**
+   * Return `true` to if analysis is to enable async support.
+   */
+  bool get enableAsync;
+
+  /**
    * Return `true` to enable interface libraries (DEP 40).
    */
   bool get enableConditionalDirectives;
@@ -1155,6 +1160,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableAssertMessage = false;
 
   /**
+   * A flag indicating whether analysis is to enable async support.
+   */
+  bool enableAsync = true;
+
+  /**
    * A flag indicating whether interface libraries are to be supported (DEP 40).
    */
   bool enableConditionalDirectives = false;
@@ -1249,6 +1259,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
     enableAssertMessage = options.enableAssertMessage;
+    enableAsync = options.enableAsync;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;
@@ -1769,7 +1780,7 @@ class ChangeSet_ContentChange {
   /**
    * Initialize a newly created change object to represent a change to the
    * content of a source. The [contents] is the new contents of the source. The
-   * [offse] ist the offset into the current contents. The [oldLength] is the
+   * [offset] is the offset into the current contents. The [oldLength] is the
    * number of characters in the original contents that were replaced. The
    * [newLength] is the number of characters in the replacement text.
    */
@@ -2105,7 +2116,7 @@ class PerformanceStatistics {
   /**
    * The [PerformanceTag] for time spent in other phases of analysis.
    */
-  static PerformanceTag performAnaysis = new PerformanceTag('performAnaysis');
+  static PerformanceTag performAnalysis = new PerformanceTag('performAnalysis');
 
   /**
    * The [PerformanceTag] for time spent in the analysis task visitor after
@@ -2126,6 +2137,11 @@ class PerformanceStatistics {
    */
   static PerformanceTag incrementalAnalysis =
       new PerformanceTag('incrementalAnalysis');
+
+  /**
+   * The [PerformanceTag] for time spent in summaries support.
+   */
+  static PerformanceTag summary = new PerformanceTag('summary');
 }
 
 /**

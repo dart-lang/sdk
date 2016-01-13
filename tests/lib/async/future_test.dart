@@ -926,6 +926,74 @@ void testTypes() {
   testType("Future.error", new Future<int>.error("ERR")..catchError((_){}));
 }
 
+void testAnyValue() {
+  asyncStart();
+  var cs = new List.generate(3, (_) => new Completer());
+  var result = Future.any(cs.map((x) => x.future));
+
+  result.then((v) {
+    Expect.equals(42, v);
+    asyncEnd();
+  }, onError: (e, s) {
+    Expect.fail("Unexpected error: $e");
+  });
+
+  cs[1].complete(42);
+  cs[2].complete(10);
+  cs[0].complete(20);
+}
+
+void testAnyError() {
+  asyncStart();
+  var cs = new List.generate(3, (_) => new Completer());
+  var result = Future.any(cs.map((x) => x.future));
+
+  result.then((v) {
+    Expect.fail("Unexpected value: $v");
+  }, onError: (e, s) {
+    Expect.equals(42, e);
+    asyncEnd();
+  });
+
+  cs[1].completeError(42);
+  cs[2].complete(10);
+  cs[0].complete(20);
+}
+
+void testAnyIgnoreIncomplete() {
+  asyncStart();
+  var cs = new List.generate(3, (_) => new Completer());
+  var result = Future.any(cs.map((x) => x.future));
+
+  result.then((v) {
+    Expect.equals(42, v);
+    asyncEnd();
+  }, onError: (e, s) {
+    Expect.fail("Unexpected error: $e");
+  });
+
+  cs[1].complete(42);
+  // The other two futures never complete.
+}
+
+void testAnyIgnoreError() {
+  asyncStart();
+  var cs = new List.generate(3, (_) => new Completer());
+  var result = Future.any(cs.map((x) => x.future));
+
+  result.then((v) {
+    Expect.equals(42, v);
+    asyncEnd();
+  }, onError: (e, s) {
+    Expect.fail("Unexpected error: $e");
+  });
+
+  cs[1].complete(42);
+  // The errors are ignored, not uncaught.
+  cs[2].completeError("BAD");
+  cs[0].completeError("BAD");
+}
+
 main() {
   asyncStart();
 
@@ -988,6 +1056,11 @@ main() {
   testBadFuture();
 
   testTypes();
+
+  testAnyValue();
+  testAnyError();
+  testAnyIgnoreIncomplete();
+  testAnyIgnoreError();
 
   asyncEnd();
 }

@@ -191,6 +191,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
   final greaterEqual = const GreaterEqualOperation();
   final greater = const GreaterOperation();
   final identity = const JavaScriptIdentityOperation();
+  final ifNull = const IfNullOperation();
   final lessEqual = const LessEqualOperation();
   final less = const LessOperation();
   final modulo =

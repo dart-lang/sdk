@@ -583,6 +583,8 @@ typedef struct {
   int32_t version;
   bool enable_type_checks;
   bool enable_asserts;
+  bool enable_error_on_bad_type;
+  bool enable_error_on_bad_override;
 } Dart_IsolateFlags;
 
 /**
@@ -643,7 +645,7 @@ typedef struct {
 typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
                                                    const char* main,
                                                    const char* package_root,
-                                                   const char** package_map,
+                                                   const char* package_config,
                                                    Dart_IsolateFlags* flags,
                                                    void* callback_data,
                                                    char** error);
@@ -906,19 +908,6 @@ DART_EXPORT void Dart_ThreadEnableProfiling();
 DART_EXPORT void Dart_ExitIsolate();
 /* TODO(turnidge): We don't want users of the api to be able to exit a
  * "pure" dart isolate. Implement and document. */
-
-/**
- * Enables/Disables strict compilation for the current Isolate.
- * Strict compilation includes:
- * - type-checking
- * - asserts
- * - errors on bad types
- * - errors on bad overrides
- *
- * This call requires there to be a current isolate, and requires that there has
- * not yet been any compilation for the current Isolate.
- */
-DART_EXPORT Dart_Handle Dart_IsolateSetStrictCompilation(bool value);
 
 /**
  * Creates a full snapshot of the current isolate heap.

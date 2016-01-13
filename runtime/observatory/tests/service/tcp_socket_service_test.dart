@@ -36,6 +36,9 @@ var tcpTests = [
     //   The server socket accepting connections, on port X
     //   The accepted connection on the client, on port Y
     //   The client connection, on port X
+    if (result['data'].length != 5) {
+      print(result['data']);
+    }
     expect(result['data'].length, equals(5));
     // The first socket will have a name like listening:127.0.0.1:X
     // The second will have a name like 127.0.0.1:Y

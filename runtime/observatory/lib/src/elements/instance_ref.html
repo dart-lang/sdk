@@ -106,8 +106,8 @@
                                  expandKey="{{ makeExpandKey('value') }}">
               </any-service-ref><br>
             </template>
-            <template if="{{ ref.length != ref.association.length }}">
-              <div><em>{{ ref.length - ref.association.length }} omitted association</em></div>
+            <template if="{{ ref.length != ref.associations.length }}">
+              <div><em>{{ ref.length - ref.associations.length }} omitted associations</em></div>
             </template>
           </div>
         </curly-block>

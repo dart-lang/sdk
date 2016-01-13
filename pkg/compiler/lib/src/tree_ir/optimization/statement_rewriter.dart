@@ -167,7 +167,7 @@ class StatementRewriter extends Transformer implements Pass {
 
   /// Binding environment for variables that are assigned to effectively
   /// constant expressions (see [isEffectivelyConstant]).
-  Map<Variable, Expression> constantEnvironment;
+  Map<Variable, Expression> constantEnvironment = <Variable, Expression>{};
 
   /// Substitution map for labels. Any break to a label L should be substituted
   /// for a break to L' if L maps to L'.
@@ -186,14 +186,6 @@ class StatementRewriter extends Transformer implements Pass {
   /// variable might have changed since it was put in the environment.
   final Map<Variable, int> dominatingAssignments = <Variable, int>{};
 
-  /// Rewriter for methods.
-  StatementRewriter() : constantEnvironment = <Variable, Expression>{};
-
-  /// Rewriter for nested functions.
-  StatementRewriter.nested(StatementRewriter parent)
-      : constantEnvironment = parent.constantEnvironment,
-        unseenUses = parent.unseenUses;
-
   /// A set of labels that can be safely inlined at their use.
   ///
   /// The successor statements for labeled statements that have only one break
@@ -201,6 +193,13 @@ class StatementRewriter extends Transformer implements Pass {
   /// is not safe if the code would be moved inside the scope of an exception
   /// handler (i.e., if the code would be moved into a try from outside it).
   Set<Label> safeForInlining = new Set<Label>();
+
+  /// If the top element is true, assignments of form "x = CONST" may be
+  /// propagated into a following occurence of CONST.  This may confuse the JS
+  /// engine so it is disabled in some cases.
+  final List<bool> allowRhsPropagation = <bool>[true];
+
+  bool get isRhsPropagationAllowed => allowRhsPropagation.last;
 
   /// Returns the redirect target of [jump] or [jump] itself if it should not
   /// be redirected.
@@ -327,7 +326,8 @@ class StatementRewriter extends Transformer implements Pass {
       //
       //     { E.foo = x; bar(x) } ==> bar(E.foo = x)
       //
-      if (getRightHandVariable(binding) == node.variable) {
+      if (isRhsPropagationAllowed &&
+          getRightHandVariable(binding) == node.variable) {
         environment.removeLast();
         --node.variable.readCount;
         return visitExpression(binding);
@@ -467,7 +467,9 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitAssign(Assign node) {
+    allowRhsPropagation.add(true);
     node.value = visitExpression(node.value);
+    allowRhsPropagation.removeLast();
     // Remove assignments to variables without any uses. This can happen
     // because the assignment was propagated into its use, e.g:
     //
@@ -482,10 +484,12 @@ class StatementRewriter extends Transformer implements Pass {
 
   /// Process nodes right-to-left, the opposite of evaluation order in the case
   /// of argument lists..
-  void _rewriteList(List<Node> nodes) {
+  void _rewriteList(List<Node> nodes, {bool rhsPropagation: true}) {
+    allowRhsPropagation.add(rhsPropagation);
     for (int i = nodes.length - 1; i >= 0; --i) {
       nodes[i] = visitExpression(nodes[i]);
     }
+    allowRhsPropagation.removeLast();
   }
 
   Expression visitInvokeStatic(InvokeStatic node) {
@@ -607,10 +611,6 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
-  Statement visitRethrow(Rethrow node) {
-    return node;
-  }
-
   Statement visitUnreachable(Unreachable node) {
     return node;
   }
@@ -721,7 +721,7 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitConstant(Constant node) {
-    if (!environment.isEmpty) {
+    if (isRhsPropagationAllowed && !environment.isEmpty) {
       Constant constant = getRightHandConstant(environment.last);
       if (constant != null && constant.value == node.value) {
         return visitExpression(environment.removeLast());
@@ -754,9 +754,37 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
+  bool sameVariable(Expression e1, Expression e2) {
+    return e1 is VariableUse && e2 is VariableUse && e1.variable == e2.variable;
+  }
+
+  bool isCompoundableBuiltin(Expression e) {
+    return e is ApplyBuiltinOperator &&
+           e.arguments.length == 2 &&
+           isCompoundableOperator(e.operator);
+  }
+
+  void destroyVariableUse(VariableUse node) {
+    --node.variable.readCount;
+  }
+
   Expression visitSetField(SetField node) {
+    allowRhsPropagation.add(true);
     node.value = visitExpression(node.value);
+    if (isCompoundableBuiltin(node.value)) {
+      ApplyBuiltinOperator rhs = node.value;
+      Expression left = rhs.arguments[0];
+      Expression right = rhs.arguments[1];
+      if (left is GetField &&
+          left.field == node.field &&
+          sameVariable(left.object, node.object)) {
+        destroyVariableUse(left.object);
+        node.compound = rhs.operator;
+        node.value = right;
+      }
+    }
     node.object = visitExpression(node.object);
+    allowRhsPropagation.removeLast();
     return node;
   }
 
@@ -770,7 +798,9 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitSetStatic(SetStatic node) {
+    allowRhsPropagation.add(true);
     node.value = visitExpression(node.value);
+    allowRhsPropagation.removeLast();
     return node;
   }
 
@@ -826,6 +856,19 @@ class StatementRewriter extends Transformer implements Pass {
 
   Expression visitSetIndex(SetIndex node) {
     node.value = visitExpression(node.value);
+    if (isCompoundableBuiltin(node.value)) {
+      ApplyBuiltinOperator rhs = node.value;
+      Expression left = rhs.arguments[0];
+      Expression right = rhs.arguments[1];
+      if (left is GetIndex &&
+          sameVariable(left.object, node.object) &&
+          sameVariable(left.index, node.index)) {
+        destroyVariableUse(left.object);
+        destroyVariableUse(left.index);
+        node.compound = rhs.operator;
+        node.value = right;
+      }
+    }
     node.index = visitExpression(node.index);
     node.object = visitExpression(node.object);
     return node;
@@ -880,31 +923,31 @@ class StatementRewriter extends Transformer implements Pass {
   /// foo() must be evaluated before bar(), so the propagation is only possible
   /// by commuting the operator.
   Expression visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
-    if (environment.isEmpty || getLeftHand(environment.last) == null) {
-      // If there is no recent assignment that might propagate, so there is no
-      // opportunity for optimization here.
-      _rewriteList(node.arguments);
-      return node;
-    }
-    Variable propagatableVariable = getLeftHand(environment.last);
-    BuiltinOperator commuted = commuteBinaryOperator(node.operator);
-    if (commuted != null) {
-      assert(node.arguments.length == 2); // Only binary operators can commute.
-      Expression left = node.arguments[0];
-      if (left is VariableUse && propagatableVariable == left.variable) {
-        Expression right = node.arguments[1];
-        if (right is This ||
-            (right is VariableUse &&
-             propagatableVariable != right.variable &&
-             !constantEnvironment.containsKey(right.variable))) {
-          // An assignment can be propagated if we commute the operator.
-          node.operator = commuted;
-          node.arguments[0] = right;
-          node.arguments[1] = left;
+    if (!environment.isEmpty && getLeftHand(environment.last) != null) {
+      Variable propagatableVariable = getLeftHand(environment.last);
+      BuiltinOperator commuted = commuteBinaryOperator(node.operator);
+      if (commuted != null) {
+        // Only binary operators can commute.
+        assert(node.arguments.length == 2);
+        Expression left = node.arguments[0];
+        if (left is VariableUse && propagatableVariable == left.variable) {
+          Expression right = node.arguments[1];
+          if (right is This ||
+              (right is VariableUse &&
+               propagatableVariable != right.variable &&
+               !constantEnvironment.containsKey(right.variable))) {
+            // An assignment can be propagated if we commute the operator.
+            node.operator = commuted;
+            node.arguments[0] = right;
+            node.arguments[1] = left;
+          }
         }
       }
     }
-    _rewriteList(node.arguments);
+    // Avoid code like `p == (q.f = null)`. JS operators with a constant operand
+    // can sometimes be compiled to a specialized instruction in the JS engine,
+    // so retain syntactically constant operands.
+    _rewriteList(node.arguments, rhsPropagation: false);
     return node;
   }
 

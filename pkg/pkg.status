@@ -43,12 +43,13 @@ analysis_server/test/search/element_references_test: Pass, Slow
 analysis_server/test/search/top_level_declarations_test: Pass, Slow # 19756, 21628
 analysis_server/test/services/index/store/codec_test: Pass, Slow
 analysis_server/test/socket_server_test: Pass, Slow # Issue 19756, 21628
+analyzer/test/dart/element/element_test: Pass, Slow # Issue 24914
 analyzer/test/enum_test: Slow, Pass, Fail # Issue 21323
 analyzer/test/generated/all_the_rest_test: Pass, Slow # Issue 21628
 analyzer/test/generated/ast_test: Pass, Slow # Issue 21628
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow # Issue 21628
-analyzer/test/generated/declaration_resolver_test: Pass, Slow # Issue 21628
+analyzer/test/generated/declaration_resolver_test: Pass, Slow # Issue 24914
 analyzer/test/generated/element_test: Pass, Slow # Issue 21628
 analyzer/test/generated/engine_test: SkipSlow
 analyzer/test/generated/incremental_resolver_test: Pass, Slow # Issue 21628
@@ -64,9 +65,10 @@ analyzer/test/generated/static_warning_code_test: Pass, Slow # Issue 21628
 analyzer/test/generated/utilities_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/cache_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/context_test: Pass, Timeout # dartbug.com/23658
-analyzer/test/src/dart/element/element_test: Pass, Slow # Issue 21628
+analyzer/test/src/dart/element/element_test: Pass, Slow # Issue 24914
 analyzer/test/src/summary/resynthesize_test: Pass, Slow
-analyzer/test/src/summary/summary_test: Pass, Slow # Issue 21628
+analyzer/test/src/summary/summary_sdk_test: Pass, Slow # Issue 24914
+analyzer/test/src/summary/summary_test: Pass, Slow # Issue 24914
 analyzer/test/src/task/dart_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/dart_work_manager_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/driver_test: Pass, Slow # Issue 21628

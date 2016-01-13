@@ -674,56 +674,66 @@ class Emitter implements js_emitter.Emitter {
     return new jsAst.Block(parts);
   }
 
-  jsAst.Statement buildLazilyInitializedStaticFields() {
-    JavaScriptConstantCompiler handler = backend.constants;
-    List<VariableElement> lazyFields =
-        handler.getLazilyInitializedFieldsForEmission();
+  jsAst.Statement buildLazilyInitializedStaticFields(
+      Iterable<StaticField> lazyFields, {bool isMainFragment: true}) {
     if (lazyFields.isNotEmpty) {
       needsLazyInitializer = true;
-      List<jsAst.Expression> laziesInfo = buildLaziesInfo(lazyFields);
+      List<jsAst.Expression> laziesInfo =
+          buildLaziesInfo(lazyFields, isMainFragment);
       return js.statement('''
       (function(lazies) {
         for (var i = 0; i < lazies.length; ) {
           var fieldName = lazies[i++];
           var getterName = lazies[i++];
+          var lazyValue = lazies[i++];
           if (#notMinified) {
             var staticName = lazies[i++];
           }
-          var lazyValue = lazies[i++];
-
+          if (#isDeferredFragment) {
+            var fieldHolder = lazies[i++];
+          }
           // We build the lazy-check here:
           //   lazyInitializer(fieldName, getterName, lazyValue, staticName);
           // 'staticName' is used for error reporting in non-minified mode.
           // 'lazyValue' must be a closure that constructs the initial value.
-          if (#notMinified) {
-            #lazy(fieldName, getterName, lazyValue, staticName);
+          if (#isMainFragment) {
+            if (#notMinified) {
+              #lazy(fieldName, getterName, lazyValue, staticName);
+            } else {
+              #lazy(fieldName, getterName, lazyValue);
+            }
           } else {
-            #lazy(fieldName, getterName, lazyValue);
+            if (#notMinified) {
+              #lazy(fieldName, getterName, lazyValue, staticName, fieldHolder);
+            } else {
+              #lazy(fieldName, getterName, lazyValue, null, fieldHolder);
+            }
           }
         }
       })(#laziesInfo)
       ''', {'notMinified': !compiler.enableMinification,
             'laziesInfo': new jsAst.ArrayInitializer(laziesInfo),
-            'lazy': js(lazyInitializerName)});
+            'lazy': js(lazyInitializerName),
+            'isMainFragment': isMainFragment,
+            'isDeferredFragment': !isMainFragment});
     } else {
       return js.comment("No lazy statics.");
     }
   }
 
-  List<jsAst.Expression> buildLaziesInfo(List<VariableElement> lazies) {
+  List<jsAst.Expression> buildLaziesInfo(
+      Iterable<StaticField> lazies, bool isMainFragment) {
     List<jsAst.Expression> laziesInfo = <jsAst.Expression>[];
-    for (VariableElement element in Elements.sortedByPosition(lazies)) {
-      jsAst.Expression code = backend.generatedCode[element];
-      // The code is null if we ended up not needing the lazily
-      // initialized field after all because of constant folding
-      // before code generation.
-      if (code == null) continue;
-      laziesInfo.add(js.quoteName(namer.globalPropertyName(element)));
-      laziesInfo.add(js.quoteName(namer.lazyInitializerName(element)));
+    for (StaticField field in lazies) {
+      laziesInfo.add(js.quoteName(field.name));
+      laziesInfo.add(js.quoteName(namer.deriveLazyInitializerName(field.name)));
+      laziesInfo.add(field.code);
       if (!compiler.enableMinification) {
-        laziesInfo.add(js.string(element.name));
+        laziesInfo.add(js.quoteName(field.name));
       }
-      laziesInfo.add(code);
+      if (!isMainFragment) {
+        laziesInfo.add(js('#', field.holder.name));
+      }
     }
     return laziesInfo;
   }
@@ -1570,7 +1580,8 @@ class Emitter implements js_emitter.Emitter {
           mainOutputUnit),
       "typeToInterceptorMap":
           interceptorEmitter.buildTypeToInterceptorMap(program),
-      "lazyStaticFields": buildLazilyInitializedStaticFields(),
+      "lazyStaticFields": buildLazilyInitializedStaticFields(
+          mainFragment.staticLazilyInitializedFields),
       "metadata": buildMetadata(program, mainOutputUnit),
       "convertToFastObject": buildConvertToFastObjectFunction(),
       "convertToSlowObject": buildConvertToSlowObjectFunction(),
@@ -1996,6 +2007,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       body.add(buildCompileTimeConstants(fragment.constants,
                                          isMainFragment: false));
       body.add(buildStaticNonFinalFieldInitializations(outputUnit));
+      body.add(buildLazilyInitializedStaticFields(
+          fragment.staticLazilyInitializedFields, isMainFragment: false));
 
       List<jsAst.Statement> statements = <jsAst.Statement>[];
 

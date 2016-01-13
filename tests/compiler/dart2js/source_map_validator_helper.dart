@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:path/path.dart' as path;
 import 'package:expect/expect.dart';
-import 'package:source_maps/source_maps.dart' hide SourceFile;
+import 'package:source_maps/source_maps.dart';
 import 'package:compiler/src/apiimpl.dart';
 import 'package:compiler/src/elements/elements.dart'
     show AstElement,

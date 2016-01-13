@@ -2108,6 +2108,11 @@ class Parser {
   int _errorListenerLock = 0;
 
   /**
+   * A flag indicating whether the parser is to parse the async support.
+   */
+  bool _parseAsync = true;
+
+  /**
    * A flag indicating whether parser is to parse function bodies.
    */
   bool _parseFunctionBodies = true;
@@ -2185,6 +2190,13 @@ class Parser {
       return false;
     }
     return _tokenMatchesIdentifier(next);
+  }
+
+  /**
+   * Set whether the parser is to parse the async support.
+   */
+  void set parseAsync(bool parseAsync) {
+    this._parseAsync = parseAsync;
   }
 
   /**
@@ -6087,6 +6099,9 @@ class Parser {
       Token star = null;
       if (_matchesString(ASYNC)) {
         keyword = getAndAdvance();
+        if (!_parseAsync) {
+          _reportErrorForToken(ParserErrorCode.ASYNC_NOT_SUPPORTED, keyword);
+        }
         if (_matches(TokenType.STAR)) {
           star = getAndAdvance();
           _inGenerator = true;
@@ -6094,6 +6109,9 @@ class Parser {
         _inAsync = true;
       } else if (_matchesString(SYNC)) {
         keyword = getAndAdvance();
+        if (!_parseAsync) {
+          _reportErrorForToken(ParserErrorCode.ASYNC_NOT_SUPPORTED, keyword);
+        }
         if (_matches(TokenType.STAR)) {
           star = getAndAdvance();
           _inGenerator = true;
@@ -9359,6 +9377,13 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode ASYNC_KEYWORD_USED_AS_IDENTIFIER =
       const ParserErrorCode('ASYNC_KEYWORD_USED_AS_IDENTIFIER',
           "The keywords 'async', 'await', and 'yield' may not be used as identifiers in an asynchronous or generator function.");
+
+  /**
+   * Some environments, such as Fletch, do not support async.
+   */
+  static const CompileTimeErrorCode ASYNC_NOT_SUPPORTED =
+      const CompileTimeErrorCode('ASYNC_NOT_SUPPORTED',
+          "Async and sync are not supported in this environment.");
 
   static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
       'BREAK_OUTSIDE_OF_LOOP',

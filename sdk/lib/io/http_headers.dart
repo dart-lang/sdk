@@ -713,6 +713,7 @@ class _HeaderValue implements HeaderValue {
           if (s[index] == " " ||
               s[index] == "\t" ||
               s[index] == "=" ||
+              s[index] == parameterSeparator ||
               s[index] == valueSeparator) break;
           index++;
         }

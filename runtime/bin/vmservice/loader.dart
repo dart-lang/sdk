@@ -132,7 +132,9 @@ _parsePackagesFile(SendPort sp,
                    bool traceLoading,
                    Uri packagesFile,
                    List<int> data) {
-  var result = [];
+  // The first entry contains the location of the identified .packages file
+  // instead of a mapping.
+  var result = [packagesFile.toString(), null];
   var index = 0;
   var len = data.length;
   while (index < len) {

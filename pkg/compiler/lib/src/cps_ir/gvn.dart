@@ -64,10 +64,6 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
   final Map<Primitive, Continuation> loopHeaderFor =
       <Primitive, Continuation>{};
 
-  /// The loop to which a given trivial primitive can be hoisted.
-  final Map<Primitive, Continuation> potentialLoopHeaderFor =
-      <Primitive, Continuation>{};
-
   /// The GVNs for primitives that have been hoisted outside the given loop.
   ///
   /// These should be removed from the environment when exiting the loop.
@@ -155,11 +151,10 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     Primitive existing = environment[gvn];
     if (existing != null &&
         canReplaceWithExistingValue(prim) &&
-        !isTrivialPrimitive(prim)) {
+        !isFastConstant(prim)) {
       if (prim is Interceptor) {
         Interceptor interceptor = existing;
         interceptor.interceptedClasses.addAll(prim.interceptedClasses);
-        interceptor.flags |= prim.flags;
       }
       prim..replaceUsesWith(existing)..destroy();
       node.remove();
@@ -181,14 +176,47 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     return next;
   }
 
+  bool isFirstImpureExpressionInLoop(Expression exp) {
+    InteriorNode node = exp.parent;
+    for (; node is Expression; node = node.parent) {
+      if (node is LetPrim && node.primitive.isSafeForElimination) {
+        continue;
+      }
+      if (node is LetCont) {
+        continue;
+      }
+      return false;
+    }
+    return node == currentLoopHeader;
+  }
+
+  bool isHoistablePrimitive(Primitive prim) {
+    if (prim.isSafeForElimination) return true;
+    if (prim is NullCheck ||
+        prim is BoundsCheck ||
+        prim is GetLength ||
+        prim is GetField ||
+        prim is GetIndex) {
+      // Expressions that potentially throw but have no other effects can be
+      // hoisted if they occur as the first impure expression in a loop.
+      // Note regarding BoundsCheck: the current array length is an input to
+      // check, so the check itself has no heap dependency.  It will only be
+      // hoisted if the length was hoisted.
+      // TODO(asgerf): In general we could hoist these out of multiple loops,
+      //   but the trick we use here only works for one loop level.
+      return isFirstImpureExpressionInLoop(prim.parent);
+    }
+    return false;
+  }
+
   /// Try to hoist the binding of [prim] out of loops. Returns `true` if it was
   /// hoisted or marked as a trivial hoist-on-demand primitive.
   bool tryToHoistOutOfLoop(Primitive prim, int gvn) {
-    // Do not hoist primitives with side effects.
-    if (!prim.isSafeForElimination) return false;
-
     // Bail out fast if the primitive is not inside a loop.
     if (currentLoopHeader == null) return false;
+
+    // Do not hoist primitives with side effects.
+    if (!isHoistablePrimitive(prim)) return false;
 
     LetPrim letPrim = prim.parent;
 
@@ -202,21 +230,18 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
       if (canIgnoreRefinementGuards(prim)) {
         input = input.effectiveDefinition;
       }
-      Continuation loopHeader;
-      if (potentialLoopHeaderFor.containsKey(input)) {
-        // This is a reference to a value that can be hoisted further out than
-        // it currently is.  If we decide to hoist [prim], we must also hoist
-        // such dependent values.
-        loopHeader = potentialLoopHeaderFor[input];
+      if (isFastConstant(input)) {
+        // Fast constants can be hoisted all the way out, but should only be
+        // hoisted if needed to hoist something else.
         inputsHoistedOnDemand.add(input);
       } else {
-        loopHeader = loopHeaderFor[input];
-      }
-      Continuation referencedLoop =
-          loopHierarchy.lowestCommonAncestor(loopHeader, currentLoopHeader);
-      int depth = loopHierarchy.getDepth(referencedLoop);
-      if (depth > hoistDepth) {
-        hoistDepth = depth;
+        Continuation loopHeader = loopHeaderFor[input];
+        Continuation referencedLoop =
+            loopHierarchy.lowestCommonAncestor(loopHeader, currentLoopHeader);
+        int depth = loopHierarchy.getDepth(referencedLoop);
+        if (depth > hoistDepth) {
+          hoistDepth = depth;
+        }
       }
     });
 
@@ -236,11 +261,10 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     // Bail out if heap dependencies prohibit any hoisting at all.
     if (hoistTarget == null) return false;
 
-    if (isTrivialPrimitive(prim)) {
+    if (isFastConstant(prim)) {
       // The overhead from introducting a temporary might be greater than
       // the overhead of evaluating this primitive at every iteration.
       // Only hoist if this enables hoisting of a non-trivial primitive.
-      potentialLoopHeaderFor[prim] = enclosingLoop;
       return true;
     }
 
@@ -287,8 +311,7 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
   void hoistTrivialPrimitive(Primitive prim,
                              LetCont loopBinding,
                              Continuation enclosingLoop) {
-    if (!potentialLoopHeaderFor.containsKey(prim)) return;
-    assert(isTrivialPrimitive(prim));
+    assert(isFastConstant(prim));
 
     // The primitive might already be bound in an outer scope.  Do not relocate
     // the primitive unless we are lifting it. For example;
@@ -313,26 +336,15 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     binding.remove();
     binding.insertAbove(loopBinding);
     loopHeaderFor[prim] = enclosingLoop;
-
-    if (potentialLoopHeaderFor[prim] == enclosingLoop) {
-      potentialLoopHeaderFor.remove(prim);
-    }
   }
 
   bool canIgnoreRefinementGuards(Primitive primitive) {
     return primitive is Interceptor;
   }
 
-  /// Returns true if the given primitive is so cheap at runtime that it is
-  /// better to (redundantly) recompute it rather than introduce a temporary.
-  bool isTrivialPrimitive(Primitive primitive) {
-    return primitive is ApplyBuiltinOperator ||
-           primitive is Constant && isTrivialConstant(primitive.value);
-  }
-
-  /// Returns true if the given constant has almost no runtime cost.
-  bool isTrivialConstant(ConstantValue value) {
-    return value.isPrimitive || value.isDummy;
+  /// Returns true if [prim] is a constant that has no significant runtime cost.
+  bool isFastConstant(Primitive prim) {
+    return prim is Constant && (prim.value.isPrimitive || prim.value.isDummy);
   }
 
   /// True if [element] is a final or constant field or a function.
@@ -348,9 +360,15 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
   }
 
   /// Assuming [prim] has no side effects, returns true if it can safely
-  /// be hoisted out of [loop] without changing its value.
+  /// be hoisted out of [loop] without changing its value or changing the timing
+  /// of a thrown exception.
   bool canHoistHeapDependencyOutOfLoop(Primitive prim, Continuation loop) {
-    assert(prim.isSafeForElimination);
+    // If the primitive might throw, we have to check that it is the first
+    // impure expression in the loop.  This has already been checked if
+    // [loop] is the current loop header, but for other loops we just give up.
+    if (!prim.isSafeForElimination && loop != currentLoopHeader) {
+      return false;
+    }
     if (prim is GetLength && !isImmutableLength(prim)) {
       return !loopEffects.loopChangesLength(loop);
     } else if (prim is GetField && !isImmutable(prim.field)) {
@@ -363,7 +381,6 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
       return true;
     }
   }
-
 
   // ------------------ TRAVERSAL AND EFFECT NUMBERING ---------------------
   //

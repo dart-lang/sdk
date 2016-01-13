@@ -1266,6 +1266,7 @@ DART_EXPORT void Dart_ShutdownIsolate() {
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
   CHECK_ISOLATE(I);
+  I->WaitForOutstandingSpawns();
   {
     StackZone zone(T);
     HandleScope handle_scope(T);
@@ -1338,23 +1339,6 @@ DART_EXPORT void Dart_ThreadEnableProfiling() {
 DART_EXPORT void Dart_ExitIsolate() {
   CHECK_ISOLATE(Isolate::Current());
   Thread::ExitIsolate();
-}
-
-
-// TODO(iposva): Remove this API and instead expose the underlying flags.
-DART_EXPORT Dart_Handle Dart_IsolateSetStrictCompilation(bool value) {
-  CHECK_ISOLATE(Isolate::Current());
-  Isolate* isolate = Isolate::Current();
-  if (isolate->has_compiled_code()) {
-    return Api::NewError(
-        "%s expects that the isolate has not yet compiled code.", CURRENT_FUNC);
-  }
-  if (!value) {
-    return Api::NewError(
-        "%s expects that the value is set to true only.", CURRENT_FUNC);
-  }
-  Isolate::Current()->set_strict_compilation();
-  return Api::Null();
 }
 
 
@@ -2747,10 +2731,9 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
   }
   Instance& exception = Instance::Handle(zone);
   exception = Instance::New(cls);
-  const Array& args = Array::Handle(zone, Array::New(3));
+  const Array& args = Array::Handle(zone, Array::New(2));
   args.SetAt(0, exception);
-  args.SetAt(1, Smi::Handle(zone, Smi::New(Function::kCtorPhaseAll)));
-  args.SetAt(2, String::Handle(String::New(exception_message)));
+  args.SetAt(1, String::Handle(String::New(exception_message)));
   result = DartEntry::InvokeFunction(constructor, args);
   if (result.IsError()) return result.raw();
   ASSERT(result.IsNull());
@@ -3604,7 +3587,7 @@ static RawObject* ResolveConstructor(const char* current_func,
       return ApiError::New(message);
     }
   }
-  int extra_args = (constructor.IsGenerativeConstructor() ? 2 : 1);
+  int extra_args = 1;
   String& error_message = String::Handle();
   if (!constructor.AreValidArgumentCounts(num_args + extra_args,
                                           0,
@@ -3718,11 +3701,11 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
 
   // Create the argument list.
   intptr_t arg_index = 0;
-  int extra_args = (constructor.IsGenerativeConstructor() ? 2 : 1);
+  int extra_args = 1;
   const Array& args =
       Array::Handle(Z, Array::New(number_of_arguments + extra_args));
   if (constructor.IsGenerativeConstructor()) {
-    // Constructors get the uninitialized object and a constructor phase.
+    // Constructors get the uninitialized object.
     if (!type_arguments.IsNull()) {
       // The type arguments will be null if the class has no type parameters, in
       // which case the following call would fail because there is no slot
@@ -3730,7 +3713,6 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
       new_object.SetTypeArguments(type_arguments);
     }
     args.SetAt(arg_index++, new_object);
-    args.SetAt(arg_index++, Smi::Handle(Z, Smi::New(Function::kCtorPhaseAll)));
   } else {
     // Factories get type arguments.
     args.SetAt(arg_index++, type_arguments);
@@ -3922,14 +3904,14 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
       TypeArguments::Handle(Z, type_obj.arguments());
   const Function& constructor =
       Function::Handle(Z, cls.LookupFunctionAllowPrivate(dot_name));
-  const int extra_args = 2;
+  const int extra_args = 1;
   if (!constructor.IsNull() &&
       constructor.IsGenerativeConstructor() &&
       constructor.AreValidArgumentCounts(number_of_arguments + extra_args,
                                          0,
                                          NULL)) {
     // Create the argument list.
-    // Constructors get the uninitialized object and a constructor phase.
+    // Constructors get the uninitialized object.
     if (!type_arguments.IsNull()) {
       // The type arguments will be null if the class has no type
       // parameters, in which case the following call would fail
@@ -3943,7 +3925,6 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
         T, number_of_arguments, arguments, extra_args, &args);
     if (!::Dart_IsError(result)) {
       args.SetAt(0, instance);
-      args.SetAt(1, Smi::Handle(Z, Smi::New(Function::kCtorPhaseAll)));
       const Object& retval = Object::Handle(Z,
           DartEntry::InvokeFunction(constructor, args));
       if (retval.IsError()) {
@@ -5901,6 +5882,29 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
 }
 
 
+#if defined(DART_PRECOMPILED)
+
+DART_EXPORT Dart_Handle Dart_Precompile(
+    Dart_QualifiedFunctionName entry_points[],
+    bool reset_fields) {
+  UNREACHABLE();
+  return 0;
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size,
+    uint8_t** instructions_snapshot_buffer,
+    intptr_t* instructions_snapshot_size) {
+  UNREACHABLE();
+  return 0;
+}
+
+#else  // DART_PRECOMPILED
+
 DART_EXPORT Dart_Handle Dart_Precompile(
     Dart_QualifiedFunctionName entry_points[],
     bool reset_fields) {
@@ -5973,6 +5977,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
 
   return Api::Success();
 }
+#endif  // DART_PRECOMPILED
 
 
 DART_EXPORT bool Dart_IsRunningPrecompiledCode() {

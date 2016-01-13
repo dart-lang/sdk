@@ -69,12 +69,12 @@ class StrongTypeSystemImpl implements TypeSystem {
       FunctionTypeImpl fnType,
       List<DartType> correspondingParameterTypes,
       List<DartType> argumentTypes) {
-    if (fnType.boundTypeParameters.isEmpty) {
+    if (fnType.typeFormals.isEmpty) {
       return fnType;
     }
 
     List<TypeParameterType> fnTypeParams =
-        TypeParameterTypeImpl.getTypes(fnType.boundTypeParameters);
+        TypeParameterTypeImpl.getTypes(fnType.typeFormals);
 
     // Create a TypeSystem that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be
@@ -158,7 +158,7 @@ class StrongTypeSystemImpl implements TypeSystem {
    * Ii in all of the remaining bounds.
    */
   DartType instantiateToBounds(FunctionType function) {
-    int count = function.boundTypeParameters.length;
+    int count = function.typeFormals.length;
     if (count == 0) {
       return function;
     }
@@ -167,7 +167,7 @@ class StrongTypeSystemImpl implements TypeSystem {
     List<DartType> substituted = new List<DartType>();
     List<DartType> variables = new List<DartType>();
     for (int i = 0; i < count; i++) {
-      TypeParameterElement param = function.boundTypeParameters[i];
+      TypeParameterElement param = function.typeFormals[i];
       DartType bound = param.bound ?? DynamicTypeImpl.instance;
       DartType variable = param.type;
       // For each Ti extends Bi, first compute Ii by replacing
@@ -287,8 +287,8 @@ class StrongTypeSystemImpl implements TypeSystem {
    */
   bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2,
       {bool fuzzyArrows: true}) {
-    if (!f1.boundTypeParameters.isEmpty) {
-      if (f2.boundTypeParameters.isEmpty) {
+    if (!f1.typeFormals.isEmpty) {
+      if (f2.typeFormals.isEmpty) {
         f1 = instantiateToBounds(f1);
         return _isFunctionSubtypeOf(f1, f2);
       } else {
@@ -383,8 +383,8 @@ class StrongTypeSystemImpl implements TypeSystem {
    */
   bool _isGenericFunctionSubtypeOf(FunctionType f1, FunctionType f2,
       {bool fuzzyArrows: true}) {
-    List<TypeParameterElement> params1 = f1.boundTypeParameters;
-    List<TypeParameterElement> params2 = f2.boundTypeParameters;
+    List<TypeParameterElement> params1 = f1.typeFormals;
+    List<TypeParameterElement> params2 = f2.typeFormals;
     int count = params1.length;
     if (params2.length != count) {
       return false;
@@ -689,7 +689,7 @@ class TypeSystemImpl implements TypeSystem {
    * Instantiate the function type using `dynamic` for all generic parameters.
    */
   FunctionType instantiateToBounds(FunctionType function) {
-    int count = function.boundTypeParameters.length;
+    int count = function.typeFormals.length;
     if (count == 0) {
       return function;
     }

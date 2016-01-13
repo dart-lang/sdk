@@ -20,7 +20,8 @@ import '../../js/js.dart' as js;
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
 import '../../tree_ir/tree_ir_nodes.dart' show
     BuiltinMethod,
-    BuiltinOperator;
+    BuiltinOperator,
+    isCompoundableOperator;
 import '../../types/types.dart' show
     TypeMask;
 import '../../universe/call_structure.dart' show
@@ -80,7 +81,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   /// [Unreachable] statements whether they may use fallthrough or not.
   List<bool> emitUnreachableAsReturn = <bool>[false];
 
-  Set<tree_ir.Label> usedLabels = new Set<tree_ir.Label>();
+  final Map<tree_ir.Label, String> labelNames = <tree_ir.Label, String>{};
 
   List<js.Statement> accumulator = new List<js.Statement>();
 
@@ -505,11 +506,67 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return new js.VariableUse(getVariableName(variable));
   }
 
+  /// Returns the JS operator for the given built-in operator for use in a
+  /// compound assignment (not including the '=' sign).
+  String getAsCompoundOperator(BuiltinOperator operator) {
+    switch (operator) {
+      case BuiltinOperator.NumAdd:
+      case BuiltinOperator.StringConcatenate:
+        return '+';
+      case BuiltinOperator.NumSubtract:
+        return '-';
+      case BuiltinOperator.NumMultiply:
+        return '*';
+      case BuiltinOperator.NumDivide:
+        return '/';
+      case BuiltinOperator.NumRemainder:
+        return '%';
+      default:
+        throw 'Not a compoundable operator: $operator';
+    }
+  }
+
+  bool isCompoundableBuiltin(tree_ir.Expression exp) {
+    return exp is tree_ir.ApplyBuiltinOperator &&
+           exp.arguments.length == 2 &&
+           isCompoundableOperator(exp.operator);
+  }
+
+  bool isOneConstant(tree_ir.Expression exp) {
+    return exp is tree_ir.Constant && exp.value.isOne;
+  }
+
+  js.Expression makeAssignment(
+      js.Expression leftHand,
+      tree_ir.Expression value,
+      {BuiltinOperator compound}) {
+    if (isOneConstant(value)) {
+      if (compound == BuiltinOperator.NumAdd) {
+        return new js.Prefix('++', leftHand);
+      }
+      if (compound == BuiltinOperator.NumSubtract) {
+        return new js.Prefix('--', leftHand);
+      }
+    }
+    if (compound != null) {
+      return new js.Assignment.compound(leftHand,
+          getAsCompoundOperator(compound), visitExpression(value));
+    }
+    return new js.Assignment(leftHand, visitExpression(value));
+  }
+
   @override
   js.Expression visitAssign(tree_ir.Assign node) {
-    return new js.Assignment(
-        buildVariableAccess(node.variable),
-        visitExpression(node.value));
+    js.Expression variable = buildVariableAccess(node.variable);
+    if (isCompoundableBuiltin(node.value)) {
+      tree_ir.ApplyBuiltinOperator rhs = node.value;
+      tree_ir.Expression left = rhs.arguments[0];
+      tree_ir.Expression right = rhs.arguments[1];
+      if (left is tree_ir.VariableUse && left.variable == node.variable) {
+        return makeAssignment(variable, right, compound: rhs.operator);
+      }
+    }
+    return makeAssignment(variable, node.value);
   }
 
   @override
@@ -524,8 +581,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       shortContinue.use();
       accumulator.add(new js.Continue(null));
     } else {
-      usedLabels.add(node.target);
-      accumulator.add(new js.Continue(node.target.name));
+      accumulator.add(new js.Continue(makeLabel(node.target)));
     }
   }
 
@@ -557,8 +613,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       shortContinue.use();
       accumulator.add(new js.Continue(null));
     } else {
-      usedLabels.add(node.target);
-      accumulator.add(new js.Break(node.target.name));
+      accumulator.add(new js.Break(makeLabel(node.target)));
     }
   }
 
@@ -613,13 +668,18 @@ class CodeGenerator extends tree_ir.StatementVisitor
     visitStatement(node.next);
   }
 
+  /// Creates a name for [label] if it does not already have one.
+  ///
+  /// This also marks the label as being used.
+  String makeLabel(tree_ir.Label label) {
+    return labelNames.putIfAbsent(label, () => 'L${labelNames.length}');
+  }
+
   /// Wraps a node in a labeled statement unless the label is unused.
   js.Statement insertLabel(tree_ir.Label label, js.Statement node) {
-    if (usedLabels.remove(label)) {
-      return new js.LabeledStatement(label.name, node);
-    } else {
-      return node;
-    }
+    String name = labelNames[label];
+    if (name == null) return node; // Label is unused.
+    return new js.LabeledStatement(name, node);
   }
 
   /// Returns the current [accumulator] wrapped in a block if neccessary.
@@ -729,11 +789,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  void visitRethrow(tree_ir.Rethrow node) {
-    glue.reportInternalError('rethrow seen in JavaScript output');
-  }
-
-  @override
   void visitUnreachable(tree_ir.Unreachable node) {
     if (emitUnreachableAsReturn.last) {
       // Emit a return to assist local analysis in the VM.
@@ -806,8 +861,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitInterceptor(tree_ir.Interceptor node) {
     registry.registerUseInterceptor();
-    registry.registerSpecializedGetInterceptor(node.interceptedClasses);
-    js.Name helperName = glue.getInterceptorName(node.interceptedClasses);
+    // Default to all intercepted classes if they have not been computed.
+    // This is to ensure we can run codegen without prior optimization passes.
+    Set<ClassElement> interceptedClasses = node.interceptedClasses.isEmpty
+        ? glue.interceptedClasses
+        : node.interceptedClasses;
+    registry.registerSpecializedGetInterceptor(interceptedClasses);
+    js.Name helperName = glue.getInterceptorName(interceptedClasses);
     js.Expression globalHolder = glue.getInterceptorLibrary();
     return js.js('#.#(#)',
         [globalHolder, helperName, visitExpression(node.input)])
@@ -823,13 +883,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  js.Assignment visitSetField(tree_ir.SetField node) {
+  js.Expression visitSetField(tree_ir.SetField node) {
     registry.registerStaticUse(new StaticUse.fieldSet(node.field));
     js.PropertyAccess field =
         new js.PropertyAccess(
             visitExpression(node.object),
             glue.instanceFieldPropertyName(node.field));
-    return new js.Assignment(field, visitExpression(node.value));
+    return makeAssignment(field, node.value, compound: node.compound);
   }
 
   @override
@@ -879,10 +939,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitSetIndex(tree_ir.SetIndex node) {
-    return js.js('#[#] = #',
-        [visitExpression(node.object),
-         visitExpression(node.index),
-         visitExpression(node.value)]);
+    js.Expression index = new js.PropertyAccess(
+        visitExpression(node.object), visitExpression(node.index));
+    return makeAssignment(index, node.value, compound: node.compound);
   }
 
   js.Expression buildStaticHelperInvocation(
@@ -965,7 +1024,15 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   void visitNullCheck(tree_ir.NullCheck node) {
     js.Expression value = visitExpression(node.value);
-    js.Expression access = node.selector != null
+    // TODO(sra): Try to use the selector even when [useSelector] is false. The
+    // reason we use 'toString' is that it is always defined so avoids a slow
+    // lookup (in V8) of an absent property. We could use the property for the
+    // selector if we knew it was present. The property is present if the
+    // associated method was not inlined away, or if there is a noSuchMethod
+    // hook for that selector. We don't know these things here, but the decision
+    // could be deferred by creating a deferred property that was resolved after
+    // codegen.
+    js.Expression access = node.selector != null && node.useSelector
         ? js.js('#.#', [value, glue.invocationName(node.selector)])
         : js.js('#.toString', [value]);
     if (node.condition != null) {

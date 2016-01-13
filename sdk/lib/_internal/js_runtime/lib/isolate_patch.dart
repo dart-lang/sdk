@@ -20,6 +20,21 @@ class Isolate {
   static Isolate get current => _currentIsolateCache;
 
   @patch
+  static Future<Uri> get packageRoot {
+    throw new UnsupportedError("Isolate.packageRoot");
+  }
+
+  @patch
+  static Future<Uri> get packageConfig {
+    throw new UnsupportedError("Isolate.packageConfig");
+  }
+
+  @patch
+  static Future<Uri> resolvePackageUri(Uri packageUri) {
+    throw new UnsupportedError("Isolate.resolvePackageUri");
+  }
+
+  @patch
   static Future<Isolate> spawn(void entryPoint(message), var message,
                                {bool paused: false, bool errorsAreFatal,
                                 SendPort onExit, SendPort onError}) {
@@ -66,9 +81,14 @@ class Isolate {
        bool errorsAreFatal,
        bool checked,
        Map<String, String> environment,
-       Uri packageRoot}) {
+       Uri packageRoot,
+       Uri packageConfig,
+       bool automaticPackageResolution: false}) {
     if (environment != null) throw new UnimplementedError("environment");
     if (packageRoot != null) throw new UnimplementedError("packageRoot");
+    if (packageConfig != null) throw new UnimplementedError("packageConfig");
+    // TODO(lrn): Figure out how to handle the automaticPackageResolution
+    // parameter.
     bool forcePause = (errorsAreFatal != null) ||
                       (onExit != null) ||
                       (onError != null);

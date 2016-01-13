@@ -235,9 +235,8 @@ class World implements ClassWorld {
   Iterable<ClassElement> subclassesOf(ClassElement cls) {
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
     if (hierarchy == null) return const <ClassElement>[];
-    return hierarchy.subclasses(
-        includeIndirectlyInstantiated: false,
-        includeUninstantiated: false);
+    return hierarchy.subclassesByMask(
+        ClassHierarchyNode.DIRECTLY_INSTANTIATED);
   }
 
   /// Returns an iterable over the directly instantiated classes that extend
@@ -245,10 +244,8 @@ class World implements ClassWorld {
   Iterable<ClassElement> strictSubclassesOf(ClassElement cls) {
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return const <ClassElement>[];
-    return subclasses.subclasses(
-        strict: true,
-        includeIndirectlyInstantiated: false,
-        includeUninstantiated: false);
+    return subclasses.subclassesByMask(
+        ClassHierarchyNode.DIRECTLY_INSTANTIATED, strict: true);
   }
 
   /// Returns an iterable over the directly instantiated that implement [cls]
@@ -258,9 +255,7 @@ class World implements ClassWorld {
     if (classSet == null) {
       return const <ClassElement>[];
     } else {
-      return classSet.subtypes(
-          includeIndirectlyInstantiated: false,
-          includeUninstantiated: false);
+      return classSet.subtypesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED);
     }
   }
 
@@ -271,10 +266,9 @@ class World implements ClassWorld {
     if (classSet == null) {
       return const <ClassElement>[];
     } else {
-      return classSet.subtypes(
-          strict: true,
-          includeIndirectlyInstantiated: false,
-          includeUninstantiated: false);
+      return classSet.subtypesByMask(
+          ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+          strict: true);
     }
   }
 

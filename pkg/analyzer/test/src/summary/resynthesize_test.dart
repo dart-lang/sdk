@@ -5,8 +5,9 @@
 library test.src.serialization.elements_test;
 
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/resolver.dart' show Namespace;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
@@ -32,11 +33,13 @@ class ResynthTest extends ResolverTestCase {
     otherLibrarySources.add(addNamedSource(filePath, contents));
   }
 
-  void checkLibrary(String text, {bool allowErrors: false}) {
+  void checkLibrary(String text,
+      {bool allowErrors: false, int resynthesisCount: 1}) {
     Source source = addSource(text);
     LibraryElementImpl original = resolve2(source);
-    LibraryElementImpl resynthesized =
-        resynthesizeLibrary(source, original, allowErrors);
+    LibraryElementImpl resynthesized = resynthesizeLibrary(
+        source, original, allowErrors,
+        resynthesisCount: resynthesisCount);
     checkLibraryElements(original, resynthesized);
   }
 
@@ -46,6 +49,7 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.displayName, original.displayName);
     expect(original.enclosingElement, isNull);
     expect(resynthesized.enclosingElement, isNull);
+    expect(resynthesized.hasExtUri, original.hasExtUri);
     compareCompilationUnitElements(resynthesized.definingCompilationUnit,
         original.definingCompilationUnit);
     expect(resynthesized.parts.length, original.parts.length);
@@ -55,15 +59,26 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.imports.length, original.imports.length);
     for (int i = 0; i < resynthesized.imports.length; i++) {
       compareImportElements(resynthesized.imports[i], original.imports[i],
-          'import ${original.imports[i].name}');
+          'import ${original.imports[i].uri}');
     }
     expect(resynthesized.exports.length, original.exports.length);
     for (int i = 0; i < resynthesized.exports.length; i++) {
       compareExportElements(resynthesized.exports[i], original.exports[i],
-          'export ${original.exports[i].name}');
+          'export ${original.exports[i].uri}');
     }
-    // TODO(paulberry): test entryPoint, exportNamespace, publicNamespace,
-    // and metadata.
+    expect(resynthesized.nameLength, original.nameLength);
+    if (original.entryPoint == null) {
+      expect(resynthesized.entryPoint, isNull);
+    } else {
+      expect(resynthesized.entryPoint, isNotNull);
+      compareFunctionElements(
+          resynthesized.entryPoint, original.entryPoint, '(entry point)');
+    }
+    compareNamespaces(resynthesized.publicNamespace, original.publicNamespace,
+        '(public namespace)');
+    compareNamespaces(resynthesized.exportNamespace, original.exportNamespace,
+        '(export namespace)');
+    // TODO(paulberry): test metadata.
   }
 
   void compareClassElements(
@@ -107,11 +122,15 @@ class ResynthTest extends ResolverTestCase {
     for (int i = 0; i < resynthesized.accessors.length; i++) {
       String name = original.accessors[i].name;
       if (name.endsWith('=')) {
-        comparePropertyAccessorElements(resynthesized.getSetter(name),
-            original.accessors[i], '$desc.${original.accessors[i].name}=');
+        comparePropertyAccessorElements(
+            resynthesized.getSetter(name),
+            original.accessors[i],
+            '$desc setter ${original.accessors[i].name}');
       } else {
-        comparePropertyAccessorElements(resynthesized.getGetter(name),
-            original.accessors[i], '$desc.${original.accessors[i].name}');
+        comparePropertyAccessorElements(
+            resynthesized.getGetter(name),
+            original.accessors[i],
+            '$desc getter ${original.accessors[i].name}');
       }
     }
     expect(resynthesized.methods.length, original.methods.length);
@@ -124,7 +143,8 @@ class ResynthTest extends ResolverTestCase {
 
   void compareCompilationUnitElements(CompilationUnitElementImpl resynthesized,
       CompilationUnitElementImpl original) {
-    compareUriReferencedElements(resynthesized, original, '(compilation unit)');
+    String desc = 'Compilation unit ${original.source.uri}';
+    compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.source, original.source);
     expect(resynthesized.librarySource, original.librarySource);
     expect(resynthesized.types.length, original.types.length);
@@ -135,13 +155,15 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.topLevelVariables.length,
         original.topLevelVariables.length);
     for (int i = 0; i < resynthesized.topLevelVariables.length; i++) {
-      compareTopLevelVariableElements(resynthesized.topLevelVariables[i],
-          original.topLevelVariables[i], original.topLevelVariables[i].name);
+      compareTopLevelVariableElements(
+          resynthesized.topLevelVariables[i],
+          original.topLevelVariables[i],
+          'variable ${original.topLevelVariables[i].name}');
     }
     expect(resynthesized.functions.length, original.functions.length);
     for (int i = 0; i < resynthesized.functions.length; i++) {
       compareFunctionElements(resynthesized.functions[i], original.functions[i],
-          original.functions[i].name);
+          'function ${original.functions[i].name}');
     }
     expect(resynthesized.functionTypeAliases.length,
         original.functionTypeAliases.length);
@@ -158,8 +180,13 @@ class ResynthTest extends ResolverTestCase {
     }
     expect(resynthesized.accessors.length, original.accessors.length);
     for (int i = 0; i < resynthesized.accessors.length; i++) {
-      comparePropertyAccessorElements(resynthesized.accessors[i],
-          original.accessors[i], original.accessors[i].name);
+      if (original.accessors[i].isGetter) {
+        comparePropertyAccessorElements(resynthesized.accessors[i],
+            original.accessors[i], 'getter ${original.accessors[i].name}');
+      } else {
+        comparePropertyAccessorElements(resynthesized.accessors[i],
+            original.accessors[i], 'setter ${original.accessors[i].name}');
+      }
     }
     // TODO(paulberry): test metadata and offsetToElementMap.
   }
@@ -176,6 +203,10 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.kind, original.kind);
     expect(resynthesized.location, original.location, reason: desc);
     expect(resynthesized.name, original.name);
+    expect(resynthesized.nameOffset, original.nameOffset, reason: desc);
+    expect(resynthesized.documentationComment, original.documentationComment,
+        reason: desc);
+    expect(resynthesized.docRange, original.docRange, reason: desc);
     for (Modifier modifier in Modifier.values) {
       if (modifier == Modifier.MIXIN) {
         // Skipping for now.  TODO(paulberry): fix.
@@ -292,6 +323,19 @@ class ResynthTest extends ResolverTestCase {
     }
   }
 
+  void compareNamespaces(
+      Namespace resynthesized, Namespace original, String desc) {
+    Map<String, Element> resynthesizedMap = resynthesized.definedNames;
+    Map<String, Element> originalMap = original.definedNames;
+    expect(resynthesizedMap.keys.toSet(), originalMap.keys.toSet(),
+        reason: desc);
+    for (String key in originalMap.keys) {
+      Element resynthesizedElement = resynthesizedMap[key];
+      Element originalElement = originalMap[key];
+      compareElements(resynthesizedElement, originalElement, key);
+    }
+  }
+
   void compareParameterElements(ParameterElementImpl resynthesized,
       ParameterElementImpl original, String desc) {
     compareVariableElements(resynthesized, original, desc);
@@ -386,6 +430,8 @@ class ResynthTest extends ResolverTestCase {
     } else if (resynthesized is FunctionTypeImpl &&
         original is FunctionTypeImpl) {
       compareTypeImpls(resynthesized, original, desc);
+      expect(resynthesized.isInstantiated, original.isInstantiated,
+          reason: desc);
       if (original.element.isSynthetic &&
           original.element is FunctionTypeAliasElementImpl &&
           resynthesized.element is FunctionTypeAliasElementImpl) {
@@ -410,12 +456,11 @@ class ResynthTest extends ResolverTestCase {
               original.typeParameters[i], '$desc type parameter $i');
         }
       }
-      expect(resynthesized.boundTypeParameters.length,
-          original.boundTypeParameters.length,
+      expect(resynthesized.typeFormals.length, original.typeFormals.length,
           reason: desc);
-      for (int i = 0; i < resynthesized.boundTypeParameters.length; i++) {
-        compareTypeParameterElements(resynthesized.boundTypeParameters[i],
-            original.boundTypeParameters[i], '$desc bound type parameter $i');
+      for (int i = 0; i < resynthesized.typeFormals.length; i++) {
+        compareTypeParameterElements(resynthesized.typeFormals[i],
+            original.typeFormals[i], '$desc bound type parameter $i');
       }
     } else if (resynthesized is VoidTypeImpl && original is VoidTypeImpl) {
       expect(resynthesized, same(original));
@@ -431,6 +476,8 @@ class ResynthTest extends ResolverTestCase {
       UriReferencedElementImpl original, String desc) {
     compareElements(resynthesized, original, desc);
     expect(resynthesized.uri, original.uri);
+    expect(resynthesized.uriOffset, original.uriOffset, reason: desc);
+    expect(resynthesized.uriEnd, original.uriEnd, reason: desc);
   }
 
   void compareVariableElements(VariableElementImpl resynthesized,
@@ -440,23 +487,29 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test initializer
   }
 
+  fail_library_hasExtUri() {
+    checkLibrary('import "dart-ext:doesNotExist.dart";');
+  }
+
   LibraryElementImpl resynthesizeLibrary(
-      Source source, LibraryElementImpl original, bool allowErrors) {
+      Source source, LibraryElementImpl original, bool allowErrors,
+      {int resynthesisCount: 1}) {
     if (!allowErrors) {
       assertNoErrors(source);
     }
     String uri = source.uri.toString();
     addLibrary('dart:core');
-    return resynthesizeLibraryElement(uri, original);
+    return resynthesizeLibraryElement(uri, original,
+        resynthesisCount: resynthesisCount);
   }
 
   LibraryElementImpl resynthesizeLibraryElement(
-      String uri, LibraryElementImpl original) {
+      String uri, LibraryElementImpl original,
+      {int resynthesisCount: 1}) {
     Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
     PrelinkedLibrary getPrelinkedSummaryFor(LibraryElement lib) {
-      BuilderContext ctx = new BuilderContext();
       LibrarySerializationResult serialized =
-          serializeLibrary(ctx, lib, typeProvider);
+          serializeLibrary(lib, typeProvider);
       for (int i = 0; i < serialized.unlinkedUnits.length; i++) {
         unlinkedSummaries[serialized.unitUris[i]] =
             new UnlinkedUnit.fromBuffer(serialized.unlinkedUnits[i].toBuffer());
@@ -493,12 +546,26 @@ class ResynthTest extends ResolverTestCase {
     LibraryElementImpl resynthesized = resynthesizer.getLibraryElement(uri);
     // Check that no other summaries needed to be resynthesized to resynthesize
     // the library element.
-    expect(resynthesizer.resynthesisCount, 1);
+    // TODO(paulberry): once export namespaces are resynthesized from
+    // prelinked data, resynthesisCount should be hardcoded to 1.
+    expect(resynthesizer.resynthesisCount, resynthesisCount);
     return resynthesized;
   }
 
   test_class_alias() {
     checkLibrary('class C = D with E, F; class D {} class E {} class F {}');
+  }
+
+  test_class_alias_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+class C = D with E;
+
+class D {}
+class E {}''');
   }
 
   test_class_alias_with_forwarding_constructors() {
@@ -583,6 +650,42 @@ class E {
     checkLibrary('class C { factory C() => null; }');
   }
 
+  test_class_constructor_field_formal_dynamic_dynamic() {
+    checkLibrary('class C { dynamic x; C(dynamic this.x); }');
+  }
+
+  test_class_constructor_field_formal_dynamic_typed() {
+    checkLibrary('class C { dynamic x; C(int this.x); }');
+  }
+
+  test_class_constructor_field_formal_dynamic_untyped() {
+    checkLibrary('class C { dynamic x; C(this.x); }');
+  }
+
+  test_class_constructor_field_formal_typed_dynamic() {
+    checkLibrary('class C { num x; C(dynamic this.x); }');
+  }
+
+  test_class_constructor_field_formal_typed_typed() {
+    checkLibrary('class C { num x; C(int this.x); }');
+  }
+
+  test_class_constructor_field_formal_typed_untyped() {
+    checkLibrary('class C { num x; C(this.x); }');
+  }
+
+  test_class_constructor_field_formal_untyped_dynamic() {
+    checkLibrary('class C { var x; C(dynamic this.x); }');
+  }
+
+  test_class_constructor_field_formal_untyped_typed() {
+    checkLibrary('class C { var x; C(int this.x); }');
+  }
+
+  test_class_constructor_field_formal_untyped_untyped() {
+    checkLibrary('class C { var x; C(this.x); }');
+  }
+
   test_class_constructor_implicit() {
     checkLibrary('class C {}');
   }
@@ -599,8 +702,36 @@ class E {
     checkLibrary('class C { C.foo(); C.bar(); }');
   }
 
+  test_class_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+class C {}''');
+  }
+
+  test_class_documented_with_references() {
+    checkLibrary('''
+/**
+ * Docs referring to [D] and [E]
+ */
+class C {}
+
+class D {}
+class E {}''');
+  }
+
+  test_class_documented_with_windows_line_endings() {
+    checkLibrary('/**\r\n * Docs\r\n */\r\nclass C {}');
+  }
+
   test_class_field_const() {
     checkLibrary('class C { static const int i = 0; }');
+  }
+
+  test_class_field_implicit_type() {
+    checkLibrary('class C { var x; }');
   }
 
   test_class_field_static() {
@@ -613,6 +744,10 @@ class E {
 
   test_class_getter_external() {
     checkLibrary('class C { external int get x; }');
+  }
+
+  test_class_getter_implicit_return_type() {
+    checkLibrary('class C { get x => null; }');
   }
 
   test_class_getter_static() {
@@ -659,6 +794,14 @@ class E {
     checkLibrary('class C { external void set x(int value); }');
   }
 
+  test_class_setter_implicit_param_type() {
+    checkLibrary('class C { void set x(value) {} }');
+  }
+
+  test_class_setter_implicit_return_type() {
+    checkLibrary('class C { set x(int value) {} }');
+  }
+
   test_class_setter_static() {
     checkLibrary('class C { static void set x(int value) {} }');
   }
@@ -691,6 +834,16 @@ class E {
     checkLibrary('class C {} class D {}');
   }
 
+  test_constructor_documented() {
+    checkLibrary('''
+class C {
+  /**
+   * Docs
+   */
+  C();
+}''');
+  }
+
   test_core() {
     String uri = 'dart:core';
     LibraryElementImpl original =
@@ -698,6 +851,25 @@ class E {
     LibraryElementImpl resynthesized =
         resynthesizeLibraryElement(uri, original);
     checkLibraryElements(original, resynthesized);
+  }
+
+  test_enum_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+enum E { v }''');
+  }
+
+  test_enum_value_documented() {
+    checkLibrary('''
+enum E {
+  /**
+   * Docs
+   */
+  v
+}''');
   }
 
   test_enum_values() {
@@ -710,23 +882,64 @@ class E {
 
   test_export_hide() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" hide Stream, Future;');
+    checkLibrary('export "dart:async" hide Stream, Future;',
+        resynthesisCount: 2);
   }
 
   test_export_multiple_combinators() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" hide Stream show Future;');
+    checkLibrary('export "dart:async" hide Stream show Future;',
+        resynthesisCount: 2);
   }
 
   test_export_show() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" show Future, Stream;');
+    checkLibrary('export "dart:async" show Future, Stream;',
+        resynthesisCount: 2);
   }
 
   test_exports() {
     addLibrarySource('/a.dart', 'library a;');
     addLibrarySource('/b.dart', 'library b;');
-    checkLibrary('export "a.dart"; export "b.dart";');
+    checkLibrary('export "a.dart"; export "b.dart";', resynthesisCount: 3);
+  }
+
+  test_field_documented() {
+    checkLibrary('''
+class C {
+  /**
+   * Docs
+   */
+  var x;
+}''');
+  }
+
+  test_function_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+f() {}''');
+  }
+
+  test_function_entry_point() {
+    checkLibrary('main() {}');
+  }
+
+  test_function_entry_point_in_export() {
+    addLibrarySource('/a.dart', 'library a; main() {}');
+    checkLibrary('export "a.dart";', resynthesisCount: 2);
+  }
+
+  test_function_entry_point_in_export_hidden() {
+    addLibrarySource('/a.dart', 'library a; main() {}');
+    checkLibrary('export "a.dart" hide main;', resynthesisCount: 2);
+  }
+
+  test_function_entry_point_in_part() {
+    addNamedSource('/a.dart', 'part of my.lib; main() {}');
+    checkLibrary('library my.lib; part "a.dart";');
   }
 
   test_function_external() {
@@ -779,8 +992,27 @@ class E {
     checkLibrary('void f() {}');
   }
 
+  test_function_type_parameter() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    checkLibrary('T f<T, U>(U u) => null;');
+  }
+
+  test_function_type_parameter_with_function_typed_parameter() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    checkLibrary('void f<T, U>(T x(U u)) {}');
+  }
+
   test_functions() {
     checkLibrary('f() {} g() {}');
+  }
+
+  test_getter_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+get x => null;''');
   }
 
   test_getter_external() {
@@ -789,6 +1021,14 @@ class E {
 
   test_getters() {
     checkLibrary('int get x => null; get y => null;');
+  }
+
+  test_implicitTopLevelVariable_getterFirst() {
+    checkLibrary('int get x => 0; void set x(int value) {}');
+  }
+
+  test_implicitTopLevelVariable_setterFirst() {
+    checkLibrary('void set x(int value) {} int get x => 0;');
   }
 
   test_import_hide() {
@@ -821,12 +1061,39 @@ class E {
     checkLibrary('');
   }
 
+  test_library_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+library foo;''');
+  }
+
+  test_library_name_with_spaces() {
+    checkLibrary('library foo . bar ;');
+  }
+
   test_library_named() {
     checkLibrary('library foo.bar;');
   }
 
+  test_method_documented() {
+    checkLibrary('''
+class C {
+  /**
+   * Docs
+   */
+  f() {}
+}''');
+  }
+
   test_method_parameter_parameters() {
     checkLibrary('class C { f(g(x, y)) {} }');
+  }
+
+  test_method_parameter_parameters_in_generic_class() {
+    checkLibrary('class C<A, B> { f(A g(B x)) {} }');
   }
 
   test_method_parameter_return_type() {
@@ -835,6 +1102,21 @@ class E {
 
   test_method_parameter_return_type_void() {
     checkLibrary('class C { f(void g()) {} }');
+  }
+
+  test_method_type_parameter() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    checkLibrary('class C { T f<T, U>(U u) => null; }');
+  }
+
+  test_method_type_parameter_in_generic_class() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    checkLibrary('class C<T, U> { V f<V, W>(T t, U u, W w) => null; }');
+  }
+
+  test_method_type_parameter_with_function_typed_parameter() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
   }
 
   test_operator() {
@@ -869,6 +1151,15 @@ class E {
     addNamedSource('/a.dart', 'part of my.lib;');
     addNamedSource('/b.dart', 'part of my.lib;');
     checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+  }
+
+  test_setter_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+void set x(value) {}''');
   }
 
   test_setter_external() {
@@ -1013,8 +1304,21 @@ class E {
     checkLibrary('import "dart:core" as core; core.C c;', allowErrors: true);
   }
 
+  test_typedef_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+typedef F();''');
+  }
+
   test_typedef_parameter_parameters() {
     checkLibrary('typedef F(g(x, y));');
+  }
+
+  test_typedef_parameter_parameters_in_generic_class() {
+    checkLibrary('typedef F<A, B>(A g(B x));');
   }
 
   test_typedef_parameter_return_type() {
@@ -1071,6 +1375,19 @@ class E {
 
   test_variable_const() {
     checkLibrary('const int i = 0;');
+  }
+
+  test_variable_documented() {
+    checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+var x;''');
+  }
+
+  test_variable_implicit_type() {
+    checkLibrary('var x;');
   }
 
   test_variables() {

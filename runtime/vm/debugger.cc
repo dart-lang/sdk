@@ -93,8 +93,8 @@ BreakpointLocation::BreakpointLocation(const String& url,
                                        intptr_t requested_column_number)
     : script_(Script::null()),
       url_(url.raw()),
-      token_pos_(-1),
-      end_token_pos_(-1),
+      token_pos_(Scanner::kNoSourcePos),
+      end_token_pos_(Scanner::kNoSourcePos),
       is_resolved_(false),
       next_(NULL),
       conditions_(NULL),
@@ -239,7 +239,7 @@ ActivationFrame::ActivationFrame(
       code_(Code::ZoneHandle(code.raw())),
       function_(Function::ZoneHandle(code.function())),
       token_pos_initialized_(false),
-      token_pos_(-1),
+      token_pos_(Scanner::kNoSourcePos),
       try_index_(-1),
       line_number_(-1),
       column_number_(-1),
@@ -1740,7 +1740,7 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.MoveNext()) {
     const intptr_t pos = iter.TokenPos();
-    if ((pos == Scanner::kNoSourcePos) ||
+    if ((pos < 0) ||
         (pos < requested_token_pos) ||
         (pos > last_token_pos)) {
       // Token is not in the target range.
@@ -1786,7 +1786,7 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
     PcDescriptors::Iterator iter(desc, kSafepointKind);
     while (iter.MoveNext()) {
       const intptr_t pos = iter.TokenPos();
-      if ((pos == Scanner::kNoSourcePos) ||
+      if ((pos < 0) ||
           (pos < begin_pos) ||
           (pos > end_of_line_pos)) {
         // Token is not on same line as best fit.
@@ -1827,7 +1827,7 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
 
 void Debugger::MakeCodeBreakpointAt(const Function& func,
                                     BreakpointLocation* loc) {
-  ASSERT(loc->token_pos_ != Scanner::kNoSourcePos);
+  ASSERT(loc->token_pos_ >= 0);
   ASSERT((loc != NULL) && loc->IsResolved());
   ASSERT(!func.HasOptimizedCode());
   Code& code = Code::Handle(func.unoptimized_code());
@@ -2641,7 +2641,7 @@ RawError* Debugger::DebuggerStepCallback() {
   if (!frame->IsDebuggable()) {
     return Error::null();
   }
-  if (frame->TokenPos() == Scanner::kNoSourcePos) {
+  if (frame->TokenPos() < 0) {
     return Error::null();
   }
 

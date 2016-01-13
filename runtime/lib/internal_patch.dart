@@ -23,10 +23,11 @@ class VMLibraryHooks {
   static var resourceReadAsBytes;
 
   // Implementation of package root/map provision.
-  static var packageRoot;
-  static var packageConfig;
-  static var getPackageRoot;
-  static var getPackageMap;
+  static var packageRootString;
+  static var packageConfigString;
+  static var packageRootUriFuture;
+  static var packageConfigUriFuture;
+  static var resolvePackageUriFuture;
 }
 
 patch class CodeUnits {

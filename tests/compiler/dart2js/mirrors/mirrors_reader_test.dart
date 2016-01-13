@@ -27,7 +27,8 @@ class SourceMirrorsReader extends MirrorsReader {
     try {
       return f();
     } on SpannableAssertionFailure catch (e) {
-      mirrorSystem.compiler.reportAssertionFailure(e);
+      var reporter = mirrorSystem.compiler.reporter;
+      reporter.reportAssertionFailure(e);
       rethrow;
     }
   }

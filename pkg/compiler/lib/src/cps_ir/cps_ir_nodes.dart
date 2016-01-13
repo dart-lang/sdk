@@ -18,7 +18,7 @@ export 'builtin_operator.dart';
 // These imports are only used for the JavaScript specific nodes.  If we want to
 // support more than one native backend, we should probably create better
 // abstractions for native code and its type and effect system.
-import '../js/js.dart' as js show Template;
+import '../js/js.dart' as js show Template, isNullGuardOnFirstArgument;
 import '../native/native.dart' as native show NativeBehavior;
 
 abstract class Node {
@@ -64,6 +64,8 @@ abstract class Expression extends Node {
   /// For [InteriorExpression]s this is the body, for [CallExpressions] it is
   /// the body of the continuation, and for [TailExpressions] it is `null`.
   Expression get next;
+
+  accept(BlockVisitor visitor);
 }
 
 /// Represents a node with a child node, which can be accessed through the
@@ -77,6 +79,8 @@ abstract class Expression extends Node {
 abstract class InteriorNode extends Node {
   Expression get body;
   void set body(Expression body);
+
+  accept(BlockVisitor visitor);
 }
 
 /// An expression that creates new bindings and continues evaluation in
@@ -370,7 +374,7 @@ class LetPrim extends InteriorExpression {
     return body = expr;
   }
 
-  accept(Visitor visitor) => visitor.visitLetPrim(this);
+  accept(BlockVisitor visitor) => visitor.visitLetPrim(this);
 
   void setParentPointers() {
     primitive.parent = this;
@@ -410,7 +414,7 @@ class LetCont extends InteriorExpression {
     return continuations.first.body = expr;
   }
 
-  accept(Visitor visitor) => visitor.visitLetCont(this);
+  accept(BlockVisitor visitor) => visitor.visitLetCont(this);
 
   void setParentPointers() {
     _setParentsOnNodes(continuations, this);
@@ -433,7 +437,7 @@ class LetHandler extends InteriorExpression {
 
   LetHandler(this.handler, this.body);
 
-  accept(Visitor visitor) => visitor.visitLetHandler(this);
+  accept(BlockVisitor visitor) => visitor.visitLetHandler(this);
 
   void setParentPointers() {
     handler.parent = this;
@@ -462,7 +466,7 @@ class LetMutable extends InteriorExpression {
     return body = expr;
   }
 
-  accept(Visitor visitor) => visitor.visitLetMutable(this);
+  accept(BlockVisitor visitor) => visitor.visitLetMutable(this);
 
   void setParentPointers() {
     variable.parent = this;
@@ -505,7 +509,28 @@ abstract class InvocationPrimitive extends UnsafePrimitive {
   SourceInformation get sourceInformation;
 
   Reference<Primitive> get dartReceiverReference => null;
+  Primitive get dartReceiver => dartReceiverReference.definition;
+
   CallingConvention get callingConvention => CallingConvention.Normal;
+
+  Reference<Primitive> dartArgumentReference(int n) {
+    switch (callingConvention) {
+      case CallingConvention.Normal:
+      case CallingConvention.OneShotIntercepted:
+        return arguments[n];
+
+      case CallingConvention.Intercepted:
+      case CallingConvention.DummyIntercepted:
+        return arguments[n + 1];
+    }
+  }
+
+  Primitive dartArgument(int n) => dartArgumentReference(n).definition;
+
+  int get dartArgumentsLength =>
+      arguments.length -
+      (callingConvention == CallingConvention.Intercepted ||
+          callingConvention == CallingConvention.DummyIntercepted ? 1 : 0);
 }
 
 /// Invoke a static function.
@@ -566,22 +591,6 @@ class InvokeMethod extends InvocationPrimitive {
         : receiver;
   }
 
-  Primitive get dartReceiver => dartReceiverReference.definition;
-
-  Reference<Primitive> dartArgumentReference(int n) {
-    switch (callingConvention) {
-      case CallingConvention.Normal:
-      case CallingConvention.OneShotIntercepted:
-        return arguments[n];
-
-      case CallingConvention.Intercepted:
-      case CallingConvention.DummyIntercepted:
-        return arguments[n + 1];
-    }
-  }
-
-  Primitive dartArgument(int n) => dartArgumentReference(n).definition;
-
   /// If true, it is known that the receiver cannot be `null`.
   bool receiverIsNotNull = false;
 
@@ -589,15 +598,10 @@ class InvokeMethod extends InvocationPrimitive {
                this.selector,
                this.mask,
                List<Primitive> arguments,
-               [this.sourceInformation])
+               {this.sourceInformation,
+                this.callingConvention: CallingConvention.Normal})
       : this.receiver = new Reference<Primitive>(receiver),
         this.arguments = _referenceList(arguments);
-
-  InvokeMethod.byReference(this.receiver,
-                           this.selector,
-                           this.mask,
-                           this.arguments,
-                           this.sourceInformation);
 
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 
@@ -635,7 +639,7 @@ class InvokeMethodDirectly extends InvocationPrimitive {
   final List<Reference<Primitive>> arguments;
   final SourceInformation sourceInformation;
 
-  CallingConvention callingConvention = CallingConvention.Normal;
+  CallingConvention callingConvention;
 
   Reference<Primitive> get dartReceiverReference {
     return callingConvention == CallingConvention.Intercepted
@@ -643,21 +647,12 @@ class InvokeMethodDirectly extends InvocationPrimitive {
         : receiver;
   }
 
-  Primitive get dartReceiver => dartReceiverReference.definition;
-
-  Reference<Primitive> dartArgumentReference(int n) {
-    return callingConvention == CallingConvention.Normal
-        ? arguments[n]
-        : arguments[n + 1];
-  }
-
-  Primitive dartArgument(int n) => dartArgumentReference(n).definition;
-
   InvokeMethodDirectly(Primitive receiver,
                        this.target,
                        this.selector,
                        List<Primitive> arguments,
-                       this.sourceInformation)
+                       this.sourceInformation,
+                       {this.callingConvention: CallingConvention.Normal})
       : this.receiver = new Reference<Primitive>(receiver),
         this.arguments = _referenceList(arguments);
 
@@ -732,7 +727,7 @@ class Refinement extends Primitive {
     : value = new Reference<Primitive>(value);
 
   bool get hasValue => true;
-  bool get isSafeForElimination => true;
+  bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
 
   accept(Visitor visitor) => visitor.visitRefinement(this);
@@ -805,7 +800,7 @@ class BoundsCheck extends Primitive {
       [this.checks = BOTH_BOUNDS, this.sourceInformation])
       : this.object = new Reference<Primitive>(object),
         this.index = new Reference<Primitive>(index),
-        this.length = new Reference<Primitive>(length);
+        this.length = length == null ? null : new Reference<Primitive>(length);
 
   BoundsCheck.noCheck(Primitive object, [this.sourceInformation])
       : this.object = new Reference<Primitive>(object),
@@ -850,10 +845,13 @@ class BoundsCheck extends Primitive {
 ///
 /// In the simplest form this compiles to `value.toString;`.
 ///
-/// If [selector] is set, `toString` is replaced with the (possibly minified)
-/// invocation name of the selector.  This can be shorter and generate a more
-/// meaningful error message, but is expensive if [value] is non-null and does
-/// not have that property at runtime.
+/// [selector] holds the selector that is the cause of the null check. This is
+/// usually a method that was inlined where [value] the receiver.
+///
+/// If [selector] is set and [useSelector] is true, `toString` is replaced with
+/// the (possibly minified) invocation name of the selector.  This can be
+/// shorter and generate a more meaningful error message, but is expensive if
+/// [value] is non-null and does not have that property at runtime.
 ///
 /// If [condition] is set, it is assumed that [condition] is true if and only
 /// if [value] is null.  The check then compiles to:
@@ -864,17 +862,24 @@ class BoundsCheck extends Primitive {
 /// runtime, such as a `typeof` test.
 class NullCheck extends Primitive {
   final Reference<Primitive> value;
-  Selector selector;
-  Reference<Primitive> condition;
+  final Selector selector;
+  final bool useSelector;
+  final Reference<Primitive> condition;
   final SourceInformation sourceInformation;
 
-  NullCheck(Primitive value, this.sourceInformation)
-      : this.value = new Reference<Primitive>(value);
+  NullCheck(Primitive value, this.sourceInformation,
+            {Primitive condition,
+             this.selector,
+             this.useSelector: false})
+      : this.value = new Reference<Primitive>(value),
+        this.condition =
+            condition == null ? null : new Reference<Primitive>(condition);
 
   NullCheck.guarded(Primitive condition, Primitive value, this.selector,
         this.sourceInformation)
       : this.condition = new Reference<Primitive>(condition),
-        this.value = new Reference<Primitive>(value);
+        this.value = new Reference<Primitive>(value),
+        this.useSelector = true;
 
   bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
@@ -1052,7 +1057,7 @@ class Throw extends TailExpression {
 
   Throw(Primitive value) : value = new Reference<Primitive>(value);
 
-  accept(Visitor visitor) => visitor.visitThrow(this);
+  accept(BlockVisitor visitor) => visitor.visitThrow(this);
 
   void setParentPointers() {
     value.parent = this;
@@ -1065,7 +1070,7 @@ class Throw extends TailExpression {
 /// implicitly throws the exception parameter of the enclosing handler with
 /// the same stack trace as the enclosing handler.
 class Rethrow extends TailExpression {
-  accept(Visitor visitor) => visitor.visitRethrow(this);
+  accept(BlockVisitor visitor) => visitor.visitRethrow(this);
   void setParentPointers() {}
 }
 
@@ -1074,7 +1079,7 @@ class Rethrow extends TailExpression {
 /// This can be placed as the body of a call continuation, when the caller is
 /// known never to invoke it, e.g. because the calling expression always throws.
 class Unreachable extends TailExpression {
-  accept(Visitor visitor) => visitor.visitUnreachable(this);
+  accept(BlockVisitor visitor) => visitor.visitUnreachable(this);
   void setParentPointers() {}
 }
 
@@ -1163,7 +1168,7 @@ class InvokeContinuation extends TailExpression {
         arguments = null,
         sourceInformation = null;
 
-  accept(Visitor visitor) => visitor.visitInvokeContinuation(this);
+  accept(BlockVisitor visitor) => visitor.visitInvokeContinuation(this);
 
   void setParentPointers() {
     if (continuation != null) continuation.parent = this;
@@ -1186,23 +1191,28 @@ class Branch extends TailExpression {
   /// boolean.
   bool isStrictCheck;
 
-  Branch.strict(Primitive condition,
-                Continuation trueCont,
-                Continuation falseCont)
+  Branch(Primitive condition,
+         Continuation trueCont,
+         Continuation falseCont,
+         {bool strict})
       : this.condition = new Reference<Primitive>(condition),
         trueContinuation = new Reference<Continuation>(trueCont),
         falseContinuation = new Reference<Continuation>(falseCont),
-        isStrictCheck = true;
+        isStrictCheck = strict {
+    assert(strict != null);
+  }
+
+  Branch.strict(Primitive condition,
+                Continuation trueCont,
+                Continuation falseCont)
+        : this(condition, trueCont, falseCont, strict: true);
 
   Branch.loose(Primitive condition,
                Continuation trueCont,
                Continuation falseCont)
-      : this.condition = new Reference<Primitive>(condition),
-        trueContinuation = new Reference<Continuation>(trueCont),
-        falseContinuation = new Reference<Continuation>(falseCont),
-        this.isStrictCheck = false;
+      : this(condition, trueCont, falseCont, strict: false);
 
-  accept(Visitor visitor) => visitor.visitBranch(this);
+  accept(BlockVisitor visitor) => visitor.visitBranch(this);
 
   void setParentPointers() {
     condition.parent = this;
@@ -1484,62 +1494,6 @@ class Interceptor extends Primitive {
   final Set<ClassElement> interceptedClasses = new Set<ClassElement>();
   final SourceInformation sourceInformation;
 
-  /// The input was a self-interceptor.
-  static const int SELF_INTERCEPT = 1 << 0;
-
-  /// A non-null value was mapped to an interceptor that was mentioned in
-  /// [interceptedClasses].
-  static const int NON_NULL_INTERCEPT_EXACT = 1 << 1;
-
-  /// A non-null value was mapped to an interceptor that is a subclass of
-  /// one mentioned in [interceptedClasses].
-  static const int NON_NULL_INTERCEPT_SUBCLASS = 1 << 2;
-
-  /// A non-null intercepted value was bypassed because none of its supertypes
-  /// were mentioned in [interceptedClasses].
-  static const int NON_NULL_BYPASS = 1 << 3;
-
-  /// Null was returned as-is.
-  static const int NULL_BYPASS = 1 << 4;
-
-  /// Null was mapped to JSNull, which was mentioned in [interceptedClasses].
-  static const int NULL_INTERCEPT_EXACT = 1 << 5;
-
-  /// Null was mapped to JSNull, because a superclass thereof (the interceptor
-  /// root class) was mentioned in [interceptedClasses].
-  static const int NULL_INTERCEPT_SUBCLASS = 1 << 6;
-
-  static const int NON_NULL_INTERCEPT = NON_NULL_INTERCEPT_EXACT |
-                                        NON_NULL_INTERCEPT_SUBCLASS;
-  static const int NULL_INTERCEPT = NULL_INTERCEPT_EXACT |
-                                    NULL_INTERCEPT_SUBCLASS;
-  static const int NULL = NULL_BYPASS |
-                          NULL_INTERCEPT;
-  static const int INTERCEPT_EXACT = NON_NULL_INTERCEPT_EXACT |
-                                     NULL_INTERCEPT_EXACT;
-  static const int INTERCEPT_SUBCLASS = NON_NULL_INTERCEPT_SUBCLASS |
-                                        NULL_INTERCEPT_SUBCLASS;
-  static const int INTERCEPT = NULL_INTERCEPT | NON_NULL_INTERCEPT;
-  static const int BYPASS = NULL_BYPASS | NON_NULL_BYPASS;
-
-  static const int ALL_FLAGS = SELF_INTERCEPT | BYPASS | INTERCEPT;
-
-  /// Which of the above cases may happen at runtime. Set by type propagation.
-  int flags = ALL_FLAGS;
-
-  void clearFlag(int flag) {
-    flags &= ~flag;
-  }
-
-  bool get isAlwaysIntercepted => flags & ~INTERCEPT == 0;
-  bool get isAlwaysNullOrIntercepted => flags & ~(NULL | INTERCEPT) == 0;
-
-  /// If the value is intercepted, it always matches exactly a class in
-  /// [interceptedClasses].
-  bool get isInterceptedClassAlwaysExact {
-    return flags & (INTERCEPT & ~INTERCEPT_EXACT) == 0;
-  }
-
   Interceptor(Primitive input, this.sourceInformation)
       : this.input = new Reference<Primitive>(input);
 
@@ -1590,6 +1544,15 @@ class ForeignCode extends UnsafePrimitive {
 
   void setParentPointers() {
     _setParentsOnList(arguments, this);
+  }
+
+  bool isNullGuardOnNullFirstArgument() {
+    if (arguments.length < 1) return false;
+    // TODO(sra): Fix NativeThrowBehavior to distinguish MAY from
+    // throws-nsm-on-null-followed-by-MAY and remove
+    // [isNullGuardForFirstArgument].
+    if (nativeBehavior.throwBehavior.isNullNSMGuard) return true;
+    return js.isNullGuardOnFirstArgument(codeTemplate);
   }
 }
 
@@ -1696,7 +1659,7 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
     : parameters = <Parameter>[new Parameter(null)],
       isRecursive = false;
 
-  accept(Visitor visitor) => visitor.visitContinuation(this);
+  accept(BlockVisitor visitor) => visitor.visitContinuation(this);
 
   void setParentPointers() {
     _setParentsOnNodes(parameters, this);
@@ -1751,7 +1714,7 @@ class FunctionDefinition extends InteriorNode {
       this.returnContinuation,
       this.body);
 
-  accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
+  accept(BlockVisitor visitor) => visitor.visitFunctionDefinition(this);
 
   void setParentPointers() {
     if (thisParameter != null) thisParameter.parent = this;
@@ -1893,24 +1856,101 @@ void _setParentsOnList(List<Reference> nodes, Node parent) {
   }
 }
 
-abstract class Visitor<T> {
+/// Visitor for block-level traversals that do not need to dispatch on
+/// primitives.
+abstract class BlockVisitor<T> {
+  const BlockVisitor();
+
+  T visit(Node node) => node.accept(this);
+
+  // Block headers.
+  T visitFunctionDefinition(FunctionDefinition node) => null;
+  T visitContinuation(Continuation node) => null;
+
+  // Interior expressions.
+  T visitLetPrim(LetPrim node) => null;
+  T visitLetCont(LetCont node) => null;
+  T visitLetHandler(LetHandler node) => null;
+  T visitLetMutable(LetMutable node) => null;
+
+  // Tail expressions.
+  T visitInvokeContinuation(InvokeContinuation node) => null;
+  T visitThrow(Throw node) => null;
+  T visitRethrow(Rethrow node) => null;
+  T visitBranch(Branch node) => null;
+  T visitUnreachable(Unreachable node) => null;
+
+  /// Visits block-level nodes in lexical post-order (not post-dominator order).
+  ///
+  /// Continuations and function definitions are considered "block headers".
+  /// The block itself is the sequence of interior expressions in the body,
+  /// terminated by a tail expression.
+  ///
+  /// Each block is visited starting with its tail expression, then every
+  /// interior expression from bottom to top, and finally the block header
+  /// is visited.
+  ///
+  /// Blocks are visited in post-order, so the body of a continuation is always
+  /// processed before its non-recursive invocation sites.
+  ///
+  /// The IR may be transformed during the traversal, but only the original
+  /// nodes will be visited.
+  static void traverseInPostOrder(FunctionDefinition root, BlockVisitor v) {
+    List<Continuation> stack = <Continuation>[];
+    List<Node> nodes = <Node>[];
+    void walkBlock(InteriorNode block) {
+      nodes.add(block);
+      Expression node = block.body;
+      nodes.add(node);
+      while (node.next != null) {
+        if (node is LetCont) {
+          stack.addAll(node.continuations);
+        } else if (node is LetHandler) {
+          stack.add(node.handler);
+        }
+        node = node.next;
+        nodes.add(node);
+      }
+    }
+    walkBlock(root);
+    while (stack.isNotEmpty) {
+      walkBlock(stack.removeLast());
+    }
+    nodes.reversed.forEach(v.visit);
+  }
+
+  /// Visits block-level nodes in lexical pre-order.
+  ///
+  /// The IR may be transformed during the traversal, but the currently
+  /// visited node should not be removed, as its 'body' pointer is needed
+  /// for the traversal.
+  static void traverseInPreOrder(FunctionDefinition root, BlockVisitor v) {
+    List<Continuation> stack = <Continuation>[];
+    void walkBlock(InteriorNode block) {
+      v.visit(block);
+      Expression node = block.body;
+      v.visit(node);
+      while (node.next != null) {
+        if (node is LetCont) {
+          stack.addAll(node.continuations);
+        } else if (node is LetHandler) {
+          stack.add(node.handler);
+        }
+        node = node.next;
+        v.visit(node);
+      }
+    }
+    walkBlock(root);
+    while (stack.isNotEmpty) {
+      walkBlock(stack.removeLast());
+    }
+  }
+}
+
+abstract class Visitor<T> implements BlockVisitor<T> {
   const Visitor();
 
   T visit(Node node);
-
-  // Concrete classes.
-  T visitFunctionDefinition(FunctionDefinition node);
-
-  // Expressions.
-  T visitLetPrim(LetPrim node);
-  T visitLetCont(LetCont node);
-  T visitLetHandler(LetHandler node);
-  T visitLetMutable(LetMutable node);
-  T visitInvokeContinuation(InvokeContinuation node);
-  T visitThrow(Throw node);
-  T visitRethrow(Rethrow node);
-  T visitBranch(Branch node);
-  T visitUnreachable(Unreachable node);
 
   // Definitions.
   T visitInvokeStatic(InvokeStatic node);
@@ -1929,7 +1969,6 @@ abstract class Visitor<T> {
   T visitConstant(Constant node);
   T visitGetMutable(GetMutable node);
   T visitParameter(Parameter node);
-  T visitContinuation(Continuation node);
   T visitMutableVariable(MutableVariable node);
   T visitGetStatic(GetStatic node);
   T visitInterceptor(Interceptor node);
@@ -1950,8 +1989,6 @@ abstract class Visitor<T> {
   T visitRefinement(Refinement node);
   T visitBoundsCheck(BoundsCheck node);
   T visitNullCheck(NullCheck node);
-
-  // Support for literal foreign code.
   T visitForeignCode(ForeignCode node);
 }
 
@@ -2483,20 +2520,23 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   Definition visitInvokeMethod(InvokeMethod node) {
     return new InvokeMethod(getCopy(node.receiver), node.selector, node.mask,
         getList(node.arguments),
-        node.sourceInformation);
+        sourceInformation: node.sourceInformation,
+        callingConvention: node.callingConvention);
   }
 
   Definition visitInvokeMethodDirectly(InvokeMethodDirectly node) {
     return new InvokeMethodDirectly(getCopy(node.receiver), node.target,
         node.selector,
         getList(node.arguments),
-        node.sourceInformation);
+        node.sourceInformation,
+        callingConvention: node.callingConvention);
   }
 
   Definition visitInvokeConstructor(InvokeConstructor node) {
     return new InvokeConstructor(node.dartType, node.target, node.selector,
         getList(node.arguments),
-        node.sourceInformation);
+        node.sourceInformation)
+        ..allocationSiteType = node.allocationSiteType;
   }
 
   Definition visitTypeCast(TypeCast node) {
@@ -2530,7 +2570,8 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitLiteralList(LiteralList node) {
-    return new LiteralList(node.dartType, getList(node.values));
+    return new LiteralList(node.dartType, getList(node.values))
+        ..allocationSiteType = node.allocationSiteType;
   }
 
   Definition visitLiteralMap(LiteralMap node) {
@@ -2640,14 +2681,17 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
           node.sourceInformation);
     } else {
       return new BoundsCheck(getCopy(node.object), getCopy(node.index),
-          getCopy(node.length),
+          node.length == null ? null : getCopy(node.length),
           node.checks,
           node.sourceInformation);
     }
   }
 
   Definition visitNullCheck(NullCheck node) {
-    return new NullCheck(getCopy(node.value), node.sourceInformation);
+    return new NullCheck(getCopy(node.value), node.sourceInformation,
+        condition: node.condition == null ? null : getCopy(node.condition),
+        selector: node.selector,
+        useSelector: node.useSelector);
   }
 
   Definition visitForeignCode(ForeignCode node) {

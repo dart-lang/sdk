@@ -670,10 +670,10 @@ class ConstantPropagationLattice {
   }
 
   /// The possible return types of a method that may be targeted by
-  /// [typedSelector]. If the given selector is not a [TypedSelector], any
-  /// reachable method matching the selector may be targeted.
-  AbstractConstantValue getInvokeReturnType(Selector selector, TypeMask mask) {
-    return fromMask(typeSystem.getInvokeReturnType(selector, mask));
+  /// [selector] on [receiver].
+  AbstractConstantValue getInvokeReturnType(
+      Selector selector, AbstractConstantValue receiver) {
+    return fromMask(typeSystem.getInvokeReturnType(selector, receiver.type));
   }
 
   AbstractConstantValue fromMask(TypeMask mask) {
@@ -1388,6 +1388,28 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         assert(node.hasNoUses);
         return cps;
 
+      case 'isEmpty':
+        if (!node.selector.isGetter) return null;
+        CpsFragment cps = new CpsFragment(node.sourceInformation);
+        Primitive length = cps.letPrim(new GetLength(receiver));
+        Constant zero = cps.makeZero();
+        ApplyBuiltinOperator op = cps.applyBuiltin(BuiltinOperator.StrictEq,
+                                                   [length, zero]);
+        node.replaceUsesWith(op);
+        op.hint = node.hint;
+        return cps;
+
+      case 'isNotEmpty':
+        if (!node.selector.isGetter) return null;
+        CpsFragment cps = new CpsFragment(node.sourceInformation);
+        Primitive length = cps.letPrim(new GetLength(receiver));
+        Constant zero = cps.makeZero();
+        ApplyBuiltinOperator op = cps.applyBuiltin(BuiltinOperator.StrictNeq,
+                                                   [length, zero]);
+        node.replaceUsesWith(op);
+        op.hint = node.hint;
+        return cps;
+
       default:
         return null;
     }
@@ -1751,7 +1773,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         new Selector.call(getter.memberName, call.callStructure),
         type,
         node.arguments.map((ref) => ref.definition).toList(),
-        node.sourceInformation);
+        sourceInformation: node.sourceInformation);
       node.receiver.changeTo(new Parameter(null)); // Remove the tear off use.
 
       if (tearOff.hasNoEffectiveUses) {
@@ -1835,6 +1857,30 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     return cps;
   }
 
+  visitInterceptor(Interceptor node) {
+    // Replace the interceptor with its input if the value is not intercepted.
+    // If the input might be null, we cannot do this since the interceptor
+    // might have to return JSNull.  That case is handled by visitInvokeMethod
+    // and visitInvokeMethodDirectly which can sometimes tolerate that null
+    // is used instead of JSNull.
+    Primitive input = node.input.definition;
+    if (!input.type.isNullable &&
+        typeSystem.areDisjoint(input.type, typeSystem.interceptorType)) {
+      node.replaceUsesWith(input);
+    }
+  }
+
+  visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    TypeMask receiverType = node.dartReceiver.type;
+    if (node.callingConvention == CallingConvention.Intercepted &&
+        typeSystem.areDisjoint(receiverType, typeSystem.interceptorType)) {
+      // Some direct calls take an interceptor because the target class is
+      // mixed into a native class.  If it is known at the call site that the
+      // receiver is non-intercepted, get rid of the interceptor.
+      node.receiver.changeTo(node.dartReceiver);
+    }
+  }
+
   visitInvokeMethod(InvokeMethod node) {
     var specialized =
         specializeOperatorCall(node) ??
@@ -1845,15 +1891,19 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         specializeClosureCall(node);
     if (specialized != null) return specialized;
 
-    node.mask =
-      typeSystem.intersection(node.mask, getValue(node.dartReceiver).type);
+    TypeMask receiverType = node.dartReceiver.type;
+    node.mask = typeSystem.intersection(node.mask, receiverType);
 
-    AbstractConstantValue receiver = getValue(node.receiver.definition);
+    bool canBeNonThrowingCallOnNull =
+        selectorsOnNull.contains(node.selector) &&
+        receiverType.isNullable;
 
     if (node.callingConvention == CallingConvention.Intercepted &&
-        node.receiver.definition.sameValue(node.arguments[0].definition)) {
-      // The receiver and first argument are the same; that means we already
-      // determined in visitInterceptor that we are targeting a non-interceptor.
+        !canBeNonThrowingCallOnNull &&
+        typeSystem.areDisjoint(receiverType, typeSystem.interceptorType)) {
+      // Use the Dart receiver as the JS receiver. This changes the wording of
+      // the error message when the receiver is null, but we accept this.
+      node.receiver.changeTo(node.dartReceiver);
 
       // Check if any of the possible targets depend on the extra receiver
       // argument. Mixins do this, and tear-offs always needs the extra receiver
@@ -1866,7 +1916,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         return typeSystem.methodUsesReceiverArgument(function) ||
                node.selector.isGetter && !function.isGetter;
       }
-      if (!getAllTargets(receiver.type, node.selector).any(needsReceiver)) {
+      if (!getAllTargets(receiverType, node.selector).any(needsReceiver)) {
         // Replace the extra receiver argument with a dummy value if the
         // target definitely does not use it.
         Constant dummy = makeConstantPrimitive(new IntConstantValue(0));
@@ -1914,94 +1964,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     return null;
   }
 
-  /// Try to inline static invocations.
-  ///
-  /// Performs the inlining and returns true if the call was inlined.  Inlining
-  /// uses a fixed heuristic:
-  ///
-  /// * Inline functions with a single expression statement or return statement
-  /// provided that the subexpression is an invocation of foreign code.
-  inlineInvokeStatic(InvokeStatic node) {
-    // The target might not have an AST, for example if it deferred.
-    if (!node.target.hasNode) return null;
-
-    if (node.target.asyncMarker != AsyncMarker.SYNC) {
-      // Inlining of async/sync*/async* methods is currently not supported.
-      return null;
-    }
-
-    // True if an expression is non-expansive, in the sense defined by this
-    // predicate.
-    bool isNonExpansive(ast.Expression expr) {
-      if (expr is ast.LiteralNull ||
-          expr is ast.LiteralBool ||
-          expr is ast.LiteralInt ||
-          expr is ast.LiteralDouble) {
-        return true;
-      }
-      if (expr is ast.Send) {
-        SendStructure structure =
-            node.target.treeElements.getSendStructure(expr);
-        if (structure is InvokeStructure) {
-          // Calls to foreign functions.
-          return structure.semantics.kind == AccessKind.TOPLEVEL_METHOD &&
-              backend.isForeign(structure.semantics.element);
-        } else if (structure is IsStructure || structure is IsNotStructure) {
-          // is and is! checks on nonexpansive expressions.
-          return isNonExpansive(expr.receiver);
-        } else if (structure is EqualsStructure ||
-            structure is NotEqualsStructure) {
-          // == and != on nonexpansive expressions.
-          return isNonExpansive(expr.receiver) &&
-              isNonExpansive(expr.argumentsNode.nodes.head);
-        } else if (structure is GetStructure) {
-          // Parameters.
-          return structure.semantics.kind == AccessKind.PARAMETER;
-        }
-      }
-      return false;
-    }
-
-    ast.Statement body = node.target.node.body;
-    bool shouldInline() {
-      if (backend.annotations.noInline(node.target)) return false;
-      if (node.target.resolvedAst.elements.containsTryStatement) return false;
-
-      // Inline functions that are a single return statement, expression
-      // statement, or block containing a return statement or expression
-      // statement.
-      if (body is ast.Return) {
-        return isNonExpansive(body.expression);
-      } else if (body is ast.ExpressionStatement) {
-        return isNonExpansive(body.expression);
-      } else if (body is ast.Block) {
-        var link = body.statements.nodes;
-        if (link.isNotEmpty && link.tail.isEmpty) {
-          if (link.head is ast.Return) {
-            return isNonExpansive(link.head.expression);
-          } else if (link.head is ast.ExpressionStatement) {
-            return isNonExpansive(link.head.expression);
-          }
-        }
-      }
-      return false;
-    }
-
-    if (!shouldInline()) return null;
-
-    FunctionDefinition target = functionCompiler.compileToCpsIr(node.target);
-
-    CpsFragment cps = new CpsFragment(node.sourceInformation);
-    Primitive result = cps.inlineFunction(target,
-        null,
-        node.arguments.map((ref) => ref.definition).toList(),
-        hint: node.hint);
-    node.replaceUsesWith(result);
-    return cps;
-  }
-
   visitInvokeStatic(InvokeStatic node) {
-    return specializeInternalMethodCall(node) ?? inlineInvokeStatic(node);
+    return specializeInternalMethodCall(node);
   }
 
   AbstractConstantValue getValue(Variable node) {
@@ -2072,6 +2036,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         }
         if (argumentsWereRemoved) {
           node.arguments.removeWhere((ref) => ref == null);
+        }
+        if (node.arguments.length == 1) {
+          Primitive input = node.arguments[0].definition;
+          node.replaceUsesWith(input);
+          input.useElementAsHint(node.hint);
         }
         // TODO(asgerf): Rebalance nested StringConcats that arise from
         //               rewriting the + operator to StringConcat.
@@ -2215,7 +2184,6 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     CpsFragment cps = new CpsFragment(node.sourceInformation);
     Interceptor interceptor =
         cps.letPrim(new Interceptor(prim, node.sourceInformation));
-    interceptor.interceptedClasses.addAll(backend.interceptedClasses);
     Primitive testViaFlag =
         cps.letPrim(new TypeTestViaFlag(interceptor, dartType));
     node.replaceUsesWith(testViaFlag);
@@ -2224,163 +2192,6 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
   Primitive visitTypeTestViaFlag(TypeTestViaFlag node) {
     return null;
-  }
-
-  Primitive visitInterceptor(Interceptor node) {
-    AbstractConstantValue value = getValue(node.input.definition);
-    TypeMask interceptedInputs = value.type.intersection(
-        typeSystem.interceptorType.nullable(), classWorld);
-    bool interceptNull =
-        node.interceptedClasses.contains(helpers.jsNullClass) ||
-        node.interceptedClasses.contains(helpers.jsInterceptorClass);
-
-    void filterInterceptedClasses() {
-      if (lattice.isDefinitelyInt(value, allowNull: !interceptNull)) {
-        node.interceptedClasses..clear()..add(helpers.jsIntClass);
-        return;
-      }
-      if (lattice.isDefinitelyNum(value, allowNull: !interceptNull) &&
-                  jsNumberClassSuffices(node)) {
-        node.interceptedClasses..clear()..add(helpers.jsNumberClass);
-        return;
-      }
-
-      // TODO(asgerf): Avoid adding non-instantiated intercepted classes
-      // in the first place.  (This should also happen in later pass).
-      node.interceptedClasses.retainWhere(classWorld.isInstantiated);
-
-      TypeMask interceptedClassesType = new TypeMask.unionOf(
-          node.interceptedClasses.map(typeSystem.getInterceptorSubtypes),
-          classWorld);
-      TypeMask interceptedAndCaught =
-          interceptedInputs.intersection(interceptedClassesType, classWorld);
-      ClassElement single = interceptedAndCaught.singleClass(classWorld);
-      if (single != null) {
-        node.interceptedClasses..clear()..add(backend.getRuntimeClass(single));
-        return;
-      }
-
-      // Filter out intercepted classes that do not match the input type.
-      node.interceptedClasses.retainWhere((ClassElement clazz) {
-        return !typeSystem.areDisjoint(
-            value.type,
-            typeSystem.getInterceptorSubtypes(clazz));
-      });
-
-      // The interceptor root class will usually not be filtered out because all
-      // intercepted values are subtypes of it.  But it can be "shadowed" by a
-      // more specific interceptor classes if all possible intercepted values
-      // will hit one of the more specific classes.
-      //
-      // For example, if all classes can respond to a given call, but we know
-      // the input is a string or an unknown JavaScript object, we want to
-      // use a specialized interceptor:
-      //
-      //   getInterceptor(x).get$hashCode(x);
-      //     ==>
-      //   getInterceptor$su(x).get$hashCode(x)
-      //
-      // In this case, the intercepted classes that were not filtered out above
-      // are {UnknownJavaScriptObject, JSString, Interceptor}, but there is no
-      // need to include the Interceptor class.
-      //
-      // We only do this optimization if the resulting interceptor call is
-      // sufficiently specialized to be worth it (#classes <= 2).
-      // TODO(asgerf): Reconsider when TypeTestViaFlag interceptors don't
-      //               intercept ALL interceptor classes.
-      if (node.interceptedClasses.length > 1 &&
-          node.interceptedClasses.length < 4 &&
-          node.interceptedClasses.contains(helpers.jsInterceptorClass)) {
-        TypeMask specificInterceptors = new TypeMask.unionOf(
-            node.interceptedClasses
-              .where((cl) => cl != helpers.jsInterceptorClass)
-              .map(typeSystem.getInterceptorSubtypes),
-            classWorld);
-        if (specificInterceptors.containsMask(interceptedInputs, classWorld)) {
-          // All possible inputs are caught by an Interceptor subclass (or are
-          // self-interceptors), so there is no need to have the check for
-          // the Interceptor root class (which is expensive).
-          node.interceptedClasses.remove(helpers.jsInterceptorClass);
-        }
-      }
-    }
-
-    filterInterceptedClasses();
-
-    // Remove the interceptor call if it can only return its input.
-    if (node.interceptedClasses.isEmpty) {
-      node.replaceUsesWith(node.input.definition);
-      return null;
-    }
-
-    node.flags = Interceptor.ALL_FLAGS;
-
-    // If there is only one caught interceptor class, determine more precisely
-    // how this might resolve at runtime.  Later optimizations depend on this,
-    // but do not have refined type information available.
-    if (node.interceptedClasses.length == 1) {
-      ClassElement class_ = node.interceptedClasses.single;
-      if (value.isDefinitelyNotNull) {
-        node.clearFlag(Interceptor.NULL);
-      } else if (interceptNull) {
-        node.clearFlag(Interceptor.NULL_BYPASS);
-        if (class_ == helpers.jsNullClass) {
-          node.clearFlag(Interceptor.NULL_INTERCEPT_SUBCLASS);
-        } else {
-          node.clearFlag(Interceptor.NULL_INTERCEPT_EXACT);
-        }
-      } else {
-        node.clearFlag(Interceptor.NULL_INTERCEPT);
-      }
-      if (typeSystem.isDefinitelyIntercepted(value.type, allowNull: true)) {
-        node.clearFlag(Interceptor.SELF_INTERCEPT);
-      }
-      TypeMask interceptedInputsNonNullable = interceptedInputs.nonNullable();
-      TypeMask interceptedType = typeSystem.getInterceptorSubtypes(class_);
-      if (interceptedType.containsMask(interceptedInputsNonNullable,
-              classWorld)) {
-        node.clearFlag(Interceptor.NON_NULL_BYPASS);
-      }
-      if (class_ == helpers.jsNumberClass) {
-        // See [jsNumberClassSuffices].  We know that JSInt and JSDouble are
-        // not intercepted classes so JSNumber is sufficient.
-        node.clearFlag(Interceptor.NON_NULL_INTERCEPT_SUBCLASS);
-      } else if (class_ == helpers.jsArrayClass) {
-        // JSArray has compile-time subclasses like JSFixedArray, but should
-        // still be considered "exact" if the input is any subclass of JSArray.
-        if (typeSystem.isDefinitelyArray(interceptedInputsNonNullable)) {
-          node.clearFlag(Interceptor.NON_NULL_INTERCEPT_SUBCLASS);
-        }
-      } else {
-        TypeMask exactInterceptedType = typeSystem.nonNullExact(class_);
-        if (exactInterceptedType.containsMask(interceptedInputsNonNullable,
-                classWorld)) {
-          node.clearFlag(Interceptor.NON_NULL_INTERCEPT_SUBCLASS);
-        }
-      }
-    }
-    return null;
-  }
-
-  bool jsNumberClassSuffices(Interceptor node) {
-    // No methods on JSNumber call 'down' to methods on JSInt or JSDouble.  If
-    // all uses of the interceptor are for methods is defined only on JSNumber
-    // then JSNumber will suffice in place of choosing between JSInt or
-    // JSDouble.
-    for (Reference ref = node.firstRef; ref != null; ref = ref.next) {
-      if (ref.parent is InvokeMethod) {
-        InvokeMethod invoke = ref.parent;
-        if (invoke.receiver != ref) return false;
-        var interceptedClasses =
-            functionCompiler.glue.getInterceptedClassesOn(invoke.selector);
-        if (interceptedClasses.contains(helpers.jsDoubleClass)) return false;
-        if (interceptedClasses.contains(helpers.jsIntClass)) return false;
-        continue;
-      }
-      // Other uses need full distinction.
-      return false;
-    }
-    return true;
   }
 
   visitBoundsCheck(BoundsCheck node) {
@@ -2674,7 +2485,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitInvokeMethod(InvokeMethod node) {
-    AbstractConstantValue receiver = getValue(node.receiver.definition);
+    AbstractConstantValue receiver = getValue(node.dartReceiver);
     node.receiverIsNotNull = receiver.isDefinitelyNotNull;
     if (receiver.isNothing) {
       return setResult(node, lattice.nothing);
@@ -2683,7 +2494,7 @@ class TypePropagationVisitor implements Visitor {
     void finish(AbstractConstantValue result, {bool canReplace: false}) {
       if (result == null) {
         canReplace = false;
-        result = lattice.getInvokeReturnType(node.selector, node.mask);
+        result = lattice.getInvokeReturnType(node.selector, receiver);
       }
       setResult(node, result, canReplace: canReplace);
     }
@@ -2691,10 +2502,9 @@ class TypePropagationVisitor implements Visitor {
     if (node.selector.isGetter) {
       // Constant fold known length of containers.
       if (node.selector == Selectors.length) {
-        AbstractConstantValue object = getValue(node.dartReceiver);
-        if (typeSystem.isDefinitelyIndexable(object.type, allowNull: true)) {
-          AbstractConstantValue length = lattice.lengthSpecial(object);
-          return finish(length, canReplace: !object.isNullable);
+        if (typeSystem.isDefinitelyIndexable(receiver.type, allowNull: true)) {
+          AbstractConstantValue length = lattice.lengthSpecial(receiver);
+          return finish(length, canReplace: !receiver.isNullable);
         }
       }
       return finish(null);
@@ -2702,19 +2512,18 @@ class TypePropagationVisitor implements Visitor {
 
     if (node.selector.isCall) {
       if (node.selector == Selectors.codeUnitAt) {
-        AbstractConstantValue object = getValue(node.dartReceiver);
         AbstractConstantValue right = getValue(node.dartArgument(0));
-        AbstractConstantValue result = lattice.codeUnitAtSpecial(object, right);
-        return finish(result, canReplace: !object.isNullable);
+        AbstractConstantValue result =
+            lattice.codeUnitAtSpecial(receiver, right);
+        return finish(result, canReplace: !receiver.isNullable);
       }
       return finish(null);
     }
 
     if (node.selector == Selectors.index) {
-      AbstractConstantValue object = getValue(node.dartReceiver);
       AbstractConstantValue right = getValue(node.dartArgument(0));
-      AbstractConstantValue result = lattice.indexSpecial(object, right);
-      return finish(result, canReplace: !object.isNullable);
+      AbstractConstantValue result = lattice.indexSpecial(receiver, right);
+      return finish(result, canReplace: !receiver.isNullable);
     }
 
     if (!node.selector.isOperator) {
@@ -2724,21 +2533,20 @@ class TypePropagationVisitor implements Visitor {
     // Calculate the resulting constant if possible.
     String opname = node.selector.name;
     if (node.arguments.length == 1) {
-      AbstractConstantValue argument = getValue(node.dartReceiver);
       // Unary operator.
       if (opname == "unary-") {
         opname = "-";
       }
       UnaryOperator operator = UnaryOperator.parse(opname);
-      AbstractConstantValue result = lattice.unaryOp(operator, argument);
-      return finish(result, canReplace: !argument.isNullable);
+      AbstractConstantValue result = lattice.unaryOp(operator, receiver);
+      return finish(result, canReplace: !receiver.isNullable);
     } else if (node.arguments.length == 2) {
       // Binary operator.
-      AbstractConstantValue left = getValue(node.dartReceiver);
       AbstractConstantValue right = getValue(node.dartArgument(0));
       BinaryOperator operator = BinaryOperator.parse(opname);
-      AbstractConstantValue result = lattice.binaryOp(operator, left, right);
-      return finish(result, canReplace: !left.isNullable);
+      AbstractConstantValue result =
+          lattice.binaryOp(operator, receiver, right);
+      return finish(result, canReplace: !receiver.isNullable);
     }
     return finish(null);
   }

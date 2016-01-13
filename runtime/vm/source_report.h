@@ -18,8 +18,8 @@ namespace dart {
 class SourceReport {
  public:
   enum ReportKind {
-    kCallSites,
-    kCoverage,
+    kCallSites = 0x1,
+    kCoverage  = 0x2,
   };
 
   enum CompileMode {
@@ -27,7 +27,9 @@ class SourceReport {
     kForceCompile
   };
 
-  explicit SourceReport(ReportKind report_kind,
+  // report_set is a bitvector indicating which reports to generate
+  // (e.g. kCallSites | kCoverage).
+  explicit SourceReport(intptr_t report_set,
                         CompileMode compile = kNoCompile);
 
   // Generate a source report for (some subrange of) a script.
@@ -44,6 +46,7 @@ class SourceReport {
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
 
+  bool IsReportRequested(ReportKind report_kind);
   bool ShouldSkipFunction(const Function& func);
   intptr_t GetScriptIndex(const Script& script);
   bool ScriptIsLoadedByLibrary(const Script& script, const Library& lib);
@@ -90,7 +93,7 @@ class SourceReport {
     }
   };
 
-  ReportKind report_kind_;
+  intptr_t report_set_;
   CompileMode compile_mode_;
   Thread* thread_;
   const Script* script_;

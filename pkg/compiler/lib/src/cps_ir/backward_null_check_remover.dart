@@ -1,7 +1,7 @@
 library dart2js.cps_ir.backward_null_check_remover;
 
 import 'cps_ir_nodes.dart';
-import 'optimizers.dart' show Pass;
+import 'optimizers.dart';
 import '../common/names.dart';
 import '../universe/selector.dart';
 import 'type_mask_system.dart';
@@ -31,8 +31,7 @@ import 'cps_fragment.dart';
 //   bad so changing that should be ok, but changing a field access is not as
 //   clear.
 //
-class BackwardNullCheckRemover extends TrampolineRecursiveVisitor
-                               implements Pass {
+class BackwardNullCheckRemover extends BlockVisitor implements Pass {
   String get passName => 'Backward null-check remover';
 
   final TypeMaskSystem typeSystem;
@@ -41,10 +40,14 @@ class BackwardNullCheckRemover extends TrampolineRecursiveVisitor
   /// a value that is checked in the beginning of that expression.
   Primitive nullCheckedValue;
 
+  /// The [nullCheckedValue] at the entry point of a continuation.
+  final Map<Continuation, Primitive> nullCheckedValueAt =
+      <Continuation, Primitive>{};
+
   BackwardNullCheckRemover(this.typeSystem);
 
   void rewrite(FunctionDefinition node) {
-    visit(node);
+    BlockVisitor.traverseInPostOrder(node, this);
   }
 
   /// Returns a reference to an operand of [prim], where [prim] throws if null
@@ -56,15 +59,14 @@ class BackwardNullCheckRemover extends TrampolineRecursiveVisitor
     if (prim is GetIndex) return prim.object;
     if (prim is SetField) return prim.object;
     if (prim is SetIndex) return prim.object;
-    if (prim is InvokeMethod && !nullSelectors.contains(prim.selector)) {
+    if (prim is InvokeMethod && !selectorsOnNull.contains(prim.selector)) {
       return prim.dartReceiverReference;
+    }
+    if (prim is ForeignCode) {
+      return prim.isNullGuardOnNullFirstArgument() ? prim.arguments[0] : null;
     }
     return null;
   }
-
-  static final List<Selector> nullSelectors = <Selector>[
-      Selectors.equals, Selectors.hashCode_, Selectors.noSuchMethod_,
-      Selectors.runtimeType_];
 
   /// It has been determined that the null check in [prim] made redundant by
   /// [newNullCheck].  Eliminate [prim] if it is not needed any more.
@@ -95,37 +97,33 @@ class BackwardNullCheckRemover extends TrampolineRecursiveVisitor
     return prim.isSafeForReordering;
   }
 
-  Expression traverseLetPrim(LetPrim node) {
+  void visitLetPrim(LetPrim node) {
     Primitive prim = node.primitive;
     Primitive receiver = getNullCheckedOperand(prim)?.definition;
     if (receiver != null) {
-      pushAction(() {
-        Primitive successor = nullCheckedValue;
-        if (successor != null && receiver.sameValue(successor)) {
-          tryEliminateRedundantNullCheck(prim, successor);
-        }
-        nullCheckedValue = receiver;
-      });
+      if (nullCheckedValue != null && receiver.sameValue(nullCheckedValue)) {
+        tryEliminateRedundantNullCheck(prim, nullCheckedValue);
+      }
+      nullCheckedValue = receiver;
     } else if (!canMoveAboveNullCheck(prim)) {
-      pushAction(() {
-        nullCheckedValue = null;
-      });
+      nullCheckedValue = null;
     }
-    return node.body;
   }
 
-  Expression traverseContinuation(Continuation cont) {
-    pushAction(() {
+  void visitContinuation(Continuation cont) {
+    if (nullCheckedValue != null) {
+      nullCheckedValueAt[cont] = nullCheckedValue;
       nullCheckedValue = null;
-    });
-    return cont.body;
+    }
   }
 
-  Expression traverseLetHandler(LetHandler node) {
-    push(node.handler);
-    pushAction(() {
-      nullCheckedValue = null;
-    });
-    return node.body;
+  void visitLetHandler(LetHandler node) {
+    nullCheckedValue = null;
+  }
+
+  visitInvokeContinuation(InvokeContinuation node) {
+    if (!node.isRecursive) {
+      nullCheckedValue = nullCheckedValueAt[node.continuation.definition];
+    }
   }
 }

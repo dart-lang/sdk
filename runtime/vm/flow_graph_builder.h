@@ -42,6 +42,8 @@ class InlineExitCollector: public ZoneAllocated {
   // Before replacing a call with a graph, the outer environment needs to be
   // attached to each instruction in the callee graph and the caller graph
   // needs to have its block and instruction ID state updated.
+  // Additionally we need to remove all unreachable exits from the list of
+  // collected exits.
   void PrepareGraphs(FlowGraph* callee_graph);
 
   // Inline a graph at a call site.
@@ -78,6 +80,7 @@ class InlineExitCollector: public ZoneAllocated {
 
   static int LowestBlockIdFirst(const Data* a, const Data* b);
   void SortExits();
+  void RemoveUnreachableExits(FlowGraph* callee_graph);
 
   Definition* JoinReturns(BlockEntryInstr** exit_block,
                           Instruction** last_instruction,
@@ -304,8 +307,11 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Definition* BuildStoreExprTemp(Value* value);
   Definition* BuildLoadExprTemp();
 
-  Definition* BuildStoreLocal(const LocalVariable& local, Value* value);
-  Definition* BuildLoadLocal(const LocalVariable& local);
+  Definition* BuildStoreLocal(const LocalVariable& local,
+                              Value* value,
+                              intptr_t token_pos = Scanner::kNoSourcePos);
+  Definition* BuildLoadLocal(const LocalVariable& local,
+                             intptr_t token_pos = Scanner::kNoSourcePos);
   LoadLocalInstr* BuildLoadThisVar(LocalScope* scope);
   LoadFieldInstr* BuildNativeGetter(
       NativeBodyNode* node,
@@ -390,11 +396,13 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildConstructorCall(ConstructorCallNode* node,
                             PushArgumentInstr* alloc_value);
 
-  void BuildSaveContext(const LocalVariable& variable);
-  void BuildRestoreContext(const LocalVariable& variable);
+  void BuildSaveContext(const LocalVariable& variable,
+                        intptr_t token_pos);
+  void BuildRestoreContext(const LocalVariable& variable,
+                           intptr_t token_pos);
 
-  Definition* BuildStoreContext(Value* value);
-  Definition* BuildCurrentContext();
+  Definition* BuildStoreContext(Value* value, intptr_t token_pos);
+  Definition* BuildCurrentContext(intptr_t token_pos);
 
   void BuildThrowNode(ThrowNode* node);
 
@@ -415,7 +423,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   void BuildStaticSetter(StaticSetterNode* node, bool result_is_needed);
   Definition* BuildStoreStaticField(StoreStaticFieldNode* node,
-                                    bool result_is_needed);
+                                    bool result_is_needed,
+                                    intptr_t token_pos);
 
   void BuildClosureCall(ClosureCallNode* node, bool result_needed);
 

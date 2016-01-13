@@ -962,11 +962,10 @@ abstract class Compiler {
       {bool skipLibraryWithPartOfTag: true}) {
     assert(analyzeMain);
     reporter.log('Analyzing $libraryUri ($buildId)');
-    return libraryLoader.loadLibrary(libraryUri).then((LibraryElement library) {
-      var compilationUnit = library.compilationUnit;
-      if (skipLibraryWithPartOfTag && compilationUnit.partTag != null) {
-        return null;
-      }
+    return libraryLoader.loadLibrary(
+        libraryUri, skipFileWithPartOfTag: true).then(
+            (LibraryElement library) {
+      if (library == null) return null;
       fullyEnqueueLibrary(library, enqueuer.resolution);
       emptyQueue(enqueuer.resolution);
       enqueuer.resolution.logSummary(reporter.log);

@@ -5,7 +5,7 @@
 // Test that the compiler emits a warning on import of 'dart:mirrors' unless
 // the flag --enable-experimental-mirrors is used.
 
-library dart2js.test.import;
+library dart2js.test.import_mirrors;
 
 import 'dart:async';
 import 'package:expect/expect.dart';

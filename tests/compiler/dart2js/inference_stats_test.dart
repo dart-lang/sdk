@@ -9,8 +9,9 @@ library dart2js.test.send_measurements_test;
 import 'dart:async';
 import 'package:test/test.dart';
 import 'package:dart2js_info/info.dart';
+import 'package:dart2js_info/src/util.dart' show
+    recursiveDiagnosticString;
 import 'memory_compiler.dart';
-import 'dart:io';
 
 main() {
   test('nothing is reachable, nothing to count', () {

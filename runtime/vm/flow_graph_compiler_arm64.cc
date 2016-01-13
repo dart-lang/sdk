@@ -666,7 +666,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
-  ASSERT(token_pos >= 0);
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
@@ -1389,7 +1389,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
       __ BranchLinkPatchable(
           *StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
     }
-    if (token_pos != Scanner::kNoSourcePos) {
+    if (token_pos >= 0) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
                            Thread::kNoDeoptId,
                            token_pos);
@@ -1418,7 +1418,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
       __ BranchLinkPatchable(
           *StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
     }
-    if (token_pos != Scanner::kNoSourcePos) {
+    if (token_pos >= 0) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
                            Thread::kNoDeoptId,
                            token_pos);

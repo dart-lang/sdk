@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
 import 'package:analyzer/src/summary/summarize_elements.dart'
@@ -27,6 +28,157 @@ import '../../reflective_tests.dart';
 main() {
   groupSep = ' | ';
   runReflectiveTests(SummarizeElementsTest);
+  runReflectiveTests(PrelinkerTest);
+}
+
+/**
+ * Convert a summary object (or a portion of one) into a canonical form that
+ * can be easily compared using [expect].  If [orderByName] is true, and the
+ * object is a [List], it is sorted by the `name` field of its elements.
+ */
+Object canonicalize(Object obj, {bool orderByName: false}) {
+  if (obj is SummaryClass) {
+    Map<String, Object> result = <String, Object>{};
+    obj.toMap().forEach((String key, Object value) {
+      bool orderByName = false;
+      if (obj is UnlinkedPublicNamespace && key == 'names') {
+        orderByName = true;
+      }
+      result[key] = canonicalize(value, orderByName: orderByName);
+    });
+    return result;
+  } else if (obj is List) {
+    List<Object> result = <Object>[];
+    for (Object item in obj) {
+      result.add(canonicalize(item));
+    }
+    if (orderByName) {
+      result.sort((Object a, Object b) {
+        if (a is Map && b is Map) {
+          return Comparable.compare(a['name'], b['name']);
+        } else {
+          return 0;
+        }
+      });
+    }
+    return result;
+  } else if (obj is String || obj is num || obj is bool) {
+    return obj;
+  } else {
+    return obj.toString();
+  }
+}
+
+UnlinkedPublicNamespace computePublicNamespaceFromText(
+    String text, Source source) {
+  CharacterReader reader = new CharSequenceReader(text);
+  Scanner scanner =
+      new Scanner(source, reader, AnalysisErrorListener.NULL_LISTENER);
+  Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
+  parser.parseGenericMethods = true;
+  CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
+  UnlinkedPublicNamespace namespace = new UnlinkedPublicNamespace.fromBuffer(
+      public_namespace.computePublicNamespace(unit).toBuffer());
+  return namespace;
+}
+
+/**
+ * Override of [SummaryTest] which verifies the correctness of the prelinker by
+ * creating summaries from the element model, discarding their prelinked
+ * information, and then recreating it using the prelinker.
+ */
+@reflectiveTest
+class PrelinkerTest extends SummarizeElementsTest {
+  /**
+   * The public namespaces of the sdk are computed once so that we don't bog
+   * down the test.  Structured as a map from absolute URI to the corresponding
+   * public namespace.
+   *
+   * Note: should an exception occur during computation of this variable, it
+   * will silently be set to null to allow other tests to run.
+   */
+  static final Map<String, UnlinkedPublicNamespace> sdkPublicNamespace = () {
+    try {
+      AnalysisContext analysisContext =
+          AnalysisContextFactory.contextWithCore();
+      Map<String, UnlinkedPublicNamespace> uriToNamespace =
+          <String, UnlinkedPublicNamespace>{};
+      List<LibraryElement> libraries = [
+        analysisContext.typeProvider.objectType.element.library,
+        analysisContext.typeProvider.futureType.element.library
+      ];
+      for (LibraryElement library in libraries) {
+        summarize_elements.LibrarySerializationResult serializedLibrary =
+            summarize_elements.serializeLibrary(
+                library, analysisContext.typeProvider);
+        for (int i = 0; i < serializedLibrary.unlinkedUnits.length; i++) {
+          uriToNamespace[
+              serializedLibrary.unitUris[i]] = new UnlinkedUnit.fromBuffer(
+              serializedLibrary.unlinkedUnits[i].toBuffer()).publicNamespace;
+        }
+      }
+      return uriToNamespace;
+    } catch (_) {
+      return null;
+    }
+  }();
+
+  final Map<String, UnlinkedPublicNamespace> uriToPublicNamespace =
+      <String, UnlinkedPublicNamespace>{};
+
+  @override
+  bool get expectAbsoluteUrisInDependencies => false;
+
+  @override
+  Source addNamedSource(String filePath, String contents) {
+    Source source = super.addNamedSource(filePath, contents);
+    uriToPublicNamespace[absUri(filePath)] =
+        computePublicNamespaceFromText(contents, source);
+    return source;
+  }
+
+  String resolveToAbsoluteUri(LibraryElement library, String relativeUri) {
+    Source resolvedSource =
+        analysisContext.sourceFactory.resolveUri(library.source, relativeUri);
+    if (resolvedSource == null) {
+      fail('Failed to resolve relative uri "$relativeUri"');
+    }
+    return resolvedSource.uri.toString();
+  }
+
+  @override
+  void serializeLibraryElement(LibraryElement library) {
+    super.serializeLibraryElement(library);
+    Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
+    expect(unlinkedUnits.length, unitUris.length);
+    for (int i = 1; i < unlinkedUnits.length; i++) {
+      uriToUnit[unitUris[i]] = unlinkedUnits[i];
+    }
+    UnlinkedUnit getPart(String relativeUri) {
+      String absoluteUri = resolveToAbsoluteUri(library, relativeUri);
+      UnlinkedUnit unit = uriToUnit[absoluteUri];
+      if (unit == null) {
+        fail('Prelinker unexpectedly requested unit for "$relativeUri"'
+            ' (resolves to "$absoluteUri").');
+      }
+      return unit;
+    }
+    UnlinkedPublicNamespace getImport(String relativeUri) {
+      String absoluteUri = resolveToAbsoluteUri(library, relativeUri);
+      UnlinkedPublicNamespace namespace = sdkPublicNamespace[absoluteUri];
+      if (namespace == null) {
+        namespace = uriToPublicNamespace[absoluteUri];
+      }
+      if (namespace == null && !allowMissingFiles) {
+        fail('Prelinker unexpectedly requested namespace for "$relativeUri"'
+            ' (resolves to "$absoluteUri").'
+            '  Namespaces available: ${uriToPublicNamespace.keys}');
+      }
+      return namespace;
+    }
+    prelinked = new PrelinkedLibrary.fromBuffer(
+        prelink(unlinkedUnits[0], getPart, getImport).toBuffer());
+  }
 }
 
 /**
@@ -34,51 +186,29 @@ main() {
  */
 @reflectiveTest
 class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
-  final BuilderContext builderContext = new BuilderContext();
-
   /**
    * The list of absolute unit URIs corresponding to the compilation units in
    * [unlinkedUnits].
    */
   List<String> unitUris;
 
+  /**
+   * Map containing all source files in this test, and their corresponding file
+   * contents.
+   */
+  final Map<Source, String> _fileContents = <Source, String>{};
+
   @override
   bool get checkAstDerivedData => false;
 
-  /**
-   * Convert a summary object (or a portion of one) into a canonical form that
-   * can be easily compared using [expect].  If [orderByName] is true, and the
-   * object is a [List], it is sorted by the `name` field of its elements.
-   */
-  Object canonicalize(Object obj, {bool orderByName: false}) {
-    if (obj is SummaryClass) {
-      Map<String, Object> result = <String, Object>{};
-      obj.toMap().forEach((String key, Object value) {
-        bool orderByName = false;
-        if (obj is UnlinkedPublicNamespace && key == 'names') {
-          orderByName = true;
-        }
-        result[key] = canonicalize(value, orderByName: orderByName);
-      });
-      return result;
-    } else if (obj is List) {
-      List<Object> result = <Object>[];
-      for (Object item in obj) {
-        result.add(canonicalize(item));
-      }
-      if (orderByName) {
-        result.sort((Object a, Object b) {
-          if (a is Map && b is Map) {
-            return Comparable.compare(a['name'], b['name']);
-          } else {
-            return 0;
-          }
-        });
-      }
-      return result;
-    } else {
-      return obj;
-    }
+  @override
+  bool get expectAbsoluteUrisInDependencies => true;
+
+  @override
+  Source addNamedSource(String filePath, String contents) {
+    Source source = super.addNamedSource(filePath, contents);
+    _fileContents[source] = contents;
+    return source;
   }
 
   /**
@@ -96,20 +226,22 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
    */
   void serializeLibraryElement(LibraryElement library) {
     summarize_elements.LibrarySerializationResult serializedLib =
-        summarize_elements.serializeLibrary(
-            builderContext, library, typeProvider);
-    prelinked =
-        new PrelinkedLibrary.fromBuffer(serializedLib.prelinked.toBuffer());
-    unlinkedUnits = serializedLib.unlinkedUnits
-        .map((UnlinkedUnitBuilder b) =>
-            new UnlinkedUnit.fromBuffer(b.toBuffer()))
-        .toList();
+        summarize_elements.serializeLibrary(library, typeProvider);
+    {
+      List<int> buffer = serializedLib.prelinked.toBuffer();
+      prelinked = new PrelinkedLibrary.fromBuffer(buffer);
+    }
+    unlinkedUnits = serializedLib.unlinkedUnits.map((UnlinkedUnitBuilder b) {
+      List<int> buffer = b.toBuffer();
+      return new UnlinkedUnit.fromBuffer(buffer);
+    }).toList();
     unitUris = serializedLib.unitUris;
   }
 
   @override
   void serializeLibraryText(String text, {bool allowErrors: false}) {
     Source source = addSource(text);
+    _fileContents[source] = text;
     LibraryElement library = resolve2(source);
     if (!allowErrors) {
       assertNoErrors(source);
@@ -146,20 +278,19 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
   void verifyPublicNamespace() {
     for (int i = 0; i < unlinkedUnits.length; i++) {
       Source source = analysisContext.sourceFactory.forUri(unitUris[i]);
-      String text = analysisContext.getContents(source).data;
-      CharacterReader reader = new CharSequenceReader(text);
-      Scanner scanner =
-          new Scanner(source, reader, AnalysisErrorListener.NULL_LISTENER);
-      Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
-      parser.parseGenericMethods = true;
-      CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
-      UnlinkedPublicNamespace namespace =
-          new UnlinkedPublicNamespace.fromBuffer(public_namespace
-              .computePublicNamespace(builderContext, unit)
-              .toBuffer());
-      expect(canonicalize(namespace),
-          canonicalize(unlinkedUnits[i].publicNamespace),
-          reason: 'publicNamespace(${unitUris[i]})');
+      String text = _fileContents[source];
+      if (text == null) {
+        if (!allowMissingFiles) {
+          fail('Could not find file while verifying public namespace: '
+              '${unitUris[i]}');
+        }
+      } else {
+        UnlinkedPublicNamespace namespace =
+            computePublicNamespaceFromText(text, source);
+        expect(canonicalize(namespace),
+            canonicalize(unlinkedUnits[i].publicNamespace),
+            reason: 'publicNamespace(${unitUris[i]})');
+      }
     }
   }
 }
@@ -184,6 +315,12 @@ abstract class SummaryTest {
   List<UnlinkedUnit> unlinkedUnits;
 
   /**
+   * A test will set this to `true` if it contains `import`, `export`, or
+   * `part` declarations that deliberately refer to non-existent files.
+   */
+  bool allowMissingFiles = false;
+
+  /**
    * `true` if the summary was created directly from the AST (and hence
    * contains information that is not obtainable from the element model alone).
    * TODO(paulberry): modify the element model so that it contains all the data
@@ -197,6 +334,13 @@ abstract class SummaryTest {
   PrelinkedUnit get definingUnit => prelinked.units[0];
 
   /**
+   * `true` if the prelinked portion of the summary is expected to contain
+   * absolute URIs.  This happens because the element model doesn't (yet) store
+   * enough information to recover relative URIs, TODO(paulberry): fix this.
+   */
+  bool get expectAbsoluteUrisInDependencies;
+
+  /**
    * Convert [path] to a suitably formatted absolute path URI for the current
    * platform.
    */
@@ -208,14 +352,14 @@ abstract class SummaryTest {
    * Add the given source file so that it may be referenced by the file under
    * test.
    */
-  addNamedSource(String filePath, String contents);
+  Source addNamedSource(String filePath, String contents);
 
   /**
    * Verify that the [dependency]th element of the dependency table represents
    * a file reachable via the given [absoluteUri] and [relativeUri].
    */
   void checkDependency(int dependency, String absoluteUri, String relativeUri) {
-    if (!checkAstDerivedData) {
+    if (expectAbsoluteUrisInDependencies) {
       // The element model doesn't (yet) store enough information to recover
       // relative URIs, so we have to use the absolute URI.
       // TODO(paulberry): fix this.
@@ -223,6 +367,44 @@ abstract class SummaryTest {
     }
     expect(dependency, new isInstanceOf<int>());
     expect(prelinked.dependencies[dependency].uri, relativeUri);
+  }
+
+  /**
+   * Verify that the given [dependency] lists the given [absoluteUris] or
+   * [relativeUris] as its parts.
+   */
+  void checkDependencyParts(PrelinkedDependency dependency,
+      List<String> absoluteUris, List<String> relativeUris) {
+    if (expectAbsoluteUrisInDependencies) {
+      // The element model doesn't (yet) store enough information to recover
+      // relative URIs, so we have to use the absolute URI.
+      // TODO(paulberry): fix this.
+      relativeUris = absoluteUris;
+    }
+    expect(dependency.parts, relativeUris);
+  }
+
+  /**
+   * Check that the given [documentationComment] matches the first
+   * Javadoc-style comment found in [text].
+   *
+   * Note that the algorithm for finding the Javadoc-style comment in [text] is
+   * a simple-minded text search; it is easily confused by corner cases such as
+   * strings containing comments, nested comments, etc.
+   */
+  void checkDocumentationComment(
+      UnlinkedDocumentationComment documentationComment, String text) {
+    expect(documentationComment, isNotNull);
+    int commentStart = text.indexOf('/*');
+    expect(commentStart, isNot(-1));
+    int commentEnd = text.indexOf('*/');
+    expect(commentEnd, isNot(-1));
+    commentEnd += 2;
+    String expectedCommentText =
+        text.substring(commentStart, commentEnd).replaceAll('\r\n', '\n');
+    expect(documentationComment.text, expectedCommentText);
+    expect(documentationComment.offset, commentStart);
+    expect(documentationComment.length, commentEnd - commentStart);
   }
 
   /**
@@ -235,20 +417,26 @@ abstract class SummaryTest {
   /**
    * Verify that the dependency table contains an entry for a file reachable
    * via the given [absoluteUri] and [relativeUri].
+   *
+   * The [PrelinkedDependency] is returned.
    */
-  void checkHasDependency(String absoluteUri, String relativeUri) {
-    if (!checkAstDerivedData) {
+  PrelinkedDependency checkHasDependency(
+      String absoluteUri, String relativeUri) {
+    if (expectAbsoluteUrisInDependencies) {
       // The element model doesn't (yet) store enough information to recover
       // relative URIs, so we have to use the absolute URI.
       // TODO(paulberry): fix this.
       relativeUri = absoluteUri;
     }
+    List<String> found = <String>[];
     for (PrelinkedDependency dep in prelinked.dependencies) {
       if (dep.uri == relativeUri) {
-        return;
+        return dep;
       }
+      found.add(dep.uri);
     }
-    fail('Did not find dependency $absoluteUri');
+    fail('Did not find dependency $relativeUri.  Found: $found');
+    return null;
   }
 
   /**
@@ -256,7 +444,7 @@ abstract class SummaryTest {
    * reachable via the given [absoluteUri] and [relativeUri].
    */
   void checkLacksDependency(String absoluteUri, String relativeUri) {
-    if (!checkAstDerivedData) {
+    if (expectAbsoluteUrisInDependencies) {
       // The element model doesn't (yet) store enough information to recover
       // relative URIs, so we have to use the absolute URI.
       // TODO(paulberry): fix this.
@@ -338,17 +526,19 @@ abstract class SummaryTest {
     if (!allowTypeParameters) {
       expect(typeRef.typeArguments, isEmpty);
     }
-    if (expectedName == null) {
+    if (expectedKind == PrelinkedReferenceKind.unresolved) {
+      // summarize_elements.dart isn't yet able to record the name of
+      // unresolved references.  TODO(paulberry): fix this.
+      expect(reference.name, '*unresolved*');
+    } else if (expectedName == null) {
       expect(reference.name, isEmpty);
     } else {
       expect(reference.name, expectedName);
     }
-    if (checkAstDerivedData) {
-      if (expectedPrefix == null) {
-        expect(reference.prefixReference, 0);
-      } else {
-        checkPrefix(reference.prefixReference, expectedPrefix);
-      }
+    if (expectedPrefix == null) {
+      expect(reference.prefixReference, 0);
+    } else {
+      checkPrefix(reference.prefixReference, expectedPrefix);
     }
     expect(referenceResolution.kind, expectedKind);
     expect(referenceResolution.unit, expectedTargetUnit);
@@ -368,16 +558,69 @@ abstract class SummaryTest {
         expectedKind: PrelinkedReferenceKind.unresolved);
   }
 
+  fail_enum_value_documented() {
+    // TODO(paulberry): currently broken because of dartbug.com/25385
+    String text = '''
+enum E {
+  /**
+   * Docs
+   */
+  v
+}''';
+    UnlinkedEnumValue value = serializeEnumText(text).values[0];
+    expect(value.documentationComment, isNotNull);
+    checkDocumentationComment(value.documentationComment, text);
+  }
+
   fail_test_import_missing() {
     // TODO(paulberry): At the moment unresolved imports are not included in
     // the element model, so we can't pass this test.
     // Unresolved imports are included since this is necessary for proper
     // dependency tracking.
+    allowMissingFiles = true;
     serializeLibraryText('import "foo.dart";', allowErrors: true);
     // Second import is the implicit import of dart:core
     expect(unlinkedUnits[0].imports, hasLength(2));
     checkDependency(
         prelinked.importDependencies[0], absUri('/foo.dart'), 'foo.dart');
+  }
+
+  fail_type_reference_to_nonexistent_file_via_prefix() {
+    // TODO(paulberry): this test currently fails because there is not enough
+    // information in the element model to figure out that the unresolved
+    // reference `p.C` uses the prefix `p`.
+    allowMissingFiles = true;
+    UnlinkedTypeRef typeRef = serializeTypeText('p.C',
+        otherDeclarations: 'import "foo.dart" as p;', allowErrors: true);
+    checkUnresolvedTypeRef(typeRef, 'p', 'C');
+  }
+
+  fail_type_reference_to_type_visible_via_multiple_import_prefixes() {
+    // TODO(paulberry): this test currently fails because the element model
+    // doesn't record enough information to track which prefix is used to refer
+    // to a type.
+    addNamedSource('/lib1.dart', 'class C');
+    addNamedSource('/lib2.dart', 'export "lib1.dart";');
+    addNamedSource('/lib3.dart', 'export "lib1.dart";');
+    addNamedSource('/lib4.dart', 'export "lib1.dart";');
+    serializeLibraryText('''
+import 'lib2.dart';
+import 'lib3.dart' as a;
+import 'lib4.dart' as b;
+C c2;
+a.C c3;
+b.C c4;''');
+    // Note: it is important that each reference to class C records the prefix
+    // used to find it; otherwise it's possible that relinking might produce an
+    // incorrect result after a change to lib2.dart, lib3.dart, or lib4.dart.
+    checkTypeRef(
+        findVariable('c2').type, absUri('/lib1.dart'), 'lib1.dart', 'C');
+    checkTypeRef(
+        findVariable('c3').type, absUri('/lib1.dart'), 'lib1.dart', 'C',
+        expectedPrefix: 'a');
+    checkTypeRef(
+        findVariable('c4').type, absUri('/lib1.dart'), 'lib1.dart', 'C',
+        expectedPrefix: 'b');
   }
 
   /**
@@ -561,8 +804,7 @@ abstract class SummaryTest {
   UnlinkedTypeRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
-            allowErrors: allowErrors)
-        .type;
+        allowErrors: allowErrors).type;
   }
 
   /**
@@ -722,12 +964,33 @@ C c;
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.classOrEnum);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
+  }
+
+  test_class_alias_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+class C = D with E;
+
+class D {}
+class E {}''';
+    UnlinkedClass cls = serializeClassText(text);
+    expect(cls.documentationComment, isNotNull);
+    checkDocumentationComment(cls.documentationComment, text);
   }
 
   test_class_alias_flag() {
     UnlinkedClass cls =
         serializeClassText('class C = D with E; class D {} class E {}');
     expect(cls.isMixinApplication, true);
+  }
+
+  test_class_alias_generic() {
+    serializeClassText('class C<A, B> = _D with _E; class _D {} class _E {}');
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 2);
   }
 
   test_class_alias_mixin_order() {
@@ -788,6 +1051,41 @@ class E {}
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.classOrEnum);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
+  }
+
+  test_class_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+class C {}''';
+    UnlinkedClass cls = serializeClassText(text);
+    expect(cls.documentationComment, isNotNull);
+    checkDocumentationComment(cls.documentationComment, text);
+  }
+
+  test_class_documented_with_references() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs referring to [D] and [E]
+ */
+class C {}
+
+class D {}
+class E {}''';
+    UnlinkedClass cls = serializeClassText(text);
+    expect(cls.documentationComment, isNotNull);
+    checkDocumentationComment(cls.documentationComment, text);
+  }
+
+  test_class_documented_with_with_windows_line_endings() {
+    String text = '/**\r\n * Docs\r\n */\r\nclass C {}';
+    UnlinkedClass cls = serializeClassText(text);
+    expect(cls.documentationComment, isNotNull);
+    checkDocumentationComment(cls.documentationComment, text);
   }
 
   test_class_interface() {
@@ -834,6 +1132,7 @@ class E {}
     var classText = 'class C {}';
     UnlinkedClass cls = serializeClassText(classText);
     expect(cls.name, 'C');
+    expect(cls.nameOffset, classText.indexOf('C'));
   }
 
   test_class_no_flags() {
@@ -916,18 +1215,23 @@ class E {}
   }
 
   test_class_type_param_no_bound() {
-    UnlinkedClass cls = serializeClassText('class C<T> {}');
+    String text = 'class C<T> {}';
+    UnlinkedClass cls = serializeClassText(text);
     expect(cls.typeParameters, hasLength(1));
     expect(cls.typeParameters[0].name, 'T');
+    expect(cls.typeParameters[0].nameOffset, text.indexOf('T'));
     expect(cls.typeParameters[0].bound, isNull);
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 1);
   }
 
   test_constructor() {
-    UnlinkedExecutable executable = findExecutable('',
-        executables: serializeClassText('class C { C(); }').executables);
+    String text = 'class C { C(); }';
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(text).executables);
     expect(executable.kind, UnlinkedExecutableKind.constructor);
     expect(executable.hasImplicitReturnType, isFalse);
     expect(executable.isExternal, isFalse);
+    expect(executable.nameOffset, text.indexOf('C();'));
   }
 
   test_constructor_anonymous() {
@@ -949,6 +1253,19 @@ class E {}
             serializeClassText('class C { external const C(); }').executables);
     expect(executable.isConst, isTrue);
     expect(executable.isExternal, isTrue);
+  }
+
+  test_constructor_documented() {
+    String text = '''
+class C {
+  /**
+   * Docs
+   */
+  C();
+}''';
+    UnlinkedExecutable executable = serializeClassText(text).executables[0];
+    expect(executable.documentationComment, isNotNull);
+    checkDocumentationComment(executable.documentationComment, text);
   }
 
   test_constructor_external() {
@@ -1107,9 +1424,11 @@ class E {}
   }
 
   test_constructor_named() {
+    String text = 'class C { C.foo(); }';
     UnlinkedExecutable executable = findExecutable('foo',
-        executables: serializeClassText('class C { C.foo(); }').executables);
+        executables: serializeClassText(text).executables);
     expect(executable.name, 'foo');
+    expect(executable.nameOffset, text.indexOf('foo'));
   }
 
   test_constructor_non_const() {
@@ -1127,28 +1446,20 @@ class E {}
   test_constructor_return_type() {
     UnlinkedExecutable executable = findExecutable('',
         executables: serializeClassText('class C { C(); }').executables);
-    checkTypeRef(executable.returnType, null, null, 'C');
+    expect(executable.returnType, isNull);
   }
 
   test_constructor_return_type_parameterized() {
     UnlinkedExecutable executable = findExecutable('',
         executables: serializeClassText('class C<T, U> { C(); }').executables);
-    checkTypeRef(executable.returnType, null, null, 'C',
-        allowTypeParameters: true, numTypeParameters: 2);
-    expect(executable.returnType.typeArguments, hasLength(2));
-    {
-      UnlinkedTypeRef typeRef = executable.returnType.typeArguments[0];
-      checkParamTypeRef(typeRef, 2);
-    }
-    {
-      UnlinkedTypeRef typeRef = executable.returnType.typeArguments[1];
-      checkParamTypeRef(typeRef, 1);
-    }
+    expect(executable.returnType, isNull);
   }
 
   test_dependencies_export_none() {
     // Exports are not listed as dependencies since no change to the exported
     // file can change the summary of the exporting file.
+    // TODO(paulberry): this needs to change since the element model for a
+    // library includes its export namespace.
     addNamedSource('/a.dart', 'library a; export "b.dart";');
     addNamedSource('/b.dart', 'library b;');
     serializeLibraryText('export "a.dart";');
@@ -1174,17 +1485,17 @@ class E {}
     checkHasDependency(absUri('/a/a.dart'), 'a/a.dart');
     // The main test library depends on b.dart, because names defined in
     // b.dart are exported by a.dart.
-    checkHasDependency(absUri('/a/b/b.dart'), '/a/b/b.dart');
+    checkHasDependency(absUri('/a/b/b.dart'), absUri('/a/b/b.dart'));
   }
 
   test_dependencies_import_to_export_in_subdirs_absolute_import() {
     addNamedSource('/a/a.dart', 'library a; export "b/b.dart"; class A {}');
     addNamedSource('/a/b/b.dart', 'library b;');
     serializeLibraryText('import "${absUri('/a/a.dart')}"; A a;');
-    checkHasDependency(absUri('/a/a.dart'), '/a/a.dart');
+    checkHasDependency(absUri('/a/a.dart'), absUri('/a/a.dart'));
     // The main test library depends on b.dart, because names defined in
     // b.dart are exported by a.dart.
-    checkHasDependency(absUri('/a/b/b.dart'), '/a/b/b.dart');
+    checkHasDependency(absUri('/a/b/b.dart'), absUri('/a/b/b.dart'));
   }
 
   test_dependencies_import_to_export_in_subdirs_relative() {
@@ -1229,6 +1540,32 @@ class E {}
     checkLacksDependency(absUri('/b.dart'), 'b.dart');
   }
 
+  test_dependencies_parts() {
+    addNamedSource(
+        '/a.dart', 'library a; part "b.dart"; part "c.dart"; class A {}');
+    addNamedSource('/b.dart', 'part of a;');
+    addNamedSource('/c.dart', 'part of a;');
+    serializeLibraryText('import "a.dart"; A a;');
+    PrelinkedDependency dep = checkHasDependency(absUri('/a.dart'), 'a.dart');
+    checkDependencyParts(
+        dep, [absUri('/b.dart'), absUri('/c.dart')], ['b.dart', 'c.dart']);
+  }
+
+  test_dependencies_parts_relative_to_importing_library() {
+    addNamedSource('/a/b.dart', 'export "c/d.dart";');
+    addNamedSource('/a/c/d.dart',
+        'library d; part "e/f.dart"; part "g/h.dart"; class D {}');
+    addNamedSource('/a/c/e/f.dart', 'part of d;');
+    addNamedSource('/a/c/g/h.dart', 'part of d;');
+    serializeLibraryText('import "a/b.dart"; D d;');
+    PrelinkedDependency dep =
+        checkHasDependency(absUri('/a/c/d.dart'), 'a/c/d.dart');
+    checkDependencyParts(
+        dep,
+        [absUri('/a/c/e/f.dart'), absUri('/a/c/g/h.dart')],
+        ['a/c/e/f.dart', 'a/c/g/h.dart']);
+  }
+
   test_elements_in_part() {
     addNamedSource(
         '/part1.dart',
@@ -1251,14 +1588,30 @@ typedef F();
   }
 
   test_enum() {
-    UnlinkedEnum e = serializeEnumText('enum E { v1 }');
+    String text = 'enum E { v1 }';
+    UnlinkedEnum e = serializeEnumText(text);
     expect(e.name, 'E');
+    expect(e.nameOffset, text.indexOf('E'));
     expect(e.values, hasLength(1));
     expect(e.values[0].name, 'v1');
+    expect(e.values[0].nameOffset, text.indexOf('v1'));
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.classOrEnum);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'E');
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
+  }
+
+  test_enum_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+enum E { v }''';
+    UnlinkedEnum enm = serializeEnumText(text);
+    expect(enm.documentationComment, isNotNull);
+    checkDocumentationComment(enm.documentationComment, text);
   }
 
   test_enum_order() {
@@ -1286,15 +1639,18 @@ typedef F();
   }
 
   test_executable_function() {
-    UnlinkedExecutable executable = serializeExecutableText('f() {}');
+    String text = '  f() {}';
+    UnlinkedExecutable executable = serializeExecutableText(text);
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.hasImplicitReturnType, isTrue);
     checkDynamicTypeRef(executable.returnType);
     expect(executable.isExternal, isFalse);
+    expect(executable.nameOffset, text.indexOf('f'));
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.other);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'f');
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
 
   test_executable_function_explicit_return() {
@@ -1315,10 +1671,12 @@ typedef F();
   }
 
   test_executable_getter() {
-    UnlinkedExecutable executable = serializeExecutableText('int get f => 1;');
+    String text = 'int get f => 1;';
+    UnlinkedExecutable executable = serializeExecutableText(text);
     expect(executable.kind, UnlinkedExecutableKind.getter);
     expect(executable.hasImplicitReturnType, isFalse);
     expect(executable.isExternal, isFalse);
+    expect(executable.nameOffset, text.indexOf('f'));
     expect(findVariable('f'), isNull);
     expect(findExecutable('f='), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
@@ -1396,7 +1754,6 @@ typedef F();
     UnlinkedExecutable executable =
         findExecutable('f=', executables: cls.executables, failIfAbsent: true);
     expect(executable.kind, UnlinkedExecutableKind.setter);
-    // For setters, hasImplicitReturnType is always false.
     expect(executable.hasImplicitReturnType, isFalse);
     expect(executable.isExternal, isFalse);
     expect(findVariable('f', variables: cls.fields), isNull);
@@ -1415,7 +1772,7 @@ typedef F();
     UnlinkedClass cls = serializeClassText('class C { set f(value) {} }');
     UnlinkedExecutable executable =
         findExecutable('f=', executables: cls.executables, failIfAbsent: true);
-    expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.hasImplicitReturnType, isTrue);
     checkDynamicTypeRef(executable.returnType);
   }
 
@@ -1500,8 +1857,7 @@ typedef F();
 
   test_executable_operator_index_set() {
     UnlinkedExecutable executable = serializeClassText(
-            'class C { void operator[]=(int i, bool v) => null; }')
-        .executables[0];
+        'class C { void operator[]=(int i, bool v) => null; }').executables[0];
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.name, '[]=');
     expect(executable.hasImplicitReturnType, false);
@@ -1585,9 +1941,11 @@ typedef F();
   }
 
   test_executable_param_name() {
-    UnlinkedExecutable executable = serializeExecutableText('f(x) {}');
+    String text = 'f(x) {}';
+    UnlinkedExecutable executable = serializeExecutableText(text);
     expect(executable.parameters, hasLength(1));
     expect(executable.parameters[0].name, 'x');
+    expect(executable.parameters[0].nameOffset, text.indexOf('x'));
   }
 
   test_executable_param_no_flags() {
@@ -1643,11 +2001,12 @@ typedef F();
   }
 
   test_executable_setter() {
-    UnlinkedExecutable executable =
-        serializeExecutableText('void set f(value) {}', 'f=');
+    String text = 'void set f(value) {}';
+    UnlinkedExecutable executable = serializeExecutableText(text, 'f=');
     expect(executable.kind, UnlinkedExecutableKind.setter);
     expect(executable.hasImplicitReturnType, isFalse);
     expect(executable.isExternal, isFalse);
+    expect(executable.nameOffset, text.indexOf('f'));
     expect(findVariable('f'), isNull);
     expect(findExecutable('f'), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
@@ -1665,8 +2024,7 @@ typedef F();
   test_executable_setter_implicit_return() {
     UnlinkedExecutable executable =
         serializeExecutableText('set f(value) {}', 'f=');
-    // For setters, hasImplicitReturnType is always false.
-    expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.hasImplicitReturnType, isTrue);
     checkDynamicTypeRef(executable.returnType);
   }
 
@@ -1722,6 +2080,7 @@ typedef F();
   test_executable_type_param_in_parameter_function() {
     UnlinkedExecutable ex = serializeExecutableText('void f<T>(T t) {}');
     checkParamTypeRef(ex.parameters[0].type, 1);
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 1);
   }
 
   test_executable_type_param_in_parameter_method() {
@@ -1758,6 +2117,15 @@ typedef F();
     serializeLibraryText('export "dart:async";');
     expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.exports[0].combinators, isEmpty);
+  }
+
+  test_export_offset() {
+    String libraryText = '    export "dart:async";';
+    serializeLibraryText(libraryText);
+    expect(unlinkedUnits[0].exports[0].uriOffset,
+        libraryText.indexOf('"dart:async"'));
+    expect(unlinkedUnits[0].exports[0].uriEnd, libraryText.indexOf(';'));
+    expect(unlinkedUnits[0].exports[0].offset, libraryText.indexOf('export'));
   }
 
   test_export_show_order() {
@@ -1801,6 +2169,19 @@ typedef F();
     expect(variable.isConst, isTrue);
   }
 
+  test_field_documented() {
+    String text = '''
+class C {
+  /**
+   * Docs
+   */
+  var v;
+}''';
+    UnlinkedVariable variable = serializeClassText(text).fields[0];
+    expect(variable.documentationComment, isNotNull);
+    checkDocumentationComment(variable.documentationComment, text);
+  }
+
   test_field_final() {
     UnlinkedVariable variable =
         serializeClassText('class C { final int i = 0; }').fields[0];
@@ -1813,6 +2194,18 @@ typedef F();
     expect(variable.isStatic, isTrue);
   }
 
+  test_function_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+f() {}''';
+    UnlinkedExecutable executable = serializeExecutableText(text);
+    expect(executable.documentationComment, isNotNull);
+    checkDocumentationComment(executable.documentationComment, text);
+  }
+
   test_generic_method_in_generic_class() {
     UnlinkedClass cls = serializeClassText(
         'class C<T, U> { void m<V, W>(T t, U u, V v, W w) {} }');
@@ -1821,6 +2214,18 @@ typedef F();
     checkParamTypeRef(params[1].type, 3);
     checkParamTypeRef(params[2].type, 2);
     checkParamTypeRef(params[3].type, 1);
+  }
+
+  test_getter_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+get f => null;''';
+    UnlinkedExecutable executable = serializeExecutableText(text);
+    expect(executable.documentationComment, isNotNull);
+    checkDocumentationComment(executable.documentationComment, text);
   }
 
   test_import_deferred() {
@@ -1861,6 +2266,8 @@ typedef F();
     expect(unlinkedUnits[0].imports, hasLength(1));
     checkDependency(prelinked.importDependencies[0], 'dart:core', 'dart:core');
     expect(unlinkedUnits[0].imports[0].uri, isEmpty);
+    expect(unlinkedUnits[0].imports[0].uriOffset, 0);
+    expect(unlinkedUnits[0].imports[0].uriEnd, 0);
     expect(unlinkedUnits[0].imports[0].prefixReference, 0);
     expect(unlinkedUnits[0].imports[0].combinators, isEmpty);
     expect(unlinkedUnits[0].imports[0].isImplicit, isTrue);
@@ -1888,6 +2295,7 @@ typedef F();
   test_import_of_file_with_missing_part() {
     // Other references in foo.dart should be resolved even though foo.dart's
     // part declaration for bar.dart refers to a non-existent file.
+    allowMissingFiles = true;
     addNamedSource('/foo.dart', 'part "bar.dart"; class C {}');
     serializeLibraryText('import "foo.dart"; C x;');
     checkTypeRef(findVariable('x').type, absUri('/foo.dart'), 'foo.dart', 'C');
@@ -1896,6 +2304,7 @@ typedef F();
   test_import_of_missing_export() {
     // Other references in foo.dart should be resolved even though foo.dart's
     // re-export of bar.dart refers to a non-existent file.
+    allowMissingFiles = true;
     addNamedSource('/foo.dart', 'export "bar.dart"; class C {}');
     serializeLibraryText('import "foo.dart"; C x;');
     checkTypeRef(findVariable('x').type, absUri('/foo.dart'), 'foo.dart', 'C');
@@ -1905,6 +2314,9 @@ typedef F();
     String libraryText = '    import "dart:async"; Future x;';
     serializeLibraryText(libraryText);
     expect(unlinkedUnits[0].imports[0].offset, libraryText.indexOf('import'));
+    expect(unlinkedUnits[0].imports[0].uriOffset,
+        libraryText.indexOf('"dart:async"'));
+    expect(unlinkedUnits[0].imports[0].uriEnd, libraryText.indexOf('; Future'));
   }
 
   test_import_prefix_name() {
@@ -1913,6 +2325,7 @@ typedef F();
     // Second import is the implicit import of dart:core
     expect(unlinkedUnits[0].imports, hasLength(2));
     checkPrefix(unlinkedUnits[0].imports[0].prefixReference, 'a');
+    expect(unlinkedUnits[0].imports[0].prefixOffset, libraryText.indexOf('a;'));
   }
 
   test_import_prefix_none() {
@@ -1934,6 +2347,29 @@ typedef F();
         serializeVariableText('import "dart:async" as a; a.Future v;');
     checkTypeRef(variable.type, 'dart:async', 'dart:async', 'Future',
         expectedPrefix: 'a', numTypeParameters: 1);
+  }
+
+  test_import_prefixes_take_precedence_over_imported_names() {
+    addNamedSource('/a.dart', 'class b {} class A');
+    addNamedSource('/b.dart', 'class Cls {}');
+    addNamedSource('/c.dart', 'class Cls {}');
+    addNamedSource('/d.dart', 'class c {} class D');
+    serializeLibraryText('''
+import 'a.dart';
+import 'b.dart' as b;
+import 'c.dart' as c;
+import 'd.dart';
+A aCls;
+b.Cls bCls;
+c.Cls cCls;
+D dCls;
+''');
+    checkTypeRef(findVariable('aCls').type, absUri('/a.dart'), 'a.dart', 'A');
+    checkTypeRef(findVariable('bCls').type, absUri('/b.dart'), 'b.dart', 'Cls',
+        expectedPrefix: 'b');
+    checkTypeRef(findVariable('cCls').type, absUri('/c.dart'), 'c.dart', 'Cls',
+        expectedPrefix: 'c');
+    checkTypeRef(findVariable('dCls').type, absUri('/d.dart'), 'd.dart', 'D');
   }
 
   test_import_reference() {
@@ -1971,6 +2407,22 @@ a.Stream s;
         expectedPrefix: 'a', numTypeParameters: 1);
   }
 
+  test_import_reference_merged_prefixed_separate_libraries() {
+    addNamedSource('/a.dart', 'class A {}');
+    addNamedSource('/b.dart', 'class B {}');
+    serializeLibraryText('''
+import 'a.dart' as p;
+import 'b.dart' as p;
+
+p.A a;
+p.B b;
+''');
+    checkTypeRef(findVariable('a').type, absUri('/a.dart'), 'a.dart', 'A',
+        expectedPrefix: 'p');
+    checkTypeRef(findVariable('b').type, absUri('/b.dart'), 'b.dart', 'B',
+        expectedPrefix: 'p');
+  }
+
   test_import_show_order() {
     String libraryText =
         'import "dart:async" show Future, Stream; Future x; Stream y;';
@@ -1993,15 +2445,86 @@ a.Stream s;
     expect(unlinkedUnits[0].imports[0].uri, 'dart:async');
   }
 
+  test_library_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+library foo;''';
+    serializeLibraryText(text);
+    expect(unlinkedUnits[0].libraryDocumentationComment, isNotNull);
+    checkDocumentationComment(
+        unlinkedUnits[0].libraryDocumentationComment, text);
+  }
+
+  test_library_name_with_spaces() {
+    String text = 'library foo . bar ;';
+    serializeLibraryText(text);
+    expect(unlinkedUnits[0].libraryName, 'foo.bar');
+    expect(unlinkedUnits[0].libraryNameOffset, text.indexOf('foo . bar'));
+    expect(unlinkedUnits[0].libraryNameLength, 'foo . bar'.length);
+  }
+
   test_library_named() {
     String text = 'library foo.bar;';
     serializeLibraryText(text);
     expect(unlinkedUnits[0].libraryName, 'foo.bar');
+    expect(unlinkedUnits[0].libraryNameOffset, text.indexOf('foo.bar'));
+    expect(unlinkedUnits[0].libraryNameLength, 'foo.bar'.length);
   }
 
   test_library_unnamed() {
     serializeLibraryText('');
     expect(unlinkedUnits[0].libraryName, isEmpty);
+    expect(unlinkedUnits[0].libraryNameOffset, 0);
+    expect(unlinkedUnits[0].libraryNameLength, 0);
+  }
+
+  test_library_with_missing_part() {
+    // References to other parts should still be resolved.
+    allowMissingFiles = true;
+    addNamedSource('/bar.dart', 'part of my.lib; class C {}');
+    serializeLibraryText(
+        'library my.lib; part "foo.dart"; part "bar.dart"; C c;',
+        allowErrors: true);
+    checkTypeRef(findVariable('c').type, null, null, 'C',
+        expectedTargetUnit: 2);
+  }
+
+  test_local_names_take_precedence_over_imported_names() {
+    addNamedSource('/a.dart', 'class C {} class D {}');
+    serializeLibraryText('''
+import 'a.dart';
+class C {}
+C c;
+D d;''');
+    checkTypeRef(findVariable('c').type, null, null, 'C');
+    checkTypeRef(findVariable('d').type, absUri('/a.dart'), 'a.dart', 'D');
+  }
+
+  test_method_documented() {
+    String text = '''
+class C {
+  /**
+   * Docs
+   */
+  f() {}
+}''';
+    UnlinkedExecutable executable = serializeClassText(text).executables[0];
+    expect(executable.documentationComment, isNotNull);
+    checkDocumentationComment(executable.documentationComment, text);
+  }
+
+  test_part_declaration() {
+    addNamedSource('/a.dart', 'part of my.lib;');
+    String text = 'library my.lib; part "a.dart"; // <-part';
+    serializeLibraryText(text);
+    expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.parts[0], 'a.dart');
+    expect(unlinkedUnits[0].parts, hasLength(1));
+    expect(unlinkedUnits[0].parts[0].uriOffset, text.indexOf('"a.dart"'));
+    expect(unlinkedUnits[0].parts[0].uriEnd, text.indexOf('; // <-part'));
   }
 
   test_parts_defining_compilation_unit() {
@@ -2017,7 +2540,7 @@ a.Stream s;
     serializeLibraryText(libraryText);
     expect(prelinked.units, hasLength(2));
     expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
-    expect(unlinkedUnits[0].publicNamespace.parts[0].uri, 'part1.dart');
+    expect(unlinkedUnits[0].publicNamespace.parts[0], 'part1.dart');
   }
 
   test_public_namespace_of_part() {
@@ -2026,6 +2549,18 @@ a.Stream s;
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
     expect(unlinkedUnits[1].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[1].publicNamespace.names[0].name, 'C');
+  }
+
+  test_setter_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+void set f(value) {}''';
+    UnlinkedExecutable executable = serializeExecutableText(text, 'f=');
+    expect(executable.documentationComment, isNotNull);
+    checkDocumentationComment(executable.documentationComment, text);
   }
 
   test_type_arguments_explicit() {
@@ -2100,6 +2635,19 @@ a.Stream s;
     checkTypeRef(findVariable('v', variables: unlinkedUnits[1].variables).type,
         null, null, 'C',
         expectedKind: PrelinkedReferenceKind.classOrEnum,
+        prelinkedSourceUnit: prelinked.units[1],
+        unlinkedSourceUnit: unlinkedUnits[1]);
+  }
+
+  test_type_reference_from_part_withPrefix() {
+    addNamedSource('/a.dart', 'class C {}');
+    addNamedSource('/p.dart', 'part of foo; a.C v;');
+    serializeLibraryText(
+        'library foo; import "a.dart"; import "a.dart" as a; part "p.dart";',
+        allowErrors: true);
+    checkTypeRef(findVariable('v', variables: unlinkedUnits[1].variables).type,
+        absUri('/a.dart'), 'a.dart', 'C',
+        expectedPrefix: 'a',
         prelinkedSourceUnit: prelinked.units[1],
         unlinkedSourceUnit: unlinkedUnits[1]);
   }
@@ -2191,21 +2739,12 @@ a.Stream s;
         expectedTargetUnit: 1);
   }
 
-  test_type_reference_to_nonexistent_file_via_prefix() {
-    UnlinkedTypeRef typeRef = serializeTypeText('p.C',
-        otherDeclarations: 'import "foo.dart" as p;', allowErrors: true);
-    checkUnresolvedTypeRef(typeRef, 'p', 'C');
-  }
-
   test_type_reference_to_part() {
     addNamedSource('/a.dart', 'part of foo; class C { C(); }');
     serializeLibraryText('library foo; part "a.dart"; C c;');
-    UnlinkedClass classA = findClass('C', unit: unlinkedUnits[1]);
-    checkTypeRef(classA.executables.single.returnType, null, null, 'C',
+    checkTypeRef(unlinkedUnits[0].variables.single.type, null, null, 'C',
         expectedKind: PrelinkedReferenceKind.classOrEnum,
-        expectedTargetUnit: 1,
-        prelinkedSourceUnit: prelinked.units[1],
-        unlinkedSourceUnit: unlinkedUnits[1]);
+        expectedTargetUnit: 1);
   }
 
   test_type_reference_to_typedef() {
@@ -2232,13 +2771,28 @@ a.Stream s;
     checkUnresolvedTypeRef(typeRef, null, 'Foo');
   }
 
+  test_typedef_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+typedef F();''';
+    UnlinkedTypedef typedef = serializeTypedefText(text);
+    expect(typedef.documentationComment, isNotNull);
+    checkDocumentationComment(typedef.documentationComment, text);
+  }
+
   test_typedef_name() {
-    UnlinkedTypedef type = serializeTypedefText('typedef F();');
+    String text = 'typedef F();';
+    UnlinkedTypedef type = serializeTypedefText(text);
     expect(type.name, 'F');
+    expect(type.nameOffset, text.indexOf('F'));
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.typedef);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'F');
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
 
   test_typedef_param_none() {
@@ -2281,6 +2835,7 @@ a.Stream s;
   test_typedef_type_param_in_parameter() {
     UnlinkedTypedef type = serializeTypedefText('typedef F<T>(T t);');
     checkParamTypeRef(type.parameters[0].type, 1);
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 1);
   }
 
   test_typedef_type_param_in_return_type() {
@@ -2301,22 +2856,38 @@ a.Stream s;
   }
 
   test_variable() {
-    serializeVariableText('int i;', variableName: 'i');
+    String text = 'int i;';
+    UnlinkedVariable v = serializeVariableText(text, variableName: 'i');
+    expect(v.nameOffset, text.indexOf('i;'));
     expect(findExecutable('i'), isNull);
     expect(findExecutable('i='), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(2));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.other);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'i');
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
     expect(unlinkedUnits[0].publicNamespace.names[1].kind,
         PrelinkedReferenceKind.other);
     expect(unlinkedUnits[0].publicNamespace.names[1].name, 'i=');
+    expect(unlinkedUnits[0].publicNamespace.names[1].numTypeParameters, 0);
   }
 
   test_variable_const() {
     UnlinkedVariable variable =
         serializeVariableText('const int i = 0;', variableName: 'i');
     expect(variable.isConst, isTrue);
+  }
+
+  test_variable_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+var v;''';
+    UnlinkedVariable variable = serializeVariableText(text);
+    expect(variable.documentationComment, isNotNull);
+    checkDocumentationComment(variable.documentationComment, text);
   }
 
   test_variable_explicit_dynamic() {

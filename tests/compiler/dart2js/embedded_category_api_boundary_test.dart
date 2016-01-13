@@ -24,7 +24,8 @@ main() async {
   });
   asyncTest(() async {
     analyze(uriList, {},
-        checkResults: checkResults, analyzeMain: true, analyzeAll: false);
+        checkResults: checkResults,
+        mode: AnalysisMode.MAIN);
   });
 }
 

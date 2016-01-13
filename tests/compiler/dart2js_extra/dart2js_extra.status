@@ -60,9 +60,6 @@ deferred/*: Skip # Issue 17458
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
 deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.
 
-[ $host_checked && $compiler == dart2js && $cps_ir ]
-21724_test: Crash # Please triage this failure.
-
 [ $compiler == none && $runtime == vm ]
 invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
 lookup_map/dead_entry_through_mirrors_test: SkipByDesign # Test for tree-shaking, vm never tree-shakes
@@ -72,14 +69,5 @@ big_allocation_expression_test: Crash # Issue 24635
 
 [ $compiler == dart2js && $cps_ir ]
 16407_test: Pass # Please triage this failure.
-code_motion_exception_test: Fail # .toString to null check a primitive, triggered by inlining
 async_stacktrace_test/asyncStar: Crash # (foo()async*{try {tr...  cannot handle sync*/async* functions
-deferred/deferred_class_test: RuntimeError # Z.loadLibrary is not a function
-deferred/deferred_constant2_test: RuntimeError # U.loadLibrary is not a function
-deferred/deferred_constant3_test: RuntimeError # Y.loadLibrary is not a function
-deferred/deferred_constant4_test: RuntimeError # B.loadLibrary is not a function
-deferred/deferred_function_test: Crash # (lib.foo('a')): deferred access is not implemented
-deferred/deferred_mirrors1_test: RuntimeError # U.loadLibrary is not a function
-deferred/deferred_overlapping_test: RuntimeError # E.loadLibrary is not a function
-deferred_split_test: RuntimeError # Z.loadLibrary is not a function
 switch_test/none: Crash # (switch (val){foo:ba...  continue to a labeled switch case

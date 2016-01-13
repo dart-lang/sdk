@@ -164,6 +164,7 @@ class Thread : public BaseThread {
     return OFFSET_OF(Thread, isolate_);
   }
   bool IsMutatorThread() const;
+  bool CanCollectGarbage() const;
 
   // Is |this| executing Dart code?
   bool IsExecutingDartCode() const;

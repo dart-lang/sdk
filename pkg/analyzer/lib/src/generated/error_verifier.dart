@@ -1360,12 +1360,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // TODO(jmesserly): this duplicates some code in isSubtypeOf and most of
     // _isGenericFunctionSubtypeOf. Ideally, we'd let TypeSystem produce
     // an error message once it's ready to "return false".
-    if (!overridingFT.boundTypeParameters.isEmpty) {
-      if (overriddenFT.boundTypeParameters.isEmpty) {
+    if (!overridingFT.typeFormals.isEmpty) {
+      if (overriddenFT.typeFormals.isEmpty) {
         overriddenFT = _typeSystem.instantiateToBounds(overriddenFT);
       } else {
-        List<TypeParameterElement> params1 = overridingFT.boundTypeParameters;
-        List<TypeParameterElement> params2 = overriddenFT.boundTypeParameters;
+        List<TypeParameterElement> params1 = overridingFT.typeFormals;
+        List<TypeParameterElement> params2 = overriddenFT.typeFormals;
         int count = params1.length;
         if (params2.length != count) {
           _errorReporter.reportErrorForNode(

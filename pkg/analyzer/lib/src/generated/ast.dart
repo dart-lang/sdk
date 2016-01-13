@@ -5875,11 +5875,26 @@ class FunctionExpressionInvocation extends Expression {
   ExecutableElement staticElement;
 
   /**
+   * The function type of the method invocation, or `null` if the AST
+   * structure has not been resolved, or if the invoke could not be resolved.
+   *
+   * This will usually be a [FunctionType], but it can also be an
+   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
+   * interface type that implements `Function`.
+   */
+  DartType staticInvokeType;
+
+  /**
    * The element associated with the function being invoked based on propagated
    * type information, or `null` if the AST structure has not been resolved or
    * the function could not be resolved.
    */
   ExecutableElement propagatedElement;
+
+  /**
+   * Like [staticInvokeType], but reflects propagated type information.
+   */
+  DartType propagatedInvokeType;
 
   /**
    * Initialize a newly created function expression invocation.
@@ -8086,6 +8101,21 @@ class MethodInvocation extends Expression {
    * The list of arguments to the method.
    */
   ArgumentList _argumentList;
+
+  /**
+   * The function type of the method invocation, or `null` if the AST
+   * structure has not been resolved, or if the invoke could not be resolved.
+   *
+   * This will usually be a [FunctionType], but it can also be an
+   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
+   * interface type that implements `Function`.
+   */
+  DartType staticInvokeType;
+
+  /**
+   * Like [staticInvokeType], but reflects propagated type information.
+   */
+  DartType propagatedInvokeType;
 
   /**
    * Initialize a newly created method invocation. The [target] and [operator]

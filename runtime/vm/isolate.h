@@ -348,17 +348,6 @@ class Isolate : public BaseIsolate {
 
   const Flags& flags() const { return flags_; }
 
-  // Set the checks in the compiler to the highest level. Statically and when
-  // executing generated code. Needs to be called before any code has been
-  // compiled.
-  void set_strict_compilation() {
-    ASSERT(!has_compiled_code());
-    flags_.type_checks_ = true;
-    flags_.asserts_ = true;
-    flags_.error_on_bad_type_ = true;
-    flags_.error_on_bad_override_ = true;
-  }
-
   // Requests that the debugger resume execution.
   void Resume() {
     resume_request_ = true;
@@ -422,6 +411,12 @@ class Isolate : public BaseIsolate {
   void set_gc_epilogue_callback(Dart_GcEpilogueCallback callback) {
     gc_epilogue_callback_ = callback;
   }
+
+  Monitor* spawn_count_monitor() const { return spawn_count_monitor_; }
+  intptr_t* spawn_count() { return &spawn_count_; }
+
+  void IncrementSpawnCount();
+  void WaitForOutstandingSpawns();
 
   static void SetCreateCallback(Dart_IsolateCreateCallback cb) {
     create_callback_ = cb;
@@ -823,6 +818,11 @@ class Isolate : public BaseIsolate {
   uint32_t field_invalidation_gen_;
   uint32_t prefix_invalidation_gen_;
 
+  // This guards spawn_count_. An isolate cannot complete shutdown and be
+  // destroyed while there are child isolates in the midst of a spawn.
+  Monitor* spawn_count_monitor_;
+  intptr_t spawn_count_;
+
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
@@ -915,8 +915,13 @@ class IsolateSpawnState {
   IsolateSpawnState(Dart_Port parent_port,
                     Dart_Port origin_id,
                     void* init_data,
+                    const char* script_url,
                     const Function& func,
                     const Instance& message,
+                    Monitor* spawn_count_monitor,
+                    intptr_t* spawn_count,
+                    const char* package_root,
+                    const char* package_config,
                     bool paused,
                     bool errorsAreFatal,
                     Dart_Port onExit,
@@ -925,9 +930,11 @@ class IsolateSpawnState {
                     void* init_data,
                     const char* script_url,
                     const char* package_root,
-                    const char** package_map,
+                    const char* package_config,
                     const Instance& args,
                     const Instance& message,
+                    Monitor* spawn_count_monitor,
+                    intptr_t* spawn_count,
                     bool paused,
                     bool errorsAreFatal,
                     Dart_Port onExit,
@@ -944,7 +951,7 @@ class IsolateSpawnState {
   Dart_Port on_error_port() const { return on_error_port_; }
   const char* script_url() const { return script_url_; }
   const char* package_root() const { return package_root_; }
-  const char** package_map() const { return package_map_; }
+  const char* package_config() const { return package_config_; }
   const char* library_url() const { return library_url_; }
   const char* class_name() const { return class_name_; }
   const char* function_name() const { return function_name_; }
@@ -957,6 +964,8 @@ class IsolateSpawnState {
   RawInstance* BuildArgs(Thread* thread);
   RawInstance* BuildMessage(Thread* thread);
 
+  void DecrementSpawnCount();
+
  private:
   Isolate* isolate_;
   Dart_Port parent_port_;
@@ -966,7 +975,7 @@ class IsolateSpawnState {
   Dart_Port on_error_port_;
   const char* script_url_;
   const char* package_root_;
-  const char** package_map_;
+  const char* package_config_;
   const char* library_url_;
   const char* class_name_;
   const char* function_name_;
@@ -974,6 +983,12 @@ class IsolateSpawnState {
   intptr_t serialized_args_len_;
   uint8_t* serialized_message_;
   intptr_t serialized_message_len_;
+
+  // This counter tracks the number of outstanding calls to spawn by the parent
+  // isolate.
+  Monitor* spawn_count_monitor_;
+  intptr_t* spawn_count_;
+
   Isolate::Flags isolate_flags_;
   bool paused_;
   bool errors_are_fatal_;

@@ -13,6 +13,10 @@
 #include <sys/time.h>  // NOLINT
 #include <time.h>  // NOLINT
 
+#if TARGET_OS_IOS
+#include <sys/sysctl.h>  // NOLINT
+#endif
+
 #include "bin/utils.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
@@ -84,6 +88,20 @@ void TimerUtils::InitOnce() {
 int64_t TimerUtils::GetCurrentMonotonicMillis() {
   return GetCurrentMonotonicMicros() / 1000;
 }
+
+#if TARGET_OS_IOS
+
+static int64_t GetCurrentTimeMicros() {
+  // gettimeofday has microsecond resolution.
+  struct timeval tv;
+  if (gettimeofday(&tv, NULL) < 0) {
+    UNREACHABLE();
+    return 0;
+  }
+  return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
+}
+
+#endif  // TARGET_OS_IOS
 
 int64_t TimerUtils::GetCurrentMonotonicMicros() {
 #if TARGET_OS_IOS

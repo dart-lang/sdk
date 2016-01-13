@@ -14,6 +14,7 @@ import 'package:compiler/src/compiler.dart'
     show Compiler;
 import 'package:compiler/src/elements/elements.dart'
     show Element,
+         MemberElement,
          TypeDeclarationElement,
          ClassElement;
 
@@ -96,7 +97,8 @@ class TypeEnvironment {
   }
 
   DartType getElementType(String name) {
-    return getElement(name).computeType(compiler.resolution);
+    var element = getElement(name);
+    return element.computeType(compiler.resolution);
   }
 
   DartType operator[] (String name) {
@@ -106,7 +108,7 @@ class TypeEnvironment {
   }
 
   DartType getMemberType(ClassElement element, String name) {
-    Element member = element.localLookup(name);
+    MemberElement member = element.localLookup(name);
     return member.computeType(compiler.resolution);
   }
 

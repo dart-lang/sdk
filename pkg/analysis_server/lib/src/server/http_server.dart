@@ -69,13 +69,8 @@ class HttpAnalysisServer {
    * Begin serving HTTP requests over the given port.
    */
   void serveHttp(int port) {
-    try {
-      _server = HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port);
-      _server.then(_handleServer);
-    } catch (exception) {
-      // We were unable to start the server, and there's nothing we can do about
-      // it.
-    }
+    _server = HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port);
+    _server.then(_handleServer).catchError((_) {/* Ignore errors. */});
   }
 
   /**
@@ -91,8 +86,8 @@ class HttpAnalysisServer {
   /**
    * Attach a listener to a newly created HTTP server.
    */
-  void _handleServer(HttpServer httServer) {
-    httServer.listen((HttpRequest request) {
+  void _handleServer(HttpServer httpServer) {
+    httpServer.listen((HttpRequest request) {
       List<String> updateValues = request.headers[HttpHeaders.UPGRADE];
       if (updateValues != null && updateValues.indexOf('websocket') >= 0) {
         WebSocketTransformer.upgrade(request).then((WebSocket websocket) {

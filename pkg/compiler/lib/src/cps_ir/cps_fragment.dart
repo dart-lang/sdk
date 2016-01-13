@@ -135,8 +135,9 @@ class CpsFragment {
       List<Primitive> arguments,
       [CallingConvention callingConvention = CallingConvention.Normal]) {
     InvokeMethod invoke =
-        new InvokeMethod(receiver, selector, mask, arguments, sourceInformation)
-            ..callingConvention = callingConvention;
+        new InvokeMethod(receiver, selector, mask, arguments,
+                         sourceInformation: sourceInformation,
+                         callingConvention: callingConvention);
     return letPrim(invoke);
   }
 
@@ -188,31 +189,39 @@ class CpsFragment {
 
   /// Branch on [condition].
   ///
-  /// Returns a new fragment for the 'then' branch.
+  /// Returns a new fragment for the 'then' branch, or the 'else' branch
+  /// if [negate] is true.
   ///
-  /// The 'else' branch becomes the new hole.
-  CpsFragment ifTruthy(Primitive condition) {
+  /// The other branch becomes the new hole.
+  CpsFragment branch(Primitive condition,
+                     {bool negate: false,
+                      bool strict: false}) {
     Continuation trueCont = new Continuation(<Parameter>[]);
     Continuation falseCont = new Continuation(<Parameter>[]);
     put(new LetCont.two(trueCont, falseCont,
-            new Branch.loose(condition, trueCont, falseCont)));
-    context = falseCont;
-    return new CpsFragment(sourceInformation, trueCont);
+            new Branch(condition, trueCont, falseCont, strict: strict)));
+    if (negate) {
+      context = trueCont;
+      return new CpsFragment(sourceInformation, falseCont);
+    } else {
+      context = falseCont;
+      return new CpsFragment(sourceInformation, trueCont);
+    }
   }
+
+  /// Branch on [condition].
+  ///
+  /// Returns a new fragment for the 'then' branch.
+  ///
+  /// The 'else' branch becomes the new hole.
+  CpsFragment ifTruthy(Primitive condition) => branch(condition);
 
   /// Branch on [condition].
   ///
   /// Returns a new fragment for the 'else' branch.
   ///
   /// The 'then' branch becomes the new hole.
-  CpsFragment ifFalsy(Primitive condition) {
-    Continuation trueCont = new Continuation(<Parameter>[]);
-    Continuation falseCont = new Continuation(<Parameter>[]);
-    put(new LetCont.two(trueCont, falseCont,
-            new Branch.loose(condition, trueCont, falseCont)));
-    context = trueCont;
-    return new CpsFragment(sourceInformation, falseCont);
-  }
+  CpsFragment ifFalsy(Primitive condition) => branch(condition, negate: true);
 
   /// Create a new empty continuation and bind it here.
   ///

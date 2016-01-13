@@ -84,6 +84,8 @@ DECLARE_FLAG(int, inlining_callee_size_threshold);
 DECLARE_FLAG(int, inline_getters_setters_smaller_than);
 DECLARE_FLAG(int, inlining_depth_threshold);
 DECLARE_FLAG(int, inlining_caller_size_threshold);
+DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
+DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 
 bool FLAG_precompilation = false;
 static void PrecompilationModeHandler(bool value) {
@@ -134,6 +136,9 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_inlining_callee_size_threshold = 20;
     FLAG_inlining_depth_threshold = 2;
     FLAG_inlining_caller_size_threshold = 1000;
+
+    FLAG_inlining_constant_arguments_max_size_threshold = 100;
+    FLAG_inlining_constant_arguments_min_size_threshold = 30;
 
     // Background compilation relies on two-stage compilation pipeline,
     // while precompilation has only one.
@@ -273,7 +278,7 @@ void FlowGraphCompiler::InitCompiler() {
                             isolate()->GetCompilerStream(),
                             "InitCompiler");
   pc_descriptors_list_ = new(zone()) DescriptorList(64);
-  exception_handlers_list_ = new(zone())ExceptionHandlerList();
+  exception_handlers_list_ = new(zone()) ExceptionHandlerList();
   block_info_.Clear();
   // Conservative detection of leaf routines used to remove the stack check
   // on function entry.
@@ -444,7 +449,7 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 
 
 void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
-  if ((instr->token_pos() == Scanner::kNoSourcePos) || (instr->env() == NULL)) {
+  if ((instr->token_pos() < 0) || (instr->env() == NULL)) {
     return;
   }
   const Script& script =

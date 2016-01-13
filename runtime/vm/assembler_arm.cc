@@ -22,8 +22,10 @@
 namespace dart {
 
 DECLARE_FLAG(bool, allow_absolute_addresses);
-DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
+DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
+
+DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 
 uint32_t Address::encoding3() const {
   if (kind_ == Immediate) {
@@ -1518,6 +1520,9 @@ void Assembler::LoadWordFromPoolOffset(Register rd,
 
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
+  if (!FLAG_check_code_pointer) {
+    return;
+  }
   Comment("CheckCodePointer");
   Label cid_ok, instructions_ok;
   Push(R0);

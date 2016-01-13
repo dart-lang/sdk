@@ -3,12 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
-
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError # Please triage this failure
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: MissingCompileTimeError # Please triage this failure
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError # Please triage this failure
-Language/Classes/Constructors/Constant_Constructors/not_a_constant_in_superclass_t01: MissingCompileTimeError # Please triage this failure
-Language/Classes/Constructors/Constant_Constructors/not_a_constant_in_superclass_t02: MissingCompileTimeError # Please triage this failure
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError # compiler cancelled: cannot resolve type T
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError, OK # co19 issue 258
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: fail # Issue 13363
@@ -9626,7 +9620,6 @@ Language/Statements/Labels/scope_t04: Crash # (switch (i){L:case 0:flag=true;bre
 Language/Statements/Continue/label_t12: Crash # (switch (2){L:case 1:flag=true;break;case 2:continue L;}): continue to a labeled switch case
 Language/Statements/Continue/label_t13: Crash # (switch (2){case 2:continue L;L:case 1:flag=true;}): continue to a labeled switch case
 Language/Types/Interface_Types/subtype_t39: RuntimeError # Please triage this failure.
-LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Crash # (lazy.method()): deferred access is not implemented
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/core/Invocation/isAccessor_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/isGetter_A01_t01: RuntimeError # Please triage this failure.

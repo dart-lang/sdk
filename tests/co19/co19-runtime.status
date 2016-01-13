@@ -81,6 +81,10 @@ LibTest/collection/ListBase/ListBase_class_A01_t01: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip  # Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t02: Skip  # Timeout
 
+[ ($compiler == none || $compiler == precompiler) && $system == windows ]
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
+LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow
+
 [ ($runtime == vm || $runtime == dart_precompiled) ]
 LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.
@@ -95,11 +99,6 @@ LibTest/typed_data/Float32x4/operator_multiplication_A01_t01: Fail # Dart issue 
 
 [ ($runtime == vm || $runtime == dart_precompiled) ]
 # co19 update Sep 29, 2015 (3ed795ea02e022ef19c77cf1b6095b7c8f5584d0)
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError # Please triage this failure
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: MissingCompileTimeError # Please triage this failure
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError # Please triage this failure
-Language/Classes/Constructors/Constant_Constructors/not_a_constant_in_superclass_t01: MissingCompileTimeError # Please triage this failure
-Language/Classes/Constructors/Constant_Constructors/not_a_constant_in_superclass_t02: MissingCompileTimeError # Please triage this failure
 Language/Classes/Getters/type_object_t01: RuntimeError # Please triage this failure
 Language/Classes/Getters/type_object_t02: RuntimeError # Please triage this failure
 Language/Classes/Setters/syntax_t04: RuntimeError # Please triage this failure

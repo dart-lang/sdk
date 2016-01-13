@@ -1049,8 +1049,10 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         TimelineDurationScope tds(thread(),
                                   compiler_timeline,
                                   "FinalizeCompilation");
-        // This part of compilation must be at a safepoint.
-        if (!thread()->IsMutatorThread()) {
+        if (thread()->IsMutatorThread()) {
+          FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
+        } else {
+          // This part of compilation must be at a safepoint.
           // Stop mutator thread before creating the instruction object and
           // installing code.
           // Mutator thread may not run code while we are creating the
@@ -1058,13 +1060,16 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // changes code page access permissions (makes them temporary not
           // executable).
           isolate()->thread_registry()->SafepointThreads();
-        }
-
-        FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
-
-        if (!thread()->IsMutatorThread()) {
-          // Background compilation.
+          {
+            // Do not Garbage collect during this stage and instead allow the
+            // heap to grow.
+            NoHeapGrowthControlScope no_growth_control;
+            FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
+          }
           isolate()->thread_registry()->ResumeAllThreads();
+          if (isolate()->heap()->NeedsGarbageCollection()) {
+            isolate()->heap()->CollectAllGarbage();
+          }
         }
       }
       // Mark that this isolate now has compiled code.

@@ -4,7 +4,7 @@
 
 // Test that the compiler can handle imports when package root has not been set.
 
-library dart2js.test.missing_file;
+library dart2js.test.bad_output_io;
 
 import 'dart:io' show exit;
 import 'package:expect/expect.dart';

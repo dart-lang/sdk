@@ -2,7 +2,7 @@ library dart2js.unsugar_cps;
 
 import '../../cps_ir/cps_ir_nodes.dart';
 
-import '../../cps_ir/optimizers.dart' show ParentVisitor, Pass;
+import '../../cps_ir/optimizers.dart' show Pass;
 import '../../constants/values.dart';
 import '../../elements/elements.dart';
 import '../../js_backend/codegen/glue.dart';
@@ -219,8 +219,7 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
       //  Change 'receiver.foo()'  to  'this.foo(receiver)'.
       newReceiver = thisParameter;
     } else {
-      newReceiver = new Interceptor(receiver, node.sourceInformation)
-          ..interceptedClasses.addAll(_glue.getInterceptedClassesOn(selector));
+      newReceiver = new Interceptor(receiver, node.sourceInformation);
       if (receiver.hint != null) {
         newReceiver.hint = new InterceptorEntity(receiver.hint);
       }
@@ -234,7 +233,6 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
   processInvokeMethodDirectly(InvokeMethodDirectly node) {
     if (!_glue.isInterceptedMethod(node.target)) return;
 
-    Selector selector = node.selector;
     Primitive receiver = node.receiver.definition;
     Primitive newReceiver;
 
@@ -244,8 +242,7 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
       //  Change 'receiver.foo()'  to  'this.foo(receiver)'.
       newReceiver = thisParameter;
     } else {
-      newReceiver = new Interceptor(receiver, node.sourceInformation)
-        ..interceptedClasses.addAll(_glue.getInterceptedClassesOn(selector));
+      newReceiver = new Interceptor(receiver, node.sourceInformation);
       if (receiver.hint != null) {
         newReceiver.hint = new InterceptorEntity(receiver.hint);
       }
@@ -254,9 +251,5 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
     node.arguments.insert(0, node.receiver);
     node.receiver = new Reference<Primitive>(newReceiver)..parent = node;
     node.callingConvention = CallingConvention.Intercepted;
-  }
-
-  processInterceptor(Interceptor node) {
-    _glue.registerSpecializedGetInterceptor(node.interceptedClasses);
   }
 }

@@ -204,9 +204,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   Future<List<Directive>> resolveDirectives() async {
     CompilationUnit libUnit;
-    if (librarySource == source) {
-      libUnit = target.unit;
-    } else if (librarySource != null) {
+    if (librarySource != null) {
       // TODO(danrubel) only resolve the directives
       const RESOLVE_DIRECTIVES_TAG = 'resolve directives';
       performance.logStartTime(RESOLVE_DIRECTIVES_TAG);

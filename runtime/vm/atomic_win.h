@@ -59,6 +59,18 @@ inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
 #error Unsupported host architecture.
 #endif
 }
+inline uint32_t AtomicOperations::CompareAndSwapUint32(uint32_t* ptr,
+                                                       uint32_t old_value,
+                                                       uint32_t new_value) {
+#if (defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32))
+  return static_cast<uint32_t>(
+      InterlockedCompareExchange(reinterpret_cast<LONG*>(ptr),
+                                 static_cast<LONG>(new_value),
+                                 static_cast<LONG>(old_value)));
+#else
+#error Unsupported host architecture.
+#endif
+}
 #endif  // !defined(USING_SIMULATOR)
 
 }  // namespace dart

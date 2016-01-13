@@ -1390,6 +1390,11 @@ class ProfileBuilder : public ValueObject {
     GrowableArray<Function*> inlined_functions;
     if (!code.IsNull()) {
       intptr_t offset = pc - code.EntryPoint();
+      if (frame_index != 0) {
+        // The PC of frames below the top frame is a call's return address,
+        // which can belong to a different inlining interval than the call.
+        offset--;
+      }
       code.GetInlinedFunctionsAt(offset, &inlined_functions);
     }
     if (code.IsNull() || (inlined_functions.length() == 0)) {

@@ -2637,7 +2637,7 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
                     false,  // Not external.
                     false,  // Not native.
                     *this,
-                    0));  // No token position.
+                    0));    // token_pos
   ArgumentsDescriptor desc(args_desc);
   invocation.set_num_fixed_parameters(desc.PositionalCount());
   invocation.SetNumOptionalParameters(desc.NamedCount(),
@@ -2694,7 +2694,7 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
                   false,  // Not external.
                   false,  // Not native.
                   owner,
-                  0));  // No token position.
+                  0));    // token_pos
 
   // Initialize signature: receiver is a single fixed parameter.
   const intptr_t kNumParameters = 1;
@@ -3449,7 +3449,7 @@ void Class::set_script(const Script& value) const {
 
 
 void Class::set_token_pos(intptr_t token_pos) const {
-  ASSERT(token_pos >= 0);
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -4379,7 +4379,7 @@ RawUnresolvedClass* UnresolvedClass::New() {
 
 
 void UnresolvedClass::set_token_pos(intptr_t token_pos) const {
-  ASSERT(token_pos >= 0);
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -5780,9 +5780,9 @@ void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
 }
 
 
-void Function::set_token_pos(intptr_t value) const {
-  ASSERT(value >= 0);
-  StoreNonPointer(&raw_ptr()->token_pos_, value);
+void Function::set_token_pos(intptr_t token_pos) const {
+  ASSERT(token_pos >= 0);
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
@@ -5872,13 +5872,8 @@ intptr_t Function::NumParameters() const {
 
 intptr_t Function::NumImplicitParameters() const {
   if (kind() == RawFunction::kConstructor) {
-    if (is_static()) {
-      ASSERT(IsFactory());
-      return 1;  // Type arguments.
-    } else {
-      ASSERT(IsGenerativeConstructor());
-      return 2;  // Instance, phase.
-    }
+    // Type arguments for factory; instance for generative constructor.
+    return 1;
   }
   if ((kind() == RawFunction::kClosureFunction) ||
       (kind() == RawFunction::kSignatureFunction)) {
@@ -6257,10 +6252,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
   const intptr_t other_num_opt_named_params =
       other.NumOptionalNamedParameters();
   // This function requires the same arguments or less and accepts the same
-  // arguments or more.
-  // A generative constructor may be compared to a redirecting factory and be
-  // compatible although it has an additional phase parameter.
-  // More generally, we can ignore implicit parameters.
+  // arguments or more. We can ignore implicit parameters.
   const intptr_t num_ignored_params = NumImplicitParameters();
   const intptr_t other_num_ignored_params = other.NumImplicitParameters();
   if (((num_fixed_params - num_ignored_params) >
@@ -6519,7 +6511,7 @@ RawFunction* Function::NewEvalFunction(const Class& owner,
                     /* is_external = */ false,
                     /* is_native = */ false,
                     owner,
-                    0));
+                    /* token_pos = */ 0));
   ASSERT(!script.IsNull());
   result.set_is_debuggable(false);
   result.set_is_visible(true);
@@ -14572,9 +14564,9 @@ void LanguageError::set_script(const Script& value) const {
 }
 
 
-void LanguageError::set_token_pos(intptr_t value) const {
-  ASSERT(value >= 0);
-  StoreNonPointer(&raw_ptr()->token_pos_, value);
+void LanguageError::set_token_pos(intptr_t token_pos) const {
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
@@ -16389,7 +16381,7 @@ RawType* Type::New(const Object& clazz,
 
 
 void Type::set_token_pos(intptr_t token_pos) const {
-  ASSERT(token_pos >= 0);
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -16820,7 +16812,7 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
 
 
 void TypeParameter::set_token_pos(intptr_t token_pos) const {
-  ASSERT(token_pos >= 0);
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -21582,7 +21574,7 @@ static intptr_t PrintOneStacktrace(Zone* zone,
   const String& url = String::Handle(zone, script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  if (token_pos > 0) {
+  if (token_pos >= 0) {
     if (script.HasSource()) {
       script.GetTokenLocation(token_pos, &line, &column);
     } else {
@@ -21608,6 +21600,23 @@ static intptr_t PrintOneStacktrace(Zone* zone,
 }
 
 
+static intptr_t PrintOneStacktraceNoCode(Zone* zone,
+                                         GrowableArray<char*>* frame_strings,
+                                         const Function& function,
+                                         intptr_t frame_index) {
+  const Script& script = Script::Handle(zone, function.script());
+  const String& function_name =
+      String::Handle(zone, function.QualifiedUserVisibleName());
+  const String& url = String::Handle(zone, script.url());
+  char* chars = NULL;
+  chars = OS::SCreate(zone,
+      "#%-6" Pd " %s (%s)\n",
+      frame_index, function_name.ToCString(), url.ToCString());
+  frame_strings->Add(chars);
+  return strlen(chars);
+}
+
+
 const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
                                           intptr_t max_frames) const {
   Zone* zone = Thread::Current()->zone();
@@ -21620,7 +21629,8 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
   for (intptr_t i = 0; (i < Length()) && (*frame_index < max_frames); i++) {
     function = FunctionAtFrame(i);
     if (function.IsNull()) {
-      // Check if null function object indicates a stack trace overflow.
+      // Check if null function object indicates a gap in a StackOverflow or
+      // OutOfMemory trace.
       if ((i < (Length() - 1)) &&
           (FunctionAtFrame(i + 1) != Function::null())) {
         const char* kTruncated = "...\n...\n";
@@ -21630,31 +21640,55 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         frame_strings.Add(chars);
         total_len += truncated_len;
       }
-    } else if (function.is_visible() || FLAG_show_invisible_frames) {
+    } else {
       code = CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
       uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
       if (code.is_optimized() && expand_inlined()) {
         // Traverse inlined frames.
-        for (InlinedFunctionsIterator it(code, pc);
-             !it.Done() && (*frame_index < max_frames); it.Advance()) {
-          function = it.function();
-          if (function.is_visible() || FLAG_show_invisible_frames) {
-            code = it.code();
-            ASSERT(function.raw() == code.function());
-            uword pc = it.pc();
-            ASSERT(pc != 0);
-            ASSERT(code.EntryPoint() <= pc);
-            ASSERT(pc < (code.EntryPoint() + code.Size()));
-            total_len += PrintOneStacktrace(
-                zone, &frame_strings, pc, function, code, *frame_index);
-            (*frame_index)++;  // To account for inlined frames.
+        if (Compiler::allow_recompilation()) {
+          for (InlinedFunctionsIterator it(code, pc);
+               !it.Done() && (*frame_index < max_frames); it.Advance()) {
+            function = it.function();
+            if (function.is_visible() || FLAG_show_invisible_frames) {
+              code = it.code();
+              ASSERT(function.raw() == code.function());
+              uword pc = it.pc();
+              ASSERT(pc != 0);
+              ASSERT(code.EntryPoint() <= pc);
+              ASSERT(pc < (code.EntryPoint() + code.Size()));
+              total_len += PrintOneStacktrace(
+                  zone, &frame_strings, pc, function, code, *frame_index);
+              (*frame_index)++;  // To account for inlined frames.
+            }
+          }
+        } else {
+          // Precompilation: we don't have deopt info, so we don't know the
+          // source position of inlined functions, but we can still name them.
+          intptr_t offset = Smi::Value(PcOffsetAtFrame(i));
+          // The PC of frames below the top frame is a call's return address,
+          // which can belong to a different inlining interval than the call.
+          intptr_t effective_offset = offset - 1;
+          GrowableArray<Function*> inlined_functions;
+          code.GetInlinedFunctionsAt(effective_offset, &inlined_functions);
+          ASSERT(inlined_functions.length() >= 1);  // At least the inliner.
+          for (intptr_t j = 0; j < inlined_functions.length(); j++) {
+            Function* inlined_function = inlined_functions[j];
+            ASSERT(inlined_function != NULL);
+            ASSERT(!inlined_function->IsNull());
+            if (inlined_function->is_visible() || FLAG_show_invisible_frames) {
+              total_len += PrintOneStacktraceNoCode(
+                  zone, &frame_strings, *inlined_function, *frame_index);
+              (*frame_index)++;
+            }
           }
         }
       } else {
-        total_len += PrintOneStacktrace(
-            zone, &frame_strings, pc, function, code, *frame_index);
-        (*frame_index)++;
+        if (function.is_visible() || FLAG_show_invisible_frames) {
+          total_len += PrintOneStacktrace(
+              zone, &frame_strings, pc, function, code, *frame_index);
+          (*frame_index)++;
+        }
       }
     }
   }

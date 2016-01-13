@@ -32,6 +32,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -397,6 +398,14 @@ class AnalysisContextFactory {
     elementMap[asyncSource] = asyncLibrary;
     elementMap[htmlSource] = htmlLibrary;
     elementMap[mathSource] = mathLibrary;
+    //
+    // Set the public and export namespaces.  We don't use exports in the fake
+    // core library so public and export namespaces are the same.
+    //
+    for (LibraryElementImpl library in elementMap.values) {
+      library.exportNamespace =
+          library.publicNamespace = new PublicNamespaceBuilder().build(library);
+    }
     context.recordLibraryElements(elementMap);
     return context;
   }
@@ -11824,6 +11833,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
 
   @override
   void setUp() {
+    super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.strongMode = true;
     resetWithOptions(options);
@@ -13020,7 +13030,145 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
  */
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends _StaticTypeAnalyzer2TestShared {
+  void test_genericMethod_functionExpressionInvocation_explicit() {
+    _resolveTestUnit(r'''
+class C<E> {
+  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
+  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  static final h = g;
+}
+
+/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+var topG = topF;
+void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+  var c = new C<int>();
+  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+
+  var lambdaCall = (/*<E>*/(/*=E*/ e) => e)/*<int>*/(3);
+  var methodCall = (c.f)/*<int>*/(3);
+  var staticCall = (C.g)/*<int>*/(3);
+  var staticFieldCall = (C.h)/*<int>*/(3);
+  var topFunCall = (topF)/*<int>*/(3);
+  var topFieldCall = (topG)/*<int>*/(3);
+  var localCall = (lf)/*<int>*/(3);
+  var paramCall = (pf)/*<int>*/(3);
+}
+''');
+    expect(_findIdentifier('methodCall').staticType.toString(), "int");
+    expect(_findIdentifier('staticCall').staticType.toString(), "int");
+    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
+    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
+    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
+    expect(_findIdentifier('localCall').staticType.toString(), "int");
+    expect(_findIdentifier('paramCall').staticType.toString(), "int");
+    expect(_findIdentifier('lambdaCall').staticType.toString(), "int");
+  }
+
+  void fail_genericMethod_functionExpressionInvocation_inferred() {
+    _resolveTestUnit(r'''
+class C<E> {
+  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
+  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  static final h = g;
+}
+
+/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+var topG = topF;
+void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+  var c = new C<int>();
+  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+
+  var lambdaCall = (/*<E>*/(/*=E*/ e) => e)(3);
+  var methodCall = (c.f)(3);
+  var staticCall = (C.g)(3);
+  var staticFieldCall = (C.h)(3);
+  var topFunCall = (topF)(3);
+  var topFieldCall = (topG)(3);
+  var localCall = (lf)(3);
+  var paramCall = (pf)(3);
+}
+''');
+    expect(_findIdentifier('methodCall').staticType.toString(), "int");
+    expect(_findIdentifier('staticCall').staticType.toString(), "int");
+    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
+    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
+    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
+    expect(_findIdentifier('localCall').staticType.toString(), "int");
+    expect(_findIdentifier('paramCall').staticType.toString(), "int");
+    expect(_findIdentifier('lambdaCall').staticType.toString(), "int");
+  }
+
+  void fail_genericMethod_functionInvocation_inferred() {
+    _resolveTestUnit(r'''
+class C<E> {
+  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
+  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  static final h = g;
+}
+
+/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+var topG = topF;
+void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+  var c = new C<int>();
+  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+  var methodCall = c.f(3);
+  var staticCall = C.g(3);
+  var staticFieldCall = C.h(3);
+  var topFunCall = topF(3);
+  var topFieldCall = topG(3);
+  var localCall = lf(3);
+  var paramCall = pf(3);
+}
+''');
+    expect(_findIdentifier('methodCall').staticType.toString(), "int");
+    expect(_findIdentifier('staticCall').staticType.toString(), "int");
+    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
+    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
+    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
+    expect(_findIdentifier('localCall').staticType.toString(), "int");
+    expect(_findIdentifier('paramCall').staticType.toString(), "int");
+  }
+
+  void fail_genericMethod_tearoff_instantiated() {
+    _resolveTestUnit(r'''
+class C<E> {
+  /*=T*/ f/*<T>*/(E e) => null;
+  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  static final h = g;
+}
+
+/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+var topG = topF;
+void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+  var c = new C<int>();
+  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+  var methodTearOffInst = c.f/*<int>*/;
+  var staticTearOffInst = C.g/*<int>*/;
+  var staticFieldTearOffInst = C.h/*<int>*/;
+  var topFunTearOffInst = topF/*<int>*/;
+  var topFieldTearOffInst = topG/*<int>*/;
+  var localTearOffInst = lf/*<int>*/;
+  var paramTearOffInst = pf/*<int>*/;
+}
+''');
+    expect(_findIdentifier('methodTearOffInst').staticType.toString(),
+        "(int) → int");
+    expect(_findIdentifier('staticTearOffInst').staticType.toString(),
+        "(int) → int");
+    expect(_findIdentifier('staticFieldTearOffInst').staticType.toString(),
+        "(int) → int");
+    expect(_findIdentifier('topFunTearOffInst').staticType.toString(),
+        "(int) → int");
+    expect(_findIdentifier('topFieldTearOffInst').staticType.toString(),
+        "(int) → int");
+    expect(_findIdentifier('localTearOffInst').staticType.toString(),
+        "(int) → int");
+    expect(_findIdentifier('paramTearOffInst').staticType.toString(),
+        "(int) → int");
+  }
+
   void setUp() {
+    super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.strongMode = true;
     resetWithOptions(options);
@@ -13063,7 +13211,7 @@ main() {
     SimpleIdentifier f = _findIdentifier('f');
     FunctionElementImpl e = f.staticElement;
     expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.boundTypeParameters.toString(), '[T]');
+    expect(e.type.typeFormals.toString(), '[T]');
     expect(e.type.typeParameters.toString(), '[]');
     expect(e.type.toString(), '<T>(T) → T');
 
@@ -13076,9 +13224,23 @@ main() {
     SimpleIdentifier f = _findIdentifier('f');
     FunctionElementImpl e = f.staticElement;
     expect(e.typeParameters.toString(), '[T extends num]');
-    expect(e.type.boundTypeParameters.toString(), '[T extends num]');
+    expect(e.type.typeFormals.toString(), '[T extends num]');
     expect(e.type.typeParameters.toString(), '[]');
     expect(e.type.toString(), '<T extends num>(T) → T');
+  }
+
+  void test_genericFunction_parameter() {
+    _resolveTestUnit(r'''
+void g(/*=T*/ f/*<T>*/(/*=T*/ x)) {}
+''');
+    SimpleIdentifier f = _findIdentifier('f');
+    ParameterElementImpl e = f.staticElement;
+    FunctionType type = e.type;
+    expect(e.typeParameters.toString(), '[T]');
+    expect(type.typeFormals.toString(), '[T]');
+    expect(type.toString(), '<T>(T) → T');
+    FunctionType ft = type.instantiate([typeProvider.stringType]);
+    expect(ft.toString(), '(String) → String');
   }
 
   void test_genericFunction_static() {
@@ -13090,7 +13252,7 @@ class C<E> {
     SimpleIdentifier f = _findIdentifier('f');
     MethodElementImpl e = f.staticElement;
     expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.boundTypeParameters.toString(), '[T]');
+    expect(e.type.typeFormals.toString(), '[T]');
     // TODO(jmesserly): we could get rid of this {E/E} substitution, but it's
     // probably harmless, as E won't be used in the function (error verifier
     // checks this), and {E/E} is a no-op anyway.
@@ -13189,7 +13351,7 @@ main() {
     SimpleIdentifier f = _findIdentifier('f');
     MethodElementImpl e = f.staticElement;
     expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.boundTypeParameters.toString(), '[T]');
+    expect(e.type.typeFormals.toString(), '[T]');
     expect(e.type.typeParameters.toString(), '[E]');
     expect(e.type.typeArguments.toString(), '[E]');
     expect(e.type.toString(), '<T>(E) → List<T>');
@@ -13212,14 +13374,45 @@ main() {
   var x = cOfString.f/*<int>*/('hi');
 }
 ''');
-    SimpleIdentifier f = _findIdentifier('f/*<int>*/');
-    FunctionType ft = f.staticType;
+    MethodInvocation f = _findIdentifier('f/*<int>*/').parent;
+    FunctionType ft = f.staticInvokeType;
     expect(ft.toString(), '(String) → List<int>');
     expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
 
     SimpleIdentifier x = _findIdentifier('x');
     expect(x.staticType,
         typeProvider.listType.substitute4([typeProvider.intType]));
+  }
+
+  void test_genericMethod_functionInvocation_explicit() {
+    _resolveTestUnit(r'''
+class C<E> {
+  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
+  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  static final h = g;
+}
+
+/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+var topG = topF;
+void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+  var c = new C<int>();
+  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+  var methodCall = c.f/*<int>*/(3);
+  var staticCall = C.g/*<int>*/(3);
+  var staticFieldCall = C.h/*<int>*/(3);
+  var topFunCall = topF/*<int>*/(3);
+  var topFieldCall = topG/*<int>*/(3);
+  var localCall = lf/*<int>*/(3);
+  var paramCall = pf/*<int>*/(3);
+}
+''');
+    expect(_findIdentifier('methodCall').staticType.toString(), "int");
+    expect(_findIdentifier('staticCall').staticType.toString(), "int");
+    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
+    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
+    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
+    expect(_findIdentifier('localCall').staticType.toString(), "int");
+    expect(_findIdentifier('paramCall').staticType.toString(), "int");
   }
 
   void test_genericMethod_functionTypedParameter() {
@@ -13234,7 +13427,7 @@ main() {
     SimpleIdentifier f = _findIdentifier('f');
     MethodElementImpl e = f.staticElement;
     expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.boundTypeParameters.toString(), '[T]');
+    expect(e.type.typeFormals.toString(), '[T]');
     expect(e.type.typeParameters.toString(), '[E]');
     expect(e.type.typeArguments.toString(), '[E]');
     expect(e.type.toString(), '<T>((E) → T) → List<T>');
@@ -13261,10 +13454,14 @@ void foo() {
 }''');
 
     SimpleIdentifier map1 = _findIdentifier('map((e) => e);');
-    expect(map1.staticType.toString(), '((dynamic) → dynamic) → dynamic');
+    MethodInvocation m1 = map1.parent;
+    expect(m1.staticInvokeType.toString(), '((dynamic) → dynamic) → dynamic');
+    expect(map1.staticType, isNull);
     expect(map1.propagatedType, isNull);
     SimpleIdentifier map2 = _findIdentifier('map((e) => 3);');
-    expect(map2.staticType.toString(), '((dynamic) → int) → int');
+    MethodInvocation m2 = map2.parent;
+    expect(m2.staticInvokeType.toString(), '((dynamic) → int) → int');
+    expect(map2.staticType, isNull);
     expect(map2.propagatedType, isNull);
   }
 
@@ -13278,13 +13475,13 @@ class C<T> {
   }
 }
 ''');
-    SimpleIdentifier f = _findIdentifier('f/*<int>*/(3);');
-    expect(f.staticType.toString(), '(int) → S');
-    FunctionType ft = f.staticType;
+    MethodInvocation f = _findIdentifier('f/*<int>*/(3);').parent;
+    expect(f.staticInvokeType.toString(), '(int) → S');
+    FunctionType ft = f.staticInvokeType;
     expect('${ft.typeArguments}/${ft.typeParameters}', '[S, int]/[T, S]');
 
-    f = _findIdentifier('f;');
-    expect(f.staticType.toString(), '<S₀>(S₀) → S');
+    SimpleIdentifier f2 = _findIdentifier('f;');
+    expect(f2.staticType.toString(), '<S₀>(S₀) → S');
   }
 
   void test_genericMethod_nestedFunctions() {
@@ -13313,7 +13510,7 @@ class D extends C {
         _findIdentifier('f/*<T>*/(/*=T*/ x) => null; // from D');
     MethodElementImpl e = f.staticElement;
     expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.boundTypeParameters.toString(), '[T]');
+    expect(e.type.typeFormals.toString(), '[T]');
     expect(e.type.toString(), '<T>(T) → T');
 
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
@@ -13390,6 +13587,42 @@ class D extends C {
       'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS'
     ]);
     verify([source]);
+  }
+
+  void test_genericMethod_tearoff() {
+    _resolveTestUnit(r'''
+class C<E> {
+  /*=T*/ f/*<T>*/(E e) => null;
+  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  static final h = g;
+}
+
+/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+var topG = topF;
+void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+  var c = new C<int>();
+  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+  var methodTearOff = c.f;
+  var staticTearOff = C.g;
+  var staticFieldTearOff = C.h;
+  var topFunTearOff = topF;
+  var topFieldTearOff = topG;
+  var localTearOff = lf;
+  var paramTearOff = pf;
+}
+''');
+    expect(
+        _findIdentifier('methodTearOff').staticType.toString(), "<T>(int) → T");
+    expect(
+        _findIdentifier('staticTearOff').staticType.toString(), "<T>(T) → T");
+    expect(_findIdentifier('staticFieldTearOff').staticType.toString(),
+        "<T>(T) → T");
+    expect(
+        _findIdentifier('topFunTearOff').staticType.toString(), "<T>(T) → T");
+    expect(
+        _findIdentifier('topFieldTearOff').staticType.toString(), "<T>(T) → T");
+    expect(_findIdentifier('localTearOff').staticType.toString(), "<T>(T) → T");
+    expect(_findIdentifier('paramTearOff').staticType.toString(), "<T>(T) → T");
   }
 
   void test_pseudoGeneric_max_doubleDouble() {
@@ -13510,6 +13743,79 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
+  void test_setterWithDynamicTypeIsError() {
+    Source source = addSource(r'''
+class A {
+  dynamic set f(String s) => null;
+}
+dynamic set g(int x) => null;
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      StaticWarningCode.NON_VOID_RETURN_FOR_SETTER,
+      StaticWarningCode.NON_VOID_RETURN_FOR_SETTER
+    ]);
+    verify([source]);
+  }
+
+  void test_setterWithExplicitVoidType_returningVoid() {
+    Source source = addSource(r'''
+void returnsVoid() {}
+class A {
+  void set f(String s) => returnsVoid();
+}
+void set g(int x) => returnsVoid();
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_setterWithNoVoidType() {
+    Source source = addSource(r'''
+class A {
+  set f(String s) {
+    return '42';
+  }
+}
+set g(int x) => 42;
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+      StaticTypeWarningCode.RETURN_OF_INVALID_TYPE
+    ]);
+    verify([source]);
+  }
+
+  void test_setterWithNoVoidType_returningVoid() {
+    Source source = addSource(r'''
+void returnsVoid() {}
+class A {
+  set f(String s) => returnsVoid();
+}
+set g(int x) => returnsVoid();
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_setterWithOtherTypeIsError() {
+    Source source = addSource(r'''
+class A {
+  String set f(String s) => null;
+}
+Object set g(x) => null;
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      StaticWarningCode.NON_VOID_RETURN_FOR_SETTER,
+      StaticWarningCode.NON_VOID_RETURN_FOR_SETTER
+    ]);
+    verify([source]);
+  }
+
   void test_ternaryOperator_null_left() {
     String code = r'''
 main() {
@@ -13545,6 +13851,7 @@ main() {
 class StrongModeTypePropagationTest extends ResolverTestCase {
   @override
   void setUp() {
+    super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.strongMode = true;
     resetWithOptions(options);

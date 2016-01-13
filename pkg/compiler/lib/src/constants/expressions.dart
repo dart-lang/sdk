@@ -804,6 +804,7 @@ class BinaryConstantExpression extends ConstantExpression {
     BinaryOperatorKind.GTEQ: 7,
     BinaryOperatorKind.LTEQ: 7,
     BinaryOperatorKind.MOD: 13,
+    BinaryOperatorKind.IF_NULL: 3,
   };
 }
 

@@ -43,6 +43,7 @@ abstract class ConstantSystem {
   BinaryOperation get greaterEqual;
   BinaryOperation get greater;
   BinaryOperation get identity;
+  BinaryOperation get ifNull;
   BinaryOperation get lessEqual;
   BinaryOperation get less;
   BinaryOperation get modulo;
@@ -118,6 +119,7 @@ abstract class ConstantSystem {
       case BinaryOperatorKind.GT:   return greater;
       case BinaryOperatorKind.GTEQ:  return greaterEqual;
       case BinaryOperatorKind.EQ:  return equal;
+      case BinaryOperatorKind.IF_NULL: return ifNull;
       default:    return null;
     }
   }

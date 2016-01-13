@@ -82,10 +82,6 @@ class BlockCollector extends StatementVisitor {
     _addStatement(node);
   }
 
-  visitRethrow(Rethrow node) {
-    _addStatement(node);
-  }
-
   visitUnreachable(Unreachable node) {
     _addStatement(node);
   }
@@ -274,10 +270,6 @@ class TreeTracer extends TracerUtil with StatementVisitor {
 
   visitThrow(Throw node) {
     printStatement(null, "throw ${expr(node.value)}");
-  }
-
-  visitRethrow(Rethrow node) {
-    printStatement(null, "rethrow");
   }
 
   visitUnreachable(Unreachable node) {

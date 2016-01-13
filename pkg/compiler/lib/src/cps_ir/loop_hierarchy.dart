@@ -5,6 +5,7 @@
 library dart2js.cps_ir.loop_hierarchy;
 
 import 'cps_ir_nodes.dart';
+import 'cps_fragment.dart';
 
 /// Determines the effective nesting of loops.
 ///
@@ -33,7 +34,10 @@ class LoopHierarchy {
   Map<Continuation, Continuation> loopTarget = <Continuation, Continuation>{};
 
   /// Current nesting depth.
-  int currentDepth = 0;
+  int _currentDepth = 0;
+
+  /// The loop target to use for missing code.  Used by [update].
+  Continuation _exitLoop;
 
   /// Computes the loop hierarchy for the given function.
   ///
@@ -88,11 +92,11 @@ class LoopHierarchy {
   /// from the current exception handler.
   Continuation _processContinuation(Continuation cont, Continuation catchLoop) {
     if (cont.isRecursive) {
-      ++currentDepth;
-      loopDepth[cont] = currentDepth;
+      ++_currentDepth;
+      loopDepth[cont] = _currentDepth;
       Continuation target = _processBlock(cont.body, catchLoop);
       _markInnerLoop(loopTarget[cont], target);
-      --currentDepth;
+      --_currentDepth;
     } else {
       loopTarget[cont] = _processBlock(cont.body, catchLoop);
     }
@@ -102,7 +106,7 @@ class LoopHierarchy {
   /// Analyzes a basic block and returns the innermost loop that
   /// can be invoked recursively from that block.
   Continuation _processBlock(Expression node, Continuation catchLoop) {
-    for (; node is! TailExpression; node = node.next) {
+    for (; node != null && node is! TailExpression; node = node.next) {
       if (node is LetCont) {
         for (Continuation cont in node.continuations) {
           _processContinuation(cont, catchLoop);
@@ -122,8 +126,11 @@ class LoopHierarchy {
       target = _markInnerLoop(
           loopTarget[node.trueContinuation.definition],
           loopTarget[node.falseContinuation.definition]);
+    } else if (node == null) {
+      // If the code ends abruptly, use the exit loop provided in [update].
+      target = _exitLoop;
     } else {
-      assert(node is Unreachable || node is Throw);
+      assert(node is Unreachable || node is Throw || node == null);
     }
     return _markInnerLoop(target, catchLoop);
   }
@@ -148,5 +155,23 @@ class LoopHierarchy {
   int getDepth(Continuation loop) {
     if (loop == null) return 0;
     return loopDepth[loop];
+  }
+
+  /// Sets the loop header for each continuation bound inside the given
+  /// fragment.
+  ///
+  /// If the fragment is open, [exitLoop] denotes the loop header for
+  /// the code that will occur after the fragment.
+  ///
+  /// [catchLoop] is the loop target for the catch clause of the try/catch
+  /// surrounding the inserted fragment.
+  void update(CpsFragment fragment,
+              {Continuation exitLoop,
+               Continuation catchLoop}) {
+    if (fragment.isEmpty) return;
+    _exitLoop = exitLoop;
+    _currentDepth = getDepth(exitLoop);
+    _processBlock(fragment.root, catchLoop);
+    _exitLoop = null;
   }
 }

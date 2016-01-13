@@ -2654,10 +2654,6 @@ class Function : public Object {
   // Sets deopt reason in all ICData-s with given deopt_id.
   void SetDeoptReasonForAll(intptr_t deopt_id, ICData::DeoptReasonId reason);
 
-  static const int kCtorPhaseInit = 1 << 0;
-  static const int kCtorPhaseBody = 1 << 1;
-  static const int kCtorPhaseAll = (kCtorPhaseInit | kCtorPhaseBody);
-
   void set_modifier(RawFunction::AsyncModifier value) const;
 
   // static: Considered during class-side or top-level resolution rather than

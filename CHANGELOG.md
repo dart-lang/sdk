@@ -1,6 +1,10 @@
 ## 1.14.0
 
 ### Core library changes
+* `dart:async`
+  * Added `Future.any` static method.
+  * Added `Stream.fromFutures` constructor.
+
 * `dart:convert`
   * `Base64Decoder.convert` now takes optional `start` and `end` parameters.
 
@@ -53,11 +57,38 @@
   * `pub global run` now detects when a global executable's SDK constraint is no
     longer met and errors out, rather than trying to run the executable anyway.
 
+  * Pub commands that check whether the lockfile is up-to-date (`pub run`, `pub
+    deps`, `pub serve`, and `pub build`) now do additional verification. They
+    ensure that any path dependencies' pubspecs haven't been changed, and they
+    ensure that the current SDK version is compatible with all dependencies.
+
   * Fixed a crashing bug when using `pub global run` on a global script that
     didn't exist.
 
   * Fixed a crashing bug when a pubspec contains a dependency without a source
     declared.
+
+## 1.13.2 - 2016-01-06
+
+Patch release, resolves one issue:
+
+* dart2js: Stack traces are not captured correctly (SDK issue [25235]
+(https://github.com/dart-lang/sdk/issues/25235))
+
+## 1.13.1 - 2015-12-17
+
+Patch release, resolves three issues:
+
+* VM type propagation fix: Resolves a potential crash in the Dart VM (SDK commit
+ [dff13be]
+(https://github.com/dart-lang/sdk/commit/dff13bef8de104d33b04820136da2d80f3c835d7))
+
+* dart2js crash fix: Resolves a crash in pkg/js and dart2js (SDK issue [24974]
+(https://github.com/dart-lang/sdk/issues/24974))
+
+* Pub get crash on ARM: Fixes a crash triggered when running 'pub get' on ARM
+ processors such as those on a Raspberry Pi (SDK issue [24855]
+(https://github.com/dart-lang/sdk/issues/24855))
 
 ## 1.13.0 - 2015-11-18
 

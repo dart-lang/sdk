@@ -38,6 +38,47 @@ class RangeAnalysis;
 class RangeBoundary;
 class UnboxIntegerInstr;
 
+// These token positions are used to classify instructions that can't be
+// directly tied to an actual source position.
+#define CLASSIFYING_TOKEN_POSITIONS(V)                                         \
+    V(Private, -2)                                                             \
+    V(Box, -3)                                                                 \
+    V(ParallelMove, -4)                                                        \
+    V(TempMove, -5)                                                            \
+    V(Constant, -6)                                                            \
+    V(PushArgument, -7)                                                        \
+    V(ControlFlow, -8)                                                         \
+    V(Context, -9)
+
+// COMPILE_ASSERT that all CLASSIFYING_TOKEN_POSITIONS are less than
+// Scanner::kNoSourcePos.
+#define SANITY_CHECK_VALUES(name, value)                                       \
+  COMPILE_ASSERT(value < Scanner::kNoSourcePos);
+  CLASSIFYING_TOKEN_POSITIONS(SANITY_CHECK_VALUES);
+#undef SANITY_CHECK_VALUES
+
+class ClassifyingTokenPositions : public AllStatic {
+ public:
+#define DEFINE_VALUES(name, value)                                             \
+  static const intptr_t k##name = value;
+  CLASSIFYING_TOKEN_POSITIONS(DEFINE_VALUES);
+#undef DEFINE_VALUES
+
+  static const char* ToCString(intptr_t token_pos) {
+    ASSERT(token_pos < 0);
+    switch (token_pos) {
+      case Scanner::kNoSourcePos: return "NoSource";
+#define DEFINE_CASE(name, value)                                               \
+      case value: return #name;
+      CLASSIFYING_TOKEN_POSITIONS(DEFINE_CASE);
+#undef DEFINE_CASE
+      default:
+        UNIMPLEMENTED();
+        return NULL;
+    }
+  }
+};
+
 // CompileType describes type of the value produced by the definition.
 //
 // It captures the following properties:
@@ -1053,6 +1094,10 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual void PrintTo(BufferFormatter* f) const;
 
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kParallelMove;
+  }
+
  private:
   GrowableArray<MoveOperands*> moves_;   // Elements cannot be null.
 
@@ -1183,6 +1228,10 @@ class BlockEntryInstr : public Instruction {
 
   virtual BlockEntryInstr* GetBlock() {
     return this;
+  }
+
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kControlFlow;
   }
 
   // Helper to mutate the graph during inlining. This block should be
@@ -2034,6 +2083,10 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kPushArgument;
+  }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
@@ -2207,6 +2260,10 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
   }
 
   virtual void PrintTo(BufferFormatter* f) const;
+
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kControlFlow;
+  }
 
  private:
   BlockEntryInstr* block_;
@@ -2541,7 +2598,8 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
 
 class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
-  explicit ConstantInstr(const Object& value);
+  ConstantInstr(const Object& value,
+                intptr_t token_pos = ClassifyingTokenPositions::kConstant);
 
   DECLARE_INSTRUCTION(Constant)
   virtual CompileType ComputeType() const;
@@ -2558,8 +2616,11 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   virtual bool AttributesEqual(Instruction* other) const;
 
+  virtual intptr_t token_pos() const { return token_pos_; }
+
  private:
   const Object& value_;
+  const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstantInstr);
 };
@@ -3249,8 +3310,9 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
 
 class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  explicit LoadLocalInstr(const LocalVariable& local)
-      : local_(local), is_last_(false) { }
+  LoadLocalInstr(const LocalVariable& local,
+                 intptr_t token_pos = Scanner::kNoSourcePos)
+      : local_(local), is_last_(false), token_pos_(token_pos) { }
 
   DECLARE_INSTRUCTION(LoadLocal)
   virtual CompileType ComputeType() const;
@@ -3269,9 +3331,12 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
   void mark_last() { is_last_ = true; }
   bool is_last() const { return is_last_; }
 
+  virtual intptr_t token_pos() const { return token_pos_; }
+
  private:
   const LocalVariable& local_;
   bool is_last_;
+  const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadLocalInstr);
 };
@@ -3294,6 +3359,10 @@ class PushTempInstr : public TemplateDefinition<1, NoThrow> {
   virtual EffectSet Effects() const {
     UNREACHABLE();  // Eliminated by SSA construction.
     return EffectSet::None();
+  }
+
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kTempMove;
   }
 
  private:
@@ -3338,6 +3407,10 @@ class DropTempsInstr : public Definition {
     return false;
   }
 
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kTempMove;
+  }
+
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     value_ = value;
@@ -3352,8 +3425,10 @@ class DropTempsInstr : public Definition {
 
 class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  StoreLocalInstr(const LocalVariable& local, Value* value)
-      : local_(local), is_dead_(false), is_last_(false) {
+  StoreLocalInstr(const LocalVariable& local,
+                  Value* value,
+                  intptr_t token_pos = Scanner::kNoSourcePos)
+      : local_(local), is_dead_(false), is_last_(false), token_pos_(token_pos) {
     SetInputAt(0, value);
   }
 
@@ -3378,10 +3453,13 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
     return EffectSet::None();
   }
 
+  virtual intptr_t token_pos() const { return token_pos_; }
+
  private:
   const LocalVariable& local_;
   bool is_dead_;
   bool is_last_;
+  const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreLocalInstr);
 };
@@ -3643,7 +3721,8 @@ class GuardFieldLengthInstr : public GuardFieldInstr {
 
 class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  explicit LoadStaticFieldInstr(Value* field_value) {
+  LoadStaticFieldInstr(Value* field_value, intptr_t token_pos)
+      : token_pos_(token_pos) {
     ASSERT(field_value->BindsToConstant());
     SetInputAt(0, field_value);
   }
@@ -3664,15 +3743,22 @@ class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   virtual EffectSet Dependencies() const;
   virtual bool AttributesEqual(Instruction* other) const;
 
+  virtual intptr_t token_pos() const { return token_pos_; }
+
  private:
+  const intptr_t token_pos_;
+
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
 };
 
 
 class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  StoreStaticFieldInstr(const Field& field, Value* value)
-      : field_(field) {
+  StoreStaticFieldInstr(const Field& field,
+                        Value* value,
+                        intptr_t token_pos = Scanner::kNoSourcePos)
+      : field_(field),
+        token_pos_(token_pos) {
     ASSERT(field.IsZoneHandle());
     SetInputAt(kValuePos, value);
   }
@@ -3695,6 +3781,8 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   // are marked as having no side-effects.
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual intptr_t token_pos() const { return token_pos_; }
+
  private:
   bool CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
@@ -3704,6 +3792,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   }
 
   const Field& field_;
+  const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreStaticFieldInstr);
 };
@@ -4719,6 +4808,10 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kBox;
+  }
+
  protected:
   BoxInstr(Representation from_representation, Value* value)
       : from_representation_(from_representation) {
@@ -4839,6 +4932,10 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual intptr_t DeoptimizationTarget() const {
     return GetDeoptId();
+  }
+
+  virtual intptr_t token_pos() const {
+    return ClassifyingTokenPositions::kBox;
   }
 
  protected:

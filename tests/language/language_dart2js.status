@@ -267,56 +267,10 @@ await_for_cancel_test: Crash # (await for(var x in controller.stream){for(int j=
 await_for_test: Crash # (await for(var x in infiniteStream()){i++ ;if(i>10)break;t4.record(x);}): await for
 await_for_use_local_test: Crash # (await for(var v in s){accum+= v;}): await for
 call_closurization_test: RuntimeError # Bad type inference for ".call" tear-off.
-cha_deopt1_test: Crash # (d.make_u()): deferred access is not implemented
-cha_deopt2_test: Crash # (d.make_u()): deferred access is not implemented
-cha_deopt3_test: Crash # (d.make_u()): deferred access is not implemented
 closure_in_constructor_test: RuntimeError # Please triage this failure.
 closures_initializer_test: RuntimeError # Please triage this failure.
 constructor12_test: RuntimeError # Please triage this failure.
-deferred_call_empty_before_load_test: Crash # (lib1.thefun()): deferred access is not implemented
-deferred_closurize_load_library_test: RuntimeError # D.loadLibrary is not a function
-deferred_constant_list_test: RuntimeError # K.loadLibrary is not a function
-deferred_constraints_constants_test/none: RuntimeError # S.loadLibrary is not a function
-deferred_constraints_constants_test/reference_after_load: RuntimeError # G.loadLibrary is not a function
-deferred_constraints_type_annotation_test/as_operation: RuntimeError # Z.loadLibrary is not a function
-deferred_constraints_type_annotation_test/catch_check: RuntimeError # D.loadLibrary is not a function
-deferred_constraints_type_annotation_test/is_check: RuntimeError # L.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new: RuntimeError # R.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new_before_load: RuntimeError # K.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new_generic1: RuntimeError # R.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new_generic2: RuntimeError # X.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new_generic3: RuntimeError # K.loadLibrary is not a function
-deferred_constraints_type_annotation_test/none: RuntimeError # D.loadLibrary is not a function
-deferred_constraints_type_annotation_test/static_method: RuntimeError # F.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation1: RuntimeError # K.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError # T.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError # Q.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError # Z.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError # Q.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # R.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError # Z.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError # U.loadLibrary is not a function
-deferred_function_type_test: RuntimeError # N.loadLibrary is not a function
-deferred_global_test: RuntimeError # Y.loadLibrary is not a function
-deferred_inlined_test: Crash # (lib.foo()): deferred access is not implemented
-deferred_load_constants_test/none: Crash # (foo.toplevel): deferred access is not implemented
-deferred_load_inval_code_test: Crash # (d.foo()): deferred access is not implemented
-deferred_load_library_wrong_args_test/none: RuntimeError # Y.loadLibrary is not a function
-deferred_mixin_test: RuntimeError # X.loadLibrary is not a function
-deferred_no_such_method_test: RuntimeError # D.loadLibrary is not a function
-deferred_not_loaded_check_test: Crash # (lib.closure(sideEffect())): deferred access is not implemented
-deferred_only_constant_test: RuntimeError # O.loadLibrary is not a function
-deferred_optimized_test: Crash # (lib.foo()): deferred access is not implemented
-deferred_redirecting_factory_test: Crash # (lib1.loadLib2()): deferred access is not implemented
-deferred_regression_22995_test: RuntimeError # U.loadLibrary is not a function
-deferred_shadow_load_library_test: RuntimeError # Y.loadLibrary is not a function
-deferred_shared_and_unshared_classes_test: RuntimeError # U.loadLibrary is not a function
-deferred_static_seperate_test: RuntimeError # L.loadLibrary is not a function
-deferred_super_dependency_test/01: RuntimeError # $async$temp1.loadLibrary is not a function
-deferred_type_dependency_test/as: Crash # (lib1.fooAs("string")): deferred access is not implemented
-deferred_type_dependency_test/is: Crash # (lib1.fooIs("string")): deferred access is not implemented
-deferred_type_dependency_test/none: Crash # (lib2.getInstance()): deferred access is not implemented
-deferred_type_dependency_test/type_annotation: Crash # (lib1.fooAnnotation("string")): deferred access is not implemented
+deferred_super_dependency_test/01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 field3a_negative_test: Fail # Bogus result from type inference in case of invalid program.
 first_class_types_test: RuntimeError # Please triage this failure.
 generic2_test: RuntimeError # Please triage this failure.
@@ -327,13 +281,10 @@ infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a label
 instanceof2_test: RuntimeError # Please triage this failure.
 instanceof4_test/01: RuntimeError # Please triage this failure.
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
-issue_1751477_test: RuntimeError # O.loadLibrary is not a function
 list_is_test: RuntimeError # Please triage this failure.
 list_test: RuntimeError # Please triage this failure.
 many_generic_instanceof_test: RuntimeError # Please triage this failure.
 nested_switch_label_test: Crash # (switch (target){out...  continue to a labeled switch case
-regress_22443_test: RuntimeError # M.loadLibrary is not a function
-regress_23408_test: RuntimeError # G.loadLibrary is not a function
 regress_23500_test/01: Crash # (await for(var c in new Stream.fromIterable([] )){}): await for
 stack_trace_test: Fail # Stack trace not preserved when inlining?
 super_call4_test: RuntimeError # Please triage this failure.
@@ -346,13 +297,14 @@ super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSe
 switch_label2_test: Crash # (switch (target){cas...  continue to a labeled switch case
 switch_label_test: Crash # (switch (animal){cas...  continue to a labeled switch case
 switch_try_catch_test: Crash # (switch (0){_0:case ...  continue to a labeled switch case
-type_variable_closure2_test: RuntimeError # Please triage this failure.
-type_variable_field_initializer_closure_test: RuntimeError # Please triage this failure.
-type_variable_field_initializer_test: RuntimeError # Please triage this failure.
-type_variable_nested_test: RuntimeError # Please triage this failure.
+type_variable_closure2_test: RuntimeError # Issue 25309: T lost in List<T>
+type_variable_closure4_test: RuntimeError # T lost in <T,T>{}
+type_variable_field_initializer_closure_test: RuntimeError # Issue 25309: T lost in List<T>
+type_variable_field_initializer_test: RuntimeError # Issue 25309: T lost in List<T>
+type_variable_nested_test: RuntimeError # Issue 25309: T lost in List<T>
 
 [ $compiler == dart2js && $cps_ir && $host_checked == false ]
-regress_21795_test: RuntimeError # Due to inlining?
+regress_21795_test: Pass, RuntimeError # Due to inlining?
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 async_throw_in_catch_test/forceAwait: Crash # Issue 24485

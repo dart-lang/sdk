@@ -11,7 +11,7 @@ import 'dart:developer';
 int globalVar = 100;
 
 class MyClass {
-       static       void myFunction(int value) {
+  static void myFunction(int value) {
     if (value < 0) {
       print("negative");
     } else {

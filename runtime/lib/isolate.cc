@@ -143,6 +143,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     char* error = NULL;
     Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
     if (callback == NULL) {
+      state_->DecrementSpawnCount();
       ReportError(
           "Isolate spawn is not supported by this Dart implementation\n");
       delete state_;
@@ -157,10 +158,11 @@ class SpawnIsolateTask : public ThreadPool::Task {
         (callback)(state_->script_url(),
                    state_->function_name(),
                    state_->package_root(),
-                   state_->package_map(),
+                   state_->package_config(),
                    &api_flags,
                    state_->init_data(),
                    &error));
+    state_->DecrementSpawnCount();
     if (isolate == NULL) {
       ReportError(error);
       delete state_;
@@ -200,7 +202,17 @@ class SpawnIsolateTask : public ThreadPool::Task {
 };
 
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
+static const char* String2UTF8(const String& str) {
+  intptr_t len = Utf8::Length(str);
+  char* result = new char[len + 1];
+  str.ToUTF8(reinterpret_cast<uint8_t*>(result), len);
+  result[len] = 0;
+
+  return result;
+}
+
+
+DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 9) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(2));
@@ -208,6 +220,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
   GET_NATIVE_ARGUMENT(Bool, fatalErrors, arguments->NativeArgAt(4));
   GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(5));
   GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(6));
+  GET_NATIVE_ARGUMENT(String, packageRoot, arguments->NativeArgAt(7));
+  GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(8));
 
   if (closure.IsClosure()) {
     Function& func = Function::Handle();
@@ -221,21 +235,38 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
       // Get the parent function so that we get the right function name.
       func = func.parent_function();
 
+      // Get the script URI so that we know what script to load.
+      const Library& root_lib = Library::Handle(zone,
+          isolate->object_store()->root_library());
+      const String& script_uri = String::Handle(zone, root_lib.url());
+
+      const char* utf8_package_root =
+          packageRoot.IsNull() ? NULL : String2UTF8(packageRoot);
+      const char* utf8_package_config =
+          packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
+
       bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
       Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
       Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
 
-      ThreadPool::Task* spawn_task =
-          new SpawnIsolateTask(
-              new IsolateSpawnState(port.Id(),
-                                    isolate->origin_id(),
-                                    isolate->init_callback_data(),
-                                    func,
-                                    message,
-                                    paused.value(),
-                                    fatal_errors,
-                                    on_exit_port,
-                                    on_error_port));
+      IsolateSpawnState* state =
+          new IsolateSpawnState(port.Id(),
+                                isolate->origin_id(),
+                                isolate->init_callback_data(),
+                                String2UTF8(script_uri),
+                                func,
+                                message,
+                                isolate->spawn_count_monitor(),
+                                isolate->spawn_count(),
+                                utf8_package_root,
+                                utf8_package_config,
+                                paused.value(),
+                                fatal_errors,
+                                on_exit_port,
+                                on_error_port);
+      ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
+
+      isolate->IncrementSpawnCount();
       if (FLAG_i_like_slow_isolate_spawn) {
         // We block the parent isolate while the child isolate loads.
         Isolate* saved = Isolate::Current();
@@ -244,8 +275,13 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
         delete spawn_task;
         spawn_task = NULL;
         Thread::EnterIsolate(saved);
-      } else {
-        Dart::thread_pool()->Run(spawn_task);
+      } else if (!Dart::thread_pool()->Run(spawn_task)) {
+        // Running on the thread pool failed. Clean up everything.
+        state->DecrementSpawnCount();
+        delete state;
+        state = NULL;
+        delete spawn_task;
+        spawn_task = NULL;
       }
       return Object::null();
     }
@@ -254,16 +290,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
       "Isolate.spawn expects to be passed a static or top-level function"));
   Exceptions::ThrowArgumentError(msg);
   return Object::null();
-}
-
-
-static const char* String2UTF8(const String& str) {
-  intptr_t len = Utf8::Length(str);
-  char* result = new char[len + 1];
-  str.ToUTF8(reinterpret_cast<uint8_t*>(result), len);
-  result[len] = 0;
-
-  return result;
 }
 
 
@@ -319,8 +345,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
 
   GET_NATIVE_ARGUMENT(Array, environment, arguments->NativeArgAt(9));
 
-  GET_NATIVE_ARGUMENT(String, package_root, arguments->NativeArgAt(10));
-  GET_NATIVE_ARGUMENT(Array, packages, arguments->NativeArgAt(11));
+  GET_NATIVE_ARGUMENT(String, packageRoot, arguments->NativeArgAt(10));
+  GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(11));
 
   if (Dart::IsRunningPrecompiledCode()) {
     const Array& args = Array::Handle(Array::New(1));
@@ -341,26 +367,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   }
 
   const char* utf8_package_root =
-      package_root.IsNull() ? NULL : String2UTF8(package_root);
-
-  const char** utf8_package_map = NULL;
-  if (!packages.IsNull()) {
-    intptr_t len = packages.Length();
-    utf8_package_map = new const char*[len + 1];
-
-    Object& entry = Object::Handle();
-    for (intptr_t i = 0; i < len; i++) {
-      entry = packages.At(i);
-      if (!entry.IsString()) {
-        const String& msg = String::Handle(String::NewFormatted(
-            "Bad value in package map: %s", entry.ToCString()));
-        ThrowIsolateSpawnException(msg);
-      }
-      utf8_package_map[i] = String2UTF8(String::Cast(entry));
-    }
-    // NULL terminated array.
-    utf8_package_map[len] = NULL;
-  }
+      packageRoot.IsNull() ? NULL : String2UTF8(packageRoot);
+  const char* utf8_package_config =
+      packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
 
   bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
   Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
@@ -372,9 +381,11 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
           isolate->init_callback_data(),
           canonical_uri,
           utf8_package_root,
-          utf8_package_map,
+          utf8_package_config,
           args,
           message,
+          isolate->spawn_count_monitor(),
+          isolate->spawn_count(),
           paused.value(),
           fatal_errors,
           on_exit_port,
@@ -387,6 +398,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   }
 
   ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
+
+  isolate->IncrementSpawnCount();
   if (FLAG_i_like_slow_isolate_spawn) {
     // We block the parent isolate while the child isolate loads.
     Isolate* saved = Isolate::Current();
@@ -395,8 +408,13 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
     delete spawn_task;
     spawn_task = NULL;
     Thread::EnterIsolate(saved);
-  } else {
-    Dart::thread_pool()->Run(spawn_task);
+  } else if (!Dart::thread_pool()->Run(spawn_task)) {
+    // Running on the thread pool failed. Clean up everything.
+    state->DecrementSpawnCount();
+    delete state;
+    state = NULL;
+    delete spawn_task;
+    spawn_task = NULL;
   }
   return Object::null();
 }
@@ -410,6 +428,13 @@ DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0) {
   result.SetAt(2, Capability::Handle(
                       Capability::New(isolate->terminate_capability())));
   return result.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(Isolate_getCurrentRootUriStr, 0) {
+  const Library& root_lib = Library::Handle(zone,
+      isolate->object_store()->root_library());
+  return root_lib.url();
 }
 
 

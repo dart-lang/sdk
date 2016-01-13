@@ -14,6 +14,15 @@ import 'dart:isolate';
 // workers in a staggered fashion in an attempt to see a variety of
 // isolate states at the time that this program terminates.
 
+trySpawn(Function f, Object o) async {
+  try {
+    await Isolate.spawn(f, o);
+  } catch (e) {
+    // Isolate spawning may fail if the program is ending.
+    assert(e is IsolateSpawnException);
+  }
+}
+
 void worker(SendPort parentPort) {
   var port = new RawReceivePort();
 
@@ -26,7 +35,7 @@ void worker(SendPort parentPort) {
   }
 
   // Spawn a child worker.
-  Isolate.spawn(worker, port.sendPort);
+  trySpawn(worker, port.sendPort);
 }
 
 void main() {
@@ -39,7 +48,7 @@ void main() {
   // variety of states when the vm shuts down.
   print('Starting ${numWorkers} workers...');
   for (int i = 0; i < numWorkers; i++) {
-    Isolate.spawn(worker, null);
+    trySpawn(worker, null);
     sleep(delay);
   }
 

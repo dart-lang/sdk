@@ -51,7 +51,8 @@ Heap::Heap(Isolate* isolate,
       new_space_(this, max_new_gen_semi_words, kNewObjectAlignmentOffset),
       old_space_(this, max_old_gen_words, max_external_words),
       read_only_(false),
-      gc_in_progress_(false),
+      gc_new_space_in_progress_(false),
+      gc_old_space_in_progress_(false),
       pretenure_policy_(0) {
   for (int sel = 0;
        sel < kNumWeakSelectors;
@@ -79,6 +80,9 @@ uword Heap::AllocateNew(intptr_t size) {
   isolate()->AssertCurrentThreadIsMutator();
   uword addr = new_space_.TryAllocate(size);
   if (addr == 0) {
+    // This call to CollectGarbage might end up "reusing" a collection spawned
+    // from a different thread and will be racing to allocate the requested
+    // memory with other threads being released after the collection.
     CollectGarbage(kNew);
     addr = new_space_.TryAllocate(size);
     if (addr == 0) {
@@ -108,35 +112,38 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   if (addr != 0) {
     return addr;
   }
-  // All GC tasks finished without allocating successfully. Run a full GC.
-  CollectAllGarbage();
-  addr = old_space_.TryAllocate(size, type);
-  if (addr != 0) {
-    return addr;
-  }
-  // Wait for all of the concurrent tasks to finish before giving up.
-  {
-    MonitorLocker ml(old_space_.tasks_lock());
+  Thread* thread = Thread::Current();
+  if (thread->CanCollectGarbage()) {
+    // All GC tasks finished without allocating successfully. Run a full GC.
+    CollectAllGarbage();
     addr = old_space_.TryAllocate(size, type);
-    while ((addr == 0) && (old_space_.tasks() > 0)) {
-      ml.Wait();
-      addr = old_space_.TryAllocate(size, type);
+    if (addr != 0) {
+      return addr;
     }
-  }
-  if (addr != 0) {
-    return addr;
-  }
-  // Force growth before attempting a synchronous GC.
-  addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
-  if (addr != 0) {
-    return addr;
-  }
-  // Before throwing an out-of-memory error try a synchronous GC.
-  CollectAllGarbage();
-  {
-    MonitorLocker ml(old_space_.tasks_lock());
-    while (old_space_.tasks() > 0) {
-      ml.Wait();
+    // Wait for all of the concurrent tasks to finish before giving up.
+    {
+      MonitorLocker ml(old_space_.tasks_lock());
+      addr = old_space_.TryAllocate(size, type);
+      while ((addr == 0) && (old_space_.tasks() > 0)) {
+        ml.Wait();
+        addr = old_space_.TryAllocate(size, type);
+      }
+    }
+    if (addr != 0) {
+      return addr;
+    }
+    // Force growth before attempting another synchronous GC.
+    addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
+    if (addr != 0) {
+      return addr;
+    }
+    // Before throwing an out-of-memory error try a synchronous GC.
+    CollectAllGarbage();
+    {
+      MonitorLocker ml(old_space_.tasks_lock());
+      while (old_space_.tasks() > 0) {
+        ml.Wait();
+      }
     }
   }
   addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
@@ -307,66 +314,51 @@ RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
 }
 
 
-bool Heap::gc_in_progress() {
-  MutexLocker ml(&gc_in_progress_mutex_);
-  return gc_in_progress_;
-}
-
-
-void Heap::BeginGC() {
-  MutexLocker ml(&gc_in_progress_mutex_);
-  ASSERT(!gc_in_progress_);
-  gc_in_progress_ = true;
-}
-
-
-void Heap::EndGC() {
-  MutexLocker ml(&gc_in_progress_mutex_);
-  ASSERT(gc_in_progress_);
-  gc_in_progress_ = false;
-}
-
-
-void Heap::CollectGarbage(Space space,
-                          ApiCallbacks api_callbacks,
-                          GCReason reason) {
-  Thread* thread = Thread::Current();
-  bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
-  switch (space) {
-    case kNew: {
-      RecordBeforeGC(kNew, reason);
-      VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
-      TimelineDurationScope tds(thread,
-                                isolate()->GetGCStream(),
-                                "CollectNewGeneration");
-      UpdateClassHeapStatsBeforeGC(kNew);
-      new_space_.Scavenge(invoke_api_callbacks);
-      isolate()->class_table()->UpdatePromoted();
-      UpdatePretenurePolicy();
-      RecordAfterGC();
-      PrintStats();
-      if (old_space_.NeedsGarbageCollection()) {
-        // Old collections should call the API callbacks.
-        CollectGarbage(kOld, kInvokeApiCallbacks, kPromotion);
-      }
-      break;
-    }
-    case kOld:
-    case kCode: {
-      RecordBeforeGC(kOld, reason);
-      VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
-      TimelineDurationScope tds(thread,
-                                isolate()->GetGCStream(),
-                                "CollectOldGeneration");
-      UpdateClassHeapStatsBeforeGC(kOld);
-      old_space_.MarkSweep(invoke_api_callbacks);
-      RecordAfterGC();
-      PrintStats();
-      break;
-    }
-    default:
-      UNREACHABLE();
+bool Heap::BeginNewSpaceGC() {
+  MonitorLocker ml(&gc_in_progress_monitor_);
+  bool start_gc_on_thread = true;
+  while (gc_new_space_in_progress_ ||
+         gc_old_space_in_progress_) {
+    start_gc_on_thread = !gc_new_space_in_progress_;
+    ml.Wait();
   }
+  if (start_gc_on_thread) {
+    gc_new_space_in_progress_ = true;
+    return true;
+  }
+  return false;
+}
+
+
+void Heap::EndNewSpaceGC() {
+  MonitorLocker ml(&gc_in_progress_monitor_);
+  ASSERT(gc_new_space_in_progress_);
+  gc_new_space_in_progress_ = false;
+  ml.NotifyAll();
+}
+
+
+bool Heap::BeginOldSpaceGC() {
+  MonitorLocker ml(&gc_in_progress_monitor_);
+  bool start_gc_on_thread = true;
+  while (gc_new_space_in_progress_ ||
+         gc_old_space_in_progress_) {
+    start_gc_on_thread = !gc_old_space_in_progress_;
+    ml.Wait();
+  }
+  if (start_gc_on_thread) {
+    gc_old_space_in_progress_ = true;
+    return true;
+  }
+  return false;
+}
+
+
+void Heap::EndOldSpaceGC() {
+  MonitorLocker ml(&gc_in_progress_monitor_);
+  ASSERT(gc_old_space_in_progress_);
+  gc_old_space_in_progress_ = false;
+  ml.NotifyAll();
 }
 
 
@@ -380,42 +372,85 @@ void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
 }
 
 
+void Heap::CollectNewSpaceGarbage(Thread* thread,
+                                  ApiCallbacks api_callbacks,
+                                  GCReason reason) {
+  if (BeginNewSpaceGC()) {
+    bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
+    RecordBeforeGC(kNew, reason);
+    VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
+    TimelineDurationScope tds(thread,
+                              isolate()->GetGCStream(),
+                              "CollectNewGeneration");
+    UpdateClassHeapStatsBeforeGC(kNew);
+    new_space_.Scavenge(invoke_api_callbacks);
+    isolate()->class_table()->UpdatePromoted();
+    UpdatePretenurePolicy();
+    RecordAfterGC(kNew);
+    PrintStats();
+    EndNewSpaceGC();
+    if (old_space_.NeedsGarbageCollection()) {
+      // Old collections should call the API callbacks.
+      CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kPromotion);
+    }
+  }
+}
+
+
+void Heap::CollectOldSpaceGarbage(Thread* thread,
+                                  ApiCallbacks api_callbacks,
+                                  GCReason reason) {
+  if (BeginOldSpaceGC()) {
+    bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
+    RecordBeforeGC(kOld, reason);
+    VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
+    TimelineDurationScope tds(thread,
+                              isolate()->GetGCStream(),
+                              "CollectOldGeneration");
+    UpdateClassHeapStatsBeforeGC(kOld);
+    old_space_.MarkSweep(invoke_api_callbacks);
+    RecordAfterGC(kOld);
+    PrintStats();
+    EndOldSpaceGC();
+  }
+}
+
+
+void Heap::CollectGarbage(Space space,
+                          ApiCallbacks api_callbacks,
+                          GCReason reason) {
+  Thread* thread = Thread::Current();
+  switch (space) {
+    case kNew: {
+      CollectNewSpaceGarbage(thread, api_callbacks, reason);
+      break;
+    }
+    case kOld:
+    case kCode: {
+      CollectOldSpaceGarbage(thread, api_callbacks, reason);
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+}
+
+
 void Heap::CollectGarbage(Space space) {
+  Thread* thread = Thread::Current();
   if (space == kOld) {
-    CollectGarbage(space, kInvokeApiCallbacks, kOldSpace);
+    CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kOldSpace);
   } else {
     ASSERT(space == kNew);
-    CollectGarbage(space, kInvokeApiCallbacks, kNewSpace);
+    CollectNewSpaceGarbage(thread, kInvokeApiCallbacks, kNewSpace);
   }
 }
 
 
 void Heap::CollectAllGarbage() {
   Thread* thread = Thread::Current();
-  {
-    RecordBeforeGC(kNew, kFull);
-    VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
-    TimelineDurationScope tds(thread,
-                              isolate()->GetGCStream(),
-                              "CollectNewGeneration");
-    UpdateClassHeapStatsBeforeGC(kNew);
-    new_space_.Scavenge(kInvokeApiCallbacks);
-    isolate()->class_table()->UpdatePromoted();
-    UpdatePretenurePolicy();
-    RecordAfterGC();
-    PrintStats();
-  }
-  {
-    RecordBeforeGC(kOld, kFull);
-    VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
-    TimelineDurationScope tds(thread,
-                              isolate()->GetGCStream(),
-                              "CollectOldGeneration");
-    UpdateClassHeapStatsBeforeGC(kOld);
-    old_space_.MarkSweep(kInvokeApiCallbacks);
-    RecordAfterGC();
-    PrintStats();
-  }
+  CollectNewSpaceGarbage(thread, kInvokeApiCallbacks, kFull);
+  CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kFull);
 }
 
 
@@ -694,7 +729,8 @@ void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
 
 
 void Heap::RecordBeforeGC(Space space, GCReason reason) {
-  BeginGC();
+  ASSERT((space == kNew && gc_new_space_in_progress_) ||
+         (space == kOld && gc_old_space_in_progress_));
   stats_.num_++;
   stats_.space_ = space;
   stats_.reason_ = reason;
@@ -712,7 +748,7 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
 }
 
 
-void Heap::RecordAfterGC() {
+void Heap::RecordAfterGC(Space space) {
   stats_.after_.micros_ = OS::GetCurrentTimeMicros();
   int64_t delta = stats_.after_.micros_ - stats_.before_.micros_;
   if (stats_.space_ == kNew) {
@@ -724,7 +760,8 @@ void Heap::RecordAfterGC() {
   }
   stats_.after_.new_ = new_space_.GetCurrentUsage();
   stats_.after_.old_ = old_space_.GetCurrentUsage();
-  EndGC();
+  ASSERT((space == kNew && gc_new_space_in_progress_) ||
+         (space == kOld && gc_old_space_in_progress_));
   if (Service::gc_stream.enabled()) {
     ServiceEvent event(Isolate::Current(), ServiceEvent::kGC);
     event.set_gc_stats(&stats_);

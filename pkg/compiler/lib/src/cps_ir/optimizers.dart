@@ -6,6 +6,8 @@ library dart2js.cps_ir.optimizers;
 
 import 'cps_ir_nodes.dart';
 import '../constants/values.dart';
+import '../common/names.dart';
+import '../universe/selector.dart';
 
 export 'type_propagation.dart' show TypePropagator;
 export 'scalar_replacement.dart' show ScalarReplacer;
@@ -22,6 +24,7 @@ export 'backward_null_check_remover.dart' show BackwardNullCheckRemover;
 export 'gvn.dart' show GVN;
 export 'inline.dart' show Inliner;
 export 'eagerly_load_statics.dart' show EagerlyLoadStatics;
+export 'loop_invariant_branch.dart' show LoopInvariantBranchMotion;
 export 'parent_visitor.dart' show ParentVisitor;
 
 /// An optimization pass over the CPS IR.
@@ -51,3 +54,9 @@ bool isFalsyConstant(ConstantValue value) {
 bool isTruthyConstant(ConstantValue value, {bool strict: false}) {
   return strict ? value.isTrue : !isFalsyConstant(value);
 }
+
+/// Selectors that do not throw when invoked on the null value.
+final List<Selector> selectorsOnNull = <Selector>[
+    Selectors.equals, Selectors.hashCode_, Selectors.runtimeType_,
+    Selectors.toString_, Selectors.toStringGetter,
+    Selectors.noSuchMethodGetter];

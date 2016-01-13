@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // DartOptions=-Did=true -Ddotted.id=some_string -Dlots.of.dots.In.id=false --conditional-directives
+// VMOptions=-Did=true -Ddotted.id=some_string -Dlots.of.dots.In.id=false --conditional-directives
 
 import 'package:expect/expect.dart';
 

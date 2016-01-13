@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 interactive_test: Skip # Must be run manually.
-dromaeo_smoke_test: Skip # Issue 14521, 8257
 cross_frame_test: Skip # Test reloads itself. Issue 18558
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
@@ -58,9 +57,7 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
 # Dartium seems to lose the data from the dispatchEvent.
-async_test: Fail # Uses spawn, not implemented from a DOM isolate in Dartium
 keyboard_event_test: Fail # Issue 13902
-isolates_test: Fail # Issue 13921
 fileapi_test/getFile: Pass, Fail # Issue 20488
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) && $mode == debug ]
@@ -108,8 +105,6 @@ element_animate_test/timing_dict: RuntimeError # Also timing out on MacOS. Issue
 element_animate_test/simple_timing: RuntimeError # Please triage this failure
 element_types_test/supported_object: RuntimeError # Issue 25155
 element_types_test/supported_embed: RuntimeError # Issue 25155
-event_test: Pass, RuntimeError # Issue 25158 Passes on 46, fails on 47
-history_test/history: Pass, RuntimeError # Issue 25158, passes on 46 fails on 47
 
 [ $runtime == chrome && $system == macos ]
 canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
@@ -351,7 +346,6 @@ history_test/history: Skip # Issue 22050
 xhr_test/xhr: Pass, Fail # Issue 11602
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 webgl_1_test: Pass, Fail   # Issue 8219
-canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass, Fail # Firefox pre-38 does not like dataUrl videos for drawImage Issue 23479
 text_event_test: Fail # Issue 17893
 
 # Firefox Feature support statuses-
