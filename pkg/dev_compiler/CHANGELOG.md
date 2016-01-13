@@ -1,5 +1,8 @@
 # dev_compiler changelog
 
+## 0.1.15
+- codegen fixes for dart:convert (json decode) and dart:math (max, min)
+
 ## 0.1.14
 - updates to unpin analyzer and move forward to ^0.27.1+2
 
