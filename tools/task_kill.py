@@ -206,7 +206,11 @@ def Main():
   options = GetOptions()
   status = 0
   if options.kill_dart:
-    status += KillDart()
+    if os_name == "win32":
+      # TODO(24086): Add result of KillDart into status once pub hang is fixed.
+      KillDart()
+    else:
+      status += KillDart()
   if options.kill_fletch:
     status += KillFletch()
   if options.kill_vc:
