@@ -407,6 +407,10 @@ class AnalysisContextFactory {
           library.publicNamespace = new PublicNamespaceBuilder().build(library);
     }
     context.recordLibraryElements(elementMap);
+    // Create the synthetic element for `loadLibrary`.
+    for (LibraryElementImpl library in elementMap.values) {
+      library.createLoadLibraryFunction(context.typeProvider);
+    }
     return context;
   }
 }

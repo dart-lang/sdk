@@ -78,6 +78,10 @@ class ResynthTest extends ResolverTestCase {
         '(public namespace)');
     compareNamespaces(resynthesized.exportNamespace, original.exportNamespace,
         '(export namespace)');
+    compareExecutableElements(
+        resynthesized.loadLibraryFunction as ExecutableElementImpl,
+        original.loadLibraryFunction as ExecutableElementImpl,
+        '(loadLibraryFunction)');
     // TODO(paulberry): test metadata.
   }
 

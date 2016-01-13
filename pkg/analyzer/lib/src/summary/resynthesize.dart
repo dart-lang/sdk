@@ -718,6 +718,8 @@ class _LibraryResynthesizer {
         libraryElement.exportNamespace.definedNames.values.firstWhere(
             (element) => element is FunctionElement && element.isEntryPoint,
             orElse: () => null);
+    // Create the synthetic element for `loadLibrary`.
+    libraryElement.createLoadLibraryFunction(summaryResynthesizer.typeProvider);
     // Done.
     return libraryElement;
   }
