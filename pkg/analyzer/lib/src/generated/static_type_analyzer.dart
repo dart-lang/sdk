@@ -873,16 +873,21 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     if (needPropagatedType) {
       Element propagatedElement = methodNameNode.propagatedElement;
+      DartType propagatedInvokeType = node.propagatedInvokeType;
       // HACK: special case for object methods ([toString]) on dynamic
       // expressions. More special cases in [visitPrefixedIdentfier].
       if (propagatedElement == null) {
-        propagatedElement =
+        MethodElement objMethod =
             _typeProvider.objectType.getMethod(methodNameNode.name);
+        if (objMethod != null) {
+          propagatedElement = objMethod;
+          propagatedInvokeType = objMethod.type;
+        }
       }
       if (!identical(propagatedElement, staticMethodElement)) {
         // Record static return type of the propagated element.
         DartType propagatedStaticType =
-            _computeStaticReturnType(propagatedElement);
+            _computeInvokeReturnType(propagatedInvokeType);
         _resolver.recordPropagatedTypeIfBetter(
             node, propagatedStaticType, true);
         // Record propagated return type of the propagated element.

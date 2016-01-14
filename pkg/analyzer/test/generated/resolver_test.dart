@@ -13034,40 +13034,6 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
  */
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends _StaticTypeAnalyzer2TestShared {
-  void test_genericMethod_functionExpressionInvocation_explicit() {
-    _resolveTestUnit(r'''
-class C<E> {
-  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
-  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
-  static final h = g;
-}
-
-/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
-var topG = topF;
-void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
-  var c = new C<int>();
-  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
-
-  var lambdaCall = (/*<E>*/(/*=E*/ e) => e)/*<int>*/(3);
-  var methodCall = (c.f)/*<int>*/(3);
-  var staticCall = (C.g)/*<int>*/(3);
-  var staticFieldCall = (C.h)/*<int>*/(3);
-  var topFunCall = (topF)/*<int>*/(3);
-  var topFieldCall = (topG)/*<int>*/(3);
-  var localCall = (lf)/*<int>*/(3);
-  var paramCall = (pf)/*<int>*/(3);
-}
-''');
-    expect(_findIdentifier('methodCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('localCall').staticType.toString(), "int");
-    expect(_findIdentifier('paramCall').staticType.toString(), "int");
-    expect(_findIdentifier('lambdaCall').staticType.toString(), "int");
-  }
-
   void fail_genericMethod_functionExpressionInvocation_inferred() {
     _resolveTestUnit(r'''
 class C<E> {
@@ -13388,6 +13354,40 @@ main() {
         typeProvider.listType.substitute4([typeProvider.intType]));
   }
 
+  void test_genericMethod_functionExpressionInvocation_explicit() {
+    _resolveTestUnit(r'''
+class C<E> {
+  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
+  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  static final h = g;
+}
+
+/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+var topG = topF;
+void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+  var c = new C<int>();
+  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+
+  var lambdaCall = (/*<E>*/(/*=E*/ e) => e)/*<int>*/(3);
+  var methodCall = (c.f)/*<int>*/(3);
+  var staticCall = (C.g)/*<int>*/(3);
+  var staticFieldCall = (C.h)/*<int>*/(3);
+  var topFunCall = (topF)/*<int>*/(3);
+  var topFieldCall = (topG)/*<int>*/(3);
+  var localCall = (lf)/*<int>*/(3);
+  var paramCall = (pf)/*<int>*/(3);
+}
+''');
+    expect(_findIdentifier('methodCall').staticType.toString(), "int");
+    expect(_findIdentifier('staticCall').staticType.toString(), "int");
+    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
+    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
+    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
+    expect(_findIdentifier('localCall').staticType.toString(), "int");
+    expect(_findIdentifier('paramCall').staticType.toString(), "int");
+    expect(_findIdentifier('lambdaCall').staticType.toString(), "int");
+  }
+
   void test_genericMethod_functionInvocation_explicit() {
     _resolveTestUnit(r'''
 class C<E> {
@@ -13591,6 +13591,25 @@ class D extends C {
       'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS'
     ]);
     verify([source]);
+  }
+
+  void test_genericMethod_propagatedType_promotion() {
+    // Regression test for:
+    // https://github.com/dart-lang/sdk/issues/25340
+    _resolveTestUnit(r'''
+abstract class Iter {
+  List/*<S>*/ map/*<S>*/(/*=S*/ f(x));
+}
+class C {}
+C toSpan(dynamic element) {
+  if (element is Iter) {
+    var y = element.map(toSpan);
+  }
+  return null;
+}''');
+    SimpleIdentifier y = _findIdentifier('y = ');
+    expect(y.staticType.toString(), 'dynamic');
+    expect(y.propagatedType.toString(), 'List<dynamic>');
   }
 
   void test_genericMethod_tearoff() {
