@@ -25,6 +25,12 @@
 * `dart:io`
   * `Platform` added an `isIOS` getter and `Platform.operatingSystem` may now
     return `ios`.
+  * Added support for WebSocket compression as standardized in RFC 7692. By
+    default compression is turned on for all WebSocket connections. The
+    optionally named parameter `compression` on the methods `WebSocket.connect`,
+    `WebSocket.fromUpgradedSocket`, and `WebSocketTransformer.upgrade` and on
+    the `WebSocketTransformer` constructor is used to select the compression
+    options.
 
 ### Tool changes
 
