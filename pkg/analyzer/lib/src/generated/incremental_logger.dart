@@ -40,6 +40,11 @@ abstract class Logger {
   void log(Object obj);
 
   /**
+   * Logs the given [exception] and [stackTrace].
+   */
+  void logException(Object exception, [Object stackTrace]);
+
+  /**
    * Starts a new timer.
    */
   LoggingTimer startTimer();
@@ -102,6 +107,16 @@ class StringSinkLogger implements Logger {
   }
 
   @override
+  void logException(Object exception, [Object stackTrace]) {
+    if (exception != null) {
+      log(exception);
+    }
+    if (stackTrace != null) {
+      log(stackTrace);
+    }
+  }
+
+  @override
   LoggingTimer startTimer() {
     return new LoggingTimer(this);
   }
@@ -145,6 +160,9 @@ class _NullLogger implements Logger {
 
   @override
   void log(Object obj) {}
+
+  @override
+  void logException(Object exception, [Object stackTrace]) {}
 
   @override
   LoggingTimer startTimer() {

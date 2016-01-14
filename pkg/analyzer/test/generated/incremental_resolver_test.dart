@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/incremental_logger.dart' as log;
+import 'package:analyzer/src/generated/incremental_logger.dart' as logging;
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
 import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -3092,7 +3092,7 @@ class IncrementalResolverTest extends ResolverTestCase {
   void setUp() {
     super.setUp();
     test_resolveApiChanges = true;
-    log.logger = log.NULL_LOGGER;
+    logging.logger = logging.NULL_LOGGER;
   }
 
   void test_classMemberAccessor_body() {
@@ -3523,6 +3523,8 @@ class B {
  */
 @reflectiveTest
 class PoorMansIncrementalResolutionTest extends ResolverTestCase {
+  final _TestLogger logger = new _TestLogger();
+
   Source source;
   String code;
   LibraryElement oldLibrary;
@@ -3884,6 +3886,25 @@ main() {
   print(0);
 }
 ''');
+  }
+
+  void test_endOfLineComment_toDartDoc() {
+    _resolveUnit(r'''
+class A {
+  // text
+  main() {
+    print(42);
+  }
+}''');
+    _updateAndValidate(
+        r'''
+class A {
+  /// text
+  main() {
+    print(42);
+  }
+}''',
+        expectedSuccess: false);
   }
 
   void test_false_constConstructor_initializer() {
@@ -4697,8 +4718,7 @@ class B extends A {}
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.incremental = enable;
     analysisOptions.incrementalApi = enable;
-//    log.logger = log.PRINT_LOGGER;
-    log.logger = log.NULL_LOGGER;
+    logging.logger = logger;
     analysisContext2.analysisOptions = analysisOptions;
   }
 
@@ -4730,6 +4750,7 @@ class B extends A {}
     _resetWithIncremental(true);
     analysisContext2.setContents(source, newCode);
     CompilationUnit newUnit = resolveCompilationUnit(source, oldLibrary);
+    expect(logger.hasError, isFalse);
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
     LineInfo newLineInfo = analysisContext.getLineInfo(source);
     // check for expected failure
@@ -5021,4 +5042,27 @@ class _Edit {
   final int length;
   final String replacement;
   _Edit(this.offset, this.length, this.replacement);
+}
+
+class _TestLogger implements logging.Logger {
+  bool hasError = false;
+
+  @override
+  void enter(String name) {}
+
+  @override
+  void exit() {}
+
+  @override
+  void log(Object obj) {}
+
+  @override
+  void logException(Object exception, [Object stackTrace]) {
+    hasError = true;
+  }
+
+  @override
+  logging.LoggingTimer startTimer() {
+    return new logging.LoggingTimer(this);
+  }
 }

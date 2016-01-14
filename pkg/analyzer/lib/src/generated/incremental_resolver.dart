@@ -597,12 +597,12 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   void _assertSameAnnotations(AnnotatedNode node, Element element) {
-    List<Annotation> nodeAnnotaitons = node.metadata;
+    List<Annotation> nodeAnnotations = node.metadata;
     List<ElementAnnotation> elementAnnotations = element.metadata;
-    int length = nodeAnnotaitons.length;
+    int length = nodeAnnotations.length;
     _assertEquals(elementAnnotations.length, length);
     for (int i = 0; i < length; i++) {
-      _assertSameAnnotation(nodeAnnotaitons[i], elementAnnotations[i]);
+      _assertSameAnnotation(nodeAnnotations[i], elementAnnotations[i]);
     }
   }
 
@@ -1555,8 +1555,7 @@ class PoorMansIncrementalResolver {
         return true;
       }
     } catch (e, st) {
-      logger.log(e);
-      logger.log(st);
+      logger.logException(e, st);
       logger.log('Failure: exception.');
     } finally {
       logger.exit();
@@ -1595,8 +1594,13 @@ class PoorMansIncrementalResolver {
     // find nodes
     int offset = oldComments.offset;
     logger.log('offset: $offset');
-    Comment oldComment = _findNodeCovering(_oldUnit, offset, offset);
-    Comment newComment = _findNodeCovering(newUnit, offset, offset);
+    AstNode oldNode = _findNodeCovering(_oldUnit, offset, offset);
+    AstNode newNode = _findNodeCovering(newUnit, offset, offset);
+    if (oldNode is! Comment || newNode is! Comment) {
+      return false;
+    }
+    Comment oldComment = oldNode;
+    Comment newComment = newNode;
     logger.log('oldComment.beginToken: ${oldComment.beginToken}');
     logger.log('newComment.beginToken: ${newComment.beginToken}');
     _updateOffset = oldToken.offset - 1;
@@ -1733,7 +1737,7 @@ class PoorMansIncrementalResolver {
         Token newComment = newToken.precedingComments;
         if (_compareToken(oldComment, newComment, 0, true) != null) {
           _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
-          if (oldComment is DocumentationCommentToken ||
+          if (oldComment is DocumentationCommentToken &&
               newComment is DocumentationCommentToken) {
             diffKind = _TokenDifferenceKind.COMMENT_DOC;
           }
@@ -1769,7 +1773,7 @@ class PoorMansIncrementalResolver {
         Token newComment = newToken.precedingComments;
         if (_compareToken(oldComment, newComment, delta, true) != null) {
           _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
-          if (oldComment is DocumentationCommentToken ||
+          if (oldComment is DocumentationCommentToken &&
               newComment is DocumentationCommentToken) {
             diffKind = _TokenDifferenceKind.COMMENT_DOC;
           }
