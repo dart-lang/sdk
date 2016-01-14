@@ -1557,6 +1557,10 @@ class PoorMansIncrementalResolver {
     } catch (e, st) {
       logger.logException(e, st);
       logger.log('Failure: exception.');
+      // The incremental resolver log is usually turned off,
+      // so also log the exception to the instrumentation log.
+      AnalysisEngine.instance.logger.logError(
+          'Failure in incremental resolver', new CaughtException(e, st));
     } finally {
       logger.exit();
     }
