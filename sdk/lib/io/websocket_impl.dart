@@ -133,12 +133,15 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
             throw new WebSocketException("Protocol error");
           }
 
-          if ((byte & RSV1) != 0) {
-            _compressed = true;
-          } else {
-            _compressed = false;
-          }
           _opcode = (byte & OPCODE);
+
+          if (_opcode != _WebSocketOpcode.CONTINUATION) {
+            if ((byte & RSV1) != 0) {
+              _compressed = true;
+            } else {
+              _compressed = false;
+            }
+          }
 
           if (_opcode <= _WebSocketOpcode.BINARY) {
             if (_opcode == _WebSocketOpcode.CONTINUATION) {
@@ -567,28 +570,18 @@ class _WebSocketPerMessageDeflate {
     data.addAll(const [0x00, 0x00, 0xff, 0xff]);
 
     decoder.process(data, 0, data.length);
-    var reuse =
-        !(serverSide ? clientNoContextTakeover : serverNoContextTakeover);
     var result = [];
     var out;
 
-    while ((out = decoder.processed(flush: reuse)) != null) {
+    while ((out = decoder.processed()) != null) {
       result.addAll(out);
     }
 
-    decoder.processed(flush: reuse);
-
-    if (!reuse) {
-      decoder.end();
-      decoder = null;
-    }
     return new Uint8List.fromList(result);
   }
 
   List<int> processOutgoingMessage(List<int> msg) {
     _ensureEncoder();
-    var reuse =
-        !(serverSide ? serverNoContextTakeover : clientNoContextTakeover);
     var result = [];
     Uint8List buffer;
     var out;
@@ -607,13 +600,8 @@ class _WebSocketPerMessageDeflate {
 
     encoder.process(buffer, 0, buffer.length);
 
-    while ((out = encoder.processed(flush: reuse)) != null) {
+    while ((out = encoder.processed()) != null) {
       result.addAll(out);
-    }
-
-    if (serverSide ? serverNoContextTakeover : clientNoContextTakeover) {
-      encoder.end();
-      encoder = null;
     }
 
     if (result.length > 4) {
