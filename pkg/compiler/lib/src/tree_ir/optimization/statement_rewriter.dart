@@ -579,13 +579,11 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitLogicalOperator(LogicalOperator node) {
-    node.left = visitExpression(node.left);
-
     // Impure expressions may not propagate across the branch.
     inEmptyEnvironment(() {
       node.right = visitExpression(node.right);
     });
-
+    node.left = visitExpression(node.left);
     return node;
   }
 
@@ -1244,8 +1242,8 @@ class StatementRewriter extends Transformer implements Pass {
 
   @override
   Statement visitYield(Yield node) {
-    node.input = visitExpression(node.input);
     node.next = visitStatement(node.next);
+    node.input = visitExpression(node.input);
     return node;
   }
 
