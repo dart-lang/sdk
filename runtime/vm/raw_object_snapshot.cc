@@ -1107,26 +1107,27 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     // The native resolver and symbolizer are not serialized.
     library.set_native_entry_resolver(NULL);
     library.set_native_entry_symbol_resolver(NULL);
-    // The cache of loaded scripts is not serialized.
-    library.StorePointer(&library.raw_ptr()->loaded_scripts_, Array::null());
 
     // Set all the object fields.
     // TODO(5411462): Need to assert No GC can happen here, even though
     // allocations may happen.
-    RawObject** toobj = (kind == Snapshot::kFull) ?
-        library.raw()->to() : library.raw()->to_snapshot();
-    intptr_t num_flds = (toobj - library.raw()->from());
+    intptr_t num_flds = (library.raw()->to_snapshot() - library.raw()->from());
     for (intptr_t i = 0; i <= num_flds; i++) {
       (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
       library.StorePointer((library.raw()->from() + i),
                            reader->PassiveObjectHandle()->raw());
     }
+    // Initialize cache of resolved names.
+    const intptr_t kInitialNameCacheSize = 64;
     if (kind != Snapshot::kFull) {
       // The cache of resolved names in library scope is not serialized.
-      const intptr_t kInitialNameCacheSize = 64;
       library.InitResolvedNamesCache(kInitialNameCacheSize);
       library.Register();
+    } else {
+      library.InitResolvedNamesCache(kInitialNameCacheSize, reader);
     }
+    // Initialize cache of loaded scripts.
+    library.StorePointer(&library.raw_ptr()->loaded_scripts_, Array::null());
   }
   return library.raw();
 }
@@ -1165,14 +1166,13 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     writer->Write<bool>(ptr()->debuggable_);
     // We do not serialize the native resolver or symbolizer. These need to be
     // explicitly set after deserialization.
-    // We do not write the loaded_scripts_ cache to the snapshot. It gets
-    // set to NULL when reading the library from the snapshot, and will
-    // be rebuilt lazily.
 
+    // We do not write the loaded_scripts_ and resolved_names_ caches to the
+    // snapshot. They get initialized when reading the library from the
+    // snapshot and will be rebuilt lazily.
     // Write out all the object pointer fields.
-    RawObject** toobj = (kind == Snapshot::kFull) ? to() : to_snapshot();
     SnapshotWriterVisitor visitor(writer, kAsReference);
-    visitor.VisitPointers(from(), toobj);
+    visitor.VisitPointers(from(), to_snapshot());
   }
 }
 

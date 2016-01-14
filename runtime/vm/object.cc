@@ -10155,9 +10155,17 @@ static RawArray* NewDictionary(intptr_t initial_size) {
 }
 
 
-void Library::InitResolvedNamesCache(intptr_t size) const {
-  const Array& cache = Array::Handle(HashTables::New<ResolvedNamesMap>(size));
-  StorePointer(&raw_ptr()->resolved_names_, cache.raw());
+void Library::InitResolvedNamesCache(intptr_t size,
+                                     SnapshotReader* reader) const {
+  if (reader == NULL) {
+    StorePointer(&raw_ptr()->resolved_names_,
+                 HashTables::New<ResolvedNamesMap>(size));
+  } else {
+    intptr_t len = ResolvedNamesMap::ArrayLengthForNumOccupied(size);
+    *reader->ArrayHandle() ^= reader->NewArray(len);
+    StorePointer(&raw_ptr()->resolved_names_,
+                 HashTables::New<ResolvedNamesMap>(*reader->ArrayHandle()));
+  }
 }
 
 
