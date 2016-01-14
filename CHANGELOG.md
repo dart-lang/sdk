@@ -23,7 +23,7 @@
     embedder for every generated random value.
 
 * `dart:io`
-  * `Platform` added an `isiOS` getter and `Platform.operatingSystem` may now
+  * `Platform` added an `isIOS` getter and `Platform.operatingSystem` may now
     return `ios`.
 
 ### Tool changes

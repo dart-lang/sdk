@@ -117,7 +117,7 @@ class Platform {
   /**
    * Returns true if the operating system is iOS.
    */
-  static final bool isiOS = (_operatingSystem == "ios");
+  static final bool isIOS = (_operatingSystem == "ios");
 
   /**
    * Get the environment for this process.
