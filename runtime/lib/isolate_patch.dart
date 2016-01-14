@@ -378,6 +378,12 @@ patch class Isolate {
         }
       }
 
+      // Ensure to resolve package: URIs being handed in as parameters.
+      packageRoot = (packageRoot == null) ? null :
+          await Isolate.resolvePackageUri(packageRoot);
+      packageConfig = (packageConfig == null) ? null :
+          await Isolate.resolvePackageUri(packageConfig);
+
       // The VM will invoke [_startIsolate] and not `main`.
       readyPort = new RawReceivePort();
       var packageRootString = packageRoot?.toString();
