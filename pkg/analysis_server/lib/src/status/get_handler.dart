@@ -65,10 +65,10 @@ class ElementCounter extends RecursiveElementVisitor {
   int totalDocSpan = 0;
 
   void visit(Element element) {
-    SourceRange docRange = element.docRange;
-    if (docRange != null) {
+    String comment = element.documentationComment;
+    if (comment != null) {
       ++elementsWithDocs;
-      totalDocSpan += docRange.length;
+      totalDocSpan += comment.length;
     }
 
     Type type = element.runtimeType;
@@ -1293,9 +1293,16 @@ class GetHandler {
           buffer.write('<p><b>Error Processor count</b>: $processorCount</p>');
         });
 
-        _writeFiles(buffer, 'Priority Files', priorityNames);
-        _writeFiles(buffer, 'Explicitly Analyzed Files', explicitNames);
-        _writeFiles(buffer, 'Implicitly Analyzed Files', implicitNames);
+        _writeFiles(
+            buffer, 'Priority Files (${priorityNames.length})', priorityNames);
+        _writeFiles(
+            buffer,
+            'Explicitly Analyzed Files (${explicitNames.length})',
+            explicitNames);
+        _writeFiles(
+            buffer,
+            'Implicitly Analyzed Files (${implicitNames.length})',
+            implicitNames);
 
         buffer.write('<h3>Exceptions</h3>');
         if (exceptions.isEmpty) {
