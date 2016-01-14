@@ -687,213 +687,236 @@ class CallSiteInliner : public ValueObject {
     // Save and clear deopt id.
     const intptr_t prev_deopt_id = thread()->deopt_id();
     thread()->set_deopt_id(0);
-    // Install bailout jump.
-    LongJumpScope jump;
-    if (setjmp(*jump.Set()) == 0) {
-      // Parse the callee function.
-      bool in_cache;
-      ParsedFunction* parsed_function;
-      {
-        CSTAT_TIMER_SCOPE(thread(), graphinliner_parse_timer);
-        parsed_function = GetParsedFunction(function, &in_cache);
-      }
+    Error& error = Error::Handle();
+    {
+      // Install bailout jump.
+      LongJumpScope jump;
+      if (setjmp(*jump.Set()) == 0) {
+        // Parse the callee function.
+        bool in_cache;
+        ParsedFunction* parsed_function;
+        {
+          CSTAT_TIMER_SCOPE(thread(), graphinliner_parse_timer);
+          parsed_function = GetParsedFunction(function, &in_cache);
+        }
 
-      // Load IC data for the callee.
-      ZoneGrowableArray<const ICData*>* ic_data_array =
-            new(Z) ZoneGrowableArray<const ICData*>();
-      const bool clone_descriptors = Compiler::IsBackgroundCompilation();
-      function.RestoreICDataMap(ic_data_array, clone_descriptors);
+        // Load IC data for the callee.
+        ZoneGrowableArray<const ICData*>* ic_data_array =
+              new(Z) ZoneGrowableArray<const ICData*>();
+        const bool clone_descriptors = Compiler::IsBackgroundCompilation();
+        function.RestoreICDataMap(ic_data_array, clone_descriptors);
 
-      // Build the callee graph.
-      InlineExitCollector* exit_collector =
-          new(Z) InlineExitCollector(caller_graph_, call);
-      FlowGraphBuilder builder(*parsed_function,
-                               *ic_data_array,
-                               exit_collector,
-                               Compiler::kNoOSRDeoptId);
-      builder.SetInitialBlockId(caller_graph_->max_block_id());
-      FlowGraph* callee_graph;
-      {
-        CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
-        callee_graph = builder.BuildGraph();
-      }
+        // Build the callee graph.
+        InlineExitCollector* exit_collector =
+            new(Z) InlineExitCollector(caller_graph_, call);
+        FlowGraphBuilder builder(*parsed_function,
+                                 *ic_data_array,
+                                 exit_collector,
+                                 Compiler::kNoOSRDeoptId);
+        builder.SetInitialBlockId(caller_graph_->max_block_id());
+        FlowGraph* callee_graph;
+        {
+          CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
+          callee_graph = builder.BuildGraph();
+        }
 
-      // The parameter stubs are a copy of the actual arguments providing
-      // concrete information about the values, for example constant values,
-      // without linking between the caller and callee graphs.
-      // TODO(zerny): Put more information in the stubs, eg, type information.
-      ZoneGrowableArray<Definition*>* param_stubs =
-          new(Z) ZoneGrowableArray<Definition*>(
-              function.NumParameters());
+        // The parameter stubs are a copy of the actual arguments providing
+        // concrete information about the values, for example constant values,
+        // without linking between the caller and callee graphs.
+        // TODO(zerny): Put more information in the stubs, eg, type information.
+        ZoneGrowableArray<Definition*>* param_stubs =
+            new(Z) ZoneGrowableArray<Definition*>(
+                function.NumParameters());
 
-      // Create a parameter stub for each fixed positional parameter.
-      for (intptr_t i = 0; i < function.num_fixed_parameters(); ++i) {
-        param_stubs->Add(CreateParameterStub(i, (*arguments)[i], callee_graph));
-      }
+        // Create a parameter stub for each fixed positional parameter.
+        for (intptr_t i = 0; i < function.num_fixed_parameters(); ++i) {
+          param_stubs->Add(CreateParameterStub(i, (*arguments)[i],
+                                               callee_graph));
+        }
 
-      // If the callee has optional parameters, rebuild the argument and stub
-      // arrays so that actual arguments are in one-to-one with the formal
-      // parameters.
-      if (function.HasOptionalParameters()) {
-        TRACE_INLINING(THR_Print("     adjusting for optional parameters\n"));
-        if (!AdjustForOptionalParameters(*parsed_function,
-                                         argument_names,
-                                         arguments,
-                                         param_stubs,
-                                         callee_graph)) {
-          function.set_is_inlinable(false);
-          TRACE_INLINING(THR_Print("     Bailout: optional arg mismatch\n"));
-          PRINT_INLINING_TREE("Optional arg mismatch",
+        // If the callee has optional parameters, rebuild the argument and stub
+        // arrays so that actual arguments are in one-to-one with the formal
+        // parameters.
+        if (function.HasOptionalParameters()) {
+          TRACE_INLINING(THR_Print("     adjusting for optional parameters\n"));
+          if (!AdjustForOptionalParameters(*parsed_function,
+                                           argument_names,
+                                           arguments,
+                                           param_stubs,
+                                           callee_graph)) {
+            function.set_is_inlinable(false);
+            TRACE_INLINING(THR_Print("     Bailout: optional arg mismatch\n"));
+            PRINT_INLINING_TREE("Optional arg mismatch",
+                &call_data->caller, &function, call_data->call);
+            return false;
+          }
+        }
+
+        // After treating optional parameters the actual/formal count must
+        // match.
+        ASSERT(arguments->length() == function.NumParameters());
+        ASSERT(param_stubs->length() == callee_graph->parameter_count());
+
+        // Update try-index of the callee graph.
+        BlockEntryInstr* call_block = call_data->call->GetBlock();
+        if (call_block->InsideTryBlock()) {
+          intptr_t try_index = call_block->try_index();
+          for (BlockIterator it = callee_graph->reverse_postorder_iterator();
+               !it.Done(); it.Advance()) {
+            BlockEntryInstr* block = it.Current();
+            block->set_try_index(try_index);
+          }
+        }
+
+        BlockScheduler block_scheduler(callee_graph);
+        block_scheduler.AssignEdgeWeights();
+
+        {
+          CSTAT_TIMER_SCOPE(thread(), graphinliner_ssa_timer);
+          // Compute SSA on the callee graph, catching bailouts.
+          callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
+                                   param_stubs);
+          DEBUG_ASSERT(callee_graph->VerifyUseLists());
+        }
+
+        {
+          CSTAT_TIMER_SCOPE(thread(), graphinliner_opt_timer);
+          // TODO(fschneider): Improve suppression of speculative inlining.
+          // Deopt-ids overlap between caller and callee.
+          FlowGraphOptimizer optimizer(callee_graph,
+                                       inliner_->use_speculative_inlining_,
+                                       inliner_->inlining_black_list_);
+          if (Compiler::always_optimize()) {
+            optimizer.PopulateWithICData();
+
+            optimizer.ApplyClassIds();
+            DEBUG_ASSERT(callee_graph->VerifyUseLists());
+
+            FlowGraphTypePropagator::Propagate(callee_graph);
+            DEBUG_ASSERT(callee_graph->VerifyUseLists());
+          }
+          optimizer.ApplyICData();
+          DEBUG_ASSERT(callee_graph->VerifyUseLists());
+
+          // Optimize (a << b) & c patterns, merge instructions. Must occur
+          // before 'SelectRepresentations' which inserts conversion nodes.
+          optimizer.TryOptimizePatterns();
+          DEBUG_ASSERT(callee_graph->VerifyUseLists());
+        }
+
+        if (FLAG_trace_inlining &&
+            (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
+          THR_Print("Callee graph for inlining %s\n",
+                    function.ToFullyQualifiedCString());
+          FlowGraphPrinter printer(*callee_graph);
+          printer.PrintBlocks();
+        }
+
+        // Collect information about the call site and caller graph.
+        // TODO(zerny): Do this after CP and dead code elimination.
+        intptr_t constants_count = 0;
+        for (intptr_t i = 0; i < param_stubs->length(); ++i) {
+          if ((*param_stubs)[i]->IsConstant()) ++constants_count;
+        }
+
+        FlowGraphInliner::CollectGraphInfo(callee_graph);
+        const intptr_t size = function.optimized_instruction_count();
+        const intptr_t call_site_count = function.optimized_call_site_count();
+
+        function.set_optimized_instruction_count(size);
+        function.set_optimized_call_site_count(call_site_count);
+
+        // Use heuristics do decide if this call should be inlined.
+        if (!ShouldWeInline(function, size, call_site_count, constants_count)) {
+          // If size is larger than all thresholds, don't consider it again.
+          if ((size > FLAG_inlining_size_threshold) &&
+              (call_site_count > FLAG_inlining_callee_call_sites_threshold) &&
+              (size > FLAG_inlining_constant_arguments_min_size_threshold) &&
+              (size > FLAG_inlining_constant_arguments_max_size_threshold)) {
+            function.set_is_inlinable(false);
+          }
+          thread()->set_deopt_id(prev_deopt_id);
+          TRACE_INLINING(THR_Print("     Bailout: heuristics with "
+                                   "code size:  %" Pd ", "
+                                   "call sites: %" Pd ", "
+                                   "const args: %" Pd "\n",
+                                   size,
+                                   call_site_count,
+                                   constants_count));
+          PRINT_INLINING_TREE("Heuristic fail",
               &call_data->caller, &function, call_data->call);
           return false;
         }
-      }
 
-      // After treating optional parameters the actual/formal count must match.
-      ASSERT(arguments->length() == function.NumParameters());
-      ASSERT(param_stubs->length() == callee_graph->parameter_count());
+        // Inline dispatcher methods regardless of the current depth.
+        const intptr_t depth =
+            (function.IsInvokeFieldDispatcher() ||
+             function.IsNoSuchMethodDispatcher()) ? 0 : inlining_depth_;
+        collected_call_sites_->FindCallSites(callee_graph, depth,
+                                             &inlined_info_);
 
-      // Update try-index of the callee graph.
-      BlockEntryInstr* call_block = call_data->call->GetBlock();
-      if (call_block->InsideTryBlock()) {
-        intptr_t try_index = call_block->try_index();
-        for (BlockIterator it = callee_graph->reverse_postorder_iterator();
-             !it.Done(); it.Advance()) {
-          BlockEntryInstr* block = it.Current();
-          block->set_try_index(try_index);
+        // Add the function to the cache.
+        if (!in_cache) {
+          function_cache_.Add(parsed_function);
         }
-      }
 
-      BlockScheduler block_scheduler(callee_graph);
-      block_scheduler.AssignEdgeWeights();
-
-      {
-        CSTAT_TIMER_SCOPE(thread(), graphinliner_ssa_timer);
-        // Compute SSA on the callee graph, catching bailouts.
-        callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
-                                 param_stubs);
-        DEBUG_ASSERT(callee_graph->VerifyUseLists());
-      }
-
-      {
-        CSTAT_TIMER_SCOPE(thread(), graphinliner_opt_timer);
-        // TODO(fschneider): Improve suppression of speculative inlining.
-        // Deopt-ids overlap between caller and callee.
-        FlowGraphOptimizer optimizer(callee_graph,
-                                     inliner_->use_speculative_inlining_,
-                                     inliner_->inlining_black_list_);
-        if (Compiler::always_optimize()) {
-          optimizer.PopulateWithICData();
-
-          optimizer.ApplyClassIds();
-          DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-          FlowGraphTypePropagator::Propagate(callee_graph);
-          DEBUG_ASSERT(callee_graph->VerifyUseLists());
-        }
-        optimizer.ApplyICData();
-        DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-        // Optimize (a << b) & c patterns, merge instructions. Must occur before
-        // 'SelectRepresentations' which inserts conversion nodes.
-        optimizer.TryOptimizePatterns();
-        DEBUG_ASSERT(callee_graph->VerifyUseLists());
-      }
-
-      if (FLAG_trace_inlining &&
-          (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
-        THR_Print("Callee graph for inlining %s\n",
-                  function.ToFullyQualifiedCString());
-        FlowGraphPrinter printer(*callee_graph);
-        printer.PrintBlocks();
-      }
-
-      // Collect information about the call site and caller graph.
-      // TODO(zerny): Do this after CP and dead code elimination.
-      intptr_t constants_count = 0;
-      for (intptr_t i = 0; i < param_stubs->length(); ++i) {
-        if ((*param_stubs)[i]->IsConstant()) ++constants_count;
-      }
-
-      FlowGraphInliner::CollectGraphInfo(callee_graph);
-      const intptr_t size = function.optimized_instruction_count();
-      const intptr_t call_site_count = function.optimized_call_site_count();
-
-      function.set_optimized_instruction_count(size);
-      function.set_optimized_call_site_count(call_site_count);
-
-      // Use heuristics do decide if this call should be inlined.
-      if (!ShouldWeInline(function, size, call_site_count, constants_count)) {
-        // If size is larger than all thresholds, don't consider it again.
-        if ((size > FLAG_inlining_size_threshold) &&
-            (call_site_count > FLAG_inlining_callee_call_sites_threshold) &&
-            (size > FLAG_inlining_constant_arguments_min_size_threshold) &&
-            (size > FLAG_inlining_constant_arguments_max_size_threshold)) {
-          function.set_is_inlinable(false);
+        // Build succeeded so we restore the bailout jump.
+        inlined_ = true;
+        inlined_size_ += size;
+        if (is_recursive_call) {
+          inlined_recursive_call_ = true;
         }
         thread()->set_deopt_id(prev_deopt_id);
-        TRACE_INLINING(THR_Print("     Bailout: heuristics with "
-                                 "code size:  %" Pd ", "
-                                 "call sites: %" Pd ", "
-                                 "const args: %" Pd "\n",
-                                 size,
-                                 call_site_count,
-                                 constants_count));
-        PRINT_INLINING_TREE("Heuristic fail",
-            &call_data->caller, &function, call_data->call);
-        return false;
+
+        call_data->callee_graph = callee_graph;
+        call_data->parameter_stubs = param_stubs;
+        call_data->exit_collector = exit_collector;
+
+        // When inlined, we add the guarded fields of the callee to the caller's
+        // list of guarded fields.
+        for (intptr_t i = 0;
+             i < callee_graph->guarded_fields()->length();
+             ++i) {
+          FlowGraph::AddToGuardedFields(caller_graph_->guarded_fields(),
+                                        (*callee_graph->guarded_fields())[i]);
+        }
+        // When inlined, we add the deferred prefixes of the callee to the
+        // caller's list of deferred prefixes.
+        caller_graph()->AddToDeferredPrefixes(
+            callee_graph->deferred_prefixes());
+
+        FlowGraphInliner::SetInliningId(callee_graph,
+            inliner_->NextInlineId(callee_graph->function(),
+                                   call_data->caller_inlining_id_));
+        TRACE_INLINING(THR_Print("     Success\n"));
+        PRINT_INLINING_TREE(NULL,
+            &call_data->caller, &function, call);
+        return true;
+      } else {
+        error = isolate()->object_store()->sticky_error();
+        isolate()->object_store()->clear_sticky_error();
+        ASSERT(error.IsLanguageError());
+
+        if (LanguageError::Cast(error).kind() == Report::kBailout) {
+          thread()->set_deopt_id(prev_deopt_id);
+          TRACE_INLINING(THR_Print("     Bailout: %s\n",
+                                   error.ToErrorCString()));
+          PRINT_INLINING_TREE("Bailout",
+              &call_data->caller, &function, call);
+          return false;
+        } else {
+          // Fall through to exit long jump scope.
+        }
       }
-
-      // Inline dispatcher methods regardless of the current depth.
-      const intptr_t depth =
-          (function.IsInvokeFieldDispatcher() ||
-           function.IsNoSuchMethodDispatcher()) ? 0 : inlining_depth_;
-      collected_call_sites_->FindCallSites(callee_graph, depth, &inlined_info_);
-
-      // Add the function to the cache.
-      if (!in_cache) {
-        function_cache_.Add(parsed_function);
-      }
-
-      // Build succeeded so we restore the bailout jump.
-      inlined_ = true;
-      inlined_size_ += size;
-      if (is_recursive_call) {
-        inlined_recursive_call_ = true;
-      }
-      thread()->set_deopt_id(prev_deopt_id);
-
-      call_data->callee_graph = callee_graph;
-      call_data->parameter_stubs = param_stubs;
-      call_data->exit_collector = exit_collector;
-
-      // When inlined, we add the guarded fields of the callee to the caller's
-      // list of guarded fields.
-      for (intptr_t i = 0; i < callee_graph->guarded_fields()->length(); ++i) {
-        FlowGraph::AddToGuardedFields(caller_graph_->guarded_fields(),
-                                      (*callee_graph->guarded_fields())[i]);
-      }
-      // When inlined, we add the deferred prefixes of the callee to the
-      // caller's list of deferred prefixes.
-      caller_graph()->AddToDeferredPrefixes(callee_graph->deferred_prefixes());
-
-      FlowGraphInliner::SetInliningId(callee_graph,
-          inliner_->NextInlineId(callee_graph->function(),
-                                 call_data->caller_inlining_id_));
-      TRACE_INLINING(THR_Print("     Success\n"));
-      PRINT_INLINING_TREE(NULL,
-          &call_data->caller, &function, call);
-      return true;
-    } else {
-      Error& error = Error::Handle();
-      error = isolate()->object_store()->sticky_error();
-      isolate()->object_store()->clear_sticky_error();
-      thread()->set_deopt_id(prev_deopt_id);
-      TRACE_INLINING(THR_Print("     Bailout: %s\n", error.ToErrorCString()));
-      PRINT_INLINING_TREE("Bailout",
-          &call_data->caller, &function, call);
-      return false;
     }
+
+    // Propagate a compile-time error. Only in precompilation do we attempt to
+    // inline functions that have never been compiled before; when JITing we
+    // should only see compile-time errors in unoptimized compilation.
+    ASSERT(Compiler::always_optimize());
+    Thread::Current()->long_jump_base()->Jump(1, error);
+    UNREACHABLE();
+    return false;
   }
 
   void PrintInlinedInfo(const Function& top) {

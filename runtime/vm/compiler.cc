@@ -1341,8 +1341,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
     const bool success = helper.Compile(pipeline);
     if (!success) {
-      if (optimized) {
-        ASSERT(!Compiler::always_optimize());  // Optimized is the only code.
+      if (optimized && !Compiler::always_optimize()) {
         // Optimizer bailed out. Disable optimizations and never try again.
         if (trace_compiler) {
           THR_Print("--> disabling optimizations for '%s'\n",
@@ -1359,6 +1358,8 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
         // We got an error during compilation.
         error = isolate->object_store()->sticky_error();
         isolate->object_store()->clear_sticky_error();
+        ASSERT(error.IsLanguageError() &&
+               LanguageError::Cast(error).kind() != Report::kBailout);
         return error.raw();
       }
     }
