@@ -37865,6 +37865,7 @@ class _Html5NodeValidator implements NodeValidator {
     'INPUT::align',
     'INPUT::alt',
     'INPUT::autocomplete',
+    'INPUT::autofocus',
     'INPUT::checked',
     'INPUT::disabled',
     'INPUT::inputmode',
