@@ -9381,8 +9381,8 @@ class ParserErrorCode extends ErrorCode {
   /**
    * Some environments, such as Fletch, do not support async.
    */
-  static const CompileTimeErrorCode ASYNC_NOT_SUPPORTED =
-      const CompileTimeErrorCode('ASYNC_NOT_SUPPORTED',
+  static const ParserErrorCode ASYNC_NOT_SUPPORTED =
+      const ParserErrorCode('ASYNC_NOT_SUPPORTED',
           "Async and sync are not supported in this environment.");
 
   static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
