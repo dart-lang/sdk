@@ -482,5 +482,3 @@ no_main_test/01: Fail # Issue 20030
 # This test is expected to generate a warning, since it's
 # intentionally referring to a variable that's not in scope.
 transitive_private_library_access_test: StaticWarning
-
-const_qq_test: Fail

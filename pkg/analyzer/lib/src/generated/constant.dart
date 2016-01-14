@@ -1616,7 +1616,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     DartObjectImpl rightResult = node.rightOperand.accept(this);
     TokenType operatorType = node.operator.type;
     // 'null' is almost never good operand
-    if (operatorType != TokenType.BANG_EQ && operatorType != TokenType.EQ_EQ) {
+    if (operatorType != TokenType.BANG_EQ &&
+        operatorType != TokenType.EQ_EQ &&
+        operatorType != TokenType.QUESTION_QUESTION) {
       if (leftResult != null && leftResult.isNull ||
           rightResult != null && rightResult.isNull) {
         _error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -1665,6 +1667,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         return _dartObjectComputer.divide(node, leftResult, rightResult);
       } else if (operatorType == TokenType.TILDE_SLASH) {
         return _dartObjectComputer.integerDivide(node, leftResult, rightResult);
+      } else if (operatorType == TokenType.QUESTION_QUESTION) {
+        return _dartObjectComputer.questionQuestion(
+            node, leftResult, rightResult);
       } else {
         // TODO(brianwilkerson) Figure out which error to report.
         _error(node, null);
@@ -2303,6 +2308,17 @@ class DartObjectComputer {
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
+    }
+    return null;
+  }
+
+  DartObjectImpl questionQuestion(Expression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    if (leftOperand != null && rightOperand != null) {
+      if (leftOperand.isNull) {
+        return rightOperand;
+      }
+      return leftOperand;
     }
     return null;
   }
