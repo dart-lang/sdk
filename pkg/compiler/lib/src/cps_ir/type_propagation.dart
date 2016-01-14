@@ -1144,7 +1144,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       return cps;
     }
 
-    if (node.selector.isOperator && node.arguments.length == 2) {
+    if (node.selector.isOperator && node.dartArgumentsLength == 1) {
       Primitive leftArg = node.dartReceiver;
       Primitive rightArg = node.dartArgument(0);
       AbstractConstantValue left = getValue(leftArg);
@@ -1225,7 +1225,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         }
       }
     }
-    if (node.selector.isOperator && node.arguments.length == 1) {
+    if (node.selector.isOperator && node.dartArgumentsLength == 0) {
       Primitive argument = node.dartReceiver;
       AbstractConstantValue value = getValue(argument);
 
@@ -1246,7 +1246,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       Primitive receiver = node.dartReceiver;
       AbstractConstantValue receiverValue = getValue(receiver);
       if (name == 'remainder') {
-        if (node.arguments.length == 2) {
+        if (node.dartArgumentsLength == 1) {
           Primitive arg = node.dartArgument(0);
           AbstractConstantValue argValue = getValue(arg);
           if (lattice.isDefinitelyInt(receiverValue, allowNull: true) &&
@@ -1257,7 +1257,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           }
         }
       } else if (name == 'codeUnitAt') {
-        if (node.arguments.length == 2) {
+        if (node.dartArgumentsLength == 1) {
           Primitive index = node.dartArgument(0);
           if (lattice.isDefinitelyString(receiverValue) &&
               lattice.isDefinitelyInt(getValue(index))) {
@@ -2537,7 +2537,7 @@ class TypePropagationVisitor implements Visitor {
 
     // Calculate the resulting constant if possible.
     String opname = node.selector.name;
-    if (node.arguments.length == 1) {
+    if (node.dartArgumentsLength == 0) {
       // Unary operator.
       if (opname == "unary-") {
         opname = "-";
@@ -2545,7 +2545,7 @@ class TypePropagationVisitor implements Visitor {
       UnaryOperator operator = UnaryOperator.parse(opname);
       AbstractConstantValue result = lattice.unaryOp(operator, receiver);
       return finish(result, canReplace: !receiver.isNullable);
-    } else if (node.arguments.length == 2) {
+    } else if (node.dartArgumentsLength == 1) {
       // Binary operator.
       AbstractConstantValue right = getValue(node.dartArgument(0));
       BinaryOperator operator = BinaryOperator.parse(opname);
