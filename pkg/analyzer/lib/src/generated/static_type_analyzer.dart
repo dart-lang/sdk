@@ -495,6 +495,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    if (_strongMode) {
+      _inferFunctionInvocationGeneric(node);
+    }
     DartType staticType = _computeInvokeReturnType(node.staticInvokeType);
     _recordStaticType(node, staticType);
     DartType functionPropagatedType = node.propagatedInvokeType;
@@ -713,12 +716,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   Object visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier methodNameNode = node.methodName;
     Element staticMethodElement = methodNameNode.staticElement;
+    if (_strongMode) {
+      _inferMethodInvocation(node);
+    }
     // Record types of the variable invoked as a function.
     if (staticMethodElement is VariableElement) {
-      VariableElement variable = staticMethodElement;
-      DartType staticType = variable.type;
-      _recordStaticType(methodNameNode, staticType);
-      DartType propagatedType = _overrideManager.getType(variable);
+      DartType propagatedType = _overrideManager.getType(staticMethodElement);
       _resolver.recordPropagatedTypeIfBetter(methodNameNode, propagatedType);
     }
     // Record static return type of the static element.
@@ -731,9 +734,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     // Check for special cases.
     bool needPropagatedType = true;
     String methodName = methodNameNode.name;
-    if (_strongMode) {
-      _inferMethodInvocation(node);
-    }
     if (methodName == "then") {
       Expression target = node.realTarget;
       if (target != null) {
@@ -1384,6 +1384,21 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Compute the return type of the method or function represented by the given
+   * type that is being invoked.
+   */
+  DartType _computeInvokeReturnType(DartType type) {
+    if (type is InterfaceType) {
+      MethodElement callMethod = type.lookUpMethod(
+          FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
+      return callMethod?.type?.returnType ?? _dynamicType;
+    } else if (type is FunctionType) {
+      return type.returnType ?? _dynamicType;
+    }
+    return _dynamicType;
+  }
+
+  /**
    * Compute the propagated return type of the method or function represented by the given element.
    *
    * @param element the element representing the method or function invoked by the given node
@@ -1440,21 +1455,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (element is VariableElement) {
       DartType variableType = _promoteManager.getStaticType(element);
       return _computeInvokeReturnType(variableType);
-    }
-    return _dynamicType;
-  }
-
-  /**
-   * Compute the return type of the method or function represented by the given
-   * type that is being invoked.
-   */
-  DartType _computeInvokeReturnType(DartType type) {
-    if (type is InterfaceType) {
-      MethodElement callMethod = type.lookUpMethod(
-          FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
-      return callMethod?.type?.returnType ?? _dynamicType;
-    } else if (type is FunctionType) {
-      return type.returnType ?? _dynamicType;
     }
     return _dynamicType;
   }
@@ -1774,6 +1774,63 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Similar to [_inferMethodInvocationGeneric] but for function expression
+   * invocations.
+   */
+  // TODO(jmesserly): if we had a common AST interface between these two nodes,
+  // we could remove this duplicated code.
+  bool _inferFunctionInvocationGeneric(FunctionExpressionInvocation node) {
+    DartType instantiatedType = node.staticInvokeType;
+    DartType originalType = node.function.staticType;
+    if (instantiatedType is FunctionType && originalType is FunctionType) {
+      FunctionType inferred = _inferGenericInvoke(instantiatedType,
+          originalType, node.typeArguments, node.argumentList);
+      if (inferred != null) {
+        node.staticInvokeType = inferred;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  FunctionType _inferGenericInvoke(FunctionType invokeType, FunctionType fnType,
+      TypeArgumentList typeArguments, ArgumentList argumentList) {
+    TypeSystem ts = _typeSystem;
+    if (typeArguments == null && ts is StrongTypeSystemImpl) {
+      if (fnType.typeFormals.isNotEmpty &&
+          ts.instantiateToBounds(fnType) == invokeType) {
+        // Get the parameters that correspond to the uninstantiated generic.
+        List<ParameterElement> rawParameters =
+            ResolverVisitor.resolveArgumentsToParameters(
+                argumentList, fnType.parameters, null);
+
+        List<DartType> paramTypes = <DartType>[];
+        List<DartType> argTypes = <DartType>[];
+        for (int i = 0, length = rawParameters.length; i < length; i++) {
+          ParameterElement parameter = rawParameters[i];
+          if (parameter != null) {
+            paramTypes.add(parameter.type);
+            argTypes.add(argumentList.arguments[i].staticType);
+          }
+        }
+
+        FunctionType inferred = ts.inferCallFromArguments(
+            _typeProvider, fnType, paramTypes, argTypes);
+
+        if (inferred != fnType) {
+          // Fix up the parameter elements based on inferred method.
+          List<ParameterElement> inferredParameters =
+              ResolverVisitor.resolveArgumentsToParameters(
+                  argumentList, inferred.parameters, null);
+          argumentList.correspondingStaticParameters = inferredParameters;
+          return inferred;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Given a local variable declaration and its initializer, attempt to infer
    * a type for the local variable declaration based on the initializer.
    * Inference is only done if an explicit type is not present, and if
@@ -1807,44 +1864,17 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * type variables, using the actual types of the arguments.
    */
   bool _inferMethodInvocationGeneric(MethodInvocation node) {
-    Element element = node.methodName.staticElement;
-    DartType invokeType = node.staticInvokeType;
-
-    TypeSystem ts = _typeSystem;
-    if (node.typeArguments == null &&
-        element is ExecutableElement &&
-        ts is StrongTypeSystemImpl) {
-      FunctionType fnType = element.type;
-      if (fnType.typeFormals.isNotEmpty &&
-          ts.instantiateToBounds(fnType) == invokeType) {
-        // Get the parameters that correspond to the uninstantiated generic.
-        List<ParameterElement> rawParameters =
-            ResolverVisitor.resolveArgumentsToParameters(
-                node.argumentList, fnType.parameters, null);
-
-        List<DartType> paramTypes = <DartType>[];
-        List<DartType> argTypes = <DartType>[];
-        for (int i = 0, length = rawParameters.length; i < length; i++) {
-          ParameterElement parameter = rawParameters[i];
-          if (parameter != null) {
-            paramTypes.add(parameter.type);
-            argTypes.add(node.argumentList.arguments[i].staticType);
-          }
-        }
-
-        FunctionType inferred = ts.inferCallFromArguments(
-            _typeProvider, fnType, paramTypes, argTypes);
-
-        if (inferred != fnType) {
-          // Fix up the parameter elements based on inferred method.
-          List<ParameterElement> inferredParameters =
-              ResolverVisitor.resolveArgumentsToParameters(
-                  node.argumentList, inferred.parameters, null);
-          node.argumentList.correspondingStaticParameters = inferredParameters;
-          node.staticInvokeType = inferred;
-          _recordStaticType(node, inferred.returnType);
-          return true;
-        }
+    DartType instantiatedType = node.staticInvokeType;
+    DartType originalType = node.methodName.staticType;
+    // TODO(jmesserly): support generic `call` methods.
+    // Perhaps we should always record a FunctionType in staticInvokeType
+    // and the methodName's staticType.
+    if (instantiatedType is FunctionType && originalType is FunctionType) {
+      FunctionType inferred = _inferGenericInvoke(instantiatedType,
+          originalType, node.typeArguments, node.argumentList);
+      if (inferred != null) {
+        node.staticInvokeType = inferred;
+        return true;
       }
     }
     return false;
@@ -1897,7 +1927,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       return false;
     }
     DartType inferredType = inferredElement.type;
-    DartType nodeType = node.staticType;
+    DartType nodeType = node.staticInvokeType;
     if (nodeType != null &&
         nodeType.isDynamic &&
         inferredType is FunctionType &&

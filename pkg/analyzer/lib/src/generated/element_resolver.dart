@@ -427,9 +427,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     Expression function = node.function;
-    DartType staticInvokeType =
-        _resolveGenericMethod(function.staticType, node.typeArguments, node);
-    DartType propagatedInvokeType = _resolveGenericMethod(
+    DartType staticInvokeType = _instantiateGenericMethod(
+        function.staticType, node.typeArguments, node);
+    DartType propagatedInvokeType = _instantiateGenericMethod(
         function.propagatedType, node.typeArguments, node);
 
     node.staticInvokeType = staticInvokeType;
@@ -652,9 +652,23 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     staticElement = _convertSetterToGetter(staticElement);
     propagatedElement = _convertSetterToGetter(propagatedElement);
 
-    DartType staticInvokeType = _computeMethodInvokeType(node, staticElement);
-    DartType propagatedInvokeType =
-        _computeMethodInvokeType(node, propagatedElement);
+    //
+    // Given the elements, determine the type of the function we are invoking
+    //
+    DartType staticInvokeType = _getInvokeType(staticElement);
+    methodName.staticType = staticInvokeType;
+
+    DartType propagatedInvokeType = _getInvokeType(propagatedElement);
+    methodName.propagatedType =
+        _propagatedInvokeTypeIfBetter(propagatedInvokeType, staticInvokeType);
+
+    //
+    // Instantiate generic function or method if needed.
+    //
+    staticInvokeType = _instantiateGenericMethod(
+        staticInvokeType, node.typeArguments, node.methodName);
+    propagatedInvokeType = _instantiateGenericMethod(
+        propagatedInvokeType, node.typeArguments, node.methodName);
 
     //
     // Record the results.
@@ -1338,17 +1352,17 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
-  DartType _computeMethodInvokeType(MethodInvocation node, Element element) {
-    if (element == null) {
-      // TODO(jmesserly): should we return `dynamic` in this case?
-      // Otherwise we have to guard against `null` every time we use
-      // `staticInvokeType`.
-      // If we do return `dynamic` we need to be careful that this doesn't
-      // adversely affect propagatedType code path. But it shouldn't because
-      // we'll discard `dynamic` anyway (see _propagatedInvokeTypeIfBetter).
-      return null;
-    }
-
+  /**
+   * Given an element, computes the type of the invocation.
+   *
+   * For executable elements (like methods, functions) this is just their type.
+   *
+   * For variables it is their type taking into account any type promotion.
+   *
+   * For calls to getters in Dart, we invoke the function that is returned by
+   * the getter, so the invoke type is the getter's returnType.
+   */
+  DartType _getInvokeType(Element element) {
     DartType invokeType;
     if (element is PropertyAccessorElement) {
       invokeType = element.returnType;
@@ -1357,9 +1371,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     } else if (element is VariableElement) {
       invokeType = _promoteManager.getStaticType(element);
     }
-
-    return _resolveGenericMethod(
-        invokeType, node.typeArguments, node.methodName);
+    return invokeType ?? DynamicTypeImpl.instance;
   }
 
   /**
@@ -2085,7 +2097,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   /**
    * Check for a generic method & apply type arguments if any were passed.
    */
-  DartType _resolveGenericMethod(
+  DartType _instantiateGenericMethod(
       DartType invokeType, TypeArgumentList typeArguments, AstNode node) {
     // TODO(jmesserly): support generic "call" methods on InterfaceType.
     if (invokeType is FunctionType) {

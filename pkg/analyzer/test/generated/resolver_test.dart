@@ -13034,71 +13034,6 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
  */
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends _StaticTypeAnalyzer2TestShared {
-  void fail_genericMethod_functionExpressionInvocation_inferred() {
-    _resolveTestUnit(r'''
-class C<E> {
-  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
-  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
-  static final h = g;
-}
-
-/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
-var topG = topF;
-void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
-  var c = new C<int>();
-  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
-
-  var lambdaCall = (/*<E>*/(/*=E*/ e) => e)(3);
-  var methodCall = (c.f)(3);
-  var staticCall = (C.g)(3);
-  var staticFieldCall = (C.h)(3);
-  var topFunCall = (topF)(3);
-  var topFieldCall = (topG)(3);
-  var localCall = (lf)(3);
-  var paramCall = (pf)(3);
-}
-''');
-    expect(_findIdentifier('methodCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('localCall').staticType.toString(), "int");
-    expect(_findIdentifier('paramCall').staticType.toString(), "int");
-    expect(_findIdentifier('lambdaCall').staticType.toString(), "int");
-  }
-
-  void fail_genericMethod_functionInvocation_inferred() {
-    _resolveTestUnit(r'''
-class C<E> {
-  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
-  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
-  static final h = g;
-}
-
-/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
-var topG = topF;
-void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
-  var c = new C<int>();
-  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
-  var methodCall = c.f(3);
-  var staticCall = C.g(3);
-  var staticFieldCall = C.h(3);
-  var topFunCall = topF(3);
-  var topFieldCall = topG(3);
-  var localCall = lf(3);
-  var paramCall = pf(3);
-}
-''');
-    expect(_findIdentifier('methodCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('localCall').staticType.toString(), "int");
-    expect(_findIdentifier('paramCall').staticType.toString(), "int");
-  }
-
   void fail_genericMethod_tearoff_instantiated() {
     _resolveTestUnit(r'''
 class C<E> {
@@ -13388,6 +13323,40 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
     expect(_findIdentifier('lambdaCall').staticType.toString(), "int");
   }
 
+  void test_genericMethod_functionExpressionInvocation_inferred() {
+    _resolveTestUnit(r'''
+class C<E> {
+  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
+  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  static final h = g;
+}
+
+/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+var topG = topF;
+void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+  var c = new C<int>();
+  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+
+  var lambdaCall = (/*<E>*/(/*=E*/ e) => e)(3);
+  var methodCall = (c.f)(3);
+  var staticCall = (C.g)(3);
+  var staticFieldCall = (C.h)(3);
+  var topFunCall = (topF)(3);
+  var topFieldCall = (topG)(3);
+  var localCall = (lf)(3);
+  var paramCall = (pf)(3);
+}
+''');
+    expect(_findIdentifier('methodCall').staticType.toString(), "int");
+    expect(_findIdentifier('staticCall').staticType.toString(), "int");
+    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
+    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
+    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
+    expect(_findIdentifier('localCall').staticType.toString(), "int");
+    expect(_findIdentifier('paramCall').staticType.toString(), "int");
+    expect(_findIdentifier('lambdaCall').staticType.toString(), "int");
+  }
+
   void test_genericMethod_functionInvocation_explicit() {
     _resolveTestUnit(r'''
 class C<E> {
@@ -13408,6 +13377,37 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var topFieldCall = topG/*<int>*/(3);
   var localCall = lf/*<int>*/(3);
   var paramCall = pf/*<int>*/(3);
+}
+''');
+    expect(_findIdentifier('methodCall').staticType.toString(), "int");
+    expect(_findIdentifier('staticCall').staticType.toString(), "int");
+    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
+    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
+    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
+    expect(_findIdentifier('localCall').staticType.toString(), "int");
+    expect(_findIdentifier('paramCall').staticType.toString(), "int");
+  }
+
+  void test_genericMethod_functionInvocation_inferred() {
+    _resolveTestUnit(r'''
+class C<E> {
+  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
+  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  static final h = g;
+}
+
+/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+var topG = topF;
+void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+  var c = new C<int>();
+  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+  var methodCall = c.f(3);
+  var staticCall = C.g(3);
+  var staticFieldCall = C.h(3);
+  var topFunCall = topF(3);
+  var topFieldCall = topG(3);
+  var localCall = lf(3);
+  var paramCall = pf(3);
 }
 ''');
     expect(_findIdentifier('methodCall').staticType.toString(), "int");
@@ -13460,12 +13460,12 @@ void foo() {
     SimpleIdentifier map1 = _findIdentifier('map((e) => e);');
     MethodInvocation m1 = map1.parent;
     expect(m1.staticInvokeType.toString(), '((dynamic) → dynamic) → dynamic');
-    expect(map1.staticType, isNull);
+    expect(map1.staticType.toString(), '<T>((dynamic) → T) → T');
     expect(map1.propagatedType, isNull);
     SimpleIdentifier map2 = _findIdentifier('map((e) => 3);');
     MethodInvocation m2 = map2.parent;
     expect(m2.staticInvokeType.toString(), '((dynamic) → int) → int');
-    expect(map2.staticType, isNull);
+    expect(map2.staticType.toString(), '<T>((dynamic) → T) → T');
     expect(map2.propagatedType, isNull);
   }
 
@@ -15770,7 +15770,7 @@ main() {
 }''';
     SimpleIdentifier methodName = _findMarkedIdentifier(code, "(); // marker");
     MethodInvocation methodInvoke = methodName.parent;
-    expect(methodName.staticType, null, reason: 'library prefix has no type');
+    expect(methodName.staticType, typeProvider.dynamicType);
     expect(methodInvoke.staticType, typeProvider.dynamicType);
   }
 
