@@ -160,6 +160,7 @@ dart_messages/test/dart_messages_test: Skip  # Uses dart:io.
 *: Skip
 
 [ $runtime == vm ]
+analyzer/test/file_system/physical_resource_provider_test: Pass, Fail # Issue 25472
 # Skip tests on the VM if the package depends on dart:html
 mutation_observer: Skip
 
