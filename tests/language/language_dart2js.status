@@ -305,6 +305,7 @@ super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSe
 switch_label2_test: Crash # (switch (target){cas...  continue to a labeled switch case
 switch_label_test: Crash # (switch (animal){cas...  continue to a labeled switch case
 switch_try_catch_test: Crash # (switch (0){_0:case ...  continue to a labeled switch case
+switch8_test: Crash # Pending statics: JSArray
 type_variable_closure2_test: RuntimeError # Issue 25309: T lost in List<T>
 type_variable_closure4_test: RuntimeError # T lost in <T,T>{}
 type_variable_field_initializer_closure_test: RuntimeError # Issue 25309: T lost in List<T>

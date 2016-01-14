@@ -2662,37 +2662,34 @@ class TypePropagationVisitor implements Visitor {
 
       case BuiltinOperator.Identical:
       case BuiltinOperator.StrictEq:
+      case BuiltinOperator.StrictNeq:
       case BuiltinOperator.LooseEq:
-        AbstractConstantValue leftConst =
-            getValue(node.arguments[0].definition);
-        AbstractConstantValue rightConst =
-            getValue(node.arguments[1].definition);
-        ConstantValue leftValue = leftConst.constant;
-        ConstantValue rightValue = rightConst.constant;
-        if (leftConst.isNothing || rightConst.isNothing) {
+      case BuiltinOperator.LooseNeq:
+        bool negated =
+            node.operator == BuiltinOperator.StrictNeq ||
+            node.operator == BuiltinOperator.LooseNeq;
+        AbstractConstantValue left = getValue(node.arguments[0].definition);
+        AbstractConstantValue right = getValue(node.arguments[1].definition);
+        if (left.isNothing || right.isNothing) {
           setValue(node, lattice.nothing);
-          return; // And come back later.
-        } else if (!leftConst.isConstant || !rightConst.isConstant) {
-          TypeMask leftType = leftConst.type;
-          TypeMask rightType = rightConst.type;
-          if (typeSystem.areDisjoint(leftType, rightType)) {
-            setValue(node,
-                constantValue(new FalseConstantValue(), typeSystem.boolType));
-          } else {
-            setValue(node, nonConstant(typeSystem.boolType));
-          }
           return;
-        } else if (leftValue.isPrimitive && rightValue.isPrimitive) {
-          assert(leftConst.isConstant && rightConst.isConstant);
-          PrimitiveConstantValue left = leftValue;
-          PrimitiveConstantValue right = rightValue;
-          // Should this be constantSystem.identity.fold(left, right)?
-          ConstantValue result =
-            new BoolConstantValue(left.primitiveValue == right.primitiveValue);
-          setValue(node, constantValue(result, typeSystem.boolType));
-        } else {
-          setValue(node, nonConstant(typeSystem.boolType));
         }
+        if (left.isConstant && right.isConstant) {
+          ConstantValue equal = lattice.constantSystem.identity.fold(
+              left.constant, right.constant);
+          if (equal != null && equal.isBool) {
+            ConstantValue result =
+                new BoolConstantValue(equal.isTrue == !negated);
+            setValue(node, constantValue(result, typeSystem.boolType));
+            return;
+          }
+        }
+        if (typeSystem.areDisjoint(left.type, right.type)) {
+          ConstantValue result = new BoolConstantValue(negated);
+          setValue(node, constantValue(result, typeSystem.boolType));
+          return;
+        }
+        setValue(node, nonConstant(typeSystem.boolType));
         break;
 
       case BuiltinOperator.NumAdd:
