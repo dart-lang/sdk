@@ -5369,12 +5369,12 @@ class Parser {
    */
   Expression _parseConstExpression() {
     Token keyword = _expectKeyword(Keyword.CONST);
-    if (_matches(TokenType.OPEN_SQUARE_BRACKET) || _matches(TokenType.INDEX)) {
+    if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
+      return _parseListOrMapLiteral(keyword);
+    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) || _matches(TokenType.INDEX)) {
       return _parseListLiteral(keyword, null);
     } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
       return _parseMapLiteral(keyword, null);
-    } else if (_matches(TokenType.LT)) {
-      return _parseListOrMapLiteral(keyword);
     }
     return _parseInstanceCreationExpression(keyword);
   }
@@ -7394,11 +7394,6 @@ class Parser {
       return new IntegerLiteral(token, value);
     } else if (_matches(TokenType.STRING)) {
       return parseStringLiteral();
-    } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
-      return _parseMapLiteral(null, null);
-    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
-        _matches(TokenType.INDEX)) {
-      return _parseListLiteral(null, null);
     } else if (_matchesIdentifier()) {
       // TODO(brianwilkerson) The code below was an attempt to recover from an
       // error case, but it needs to be applied as a recovery only after we
@@ -7431,8 +7426,13 @@ class Parser {
       } finally {
         _inInitializer = wasInInitializer;
       }
-    } else if (_matches(TokenType.LT)) {
+    } else if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
       return _parseListOrMapLiteral(null);
+    } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
+      return _parseMapLiteral(null, null);
+    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
+        _matches(TokenType.INDEX)) {
+      return _parseListLiteral(null, null);
     } else if (_matches(TokenType.QUESTION) &&
         _tokenMatches(_peek(), TokenType.IDENTIFIER)) {
       _reportErrorForCurrentToken(

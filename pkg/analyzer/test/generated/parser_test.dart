@@ -7355,6 +7355,16 @@ void''');
     expect(literal.rightBracket, isNotNull);
   }
 
+  void test_parseConstExpression_listLiteral_typed_genericComment() {
+    enableGenericMethodComments = true;
+    ListLiteral literal = parse4("parseConstExpression", "const /*<A>*/ []");
+    expect(literal.constKeyword, isNotNull);
+    expect(literal.typeArguments, isNotNull);
+    expect(literal.leftBracket, isNotNull);
+    expect(literal.elements, hasLength(0));
+    expect(literal.rightBracket, isNotNull);
+  }
+
   void test_parseConstExpression_listLiteral_untyped() {
     ListLiteral literal = parse4("parseConstExpression", "const []");
     expect(literal.constKeyword, isNotNull);
@@ -7366,6 +7376,15 @@ void''');
 
   void test_parseConstExpression_mapLiteral_typed() {
     MapLiteral literal = parse4("parseConstExpression", "const <A, B> {}");
+    expect(literal.leftBracket, isNotNull);
+    expect(literal.entries, hasLength(0));
+    expect(literal.rightBracket, isNotNull);
+    expect(literal.typeArguments, isNotNull);
+  }
+
+  void test_parseConstExpression_mapLiteral_typed_genericComment() {
+    enableGenericMethodComments = true;
+    MapLiteral literal = parse4("parseConstExpression", "const /*<A, B>*/ {}");
     expect(literal.leftBracket, isNotNull);
     expect(literal.entries, hasLength(0));
     expect(literal.rightBracket, isNotNull);
@@ -9877,6 +9896,13 @@ void''');
     expect(literal.typeArguments.arguments, hasLength(1));
   }
 
+  void test_parsePrimaryExpression_listLiteral_typed_genericComment() {
+    enableGenericMethodComments = true;
+    ListLiteral literal = parse4("parsePrimaryExpression", "/*<A>*/[ ]");
+    expect(literal.typeArguments, isNotNull);
+    expect(literal.typeArguments.arguments, hasLength(1));
+  }
+
   void test_parsePrimaryExpression_mapLiteral() {
     MapLiteral literal = parse4("parsePrimaryExpression", "{}");
     expect(literal, isNotNull);
@@ -9884,6 +9910,13 @@ void''');
 
   void test_parsePrimaryExpression_mapLiteral_typed() {
     MapLiteral literal = parse4("parsePrimaryExpression", "<A, B>{}");
+    expect(literal.typeArguments, isNotNull);
+    expect(literal.typeArguments.arguments, hasLength(2));
+  }
+
+  void test_parsePrimaryExpression_mapLiteral_typed_genericComment() {
+    enableGenericMethodComments = true;
+    MapLiteral literal = parse4("parsePrimaryExpression", "/*<A, B>*/{}");
     expect(literal.typeArguments, isNotNull);
     expect(literal.typeArguments.arguments, hasLength(2));
   }
