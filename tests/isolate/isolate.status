@@ -126,7 +126,7 @@ package_root_test: SkipByDesign  # Uses Isolate.packageRoot
 package_config_test: SkipByDesign  # Uses Isolate.packageConfig
 package_resolve_test: SkipByDesign  # Uses Isolate.resolvePackageUri
 spawn_uri_fail_test: SkipByDesign  # Uses dart:io.
-scenarios/*: SkipByDesign  # Use automatic package resolution and .dart URIs.
+scenarios/*: SkipByDesign  # Use automatic package resolution, spawnFunction and .dart URIs.
 
 [ ($noopt || $compiler == precompiler) ]
 # Imports dart:mirrors
