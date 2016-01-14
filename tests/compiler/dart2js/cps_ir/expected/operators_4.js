@@ -16,7 +16,7 @@ function() {
       v0 = false;
     } else
       v0 = false;
-    line = false === v0 ? "false" : String(v0);
+    line = v0 ? String(v0) : "false";
   }
   if (typeof dartPrint == "function")
     dartPrint(line);
