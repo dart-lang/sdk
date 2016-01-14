@@ -1,16 +1,16 @@
 # Strong mode generic method prototype syntax
 
-This is a summary of the current (as of January 2016) supported comment-based
-generic method syntax supported by the analyzer strong mode and the Dart Dev
-Compiler.  The comment-based syntax essentially uses the proposed actual generic
-method syntax, but wraps it in comments.  This allows developers to experiment
-with generic methods while still ensuring that their code runs on all platforms
-while generic methods are still being evaluated for inclusion into the language.
+This is a summary of the current (as of January 2016) comment-based generic
+method syntax supported by the analyzer strong mode and the Dart Dev Compiler.
+The comment-based syntax essentially uses the proposed actual generic method
+syntax, but wraps it in comments.  This allows developers to experiment with
+generic methods while still ensuring that their code runs on all platforms while
+generic methods are still being evaluated for inclusion into the language.
 
 ## Declaring generic method parameters
 
-Generic method parameters are listed after the method or function name, inside
-of angle brackets and comments.
+Generic method parameters are listed using a block comment after the method or
+function name, inside of angle brackets.
 
 ```dart
 // This declares a function which takes two unused generic method parameters
