@@ -12,17 +12,10 @@ import '../tree_ir_nodes.dart';
 /// This phase cleans up artifacts introduced by the translation through CPS,
 /// where each source variable is translated into several copies. The copies
 /// are merged again when they are not live simultaneously.
-class VariableMerger extends RecursiveVisitor implements Pass {
+class VariableMerger implements Pass {
   String get passName => 'Variable merger';
 
   void rewrite(FunctionDefinition node) {
-    rewriteFunction(node);
-    visitStatement(node.body);
-  }
-
-  /// Rewrites the given function.
-  /// This is called for the outermost function and inner functions.
-  void rewriteFunction(FunctionDefinition node) {
     BlockGraphBuilder builder = new BlockGraphBuilder();
     builder.build(node);
     _computeLiveness(builder.blocks);
