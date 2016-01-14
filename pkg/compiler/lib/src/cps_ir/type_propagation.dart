@@ -1049,6 +1049,16 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       push(invoke);
       return;
     }
+
+    // Shortcut negation to help simplify control flow. The tree IR will insert
+    // a negation again if that's useful.
+    if (condition is ApplyBuiltinOperator &&
+        condition.operator == BuiltinOperator.IsFalsy) {
+      node.condition.changeTo(condition.arguments.single.definition);
+      node.trueContinuation.changeTo(falseCont);
+      node.falseContinuation.changeTo(trueCont);
+      return;
+    }
   }
 
   void visitInvokeContinuation(InvokeContinuation node) {
@@ -1993,7 +2003,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   //     Nothing happens. The primitive remains as it is.
   //
 
-  void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+  visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     ast.DartString getString(AbstractConstantValue value) {
       StringConstantValue constant = value.constant;
       return constant.primitiveValue;
@@ -2053,42 +2063,70 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         Primitive rightArg = node.arguments[1].definition;
         AbstractConstantValue left = getValue(leftArg);
         AbstractConstantValue right = getValue(rightArg);
-        if (lattice.isDefinitelyBool(left) &&
-            right.isConstant &&
-            right.constant.isTrue) {
-          // Replace identical(x, true) by x when x is known to be a boolean.
-          // Note that this is not safe if x is null, because the value might
-          // not be used as a condition.
-          node.replaceUsesWith(leftArg);
-        } else if (lattice.isDefinitelyBool(right) &&
-            left.isConstant &&
-            left.constant.isTrue) {
-          node.replaceUsesWith(rightArg);
-        } else if (left.isNullConstant || right.isNullConstant) {
+        BuiltinOperator newOperator;
+        if (left.isNullConstant || right.isNullConstant) {
           // Use `==` for comparing against null, so JS undefined and JS null
           // are considered equal.
-          node.operator = BuiltinOperator.LooseEq;
+          newOperator = BuiltinOperator.LooseEq;
         } else if (!left.isNullable || !right.isNullable) {
           // If at most one operand can be Dart null, we can use `===`.
           // This is not safe when we might compare JS null and JS undefined.
-          node.operator = BuiltinOperator.StrictEq;
+          newOperator = BuiltinOperator.StrictEq;
         } else if (lattice.isDefinitelyNum(left, allowNull: true) &&
                    lattice.isDefinitelyNum(right, allowNull: true)) {
           // If both operands can be null, but otherwise are of the same type,
           // we can use `==` for comparison.
           // This is not safe e.g. for comparing strings against numbers.
-          node.operator = BuiltinOperator.LooseEq;
+          newOperator = BuiltinOperator.LooseEq;
         } else if (lattice.isDefinitelyString(left, allowNull: true) &&
                    lattice.isDefinitelyString(right, allowNull: true)) {
-          node.operator = BuiltinOperator.LooseEq;
+          newOperator = BuiltinOperator.LooseEq;
         } else if (lattice.isDefinitelyBool(left, allowNull: true) &&
                    lattice.isDefinitelyBool(right, allowNull: true)) {
-          node.operator = BuiltinOperator.LooseEq;
+          newOperator = BuiltinOperator.LooseEq;
+        }
+        if (newOperator != null) {
+          return new ApplyBuiltinOperator(newOperator,
+              node.arguments.map((ref) => ref.definition).toList(),
+              node.sourceInformation);
+        }
+        break;
+
+      case BuiltinOperator.StrictEq:
+      case BuiltinOperator.LooseEq:
+      case BuiltinOperator.StrictNeq:
+      case BuiltinOperator.LooseNeq:
+        bool negated =
+            node.operator == BuiltinOperator.StrictNeq ||
+            node.operator == BuiltinOperator.LooseNeq;
+        for (int firstIndex in [0, 1]) {
+          int secondIndex = 1 - firstIndex;
+          Primitive firstArg = node.arguments[firstIndex].definition;
+          Primitive secondArg = node.arguments[secondIndex].definition;
+          AbstractConstantValue first = getValue(firstArg);
+          if (!lattice.isDefinitelyBool(first)) continue;
+          AbstractConstantValue second = getValue(secondArg);
+          if (!second.isConstant || !second.constant.isBool) continue;
+          bool isTrueConstant = second.constant.isTrue;
+          if (isTrueConstant == !negated) {
+            // (x === true) ==> x
+            // (x !== false) ==> x
+            node.replaceUsesWith(firstArg);
+            return null;
+          } else {
+            // (x === false) ==> !x
+            // (x !== true) ==> !x
+            return new ApplyBuiltinOperator(
+                BuiltinOperator.IsFalsy,
+                [firstArg],
+                node.sourceInformation);
+          }
         }
         break;
 
       default:
     }
+    return null;
   }
 
   void visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
