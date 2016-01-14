@@ -6,6 +6,7 @@ library analyzer.test.source.embedder_test;
 
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/embedder.dart';
+import 'package:analyzer/src/generated/java_io.dart';
 import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
@@ -61,6 +62,56 @@ main() {
       expect(restoreUri.toString(), equals('dart:fox'));
       expect(restoreUri.scheme, equals('dart'));
       expect(restoreUri.path, equals('fox'));
+    });
+
+    test('test_EmbedderSdk_fromFileUri', () {
+      var locator = new EmbedderYamlLocator({
+        'fox': [resourceProvider.getResource('/tmp')]
+      });
+      var resolver = new EmbedderUriResolver(locator.embedderYamls);
+      var sdk = resolver.dartSdk;
+
+      expectSource(String filePath, String dartUri) {
+        var uri = Uri.parse(filePath);
+        var source = sdk.fromFileUri(uri);
+        expect(source, isNotNull, reason: filePath);
+        expect(source.uri.toString(), dartUri);
+        expect(source.fullName, filePath.replaceAll('/', JavaFile.separator));
+      }
+
+      expectSource('/tmp/slippy.dart', 'dart:fox');
+      expectSource('\\tmp\\slippy.dart', 'dart:fox');
+      expectSource('/tmp/deep/directory/file.dart', 'dart:deep');
+      expectSource('/tmp/deep/directory/part.dart', 'dart:deep/part.dart');
+    });
+    test('test_EmbedderSdk_getSdkLibrary', () {
+      var locator = new EmbedderYamlLocator({
+        'fox': [resourceProvider.getResource('/tmp')]
+      });
+      var resolver = new EmbedderUriResolver(locator.embedderYamls);
+      var sdk = resolver.dartSdk;
+      var lib = sdk.getSdkLibrary('dart:fox');
+      expect(lib, isNotNull);
+      expect(lib.path, '/tmp/slippy.dart');
+      expect(lib.shortName, 'fox');
+    });
+    test('test_EmbedderSdk_mapDartUri', () {
+      var locator = new EmbedderYamlLocator({
+        'fox': [resourceProvider.getResource('/tmp')]
+      });
+      var resolver = new EmbedderUriResolver(locator.embedderYamls);
+      var sdk = resolver.dartSdk;
+
+      expectSource(String dartUri, String filePath) {
+        var source = sdk.mapDartUri(dartUri);
+        expect(source, isNotNull, reason: filePath);
+        expect(source.uri.toString(), dartUri);
+        expect(source.fullName, filePath.replaceAll('/', JavaFile.separator));
+      }
+
+      expectSource('dart:fox', '/tmp/slippy.dart');
+      expectSource('dart:deep', '/tmp/deep/directory/file.dart');
+      expectSource('dart:deep/part.dart', '/tmp/deep/directory/part.dart');
     });
   });
 }
