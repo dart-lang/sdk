@@ -1,5 +1,5 @@
 // Expectation for test: 
-// foo(a) { print(a); return a; }
+// foo(a) { try { print(a); } finally { return a; } }
 // 
 // main() {
 //  foo(false);
@@ -12,8 +12,7 @@
 // }
 
 function() {
-  P.print(false);
-  P.print(true);
-  true ? P.print(1) : P.print(2);
+  V.foo(false);
+  V.foo(true) ? P.print(1) : P.print(2);
   P.print(3);
 }

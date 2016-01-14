@@ -1,4 +1,4 @@
-foo(a) { print(a); return a; }
+foo(a) { try { print(a); } finally { return a; } }
 
 main() {
   while (true) {

@@ -1,5 +1,5 @@
 // Expectation for test: 
-// foo(a) { print(a); return a; }
+// foo(a) { try { print(a); } finally { return a; } }
 // 
 // main() {
 //   for (int i = 0; foo(true); i = foo(i)) {
@@ -10,17 +10,11 @@
 // }
 
 function() {
-  for (;;) {
-    P.print(true);
-    if (true === true) {
-      P.print(1);
-      P.print(false);
-      if (false !== true) {
-        P.print(0);
-        continue;
-      }
-    }
-    P.print(2);
-    return null;
+  var i = 0;
+  for (; V.foo(true) === true; i = V.foo(i)) {
+    P.print(1);
+    if (V.foo(false) === true)
+      break;
   }
+  P.print(2);
 }

@@ -714,8 +714,10 @@ class TypePropagator extends Pass {
   final CpsFunctionCompiler _functionCompiler;
   final Map<Variable, ConstantValue> _values= <Variable, ConstantValue>{};
   final ConstantPropagationLattice _lattice;
+  final bool recomputeAll;
 
-  TypePropagator(CpsFunctionCompiler functionCompiler)
+  TypePropagator(CpsFunctionCompiler functionCompiler,
+      {this.recomputeAll: false})
       : _functionCompiler = functionCompiler,
         _lattice = new ConstantPropagationLattice(functionCompiler);
 
@@ -731,7 +733,7 @@ class TypePropagator extends Pass {
         _values,
         _internalError);
 
-    analyzer.analyze(root);
+    analyzer.analyze(root, recomputeAll);
 
     // Transform. Uses the data acquired in the previous analysis phase to
     // replace branches with fixed targets and side-effect-free expressions
@@ -2288,8 +2290,11 @@ class TypePropagationVisitor implements Visitor {
                          this.values,
                          this.internalError);
 
-  void analyze(FunctionDefinition root) {
+  void analyze(FunctionDefinition root, bool recomputeAll) {
     reachableContinuations.clear();
+    if (recomputeAll) {
+      new ResetAnalysisInfo(reachableContinuations, values).visit(root);
+    }
 
     // Initially, only the root node is reachable.
     push(root);

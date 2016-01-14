@@ -10,7 +10,7 @@ function() {
     if (!(v0 > 10)) {
       $.x = v0 = $.x + 1;
       if (!(v0 > 10)) {
-        line = false === false ? "false" : String(false);
+        line = "false";
         break L0;
       }
     }

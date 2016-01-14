@@ -11,13 +11,12 @@
 // }
 
 function() {
-  var v0 = "ABC".length, sum = 0, i = 0;
-  for (; i < v0; sum += "ABC".charCodeAt(i), ++i)
+  var sum = 0, i = 0;
+  for (; i < 3; sum += "ABC".charCodeAt(i), ++i)
     ;
   P.print(sum);
-  v0 = "Hello".length;
   sum = 0;
-  for (i = 0; i < v0; sum += "Hello".charCodeAt(i), ++i)
+  for (i = 0; i < 5; sum += "Hello".charCodeAt(i), ++i)
     ;
   P.print(sum);
 }

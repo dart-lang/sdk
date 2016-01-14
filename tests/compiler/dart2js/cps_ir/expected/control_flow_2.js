@@ -1,5 +1,5 @@
 // Expectation for test: 
-// foo(a) { print(a); return a; }
+// foo(a) { try { print(a); } finally { return a; } }
 // 
 // main() {
 //   while (true) {
@@ -14,20 +14,14 @@
 // }
 
 function() {
-  L1:
+  L0:
     for (;;)
-      L0:
-        for (;;)
-          for (;;) {
-            P.print(true);
-            if (false) {
-              P.print(1);
-              continue L0;
-            }
-            P.print(false);
-            if (false) {
-              P.print(2);
-              continue L1;
-            }
+      for (;;) {
+        while (V.foo(true))
+          if (V.foo(false)) {
+            P.print(2);
+            continue L0;
           }
+        P.print(1);
+      }
 }

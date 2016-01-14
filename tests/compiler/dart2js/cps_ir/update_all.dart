@@ -79,6 +79,7 @@ main(args) {
   runTest('closures_13.dart', update: true);
   runTest('closures_14.dart', update: true);
   runTest('closures_15.dart', update: true);
+  runTest('closures_16.dart', update: true);
   runTest('closures_2.dart', update: true);
   runTest('closures_3.dart', update: true);
   runTest('closures_4.dart', update: true);
