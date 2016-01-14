@@ -140,7 +140,7 @@ class _LibrarySerializer {
   final Map<Element, PrefixElement> prefixMap = <Element, PrefixElement>{};
 
   _LibrarySerializer(this.libraryElement, this.typeProvider) {
-    dependencies.add(encodePrelinkedDependency());
+    dependencies.add(new PrelinkedDependencyBuilder());
     dependencyMap[libraryElement] = 0;
   }
 
@@ -158,14 +158,16 @@ class _LibrarySerializer {
   void addCompilationUnitElements(CompilationUnitElement element, int unitNum) {
     UnlinkedUnitBuilder b = new UnlinkedUnitBuilder();
     referenceMap.clear();
-    unlinkedReferences = <UnlinkedReferenceBuilder>[encodeUnlinkedReference()];
+    unlinkedReferences = <UnlinkedReferenceBuilder>[
+      new UnlinkedReferenceBuilder()
+    ];
     prelinkedReferences = <PrelinkedReferenceBuilder>[
-      encodePrelinkedReference(kind: PrelinkedReferenceKind.classOrEnum)
+      new PrelinkedReferenceBuilder(kind: PrelinkedReferenceKind.classOrEnum)
     ];
     List<UnlinkedPublicNameBuilder> names = <UnlinkedPublicNameBuilder>[];
     for (PropertyAccessorElement accessor in element.accessors) {
       if (accessor.isPublic) {
-        names.add(encodeUnlinkedPublicName(
+        names.add(new UnlinkedPublicNameBuilder(
             kind: PrelinkedReferenceKind.topLevelPropertyAccessor,
             name: accessor.name,
             numTypeParameters: accessor.typeParameters.length));
@@ -173,7 +175,7 @@ class _LibrarySerializer {
     }
     for (ClassElement cls in element.types) {
       if (cls.isPublic) {
-        names.add(encodeUnlinkedPublicName(
+        names.add(new UnlinkedPublicNameBuilder(
             kind: PrelinkedReferenceKind.classOrEnum,
             name: cls.name,
             numTypeParameters: cls.typeParameters.length));
@@ -181,13 +183,13 @@ class _LibrarySerializer {
     }
     for (ClassElement enm in element.enums) {
       if (enm.isPublic) {
-        names.add(encodeUnlinkedPublicName(
+        names.add(new UnlinkedPublicNameBuilder(
             kind: PrelinkedReferenceKind.classOrEnum, name: enm.name));
       }
     }
     for (FunctionElement function in element.functions) {
       if (function.isPublic) {
-        names.add(encodeUnlinkedPublicName(
+        names.add(new UnlinkedPublicNameBuilder(
             kind: PrelinkedReferenceKind.topLevelFunction,
             name: function.name,
             numTypeParameters: function.typeParameters.length));
@@ -195,7 +197,7 @@ class _LibrarySerializer {
     }
     for (FunctionTypeAliasElement typedef in element.functionTypeAliases) {
       if (typedef.isPublic) {
-        names.add(encodeUnlinkedPublicName(
+        names.add(new UnlinkedPublicNameBuilder(
             kind: PrelinkedReferenceKind.typedef,
             name: typedef.name,
             numTypeParameters: typedef.typeParameters.length));
@@ -208,7 +210,7 @@ class _LibrarySerializer {
         b.libraryNameLength = libraryElement.nameLength;
         b.libraryDocumentationComment = serializeDocumentation(libraryElement);
       }
-      b.publicNamespace = encodeUnlinkedPublicNamespace(
+      b.publicNamespace = new UnlinkedPublicNamespaceBuilder(
           exports: libraryElement.exports.map(serializeExportPublic).toList(),
           parts: libraryElement.parts
               .map((CompilationUnitElement e) => e.uri)
@@ -218,7 +220,7 @@ class _LibrarySerializer {
       b.imports = libraryElement.imports.map(serializeImport).toList();
       b.parts = libraryElement.parts
           .map((CompilationUnitElement e) =>
-              encodeUnlinkedPart(uriOffset: e.uriOffset, uriEnd: e.uriEnd))
+              new UnlinkedPartBuilder(uriOffset: e.uriOffset, uriEnd: e.uriEnd))
           .toList();
     } else {
       // TODO(paulberry): we need to figure out a way to record library, part,
@@ -227,7 +229,7 @@ class _LibrarySerializer {
       // language), so that if the user makes code changes that cause a
       // non-defining compilation unit to become a defining compilation unit,
       // we can create a correct summary by simply re-linking.
-      b.publicNamespace = encodeUnlinkedPublicNamespace(names: names);
+      b.publicNamespace = new UnlinkedPublicNamespaceBuilder(names: names);
     }
     b.classes = element.types.map(serializeClass).toList();
     b.enums = element.enums.map(serializeEnum).toList();
@@ -253,7 +255,8 @@ class _LibrarySerializer {
     b.variables = variables;
     b.references = unlinkedReferences;
     unlinkedUnits.add(b);
-    prelinkedUnits.add(encodePrelinkedUnit(references: prelinkedReferences));
+    prelinkedUnits
+        .add(new PrelinkedUnitBuilder(references: prelinkedReferences));
     unitUris.add(element.source.uri.toString());
     unlinkedReferences = null;
     prelinkedReferences = null;
@@ -393,7 +396,7 @@ class _LibrarySerializer {
       List<String> parts = dependentLibrary.parts
           .map((CompilationUnitElement e) => e.source.uri.toString())
           .toList();
-      dependencies.add(encodePrelinkedDependency(
+      dependencies.add(new PrelinkedDependencyBuilder(
           uri: dependentLibrary.source.uri.toString(), parts: parts));
       return index;
     });
@@ -409,7 +412,7 @@ class _LibrarySerializer {
     if (element.documentationComment == null) {
       return null;
     }
-    return encodeUnlinkedDocumentationComment(
+    return new UnlinkedDocumentationCommentBuilder(
         text: element.documentationComment,
         offset: element.docRange.offset,
         length: element.docRange.length);
@@ -432,7 +435,7 @@ class _LibrarySerializer {
     List<UnlinkedEnumValueBuilder> values = <UnlinkedEnumValueBuilder>[];
     for (FieldElement field in enumElement.fields) {
       if (field.isConst && field.type.element == enumElement) {
-        values.add(encodeUnlinkedEnumValue(
+        values.add(new UnlinkedEnumValueBuilder(
             name: field.name,
             nameOffset: field.nameOffset,
             documentationComment: serializeDocumentation(field)));
@@ -575,7 +578,7 @@ class _LibrarySerializer {
       } else {
         throw new Exception('Unexpected element kind: ${element.runtimeType}');
       }
-      exportNames.add(encodePrelinkedExportName(
+      exportNames.add(new PrelinkedExportNameBuilder(
           name: name,
           dependency: serializeDependency(dependentLibrary),
           unit: unit,
@@ -629,9 +632,9 @@ class _LibrarySerializer {
     return referenceMap.putIfAbsent(element, () {
       assert(unlinkedReferences.length == prelinkedReferences.length);
       int index = unlinkedReferences.length;
-      unlinkedReferences.add(encodeUnlinkedReference(name: element.name));
-      prelinkedReferences
-          .add(encodePrelinkedReference(kind: PrelinkedReferenceKind.prefix));
+      unlinkedReferences.add(new UnlinkedReferenceBuilder(name: element.name));
+      prelinkedReferences.add(
+          new PrelinkedReferenceBuilder(kind: PrelinkedReferenceKind.prefix));
       return index;
     });
   }
@@ -708,9 +711,9 @@ class _LibrarySerializer {
             prefixReference = serializePrefix(prefix);
           }
           int index = unlinkedReferences.length;
-          unlinkedReferences.add(encodeUnlinkedReference(
+          unlinkedReferences.add(new UnlinkedReferenceBuilder(
               name: element.name, prefixReference: prefixReference));
-          prelinkedReferences.add(encodePrelinkedReference(
+          prelinkedReferences.add(new PrelinkedReferenceBuilder(
               dependency: serializeDependency(dependentLibrary),
               kind: element is FunctionTypeAliasElement
                   ? PrelinkedReferenceKind.typedef
@@ -750,9 +753,10 @@ class _LibrarySerializer {
     if (unresolvedReferenceIndex == null) {
       assert(unlinkedReferences.length == prelinkedReferences.length);
       unresolvedReferenceIndex = unlinkedReferences.length;
-      unlinkedReferences.add(encodeUnlinkedReference(name: '*unresolved*'));
-      prelinkedReferences.add(
-          encodePrelinkedReference(kind: PrelinkedReferenceKind.unresolved));
+      unlinkedReferences
+          .add(new UnlinkedReferenceBuilder(name: '*unresolved*'));
+      prelinkedReferences.add(new PrelinkedReferenceBuilder(
+          kind: PrelinkedReferenceKind.unresolved));
     }
     return unresolvedReferenceIndex;
   }

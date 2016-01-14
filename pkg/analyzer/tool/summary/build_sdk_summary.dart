@@ -65,7 +65,7 @@ main(List<String> args) {
   //
   // Write the whole SDK bundle.
   //
-  SdkBundleBuilder sdkBundle = encodeSdkBundle(
+  SdkBundleBuilder sdkBundle = new SdkBundleBuilder(
       prelinkedLibraryUris: prelinkedLibraryUris,
       prelinkedLibraries: prelinkedLibraries,
       unlinkedUnitUris: unlinkedUnitUris,

@@ -73,7 +73,7 @@ class _Meaning {
  * Encode this [_Meaning] as a [PrelinkedExportName], using the given [name].
  */
   PrelinkedExportName encodeExportName(String name) {
-    return encodePrelinkedExportName(
+    return new PrelinkedExportNameBuilder(
         name: name, dependency: dependency, unit: unit, kind: kind);
   }
 
@@ -81,7 +81,7 @@ class _Meaning {
    * Encode this [_Meaning] as a [PrelinkedReference].
    */
   PrelinkedReferenceBuilder encodeReference() {
-    return encodePrelinkedReference(
+    return new PrelinkedReferenceBuilder(
         unit: unit,
         kind: kind,
         dependency: dependency,
@@ -133,7 +133,7 @@ class _Prelinker {
    * to [PrelinkedLibrary.dependencies].
    */
   final List<PrelinkedDependencyBuilder> dependencies =
-      <PrelinkedDependencyBuilder>[encodePrelinkedDependency()];
+      <PrelinkedDependencyBuilder>[new PrelinkedDependencyBuilder()];
 
   /**
    * Map from the relative URI of a dependent library to the index of the
@@ -166,7 +166,8 @@ class _Prelinker {
     uriToDependency[relativeUri] = dependency;
     List<String> unitUris = getUnitUris(relativeUri);
     PrelinkedDependencyBuilder prelinkedDependency =
-        encodePrelinkedDependency(uri: relativeUri, parts: unitUris.sublist(1));
+        new PrelinkedDependencyBuilder(
+            uri: relativeUri, parts: unitUris.sublist(1));
     dependencies.add(prelinkedDependency);
 
     Map<String, _Meaning> aggregated = <String, _Meaning>{};
@@ -357,7 +358,7 @@ class _Prelinker {
    */
   PrelinkedUnitBuilder linkUnit(UnlinkedUnit unit) {
     if (unit == null) {
-      return encodePrelinkedUnit();
+      return new PrelinkedUnitBuilder();
     }
     Map<int, Map<String, _Meaning>> prefixNamespaces =
         <int, Map<String, _Meaning>>{};
@@ -381,11 +382,11 @@ class _Prelinker {
         }
         references.add(meaning.encodeReference());
       } else {
-        references.add(
-            encodePrelinkedReference(kind: PrelinkedReferenceKind.unresolved));
+        references.add(new PrelinkedReferenceBuilder(
+            kind: PrelinkedReferenceKind.unresolved));
       }
     }
-    return encodePrelinkedUnit(references: references);
+    return new PrelinkedUnitBuilder(references: references);
   }
 
   /**
@@ -433,7 +434,7 @@ class _Prelinker {
     // Link each compilation unit.
     List<PrelinkedUnitBuilder> linkedUnits = units.map(linkUnit).toList();
 
-    return encodePrelinkedLibrary(
+    return new PrelinkedLibraryBuilder(
         units: linkedUnits,
         dependencies: dependencies,
         importDependencies: importDependencies,

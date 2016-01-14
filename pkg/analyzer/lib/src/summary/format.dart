@@ -48,8 +48,6 @@ class PrelinkedDependencyBuilder extends Object with _PrelinkedDependencyMixin i
   String _uri;
   List<String> _parts;
 
-  PrelinkedDependencyBuilder();
-
   @override
   String get uri => _uri ?? '';
 
@@ -77,6 +75,10 @@ class PrelinkedDependencyBuilder extends Object with _PrelinkedDependencyMixin i
     _parts = _value;
   }
 
+  PrelinkedDependencyBuilder({String uri, List<String> parts})
+    : _uri = uri,
+      _parts = parts;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -97,13 +99,6 @@ class PrelinkedDependencyBuilder extends Object with _PrelinkedDependencyMixin i
     }
     return fbBuilder.endTable();
   }
-}
-
-PrelinkedDependencyBuilder encodePrelinkedDependency({String uri, List<String> parts}) {
-  PrelinkedDependencyBuilder builder = new PrelinkedDependencyBuilder();
-  builder.uri = uri;
-  builder.parts = parts;
-  return builder;
 }
 
 /**
@@ -172,8 +167,6 @@ class PrelinkedExportNameBuilder extends Object with _PrelinkedExportNameMixin i
   int _unit;
   PrelinkedReferenceKind _kind;
 
-  PrelinkedExportNameBuilder();
-
   @override
   String get name => _name ?? '';
 
@@ -223,6 +216,12 @@ class PrelinkedExportNameBuilder extends Object with _PrelinkedExportNameMixin i
     _kind = _value;
   }
 
+  PrelinkedExportNameBuilder({String name, int dependency, int unit, PrelinkedReferenceKind kind})
+    : _name = name,
+      _dependency = dependency,
+      _unit = unit,
+      _kind = kind;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -245,15 +244,6 @@ class PrelinkedExportNameBuilder extends Object with _PrelinkedExportNameMixin i
     }
     return fbBuilder.endTable();
   }
-}
-
-PrelinkedExportNameBuilder encodePrelinkedExportName({String name, int dependency, int unit, PrelinkedReferenceKind kind}) {
-  PrelinkedExportNameBuilder builder = new PrelinkedExportNameBuilder();
-  builder.name = name;
-  builder.dependency = dependency;
-  builder.unit = unit;
-  builder.kind = kind;
-  return builder;
 }
 
 /**
@@ -348,8 +338,6 @@ class PrelinkedLibraryBuilder extends Object with _PrelinkedLibraryMixin impleme
   List<int> _importDependencies;
   List<PrelinkedExportNameBuilder> _exportNames;
 
-  PrelinkedLibraryBuilder();
-
   @override
   List<PrelinkedUnit> get units => _units ?? const <PrelinkedUnit>[];
 
@@ -411,6 +399,12 @@ class PrelinkedLibraryBuilder extends Object with _PrelinkedLibraryMixin impleme
     _exportNames = _value;
   }
 
+  PrelinkedLibraryBuilder({List<PrelinkedUnitBuilder> units, List<PrelinkedDependencyBuilder> dependencies, List<int> importDependencies, List<PrelinkedExportNameBuilder> exportNames})
+    : _units = units,
+      _dependencies = dependencies,
+      _importDependencies = importDependencies,
+      _exportNames = exportNames;
+
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
     return fbBuilder.finish(finish(fbBuilder));
@@ -450,15 +444,6 @@ class PrelinkedLibraryBuilder extends Object with _PrelinkedLibraryMixin impleme
     }
     return fbBuilder.endTable();
   }
-}
-
-PrelinkedLibraryBuilder encodePrelinkedLibrary({List<PrelinkedUnitBuilder> units, List<PrelinkedDependencyBuilder> dependencies, List<int> importDependencies, List<PrelinkedExportNameBuilder> exportNames}) {
-  PrelinkedLibraryBuilder builder = new PrelinkedLibraryBuilder();
-  builder.units = units;
-  builder.dependencies = dependencies;
-  builder.importDependencies = importDependencies;
-  builder.exportNames = exportNames;
-  return builder;
 }
 
 /**
@@ -568,8 +553,6 @@ class PrelinkedReferenceBuilder extends Object with _PrelinkedReferenceMixin imp
   int _unit;
   int _numTypeParameters;
 
-  PrelinkedReferenceBuilder();
-
   @override
   int get dependency => _dependency ?? 0;
 
@@ -620,6 +603,12 @@ class PrelinkedReferenceBuilder extends Object with _PrelinkedReferenceMixin imp
     _numTypeParameters = _value;
   }
 
+  PrelinkedReferenceBuilder({int dependency, PrelinkedReferenceKind kind, int unit, int numTypeParameters})
+    : _dependency = dependency,
+      _kind = kind,
+      _unit = unit,
+      _numTypeParameters = numTypeParameters;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -638,15 +627,6 @@ class PrelinkedReferenceBuilder extends Object with _PrelinkedReferenceMixin imp
     }
     return fbBuilder.endTable();
   }
-}
-
-PrelinkedReferenceBuilder encodePrelinkedReference({int dependency, PrelinkedReferenceKind kind, int unit, int numTypeParameters}) {
-  PrelinkedReferenceBuilder builder = new PrelinkedReferenceBuilder();
-  builder.dependency = dependency;
-  builder.kind = kind;
-  builder.unit = unit;
-  builder.numTypeParameters = numTypeParameters;
-  return builder;
 }
 
 /**
@@ -738,8 +718,6 @@ class PrelinkedUnitBuilder extends Object with _PrelinkedUnitMixin implements Pr
 
   List<PrelinkedReferenceBuilder> _references;
 
-  PrelinkedUnitBuilder();
-
   @override
   List<PrelinkedReference> get references => _references ?? const <PrelinkedReference>[];
 
@@ -751,6 +729,9 @@ class PrelinkedUnitBuilder extends Object with _PrelinkedUnitMixin implements Pr
     assert(!_finished);
     _references = _value;
   }
+
+  PrelinkedUnitBuilder({List<PrelinkedReferenceBuilder> references})
+    : _references = references;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -765,12 +746,6 @@ class PrelinkedUnitBuilder extends Object with _PrelinkedUnitMixin implements Pr
     }
     return fbBuilder.endTable();
   }
-}
-
-PrelinkedUnitBuilder encodePrelinkedUnit({List<PrelinkedReferenceBuilder> references}) {
-  PrelinkedUnitBuilder builder = new PrelinkedUnitBuilder();
-  builder.references = references;
-  return builder;
 }
 
 /**
@@ -821,8 +796,6 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements SdkBundle 
   List<String> _unlinkedUnitUris;
   List<UnlinkedUnitBuilder> _unlinkedUnits;
 
-  SdkBundleBuilder();
-
   @override
   List<String> get prelinkedLibraryUris => _prelinkedLibraryUris ?? const <String>[];
 
@@ -867,6 +840,12 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements SdkBundle 
     _unlinkedUnits = _value;
   }
 
+  SdkBundleBuilder({List<String> prelinkedLibraryUris, List<PrelinkedLibraryBuilder> prelinkedLibraries, List<String> unlinkedUnitUris, List<UnlinkedUnitBuilder> unlinkedUnits})
+    : _prelinkedLibraryUris = prelinkedLibraryUris,
+      _prelinkedLibraries = prelinkedLibraries,
+      _unlinkedUnitUris = unlinkedUnitUris,
+      _unlinkedUnits = unlinkedUnits;
+
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
     return fbBuilder.finish(finish(fbBuilder));
@@ -906,15 +885,6 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements SdkBundle 
     }
     return fbBuilder.endTable();
   }
-}
-
-SdkBundleBuilder encodeSdkBundle({List<String> prelinkedLibraryUris, List<PrelinkedLibraryBuilder> prelinkedLibraries, List<String> unlinkedUnitUris, List<UnlinkedUnitBuilder> unlinkedUnits}) {
-  SdkBundleBuilder builder = new SdkBundleBuilder();
-  builder.prelinkedLibraryUris = prelinkedLibraryUris;
-  builder.prelinkedLibraries = prelinkedLibraries;
-  builder.unlinkedUnitUris = unlinkedUnitUris;
-  builder.unlinkedUnits = unlinkedUnits;
-  return builder;
 }
 
 /**
@@ -1014,8 +984,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   bool _isAbstract;
   bool _isMixinApplication;
   bool _hasNoSupertype;
-
-  UnlinkedClassBuilder();
 
   @override
   String get name => _name ?? '';
@@ -1153,6 +1121,20 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
     _hasNoSupertype = _value;
   }
 
+  UnlinkedClassBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder supertype, List<UnlinkedTypeRefBuilder> mixins, List<UnlinkedTypeRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication, bool hasNoSupertype})
+    : _name = name,
+      _nameOffset = nameOffset,
+      _documentationComment = documentationComment,
+      _typeParameters = typeParameters,
+      _supertype = supertype,
+      _mixins = mixins,
+      _interfaces = interfaces,
+      _fields = fields,
+      _executables = executables,
+      _isAbstract = isAbstract,
+      _isMixinApplication = isMixinApplication,
+      _hasNoSupertype = hasNoSupertype;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -1227,23 +1209,6 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedClassBuilder encodeUnlinkedClass({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder supertype, List<UnlinkedTypeRefBuilder> mixins, List<UnlinkedTypeRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication, bool hasNoSupertype}) {
-  UnlinkedClassBuilder builder = new UnlinkedClassBuilder();
-  builder.name = name;
-  builder.nameOffset = nameOffset;
-  builder.documentationComment = documentationComment;
-  builder.typeParameters = typeParameters;
-  builder.supertype = supertype;
-  builder.mixins = mixins;
-  builder.interfaces = interfaces;
-  builder.fields = fields;
-  builder.executables = executables;
-  builder.isAbstract = isAbstract;
-  builder.isMixinApplication = isMixinApplication;
-  builder.hasNoSupertype = hasNoSupertype;
-  return builder;
 }
 
 /**
@@ -1438,8 +1403,6 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
   List<String> _shows;
   List<String> _hides;
 
-  UnlinkedCombinatorBuilder();
-
   @override
   List<String> get shows => _shows ?? const <String>[];
 
@@ -1462,6 +1425,10 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
     _hides = _value;
   }
 
+  UnlinkedCombinatorBuilder({List<String> shows, List<String> hides})
+    : _shows = shows,
+      _hides = hides;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -1482,13 +1449,6 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedCombinatorBuilder encodeUnlinkedCombinator({List<String> shows, List<String> hides}) {
-  UnlinkedCombinatorBuilder builder = new UnlinkedCombinatorBuilder();
-  builder.shows = shows;
-  builder.hides = hides;
-  return builder;
 }
 
 /**
@@ -1551,8 +1511,6 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
   int _offset;
   int _length;
 
-  UnlinkedDocumentationCommentBuilder();
-
   @override
   String get text => _text ?? '';
 
@@ -1590,6 +1548,11 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
     _length = _value;
   }
 
+  UnlinkedDocumentationCommentBuilder({String text, int offset, int length})
+    : _text = text,
+      _offset = offset,
+      _length = length;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -1609,14 +1572,6 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedDocumentationCommentBuilder encodeUnlinkedDocumentationComment({String text, int offset, int length}) {
-  UnlinkedDocumentationCommentBuilder builder = new UnlinkedDocumentationCommentBuilder();
-  builder.text = text;
-  builder.offset = offset;
-  builder.length = length;
-  return builder;
 }
 
 /**
@@ -1696,8 +1651,6 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements Unli
   UnlinkedDocumentationCommentBuilder _documentationComment;
   List<UnlinkedEnumValueBuilder> _values;
 
-  UnlinkedEnumBuilder();
-
   @override
   String get name => _name ?? '';
 
@@ -1743,6 +1696,12 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements Unli
     _values = _value;
   }
 
+  UnlinkedEnumBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedEnumValueBuilder> values})
+    : _name = name,
+      _nameOffset = nameOffset,
+      _documentationComment = documentationComment,
+      _values = values;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -1773,15 +1732,6 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements Unli
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedEnumBuilder encodeUnlinkedEnum({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedEnumValueBuilder> values}) {
-  UnlinkedEnumBuilder builder = new UnlinkedEnumBuilder();
-  builder.name = name;
-  builder.nameOffset = nameOffset;
-  builder.documentationComment = documentationComment;
-  builder.values = values;
-  return builder;
 }
 
 /**
@@ -1870,8 +1820,6 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
   int _nameOffset;
   UnlinkedDocumentationCommentBuilder _documentationComment;
 
-  UnlinkedEnumValueBuilder();
-
   @override
   String get name => _name ?? '';
 
@@ -1906,6 +1854,11 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
     _documentationComment = _value;
   }
 
+  UnlinkedEnumValueBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment})
+    : _name = name,
+      _nameOffset = nameOffset,
+      _documentationComment = documentationComment;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -1929,14 +1882,6 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedEnumValueBuilder encodeUnlinkedEnumValue({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment}) {
-  UnlinkedEnumValueBuilder builder = new UnlinkedEnumValueBuilder();
-  builder.name = name;
-  builder.nameOffset = nameOffset;
-  builder.documentationComment = documentationComment;
-  return builder;
 }
 
 /**
@@ -2022,8 +1967,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   bool _isFactory;
   bool _hasImplicitReturnType;
   bool _isExternal;
-
-  UnlinkedExecutableBuilder();
 
   @override
   String get name => _name ?? '';
@@ -2185,6 +2128,21 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _isExternal = _value;
   }
 
+  UnlinkedExecutableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType, bool isExternal})
+    : _name = name,
+      _nameOffset = nameOffset,
+      _documentationComment = documentationComment,
+      _typeParameters = typeParameters,
+      _returnType = returnType,
+      _parameters = parameters,
+      _kind = kind,
+      _isAbstract = isAbstract,
+      _isStatic = isStatic,
+      _isConst = isConst,
+      _isFactory = isFactory,
+      _hasImplicitReturnType = hasImplicitReturnType,
+      _isExternal = isExternal;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -2250,24 +2208,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedExecutableBuilder encodeUnlinkedExecutable({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType, bool isExternal}) {
-  UnlinkedExecutableBuilder builder = new UnlinkedExecutableBuilder();
-  builder.name = name;
-  builder.nameOffset = nameOffset;
-  builder.documentationComment = documentationComment;
-  builder.typeParameters = typeParameters;
-  builder.returnType = returnType;
-  builder.parameters = parameters;
-  builder.kind = kind;
-  builder.isAbstract = isAbstract;
-  builder.isStatic = isStatic;
-  builder.isConst = isConst;
-  builder.isFactory = isFactory;
-  builder.hasImplicitReturnType = hasImplicitReturnType;
-  builder.isExternal = isExternal;
-  return builder;
 }
 
 /**
@@ -2490,8 +2430,6 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
   int _uriOffset;
   int _uriEnd;
 
-  UnlinkedExportNonPublicBuilder();
-
   @override
   int get offset => _offset ?? 0;
 
@@ -2527,6 +2465,11 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
     _uriEnd = _value;
   }
 
+  UnlinkedExportNonPublicBuilder({int offset, int uriOffset, int uriEnd})
+    : _offset = offset,
+      _uriOffset = uriOffset,
+      _uriEnd = uriEnd;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -2542,14 +2485,6 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedExportNonPublicBuilder encodeUnlinkedExportNonPublic({int offset, int uriOffset, int uriEnd}) {
-  UnlinkedExportNonPublicBuilder builder = new UnlinkedExportNonPublicBuilder();
-  builder.offset = offset;
-  builder.uriOffset = uriOffset;
-  builder.uriEnd = uriEnd;
-  return builder;
 }
 
 /**
@@ -2626,8 +2561,6 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
   String _uri;
   List<UnlinkedCombinatorBuilder> _combinators;
 
-  UnlinkedExportPublicBuilder();
-
   @override
   String get uri => _uri ?? '';
 
@@ -2650,6 +2583,10 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
     _combinators = _value;
   }
 
+  UnlinkedExportPublicBuilder({String uri, List<UnlinkedCombinatorBuilder> combinators})
+    : _uri = uri,
+      _combinators = combinators;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -2670,13 +2607,6 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedExportPublicBuilder encodeUnlinkedExportPublic({String uri, List<UnlinkedCombinatorBuilder> combinators}) {
-  UnlinkedExportPublicBuilder builder = new UnlinkedExportPublicBuilder();
-  builder.uri = uri;
-  builder.combinators = combinators;
-  return builder;
 }
 
 /**
@@ -2744,8 +2674,6 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   int _uriOffset;
   int _uriEnd;
   int _prefixOffset;
-
-  UnlinkedImportBuilder();
 
   @override
   String get uri => _uri ?? '';
@@ -2853,6 +2781,17 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
     _prefixOffset = _value;
   }
 
+  UnlinkedImportBuilder({String uri, int offset, int prefixReference, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit, int uriOffset, int uriEnd, int prefixOffset})
+    : _uri = uri,
+      _offset = offset,
+      _prefixReference = prefixReference,
+      _combinators = combinators,
+      _isDeferred = isDeferred,
+      _isImplicit = isImplicit,
+      _uriOffset = uriOffset,
+      _uriEnd = uriEnd,
+      _prefixOffset = prefixOffset;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -2894,20 +2833,6 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedImportBuilder encodeUnlinkedImport({String uri, int offset, int prefixReference, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit, int uriOffset, int uriEnd, int prefixOffset}) {
-  UnlinkedImportBuilder builder = new UnlinkedImportBuilder();
-  builder.uri = uri;
-  builder.offset = offset;
-  builder.prefixReference = prefixReference;
-  builder.combinators = combinators;
-  builder.isDeferred = isDeferred;
-  builder.isImplicit = isImplicit;
-  builder.uriOffset = uriOffset;
-  builder.uriEnd = uriEnd;
-  builder.prefixOffset = prefixOffset;
-  return builder;
 }
 
 /**
@@ -3072,8 +2997,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
   bool _isInitializingFormal;
   bool _hasImplicitType;
 
-  UnlinkedParamBuilder();
-
   @override
   String get name => _name ?? '';
 
@@ -3168,6 +3091,16 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
     _hasImplicitType = _value;
   }
 
+  UnlinkedParamBuilder({String name, int nameOffset, UnlinkedTypeRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, bool hasImplicitType})
+    : _name = name,
+      _nameOffset = nameOffset,
+      _type = type,
+      _parameters = parameters,
+      _kind = kind,
+      _isFunctionTyped = isFunctionTyped,
+      _isInitializingFormal = isInitializingFormal,
+      _hasImplicitType = hasImplicitType;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -3210,19 +3143,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedParamBuilder encodeUnlinkedParam({String name, int nameOffset, UnlinkedTypeRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, bool hasImplicitType}) {
-  UnlinkedParamBuilder builder = new UnlinkedParamBuilder();
-  builder.name = name;
-  builder.nameOffset = nameOffset;
-  builder.type = type;
-  builder.parameters = parameters;
-  builder.kind = kind;
-  builder.isFunctionTyped = isFunctionTyped;
-  builder.isInitializingFormal = isInitializingFormal;
-  builder.hasImplicitType = hasImplicitType;
-  return builder;
 }
 
 /**
@@ -3367,8 +3287,6 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements Unli
   int _uriOffset;
   int _uriEnd;
 
-  UnlinkedPartBuilder();
-
   @override
   int get uriOffset => _uriOffset ?? 0;
 
@@ -3393,6 +3311,10 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements Unli
     _uriEnd = _value;
   }
 
+  UnlinkedPartBuilder({int uriOffset, int uriEnd})
+    : _uriOffset = uriOffset,
+      _uriEnd = uriEnd;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -3405,13 +3327,6 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements Unli
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedPartBuilder encodeUnlinkedPart({int uriOffset, int uriEnd}) {
-  UnlinkedPartBuilder builder = new UnlinkedPartBuilder();
-  builder.uriOffset = uriOffset;
-  builder.uriEnd = uriEnd;
-  return builder;
 }
 
 /**
@@ -3475,8 +3390,6 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   PrelinkedReferenceKind _kind;
   int _numTypeParameters;
 
-  UnlinkedPublicNameBuilder();
-
   @override
   String get name => _name ?? '';
 
@@ -3511,6 +3424,11 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
     _numTypeParameters = _value;
   }
 
+  UnlinkedPublicNameBuilder({String name, PrelinkedReferenceKind kind, int numTypeParameters})
+    : _name = name,
+      _kind = kind,
+      _numTypeParameters = numTypeParameters;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -3530,14 +3448,6 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedPublicNameBuilder encodeUnlinkedPublicName({String name, PrelinkedReferenceKind kind, int numTypeParameters}) {
-  UnlinkedPublicNameBuilder builder = new UnlinkedPublicNameBuilder();
-  builder.name = name;
-  builder.kind = kind;
-  builder.numTypeParameters = numTypeParameters;
-  return builder;
 }
 
 /**
@@ -3624,8 +3534,6 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
   List<UnlinkedExportPublicBuilder> _exports;
   List<String> _parts;
 
-  UnlinkedPublicNamespaceBuilder();
-
   @override
   List<UnlinkedPublicName> get names => _names ?? const <UnlinkedPublicName>[];
 
@@ -3662,6 +3570,11 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
     _parts = _value;
   }
 
+  UnlinkedPublicNamespaceBuilder({List<UnlinkedPublicNameBuilder> names, List<UnlinkedExportPublicBuilder> exports, List<String> parts})
+    : _names = names,
+      _exports = exports,
+      _parts = parts;
+
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
     return fbBuilder.finish(finish(fbBuilder));
@@ -3694,14 +3607,6 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedPublicNamespaceBuilder encodeUnlinkedPublicNamespace({List<UnlinkedPublicNameBuilder> names, List<UnlinkedExportPublicBuilder> exports, List<String> parts}) {
-  UnlinkedPublicNamespaceBuilder builder = new UnlinkedPublicNamespaceBuilder();
-  builder.names = names;
-  builder.exports = exports;
-  builder.parts = parts;
-  return builder;
 }
 
 /**
@@ -3784,8 +3689,6 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
   String _name;
   int _prefixReference;
 
-  UnlinkedReferenceBuilder();
-
   @override
   String get name => _name ?? '';
 
@@ -3814,6 +3717,10 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
     _prefixReference = _value;
   }
 
+  UnlinkedReferenceBuilder({String name, int prefixReference})
+    : _name = name,
+      _prefixReference = prefixReference;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -3830,13 +3737,6 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedReferenceBuilder encodeUnlinkedReference({String name, int prefixReference}) {
-  UnlinkedReferenceBuilder builder = new UnlinkedReferenceBuilder();
-  builder.name = name;
-  builder.prefixReference = prefixReference;
-  return builder;
 }
 
 /**
@@ -3908,8 +3808,6 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   UnlinkedTypeRefBuilder _returnType;
   List<UnlinkedParamBuilder> _parameters;
 
-  UnlinkedTypedefBuilder();
-
   @override
   String get name => _name ?? '';
 
@@ -3977,6 +3875,14 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
     _parameters = _value;
   }
 
+  UnlinkedTypedefBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters})
+    : _name = name,
+      _nameOffset = nameOffset,
+      _documentationComment = documentationComment,
+      _typeParameters = typeParameters,
+      _returnType = returnType,
+      _parameters = parameters;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -4021,17 +3927,6 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedTypedefBuilder encodeUnlinkedTypedef({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters}) {
-  UnlinkedTypedefBuilder builder = new UnlinkedTypedefBuilder();
-  builder.name = name;
-  builder.nameOffset = nameOffset;
-  builder.documentationComment = documentationComment;
-  builder.typeParameters = typeParameters;
-  builder.returnType = returnType;
-  builder.parameters = parameters;
-  return builder;
 }
 
 /**
@@ -4146,8 +4041,6 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
   int _nameOffset;
   UnlinkedTypeRefBuilder _bound;
 
-  UnlinkedTypeParamBuilder();
-
   @override
   String get name => _name ?? '';
 
@@ -4182,6 +4075,11 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
     _bound = _value;
   }
 
+  UnlinkedTypeParamBuilder({String name, int nameOffset, UnlinkedTypeRefBuilder bound})
+    : _name = name,
+      _nameOffset = nameOffset,
+      _bound = bound;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -4205,14 +4103,6 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedTypeParamBuilder encodeUnlinkedTypeParam({String name, int nameOffset, UnlinkedTypeRefBuilder bound}) {
-  UnlinkedTypeParamBuilder builder = new UnlinkedTypeParamBuilder();
-  builder.name = name;
-  builder.nameOffset = nameOffset;
-  builder.bound = bound;
-  return builder;
 }
 
 /**
@@ -4288,8 +4178,6 @@ class UnlinkedTypeRefBuilder extends Object with _UnlinkedTypeRefMixin implement
   int _paramReference;
   List<UnlinkedTypeRefBuilder> _typeArguments;
 
-  UnlinkedTypeRefBuilder();
-
   @override
   int get reference => _reference ?? 0;
 
@@ -4347,6 +4235,11 @@ class UnlinkedTypeRefBuilder extends Object with _UnlinkedTypeRefMixin implement
     _typeArguments = _value;
   }
 
+  UnlinkedTypeRefBuilder({int reference, int paramReference, List<UnlinkedTypeRefBuilder> typeArguments})
+    : _reference = reference,
+      _paramReference = paramReference,
+      _typeArguments = typeArguments;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -4366,14 +4259,6 @@ class UnlinkedTypeRefBuilder extends Object with _UnlinkedTypeRefMixin implement
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedTypeRefBuilder encodeUnlinkedTypeRef({int reference, int paramReference, List<UnlinkedTypeRefBuilder> typeArguments}) {
-  UnlinkedTypeRefBuilder builder = new UnlinkedTypeRefBuilder();
-  builder.reference = reference;
-  builder.paramReference = paramReference;
-  builder.typeArguments = typeArguments;
-  return builder;
 }
 
 /**
@@ -4482,8 +4367,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   List<UnlinkedPartBuilder> _parts;
   List<UnlinkedTypedefBuilder> _typedefs;
   List<UnlinkedVariableBuilder> _variables;
-
-  UnlinkedUnitBuilder();
 
   @override
   String get libraryName => _libraryName ?? '';
@@ -4645,6 +4528,22 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
     _variables = _value;
   }
 
+  UnlinkedUnitBuilder({String libraryName, int libraryNameOffset, int libraryNameLength, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedPartBuilder> parts, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
+    : _libraryName = libraryName,
+      _libraryNameOffset = libraryNameOffset,
+      _libraryNameLength = libraryNameLength,
+      _libraryDocumentationComment = libraryDocumentationComment,
+      _publicNamespace = publicNamespace,
+      _references = references,
+      _classes = classes,
+      _enums = enums,
+      _executables = executables,
+      _exports = exports,
+      _imports = imports,
+      _parts = parts,
+      _typedefs = typedefs,
+      _variables = variables;
+
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
     return fbBuilder.finish(finish(fbBuilder));
@@ -4746,25 +4645,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedUnitBuilder encodeUnlinkedUnit({String libraryName, int libraryNameOffset, int libraryNameLength, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedPartBuilder> parts, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
-  UnlinkedUnitBuilder builder = new UnlinkedUnitBuilder();
-  builder.libraryName = libraryName;
-  builder.libraryNameOffset = libraryNameOffset;
-  builder.libraryNameLength = libraryNameLength;
-  builder.libraryDocumentationComment = libraryDocumentationComment;
-  builder.publicNamespace = publicNamespace;
-  builder.references = references;
-  builder.classes = classes;
-  builder.enums = enums;
-  builder.executables = executables;
-  builder.exports = exports;
-  builder.imports = imports;
-  builder.parts = parts;
-  builder.typedefs = typedefs;
-  builder.variables = variables;
-  return builder;
 }
 
 /**
@@ -4997,8 +4877,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   bool _isConst;
   bool _hasImplicitType;
 
-  UnlinkedVariableBuilder();
-
   @override
   String get name => _name ?? '';
 
@@ -5093,6 +4971,16 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _hasImplicitType = _value;
   }
 
+  UnlinkedVariableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, UnlinkedTypeRefBuilder type, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType})
+    : _name = name,
+      _nameOffset = nameOffset,
+      _documentationComment = documentationComment,
+      _type = type,
+      _isStatic = isStatic,
+      _isFinal = isFinal,
+      _isConst = isConst,
+      _hasImplicitType = hasImplicitType;
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -5135,19 +5023,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     }
     return fbBuilder.endTable();
   }
-}
-
-UnlinkedVariableBuilder encodeUnlinkedVariable({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, UnlinkedTypeRefBuilder type, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType}) {
-  UnlinkedVariableBuilder builder = new UnlinkedVariableBuilder();
-  builder.name = name;
-  builder.nameOffset = nameOffset;
-  builder.documentationComment = documentationComment;
-  builder.type = type;
-  builder.isStatic = isStatic;
-  builder.isFinal = isFinal;
-  builder.isConst = isConst;
-  builder.hasImplicitType = hasImplicitType;
-  return builder;
 }
 
 /**

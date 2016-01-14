@@ -14,7 +14,7 @@ import 'package:analyzer/src/summary/format.dart';
 UnlinkedPublicNamespaceBuilder computePublicNamespace(CompilationUnit unit) {
   _PublicNamespaceVisitor visitor = new _PublicNamespaceVisitor();
   unit.accept(visitor);
-  return encodeUnlinkedPublicNamespace(
+  return new UnlinkedPublicNamespaceBuilder(
       names: visitor.names, exports: visitor.exports, parts: visitor.parts);
 }
 
@@ -26,12 +26,12 @@ class _CombinatorEncoder extends SimpleAstVisitor<UnlinkedCombinatorBuilder> {
 
   @override
   UnlinkedCombinatorBuilder visitHideCombinator(HideCombinator node) {
-    return encodeUnlinkedCombinator(hides: encodeNames(node.hiddenNames));
+    return new UnlinkedCombinatorBuilder(hides: encodeNames(node.hiddenNames));
   }
 
   @override
   UnlinkedCombinatorBuilder visitShowCombinator(ShowCombinator node) {
-    return encodeUnlinkedCombinator(shows: encodeNames(node.shownNames));
+    return new UnlinkedCombinatorBuilder(shows: encodeNames(node.shownNames));
   }
 }
 
@@ -46,7 +46,7 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
   void addNameIfPublic(
       String name, PrelinkedReferenceKind kind, int numTypeParameters) {
     if (isPublic(name)) {
-      names.add(encodeUnlinkedPublicName(
+      names.add(new UnlinkedPublicNameBuilder(
           name: name, kind: kind, numTypeParameters: numTypeParameters));
     }
   }
@@ -72,7 +72,7 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
 
   @override
   visitExportDirective(ExportDirective node) {
-    exports.add(encodeUnlinkedExportPublic(
+    exports.add(new UnlinkedExportPublicBuilder(
         uri: node.uri.stringValue,
         combinators: node.combinators
             .map((Combinator c) => c.accept(new _CombinatorEncoder()))

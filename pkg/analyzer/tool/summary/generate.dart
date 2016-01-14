@@ -273,9 +273,7 @@ class _CodeGenerator {
       out();
     });
     for (var cls in _idl.classes.values) {
-      List<String> builderParams = _generateBuilder(cls);
-      out();
-      _generateEncodeFunction(cls, builderParams);
+      _generateBuilder(cls);
       out();
       _generateInterface(cls);
       out();
@@ -295,11 +293,11 @@ class _CodeGenerator {
     return JSON.encode(s);
   }
 
-  List<String> _generateBuilder(idlModel.ClassDeclaration cls) {
+  void _generateBuilder(idlModel.ClassDeclaration cls) {
     String name = cls.name;
     String builderName = name + 'Builder';
     String mixinName = '_${name}Mixin';
-    List<String> builderParams = <String>[];
+    List<String> constructorParams = <String>[];
     out('class $builderName extends Object with $mixinName '
         'implements $name {');
     indent(() {
@@ -312,9 +310,6 @@ class _CodeGenerator {
         String typeStr = encodedType(type);
         out('$typeStr _$fieldName;');
       }
-      // Generate constructor.
-      out();
-      out('$builderName();');
       // Generate getters and setters.
       for (idlModel.FieldDeclaration field in cls.fields) {
         String fieldName = field.name;
@@ -326,7 +321,7 @@ class _CodeGenerator {
         out('${dartType(field.type)} get $fieldName => _$fieldName$defSuffix;');
         out();
         outDoc(field.documentation);
-        builderParams.add('$typeStr $fieldName');
+        constructorParams.add('$typeStr $fieldName');
         out('void set $fieldName($typeStr _value) {');
         indent(() {
           String stateFieldName = '_' + fieldName;
@@ -334,6 +329,15 @@ class _CodeGenerator {
           out('$stateFieldName = _value;');
         });
         out('}');
+      }
+      // Generate constructor.
+      out();
+      out('$builderName({${constructorParams.join(', ')}})');
+      for (int i = 0; i < cls.fields.length; i++) {
+        idlModel.FieldDeclaration field = cls.fields[i];
+        String prefix = i == 0 ? '  : ' : '    ';
+        String suffix = i == cls.fields.length - 1 ? ';' : ',';
+        out('${prefix}_${field.name} = ${field.name}$suffix');
       }
       // Generate finish.
       if (cls.isTopLevel) {
@@ -432,23 +436,6 @@ class _CodeGenerator {
         out('return fbBuilder.endTable();');
       });
       out('}');
-    });
-    out('}');
-    return builderParams;
-  }
-
-  void _generateEncodeFunction(
-      idlModel.ClassDeclaration cls, List<String> builderParams) {
-    String className = cls.name;
-    String builderName = className + 'Builder';
-    out('$builderName encode$className({${builderParams.join(', ')}}) {');
-    indent(() {
-      out('$builderName builder = new $builderName();');
-      for (idlModel.FieldDeclaration field in cls.fields) {
-        String fieldName = field.name;
-        out('builder.$fieldName = $fieldName;');
-      }
-      out('return builder;');
     });
     out('}');
   }

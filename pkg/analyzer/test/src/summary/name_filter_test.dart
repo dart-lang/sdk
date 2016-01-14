@@ -18,7 +18,7 @@ main() {
 class NameFilterTest {
   test_accepts_accessors_hide() {
     NameFilter filter = new NameFilter.forUnlinkedCombinator(
-        encodeUnlinkedCombinator(hides: ['bar']));
+        new UnlinkedCombinatorBuilder(hides: ['bar']));
     expect(filter.accepts('foo'), isTrue);
     expect(filter.accepts('foo='), isTrue);
     expect(filter.accepts('bar'), isFalse);
@@ -27,7 +27,7 @@ class NameFilterTest {
 
   test_accepts_accessors_show() {
     NameFilter filter = new NameFilter.forUnlinkedCombinator(
-        encodeUnlinkedCombinator(shows: ['foo']));
+        new UnlinkedCombinatorBuilder(shows: ['foo']));
     expect(filter.accepts('foo'), isTrue);
     expect(filter.accepts('foo='), isTrue);
     expect(filter.accepts('bar'), isFalse);
@@ -71,7 +71,7 @@ class NameFilterTest {
 
   test_forUnlinkedCombinator_hide() {
     NameFilter filter = new NameFilter.forUnlinkedCombinator(
-        encodeUnlinkedCombinator(hides: ['foo', 'bar']));
+        new UnlinkedCombinatorBuilder(hides: ['foo', 'bar']));
     expect(filter.accepts('foo'), isFalse);
     expect(filter.accepts('bar'), isFalse);
     expect(filter.accepts('baz'), isTrue);
@@ -82,7 +82,7 @@ class NameFilterTest {
 
   test_forUnlinkedCombinator_show() {
     NameFilter filter = new NameFilter.forUnlinkedCombinator(
-        encodeUnlinkedCombinator(shows: ['foo', 'bar']));
+        new UnlinkedCombinatorBuilder(shows: ['foo', 'bar']));
     expect(filter.accepts('foo'), isTrue);
     expect(filter.accepts('bar'), isTrue);
     expect(filter.accepts('baz'), isFalse);
@@ -93,8 +93,8 @@ class NameFilterTest {
 
   test_forUnlinkedCombinators() {
     NameFilter filter = new NameFilter.forUnlinkedCombinators([
-      encodeUnlinkedCombinator(hides: ['foo']),
-      encodeUnlinkedCombinator(hides: ['bar'])
+      new UnlinkedCombinatorBuilder(hides: ['foo']),
+      new UnlinkedCombinatorBuilder(hides: ['bar'])
     ]);
     expect(filter.accepts('foo'), isFalse);
     expect(filter.accepts('bar'), isFalse);
@@ -113,9 +113,9 @@ class NameFilterTest {
 
   test_merge_hides_hides() {
     NameFilter filter = new NameFilter.forUnlinkedCombinator(
-        encodeUnlinkedCombinator(hides: ['foo'])).merge(
+        new UnlinkedCombinatorBuilder(hides: ['foo'])).merge(
         new NameFilter.forUnlinkedCombinator(
-            encodeUnlinkedCombinator(hides: ['bar'])));
+            new UnlinkedCombinatorBuilder(hides: ['bar'])));
     expect(filter.accepts('foo'), isFalse);
     expect(filter.accepts('bar'), isFalse);
     expect(filter.accepts('baz'), isTrue);
@@ -126,7 +126,7 @@ class NameFilterTest {
 
   test_merge_hides_identity() {
     NameFilter filter = new NameFilter.forUnlinkedCombinator(
-            encodeUnlinkedCombinator(hides: ['foo', 'bar']))
+            new UnlinkedCombinatorBuilder(hides: ['foo', 'bar']))
         .merge(NameFilter.identity);
     expect(filter.accepts('foo'), isFalse);
     expect(filter.accepts('bar'), isFalse);
@@ -138,9 +138,9 @@ class NameFilterTest {
 
   test_merge_hides_shows() {
     NameFilter filter = new NameFilter.forUnlinkedCombinator(
-        encodeUnlinkedCombinator(hides: ['bar', 'baz'])).merge(
+        new UnlinkedCombinatorBuilder(hides: ['bar', 'baz'])).merge(
         new NameFilter.forUnlinkedCombinator(
-            encodeUnlinkedCombinator(shows: ['foo', 'bar'])));
+            new UnlinkedCombinatorBuilder(shows: ['foo', 'bar'])));
     expect(filter.accepts('foo'), isTrue);
     expect(filter.accepts('bar'), isFalse);
     expect(filter.accepts('baz'), isFalse);
@@ -152,7 +152,7 @@ class NameFilterTest {
   test_merge_identity_hides() {
     NameFilter filter = NameFilter.identity.merge(
         new NameFilter.forUnlinkedCombinator(
-            encodeUnlinkedCombinator(hides: ['foo', 'bar'])));
+            new UnlinkedCombinatorBuilder(hides: ['foo', 'bar'])));
     expect(filter.accepts('foo'), isFalse);
     expect(filter.accepts('bar'), isFalse);
     expect(filter.accepts('baz'), isTrue);
@@ -172,7 +172,7 @@ class NameFilterTest {
   test_merge_identity_shows() {
     NameFilter filter = NameFilter.identity.merge(
         new NameFilter.forUnlinkedCombinator(
-            encodeUnlinkedCombinator(shows: ['foo', 'bar'])));
+            new UnlinkedCombinatorBuilder(shows: ['foo', 'bar'])));
     expect(filter.accepts('foo'), isTrue);
     expect(filter.accepts('bar'), isTrue);
     expect(filter.accepts('baz'), isFalse);
@@ -183,9 +183,9 @@ class NameFilterTest {
 
   test_merge_shows_hides() {
     NameFilter filter = new NameFilter.forUnlinkedCombinator(
-        encodeUnlinkedCombinator(shows: ['foo', 'bar'])).merge(
+        new UnlinkedCombinatorBuilder(shows: ['foo', 'bar'])).merge(
         new NameFilter.forUnlinkedCombinator(
-            encodeUnlinkedCombinator(hides: ['bar', 'baz'])));
+            new UnlinkedCombinatorBuilder(hides: ['bar', 'baz'])));
     expect(filter.accepts('foo'), isTrue);
     expect(filter.accepts('bar'), isFalse);
     expect(filter.accepts('baz'), isFalse);
@@ -196,7 +196,7 @@ class NameFilterTest {
 
   test_merge_shows_identity() {
     NameFilter filter = new NameFilter.forUnlinkedCombinator(
-            encodeUnlinkedCombinator(shows: ['foo', 'bar']))
+            new UnlinkedCombinatorBuilder(shows: ['foo', 'bar']))
         .merge(NameFilter.identity);
     expect(filter.accepts('foo'), isTrue);
     expect(filter.accepts('bar'), isTrue);
@@ -208,9 +208,9 @@ class NameFilterTest {
 
   test_merge_shows_shows() {
     NameFilter filter = new NameFilter.forUnlinkedCombinator(
-        encodeUnlinkedCombinator(shows: ['foo', 'bar'])).merge(
+        new UnlinkedCombinatorBuilder(shows: ['foo', 'bar'])).merge(
         new NameFilter.forUnlinkedCombinator(
-            encodeUnlinkedCombinator(shows: ['bar', 'baz'])));
+            new UnlinkedCombinatorBuilder(shows: ['bar', 'baz'])));
     expect(filter.accepts('foo'), isFalse);
     expect(filter.accepts('bar'), isTrue);
     expect(filter.accepts('baz'), isFalse);
@@ -221,9 +221,9 @@ class NameFilterTest {
 
   test_merge_shows_shows_emptyResult() {
     NameFilter filter = new NameFilter.forUnlinkedCombinator(
-        encodeUnlinkedCombinator(shows: ['foo'])).merge(
+        new UnlinkedCombinatorBuilder(shows: ['foo'])).merge(
         new NameFilter.forUnlinkedCombinator(
-            encodeUnlinkedCombinator(shows: ['bar'])));
+            new UnlinkedCombinatorBuilder(shows: ['bar'])));
     expect(filter.accepts('foo'), isFalse);
     expect(filter.accepts('bar'), isFalse);
     expect(filter.accepts('baz'), isFalse);
