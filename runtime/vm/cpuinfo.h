@@ -61,7 +61,7 @@ class CpuInfo : public AllStatic {
     if (HasField(FieldName(kCpuInfoHardware))) {
       return ExtractField(kCpuInfoHardware);
     } else {
-      return "";
+      return strdup("Unknown");
     }
   }
 
