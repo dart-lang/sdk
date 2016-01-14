@@ -613,8 +613,10 @@ class C {
       return serializedUnit;
     }
     SummaryResynthesizer resynthesizer = new SummaryResynthesizer(
+        null,
         analysisContext,
         analysisContext.typeProvider,
+        (_) => true,
         getPrelinkedSummary,
         getUnlinkedSummary,
         analysisContext.sourceFactory);

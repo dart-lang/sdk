@@ -46,8 +46,14 @@ class SummarySdkAnalysisContext extends SdkAnalysisContext {
   @override
   bool aboutToComputeResult(CacheEntry entry, ResultDescriptor result) {
     if (resynthesizer == null) {
-      resynthesizer = new SummaryResynthesizer(this, typeProvider,
-          _getPrelinkedSummary, _getUnlinkedSummary, sourceFactory);
+      resynthesizer = new SummaryResynthesizer(
+          null,
+          this,
+          typeProvider,
+          (String uri) => uri.startsWith('dart:'),
+          _getPrelinkedSummary,
+          _getUnlinkedSummary,
+          sourceFactory);
       _buildCoreLibrary();
       _buildAsyncLibrary();
     }

@@ -27,10 +27,27 @@ typedef PrelinkedLibrary GetPrelinkedSummaryCallback(String uri);
 typedef UnlinkedUnit GetUnlinkedSummaryCallback(String uri);
 
 /**
+ * Callback used by [SummaryResynthesizer] to check whether it can access
+ * summaries of the library with the given [uri].
+ */
+typedef bool HasLibrarySummaryCallback(String uri);
+
+/**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element
  * model from summaries.
  */
 class SummaryResynthesizer extends ElementResynthesizer {
+  /**
+   * The parent [SummaryResynthesizer] which is asked to resynthesis elements
+   * before this resynthesizer attempts to do this. Can be `null`.
+   */
+  final SummaryResynthesizer parent;
+
+  /**
+   * Callback used to check whether summaries for a given URI can be accessed.
+   */
+  final HasLibrarySummaryCallback hasLibrarySummary;
+
   /**
    * Callback used to obtain the prelinked summary for a given URI.
    */
@@ -72,8 +89,14 @@ class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, LibraryElement> _resynthesizedLibraries =
       <String, LibraryElement>{};
 
-  SummaryResynthesizer(AnalysisContext context, this.typeProvider,
-      this.getPrelinkedSummary, this.getUnlinkedSummary, this.sourceFactory)
+  SummaryResynthesizer(
+      this.parent,
+      AnalysisContext context,
+      this.typeProvider,
+      this.hasLibrarySummary,
+      this.getPrelinkedSummary,
+      this.getUnlinkedSummary,
+      this.sourceFactory)
       : super(context);
 
   /**
@@ -83,21 +106,28 @@ class SummaryResynthesizer extends ElementResynthesizer {
 
   @override
   Element getElement(ElementLocation location) {
-    if (location.components.length == 1) {
-      return getLibraryElement(location.components[0]);
-    } else if (location.components.length == 3) {
-      String uri = location.components[0];
+    List<String> components = location.components;
+    String libraryUri = components[0];
+    // Ask the parent resynthesizer.
+    if (parent != null) {
+      if (parent.hasLibrarySummary(libraryUri)) {
+        return parent.getElement(location);
+      }
+    }
+    // Resynthesize locally.
+    if (components.length == 1) {
+      return getLibraryElement(libraryUri);
+    } else if (components.length == 3) {
       Map<String, Map<String, Element>> libraryMap =
-          _resynthesizedElements[uri];
+          _resynthesizedElements[libraryUri];
       if (libraryMap == null) {
-        getLibraryElement(uri);
-        libraryMap = _resynthesizedElements[uri];
+        getLibraryElement(libraryUri);
+        libraryMap = _resynthesizedElements[libraryUri];
         assert(libraryMap != null);
       }
-      Map<String, Element> compilationUnitElements =
-          libraryMap[location.components[1]];
+      Map<String, Element> compilationUnitElements = libraryMap[components[1]];
       if (compilationUnitElements != null) {
-        Element element = compilationUnitElements[location.components[2]];
+        Element element = compilationUnitElements[components[2]];
         if (element != null) {
           return element;
         }
@@ -113,6 +143,9 @@ class SummaryResynthesizer extends ElementResynthesizer {
    * hasn't been resynthesized already.
    */
   LibraryElement getLibraryElement(String uri) {
+    if (parent != null && parent.hasLibrarySummary(uri)) {
+      return parent.getLibraryElement(uri);
+    }
     return _resynthesizedLibraries.putIfAbsent(uri, () {
       PrelinkedLibrary serializedLibrary = getPrelinkedSummary(uri);
       List<UnlinkedUnit> serializedUnits = <UnlinkedUnit>[
@@ -845,7 +878,8 @@ class _LibraryResynthesizer {
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
-          currentTypeParameters.length - type.paramReference].type;
+              currentTypeParameters.length - type.paramReference]
+          .type;
     } else {
       // TODO(paulberry): handle references to things other than classes (note:
       // this should only occur in the case of erroneous code).
