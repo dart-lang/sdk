@@ -192,7 +192,12 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
         ASSERT(getter_result.IsNull() || getter_result.IsInstance());
 
         arguments.SetAt(0, getter_result);
-        return InvokeClosure(arguments, arguments_descriptor);
+        // This otherwise unnecessary handle is used to prevent clang from
+        // doing tail call elimination, which would make the stack overflow
+        // check above ineffective.
+        Object& result = Object::Handle(InvokeClosure(arguments,
+                                                      arguments_descriptor));
+        return result.raw();
       }
       cls = cls.SuperClass();
     }
