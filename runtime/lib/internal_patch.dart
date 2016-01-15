@@ -28,6 +28,8 @@ class VMLibraryHooks {
   static var packageRootUriFuture;
   static var packageConfigUriFuture;
   static var resolvePackageUriFuture;
+
+  static var platformScript;
 }
 
 patch class CodeUnits {

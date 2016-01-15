@@ -46,20 +46,6 @@ class _Platform {
   static String get operatingSystem => _operatingSystem();
   static Uri script;
 
-  // This script singleton is written to by the embedder if applicable.
-  static void set _nativeScript(String path) {
-    if (path.startsWith('http:') ||
-        path.startsWith('https:') ||
-        path.startsWith('package:') ||
-        path.startsWith('dart:') ||
-        path.startsWith('data:') ||
-        path.startsWith('file:')) {
-      script = Uri.parse(path);
-    } else {
-      script = Uri.base.resolveUri(new Uri.file(path));
-    }
-  }
-
   static String get localHostname {
     var result = _localHostname();
     if (result is OSError) {

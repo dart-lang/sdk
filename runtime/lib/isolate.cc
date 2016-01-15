@@ -212,16 +212,17 @@ static const char* String2UTF8(const String& str) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 9) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, paused, arguments->NativeArgAt(3));
-  GET_NATIVE_ARGUMENT(Bool, fatalErrors, arguments->NativeArgAt(4));
-  GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(5));
-  GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(6));
-  GET_NATIVE_ARGUMENT(String, packageRoot, arguments->NativeArgAt(7));
-  GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(8));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, script_uri, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, paused, arguments->NativeArgAt(4));
+  GET_NATIVE_ARGUMENT(Bool, fatalErrors, arguments->NativeArgAt(5));
+  GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(6));
+  GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(7));
+  GET_NATIVE_ARGUMENT(String, packageRoot, arguments->NativeArgAt(8));
+  GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(9));
 
   if (closure.IsClosure()) {
     Function& func = Function::Handle();
@@ -234,11 +235,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 9) {
 #endif
       // Get the parent function so that we get the right function name.
       func = func.parent_function();
-
-      // Get the script URI so that we know what script to load.
-      const Library& root_lib = Library::Handle(zone,
-          isolate->object_store()->root_library());
-      const String& script_uri = String::Handle(zone, root_lib.url());
 
       const char* utf8_package_root =
           packageRoot.IsNull() ? NULL : String2UTF8(packageRoot);
