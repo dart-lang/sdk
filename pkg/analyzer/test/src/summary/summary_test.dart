@@ -176,7 +176,7 @@ class PrelinkerTest extends SummarizeElementsTest {
       }
       return namespace;
     }
-    prelinked = new PrelinkedLibrary.fromBuffer(
+    linked = new LinkedLibrary.fromBuffer(
         prelink(unlinkedUnits[0], getPart, getImport).toBuffer());
   }
 }
@@ -222,14 +222,14 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
 
   /**
    * Serialize the given [library] element, then deserialize it and store the
-   * resulting summary in [prelinked] and [unlinkedUnits].
+   * resulting summary in [linked] and [unlinkedUnits].
    */
   void serializeLibraryElement(LibraryElement library) {
     summarize_elements.LibrarySerializationResult serializedLib =
         summarize_elements.serializeLibrary(library, typeProvider);
     {
-      List<int> buffer = serializedLib.prelinked.toBuffer();
-      prelinked = new PrelinkedLibrary.fromBuffer(buffer);
+      List<int> buffer = serializedLib.linked.toBuffer();
+      linked = new LinkedLibrary.fromBuffer(buffer);
     }
     unlinkedUnits = serializedLib.unlinkedUnits.map((UnlinkedUnitBuilder b) {
       List<int> buffer = b.toBuffer();
@@ -247,12 +247,11 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
       assertNoErrors(source);
     }
     serializeLibraryElement(library);
-    expect(
-        unlinkedUnits[0].imports.length, prelinked.importDependencies.length);
-    expect(prelinked.units.length, unlinkedUnits.length);
-    for (int i = 0; i < prelinked.units.length; i++) {
+    expect(unlinkedUnits[0].imports.length, linked.importDependencies.length);
+    expect(linked.units.length, unlinkedUnits.length);
+    for (int i = 0; i < linked.units.length; i++) {
       expect(unlinkedUnits[i].references.length,
-          prelinked.units[i].references.length);
+          linked.units[i].references.length);
     }
     verifyPublicNamespace();
   }
@@ -303,10 +302,10 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
  */
 abstract class SummaryTest {
   /**
-   * Prelinked summary that results from serializing and then deserializing the
+   * Linked summary that results from serializing and then deserializing the
    * library under test.
    */
-  PrelinkedLibrary prelinked;
+  LinkedLibrary linked;
 
   /**
    * Unlinked compilation unit summaries that result from serializing and
@@ -329,12 +328,12 @@ abstract class SummaryTest {
   bool get checkAstDerivedData;
 
   /**
-   * Get access to the prelinked defining compilation unit.
+   * Get access to the linked defining compilation unit.
    */
-  PrelinkedUnit get definingUnit => prelinked.units[0];
+  LinkedUnit get definingUnit => linked.units[0];
 
   /**
-   * `true` if the prelinked portion of the summary is expected to contain
+   * `true` if the linked portion of the summary is expected to contain
    * absolute URIs.  This happens because the element model doesn't (yet) store
    * enough information to recover relative URIs, TODO(paulberry): fix this.
    */
@@ -366,14 +365,14 @@ abstract class SummaryTest {
       relativeUri = absoluteUri;
     }
     expect(dependency, new isInstanceOf<int>());
-    expect(prelinked.dependencies[dependency].uri, relativeUri);
+    expect(linked.dependencies[dependency].uri, relativeUri);
   }
 
   /**
    * Verify that the given [dependency] lists the given [absoluteUris] or
    * [relativeUris] as its parts.
    */
-  void checkDependencyParts(PrelinkedDependency dependency,
+  void checkDependencyParts(LinkedDependency dependency,
       List<String> absoluteUris, List<String> relativeUris) {
     if (expectAbsoluteUrisInDependencies) {
       // The element model doesn't (yet) store enough information to recover
@@ -422,14 +421,10 @@ abstract class SummaryTest {
    * target of the [exportName] is expected to appear; if not specified it is
    * assumed to be the defining compilation unit.
    */
-  void checkExportName(
-      PrelinkedExportName exportName,
-      String absoluteUri,
-      String relativeUri,
-      String expectedName,
-      PrelinkedReferenceKind expectedKind,
+  void checkExportName(LinkedExportName exportName, String absoluteUri,
+      String relativeUri, String expectedName, ReferenceKind expectedKind,
       {int expectedTargetUnit: 0}) {
-    expect(exportName, new isInstanceOf<PrelinkedExportName>());
+    expect(exportName, new isInstanceOf<LinkedExportName>());
     // Exported names must come from other libraries.
     expect(exportName.dependency, isNot(0));
     checkDependency(exportName.dependency, absoluteUri, relativeUri);
@@ -442,10 +437,9 @@ abstract class SummaryTest {
    * Verify that the dependency table contains an entry for a file reachable
    * via the given [absoluteUri] and [relativeUri].
    *
-   * The [PrelinkedDependency] is returned.
+   * The [LinkedDependency] is returned.
    */
-  PrelinkedDependency checkHasDependency(
-      String absoluteUri, String relativeUri) {
+  LinkedDependency checkHasDependency(String absoluteUri, String relativeUri) {
     if (expectAbsoluteUrisInDependencies) {
       // The element model doesn't (yet) store enough information to recover
       // relative URIs, so we have to use the absolute URI.
@@ -453,7 +447,7 @@ abstract class SummaryTest {
       relativeUri = absoluteUri;
     }
     List<String> found = <String>[];
-    for (PrelinkedDependency dep in prelinked.dependencies) {
+    for (LinkedDependency dep in linked.dependencies) {
       if (dep.uri == relativeUri) {
         return dep;
       }
@@ -474,7 +468,7 @@ abstract class SummaryTest {
       // TODO(paulberry): fix this.
       relativeUri = absoluteUri;
     }
-    for (PrelinkedDependency dep in prelinked.dependencies) {
+    for (LinkedDependency dep in linked.dependencies) {
       if (dep.uri == relativeUri) {
         fail('Unexpected dependency found: $relativeUri');
       }
@@ -501,8 +495,7 @@ abstract class SummaryTest {
     expect(unlinkedUnits[0].references[prefixReference].prefixReference, 0);
     expect(unlinkedUnits[0].references[prefixReference].name, name);
     expect(definingUnit.references[prefixReference].dependency, 0);
-    expect(definingUnit.references[prefixReference].kind,
-        PrelinkedReferenceKind.prefix);
+    expect(definingUnit.references[prefixReference].kind, ReferenceKind.prefix);
     expect(definingUnit.references[prefixReference].unit, 0);
   }
 
@@ -512,7 +505,7 @@ abstract class SummaryTest {
    * [expectedName].  If [expectedPrefix] is supplied, verify that the type is
    * reached via the given prefix.  If [allowTypeParameters] is true, allow the
    * type reference to supply type parameters.  [expectedKind] is the kind of
-   * object referenced.  [prelinkedSourceUnit] and [unlinkedSourceUnit] refer
+   * object referenced.  [linkedSourceUnit] and [unlinkedSourceUnit] refer
    * to the compilation unit within which the [typeRef] appears; if not
    * specified they are assumed to refer to the defining compilation unit.
    * [expectedTargetUnit] is the index of the compilation unit in which the
@@ -524,19 +517,18 @@ abstract class SummaryTest {
       String relativeUri, String expectedName,
       {String expectedPrefix,
       bool allowTypeParameters: false,
-      PrelinkedReferenceKind expectedKind: PrelinkedReferenceKind.classOrEnum,
+      ReferenceKind expectedKind: ReferenceKind.classOrEnum,
       int expectedTargetUnit: 0,
-      PrelinkedUnit prelinkedSourceUnit,
+      LinkedUnit linkedSourceUnit,
       UnlinkedUnit unlinkedSourceUnit,
       int numTypeParameters: 0}) {
-    prelinkedSourceUnit ??= definingUnit;
+    linkedSourceUnit ??= definingUnit;
     unlinkedSourceUnit ??= unlinkedUnits[0];
     expect(typeRef, new isInstanceOf<UnlinkedTypeRef>());
     expect(typeRef.paramReference, 0);
     int index = typeRef.reference;
     UnlinkedReference reference = unlinkedSourceUnit.references[index];
-    PrelinkedReference referenceResolution =
-        prelinkedSourceUnit.references[index];
+    LinkedReference referenceResolution = linkedSourceUnit.references[index];
     if (index == 0) {
       // Index 0 is reserved for "dynamic".
       expect(reference.name, isEmpty);
@@ -550,7 +542,7 @@ abstract class SummaryTest {
     if (!allowTypeParameters) {
       expect(typeRef.typeArguments, isEmpty);
     }
-    if (expectedKind == PrelinkedReferenceKind.unresolved) {
+    if (expectedKind == ReferenceKind.unresolved) {
       // summarize_elements.dart isn't yet able to record the name of
       // unresolved references.  TODO(paulberry): fix this.
       expect(reference.name, '*unresolved*');
@@ -578,31 +570,7 @@ abstract class SummaryTest {
     // When serializing from the element model, unresolved type refs lose their
     // name.
     checkTypeRef(typeRef, null, null, checkAstDerivedData ? expectedName : null,
-        expectedPrefix: expectedPrefix,
-        expectedKind: PrelinkedReferenceKind.unresolved);
-  }
-
-  test_dependencies_export_to_export_unused() {
-    // TODO(paulberry): fix this test.
-    addNamedSource('/a.dart', 'export "b.dart";');
-    addNamedSource('/b.dart', '');
-    serializeLibraryText('export "a.dart";');
-    // The main test library depends on b.dart, even though it doesn't
-    // re-export any names defined in b.dart, because a change to b.dart might
-    // cause it to start exporting a name that the main test library *does*
-    // use.
-    checkHasDependency(absUri('/b.dart'), 'b.dart');
-  }
-
-  test_dependencies_export_unused() {
-    // TODO(paulberry): fix this test.
-    addNamedSource('/a.dart', '');
-    serializeLibraryText('export "a.dart";');
-    // The main test library depends on a.dart, even though it doesn't
-    // re-export any names defined in a.dart, because a change to a.dart might
-    // cause it to start exporting a name that the main test library *will*
-    // re-export.
-    checkHasDependency(absUri('/a.dart'), 'a.dart');
+        expectedPrefix: expectedPrefix, expectedKind: ReferenceKind.unresolved);
   }
 
   fail_enum_value_documented() {
@@ -629,7 +597,7 @@ enum E {
     // Second import is the implicit import of dart:core
     expect(unlinkedUnits[0].imports, hasLength(2));
     checkDependency(
-        prelinked.importDependencies[0], absUri('/foo.dart'), 'foo.dart');
+        linked.importDependencies[0], absUri('/foo.dart'), 'foo.dart');
   }
 
   fail_type_reference_to_nonexistent_file_via_prefix() {
@@ -1009,7 +977,7 @@ C c;
     expect(cls.isAbstract, false);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
-        PrelinkedReferenceKind.classOrEnum);
+        ReferenceKind.classOrEnum);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
@@ -1096,7 +1064,7 @@ class E {}
     expect(cls.isAbstract, false);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
-        PrelinkedReferenceKind.classOrEnum);
+        ReferenceKind.classOrEnum);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
@@ -1502,6 +1470,29 @@ class C {
     expect(executable.returnType, isNull);
   }
 
+  test_dependencies_export_to_export_unused() {
+    // TODO(paulberry): fix this test.
+    addNamedSource('/a.dart', 'export "b.dart";');
+    addNamedSource('/b.dart', '');
+    serializeLibraryText('export "a.dart";');
+    // The main test library depends on b.dart, even though it doesn't
+    // re-export any names defined in b.dart, because a change to b.dart might
+    // cause it to start exporting a name that the main test library *does*
+    // use.
+    checkHasDependency(absUri('/b.dart'), 'b.dart');
+  }
+
+  test_dependencies_export_unused() {
+    // TODO(paulberry): fix this test.
+    addNamedSource('/a.dart', '');
+    serializeLibraryText('export "a.dart";');
+    // The main test library depends on a.dart, even though it doesn't
+    // re-export any names defined in a.dart, because a change to a.dart might
+    // cause it to start exporting a name that the main test library *will*
+    // re-export.
+    checkHasDependency(absUri('/a.dart'), 'a.dart');
+  }
+
   test_dependencies_import_to_export() {
     addNamedSource('/a.dart', 'library a; export "b.dart"; class A {}');
     addNamedSource('/b.dart', 'library b;');
@@ -1600,7 +1591,7 @@ class C {
     addNamedSource('/b.dart', 'part of a;');
     addNamedSource('/c.dart', 'part of a;');
     serializeLibraryText('import "a.dart"; A a;');
-    PrelinkedDependency dep = checkHasDependency(absUri('/a.dart'), 'a.dart');
+    LinkedDependency dep = checkHasDependency(absUri('/a.dart'), 'a.dart');
     checkDependencyParts(
         dep, [absUri('/b.dart'), absUri('/c.dart')], ['b.dart', 'c.dart']);
   }
@@ -1612,7 +1603,7 @@ class C {
     addNamedSource('/a/c/e/f.dart', 'part of d;');
     addNamedSource('/a/c/g/h.dart', 'part of d;');
     serializeLibraryText('import "a/b.dart"; D d;');
-    PrelinkedDependency dep =
+    LinkedDependency dep =
         checkHasDependency(absUri('/a/c/d.dart'), 'a/c/d.dart');
     checkDependencyParts(
         dep,
@@ -1651,7 +1642,7 @@ typedef F();
     expect(e.values[0].nameOffset, text.indexOf('v1'));
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
-        PrelinkedReferenceKind.classOrEnum);
+        ReferenceKind.classOrEnum);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'E');
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
@@ -1702,7 +1693,7 @@ enum E { v }''';
     expect(executable.nameOffset, text.indexOf('f'));
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
-        PrelinkedReferenceKind.topLevelFunction);
+        ReferenceKind.topLevelFunction);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'f');
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
@@ -1735,7 +1726,7 @@ enum E { v }''';
     expect(findExecutable('f='), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
-        PrelinkedReferenceKind.topLevelPropertyAccessor);
+        ReferenceKind.topLevelPropertyAccessor);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'f');
   }
 
@@ -2065,7 +2056,7 @@ enum E { v }''';
     expect(findExecutable('f'), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
-        PrelinkedReferenceKind.topLevelPropertyAccessor);
+        ReferenceKind.topLevelPropertyAccessor);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'f=');
   }
 
@@ -2155,60 +2146,60 @@ enum E { v }''';
   test_export_class() {
     addNamedSource('/a.dart', 'class C {}');
     serializeLibraryText('export "a.dart";');
-    expect(prelinked.exportNames, hasLength(1));
-    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'C',
-        PrelinkedReferenceKind.classOrEnum);
+    expect(linked.exportNames, hasLength(1));
+    checkExportName(linked.exportNames[0], absUri('/a.dart'), 'a.dart', 'C',
+        ReferenceKind.classOrEnum);
   }
 
   test_export_class_alias() {
     addNamedSource(
         '/a.dart', 'class C extends _D with _E {} class _D {} class _E {}');
     serializeLibraryText('export "a.dart";');
-    expect(prelinked.exportNames, hasLength(1));
-    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'C',
-        PrelinkedReferenceKind.classOrEnum);
+    expect(linked.exportNames, hasLength(1));
+    checkExportName(linked.exportNames[0], absUri('/a.dart'), 'a.dart', 'C',
+        ReferenceKind.classOrEnum);
   }
 
   test_export_enum() {
     addNamedSource('/a.dart', 'enum E { v }');
     serializeLibraryText('export "a.dart";');
-    expect(prelinked.exportNames, hasLength(1));
-    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'E',
-        PrelinkedReferenceKind.classOrEnum);
+    expect(linked.exportNames, hasLength(1));
+    checkExportName(linked.exportNames[0], absUri('/a.dart'), 'a.dart', 'E',
+        ReferenceKind.classOrEnum);
   }
 
   test_export_from_part() {
     addNamedSource('/a.dart', 'library foo; part "b.dart";');
     addNamedSource('/b.dart', 'part of foo; f() {}');
     serializeLibraryText('export "a.dart";');
-    expect(prelinked.exportNames, hasLength(1));
-    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
-        PrelinkedReferenceKind.topLevelFunction,
+    expect(linked.exportNames, hasLength(1));
+    checkExportName(linked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
+        ReferenceKind.topLevelFunction,
         expectedTargetUnit: 1);
   }
 
   test_export_function() {
     addNamedSource('/a.dart', 'f() {}');
     serializeLibraryText('export "a.dart";');
-    expect(prelinked.exportNames, hasLength(1));
-    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
-        PrelinkedReferenceKind.topLevelFunction);
+    expect(linked.exportNames, hasLength(1));
+    checkExportName(linked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
+        ReferenceKind.topLevelFunction);
   }
 
   test_export_getter() {
     addNamedSource('/a.dart', 'get f => null');
     serializeLibraryText('export "a.dart";');
-    expect(prelinked.exportNames, hasLength(1));
-    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
-        PrelinkedReferenceKind.topLevelPropertyAccessor);
+    expect(linked.exportNames, hasLength(1));
+    checkExportName(linked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
+        ReferenceKind.topLevelPropertyAccessor);
   }
 
   test_export_hide() {
     addNamedSource('/a.dart', 'f() {} g() {}');
     serializeLibraryText('export "a.dart" hide g;');
-    expect(prelinked.exportNames, hasLength(1));
-    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
-        PrelinkedReferenceKind.topLevelFunction);
+    expect(linked.exportNames, hasLength(1));
+    checkExportName(linked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
+        ReferenceKind.topLevelFunction);
   }
 
   test_export_hide_order() {
@@ -2224,13 +2215,13 @@ enum E { v }''';
         'Future');
     expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides[1],
         'Stream');
-    expect(prelinked.exportNames, isNotEmpty);
+    expect(linked.exportNames, isNotEmpty);
   }
 
   test_export_names_excludes_names_from_library() {
     addNamedSource('/a.dart', 'part of my.lib; int y; int _y;');
     serializeLibraryText('library my.lib; part "a.dart"; int x; int _x;');
-    expect(prelinked.exportNames, isEmpty);
+    expect(linked.exportNames, isEmpty);
   }
 
   test_export_no_combinators() {
@@ -2242,9 +2233,9 @@ enum E { v }''';
   test_export_not_shadowed_by_prefix() {
     addNamedSource('/a.dart', 'f() {}');
     serializeLibraryText('export "a.dart"; import "dart:core" as f; f.int _x;');
-    expect(prelinked.exportNames, hasLength(1));
-    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
-        PrelinkedReferenceKind.topLevelFunction);
+    expect(linked.exportNames, hasLength(1));
+    checkExportName(linked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
+        ReferenceKind.topLevelFunction);
   }
 
   test_export_offset() {
@@ -2260,15 +2251,15 @@ enum E { v }''';
     // Private names should not be exported.
     addNamedSource('/a.dart', '_f() {}');
     serializeLibraryText('export "a.dart";');
-    expect(prelinked.exportNames, isEmpty);
+    expect(linked.exportNames, isEmpty);
   }
 
   test_export_setter() {
     addNamedSource('/a.dart', 'void set f(value) {}');
     serializeLibraryText('export "a.dart";');
-    expect(prelinked.exportNames, hasLength(1));
-    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f=',
-        PrelinkedReferenceKind.topLevelPropertyAccessor);
+    expect(linked.exportNames, hasLength(1));
+    checkExportName(linked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f=',
+        ReferenceKind.topLevelPropertyAccessor);
   }
 
   test_export_shadowed() {
@@ -2276,7 +2267,7 @@ enum E { v }''';
     // level in the library.
     addNamedSource('/a.dart', 'f() {}');
     serializeLibraryText('export "a.dart"; f() {}');
-    expect(prelinked.exportNames, isEmpty);
+    expect(linked.exportNames, isEmpty);
   }
 
   test_export_shadowed_variable() {
@@ -2284,7 +2275,7 @@ enum E { v }''';
     // top level in the library by the declaration `var v;`.
     addNamedSource('/a.dart', 'var v;');
     serializeLibraryText('export "a.dart"; var v;');
-    expect(prelinked.exportNames, isEmpty);
+    expect(linked.exportNames, isEmpty);
   }
 
   test_export_shadowed_variable_const() {
@@ -2292,9 +2283,9 @@ enum E { v }''';
     // `const v = 0;` only shadows `v`, not `v=`.
     addNamedSource('/a.dart', 'var v;');
     serializeLibraryText('export "a.dart"; const v = 0;');
-    expect(prelinked.exportNames, hasLength(1));
-    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'v=',
-        PrelinkedReferenceKind.topLevelPropertyAccessor);
+    expect(linked.exportNames, hasLength(1));
+    checkExportName(linked.exportNames[0], absUri('/a.dart'), 'a.dart', 'v=',
+        ReferenceKind.topLevelPropertyAccessor);
   }
 
   test_export_shadowed_variable_final() {
@@ -2302,17 +2293,17 @@ enum E { v }''';
     // `final v = 0;` only shadows `v`, not `v=`.
     addNamedSource('/a.dart', 'var v;');
     serializeLibraryText('export "a.dart"; final v = 0;');
-    expect(prelinked.exportNames, hasLength(1));
-    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'v=',
-        PrelinkedReferenceKind.topLevelPropertyAccessor);
+    expect(linked.exportNames, hasLength(1));
+    checkExportName(linked.exportNames[0], absUri('/a.dart'), 'a.dart', 'v=',
+        ReferenceKind.topLevelPropertyAccessor);
   }
 
   test_export_show() {
     addNamedSource('/a.dart', 'f() {} g() {}');
     serializeLibraryText('export "a.dart" show f;');
-    expect(prelinked.exportNames, hasLength(1));
-    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
-        PrelinkedReferenceKind.topLevelFunction);
+    expect(linked.exportNames, hasLength(1));
+    checkExportName(linked.exportNames[0], absUri('/a.dart'), 'a.dart', 'f',
+        ReferenceKind.topLevelFunction);
   }
 
   test_export_show_order() {
@@ -2333,9 +2324,9 @@ enum E { v }''';
   test_export_typedef() {
     addNamedSource('/a.dart', 'typedef F();');
     serializeLibraryText('export "a.dart";');
-    expect(prelinked.exportNames, hasLength(1));
-    checkExportName(prelinked.exportNames[0], absUri('/a.dart'), 'a.dart', 'F',
-        PrelinkedReferenceKind.typedef);
+    expect(linked.exportNames, hasLength(1));
+    checkExportName(linked.exportNames[0], absUri('/a.dart'), 'a.dart', 'F',
+        ReferenceKind.typedef);
   }
 
   test_export_uri() {
@@ -2350,17 +2341,17 @@ enum E { v }''';
   test_export_variable() {
     addNamedSource('/a.dart', 'var v;');
     serializeLibraryText('export "a.dart";');
-    expect(prelinked.exportNames, hasLength(2));
-    PrelinkedExportName getter =
-        prelinked.exportNames.firstWhere((e) => e.name == 'v');
+    expect(linked.exportNames, hasLength(2));
+    LinkedExportName getter =
+        linked.exportNames.firstWhere((e) => e.name == 'v');
     expect(getter, isNotNull);
     checkExportName(getter, absUri('/a.dart'), 'a.dart', 'v',
-        PrelinkedReferenceKind.topLevelPropertyAccessor);
-    PrelinkedExportName setter =
-        prelinked.exportNames.firstWhere((e) => e.name == 'v=');
+        ReferenceKind.topLevelPropertyAccessor);
+    LinkedExportName setter =
+        linked.exportNames.firstWhere((e) => e.name == 'v=');
     expect(setter, isNotNull);
     checkExportName(setter, absUri('/a.dart'), 'a.dart', 'v=',
-        PrelinkedReferenceKind.topLevelPropertyAccessor);
+        ReferenceKind.topLevelPropertyAccessor);
   }
 
   test_field() {
@@ -2449,8 +2440,7 @@ get f => null;''';
     serializeLibraryText('import "dart:async"; Future x;');
     // Second import is the implicit import of dart:core
     expect(unlinkedUnits[0].imports, hasLength(2));
-    checkDependency(
-        prelinked.importDependencies[0], 'dart:async', 'dart:async');
+    checkDependency(linked.importDependencies[0], 'dart:async', 'dart:async');
   }
 
   test_import_explicit() {
@@ -2475,7 +2465,7 @@ get f => null;''';
     // The implicit import of dart:core is represented in the model.
     serializeLibraryText('');
     expect(unlinkedUnits[0].imports, hasLength(1));
-    checkDependency(prelinked.importDependencies[0], 'dart:core', 'dart:core');
+    checkDependency(linked.importDependencies[0], 'dart:core', 'dart:core');
     expect(unlinkedUnits[0].imports[0].uri, isEmpty);
     expect(unlinkedUnits[0].imports[0].uriOffset, 0);
     expect(unlinkedUnits[0].imports[0].uriEnd, 0);
@@ -2740,7 +2730,7 @@ class C {
 
   test_parts_defining_compilation_unit() {
     serializeLibraryText('');
-    expect(prelinked.units, hasLength(1));
+    expect(linked.units, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.parts, isEmpty);
   }
 
@@ -2749,7 +2739,7 @@ class C {
     String partString = '"part1.dart"';
     String libraryText = 'library my.lib; part $partString;';
     serializeLibraryText(libraryText);
-    expect(prelinked.units, hasLength(2));
+    expect(linked.units, hasLength(2));
     expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.parts[0], 'part1.dart');
   }
@@ -2794,7 +2784,7 @@ void set f(value) {}''';
         serializeTypeText('F<dynamic>', otherDeclarations: 'typedef T F<T>();');
     checkTypeRef(typeRef, null, null, 'F',
         allowTypeParameters: true,
-        expectedKind: PrelinkedReferenceKind.typedef,
+        expectedKind: ReferenceKind.typedef,
         numTypeParameters: 1);
     expect(typeRef.typeArguments, isEmpty);
   }
@@ -2804,7 +2794,7 @@ void set f(value) {}''';
         serializeTypeText('F<int>', otherDeclarations: 'typedef T F<T>();');
     checkTypeRef(typeRef, null, null, 'F',
         allowTypeParameters: true,
-        expectedKind: PrelinkedReferenceKind.typedef,
+        expectedKind: ReferenceKind.typedef,
         numTypeParameters: 1);
     expect(typeRef.typeArguments, hasLength(1));
     checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'int');
@@ -2822,7 +2812,7 @@ void set f(value) {}''';
         serializeTypeText('F', otherDeclarations: 'typedef T F<T>();');
     checkTypeRef(typeRef, null, null, 'F',
         allowTypeParameters: true,
-        expectedKind: PrelinkedReferenceKind.typedef,
+        expectedKind: ReferenceKind.typedef,
         numTypeParameters: 1);
     expect(typeRef.typeArguments, isEmpty);
   }
@@ -2845,8 +2835,8 @@ void set f(value) {}''';
     serializeLibraryText('library foo; part "a.dart"; class C {}');
     checkTypeRef(findVariable('v', variables: unlinkedUnits[1].variables).type,
         null, null, 'C',
-        expectedKind: PrelinkedReferenceKind.classOrEnum,
-        prelinkedSourceUnit: prelinked.units[1],
+        expectedKind: ReferenceKind.classOrEnum,
+        linkedSourceUnit: linked.units[1],
         unlinkedSourceUnit: unlinkedUnits[1]);
   }
 
@@ -2859,7 +2849,7 @@ void set f(value) {}''';
     checkTypeRef(findVariable('v', variables: unlinkedUnits[1].variables).type,
         absUri('/a.dart'), 'a.dart', 'C',
         expectedPrefix: 'a',
-        prelinkedSourceUnit: prelinked.units[1],
+        linkedSourceUnit: linked.units[1],
         unlinkedSourceUnit: unlinkedUnits[1]);
   }
 
@@ -2954,14 +2944,13 @@ void set f(value) {}''';
     addNamedSource('/a.dart', 'part of foo; class C { C(); }');
     serializeLibraryText('library foo; part "a.dart"; C c;');
     checkTypeRef(unlinkedUnits[0].variables.single.type, null, null, 'C',
-        expectedKind: PrelinkedReferenceKind.classOrEnum,
-        expectedTargetUnit: 1);
+        expectedKind: ReferenceKind.classOrEnum, expectedTargetUnit: 1);
   }
 
   test_type_reference_to_typedef() {
     checkTypeRef(serializeTypeText('F', otherDeclarations: 'typedef void F();'),
         null, null, 'F',
-        expectedKind: PrelinkedReferenceKind.typedef);
+        expectedKind: ReferenceKind.typedef);
   }
 
   test_type_unit_counts_unreferenced_units() {
@@ -3000,8 +2989,8 @@ typedef F();''';
     expect(type.name, 'F');
     expect(type.nameOffset, text.indexOf('F'));
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
-    expect(unlinkedUnits[0].publicNamespace.names[0].kind,
-        PrelinkedReferenceKind.typedef);
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].kind, ReferenceKind.typedef);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'F');
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
@@ -3027,7 +3016,7 @@ typedef F();''';
     UnlinkedTypeRef typeRef =
         serializeTypeText('F', otherDeclarations: 'typedef void F<A, B>();');
     checkTypeRef(typeRef, null, null, 'F',
-        numTypeParameters: 2, expectedKind: PrelinkedReferenceKind.typedef);
+        numTypeParameters: 2, expectedKind: ReferenceKind.typedef);
   }
 
   test_typedef_reference_generic_imported() {
@@ -3035,7 +3024,7 @@ typedef F();''';
     UnlinkedTypeRef typeRef =
         serializeTypeText('F', otherDeclarations: 'import "lib.dart";');
     checkTypeRef(typeRef, absUri('/lib.dart'), 'lib.dart', 'F',
-        numTypeParameters: 2, expectedKind: PrelinkedReferenceKind.typedef);
+        numTypeParameters: 2, expectedKind: ReferenceKind.typedef);
   }
 
   test_typedef_return_type_explicit() {
@@ -3074,11 +3063,11 @@ typedef F();''';
     expect(findExecutable('i='), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(2));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
-        PrelinkedReferenceKind.topLevelPropertyAccessor);
+        ReferenceKind.topLevelPropertyAccessor);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'i');
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
     expect(unlinkedUnits[0].publicNamespace.names[1].kind,
-        PrelinkedReferenceKind.topLevelPropertyAccessor);
+        ReferenceKind.topLevelPropertyAccessor);
     expect(unlinkedUnits[0].publicNamespace.names[1].name, 'i=');
     expect(unlinkedUnits[0].publicNamespace.names[1].numTypeParameters, 0);
   }

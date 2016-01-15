@@ -17,19 +17,22 @@
  *   the first value declared in the enum.
  *
  * Terminology used in this document:
- * - "Unlinked" refers to information that can be determined from reading the
- *   .dart file for the library itself (including all parts) and no other
- *   files.
- * - "Prelinked" refers to information that can be determined from reading the
- *   unlinked information for the library itself and the unlinked information
- *   for all direct imports (plus the transitive closure of exports reachable
- *   from those direct imports).
- * - "Linked" refers to information that can be determined only from reading
- *   the unlinked and prelinked information for the library itself and the
- *   transitive closure of its imports.
+ * - "Unlinked" refers to information that can be determined from reading a
+ *   single .dart file in isolation.
+ * - "Prelinked" refers to information that can be determined from the defining
+ *   compilation unit of a library, plus direct imports, plus the transitive
+ *   closure of exports reachable from those libraries, plus all part files
+ *   constituting those libraries.
+ * - "Linked" refers to all other information; in theory, this information may
+ *   depend on all files in the transitive import/export closure.  However, in
+ *   practice we expect that the number of additional dependencies will usually
+ *   be small, since the additional dependencies only need to be consulted for
+ *   type propagation, type inference, and constant evaluation, which typically
+ *   have short dependency chains.
  *
- * TODO(paulberry): currently the summary format only contains unlinked and
- * prelinked information.
+ * Since we expect "linked" and "prelinked" dependencies to be similar, we only
+ * rarely distinguish between them; most information is that is not "unlinked"
+ * is typically considered "linked" for simplicity.
  *
  * Except as otherwise noted, synthetic elements are not stored in the summary;
  * they are re-synthesized at the time the summary is read.
@@ -66,7 +69,7 @@ const topLevel = null;
  * Information about a dependency that exists between one library and another
  * due to an "import" declaration.
  */
-class PrelinkedDependency {
+class LinkedDependency {
   /**
    * The relative URI of the dependent library.  This URI is relative to the
    * importing library, even if there are intervening `export` declarations.
@@ -87,7 +90,7 @@ class PrelinkedDependency {
  * Information about a single name in the export namespace of the library that
  * is not in the public namespace.
  */
-class PrelinkedExportName {
+class LinkedExportName {
   /**
    * Name of the exported entity.  TODO(paulberry): do we include the trailing
    * '=' for a setter?
@@ -95,14 +98,14 @@ class PrelinkedExportName {
   String name;
 
   /**
-   * Index into [PrelinkedLibrary.dependencies] for the library in which the
+   * Index into [LinkedLibrary.dependencies] for the library in which the
    * entity is defined.
    */
   int dependency;
 
   /**
    * Integer index indicating which unit in the exported library contains the
-   * definition of the entity.  As with indices into [PrelinkedLibrary.units],
+   * definition of the entity.  As with indices into [LinkedLibrary.units],
    * zero represents the defining compilation unit, and nonzero values
    * represent parts in the order of the corresponding `part` declarations.
    */
@@ -111,21 +114,21 @@ class PrelinkedExportName {
   /**
    * The kind of the entity being referred to.
    */
-  PrelinkedReferenceKind kind;
+  ReferenceKind kind;
 }
 
 /**
- * Pre-linked summary of a library.
+ * Linked summary of a library.
  */
 @topLevel
-class PrelinkedLibrary {
+class LinkedLibrary {
   /**
-   * The pre-linked summary of all the compilation units constituting the
+   * The linked summary of all the compilation units constituting the
    * library.  The summary of the defining compilation unit is listed first,
    * followed by the summary of each part, in the order of the `part`
    * declarations in the defining compilation unit.
    */
-  List<PrelinkedUnit> units;
+  List<LinkedUnit> units;
 
   /**
    * The libraries that this library depends on (either via an explicit import
@@ -136,7 +139,7 @@ class PrelinkedLibrary {
    * TODO(paulberry): consider removing this entirely and just using
    * [UnlinkedLibrary.imports].
    */
-  List<PrelinkedDependency> dependencies;
+  List<LinkedDependency> dependencies;
 
   /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
@@ -154,28 +157,28 @@ class PrelinkedLibrary {
    *
    * Sorted by name.
    */
-  List<PrelinkedExportName> exportNames;
+  List<LinkedExportName> exportNames;
 }
 
 /**
  * Information about the resolution of an [UnlinkedReference].
  */
-class PrelinkedReference {
+class LinkedReference {
   /**
-   * Index into [PrelinkedLibrary.dependencies] indicating which imported library
+   * Index into [LinkedLibrary.dependencies] indicating which imported library
    * declares the entity being referred to.
    */
   int dependency;
 
   /**
    * The kind of the entity being referred to.  For the pseudo-type `dynamic`,
-   * the kind is [PrelinkedReferenceKind.classOrEnum].
+   * the kind is [ReferenceKind.classOrEnum].
    */
-  PrelinkedReferenceKind kind;
+  ReferenceKind kind;
 
   /**
    * Integer index indicating which unit in the imported library contains the
-   * definition of the entity.  As with indices into [PrelinkedLibrary.units],
+   * definition of the entity.  As with indices into [LinkedLibrary.units],
    * zero represents the defining compilation unit, and nonzero values
    * represent parts in the order of the corresponding `part` declarations.
    */
@@ -189,10 +192,21 @@ class PrelinkedReference {
 }
 
 /**
- * Enum used to indicate the kind of entity referred to by a
- * [PrelinkedReference].
+ * Linked summary of a compilation unit.
  */
-enum PrelinkedReferenceKind {
+class LinkedUnit {
+  /**
+   * For each reference in [UnlinkedUnit.references], information about how
+   * that reference is resolved.
+   */
+  List<LinkedReference> references;
+}
+
+/**
+ * Enum used to indicate the kind of entity referred to by a
+ * [LinkedReference].
+ */
+enum ReferenceKind {
   /**
    * The entity is a class or enum.
    */
@@ -225,30 +239,19 @@ enum PrelinkedReferenceKind {
 }
 
 /**
- * Pre-linked summary of a compilation unit.
- */
-class PrelinkedUnit {
-  /**
-   * For each reference in [UnlinkedUnit.references], information about how
-   * that reference is resolved.
-   */
-  List<PrelinkedReference> references;
-}
-
-/**
  * Information about SDK.
  */
 @topLevel
 class SdkBundle {
   /**
-   * The list of URIs of items in [prelinkedLibraries], e.g. `dart:core`.
+   * The list of URIs of items in [linkedLibraries], e.g. `dart:core`.
    */
-  List<String> prelinkedLibraryUris;
+  List<String> linkedLibraryUris;
 
   /**
-   * Pre-linked libraries.
+   * Linked libraries.
    */
-  List<PrelinkedLibrary> prelinkedLibraries;
+  List<LinkedLibrary> linkedLibraries;
 
   /**
    * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
@@ -756,7 +759,7 @@ class UnlinkedPublicName {
   /**
    * The kind of object referred to by the name.
    */
-  PrelinkedReferenceKind kind;
+  ReferenceKind kind;
 
   /**
    * If the entity being referred to is generic, the number of type parameters

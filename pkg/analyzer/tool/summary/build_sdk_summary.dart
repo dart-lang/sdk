@@ -45,9 +45,8 @@ main(List<String> args) {
   //
   // Serialize each SDK library.
   //
-  List<String> prelinkedLibraryUris = <String>[];
-  List<PrelinkedLibraryBuilder> prelinkedLibraries =
-      <PrelinkedLibraryBuilder>[];
+  List<String> linkedLibraryUris = <String>[];
+  List<LinkedLibraryBuilder> linkedLibraries = <LinkedLibraryBuilder>[];
   List<String> unlinkedUnitUris = <String>[];
   List<UnlinkedUnitBuilder> unlinkedUnits = <UnlinkedUnitBuilder>[];
   for (SdkLibrary lib in sdk.sdkLibraries) {
@@ -57,8 +56,8 @@ main(List<String> args) {
         context.computeLibraryElement(librarySource);
     LibrarySerializationResult libraryResult =
         serializeLibrary(libraryElement, context.typeProvider);
-    prelinkedLibraryUris.add(lib.shortName);
-    prelinkedLibraries.add(libraryResult.prelinked);
+    linkedLibraryUris.add(lib.shortName);
+    linkedLibraries.add(libraryResult.linked);
     unlinkedUnitUris.addAll(libraryResult.unitUris);
     unlinkedUnits.addAll(libraryResult.unlinkedUnits);
   }
@@ -66,8 +65,8 @@ main(List<String> args) {
   // Write the whole SDK bundle.
   //
   SdkBundleBuilder sdkBundle = new SdkBundleBuilder(
-      prelinkedLibraryUris: prelinkedLibraryUris,
-      prelinkedLibraries: prelinkedLibraries,
+      linkedLibraryUris: linkedLibraryUris,
+      linkedLibraries: linkedLibraries,
       unlinkedUnitUris: unlinkedUnitUris,
       unlinkedUnits: unlinkedUnits);
   File file = new File(outputFilePath);

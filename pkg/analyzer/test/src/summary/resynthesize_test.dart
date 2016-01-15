@@ -582,26 +582,27 @@ class C {
   LibraryElementImpl resynthesizeLibraryElement(
       String uri, LibraryElementImpl original) {
     Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
-    PrelinkedLibrary getPrelinkedSummaryFor(LibraryElement lib) {
+    LinkedLibrary getLinkedSummaryFor(LibraryElement lib) {
       LibrarySerializationResult serialized =
           serializeLibrary(lib, typeProvider);
       for (int i = 0; i < serialized.unlinkedUnits.length; i++) {
         unlinkedSummaries[serialized.unitUris[i]] =
             new UnlinkedUnit.fromBuffer(serialized.unlinkedUnits[i].toBuffer());
       }
-      return new PrelinkedLibrary.fromBuffer(serialized.prelinked.toBuffer());
+      return new LinkedLibrary.fromBuffer(serialized.linked.toBuffer());
     }
-    Map<String, PrelinkedLibrary> prelinkedSummaries =
-        <String, PrelinkedLibrary>{uri: getPrelinkedSummaryFor(original)};
+    Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{
+      uri: getLinkedSummaryFor(original)
+    };
     for (Source source in otherLibrarySources) {
       LibraryElement original = resolve2(source);
       String uri = source.uri.toString();
-      prelinkedSummaries[uri] = getPrelinkedSummaryFor(original);
+      linkedSummaries[uri] = getLinkedSummaryFor(original);
     }
-    PrelinkedLibrary getPrelinkedSummary(String uri) {
-      PrelinkedLibrary serializedLibrary = prelinkedSummaries[uri];
+    LinkedLibrary getLinkedSummary(String uri) {
+      LinkedLibrary serializedLibrary = linkedSummaries[uri];
       if (serializedLibrary == null) {
-        fail('Unexpectedly tried to get prelinked summary for $uri');
+        fail('Unexpectedly tried to get linked summary for $uri');
       }
       return serializedLibrary;
     }
@@ -617,7 +618,7 @@ class C {
         analysisContext,
         analysisContext.typeProvider,
         (_) => true,
-        getPrelinkedSummary,
+        getLinkedSummary,
         getUnlinkedSummary,
         analysisContext.sourceFactory);
     LibraryElementImpl resynthesized = resynthesizer.getLibraryElement(uri);

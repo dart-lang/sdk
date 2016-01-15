@@ -15,10 +15,10 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/format.dart';
 
 /**
- * Callback used by [SummaryResynthesizer] to obtain the prelinked summary for
+ * Callback used by [SummaryResynthesizer] to obtain the linked summary for
  * a given URI.
  */
-typedef PrelinkedLibrary GetPrelinkedSummaryCallback(String uri);
+typedef LinkedLibrary GetLinkedSummaryCallback(String uri);
 
 /**
  * Callback used by [SummaryResynthesizer] to obtain the unlinked summary for a
@@ -49,9 +49,9 @@ class SummaryResynthesizer extends ElementResynthesizer {
   final HasLibrarySummaryCallback hasLibrarySummary;
 
   /**
-   * Callback used to obtain the prelinked summary for a given URI.
+   * Callback used to obtain the linked summary for a given URI.
    */
-  final GetPrelinkedSummaryCallback getPrelinkedSummary;
+  final GetLinkedSummaryCallback getLinkedSummary;
 
   /**
    * Callback used to obtain the unlinked summary for a given URI.
@@ -94,7 +94,7 @@ class SummaryResynthesizer extends ElementResynthesizer {
       AnalysisContext context,
       this.typeProvider,
       this.hasLibrarySummary,
-      this.getPrelinkedSummary,
+      this.getLinkedSummary,
       this.getUnlinkedSummary,
       this.sourceFactory)
       : super(context);
@@ -147,7 +147,7 @@ class SummaryResynthesizer extends ElementResynthesizer {
       return parent.getLibraryElement(uri);
     }
     return _resynthesizedLibraries.putIfAbsent(uri, () {
-      PrelinkedLibrary serializedLibrary = getPrelinkedSummary(uri);
+      LinkedLibrary serializedLibrary = getLinkedSummary(uri);
       List<UnlinkedUnit> serializedUnits = <UnlinkedUnit>[
         getUnlinkedSummary(uri)
       ];
@@ -184,9 +184,9 @@ class _LibraryResynthesizer {
   final SummaryResynthesizer summaryResynthesizer;
 
   /**
-   * Prelinked summary of the library to be resynthesized.
+   * Linked summary of the library to be resynthesized.
    */
-  final PrelinkedLibrary prelinkedLibrary;
+  final LinkedLibrary linkedLibrary;
 
   /**
    * Unlinked compilation units constituting the library to be resynthesized.
@@ -217,9 +217,9 @@ class _LibraryResynthesizer {
   ElementHolder unitHolder;
 
   /**
-   * The [PrelinkedUnit] from which elements are currently being resynthesized.
+   * The [LinkedUnit] from which elements are currently being resynthesized.
    */
-  PrelinkedUnit prelinkedUnit;
+  LinkedUnit linkedUnit;
 
   /**
    * The [UnlinkedUnit] from which elements are currently being resynthesized.
@@ -245,7 +245,7 @@ class _LibraryResynthesizer {
    */
   List<TypeParameterElement> currentTypeParameters = <TypeParameterElement>[];
 
-  _LibraryResynthesizer(this.summaryResynthesizer, this.prelinkedLibrary,
+  _LibraryResynthesizer(this.summaryResynthesizer, this.linkedLibrary,
       this.unlinkedUnits, this.librarySource) {
     isCoreLibrary = librarySource.uri.toString() == 'dart:core';
   }
@@ -561,29 +561,29 @@ class _LibraryResynthesizer {
    * Build an [ElementHandle] referring to the entity referred to by the given
    * [exportName].
    */
-  ElementHandle buildExportName(PrelinkedExportName exportName) {
+  ElementHandle buildExportName(LinkedExportName exportName) {
     String name = exportName.name;
-    if (exportName.kind == PrelinkedReferenceKind.topLevelPropertyAccessor &&
+    if (exportName.kind == ReferenceKind.topLevelPropertyAccessor &&
         !name.endsWith('=')) {
       name += '?';
     }
     ElementLocationImpl location = getReferencedLocation(
-        prelinkedLibrary.dependencies[exportName.dependency],
+        linkedLibrary.dependencies[exportName.dependency],
         exportName.unit,
         name);
     switch (exportName.kind) {
-      case PrelinkedReferenceKind.classOrEnum:
+      case ReferenceKind.classOrEnum:
         return new ClassElementHandle(summaryResynthesizer, location);
-      case PrelinkedReferenceKind.typedef:
+      case ReferenceKind.typedef:
         return new FunctionTypeAliasElementHandle(
             summaryResynthesizer, location);
-      case PrelinkedReferenceKind.topLevelFunction:
+      case ReferenceKind.topLevelFunction:
         return new FunctionElementHandle(summaryResynthesizer, location);
-      case PrelinkedReferenceKind.topLevelPropertyAccessor:
+      case ReferenceKind.topLevelPropertyAccessor:
         return new PropertyAccessorElementHandle(
             summaryResynthesizer, location);
-      case PrelinkedReferenceKind.prefix:
-      case PrelinkedReferenceKind.unresolved:
+      case ReferenceKind.prefix:
+      case ReferenceKind.unresolved:
         // Should never happen.  Exported names never refer to import prefixes,
         // and they always refer to defined entities.
         throw new StateError('Unexpected export name kind: ${exportName.kind}');
@@ -595,14 +595,14 @@ class _LibraryResynthesizer {
    * [publicNamespace] and [exportNames].
    */
   Namespace buildExportNamespace(
-      Namespace publicNamespace, List<PrelinkedExportName> exportNames) {
+      Namespace publicNamespace, List<LinkedExportName> exportNames) {
     HashMap<String, Element> definedNames = new HashMap<String, Element>();
     // Start by populating all the public names from [publicNamespace].
     publicNamespace.definedNames.forEach((String name, Element element) {
       definedNames[name] = element;
     });
     // Add all the names from [exportNames].
-    for (PrelinkedExportName exportName in exportNames) {
+    for (LinkedExportName exportName in exportNames) {
       definedNames.putIfAbsent(
           exportName.name, () => buildExportName(exportName));
     }
@@ -710,8 +710,7 @@ class _LibraryResynthesizer {
     ImportElementImpl importElement =
         new ImportElementImpl(isSynthetic ? -1 : serializedImport.offset);
     String absoluteUri = summaryResynthesizer.sourceFactory
-        .resolveUri(
-            librarySource, prelinkedLibrary.dependencies[dependency].uri)
+        .resolveUri(librarySource, linkedLibrary.dependencies[dependency].uri)
         .uri
         .toString();
     importElement.importedLibrary = new LibraryElementHandle(
@@ -757,8 +756,8 @@ class _LibraryResynthesizer {
     List<CompilationUnitElement> parts = <CompilationUnitElement>[];
     UnlinkedUnit unlinkedDefiningUnit = unlinkedUnits[0];
     assert(unlinkedDefiningUnit.publicNamespace.parts.length + 1 ==
-        prelinkedLibrary.units.length);
-    for (int i = 1; i < prelinkedLibrary.units.length; i++) {
+        linkedLibrary.units.length);
+    for (int i = 1; i < linkedLibrary.units.length; i++) {
       CompilationUnitElementImpl part = buildPart(
           unlinkedDefiningUnit.publicNamespace.parts[i - 1],
           unlinkedDefiningUnit.parts[i - 1],
@@ -769,7 +768,7 @@ class _LibraryResynthesizer {
     List<ImportElement> imports = <ImportElement>[];
     for (int i = 0; i < unlinkedDefiningUnit.imports.length; i++) {
       imports.add(buildImport(unlinkedDefiningUnit.imports[i],
-          prelinkedLibrary.importDependencies[i]));
+          linkedLibrary.importDependencies[i]));
     }
     libraryElement.imports = imports;
     List<ExportElement> exports = <ExportElement>[];
@@ -797,7 +796,7 @@ class _LibraryResynthesizer {
     libraryElement.publicNamespace =
         new NamespaceBuilder().createPublicNamespaceForLibrary(libraryElement);
     libraryElement.exportNamespace = buildExportNamespace(
-        libraryElement.publicNamespace, prelinkedLibrary.exportNames);
+        libraryElement.publicNamespace, linkedLibrary.exportNames);
     // Find the entry point.  Note: we can't use element.isEntryPoint because
     // that will trigger resynthesis of exported libraries.
     Element entryPoint =
@@ -887,16 +886,15 @@ class _LibraryResynthesizer {
       // TODO(paulberry): test reference to something inside a part of the
       // current lib.
       UnlinkedReference reference = unlinkedUnit.references[type.reference];
-      PrelinkedReference referenceResolution =
-          prelinkedUnit.references[type.reference];
+      LinkedReference referenceResolution =
+          linkedUnit.references[type.reference];
       ElementLocationImpl location;
       if (referenceResolution.dependency != 0) {
         location = getReferencedLocation(
-            prelinkedLibrary.dependencies[referenceResolution.dependency],
+            linkedLibrary.dependencies[referenceResolution.dependency],
             referenceResolution.unit,
             reference.name);
-      } else if (referenceResolution.kind ==
-          PrelinkedReferenceKind.unresolved) {
+      } else if (referenceResolution.kind == ReferenceKind.unresolved) {
         return summaryResynthesizer.typeProvider.undefinedType;
       } else if (reference.name.isEmpty) {
         return summaryResynthesizer.typeProvider.dynamicType;
@@ -927,12 +925,12 @@ class _LibraryResynthesizer {
         }
       }
       switch (referenceResolution.kind) {
-        case PrelinkedReferenceKind.classOrEnum:
+        case ReferenceKind.classOrEnum:
           return new InterfaceTypeImpl.elementWithNameAndArgs(
               new ClassElementHandle(summaryResynthesizer, location),
               reference.name,
               typeArguments);
-        case PrelinkedReferenceKind.typedef:
+        case ReferenceKind.typedef:
           return new FunctionTypeImpl.elementWithNameAndArgs(
               new FunctionTypeAliasElementHandle(
                   summaryResynthesizer, location),
@@ -1046,7 +1044,7 @@ class _LibraryResynthesizer {
    * given [dependency], having the given [name].
    */
   ElementLocationImpl getReferencedLocation(
-      PrelinkedDependency dependency, int unit, String name) {
+      LinkedDependency dependency, int unit, String name) {
     Source referencedLibrarySource = summaryResynthesizer.sourceFactory
         .resolveUri(librarySource, dependency.uri);
     String referencedLibraryUri = referencedLibrarySource.uri.toString();
@@ -1074,7 +1072,7 @@ class _LibraryResynthesizer {
    * contained in it.
    */
   void populateUnit(CompilationUnitElementImpl unit, int unitNum) {
-    prelinkedUnit = prelinkedLibrary.units[unitNum];
+    linkedUnit = linkedLibrary.units[unitNum];
     unlinkedUnit = unlinkedUnits[unitNum];
     unitHolder = new ElementHolder();
     unlinkedUnit.classes.forEach(buildClass);
@@ -1113,7 +1111,7 @@ class _LibraryResynthesizer {
     }
     resummarizedElements[absoluteUri] = elementMap;
     unitHolder = null;
-    prelinkedUnit = null;
+    linkedUnit = null;
     unlinkedUnit = null;
   }
 }

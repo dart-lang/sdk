@@ -51,7 +51,7 @@ class SummarySdkAnalysisContext extends SdkAnalysisContext {
           this,
           typeProvider,
           (String uri) => uri.startsWith('dart:'),
-          _getPrelinkedSummary,
+          _getLinkedSummary,
           _getUnlinkedSummary,
           sourceFactory);
       _buildCoreLibrary();
@@ -86,7 +86,7 @@ class SummarySdkAnalysisContext extends SdkAnalysisContext {
         return true;
       } else if (result == SOURCE_KIND) {
         String uri = target.uri.toString();
-        if (bundle.prelinkedLibraryUris.contains(uri)) {
+        if (bundle.linkedLibraryUris.contains(uri)) {
           entry.setValue(result, SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
           return true;
         }
@@ -112,13 +112,13 @@ class SummarySdkAnalysisContext extends SdkAnalysisContext {
     typeProvider.initializeCore(library);
   }
 
-  PrelinkedLibrary _getPrelinkedSummary(String uri) {
-    for (int i = 0; i < bundle.prelinkedLibraryUris.length; i++) {
-      if (bundle.prelinkedLibraryUris[i] == uri) {
-        return bundle.prelinkedLibraries[i];
+  LinkedLibrary _getLinkedSummary(String uri) {
+    for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
+      if (bundle.linkedLibraryUris[i] == uri) {
+        return bundle.linkedLibraries[i];
       }
     }
-    throw new StateError('Unable to find prelinked summary for $uri');
+    throw new StateError('Unable to find linked summary for $uri');
   }
 
   UnlinkedUnit _getUnlinkedSummary(String uri) {

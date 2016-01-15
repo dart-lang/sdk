@@ -48,11 +48,11 @@ class SummarySdkAnalysisContextTest {
       return;
     }
     // verify that there are at least some interesting libraries in the bundle
-    expect(sdkBundle.prelinkedLibraryUris, contains('dart:core'));
-    expect(sdkBundle.prelinkedLibraryUris, contains('dart:async'));
-    expect(sdkBundle.prelinkedLibraryUris, contains('dart:html'));
+    expect(sdkBundle.linkedLibraryUris, contains('dart:core'));
+    expect(sdkBundle.linkedLibraryUris, contains('dart:async'));
+    expect(sdkBundle.linkedLibraryUris, contains('dart:html'));
     // verify every library
-    for (String uri in sdkBundle.prelinkedLibraryUris) {
+    for (String uri in sdkBundle.linkedLibraryUris) {
       // TODO(scheglov) breaks at _LibraryResynthesizer.buildImplicitTopLevelVariable
       if (uri == 'dart:io' || uri == 'dart:_isolate_helper') {
         continue;

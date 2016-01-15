@@ -19,9 +19,9 @@ import 'package:analyzer/src/summary/name_filter.dart';
 LibrarySerializationResult serializeLibrary(
     LibraryElement lib, TypeProvider typeProvider) {
   var serializer = new _LibrarySerializer(lib, typeProvider);
-  PrelinkedLibraryBuilder prelinked = serializer.serializeLibrary();
+  LinkedLibraryBuilder linked = serializer.serializeLibrary();
   return new LibrarySerializationResult(
-      prelinked, serializer.unlinkedUnits, serializer.unitUris);
+      linked, serializer.unlinkedUnits, serializer.unitUris);
 }
 
 /**
@@ -29,9 +29,9 @@ LibrarySerializationResult serializeLibrary(
  */
 class LibrarySerializationResult {
   /**
-   * Pre-linked information the given library.
+   * Linked information the given library.
    */
-  final PrelinkedLibraryBuilder prelinked;
+  final LinkedLibraryBuilder linked;
 
   /**
    * Unlinked information for the compilation units constituting the library.
@@ -46,7 +46,7 @@ class LibrarySerializationResult {
    */
   final List<String> unitUris;
 
-  LibrarySerializationResult(this.prelinked, this.unlinkedUnits, this.unitUris);
+  LibrarySerializationResult(this.linked, this.unlinkedUnits, this.unitUris);
 }
 
 /**
@@ -65,13 +65,13 @@ class _LibrarySerializer {
   final TypeProvider typeProvider;
 
   /**
-   * List of objects which should be written to [PrelinkedLibrary.units].
+   * List of objects which should be written to [LinkedLibrary.units].
    */
-  final List<PrelinkedUnitBuilder> prelinkedUnits = <PrelinkedUnitBuilder>[];
+  final List<LinkedUnitBuilder> linkedUnits = <LinkedUnitBuilder>[];
 
   /**
-   * List of unlinked units corresponding to the pre-linked units in
-   * [prelinkedUnits],
+   * List of unlinked units corresponding to the linked units in
+   * [linkedUnits],
    */
   final List<UnlinkedUnitBuilder> unlinkedUnits = <UnlinkedUnitBuilder>[];
 
@@ -88,16 +88,16 @@ class _LibrarySerializer {
 
   /**
    * The "dependency table".  This is the list of objects which should be
-   * written to [PrelinkedLibrary.dependencies].
+   * written to [LinkedLibrary.dependencies].
    */
-  final List<PrelinkedDependencyBuilder> dependencies =
-      <PrelinkedDependencyBuilder>[];
+  final List<LinkedDependencyBuilder> dependencies =
+      <LinkedDependencyBuilder>[];
 
   /**
-   * The prelinked portion of the "imports table".  This is the list of ints
-   * which should be written to [PrelinkedLibrary.imports].
+   * The linked portion of the "imports table".  This is the list of ints
+   * which should be written to [LinkedLibrary.imports].
    */
-  final List<int> prelinkedImports = <int>[];
+  final List<int> linkedImports = <int>[];
 
   /**
    * Map from [Element] to the index of the entry in the "references table"
@@ -112,10 +112,10 @@ class _LibrarySerializer {
   List<UnlinkedReferenceBuilder> unlinkedReferences;
 
   /**
-   * The prelinked portion of the "references table".  This is the list of
-   * objects which should be written to [PrelinkedUnit.references].
+   * The linked portion of the "references table".  This is the list of
+   * objects which should be written to [LinkedUnit.references].
    */
-  List<PrelinkedReferenceBuilder> prelinkedReferences;
+  List<LinkedReferenceBuilder> linkedReferences;
 
   //final Map<String, int> prefixIndices = <String, int>{};
 
@@ -140,7 +140,7 @@ class _LibrarySerializer {
   final Map<Element, PrefixElement> prefixMap = <Element, PrefixElement>{};
 
   _LibrarySerializer(this.libraryElement, this.typeProvider) {
-    dependencies.add(new PrelinkedDependencyBuilder());
+    dependencies.add(new LinkedDependencyBuilder());
     dependencyMap[libraryElement] = 0;
   }
 
@@ -161,14 +161,14 @@ class _LibrarySerializer {
     unlinkedReferences = <UnlinkedReferenceBuilder>[
       new UnlinkedReferenceBuilder()
     ];
-    prelinkedReferences = <PrelinkedReferenceBuilder>[
-      new PrelinkedReferenceBuilder(kind: PrelinkedReferenceKind.classOrEnum)
+    linkedReferences = <LinkedReferenceBuilder>[
+      new LinkedReferenceBuilder(kind: ReferenceKind.classOrEnum)
     ];
     List<UnlinkedPublicNameBuilder> names = <UnlinkedPublicNameBuilder>[];
     for (PropertyAccessorElement accessor in element.accessors) {
       if (accessor.isPublic) {
         names.add(new UnlinkedPublicNameBuilder(
-            kind: PrelinkedReferenceKind.topLevelPropertyAccessor,
+            kind: ReferenceKind.topLevelPropertyAccessor,
             name: accessor.name,
             numTypeParameters: accessor.typeParameters.length));
       }
@@ -176,7 +176,7 @@ class _LibrarySerializer {
     for (ClassElement cls in element.types) {
       if (cls.isPublic) {
         names.add(new UnlinkedPublicNameBuilder(
-            kind: PrelinkedReferenceKind.classOrEnum,
+            kind: ReferenceKind.classOrEnum,
             name: cls.name,
             numTypeParameters: cls.typeParameters.length));
       }
@@ -184,13 +184,13 @@ class _LibrarySerializer {
     for (ClassElement enm in element.enums) {
       if (enm.isPublic) {
         names.add(new UnlinkedPublicNameBuilder(
-            kind: PrelinkedReferenceKind.classOrEnum, name: enm.name));
+            kind: ReferenceKind.classOrEnum, name: enm.name));
       }
     }
     for (FunctionElement function in element.functions) {
       if (function.isPublic) {
         names.add(new UnlinkedPublicNameBuilder(
-            kind: PrelinkedReferenceKind.topLevelFunction,
+            kind: ReferenceKind.topLevelFunction,
             name: function.name,
             numTypeParameters: function.typeParameters.length));
       }
@@ -198,7 +198,7 @@ class _LibrarySerializer {
     for (FunctionTypeAliasElement typedef in element.functionTypeAliases) {
       if (typedef.isPublic) {
         names.add(new UnlinkedPublicNameBuilder(
-            kind: PrelinkedReferenceKind.typedef,
+            kind: ReferenceKind.typedef,
             name: typedef.name,
             numTypeParameters: typedef.typeParameters.length));
       }
@@ -255,16 +255,15 @@ class _LibrarySerializer {
     b.variables = variables;
     b.references = unlinkedReferences;
     unlinkedUnits.add(b);
-    prelinkedUnits
-        .add(new PrelinkedUnitBuilder(references: prelinkedReferences));
+    linkedUnits.add(new LinkedUnitBuilder(references: linkedReferences));
     unitUris.add(element.source.uri.toString());
     unlinkedReferences = null;
-    prelinkedReferences = null;
+    linkedReferences = null;
   }
 
   /**
    * Add [exportedLibrary] (and the transitive closure of all libraries it
-   * exports) to the dependency table ([PrelinkedLibrary.dependencies]).
+   * exports) to the dependency table ([LinkedLibrary.dependencies]).
    */
   void addTransitiveExportClosure(LibraryElement exportedLibrary) {
     if (librariesAddedToTransitiveExportClosure.add(exportedLibrary)) {
@@ -387,7 +386,7 @@ class _LibrarySerializer {
 
   /**
    * Return the index of the entry in the dependency table
-   * ([PrelinkedLibrary.dependencies]) for the given [dependentLibrary].  A new
+   * ([LinkedLibrary.dependencies]) for the given [dependentLibrary].  A new
    * entry is added to the table if necessary to satisfy the request.
    */
   int serializeDependency(LibraryElement dependentLibrary) {
@@ -396,7 +395,7 @@ class _LibrarySerializer {
       List<String> parts = dependentLibrary.parts
           .map((CompilationUnitElement e) => e.source.uri.toString())
           .toList();
-      dependencies.add(new PrelinkedDependencyBuilder(
+      dependencies.add(new LinkedDependencyBuilder(
           uri: dependentLibrary.source.uri.toString(), parts: parts));
       return index;
     });
@@ -420,7 +419,7 @@ class _LibrarySerializer {
 
   /**
    * Return the index of the entry in the references table
-   * ([UnlinkedLibrary.references] and [PrelinkedLibrary.references])
+   * ([UnlinkedLibrary.references] and [LinkedLibrary.references])
    * representing the pseudo-type `dynamic`.
    */
   int serializeDynamicReference() => 0;
@@ -511,7 +510,7 @@ class _LibrarySerializer {
 
   /**
    * Serialize the given [importElement] yielding an [UnlinkedImportBuilder].
-   * Also, add pre-linked information about it to the [prelinkedImports] list.
+   * Also, add linked information about it to the [linkedImports] list.
    */
   UnlinkedImportBuilder serializeImport(ImportElement importElement) {
     UnlinkedImportBuilder b = new UnlinkedImportBuilder();
@@ -530,32 +529,31 @@ class _LibrarySerializer {
       b.uriEnd = importElement.uriEnd;
     }
     addTransitiveExportClosure(importElement.importedLibrary);
-    prelinkedImports.add(serializeDependency(importElement.importedLibrary));
+    linkedImports.add(serializeDependency(importElement.importedLibrary));
     return b;
   }
 
   /**
-   * Serialize the whole library element into a [PrelinkedLibrary].  Should be
+   * Serialize the whole library element into a [LinkedLibrary].  Should be
    * called exactly once for each instance of [_LibrarySerializer].
    *
    * The unlinked compilation units are stored in [unlinkedUnits], and their
    * absolute URIs are stored in [unitUris].
    */
-  PrelinkedLibraryBuilder serializeLibrary() {
+  LinkedLibraryBuilder serializeLibrary() {
     computePrefixMap();
-    PrelinkedLibraryBuilder pb = new PrelinkedLibraryBuilder();
+    LinkedLibraryBuilder pb = new LinkedLibraryBuilder();
     addCompilationUnitElements(libraryElement.definingCompilationUnit, 0);
     for (int i = 0; i < libraryElement.parts.length; i++) {
       addCompilationUnitElements(libraryElement.parts[i], i + 1);
     }
-    pb.units = prelinkedUnits;
+    pb.units = linkedUnits;
     pb.dependencies = dependencies;
-    pb.importDependencies = prelinkedImports;
+    pb.importDependencies = linkedImports;
     List<String> exportedNames =
         libraryElement.exportNamespace.definedNames.keys.toList();
     exportedNames.sort();
-    List<PrelinkedExportNameBuilder> exportNames =
-        <PrelinkedExportNameBuilder>[];
+    List<LinkedExportNameBuilder> exportNames = <LinkedExportNameBuilder>[];
     for (String name in exportedNames) {
       if (libraryElement.publicNamespace.definedNames.containsKey(name)) {
         continue;
@@ -566,19 +564,19 @@ class _LibrarySerializer {
           element.getAncestor((Element e) => e is CompilationUnitElement);
       int unit = dependentLibrary.units.indexOf(unitElement);
       assert(unit != -1);
-      PrelinkedReferenceKind kind;
+      ReferenceKind kind;
       if (element is PropertyAccessorElement) {
-        kind = PrelinkedReferenceKind.topLevelPropertyAccessor;
+        kind = ReferenceKind.topLevelPropertyAccessor;
       } else if (element is FunctionTypeAliasElement) {
-        kind = PrelinkedReferenceKind.typedef;
+        kind = ReferenceKind.typedef;
       } else if (element is ClassElement) {
-        kind = PrelinkedReferenceKind.classOrEnum;
+        kind = ReferenceKind.classOrEnum;
       } else if (element is FunctionElement) {
-        kind = PrelinkedReferenceKind.topLevelFunction;
+        kind = ReferenceKind.topLevelFunction;
       } else {
         throw new Exception('Unexpected element kind: ${element.runtimeType}');
       }
-      exportNames.add(new PrelinkedExportNameBuilder(
+      exportNames.add(new LinkedExportNameBuilder(
           name: name,
           dependency: serializeDependency(dependentLibrary),
           unit: unit,
@@ -630,11 +628,11 @@ class _LibrarySerializer {
    */
   int serializePrefix(PrefixElement element) {
     return referenceMap.putIfAbsent(element, () {
-      assert(unlinkedReferences.length == prelinkedReferences.length);
+      assert(unlinkedReferences.length == linkedReferences.length);
       int index = unlinkedReferences.length;
       unlinkedReferences.add(new UnlinkedReferenceBuilder(name: element.name));
-      prelinkedReferences.add(
-          new PrelinkedReferenceBuilder(kind: PrelinkedReferenceKind.prefix));
+      linkedReferences
+          .add(new LinkedReferenceBuilder(kind: ReferenceKind.prefix));
       return index;
     });
   }
@@ -691,7 +689,7 @@ class _LibrarySerializer {
         }
       } else {
         b.reference = referenceMap.putIfAbsent(element, () {
-          assert(unlinkedReferences.length == prelinkedReferences.length);
+          assert(unlinkedReferences.length == linkedReferences.length);
           CompilationUnitElement unitElement =
               element.getAncestor((Element e) => e is CompilationUnitElement);
           int unit = dependentLibrary.units.indexOf(unitElement);
@@ -713,11 +711,11 @@ class _LibrarySerializer {
           int index = unlinkedReferences.length;
           unlinkedReferences.add(new UnlinkedReferenceBuilder(
               name: element.name, prefixReference: prefixReference));
-          prelinkedReferences.add(new PrelinkedReferenceBuilder(
+          linkedReferences.add(new LinkedReferenceBuilder(
               dependency: serializeDependency(dependentLibrary),
               kind: element is FunctionTypeAliasElement
-                  ? PrelinkedReferenceKind.typedef
-                  : PrelinkedReferenceKind.classOrEnum,
+                  ? ReferenceKind.typedef
+                  : ReferenceKind.classOrEnum,
               unit: unit,
               numTypeParameters: numTypeParameters));
           return index;
@@ -741,7 +739,7 @@ class _LibrarySerializer {
 
   /**
    * Return the index of the entry in the references table
-   * ([UnlinkedLibrary.references] and [PrelinkedLibrary.references]) used for
+   * ([UnlinkedLibrary.references] and [LinkedLibrary.references]) used for
    * unresolved references.  A new entry is added to the table if necessary to
    * satisfy the request.
    */
@@ -751,12 +749,12 @@ class _LibrarySerializer {
     // the element model.  For the moment we use a name that can't possibly
     // ever exist.
     if (unresolvedReferenceIndex == null) {
-      assert(unlinkedReferences.length == prelinkedReferences.length);
+      assert(unlinkedReferences.length == linkedReferences.length);
       unresolvedReferenceIndex = unlinkedReferences.length;
       unlinkedReferences
           .add(new UnlinkedReferenceBuilder(name: '*unresolved*'));
-      prelinkedReferences.add(new PrelinkedReferenceBuilder(
-          kind: PrelinkedReferenceKind.unresolved));
+      linkedReferences
+          .add(new LinkedReferenceBuilder(kind: ReferenceKind.unresolved));
     }
     return unresolvedReferenceIndex;
   }

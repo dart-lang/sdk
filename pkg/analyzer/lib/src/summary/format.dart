@@ -12,9 +12,9 @@ import 'flat_buffers.dart' as fb;
 
 /**
  * Enum used to indicate the kind of entity referred to by a
- * [PrelinkedReference].
+ * [LinkedReference].
  */
-enum PrelinkedReferenceKind {
+enum ReferenceKind {
   classOrEnum,
   typedef,
   topLevelFunction,
@@ -42,7 +42,7 @@ enum UnlinkedParamKind {
   named,
 }
 
-class PrelinkedDependencyBuilder extends Object with _PrelinkedDependencyMixin implements PrelinkedDependency {
+class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin implements LinkedDependency {
   bool _finished = false;
 
   String _uri;
@@ -75,7 +75,7 @@ class PrelinkedDependencyBuilder extends Object with _PrelinkedDependencyMixin i
     _parts = _value;
   }
 
-  PrelinkedDependencyBuilder({String uri, List<String> parts})
+  LinkedDependencyBuilder({String uri, List<String> parts})
     : _uri = uri,
       _parts = parts;
 
@@ -105,7 +105,7 @@ class PrelinkedDependencyBuilder extends Object with _PrelinkedDependencyMixin i
  * Information about a dependency that exists between one library and another
  * due to an "import" declaration.
  */
-abstract class PrelinkedDependency extends base.SummaryClass {
+abstract class LinkedDependency extends base.SummaryClass {
 
   /**
    * The relative URI of the dependent library.  This URI is relative to the
@@ -123,17 +123,17 @@ abstract class PrelinkedDependency extends base.SummaryClass {
   List<String> get parts;
 }
 
-class _PrelinkedDependencyReader extends fb.TableReader<_PrelinkedDependencyImpl> {
-  const _PrelinkedDependencyReader();
+class _LinkedDependencyReader extends fb.TableReader<_LinkedDependencyImpl> {
+  const _LinkedDependencyReader();
 
   @override
-  _PrelinkedDependencyImpl createObject(fb.BufferPointer bp) => new _PrelinkedDependencyImpl(bp);
+  _LinkedDependencyImpl createObject(fb.BufferPointer bp) => new _LinkedDependencyImpl(bp);
 }
 
-class _PrelinkedDependencyImpl extends Object with _PrelinkedDependencyMixin implements PrelinkedDependency {
+class _LinkedDependencyImpl extends Object with _LinkedDependencyMixin implements LinkedDependency {
   final fb.BufferPointer _bp;
 
-  _PrelinkedDependencyImpl(this._bp);
+  _LinkedDependencyImpl(this._bp);
 
   String _uri;
   List<String> _parts;
@@ -151,7 +151,7 @@ class _PrelinkedDependencyImpl extends Object with _PrelinkedDependencyMixin imp
   }
 }
 
-abstract class _PrelinkedDependencyMixin implements PrelinkedDependency {
+abstract class _LinkedDependencyMixin implements LinkedDependency {
   @override
   Map<String, Object> toMap() => {
     "uri": uri,
@@ -159,13 +159,13 @@ abstract class _PrelinkedDependencyMixin implements PrelinkedDependency {
   };
 }
 
-class PrelinkedExportNameBuilder extends Object with _PrelinkedExportNameMixin implements PrelinkedExportName {
+class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin implements LinkedExportName {
   bool _finished = false;
 
   String _name;
   int _dependency;
   int _unit;
-  PrelinkedReferenceKind _kind;
+  ReferenceKind _kind;
 
   @override
   String get name => _name ?? '';
@@ -183,7 +183,7 @@ class PrelinkedExportNameBuilder extends Object with _PrelinkedExportNameMixin i
   int get dependency => _dependency ?? 0;
 
   /**
-   * Index into [PrelinkedLibrary.dependencies] for the library in which the
+   * Index into [LinkedLibrary.dependencies] for the library in which the
    * entity is defined.
    */
   void set dependency(int _value) {
@@ -196,7 +196,7 @@ class PrelinkedExportNameBuilder extends Object with _PrelinkedExportNameMixin i
 
   /**
    * Integer index indicating which unit in the exported library contains the
-   * definition of the entity.  As with indices into [PrelinkedLibrary.units],
+   * definition of the entity.  As with indices into [LinkedLibrary.units],
    * zero represents the defining compilation unit, and nonzero values
    * represent parts in the order of the corresponding `part` declarations.
    */
@@ -206,17 +206,17 @@ class PrelinkedExportNameBuilder extends Object with _PrelinkedExportNameMixin i
   }
 
   @override
-  PrelinkedReferenceKind get kind => _kind ?? PrelinkedReferenceKind.classOrEnum;
+  ReferenceKind get kind => _kind ?? ReferenceKind.classOrEnum;
 
   /**
    * The kind of the entity being referred to.
    */
-  void set kind(PrelinkedReferenceKind _value) {
+  void set kind(ReferenceKind _value) {
     assert(!_finished);
     _kind = _value;
   }
 
-  PrelinkedExportNameBuilder({String name, int dependency, int unit, PrelinkedReferenceKind kind})
+  LinkedExportNameBuilder({String name, int dependency, int unit, ReferenceKind kind})
     : _name = name,
       _dependency = dependency,
       _unit = unit,
@@ -239,7 +239,7 @@ class PrelinkedExportNameBuilder extends Object with _PrelinkedExportNameMixin i
     if (_unit != null && _unit != 0) {
       fbBuilder.addInt32(2, _unit);
     }
-    if (_kind != null && _kind != PrelinkedReferenceKind.classOrEnum) {
+    if (_kind != null && _kind != ReferenceKind.classOrEnum) {
       fbBuilder.addInt32(3, _kind.index);
     }
     return fbBuilder.endTable();
@@ -250,7 +250,7 @@ class PrelinkedExportNameBuilder extends Object with _PrelinkedExportNameMixin i
  * Information about a single name in the export namespace of the library that
  * is not in the public namespace.
  */
-abstract class PrelinkedExportName extends base.SummaryClass {
+abstract class LinkedExportName extends base.SummaryClass {
 
   /**
    * Name of the exported entity.  TODO(paulberry): do we include the trailing
@@ -259,14 +259,14 @@ abstract class PrelinkedExportName extends base.SummaryClass {
   String get name;
 
   /**
-   * Index into [PrelinkedLibrary.dependencies] for the library in which the
+   * Index into [LinkedLibrary.dependencies] for the library in which the
    * entity is defined.
    */
   int get dependency;
 
   /**
    * Integer index indicating which unit in the exported library contains the
-   * definition of the entity.  As with indices into [PrelinkedLibrary.units],
+   * definition of the entity.  As with indices into [LinkedLibrary.units],
    * zero represents the defining compilation unit, and nonzero values
    * represent parts in the order of the corresponding `part` declarations.
    */
@@ -275,25 +275,25 @@ abstract class PrelinkedExportName extends base.SummaryClass {
   /**
    * The kind of the entity being referred to.
    */
-  PrelinkedReferenceKind get kind;
+  ReferenceKind get kind;
 }
 
-class _PrelinkedExportNameReader extends fb.TableReader<_PrelinkedExportNameImpl> {
-  const _PrelinkedExportNameReader();
+class _LinkedExportNameReader extends fb.TableReader<_LinkedExportNameImpl> {
+  const _LinkedExportNameReader();
 
   @override
-  _PrelinkedExportNameImpl createObject(fb.BufferPointer bp) => new _PrelinkedExportNameImpl(bp);
+  _LinkedExportNameImpl createObject(fb.BufferPointer bp) => new _LinkedExportNameImpl(bp);
 }
 
-class _PrelinkedExportNameImpl extends Object with _PrelinkedExportNameMixin implements PrelinkedExportName {
+class _LinkedExportNameImpl extends Object with _LinkedExportNameMixin implements LinkedExportName {
   final fb.BufferPointer _bp;
 
-  _PrelinkedExportNameImpl(this._bp);
+  _LinkedExportNameImpl(this._bp);
 
   String _name;
   int _dependency;
   int _unit;
-  PrelinkedReferenceKind _kind;
+  ReferenceKind _kind;
 
   @override
   String get name {
@@ -314,13 +314,13 @@ class _PrelinkedExportNameImpl extends Object with _PrelinkedExportNameMixin imp
   }
 
   @override
-  PrelinkedReferenceKind get kind {
-    _kind ??= PrelinkedReferenceKind.values[const fb.Int32Reader().vTableGet(_bp, 3, 0)];
+  ReferenceKind get kind {
+    _kind ??= ReferenceKind.values[const fb.Int32Reader().vTableGet(_bp, 3, 0)];
     return _kind;
   }
 }
 
-abstract class _PrelinkedExportNameMixin implements PrelinkedExportName {
+abstract class _LinkedExportNameMixin implements LinkedExportName {
   @override
   Map<String, Object> toMap() => {
     "name": name,
@@ -330,30 +330,30 @@ abstract class _PrelinkedExportNameMixin implements PrelinkedExportName {
   };
 }
 
-class PrelinkedLibraryBuilder extends Object with _PrelinkedLibraryMixin implements PrelinkedLibrary {
+class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements LinkedLibrary {
   bool _finished = false;
 
-  List<PrelinkedUnitBuilder> _units;
-  List<PrelinkedDependencyBuilder> _dependencies;
+  List<LinkedUnitBuilder> _units;
+  List<LinkedDependencyBuilder> _dependencies;
   List<int> _importDependencies;
-  List<PrelinkedExportNameBuilder> _exportNames;
+  List<LinkedExportNameBuilder> _exportNames;
 
   @override
-  List<PrelinkedUnit> get units => _units ?? const <PrelinkedUnit>[];
+  List<LinkedUnit> get units => _units ?? const <LinkedUnit>[];
 
   /**
-   * The pre-linked summary of all the compilation units constituting the
+   * The linked summary of all the compilation units constituting the
    * library.  The summary of the defining compilation unit is listed first,
    * followed by the summary of each part, in the order of the `part`
    * declarations in the defining compilation unit.
    */
-  void set units(List<PrelinkedUnitBuilder> _value) {
+  void set units(List<LinkedUnitBuilder> _value) {
     assert(!_finished);
     _units = _value;
   }
 
   @override
-  List<PrelinkedDependency> get dependencies => _dependencies ?? const <PrelinkedDependency>[];
+  List<LinkedDependency> get dependencies => _dependencies ?? const <LinkedDependency>[];
 
   /**
    * The libraries that this library depends on (either via an explicit import
@@ -364,7 +364,7 @@ class PrelinkedLibraryBuilder extends Object with _PrelinkedLibraryMixin impleme
    * TODO(paulberry): consider removing this entirely and just using
    * [UnlinkedLibrary.imports].
    */
-  void set dependencies(List<PrelinkedDependencyBuilder> _value) {
+  void set dependencies(List<LinkedDependencyBuilder> _value) {
     assert(!_finished);
     _dependencies = _value;
   }
@@ -385,7 +385,7 @@ class PrelinkedLibraryBuilder extends Object with _PrelinkedLibraryMixin impleme
   }
 
   @override
-  List<PrelinkedExportName> get exportNames => _exportNames ?? const <PrelinkedExportName>[];
+  List<LinkedExportName> get exportNames => _exportNames ?? const <LinkedExportName>[];
 
   /**
    * Information about entities in the export namespace of the library that are
@@ -394,12 +394,12 @@ class PrelinkedLibraryBuilder extends Object with _PrelinkedLibraryMixin impleme
    *
    * Sorted by name.
    */
-  void set exportNames(List<PrelinkedExportNameBuilder> _value) {
+  void set exportNames(List<LinkedExportNameBuilder> _value) {
     assert(!_finished);
     _exportNames = _value;
   }
 
-  PrelinkedLibraryBuilder({List<PrelinkedUnitBuilder> units, List<PrelinkedDependencyBuilder> dependencies, List<int> importDependencies, List<PrelinkedExportNameBuilder> exportNames})
+  LinkedLibraryBuilder({List<LinkedUnitBuilder> units, List<LinkedDependencyBuilder> dependencies, List<int> importDependencies, List<LinkedExportNameBuilder> exportNames})
     : _units = units,
       _dependencies = dependencies,
       _importDependencies = importDependencies,
@@ -447,21 +447,21 @@ class PrelinkedLibraryBuilder extends Object with _PrelinkedLibraryMixin impleme
 }
 
 /**
- * Pre-linked summary of a library.
+ * Linked summary of a library.
  */
-abstract class PrelinkedLibrary extends base.SummaryClass {
-  factory PrelinkedLibrary.fromBuffer(List<int> buffer) {
+abstract class LinkedLibrary extends base.SummaryClass {
+  factory LinkedLibrary.fromBuffer(List<int> buffer) {
     fb.BufferPointer rootRef = new fb.BufferPointer.fromBytes(buffer);
-    return const _PrelinkedLibraryReader().read(rootRef);
+    return const _LinkedLibraryReader().read(rootRef);
   }
 
   /**
-   * The pre-linked summary of all the compilation units constituting the
+   * The linked summary of all the compilation units constituting the
    * library.  The summary of the defining compilation unit is listed first,
    * followed by the summary of each part, in the order of the `part`
    * declarations in the defining compilation unit.
    */
-  List<PrelinkedUnit> get units;
+  List<LinkedUnit> get units;
 
   /**
    * The libraries that this library depends on (either via an explicit import
@@ -472,7 +472,7 @@ abstract class PrelinkedLibrary extends base.SummaryClass {
    * TODO(paulberry): consider removing this entirely and just using
    * [UnlinkedLibrary.imports].
    */
-  List<PrelinkedDependency> get dependencies;
+  List<LinkedDependency> get dependencies;
 
   /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
@@ -490,35 +490,35 @@ abstract class PrelinkedLibrary extends base.SummaryClass {
    *
    * Sorted by name.
    */
-  List<PrelinkedExportName> get exportNames;
+  List<LinkedExportName> get exportNames;
 }
 
-class _PrelinkedLibraryReader extends fb.TableReader<_PrelinkedLibraryImpl> {
-  const _PrelinkedLibraryReader();
+class _LinkedLibraryReader extends fb.TableReader<_LinkedLibraryImpl> {
+  const _LinkedLibraryReader();
 
   @override
-  _PrelinkedLibraryImpl createObject(fb.BufferPointer bp) => new _PrelinkedLibraryImpl(bp);
+  _LinkedLibraryImpl createObject(fb.BufferPointer bp) => new _LinkedLibraryImpl(bp);
 }
 
-class _PrelinkedLibraryImpl extends Object with _PrelinkedLibraryMixin implements PrelinkedLibrary {
+class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements LinkedLibrary {
   final fb.BufferPointer _bp;
 
-  _PrelinkedLibraryImpl(this._bp);
+  _LinkedLibraryImpl(this._bp);
 
-  List<PrelinkedUnit> _units;
-  List<PrelinkedDependency> _dependencies;
+  List<LinkedUnit> _units;
+  List<LinkedDependency> _dependencies;
   List<int> _importDependencies;
-  List<PrelinkedExportName> _exportNames;
+  List<LinkedExportName> _exportNames;
 
   @override
-  List<PrelinkedUnit> get units {
-    _units ??= const fb.ListReader<PrelinkedUnit>(const _PrelinkedUnitReader()).vTableGet(_bp, 0, const <PrelinkedUnit>[]);
+  List<LinkedUnit> get units {
+    _units ??= const fb.ListReader<LinkedUnit>(const _LinkedUnitReader()).vTableGet(_bp, 0, const <LinkedUnit>[]);
     return _units;
   }
 
   @override
-  List<PrelinkedDependency> get dependencies {
-    _dependencies ??= const fb.ListReader<PrelinkedDependency>(const _PrelinkedDependencyReader()).vTableGet(_bp, 1, const <PrelinkedDependency>[]);
+  List<LinkedDependency> get dependencies {
+    _dependencies ??= const fb.ListReader<LinkedDependency>(const _LinkedDependencyReader()).vTableGet(_bp, 1, const <LinkedDependency>[]);
     return _dependencies;
   }
 
@@ -529,13 +529,13 @@ class _PrelinkedLibraryImpl extends Object with _PrelinkedLibraryMixin implement
   }
 
   @override
-  List<PrelinkedExportName> get exportNames {
-    _exportNames ??= const fb.ListReader<PrelinkedExportName>(const _PrelinkedExportNameReader()).vTableGet(_bp, 3, const <PrelinkedExportName>[]);
+  List<LinkedExportName> get exportNames {
+    _exportNames ??= const fb.ListReader<LinkedExportName>(const _LinkedExportNameReader()).vTableGet(_bp, 3, const <LinkedExportName>[]);
     return _exportNames;
   }
 }
 
-abstract class _PrelinkedLibraryMixin implements PrelinkedLibrary {
+abstract class _LinkedLibraryMixin implements LinkedLibrary {
   @override
   Map<String, Object> toMap() => {
     "units": units,
@@ -545,11 +545,11 @@ abstract class _PrelinkedLibraryMixin implements PrelinkedLibrary {
   };
 }
 
-class PrelinkedReferenceBuilder extends Object with _PrelinkedReferenceMixin implements PrelinkedReference {
+class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implements LinkedReference {
   bool _finished = false;
 
   int _dependency;
-  PrelinkedReferenceKind _kind;
+  ReferenceKind _kind;
   int _unit;
   int _numTypeParameters;
 
@@ -557,7 +557,7 @@ class PrelinkedReferenceBuilder extends Object with _PrelinkedReferenceMixin imp
   int get dependency => _dependency ?? 0;
 
   /**
-   * Index into [PrelinkedLibrary.dependencies] indicating which imported library
+   * Index into [LinkedLibrary.dependencies] indicating which imported library
    * declares the entity being referred to.
    */
   void set dependency(int _value) {
@@ -566,13 +566,13 @@ class PrelinkedReferenceBuilder extends Object with _PrelinkedReferenceMixin imp
   }
 
   @override
-  PrelinkedReferenceKind get kind => _kind ?? PrelinkedReferenceKind.classOrEnum;
+  ReferenceKind get kind => _kind ?? ReferenceKind.classOrEnum;
 
   /**
    * The kind of the entity being referred to.  For the pseudo-type `dynamic`,
-   * the kind is [PrelinkedReferenceKind.classOrEnum].
+   * the kind is [ReferenceKind.classOrEnum].
    */
-  void set kind(PrelinkedReferenceKind _value) {
+  void set kind(ReferenceKind _value) {
     assert(!_finished);
     _kind = _value;
   }
@@ -582,7 +582,7 @@ class PrelinkedReferenceBuilder extends Object with _PrelinkedReferenceMixin imp
 
   /**
    * Integer index indicating which unit in the imported library contains the
-   * definition of the entity.  As with indices into [PrelinkedLibrary.units],
+   * definition of the entity.  As with indices into [LinkedLibrary.units],
    * zero represents the defining compilation unit, and nonzero values
    * represent parts in the order of the corresponding `part` declarations.
    */
@@ -603,7 +603,7 @@ class PrelinkedReferenceBuilder extends Object with _PrelinkedReferenceMixin imp
     _numTypeParameters = _value;
   }
 
-  PrelinkedReferenceBuilder({int dependency, PrelinkedReferenceKind kind, int unit, int numTypeParameters})
+  LinkedReferenceBuilder({int dependency, ReferenceKind kind, int unit, int numTypeParameters})
     : _dependency = dependency,
       _kind = kind,
       _unit = unit,
@@ -616,7 +616,7 @@ class PrelinkedReferenceBuilder extends Object with _PrelinkedReferenceMixin imp
     if (_dependency != null && _dependency != 0) {
       fbBuilder.addInt32(0, _dependency);
     }
-    if (_kind != null && _kind != PrelinkedReferenceKind.classOrEnum) {
+    if (_kind != null && _kind != ReferenceKind.classOrEnum) {
       fbBuilder.addInt32(1, _kind.index);
     }
     if (_unit != null && _unit != 0) {
@@ -632,23 +632,23 @@ class PrelinkedReferenceBuilder extends Object with _PrelinkedReferenceMixin imp
 /**
  * Information about the resolution of an [UnlinkedReference].
  */
-abstract class PrelinkedReference extends base.SummaryClass {
+abstract class LinkedReference extends base.SummaryClass {
 
   /**
-   * Index into [PrelinkedLibrary.dependencies] indicating which imported library
+   * Index into [LinkedLibrary.dependencies] indicating which imported library
    * declares the entity being referred to.
    */
   int get dependency;
 
   /**
    * The kind of the entity being referred to.  For the pseudo-type `dynamic`,
-   * the kind is [PrelinkedReferenceKind.classOrEnum].
+   * the kind is [ReferenceKind.classOrEnum].
    */
-  PrelinkedReferenceKind get kind;
+  ReferenceKind get kind;
 
   /**
    * Integer index indicating which unit in the imported library contains the
-   * definition of the entity.  As with indices into [PrelinkedLibrary.units],
+   * definition of the entity.  As with indices into [LinkedLibrary.units],
    * zero represents the defining compilation unit, and nonzero values
    * represent parts in the order of the corresponding `part` declarations.
    */
@@ -661,20 +661,20 @@ abstract class PrelinkedReference extends base.SummaryClass {
   int get numTypeParameters;
 }
 
-class _PrelinkedReferenceReader extends fb.TableReader<_PrelinkedReferenceImpl> {
-  const _PrelinkedReferenceReader();
+class _LinkedReferenceReader extends fb.TableReader<_LinkedReferenceImpl> {
+  const _LinkedReferenceReader();
 
   @override
-  _PrelinkedReferenceImpl createObject(fb.BufferPointer bp) => new _PrelinkedReferenceImpl(bp);
+  _LinkedReferenceImpl createObject(fb.BufferPointer bp) => new _LinkedReferenceImpl(bp);
 }
 
-class _PrelinkedReferenceImpl extends Object with _PrelinkedReferenceMixin implements PrelinkedReference {
+class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements LinkedReference {
   final fb.BufferPointer _bp;
 
-  _PrelinkedReferenceImpl(this._bp);
+  _LinkedReferenceImpl(this._bp);
 
   int _dependency;
-  PrelinkedReferenceKind _kind;
+  ReferenceKind _kind;
   int _unit;
   int _numTypeParameters;
 
@@ -685,8 +685,8 @@ class _PrelinkedReferenceImpl extends Object with _PrelinkedReferenceMixin imple
   }
 
   @override
-  PrelinkedReferenceKind get kind {
-    _kind ??= PrelinkedReferenceKind.values[const fb.Int32Reader().vTableGet(_bp, 1, 0)];
+  ReferenceKind get kind {
+    _kind ??= ReferenceKind.values[const fb.Int32Reader().vTableGet(_bp, 1, 0)];
     return _kind;
   }
 
@@ -703,7 +703,7 @@ class _PrelinkedReferenceImpl extends Object with _PrelinkedReferenceMixin imple
   }
 }
 
-abstract class _PrelinkedReferenceMixin implements PrelinkedReference {
+abstract class _LinkedReferenceMixin implements LinkedReference {
   @override
   Map<String, Object> toMap() => {
     "dependency": dependency,
@@ -713,24 +713,24 @@ abstract class _PrelinkedReferenceMixin implements PrelinkedReference {
   };
 }
 
-class PrelinkedUnitBuilder extends Object with _PrelinkedUnitMixin implements PrelinkedUnit {
+class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements LinkedUnit {
   bool _finished = false;
 
-  List<PrelinkedReferenceBuilder> _references;
+  List<LinkedReferenceBuilder> _references;
 
   @override
-  List<PrelinkedReference> get references => _references ?? const <PrelinkedReference>[];
+  List<LinkedReference> get references => _references ?? const <LinkedReference>[];
 
   /**
    * For each reference in [UnlinkedUnit.references], information about how
    * that reference is resolved.
    */
-  void set references(List<PrelinkedReferenceBuilder> _value) {
+  void set references(List<LinkedReferenceBuilder> _value) {
     assert(!_finished);
     _references = _value;
   }
 
-  PrelinkedUnitBuilder({List<PrelinkedReferenceBuilder> references})
+  LinkedUnitBuilder({List<LinkedReferenceBuilder> references})
     : _references = references;
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -749,39 +749,39 @@ class PrelinkedUnitBuilder extends Object with _PrelinkedUnitMixin implements Pr
 }
 
 /**
- * Pre-linked summary of a compilation unit.
+ * Linked summary of a compilation unit.
  */
-abstract class PrelinkedUnit extends base.SummaryClass {
+abstract class LinkedUnit extends base.SummaryClass {
 
   /**
    * For each reference in [UnlinkedUnit.references], information about how
    * that reference is resolved.
    */
-  List<PrelinkedReference> get references;
+  List<LinkedReference> get references;
 }
 
-class _PrelinkedUnitReader extends fb.TableReader<_PrelinkedUnitImpl> {
-  const _PrelinkedUnitReader();
+class _LinkedUnitReader extends fb.TableReader<_LinkedUnitImpl> {
+  const _LinkedUnitReader();
 
   @override
-  _PrelinkedUnitImpl createObject(fb.BufferPointer bp) => new _PrelinkedUnitImpl(bp);
+  _LinkedUnitImpl createObject(fb.BufferPointer bp) => new _LinkedUnitImpl(bp);
 }
 
-class _PrelinkedUnitImpl extends Object with _PrelinkedUnitMixin implements PrelinkedUnit {
+class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements LinkedUnit {
   final fb.BufferPointer _bp;
 
-  _PrelinkedUnitImpl(this._bp);
+  _LinkedUnitImpl(this._bp);
 
-  List<PrelinkedReference> _references;
+  List<LinkedReference> _references;
 
   @override
-  List<PrelinkedReference> get references {
-    _references ??= const fb.ListReader<PrelinkedReference>(const _PrelinkedReferenceReader()).vTableGet(_bp, 0, const <PrelinkedReference>[]);
+  List<LinkedReference> get references {
+    _references ??= const fb.ListReader<LinkedReference>(const _LinkedReferenceReader()).vTableGet(_bp, 0, const <LinkedReference>[]);
     return _references;
   }
 }
 
-abstract class _PrelinkedUnitMixin implements PrelinkedUnit {
+abstract class _LinkedUnitMixin implements LinkedUnit {
   @override
   Map<String, Object> toMap() => {
     "references": references,
@@ -791,31 +791,31 @@ abstract class _PrelinkedUnitMixin implements PrelinkedUnit {
 class SdkBundleBuilder extends Object with _SdkBundleMixin implements SdkBundle {
   bool _finished = false;
 
-  List<String> _prelinkedLibraryUris;
-  List<PrelinkedLibraryBuilder> _prelinkedLibraries;
+  List<String> _linkedLibraryUris;
+  List<LinkedLibraryBuilder> _linkedLibraries;
   List<String> _unlinkedUnitUris;
   List<UnlinkedUnitBuilder> _unlinkedUnits;
 
   @override
-  List<String> get prelinkedLibraryUris => _prelinkedLibraryUris ?? const <String>[];
+  List<String> get linkedLibraryUris => _linkedLibraryUris ?? const <String>[];
 
   /**
-   * The list of URIs of items in [prelinkedLibraries], e.g. `dart:core`.
+   * The list of URIs of items in [linkedLibraries], e.g. `dart:core`.
    */
-  void set prelinkedLibraryUris(List<String> _value) {
+  void set linkedLibraryUris(List<String> _value) {
     assert(!_finished);
-    _prelinkedLibraryUris = _value;
+    _linkedLibraryUris = _value;
   }
 
   @override
-  List<PrelinkedLibrary> get prelinkedLibraries => _prelinkedLibraries ?? const <PrelinkedLibrary>[];
+  List<LinkedLibrary> get linkedLibraries => _linkedLibraries ?? const <LinkedLibrary>[];
 
   /**
-   * Pre-linked libraries.
+   * Linked libraries.
    */
-  void set prelinkedLibraries(List<PrelinkedLibraryBuilder> _value) {
+  void set linkedLibraries(List<LinkedLibraryBuilder> _value) {
     assert(!_finished);
-    _prelinkedLibraries = _value;
+    _linkedLibraries = _value;
   }
 
   @override
@@ -840,9 +840,9 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements SdkBundle 
     _unlinkedUnits = _value;
   }
 
-  SdkBundleBuilder({List<String> prelinkedLibraryUris, List<PrelinkedLibraryBuilder> prelinkedLibraries, List<String> unlinkedUnitUris, List<UnlinkedUnitBuilder> unlinkedUnits})
-    : _prelinkedLibraryUris = prelinkedLibraryUris,
-      _prelinkedLibraries = prelinkedLibraries,
+  SdkBundleBuilder({List<String> linkedLibraryUris, List<LinkedLibraryBuilder> linkedLibraries, List<String> unlinkedUnitUris, List<UnlinkedUnitBuilder> unlinkedUnits})
+    : _linkedLibraryUris = linkedLibraryUris,
+      _linkedLibraries = linkedLibraries,
       _unlinkedUnitUris = unlinkedUnitUris,
       _unlinkedUnits = unlinkedUnits;
 
@@ -854,15 +854,15 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements SdkBundle 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
-    fb.Offset offset_prelinkedLibraryUris;
-    fb.Offset offset_prelinkedLibraries;
+    fb.Offset offset_linkedLibraryUris;
+    fb.Offset offset_linkedLibraries;
     fb.Offset offset_unlinkedUnitUris;
     fb.Offset offset_unlinkedUnits;
-    if (!(_prelinkedLibraryUris == null || _prelinkedLibraryUris.isEmpty)) {
-      offset_prelinkedLibraryUris = fbBuilder.writeList(_prelinkedLibraryUris.map((b) => fbBuilder.writeString(b)).toList());
+    if (!(_linkedLibraryUris == null || _linkedLibraryUris.isEmpty)) {
+      offset_linkedLibraryUris = fbBuilder.writeList(_linkedLibraryUris.map((b) => fbBuilder.writeString(b)).toList());
     }
-    if (!(_prelinkedLibraries == null || _prelinkedLibraries.isEmpty)) {
-      offset_prelinkedLibraries = fbBuilder.writeList(_prelinkedLibraries.map((b) => b.finish(fbBuilder)).toList());
+    if (!(_linkedLibraries == null || _linkedLibraries.isEmpty)) {
+      offset_linkedLibraries = fbBuilder.writeList(_linkedLibraries.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_unlinkedUnitUris == null || _unlinkedUnitUris.isEmpty)) {
       offset_unlinkedUnitUris = fbBuilder.writeList(_unlinkedUnitUris.map((b) => fbBuilder.writeString(b)).toList());
@@ -871,11 +871,11 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements SdkBundle 
       offset_unlinkedUnits = fbBuilder.writeList(_unlinkedUnits.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
-    if (offset_prelinkedLibraryUris != null) {
-      fbBuilder.addOffset(0, offset_prelinkedLibraryUris);
+    if (offset_linkedLibraryUris != null) {
+      fbBuilder.addOffset(0, offset_linkedLibraryUris);
     }
-    if (offset_prelinkedLibraries != null) {
-      fbBuilder.addOffset(1, offset_prelinkedLibraries);
+    if (offset_linkedLibraries != null) {
+      fbBuilder.addOffset(1, offset_linkedLibraries);
     }
     if (offset_unlinkedUnitUris != null) {
       fbBuilder.addOffset(2, offset_unlinkedUnitUris);
@@ -897,14 +897,14 @@ abstract class SdkBundle extends base.SummaryClass {
   }
 
   /**
-   * The list of URIs of items in [prelinkedLibraries], e.g. `dart:core`.
+   * The list of URIs of items in [linkedLibraries], e.g. `dart:core`.
    */
-  List<String> get prelinkedLibraryUris;
+  List<String> get linkedLibraryUris;
 
   /**
-   * Pre-linked libraries.
+   * Linked libraries.
    */
-  List<PrelinkedLibrary> get prelinkedLibraries;
+  List<LinkedLibrary> get linkedLibraries;
 
   /**
    * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
@@ -929,21 +929,21 @@ class _SdkBundleImpl extends Object with _SdkBundleMixin implements SdkBundle {
 
   _SdkBundleImpl(this._bp);
 
-  List<String> _prelinkedLibraryUris;
-  List<PrelinkedLibrary> _prelinkedLibraries;
+  List<String> _linkedLibraryUris;
+  List<LinkedLibrary> _linkedLibraries;
   List<String> _unlinkedUnitUris;
   List<UnlinkedUnit> _unlinkedUnits;
 
   @override
-  List<String> get prelinkedLibraryUris {
-    _prelinkedLibraryUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 0, const <String>[]);
-    return _prelinkedLibraryUris;
+  List<String> get linkedLibraryUris {
+    _linkedLibraryUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 0, const <String>[]);
+    return _linkedLibraryUris;
   }
 
   @override
-  List<PrelinkedLibrary> get prelinkedLibraries {
-    _prelinkedLibraries ??= const fb.ListReader<PrelinkedLibrary>(const _PrelinkedLibraryReader()).vTableGet(_bp, 1, const <PrelinkedLibrary>[]);
-    return _prelinkedLibraries;
+  List<LinkedLibrary> get linkedLibraries {
+    _linkedLibraries ??= const fb.ListReader<LinkedLibrary>(const _LinkedLibraryReader()).vTableGet(_bp, 1, const <LinkedLibrary>[]);
+    return _linkedLibraries;
   }
 
   @override
@@ -962,8 +962,8 @@ class _SdkBundleImpl extends Object with _SdkBundleMixin implements SdkBundle {
 abstract class _SdkBundleMixin implements SdkBundle {
   @override
   Map<String, Object> toMap() => {
-    "prelinkedLibraryUris": prelinkedLibraryUris,
-    "prelinkedLibraries": prelinkedLibraries,
+    "linkedLibraryUris": linkedLibraryUris,
+    "linkedLibraries": linkedLibraries,
     "unlinkedUnitUris": unlinkedUnitUris,
     "unlinkedUnits": unlinkedUnits,
   };
@@ -3387,7 +3387,7 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   bool _finished = false;
 
   String _name;
-  PrelinkedReferenceKind _kind;
+  ReferenceKind _kind;
   int _numTypeParameters;
 
   @override
@@ -3402,12 +3402,12 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   }
 
   @override
-  PrelinkedReferenceKind get kind => _kind ?? PrelinkedReferenceKind.classOrEnum;
+  ReferenceKind get kind => _kind ?? ReferenceKind.classOrEnum;
 
   /**
    * The kind of object referred to by the name.
    */
-  void set kind(PrelinkedReferenceKind _value) {
+  void set kind(ReferenceKind _value) {
     assert(!_finished);
     _kind = _value;
   }
@@ -3424,7 +3424,7 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
     _numTypeParameters = _value;
   }
 
-  UnlinkedPublicNameBuilder({String name, PrelinkedReferenceKind kind, int numTypeParameters})
+  UnlinkedPublicNameBuilder({String name, ReferenceKind kind, int numTypeParameters})
     : _name = name,
       _kind = kind,
       _numTypeParameters = numTypeParameters;
@@ -3440,7 +3440,7 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
     if (offset_name != null) {
       fbBuilder.addOffset(0, offset_name);
     }
-    if (_kind != null && _kind != PrelinkedReferenceKind.classOrEnum) {
+    if (_kind != null && _kind != ReferenceKind.classOrEnum) {
       fbBuilder.addInt32(1, _kind.index);
     }
     if (_numTypeParameters != null && _numTypeParameters != 0) {
@@ -3474,7 +3474,7 @@ abstract class UnlinkedPublicName extends base.SummaryClass {
   /**
    * The kind of object referred to by the name.
    */
-  PrelinkedReferenceKind get kind;
+  ReferenceKind get kind;
 
   /**
    * If the entity being referred to is generic, the number of type parameters
@@ -3496,7 +3496,7 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
   _UnlinkedPublicNameImpl(this._bp);
 
   String _name;
-  PrelinkedReferenceKind _kind;
+  ReferenceKind _kind;
   int _numTypeParameters;
 
   @override
@@ -3506,8 +3506,8 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
   }
 
   @override
-  PrelinkedReferenceKind get kind {
-    _kind ??= PrelinkedReferenceKind.values[const fb.Int32Reader().vTableGet(_bp, 1, 0)];
+  ReferenceKind get kind {
+    _kind ??= ReferenceKind.values[const fb.Int32Reader().vTableGet(_bp, 1, 0)];
     return _kind;
   }
 

@@ -6,7 +6,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 
 /**
- * Create a [PrelinkedLibraryBuilder] corresponding to the given
+ * Create a [LinkedLibraryBuilder] corresponding to the given
  * [definingUnit], which should be the defining compilation unit for a library.
  * Compilation units referenced by the defining compilation unit via `part`
  * declarations will be retrieved using [getPart].  Public namespaces for
@@ -14,8 +14,8 @@ import 'package:analyzer/src/summary/name_filter.dart';
  * declarations (and files reachable from them via `part` and `export`
  * declarations) will be retrieved using [getImport].
  */
-PrelinkedLibraryBuilder prelink(UnlinkedUnit definingUnit,
-    GetPartCallback getPart, GetImportCallback getImport) {
+LinkedLibraryBuilder prelink(UnlinkedUnit definingUnit, GetPartCallback getPart,
+    GetImportCallback getImport) {
   return new _Prelinker(definingUnit, getPart, getImport).prelink();
 }
 
@@ -53,7 +53,7 @@ class _Meaning {
   /**
    * The kind of entity being referred to.
    */
-  final PrelinkedReferenceKind kind;
+  final ReferenceKind kind;
 
   /**
    * Which of the dependencies of the library being prelinked contains the
@@ -70,18 +70,18 @@ class _Meaning {
   _Meaning(this.unit, this.kind, this.dependency, this.numTypeParameters);
 
   /**
- * Encode this [_Meaning] as a [PrelinkedExportName], using the given [name].
+ * Encode this [_Meaning] as a [LinkedExportName], using the given [name].
  */
-  PrelinkedExportName encodeExportName(String name) {
-    return new PrelinkedExportNameBuilder(
+  LinkedExportName encodeExportName(String name) {
+    return new LinkedExportNameBuilder(
         name: name, dependency: dependency, unit: unit, kind: kind);
   }
 
 /**
-   * Encode this [_Meaning] as a [PrelinkedReference].
+   * Encode this [_Meaning] as a [LinkedReference].
    */
-  PrelinkedReferenceBuilder encodeReference() {
-    return new PrelinkedReferenceBuilder(
+  LinkedReferenceBuilder encodeReference() {
+    return new LinkedReferenceBuilder(
         unit: unit,
         kind: kind,
         dependency: dependency,
@@ -95,7 +95,7 @@ class _Meaning {
 class _PrefixMeaning extends _Meaning {
   final Map<String, _Meaning> namespace = <String, _Meaning>{};
 
-  _PrefixMeaning() : super(0, PrelinkedReferenceKind.prefix, 0, 0);
+  _PrefixMeaning() : super(0, ReferenceKind.prefix, 0, 0);
 }
 
 /**
@@ -125,15 +125,16 @@ class _Prelinker {
    * Names defined inside the library being prelinked.
    */
   final Map<String, _Meaning> privateNamespace = <String, _Meaning>{
-    '': new _Meaning(0, PrelinkedReferenceKind.classOrEnum, 0, 0)
+    '': new _Meaning(0, ReferenceKind.classOrEnum, 0, 0)
   };
 
   /**
    * List of dependencies of the library being prelinked.  This will be output
-   * to [PrelinkedLibrary.dependencies].
+   * to [LinkedLibrary.dependencies].
    */
-  final List<PrelinkedDependencyBuilder> dependencies =
-      <PrelinkedDependencyBuilder>[new PrelinkedDependencyBuilder()];
+  final List<LinkedDependencyBuilder> dependencies = <LinkedDependencyBuilder>[
+    new LinkedDependencyBuilder()
+  ];
 
   /**
    * Map from the relative URI of a dependent library to the index of the
@@ -165,10 +166,9 @@ class _Prelinker {
     int dependency = dependencies.length;
     uriToDependency[relativeUri] = dependency;
     List<String> unitUris = getUnitUris(relativeUri);
-    PrelinkedDependencyBuilder prelinkedDependency =
-        new PrelinkedDependencyBuilder(
-            uri: relativeUri, parts: unitUris.sublist(1));
-    dependencies.add(prelinkedDependency);
+    LinkedDependencyBuilder linkedDependency = new LinkedDependencyBuilder(
+        uri: relativeUri, parts: unitUris.sublist(1));
+    dependencies.add(linkedDependency);
 
     Map<String, _Meaning> aggregated = <String, _Meaning>{};
 
@@ -238,14 +238,12 @@ class _Prelinker {
     for (UnlinkedClass cls in unit.classes) {
       privateNamespace.putIfAbsent(
           cls.name,
-          () => new _Meaning(unitNum, PrelinkedReferenceKind.classOrEnum, 0,
+          () => new _Meaning(unitNum, ReferenceKind.classOrEnum, 0,
               cls.typeParameters.length));
     }
     for (UnlinkedEnum enm in unit.enums) {
-      privateNamespace.putIfAbsent(
-          enm.name,
-          () =>
-              new _Meaning(unitNum, PrelinkedReferenceKind.classOrEnum, 0, 0));
+      privateNamespace.putIfAbsent(enm.name,
+          () => new _Meaning(unitNum, ReferenceKind.classOrEnum, 0, 0));
     }
     for (UnlinkedExecutable executable in unit.executables) {
       privateNamespace.putIfAbsent(
@@ -253,27 +251,27 @@ class _Prelinker {
           () => new _Meaning(
               unitNum,
               executable.kind == UnlinkedExecutableKind.functionOrMethod
-                  ? PrelinkedReferenceKind.topLevelFunction
-                  : PrelinkedReferenceKind.topLevelPropertyAccessor,
+                  ? ReferenceKind.topLevelFunction
+                  : ReferenceKind.topLevelPropertyAccessor,
               0,
               executable.typeParameters.length));
     }
     for (UnlinkedTypedef typedef in unit.typedefs) {
       privateNamespace.putIfAbsent(
           typedef.name,
-          () => new _Meaning(unitNum, PrelinkedReferenceKind.typedef, 0,
+          () => new _Meaning(unitNum, ReferenceKind.typedef, 0,
               typedef.typeParameters.length));
     }
     for (UnlinkedVariable variable in unit.variables) {
       privateNamespace.putIfAbsent(
           variable.name,
           () => new _Meaning(
-              unitNum, PrelinkedReferenceKind.topLevelPropertyAccessor, 0, 0));
+              unitNum, ReferenceKind.topLevelPropertyAccessor, 0, 0));
       if (!(variable.isConst || variable.isFinal)) {
         privateNamespace.putIfAbsent(
             variable.name + '=',
-            () => new _Meaning(unitNum,
-                PrelinkedReferenceKind.topLevelPropertyAccessor, 0, 0));
+            () => new _Meaning(
+                unitNum, ReferenceKind.topLevelPropertyAccessor, 0, 0));
       }
     }
   }
@@ -353,16 +351,16 @@ class _Prelinker {
   }
 
   /**
-   * Produce a [PrelinkedUnit] for the given [unit], by resolving every one of
+   * Produce a [LinkedUnit] for the given [unit], by resolving every one of
    * its references.
    */
-  PrelinkedUnitBuilder linkUnit(UnlinkedUnit unit) {
+  LinkedUnitBuilder linkUnit(UnlinkedUnit unit) {
     if (unit == null) {
-      return new PrelinkedUnitBuilder();
+      return new LinkedUnitBuilder();
     }
     Map<int, Map<String, _Meaning>> prefixNamespaces =
         <int, Map<String, _Meaning>>{};
-    List<PrelinkedReferenceBuilder> references = <PrelinkedReferenceBuilder>[];
+    List<LinkedReferenceBuilder> references = <LinkedReferenceBuilder>[];
     for (int i = 0; i < unit.references.length; i++) {
       UnlinkedReference reference = unit.references[i];
       Map<String, _Meaning> namespace;
@@ -382,18 +380,18 @@ class _Prelinker {
         }
         references.add(meaning.encodeReference());
       } else {
-        references.add(new PrelinkedReferenceBuilder(
-            kind: PrelinkedReferenceKind.unresolved));
+        references
+            .add(new LinkedReferenceBuilder(kind: ReferenceKind.unresolved));
       }
     }
-    return new PrelinkedUnitBuilder(references: references);
+    return new LinkedUnitBuilder(references: references);
   }
 
   /**
-   * Form the [PrelinkedLibrary] for the [definingUnit] that was passed to the
+   * Form the [LinkedLibrary] for the [definingUnit] that was passed to the
    * constructor.
    */
-  PrelinkedLibraryBuilder prelink() {
+  LinkedLibraryBuilder prelink() {
     // Gather up the unlinked summaries for all the compilation units in the
     // library.
     List<UnlinkedUnit> units = getUnitUris(null).map(getPartCached).toList();
@@ -410,8 +408,7 @@ class _Prelinker {
     // Fill in exported names.  This must be done before filling in prefixes
     // defined in import declarations, because prefixes shouldn't shadow
     // exports.
-    List<PrelinkedExportNameBuilder> exportNames =
-        <PrelinkedExportNameBuilder>[];
+    List<LinkedExportNameBuilder> exportNames = <LinkedExportNameBuilder>[];
     computeExportNamespace(null).forEach((String name, _Meaning meaning) {
       if (!privateNamespace.containsKey(name)) {
         exportNames.add(meaning.encodeExportName(name));
@@ -432,9 +429,9 @@ class _Prelinker {
         definingUnit.imports.map(handleImport).toList();
 
     // Link each compilation unit.
-    List<PrelinkedUnitBuilder> linkedUnits = units.map(linkUnit).toList();
+    List<LinkedUnitBuilder> linkedUnits = units.map(linkUnit).toList();
 
-    return new PrelinkedLibraryBuilder(
+    return new LinkedLibraryBuilder(
         units: linkedUnits,
         dependencies: dependencies,
         importDependencies: importDependencies,
