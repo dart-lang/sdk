@@ -320,10 +320,13 @@ patch class Isolate {
       }
 
       var script = VMLibraryHooks.platformScript;
-      if (script != null) {
-        if (script.scheme == "package") {
-          script = await Isolate.resolvePackageUri(script);
-        }
+      if (script == null) {
+        // We do not have enough information to support spawning the new
+        // isolate.
+        throw new UnsupportedError("Isolate.spawn");
+      }
+      if (script.scheme == "package") {
+        script = await Isolate.resolvePackageUri(script);
       }
 
       _spawnFunction(readyPort.sendPort, script.toString(), entryPoint, message,
