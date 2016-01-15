@@ -184,6 +184,10 @@ class HtmlElement {}
     LIB_HTML,
   ];
 
+  static const List<SdkLibrary> LIBRARIES_NO_ASYNC = const [
+    LIB_CORE,
+  ];
+
   final resource.MemoryResourceProvider provider =
       new resource.MemoryResourceProvider();
 
@@ -192,8 +196,9 @@ class HtmlElement {}
    */
   InternalAnalysisContext _analysisContext;
 
-  MockSdk() {
-    LIBRARIES.forEach((_MockSdkLibrary library) {
+  MockSdk({bool dartAsync: true}) {
+    List<SdkLibrary> libraries = dartAsync ? LIBRARIES : LIBRARIES_NO_ASYNC;
+    libraries.forEach((_MockSdkLibrary library) {
       provider.newFile(library.path, library.content);
     });
   }

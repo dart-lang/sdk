@@ -43,6 +43,7 @@ main() {
   initializeTestEnvironment();
   runReflectiveTests(AnalysisDeltaTest);
   runReflectiveTests(ChangeSetTest);
+  runReflectiveTests(DisableAsyncTestCase);
   runReflectiveTests(EnclosedScopeTest);
   runReflectiveTests(LibraryImportScopeTest);
   runReflectiveTests(LibraryScopeTest);
@@ -108,7 +109,8 @@ class AnalysisContextFactory {
   static InternalAnalysisContext initContextWithCore(
       InternalAnalysisContext context) {
     DirectoryBasedDartSdk sdk = new _AnalysisContextFactory_initContextWithCore(
-        new JavaFile("/fake/sdk"));
+        new JavaFile("/fake/sdk"),
+        enableAsync: context.analysisOptions.enableAsync);
     SourceFactory sourceFactory =
         new SourceFactory([new DartUriResolver(sdk), new FileUriResolver()]);
     context.sourceFactory = sourceFactory;
@@ -177,89 +179,96 @@ class AnalysisContextFactory {
     //
     // dart:async
     //
-    CompilationUnitElementImpl asyncUnit =
-        new CompilationUnitElementImpl("async.dart");
-    Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
-    coreContext.setContents(asyncSource, "");
-    asyncUnit.librarySource = asyncUnit.source = asyncSource;
-    // Future
-    ClassElementImpl futureElement =
-        ElementFactory.classElement2("Future", ["T"]);
-    //   factory Future.value([value])
-    ConstructorElementImpl futureConstructor =
-        ElementFactory.constructorElement2(futureElement, "value");
-    futureConstructor.parameters = <ParameterElement>[
-      ElementFactory.positionalParameter2("value", provider.dynamicType)
-    ];
-    futureConstructor.factory = true;
-    futureElement.constructors = <ConstructorElement>[futureConstructor];
-    //   Future then(onValue(T value), { Function onError });
-    TypeDefiningElement futureThenR = DynamicElementImpl.instance;
-    if (context.analysisOptions.strongMode) {
-      futureThenR = ElementFactory.typeParameterWithType('R');
+    Source asyncSource;
+    LibraryElementImpl asyncLibrary;
+    if (context.analysisOptions.enableAsync) {
+      CompilationUnitElementImpl asyncUnit =
+          new CompilationUnitElementImpl("async.dart");
+      asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
+      coreContext.setContents(asyncSource, "");
+      asyncUnit.librarySource = asyncUnit.source = asyncSource;
+      // Future
+      ClassElementImpl futureElement =
+          ElementFactory.classElement2("Future", ["T"]);
+      //   factory Future.value([value])
+      ConstructorElementImpl futureConstructor =
+          ElementFactory.constructorElement2(futureElement, "value");
+      futureConstructor.parameters = <ParameterElement>[
+        ElementFactory.positionalParameter2("value", provider.dynamicType)
+      ];
+      futureConstructor.factory = true;
+      futureElement.constructors = <ConstructorElement>[futureConstructor];
+      //   Future then(onValue(T value), { Function onError });
+      TypeDefiningElement futureThenR = DynamicElementImpl.instance;
+      if (context.analysisOptions.strongMode) {
+        futureThenR = ElementFactory.typeParameterWithType('R');
+      }
+      FunctionElementImpl thenOnValue = ElementFactory.functionElement3(
+          'onValue', futureThenR, [futureElement.typeParameters[0]], null);
+
+      DartType futureRType = futureElement.type.substitute4([futureThenR.type]);
+      MethodElementImpl thenMethod = ElementFactory
+          .methodElementWithParameters(futureElement, "then", futureRType, [
+        ElementFactory.requiredParameter2("onValue", thenOnValue.type),
+        ElementFactory.namedParameter2("onError", provider.functionType)
+      ]);
+      if (!futureThenR.type.isDynamic) {
+        thenMethod.typeParameters = [futureThenR];
+      }
+      thenOnValue.enclosingElement = thenMethod;
+      thenOnValue.type = new FunctionTypeImpl(thenOnValue);
+      (thenMethod.parameters[0] as ParameterElementImpl).type =
+          thenOnValue.type;
+      thenMethod.type = new FunctionTypeImpl(thenMethod);
+
+      futureElement.methods = <MethodElement>[thenMethod];
+      // Completer
+      ClassElementImpl completerElement =
+          ElementFactory.classElement2("Completer", ["T"]);
+      ConstructorElementImpl completerConstructor =
+          ElementFactory.constructorElement2(completerElement, null);
+      completerElement.constructors = <ConstructorElement>[
+        completerConstructor
+      ];
+      // StreamSubscription
+      ClassElementImpl streamSubscriptionElement =
+          ElementFactory.classElement2("StreamSubscription", ["T"]);
+      // Stream
+      ClassElementImpl streamElement =
+          ElementFactory.classElement2("Stream", ["T"]);
+      streamElement.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement2(streamElement, null)
+      ];
+      DartType returnType = streamSubscriptionElement.type
+          .substitute4(streamElement.type.typeArguments);
+      List<DartType> parameterTypes = <DartType>[
+        ElementFactory
+            .functionElement3('onData', VoidTypeImpl.instance.element,
+                <TypeDefiningElement>[streamElement.typeParameters[0]], null)
+            .type,
+      ];
+      // TODO(brianwilkerson) This is missing the optional parameters.
+      MethodElementImpl listenMethod =
+          ElementFactory.methodElement('listen', returnType, parameterTypes);
+      streamElement.methods = <MethodElement>[listenMethod];
+      listenMethod.type = new FunctionTypeImpl(listenMethod);
+
+      FunctionElementImpl listenParamFunction = parameterTypes[0].element;
+      listenParamFunction.enclosingElement = listenMethod;
+      listenParamFunction.type = new FunctionTypeImpl(listenParamFunction);
+      ParameterElementImpl listenParam = listenMethod.parameters[0];
+      listenParam.type = listenParamFunction.type;
+
+      asyncUnit.types = <ClassElement>[
+        completerElement,
+        futureElement,
+        streamElement,
+        streamSubscriptionElement
+      ];
+      asyncLibrary = new LibraryElementImpl.forNode(
+          coreContext, AstFactory.libraryIdentifier2(["dart", "async"]));
+      asyncLibrary.definingCompilationUnit = asyncUnit;
     }
-    FunctionElementImpl thenOnValue = ElementFactory.functionElement3(
-        'onValue', futureThenR, [futureElement.typeParameters[0]], null);
-
-    DartType futureRType = futureElement.type.substitute4([futureThenR.type]);
-    MethodElementImpl thenMethod = ElementFactory
-        .methodElementWithParameters(futureElement, "then", futureRType, [
-      ElementFactory.requiredParameter2("onValue", thenOnValue.type),
-      ElementFactory.namedParameter2("onError", provider.functionType)
-    ]);
-    if (!futureThenR.type.isDynamic) {
-      thenMethod.typeParameters = [futureThenR];
-    }
-    thenOnValue.enclosingElement = thenMethod;
-    thenOnValue.type = new FunctionTypeImpl(thenOnValue);
-    (thenMethod.parameters[0] as ParameterElementImpl).type = thenOnValue.type;
-    thenMethod.type = new FunctionTypeImpl(thenMethod);
-
-    futureElement.methods = <MethodElement>[thenMethod];
-    // Completer
-    ClassElementImpl completerElement =
-        ElementFactory.classElement2("Completer", ["T"]);
-    ConstructorElementImpl completerConstructor =
-        ElementFactory.constructorElement2(completerElement, null);
-    completerElement.constructors = <ConstructorElement>[completerConstructor];
-    // StreamSubscription
-    ClassElementImpl streamSubscriptionElement =
-        ElementFactory.classElement2("StreamSubscription", ["T"]);
-    // Stream
-    ClassElementImpl streamElement =
-        ElementFactory.classElement2("Stream", ["T"]);
-    streamElement.constructors = <ConstructorElement>[
-      ElementFactory.constructorElement2(streamElement, null)
-    ];
-    DartType returnType = streamSubscriptionElement.type
-        .substitute4(streamElement.type.typeArguments);
-    List<DartType> parameterTypes = <DartType>[
-      ElementFactory
-          .functionElement3('onData', VoidTypeImpl.instance.element,
-              <TypeDefiningElement>[streamElement.typeParameters[0]], null)
-          .type,
-    ];
-    // TODO(brianwilkerson) This is missing the optional parameters.
-    MethodElementImpl listenMethod =
-        ElementFactory.methodElement('listen', returnType, parameterTypes);
-    streamElement.methods = <MethodElement>[listenMethod];
-    listenMethod.type = new FunctionTypeImpl(listenMethod);
-
-    FunctionElementImpl listenParamFunction = parameterTypes[0].element;
-    listenParamFunction.enclosingElement = listenMethod;
-    listenParamFunction.type = new FunctionTypeImpl(listenParamFunction);
-    ParameterElementImpl listenParam = listenMethod.parameters[0];
-    listenParam.type = listenParamFunction.type;
-
-    asyncUnit.types = <ClassElement>[
-      completerElement,
-      futureElement,
-      streamElement,
-      streamSubscriptionElement
-    ];
-    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstFactory.libraryIdentifier2(["dart", "async"]));
-    asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // dart:html
     //
@@ -395,7 +404,9 @@ class AnalysisContextFactory {
     HashMap<Source, LibraryElement> elementMap =
         new HashMap<Source, LibraryElement>();
     elementMap[coreSource] = coreLibrary;
-    elementMap[asyncSource] = asyncLibrary;
+    if (asyncSource != null) {
+      elementMap[asyncSource] = asyncLibrary;
+    }
     elementMap[htmlSource] = htmlLibrary;
     elementMap[mathSource] = mathLibrary;
     //
@@ -1206,6 +1217,51 @@ var v = const A.a1(0);''');
       StaticWarningCode.UNDEFINED_CLASS
     ]);
     verify([source]);
+  }
+}
+
+@reflectiveTest
+class DisableAsyncTestCase extends ResolverTestCase {
+  @override
+  void setUp() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableAsync = false;
+    resetWithOptions(options);
+  }
+
+  void test_resolve() {
+    Source source = addSource(r'''
+class C {
+  foo() {
+    bar();
+  }
+  bar() {
+    //
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+  }
+
+  void test_resolve_async() {
+    Source source = addSource(r'''
+class C {
+  Future foo() async {
+    await bar();
+    return null;
+  }
+  Future bar() {
+    return new Future.delayed(new Duration(milliseconds: 10));
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      StaticWarningCode.UNDEFINED_CLASS,
+      StaticWarningCode.UNDEFINED_CLASS,
+      StaticWarningCode.UNDEFINED_CLASS,
+      StaticWarningCode.UNDEFINED_CLASS,
+      ParserErrorCode.ASYNC_NOT_SUPPORTED
+    ]);
   }
 }
 
@@ -13606,10 +13662,11 @@ class D extends C {
     // TODO(jmesserly): this is modified code from assertErrors, which we can't
     // use directly because STRONG_MODE_* errors don't have working equality.
     List<AnalysisError> errors = analysisContext2.computeErrors(source);
-    expect(errors.map((e) => e.errorCode.name), [
-      'STRONG_MODE_INVALID_METHOD_OVERRIDE',
-      'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND'
-    ]);
+    List errorNames = errors.map((e) => e.errorCode.name).toList();
+    expect(errorNames, hasLength(2));
+    expect(errorNames, contains('STRONG_MODE_INVALID_METHOD_OVERRIDE'));
+    expect(
+        errorNames, contains('INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND'));
     verify([source]);
   }
 
@@ -16019,8 +16076,78 @@ class TypeProviderImplTest extends EngineTestCase {
     expect(provider.mapType, same(mapType));
     expect(provider.objectType, same(objectType));
     expect(provider.stackTraceType, same(stackTraceType));
+    expect(provider.streamType, same(streamType));
     expect(provider.stringType, same(stringType));
     expect(provider.symbolType, same(symbolType));
+    expect(provider.typeType, same(typeType));
+  }
+
+  void test_creation_no_async() {
+    //
+    // Create a mock library element with the types expected to be in dart:core.
+    // We cannot use either ElementFactory or TestTypeProvider (which uses
+    // ElementFactory) because we side-effect the elements in ways that would
+    // break other tests.
+    //
+    InterfaceType objectType = _classElement("Object", null).type;
+    InterfaceType boolType = _classElement("bool", objectType).type;
+    InterfaceType numType = _classElement("num", objectType).type;
+    InterfaceType doubleType = _classElement("double", numType).type;
+    InterfaceType functionType = _classElement("Function", objectType).type;
+    InterfaceType intType = _classElement("int", numType).type;
+    InterfaceType iterableType =
+        _classElement("Iterable", objectType, ["T"]).type;
+    InterfaceType listType = _classElement("List", objectType, ["E"]).type;
+    InterfaceType mapType = _classElement("Map", objectType, ["K", "V"]).type;
+    InterfaceType stackTraceType = _classElement("StackTrace", objectType).type;
+    InterfaceType stringType = _classElement("String", objectType).type;
+    InterfaceType symbolType = _classElement("Symbol", objectType).type;
+    InterfaceType typeType = _classElement("Type", objectType).type;
+    CompilationUnitElementImpl coreUnit =
+        new CompilationUnitElementImpl("core.dart");
+    coreUnit.types = <ClassElement>[
+      boolType.element,
+      doubleType.element,
+      functionType.element,
+      intType.element,
+      iterableType.element,
+      listType.element,
+      mapType.element,
+      objectType.element,
+      stackTraceType.element,
+      stringType.element,
+      symbolType.element,
+      typeType.element
+    ];
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
+        context, AstFactory.libraryIdentifier2(["dart.core"]));
+    coreLibrary.definingCompilationUnit = coreUnit;
+
+    LibraryElementImpl mockAsyncLib =
+        (context as AnalysisContextImpl).createMockAsyncLib(coreLibrary);
+    expect(mockAsyncLib.publicNamespace, isNotNull);
+
+    //
+    // Create a type provider and ensure that it can return the expected types.
+    //
+    TypeProviderImpl provider = new TypeProviderImpl(coreLibrary, mockAsyncLib);
+    expect(provider.boolType, same(boolType));
+    expect(provider.bottomType, isNotNull);
+    expect(provider.doubleType, same(doubleType));
+    expect(provider.dynamicType, isNotNull);
+    expect(provider.functionType, same(functionType));
+    InterfaceType mockFutureType = mockAsyncLib.getType('Future').type;
+    expect(provider.futureType, same(mockFutureType));
+    expect(provider.intType, same(intType));
+    expect(provider.listType, same(listType));
+    expect(provider.mapType, same(mapType));
+    expect(provider.objectType, same(objectType));
+    expect(provider.stackTraceType, same(stackTraceType));
+    expect(provider.stringType, same(stringType));
+    expect(provider.symbolType, same(symbolType));
+    InterfaceType mockStreamType = mockAsyncLib.getType('Stream').type;
+    expect(provider.streamType, same(mockStreamType));
     expect(provider.typeType, same(typeType));
   }
 
@@ -16678,12 +16805,17 @@ class TypeResolverVisitorTest {
 
 class _AnalysisContextFactory_initContextWithCore
     extends DirectoryBasedDartSdk {
-  _AnalysisContextFactory_initContextWithCore(JavaFile arg0) : super(arg0);
+  final bool enableAsync;
+  _AnalysisContextFactory_initContextWithCore(JavaFile arg0,
+      {this.enableAsync: true})
+      : super(arg0);
 
   @override
   LibraryMap initialLibraryMap(bool useDart2jsPaths) {
     LibraryMap map = new LibraryMap();
-    _addLibrary(map, DartSdk.DART_ASYNC, false, "async.dart");
+    if (enableAsync) {
+      _addLibrary(map, DartSdk.DART_ASYNC, false, "async.dart");
+    }
     _addLibrary(map, DartSdk.DART_CORE, false, "core.dart");
     _addLibrary(map, DartSdk.DART_HTML, false, "html_dartium.dart");
     _addLibrary(map, AnalysisContextFactory._DART_MATH, false, "math.dart");

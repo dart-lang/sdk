@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -1488,7 +1489,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     for (Directive directive in directivesToResolve) {
       directive.element = libraryElement;
     }
-      BuildLibraryElementUtils.patchTopLevelAccessors(libraryElement);
+    BuildLibraryElementUtils.patchTopLevelAccessors(libraryElement);
     if (libraryDirective != null) {
       _setDoc(libraryElement, libraryDirective);
     }
@@ -1717,6 +1718,11 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
+    if (!context.analysisOptions.enableAsync) {
+      AnalysisContextImpl contextImpl = context;
+      asyncLibrary = contextImpl.createMockAsyncLib(coreLibrary);
+      asyncNamespace = asyncLibrary.publicNamespace;
+    }
     TypeProvider typeProvider =
         new TypeProviderImpl.forNamespaces(coreNamespace, asyncNamespace);
     (context as InternalAnalysisContext).typeProvider = typeProvider;

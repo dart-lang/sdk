@@ -11,7 +11,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisOptionsImpl, CacheState;
+    show AnalysisOptions, AnalysisOptionsImpl, CacheState;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -31,6 +31,7 @@ import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 import '../../utils.dart';
 import '../context/abstract_context.dart';
+import '../mock_sdk.dart';
 
 main() {
   initializeTestEnvironment();
@@ -42,6 +43,7 @@ main() {
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildSourceExportClosureTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
+  runReflectiveTests(BuildTypeProviderTaskTest_noAsync);
   runReflectiveTests(ComputeConstantDependenciesTaskTest);
   runReflectiveTests(ComputeConstantValueTaskTest);
   runReflectiveTests(ComputeInferableStaticVariableDependenciesTaskTest);
@@ -993,6 +995,32 @@ library lib_d;
 @reflectiveTest
 class BuildTypeProviderTaskTest extends _AbstractDartTaskTest {
   test_perform() {
+    computeResult(AnalysisContextTarget.request, TYPE_PROVIDER,
+        matcher: isBuildTypeProviderTask);
+    // validate
+    TypeProvider typeProvider = outputs[TYPE_PROVIDER];
+    expect(typeProvider, isNotNull);
+    expect(typeProvider.boolType, isNotNull);
+    expect(typeProvider.intType, isNotNull);
+    expect(typeProvider.futureType, isNotNull);
+  }
+}
+
+@reflectiveTest
+class BuildTypeProviderTaskTest_noAsync extends _AbstractDartTaskTest {
+  void prepareAnalysisContext([AnalysisOptions options]) {
+    AnalysisOptionsImpl newOptions = new AnalysisOptionsImpl();
+    newOptions.enableAsync = false;
+    super.prepareAnalysisContext(newOptions);
+  }
+
+  void setUp() {
+    sdk = new MockSdk(dartAsync: false);
+    super.setUp();
+  }
+
+  test_perform_noAsync() {
+    expect(context, isNotNull);
     computeResult(AnalysisContextTarget.request, TYPE_PROVIDER,
         matcher: isBuildTypeProviderTask);
     // validate

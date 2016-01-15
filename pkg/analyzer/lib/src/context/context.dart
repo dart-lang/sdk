@@ -8,12 +8,14 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -24,6 +26,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
@@ -459,13 +462,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (coreElement == null) {
       throw new AnalysisException("Could not create an element for dart:core");
     }
-    Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
-    if (asyncSource == null) {
-      throw new AnalysisException("Could not create a source for dart:async");
-    }
-    LibraryElement asyncElement = computeLibraryElement(asyncSource);
-    if (asyncElement == null) {
-      throw new AnalysisException("Could not create an element for dart:async");
+    LibraryElement asyncElement;
+    if (analysisOptions.enableAsync) {
+      Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
+      if (asyncSource == null) {
+        throw new AnalysisException("Could not create a source for dart:async");
+      }
+      asyncElement = computeLibraryElement(asyncSource);
+      if (asyncElement == null) {
+        throw new AnalysisException(
+            "Could not create an element for dart:async");
+      }
+    } else {
+      asyncElement = createMockAsyncLib(coreElement);
     }
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     return _typeProvider;
@@ -673,6 +682,54 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       AnalysisEngine.instance.partitionManager.forSdk(sdk),
       _privatePartition
     ]);
+  }
+
+  /**
+   * Create a minimalistic mock dart:async library
+   * to stand in for a real one if one does not exist
+   * facilitating creation a type provider without dart:async.
+   */
+  LibraryElement createMockAsyncLib(LibraryElement coreLibrary) {
+    InterfaceType objType = coreLibrary.getType('Object').type;
+
+    ClassElement _classElement(String typeName, [List<String> parameterNames]) {
+      ClassElementImpl element =
+          new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
+      element.supertype = objType;
+      InterfaceTypeImpl type = new InterfaceTypeImpl(element);
+      element.type = type;
+      if (parameterNames != null) {
+        int count = parameterNames.length;
+        if (count > 0) {
+          List<TypeParameterElementImpl> typeParameters =
+              new List<TypeParameterElementImpl>(count);
+          List<TypeParameterTypeImpl> typeArguments =
+              new List<TypeParameterTypeImpl>(count);
+          for (int i = 0; i < count; i++) {
+            TypeParameterElementImpl typeParameter =
+                new TypeParameterElementImpl.forNode(
+                    AstFactory.identifier3(parameterNames[i]));
+            typeParameters[i] = typeParameter;
+            typeArguments[i] = new TypeParameterTypeImpl(typeParameter);
+            typeParameter.type = typeArguments[i];
+          }
+          element.typeParameters = typeParameters;
+          type.typeArguments = typeArguments;
+        }
+      }
+      return element;
+    }
+
+    InterfaceType futureType = _classElement('Future', ['T']).type;
+    InterfaceType streamType = _classElement('Stream', ['T']).type;
+    CompilationUnitElementImpl asyncUnit =
+        new CompilationUnitElementImpl("mock_async.dart");
+    asyncUnit.types = <ClassElement>[futureType.element, streamType.element];
+    LibraryElementImpl mockLib = new LibraryElementImpl.forNode(
+        this, AstFactory.libraryIdentifier2(["dart.async"]));
+    mockLib.definingCompilationUnit = asyncUnit;
+    mockLib.publicNamespace = new PublicNamespaceBuilder().build(mockLib);
+    return mockLib;
   }
 
   @override
