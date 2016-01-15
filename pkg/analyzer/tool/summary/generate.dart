@@ -261,18 +261,13 @@ class _CodeGenerator {
     out("import 'base.dart' as base;");
     out("import 'flat_buffers.dart' as fb;");
     out();
-    _idl.enums.forEach((String name, idlModel.EnumDeclaration enm) {
-      outDoc(enm.documentation);
-      out('enum $name {');
-      indent(() {
-        for (String value in enm.values) {
-          out('$value,');
-        }
-      });
-      out('}');
+    for (idlModel.EnumDeclaration enm in _idl.enums.values) {
+      _generateEnum(enm);
       out();
-    });
-    for (var cls in _idl.classes.values) {
+      _generateEnumReader(enm);
+      out();
+    }
+    for (idlModel.ClassDeclaration cls in _idl.classes.values) {
       _generateBuilder(cls);
       out();
       _generateInterface(cls);
@@ -440,6 +435,39 @@ class _CodeGenerator {
     out('}');
   }
 
+  void _generateEnum(idlModel.EnumDeclaration enm) {
+    String name = enm.name;
+    outDoc(enm.documentation);
+    out('enum $name {');
+    indent(() {
+      for (String value in enm.values) {
+        out('$value,');
+      }
+    });
+    out('}');
+  }
+
+  void _generateEnumReader(idlModel.EnumDeclaration enm) {
+    String name = enm.name;
+    String readerName = '_${name}Reader';
+    out('class $readerName extends fb.Reader<$name> {');
+    indent(() {
+      out('const $readerName() : super();');
+      out();
+      out('@override');
+      out('int get size => 4;');
+      out();
+      out('@override');
+      out('$name read(fb.BufferPointer bp) {');
+      indent(() {
+        out('int index = const fb.Int32Reader().read(bp);');
+        out('return $name.values[index];');
+      });
+      out('}');
+    });
+    out('}');
+  }
+
   void _generateImpl(idlModel.ClassDeclaration cls) {
     String name = cls.name;
     String implName = '_${name}Impl';
@@ -461,8 +489,7 @@ class _CodeGenerator {
         String fieldName = field.name;
         idlModel.FieldType type = field.type;
         String typeName = type.typeName;
-        // Prepare "readExpr" or "readCode" + "def"
-        String readExpr;
+        // Prepare "readCode" + "def"
         String readCode;
         String def = defaultValue(type);
         if (type.isList) {
@@ -483,21 +510,18 @@ class _CodeGenerator {
         } else if (typeName == 'String') {
           readCode = 'const fb.StringReader()';
         } else if (_idl.enums.containsKey(typeName)) {
-          readExpr =
-              '$typeName.values[const fb.Int32Reader().vTableGet(_bp, $index, 0)]';
+          readCode = 'const _${typeName}Reader()';
         } else if (_idl.classes.containsKey(typeName)) {
           readCode = 'const _${typeName}Reader()';
         }
-        if (readExpr == null) {
-          assert(readCode != null);
-          readExpr = '$readCode.vTableGet(_bp, $index, $def)';
-        }
+        assert(readCode != null);
         // Write the getter implementation.
         out();
         out('@override');
         String returnType = dartType(type);
         out('$returnType get $fieldName {');
         indent(() {
+          String readExpr = '$readCode.vTableGet(_bp, $index, $def)';
           out('_$fieldName ??= $readExpr;');
           out('return _$fieldName;');
         });

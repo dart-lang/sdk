@@ -23,6 +23,19 @@ enum ReferenceKind {
   unresolved,
 }
 
+class _ReferenceKindReader extends fb.Reader<ReferenceKind> {
+  const _ReferenceKindReader() : super();
+
+  @override
+  int get size => 4;
+
+  @override
+  ReferenceKind read(fb.BufferPointer bp) {
+    int index = const fb.Int32Reader().read(bp);
+    return ReferenceKind.values[index];
+  }
+}
+
 /**
  * Enum used to indicate the kind of an executable.
  */
@@ -33,6 +46,19 @@ enum UnlinkedExecutableKind {
   constructor,
 }
 
+class _UnlinkedExecutableKindReader extends fb.Reader<UnlinkedExecutableKind> {
+  const _UnlinkedExecutableKindReader() : super();
+
+  @override
+  int get size => 4;
+
+  @override
+  UnlinkedExecutableKind read(fb.BufferPointer bp) {
+    int index = const fb.Int32Reader().read(bp);
+    return UnlinkedExecutableKind.values[index];
+  }
+}
+
 /**
  * Enum used to indicate the kind of a parameter.
  */
@@ -40,6 +66,19 @@ enum UnlinkedParamKind {
   required,
   positional,
   named,
+}
+
+class _UnlinkedParamKindReader extends fb.Reader<UnlinkedParamKind> {
+  const _UnlinkedParamKindReader() : super();
+
+  @override
+  int get size => 4;
+
+  @override
+  UnlinkedParamKind read(fb.BufferPointer bp) {
+    int index = const fb.Int32Reader().read(bp);
+    return UnlinkedParamKind.values[index];
+  }
 }
 
 class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin implements LinkedDependency {
@@ -315,7 +354,7 @@ class _LinkedExportNameImpl extends Object with _LinkedExportNameMixin implement
 
   @override
   ReferenceKind get kind {
-    _kind ??= ReferenceKind.values[const fb.Int32Reader().vTableGet(_bp, 3, 0)];
+    _kind ??= const _ReferenceKindReader().vTableGet(_bp, 3, ReferenceKind.classOrEnum);
     return _kind;
   }
 }
@@ -686,7 +725,7 @@ class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements 
 
   @override
   ReferenceKind get kind {
-    _kind ??= ReferenceKind.values[const fb.Int32Reader().vTableGet(_bp, 1, 0)];
+    _kind ??= const _ReferenceKindReader().vTableGet(_bp, 1, ReferenceKind.classOrEnum);
     return _kind;
   }
 
@@ -2363,7 +2402,7 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
 
   @override
   UnlinkedExecutableKind get kind {
-    _kind ??= UnlinkedExecutableKind.values[const fb.Int32Reader().vTableGet(_bp, 6, 0)];
+    _kind ??= const _UnlinkedExecutableKindReader().vTableGet(_bp, 6, UnlinkedExecutableKind.functionOrMethod);
     return _kind;
   }
 
@@ -3244,7 +3283,7 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements Unli
 
   @override
   UnlinkedParamKind get kind {
-    _kind ??= UnlinkedParamKind.values[const fb.Int32Reader().vTableGet(_bp, 4, 0)];
+    _kind ??= const _UnlinkedParamKindReader().vTableGet(_bp, 4, UnlinkedParamKind.required);
     return _kind;
   }
 
@@ -3507,7 +3546,7 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
 
   @override
   ReferenceKind get kind {
-    _kind ??= ReferenceKind.values[const fb.Int32Reader().vTableGet(_bp, 1, 0)];
+    _kind ??= const _ReferenceKindReader().vTableGet(_bp, 1, ReferenceKind.classOrEnum);
     return _kind;
   }
 
