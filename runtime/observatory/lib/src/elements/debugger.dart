@@ -2142,17 +2142,14 @@ class DebuggerFrameElement extends ObservatoryElement {
       var frameOuter = $['frameOuter'];
       if (_current) {
         frameOuter.classes.add('current');
-        expanded = true;
-        frameOuter.classes.add('shadow');
+        _expand();
         scrollIntoView();
       } else {
         frameOuter.classes.remove('current');
         if (_pinned) {
-          expanded = true;
-          frameOuter.classes.add('shadow');
+          _expand();
         } else {
-          expanded = false;
-          frameOuter.classes.remove('shadow');
+          _unexpand();
         }
       }
       busy = false;
@@ -2164,7 +2161,6 @@ class DebuggerFrameElement extends ObservatoryElement {
   @observable bool busy = false;
 
   DebuggerFrameElement.created() : super.created();
-
 
   String makeExpandKey(String key) {
     return '${frame.function.qualifiedName}/${key}';
@@ -2181,11 +2177,87 @@ class DebuggerFrameElement extends ObservatoryElement {
 
   Script get script => frame.location.script;
 
+  int _varsTop(varsDiv) {
+    const minTop = 5;
+    if (varsDiv == null) {
+      return minTop;
+    }
+    const navbarHeight = NavBarElement.height;
+    const bottomPad = 6;
+    var parent = varsDiv.parent.getBoundingClientRect();
+    var varsHeight = varsDiv.clientHeight;
+    var maxTop = parent.height - (varsHeight + bottomPad);
+    var adjustedTop = navbarHeight - parent.top;
+    return (max(minTop, min(maxTop, adjustedTop)));
+  }
+
+  void _onScroll(event) {
+    if (!expanded) {
+      return;
+    }
+    var varsDiv = shadowRoot.querySelector('#vars');
+    if (varsDiv == null) {
+      return;
+    }
+    var currentTop = varsDiv.style.top;
+    var newTop = _varsTop(varsDiv);
+    if (currentTop != newTop) {
+      varsDiv.style.top = '${newTop}px';
+    }
+  }
+
+  void _expand() {
+    var frameOuter = $['frameOuter'];
+    expanded = true;
+    frameOuter.classes.add('shadow');
+    _subscribeToScroll();
+  }
+
+  void _unexpand() {
+    var frameOuter = $['frameOuter'];
+    expanded = false;
+    _unsubscribeToScroll();
+    frameOuter.classes.remove('shadow');
+  }
+
+  StreamSubscription _scrollSubscription;
+  StreamSubscription _resizeSubscription;
+
+  void _subscribeToScroll() {
+    if (scroller != null) {
+      if (_scrollSubscription == null) {
+        _scrollSubscription = scroller.onScroll.listen(_onScroll);
+      }
+      if (_resizeSubscription == null) {
+        _resizeSubscription = window.onResize.listen(_onScroll);
+      }
+    }
+  }
+
+  void _unsubscribeToScroll() {
+    if (_scrollSubscription != null) {
+      _scrollSubscription.cancel();
+      _scrollSubscription = null;
+    }
+    if (_resizeSubscription != null) {
+      _resizeSubscription.cancel();
+      _resizeSubscription = null;
+    }
+  }
+
   @override
   void attached() {
     super.attached();
     int windowHeight = window.innerHeight;
     scriptHeight = '${windowHeight ~/ 1.6}px';
+    if (expanded) {
+      _subscribeToScroll();
+    }
+  }
+
+  void detached() {
+    _unsubscribeToScroll();
+    super.detached();
   }
 
   void toggleExpand(var a, var b, var c) {
@@ -2195,13 +2267,10 @@ class DebuggerFrameElement extends ObservatoryElement {
     busy = true;
     frame.function.load().then((func) {
         _pinned = !_pinned;
-        var frameOuter = $['frameOuter'];
         if (_pinned) {
-          expanded = true;
-          frameOuter.classes.add('shadow');
+          _expand();
         } else {
-          expanded = false;
-          frameOuter.classes.remove('shadow');
+          _unexpand();
         }
         busy = false;
       });
