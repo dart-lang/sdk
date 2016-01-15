@@ -1675,8 +1675,8 @@ static intptr_t LastTokenOnLine(const TokenStream& tokens, intptr_t pos) {
 // and:
 //   - has the lowest token position number which satisfies the above.
 //
-// When we consider a column number, we look for the closed token
-// which intersects the desired column.  For example:
+// When we consider a column number, we look for the token which
+// intersects the desired column.  For example:
 //
 //          1         2         3
 // 12345678901234567890         0

@@ -206,6 +206,44 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   }
 }
 
+void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
+                                                const Function& func,
+                                                const Code& code) {
+  const uint8_t kSafepointKind = (RawPcDescriptors::kIcCall |
+                                  RawPcDescriptors::kUnoptStaticCall |
+                                  RawPcDescriptors::kRuntimeCall);
+  const intptr_t begin_pos = func.token_pos();
+  const intptr_t end_pos = func.end_token_pos();
+
+  const PcDescriptors& descriptors = PcDescriptors::Handle(
+      zone(), code.pc_descriptors());
+
+  intptr_t func_length = (end_pos - begin_pos) + 1;
+  GrowableArray<char> possible(func_length);
+  possible.SetLength(func_length);
+  for (int i = 0; i < func_length; i++) {
+    possible[i] = false;
+  }
+
+  PcDescriptors::Iterator iter(descriptors, kSafepointKind);
+  while (iter.MoveNext()) {
+    const intptr_t token_pos = iter.TokenPos();
+    if ((token_pos < begin_pos) || (token_pos > end_pos)) {
+      // Does not correspond to a valid source position.
+      continue;
+    }
+    intptr_t token_offset = token_pos - begin_pos;
+    possible[token_offset] = true;
+  }
+
+  JSONArray bpts(jsobj, "possibleBreakpoints");
+  for (int i = 0; i < func_length; i++) {
+    if (possible[i]) {
+      bpts.AddValue(begin_pos + i);  // Add the token position.
+    }
+  }
+}
+
 
 void SourceReport::PrintScriptTable(JSONArray* scripts) {
   for (int i = 0; i < script_table_entries_.length(); i++) {
@@ -264,6 +302,9 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   }
   if (IsReportRequested(kCoverage)) {
     PrintCoverageData(&range, func, code);
+  }
+  if (IsReportRequested(kPossibleBreakpoints)) {
+    PrintPossibleBreakpointsData(&range, func, code);
   }
 }
 

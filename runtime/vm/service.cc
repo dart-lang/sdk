@@ -2313,11 +2313,13 @@ static bool GetCoverage(Thread* thread, JSONStream* js) {
 
 static const char* kCallSitesStr = "CallSites";
 static const char* kCoverageStr = "Coverage";
+static const char* kPossibleBreakpointsStr = "PossibleBreakpoints";
 
 
 static const char* const report_enum_names[] = {
   kCallSitesStr,
   kCoverageStr,
+  kPossibleBreakpointsStr,
   NULL,
 };
 
@@ -2346,6 +2348,8 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
       report_set |= SourceReport::kCallSites;
     } else if (strcmp(*reports, kCoverageStr) == 0) {
       report_set |= SourceReport::kCoverage;
+    } else if (strcmp(*reports, kPossibleBreakpointsStr) == 0) {
+      report_set |= SourceReport::kPossibleBreakpoints;
     }
     reports++;
   }
