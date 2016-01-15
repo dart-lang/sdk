@@ -47,6 +47,8 @@ io/directory_fuzz_test: Skip
 io/socket_many_connections_test: Skip
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+typed_array_test: RuntimeError, OK  # Uses Isolate.spawn
+typed_array_int64_uint64_test: RuntimeError, OK  # Uses Isolate.spawn
 typed_data_isolate_test: SkipByDesign # This test uses dart:io
 io/*: SkipByDesign # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
