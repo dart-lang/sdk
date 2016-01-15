@@ -1084,12 +1084,11 @@ class ScriptInsetElement extends ObservatoryElement {
       hitsUnknown(e);
       return e;
     }
-    bool compiled = false;
+    bool compiled = true;
     bool hasCallInfo = false;
     bool executed = false;
     for (var range in ranges) {
       if (range['compiled']) {
-        compiled = true;
         for (var callSite in range['callSites']) {
           var callLine = line.script.tokenToLine(callSite['tokenPos']);
           if (lineNumber == callLine) {
@@ -1105,6 +1104,10 @@ class ScriptInsetElement extends ObservatoryElement {
             }
           }
         }
+      } else {
+        // If any range isn't compiled, show the line as not compiled.
+        // This is necessary so that nested functions appear to be uncompiled.
+        compiled = false;
       }
     }
     if (executed) {
