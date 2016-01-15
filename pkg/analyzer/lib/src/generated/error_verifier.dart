@@ -1285,27 +1285,27 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
     });
+
     if (notInitFinalFields.isNotEmpty) {
       foundError = true;
       AnalysisErrorWithProperties analysisError;
-      if (notInitFinalFields.length == 1) {
+      List<String> names = notInitFinalFields.map((item) => item.name).toList();
+      names.sort();
+      if (names.length == 1) {
         analysisError = _errorReporter.newErrorWithProperties(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
             constructor.returnType,
-            [notInitFinalFields[0].name]);
-      } else if (notInitFinalFields.length == 2) {
+            names);
+      } else if (names.length == 2) {
         analysisError = _errorReporter.newErrorWithProperties(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
             constructor.returnType,
-            [notInitFinalFields[0].name, notInitFinalFields[1].name]);
+            names);
       } else {
         analysisError = _errorReporter.newErrorWithProperties(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
-            constructor.returnType, [
-          notInitFinalFields[0].name,
-          notInitFinalFields[1].name,
-          notInitFinalFields.length - 2
-        ]);
+            constructor.returnType,
+            [names[0], names[1], names.length - 2]);
       }
       analysisError.setProperty(
           ErrorProperty.NOT_INITIALIZED_FIELDS, notInitFinalFields);
