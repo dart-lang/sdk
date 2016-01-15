@@ -429,6 +429,8 @@ window_nosuchmethod_test: StaticWarning
 
 [ $compiler == dart2js && $cps_ir ]
 resource_http_test: Crash # (await for(var b in r.openRead()){bytes.addAll(b);}): await for
+
+[ $compiler == dart2js && $cps_ir && $browser ]
 custom/element_upgrade_test: RuntimeError # Please triage
 js_dart_to_string_test: RuntimeError # Please triage
 indexeddb_3_test: RuntimeError # Please triage
