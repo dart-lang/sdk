@@ -372,13 +372,6 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       return null;
     }
 
-    // Don't inline methods that never return. They are usually helper functions
-    // that throw an exception.
-    if (invoke.type.isEmpty && !invoke.type.isNullable) {
-      // TODO(sra): It would be ok to inline if doing so was shrinking.
-      return null;
-    }
-
     Reference<Primitive> dartReceiver = invoke.dartReceiverReference;
     TypeMask abstractReceiver =
         dartReceiver == null ? null : abstractType(dartReceiver);
