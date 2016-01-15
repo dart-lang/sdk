@@ -604,6 +604,11 @@ class _WebSocketPerMessageDeflate {
       result.addAll(out);
     }
 
+    if (!serverSide && clientNoContextTakeover) {
+      encoder.end();
+      encoder = null;
+    }
+
     if (result.length > 4) {
       result = result.sublist(0, result.length - 4);
     }
