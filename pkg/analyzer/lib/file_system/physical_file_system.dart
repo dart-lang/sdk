@@ -114,7 +114,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
   String readAsStringSync() {
     try {
       io.File file = _entry as io.File;
-      return file.readAsStringSync();
+      return FileBasedSource.fileReadMode(file.readAsStringSync());
     } on io.FileSystemException catch (exception) {
       throw new FileSystemException(exception.path, exception.message);
     }
