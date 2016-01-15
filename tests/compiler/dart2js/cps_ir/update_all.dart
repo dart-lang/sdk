@@ -133,6 +133,7 @@ main(args) {
   runTest('operators_6.dart', update: true);
   runTest('operators_7.dart', update: true);
   runTest('operators_8.dart', update: true);
+  runTest('optimize_indexers.dart', update: true);
   runTest('runtime_types_1.dart', update: true);
   runTest('runtime_types_2.dart', update: true);
   runTest('runtime_types_3.dart', update: true);

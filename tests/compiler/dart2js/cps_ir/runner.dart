@@ -33,7 +33,20 @@ runTest(String filename, {bool update: false}) {
   var match = elementNameRegExp.firstMatch(source);
   var elementName = match?.group(1);
 
-  Map files = {TEST_MAIN_FILE: source};
+  Map files = {
+      TEST_MAIN_FILE: source,
+      'package:expect/expect.dart': '''
+          class NoInline {
+            const NoInline();
+          }
+          class TrustTypeAnnotations {
+            const TrustTypeAnnotations();
+          }
+          class AssumeDynamic {
+            const AssumeDynamic();
+          }
+       ''',
+   };
   asyncTest(() async {
     Uri uri = Uri.parse('memory:$TEST_MAIN_FILE');
     String found = null;
