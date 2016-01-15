@@ -3947,6 +3947,21 @@ class A {
         expectedSuccess: false);
   }
 
+  void test_false_expressionBody2() {
+    _resolveUnit(r'''
+class A {
+  int m() => 10 * 10;
+}
+''');
+    _updateAndValidate(
+        r'''
+class A {
+  int m() => 10 * 100;
+}
+''',
+        expectedSuccess: false);
+  }
+
   void test_false_topLevelFunction_name() {
     _resolveUnit(r'''
 a() {}

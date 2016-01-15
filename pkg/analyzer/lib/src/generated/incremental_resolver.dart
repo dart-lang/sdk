@@ -1493,12 +1493,16 @@ class PoorMansIncrementalResolver {
                 found = true;
               }
             }
-            if (oldParent is BlockFunctionBody &&
-                newParent is BlockFunctionBody) {
-              oldNode = oldParent;
-              newNode = newParent;
-              found = true;
-              break;
+            if (oldParent is FunctionBody || newParent is FunctionBody) {
+              if (oldParent is BlockFunctionBody &&
+                  newParent is BlockFunctionBody) {
+                oldNode = oldParent;
+                newNode = newParent;
+                found = true;
+                break;
+              }
+              logger.log('Failure: not a block function body.');
+              return false;
             }
           }
           if (!found) {
