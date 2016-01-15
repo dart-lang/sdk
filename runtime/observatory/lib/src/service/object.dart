@@ -395,40 +395,6 @@ abstract class HeapObject extends ServiceObject {
   }
 }
 
-abstract class Coverage {
-  // Following getters and functions will be provided by [ServiceObject].
-  String get id;
-  Isolate get isolate;
-
-  Future refreshCoverage() {
-    return refreshCallSiteData();
-  }
-
-  /// Default handler for coverage data.
-  void processCallSiteData(List coverageData) {
-    coverageData.forEach((scriptCoverage) {
-      assert(scriptCoverage['script'] != null);
-      scriptCoverage['script']._processCallSites(scriptCoverage['callSites']);
-    });
-  }
-
-  Future refreshCallSiteData() {
-    Map params = {};
-    if (this is! Isolate) {
-      params['targetId'] = id;
-    }
-    return isolate.invokeRpcNoUpgrade('_getCallSiteData', params).then(
-        (ObservableMap map) {
-          var coverage = new ServiceObject._fromMap(isolate, map);
-          assert(coverage.type == 'CodeCoverage');
-          var coverageList = coverage['coverage'];
-          assert(coverageList != null);
-          processCallSiteData(coverageList);
-          return this;
-        });
-  }
-}
-
 abstract class ServiceObjectOwner extends ServiceObject {
   /// Creates an empty [ServiceObjectOwner].
   ServiceObjectOwner._empty(ServiceObjectOwner owner) : super._empty(owner);
@@ -1135,7 +1101,7 @@ class HeapSnapshot {
 }
 
 /// State for a running isolate.
-class Isolate extends ServiceObjectOwner with Coverage {
+class Isolate extends ServiceObjectOwner {
   static const kLoggingStream = '_Logging';
   static const kExtensionStream = 'Extension';
 
@@ -1192,6 +1158,25 @@ class Isolate extends ServiceObjectOwner with Coverage {
         function.profile = null;
       }
     });
+  }
+
+  static const kCallSitesReport = '_CallSites';
+
+  Future<ServiceMap> getSourceReport(List<String> report_kinds,
+                                     [Script script,
+                                      int startPos,
+                                      int endPos]) {
+    var params = { 'reports' : report_kinds };
+    if (script != null) {
+      params['scriptId'] = script.id;
+    }
+    if (startPos != null) {
+      params['tokenPos'] = startPos;
+    }
+    if (endPos != null) {
+      params['endTokenPos'] = endPos;
+    }
+    return invokeRpc('_getSourceReport', params);
   }
 
   /// Fetches and builds the class hierarchy for this isolate. Returns the
@@ -2115,7 +2100,7 @@ class LibraryDependency {
 }
 
 
-class Library extends HeapObject with Coverage {
+class Library extends HeapObject {
   @observable String uri;
   @reflectable final dependencies = new ObservableList<LibraryDependency>();
   @reflectable final scripts = new ObservableList<Script>();
@@ -2213,7 +2198,7 @@ class Allocations {
   bool get empty => accumulated.empty && current.empty;
 }
 
-class Class extends HeapObject with Coverage {
+class Class extends HeapObject {
   @observable Library library;
 
   @observable bool isAbstract;
@@ -2592,7 +2577,7 @@ class FunctionKind {
   static FunctionKind kUNKNOWN = new FunctionKind._internal('UNKNOWN');
 }
 
-class ServiceFunction extends HeapObject with Coverage {
+class ServiceFunction extends HeapObject {
   // owner is a Library, Class, or ServiceFunction.
   @observable ServiceObject dartOwner;
   @observable Library library;
@@ -2738,7 +2723,6 @@ class ScriptLine extends Observable {
   final Script script;
   final int line;
   final String text;
-  @observable int hits;
   @observable bool possibleBpt = true;
   @observable bool breakpointResolved = false;
   @observable Set<Breakpoint> breakpoints;
@@ -2850,19 +2834,19 @@ class CallSite {
 }
 
 class CallSiteEntry {
-  final /* Class | Library */ receiverContainer;
+  final /* Class | Library */ receiver;
   final int count;
   final ServiceFunction target;
 
-  CallSiteEntry(this.receiverContainer, this.count, this.target);
+  CallSiteEntry(this.receiver, this.count, this.target);
 
   factory CallSiteEntry.fromMap(Map entryMap) {
-    return new CallSiteEntry(entryMap['receiverContainer'],
+    return new CallSiteEntry(entryMap['receiver'],
                              entryMap['count'],
                              entryMap['target']);
   }
 
-  String toString() => "CallSiteEntry(${receiverContainer.name}, $count)";
+  String toString() => "CallSiteEntry(${receiver.name}, $count)";
 }
 
 /// The location of a local variable reference in a script.
@@ -2873,10 +2857,8 @@ class LocalVarLocation {
   LocalVarLocation(this.line, this.column, this.endColumn);
 }
 
-class Script extends HeapObject with Coverage {
-  Set<CallSite> callSites = new Set<CallSite>();
+class Script extends HeapObject {
   final lines = new ObservableList<ScriptLine>();
-  final _hits = new Map<int, int>();
   @observable String uri;
   @observable String kind;
   @observable int firstTokenPos;
@@ -3030,29 +3012,6 @@ class Script extends HeapObject with Coverage {
     }
   }
 
-  void _processCallSites(List newCallSiteMaps) {
-    var mergedCallSites = new Set<CallSite>();
-    for (var callSiteMap in newCallSiteMaps) {
-      var newSite = new CallSite.fromMap(callSiteMap, this);
-      mergedCallSites.add(newSite);
-
-      var line = newSite.line;
-      var hit = newSite.aggregateCount;
-      assert(line >= 1); // Lines start at 1.
-      var oldHits = _hits[line];
-      if (oldHits != null) {
-        hit += oldHits;
-      }
-      _hits[line] = hit;
-    }
-
-    mergedCallSites.addAll(callSites);
-    callSites = mergedCallSites;
-    _applyHitsToLines();
-    // Notify any Observers that this Script's state has changed.
-    notifyChange(null);
-  }
-
   void _processSource(String source) {
     if (source == null) {
       return;
@@ -3072,16 +3031,8 @@ class Script extends HeapObject with Coverage {
       }
     }
 
-    _applyHitsToLines();
     // Notify any Observers that this Script's state has changed.
     notifyChange(null);
-  }
-
-  void _applyHitsToLines() {
-    for (var line in lines) {
-      var hits = _hits[line.line];
-      line.hits = hits;
-    }
   }
 
   void _addBreakpoint(Breakpoint bpt) {

@@ -2627,7 +2627,7 @@ RawError* Debugger::DebuggerStepCallback() {
     // There is an "interesting frame" set. Only pause at appropriate
     // locations in this frame.
     if (stepping_fp_ > frame->fp()) {
-      // We are in a callee of the frame we're interested in.
+      // We are i n a callee of the frame we're interested in.
       // Ignore this stepping break.
       return Error::null();
     } else if (frame->fp() > stepping_fp_) {

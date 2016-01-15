@@ -88,10 +88,6 @@ class ClassViewElement extends ObservatoryElement {
     return Future.wait(loads);
   }
 
-  Future refreshCoverage() {
-    return cls.refreshCoverage();
-  }
-
   onSampleBufferChange(CpuProfile sampleBuffer) {
     stackTraceTreeConfigElement.show = sampleBuffer.sampleCount > 0;
     cpuProfileTreeElement.show = sampleBuffer.sampleCount > 0;

@@ -2311,7 +2311,7 @@ static bool GetCoverage(Thread* thread, JSONStream* js) {
 }
 
 
-static const char* kCallSitesStr = "CallSites";
+static const char* kCallSitesStr = "_CallSites";
 static const char* kCoverageStr = "Coverage";
 static const char* kPossibleBreakpointsStr = "PossibleBreakpoints";
 

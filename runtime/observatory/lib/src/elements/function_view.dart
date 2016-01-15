@@ -18,8 +18,4 @@ class FunctionViewElement extends ObservatoryElement {
   Future refresh() {
     return function.reload();
   }
-
-  Future refreshCoverage() {
-    return function.refreshCoverage();
-  }
 }

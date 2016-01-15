@@ -17,6 +17,9 @@ class NavBarElement extends ObservatoryElement {
   @published bool notifyOnPause = true;
   @published bool pad = true;
 
+  // Desired nav var height in pixels.
+  static const height = 40;
+
   NavBarElement.created() : super.created();
 }
 

@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:math';
 import 'observatory_element.dart';
+import 'nav_bar.dart';
 import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
@@ -1067,28 +1068,6 @@ class InfoCommand extends DebuggerCommand {
       'Syntax: info <subcommand>\n';
 }
 
-class RefreshCoverageCommand extends DebuggerCommand {
-  RefreshCoverageCommand(Debugger debugger) : super(debugger, 'coverage', []);
-
-  Future run(List<String> args) {
-    Set<Script> scripts = debugger.stackElement.activeScripts();
-    List pending = [];
-    for (var script in scripts) {
-      pending.add(script.refreshCoverage().then((_) {
-          debugger.console.print('Refreshed coverage for ${script.name}');
-        }));
-    }
-    return Future.wait(pending);
-  }
-
-  String helpShort = 'Refresh code coverage information for current frames';
-
-  String helpLong =
-      'Refresh code coverage information for current frames.\n'
-      '\n'
-      'Syntax: refresh coverage\n\n';
-}
-
 class RefreshStackCommand extends DebuggerCommand {
   RefreshStackCommand(Debugger debugger) : super(debugger, 'stack', []);
 
@@ -1106,7 +1085,6 @@ class RefreshStackCommand extends DebuggerCommand {
 
 class RefreshCommand extends DebuggerCommand {
   RefreshCommand(Debugger debugger) : super(debugger, 'refresh', [
-      new RefreshCoverageCommand(debugger),
       new RefreshStackCommand(debugger),
   ]);
 
@@ -1896,6 +1874,7 @@ class DebuggerPageElement extends ObservatoryElement {
     var stackElement = $['stackElement'];
     debugger.stackElement = stackElement;
     stackElement.debugger = debugger;
+    stackElement.scroller = $['stackDiv'];
     debugger.console = $['console'];
     debugger.input = $['commandline'];
     debugger.input.debugger = debugger;
@@ -1952,7 +1931,8 @@ class DebuggerPageElement extends ObservatoryElement {
     var splitterDiv = $['splitterDiv'];
     var cmdDiv = $['commandDiv'];
 
-    int navbarHeight = navbarDiv.clientHeight;
+    // For now, force navbar height to 40px in the debugger.
+    int navbarHeight = NavBarElement.height;
     int splitterHeight = splitterDiv.clientHeight;
     int cmdHeight = cmdDiv.clientHeight;
 
@@ -1960,6 +1940,7 @@ class DebuggerPageElement extends ObservatoryElement {
     int fixedHeight = navbarHeight + splitterHeight + cmdHeight;
     int available = windowHeight - fixedHeight;
     int stackHeight = available ~/ 1.6;
+    navbarDiv.style.setProperty('height', '${navbarHeight}px');
     stackDiv.style.setProperty('height', '${stackHeight}px');
   }
 
@@ -1987,6 +1968,7 @@ class DebuggerPageElement extends ObservatoryElement {
 @CustomTag('debugger-stack')
 class DebuggerStackElement extends ObservatoryElement {
   @published Isolate isolate;
+  @published Element scroller;
   @observable bool hasStack = false;
   @observable bool hasMessages = false;
   @observable bool isSampled = false;
@@ -1996,6 +1978,7 @@ class DebuggerStackElement extends ObservatoryElement {
   _addFrame(List frameList, Frame frameInfo) {
     DebuggerFrameElement frameElement = new Element.tag('debugger-frame');
     frameElement.frame = frameInfo;
+    frameElement.scroller = scroller;
 
     if (frameInfo.index == currentFrame) {
       frameElement.setCurrent(true);
@@ -2122,15 +2105,6 @@ class DebuggerStackElement extends ObservatoryElement {
     }
   }
 
-  Set<Script> activeScripts() {
-    var s = new Set<Script>();
-    List frameElements = $['frameList'].children;
-    for (var frameElement in frameElements) {
-      s.add(frameElement.children[0].script);
-    }
-    return s;
-  }
-
   Future doPauseIsolate() {
     if (debugger != null) {
       return debugger.isolate.pause();
@@ -2153,6 +2127,7 @@ class DebuggerStackElement extends ObservatoryElement {
 @CustomTag('debugger-frame')
 class DebuggerFrameElement extends ObservatoryElement {
   @published Frame frame;
+  @published Element scroller;
 
   // Is this the current frame?
   bool _current = false;

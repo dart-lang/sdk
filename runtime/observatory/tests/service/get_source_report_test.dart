@@ -110,7 +110,7 @@ hasStoppedAtBreakpoint,
   expect(coverage['scripts'].length, greaterThan(1));
 
   // Multiple reports (make sure enum list parameter parsing works).
-  params = { 'reports' : ['CallSites', 'Coverage', 'PossibleBreakpoints'],
+  params = { 'reports' : ['_CallSites', 'Coverage', 'PossibleBreakpoints'],
              'scriptId' : func.location.script.id,
              'tokenPos' : func.location.tokenPos,
              'endTokenPos' : func.location.endTokenPos };
