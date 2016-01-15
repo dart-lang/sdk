@@ -3194,7 +3194,8 @@ class IfThenElseInstr : public Definition {
   }
   virtual bool AttributesEqual(Instruction* other) const {
     IfThenElseInstr* other_if_then_else = other->AsIfThenElse();
-    return comparison()->AttributesEqual(other_if_then_else->comparison()) &&
+    return (comparison()->tag() == other_if_then_else->comparison()->tag()) &&
+           comparison()->AttributesEqual(other_if_then_else->comparison()) &&
            (if_true_ == other_if_then_else->if_true_) &&
            (if_false_ == other_if_then_else->if_false_);
   }
