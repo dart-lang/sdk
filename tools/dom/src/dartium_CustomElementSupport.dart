@@ -44,7 +44,7 @@ class _VMElementUpgrader implements ElementUpgrader {
         throw new UnsupportedError('$tag is not registered.');
       }
       jsObject = unwrap_jso(element);
-    } else if (element.runtimeType == js.JsObjectImpl) {
+    } else if (element.runtimeType == js.JsObject) {
       // It's a Polymer core element (written in JS).
       jsObject = element;
     } else if (isNativeElementExtension) {
@@ -56,7 +56,7 @@ class _VMElementUpgrader implements ElementUpgrader {
     } else if (tag != null && element.localName != tag) {
       throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected native Html or Svg element to extend.');
     } else if (tag == null) {
-      throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected HtmlElement/JsObjectImpl.');
+      throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected HtmlElement/JsObject.');
     }
 
     // Remember Dart class to tagName for any upgrading done in wrap_jso.

@@ -104,9 +104,7 @@ class AnalyserNode extends AudioNode {
     return new AnalyserNode._internalWrap();
   }
 
-  factory AnalyserNode._internalWrap() {
-    return new AnalyserNode.internal_();
-  }
+  external factory AnalyserNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   AnalyserNode.internal_() : super.internal_();
@@ -262,9 +260,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
     return new AudioBufferSourceNode._internalWrap();
   }
 
-  factory AudioBufferSourceNode._internalWrap() {
-    return new AudioBufferSourceNode.internal_();
-  }
+  external factory AudioBufferSourceNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   AudioBufferSourceNode.internal_() : super.internal_();
@@ -375,9 +371,7 @@ class AudioContext extends EventTarget {
     return new AudioContext._internalWrap();
   }
 
-  factory AudioContext._internalWrap() {
-    return new AudioContext.internal_();
-  }
+  external factory AudioContext._internalWrap();
 
   @Deprecated("Internal Use Only")
   AudioContext.internal_() : super.internal_();
@@ -542,9 +536,7 @@ class AudioDestinationNode extends AudioNode {
     return new AudioDestinationNode._internalWrap();
   }
 
-  factory AudioDestinationNode._internalWrap() {
-    return new AudioDestinationNode.internal_();
-  }
+  external factory AudioDestinationNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   AudioDestinationNode.internal_() : super.internal_();
@@ -632,9 +624,7 @@ class AudioNode extends EventTarget {
     return new AudioNode._internalWrap();
   }
 
-  factory AudioNode._internalWrap() {
-    return new AudioNode.internal_();
-  }
+  external factory AudioNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   AudioNode.internal_() : super.internal_();
@@ -788,9 +778,7 @@ class AudioProcessingEvent extends Event {
     return new AudioProcessingEvent._internalWrap();
   }
 
-  factory AudioProcessingEvent._internalWrap() {
-    return new AudioProcessingEvent.internal_();
-  }
+  external factory AudioProcessingEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   AudioProcessingEvent.internal_() : super.internal_();
@@ -831,9 +819,7 @@ class AudioSourceNode extends AudioNode {
     return new AudioSourceNode._internalWrap();
   }
 
-  factory AudioSourceNode._internalWrap() {
-    return new AudioSourceNode.internal_();
-  }
+  external factory AudioSourceNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   AudioSourceNode.internal_() : super.internal_();
@@ -861,9 +847,7 @@ class BiquadFilterNode extends AudioNode {
     return new BiquadFilterNode._internalWrap();
   }
 
-  factory BiquadFilterNode._internalWrap() {
-    return new BiquadFilterNode.internal_();
-  }
+  external factory BiquadFilterNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   BiquadFilterNode.internal_() : super.internal_();
@@ -919,9 +903,7 @@ class ChannelMergerNode extends AudioNode {
     return new ChannelMergerNode._internalWrap();
   }
 
-  factory ChannelMergerNode._internalWrap() {
-    return new ChannelMergerNode.internal_();
-  }
+  external factory ChannelMergerNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   ChannelMergerNode.internal_() : super.internal_();
@@ -949,9 +931,7 @@ class ChannelSplitterNode extends AudioNode {
     return new ChannelSplitterNode._internalWrap();
   }
 
-  factory ChannelSplitterNode._internalWrap() {
-    return new ChannelSplitterNode.internal_();
-  }
+  external factory ChannelSplitterNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   ChannelSplitterNode.internal_() : super.internal_();
@@ -979,9 +959,7 @@ class ConvolverNode extends AudioNode {
     return new ConvolverNode._internalWrap();
   }
 
-  factory ConvolverNode._internalWrap() {
-    return new ConvolverNode.internal_();
-  }
+  external factory ConvolverNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   ConvolverNode.internal_() : super.internal_();
@@ -1025,9 +1003,7 @@ class DelayNode extends AudioNode {
     return new DelayNode._internalWrap();
   }
 
-  factory DelayNode._internalWrap() {
-    return new DelayNode.internal_();
-  }
+  external factory DelayNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   DelayNode.internal_() : super.internal_();
@@ -1059,9 +1035,7 @@ class DynamicsCompressorNode extends AudioNode {
     return new DynamicsCompressorNode._internalWrap();
   }
 
-  factory DynamicsCompressorNode._internalWrap() {
-    return new DynamicsCompressorNode.internal_();
-  }
+  external factory DynamicsCompressorNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   DynamicsCompressorNode.internal_() : super.internal_();
@@ -1113,9 +1087,7 @@ class GainNode extends AudioNode {
     return new GainNode._internalWrap();
   }
 
-  factory GainNode._internalWrap() {
-    return new GainNode.internal_();
-  }
+  external factory GainNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   GainNode.internal_() : super.internal_();
@@ -1147,9 +1119,7 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
     return new MediaElementAudioSourceNode._internalWrap();
   }
 
-  factory MediaElementAudioSourceNode._internalWrap() {
-    return new MediaElementAudioSourceNode.internal_();
-  }
+  external factory MediaElementAudioSourceNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaElementAudioSourceNode.internal_() : super.internal_();
@@ -1182,9 +1152,7 @@ class MediaStreamAudioDestinationNode extends AudioNode {
     return new MediaStreamAudioDestinationNode._internalWrap();
   }
 
-  factory MediaStreamAudioDestinationNode._internalWrap() {
-    return new MediaStreamAudioDestinationNode.internal_();
-  }
+  external factory MediaStreamAudioDestinationNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaStreamAudioDestinationNode.internal_() : super.internal_();
@@ -1216,9 +1184,7 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
     return new MediaStreamAudioSourceNode._internalWrap();
   }
 
-  factory MediaStreamAudioSourceNode._internalWrap() {
-    return new MediaStreamAudioSourceNode.internal_();
-  }
+  external factory MediaStreamAudioSourceNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaStreamAudioSourceNode.internal_() : super.internal_();
@@ -1250,9 +1216,7 @@ class OfflineAudioCompletionEvent extends Event {
     return new OfflineAudioCompletionEvent._internalWrap();
   }
 
-  factory OfflineAudioCompletionEvent._internalWrap() {
-    return new OfflineAudioCompletionEvent.internal_();
-  }
+  external factory OfflineAudioCompletionEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   OfflineAudioCompletionEvent.internal_() : super.internal_();
@@ -1290,9 +1254,7 @@ class OfflineAudioContext extends AudioContext {
     return new OfflineAudioContext._internalWrap();
   }
 
-  factory OfflineAudioContext._internalWrap() {
-    return new OfflineAudioContext.internal_();
-  }
+  external factory OfflineAudioContext._internalWrap();
 
   @Deprecated("Internal Use Only")
   OfflineAudioContext.internal_() : super.internal_();
@@ -1331,9 +1293,7 @@ class OscillatorNode extends AudioSourceNode {
     return new OscillatorNode._internalWrap();
   }
 
-  factory OscillatorNode._internalWrap() {
-    return new OscillatorNode.internal_();
-  }
+  external factory OscillatorNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   OscillatorNode.internal_() : super.internal_();
@@ -1414,9 +1374,7 @@ class PannerNode extends AudioNode {
     return new PannerNode._internalWrap();
   }
 
-  factory PannerNode._internalWrap() {
-    return new PannerNode.internal_();
-  }
+  external factory PannerNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   PannerNode.internal_() : super.internal_();
@@ -1561,9 +1519,7 @@ class ScriptProcessorNode extends AudioNode {
     return new ScriptProcessorNode._internalWrap();
   }
 
-  factory ScriptProcessorNode._internalWrap() {
-    return new ScriptProcessorNode.internal_();
-  }
+  external factory ScriptProcessorNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   ScriptProcessorNode.internal_() : super.internal_();
@@ -1613,9 +1569,7 @@ class WaveShaperNode extends AudioNode {
     return new WaveShaperNode._internalWrap();
   }
 
-  factory WaveShaperNode._internalWrap() {
-    return new WaveShaperNode.internal_();
-  }
+  external factory WaveShaperNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   WaveShaperNode.internal_() : super.internal_();

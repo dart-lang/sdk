@@ -614,9 +614,7 @@ class HtmlDartInterfaceGenerator(object):
     return new {0}._internalWrap();
   }}
 
-  factory {0}._internalWrap() {{
-    return new {0}.internal_();
-  }}
+  external factory {0}._internalWrap();
 
   @Deprecated("Internal Use Only")
   {0}.internal_() : super.internal_();

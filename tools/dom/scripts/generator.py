@@ -546,14 +546,10 @@ class OperationInfo(object):
         if (wrap_unwrap_type_blink(type_id, type_registry)):
           type_is_callback = self.isCallback(type_registry, type_id)
           if (dart_js_interop and type_id == 'EventListener' and
-              (self.name == 'addEventListener')):
+              self.name in ['addEventListener', 'removeEventListener']):
               # Events fired need use a JsFunction not a anonymous closure to
               # insure the event can really be removed.
-              parameters.append('wrap_event_listener(this, %s)' % p.name)
-          elif (dart_js_interop and type_id == 'EventListener' and
-              (self.name == 'removeEventListener')):
-              # Find the JsFunction that corresponds to this Dart function.
-              parameters.append('_knownListeners[this.hashCode][identityHashCode(%s)]' % p.name)
+              parameters.append('unwrap_jso(js.allowInterop(%s))' % p.name)
           elif dart_js_interop and type_id == 'FontFaceSetForEachCallback':
               # forEach is supported in the DOM for FontFaceSet as it iterates
               # over the Javascript Object the callback parameters are also

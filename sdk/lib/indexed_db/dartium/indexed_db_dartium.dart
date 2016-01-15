@@ -247,9 +247,7 @@ class CursorWithValue extends Cursor {
     return new CursorWithValue._internalWrap();
   }
 
-  factory CursorWithValue._internalWrap() {
-    return new CursorWithValue.internal_();
-  }
+  external factory CursorWithValue._internalWrap();
 
   @Deprecated("Internal Use Only")
   CursorWithValue.internal_() : super.internal_();
@@ -365,9 +363,7 @@ class Database extends EventTarget {
     return new Database._internalWrap();
   }
 
-  factory Database._internalWrap() {
-    return new Database.internal_();
-  }
+  external factory Database._internalWrap();
 
   @Deprecated("Internal Use Only")
   Database.internal_() : super.internal_();
@@ -1126,9 +1122,7 @@ class OpenDBRequest extends Request {
     return new OpenDBRequest._internalWrap();
   }
 
-  factory OpenDBRequest._internalWrap() {
-    return new OpenDBRequest.internal_();
-  }
+  external factory OpenDBRequest._internalWrap();
 
   @Deprecated("Internal Use Only")
   OpenDBRequest.internal_() : super.internal_();
@@ -1185,9 +1179,7 @@ class Request extends EventTarget {
     return new Request._internalWrap();
   }
 
-  factory Request._internalWrap() {
-    return new Request.internal_();
-  }
+  external factory Request._internalWrap();
 
   @Deprecated("Internal Use Only")
   Request.internal_() : super.internal_();
@@ -1300,9 +1292,7 @@ class Transaction extends EventTarget {
     return new Transaction._internalWrap();
   }
 
-  factory Transaction._internalWrap() {
-    return new Transaction.internal_();
-  }
+  external factory Transaction._internalWrap();
 
   @Deprecated("Internal Use Only")
   Transaction.internal_() : super.internal_();
@@ -1364,9 +1354,7 @@ class VersionChangeEvent extends Event {
     return new VersionChangeEvent._internalWrap();
   }
 
-  factory VersionChangeEvent._internalWrap() {
-    return new VersionChangeEvent.internal_();
-  }
+  external factory VersionChangeEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   VersionChangeEvent.internal_() : super.internal_();

@@ -52,12 +52,7 @@ $if JSINTEROP
     return new DomException._internalWrap();
   }
 
-  @Deprecated("Internal Use Only")
-  js.JsObject blink_jsObject;
-
-  factory DomException._internalWrap() {
-    return new DomException.internal_();
-  }
+  external factory DomException._internalWrap();
 
   @Deprecated("Internal Use Only")
   DomException.internal_() { }
