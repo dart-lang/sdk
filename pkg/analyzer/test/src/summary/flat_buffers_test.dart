@@ -109,6 +109,22 @@ class BuilderTest {
     expect(const Int32Reader().vTableGet(object, 4), 40);
   }
 
+  void test_writeList_ofFloat64() {
+    List<double> values = <double>[-1.234567, 3.4E+9, -5.6E-13, 7.8, 12.13];
+    // write
+    List<int> byteList;
+    {
+      Builder builder = new Builder(initialSize: 0);
+      Offset offset = builder.writeListFloat64(values);
+      byteList = builder.finish(offset);
+    }
+    // read and verify
+    BufferPointer root = new BufferPointer.fromBytes(byteList);
+    List<double> items = const Float64ListReader().read(root);
+    expect(items, hasLength(5));
+    expect(items, orderedEquals(values));
+  }
+
   void test_writeList_ofInt32() {
     List<int> byteList;
     {
