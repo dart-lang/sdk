@@ -9723,24 +9723,17 @@ class ResolverVisitor extends ScopedVisitor {
         return;
       }
       // prepare current variable type
-      DartType type = _promoteManager.getType(element);
-      if (type == null) {
-        type = expression.staticType;
+      DartType type = _promoteManager.getType(element) ??
+          expression.staticType ??
+          DynamicTypeImpl.instance;
+
+      potentialType ??= DynamicTypeImpl.instance;
+
+      // Check if we can promote to potentialType from type.
+      if (typeSystem.canPromoteToType(potentialType, type)) {
+        // Do promote type of variable.
+        _promoteManager.setType(element, potentialType);
       }
-      // Declared type should not be "dynamic".
-      if (type == null || type.isDynamic) {
-        return;
-      }
-      // Promoted type should not be "dynamic".
-      if (potentialType == null || potentialType.isDynamic) {
-        return;
-      }
-      // Promoted type should be more specific than declared.
-      if (!potentialType.isMoreSpecificThan(type)) {
-        return;
-      }
-      // Do promote type of variable.
-      _promoteManager.setType(element, potentialType);
     }
   }
 

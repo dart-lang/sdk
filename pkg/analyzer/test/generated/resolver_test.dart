@@ -2276,6 +2276,44 @@ class C {
   }
 }
 
+/**
+ * Tests for generic method and function resolution that do not use strong mode.
+ */
+@reflectiveTest
+class GenericMethodResolverTest extends _StaticTypeAnalyzer2TestShared {
+  void setUp() {
+    super.setUp();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableGenericMethods = true;
+    resetWithOptions(options);
+  }
+
+  void test_genericMethod_propagatedType_promotion() {
+    // Regression test for:
+    // https://github.com/dart-lang/sdk/issues/25340
+    //
+    // Note, after https://github.com/dart-lang/sdk/issues/25486 the original
+    // strong mode example won't work, as we now compute a static type and
+    // therefore discard the propagated type.
+    //
+    // So this test does not use strong mode.
+    _resolveTestUnit(r'''
+abstract class Iter {
+  List<S> map<S>(S f(x));
+}
+class C {}
+C toSpan(dynamic element) {
+  if (element is Iter) {
+    var y = element.map(toSpan);
+  }
+  return null;
+}''');
+    SimpleIdentifier y = _findIdentifier('y = ');
+    expect(y.staticType.toString(), 'dynamic');
+    expect(y.propagatedType.toString(), 'List<dynamic>');
+  }
+}
+
 @reflectiveTest
 class HintCodeTest extends ResolverTestCase {
   void fail_deadCode_statementAfterRehrow() {
@@ -13596,6 +13634,11 @@ class D extends C {
   void test_genericMethod_propagatedType_promotion() {
     // Regression test for:
     // https://github.com/dart-lang/sdk/issues/25340
+
+    // Note, after https://github.com/dart-lang/sdk/issues/25486 the original
+    // example won't work, as we now compute a static type and therefore discard
+    // the propagated type. So a new test was created that doesn't run under
+    // strong mode.
     _resolveTestUnit(r'''
 abstract class Iter {
   List/*<S>*/ map/*<S>*/(/*=S*/ f(x));
@@ -13608,8 +13651,8 @@ C toSpan(dynamic element) {
   return null;
 }''');
     SimpleIdentifier y = _findIdentifier('y = ');
-    expect(y.staticType.toString(), 'dynamic');
-    expect(y.propagatedType.toString(), 'List<dynamic>');
+    expect(y.staticType.toString(), 'List<C>');
+    expect(y.propagatedType, isNull);
   }
 
   void test_genericMethod_tearoff() {

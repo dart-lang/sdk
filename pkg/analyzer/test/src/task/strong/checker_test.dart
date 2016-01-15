@@ -1432,6 +1432,25 @@ void main() {
       '''
   });
 
+  testChecker('type promotion from dynamic', {
+    '/main.dart': r'''
+          f() {
+            dynamic x;
+            if (x is int) {
+              int y = x;
+              String z = /*severe:STATIC_TYPE_ERROR*/x;
+            }
+          }
+          g() {
+            Object x;
+            if (x is int) {
+              int y = x;
+              String z = /*severe:STATIC_TYPE_ERROR*/x;
+            }
+          }
+    '''
+  });
+
   testChecker('unary operators', {
     '/main.dart': '''
       class A {
