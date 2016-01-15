@@ -2016,7 +2016,6 @@ class DeepRecursiveVisitor implements Visitor {
     processFunctionDefinition(node);
     if (node.thisParameter != null) visit(node.thisParameter);
     node.parameters.forEach(visit);
-    visit(node.returnContinuation);
     visit(node.body);
   }
 
@@ -2377,7 +2376,6 @@ class TrampolineRecursiveVisitor extends DeepRecursiveVisitor {
     processFunctionDefinition(node);
     if (node.thisParameter != null) visit(node.thisParameter);
     node.parameters.forEach(visit);
-    visit(node.returnContinuation);
     visit(node.body);
   }
 
