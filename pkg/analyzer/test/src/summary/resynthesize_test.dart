@@ -7,7 +7,8 @@ library test.src.serialization.elements_test;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart' show Namespace;
+import 'package:analyzer/src/generated/resolver.dart'
+    show Namespace, TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
@@ -599,28 +600,13 @@ class C {
       String uri = source.uri.toString();
       linkedSummaries[uri] = getLinkedSummaryFor(original);
     }
-    LinkedLibrary getLinkedSummary(String uri) {
-      LinkedLibrary serializedLibrary = linkedSummaries[uri];
-      if (serializedLibrary == null) {
-        fail('Unexpectedly tried to get linked summary for $uri');
-      }
-      return serializedLibrary;
-    }
-    UnlinkedUnit getUnlinkedSummary(String uri) {
-      UnlinkedUnit serializedUnit = unlinkedSummaries[uri];
-      if (serializedUnit == null) {
-        fail('Unexpectedly tried to get unlinked summary for $uri');
-      }
-      return serializedUnit;
-    }
-    SummaryResynthesizer resynthesizer = new SummaryResynthesizer(
+    _TestSummaryResynthesizer resynthesizer = new _TestSummaryResynthesizer(
         null,
         analysisContext,
         analysisContext.typeProvider,
-        (_) => true,
-        getLinkedSummary,
-        getUnlinkedSummary,
-        analysisContext.sourceFactory);
+        analysisContext.sourceFactory,
+        unlinkedSummaries,
+        linkedSummaries);
     LibraryElementImpl resynthesized = resynthesizer.getLibraryElement(uri);
     // Check that no other summaries needed to be resynthesized to resynthesize
     // the library element.
@@ -1587,5 +1573,42 @@ var x;''');
 
   test_variables() {
     checkLibrary('int i; int j;');
+  }
+}
+
+class _TestSummaryResynthesizer extends SummaryResynthesizer {
+  final Map<String, UnlinkedUnit> unlinkedSummaries;
+  final Map<String, LinkedLibrary> linkedSummaries;
+
+  _TestSummaryResynthesizer(
+      SummaryResynthesizer parent,
+      AnalysisContext context,
+      TypeProvider typeProvider,
+      SourceFactory sourceFactory,
+      this.unlinkedSummaries,
+      this.linkedSummaries)
+      : super(parent, context, typeProvider, sourceFactory);
+
+  @override
+  LinkedLibrary getLinkedSummary(String uri) {
+    LinkedLibrary serializedLibrary = linkedSummaries[uri];
+    if (serializedLibrary == null) {
+      fail('Unexpectedly tried to get linked summary for $uri');
+    }
+    return serializedLibrary;
+  }
+
+  @override
+  UnlinkedUnit getUnlinkedSummary(String uri) {
+    UnlinkedUnit serializedUnit = unlinkedSummaries[uri];
+    if (serializedUnit == null) {
+      fail('Unexpectedly tried to get unlinked summary for $uri');
+    }
+    return serializedUnit;
+  }
+
+  @override
+  bool hasLibrarySummary(String uri) {
+    return true;
   }
 }

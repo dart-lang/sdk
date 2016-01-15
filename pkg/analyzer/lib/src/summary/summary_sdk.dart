@@ -10,8 +10,9 @@ import 'package:analyzer/src/context/cache.dart' show CacheEntry;
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source.dart' show Source, SourceKind;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/dart.dart'
@@ -33,6 +34,41 @@ import 'package:analyzer/task/model.dart'
     show AnalysisTarget, ResultDescriptor, TargetedResult;
 
 /**
+ * The implementation of [SummaryResynthesizer] for Dart SDK.
+ */
+class SdkSummaryResynthesizer extends SummaryResynthesizer {
+  final SdkBundle bundle;
+  final Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
+  final Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{};
+
+  SdkSummaryResynthesizer(AnalysisContext context, TypeProvider typeProvider,
+      SourceFactory sourceFactory, this.bundle)
+      : super(null, context, typeProvider, sourceFactory) {
+    for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
+      unlinkedSummaries[bundle.unlinkedUnitUris[i]] = bundle.unlinkedUnits[i];
+    }
+    for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
+      linkedSummaries[bundle.linkedLibraryUris[i]] = bundle.linkedLibraries[i];
+    }
+  }
+
+  @override
+  LinkedLibrary getLinkedSummary(String uri) {
+    return linkedSummaries[uri];
+  }
+
+  @override
+  UnlinkedUnit getUnlinkedSummary(String uri) {
+    return unlinkedSummaries[uri];
+  }
+
+  @override
+  bool hasLibrarySummary(String uri) {
+    return uri.startsWith('dart:');
+  }
+}
+
+/**
  * An [SdkAnalysisContext] for Dart SDK with a summary [SdkBundle].
  */
 class SummarySdkAnalysisContext extends SdkAnalysisContext {
@@ -46,14 +82,8 @@ class SummarySdkAnalysisContext extends SdkAnalysisContext {
   @override
   bool aboutToComputeResult(CacheEntry entry, ResultDescriptor result) {
     if (resynthesizer == null) {
-      resynthesizer = new SummaryResynthesizer(
-          null,
-          this,
-          typeProvider,
-          (String uri) => uri.startsWith('dart:'),
-          _getLinkedSummary,
-          _getUnlinkedSummary,
-          sourceFactory);
+      resynthesizer = new SdkSummaryResynthesizer(
+          this, typeProvider, sourceFactory, bundle);
       _buildCoreLibrary();
       _buildAsyncLibrary();
     }
@@ -110,24 +140,6 @@ class SummarySdkAnalysisContext extends SdkAnalysisContext {
   void _buildCoreLibrary() {
     LibraryElement library = resynthesizer.getLibraryElement('dart:core');
     typeProvider.initializeCore(library);
-  }
-
-  LinkedLibrary _getLinkedSummary(String uri) {
-    for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
-      if (bundle.linkedLibraryUris[i] == uri) {
-        return bundle.linkedLibraries[i];
-      }
-    }
-    throw new StateError('Unable to find linked summary for $uri');
-  }
-
-  UnlinkedUnit _getUnlinkedSummary(String uri) {
-    for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
-      if (bundle.unlinkedUnitUris[i] == uri) {
-        return bundle.unlinkedUnits[i];
-      }
-    }
-    throw new StateError('Unable to find unlinked summary for $uri');
   }
 }
 

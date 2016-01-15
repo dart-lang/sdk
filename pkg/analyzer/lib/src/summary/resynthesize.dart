@@ -15,48 +15,16 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/format.dart';
 
 /**
- * Callback used by [SummaryResynthesizer] to obtain the linked summary for
- * a given URI.
- */
-typedef LinkedLibrary GetLinkedSummaryCallback(String uri);
-
-/**
- * Callback used by [SummaryResynthesizer] to obtain the unlinked summary for a
- * given URI.
- */
-typedef UnlinkedUnit GetUnlinkedSummaryCallback(String uri);
-
-/**
- * Callback used by [SummaryResynthesizer] to check whether it can access
- * summaries of the library with the given [uri].
- */
-typedef bool HasLibrarySummaryCallback(String uri);
-
-/**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element
  * model from summaries.
  */
-class SummaryResynthesizer extends ElementResynthesizer {
+abstract class SummaryResynthesizer extends ElementResynthesizer {
   /**
-   * The parent [SummaryResynthesizer] which is asked to resynthesis elements
-   * before this resynthesizer attempts to do this. Can be `null`.
+   * The parent [SummaryResynthesizer] which is asked to resynthesize elements
+   * and get summaries before this resynthesizer attempts to do this.
+   * Can be `null`.
    */
   final SummaryResynthesizer parent;
-
-  /**
-   * Callback used to check whether summaries for a given URI can be accessed.
-   */
-  final HasLibrarySummaryCallback hasLibrarySummary;
-
-  /**
-   * Callback used to obtain the linked summary for a given URI.
-   */
-  final GetLinkedSummaryCallback getLinkedSummary;
-
-  /**
-   * Callback used to obtain the unlinked summary for a given URI.
-   */
-  final GetUnlinkedSummaryCallback getUnlinkedSummary;
 
   /**
    * Source factory used to convert URIs to [Source] objects.
@@ -89,13 +57,7 @@ class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, LibraryElement> _resynthesizedLibraries =
       <String, LibraryElement>{};
 
-  SummaryResynthesizer(
-      this.parent,
-      AnalysisContext context,
-      this.typeProvider,
-      this.hasLibrarySummary,
-      this.getLinkedSummary,
-      this.getUnlinkedSummary,
+  SummaryResynthesizer(this.parent, AnalysisContext context, this.typeProvider,
       this.sourceFactory)
       : super(context);
 
@@ -109,10 +71,8 @@ class SummaryResynthesizer extends ElementResynthesizer {
     List<String> components = location.components;
     String libraryUri = components[0];
     // Ask the parent resynthesizer.
-    if (parent != null) {
-      if (parent.hasLibrarySummary(libraryUri)) {
-        return parent.getElement(location);
-      }
+    if (parent != null && parent._hasLibrarySummary(libraryUri)) {
+      return parent.getElement(location);
     }
     // Resynthesize locally.
     if (components.length == 1) {
@@ -143,19 +103,19 @@ class SummaryResynthesizer extends ElementResynthesizer {
    * hasn't been resynthesized already.
    */
   LibraryElement getLibraryElement(String uri) {
-    if (parent != null && parent.hasLibrarySummary(uri)) {
+    if (parent != null && parent._hasLibrarySummary(uri)) {
       return parent.getLibraryElement(uri);
     }
     return _resynthesizedLibraries.putIfAbsent(uri, () {
-      LinkedLibrary serializedLibrary = getLinkedSummary(uri);
+      LinkedLibrary serializedLibrary = _getLinkedSummaryOrThrow(uri);
       List<UnlinkedUnit> serializedUnits = <UnlinkedUnit>[
-        getUnlinkedSummary(uri)
+        _getUnlinkedSummaryOrThrow(uri)
       ];
       Source librarySource = _getSource(uri);
       for (String part in serializedUnits[0].publicNamespace.parts) {
         Source partSource = sourceFactory.resolveUri(librarySource, part);
         String partAbsUri = partSource.uri.toString();
-        serializedUnits.add(getUnlinkedSummary(partAbsUri));
+        serializedUnits.add(_getUnlinkedSummaryOrThrow(partAbsUri));
       }
       _LibraryResynthesizer libraryResynthesizer = new _LibraryResynthesizer(
           this, serializedLibrary, serializedUnits, librarySource);
@@ -166,10 +126,72 @@ class SummaryResynthesizer extends ElementResynthesizer {
   }
 
   /**
+   * Return the [LinkedLibrary] for the given [uri] or `null` if it could not
+   * be found.  Caller has already checked that `parent.hasLibrarySummary(uri)`
+   * returns `false`.
+   */
+  LinkedLibrary getLinkedSummary(String uri);
+
+  /**
+   * Return the [UnlinkedUnit] for the given [uri] or `null` if it could not
+   * be found.  Caller has already checked that `parent.hasLibrarySummary(uri)`
+   * returns `false`.
+   */
+  UnlinkedUnit getUnlinkedSummary(String uri);
+
+  /**
+   * Return `true` if this resynthesizer can provide summaries of the libraries
+   * with the given [uri].  Caller has already checked that
+   * `parent.hasLibrarySummary(uri)` returns `false`.
+   */
+  bool hasLibrarySummary(String uri);
+
+  /**
+   * Return the [LinkedLibrary] for the given [uri] or throw [StateError] if it
+   * could not be found.
+   */
+  LinkedLibrary _getLinkedSummaryOrThrow(String uri) {
+    if (parent != null && parent._hasLibrarySummary(uri)) {
+      return parent._getLinkedSummaryOrThrow(uri);
+    }
+    LinkedLibrary summary = getLinkedSummary(uri);
+    if (summary != null) {
+      return summary;
+    }
+    throw new StateError('Unable to find linked summary: $uri');
+  }
+
+  /**
    * Get the [Source] object for the given [uri].
    */
   Source _getSource(String uri) {
     return _sources.putIfAbsent(uri, () => sourceFactory.forUri(uri));
+  }
+
+  /**
+   * Return the [UnlinkedUnit] for the given [uri] or throw [StateError] if it
+   * could not be found.
+   */
+  UnlinkedUnit _getUnlinkedSummaryOrThrow(String uri) {
+    if (parent != null && parent._hasLibrarySummary(uri)) {
+      return parent._getUnlinkedSummaryOrThrow(uri);
+    }
+    UnlinkedUnit summary = getUnlinkedSummary(uri);
+    if (summary != null) {
+      return summary;
+    }
+    throw new StateError('Unable to find unlinked summary: $uri');
+  }
+
+  /**
+   * Return `true` if this resynthesizer can provide summaries of the libraries
+   * with the given [uri].
+   */
+  bool _hasLibrarySummary(String uri) {
+    if (parent != null && parent._hasLibrarySummary(uri)) {
+      return true;
+    }
+    return hasLibrarySummary(uri);
   }
 }
 
@@ -1054,7 +1076,7 @@ class _LibraryResynthesizer {
     String partUri;
     if (unit != 0) {
       UnlinkedUnit referencedLibraryDefiningUnit =
-          summaryResynthesizer.getUnlinkedSummary(referencedLibraryUri);
+          summaryResynthesizer._getUnlinkedSummaryOrThrow(referencedLibraryUri);
       String uri =
           referencedLibraryDefiningUnit.publicNamespace.parts[unit - 1];
       Source partSource = summaryResynthesizer.sourceFactory
