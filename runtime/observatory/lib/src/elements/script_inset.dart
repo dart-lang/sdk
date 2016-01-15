@@ -386,6 +386,7 @@ class ScriptInsetElement extends ObservatoryElement {
 
   Map<int, List<ServiceMap>> _rangeMap = {};
   Set _callSites = new Set<CallSite>();
+  Set _possibleBreakpointLines = new Set<int>();
 
   var annotations = [];
   var annotationsCursor;
@@ -434,6 +435,9 @@ class ScriptInsetElement extends ObservatoryElement {
   }
 
   void _onScroll(event) {
+    if (_refreshButton == null) {
+      return;
+    }
     var currentTop = _refreshButton.style.top;
     var newTop = _refreshButtonTop();
     if (currentTop != newTop) {
@@ -532,7 +536,9 @@ class ScriptInsetElement extends ObservatoryElement {
   // Build _rangeMap and _callSites from a source report.
   Future _refreshSourceReport() async {
     var sourceReport = await script.isolate.getSourceReport(
-        [Isolate.kCallSitesReport], script, startPos, endPos);
+        [Isolate.kCallSitesReport, Isolate.kPossibleBreakpointsReport],
+        script, startPos, endPos);
+    _possibleBreakpointLines = getPossibleBreakpointLines(sourceReport, script);
     _rangeMap.clear();
     _callSites.clear();
     for (var range in sourceReport['ranges']) {
@@ -546,10 +552,12 @@ class ScriptInsetElement extends ObservatoryElement {
           rangeList.add(range);
         }
       }
-      var rangeCallSites = range['callSites'];
-      if (rangeCallSites != null) {
-        for (var callSiteMap in rangeCallSites) {
-          _callSites.add(new CallSite.fromMap(callSiteMap, script));
+      if (range['compiled']) {
+        var rangeCallSites = range['callSites'];
+        if (rangeCallSites != null) {
+          for (var callSiteMap in rangeCallSites) {
+            _callSites.add(new CallSite.fromMap(callSiteMap, script));
+          }
         }
       }
     }
@@ -994,35 +1002,38 @@ class ScriptInsetElement extends ObservatoryElement {
 
   Element lineBreakpointElement(ScriptLine line) {
     var e = new DivElement();
-    var busy = false;
-    if (line == null || !line.possibleBpt) {
-      e.classes.add("emptyBreakpoint");
+    if (line == null || !_possibleBreakpointLines.contains(line.line)) {
       e.classes.add('noCopy');
+      e.classes.add("emptyBreakpoint");
       e.text = nbsp;
       return e;
     }
+
     e.text = 'B';
-    update() {
+    var busy = false;
+    void update() {
       e.classes.clear();
       e.classes.add('noCopy');
-
-      if (!line.possibleBpt) {
-        e.classes.add("emptyBreakpoint");
-        e.text = nbsp;
-      } else if (busy) {
+      if (busy) {
         e.classes.add("busyBreakpoint");
-      } else {
-        if (line.breakpoints != null) {
-          if (line.breakpointResolved) {
-            e.classes.add("resolvedBreakpoint");
-          } else {
-            e.classes.add("unresolvedBreakpoint");
+      } else if (line.breakpoints != null) {
+        bool resolved = false;
+        for (var bpt in line.breakpoints) {
+          if (bpt.resolved) {
+            resolved = true;
+            break;
           }
-        } else {
-          e.classes.add("possibleBreakpoint");
         }
+        if (resolved) {
+          e.classes.add("resolvedBreakpoint");
+        } else {
+          e.classes.add("unresolvedBreakpoint");
+        }
+      } else {
+        e.classes.add("possibleBreakpoint");
       }
     }
+
     line.changes.listen((_) => update());
     e.onClick.listen((event) {
       if (busy) {

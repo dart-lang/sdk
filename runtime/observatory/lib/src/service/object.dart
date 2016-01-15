@@ -1161,6 +1161,7 @@ class Isolate extends ServiceObjectOwner {
   }
 
   static const kCallSitesReport = '_CallSites';
+  static const kPossibleBreakpointsReport = 'PossibleBreakpoints';
 
   Future<ServiceMap> getSourceReport(List<String> report_kinds,
                                      [Script script,
@@ -1521,34 +1522,15 @@ class Isolate extends ServiceObjectOwner {
     }
   }
 
-  Future<ServiceObject> addBreakpoint(
-      Script script, int line, [int col]) async {
-    // TODO(turnidge): Pass line as an int instead of a string.
-    try {
-      Map params = {
-        'scriptId': script.id,
-        'line': line.toString(),
-      };
-      if (col != null) {
-        params['column'] = col.toString();
-      }
-      Breakpoint bpt = await invokeRpc('addBreakpoint', params);
-      if (bpt.resolved && script.loaded) {
-        SourceLocation loc = bpt.location;
-        if (script.tokenToLine(loc.tokenPos) != line) {
-          script.getLine(line).possibleBpt = false;
-        }
-      }
-      return bpt;
-    } on ServerRpcException catch(e) {
-      if (e.code == ServerRpcException.kCannotAddBreakpoint) {
-        // Unable to set a breakpoint at the desired line.
-        if (script.loaded) {
-          script.getLine(line).possibleBpt = false;
-        }
-      }
-      rethrow;
+  Future<ServiceObject> addBreakpoint(Script script, int line, [int col]) {
+    Map params = {
+      'scriptId': script.id,
+      'line': line,
+    };
+    if (col != null) {
+      params['column'] = col;
     }
+    return invokeRpc('addBreakpoint', params);
   }
 
   Future<ServiceObject> addBreakpointByScriptUri(
@@ -2723,20 +2705,21 @@ class ScriptLine extends Observable {
   final Script script;
   final int line;
   final String text;
-  @observable bool possibleBpt = true;
-  @observable bool breakpointResolved = false;
   @observable Set<Breakpoint> breakpoints;
 
-  bool get isBlank {
-    // Compute isBlank on demand.
-    if (_isBlank == null) {
-      _isBlank = text.trim().isEmpty;
-    }
-    return _isBlank;
-  }
-  bool _isBlank;
+  ScriptLine(this.script, this.line, this.text);
 
-  bool get isTrivialLine => !possibleBpt;
+  bool get isBlank {
+    return text.isEmpty || text.trim().isEmpty;
+  }
+
+  bool _isTrivial = null;
+  bool get isTrivial {
+    if (_isTrivial == null) {
+      _isTrivial = _isTrivialLine(text);
+    }
+    return _isTrivial;
+  }
 
   static bool _isTrivialToken(String token) {
     if (token == 'else') {
@@ -2773,16 +2756,11 @@ class ScriptLine extends Observable {
     return true;
   }
 
-  ScriptLine(this.script, this.line, this.text) {
-    possibleBpt = !_isTrivialLine(text);
-  }
-
   void addBreakpoint(Breakpoint bpt) {
     if (breakpoints == null) {
       breakpoints = new Set<Breakpoint>();
     }
     breakpoints.add(bpt);
-    breakpointResolved = breakpointResolved || bpt.resolved;
   }
 
   void removeBreakpoint(Breakpoint bpt) {
@@ -2790,7 +2768,6 @@ class ScriptLine extends Observable {
     breakpoints.remove(bpt);
     if (breakpoints.isEmpty) {
       breakpoints = null;
-      breakpointResolved = false;
     }
   }
 }
@@ -3003,13 +2980,6 @@ class Script extends HeapObject {
         _tokenToCol[tokenOffset] = colNumber;
       }
     }
-
-    for (var line in lines) {
-      // Remove possible breakpoints on lines with no tokens.
-      if (!lineSet.contains(line.line)) {
-        line.possibleBpt = false;
-      }
-    }
   }
 
   void _processSource(String source) {
@@ -3125,7 +3095,7 @@ class Script extends HeapObject {
 
     if (line == lastLine) {
       // Only one line.
-      if (!getLine(line).isTrivialLine) {
+      if (!getLine(line).isTrivial) {
         // TODO(johnmccutchan): end token pos -> column can lie for snapshotted
         // code. e.g.:
         // io_sink.dart source line 23 ends at column 39
@@ -3141,7 +3111,7 @@ class Script extends HeapObject {
     }
 
     // Scan first line.
-    if (!getLine(line).isTrivialLine) {
+    if (!getLine(line).isTrivial) {
       lineContents = getLine(line).text.substring(column);
       r.addAll(scanLineForLocalVariableLocations(pattern,
                                                   name,
@@ -3152,7 +3122,7 @@ class Script extends HeapObject {
 
     // Scan middle lines.
     while (line < (lastLine - 1)) {
-      if (getLine(line).isTrivialLine) {
+      if (getLine(line).isTrivial) {
         line++;
         continue;
       }
@@ -3166,7 +3136,7 @@ class Script extends HeapObject {
     }
 
     // Scan last line.
-    if (!getLine(line).isTrivialLine) {
+    if (!getLine(line).isTrivial) {
       // TODO(johnmccutchan): end token pos -> column can lie for snapshotted
       // code. e.g.:
       // io_sink.dart source line 23 ends at column 39
@@ -3973,6 +3943,48 @@ class ServiceMessage extends ServiceObject {
     this.handler = map['handler'];
     this.location = map['location'];
   }
+}
+
+
+// Helper function to extract possible breakpoint locations from a
+// SourceReport for some script.
+Set<int> getPossibleBreakpointLines(ServiceMap report, Script script) {
+  var result = new Set<int>();
+  int scriptIndex;
+  int numScripts = report['scripts'].length;
+  for (scriptIndex = 0; scriptIndex < numScripts; scriptIndex++) {
+    if (report['scripts'][scriptIndex].id == script.id) {
+      break;
+    }
+  }
+  if (scriptIndex == numScripts) {
+    return result;
+  }
+  var ranges = report['ranges'];
+  if (ranges != null) {
+    for (var range in ranges) {
+      if (range['scriptIndex'] != scriptIndex) {
+        continue;
+      }
+      if (range['compiled']) {
+        var possibleBpts = range['possibleBreakpoints'];
+        if (possibleBpts != null) {
+          for (var tokenPos in possibleBpts) {
+            result.add(script.tokenToLine(tokenPos));
+          }
+        }
+      } else {
+        int startLine = script.tokenToLine(range['startPos']);
+        int endLine = script.tokenToLine(range['endPos']);
+        for (int line = startLine; line <= endLine; line++) {
+          if (!script.getLine(line).isTrivial) {
+            result.add(line);
+          }
+        }
+      }
+    }
+  }
+  return result;
 }
 
 
