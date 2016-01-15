@@ -322,7 +322,7 @@ main() {
 
   });
 
-  group('new JsObject()', () {
+  group('new_JsObject', () {
 
     test('new Foo()', () {
       var foo = new JsObject(context['Foo'], [42]);
@@ -649,7 +649,7 @@ main() {
 
   });
 
-  group('Dart functions', () {
+  group('Dart_functions', () {
     test('invoke Dart callback from JS', () {
       expect(() => context.callMethod('invokeCallback'), throws);
 
@@ -752,7 +752,7 @@ main() {
     });
   });
 
-  group('JsObject methods', () {
+  group('JsObject_methods', () {
 
     test('hashCode and ==', () {
       final o1 = context['Object'];
