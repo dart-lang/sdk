@@ -940,14 +940,14 @@ class JavaScriptBackend extends Backend {
 
   final Map<String, Set<ClassElement>> interceptedClassesCache =
       new Map<String, Set<ClassElement>>();
+  final Set<ClassElement> _noClasses = new Set<ClassElement>();
 
-  /**
-   * Returns a set of interceptor classes that contain a member named
-   * [name]. Returns [:null:] if there is no class.
-   */
+  /// Returns a set of interceptor classes that contain a member named [name]
+  ///
+  /// Returns an empty set if there is no class. Do not modify the returned set.
   Set<ClassElement> getInterceptedClassesOn(String name) {
     Set<Element> intercepted = interceptedElements[name];
-    if (intercepted == null) return null;
+    if (intercepted == null) return _noClasses;
     return interceptedClassesCache.putIfAbsent(name, () {
       // Populate the cache by running through all the elements and
       // determine if the given selector applies to them.
