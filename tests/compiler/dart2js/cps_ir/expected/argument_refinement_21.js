@@ -16,15 +16,6 @@ function() {
   P.print(v0);
   if (!v0)
     throw H.wrapException(H.argumentErrorValue(y));
-  if (x < y)
-    v0 = -1;
-  else if (x > y)
-    v0 = 1;
-  else if (x === y) {
-    v0 = x === 0;
-    v0 = v0 ? (y === 0 ? 1 / y < 0 : y < 0) === (v0 ? 1 / x < 0 : x < 0) ? 0 : (v0 ? 1 / x < 0 : x < 0) ? -1 : 1 : 0;
-  } else
-    v0 = isNaN(x) ? isNaN(y) ? 0 : 1 : -1;
-  P.print(v0);
+  P.print(x < y ? -1 : x > y ? 1 : x === y ? x === 0 ? 1 / x < 0 === (y === 0 ? 1 / y < 0 : y < 0) ? 0 : 1 / x < 0 ? -1 : 1 : 0 : isNaN(x) ? isNaN(y) ? 0 : 1 : -1);
   P.print(true);
 }

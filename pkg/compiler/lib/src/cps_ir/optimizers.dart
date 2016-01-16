@@ -25,6 +25,7 @@ export 'gvn.dart' show GVN;
 export 'inline.dart' show Inliner;
 export 'eagerly_load_statics.dart' show EagerlyLoadStatics;
 export 'loop_invariant_branch.dart' show LoopInvariantBranchMotion;
+export 'duplicate_branch.dart' show DuplicateBranchEliminator;
 export 'parent_visitor.dart' show ParentVisitor;
 
 /// An optimization pass over the CPS IR.

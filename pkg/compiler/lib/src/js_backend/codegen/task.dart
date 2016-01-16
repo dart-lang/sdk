@@ -226,6 +226,8 @@ class CpsFunctionCompiler implements FunctionCompiler {
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
       applyCpsPass(new EagerlyLoadStatics(), cpsFunction);
       applyCpsPass(new GVN(compiler, typeSystem), cpsFunction);
+      applyCpsPass(new DuplicateBranchEliminator(), cpsFunction);
+      applyCpsPass(new ShrinkingReducer(), cpsFunction);
       applyCpsPass(new UpdateRefinements(typeSystem), cpsFunction);
       applyCpsPass(new BoundsChecker(typeSystem, compiler.world), cpsFunction);
       applyCpsPass(new LoopInvariantBranchMotion(), cpsFunction);
