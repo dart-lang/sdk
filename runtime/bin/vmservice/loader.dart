@@ -64,12 +64,16 @@ void _loadFile(SendPort sp, int id, Uri uri) {
 
 void _loadDataUri(SendPort sp, int id, Uri uri) {
   try {
-    if (uri.data.mimeType != "application/dart") {
-      throw "MIME-type must be application/dart";
+    var mime = uri.data.mimeType;
+    if ((mime != "application/dart") &&
+        (mime != "text/plain")) {
+      throw "MIME-type must be application/dart or text/plain: $mime given.";
     }
-    if (uri.data.charset != "utf-8") {
+    var charset = uri.data.charset;
+    if ((charset != "utf-8") &&
+        (charset != "US-ASCII")) {
       // The C++ portion of the embedder assumes UTF-8.
-      throw "Only utf-8 encoding is supported";
+      throw "Only utf-8 or US-ASCII encodings are supported: $charset given.";
     }
     _sendResourceResponse(sp, id, uri.data.contentAsBytes());
   } catch (e) {
@@ -262,7 +266,7 @@ _loadPackagesFile(SendPort sp, bool traceLoading, Uri packagesFile) async {
     if (traceLoading) {
       _log("Error loading packages: $e\n$s");
     }
-    sp.send("Uncaught error ($e) loading packags file.");
+    sp.send("Uncaught error ($e) loading packages file.");
   }
 }
 
@@ -364,6 +368,26 @@ Future<bool> _loadHttpPackagesFile(SendPort sp,
   return false;
 }
 
+_loadPackagesData(sp, traceLoading, resource){
+  try {
+    var data = resource.data;
+    var mime = data.mimeType;
+    if (mime != "text/plain") {
+      throw "MIME-type must be text/plain: $mime given.";
+    }
+    var charset = data.charset;
+    if ((charset != "utf-8") &&
+        (charset != "US-ASCII")) {
+      // The C++ portion of the embedder assumes UTF-8.
+      throw "Only utf-8 or US-ASCII encodings are supported: $charset given.";
+    }
+    _parsePackagesFile(sp, traceLoading, resource, data.contentAsBytes());
+  } catch (e) {
+    sp.send("Uncaught error ($e) loading packages data.");
+  }
+}
+
+
 _handlePackagesRequest(SendPort sp,
                        bool traceLoading,
                        int id,
@@ -402,6 +426,8 @@ _handlePackagesRequest(SendPort sp,
         if (!exists) {
           sp.send("Packages file '$resource' not found.");
         }
+      } else if (resource.scheme == 'data') {
+        _loadPackagesData(sp, traceLoading, resource);
       } else {
         sp.send("Unknown scheme (${resource.scheme}) for package file at "
                 "'$resource'.");
