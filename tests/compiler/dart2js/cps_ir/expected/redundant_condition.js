@@ -26,12 +26,10 @@
 // action(v) => print(v);
 
 function() {
-  var a = V.nextNumber(), v0 = typeof a === "number" && Math.floor(a) === a, v1;
-  if (!v0)
+  var a = V.nextNumber(), v0;
+  if (!(typeof a === "number" && Math.floor(a) === a))
     throw H.wrapException("error 1");
-  v1 = a + 5;
-  V.action(v1);
-  if (!v0)
-    throw H.wrapException("error 1");
-  V.action(v1);
+  v0 = a + 5;
+  V.action(v0);
+  V.action(v0);
 }
