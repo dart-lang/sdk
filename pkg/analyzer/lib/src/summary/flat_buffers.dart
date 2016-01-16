@@ -62,8 +62,6 @@ class BufferPointer {
 
   int _getUint32([int delta = 0]) =>
       _buffer.getUint32(_offset + delta, Endianness.LITTLE_ENDIAN);
-  int _getUint64([int delta = 0]) =>
-      _buffer.getUint64(_offset + delta, Endianness.LITTLE_ENDIAN);
 
   /**
    * If the [byteList] is already a [Uint8List] return it.
@@ -314,7 +312,7 @@ class Builder {
     _prepare(8, 1 + values.length);
     Offset result = new Offset(_tail);
     int tail = _tail;
-    _setUint64AtTail(_buf, tail, values.length);
+    _setUint32AtTail(_buf, tail, values.length);
     tail -= 8;
     for (double value in values) {
       _setFloat64AtTail(_buf, tail, value);
@@ -418,10 +416,6 @@ class Builder {
 
   static void _setUint32AtTail(ByteData _buf, int tail, int x) {
     _buf.setUint32(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
-  }
-
-  static void _setUint64AtTail(ByteData _buf, int tail, int x) {
-    _buf.setUint64(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
   }
 }
 
@@ -580,7 +574,7 @@ class _FbFloat64List extends _FbList<double> {
 
   @override
   int get length {
-    _length ??= bp._getUint64();
+    _length ??= bp._getUint32();
     return _length;
   }
 
