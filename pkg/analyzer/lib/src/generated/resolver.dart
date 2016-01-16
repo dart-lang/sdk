@@ -517,6 +517,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
     AstNode parent = identifier.parent;
     if ((parent is ConstructorName && identical(identifier, parent.name)) ||
+        (parent is ConstructorDeclaration &&
+            identical(identifier, parent.returnType)) ||
         (parent is SuperConstructorInvocation &&
             identical(identifier, parent.constructorName)) ||
         parent is HideCombinator) {

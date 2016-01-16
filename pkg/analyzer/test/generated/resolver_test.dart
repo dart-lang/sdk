@@ -6644,6 +6644,18 @@ f() {
     verify([source]);
   }
 
+  void test_deprecatedAnnotationUse_classWithConstructor() {
+    Source source = addSource(r'''
+@deprecated
+class C {
+  C();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_divisionOptimization() {
     Source source = addSource(r'''
 f(int x, int y) {
