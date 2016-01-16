@@ -40,7 +40,7 @@ vars = {
   "dart2js_info_rev" : "@0a221eaf16aec3879c45719de656680ccb80d8a1",
   "dartdoc_tag" : "@v0.8.5",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@0.2.2",
+  "dart_style_tag": "@0.2.4",
   "dev_compiler_rev": "@0.1.9",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "html_tag" : "@0.12.1+1",
