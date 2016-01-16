@@ -57,11 +57,6 @@ dart/inline_stack_frame_test: RuntimeError, Pass # Issue 7953
 # Data uri's not supported by dart2js or the analyzer.
 dart/data_uri*test: Skip
 
-[ ($runtime == vm || $runtime == dart_precompiled) ]
-dart/data_uri_import_test/wrongmime: RuntimeError, OK # VM is more restrictive than the browser
-dart/data_uri_import_test/nomime: RuntimeError, OK
-dart/data_uri_import_test/nocharset: RuntimeError, OK
-
 [ $arch == mips ]
 cc/StaticNonNullSumCallCodegen: Crash, Pass # Issue 17440
 cc/ArrayLengthMaxElements: Crash  # Issue 23275
