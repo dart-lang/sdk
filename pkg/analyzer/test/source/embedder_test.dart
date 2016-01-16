@@ -7,6 +7,7 @@ library analyzer.test.source.embedder_test;
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
@@ -35,13 +36,20 @@ main() {
         'fox': [resourceProvider.getResource('/tmp')]
       });
       var resolver = new EmbedderUriResolver(locator.embedderYamls);
+
+      expectResolved(dartUri, filePath) {
+        Source source = resolver.resolveAbsolute(Uri.parse(dartUri));
+        expect(source, isNotNull, reason: dartUri);
+        expect(source.fullName, filePath);
+      }
+
       // We have four mappings.
       expect(resolver.length, equals(4));
       // Check that they map to the correct paths.
-      expect(resolver['dart:fox'], equals("/tmp/slippy.dart"));
-      expect(resolver['dart:bear'], equals("/tmp/grizzly.dart"));
-      expect(resolver['dart:relative'], equals("/relative.dart"));
-      expect(resolver['dart:deep'], equals("/tmp/deep/directory/file.dart"));
+      expectResolved('dart:fox', '/tmp/slippy.dart');
+      expectResolved('dart:bear', '/tmp/grizzly.dart');
+      expectResolved('dart:relative', '/relative.dart');
+      expectResolved('dart:deep', '/tmp/deep/directory/file.dart');
     });
     test('test_BadYAML', () {
       var locator = new EmbedderYamlLocator(null);
@@ -53,15 +61,24 @@ main() {
         'fox': [resourceProvider.getResource('/tmp')]
       });
       var resolver = new EmbedderUriResolver(locator.embedderYamls);
-      var source = resolver.resolveAbsolute(Uri.parse('dart:fox'));
-      expect(source, isNotNull);
-      // Restore source's uri.
-      var restoreUri = resolver.restoreAbsolute(source);
-      expect(restoreUri, isNotNull);
-      // Verify that it is 'dart:fox'.
-      expect(restoreUri.toString(), equals('dart:fox'));
-      expect(restoreUri.scheme, equals('dart'));
-      expect(restoreUri.path, equals('fox'));
+
+      expectRestore(String dartUri, [String expected]) {
+        var source = resolver.resolveAbsolute(Uri.parse(dartUri));
+        expect(source, isNotNull);
+        // Restore source's uri.
+        var restoreUri = resolver.restoreAbsolute(source);
+        expect(restoreUri, isNotNull, reason: dartUri);
+        // Verify that it is 'dart:fox'.
+        expect(restoreUri.toString(), equals(expected ?? dartUri));
+        List<String> split = (expected ?? dartUri).split(':');
+        expect(restoreUri.scheme, equals(split[0]));
+        expect(restoreUri.path, equals(split[1]));
+      }
+
+      expectRestore('dart:deep');
+      expectRestore('dart:deep/file.dart', 'dart:deep');
+      expectRestore('dart:deep/part.dart');
+      expectRestore('dart:deep/deep/file.dart');
     });
 
     test('test_EmbedderSdk_fromFileUri', () {
@@ -76,11 +93,10 @@ main() {
         var source = sdk.fromFileUri(uri);
         expect(source, isNotNull, reason: filePath);
         expect(source.uri.toString(), dartUri);
-        expect(source.fullName, filePath.replaceAll('/', JavaFile.separator));
+        expect(source.fullName, filePath);
       }
 
       expectSource('/tmp/slippy.dart', 'dart:fox');
-      expectSource('\\tmp\\slippy.dart', 'dart:fox');
       expectSource('/tmp/deep/directory/file.dart', 'dart:deep');
       expectSource('/tmp/deep/directory/part.dart', 'dart:deep/part.dart');
     });
