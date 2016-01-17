@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -191,6 +192,9 @@ class SourcesChangedListener {
  * method will cause a test to fail when invoked.
  */
 class TestAnalysisContext implements InternalAnalysisContext {
+  @override
+  ResultProvider resultProvider;
+
   @override
   AnalysisCache get analysisCache {
     fail("Unexpected invocation of analysisCache");
