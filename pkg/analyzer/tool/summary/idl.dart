@@ -352,6 +352,319 @@ class UnlinkedCombinator {
 }
 
 /**
+ * Unlinked summary information about a compile-time constant expression, or a
+ * potentially constant expression.
+ *
+ * Constant expressions are represented using a simple stack-based language
+ * where [operations] is a sequence of operations to execute starting with an
+ * empty stack.  Once all operations have been executed, the stack should
+ * contain a single value which is the value of the constant.  Note that some
+ * operations consume additional data from the other fields of this class.
+ */
+class UnlinkedConst {
+  /**
+   * Sequence of operations to execute (starting with an empty stack) to form
+   * the constant value.
+   */
+  List<UnlinkedConstOperation> operations;
+
+  /**
+   * Sequence of 32-bit integers consumed by the operations `pushArgument`,
+   * `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`, `makeList`, and
+   * `makeMap`.
+   */
+  List<int> ints;
+
+  /**
+   * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
+   */
+  List<double> doubles;
+
+  /**
+   * Sequence of strings consumed by the operations `pushString` and
+   * `invokeConstructor`.
+   */
+  List<String> strings;
+
+  /**
+   * Sequence of language constructs consumed by the operations
+   * `pushReference`, `invokeConstructor`, `makeList`, and `makeMap`.  Note
+   * that in the case of `pushReference` (and sometimes `invokeConstructor` the
+   * actual entity being referred to may be something other than a type.
+   */
+  List<UnlinkedTypeRef> references;
+}
+
+/**
+ * Enum representing the various kinds of operations which may be performed to
+ * produce a constant value.  These options are assumed to execute in the
+ * context of a stack which is initially empty.
+ */
+enum UnlinkedConstOperation {
+  /**
+   * Push the value of the n-th constructor argument (where n is obtained from
+   * [UnlinkedConst.ints]) onto the stack.
+   */
+  pushArgument,
+
+  /**
+   * Push the next value from [UnlinkedConst.ints] (a 32-bit signed integer)
+   * onto the stack.
+   *
+   * Note that Dart supports integers larger than 32 bits; these are
+   * represented by composing 32 bit values using the [shiftOr] operation.
+   */
+  pushInt,
+
+  /**
+   * Pop the top value off the stack, which should be an integer.  Multiply it
+   * by 2^32, "or" in the next value from [UnlinkedConst.ints] (which is
+   * interpreted as a 32-bit unsigned integer), and push the result back onto
+   * the stack.
+   */
+  shiftOr,
+
+  /**
+   * Push the next value from [UnlinkedConst.doubles] (a double precision
+   * floating point value) onto the stack.
+   */
+  pushDouble,
+
+  /**
+   * Push the constant `true` onto the stack.
+   */
+  pushTrue,
+
+  /**
+   * Push the constant `false` onto the stack.
+   */
+  pushFalse,
+
+  /**
+   * Push the next value from [UnlinkedConst.strings] onto the stack.
+   */
+  pushString,
+
+  /**
+   * Pop the top n values from the stack (where n is obtained from
+   * [UnlinkedConst.ints]), convert them to strings (if they aren't already),
+   * concatenate them into a single string, and push it back onto the stack.
+   *
+   * This operation is used to represent constants whose value is a literal
+   * string containing string interpolations.
+   */
+  concatenate,
+
+  /**
+   * Pop the top value from the stack, which should be a string, convert it to
+   * a symbol, and push it back onto the stack.
+   */
+  makeSymbol,
+
+  /**
+   * Push the constant `null` onto the stack.
+   */
+  pushNull,
+
+  /**
+   * Evaluate a (potentially qualified) identifier expression and push the
+   * resulting value onto the stack.  The identifier to be evaluated is
+   * obtained from [UnlinkedConst.references].
+   *
+   * This operation is used to represent the following kinds of constants
+   * (which are indistinguishable from an unresolved AST alone):
+   *
+   * - A qualified reference to a static constant variable (e.g. `C.v`, where
+   *   C is a class and `v` is a constant static variable in `C`).
+   * - An identifier expression referring to a constant variable.
+   * - A simple or qualified identifier denoting a class or type alias.
+   * - A simple or qualified identifier denoting a top-level function or a
+   *   static method.
+   */
+  pushReference,
+
+  /**
+   * Pop the top n values from the stack (where n is obtained from
+   * [UnlinkedConst.ints]), use them to invoke a constant constructor whose
+   * name is obtained from [UnlinkedConst.strings], and whose class is obtained
+   * from [UnlinkedConst.references], and push the resulting value back onto
+   * the stack.
+   *
+   * Note that for an invocation of the form `const a.b(...)` (where no type
+   * arguments are specified), it is impossible to tell from the unresolved AST
+   * alone whether `a` is a class name and `b` is a constructor name, or `a` is
+   * a prefix name and `b` is a class name.  In this case it is presumed that
+   * `a` is a prefix name and `b` is a class name.
+   *
+   * TODO(paulberry): figure out how to resolve this ambiguity in the
+   * "prelinked" part of the summary.
+   */
+  invokeConstructor,
+
+  /**
+   * Pop the top n values from the stack (where n is obtained from
+   * [UnlinkedConst.ints]), place them in a [List], and push the result back
+   * onto the stack.  The type parameter for the [List] is obtained from
+   * [UnlinkedConst.references].
+   */
+  makeList,
+
+  /**
+   * Pop the top 2*n values from the stack (where n is obtained from
+   * [UnlinkedConst.ints]), interpret them as key/value pairs, place them in a
+   * [Map], and push the result back onto the stack.  The two type parameters for
+   * the [Map] are obtained from [UnlinkedConst.references].
+   */
+  makeMap,
+
+  /**
+   * Pop the top 2 values from the stack, pass them to the predefined Dart
+   * function `identical`, and push the result back onto the stack.
+   */
+  identical,
+
+  /**
+   * Pop the top 2 values from the stack, evaluate `v1 == v2`, and push the
+   * result back onto the stack.
+   *
+   * This is also used to represent `v1 != v2`, by composition with [not].
+   */
+  equal,
+
+  /**
+   * Pop the top value from the stack, compute its boolean negation, and push
+   * the result back onto the stack.
+   */
+  not,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 && v2`, and push the
+   * result back onto the stack.
+   */
+  and,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 || v2`, and push the
+   * result back onto the stack.
+   */
+  or,
+
+  /**
+   * Pop the top value from the stack, compute its integer complement, and push
+   * the result back onto the stack.
+   */
+  complement,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 ^ v2`, and push the
+   * result back onto the stack.
+   */
+  bitXor,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 & v2`, and push the
+   * result back onto the stack.
+   */
+  bitAnd,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 | v2`, and push the
+   * result back onto the stack.
+   */
+  bitOr,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 >> v2`, and push the
+   * result back onto the stack.
+   */
+  bitShiftRight,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 << v2`, and push the
+   * result back onto the stack.
+   */
+  bitShiftLeft,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 + v2`, and push the
+   * result back onto the stack.
+   */
+  add,
+
+  /**
+   * Pop the top value from the stack, compute its integer negation, and push
+   * the result back onto the stack.
+   */
+  negate,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 - v2`, and push the
+   * result back onto the stack.
+   */
+  subtract,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 * v2`, and push the
+   * result back onto the stack.
+   */
+  multiply,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 / v2`, and push the
+   * result back onto the stack.
+   */
+  divide,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 ~/ v2`, and push the
+   * result back onto the stack.
+   */
+  floorDivide,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 > v2`, and push the
+   * result back onto the stack.
+   */
+  greater,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 < v2`, and push the
+   * result back onto the stack.
+   */
+  less,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 >= v2`, and push the
+   * result back onto the stack.
+   */
+  greaterEqual,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 <= v2`, and push the
+   * result back onto the stack.
+   */
+  lessEqual,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 % v2`, and push the
+   * result back onto the stack.
+   */
+  modulo,
+
+  /**
+   * Pop the top 3 values from the stack, compute `v1 ? v2 : v3`, and push the
+   * result back onto the stack.
+   */
+  conditional,
+
+  /**
+   * Pop the top value from the stack, evaluate `v.length`, and push the result
+   * back onto the stack.
+   */
+  length,
+}
+
+/**
  * Unlinked summary information about a documentation comment.
  */
 class UnlinkedDocumentationComment {
@@ -1033,6 +1346,12 @@ class UnlinkedVariable {
    * actual type of the variable may be different due to type inference.
    */
   UnlinkedTypeRef type;
+
+  /**
+   * If [isConst] is true, and the variable has an initializer, the constant
+   * expression in the initializer.
+   */
+  UnlinkedConst constExpr;
 
   /**
    * Indicates whether the variable is declared using the `static` keyword.

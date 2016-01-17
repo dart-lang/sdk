@@ -88,8 +88,12 @@ class _CodeGenerator {
         if (type.isList) {
           if (_idl.classes.containsKey(type.typeName)) {
             // List of classes is ok
+          } else if (_idl.enums.containsKey(type.typeName)) {
+            // List of enums is ok
           } else if (type.typeName == 'int') {
             // List of ints is ok
+          } else if (type.typeName == 'double') {
+            // List of doubles is ok
           } else if (type.typeName == 'String') {
             // List of strings is ok
           } else {
@@ -371,8 +375,14 @@ class _CodeGenerator {
               String itemCode = 'b.finish(fbBuilder)';
               String listCode = '$valueName.map((b) => $itemCode).toList()';
               writeCode = '$offsetName = fbBuilder.writeList($listCode);';
+            } else if (_idl.enums.containsKey(fieldType.typeName)) {
+              String itemCode = 'b.index';
+              String listCode = '$valueName.map((b) => $itemCode).toList()';
+              writeCode = '$offsetName = fbBuilder.writeListInt32($listCode);';
             } else if (fieldType.typeName == 'int') {
               writeCode = '$offsetName = fbBuilder.writeListInt32($valueName);';
+            } else if (fieldType.typeName == 'double') {
+              writeCode = '$offsetName = fbBuilder.writeListFloat64($valueName);';
             } else {
               assert(fieldType.typeName == 'String');
               String itemCode = 'fbBuilder.writeString(b)';
@@ -496,12 +506,18 @@ class _CodeGenerator {
           if (typeName == 'int') {
             String itemCode = 'const fb.Int32Reader()';
             readCode = 'const fb.ListReader<int>($itemCode)';
+          } else if (typeName == 'double') {
+            readCode = 'const fb.Float64ListReader()';
           } else if (typeName == 'String') {
             String itemCode = 'const fb.StringReader()';
             readCode = 'const fb.ListReader<String>($itemCode)';
-          } else {
+          } else if (_idl.classes.containsKey(typeName)) {
             String itemCode = '$typeName>(const _${typeName}Reader()';
             readCode = 'const fb.ListReader<$itemCode)';
+          } else {
+            assert(_idl.enums.containsKey(typeName));
+            String itemCode = 'const _${typeName}Reader()';
+            readCode = 'const fb.ListReader<$typeName>($itemCode)';
           }
         } else if (typeName == 'bool') {
           readCode = 'const fb.BoolReader()';

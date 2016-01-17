@@ -37,6 +37,65 @@ class _ReferenceKindReader extends fb.Reader<ReferenceKind> {
 }
 
 /**
+ * Enum representing the various kinds of operations which may be performed to
+ * produce a constant value.  These options are assumed to execute in the
+ * context of a stack which is initially empty.
+ */
+enum UnlinkedConstOperation {
+  pushArgument,
+  pushInt,
+  shiftOr,
+  pushDouble,
+  pushTrue,
+  pushFalse,
+  pushString,
+  concatenate,
+  makeSymbol,
+  pushNull,
+  pushReference,
+  invokeConstructor,
+  makeList,
+  makeMap,
+  identical,
+  equal,
+  not,
+  and,
+  or,
+  complement,
+  bitXor,
+  bitAnd,
+  bitOr,
+  bitShiftRight,
+  bitShiftLeft,
+  add,
+  negate,
+  subtract,
+  multiply,
+  divide,
+  floorDivide,
+  greater,
+  less,
+  greaterEqual,
+  lessEqual,
+  modulo,
+  conditional,
+  length,
+}
+
+class _UnlinkedConstOperationReader extends fb.Reader<UnlinkedConstOperation> {
+  const _UnlinkedConstOperationReader() : super();
+
+  @override
+  int get size => 4;
+
+  @override
+  UnlinkedConstOperation read(fb.BufferPointer bp) {
+    int index = const fb.Int32Reader().read(bp);
+    return UnlinkedConstOperation.values[index];
+  }
+}
+
+/**
  * Enum used to indicate the kind of an executable.
  */
 enum UnlinkedExecutableKind {
@@ -1540,6 +1599,232 @@ abstract class _UnlinkedCombinatorMixin implements UnlinkedCombinator {
   Map<String, Object> toMap() => {
     "shows": shows,
     "hides": hides,
+  };
+}
+
+class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements UnlinkedConst {
+  bool _finished = false;
+
+  List<UnlinkedConstOperation> _operations;
+  List<int> _ints;
+  List<double> _doubles;
+  List<String> _strings;
+  List<UnlinkedTypeRefBuilder> _references;
+
+  @override
+  List<UnlinkedConstOperation> get operations => _operations ?? const <UnlinkedConstOperation>[];
+
+  /**
+   * Sequence of operations to execute (starting with an empty stack) to form
+   * the constant value.
+   */
+  void set operations(List<UnlinkedConstOperation> _value) {
+    assert(!_finished);
+    _operations = _value;
+  }
+
+  @override
+  List<int> get ints => _ints ?? const <int>[];
+
+  /**
+   * Sequence of 32-bit integers consumed by the operations `pushArgument`,
+   * `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`, `makeList`, and
+   * `makeMap`.
+   */
+  void set ints(List<int> _value) {
+    assert(!_finished);
+    _ints = _value;
+  }
+
+  @override
+  List<double> get doubles => _doubles ?? const <double>[];
+
+  /**
+   * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
+   */
+  void set doubles(List<double> _value) {
+    assert(!_finished);
+    _doubles = _value;
+  }
+
+  @override
+  List<String> get strings => _strings ?? const <String>[];
+
+  /**
+   * Sequence of strings consumed by the operations `pushString` and
+   * `invokeConstructor`.
+   */
+  void set strings(List<String> _value) {
+    assert(!_finished);
+    _strings = _value;
+  }
+
+  @override
+  List<UnlinkedTypeRef> get references => _references ?? const <UnlinkedTypeRef>[];
+
+  /**
+   * Sequence of language constructs consumed by the operations
+   * `pushReference`, `invokeConstructor`, `makeList`, and `makeMap`.  Note
+   * that in the case of `pushReference` (and sometimes `invokeConstructor` the
+   * actual entity being referred to may be something other than a type.
+   */
+  void set references(List<UnlinkedTypeRefBuilder> _value) {
+    assert(!_finished);
+    _references = _value;
+  }
+
+  UnlinkedConstBuilder({List<UnlinkedConstOperation> operations, List<int> ints, List<double> doubles, List<String> strings, List<UnlinkedTypeRefBuilder> references})
+    : _operations = operations,
+      _ints = ints,
+      _doubles = doubles,
+      _strings = strings,
+      _references = references;
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    assert(!_finished);
+    _finished = true;
+    fb.Offset offset_operations;
+    fb.Offset offset_ints;
+    fb.Offset offset_doubles;
+    fb.Offset offset_strings;
+    fb.Offset offset_references;
+    if (!(_operations == null || _operations.isEmpty)) {
+      offset_operations = fbBuilder.writeListInt32(_operations.map((b) => b.index).toList());
+    }
+    if (!(_ints == null || _ints.isEmpty)) {
+      offset_ints = fbBuilder.writeListInt32(_ints);
+    }
+    if (!(_doubles == null || _doubles.isEmpty)) {
+      offset_doubles = fbBuilder.writeListFloat64(_doubles);
+    }
+    if (!(_strings == null || _strings.isEmpty)) {
+      offset_strings = fbBuilder.writeList(_strings.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_references == null || _references.isEmpty)) {
+      offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_operations != null) {
+      fbBuilder.addOffset(0, offset_operations);
+    }
+    if (offset_ints != null) {
+      fbBuilder.addOffset(1, offset_ints);
+    }
+    if (offset_doubles != null) {
+      fbBuilder.addOffset(2, offset_doubles);
+    }
+    if (offset_strings != null) {
+      fbBuilder.addOffset(3, offset_strings);
+    }
+    if (offset_references != null) {
+      fbBuilder.addOffset(4, offset_references);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+/**
+ * Unlinked summary information about a compile-time constant expression, or a
+ * potentially constant expression.
+ *
+ * Constant expressions are represented using a simple stack-based language
+ * where [operations] is a sequence of operations to execute starting with an
+ * empty stack.  Once all operations have been executed, the stack should
+ * contain a single value which is the value of the constant.  Note that some
+ * operations consume additional data from the other fields of this class.
+ */
+abstract class UnlinkedConst extends base.SummaryClass {
+
+  /**
+   * Sequence of operations to execute (starting with an empty stack) to form
+   * the constant value.
+   */
+  List<UnlinkedConstOperation> get operations;
+
+  /**
+   * Sequence of 32-bit integers consumed by the operations `pushArgument`,
+   * `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`, `makeList`, and
+   * `makeMap`.
+   */
+  List<int> get ints;
+
+  /**
+   * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
+   */
+  List<double> get doubles;
+
+  /**
+   * Sequence of strings consumed by the operations `pushString` and
+   * `invokeConstructor`.
+   */
+  List<String> get strings;
+
+  /**
+   * Sequence of language constructs consumed by the operations
+   * `pushReference`, `invokeConstructor`, `makeList`, and `makeMap`.  Note
+   * that in the case of `pushReference` (and sometimes `invokeConstructor` the
+   * actual entity being referred to may be something other than a type.
+   */
+  List<UnlinkedTypeRef> get references;
+}
+
+class _UnlinkedConstReader extends fb.TableReader<_UnlinkedConstImpl> {
+  const _UnlinkedConstReader();
+
+  @override
+  _UnlinkedConstImpl createObject(fb.BufferPointer bp) => new _UnlinkedConstImpl(bp);
+}
+
+class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements UnlinkedConst {
+  final fb.BufferPointer _bp;
+
+  _UnlinkedConstImpl(this._bp);
+
+  List<UnlinkedConstOperation> _operations;
+  List<int> _ints;
+  List<double> _doubles;
+  List<String> _strings;
+  List<UnlinkedTypeRef> _references;
+
+  @override
+  List<UnlinkedConstOperation> get operations {
+    _operations ??= const fb.ListReader<UnlinkedConstOperation>(const _UnlinkedConstOperationReader()).vTableGet(_bp, 0, const <UnlinkedConstOperation>[]);
+    return _operations;
+  }
+
+  @override
+  List<int> get ints {
+    _ints ??= const fb.ListReader<int>(const fb.Int32Reader()).vTableGet(_bp, 1, const <int>[]);
+    return _ints;
+  }
+
+  @override
+  List<double> get doubles {
+    _doubles ??= const fb.Float64ListReader().vTableGet(_bp, 2, const <double>[]);
+    return _doubles;
+  }
+
+  @override
+  List<String> get strings {
+    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 3, const <String>[]);
+    return _strings;
+  }
+
+  @override
+  List<UnlinkedTypeRef> get references {
+    _references ??= const fb.ListReader<UnlinkedTypeRef>(const _UnlinkedTypeRefReader()).vTableGet(_bp, 4, const <UnlinkedTypeRef>[]);
+    return _references;
+  }
+}
+
+abstract class _UnlinkedConstMixin implements UnlinkedConst {
+  @override
+  Map<String, Object> toMap() => {
+    "operations": operations,
+    "ints": ints,
+    "doubles": doubles,
+    "strings": strings,
+    "references": references,
   };
 }
 
@@ -4911,6 +5196,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   int _nameOffset;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   UnlinkedTypeRefBuilder _type;
+  UnlinkedConstBuilder _constExpr;
   bool _isStatic;
   bool _isFinal;
   bool _isConst;
@@ -4963,6 +5249,18 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   }
 
   @override
+  UnlinkedConst get constExpr => _constExpr;
+
+  /**
+   * If [isConst] is true, and the variable has an initializer, the constant
+   * expression in the initializer.
+   */
+  void set constExpr(UnlinkedConstBuilder _value) {
+    assert(!_finished);
+    _constExpr = _value;
+  }
+
+  @override
   bool get isStatic => _isStatic ?? false;
 
   /**
@@ -5010,11 +5308,12 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _hasImplicitType = _value;
   }
 
-  UnlinkedVariableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, UnlinkedTypeRefBuilder type, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType})
+  UnlinkedVariableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, UnlinkedTypeRefBuilder type, UnlinkedConstBuilder constExpr, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType})
     : _name = name,
       _nameOffset = nameOffset,
       _documentationComment = documentationComment,
       _type = type,
+      _constExpr = constExpr,
       _isStatic = isStatic,
       _isFinal = isFinal,
       _isConst = isConst,
@@ -5026,6 +5325,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     fb.Offset offset_name;
     fb.Offset offset_documentationComment;
     fb.Offset offset_type;
+    fb.Offset offset_constExpr;
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
     }
@@ -5034,6 +5334,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     }
     if (_type != null) {
       offset_type = _type.finish(fbBuilder);
+    }
+    if (_constExpr != null) {
+      offset_constExpr = _constExpr.finish(fbBuilder);
     }
     fbBuilder.startTable();
     if (offset_name != null) {
@@ -5048,17 +5351,20 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     if (offset_type != null) {
       fbBuilder.addOffset(3, offset_type);
     }
-    if (_isStatic == true) {
-      fbBuilder.addBool(4, true);
+    if (offset_constExpr != null) {
+      fbBuilder.addOffset(4, offset_constExpr);
     }
-    if (_isFinal == true) {
+    if (_isStatic == true) {
       fbBuilder.addBool(5, true);
     }
-    if (_isConst == true) {
+    if (_isFinal == true) {
       fbBuilder.addBool(6, true);
     }
-    if (_hasImplicitType == true) {
+    if (_isConst == true) {
       fbBuilder.addBool(7, true);
+    }
+    if (_hasImplicitType == true) {
+      fbBuilder.addBool(8, true);
     }
     return fbBuilder.endTable();
   }
@@ -5091,6 +5397,12 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * actual type of the variable may be different due to type inference.
    */
   UnlinkedTypeRef get type;
+
+  /**
+   * If [isConst] is true, and the variable has an initializer, the constant
+   * expression in the initializer.
+   */
+  UnlinkedConst get constExpr;
 
   /**
    * Indicates whether the variable is declared using the `static` keyword.
@@ -5133,6 +5445,7 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   int _nameOffset;
   UnlinkedDocumentationComment _documentationComment;
   UnlinkedTypeRef _type;
+  UnlinkedConst _constExpr;
   bool _isStatic;
   bool _isFinal;
   bool _isConst;
@@ -5163,26 +5476,32 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   }
 
   @override
+  UnlinkedConst get constExpr {
+    _constExpr ??= const _UnlinkedConstReader().vTableGet(_bp, 4, null);
+    return _constExpr;
+  }
+
+  @override
   bool get isStatic {
-    _isStatic ??= const fb.BoolReader().vTableGet(_bp, 4, false);
+    _isStatic ??= const fb.BoolReader().vTableGet(_bp, 5, false);
     return _isStatic;
   }
 
   @override
   bool get isFinal {
-    _isFinal ??= const fb.BoolReader().vTableGet(_bp, 5, false);
+    _isFinal ??= const fb.BoolReader().vTableGet(_bp, 6, false);
     return _isFinal;
   }
 
   @override
   bool get isConst {
-    _isConst ??= const fb.BoolReader().vTableGet(_bp, 6, false);
+    _isConst ??= const fb.BoolReader().vTableGet(_bp, 7, false);
     return _isConst;
   }
 
   @override
   bool get hasImplicitType {
-    _hasImplicitType ??= const fb.BoolReader().vTableGet(_bp, 7, false);
+    _hasImplicitType ??= const fb.BoolReader().vTableGet(_bp, 8, false);
     return _hasImplicitType;
   }
 }
@@ -5194,6 +5513,7 @@ abstract class _UnlinkedVariableMixin implements UnlinkedVariable {
     "nameOffset": nameOffset,
     "documentationComment": documentationComment,
     "type": type,
+    "constExpr": constExpr,
     "isStatic": isStatic,
     "isFinal": isFinal,
     "isConst": isConst,
