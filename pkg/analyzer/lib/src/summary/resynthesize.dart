@@ -66,6 +66,16 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
    */
   int get resynthesisCount => _resynthesizedLibraries.length;
 
+  /**
+   * Perform delayed finalization of the `dart:core` and `dart:async` libraries.
+   */
+  void finalizeCoreAsyncLibraries() {
+    (_resynthesizedLibraries['dart:core'] as LibraryElementImpl)
+        .createLoadLibraryFunction(typeProvider);
+    (_resynthesizedLibraries['dart:async'] as LibraryElementImpl)
+        .createLoadLibraryFunction(typeProvider);
+  }
+
   @override
   Element getElement(ElementLocation location) {
     List<String> components = location.components;
@@ -772,16 +782,15 @@ class _LibraryResynthesizer {
    */
   LibraryElement buildLibrary() {
     bool hasName = unlinkedUnits[0].libraryName.isNotEmpty;
-    LibraryElementImpl libraryElement = new LibraryElementImpl(
+    LibraryElementImpl library = new LibraryElementImpl(
         summaryResynthesizer.context,
         unlinkedUnits[0].libraryName,
         hasName ? unlinkedUnits[0].libraryNameOffset : -1,
         unlinkedUnits[0].libraryNameLength);
-    buildDocumentation(
-        libraryElement, unlinkedUnits[0].libraryDocumentationComment);
+    buildDocumentation(library, unlinkedUnits[0].libraryDocumentationComment);
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl(librarySource.shortName);
-    libraryElement.definingCompilationUnit = definingCompilationUnit;
+    library.definingCompilationUnit = definingCompilationUnit;
     definingCompilationUnit.source = librarySource;
     definingCompilationUnit.librarySource = librarySource;
     List<CompilationUnitElement> parts = <CompilationUnitElement>[];
@@ -795,13 +804,13 @@ class _LibraryResynthesizer {
           unlinkedUnits[i]);
       parts.add(part);
     }
-    libraryElement.parts = parts;
+    library.parts = parts;
     List<ImportElement> imports = <ImportElement>[];
     for (int i = 0; i < unlinkedDefiningUnit.imports.length; i++) {
       imports.add(buildImport(unlinkedDefiningUnit.imports[i],
           linkedLibrary.importDependencies[i]));
     }
-    libraryElement.imports = imports;
+    library.imports = imports;
     List<ExportElement> exports = <ExportElement>[];
     assert(unlinkedDefiningUnit.exports.length ==
         unlinkedDefiningUnit.publicNamespace.exports.length);
@@ -809,36 +818,42 @@ class _LibraryResynthesizer {
       exports.add(buildExport(unlinkedDefiningUnit.publicNamespace.exports[i],
           unlinkedDefiningUnit.exports[i]));
     }
-    libraryElement.exports = exports;
+    library.exports = exports;
     populateUnit(definingCompilationUnit, 0);
     for (int i = 0; i < parts.length; i++) {
       populateUnit(parts[i], i + 1);
     }
-    BuildLibraryElementUtils.patchTopLevelAccessors(libraryElement);
+    BuildLibraryElementUtils.patchTopLevelAccessors(library);
     // Update delayed Object class references.
     if (isCoreLibrary) {
-      ClassElement objectElement = libraryElement.getType('Object');
+      ClassElement objectElement = library.getType('Object');
       assert(objectElement != null);
       for (ClassElementImpl classElement in delayedObjectSubclasses) {
         classElement.supertype = objectElement.type;
       }
     }
     // Compute namespaces.
-    libraryElement.publicNamespace =
-        new NamespaceBuilder().createPublicNamespaceForLibrary(libraryElement);
-    libraryElement.exportNamespace = buildExportNamespace(
-        libraryElement.publicNamespace, linkedLibrary.exportNames);
+    library.publicNamespace =
+        new NamespaceBuilder().createPublicNamespaceForLibrary(library);
+    library.exportNamespace = buildExportNamespace(
+        library.publicNamespace, linkedLibrary.exportNames);
     // Find the entry point.  Note: we can't use element.isEntryPoint because
     // that will trigger resynthesis of exported libraries.
     Element entryPoint =
-        libraryElement.exportNamespace.get(FunctionElement.MAIN_FUNCTION_NAME);
+        library.exportNamespace.get(FunctionElement.MAIN_FUNCTION_NAME);
     if (entryPoint is FunctionElement) {
-      libraryElement.entryPoint = entryPoint;
+      library.entryPoint = entryPoint;
     }
     // Create the synthetic element for `loadLibrary`.
-    libraryElement.createLoadLibraryFunction(summaryResynthesizer.typeProvider);
+    // Until the client received dart:core and dart:async, we cannot do this,
+    // because the TypeProvider is not fully initialized. So, it is up to the
+    // Dart SDK client to initialize TypeProvider and finish the dart:core and
+    // dart:async libraries creation.
+    if (library.name != 'dart.core' && library.name != 'dart.async') {
+      library.createLoadLibraryFunction(summaryResynthesizer.typeProvider);
+    }
     // Done.
-    return libraryElement;
+    return library;
   }
 
   /**

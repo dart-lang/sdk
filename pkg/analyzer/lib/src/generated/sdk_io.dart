@@ -255,15 +255,17 @@ class DirectoryBasedDartSdk implements DartSdk {
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      SdkBundle sdkBundle = _getSummarySdkBundle();
-      if (sdkBundle != null) {
-        _analysisContext = new SummarySdkAnalysisContext(sdkBundle);
-      } else {
-        _analysisContext = new SdkAnalysisContext();
-      }
+      _analysisContext = new SdkAnalysisContext();
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
       List<String> uris = this.uris;
+      // Try to use summaries.
+      SdkBundle sdkBundle = _getSummarySdkBundle();
+      if (sdkBundle != null) {
+        _analysisContext.resultProvider =
+            new SdkSummaryResultProvider(_analysisContext, sdkBundle);
+      }
+      // Add sources.
       ChangeSet changeSet = new ChangeSet();
       for (String uri in uris) {
         changeSet.addedSource(factory.forUri(uri));

@@ -78,10 +78,14 @@ class ResynthTest extends ResolverTestCase {
       compareFunctionElements(
           resynthesized.entryPoint, original.entryPoint, '(entry point)');
     }
-    compareExecutableElements(
-        resynthesized.loadLibraryFunction as ExecutableElementImpl,
-        original.loadLibraryFunction as ExecutableElementImpl,
-        '(loadLibraryFunction)');
+    // The libraries `dart:core` and `dart:async` cannot create their
+    // `loadLibrary` functions until after both are created.
+    if (original.name != 'dart.core' && original.name != 'dart.async') {
+      compareExecutableElements(
+          resynthesized.loadLibraryFunction as ExecutableElementImpl,
+          original.loadLibraryFunction as ExecutableElementImpl,
+          '(loadLibraryFunction)');
+    }
     // TODO(paulberry): test metadata.
   }
 

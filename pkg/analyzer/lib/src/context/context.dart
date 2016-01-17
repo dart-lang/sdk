@@ -188,6 +188,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   List<AnalysisListener> _listeners = new List<AnalysisListener>();
 
+  @override
+  ResultProvider resultProvider;
+
   /**
    * The most recently incrementally resolved source, or `null` when it was
    * already validated, or the most recent change was not incrementally resolved.
@@ -498,26 +501,20 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   bool aboutToComputeResult(CacheEntry entry, ResultDescriptor result) {
     return PerformanceStatistics.summary.makeCurrentWhile(() {
-      AnalysisTarget target = entry.target;
-      // TYPE_PROVIDER
-      if (target is AnalysisContextTarget && result == TYPE_PROVIDER) {
-        DartSdk dartSdk = sourceFactory.dartSdk;
-        if (dartSdk != null) {
-          AnalysisContext sdkContext = dartSdk.context;
-          if (!identical(sdkContext, this) &&
-              sdkContext is InternalAnalysisContext) {
-            return sdkContext.aboutToComputeResult(entry, result);
-          }
+      // Use this helper if it is set.
+      if (resultProvider != null && resultProvider.compute(entry, result)) {
+        return true;
+      }
+      // Ask the SDK.
+      DartSdk dartSdk = sourceFactory.dartSdk;
+      if (dartSdk != null) {
+        AnalysisContext sdkContext = dartSdk.context;
+        if (!identical(sdkContext, this) &&
+            sdkContext is InternalAnalysisContext) {
+          return sdkContext.aboutToComputeResult(entry, result);
         }
       }
-      // A result for a Source.
-      Source source = target.source;
-      if (source != null) {
-        InternalAnalysisContext context = _cache.getContextFor(source);
-        if (!identical(context, this)) {
-          return context.aboutToComputeResult(entry, result);
-        }
-      }
+      // Cannot provide the result.
       return false;
     });
   }
@@ -2077,6 +2074,24 @@ class PendingFuture<T> {
   void _onCancel() {
     _context._cancelFuture(this);
   }
+}
+
+/**
+ * Provider for analysis results.
+ */
+abstract class ResultProvider {
+  /**
+   * This method is invoked by an [InternalAnalysisContext] when the state of
+   * the [result] of the [entry] is [CacheState.INVALID], so it is about to be
+   * computed.
+   *
+   * If the provider knows how to provide the value, it sets the value into
+   * the [entry] with all required dependencies, and returns `true`.
+   *
+   * Otherwise, it returns `false` to indicate that the result should be
+   * computed as usually.
+   */
+  bool compute(CacheEntry entry, ResultDescriptor result);
 }
 
 /**

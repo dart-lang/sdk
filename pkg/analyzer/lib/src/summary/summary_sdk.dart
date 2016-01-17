@@ -12,11 +12,13 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart'
+    show DartUriResolver, Source, SourceFactory, SourceKind;
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/dart.dart'
     show
+        CONSTANT_VALUE,
         LIBRARY_ELEMENT1,
         LIBRARY_ELEMENT2,
         LIBRARY_ELEMENT3,
@@ -32,6 +34,99 @@ import 'package:analyzer/src/task/dart.dart'
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart'
     show AnalysisTarget, ResultDescriptor, TargetedResult;
+
+class SdkSummaryResultProvider implements SummaryResultProvider {
+  final InternalAnalysisContext context;
+  final SdkBundle bundle;
+  final SummaryTypeProvider typeProvider = new SummaryTypeProvider();
+
+  @override
+  SummaryResynthesizer resynthesizer;
+
+  SdkSummaryResultProvider(this.context, this.bundle) {
+    resynthesizer = new SdkSummaryResynthesizer(
+        context, typeProvider, context.sourceFactory, bundle);
+    _buildCoreLibrary();
+    _buildAsyncLibrary();
+    resynthesizer.finalizeCoreAsyncLibraries();
+    context.typeProvider = typeProvider;
+  }
+
+  @override
+  bool compute(CacheEntry entry, ResultDescriptor result) {
+    if (result == TYPE_PROVIDER) {
+//      print('SummarySdkAnalysisContext: $result');
+      entry.setValue(result, typeProvider, TargetedResult.EMPTY_LIST);
+      return true;
+    }
+    AnalysisTarget target = entry.target;
+    // TODO(scheglov) we don't actually update "evaluationResult" yet
+    if (result == CONSTANT_VALUE) {
+      if (target.source != null && target.source.isInSystemLibrary) {
+        entry.setValue(result, target, TargetedResult.EMPTY_LIST);
+        return true;
+      }
+    }
+    if (target is Source && target.isInSystemLibrary) {
+//      print('SummarySdkAnalysisContext: $result of $target');
+      if (result == LIBRARY_ELEMENT1 ||
+          result == LIBRARY_ELEMENT2 ||
+          result == LIBRARY_ELEMENT3 ||
+          result == LIBRARY_ELEMENT4 ||
+          result == LIBRARY_ELEMENT5 ||
+          result == LIBRARY_ELEMENT6 ||
+          result == LIBRARY_ELEMENT7 ||
+          result == LIBRARY_ELEMENT8 ||
+          result == LIBRARY_ELEMENT) {
+        // TODO(scheglov) try to find a way to avoid listing every result
+        // e.g. "result.whenComplete == LIBRARY_ELEMENT"
+        String uri = target.uri.toString();
+        LibraryElement libraryElement = resynthesizer.getLibraryElement(uri);
+        entry.setValue(result, libraryElement, TargetedResult.EMPTY_LIST);
+        return true;
+      } else if (result == READY_LIBRARY_ELEMENT2 ||
+          result == READY_LIBRARY_ELEMENT5 ||
+          result == READY_LIBRARY_ELEMENT6) {
+        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+        return true;
+      } else if (result == SOURCE_KIND) {
+        String uri = target.uri.toString();
+        SourceKind kind = _getSourceKind(uri);
+        if (kind != null) {
+          entry.setValue(result, kind, TargetedResult.EMPTY_LIST);
+          return true;
+        }
+        return false;
+      } else {
+//        throw new UnimplementedError('$result of $target');
+      }
+    }
+    return false;
+  }
+
+  void _buildAsyncLibrary() {
+    LibraryElement library = resynthesizer.getLibraryElement('dart:async');
+    typeProvider.initializeAsync(library);
+  }
+
+  void _buildCoreLibrary() {
+    LibraryElement library = resynthesizer.getLibraryElement('dart:core');
+    typeProvider.initializeCore(library);
+  }
+
+  /**
+   * Return the [SourceKind] of the given [uri] or `null` if it is unknown.
+   */
+  SourceKind _getSourceKind(String uri) {
+    if (bundle.linkedLibraryUris.contains(uri)) {
+      return SourceKind.LIBRARY;
+    }
+    if (bundle.unlinkedUnitUris.contains(uri)) {
+      return SourceKind.PART;
+    }
+    return null;
+  }
+}
 
 /**
  * The implementation of [SummaryResynthesizer] for Dart SDK.
@@ -69,78 +164,13 @@ class SdkSummaryResynthesizer extends SummaryResynthesizer {
 }
 
 /**
- * An [SdkAnalysisContext] for Dart SDK with a summary [SdkBundle].
+ * Provider for analysis results.
  */
-class SummarySdkAnalysisContext extends SdkAnalysisContext {
-  final SdkBundle bundle;
-  final SummaryTypeProvider typeProvider = new SummaryTypeProvider();
-
-  SummaryResynthesizer resynthesizer;
-
-  SummarySdkAnalysisContext(this.bundle);
-
-  @override
-  bool aboutToComputeResult(CacheEntry entry, ResultDescriptor result) {
-    if (resynthesizer == null) {
-      resynthesizer = new SdkSummaryResynthesizer(
-          this, typeProvider, sourceFactory, bundle);
-      _buildCoreLibrary();
-      _buildAsyncLibrary();
-    }
-    if (result == TYPE_PROVIDER) {
-      entry.setValue(result, typeProvider, TargetedResult.EMPTY_LIST);
-      return true;
-    }
-    AnalysisTarget target = entry.target;
-//    print('SummarySdkAnalysisContext: $result of $target');
-    if (target is Source && target.isInSystemLibrary) {
-      if (result == LIBRARY_ELEMENT1 ||
-          result == LIBRARY_ELEMENT2 ||
-          result == LIBRARY_ELEMENT3 ||
-          result == LIBRARY_ELEMENT4 ||
-          result == LIBRARY_ELEMENT5 ||
-          result == LIBRARY_ELEMENT6 ||
-          result == LIBRARY_ELEMENT7 ||
-          result == LIBRARY_ELEMENT8 ||
-          result == LIBRARY_ELEMENT) {
-        // TODO(scheglov) try to find a way to avoid listing every result
-        // e.g. "result.whenComplete == LIBRARY_ELEMENT"
-        String uri = target.uri.toString();
-        LibraryElement libraryElement = resynthesizer.getLibraryElement(uri);
-        entry.setValue(result, libraryElement, TargetedResult.EMPTY_LIST);
-        return true;
-      } else if (result == READY_LIBRARY_ELEMENT2 ||
-          result == READY_LIBRARY_ELEMENT5 ||
-          result == READY_LIBRARY_ELEMENT6) {
-        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
-        return true;
-      } else if (result == SOURCE_KIND) {
-        String uri = target.uri.toString();
-        if (bundle.linkedLibraryUris.contains(uri)) {
-          entry.setValue(result, SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
-          return true;
-        }
-        if (bundle.unlinkedUnitUris.contains(uri)) {
-          entry.setValue(result, SourceKind.PART, TargetedResult.EMPTY_LIST);
-          return true;
-        }
-        return false;
-      } else {
-//        throw new UnimplementedError('$result of $target');
-      }
-    }
-    return false;
-  }
-
-  void _buildAsyncLibrary() {
-    LibraryElement library = resynthesizer.getLibraryElement('dart:async');
-    typeProvider.initializeAsync(library);
-  }
-
-  void _buildCoreLibrary() {
-    LibraryElement library = resynthesizer.getLibraryElement('dart:core');
-    typeProvider.initializeCore(library);
-  }
+abstract class SummaryResultProvider extends ResultProvider {
+  /**
+   * The [SummaryResynthesizer] of this context, maybe `null`.
+   */
+  SummaryResynthesizer get resynthesizer;
 }
 
 /**
