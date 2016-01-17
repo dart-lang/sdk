@@ -267,6 +267,13 @@ class _LibraryResynthesizer {
    */
   List<TypeParameterElement> currentTypeParameters = <TypeParameterElement>[];
 
+  /**
+   * If a class is currently being resynthesized, map from field name to the
+   * type of the corresponding field.  This is used to populate the types of
+   * initializing formal parameters whose type is implicit.
+   */
+  Map<String, DartType> fieldTypes;
+
   _LibraryResynthesizer(this.summaryResynthesizer, this.linkedLibrary,
       this.unlinkedUnits, this.librarySource) {
     isCoreLibrary = librarySource.uri.toString() == 'dart:core';
@@ -308,6 +315,10 @@ class _LibraryResynthesizer {
       classElement.mixins = serializedClass.mixins.map(buildType).toList();
       classElement.typeParameters = currentTypeParameters;
       ElementHolder memberHolder = new ElementHolder();
+      fieldTypes = <String, DartType>{};
+      for (UnlinkedVariable serializedVariable in serializedClass.fields) {
+        buildVariable(serializedVariable, memberHolder);
+      }
       bool constructorFound = false;
       for (UnlinkedExecutable serializedExecutable
           in serializedClass.executables) {
@@ -323,9 +334,6 @@ class _LibraryResynthesizer {
             buildExecutable(serializedExecutable, memberHolder);
             break;
         }
-      }
-      for (UnlinkedVariable serializedVariable in serializedClass.fields) {
-        buildVariable(serializedVariable, memberHolder);
       }
       if (!serializedClass.isMixinApplication) {
         if (!constructorFound) {
@@ -349,6 +357,7 @@ class _LibraryResynthesizer {
       unitHolder.addType(classElement);
     } finally {
       currentTypeParameters = <TypeParameterElement>[];
+      fieldTypes = null;
     }
   }
 
@@ -854,7 +863,14 @@ class _LibraryResynthesizer {
       parameterElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
           parameterTypeElement, null, currentTypeArguments, false);
     } else {
-      parameterElement.type = buildType(serializedParameter.type);
+      if (serializedParameter.isInitializingFormal &&
+          serializedParameter.hasImplicitType) {
+        // The type is inherited from the matching field.
+        parameterElement.type = fieldTypes[serializedParameter.name] ??
+            summaryResynthesizer.typeProvider.dynamicType;
+      } else {
+        parameterElement.type = buildType(serializedParameter.type);
+      }
       parameterElement.hasImplicitType = serializedParameter.hasImplicitType;
     }
     switch (serializedParameter.kind) {
@@ -899,8 +915,7 @@ class _LibraryResynthesizer {
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
-              currentTypeParameters.length - type.paramReference]
-          .type;
+          currentTypeParameters.length - type.paramReference].type;
     } else {
       // TODO(paulberry): handle references to things other than classes (note:
       // this should only occur in the case of erroneous code).
@@ -1036,6 +1051,7 @@ class _LibraryResynthesizer {
       element.static = serializedVariable.isStatic;
       holder.addField(element);
       buildImplicitAccessors(element, holder);
+      fieldTypes[element.name] = element.type;
     }
   }
 

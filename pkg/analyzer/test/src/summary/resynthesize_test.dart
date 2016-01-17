@@ -92,8 +92,8 @@ class ResynthTest extends ResolverTestCase {
         reason: '$desc fields.length');
     for (int i = 0; i < resynthesized.fields.length; i++) {
       String name = original.fields[i].name;
-      compareFieldElements(resynthesized.getField(name), original.fields[i],
-          '$desc.field $name');
+      compareFieldElements(
+          resynthesized.fields[i], original.fields[i], '$desc.field $name');
     }
     compareTypes(
         resynthesized.supertype, original.supertype, '$desc supertype');
@@ -124,18 +124,10 @@ class ResynthTest extends ResolverTestCase {
     }
     expect(resynthesized.accessors.length, original.accessors.length);
     for (int i = 0; i < resynthesized.accessors.length; i++) {
-      String name = original.accessors[i].name;
-      if (name.endsWith('=')) {
-        comparePropertyAccessorElements(
-            resynthesized.getSetter(name),
-            original.accessors[i],
-            '$desc setter ${original.accessors[i].name}');
-      } else {
-        comparePropertyAccessorElements(
-            resynthesized.getGetter(name),
-            original.accessors[i],
-            '$desc getter ${original.accessors[i].name}');
-      }
+      comparePropertyAccessorElements(
+          resynthesized.accessors[i],
+          original.accessors[i],
+          '$desc accessor ${original.accessors[i].name}');
     }
     expect(resynthesized.methods.length, original.methods.length);
     for (int i = 0; i < resynthesized.methods.length; i++) {
@@ -722,6 +714,16 @@ class E {
 
   test_class_constructor_field_formal_dynamic_untyped() {
     checkLibrary('class C { dynamic x; C(this.x); }');
+  }
+
+  test_class_constructor_field_formal_multiple_matching_fields() {
+    // This is a compile-time error but it should still analyze consistently.
+    checkLibrary('class C { C(this.x); int x; String x; }', allowErrors: true);
+  }
+
+  test_class_constructor_field_formal_no_matching_field() {
+    // This is a compile-time error but it should still analyze consistently.
+    checkLibrary('class C { C(this.x); }', allowErrors: true);
   }
 
   test_class_constructor_field_formal_typed_dynamic() {

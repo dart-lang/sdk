@@ -1383,7 +1383,7 @@ class C {
         executables:
             serializeClassText('class C { C(this.x); int x; }').executables);
     UnlinkedParam parameter = executable.parameters[0];
-    checkTypeRef(parameter.type, 'dart:core', 'dart:core', 'int');
+    expect(parameter.type, isNull);
     expect(parameter.hasImplicitType, isTrue);
   }
 
@@ -1435,7 +1435,8 @@ class C {
                 'typedef F<T>(T x); class C<X> { C(this.f); F<X> f; }')
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
-    expect(parameter.parameters, hasLength(1));
+    expect(parameter.isFunctionTyped, isFalse);
+    expect(parameter.parameters, isEmpty);
   }
 
   test_constructor_named() {

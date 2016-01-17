@@ -608,17 +608,23 @@ class _LibrarySerializer {
     }
     b.isInitializingFormal = parameter.isInitializingFormal;
     DartType type = parameter.type;
-    if (type is FunctionType) {
-      b.isFunctionTyped = true;
-      if (!type.returnType.isVoid) {
-        b.type = serializeTypeRef(type.returnType, parameter);
-      }
-      b.parameters = type.parameters
-          .map((parameter) => serializeParam(parameter, context))
-          .toList();
+    if (parameter.isInitializingFormal && parameter.hasImplicitType) {
+      b.hasImplicitType = true;
+      // We don't store the type of initializing formals that have an implicit
+      // type, because the type is inherited from the field.
     } else {
-      b.type = serializeTypeRef(type, context);
-      b.hasImplicitType = parameter.hasImplicitType;
+      if (type is FunctionType) {
+        b.isFunctionTyped = true;
+        if (!type.returnType.isVoid) {
+          b.type = serializeTypeRef(type.returnType, parameter);
+        }
+        b.parameters = type.parameters
+            .map((parameter) => serializeParam(parameter, context))
+            .toList();
+      } else {
+        b.type = serializeTypeRef(type, context);
+        b.hasImplicitType = parameter.hasImplicitType;
+      }
     }
     return b;
   }
