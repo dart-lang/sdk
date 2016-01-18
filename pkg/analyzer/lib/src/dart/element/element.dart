@@ -7,11 +7,12 @@ library analyzer.src.dart.element.element;
 import 'dart:collection';
 import 'dart:math' show min;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'

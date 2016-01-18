@@ -7,6 +7,7 @@ library analyzer.src.context.context;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -16,7 +17,6 @@ import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -646,8 +646,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Object /*=V*/ computeResult /*<V>*/ (
-      AnalysisTarget target, ResultDescriptor /*<V>*/ descriptor) {
+  Object/*=V*/ computeResult/*<V>*/(
+      AnalysisTarget target, ResultDescriptor/*<V>*/ descriptor) {
     // Make sure we are not trying to invoke the task model in a reentrant
     // fashion.
     assert(!driver.isTaskRunning);

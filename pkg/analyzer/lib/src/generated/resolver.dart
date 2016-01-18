@@ -6,13 +6,15 @@ library analyzer.src.generated.resolver;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -9359,7 +9361,8 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
-  @override visitVariableDeclarationList(VariableDeclarationList node) {
+  @override
+  visitVariableDeclarationList(VariableDeclarationList node) {
     for (VariableDeclaration decl in node.variables) {
       InferenceContext.setType(decl, node.type?.type);
     }

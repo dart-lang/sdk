@@ -4,10 +4,12 @@
 
 library analyzer.test.generated.parser_test;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_scanner.dart';
@@ -937,6 +939,11 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT]);
   }
 
+  void test_emptyEnumBody() {
+    parse3("parseEnumDeclaration", <Object>[emptyCommentAndMetadata()],
+        "enum E {}", [ParserErrorCode.EMPTY_ENUM_BODY]);
+  }
+
   void test_enableAsync_false_1() {
     parseAsync = false;
     FunctionDeclarationStatement stmt = parse4(
@@ -968,11 +975,6 @@ class ErrorParserTest extends ParserTestCase {
     FunctionExpression expr = stmt.functionDeclaration.functionExpression;
     expect(expr.body.isAsynchronous, isFalse);
     expect(expr.body.isGenerator, isTrue);
-  }
-
-  void test_emptyEnumBody() {
-    parse3("parseEnumDeclaration", <Object>[emptyCommentAndMetadata()],
-        "enum E {}", [ParserErrorCode.EMPTY_ENUM_BODY]);
   }
 
   void test_enumInClass() {

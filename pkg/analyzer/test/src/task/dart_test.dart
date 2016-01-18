@@ -4,11 +4,12 @@
 
 library analyzer.test.src.task.dart_test;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptions, AnalysisOptionsImpl, CacheState;
@@ -3021,6 +3022,40 @@ class B {}''');
     expect(outputs[UNITS], hasLength(1));
   }
 
+  test_perform_computeSourceKind_noDirectives_hasContainingLibrary() {
+    // Parse "lib.dart" to let the context know that "test.dart" is included.
+    computeResult(
+        newSource(
+            '/lib.dart',
+            r'''
+library lib;
+part 'test.dart';
+'''),
+        PARSED_UNIT);
+    // If there are no the "part of" directive, then it is not a part.
+    _performParseTask('');
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+  }
+
+  test_perform_computeSourceKind_noDirectives_noContainingLibrary() {
+    _performParseTask('');
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+  }
+
+  test_perform_doesNotExist() {
+    _performParseTask(null);
+    expect(outputs, hasLength(9));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
+    expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
+    expect(outputs[PARSE_ERRORS], hasLength(0));
+    expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[SOURCE_KIND], SourceKind.UNKNOWN);
+    expect(outputs[UNITS], hasLength(1));
+  }
+
   test_perform_enableAsync_false() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableAsync = false;
@@ -3053,40 +3088,6 @@ class B {void foo() async {}}''');
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
-    expect(outputs[UNITS], hasLength(1));
-  }
-
-  test_perform_computeSourceKind_noDirectives_hasContainingLibrary() {
-    // Parse "lib.dart" to let the context know that "test.dart" is included.
-    computeResult(
-        newSource(
-            '/lib.dart',
-            r'''
-library lib;
-part 'test.dart';
-'''),
-        PARSED_UNIT);
-    // If there are no the "part of" directive, then it is not a part.
-    _performParseTask('');
-    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
-  }
-
-  test_perform_computeSourceKind_noDirectives_noContainingLibrary() {
-    _performParseTask('');
-    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
-  }
-
-  test_perform_doesNotExist() {
-    _performParseTask(null);
-    expect(outputs, hasLength(9));
-    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
-    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
-    _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
-    expect(outputs[INCLUDED_PARTS], hasLength(0));
-    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
-    expect(outputs[PARSE_ERRORS], hasLength(0));
-    expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[SOURCE_KIND], SourceKind.UNKNOWN);
     expect(outputs[UNITS], hasLength(1));
   }
 

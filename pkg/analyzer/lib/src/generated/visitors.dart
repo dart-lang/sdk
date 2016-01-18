@@ -4,7 +4,7 @@
 
 library analyzer.src.generated.visitors;
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 
 /// An [AstVisitor] that delegates calls to visit methods to all [delegates]
 /// before calling [visitChildren].

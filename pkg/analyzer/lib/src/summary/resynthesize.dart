@@ -6,12 +6,15 @@ library summary_resynthesizer;
 
 import 'dart:collection';
 
-import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 
 /**
@@ -930,7 +933,8 @@ class _LibraryResynthesizer {
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
-          currentTypeParameters.length - type.paramReference].type;
+              currentTypeParameters.length - type.paramReference]
+          .type;
     } else {
       // TODO(paulberry): handle references to things other than classes (note:
       // this should only occur in the case of erroneous code).

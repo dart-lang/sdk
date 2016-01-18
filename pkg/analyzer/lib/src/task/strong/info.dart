@@ -8,10 +8,10 @@
 // refactored to fit into analyzer.
 library analyzer.src.task.strong.info;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 
@@ -95,12 +95,14 @@ abstract class DownCast extends CoercionInfo {
             baseType.isAssignableTo(_cast.toType)));
   }
 
-  @override List<Object> get arguments => [node, baseType, convertedType];
+  @override
+  List<Object> get arguments => [node, baseType, convertedType];
 
   Cast get cast => _cast;
 
   DartType get convertedType => _cast.toType;
-  @override String get message => '{0} ({1}) will need runtime check '
+  @override
+  String get message => '{0} ({1}) will need runtime check '
       'to cast to type {2}';
 
   // Factory to create correct DownCast variant.
@@ -295,9 +297,11 @@ abstract class InferredTypeBase extends CoercionInfo {
       TypeSystem rules, Expression expression, this._type)
       : super(rules, expression);
 
-  @override List get arguments => [node, type];
+  @override
+  List get arguments => [node, type];
   DartType get convertedType => type;
-  @override String get message => '{0} has inferred type {1}';
+  @override
+  String get message => '{0} has inferred type {1}';
   DartType get type => _type;
 
   toErrorCode() => new HintCode(name, message);
@@ -373,7 +377,8 @@ abstract class InvalidOverride extends StaticError {
         fromMixin = node.parent is WithClause,
         super(node);
 
-  @override List<Object> get arguments =>
+  @override
+  List<Object> get arguments =>
       [parent.name, element.name, subType, base, baseType];
 
   ClassElement get parent => element.enclosingElement;
@@ -395,8 +400,10 @@ class InvalidParameterDeclaration extends StaticError {
       TypeSystem rules, FormalParameter declaration, this.expectedType)
       : super(declaration);
 
-  @override List<Object> get arguments => [node, expectedType];
-  @override String get message => 'Type check failed: {0} is not of type {1}';
+  @override
+  List<Object> get arguments => [node, expectedType];
+  @override
+  String get message => 'Type check failed: {0} is not of type {1}';
   @override
   String get name => 'STRONG_MODE_INVALID_PARAMETER_DECLARATION';
 }
@@ -433,7 +440,8 @@ class InvalidParameterDeclaration extends StaticError {
 class InvalidSuperInvocation extends StaticError {
   InvalidSuperInvocation(SuperConstructorInvocation node) : super(node);
 
-  @override String get message => "super call must be last in an initializer "
+  @override
+  String get message => "super call must be last in an initializer "
       "list (see http://goo.gl/q1T4BB): {0}";
 
   @override
@@ -447,8 +455,10 @@ class InvalidVariableDeclaration extends StaticError {
       TypeSystem rules, AstNode declaration, this.expectedType)
       : super(declaration);
 
-  @override List<Object> get arguments => [expectedType];
-  @override String get message => 'Type check failed: null is not of type {0}';
+  @override
+  List<Object> get arguments => [expectedType];
+  @override
+  String get message => 'Type check failed: null is not of type {0}';
 
   @override
   String get name => 'STRONG_MODE_INVALID_VARIABLE_DECLARATION';
@@ -462,7 +472,8 @@ class NonGroundTypeCheckInfo extends StaticInfo {
     assert(node is IsExpression || node is AsExpression);
   }
 
-  @override List<Object> get arguments => [type];
+  @override
+  List<Object> get arguments => [type];
   String get message =>
       "Runtime check on non-ground type {0} may throw StrongModeError";
 
@@ -544,8 +555,10 @@ class StaticTypeError extends StaticError {
       : baseType = expression.staticType ?? DynamicTypeImpl.instance,
         super(expression);
 
-  @override List<Object> get arguments => [node, baseType, expectedType];
-  @override String get message =>
+  @override
+  List<Object> get arguments => [node, baseType, expectedType];
+  @override
+  String get message =>
       'Type check failed: {0} ({1}) is not of type {2}' +
       ((reason == null) ? '' : ' because $reason');
 

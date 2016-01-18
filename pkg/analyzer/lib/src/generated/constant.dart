@@ -6,11 +6,13 @@ library analyzer.src.generated.constant;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, RecordingErrorListener;
@@ -2312,17 +2314,6 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl questionQuestion(Expression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      if (leftOperand.isNull) {
-        return rightOperand;
-      }
-      return leftOperand;
-    }
-    return null;
-  }
-
   DartObjectImpl greaterThan(BinaryExpression node, DartObjectImpl leftOperand,
       DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
@@ -2473,6 +2464,17 @@ class DartObjectComputer {
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
+    }
+    return null;
+  }
+
+  DartObjectImpl questionQuestion(Expression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    if (leftOperand != null && rightOperand != null) {
+      if (leftOperand.isNull) {
+        return rightOperand;
+      }
+      return leftOperand;
     }
     return null;
   }
