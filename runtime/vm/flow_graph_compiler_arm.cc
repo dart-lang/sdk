@@ -275,12 +275,11 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
   ASSERT((type_class.NumTypeArguments() > 0) || type_class.IsSignatureClass());
   const Register kInstanceReg = R0;
-  Error& malformed_error = Error::Handle(zone());
+  Error& bound_error = Error::Handle(zone());
   const Type& int_type = Type::Handle(zone(), Type::IntType());
-  const bool smi_is_ok =
-      int_type.IsSubtypeOf(type, &malformed_error, Heap::kOld);
+  const bool smi_is_ok = int_type.IsSubtypeOf(type, &bound_error, Heap::kOld);
   // Malformed type should have been handled at graph construction time.
-  ASSERT(smi_is_ok || malformed_error.IsNull());
+  ASSERT(smi_is_ok || bound_error.IsNull());
   __ tst(kInstanceReg, Operand(kSmiTagMask));
   if (smi_is_ok) {
     __ b(is_instance_lbl, EQ);

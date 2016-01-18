@@ -5318,7 +5318,7 @@ class Type : public AbstractType {
   virtual bool IsRecursive() const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
-      Error* malformed_error,
+      Error* bound_error,
       TrailPtr trail = NULL,
       Heap::Space space = Heap::kNew) const;
   virtual RawAbstractType* CloneUnfinalized() const;

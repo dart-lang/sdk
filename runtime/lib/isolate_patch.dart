@@ -300,7 +300,8 @@ patch class Isolate {
 
   static bool _packageSupported() =>
       (VMLibraryHooks.packageRootUriFuture != null) &&
-      (VMLibraryHooks.packageConfigUriFuture != null);
+      (VMLibraryHooks.packageConfigUriFuture != null) &&
+      (VMLibraryHooks.resolvePackageUriFuture != null);
 
   /* patch */ static Future<Isolate> spawn(
       void entryPoint(message), var message,
@@ -318,7 +319,17 @@ patch class Isolate {
         packageConfig = (await Isolate.packageConfig)?.toString();
       }
 
-      _spawnFunction(readyPort.sendPort, entryPoint, message,
+      var script = VMLibraryHooks.platformScript;
+      if (script == null) {
+        // We do not have enough information to support spawning the new
+        // isolate.
+        throw new UnsupportedError("Isolate.spawn");
+      }
+      if (script.scheme == "package") {
+        script = await Isolate.resolvePackageUri(script);
+      }
+
+      _spawnFunction(readyPort.sendPort, script.toString(), entryPoint, message,
                      paused, errorsAreFatal, onExit, onError,
                      packageRoot, packageConfig);
       return await _spawnCommon(readyPort);
@@ -365,7 +376,7 @@ patch class Isolate {
       }
     }
     try {
-      // Resolve the uri agains the current isolate's root Uri first.
+      // Resolve the uri against the current isolate's root Uri first.
       var spawnedUri = _rootUri.resolveUri(uri);
 
       // Inherit this isolate's package resolution setup if not overridden.
@@ -375,6 +386,21 @@ patch class Isolate {
         if (Isolate._packageSupported()) {
           packageRoot = await Isolate.packageRoot;
           packageConfig = await Isolate.packageConfig;
+        }
+      }
+
+      // Ensure to resolve package: URIs being handed in as parameters.
+      if (packageRoot != null) {
+        // Avoid calling resolvePackageUri if not stricly necessary in case
+        // the API is not supported.
+        if (packageRoot.scheme == "package") {
+          packageRoot = await Isolate.resolvePackageUri(packageRoot);
+        }
+      } else if (packageConfig != null) {
+        // Avoid calling resolvePackageUri if not strictly necessary in case
+        // the API is not supported.
+        if (packageConfig.scheme == "package") {
+          packageConfig = await Isolate.resolvePackageUri(packageConfig);
         }
       }
 
@@ -394,7 +420,7 @@ patch class Isolate {
       if (readyPort != null) {
         readyPort.close();
       }
-      return await new Future<Isolate>.error(e, st);
+      rethrow;
     }
   }
 
@@ -436,7 +462,8 @@ patch class Isolate {
   static const _ERROR_FATAL = 9;
 
 
-  static void _spawnFunction(SendPort readyPort, Function topLevelFunction,
+  static void _spawnFunction(SendPort readyPort, String uri,
+                             Function topLevelFunction,
                              var message, bool paused, bool errorsAreFatal,
                              SendPort onExit, SendPort onError,
                              String packageRoot, String packageConfig)

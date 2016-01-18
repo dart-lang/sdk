@@ -116,7 +116,14 @@ class CompressionOptions {
       info = "; client_max_window_bits=$size";
     } else {
       // Client request. Specify default
-      info = "; client_max_window_bits";
+      if (clientMaxWindowBits == null) {
+        info = "; client_max_window_bits";
+      } else {
+        info = "; client_max_window_bits=$clientMaxWindowBits";
+      }
+      if (serverMaxWindowBits != null) {
+        info += "; server_max_window_bits=$serverMaxWindowBits";
+      }
     }
 
     return info;
@@ -139,14 +146,14 @@ class CompressionOptions {
     info.headerValue = _WebSocketImpl.PER_MESSAGE_DEFLATE;
 
     if (clientNoContextTakeover &&
-        (requested != null &&
-            requested.parameters.containsKey(_clientNoContextTakeover))) {
+        (requested == null || (requested != null &&
+            requested.parameters.containsKey(_clientNoContextTakeover)))) {
       info.headerValue += "; client_no_context_takeover";
     }
 
     if (serverNoContextTakeover &&
-        (requested != null &&
-            requested.parameters.containsKey(_serverNoContextTakeover))) {
+        (requested == null || (requested != null &&
+            requested.parameters.containsKey(_serverNoContextTakeover)))) {
       info.headerValue += "; server_no_context_takeover";
     }
 
