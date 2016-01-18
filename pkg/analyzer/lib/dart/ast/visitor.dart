@@ -6,7 +6,7 @@ library analyzer.dart.ast.visitor;
 
 import 'dart:collection';
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 
 /**
  * An AST visitor that will recursively visit all of the nodes in an AST
