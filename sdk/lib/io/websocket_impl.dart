@@ -481,9 +481,11 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
 
       response.headers.add("Sec-WebSocket-Extensions", info.headerValue);
       var serverNoContextTakeover =
-          hv.parameters.containsKey(_serverNoContextTakeover);
+          (hv.parameters.containsKey(_serverNoContextTakeover) &&
+            compression.serverNoContextTakeover);
       var clientNoContextTakeover =
-          hv.parameters.containsKey(_clientNoContextTakeover);
+          (hv.parameters.containsKey(_clientNoContextTakeover) &&
+            compression.clientNoContextTakeover);
       var deflate = new _WebSocketPerMessageDeflate(
           serverNoContextTakeover: serverNoContextTakeover,
           clientNoContextTakeover: clientNoContextTakeover,
@@ -577,6 +579,12 @@ class _WebSocketPerMessageDeflate {
       result.addAll(out);
     }
 
+    if ((serverSide && clientNoContextTakeover) ||
+        (!serverSide && serverNoContextTakeover)) {
+      decoder.end();
+      decoder = null;
+    }
+
     return new Uint8List.fromList(result);
   }
 
@@ -604,7 +612,8 @@ class _WebSocketPerMessageDeflate {
       result.addAll(out);
     }
 
-    if (!serverSide && clientNoContextTakeover) {
+    if ((!serverSide && clientNoContextTakeover) ||
+        (serverSide && serverNoContextTakeover)) {
       encoder.end();
       encoder = null;
     }
