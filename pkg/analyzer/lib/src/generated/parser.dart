@@ -7,7 +7,10 @@ library analyzer.src.generated.parser;
 import 'dart:collection';
 import "dart:math" as math;
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/error.dart';
@@ -5371,7 +5374,8 @@ class Parser {
     Token keyword = _expectKeyword(Keyword.CONST);
     if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
       return _parseListOrMapLiteral(keyword);
-    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) || _matches(TokenType.INDEX)) {
+    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
+        _matches(TokenType.INDEX)) {
       return _parseListLiteral(keyword, null);
     } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
       return _parseMapLiteral(keyword, null);
@@ -9381,9 +9385,9 @@ class ParserErrorCode extends ErrorCode {
   /**
    * Some environments, such as Fletch, do not support async.
    */
-  static const ParserErrorCode ASYNC_NOT_SUPPORTED =
-      const ParserErrorCode('ASYNC_NOT_SUPPORTED',
-          "Async and sync are not supported in this environment.");
+  static const ParserErrorCode ASYNC_NOT_SUPPORTED = const ParserErrorCode(
+      'ASYNC_NOT_SUPPORTED',
+      "Async and sync are not supported in this environment.");
 
   static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
       'BREAK_OUTSIDE_OF_LOOP',
