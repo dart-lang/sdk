@@ -40,7 +40,7 @@ main() {
       expectResolved(dartUri, filePath) {
         Source source = resolver.resolveAbsolute(Uri.parse(dartUri));
         expect(source, isNotNull, reason: dartUri);
-        expect(source.fullName, filePath);
+        expect(source.fullName, filePath.replaceAll('/', JavaFile.separator));
       }
 
       // We have four mappings.
