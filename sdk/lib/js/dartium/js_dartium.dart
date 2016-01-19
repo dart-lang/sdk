@@ -672,19 +672,25 @@ abstract class JSObjectInterfacesDom $implementsClauseDom {
 
 patch class JSObject {
   factory JSObject.create(JsObject jsObject) {
-    return new JSObjectImpl.internal()..blink_jsObject = jsObject;
+    var ret = new JSObjectImpl.internal()..blink_jsObject = jsObject;
+    jsObject._dartHtmlWrapper = ret;
+    return ret;
   }
 }
 
 patch class JSFunction {
   factory JSFunction.create(JsObject jsObject) {
-    return new JSFunctionImpl.internal()..blink_jsObject = jsObject;
+    var ret = new JSFunctionImpl.internal()..blink_jsObject = jsObject;
+    jsObject._dartHtmlWrapper = ret;
+    return ret;
   }
 }
 
 patch class JSArray {
   factory JSArray.create(JsObject jsObject) {
-    return new JSArrayImpl.internal()..blink_jsObject = jsObject;
+    var ret = new JSArrayImpl.internal()..blink_jsObject = jsObject;
+    jsObject._dartHtmlWrapper = ret;
+    return ret;
   }
 }
 
