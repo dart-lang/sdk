@@ -405,13 +405,19 @@ class CodeGenerator extends tree_ir.StatementVisitor
   ///
   /// Even if the class is never instantiated, a JS constructor must be emitted
   /// so the 'instanceof' expression does not throw an exception at runtime.
-  ///
-  /// It does not help to ask the class world if the class is instantiated,
-  /// because it could still get tree-shaken if it is unused after optimization.
-  void registerInstanceofCheck(ClassElement class_) {
-    // TODO(asgerf): This is the only hook we have to ensure the JS constructor
-    //   gets emitted, but it is very imprecise. We should do better.
-    registry.registerInstantiatedClass(class_);
+  bool tryRegisterInstanceofCheck(ClassElement class_) {
+    if (glue.classWorld.isInstantiated(class_)) {
+      // Ensure the class remains instantiated during backend tree-shaking.
+      // TODO(asgerf): We could have a more precise hook to inform the emitter
+      // that the JS constructor function is needed, without the class being
+      // instantiated.
+      registry.registerInstantiatedClass(class_);
+      return true;
+    }
+    // Will throw if the JS constructor is not emitted, so do not allow the
+    // instanceof check.  This should only happen when certain optimization
+    // passes are disabled, as the type check itself is trivial.
+    return false;
   }
 
   @override
@@ -435,8 +441,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
         // TODO(sra): Implement fast cast via calling 'boolTypeCast'.
       } else if (node.isTypeTest &&
                  node.typeArguments.isEmpty &&
-                 glue.mayGenerateInstanceofCheck(type)) {
-        registerInstanceofCheck(clazz);
+                 glue.mayGenerateInstanceofCheck(type) &&
+                 tryRegisterInstanceofCheck(clazz)) {
         return js.js('# instanceof #', [value, glue.constructorAccess(clazz)]);
       }
 
