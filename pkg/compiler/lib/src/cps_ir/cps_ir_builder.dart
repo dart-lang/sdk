@@ -2062,7 +2062,8 @@ class IrBuilder {
     ir.Primitive value = buildForeignCode(
         js.js.uncachedExpressionTemplate(code),
         arguments,
-        behavior);
+        behavior,
+        type: program.getTypeMaskForNativeFunction(function));
     buildReturn(value: value, sourceInformation: source);
   }
 
@@ -2634,9 +2635,12 @@ class IrBuilder {
   ir.Primitive buildForeignCode(js.Template codeTemplate,
                                 List<ir.Primitive> arguments,
                                 NativeBehavior behavior,
-                                {Element dependency}) {
+                                {Element dependency,
+                                 TypeMask type}) {
     assert(behavior != null);
-    TypeMask type = program.getTypeMaskForForeign(behavior);
+    if (type == null) {
+      type = program.getTypeMaskForForeign(behavior);
+    }
     ir.Primitive result = addPrimitive(new ir.ForeignCode(
         codeTemplate,
         type,

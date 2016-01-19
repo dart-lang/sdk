@@ -1529,12 +1529,12 @@ class CreateInvocationMirror extends Primitive {
 
 class ForeignCode extends UnsafePrimitive {
   final js.Template codeTemplate;
-  final TypeMask type;
+  final TypeMask storedType;
   final List<Reference<Primitive>> arguments;
   final native.NativeBehavior nativeBehavior;
   final FunctionElement dependency;
 
-  ForeignCode(this.codeTemplate, this.type, List<Primitive> arguments,
+  ForeignCode(this.codeTemplate, this.storedType, List<Primitive> arguments,
       this.nativeBehavior, {this.dependency})
       : this.arguments = _referenceList(arguments);
 

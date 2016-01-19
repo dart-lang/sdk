@@ -3020,7 +3020,7 @@ class TypePropagationVisitor implements Visitor {
 
   @override
   void visitForeignCode(ForeignCode node) {
-    setValue(node, nonConstant(node.type));
+    setValue(node, nonConstant(node.storedType));
   }
 
   @override

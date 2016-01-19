@@ -3544,6 +3544,10 @@ class GlobalProgramInformation {
     return TypeMaskFactory.fromNativeBehavior(behavior, _compiler);
   }
 
+  TypeMask getTypeMaskForNativeFunction(FunctionElement function) {
+    return  _compiler.typesTask.getGuaranteedReturnTypeOfElement(function);
+  }
+
   FieldElement locateSingleField(Selector selector, TypeMask type) {
     return _compiler.world.locateSingleField(selector, type);
   }
