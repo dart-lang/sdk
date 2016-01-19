@@ -733,11 +733,22 @@ class _LibrarySerializer {
       } else if (type is FunctionType) {
         typeArguments = type.typeArguments;
       }
-      if (typeArguments != null &&
-          typeArguments.any((DartType argument) => !argument.isDynamic)) {
-        b.typeArguments = typeArguments
-            .map((DartType t) => serializeTypeRef(t, context))
-            .toList();
+      if (typeArguments != null) {
+        // Trailing type arguments of type 'dynamic' should be omitted.
+        int numArgsToSerialize = typeArguments.length;
+        while (numArgsToSerialize > 0 &&
+            typeArguments[numArgsToSerialize - 1].isDynamic) {
+          --numArgsToSerialize;
+        }
+        if (numArgsToSerialize > 0) {
+          List<UnlinkedTypeRefBuilder> serializedArguments =
+              <UnlinkedTypeRefBuilder>[];
+          for (int i = 0; i < numArgsToSerialize; i++) {
+            serializedArguments
+                .add(serializeTypeRef(typeArguments[i], context));
+          }
+          b.typeArguments = serializedArguments;
+        }
       }
     }
     return b;

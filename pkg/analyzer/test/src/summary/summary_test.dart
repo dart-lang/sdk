@@ -2788,6 +2788,24 @@ void set f(value) {}''';
     expect(typeRef.typeArguments, isEmpty);
   }
 
+  test_type_arguments_explicit_dynamic_dynamic() {
+    UnlinkedTypeRef typeRef = serializeTypeText('Map<dynamic, dynamic>');
+    checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
+        allowTypeParameters: true, numTypeParameters: 2);
+    // Trailing type arguments of type `dynamic` are omitted.
+    expect(typeRef.typeArguments, isEmpty);
+  }
+
+  test_type_arguments_explicit_dynamic_int() {
+    UnlinkedTypeRef typeRef = serializeTypeText('Map<dynamic, int>');
+    checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
+        allowTypeParameters: true, numTypeParameters: 2);
+    // Leading type arguments of type `dynamic` are not omitted.
+    expect(typeRef.typeArguments.length, 2);
+    checkDynamicTypeRef(typeRef.typeArguments[0]);
+    checkTypeRef(typeRef.typeArguments[1], 'dart:core', 'dart:core', 'int');
+  }
+
   test_type_arguments_explicit_dynamic_typedef() {
     UnlinkedTypeRef typeRef =
         serializeTypeText('F<dynamic>', otherDeclarations: 'typedef T F<T>();');
@@ -2796,6 +2814,24 @@ void set f(value) {}''';
         expectedKind: ReferenceKind.typedef,
         numTypeParameters: 1);
     expect(typeRef.typeArguments, isEmpty);
+  }
+
+  test_type_arguments_explicit_String_dynamic() {
+    UnlinkedTypeRef typeRef = serializeTypeText('Map<String, dynamic>');
+    checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
+        allowTypeParameters: true, numTypeParameters: 2);
+    // Trailing type arguments of type `dynamic` are omitted.
+    expect(typeRef.typeArguments.length, 1);
+    checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'String');
+  }
+
+  test_type_arguments_explicit_String_int() {
+    UnlinkedTypeRef typeRef = serializeTypeText('Map<String, int>');
+    checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
+        allowTypeParameters: true, numTypeParameters: 2);
+    expect(typeRef.typeArguments.length, 2);
+    checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'String');
+    checkTypeRef(typeRef.typeArguments[1], 'dart:core', 'dart:core', 'int');
   }
 
   test_type_arguments_explicit_typedef() {

@@ -512,10 +512,20 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
         throw new StateError(
             'Unexpected identifier type: ${identifier.runtimeType}');
       }
-      if (node.typeArguments != null &&
-          node.typeArguments.arguments.any(isNotDynamic)) {
-        b.typeArguments =
-            node.typeArguments.arguments.map(serializeTypeName).toList();
+      if (node.typeArguments != null) {
+        // Trailing type arguments of type 'dynamic' should be omitted.
+        NodeList<TypeName> args = node.typeArguments.arguments;
+        int numArgsToSerialize = args.length;
+        while (numArgsToSerialize > 0 && isDynamic(args[numArgsToSerialize - 1])) {
+          --numArgsToSerialize;
+        }
+        if (numArgsToSerialize > 0) {
+          List<UnlinkedTypeRefBuilder> serializedArguments = <UnlinkedTypeRefBuilder>[];
+          for (int i = 0; i < numArgsToSerialize; i++) {
+            serializedArguments.add(serializeTypeName(args[i]));
+          }
+          b.typeArguments = serializedArguments;
+        }
       }
     }
     return b;
@@ -796,9 +806,9 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   /**
    * Helper method to determine if a given [typeName] refers to `dynamic`.
    */
-  static bool isNotDynamic(TypeName typeName) {
+  static bool isDynamic(TypeName typeName) {
     Identifier name = typeName.name;
-    return !(name is SimpleIdentifier && name.name == 'dynamic');
+    return name is SimpleIdentifier && name.name == 'dynamic';
   }
 }
 

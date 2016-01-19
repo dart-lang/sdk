@@ -1348,7 +1348,19 @@ void set x(value) {}''');
     checkLibrary('void set x(int value) {} set y(value) {}');
   }
 
-  test_type_arguments_explicit() {
+  test_type_arguments_explicit_dynamic_dynamic() {
+    checkLibrary('Map<dynamic, dynamic> m;');
+  }
+
+  test_type_arguments_explicit_dynamic_int() {
+    checkLibrary('Map<dynamic, int> m;');
+  }
+
+  test_type_arguments_explicit_String_dynamic() {
+    checkLibrary('Map<String, dynamic> m;');
+  }
+
+  test_type_arguments_explicit_String_int() {
     checkLibrary('Map<String, int> m;');
   }
 
