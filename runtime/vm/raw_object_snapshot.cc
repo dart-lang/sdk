@@ -665,12 +665,15 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
         reader->zone(), NEW_OBJECT(Function));
     reader->AddBackRef(object_id, &func, kIsDeserialized);
 
-    // Set all the non object fields.
-    func.set_token_pos(reader->Read<int32_t>());
-    func.set_end_token_pos(reader->Read<int32_t>());
+    // Set all the non object fields. Read the token positions now but
+    // don't set them until after setting the kind.
+    const int32_t token_pos = reader->Read<int32_t>();
+    const int32_t end_token_pos = reader->Read<uint32_t>();
     func.set_num_fixed_parameters(reader->Read<int16_t>());
     func.set_num_optional_parameters(reader->Read<int16_t>());
     func.set_kind_tag(reader->Read<uint32_t>());
+    func.set_token_pos(token_pos);
+    func.set_end_token_pos(end_token_pos);
     if (reader->snapshot_code()) {
       func.set_usage_counter(0);
       func.set_deoptimization_counter(0);

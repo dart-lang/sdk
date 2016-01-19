@@ -1176,7 +1176,7 @@ RawError* Object::Init(Isolate* isolate) {
   // could expect. Use with caution.
   type ^= Type::New(Object::Handle(zone, cls.raw()),
                     TypeArguments::Handle(zone),
-                    Scanner::kNoSourcePos);
+                    Token::kNoSourcePos);
   type.SetIsFinalized();
   type ^= type.Canonicalize();
   object_store->set_array_type(type);
@@ -1987,7 +1987,7 @@ RawAbstractType* Class::RareType() const {
   const Type& type = Type::Handle(Type::New(
       *this,
       Object::null_type_arguments(),
-      Scanner::kNoSourcePos));
+      Token::kNoSourcePos));
   return ClassFinalizer::FinalizeType(*this,
                                       type,
                                       ClassFinalizer::kCanonicalize);
@@ -1999,7 +1999,7 @@ RawAbstractType* Class::DeclarationType() const {
   const Type& type = Type::Handle(Type::New(
       *this,
       args,
-      Scanner::kNoSourcePos));
+      Token::kNoSourcePos));
   return ClassFinalizer::FinalizeType(*this,
                                       type,
                                       ClassFinalizer::kCanonicalize);
@@ -2037,7 +2037,7 @@ RawClass* Class::New() {
   result.set_num_type_arguments(0);
   result.set_num_own_type_arguments(0);
   result.set_num_native_fields(0);
-  result.set_token_pos(Scanner::kNoSourcePos);
+  result.set_token_pos(Token::kNoSourcePos);
   result.InitEmptyFields();
   Isolate::Current()->RegisterClass(result);
   return result.raw();
@@ -2695,7 +2695,7 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
                   false,  // Not external.
                   false,  // Not native.
                   owner,
-                  0));    // token_pos
+                  ClassifyingTokenPositions::kMethodExtractor));  // token_pos
 
   // Initialize signature: receiver is a single fixed parameter.
   const intptr_t kNumParameters = 1;
@@ -3110,7 +3110,7 @@ RawClass* Class::New(intptr_t index) {
   result.set_num_type_arguments(kUnknownNumTypeArguments);
   result.set_num_own_type_arguments(kUnknownNumTypeArguments);
   result.set_num_native_fields(0);
-  result.set_token_pos(Scanner::kNoSourcePos);
+  result.set_token_pos(Token::kNoSourcePos);
   result.InitEmptyFields();
   Isolate::Current()->RegisterClass(result);
   return result.raw();
@@ -3200,7 +3200,7 @@ RawClass* Class::NewNativeWrapper(const Library& library,
                                   int field_count) {
   Class& cls = Class::Handle(library.LookupClass(name));
   if (cls.IsNull()) {
-    cls = New(name, Script::Handle(), Scanner::kNoSourcePos);
+    cls = New(name, Script::Handle(), Token::kNoSourcePos);
     cls.SetFields(Object::empty_array());
     cls.SetFunctions(Object::empty_array());
     // Set super class to Object.
@@ -3452,7 +3452,7 @@ void Class::set_script(const Script& value) const {
 
 
 void Class::set_token_pos(intptr_t token_pos) const {
-  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  ASSERT(!Token::IsClassifying(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -4388,7 +4388,7 @@ RawUnresolvedClass* UnresolvedClass::New() {
 
 
 void UnresolvedClass::set_token_pos(intptr_t token_pos) const {
-  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  ASSERT(!Token::IsClassifying(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -5790,7 +5790,7 @@ void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
 
 
 void Function::set_token_pos(intptr_t token_pos) const {
-  ASSERT(token_pos >= 0);
+  ASSERT(!Token::IsClassifying(token_pos) || IsMethodExtractor());
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -8551,7 +8551,10 @@ TokenStream::Iterator::Iterator(const TokenStream& tokens,
       cur_token_kind_(Token::kILLEGAL),
       cur_token_obj_index_(-1),
       stream_type_(stream_type) {
-  SetCurrentPosition(token_pos);
+  ASSERT(token_pos != Token::kNoSourcePos);
+  if (token_pos >= 0) {
+    SetCurrentPosition(token_pos);
+  }
 }
 
 
@@ -9243,7 +9246,7 @@ static void ReportTooManyImports(const Library& lib) {
   const String& url = String::Handle(lib.url());
   Report::MessageF(Report::kError,
                    Script::Handle(lib.LookupScript(url)),
-                   Scanner::kNoSourcePos,
+                   Token::kNoSourcePos,
                    Report::AtLocation,
                    "too many imports in library '%s'",
                    url.ToCString());
@@ -11264,10 +11267,10 @@ void PcDescriptors::EncodeInteger(GrowableArray<uint8_t>* data,
                                   intptr_t value) {
   bool is_last_part = false;
   while (!is_last_part) {
-    intptr_t part = value & 0x7f;
+    uint8_t part = value & 0x7f;
     value >>= 7;
     if ((value == 0 && (part & 0x40) == 0) ||
-        (value == -1 && (part & 0x40) != 0)) {
+        (value == static_cast<intptr_t>(-1) && (part & 0x40) != 0)) {
       is_last_part = true;
     } else {
       part |= 0x80;
@@ -11284,15 +11287,15 @@ intptr_t PcDescriptors::DecodeInteger(intptr_t* byte_index) const {
   ASSERT(*byte_index < Length());
   uword shift = 0;
   intptr_t value = 0;
-  intptr_t part = 0;
+  uint8_t part = 0;
   do {
     part = data[(*byte_index)++];
-    value |= (part & 0x7f) << shift;
+    value |= static_cast<intptr_t>(part & 0x7f) << shift;
     shift += 7;
   } while ((part & 0x80) != 0);
 
-  if (shift < sizeof(value) * 8 && (part & 0x40) != 0) {
-    value |= -(1 << shift);
+  if ((shift < (sizeof(value) * 8)) && ((part & 0x40) != 0)) {
+    value |= static_cast<intptr_t>(-1) << shift;
   }
   return value;
 }
@@ -14588,7 +14591,7 @@ void LanguageError::set_script(const Script& value) const {
 
 
 void LanguageError::set_token_pos(intptr_t token_pos) const {
-  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  ASSERT(!Token::IsClassifying(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -14992,7 +14995,7 @@ RawType* Instance::GetType() const {
     if (cls.NumTypeArguments() > 0) {
       type_arguments = GetTypeArguments();
     }
-    type = Type::New(cls, type_arguments, Scanner::kNoSourcePos);
+    type = Type::New(cls, type_arguments, Token::kNoSourcePos);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }
@@ -15251,7 +15254,7 @@ const char* Instance::ToCString() const {
       type_arguments = GetTypeArguments();
     }
     const Type& type =
-        Type::Handle(Type::New(cls, type_arguments, Scanner::kNoSourcePos));
+        Type::Handle(Type::New(cls, type_arguments, Token::kNoSourcePos));
     const String& type_name = String::Handle(type.UserVisibleName());
     return OS::SCreate(Thread::Current()->zone(),
         "Instance of '%s'", type_name.ToCString());
@@ -15913,7 +15916,7 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
     const TypeArguments& no_type_arguments = TypeArguments::Handle();
     type ^= Type::New(Object::Handle(type_class.raw()),
                       no_type_arguments,
-                      Scanner::kNoSourcePos);
+                      Token::kNoSourcePos);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }
@@ -16422,7 +16425,7 @@ RawType* Type::New(const Object& clazz,
 
 
 void Type::set_token_pos(intptr_t token_pos) const {
-  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  ASSERT(!Token::IsClassifying(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -16854,7 +16857,7 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
 
 
 void TypeParameter::set_token_pos(intptr_t token_pos) const {
-  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  ASSERT(!Token::IsClassifying(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 

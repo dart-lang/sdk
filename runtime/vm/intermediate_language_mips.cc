@@ -1859,7 +1859,7 @@ class BoxAllocationSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(Location::RegisterLocation(result_));
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
+    compiler->GenerateCall(Token::kNoSourcePos,  // No token position.
                            stub_entry,
                            RawPcDescriptors::kOther,
                            locs);
@@ -5389,7 +5389,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // may be inserted before this instruction.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
-                                   Scanner::kNoSourcePos);
+                                   Token::kNoSourcePos);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -5591,7 +5591,7 @@ void GrowRegExpStackInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, 1 * kWordSize));
   __ sw(typed_data, Address(SP, 0 * kWordSize));
-  compiler->GenerateRuntimeCall(Scanner::kNoSourcePos,  // No token position.
+  compiler->GenerateRuntimeCall(Token::kNoSourcePos,  // No token position.
                                 deopt_id(),
                                 kGrowRegExpStackRuntimeEntry,
                                 1,

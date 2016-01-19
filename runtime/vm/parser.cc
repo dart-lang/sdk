@@ -66,6 +66,8 @@ DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 #define I (isolate())
 #define Z (zone())
 
+// Quick synthetic token position.
+#define ST(token_pos) Token::ToSynthetic(token_pos)
 
 #if defined(DEBUG)
 class TraceParser : public ValueObject {
@@ -239,7 +241,7 @@ void ParsedFunction::AllocateVariables() {
 
 struct CatchParamDesc {
   CatchParamDesc()
-      : token_pos(Scanner::kNoSourcePos), type(NULL), name(NULL), var(NULL) { }
+      : token_pos(Token::kNoSourcePos), type(NULL), name(NULL), var(NULL) { }
   intptr_t token_pos;
   const AbstractType* type;
   const String* name;
@@ -519,7 +521,7 @@ RawInteger* Parser::CurrentIntegerLiteral() const {
 struct ParamDesc {
   ParamDesc()
       : type(NULL),
-        name_pos(Scanner::kNoSourcePos),
+        name_pos(Token::kNoSourcePos),
         name(NULL),
         default_value(NULL),
         metadata(NULL),
@@ -624,10 +626,10 @@ struct MemberDesc {
     has_factory = false;
     has_operator = false;
     has_native = false;
-    metadata_pos = Scanner::kNoSourcePos;
+    metadata_pos = Token::kNoSourcePos;
     operator_token = Token::kILLEGAL;
     type = NULL;
-    name_pos = Scanner::kNoSourcePos;
+    name_pos = Token::kNoSourcePos;
     name = NULL;
     redirect_name = NULL;
     dict_name = NULL;
@@ -1312,7 +1314,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
   LoadInstanceFieldNode* load_field =
       new LoadInstanceFieldNode(ident_pos, load_receiver, field);
 
-  ReturnNode* return_node = new ReturnNode(Scanner::kNoSourcePos, load_field);
+  ReturnNode* return_node = new ReturnNode(ST(ident_pos), load_field);
   current_block_->statements->Add(return_node);
   return CloseBlock();
 }
@@ -1356,7 +1358,7 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
   StoreInstanceFieldNode* store_field =
       new StoreInstanceFieldNode(ident_pos, receiver, field, value);
   current_block_->statements->Add(store_field);
-  current_block_->statements->Add(new ReturnNode(Scanner::kNoSourcePos));
+  current_block_->statements->Add(new ReturnNode(ST(ident_pos)));
   return CloseBlock();
 }
 
@@ -1484,7 +1486,7 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
   ParamList params;
 
   const intptr_t ident_pos = func.token_pos();
-  ASSERT(func.token_pos() == 0);
+  ASSERT(func.token_pos() == ClassifyingTokenPositions::kMethodExtractor);
   ASSERT(current_class().raw() == func.Owner());
   params.AddReceiver(ReceiverType(current_class()), ident_pos);
   ASSERT(func.num_fixed_parameters() == 1);  // Receiver.
@@ -1504,7 +1506,7 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
       load_receiver,
       NULL);
 
-  ReturnNode* return_node = new ReturnNode(Scanner::kNoSourcePos, closure);
+  ReturnNode* return_node = new ReturnNode(ident_pos, closure);
   current_block_->statements->Add(return_node);
   return CloseBlock();
 }
@@ -2879,7 +2881,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   OpenFunctionBlock(func);
 
   LocalVariable* receiver = new LocalVariable(
-      Scanner::kNoSourcePos, Symbols::This(), *ReceiverType(current_class()));
+      Token::kNoSourcePos, Symbols::This(), *ReceiverType(current_class()));
   current_block_->scope->InsertParameterAt(0, receiver);
 
   // Parse expressions of instance fields that have an explicit
@@ -2922,20 +2924,20 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
 
     // Prepare user-defined arguments to be forwarded to super call.
     // The first user-defined argument is at position 1.
-    forwarding_args = new ArgumentListNode(Scanner::kNoSourcePos);
+    forwarding_args = new ArgumentListNode(ST(ctor_pos));
     for (int i = 1; i < func.NumParameters(); i++) {
       LocalVariable* param = new LocalVariable(
-          Scanner::kNoSourcePos,
+          Token::kNoSourcePos,
           String::ZoneHandle(Z, func.ParameterNameAt(i)),
           Object::dynamic_type());
       current_block_->scope->InsertParameterAt(i, param);
-      forwarding_args->Add(new LoadLocalNode(Scanner::kNoSourcePos, param));
+      forwarding_args->Add(new LoadLocalNode(ST(ctor_pos), param));
     }
   }
 
   AstNode* super_call = GenerateSuperConstructorCall(
       current_class(),
-      Scanner::kNoSourcePos,
+      ctor_pos,
       receiver,
       forwarding_args);
   if (super_call != NULL) {
@@ -2944,7 +2946,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   CheckFieldsInitialized(current_class());
 
   // Empty constructor body.
-  current_block_->statements->Add(new ReturnNode(Scanner::kNoSourcePos));
+  current_block_->statements->Add(new ReturnNode(ST(ctor_pos)));
   SequenceNode* statements = CloseBlock();
   return statements;
 }
@@ -3321,7 +3323,7 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
 
   BoolScope allow_await(&this->await_is_keyword_,
                         func.IsAsyncOrGenerator() || func.is_generated_body());
-  intptr_t end_token_pos = Scanner::kNoSourcePos;
+  intptr_t end_token_pos = Token::kNoSourcePos;
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
     if (String::Handle(Z, func.name()).Equals(Symbols::EqualOperator())) {
@@ -3414,24 +3416,24 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
 
 void Parser::AddEqualityNullCheck() {
   AstNode* argument =
-      new LoadLocalNode(Scanner::kNoSourcePos,
+      new LoadLocalNode(Token::kNoSourcePos,
                         current_block_->scope->parent()->VariableAt(1));
   LiteralNode* null_operand =
-      new LiteralNode(Scanner::kNoSourcePos, Instance::ZoneHandle(Z));
+      new LiteralNode(Token::kNoSourcePos, Instance::ZoneHandle(Z));
   ComparisonNode* check_arg =
-      new ComparisonNode(Scanner::kNoSourcePos,
+      new ComparisonNode(Token::kNoSourcePos,
                          Token::kEQ_STRICT,
                          argument,
                          null_operand);
   ComparisonNode* result =
-      new ComparisonNode(Scanner::kNoSourcePos,
+      new ComparisonNode(Token::kNoSourcePos,
                          Token::kEQ_STRICT,
-                         LoadReceiver(Scanner::kNoSourcePos),
+                         LoadReceiver(Token::kNoSourcePos),
                          null_operand);
-  SequenceNode* arg_is_null = new SequenceNode(Scanner::kNoSourcePos,
+  SequenceNode* arg_is_null = new SequenceNode(Token::kNoSourcePos,
                                                current_block_->scope);
-  arg_is_null->Add(new ReturnNode(Scanner::kNoSourcePos, result));
-  IfNode* if_arg_null = new IfNode(Scanner::kNoSourcePos,
+  arg_is_null->Add(new ReturnNode(Token::kNoSourcePos, result));
+  IfNode* if_arg_null = new IfNode(Token::kNoSourcePos,
                                    check_arg,
                                    arg_is_null,
                                    NULL);
@@ -5078,7 +5080,7 @@ void Parser::ConsumeRightAngleBracket() {
 
 intptr_t Parser::SkipMetadata() {
   if (CurrentToken() != Token::kAT) {
-    return Scanner::kNoSourcePos;
+    return Token::kNoSourcePos;
   }
   intptr_t metadata_pos = TokenPos();
   while (CurrentToken() == Token::kAT) {
@@ -5837,7 +5839,7 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
     CheckToken(Token::kAS, "'as' expected");
   }
   String& prefix = String::Handle(Z);
-  intptr_t prefix_pos = Scanner::kNoSourcePos;
+  intptr_t prefix_pos = Token::kNoSourcePos;
   if (is_import && (CurrentToken() == Token::kAS)) {
     ConsumeToken();
     prefix_pos = TokenPos();
@@ -6193,10 +6195,10 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   // Add the exception and stack trace parameters to the scope.
   CatchParamDesc exception_param;
   CatchParamDesc stack_trace_param;
-  exception_param.token_pos = Scanner::kNoSourcePos;
+  exception_param.token_pos = Token::kNoSourcePos;
   exception_param.type = &Object::dynamic_type();
   exception_param.name = &Symbols::ExceptionParameter();
-  stack_trace_param.token_pos = Scanner::kNoSourcePos;
+  stack_trace_param.token_pos = Token::kNoSourcePos;
   stack_trace_param.type = &Object::dynamic_type();
   stack_trace_param.name = &Symbols::StackTraceParameter();
 
@@ -6216,9 +6218,9 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
     // Generate code to load the exception object (:exception_var) into
     // the exception variable specified in this block.
     current_block_->statements->Add(new(Z) StoreLocalNode(
-        Scanner::kNoSourcePos,
+        Token::kNoSourcePos,
         exception_param.var,
-        new(Z) LoadLocalNode(Scanner::kNoSourcePos, exception_var)));
+        new(Z) LoadLocalNode(Token::kNoSourcePos, exception_var)));
   }
 
   LocalVariable* stack_trace_var =
@@ -6229,9 +6231,9 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
     // to load the stack trace object (:stack_trace_var) into the stack
     // trace variable specified in this block.
     current_block_->statements->Add(new(Z) StoreLocalNode(
-        Scanner::kNoSourcePos,
+        Token::kNoSourcePos,
         stack_trace_param.var,
-        new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_var)));
+        new(Z) LoadLocalNode(Token::kNoSourcePos, stack_trace_var)));
   }
   LocalVariable* saved_exception_var = try_scope->LocalLookupVariable(
       Symbols::SavedExceptionVar());
@@ -6250,15 +6252,15 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
       current_block_->scope->LookupVariable(Symbols::Controller(), false);
   ASSERT(controller != NULL);
   ArgumentListNode* args =
-      new(Z) ArgumentListNode(Scanner::kNoSourcePos);
-  args->Add(new(Z) LoadLocalNode(Scanner::kNoSourcePos, exception_param.var));
-  args->Add(new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_param.var));
+      new(Z) ArgumentListNode(Token::kNoSourcePos);
+  args->Add(new(Z) LoadLocalNode(Token::kNoSourcePos, exception_param.var));
+  args->Add(new(Z) LoadLocalNode(Token::kNoSourcePos, stack_trace_param.var));
   current_block_->statements->Add(
       new(Z) InstanceCallNode(try_end_pos,
-          new(Z) LoadLocalNode(Scanner::kNoSourcePos, controller),
+          new(Z) LoadLocalNode(Token::kNoSourcePos, controller),
           Symbols::AddError(),
           args));
-  ReturnNode* return_node = new(Z) ReturnNode(Scanner::kNoSourcePos);
+  ReturnNode* return_node = new(Z) ReturnNode(Token::kNoSourcePos);
   AddNodeForFinallyInlining(return_node);
   current_block_->statements->Add(return_node);
   AstNode* catch_block = CloseBlock();
@@ -6283,10 +6285,10 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   do {
     OpenBlock();
     ArgumentListNode* no_args =
-        new(Z) ArgumentListNode(Scanner::kNoSourcePos);
+        new(Z) ArgumentListNode(Token::kNoSourcePos);
     current_block_->statements->Add(
         new(Z) InstanceCallNode(try_end_pos,
-            new(Z) LoadLocalNode(Scanner::kNoSourcePos, controller),
+            new(Z) LoadLocalNode(Token::kNoSourcePos, controller),
             Symbols::Close(),
             no_args));
 
@@ -6294,7 +6296,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
     AwaitMarkerNode* await_marker =
         new(Z) AwaitMarkerNode(async_temp_scope_,
                                current_block_->scope,
-                               Scanner::kNoSourcePos);
+                               Token::kNoSourcePos);
     current_block_->statements->Add(await_marker);
     ReturnNode* continuation_ret = new(Z) ReturnNode(try_end_pos);
     continuation_ret->set_return_type(ReturnNode::kContinuationTarget);
@@ -6325,7 +6327,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   handler_types.Add(Object::dynamic_type());
 
   CatchClauseNode* catch_clause = new(Z) CatchClauseNode(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       catch_handler_list,
       Array::ZoneHandle(Z, Array::MakeArray(handler_types)),
       context_var,
@@ -6339,7 +6341,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   const intptr_t try_index = try_statement->try_index();
 
   AstNode* try_catch_node =
-      new(Z) TryCatchNode(Scanner::kNoSourcePos,
+      new(Z) TryCatchNode(Token::kNoSourcePos,
                           body,
                           context_var,
                           catch_clause,
@@ -6364,10 +6366,10 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   OpenBlock();  // Catch block.
   CatchParamDesc exception_param;
   CatchParamDesc stack_trace_param;
-  exception_param.token_pos = Scanner::kNoSourcePos;
+  exception_param.token_pos = Token::kNoSourcePos;
   exception_param.type = &Object::dynamic_type();
   exception_param.name = &Symbols::ExceptionParameter();
-  stack_trace_param.token_pos = Scanner::kNoSourcePos;
+  stack_trace_param.token_pos = Token::kNoSourcePos;
   stack_trace_param.type = &Object::dynamic_type();
   stack_trace_param.name = &Symbols::StackTraceParameter();
 
@@ -6385,9 +6387,9 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
     // the exception variable specified in this block.
     ASSERT(exception_var != NULL);
     current_block_->statements->Add(new(Z) StoreLocalNode(
-        Scanner::kNoSourcePos,
+        Token::kNoSourcePos,
         exception_param.var,
-        new(Z) LoadLocalNode(Scanner::kNoSourcePos, exception_var)));
+        new(Z) LoadLocalNode(Token::kNoSourcePos, exception_var)));
   }
 
   LocalVariable* stack_trace_var =
@@ -6398,9 +6400,9 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
     // trace variable specified in this block.
     ASSERT(stack_trace_var != NULL);
     current_block_->statements->Add(new(Z) StoreLocalNode(
-        Scanner::kNoSourcePos,
+        Token::kNoSourcePos,
         stack_trace_param.var,
-        new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_var)));
+        new(Z) LoadLocalNode(Token::kNoSourcePos, stack_trace_var)));
   }
   LocalVariable* saved_exception_var = try_scope->LocalLookupVariable(
       Symbols::SavedExceptionVar());
@@ -6418,17 +6420,17 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
       Symbols::AsyncCompleter(), false);
   ASSERT(async_completer != NULL);
   ArgumentListNode* completer_args =
-      new (Z) ArgumentListNode(Scanner::kNoSourcePos);
+      new (Z) ArgumentListNode(Token::kNoSourcePos);
   completer_args->Add(
-      new (Z) LoadLocalNode(Scanner::kNoSourcePos, exception_param.var));
+      new (Z) LoadLocalNode(Token::kNoSourcePos, exception_param.var));
   completer_args->Add(
-      new (Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_param.var));
+      new (Z) LoadLocalNode(Token::kNoSourcePos, stack_trace_param.var));
   current_block_->statements->Add(new (Z) InstanceCallNode(
       TokenPos(),
-      new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_completer),
+      new (Z) LoadLocalNode(Token::kNoSourcePos, async_completer),
       Symbols::CompleterCompleteError(),
       completer_args));
-  ReturnNode* return_node = new (Z) ReturnNode(Scanner::kNoSourcePos);
+  ReturnNode* return_node = new (Z) ReturnNode(Token::kNoSourcePos);
   // Behavior like a continuation return, i.e,. don't call a completer.
   return_node->set_return_type(ReturnNode::kContinuation);
   current_block_->statements->Add(return_node);
@@ -6445,7 +6447,7 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   const intptr_t try_index = try_statement->try_index();
 
   CatchClauseNode* catch_clause = new (Z) CatchClauseNode(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       catch_handler_list,
       Array::ZoneHandle(Z, Array::MakeArray(handler_types)),
       context_var,
@@ -6456,7 +6458,7 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
       CatchClauseNode::kInvalidTryIndex,
       true);
   AstNode* try_catch_node = new (Z) TryCatchNode(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       try_block,
       context_var,
       catch_clause,
@@ -6594,9 +6596,9 @@ SequenceNode* Parser::CloseSyncGenFunction(const Function& closure,
   LocalVariable* jump_var =
       current_block_->scope->LookupVariable(Symbols::AwaitJumpVar(), false);
   LiteralNode* init_value =
-      new(Z) LiteralNode(Scanner::kNoSourcePos, Smi::ZoneHandle(Smi::New(-1)));
+      new(Z) LiteralNode(Token::kNoSourcePos, Smi::ZoneHandle(Smi::New(-1)));
   current_block_->statements->Add(
-      new(Z) StoreLocalNode(Scanner::kNoSourcePos, jump_var, init_value));
+      new(Z) StoreLocalNode(Token::kNoSourcePos, jump_var, init_value));
 
   // return new SyncIterable(body_closure);
   const Class& iterable_class =
@@ -6610,17 +6612,17 @@ SequenceNode* Parser::CloseSyncGenFunction(const Function& closure,
   const String& closure_name = String::Handle(Z, closure.name());
   ASSERT(closure_name.IsSymbol());
 
-  ArgumentListNode* arguments = new(Z) ArgumentListNode(Scanner::kNoSourcePos);
+  ArgumentListNode* arguments = new(Z) ArgumentListNode(Token::kNoSourcePos);
   ClosureNode* closure_obj = new(Z) ClosureNode(
-      Scanner::kNoSourcePos, closure, NULL, closure_body->scope());
+      Token::kNoSourcePos, closure, NULL, closure_body->scope());
   arguments->Add(closure_obj);
   ConstructorCallNode* new_iterable =
-      new(Z) ConstructorCallNode(Scanner::kNoSourcePos,
+      new(Z) ConstructorCallNode(Token::kNoSourcePos,
           TypeArguments::ZoneHandle(Z),
           iterable_constructor,
           arguments);
   ReturnNode* return_node =
-      new (Z) ReturnNode(Scanner::kNoSourcePos, new_iterable);
+      new (Z) ReturnNode(Token::kNoSourcePos, new_iterable);
   current_block_->statements->Add(return_node);
   return CloseBlock();
 }
@@ -6722,10 +6724,10 @@ void Parser::AddContinuationVariables() {
   //   var :await_jump_var;
   //   var :await_ctx_var;
   LocalVariable* await_jump_var = new (Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AwaitJumpVar(), Object::dynamic_type());
+      Token::kNoSourcePos, Symbols::AwaitJumpVar(), Object::dynamic_type());
   current_block_->scope->AddVariable(await_jump_var);
   LocalVariable* await_ctx_var = new (Z) LocalVariable(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       Symbols::AwaitContextVar(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(await_ctx_var);
@@ -6739,20 +6741,20 @@ void Parser::AddAsyncClosureVariables() {
   //   var :async_catch_error_callback;
   //   var :async_completer;
   LocalVariable* async_op_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncOperation(), Object::dynamic_type());
+      Token::kNoSourcePos, Symbols::AsyncOperation(), Object::dynamic_type());
   current_block_->scope->AddVariable(async_op_var);
   LocalVariable* async_then_callback_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       Symbols::AsyncThenCallback(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_then_callback_var);
   LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       Symbols::AsyncCatchErrorCallback(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_catch_error_callback_var);
   LocalVariable* async_completer = new(Z) LocalVariable(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       Symbols::AsyncCompleter(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_completer);
@@ -6771,18 +6773,18 @@ void Parser::AddAsyncGeneratorVariables() {
   // These variables are used to store the async generator closure containing
   // the body of the async* function. They are used by the await operator.
   LocalVariable* controller_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::Controller(), Object::dynamic_type());
+      Token::kNoSourcePos, Symbols::Controller(), Object::dynamic_type());
   current_block_->scope->AddVariable(controller_var);
   LocalVariable* async_op_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncOperation(), Object::dynamic_type());
+      Token::kNoSourcePos, Symbols::AsyncOperation(), Object::dynamic_type());
   current_block_->scope->AddVariable(async_op_var);
   LocalVariable* async_then_callback_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       Symbols::AsyncThenCallback(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_then_callback_var);
   LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       Symbols::AsyncCatchErrorCallback(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_catch_error_callback_var);
@@ -6909,18 +6911,18 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
   LocalVariable* jump_var =
       current_block_->scope->LookupVariable(Symbols::AwaitJumpVar(), false);
   LiteralNode* init_value =
-      new(Z) LiteralNode(Scanner::kNoSourcePos, Smi::ZoneHandle(Smi::New(-1)));
+      new(Z) LiteralNode(Token::kNoSourcePos, Smi::ZoneHandle(Smi::New(-1)));
   current_block_->statements->Add(
-      new(Z) StoreLocalNode(Scanner::kNoSourcePos, jump_var, init_value));
+      new(Z) StoreLocalNode(Token::kNoSourcePos, jump_var, init_value));
 
   // Add to AST:
   //   :async_op = <closure>;  (containing the original body)
   LocalVariable* async_op_var =
       current_block_->scope->LookupVariable(Symbols::AsyncOperation(), false);
   ClosureNode* closure_obj = new(Z) ClosureNode(
-      Scanner::kNoSourcePos, closure_func, NULL, closure_body->scope());
+      Token::kNoSourcePos, closure_func, NULL, closure_body->scope());
   StoreLocalNode* store_async_op = new (Z) StoreLocalNode(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       async_op_var,
       closure_obj);
 
@@ -6932,18 +6934,18 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
           Symbols::AsyncThenWrapperHelper()));
   ASSERT(!async_then_wrapper_helper.IsNull());
   ArgumentListNode* async_then_wrapper_helper_args = new (Z) ArgumentListNode(
-      Scanner::kNoSourcePos);
+      Token::kNoSourcePos);
   async_then_wrapper_helper_args->Add(
-      new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_op_var));
+      new (Z) LoadLocalNode(Token::kNoSourcePos, async_op_var));
   StaticCallNode* then_wrapper_call = new (Z) StaticCallNode(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       async_then_wrapper_helper,
       async_then_wrapper_helper_args);
   LocalVariable* async_then_callback_var =
       current_block_->scope->LookupVariable(
           Symbols::AsyncThenCallback(), false);
   StoreLocalNode* store_async_then_callback = new (Z) StoreLocalNode(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       async_then_callback_var,
       then_wrapper_call);
 
@@ -6956,43 +6958,43 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
           Symbols::AsyncErrorWrapperHelper()));
   ASSERT(!async_error_wrapper_helper.IsNull());
   ArgumentListNode* async_error_wrapper_helper_args = new (Z) ArgumentListNode(
-      Scanner::kNoSourcePos);
+      Token::kNoSourcePos);
   async_error_wrapper_helper_args->Add(
-      new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_op_var));
+      new (Z) LoadLocalNode(Token::kNoSourcePos, async_op_var));
   StaticCallNode* error_wrapper_call = new (Z) StaticCallNode(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       async_error_wrapper_helper,
       async_error_wrapper_helper_args);
   LocalVariable* async_catch_error_callback_var =
       current_block_->scope->LookupVariable(
           Symbols::AsyncCatchErrorCallback(), false);
   StoreLocalNode* store_async_catch_error_callback = new (Z) StoreLocalNode(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       async_catch_error_callback_var,
       error_wrapper_call);
 
   current_block_->statements->Add(store_async_catch_error_callback);
 
   // :controller = new _AsyncStarStreamController(body_closure);
-  ArgumentListNode* arguments = new(Z) ArgumentListNode(Scanner::kNoSourcePos);
-  arguments->Add(new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_op_var));
+  ArgumentListNode* arguments = new(Z) ArgumentListNode(Token::kNoSourcePos);
+  arguments->Add(new (Z) LoadLocalNode(Token::kNoSourcePos, async_op_var));
   ConstructorCallNode* controller_constructor_call =
-      new(Z) ConstructorCallNode(Scanner::kNoSourcePos,
+      new(Z) ConstructorCallNode(Token::kNoSourcePos,
                                  TypeArguments::ZoneHandle(Z),
                                  controller_constructor,
                                  arguments);
   LocalVariable* controller_var =
      current_block_->scope->LookupVariable(Symbols::Controller(), false);
   StoreLocalNode* store_controller =
-      new(Z) StoreLocalNode(Scanner::kNoSourcePos,
+      new(Z) StoreLocalNode(Token::kNoSourcePos,
                             controller_var,
                             controller_constructor_call);
   current_block_->statements->Add(store_controller);
 
   // return :controller.stream;
-  ReturnNode* return_node = new(Z) ReturnNode(Scanner::kNoSourcePos,
-      new(Z) InstanceGetterNode(Scanner::kNoSourcePos,
-          new(Z) LoadLocalNode(Scanner::kNoSourcePos,
+  ReturnNode* return_node = new(Z) ReturnNode(Token::kNoSourcePos,
+      new(Z) InstanceGetterNode(Token::kNoSourcePos,
+          new(Z) LoadLocalNode(Token::kNoSourcePos,
               controller_var),
               Symbols::Stream()));
   current_block_->statements->Add(return_node);
@@ -7086,17 +7088,18 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   LocalVariable* async_completer = current_block_->scope->LookupVariable(
       Symbols::AsyncCompleter(), false);
 
+  const intptr_t token_pos = ST(closure_body->token_pos());
   // Add to AST:
   //   :async_completer = new Completer.sync();
   ArgumentListNode* empty_args =
-      new (Z) ArgumentListNode(Scanner::kNoSourcePos);
+      new (Z) ArgumentListNode(token_pos);
   ConstructorCallNode* completer_constructor_node = new (Z) ConstructorCallNode(
-      Scanner::kNoSourcePos,
+      token_pos,
       TypeArguments::ZoneHandle(Z),
       completer_constructor,
       empty_args);
   StoreLocalNode* store_completer = new (Z) StoreLocalNode(
-      Scanner::kNoSourcePos,
+      token_pos,
       async_completer,
       completer_constructor_node);
   current_block_->statements->Add(store_completer);
@@ -7105,18 +7108,19 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   LocalVariable* jump_var =
       current_block_->scope->LookupVariable(Symbols::AwaitJumpVar(), false);
   LiteralNode* init_value =
-      new(Z) LiteralNode(Scanner::kNoSourcePos, Smi::ZoneHandle(Smi::New(-1)));
+      new(Z) LiteralNode(token_pos,
+                         Smi::ZoneHandle(Smi::New(-1)));
   current_block_->statements->Add(
-      new(Z) StoreLocalNode(Scanner::kNoSourcePos, jump_var, init_value));
+      new(Z) StoreLocalNode(token_pos, jump_var, init_value));
 
   // Add to AST:
   //   :async_op = <closure>;  (containing the original body)
   LocalVariable* async_op_var = current_block_->scope->LookupVariable(
       Symbols::AsyncOperation(), false);
   ClosureNode* cn = new(Z) ClosureNode(
-      Scanner::kNoSourcePos, closure, NULL, closure_body->scope());
+      token_pos, closure, NULL, closure_body->scope());
   StoreLocalNode* store_async_op = new (Z) StoreLocalNode(
-      Scanner::kNoSourcePos,
+      token_pos,
       async_op_var,
       cn);
   current_block_->statements->Add(store_async_op);
@@ -7128,18 +7132,18 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
           Symbols::AsyncThenWrapperHelper()));
   ASSERT(!async_then_wrapper_helper.IsNull());
   ArgumentListNode* async_then_wrapper_helper_args = new (Z) ArgumentListNode(
-      Scanner::kNoSourcePos);
+      token_pos);
   async_then_wrapper_helper_args->Add(
-      new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_op_var));
+      new (Z) LoadLocalNode(token_pos, async_op_var));
   StaticCallNode* then_wrapper_call = new (Z) StaticCallNode(
-      Scanner::kNoSourcePos,
+      token_pos,
       async_then_wrapper_helper,
       async_then_wrapper_helper_args);
   LocalVariable* async_then_callback_var =
       current_block_->scope->LookupVariable(
           Symbols::AsyncThenCallback(), false);
   StoreLocalNode* store_async_then_callback = new (Z) StoreLocalNode(
-      Scanner::kNoSourcePos,
+      token_pos,
       async_then_callback_var,
       then_wrapper_call);
 
@@ -7152,18 +7156,18 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
           Symbols::AsyncErrorWrapperHelper()));
   ASSERT(!async_error_wrapper_helper.IsNull());
   ArgumentListNode* async_error_wrapper_helper_args = new (Z) ArgumentListNode(
-      Scanner::kNoSourcePos);
+      token_pos);
   async_error_wrapper_helper_args->Add(
-      new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_op_var));
+      new (Z) LoadLocalNode(token_pos, async_op_var));
   StaticCallNode* error_wrapper_call = new (Z) StaticCallNode(
-      Scanner::kNoSourcePos,
+      token_pos,
       async_error_wrapper_helper,
       async_error_wrapper_helper_args);
   LocalVariable* async_catch_error_callback_var =
       current_block_->scope->LookupVariable(
           Symbols::AsyncCatchErrorCallback(), false);
   StoreLocalNode* store_async_catch_error_callback = new (Z) StoreLocalNode(
-      Scanner::kNoSourcePos,
+      token_pos,
       async_catch_error_callback_var,
       error_wrapper_call);
 
@@ -7171,22 +7175,22 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
 
   // Add to AST:
   //   new Future.microtask(:async_op);
-  ArgumentListNode* arguments = new (Z) ArgumentListNode(Scanner::kNoSourcePos);
+  ArgumentListNode* arguments = new (Z) ArgumentListNode(token_pos);
   arguments->Add(new (Z) LoadLocalNode(
-      Scanner::kNoSourcePos, async_op_var));
+      token_pos, async_op_var));
   ConstructorCallNode* future_node = new (Z) ConstructorCallNode(
-      Scanner::kNoSourcePos, TypeArguments::ZoneHandle(Z), constructor,
+      token_pos, TypeArguments::ZoneHandle(Z), constructor,
       arguments);
   current_block_->statements->Add(future_node);
 
   // Add to AST:
   //   return :async_completer.future;
   ReturnNode* return_node = new (Z) ReturnNode(
-      Scanner::kNoSourcePos,
+      token_pos,
       new (Z) InstanceGetterNode(
-          Scanner::kNoSourcePos,
+          token_pos,
           new (Z) LoadLocalNode(
-              Scanner::kNoSourcePos,
+              token_pos,
               async_completer),
           Symbols::CompleterFuture()));
   current_block_->statements->Add(return_node);
@@ -7519,7 +7523,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   result_type = Type::DynamicType();
 
   const intptr_t function_pos = TokenPos();
-  intptr_t metadata_pos = Scanner::kNoSourcePos;
+  intptr_t metadata_pos = Token::kNoSourcePos;
   if (is_literal) {
     ASSERT(CurrentToken() == Token::kLPAREN);
     function_name = &Symbols::AnonymousClosure();
@@ -8520,11 +8524,11 @@ AstNode* Parser::DartPrint(const char* str) {
   const Function& print_fn = Function::ZoneHandle(
       Z, lib.LookupFunctionAllowPrivate(Symbols::print()));
   ASSERT(!print_fn.IsNull());
-  ArgumentListNode* one_arg = new(Z) ArgumentListNode(Scanner::kNoSourcePos);
+  ArgumentListNode* one_arg = new(Z) ArgumentListNode(Token::kNoSourcePos);
   String& msg = String::ZoneHandle(Symbols::NewFormatted("%s", str));
-  one_arg->Add(new(Z) LiteralNode(Scanner::kNoSourcePos, msg));
+  one_arg->Add(new(Z) LiteralNode(Token::kNoSourcePos, msg));
   AstNode* print_call =
-      new(Z) StaticCallNode(Scanner::kNoSourcePos, print_fn, one_arg);
+      new(Z) StaticCallNode(Token::kNoSourcePos, print_fn, one_arg);
   return print_call;
 }
 
@@ -8729,9 +8733,9 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
 
   if (outer_saved_try_ctx != NULL) {
     catch_block->Add(new (Z) StoreLocalNode(
-        Scanner::kNoSourcePos,
+        Token::kNoSourcePos,
         outer_saved_try_ctx,
-        new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+        new (Z) LoadLocalNode(Token::kNoSourcePos,
                               outer_async_saved_try_ctx)));
   }
 
@@ -8763,17 +8767,17 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   do {
     OpenBlock();
     ArgumentListNode* no_args =
-        new(Z) ArgumentListNode(Scanner::kNoSourcePos);
+        new(Z) ArgumentListNode(Token::kNoSourcePos);
     current_block_->statements->Add(
-        new(Z) InstanceCallNode(Scanner::kNoSourcePos,
-            new(Z) LoadLocalNode(Scanner::kNoSourcePos, iterator_var),
+        new(Z) InstanceCallNode(Token::kNoSourcePos,
+            new(Z) LoadLocalNode(Token::kNoSourcePos, iterator_var),
             Symbols::Cancel(),
             no_args));
     finally_clause = CloseBlock();
     AstNode* node_to_inline = try_statement->GetNodeToInlineFinally(node_index);
     if (node_to_inline != NULL) {
       InlinedFinallyNode* node =
-          new(Z) InlinedFinallyNode(Scanner::kNoSourcePos,
+          new(Z) InlinedFinallyNode(Token::kNoSourcePos,
                                     finally_clause,
                                     context_var,
                                     outer_try_index);
@@ -8829,7 +8833,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     ReportError("Loop variable cannot be 'const'");
   }
   const String* loop_var_name = NULL;
-  intptr_t loop_var_pos = Scanner::kNoSourcePos;
+  intptr_t loop_var_pos = Token::kNoSourcePos;
   bool new_loop_var = false;
   AbstractType& loop_var_type =  AbstractType::ZoneHandle(Z);
   if (LookaheadToken(1) == Token::kIN) {
@@ -9130,16 +9134,16 @@ void Parser::SaveExceptionAndStacktrace(SequenceNode* statements,
   ASSERT(saved_exception_var != NULL);
   ASSERT(exception_var != NULL);
   statements->Add(new(Z) StoreLocalNode(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       saved_exception_var,
-      new(Z) LoadLocalNode(Scanner::kNoSourcePos, exception_var)));
+      new(Z) LoadLocalNode(Token::kNoSourcePos, exception_var)));
 
   ASSERT(saved_stack_trace_var != NULL);
   ASSERT(stack_trace_var != NULL);
   statements->Add(new(Z) StoreLocalNode(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       saved_stack_trace_var,
-      new(Z) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_var)));
+      new(Z) LoadLocalNode(Token::kNoSourcePos, stack_trace_var)));
 }
 
 
@@ -9174,9 +9178,9 @@ SequenceNode* Parser::EnsureFinallyClause(
                                           try_stack_->try_index());
         current_block_->statements->Add(
             new (Z) StoreLocalNode(
-                Scanner::kNoSourcePos,
+                Token::kNoSourcePos,
                 saved_try_ctx,
-                new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                new (Z) LoadLocalNode(Token::kNoSourcePos,
                                       async_saved_try_ctx)));
       }
     }
@@ -9447,9 +9451,9 @@ SequenceNode* Parser::ParseCatchClauses(
                                           try_block->try_index());
         async_code->Add(
             new (Z) StoreLocalNode(
-                Scanner::kNoSourcePos,
+                Token::kNoSourcePos,
                 saved_try_ctx,
-                new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                new (Z) LoadLocalNode(Token::kNoSourcePos,
                                       async_saved_try_ctx)));
       }
     }
@@ -9476,16 +9480,16 @@ void Parser::SetupSavedTryContext(LocalVariable* saved_try_context) {
                            Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
                            last_used_try_index_ - 1));
   LocalVariable* async_saved_try_ctx = new (Z) LocalVariable(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       async_saved_try_ctx_name,
       Object::dynamic_type());
   ASSERT(async_temp_scope_ != NULL);
   async_temp_scope_->AddVariable(async_saved_try_ctx);
   ASSERT(saved_try_context != NULL);
   current_block_->statements->Add(new(Z) StoreLocalNode(
-      Scanner::kNoSourcePos,
+      Token::kNoSourcePos,
       async_saved_try_ctx,
-      new(Z) LoadLocalNode(Scanner::kNoSourcePos, saved_try_context)));
+      new(Z) LoadLocalNode(Token::kNoSourcePos, saved_try_context)));
 }
 
 
@@ -9814,9 +9818,9 @@ AstNode* Parser::ParseYieldStatement() {
     ASSERT(iterator_param != NULL);
     // Generate :iterator.current = expr;
     AstNode* iterator =
-        new(Z) LoadLocalNode(Scanner::kNoSourcePos, iterator_param);
+        new(Z) LoadLocalNode(Token::kNoSourcePos, iterator_param);
     AstNode* store_current =
-        new(Z) InstanceSetterNode(Scanner::kNoSourcePos,
+        new(Z) InstanceSetterNode(Token::kNoSourcePos,
                                   iterator,
                                   String::ZoneHandle(Symbols::Current().raw()),
                                   expr);
@@ -9824,7 +9828,7 @@ AstNode* Parser::ParseYieldStatement() {
     if (is_yield_each) {
       // Generate :iterator.isYieldEach = true;
       AstNode* set_is_yield_each =
-          new(Z) InstanceSetterNode(Scanner::kNoSourcePos,
+          new(Z) InstanceSetterNode(Token::kNoSourcePos,
               iterator,
               String::ZoneHandle(Symbols::IsYieldEach().raw()),
               new(Z) LiteralNode(TokenPos(), Bool::True()));
@@ -9833,7 +9837,7 @@ AstNode* Parser::ParseYieldStatement() {
     AwaitMarkerNode* await_marker =
         new(Z) AwaitMarkerNode(async_temp_scope_,
                                current_block_->scope,
-                               Scanner::kNoSourcePos);
+                               Token::kNoSourcePos);
     yield->AddNode(await_marker);
     // Return true to indicate that a value has been generated.
     ReturnNode* return_true = new(Z) ReturnNode(yield_pos,
@@ -9854,15 +9858,15 @@ AstNode* Parser::ParseYieldStatement() {
                            &outer_async_saved_try_ctx);
     if (saved_try_ctx != NULL) {
       yield->AddNode(new (Z) StoreLocalNode(
-          Scanner::kNoSourcePos,
+          Token::kNoSourcePos,
           saved_try_ctx,
-          new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+          new (Z) LoadLocalNode(Token::kNoSourcePos,
                                 async_saved_try_ctx)));
       if (outer_saved_try_ctx != NULL) {
         yield->AddNode(new (Z) StoreLocalNode(
-            Scanner::kNoSourcePos,
+            Token::kNoSourcePos,
             outer_saved_try_ctx,
-            new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+            new (Z) LoadLocalNode(Token::kNoSourcePos,
                                   outer_async_saved_try_ctx)));
       }
     } else {
@@ -9880,7 +9884,7 @@ AstNode* Parser::ParseYieldStatement() {
     add_args->Add(expr);
     AstNode* add_call =
         new(Z) InstanceCallNode(yield_pos,
-            new(Z) LoadLocalNode(Scanner::kNoSourcePos, controller_var),
+            new(Z) LoadLocalNode(Token::kNoSourcePos, controller_var),
             is_yield_each ? Symbols::AddStream() : Symbols::add(),
             add_args);
 
@@ -9892,18 +9896,18 @@ AstNode* Parser::ParseYieldStatement() {
     // restore saved_try_context
 
     SequenceNode* true_branch =
-        new(Z) SequenceNode(Scanner::kNoSourcePos, NULL);
+        new(Z) SequenceNode(Token::kNoSourcePos, NULL);
     AstNode* return_from_generator = new(Z) ReturnNode(yield_pos);
     true_branch->Add(return_from_generator);
     AddNodeForFinallyInlining(return_from_generator);
     AstNode* if_is_cancelled =
-       new(Z) IfNode(Scanner::kNoSourcePos, add_call, true_branch, NULL);
+       new(Z) IfNode(Token::kNoSourcePos, add_call, true_branch, NULL);
     yield->AddNode(if_is_cancelled);
 
     AwaitMarkerNode* await_marker =
         new(Z) AwaitMarkerNode(async_temp_scope_,
                                current_block_->scope,
-                               Scanner::kNoSourcePos);
+                               Token::kNoSourcePos);
     yield->AddNode(await_marker);
     ReturnNode* continuation_return = new(Z) ReturnNode(yield_pos);
     continuation_return->set_return_type(ReturnNode::kContinuationTarget);
@@ -9922,15 +9926,15 @@ AstNode* Parser::ParseYieldStatement() {
                            &outer_async_saved_try_ctx);
     if (saved_try_ctx != NULL) {
       yield->AddNode(new (Z) StoreLocalNode(
-          Scanner::kNoSourcePos,
+          Token::kNoSourcePos,
           saved_try_ctx,
-          new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+          new (Z) LoadLocalNode(Token::kNoSourcePos,
                                 async_saved_try_ctx)));
       if (outer_saved_try_ctx != NULL) {
         yield->AddNode(new (Z) StoreLocalNode(
-            Scanner::kNoSourcePos,
+            Token::kNoSourcePos,
             outer_saved_try_ctx,
-            new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+            new (Z) LoadLocalNode(Token::kNoSourcePos,
                                   outer_async_saved_try_ctx)));
       }
     } else {
@@ -9944,7 +9948,7 @@ AstNode* Parser::ParseYieldStatement() {
 AstNode* Parser::ParseStatement() {
   TRACE_PARSER("ParseStatement");
   AstNode* statement = NULL;
-  intptr_t label_pos = Scanner::kNoSourcePos;
+  intptr_t label_pos = Token::kNoSourcePos;
   String* label_name = NULL;
   if (IsIdentifier()) {
     if (LookaheadToken(1) == Token::kCOLON) {
@@ -10533,7 +10537,7 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
     // Handle a ?? b.
     LetNode* result = new(Z) LetNode(op_pos);
     LocalVariable* left_temp = result->AddInitializer(lhs);
-    const intptr_t no_pos = Scanner::kNoSourcePos;
+    const intptr_t no_pos = Token::kNoSourcePos;
     LiteralNode* null_operand =
         new(Z) LiteralNode(no_pos, Object::null_instance());
     LoadLocalNode* load_left_temp = new(Z) LoadLocalNode(no_pos, left_temp);

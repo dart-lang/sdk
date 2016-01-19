@@ -48,6 +48,9 @@ DECLARE_FLAG(bool, use_field_guards);
 // Quick access to the locally defined zone() method.
 #define Z (zone())
 
+// Quick synthetic token position.
+#define ST(token_pos) Token::ToSynthetic(token_pos)
+
 // TODO(srdjan): Allow compiler to add constants as they are encountered in
 // the compilation.
 const double kCommonDoubleConstants[] =
@@ -829,20 +832,26 @@ PushArgumentInstr* EffectGraphVisitor::PushArgument(Value* value) {
 
 
 Definition* EffectGraphVisitor::BuildStoreTemp(const LocalVariable& local,
-                                               Value* value) {
+                                               Value* value,
+                                               intptr_t token_pos) {
   ASSERT(!local.is_captured());
-  return new(Z) StoreLocalInstr(local, value);
+  ASSERT(!Token::IsClassifying(token_pos));
+  return new(Z) StoreLocalInstr(local, value, ST(token_pos));
 }
 
 
-Definition* EffectGraphVisitor::BuildStoreExprTemp(Value* value) {
+Definition* EffectGraphVisitor::BuildStoreExprTemp(Value* value,
+                                                   intptr_t token_pos) {
   return BuildStoreTemp(*owner()->parsed_function().expression_temp_var(),
-                        value);
+                        value,
+                        token_pos);
 }
 
 
-Definition* EffectGraphVisitor::BuildLoadExprTemp() {
-  return BuildLoadLocal(*owner()->parsed_function().expression_temp_var());
+Definition* EffectGraphVisitor::BuildLoadExprTemp(intptr_t token_pos) {
+  ASSERT(!Token::IsClassifying(token_pos));
+  return BuildLoadLocal(*owner()->parsed_function().expression_temp_var(),
+                        token_pos);
 }
 
 
@@ -850,7 +859,7 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
                                                 Value* value,
                                                 intptr_t token_pos) {
   if (local.is_captured()) {
-    LocalVariable* tmp_var = EnterTempLocalScope(value);
+    LocalVariable* tmp_var = EnterTempLocalScope(value, token_pos);
     intptr_t delta =
         owner()->context_level() - local.owner()->context_level();
     ASSERT(delta >= 0);
@@ -860,7 +869,7 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
           context, Context::parent_offset(), Type::ZoneHandle(Z, Type::null()),
           token_pos));
     }
-    Value* tmp_val = Bind(new(Z) LoadLocalInstr(*tmp_var));
+    Value* tmp_val = Bind(new(Z) LoadLocalInstr(*tmp_var, token_pos));
     StoreInstanceFieldInstr* store =
         new(Z) StoreInstanceFieldInstr(Context::variable_offset(local.index()),
                                        context,
@@ -868,7 +877,7 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
                                        kEmitStoreBarrier,
                                        token_pos);
     Do(store);
-    return ExitTempLocalScope(tmp_var);
+    return ExitTempLocalScope(tmp_var, token_pos);
   } else {
     return new(Z) StoreLocalInstr(local, value, token_pos);
   }
@@ -903,6 +912,7 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local,
 void EffectGraphVisitor::BuildSaveContext(
     const LocalVariable& variable,
     intptr_t token_pos) {
+  ASSERT(Token::IsSynthetic(token_pos) || Token::IsNoSource(token_pos));
   Value* context = Bind(BuildCurrentContext(token_pos));
   Do(BuildStoreLocal(variable, context, token_pos));
 }
@@ -1122,7 +1132,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   // statements for which there is no associated source position.
   const Function& function = owner()->function();
   if (FLAG_support_debugger &&
-      (node->token_pos() >= 0) && !function.is_native()) {
+      Token::IsDebugPause(node->token_pos()) && !function.is_native()) {
     AddInstruction(new(Z) DebugStepCheckInstr(node->token_pos(),
                                               RawPcDescriptors::kRuntimeCall));
   }
@@ -1177,7 +1187,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   if (function.IsAsyncClosure() &&
       (node->return_type() == ReturnNode::kRegular)) {
     // Temporary store the computed return value.
-    Do(BuildStoreExprTemp(return_value));
+    Do(BuildStoreExprTemp(return_value, node->token_pos()));
 
     LocalVariable* rcv_var =
         node->scope()->LookupVariable(Symbols::AsyncCompleter(), false);
@@ -1186,7 +1196,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
         new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
     Value* rcv_value = Bind(BuildLoadLocal(*rcv_var, node->token_pos()));
     arguments->Add(PushArgument(rcv_value));
-    Value* returned_value = Bind(BuildLoadExprTemp());
+    Value* returned_value = Bind(BuildLoadExprTemp(node->token_pos()));
     arguments->Add(PushArgument(returned_value));
     InstanceCallInstr* call = new(Z) InstanceCallInstr(
         node->token_pos(),
@@ -1199,7 +1209,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     Do(call);
 
     // Rebind the return value for the actual return call to be null.
-    return_value = BuildNullValue();
+    return_value = BuildNullValue(node->token_pos());
   }
 
   intptr_t current_context_level = owner()->context_level();
@@ -1425,22 +1435,22 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
                                                  right_value,
                                                  constant_true,
                                                  false));  // No number check.
-    for_right.Do(BuildStoreExprTemp(compare));
+    for_right.Do(BuildStoreExprTemp(compare, node->token_pos()));
 
     if (node->kind() == Token::kAND) {
       ValueGraphVisitor for_false(owner());
       Value* constant_false =
           for_false.Bind(new(Z) ConstantInstr(Bool::False()));
-      for_false.Do(BuildStoreExprTemp(constant_false));
+      for_false.Do(BuildStoreExprTemp(constant_false, node->token_pos()));
       Join(for_test, for_right, for_false);
     } else {
       ASSERT(node->kind() == Token::kOR);
       ValueGraphVisitor for_true(owner());
       Value* constant_true = for_true.Bind(new(Z) ConstantInstr(Bool::True()));
-      for_true.Do(BuildStoreExprTemp(constant_true));
+      for_true.Do(BuildStoreExprTemp(constant_true, node->token_pos()));
       Join(for_test, for_true, for_right);
     }
-    ReturnDefinition(BuildLoadExprTemp());
+    ReturnDefinition(BuildLoadExprTemp(node->token_pos()));
     return;
   }
 
@@ -1504,7 +1514,7 @@ void EffectGraphVisitor::BuildTypecheckPushArguments(
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.NumTypeParameters() > 0);
   Value* instantiator_type_arguments = NULL;
-  Value* instantiator = BuildInstantiator(instantiator_class);
+  Value* instantiator = BuildInstantiator(token_pos, instantiator_class);
   if (instantiator == NULL) {
     // No instantiator when inside factory.
     instantiator_type_arguments =
@@ -1528,7 +1538,7 @@ void EffectGraphVisitor::BuildTypecheckArguments(
       Z, owner()->function().Owner());
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.NumTypeParameters() > 0);
-  instantiator = BuildInstantiator(instantiator_class);
+  instantiator = BuildInstantiator(token_pos, instantiator_class);
   if (instantiator == NULL) {
     // No instantiator when inside factory.
     instantiator_type_arguments =
@@ -1541,8 +1551,9 @@ void EffectGraphVisitor::BuildTypecheckArguments(
 }
 
 
-Value* EffectGraphVisitor::BuildNullValue() {
-  return Bind(new(Z) ConstantInstr(Object::ZoneHandle(Z, Object::null())));
+Value* EffectGraphVisitor::BuildNullValue(intptr_t token_pos) {
+  return Bind(new(Z) ConstantInstr(Object::ZoneHandle(Z, Object::null()),
+                                   token_pos));
 }
 
 
@@ -1555,7 +1566,7 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
   // Build the type check computation.
   Value* instantiator_type_arguments = NULL;
   if (dst_type.IsInstantiated()) {
-    instantiator_type_arguments = BuildNullValue();
+    instantiator_type_arguments = BuildNullValue(token_pos);
   } else {
     BuildTypecheckArguments(token_pos, &instantiator_type_arguments);
   }
@@ -1666,7 +1677,7 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   PushArgumentInstr* push_left = PushArgument(for_left_value.value());
   PushArgumentInstr* push_type_args = NULL;
   if (type.IsInstantiated()) {
-    push_type_args = PushArgument(BuildNullValue());
+    push_type_args = PushArgument(BuildNullValue(node->token_pos()));
   } else {
     BuildTypecheckPushArguments(node->token_pos(), &push_type_args);
   }
@@ -1718,7 +1729,7 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   PushArgumentInstr* push_left = PushArgument(for_value.value());
   PushArgumentInstr* push_type_args = NULL;
   if (type.IsInstantiated()) {
-    push_type_args = PushArgument(BuildNullValue());
+    push_type_args = PushArgument(BuildNullValue(node->token_pos()));
   } else {
     BuildTypecheckPushArguments(node->token_pos(), &push_type_args);
   }
@@ -1917,15 +1928,17 @@ void ValueGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
   ValueGraphVisitor for_true(owner());
   node->true_expr()->Visit(&for_true);
   ASSERT(for_true.is_open());
-  for_true.Do(BuildStoreExprTemp(for_true.value()));
+  for_true.Do(BuildStoreExprTemp(for_true.value(),
+                                 node->true_expr()->token_pos()));
 
   ValueGraphVisitor for_false(owner());
   node->false_expr()->Visit(&for_false);
   ASSERT(for_false.is_open());
-  for_false.Do(BuildStoreExprTemp(for_false.value()));
+  for_false.Do(BuildStoreExprTemp(for_false.value(),
+                                  node->false_expr()->token_pos()));
 
   Join(for_test, for_true, for_false);
-  ReturnDefinition(BuildLoadExprTemp());
+  ReturnDefinition(BuildLoadExprTemp(node->token_pos()));
 }
 
 
@@ -2273,6 +2286,8 @@ void EffectGraphVisitor::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
   // We need to create a new await state which involves:
   // * Increase the jump counter. Sanity check against the list of targets.
   // * Save the current context for resuming.
+  ASSERT(Token::IsSynthetic(node->token_pos()) ||
+         Token::IsNoSource(node->token_pos()));
   ASSERT(node->async_scope() != NULL);
   ASSERT(node->await_scope() != NULL);
   LocalVariable* jump_var = node->async_scope()->LookupVariable(
@@ -2288,8 +2303,8 @@ void EffectGraphVisitor::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
   ASSERT(jump_count == owner()->await_joins()->length());
   // Store the counter in :await_jump_var.
   Value* jump_val = Bind(new(Z) ConstantInstr(
-      Smi::ZoneHandle(Z, Smi::New(jump_count))));
-  Do(BuildStoreLocal(*jump_var, jump_val));
+      Smi::ZoneHandle(Z, Smi::New(jump_count)), node->token_pos()));
+  Do(BuildStoreLocal(*jump_var, jump_val, node->token_pos()));
   // Save the current context for resuming.
   BuildSaveContext(*ctx_var, node->token_pos());
 }
@@ -2304,7 +2319,8 @@ intptr_t EffectGraphVisitor::GetCurrentTempLocalIndex() const {
 }
 
 
-LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
+LocalVariable* EffectGraphVisitor::EnterTempLocalScope(
+    Value* value, intptr_t token_pos) {
   Do(new(Z) PushTempInstr(value));
   owner()->AllocateTemp();
 
@@ -2313,7 +2329,7 @@ LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
   char name[64];
   OS::SNPrint(name, 64, ":tmp_local%" Pd, index);
   LocalVariable*  var =
-      new(Z) LocalVariable(Scanner::kNoSourcePos,
+      new(Z) LocalVariable(Token::kNoSourcePos,
                            String::ZoneHandle(Z, Symbols::New(name)),
                            *value->Type()->ToAbstractType());
   var->set_index(index);
@@ -2321,8 +2337,9 @@ LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
 }
 
 
-Definition* EffectGraphVisitor::ExitTempLocalScope(LocalVariable* var) {
-  Value* tmp = Bind(new(Z) LoadLocalInstr(*var));
+Definition* EffectGraphVisitor::ExitTempLocalScope(
+    LocalVariable* var, intptr_t token_pos) {
+  Value* tmp = Bind(new(Z) LoadLocalInstr(*var, token_pos));
   owner()->DeallocateTemps(1);
   ASSERT(GetCurrentTempLocalIndex() == var->index());
   return new(Z) DropTempsInstr(1, tmp);
@@ -2400,13 +2417,14 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
                                                      num_elements);
   Value* array_val = Bind(create);
 
-  { LocalVariable* tmp_var = EnterTempLocalScope(array_val);
+  { LocalVariable* tmp_var = EnterTempLocalScope(array_val, node->token_pos());
     const intptr_t class_id = kArrayCid;
     const intptr_t deopt_id = Thread::kNoDeoptId;
     for (int i = 0; i < node->length(); ++i) {
-      Value* array = Bind(new(Z) LoadLocalInstr(*tmp_var));
+      Value* array = Bind(new(Z) LoadLocalInstr(*tmp_var, node->token_pos()));
       Value* index =
-          Bind(new(Z) ConstantInstr(Smi::ZoneHandle(Z, Smi::New(i))));
+          Bind(new(Z) ConstantInstr(Smi::ZoneHandle(Z, Smi::New(i)),
+                                    node->token_pos()));
       ValueGraphVisitor for_value(owner());
       node->ElementAt(i)->Visit(&for_value);
       Append(for_value);
@@ -2421,7 +2439,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
           index_scale, class_id, deopt_id, node->token_pos());
       Do(store);
     }
-    ReturnDefinition(ExitTempLocalScope(tmp_var));
+    ReturnDefinition(ExitTempLocalScope(tmp_var, node->token_pos()));
   }
 }
 
@@ -2527,9 +2545,11 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   alloc->set_closure_function(function);
 
   Value* closure_val = Bind(alloc);
-  { LocalVariable* closure_tmp_var = EnterTempLocalScope(closure_val);
+  { LocalVariable* closure_tmp_var =
+        EnterTempLocalScope(closure_val, node->token_pos());
     // Store function.
-    Value* closure_tmp_val = Bind(new(Z) LoadLocalInstr(*closure_tmp_var));
+    Value* closure_tmp_val =
+        Bind(new(Z) LoadLocalInstr(*closure_tmp_var, node->token_pos()));
     Value* func_val =
         Bind(new(Z) ConstantInstr(Function::ZoneHandle(Z, function.raw())));
     Do(new(Z) StoreInstanceFieldInstr(Closure::function_offset(),
@@ -2543,9 +2563,11 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       Value* allocated_context =
           Bind(new(Z) AllocateContextInstr(node->token_pos(),
                                            kNumContextVariables));
-      { LocalVariable* context_tmp_var = EnterTempLocalScope(allocated_context);
+      { LocalVariable* context_tmp_var =
+            EnterTempLocalScope(allocated_context, node->token_pos());
         // Store receiver in context.
-        Value* context_tmp_val = Bind(new(Z) LoadLocalInstr(*context_tmp_var));
+        Value* context_tmp_val =
+            Bind(new(Z) LoadLocalInstr(*context_tmp_var, node->token_pos()));
         ValueGraphVisitor for_receiver(owner());
         node->receiver()->Visit(&for_receiver);
         Append(for_receiver);
@@ -2556,14 +2578,16 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
                                           kEmitStoreBarrier,
                                           node->token_pos()));
         // Store new context in closure.
-        closure_tmp_val = Bind(new(Z) LoadLocalInstr(*closure_tmp_var));
-        context_tmp_val = Bind(new(Z) LoadLocalInstr(*context_tmp_var));
+        closure_tmp_val =
+            Bind(new(Z) LoadLocalInstr(*closure_tmp_var, node->token_pos()));
+        context_tmp_val =
+            Bind(new(Z) LoadLocalInstr(*context_tmp_var, node->token_pos()));
         Do(new(Z) StoreInstanceFieldInstr(Closure::context_offset(),
                                           closure_tmp_val,
                                           context_tmp_val,
                                           kEmitStoreBarrier,
                                           node->token_pos()));
-        Do(ExitTempLocalScope(context_tmp_var));
+        Do(ExitTempLocalScope(context_tmp_var, node->token_pos()));
       }
     } else {
       // Store current context in closure.
@@ -2576,7 +2600,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
                                         kEmitStoreBarrier,
                                         node->token_pos()));
     }
-    ReturnDefinition(ExitTempLocalScope(closure_tmp_var));
+    ReturnDefinition(ExitTempLocalScope(closure_tmp_var, node->token_pos()));
   }
 }
 
@@ -2595,34 +2619,34 @@ void EffectGraphVisitor::BuildPushArguments(
 
 
 void EffectGraphVisitor::BuildInstanceCallConditional(InstanceCallNode* node) {
+  const intptr_t token_pos = node->token_pos();
   LocalVariable* temp_var = owner()->parsed_function().expression_temp_var();
-  LoadLocalNode* load_temp =
-      new(Z) LoadLocalNode(Scanner::kNoSourcePos, temp_var);
+  LoadLocalNode* load_temp = new(Z) LoadLocalNode(token_pos, temp_var);
 
   LiteralNode* null_constant =
-      new(Z) LiteralNode(Scanner::kNoSourcePos, Object::null_instance());
+      new(Z) LiteralNode(ST(token_pos), Object::null_instance());
   ComparisonNode* check_is_null =
-      new(Z) ComparisonNode(Scanner::kNoSourcePos,
+      new(Z) ComparisonNode(ST(token_pos),
                             Token::kEQ,
                             load_temp,
                             null_constant);
-  TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
+  TestGraphVisitor for_test(owner(), ST(token_pos));
   check_is_null->Visit(&for_test);
 
   EffectGraphVisitor for_true(owner());
   EffectGraphVisitor for_false(owner());
 
   StoreLocalNode* store_null =
-      new(Z) StoreLocalNode(Scanner::kNoSourcePos, temp_var, null_constant);
+      new(Z) StoreLocalNode(ST(token_pos), temp_var, null_constant);
   store_null->Visit(&for_true);
 
   InstanceCallNode* call =
-      new(Z) InstanceCallNode(node->token_pos(),
+      new(Z) InstanceCallNode(token_pos,
                               load_temp,
                               node->function_name(),
                               node->arguments());
   StoreLocalNode* store_result =
-      new(Z) StoreLocalNode(Scanner::kNoSourcePos, temp_var, call);
+      new(Z) StoreLocalNode(ST(token_pos), temp_var, call);
   store_result->Visit(&for_false);
 
   Join(for_test, for_true, for_false);
@@ -2634,9 +2658,9 @@ void ValueGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
     ValueGraphVisitor for_receiver(owner());
     node->receiver()->Visit(&for_receiver);
     Append(for_receiver);
-    Do(BuildStoreExprTemp(for_receiver.value()));
+    Do(BuildStoreExprTemp(for_receiver.value(), node->token_pos()));
     BuildInstanceCallConditional(node);
-    ReturnDefinition(BuildLoadExprTemp());
+    ReturnDefinition(BuildLoadExprTemp(node->token_pos()));
   } else {
     EffectGraphVisitor::VisitInstanceCallNode(node);
   }
@@ -2648,7 +2672,7 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
   if (node->is_conditional()) {
-    Do(BuildStoreExprTemp(for_receiver.value()));
+    Do(BuildStoreExprTemp(for_receiver.value(), node->token_pos()));
     BuildInstanceCallConditional(node);
   } else {
     PushArgumentInstr* push_receiver = PushArgument(for_receiver.value());
@@ -2730,16 +2754,17 @@ void EffectGraphVisitor::BuildClosureCall(
   node->closure()->Visit(&for_closure);
   Append(for_closure);
 
-  LocalVariable* tmp_var = EnterTempLocalScope(for_closure.value());
+  LocalVariable* tmp_var =
+      EnterTempLocalScope(for_closure.value(), node->token_pos());
 
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new(Z) ZoneGrowableArray<PushArgumentInstr*>(node->arguments()->length());
-  Value* closure_val = Bind(new(Z) LoadLocalInstr(*tmp_var));
+  Value* closure_val = Bind(new(Z) LoadLocalInstr(*tmp_var, node->token_pos()));
   PushArgumentInstr* push_closure = PushArgument(closure_val);
   arguments->Add(push_closure);
   BuildPushArguments(*node->arguments(), arguments);
 
-  closure_val = Bind(new(Z) LoadLocalInstr(*tmp_var));
+  closure_val = Bind(new(Z) LoadLocalInstr(*tmp_var, node->token_pos()));
   LoadFieldInstr* function_load = new(Z) LoadFieldInstr(
       closure_val,
       Closure::function_offset(),
@@ -2752,11 +2777,11 @@ void EffectGraphVisitor::BuildClosureCall(
       new(Z) ClosureCallInstr(function_val, node, arguments);
   if (result_needed) {
     Value* result = Bind(closure_call);
-    Do(new(Z) StoreLocalInstr(*tmp_var, result));
+    Do(new(Z) StoreLocalInstr(*tmp_var, result, ST(node->token_pos())));
   } else {
     Do(closure_call);
   }
-  ReturnDefinition(ExitTempLocalScope(tmp_var));
+  ReturnDefinition(ExitTempLocalScope(tmp_var, node->token_pos()));
 }
 
 
@@ -2886,7 +2911,8 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 }
 
 
-Value* EffectGraphVisitor::BuildInstantiator(const Class& instantiator_class) {
+Value* EffectGraphVisitor::BuildInstantiator(intptr_t token_pos,
+                                             const Class& instantiator_class) {
   ASSERT(instantiator_class.NumTypeParameters() > 0);
   Function& outer_function = Function::Handle(Z, owner()->function().raw());
   while (outer_function.IsLocalFunction()) {
@@ -2898,7 +2924,7 @@ Value* EffectGraphVisitor::BuildInstantiator(const Class& instantiator_class) {
 
   LocalVariable* instantiator = owner()->parsed_function().instantiator();
   ASSERT(instantiator != NULL);
-  Value* result = Bind(BuildLoadLocal(*instantiator));
+  Value* result = Bind(BuildLoadLocal(*instantiator, token_pos));
   return result;
 }
 
@@ -2934,10 +2960,10 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     LocalVariable* instantiator_var =
         owner()->parsed_function().instantiator();
     ASSERT(instantiator_var != NULL);
-    return Bind(BuildLoadLocal(*instantiator_var));
+    return Bind(BuildLoadLocal(*instantiator_var, token_pos));
   }
   if (instantiator == NULL) {
-    instantiator = BuildInstantiator(instantiator_class);
+    instantiator = BuildInstantiator(token_pos, instantiator_class);
   }
   // The instantiator is the receiver of the caller, which is not a factory.
   // The receiver cannot be null; extract its TypeArguments object.
@@ -2951,7 +2977,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
       instantiator,
       type_arguments_field_offset,
       Type::ZoneHandle(Z, Type::null()),  // Not an instance, no type.
-      Scanner::kNoSourcePos));
+      token_pos));
 }
 
 
@@ -2995,11 +3021,12 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   //   tn       <- LoadLocal(temp)
 
   Value* allocate = BuildObjectAllocation(node);
-  { LocalVariable* tmp_var = EnterTempLocalScope(allocate);
-    Value* allocated_tmp = Bind(new(Z) LoadLocalInstr(*tmp_var));
+  { LocalVariable* tmp_var = EnterTempLocalScope(allocate, node->token_pos());
+    Value* allocated_tmp =
+        Bind(new(Z) LoadLocalInstr(*tmp_var, node->token_pos()));
     PushArgumentInstr* push_allocated_value = PushArgument(allocated_tmp);
     BuildConstructorCall(node, push_allocated_value);
-    ReturnDefinition(ExitTempLocalScope(tmp_var));
+    ReturnDefinition(ExitTempLocalScope(tmp_var, node->token_pos()));
   }
 }
 
@@ -3007,33 +3034,32 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 
 void EffectGraphVisitor::BuildInstanceGetterConditional(
     InstanceGetterNode* node) {
+  const intptr_t token_pos = node->token_pos();
   LocalVariable* temp_var = owner()->parsed_function().expression_temp_var();
-  LoadLocalNode* load_temp =
-      new(Z) LoadLocalNode(Scanner::kNoSourcePos, temp_var);
+  LoadLocalNode* load_temp = new(Z) LoadLocalNode(token_pos, temp_var);
 
   LiteralNode* null_constant =
-      new(Z) LiteralNode(Scanner::kNoSourcePos, Object::null_instance());
+      new(Z) LiteralNode(ST(token_pos), Object::null_instance());
   ComparisonNode* check_is_null =
-      new(Z) ComparisonNode(Scanner::kNoSourcePos,
+      new(Z) ComparisonNode(ST(token_pos),
                             Token::kEQ,
                             load_temp,
                             null_constant);
-  TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
+  TestGraphVisitor for_test(owner(), ST(token_pos));
   check_is_null->Visit(&for_test);
 
   EffectGraphVisitor for_true(owner());
   EffectGraphVisitor for_false(owner());
 
   StoreLocalNode* store_null =
-      new(Z) StoreLocalNode(Scanner::kNoSourcePos, temp_var, null_constant);
+      new(Z) StoreLocalNode(ST(token_pos), temp_var, null_constant);
   store_null->Visit(&for_true);
 
-  InstanceGetterNode* getter =
-      new(Z) InstanceGetterNode(node->token_pos(),
-                                load_temp,
-                                node->field_name());
+  InstanceGetterNode* getter = new(Z) InstanceGetterNode(token_pos,
+                                                         load_temp,
+                                                         node->field_name());
   StoreLocalNode* store_getter =
-      new(Z) StoreLocalNode(Scanner::kNoSourcePos, temp_var, getter);
+      new(Z) StoreLocalNode(ST(token_pos), temp_var, getter);
   store_getter->Visit(&for_false);
 
   Join(for_test, for_true, for_false);
@@ -3045,9 +3071,9 @@ void ValueGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
     ValueGraphVisitor for_receiver(owner());
     node->receiver()->Visit(&for_receiver);
     Append(for_receiver);
-    Do(BuildStoreExprTemp(for_receiver.value()));
+    Do(BuildStoreExprTemp(for_receiver.value(), node->token_pos()));
     BuildInstanceGetterConditional(node);
-    ReturnDefinition(BuildLoadExprTemp());
+    ReturnDefinition(BuildLoadExprTemp(node->token_pos()));
   } else {
     EffectGraphVisitor::VisitInstanceGetterNode(node);
   }
@@ -3059,7 +3085,7 @@ void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
   if (node->is_conditional()) {
-    Do(BuildStoreExprTemp(for_receiver.value()));
+    Do(BuildStoreExprTemp(for_receiver.value(), node->token_pos()));
     BuildInstanceGetterConditional(node);
   } else {
     PushArgumentInstr* push_receiver = PushArgument(for_receiver.value());
@@ -3095,7 +3121,7 @@ void EffectGraphVisitor::BuildInstanceSetterArguments(
 
   Value* value = NULL;
   if (result_is_needed) {
-    value = Bind(BuildStoreExprTemp(for_value.value()));
+    value = Bind(BuildStoreExprTemp(for_value.value(), node->token_pos()));
   } else {
     value = for_value.value();
   }
@@ -3104,30 +3130,31 @@ void EffectGraphVisitor::BuildInstanceSetterArguments(
 
 
 void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
+  const intptr_t token_pos = node->token_pos();
   if (node->is_conditional()) {
     ValueGraphVisitor for_receiver(owner());
     node->receiver()->Visit(&for_receiver);
     Append(for_receiver);
-    Do(BuildStoreExprTemp(for_receiver.value()));
+    Do(BuildStoreExprTemp(for_receiver.value(), token_pos));
 
     LocalVariable* temp_var = owner()->parsed_function().expression_temp_var();
     LoadLocalNode* load_temp =
-        new(Z) LoadLocalNode(Scanner::kNoSourcePos, temp_var);
+        new(Z) LoadLocalNode(ST(token_pos), temp_var);
     LiteralNode* null_constant =
-        new(Z) LiteralNode(Scanner::kNoSourcePos, Object::null_instance());
+        new(Z) LiteralNode(ST(token_pos), Object::null_instance());
     ComparisonNode* check_is_null =
-        new(Z) ComparisonNode(Scanner::kNoSourcePos,
+        new(Z) ComparisonNode(ST(token_pos),
                               Token::kEQ,
                               load_temp,
                               null_constant);
-    TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
+    TestGraphVisitor for_test(owner(), ST(token_pos));
     check_is_null->Visit(&for_test);
 
     EffectGraphVisitor for_true(owner());
     EffectGraphVisitor for_false(owner());
 
     InstanceSetterNode* setter =
-        new(Z) InstanceSetterNode(node->token_pos(),
+        new(Z) InstanceSetterNode(token_pos,
                                   load_temp,
                                   node->field_name(),
                                   node->value());
@@ -3141,7 +3168,7 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
   const String& name =
       String::ZoneHandle(Z, Field::SetterSymbol(node->field_name()));
   const intptr_t kNumArgsChecked = 1;  // Do not check value type.
-  InstanceCallInstr* call = new(Z) InstanceCallInstr(node->token_pos(),
+  InstanceCallInstr* call = new(Z) InstanceCallInstr(token_pos,
                                                      name,
                                                      Token::kSET,
                                                      arguments,
@@ -3153,40 +3180,41 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
 
 
 void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
+  const intptr_t token_pos = node->token_pos();
   if (node->is_conditional()) {
     ValueGraphVisitor for_receiver(owner());
     node->receiver()->Visit(&for_receiver);
     Append(for_receiver);
-    Do(BuildStoreExprTemp(for_receiver.value()));
+    Do(BuildStoreExprTemp(for_receiver.value(), token_pos));
 
     LocalVariable* temp_var = owner()->parsed_function().expression_temp_var();
     LoadLocalNode* load_temp =
-        new(Z) LoadLocalNode(Scanner::kNoSourcePos, temp_var);
+        new(Z) LoadLocalNode(ST(token_pos), temp_var);
     LiteralNode* null_constant =
-        new(Z) LiteralNode(Scanner::kNoSourcePos, Object::null_instance());
+        new(Z) LiteralNode(ST(token_pos), Object::null_instance());
     ComparisonNode* check_is_null =
-        new(Z) ComparisonNode(Scanner::kNoSourcePos,
+        new(Z) ComparisonNode(ST(token_pos),
                               Token::kEQ,
                               load_temp,
                               null_constant);
-    TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
+    TestGraphVisitor for_test(owner(), ST(token_pos));
     check_is_null->Visit(&for_test);
 
     ValueGraphVisitor for_true(owner());
     null_constant->Visit(&for_true);
-    for_true.Do(BuildStoreExprTemp(for_true.value()));
+    for_true.Do(BuildStoreExprTemp(for_true.value(), token_pos));
 
     ValueGraphVisitor for_false(owner());
     InstanceSetterNode* setter =
-        new(Z) InstanceSetterNode(node->token_pos(),
+        new(Z) InstanceSetterNode(token_pos,
                                   load_temp,
                                   node->field_name(),
                                   node->value());
     setter->Visit(&for_false);
-    for_false.Do(BuildStoreExprTemp(for_false.value()));
+    for_false.Do(BuildStoreExprTemp(for_false.value(), token_pos));
 
     Join(for_test, for_true, for_false);
-    ReturnDefinition(BuildLoadExprTemp());
+    ReturnDefinition(BuildLoadExprTemp(token_pos));
     return;
   }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
@@ -3195,14 +3223,14 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
   const String& name =
       String::ZoneHandle(Z, Field::SetterSymbol(node->field_name()));
   const intptr_t kNumArgsChecked = 1;  // Do not check value type.
-  Do(new(Z) InstanceCallInstr(node->token_pos(),
+  Do(new(Z) InstanceCallInstr(token_pos,
                               name,
                               Token::kSET,
                               arguments,
                               Object::null_array(),
                               kNumArgsChecked,
                               owner()->ic_data_array()));
-  ReturnDefinition(BuildLoadExprTemp());
+  ReturnDefinition(BuildLoadExprTemp(token_pos));
 }
 
 
@@ -3284,6 +3312,7 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
       String::ZoneHandle(Z, Field::SetterSymbol(node->field_name()));
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new(Z) ZoneGrowableArray<PushArgumentInstr*>(1);
+  const intptr_t token_pos = node->token_pos();
   // A super setter is an instance setter whose setter function is
   // resolved at compile time (in the caller instance getter's super class).
   // Unlike a static getter, a super getter has a receiver parameter.
@@ -3294,7 +3323,7 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
     if (is_super_setter) {
       ASSERT(node->receiver() != NULL);
       // Resolve and call noSuchMethod.
-      ArgumentListNode* arguments = new(Z) ArgumentListNode(node->token_pos());
+      ArgumentListNode* arguments = new(Z) ArgumentListNode(token_pos);
       arguments->Add(node->receiver());
       arguments->Add(node->value());
       call = BuildStaticNoSuchMethodCall(
@@ -3306,10 +3335,10 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
           true);  // Super invocation.
     } else {
       // Throw a NoSuchMethodError.
-      ArgumentListNode* arguments = new(Z) ArgumentListNode(node->token_pos());
+      ArgumentListNode* arguments = new(Z) ArgumentListNode(token_pos);
       arguments->Add(node->value());
       call = BuildThrowNoSuchMethodError(
-          node->token_pos(),
+          token_pos,
           node->cls(),
           setter_name,
           arguments,  // Argument is the value passed to the setter.
@@ -3332,13 +3361,13 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
     Append(for_value);
     Value* value = NULL;
     if (result_is_needed) {
-      value = Bind(BuildStoreExprTemp(for_value.value()));
+      value = Bind(BuildStoreExprTemp(for_value.value(), token_pos));
     } else {
       value = for_value.value();
     }
     arguments->Add(PushArgument(value));
 
-    call = new(Z) StaticCallInstr(node->token_pos(),
+    call = new(Z) StaticCallInstr(token_pos,
                                   setter_function,
                                   Object::null_array(),  // No names.
                                   arguments,
@@ -3346,7 +3375,7 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
   }
   if (result_is_needed) {
     Do(call);
-    ReturnDefinition(BuildLoadExprTemp());
+    ReturnDefinition(BuildLoadExprTemp(token_pos));
   } else {
     ReturnDefinition(call);
   }
@@ -3382,10 +3411,11 @@ static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
 }
 
 
-LoadLocalInstr* EffectGraphVisitor::BuildLoadThisVar(LocalScope* scope) {
+LoadLocalInstr* EffectGraphVisitor::BuildLoadThisVar(
+    LocalScope* scope, intptr_t token_pos) {
   LocalVariable* receiver_var = scope->LookupVariable(Symbols::This(),
                                                       true);  // Test only.
-  return new(Z) LoadLocalInstr(*receiver_var);
+  return new(Z) LoadLocalInstr(*receiver_var, token_pos);
 }
 
 
@@ -3395,7 +3425,7 @@ LoadFieldInstr* EffectGraphVisitor::BuildNativeGetter(
     intptr_t offset,
     const Type& type,
     intptr_t class_id) {
-  Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+  Value* receiver = Bind(BuildLoadThisVar(node->scope(), node->token_pos()));
   LoadFieldInstr* load = new(Z) LoadFieldInstr(receiver,
                                                offset,
                                                type,
@@ -3410,10 +3440,10 @@ ConstantInstr* EffectGraphVisitor::DoNativeSetterStoreValue(
     NativeBodyNode* node,
     intptr_t offset,
     StoreBarrierType emit_store_barrier) {
-  Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+  Value* receiver = Bind(BuildLoadThisVar(node->scope(), node->token_pos()));
   LocalVariable* value_var =
       node->scope()->LookupVariable(Symbols::Value(), true);
-  Value* value = Bind(new(Z) LoadLocalInstr(*value_var));
+  Value* value = Bind(new(Z) LoadLocalInstr(*value_var, node->token_pos()));
   StoreInstanceFieldInstr* store = new(Z) StoreInstanceFieldInstr(
       offset,
       receiver,
@@ -3427,19 +3457,20 @@ ConstantInstr* EffectGraphVisitor::DoNativeSetterStoreValue(
 
 void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
   const Function& function = owner()->function();
+  const intptr_t token_pos = node->token_pos();
   if (!function.IsClosureFunction()) {
     MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
     switch (kind) {
       case MethodRecognizer::kObjectEquals: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        Value* receiver = Bind(BuildLoadThisVar(node->scope(), token_pos));
         LocalVariable* other_var =
             node->scope()->LookupVariable(Symbols::Other(),
                                           true);  // Test only.
-        Value* other = Bind(new(Z) LoadLocalInstr(*other_var));
+        Value* other = Bind(new(Z) LoadLocalInstr(*other_var, token_pos));
         // Receiver is not a number because numbers override equality.
         const bool kNoNumberCheck = false;
         StrictCompareInstr* compare =
-            new(Z) StrictCompareInstr(node->token_pos(),
+            new(Z) StrictCompareInstr(token_pos,
                                       Token::kEQ_STRICT,
                                       receiver,
                                       other,
@@ -3463,11 +3494,11 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
             Smi::ZoneHandle(Z, Smi::New(0))));
         Value* load_val = Bind(load);
         StrictCompareInstr* compare =
-            new(Z) StrictCompareInstr(node->token_pos(),
-                                   Token::kEQ_STRICT,
-                                   load_val,
-                                   zero_val,
-                                   false);  // No number check.
+            new(Z) StrictCompareInstr(token_pos,
+                                      Token::kEQ_STRICT,
+                                      load_val,
+                                      zero_val,
+                                      false);  // No number check.
         return ReturnDefinition(compare);
       }
       case MethodRecognizer::kGrowableArrayLength:
@@ -3483,12 +3514,12 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       case MethodRecognizer::kClassIDgetID: {
         LocalVariable* value_var =
             node->scope()->LookupVariable(Symbols::Value(), true);
-        Value* value = Bind(new(Z) LoadLocalInstr(*value_var));
+        Value* value = Bind(new(Z) LoadLocalInstr(*value_var, token_pos));
         LoadClassIdInstr* load = new(Z) LoadClassIdInstr(value);
         return ReturnDefinition(load);
       }
       case MethodRecognizer::kGrowableArrayCapacity: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        Value* receiver = Bind(BuildLoadThisVar(node->scope(), token_pos));
         LoadFieldInstr* data_load = new(Z) LoadFieldInstr(
             receiver,
             Array::data_offset(),
@@ -3509,12 +3540,14 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         LocalVariable* type_args_parameter =
             node->scope()->LookupVariable(Symbols::TypeArgumentsParameter(),
                                           true);
-        Value* element_type = Bind(new(Z) LoadLocalInstr(*type_args_parameter));
+        Value* element_type =
+            Bind(new(Z) LoadLocalInstr(*type_args_parameter, token_pos));
         LocalVariable* length_parameter =
             node->scope()->LookupVariable(Symbols::Length(), true);
-        Value* length = Bind(new(Z) LoadLocalInstr(*length_parameter));
+        Value* length =
+            Bind(new(Z) LoadLocalInstr(*length_parameter, token_pos));
         CreateArrayInstr* create_array =
-            new CreateArrayInstr(node->token_pos(), element_type, length);
+            new CreateArrayInstr(token_pos, element_type, length);
         return ReturnDefinition(create_array);
       }
       case MethodRecognizer::kBigint_getDigits: {
@@ -3627,7 +3660,7 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
             !node->value()->AsLoadLocalNode()->local().IsInternal()) ||
         node->value()->IsClosureNode()) &&
         !node->local().IsInternal() &&
-        (node->token_pos() >= 0)) {
+        Token::IsDebugPause(node->token_pos())) {
       AddInstruction(new(Z) DebugStepCheckInstr(
           node->token_pos(), RawPcDescriptors::kRuntimeCall));
     }
@@ -3673,6 +3706,7 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
 
 void EffectGraphVisitor::VisitStoreInstanceFieldNode(
     StoreInstanceFieldNode* node) {
+  const intptr_t token_pos = node->token_pos();
   ValueGraphVisitor for_instance(owner());
   node->instance()->Visit(&for_instance);
   Append(for_instance);
@@ -3691,26 +3725,26 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
   }
 
   if (FLAG_use_field_guards) {
-    store_value = Bind(BuildStoreExprTemp(store_value));
+    store_value = Bind(BuildStoreExprTemp(store_value, token_pos));
     GuardFieldClassInstr* guard_field_class =
         new(Z) GuardFieldClassInstr(store_value,
-                                 node->field(),
-                                 thread()->GetNextDeoptId());
+                                    node->field(),
+                                    thread()->GetNextDeoptId());
     AddInstruction(guard_field_class);
-    store_value = Bind(BuildLoadExprTemp());
+    store_value = Bind(BuildLoadExprTemp(token_pos));
     GuardFieldLengthInstr* guard_field_length =
         new(Z) GuardFieldLengthInstr(store_value,
                                      node->field(),
                                      thread()->GetNextDeoptId());
     AddInstruction(guard_field_length);
-    store_value = Bind(BuildLoadExprTemp());
+    store_value = Bind(BuildLoadExprTemp(token_pos));
   }
   StoreInstanceFieldInstr* store =
       new(Z) StoreInstanceFieldInstr(node->field(),
                                      for_instance.value(),
                                      store_value,
                                      kEmitStoreBarrier,
-                                     node->token_pos());
+                                     token_pos);
   // Maybe initializing unboxed store.
   store->set_is_potential_unboxed_initialization(true);
   ReturnDefinition(store);
@@ -3743,7 +3777,7 @@ Definition* EffectGraphVisitor::BuildStoreStaticField(
   Append(for_value);
   Value* store_value = NULL;
   if (result_is_needed) {
-    store_value = Bind(BuildStoreExprTemp(for_value.value()));
+    store_value = Bind(BuildStoreExprTemp(for_value.value(), token_pos));
   } else {
     store_value = for_value.value();
   }
@@ -3752,7 +3786,7 @@ Definition* EffectGraphVisitor::BuildStoreStaticField(
 
   if (result_is_needed) {
     Do(store);
-    return BuildLoadExprTemp();
+    return BuildLoadExprTemp(token_pos);
   } else {
     return store;
   }
@@ -3835,6 +3869,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
     StoreIndexedNode* node,
     bool result_is_needed) {
   Function* super_function = NULL;
+  const intptr_t token_pos = node->token_pos();
   if (node->IsSuperStore()) {
     // Resolve the store indexed operator in the super class.
     super_function = &Function::ZoneHandle(
@@ -3843,7 +3878,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
     if (super_function->IsNull()) {
       // Could not resolve super operator. Generate call noSuchMethod() of the
       // super class instead.
-      ArgumentListNode* arguments = new(Z) ArgumentListNode(node->token_pos());
+      ArgumentListNode* arguments = new(Z) ArgumentListNode(token_pos);
       arguments->Add(node->array());
       arguments->Add(node->index_expr());
       arguments->Add(node->value());
@@ -3857,7 +3892,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
       if (result_is_needed) {
         Do(call);
         // BuildStaticNoSuchMethodCall stores the value in expression_temp.
-        return BuildLoadExprTemp();
+        return BuildLoadExprTemp(token_pos);
       } else {
         return call;
       }
@@ -3881,7 +3916,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
   Append(for_value);
   Value* value = NULL;
   if (result_is_needed) {
-    value = Bind(BuildStoreExprTemp(for_value.value()));
+    value = Bind(BuildStoreExprTemp(for_value.value(), token_pos));
   } else {
     value = for_value.value();
   }
@@ -3891,14 +3926,14 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
     // Generate static call to super operator []=.
 
     StaticCallInstr* store =
-        new(Z) StaticCallInstr(node->token_pos(),
+        new(Z) StaticCallInstr(token_pos,
                                *super_function,
                                Object::null_array(),
                                arguments,
                                owner()->ic_data_array());
     if (result_is_needed) {
       Do(store);
-      return BuildLoadExprTemp();
+      return BuildLoadExprTemp(token_pos);
     } else {
       return store;
     }
@@ -3908,7 +3943,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
     const String& name =
         String::ZoneHandle(Z, Symbols::New(Token::Str(Token::kASSIGN_INDEX)));
     InstanceCallInstr* store =
-        new(Z) InstanceCallInstr(node->token_pos(),
+        new(Z) InstanceCallInstr(token_pos,
                                  name,
                                  Token::kASSIGN_INDEX,
                                  arguments,
@@ -3917,7 +3952,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
                                  owner()->ic_data_array());
     if (result_is_needed) {
       Do(store);
-      return BuildLoadExprTemp();
+      return BuildLoadExprTemp(token_pos);
     } else {
       return store;
     }
@@ -4008,7 +4043,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     Value* allocated_context =
         Bind(new(Z) AllocateContextInstr(node->token_pos(),
                                          num_context_variables));
-    { LocalVariable* tmp_var = EnterTempLocalScope(allocated_context);
+    { LocalVariable* tmp_var =
+          EnterTempLocalScope(allocated_context, node->token_pos());
       if (!is_top_level_sequence || HasContextScope()) {
         ASSERT(is_top_level_sequence ||
                (nested_block.ContextLevel() ==
@@ -4023,7 +4059,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
                                           node->token_pos()));
       }
       Do(BuildStoreContext(
-          Bind(ExitTempLocalScope(tmp_var)),
+          Bind(ExitTempLocalScope(tmp_var, node->token_pos())),
           node->token_pos()));
     }
 
@@ -4041,7 +4077,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
           // Create a temporary local describing the original position.
           const String& temp_name = Symbols::TempParam();
           LocalVariable* temp_local = new(Z) LocalVariable(
-              Scanner::kNoSourcePos,  // Token index.
+              Token::kNoSourcePos,  // Token index.
               temp_name,
               Object::dynamic_type());  // Type.
           temp_local->set_index(param_frame_index);
@@ -4053,14 +4089,16 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
           temp_local->set_is_captured_parameter(true);
 
           // Copy parameter from local frame to current context.
-          Value* load = Bind(BuildLoadLocal(*temp_local));
-          Do(BuildStoreLocal(parameter, load));
+          Value* load = Bind(BuildLoadLocal(*temp_local, node->token_pos()));
+          Do(BuildStoreLocal(parameter, load, ST(node->token_pos())));
           // Write NULL to the source location to detect buggy accesses and
           // allow GC of passed value if it gets overwritten by a new value in
           // the function.
           Value* null_constant = Bind(new(Z) ConstantInstr(
               Object::ZoneHandle(Z, Object::null())));
-          Do(BuildStoreLocal(*temp_local, null_constant));
+          Do(BuildStoreLocal(*temp_local,
+                             null_constant,
+                             ST(node->token_pos())));
         }
       }
     }
@@ -4074,15 +4112,15 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     // basic block. Place this check at the last parameter to ensure parameters
     // are in scope in the debugger at method entry.
     const int num_params = function.NumParameters();
-    intptr_t check_pos = Scanner::kNoSourcePos;
+    intptr_t check_pos = Token::kNoSourcePos;
     if (num_params > 0) {
       const LocalVariable& parameter = *scope->VariableAt(num_params - 1);
       check_pos = parameter.token_pos();
     }
-    if (check_pos < 0) {
+    if (!Token::IsDebugPause(check_pos)) {
       // No parameters or synthetic parameters.
       check_pos = node->token_pos();
-      ASSERT(check_pos >= 0);
+      ASSERT(Token::IsDebugPause(check_pos));
     }
     AddInstruction(new(Z) DebugStepCheckInstr(check_pos,
                                               RawPcDescriptors::kRuntimeCall));
@@ -4122,7 +4160,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
                             NULL,
                             parameter.type(),
                             parameter.name())) {
-        Value* parameter_value = Bind(BuildLoadLocal(parameter));
+        Value* parameter_value =
+            Bind(BuildLoadLocal(parameter, parameter.token_pos()));
         Do(BuildAssertAssignable(parameter.token_pos(),
                                  parameter_value,
                                  parameter.type(),
@@ -4181,7 +4220,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     exit_ = NULL;
 
     LoadLocalNode* load_jump_count =
-        new(Z) LoadLocalNode(Scanner::kNoSourcePos, jump_var);
+        new(Z) LoadLocalNode(node->token_pos(), jump_var);
     ComparisonNode* check_jump_count;
     const intptr_t num_await_states = owner()->await_joins()->length();
 
@@ -4189,12 +4228,12 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         Symbols::AwaitContextVar(), false);
     for (intptr_t i = 0; i < num_await_states; i++) {
       check_jump_count = new(Z) ComparisonNode(
-          Scanner::kNoSourcePos,
+          ST(node->token_pos()),
           Token::kEQ,
           load_jump_count,
           new(Z) LiteralNode(
-              Scanner::kNoSourcePos, Smi::ZoneHandle(Z, Smi::New(i))));
-      TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
+              ST(node->token_pos()), Smi::ZoneHandle(Z, Smi::New(i))));
+      TestGraphVisitor for_test(owner(), ST(node->token_pos()));
       check_jump_count->Visit(&for_test);
       EffectGraphVisitor for_true(owner());
       EffectGraphVisitor for_false(owner());
@@ -4206,7 +4245,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
       // Restore the saved continuation context, i.e. the context that was
       // saved into :await_ctx_var before the closure suspended.
-      for_true.BuildRestoreContext(*old_context, Scanner::kNoSourcePos);
+      for_true.BuildRestoreContext(*old_context, ST(node->token_pos()));
 
       // Goto saved join.
       for_true.Goto((*owner()->await_joins())[i]);
@@ -4264,7 +4303,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   owner()->set_try_index(try_handler_index);
 
   // Preserve current context into local variable ':saved_try_context_var'.
-  BuildSaveContext(node->context_var(), node->token_pos());
+  BuildSaveContext(node->context_var(), ST(node->token_pos()));
 
   EffectGraphVisitor for_try(owner());
   node->try_block()->Visit(&for_try);
@@ -4341,11 +4380,11 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     node->rethrow_clause()->Visit(&for_finally);
     if (for_finally.is_open()) {
       // Rethrow the exception.  Manually build the graph for rethrow.
-      Value* exception = for_finally.Bind(
-          for_finally.BuildLoadLocal(catch_block->rethrow_exception_var()));
+      Value* exception = for_finally.Bind(for_finally.BuildLoadLocal(
+          catch_block->rethrow_exception_var(), finally_block->token_pos()));
       for_finally.PushArgument(exception);
-      Value* stacktrace = for_finally.Bind(
-          for_finally.BuildLoadLocal(catch_block->rethrow_stacktrace_var()));
+      Value* stacktrace = for_finally.Bind(for_finally.BuildLoadLocal(
+          catch_block->rethrow_stacktrace_var(), finally_block->token_pos()));
       for_finally.PushArgument(stacktrace);
       for_finally.AddInstruction(
           new(Z) ReThrowInstr(catch_block->token_pos(), catch_handler_index));

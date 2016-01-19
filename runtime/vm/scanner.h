@@ -44,13 +44,6 @@ class Scanner : ValueObject {
     const String* literal;    // Identifier, number or string literal.
   };
 
-  // Dummy token index reflecting an unknown source position.
-  static const intptr_t kNoSourcePos = -1;
-
-  static bool ValidSourcePosition(intptr_t token_pos) {
-    return (token_pos >= 0) || (token_pos == kNoSourcePos);
-  }
-
   typedef ZoneGrowableArray<TokenDescriptor> GrowableTokenStream;
 
   // Initializes scanner to scan string source.

@@ -667,7 +667,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
   __ Comment("AssertAssignable");
-  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  ASSERT(!Token::IsClassifying(token_pos));
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.

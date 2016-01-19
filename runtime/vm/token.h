@@ -6,6 +6,7 @@
 #define VM_TOKEN_H_
 
 #include "platform/assert.h"
+#include "vm/allocation.h"
 
 namespace dart {
 
@@ -193,8 +194,54 @@ namespace dart {
   KW(kWHILE, "while", 0, kKeyword)                                             \
   KW(kWITH, "with", 0, kKeyword) /* == kLastKeyword */
 
-
 class String;
+
+// The token space is organized as follows:
+//
+// Sentinel values start at -1 and move towards negative infinity:
+// kNoSourcePos                -> -1
+// ClassifyingTokenPositions 1 -> -1 - 1
+// ClassifyingTokenPositions N -> -1 - N
+//
+// Synthetically created AstNodes are given real source positions but encoded
+// as negative numbers from [kSmiMin32, -1 - N]. For example:
+//
+// A source position of 0 in a synthetic AstNode would be encoded as -2 - N.
+// A source position of 1 in a synthetic AstNode would be encoded as -3 - N.
+//
+// All other AstNodes are given real source positions encoded as positive
+// integers.
+//
+// This organization allows for ~1 billion token positions.
+//
+// NOTE: While token positions are passed around as an intptr_t they are encoded
+// into the snapshot as an int32_t.
+
+// These token positions are used to classify instructions that can't be
+// directly tied to an actual source position.
+#define CLASSIFYING_TOKEN_POSITIONS(V)                                         \
+    V(Private, -2)                                                             \
+    V(Box, -3)                                                                 \
+    V(ParallelMove, -4)                                                        \
+    V(TempMove, -5)                                                            \
+    V(Constant, -6)                                                            \
+    V(PushArgument, -7)                                                        \
+    V(ControlFlow, -8)                                                         \
+    V(Context, -9)                                                             \
+    V(MethodExtractor, -10)                                                    \
+    V(Last, -11)   // Always keep this at the end.
+
+
+class ClassifyingTokenPositions : public AllStatic {
+ public:
+#define DEFINE_VALUES(name, value)                                             \
+  static const intptr_t k##name = value;
+  CLASSIFYING_TOKEN_POSITIONS(DEFINE_VALUES);
+#undef DEFINE_VALUES
+
+  static const char* ToCString(intptr_t token_pos);
+};
+
 
 class Token {
  public:
@@ -211,6 +258,78 @@ class Token {
     kKeyword         = 1 << 0,
     kPseudoKeyword   = 1 << 1,
   };
+
+  // Token position constants.
+  static const intptr_t kNoSourcePos = -1;
+  static const intptr_t kMinSourcePos = 0;
+  static const intptr_t kMaxSourcePos =
+      kSmiMax32 - (-ClassifyingTokenPositions::kLast) - 2;
+
+  // Is |token_pos| a classifying sentinel source position?
+  static bool IsClassifying(intptr_t token_pos) {
+    return (token_pos >= ClassifyingTokenPositions::kPrivate) &&
+           (token_pos <= ClassifyingTokenPositions::kLast);
+  }
+
+  // Is |token_pos| a synthetic source position?
+  static bool IsSynthetic(intptr_t token_pos) {
+    if (token_pos >= kMinSourcePos) {
+      return false;
+    }
+    if (token_pos < ClassifyingTokenPositions::kLast) {
+      return true;
+    }
+    return false;
+  }
+
+  // Is |token_pos| the no source position sentinel?
+  static bool IsNoSource(intptr_t token_pos) {
+    return token_pos == kNoSourcePos;
+  }
+
+  // Is |token_pos| a real source position?
+  static bool IsReal(intptr_t token_pos) {
+    return token_pos >= kMinSourcePos;
+  }
+
+  // Is |token_pos| a source position?
+  static bool IsSourcePosition(intptr_t token_pos) {
+    return IsReal(token_pos) || IsNoSource(token_pos) || IsSynthetic(token_pos);
+  }
+
+  // Is |token_pos| a debug pause source position?
+  static bool IsDebugPause(intptr_t token_pos) {
+    return IsReal(token_pos);
+  }
+
+  // Encode |token_pos| into a synthetic source position.
+  static intptr_t ToSynthetic(intptr_t token_pos) {
+    if (IsClassifying(token_pos) || IsNoSource(token_pos)) {
+      return token_pos;
+    }
+    if (IsSynthetic(token_pos)) {
+      return token_pos;
+    }
+    ASSERT(!IsSynthetic(token_pos));
+    const intptr_t value = (ClassifyingTokenPositions::kLast - 1) - token_pos;
+    ASSERT(IsSynthetic(value));
+    ASSERT(value < ClassifyingTokenPositions::kLast);
+    return value;
+  }
+
+  // Decode |token_pos| from a synthetic source position.
+  static intptr_t FromSynthetic(intptr_t token_pos) {
+    if (IsClassifying(token_pos) || IsNoSource(token_pos)) {
+      return token_pos;
+    }
+    if (!IsSynthetic(token_pos)) {
+      return token_pos;
+    }
+    ASSERT(IsSynthetic(token_pos));
+    const intptr_t value = -token_pos + (ClassifyingTokenPositions::kLast - 1);
+    ASSERT(!IsSynthetic(value));
+    return value;
+  }
 
   static const Kind kFirstKeyword = kABSTRACT;
   static const Kind kLastKeyword = kWITH;
@@ -327,7 +446,6 @@ class Token {
   static const uint8_t precedence_[];
   static const Attribute attributes_[];
 };
-
 
 }  // namespace dart
 

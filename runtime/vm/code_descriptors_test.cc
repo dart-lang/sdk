@@ -18,7 +18,7 @@
 
 namespace dart {
 
-static const intptr_t kPos = Scanner::kNoSourcePos;
+static const intptr_t kPos = Token::kNoSourcePos;
 
 
 CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
@@ -266,6 +266,54 @@ TEST_CASE(StackmapGC) {
   const Object& result = Object::Handle(
       DartEntry::InvokeFunction(function_foo, Object::empty_array()));
   EXPECT(!result.IsError());
+}
+
+
+TEST_CASE(DescriptorList_TokenPositions) {
+  DescriptorList* descriptors = new DescriptorList(64);
+  ASSERT(descriptors != NULL);
+  const intptr_t token_positions[] = {
+    kMinInt32,
+    5,
+    13,
+    13,
+    13,
+    13,
+    31,
+    23,
+    23,
+    23,
+    33,
+    33,
+    5,
+    5,
+    Token::kMinSourcePos,
+    Token::kMaxSourcePos,
+  };
+  const intptr_t num_token_positions =
+      sizeof(token_positions) / sizeof(token_positions[0]);
+
+  for (intptr_t i = 0; i < num_token_positions; i++) {
+    descriptors->AddDescriptor(RawPcDescriptors::kRuntimeCall, 0, 0,
+                               token_positions[i], 0);
+  }
+
+  const PcDescriptors& finalized_descriptors =
+      PcDescriptors::Handle(descriptors->FinalizePcDescriptors(0));
+
+  ASSERT(!finalized_descriptors.IsNull());
+  PcDescriptors::Iterator it(finalized_descriptors,
+                             RawPcDescriptors::kRuntimeCall);
+
+  intptr_t i = 0;
+  while (it.MoveNext()) {
+    if (token_positions[i] != it.TokenPos()) {
+      OS::Print("[%" Pd "]: Expected: %" Pd " != %" Pd "\n",
+                i, token_positions[i], it.TokenPos());
+    }
+    EXPECT(token_positions[i] == it.TokenPos());
+    i++;
+  }
 }
 
 }  // namespace dart

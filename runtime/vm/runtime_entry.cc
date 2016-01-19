@@ -17,7 +17,7 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
   const String& class_name = String::Handle(Symbols::New("ownerClass"));
   const Script& script = Script::Handle();
   const Class& owner_class =
-      Class::Handle(Class::New(class_name, script, Scanner::kNoSourcePos));
+      Class::Handle(Class::New(class_name, script, Token::kNoSourcePos));
   const String& function_name = String::ZoneHandle(Symbols::New(name));
   const Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,

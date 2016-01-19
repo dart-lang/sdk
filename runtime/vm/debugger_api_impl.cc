@@ -652,7 +652,7 @@ DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type_in) {
 
   // Construct the super type object, canonicalize it and return.
   Type& instantiated_type = Type::Handle(
-      Type::New(super_cls, super_type_args_array, Scanner::kNoSourcePos));
+      Type::New(super_cls, super_type_args_array, Token::kNoSourcePos));
   ASSERT(!instantiated_type.IsNull());
   instantiated_type.SetIsFinalized();
   return Api::NewHandle(T, instantiated_type.Canonicalize());

@@ -27,6 +27,11 @@ const intptr_t kSmiBits = kBitsPerWord - 2;
 const intptr_t kSmiMax = (static_cast<intptr_t>(1) << kSmiBits) - 1;
 const intptr_t kSmiMin =  -(static_cast<intptr_t>(1) << kSmiBits);
 
+// Hard coded from above but for 32-bit architectures.
+const intptr_t kSmiBits32 = kBitsPerInt32 - 2;
+const intptr_t kSmiMax32 = (static_cast<intptr_t>(1) << kSmiBits32) - 1;
+const intptr_t kSmiMin32 =  -(static_cast<intptr_t>(1) << kSmiBits32);
+
 #define kPosInfinity bit_cast<double>(DART_UINT64_C(0x7ff0000000000000))
 #define kNegInfinity bit_cast<double>(DART_UINT64_C(0xfff0000000000000))
 

@@ -1482,7 +1482,7 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
           TypeArguments::Handle(Closure::GetTypeArguments(closure));
       const Class& cls =
           Class::Handle(Isolate::Current()->object_store()->object_class());
-      instantiator = Type::New(cls, arguments, Scanner::kNoSourcePos);
+      instantiator = Type::New(cls, arguments, Token::kNoSourcePos);
       instantiator.SetIsFinalized();
     }
     return CreateMethodMirror(function,
@@ -2003,7 +2003,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
   }
 
   Script& script = Script::Handle();
-  intptr_t token_pos = Scanner::kNoSourcePos;
+  intptr_t token_pos = Token::kNoSourcePos;
 
   if (decl.IsFunction()) {
     const Function& func = Function::Cast(decl);
@@ -2058,7 +2058,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
   }
 
   ASSERT(!script.IsNull());
-  ASSERT(token_pos != Scanner::kNoSourcePos);
+  ASSERT(token_pos != Token::kNoSourcePos);
 
   const String& uri = String::Handle(script.url());
   intptr_t from_line = 0;

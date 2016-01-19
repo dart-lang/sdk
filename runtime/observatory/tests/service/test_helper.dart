@@ -255,9 +255,11 @@ IsolateTest stoppedAtLine(int line) {
 
     Frame top = frames[0];
     Script script = await top.location.script.load();
-    if (script.tokenToLine(top.location.tokenPos) != line) {
+    int actualLine = script.tokenToLine(top.location.tokenPos);
+    if (actualLine != line) {
       var sb = new StringBuffer();
-      sb.write("Expected to be at line $line, but got stack trace:\n");
+      sb.write("Expected to be at line $line but actually at line $actualLine");
+      sb.write("\nFull stack trace:\n");
       for (Frame f in stack['frames']) {
         sb.write(" $f\n");
       }

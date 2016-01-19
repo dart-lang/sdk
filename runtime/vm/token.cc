@@ -78,4 +78,21 @@ bool Token::IsUnaryArithmeticOperator(Token::Kind token) {
 }
 
 
+const char* ClassifyingTokenPositions::ToCString(intptr_t token_pos) {
+  ASSERT(token_pos < Token::kMinSourcePos);
+  COMPILE_ASSERT(ClassifyingTokenPositions::kPrivate ==
+                 (Token::kNoSourcePos - 1));
+  COMPILE_ASSERT(kLast < kPrivate);
+  switch (token_pos) {
+    case Token::kNoSourcePos: return "NoSource";
+#define DEFINE_CASE(name, value)                                               \
+    case value: return #name;
+    CLASSIFYING_TOKEN_POSITIONS(DEFINE_CASE);
+#undef DEFINE_CASE
+    default:
+      UNIMPLEMENTED();
+      return NULL;
+  }
+}
+
 }  // namespace dart

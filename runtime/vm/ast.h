@@ -99,7 +99,8 @@ class AstNode : public ZoneAllocated {
  public:
   explicit AstNode(intptr_t token_pos)
       : token_pos_(token_pos) {
-    ASSERT(Scanner::ValidSourcePosition(token_pos_));
+    ASSERT(!Token::IsClassifying(token_pos_) ||
+           (token_pos_ == ClassifyingTokenPositions::kMethodExtractor));
   }
   virtual ~AstNode() { }
 

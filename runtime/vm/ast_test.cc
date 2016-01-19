@@ -13,10 +13,10 @@
 namespace dart {
 
 TEST_CASE(Ast) {
-  LocalVariable* v = new LocalVariable(Scanner::kNoSourcePos,
+  LocalVariable* v = new LocalVariable(Token::kNoSourcePos,
                                        String::ZoneHandle(Symbols::New("v")),
                                        Type::ZoneHandle(Type::DynamicType()));
-  AstNode* ll = new LoadLocalNode(Scanner::kNoSourcePos, v);
+  AstNode* ll = new LoadLocalNode(Token::kNoSourcePos, v);
   EXPECT(ll->IsLoadLocalNode());
   EXPECT(!ll->IsLiteralNode());
   LoadLocalNode* lln = ll->AsLoadLocalNode();
@@ -24,7 +24,7 @@ TEST_CASE(Ast) {
   v->set_index(1);
   EXPECT_EQ(1, v->index());
 
-  LocalVariable* p = new LocalVariable(Scanner::kNoSourcePos,
+  LocalVariable* p = new LocalVariable(Token::kNoSourcePos,
                                        String::ZoneHandle(Symbols::New("p")),
                                        Type::ZoneHandle(Type::DynamicType()));
   EXPECT(!p->HasIndex());
@@ -32,22 +32,22 @@ TEST_CASE(Ast) {
   EXPECT(p->HasIndex());
   EXPECT_EQ(-1, p->index());
 
-  ReturnNode* r = new ReturnNode(Scanner::kNoSourcePos, lln);
+  ReturnNode* r = new ReturnNode(Token::kNoSourcePos, lln);
   EXPECT_EQ(lln, r->value());
 
   LiteralNode* l =
-      new LiteralNode(Scanner::kNoSourcePos, Smi::ZoneHandle(Smi::New(3)));
+      new LiteralNode(Token::kNoSourcePos, Smi::ZoneHandle(Smi::New(3)));
   EXPECT(l->literal().IsSmi());
   EXPECT_EQ(Smi::New(3), l->literal().raw());
 
   BinaryOpNode* b =
-      new BinaryOpNode(Scanner::kNoSourcePos, Token::kADD, l, lln);
+      new BinaryOpNode(Token::kNoSourcePos, Token::kADD, l, lln);
   EXPECT_EQ(Token::kADD, b->kind());
   EXPECT_EQ(l, b->left());
   EXPECT_EQ(lln, b->right());
 
   UnaryOpNode* u =
-      new UnaryOpNode(Scanner::kNoSourcePos, Token::kNEGATE, b);
+      new UnaryOpNode(Token::kNoSourcePos, Token::kNEGATE, b);
   EXPECT_EQ(Token::kNEGATE, u->kind());
   EXPECT_EQ(b, u->operand());
 
