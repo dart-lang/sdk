@@ -2659,6 +2659,14 @@ RawType* ClassFinalizer::ResolveMixinAppType(
       AbstractType::Handle(zone, mixin_app_type.super_type());
   ResolveType(cls, mixin_super_type);
   ASSERT(mixin_super_type.HasResolvedTypeClass());  // Even if malformed.
+  if (mixin_super_type.IsMalformedOrMalbounded()) {
+    ReportError(Error::Handle(zone, mixin_super_type.error()));
+  }
+  if (mixin_super_type.IsDynamicType()) {
+    ReportError(cls, cls.token_pos(),
+                "class '%s' may not extend 'dynamic'",
+                String::Handle(zone, cls.Name()).ToCString());
+  }
   // The super type may have a BoundedType as type argument, but cannot be
   // a BoundedType itself.
   CollectTypeArguments(cls, Type::Cast(mixin_super_type), type_args);

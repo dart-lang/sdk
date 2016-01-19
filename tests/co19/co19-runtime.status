@@ -135,9 +135,6 @@ Language/Mixins/declaring_constructor_t01: MissingCompileTimeError # Please tria
 Language/Mixins/not_object_superclass_t01: MissingCompileTimeError # Please triage this failure
 Language/Mixins/reference_to_super_t01: MissingCompileTimeError # Please triage this failure
 
-[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug ]
-Language/Mixins/Mixin_Application/wrong_type_t02: Crash # Please triage this failure
-
 [ ($runtime == vm || $runtime == dart_precompiled) && $checked ]
 Language/Errors_and_Warnings/static_warning_t01: RuntimeError # Please triage this failure
 Language/Errors_and_Warnings/static_warning_t02: RuntimeError # Please triage this failure
