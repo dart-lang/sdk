@@ -8443,6 +8443,32 @@ class HtmlDocument extends Document {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable()
+@DomName('HTMLHtmlElement')
+@Native("HTMLHtmlElement")
+class HtmlHtmlElement extends HtmlElement {
+  // To suppress missing implicit constructor warnings.
+  factory HtmlHtmlElement._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('HTMLHtmlElement.HTMLHtmlElement')
+  @DocsEditable()
+  factory HtmlHtmlElement() => document.createElement("html");
+
+
+  @Deprecated("Internal Use Only")
+  static HtmlHtmlElement internalCreateHtmlHtmlElement() {
+    return new HtmlHtmlElement.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  HtmlHtmlElement.internal_() : super.internal_();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
  /**
   * A client-side XHR request for getting data from a URL,
   * formally known as XMLHttpRequest.
@@ -10936,6 +10962,9 @@ class MouseEvent extends UIEvent {
 class Navigator extends DartHtmlDomObject implements NavigatorCpu {
 
 
+  @DomName('Navigator.language')
+  String get language => JS('String', '#.language || #.userLanguage', this.raw,
+      this.raw);
 
 
   // To suppress missing implicit constructor warnings.
@@ -12250,6 +12279,74 @@ class Range extends DartHtmlDomObject {
 
 @DomName('RequestAnimationFrameCallback')
 typedef void RequestAnimationFrameCallback(num highResTime);
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('Screen')
+@Native("Screen")
+class Screen extends DartHtmlDomObject {
+
+  @DomName('Screen.availHeight')
+  @DomName('Screen.availLeft')
+  @DomName('Screen.availTop')
+  @DomName('Screen.availWidth')
+  Rectangle get available => new Rectangle(_availLeft, _availTop, _availWidth,
+      _availHeight);
+  // To suppress missing implicit constructor warnings.
+  factory Screen._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  static Screen internalCreateScreen() {
+    return new Screen.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  Screen.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
+  @JSName('availHeight')
+  @DomName('Screen.availHeight')
+  @DocsEditable()
+  int get _availHeight => wrap_jso(JS("int", "#.availHeight", this.raw));
+
+  @JSName('availLeft')
+  @DomName('Screen.availLeft')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  int get _availLeft => wrap_jso(JS("int", "#.availLeft", this.raw));
+
+  @JSName('availTop')
+  @DomName('Screen.availTop')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  int get _availTop => wrap_jso(JS("int", "#.availTop", this.raw));
+
+  @JSName('availWidth')
+  @DomName('Screen.availWidth')
+  @DocsEditable()
+  int get _availWidth => wrap_jso(JS("int", "#.availWidth", this.raw));
+
+  @DomName('Screen.colorDepth')
+  @DocsEditable()
+  int get colorDepth => wrap_jso(JS("int", "#.colorDepth", this.raw));
+
+  @DomName('Screen.height')
+  @DocsEditable()
+  int get height => wrap_jso(JS("int", "#.height", this.raw));
+
+  @DomName('Screen.pixelDepth')
+  @DocsEditable()
+  int get pixelDepth => wrap_jso(JS("int", "#.pixelDepth", this.raw));
+
+  @DomName('Screen.width')
+  @DocsEditable()
+  int get width => wrap_jso(JS("int", "#.width", this.raw));
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13182,6 +13279,18 @@ class Window extends EventTarget implements WindowBase {
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   dynamic get _get_parent => wrap_jso(JS("dynamic", "#.parent", this.raw));
+
+  /**
+   * Information about the screen displaying this window.
+   *
+   * ## Other resources
+   *
+   * * [The Screen interface specification]
+   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   */
+  @DomName('Window.screen')
+  @DocsEditable()
+  Screen get screen => wrap_jso(JS("Screen", "#.screen", this.raw));
 
   /**
    * The distance from the left side of the screen to the left side of this
@@ -19511,6 +19620,7 @@ final htmlBlinkMap = {
   'HTMLDocument': () => HtmlDocument,
   'HTMLElement': () => HtmlElement,
   'HTMLHeadElement': () => HeadElement,
+  'HTMLHtmlElement': () => HtmlHtmlElement,
   'HTMLInputElement': () => InputElement,
   'HTMLStyleElement': () => StyleElement,
   'HTMLTemplateElement': () => TemplateElement,
@@ -19526,6 +19636,7 @@ final htmlBlinkMap = {
   'ParentNode': () => ParentNode,
   'ProgressEvent': () => ProgressEvent,
   'Range': () => Range,
+  'Screen': () => Screen,
   'ShadowRoot': () => ShadowRoot,
   'Text': () => Text,
   'UIEvent': () => UIEvent,
@@ -19561,6 +19672,7 @@ final htmlBlinkFunctionMap = {
   'HTMLDocument': () => HtmlDocument.internalCreateHtmlDocument,
   'HTMLElement': () => HtmlElement.internalCreateHtmlElement,
   'HTMLHeadElement': () => HeadElement.internalCreateHeadElement,
+  'HTMLHtmlElement': () => HtmlHtmlElement.internalCreateHtmlHtmlElement,
   'HTMLInputElement': () => InputElement.internalCreateInputElement,
   'HTMLStyleElement': () => StyleElement.internalCreateStyleElement,
   'HTMLTemplateElement': () => TemplateElement.internalCreateTemplateElement,
@@ -19574,6 +19686,7 @@ final htmlBlinkFunctionMap = {
   'NodeList': () => NodeList.internalCreateNodeList,
   'ProgressEvent': () => ProgressEvent.internalCreateProgressEvent,
   'Range': () => Range.internalCreateRange,
+  'Screen': () => Screen.internalCreateScreen,
   'ShadowRoot': () => ShadowRoot.internalCreateShadowRoot,
   'Text': () => Text.internalCreateText,
   'UIEvent': () => UIEvent.internalCreateUIEvent,

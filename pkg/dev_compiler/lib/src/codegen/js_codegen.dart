@@ -1776,7 +1776,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     return _emitTopLevelName(element);
   }
 
-  JS.Expression _emitTopLevelName(Element e, {String suffix : ''}) {
+  JS.Expression _emitTopLevelName(Element e, {String suffix: ''}) {
     var libName = _libraryName(e.library);
     var nameExpr = _propertyName((_getJSExportName(e) ?? e.name) + suffix);
 
