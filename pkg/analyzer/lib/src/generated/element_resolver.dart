@@ -1355,49 +1355,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
-  DartType _computeMethodInvokeType(MethodInvocation node, Element element) {
-    if (element == null) {
-      return null;
-    }
-
-    DartType invokeType;
-    if (element is PropertyAccessorElement) {
-      invokeType = element.returnType;
-    } else if (element is ExecutableElement) {
-      invokeType = element.type;
-    } else if (element is VariableElement) {
-      invokeType = _promoteManager.getStaticType(element);
-    }
-
-    //
-    // Check for a generic method & apply type arguments if any were passed.
-    //
-    // TODO(jmesserly): support generic "call" methods on InterfaceType.
-    if (invokeType is FunctionType) {
-      FunctionType type = invokeType;
-      List<TypeParameterElement> parameters = type.typeFormals;
-
-      NodeList<TypeName> arguments = node.typeArguments?.arguments;
-      if (arguments != null && arguments.length != parameters.length) {
-        // Wrong number of type arguments. Ignore them
-        arguments = null;
-        _resolver.reportErrorForNode(
-            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
-            node.methodName,
-            [type, parameters.length, arguments?.length ?? 0]);
-      }
-      if (parameters.isNotEmpty) {
-        if (arguments == null) {
-          invokeType = _resolver.typeSystem.instantiateToBounds(type);
-        } else {
-          invokeType = type.instantiate(arguments.map((n) => n.type).toList());
-        }
-      }
-    }
-
-    return invokeType;
-  }
-
   /**
    * If the given [element] is a setter, return the getter associated with it.
    * Otherwise, return the element unchanged.
