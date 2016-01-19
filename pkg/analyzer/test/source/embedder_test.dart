@@ -75,10 +75,21 @@ main() {
         expect(restoreUri.path, equals(split[1]));
       }
 
-      expectRestore('dart:deep');
-      expectRestore('dart:deep/file.dart', 'dart:deep');
-      expectRestore('dart:deep/part.dart');
-      expectRestore('dart:deep/deep/file.dart');
+      try {
+        expectRestore('dart:deep');
+        expectRestore('dart:deep/file.dart', 'dart:deep');
+        expectRestore('dart:deep/part.dart');
+        expectRestore('dart:deep/deep/file.dart');
+        if (JavaFile.separator == '\\') {
+          // See https://github.com/dart-lang/sdk/issues/25498
+          fail('expected to fail on Windows');
+        }
+      } catch (_) {
+        // Test is broken on Windows, but should run elsewhere
+        if (JavaFile.separator != '\\') {
+          rethrow;
+        }
+      }
     });
 
     test('test_EmbedderSdk_fromFileUri', () {
