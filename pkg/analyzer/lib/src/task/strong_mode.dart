@@ -11,63 +11,26 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, InheritanceManager;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
- * Set the type of the sole parameter of the given [element] to the given [type].
+ * Sets the type of the field. This is stored in the field itself, and the
+ * synthetic getter/setter types.
  */
-void setParameterType(PropertyAccessorElement element, DartType type) {
-  if (element is PropertyAccessorElementImpl) {
-    ParameterElement parameter = _getParameter(element);
-    if (parameter is ParameterElementImpl) {
-      //
-      // Update the type of the parameter.
-      //
-      parameter.type = type;
-      //
-      // Update the type of the setter to reflect the new parameter type.
-      //
-      // TODO(jmesserly): why is this necessary? The function type should always
-      // delegate to the orginal element.
-      FunctionType functionType = element.type;
-      if (functionType is FunctionTypeImpl) {
-        element.type = new FunctionTypeImpl(element);
-      } else {
-        assert(false);
-      }
-    } else {
-      assert(false);
-    }
-  } else {
-    throw new StateError('element is an instance of ${element.runtimeType}');
-    assert(false);
+void setFieldType(VariableElement field, DartType newType) {
+  (field as VariableElementImpl).type = newType;
+  if (field.initializer != null) {
+    (field.initializer as ExecutableElementImpl).returnType = newType;
   }
-}
-
-/**
- * Set the return type of the given [element] to the given [type].
- */
-void setReturnType(ExecutableElement element, DartType type) {
-  if (element is ExecutableElementImpl) {
-    //
-    // Update the return type of the element, which is stored in two places:
-    // directly in the element and indirectly in the type of the element.
-    //
-    // TODO(jmesserly): why is this necessary? The function type should always
-    // delegate to the orginal element.
-    element.returnType = type;
-    FunctionType functionType = element.type;
-    if (functionType is FunctionTypeImpl) {
-      element.type = new FunctionTypeImpl(element);
-    } else {
-      assert(false);
+  if (field is PropertyInducingElementImpl) {
+    (field.getter as ExecutableElementImpl).returnType = newType;
+    if (!field.isFinal && !field.isConst) {
+      (field.setter.parameters[0] as ParameterElementImpl).type =
+          newType;
     }
-  } else {
-    assert(false);
   }
 }
 
@@ -318,7 +281,8 @@ class InstanceMemberInferrer {
           !_allSameElementKind(element, overriddenMethods)) {
         return;
       }
-      setReturnType(element, _computeReturnType(overriddenMethods));
+      (element as ExecutableElementImpl).returnType =
+          _computeReturnType(overriddenMethods);
       if (element is PropertyAccessorElement) {
         _updateSyntheticVariableType(element);
       }
@@ -388,11 +352,7 @@ class InstanceMemberInferrer {
       if (newType == null || newType.isBottom) {
         newType = typeProvider.dynamicType;
       }
-      (fieldElement as FieldElementImpl).type = newType;
-      setReturnType(fieldElement.getter, newType);
-      if (!fieldElement.isFinal && !fieldElement.isConst) {
-        setParameterType(fieldElement.setter, newType);
-      }
+      setFieldType(fieldElement, newType);
     }
   }
 

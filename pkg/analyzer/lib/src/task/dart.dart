@@ -3217,14 +3217,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
       if (newType == null || newType.isBottom) {
         newType = typeProvider.dynamicType;
       }
-      variable.type = newType;
-      (variable.initializer as ExecutableElementImpl).returnType = newType;
-      if (variable is PropertyInducingElementImpl) {
-        setReturnType(variable.getter, newType);
-        if (!variable.isFinal && !variable.isConst) {
-          setParameterType(variable.setter, newType);
-        }
-      }
+      setFieldType(variable, newType);
     } else {
       // TODO(brianwilkerson) For now we simply don't infer any type for
       // variables or fields involved in a cycle. We could try to be smarter
