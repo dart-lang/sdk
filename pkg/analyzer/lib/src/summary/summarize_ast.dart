@@ -10,12 +10,28 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart';
+import 'package:analyzer/src/summary/summarize_const_expr.dart';
 
 /**
  * Serialize all the declarations in [compilationUnit] to an unlinked summary.
  */
 UnlinkedUnitBuilder serializeAstUnlinked(CompilationUnit compilationUnit) {
   return new _SummarizeAstVisitor().serializeCompilationUnit(compilationUnit);
+}
+
+/**
+ * Instances of this class keep track of intermediate state during
+ * serialization of a single constant [Expression].
+ */
+class _ConstExprSerializer extends AbstractConstExprSerializer {
+  UnlinkedTypeRefBuilder serializeIdentifier(Identifier identifier) {
+    throw new UnimplementedError('serializeIdentifier');
+  }
+
+  @override
+  UnlinkedTypeRefBuilder serializeType(TypeName typeName) {
+    throw new UnimplementedError('serializeType');
+  }
 }
 
 /**
@@ -341,6 +357,15 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   }
 
   /**
+   * Serialize the given [expression], creating an [UnlinkedConstBuilder].
+   */
+  UnlinkedConstBuilder serializeConstExpr(Expression expression) {
+    _ConstExprSerializer serializer = new _ConstExprSerializer();
+    serializer.serialize(expression);
+    return serializer.toBuilder();
+  }
+
+  /**
    * Serialize a [Comment] node into an [UnlinkedDocumentationComment] object.
    */
   UnlinkedDocumentationCommentBuilder serializeDocumentation(
@@ -565,6 +590,12 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       b.type = serializeTypeName(variables.type);
       b.hasImplicitType = variables.type == null;
       b.documentationComment = serializeDocumentation(documentationComment);
+      if (variable.isConst) {
+        Expression initializer = variable.initializer;
+        if (initializer != null) {
+          b.constExpr = serializeConstExpr(initializer);
+        }
+      }
       this.variables.add(b);
     }
   }

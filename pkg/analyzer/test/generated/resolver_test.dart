@@ -129,6 +129,7 @@ class AnalysisContextFactory {
     proxyClassElement.constructors = <ConstructorElement>[
       ElementFactory.constructorElement(proxyClassElement, null, true)
         ..isCycleFree = true
+        ..constantInitializers = <ConstructorInitializer>[]
     ];
     ClassElement objectClassElement = provider.objectType.element;
     coreUnit.types = <ClassElement>[
@@ -161,11 +162,16 @@ class AnalysisContextFactory {
     ConstTopLevelVariableElementImpl deprecatedTopLevelVariableElt =
         ElementFactory.topLevelVariableElement3(
             "deprecated", true, false, provider.deprecatedType);
-    deprecatedTopLevelVariableElt.constantInitializer = AstFactory
-        .instanceCreationExpression2(
-            Keyword.CONST,
-            AstFactory.typeName(provider.deprecatedType.element),
-            [AstFactory.string2('next release')]);
+    {
+      ClassElement deprecatedElement = provider.deprecatedType.element;
+      InstanceCreationExpression initializer = AstFactory
+          .instanceCreationExpression2(
+              Keyword.CONST,
+              AstFactory.typeName(deprecatedElement),
+              [AstFactory.string2('next release')]);
+      initializer.staticElement = deprecatedElement.constructors.single;
+      deprecatedTopLevelVariableElt.constantInitializer = initializer;
+    }
     coreUnit.accessors = <PropertyAccessorElement>[
       proxyTopLevelVariableElt.getter,
       deprecatedTopLevelVariableElt.getter

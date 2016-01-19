@@ -456,7 +456,7 @@ enum UnlinkedConstOperation {
   concatenate,
 
   /**
-   * Pop the top value from the stack, which should be a string, convert it to
+   * Pop the top value from the stack which should be string, convert it to
    * a symbol, and push it back onto the stack.
    */
   makeSymbol,

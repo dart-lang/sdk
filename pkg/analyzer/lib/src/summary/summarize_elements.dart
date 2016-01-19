@@ -6,11 +6,14 @@ library serialization.elements;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
+import 'package:analyzer/src/summary/summarize_const_expr.dart';
 
 /**
  * Serialize all the elements in [lib] to a summary using [ctx] as the context
@@ -51,7 +54,32 @@ class LibrarySerializationResult {
 
 /**
  * Instances of this class keep track of intermediate state during
- * serialization of a single library.`
+ * serialization of a single constant [Expression].
+ */
+class _ConstExprSerializer extends AbstractConstExprSerializer {
+  final _LibrarySerializer serializer;
+
+  _ConstExprSerializer(this.serializer);
+
+  UnlinkedTypeRefBuilder serializeIdentifier(Identifier identifier) {
+    Element element = identifier.staticElement;
+    assert(element != null);
+    // TODO(scheglov) how to serialize element references?
+    operations.add(UnlinkedConstOperation.pushReference);
+    return new UnlinkedTypeRefBuilder(
+        reference: serializer._getElementReferenceId(element));
+  }
+
+  @override
+  UnlinkedTypeRefBuilder serializeType(TypeName typeName) {
+    DartType type = typeName != null ? typeName.type : DynamicTypeImpl.instance;
+    return serializer.serializeTypeRef(type, null);
+  }
+}
+
+/**
+ * Instances of this class keep track of intermediate state during
+ * serialization of a single library.
  */
 class _LibrarySerializer {
   /**
@@ -385,6 +413,15 @@ class _LibrarySerializer {
   }
 
   /**
+   * Serialize the given [expression], creating an [UnlinkedConstBuilder].
+   */
+  UnlinkedConstBuilder serializeConstExpr(Expression expression) {
+    _ConstExprSerializer serializer = new _ConstExprSerializer(this);
+    serializer.serialize(expression);
+    return serializer.toBuilder();
+  }
+
+  /**
    * Return the index of the entry in the dependency table
    * ([LinkedLibrary.dependencies]) for the given [dependentLibrary].  A new
    * entry is added to the table if necessary to satisfy the request.
@@ -564,18 +601,7 @@ class _LibrarySerializer {
           element.getAncestor((Element e) => e is CompilationUnitElement);
       int unit = dependentLibrary.units.indexOf(unitElement);
       assert(unit != -1);
-      ReferenceKind kind;
-      if (element is PropertyAccessorElement) {
-        kind = ReferenceKind.topLevelPropertyAccessor;
-      } else if (element is FunctionTypeAliasElement) {
-        kind = ReferenceKind.typedef;
-      } else if (element is ClassElement) {
-        kind = ReferenceKind.classOrEnum;
-      } else if (element is FunctionElement) {
-        kind = ReferenceKind.topLevelFunction;
-      } else {
-        throw new Exception('Unexpected element kind: ${element.runtimeType}');
-      }
+      ReferenceKind kind = _getReferenceKind(element);
       exportNames.add(new LinkedExportNameBuilder(
           name: name,
           dependency: serializeDependency(dependentLibrary),
@@ -694,38 +720,7 @@ class _LibrarySerializer {
           b.reference = serializeDynamicReference();
         }
       } else {
-        b.reference = referenceMap.putIfAbsent(element, () {
-          assert(unlinkedReferences.length == linkedReferences.length);
-          CompilationUnitElement unitElement =
-              element.getAncestor((Element e) => e is CompilationUnitElement);
-          int unit = dependentLibrary.units.indexOf(unitElement);
-          assert(unit != -1);
-          int numTypeParameters = 0;
-          if (element is TypeParameterizedElement) {
-            numTypeParameters = element.typeParameters.length;
-          }
-          // Figure out a prefix that may be used to refer to the given type.
-          // TODO(paulberry): to avoid subtle relinking inconsistencies we
-          // should use the actual prefix from the AST (a given type may be
-          // reachable via multiple prefixes), but sadly, this information is
-          // not recorded in the element model.
-          int prefixReference = 0;
-          PrefixElement prefix = prefixMap[element];
-          if (prefix != null) {
-            prefixReference = serializePrefix(prefix);
-          }
-          int index = unlinkedReferences.length;
-          unlinkedReferences.add(new UnlinkedReferenceBuilder(
-              name: element.name, prefixReference: prefixReference));
-          linkedReferences.add(new LinkedReferenceBuilder(
-              dependency: serializeDependency(dependentLibrary),
-              kind: element is FunctionTypeAliasElement
-                  ? ReferenceKind.typedef
-                  : ReferenceKind.classOrEnum,
-              unit: unit,
-              numTypeParameters: numTypeParameters));
-          return index;
-        });
+        b.reference = _getElementReferenceId(element);
       }
       List<DartType> typeArguments;
       if (type is InterfaceType) {
@@ -789,6 +784,63 @@ class _LibrarySerializer {
     b.isConst = variable.isConst;
     b.hasImplicitType = variable.hasImplicitType;
     b.documentationComment = serializeDocumentation(variable);
+    if (variable.isConst && variable is ConstVariableElement) {
+      ConstVariableElement constVariable = variable as ConstVariableElement;
+      Expression initializer = constVariable.constantInitializer;
+      if (initializer != null) {
+        b.constExpr = serializeConstExpr(initializer);
+      }
+    }
     return b;
+  }
+
+  int _getElementReferenceId(Element element) {
+    LibraryElement dependentLibrary = element.library;
+    return referenceMap.putIfAbsent(element, () {
+      assert(unlinkedReferences.length == linkedReferences.length);
+      CompilationUnitElement unitElement =
+          element.getAncestor((Element e) => e is CompilationUnitElement);
+      int unit = dependentLibrary.units.indexOf(unitElement);
+      assert(unit != -1);
+      int numTypeParameters = 0;
+      if (element is TypeParameterizedElement) {
+        numTypeParameters = element.typeParameters.length;
+      }
+      // Figure out a prefix that may be used to refer to the given type.
+      // TODO(paulberry): to avoid subtle relinking inconsistencies we
+      // should use the actual prefix from the AST (a given type may be
+      // reachable via multiple prefixes), but sadly, this information is
+      // not recorded in the element model.
+      int prefixReference = 0;
+      PrefixElement prefix = prefixMap[element];
+      if (prefix != null) {
+        prefixReference = serializePrefix(prefix);
+      }
+      int index = unlinkedReferences.length;
+      unlinkedReferences.add(new UnlinkedReferenceBuilder(
+          name: element.name, prefixReference: prefixReference));
+      linkedReferences.add(new LinkedReferenceBuilder(
+          dependency: serializeDependency(dependentLibrary),
+          kind: _getReferenceKind(element),
+          unit: unit,
+          numTypeParameters: numTypeParameters));
+      return index;
+    });
+  }
+
+  ReferenceKind _getReferenceKind(Element element) {
+    ReferenceKind kind;
+    if (element is PropertyAccessorElement) {
+      kind = ReferenceKind.topLevelPropertyAccessor;
+    } else if (element is FunctionTypeAliasElement) {
+      kind = ReferenceKind.typedef;
+    } else if (element is ClassElement) {
+      kind = ReferenceKind.classOrEnum;
+    } else if (element is FunctionElement) {
+      kind = ReferenceKind.topLevelFunction;
+    } else {
+      throw new Exception('Unexpected element kind: ${element.runtimeType}');
+    }
+    return kind;
   }
 }

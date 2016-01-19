@@ -58,7 +58,8 @@ final Map<String, UnlinkedPublicNamespace> sdkPublicNamespace = () {
       for (int i = 0; i < serializedLibrary.unlinkedUnits.length; i++) {
         uriToNamespace[serializedLibrary.unitUris[i]] =
             new UnlinkedUnit.fromBuffer(
-                serializedLibrary.unlinkedUnits[i].toBuffer()).publicNamespace;
+                    serializedLibrary.unlinkedUnits[i].toBuffer())
+                .publicNamespace;
       }
     }
     return uriToNamespace;
@@ -117,6 +118,11 @@ UnlinkedPublicNamespace computePublicNamespaceFromText(
       public_namespace.computePublicNamespace(unit).toBuffer());
   return namespace;
 }
+
+/**
+ * Type of a function that validates an [UnlinkedTypeRef].
+ */
+typedef bool _UnlinkedTypeRefValidator(UnlinkedTypeRef unlinkedTypeRef);
 
 /**
  * Override of [SummaryTest] which verifies the correctness of the prelinker by
@@ -584,6 +590,21 @@ abstract class SummaryTest {
         expectedPrefix: expectedPrefix, expectedKind: ReferenceKind.unresolved);
   }
 
+  fail_constExpr_pushInt_shiftOr() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = 0x111222333444555666;');
+    //                                     ^^!!!!^^^^!!!!^^^^
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.shiftOr,
+      UnlinkedConstOperation.shiftOr
+    ], ints: [
+      0x11,
+      0x12223334,
+      0x44555666
+    ]);
+  }
+
   fail_enum_value_documented() {
     // TODO(paulberry): currently broken because of dartbug.com/25385
     String text = '''
@@ -780,7 +801,8 @@ enum E {
   UnlinkedTypeRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
-        allowErrors: allowErrors).type;
+            allowErrors: allowErrors)
+        .type;
   }
 
   /**
@@ -1199,6 +1221,674 @@ class E {}
     expect(cls.typeParameters[0].nameOffset, text.indexOf('T'));
     expect(cls.typeParameters[0].bound, isNull);
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 1);
+  }
+
+  test_constExpr_binary_add() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 + 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.add
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_and() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = true && false;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushTrue,
+      UnlinkedConstOperation.pushFalse,
+      UnlinkedConstOperation.and
+    ]);
+  }
+
+  test_constExpr_binary_bitAnd() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 & 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.bitAnd
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_bitOr() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 | 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.bitOr
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_bitShiftLeft() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 << 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.bitShiftLeft
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_bitShiftRight() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 >> 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.bitShiftRight
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_bitXor() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 ^ 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.bitXor
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_divide() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 / 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.divide
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_equal() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 == 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.equal
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_equal_not() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 != 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.equal,
+      UnlinkedConstOperation.not
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_floorDivide() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 ~/ 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.floorDivide
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_greater() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 > 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.greater
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_greaterEqual() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 >= 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.greaterEqual
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_less() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 < 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.less
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_lessEqual() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 <= 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.lessEqual
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_modulo() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 % 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.modulo
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_multiply() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 * 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.multiply
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_or() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = false || true;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushFalse,
+      UnlinkedConstOperation.pushTrue,
+      UnlinkedConstOperation.or
+    ]);
+  }
+
+  test_constExpr_binary_subtract() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 - 2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.subtract
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_conditional() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = true ? 1 : 2;', allowErrors: true);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushTrue,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.conditional
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_identical() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = identical(42, null);');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushNull,
+      UnlinkedConstOperation.identical
+    ], ints: [
+      42
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_named() {
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  const C.named();
+}
+const v = const C.named();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0
+    ], strings: [
+      'named'
+    ], referenceValidators: [
+      (UnlinkedTypeRef r) => checkTypeRef(r, null, null, 'C',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_named_imported() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+  const C.named();
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = const C.named();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0
+    ], strings: [
+      'named'
+    ], referenceValidators: [
+      (UnlinkedTypeRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_named_imported_withPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+  const C.named();
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const v = const p.C.named();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0
+    ], strings: [
+      'named'
+    ], referenceValidators: [
+      (UnlinkedTypeRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
+          expectedKind: ReferenceKind.classOrEnum, expectedPrefix: 'p')
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_unnamed() {
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  const C(int a, String b);
+}
+const v = const C(42, 'sss');
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      42,
+      2
+    ], strings: [
+      'sss',
+      ''
+    ], referenceValidators: [
+      (UnlinkedTypeRef r) => checkTypeRef(r, null, null, 'C',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_constExpr_length() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = "abc".length;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.length
+    ], strings: [
+      'abc'
+    ]);
+  }
+
+  test_constExpr_makeList_typed() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = const <int>[11, 22, 33];');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.makeList
+    ], ints: [
+      11,
+      22,
+      33,
+      3
+    ], referenceValidators: [
+      (UnlinkedTypeRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'int',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_constExpr_makeList_untyped() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = const [11, 22, 33];');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.makeList
+    ], ints: [
+      11,
+      22,
+      33,
+      3
+    ], referenceValidators: [
+      (UnlinkedTypeRef r) => checkTypeRef(r, null, null, '',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_constExpr_makeMap_typed() {
+    UnlinkedVariable variable = serializeVariableText(
+        'const v = const <int, String>{11: "aaa", 22: "bbb", 33: "ccc"};');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.makeMap
+    ], ints: [
+      11,
+      22,
+      33,
+      3
+    ], strings: [
+      'aaa',
+      'bbb',
+      'ccc'
+    ], referenceValidators: [
+      (UnlinkedTypeRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'int',
+          expectedKind: ReferenceKind.classOrEnum),
+      (UnlinkedTypeRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'String',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_constExpr_makeMap_untyped() {
+    UnlinkedVariable variable = serializeVariableText(
+        'const v = const {11: "aaa", 22: "bbb", 33: "ccc"};');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.makeMap
+    ], ints: [
+      11,
+      22,
+      33,
+      3
+    ], strings: [
+      'aaa',
+      'bbb',
+      'ccc'
+    ], referenceValidators: [
+      (UnlinkedTypeRef r) => checkTypeRef(r, null, null, '',
+          expectedKind: ReferenceKind.classOrEnum),
+      (UnlinkedTypeRef r) => checkTypeRef(r, null, null, '',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_constExpr_makeSymbol() {
+    UnlinkedVariable variable = serializeVariableText('const v = #a.bb.ccc;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.makeSymbol
+    ], strings: [
+      'a.bb.ccc'
+    ]);
+  }
+
+  test_constExpr_parenthesized() {
+    UnlinkedVariable variable = serializeVariableText('const v = (1 + 2) * 3;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.add,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.multiply,
+    ], ints: [
+      1,
+      2,
+      3
+    ]);
+  }
+
+  test_constExpr_prefix_complement() {
+    UnlinkedVariable variable = serializeVariableText('const v = ~2;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.complement
+    ], ints: [
+      2
+    ]);
+  }
+
+  test_constExpr_prefix_negate() {
+    UnlinkedVariable variable = serializeVariableText('const v = -(2);');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.negate
+    ], ints: [
+      2
+    ]);
+  }
+
+  test_constExpr_prefix_not() {
+    UnlinkedVariable variable = serializeVariableText('const v = !true;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushTrue,
+      UnlinkedConstOperation.not
+    ]);
+  }
+
+  test_constExpr_pushDouble() {
+    UnlinkedVariable variable = serializeVariableText('const v = 123.4567;');
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushDouble], doubles: [123.4567]);
+  }
+
+  test_constExpr_pushFalse() {
+    UnlinkedVariable variable = serializeVariableText('const v = false;');
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushFalse]);
+  }
+
+  test_constExpr_pushInt() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1;');
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushInt], ints: [1]);
+  }
+
+  test_constExpr_pushNull() {
+    UnlinkedVariable variable = serializeVariableText('const v = null;');
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushNull]);
+  }
+
+  test_constExpr_pushReference_class() {
+    UnlinkedVariable variable = serializeVariableText('''
+class C {}
+const v = C;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (UnlinkedTypeRef r) => checkTypeRef(r, null, null, 'C',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_constExpr_pushReference_class_field() {
+    // TODO(scheglov) Not sure for to represent a field reference
+    // using UnlinkedTypeRef.
+//    UnlinkedVariable variable = serializeVariableText('''
+//class C {
+//  static const int F = 1;
+//}
+//const v = C.F;
+//''');
+//    _assertUnlinkedConst(variable.constExpr, operators: [
+//      UnlinkedConstOperation.pushReference
+//    ], references: [
+//      (UnlinkedTypeRef r) => checkTypeRef(r, null, null, 'F',
+//          expectedKind: ReferenceKind.classOrEnum, expectedPrefix: 'C')
+//    ]);
+  }
+
+  test_constExpr_pushReference_enum() {
+    UnlinkedVariable variable = serializeVariableText('''
+enum C {V1, V2, V3}
+const v = C;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (UnlinkedTypeRef r) => checkTypeRef(r, null, null, 'C',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_constExpr_pushReference_topLevelVariable_imported() {
+    addNamedSource('/a.dart', 'const int a = 1;');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = a;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (UnlinkedTypeRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'a',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor)
+    ]);
+  }
+
+  test_constExpr_pushReference_topLevelVariable_imported_withPrefix() {
+    addNamedSource('/a.dart', 'const int a = 1;');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const v = p.a;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (UnlinkedTypeRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'a',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor,
+          expectedPrefix: 'p')
+    ]);
+  }
+
+  test_constExpr_pushReference_topLevelVariable_local() {
+    // TODO(scheglov) use `a + b`
+    UnlinkedVariable variable = serializeVariableText('''
+const int a = 1;
+const v = a;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (UnlinkedTypeRef r) => checkTypeRef(r, null, null, 'a',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor)
+    ]);
+  }
+
+  test_constExpr_pushString_adjacent() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = "aaa" "b" "ccc";');
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushString], strings: ['aaabccc']);
+  }
+
+  test_constExpr_pushString_adjacent_interpolation() {
+    UnlinkedVariable variable =
+        serializeVariableText(r'const v = "aaa" "bb ${42} bbb" "cccc";');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.concatenate,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.concatenate,
+    ], ints: [
+      42,
+      3,
+      3,
+    ], strings: [
+      'aaa',
+      'bb ',
+      ' bbb',
+      'cccc'
+    ]);
+  }
+
+  test_constExpr_pushString_interpolation() {
+    UnlinkedVariable variable =
+        serializeVariableText(r'const v = "aaa ${42} bbb";');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.concatenate
+    ], ints: [
+      42,
+      3
+    ], strings: [
+      'aaa ',
+      ' bbb'
+    ]);
+  }
+
+  test_constExpr_pushString_simple() {
+    UnlinkedVariable variable = serializeVariableText('const v = "abc";');
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushString], strings: ['abc']);
+  }
+
+  test_constExpr_pushTrue() {
+    UnlinkedVariable variable = serializeVariableText('const v = true;');
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushTrue]);
   }
 
   test_constructor() {
@@ -1865,7 +2555,8 @@ enum E { v }''';
 
   test_executable_operator_index_set() {
     UnlinkedExecutable executable = serializeClassText(
-        'class C { void operator[]=(int i, bool v) => null; }').executables[0];
+            'class C { void operator[]=(int i, bool v) => null; }')
+        .executables[0];
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.name, '[]=');
     expect(executable.hasImplicitReturnType, false);
@@ -2332,6 +3023,8 @@ enum E { v }''';
     UnlinkedVariable variable =
         serializeClassText('class C { static const int i = 0; }').fields[0];
     expect(variable.isConst, isTrue);
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushInt], ints: [0]);
   }
 
   test_field_documented() {
@@ -2640,7 +3333,8 @@ p.B b;
       return;
     }
     checkUnresolvedTypeRef(
-        serializeClassText('class C<T> { T.U x; }', allowErrors: true).fields[0]
+        serializeClassText('class C<T> { T.U x; }', allowErrors: true)
+            .fields[0]
             .type,
         'T',
         'U');
@@ -3309,6 +4003,11 @@ var v;''';
     expect(variable.isStatic, isFalse);
   }
 
+  test_variable_private() {
+    serializeVariableText('int _i;', variableName: '_i');
+    expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
+  }
+
   test_variable_static() {
     UnlinkedVariable variable =
         serializeClassText('class C { static int i; }').fields[0];
@@ -3321,9 +4020,22 @@ var v;''';
     checkTypeRef(variable.type, 'dart:core', 'dart:core', 'int');
   }
 
-  test_varible_private() {
-    serializeVariableText('int _i;', variableName: '_i');
-    expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
+  void _assertUnlinkedConst(UnlinkedConst constExpr,
+      {List<UnlinkedConstOperation> operators,
+      List<int> ints: const <int>[],
+      List<double> doubles: const <double>[],
+      List<String> strings: const <String>[],
+      List<_UnlinkedTypeRefValidator> referenceValidators:
+          const <_UnlinkedTypeRefValidator>[]}) {
+    expect(constExpr, isNotNull);
+    expect(constExpr.operations, operators);
+    expect(constExpr.ints, ints);
+    expect(constExpr.doubles, doubles);
+    expect(constExpr.strings, strings);
+    expect(constExpr.references, hasLength(referenceValidators.length));
+    for (int i = 0; i < referenceValidators.length; i++) {
+      referenceValidators[i](constExpr.references[i]);
+    }
   }
 }
 
@@ -3402,6 +4114,71 @@ class UnlinkedSummarizeAstTest extends Object with SummaryTest {
         unlinkedUnits.add(unit);
       }
     }
+  }
+
+  @override
+  void test_constExpr_invokeConstructor_named() {
+    // TODO(scheglov) remove this method to enable the test
+  }
+
+  @override
+  void test_constExpr_invokeConstructor_named_imported() {
+    // TODO(scheglov) remove this method to enable the test
+  }
+
+  @override
+  void test_constExpr_invokeConstructor_named_imported_withPrefix() {
+    // TODO(scheglov) remove this method to enable the test
+  }
+
+  @override
+  void test_constExpr_invokeConstructor_unnamed() {
+    // TODO(scheglov) remove this method to enable the test
+  }
+
+  @override
+  void test_constExpr_makeList_typed() {
+    // TODO(scheglov) remove this method to enable the test
+  }
+
+  @override
+  void test_constExpr_makeList_untyped() {
+    // TODO(scheglov) remove this method to enable the test
+  }
+
+  @override
+  void test_constExpr_makeMap_typed() {
+    // TODO(scheglov) remove this method to enable the test
+  }
+
+  @override
+  void test_constExpr_makeMap_untyped() {
+    // TODO(scheglov) remove this method to enable the test
+  }
+
+  @override
+  void test_constExpr_pushReference_class() {
+    // TODO(scheglov) remove this method to enable the test
+  }
+
+  @override
+  void test_constExpr_pushReference_enum() {
+    // TODO(scheglov) remove this method to enable the test
+  }
+
+  @override
+  void test_constExpr_pushReference_topLevelVariable_imported() {
+    // TODO(scheglov) remove this method to enable the test
+  }
+
+  @override
+  void test_constExpr_pushReference_topLevelVariable_imported_withPrefix() {
+    // TODO(scheglov) remove this method to enable the test
+  }
+
+  @override
+  void test_constExpr_pushReference_topLevelVariable_local() {
+    // TODO(scheglov) remove this method to enable the test
   }
 
   CompilationUnit _parseText(String text) {

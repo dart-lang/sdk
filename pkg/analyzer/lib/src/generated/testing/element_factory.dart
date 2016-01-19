@@ -559,8 +559,12 @@ class ElementFactory {
     if (isConst) {
       ConstTopLevelVariableElementImpl constant =
           new ConstTopLevelVariableElementImpl(AstFactory.identifier3(name));
-      constant.constantInitializer = AstFactory.instanceCreationExpression2(
+      InstanceCreationExpression initializer = AstFactory.instanceCreationExpression2(
           Keyword.CONST, AstFactory.typeName(type.element));
+      if (type is InterfaceType) {
+        initializer.staticElement = type.element.unnamedConstructor;
+      }
+      constant.constantInitializer = initializer;
       variable = constant;
     } else {
       variable = new TopLevelVariableElementImpl(name, -1);
