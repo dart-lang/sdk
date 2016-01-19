@@ -20,7 +20,7 @@ class UpdateRefinements extends TrampolineRecursiveVisitor implements Pass {
 
   final TypeMaskSystem typeSystem;
 
-  Map<Primitive, Primitive> refinementFor = <Primitive, Primitive>{};
+  Map<Primitive, Refinement> refinementFor = <Primitive, Refinement>{};
 
   UpdateRefinements(this.typeSystem);
 
@@ -29,33 +29,11 @@ class UpdateRefinements extends TrampolineRecursiveVisitor implements Pass {
   }
 
   Expression traverseLetPrim(LetPrim node) {
-    Expression next = node.body;
     visit(node.primitive);
-    return next;
+    return node.body;
   }
 
-  visitNullCheck(NullCheck node) {
-    if (refine(node.value)) {
-      Primitive value = node.value.definition;
-      if (value.type.isNullable) {
-        // Update the type if the input has changed.
-        node.type = value.type.nonNullable();
-      } else {
-        node..replaceUsesWith(value)..destroy();
-        LetPrim letPrim = node.parent;
-        letPrim.remove();
-        return;
-      }
-    }
-    // Use the NullCheck as a refinement.
-    Primitive value = node.effectiveDefinition;
-    Refinement old = refinementFor[value];
-    refinementFor[value] = node;
-    pushAction(() {
-      refinementFor[value] = old;
-    });
-  }
-
+  @override
   visitRefinement(Refinement node) {
     if (refine(node.value)) {
       // Update the type if the input has changed.
@@ -70,6 +48,7 @@ class UpdateRefinements extends TrampolineRecursiveVisitor implements Pass {
     });
   }
 
+  @override
   processReference(Reference ref) {
     refine(ref);
   }
