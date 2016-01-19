@@ -218,7 +218,7 @@ abstract class TestSuite {
 
     if (dartExecutable == null || dartExecutable == '') {
       String suffix = executableBinarySuffix;
-      dartExecutable = '$buildDir/dart_precompiled$suffix';
+      dartExecutable = '$buildDir/dart_precompiled_runtime$suffix';
     }
 
     TestUtils.ensureExists(dartExecutable, configuration);

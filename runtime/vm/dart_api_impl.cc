@@ -5878,7 +5878,7 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
 }
 
 
-#if defined(DART_PRECOMPILED)
+#if defined(DART_PRECOMPILED_RUNTIME)
 
 DART_EXPORT Dart_Handle Dart_Precompile(
     Dart_QualifiedFunctionName entry_points[],
@@ -5899,7 +5899,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
   return 0;
 }
 
-#else  // DART_PRECOMPILED
+#else  // DART_PRECOMPILED_RUNTIME
 
 DART_EXPORT Dart_Handle Dart_Precompile(
     Dart_QualifiedFunctionName entry_points[],
@@ -5973,7 +5973,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
 
   return Api::Success();
 }
-#endif  // DART_PRECOMPILED
+#endif  // DART_PRECOMPILED_RUNTIME
 
 
 DART_EXPORT bool Dart_IsRunningPrecompiledCode() {

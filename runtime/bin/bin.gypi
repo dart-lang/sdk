@@ -629,10 +629,10 @@
     },
     {
       # dart binary for running precompiled snapshots without the compiler.
-      'target_name': 'dart_precompiled',
+      'target_name': 'dart_precompiled_runtime',
       'type': 'executable',
       'dependencies': [
-        'libdart_precompiled',
+        'libdart_precompiled_runtime',
         'libdart_builtin',
         'libdart_io',
         'build_observatory#host',

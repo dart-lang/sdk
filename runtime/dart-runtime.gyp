@@ -17,6 +17,7 @@
 
     'libdart_deps': ['libdart_lib_nosnapshot', 'libdart_lib',
                      'libdart_vm_nosnapshot', 'libdart_vm',
+                     'libdart_vm_precompiled_runtime',
                      'libdouble_conversion',],
   },
   'targets': [
@@ -55,11 +56,11 @@
       },
     },
     {
-      'target_name': 'libdart_precompiled',
+      'target_name': 'libdart_precompiled_runtime',
       'type': 'static_library',
       'dependencies': [
         'libdart_lib',
-        'libdart_vm_precompiled',
+        'libdart_vm_precompiled_runtime',
         'libdouble_conversion',
         'generate_version_cc_file#host',
       ],
@@ -81,7 +82,7 @@
       'defines': [
         # The only effect of DART_SHARED_LIB is to export the Dart API entries.
         'DART_SHARED_LIB',
-        'DART_PRECOMPILED',
+        'DART_PRECOMPILED_RUNTIME',
       ],
       'direct_dependent_settings': {
         'include_dirs': [

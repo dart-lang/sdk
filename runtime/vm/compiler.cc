@@ -80,7 +80,7 @@ DECLARE_FLAG(bool, trace_irregexp);
 bool Compiler::always_optimize_ = false;
 bool Compiler::allow_recompilation_ = true;
 
-#ifndef DART_PRECOMPILED
+#ifndef DART_PRECOMPILED_RUNTIME
 
 // TODO(zerny): Factor out unoptimizing/optimizing pipelines and remove
 // separate helpers functions & `optimizing` args.
@@ -1942,7 +1942,7 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
 }
 
 
-#else  // DART_PRECOMPILED
+#else  // DART_PRECOMPILED_RUNTIME
 
 
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
@@ -2047,6 +2047,6 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
   UNREACHABLE();
 }
 
-#endif  // DART_PRECOMPILED
+#endif  // DART_PRECOMPILED_RUNTIME
 
 }  // namespace dart

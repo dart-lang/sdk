@@ -5,7 +5,7 @@
 #include "vm/parser.h"
 #include "vm/flags.h"
 
-#ifndef DART_PRECOMPILED
+#ifndef DART_PRECOMPILED_RUNTIME
 
 #include "lib/invocation_mirror.h"
 #include "platform/utils.h"
@@ -14339,7 +14339,7 @@ void Parser::SkipQualIdent() {
 }  // namespace dart
 
 
-#else  // DART_PRECOMPILED
+#else  // DART_PRECOMPILED_RUNTIME
 
 
 namespace dart {
@@ -14423,4 +14423,4 @@ ArgumentListNode* Parser::BuildNoSuchMethodArguments(
 
 }  // namespace dart
 
-#endif  // DART_PRECOMPILED
+#endif  // DART_PRECOMPILED_RUNTIME
