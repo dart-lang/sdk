@@ -475,13 +475,12 @@ dynamic _wrapDartFunction(f) {
 
 // converts a Dart object to a reference to a native JS object
 // which might be a DartObject JS->Dart proxy
-Object _convertToDart(o, [bool isBrowserType(x)]) {
-  if (isBrowserType == null) isBrowserType = _isBrowserType;
+Object _convertToDart(o) {
   if (JS('bool', '# == null', o) ||
       JS('bool', 'typeof # == "string"', o) ||
       JS('bool', 'typeof # == "number"', o) ||
       JS('bool', 'typeof # == "boolean"', o) ||
-      isBrowserType(o)) {
+      _isBrowserType(o)) {
     return o;
   } else if (JS('bool', '# instanceof Date', o)) {
     var ms = JS('num', '#.getTime()', o);
