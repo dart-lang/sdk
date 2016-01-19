@@ -2508,6 +2508,13 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   FieldElement field;
 
   /**
+   * Initialize a newly created parameter element to have the given [name] and
+   * [offset].
+   */
+  FieldFormalParameterElementImpl.forNameAndOffset(String name, int nameOffset)
+      : super(name, nameOffset);
+
+  /**
    * Initialize a newly created parameter element to have the given [name].
    */
   FieldFormalParameterElementImpl(Identifier name) : super.forNode(name);

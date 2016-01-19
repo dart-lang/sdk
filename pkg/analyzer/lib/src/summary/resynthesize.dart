@@ -282,10 +282,10 @@ class _LibraryResynthesizer {
 
   /**
    * If a class is currently being resynthesized, map from field name to the
-   * type of the corresponding field.  This is used to populate the types of
-   * initializing formal parameters whose type is implicit.
+   * corresponding field element.  This is used when resynthesizing
+   * initializing formal parameters.
    */
-  Map<String, DartType> fieldTypes;
+  Map<String, FieldElementImpl> fields;
 
   _LibraryResynthesizer(this.summaryResynthesizer, this.linkedLibrary,
       this.unlinkedUnits, this.librarySource) {
@@ -328,7 +328,7 @@ class _LibraryResynthesizer {
       classElement.mixins = serializedClass.mixins.map(buildType).toList();
       classElement.typeParameters = currentTypeParameters;
       ElementHolder memberHolder = new ElementHolder();
-      fieldTypes = <String, DartType>{};
+      fields = <String, FieldElementImpl>{};
       for (UnlinkedVariable serializedVariable in serializedClass.fields) {
         buildVariable(serializedVariable, memberHolder);
       }
@@ -370,7 +370,7 @@ class _LibraryResynthesizer {
       unitHolder.addType(classElement);
     } finally {
       currentTypeParameters = <TypeParameterElement>[];
-      fieldTypes = null;
+      fields = null;
     }
   }
 
@@ -863,8 +863,15 @@ class _LibraryResynthesizer {
    * Resynthesize a [ParameterElement].
    */
   ParameterElement buildParameter(UnlinkedParam serializedParameter) {
-    ParameterElementImpl parameterElement = new ParameterElementImpl(
-        serializedParameter.name, serializedParameter.nameOffset);
+    ParameterElementImpl parameterElement;
+    if (serializedParameter.isInitializingFormal) {
+      parameterElement = new FieldFormalParameterElementImpl.forNameAndOffset(
+          serializedParameter.name, serializedParameter.nameOffset)
+        ..field = fields[serializedParameter.name];
+    } else {
+      parameterElement = new ParameterElementImpl(
+          serializedParameter.name, serializedParameter.nameOffset);
+    }
     if (serializedParameter.isFunctionTyped) {
       FunctionElementImpl parameterTypeElement =
           new FunctionElementImpl('', -1);
@@ -884,7 +891,7 @@ class _LibraryResynthesizer {
       if (serializedParameter.isInitializingFormal &&
           serializedParameter.hasImplicitType) {
         // The type is inherited from the matching field.
-        parameterElement.type = fieldTypes[serializedParameter.name] ??
+        parameterElement.type = fields[serializedParameter.name]?.type ??
             summaryResynthesizer.typeProvider.dynamicType;
       } else {
         parameterElement.type = buildType(serializedParameter.type);
@@ -1070,7 +1077,7 @@ class _LibraryResynthesizer {
       element.static = serializedVariable.isStatic;
       holder.addField(element);
       buildImplicitAccessors(element, holder);
-      fieldTypes[element.name] = element.type;
+      fields[element.name] = element;
     }
   }
 

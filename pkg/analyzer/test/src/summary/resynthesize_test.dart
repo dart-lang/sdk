@@ -354,6 +354,20 @@ class ResynthTest extends ResolverTestCase {
           '$desc parameter ${original.parameters[i].name}');
     }
     expect(resynthesized.parameterKind, original.parameterKind);
+    expect(resynthesized.isInitializingFormal, original.isInitializingFormal,
+        reason: desc);
+    expect(resynthesized is FieldFormalParameterElementImpl,
+        original is FieldFormalParameterElementImpl);
+    if (resynthesized is FieldFormalParameterElementImpl &&
+        original is FieldFormalParameterElementImpl) {
+      if (original.field == null) {
+        expect(resynthesized.field, isNull, reason: '$desc field');
+      } else {
+        expect(resynthesized.field, isNotNull, reason: '$desc field');
+        compareFieldElements(
+            resynthesized.field, original.field, '$desc field');
+      }
+    }
   }
 
   void comparePrefixElements(PrefixElementImpl resynthesized,
