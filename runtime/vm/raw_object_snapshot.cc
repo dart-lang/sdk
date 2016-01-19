@@ -2037,6 +2037,7 @@ RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   language_error.set_token_pos(reader->Read<int32_t>());
+  language_error.set_report_after_token(reader->Read<bool>());
   language_error.set_kind(reader->Read<uint8_t>());
 
   // Set all the object fields.
@@ -2063,6 +2064,7 @@ void RawLanguageError::WriteTo(SnapshotWriter* writer,
 
   // Write out all the non object fields.
   writer->Write<int32_t>(ptr()->token_pos_);
+  writer->Write<bool>(ptr()->report_after_token_);
   writer->Write<uint8_t>(ptr()->kind_);
 
   // Write out all the object pointer fields.

@@ -449,6 +449,7 @@ void Parser::set_current_class(const Class& value) {
 void Parser::SetPosition(intptr_t position) {
   tokens_iterator_.SetCurrentPosition(position);
   token_kind_ = Token::kILLEGAL;
+  prev_token_pos_ = position;
 }
 
 
@@ -970,7 +971,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       if (!func.IsImplicitConstructor()) {
         parser.SkipFunctionPreamble();
       }
-      node_sequence = parser.ParseFunc(func);
+      node_sequence = parser.ParseFunc(func, false);
       break;
     case RawFunction::kImplicitGetter:
       ASSERT(!func.is_static());
@@ -1735,7 +1736,8 @@ void Parser::SkipToMatching() {
   if (!is_match) {
     const Error& error = Error::Handle(
         LanguageError::NewFormatted(Error::Handle(),
-            script_, opening_pos, Report::kWarning, Heap::kNew,
+            script_, opening_pos, Report::AtLocation,
+            Report::kWarning, Heap::kNew,
             "unbalanced '%s' opens here", Token::Str(opening_token)));
     ReportErrors(error, script_, token_pos,
                  "unbalanced '%s'", Token::Str(token));
@@ -3142,7 +3144,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
 // Parser is at the opening parenthesis of the formal parameter
 // declaration of the function or constructor.
 // Parse the formal parameters and code.
-SequenceNode* Parser::ParseFunc(const Function& func) {
+SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
   TRACE_PARSER("ParseFunc");
   Function& saved_innermost_function =
       Function::Handle(Z, innermost_function().raw());
@@ -3349,6 +3351,9 @@ SequenceNode* Parser::ParseFunc(const Function& func) {
     ASSERT(expr != NULL);
     current_block_->statements->Add(new ReturnNode(expr_pos, expr));
     end_token_pos = TokenPos();
+    if (check_semicolon) {
+      ExpectSemicolon();
+    }
   } else if (IsSymbol(Symbols::Native())) {
     if (String::Handle(Z, func.name()).Equals(
         Symbols::EqualOperator())) {
@@ -7231,7 +7236,8 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
   if (!Utils::IsInt(16, params->num_fixed_parameters) ||
       !Utils::IsInt(16, params->num_optional_parameters)) {
     const Script& script = Script::Handle(Class::Handle(func.Owner()).script());
-    Report::MessageF(Report::kError, script, func.token_pos(),
+    Report::MessageF(Report::kError,
+                     script, func.token_pos(), Report::AtLocation,
                      "too many formal parameters");
   }
   func.set_num_fixed_parameters(params->num_fixed_parameters);
@@ -7611,7 +7617,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   }
 
   // Parse the local function.
-  SequenceNode* statements = Parser::ParseFunc(function);
+  SequenceNode* statements = Parser::ParseFunc(function, !is_literal);
   INC_STAT(thread(), num_functions_parsed, 1);
 
   // Now that the local function has formal parameters, lookup the signature
@@ -10098,7 +10104,19 @@ void Parser::ReportErrors(const Error& prev_error,
 void Parser::ReportError(intptr_t token_pos, const char* format, ...) const {
   va_list args;
   va_start(args, format);
-  Report::MessageV(Report::kError, script_, token_pos, format, args);
+  Report::MessageV(Report::kError,
+                   script_, token_pos, Report::AtLocation, format, args);
+  va_end(args);
+  UNREACHABLE();
+}
+
+
+void Parser::ReportErrorBefore(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  Report::MessageV(Report::kError,
+                   script_, PrevTokenPos(), Report::AfterLocation,
+                   format, args);
   va_end(args);
   UNREACHABLE();
 }
@@ -10107,7 +10125,8 @@ void Parser::ReportError(intptr_t token_pos, const char* format, ...) const {
 void Parser::ReportError(const char* format, ...) const {
   va_list args;
   va_start(args, format);
-  Report::MessageV(Report::kError, script_, TokenPos(), format, args);
+  Report::MessageV(Report::kError,
+                   script_, TokenPos(), Report::AtLocation, format, args);
   va_end(args);
   UNREACHABLE();
 }
@@ -10116,7 +10135,8 @@ void Parser::ReportError(const char* format, ...) const {
 void Parser::ReportWarning(intptr_t token_pos, const char* format, ...) const {
   va_list args;
   va_start(args, format);
-  Report::MessageV(Report::kWarning, script_, token_pos, format, args);
+  Report::MessageV(Report::kWarning,
+                   script_, token_pos, Report::AtLocation, format, args);
   va_end(args);
 }
 
@@ -10124,7 +10144,8 @@ void Parser::ReportWarning(intptr_t token_pos, const char* format, ...) const {
 void Parser::ReportWarning(const char* format, ...) const {
   va_list args;
   va_start(args, format);
-  Report::MessageV(Report::kWarning, script_, TokenPos(), format, args);
+  Report::MessageV(Report::kWarning,
+                   script_, TokenPos(), Report::AtLocation, format, args);
   va_end(args);
 }
 
@@ -10150,7 +10171,7 @@ void Parser::ExpectToken(Token::Kind token_expected) {
 
 void Parser::ExpectSemicolon() {
   if (CurrentToken() != Token::kSEMICOLON) {
-    ReportError("semicolon expected");
+    ReportErrorBefore("semicolon expected");
   }
   ConsumeToken();
 }

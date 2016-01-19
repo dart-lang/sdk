@@ -3048,7 +3048,7 @@ void ClassFinalizer::MarkTypeMalformed(const Error& prev_error,
                                        va_list args) {
   LanguageError& error = LanguageError::Handle(
       LanguageError::NewFormattedV(
-          prev_error, script, type.token_pos(),
+          prev_error, script, type.token_pos(), Report::AtLocation,
           Report::kMalformedType, Heap::kOld,
           format, args));
   if (Isolate::Current()->flags().error_on_bad_type()) {
@@ -3109,7 +3109,7 @@ void ClassFinalizer::FinalizeMalboundedType(const Error& prev_error,
   va_start(args, format);
   LanguageError& error = LanguageError::Handle(
       LanguageError::NewFormattedV(
-          prev_error, script, type.token_pos(),
+          prev_error, script, type.token_pos(), Report::AtLocation,
           Report::kMalboundedType, Heap::kOld,
           format, args));
   va_end(args);
@@ -3149,7 +3149,8 @@ void ClassFinalizer::ReportError(const Class& cls,
   va_list args;
   va_start(args, format);
   const Script& script = Script::Handle(cls.script());
-  Report::MessageV(Report::kError, script, token_pos, format, args);
+  Report::MessageV(Report::kError,
+                   script, token_pos, Report::AtLocation, format, args);
   va_end(args);
   UNREACHABLE();
 }

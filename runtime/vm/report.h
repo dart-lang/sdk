@@ -28,6 +28,9 @@ class Report : AllStatic {
     kBailout,
   };
 
+  static const bool AtLocation = false;
+  static const bool AfterLocation = true;
+
   // Report an already formatted error via a long jump.
   static void LongJump(const Error& error);
 
@@ -41,8 +44,10 @@ class Report : AllStatic {
 
   // Report a warning/jswarning/error/bailout message.
   static void MessageF(Kind kind, const Script& script, intptr_t token_pos,
-                       const char* format, ...) PRINTF_ATTRIBUTE(4, 5);
+                       bool report_after_token,
+                       const char* format, ...) PRINTF_ATTRIBUTE(5, 6);
   static void MessageV(Kind kind, const Script& script, intptr_t token_pos,
+                       bool report_after_token,
                        const char* format, va_list args);
 
   // Support to report Javascript compatibility warnings. Note that a
@@ -67,6 +72,7 @@ class Report : AllStatic {
   static RawString* PrependSnippet(Kind kind,
                                    const Script& script,
                                    intptr_t token_pos,
+                                   bool report_after_token,
                                    const String& message);
 
  private:

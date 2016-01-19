@@ -1471,6 +1471,7 @@ class RawLanguageError : public RawError {
     return reinterpret_cast<RawObject**>(&ptr()->formatted_message_);
   }
   int32_t token_pos_;  // Source position in script_.
+  bool report_after_token_;  // Report message at or after the token.
   int8_t kind_;  // Of type LanguageError::Kind.
 };
 

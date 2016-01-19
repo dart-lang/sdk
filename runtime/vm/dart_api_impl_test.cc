@@ -6762,9 +6762,9 @@ static Dart_NativeFunction MyNativeResolver2(Dart_Handle name,
 TEST_CASE(SetNativeResolver) {
   const char* kScriptChars =
       "class Test {"
-      "  static foo() native \"SomeNativeFunction\";"
-      "  static bar() native \"SomeNativeFunction2\";"
-      "  static baz() native \"SomeNativeFunction3\";"
+      "  static foo() native \"SomeNativeFunction\";\n"
+      "  static bar() native \"SomeNativeFunction2\";\n"
+      "  static baz() native \"SomeNativeFunction3\";\n"
       "}";
   Dart_Handle error = Dart_NewApiError("incoming error");
   Dart_Handle result;

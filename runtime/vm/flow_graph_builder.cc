@@ -4621,6 +4621,7 @@ void FlowGraphBuilder::Bailout(const char* reason) const {
   Report::MessageF(Report::kBailout,
                    Script::Handle(function.script()),
                    function.token_pos(),
+                   Report::AtLocation,
                    "FlowGraphBuilder Bailout: %s %s",
                    String::Handle(function.name()).ToCString(),
                    reason);

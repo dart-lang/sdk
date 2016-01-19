@@ -3689,6 +3689,7 @@ void NativeCallInstr::SetupNative() {
     Report::MessageF(Report::kError,
                      Script::Handle(function().script()),
                      function().token_pos(),
+                     Report::AtLocation,
                      "native function '%s' (%" Pd " arguments) cannot be found",
                      native_name().ToCString(),
                      function().NumParameters());

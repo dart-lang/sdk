@@ -294,6 +294,7 @@ class Parser : public ValueObject {
   }
 
   intptr_t TokenPos() const { return tokens_iterator_.CurrentPosition(); }
+  intptr_t PrevTokenPos() const { return prev_token_pos_; }
 
   Token::Kind CurrentToken() {
     if (token_kind_ == Token::kILLEGAL) {
@@ -316,6 +317,7 @@ class Parser : public ValueObject {
 
   void ConsumeToken() {
     // Reset cache and advance the token.
+    prev_token_pos_ = tokens_iterator_.CurrentPosition();
     token_kind_ = Token::kILLEGAL;
     tokens_iterator_.Advance();
     INC_STAT(thread(), num_tokens_consumed, 1);
@@ -373,6 +375,8 @@ class Parser : public ValueObject {
 
   // Report error message at location of current token in current script.
   void ReportError(const char* msg, ...) const PRINTF_ATTRIBUTE(2, 3);
+
+  void ReportErrorBefore(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
   // Report error message at given location in current script.
   void ReportError(intptr_t token_pos,
@@ -533,7 +537,7 @@ class Parser : public ValueObject {
   void AddFormalParamsToScope(const ParamList* params, LocalScope* scope);
 
   SequenceNode* ParseConstructor(const Function& func);
-  SequenceNode* ParseFunc(const Function& func);
+  SequenceNode* ParseFunc(const Function& func, bool check_semicolon);
 
   void ParseNativeFunctionBlock(const ParamList* params, const Function& func);
 
@@ -833,6 +837,7 @@ class Parser : public ValueObject {
   Script& script_;
   TokenStream::Iterator tokens_iterator_;
   Token::Kind token_kind_;  // Cached token kind for current token.
+  intptr_t prev_token_pos_;
   Block* current_block_;
 
   // is_top_level_ is true if parsing the "top level" of a compilation unit,

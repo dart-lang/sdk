@@ -2049,6 +2049,7 @@ static void ReportTooManyTypeArguments(const Class& cls) {
   Report::MessageF(Report::kError,
                    Script::Handle(cls.script()),
                    cls.token_pos(),
+                   Report::AtLocation,
                    "too many type parameters declared in class '%s' or in its "
                    "super classes",
                    String::Handle(cls.Name()).ToCString());
@@ -2898,6 +2899,7 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
           *error,  // No previous error.
           Script::Handle(patch.script()),
           func.token_pos(),
+          Report::AtLocation,
           Report::kError,
           Heap::kNew,
           "signature mismatch: '%s'", member_name.ToCString());
@@ -2943,6 +2945,7 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
           *error,  // No previous error.
           Script::Handle(patch.script()),
           field.token_pos(),
+          Report::AtLocation,
           Report::kError,
           Heap::kNew,
           "duplicate field: %s", member_name.ToCString());
@@ -6169,6 +6172,7 @@ bool Function::HasCompatibleParametersWith(const Function& other,
         *bound_error,  // A bound error if non null.
         Script::Handle(other.script()),
         other.token_pos(),
+        Report::AtLocation,
         Report::kError,
         Heap::kNew,
         "signature type '%s' of function '%s' is not a subtype of signature "
@@ -9240,6 +9244,7 @@ static void ReportTooManyImports(const Library& lib) {
   Report::MessageF(Report::kError,
                    Script::Handle(lib.LookupScript(url)),
                    Scanner::kNoSourcePos,
+                   Report::AtLocation,
                    "too many imports in library '%s'",
                    url.ToCString());
   UNREACHABLE();
@@ -14511,6 +14516,7 @@ RawLanguageError* LanguageError::New() {
 RawLanguageError* LanguageError::NewFormattedV(const Error& prev_error,
                                                const Script& script,
                                                intptr_t token_pos,
+                                               bool report_after_token,
                                                Report::Kind kind,
                                                Heap::Space space,
                                                const char* format,
@@ -14527,6 +14533,7 @@ RawLanguageError* LanguageError::NewFormattedV(const Error& prev_error,
   result.set_previous_error(prev_error);
   result.set_script(script);
   result.set_token_pos(token_pos);
+  result.set_report_after_token(report_after_token);
   result.set_kind(kind);
   result.set_message(String::Handle(
       String::NewFormattedV(format, args, space)));
@@ -14537,13 +14544,15 @@ RawLanguageError* LanguageError::NewFormattedV(const Error& prev_error,
 RawLanguageError* LanguageError::NewFormatted(const Error& prev_error,
                                               const Script& script,
                                               intptr_t token_pos,
+                                              bool report_after_token,
                                               Report::Kind kind,
                                               Heap::Space space,
                                               const char* format, ...) {
   va_list args;
   va_start(args, format);
   RawLanguageError* result = LanguageError::NewFormattedV(
-      prev_error, script, token_pos, kind, space, format, args);
+      prev_error, script, token_pos, report_after_token,
+      kind, space, format, args);
   NoSafepointScope no_safepoint;
   va_end(args);
   return result;
@@ -14584,6 +14593,11 @@ void LanguageError::set_token_pos(intptr_t token_pos) const {
 }
 
 
+void LanguageError::set_report_after_token(bool value) {
+  StoreNonPointer(&raw_ptr()->report_after_token_, value);
+}
+
+
 void LanguageError::set_kind(uint8_t value) const {
   StoreNonPointer(&raw_ptr()->kind_, value);
 }
@@ -14607,6 +14621,7 @@ RawString* LanguageError::FormatMessage() const {
       Report::PrependSnippet(kind(),
                              Script::Handle(script()),
                              token_pos(),
+                             report_after_token(),
                              String::Handle(message())));
   // Prepend previous error message.
   const Error& prev_error = Error::Handle(previous_error());
@@ -16755,6 +16770,7 @@ bool TypeParameter::CheckBound(const AbstractType& bounded_type,
           *bound_error,
           script,
           token_pos(),
+          Report::AtLocation,
           Report::kMalboundedType,
           Heap::kNew,
           "type parameter '%s' of class '%s' must extend bound '%s', "

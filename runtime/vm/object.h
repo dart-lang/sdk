@@ -4818,14 +4818,16 @@ class LanguageError : public Error {
   static RawLanguageError* NewFormatted(const Error& prev_error,
                                         const Script& script,
                                         intptr_t token_pos,
+                                        bool report_after_token,
                                         Report::Kind kind,
                                         Heap::Space space,
                                         const char* format, ...)
-    PRINTF_ATTRIBUTE(6, 7);
+    PRINTF_ATTRIBUTE(7, 8);
 
   static RawLanguageError* NewFormattedV(const Error& prev_error,
                                          const Script& script,
                                          intptr_t token_pos,
+                                         bool report_after_token,
                                          Report::Kind kind,
                                          Heap::Space space,
                                          const char* format, va_list args);
@@ -4847,6 +4849,9 @@ class LanguageError : public Error {
 
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   void set_token_pos(intptr_t value) const;
+
+  bool report_after_token() const { return raw_ptr()->report_after_token_; }
+  void set_report_after_token(bool value);
 
   void set_kind(uint8_t value) const;
 
