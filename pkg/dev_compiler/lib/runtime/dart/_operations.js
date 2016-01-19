@@ -103,6 +103,7 @@ dart_library.library('dart/_operations', null, /* Imports */[
   }
 
   function checkAndCall(f, ftype, obj, args, name) {
+    let originalFunction = f;
     if (!(f instanceof Function)) {
       // We're not a function (and hence not a method either)
       // Grab the `call` method if it's not a function.
@@ -111,7 +112,7 @@ dart_library.library('dart/_operations', null, /* Imports */[
         f = f.call;
       }
       if (!(f instanceof Function)) {
-        throwNoSuchMethod(obj, name, args);
+        throwNoSuchMethod(obj, name, args, originalFunction);
       }
     }
     // If f is a function, but not a method (no method type)
@@ -133,7 +134,7 @@ dart_library.library('dart/_operations', null, /* Imports */[
 
     // TODO(leafp): throw a type error (rather than NSM)
     // if the arity matches but the types are wrong.
-    throwNoSuchMethod(obj, name, args, f);
+    throwNoSuchMethod(obj, name, args, originalFunction);
   }
 
   function dcall(f, ...args) {
