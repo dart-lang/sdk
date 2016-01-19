@@ -3544,6 +3544,16 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     HashSet<Source> importedSourceSet =
         new HashSet.from(explicitlyImportedSourceSet);
     Source coreLibrarySource = context.sourceFactory.forUri(DartSdk.DART_CORE);
+    if (coreLibrarySource == null) {
+      String message;
+      DartSdk sdk = context.sourceFactory.dartSdk;
+      if (sdk == null) {
+        message = 'Could not resolve "dart:core": SDK not defined';
+      } else {
+        message = 'Could not resolve "dart:core": SDK incorrectly configured';
+      }
+      throw new AnalysisException(message);
+    }
     importedSourceSet.add(coreLibrarySource);
     //
     // Compute kind.
