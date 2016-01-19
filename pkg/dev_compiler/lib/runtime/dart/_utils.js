@@ -22,7 +22,7 @@ dart_library.library('dart/_utils', null, /* Imports */[
   function throwInternalError(message) {
     throw Error(message);
   }
-  function assert_(condition) {
+  function assert(condition) {
     if (!condition) throwInternalError("The compiler is broken: failed assert");
   }
   function getOwnNamesAndSymbols(obj) {
@@ -95,7 +95,7 @@ dart_library.library('dart/_utils', null, /* Imports */[
   exports.StrongModeError = StrongModeError;
   exports.throwStrongModeError = throwStrongModeError;
   exports.throwInternalError = throwInternalError;
-  exports.assert_ = assert_;
+  exports.assert = assert;
   exports.getOwnNamesAndSymbols = getOwnNamesAndSymbols;
   exports.safeGetOwnProperty = safeGetOwnProperty;
   exports.defineLazyProperty = defineLazyProperty;

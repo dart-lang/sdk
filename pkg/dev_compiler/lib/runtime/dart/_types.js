@@ -16,7 +16,7 @@ dart_library.library('dart/_types', null, /* Imports */[
 
   const getOwnPropertyNames = Object.getOwnPropertyNames;
 
-  const assert = dart_utils.assert_;
+  const assert = dart_utils.assert;
 
   /**
    * Types in dart are represented at runtime as follows.

@@ -1294,6 +1294,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         node.element);
   }
 
+  /// Returns the name value of the `JSExportName` annotation (when compiling
+  /// the SDK), or `null` if there's none. This is used to control the name
+  /// under which functions are compiled and exported.
+  String _getJSExportName(Element e) {
+    if (e is! FunctionElement || !currentLibrary.source.isInSystemLibrary) {
+      return null;
+    }
+    var jsName = findAnnotation(e, isJSExportNameAnnotation);
+    return getConstantField(jsName, 'name', types.stringType)?.toStringValue();
+  }
+
   @override
   JS.Statement visitFunctionDeclaration(FunctionDeclaration node) {
     assert(node.parent is CompilationUnit);
@@ -1309,7 +1320,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var body = <JS.Statement>[];
     _flushLibraryProperties(body);
 
-    var name = node.name.name;
+    var name = _getJSExportName(node.element) ?? node.name.name;
 
     var fn = _visit(node.functionExpression);
     bool needsTagging = true;
@@ -1575,8 +1586,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     _loader.declareBeforeUse(element);
 
-    var name = element.name;
-
     // type literal
     if (element is ClassElement ||
         element is DynamicElementImpl ||
@@ -1587,8 +1596,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     // library member
     if (element.enclosingElement is CompilationUnitElement) {
-      return _maybeQualifiedName(element);
+      return _emitTopLevelName(element);
     }
+
+    var name = element.name;
 
     // Unqualified class member. This could mean implicit-this, or implicit
     // call to a static from the same class.
@@ -1757,17 +1768,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         jsArgs = [];
       }
       if (jsArgs != null) {
-        var genericName = _maybeQualifiedName(element, '$name\$');
+        var genericName = _emitTopLevelName(element, suffix: '\$');
         return js.call('#(#)', [genericName, jsArgs]);
       }
     }
 
-    return _maybeQualifiedName(element);
+    return _emitTopLevelName(element);
   }
 
-  JS.Expression _maybeQualifiedName(Element e, [String name]) {
+  JS.Expression _emitTopLevelName(Element e, {String suffix : ''}) {
     var libName = _libraryName(e.library);
-    var nameExpr = _propertyName(name ?? e.name);
+    var nameExpr = _propertyName((_getJSExportName(e) ?? e.name) + suffix);
 
     // Always qualify:
     // * mutable top-level fields
@@ -2231,6 +2242,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (isJSTopLevel) eagerInit = true;
 
     var fieldName = field.name.name;
+    if (element is TopLevelVariableElement) {
+      fieldName = _getJSExportName(element) ?? fieldName;
+    }
     if ((field.isConst && eagerInit && element is TopLevelVariableElement) ||
         isJSTopLevel) {
       // constant fields don't change, so we can generate them as `let`

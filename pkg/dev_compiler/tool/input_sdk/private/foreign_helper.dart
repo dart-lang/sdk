@@ -110,6 +110,15 @@ JS(String typeDescription, String codeTemplate,
     [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11])
 {}
 
+/// Annotates the compiled Js name for fields and methods.
+/// Similar behaviour to `JS` from `package:js/js.dart` (but usable from runtime
+/// files), and not to be confused with `JSName` from `js_helper` (which deals
+/// with names of externs).
+class JSExportName {
+  final String name;
+  const JSExportName(this.name);
+}
+
 /**
  * Returns the isolate in which this code is running.
  */

@@ -4,7 +4,7 @@
 
 library dart._utils;
 
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JSExportName;
 
 /// This library defines a set of general javascript utilities for us
 /// by the Dart runtime.
@@ -39,6 +39,7 @@ void throwInternalError(String message) => JS('', '''(() => {
 
 // TODO(ochafik): Re-introduce a @JS annotation in the SDK (same as package:js)
 // so that this is named 'assert' in JavaScript.
+@JSExportName('assert')
 void assert_(bool condition) => JS('', '''(() => {
   if (!condition) throwInternalError("The compiler is broken: failed assert");
 })()''');

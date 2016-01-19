@@ -20,6 +20,14 @@ dart_library.library('dart/_foreign_helper', null, /* Imports */[
     if (arg11 === void 0) arg11 = null;
   }
   dart.fn(JS, dart.dynamic, [core.String, core.String], [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]);
+  class JSExportName extends core.Object {
+    JSExportName(name) {
+      this.name = name;
+    }
+  }
+  dart.setSignature(JSExportName, {
+    constructors: () => ({JSExportName: [JSExportName, [core.String]]})
+  });
   function JS_CURRENT_ISOLATE_CONTEXT() {
   }
   dart.fn(JS_CURRENT_ISOLATE_CONTEXT, () => dart.definiteFunctionType(IsolateContext, []));
@@ -111,6 +119,7 @@ dart_library.library('dart/_foreign_helper', null, /* Imports */[
   dart.fn(JS_STRING_CONCAT, core.String, [core.String, core.String]);
   // Exports:
   exports.JS = JS;
+  exports.JSExportName = JSExportName;
   exports.JS_CURRENT_ISOLATE_CONTEXT = JS_CURRENT_ISOLATE_CONTEXT;
   exports.IsolateContext = IsolateContext;
   exports.JS_CALL_IN_ISOLATE = JS_CALL_IN_ISOLATE;

@@ -20,7 +20,7 @@ dart_library.library('dart/_classes', null, /* Imports */[
 ], function(exports, dart_utils, core, _interceptors, types, rtti) {
   'use strict';
 
-  const assert = dart_utils.assert_;
+  const assert = dart_utils.assert;
   const copyProperties = dart_utils.copyProperties;
   const copyTheseProperties = dart_utils.copyTheseProperties;
   const defineMemoizedGetter = dart_utils.defineMemoizedGetter;
