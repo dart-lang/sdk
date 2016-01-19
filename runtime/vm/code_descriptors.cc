@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/code_descriptors.h"
+#include "vm/compiler.h"
 
 namespace dart {
 
@@ -15,21 +16,27 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
          (kind == RawPcDescriptors::kOther) ||
          (deopt_id != Thread::kNoDeoptId));
 
-  intptr_t merged_kind_try =
-      RawPcDescriptors::MergedKindTry::Encode(kind, try_index);
+  // When precompiling, we only use pc descriptors for exceptions.
+  if (Compiler::allow_recompilation() || try_index != -1) {
+    intptr_t merged_kind_try =
+        RawPcDescriptors::MergedKindTry::Encode(kind, try_index);
 
-  PcDescriptors::EncodeInteger(&encoded_data_, merged_kind_try);
-  PcDescriptors::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
-  PcDescriptors::EncodeInteger(&encoded_data_, deopt_id - prev_deopt_id);
-  PcDescriptors::EncodeInteger(&encoded_data_, token_pos - prev_token_pos);
+    PcDescriptors::EncodeInteger(&encoded_data_, merged_kind_try);
+    PcDescriptors::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
+    PcDescriptors::EncodeInteger(&encoded_data_, deopt_id - prev_deopt_id);
+    PcDescriptors::EncodeInteger(&encoded_data_, token_pos - prev_token_pos);
 
-  prev_pc_offset = pc_offset;
-  prev_deopt_id = deopt_id;
-  prev_token_pos = token_pos;
+    prev_pc_offset = pc_offset;
+    prev_deopt_id = deopt_id;
+    prev_token_pos = token_pos;
+  }
 }
 
 
 RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
+  if (encoded_data_.length() == 0) {
+    return Object::empty_descriptors().raw();
+  }
   return PcDescriptors::New(&encoded_data_);
 }
 
