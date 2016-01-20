@@ -3916,7 +3916,7 @@ main() {
         expectedSuccess: false);
   }
 
-  void test_false_constructor_initializer() {
+  void test_false_constructor_initializer_damage() {
     _resolveUnit(r'''
 class Problem {
   final Map location;
@@ -3934,6 +3934,32 @@ class Problem {
 
   Problem(Map json)
       : location = json["location],
+        message = json["message"];
+}''',
+        expectedSuccess: false);
+  }
+
+  void test_false_constructor_initializer_remove() {
+    _resolveUnit(r'''
+class Problem {
+  final String severity;
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : severity = json["severity"],
+        location = json["location"],
+        message = json["message"];
+}''');
+    _updateAndValidate(
+        r'''
+class Problem {
+  final String severity;
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : severity = json["severity"],
         message = json["message"];
 }''',
         expectedSuccess: false);

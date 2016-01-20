@@ -1470,6 +1470,13 @@ class PoorMansIncrementalResolver {
         {
           List<AstNode> oldParents = _getParents(oldNode);
           List<AstNode> newParents = _getParents(newNode);
+          // fail if an initializer change
+          if (oldParents.any((n) => n is ConstructorInitializer) ||
+              newParents.any((n) => n is ConstructorInitializer)) {
+            logger.log('Failure: a change in a constructor initializer');
+            return false;
+          }
+          // find matching methods / bodies
           int length = math.min(oldParents.length, newParents.length);
           bool found = false;
           for (int i = 0; i < length; i++) {
@@ -1507,11 +1514,6 @@ class PoorMansIncrementalResolver {
               } else {
                 return false;
               }
-            } else if (oldParent is ConstructorInitializer ||
-                newParent is ConstructorInitializer) {
-              logger.log('Failure: changes in constant constructor initializers'
-                  ' may cause external changes in constant objects.');
-              return false;
             } else if (oldParent is FunctionBody && newParent is FunctionBody) {
               if (oldParent is BlockFunctionBody &&
                   newParent is BlockFunctionBody) {
