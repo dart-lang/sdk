@@ -3020,7 +3020,21 @@ class TypePropagationVisitor implements Visitor {
 
   @override
   void visitForeignCode(ForeignCode node) {
+    bool firstArgumentIsNullable = false;
+    if (node.arguments.length > 0) {
+      AbstractConstantValue first = getValue(node.arguments.first.definition);
+      if (first.isNothing) {
+        setValue(node, nothing);
+        return;
+      }
+      firstArgumentIsNullable = first.isNullable;
+    }
     setValue(node, nonConstant(node.storedType));
+    node.isSafeForElimination =
+        !node.nativeBehavior.sideEffects.hasSideEffects() &&
+        (!node.nativeBehavior.throwBehavior.canThrow ||
+         (!firstArgumentIsNullable &&
+          node.nativeBehavior.throwBehavior.isOnlyNullNSMGuard));
   }
 
   @override
