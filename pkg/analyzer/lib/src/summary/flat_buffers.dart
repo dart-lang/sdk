@@ -178,6 +178,22 @@ class Builder {
   }
 
   /**
+   * Add the [field] with the given 32-bit unsigned integer [value].  The field
+   * is not added if the [value] is equal to [def].
+   */
+  void addUint32(int field, int value, [int def]) {
+    if (_currentVTable == null) {
+      throw new StateError('Start a table before adding values.');
+    }
+    if (value != null && value != def) {
+      int size = 4;
+      _prepare(size, 1);
+      _trackField(field);
+      _setUint32AtTail(_buf, _tail, value);
+    }
+  }
+
+  /**
    * End the current table and return its offset.
    */
   Offset endTable() {
@@ -342,6 +358,26 @@ class Builder {
   }
 
   /**
+   * Write the given list of unsigned 32-bit integer [values].
+   */
+  Offset writeListUint32(List<int> values) {
+    if (_currentVTable != null) {
+      throw new StateError(
+          'Cannot write a non-scalar value while writing a table.');
+    }
+    _prepare(4, 1 + values.length);
+    Offset result = new Offset(_tail);
+    int tail = _tail;
+    _setUint32AtTail(_buf, tail, values.length);
+    tail -= 4;
+    for (int value in values) {
+      _setUint32AtTail(_buf, tail, value);
+      tail -= 4;
+    }
+    return result;
+  }
+
+  /**
    * Write the given string [value] and return its [Offset], or `null` if
    * the [value] is equal to [def].
    */
@@ -435,7 +471,7 @@ class Float64ListReader extends Reader<List<double>> {
 }
 
 /**
- * The reader of 32-bit signed integers.
+ * The reader of signed 32-bit integers.
  */
 class Int32Reader extends Reader<int> {
   const Int32Reader() : super();
@@ -559,6 +595,19 @@ abstract class TableReader<T> extends Reader<T> {
     bp = bp.derefObject();
     return createObject(bp);
   }
+}
+
+/**
+ * The reader of unsigned 32-bit integers.
+ */
+class Uint32Reader extends Reader<int> {
+  const Uint32Reader() : super();
+
+  @override
+  int get size => 4;
+
+  @override
+  int read(BufferPointer bp) => bp._getUint32();
 }
 
 /**
