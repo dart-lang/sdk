@@ -137,8 +137,8 @@ class UnparsedNode extends DeferredString
   /// A [js.Literal] that represents the string result of unparsing [ast].
   ///
   /// When its string [value] is requested, the node pretty-prints the given
-  /// [ast] and, if [protectForEval] is true, wraps the resulting
-  /// string in parenthesis. The result is also escaped.
+  /// [ast] and, if [protectForEval] is true, wraps the resulting string in
+  /// parenthesis. The result is also escaped.
   UnparsedNode(this.tree, this._compiler, this._protectForEval);
 
   LiteralString get _literal {
