@@ -4198,9 +4198,11 @@ class SsaBuilder extends ast.Visitor
       // If the isolate library is not used, we just generate code
       // to fetch the static state.
       String name = backend.namer.staticStateHolder;
-      push(new HForeignCode(js.js.parseForeignJS(name),
-                            backend.dynamicType,
-                            <HInstruction>[]));
+      push(new HForeignCode(
+          js.js.parseForeignJS(name),
+          backend.dynamicType,
+          <HInstruction>[],
+          nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
     } else {
       // Call a helper method from the isolate library. The isolate
       // library uses its own isolate structure, that encapsulates
@@ -4478,7 +4480,7 @@ class SsaBuilder extends ast.Visitor
         js.js.parseForeignJS("$isolateName = #"),
         backend.dynamicType,
         <HInstruction>[pop()],
-        nativeBehavior: native.NativeBehavior.PURE,
+        nativeBehavior: native.NativeBehavior.CHANGES_OTHER,
         effects: sideEffects));
   }
 
@@ -4488,7 +4490,8 @@ class SsaBuilder extends ast.Visitor
     }
     push(new HForeignCode(js.js.parseForeignJS(backend.namer.staticStateHolder),
                           backend.dynamicType,
-                          <HInstruction>[]));
+                          <HInstruction>[],
+                          nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
   }
 
   void handleForeignSend(ast.Send node, FunctionElement element) {

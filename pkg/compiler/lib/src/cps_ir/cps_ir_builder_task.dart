@@ -2900,7 +2900,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         return irBuilder.buildForeignCode(
             js.js.parseForeignJS(backend.namer.staticStateHolder),
             const <ir.Primitive>[],
-            NativeBehavior.PURE);
+            NativeBehavior.DEPENDS_OTHER);
 
       case 'JS_SET_STATIC_STATE':
         validateArgumentCount(exactly: 1);
@@ -2910,7 +2910,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         return irBuilder.buildForeignCode(
             js.js.parseForeignJS("$isolateName = #"),
             <ir.Primitive>[value],
-            NativeBehavior.PURE);
+            NativeBehavior.CHANGES_OTHER);
 
       case 'JS_CALL_IN_ISOLATE':
         validateArgumentCount(exactly: 2);
