@@ -111,9 +111,6 @@ class NativeBehavior {
   static NativeBehavior get PURE => NativeBehavior._makePure();
   static NativeBehavior get PURE_ALLOCATION =>
       NativeBehavior._makePure(isAllocation: true);
-  static NativeBehavior get CHANGES_OTHER => NativeBehavior._makeChangesOther();
-  static NativeBehavior get DEPENDS_OTHER => NativeBehavior._makeDependsOther();
-
 
   String toString() {
     return 'NativeBehavior('
@@ -133,18 +130,6 @@ class NativeBehavior {
     behavior.throwBehavior = NativeThrowBehavior.NEVER;
     behavior.isAllocation = isAllocation;
     return behavior;
-  }
-
-  static NativeBehavior _makeChangesOther() {
-    // TODO(25544): Have a distinct effect instead of using static properties to
-    // model 'other' effects.
-    return _makePure()..behavior.sideEffects.setChangesStaticProperty();
-  }
-
-  static NativeBehavior _makeDependsOther() {
-    // TODO(25544): Have a distinct effect instead of using static properties to
-    // model 'other' effects.
-    return _makePure()..behavior.sideEffects.setDependsStaticProperty();
   }
 
   /// Processes the type specification string of a call to JS and stores the
