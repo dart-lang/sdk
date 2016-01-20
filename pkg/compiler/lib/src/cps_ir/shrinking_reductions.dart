@@ -7,6 +7,7 @@ library dart2js.cps_ir.shrinking_reductions;
 import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
 import 'cps_fragment.dart';
+import '../constants/values.dart' as values;
 
 /**
  * [ShrinkingReducer] applies shrinking reductions to CPS terms as described
@@ -80,6 +81,9 @@ class ShrinkingReducer extends Pass {
         break;
       case _ReductionKind.DEAD_PARAMETER:
         _reduceDeadParameter(task);
+        break;
+      case _ReductionKind.BRANCH:
+        _reduceBranch(task);
         break;
       default:
         assert(false);
@@ -189,6 +193,34 @@ class ShrinkingReducer extends Pass {
 
     // Perform bookkeeping on removed body and scan for new redexes.
     new _RemovalVisitor(_worklist).visit(cont);
+  }
+
+  void _reduceBranch(_ReductionTask task) {
+    Branch branch = task.node;
+    // Replace Branch with InvokeContinuation of one of the targets. When the
+    // branch is deleted the other target becomes unreferenced and the chosen
+    // target becomes available for eta-cont and further reductions.
+    Continuation target;
+    Primitive condition = branch.condition.definition;
+    if (condition is Constant) {
+      target = isTruthyConstant(condition.value, strict: branch.isStrictCheck)
+          ? branch.trueContinuation.definition
+          : branch.falseContinuation.definition;
+    } else if (_isBranchTargetOfUselessIf(branch.trueContinuation.definition)) {
+      target = branch.trueContinuation.definition;
+    } else {
+      return;
+    }
+
+    InvokeContinuation invoke = new InvokeContinuation(
+        target, <Primitive>[]
+        // TODO(sra): Add sourceInformation.
+        /*, sourceInformation: branch.sourceInformation*/);
+    branch.parent.body = invoke;
+    invoke.parent = branch.parent;
+    branch.parent = _DELETED;
+
+    new _RemovalVisitor(_worklist).visit(branch);
   }
 
   void _reduceDeadParameter(_ReductionTask task) {
@@ -371,6 +403,37 @@ bool _isEtaCont(Continuation cont) {
   return true;
 }
 
+bool _isBranchTargetOfUselessIf(Continuation cont) {
+  // A useless-if has an empty then and else branch, e.g. `if (cond);`.
+  //
+  // Detect T or F in
+  //
+  //     let cont Join() = ...
+  //       in let cont T() = Join()
+  //                   F() = Join()
+  //         in branch condition T F
+  //
+  if (!cont.hasExactlyOneUse) return false;
+  if (cont.firstRef.parent is! Branch) return false;
+  Branch branch = cont.firstRef.parent;
+  Continuation trueCont = branch.trueContinuation.definition;
+  Continuation falseCont = branch.falseContinuation.definition;
+  // Are both continuations the same InvokeContinuation on a join?
+  if (trueCont.body is! InvokeContinuation) return false;
+  if (falseCont.body is! InvokeContinuation) return false;
+  InvokeContinuation trueInvoke = trueCont.body;
+  InvokeContinuation falseInvoke = falseCont.body;
+  if (trueInvoke.continuation.definition !=
+      falseInvoke.continuation.definition) {
+    return false;
+  }
+  assert(trueInvoke.arguments.length == falseInvoke.arguments.length);
+  // Matching zero arguments should be adequate, since isomorphic true and false
+  // invocations should result in redundant phis which are removed elsewhere.
+  if (trueInvoke.arguments.isNotEmpty) return false;
+  return true;
+}
+
 bool _isDeadParameter(Parameter parameter) {
   // We cannot remove function parameters as an intraprocedural optimization.
   if (parameter.parent is! Continuation || parameter.hasAtLeastOneUse) {
@@ -411,6 +474,12 @@ class _RedexVisitor extends TrampolineRecursiveVisitor {
     }
   }
 
+  void processBranch(Branch node) {
+    if (node.condition.definition is Constant) {
+      worklist.add(new _ReductionTask(_ReductionKind.BRANCH, node));
+    }
+  }
+
   void processContinuation(Continuation node) {
     // While it would be nice to remove exception handlers that are provably
     // unnecessary (e.g., the body cannot throw), that takes more sophisticated
@@ -430,6 +499,9 @@ class _RedexVisitor extends TrampolineRecursiveVisitor {
       worklist.add(new _ReductionTask(_ReductionKind.BETA_CONT_LIN, node));
     } else if (_isEtaCont(node)) {
       worklist.add(new _ReductionTask(_ReductionKind.ETA_CONT, node));
+    } else if (_isBranchTargetOfUselessIf(node)) {
+      worklist.add(new _ReductionTask(_ReductionKind.BRANCH,
+                                      node.firstRef.parent));
     }
   }
 
@@ -486,6 +558,9 @@ class _RemovalVisitor extends TrampolineRecursiveVisitor {
           worklist.add(new _ReductionTask(_ReductionKind.DEAD_CONT, cont));
         } else if (_isBetaContLin(cont)) {
           worklist.add(new _ReductionTask(_ReductionKind.BETA_CONT_LIN, cont));
+        } else if (_isBranchTargetOfUselessIf(cont)) {
+          worklist.add(
+              new _ReductionTask(_ReductionKind.BRANCH, cont.firstRef.parent));
         }
       }
     }
@@ -507,6 +582,7 @@ class _ReductionKind {
   static const _ReductionKind ETA_CONT = const _ReductionKind('eta-cont', 3);
   static const _ReductionKind DEAD_PARAMETER =
       const _ReductionKind('dead-parameter', 4);
+  static const _ReductionKind BRANCH = const _ReductionKind('branch', 5);
 
   String toString() => name;
 }
@@ -523,7 +599,8 @@ class _ReductionTask {
   }
 
   _ReductionTask(this.kind, this.node) {
-    assert(node is Continuation || node is LetPrim || node is Parameter);
+    assert(node is Continuation || node is LetPrim || node is Parameter ||
+           node is Branch);
   }
 
   bool operator==(_ReductionTask that) {
