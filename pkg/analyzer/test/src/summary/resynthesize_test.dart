@@ -509,66 +509,8 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test initializer
   }
 
-  fail_field_propagatedType_const_noDep() {
-    checkLibrary('''
-class C {
-  static const x = 0;
-}''');
-  }
-
-  fail_field_propagatedType_final_dep_inLib() {
-    addNamedSource('/a.dart', 'final a = 1;');
-    checkLibrary('''
-import "a.dart";
-class C {
-  final b = a / 2;
-}''');
-  }
-
-  fail_field_propagatedType_final_dep_inPart() {
-    addNamedSource('/a.dart', 'part of lib; final a = 1;');
-    checkLibrary('''
-library lib;
-part "a.dart";
-class C {
-  final b = a / 2;
-}''');
-  }
-
-  fail_field_propagatedType_final_noDep_instance() {
-    checkLibrary('''
-class C {
-  final x = 0;
-}''');
-  }
-
-  fail_field_propagatedType_final_noDep_static() {
-    checkLibrary('''
-class C {
-  static final x = 0;
-}''');
-  }
-
   fail_library_hasExtUri() {
     checkLibrary('import "dart-ext:doesNotExist.dart";');
-  }
-
-  fail_variable_propagatedType_const_noDep() {
-    checkLibrary('const i = 0;');
-  }
-
-  fail_variable_propagatedType_final_dep_inLib() {
-    addNamedSource('/a.dart', 'final a = 1;');
-    checkLibrary('import "a.dart"; final b = a / 2;');
-  }
-
-  fail_variable_propagatedType_final_dep_inPart() {
-    addNamedSource('/a.dart', 'part of lib; final a = 1;');
-    checkLibrary('library lib; part "a.dart"; final b = a / 2;');
-  }
-
-  fail_variable_propagatedType_final_noDep() {
-    checkLibrary('final i = 0;');
   }
 
   ElementImpl getActualElement(Element element, String desc) {
@@ -1039,6 +981,46 @@ class C {
    * Docs
    */
   var x;
+}''');
+  }
+
+  test_field_propagatedType_const_noDep() {
+    checkLibrary('''
+class C {
+  static const x = 0;
+}''');
+  }
+
+  test_field_propagatedType_final_dep_inLib() {
+    addNamedSource('/a.dart', 'final a = 1;');
+    checkLibrary('''
+import "a.dart";
+class C {
+  final b = a / 2;
+}''');
+  }
+
+  test_field_propagatedType_final_dep_inPart() {
+    addNamedSource('/a.dart', 'part of lib; final a = 1;');
+    checkLibrary('''
+library lib;
+part "a.dart";
+class C {
+  final b = a / 2;
+}''');
+  }
+
+  test_field_propagatedType_final_noDep_instance() {
+    checkLibrary('''
+class C {
+  final x = 0;
+}''');
+  }
+
+  test_field_propagatedType_final_noDep_static() {
+    checkLibrary('''
+class C {
+  static final x = 0;
 }''');
   }
 
@@ -1598,6 +1580,31 @@ var x;''');
 
   test_variable_implicit_type() {
     checkLibrary('var x;');
+  }
+
+  test_variable_propagatedType_const_noDep() {
+    checkLibrary('const i = 0;');
+  }
+
+  test_variable_propagatedType_final_dep_inLib() {
+    addNamedSource('/a.dart', 'final a = 1;');
+    checkLibrary('import "a.dart"; final b = a / 2;');
+  }
+
+  test_variable_propagatedType_final_dep_inPart() {
+    addNamedSource('/a.dart', 'part of lib; final a = 1;');
+    checkLibrary('library lib; part "a.dart"; final b = a / 2;');
+  }
+
+  test_variable_propagatedType_final_noDep() {
+    checkLibrary('final i = 0;');
+  }
+
+  test_variable_propagatedType_implicit_dep() {
+    // The propagated type is defined in a library that is not imported.
+    addNamedSource('/a.dart', 'class C {}');
+    addNamedSource('/b.dart', 'import "a.dart"; C f() => null;');
+    checkLibrary('import "b.dart"; final x = f();');
   }
 
   test_variable_setterInPart_getterInPart() {

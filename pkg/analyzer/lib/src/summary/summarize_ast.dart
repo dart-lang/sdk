@@ -221,6 +221,16 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   UnlinkedDocumentationCommentBuilder libraryDocumentationComment;
 
   /**
+   * The number of slot ids which have been assigned to this compilation unit.
+   */
+  int numSlots = 0;
+
+  /**
+   * Create a slot id for storing a propagated or inferred type.
+   */
+  int assignTypeSlot() => ++numSlots;
+
+  /**
    * Build a [_Scope] object containing the names defined within the body of a
    * class declaration.
    */
@@ -610,6 +620,10 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
         if (initializer != null) {
           b.constExpr = serializeConstExpr(initializer);
         }
+      }
+      if (variable.initializer != null &&
+          (variables.isFinal || variables.isConst)) {
+        b.propagatedTypeSlot = assignTypeSlot();
       }
       this.variables.add(b);
     }

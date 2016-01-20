@@ -137,6 +137,9 @@ class PrelinkerTest extends SummarizeElementsTest {
   bool get expectAbsoluteUrisInDependencies => false;
 
   @override
+  bool get skipFullyLinkedData => true;
+
+  @override
   Source addNamedSource(String filePath, String contents) {
     Source source = super.addNamedSource(filePath, contents);
     uriToPublicNamespace[absUri(filePath)] =
@@ -218,6 +221,9 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
   bool get expectAbsoluteUrisInDependencies => true;
 
   @override
+  bool get skipFullyLinkedData => false;
+
+  @override
   Source addNamedSource(String filePath, String contents) {
     Source source = super.addNamedSource(filePath, contents);
     _fileContents[source] = contents;
@@ -264,7 +270,7 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
     expect(linked.units.length, unlinkedUnits.length);
     for (int i = 0; i < linked.units.length; i++) {
       expect(unlinkedUnits[i].references.length,
-          linked.units[i].references.length);
+          lessThanOrEqualTo(linked.units[i].references.length));
     }
     verifyPublicNamespace();
   }
@@ -345,6 +351,12 @@ abstract class SummaryTest {
    * then deserializing the library under test.
    */
   LinkedLibrary get linked;
+
+  /**
+   * `true` if the linked portion of the summary only contains prelinked data.
+   * This happens because we don't yet have a full linker; only a prelinker.
+   */
+  bool get skipFullyLinkedData;
 
   /**
    * Get access to the unlinked compilation unit summaries that result from
@@ -448,11 +460,14 @@ abstract class SummaryTest {
 
   /**
    * Verify that the dependency table contains an entry for a file reachable
-   * via the given [absoluteUri] and [relativeUri].
+   * via the given [absoluteUri] and [relativeUri].  If [fullyLinked] is
+   * `true`, then the dependency should be a fully-linked dependency; otherwise
+   * it should be a prelinked dependency.
    *
-   * The [LinkedDependency] is returned.
+   * The index of the [LinkedDependency] is returned.
    */
-  LinkedDependency checkHasDependency(String absoluteUri, String relativeUri) {
+  int checkHasDependency(String absoluteUri, String relativeUri,
+      {bool fullyLinked: false}) {
     if (expectAbsoluteUrisInDependencies) {
       // The element model doesn't (yet) store enough information to recover
       // relative URIs, so we have to use the absolute URI.
@@ -460,9 +475,15 @@ abstract class SummaryTest {
       relativeUri = absoluteUri;
     }
     List<String> found = <String>[];
-    for (LinkedDependency dep in linked.dependencies) {
+    for (int i = 0; i < linked.dependencies.length; i++) {
+      LinkedDependency dep = linked.dependencies[i];
       if (dep.uri == relativeUri) {
-        return dep;
+        if (fullyLinked) {
+          expect(i, greaterThanOrEqualTo(linked.numPrelinkedDependencies));
+        } else {
+          expect(i, lessThan(linked.numPrelinkedDependencies));
+        }
+        return i;
       }
       found.add(dep.uri);
     }
@@ -486,6 +507,87 @@ abstract class SummaryTest {
         fail('Unexpected dependency found: $relativeUri');
       }
     }
+  }
+
+  /**
+   * Verify that the given [typeRef] represents a reference to a type declared
+   * in a file reachable via [absoluteUri] and [relativeUri], having name
+   * [expectedName].  If [allowTypeParameters] is true, allow the type
+   * reference to supply type parameters.  [expectedKind] is the kind of object
+   * referenced.  [linkedSourceUnit] and [unlinkedSourceUnit] refer to the
+   * compilation unit within which the [typeRef] appears; if not specified they
+   * are assumed to refer to the defining compilation unit.
+   * [expectedTargetUnit] is the index of the compilation unit in which the
+   * target of the [typeRef] is expected to appear; if not specified it is
+   * assumed to be the defining compilation unit.  [numTypeParameters] is the
+   * number of type parameters of the thing being referred to.
+   */
+  void checkLinkedTypeRef(TypeRef typeRef, String absoluteUri,
+      String relativeUri, String expectedName,
+      {bool allowTypeParameters: false,
+      ReferenceKind expectedKind: ReferenceKind.classOrEnum,
+      int expectedTargetUnit: 0,
+      LinkedUnit linkedSourceUnit,
+      UnlinkedUnit unlinkedSourceUnit,
+      int numTypeParameters: 0}) {
+    linkedSourceUnit ??= definingUnit;
+    expect(typeRef, isNotNull,
+        reason: 'No entry in linkedSourceUnit.types matching slotId');
+    expect(typeRef.paramReference, 0);
+    int index = typeRef.reference;
+    if (!allowTypeParameters) {
+      expect(typeRef.typeArguments, isEmpty);
+    }
+    checkTypeRefCommonElements(
+        index,
+        absoluteUri,
+        relativeUri,
+        expectedName,
+        expectedKind,
+        expectedTargetUnit,
+        linkedSourceUnit,
+        unlinkedSourceUnit,
+        numTypeParameters);
+  }
+
+  /**
+   * Verify that the given [slotId] represents a reference to a type declared
+   * in a file reachable via [absoluteUri] and [relativeUri], having name
+   * [expectedName].  If [allowTypeParameters] is true, allow the type
+   * reference to supply type parameters.  [expectedKind] is the kind of object
+   * referenced.  [linkedSourceUnit] and [unlinkedSourceUnit] refer to the
+   * compilation unit within which the [typeRef] appears; if not specified they
+   * are assumed to refer to the defining compilation unit.
+   * [expectedTargetUnit] is the index of the compilation unit in which the
+   * target of the [typeRef] is expected to appear; if not specified it is
+   * assumed to be the defining compilation unit.  [numTypeParameters] is the
+   * number of type parameters of the thing being referred to.
+   */
+  void checkLinkedTypeSlot(
+      int slotId, String absoluteUri, String relativeUri, String expectedName,
+      {bool allowTypeParameters: false,
+      ReferenceKind expectedKind: ReferenceKind.classOrEnum,
+      int expectedTargetUnit: 0,
+      LinkedUnit linkedSourceUnit,
+      UnlinkedUnit unlinkedSourceUnit,
+      int numTypeParameters: 0}) {
+    // Slot ids should be nonzero, since zero means "no associated slot".
+    expect(slotId, isNot(0));
+    if (skipFullyLinkedData) {
+      return;
+    }
+    linkedSourceUnit ??= definingUnit;
+    checkLinkedTypeRef(
+        getTypeRefForSlot(slotId, linkedSourceUnit: linkedSourceUnit),
+        absoluteUri,
+        relativeUri,
+        expectedName,
+        allowTypeParameters: allowTypeParameters,
+        expectedKind: expectedKind,
+        expectedTargetUnit: expectedTargetUnit,
+        linkedSourceUnit: linkedSourceUnit,
+        unlinkedSourceUnit: unlinkedSourceUnit,
+        numTypeParameters: numTypeParameters);
   }
 
   /**
@@ -536,45 +638,97 @@ abstract class SummaryTest {
       UnlinkedUnit unlinkedSourceUnit,
       int numTypeParameters: 0}) {
     linkedSourceUnit ??= definingUnit;
-    unlinkedSourceUnit ??= unlinkedUnits[0];
     expect(typeRef, new isInstanceOf<TypeRef>());
     expect(typeRef.paramReference, 0);
     int index = typeRef.reference;
-    UnlinkedReference reference = unlinkedSourceUnit.references[index];
-    LinkedReference referenceResolution = linkedSourceUnit.references[index];
-    if (index == 0) {
-      // Index 0 is reserved for "dynamic".
-      expect(reference.name, isEmpty);
+    if (!allowTypeParameters) {
+      expect(typeRef.typeArguments, isEmpty);
+    }
+    UnlinkedReference reference = checkTypeRefCommonElements(
+        index,
+        absoluteUri,
+        relativeUri,
+        expectedName,
+        expectedKind,
+        expectedTargetUnit,
+        linkedSourceUnit,
+        unlinkedSourceUnit,
+        numTypeParameters);
+    expect(reference, isNotNull,
+        reason: 'Unlinked type refs must refer to an explicit reference');
+    if (expectedKind == ReferenceKind.unresolved && !checkAstDerivedData) {
+      // summarize_elements.dart isn't yet able to record the prefix of
+      // unresolved references.  TODO(paulberry): fix this.
       expect(reference.prefixReference, 0);
+    } else if (expectedPrefix == null) {
+      expect(reference.prefixReference, 0);
+    } else {
+      checkPrefix(reference.prefixReference, expectedPrefix);
+    }
+  }
+
+  /**
+   * Check the data structures that are common between [checkTypeRef] and
+   * [checkLinkedTypeRef].  If the type reference in question is an explicit
+   * reference, return the [UnlinkedReference] that is used to make the
+   * explicit reference.  If the type reference in question is an implicit
+   * reference, return `null`.
+   */
+  UnlinkedReference checkTypeRefCommonElements(
+      int referenceIndex,
+      String absoluteUri,
+      String relativeUri,
+      String expectedName,
+      ReferenceKind expectedKind,
+      int expectedTargetUnit,
+      LinkedUnit linkedSourceUnit,
+      UnlinkedUnit unlinkedSourceUnit,
+      int numTypeParameters) {
+    unlinkedSourceUnit ??= unlinkedUnits[0];
+    LinkedReference referenceResolution =
+        linkedSourceUnit.references[referenceIndex];
+    String name;
+    UnlinkedReference reference;
+    if (referenceIndex < unlinkedSourceUnit.references.length) {
+      // This is an explicit reference, so its name and prefix should be in
+      // [UnlinkedUnit.references].
+      expect(referenceResolution.name, isEmpty);
+      reference = unlinkedSourceUnit.references[referenceIndex];
+      name = reference.name;
+      if (reference.prefixReference != 0) {
+        // Prefixes should appear in the references table before any reference
+        // that uses them.
+        expect(reference.prefixReference, lessThan(referenceIndex));
+      }
+    } else {
+      // This is an implicit reference, so its name should be in
+      // [LinkedUnit.references].
+      name = referenceResolution.name;
+    }
+    if (referenceIndex == 0) {
+      // Index 0 is reserved for "dynamic".
+      expect(name, isEmpty);
     }
     if (absoluteUri == null) {
       expect(referenceResolution.dependency, 0);
     } else {
       checkDependency(referenceResolution.dependency, absoluteUri, relativeUri);
     }
-    if (!allowTypeParameters) {
-      expect(typeRef.typeArguments, isEmpty);
-    }
     if (expectedKind == ReferenceKind.unresolved && !checkAstDerivedData) {
-      // summarize_elements.dart isn't yet able to record the name or prefix of
+      // summarize_elements.dart isn't yet able to record the name of
       // unresolved references.  TODO(paulberry): fix this.
-      expect(reference.name, '*unresolved*');
-      expect(reference.prefixReference, 0);
+      expect(name, '*unresolved*');
     } else {
       if (expectedName == null) {
-        expect(reference.name, isEmpty);
+        expect(name, isEmpty);
       } else {
-        expect(reference.name, expectedName);
-      }
-      if (expectedPrefix == null) {
-        expect(reference.prefixReference, 0);
-      } else {
-        checkPrefix(reference.prefixReference, expectedPrefix);
+        expect(name, expectedName);
       }
     }
     expect(referenceResolution.kind, expectedKind);
     expect(referenceResolution.unit, expectedTargetUnit);
     expect(referenceResolution.numTypeParameters, numTypeParameters);
+    return reference;
   }
 
   /**
@@ -736,6 +890,19 @@ enum E {
       fail('Variable $variableName not found in serialized output');
     }
     return result;
+  }
+
+  /**
+   * Find the entry in [linkedSourceUnit.types] matching [slotId].
+   */
+  TypeRef getTypeRefForSlot(int slotId, {LinkedUnit linkedSourceUnit}) {
+    linkedSourceUnit ??= definingUnit;
+    for (TypeRef typeRef in linkedSourceUnit.types) {
+      if (typeRef.slot == slotId) {
+        return typeRef;
+      }
+    }
+    return null;
   }
 
   /**
@@ -2248,9 +2415,9 @@ class C {
     addNamedSource('/b.dart', 'part of a;');
     addNamedSource('/c.dart', 'part of a;');
     serializeLibraryText('import "a.dart"; A a;');
-    LinkedDependency dep = checkHasDependency(absUri('/a.dart'), 'a.dart');
-    checkDependencyParts(
-        dep, [absUri('/b.dart'), absUri('/c.dart')], ['b.dart', 'c.dart']);
+    int dep = checkHasDependency(absUri('/a.dart'), 'a.dart');
+    checkDependencyParts(linked.dependencies[dep],
+        [absUri('/b.dart'), absUri('/c.dart')], ['b.dart', 'c.dart']);
   }
 
   test_dependencies_parts_relative_to_importing_library() {
@@ -2260,10 +2427,9 @@ class C {
     addNamedSource('/a/c/e/f.dart', 'part of d;');
     addNamedSource('/a/c/g/h.dart', 'part of d;');
     serializeLibraryText('import "a/b.dart"; D d;');
-    LinkedDependency dep =
-        checkHasDependency(absUri('/a/c/d.dart'), 'a/c/d.dart');
+    int dep = checkHasDependency(absUri('/a/c/d.dart'), 'a/c/d.dart');
     checkDependencyParts(
-        dep,
+        linked.dependencies[dep],
         [absUri('/a/c/e/f.dart'), absUri('/a/c/g/h.dart')],
         ['a/c/e/f.dart', 'a/c/g/h.dart']);
   }
@@ -3049,10 +3215,34 @@ class C {
     expect(variable.isFinal, isTrue);
   }
 
+  test_field_propagated_type_final_immediate() {
+    UnlinkedVariable v =
+        serializeClassText('class C { final v = 0; }').fields[0];
+    checkLinkedTypeSlot(v.propagatedTypeSlot, 'dart:core', 'dart:core', 'int');
+  }
+
   test_field_static() {
     UnlinkedVariable variable =
         serializeClassText('class C { static int i; }').fields[0];
     expect(variable.isStatic, isTrue);
+  }
+
+  test_fully_linked_references_follow_other_references() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    serializeLibraryText('final x = 0; String y;');
+    checkLinkedTypeSlot(unlinkedUnits[0].variables[0].propagatedTypeSlot,
+        'dart:core', 'dart:core', 'int');
+    checkTypeRef(
+        unlinkedUnits[0].variables[1].type, 'dart:core', 'dart:core', 'String');
+    // Even though the definition of y follows the definition of x, the linked
+    // type reference for x should use a higher numbered reference than the
+    // unlinked type reference for y.
+    TypeRef propagatedType =
+        getTypeRefForSlot(unlinkedUnits[0].variables[0].propagatedTypeSlot);
+    expect(unlinkedUnits[0].variables[1].type.reference,
+        lessThan(propagatedType.reference));
   }
 
   test_function_documented() {
@@ -3087,6 +3277,23 @@ get f => null;''';
     UnlinkedExecutable executable = serializeExecutableText(text);
     expect(executable.documentationComment, isNotNull);
     checkDocumentationComment(executable.documentationComment, text);
+  }
+
+  test_implicit_dependencies_follow_other_dependencies() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    addNamedSource('/a.dart', 'import "b.dart"; class C {} D f() => null;');
+    addNamedSource('/b.dart', 'class D {}');
+    serializeLibraryText('import "a.dart"; final x = f(); C y;');
+    // The dependency on b.dart is implicit, so it should be placed at the end
+    // of the dependency list, after a.dart, even though the code that refers
+    // to b.dart comes before the code that refers to a.dart.
+    int aDep =
+        checkHasDependency(absUri('/a.dart'), 'a.dart', fullyLinked: false);
+    int bDep =
+        checkHasDependency(absUri('/b.dart'), 'b.dart', fullyLinked: true);
+    expect(aDep, lessThan(bDep));
   }
 
   test_import_deferred() {
@@ -3398,6 +3605,39 @@ library foo;''';
         expectedTargetUnit: 2);
   }
 
+  test_linked_reference_reuse() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    // When the reference for a linked type is the same as an explicitly
+    // referenced type, the explicit reference should be re-used.
+    addNamedSource('/a.dart', 'class C {}');
+    addNamedSource('/b.dart', 'import "a.dart"; C f() => null;');
+    serializeLibraryText(
+        'import "a.dart"; import "b.dart"; C c1; final c2 = f();');
+    int explicitReference = findVariable('c1').type.reference;
+    expect(getTypeRefForSlot(findVariable('c2').propagatedTypeSlot).reference,
+        explicitReference);
+  }
+
+  test_linked_type_dependency_reuse() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    // When the dependency for a linked type is the same as an explicit
+    // dependency, the explicit dependency should be re-used.
+    addNamedSource('/a.dart', 'class C {} class D {}');
+    addNamedSource('/b.dart', 'import "a.dart"; D f() => null;');
+    serializeLibraryText(
+        'import "a.dart"; import "b.dart"; C c; final d = f();');
+    int cReference = findVariable('c').type.reference;
+    int explicitDependency = linked.units[0].references[cReference].dependency;
+    int dReference =
+        getTypeRefForSlot(findVariable('d').propagatedTypeSlot).reference;
+    expect(
+        linked.units[0].references[dReference].dependency, explicitDependency);
+  }
+
   test_local_names_take_precedence_over_imported_names() {
     addNamedSource('/a.dart', 'class C {} class D {}');
     serializeLibraryText('''
@@ -3467,6 +3707,15 @@ void set f(value) {}''';
     UnlinkedExecutable executable = serializeExecutableText(text, 'f=');
     expect(executable.documentationComment, isNotNull);
     checkDocumentationComment(executable.documentationComment, text);
+  }
+
+  test_slot_reuse() {
+    // Different compilation units have independent notions of slot id, so slot
+    // ids should be reused.
+    addNamedSource('/a.dart', 'part of foo; final v = 0;');
+    serializeLibraryText('library foo; part "a.dart"; final w = 0;');
+    expect(unlinkedUnits[0].variables[0].propagatedTypeSlot, 1);
+    expect(unlinkedUnits[1].variables[0].propagatedTypeSlot, 1);
   }
 
   test_type_arguments_explicit() {
@@ -4025,6 +4274,59 @@ var v;''';
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 
+  test_variable_propagated_type_final_immediate() {
+    UnlinkedVariable v = serializeVariableText('final v = 0;');
+    checkLinkedTypeSlot(v.propagatedTypeSlot, 'dart:core', 'dart:core', 'int');
+  }
+
+  test_variable_propagated_type_new_reference() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedVariable v = serializeVariableText('final v = 0;');
+    // Since the propagated type of `v` is `int`, and there are no references
+    // to `int` elsewhere in the source file, a new linked reference should
+    // have been created for it, with no associated unlinked reference.
+    expect(v.propagatedTypeSlot, isNot(0));
+    TypeRef type = getTypeRefForSlot(v.propagatedTypeSlot);
+    expect(type, isNotNull);
+    expect(type.reference,
+        greaterThanOrEqualTo(unlinkedUnits[0].references.length));
+  }
+
+  test_variable_propagated_type_omit_dynamic() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedVariable v = serializeVariableText('final v = <int, dynamic>{};');
+    TypeRef type = getTypeRefForSlot(v.propagatedTypeSlot);
+    checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'Map',
+        allowTypeParameters: true, numTypeParameters: 2);
+    expect(type.typeArguments, hasLength(1));
+    checkLinkedTypeRef(type.typeArguments[0], 'dart:core', 'dart:core', 'int');
+  }
+
+  test_variable_propagatedTypeSlot_const() {
+    // Const variables are propagable so they have a nonzero
+    // propagatedTypeSlot.
+    UnlinkedVariable variable = serializeVariableText('const v = 0;');
+    expect(variable.propagatedTypeSlot, isNot(0));
+  }
+
+  test_variable_propagatedTypeSlot_final() {
+    // Final variables are propagable so they have a nonzero
+    // propagatedTypeSlot.
+    UnlinkedVariable variable = serializeVariableText('final v = 0;');
+    expect(variable.propagatedTypeSlot, isNot(0));
+  }
+
+  test_variable_propagatedTypeSlot_non_propagable() {
+    // Non-final non-const variables aren't propagable so they don't have a
+    // propagatedTypeSlot.
+    UnlinkedVariable variable = serializeVariableText('var v;');
+    expect(variable.propagatedTypeSlot, 0);
+  }
+
   test_variable_static() {
     UnlinkedVariable variable =
         serializeClassText('class C { static int i; }').fields[0];
@@ -4079,6 +4381,9 @@ class UnlinkedSummarizeAstTest extends Object with SummaryTest {
 
   @override
   bool get expectAbsoluteUrisInDependencies => false;
+
+  @override
+  bool get skipFullyLinkedData => true;
 
   @override
   addNamedSource(String filePath, String contents) {

@@ -44,6 +44,13 @@ ReferenceKind _getReferenceKind(Element element) {
 }
 
 /**
+ * Type of closures used by [_LibrarySerializer] to defer generation of
+ * [TypeRefBuilder] objects until the end of serialization of a
+ * compilation unit.
+ */
+typedef TypeRefBuilder _SerializeTypeRef();
+
+/**
  * Data structure holding the result of serializing a [LibraryElement].
  */
 class LibrarySerializationResult {
@@ -122,6 +129,17 @@ class _CompilationUnitSerializer {
    * objects which should be written to [LinkedUnit.references].
    */
   List<LinkedReferenceBuilder> linkedReferences;
+
+  /**
+   * The number of slot ids which have been assigned to this compilation unit.
+   */
+  int numSlots = 0;
+
+  /**
+   * List of closures which should be invoked at the end of serialization of a
+   * compilation unit, to produce [LinkedUnit.types].
+   */
+  final List<_SerializeTypeRef> deferredLinkedTypes = <_SerializeTypeRef>[];
 
   /**
    * Index into the "references table" representing an unresolved reference, if
@@ -249,6 +267,16 @@ class _CompilationUnitSerializer {
   }
 
   /**
+   * Create the [LinkedUnit.types] table based on deferred types that were
+   * found during [addCompilationUnitElements].
+   */
+  void createLinkedTypes() {
+    linkedUnit.types = deferredLinkedTypes
+        .map((_SerializeTypeRef closure) => closure())
+        .toList();
+  }
+
+  /**
    * Compute the appropriate De Bruijn index to represent the given type
    * parameter [type].
    */
@@ -275,6 +303,23 @@ class _CompilationUnitSerializer {
       context = context.enclosingElement;
     }
     throw new StateError('Unbound type parameter $type');
+  }
+
+  /**
+   * Get the type arguments for the given [type], or `null` if the type has no
+   * type arguments.
+   *
+   * TODO(paulberry): consider adding an abstract getter to [DartType] to do
+   * this.
+   */
+  List<DartType> getTypeArguments(DartType type) {
+    if (type is InterfaceType) {
+      return type.typeArguments;
+    } else if (type is FunctionType) {
+      return type.typeArguments;
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -535,6 +580,27 @@ class _CompilationUnitSerializer {
   }
 
   /**
+   * Compute the reference index which should be stored in a [TypeRef].
+   *
+   * If [linked] is true, and a new reference has to be created, the reference
+   * will only be stored in [linkedReferences].
+   */
+  int serializeReferenceForType(DartType type, bool linked) {
+    Element element = type.element;
+    LibraryElement dependentLibrary = element.library;
+    if (dependentLibrary == null) {
+      assert(type.isDynamic);
+      if (type is UndefinedTypeImpl) {
+        return serializeUnresolvedReference();
+      } else {
+        return serializeDynamicReference();
+      }
+    } else {
+      return _getElementReferenceId(element, linked: linked);
+    }
+  }
+
+  /**
    * Serialize the given [typedefElement], creating an [UnlinkedTypedef].
    */
   UnlinkedTypedefBuilder serializeTypedef(
@@ -568,31 +634,22 @@ class _CompilationUnitSerializer {
   }
 
   /**
-   * Serialize the given [type] into a [TypeRef].
+   * Serialize the given [type] into a [TypeRef].  If [slot] is provided,
+   * it should be included in the [TypeRef].  If [linked] is true, any
+   * references that are created will be populated into [linkedReferences] but
+   * [not [unlinkedReferences].
+   *
+   * [context] is the element within which the [TypeRef] will be
+   * interpreted; this is used to serialize type parameters.
    */
-  TypeRefBuilder serializeTypeRef(DartType type, Element context) {
-    TypeRefBuilder b = new TypeRefBuilder();
+  TypeRefBuilder serializeTypeRef(DartType type, Element context,
+      {bool linked: false, int slot}) {
+    TypeRefBuilder b = new TypeRefBuilder(slot: slot);
     if (type is TypeParameterType) {
       b.paramReference = findTypeParameterIndex(type, context);
     } else {
-      Element element = type.element;
-      LibraryElement dependentLibrary = element.library;
-      if (dependentLibrary == null) {
-        assert(type.isDynamic);
-        if (type is UndefinedTypeImpl) {
-          b.reference = serializeUnresolvedReference();
-        } else {
-          b.reference = serializeDynamicReference();
-        }
-      } else {
-        b.reference = _getElementReferenceId(element);
-      }
-      List<DartType> typeArguments;
-      if (type is InterfaceType) {
-        typeArguments = type.typeArguments;
-      } else if (type is FunctionType) {
-        typeArguments = type.typeArguments;
-      }
+      b.reference = serializeReferenceForType(type, linked);
+      List<DartType> typeArguments = getTypeArguments(type);
       if (typeArguments != null) {
         // Trailing type arguments of type 'dynamic' should be omitted.
         int numArgsToSerialize = typeArguments.length;
@@ -603,8 +660,8 @@ class _CompilationUnitSerializer {
         if (numArgsToSerialize > 0) {
           List<TypeRefBuilder> serializedArguments = <TypeRefBuilder>[];
           for (int i = 0; i < numArgsToSerialize; i++) {
-            serializedArguments
-                .add(serializeTypeRef(typeArguments[i], context));
+            serializedArguments.add(
+                serializeTypeRef(typeArguments[i], context, linked: linked));
           }
           b.typeArguments = serializedArguments;
         }
@@ -655,13 +712,36 @@ class _CompilationUnitSerializer {
         b.constExpr = serializeConstExpr(initializer);
       }
     }
+    if (b.isFinal || b.isConst) {
+      b.propagatedTypeSlot = storeLinkedType(variable.propagatedType, variable);
+    } else {
+      // Variable is not propagable.
+      assert(variable.propagatedType == null);
+    }
     return b;
   }
 
-  int _getElementReferenceId(Element element) {
+  /**
+   * Create a slot id for the given [type] (which may be either a propagated
+   * type or an inferred type).  If [type] is not `null`, it is stored in
+   * [linkedTypes] so that once the compilation unit has been fully visited,
+   * it will be serialized to [LinkedUnit.types].
+   *
+   * [context] is the element within which the slot id will appear; this is
+   * used to serialize type parameters.
+   */
+  int storeLinkedType(DartType type, Element context) {
+    int slot = ++numSlots;
+    if (type != null) {
+      deferredLinkedTypes
+          .add(() => serializeTypeRef(type, context, linked: true, slot: slot));
+    }
+    return slot;
+  }
+
+  int _getElementReferenceId(Element element, {bool linked: false}) {
     LibraryElement dependentLibrary = element.library;
     return referenceMap.putIfAbsent(element, () {
-      assert(unlinkedReferences.length == linkedReferences.length);
       CompilationUnitElement unitElement =
           element.getAncestor((Element e) => e is CompilationUnitElement);
       int unit = dependentLibrary.units.indexOf(unitElement);
@@ -670,24 +750,30 @@ class _CompilationUnitSerializer {
       if (element is TypeParameterizedElement) {
         numTypeParameters = element.typeParameters.length;
       }
-      // Figure out a prefix that may be used to refer to the given type.
-      // TODO(paulberry): to avoid subtle relinking inconsistencies we
-      // should use the actual prefix from the AST (a given type may be
-      // reachable via multiple prefixes), but sadly, this information is
-      // not recorded in the element model.
-      int prefixReference = 0;
-      PrefixElement prefix = librarySerializer.prefixMap[element];
-      if (prefix != null) {
-        prefixReference = serializePrefix(prefix);
-      }
-      int index = unlinkedReferences.length;
-      unlinkedReferences.add(new UnlinkedReferenceBuilder(
-          name: element.name, prefixReference: prefixReference));
-      linkedReferences.add(new LinkedReferenceBuilder(
+      LinkedReferenceBuilder linkedReference = new LinkedReferenceBuilder(
           dependency: librarySerializer.serializeDependency(dependentLibrary),
           kind: _getReferenceKind(element),
           unit: unit,
-          numTypeParameters: numTypeParameters));
+          numTypeParameters: numTypeParameters);
+      if (linked) {
+        linkedReference.name = element.name;
+      } else {
+        assert(unlinkedReferences.length == linkedReferences.length);
+        // Figure out a prefix that may be used to refer to the given type.
+        // TODO(paulberry): to avoid subtle relinking inconsistencies we
+        // should use the actual prefix from the AST (a given type may be
+        // reachable via multiple prefixes), but sadly, this information is
+        // not recorded in the element model.
+        int prefixReference = 0;
+        PrefixElement prefix = librarySerializer.prefixMap[element];
+        if (prefix != null) {
+          prefixReference = serializePrefix(prefix);
+        }
+        unlinkedReferences.add(new UnlinkedReferenceBuilder(
+            name: element.name, prefixReference: prefixReference));
+      }
+      int index = linkedReferences.length;
+      linkedReferences.add(linkedReference);
       return index;
     });
   }
@@ -870,6 +956,11 @@ class _LibrarySerializer {
         .map((_CompilationUnitSerializer s) => s.linkedUnit)
         .toList();
     pb.dependencies = dependencies;
+    pb.numPrelinkedDependencies = dependencies.length;
+    for (_CompilationUnitSerializer compilationUnitSerializer
+        in compilationUnitSerializers) {
+      compilationUnitSerializer.createLinkedTypes();
+    }
     pb.importDependencies = linkedImports;
     List<String> exportedNames =
         libraryElement.exportNamespace.definedNames.keys.toList();

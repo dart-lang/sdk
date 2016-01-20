@@ -435,7 +435,8 @@ class _Prelinker {
         units: linkedUnits,
         dependencies: dependencies,
         importDependencies: importDependencies,
-        exportNames: exportNames);
+        exportNames: exportNames,
+        numPrelinkedDependencies: dependencies.length);
   }
 
   /**

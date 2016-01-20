@@ -262,6 +262,12 @@ class _LibraryResynthesizer {
   UnlinkedUnit unlinkedUnit;
 
   /**
+   * Map from slot id to the corresponding [TypeRef] object for linked types
+   * (i.e. propagated and inferred types).
+   */
+  Map<int, TypeRef> linkedTypeMap;
+
+  /**
    * Map of top level elements that have been resynthesized so far.  The first
    * key is the URI of the compilation unit; the second is the name of the top
    * level element.
@@ -860,6 +866,24 @@ class _LibraryResynthesizer {
   }
 
   /**
+   * Build the appropriate [DartType] object corresponding to a slot id in the
+   * [LinkedUnit.types] table.
+   */
+  DartType buildLinkedType(int slot) {
+    if (slot == 0) {
+      // A slot id of 0 means there is no [DartType] object to build.
+      return null;
+    }
+    TypeRef type = linkedTypeMap[slot];
+    if (type == null) {
+      // A missing entry in [LinkedUnit.types] means there is no [DartType]
+      // stored in this slot.
+      return null;
+    }
+    return buildType(type);
+  }
+
+  /**
    * Resynthesize a [ParameterElement].
    */
   ParameterElement buildParameter(UnlinkedParam serializedParameter) {
@@ -947,18 +971,23 @@ class _LibraryResynthesizer {
       // TODO(paulberry): test reference to something inside a part.
       // TODO(paulberry): test reference to something inside a part of the
       // current lib.
-      UnlinkedReference reference = unlinkedUnit.references[type.reference];
       LinkedReference referenceResolution =
           linkedUnit.references[type.reference];
+      String name;
+      if (type.reference < unlinkedUnit.references.length) {
+        name = unlinkedUnit.references[type.reference].name;
+      } else {
+        name = referenceResolution.name;
+      }
       ElementLocationImpl location;
       if (referenceResolution.dependency != 0) {
         location = getReferencedLocation(
             linkedLibrary.dependencies[referenceResolution.dependency],
             referenceResolution.unit,
-            reference.name);
+            name);
       } else if (referenceResolution.kind == ReferenceKind.unresolved) {
         return summaryResynthesizer.typeProvider.undefinedType;
-      } else if (reference.name.isEmpty) {
+      } else if (name.isEmpty) {
         return summaryResynthesizer.typeProvider.dynamicType;
       } else {
         String referencedLibraryUri = librarySource.uri.toString();
@@ -973,7 +1002,7 @@ class _LibraryResynthesizer {
           partUri = referencedLibraryUri;
         }
         location = new ElementLocationImpl.con3(
-            <String>[referencedLibraryUri, partUri, reference.name]);
+            <String>[referencedLibraryUri, partUri, name]);
       }
       List<DartType> typeArguments = const <DartType>[];
       if (referenceResolution.numTypeParameters != 0) {
@@ -990,13 +1019,13 @@ class _LibraryResynthesizer {
         case ReferenceKind.classOrEnum:
           return new InterfaceTypeImpl.elementWithNameAndArgs(
               new ClassElementHandle(summaryResynthesizer, location),
-              reference.name,
+              name,
               typeArguments);
         case ReferenceKind.typedef:
           return new FunctionTypeImpl.elementWithNameAndArgs(
               new FunctionTypeAliasElementHandle(
                   summaryResynthesizer, location),
-              reference.name,
+              name,
               typeArguments,
               typeArguments.isNotEmpty);
         default:
@@ -1089,6 +1118,8 @@ class _LibraryResynthesizer {
     element.const3 = serializedVariable.isConst;
     element.final2 = serializedVariable.isFinal;
     element.hasImplicitType = serializedVariable.hasImplicitType;
+    element.propagatedType =
+        buildLinkedType(serializedVariable.propagatedTypeSlot);
     buildDocumentation(element, serializedVariable.documentationComment);
   }
 
@@ -1137,6 +1168,10 @@ class _LibraryResynthesizer {
   void populateUnit(CompilationUnitElementImpl unit, int unitNum) {
     linkedUnit = linkedLibrary.units[unitNum];
     unlinkedUnit = unlinkedUnits[unitNum];
+    linkedTypeMap = <int, TypeRef>{};
+    for (TypeRef t in linkedUnit.types) {
+      linkedTypeMap[t.slot] = t;
+    }
     unitHolder = new ElementHolder();
     unlinkedUnit.classes.forEach(buildClass);
     unlinkedUnit.enums.forEach(buildEnum);
@@ -1176,5 +1211,6 @@ class _LibraryResynthesizer {
     unitHolder = null;
     linkedUnit = null;
     unlinkedUnit = null;
+    linkedTypeMap = null;
   }
 }

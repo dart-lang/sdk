@@ -435,6 +435,7 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements Li
   List<LinkedDependencyBuilder> _dependencies;
   List<int> _importDependencies;
   List<LinkedExportNameBuilder> _exportNames;
+  int _numPrelinkedDependencies;
 
   @override
   List<LinkedUnit> get units => _units ?? const <LinkedUnit>[];
@@ -457,10 +458,16 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements Li
    * The libraries that this library depends on (either via an explicit import
    * statement or via the implicit dependencies on `dart:core` and
    * `dart:async`).  The first element of this array is a pseudo-dependency
-   * representing the library itself (it is also used for "dynamic").
+   * representing the library itself (it is also used for "dynamic").  This is
+   * followed by elements representing "prelinked" dependencies (direct imports
+   * and the transitive closure of exports).  After the prelinked dependencies
+   * are elements represent "linked" dependencies.
    *
-   * TODO(paulberry): consider removing this entirely and just using
-   * [UnlinkedLibrary.imports].
+   * A library is only included as a "linked" dependency if it is a true
+   * dependency (e.g. a propagated or inferred type or constant value
+   * implicitly refers to an element declared in the library) or
+   * anti-dependency (e.g. the result of type propagation or type inference
+   * depends on the lack of a certain declaration in the library).
    */
   void set dependencies(List<LinkedDependencyBuilder> _value) {
     assert(!_finished);
@@ -473,9 +480,6 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements Li
   /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
    * of the library being imported.
-   *
-   * TODO(paulberry): if [dependencies] is removed, this can be removed as
-   * well, since there will effectively be a one-to-one mapping.
    */
   void set importDependencies(List<int> _value) {
     assert(!_finished);
@@ -497,11 +501,25 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements Li
     _exportNames = _value;
   }
 
-  LinkedLibraryBuilder({List<LinkedUnitBuilder> units, List<LinkedDependencyBuilder> dependencies, List<int> importDependencies, List<LinkedExportNameBuilder> exportNames})
+  @override
+  int get numPrelinkedDependencies => _numPrelinkedDependencies ?? 0;
+
+  /**
+   * The number of elements in [dependencies] which are not "linked"
+   * dependencies (that is, the number of libraries in the direct imports plus
+   * the transitive closure of exports, plus the library itself).
+   */
+  void set numPrelinkedDependencies(int _value) {
+    assert(!_finished);
+    _numPrelinkedDependencies = _value;
+  }
+
+  LinkedLibraryBuilder({List<LinkedUnitBuilder> units, List<LinkedDependencyBuilder> dependencies, List<int> importDependencies, List<LinkedExportNameBuilder> exportNames, int numPrelinkedDependencies})
     : _units = units,
       _dependencies = dependencies,
       _importDependencies = importDependencies,
-      _exportNames = exportNames;
+      _exportNames = exportNames,
+      _numPrelinkedDependencies = numPrelinkedDependencies;
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
@@ -540,6 +558,9 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements Li
     if (offset_exportNames != null) {
       fbBuilder.addOffset(3, offset_exportNames);
     }
+    if (_numPrelinkedDependencies != null && _numPrelinkedDependencies != 0) {
+      fbBuilder.addInt32(4, _numPrelinkedDependencies);
+    }
     return fbBuilder.endTable();
   }
 }
@@ -565,19 +586,22 @@ abstract class LinkedLibrary extends base.SummaryClass {
    * The libraries that this library depends on (either via an explicit import
    * statement or via the implicit dependencies on `dart:core` and
    * `dart:async`).  The first element of this array is a pseudo-dependency
-   * representing the library itself (it is also used for "dynamic").
+   * representing the library itself (it is also used for "dynamic").  This is
+   * followed by elements representing "prelinked" dependencies (direct imports
+   * and the transitive closure of exports).  After the prelinked dependencies
+   * are elements represent "linked" dependencies.
    *
-   * TODO(paulberry): consider removing this entirely and just using
-   * [UnlinkedLibrary.imports].
+   * A library is only included as a "linked" dependency if it is a true
+   * dependency (e.g. a propagated or inferred type or constant value
+   * implicitly refers to an element declared in the library) or
+   * anti-dependency (e.g. the result of type propagation or type inference
+   * depends on the lack of a certain declaration in the library).
    */
   List<LinkedDependency> get dependencies;
 
   /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
    * of the library being imported.
-   *
-   * TODO(paulberry): if [dependencies] is removed, this can be removed as
-   * well, since there will effectively be a one-to-one mapping.
    */
   List<int> get importDependencies;
 
@@ -589,6 +613,13 @@ abstract class LinkedLibrary extends base.SummaryClass {
    * Sorted by name.
    */
   List<LinkedExportName> get exportNames;
+
+  /**
+   * The number of elements in [dependencies] which are not "linked"
+   * dependencies (that is, the number of libraries in the direct imports plus
+   * the transitive closure of exports, plus the library itself).
+   */
+  int get numPrelinkedDependencies;
 }
 
 class _LinkedLibraryReader extends fb.TableReader<_LinkedLibraryImpl> {
@@ -607,6 +638,7 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements Link
   List<LinkedDependency> _dependencies;
   List<int> _importDependencies;
   List<LinkedExportName> _exportNames;
+  int _numPrelinkedDependencies;
 
   @override
   List<LinkedUnit> get units {
@@ -631,6 +663,12 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements Link
     _exportNames ??= const fb.ListReader<LinkedExportName>(const _LinkedExportNameReader()).vTableGet(_bp, 3, const <LinkedExportName>[]);
     return _exportNames;
   }
+
+  @override
+  int get numPrelinkedDependencies {
+    _numPrelinkedDependencies ??= const fb.Int32Reader().vTableGet(_bp, 4, 0);
+    return _numPrelinkedDependencies;
+  }
 }
 
 abstract class _LinkedLibraryMixin implements LinkedLibrary {
@@ -640,6 +678,7 @@ abstract class _LinkedLibraryMixin implements LinkedLibrary {
     "dependencies": dependencies,
     "importDependencies": importDependencies,
     "exportNames": exportNames,
+    "numPrelinkedDependencies": numPrelinkedDependencies,
   };
 }
 
@@ -650,6 +689,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
   ReferenceKind _kind;
   int _unit;
   int _numTypeParameters;
+  String _name;
 
   @override
   int get dependency => _dependency ?? 0;
@@ -701,15 +741,33 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
     _numTypeParameters = _value;
   }
 
-  LinkedReferenceBuilder({int dependency, ReferenceKind kind, int unit, int numTypeParameters})
+  @override
+  String get name => _name ?? '';
+
+  /**
+   * If this [LinkedReference] doesn't have an associated [UnlinkedReference],
+   * name of the entity being referred to.  The empty string refers to the
+   * pseudo-type `dynamic`.
+   */
+  void set name(String _value) {
+    assert(!_finished);
+    _name = _value;
+  }
+
+  LinkedReferenceBuilder({int dependency, ReferenceKind kind, int unit, int numTypeParameters, String name})
     : _dependency = dependency,
       _kind = kind,
       _unit = unit,
-      _numTypeParameters = numTypeParameters;
+      _numTypeParameters = numTypeParameters,
+      _name = name;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
+    fb.Offset offset_name;
+    if (_name != null) {
+      offset_name = fbBuilder.writeString(_name);
+    }
     fbBuilder.startTable();
     if (_dependency != null && _dependency != 0) {
       fbBuilder.addInt32(0, _dependency);
@@ -722,6 +780,9 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
     }
     if (_numTypeParameters != null && _numTypeParameters != 0) {
       fbBuilder.addInt32(3, _numTypeParameters);
+    }
+    if (offset_name != null) {
+      fbBuilder.addOffset(4, offset_name);
     }
     return fbBuilder.endTable();
   }
@@ -757,6 +818,13 @@ abstract class LinkedReference extends base.SummaryClass {
    * it accepts.  Otherwise zero.
    */
   int get numTypeParameters;
+
+  /**
+   * If this [LinkedReference] doesn't have an associated [UnlinkedReference],
+   * name of the entity being referred to.  The empty string refers to the
+   * pseudo-type `dynamic`.
+   */
+  String get name;
 }
 
 class _LinkedReferenceReader extends fb.TableReader<_LinkedReferenceImpl> {
@@ -775,6 +843,7 @@ class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements 
   ReferenceKind _kind;
   int _unit;
   int _numTypeParameters;
+  String _name;
 
   @override
   int get dependency {
@@ -799,6 +868,12 @@ class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements 
     _numTypeParameters ??= const fb.Int32Reader().vTableGet(_bp, 3, 0);
     return _numTypeParameters;
   }
+
+  @override
+  String get name {
+    _name ??= const fb.StringReader().vTableGet(_bp, 4, '');
+    return _name;
+  }
 }
 
 abstract class _LinkedReferenceMixin implements LinkedReference {
@@ -808,6 +883,7 @@ abstract class _LinkedReferenceMixin implements LinkedReference {
     "kind": kind,
     "unit": unit,
     "numTypeParameters": numTypeParameters,
+    "name": name,
   };
 }
 
@@ -815,32 +891,57 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements LinkedUn
   bool _finished = false;
 
   List<LinkedReferenceBuilder> _references;
+  List<TypeRefBuilder> _types;
 
   @override
   List<LinkedReference> get references => _references ?? const <LinkedReference>[];
 
   /**
-   * For each reference in [UnlinkedUnit.references], information about how
-   * that reference is resolved.
+   * Information about the resolution of references within the compilation
+   * unit.  Each element of [UnlinkedUnit.references] has a corresponding
+   * element in this list (at the same index).  If this list has additional
+   * elements beyond the number of elements in [UnlinkedUnit.references], those
+   * additional elements are references that are only referred to implicitly
+   * (e.g. elements involved in inferred or propagated types).
    */
   void set references(List<LinkedReferenceBuilder> _value) {
     assert(!_finished);
     _references = _value;
   }
 
-  LinkedUnitBuilder({List<LinkedReferenceBuilder> references})
-    : _references = references;
+  @override
+  List<TypeRef> get types => _types ?? const <TypeRef>[];
+
+  /**
+   * List associating slot ids found inside the unlinked summary for the
+   * compilation unit with propagated and inferred types.
+   */
+  void set types(List<TypeRefBuilder> _value) {
+    assert(!_finished);
+    _types = _value;
+  }
+
+  LinkedUnitBuilder({List<LinkedReferenceBuilder> references, List<TypeRefBuilder> types})
+    : _references = references,
+      _types = types;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
     fb.Offset offset_references;
+    fb.Offset offset_types;
     if (!(_references == null || _references.isEmpty)) {
       offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_types == null || _types.isEmpty)) {
+      offset_types = fbBuilder.writeList(_types.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_references != null) {
       fbBuilder.addOffset(0, offset_references);
+    }
+    if (offset_types != null) {
+      fbBuilder.addOffset(1, offset_types);
     }
     return fbBuilder.endTable();
   }
@@ -852,10 +953,20 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements LinkedUn
 abstract class LinkedUnit extends base.SummaryClass {
 
   /**
-   * For each reference in [UnlinkedUnit.references], information about how
-   * that reference is resolved.
+   * Information about the resolution of references within the compilation
+   * unit.  Each element of [UnlinkedUnit.references] has a corresponding
+   * element in this list (at the same index).  If this list has additional
+   * elements beyond the number of elements in [UnlinkedUnit.references], those
+   * additional elements are references that are only referred to implicitly
+   * (e.g. elements involved in inferred or propagated types).
    */
   List<LinkedReference> get references;
+
+  /**
+   * List associating slot ids found inside the unlinked summary for the
+   * compilation unit with propagated and inferred types.
+   */
+  List<TypeRef> get types;
 }
 
 class _LinkedUnitReader extends fb.TableReader<_LinkedUnitImpl> {
@@ -871,11 +982,18 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements LinkedUnit
   _LinkedUnitImpl(this._bp);
 
   List<LinkedReference> _references;
+  List<TypeRef> _types;
 
   @override
   List<LinkedReference> get references {
     _references ??= const fb.ListReader<LinkedReference>(const _LinkedReferenceReader()).vTableGet(_bp, 0, const <LinkedReference>[]);
     return _references;
+  }
+
+  @override
+  List<TypeRef> get types {
+    _types ??= const fb.ListReader<TypeRef>(const _TypeRefReader()).vTableGet(_bp, 1, const <TypeRef>[]);
+    return _types;
   }
 }
 
@@ -883,6 +1001,7 @@ abstract class _LinkedUnitMixin implements LinkedUnit {
   @override
   Map<String, Object> toMap() => {
     "references": references,
+    "types": types,
   };
 }
 
@@ -1070,9 +1189,25 @@ abstract class _SdkBundleMixin implements SdkBundle {
 class TypeRefBuilder extends Object with _TypeRefMixin implements TypeRef {
   bool _finished = false;
 
+  int _slot;
   int _reference;
   int _paramReference;
   List<TypeRefBuilder> _typeArguments;
+
+  @override
+  int get slot => _slot ?? 0;
+
+  /**
+   * If this [TypeRef] is contained within [LinkedUnit.types], slot id (which
+   * is unique within the compilation unit) identifying the target of type
+   * propagation or type inference with which this [TypeRef] is asociated.
+   *
+   * Otherwise zero.
+   */
+  void set slot(int _value) {
+    assert(!_finished);
+    _slot = _value;
+  }
 
   @override
   int get reference => _reference ?? 0;
@@ -1131,8 +1266,9 @@ class TypeRefBuilder extends Object with _TypeRefMixin implements TypeRef {
     _typeArguments = _value;
   }
 
-  TypeRefBuilder({int reference, int paramReference, List<TypeRefBuilder> typeArguments})
-    : _reference = reference,
+  TypeRefBuilder({int slot, int reference, int paramReference, List<TypeRefBuilder> typeArguments})
+    : _slot = slot,
+      _reference = reference,
       _paramReference = paramReference,
       _typeArguments = typeArguments;
 
@@ -1144,14 +1280,17 @@ class TypeRefBuilder extends Object with _TypeRefMixin implements TypeRef {
       offset_typeArguments = fbBuilder.writeList(_typeArguments.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
+    if (_slot != null && _slot != 0) {
+      fbBuilder.addInt32(0, _slot);
+    }
     if (_reference != null && _reference != 0) {
-      fbBuilder.addInt32(0, _reference);
+      fbBuilder.addInt32(1, _reference);
     }
     if (_paramReference != null && _paramReference != 0) {
-      fbBuilder.addInt32(1, _paramReference);
+      fbBuilder.addInt32(2, _paramReference);
     }
     if (offset_typeArguments != null) {
-      fbBuilder.addOffset(2, offset_typeArguments);
+      fbBuilder.addOffset(3, offset_typeArguments);
     }
     return fbBuilder.endTable();
   }
@@ -1161,6 +1300,15 @@ class TypeRefBuilder extends Object with _TypeRefMixin implements TypeRef {
  * Summary information about a reference to a type.
  */
 abstract class TypeRef extends base.SummaryClass {
+
+  /**
+   * If this [TypeRef] is contained within [LinkedUnit.types], slot id (which
+   * is unique within the compilation unit) identifying the target of type
+   * propagation or type inference with which this [TypeRef] is asociated.
+   *
+   * Otherwise zero.
+   */
+  int get slot;
 
   /**
    * Index into [UnlinkedUnit.references] for the type being referred to, or
@@ -1214,25 +1362,32 @@ class _TypeRefImpl extends Object with _TypeRefMixin implements TypeRef {
 
   _TypeRefImpl(this._bp);
 
+  int _slot;
   int _reference;
   int _paramReference;
   List<TypeRef> _typeArguments;
 
   @override
+  int get slot {
+    _slot ??= const fb.Int32Reader().vTableGet(_bp, 0, 0);
+    return _slot;
+  }
+
+  @override
   int get reference {
-    _reference ??= const fb.Int32Reader().vTableGet(_bp, 0, 0);
+    _reference ??= const fb.Int32Reader().vTableGet(_bp, 1, 0);
     return _reference;
   }
 
   @override
   int get paramReference {
-    _paramReference ??= const fb.Int32Reader().vTableGet(_bp, 1, 0);
+    _paramReference ??= const fb.Int32Reader().vTableGet(_bp, 2, 0);
     return _paramReference;
   }
 
   @override
   List<TypeRef> get typeArguments {
-    _typeArguments ??= const fb.ListReader<TypeRef>(const _TypeRefReader()).vTableGet(_bp, 2, const <TypeRef>[]);
+    _typeArguments ??= const fb.ListReader<TypeRef>(const _TypeRefReader()).vTableGet(_bp, 3, const <TypeRef>[]);
     return _typeArguments;
   }
 }
@@ -1240,6 +1395,7 @@ class _TypeRefImpl extends Object with _TypeRefMixin implements TypeRef {
 abstract class _TypeRefMixin implements TypeRef {
   @override
   Map<String, Object> toMap() => {
+    "slot": slot,
     "reference": reference,
     "paramReference": paramReference,
     "typeArguments": typeArguments,
@@ -5201,6 +5357,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   bool _isFinal;
   bool _isConst;
   bool _hasImplicitType;
+  int _propagatedTypeSlot;
 
   @override
   String get name => _name ?? '';
@@ -5308,7 +5465,23 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _hasImplicitType = _value;
   }
 
-  UnlinkedVariableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, TypeRefBuilder type, UnlinkedConstBuilder constExpr, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType})
+  @override
+  int get propagatedTypeSlot => _propagatedTypeSlot ?? 0;
+
+  /**
+   * If this variable is propagable, nonzero slot id identifying which entry in
+   * [LinkedLibrary.types] contains the propagated type for this variable.  If
+   * there is no matching entry in [LinkedLibrary.types], then this variable's
+   * propagated type is the same as its declared type.
+   *
+   * Non-propagable variables have a [propagatedTypeSlot] of zero.
+   */
+  void set propagatedTypeSlot(int _value) {
+    assert(!_finished);
+    _propagatedTypeSlot = _value;
+  }
+
+  UnlinkedVariableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, TypeRefBuilder type, UnlinkedConstBuilder constExpr, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType, int propagatedTypeSlot})
     : _name = name,
       _nameOffset = nameOffset,
       _documentationComment = documentationComment,
@@ -5317,7 +5490,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
       _isStatic = isStatic,
       _isFinal = isFinal,
       _isConst = isConst,
-      _hasImplicitType = hasImplicitType;
+      _hasImplicitType = hasImplicitType,
+      _propagatedTypeSlot = propagatedTypeSlot;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -5365,6 +5539,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     }
     if (_hasImplicitType == true) {
       fbBuilder.addBool(8, true);
+    }
+    if (_propagatedTypeSlot != null && _propagatedTypeSlot != 0) {
+      fbBuilder.addInt32(9, _propagatedTypeSlot);
     }
     return fbBuilder.endTable();
   }
@@ -5427,6 +5604,16 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * Indicates whether this variable lacks an explicit type declaration.
    */
   bool get hasImplicitType;
+
+  /**
+   * If this variable is propagable, nonzero slot id identifying which entry in
+   * [LinkedLibrary.types] contains the propagated type for this variable.  If
+   * there is no matching entry in [LinkedLibrary.types], then this variable's
+   * propagated type is the same as its declared type.
+   *
+   * Non-propagable variables have a [propagatedTypeSlot] of zero.
+   */
+  int get propagatedTypeSlot;
 }
 
 class _UnlinkedVariableReader extends fb.TableReader<_UnlinkedVariableImpl> {
@@ -5450,6 +5637,7 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   bool _isFinal;
   bool _isConst;
   bool _hasImplicitType;
+  int _propagatedTypeSlot;
 
   @override
   String get name {
@@ -5504,6 +5692,12 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
     _hasImplicitType ??= const fb.BoolReader().vTableGet(_bp, 8, false);
     return _hasImplicitType;
   }
+
+  @override
+  int get propagatedTypeSlot {
+    _propagatedTypeSlot ??= const fb.Int32Reader().vTableGet(_bp, 9, 0);
+    return _propagatedTypeSlot;
+  }
 }
 
 abstract class _UnlinkedVariableMixin implements UnlinkedVariable {
@@ -5518,6 +5712,7 @@ abstract class _UnlinkedVariableMixin implements UnlinkedVariable {
     "isFinal": isFinal,
     "isConst": isConst,
     "hasImplicitType": hasImplicitType,
+    "propagatedTypeSlot": propagatedTypeSlot,
   };
 }
 

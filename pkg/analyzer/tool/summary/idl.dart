@@ -134,19 +134,22 @@ class LinkedLibrary {
    * The libraries that this library depends on (either via an explicit import
    * statement or via the implicit dependencies on `dart:core` and
    * `dart:async`).  The first element of this array is a pseudo-dependency
-   * representing the library itself (it is also used for "dynamic").
+   * representing the library itself (it is also used for "dynamic").  This is
+   * followed by elements representing "prelinked" dependencies (direct imports
+   * and the transitive closure of exports).  After the prelinked dependencies
+   * are elements represent "linked" dependencies.
    *
-   * TODO(paulberry): consider removing this entirely and just using
-   * [UnlinkedLibrary.imports].
+   * A library is only included as a "linked" dependency if it is a true
+   * dependency (e.g. a propagated or inferred type or constant value
+   * implicitly refers to an element declared in the library) or
+   * anti-dependency (e.g. the result of type propagation or type inference
+   * depends on the lack of a certain declaration in the library).
    */
   List<LinkedDependency> dependencies;
 
   /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
    * of the library being imported.
-   *
-   * TODO(paulberry): if [dependencies] is removed, this can be removed as
-   * well, since there will effectively be a one-to-one mapping.
    */
   List<int> importDependencies;
 
@@ -158,6 +161,13 @@ class LinkedLibrary {
    * Sorted by name.
    */
   List<LinkedExportName> exportNames;
+
+  /**
+   * The number of elements in [dependencies] which are not "linked"
+   * dependencies (that is, the number of libraries in the direct imports plus
+   * the transitive closure of exports, plus the library itself).
+   */
+  int numPrelinkedDependencies;
 }
 
 /**
@@ -189,6 +199,13 @@ class LinkedReference {
    * it accepts.  Otherwise zero.
    */
   int numTypeParameters;
+
+  /**
+   * If this [LinkedReference] doesn't have an associated [UnlinkedReference],
+   * name of the entity being referred to.  The empty string refers to the
+   * pseudo-type `dynamic`.
+   */
+  String name;
 }
 
 /**
@@ -196,10 +213,20 @@ class LinkedReference {
  */
 class LinkedUnit {
   /**
-   * For each reference in [UnlinkedUnit.references], information about how
-   * that reference is resolved.
+   * Information about the resolution of references within the compilation
+   * unit.  Each element of [UnlinkedUnit.references] has a corresponding
+   * element in this list (at the same index).  If this list has additional
+   * elements beyond the number of elements in [UnlinkedUnit.references], those
+   * additional elements are references that are only referred to implicitly
+   * (e.g. elements involved in inferred or propagated types).
    */
   List<LinkedReference> references;
+
+  /**
+   * List associating slot ids found inside the unlinked summary for the
+   * compilation unit with propagated and inferred types.
+   */
+  List<TypeRef> types;
 }
 
 /**
@@ -268,6 +295,15 @@ class SdkBundle {
  * Summary information about a reference to a type.
  */
 class TypeRef {
+  /**
+   * If this [TypeRef] is contained within [LinkedUnit.types], slot id (which
+   * is unique within the compilation unit) identifying the target of type
+   * propagation or type inference with which this [TypeRef] is asociated.
+   *
+   * Otherwise zero.
+   */
+  int slot;
+
   /**
    * Index into [UnlinkedUnit.references] for the type being referred to, or
    * zero if this is a reference to a type parameter.
@@ -1376,4 +1412,14 @@ class UnlinkedVariable {
    * Indicates whether this variable lacks an explicit type declaration.
    */
   bool hasImplicitType;
+
+  /**
+   * If this variable is propagable, nonzero slot id identifying which entry in
+   * [LinkedLibrary.types] contains the propagated type for this variable.  If
+   * there is no matching entry in [LinkedLibrary.types], then this variable's
+   * propagated type is the same as its declared type.
+   *
+   * Non-propagable variables have a [propagatedTypeSlot] of zero.
+   */
+  int propagatedTypeSlot;
 }
