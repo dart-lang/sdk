@@ -121,7 +121,7 @@ UnlinkedPublicNamespace computePublicNamespaceFromText(
 /**
  * Type of a function that validates an [TypeRef].
  */
-typedef bool _TypeRefValidator(TypeRef unlinkedTypeRef);
+typedef void _TypeRefValidator(TypeRef unlinkedTypeRef);
 
 /**
  * Override of [SummaryTest] which verifies the correctness of the prelinker by
