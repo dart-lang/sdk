@@ -121,6 +121,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
       if (assign.op != null) break; // Compound assignment.
       js.VariableUse use = assign.leftHandSide;
 
+      // Do not touch non-local variables.
+      if (!usedVariableNames.contains(use.name)) break;
+
       // We cannot declare a variable more than once.
       if (!declaredVariables.add(use.name)) break;
 
@@ -143,6 +146,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
       if (assign.leftHandSide is! js.VariableUse) break pullFromForLoop;
       if (assign.op != null) break pullFromForLoop; // Compound assignment.
       js.VariableUse use = assign.leftHandSide;
+
+      // Do not touch non-local variables.
+      if (!usedVariableNames.contains(use.name)) break pullFromForLoop;
 
       // We cannot declare a variable more than once.
       if (!declaredVariables.add(use.name)) break pullFromForLoop;
