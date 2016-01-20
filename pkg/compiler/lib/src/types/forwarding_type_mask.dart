@@ -84,6 +84,10 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.union(other, classWorld);
   }
 
+  bool isDisjoint(TypeMask other, ClassWorld classWorld) {
+    return forwardTo.isDisjoint(other, classWorld);
+  }
+
   TypeMask intersection(TypeMask other, ClassWorld classWorld) {
     return forwardTo.intersection(other, classWorld);
   }

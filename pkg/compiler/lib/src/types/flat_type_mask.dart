@@ -358,6 +358,53 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
+  bool isDisjoint(TypeMask other, ClassWorld classWorld) {
+    if (other is! FlatTypeMask) return other.isDisjoint(this, classWorld);
+    FlatTypeMask flatOther = other;
+
+    if (isNullable && flatOther.isNullable) return false;
+    if (isEmpty || flatOther.isEmpty) return true;
+    if (base == flatOther.base) return false;
+    if (isExact && flatOther.isExact) return true;
+
+    // normalization guarantees that isExact === !isSubclass && !isSubtype
+    if (classWorld.isSubclassOf(flatOther.base, base)) return isExact;
+    if (classWorld.isSubclassOf(base, flatOther.base)) {
+      return flatOther.isExact;
+    }
+
+    // Two different base classes have no common subclass unless one is a
+    // subclass of the other (checked above).
+    if (isSubclass && flatOther.isSubclass) return true;
+
+    if (classWorld.isSubtypeOf(flatOther.base, base)) return !isSubtype;
+    if (classWorld.isSubtypeOf(base, flatOther.base)) {
+      return !flatOther.isSubtype;
+    }
+
+    // By now we know they are not subtypes of each other, so if either is
+    // exact, we are done.
+    if (isExact || flatOther.isExact) return true;
+
+    return _isDisjointHelper(this, flatOther, classWorld);
+  }
+
+  static bool _isDisjointHelper(
+      FlatTypeMask a, FlatTypeMask b, ClassWorld classWorld) {
+    if (!a.isSubclass && b.isSubclass) {
+      return _isDisjointHelper(b, a, classWorld);
+    }
+    assert(a.isSubclass || a.isSubtype);
+    assert(b.isSubtype);
+    var elements = a.isSubclass
+      ? classWorld.strictSubclassesOf(a.base)
+      : classWorld.strictSubtypesOf(a.base);
+    for (var element in elements) {
+      if (classWorld.isSubtypeOf(element, b.base)) return false;
+    }
+    return true;
+  }
+
   TypeMask intersectionSame(FlatTypeMask other, ClassWorld classWorld) {
     assert(base == other.base);
     // The two masks share the base type, so we must chose the most

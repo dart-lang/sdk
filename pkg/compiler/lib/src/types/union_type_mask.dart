@@ -166,6 +166,13 @@ class UnionTypeMask implements TypeMask {
     return new TypeMask.unionOf(intersections, classWorld);
   }
 
+  bool isDisjoint(TypeMask other, ClassWorld classWorld) {
+    for (var current in disjointMasks) {
+      if (!current.isDisjoint(other, classWorld)) return false;
+    }
+    return true;
+  }
+
   TypeMask nullable() {
     if (isNullable) return this;
     List<FlatTypeMask> newList = new List<FlatTypeMask>.from(disjointMasks);

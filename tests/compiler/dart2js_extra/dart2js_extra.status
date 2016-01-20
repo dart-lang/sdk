@@ -65,7 +65,6 @@ lookup_map/dead_entry_through_mirrors_test: SkipByDesign # Test for tree-shaking
 
 [ $compiler == dart2js && $cps_ir == false ]
 big_allocation_expression_test: Crash # Issue 24635
-16407_test: Fail # Issue 16407
 
 [ $compiler == dart2js && $cps_ir ]
 async_stacktrace_test/asyncStar: Crash # (foo()async*{try {tr...  cannot handle sync*/async* functions
