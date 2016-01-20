@@ -29,6 +29,7 @@ import 'memory_compiler.dart';
 const Map<String, List/*<String|MessageKind>*/> WHITE_LIST = const {
   // Several tests import mirrors; any of these might trigger the warning.
   ".dart": const [
+      MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
   ],
   "/test/src/util/": const [
       "Library 'package:async/async.dart' doesn't export a "
