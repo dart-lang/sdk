@@ -65,7 +65,6 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     Element element = identifier.staticElement;
     assert(element != null);
     // TODO(scheglov) how to serialize element references?
-    operations.add(UnlinkedConstOperation.pushReference);
     return new UnlinkedTypeRefBuilder(
         reference: serializer._getElementReferenceId(element));
   }

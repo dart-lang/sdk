@@ -24,13 +24,28 @@ UnlinkedUnitBuilder serializeAstUnlinked(CompilationUnit compilationUnit) {
  * serialization of a single constant [Expression].
  */
 class _ConstExprSerializer extends AbstractConstExprSerializer {
+  final _SummarizeAstVisitor visitor;
+
+  _ConstExprSerializer(this.visitor);
+
   UnlinkedTypeRefBuilder serializeIdentifier(Identifier identifier) {
-    throw new UnimplementedError('serializeIdentifier');
+    UnlinkedTypeRefBuilder b = new UnlinkedTypeRefBuilder();
+    if (identifier is SimpleIdentifier) {
+      b.reference = visitor.serializeReference(null, identifier.name);
+    } else if (identifier is PrefixedIdentifier) {
+      int prefix = visitor.serializeReference(null, identifier.prefix.name);
+      b.reference =
+          visitor.serializeReference(prefix, identifier.identifier.name);
+    } else {
+      throw new StateError(
+          'Unexpected identifier type: ${identifier.runtimeType}');
+    }
+    return b;
   }
 
   @override
-  UnlinkedTypeRefBuilder serializeType(TypeName typeName) {
-    throw new UnimplementedError('serializeType');
+  UnlinkedTypeRefBuilder serializeType(TypeName node) {
+    return visitor.serializeTypeName(node);
   }
 }
 
@@ -201,7 +216,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
 
   /**
    * If the library has a library directive, the documentation comment for it
-   * (if any).  Othrwise `null`.
+   * (if any).  Otherwise `null`.
    */
   UnlinkedDocumentationCommentBuilder libraryDocumentationComment;
 
@@ -360,7 +375,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
    * Serialize the given [expression], creating an [UnlinkedConstBuilder].
    */
   UnlinkedConstBuilder serializeConstExpr(Expression expression) {
-    _ConstExprSerializer serializer = new _ConstExprSerializer();
+    _ConstExprSerializer serializer = new _ConstExprSerializer(this);
     serializer.serialize(expression);
     return serializer.toBuilder();
   }
@@ -541,11 +556,13 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
         // Trailing type arguments of type 'dynamic' should be omitted.
         NodeList<TypeName> args = node.typeArguments.arguments;
         int numArgsToSerialize = args.length;
-        while (numArgsToSerialize > 0 && isDynamic(args[numArgsToSerialize - 1])) {
+        while (
+            numArgsToSerialize > 0 && isDynamic(args[numArgsToSerialize - 1])) {
           --numArgsToSerialize;
         }
         if (numArgsToSerialize > 0) {
-          List<UnlinkedTypeRefBuilder> serializedArguments = <UnlinkedTypeRefBuilder>[];
+          List<UnlinkedTypeRefBuilder> serializedArguments =
+              <UnlinkedTypeRefBuilder>[];
           for (int i = 0; i < numArgsToSerialize; i++) {
             serializedArguments.add(serializeTypeName(args[i]));
           }

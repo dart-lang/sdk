@@ -63,6 +63,7 @@ abstract class AbstractConstExprSerializer {
       operations.add(UnlinkedConstOperation.pushNull);
     } else if (expr is Identifier) {
       references.add(serializeIdentifier(expr));
+      operations.add(UnlinkedConstOperation.pushReference);
     } else if (expr is InstanceCreationExpression) {
       _serializeInstanceCreation(expr);
     } else if (expr is ListLiteral) {

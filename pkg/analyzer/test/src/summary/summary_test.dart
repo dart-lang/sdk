@@ -1475,6 +1475,10 @@ class E {}
   }
 
   test_constExpr_invokeConstructor_named() {
+    if (checkAstDerivedData) {
+      // TODO(scheglov) at the moment we cannot link class member references
+      return;
+    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   const C.named();
@@ -1494,6 +1498,10 @@ const v = const C.named();
   }
 
   test_constExpr_invokeConstructor_named_imported() {
+    if (checkAstDerivedData) {
+      // TODO(scheglov) at the moment we cannot link class member references
+      return;
+    }
     addNamedSource(
         '/a.dart',
         '''
@@ -1812,9 +1820,11 @@ const v = p.a;
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
-      (UnlinkedTypeRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'a',
-          expectedKind: ReferenceKind.topLevelPropertyAccessor,
-          expectedPrefix: 'p')
+      (UnlinkedTypeRef r) {
+        return checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'a',
+            expectedKind: ReferenceKind.topLevelPropertyAccessor,
+            expectedPrefix: 'p');
+      }
     ]);
   }
 
@@ -4114,71 +4124,6 @@ class UnlinkedSummarizeAstTest extends Object with SummaryTest {
         unlinkedUnits.add(unit);
       }
     }
-  }
-
-  @override
-  void test_constExpr_invokeConstructor_named() {
-    // TODO(scheglov) remove this method to enable the test
-  }
-
-  @override
-  void test_constExpr_invokeConstructor_named_imported() {
-    // TODO(scheglov) remove this method to enable the test
-  }
-
-  @override
-  void test_constExpr_invokeConstructor_named_imported_withPrefix() {
-    // TODO(scheglov) remove this method to enable the test
-  }
-
-  @override
-  void test_constExpr_invokeConstructor_unnamed() {
-    // TODO(scheglov) remove this method to enable the test
-  }
-
-  @override
-  void test_constExpr_makeList_typed() {
-    // TODO(scheglov) remove this method to enable the test
-  }
-
-  @override
-  void test_constExpr_makeList_untyped() {
-    // TODO(scheglov) remove this method to enable the test
-  }
-
-  @override
-  void test_constExpr_makeMap_typed() {
-    // TODO(scheglov) remove this method to enable the test
-  }
-
-  @override
-  void test_constExpr_makeMap_untyped() {
-    // TODO(scheglov) remove this method to enable the test
-  }
-
-  @override
-  void test_constExpr_pushReference_class() {
-    // TODO(scheglov) remove this method to enable the test
-  }
-
-  @override
-  void test_constExpr_pushReference_enum() {
-    // TODO(scheglov) remove this method to enable the test
-  }
-
-  @override
-  void test_constExpr_pushReference_topLevelVariable_imported() {
-    // TODO(scheglov) remove this method to enable the test
-  }
-
-  @override
-  void test_constExpr_pushReference_topLevelVariable_imported_withPrefix() {
-    // TODO(scheglov) remove this method to enable the test
-  }
-
-  @override
-  void test_constExpr_pushReference_topLevelVariable_local() {
-    // TODO(scheglov) remove this method to enable the test
   }
 
   CompilationUnit _parseText(String text) {
