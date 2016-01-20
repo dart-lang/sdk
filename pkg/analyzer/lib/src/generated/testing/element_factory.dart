@@ -100,6 +100,7 @@ class ElementFactory {
     ConstructorElementImpl constructor = name == null
         ? new ConstructorElementImpl("", -1)
         : new ConstructorElementImpl(name, 0);
+    constructor.synthetic = name == null;
     constructor.const2 = isConst;
     if (argumentTypes != null) {
       int count = argumentTypes.length;
@@ -405,11 +406,12 @@ class ElementFactory {
     field.type = type;
     field.final2 = true;
     PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(field);
+        new PropertyAccessorElementImpl(name, 0);
     getter.synthetic = false;
     getter.getter = true;
     getter.variable = field;
     getter.returnType = type;
+    getter.static = isStatic;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
     getter.type = getterType;

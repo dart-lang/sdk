@@ -182,7 +182,7 @@ class TestTypeProvider implements TypeProvider {
       ClassElementImpl deprecatedElement =
           ElementFactory.classElement2("Deprecated");
       ConstructorElementImpl constructor = ElementFactory
-          .constructorElement(deprecatedElement, null, true, [stringType]);
+          .constructorElement(deprecatedElement, '', true, [stringType]);
       constructor.constantInitializers = <ConstructorInitializer>[
         AstFactory.constructorFieldInitializer(
             true, 'expires', AstFactory.identifier3('expires'))
@@ -274,7 +274,7 @@ class TestTypeProvider implements TypeProvider {
         ElementFactory.getterElement("last", false, eType)
       ]);
       iterableElement.constructors = <ConstructorElement>[
-        ElementFactory.constructorElement(iterableElement, null, true)
+        ElementFactory.constructorElement(iterableElement, '', true)
           ..isCycleFree = true
       ];
       _propagateTypeArguments(iterableElement);
@@ -343,7 +343,7 @@ class TestTypeProvider implements TypeProvider {
             .methodElement("[]=", VoidTypeImpl.instance, [kType, vType])
       ];
       mapElement.constructors = <ConstructorElement>[
-        ElementFactory.constructorElement(mapElement, null, false)
+        ElementFactory.constructorElement(mapElement, '', false)
           ..external = true
           ..factory = true
       ];
@@ -397,7 +397,7 @@ class TestTypeProvider implements TypeProvider {
       ClassElementImpl objectElement = ElementFactory.object;
       _objectType = objectElement.type;
       ConstructorElementImpl constructor =
-          ElementFactory.constructorElement(objectElement, null, true);
+          ElementFactory.constructorElement(objectElement, '', true);
       constructor.constantInitializers = <ConstructorInitializer>[];
       objectElement.constructors = <ConstructorElement>[constructor];
       objectElement.methods = <MethodElement>[
@@ -476,7 +476,7 @@ class TestTypeProvider implements TypeProvider {
     if (_symbolType == null) {
       ClassElementImpl symbolClass = ElementFactory.classElement2("Symbol");
       ConstructorElementImpl constructor = ElementFactory
-          .constructorElement(symbolClass, null, true, [stringType]);
+          .constructorElement(symbolClass, '', true, [stringType]);
       constructor.factory = true;
       constructor.isCycleFree = true;
       symbolClass.constructors = <ConstructorElement>[constructor];

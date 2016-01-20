@@ -506,7 +506,6 @@ class _CompilationUnitSerializer {
   UnlinkedImportBuilder serializeImport(ImportElement importElement) {
     UnlinkedImportBuilder b = new UnlinkedImportBuilder();
     b.isDeferred = importElement.isDeferred;
-    b.offset = importElement.nameOffset;
     b.combinators = importElement.combinators.map(serializeCombinator).toList();
     if (importElement.prefix != null) {
       b.prefixReference = serializePrefix(importElement.prefix);
@@ -515,6 +514,7 @@ class _CompilationUnitSerializer {
     if (importElement.isSynthetic) {
       b.isImplicit = true;
     } else {
+      b.offset = importElement.nameOffset;
       b.uri = importElement.uri;
       b.uriOffset = importElement.uriOffset;
       b.uriEnd = importElement.uriEnd;

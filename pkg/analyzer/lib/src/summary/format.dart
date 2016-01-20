@@ -286,6 +286,7 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
    */
   void set dependency(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _dependency = _value;
   }
 
@@ -300,6 +301,7 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
    */
   void set unit(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _unit = _value;
   }
 
@@ -483,6 +485,7 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements Li
    */
   void set importDependencies(List<int> _value) {
     assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
     _importDependencies = _value;
   }
 
@@ -511,6 +514,7 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements Li
    */
   void set numPrelinkedDependencies(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _numPrelinkedDependencies = _value;
   }
 
@@ -700,6 +704,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    */
   void set dependency(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _dependency = _value;
   }
 
@@ -726,6 +731,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    */
   void set unit(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _unit = _value;
   }
 
@@ -738,6 +744,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    */
   void set numTypeParameters(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _numTypeParameters = _value;
   }
 
@@ -1206,6 +1213,7 @@ class TypeRefBuilder extends Object with _TypeRefMixin implements TypeRef {
    */
   void set slot(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _slot = _value;
   }
 
@@ -1224,6 +1232,7 @@ class TypeRefBuilder extends Object with _TypeRefMixin implements TypeRef {
    */
   void set reference(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _reference = _value;
   }
 
@@ -1251,6 +1260,7 @@ class TypeRefBuilder extends Object with _TypeRefMixin implements TypeRef {
    */
   void set paramReference(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _paramReference = _value;
   }
 
@@ -1437,6 +1447,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
    */
   void set nameOffset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
 
@@ -1968,6 +1979,7 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements Un
    */
   void set ints(List<int> _value) {
     assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
     _ints = _value;
   }
 
@@ -2193,6 +2205,7 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
    */
   void set offset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _offset = _value;
   }
 
@@ -2204,6 +2217,7 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
    */
   void set length(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _length = _value;
   }
 
@@ -2329,6 +2343,7 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements Unli
    */
   void set nameOffset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
 
@@ -2498,6 +2513,7 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
    */
   void set nameOffset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
 
@@ -2651,6 +2667,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    */
   void set nameOffset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
 
@@ -3097,6 +3114,7 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
    */
   void set offset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _offset = _value;
   }
 
@@ -3109,6 +3127,7 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
    */
   void set uriOffset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _uriOffset = _value;
   }
 
@@ -3121,6 +3140,7 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
    */
   void set uriEnd(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _uriEnd = _value;
   }
 
@@ -3354,6 +3374,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    */
   void set offset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _offset = _value;
   }
 
@@ -3368,6 +3389,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    */
   void set prefixReference(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _prefixReference = _value;
   }
 
@@ -3413,6 +3435,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    */
   void set uriOffset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _uriOffset = _value;
   }
 
@@ -3425,6 +3448,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    */
   void set uriEnd(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _uriEnd = _value;
   }
 
@@ -3437,6 +3461,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    */
   void set prefixOffset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _prefixOffset = _value;
   }
 
@@ -3675,6 +3700,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
    */
   void set nameOffset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
 
@@ -3955,6 +3981,7 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements Unli
    */
   void set uriOffset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _uriOffset = _value;
   }
 
@@ -3967,6 +3994,7 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements Unli
    */
   void set uriEnd(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _uriEnd = _value;
   }
 
@@ -4080,6 +4108,7 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
    */
   void set numTypeParameters(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _numTypeParameters = _value;
   }
 
@@ -4373,6 +4402,7 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
    */
   void set prefixReference(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _prefixReference = _value;
   }
 
@@ -4486,6 +4516,7 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
    */
   void set nameOffset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
 
@@ -4719,6 +4750,7 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
    */
   void set nameOffset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
 
@@ -4868,6 +4900,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
    */
   void set libraryNameOffset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _libraryNameOffset = _value;
   }
 
@@ -4880,6 +4913,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
    */
   void set libraryNameLength(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _libraryNameLength = _value;
   }
 
@@ -5378,6 +5412,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    */
   void set nameOffset(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _nameOffset = _value;
   }
 
@@ -5478,6 +5513,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    */
   void set propagatedTypeSlot(int _value) {
     assert(!_finished);
+    assert(_value == null || _value >= 0);
     _propagatedTypeSlot = _value;
   }
 

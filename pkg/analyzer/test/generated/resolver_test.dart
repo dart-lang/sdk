@@ -127,7 +127,7 @@ class AnalysisContextFactory {
     coreUnit.librarySource = coreUnit.source = coreSource;
     ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy");
     proxyClassElement.constructors = <ConstructorElement>[
-      ElementFactory.constructorElement(proxyClassElement, null, true)
+      ElementFactory.constructorElement(proxyClassElement, '', true)
         ..isCycleFree = true
         ..constantInitializers = <ConstructorInitializer>[]
     ];

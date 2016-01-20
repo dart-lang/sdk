@@ -312,12 +312,13 @@ class _CodeGenerator {
       // Generate getters and setters.
       for (idlModel.FieldDeclaration field in cls.fields) {
         String fieldName = field.name;
-        String typeStr = encodedType(field.type);
-        String def = defaultValue(field.type);
+        idlModel.FieldType fieldType = field.type;
+        String typeStr = encodedType(fieldType);
+        String def = defaultValue(fieldType);
         String defSuffix = def == null ? '' : ' ?? $def';
         out();
         out('@override');
-        out('${dartType(field.type)} get $fieldName => _$fieldName$defSuffix;');
+        out('${dartType(fieldType)} get $fieldName => _$fieldName$defSuffix;');
         out();
         outDoc(field.documentation);
         constructorParams.add('$typeStr $fieldName');
@@ -325,6 +326,15 @@ class _CodeGenerator {
         indent(() {
           String stateFieldName = '_' + fieldName;
           out('assert(!_finished);');
+          // Validate that int(s) are non-negative.
+          if (fieldType.typeName == 'int') {
+            if (!fieldType.isList) {
+              out('assert(_value == null || _value >= 0);');
+            } else {
+              out('assert(_value == null || _value.every((e) => e >= 0));');
+            }
+          }
+          // Set the value.
           out('$stateFieldName = _value;');
         });
         out('}');
