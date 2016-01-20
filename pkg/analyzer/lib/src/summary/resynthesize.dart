@@ -931,17 +931,16 @@ class _LibraryResynthesizer {
   }
 
   /**
-   * Build a [DartType] object based on an [UnlinkedTypeRef].  This [DartType]
+   * Build a [DartType] object based on a [TypeRef].  This [DartType]
    * may refer to elements in other libraries than the library being
    * deserialized, so handles are used to avoid having to deserialize other
    * libraries in the process.
    */
-  DartType buildType(UnlinkedTypeRef type) {
+  DartType buildType(TypeRef type) {
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
-              currentTypeParameters.length - type.paramReference]
-          .type;
+          currentTypeParameters.length - type.paramReference].type;
     } else {
       // TODO(paulberry): handle references to things other than classes (note:
       // this should only occur in the case of erroneous code).

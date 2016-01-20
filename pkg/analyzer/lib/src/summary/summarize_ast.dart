@@ -28,8 +28,8 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
 
   _ConstExprSerializer(this.visitor);
 
-  UnlinkedTypeRefBuilder serializeIdentifier(Identifier identifier) {
-    UnlinkedTypeRefBuilder b = new UnlinkedTypeRefBuilder();
+  TypeRefBuilder serializeIdentifier(Identifier identifier) {
+    TypeRefBuilder b = new TypeRefBuilder();
     if (identifier is SimpleIdentifier) {
       b.reference = visitor.serializeReference(null, identifier.name);
     } else if (identifier is PrefixedIdentifier) {
@@ -44,7 +44,7 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   }
 
   @override
-  UnlinkedTypeRefBuilder serializeType(TypeName node) {
+  TypeRefBuilder serializeType(TypeName node) {
     return visitor.serializeTypeName(node);
   }
 }
@@ -455,7 +455,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
    */
   void serializeFunctionTypedParameterDetails(UnlinkedParamBuilder b,
       TypeName returnType, FormalParameterList parameters) {
-    UnlinkedTypeRefBuilder serializedReturnType =
+    TypeRefBuilder serializedReturnType =
         serializeTypeName(returnType, allowVoid: true);
     if (serializedReturnType != null) {
       b.type = serializedReturnType;
@@ -508,12 +508,11 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   /**
    * Serialize a type name (which might be defined in a nested scope, at top
    * level within this library, or at top level within an imported library) to
-   * an [UnlinkedTypeRef].  Note that this method does the right thing if the
+   * a [TypeRef].  Note that this method does the right thing if the
    * name doesn't refer to an entity other than a type (e.g. a class member).
    */
-  UnlinkedTypeRefBuilder serializeTypeName(TypeName node,
-      {bool allowVoid: false}) {
-    UnlinkedTypeRefBuilder b = new UnlinkedTypeRefBuilder();
+  TypeRefBuilder serializeTypeName(TypeName node, {bool allowVoid: false}) {
+    TypeRefBuilder b = new TypeRefBuilder();
     if (node != null) {
       Identifier identifier = node.name;
       if (identifier is SimpleIdentifier) {
@@ -561,8 +560,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
           --numArgsToSerialize;
         }
         if (numArgsToSerialize > 0) {
-          List<UnlinkedTypeRefBuilder> serializedArguments =
-              <UnlinkedTypeRefBuilder>[];
+          List<TypeRefBuilder> serializedArguments = <TypeRefBuilder>[];
           for (int i = 0; i < numArgsToSerialize; i++) {
             serializedArguments.add(serializeTypeName(args[i]));
           }
@@ -750,7 +748,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
     b.nameOffset = node.name.offset;
     b.typeParameters =
         serializeTypeParameters(node.typeParameters, typeParameterScope);
-    UnlinkedTypeRefBuilder serializedReturnType =
+    TypeRefBuilder serializedReturnType =
         serializeTypeName(node.returnType, allowVoid: true);
     if (serializedReturnType != null) {
       b.returnType = serializedReturnType;

@@ -61,16 +61,16 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
 
   _ConstExprSerializer(this.serializer);
 
-  UnlinkedTypeRefBuilder serializeIdentifier(Identifier identifier) {
+  TypeRefBuilder serializeIdentifier(Identifier identifier) {
     Element element = identifier.staticElement;
     assert(element != null);
     // TODO(scheglov) how to serialize element references?
-    return new UnlinkedTypeRefBuilder(
+    return new TypeRefBuilder(
         reference: serializer._getElementReferenceId(element));
   }
 
   @override
-  UnlinkedTypeRefBuilder serializeType(TypeName typeName) {
+  TypeRefBuilder serializeType(TypeName typeName) {
     DartType type = typeName != null ? typeName.type : DynamicTypeImpl.instance;
     return serializer.serializeTypeRef(type, null);
   }
@@ -702,10 +702,10 @@ class _LibrarySerializer {
   }
 
   /**
-   * Serialize the given [type] into an [UnlinkedTypeRef].
+   * Serialize the given [type] into a [TypeRef].
    */
-  UnlinkedTypeRefBuilder serializeTypeRef(DartType type, Element context) {
-    UnlinkedTypeRefBuilder b = new UnlinkedTypeRefBuilder();
+  TypeRefBuilder serializeTypeRef(DartType type, Element context) {
+    TypeRefBuilder b = new TypeRefBuilder();
     if (type is TypeParameterType) {
       b.paramReference = findTypeParameterIndex(type, context);
     } else {
@@ -735,8 +735,7 @@ class _LibrarySerializer {
           --numArgsToSerialize;
         }
         if (numArgsToSerialize > 0) {
-          List<UnlinkedTypeRefBuilder> serializedArguments =
-              <UnlinkedTypeRefBuilder>[];
+          List<TypeRefBuilder> serializedArguments = <TypeRefBuilder>[];
           for (int i = 0; i < numArgsToSerialize; i++) {
             serializedArguments
                 .add(serializeTypeRef(typeArguments[i], context));
