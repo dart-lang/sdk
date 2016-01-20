@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.summary.summary_test;
+library analyzer.test.src.summary.summary_common;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -16,23 +16,13 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
-import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart'
     as summarize_elements;
 import 'package:unittest/unittest.dart';
 
 import '../../generated/resolver_test.dart';
-import '../../reflective_tests.dart';
-
-main() {
-  groupSep = ' | ';
-  runReflectiveTests(SummarizeElementsTest);
-  runReflectiveTests(PrelinkerTest);
-  runReflectiveTests(UnlinkedSummarizeAstTest);
-}
 
 /**
  * The public namespaces of the sdk are computed once so that we don't bog
@@ -122,196 +112,6 @@ UnlinkedPublicNamespace computePublicNamespaceFromText(
  * Type of a function that validates an [TypeRef].
  */
 typedef void _TypeRefValidator(TypeRef unlinkedTypeRef);
-
-/**
- * Override of [SummaryTest] which verifies the correctness of the prelinker by
- * creating summaries from the element model, discarding their prelinked
- * information, and then recreating it using the prelinker.
- */
-@reflectiveTest
-class PrelinkerTest extends SummarizeElementsTest {
-  final Map<String, UnlinkedPublicNamespace> uriToPublicNamespace =
-      <String, UnlinkedPublicNamespace>{};
-
-  @override
-  bool get expectAbsoluteUrisInDependencies => false;
-
-  @override
-  bool get skipFullyLinkedData => true;
-
-  @override
-  Source addNamedSource(String filePath, String contents) {
-    Source source = super.addNamedSource(filePath, contents);
-    uriToPublicNamespace[absUri(filePath)] =
-        computePublicNamespaceFromText(contents, source);
-    return source;
-  }
-
-  String resolveToAbsoluteUri(LibraryElement library, String relativeUri) {
-    Source resolvedSource =
-        analysisContext.sourceFactory.resolveUri(library.source, relativeUri);
-    if (resolvedSource == null) {
-      fail('Failed to resolve relative uri "$relativeUri"');
-    }
-    return resolvedSource.uri.toString();
-  }
-
-  @override
-  void serializeLibraryElement(LibraryElement library) {
-    super.serializeLibraryElement(library);
-    Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
-    expect(unlinkedUnits.length, unitUris.length);
-    for (int i = 1; i < unlinkedUnits.length; i++) {
-      uriToUnit[unitUris[i]] = unlinkedUnits[i];
-    }
-    UnlinkedUnit getPart(String relativeUri) {
-      String absoluteUri = resolveToAbsoluteUri(library, relativeUri);
-      UnlinkedUnit unit = uriToUnit[absoluteUri];
-      if (unit == null) {
-        fail('Prelinker unexpectedly requested unit for "$relativeUri"'
-            ' (resolves to "$absoluteUri").');
-      }
-      return unit;
-    }
-    UnlinkedPublicNamespace getImport(String relativeUri) {
-      String absoluteUri = resolveToAbsoluteUri(library, relativeUri);
-      UnlinkedPublicNamespace namespace = sdkPublicNamespace[absoluteUri];
-      if (namespace == null) {
-        namespace = uriToPublicNamespace[absoluteUri];
-      }
-      if (namespace == null && !allowMissingFiles) {
-        fail('Prelinker unexpectedly requested namespace for "$relativeUri"'
-            ' (resolves to "$absoluteUri").'
-            '  Namespaces available: ${uriToPublicNamespace.keys}');
-      }
-      return namespace;
-    }
-    linked = new LinkedLibrary.fromBuffer(
-        prelink(unlinkedUnits[0], getPart, getImport).toBuffer());
-  }
-}
-
-/**
- * Override of [SummaryTest] which creates summaries from the element model.
- */
-@reflectiveTest
-class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
-  /**
-   * The list of absolute unit URIs corresponding to the compilation units in
-   * [unlinkedUnits].
-   */
-  List<String> unitUris;
-
-  /**
-   * Map containing all source files in this test, and their corresponding file
-   * contents.
-   */
-  final Map<Source, String> _fileContents = <Source, String>{};
-
-  @override
-  LinkedLibrary linked;
-
-  @override
-  List<UnlinkedUnit> unlinkedUnits;
-
-  @override
-  bool get checkAstDerivedData => false;
-
-  @override
-  bool get expectAbsoluteUrisInDependencies => true;
-
-  @override
-  bool get skipFullyLinkedData => false;
-
-  @override
-  Source addNamedSource(String filePath, String contents) {
-    Source source = super.addNamedSource(filePath, contents);
-    _fileContents[source] = contents;
-    return source;
-  }
-
-  /**
-   * Serialize the library containing the given class [element], then
-   * deserialize it and return the summary of the class.
-   */
-  UnlinkedClass serializeClassElement(ClassElement element) {
-    serializeLibraryElement(element.library);
-    return findClass(element.name, failIfAbsent: true);
-  }
-
-  /**
-   * Serialize the given [library] element, then deserialize it and store the
-   * resulting summary in [linked] and [unlinkedUnits].
-   */
-  void serializeLibraryElement(LibraryElement library) {
-    summarize_elements.LibrarySerializationResult serializedLib =
-        summarize_elements.serializeLibrary(library, typeProvider);
-    {
-      List<int> buffer = serializedLib.linked.toBuffer();
-      linked = new LinkedLibrary.fromBuffer(buffer);
-    }
-    unlinkedUnits = serializedLib.unlinkedUnits.map((UnlinkedUnitBuilder b) {
-      List<int> buffer = b.toBuffer();
-      return new UnlinkedUnit.fromBuffer(buffer);
-    }).toList();
-    unitUris = serializedLib.unitUris;
-  }
-
-  @override
-  void serializeLibraryText(String text, {bool allowErrors: false}) {
-    Source source = addSource(text);
-    _fileContents[source] = text;
-    LibraryElement library = resolve2(source);
-    if (!allowErrors) {
-      assertNoErrors(source);
-    }
-    serializeLibraryElement(library);
-    expect(unlinkedUnits[0].imports.length, linked.importDependencies.length);
-    expect(linked.units.length, unlinkedUnits.length);
-    for (int i = 0; i < linked.units.length; i++) {
-      expect(unlinkedUnits[i].references.length,
-          lessThanOrEqualTo(linked.units[i].references.length));
-    }
-    verifyPublicNamespace();
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableGenericMethods = true;
-    resetWithOptions(options);
-  }
-
-  test_class_no_superclass() {
-    UnlinkedClass cls = serializeClassElement(typeProvider.objectType.element);
-    expect(cls.supertype, isNull);
-    expect(cls.hasNoSupertype, isTrue);
-  }
-
-  /**
-   * Verify that [public_namespace.computePublicNamespace] produces data that's
-   * equivalent to that produced by [summarize_elements.serializeLibrary].
-   */
-  void verifyPublicNamespace() {
-    for (int i = 0; i < unlinkedUnits.length; i++) {
-      Source source = analysisContext.sourceFactory.forUri(unitUris[i]);
-      String text = _fileContents[source];
-      if (text == null) {
-        if (!allowMissingFiles) {
-          fail('Could not find file while verifying public namespace: '
-              '${unitUris[i]}');
-        }
-      } else {
-        UnlinkedPublicNamespace namespace =
-            computePublicNamespaceFromText(text, source);
-        expect(canonicalize(namespace),
-            canonicalize(unlinkedUnits[i].publicNamespace),
-            reason: 'publicNamespace(${unitUris[i]})');
-      }
-    }
-  }
-}
 
 /**
  * Base class containing most summary tests.  This allows summary tests to be
@@ -4355,96 +4155,5 @@ var v;''';
     for (int i = 0; i < referenceValidators.length; i++) {
       referenceValidators[i](constExpr.references[i]);
     }
-  }
-}
-
-/**
- * Override of [SummaryTest] which creates unlinked summaries directly from the
- * AST.
- */
-@reflectiveTest
-class UnlinkedSummarizeAstTest extends Object with SummaryTest {
-  @override
-  LinkedLibrary linked;
-
-  @override
-  List<UnlinkedUnit> unlinkedUnits;
-
-  /**
-   * Map from absolute URI to the [UnlinkedUnit] for each compilation unit
-   * passed to [addNamedSource].
-   */
-  Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
-
-  @override
-  bool get checkAstDerivedData => true;
-
-  @override
-  bool get expectAbsoluteUrisInDependencies => false;
-
-  @override
-  bool get skipFullyLinkedData => true;
-
-  @override
-  addNamedSource(String filePath, String contents) {
-    CompilationUnit unit = _parseText(contents);
-    UnlinkedUnit unlinkedUnit =
-        new UnlinkedUnit.fromBuffer(serializeAstUnlinked(unit).toBuffer());
-    uriToUnit[absUri(filePath)] = unlinkedUnit;
-  }
-
-  @override
-  void serializeLibraryText(String text, {bool allowErrors: false}) {
-    Uri testDartUri = Uri.parse(absUri('/test.dart'));
-    String resolveToAbsoluteUri(String relativeUri) =>
-        testDartUri.resolve(relativeUri).toString();
-    CompilationUnit unit = _parseText(text);
-    UnlinkedUnit definingUnit =
-        new UnlinkedUnit.fromBuffer(serializeAstUnlinked(unit).toBuffer());
-    UnlinkedUnit getPart(String relativeUri) {
-      String absoluteUri = resolveToAbsoluteUri(relativeUri);
-      UnlinkedUnit unit = uriToUnit[absoluteUri];
-      if (unit == null && !allowMissingFiles) {
-        fail('Prelinker unexpectedly requested unit for "$relativeUri"'
-            ' (resolves to "$absoluteUri").');
-      }
-      return unit;
-    }
-    UnlinkedPublicNamespace getImport(String relativeUri) {
-      String absoluteUri = resolveToAbsoluteUri(relativeUri);
-      UnlinkedPublicNamespace namespace = sdkPublicNamespace[absoluteUri];
-      if (namespace == null) {
-        namespace = uriToUnit[absoluteUri]?.publicNamespace;
-      }
-      if (namespace == null && !allowMissingFiles) {
-        fail('Prelinker unexpectedly requested namespace for "$relativeUri"'
-            ' (resolves to "$absoluteUri").'
-            '  Namespaces available: ${uriToUnit.keys}');
-      }
-      return namespace;
-    }
-    linked = new LinkedLibrary.fromBuffer(
-        prelink(definingUnit, getPart, getImport).toBuffer());
-    unlinkedUnits = <UnlinkedUnit>[definingUnit];
-    for (String relativeUri in definingUnit.publicNamespace.parts) {
-      UnlinkedUnit unit = uriToUnit[resolveToAbsoluteUri(relativeUri)];
-      if (unit == null) {
-        if (!allowMissingFiles) {
-          fail('Test referred to unknown unit $relativeUri');
-        }
-      } else {
-        unlinkedUnits.add(unit);
-      }
-    }
-  }
-
-  CompilationUnit _parseText(String text) {
-    CharSequenceReader reader = new CharSequenceReader(text);
-    Scanner scanner =
-        new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER);
-    Token token = scanner.tokenize();
-    Parser parser = new Parser(null, AnalysisErrorListener.NULL_LISTENER);
-    parser.parseGenericMethods = true;
-    return parser.parseCompilationUnit(token);
   }
 }
