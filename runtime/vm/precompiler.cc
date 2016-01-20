@@ -63,6 +63,7 @@ Precompiler::Precompiler(Thread* thread, bool reset_fields) :
     class_count_(0),
     selector_count_(0),
     dropped_function_count_(0),
+    dropped_field_count_(0),
     libraries_(GrowableObjectArray::Handle(Z, I->object_store()->libraries())),
     pending_functions_(
         GrowableObjectArray::Handle(Z, GrowableObjectArray::New())),
@@ -111,6 +112,7 @@ void Precompiler::DoCompileAll(
   }
 
   DropUncompiledFunctions();
+  DropFields();
 
   // TODO(rmacnak): DropEmptyClasses();
 
@@ -120,11 +122,13 @@ void Precompiler::DoCompileAll(
 
   if (FLAG_trace_precompiler) {
     THR_Print("Precompiled %" Pd " functions, %" Pd " dynamic types,"
-              " %" Pd " dynamic selectors.\n Dropped %" Pd " functions.\n",
+              " %" Pd " dynamic selectors.\n Dropped %" Pd " functions, %" Pd
+              " fields.\n",
               function_count_,
               class_count_,
               selector_count_,
-              dropped_function_count_);
+              dropped_function_count_,
+              dropped_field_count_);
   }
 
   I->set_compilation_allowed(false);
@@ -226,6 +230,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   }
 
   Dart_QualifiedFunctionName vm_entry_points[] = {
+    // Functions
     { "dart:async", "::", "_setScheduleImmediateClosure" },
     { "dart:core", "::", "_completeDeferredLoads"},
     { "dart:core", "AbstractClassInstantiationError",
@@ -264,6 +269,9 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     { "dart:_vmservice", "::", "_registerIsolate" },
     { "dart:_vmservice", "::", "boot" },
     { "dart:developer", "Metrics", "_printMetrics" },
+    // Fields
+    { "dart:core", "Error", "_stackTrace" },
+    { "dart:math", "_Random", "_state" },
     { NULL, NULL, NULL }  // Must be terminated with NULL entries.
   };
 
@@ -276,6 +284,7 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Function& func = Function::Handle(Z);
+  Field& field = Field::Handle(Z);
   String& library_uri = String::Handle(Z);
   String& class_name = String::Handle(Z);
   String& function_name = String::Handle(Z);
@@ -295,6 +304,7 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
 
     if (class_name.raw() == Symbols::TopLevel().raw()) {
       func = lib.LookupFunctionAllowPrivate(function_name);
+      field = lib.LookupFieldAllowPrivate(function_name);
     } else {
       cls = lib.LookupClassAllowPrivate(class_name);
       if (cls.IsNull()) {
@@ -308,25 +318,31 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
 
       ASSERT(!cls.IsNull());
       func = cls.LookupFunctionAllowPrivate(function_name);
+      field = cls.LookupField(function_name);
     }
 
-    if (func.IsNull()) {
+    if (func.IsNull() && field.IsNull()) {
       if (FLAG_trace_precompiler) {
         THR_Print("WARNING: Missing %s %s %s\n",
                   entry_points[i].library_uri,
                   entry_points[i].class_name,
                   entry_points[i].function_name);
       }
-      continue;
     }
 
-    AddFunction(func);
-    if (func.IsGenerativeConstructor()) {
-      // Allocation stubs are referenced from the call site of the constructor,
-      // not in the constructor itself. So compiling the constructor isn't
-      // enough for us to discover the class is instantiated if the class isn't
-      // otherwise instantiated from Dart code and only instantiated from C++.
-      AddInstantiatedClass(cls);
+    if (!func.IsNull()) {
+      AddFunction(func);
+      if (func.IsGenerativeConstructor()) {
+        // Allocation stubs are referenced from the call site of the
+        // constructor, not in the constructor itself. So compiling the
+        // constructor isn't enough for us to discover the class is
+        // instantiated if the class isn't otherwise instantiated from Dart
+        // code and only instantiated from C++.
+        AddInstantiatedClass(cls);
+      }
+    }
+    if (!field.IsNull()) {
+      AddField(field);
     }
   }
 }
@@ -526,6 +542,8 @@ void Precompiler::AddClosureCall(const ICData& call_site) {
 
 
 void Precompiler::AddField(const Field& field) {
+  fields_to_retain_.Insert(&Field::ZoneHandle(Z, field.raw()));
+
   if (field.is_static()) {
     const Object& value = Object::Handle(Z, field.StaticValue());
     if (value.IsInstance()) {
@@ -907,12 +925,12 @@ void Precompiler::DropUncompiledFunctions() {
         }
       }
 
-      functions = Array::New(retained_functions.Length(), Heap::kOld);
-      for (intptr_t j = 0; j < retained_functions.Length(); j++) {
-        function ^= retained_functions.At(j);
-        functions.SetAt(j, function);
+      if (retained_functions.Length() > 0) {
+        functions = Array::MakeArray(retained_functions);
+        cls.SetFunctions(functions);
+      } else {
+        cls.SetFunctions(Object::empty_array());
       }
-      cls.SetFunctions(functions);
     }
   }
 
@@ -931,6 +949,49 @@ void Precompiler::DropUncompiledFunctions() {
     }
   }
   isolate()->object_store()->set_closure_functions(retained_functions);
+}
+
+
+void Precompiler::DropFields() {
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  Array& fields = Array::Handle(Z);
+  Field& field = Field::Handle(Z);
+  GrowableObjectArray& retained_fields = GrowableObjectArray::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+
+      fields = cls.fields();
+      retained_fields = GrowableObjectArray::New();
+      for (intptr_t j = 0; j < fields.Length(); j++) {
+        field ^= fields.At(j);
+        bool drop = fields_to_retain_.Lookup(&field) == NULL;
+        if (drop) {
+          dropped_field_count_++;
+          if (FLAG_trace_precompiler) {
+            THR_Print("Precompilation dropping %s\n",
+                      field.ToCString());
+          }
+        } else {
+          retained_fields.Add(field);
+        }
+      }
+
+      if (retained_fields.Length() > 0) {
+        fields = Array::MakeArray(retained_fields);
+        cls.SetFields(fields);
+      } else {
+        cls.SetFields(Object::empty_array());
+      }
+    }
+  }
 }
 
 

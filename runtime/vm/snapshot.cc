@@ -28,6 +28,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, use_field_guards);
+
+
 static const int kNumVmIsolateSnapshotReferences = 32 * KB;
 static const int kNumInitialReferencesInFullSnapshot = 160 * KB;
 static const int kNumInitialReferences = 64;
@@ -510,7 +513,8 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
       pobj_ = ReadObjectImpl(read_as_reference);
       result->SetFieldAtOffset(offset, pobj_);
       if ((offset != type_argument_field_offset) &&
-          (kind_ == Snapshot::kMessage)) {
+          (kind_ == Snapshot::kMessage) &&
+          FLAG_use_field_guards) {
         // TODO(fschneider): Consider hoisting these lookups out of the loop.
         // This would involve creating a handle, since cls_ can't be reused
         // across the call to ReadObjectImpl.
