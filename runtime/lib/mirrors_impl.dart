@@ -945,7 +945,8 @@ class _LocalClassMirror extends _LocalObjectMirror
 
 class _LocalFunctionTypeMirror extends _LocalClassMirror
     implements FunctionTypeMirror {
-  _LocalFunctionTypeMirror(reflectee, reflectedType)
+  final _functionReflectee;
+  _LocalFunctionTypeMirror(reflectee, this._functionReflectee, reflectedType)
       : super(reflectee, reflectedType, null, null, false, false, false, false, false);
 
   bool get _isAnonymousMixinApplication => false;
@@ -962,7 +963,7 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
   MethodMirror _callMethod;
   MethodMirror get callMethod {
     if (_callMethod == null) {
-      _callMethod = this._FunctionTypeMirror_call_method(_reflectee);
+      _callMethod = _FunctionTypeMirror_call_method(_functionReflectee);
     }
     return _callMethod;
   }
@@ -971,7 +972,7 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
   TypeMirror get returnType {
     if (_returnType == null) {
       _returnType = reflectType(
-          _FunctionTypeMirror_return_type(_reflectee, _instantiator));
+          _FunctionTypeMirror_return_type(_functionReflectee, _instantiator));
     }
     return _returnType;
   }
@@ -979,7 +980,7 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
   List<ParameterMirror> _parameters = null;
   List<ParameterMirror> get parameters {
     if (_parameters == null) {
-      _parameters = _FunctionTypeMirror_parameters(_reflectee);
+      _parameters = _FunctionTypeMirror_parameters(_functionReflectee);
       _parameters = new UnmodifiableListView(_parameters);
     }
     return _parameters;
@@ -990,16 +991,17 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
   get typeVariables => emptyList;
   get typeArguments => emptyList;
   get metadata => emptyList;
+  get location => null;
 
   String toString() => "FunctionTypeMirror on '${_n(simpleName)}'";
 
-  MethodMirror _FunctionTypeMirror_call_method(reflectee)
+  MethodMirror _FunctionTypeMirror_call_method(functionReflectee)
       native "FunctionTypeMirror_call_method";
 
-  static Type _FunctionTypeMirror_return_type(reflectee, instantiator)
+  static Type _FunctionTypeMirror_return_type(functionReflectee, instantiator)
       native "FunctionTypeMirror_return_type";
 
-  List<ParameterMirror> _FunctionTypeMirror_parameters(reflectee)
+  List<ParameterMirror> _FunctionTypeMirror_parameters(functionReflectee)
       native "FunctionTypeMirror_parameters";
 }
 
@@ -1648,7 +1650,7 @@ class _Mirrors {
       native "Mirrors_makeLocalTypeMirror";
 
   static Expando<ClassMirror> _declarationCache = new Expando("ClassMirror");
-  static Expando<TypeMirror> _instanitationCache = new Expando("TypeMirror");
+  static Expando<TypeMirror> _instantiationCache = new Expando("TypeMirror");
 
   static ClassMirror reflectClass(Type key) {
     var classMirror = _declarationCache[key];
@@ -1656,17 +1658,17 @@ class _Mirrors {
       classMirror = makeLocalClassMirror(key);
       _declarationCache[key] = classMirror;
       if (!classMirror._isGeneric) {
-        _instanitationCache[key] = classMirror;
+        _instantiationCache[key] = classMirror;
       }
     }
     return classMirror;
   }
 
   static TypeMirror reflectType(Type key) {
-    var typeMirror = _instanitationCache[key];
+    var typeMirror = _instantiationCache[key];
     if (typeMirror == null) {
       typeMirror = makeLocalTypeMirror(key);
-      _instanitationCache[key] = typeMirror;
+      _instantiationCache[key] = typeMirror;
       if (typeMirror is ClassMirror && !typeMirror._isGeneric) {
         _declarationCache[key] = typeMirror;
       }

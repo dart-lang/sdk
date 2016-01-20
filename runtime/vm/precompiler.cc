@@ -154,6 +154,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   static const intptr_t kExternallyAllocatedCids[] = {
     kBoolCid,
     kNullCid,
+    kClosureCid,
 
     kSmiCid,
     kMintCid,
@@ -201,6 +202,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     kFloat64x2Cid,
 
     kTypeCid,
+    kFunctionTypeCid,
     kTypeRefCid,
     kTypeParameterCid,
     kBoundedTypeCid,
@@ -468,7 +470,8 @@ void Precompiler::AddConstObject(const Instance& instance) {
 
   if (instance.IsClosure()) {
     // An implicit static closure.
-    const Function& func = Function::Handle(Z, Closure::function(instance));
+    const Function& func =
+        Function::Handle(Z, Closure::Cast(instance).function());
     ASSERT(func.is_static());
     AddFunction(func);
     return;
@@ -511,10 +514,8 @@ void Precompiler::AddConstObject(const Instance& instance) {
 void Precompiler::AddClosureCall(const ICData& call_site) {
   const Array& arguments_descriptor =
       Array::Handle(Z, call_site.arguments_descriptor());
-  const Type& function_impl =
-      Type::Handle(Z, I->object_store()->function_impl_type());
   const Class& cache_class =
-      Class::Handle(Z, function_impl.type_class());
+      Class::Handle(Z, I->object_store()->closure_class());
   const Function& dispatcher = Function::Handle(Z,
       cache_class.GetInvocationDispatcher(Symbols::Call(),
                                           arguments_descriptor,

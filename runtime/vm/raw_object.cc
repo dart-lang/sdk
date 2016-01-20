@@ -336,6 +336,13 @@ intptr_t RawType::VisitTypePointers(
 }
 
 
+intptr_t RawFunctionType::VisitFunctionTypePointers(
+    RawFunctionType* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return FunctionType::InstanceSize();
+}
+
+
 intptr_t RawTypeRef::VisitTypeRefPointers(
     RawTypeRef* raw_obj, ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
@@ -376,6 +383,13 @@ intptr_t RawPatchClass::VisitPatchClassPointers(RawPatchClass* raw_obj,
                                                 ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return PatchClass::InstanceSize();
+}
+
+
+intptr_t RawClosure::VisitClosurePointers(
+    RawClosure* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return Closure::InstanceSize();
 }
 
 

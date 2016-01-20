@@ -334,18 +334,8 @@ DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library) {
   String& name = String::Handle(Z);
   while (it.HasNext()) {
     cls = it.GetNextClass();
-    if (cls.IsSignatureClass()) {
-      if (!cls.IsCanonicalSignatureClass()) {
-        // This is a typedef.  Add it to the list of class names.
-        name = cls.UserVisibleName();
-        names.Add(name);
-      } else {
-        // Skip canonical signature classes.  These are not named.
-      }
-    } else {
-      name = cls.UserVisibleName();
-      names.Add(name);
-    }
+    name = cls.UserVisibleName();
+    names.Add(name);
   }
   return Api::NewHandle(T, Array::MakeArray(names));
 }
@@ -362,7 +352,7 @@ DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure) {
 
   ASSERT(ClassFinalizer::AllClassesFinalized());
 
-  RawFunction* rf = Closure::function(closure_obj);
+  RawFunction* rf = Closure::Cast(closure_obj).function();
   return Api::NewHandle(T, rf);
 }
 

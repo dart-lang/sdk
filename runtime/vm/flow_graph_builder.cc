@@ -1512,7 +1512,7 @@ void EffectGraphVisitor::BuildTypecheckPushArguments(
   const Class& instantiator_class = Class::Handle(
       Z, owner()->function().Owner());
   // Since called only when type tested against is not instantiated.
-  ASSERT(instantiator_class.NumTypeParameters() > 0);
+  ASSERT(instantiator_class.IsGeneric());
   Value* instantiator_type_arguments = NULL;
   Value* instantiator = BuildInstantiator(token_pos, instantiator_class);
   if (instantiator == NULL) {
@@ -1537,7 +1537,7 @@ void EffectGraphVisitor::BuildTypecheckArguments(
   const Class& instantiator_class = Class::Handle(
       Z, owner()->function().Owner());
   // Since called only when type tested against is not instantiated.
-  ASSERT(instantiator_class.NumTypeParameters() > 0);
+  ASSERT(instantiator_class.IsGeneric());
   instantiator = BuildInstantiator(token_pos, instantiator_class);
   if (instantiator == NULL) {
     // No instantiator when inside factory.
@@ -2518,35 +2518,40 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       isolate()->AddClosureFunction(function);
     }
   }
-  ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(Z) ZoneGrowableArray<PushArgumentInstr*>(1);
   ASSERT(function.context_scope() != ContextScope::null());
 
   // The function type of a closure may have type arguments. In that case,
   // pass the type arguments of the instantiator.
-  const Class& cls = Class::ZoneHandle(Z, function.signature_class());
-  ASSERT(!cls.IsNull());
-  const bool requires_type_arguments = cls.NumTypeArguments() > 0;
-  Value* type_arguments = NULL;
-  if (requires_type_arguments) {
-    ASSERT(cls.type_arguments_field_offset() ==
-           Closure::type_arguments_offset());
-    ASSERT(cls.instance_size() == Closure::InstanceSize());
-    const Class& instantiator_class = Class::Handle(
-        Z, owner()->function().Owner());
-    type_arguments = BuildInstantiatorTypeArguments(node->token_pos(),
-                                                    instantiator_class,
-                                                    NULL);
-    arguments->Add(PushArgument(type_arguments));
-  }
+  const Class& closure_class =
+      Class::ZoneHandle(Z, isolate()->object_store()->closure_class());
+  ZoneGrowableArray<PushArgumentInstr*>* no_arguments =
+      new(Z) ZoneGrowableArray<PushArgumentInstr*>(0);
   AllocateObjectInstr* alloc = new(Z) AllocateObjectInstr(node->token_pos(),
-                                                          cls,
-                                                          arguments);
+                                                          closure_class,
+                                                          no_arguments);
   alloc->set_closure_function(function);
 
   Value* closure_val = Bind(alloc);
-  { LocalVariable* closure_tmp_var =
-        EnterTempLocalScope(closure_val, node->token_pos());
+  { LocalVariable* closure_tmp_var = EnterTempLocalScope(closure_val,
+                                                         node->token_pos());
+    // Store type arguments if scope class is generic.
+    const FunctionType& function_type =
+        FunctionType::ZoneHandle(Z, function.SignatureType());
+    const Class& scope_cls = Class::ZoneHandle(Z, function_type.scope_class());
+    if (scope_cls.IsGeneric()) {
+      ASSERT(function.Owner() == scope_cls.raw());
+      Value* closure_tmp_val = Bind(new(Z) LoadLocalInstr(*closure_tmp_var,
+                                                          node->token_pos()));
+      Value* type_arguments = BuildInstantiatorTypeArguments(node->token_pos(),
+                                                             scope_cls,
+                                                             NULL);
+      Do(new(Z) StoreInstanceFieldInstr(Closure::type_arguments_offset(),
+                                        closure_tmp_val,
+                                        type_arguments,
+                                        kEmitStoreBarrier,
+                                        node->token_pos()));
+    }
+
     // Store function.
     Value* closure_tmp_val =
         Bind(new(Z) LoadLocalInstr(*closure_tmp_var, node->token_pos()));
@@ -2913,7 +2918,7 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 
 Value* EffectGraphVisitor::BuildInstantiator(intptr_t token_pos,
                                              const Class& instantiator_class) {
-  ASSERT(instantiator_class.NumTypeParameters() > 0);
+  ASSERT(instantiator_class.IsGeneric());
   Function& outer_function = Function::Handle(Z, owner()->function().raw());
   while (outer_function.IsLocalFunction()) {
     outer_function = outer_function.parent_function();
@@ -4459,7 +4464,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new(Z) ZoneGrowableArray<PushArgumentInstr*>();
   // Object receiver, actually a class literal of the unresolved method's owner.
-  Type& type = Type::ZoneHandle(
+  AbstractType& type = Type::ZoneHandle(
       Z,
       Type::New(function_class,
                 TypeArguments::Handle(Z, TypeArguments::null()),

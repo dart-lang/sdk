@@ -28,9 +28,9 @@ namespace dart {
   V(Object_instanceOfString, 2)                                                \
   V(Object_as, 3)                                                              \
   V(Function_apply, 2)                                                         \
-  V(FunctionImpl_equals, 2)                                                    \
-  V(FunctionImpl_hashCode, 1)                                                  \
-  V(FunctionImpl_clone, 1)                                                     \
+  V(Closure_equals, 2)                                                         \
+  V(Closure_hashCode, 1)                                                       \
+  V(Closure_clone, 1)                                                          \
   V(AbstractType_toString, 1)                                                  \
   V(Identical_comparison, 2)                                                   \
   V(Integer_bitAndFromInteger, 2)                                              \

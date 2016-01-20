@@ -55,6 +55,7 @@ class ObjectPointerVisitor;
   V(_EnumNames, "_enum_names")                                                 \
   V(ExprTemp, ":expr_temp")                                                    \
   V(AnonymousClosure, "<anonymous closure>")                                   \
+  V(AnonymousSignature, "<anonymous signature>")                               \
   V(ImplicitClosure, "<implicit closure>")                                     \
   V(ClosureParameter, ":closure")                                              \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
@@ -135,6 +136,7 @@ class ObjectPointerVisitor;
   V(Dynamic, "dynamic")                                                        \
   V(UnresolvedClass, "UnresolvedClass")                                        \
   V(Type, "_Type")                                                             \
+  V(FunctionType, "_FunctionType")                                             \
   V(TypeRef, "_TypeRef")                                                       \
   V(TypeParameter, "_TypeParameter")                                           \
   V(BoundedType, "_BoundedType")                                               \
@@ -143,7 +145,7 @@ class ObjectPointerVisitor;
   V(Patch, "patch")                                                            \
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
-  V(FunctionImpl, "_FunctionImpl")                                             \
+  V(_Closure, "_Closure")                                                      \
   V(FunctionResult, "function result")                                         \
   V(FactoryResult, "factory result")                                           \
   V(ClosureData, "ClosureData")                                                \

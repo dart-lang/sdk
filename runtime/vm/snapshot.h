@@ -22,6 +22,7 @@ class AbstractType;
 class Array;
 class Class;
 class ClassTable;
+class Closure;
 class Code;
 class ExternalTypedData;
 class GrowableObjectArray;
@@ -40,6 +41,7 @@ class RawBigint;
 class RawBoundedType;
 class RawCapability;
 class RawClass;
+class RawClosure;
 class RawClosureData;
 class RawContext;
 class RawContextScope;
@@ -49,6 +51,7 @@ class RawField;
 class RawFloat32x4;
 class RawFloat64x2;
 class RawFunction;
+class RawFunctionType;
 class RawGrowableObjectArray;
 class RawICData;
 class RawImmutableArray;
@@ -412,11 +415,13 @@ class SnapshotReader : public BaseReader {
   RawDouble* NewDouble(double value);
   RawUnresolvedClass* NewUnresolvedClass();
   RawType* NewType();
+  RawFunctionType* NewFunctionType();
   RawTypeRef* NewTypeRef();
   RawTypeParameter* NewTypeParameter();
   RawBoundedType* NewBoundedType();
   RawMixinAppType* NewMixinAppType();
   RawPatchClass* NewPatchClass();
+  RawClosure* NewClosure();
   RawClosureData* NewClosureData();
   RawRedirectionData* NewRedirectionData();
   RawFunction* NewFunction();
@@ -558,6 +563,7 @@ class SnapshotReader : public BaseReader {
   friend class Bigint;
   friend class BoundedType;
   friend class Class;
+  friend class Closure;
   friend class ClosureData;
   friend class Code;
   friend class Context;
@@ -588,6 +594,7 @@ class SnapshotReader : public BaseReader {
   friend class SubtypeTestCache;
   friend class TokenStream;
   friend class Type;
+  friend class FunctionType;
   friend class TypeArguments;
   friend class TypeParameter;
   friend class TypeRef;
@@ -921,14 +928,17 @@ class SnapshotWriter : public BaseWriter {
 
   void WriteFunctionId(RawFunction* func, bool owner_is_class);
 
+  RawFunction* IsSerializableClosure(RawClosure* closure);
+
+  void WriteStaticImplicitClosure(intptr_t object_id,
+                                  RawFunction* func,
+                                  intptr_t tags);
+
  protected:
   bool CheckAndWritePredefinedObject(RawObject* raw);
   bool HandleVMIsolateObject(RawObject* raw);
 
   void WriteClassId(RawClass* cls);
-  void WriteStaticImplicitClosure(intptr_t object_id,
-                                  RawFunction* func,
-                                  intptr_t tags);
   void WriteObjectImpl(RawObject* raw, bool as_reference);
   void WriteMarkedObjectImpl(RawObject* raw,
                              intptr_t tags,
@@ -942,7 +952,6 @@ class SnapshotWriter : public BaseWriter {
                     RawTypeArguments* type_arguments,
                     RawObject* data[],
                     bool as_reference);
-  RawFunction* IsSerializableClosure(RawClass* cls, RawObject* obj);
   RawClass* GetFunctionOwner(RawFunction* func);
   void CheckForNativeFields(RawClass* cls);
   void SetWriteException(Exceptions::ExceptionType type, const char* msg);

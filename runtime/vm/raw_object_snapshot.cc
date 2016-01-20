@@ -237,7 +237,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   READ_OBJECT_FIELDS(type, type.raw()->from(), type.raw()->to(), kAsReference);
 
   // Set the canonical bit.
-  if (!defer_canonicalization && RawObject::IsCanonical(tags)) {
+  if (!defer_canonicalization && is_canonical) {
     type.SetCanonical();
   }
 
@@ -275,10 +275,84 @@ void RawType::WriteTo(SnapshotWriter* writer,
   writer->Write<int32_t>(ptr()->token_pos_);
   writer->Write<int8_t>(ptr()->type_state_);
 
-  // Write out all the object pointer fields. Since we will be canonicalizing
-  // the type object when reading it back we should write out all the fields
-  // inline and not as references.
+  // Write out all the object pointer fields.
   ASSERT(ptr()->type_class_ != Object::null());
+  SnapshotWriterVisitor visitor(writer, kAsReference);
+  visitor.VisitPointers(from(), to());
+}
+
+
+RawFunctionType* FunctionType::ReadFrom(SnapshotReader* reader,
+                                        intptr_t object_id,
+                                        intptr_t tags,
+                                        Snapshot::Kind kind,
+                                        bool as_reference) {
+  ASSERT(reader != NULL);
+
+  // Determine if the scope class of this function type is in the full snapshot.
+  bool scopeclass_is_in_fullsnapshot = reader->Read<bool>();
+
+  // Allocate function type object.
+  FunctionType& function_type =
+      FunctionType::ZoneHandle(reader->zone(), NEW_OBJECT(FunctionType));
+  bool is_canonical = RawObject::IsCanonical(tags);
+  bool defer_canonicalization = is_canonical &&
+      (kind != Snapshot::kFull && scopeclass_is_in_fullsnapshot);
+  reader->AddBackRef(object_id,
+                     &function_type,
+                     kIsDeserialized,
+                     defer_canonicalization);
+
+  // Set all non object fields.
+  function_type.set_token_pos(reader->Read<int32_t>());
+  function_type.set_type_state(reader->Read<int8_t>());
+
+  // Set all the object fields.
+  READ_OBJECT_FIELDS(function_type,
+                     function_type.raw()->from(), function_type.raw()->to(),
+                     kAsReference);
+
+  // Set the canonical bit.
+  if (!defer_canonicalization && is_canonical) {
+    function_type.SetCanonical();
+  }
+
+  return function_type.raw();
+}
+
+
+void RawFunctionType::WriteTo(SnapshotWriter* writer,
+                              intptr_t object_id,
+                              Snapshot::Kind kind,
+                              bool as_reference) {
+  ASSERT(writer != NULL);
+
+  // Only resolved and finalized function types should be written to a snapshot.
+  ASSERT((ptr()->type_state_ == RawFunctionType::kFinalizedInstantiated) ||
+         (ptr()->type_state_ == RawFunctionType::kFinalizedUninstantiated));
+  ASSERT(ptr()->scope_class_ != Object::null());
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kFunctionTypeCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+
+  // Write out scopeclass_is_in_fullsnapshot first as this will
+  // help the reader decide on how to canonicalize the type object.
+  intptr_t tags = writer->GetObjectTags(ptr()->scope_class_);
+  bool scopeclass_is_in_fullsnapshot =
+      (ClassIdTag::decode(tags) == kClassCid) &&
+      Class::IsInFullSnapshot(reinterpret_cast<RawClass*>(ptr()->scope_class_));
+  writer->Write<bool>(scopeclass_is_in_fullsnapshot);
+
+  // Write out all the non object pointer fields.
+  writer->Write<int32_t>(ptr()->token_pos_);
+  writer->Write<int8_t>(ptr()->type_state_);
+
+  // Write out all the object pointer fields.
+  ASSERT(ptr()->scope_class_ != Object::null());
   SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
@@ -472,7 +546,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   }
 
   // Set the canonical bit.
-  if (!defer_canonicalization && RawObject::IsCanonical(tags)) {
+  if (!defer_canonicalization && is_canonical) {
     type_arguments.SetCanonical();
   }
 
@@ -548,6 +622,57 @@ void RawPatchClass::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawClosure* Closure::ReadFrom(SnapshotReader* reader,
+                              intptr_t object_id,
+                              intptr_t tags,
+                              Snapshot::Kind kind,
+                              bool as_reference) {
+  ASSERT(reader != NULL);
+  ASSERT(kind == Snapshot::kFull);
+
+  // Allocate closure object.
+  Closure& closure = Closure::ZoneHandle(
+      reader->zone(), NEW_OBJECT(Closure));
+  reader->AddBackRef(object_id, &closure, kIsDeserialized);
+
+  // Set all the object fields.
+  READ_OBJECT_FIELDS(closure,
+                     closure.raw()->from(), closure.raw()->to(),
+                     kAsReference);
+
+  return closure.raw();
+}
+
+
+void RawClosure::WriteTo(SnapshotWriter* writer,
+                         intptr_t object_id,
+                         Snapshot::Kind kind,
+                         bool as_reference) {
+  ASSERT(writer != NULL);
+  if ((kind == Snapshot::kMessage) || (kind == Snapshot::kScript)) {
+    // Check if closure is serializable, throw an exception otherwise.
+    RawFunction* func = writer->IsSerializableClosure(this);
+    if (func != Function::null()) {
+      writer->WriteStaticImplicitClosure(object_id,
+                                         func,
+                                         writer->GetObjectTags(this));
+      return;
+    }
+  }
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kClosureCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer, kAsReference);
+  visitor.VisitPointers(from(), to());
+}
+
+
 RawClosureData* ClosureData::ReadFrom(SnapshotReader* reader,
                                       intptr_t object_id,
                                       intptr_t tags,
@@ -599,8 +724,8 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
   // Parent function.
   writer->WriteObjectImpl(ptr()->parent_function_, kAsInlinedObject);
 
-  // Signature class.
-  writer->WriteObjectImpl(ptr()->signature_class_, kAsInlinedObject);
+  // Signature type.
+  writer->WriteObjectImpl(ptr()->signature_type_, kAsInlinedObject);
 
   // Static closure/Closure allocation stub.
   // We don't write the closure or allocation stub in the snapshot.
@@ -723,7 +848,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   ASSERT((kind == Snapshot::kScript) || (kind == Snapshot::kFull));
   bool is_in_fullsnapshot = false;
   bool owner_is_class = false;
-  if (kind == Snapshot::kScript) {
+  if ((kind == Snapshot::kScript) && !Function::IsSignatureFunction(this)) {
     intptr_t tags = writer->GetObjectTags(ptr()->owner_);
     intptr_t cid = ClassIdTag::decode(tags);
     owner_is_class = (cid == kClassCid);

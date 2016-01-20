@@ -1128,14 +1128,13 @@ class CallSiteInliner : public ValueObject {
           call->ArgumentAt(0)->OriginalDefinition()->AsAllocateObject();
       if ((alloc != NULL) && !alloc->closure_function().IsNull()) {
         target ^= alloc->closure_function().raw();
-        ASSERT(target.signature_class() == alloc->cls().raw());
+        ASSERT(alloc->cls().IsClosureClass());
       }
       ConstantInstr* constant =
           call->ArgumentAt(0)->OriginalDefinition()->AsConstant();
       if ((constant != NULL) &&
-          constant->value().IsInstance() &&
-          Instance::Cast(constant->value()).IsClosure()) {
-        target ^= Closure::function(Instance::Cast(constant->value()));
+          constant->value().IsClosure()) {
+        target ^= Closure::Cast(constant->value()).function();
       }
 
       if (target.IsNull()) {

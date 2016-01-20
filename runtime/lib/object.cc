@@ -88,7 +88,7 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
     // found.
     Function& function = Function::Handle();
     if (instance.IsClosure()) {
-      function = Closure::function(instance);
+      function = Closure::Cast(instance).function();
     } else {
       Class& instance_class = Class::Handle(instance.clazz());
       function = instance_class.LookupDynamicFunction(member_name);
@@ -179,7 +179,8 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Native Object.instanceOf: result %s\n", result_str);
-    const Type& instance_type = Type::Handle(instance.GetType());
+    const AbstractType& instance_type =
+        AbstractType::Handle(instance.GetType());
     OS::Print("  instance type: %s\n",
               String::Handle(instance_type.Name()).ToCString());
     OS::Print("  test type: %s\n", String::Handle(type.Name()).ToCString());
@@ -289,7 +290,8 @@ DEFINE_NATIVE_ENTRY(Object_as, 3) {
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Object.as: result %s\n", result_str);
-    const Type& instance_type = Type::Handle(instance.GetType());
+    const AbstractType& instance_type =
+        AbstractType::Handle(instance.GetType());
     OS::Print("  instance type: %s\n",
               String::Handle(instance_type.Name()).ToCString());
     OS::Print("  cast type: %s\n", String::Handle(type.Name()).ToCString());

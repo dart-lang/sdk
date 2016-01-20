@@ -339,13 +339,11 @@ RawError* Bootstrap::LoadandCompileScripts() {
     SetupNativeResolver();
     ClassFinalizer::ProcessPendingClasses();
 
-    Class& cls = Class::Handle(zone);
-    // Eagerly compile the function implementation class as it is the super
-    // class of signature classes. This allows us to just finalize signature
-    // classes without going through the hoops of trying to compile them.
-    const Type& type =
-        Type::Handle(zone, isolate->object_store()->function_impl_type());
-    cls = type.type_class();
+    // Eagerly compile the _Closure class as it is the class of all closure
+    // instances. This allows us to just finalize function types
+    // without going through the hoops of trying to compile their scope class.
+    const Class& cls =
+        Class::Handle(zone, isolate->object_store()->closure_class());
     Compiler::CompileClass(cls);
   }
 

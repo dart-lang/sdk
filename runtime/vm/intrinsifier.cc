@@ -68,19 +68,19 @@ void Intrinsifier::InitializeState() {
   ASSERT(!func.IsNull());                                                      \
   func.set_is_intrinsic(true);
 
-  // Set up all core lib functions that can be intrisified.
+  // Set up all core lib functions that can be intrinsified.
   lib = Library::CoreLibrary();
   ASSERT(!lib.IsNull());
   CORE_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
   CORE_INTEGER_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
   GRAPH_CORE_INTRINSICS_LIST(SETUP_FUNCTION);
 
-  // Set up all math lib functions that can be intrisified.
+  // Set up all math lib functions that can be intrinsified.
   lib = Library::MathLibrary();
   ASSERT(!lib.IsNull());
   MATH_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
 
-  // Set up all dart:typed_data lib functions that can be intrisified.
+  // Set up all dart:typed_data lib functions that can be intrinsified.
   lib = Library::TypedDataLibrary();
   ASSERT(!lib.IsNull());
   TYPED_DATA_LIB_INTRINSIC_LIST(SETUP_FUNCTION);

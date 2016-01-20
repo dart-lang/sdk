@@ -1781,8 +1781,14 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // ECX: instance class id.
   // EBX: instance type arguments.
   __ SmiTag(ECX);
+  __ cmpl(ECX, Immediate(Smi::RawValue(kClosureCid)));
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  __ movl(ECX, FieldAddress(EAX, Closure::function_offset()));
+  // ECX: instance class id as Smi or function.
   __ Bind(&loop);
-  __ movl(EDI, Address(EDX, kWordSize * SubtypeTestCache::kInstanceClassId));
+  __ movl(EDI,
+          Address(EDX,
+                  kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
   __ cmpl(EDI, raw_null);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
   __ cmpl(EDI, ECX);

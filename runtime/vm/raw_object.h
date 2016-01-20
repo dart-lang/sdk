@@ -50,10 +50,12 @@ namespace dart {
     V(LibraryPrefix)                                                           \
     V(AbstractType)                                                            \
       V(Type)                                                                  \
+      V(FunctionType)                                                          \
       V(TypeRef)                                                               \
       V(TypeParameter)                                                         \
       V(BoundedType)                                                           \
       V(MixinAppType)                                                          \
+    V(Closure)                                                                 \
     V(Number)                                                                  \
       V(Integer)                                                               \
         V(Smi)                                                                 \
@@ -145,8 +147,9 @@ CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
 #define DEFINE_OBJECT_KIND(clazz)                                              \
   kTypedData##clazz##ViewCid,
 CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
-  kByteDataViewCid,
 #undef DEFINE_OBJECT_KIND
+
+  kByteDataViewCid,
 
 #define DEFINE_OBJECT_KIND(clazz)                                              \
   kExternalTypedData##clazz##Cid,
@@ -590,8 +593,8 @@ class RawObject {
   friend class Array;
   friend class Bigint;
   friend class ByteBuffer;
-  friend class Code;
   friend class Closure;
+  friend class Code;
   friend class Double;
   friend class FreeListElement;
   friend class Function;
@@ -659,7 +662,7 @@ class RawClass : public RawObject {
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawAbstractType* super_type_;
   RawType* mixin_;  // Generic mixin type, e.g. M<T>, not M<int>.
-  RawFunction* signature_function_;  // Associated function for signature class.
+  RawFunction* signature_function_;  // Associated function for typedef class.
   RawArray* constants_;  // Canonicalized values of this class.
   RawObject* canonical_types_;  // An array of canonicalized types of this class
                                 // or the canonical type.
@@ -830,7 +833,7 @@ class RawClosureData : public RawObject {
   }
   RawContextScope* context_scope_;
   RawFunction* parent_function_;  // Enclosing function of this local function.
-  RawClass* signature_class_;
+  RawFunctionType* signature_type_;
   RawInstance* closure_;  // Closure object for static implicit closures.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->closure_);
@@ -1563,6 +1566,25 @@ class RawType : public RawAbstractType {
 };
 
 
+class RawFunctionType : public RawAbstractType {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(FunctionType);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->scope_class_);
+  }
+  RawClass* scope_class_;
+  RawTypeArguments* arguments_;
+  RawFunction* signature_;
+  RawLanguageError* error_;  // Error object if type is malformed or malbounded.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->error_);
+  }
+  int32_t token_pos_;
+  int8_t type_state_;
+};
+
+
 class RawTypeRef : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);
@@ -1621,6 +1643,24 @@ class RawMixinAppType : public RawAbstractType {
   RawArray* mixin_types_;  // Array of AbstractType.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->mixin_types_);
+  }
+};
+
+
+class RawClosure : public RawInstance {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Closure);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
+  }
+
+  RawTypeArguments* type_arguments_;
+  RawFunction* function_;
+  RawContext* context_;
+
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->context_);
   }
 };
 

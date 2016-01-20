@@ -3904,7 +3904,8 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(
     ZoneGrowableArray<intptr_t>* results) const {
   ASSERT(results->is_empty());
   ASSERT(ic_data.NumArgsTested() == 1);  // Unary checks only.
-  if (!type.IsInstantiated() || type.IsMalformedOrMalbounded()) {
+  if (type.IsFunctionType() || type.IsDartFunctionType() ||
+      !type.IsInstantiated() || type.IsMalformedOrMalbounded()) {
     return Bool::null();
   }
   const Class& type_class = Class::Handle(Z, type.type_class());
@@ -3959,9 +3960,9 @@ bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
   // Requires CHA.
   if (!type.IsInstantiated()) return false;
+  // Function types have different type checking rules.
+  if (type.IsFunctionType()) return false;
   const Class& type_class = Class::Handle(type.type_class());
-  // Signature classes have different type checking rules.
-  if (type_class.IsSignatureClass()) return false;
   // Could be an interface check?
   if (CHA::IsImplemented(type_class)) return false;
   // Check if there are subclasses.

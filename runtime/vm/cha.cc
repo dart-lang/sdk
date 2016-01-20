@@ -49,8 +49,8 @@ bool CHA::HasSubclasses(intptr_t cid) const {
 
 
 bool CHA::IsImplemented(const Class& cls) {
-  // Signature classes have different type checking rules.
-  ASSERT(!cls.IsSignatureClass());
+  // Function type aliases have different type checking rules.
+  ASSERT(!cls.IsTypedefClass());
   // Can't track dependencies for classes on the VM heap since those are
   // read-only.
   // TODO(fschneider): Enable tracking of CHA dependent code for VM heap

@@ -1627,14 +1627,14 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func) {
   ArgumentListNode* no_args = new ArgumentListNode(token_pos);
   LoadLocalNode* receiver = new LoadLocalNode(token_pos, scope->VariableAt(0));
 
-  const Class& function_impl = Class::Handle(Type::Handle(
-      Isolate::Current()->object_store()->function_impl_type()).type_class());
+  const Class& closure_cls = Class::Handle(
+      Isolate::Current()->object_store()->closure_class());
 
   const Class& owner = Class::Handle(Z, func.Owner());
   ASSERT(!owner.IsNull());
   const String& name = String::Handle(Z, func.name());
   AstNode* function_object = NULL;
-  if (owner.raw() == function_impl.raw() && name.Equals(Symbols::Call())) {
+  if (owner.raw() == closure_cls.raw() && name.Equals(Symbols::Call())) {
     function_object = receiver;
   } else {
     const String& getter_name = String::ZoneHandle(Z,
@@ -1661,7 +1661,7 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func) {
   args->set_names(names);
 
   AstNode* result = NULL;
-  if (owner.raw() == function_impl.raw() && name.Equals(Symbols::Call())) {
+  if (owner.raw() == closure_cls.raw() && name.Equals(Symbols::Call())) {
     result = new ClosureCallNode(token_pos, function_object, args);
   } else {
     result = BuildClosureCall(token_pos, function_object, args);
@@ -1883,55 +1883,22 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       ParseFormalParameterList(no_explicit_default_values, false, &func_params);
 
       // In top-level and mixin functions, the source may be in a different
-      // script than the script of the current class.
-      Object& sig_func_owner = Object::Handle(Z, current_class().raw());
-      if (current_class().script() != script_.raw()) {
-        sig_func_owner = PatchClass::New(current_class(), script_);
-      }
-
-      // The field 'is_static' has no meaning for signature functions.
+      // script than the script of the current class. However, we never reparse
+      // signature functions (except typedef signature functions), therefore
+      // we do not need to keep the correct script via a patch class. Use the
+      // actual current class as owner of the signature function.
       const Function& signature_function = Function::Handle(Z,
-          Function::New(*parameter.name,
-                        RawFunction::kSignatureFunction,
-                        /* is_static = */ false,
-                        /* is_const = */ false,
-                        /* is_abstract = */ false,
-                        /* is_external = */ false,
-                        /* is_native = */ false,
-                        sig_func_owner,
-                        parameter.name_pos));
+          Function::NewSignatureFunction(current_class(),
+                                         Token::kNoSourcePos));
       signature_function.set_result_type(result_type);
-      signature_function.set_is_debuggable(false);
       AddFormalParamsToFunction(&func_params, signature_function);
-      const String& signature =
-          String::Handle(Z, signature_function.Signature());
-      // Lookup the signature class, i.e. the class whose name is the signature.
-      // We only lookup in the current library, but not in its imports, and only
-      // create a new canonical signature class if it does not exist yet.
-      Class& signature_class =
-          Class::ZoneHandle(Z, library_.LookupLocalClass(signature));
-      if (signature_class.IsNull()) {
-        signature_class = Class::NewSignatureClass(signature,
-                                                   signature_function,
-                                                   script_,
-                                                   parameter.name_pos);
-        // Record the function signature class in the current library, unless
-        // we are currently skipping a formal parameter list, in which case
-        // the signature class could remain unfinalized.
-        if (!params->skipped) {
-          library_.AddClass(signature_class);
-        }
-      } else {
-        signature_function.set_signature_class(signature_class);
-      }
-      ASSERT(signature_function.signature_class() == signature_class.raw());
+      FunctionType& signature_type =
+          FunctionType::ZoneHandle(Z, signature_function.SignatureType());
       if (!is_top_level_) {
-        // Finalize types in signature class here, so that the
-        // signature type is not computed twice.
-        ClassFinalizer::FinalizeTypesInClass(signature_class);
+        signature_type ^= ClassFinalizer::FinalizeType(
+            current_class(), signature_type, ClassFinalizer::kCanonicalize);
+        signature_function.SetSignatureType(signature_type);
       }
-      const Type& signature_type =
-          Type::ZoneHandle(Z, signature_class.SignatureType());
       ASSERT(is_top_level_ || signature_type.IsFinalized());
       // A signature type itself cannot be malformed or malbounded, only its
       // signature function's result type or parameter types may be.
@@ -2316,9 +2283,10 @@ ClosureNode* Parser::CreateImplicitClosureNode(const Function& func,
     // parameterized class, make sure that the receiver is captured as
     // instantiator.
     if (current_block_->scope->function_level() > 0) {
-      const Class& signature_class = Class::Handle(Z,
-          implicit_closure_function.signature_class());
-      if (signature_class.NumTypeParameters() > 0) {
+      const FunctionType& signature_type = FunctionType::Handle(Z,
+          implicit_closure_function.SignatureType());
+      const Class& scope_class = Class::Handle(Z, signature_type.type_class());
+      if (scope_class.IsGeneric()) {
         CaptureInstantiator();
       }
     }
@@ -4387,10 +4355,6 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       // Preserve and reuse the original type parameters and bounds since the
       // ones defined in the patch class will not be finalized.
       orig_type_parameters = cls.type_parameters();
-      // A patch class must be given the same name as the class it is patching,
-      // otherwise the generic signature classes it defines will not match the
-      // patched generic signature classes. Therefore, new signature classes
-      // will be introduced and the original ones will not get finalized.
       cls = Class::New(class_name, script_, declaration_pos);
       cls.set_library(library_);
     } else {
@@ -4974,15 +4938,15 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
                 "'%s' is already defined", alias_name->ToCString());
   }
 
-  // Create the function type alias signature class. It will be linked to its
+  // Create the function type alias scope class. It will be linked to its
   // signature function after it has been parsed. The type parameters, in order
-  // to be properly finalized, need to be associated to this signature class as
+  // to be properly finalized, need to be associated to this scope class as
   // they are parsed.
   const Class& function_type_alias = Class::Handle(Z,
-      Class::NewSignatureClass(*alias_name,
-                               Function::Handle(Z),
-                               script_,
-                               declaration_pos));
+      Class::New(*alias_name, script_, declaration_pos));
+  function_type_alias.set_is_synthesized_class();
+  function_type_alias.set_is_abstract();
+  function_type_alias.set_is_prefinalized();
   library_.AddClass(function_type_alias);
   set_current_class(function_type_alias);
   // Parse the type parameters of the function type.
@@ -5007,52 +4971,21 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   const bool no_explicit_default_values = false;
   ParseFormalParameterList(no_explicit_default_values, false, &func_params);
   ExpectSemicolon();
-  // The field 'is_static' has no meaning for signature functions.
-  Function& signature_function = Function::Handle(Z,
-      Function::New(*alias_name,
-                    RawFunction::kSignatureFunction,
-                    /* is_static = */ false,
-                    /* is_const = */ false,
-                    /* is_abstract = */ false,
-                    /* is_external = */ false,
-                    /* is_native = */ false,
-                    function_type_alias,
-                    alias_name_pos));
+  Function& signature_function =
+      Function::Handle(Z, Function::NewSignatureFunction(function_type_alias,
+                                                         alias_name_pos));
   signature_function.set_result_type(result_type);
-  signature_function.set_is_debuggable(false);
   AddFormalParamsToFunction(&func_params, signature_function);
 
-  // Patch the signature function in the signature class.
-  function_type_alias.PatchSignatureFunction(signature_function);
+  // Set the signature function in the function type alias class.
+  function_type_alias.set_signature_function(signature_function);
 
-  const String& signature = String::Handle(Z,
-                                           signature_function.Signature());
   if (FLAG_trace_parser) {
     OS::Print("TopLevel parsing function type alias '%s'\n",
-              signature.ToCString());
+              String::Handle(Z, signature_function.Signature()).ToCString());
   }
-  // Lookup the signature class, i.e. the class whose name is the signature.
-  // We only lookup in the current library, but not in its imports, and only
-  // create a new canonical signature class if it does not exist yet.
-  Class& signature_class =
-      Class::ZoneHandle(Z, library_.LookupLocalClass(signature));
-  if (signature_class.IsNull()) {
-    signature_class = Class::NewSignatureClass(signature,
-                                               signature_function,
-                                               script_,
-                                               alias_name_pos);
-    // Record the function signature class in the current library.
-    library_.AddClass(signature_class);
-  } else {
-    // Forget the just created signature function and use the existing one.
-    signature_function = signature_class.signature_function();
-    function_type_alias.PatchSignatureFunction(signature_function);
-  }
-  ASSERT(signature_function.signature_class() == signature_class.raw());
-
   // The alias should not be marked as finalized yet, since it needs to be
   // checked in the class finalizer for illegal self references.
-  ASSERT(!function_type_alias.IsCanonicalSignatureClass());
   ASSERT(!function_type_alias.is_finalized());
   pending_classes.Add(function_type_alias, Heap::kOld);
   if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
@@ -6558,19 +6491,12 @@ RawFunction* Parser::OpenSyncGeneratorFunction(intptr_t func_pos) {
     // Add the parameters to the newly created closure.
     AddFormalParamsToFunction(&closure_params, body);
 
-    // Create and set the signature class of the closure.
-    const String& sig = String::Handle(Z, body.Signature());
-    Class& sig_cls = Class::Handle(Z, library_.LookupLocalClass(sig));
-    if (sig_cls.IsNull()) {
-      sig_cls = Class::NewSignatureClass(sig, body, script_, body.token_pos());
-      library_.AddClass(sig_cls);
-    }
-    body.set_signature_class(sig_cls);
-    // Finalize types in signature class here, so that the
-    // signature type is not computed twice.
-    ClassFinalizer::FinalizeTypesInClass(sig_cls);
-    const Type& sig_type = Type::Handle(Z, sig_cls.SignatureType());
-    ASSERT(sig_type.IsFinalized());
+    // Finalize function type.
+    FunctionType& signature_type =
+        FunctionType::Handle(Z, body.SignatureType());
+    signature_type ^= ClassFinalizer::FinalizeType(
+        current_class(), signature_type, ClassFinalizer::kCanonicalize);
+    body.SetSignatureType(signature_type);
     ASSERT(AbstractType::Handle(Z, body.result_type()).IsResolved());
     ASSERT(body.NumParameters() == closure_params.parameters->length());
   }
@@ -6695,20 +6621,12 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
     // Add the parameters to the newly created closure.
     AddFormalParamsToFunction(&closure_params, closure);
 
-    // Create and set the signature class of the closure.
-    const String& sig = String::Handle(Z, closure.Signature());
-    Class& sig_cls = Class::Handle(Z, library_.LookupLocalClass(sig));
-    if (sig_cls.IsNull()) {
-      sig_cls =
-          Class::NewSignatureClass(sig, closure, script_, closure.token_pos());
-      library_.AddClass(sig_cls);
-    }
-    closure.set_signature_class(sig_cls);
-    // Finalize types in signature class here, so that the
-    // signature type is not computed twice.
-    ClassFinalizer::FinalizeTypesInClass(sig_cls);
-    const Type& sig_type = Type::Handle(Z, sig_cls.SignatureType());
-    ASSERT(sig_type.IsFinalized());
+    // Finalize function type.
+    FunctionType& signature_type =
+        FunctionType::Handle(Z, closure.SignatureType());
+    signature_type ^= ClassFinalizer::FinalizeType(
+        current_class(), signature_type, ClassFinalizer::kCanonicalize);
+    closure.SetSignatureType(signature_type);
     ASSERT(AbstractType::Handle(Z, closure.result_type()).IsResolved());
     ASSERT(closure.NumParameters() == closure_params.parameters->length());
   }
@@ -6830,20 +6748,12 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(intptr_t async_func_pos) {
     // Add the parameters to the newly created closure.
     AddFormalParamsToFunction(&closure_params, closure);
 
-    // Create and set the signature class of the closure.
-    const String& sig = String::Handle(Z, closure.Signature());
-    Class& sig_cls = Class::Handle(Z, library_.LookupLocalClass(sig));
-    if (sig_cls.IsNull()) {
-      sig_cls =
-          Class::NewSignatureClass(sig, closure, script_, closure.token_pos());
-      library_.AddClass(sig_cls);
-    }
-    closure.set_signature_class(sig_cls);
-    // Finalize types in signature class here, so that the
-    // signature type is not computed twice.
-    ClassFinalizer::FinalizeTypesInClass(sig_cls);
-    const Type& sig_type = Type::Handle(Z, sig_cls.SignatureType());
-    ASSERT(sig_type.IsFinalized());
+    // Finalize function type.
+    FunctionType& signature_type =
+        FunctionType::Handle(Z, closure.SignatureType());
+    signature_type ^= ClassFinalizer::FinalizeType(
+        current_class(), signature_type, ClassFinalizer::kCanonicalize);
+    closure.SetSignatureType(signature_type);
     ASSERT(AbstractType::Handle(Z, closure.result_type()).IsResolved());
     ASSERT(closure.NumParameters() == closure_params.parameters->length());
   }
@@ -7563,7 +7473,6 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // Note that we cannot share the same closure function between the closurized
   // and non-closurized versions of the same parent function.
   Function& function = Function::ZoneHandle(Z);
-  bool is_new_closure = false;
   // TODO(hausner): There could be two different closures at the given
   // function_pos, one enclosed in a closurized function and one enclosed in the
   // non-closurized version of this same function.
@@ -7572,7 +7481,6 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // The function will be registered in the lookup table by the
     // EffectGraphVisitor::VisitClosureNode when the newly allocated closure
     // function has been properly setup.
-    is_new_closure = true;
     function = Function::NewClosureFunction(*function_name,
                                             innermost_function(),
                                             function_pos);
@@ -7587,17 +7495,19 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // passed as a function argument, or returned as a function result.
 
   LocalVariable* function_variable = NULL;
-  Type& function_type = Type::ZoneHandle(Z);
+  FunctionType& function_type = FunctionType::ZoneHandle(Z);
   if (variable_name != NULL) {
     // Since the function type depends on the signature of the closure function,
     // it cannot be determined before the formal parameter list of the closure
     // function is parsed. Therefore, we set the function type to a new
-    // parameterized type to be patched after the actual type is known.
-    // We temporarily use the class of the Function interface.
-    const Class& unknown_signature_class = Class::Handle(Z,
-        Type::Handle(Z, Type::Function()).type_class());
-    function_type = Type::New(unknown_signature_class,
-                              TypeArguments::Handle(Z), function_pos);
+    // function type to be patched after the actual type is known.
+    // We temporarily use the Closure class as scope class.
+    const Class& unknown_scope_class = Class::Handle(Z,
+        I->object_store()->closure_class());
+    function_type = FunctionType::New(unknown_scope_class,
+                                      TypeArguments::Handle(Z),
+                                      function,
+                                      function_pos);
     function_type.SetIsFinalized();  // No finalization needed.
 
     // Add the function variable to the scope before parsing the function in
@@ -7625,47 +7535,23 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   INC_STAT(thread(), num_functions_parsed, 1);
 
   // Now that the local function has formal parameters, lookup the signature
-  // class in the current library (but not in its imports) and only create a new
-  // canonical signature class if it does not exist yet.
-  const String& signature = String::Handle(Z, function.Signature());
-  Class& signature_class = Class::ZoneHandle(Z);
-  if (!is_new_closure) {
-    signature_class = function.signature_class();
-  }
-  if (signature_class.IsNull()) {
-    signature_class = library_.LookupLocalClass(signature);
-  }
-  if (signature_class.IsNull()) {
-    // If we don't have a signature class yet, this must be a closure we
-    // have not parsed before.
-    ASSERT(is_new_closure);
-    signature_class = Class::NewSignatureClass(signature,
-                                               function,
-                                               script_,
-                                               function.token_pos());
-    // Record the function signature class in the current library.
-    library_.AddClass(signature_class);
-  } else if (is_new_closure) {
-    function.set_signature_class(signature_class);
-  }
-  ASSERT(function.signature_class() == signature_class.raw());
+  FunctionType& signature_type =
+      FunctionType::ZoneHandle(Z, function.SignatureType());
+  signature_type ^= ClassFinalizer::FinalizeType(
+      current_class(), signature_type, ClassFinalizer::kCanonicalize);
+  function.SetSignatureType(signature_type);
 
   // Local functions are registered in the enclosing class, but
   // ignored during class finalization. The enclosing class has
   // already been finalized.
   ASSERT(current_class().is_finalized());
+  ASSERT(signature_type.IsFinalized());
 
   // Make sure that the instantiator is captured.
-  if ((signature_class.NumTypeParameters() > 0) &&
-      (current_block_->scope->function_level() > 0)) {
+  if ((current_block_->scope->function_level() > 0) &&
+      Class::Handle(signature_type.type_class()).IsGeneric()) {
     CaptureInstantiator();
   }
-
-  // Finalize types in signature class here, so that the
-  // signature type is not computed twice.
-  ClassFinalizer::FinalizeTypesInClass(signature_class);
-  const Type& signature_type = Type::Handle(Z, signature_class.SignatureType());
-  ASSERT(signature_type.IsFinalized());
 
   // A signature type itself cannot be malformed or malbounded, only its
   // signature function's result type or parameter types may be.
@@ -7674,9 +7560,11 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
 
   if (variable_name != NULL) {
     // Patch the function type of the variable now that the signature is known.
-    function_type.set_type_class(signature_class);
+    function_type.set_scope_class(
+        Class::Handle(Z, signature_type.scope_class()));
     function_type.set_arguments(
         TypeArguments::Handle(Z, signature_type.arguments()));
+    ASSERT(function_type.signature() == function.raw());
 
     // The function type was initially marked as instantiated, but it may
     // actually be uninstantiated.
@@ -10307,8 +10195,8 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
       func->is_external() && !func->is_static()) {
     arguments->Add(LoadReceiver(func->token_pos()));
   } else {
-    Type& type = Type::ZoneHandle(Z,
-        Type::New(cls, TypeArguments::Handle(Z), call_pos, Heap::kOld));
+    AbstractType& type = AbstractType::ZoneHandle(Z);
+    type ^= Type::New(cls, TypeArguments::Handle(Z), call_pos, Heap::kOld);
     type ^= ClassFinalizer::FinalizeType(
         current_class(), type, ClassFinalizer::kCanonicalize);
     arguments->Add(new(Z) LiteralNode(call_pos, type));
@@ -11886,16 +11774,15 @@ bool Parser::ParsingStaticMember() const {
 
 const AbstractType* Parser::ReceiverType(const Class& cls) {
   ASSERT(!cls.IsNull());
+  ASSERT(!cls.IsTypedefClass());
+  // Note that if cls is _Closure, the returned type will be _Closure,
+  // and not the signature type.
   Type& type = Type::ZoneHandle(Z, cls.CanonicalType());
   if (!type.IsNull()) {
     return &type;
   }
-  if (cls.IsSignatureClass()) {
-    type = cls.SignatureType();
-  } else {
-    type = Type::New(cls,
-        TypeArguments::Handle(Z, cls.type_parameters()), cls.token_pos());
-  }
+  type = Type::New(cls,
+      TypeArguments::Handle(Z, cls.type_parameters()), cls.token_pos());
   if (cls.is_type_finalized()) {
     type ^= ClassFinalizer::FinalizeType(
         cls, type, ClassFinalizer::kCanonicalizeWellFormed);
@@ -11912,7 +11799,7 @@ bool Parser::IsInstantiatorRequired() const {
       !current_function().IsInFactoryScope()) {
     return false;
   }
-  return current_class().NumTypeParameters() > 0;
+  return current_class().IsGeneric();
 }
 
 // We cache computed compile-time constants in a map so we can look them
@@ -12472,7 +12359,7 @@ RawAbstractType* Parser::ParseType(
     bool consume_unresolved_prefix) {
   LibraryPrefix& prefix = LibraryPrefix::Handle(Z);
   return ParseType(finalization, allow_deferred_type,
-                         consume_unresolved_prefix, &prefix);
+                   consume_unresolved_prefix, &prefix);
 }
 
 // Parses type = [ident "."] ident ["<" type { "," type } ">"], then resolve and
@@ -13157,19 +13044,12 @@ RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
   closure.set_result_type(Object::dynamic_type());
   AddFormalParamsToFunction(&params, closure);
 
-  // Create and set the signature class of the closure.
-  const String& sig = String::Handle(Z, closure.Signature());
-  Class& sig_cls = Class::Handle(Z, library_.LookupLocalClass(sig));
-  if (sig_cls.IsNull()) {
-    sig_cls = Class::NewSignatureClass(sig, closure, script_, token_pos);
-    library_.AddClass(sig_cls);
-  }
-  closure.set_signature_class(sig_cls);
-  // Finalize types in signature class here, so that the
-  // signature type is not computed twice.
-  ClassFinalizer::FinalizeTypesInClass(sig_cls);
-  const Type& sig_type = Type::Handle(Z, sig_cls.SignatureType());
-  ASSERT(sig_type.IsFinalized());
+  // Finalize function type.
+  FunctionType& signature_type =
+      FunctionType::Handle(Z, closure.SignatureType());
+  signature_type ^= ClassFinalizer::FinalizeType(
+      current_class(), signature_type, ClassFinalizer::kCanonicalize);
+  closure.SetSignatureType(signature_type);
   // Finalization would be premature when top-level parsing.
   ASSERT(!is_top_level_);
   return closure.raw();

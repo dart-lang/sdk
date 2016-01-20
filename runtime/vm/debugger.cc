@@ -2146,7 +2146,7 @@ Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure) {
   if (!closure.IsClosure()) {
     return NULL;
   }
-  const Function& func = Function::Handle(Closure::function(closure));
+  const Function& func = Function::Handle(Closure::Cast(closure).function());
   const Script& script = Script::Handle(func.script());
   BreakpointLocation* bpt_location = SetBreakpoint(script,
                                                    func.token_pos(),

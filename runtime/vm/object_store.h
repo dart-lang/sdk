@@ -67,9 +67,9 @@ class ObjectStore {
     function_type_ = value.raw();
   }
 
-  RawType* function_impl_type() const { return function_impl_type_; }
-  void set_function_impl_type(const Type& value) {
-    function_impl_type_ = value.raw();
+  RawClass* closure_class() const { return closure_class_; }
+  void set_closure_class(const Class& value) {
+    closure_class_ = value.raw();
   }
 
   RawType* number_type() const { return number_type_; }
@@ -504,7 +504,7 @@ class ObjectStore {
   RawClass* null_class_;
   RawType* null_type_;
   RawType* function_type_;
-  RawType* function_impl_type_;
+  RawClass* closure_class_;
   RawType* number_type_;
   RawType* int_type_;
   RawClass* integer_implementation_class_;

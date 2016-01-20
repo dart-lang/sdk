@@ -282,14 +282,13 @@ RawError* Compiler::CompileClass(const Class& cls) {
   if (cls.is_marked_for_parsing()) {
     return Error::null();
   }
-  // If the class is a signature class there is no need to try and
+  // If the class is a typedef class there is no need to try and
   // compile it. Just finalize it directly.
-  if (cls.IsSignatureClass()) {
+  if (cls.IsTypedefClass()) {
 #if defined(DEBUG)
-    const Type& type = Type::Handle(
-        Isolate::Current()->object_store()->function_impl_type());
-    const Class& type_cls = Class::Handle(type.type_class());
-    ASSERT(type_cls.is_finalized());
+    const Class& closure_cls = Class::Handle(
+        Isolate::Current()->object_store()->closure_class());
+    ASSERT(closure_cls.is_finalized());
 #endif
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {

@@ -671,7 +671,7 @@ DART_EXPORT Dart_Handle Dart_GetClosureInfo(
   if (!instance.IsClosure()) {
     return Api::NewError("%s: parameter 0 is not a closure", CURRENT_FUNC);
   }
-  const Function& func = Function::Handle(Closure::function(instance));
+  const Function& func = Function::Handle(Closure::Cast(instance).function());
   ASSERT(!func.IsNull());
   if (name != NULL) {
     *name = Api::NewHandle(T, func.QualifiedUserVisibleName());

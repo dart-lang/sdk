@@ -226,11 +226,11 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
 
   if (closure.IsClosure()) {
     Function& func = Function::Handle();
-    func = Closure::function(closure);
+    func = Closure::Cast(closure).function();
     if (func.IsImplicitClosureFunction() && func.is_static()) {
 #if defined(DEBUG)
       Context& ctx = Context::Handle();
-      ctx = Closure::context(closure);
+      ctx = Closure::Cast(closure).context();
       ASSERT(ctx.num_variables() == 0);
 #endif
       // Get the parent function so that we get the right function name.
