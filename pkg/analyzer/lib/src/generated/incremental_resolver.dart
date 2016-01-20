@@ -1475,27 +1475,44 @@ class PoorMansIncrementalResolver {
           for (int i = 0; i < length; i++) {
             AstNode oldParent = oldParents[i];
             AstNode newParent = newParents[i];
-            if (oldParent is ConstructorInitializer ||
-                newParent is ConstructorInitializer) {
-              logger.log('Failure: changes in constant constructor initializers'
-                  ' may cause external changes in constant objects.');
-              return false;
-            }
-            if (oldParent is FunctionDeclaration &&
+            if (oldParent is CompilationUnit && newParent is CompilationUnit) {
+              int oldLength = oldParent.declarations.length;
+              int newLength = newParent.declarations.length;
+              if (oldLength != newLength) {
+                logger.log(
+                    'Failure: unit declarations mismatch $oldLength vs. $newLength');
+                return false;
+              }
+            } else if (oldParent is ClassDeclaration &&
+                newParent is ClassDeclaration) {
+              int oldLength = oldParent.members.length;
+              int newLength = newParent.members.length;
+              if (oldLength != newLength) {
+                logger.log(
+                    'Failure: class declarations mismatch $oldLength vs. $newLength');
+                return false;
+              }
+            } else if (oldParent is FunctionDeclaration &&
                     newParent is FunctionDeclaration ||
-                oldParent is MethodDeclaration &&
-                    newParent is MethodDeclaration ||
                 oldParent is ConstructorDeclaration &&
-                    newParent is ConstructorDeclaration) {
+                    newParent is ConstructorDeclaration ||
+                oldParent is MethodDeclaration &&
+                    newParent is MethodDeclaration) {
               Element oldElement = (oldParent as Declaration).element;
               if (new DeclarationMatcher().matches(newParent, oldElement) ==
                   DeclarationMatchKind.MATCH) {
                 oldNode = oldParent;
                 newNode = newParent;
                 found = true;
+              } else {
+                return false;
               }
-            }
-            if (oldParent is FunctionBody || newParent is FunctionBody) {
+            } else if (oldParent is ConstructorInitializer ||
+                newParent is ConstructorInitializer) {
+              logger.log('Failure: changes in constant constructor initializers'
+                  ' may cause external changes in constant objects.');
+              return false;
+            } else if (oldParent is FunctionBody && newParent is FunctionBody) {
               if (oldParent is BlockFunctionBody &&
                   newParent is BlockFunctionBody) {
                 oldNode = oldParent;
@@ -1504,6 +1521,13 @@ class PoorMansIncrementalResolver {
                 break;
               }
               logger.log('Failure: not a block function body.');
+              return false;
+            } else if (oldParent is FunctionExpression &&
+                newParent is FunctionExpression) {
+              // skip
+            } else {
+              logger.log('Failure: old and new parent mismatch'
+                  ' ${oldParent.runtimeType} vs. ${newParent.runtimeType}');
               return false;
             }
           }

@@ -3803,23 +3803,6 @@ main() {
 ''');
   }
 
-  void test_endOfLineComment_localFunction_inTopLevelVariable() {
-    _resolveUnit(r'''
-typedef int Binary(one, two, three);
-
-int Global = f((a, b, c) {
-  return 0; // Some comment
-});
-''');
-    _updateAndValidate(r'''
-typedef int Binary(one, two, three);
-
-int Global = f((a, b, c) {
-  return 0; // Some  comment
-});
-''');
-  }
-
   void test_endOfLineComment_outBody_add() {
     _resolveUnit(r'''
 main() {
@@ -3933,6 +3916,48 @@ main() {
         expectedSuccess: false);
   }
 
+  void test_false_constructor_initializer() {
+    _resolveUnit(r'''
+class Problem {
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : location = json["location"],
+        message = json["message"];
+}''');
+    _updateAndValidate(
+        r'''
+class Problem {
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : location = json["location],
+        message = json["message"];
+}''',
+        expectedSuccess: false);
+  }
+
+  void test_false_endOfLineComment_localFunction_inTopLevelVariable() {
+    _resolveUnit(r'''
+typedef int Binary(one, two, three);
+
+int Global = f((a, b, c) {
+  return 0; // Some comment
+});
+''');
+    _updateAndValidate(
+        r'''
+typedef int Binary(one, two, three);
+
+int Global = f((a, b, c) {
+  return 0; // Some  comment
+});
+''',
+        expectedSuccess: false);
+  }
+
   void test_false_expressionBody() {
     _resolveUnit(r'''
 class A {
@@ -3959,6 +3984,29 @@ class A {
 class A {
   int m() => 10 * 100;
 }
+''',
+        expectedSuccess: false);
+  }
+
+  void test_false_inBody_functionExpression() {
+    _resolveUnit(r'''
+class C extends D {
+  static final f = () {
+    var x = 0;
+  }();
+}
+
+class D {}
+''');
+    _updateAndValidate(
+        r'''
+class C extends D {
+  static final f = () {
+    var x = 01;
+  }();
+}
+
+class D {}
 ''',
         expectedSuccess: false);
   }
@@ -4079,27 +4127,6 @@ class A {
     print(2 + 3);
   }
 }
-''');
-  }
-
-  void test_inBody_functionExpression() {
-    _resolveUnit(r'''
-class C extends D {
-  static final f = () {
-    var x = 0;
-  }();
-}
-
-class D {}
-''');
-    _updateAndValidate(r'''
-class C extends D {
-  static final f = () {
-    var x = 01;
-  }();
-}
-
-class D {}
 ''');
   }
 
