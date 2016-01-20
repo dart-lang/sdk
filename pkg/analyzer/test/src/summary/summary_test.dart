@@ -582,11 +582,15 @@ abstract class SummaryTest {
    * type.
    */
   void checkUnresolvedTypeRef(
-      TypeRef typeRef, String expectedPrefix, String expectedName) {
+      TypeRef typeRef, String expectedPrefix, String expectedName,
+      {LinkedUnit linkedSourceUnit, UnlinkedUnit unlinkedSourceUnit}) {
     // When serializing from the element model, unresolved type refs lose their
     // name.
     checkTypeRef(typeRef, null, null, checkAstDerivedData ? expectedName : null,
-        expectedPrefix: expectedPrefix, expectedKind: ReferenceKind.unresolved);
+        expectedPrefix: expectedPrefix,
+        expectedKind: ReferenceKind.unresolved,
+        linkedSourceUnit: linkedSourceUnit,
+        unlinkedSourceUnit: unlinkedSourceUnit);
   }
 
   fail_constExpr_pushInt_shiftOr() {
@@ -3907,6 +3911,21 @@ typedef F();''';
     expect(type.typeParameters, hasLength(2));
     expect(type.typeParameters[0].name, 'T');
     expect(type.typeParameters[1].name, 'U');
+  }
+
+  test_unresolved_reference_in_multiple_parts() {
+    addNamedSource('/a.dart', 'part of foo; int x; Unresolved y;');
+    serializeLibraryText('library foo; part "a.dart"; Unresolved z;',
+        allowErrors: true);
+    // The unresolved types in the defining compilation unit and the part
+    // should both work correctly even though they use different reference
+    // indices.
+    checkUnresolvedTypeRef(
+        unlinkedUnits[0].variables[0].type, null, 'Unresolved');
+    checkUnresolvedTypeRef(
+        unlinkedUnits[1].variables[1].type, null, 'Unresolved',
+        linkedSourceUnit: linked.units[1],
+        unlinkedSourceUnit: unlinkedUnits[1]);
   }
 
   test_variable() {
