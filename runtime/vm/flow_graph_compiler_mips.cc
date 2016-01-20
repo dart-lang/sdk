@@ -495,7 +495,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ Bind(&fall_through);
     return type_test_cache.raw();
   }
-  if (type.IsType()) {
+  if (type.IsType() || type.IsFunctionType()) {
     const Register kInstanceReg = A0;
     const Register kTypeArgumentsReg = A1;
     __ andi(CMPRES1, kInstanceReg, Immediate(kSmiTagMask));

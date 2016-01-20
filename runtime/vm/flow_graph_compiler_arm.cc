@@ -507,7 +507,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ Bind(&fall_through);
     return type_test_cache.raw();
   }
-  if (type.IsType()) {
+  if (type.IsType() || type.IsFunctionType()) {
     const Register kInstanceReg = R0;
     const Register kTypeArgumentsReg = R1;
     __ tst(kInstanceReg, Operand(kSmiTagMask));  // Is instance Smi?
