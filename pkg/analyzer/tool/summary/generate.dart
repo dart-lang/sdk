@@ -388,9 +388,9 @@ class _CodeGenerator {
             } else if (_idl.enums.containsKey(fieldType.typeName)) {
               String itemCode = 'b.index';
               String listCode = '$valueName.map((b) => $itemCode).toList()';
-              writeCode = '$offsetName = fbBuilder.writeListInt32($listCode);';
+              writeCode = '$offsetName = fbBuilder.writeListUint32($listCode);';
             } else if (fieldType.typeName == 'int') {
-              writeCode = '$offsetName = fbBuilder.writeListInt32($valueName);';
+              writeCode = '$offsetName = fbBuilder.writeListUint32($valueName);';
             } else if (fieldType.typeName == 'double') {
               writeCode = '$offsetName = fbBuilder.writeListFloat64($valueName);';
             } else {
@@ -434,10 +434,10 @@ class _CodeGenerator {
             writeCode = 'fbBuilder.addBool($index, true);';
           } else if (fieldType.typeName == 'int') {
             condition += ' && $valueName != ${defaultValue(fieldType)}';
-            writeCode = 'fbBuilder.addInt32($index, $valueName);';
+            writeCode = 'fbBuilder.addUint32($index, $valueName);';
           } else if (_idl.enums.containsKey(fieldType.typeName)) {
             condition += ' && $valueName != ${defaultValue(fieldType)}';
-            writeCode = 'fbBuilder.addInt32($index, $valueName.index);';
+            writeCode = 'fbBuilder.addUint32($index, $valueName.index);';
           }
           if (writeCode == null) {
             throw new UnimplementedError('Writing type ${fieldType.typeName}');
@@ -480,7 +480,7 @@ class _CodeGenerator {
       out('@override');
       out('$name read(fb.BufferPointer bp) {');
       indent(() {
-        out('int index = const fb.Int32Reader().read(bp);');
+        out('int index = const fb.Uint32Reader().read(bp);');
         out('return $name.values[index];');
       });
       out('}');
@@ -514,7 +514,7 @@ class _CodeGenerator {
         String def = defaultValue(type);
         if (type.isList) {
           if (typeName == 'int') {
-            String itemCode = 'const fb.Int32Reader()';
+            String itemCode = 'const fb.Uint32Reader()';
             readCode = 'const fb.ListReader<int>($itemCode)';
           } else if (typeName == 'double') {
             readCode = 'const fb.Float64ListReader()';
@@ -532,7 +532,7 @@ class _CodeGenerator {
         } else if (typeName == 'bool') {
           readCode = 'const fb.BoolReader()';
         } else if (typeName == 'int') {
-          readCode = 'const fb.Int32Reader()';
+          readCode = 'const fb.Uint32Reader()';
         } else if (typeName == 'String') {
           readCode = 'const fb.StringReader()';
         } else if (_idl.enums.containsKey(typeName)) {

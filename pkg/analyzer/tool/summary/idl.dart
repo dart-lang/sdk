@@ -10,7 +10,8 @@
  * The code generation process introduces the following non-typical semantics:
  * - Fields of type List are never null, and have a default value of the empty
  *   list.
- * - Fields of type int are never null, and have a default value of zero.
+ * - Fields of type int are unsigned 32-bit integers, never null, and have a
+ *   default value of zero.
  * - Fields of type String are never null, and have a default value of ''.
  * - Fields of type bool are never null, and have a default value of false.
  * - Fields whose type is an enum are never null, and have a default value of
@@ -298,7 +299,7 @@ class TypeRef {
   /**
    * If this [TypeRef] is contained within [LinkedUnit.types], slot id (which
    * is unique within the compilation unit) identifying the target of type
-   * propagation or type inference with which this [TypeRef] is asociated.
+   * propagation or type inference with which this [TypeRef] is associated.
    *
    * Otherwise zero.
    */
