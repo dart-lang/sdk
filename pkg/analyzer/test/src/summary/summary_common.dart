@@ -110,9 +110,9 @@ UnlinkedPublicNamespace computePublicNamespaceFromText(
 }
 
 /**
- * Type of a function that validates an [TypeRef].
+ * Type of a function that validates an [EntityRef].
  */
-typedef void _TypeRefValidator(TypeRef unlinkedTypeRef);
+typedef void _EntityRefValidator(EntityRef entityRef);
 
 /**
  * Base class containing most summary tests.  This allows summary tests to be
@@ -235,7 +235,7 @@ abstract class SummaryTest {
   /**
    * Verify that the given [typeRef] represents the type `dynamic`.
    */
-  void checkDynamicTypeRef(TypeRef typeRef) {
+  void checkDynamicTypeRef(EntityRef typeRef) {
     checkTypeRef(typeRef, null, null, null);
   }
 
@@ -323,7 +323,7 @@ abstract class SummaryTest {
    * assumed to be the defining compilation unit.  [numTypeParameters] is the
    * number of type parameters of the thing being referred to.
    */
-  void checkLinkedTypeRef(TypeRef typeRef, String absoluteUri,
+  void checkLinkedTypeRef(EntityRef typeRef, String absoluteUri,
       String relativeUri, String expectedName,
       {bool allowTypeParameters: false,
       ReferenceKind expectedKind: ReferenceKind.classOrEnum,
@@ -395,8 +395,8 @@ abstract class SummaryTest {
    * Verify that the given [typeRef] represents a reference to a type parameter
    * having the given [deBruijnIndex].
    */
-  void checkParamTypeRef(TypeRef typeRef, int deBruijnIndex) {
-    expect(typeRef, new isInstanceOf<TypeRef>());
+  void checkParamTypeRef(EntityRef typeRef, int deBruijnIndex) {
+    expect(typeRef, new isInstanceOf<EntityRef>());
     expect(typeRef.reference, 0);
     expect(typeRef.typeArguments, isEmpty);
     expect(typeRef.paramReference, deBruijnIndex);
@@ -429,7 +429,7 @@ abstract class SummaryTest {
    * assumed to be the defining compilation unit.  [numTypeParameters] is the
    * number of type parameters of the thing being referred to.
    */
-  void checkTypeRef(TypeRef typeRef, String absoluteUri, String relativeUri,
+  void checkTypeRef(EntityRef typeRef, String absoluteUri, String relativeUri,
       String expectedName,
       {String expectedPrefix,
       bool allowTypeParameters: false,
@@ -439,7 +439,7 @@ abstract class SummaryTest {
       UnlinkedUnit unlinkedSourceUnit,
       int numTypeParameters: 0}) {
     linkedSourceUnit ??= definingUnit;
-    expect(typeRef, new isInstanceOf<TypeRef>());
+    expect(typeRef, new isInstanceOf<EntityRef>());
     expect(typeRef.paramReference, 0);
     int index = typeRef.reference;
     if (!allowTypeParameters) {
@@ -537,7 +537,7 @@ abstract class SummaryTest {
    * type.
    */
   void checkUnresolvedTypeRef(
-      TypeRef typeRef, String expectedPrefix, String expectedName,
+      EntityRef typeRef, String expectedPrefix, String expectedName,
       {LinkedUnit linkedSourceUnit, UnlinkedUnit unlinkedSourceUnit}) {
     // When serializing from the element model, unresolved type refs lose their
     // name.
@@ -681,9 +681,9 @@ enum E {
   /**
    * Find the entry in [linkedSourceUnit.types] matching [slotId].
    */
-  TypeRef getTypeRefForSlot(int slotId, {LinkedUnit linkedSourceUnit}) {
+  EntityRef getTypeRefForSlot(int slotId, {LinkedUnit linkedSourceUnit}) {
     linkedSourceUnit ??= definingUnit;
-    for (TypeRef typeRef in linkedSourceUnit.types) {
+    for (EntityRef typeRef in linkedSourceUnit.types) {
       if (typeRef.slot == slotId) {
         return typeRef;
       }
@@ -750,11 +750,11 @@ enum E {
 
   /**
    * Serialize a type declaration using the given [text] as a type name, and
-   * return a summary of the corresponding [TypeRef].  If the type
+   * return a summary of the corresponding [EntityRef].  If the type
    * declaration needs to refer to types that are not available in core, those
    * types may be declared in [otherDeclarations].
    */
-  TypeRef serializeTypeText(String text,
+  EntityRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
             allowErrors: allowErrors)
@@ -978,7 +978,7 @@ class E {}
   }
 
   test_class_alias_reference_generic() {
-    TypeRef typeRef = serializeTypeText('C',
+    EntityRef typeRef = serializeTypeText('C',
         otherDeclarations: 'class C<D, E> = F with G; class F {} class G {}');
     checkTypeRef(typeRef, null, null, 'C', numTypeParameters: 2);
   }
@@ -986,7 +986,7 @@ class E {}
   test_class_alias_reference_generic_imported() {
     addNamedSource(
         '/lib.dart', 'class C<D, E> = F with G; class F {} class G {}');
-    TypeRef typeRef =
+    EntityRef typeRef =
         serializeTypeText('C', otherDeclarations: 'import "lib.dart";');
     checkTypeRef(typeRef, absUri('/lib.dart'), 'lib.dart', 'C',
         numTypeParameters: 2);
@@ -1122,14 +1122,14 @@ class E {}
   }
 
   test_class_reference_generic() {
-    TypeRef typeRef =
+    EntityRef typeRef =
         serializeTypeText('C', otherDeclarations: 'class C<D, E> {}');
     checkTypeRef(typeRef, null, null, 'C', numTypeParameters: 2);
   }
 
   test_class_reference_generic_imported() {
     addNamedSource('/lib.dart', 'class C<D, E> {}');
-    TypeRef typeRef =
+    EntityRef typeRef =
         serializeTypeText('C', otherDeclarations: 'import "lib.dart";');
     checkTypeRef(typeRef, absUri('/lib.dart'), 'lib.dart', 'C',
         numTypeParameters: 2);
@@ -1159,13 +1159,13 @@ class E {}
 
   test_class_type_param_f_bound() {
     UnlinkedClass cls = serializeClassText('class C<T, U extends List<T>> {}');
-    TypeRef typeArgument = cls.typeParameters[1].bound.typeArguments[0];
+    EntityRef typeArgument = cls.typeParameters[1].bound.typeArguments[0];
     checkParamTypeRef(typeArgument, 2);
   }
 
   test_class_type_param_f_bound_self_ref() {
     UnlinkedClass cls = serializeClassText('class C<T, U extends List<U>> {}');
-    TypeRef typeArgument = cls.typeParameters[1].bound.typeArguments[0];
+    EntityRef typeArgument = cls.typeParameters[1].bound.typeArguments[0];
     checkParamTypeRef(typeArgument, 1);
   }
 
@@ -1449,7 +1449,7 @@ const v = const C.named();
     ], strings: [
       'named'
     ], referenceValidators: [
-      (TypeRef r) => checkTypeRef(r, null, null, 'C',
+      (EntityRef r) => checkTypeRef(r, null, null, 'C',
           expectedKind: ReferenceKind.classOrEnum)
     ]);
   }
@@ -1478,7 +1478,7 @@ const v = const C.named();
     ], strings: [
       'named'
     ], referenceValidators: [
-      (TypeRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
           expectedKind: ReferenceKind.classOrEnum)
     ]);
   }
@@ -1503,7 +1503,7 @@ const v = const p.C.named();
     ], strings: [
       'named'
     ], referenceValidators: [
-      (TypeRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
           expectedKind: ReferenceKind.classOrEnum, expectedPrefix: 'p')
     ]);
   }
@@ -1545,7 +1545,7 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
       'f',
       ''
     ], referenceValidators: [
-      (TypeRef r) => checkTypeRef(r, null, null, 'C',
+      (EntityRef r) => checkTypeRef(r, null, null, 'C',
           expectedKind: ReferenceKind.classOrEnum)
     ]);
   }
@@ -1575,7 +1575,7 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
       33,
       3
     ], referenceValidators: [
-      (TypeRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'int',
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'int',
           expectedKind: ReferenceKind.classOrEnum)
     ]);
   }
@@ -1594,7 +1594,7 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
       33,
       3
     ], referenceValidators: [
-      (TypeRef r) => checkTypeRef(r, null, null, '',
+      (EntityRef r) => checkTypeRef(r, null, null, '',
           expectedKind: ReferenceKind.classOrEnum)
     ]);
   }
@@ -1620,9 +1620,9 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
       'bbb',
       'ccc'
     ], referenceValidators: [
-      (TypeRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'int',
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'int',
           expectedKind: ReferenceKind.classOrEnum),
-      (TypeRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'String',
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'String',
           expectedKind: ReferenceKind.classOrEnum)
     ]);
   }
@@ -1648,9 +1648,9 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
       'bbb',
       'ccc'
     ], referenceValidators: [
-      (TypeRef r) => checkTypeRef(r, null, null, '',
+      (EntityRef r) => checkTypeRef(r, null, null, '',
           expectedKind: ReferenceKind.classOrEnum),
-      (TypeRef r) => checkTypeRef(r, null, null, '',
+      (EntityRef r) => checkTypeRef(r, null, null, '',
           expectedKind: ReferenceKind.classOrEnum)
     ]);
   }
@@ -1797,7 +1797,7 @@ const v = C;
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
-      (TypeRef r) => checkTypeRef(r, null, null, 'C',
+      (EntityRef r) => checkTypeRef(r, null, null, 'C',
           expectedKind: ReferenceKind.classOrEnum)
     ]);
   }
@@ -1827,7 +1827,7 @@ const v = C;
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
-      (TypeRef r) => checkTypeRef(r, null, null, 'C',
+      (EntityRef r) => checkTypeRef(r, null, null, 'C',
           expectedKind: ReferenceKind.classOrEnum)
     ]);
   }
@@ -1841,7 +1841,7 @@ const v = a;
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
-      (TypeRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'a',
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'a',
           expectedKind: ReferenceKind.topLevelPropertyAccessor)
     ]);
   }
@@ -1855,7 +1855,7 @@ const v = p.a;
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
-      (TypeRef r) {
+      (EntityRef r) {
         return checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'a',
             expectedKind: ReferenceKind.topLevelPropertyAccessor,
             expectedPrefix: 'p');
@@ -1872,7 +1872,7 @@ const v = a;
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
-      (TypeRef r) => checkTypeRef(r, null, null, 'a',
+      (EntityRef r) => checkTypeRef(r, null, null, 'a',
           expectedKind: ReferenceKind.topLevelPropertyAccessor)
     ]);
   }
@@ -2795,28 +2795,28 @@ enum E { v }''';
   test_executable_type_param_f_bound_function() {
     UnlinkedExecutable ex =
         serializeExecutableText('void f<T, U extends List<T>>() {}');
-    TypeRef typeArgument = ex.typeParameters[1].bound.typeArguments[0];
+    EntityRef typeArgument = ex.typeParameters[1].bound.typeArguments[0];
     checkParamTypeRef(typeArgument, 2);
   }
 
   test_executable_type_param_f_bound_method() {
     UnlinkedExecutable ex =
         serializeMethodText('void f<T, U extends List<T>>() {}');
-    TypeRef typeArgument = ex.typeParameters[1].bound.typeArguments[0];
+    EntityRef typeArgument = ex.typeParameters[1].bound.typeArguments[0];
     checkParamTypeRef(typeArgument, 2);
   }
 
   test_executable_type_param_f_bound_self_ref_function() {
     UnlinkedExecutable ex =
         serializeExecutableText('void f<T, U extends List<U>>() {}');
-    TypeRef typeArgument = ex.typeParameters[1].bound.typeArguments[0];
+    EntityRef typeArgument = ex.typeParameters[1].bound.typeArguments[0];
     checkParamTypeRef(typeArgument, 1);
   }
 
   test_executable_type_param_f_bound_self_ref_method() {
     UnlinkedExecutable ex =
         serializeMethodText('void f<T, U extends List<U>>() {}');
-    TypeRef typeArgument = ex.typeParameters[1].bound.typeArguments[0];
+    EntityRef typeArgument = ex.typeParameters[1].bound.typeArguments[0];
     checkParamTypeRef(typeArgument, 1);
   }
 
@@ -3114,7 +3114,7 @@ class C {
     // Even though the definition of y follows the definition of x, the linked
     // type reference for x should use a higher numbered reference than the
     // unlinked type reference for y.
-    TypeRef propagatedType =
+    EntityRef propagatedType =
         getTypeRefForSlot(unlinkedUnits[0].variables[0].propagatedTypeSlot);
     expect(unlinkedUnits[0].variables[1].type.reference,
         lessThan(propagatedType.reference));
@@ -3595,7 +3595,7 @@ void set f(value) {}''';
   }
 
   test_type_arguments_explicit() {
-    TypeRef typeRef = serializeTypeText('List<int>');
+    EntityRef typeRef = serializeTypeText('List<int>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'List',
         allowTypeParameters: true, numTypeParameters: 1);
     expect(typeRef.typeArguments, hasLength(1));
@@ -3603,14 +3603,14 @@ void set f(value) {}''';
   }
 
   test_type_arguments_explicit_dynamic() {
-    TypeRef typeRef = serializeTypeText('List<dynamic>');
+    EntityRef typeRef = serializeTypeText('List<dynamic>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'List',
         allowTypeParameters: true, numTypeParameters: 1);
     expect(typeRef.typeArguments, isEmpty);
   }
 
   test_type_arguments_explicit_dynamic_dynamic() {
-    TypeRef typeRef = serializeTypeText('Map<dynamic, dynamic>');
+    EntityRef typeRef = serializeTypeText('Map<dynamic, dynamic>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
         allowTypeParameters: true, numTypeParameters: 2);
     // Trailing type arguments of type `dynamic` are omitted.
@@ -3618,7 +3618,7 @@ void set f(value) {}''';
   }
 
   test_type_arguments_explicit_dynamic_int() {
-    TypeRef typeRef = serializeTypeText('Map<dynamic, int>');
+    EntityRef typeRef = serializeTypeText('Map<dynamic, int>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
         allowTypeParameters: true, numTypeParameters: 2);
     // Leading type arguments of type `dynamic` are not omitted.
@@ -3628,7 +3628,7 @@ void set f(value) {}''';
   }
 
   test_type_arguments_explicit_dynamic_typedef() {
-    TypeRef typeRef =
+    EntityRef typeRef =
         serializeTypeText('F<dynamic>', otherDeclarations: 'typedef T F<T>();');
     checkTypeRef(typeRef, null, null, 'F',
         allowTypeParameters: true,
@@ -3638,7 +3638,7 @@ void set f(value) {}''';
   }
 
   test_type_arguments_explicit_String_dynamic() {
-    TypeRef typeRef = serializeTypeText('Map<String, dynamic>');
+    EntityRef typeRef = serializeTypeText('Map<String, dynamic>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
         allowTypeParameters: true, numTypeParameters: 2);
     // Trailing type arguments of type `dynamic` are omitted.
@@ -3647,7 +3647,7 @@ void set f(value) {}''';
   }
 
   test_type_arguments_explicit_String_int() {
-    TypeRef typeRef = serializeTypeText('Map<String, int>');
+    EntityRef typeRef = serializeTypeText('Map<String, int>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
         allowTypeParameters: true, numTypeParameters: 2);
     expect(typeRef.typeArguments.length, 2);
@@ -3656,7 +3656,7 @@ void set f(value) {}''';
   }
 
   test_type_arguments_explicit_typedef() {
-    TypeRef typeRef =
+    EntityRef typeRef =
         serializeTypeText('F<int>', otherDeclarations: 'typedef T F<T>();');
     checkTypeRef(typeRef, null, null, 'F',
         allowTypeParameters: true,
@@ -3667,14 +3667,14 @@ void set f(value) {}''';
   }
 
   test_type_arguments_implicit() {
-    TypeRef typeRef = serializeTypeText('List');
+    EntityRef typeRef = serializeTypeText('List');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'List',
         allowTypeParameters: true, numTypeParameters: 1);
     expect(typeRef.typeArguments, isEmpty);
   }
 
   test_type_arguments_implicit_typedef() {
-    TypeRef typeRef =
+    EntityRef typeRef =
         serializeTypeText('F', otherDeclarations: 'typedef T F<T>();');
     checkTypeRef(typeRef, null, null, 'F',
         allowTypeParameters: true,
@@ -3684,7 +3684,7 @@ void set f(value) {}''';
   }
 
   test_type_arguments_order() {
-    TypeRef typeRef = serializeTypeText('Map<int, Object>');
+    EntityRef typeRef = serializeTypeText('Map<int, Object>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
         allowTypeParameters: true, numTypeParameters: 2);
     expect(typeRef.typeArguments, hasLength(2));
@@ -3795,12 +3795,12 @@ void set f(value) {}''';
   test_type_reference_to_class_argument() {
     UnlinkedClass cls = serializeClassText('class C<T, U> { T t; U u; }');
     {
-      TypeRef typeRef =
+      EntityRef typeRef =
           findVariable('t', variables: cls.fields, failIfAbsent: true).type;
       checkParamTypeRef(typeRef, 2);
     }
     {
-      TypeRef typeRef =
+      EntityRef typeRef =
           findVariable('u', variables: cls.fields, failIfAbsent: true).type;
       checkParamTypeRef(typeRef, 1);
     }
@@ -3887,7 +3887,7 @@ void set f(value) {}''';
       return;
     }
     allowMissingFiles = true;
-    TypeRef typeRef = serializeTypeText('p.C',
+    EntityRef typeRef = serializeTypeText('p.C',
         otherDeclarations: 'import "foo.dart" as p;', allowErrors: true);
     checkUnresolvedTypeRef(typeRef, 'p', 'C');
   }
@@ -3940,7 +3940,7 @@ b.C c4;''');
     addNamedSource('/a.dart', 'library a; part "b.dart"; part "c.dart";');
     addNamedSource('/b.dart', 'part of a;');
     addNamedSource('/c.dart', 'part of a; class C {}');
-    TypeRef typeRef =
+    EntityRef typeRef =
         serializeTypeText('C', otherDeclarations: 'import "a.dart";');
     // The referenced unit should be 2, since unit 0 is a.dart and unit 1 is
     // b.dart.  a.dart and b.dart are counted even though nothing is imported
@@ -3950,7 +3950,7 @@ b.C c4;''');
   }
 
   test_type_unresolved() {
-    TypeRef typeRef = serializeTypeText('Foo', allowErrors: true);
+    EntityRef typeRef = serializeTypeText('Foo', allowErrors: true);
     checkUnresolvedTypeRef(typeRef, null, 'Foo');
   }
 
@@ -3996,7 +3996,7 @@ typedef F();''';
   }
 
   test_typedef_reference_generic() {
-    TypeRef typeRef =
+    EntityRef typeRef =
         serializeTypeText('F', otherDeclarations: 'typedef void F<A, B>();');
     checkTypeRef(typeRef, null, null, 'F',
         numTypeParameters: 2, expectedKind: ReferenceKind.typedef);
@@ -4004,7 +4004,7 @@ typedef F();''';
 
   test_typedef_reference_generic_imported() {
     addNamedSource('/lib.dart', 'typedef void F<A, B>();');
-    TypeRef typeRef =
+    EntityRef typeRef =
         serializeTypeText('F', otherDeclarations: 'import "lib.dart";');
     checkTypeRef(typeRef, absUri('/lib.dart'), 'lib.dart', 'F',
         numTypeParameters: 2, expectedKind: ReferenceKind.typedef);
@@ -4164,7 +4164,7 @@ var v;''';
     // to `int` elsewhere in the source file, a new linked reference should
     // have been created for it, with no associated unlinked reference.
     expect(v.propagatedTypeSlot, isNot(0));
-    TypeRef type = getTypeRefForSlot(v.propagatedTypeSlot);
+    EntityRef type = getTypeRefForSlot(v.propagatedTypeSlot);
     expect(type, isNotNull);
     expect(type.reference,
         greaterThanOrEqualTo(unlinkedUnits[0].references.length));
@@ -4175,7 +4175,7 @@ var v;''';
       return;
     }
     UnlinkedVariable v = serializeVariableText('final v = <int, dynamic>{};');
-    TypeRef type = getTypeRefForSlot(v.propagatedTypeSlot);
+    EntityRef type = getTypeRefForSlot(v.propagatedTypeSlot);
     checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'Map',
         allowTypeParameters: true, numTypeParameters: 2);
     expect(type.typeArguments, hasLength(1));
@@ -4220,8 +4220,8 @@ var v;''';
       List<int> ints: const <int>[],
       List<double> doubles: const <double>[],
       List<String> strings: const <String>[],
-      List<_TypeRefValidator> referenceValidators:
-          const <_TypeRefValidator>[]}) {
+      List<_EntityRefValidator> referenceValidators:
+          const <_EntityRefValidator>[]}) {
     expect(constExpr, isNotNull);
     expect(constExpr.operations, operators);
     expect(constExpr.ints, ints);

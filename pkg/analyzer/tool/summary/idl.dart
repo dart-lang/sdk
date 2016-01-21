@@ -67,6 +67,61 @@ const private = null;
 const topLevel = null;
 
 /**
+ * Summary information about a reference to a an entity such as a type, top
+ * level executable, or executable within a class.
+ */
+class EntityRef {
+  /**
+   * If this [EntityRef] is contained within [LinkedUnit.types], slot id (which
+   * is unique within the compilation unit) identifying the target of type
+   * propagation or type inference with which this [EntityRef] is associated.
+   *
+   * Otherwise zero.
+   */
+  int slot;
+
+  /**
+   * Index into [UnlinkedUnit.references] for the entity being referred to, or
+   * zero if this is a reference to a type parameter.
+   *
+   * Note that since zero is also a valid index into
+   * [UnlinkedUnit.references], we cannot distinguish between references to
+   * type parameters and references to other entities by checking [reference]
+   * against zero.  To distinguish between references to type parameters and
+   * references to other entities, check whether [paramReference] is zero.
+   */
+  int reference;
+
+  /**
+   * If this is a reference to a type parameter, one-based index into the list
+   * of [UnlinkedTypeParam]s currently in effect.  Indexing is done using De
+   * Bruijn index conventions; that is, innermost parameters come first, and
+   * if a class or method has multiple parameters, they are indexed from right
+   * to left.  So for instance, if the enclosing declaration is
+   *
+   *     class C<T,U> {
+   *       m<V,W> {
+   *         ...
+   *       }
+   *     }
+   *
+   * Then [paramReference] values of 1, 2, 3, and 4 represent W, V, U, and T,
+   * respectively.
+   *
+   * If the type being referred to is not a type parameter, [paramReference] is
+   * zero.
+   */
+  int paramReference;
+
+  /**
+   * If this is an instantiation of a generic type or generic executable, the
+   * type arguments used to instantiate it.  Trailing type arguments of type
+   * `dynamic` are omitted.
+   */
+  List<EntityRef> typeArguments;
+}
+
+/**
  * Information about a dependency that exists between one library and another
  * due to an "import" declaration.
  */
@@ -227,7 +282,7 @@ class LinkedUnit {
    * List associating slot ids found inside the unlinked summary for the
    * compilation unit with propagated and inferred types.
    */
-  List<TypeRef> types;
+  List<EntityRef> types;
 }
 
 /**
@@ -293,59 +348,6 @@ class SdkBundle {
 }
 
 /**
- * Summary information about a reference to a type.
- */
-class TypeRef {
-  /**
-   * If this [TypeRef] is contained within [LinkedUnit.types], slot id (which
-   * is unique within the compilation unit) identifying the target of type
-   * propagation or type inference with which this [TypeRef] is associated.
-   *
-   * Otherwise zero.
-   */
-  int slot;
-
-  /**
-   * Index into [UnlinkedUnit.references] for the type being referred to, or
-   * zero if this is a reference to a type parameter.
-   *
-   * Note that since zero is also a valid index into
-   * [UnlinkedUnit.references], we cannot distinguish between references to
-   * type parameters and references to types by checking [reference] against
-   * zero.  To distinguish between references to type parameters and references
-   * to types, check whether [paramReference] is zero.
-   */
-  int reference;
-
-  /**
-   * If this is a reference to a type parameter, one-based index into the list
-   * of [UnlinkedTypeParam]s currently in effect.  Indexing is done using De
-   * Bruijn index conventions; that is, innermost parameters come first, and
-   * if a class or method has multiple parameters, they are indexed from right
-   * to left.  So for instance, if the enclosing declaration is
-   *
-   *     class C<T,U> {
-   *       m<V,W> {
-   *         ...
-   *       }
-   *     }
-   *
-   * Then [paramReference] values of 1, 2, 3, and 4 represent W, V, U, and T,
-   * respectively.
-   *
-   * If the type being referred to is not a type parameter, [paramReference] is
-   * zero.
-   */
-  int paramReference;
-
-  /**
-   * If this is an instantiation of a generic type, the type arguments used to
-   * instantiate it.  Trailing type arguments of type `dynamic` are omitted.
-   */
-  List<TypeRef> typeArguments;
-}
-
-/**
  * Unlinked summary information about a class declaration.
  */
 class UnlinkedClass {
@@ -377,17 +379,17 @@ class UnlinkedClass {
    * explicitly declare a supertype (and hence has supertype `Object`), or (b)
    * the class *is* `Object` (and hence has no supertype).
    */
-  TypeRef supertype;
+  EntityRef supertype;
 
   /**
    * Mixins appearing in a `with` clause, if any.
    */
-  List<TypeRef> mixins;
+  List<EntityRef> mixins;
 
   /**
    * Interfaces appearing in an `implements` clause, if any.
    */
-  List<TypeRef> interfaces;
+  List<EntityRef> interfaces;
 
   /**
    * Field declarations contained in the class.
@@ -473,7 +475,7 @@ class UnlinkedConst {
    * that in the case of `pushReference` (and sometimes `invokeConstructor` the
    * actual entity being referred to may be something other than a type.
    */
-  List<TypeRef> references;
+  List<EntityRef> references;
 }
 
 /**
@@ -865,7 +867,7 @@ class UnlinkedExecutable {
    * `void` or the executable is a constructor.  Note that when strong mode is
    * enabled, the actual return type may be different due to type inference.
    */
-  TypeRef returnType;
+  EntityRef returnType;
 
   /**
    * Parameters of the executable, if any.  Note that getters have no
@@ -1066,7 +1068,7 @@ class UnlinkedParam {
    * that when strong mode is enabled, the actual type may be different due to
    * type inference.
    */
-  TypeRef type;
+  EntityRef type;
 
   /**
    * If [isFunctionTyped] is `true`, the parameters of the function type.
@@ -1245,7 +1247,7 @@ class UnlinkedTypedef {
   /**
    * Return type of the typedef.  Absent if the return type is `void`.
    */
-  TypeRef returnType;
+  EntityRef returnType;
 
   /**
    * Parameters of the executable, if any.
@@ -1272,7 +1274,7 @@ class UnlinkedTypeParam {
    * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
    * null.
    */
-  TypeRef bound;
+  EntityRef bound;
 }
 
 /**
@@ -1387,7 +1389,7 @@ class UnlinkedVariable {
    * Declared type of the variable.  Note that when strong mode is enabled, the
    * actual type of the variable may be different due to type inference.
    */
-  TypeRef type;
+  EntityRef type;
 
   /**
    * If [isConst] is true, and the variable has an initializer, the constant

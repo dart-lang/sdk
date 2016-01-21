@@ -36,7 +36,7 @@ abstract class AbstractConstExprSerializer {
   /**
    * See [UnlinkedConstBuilder.references].
    */
-  final List<TypeRefBuilder> references = <TypeRefBuilder>[];
+  final List<EntityRefBuilder> references = <EntityRefBuilder>[];
 
   /**
    * Serialize the given [expr] expression into this serializer state.
@@ -103,14 +103,14 @@ abstract class AbstractConstExprSerializer {
   }
 
   /**
-   * Return [TypeRefBuilder] that corresponds to the given [identifier].
+   * Return [EntityRefBuilder] that corresponds to the given [identifier].
    */
-  TypeRefBuilder serializeIdentifier(Identifier identifier);
+  EntityRefBuilder serializeIdentifier(Identifier identifier);
 
   /**
-   * Return [TypeRefBuilder] that corresponds to the given [type].
+   * Return [EntityRefBuilder] that corresponds to the given [type].
    */
-  TypeRefBuilder serializeType(TypeName type);
+  EntityRefBuilder serializeType(TypeName type);
 
   /**
    * Return the [UnlinkedConstBuilder] that corresponds to the state of this

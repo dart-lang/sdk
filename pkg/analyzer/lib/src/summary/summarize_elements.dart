@@ -45,10 +45,10 @@ ReferenceKind _getReferenceKind(Element element) {
 
 /**
  * Type of closures used by [_LibrarySerializer] to defer generation of
- * [TypeRefBuilder] objects until the end of serialization of a
+ * [EntityRefBuilder] objects until the end of serialization of a
  * compilation unit.
  */
-typedef TypeRefBuilder _SerializeTypeRef();
+typedef EntityRefBuilder _SerializeTypeRef();
 
 /**
  * Data structure holding the result of serializing a [LibraryElement].
@@ -580,7 +580,7 @@ class _CompilationUnitSerializer {
   }
 
   /**
-   * Compute the reference index which should be stored in a [TypeRef].
+   * Compute the reference index which should be stored in a [EntityRef].
    *
    * If [linked] is true, and a new reference has to be created, the reference
    * will only be stored in [linkedReferences].
@@ -634,17 +634,17 @@ class _CompilationUnitSerializer {
   }
 
   /**
-   * Serialize the given [type] into a [TypeRef].  If [slot] is provided,
-   * it should be included in the [TypeRef].  If [linked] is true, any
+   * Serialize the given [type] into a [EntityRef].  If [slot] is provided,
+   * it should be included in the [EntityRef].  If [linked] is true, any
    * references that are created will be populated into [linkedReferences] but
    * [not [unlinkedReferences].
    *
-   * [context] is the element within which the [TypeRef] will be
+   * [context] is the element within which the [EntityRef] will be
    * interpreted; this is used to serialize type parameters.
    */
-  TypeRefBuilder serializeTypeRef(DartType type, Element context,
+  EntityRefBuilder serializeTypeRef(DartType type, Element context,
       {bool linked: false, int slot}) {
-    TypeRefBuilder b = new TypeRefBuilder(slot: slot);
+    EntityRefBuilder b = new EntityRefBuilder(slot: slot);
     if (type is TypeParameterType) {
       b.paramReference = findTypeParameterIndex(type, context);
     } else {
@@ -658,7 +658,7 @@ class _CompilationUnitSerializer {
           --numArgsToSerialize;
         }
         if (numArgsToSerialize > 0) {
-          List<TypeRefBuilder> serializedArguments = <TypeRefBuilder>[];
+          List<EntityRefBuilder> serializedArguments = <EntityRefBuilder>[];
           for (int i = 0; i < numArgsToSerialize; i++) {
             serializedArguments.add(
                 serializeTypeRef(typeArguments[i], context, linked: linked));
@@ -788,16 +788,16 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
 
   _ConstExprSerializer(this.serializer);
 
-  TypeRefBuilder serializeIdentifier(Identifier identifier) {
+  EntityRefBuilder serializeIdentifier(Identifier identifier) {
     Element element = identifier.staticElement;
     assert(element != null);
     // TODO(scheglov) how to serialize element references?
-    return new TypeRefBuilder(
+    return new EntityRefBuilder(
         reference: serializer._getElementReferenceId(element));
   }
 
   @override
-  TypeRefBuilder serializeType(TypeName typeName) {
+  EntityRefBuilder serializeType(TypeName typeName) {
     DartType type = typeName != null ? typeName.type : DynamicTypeImpl.instance;
     return serializer.serializeTypeRef(type, null);
   }

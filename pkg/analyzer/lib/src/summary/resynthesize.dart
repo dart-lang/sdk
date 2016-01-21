@@ -262,10 +262,10 @@ class _LibraryResynthesizer {
   UnlinkedUnit unlinkedUnit;
 
   /**
-   * Map from slot id to the corresponding [TypeRef] object for linked types
+   * Map from slot id to the corresponding [EntityRef] object for linked types
    * (i.e. propagated and inferred types).
    */
-  Map<int, TypeRef> linkedTypeMap;
+  Map<int, EntityRef> linkedTypeMap;
 
   /**
    * Map of top level elements that have been resynthesized so far.  The first
@@ -874,7 +874,7 @@ class _LibraryResynthesizer {
       // A slot id of 0 means there is no [DartType] object to build.
       return null;
     }
-    TypeRef type = linkedTypeMap[slot];
+    EntityRef type = linkedTypeMap[slot];
     if (type == null) {
       // A missing entry in [LinkedUnit.types] means there is no [DartType]
       // stored in this slot.
@@ -955,12 +955,12 @@ class _LibraryResynthesizer {
   }
 
   /**
-   * Build a [DartType] object based on a [TypeRef].  This [DartType]
+   * Build a [DartType] object based on a [EntityRef].  This [DartType]
    * may refer to elements in other libraries than the library being
    * deserialized, so handles are used to avoid having to deserialize other
    * libraries in the process.
    */
-  DartType buildType(TypeRef type) {
+  DartType buildType(EntityRef type) {
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
@@ -1168,8 +1168,8 @@ class _LibraryResynthesizer {
   void populateUnit(CompilationUnitElementImpl unit, int unitNum) {
     linkedUnit = linkedLibrary.units[unitNum];
     unlinkedUnit = unlinkedUnits[unitNum];
-    linkedTypeMap = <int, TypeRef>{};
-    for (TypeRef t in linkedUnit.types) {
+    linkedTypeMap = <int, EntityRef>{};
+    for (EntityRef t in linkedUnit.types) {
       linkedTypeMap[t.slot] = t;
     }
     unitHolder = new ElementHolder();

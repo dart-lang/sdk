@@ -417,6 +417,228 @@ class _UnlinkedParamKindReader extends fb.Reader<UnlinkedParamKind> {
   }
 }
 
+class EntityRefBuilder extends Object with _EntityRefMixin implements EntityRef {
+  bool _finished = false;
+
+  int _slot;
+  int _reference;
+  int _paramReference;
+  List<EntityRefBuilder> _typeArguments;
+
+  @override
+  int get slot => _slot ??= 0;
+
+  /**
+   * If this [EntityRef] is contained within [LinkedUnit.types], slot id (which
+   * is unique within the compilation unit) identifying the target of type
+   * propagation or type inference with which this [EntityRef] is associated.
+   *
+   * Otherwise zero.
+   */
+  void set slot(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _slot = _value;
+  }
+
+  @override
+  int get reference => _reference ??= 0;
+
+  /**
+   * Index into [UnlinkedUnit.references] for the entity being referred to, or
+   * zero if this is a reference to a type parameter.
+   *
+   * Note that since zero is also a valid index into
+   * [UnlinkedUnit.references], we cannot distinguish between references to
+   * type parameters and references to other entities by checking [reference]
+   * against zero.  To distinguish between references to type parameters and
+   * references to other entities, check whether [paramReference] is zero.
+   */
+  void set reference(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _reference = _value;
+  }
+
+  @override
+  int get paramReference => _paramReference ??= 0;
+
+  /**
+   * If this is a reference to a type parameter, one-based index into the list
+   * of [UnlinkedTypeParam]s currently in effect.  Indexing is done using De
+   * Bruijn index conventions; that is, innermost parameters come first, and
+   * if a class or method has multiple parameters, they are indexed from right
+   * to left.  So for instance, if the enclosing declaration is
+   *
+   *     class C<T,U> {
+   *       m<V,W> {
+   *         ...
+   *       }
+   *     }
+   *
+   * Then [paramReference] values of 1, 2, 3, and 4 represent W, V, U, and T,
+   * respectively.
+   *
+   * If the type being referred to is not a type parameter, [paramReference] is
+   * zero.
+   */
+  void set paramReference(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _paramReference = _value;
+  }
+
+  @override
+  List<EntityRefBuilder> get typeArguments => _typeArguments ??= <EntityRefBuilder>[];
+
+  /**
+   * If this is an instantiation of a generic type or generic executable, the
+   * type arguments used to instantiate it.  Trailing type arguments of type
+   * `dynamic` are omitted.
+   */
+  void set typeArguments(List<EntityRefBuilder> _value) {
+    assert(!_finished);
+    _typeArguments = _value;
+  }
+
+  EntityRefBuilder({int slot, int reference, int paramReference, List<EntityRefBuilder> typeArguments})
+    : _slot = slot,
+      _reference = reference,
+      _paramReference = paramReference,
+      _typeArguments = typeArguments;
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    assert(!_finished);
+    _finished = true;
+    fb.Offset offset_typeArguments;
+    if (!(_typeArguments == null || _typeArguments.isEmpty)) {
+      offset_typeArguments = fbBuilder.writeList(_typeArguments.map((b) => b.finish(fbBuilder)).toList());
+    }
+    fbBuilder.startTable();
+    if (_slot != null && _slot != 0) {
+      fbBuilder.addUint32(0, _slot);
+    }
+    if (_reference != null && _reference != 0) {
+      fbBuilder.addUint32(1, _reference);
+    }
+    if (_paramReference != null && _paramReference != 0) {
+      fbBuilder.addUint32(2, _paramReference);
+    }
+    if (offset_typeArguments != null) {
+      fbBuilder.addOffset(3, offset_typeArguments);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+/**
+ * Summary information about a reference to a an entity such as a type, top
+ * level executable, or executable within a class.
+ */
+abstract class EntityRef extends base.SummaryClass {
+
+  /**
+   * If this [EntityRef] is contained within [LinkedUnit.types], slot id (which
+   * is unique within the compilation unit) identifying the target of type
+   * propagation or type inference with which this [EntityRef] is associated.
+   *
+   * Otherwise zero.
+   */
+  int get slot;
+
+  /**
+   * Index into [UnlinkedUnit.references] for the entity being referred to, or
+   * zero if this is a reference to a type parameter.
+   *
+   * Note that since zero is also a valid index into
+   * [UnlinkedUnit.references], we cannot distinguish between references to
+   * type parameters and references to other entities by checking [reference]
+   * against zero.  To distinguish between references to type parameters and
+   * references to other entities, check whether [paramReference] is zero.
+   */
+  int get reference;
+
+  /**
+   * If this is a reference to a type parameter, one-based index into the list
+   * of [UnlinkedTypeParam]s currently in effect.  Indexing is done using De
+   * Bruijn index conventions; that is, innermost parameters come first, and
+   * if a class or method has multiple parameters, they are indexed from right
+   * to left.  So for instance, if the enclosing declaration is
+   *
+   *     class C<T,U> {
+   *       m<V,W> {
+   *         ...
+   *       }
+   *     }
+   *
+   * Then [paramReference] values of 1, 2, 3, and 4 represent W, V, U, and T,
+   * respectively.
+   *
+   * If the type being referred to is not a type parameter, [paramReference] is
+   * zero.
+   */
+  int get paramReference;
+
+  /**
+   * If this is an instantiation of a generic type or generic executable, the
+   * type arguments used to instantiate it.  Trailing type arguments of type
+   * `dynamic` are omitted.
+   */
+  List<EntityRef> get typeArguments;
+}
+
+class _EntityRefReader extends fb.TableReader<_EntityRefImpl> {
+  const _EntityRefReader();
+
+  @override
+  _EntityRefImpl createObject(fb.BufferPointer bp) => new _EntityRefImpl(bp);
+}
+
+class _EntityRefImpl extends Object with _EntityRefMixin implements EntityRef {
+  final fb.BufferPointer _bp;
+
+  _EntityRefImpl(this._bp);
+
+  int _slot;
+  int _reference;
+  int _paramReference;
+  List<EntityRef> _typeArguments;
+
+  @override
+  int get slot {
+    _slot ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    return _slot;
+  }
+
+  @override
+  int get reference {
+    _reference ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    return _reference;
+  }
+
+  @override
+  int get paramReference {
+    _paramReference ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    return _paramReference;
+  }
+
+  @override
+  List<EntityRef> get typeArguments {
+    _typeArguments ??= const fb.ListReader<EntityRef>(const _EntityRefReader()).vTableGet(_bp, 3, const <EntityRef>[]);
+    return _typeArguments;
+  }
+}
+
+abstract class _EntityRefMixin implements EntityRef {
+  @override
+  Map<String, Object> toMap() => {
+    "slot": slot,
+    "reference": reference,
+    "paramReference": paramReference,
+    "typeArguments": typeArguments,
+  };
+}
+
 class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin implements LinkedDependency {
   bool _finished = false;
 
@@ -1175,7 +1397,7 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements LinkedUn
   bool _finished = false;
 
   List<LinkedReferenceBuilder> _references;
-  List<TypeRefBuilder> _types;
+  List<EntityRefBuilder> _types;
 
   @override
   List<LinkedReferenceBuilder> get references => _references ??= <LinkedReferenceBuilder>[];
@@ -1194,18 +1416,18 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements LinkedUn
   }
 
   @override
-  List<TypeRefBuilder> get types => _types ??= <TypeRefBuilder>[];
+  List<EntityRefBuilder> get types => _types ??= <EntityRefBuilder>[];
 
   /**
    * List associating slot ids found inside the unlinked summary for the
    * compilation unit with propagated and inferred types.
    */
-  void set types(List<TypeRefBuilder> _value) {
+  void set types(List<EntityRefBuilder> _value) {
     assert(!_finished);
     _types = _value;
   }
 
-  LinkedUnitBuilder({List<LinkedReferenceBuilder> references, List<TypeRefBuilder> types})
+  LinkedUnitBuilder({List<LinkedReferenceBuilder> references, List<EntityRefBuilder> types})
     : _references = references,
       _types = types;
 
@@ -1250,7 +1472,7 @@ abstract class LinkedUnit extends base.SummaryClass {
    * List associating slot ids found inside the unlinked summary for the
    * compilation unit with propagated and inferred types.
    */
-  List<TypeRef> get types;
+  List<EntityRef> get types;
 }
 
 class _LinkedUnitReader extends fb.TableReader<_LinkedUnitImpl> {
@@ -1266,7 +1488,7 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements LinkedUnit
   _LinkedUnitImpl(this._bp);
 
   List<LinkedReference> _references;
-  List<TypeRef> _types;
+  List<EntityRef> _types;
 
   @override
   List<LinkedReference> get references {
@@ -1275,8 +1497,8 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements LinkedUnit
   }
 
   @override
-  List<TypeRef> get types {
-    _types ??= const fb.ListReader<TypeRef>(const _TypeRefReader()).vTableGet(_bp, 1, const <TypeRef>[]);
+  List<EntityRef> get types {
+    _types ??= const fb.ListReader<EntityRef>(const _EntityRefReader()).vTableGet(_bp, 1, const <EntityRef>[]);
     return _types;
   }
 }
@@ -1470,225 +1692,6 @@ abstract class _SdkBundleMixin implements SdkBundle {
   };
 }
 
-class TypeRefBuilder extends Object with _TypeRefMixin implements TypeRef {
-  bool _finished = false;
-
-  int _slot;
-  int _reference;
-  int _paramReference;
-  List<TypeRefBuilder> _typeArguments;
-
-  @override
-  int get slot => _slot ??= 0;
-
-  /**
-   * If this [TypeRef] is contained within [LinkedUnit.types], slot id (which
-   * is unique within the compilation unit) identifying the target of type
-   * propagation or type inference with which this [TypeRef] is associated.
-   *
-   * Otherwise zero.
-   */
-  void set slot(int _value) {
-    assert(!_finished);
-    assert(_value == null || _value >= 0);
-    _slot = _value;
-  }
-
-  @override
-  int get reference => _reference ??= 0;
-
-  /**
-   * Index into [UnlinkedUnit.references] for the type being referred to, or
-   * zero if this is a reference to a type parameter.
-   *
-   * Note that since zero is also a valid index into
-   * [UnlinkedUnit.references], we cannot distinguish between references to
-   * type parameters and references to types by checking [reference] against
-   * zero.  To distinguish between references to type parameters and references
-   * to types, check whether [paramReference] is zero.
-   */
-  void set reference(int _value) {
-    assert(!_finished);
-    assert(_value == null || _value >= 0);
-    _reference = _value;
-  }
-
-  @override
-  int get paramReference => _paramReference ??= 0;
-
-  /**
-   * If this is a reference to a type parameter, one-based index into the list
-   * of [UnlinkedTypeParam]s currently in effect.  Indexing is done using De
-   * Bruijn index conventions; that is, innermost parameters come first, and
-   * if a class or method has multiple parameters, they are indexed from right
-   * to left.  So for instance, if the enclosing declaration is
-   *
-   *     class C<T,U> {
-   *       m<V,W> {
-   *         ...
-   *       }
-   *     }
-   *
-   * Then [paramReference] values of 1, 2, 3, and 4 represent W, V, U, and T,
-   * respectively.
-   *
-   * If the type being referred to is not a type parameter, [paramReference] is
-   * zero.
-   */
-  void set paramReference(int _value) {
-    assert(!_finished);
-    assert(_value == null || _value >= 0);
-    _paramReference = _value;
-  }
-
-  @override
-  List<TypeRefBuilder> get typeArguments => _typeArguments ??= <TypeRefBuilder>[];
-
-  /**
-   * If this is an instantiation of a generic type, the type arguments used to
-   * instantiate it.  Trailing type arguments of type `dynamic` are omitted.
-   */
-  void set typeArguments(List<TypeRefBuilder> _value) {
-    assert(!_finished);
-    _typeArguments = _value;
-  }
-
-  TypeRefBuilder({int slot, int reference, int paramReference, List<TypeRefBuilder> typeArguments})
-    : _slot = slot,
-      _reference = reference,
-      _paramReference = paramReference,
-      _typeArguments = typeArguments;
-
-  fb.Offset finish(fb.Builder fbBuilder) {
-    assert(!_finished);
-    _finished = true;
-    fb.Offset offset_typeArguments;
-    if (!(_typeArguments == null || _typeArguments.isEmpty)) {
-      offset_typeArguments = fbBuilder.writeList(_typeArguments.map((b) => b.finish(fbBuilder)).toList());
-    }
-    fbBuilder.startTable();
-    if (_slot != null && _slot != 0) {
-      fbBuilder.addUint32(0, _slot);
-    }
-    if (_reference != null && _reference != 0) {
-      fbBuilder.addUint32(1, _reference);
-    }
-    if (_paramReference != null && _paramReference != 0) {
-      fbBuilder.addUint32(2, _paramReference);
-    }
-    if (offset_typeArguments != null) {
-      fbBuilder.addOffset(3, offset_typeArguments);
-    }
-    return fbBuilder.endTable();
-  }
-}
-
-/**
- * Summary information about a reference to a type.
- */
-abstract class TypeRef extends base.SummaryClass {
-
-  /**
-   * If this [TypeRef] is contained within [LinkedUnit.types], slot id (which
-   * is unique within the compilation unit) identifying the target of type
-   * propagation or type inference with which this [TypeRef] is associated.
-   *
-   * Otherwise zero.
-   */
-  int get slot;
-
-  /**
-   * Index into [UnlinkedUnit.references] for the type being referred to, or
-   * zero if this is a reference to a type parameter.
-   *
-   * Note that since zero is also a valid index into
-   * [UnlinkedUnit.references], we cannot distinguish between references to
-   * type parameters and references to types by checking [reference] against
-   * zero.  To distinguish between references to type parameters and references
-   * to types, check whether [paramReference] is zero.
-   */
-  int get reference;
-
-  /**
-   * If this is a reference to a type parameter, one-based index into the list
-   * of [UnlinkedTypeParam]s currently in effect.  Indexing is done using De
-   * Bruijn index conventions; that is, innermost parameters come first, and
-   * if a class or method has multiple parameters, they are indexed from right
-   * to left.  So for instance, if the enclosing declaration is
-   *
-   *     class C<T,U> {
-   *       m<V,W> {
-   *         ...
-   *       }
-   *     }
-   *
-   * Then [paramReference] values of 1, 2, 3, and 4 represent W, V, U, and T,
-   * respectively.
-   *
-   * If the type being referred to is not a type parameter, [paramReference] is
-   * zero.
-   */
-  int get paramReference;
-
-  /**
-   * If this is an instantiation of a generic type, the type arguments used to
-   * instantiate it.  Trailing type arguments of type `dynamic` are omitted.
-   */
-  List<TypeRef> get typeArguments;
-}
-
-class _TypeRefReader extends fb.TableReader<_TypeRefImpl> {
-  const _TypeRefReader();
-
-  @override
-  _TypeRefImpl createObject(fb.BufferPointer bp) => new _TypeRefImpl(bp);
-}
-
-class _TypeRefImpl extends Object with _TypeRefMixin implements TypeRef {
-  final fb.BufferPointer _bp;
-
-  _TypeRefImpl(this._bp);
-
-  int _slot;
-  int _reference;
-  int _paramReference;
-  List<TypeRef> _typeArguments;
-
-  @override
-  int get slot {
-    _slot ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
-    return _slot;
-  }
-
-  @override
-  int get reference {
-    _reference ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
-    return _reference;
-  }
-
-  @override
-  int get paramReference {
-    _paramReference ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
-    return _paramReference;
-  }
-
-  @override
-  List<TypeRef> get typeArguments {
-    _typeArguments ??= const fb.ListReader<TypeRef>(const _TypeRefReader()).vTableGet(_bp, 3, const <TypeRef>[]);
-    return _typeArguments;
-  }
-}
-
-abstract class _TypeRefMixin implements TypeRef {
-  @override
-  Map<String, Object> toMap() => {
-    "slot": slot,
-    "reference": reference,
-    "paramReference": paramReference,
-    "typeArguments": typeArguments,
-  };
-}
-
 class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements UnlinkedClass {
   bool _finished = false;
 
@@ -1696,9 +1699,9 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   int _nameOffset;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   List<UnlinkedTypeParamBuilder> _typeParameters;
-  TypeRefBuilder _supertype;
-  List<TypeRefBuilder> _mixins;
-  List<TypeRefBuilder> _interfaces;
+  EntityRefBuilder _supertype;
+  List<EntityRefBuilder> _mixins;
+  List<EntityRefBuilder> _interfaces;
   List<UnlinkedVariableBuilder> _fields;
   List<UnlinkedExecutableBuilder> _executables;
   bool _isAbstract;
@@ -1752,36 +1755,36 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   }
 
   @override
-  TypeRefBuilder get supertype => _supertype;
+  EntityRefBuilder get supertype => _supertype;
 
   /**
    * Supertype of the class, or `null` if either (a) the class doesn't
    * explicitly declare a supertype (and hence has supertype `Object`), or (b)
    * the class *is* `Object` (and hence has no supertype).
    */
-  void set supertype(TypeRefBuilder _value) {
+  void set supertype(EntityRefBuilder _value) {
     assert(!_finished);
     _supertype = _value;
   }
 
   @override
-  List<TypeRefBuilder> get mixins => _mixins ??= <TypeRefBuilder>[];
+  List<EntityRefBuilder> get mixins => _mixins ??= <EntityRefBuilder>[];
 
   /**
    * Mixins appearing in a `with` clause, if any.
    */
-  void set mixins(List<TypeRefBuilder> _value) {
+  void set mixins(List<EntityRefBuilder> _value) {
     assert(!_finished);
     _mixins = _value;
   }
 
   @override
-  List<TypeRefBuilder> get interfaces => _interfaces ??= <TypeRefBuilder>[];
+  List<EntityRefBuilder> get interfaces => _interfaces ??= <EntityRefBuilder>[];
 
   /**
    * Interfaces appearing in an `implements` clause, if any.
    */
-  void set interfaces(List<TypeRefBuilder> _value) {
+  void set interfaces(List<EntityRefBuilder> _value) {
     assert(!_finished);
     _interfaces = _value;
   }
@@ -1842,7 +1845,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
     _hasNoSupertype = _value;
   }
 
-  UnlinkedClassBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, TypeRefBuilder supertype, List<TypeRefBuilder> mixins, List<TypeRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication, bool hasNoSupertype})
+  UnlinkedClassBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, EntityRefBuilder supertype, List<EntityRefBuilder> mixins, List<EntityRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication, bool hasNoSupertype})
     : _name = name,
       _nameOffset = nameOffset,
       _documentationComment = documentationComment,
@@ -1963,17 +1966,17 @@ abstract class UnlinkedClass extends base.SummaryClass {
    * explicitly declare a supertype (and hence has supertype `Object`), or (b)
    * the class *is* `Object` (and hence has no supertype).
    */
-  TypeRef get supertype;
+  EntityRef get supertype;
 
   /**
    * Mixins appearing in a `with` clause, if any.
    */
-  List<TypeRef> get mixins;
+  List<EntityRef> get mixins;
 
   /**
    * Interfaces appearing in an `implements` clause, if any.
    */
-  List<TypeRef> get interfaces;
+  List<EntityRef> get interfaces;
 
   /**
    * Field declarations contained in the class.
@@ -2018,9 +2021,9 @@ class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements Unli
   int _nameOffset;
   UnlinkedDocumentationComment _documentationComment;
   List<UnlinkedTypeParam> _typeParameters;
-  TypeRef _supertype;
-  List<TypeRef> _mixins;
-  List<TypeRef> _interfaces;
+  EntityRef _supertype;
+  List<EntityRef> _mixins;
+  List<EntityRef> _interfaces;
   List<UnlinkedVariable> _fields;
   List<UnlinkedExecutable> _executables;
   bool _isAbstract;
@@ -2052,20 +2055,20 @@ class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements Unli
   }
 
   @override
-  TypeRef get supertype {
-    _supertype ??= const _TypeRefReader().vTableGet(_bp, 4, null);
+  EntityRef get supertype {
+    _supertype ??= const _EntityRefReader().vTableGet(_bp, 4, null);
     return _supertype;
   }
 
   @override
-  List<TypeRef> get mixins {
-    _mixins ??= const fb.ListReader<TypeRef>(const _TypeRefReader()).vTableGet(_bp, 5, const <TypeRef>[]);
+  List<EntityRef> get mixins {
+    _mixins ??= const fb.ListReader<EntityRef>(const _EntityRefReader()).vTableGet(_bp, 5, const <EntityRef>[]);
     return _mixins;
   }
 
   @override
-  List<TypeRef> get interfaces {
-    _interfaces ??= const fb.ListReader<TypeRef>(const _TypeRefReader()).vTableGet(_bp, 6, const <TypeRef>[]);
+  List<EntityRef> get interfaces {
+    _interfaces ??= const fb.ListReader<EntityRef>(const _EntityRefReader()).vTableGet(_bp, 6, const <EntityRef>[]);
     return _interfaces;
   }
 
@@ -2232,7 +2235,7 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements Un
   List<int> _ints;
   List<double> _doubles;
   List<String> _strings;
-  List<TypeRefBuilder> _references;
+  List<EntityRefBuilder> _references;
 
   @override
   List<UnlinkedConstOperation> get operations => _operations ??= <UnlinkedConstOperation>[];
@@ -2284,7 +2287,7 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements Un
   }
 
   @override
-  List<TypeRefBuilder> get references => _references ??= <TypeRefBuilder>[];
+  List<EntityRefBuilder> get references => _references ??= <EntityRefBuilder>[];
 
   /**
    * Sequence of language constructs consumed by the operations
@@ -2292,12 +2295,12 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements Un
    * that in the case of `pushReference` (and sometimes `invokeConstructor` the
    * actual entity being referred to may be something other than a type.
    */
-  void set references(List<TypeRefBuilder> _value) {
+  void set references(List<EntityRefBuilder> _value) {
     assert(!_finished);
     _references = _value;
   }
 
-  UnlinkedConstBuilder({List<UnlinkedConstOperation> operations, List<int> ints, List<double> doubles, List<String> strings, List<TypeRefBuilder> references})
+  UnlinkedConstBuilder({List<UnlinkedConstOperation> operations, List<int> ints, List<double> doubles, List<String> strings, List<EntityRefBuilder> references})
     : _operations = operations,
       _ints = ints,
       _doubles = doubles,
@@ -2389,7 +2392,7 @@ abstract class UnlinkedConst extends base.SummaryClass {
    * that in the case of `pushReference` (and sometimes `invokeConstructor` the
    * actual entity being referred to may be something other than a type.
    */
-  List<TypeRef> get references;
+  List<EntityRef> get references;
 }
 
 class _UnlinkedConstReader extends fb.TableReader<_UnlinkedConstImpl> {
@@ -2408,7 +2411,7 @@ class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements Unli
   List<int> _ints;
   List<double> _doubles;
   List<String> _strings;
-  List<TypeRef> _references;
+  List<EntityRef> _references;
 
   @override
   List<UnlinkedConstOperation> get operations {
@@ -2435,8 +2438,8 @@ class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements Unli
   }
 
   @override
-  List<TypeRef> get references {
-    _references ??= const fb.ListReader<TypeRef>(const _TypeRefReader()).vTableGet(_bp, 4, const <TypeRef>[]);
+  List<EntityRef> get references {
+    _references ??= const fb.ListReader<EntityRef>(const _EntityRefReader()).vTableGet(_bp, 4, const <EntityRef>[]);
     return _references;
   }
 }
@@ -2910,7 +2913,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   int _nameOffset;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   List<UnlinkedTypeParamBuilder> _typeParameters;
-  TypeRefBuilder _returnType;
+  EntityRefBuilder _returnType;
   List<UnlinkedParamBuilder> _parameters;
   UnlinkedExecutableKind _kind;
   bool _isAbstract;
@@ -2973,14 +2976,14 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  TypeRefBuilder get returnType => _returnType;
+  EntityRefBuilder get returnType => _returnType;
 
   /**
    * Declared return type of the executable.  Absent if the return type is
    * `void` or the executable is a constructor.  Note that when strong mode is
    * enabled, the actual return type may be different due to type inference.
    */
-  void set returnType(TypeRefBuilder _value) {
+  void set returnType(EntityRefBuilder _value) {
     assert(!_finished);
     _returnType = _value;
   }
@@ -3081,7 +3084,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _isExternal = _value;
   }
 
-  UnlinkedExecutableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, TypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType, bool isExternal})
+  UnlinkedExecutableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, EntityRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType, bool isExternal})
     : _name = name,
       _nameOffset = nameOffset,
       _documentationComment = documentationComment,
@@ -3201,7 +3204,7 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    * `void` or the executable is a constructor.  Note that when strong mode is
    * enabled, the actual return type may be different due to type inference.
    */
-  TypeRef get returnType;
+  EntityRef get returnType;
 
   /**
    * Parameters of the executable, if any.  Note that getters have no
@@ -3268,7 +3271,7 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   int _nameOffset;
   UnlinkedDocumentationComment _documentationComment;
   List<UnlinkedTypeParam> _typeParameters;
-  TypeRef _returnType;
+  EntityRef _returnType;
   List<UnlinkedParam> _parameters;
   UnlinkedExecutableKind _kind;
   bool _isAbstract;
@@ -3303,8 +3306,8 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   }
 
   @override
-  TypeRef get returnType {
-    _returnType ??= const _TypeRefReader().vTableGet(_bp, 4, null);
+  EntityRef get returnType {
+    _returnType ??= const _EntityRefReader().vTableGet(_bp, 4, null);
     return _returnType;
   }
 
@@ -3951,7 +3954,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
 
   String _name;
   int _nameOffset;
-  TypeRefBuilder _type;
+  EntityRefBuilder _type;
   List<UnlinkedParamBuilder> _parameters;
   UnlinkedParamKind _kind;
   bool _isFunctionTyped;
@@ -3982,7 +3985,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
   }
 
   @override
-  TypeRefBuilder get type => _type;
+  EntityRefBuilder get type => _type;
 
   /**
    * If [isFunctionTyped] is `true`, the declared return type.  If
@@ -3991,7 +3994,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
    * that when strong mode is enabled, the actual type may be different due to
    * type inference.
    */
-  void set type(TypeRefBuilder _value) {
+  void set type(EntityRefBuilder _value) {
     assert(!_finished);
     _type = _value;
   }
@@ -4053,7 +4056,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
     _hasImplicitType = _value;
   }
 
-  UnlinkedParamBuilder({String name, int nameOffset, TypeRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, bool hasImplicitType})
+  UnlinkedParamBuilder({String name, int nameOffset, EntityRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, bool hasImplicitType})
     : _name = name,
       _nameOffset = nameOffset,
       _type = type,
@@ -4129,7 +4132,7 @@ abstract class UnlinkedParam extends base.SummaryClass {
    * that when strong mode is enabled, the actual type may be different due to
    * type inference.
    */
-  TypeRef get type;
+  EntityRef get type;
 
   /**
    * If [isFunctionTyped] is `true`, the parameters of the function type.
@@ -4173,7 +4176,7 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements Unli
 
   String _name;
   int _nameOffset;
-  TypeRef _type;
+  EntityRef _type;
   List<UnlinkedParam> _parameters;
   UnlinkedParamKind _kind;
   bool _isFunctionTyped;
@@ -4193,8 +4196,8 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements Unli
   }
 
   @override
-  TypeRef get type {
-    _type ??= const _TypeRefReader().vTableGet(_bp, 2, null);
+  EntityRef get type {
+    _type ??= const _EntityRefReader().vTableGet(_bp, 2, null);
     return _type;
   }
 
@@ -4771,7 +4774,7 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   int _nameOffset;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   List<UnlinkedTypeParamBuilder> _typeParameters;
-  TypeRefBuilder _returnType;
+  EntityRefBuilder _returnType;
   List<UnlinkedParamBuilder> _parameters;
 
   @override
@@ -4821,12 +4824,12 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   }
 
   @override
-  TypeRefBuilder get returnType => _returnType;
+  EntityRefBuilder get returnType => _returnType;
 
   /**
    * Return type of the typedef.  Absent if the return type is `void`.
    */
-  void set returnType(TypeRefBuilder _value) {
+  void set returnType(EntityRefBuilder _value) {
     assert(!_finished);
     _returnType = _value;
   }
@@ -4842,7 +4845,7 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
     _parameters = _value;
   }
 
-  UnlinkedTypedefBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, TypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters})
+  UnlinkedTypedefBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, EntityRefBuilder returnType, List<UnlinkedParamBuilder> parameters})
     : _name = name,
       _nameOffset = nameOffset,
       _documentationComment = documentationComment,
@@ -4925,7 +4928,7 @@ abstract class UnlinkedTypedef extends base.SummaryClass {
   /**
    * Return type of the typedef.  Absent if the return type is `void`.
    */
-  TypeRef get returnType;
+  EntityRef get returnType;
 
   /**
    * Parameters of the executable, if any.
@@ -4949,7 +4952,7 @@ class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements 
   int _nameOffset;
   UnlinkedDocumentationComment _documentationComment;
   List<UnlinkedTypeParam> _typeParameters;
-  TypeRef _returnType;
+  EntityRef _returnType;
   List<UnlinkedParam> _parameters;
 
   @override
@@ -4977,8 +4980,8 @@ class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements 
   }
 
   @override
-  TypeRef get returnType {
-    _returnType ??= const _TypeRefReader().vTableGet(_bp, 4, null);
+  EntityRef get returnType {
+    _returnType ??= const _EntityRefReader().vTableGet(_bp, 4, null);
     return _returnType;
   }
 
@@ -5006,7 +5009,7 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
 
   String _name;
   int _nameOffset;
-  TypeRefBuilder _bound;
+  EntityRefBuilder _bound;
 
   @override
   String get name => _name ??= '';
@@ -5032,18 +5035,18 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
   }
 
   @override
-  TypeRefBuilder get bound => _bound;
+  EntityRefBuilder get bound => _bound;
 
   /**
    * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
    * null.
    */
-  void set bound(TypeRefBuilder _value) {
+  void set bound(EntityRefBuilder _value) {
     assert(!_finished);
     _bound = _value;
   }
 
-  UnlinkedTypeParamBuilder({String name, int nameOffset, TypeRefBuilder bound})
+  UnlinkedTypeParamBuilder({String name, int nameOffset, EntityRefBuilder bound})
     : _name = name,
       _nameOffset = nameOffset,
       _bound = bound;
@@ -5092,7 +5095,7 @@ abstract class UnlinkedTypeParam extends base.SummaryClass {
    * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
    * null.
    */
-  TypeRef get bound;
+  EntityRef get bound;
 }
 
 class _UnlinkedTypeParamReader extends fb.TableReader<_UnlinkedTypeParamImpl> {
@@ -5109,7 +5112,7 @@ class _UnlinkedTypeParamImpl extends Object with _UnlinkedTypeParamMixin impleme
 
   String _name;
   int _nameOffset;
-  TypeRef _bound;
+  EntityRef _bound;
 
   @override
   String get name {
@@ -5124,8 +5127,8 @@ class _UnlinkedTypeParamImpl extends Object with _UnlinkedTypeParamMixin impleme
   }
 
   @override
-  TypeRef get bound {
-    _bound ??= const _TypeRefReader().vTableGet(_bp, 2, null);
+  EntityRef get bound {
+    _bound ??= const _EntityRefReader().vTableGet(_bp, 2, null);
     return _bound;
   }
 }
@@ -5662,7 +5665,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   String _name;
   int _nameOffset;
   UnlinkedDocumentationCommentBuilder _documentationComment;
-  TypeRefBuilder _type;
+  EntityRefBuilder _type;
   UnlinkedConstBuilder _constExpr;
   bool _isStatic;
   bool _isFinal;
@@ -5706,13 +5709,13 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   }
 
   @override
-  TypeRefBuilder get type => _type;
+  EntityRefBuilder get type => _type;
 
   /**
    * Declared type of the variable.  Note that when strong mode is enabled, the
    * actual type of the variable may be different due to type inference.
    */
-  void set type(TypeRefBuilder _value) {
+  void set type(EntityRefBuilder _value) {
     assert(!_finished);
     _type = _value;
   }
@@ -5794,7 +5797,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _propagatedTypeSlot = _value;
   }
 
-  UnlinkedVariableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, TypeRefBuilder type, UnlinkedConstBuilder constExpr, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType, int propagatedTypeSlot})
+  UnlinkedVariableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, EntityRefBuilder type, UnlinkedConstBuilder constExpr, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType, int propagatedTypeSlot})
     : _name = name,
       _nameOffset = nameOffset,
       _documentationComment = documentationComment,
@@ -5886,7 +5889,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * Declared type of the variable.  Note that when strong mode is enabled, the
    * actual type of the variable may be different due to type inference.
    */
-  TypeRef get type;
+  EntityRef get type;
 
   /**
    * If [isConst] is true, and the variable has an initializer, the constant
@@ -5944,7 +5947,7 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   String _name;
   int _nameOffset;
   UnlinkedDocumentationComment _documentationComment;
-  TypeRef _type;
+  EntityRef _type;
   UnlinkedConst _constExpr;
   bool _isStatic;
   bool _isFinal;
@@ -5971,8 +5974,8 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   }
 
   @override
-  TypeRef get type {
-    _type ??= const _TypeRefReader().vTableGet(_bp, 3, null);
+  EntityRef get type {
+    _type ??= const _EntityRefReader().vTableGet(_bp, 3, null);
     return _type;
   }
 
