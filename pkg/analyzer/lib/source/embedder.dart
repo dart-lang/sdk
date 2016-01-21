@@ -207,7 +207,7 @@ class EmbedderSdk implements DartSdk {
 
     String path;
     for (SdkLibrary library in _librariesMap.sdkLibraries) {
-      String libraryPath = library.path;
+      String libraryPath = library.path.replaceAll('/', JavaFile.separator);
       if (filePath == libraryPath) {
         path = '$_DART_COLON_PREFIX${library.shortName}';
         break;
@@ -215,8 +215,8 @@ class EmbedderSdk implements DartSdk {
     }
     if (path == null) {
       for (SdkLibrary library in _librariesMap.sdkLibraries) {
-        String libraryPath = library.path;
-        int index = libraryPath.lastIndexOf('/');
+        String libraryPath = library.path.replaceAll('/', JavaFile.separator);
+        int index = libraryPath.lastIndexOf(JavaFile.separator);
         if (index == -1) {
           continue;
         }
@@ -224,7 +224,8 @@ class EmbedderSdk implements DartSdk {
         if (!filePath.startsWith(prefix)) {
           continue;
         }
-        var relPath = filePath.substring(prefix.length);
+        var relPath = filePath
+            .substring(prefix.length).replaceAll(JavaFile.separator, '/');
         path = '$_DART_COLON_PREFIX${library.shortName}/$relPath';
         break;
       }
@@ -267,9 +268,12 @@ class EmbedderSdk implements DartSdk {
       srcPath = library.path;
     } else {
       String libraryPath = library.path;
-      int index = libraryPath.lastIndexOf('/');
+      int index = libraryPath.lastIndexOf(JavaFile.separator);
       if (index == -1) {
-        return null;
+        index = libraryPath.lastIndexOf('/');
+        if (index == -1) {
+          return null;
+        }
       }
       String prefix = libraryPath.substring(0, index + 1);
       srcPath = '$prefix$relativePath';

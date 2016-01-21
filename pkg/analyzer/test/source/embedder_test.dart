@@ -104,7 +104,7 @@ main() {
         var source = sdk.fromFileUri(uri);
         expect(source, isNotNull, reason: filePath);
         expect(source.uri.toString(), dartUri);
-        expect(source.fullName, filePath);
+        expect(source.fullName, filePath.replaceAll('/', JavaFile.separator));
       }
 
       expectSource('/tmp/slippy.dart', 'dart:fox');
