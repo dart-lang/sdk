@@ -1,12 +1,12 @@
 dart_library.library('js/js', null, /* Imports */[
-  "dart/_runtime",
+  'dart/_runtime',
   'dart/js',
   'dart/core'
 ], /* Lazy imports */[
 ], function(exports, dart, js, core) {
   'use strict';
   let dartx = dart.dartx;
-  dart.export_(exports, js, ['allowInterop', 'allowInteropCaptureThis'], []);
+  dart.export(exports, js, ['allowInterop', 'allowInteropCaptureThis'], []);
   class JS extends core.Object {
     JS(name) {
       if (name === void 0) name = null;

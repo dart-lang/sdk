@@ -18,7 +18,6 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'lib/runtime/dart_*.js',
-      'lib/runtime/_*.js',
       'lib/runtime/dart/*.js',
       // {pattern: 'test/browser/*.js', included: false}
       'test/codegen/expect/async_helper/async_helper.js',

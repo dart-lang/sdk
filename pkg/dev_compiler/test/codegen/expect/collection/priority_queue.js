@@ -1,5 +1,5 @@
 dart_library.library('collection/priority_queue', null, /* Imports */[
-  "dart/_runtime",
+  'dart/_runtime',
   'dart/core',
   'dart/collection'
 ], /* Lazy imports */[

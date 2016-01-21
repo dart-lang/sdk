@@ -1,5 +1,5 @@
 dart_library.library('unittest/unittest', null, /* Imports */[
-  "dart/_runtime",
+  'dart/_runtime',
   'matcher/matcher',
   'dom/dom',
   'dart/core',
@@ -11,7 +11,7 @@ dart_library.library('unittest/unittest', null, /* Imports */[
 ], function(exports, dart, matcher, dom, core, async, interfaces, util, description$) {
   'use strict';
   let dartx = dart.dartx;
-  dart.export_(exports, matcher);
+  dart.export(exports, matcher);
   function group(name, body) {
     return dart.dsend(dom.window, 'suite', name, body);
   }

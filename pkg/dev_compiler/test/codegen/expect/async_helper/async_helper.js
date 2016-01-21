@@ -1,5 +1,5 @@
 dart_library.library('async_helper/async_helper', null, /* Imports */[
-  "dart/_runtime",
+  'dart/_runtime',
   'dart/core'
 ], /* Lazy imports */[
 ], function(exports, dart, core) {

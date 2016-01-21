@@ -534,13 +534,6 @@ final defaultRuntimeFiles = () {
   var files = [
     'harmony_feature_check.js',
     'dart_library.js',
-    'dart/_utils.js',
-    'dart/_errors.js',
-    'dart/_generators.js',
-    'dart/_types.js',
-    'dart/_rtti.js',
-    'dart/_classes.js',
-    'dart/_operations.js',
     'dart/_runtime.js',
   ];
   files.addAll(corelibOrder.map(coreToFile));

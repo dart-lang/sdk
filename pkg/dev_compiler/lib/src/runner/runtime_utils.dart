@@ -17,10 +17,7 @@ import 'file_utils.dart';
 /// In node.js / io.js, these modules need to be aliased globally
 /// (e.g. `var foo = require('./path/to/foo.js')`).
 /// TODO(ochafik): Investigate alternative module / alias patterns.
-const _ALIASED_RUNTIME_FILES = const {
-  'dart_library.js': 'dart_library',
-  'dart/_utils.js': 'dart_utils',
-};
+const _ALIASED_RUNTIME_FILES = const {'dart_library.js': 'dart_library',};
 
 /// If [path] is a runtime file with an alias, returns that alias, otherwise
 /// returns null.

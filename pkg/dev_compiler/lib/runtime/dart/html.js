@@ -1,5 +1,5 @@
 dart_library.library('dart/html', null, /* Imports */[
-  "dart/_runtime",
+  'dart/_runtime',
   'dart/math',
   'dart/core',
   'dart/_js_helper',
@@ -13,7 +13,7 @@ dart_library.library('dart/html', null, /* Imports */[
 ], function(exports, dart, math, core, _js_helper, async, collection, _foreign_helper, isolate, _metadata, html_common) {
   'use strict';
   let dartx = dart.dartx;
-  dart.export_(exports, math, ['Rectangle', 'Point'], []);
+  dart.export(exports, math, ['Rectangle', 'Point'], []);
   class DartHtmlDomObject extends core.Object {
     DartHtmlDomObject() {
       this.raw = null;

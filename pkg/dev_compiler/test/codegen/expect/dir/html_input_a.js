@@ -1,5 +1,5 @@
 dart_library.library('dir/html_input_a', null, /* Imports */[
-  "dart/_runtime",
+  'dart/_runtime',
   'dart/core',
   'dir/html_input_b',
   'dir/html_input_c',

@@ -11,13 +11,13 @@ Type getRuntimeType(var object) =>
 
 /// Returns the property [index] of the JavaScript array [array].
 getIndex(var array, int index) {
-  assert(isJsArray(array));
+  assert_(isJsArray(array));
   return JS('var', r'#[#]', array, index);
 }
 
 /// Returns the length of the JavaScript array [array].
 int getLength(var array) {
-  assert(isJsArray(array));
+  assert_(isJsArray(array));
   return JS('int', r'#.length', array);
 }
 

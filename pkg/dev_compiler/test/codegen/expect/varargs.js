@@ -1,5 +1,5 @@
 dart_library.library('varargs', null, /* Imports */[
-  "dart/_runtime"
+  'dart/_runtime'
 ], /* Lazy imports */[
 ], function(exports, dart) {
   'use strict';

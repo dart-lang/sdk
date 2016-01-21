@@ -1,5 +1,5 @@
 dart_library.library('domtest', null, /* Imports */[
-  "dart/_runtime",
+  'dart/_runtime',
   'sunflower/dom',
   'dart/core'
 ], /* Lazy imports */[

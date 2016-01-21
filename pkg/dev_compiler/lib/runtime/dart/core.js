@@ -1,5 +1,5 @@
 dart_library.library('dart/core', null, /* Imports */[
-  "dart/_runtime"
+  'dart/_runtime'
 ], /* Lazy imports */[
   'dart/_js_helper',
   'dart/_internal',

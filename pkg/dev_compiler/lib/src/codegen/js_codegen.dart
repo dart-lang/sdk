@@ -39,7 +39,6 @@ import 'js_module_item_order.dart';
 import 'js_names.dart';
 import 'js_printer.dart' show writeJsLibrary;
 import 'side_effect_analysis.dart';
-import 'package:collection/equality.dart';
 
 // Various dynamic helpers we call.
 // If renaming these, make sure to check other places like the
@@ -52,8 +51,6 @@ const DINDEX = 'dindex';
 const DSETINDEX = 'dsetindex';
 const DCALL = 'dcall';
 const DSEND = 'dsend';
-
-const ListEquality _listEquality = const ListEquality();
 
 class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   final AbstractCompiler compiler;
@@ -109,7 +106,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   /// The default value of the module object. See [visitLibraryDirective].
   String _jsModuleValue;
 
-  bool _isDartUtils;
+  bool _isDartRuntime;
 
   JSCodegenVisitor(AbstractCompiler compiler, this.rules, this.currentLibrary,
       this._extensionTypes, this._fieldsNeedingStorage)
@@ -122,7 +119,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var src = context.sourceFactory.forUri('dart:_interceptors');
     var interceptors = context.computeLibraryElement(src);
     _jsArray = interceptors.getType('JSArray');
-    _isDartUtils = currentLibrary.source.uri.toString() == 'dart:_utils';
+    _isDartRuntime = currentLibrary.source.uri.toString() == 'dart:_runtime';
   }
 
   TypeProvider get types => _types;
@@ -193,38 +190,32 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     // TODO(jmesserly): it would be great to run the renamer on the body,
     // then figure out if we really need each of these parameters.
     // See ES6 modules: https://github.com/dart-lang/dev_compiler/issues/34
-    var params = [_exportsVar, _runtimeLibVar];
-    var processImport =
-        (LibraryElement library, JS.TemporaryId temp, List list) {
-      params.add(temp);
-      list.add(js.string(compiler.getModuleName(library.source.uri), "'"));
-    };
-
-    var needsDartRuntime = !_isDartUtils;
+    var params = [_exportsVar];
+    var lazyParams = [];
 
     var imports = <JS.Expression>[];
+    var lazyImports = <JS.Expression>[];
     var moduleStatements = <JS.Statement>[];
-    if (needsDartRuntime) {
-      imports.add(js.string('dart/_runtime'));
+
+    addImport(String name, JS.Expression libVar, {bool lazy: false}) {
+      (lazy ? lazyImports : imports).add(js.string(name, "'"));
+      (lazy ? lazyParams : params).add(libVar);
+    }
+
+    if (!_isDartRuntime) {
+      addImport('dart/_runtime', _runtimeLibVar);
 
       var dartxImport =
           js.statement("let # = #.dartx;", [_dartxVar, _runtimeLibVar]);
       moduleStatements.add(dartxImport);
     }
+    _imports.forEach((LibraryElement lib, JS.TemporaryId temp) {
+      addImport(compiler.getModuleName(lib.source.uri), temp,
+          lazy: _isDartRuntime || !_loader.libraryIsLoaded(lib));
+    });
+    params.addAll(lazyParams);
+
     moduleStatements.addAll(_moduleItems);
-
-    _imports.forEach((library, temp) {
-      if (_loader.libraryIsLoaded(library)) {
-        processImport(library, temp, imports);
-      }
-    });
-
-    var lazyImports = <JS.Expression>[];
-    _imports.forEach((library, temp) {
-      if (!_loader.libraryIsLoaded(library)) {
-        processImport(library, temp, lazyImports);
-      }
-    });
 
     var module =
         js.call("function(#) { 'use strict'; #; }", [params, moduleStatements]);
@@ -302,7 +293,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       args.add(new JS.ArrayInitializer(shownNames));
       args.add(new JS.ArrayInitializer(hiddenNames));
     }
-    _moduleItems.add(js.statement('dart.export_(#);', [args]));
+
+    // When we compile _runtime.js, we need to source export_ from _utils.js:
+    _moduleItems.add(js.statement('dart.export(#);', [args]));
   }
 
   JS.Identifier _initSymbol(JS.Identifier id) {
@@ -1298,7 +1291,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   /// the SDK), or `null` if there's none. This is used to control the name
   /// under which functions are compiled and exported.
   String _getJSExportName(Element e) {
-    if (e is! FunctionElement || !currentLibrary.source.isInSystemLibrary) {
+    if (!currentLibrary.source.isInSystemLibrary) {
       return null;
     }
     var jsName = findAnnotation(e, isJSExportNameAnnotation);
@@ -1323,17 +1316,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var name = _getJSExportName(node.element) ?? node.name.name;
 
     var fn = _visit(node.functionExpression);
-    bool needsTagging = true;
 
     if (currentLibrary.source.isInSystemLibrary &&
         _isInlineJSFunction(node.functionExpression)) {
       fn = _simplifyPassThroughArrowFunCallBody(fn);
-      needsTagging = !_isDartUtils;
     }
 
     var id = new JS.Identifier(name);
     body.add(annotate(new JS.FunctionDeclaration(id, fn), node.element));
-    if (needsTagging) {
+    if (!_isDartRuntime) {
       body.add(_emitFunctionTagged(id, node.element.type, topLevel: true)
           .toStatement());
     }
@@ -1360,23 +1351,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   bool _isJSInvocation(Expression expr) =>
       expr is MethodInvocation && isInlineJS(expr.methodName.staticElement);
 
-  // Simplify `(args) => ((x, y) => { ... })(x, y)` to `(args) => { ... }`.
-  // Note: we don't check if the top-level args match the ones passed through
-  // the arrow function, which allows silently passing args through to the
-  // body (which only works if we don't do weird renamings of Dart params).
+  // Simplify `(args) => (() => { ... })()` to `(args) => { ... }`.
+  // Note: this allows silently passing args through to the body, which only
+  // works if we don't do weird renamings of Dart params.
   JS.Fun _simplifyPassThroughArrowFunCallBody(JS.Fun fn) {
-    String getIdent(JS.Node node) => node is JS.Identifier ? node.name : null;
-    List<String> getIdents(List params) =>
-        params.map(getIdent).toList(growable: false);
-
     if (fn.body is JS.Block && fn.body.statements.length == 1) {
       var stat = fn.body.statements.single;
       if (stat is JS.Return && stat.value is JS.Call) {
         JS.Call call = stat.value;
-        if (call.target is JS.ArrowFun) {
-          var passedArgs = getIdents(call.arguments);
+        if (call.target is JS.ArrowFun && call.arguments.isEmpty) {
           JS.ArrowFun innerFun = call.target;
-          if (_listEquality.equals(getIdents(innerFun.params), passedArgs)) {
+          if (innerFun.params.isEmpty) {
             return new JS.Fun(fn.params, innerFun.body);
           }
         }
@@ -3461,6 +3446,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   /// declaration) as it doesn't have any meaningful rules enforced.
   JS.Identifier _libraryName(LibraryElement library) {
     if (library == currentLibrary) return _exportsVar;
+    if (library.name == 'dart._runtime') return _runtimeLibVar;
     return _imports.putIfAbsent(
         library, () => new JS.TemporaryId(jsLibraryName(library)));
   }

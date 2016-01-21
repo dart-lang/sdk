@@ -1,5 +1,5 @@
 dart_library.library('collection/algorithms', null, /* Imports */[
-  "dart/_runtime",
+  'dart/_runtime',
   'dart/core',
   'dart/math'
 ], /* Lazy imports */[

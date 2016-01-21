@@ -1,5 +1,5 @@
 dart_library.library('sunflower/dom', window, /* Imports */[
-  "dart/_runtime",
+  'dart/_runtime',
   'dart/core'
 ], /* Lazy imports */[
 ], function(exports, dart, core) {

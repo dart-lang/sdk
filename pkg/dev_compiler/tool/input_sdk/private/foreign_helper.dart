@@ -281,3 +281,20 @@ String JS_STRING_CONCAT(String a, String b) {
   // This body is unused, only here for type analysis.
   return JS('String', '# + #', a, b);
 }
+
+/// Same `@rest` annotation and `spread` function as in
+/// `package:js/src/varargs.dart`.
+///
+/// Runtime files cannot import packages, which is why we have an ad-hoc copy.
+
+class _Rest {
+  const _Rest();
+}
+
+const _Rest rest = const _Rest();
+
+dynamic spread(args) {
+  throw new StateError(
+      'The spread function cannot be called, '
+      'it should be compiled away.');
+}

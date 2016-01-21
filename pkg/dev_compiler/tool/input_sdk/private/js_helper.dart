@@ -11,6 +11,7 @@ import 'dart:_foreign_helper' show
     JS_STRING_CONCAT;
 
 import 'dart:_interceptors';
+import 'dart:_runtime';
 
 part 'annotations.dart';
 part 'native_helper.dart';

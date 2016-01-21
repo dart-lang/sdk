@@ -1,10 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library dart._utils;
-
-import 'dart:_foreign_helper' show JS, JSExportName;
+part of dart._runtime;
 
 /// This library defines a set of general javascript utilities for us
 /// by the Dart runtime.
@@ -29,7 +26,7 @@ final StrongModeError = JS('', '''(function() {
 
 /// This error indicates a strong mode specific failure.
 void throwStrongModeError(String message) => JS('', '''(() => {
-  throw new StrongModeError($message);
+  throw new $StrongModeError($message);
 })()''');
 
 /// This error indicates a bug in the runtime or the compiler.
@@ -37,19 +34,12 @@ void throwInternalError(String message) => JS('', '''(() => {
   throw Error($message);
 })()''');
 
-// TODO(ochafik): Re-introduce a @JS annotation in the SDK (same as package:js)
-// so that this is named 'assert' in JavaScript.
-@JSExportName('assert')
-void assert_(bool condition) => JS('', '''(() => {
-  if (!condition) throwInternalError("The compiler is broken: failed assert");
-})()''');
-
 getOwnNamesAndSymbols(obj) => JS('', '''(() => {
-  return getOwnPropertyNames(obj).concat(getOwnPropertySymbols(obj));
+  return $getOwnPropertyNames($obj).concat($getOwnPropertySymbols($obj));
 })()''');
 
 safeGetOwnProperty(obj, String name) => JS('', '''(() => {
-  let desc = getOwnPropertyDescriptor($obj, $name);
+  let desc = $getOwnPropertyDescriptor($obj, $name);
   if (desc) return desc.value;
 })()''');
 
@@ -66,7 +56,7 @@ defineLazyProperty(to, name, desc) => JS('', '''(() => {
       value = x;
     }
     function circularInitError() {
-      throwInternalError('circular initialization for field ' + $name);
+      $throwInternalError('circular initialization for field ' + $name);
     }
     function lazyGetter() {
       if (init == null) return value;
@@ -80,26 +70,26 @@ defineLazyProperty(to, name, desc) => JS('', '''(() => {
     $desc.get = lazyGetter;
     $desc.configurable = true;
     if ($desc.set) $desc.set = lazySetter;
-    return defineProperty($to, $name, $desc);
+    return $defineProperty($to, $name, $desc);
 })()''');
 
 void defineLazy(to, from) => JS('', '''(() => {
-  for (let name of getOwnNamesAndSymbols($from)) {
-    defineLazyProperty($to, name, getOwnPropertyDescriptor($from, name));
+  for (let name of $getOwnNamesAndSymbols($from)) {
+    $defineLazyProperty($to, name, $getOwnPropertyDescriptor($from, name));
   }
 })()''');
 
 defineMemoizedGetter(obj, String name, getter) => JS('', '''(() => {
-  return defineLazyProperty($obj, $name, {get: $getter});
+  return $defineLazyProperty($obj, $name, {get: $getter});
 })()''');
 
 copyTheseProperties(to, from, names) => JS('', '''(() => {
   for (let name of $names) {
     var desc = $getOwnPropertyDescriptor($from, name);
     if (desc != void 0) {
-      defineProperty($to, name, desc);
+      $defineProperty($to, name, desc);
     } else {
-      defineLazyProperty($to, name, () => $from[name]);
+      $defineLazyProperty($to, name, () => $from[name]);
     }
   }
   return $to;
@@ -108,12 +98,11 @@ copyTheseProperties(to, from, names) => JS('', '''(() => {
 /// Copy properties from source to destination object.
 /// This operation is commonly called `mixin` in JS.
 copyProperties(to, from) => JS('', '''(() => {
-  return $copyTheseProperties($to, $from, $getOwnNamesAndSymbols(from));
+  return $copyTheseProperties($to, $from, $getOwnNamesAndSymbols($from));
 })()''');
 
 /// Exports from one Dart module to another.
-// TODO(ochafik): Re-introduce a @JS annotation in the SDK (same as package:js)
-// so that this is named 'export' in JavaScript.
+@JSExportName('export')
 export_(to, from, show, hide) => JS('', '''(() => {
   if ($show == void 0 || $show.length == 0) {
     $show = $getOwnNamesAndSymbols($from);

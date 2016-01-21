@@ -1,5 +1,5 @@
 dart_library.library('dart/html_common', null, /* Imports */[
-  "dart/_runtime",
+  'dart/_runtime',
   'dart/_metadata',
   'dart/core',
   'dart/html',
@@ -13,7 +13,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
 ], function(exports, dart, _metadata, core, html, typed_data, _js_helper, _native_typed_data, async, collection, _internal) {
   'use strict';
   let dartx = dart.dartx;
-  dart.export_(exports, _metadata);
+  dart.export(exports, _metadata);
   const _validateToken = Symbol('_validateToken');
   class CssClassSetImpl extends core.Object {
     [_validateToken](value) {

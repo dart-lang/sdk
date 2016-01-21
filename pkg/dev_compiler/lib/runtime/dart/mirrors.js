@@ -1,5 +1,5 @@
 dart_library.library('dart/mirrors', null, /* Imports */[
-  "dart/_runtime",
+  'dart/_runtime',
   'dart/core'
 ], /* Lazy imports */[
   'dart/_js_mirrors'

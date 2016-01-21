@@ -8,13 +8,6 @@ var collection = dart_library.import('dart/collection');
 var dart = dart_library.import('dart/_runtime');
 var dartx = dart.dartx;
 
-// TODO(leafp): These are here to test some things not
-// currently exposed through the main dart entry point.
-// If we decide to expose them, this can go away.
-var classes = dart_library.import('dart/_classes');
-var types = dart_library.import('dart/_types');
-var dart_utils = dart_library.import('dart/_utils');
-
 suite('generic', () => {
   "use strict";
 
@@ -102,8 +95,8 @@ suite('generic', () => {
   test('type constructor is reflectable', () => {
     let SomeType = generic(function(x, y) { return Object.create(null); });
     let someValue = SomeType('hi', 123);
-    assert.equal(classes.getGenericClass(someValue), SomeType);
-    assert.deepEqual(classes.getGenericArgs(someValue), ['hi', 123]);
+    assert.equal(dart.getGenericClass(someValue), SomeType);
+    assert.deepEqual(dart.getGenericArgs(someValue), ['hi', 123]);
   });
 
   test('proper type constructor is called', () => {
@@ -119,7 +112,7 @@ suite('instanceOf', () => {
   "use strict";
 
   let expect = assert.equal;
-  let isGroundType = types.isGroundType;
+  let isGroundType = dart.isGroundType;
   let generic = dart.generic;
   let intIsNonNullable = false;
   let cast = dart.as;
@@ -128,7 +121,7 @@ suite('instanceOf', () => {
   let runtimeType = dart.realRuntimeType;
   let functionType = dart.functionType;
   let typedef = dart.typedef;
-  let isSubtype = types.isSubtype;
+  let isSubtype = dart.isSubtype;
 
   let Object = core.Object;
   let String = core.String;
@@ -212,7 +205,7 @@ suite('instanceOf', () => {
     if (!strongOnly) {
       expect(instanceOf(x, type), expectedTrue);
     } else {
-      assert.throws(() => instanceOf(x, type), dart_utils.StrongModeError);
+      assert.throws(() => instanceOf(x, type), dart.StrongModeError);
       expect(strongInstanceOf(x, type), expectedTrue);
     }
   }
@@ -321,23 +314,23 @@ suite('instanceOf', () => {
 
     // Is checks
     assert.throws(() => dart.is(m3, Map$(String, String)),
-      dart_utils.StrongModeError);
+      dart.StrongModeError);
     assert.throws(() => dart.is(m6, Map$(String, String)),
-      dart_utils.StrongModeError);
+      dart.StrongModeError);
     assert.isTrue(dart.is(m1, Map$(String, String)));
     assert.throws(() => dart.is(m2, Map$(String, String)),
-      dart_utils.StrongModeError);
+      dart.StrongModeError);
 
     // As checks
     // TODO(vsm): Enable these.  We're currently only logging warnings on
     // StrongModeErrors.
     // assert.throws(() => dart.as(m3, Map$(String, String)),
-    //   dart_utils.StrongModeError);
+    //   dart.StrongModeError);
     // assert.throws(() => dart.as(m6, Map$(String, String)),
-    //   dart_utils.StrongModeError);
+    //   dart.StrongModeError);
     assert.equal(dart.as(m1, Map$(String, String)), m1);
     // assert.throws(() => dart.as(m2, Map$(String, String)),
-    //   dart_utils.StrongModeError);
+    //   dart.StrongModeError);
   });
 
   test('constructors', () => {

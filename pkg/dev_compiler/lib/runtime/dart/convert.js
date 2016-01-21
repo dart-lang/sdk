@@ -1,5 +1,5 @@
 dart_library.library('dart/convert', null, /* Imports */[
-  "dart/_runtime",
+  'dart/_runtime',
   'dart/core',
   'dart/async',
   'dart/typed_data',

@@ -209,8 +209,8 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       documented: false,
       platforms: DART2JS_PLATFORM),
 
-  "_utils": const LibraryInfo(
-      "_internal/compiler/js_lib/utils.dart",
+  "_runtime": const LibraryInfo(
+      "_internal/compiler/js_lib/runtime.dart",
       category: "Internal",
       documented: false,
       platforms: DART2JS_PLATFORM),

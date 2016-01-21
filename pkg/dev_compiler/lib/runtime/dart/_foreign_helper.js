@@ -1,5 +1,5 @@
 dart_library.library('dart/_foreign_helper', null, /* Imports */[
-  "dart/_runtime",
+  'dart/_runtime',
   'dart/core'
 ], /* Lazy imports */[
 ], function(exports, dart, core) {
@@ -117,6 +117,18 @@ dart_library.library('dart/_foreign_helper', null, /* Imports */[
     return a + b;
   }
   dart.fn(JS_STRING_CONCAT, core.String, [core.String, core.String]);
+  class _Rest extends core.Object {
+    _Rest() {
+    }
+  }
+  dart.setSignature(_Rest, {
+    constructors: () => ({_Rest: [_Rest, []]})
+  });
+  const rest = dart.const(new _Rest());
+  function spread(args) {
+    dart.throw(new core.StateError('The spread function cannot be called, ' + 'it should be compiled away.'));
+  }
+  dart.fn(spread);
   // Exports:
   exports.JS = JS;
   exports.JSExportName = JSExportName;
@@ -148,4 +160,6 @@ dart_library.library('dart/_foreign_helper', null, /* Imports */[
   exports.JS_EFFECT = JS_EFFECT;
   exports.JS_CONST = JS_CONST;
   exports.JS_STRING_CONCAT = JS_STRING_CONCAT;
+  exports.rest = rest;
+  exports.spread = spread;
 });
