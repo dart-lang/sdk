@@ -125,7 +125,7 @@ class _CodeGenerator {
     if (type.isList) {
       return 'const <${type.typeName}>[]';
     } else if (_idl.enums.containsKey(type.typeName)) {
-      return '${type.typeName}.${_idl.enums[type.typeName].values[0]}';
+      return '${type.typeName}.${_idl.enums[type.typeName].values[0].name}';
     } else if (type.typeName == 'int') {
       return '0';
     } else if (type.typeName == 'String') {
@@ -204,7 +204,9 @@ class _CodeGenerator {
             new idlModel.EnumDeclaration(doc, decl.name.name);
         _idl.enums[enm.name] = enm;
         for (EnumConstantDeclaration constDecl in decl.constants) {
-          enm.values.add(constDecl.name.name);
+          String doc = _getNodeDoc(lineInfo, constDecl);
+          enm.values
+              .add(new idlModel.EnumValueDeclaration(doc, constDecl.name.name));
         }
       } else if (decl is TopLevelVariableDeclaration) {
         // Ignore top level variable declarations; they are present just to make
@@ -390,9 +392,11 @@ class _CodeGenerator {
               String listCode = '$valueName.map((b) => $itemCode).toList()';
               writeCode = '$offsetName = fbBuilder.writeListUint32($listCode);';
             } else if (fieldType.typeName == 'int') {
-              writeCode = '$offsetName = fbBuilder.writeListUint32($valueName);';
+              writeCode =
+                  '$offsetName = fbBuilder.writeListUint32($valueName);';
             } else if (fieldType.typeName == 'double') {
-              writeCode = '$offsetName = fbBuilder.writeListFloat64($valueName);';
+              writeCode =
+                  '$offsetName = fbBuilder.writeListFloat64($valueName);';
             } else {
               assert(fieldType.typeName == 'String');
               String itemCode = 'fbBuilder.writeString(b)';
@@ -460,8 +464,14 @@ class _CodeGenerator {
     outDoc(enm.documentation);
     out('enum $name {');
     indent(() {
-      for (String value in enm.values) {
-        out('$value,');
+      for (idlModel.EnumValueDeclaration value in enm.values) {
+        outDoc(value.documentation);
+        if (enm.values.last == value) {
+          out('${value.name}');
+        } else {
+          out('${value.name},');
+          out();
+        }
       }
     });
     out('}');
