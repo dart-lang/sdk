@@ -476,7 +476,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   void _assertCompatibleParameter(
       FormalParameter node, ParameterElement element) {
     _assertEquals(node.kind, element.parameterKind);
-    if (node.kind == ParameterKind.NAMED) {
+    if (node.kind == ParameterKind.NAMED ||
+        element.enclosingElement is ConstructorElement) {
       _assertEquals(node.identifier.name, element.name);
     }
     // check parameter type specific properties

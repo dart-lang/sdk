@@ -496,6 +496,20 @@ class A {
 ''');
   }
 
+  void test_false_constructor_parameters_name() {
+    _assertDoesNotMatch(
+        r'''
+class A {
+  A(int a);
+}
+''',
+        r'''
+class A {
+  A(int b);
+}
+''');
+  }
+
   void test_false_constructor_parameters_type_edit() {
     _assertDoesNotMatch(
         r'''
@@ -832,6 +846,22 @@ class A {
 class A {
   final field;
   A(this.field(a));
+}
+''');
+  }
+
+  void test_false_fieldFormalParameter_changeName_wasUnresolvedField() {
+    _assertDoesNotMatch(
+        r'''
+class A {
+  final fff;
+  A(this.unresolved);
+}
+''',
+        r'''
+class A {
+  final fff;
+  A(this.fff);
 }
 ''');
   }
@@ -2507,22 +2537,6 @@ class A {
 ''');
   }
 
-  void test_true_fieldFormalParameter_changeName_wasUnresolvedField() {
-    _assertMatches(
-        r'''
-class A {
-  final fff;
-  A(this.unresolved);
-}
-''',
-        r'''
-class A {
-  final fff;
-  A(this.fff);
-}
-''');
-  }
-
   void test_true_fieldFormalParameter_function() {
     _assertMatches(
         r'''
@@ -3169,15 +3183,6 @@ class B extends A {
 }
 ''');
     _resolve(_editString('+', '*'), _isExpression);
-  }
-
-  void test_fieldFormalParameter() {
-    _resolveUnit(r'''
-class A {
-  int xy;
-  A(this.x);
-}''');
-    _resolve(_editString('this.x', 'this.xy'), _isDeclaration);
   }
 
   void test_function_localFunction_add() {
@@ -4106,6 +4111,25 @@ class A {
         expectedSuccess: false);
   }
 
+  void test_false_wholeConstructor() {
+    _resolveUnit(r'''
+class A {
+  A(int a) {
+    print(a);
+  }
+}
+''');
+    _updateAndValidate(
+        r'''
+class A {
+  A(int b) {
+    print(b);
+  }
+}
+''',
+        expectedSuccess: false);
+  }
+
   void test_fieldClassField_propagatedType() {
     _resolveUnit(r'''
 class A {
@@ -4326,23 +4350,6 @@ foo() {
 ''');
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
     _assertEqualErrors(newErrors, oldErrors);
-  }
-
-  void test_true_wholeConstructor() {
-    _resolveUnit(r'''
-class A {
-  A(int a) {
-    print(a);
-  }
-}
-''');
-    _updateAndValidate(r'''
-class A {
-  A(int b) {
-    print(b);
-  }
-}
-''');
   }
 
   void test_true_wholeConstructor_addInitializer() {
