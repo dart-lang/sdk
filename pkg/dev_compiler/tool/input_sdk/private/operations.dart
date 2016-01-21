@@ -85,6 +85,7 @@ throwNoSuchMethodFunc(obj, name, pArgs, opt_func) => JS('', '''(() => {
 })()''');
 
 checkAndCall(f, ftype, obj, args, name) => JS('', '''(() => {
+  let originalFunction = $f;
   if (!($f instanceof Function)) {
     // We're not a function (and hence not a method either)
     // Grab the `call` method if it's not a function.
@@ -93,7 +94,7 @@ checkAndCall(f, ftype, obj, args, name) => JS('', '''(() => {
       $f = $f.call;
     }
     if (!($f instanceof Function)) {
-      $throwNoSuchMethodFunc($obj, $name, $args);
+      $throwNoSuchMethodFunc($obj, $name, $args, originalFunction);
     }
   }
   // If f is a function, but not a method (no method type)
@@ -115,7 +116,7 @@ checkAndCall(f, ftype, obj, args, name) => JS('', '''(() => {
 
   // TODO(leafp): throw a type error (rather than NSM)
   // if the arity matches but the types are wrong.
-  $throwNoSuchMethodFunc($obj, $name, $args, $f);
+  $throwNoSuchMethodFunc($obj, $name, $args, originalFunction);
 })()''');
 
 dcall(f, @rest args) => JS('', '''(() => {
