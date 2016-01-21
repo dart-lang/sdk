@@ -450,9 +450,9 @@ class UnlinkedConst {
   List<UnlinkedConstOperation> operations;
 
   /**
-   * Sequence of 32-bit integers consumed by the operations `pushArgument`,
-   * `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`, `makeList`, and
-   * `makeMap`.
+   * Sequence of unsigned 32-bit integers consumed by the operations
+   * `pushArgument`, `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`,
+   * `makeList`, and `makeMap`.
    */
   List<int> ints;
 
@@ -489,7 +489,7 @@ enum UnlinkedConstOperation {
   pushArgument,
 
   /**
-   * Push the next value from [UnlinkedConst.ints] (a 32-bit signed integer)
+   * Push the next value from [UnlinkedConst.ints] (a 32-bit unsigned integer)
    * onto the stack.
    *
    * Note that Dart supports integers larger than 32 bits; these are

@@ -48,7 +48,8 @@ final Map<String, UnlinkedPublicNamespace> sdkPublicNamespace = () {
       for (int i = 0; i < serializedLibrary.unlinkedUnits.length; i++) {
         uriToNamespace[serializedLibrary.unitUris[i]] =
             new UnlinkedUnit.fromBuffer(
-                serializedLibrary.unlinkedUnits[i].toBuffer()).publicNamespace;
+                    serializedLibrary.unlinkedUnits[i].toBuffer())
+                .publicNamespace;
       }
     }
     return uriToNamespace;
@@ -547,21 +548,6 @@ abstract class SummaryTest {
         unlinkedSourceUnit: unlinkedSourceUnit);
   }
 
-  fail_constExpr_pushInt_shiftOr() {
-    UnlinkedVariable variable =
-        serializeVariableText('const v = 0x111222333444555666;');
-    //                                     ^^!!!!^^^^!!!!^^^^
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.shiftOr,
-      UnlinkedConstOperation.shiftOr
-    ], ints: [
-      0x11,
-      0x12223334,
-      0x44555666
-    ]);
-  }
-
   fail_enum_value_documented() {
     // TODO(paulberry): currently broken because of dartbug.com/25385
     String text = '''
@@ -771,7 +757,8 @@ enum E {
   TypeRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
-        allowErrors: allowErrors).type;
+            allowErrors: allowErrors)
+        .type;
   }
 
   /**
@@ -1544,10 +1531,12 @@ const v = const C(42, 'sss');
   test_constExpr_length() {
     UnlinkedVariable variable =
         serializeVariableText('const v = "abc".length;');
-    _assertUnlinkedConst(variable.constExpr,
-        operators:
-            [UnlinkedConstOperation.pushString, UnlinkedConstOperation.length],
-        strings: ['abc']);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.length
+    ], strings: [
+      'abc'
+    ]);
   }
 
   test_constExpr_makeList_typed() {
@@ -1671,24 +1660,30 @@ const v = const C(42, 'sss');
 
   test_constExpr_prefix_complement() {
     UnlinkedVariable variable = serializeVariableText('const v = ~2;');
-    _assertUnlinkedConst(variable.constExpr,
-        operators:
-            [UnlinkedConstOperation.pushInt, UnlinkedConstOperation.complement],
-        ints: [2]);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.complement
+    ], ints: [
+      2
+    ]);
   }
 
   test_constExpr_prefix_negate() {
     UnlinkedVariable variable = serializeVariableText('const v = -(2);');
-    _assertUnlinkedConst(variable.constExpr,
-        operators:
-            [UnlinkedConstOperation.pushInt, UnlinkedConstOperation.negate],
-        ints: [2]);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.negate
+    ], ints: [
+      2
+    ]);
   }
 
   test_constExpr_prefix_not() {
     UnlinkedVariable variable = serializeVariableText('const v = !true;');
-    _assertUnlinkedConst(variable.constExpr, operators:
-        [UnlinkedConstOperation.pushTrue, UnlinkedConstOperation.not]);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushTrue,
+      UnlinkedConstOperation.not
+    ]);
   }
 
   test_constExpr_pushDouble() {
@@ -1707,6 +1702,63 @@ const v = const C(42, 'sss');
     UnlinkedVariable variable = serializeVariableText('const v = 1;');
     _assertUnlinkedConst(variable.constExpr,
         operators: [UnlinkedConstOperation.pushInt], ints: [1]);
+  }
+
+  test_constExpr_pushInt_max() {
+    UnlinkedVariable variable = serializeVariableText('const v = 0xFFFFFFFF;');
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushInt,], ints: [0xFFFFFFFF]);
+  }
+
+  test_constExpr_pushInt_negative() {
+    UnlinkedVariable variable = serializeVariableText('const v = -5;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.negate
+    ], ints: [
+      5
+    ]);
+  }
+
+  test_constExpr_pushInt_shiftOr_long() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = 0xA123456789ABCDEF012345678;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.shiftOr,
+      UnlinkedConstOperation.shiftOr,
+      UnlinkedConstOperation.shiftOr
+    ], ints: [
+      0xA,
+      0x12345678,
+      0x9ABCDEF0,
+      0x12345678
+    ]);
+  }
+
+  test_constExpr_pushInt_shiftOr_min() {
+    UnlinkedVariable variable = serializeVariableText('const v = 0x100000000;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.shiftOr,
+    ], ints: [
+      1,
+      0,
+    ]);
+  }
+
+  test_constExpr_pushInt_shiftOr_min2() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = 0x10000000000000000;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.shiftOr,
+      UnlinkedConstOperation.shiftOr,
+    ], ints: [
+      1,
+      0,
+      0,
+    ]);
   }
 
   test_constExpr_pushNull() {
@@ -2525,7 +2577,8 @@ enum E { v }''';
 
   test_executable_operator_index_set() {
     UnlinkedExecutable executable = serializeClassText(
-        'class C { void operator[]=(int i, bool v) => null; }').executables[0];
+            'class C { void operator[]=(int i, bool v) => null; }')
+        .executables[0];
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.name, '[]=');
     expect(executable.hasImplicitReturnType, false);
@@ -3343,7 +3396,8 @@ p.B b;
       return;
     }
     checkUnresolvedTypeRef(
-        serializeClassText('class C<T> { T.U x; }', allowErrors: true).fields[0]
+        serializeClassText('class C<T> { T.U x; }', allowErrors: true)
+            .fields[0]
             .type,
         'T',
         'U');

@@ -1973,9 +1973,9 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements Un
   List<int> get ints => _ints ?? const <int>[];
 
   /**
-   * Sequence of 32-bit integers consumed by the operations `pushArgument`,
-   * `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`, `makeList`, and
-   * `makeMap`.
+   * Sequence of unsigned 32-bit integers consumed by the operations
+   * `pushArgument`, `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`,
+   * `makeList`, and `makeMap`.
    */
   void set ints(List<int> _value) {
     assert(!_finished);
@@ -2089,9 +2089,9 @@ abstract class UnlinkedConst extends base.SummaryClass {
   List<UnlinkedConstOperation> get operations;
 
   /**
-   * Sequence of 32-bit integers consumed by the operations `pushArgument`,
-   * `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`, `makeList`, and
-   * `makeMap`.
+   * Sequence of unsigned 32-bit integers consumed by the operations
+   * `pushArgument`, `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`,
+   * `makeList`, and `makeMap`.
    */
   List<int> get ints;
 

@@ -126,10 +126,15 @@ abstract class AbstractConstExprSerializer {
   }
 
   void _pushInt(int value) {
-    // TODO(scheglov) add support for arbitrary precision ints
-    assert(value.abs() < (2 << 31));
-    ints.add(value & 0xFFFFFFFF);
-    operations.add(UnlinkedConstOperation.pushInt);
+    assert(value >= 0);
+    if (value >= (1 << 32)) {
+      _pushInt(value >> 32);
+      operations.add(UnlinkedConstOperation.shiftOr);
+      ints.add(value & 0xFFFFFFFF);
+    } else {
+      operations.add(UnlinkedConstOperation.pushInt);
+      ints.add(value);
+    }
   }
 
   void _serializeBinaryExpression(BinaryExpression expr) {
