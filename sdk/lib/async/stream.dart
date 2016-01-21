@@ -325,6 +325,10 @@ abstract class Stream<T> {
    * two arguments it is called with the stack trace (which could be `null` if
    * the stream itself received an error without stack trace).
    * Otherwise it is called with just the error object.
+   * If [onError] is omitted, any errors on the stream are considered unhandled,
+   * and will be passed to the current [Zone]'s error handler.
+   * By default unhandled async errors are treated
+   * as if they were uncaught top-level errors.
    *
    * If this stream closes, the [onDone] handler is called.
    *
