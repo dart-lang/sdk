@@ -53,7 +53,7 @@ class DartUnitOverridesComputer {
             if (classMember.isStatic) {
               continue;
             }
-            SimpleIdentifier nameNode = classMember.name;
+            SimpleIdentifier name = classMember.name;
             List<ElementKind> kinds;
             if (classMember.isGetter) {
               kinds = GETTER_KINDS;
@@ -62,8 +62,8 @@ class DartUnitOverridesComputer {
             } else {
               kinds = METHOD_KINDS;
             }
-            _addOverride(
-                nameNode.offset, nameNode.length, nameNode.name, kinds);
+            new _SingleOverrideComputer(_currentClass, name, kinds)
+                .addOverrideTo(_overrides);
           }
           if (classMember is FieldDeclaration) {
             if (classMember.isStatic) {
@@ -71,9 +71,9 @@ class DartUnitOverridesComputer {
             }
             List<VariableDeclaration> fields = classMember.fields.variables;
             for (VariableDeclaration field in fields) {
-              SimpleIdentifier nameNode = field.name;
-              _addOverride(
-                  nameNode.offset, nameNode.length, nameNode.name, FIELD_KINDS);
+              SimpleIdentifier name = field.name;
+              new _SingleOverrideComputer(_currentClass, name, FIELD_KINDS)
+                  .addOverrideTo(_overrides);
             }
           }
         }
@@ -81,11 +81,58 @@ class DartUnitOverridesComputer {
     }
     return _overrides;
   }
+}
+
+/**
+ * Computer for [Override] for a single declaration.
+ */
+class _SingleOverrideComputer {
+  final engine.LibraryElement currentLibrary;
+  final engine.ClassElement currentClass;
+  final SimpleIdentifier node;
+  final String name;
+  final List<ElementKind> kinds;
+
+  _SingleOverrideComputer(
+      engine.ClassElement currentClass, SimpleIdentifier node, this.kinds)
+      : currentClass = currentClass,
+        currentLibrary = currentClass.library,
+        node = node,
+        name = node.name;
+
+  /**
+   * Add a new [Override] for this declaration to the given [overrides].
+   */
+  void addOverrideTo(List<Override> overrides) {
+    // super
+    engine.Element superEngineElement;
+    {
+      engine.InterfaceType superType = currentClass.supertype;
+      if (superType != null) {
+        superEngineElement = _lookupMember(superType.element);
+      }
+    }
+    // interfaces
+    Set<engine.Element> interfaceEngineElements = new Set<engine.Element>();
+    _addInterfaceOverrides(interfaceEngineElements, currentClass.type, false,
+        new Set<engine.InterfaceType>());
+    interfaceEngineElements.remove(superEngineElement);
+    // is there any override?
+    if (superEngineElement != null || interfaceEngineElements.isNotEmpty) {
+      OverriddenMember superMember = superEngineElement != null
+          ? newOverriddenMember_fromEngine(superEngineElement)
+          : null;
+      List<OverriddenMember> interfaceMembers = interfaceEngineElements
+          .map((member) => newOverriddenMember_fromEngine(member))
+          .toList();
+      overrides.add(new Override(node.offset, node.length,
+          superclassMember: superMember,
+          interfaceMembers: nullIfEmpty(interfaceMembers)));
+    }
+  }
 
   void _addInterfaceOverrides(
       Set<engine.Element> elements,
-      String name,
-      List<ElementKind> kinds,
       engine.InterfaceType type,
       bool checkType,
       Set<engine.InterfaceType> visited) {
@@ -97,7 +144,7 @@ class DartUnitOverridesComputer {
     }
     // check type
     if (checkType) {
-      engine.Element element = _lookupMember(type.element, name, kinds);
+      engine.Element element = _lookupMember(type.element);
       if (element != null) {
         elements.add(element);
         return;
@@ -105,67 +152,34 @@ class DartUnitOverridesComputer {
     }
     // check interfaces
     for (engine.InterfaceType interfaceType in type.interfaces) {
-      _addInterfaceOverrides(
-          elements, name, kinds, interfaceType, true, visited);
+      _addInterfaceOverrides(elements, interfaceType, true, visited);
     }
     // check super
-    _addInterfaceOverrides(
-        elements, name, kinds, type.superclass, checkType, visited);
+    _addInterfaceOverrides(elements, type.superclass, checkType, visited);
   }
 
-  void _addOverride(
-      int offset, int length, String name, List<ElementKind> kinds) {
-    // super
-    engine.Element superEngineElement;
-    {
-      engine.InterfaceType superType = _currentClass.supertype;
-      if (superType != null) {
-        superEngineElement = _lookupMember(superType.element, name, kinds);
-      }
-    }
-    // interfaces
-    Set<engine.Element> interfaceEngineElements = new Set<engine.Element>();
-    _addInterfaceOverrides(interfaceEngineElements, name, kinds,
-        _currentClass.type, false, new Set<engine.InterfaceType>());
-    interfaceEngineElements.remove(superEngineElement);
-    // is there any override?
-    if (superEngineElement != null || interfaceEngineElements.isNotEmpty) {
-      OverriddenMember superMember = superEngineElement != null
-          ? newOverriddenMember_fromEngine(superEngineElement)
-          : null;
-      List<OverriddenMember> interfaceMembers = interfaceEngineElements
-          .map((member) => newOverriddenMember_fromEngine(member))
-          .toList();
-      _overrides.add(new Override(offset, length,
-          superclassMember: superMember,
-          interfaceMembers: nullIfEmpty(interfaceMembers)));
-    }
-  }
-
-  static engine.Element _lookupMember(
-      engine.ClassElement classElement, String name, List<ElementKind> kinds) {
+  engine.Element _lookupMember(engine.ClassElement classElement) {
     if (classElement == null) {
       return null;
     }
-    engine.LibraryElement library = classElement.library;
     engine.Element member;
     // method
     if (kinds.contains(ElementKind.METHOD)) {
-      member = classElement.lookUpMethod(name, library);
+      member = classElement.lookUpMethod(name, currentLibrary);
       if (member != null) {
         return member;
       }
     }
     // getter
     if (kinds.contains(ElementKind.GETTER)) {
-      member = classElement.lookUpGetter(name, library);
+      member = classElement.lookUpGetter(name, currentLibrary);
       if (member != null) {
         return member;
       }
     }
     // setter
     if (kinds.contains(ElementKind.SETTER)) {
-      member = classElement.lookUpSetter(name + '=', library);
+      member = classElement.lookUpSetter(name + '=', currentLibrary);
       if (member != null) {
         return member;
       }

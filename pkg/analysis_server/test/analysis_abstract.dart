@@ -32,7 +32,8 @@ int findIdentifierLength(String search) {
     int c = search.codeUnitAt(length);
     if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
         c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
-        c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
+        c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0) ||
+        c == '_'.codeUnitAt(0))) {
       break;
     }
     length++;
