@@ -188,16 +188,28 @@ abstract class AbstractConstExprSerializer {
   void _serializeInstanceCreation(InstanceCreationExpression expr) {
     ConstructorName constructor = expr.constructorName;
     List<Expression> arguments = expr.argumentList.arguments;
-    arguments.forEach(serialize);
+    // Serialize the arguments.
+    List<String> argumentNames = <String>[];
+    arguments.forEach((arg) {
+      if (arg is NamedExpression) {
+        argumentNames.add(arg.name.label.name);
+        serialize(arg.expression);
+      } else {
+        serialize(arg);
+      }
+    });
+    // Add the op-code and numbers of named and positional arguments.
     operations.add(UnlinkedConstOperation.invokeConstructor);
+    ints.add(argumentNames.length);
+    strings.addAll(argumentNames);
+    ints.add(arguments.length - argumentNames.length);
+    // Serialize the reference.
     references.add(serializeType(constructor.type));
     if (constructor.name != null) {
       strings.add(constructor.name.name);
     } else {
       strings.add('');
     }
-    // TODO(scheglov) named arguments?
-    ints.add(arguments.length);
   }
 
   void _serializeListLiteral(ListLiteral expr) {

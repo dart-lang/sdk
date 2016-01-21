@@ -1444,6 +1444,7 @@ const v = const C.named();
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.invokeConstructor,
     ], ints: [
+      0,
       0
     ], strings: [
       'named'
@@ -1472,6 +1473,7 @@ const v = const C.named();
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.invokeConstructor,
     ], ints: [
+      0,
       0
     ], strings: [
       'named'
@@ -1496,6 +1498,7 @@ const v = const p.C.named();
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.invokeConstructor,
     ], ints: [
+      0,
       0
     ], strings: [
       'named'
@@ -1508,19 +1511,38 @@ const v = const p.C.named();
   test_constExpr_invokeConstructor_unnamed() {
     UnlinkedVariable variable = serializeVariableText('''
 class C {
-  const C(int a, String b);
+  const C(a, b, c, d, {e, f, g});
 }
-const v = const C(42, 'sss');
+const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
 ''');
+    // Stack: 11 22 3.3 '444' 55 '777' 66 ^head
+    // Ints: ^pointer 3 4
+    // Doubles: ^pointer
+    // Strings: ^pointer 'e' 'g' 'f' ''
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushDouble,
       UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.invokeConstructor,
     ], ints: [
-      42,
-      2
+      11,
+      22,
+      55,
+      66,
+      3,
+      4,
+    ], doubles: [
+      3.3
     ], strings: [
-      'sss',
+      '444',
+      '777',
+      'e',
+      'g',
+      'f',
       ''
     ], referenceValidators: [
       (TypeRef r) => checkTypeRef(r, null, null, 'C',

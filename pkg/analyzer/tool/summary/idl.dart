@@ -565,11 +565,16 @@ enum UnlinkedConstOperation {
   pushReference,
 
   /**
-   * Pop the top n values from the stack (where n is obtained from
-   * [UnlinkedConst.ints]), use them to invoke a constant constructor whose
-   * name is obtained from [UnlinkedConst.strings], and whose class is obtained
-   * from [UnlinkedConst.references], and push the resulting value back onto
-   * the stack.
+   * Pop the top `n` values from the stack (where `n` is obtained from
+   * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
+   * `n` values from [UnlinkedConst.strings] and use the lists of names and
+   * values to create named arguments.  Then pop the top `m` values from the
+   * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
+   * from the end) and use them as positional arguments.  Use the lists of
+   * positional and names arguments to invoke a constant constructor whose name
+   * is obtained from [UnlinkedConst.strings], and whose class is obtained from
+   * [UnlinkedConst.references], and push the resulting value back onto the
+   * stack.
    *
    * Note that for an invocation of the form `const a.b(...)` (where no type
    * arguments are specified), it is impossible to tell from the unresolved AST
