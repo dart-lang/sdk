@@ -152,12 +152,17 @@ class UnionTypeMask implements TypeMask {
   TypeMask intersection(var other, ClassWorld classWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (!other.isUnion && disjointMasks.contains(other)) return other;
+    if (other.isUnion && this == other) return this;
 
     List<TypeMask> intersections = <TypeMask>[];
     for (TypeMask current in disjointMasks) {
       if (other.isUnion) {
-        for (FlatTypeMask flatOther in other.disjointMasks) {
-          intersections.add(current.intersection(flatOther, classWorld));
+        if (other.disjointMasks.contains(current)) {
+          intersections.add(current);
+        } else {
+          for (FlatTypeMask flatOther in other.disjointMasks) {
+            intersections.add(current.intersection(flatOther, classWorld));
+          }
         }
       } else {
         intersections.add(current.intersection(other, classWorld));

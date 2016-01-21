@@ -732,16 +732,7 @@ class FlatTypeMask implements TypeMask {
     if (xSubset == null) return null;
     Iterable<ClassElement> ySubset = containedSubset(y, classWorld);
     if (ySubset == null) return null;
-    Iterable<ClassElement> smallSet, largeSet;
-    if (xSubset.length <= ySubset.length) {
-      smallSet = xSubset;
-      largeSet = ySubset;
-    } else {
-      smallSet = ySubset;
-      largeSet = xSubset;
-    }
-    var result = smallSet.where((ClassElement each) => largeSet.contains(each));
-    return result.toSet();
+    return xSubset.toSet().intersection(ySubset.toSet());
   }
 
   static Iterable<ClassElement> containedSubset(FlatTypeMask x,
