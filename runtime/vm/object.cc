@@ -2159,6 +2159,8 @@ void Class::SetFunctions(const Array& value) const {
       set.Insert(func);
     }
     StorePointer(&raw_ptr()->functions_hash_table_, set.Release().raw());
+  } else {
+    StorePointer(&raw_ptr()->functions_hash_table_, Array::null());
   }
 }
 
