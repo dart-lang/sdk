@@ -323,7 +323,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
         outgoingNames.add(formal.name);
       });
       newCallStructure =
-      new CallStructure(signature.parameterCount, outgoingNames);
+          new CallStructure(signature.parameterCount, outgoingNames);
     } else {
       signature.forEachOptionalParameter((ParameterElement formal) {
         if (parameterIndex < parameters.length) {
@@ -441,7 +441,12 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       // The argument count at the call site does not match the target's
       // formal parameter count.  Build the IR term for an adapter function
       // body.
-      function = buildAdapter(invoke, target);
+      if (backend.isNative(target)) {
+        // TODO(25548): Generate correct adaptor for native methods.
+        return doNotInline();
+      } else {
+        function = buildAdapter(invoke, target);
+      }
     } else {
       function = _inliner.functionCompiler.compileToCpsIr(target);
       void setValue(Variable variable, Reference<Primitive> value) {
