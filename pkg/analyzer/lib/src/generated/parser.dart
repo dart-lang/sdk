@@ -3801,8 +3801,7 @@ class Parser {
 
   /**
    * If the current token has the type [TokenType.GT], return it after advancing
-   * to the next token. Otherwise report an error and return the current token
-   * without advancing.
+   * to the next token. Otherwise report an error and create a synthetic token.
    */
   Token _expectGt() {
     if (_matchesGt()) {
@@ -3810,7 +3809,7 @@ class Parser {
     }
     _reportErrorForCurrentToken(
         ParserErrorCode.EXPECTED_TOKEN, [TokenType.GT.lexeme]);
-    return _currentToken;
+    return _createSyntheticToken(TokenType.GT);
   }
 
   /**
