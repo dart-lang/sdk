@@ -424,7 +424,7 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
   List<String> _parts;
 
   @override
-  String get uri => _uri ?? '';
+  String get uri => _uri ??= '';
 
   /**
    * The relative URI of the dependent library.  This URI is relative to the
@@ -439,7 +439,7 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
   }
 
   @override
-  List<String> get parts => _parts ?? const <String>[];
+  List<String> get parts => _parts ??= <String>[];
 
   /**
    * URI for the compilation units listed in the library's `part` declarations.
@@ -543,7 +543,7 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
   ReferenceKind _kind;
 
   @override
-  String get name => _name ?? '';
+  String get name => _name ??= '';
 
   /**
    * Name of the exported entity.  TODO(paulberry): do we include the trailing
@@ -555,7 +555,7 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
   }
 
   @override
-  int get dependency => _dependency ?? 0;
+  int get dependency => _dependency ??= 0;
 
   /**
    * Index into [LinkedLibrary.dependencies] for the library in which the
@@ -568,7 +568,7 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
   }
 
   @override
-  int get unit => _unit ?? 0;
+  int get unit => _unit ??= 0;
 
   /**
    * Integer index indicating which unit in the exported library contains the
@@ -583,7 +583,7 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
   }
 
   @override
-  ReferenceKind get kind => _kind ?? ReferenceKind.classOrEnum;
+  ReferenceKind get kind => _kind ??= ReferenceKind.classOrEnum;
 
   /**
    * The kind of the entity being referred to.
@@ -717,7 +717,7 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements Li
   int _numPrelinkedDependencies;
 
   @override
-  List<LinkedUnit> get units => _units ?? const <LinkedUnit>[];
+  List<LinkedUnitBuilder> get units => _units ??= <LinkedUnitBuilder>[];
 
   /**
    * The linked summary of all the compilation units constituting the
@@ -731,7 +731,7 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements Li
   }
 
   @override
-  List<LinkedDependency> get dependencies => _dependencies ?? const <LinkedDependency>[];
+  List<LinkedDependencyBuilder> get dependencies => _dependencies ??= <LinkedDependencyBuilder>[];
 
   /**
    * The libraries that this library depends on (either via an explicit import
@@ -754,7 +754,7 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements Li
   }
 
   @override
-  List<int> get importDependencies => _importDependencies ?? const <int>[];
+  List<int> get importDependencies => _importDependencies ??= <int>[];
 
   /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
@@ -767,7 +767,7 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements Li
   }
 
   @override
-  List<LinkedExportName> get exportNames => _exportNames ?? const <LinkedExportName>[];
+  List<LinkedExportNameBuilder> get exportNames => _exportNames ??= <LinkedExportNameBuilder>[];
 
   /**
    * Information about entities in the export namespace of the library that are
@@ -782,7 +782,7 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements Li
   }
 
   @override
-  int get numPrelinkedDependencies => _numPrelinkedDependencies ?? 0;
+  int get numPrelinkedDependencies => _numPrelinkedDependencies ??= 0;
 
   /**
    * The number of elements in [dependencies] which are not "linked"
@@ -973,7 +973,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
   String _name;
 
   @override
-  int get dependency => _dependency ?? 0;
+  int get dependency => _dependency ??= 0;
 
   /**
    * Index into [LinkedLibrary.dependencies] indicating which imported library
@@ -986,7 +986,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
   }
 
   @override
-  ReferenceKind get kind => _kind ?? ReferenceKind.classOrEnum;
+  ReferenceKind get kind => _kind ??= ReferenceKind.classOrEnum;
 
   /**
    * The kind of the entity being referred to.  For the pseudo-type `dynamic`,
@@ -998,7 +998,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
   }
 
   @override
-  int get unit => _unit ?? 0;
+  int get unit => _unit ??= 0;
 
   /**
    * Integer index indicating which unit in the imported library contains the
@@ -1013,7 +1013,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
   }
 
   @override
-  int get numTypeParameters => _numTypeParameters ?? 0;
+  int get numTypeParameters => _numTypeParameters ??= 0;
 
   /**
    * If the entity being referred to is generic, the number of type parameters
@@ -1026,7 +1026,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
   }
 
   @override
-  String get name => _name ?? '';
+  String get name => _name ??= '';
 
   /**
    * If this [LinkedReference] doesn't have an associated [UnlinkedReference],
@@ -1178,7 +1178,7 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements LinkedUn
   List<TypeRefBuilder> _types;
 
   @override
-  List<LinkedReference> get references => _references ?? const <LinkedReference>[];
+  List<LinkedReferenceBuilder> get references => _references ??= <LinkedReferenceBuilder>[];
 
   /**
    * Information about the resolution of references within the compilation
@@ -1194,7 +1194,7 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements LinkedUn
   }
 
   @override
-  List<TypeRef> get types => _types ?? const <TypeRef>[];
+  List<TypeRefBuilder> get types => _types ??= <TypeRefBuilder>[];
 
   /**
    * List associating slot ids found inside the unlinked summary for the
@@ -1298,7 +1298,7 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements SdkBundle 
   List<UnlinkedUnitBuilder> _unlinkedUnits;
 
   @override
-  List<String> get linkedLibraryUris => _linkedLibraryUris ?? const <String>[];
+  List<String> get linkedLibraryUris => _linkedLibraryUris ??= <String>[];
 
   /**
    * The list of URIs of items in [linkedLibraries], e.g. `dart:core`.
@@ -1309,7 +1309,7 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements SdkBundle 
   }
 
   @override
-  List<LinkedLibrary> get linkedLibraries => _linkedLibraries ?? const <LinkedLibrary>[];
+  List<LinkedLibraryBuilder> get linkedLibraries => _linkedLibraries ??= <LinkedLibraryBuilder>[];
 
   /**
    * Linked libraries.
@@ -1320,7 +1320,7 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements SdkBundle 
   }
 
   @override
-  List<String> get unlinkedUnitUris => _unlinkedUnitUris ?? const <String>[];
+  List<String> get unlinkedUnitUris => _unlinkedUnitUris ??= <String>[];
 
   /**
    * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
@@ -1331,7 +1331,7 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements SdkBundle 
   }
 
   @override
-  List<UnlinkedUnit> get unlinkedUnits => _unlinkedUnits ?? const <UnlinkedUnit>[];
+  List<UnlinkedUnitBuilder> get unlinkedUnits => _unlinkedUnits ??= <UnlinkedUnitBuilder>[];
 
   /**
    * Unlinked information for the compilation units constituting the SDK.
@@ -1479,7 +1479,7 @@ class TypeRefBuilder extends Object with _TypeRefMixin implements TypeRef {
   List<TypeRefBuilder> _typeArguments;
 
   @override
-  int get slot => _slot ?? 0;
+  int get slot => _slot ??= 0;
 
   /**
    * If this [TypeRef] is contained within [LinkedUnit.types], slot id (which
@@ -1495,7 +1495,7 @@ class TypeRefBuilder extends Object with _TypeRefMixin implements TypeRef {
   }
 
   @override
-  int get reference => _reference ?? 0;
+  int get reference => _reference ??= 0;
 
   /**
    * Index into [UnlinkedUnit.references] for the type being referred to, or
@@ -1514,7 +1514,7 @@ class TypeRefBuilder extends Object with _TypeRefMixin implements TypeRef {
   }
 
   @override
-  int get paramReference => _paramReference ?? 0;
+  int get paramReference => _paramReference ??= 0;
 
   /**
    * If this is a reference to a type parameter, one-based index into the list
@@ -1542,7 +1542,7 @@ class TypeRefBuilder extends Object with _TypeRefMixin implements TypeRef {
   }
 
   @override
-  List<TypeRef> get typeArguments => _typeArguments ?? const <TypeRef>[];
+  List<TypeRefBuilder> get typeArguments => _typeArguments ??= <TypeRefBuilder>[];
 
   /**
    * If this is an instantiation of a generic type, the type arguments used to
@@ -1706,7 +1706,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   bool _hasNoSupertype;
 
   @override
-  String get name => _name ?? '';
+  String get name => _name ??= '';
 
   /**
    * Name of the class.
@@ -1717,7 +1717,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   }
 
   @override
-  int get nameOffset => _nameOffset ?? 0;
+  int get nameOffset => _nameOffset ??= 0;
 
   /**
    * Offset of the class name relative to the beginning of the file.
@@ -1729,7 +1729,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   }
 
   @override
-  UnlinkedDocumentationComment get documentationComment => _documentationComment;
+  UnlinkedDocumentationCommentBuilder get documentationComment => _documentationComment;
 
   /**
    * Documentation comment for the class, or `null` if there is no
@@ -1741,7 +1741,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   }
 
   @override
-  List<UnlinkedTypeParam> get typeParameters => _typeParameters ?? const <UnlinkedTypeParam>[];
+  List<UnlinkedTypeParamBuilder> get typeParameters => _typeParameters ??= <UnlinkedTypeParamBuilder>[];
 
   /**
    * Type parameters of the class, if any.
@@ -1752,7 +1752,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   }
 
   @override
-  TypeRef get supertype => _supertype;
+  TypeRefBuilder get supertype => _supertype;
 
   /**
    * Supertype of the class, or `null` if either (a) the class doesn't
@@ -1765,7 +1765,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   }
 
   @override
-  List<TypeRef> get mixins => _mixins ?? const <TypeRef>[];
+  List<TypeRefBuilder> get mixins => _mixins ??= <TypeRefBuilder>[];
 
   /**
    * Mixins appearing in a `with` clause, if any.
@@ -1776,7 +1776,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   }
 
   @override
-  List<TypeRef> get interfaces => _interfaces ?? const <TypeRef>[];
+  List<TypeRefBuilder> get interfaces => _interfaces ??= <TypeRefBuilder>[];
 
   /**
    * Interfaces appearing in an `implements` clause, if any.
@@ -1787,7 +1787,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   }
 
   @override
-  List<UnlinkedVariable> get fields => _fields ?? const <UnlinkedVariable>[];
+  List<UnlinkedVariableBuilder> get fields => _fields ??= <UnlinkedVariableBuilder>[];
 
   /**
    * Field declarations contained in the class.
@@ -1798,7 +1798,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   }
 
   @override
-  List<UnlinkedExecutable> get executables => _executables ?? const <UnlinkedExecutable>[];
+  List<UnlinkedExecutableBuilder> get executables => _executables ??= <UnlinkedExecutableBuilder>[];
 
   /**
    * Executable objects (methods, getters, and setters) contained in the class.
@@ -1809,7 +1809,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   }
 
   @override
-  bool get isAbstract => _isAbstract ?? false;
+  bool get isAbstract => _isAbstract ??= false;
 
   /**
    * Indicates whether the class is declared with the `abstract` keyword.
@@ -1820,7 +1820,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   }
 
   @override
-  bool get isMixinApplication => _isMixinApplication ?? false;
+  bool get isMixinApplication => _isMixinApplication ??= false;
 
   /**
    * Indicates whether the class is declared using mixin application syntax.
@@ -1831,7 +1831,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements Un
   }
 
   @override
-  bool get hasNoSupertype => _hasNoSupertype ?? false;
+  bool get hasNoSupertype => _hasNoSupertype ??= false;
 
   /**
    * Indicates whether this class is the core "Object" class (and hence has no
@@ -2125,7 +2125,7 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
   List<String> _hides;
 
   @override
-  List<String> get shows => _shows ?? const <String>[];
+  List<String> get shows => _shows ??= <String>[];
 
   /**
    * List of names which are shown.  Empty if this is a `hide` combinator.
@@ -2136,7 +2136,7 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
   }
 
   @override
-  List<String> get hides => _hides ?? const <String>[];
+  List<String> get hides => _hides ??= <String>[];
 
   /**
    * List of names which are hidden.  Empty if this is a `show` combinator.
@@ -2235,7 +2235,7 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements Un
   List<TypeRefBuilder> _references;
 
   @override
-  List<UnlinkedConstOperation> get operations => _operations ?? const <UnlinkedConstOperation>[];
+  List<UnlinkedConstOperation> get operations => _operations ??= <UnlinkedConstOperation>[];
 
   /**
    * Sequence of operations to execute (starting with an empty stack) to form
@@ -2247,7 +2247,7 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements Un
   }
 
   @override
-  List<int> get ints => _ints ?? const <int>[];
+  List<int> get ints => _ints ??= <int>[];
 
   /**
    * Sequence of unsigned 32-bit integers consumed by the operations
@@ -2261,7 +2261,7 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements Un
   }
 
   @override
-  List<double> get doubles => _doubles ?? const <double>[];
+  List<double> get doubles => _doubles ??= <double>[];
 
   /**
    * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
@@ -2272,7 +2272,7 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements Un
   }
 
   @override
-  List<String> get strings => _strings ?? const <String>[];
+  List<String> get strings => _strings ??= <String>[];
 
   /**
    * Sequence of strings consumed by the operations `pushString` and
@@ -2284,7 +2284,7 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements Un
   }
 
   @override
-  List<TypeRef> get references => _references ?? const <TypeRef>[];
+  List<TypeRefBuilder> get references => _references ??= <TypeRefBuilder>[];
 
   /**
    * Sequence of language constructs consumed by the operations
@@ -2460,7 +2460,7 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
   int _length;
 
   @override
-  String get text => _text ?? '';
+  String get text => _text ??= '';
 
   /**
    * Text of the documentation comment, with '\r\n' replaced by '\n'.
@@ -2474,7 +2474,7 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
   }
 
   @override
-  int get offset => _offset ?? 0;
+  int get offset => _offset ??= 0;
 
   /**
    * Offset of the beginning of the documentation comment relative to the
@@ -2487,7 +2487,7 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
   }
 
   @override
-  int get length => _length ?? 0;
+  int get length => _length ??= 0;
 
   /**
    * Length of the documentation comment (prior to replacing '\r\n' with '\n').
@@ -2602,7 +2602,7 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements Unli
   List<UnlinkedEnumValueBuilder> _values;
 
   @override
-  String get name => _name ?? '';
+  String get name => _name ??= '';
 
   /**
    * Name of the enum type.
@@ -2613,7 +2613,7 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements Unli
   }
 
   @override
-  int get nameOffset => _nameOffset ?? 0;
+  int get nameOffset => _nameOffset ??= 0;
 
   /**
    * Offset of the enum name relative to the beginning of the file.
@@ -2625,7 +2625,7 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements Unli
   }
 
   @override
-  UnlinkedDocumentationComment get documentationComment => _documentationComment;
+  UnlinkedDocumentationCommentBuilder get documentationComment => _documentationComment;
 
   /**
    * Documentation comment for the enum, or `null` if there is no documentation
@@ -2637,7 +2637,7 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements Unli
   }
 
   @override
-  List<UnlinkedEnumValue> get values => _values ?? const <UnlinkedEnumValue>[];
+  List<UnlinkedEnumValueBuilder> get values => _values ??= <UnlinkedEnumValueBuilder>[];
 
   /**
    * Values listed in the enum declaration, in declaration order.
@@ -2772,7 +2772,7 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
   UnlinkedDocumentationCommentBuilder _documentationComment;
 
   @override
-  String get name => _name ?? '';
+  String get name => _name ??= '';
 
   /**
    * Name of the enumerated value.
@@ -2783,7 +2783,7 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
   }
 
   @override
-  int get nameOffset => _nameOffset ?? 0;
+  int get nameOffset => _nameOffset ??= 0;
 
   /**
    * Offset of the enum value name relative to the beginning of the file.
@@ -2795,7 +2795,7 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
   }
 
   @override
-  UnlinkedDocumentationComment get documentationComment => _documentationComment;
+  UnlinkedDocumentationCommentBuilder get documentationComment => _documentationComment;
 
   /**
    * Documentation comment for the enum value, or `null` if there is no
@@ -2921,7 +2921,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   bool _isExternal;
 
   @override
-  String get name => _name ?? '';
+  String get name => _name ??= '';
 
   /**
    * Name of the executable.  For setters, this includes the trailing "=".  For
@@ -2934,7 +2934,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  int get nameOffset => _nameOffset ?? 0;
+  int get nameOffset => _nameOffset ??= 0;
 
   /**
    * Offset of the executable name relative to the beginning of the file.  For
@@ -2949,7 +2949,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  UnlinkedDocumentationComment get documentationComment => _documentationComment;
+  UnlinkedDocumentationCommentBuilder get documentationComment => _documentationComment;
 
   /**
    * Documentation comment for the executable, or `null` if there is no
@@ -2961,7 +2961,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  List<UnlinkedTypeParam> get typeParameters => _typeParameters ?? const <UnlinkedTypeParam>[];
+  List<UnlinkedTypeParamBuilder> get typeParameters => _typeParameters ??= <UnlinkedTypeParamBuilder>[];
 
   /**
    * Type parameters of the executable, if any.  Empty if support for generic
@@ -2973,7 +2973,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  TypeRef get returnType => _returnType;
+  TypeRefBuilder get returnType => _returnType;
 
   /**
    * Declared return type of the executable.  Absent if the return type is
@@ -2986,7 +2986,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  List<UnlinkedParam> get parameters => _parameters ?? const <UnlinkedParam>[];
+  List<UnlinkedParamBuilder> get parameters => _parameters ??= <UnlinkedParamBuilder>[];
 
   /**
    * Parameters of the executable, if any.  Note that getters have no
@@ -2999,7 +2999,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  UnlinkedExecutableKind get kind => _kind ?? UnlinkedExecutableKind.functionOrMethod;
+  UnlinkedExecutableKind get kind => _kind ??= UnlinkedExecutableKind.functionOrMethod;
 
   /**
    * The kind of the executable (function/method, getter, setter, or
@@ -3011,7 +3011,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  bool get isAbstract => _isAbstract ?? false;
+  bool get isAbstract => _isAbstract ??= false;
 
   /**
    * Indicates whether the executable is declared using the `abstract` keyword.
@@ -3022,7 +3022,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  bool get isStatic => _isStatic ?? false;
+  bool get isStatic => _isStatic ??= false;
 
   /**
    * Indicates whether the executable is declared using the `static` keyword.
@@ -3037,7 +3037,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  bool get isConst => _isConst ?? false;
+  bool get isConst => _isConst ??= false;
 
   /**
    * Indicates whether the executable is declared using the `const` keyword.
@@ -3048,7 +3048,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  bool get isFactory => _isFactory ?? false;
+  bool get isFactory => _isFactory ??= false;
 
   /**
    * Indicates whether the executable is declared using the `factory` keyword.
@@ -3059,7 +3059,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  bool get hasImplicitReturnType => _hasImplicitReturnType ?? false;
+  bool get hasImplicitReturnType => _hasImplicitReturnType ??= false;
 
   /**
    * Indicates whether the executable lacks an explicit return type
@@ -3071,7 +3071,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  bool get isExternal => _isExternal ?? false;
+  bool get isExternal => _isExternal ??= false;
 
   /**
    * Indicates whether the executable is declared using the `external` keyword.
@@ -3384,7 +3384,7 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
   int _uriEnd;
 
   @override
-  int get offset => _offset ?? 0;
+  int get offset => _offset ??= 0;
 
   /**
    * Offset of the "export" keyword.
@@ -3396,7 +3396,7 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
   }
 
   @override
-  int get uriOffset => _uriOffset ?? 0;
+  int get uriOffset => _uriOffset ??= 0;
 
   /**
    * Offset of the URI string (including quotes) relative to the beginning of
@@ -3409,7 +3409,7 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
   }
 
   @override
-  int get uriEnd => _uriEnd ?? 0;
+  int get uriEnd => _uriEnd ??= 0;
 
   /**
    * End of the URI string (including quotes) relative to the beginning of the
@@ -3518,7 +3518,7 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
   List<UnlinkedCombinatorBuilder> _combinators;
 
   @override
-  String get uri => _uri ?? '';
+  String get uri => _uri ??= '';
 
   /**
    * URI used in the source code to reference the exported library.
@@ -3529,7 +3529,7 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
   }
 
   @override
-  List<UnlinkedCombinator> get combinators => _combinators ?? const <UnlinkedCombinator>[];
+  List<UnlinkedCombinatorBuilder> get combinators => _combinators ??= <UnlinkedCombinatorBuilder>[];
 
   /**
    * Combinators contained in this import declaration.
@@ -3632,7 +3632,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   int _prefixOffset;
 
   @override
-  String get uri => _uri ?? '';
+  String get uri => _uri ??= '';
 
   /**
    * URI used in the source code to reference the imported library.
@@ -3643,7 +3643,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   }
 
   @override
-  int get offset => _offset ?? 0;
+  int get offset => _offset ??= 0;
 
   /**
    * If [isImplicit] is false, offset of the "import" keyword.  If [isImplicit]
@@ -3656,7 +3656,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   }
 
   @override
-  int get prefixReference => _prefixReference ?? 0;
+  int get prefixReference => _prefixReference ??= 0;
 
   /**
    * Index into [UnlinkedUnit.references] of the prefix declared by this
@@ -3671,7 +3671,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   }
 
   @override
-  List<UnlinkedCombinator> get combinators => _combinators ?? const <UnlinkedCombinator>[];
+  List<UnlinkedCombinatorBuilder> get combinators => _combinators ??= <UnlinkedCombinatorBuilder>[];
 
   /**
    * Combinators contained in this import declaration.
@@ -3682,7 +3682,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   }
 
   @override
-  bool get isDeferred => _isDeferred ?? false;
+  bool get isDeferred => _isDeferred ??= false;
 
   /**
    * Indicates whether the import declaration uses the `deferred` keyword.
@@ -3693,7 +3693,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   }
 
   @override
-  bool get isImplicit => _isImplicit ?? false;
+  bool get isImplicit => _isImplicit ??= false;
 
   /**
    * Indicates whether the import declaration is implicit.
@@ -3704,7 +3704,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   }
 
   @override
-  int get uriOffset => _uriOffset ?? 0;
+  int get uriOffset => _uriOffset ??= 0;
 
   /**
    * Offset of the URI string (including quotes) relative to the beginning of
@@ -3717,7 +3717,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   }
 
   @override
-  int get uriEnd => _uriEnd ?? 0;
+  int get uriEnd => _uriEnd ??= 0;
 
   /**
    * End of the URI string (including quotes) relative to the beginning of the
@@ -3730,7 +3730,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   }
 
   @override
-  int get prefixOffset => _prefixOffset ?? 0;
+  int get prefixOffset => _prefixOffset ??= 0;
 
   /**
    * Offset of the prefix name relative to the beginning of the file, or zero
@@ -3959,7 +3959,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
   bool _hasImplicitType;
 
   @override
-  String get name => _name ?? '';
+  String get name => _name ??= '';
 
   /**
    * Name of the parameter.
@@ -3970,7 +3970,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
   }
 
   @override
-  int get nameOffset => _nameOffset ?? 0;
+  int get nameOffset => _nameOffset ??= 0;
 
   /**
    * Offset of the parameter name relative to the beginning of the file.
@@ -3982,7 +3982,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
   }
 
   @override
-  TypeRef get type => _type;
+  TypeRefBuilder get type => _type;
 
   /**
    * If [isFunctionTyped] is `true`, the declared return type.  If
@@ -3997,7 +3997,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
   }
 
   @override
-  List<UnlinkedParam> get parameters => _parameters ?? const <UnlinkedParam>[];
+  List<UnlinkedParamBuilder> get parameters => _parameters ??= <UnlinkedParamBuilder>[];
 
   /**
    * If [isFunctionTyped] is `true`, the parameters of the function type.
@@ -4008,7 +4008,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
   }
 
   @override
-  UnlinkedParamKind get kind => _kind ?? UnlinkedParamKind.required;
+  UnlinkedParamKind get kind => _kind ??= UnlinkedParamKind.required;
 
   /**
    * Kind of the parameter.
@@ -4019,7 +4019,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
   }
 
   @override
-  bool get isFunctionTyped => _isFunctionTyped ?? false;
+  bool get isFunctionTyped => _isFunctionTyped ??= false;
 
   /**
    * Indicates whether this is a function-typed parameter.
@@ -4030,7 +4030,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
   }
 
   @override
-  bool get isInitializingFormal => _isInitializingFormal ?? false;
+  bool get isInitializingFormal => _isInitializingFormal ??= false;
 
   /**
    * Indicates whether this is an initializing formal parameter (i.e. it is
@@ -4042,7 +4042,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
   }
 
   @override
-  bool get hasImplicitType => _hasImplicitType ?? false;
+  bool get hasImplicitType => _hasImplicitType ??= false;
 
   /**
    * Indicates whether this parameter lacks an explicit type declaration.
@@ -4250,7 +4250,7 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements Unli
   int _uriEnd;
 
   @override
-  int get uriOffset => _uriOffset ?? 0;
+  int get uriOffset => _uriOffset ??= 0;
 
   /**
    * Offset of the URI string (including quotes) relative to the beginning of
@@ -4263,7 +4263,7 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements Unli
   }
 
   @override
-  int get uriEnd => _uriEnd ?? 0;
+  int get uriEnd => _uriEnd ??= 0;
 
   /**
    * End of the URI string (including quotes) relative to the beginning of the
@@ -4355,7 +4355,7 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   int _numTypeParameters;
 
   @override
-  String get name => _name ?? '';
+  String get name => _name ??= '';
 
   /**
    * The name itself.
@@ -4366,7 +4366,7 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   }
 
   @override
-  ReferenceKind get kind => _kind ?? ReferenceKind.classOrEnum;
+  ReferenceKind get kind => _kind ??= ReferenceKind.classOrEnum;
 
   /**
    * The kind of object referred to by the name.
@@ -4377,7 +4377,7 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   }
 
   @override
-  int get numTypeParameters => _numTypeParameters ?? 0;
+  int get numTypeParameters => _numTypeParameters ??= 0;
 
   /**
    * If the entity being referred to is generic, the number of type parameters
@@ -4500,7 +4500,7 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
   List<String> _parts;
 
   @override
-  List<UnlinkedPublicName> get names => _names ?? const <UnlinkedPublicName>[];
+  List<UnlinkedPublicNameBuilder> get names => _names ??= <UnlinkedPublicNameBuilder>[];
 
   /**
    * Public names defined in the compilation unit.
@@ -4514,7 +4514,7 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
   }
 
   @override
-  List<UnlinkedExportPublic> get exports => _exports ?? const <UnlinkedExportPublic>[];
+  List<UnlinkedExportPublicBuilder> get exports => _exports ??= <UnlinkedExportPublicBuilder>[];
 
   /**
    * Export declarations in the compilation unit.
@@ -4525,7 +4525,7 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
   }
 
   @override
-  List<String> get parts => _parts ?? const <String>[];
+  List<String> get parts => _parts ??= <String>[];
 
   /**
    * URIs referenced by part declarations in the compilation unit.
@@ -4655,7 +4655,7 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
   int _prefixReference;
 
   @override
-  String get name => _name ?? '';
+  String get name => _name ??= '';
 
   /**
    * Name of the entity being referred to.  The empty string refers to the
@@ -4667,7 +4667,7 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
   }
 
   @override
-  int get prefixReference => _prefixReference ?? 0;
+  int get prefixReference => _prefixReference ??= 0;
 
   /**
    * Prefix used to refer to the entity, or zero if no prefix is used.  This is
@@ -4775,7 +4775,7 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   List<UnlinkedParamBuilder> _parameters;
 
   @override
-  String get name => _name ?? '';
+  String get name => _name ??= '';
 
   /**
    * Name of the typedef.
@@ -4786,7 +4786,7 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   }
 
   @override
-  int get nameOffset => _nameOffset ?? 0;
+  int get nameOffset => _nameOffset ??= 0;
 
   /**
    * Offset of the typedef name relative to the beginning of the file.
@@ -4798,7 +4798,7 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   }
 
   @override
-  UnlinkedDocumentationComment get documentationComment => _documentationComment;
+  UnlinkedDocumentationCommentBuilder get documentationComment => _documentationComment;
 
   /**
    * Documentation comment for the typedef, or `null` if there is no
@@ -4810,7 +4810,7 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   }
 
   @override
-  List<UnlinkedTypeParam> get typeParameters => _typeParameters ?? const <UnlinkedTypeParam>[];
+  List<UnlinkedTypeParamBuilder> get typeParameters => _typeParameters ??= <UnlinkedTypeParamBuilder>[];
 
   /**
    * Type parameters of the typedef, if any.
@@ -4821,7 +4821,7 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   }
 
   @override
-  TypeRef get returnType => _returnType;
+  TypeRefBuilder get returnType => _returnType;
 
   /**
    * Return type of the typedef.  Absent if the return type is `void`.
@@ -4832,7 +4832,7 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   }
 
   @override
-  List<UnlinkedParam> get parameters => _parameters ?? const <UnlinkedParam>[];
+  List<UnlinkedParamBuilder> get parameters => _parameters ??= <UnlinkedParamBuilder>[];
 
   /**
    * Parameters of the executable, if any.
@@ -5009,7 +5009,7 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
   TypeRefBuilder _bound;
 
   @override
-  String get name => _name ?? '';
+  String get name => _name ??= '';
 
   /**
    * Name of the type parameter.
@@ -5020,7 +5020,7 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
   }
 
   @override
-  int get nameOffset => _nameOffset ?? 0;
+  int get nameOffset => _nameOffset ??= 0;
 
   /**
    * Offset of the type parameter name relative to the beginning of the file.
@@ -5032,7 +5032,7 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
   }
 
   @override
-  TypeRef get bound => _bound;
+  TypeRefBuilder get bound => _bound;
 
   /**
    * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
@@ -5158,7 +5158,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   List<UnlinkedVariableBuilder> _variables;
 
   @override
-  String get libraryName => _libraryName ?? '';
+  String get libraryName => _libraryName ??= '';
 
   /**
    * Name of the library (from a "library" declaration, if present).
@@ -5169,7 +5169,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   }
 
   @override
-  int get libraryNameOffset => _libraryNameOffset ?? 0;
+  int get libraryNameOffset => _libraryNameOffset ??= 0;
 
   /**
    * Offset of the library name relative to the beginning of the file (or 0 if
@@ -5182,7 +5182,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   }
 
   @override
-  int get libraryNameLength => _libraryNameLength ?? 0;
+  int get libraryNameLength => _libraryNameLength ??= 0;
 
   /**
    * Length of the library name as it appears in the source code (or 0 if the
@@ -5195,7 +5195,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   }
 
   @override
-  UnlinkedDocumentationComment get libraryDocumentationComment => _libraryDocumentationComment;
+  UnlinkedDocumentationCommentBuilder get libraryDocumentationComment => _libraryDocumentationComment;
 
   /**
    * Documentation comment for the library, or `null` if there is no
@@ -5207,7 +5207,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   }
 
   @override
-  UnlinkedPublicNamespace get publicNamespace => _publicNamespace;
+  UnlinkedPublicNamespaceBuilder get publicNamespace => _publicNamespace;
 
   /**
    * Unlinked public namespace of this compilation unit.
@@ -5218,7 +5218,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   }
 
   @override
-  List<UnlinkedReference> get references => _references ?? const <UnlinkedReference>[];
+  List<UnlinkedReferenceBuilder> get references => _references ??= <UnlinkedReferenceBuilder>[];
 
   /**
    * Top level and prefixed names referred to by this compilation unit.  The
@@ -5231,7 +5231,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   }
 
   @override
-  List<UnlinkedClass> get classes => _classes ?? const <UnlinkedClass>[];
+  List<UnlinkedClassBuilder> get classes => _classes ??= <UnlinkedClassBuilder>[];
 
   /**
    * Classes declared in the compilation unit.
@@ -5242,7 +5242,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   }
 
   @override
-  List<UnlinkedEnum> get enums => _enums ?? const <UnlinkedEnum>[];
+  List<UnlinkedEnumBuilder> get enums => _enums ??= <UnlinkedEnumBuilder>[];
 
   /**
    * Enums declared in the compilation unit.
@@ -5253,7 +5253,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   }
 
   @override
-  List<UnlinkedExecutable> get executables => _executables ?? const <UnlinkedExecutable>[];
+  List<UnlinkedExecutableBuilder> get executables => _executables ??= <UnlinkedExecutableBuilder>[];
 
   /**
    * Top level executable objects (functions, getters, and setters) declared in
@@ -5265,7 +5265,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   }
 
   @override
-  List<UnlinkedExportNonPublic> get exports => _exports ?? const <UnlinkedExportNonPublic>[];
+  List<UnlinkedExportNonPublicBuilder> get exports => _exports ??= <UnlinkedExportNonPublicBuilder>[];
 
   /**
    * Export declarations in the compilation unit.
@@ -5276,7 +5276,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   }
 
   @override
-  List<UnlinkedImport> get imports => _imports ?? const <UnlinkedImport>[];
+  List<UnlinkedImportBuilder> get imports => _imports ??= <UnlinkedImportBuilder>[];
 
   /**
    * Import declarations in the compilation unit.
@@ -5287,7 +5287,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   }
 
   @override
-  List<UnlinkedPart> get parts => _parts ?? const <UnlinkedPart>[];
+  List<UnlinkedPartBuilder> get parts => _parts ??= <UnlinkedPartBuilder>[];
 
   /**
    * Part declarations in the compilation unit.
@@ -5298,7 +5298,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   }
 
   @override
-  List<UnlinkedTypedef> get typedefs => _typedefs ?? const <UnlinkedTypedef>[];
+  List<UnlinkedTypedefBuilder> get typedefs => _typedefs ??= <UnlinkedTypedefBuilder>[];
 
   /**
    * Typedefs declared in the compilation unit.
@@ -5309,7 +5309,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements Unli
   }
 
   @override
-  List<UnlinkedVariable> get variables => _variables ?? const <UnlinkedVariable>[];
+  List<UnlinkedVariableBuilder> get variables => _variables ??= <UnlinkedVariableBuilder>[];
 
   /**
    * Top level variables declared in the compilation unit.
@@ -5671,7 +5671,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   int _propagatedTypeSlot;
 
   @override
-  String get name => _name ?? '';
+  String get name => _name ??= '';
 
   /**
    * Name of the variable.
@@ -5682,7 +5682,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   }
 
   @override
-  int get nameOffset => _nameOffset ?? 0;
+  int get nameOffset => _nameOffset ??= 0;
 
   /**
    * Offset of the variable name relative to the beginning of the file.
@@ -5694,7 +5694,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   }
 
   @override
-  UnlinkedDocumentationComment get documentationComment => _documentationComment;
+  UnlinkedDocumentationCommentBuilder get documentationComment => _documentationComment;
 
   /**
    * Documentation comment for the variable, or `null` if there is no
@@ -5706,7 +5706,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   }
 
   @override
-  TypeRef get type => _type;
+  TypeRefBuilder get type => _type;
 
   /**
    * Declared type of the variable.  Note that when strong mode is enabled, the
@@ -5718,7 +5718,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   }
 
   @override
-  UnlinkedConst get constExpr => _constExpr;
+  UnlinkedConstBuilder get constExpr => _constExpr;
 
   /**
    * If [isConst] is true, and the variable has an initializer, the constant
@@ -5730,7 +5730,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   }
 
   @override
-  bool get isStatic => _isStatic ?? false;
+  bool get isStatic => _isStatic ??= false;
 
   /**
    * Indicates whether the variable is declared using the `static` keyword.
@@ -5745,7 +5745,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   }
 
   @override
-  bool get isFinal => _isFinal ?? false;
+  bool get isFinal => _isFinal ??= false;
 
   /**
    * Indicates whether the variable is declared using the `final` keyword.
@@ -5756,7 +5756,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   }
 
   @override
-  bool get isConst => _isConst ?? false;
+  bool get isConst => _isConst ??= false;
 
   /**
    * Indicates whether the variable is declared using the `const` keyword.
@@ -5767,7 +5767,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   }
 
   @override
-  bool get hasImplicitType => _hasImplicitType ?? false;
+  bool get hasImplicitType => _hasImplicitType ??= false;
 
   /**
    * Indicates whether this variable lacks an explicit type declaration.
@@ -5778,7 +5778,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   }
 
   @override
-  int get propagatedTypeSlot => _propagatedTypeSlot ?? 0;
+  int get propagatedTypeSlot => _propagatedTypeSlot ??= 0;
 
   /**
    * If this variable is propagable, nonzero slot id identifying which entry in

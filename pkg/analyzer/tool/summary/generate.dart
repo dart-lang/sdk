@@ -120,10 +120,19 @@ class _CodeGenerator {
   /**
    * Generate a Dart expression representing the default value for a field
    * having the given [type], or `null` if there is no default value.
+   *
+   * If [builder] is `true`, the returned type should be appropriate for use in
+   * a builder class.
    */
-  String defaultValue(idlModel.FieldType type) {
+  String defaultValue(idlModel.FieldType type, bool builder) {
     if (type.isList) {
-      return 'const <${type.typeName}>[]';
+      if (builder) {
+        idlModel.FieldType elementType =
+            new idlModel.FieldType(type.typeName, false);
+        return '<${encodedType(elementType)}>[]';
+      } else {
+        return 'const <${type.typeName}>[]';
+      }
     } else if (_idl.enums.containsKey(type.typeName)) {
       return '${type.typeName}.${_idl.enums[type.typeName].values[0].name}';
     } else if (type.typeName == 'int') {
@@ -316,11 +325,11 @@ class _CodeGenerator {
         String fieldName = field.name;
         idlModel.FieldType fieldType = field.type;
         String typeStr = encodedType(fieldType);
-        String def = defaultValue(fieldType);
-        String defSuffix = def == null ? '' : ' ?? $def';
+        String def = defaultValue(fieldType, true);
+        String defSuffix = def == null ? '' : ' ??= $def';
         out();
         out('@override');
-        out('${dartType(fieldType)} get $fieldName => _$fieldName$defSuffix;');
+        out('$typeStr get $fieldName => _$fieldName$defSuffix;');
         out();
         outDoc(field.documentation);
         constructorParams.add('$typeStr $fieldName');
@@ -437,10 +446,10 @@ class _CodeGenerator {
             condition = '$valueName == true';
             writeCode = 'fbBuilder.addBool($index, true);';
           } else if (fieldType.typeName == 'int') {
-            condition += ' && $valueName != ${defaultValue(fieldType)}';
+            condition += ' && $valueName != ${defaultValue(fieldType, true)}';
             writeCode = 'fbBuilder.addUint32($index, $valueName);';
           } else if (_idl.enums.containsKey(fieldType.typeName)) {
-            condition += ' && $valueName != ${defaultValue(fieldType)}';
+            condition += ' && $valueName != ${defaultValue(fieldType, true)}';
             writeCode = 'fbBuilder.addUint32($index, $valueName.index);';
           }
           if (writeCode == null) {
@@ -521,7 +530,7 @@ class _CodeGenerator {
         String typeName = type.typeName;
         // Prepare "readCode" + "def"
         String readCode;
-        String def = defaultValue(type);
+        String def = defaultValue(type, false);
         if (type.isList) {
           if (typeName == 'int') {
             String itemCode = 'const fb.Uint32Reader()';
