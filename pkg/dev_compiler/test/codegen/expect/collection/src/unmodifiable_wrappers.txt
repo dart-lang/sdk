@@ -1,4 +1,6 @@
 // Messages from compiling unmodifiable_wrappers.dart
+severe: [AnalyzerMessage] Missing concrete implementation of 'Iterable.expand' and 'Iterable.map' (package:collection/src/unmodifiable_wrappers.dart, line 33, col 7)
+severe: [AnalyzerMessage] Missing concrete implementation of 'Iterable.expand' and 'Iterable.map' (package:collection/src/unmodifiable_wrappers.dart, line 136, col 7)
 warning: [DOWN_CAST_COMPOSITE] _throw() (dynamic) will need runtime check to cast to type E (package:collection/src/unmodifiable_wrappers.dart, line 88, col 28)
 warning: [DOWN_CAST_COMPOSITE] _throw() (dynamic) will need runtime check to cast to type E (package:collection/src/unmodifiable_wrappers.dart, line 94, col 21)
 warning: [DOWN_CAST_COMPOSITE] _throw() (dynamic) will need runtime check to cast to type V (package:collection/src/unmodifiable_wrappers.dart, line 218, col 41)

@@ -62,7 +62,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         return this[_base].isNotEmpty;
       }
       get keys() {
-        return dart.as(this[_base].values[dartx.map](dart.fn(pair => pair.first, K, [utils.Pair$(K, V)])), core.Iterable$(K));
+        return this[_base].values[dartx.map](dart.fn(pair => pair.first, K, [utils.Pair$(K, V)]));
       }
       get length() {
         return this[_base].length;
@@ -78,7 +78,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         return pair == null ? null : pair.last;
       }
       get values() {
-        return dart.as(this[_base].values[dartx.map](dart.fn(pair => pair.last, V, [utils.Pair$(K, V)])), core.Iterable$(V));
+        return this[_base].values[dartx.map](dart.fn(pair => pair.last, V, [utils.Pair$(K, V)]));
       }
       toString() {
         return collection.Maps.mapToString(this);
