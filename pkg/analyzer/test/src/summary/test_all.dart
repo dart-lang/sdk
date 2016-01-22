@@ -10,6 +10,7 @@ import '../../utils.dart';
 import 'flat_buffers_test.dart' as flat_buffers_test;
 import 'name_filter_test.dart' as name_filter_test;
 import 'prelinker_test.dart' as prelinker_test;
+import 'resynthesize_strong_test.dart' as resynthesize_strong_test;
 import 'resynthesize_test.dart' as resynthesize_test;
 import 'summarize_ast_test.dart' as summarize_ast_test;
 import 'summarize_elements_strong_test.dart' as summarize_elements_strong_test;
@@ -22,6 +23,7 @@ main() {
     flat_buffers_test.main();
     name_filter_test.main();
     prelinker_test.main();
+    resynthesize_strong_test.main();
     resynthesize_test.main();
     summarize_ast_test.main();
     summarize_elements_strong_test.main();

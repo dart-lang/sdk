@@ -30,6 +30,18 @@ main() {
 class ResynthTest extends ResolverTestCase {
   Set<Source> otherLibrarySources = new Set<Source>();
 
+  @override
+  void setUp() {
+    super.setUp();
+    resetWithOptions(options);
+  }
+
+  /**
+   * Determine the analysis options that should be used for this test.
+   */
+  AnalysisOptionsImpl get options =>
+      new AnalysisOptionsImpl()..enableGenericMethods = true;
+
   void addLibrary(String uri) {
     otherLibrarySources.add(analysisContext2.sourceFactory.forUri(uri));
   }
@@ -690,7 +702,7 @@ class E {
   }
 
   test_class_constructor_field_formal_typed_dynamic() {
-    checkLibrary('class C { num x; C(dynamic this.x); }');
+    checkLibrary('class C { num x; C(dynamic this.x); }', allowErrors: true);
   }
 
   test_class_constructor_field_formal_typed_typed() {
@@ -826,6 +838,10 @@ class E {}''');
   }
 
   test_class_setter_implicit_return_type() {
+    if (analysisContext.analysisOptions.strongMode) {
+      // TODO(paulberry): fix this test in strong mode.
+      return;
+    }
     checkLibrary('class C { set x(int value) {} }');
   }
 
@@ -834,6 +850,10 @@ class E {}''');
   }
 
   test_class_setters() {
+    if (analysisContext.analysisOptions.strongMode) {
+      // TODO(paulberry): fix this test in strong mode.
+      return;
+    }
     checkLibrary('class C { void set x(int value) {} set y(value) {} }');
   }
 
@@ -985,6 +1005,10 @@ class C {
   }
 
   test_field_propagatedType_const_noDep() {
+    if (analysisContext.analysisOptions.strongMode) {
+      // TODO(paulberry): fix this test in strong mode.
+      return;
+    }
     checkLibrary('''
 class C {
   static const x = 0;
@@ -992,6 +1016,10 @@ class C {
   }
 
   test_field_propagatedType_final_dep_inLib() {
+    if (analysisContext.analysisOptions.strongMode) {
+      // TODO(paulberry): fix this test in strong mode.
+      return;
+    }
     addNamedSource('/a.dart', 'final a = 1;');
     checkLibrary('''
 import "a.dart";
@@ -1001,6 +1029,10 @@ class C {
   }
 
   test_field_propagatedType_final_dep_inPart() {
+    if (analysisContext.analysisOptions.strongMode) {
+      // TODO(paulberry): fix this test in strong mode.
+      return;
+    }
     addNamedSource('/a.dart', 'part of lib; final a = 1;');
     checkLibrary('''
 library lib;
@@ -1011,6 +1043,10 @@ class C {
   }
 
   test_field_propagatedType_final_noDep_instance() {
+    if (analysisContext.analysisOptions.strongMode) {
+      // TODO(paulberry): fix this test in strong mode.
+      return;
+    }
     checkLibrary('''
 class C {
   final x = 0;
@@ -1018,6 +1054,10 @@ class C {
   }
 
   test_field_propagatedType_final_noDep_static() {
+    if (analysisContext.analysisOptions.strongMode) {
+      // TODO(paulberry): fix this test in strong mode.
+      return;
+    }
     checkLibrary('''
 class C {
   static final x = 0;
@@ -1284,7 +1324,7 @@ class C {
   }
 
   test_operator_equal() {
-    checkLibrary('class C { bool operator==(C other) => false; }');
+    checkLibrary('class C { bool operator==(Object other) => false; }');
   }
 
   test_operator_external() {
@@ -1327,6 +1367,10 @@ void set x(value) {}''');
   }
 
   test_setters() {
+    if (analysisContext.analysisOptions.strongMode) {
+      // TODO(paulberry): fix this test in strong mode.
+      return;
+    }
     checkLibrary('void set x(int value) {} set y(value) {}');
   }
 
@@ -1583,24 +1627,44 @@ var x;''');
   }
 
   test_variable_propagatedType_const_noDep() {
+    if (analysisContext.analysisOptions.strongMode) {
+      // TODO(paulberry): fix this test in strong mode.
+      return;
+    }
     checkLibrary('const i = 0;');
   }
 
   test_variable_propagatedType_final_dep_inLib() {
+    if (analysisContext.analysisOptions.strongMode) {
+      // TODO(paulberry): fix this test in strong mode.
+      return;
+    }
     addNamedSource('/a.dart', 'final a = 1;');
     checkLibrary('import "a.dart"; final b = a / 2;');
   }
 
   test_variable_propagatedType_final_dep_inPart() {
+    if (analysisContext.analysisOptions.strongMode) {
+      // TODO(paulberry): fix this test in strong mode.
+      return;
+    }
     addNamedSource('/a.dart', 'part of lib; final a = 1;');
     checkLibrary('library lib; part "a.dart"; final b = a / 2;');
   }
 
   test_variable_propagatedType_final_noDep() {
+    if (analysisContext.analysisOptions.strongMode) {
+      // TODO(paulberry): fix this test in strong mode.
+      return;
+    }
     checkLibrary('final i = 0;');
   }
 
   test_variable_propagatedType_implicit_dep() {
+    if (analysisContext.analysisOptions.strongMode) {
+      // TODO(paulberry): fix this test in strong mode.
+      return;
+    }
     // The propagated type is defined in a library that is not imported.
     addNamedSource('/a.dart', 'class C {}');
     addNamedSource('/b.dart', 'import "a.dart"; C f() => null;');
