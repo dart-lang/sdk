@@ -2675,6 +2675,7 @@ class CopyingVisitor extends TrampolineRecursiveVisitor {
       assert(_current != null);
       InteriorExpression interior = _current;
       interior.body = body;
+      body.parent = interior;
     }
     _current = body;
   }
@@ -2692,7 +2693,9 @@ class CopyingVisitor extends TrampolineRecursiveVisitor {
       Expression savedFirst = _first;
       _first = _current = null;
       _processBlock(cont.body);
-      _copies[cont].body = _first;
+      Continuation contCopy = _copies[cont];
+      contCopy.body = _first;
+      _first.parent = contCopy;
       _first = savedFirst;
       _current = null;
     });
