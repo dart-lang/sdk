@@ -43,9 +43,11 @@ main() {
  */
 class ConstantEvaluationValidator_ForTest
     implements ConstantEvaluationValidator {
+  final InternalAnalysisContext context;
   ConstantValueComputer computer;
-
   ConstantEvaluationTarget _nodeBeingEvaluated;
+
+  ConstantEvaluationValidator_ForTest(this.context);
 
   @override
   void beforeComputeValue(ConstantEvaluationTarget constant) {
@@ -53,32 +55,38 @@ class ConstantEvaluationValidator_ForTest
   }
 
   @override
-  void beforeGetConstantInitializers(ConstructorElement constructor) {
-    // Make sure we properly recorded the dependency.
-    expect(
-        computer.referenceGraph.containsPath(_nodeBeingEvaluated, constructor),
-        isTrue);
-  }
+  void beforeGetConstantInitializers(ConstructorElement constructor) =>
+      _checkPathTo(constructor);
 
   @override
-  void beforeGetEvaluationResult(ConstantEvaluationTarget constant) {
-    // Make sure we properly recorded the dependency.
-    expect(computer.referenceGraph.containsPath(_nodeBeingEvaluated, constant),
-        isTrue);
-  }
+  void beforeGetEvaluationResult(ConstantEvaluationTarget constant) =>
+      _checkPathTo(constant);
 
   @override
-  void beforeGetFieldEvaluationResult(FieldElementImpl field) {
-    // Make sure we properly recorded the dependency.
-    expect(computer.referenceGraph.containsPath(_nodeBeingEvaluated, field),
-        isTrue);
-  }
+  void beforeGetFieldEvaluationResult(FieldElementImpl field) =>
+      _checkPathTo(field);
 
   @override
-  void beforeGetParameterDefault(ParameterElement parameter) {
-    // Make sure we properly recorded the dependency.
-    expect(computer.referenceGraph.containsPath(_nodeBeingEvaluated, parameter),
-        isTrue);
+  void beforeGetParameterDefault(ParameterElement parameter) =>
+      _checkPathTo(parameter);
+
+  void _checkPathTo(ConstantEvaluationTarget target) {
+    if (computer.referenceGraph.containsPath(_nodeBeingEvaluated, target)) {
+      return; // pass
+    }
+    // print a nice error message on failure
+    StringBuffer out = new StringBuffer();
+    out.writeln("missing path in constant dependency graph");
+    out.writeln("from $_nodeBeingEvaluated to $target");
+    for (var s in context.analysisCache.sources) {
+      String text = context.getContents(s).data;
+      if (text != "") {
+        out.writeln('''
+=== ${s.shortName}
+$text''');
+      }
+    }
+    fail(out.toString());
   }
 }
 
@@ -851,17 +859,17 @@ class C {
     TestLogger logger = new TestLogger();
     AnalysisEngine.instance.logger = logger;
     try {
-      Source librarySource = addSource(r'''
+      Source source = addSource(r'''
   const int a = c;
   const int b = a;
   const int c = b;''');
-      LibraryElement libraryElement = resolve2(librarySource);
+      LibraryElement libraryElement = resolve2(source);
       CompilationUnit unit =
-          analysisContext.resolveCompilationUnit(librarySource, libraryElement);
-      analysisContext.computeErrors(librarySource);
+          analysisContext.resolveCompilationUnit(source, libraryElement);
+      analysisContext.computeErrors(source);
       expect(unit, isNotNull);
       ConstantValueComputer computer = _makeConstantValueComputer();
-      computer.add(unit, librarySource, librarySource);
+      computer.add(unit, source, source);
       computer.computeValues();
       NodeList<CompilationUnitMember> members = unit.declarations;
       expect(members, hasLength(3));
@@ -874,15 +882,15 @@ class C {
   }
 
   void test_computeValues_dependentVariables() {
-    Source librarySource = addSource(r'''
+    Source source = addSource(r'''
 const int b = a;
 const int a = 0;''');
-    LibraryElement libraryElement = resolve2(librarySource);
+    LibraryElement libraryElement = resolve2(source);
     CompilationUnit unit =
-        analysisContext.resolveCompilationUnit(librarySource, libraryElement);
+        analysisContext.resolveCompilationUnit(source, libraryElement);
     expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
-    computer.add(unit, librarySource, librarySource);
+    computer.add(unit, source, source);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.declarations;
     expect(members, hasLength(2));
@@ -933,13 +941,13 @@ const int d = c;''');
   }
 
   void test_computeValues_singleVariable() {
-    Source librarySource = addSource("const int a = 0;");
-    LibraryElement libraryElement = resolve2(librarySource);
+    Source source = addSource("const int a = 0;");
+    LibraryElement libraryElement = resolve2(source);
     CompilationUnit unit =
-        analysisContext.resolveCompilationUnit(librarySource, libraryElement);
+        analysisContext.resolveCompilationUnit(source, libraryElement);
     expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
-    computer.add(unit, librarySource, librarySource);
+    computer.add(unit, source, source);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.declarations;
     expect(members, hasLength(1));
@@ -947,16 +955,16 @@ const int d = c;''');
   }
 
   void test_computeValues_value_depends_on_enum() {
-    Source librarySource = addSource('''
+    Source source = addSource('''
 enum E { id0, id1 }
 const E e = E.id0;
 ''');
-    LibraryElement libraryElement = resolve2(librarySource);
+    LibraryElement libraryElement = resolve2(source);
     CompilationUnit unit =
-        analysisContext.resolveCompilationUnit(librarySource, libraryElement);
+        analysisContext.resolveCompilationUnit(source, libraryElement);
     expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
-    computer.add(unit, librarySource, librarySource);
+    computer.add(unit, source, source);
     computer.computeValues();
     TopLevelVariableDeclaration declaration = unit.declarations
         .firstWhere((member) => member is TopLevelVariableDeclaration);
@@ -1963,7 +1971,7 @@ class A {
 
   ConstantValueComputer _makeConstantValueComputer() {
     ConstantEvaluationValidator_ForTest validator =
-        new ConstantEvaluationValidator_ForTest();
+        new ConstantEvaluationValidator_ForTest(analysisContext2);
     validator.computer = new ConstantValueComputer(
         analysisContext2,
         analysisContext2.typeProvider,
