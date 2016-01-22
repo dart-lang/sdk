@@ -196,9 +196,6 @@ iterable_to_list_test: RuntimeError # Please triage this failure.
 iterable_to_set_test: RuntimeError # Please triage this failure.
 list_filled_type_argument_test: RuntimeError # Please triage this failure.
 list_unmodifiable_test: RuntimeError # Please triage this failure.
-map_values2_test: RuntimeError # Issue 25552 - missing types on Map literal
-map_values3_test: RuntimeError # Issue 25552 - missing types on Map literal
-map_values4_test: RuntimeError # Issue 25552 - missing types on Map literal
 package_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
 regexp/pcre_test: Crash # Stack Overflow in LoopHierarchy.
 symbol_operator_test/03: RuntimeError # Issue 24878

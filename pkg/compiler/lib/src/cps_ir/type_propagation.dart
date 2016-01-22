@@ -2902,12 +2902,6 @@ class TypePropagationVisitor implements Visitor {
     }
   }
 
-  void visitLiteralMap(LiteralMap node) {
-    // Constant maps are translated into (Constant MapConstant(...)) IR nodes,
-    // and thus LiteralMap nodes are NonConst.
-    setValue(node, nonConstant(typeSystem.mapType));
-  }
-
   void visitConstant(Constant node) {
     ConstantValue value = node.value;
     if (value.isDummy || !value.isConstant) {

@@ -414,16 +414,6 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return "list [$values]";
   }
 
-  String visitLiteralMap(LiteralMap node) {
-    List<String> entries = new List<String>();
-    node.entries.forEach((LiteralMapEntry entry) {
-      String key = visitExpression(entry.key);
-      String value = visitExpression(entry.value);
-      entries.add("$key: $value");
-    });
-    return "map [${entries.join(', ')}]";
-  }
-
   String visitConstant(Constant node) {
     return "${node.value.toStructuredString()}";
   }

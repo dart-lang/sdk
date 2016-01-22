@@ -192,16 +192,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return "LiteralList ($values)";
   }
 
-  visitLiteralMap(cps_ir.LiteralMap node) {
-    List<String> entries = new List<String>();
-    for (cps_ir.LiteralMapEntry entry in node.entries) {
-      String key = formatReference(entry.key);
-      String value = formatReference(entry.value);
-      entries.add("$key: $value");
-    }
-    return "LiteralMap (${entries.join(', ')})";
-  }
-
   visitTypeCast(cps_ir.TypeCast node) {
     String value = formatReference(node.value);
     String args = node.typeArguments.map(formatReference).join(', ');
@@ -575,10 +565,6 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitLiteralList(cps_ir.LiteralList node) {
-    unexpectedNode(node);
-  }
-
-  visitLiteralMap(cps_ir.LiteralMap node) {
     unexpectedNode(node);
   }
 

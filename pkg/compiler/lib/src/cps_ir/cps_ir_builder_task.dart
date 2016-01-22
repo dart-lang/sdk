@@ -1334,12 +1334,48 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     if (node.isConst) {
       return translateConstant(node);
     }
+
     InterfaceType type = elements.getType(node);
-    List<ir.LiteralMapEntry> entries =
-        node.entries.nodes.mapToList((ast.LiteralMapEntry e) {
-          return new ir.LiteralMapEntry(visit(e.key), visit(e.value));
-        });
-    return irBuilder.addPrimitive(new ir.LiteralMap(type, entries));
+
+    if (node.entries.nodes.isEmpty) {
+      if (type.treatAsRaw) {
+        return irBuilder.buildStaticFunctionInvocation(
+            helpers.mapLiteralUntypedEmptyMaker,
+            <ir.Primitive>[],
+            sourceInformation: sourceInformationBuilder.buildNew(node));
+      } else {
+        ConstructorElement constructor = helpers.mapLiteralConstructorEmpty;
+        return irBuilder.buildConstructorInvocation(
+            constructor.effectiveTarget,
+            CallStructure.NO_ARGS,
+            constructor.computeEffectiveTargetType(type),
+            <ir.Primitive>[],
+            sourceInformationBuilder.buildNew(node));
+      }
+    }
+
+    List<ir.Primitive> keysAndValues = <ir.Primitive>[];
+    for (ast.LiteralMapEntry entry in node.entries.nodes.toList()) {
+      keysAndValues.add(visit(entry.key));
+      keysAndValues.add(visit(entry.value));
+    }
+    ir.Primitive keysAndValuesList =
+        irBuilder.buildListLiteral(null, keysAndValues);
+
+    if (type.treatAsRaw) {
+      return irBuilder.buildStaticFunctionInvocation(
+          helpers.mapLiteralUntypedMaker,
+          <ir.Primitive>[keysAndValuesList],
+          sourceInformation: sourceInformationBuilder.buildNew(node));
+    } else {
+      ConstructorElement constructor = helpers.mapLiteralConstructor;
+      return irBuilder.buildConstructorInvocation(
+          constructor.effectiveTarget,
+          CallStructure.ONE_ARG,
+          constructor.computeEffectiveTargetType(type),
+          <ir.Primitive>[keysAndValuesList],
+          sourceInformationBuilder.buildNew(node));
+    }
   }
 
   ir.Primitive visitLiteralSymbol(ast.LiteralSymbol node) {

@@ -370,26 +370,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  js.Expression visitLiteralMap(tree_ir.LiteralMap node) {
-    ConstructorElement constructor;
-    if (node.entries.isEmpty) {
-      constructor = glue.mapLiteralConstructorEmpty;
-    } else {
-      constructor = glue.mapLiteralConstructor;
-    }
-    List<js.Expression> entries =
-        new List<js.Expression>(2 * node.entries.length);
-    for (int i = 0; i < node.entries.length; i++) {
-      entries[2 * i] = visitExpression(node.entries[i].key);
-      entries[2 * i + 1] = visitExpression(node.entries[i].value);
-    }
-    List<js.Expression> args = entries.isEmpty
-         ? <js.Expression>[]
-         : <js.Expression>[new js.ArrayInitializer(entries)];
-    return buildStaticInvoke(constructor, args);
-  }
-
-  @override
   js.Expression visitLogicalOperator(tree_ir.LogicalOperator node) {
     return new js.Binary(
         node.operator,

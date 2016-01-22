@@ -1596,35 +1596,6 @@ class LiteralList extends Primitive {
   }
 }
 
-class LiteralMapEntry {
-  final Reference<Primitive> key;
-  final Reference<Primitive> value;
-
-  LiteralMapEntry(Primitive key, Primitive value)
-      : this.key = new Reference<Primitive>(key),
-        this.value = new Reference<Primitive>(value);
-}
-
-class LiteralMap extends Primitive {
-  final InterfaceType dartType;
-  final List<LiteralMapEntry> entries;
-
-  LiteralMap(this.dartType, this.entries);
-
-  accept(Visitor visitor) => visitor.visitLiteralMap(this);
-
-  bool get hasValue => true;
-  bool get isSafeForElimination => true;
-  bool get isSafeForReordering => true;
-
-  void setParentPointers() {
-    for (LiteralMapEntry entry in entries) {
-      entry.key.parent = this;
-      entry.value.parent = this;
-    }
-  }
-}
-
 class Parameter extends Primitive {
   Parameter(Entity hint) {
     super.hint = hint;
@@ -1965,7 +1936,6 @@ abstract class Visitor<T> implements BlockVisitor<T> {
   T visitAwait(Await node);
   T visitYield(Yield node);
   T visitLiteralList(LiteralList node);
-  T visitLiteralMap(LiteralMap node);
   T visitConstant(Constant node);
   T visitGetMutable(GetMutable node);
   T visitParameter(Parameter node);
@@ -2144,15 +2114,6 @@ class DeepRecursiveVisitor implements Visitor {
   visitLiteralList(LiteralList node) {
     processLiteralList(node);
     node.values.forEach(processReference);
-  }
-
-  processLiteralMap(LiteralMap node) {}
-  visitLiteralMap(LiteralMap node) {
-    processLiteralMap(node);
-    for (LiteralMapEntry entry in node.entries) {
-      processReference(entry.key);
-      processReference(entry.value);
-    }
   }
 
   processConstant(Constant node) {}
@@ -2570,13 +2531,6 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   Definition visitLiteralList(LiteralList node) {
     return new LiteralList(node.dartType, getList(node.values))
         ..allocationSiteType = node.allocationSiteType;
-  }
-
-  Definition visitLiteralMap(LiteralMap node) {
-    List<LiteralMapEntry> entries = node.entries.map((LiteralMapEntry entry) {
-      return new LiteralMapEntry(getCopy(entry.key), getCopy(entry.value));
-    }).toList();
-    return new LiteralMap(node.dartType, entries);
   }
 
   Definition visitConstant(Constant node) {

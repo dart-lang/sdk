@@ -15,12 +15,12 @@
 // }
 
 function() {
-  var l = [1, 2, 3], m = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]);
+  var l = [1, 2, 3], m = P.LinkedHashMap__makeLiteral(["s", 1]);
   P.print("()");
   P.print("(true)");
   P.print("(1)");
   P.print("(" + P.IterableBase_iterableToFullString([1, 2, 3], "[", "]") + ")");
-  P.print("(" + P.Maps_mapToString(P.LinkedHashMap_LinkedHashMap$_literal(["s", 1])) + ")");
+  P.print("(" + P.Maps_mapToString(P.LinkedHashMap__makeLiteral(["s", 1])) + ")");
   P.print("(1)");
   P.print("(" + P.IterableBase_iterableToFullString(l, "[", "]") + ")");
   P.print("(" + P.Maps_mapToString(m) + ")");

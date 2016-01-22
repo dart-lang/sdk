@@ -312,25 +312,6 @@ class LiteralList extends Expression {
   }
 }
 
-class LiteralMapEntry {
-  Expression key;
-  Expression value;
-
-  LiteralMapEntry(this.key, this.value);
-}
-
-class LiteralMap extends Expression {
-  final InterfaceType type;
-  final List<LiteralMapEntry> entries;
-
-  LiteralMap(this.type, this.entries);
-
-  accept(ExpressionVisitor visitor) => visitor.visitLiteralMap(this);
-  accept1(ExpressionVisitor1 visitor, arg) {
-    return visitor.visitLiteralMap(this, arg);
-  }
-}
-
 /// Type test or type cast.
 ///
 /// Note that if this is a type test, then [type] cannot be `Object`, `dynamic`,
@@ -999,7 +980,6 @@ abstract class ExpressionVisitor<E> {
   E visitLogicalOperator(LogicalOperator node);
   E visitNot(Not node);
   E visitLiteralList(LiteralList node);
-  E visitLiteralMap(LiteralMap node);
   E visitTypeOperator(TypeOperator node);
   E visitGetField(GetField node);
   E visitSetField(SetField node);
@@ -1037,7 +1017,6 @@ abstract class ExpressionVisitor1<E, A> {
   E visitLogicalOperator(LogicalOperator node, A arg);
   E visitNot(Not node, A arg);
   E visitLiteralList(LiteralList node, A arg);
-  E visitLiteralMap(LiteralMap node, A arg);
   E visitTypeOperator(TypeOperator node, A arg);
   E visitGetField(GetField node, A arg);
   E visitSetField(SetField node, A arg);
@@ -1154,13 +1133,6 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
 
   visitLiteralList(LiteralList node) {
     node.values.forEach(visitExpression);
-  }
-
-  visitLiteralMap(LiteralMap node) {
-    node.entries.forEach((LiteralMapEntry entry) {
-      visitExpression(entry.key);
-      visitExpression(entry.value);
-    });
   }
 
   visitTypeOperator(TypeOperator node) {
@@ -1387,14 +1359,6 @@ class RecursiveTransformer extends Transformer {
 
   visitLiteralList(LiteralList node) {
     _replaceExpressions(node.values);
-    return node;
-  }
-
-  visitLiteralMap(LiteralMap node) {
-    node.entries.forEach((LiteralMapEntry entry) {
-      entry.key = visitExpression(entry.key);
-      entry.value = visitExpression(entry.value);
-    });
     return node;
   }
 

@@ -737,15 +737,6 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
-  Expression visitLiteralMap(LiteralMap node) {
-    // Process arguments right-to-left, the opposite of evaluation order.
-    for (LiteralMapEntry entry in node.entries.reversed) {
-      entry.value = visitExpression(entry.value);
-      entry.key = visitExpression(entry.key);
-    }
-    return node;
-  }
-
   Expression visitTypeOperator(TypeOperator node) {
     _rewriteList(node.typeArguments);
     node.value = visitExpression(node.value);
