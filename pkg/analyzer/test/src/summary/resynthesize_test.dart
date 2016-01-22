@@ -581,8 +581,16 @@ class ResynthTest extends ResolverTestCase {
     return resynthesized;
   }
 
+  test_class_abstract() {
+    checkLibrary('abstract class C {}');
+  }
+
   test_class_alias() {
     checkLibrary('class C = D with E, F; class D {} class E {} class F {}');
+  }
+
+  test_class_alias_abstract() {
+    checkLibrary('abstract class C = D with E; class D {} class E {}');
   }
 
   test_class_alias_documented() {
@@ -781,6 +789,10 @@ class E {}''');
     checkLibrary('class C { int i; int j; }');
   }
 
+  test_class_getter_abstract() {
+    checkLibrary('abstract class C { int get x; }');
+  }
+
   test_class_getter_external() {
     checkLibrary('class C { external int get x; }');
   }
@@ -809,6 +821,10 @@ class E {}''');
     checkLibrary('class C implements D, E {} class D {} class E {}');
   }
 
+  test_class_method_abstract() {
+    checkLibrary('abstract class C { f(); }');
+  }
+
   test_class_method_external() {
     checkLibrary('class C { external f(); }');
   }
@@ -827,6 +843,10 @@ class E {}''');
 
   test_class_mixins() {
     checkLibrary('class C extends Object with D, E {} class D {} class E {}');
+  }
+
+  test_class_setter_abstract() {
+    checkLibrary('abstract class C { void set x(int value); }');
   }
 
   test_class_setter_external() {

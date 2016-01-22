@@ -318,6 +318,7 @@ class _LibraryResynthesizer {
       }
       ClassElementImpl classElement = new ClassElementImpl(
           serializedClass.name, serializedClass.nameOffset);
+      classElement.abstract = serializedClass.isAbstract;
       classElement.mixinApplication = serializedClass.isMixinApplication;
       InterfaceTypeImpl correspondingType = new InterfaceTypeImpl(classElement);
       if (serializedClass.supertype != null) {
@@ -498,6 +499,7 @@ class _LibraryResynthesizer {
         } else {
           MethodElementImpl executableElement =
               new MethodElementImpl(name, serializedExecutable.nameOffset);
+          executableElement.abstract = serializedExecutable.isAbstract;
           buildExecutableCommonParts(executableElement, serializedExecutable);
           executableElement.static = serializedExecutable.isStatic;
           holder.addMethod(executableElement);
@@ -512,6 +514,7 @@ class _LibraryResynthesizer {
           executableElement.static = true;
         } else {
           executableElement.static = serializedExecutable.isStatic;
+          executableElement.abstract = serializedExecutable.isAbstract;
         }
         buildExecutableCommonParts(executableElement, serializedExecutable);
         DartType type;
