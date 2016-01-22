@@ -33,7 +33,9 @@ ReferenceKind _getReferenceKind(Element element) {
     kind = ReferenceKind.topLevelPropertyAccessor;
   } else if (element is FunctionTypeAliasElement) {
     kind = ReferenceKind.typedef;
-  } else if (element is ClassElement || element is DynamicElementImpl) {
+  } else if (element == null ||
+      element is ClassElement ||
+      element is DynamicElementImpl) {
     kind = ReferenceKind.classOrEnum;
   } else if (element is FunctionElement) {
     kind = ReferenceKind.topLevelFunction;
@@ -446,7 +448,7 @@ class _CompilationUnitSerializer {
         // mode static type is fully linked information.
         b.returnType = serializeTypeRef(
             librarySerializer.typeProvider.dynamicType, executableElement);
-      } else if (!executableElement.type.returnType.isVoid) {
+      } else {
         b.returnType = serializeTypeRef(
             executableElement.type.returnType, executableElement);
       }
@@ -552,9 +554,7 @@ class _CompilationUnitSerializer {
     } else {
       if (type is FunctionType) {
         b.isFunctionTyped = true;
-        if (!type.returnType.isVoid) {
-          b.type = serializeTypeRef(type.returnType, parameter);
-        }
+        b.type = serializeTypeRef(type.returnType, parameter);
         b.parameters = type.parameters
             .map((parameter) => serializeParam(parameter, context))
             .toList();
@@ -588,14 +588,14 @@ class _CompilationUnitSerializer {
    */
   int serializeReferenceForType(DartType type, bool linked) {
     Element element = type.element;
-    LibraryElement dependentLibrary = element.library;
+    LibraryElement dependentLibrary = element?.library;
     if (dependentLibrary == null) {
-      assert(type.isDynamic);
+      assert(type.isDynamic || type.isVoid);
       if (type is UndefinedTypeImpl) {
         return serializeUnresolvedReference();
       }
-      // Note: for a type which is truly `dynamic`, fall through to use
-      // [_getElementReferenceId].
+      // Note: for a type which is truly `dynamic` or `void`, fall through to
+      // use [_getElementReferenceId].
     }
     return _getElementReferenceId(element, linked: linked);
   }
@@ -610,10 +610,7 @@ class _CompilationUnitSerializer {
     b.nameOffset = typedefElement.nameOffset;
     b.typeParameters =
         typedefElement.typeParameters.map(serializeTypeParam).toList();
-    if (!typedefElement.returnType.isVoid) {
-      b.returnType =
-          serializeTypeRef(typedefElement.returnType, typedefElement);
-    }
+    b.returnType = serializeTypeRef(typedefElement.returnType, typedefElement);
     b.parameters = typedefElement.parameters.map(serializeParam).toList();
     b.documentationComment = serializeDocumentation(typedefElement);
     return b;
@@ -750,15 +747,16 @@ class _CompilationUnitSerializer {
 
   int _getElementReferenceId(Element element, {bool linked: false}) {
     return referenceMap.putIfAbsent(element, () {
-      LibraryElement dependentLibrary = element.library;
+      LibraryElement dependentLibrary = element?.library;
       int unit;
-      if (element.library == null) {
-        assert(element == librarySerializer.typeProvider.dynamicType.element);
+      if (dependentLibrary == null) {
+        assert(element == librarySerializer.typeProvider.dynamicType.element ||
+            element == null);
         unit = 0;
         dependentLibrary = librarySerializer.libraryElement;
       } else {
         CompilationUnitElement unitElement =
-        element.getAncestor((Element e) => e is CompilationUnitElement);
+            element.getAncestor((Element e) => e is CompilationUnitElement);
         unit = dependentLibrary.units.indexOf(unitElement);
         assert(unit != -1);
       }
@@ -771,8 +769,9 @@ class _CompilationUnitSerializer {
           kind: _getReferenceKind(element),
           unit: unit,
           numTypeParameters: numTypeParameters);
+      String name = element == null ? 'void' : element.name;
       if (linked) {
-        linkedReference.name = element.name;
+        linkedReference.name = name;
       } else {
         assert(unlinkedReferences.length == linkedReferences.length);
         // Figure out a prefix that may be used to refer to the given type.
@@ -786,7 +785,7 @@ class _CompilationUnitSerializer {
           prefixReference = serializePrefix(prefix);
         }
         unlinkedReferences.add(new UnlinkedReferenceBuilder(
-            name: element.name, prefixReference: prefixReference));
+            name: name, prefixReference: prefixReference));
       }
       int index = linkedReferences.length;
       linkedReferences.add(linkedReference);

@@ -546,6 +546,13 @@ abstract class SummaryTest {
         unlinkedSourceUnit: unlinkedSourceUnit);
   }
 
+  /**
+   * Verify that the given [typeRef] represents the type `void`.
+   */
+  void checkVoidTypeRef(EntityRef typeRef) {
+    checkTypeRef(typeRef, null, null, 'void');
+  }
+
   fail_enum_value_documented() {
     // TODO(paulberry): currently broken because of dartbug.com/25385
     String text = '''
@@ -2603,7 +2610,7 @@ enum E { v }''';
     expect(executable.isFactory, false);
     expect(executable.isStatic, false);
     expect(executable.parameters, hasLength(2));
-    expect(executable.returnType, isNull);
+    checkVoidTypeRef(executable.returnType);
     expect(executable.typeParameters, isEmpty);
   }
 
@@ -2659,7 +2666,7 @@ enum E { v }''';
 
   test_executable_param_function_typed_return_type_void() {
     UnlinkedExecutable executable = serializeExecutableText('f(void g()) {}');
-    expect(executable.parameters[0].type, isNull);
+    checkVoidTypeRef(executable.parameters[0].type);
   }
 
   test_executable_param_kind_named() {
@@ -2734,7 +2741,7 @@ enum E { v }''';
 
   test_executable_return_type_void() {
     UnlinkedExecutable executable = serializeExecutableText('void f() {}');
-    expect(executable.returnType, isNull);
+    checkVoidTypeRef(executable.returnType);
   }
 
   test_executable_setter() {
@@ -2773,7 +2780,7 @@ enum E { v }''';
   test_executable_setter_type() {
     UnlinkedExecutable executable =
         serializeExecutableText('void set f(int value) {}', 'f=');
-    expect(executable.returnType, isNull);
+    checkVoidTypeRef(executable.returnType);
     expect(executable.parameters, hasLength(1));
     expect(executable.parameters[0].name, 'value');
     checkTypeRef(

@@ -568,11 +568,10 @@ class _LibraryResynthesizer {
         serializedExecutable.parameters.map(buildParameter).toList();
     if (serializedExecutable.returnType != null) {
       executableElement.returnType = buildType(serializedExecutable.returnType);
-    } else if (serializedExecutable.kind ==
-        UnlinkedExecutableKind.constructor) {
-      // Return type was set by the caller.
     } else {
-      executableElement.returnType = VoidTypeImpl.instance;
+      // Null return type should only be used for constructors.  Caller will
+      // handle setting the return type.
+      assert(serializedExecutable.kind == UnlinkedExecutableKind.constructor);
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
         executableElement, null, oldTypeArguments, false);
@@ -904,11 +903,7 @@ class _LibraryResynthesizer {
           serializedParameter.parameters.map(buildParameter).toList();
       parameterTypeElement.enclosingElement = parameterElement;
       parameterTypeElement.shareParameters(parameterElement.parameters);
-      if (serializedParameter.type != null) {
-        parameterTypeElement.returnType = buildType(serializedParameter.type);
-      } else {
-        parameterTypeElement.returnType = VoidTypeImpl.instance;
-      }
+      parameterTypeElement.returnType = buildType(serializedParameter.type);
       parameterElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
           parameterTypeElement, null, currentTypeArguments, false);
     } else {
@@ -989,6 +984,8 @@ class _LibraryResynthesizer {
         return summaryResynthesizer.typeProvider.undefinedType;
       } else if (name == 'dynamic') {
         return summaryResynthesizer.typeProvider.dynamicType;
+      } else if (name == 'void') {
+        return VoidTypeImpl.instance;
       } else {
         String referencedLibraryUri = librarySource.uri.toString();
         String partUri;
@@ -1053,12 +1050,8 @@ class _LibraryResynthesizer {
               serializedTypedef.name, serializedTypedef.nameOffset);
       functionTypeAliasElement.parameters =
           serializedTypedef.parameters.map(buildParameter).toList();
-      if (serializedTypedef.returnType != null) {
-        functionTypeAliasElement.returnType =
-            buildType(serializedTypedef.returnType);
-      } else {
-        functionTypeAliasElement.returnType = VoidTypeImpl.instance;
-      }
+      functionTypeAliasElement.returnType =
+          buildType(serializedTypedef.returnType);
       functionTypeAliasElement.type =
           new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
       functionTypeAliasElement.typeParameters = currentTypeParameters;

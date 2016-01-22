@@ -947,10 +947,11 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements Li
    * The libraries that this library depends on (either via an explicit import
    * statement or via the implicit dependencies on `dart:core` and
    * `dart:async`).  The first element of this array is a pseudo-dependency
-   * representing the library itself (it is also used for "dynamic").  This is
-   * followed by elements representing "prelinked" dependencies (direct imports
-   * and the transitive closure of exports).  After the prelinked dependencies
-   * are elements represent "linked" dependencies.
+   * representing the library itself (it is also used for `dynamic` and
+   * `void`).  This is followed by elements representing "prelinked"
+   * dependencies (direct imports and the transitive closure of exports).
+   * After the prelinked dependencies are elements representing "linked"
+   * dependencies.
    *
    * A library is only included as a "linked" dependency if it is a true
    * dependency (e.g. a propagated or inferred type or constant value
@@ -1077,10 +1078,11 @@ abstract class LinkedLibrary extends base.SummaryClass {
    * The libraries that this library depends on (either via an explicit import
    * statement or via the implicit dependencies on `dart:core` and
    * `dart:async`).  The first element of this array is a pseudo-dependency
-   * representing the library itself (it is also used for "dynamic").  This is
-   * followed by elements representing "prelinked" dependencies (direct imports
-   * and the transitive closure of exports).  After the prelinked dependencies
-   * are elements represent "linked" dependencies.
+   * representing the library itself (it is also used for `dynamic` and
+   * `void`).  This is followed by elements representing "prelinked"
+   * dependencies (direct imports and the transitive closure of exports).
+   * After the prelinked dependencies are elements representing "linked"
+   * dependencies.
    *
    * A library is only included as a "linked" dependency if it is a true
    * dependency (e.g. a propagated or inferred type or constant value
@@ -1199,8 +1201,8 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
   ReferenceKind get kind => _kind ??= ReferenceKind.classOrEnum;
 
   /**
-   * The kind of the entity being referred to.  For the pseudo-type `dynamic`,
-   * the kind is [ReferenceKind.classOrEnum].
+   * The kind of the entity being referred to.  For the pseudo-types `dynamic`
+   * and `void`, the kind is [ReferenceKind.classOrEnum].
    */
   void set kind(ReferenceKind _value) {
     assert(!_finished);
@@ -1241,7 +1243,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
   /**
    * If this [LinkedReference] doesn't have an associated [UnlinkedReference],
    * name of the entity being referred to.  For the pseudo-type `dynamic`, the
-   * string is "dynamic".
+   * string is "dynamic".  For the pseudo-type `void`, the string is "void".
    */
   void set name(String _value) {
     assert(!_finished);
@@ -1294,8 +1296,8 @@ abstract class LinkedReference extends base.SummaryClass {
   int get dependency;
 
   /**
-   * The kind of the entity being referred to.  For the pseudo-type `dynamic`,
-   * the kind is [ReferenceKind.classOrEnum].
+   * The kind of the entity being referred to.  For the pseudo-types `dynamic`
+   * and `void`, the kind is [ReferenceKind.classOrEnum].
    */
   ReferenceKind get kind;
 
@@ -1316,7 +1318,7 @@ abstract class LinkedReference extends base.SummaryClass {
   /**
    * If this [LinkedReference] doesn't have an associated [UnlinkedReference],
    * name of the entity being referred to.  For the pseudo-type `dynamic`, the
-   * string is "dynamic".
+   * string is "dynamic".  For the pseudo-type `void`, the string is "void".
    */
   String get name;
 }
@@ -2967,9 +2969,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   EntityRefBuilder get returnType => _returnType;
 
   /**
-   * Declared return type of the executable.  Absent if the return type is
-   * `void` or the executable is a constructor.  Note that when strong mode is
-   * enabled, the actual return type may be different due to type inference.
+   * Declared return type of the executable.  Absent if the executable is a
+   * constructor.  Note that when strong mode is enabled, the actual return
+   * type may be different due to type inference.
    */
   void set returnType(EntityRefBuilder _value) {
     assert(!_finished);
@@ -3188,9 +3190,9 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   List<UnlinkedTypeParam> get typeParameters;
 
   /**
-   * Declared return type of the executable.  Absent if the return type is
-   * `void` or the executable is a constructor.  Note that when strong mode is
-   * enabled, the actual return type may be different due to type inference.
+   * Declared return type of the executable.  Absent if the executable is a
+   * constructor.  Note that when strong mode is enabled, the actual return
+   * type may be different due to type inference.
    */
   EntityRef get returnType;
 
@@ -3977,10 +3979,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
 
   /**
    * If [isFunctionTyped] is `true`, the declared return type.  If
-   * [isFunctionTyped] is `false`, the declared type.  Absent if
-   * [isFunctionTyped] is `true` and the declared return type is `void`.  Note
-   * that when strong mode is enabled, the actual type may be different due to
-   * type inference.
+   * [isFunctionTyped] is `false`, the declared type.
    */
   void set type(EntityRefBuilder _value) {
     assert(!_finished);
@@ -4115,10 +4114,7 @@ abstract class UnlinkedParam extends base.SummaryClass {
 
   /**
    * If [isFunctionTyped] is `true`, the declared return type.  If
-   * [isFunctionTyped] is `false`, the declared type.  Absent if
-   * [isFunctionTyped] is `true` and the declared return type is `void`.  Note
-   * that when strong mode is enabled, the actual type may be different due to
-   * type inference.
+   * [isFunctionTyped] is `false`, the declared type.
    */
   EntityRef get type;
 
@@ -4650,7 +4646,7 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
 
   /**
    * Name of the entity being referred to.  For the pseudo-type `dynamic`, the
-   * string is "dynamic".
+   * string is "dynamic".  For the pseudo-type `void`, the string is "void".
    */
   void set name(String _value) {
     assert(!_finished);
@@ -4704,7 +4700,7 @@ abstract class UnlinkedReference extends base.SummaryClass {
 
   /**
    * Name of the entity being referred to.  For the pseudo-type `dynamic`, the
-   * string is "dynamic".
+   * string is "dynamic".  For the pseudo-type `void`, the string is "void".
    */
   String get name;
 
@@ -4815,7 +4811,7 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   EntityRefBuilder get returnType => _returnType;
 
   /**
-   * Return type of the typedef.  Absent if the return type is `void`.
+   * Return type of the typedef.
    */
   void set returnType(EntityRefBuilder _value) {
     assert(!_finished);
@@ -4914,7 +4910,7 @@ abstract class UnlinkedTypedef extends base.SummaryClass {
   List<UnlinkedTypeParam> get typeParameters;
 
   /**
-   * Return type of the typedef.  Absent if the return type is `void`.
+   * Return type of the typedef.
    */
   EntityRef get returnType;
 

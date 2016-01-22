@@ -445,7 +445,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
     if (!isTopLevel) {
       b.isStatic = isStatic;
     }
-    b.returnType = serializeTypeName(returnType, allowVoid: true);
+    b.returnType = serializeTypeName(returnType);
     b.hasImplicitReturnType = returnType == null;
     b.isExternal = isExternal;
     if (formalParameters != null) {
@@ -465,8 +465,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
    */
   void serializeFunctionTypedParameterDetails(UnlinkedParamBuilder b,
       TypeName returnType, FormalParameterList parameters) {
-    EntityRefBuilder serializedReturnType =
-        serializeTypeName(returnType, allowVoid: true);
+    EntityRefBuilder serializedReturnType = serializeTypeName(returnType);
     if (serializedReturnType != null) {
       b.type = serializedReturnType;
     }
@@ -520,7 +519,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
    * a [EntityRef].  Note that this method does the right thing if the
    * name doesn't refer to an entity other than a type (e.g. a class member).
    */
-  EntityRefBuilder serializeTypeName(TypeName node, {bool allowVoid: false}) {
+  EntityRefBuilder serializeTypeName(TypeName node) {
     EntityRefBuilder b = new EntityRefBuilder();
     if (node == null) {
       b.reference = serializeReference(null, 'dynamic');
@@ -547,9 +546,6 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
           if (scope is _TypeParameterScope) {
             indexOffset += scope.length;
           }
-        }
-        if (allowVoid && name == 'void') {
-          return null;
         }
         b.reference = serializeReference(null, name);
       } else if (identifier is PrefixedIdentifier) {
@@ -762,8 +758,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
     b.nameOffset = node.name.offset;
     b.typeParameters =
         serializeTypeParameters(node.typeParameters, typeParameterScope);
-    EntityRefBuilder serializedReturnType =
-        serializeTypeName(node.returnType, allowVoid: true);
+    EntityRefBuilder serializedReturnType = serializeTypeName(node.returnType);
     if (serializedReturnType != null) {
       b.returnType = serializedReturnType;
     }

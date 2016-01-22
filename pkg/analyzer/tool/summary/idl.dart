@@ -184,10 +184,11 @@ class LinkedLibrary {
    * The libraries that this library depends on (either via an explicit import
    * statement or via the implicit dependencies on `dart:core` and
    * `dart:async`).  The first element of this array is a pseudo-dependency
-   * representing the library itself (it is also used for "dynamic").  This is
-   * followed by elements representing "prelinked" dependencies (direct imports
-   * and the transitive closure of exports).  After the prelinked dependencies
-   * are elements represent "linked" dependencies.
+   * representing the library itself (it is also used for `dynamic` and
+   * `void`).  This is followed by elements representing "prelinked"
+   * dependencies (direct imports and the transitive closure of exports).
+   * After the prelinked dependencies are elements representing "linked"
+   * dependencies.
    *
    * A library is only included as a "linked" dependency if it is a true
    * dependency (e.g. a propagated or inferred type or constant value
@@ -231,8 +232,8 @@ class LinkedReference {
   int dependency;
 
   /**
-   * The kind of the entity being referred to.  For the pseudo-type `dynamic`,
-   * the kind is [ReferenceKind.classOrEnum].
+   * The kind of the entity being referred to.  For the pseudo-types `dynamic`
+   * and `void`, the kind is [ReferenceKind.classOrEnum].
    */
   ReferenceKind kind;
 
@@ -253,7 +254,7 @@ class LinkedReference {
   /**
    * If this [LinkedReference] doesn't have an associated [UnlinkedReference],
    * name of the entity being referred to.  For the pseudo-type `dynamic`, the
-   * string is "dynamic".
+   * string is "dynamic".  For the pseudo-type `void`, the string is "void".
    */
   String name;
 }
@@ -857,9 +858,9 @@ class UnlinkedExecutable {
   List<UnlinkedTypeParam> typeParameters;
 
   /**
-   * Declared return type of the executable.  Absent if the return type is
-   * `void` or the executable is a constructor.  Note that when strong mode is
-   * enabled, the actual return type may be different due to type inference.
+   * Declared return type of the executable.  Absent if the executable is a
+   * constructor.  Note that when strong mode is enabled, the actual return
+   * type may be different due to type inference.
    */
   EntityRef returnType;
 
@@ -1057,10 +1058,7 @@ class UnlinkedParam {
 
   /**
    * If [isFunctionTyped] is `true`, the declared return type.  If
-   * [isFunctionTyped] is `false`, the declared type.  Absent if
-   * [isFunctionTyped] is `true` and the declared return type is `void`.  Note
-   * that when strong mode is enabled, the actual type may be different due to
-   * type inference.
+   * [isFunctionTyped] is `false`, the declared type.
    */
   EntityRef type;
 
@@ -1196,7 +1194,7 @@ class UnlinkedPublicNamespace {
 class UnlinkedReference {
   /**
    * Name of the entity being referred to.  For the pseudo-type `dynamic`, the
-   * string is "dynamic".
+   * string is "dynamic".  For the pseudo-type `void`, the string is "void".
    */
   String name;
 
@@ -1239,7 +1237,7 @@ class UnlinkedTypedef {
   List<UnlinkedTypeParam> typeParameters;
 
   /**
-   * Return type of the typedef.  Absent if the return type is `void`.
+   * Return type of the typedef.
    */
   EntityRef returnType;
 
