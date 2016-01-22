@@ -564,7 +564,9 @@ class ElementFactory {
       InstanceCreationExpression initializer = AstFactory.instanceCreationExpression2(
           Keyword.CONST, AstFactory.typeName(type.element));
       if (type is InterfaceType) {
-        initializer.staticElement = type.element.unnamedConstructor;
+        ConstructorElement element = type.element.unnamedConstructor;
+        initializer.staticElement = element;
+        initializer.constructorName.staticElement = element;
       }
       constant.constantInitializer = initializer;
       variable = constant;

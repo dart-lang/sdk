@@ -159,6 +159,13 @@ class ConstantAstCloner extends AstCloner {
   ConstantAstCloner() : super(true);
 
   @override
+  ConstructorName visitConstructorName(ConstructorName node) {
+    ConstructorName name = super.visitConstructorName(node);
+    name.staticElement = node.staticElement;
+    return name;
+  }
+
+  @override
   InstanceCreationExpression visitInstanceCreationExpression(
       InstanceCreationExpression node) {
     InstanceCreationExpression expression =

@@ -171,7 +171,9 @@ class AnalysisContextFactory {
               Keyword.CONST,
               AstFactory.typeName(deprecatedElement),
               [AstFactory.string2('next release')]);
-      initializer.staticElement = deprecatedElement.constructors.single;
+      ConstructorElement constructor = deprecatedElement.constructors.single;
+      initializer.staticElement = constructor;
+      initializer.constructorName.staticElement = constructor;
       deprecatedTopLevelVariableElt.constantInitializer = initializer;
     }
     coreUnit.accessors = <PropertyAccessorElement>[
