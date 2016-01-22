@@ -116,6 +116,8 @@ class AnalysisContextFactory {
         new SourceFactory([new DartUriResolver(sdk), new FileUriResolver()]);
     context.sourceFactory = sourceFactory;
     AnalysisContext coreContext = sdk.context;
+    (coreContext.analysisOptions as AnalysisOptionsImpl).strongMode =
+        context.analysisOptions.strongMode;
     //
     // dart:core
     //
@@ -189,14 +191,18 @@ class AnalysisContextFactory {
     Source asyncSource;
     LibraryElementImpl asyncLibrary;
     if (context.analysisOptions.enableAsync) {
+      asyncLibrary = new LibraryElementImpl.forNode(
+          coreContext, AstFactory.libraryIdentifier2(["dart", "async"]));
       CompilationUnitElementImpl asyncUnit =
           new CompilationUnitElementImpl("async.dart");
       asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
       coreContext.setContents(asyncSource, "");
       asyncUnit.librarySource = asyncUnit.source = asyncSource;
+      asyncLibrary.definingCompilationUnit = asyncUnit;
       // Future
       ClassElementImpl futureElement =
           ElementFactory.classElement2("Future", ["T"]);
+      futureElement.enclosingElement = asyncUnit;
       //   factory Future.value([value])
       ConstructorElementImpl futureConstructor =
           ElementFactory.constructorElement2(futureElement, "value");
@@ -272,9 +278,6 @@ class AnalysisContextFactory {
         streamElement,
         streamSubscriptionElement
       ];
-      asyncLibrary = new LibraryElementImpl.forNode(
-          coreContext, AstFactory.libraryIdentifier2(["dart", "async"]));
-      asyncLibrary.definingCompilationUnit = asyncUnit;
     }
     //
     // dart:html
@@ -10136,6 +10139,11 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    */
   TestTypeProvider _typeProvider;
 
+  /**
+   * The type system used to analyze the test cases.
+   */
+  TypeSystem get _typeSystem => _visitor.typeSystem;
+
   void fail_visitFunctionExpressionInvocation() {
     fail("Not yet tested");
     _listener.assertNoErrors();
@@ -10155,7 +10163,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void setUp() {
     super.setUp();
     _listener = new GatheringErrorListener();
-    _typeProvider = new TestTypeProvider();
     _analyzer = _createAnalyzer();
   }
 
@@ -11421,6 +11428,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     LibraryElementImpl definingLibrary =
         new LibraryElementImpl.forNode(context, null);
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
+    _typeProvider = new TestTypeProvider(context);
     _visitor = new ResolverVisitor(
         definingLibrary, source, _typeProvider, _listener,
         nameScope: new LibraryScope(definingLibrary, _listener));
@@ -11433,8 +11441,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     }
   }
 
-  DartType _flatten(DartType type) =>
-      StaticTypeAnalyzer.flattenFutures(_typeProvider, type);
+  DartType _flatten(DartType type) => type.flattenFutures(_typeSystem);
 
   /**
    * Return a simple identifier that has been resolved to a variable element with the given type.
@@ -13582,6 +13589,86 @@ void foo() {
     expect(map2.propagatedType, isNull);
   }
 
+  void test_genericMethod_max_doubleDouble() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1.0, 2.0);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'double');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_genericMethod_max_doubleDouble_prefixed() {
+    String code = r'''
+import 'dart:math' as math;
+main() {
+  var foo = math.max(1.0, 2.0);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'double');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_genericMethod_max_doubleInt() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1.0, 2);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'num');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_genericMethod_max_intDouble() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1, 2.0);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'num');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_genericMethod_max_intInt() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1, 2);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'int');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
   void test_genericMethod_nestedCapture() {
     _resolveTestUnit(r'''
 class C<T> {
@@ -13767,87 +13854,7 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
     expect(_findIdentifier('paramTearOff').staticType.toString(), "<T>(T) → T");
   }
 
-  void test_pseudoGeneric_max_doubleDouble() {
-    String code = r'''
-import 'dart:math';
-main() {
-  var foo = max(1.0, 2.0);
-}
-''';
-    _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'double');
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_pseudoGeneric_max_doubleDouble_prefixed() {
-    String code = r'''
-import 'dart:math' as math;
-main() {
-  var foo = math.max(1.0, 2.0);
-}
-''';
-    _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'double');
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_pseudoGeneric_max_doubleInt() {
-    String code = r'''
-import 'dart:math';
-main() {
-  var foo = max(1.0, 2);
-}
-''';
-    _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'num');
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_pseudoGeneric_max_intDouble() {
-    String code = r'''
-import 'dart:math';
-main() {
-  var foo = max(1, 2.0);
-}
-''';
-    _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'num');
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_pseudoGeneric_max_intInt() {
-    String code = r'''
-import 'dart:math';
-main() {
-  var foo = max(1, 2);
-}
-''';
-    _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_pseudoGeneric_then() {
+  void test_genericMethod_then() {
     String code = r'''
 import 'dart:async';
 String toString(int x) => x.toString();
@@ -13866,7 +13873,7 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
-  void test_pseudoGeneric_then_prefixed() {
+  void test_genericMethod_then_prefixed() {
     String code = r'''
 import 'dart:async' as async;
 String toString(int x) => x.toString();
@@ -13883,6 +13890,22 @@ main() {
 
     expect(declaration.initializer.staticType.toString(), "Future<String>");
     expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_genericMethod_then_propagatedType() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/25482.
+    String code = r'''
+import 'dart:async';
+void main() {
+  Future<String> p;
+  var foo = p.then((r) => new Future<String>.value(3));
+}
+''';
+    // This should produce no hints or warnings.
+    _resolveTestUnit(code);
+    VariableDeclaration foo = _findIdentifier('foo').parent;
+    expect(foo.initializer.staticType.toString(), "Future<String>");
+    expect(foo.initializer.propagatedType, isNull);
   }
 
   void test_setterWithDynamicTypeIsError() {

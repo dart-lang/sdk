@@ -24,7 +24,6 @@ import 'package:analyzer/src/generated/parser.dart'
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart' as sc;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
-import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
@@ -5772,9 +5771,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     DartType staticReturnType = getStaticType(returnExpression);
     if (staticReturnType != null && _enclosingFunction.isAsynchronous) {
-      return _typeProvider.futureType.substitute4(<DartType>[
-        StaticTypeAnalyzer.flattenFutures(_typeProvider, staticReturnType)
-      ]);
+      return _typeProvider.futureType.substitute4(
+          <DartType>[staticReturnType.flattenFutures(_typeSystem)]);
     }
     return staticReturnType;
   }

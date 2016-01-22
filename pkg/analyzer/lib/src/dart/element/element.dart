@@ -2508,16 +2508,16 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   FieldElement field;
 
   /**
+   * Initialize a newly created parameter element to have the given [name].
+   */
+  FieldFormalParameterElementImpl(Identifier name) : super.forNode(name);
+
+  /**
    * Initialize a newly created parameter element to have the given [name] and
    * [offset].
    */
   FieldFormalParameterElementImpl.forNameAndOffset(String name, int nameOffset)
       : super(name, nameOffset);
-
-  /**
-   * Initialize a newly created parameter element to have the given [name].
-   */
-  FieldFormalParameterElementImpl(Identifier name) : super.forNode(name);
 
   @override
   bool get isInitializingFormal => true;
@@ -3101,6 +3101,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   bool get isBrowserApplication =>
       entryPoint != null && isOrImportsBrowserLibrary;
+
+  @override
+  bool get isDartAsync => name == "dart.async";
 
   @override
   bool get isDartCore => name == "dart.core";

@@ -8431,11 +8431,10 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitAwaitExpression(AwaitExpression node) {
     // TODO(leafp): Handle the implicit union type here
     // https://github.com/dart-lang/sdk/issues/25322
-    DartType contextType = StaticTypeAnalyzer.flattenFutures(
-        typeProvider, InferenceContext.getType(node));
+    DartType contextType = InferenceContext.getType(node);
     if (contextType != null) {
-      InterfaceType futureT =
-          typeProvider.futureType.substitute4([contextType]);
+      InterfaceType futureT = typeProvider.futureType
+          .substitute4([contextType.flattenFutures(typeSystem)]);
       InferenceContext.setType(node.expression, futureT);
     }
     return super.visitAwaitExpression(node);
@@ -9478,7 +9477,7 @@ class ResolverVisitor extends ScopedVisitor {
       return (typeArgs?.length == 1) ? typeArgs[0] : null;
     }
     // Must be asynchronous to reach here, so strip off any layers of Future
-    return StaticTypeAnalyzer.flattenFutures(typeProvider, declaredType);
+    return declaredType.flattenFutures(typeSystem);
   }
 
   /**

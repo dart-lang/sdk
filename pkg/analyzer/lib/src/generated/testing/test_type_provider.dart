@@ -10,8 +10,11 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
+import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 
@@ -150,6 +153,14 @@ class TestTypeProvider implements TypeProvider {
    */
   DartType _undefinedType;
 
+  /**
+   * The analysis context, if any. Used to create an appropriate 'dart:async'
+   * library to back `Future<T>`.
+   */
+  AnalysisContext _context;
+
+  TestTypeProvider([this._context]);
+
   @override
   InterfaceType get boolType {
     if (_boolType == null) {
@@ -240,7 +251,18 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get futureType {
     if (_futureType == null) {
-      _futureType = ElementFactory.classElement2("Future", ["T"]).type;
+      Source asyncSource = _context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      _context.setContents(asyncSource, "");
+      CompilationUnitElementImpl asyncUnit =
+          new CompilationUnitElementImpl("async.dart");
+      LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
+          _context, AstFactory.libraryIdentifier2(["dart.async"]));
+      asyncLibrary.definingCompilationUnit = asyncUnit;
+      asyncUnit.librarySource = asyncUnit.source = asyncSource;
+
+      ClassElementImpl future = ElementFactory.classElement2("Future", ["T"]);
+      _futureType = future.type;
+      asyncUnit.types = <ClassElement>[future];
     }
     return _futureType;
   }

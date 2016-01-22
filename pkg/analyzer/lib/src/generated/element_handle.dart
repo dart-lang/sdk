@@ -754,6 +754,9 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
   bool get isBrowserApplication => actualElement.isBrowserApplication;
 
   @override
+  bool get isDartAsync => actualElement.isDartAsync;
+
+  @override
   bool get isDartCore => actualElement.isDartCore;
 
   @override

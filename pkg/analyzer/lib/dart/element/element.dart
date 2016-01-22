@@ -1352,6 +1352,11 @@ abstract class LibraryElement implements Element {
   bool get isDartCore;
 
   /**
+   * Return `true` if this library is the dart:async library.
+   */
+  bool get isDartAsync;
+
+  /**
    * Return `true` if this library is part of the SDK.
    */
   bool get isInSdk;

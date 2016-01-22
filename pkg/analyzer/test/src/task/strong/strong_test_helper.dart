@@ -96,6 +96,7 @@ final Map<String, String> mockSdkSources = {
         }
         ''',
   'dart:async': '''
+        library dart.async;
         class Future<T> {
           Future(computation()) {}
           Future.value(T t) {}
