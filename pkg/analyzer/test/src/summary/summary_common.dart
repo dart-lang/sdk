@@ -2561,9 +2561,8 @@ enum E { v }''';
   }
 
   test_executable_operator_equal() {
-    UnlinkedExecutable executable =
-        serializeClassText('class C { bool operator==(C other) => false; }')
-            .executables[0];
+    UnlinkedExecutable executable = serializeClassText(
+        'class C { bool operator==(Object other) => false; }').executables[0];
     expect(executable.name, '==');
   }
 

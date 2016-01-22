@@ -445,10 +445,18 @@ class _CompilationUnitSerializer {
     UnlinkedExecutableBuilder b = new UnlinkedExecutableBuilder();
     b.name = executableElement.name;
     b.nameOffset = executableElement.nameOffset;
-    if (executableElement is! ConstructorElement &&
-        !executableElement.type.returnType.isVoid) {
-      b.returnType = serializeTypeRef(
-          executableElement.type.returnType, executableElement);
+    if (executableElement is! ConstructorElement) {
+      if (executableElement.hasImplicitReturnType) {
+        // In strong mode, the variable's static type may have been overwritten
+        // by an inferred type.  In this part of the summary we want to store
+        // the weak mode static type (which is `dynamic`), since the strong
+        // mode static type is fully linked information.
+        b.returnType = serializeTypeRef(
+            librarySerializer.typeProvider.dynamicType, executableElement);
+      } else if (!executableElement.type.returnType.isVoid) {
+        b.returnType = serializeTypeRef(
+            executableElement.type.returnType, executableElement);
+      }
     }
     b.typeParameters =
         executableElement.typeParameters.map(serializeTypeParam).toList();
@@ -699,7 +707,16 @@ class _CompilationUnitSerializer {
     UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
     b.name = variable.name;
     b.nameOffset = variable.nameOffset;
-    b.type = serializeTypeRef(variable.type, variable);
+    if (variable.hasImplicitType) {
+      // In strong mode, the variable's static type may have been overwritten
+      // by an inferred type.  In this part of the summary we want to store the
+      // weak mode static type (which is `dynamic`), since the strong mode
+      // static type is fully linked information.
+      b.type = serializeTypeRef(
+          librarySerializer.typeProvider.dynamicType, variable);
+    } else {
+      b.type = serializeTypeRef(variable.type, variable);
+    }
     b.isStatic = variable.isStatic && variable.enclosingElement is ClassElement;
     b.isFinal = variable.isFinal;
     b.isConst = variable.isConst;

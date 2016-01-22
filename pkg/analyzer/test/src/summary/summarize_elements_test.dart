@@ -53,6 +53,12 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
   @override
   bool get expectAbsoluteUrisInDependencies => true;
 
+  /**
+   * Determine the analysis options that should be used for this test.
+   */
+  AnalysisOptionsImpl get options =>
+      new AnalysisOptionsImpl()..enableGenericMethods = true;
+
   @override
   bool get skipFullyLinkedData => false;
 
@@ -111,8 +117,6 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
   @override
   void setUp() {
     super.setUp();
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableGenericMethods = true;
     resetWithOptions(options);
   }
 
