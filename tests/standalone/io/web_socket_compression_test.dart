@@ -130,6 +130,43 @@ class SecurityConfiguration {
     });
   }
 
+  void testContextSupport({CompressionOptions serverOpts,
+    CompressionOptions clientOpts,
+    int messages}) {
+    asyncStart();
+
+    createServer().then((server) {
+      server.listen((request) {
+        Expect.isTrue(WebSocketTransformer.isUpgradeRequest(request));
+        WebSocketTransformer.upgrade(request, compression: serverOpts)
+                            .then((webSocket) {
+            webSocket.listen((message) {
+              Expect.equals("Hello World", message);
+              webSocket.add(message);
+            });
+        });
+      });
+
+      var url = '${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}/';
+      WebSocket.connect(url, compression: clientOpts).then((websocket) {
+        var i = 1;
+        websocket.listen((message) {
+          Expect.equals("Hello World", message);
+          if (i == messages) {
+            websocket.close();
+            return;
+          }
+          websocket.add("Hello World");
+          i++;
+        }, onDone: () {
+          server.close();
+          asyncEnd();
+        });
+        websocket.add("Hello World");
+      });
+    });
+  }
+
   void testCompressionHeaders() {
     asyncStart();
     createServer().then((server) {
@@ -271,6 +308,31 @@ class SecurityConfiguration {
     // Compression on server but not client.
     testCompressionSupport(server: true);
 
+    // Test Multiple messages with various context takeover configurations.
+    // no context takeover on the server.
+    var serverComp = new CompressionOptions(serverNoContextTakeover: true);
+    testContextSupport(serverOpts: serverComp,
+      clientOpts: serverComp,
+      messages: 5);
+    // no contexttakeover on the client.
+    var clientComp = new CompressionOptions(clientNoContextTakeover: true);
+    testContextSupport(serverOpts: clientComp,
+      clientOpts: clientComp,
+      messages: 5);
+    // no context takeover enabled for both.
+    var compression = new CompressionOptions(serverNoContextTakeover: true,
+                      clientNoContextTakeover: true);
+    testContextSupport(serverOpts: compression,
+      clientOpts: compression,
+      messages: 5);
+    // no context take over for opposing configurations.
+    testContextSupport(serverOpts: serverComp,
+      clientOpts: clientComp,
+      messages: 5);
+    testContextSupport(serverOpts: clientComp,
+      clientOpts: serverComp,
+      messages: 5);
+
     testCompressionHeaders();
     // Chrome headers
     testReturnHeaders('permessage-deflate; client_max_window_bits',
@@ -289,7 +351,7 @@ class SecurityConfiguration {
                       'client_no_context_takeover',
                       'permessage-deflate; client_max_window_bits=15');
     // Enable context Takeover and provide if requested.
-    var compression = new CompressionOptions(clientNoContextTakeover: true,
+    compression = new CompressionOptions(clientNoContextTakeover: true,
         serverNoContextTakeover: true);
     testReturnHeaders('permessage-deflate; client_max_window_bits; '
                       'client_no_context_takeover',
