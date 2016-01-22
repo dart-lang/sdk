@@ -9,6 +9,9 @@
 built_in_identifier_prefix_test: Fail # Issue 6970
 tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
 
+deep_nesting1_test: Skip
+deep_nesting2_test: Skip
+
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail # Issue 6422
 constructor6_test: Fail # Issue 6422
