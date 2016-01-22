@@ -214,6 +214,12 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       category: "Internal",
       documented: false,
       platforms: DART2JS_PLATFORM),
+
+  "_debugger": const LibraryInfo(
+      "_internal/compiler/js_lib/debugger.dart",
+      category: "Internal",
+      documented: false,
+      platforms: DART2JS_PLATFORM),
 };
 
 /**

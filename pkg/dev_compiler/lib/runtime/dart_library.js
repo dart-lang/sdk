@@ -147,6 +147,11 @@ var dart_library =
       DOMTokenList.prototype.get = function(i) { return this[i]; };
       HTMLCollection.prototype.get = function(i) { return this[i]; };
     }
+
+    // This import is only needed for chrome debugging. We should provide an
+    // option to compile without it.
+    var devtoolsDebugger = import_('dart/_debugger');
+    devtoolsDebugger.registerDevtoolsFormatter();
   }
 
 })(dart_library);

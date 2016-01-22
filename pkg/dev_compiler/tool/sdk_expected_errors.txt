@@ -269,6 +269,7 @@ warning: [DOWN_CAST_COMPOSITE] max(a.x, b.x) - left (num) will need runtime chec
 warning: [DOWN_CAST_COMPOSITE] max(a.y, b.y) - top (num) will need runtime check to cast to type T (dart:math/rectangle.dart, line 231, col 16)
 warning: [DOWN_CAST_COMPOSITE] _clampToZero(width) (num) will need runtime check to cast to type T (dart:math/rectangle.dart, line 247, col 28)
 warning: [DOWN_CAST_COMPOSITE] _clampToZero(height) (num) will need runtime check to cast to type T (dart:math/rectangle.dart, line 263, col 30)
+warning: [DOWN_CAST_COMPOSITE] dart.list(JS('List', 'Object.getOwnPropertyNames(#)', object), String) (dynamic) will need runtime check to cast to type List<String> (dart:_debugger, line 25, col 5)
 warning: [DOWN_CAST_COMPOSITE] _convertToJS ((dynamic) → dynamic) will need runtime check to cast to type (E) → dynamic (dart:js, line 326, col 44)
 warning: [DOWN_CAST_COMPOSITE] super[index] (dynamic) will need runtime check to cast to type E (dart:js, line 359, col 12)
 warning: [DOWN_CAST_COMPOSITE] callMethod('splice', [index, 1])[0] (dynamic) will need runtime check to cast to type E (dart:js, line 405, col 12)

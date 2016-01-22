@@ -15,5 +15,6 @@ dart -c bin/dartdevc.dart --no-source-maps --arrow-fn-bind-this --sdk-check \
     --no-destructure-named-params \
     "$@" \
     dart:_runtime \
+    dart:_debugger \
     dart:js dart:mirrors dart:html \
     > tool/sdk_expected_errors.txt || true
