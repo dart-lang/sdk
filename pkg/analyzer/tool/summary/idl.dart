@@ -587,10 +587,25 @@ enum UnlinkedConstOperation {
   /**
    * Pop the top n values from the stack (where n is obtained from
    * [UnlinkedConst.ints]), place them in a [List], and push the result back
+   * onto the stack.  The type parameter for the [List] is implicitly `dynamic`.
+   */
+  makeUntypedList,
+
+  /**
+   * Pop the top 2*n values from the stack (where n is obtained from
+   * [UnlinkedConst.ints]), interpret them as key/value pairs, place them in a
+   * [Map], and push the result back onto the stack.  The two type parameters
+   * for the [Map] are implicitly `dynamic`.
+   */
+  makeUntypedMap,
+
+  /**
+   * Pop the top n values from the stack (where n is obtained from
+   * [UnlinkedConst.ints]), place them in a [List], and push the result back
    * onto the stack.  The type parameter for the [List] is obtained from
    * [UnlinkedConst.references].
    */
-  makeList,
+  makeTypedList,
 
   /**
    * Pop the top 2*n values from the stack (where n is obtained from
@@ -598,7 +613,7 @@ enum UnlinkedConstOperation {
    * [Map], and push the result back onto the stack.  The two type parameters for
    * the [Map] are obtained from [UnlinkedConst.references].
    */
-  makeMap,
+  makeTypedMap,
 
   /**
    * Pop the top 2 values from the stack, pass them to the predefined Dart
@@ -859,8 +874,7 @@ class UnlinkedExecutable {
 
   /**
    * Declared return type of the executable.  Absent if the executable is a
-   * constructor.  Note that when strong mode is enabled, the actual return
-   * type may be different due to type inference.
+   * constructor or the return type is implicit.
    */
   EntityRef returnType;
 
@@ -900,12 +914,6 @@ class UnlinkedExecutable {
    * Indicates whether the executable is declared using the `factory` keyword.
    */
   bool isFactory;
-
-  /**
-   * Indicates whether the executable lacks an explicit return type
-   * declaration.  False for constructors and setters.
-   */
-  bool hasImplicitReturnType;
 
   /**
    * Indicates whether the executable is declared using the `external` keyword.
@@ -1058,7 +1066,8 @@ class UnlinkedParam {
 
   /**
    * If [isFunctionTyped] is `true`, the declared return type.  If
-   * [isFunctionTyped] is `false`, the declared type.
+   * [isFunctionTyped] is `false`, the declared type.  Absent if the type is
+   * implicit.
    */
   EntityRef type;
 
@@ -1082,12 +1091,6 @@ class UnlinkedParam {
    * declared using `this.` syntax).
    */
   bool isInitializingFormal;
-
-  /**
-   * Indicates whether this parameter lacks an explicit type declaration.
-   * Always false for a function-typed parameter.
-   */
-  bool hasImplicitType;
 }
 
 /**
@@ -1380,8 +1383,7 @@ class UnlinkedVariable {
   UnlinkedDocumentationComment documentationComment;
 
   /**
-   * Declared type of the variable.  Note that when strong mode is enabled, the
-   * actual type of the variable may be different due to type inference.
+   * Declared type of the variable.  Absent if the type is implicit.
    */
   EntityRef type;
 
@@ -1409,11 +1411,6 @@ class UnlinkedVariable {
    * Indicates whether the variable is declared using the `const` keyword.
    */
   bool isConst;
-
-  /**
-   * Indicates whether this variable lacks an explicit type declaration.
-   */
-  bool hasImplicitType;
 
   /**
    * If this variable is propagable, nonzero slot id identifying which entry in

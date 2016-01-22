@@ -165,12 +165,6 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       <UnlinkedReferenceBuilder>[new UnlinkedReferenceBuilder()];
 
   /**
-   * The [ClassDeclaration] currently being summarized, or `null` if we are not
-   * currently visiting a [ClassDeclaration].
-   */
-  ClassDeclaration currentClassDeclaration;
-
-  /**
    * Map associating names used as prefixes in this compilation unit with their
    * associated indices into [UnlinkedUnit.references].
    */
@@ -256,27 +250,6 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       }
     }
     return scope;
-  }
-
-  /**
-   * Try to find a field with the given [name] in the current class declaration
-   * and return its type.  If no field is found, or there isn't a current
-   * class declaration, return null.
-   */
-  TypeName getFieldType(String name) {
-    if (currentClassDeclaration == null) {
-      return null;
-    }
-    for (ClassMember member in currentClassDeclaration.members) {
-      if (member is FieldDeclaration) {
-        for (VariableDeclaration variable in member.fields.variables) {
-          if (variable.name.name == name) {
-            return member.fields.type;
-          }
-        }
-      }
-    }
-    return null;
   }
 
   /**
@@ -446,7 +419,6 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       b.isStatic = isStatic;
     }
     b.returnType = serializeTypeName(returnType);
-    b.hasImplicitReturnType = returnType == null;
     b.isExternal = isExternal;
     if (formalParameters != null) {
       b.parameters = formalParameters.parameters
@@ -520,10 +492,10 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
    * name doesn't refer to an entity other than a type (e.g. a class member).
    */
   EntityRefBuilder serializeTypeName(TypeName node) {
-    EntityRefBuilder b = new EntityRefBuilder();
     if (node == null) {
-      b.reference = serializeReference(null, 'dynamic');
+      return null;
     } else {
+      EntityRefBuilder b = new EntityRefBuilder();
       Identifier identifier = node.name;
       if (identifier is SimpleIdentifier) {
         String name = identifier.name;
@@ -573,8 +545,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
           b.typeArguments = serializedArguments;
         }
       }
+      return b;
     }
-    return b;
   }
 
   /**
@@ -609,7 +581,6 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       b.name = variable.name.name;
       b.nameOffset = variable.name.offset;
       b.type = serializeTypeName(variables.type);
-      b.hasImplicitType = variables.type == null;
       b.documentationComment = serializeDocumentation(documentationComment);
       if (variable.isConst) {
         Expression initializer = variable.initializer;
@@ -627,7 +598,6 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    currentClassDeclaration = node;
     TypeName superclass =
         node.extendsClause == null ? null : node.extendsClause.superclass;
     serializeClass(
@@ -641,7 +611,6 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
         node.members,
         false,
         node.documentationComment);
-    currentClassDeclaration = null;
   }
 
   @override
@@ -715,18 +684,12 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   UnlinkedParamBuilder visitFieldFormalParameter(FieldFormalParameter node) {
     UnlinkedParamBuilder b = serializeParameter(node);
     b.isInitializingFormal = true;
-    if (node.type == null && node.parameters == null) {
-      b.hasImplicitType = true;
-    } else {
+    if (node.type != null || node.parameters != null) {
       b.isFunctionTyped = node.parameters != null;
       if (node.parameters != null) {
         serializeFunctionTypedParameterDetails(b, node.type, node.parameters);
       } else {
-        TypeName typeName = node.type;
-        if (typeName == null) {
-          typeName = getFieldType(node.identifier.name);
-        }
-        b.type = serializeTypeName(typeName);
+        b.type = serializeTypeName(node.type);
       }
     }
     return b;
@@ -838,7 +801,6 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   UnlinkedParamBuilder visitSimpleFormalParameter(SimpleFormalParameter node) {
     UnlinkedParamBuilder b = serializeParameter(node);
     b.type = serializeTypeName(node.type);
-    b.hasImplicitType = node.type == null;
     return b;
   }
 

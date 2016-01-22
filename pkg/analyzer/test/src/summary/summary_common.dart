@@ -48,8 +48,7 @@ final Map<String, UnlinkedPublicNamespace> sdkPublicNamespace = () {
       for (int i = 0; i < serializedLibrary.unlinkedUnits.length; i++) {
         uriToNamespace[serializedLibrary.unitUris[i]] =
             new UnlinkedUnit.fromBuffer(
-                    serializedLibrary.unlinkedUnits[i].toBuffer())
-                .publicNamespace;
+                serializedLibrary.unlinkedUnits[i].toBuffer()).publicNamespace;
       }
     }
     return uriToNamespace;
@@ -762,8 +761,7 @@ enum E {
   EntityRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
-            allowErrors: allowErrors)
-        .type;
+        allowErrors: allowErrors).type;
   }
 
   /**
@@ -1558,22 +1556,30 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
   test_constExpr_length() {
     UnlinkedVariable variable =
         serializeVariableText('const v = "abc".length;');
+    _assertUnlinkedConst(variable.constExpr,
+        operators:
+            [UnlinkedConstOperation.pushString, UnlinkedConstOperation.length],
+        strings: ['abc']);
+  }
+
+  test_constExpr_makeSymbol() {
+    UnlinkedVariable variable = serializeVariableText('const v = #a.bb.ccc;');
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.length
+      UnlinkedConstOperation.makeSymbol
     ], strings: [
-      'abc'
+      'a.bb.ccc'
     ]);
   }
 
-  test_constExpr_makeList_typed() {
+  test_constExpr_makeTypedList() {
     UnlinkedVariable variable =
         serializeVariableText('const v = const <int>[11, 22, 33];');
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.makeList
+      UnlinkedConstOperation.makeTypedList
     ], ints: [
       11,
       22,
@@ -1585,14 +1591,14 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
     ]);
   }
 
-  test_constExpr_makeList_untyped() {
+  test_constExpr_makeTypedList_dynamic() {
     UnlinkedVariable variable =
-        serializeVariableText('const v = const [11, 22, 33];');
+        serializeVariableText('const v = const <dynamic>[11, 22, 33];');
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.makeList
+      UnlinkedConstOperation.makeTypedList
     ], ints: [
       11,
       22,
@@ -1603,7 +1609,7 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
     ]);
   }
 
-  test_constExpr_makeMap_typed() {
+  test_constExpr_makeTypedMap() {
     UnlinkedVariable variable = serializeVariableText(
         'const v = const <int, String>{11: "aaa", 22: "bbb", 33: "ccc"};');
     _assertUnlinkedConst(variable.constExpr, operators: [
@@ -1613,7 +1619,7 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
       UnlinkedConstOperation.pushString,
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.makeMap
+      UnlinkedConstOperation.makeTypedMap
     ], ints: [
       11,
       22,
@@ -1631,9 +1637,9 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
     ]);
   }
 
-  test_constExpr_makeMap_untyped() {
+  test_constExpr_makeTypedMap_dynamic() {
     UnlinkedVariable variable = serializeVariableText(
-        'const v = const {11: "aaa", 22: "bbb", 33: "ccc"};');
+        'const v = const <dynamic, dynamic>{11: "aaa", 22: "bbb", 33: "ccc"};');
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushString,
@@ -1641,7 +1647,7 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
       UnlinkedConstOperation.pushString,
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.makeMap
+      UnlinkedConstOperation.makeTypedMap
     ], ints: [
       11,
       22,
@@ -1657,13 +1663,42 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
     ]);
   }
 
-  test_constExpr_makeSymbol() {
-    UnlinkedVariable variable = serializeVariableText('const v = #a.bb.ccc;');
+  test_constExpr_makeUntypedList() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = const [11, 22, 33];');
     _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.makeUntypedList
+    ], ints: [
+      11,
+      22,
+      33,
+      3
+    ]);
+  }
+
+  test_constExpr_makeUntypedMap() {
+    UnlinkedVariable variable = serializeVariableText(
+        'const v = const {11: "aaa", 22: "bbb", 33: "ccc"};');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.makeSymbol
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.makeUntypedMap
+    ], ints: [
+      11,
+      22,
+      33,
+      3
     ], strings: [
-      'a.bb.ccc'
+      'aaa',
+      'bbb',
+      'ccc'
     ]);
   }
 
@@ -1684,30 +1719,24 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
 
   test_constExpr_prefix_complement() {
     UnlinkedVariable variable = serializeVariableText('const v = ~2;');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.complement
-    ], ints: [
-      2
-    ]);
+    _assertUnlinkedConst(variable.constExpr,
+        operators:
+            [UnlinkedConstOperation.pushInt, UnlinkedConstOperation.complement],
+        ints: [2]);
   }
 
   test_constExpr_prefix_negate() {
     UnlinkedVariable variable = serializeVariableText('const v = -(2);');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.negate
-    ], ints: [
-      2
-    ]);
+    _assertUnlinkedConst(variable.constExpr,
+        operators:
+            [UnlinkedConstOperation.pushInt, UnlinkedConstOperation.negate],
+        ints: [2]);
   }
 
   test_constExpr_prefix_not() {
     UnlinkedVariable variable = serializeVariableText('const v = !true;');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushTrue,
-      UnlinkedConstOperation.not
-    ]);
+    _assertUnlinkedConst(variable.constExpr, operators:
+        [UnlinkedConstOperation.pushTrue, UnlinkedConstOperation.not]);
   }
 
   test_constExpr_pushDouble() {
@@ -1736,12 +1765,10 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
 
   test_constExpr_pushInt_negative() {
     UnlinkedVariable variable = serializeVariableText('const v = -5;');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.negate
-    ], ints: [
-      5
-    ]);
+    _assertUnlinkedConst(variable.constExpr,
+        operators:
+            [UnlinkedConstOperation.pushInt, UnlinkedConstOperation.negate],
+        ints: [5]);
   }
 
   test_constExpr_pushInt_shiftOr_long() {
@@ -1762,13 +1789,10 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
 
   test_constExpr_pushInt_shiftOr_min() {
     UnlinkedVariable variable = serializeVariableText('const v = 0x100000000;');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.shiftOr,
-    ], ints: [
-      1,
-      0,
-    ]);
+    _assertUnlinkedConst(variable.constExpr,
+        operators:
+            [UnlinkedConstOperation.pushInt, UnlinkedConstOperation.shiftOr,],
+        ints: [1, 0,]);
   }
 
   test_constExpr_pushInt_shiftOr_min2() {
@@ -1943,7 +1967,7 @@ const v = a;
     UnlinkedExecutable executable =
         findExecutable('', executables: serializeClassText(text).executables);
     expect(executable.kind, UnlinkedExecutableKind.constructor);
-    expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.returnType, isNull);
     expect(executable.isExternal, isFalse);
     expect(executable.nameOffset, text.indexOf('C();'));
   }
@@ -2038,15 +2062,18 @@ class C {
   }
 
   test_constructor_initializing_formal_function_typed_implicit_return_type() {
+    if (!checkAstDerivedData) {
+      // TODO(paulberry): this test fails when building the summary from the
+      // element model because the elment model doesn't record whether a
+      // function-typed parameter's return type is implicit.
+      return;
+    }
     UnlinkedExecutable executable = findExecutable('',
         executables: serializeClassText('class C { C(this.x()); Function x; }')
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
-    // Since the parameter is function-typed it is considered to have an
-    // explicit type, even though that explicit type itself has an implicit
-    // return type.
-    expect(parameter.hasImplicitType, isFalse);
-    checkDynamicTypeRef(parameter.type);
+    expect(parameter.isFunctionTyped, isTrue);
+    expect(parameter.type, isNull);
   }
 
   test_constructor_initializing_formal_function_typed_no_parameters() {
@@ -2083,7 +2110,6 @@ class C {
             serializeClassText('class C { C(this.x); int x; }').executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.type, isNull);
-    expect(parameter.hasImplicitType, isTrue);
   }
 
   test_constructor_initializing_formal_name() {
@@ -2386,8 +2412,7 @@ enum E { v }''';
     String text = '  f() {}';
     UnlinkedExecutable executable = serializeExecutableText(text);
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
-    expect(executable.hasImplicitReturnType, isTrue);
-    checkDynamicTypeRef(executable.returnType);
+    expect(executable.returnType, isNull);
     expect(executable.isExternal, isFalse);
     expect(executable.nameOffset, text.indexOf('f'));
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
@@ -2400,7 +2425,6 @@ enum E { v }''';
   test_executable_function_explicit_return() {
     UnlinkedExecutable executable =
         serializeExecutableText('dynamic f() => null;');
-    expect(executable.hasImplicitReturnType, isFalse);
     checkDynamicTypeRef(executable.returnType);
   }
 
@@ -2418,7 +2442,7 @@ enum E { v }''';
     String text = 'int get f => 1;';
     UnlinkedExecutable executable = serializeExecutableText(text);
     expect(executable.kind, UnlinkedExecutableKind.getter);
-    expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.returnType, isNotNull);
     expect(executable.isExternal, isFalse);
     expect(executable.nameOffset, text.indexOf('f'));
     expect(findVariable('f'), isNull);
@@ -2448,8 +2472,7 @@ enum E { v }''';
 
   test_executable_getter_type_implicit() {
     UnlinkedExecutable executable = serializeExecutableText('get f => 1;');
-    checkDynamicTypeRef(executable.returnType);
-    expect(executable.hasImplicitReturnType, isTrue);
+    expect(executable.returnType, isNull);
     expect(executable.parameters, isEmpty);
   }
 
@@ -2457,7 +2480,7 @@ enum E { v }''';
     UnlinkedExecutable executable = findExecutable('f',
         executables: serializeClassText('class C { f() {} }').executables);
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
-    expect(executable.hasImplicitReturnType, isTrue);
+    expect(executable.returnType, isNull);
     expect(executable.isExternal, isFalse);
   }
 
@@ -2465,7 +2488,7 @@ enum E { v }''';
     UnlinkedExecutable executable = findExecutable('f',
         executables:
             serializeClassText('class C { dynamic f() => null; }').executables);
-    expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.returnType, isNotNull);
   }
 
   test_executable_member_function_external() {
@@ -2480,7 +2503,7 @@ enum E { v }''';
     UnlinkedExecutable executable =
         findExecutable('f', executables: cls.executables, failIfAbsent: true);
     expect(executable.kind, UnlinkedExecutableKind.getter);
-    expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.returnType, isNotNull);
     expect(executable.isExternal, isFalse);
     expect(findVariable('f', variables: cls.fields), isNull);
     expect(findExecutable('f=', executables: cls.executables), isNull);
@@ -2498,7 +2521,7 @@ enum E { v }''';
     UnlinkedExecutable executable =
         findExecutable('f=', executables: cls.executables, failIfAbsent: true);
     expect(executable.kind, UnlinkedExecutableKind.setter);
-    expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.returnType, isNotNull);
     expect(executable.isExternal, isFalse);
     expect(findVariable('f', variables: cls.fields), isNull);
     expect(findExecutable('f', executables: cls.executables), isNull);
@@ -2516,8 +2539,7 @@ enum E { v }''';
     UnlinkedClass cls = serializeClassText('class C { set f(value) {} }');
     UnlinkedExecutable executable =
         findExecutable('f=', executables: cls.executables, failIfAbsent: true);
-    expect(executable.hasImplicitReturnType, isTrue);
-    checkDynamicTypeRef(executable.returnType);
+    expect(executable.returnType, isNull);
   }
 
   test_executable_name() {
@@ -2551,7 +2573,7 @@ enum E { v }''';
             0];
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.name, '+');
-    expect(executable.hasImplicitReturnType, false);
+    expect(executable.returnType, isNotNull);
     expect(executable.isAbstract, false);
     expect(executable.isConst, false);
     expect(executable.isFactory, false);
@@ -2588,7 +2610,7 @@ enum E { v }''';
             .executables[0];
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.name, '[]');
-    expect(executable.hasImplicitReturnType, false);
+    expect(executable.returnType, isNotNull);
     expect(executable.isAbstract, false);
     expect(executable.isConst, false);
     expect(executable.isFactory, false);
@@ -2600,11 +2622,10 @@ enum E { v }''';
 
   test_executable_operator_index_set() {
     UnlinkedExecutable executable = serializeClassText(
-            'class C { void operator[]=(int i, bool v) => null; }')
-        .executables[0];
+        'class C { void operator[]=(int i, bool v) => null; }').executables[0];
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.name, '[]=');
-    expect(executable.hasImplicitReturnType, false);
+    expect(executable.returnType, isNotNull);
     expect(executable.isAbstract, false);
     expect(executable.isConst, false);
     expect(executable.isFactory, false);
@@ -2622,18 +2643,21 @@ enum E { v }''';
   }
 
   test_executable_param_function_typed() {
+    if (!checkAstDerivedData) {
+      // TODO(paulberry): this test fails when building the summary from the
+      // element model because the elment model doesn't record whether a
+      // function-typed parameter's return type is implicit.
+      return;
+    }
     UnlinkedExecutable executable = serializeExecutableText('f(g()) {}');
     expect(executable.parameters[0].isFunctionTyped, isTrue);
-    // Since the parameter is function-typed it is considered to have an
-    // explicit type, even though that explicit type itself has an implicit
-    // return type.
-    expect(executable.parameters[0].hasImplicitType, isFalse);
+    expect(executable.parameters[0].type, isNull);
   }
 
   test_executable_param_function_typed_explicit_return_type() {
     UnlinkedExecutable executable =
         serializeExecutableText('f(dynamic g()) {}');
-    expect(executable.parameters[0].hasImplicitType, isFalse);
+    expect(executable.parameters[0].type, isNotNull);
   }
 
   test_executable_param_function_typed_param() {
@@ -2660,8 +2684,15 @@ enum E { v }''';
   }
 
   test_executable_param_function_typed_return_type_implicit() {
+    if (!checkAstDerivedData) {
+      // TODO(paulberry): this test fails when building the summary from the
+      // element model because the elment model doesn't record whether a
+      // function-typed parameter's return type is implicit.
+      return;
+    }
     UnlinkedExecutable executable = serializeExecutableText('f(g()) {}');
-    checkDynamicTypeRef(executable.parameters[0].type);
+    expect(executable.parameters[0].isFunctionTyped, isTrue);
+    expect(executable.parameters[0].type, isNull);
   }
 
   test_executable_param_function_typed_return_type_void() {
@@ -2718,25 +2749,21 @@ enum E { v }''';
   test_executable_param_type_explicit() {
     UnlinkedExecutable executable = serializeExecutableText('f(dynamic x) {}');
     checkDynamicTypeRef(executable.parameters[0].type);
-    expect(executable.parameters[0].hasImplicitType, isFalse);
   }
 
   test_executable_param_type_implicit() {
     UnlinkedExecutable executable = serializeExecutableText('f(x) {}');
-    checkDynamicTypeRef(executable.parameters[0].type);
-    expect(executable.parameters[0].hasImplicitType, isTrue);
+    expect(executable.parameters[0].type, isNull);
   }
 
   test_executable_return_type() {
     UnlinkedExecutable executable = serializeExecutableText('int f() => 1;');
     checkTypeRef(executable.returnType, 'dart:core', 'dart:core', 'int');
-    expect(executable.hasImplicitReturnType, isFalse);
   }
 
   test_executable_return_type_implicit() {
     UnlinkedExecutable executable = serializeExecutableText('f() {}');
-    checkDynamicTypeRef(executable.returnType);
-    expect(executable.hasImplicitReturnType, isTrue);
+    expect(executable.returnType, isNull);
   }
 
   test_executable_return_type_void() {
@@ -2748,7 +2775,7 @@ enum E { v }''';
     String text = 'void set f(value) {}';
     UnlinkedExecutable executable = serializeExecutableText(text, 'f=');
     expect(executable.kind, UnlinkedExecutableKind.setter);
-    expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.returnType, isNotNull);
     expect(executable.isExternal, isFalse);
     expect(executable.nameOffset, text.indexOf('f'));
     expect(findVariable('f'), isNull);
@@ -2768,8 +2795,7 @@ enum E { v }''';
   test_executable_setter_implicit_return() {
     UnlinkedExecutable executable =
         serializeExecutableText('set f(value) {}', 'f=');
-    expect(executable.hasImplicitReturnType, isTrue);
-    checkDynamicTypeRef(executable.returnType);
+    expect(executable.returnType, isNull);
   }
 
   test_executable_setter_private() {
@@ -3419,8 +3445,7 @@ p.B b;
       return;
     }
     checkUnresolvedTypeRef(
-        serializeClassText('class C<T> { T.U x; }', allowErrors: true)
-            .fields[0]
+        serializeClassText('class C<T> { T.U x; }', allowErrors: true).fields[0]
             .type,
         'T',
         'U');
@@ -4092,7 +4117,6 @@ var v;''';
   test_variable_explicit_dynamic() {
     UnlinkedVariable variable = serializeVariableText('dynamic v;');
     checkDynamicTypeRef(variable.type);
-    expect(variable.hasImplicitType, isFalse);
   }
 
   test_variable_final_top_level() {
@@ -4103,8 +4127,7 @@ var v;''';
 
   test_variable_implicit_dynamic() {
     UnlinkedVariable variable = serializeVariableText('var v;');
-    checkDynamicTypeRef(variable.type);
-    expect(variable.hasImplicitType, isTrue);
+    expect(variable.type, isNull);
   }
 
   test_variable_name() {

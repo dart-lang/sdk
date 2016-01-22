@@ -566,17 +566,16 @@ class _LibraryResynthesizer {
     }
     executableElement.parameters =
         serializedExecutable.parameters.map(buildParameter).toList();
-    if (serializedExecutable.returnType != null) {
-      executableElement.returnType = buildType(serializedExecutable.returnType);
+    if (serializedExecutable.kind == UnlinkedExecutableKind.constructor) {
+      // Caller handles setting the return type.
+      assert(serializedExecutable.returnType == null);
     } else {
-      // Null return type should only be used for constructors.  Caller will
-      // handle setting the return type.
-      assert(serializedExecutable.kind == UnlinkedExecutableKind.constructor);
+      executableElement.returnType = buildType(serializedExecutable.returnType);
+      executableElement.hasImplicitReturnType =
+          serializedExecutable.returnType == null;
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
         executableElement, null, oldTypeArguments, false);
-    executableElement.hasImplicitReturnType =
-        serializedExecutable.hasImplicitReturnType;
     executableElement.external = serializedExecutable.isExternal;
     currentTypeParameters.removeRange(
         oldTypeParametersLength, currentTypeParameters.length);
@@ -908,14 +907,14 @@ class _LibraryResynthesizer {
           parameterTypeElement, null, currentTypeArguments, false);
     } else {
       if (serializedParameter.isInitializingFormal &&
-          serializedParameter.hasImplicitType) {
+          serializedParameter.type == null) {
         // The type is inherited from the matching field.
         parameterElement.type = fields[serializedParameter.name]?.type ??
             summaryResynthesizer.typeProvider.dynamicType;
       } else {
         parameterElement.type = buildType(serializedParameter.type);
       }
-      parameterElement.hasImplicitType = serializedParameter.hasImplicitType;
+      parameterElement.hasImplicitType = serializedParameter.type == null;
     }
     switch (serializedParameter.kind) {
       case UnlinkedParamKind.named:
@@ -956,6 +955,9 @@ class _LibraryResynthesizer {
    * libraries in the process.
    */
   DartType buildType(EntityRef type) {
+    if (type == null) {
+      return summaryResynthesizer.typeProvider.dynamicType;
+    }
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
@@ -1110,7 +1112,7 @@ class _LibraryResynthesizer {
     element.type = buildType(serializedVariable.type);
     element.const3 = serializedVariable.isConst;
     element.final2 = serializedVariable.isFinal;
-    element.hasImplicitType = serializedVariable.hasImplicitType;
+    element.hasImplicitType = serializedVariable.type == null;
     element.propagatedType =
         buildLinkedType(serializedVariable.propagatedTypeSlot);
     buildDocumentation(element, serializedVariable.documentationComment);

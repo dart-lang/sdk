@@ -173,10 +173,25 @@ enum UnlinkedConstOperation {
   /**
    * Pop the top n values from the stack (where n is obtained from
    * [UnlinkedConst.ints]), place them in a [List], and push the result back
+   * onto the stack.  The type parameter for the [List] is implicitly `dynamic`.
+   */
+  makeUntypedList,
+
+  /**
+   * Pop the top 2*n values from the stack (where n is obtained from
+   * [UnlinkedConst.ints]), interpret them as key/value pairs, place them in a
+   * [Map], and push the result back onto the stack.  The two type parameters
+   * for the [Map] are implicitly `dynamic`.
+   */
+  makeUntypedMap,
+
+  /**
+   * Pop the top n values from the stack (where n is obtained from
+   * [UnlinkedConst.ints]), place them in a [List], and push the result back
    * onto the stack.  The type parameter for the [List] is obtained from
    * [UnlinkedConst.references].
    */
-  makeList,
+  makeTypedList,
 
   /**
    * Pop the top 2*n values from the stack (where n is obtained from
@@ -184,7 +199,7 @@ enum UnlinkedConstOperation {
    * [Map], and push the result back onto the stack.  The two type parameters for
    * the [Map] are obtained from [UnlinkedConst.references].
    */
-  makeMap,
+  makeTypedMap,
 
   /**
    * Pop the top 2 values from the stack, pass them to the predefined Dart
@@ -2910,7 +2925,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   bool _isStatic;
   bool _isConst;
   bool _isFactory;
-  bool _hasImplicitReturnType;
   bool _isExternal;
 
   @override
@@ -2970,8 +2984,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
 
   /**
    * Declared return type of the executable.  Absent if the executable is a
-   * constructor.  Note that when strong mode is enabled, the actual return
-   * type may be different due to type inference.
+   * constructor or the return type is implicit.
    */
   void set returnType(EntityRefBuilder _value) {
     assert(!_finished);
@@ -3052,18 +3065,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  bool get hasImplicitReturnType => _hasImplicitReturnType ??= false;
-
-  /**
-   * Indicates whether the executable lacks an explicit return type
-   * declaration.  False for constructors and setters.
-   */
-  void set hasImplicitReturnType(bool _value) {
-    assert(!_finished);
-    _hasImplicitReturnType = _value;
-  }
-
-  @override
   bool get isExternal => _isExternal ??= false;
 
   /**
@@ -3074,7 +3075,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _isExternal = _value;
   }
 
-  UnlinkedExecutableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, EntityRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType, bool isExternal})
+  UnlinkedExecutableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, EntityRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool isExternal})
     : _name = name,
       _nameOffset = nameOffset,
       _documentationComment = documentationComment,
@@ -3086,7 +3087,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       _isStatic = isStatic,
       _isConst = isConst,
       _isFactory = isFactory,
-      _hasImplicitReturnType = hasImplicitReturnType,
       _isExternal = isExternal;
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -3146,11 +3146,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     if (_isFactory == true) {
       fbBuilder.addBool(10, true);
     }
-    if (_hasImplicitReturnType == true) {
-      fbBuilder.addBool(11, true);
-    }
     if (_isExternal == true) {
-      fbBuilder.addBool(12, true);
+      fbBuilder.addBool(11, true);
     }
     return fbBuilder.endTable();
   }
@@ -3191,8 +3188,7 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
 
   /**
    * Declared return type of the executable.  Absent if the executable is a
-   * constructor.  Note that when strong mode is enabled, the actual return
-   * type may be different due to type inference.
+   * constructor or the return type is implicit.
    */
   EntityRef get returnType;
 
@@ -3234,12 +3230,6 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   bool get isFactory;
 
   /**
-   * Indicates whether the executable lacks an explicit return type
-   * declaration.  False for constructors and setters.
-   */
-  bool get hasImplicitReturnType;
-
-  /**
    * Indicates whether the executable is declared using the `external` keyword.
    */
   bool get isExternal;
@@ -3268,7 +3258,6 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   bool _isStatic;
   bool _isConst;
   bool _isFactory;
-  bool _hasImplicitReturnType;
   bool _isExternal;
 
   @override
@@ -3338,14 +3327,8 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   }
 
   @override
-  bool get hasImplicitReturnType {
-    _hasImplicitReturnType ??= const fb.BoolReader().vTableGet(_bp, 11, false);
-    return _hasImplicitReturnType;
-  }
-
-  @override
   bool get isExternal {
-    _isExternal ??= const fb.BoolReader().vTableGet(_bp, 12, false);
+    _isExternal ??= const fb.BoolReader().vTableGet(_bp, 11, false);
     return _isExternal;
   }
 }
@@ -3364,7 +3347,6 @@ abstract class _UnlinkedExecutableMixin implements UnlinkedExecutable {
     "isStatic": isStatic,
     "isConst": isConst,
     "isFactory": isFactory,
-    "hasImplicitReturnType": hasImplicitReturnType,
     "isExternal": isExternal,
   };
 }
@@ -3949,7 +3931,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
   UnlinkedParamKind _kind;
   bool _isFunctionTyped;
   bool _isInitializingFormal;
-  bool _hasImplicitType;
 
   @override
   String get name => _name ??= '';
@@ -3979,7 +3960,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
 
   /**
    * If [isFunctionTyped] is `true`, the declared return type.  If
-   * [isFunctionTyped] is `false`, the declared type.
+   * [isFunctionTyped] is `false`, the declared type.  Absent if the type is
+   * implicit.
    */
   void set type(EntityRefBuilder _value) {
     assert(!_finished);
@@ -4031,27 +4013,14 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
     _isInitializingFormal = _value;
   }
 
-  @override
-  bool get hasImplicitType => _hasImplicitType ??= false;
-
-  /**
-   * Indicates whether this parameter lacks an explicit type declaration.
-   * Always false for a function-typed parameter.
-   */
-  void set hasImplicitType(bool _value) {
-    assert(!_finished);
-    _hasImplicitType = _value;
-  }
-
-  UnlinkedParamBuilder({String name, int nameOffset, EntityRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, bool hasImplicitType})
+  UnlinkedParamBuilder({String name, int nameOffset, EntityRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal})
     : _name = name,
       _nameOffset = nameOffset,
       _type = type,
       _parameters = parameters,
       _kind = kind,
       _isFunctionTyped = isFunctionTyped,
-      _isInitializingFormal = isInitializingFormal,
-      _hasImplicitType = hasImplicitType;
+      _isInitializingFormal = isInitializingFormal;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -4090,9 +4059,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
     if (_isInitializingFormal == true) {
       fbBuilder.addBool(6, true);
     }
-    if (_hasImplicitType == true) {
-      fbBuilder.addBool(7, true);
-    }
     return fbBuilder.endTable();
   }
 }
@@ -4114,7 +4080,8 @@ abstract class UnlinkedParam extends base.SummaryClass {
 
   /**
    * If [isFunctionTyped] is `true`, the declared return type.  If
-   * [isFunctionTyped] is `false`, the declared type.
+   * [isFunctionTyped] is `false`, the declared type.  Absent if the type is
+   * implicit.
    */
   EntityRef get type;
 
@@ -4138,12 +4105,6 @@ abstract class UnlinkedParam extends base.SummaryClass {
    * declared using `this.` syntax).
    */
   bool get isInitializingFormal;
-
-  /**
-   * Indicates whether this parameter lacks an explicit type declaration.
-   * Always false for a function-typed parameter.
-   */
-  bool get hasImplicitType;
 }
 
 class _UnlinkedParamReader extends fb.TableReader<_UnlinkedParamImpl> {
@@ -4165,7 +4126,6 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements Unli
   UnlinkedParamKind _kind;
   bool _isFunctionTyped;
   bool _isInitializingFormal;
-  bool _hasImplicitType;
 
   @override
   String get name {
@@ -4208,12 +4168,6 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements Unli
     _isInitializingFormal ??= const fb.BoolReader().vTableGet(_bp, 6, false);
     return _isInitializingFormal;
   }
-
-  @override
-  bool get hasImplicitType {
-    _hasImplicitType ??= const fb.BoolReader().vTableGet(_bp, 7, false);
-    return _hasImplicitType;
-  }
 }
 
 abstract class _UnlinkedParamMixin implements UnlinkedParam {
@@ -4226,7 +4180,6 @@ abstract class _UnlinkedParamMixin implements UnlinkedParam {
     "kind": kind,
     "isFunctionTyped": isFunctionTyped,
     "isInitializingFormal": isInitializingFormal,
-    "hasImplicitType": hasImplicitType,
   };
 }
 
@@ -5658,7 +5611,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   bool _isStatic;
   bool _isFinal;
   bool _isConst;
-  bool _hasImplicitType;
   int _propagatedTypeSlot;
 
   @override
@@ -5700,8 +5652,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   EntityRefBuilder get type => _type;
 
   /**
-   * Declared type of the variable.  Note that when strong mode is enabled, the
-   * actual type of the variable may be different due to type inference.
+   * Declared type of the variable.  Absent if the type is implicit.
    */
   void set type(EntityRefBuilder _value) {
     assert(!_finished);
@@ -5758,17 +5709,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   }
 
   @override
-  bool get hasImplicitType => _hasImplicitType ??= false;
-
-  /**
-   * Indicates whether this variable lacks an explicit type declaration.
-   */
-  void set hasImplicitType(bool _value) {
-    assert(!_finished);
-    _hasImplicitType = _value;
-  }
-
-  @override
   int get propagatedTypeSlot => _propagatedTypeSlot ??= 0;
 
   /**
@@ -5785,7 +5725,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _propagatedTypeSlot = _value;
   }
 
-  UnlinkedVariableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, EntityRefBuilder type, UnlinkedConstBuilder constExpr, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType, int propagatedTypeSlot})
+  UnlinkedVariableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, EntityRefBuilder type, UnlinkedConstBuilder constExpr, bool isStatic, bool isFinal, bool isConst, int propagatedTypeSlot})
     : _name = name,
       _nameOffset = nameOffset,
       _documentationComment = documentationComment,
@@ -5794,7 +5734,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
       _isStatic = isStatic,
       _isFinal = isFinal,
       _isConst = isConst,
-      _hasImplicitType = hasImplicitType,
       _propagatedTypeSlot = propagatedTypeSlot;
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -5841,11 +5780,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     if (_isConst == true) {
       fbBuilder.addBool(7, true);
     }
-    if (_hasImplicitType == true) {
-      fbBuilder.addBool(8, true);
-    }
     if (_propagatedTypeSlot != null && _propagatedTypeSlot != 0) {
-      fbBuilder.addUint32(9, _propagatedTypeSlot);
+      fbBuilder.addUint32(8, _propagatedTypeSlot);
     }
     return fbBuilder.endTable();
   }
@@ -5874,8 +5810,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
   UnlinkedDocumentationComment get documentationComment;
 
   /**
-   * Declared type of the variable.  Note that when strong mode is enabled, the
-   * actual type of the variable may be different due to type inference.
+   * Declared type of the variable.  Absent if the type is implicit.
    */
   EntityRef get type;
 
@@ -5903,11 +5838,6 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * Indicates whether the variable is declared using the `const` keyword.
    */
   bool get isConst;
-
-  /**
-   * Indicates whether this variable lacks an explicit type declaration.
-   */
-  bool get hasImplicitType;
 
   /**
    * If this variable is propagable, nonzero slot id identifying which entry in
@@ -5940,7 +5870,6 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   bool _isStatic;
   bool _isFinal;
   bool _isConst;
-  bool _hasImplicitType;
   int _propagatedTypeSlot;
 
   @override
@@ -5992,14 +5921,8 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   }
 
   @override
-  bool get hasImplicitType {
-    _hasImplicitType ??= const fb.BoolReader().vTableGet(_bp, 8, false);
-    return _hasImplicitType;
-  }
-
-  @override
   int get propagatedTypeSlot {
-    _propagatedTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 9, 0);
+    _propagatedTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 8, 0);
     return _propagatedTypeSlot;
   }
 }
@@ -6015,7 +5938,6 @@ abstract class _UnlinkedVariableMixin implements UnlinkedVariable {
     "isStatic": isStatic,
     "isFinal": isFinal,
     "isConst": isConst,
-    "hasImplicitType": hasImplicitType,
     "propagatedTypeSlot": propagatedTypeSlot,
   };
 }

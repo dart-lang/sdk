@@ -440,18 +440,10 @@ class _CompilationUnitSerializer {
     UnlinkedExecutableBuilder b = new UnlinkedExecutableBuilder();
     b.name = executableElement.name;
     b.nameOffset = executableElement.nameOffset;
-    if (executableElement is! ConstructorElement) {
-      if (executableElement.hasImplicitReturnType) {
-        // In strong mode, the variable's static type may have been overwritten
-        // by an inferred type.  In this part of the summary we want to store
-        // the weak mode static type (which is `dynamic`), since the strong
-        // mode static type is fully linked information.
-        b.returnType = serializeTypeRef(
-            librarySerializer.typeProvider.dynamicType, executableElement);
-      } else {
-        b.returnType = serializeTypeRef(
-            executableElement.type.returnType, executableElement);
-      }
+    if (executableElement is! ConstructorElement &&
+        !executableElement.hasImplicitReturnType) {
+      b.returnType = serializeTypeRef(
+          executableElement.type.returnType, executableElement);
     }
     b.typeParameters =
         executableElement.typeParameters.map(serializeTypeParam).toList();
@@ -473,7 +465,6 @@ class _CompilationUnitSerializer {
     b.isAbstract = executableElement.isAbstract;
     b.isStatic = executableElement.isStatic &&
         executableElement.enclosingElement is ClassElement;
-    b.hasImplicitReturnType = executableElement.hasImplicitReturnType;
     b.isExternal = executableElement.isExternal;
     b.documentationComment = serializeDocumentation(executableElement);
     return b;
@@ -547,11 +538,7 @@ class _CompilationUnitSerializer {
     }
     b.isInitializingFormal = parameter.isInitializingFormal;
     DartType type = parameter.type;
-    if (parameter.isInitializingFormal && parameter.hasImplicitType) {
-      b.hasImplicitType = true;
-      // We don't store the type of initializing formals that have an implicit
-      // type, because the type is inherited from the field.
-    } else {
+    if (!parameter.hasImplicitType) {
       if (type is FunctionType) {
         b.isFunctionTyped = true;
         b.type = serializeTypeRef(type.returnType, parameter);
@@ -560,7 +547,6 @@ class _CompilationUnitSerializer {
             .toList();
       } else {
         b.type = serializeTypeRef(type, context);
-        b.hasImplicitType = parameter.hasImplicitType;
       }
     }
     return b;
@@ -696,20 +682,12 @@ class _CompilationUnitSerializer {
     UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
     b.name = variable.name;
     b.nameOffset = variable.nameOffset;
-    if (variable.hasImplicitType) {
-      // In strong mode, the variable's static type may have been overwritten
-      // by an inferred type.  In this part of the summary we want to store the
-      // weak mode static type (which is `dynamic`), since the strong mode
-      // static type is fully linked information.
-      b.type = serializeTypeRef(
-          librarySerializer.typeProvider.dynamicType, variable);
-    } else {
+    if (!variable.hasImplicitType) {
       b.type = serializeTypeRef(variable.type, variable);
     }
     b.isStatic = variable.isStatic && variable.enclosingElement is ClassElement;
     b.isFinal = variable.isFinal;
     b.isConst = variable.isConst;
-    b.hasImplicitType = variable.hasImplicitType;
     b.documentationComment = serializeDocumentation(variable);
     if (variable.isConst && variable is ConstVariableElement) {
       ConstVariableElement constVariable = variable as ConstVariableElement;

@@ -215,14 +215,14 @@ abstract class AbstractConstExprSerializer {
   void _serializeListLiteral(ListLiteral expr) {
     List<Expression> elements = expr.elements;
     elements.forEach(serialize);
-    TypeName typeArgument;
+    ints.add(elements.length);
     if (expr.typeArguments != null &&
         expr.typeArguments.arguments.length == 1) {
-      typeArgument = expr.typeArguments.arguments[0];
+      references.add(serializeType(expr.typeArguments.arguments[0]));
+      operations.add(UnlinkedConstOperation.makeTypedList);
+    } else {
+      operations.add(UnlinkedConstOperation.makeUntypedList);
     }
-    references.add(serializeType(typeArgument));
-    ints.add(elements.length);
-    operations.add(UnlinkedConstOperation.makeList);
   }
 
   void _serializeMapLiteral(MapLiteral expr) {
@@ -230,17 +230,15 @@ abstract class AbstractConstExprSerializer {
       serialize(entry.key);
       serialize(entry.value);
     }
-    TypeName keyTypeArgument;
-    TypeName valueTypeArgument;
+    ints.add(expr.entries.length);
     if (expr.typeArguments != null &&
         expr.typeArguments.arguments.length == 2) {
-      keyTypeArgument = expr.typeArguments.arguments[0];
-      valueTypeArgument = expr.typeArguments.arguments[1];
+      references.add(serializeType(expr.typeArguments.arguments[0]));
+      references.add(serializeType(expr.typeArguments.arguments[1]));
+      operations.add(UnlinkedConstOperation.makeTypedMap);
+    } else {
+      operations.add(UnlinkedConstOperation.makeUntypedMap);
     }
-    references.add(serializeType(keyTypeArgument));
-    references.add(serializeType(valueTypeArgument));
-    ints.add(expr.entries.length);
-    operations.add(UnlinkedConstOperation.makeMap);
   }
 
   void _serializePrefixExpression(PrefixExpression expr) {
