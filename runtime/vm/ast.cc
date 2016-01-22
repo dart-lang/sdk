@@ -121,6 +121,36 @@ void LetNode::VisitChildren(AstNodeVisitor* visitor) const {
   }
 }
 
+bool LetNode::IsPotentiallyConst() const {
+  for (intptr_t i = 0; i < num_temps(); i++) {
+    if (!initializers_[i]->IsPotentiallyConst()) {
+      return false;
+    }
+  }
+  for (intptr_t i = 0; i < nodes_.length(); i++) {
+    if (!nodes_[i]->IsPotentiallyConst()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+const Instance* LetNode::EvalConstExpr() const {
+  for (intptr_t i = 0; i < num_temps(); i++) {
+    if (initializers_[i]->EvalConstExpr() == NULL) {
+      return NULL;
+    }
+  }
+  const Instance* last = NULL;
+  for (intptr_t i = 0; i < nodes_.length(); i++) {
+    last = nodes_[i]->EvalConstExpr();
+    if (last == NULL) {
+      return NULL;
+    }
+  }
+  return last;
+}
+
 
 void ArrayNode::VisitChildren(AstNodeVisitor* visitor) const {
   for (intptr_t i = 0; i < this->length(); i++) {
@@ -329,6 +359,7 @@ bool BinaryOpNode::IsPotentiallyConst() const {
     case Token::kBIT_AND:
     case Token::kSHL:
     case Token::kSHR:
+    case Token::kIFNULL:
       return this->left()->IsPotentiallyConst() &&
           this->right()->IsPotentiallyConst();
     default:
@@ -343,7 +374,8 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
   if (left_val == NULL) {
     return NULL;
   }
-  if (!left_val->IsNumber() && !left_val->IsBool() && !left_val->IsString()) {
+  if (!left_val->IsNumber() && !left_val->IsBool() && !left_val->IsString() &&
+      kind_ != Token::kIFNULL) {
     return NULL;
   }
   const Instance* right_val = this->right()->EvalConstExpr();
@@ -388,6 +420,11 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
         return left_val;
       }
       return NULL;
+    case Token::kIFNULL:
+      if (left_val->IsNull()) {
+        return right_val;
+      }
+      return left_val;
     default:
       UNREACHABLE();
       return NULL;

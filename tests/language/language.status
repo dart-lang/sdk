@@ -8,7 +8,6 @@
 [ ($compiler == none || $compiler == precompiler) ]
 built_in_identifier_prefix_test: Fail # Issue 6970
 tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
-const_qq_test: Fail
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail # Issue 6422

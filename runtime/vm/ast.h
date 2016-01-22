@@ -328,6 +328,9 @@ class LetNode : public AstNode {
   LocalVariable* TempAt(intptr_t i) const { return vars_[i]; }
   AstNode* InitializerAt(intptr_t i) const { return initializers_[i]; }
 
+  virtual bool IsPotentiallyConst() const;
+  virtual const Instance* EvalConstExpr() const;
+
   LocalVariable* AddInitializer(AstNode* node);
 
   const GrowableArray<AstNode*>& nodes() const { return nodes_; }

@@ -10423,8 +10423,21 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
   }
   if (binary_op == Token::kIFNULL) {
     // Handle a ?? b.
+    if ((lhs->EvalConstExpr() != NULL) && (rhs->EvalConstExpr() != NULL)) {
+      Instance& expr_value = Instance::ZoneHandle(Z);
+      if (!GetCachedConstant(op_pos, &expr_value)) {
+        expr_value = EvaluateConstExpr(lhs->token_pos(), lhs).raw();
+        if (expr_value.IsNull()) {
+          expr_value = EvaluateConstExpr(rhs->token_pos(), rhs).raw();
+        }
+        CacheConstantValue(op_pos, expr_value);
+      }
+      return new(Z) LiteralNode(op_pos, expr_value);
+    }
+
     LetNode* result = new(Z) LetNode(op_pos);
     LocalVariable* left_temp = result->AddInitializer(lhs);
+    left_temp->set_is_final();
     const intptr_t no_pos = Token::kNoSourcePos;
     LiteralNode* null_operand =
         new(Z) LiteralNode(no_pos, Object::null_instance());
