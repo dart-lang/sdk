@@ -639,8 +639,16 @@ class GetHandler {
           Set<AnalysisTarget> countedTargets = new HashSet<AnalysisTarget>();
           Map<String, int> sourceTypeCounts = new HashMap<String, int>();
           Map<String, int> typeCounts = new HashMap<String, int>();
+          int explicitSourceCount = 0;
+          int explicitLineInfoCount = 0;
+          int explicitLineCount = 0;
+          int implicitSourceCount = 0;
+          int implicitLineInfoCount = 0;
+          int implicitLineCount = 0;
           analysisServer.folderMap
               .forEach((Folder folder, InternalAnalysisContext context) {
+            Set<Source> explicitSources = new HashSet<Source>();
+            Set<Source> implicitSources = new HashSet<Source>();
             AnalysisCache cache = context.analysisCache;
             MapIterator<AnalysisTarget, CacheEntry> iterator = cache.iterator();
             while (iterator.moveNext()) {
@@ -651,8 +659,10 @@ class GetHandler {
                   String sourceName;
                   if (AnalysisEngine.isDartFileName(name)) {
                     if (iterator.value.explicitlyAdded) {
+                      explicitSources.add(target);
                       sourceName = 'Dart file (explicit)';
                     } else {
+                      implicitSources.add(target);
                       sourceName = 'Dart file (implicit)';
                     }
                   } else if (AnalysisEngine.isHtmlFileName(name)) {
@@ -677,6 +687,25 @@ class GetHandler {
                 }
               }
             }
+
+            int lineCount(Set<Source> sources, bool explicit) {
+              return sources.fold(0, (int previousTotal, Source source) {
+                LineInfo lineInfo = context.getLineInfo(source);
+                if (lineInfo == null) {
+                  return previousTotal;
+                }
+                if (explicit) {
+                  explicitLineInfoCount++;
+                } else {
+                  implicitLineInfoCount++;
+                }
+                return previousTotal + lineInfo.lineCount;
+              });
+            }
+            explicitSourceCount += explicitSources.length;
+            explicitLineCount += lineCount(explicitSources, true);
+            implicitSourceCount += implicitSources.length;
+            implicitLineCount += lineCount(implicitSources, false);
           });
           List<String> sourceTypeNames = sourceTypeCounts.keys.toList();
           sourceTypeNames.sort();
@@ -696,6 +725,37 @@ class GetHandler {
             _writeRow(buffer, [typeName, typeCounts[typeName]],
                 classes: [null, "right"]);
           }
+          buffer.write('</table>');
+
+          buffer.write('<p><b>Line counts</b></p>');
+          buffer.write(
+              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+          _writeRow(buffer, ['Kind', 'Lines of Code', 'Source Counts'],
+              header: true);
+          _writeRow(buffer, [
+            'Explicit',
+            explicitLineCount.toString(),
+            '$explicitLineInfoCount / $explicitSourceCount'
+          ], classes: [
+            null,
+            "right"
+          ]);
+          _writeRow(buffer, [
+            'Implicit',
+            implicitLineCount.toString(),
+            '$implicitLineInfoCount / $implicitSourceCount'
+          ], classes: [
+            null,
+            "right"
+          ]);
+          _writeRow(buffer, [
+            'Total',
+            (explicitLineCount + implicitLineCount).toString(),
+            '${explicitLineInfoCount + implicitLineInfoCount} / ${explicitSourceCount + implicitSourceCount}'
+          ], classes: [
+            null,
+            "right"
+          ]);
           buffer.write('</table>');
         }, (StringBuffer buffer) {
           //

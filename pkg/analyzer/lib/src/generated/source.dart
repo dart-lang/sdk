@@ -178,12 +178,12 @@ class DartUriResolver extends UriResolver {
 }
 
 /**
- * Instances of the class `LineInfo` encapsulate information about line and column information
- * within a source file.
+ * Information about line and column information within a source file.
  */
 class LineInfo {
   /**
-   * An array containing the offsets of the first character of each line in the source code.
+   * A list containing the offsets of the first character of each line in the
+   * source code.
    */
   final List<int> _lineStarts;
 
@@ -194,10 +194,8 @@ class LineInfo {
   int _previousLine = 0;
 
   /**
-   * Initialize a newly created set of line information to represent the data encoded in the given
-   * array.
-   *
-   * @param lineStarts the offsets of the first character of each line in the source code
+   * Initialize a newly created set of line information to represent the data
+   * encoded in the given list of [_lineStarts].
    */
   LineInfo(this._lineStarts) {
     if (_lineStarts == null) {
@@ -208,10 +206,12 @@ class LineInfo {
   }
 
   /**
-   * Return the location information for the character at the given offset.
-   *
-   * @param offset the offset of the character for which location information is to be returned
-   * @return the location information for the character at the given offset
+   * Return the number of lines in the file.
+   */
+  int get lineCount => _lineStarts.length;
+
+  /**
+   * Return the location information for the character at the given [offset].
    */
   LineInfo_Location getLocation(int offset) {
     var min = 0;
