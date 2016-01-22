@@ -28,6 +28,10 @@ dart_library.library('methods', null, /* Imports */[
       let b = opts && 'b' in opts ? opts.b : null;
       return dart.asInt(dart.notNull(a) + dart.notNull(b));
     }
+    ww(a, opts) {
+      let b = opts && 'b' in opts ? opts.b : 0;
+      return dart.notNull(a) + dart.notNull(b);
+    }
     clashWithObjectProperty(opts) {
       let constructor = opts && 'constructor' in opts ? opts.constructor : null;
       return constructor;
@@ -54,6 +58,7 @@ dart_library.library('methods', null, /* Imports */[
       z: [core.int, [], [core.num]],
       zz: [core.int, [], [core.int]],
       w: [core.int, [core.int], {b: core.num}],
+      ww: [core.int, [core.int], {b: core.int}],
       clashWithObjectProperty: [dart.dynamic, [], {constructor: dart.dynamic}],
       clashWithJsReservedName: [dart.dynamic, [], {function: dart.dynamic}]
     })
