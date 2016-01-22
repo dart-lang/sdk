@@ -33,7 +33,7 @@ ReferenceKind _getReferenceKind(Element element) {
     kind = ReferenceKind.topLevelPropertyAccessor;
   } else if (element is FunctionTypeAliasElement) {
     kind = ReferenceKind.typedef;
-  } else if (element is ClassElement) {
+  } else if (element is ClassElement || element is DynamicElementImpl) {
     kind = ReferenceKind.classOrEnum;
   } else if (element is FunctionElement) {
     kind = ReferenceKind.topLevelFunction;
@@ -410,13 +410,6 @@ class _CompilationUnitSerializer {
   }
 
   /**
-   * Return the index of the entry in the references table
-   * ([UnlinkedLibrary.references] and [LinkedLibrary.references])
-   * representing the pseudo-type `dynamic`.
-   */
-  int serializeDynamicReference() => 0;
-
-  /**
    * Serialize the given [enumElement], creating an [UnlinkedEnum].
    */
   UnlinkedEnumBuilder serializeEnum(ClassElement enumElement) {
@@ -600,12 +593,11 @@ class _CompilationUnitSerializer {
       assert(type.isDynamic);
       if (type is UndefinedTypeImpl) {
         return serializeUnresolvedReference();
-      } else {
-        return serializeDynamicReference();
       }
-    } else {
-      return _getElementReferenceId(element, linked: linked);
+      // Note: for a type which is truly `dynamic`, fall through to use
+      // [_getElementReferenceId].
     }
+    return _getElementReferenceId(element, linked: linked);
   }
 
   /**
@@ -757,12 +749,19 @@ class _CompilationUnitSerializer {
   }
 
   int _getElementReferenceId(Element element, {bool linked: false}) {
-    LibraryElement dependentLibrary = element.library;
     return referenceMap.putIfAbsent(element, () {
-      CompilationUnitElement unitElement =
-          element.getAncestor((Element e) => e is CompilationUnitElement);
-      int unit = dependentLibrary.units.indexOf(unitElement);
-      assert(unit != -1);
+      LibraryElement dependentLibrary = element.library;
+      int unit;
+      if (element.library == null) {
+        assert(element == librarySerializer.typeProvider.dynamicType.element);
+        unit = 0;
+        dependentLibrary = librarySerializer.libraryElement;
+      } else {
+        CompilationUnitElement unitElement =
+        element.getAncestor((Element e) => e is CompilationUnitElement);
+        unit = dependentLibrary.units.indexOf(unitElement);
+        assert(unit != -1);
+      }
       int numTypeParameters = 0;
       if (element is TypeParameterizedElement) {
         numTypeParameters = element.typeParameters.length;

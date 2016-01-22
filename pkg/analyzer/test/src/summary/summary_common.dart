@@ -236,7 +236,7 @@ abstract class SummaryTest {
    * Verify that the given [typeRef] represents the type `dynamic`.
    */
   void checkDynamicTypeRef(EntityRef typeRef) {
-    checkTypeRef(typeRef, null, null, null);
+    checkTypeRef(typeRef, null, null, 'dynamic');
   }
 
   /**
@@ -506,10 +506,8 @@ abstract class SummaryTest {
       // [LinkedUnit.references].
       name = referenceResolution.name;
     }
-    if (referenceIndex == 0) {
-      // Index 0 is reserved for "dynamic".
-      expect(name, isEmpty);
-    }
+    // Index 0 is reserved.
+    expect(referenceIndex, isNot(0));
     if (absoluteUri == null) {
       expect(referenceResolution.dependency, 0);
     } else {
@@ -1594,8 +1592,7 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
       33,
       3
     ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, null, null, '',
-          expectedKind: ReferenceKind.classOrEnum)
+      (EntityRef r) => checkDynamicTypeRef(r)
     ]);
   }
 
@@ -1648,10 +1645,8 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
       'bbb',
       'ccc'
     ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, null, null, '',
-          expectedKind: ReferenceKind.classOrEnum),
-      (EntityRef r) => checkTypeRef(r, null, null, '',
-          expectedKind: ReferenceKind.classOrEnum)
+      (EntityRef r) => checkDynamicTypeRef(r),
+      (EntityRef r) => checkDynamicTypeRef(r)
     ]);
   }
 

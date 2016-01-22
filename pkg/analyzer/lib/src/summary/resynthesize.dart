@@ -987,7 +987,7 @@ class _LibraryResynthesizer {
             name);
       } else if (referenceResolution.kind == ReferenceKind.unresolved) {
         return summaryResynthesizer.typeProvider.undefinedType;
-      } else if (name.isEmpty) {
+      } else if (name == 'dynamic') {
         return summaryResynthesizer.typeProvider.dynamicType;
       } else {
         String referencedLibraryUri = librarySource.uri.toString();

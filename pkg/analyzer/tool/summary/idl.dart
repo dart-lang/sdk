@@ -83,12 +83,6 @@ class EntityRef {
   /**
    * Index into [UnlinkedUnit.references] for the entity being referred to, or
    * zero if this is a reference to a type parameter.
-   *
-   * Note that since zero is also a valid index into
-   * [UnlinkedUnit.references], we cannot distinguish between references to
-   * type parameters and references to other entities by checking [reference]
-   * against zero.  To distinguish between references to type parameters and
-   * references to other entities, check whether [paramReference] is zero.
    */
   int reference;
 
@@ -258,8 +252,8 @@ class LinkedReference {
 
   /**
    * If this [LinkedReference] doesn't have an associated [UnlinkedReference],
-   * name of the entity being referred to.  The empty string refers to the
-   * pseudo-type `dynamic`.
+   * name of the entity being referred to.  For the pseudo-type `dynamic`, the
+   * string is "dynamic".
    */
   String name;
 }
@@ -1201,8 +1195,8 @@ class UnlinkedPublicNamespace {
  */
 class UnlinkedReference {
   /**
-   * Name of the entity being referred to.  The empty string refers to the
-   * pseudo-type `dynamic`.
+   * Name of the entity being referred to.  For the pseudo-type `dynamic`, the
+   * string is "dynamic".
    */
   String name;
 
@@ -1315,8 +1309,10 @@ class UnlinkedUnit {
 
   /**
    * Top level and prefixed names referred to by this compilation unit.  The
-   * zeroth element of this array is always populated and always represents a
-   * reference to the pseudo-type "dynamic".
+   * zeroth element of this array is always populated and is used to represent
+   * the absence of a reference in places where a reference is optional (for
+   * example [UnlinkedReference.prefixReference or
+   * UnlinkedImport.prefixReference]).
    */
   List<UnlinkedReference> references;
 

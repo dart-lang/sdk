@@ -125,7 +125,7 @@ class _Prelinker {
    * Names defined inside the library being prelinked.
    */
   final Map<String, _Meaning> privateNamespace = <String, _Meaning>{
-    '': new _Meaning(0, ReferenceKind.classOrEnum, 0, 0)
+    'dynamic': new _Meaning(0, ReferenceKind.classOrEnum, 0, 0)
   };
 
   /**

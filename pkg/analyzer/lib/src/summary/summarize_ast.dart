@@ -508,7 +508,6 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   int serializeReference(int prefixIndex, String name) => nameToReference
           .putIfAbsent(prefixIndex, () => <String, int>{})
           .putIfAbsent(name, () {
-        assert(name != 'dynamic');
         int index = unlinkedReferences.length;
         unlinkedReferences.add(new UnlinkedReferenceBuilder(
             prefixReference: prefixIndex, name: name));
@@ -523,7 +522,9 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
    */
   EntityRefBuilder serializeTypeName(TypeName node, {bool allowVoid: false}) {
     EntityRefBuilder b = new EntityRefBuilder();
-    if (node != null) {
+    if (node == null) {
+      b.reference = serializeReference(null, 'dynamic');
+    } else {
       Identifier identifier = node.name;
       if (identifier is SimpleIdentifier) {
         String name = identifier.name;
@@ -539,6 +540,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
               // None of the other things that can be declared in local scopes
               // are types, so this is an error and should be treated as a
               // reference to `dynamic`.
+              b.reference = serializeReference(null, 'dynamic');
               return b;
             }
           }
@@ -549,9 +551,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
         if (allowVoid && name == 'void') {
           return null;
         }
-        if (name != 'dynamic') {
-          b.reference = serializeReference(null, name);
-        }
+        b.reference = serializeReference(null, name);
       } else if (identifier is PrefixedIdentifier) {
         int prefixIndex = prefixIndices.putIfAbsent(identifier.prefix.name,
             () => serializeReference(null, identifier.prefix.name));
