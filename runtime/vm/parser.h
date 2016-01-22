@@ -36,6 +36,7 @@ struct MemberDesc;
 struct ParamList;
 struct QualIdent;
 class TopLevel;
+class RecursionChecker;
 
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
@@ -364,6 +365,9 @@ class Parser : public ValueObject {
   void CheckConstructorCallTypeArguments(intptr_t pos,
                                          const Function& constructor,
                                          const TypeArguments& type_arguments);
+
+  // Report error if parsed code is too deeply nested; avoid stack overflow.
+  void CheckStack();
 
   // Report already formatted error.
   static void ReportError(const Error& error);
@@ -893,6 +897,9 @@ class Parser : public ValueObject {
 
   // Indentation of parser trace.
   intptr_t trace_indent_;
+
+  intptr_t recursion_counter_;
+  friend class RecursionChecker;
 
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };

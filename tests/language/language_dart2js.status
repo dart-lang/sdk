@@ -13,6 +13,9 @@ tearoff_constructor_basic_test: Skip # Tear-off not supported
 try_catch_on_syntax_test/10: Fail # Issue 19823
 try_catch_on_syntax_test/11: Fail # Issue 19823
 
+deep_nesting1_test: Fail, Crash # Issue 25557
+deep_nesting2_test: Fail, Crash # Issue 25557
+
 call_function_apply_test: RuntimeError # Issue 23873
 
 # The following tests are supposed to fail.

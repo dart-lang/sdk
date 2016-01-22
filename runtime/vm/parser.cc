@@ -127,6 +127,27 @@ class BoolScope : public ValueObject {
 };
 
 
+class RecursionChecker : public ValueObject {
+ public:
+  explicit RecursionChecker(Parser* p) : parser_(p) {
+    parser_->recursion_counter_++;
+    // No need to check the stack unless the parser is in an unusually deep
+    // recurive state. Thus, we omit the more expensive stack checks in
+    // the common case.
+    const int kMaxUncheckedDepth = 100;  // Somewhat arbitrary.
+    if (parser_->recursion_counter_ > kMaxUncheckedDepth) {
+      parser_->CheckStack();
+    }
+  }
+  ~RecursionChecker() {
+    parser_->recursion_counter_--;
+  }
+
+ private:
+  Parser* parser_;
+};
+
+
 static RawTypeArguments* NewTypeArguments(
     const GrowableArray<AbstractType*>& objs) {
   const TypeArguments& a =
@@ -349,7 +370,8 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       last_used_try_index_(0),
       unregister_pending_function_(false),
       async_temp_scope_(NULL),
-      trace_indent_(0) {
+      trace_indent_(0),
+      recursion_counter_(0) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
 }
@@ -383,7 +405,8 @@ Parser::Parser(const Script& script,
       last_used_try_index_(0),
       unregister_pending_function_(false),
       async_temp_scope_(NULL),
-      trace_indent_(0) {
+      trace_indent_(0),
+      recursion_counter_(0) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!current_function().IsNull());
   EnsureExpressionTemp();
@@ -6047,6 +6070,18 @@ void Parser::ParseTopLevel() {
 }
 
 
+void Parser::CheckStack() {
+  volatile uword c_stack_pos = Isolate::GetCurrentStackPointer();
+  volatile uword c_stack_base = OSThread::Current()->stack_base();
+  volatile uword c_stack_limit =
+      c_stack_base - OSThread::GetSpecifiedStackSize();
+  // Note: during early initialization the stack_base() can return 0.
+  if ((c_stack_base > 0) && (c_stack_pos < c_stack_limit)) {
+    ReportError("stack overflow while parsing");
+  }
+}
+
+
 void Parser::ChainNewBlock(LocalScope* outer_scope) {
   Block* block = new(Z) Block(
       current_block_,
@@ -7950,6 +7985,7 @@ void Parser::ParseStatementSequence() {
   TRACE_PARSER("ParseStatementSequence");
   const bool dead_code_allowed = true;
   bool abrupt_completing_seen = false;
+  RecursionChecker rc(this);
   while (CurrentToken() != Token::kRBRACE) {
     const intptr_t statement_pos = TokenPos();
     AstNode* statement = ParseStatement();
@@ -7989,6 +8025,7 @@ SequenceNode* Parser::ParseNestedStatement(bool parsing_loop_body,
     ParseStatementSequence();
     ExpectToken(Token::kRBRACE);
   } else {
+    RecursionChecker rc(this);
     AstNode* statement = ParseStatement();
     if (statement != NULL) {
       current_block_->statements->Add(statement);
@@ -10739,6 +10776,8 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
   String* expr_ident =
       Token::IsIdentifier(CurrentToken()) ? CurrentLiteral() : NULL;
   const intptr_t expr_pos = TokenPos();
+
+  RecursionChecker rc(this);
 
   if (CurrentToken() == Token::kTHROW) {
     if (require_compiletime_const) {
