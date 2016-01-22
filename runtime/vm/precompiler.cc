@@ -133,6 +133,7 @@ void Precompiler::DoCompileAll(
 
   I->set_compilation_allowed(false);
   I->object_store()->set_compile_time_constants(Array::null_array());
+  I->object_store()->set_unique_dynamic_targets(Array::null_array());
 }
 
 
