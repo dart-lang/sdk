@@ -741,8 +741,9 @@ class SetStatic extends Expression {
   Element element;
   Expression value;
   SourceInformation sourceInformation;
+  BuiltinOperator compound;
 
-  SetStatic(this.element, this.value, this.sourceInformation);
+  SetStatic(this.element, this.value, this.sourceInformation, {this.compound});
 
   accept(ExpressionVisitor visitor) => visitor.visitSetStatic(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitSetStatic(this, arg);

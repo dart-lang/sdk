@@ -913,8 +913,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     registry.registerStaticUse(
         new StaticUse.staticSet(node.element.declaration));
     js.Expression field = glue.staticFieldAccess(node.element);
-    js.Expression value = visitExpression(node.value);
-    return new js.Assignment(field, value);
+    return makeAssignment(field, node.value, compound: node.compound);
   }
 
   @override
