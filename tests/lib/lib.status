@@ -308,7 +308,7 @@ mirrors/native_class_test: Pass, Slow
 [ ($compiler == none || $compiler == precompiler) && $arch == mips ]
 async/timer_regress22626_test: Pass, RuntimeError # Issue 22626
 
-[ $arch == simarm || $arch == simarmv5te ]
+[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
 convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
 convert/utf85_test: Skip  # Pass, Slow Issue 12644.
 
@@ -331,7 +331,7 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == release && $arch == ia32 && $system == windows ]
 convert/json_test: RuntimeError # Issue 24908
 
-[ $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv5te ]
+[ $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv6 && $arch != simarmv5te ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]

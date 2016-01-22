@@ -78,6 +78,9 @@
       'Dart_Macos_simarm_Base': {
         'abstract': 1,
       },
+      'Dart_Macos_simarmv6_Base': {
+        'abstract': 1,
+      },
       'Dart_Macos_simarmv5te_Base': {
         'abstract': 1,
       },

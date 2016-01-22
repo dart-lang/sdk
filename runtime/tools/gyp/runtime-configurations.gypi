@@ -92,6 +92,20 @@
         },
       },
 
+      'Dart_simarmv6_Base': {
+        'abstract': 1,
+        'xcode_settings': {
+          'ARCHS': [ 'i386' ],
+        },
+      },
+
+      'Dart_simarmv5te_Base': {
+        'abstract': 1,
+        'xcode_settings': {
+          'ARCHS': [ 'i386' ],
+        },
+      },
+
       'Dart_simmips_Base': {
         'abstract': 1,
         'xcode_settings': {

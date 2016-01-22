@@ -56,9 +56,13 @@
 
 namespace dart {
 
-// TODO(zra): Add a target for ARMv6.
 #if defined(TARGET_ARCH_ARM_5TE)
 DEFINE_FLAG(bool, use_vfp, false, "Use vfp instructions if supported");
+DEFINE_FLAG(bool, use_neon, false, "Use neon instructions if supported");
+DEFINE_FLAG(bool, use_integer_division, false,
+            "Use integer division instruction if supported");
+#elif defined(TARGET_ARCH_ARM_6)
+DEFINE_FLAG(bool, use_vfp, true, "Use vfp instructions if supported");
 DEFINE_FLAG(bool, use_neon, false, "Use neon instructions if supported");
 DEFINE_FLAG(bool, use_integer_division, false,
             "Use integer division instruction if supported");
@@ -242,6 +246,8 @@ void HostCPUFeatures::InitOnce() {
 
 #if defined(TARGET_ARCH_ARM_5TE)
   arm_version_ = ARMv5TE;
+#elif defined(TARGET_ARCH_ARM_6)
+  arm_version_ = ARMv6;
 #else
   arm_version_ = ARMv7;
 #endif

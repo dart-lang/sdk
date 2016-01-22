@@ -33,7 +33,7 @@ cc/Service_Profile: Skip
 cc/Dart2JSCompilerStats: Skip
 cc/CorelibCompilerStats: Skip
 
-[ $arch == simarm || $arch == simarmv5te || $arch == simarm64 || $arch == simmips ]
+[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simmips ]
 cc/Service_Profile: Skip
 
 [ $arch == arm ]

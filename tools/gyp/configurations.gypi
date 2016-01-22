@@ -17,9 +17,11 @@
       ['"<(target_arch)"=="ia32"', { 'dart_target_arch': 'IA32', }],
       ['"<(target_arch)"=="x64"', { 'dart_target_arch': 'X64', }],
       ['"<(target_arch)"=="arm"', { 'dart_target_arch': 'ARM', }],
+      ['"<(target_arch)"=="armv6"', { 'dart_target_arch': 'ARMV6', }],
       ['"<(target_arch)"=="armv5te"', { 'dart_target_arch': 'ARMV5TE', }],
       ['"<(target_arch)"=="arm64"', { 'dart_target_arch': 'ARM64', }],
       ['"<(target_arch)"=="simarm"', { 'dart_target_arch': 'SIMARM', }],
+      ['"<(target_arch)"=="simarmv6"', { 'dart_target_arch': 'SIMARMV6', }],
       ['"<(target_arch)"=="simarmv5te"', { 'dart_target_arch': 'SIMARMV5TE', }],
       ['"<(target_arch)"=="simarm64"', { 'dart_target_arch': 'SIMARM64', }],
       ['"<(target_arch)"=="mips"', { 'dart_target_arch': 'MIPS', }],
@@ -63,6 +65,14 @@
         ]
       },
 
+      'Dart_simarmv6_Base': {
+        'abstract': 1,
+        'defines': [
+          'TARGET_ARCH_ARM',
+          'TARGET_ARCH_ARM_6',
+        ]
+      },
+
       'Dart_simarmv5te_Base': {
         'abstract': 1,
         'defines': [
@@ -75,6 +85,14 @@
         'abstract': 1,
         'defines': [
           'TARGET_ARCH_ARM',
+        ],
+      },
+
+      'Dart_armv6_Base': {
+        'abstract': 1,
+        'defines': [
+          'TARGET_ARCH_ARM',
+          'TARGET_ARCH_ARM_6',
         ],
       },
 
@@ -184,6 +202,27 @@
         ],
       },
 
+      'DebugSIMARMV6': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simarmv6_Base', 'Dart_Debug',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simarmv6_Base',
+          'Dart_<(dart_target_os)_Debug',
+        ],
+        'defines': [
+          'DEBUG',
+        ],
+      },
+
+      'ReleaseSIMARMV6': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simarmv6_Base', 'Dart_Release',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simarmv6_Base',
+          'Dart_<(dart_target_os)_Release',
+        ],
+      },
+
       'DebugSIMARMV5TE': {
         'inherit_from': [
           'Dart_Base', 'Dart_simarmv5te_Base', 'Dart_Debug',
@@ -281,6 +320,42 @@
           'Dart_Base', 'Dart_arm_Base', 'Dart_Release',
           'Dart_Linux_Base',
           'Dart_Linux_arm_Base',
+          'Dart_Linux_Release',
+        ],
+      },
+
+      'DebugXARMV6': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_armv6_Base', 'Dart_Debug',
+          'Dart_Linux_Base',
+          'Dart_Linux_xarmv6_Base',
+          'Dart_Linux_Debug',
+        ],
+      },
+
+      'ReleaseXARMV6': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_armv6_Base', 'Dart_Release',
+          'Dart_Linux_Base',
+          'Dart_Linux_xarmv6_Base',
+          'Dart_Linux_Release',
+        ],
+      },
+
+      'DebugARMV6': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_armv6_Base', 'Dart_Debug',
+          'Dart_Linux_Base',
+          'Dart_Linux_armv6_Base',
+          'Dart_Linux_Debug',
+        ],
+      },
+
+      'ReleaseARMV6': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_armv6_Base', 'Dart_Release',
+          'Dart_Linux_Base',
+          'Dart_Linux_armv6_Base',
           'Dart_Linux_Release',
         ],
       },
