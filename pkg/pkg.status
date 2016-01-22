@@ -68,9 +68,11 @@ analyzer/test/src/context/cache_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/context_test: Pass, Timeout # dartbug.com/23658
 analyzer/test/src/dart/element/element_test: Pass, Slow # Issue 24914
 analyzer/test/src/summary/prelinker_test: Pass, Slow # Issue 24914
+analyzer/test/src/summary/resynthesize_strong_test: Pass, Slow
 analyzer/test/src/summary/resynthesize_test: Pass, Slow
 analyzer/test/src/summary/summary_sdk_test: Pass, Slow # Issue 24914
 analyzer/test/src/summary/summarize_ast_test: Pass, Slow # Issue 24914
+analyzer/test/src/summary/summarize_elements_strong_test: Pass, Slow # Issue 24914
 analyzer/test/src/summary/summarize_elements_test: Pass, Slow # Issue 24914
 analyzer/test/src/task/dart_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/dart_work_manager_test: Pass, Slow # Issue 21628
