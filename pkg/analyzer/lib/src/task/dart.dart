@@ -1398,7 +1398,6 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     //
     // Update "part" directives.
     //
-    LibraryDirective libraryDirective = null;
     LibraryIdentifier libraryNameNode = null;
     String partsLibraryName = _UNKNOWN_LIBRARY_NAME;
     bool hasPartDirective = false;
@@ -1409,11 +1408,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         <CompilationUnitElementImpl>[];
     for (Directive directive in definingCompilationUnit.directives) {
       if (directive is LibraryDirective) {
-        if (libraryDirective == null) {
-          libraryDirective = directive;
-          libraryNameNode = directive.name;
-          directivesToResolve.add(directive);
-        }
+        libraryNameNode = directive.name;
+        directivesToResolve.add(directive);
       } else if (directive is PartDirective) {
         PartDirective partDirective = directive;
         StringLiteral partUri = partDirective.uri;
@@ -1492,9 +1488,12 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       directive.element = libraryElement;
     }
     BuildLibraryElementUtils.patchTopLevelAccessors(libraryElement);
-    if (libraryDirective != null) {
-      _setDoc(libraryElement, libraryDirective);
+    // set the library documentation to the docs associated with the first
+    // directive in the compilation unit.
+    if (definingCompilationUnit.directives.isNotEmpty) {
+      _setDoc(libraryElement, definingCompilationUnit.directives.first);
     }
+
     //
     // Record outputs.
     //
