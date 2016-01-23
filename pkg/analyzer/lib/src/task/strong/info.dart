@@ -96,14 +96,14 @@ abstract class DownCast extends CoercionInfo {
   }
 
   @override
-  List<Object> get arguments => [node, baseType, convertedType];
+  List<Object> get arguments => [baseType, convertedType];
 
   Cast get cast => _cast;
 
   DartType get convertedType => _cast.toType;
+
   @override
-  String get message => '{0} ({1}) will need runtime check '
-      'to cast to type {2}';
+  String get message => 'Unsound implicit cast from {0} to {1}';
 
   // Factory to create correct DownCast variant.
   static StaticInfo create(
