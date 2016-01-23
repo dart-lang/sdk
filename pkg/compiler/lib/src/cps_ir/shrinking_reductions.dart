@@ -403,6 +403,16 @@ bool _isEtaCont(Continuation cont) {
   return true;
 }
 
+Expression _unfoldDeadRefinements(Expression node) {
+  while (node is LetPrim) {
+    LetPrim let = node;
+    Primitive prim = let.primitive;
+    if (prim.hasAtLeastOneUse || prim is! Refinement) return node;
+    node = node.next;
+  }
+  return node;
+}
+
 bool _isBranchTargetOfUselessIf(Continuation cont) {
   // A useless-if has an empty then and else branch, e.g. `if (cond);`.
   //
@@ -416,13 +426,16 @@ bool _isBranchTargetOfUselessIf(Continuation cont) {
   if (!cont.hasExactlyOneUse) return false;
   if (cont.firstRef.parent is! Branch) return false;
   Branch branch = cont.firstRef.parent;
-  Continuation trueCont = branch.trueContinuation.definition;
-  Continuation falseCont = branch.falseContinuation.definition;
+
   // Are both continuations the same InvokeContinuation on a join?
-  if (trueCont.body is! InvokeContinuation) return false;
-  if (falseCont.body is! InvokeContinuation) return false;
-  InvokeContinuation trueInvoke = trueCont.body;
-  InvokeContinuation falseInvoke = falseCont.body;
+  Continuation trueCont = branch.trueContinuation.definition;
+  Expression trueBody = _unfoldDeadRefinements(trueCont.body);
+  if (trueBody is! InvokeContinuation) return false;
+  Continuation falseCont = branch.falseContinuation.definition;
+  Expression falseBody = _unfoldDeadRefinements(falseCont.body);
+  if (falseBody is! InvokeContinuation) return false;
+  InvokeContinuation trueInvoke = trueBody;
+  InvokeContinuation falseInvoke = falseBody;
   if (trueInvoke.continuation.definition !=
       falseInvoke.continuation.definition) {
     return false;
