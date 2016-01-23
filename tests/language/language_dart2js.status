@@ -148,7 +148,6 @@ type_variable_conflict2_test/01: RuntimeError # Issue 19725
 branch_canonicalization_test: RuntimeError # Issue 638.
 identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
 integer_division_by_zero_test: RuntimeError # Issue 8301
-built_in_identifier_prefix_test: CompileTimeError # Issue 6972
 number_identity2_test: RuntimeError # Issue 12596
 double_int_to_string_test: RuntimeError # Issue 1533
 mint_arithmetic_test: RuntimeError # Issue 1533
