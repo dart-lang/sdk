@@ -102,7 +102,7 @@ String _getMethodSourceForInvocation(
     }
   });
   // replace static field "qualifier" with invocation target
-  part._staticFieldOffsets.forEach((String className, List<int> offsets) {
+  part._implicitClassNameOffsets.forEach((String className, List<int> offsets) {
     for (int offset in offsets) {
 //      edits.add(newSourceEdit_range(range, className + '.'));
       edits.add(new SourceEdit(offset, 0, className + '.'));
@@ -682,14 +682,23 @@ class _SourcePart {
   final List<int> _implicitThisOffsets = [];
 
   /**
-   * The offsets of the implicit class references in static field references.
+   * The offsets of the implicit class references in static member references.
    */
-  final Map<String, List<int>> _staticFieldOffsets = {};
+  final Map<String, List<int>> _implicitClassNameOffsets = {};
 
   _SourcePart(this._base, this._source, this._prefix);
 
   void addExplicitThisOffset(int offset) {
     _explicitThisOffsets.add(offset - _base);
+  }
+
+  void addImplicitClassNameOffset(String className, int offset) {
+    List<int> offsets = _implicitClassNameOffsets[className];
+    if (offsets == null) {
+      offsets = [];
+      _implicitClassNameOffsets[className] = offsets;
+    }
+    offsets.add(offset - _base);
   }
 
   void addImplicitThisOffset(int offset) {
@@ -707,15 +716,6 @@ class _SourcePart {
       range = rangeFromBase(range, _base);
       occurrences.add(new _ParameterOccurrence(precedence, range));
     }
-  }
-
-  void addStaticFieldOffset(String className, int offset) {
-    List<int> offsets = _staticFieldOffsets[className];
-    if (offsets == null) {
-      offsets = [];
-      _staticFieldOffsets[className] = offsets;
-    }
-    offsets.add(offset - _base);
   }
 
   void addVariable(VariableElement element, SourceRange range) {
@@ -765,7 +765,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
   visitSimpleIdentifier(SimpleIdentifier node) {
     SourceRange nodeRange = rangeNode(node);
     if (bodyRange.covers(nodeRange)) {
-      _addInstanceFieldQualifier(node);
+      _addMemberQualifier(node);
       _addParameter(node);
       _addVariable(node);
     }
@@ -779,19 +779,28 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
     }
   }
 
-  void _addInstanceFieldQualifier(SimpleIdentifier node) {
-    PropertyAccessorElement accessor = getPropertyAccessorElement(node);
-    if (isFieldAccessorElement(accessor)) {
-      AstNode qualifier = getNodeQualifier(node);
-      if (qualifier == null) {
-        int offset = node.offset;
-        if (accessor.isStatic) {
-          String className = accessor.enclosingElement.displayName;
-          result.addStaticFieldOffset(className, offset);
-        } else {
-          result.addImplicitThisOffset(offset);
-        }
-      }
+  void _addMemberQualifier(SimpleIdentifier node) {
+    // should be unqualified
+    AstNode qualifier = getNodeQualifier(node);
+    if (qualifier != null) {
+      return;
+    }
+    // should be a method or field reference
+    Element element = node.staticElement;
+    if (!(element is MethodElement || element is PropertyAccessorElement)) {
+      return;
+    }
+    if (element.enclosingElement is! ClassElement) {
+      return;
+    }
+    // record the implicit static or instance reference
+    ExecutableElement member = element;
+    int offset = node.offset;
+    if (member.isStatic) {
+      String className = member.enclosingElement.displayName;
+      result.addImplicitClassNameOffset(className, offset);
+    } else {
+      result.addImplicitThisOffset(offset);
     }
   }
 

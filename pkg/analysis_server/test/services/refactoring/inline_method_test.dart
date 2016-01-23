@@ -917,6 +917,81 @@ class A {
 ''');
   }
 
+  test_method_methodInstance() {
+    indexTestUnit(r'''
+class A {
+  ma() {}
+}
+class B extends A {
+  test() {
+    ma();
+    mb();
+  }
+  mb() {}
+}
+main(B b) {
+  b.test();
+}
+''');
+    _createRefactoring('test();');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+class A {
+  ma() {}
+}
+class B extends A {
+  test() {
+    ma();
+    mb();
+  }
+  mb() {}
+}
+main(B b) {
+  b.ma();
+  b.mb();
+}
+''');
+  }
+
+  test_method_methodStatic() {
+    indexTestUnit(r'''
+class A {
+  static ma() {}
+}
+class B extends A {
+  static mb() {}
+  test() {
+    mb();
+    A.ma();
+    B.mb();
+  }
+}
+main(B b) {
+  b.test();
+}
+''');
+    _createRefactoring('test();');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+class A {
+  static ma() {}
+}
+class B extends A {
+  static mb() {}
+  test() {
+    mb();
+    A.ma();
+    B.mb();
+  }
+}
+main(B b) {
+  B.mb();
+  A.ma();
+  B.mb();
+}
+''');
+  }
+
   test_method_singleStatement() {
     indexTestUnit(r'''
 class A {
@@ -973,7 +1048,7 @@ main() {
 ''');
   }
 
-  test_method_unqualifiedUnvocation() {
+  test_method_unqualifiedInvocation() {
     indexTestUnit(r'''
 class A {
   test(a, b) {
@@ -1361,7 +1436,7 @@ main() {
 ''');
   }
 
-  test_singleExpression_wrapIntoParenthesized_bools() {
+  test_singleExpression_wrapIntoParenthesized_bool() {
     indexTestUnit(r'''
 test(bool a, bool b) {
   return a || b;

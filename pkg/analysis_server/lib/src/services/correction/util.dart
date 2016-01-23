@@ -396,17 +396,14 @@ AstNode getNearestCommonAncestor(List<AstNode> nodes) {
  */
 Expression getNodeQualifier(SimpleIdentifier node) {
   AstNode parent = node.parent;
-  if (parent is PropertyAccess) {
-    PropertyAccess propertyAccess = parent;
-    if (identical(propertyAccess.propertyName, node)) {
-      return propertyAccess.target;
-    }
+  if (parent is MethodInvocation && identical(parent.methodName, node)) {
+    return parent.target;
   }
-  if (parent is PrefixedIdentifier) {
-    PrefixedIdentifier prefixed = parent;
-    if (identical(prefixed.identifier, node)) {
-      return prefixed.prefix;
-    }
+  if (parent is PropertyAccess && identical(parent.propertyName, node)) {
+    return parent.target;
+  }
+  if (parent is PrefixedIdentifier && identical(parent.identifier, node)) {
+    return parent.prefix;
   }
   return null;
 }
