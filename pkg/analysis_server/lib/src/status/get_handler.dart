@@ -691,15 +691,16 @@ class GetHandler {
             int lineCount(Set<Source> sources, bool explicit) {
               return sources.fold(0, (int previousTotal, Source source) {
                 LineInfo lineInfo = context.getLineInfo(source);
-                if (lineInfo == null) {
+                if (lineInfo is LineInfoWithCount) {
+                  if (explicit) {
+                    explicitLineInfoCount++;
+                  } else {
+                    implicitLineInfoCount++;
+                  }
+                  return previousTotal + lineInfo.lineCount;
+                } else {
                   return previousTotal;
                 }
-                if (explicit) {
-                  explicitLineInfoCount++;
-                } else {
-                  implicitLineInfoCount++;
-                }
-                return previousTotal + lineInfo.lineCount;
               });
             }
             explicitSourceCount += explicitSources.length;
