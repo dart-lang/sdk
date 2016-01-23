@@ -1273,6 +1273,36 @@ main() {
 ''');
   }
 
+  test_removeEmptyLinesBefore_method() {
+    indexTestUnit(r'''
+class A {
+  before() {
+  }
+
+
+  test() {
+    print(0);
+  }
+
+  foo() {
+    test();
+  }
+}
+''');
+    _createRefactoring('test() {');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+class A {
+  before() {
+  }
+
+  foo() {
+    print(0);
+  }
+}
+''');
+  }
+
   test_setter_classMember_instance() {
     indexTestUnit(r'''
 class A {

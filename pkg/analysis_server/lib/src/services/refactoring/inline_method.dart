@@ -263,7 +263,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     // delete method
     if (deleteSource && inlineAll) {
       SourceRange methodRange = rangeNode(_methodNode);
-      SourceRange linesRange = _methodUtils.getLinesRange(methodRange);
+      SourceRange linesRange =
+          _methodUtils.getLinesRange(methodRange, skipLeadingEmptyLines: true);
       doSourceChange_addElementEdit(
           change, _methodElement, newSourceEdit_range(linesRange, ''));
     }

@@ -201,6 +201,10 @@ bool isEmpty(String str) {
   return str == null || str.isEmpty;
 }
 
+bool isEOL(int c) {
+  return c == 0x0D || c == 0x0A;
+}
+
 bool isLetter(int c) {
   return (c >= 0x41 && c <= 0x5A) || (c >= 0x61 && c <= 0x7A);
 }
@@ -220,7 +224,7 @@ bool isUpperCase(int c) {
 }
 
 bool isWhitespace(int c) {
-  return isSpace(c) || c == 0x0D || c == 0x0A;
+  return isSpace(c) || isEOL(c);
 }
 
 String remove(String str, String remove) {

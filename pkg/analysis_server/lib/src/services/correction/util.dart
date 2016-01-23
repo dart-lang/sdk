@@ -664,7 +664,8 @@ class CorrectionUtils {
     AstNode enclosingNode = findNode(offset);
     Block enclosingBlock = enclosingNode.getAncestor((node) => node is Block);
     if (enclosingBlock != null) {
-      _CollectReferencedUnprefixedNames visitor = new _CollectReferencedUnprefixedNames();
+      _CollectReferencedUnprefixedNames visitor =
+          new _CollectReferencedUnprefixedNames();
       enclosingBlock.accept(visitor);
       return visitor.names;
     }
@@ -903,10 +904,14 @@ class CorrectionUtils {
    * Returns a [SourceRange] that covers [range] and extends (if possible) to
    * cover whole lines.
    */
-  SourceRange getLinesRange(SourceRange range) {
+  SourceRange getLinesRange(SourceRange range,
+      {bool skipLeadingEmptyLines: false}) {
     // start
     int startOffset = range.offset;
     int startLineOffset = getLineContentStart(startOffset);
+    if (skipLeadingEmptyLines) {
+      startLineOffset = skipEmptyLinesLeft(startLineOffset);
+    }
     // end
     int endOffset = range.end;
     int afterEndLineOffset = getLineContentEnd(endOffset);
@@ -1218,6 +1223,27 @@ class CorrectionUtils {
       SourceRange selection, AstNode node) {
     return _selectionIncludesNonWhitespaceOutsideRange(
         selection, rangeNode(node));
+  }
+
+  /**
+   * Skip spaces, tabs and EOLs on the left from [index].
+   *
+   * If [index] is the start of a method, then in the most cases return the end
+   * of the previous not-whitespace line.
+   */
+  int skipEmptyLinesLeft(int index) {
+    int lastLine = index;
+    while (index > 0) {
+      int c = _buffer.codeUnitAt(index - 1);
+      if (!isWhitespace(c)) {
+        return lastLine;
+      }
+      if (isEOL(c)) {
+        lastLine = index;
+      }
+      index--;
+    }
+    return 0;
   }
 
   /**
