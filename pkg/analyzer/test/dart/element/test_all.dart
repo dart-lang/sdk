@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.test_all;
+library analyzer.test.dart.element.test_all;
 
 import 'package:unittest/unittest.dart';
 
@@ -12,7 +12,7 @@ import 'element_test.dart' as element;
 /// Utility for manually running all tests.
 main() {
   initializeTestEnvironment();
-  group('generated tests', () {
+  group('element tests', () {
     element.main();
   });
 }

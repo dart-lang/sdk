@@ -2,17 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.dart.element.test_all;
+library analyzer.test.dart.ast.test_all;
 
 import 'package:unittest/unittest.dart';
 
-import '../../../utils.dart';
-import 'element_test.dart' as element;
+import '../../utils.dart';
+import 'ast_test.dart' as ast;
+import 'visitor_test.dart' as visitor;
 
 /// Utility for manually running all tests.
 main() {
   initializeTestEnvironment();
-  group('element tests', () {
-    element.main();
+  group('ast tests', () {
+    ast.main();
+    visitor.main();
   });
 }

@@ -15,7 +15,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:unittest/unittest.dart';
 
-import 'generated/ast_test.dart';
 import 'reflective_tests.dart';
 import 'utils.dart';
 
@@ -28,12 +27,6 @@ void main() {
 class EnumTest {
   void test_AnalysisLevel() {
     new EnumTester<AnalysisLevel>()
-      ..check_getters()
-      ..check_explicit_values();
-  }
-
-  void test_AssignmentKind() {
-    new EnumTester<AssignmentKind>()
       ..check_getters()
       ..check_explicit_values();
   }
@@ -100,12 +93,6 @@ class EnumTest {
 
   void test_UriKind() {
     new EnumTester<UriKind>()
-      ..check_getters()
-      ..check_explicit_values();
-  }
-
-  void test_WrapperKind() {
-    new EnumTester<WrapperKind>()
       ..check_getters()
       ..check_explicit_values();
   }
