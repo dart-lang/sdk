@@ -433,3 +433,20 @@ bool isDartMathMinMax(Element e) =>
     e is FunctionElement &&
     e.library.source.uri.toString() == 'dart:math' &&
     (e.name == 'min' || e.name == 'max');
+
+/// Parses an enum value out of a string.
+// TODO(ochafik): generic signature.
+dynamic parseEnum(String s, List enumValues) =>
+    enumValues.firstWhere((v) => s == getEnumName(v),
+        orElse: () => throw new ArgumentError(
+            'Unknown enum value: $s '
+            '(expected one of ${enumValues.map(getEnumName)})'));
+
+/// Gets the "simple" name of an enum value.
+getEnumName(v) {
+  var parts = '$v'.split('.');
+  if (parts.length != 2 || !parts.every((p) => p.isNotEmpty)) {
+    throw new ArgumentError('Invalid enum value: $v');
+  }
+  return parts[1];
+}

@@ -65,7 +65,10 @@ main(arguments) {
   var expectDir = path.join(inputDir, 'expect');
 
   BatchCompiler createCompiler(AnalysisContext context,
-      {bool checkSdk: false, bool sourceMaps: false, bool closure: false}) {
+      {bool checkSdk: false,
+      bool sourceMaps: false,
+      bool closure: false,
+      ModuleFormat moduleFormat: ModuleFormat.legacy}) {
     // TODO(jmesserly): add a way to specify flags in the test file, so
     // they're more self-contained.
     var runtimeDir = path.join(path.dirname(testDirectory), 'lib', 'runtime');
@@ -74,7 +77,8 @@ main(arguments) {
             outputDir: expectDir,
             emitSourceMaps: sourceMaps,
             closure: closure,
-            forceCompile: checkSdk),
+            forceCompile: checkSdk,
+            moduleFormat: moduleFormat),
         useColors: false,
         checkSdk: checkSdk,
         runtimeDir: runtimeDir,
@@ -147,14 +151,19 @@ $compilerMessages''';
           // We need a more comprehensive strategy to test them.
           var sourceMaps = filename == 'map_keys';
           var closure = filename == 'closure';
+          var moduleFormat =
+              filename == 'es6_modules' ? ModuleFormat.es6 : ModuleFormat.legacy;
           var success;
           // TODO(vsm): Is it okay to reuse the same context here?  If there is
           // overlap between test files, we may need separate ones for each
           // compiler.
-          var compiler = (sourceMaps || closure)
-              ? createCompiler(realSdkContext,
-                  sourceMaps: sourceMaps, closure: closure)
-              : batchCompiler;
+          var compiler =
+              (sourceMaps || closure || moduleFormat != ModuleFormat.legacy)
+                  ? createCompiler(realSdkContext,
+                      sourceMaps: sourceMaps,
+                      closure: closure,
+                      moduleFormat: moduleFormat)
+                  : batchCompiler;
           success = compile(compiler, filePath);
 
           var outFile = new File(path.join(outDir.path, '$filename.js'));

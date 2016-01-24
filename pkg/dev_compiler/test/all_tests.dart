@@ -14,6 +14,7 @@ import 'js/builder_test.dart' as builder_test;
 import 'end_to_end_test.dart' as e2e;
 import 'report_test.dart' as report_test;
 import 'dependency_graph_test.dart' as dependency_graph_test;
+import 'utils_test.dart' as utils_test;
 
 void main() {
   group('end-to-end', e2e.main);
@@ -25,4 +26,5 @@ void main() {
     closure_type_test.main();
   });
   group('js', builder_test.main);
+  group('utils', utils_test.main);
 }

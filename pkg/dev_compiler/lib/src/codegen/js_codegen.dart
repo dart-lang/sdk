@@ -38,6 +38,7 @@ import 'js_metalet.dart' as JS;
 import 'js_module_item_order.dart';
 import 'js_names.dart';
 import 'js_printer.dart' show writeJsLibrary;
+import 'module_builder.dart';
 import 'side_effect_analysis.dart';
 
 // Various dynamic helpers we call.
@@ -178,57 +179,28 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       id.setQualified(!_loader.isLoaded(element));
     }
 
-    if (_exports.isNotEmpty) _moduleItems.add(js.comment('Exports:'));
+    var moduleBuilder = new ModuleBuilder(
+        compiler.getModuleName(currentLibrary.source.uri),
+        _jsModuleValue,
+        _exportsVar,
+        options.moduleFormat);
 
-    // TODO(jmesserly): make these immutable in JS?
-    for (var name in _exports) {
-      _moduleItems.add(js.statement('#.# = #;', [_exportsVar, name, name]));
-    }
+    _exports.forEach(moduleBuilder.addExport);
 
-    var jsPath = compiler.getModuleName(currentLibrary.source.uri);
-
-    // TODO(jmesserly): it would be great to run the renamer on the body,
-    // then figure out if we really need each of these parameters.
-    // See ES6 modules: https://github.com/dart-lang/dev_compiler/issues/34
-    var params = [_exportsVar];
-    var lazyParams = [];
-
-    var imports = <JS.Expression>[];
-    var lazyImports = <JS.Expression>[];
-    var moduleStatements = <JS.Statement>[];
-
-    addImport(String name, JS.Expression libVar, {bool lazy: false}) {
-      (lazy ? lazyImports : imports).add(js.string(name, "'"));
-      (lazy ? lazyParams : params).add(libVar);
-    }
-
+    var items = <JS.ModuleItem>[];
     if (!_isDartRuntime) {
-      addImport('dart/_runtime', _runtimeLibVar);
+      moduleBuilder.addImport('dart/_runtime', _runtimeLibVar);
 
       var dartxImport =
           js.statement("let # = #.dartx;", [_dartxVar, _runtimeLibVar]);
-      moduleStatements.add(dartxImport);
+      items.add(dartxImport);
     }
+    items.addAll(_moduleItems);
+
     _imports.forEach((LibraryElement lib, JS.TemporaryId temp) {
-      addImport(compiler.getModuleName(lib.source.uri), temp,
-          lazy: _isDartRuntime || !_loader.libraryIsLoaded(lib));
+      moduleBuilder.addImport(compiler.getModuleName(lib.source.uri), temp,
+          isLazy: _isDartRuntime || !_loader.libraryIsLoaded(lib));
     });
-    params.addAll(lazyParams);
-
-    moduleStatements.addAll(_moduleItems);
-
-    var module =
-        js.call("function(#) { 'use strict'; #; }", [params, moduleStatements]);
-
-    var moduleDef = js.statement("dart_library.library(#, #, #, #, #)", [
-      js.string(jsPath, "'"),
-      _jsModuleValue ?? new JS.LiteralNull(),
-      js.commentExpression(
-          "Imports", new JS.ArrayInitializer(imports, multiline: true)),
-      js.commentExpression("Lazy imports",
-          new JS.ArrayInitializer(lazyImports, multiline: true)),
-      module
-    ]);
 
     // TODO(jmesserly): scriptTag support.
     // Enable this if we know we're targetting command line environment?
@@ -236,7 +208,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     // var jsBin = compiler.options.runnerOptions.v8Binary;
     // String scriptTag = null;
     // if (library.library.scriptTag != null) scriptTag = '/usr/bin/env $jsBin';
-    return new JS.Program(<JS.Statement>[moduleDef]);
+    return moduleBuilder.build(items);
   }
 
   void _emitModuleItem(AstNode node) {

@@ -13,6 +13,8 @@ import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
+import 'utils.dart' show parseEnum, getEnumName;
+
 const String _V8_BINARY_DEFAULT = 'node';
 const bool _CLOSURE_DEFAULT = false;
 const bool _DESTRUCTURE_NAMED_PARAMS_DEFAULT = false;
@@ -56,6 +58,9 @@ class SourceResolverOptions {
       this.useImplicitHtml: false});
 }
 
+enum ModuleFormat { es6, legacy }
+ModuleFormat parseModuleFormat(String s) => parseEnum(s, ModuleFormat.values);
+
 // TODO(jmesserly): refactor all codegen options here.
 class CodegenOptions {
   /// Whether to emit the source map files.
@@ -78,8 +83,8 @@ class CodegenOptions {
   final bool arrowFnBindThisWorkaround;
 
   /// Which module format to support.
-  /// Currently 'es6' and 'dart' are supported.
-  final String moduleFormat;
+  /// Currently 'es6' and 'legacy' are supported.
+  final ModuleFormat moduleFormat;
 
   const CodegenOptions(
       {this.emitSourceMaps: true,
@@ -88,7 +93,7 @@ class CodegenOptions {
       this.destructureNamedParams: _DESTRUCTURE_NAMED_PARAMS_DEFAULT,
       this.outputDir,
       this.arrowFnBindThisWorkaround: false,
-      this.moduleFormat: 'dart'});
+      this.moduleFormat: ModuleFormat.legacy});
 }
 
 /// Options for devrun.
@@ -158,7 +163,7 @@ class CompilerOptions {
   /// to this directory.
   final String inputBaseDir;
 
-  CompilerOptions(
+  const CompilerOptions(
       {this.sourceOptions: const SourceResolverOptions(),
       this.codegenOptions: const CodegenOptions(),
       this.runnerOptions: const RunnerOptions(),
@@ -239,7 +244,7 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
           destructureNamedParams: args['destructure-named-params'],
           outputDir: outputDir,
           arrowFnBindThisWorkaround: args['arrow-fn-bind-this'],
-          moduleFormat: args['modules']),
+          moduleFormat: parseModuleFormat(args['modules'])),
       sourceOptions: new SourceResolverOptions(
           useMockSdk: args['mock-sdk'],
           dartSdkPath: sdkPath,
@@ -306,12 +311,13 @@ final ArgParser argParser = new ArgParser()
       help: 'Work around `this` binding in => functions')
   ..addOption('modules',
       help: 'Which module pattern to emit',
-      allowed: ['es6', 'dart'],
+      allowed: ModuleFormat.values.map(getEnumName).toList(),
       allowedHelp: {
-        'es6': 'es6 modules',
-        'custom-dart': 'a custom format used by dartdevc, similar to AMD'
+        getEnumName(ModuleFormat.es6): 'es6 modules',
+        getEnumName(ModuleFormat.legacy):
+            'a custom format used by dartdevc, similar to AMD'
       },
-      defaultsTo: 'dart')
+      defaultsTo: getEnumName(ModuleFormat.legacy))
 
   // general options
   ..addFlag('help', abbr: 'h', help: 'Display this message')

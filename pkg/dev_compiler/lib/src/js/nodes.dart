@@ -284,13 +284,13 @@ class Program extends Node {
   final String scriptTag;
 
   /// Top-level statements in the program.
-  final List<Statement> body;
+  final List<ModuleItem> body;
 
   Program(this.body, {this.scriptTag});
 
   accept(NodeVisitor visitor) => visitor.visitProgram(this);
   void visitChildren(NodeVisitor visitor) {
-    for (Statement statement in body) statement.accept(visitor);
+    for (ModuleItem statement in body) statement.accept(visitor);
   }
   Program _clone() => new Program(body);
 }
