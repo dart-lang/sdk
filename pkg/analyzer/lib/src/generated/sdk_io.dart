@@ -258,19 +258,12 @@ class DirectoryBasedDartSdk implements DartSdk {
       _analysisContext = new SdkAnalysisContext();
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
-      List<String> uris = this.uris;
       // Try to use summaries.
       SdkBundle sdkBundle = _getSummarySdkBundle();
       if (sdkBundle != null) {
         _analysisContext.resultProvider =
             new SdkSummaryResultProvider(_analysisContext, sdkBundle);
       }
-      // Add sources.
-      ChangeSet changeSet = new ChangeSet();
-      for (String uri in uris) {
-        changeSet.addedSource(factory.forUri(uri));
-      }
-      _analysisContext.applyChanges(changeSet);
     }
     return _analysisContext;
   }
