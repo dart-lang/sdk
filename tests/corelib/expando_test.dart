@@ -18,7 +18,7 @@ class ExpandoTest {
       testUnnamedExpando(object);
     }
     for (var object in legal) {
-      Expect.equals(2, visits[object]);
+      Expect.equals(2, visits[object], "$object");
     }
     testIllegal();
     testIdentity();
@@ -65,19 +65,19 @@ class ExpandoTest {
   static testIllegal() {
     Expando<int> expando = new Expando<int>();
     Expect.throws(() => expando[null], (exception)
-                  => exception is ArgumentError);
+                  => exception is ArgumentError, "null");
     Expect.throws(() => expando['string'], (exception)
-                  => exception is ArgumentError);
+                  => exception is ArgumentError, "'string'");
     Expect.throws(() => expando['string'], (exception)
-                  => exception is ArgumentError);
+                  => exception is ArgumentError, "'string'");
     Expect.throws(() => expando[42], (exception)
-                  => exception is ArgumentError);
+                  => exception is ArgumentError, "42");
     Expect.throws(() => expando[42.87], (exception)
-                  => exception is ArgumentError);
+                  => exception is ArgumentError, "42.87");
     Expect.throws(() => expando[true], (exception)
-                  => exception is ArgumentError);
+                  => exception is ArgumentError, "true");
     Expect.throws(() => expando[false], (exception)
-                  => exception is ArgumentError);
+                  => exception is ArgumentError, "false");
   }
 
   static testIdentity() {

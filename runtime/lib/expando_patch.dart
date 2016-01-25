@@ -131,7 +131,8 @@ patch class Expando<T> {
          (object is bool) ||
          (object is num) ||
          (object is String)) {
-      throw new ArgumentError(object);
+      throw new ArgumentError.value(object,
+          "Expandos are not allowed on strings, numbers, booleans or null");
     }
   }
 
