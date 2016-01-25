@@ -200,6 +200,13 @@ class LineInfo {
   factory LineInfo(List<int> _lineStarts) => new LineInfoWithCount(_lineStarts);
 
   /**
+   * Initialize a newly created set of line information corresponding to the
+   * given file [content].
+   */
+  factory LineInfo.fromContent(String content) =>
+      new LineInfoWithCount(StringUtilities.computeLineStarts(content));
+
+  /**
    * Initialize a newly created set of line information to represent the data
    * encoded in the given list of [_lineStarts].
    */

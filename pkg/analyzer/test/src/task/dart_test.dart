@@ -3052,7 +3052,7 @@ part 'test.dart';
     expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[SOURCE_KIND], SourceKind.UNKNOWN);
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(1));
   }
 
@@ -3162,7 +3162,11 @@ class B {}''');
   }
 
   void _performParseTask(String content) {
-    source = newSource('/test.dart', content);
+    if (content == null) {
+      source = resourceProvider.getFile('/test.dart').createSource();
+    } else {
+      source = newSource('/test.dart', content);
+    }
     computeResult(source, PARSED_UNIT, matcher: isParseDartTask);
   }
 
