@@ -4112,7 +4112,8 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     member.has_var = true;
     // The member type is the 'dynamic' type.
     member.type = &Object::dynamic_type();
-  } else if (CurrentToken() == Token::kFACTORY) {
+  } else if ((CurrentToken() == Token::kFACTORY) &&
+      (LookaheadToken(1) != Token::kLPAREN)) {
     ConsumeToken();
     if (member.has_static) {
       ReportError("factory method cannot be explicitly marked static");
