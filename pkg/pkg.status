@@ -45,6 +45,7 @@ analysis_server/test/search/top_level_declarations_test: Pass, Slow # 19756, 216
 analysis_server/test/services/index/store/codec_test: Pass, Slow
 analysis_server/test/socket_server_test: Pass, Slow # Issue 19756, 21628
 analyzer/test/dart/element/element_test: Pass, Slow # Issue 24914
+analyzer/test/dart/ast/visitor_test: Pass, Slow # Issue 19756, 21628
 analyzer/test/enum_test: Slow, Pass, Fail # Issue 21323
 analyzer/test/generated/all_the_rest_test: Pass, Slow # Issue 21628
 analyzer/test/generated/ast_test: Pass, Slow # Issue 21628
