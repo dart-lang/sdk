@@ -141,8 +141,10 @@ class CpsFunctionCompiler implements FunctionCompiler {
   }
 
   cps.FunctionDefinition compileToCpsIr(AstElement element) {
-    cps.FunctionDefinition cpsFunction =
-        cpsBuilderTask.buildNode(element, typeSystem);
+    cps.FunctionDefinition cpsFunction = inliner.cache.getUnoptimized(element);
+    if (cpsFunction != null) return cpsFunction;
+
+    cpsFunction = cpsBuilderTask.buildNode(element, typeSystem);
     if (cpsFunction == null) {
       if (cpsBuilderTask.bailoutMessage == null) {
         giveUp('unable to build cps definition of $element');
@@ -157,6 +159,11 @@ class CpsFunctionCompiler implements FunctionCompiler {
     // insert fewer getInterceptor calls.
     applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
     applyCpsPass(new UnsugarVisitor(glue), cpsFunction);
+    applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
+    applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
+    applyCpsPass(new InsertRefinements(typeSystem), cpsFunction);
+
+    inliner.cache.putUnoptimized(element, cpsFunction);
     return cpsFunction;
   }
 
@@ -208,9 +215,6 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   void optimizeCpsBeforeInlining(cps.FunctionDefinition cpsFunction) {
     cpsOptimizationTask.measure(() {
-      applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
-      applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
-      applyCpsPass(new InsertRefinements(typeSystem), cpsFunction);
       applyCpsPass(new TypePropagator(this), cpsFunction);
       applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);

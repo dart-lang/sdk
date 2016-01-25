@@ -86,6 +86,9 @@ class InliningCache {
   static const int ABSENT = -1;
   static const int NO_INLINE = 0;
 
+  final Map<ExecutableElement, FunctionDefinition> unoptimized =
+      <ExecutableElement, FunctionDefinition>{};
+
   final Map<ExecutableElement, List<CacheEntry>> map =
       <ExecutableElement, List<CacheEntry>>{};
 
@@ -143,6 +146,29 @@ class InliningCache {
       }
     }
     return ABSENT;
+  }
+
+  /// Cache the unoptimized CPS term for a function.
+  ///
+  /// The unoptimized term should not have any inlining-context-specific
+  /// optimizations applied to it.  It will be used to compile the
+  /// non-specialized version of the function.
+  void putUnoptimized(ExecutableElement element, FunctionDefinition function) {
+    unoptimized.putIfAbsent(element, () => copier.copy(function));
+  }
+
+  /// Look up the unoptimized CPS term for a function.
+  ///
+  /// The unoptimized term will not have any inlining-context-specific
+  /// optimizations applied to it.  It can be used to compile the
+  /// non-specialized version of the function.
+  FunctionDefinition getUnoptimized(ExecutableElement element) {
+    FunctionDefinition function = unoptimized[element];
+    if (function != null) {
+      function = copier.copy(function);
+      ParentVisitor.setParents(function);
+    }
+    return function;
   }
 }
 
@@ -448,7 +474,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
         function = buildAdapter(invoke, target);
       }
     } else {
-      function = _inliner.functionCompiler.compileToCpsIr(target);
+      function = compileToCpsIr(target);
       void setValue(Variable variable, Reference<Primitive> value) {
         variable.type = value.definition.type;
       }
