@@ -644,10 +644,12 @@ class _LibraryResynthesizer {
       case ReferenceKind.topLevelPropertyAccessor:
         return new PropertyAccessorElementHandle(
             summaryResynthesizer, location);
+      case ReferenceKind.constructor:
+      case ReferenceKind.staticMethod:
       case ReferenceKind.prefix:
       case ReferenceKind.unresolved:
         // Should never happen.  Exported names never refer to import prefixes,
-        // and they always refer to defined entities.
+        // and they always refer to defined top-level entities.
         throw new StateError('Unexpected export name kind: ${exportName.kind}');
     }
   }

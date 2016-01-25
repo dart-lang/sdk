@@ -43,19 +43,52 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
 
   _PublicNamespaceVisitor();
 
-  void addNameIfPublic(String name, ReferenceKind kind, int numTypeParameters) {
+  UnlinkedPublicNameBuilder addNameIfPublic(
+      String name, ReferenceKind kind, int numTypeParameters) {
     if (isPublic(name)) {
-      names.add(new UnlinkedPublicNameBuilder(
-          name: name, kind: kind, numTypeParameters: numTypeParameters));
+      UnlinkedPublicNameBuilder b = new UnlinkedPublicNameBuilder(
+          name: name, kind: kind, numTypeParameters: numTypeParameters);
+      names.add(b);
+      return b;
     }
+    return null;
   }
 
   bool isPublic(String name) => !name.startsWith('_');
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    addNameIfPublic(node.name.name, ReferenceKind.classOrEnum,
+    UnlinkedPublicNameBuilder cls = addNameIfPublic(
+        node.name.name,
+        ReferenceKind.classOrEnum,
         node.typeParameters?.typeParameters?.length ?? 0);
+    if (cls != null) {
+      for (ClassMember member in node.members) {
+        if (member is MethodDeclaration &&
+            member.isStatic &&
+            !member.isGetter &&
+            !member.isSetter &&
+            !member.isOperator) {
+          String name = member.name.name;
+          if (isPublic(name)) {
+            cls.executables.add(new UnlinkedPublicNameBuilder(
+                name: name,
+                kind: ReferenceKind.staticMethod,
+                numTypeParameters:
+                    member.typeParameters?.typeParameters?.length ?? 0));
+          }
+        }
+        if (member is ConstructorDeclaration) {
+          String name = member.name != null ? member.name.name : '';
+          if (isPublic(name)) {
+            cls.executables.add(new UnlinkedPublicNameBuilder(
+                name: name,
+                kind: ReferenceKind.constructor,
+                numTypeParameters: 0));
+          }
+        }
+      }
+    }
   }
 
   @override

@@ -291,6 +291,16 @@ enum ReferenceKind {
   classOrEnum,
 
   /**
+   * The entity is a constructor.
+   */
+  constructor,
+
+  /**
+   * The entity is a static method.
+   */
+  staticMethod,
+
+  /**
    * The entity is a typedef.
    */
   typedef,
@@ -1161,9 +1171,6 @@ class UnlinkedPart {
  * TODO(paulberry): add a count of generic parameters, so that resynthesis
  * doesn't have to peek into the library to obtain this info.
  *
- * TODO(paulberry): for classes, add info about static members and
- * constructors, since this will be needed to prelink info about constants.
- *
  * TODO(paulberry): some of this information is redundant with information
  * elsewhere in the summary.  Consider reducing the redundancy to reduce
  * summary size.
@@ -1184,6 +1191,12 @@ class UnlinkedPublicName {
    * it accepts.  Otherwise zero.
    */
   int numTypeParameters;
+
+  /**
+   * If this [UnlinkedPublicName] is a class, the list of static methods
+   * and constructors.  Otherwise empty.
+   */
+  List<UnlinkedPublicName> executables;
 }
 
 /**

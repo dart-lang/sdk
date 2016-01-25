@@ -180,7 +180,8 @@ class _CompilationUnitSerializer {
         names.add(new UnlinkedPublicNameBuilder(
             kind: ReferenceKind.classOrEnum,
             name: cls.name,
-            numTypeParameters: cls.typeParameters.length));
+            numTypeParameters: cls.typeParameters.length,
+            executables: serializePublicStaticMethodsAndConstructors(cls)));
       }
     }
     for (ClassElement enm in compilationUnit.enums) {
@@ -576,6 +577,35 @@ class _CompilationUnitSerializer {
           .add(new LinkedReferenceBuilder(kind: ReferenceKind.prefix));
       return index;
     });
+  }
+
+  /**
+   * If [cls] is a class, return the list of its public static methods and
+   * constructors.  Otherwise return `null`.
+   */
+  List<UnlinkedPublicNameBuilder> serializePublicStaticMethodsAndConstructors(
+      ClassElement cls) {
+    if (cls.kind == ElementKind.CLASS) {
+      List<UnlinkedPublicNameBuilder> bs = <UnlinkedPublicNameBuilder>[];
+      for (MethodElement method in cls.methods) {
+        if (method.isStatic && method.isPublic) {
+          bs.add(new UnlinkedPublicNameBuilder(
+              name: method.name,
+              kind: ReferenceKind.staticMethod,
+              numTypeParameters: method.typeParameters.length));
+        }
+      }
+      for (ConstructorElement constructor in cls.constructors) {
+        if (constructor.isPublic && !constructor.isSynthetic) {
+          bs.add(new UnlinkedPublicNameBuilder(
+              name: constructor.name,
+              kind: ReferenceKind.constructor,
+              numTypeParameters: 0));
+        }
+      }
+      return bs;
+    }
+    return null;
   }
 
   /**

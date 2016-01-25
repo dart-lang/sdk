@@ -48,7 +48,8 @@ final Map<String, UnlinkedPublicNamespace> sdkPublicNamespace = () {
       for (int i = 0; i < serializedLibrary.unlinkedUnits.length; i++) {
         uriToNamespace[serializedLibrary.unitUris[i]] =
             new UnlinkedUnit.fromBuffer(
-                serializedLibrary.unlinkedUnits[i].toBuffer()).publicNamespace;
+                    serializedLibrary.unlinkedUnits[i].toBuffer())
+                .publicNamespace;
       }
     }
     return uriToNamespace;
@@ -797,7 +798,8 @@ enum E {
   EntityRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
-        allowErrors: allowErrors).type;
+            allowErrors: allowErrors)
+        .type;
   }
 
   /**
@@ -1080,6 +1082,46 @@ class E {}''';
     UnlinkedClass cls = serializeClassText(text);
     expect(cls.documentationComment, isNotNull);
     checkDocumentationComment(cls.documentationComment, text);
+  }
+
+  test_class_executables() {
+    UnlinkedClass cls = serializeClassText('''
+class C {
+  static void methodStaticPublic() {}
+  static void _methodStaticPrivate() {}
+  C();
+  C.constructorNamedPublic();
+  C._constructorNamedPrivate();
+  void methodInstancePublic() {}
+  C operator+(C c) => null;
+}
+''');
+    expect(cls.isAbstract, false);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    UnlinkedPublicName className = unlinkedUnits[0].publicNamespace.names[0];
+    expect(className.kind, ReferenceKind.classOrEnum);
+    expect(className.name, 'C');
+    expect(className.numTypeParameters, 0);
+    // executables
+    Map<String, UnlinkedPublicName> executablesMap =
+        <String, UnlinkedPublicName>{};
+    className.executables.forEach((e) => executablesMap[e.name] = e);
+    expect(executablesMap, hasLength(3));
+    {
+      UnlinkedPublicName executable = executablesMap['methodStaticPublic'];
+      expect(executable.kind, ReferenceKind.staticMethod);
+      expect(executable.executables, isEmpty);
+    }
+    {
+      UnlinkedPublicName executable = executablesMap[''];
+      expect(executable.kind, ReferenceKind.constructor);
+      expect(executable.executables, isEmpty);
+    }
+    {
+      UnlinkedPublicName executable = executablesMap['constructorNamedPublic'];
+      expect(executable.kind, ReferenceKind.constructor);
+      expect(executable.executables, isEmpty);
+    }
   }
 
   test_class_interface() {
@@ -1592,10 +1634,12 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
   test_constExpr_length() {
     UnlinkedVariable variable =
         serializeVariableText('const v = "abc".length;');
-    _assertUnlinkedConst(variable.constExpr,
-        operators:
-            [UnlinkedConstOperation.pushString, UnlinkedConstOperation.length],
-        strings: ['abc']);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.length
+    ], strings: [
+      'abc'
+    ]);
   }
 
   test_constExpr_makeSymbol() {
@@ -1755,24 +1799,30 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
 
   test_constExpr_prefix_complement() {
     UnlinkedVariable variable = serializeVariableText('const v = ~2;');
-    _assertUnlinkedConst(variable.constExpr,
-        operators:
-            [UnlinkedConstOperation.pushInt, UnlinkedConstOperation.complement],
-        ints: [2]);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.complement
+    ], ints: [
+      2
+    ]);
   }
 
   test_constExpr_prefix_negate() {
     UnlinkedVariable variable = serializeVariableText('const v = -(2);');
-    _assertUnlinkedConst(variable.constExpr,
-        operators:
-            [UnlinkedConstOperation.pushInt, UnlinkedConstOperation.negate],
-        ints: [2]);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.negate
+    ], ints: [
+      2
+    ]);
   }
 
   test_constExpr_prefix_not() {
     UnlinkedVariable variable = serializeVariableText('const v = !true;');
-    _assertUnlinkedConst(variable.constExpr, operators:
-        [UnlinkedConstOperation.pushTrue, UnlinkedConstOperation.not]);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushTrue,
+      UnlinkedConstOperation.not
+    ]);
   }
 
   test_constExpr_pushDouble() {
@@ -1801,10 +1851,12 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
 
   test_constExpr_pushInt_negative() {
     UnlinkedVariable variable = serializeVariableText('const v = -5;');
-    _assertUnlinkedConst(variable.constExpr,
-        operators:
-            [UnlinkedConstOperation.pushInt, UnlinkedConstOperation.negate],
-        ints: [5]);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.negate
+    ], ints: [
+      5
+    ]);
   }
 
   test_constExpr_pushInt_shiftOr_long() {
@@ -1825,10 +1877,13 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
 
   test_constExpr_pushInt_shiftOr_min() {
     UnlinkedVariable variable = serializeVariableText('const v = 0x100000000;');
-    _assertUnlinkedConst(variable.constExpr,
-        operators:
-            [UnlinkedConstOperation.pushInt, UnlinkedConstOperation.shiftOr,],
-        ints: [1, 0,]);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.shiftOr,
+    ], ints: [
+      1,
+      0,
+    ]);
   }
 
   test_constExpr_pushInt_shiftOr_min2() {
@@ -2636,7 +2691,8 @@ enum E { v }''';
 
   test_executable_operator_equal() {
     UnlinkedExecutable executable = serializeClassText(
-        'class C { bool operator==(Object other) => false; }').executables[0];
+            'class C { bool operator==(Object other) => false; }')
+        .executables[0];
     expect(executable.name, '==');
   }
 
@@ -2672,7 +2728,8 @@ enum E { v }''';
 
   test_executable_operator_index_set() {
     UnlinkedExecutable executable = serializeClassText(
-        'class C { void operator[]=(int i, bool v) => null; }').executables[0];
+            'class C { void operator[]=(int i, bool v) => null; }')
+        .executables[0];
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.name, '[]=');
     expect(executable.returnType, isNotNull);
@@ -3600,7 +3657,8 @@ p.B b;
       return;
     }
     checkUnresolvedTypeRef(
-        serializeClassText('class C<T> { T.U x; }', allowErrors: true).fields[0]
+        serializeClassText('class C<T> { T.U x; }', allowErrors: true)
+            .fields[0]
             .type,
         'T',
         'U');

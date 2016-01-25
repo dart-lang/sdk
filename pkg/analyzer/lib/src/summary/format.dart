@@ -21,6 +21,16 @@ enum ReferenceKind {
   classOrEnum,
 
   /**
+   * The entity is a constructor.
+   */
+  constructor,
+
+  /**
+   * The entity is a static method.
+   */
+  staticMethod,
+
+  /**
    * The entity is a typedef.
    */
   typedef,
@@ -4377,6 +4387,7 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   String _name;
   ReferenceKind _kind;
   int _numTypeParameters;
+  List<UnlinkedPublicNameBuilder> _executables;
 
   @override
   String get name => _name ??= '';
@@ -4413,17 +4424,34 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
     _numTypeParameters = _value;
   }
 
-  UnlinkedPublicNameBuilder({String name, ReferenceKind kind, int numTypeParameters})
+  @override
+  List<UnlinkedPublicNameBuilder> get executables => _executables ??= <UnlinkedPublicNameBuilder>[];
+
+  /**
+   * If this [UnlinkedPublicName] is a class, the list of static methods
+   * and constructors.  Otherwise empty.
+   */
+  void set executables(List<UnlinkedPublicNameBuilder> _value) {
+    assert(!_finished);
+    _executables = _value;
+  }
+
+  UnlinkedPublicNameBuilder({String name, ReferenceKind kind, int numTypeParameters, List<UnlinkedPublicNameBuilder> executables})
     : _name = name,
       _kind = kind,
-      _numTypeParameters = numTypeParameters;
+      _numTypeParameters = numTypeParameters,
+      _executables = executables;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
     fb.Offset offset_name;
+    fb.Offset offset_executables;
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
+    }
+    if (!(_executables == null || _executables.isEmpty)) {
+      offset_executables = fbBuilder.writeList(_executables.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_name != null) {
@@ -4435,6 +4463,9 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
     if (_numTypeParameters != null && _numTypeParameters != 0) {
       fbBuilder.addUint32(2, _numTypeParameters);
     }
+    if (offset_executables != null) {
+      fbBuilder.addOffset(3, offset_executables);
+    }
     return fbBuilder.endTable();
   }
 }
@@ -4445,9 +4476,6 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
  *
  * TODO(paulberry): add a count of generic parameters, so that resynthesis
  * doesn't have to peek into the library to obtain this info.
- *
- * TODO(paulberry): for classes, add info about static members and
- * constructors, since this will be needed to prelink info about constants.
  *
  * TODO(paulberry): some of this information is redundant with information
  * elsewhere in the summary.  Consider reducing the redundancy to reduce
@@ -4470,6 +4498,12 @@ abstract class UnlinkedPublicName extends base.SummaryClass {
    * it accepts.  Otherwise zero.
    */
   int get numTypeParameters;
+
+  /**
+   * If this [UnlinkedPublicName] is a class, the list of static methods
+   * and constructors.  Otherwise empty.
+   */
+  List<UnlinkedPublicName> get executables;
 }
 
 class _UnlinkedPublicNameReader extends fb.TableReader<_UnlinkedPublicNameImpl> {
@@ -4487,6 +4521,7 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
   String _name;
   ReferenceKind _kind;
   int _numTypeParameters;
+  List<UnlinkedPublicName> _executables;
 
   @override
   String get name {
@@ -4505,6 +4540,12 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
     _numTypeParameters ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
     return _numTypeParameters;
   }
+
+  @override
+  List<UnlinkedPublicName> get executables {
+    _executables ??= const fb.ListReader<UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bp, 3, const <UnlinkedPublicName>[]);
+    return _executables;
+  }
 }
 
 abstract class _UnlinkedPublicNameMixin implements UnlinkedPublicName {
@@ -4513,6 +4554,7 @@ abstract class _UnlinkedPublicNameMixin implements UnlinkedPublicName {
     "name": name,
     "kind": kind,
     "numTypeParameters": numTypeParameters,
+    "executables": executables,
   };
 }
 
