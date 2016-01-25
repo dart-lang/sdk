@@ -450,13 +450,6 @@ class ConstantEvaluationEngine {
    * Determine which constant elements need to have their values computed
    * prior to computing the value of [constant], and report them using
    * [callback].
-   *
-   * Note that it's possible (in erroneous code) for a constant to depend on a
-   * non-constant.  When this happens, we report the dependency anyhow so that
-   * if the non-constant changes to a constant, we will know to recompute the
-   * thing that depends on it.  [computeDependencies] and
-   * [computeConstantValue] are responsible for ignoring the request if they
-   * are asked to act on a non-constant target.
    */
   void computeDependencies(
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
@@ -5257,7 +5250,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
     if (element is PropertyAccessorElement) {
       element = (element as PropertyAccessorElement).variable;
     }
-    if (element is VariableElement) {
+    if (element is VariableElement && element.isConst) {
       _callback(element);
     }
     return null;

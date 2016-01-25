@@ -2213,11 +2213,6 @@ class ReferenceFinderTest {
     _assertOneArc(_tail);
   }
 
-  void test_visitSimpleIdentifier_nonConst() {
-    _visitNode(_makeTailVariable("v2", false));
-    _assertOneArc(_tail);
-  }
-
   void test_visitSuperConstructorInvocation_const() {
     _visitNode(_makeTailSuperConstructorInvocation("A", true));
     _assertOneArc(_tail);
