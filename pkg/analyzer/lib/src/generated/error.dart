@@ -19,6 +19,8 @@ import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
 
+import 'generated/shared_messages.dart' as shared_messages;
+
 /**
  * The descriptor used to associate error processors with analysis contexts in
  * configuration data.

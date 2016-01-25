@@ -72,6 +72,10 @@ import 'invariant.dart' show
 import 'spannable.dart' show
     CURRENT_ELEMENT_SPANNABLE;
 
+import 'generated/shared_messages.dart' as shared_messages;
+
+export 'generated/shared_messages.dart' show SharedMessageKind;
+
 const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
 
 /// Keys for the [MessageTemplate]s.
@@ -473,7 +477,7 @@ enum MessageKind {
 // TODO(johnnniwinther): For Infos, consider adding a reference to the
 // error/warning/hint that they belong to.
 class MessageTemplate {
-  final MessageKind kind;
+  final dynamic/*MessageKind | SharedMessageKind*/ kind;
 
   /// Should describe what is wrong and why.
   final String template;
@@ -505,8 +509,11 @@ class MessageTemplate {
   ///
   /// The map is complete mapping from [MessageKind] to their corresponding
   /// [MessageTemplate].
-  static const Map<MessageKind, MessageTemplate> TEMPLATES =
-    const <MessageKind, MessageTemplate>{
+  // The key type is a union of MessageKind and SharedMessageKind.
+  static final Map<dynamic, MessageTemplate> TEMPLATES =
+      <dynamic, MessageTemplate>{}
+    ..addAll(shared_messages.TEMPLATES)
+    ..addAll(const<MessageKind, MessageTemplate>{
       /// Do not use this. It is here for legacy and debugging. It violates item
       /// 4 of the guide lines for error messages in the beginning of the file.
       MessageKind.GENERIC:
@@ -3648,7 +3655,7 @@ $MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING#{importChain}"""),
           "Unsupported version of package:lookup_map.",
           howToFix: DONT_KNOW_HOW_TO_FIX),
 
-  }; // End of TEMPLATES.
+  }); // End of TEMPLATES.
 
   /// Padding used before and between import chains in the message for
   /// [MessageKind.IMPORT_EXPERIMENTAL_MIRRORS].
@@ -3681,7 +3688,7 @@ class Message {
     assert(() { computeMessage(); return true; });
   }
 
-  MessageKind get kind => template.kind;
+  dynamic/*MessageKind | SharedMessageKind*/ get kind => template.kind;
 
   String computeMessage() {
     if (message == null) {
