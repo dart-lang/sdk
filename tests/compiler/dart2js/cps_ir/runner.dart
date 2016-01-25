@@ -118,7 +118,7 @@ String _formatTest(Map test) {
 String _getCodeForMain(CompilerImpl compiler) {
   Element mainFunction = compiler.mainFunction;
   js.Node ast = compiler.enqueuer.codegen.generatedCode[mainFunction];
-  return js.prettyPrint(ast, compiler).getText();
+  return js.prettyPrint(ast, compiler);
 }
 
 String _getCodeForMethod(CompilerImpl compiler,
@@ -138,5 +138,5 @@ String _getCodeForMethod(CompilerImpl compiler,
   }
 
   js.Node ast = compiler.enqueuer.codegen.generatedCode[foundElement];
-  return js.prettyPrint(ast, compiler).getText();
+  return js.prettyPrint(ast, compiler);
 }

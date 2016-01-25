@@ -5,7 +5,10 @@
 library js.source_mapping;
 
 import 'js.dart';
-import '../io/code_output.dart' show SourceLocations;
+import '../io/code_output.dart' show
+    BufferedCodeOutput,
+    CodeBuffer,
+    SourceLocations;
 import '../io/source_information.dart' show
     SourceLocation,
     SourceInformation,
@@ -64,5 +67,5 @@ class SourceInformationProcessor extends CodePositionListener {
 
   /// Process the source information and code positions for the [node] and all
   /// its children.
-  void process(Node node) {}
+  void process(Node node, BufferedCodeOutput code) {}
 }

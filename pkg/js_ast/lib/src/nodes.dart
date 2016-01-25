@@ -195,7 +195,9 @@ class BaseVisitor<T> implements NodeVisitor<T> {
 
 /// This tag interface has no behaviour but must be implemented by any class
 /// that is to be stored on a [Node] as source information.
-abstract class JavaScriptNodeSourceInformation {}
+abstract class JavaScriptNodeSourceInformation {
+  const JavaScriptNodeSourceInformation();
+}
 
 abstract class Node {
   JavaScriptNodeSourceInformation get sourceInformation => _sourceInformation;
@@ -1075,7 +1077,7 @@ class LiteralNumber extends Literal {
   LiteralNumber(this.value);
 
   int get precedenceLevel => value.startsWith('-') ? UNARY : PRIMARY;
-  
+
   accept(NodeVisitor visitor) => visitor.visitLiteralNumber(this);
   LiteralNumber _clone() => new LiteralNumber(value);
 }

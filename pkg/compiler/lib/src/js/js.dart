@@ -20,12 +20,30 @@ import '../js_emitter/js_emitter.dart' show
 
 import 'js_source_mapping.dart';
 
-CodeBuffer prettyPrint(Node node,
-                       Compiler compiler,
-                       {DumpInfoTask monitor,
-                        bool allowVariableMinification: true,
-                        Renamer renamerForNames:
-                            JavaScriptPrintingOptions.identityRenamer}) {
+String prettyPrint(
+    Node node,
+    Compiler compiler,
+    {bool allowVariableMinification: true,
+     Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer}) {
+  // TODO(johnniwinther): Do we need all the options here?
+  JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
+      shouldCompressOutput: compiler.enableMinification,
+      minifyLocalVariables: allowVariableMinification,
+      preferSemicolonToNewlineInMinifiedOutput: USE_LAZY_EMITTER,
+      renamerForNames: renamerForNames);
+  SimpleJavaScriptPrintingContext context =
+      new SimpleJavaScriptPrintingContext();
+  Printer printer = new Printer(options, context);
+  printer.visit(node);
+  return context.getText();
+}
+
+CodeBuffer createCodeBuffer(
+    Node node,
+    Compiler compiler,
+    {DumpInfoTask monitor,
+     bool allowVariableMinification: true,
+     Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer}) {
   JavaScriptSourceInformationStrategy sourceInformationFactory =
       compiler.backend.sourceInformationStrategy;
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
@@ -35,14 +53,14 @@ CodeBuffer prettyPrint(Node node,
       renamerForNames: renamerForNames);
   CodeBuffer outBuffer = new CodeBuffer();
   SourceInformationProcessor sourceInformationProcessor =
-      sourceInformationFactory.createProcessor(
-          new SourceLocationsMapper(outBuffer));
+        sourceInformationFactory.createProcessor(
+            new SourceLocationsMapper(outBuffer));
   Dart2JSJavaScriptPrintingContext context =
       new Dart2JSJavaScriptPrintingContext(
           compiler.reporter, monitor, outBuffer, sourceInformationProcessor);
   Printer printer = new Printer(options, context);
   printer.visit(node);
-  sourceInformationProcessor.process(node);
+  sourceInformationProcessor.process(node, outBuffer);
   return outBuffer;
 }
 
@@ -143,7 +161,7 @@ class UnparsedNode extends DeferredString
 
   LiteralString get _literal {
     if (_cachedLiteral == null) {
-      String text = prettyPrint(tree, _compiler).getText();
+      String text = prettyPrint(tree, _compiler);
       if (_protectForEval) {
         if (tree is Fun) text = '($text)';
         if (tree is LiteralExpression) {

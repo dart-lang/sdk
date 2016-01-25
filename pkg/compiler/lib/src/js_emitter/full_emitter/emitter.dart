@@ -74,6 +74,7 @@ import '../../js_backend/js_backend.dart' show
     TypeCheck,
     TypeChecks,
     TypeVariableHandler;
+import '../../js/js_debug.dart';
 import '../../universe/call_structure.dart' show
     CallStructure;
 import '../../universe/selector.dart' show
@@ -1609,9 +1610,8 @@ class Emitter implements js_emitter.Emitter {
     outputBuffers[mainOutputUnit] = mainOutput;
 
 
-    mainOutput.addBuffer(jsAst.prettyPrint(program,
-                                           compiler,
-                                           monitor: compiler.dumpInfoTask));
+    mainOutput.addBuffer(jsAst.createCodeBuffer(
+        program, compiler, monitor: compiler.dumpInfoTask));
 
     if (compiler.deferredMapUri != null) {
       outputDeferredMap();
@@ -2055,9 +2055,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
       outputBuffers[outputUnit] = output;
 
-      output.addBuffer(jsAst.prettyPrint(outputAsts[outputUnit],
-                                         compiler,
-                                         monitor: compiler.dumpInfoTask));
+      output.addBuffer(jsAst.createCodeBuffer(
+          outputAsts[outputUnit], compiler, monitor: compiler.dumpInfoTask));
 
       // Make a unique hash of the code (before the sourcemaps are added)
       // This will be used to retrieve the initializing function from the global

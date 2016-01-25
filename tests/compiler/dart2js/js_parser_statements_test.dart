@@ -14,8 +14,7 @@ Future testStatement(String statement, arguments, String expect) {
   jsAst.Node node = js.statement(statement, arguments);
   return MockCompiler.create((MockCompiler compiler) {
     String jsText =
-        jsAst.prettyPrint(node, compiler, allowVariableMinification: false)
-        .getText();
+        jsAst.prettyPrint(node, compiler, allowVariableMinification: false);
 
     Expect.stringEquals(expect.trim(), jsText.trim());
   });

@@ -116,7 +116,7 @@ class StartEndSourceInformation extends SourceInformation {
 }
 
 class StartEndSourceInformationStrategy
-    implements JavaScriptSourceInformationStrategy {
+    extends JavaScriptSourceInformationStrategy {
   const StartEndSourceInformationStrategy();
 
   @override

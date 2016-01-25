@@ -60,7 +60,7 @@ String getCodeForMethod(CompilerImpl compiler, String name) {
   }
 
   js.Node ast = compiler.enqueuer.codegen.generatedCode[foundElement];
-  return js.prettyPrint(ast, compiler).getText();
+  return js.prettyPrint(ast, compiler);
 }
 
 runTests(List<TestEntry> tests) {

@@ -502,7 +502,7 @@ class JavaScriptBackend extends Backend {
 
   bool enabledNoSuchMethod = false;
 
-  final SourceInformationStrategy sourceInformationStrategy;
+  SourceInformationStrategy sourceInformationStrategy;
 
   final BackendHelpers helpers;
   final BackendImpacts impacts;
@@ -520,7 +520,7 @@ class JavaScriptBackend extends Backend {
         this.sourceInformationStrategy =
             generateSourceMap
                 ? (useNewSourceInfo
-                     ? const PositionSourceInformationStrategy()
+                     ? new PositionSourceInformationStrategy()
                      : const StartEndSourceInformationStrategy())
                 : const JavaScriptSourceInformationStrategy(),
         helpers = new BackendHelpers(compiler),
@@ -1630,7 +1630,12 @@ class JavaScriptBackend extends Backend {
       }
     }
 
-    generatedCode[element] = functionCompiler.compile(work);
+    jsAst.Fun function = functionCompiler.compile(work);
+    if (function.sourceInformation == null) {
+      function = function.withSourceInformation(
+          sourceInformationStrategy.buildSourceMappedMarker());
+    }
+    generatedCode[element] = function;
     WorldImpact worldImpact =
         impactTransformer.transformCodegenImpact(work.registry.worldImpact);
     compiler.dumpInfoTask.registerImpact(element, worldImpact);
@@ -1661,7 +1666,7 @@ class JavaScriptBackend extends Backend {
    */
   String getGeneratedCode(Element element) {
     assert(invariant(element, element.isDeclaration));
-    return jsAst.prettyPrint(generatedCode[element], compiler).getText();
+    return jsAst.prettyPrint(generatedCode[element], compiler);
   }
 
   int assembleProgram() {
@@ -2509,13 +2514,13 @@ class JavaScriptBackend extends Backend {
       compiler.enabledInvokeOn = true;
     }
   }
-
+/*
   CodeBuffer codeOf(Element element) {
     return generatedCode.containsKey(element)
         ? jsAst.prettyPrint(generatedCode[element], compiler)
         : null;
   }
-
+*/
   FunctionElement helperForBadMain() => helpers.badMain;
 
   FunctionElement helperForMissingMain() => helpers.missingMain;

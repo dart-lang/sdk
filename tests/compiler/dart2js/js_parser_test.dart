@@ -15,7 +15,7 @@ Future testExpression(String expression, [String expect = ""]) {
     String jsText =
         jsAst.prettyPrint(node,
                           compiler,
-                          allowVariableMinification: false).getText();
+                          allowVariableMinification: false);
     if (expect == "") {
       Expect.stringEquals(expression, jsText);
     } else {
