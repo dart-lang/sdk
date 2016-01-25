@@ -434,7 +434,7 @@ class InvalidParameterDeclaration extends StaticError {
 /// could be if initializers have side effects.
 ///
 /// Better to have `super` at the end, as required by the Dart style guide:
-/// <http://goo.gl/q1T4BB>
+/// <https://goo.gl/EY6hDP>
 ///
 /// For now this is the only pattern we support.
 class InvalidSuperInvocation extends StaticError {
@@ -442,7 +442,7 @@ class InvalidSuperInvocation extends StaticError {
 
   @override
   String get message => "super call must be last in an initializer "
-      "list (see http://goo.gl/q1T4BB): {0}";
+      "list (see https://goo.gl/EY6hDP): {0}";
 
   @override
   String get name => 'STRONG_MODE_INVALID_SUPER_INVOCATION';
