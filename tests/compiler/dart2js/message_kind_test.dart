@@ -14,8 +14,9 @@ import 'message_kind_helper.dart';
 
 main(List<String> arguments) {
   List<MessageTemplate> examples = <MessageTemplate>[];
-  List allMessageKinds =
-      MessageKind.values.toList()..addAll(SharedMessageKind.values);
+  List allMessageKinds = []
+      ..addAll(MessageKind.values)
+      ..addAll(SharedMessageKind.values);
   for (var kind in allMessageKinds) {
     if (kind == SharedMessageKind.exampleMessage) continue;
 

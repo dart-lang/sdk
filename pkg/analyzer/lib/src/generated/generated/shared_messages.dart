@@ -14,4 +14,4 @@ import 'package:analyzer/src/generated/error.dart';
 const AnalysisOptionsErrorCode exampleMessage = const AnalysisOptionsErrorCode(
     'exampleMessage',
     "{2} {1} {0}",
-    null);  // Generated. Don't edit.
+    "an explanation on how to fix things");  // Generated. Don't edit.

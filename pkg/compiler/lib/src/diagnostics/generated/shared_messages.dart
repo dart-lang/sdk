@@ -19,6 +19,7 @@ const Map<SharedMessageKind, MessageTemplate> TEMPLATES = const <SharedMessageKi
   SharedMessageKind.exampleMessage: const MessageTemplate(
     SharedMessageKind.exampleMessage,
     "#use #named #arguments",
+    howToFix: "an explanation on how to fix things",
     examples: const [
       r'''
       Some multiline example;
