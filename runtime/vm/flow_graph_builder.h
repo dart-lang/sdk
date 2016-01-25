@@ -343,7 +343,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
       PushArgumentInstr** push_instantiator_type_arguments);
   void BuildTypecheckArguments(intptr_t token_pos,
                                Value** instantiator_type_arguments);
-  Value* BuildInstantiator(intptr_t token_pos, const Class& instantiator_class);
+  Value* BuildInstantiator(intptr_t token_pos);
   Value* BuildInstantiatorTypeArguments(intptr_t token_pos,
                                         const Class& instantiator_class,
                                         Value* instantiator);

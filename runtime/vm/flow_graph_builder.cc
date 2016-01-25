@@ -1514,7 +1514,7 @@ void EffectGraphVisitor::BuildTypecheckPushArguments(
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.IsGeneric());
   Value* instantiator_type_arguments = NULL;
-  Value* instantiator = BuildInstantiator(token_pos, instantiator_class);
+  Value* instantiator = BuildInstantiator(token_pos);
   if (instantiator == NULL) {
     // No instantiator when inside factory.
     instantiator_type_arguments =
@@ -1538,7 +1538,7 @@ void EffectGraphVisitor::BuildTypecheckArguments(
       Z, owner()->function().Owner());
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.IsGeneric());
-  instantiator = BuildInstantiator(token_pos, instantiator_class);
+  instantiator = BuildInstantiator(token_pos);
   if (instantiator == NULL) {
     // No instantiator when inside factory.
     instantiator_type_arguments =
@@ -2542,8 +2542,10 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       ASSERT(function.Owner() == scope_cls.raw());
       Value* closure_tmp_val = Bind(new(Z) LoadLocalInstr(*closure_tmp_var,
                                                           node->token_pos()));
+      const Class& instantiator_class = Class::Handle(
+          Z, owner()->function().Owner());
       Value* type_arguments = BuildInstantiatorTypeArguments(node->token_pos(),
-                                                             scope_cls,
+                                                             instantiator_class,
                                                              NULL);
       Do(new(Z) StoreInstanceFieldInstr(Closure::type_arguments_offset(),
                                         closure_tmp_val,
@@ -2916,9 +2918,7 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 }
 
 
-Value* EffectGraphVisitor::BuildInstantiator(intptr_t token_pos,
-                                             const Class& instantiator_class) {
-  ASSERT(instantiator_class.IsGeneric());
+Value* EffectGraphVisitor::BuildInstantiator(intptr_t token_pos) {
   Function& outer_function = Function::Handle(Z, owner()->function().raw());
   while (outer_function.IsLocalFunction()) {
     outer_function = outer_function.parent_function();
@@ -2940,7 +2940,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     intptr_t token_pos,
     const Class& instantiator_class,
     Value* instantiator) {
-  if (instantiator_class.NumTypeParameters() == 0) {
+  if (!instantiator_class.IsGeneric()) {
     // The type arguments are compile time constants.
     TypeArguments& type_arguments =
         TypeArguments::ZoneHandle(Z, TypeArguments::null());
@@ -2968,7 +2968,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     return Bind(BuildLoadLocal(*instantiator_var, token_pos));
   }
   if (instantiator == NULL) {
-    instantiator = BuildInstantiator(token_pos, instantiator_class);
+    instantiator = BuildInstantiator(token_pos);
   }
   // The instantiator is the receiver of the caller, which is not a factory.
   // The receiver cannot be null; extract its TypeArguments object.
