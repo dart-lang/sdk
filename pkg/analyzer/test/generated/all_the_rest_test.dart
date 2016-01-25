@@ -26,9 +26,7 @@ import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
-import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/task/dart.dart';
 import 'package:path/path.dart';
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
@@ -57,7 +55,6 @@ main() {
   runReflectiveTests(ExitDetectorTest2);
   runReflectiveTests(FileBasedSourceTest);
   runReflectiveTests(FileUriResolverTest);
-  runReflectiveTests(ReferenceFinderTest);
   runReflectiveTests(SDKLibrariesReaderTest);
   runReflectiveTests(UriKindTest);
 }
@@ -5938,98 +5935,6 @@ class MockDartSdk implements DartSdk {
 
   @override
   Source mapDartUri(String dartUri) => null;
-}
-
-@reflectiveTest
-class ReferenceFinderTest {
-  DirectedGraph<ConstantEvaluationTarget> _referenceGraph;
-  VariableElement _head;
-  Element _tail;
-
-  void setUp() {
-    _referenceGraph = new DirectedGraph<ConstantEvaluationTarget>();
-    _head = ElementFactory.topLevelVariableElement2("v1");
-  }
-
-  void test_visitSimpleIdentifier_const() {
-    _visitNode(_makeTailVariable("v2", true));
-    _assertOneArc(_tail);
-  }
-
-  void test_visitSimpleIdentifier_nonConst() {
-    _visitNode(_makeTailVariable("v2", false));
-    _assertOneArc(_tail);
-  }
-
-  void test_visitSuperConstructorInvocation_const() {
-    _visitNode(_makeTailSuperConstructorInvocation("A", true));
-    _assertOneArc(_tail);
-  }
-
-  void test_visitSuperConstructorInvocation_nonConst() {
-    _visitNode(_makeTailSuperConstructorInvocation("A", false));
-    _assertOneArc(_tail);
-  }
-
-  void test_visitSuperConstructorInvocation_unresolved() {
-    SuperConstructorInvocation superConstructorInvocation =
-        AstFactory.superConstructorInvocation();
-    _visitNode(superConstructorInvocation);
-    _assertNoArcs();
-  }
-
-  void _assertNoArcs() {
-    Set<ConstantEvaluationTarget> tails = _referenceGraph.getTails(_head);
-    expect(tails, hasLength(0));
-  }
-
-  void _assertOneArc(Element tail) {
-    Set<ConstantEvaluationTarget> tails = _referenceGraph.getTails(_head);
-    expect(tails, hasLength(1));
-    expect(tails.first, same(tail));
-  }
-
-  ReferenceFinder _createReferenceFinder(ConstantEvaluationTarget source) =>
-      new ReferenceFinder((ConstantEvaluationTarget dependency) {
-        _referenceGraph.addEdge(source, dependency);
-      });
-  SuperConstructorInvocation _makeTailSuperConstructorInvocation(
-      String name, bool isConst) {
-    List<ConstructorInitializer> initializers =
-        new List<ConstructorInitializer>();
-    ConstructorDeclaration constructorDeclaration =
-        AstFactory.constructorDeclaration(AstFactory.identifier3(name), null,
-            AstFactory.formalParameterList(), initializers);
-    if (isConst) {
-      constructorDeclaration.constKeyword = new KeywordToken(Keyword.CONST, 0);
-    }
-    ClassElementImpl classElement = ElementFactory.classElement2(name);
-    SuperConstructorInvocation superConstructorInvocation =
-        AstFactory.superConstructorInvocation();
-    ConstructorElementImpl constructorElement =
-        ElementFactory.constructorElement(classElement, name, isConst);
-    _tail = constructorElement;
-    superConstructorInvocation.staticElement = constructorElement;
-    return superConstructorInvocation;
-  }
-
-  SimpleIdentifier _makeTailVariable(String name, bool isConst) {
-    VariableDeclaration variableDeclaration =
-        AstFactory.variableDeclaration(name);
-    ConstLocalVariableElementImpl variableElement =
-        ElementFactory.constLocalVariableElement(name);
-    _tail = variableElement;
-    variableElement.const3 = isConst;
-    AstFactory.variableDeclarationList2(
-        isConst ? Keyword.CONST : Keyword.VAR, [variableDeclaration]);
-    SimpleIdentifier identifier = AstFactory.identifier3(name);
-    identifier.staticElement = variableElement;
-    return identifier;
-  }
-
-  void _visitNode(AstNode node) {
-    node.accept(_createReferenceFinder(_head));
-  }
 }
 
 @reflectiveTest
