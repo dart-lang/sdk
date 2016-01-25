@@ -102,4 +102,6 @@ hasStoppedAtBreakpoint,
 
 ];
 
-main(args) => runIsolateTests(args, tests, testeeConcurrent: testFunction);
+main(args) => runIsolateTests(args, tests,
+                              testeeConcurrent: testFunction,
+                              trace_service: true);
