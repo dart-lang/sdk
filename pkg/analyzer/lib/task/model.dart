@@ -36,6 +36,14 @@ typedef AnalysisTask BuildTask(AnalysisContext context, AnalysisTarget target);
 typedef Map<String, TaskInput> CreateTaskInputs(AnalysisTarget target);
 
 /**
+ * A function that takes the target for which a task will produce results and
+ * returns `true` if the task is appropriate for the target. Such functions are
+ * passed to a [TaskDescriptor] to be used to determine the inputs needed by the
+ * task.
+ */
+typedef bool IsAppropriateFor(AnalysisTarget target);
+
+/**
  * A function that converts an object of the type [B] into a [TaskInput].
  * This is used, for example, by a [ListTaskInput] to create task inputs
  * for each value in a list of values.
@@ -355,37 +363,36 @@ abstract class ListTaskInput<E> implements TaskInput<List<E>> {
    * Return a task input that can be used to compute a flatten list whose
    * elements are combined [subListResult]'s associated with those elements.
    */
-  ListTaskInput /*<V>*/ toFlattenListOf /*<V>*/ (
-      ListResultDescriptor /*<V>*/ subListResult);
+  ListTaskInput/*<V>*/ toFlattenListOf/*<V>*/(
+      ListResultDescriptor/*<V>*/ subListResult);
 
   /**
    * Return a task input that can be used to compute a list whose elements are
    * the result of passing the elements of this input to the [mapper] function.
    */
-  ListTaskInput /*<V>*/ toList /*<V>*/ (
-      UnaryFunction<E, dynamic /*<=V>*/ > mapper);
+  ListTaskInput/*<V>*/ toList/*<V>*/(UnaryFunction<E, dynamic/*<=V>*/ > mapper);
 
   /**
    * Return a task input that can be used to compute a list whose elements are
    * [valueResult]'s associated with those elements.
    */
-  ListTaskInput /*<V>*/ toListOf /*<V>*/ (ResultDescriptor /*<V>*/ valueResult);
+  ListTaskInput/*<V>*/ toListOf/*<V>*/(ResultDescriptor/*<V>*/ valueResult);
 
   /**
    * Return a task input that can be used to compute a map whose keys are the
    * elements of this input and whose values are the result of passing the
    * corresponding key to the [mapper] function.
    */
-  MapTaskInput<E, dynamic /*=V*/ > toMap /*<V>*/ (
-      UnaryFunction<E, dynamic /*=V*/ > mapper);
+  MapTaskInput<E, dynamic/*=V*/ > toMap/*<V>*/(
+      UnaryFunction<E, dynamic/*=V*/ > mapper);
 
   /**
    * Return a task input that can be used to compute a map whose keys are the
    * elements of this input and whose values are the [valueResult]'s associated
    * with those elements.
    */
-  MapTaskInput<AnalysisTarget, dynamic /*=V*/ > toMapOf /*<V>*/ (
-      ResultDescriptor /*<V>*/ valueResult);
+  MapTaskInput<AnalysisTarget, dynamic/*=V*/ > toMapOf/*<V>*/(
+      ResultDescriptor/*<V>*/ valueResult);
 }
 
 /**
@@ -400,8 +407,8 @@ abstract class MapTaskInput<K, V> implements TaskInput<Map<K, V>> {
    * the result of passing keys [K] and the corresponding elements of [V] to
    * the [mapper] function.
    */
-  TaskInput<List /*<E>*/ > toFlattenList /*<E>*/ (
-      BinaryFunction<K, dynamic /*element of V*/, dynamic /*=E*/ > mapper);
+  TaskInput<List/*<E>*/ > toFlattenList/*<E>*/(
+      BinaryFunction<K, dynamic /*element of V*/, dynamic/*=E*/ > mapper);
 }
 
 /**
@@ -523,14 +530,14 @@ abstract class TaskDescriptor {
   /**
    * Initialize a newly created task descriptor to have the given [name] and to
    * describe a task that takes the inputs built using the given [inputBuilder],
-   * and produces the given [results]. The [buildTask] will be used to create
-   * the instance of [AnalysisTask] thusly described.
+   * and produces the given [results]. The [buildTask] function will be used to
+   * create the instance of [AnalysisTask] being described. If provided, the
+   * [isAppropriateFor] function will be used to determine whether the task can
+   * be used on a specific target.
    */
-  factory TaskDescriptor(
-      String name,
-      BuildTask buildTask,
-      CreateTaskInputs inputBuilder,
-      List<ResultDescriptor> results) = TaskDescriptorImpl;
+  factory TaskDescriptor(String name, BuildTask buildTask,
+      CreateTaskInputs inputBuilder, List<ResultDescriptor> results,
+      {IsAppropriateFor isAppropriateFor}) = TaskDescriptorImpl;
 
   /**
    * Return the builder used to build the inputs to the task.
@@ -553,6 +560,11 @@ abstract class TaskDescriptor {
    */
   AnalysisTask createTask(AnalysisContext context, AnalysisTarget target,
       Map<String, dynamic> inputs);
+
+  /**
+   * Return `true` if this task is appropriate for the given [target].
+   */
+  bool isAppropriateFor(AnalysisTarget target);
 }
 
 /**
@@ -571,7 +583,7 @@ abstract class TaskInput<V> {
    * Return a task input that can be used to compute a list whose elements are
    * the result of passing the result of this input to the [mapper] function.
    */
-  ListTaskInput /*<E>*/ mappedToList /*<E>*/ (List /*<E>*/ mapper(V value));
+  ListTaskInput/*<E>*/ mappedToList/*<E>*/(List/*<E>*/ mapper(V value));
 }
 
 /**

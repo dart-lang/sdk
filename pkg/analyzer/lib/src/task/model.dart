@@ -126,13 +126,23 @@ class TaskDescriptorImpl implements TaskDescriptor {
   final List<ResultDescriptor> results;
 
   /**
+   * The function used to determine whether the described task is appropriate
+   * for a given target.
+   */
+  final IsAppropriateFor _isAppropriateFor;
+
+  /**
    * Initialize a newly created task descriptor to have the given [name] and to
-   * describe a task that takes the inputs built using the given [createTaskInputs],
-   * and produces the given [results]. The [buildTask] will be used to create
-   * the instance of [AnalysisTask] thusly described.
+   * describe a task that takes the inputs built using the given [inputBuilder],
+   * and produces the given [results]. The [buildTask] function will be used to
+   * create the instance of [AnalysisTask] being described. If provided, the
+   * [isAppropriateFor] function will be used to determine whether the task can
+   * be used on a specific target.
    */
   TaskDescriptorImpl(
-      this.name, this.buildTask, this.createTaskInputs, this.results);
+      this.name, this.buildTask, this.createTaskInputs, this.results,
+      {IsAppropriateFor isAppropriateFor})
+      : _isAppropriateFor = isAppropriateFor ?? _alwaysTrue;
 
   @override
   AnalysisTask createTask(AnalysisContext context, AnalysisTarget target,
@@ -143,5 +153,14 @@ class TaskDescriptorImpl implements TaskDescriptor {
   }
 
   @override
+  bool isAppropriateFor(AnalysisTarget target) => _isAppropriateFor(target);
+
+  @override
   String toString() => name;
+
+  /**
+   * The function that will be used to determine whether a task can be applied
+   * to a given target if no other function is provided.
+   */
+  static bool _alwaysTrue(AnalysisTarget target) => true;
 }
