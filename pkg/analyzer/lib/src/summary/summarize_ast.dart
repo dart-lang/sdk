@@ -393,7 +393,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       FormalParameterList formalParameters,
       FunctionBody body,
       bool isTopLevel,
-      bool isStatic,
+      bool isDeclaredStatic,
       Comment documentationComment,
       TypeParameterList typeParameters,
       bool isExternal) {
@@ -416,16 +416,28 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
     b.typeParameters =
         serializeTypeParameters(typeParameters, typeParameterScope);
     if (!isTopLevel) {
-      b.isStatic = isStatic;
+      b.isStatic = isDeclaredStatic;
     }
     b.returnType = serializeTypeName(returnType);
     b.isExternal = isExternal;
+    bool isSemanticallyStatic = isTopLevel || isDeclaredStatic;
     if (formalParameters != null) {
       b.parameters = formalParameters.parameters
           .map((FormalParameter p) => p.accept(this))
           .toList();
+      if (!isSemanticallyStatic) {
+        for (int i = 0; i < formalParameters.parameters.length; i++) {
+          if (!b.parameters[i].isFunctionTyped &&
+              b.parameters[i].type == null) {
+            b.parameters[i].inferredTypeSlot = assignTypeSlot();
+          }
+        }
+      }
     }
     b.documentationComment = serializeDocumentation(documentationComment);
+    if (returnType == null && !isSemanticallyStatic) {
+      b.inferredReturnTypeSlot = assignTypeSlot();
+    }
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
     return b;
@@ -571,13 +583,13 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
    * Serialize the given [variables] into [UnlinkedVariable]s, and store them
    * in [this.variables].
    */
-  void serializeVariables(VariableDeclarationList variables, bool isStatic,
-      Comment documentationComment) {
+  void serializeVariables(VariableDeclarationList variables,
+      bool isDeclaredStatic, Comment documentationComment, bool isField) {
     for (VariableDeclaration variable in variables.variables) {
       UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
       b.isFinal = variables.isFinal;
       b.isConst = variables.isConst;
-      b.isStatic = isStatic;
+      b.isStatic = isDeclaredStatic;
       b.name = variable.name.name;
       b.nameOffset = variable.name.offset;
       b.type = serializeTypeName(variables.type);
@@ -591,6 +603,11 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       if (variable.initializer != null &&
           (variables.isFinal || variables.isConst)) {
         b.propagatedTypeSlot = assignTypeSlot();
+      }
+      bool isSemanticallyStatic = !isField || isDeclaredStatic;
+      if (variables.type == null &&
+          (variable.initializer != null || !isSemanticallyStatic)) {
+        b.inferredTypeSlot = assignTypeSlot();
       }
       this.variables.add(b);
     }
@@ -676,8 +693,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    serializeVariables(
-        node.fields, node.staticKeyword != null, node.documentationComment);
+    serializeVariables(node.fields, node.staticKeyword != null,
+        node.documentationComment, true);
   }
 
   @override
@@ -806,7 +823,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    serializeVariables(node.variables, false, node.documentationComment);
+    serializeVariables(node.variables, false, node.documentationComment, false);
   }
 
   @override

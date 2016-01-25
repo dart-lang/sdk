@@ -63,6 +63,9 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
   bool get skipFullyLinkedData => false;
 
   @override
+  bool get strongMode => false;
+
+  @override
   Source addNamedSource(String filePath, String contents) {
     Source source = super.addNamedSource(filePath, contents);
     _fileContents[source] = contents;
@@ -84,7 +87,8 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
    */
   void serializeLibraryElement(LibraryElement library) {
     summarize_elements.LibrarySerializationResult serializedLib =
-        summarize_elements.serializeLibrary(library, typeProvider);
+        summarize_elements.serializeLibrary(
+            library, typeProvider, analysisContext.analysisOptions.strongMode);
     {
       List<int> buffer = serializedLib.linked.toBuffer();
       linked = new LinkedLibrary.fromBuffer(buffer);

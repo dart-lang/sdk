@@ -138,7 +138,9 @@ class SdkSummaryResynthesizer extends SummaryResynthesizer {
 
   SdkSummaryResynthesizer(AnalysisContext context, TypeProvider typeProvider,
       SourceFactory sourceFactory, this.bundle)
-      : super(null, context, typeProvider, sourceFactory) {
+      : super(null, context, typeProvider, sourceFactory, false) {
+    // TODO(paulberry): we always resynthesize the summary in weak mode.  Is
+    // this ok?
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
       unlinkedSummaries[bundle.unlinkedUnitUris[i]] = bundle.unlinkedUnits[i];
     }

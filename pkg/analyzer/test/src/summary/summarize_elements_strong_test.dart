@@ -24,4 +24,7 @@ main() {
 class SummarizeElementsStrongTest extends SummarizeElementsTest {
   @override
   AnalysisOptionsImpl get options => super.options..strongMode = true;
+
+  @override
+  bool get strongMode => true;
 }

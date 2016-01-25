@@ -2926,6 +2926,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   bool _isConst;
   bool _isFactory;
   bool _isExternal;
+  int _inferredReturnTypeSlot;
 
   @override
   String get name => _name ??= '';
@@ -3075,7 +3076,23 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _isExternal = _value;
   }
 
-  UnlinkedExecutableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, EntityRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool isExternal})
+  @override
+  int get inferredReturnTypeSlot => _inferredReturnTypeSlot ??= 0;
+
+  /**
+   * If this executable's return type is inferrable, nonzero slot id
+   * identifying which entry in [LinkedLibrary.types] contains the inferred
+   * return type.  If there is no matching entry in [LinkedLibrary.types], then
+   * no return type was inferred for this variable, so its static type is
+   * `dynamic`.
+   */
+  void set inferredReturnTypeSlot(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _inferredReturnTypeSlot = _value;
+  }
+
+  UnlinkedExecutableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedTypeParamBuilder> typeParameters, EntityRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool isExternal, int inferredReturnTypeSlot})
     : _name = name,
       _nameOffset = nameOffset,
       _documentationComment = documentationComment,
@@ -3087,7 +3104,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       _isStatic = isStatic,
       _isConst = isConst,
       _isFactory = isFactory,
-      _isExternal = isExternal;
+      _isExternal = isExternal,
+      _inferredReturnTypeSlot = inferredReturnTypeSlot;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -3148,6 +3166,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     }
     if (_isExternal == true) {
       fbBuilder.addBool(11, true);
+    }
+    if (_inferredReturnTypeSlot != null && _inferredReturnTypeSlot != 0) {
+      fbBuilder.addUint32(12, _inferredReturnTypeSlot);
     }
     return fbBuilder.endTable();
   }
@@ -3233,6 +3254,15 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    * Indicates whether the executable is declared using the `external` keyword.
    */
   bool get isExternal;
+
+  /**
+   * If this executable's return type is inferrable, nonzero slot id
+   * identifying which entry in [LinkedLibrary.types] contains the inferred
+   * return type.  If there is no matching entry in [LinkedLibrary.types], then
+   * no return type was inferred for this variable, so its static type is
+   * `dynamic`.
+   */
+  int get inferredReturnTypeSlot;
 }
 
 class _UnlinkedExecutableReader extends fb.TableReader<_UnlinkedExecutableImpl> {
@@ -3259,6 +3289,7 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   bool _isConst;
   bool _isFactory;
   bool _isExternal;
+  int _inferredReturnTypeSlot;
 
   @override
   String get name {
@@ -3331,6 +3362,12 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
     _isExternal ??= const fb.BoolReader().vTableGet(_bp, 11, false);
     return _isExternal;
   }
+
+  @override
+  int get inferredReturnTypeSlot {
+    _inferredReturnTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 12, 0);
+    return _inferredReturnTypeSlot;
+  }
 }
 
 abstract class _UnlinkedExecutableMixin implements UnlinkedExecutable {
@@ -3348,6 +3385,7 @@ abstract class _UnlinkedExecutableMixin implements UnlinkedExecutable {
     "isConst": isConst,
     "isFactory": isFactory,
     "isExternal": isExternal,
+    "inferredReturnTypeSlot": inferredReturnTypeSlot,
   };
 }
 
@@ -3931,6 +3969,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
   UnlinkedParamKind _kind;
   bool _isFunctionTyped;
   bool _isInitializingFormal;
+  int _inferredTypeSlot;
 
   @override
   String get name => _name ??= '';
@@ -4013,14 +4052,35 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
     _isInitializingFormal = _value;
   }
 
-  UnlinkedParamBuilder({String name, int nameOffset, EntityRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal})
+  @override
+  int get inferredTypeSlot => _inferredTypeSlot ??= 0;
+
+  /**
+   * If this parameter's type is inferrable, nonzero slot id identifying which
+   * entry in [LinkedLibrary.types] contains the inferred type.  If there is no
+   * matching entry in [LinkedLibrary.types], then no type was inferred for
+   * this variable, so its static type is `dynamic`.
+   *
+   * Note that although strong mode considers initializing formals to be
+   * inferrable, they are not marked as such in the summary; if their type is
+   * not specified, they always inherit the static type of the corresponding
+   * field.
+   */
+  void set inferredTypeSlot(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _inferredTypeSlot = _value;
+  }
+
+  UnlinkedParamBuilder({String name, int nameOffset, EntityRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, int inferredTypeSlot})
     : _name = name,
       _nameOffset = nameOffset,
       _type = type,
       _parameters = parameters,
       _kind = kind,
       _isFunctionTyped = isFunctionTyped,
-      _isInitializingFormal = isInitializingFormal;
+      _isInitializingFormal = isInitializingFormal,
+      _inferredTypeSlot = inferredTypeSlot;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -4058,6 +4118,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements Un
     }
     if (_isInitializingFormal == true) {
       fbBuilder.addBool(6, true);
+    }
+    if (_inferredTypeSlot != null && _inferredTypeSlot != 0) {
+      fbBuilder.addUint32(7, _inferredTypeSlot);
     }
     return fbBuilder.endTable();
   }
@@ -4105,6 +4168,19 @@ abstract class UnlinkedParam extends base.SummaryClass {
    * declared using `this.` syntax).
    */
   bool get isInitializingFormal;
+
+  /**
+   * If this parameter's type is inferrable, nonzero slot id identifying which
+   * entry in [LinkedLibrary.types] contains the inferred type.  If there is no
+   * matching entry in [LinkedLibrary.types], then no type was inferred for
+   * this variable, so its static type is `dynamic`.
+   *
+   * Note that although strong mode considers initializing formals to be
+   * inferrable, they are not marked as such in the summary; if their type is
+   * not specified, they always inherit the static type of the corresponding
+   * field.
+   */
+  int get inferredTypeSlot;
 }
 
 class _UnlinkedParamReader extends fb.TableReader<_UnlinkedParamImpl> {
@@ -4126,6 +4202,7 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements Unli
   UnlinkedParamKind _kind;
   bool _isFunctionTyped;
   bool _isInitializingFormal;
+  int _inferredTypeSlot;
 
   @override
   String get name {
@@ -4168,6 +4245,12 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements Unli
     _isInitializingFormal ??= const fb.BoolReader().vTableGet(_bp, 6, false);
     return _isInitializingFormal;
   }
+
+  @override
+  int get inferredTypeSlot {
+    _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 7, 0);
+    return _inferredTypeSlot;
+  }
 }
 
 abstract class _UnlinkedParamMixin implements UnlinkedParam {
@@ -4180,6 +4263,7 @@ abstract class _UnlinkedParamMixin implements UnlinkedParam {
     "kind": kind,
     "isFunctionTyped": isFunctionTyped,
     "isInitializingFormal": isInitializingFormal,
+    "inferredTypeSlot": inferredTypeSlot,
   };
 }
 
@@ -5612,6 +5696,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   bool _isFinal;
   bool _isConst;
   int _propagatedTypeSlot;
+  int _inferredTypeSlot;
 
   @override
   String get name => _name ??= '';
@@ -5725,7 +5810,22 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _propagatedTypeSlot = _value;
   }
 
-  UnlinkedVariableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, EntityRefBuilder type, UnlinkedConstBuilder constExpr, bool isStatic, bool isFinal, bool isConst, int propagatedTypeSlot})
+  @override
+  int get inferredTypeSlot => _inferredTypeSlot ??= 0;
+
+  /**
+   * If this variable is inferrable, nonzero slot id identifying which entry in
+   * [LinkedLibrary.types] contains the inferred type for this variable.  If
+   * there is no matching entry in [LinkedLibrary.types], then no type was
+   * inferred for this variable, so its static type is `dynamic`.
+   */
+  void set inferredTypeSlot(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _inferredTypeSlot = _value;
+  }
+
+  UnlinkedVariableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, EntityRefBuilder type, UnlinkedConstBuilder constExpr, bool isStatic, bool isFinal, bool isConst, int propagatedTypeSlot, int inferredTypeSlot})
     : _name = name,
       _nameOffset = nameOffset,
       _documentationComment = documentationComment,
@@ -5734,7 +5834,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
       _isStatic = isStatic,
       _isFinal = isFinal,
       _isConst = isConst,
-      _propagatedTypeSlot = propagatedTypeSlot;
+      _propagatedTypeSlot = propagatedTypeSlot,
+      _inferredTypeSlot = inferredTypeSlot;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -5782,6 +5883,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     }
     if (_propagatedTypeSlot != null && _propagatedTypeSlot != 0) {
       fbBuilder.addUint32(8, _propagatedTypeSlot);
+    }
+    if (_inferredTypeSlot != null && _inferredTypeSlot != 0) {
+      fbBuilder.addUint32(9, _inferredTypeSlot);
     }
     return fbBuilder.endTable();
   }
@@ -5848,6 +5952,14 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * Non-propagable variables have a [propagatedTypeSlot] of zero.
    */
   int get propagatedTypeSlot;
+
+  /**
+   * If this variable is inferrable, nonzero slot id identifying which entry in
+   * [LinkedLibrary.types] contains the inferred type for this variable.  If
+   * there is no matching entry in [LinkedLibrary.types], then no type was
+   * inferred for this variable, so its static type is `dynamic`.
+   */
+  int get inferredTypeSlot;
 }
 
 class _UnlinkedVariableReader extends fb.TableReader<_UnlinkedVariableImpl> {
@@ -5871,6 +5983,7 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   bool _isFinal;
   bool _isConst;
   int _propagatedTypeSlot;
+  int _inferredTypeSlot;
 
   @override
   String get name {
@@ -5925,6 +6038,12 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
     _propagatedTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 8, 0);
     return _propagatedTypeSlot;
   }
+
+  @override
+  int get inferredTypeSlot {
+    _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 9, 0);
+    return _inferredTypeSlot;
+  }
 }
 
 abstract class _UnlinkedVariableMixin implements UnlinkedVariable {
@@ -5939,6 +6058,7 @@ abstract class _UnlinkedVariableMixin implements UnlinkedVariable {
     "isFinal": isFinal,
     "isConst": isConst,
     "propagatedTypeSlot": propagatedTypeSlot,
+    "inferredTypeSlot": inferredTypeSlot,
   };
 }
 

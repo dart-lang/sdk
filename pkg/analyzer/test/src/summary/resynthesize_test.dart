@@ -30,12 +30,6 @@ main() {
 class ResynthTest extends ResolverTestCase {
   Set<Source> otherLibrarySources = new Set<Source>();
 
-  @override
-  void setUp() {
-    super.setUp();
-    resetWithOptions(options);
-  }
-
   /**
    * Determine the analysis options that should be used for this test.
    */
@@ -551,8 +545,8 @@ class ResynthTest extends ResolverTestCase {
       String uri, LibraryElementImpl original) {
     Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
     LinkedLibrary getLinkedSummaryFor(LibraryElement lib) {
-      LibrarySerializationResult serialized =
-          serializeLibrary(lib, typeProvider);
+      LibrarySerializationResult serialized = serializeLibrary(
+          lib, typeProvider, analysisContext.analysisOptions.strongMode);
       for (int i = 0; i < serialized.unlinkedUnits.length; i++) {
         unlinkedSummaries[serialized.unitUris[i]] =
             new UnlinkedUnit.fromBuffer(serialized.unlinkedUnits[i].toBuffer());
@@ -573,12 +567,19 @@ class ResynthTest extends ResolverTestCase {
         analysisContext.typeProvider,
         analysisContext.sourceFactory,
         unlinkedSummaries,
-        linkedSummaries);
+        linkedSummaries,
+        options.strongMode);
     LibraryElementImpl resynthesized = resynthesizer.getLibraryElement(uri);
     // Check that no other summaries needed to be resynthesized to resynthesize
     // the library element.
     expect(resynthesizer.resynthesisCount, 1);
     return resynthesized;
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    resetWithOptions(options);
   }
 
   test_class_abstract() {
@@ -858,10 +859,6 @@ class E {}''');
   }
 
   test_class_setter_implicit_return_type() {
-    if (analysisContext.analysisOptions.strongMode) {
-      // TODO(paulberry): fix this test in strong mode.
-      return;
-    }
     checkLibrary('class C { set x(int value) {} }');
   }
 
@@ -870,10 +867,6 @@ class E {}''');
   }
 
   test_class_setters() {
-    if (analysisContext.analysisOptions.strongMode) {
-      // TODO(paulberry): fix this test in strong mode.
-      return;
-    }
     checkLibrary('class C { void set x(int value) {} set y(value) {} }');
   }
 
@@ -1024,11 +1017,29 @@ class C {
 }''');
   }
 
+  test_field_formal_param_inferred_type_implicit() {
+    checkLibrary('class C extends D { var v; C(this.v); }'
+        ' abstract class D { int get v; }');
+  }
+
+  test_field_inferred_type_nonstatic_explicit_initialized() {
+    checkLibrary('class C { num v = 0; }');
+  }
+
+  test_field_inferred_type_nonstatic_implicit_initialized() {
+    checkLibrary('class C { var v = 0; }');
+  }
+
+  test_field_inferred_type_nonstatic_implicit_uninitialized() {
+    checkLibrary(
+        'class C extends D { var v; } abstract class D { int get v; }');
+  }
+
+  test_field_inferred_type_static_implicit_initialized() {
+    checkLibrary('class C { static var v = 0; }');
+  }
+
   test_field_propagatedType_const_noDep() {
-    if (analysisContext.analysisOptions.strongMode) {
-      // TODO(paulberry): fix this test in strong mode.
-      return;
-    }
     checkLibrary('''
 class C {
   static const x = 0;
@@ -1036,10 +1047,6 @@ class C {
   }
 
   test_field_propagatedType_final_dep_inLib() {
-    if (analysisContext.analysisOptions.strongMode) {
-      // TODO(paulberry): fix this test in strong mode.
-      return;
-    }
     addNamedSource('/a.dart', 'final a = 1;');
     checkLibrary('''
 import "a.dart";
@@ -1049,10 +1056,6 @@ class C {
   }
 
   test_field_propagatedType_final_dep_inPart() {
-    if (analysisContext.analysisOptions.strongMode) {
-      // TODO(paulberry): fix this test in strong mode.
-      return;
-    }
     addNamedSource('/a.dart', 'part of lib; final a = 1;');
     checkLibrary('''
 library lib;
@@ -1063,10 +1066,6 @@ class C {
   }
 
   test_field_propagatedType_final_noDep_instance() {
-    if (analysisContext.analysisOptions.strongMode) {
-      // TODO(paulberry): fix this test in strong mode.
-      return;
-    }
     checkLibrary('''
 class C {
   final x = 0;
@@ -1074,10 +1073,6 @@ class C {
   }
 
   test_field_propagatedType_final_noDep_static() {
-    if (analysisContext.analysisOptions.strongMode) {
-      // TODO(paulberry): fix this test in strong mode.
-      return;
-    }
     checkLibrary('''
 class C {
   static final x = 0;
@@ -1187,6 +1182,11 @@ get x => null;''');
 
   test_getter_external() {
     checkLibrary('external int get x;');
+  }
+
+  test_getter_inferred_type_nonstatic_implicit_return() {
+    checkLibrary(
+        'class C extends D { get f => null; } abstract class D { int get f; }');
   }
 
   test_getters() {
@@ -1308,6 +1308,16 @@ class C {
 }''');
   }
 
+  test_method_inferred_type_nonstatic_implicit_param() {
+    checkLibrary('class C extends D { void f(value) {} }'
+        ' abstract class D { void f(int value); }');
+  }
+
+  test_method_inferred_type_nonstatic_implicit_return() {
+    checkLibrary(
+        'class C extends D { f() => null; } abstract class D { int f(); }');
+  }
+
   test_method_parameter_parameters() {
     checkLibrary('class C { f(g(x, y)) {} }');
   }
@@ -1386,11 +1396,20 @@ void set x(value) {}''');
     checkLibrary('external void set x(int value);');
   }
 
+  test_setter_inferred_type_nonstatic_implicit_param() {
+    checkLibrary('class C extends D { void set f(value) {} }'
+        ' abstract class D { void set f(int value); }');
+  }
+
+  test_setter_inferred_type_static_implicit_return() {
+    checkLibrary('class C { static set f(int value) {} }');
+  }
+
+  test_setter_inferred_type_top_level_implicit_return() {
+    checkLibrary('set f(int value) {}');
+  }
+
   test_setters() {
-    if (analysisContext.analysisOptions.strongMode) {
-      // TODO(paulberry): fix this test in strong mode.
-      return;
-    }
     checkLibrary('void set x(int value) {} set y(value) {}');
   }
 
@@ -1646,45 +1665,29 @@ var x;''');
     checkLibrary('var x;');
   }
 
+  test_variable_inferred_type_implicit_initialized() {
+    checkLibrary('var v = 0;');
+  }
+
   test_variable_propagatedType_const_noDep() {
-    if (analysisContext.analysisOptions.strongMode) {
-      // TODO(paulberry): fix this test in strong mode.
-      return;
-    }
     checkLibrary('const i = 0;');
   }
 
   test_variable_propagatedType_final_dep_inLib() {
-    if (analysisContext.analysisOptions.strongMode) {
-      // TODO(paulberry): fix this test in strong mode.
-      return;
-    }
     addNamedSource('/a.dart', 'final a = 1;');
     checkLibrary('import "a.dart"; final b = a / 2;');
   }
 
   test_variable_propagatedType_final_dep_inPart() {
-    if (analysisContext.analysisOptions.strongMode) {
-      // TODO(paulberry): fix this test in strong mode.
-      return;
-    }
     addNamedSource('/a.dart', 'part of lib; final a = 1;');
     checkLibrary('library lib; part "a.dart"; final b = a / 2;');
   }
 
   test_variable_propagatedType_final_noDep() {
-    if (analysisContext.analysisOptions.strongMode) {
-      // TODO(paulberry): fix this test in strong mode.
-      return;
-    }
     checkLibrary('final i = 0;');
   }
 
   test_variable_propagatedType_implicit_dep() {
-    if (analysisContext.analysisOptions.strongMode) {
-      // TODO(paulberry): fix this test in strong mode.
-      return;
-    }
     // The propagated type is defined in a library that is not imported.
     addNamedSource('/a.dart', 'class C {}');
     addNamedSource('/b.dart', 'import "a.dart"; C f() => null;');
@@ -1712,8 +1715,9 @@ class _TestSummaryResynthesizer extends SummaryResynthesizer {
       TypeProvider typeProvider,
       SourceFactory sourceFactory,
       this.unlinkedSummaries,
-      this.linkedSummaries)
-      : super(parent, context, typeProvider, sourceFactory);
+      this.linkedSummaries,
+      bool strongMode)
+      : super(parent, context, typeProvider, sourceFactory, strongMode);
 
   @override
   LinkedLibrary getLinkedSummary(String uri) {

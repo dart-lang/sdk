@@ -20,8 +20,8 @@ import 'package:analyzer/src/summary/summarize_const_expr.dart';
  * for building the summary, and using [typeProvider] to find built-in types.
  */
 LibrarySerializationResult serializeLibrary(
-    LibraryElement lib, TypeProvider typeProvider) {
-  var serializer = new _LibrarySerializer(lib, typeProvider);
+    LibraryElement lib, TypeProvider typeProvider, bool strongMode) {
+  var serializer = new _LibrarySerializer(lib, typeProvider, strongMode);
   LinkedLibraryBuilder linked = serializer.serializeLibrary();
   return new LibrarySerializationResult(
       linked, serializer.unlinkedUnits, serializer.unitUris);
@@ -440,10 +440,14 @@ class _CompilationUnitSerializer {
     UnlinkedExecutableBuilder b = new UnlinkedExecutableBuilder();
     b.name = executableElement.name;
     b.nameOffset = executableElement.nameOffset;
-    if (executableElement is! ConstructorElement &&
-        !executableElement.hasImplicitReturnType) {
-      b.returnType = serializeTypeRef(
-          executableElement.type.returnType, executableElement);
+    if (executableElement is! ConstructorElement) {
+      if (!executableElement.hasImplicitReturnType) {
+        b.returnType = serializeTypeRef(
+            executableElement.type.returnType, executableElement);
+      } else if (!executableElement.isStatic) {
+        b.inferredReturnTypeSlot =
+            storeInferredType(executableElement.returnType, executableElement);
+      }
     }
     b.typeParameters =
         executableElement.typeParameters.map(serializeTypeParam).toList();
@@ -538,7 +542,15 @@ class _CompilationUnitSerializer {
     }
     b.isInitializingFormal = parameter.isInitializingFormal;
     DartType type = parameter.type;
-    if (!parameter.hasImplicitType) {
+    if (parameter.hasImplicitType) {
+      Element contextParent = context.enclosingElement;
+      if (!parameter.isInitializingFormal &&
+          contextParent is ExecutableElement &&
+          !contextParent.isStatic &&
+          contextParent is! ConstructorElement) {
+        b.inferredTypeSlot = storeInferredType(type, context);
+      }
+    } else {
       if (type is FunctionType) {
         b.isFunctionTyped = true;
         b.type = serializeTypeRef(type.returnType, parameter);
@@ -702,7 +714,25 @@ class _CompilationUnitSerializer {
       // Variable is not propagable.
       assert(variable.propagatedType == null);
     }
+    if (variable.hasImplicitType &&
+        (variable.initializer != null || !variable.isStatic)) {
+      b.inferredTypeSlot = storeInferredType(variable.type, variable);
+    }
     return b;
+  }
+
+  /**
+   * Create a slot id for the given [type] (which is an inferred type).  If
+   * strong mode is enabled and [type] is not `dynamic`, it is stored in
+   * [linkedTypes] so that once the compilation unit has been fully visited, it
+   * will be serialized into [LinkedUnit.types].
+   *
+   * [context] is the element within which the slot id will appear; this is
+   * used to serialize type parameters.
+   */
+  int storeInferredType(DartType type, Element context) {
+    return storeLinkedType(
+        librarySerializer.strongMode && !type.isDynamic ? type : null, context);
   }
 
   /**
@@ -812,6 +842,12 @@ class _LibrarySerializer {
   final TypeProvider typeProvider;
 
   /**
+   * Indicates whether the element model being serialized was analyzed using
+   * strong mode.
+   */
+  final bool strongMode;
+
+  /**
    * Map from [LibraryElement] to the index of the entry in the "dependency
    * table" that refers to it.
    */
@@ -849,7 +885,7 @@ class _LibrarySerializer {
   final List<_CompilationUnitSerializer> compilationUnitSerializers =
       <_CompilationUnitSerializer>[];
 
-  _LibrarySerializer(this.libraryElement, this.typeProvider) {
+  _LibrarySerializer(this.libraryElement, this.typeProvider, this.strongMode) {
     dependencies.add(new LinkedDependencyBuilder());
     dependencyMap[libraryElement] = 0;
   }

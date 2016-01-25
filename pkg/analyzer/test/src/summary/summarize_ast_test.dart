@@ -50,6 +50,9 @@ class UnlinkedSummarizeAstTest extends Object with SummaryTest {
   bool get skipFullyLinkedData => true;
 
   @override
+  bool get strongMode => false;
+
+  @override
   addNamedSource(String filePath, String contents) {
     CompilationUnit unit = _parseText(contents);
     UnlinkedUnit unlinkedUnit =

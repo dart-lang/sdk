@@ -54,8 +54,9 @@ main(List<String> args) {
     Source librarySource = sdk.mapDartUri(lib.shortName);
     LibraryElement libraryElement =
         context.computeLibraryElement(librarySource);
+    // TODO(paulberry): also build a summary of the SDK in strong mode.
     LibrarySerializationResult libraryResult =
-        serializeLibrary(libraryElement, context.typeProvider);
+        serializeLibrary(libraryElement, context.typeProvider, false);
     linkedLibraryUris.add(lib.shortName);
     linkedLibraries.add(libraryResult.linked);
     unlinkedUnitUris.addAll(libraryResult.unitUris);

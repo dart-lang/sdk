@@ -44,7 +44,7 @@ final Map<String, UnlinkedPublicNamespace> sdkPublicNamespace = () {
     for (LibraryElement library in libraries) {
       summarize_elements.LibrarySerializationResult serializedLibrary =
           summarize_elements.serializeLibrary(
-              library, analysisContext.typeProvider);
+              library, analysisContext.typeProvider, false);
       for (int i = 0; i < serializedLibrary.unlinkedUnits.length; i++) {
         uriToNamespace[serializedLibrary.unitUris[i]] =
             new UnlinkedUnit.fromBuffer(
@@ -157,6 +157,12 @@ abstract class SummaryTest {
    * This happens because we don't yet have a full linker; only a prelinker.
    */
   bool get skipFullyLinkedData;
+
+  /**
+   * `true` if the linked portion of the summary contains the result of strong
+   * mode analysis.
+   */
+  bool get strongMode;
 
   /**
    * Get access to the unlinked compilation unit summaries that result from
@@ -289,6 +295,36 @@ abstract class SummaryTest {
     }
     fail('Did not find dependency $relativeUri.  Found: $found');
     return null;
+  }
+
+  /**
+   * Test an inferred type.  If strong mode is disabled, verify that the given
+   * [slotId] exists and has no associated type.  Otherwise, behave as in
+   * [checkLinkedTypeSlot].
+   */
+  void checkInferredTypeSlot(
+      int slotId, String absoluteUri, String relativeUri, String expectedName,
+      {bool allowTypeParameters: false,
+      ReferenceKind expectedKind: ReferenceKind.classOrEnum,
+      int expectedTargetUnit: 0,
+      LinkedUnit linkedSourceUnit,
+      UnlinkedUnit unlinkedSourceUnit,
+      int numTypeParameters: 0}) {
+    if (strongMode) {
+      checkLinkedTypeSlot(slotId, absoluteUri, relativeUri, expectedName,
+          allowTypeParameters: allowTypeParameters,
+          expectedKind: expectedKind,
+          expectedTargetUnit: expectedTargetUnit,
+          linkedSourceUnit: linkedSourceUnit,
+          unlinkedSourceUnit: unlinkedSourceUnit,
+          numTypeParameters: numTypeParameters);
+    } else {
+      // A slot id should have been assigned but it should not be associated
+      // with any type.
+      expect(slotId, isNot(0));
+      expect(getTypeRefForSlot(slotId, linkedSourceUnit: linkedSourceUnit),
+          isNull);
+    }
   }
 
   /**
@@ -2184,6 +2220,20 @@ class C {
     expect(executable.isFactory, isFalse);
   }
 
+  test_constructor_param_inferred_type_explicit() {
+    UnlinkedExecutable ctor =
+        serializeClassText('class C { C(int v); }').executables[0];
+    expect(ctor.kind, UnlinkedExecutableKind.constructor);
+    expect(ctor.parameters[0].inferredTypeSlot, 0);
+  }
+
+  test_constructor_param_inferred_type_implicit() {
+    UnlinkedExecutable ctor =
+        serializeClassText('class C { C(v); }').executables[0];
+    expect(ctor.kind, UnlinkedExecutableKind.constructor);
+    expect(ctor.parameters[0].inferredTypeSlot, 0);
+  }
+
   test_constructor_return_type() {
     UnlinkedExecutable executable = findExecutable('',
         executables: serializeClassText('class C { C(); }').executables);
@@ -3117,6 +3167,76 @@ class C {
     expect(variable.isFinal, isTrue);
   }
 
+  test_field_formal_param_inferred_type_explicit() {
+    UnlinkedClass cls = serializeClassText(
+        'class C extends D { var v; C(int this.v); }'
+        ' abstract class D { num get v; }',
+        className: 'C');
+    checkInferredTypeSlot(
+        cls.fields[0].inferredTypeSlot, 'dart:core', 'dart:core', 'num');
+    expect(cls.executables[0].kind, UnlinkedExecutableKind.constructor);
+    expect(cls.executables[0].parameters[0].inferredTypeSlot, 0);
+  }
+
+  test_field_formal_param_inferred_type_implicit() {
+    // Both the field `v` and the constructor argument `this.v` will have their
+    // type inferred by strong mode.  But only the field should have its
+    // inferred type stored in the summary, since the standard rules for field
+    // formal parameters will take care of the rest (they implicitly inherit
+    // the type of the associated field).
+    UnlinkedClass cls = serializeClassText(
+        'class C extends D { var v; C(this.v); }'
+        ' abstract class D { int get v; }',
+        className: 'C');
+    checkInferredTypeSlot(
+        cls.fields[0].inferredTypeSlot, 'dart:core', 'dart:core', 'int');
+    expect(cls.executables[0].kind, UnlinkedExecutableKind.constructor);
+    expect(cls.executables[0].parameters[0].inferredTypeSlot, 0);
+  }
+
+  test_field_inferred_type_nonstatic_explicit_initialized() {
+    UnlinkedVariable v = serializeClassText('class C { num v = 0; }').fields[0];
+    expect(v.inferredTypeSlot, 0);
+  }
+
+  test_field_inferred_type_nonstatic_explicit_uninitialized() {
+    UnlinkedVariable v = serializeClassText(
+        'class C extends D { num v; } abstract class D { int get v; }',
+        className: 'C',
+        allowErrors: true).fields[0];
+    expect(v.inferredTypeSlot, 0);
+  }
+
+  test_field_inferred_type_nonstatic_implicit_initialized() {
+    UnlinkedVariable v = serializeClassText('class C { var v = 0; }').fields[0];
+    checkInferredTypeSlot(v.inferredTypeSlot, 'dart:core', 'dart:core', 'int');
+  }
+
+  test_field_inferred_type_nonstatic_implicit_uninitialized() {
+    UnlinkedVariable v = serializeClassText(
+        'class C extends D { var v; } abstract class D { int get v; }',
+        className: 'C').fields[0];
+    checkInferredTypeSlot(v.inferredTypeSlot, 'dart:core', 'dart:core', 'int');
+  }
+
+  test_field_inferred_type_static_explicit_initialized() {
+    UnlinkedVariable v =
+        serializeClassText('class C { static int v = 0; }').fields[0];
+    expect(v.inferredTypeSlot, 0);
+  }
+
+  test_field_inferred_type_static_implicit_initialized() {
+    UnlinkedVariable v =
+        serializeClassText('class C { static var v = 0; }').fields[0];
+    checkInferredTypeSlot(v.inferredTypeSlot, 'dart:core', 'dart:core', 'int');
+  }
+
+  test_field_inferred_type_static_implicit_uninitialized() {
+    UnlinkedVariable v =
+        serializeClassText('class C { static var v; }').fields[0];
+    expect(v.inferredTypeSlot, 0);
+  }
+
   test_field_propagated_type_final_immediate() {
     UnlinkedVariable v =
         serializeClassText('class C { final v = 0; }').fields[0];
@@ -3159,6 +3279,16 @@ f() {}''';
     checkDocumentationComment(executable.documentationComment, text);
   }
 
+  test_function_inferred_type_implicit_param() {
+    UnlinkedExecutable f = serializeExecutableText('void f(value) {}');
+    expect(f.parameters[0].inferredTypeSlot, 0);
+  }
+
+  test_function_inferred_type_implicit_return() {
+    UnlinkedExecutable f = serializeExecutableText('f() => null;');
+    expect(f.inferredReturnTypeSlot, 0);
+  }
+
   test_generic_method_in_generic_class() {
     UnlinkedClass cls = serializeClassText(
         'class C<T, U> { void m<V, W>(T t, U u, V v, W w) {} }');
@@ -3179,6 +3309,31 @@ get f => null;''';
     UnlinkedExecutable executable = serializeExecutableText(text);
     expect(executable.documentationComment, isNotNull);
     checkDocumentationComment(executable.documentationComment, text);
+  }
+
+  test_getter_inferred_type_nonstatic_explicit_return() {
+    UnlinkedExecutable f = serializeClassText(
+        'class C extends D { num get f => null; }'
+        ' abstract class D { int get f; }',
+        className: 'C',
+        allowErrors: true).executables[0];
+    expect(f.inferredReturnTypeSlot, 0);
+  }
+
+  test_getter_inferred_type_nonstatic_implicit_return() {
+    UnlinkedExecutable f = serializeClassText(
+        'class C extends D { get f => null; } abstract class D { int get f; }',
+        className: 'C').executables[0];
+    checkInferredTypeSlot(
+        f.inferredReturnTypeSlot, 'dart:core', 'dart:core', 'int');
+  }
+
+  test_getter_inferred_type_static_implicit_return() {
+    UnlinkedExecutable f = serializeClassText(
+        'class C extends D { static get f => null; }'
+        ' class D { static int get f => null; }',
+        className: 'C').executables[0];
+    expect(f.inferredReturnTypeSlot, 0);
   }
 
   test_implicit_dependencies_follow_other_dependencies() {
@@ -3564,6 +3719,55 @@ class C {
     checkDocumentationComment(executable.documentationComment, text);
   }
 
+  test_method_inferred_type_nonstatic_explicit_param() {
+    UnlinkedExecutable f = serializeClassText(
+        'class C extends D { void f(num value) {} }'
+        ' abstract class D { void f(int value); }',
+        className: 'C').executables[0];
+    expect(f.parameters[0].inferredTypeSlot, 0);
+  }
+
+  test_method_inferred_type_nonstatic_explicit_return() {
+    UnlinkedExecutable f = serializeClassText(
+        'class C extends D { num f() => null; } abstract class D { int f(); }',
+        className: 'C',
+        allowErrors: true).executables[0];
+    expect(f.inferredReturnTypeSlot, 0);
+  }
+
+  test_method_inferred_type_nonstatic_implicit_param() {
+    UnlinkedExecutable f = serializeClassText(
+        'class C extends D { void f(value) {} }'
+        ' abstract class D { void f(int value); }',
+        className: 'C').executables[0];
+    checkInferredTypeSlot(
+        f.parameters[0].inferredTypeSlot, 'dart:core', 'dart:core', 'int');
+  }
+
+  test_method_inferred_type_nonstatic_implicit_return() {
+    UnlinkedExecutable f = serializeClassText(
+        'class C extends D { f() => null; } abstract class D { int f(); }',
+        className: 'C').executables[0];
+    checkInferredTypeSlot(
+        f.inferredReturnTypeSlot, 'dart:core', 'dart:core', 'int');
+  }
+
+  test_method_inferred_type_static_implicit_param() {
+    UnlinkedExecutable f = serializeClassText(
+        'class C extends D { static void f(value) {} }'
+        ' class D { static void f(int value) {} }',
+        className: 'C').executables[0];
+    expect(f.parameters[0].inferredTypeSlot, 0);
+  }
+
+  test_method_inferred_type_static_implicit_return() {
+    UnlinkedExecutable f = serializeClassText(
+        'class C extends D { static f() => null; }'
+        ' class D { static int f() => null; }',
+        className: 'C').executables[0];
+    expect(f.inferredReturnTypeSlot, 0);
+  }
+
   test_part_declaration() {
     addNamedSource('/a.dart', 'part of my.lib;');
     String text = 'library my.lib; part "a.dart"; // <-part';
@@ -3609,6 +3813,62 @@ void set f(value) {}''';
     UnlinkedExecutable executable = serializeExecutableText(text, 'f=');
     expect(executable.documentationComment, isNotNull);
     checkDocumentationComment(executable.documentationComment, text);
+  }
+
+  test_setter_inferred_type_nonstatic_explicit_param() {
+    UnlinkedExecutable f = serializeClassText(
+        'class C extends D { void set f(num value) {} }'
+        ' abstract class D { void set f(int value); }',
+        className: 'C').executables[0];
+    expect(f.parameters[0].inferredTypeSlot, 0);
+  }
+
+  test_setter_inferred_type_nonstatic_explicit_return() {
+    UnlinkedExecutable f =
+        serializeClassText('class C { void set f(int value) {} }').executables[
+            0];
+    expect(f.inferredReturnTypeSlot, 0);
+  }
+
+  test_setter_inferred_type_nonstatic_implicit_param() {
+    UnlinkedExecutable f = serializeClassText(
+        'class C extends D { void set f(value) {} }'
+        ' abstract class D { void set f(int value); }',
+        className: 'C').executables[0];
+    checkInferredTypeSlot(
+        f.parameters[0].inferredTypeSlot, 'dart:core', 'dart:core', 'int');
+  }
+
+  test_setter_inferred_type_nonstatic_implicit_return() {
+    UnlinkedExecutable f =
+        serializeClassText('class C { set f(int value) {} }').executables[0];
+    checkInferredTypeSlot(f.inferredReturnTypeSlot, null, null, 'void');
+  }
+
+  test_setter_inferred_type_static_implicit_param() {
+    UnlinkedExecutable f = serializeClassText(
+        'class C extends D { static void set f(value) {} }'
+        ' class D { static void set f(int value) {} }',
+        className: 'C').executables[0];
+    expect(f.parameters[0].inferredTypeSlot, 0);
+  }
+
+  test_setter_inferred_type_static_implicit_return() {
+    UnlinkedExecutable f =
+        serializeClassText('class C { static set f(int value) {} }')
+            .executables[0];
+    expect(f.inferredReturnTypeSlot, 0);
+  }
+
+  test_setter_inferred_type_top_level_implicit_param() {
+    UnlinkedExecutable f =
+        serializeExecutableText('void set f(value) {}', 'f=');
+    expect(f.parameters[0].inferredTypeSlot, 0);
+  }
+
+  test_setter_inferred_type_top_level_implicit_return() {
+    UnlinkedExecutable f = serializeExecutableText('set f(int value) {}', 'f=');
+    expect(f.inferredReturnTypeSlot, 0);
   }
 
   test_slot_reuse() {
@@ -4128,6 +4388,21 @@ var v;''';
   test_variable_implicit_dynamic() {
     UnlinkedVariable variable = serializeVariableText('var v;');
     expect(variable.type, isNull);
+  }
+
+  test_variable_inferred_type_explicit_initialized() {
+    UnlinkedVariable v = serializeVariableText('int v = 0;');
+    expect(v.inferredTypeSlot, 0);
+  }
+
+  test_variable_inferred_type_implicit_initialized() {
+    UnlinkedVariable v = serializeVariableText('var v = 0;');
+    checkInferredTypeSlot(v.inferredTypeSlot, 'dart:core', 'dart:core', 'int');
+  }
+
+  test_variable_inferred_type_implicit_uninitialized() {
+    UnlinkedVariable v = serializeVariableText('var v;');
+    expect(v.inferredTypeSlot, 0);
   }
 
   test_variable_name() {

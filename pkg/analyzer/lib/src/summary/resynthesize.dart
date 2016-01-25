@@ -46,6 +46,12 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   final TypeProvider typeProvider;
 
   /**
+   * Indicates whether the summary should be resynthesized assuming strong mode
+   * semantics.
+   */
+  final bool strongMode;
+
+  /**
    * Map of top level elements resynthesized from summaries.  The three map
    * keys are the first three elements of the element's location (the library
    * URI, the compilation unit URI, and the name of the top level declaration).
@@ -61,7 +67,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
       <String, LibraryElement>{};
 
   SummaryResynthesizer(this.parent, AnalysisContext context, this.typeProvider,
-      this.sourceFactory)
+      this.sourceFactory, this.strongMode)
       : super(context);
 
   /**
@@ -573,7 +579,12 @@ class _LibraryResynthesizer {
       // Caller handles setting the return type.
       assert(serializedExecutable.returnType == null);
     } else {
-      executableElement.returnType = buildType(serializedExecutable.returnType);
+      bool isSetter =
+          serializedExecutable.kind == UnlinkedExecutableKind.setter;
+      executableElement.returnType =
+          buildLinkedType(serializedExecutable.inferredReturnTypeSlot) ??
+              buildType(serializedExecutable.returnType,
+                  defaultVoid: isSetter && summaryResynthesizer.strongMode);
       executableElement.hasImplicitReturnType =
           serializedExecutable.returnType == null;
     }
@@ -915,7 +926,9 @@ class _LibraryResynthesizer {
         parameterElement.type = fields[serializedParameter.name]?.type ??
             summaryResynthesizer.typeProvider.dynamicType;
       } else {
-        parameterElement.type = buildType(serializedParameter.type);
+        parameterElement.type =
+            buildLinkedType(serializedParameter.inferredTypeSlot) ??
+                buildType(serializedParameter.type);
       }
       parameterElement.hasImplicitType = serializedParameter.type == null;
     }
@@ -957,9 +970,13 @@ class _LibraryResynthesizer {
    * deserialized, so handles are used to avoid having to deserialize other
    * libraries in the process.
    */
-  DartType buildType(EntityRef type) {
+  DartType buildType(EntityRef type, {bool defaultVoid: false}) {
     if (type == null) {
-      return summaryResynthesizer.typeProvider.dynamicType;
+      if (defaultVoid) {
+        return VoidTypeImpl.instance;
+      } else {
+        return summaryResynthesizer.typeProvider.dynamicType;
+      }
     }
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
@@ -1112,7 +1129,8 @@ class _LibraryResynthesizer {
    */
   void buildVariableCommonParts(PropertyInducingElementImpl element,
       UnlinkedVariable serializedVariable) {
-    element.type = buildType(serializedVariable.type);
+    element.type = buildLinkedType(serializedVariable.inferredTypeSlot) ??
+        buildType(serializedVariable.type);
     element.const3 = serializedVariable.isConst;
     element.final2 = serializedVariable.isFinal;
     element.hasImplicitType = serializedVariable.type == null;

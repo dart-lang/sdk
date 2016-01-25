@@ -919,6 +919,15 @@ class UnlinkedExecutable {
    * Indicates whether the executable is declared using the `external` keyword.
    */
   bool isExternal;
+
+  /**
+   * If this executable's return type is inferrable, nonzero slot id
+   * identifying which entry in [LinkedLibrary.types] contains the inferred
+   * return type.  If there is no matching entry in [LinkedLibrary.types], then
+   * no return type was inferred for this variable, so its static type is
+   * `dynamic`.
+   */
+  int inferredReturnTypeSlot;
 }
 
 /**
@@ -1091,6 +1100,19 @@ class UnlinkedParam {
    * declared using `this.` syntax).
    */
   bool isInitializingFormal;
+
+  /**
+   * If this parameter's type is inferrable, nonzero slot id identifying which
+   * entry in [LinkedLibrary.types] contains the inferred type.  If there is no
+   * matching entry in [LinkedLibrary.types], then no type was inferred for
+   * this variable, so its static type is `dynamic`.
+   *
+   * Note that although strong mode considers initializing formals to be
+   * inferrable, they are not marked as such in the summary; if their type is
+   * not specified, they always inherit the static type of the corresponding
+   * field.
+   */
+  int inferredTypeSlot;
 }
 
 /**
@@ -1421,4 +1443,12 @@ class UnlinkedVariable {
    * Non-propagable variables have a [propagatedTypeSlot] of zero.
    */
   int propagatedTypeSlot;
+
+  /**
+   * If this variable is inferrable, nonzero slot id identifying which entry in
+   * [LinkedLibrary.types] contains the inferred type for this variable.  If
+   * there is no matching entry in [LinkedLibrary.types], then no type was
+   * inferred for this variable, so its static type is `dynamic`.
+   */
+  int inferredTypeSlot;
 }

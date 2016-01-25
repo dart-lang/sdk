@@ -37,6 +37,9 @@ class PrelinkerTest extends SummarizeElementsTest {
   bool get skipFullyLinkedData => true;
 
   @override
+  bool get strongMode => false;
+
+  @override
   Source addNamedSource(String filePath, String contents) {
     Source source = super.addNamedSource(filePath, contents);
     uriToPublicNamespace[absUri(filePath)] =
