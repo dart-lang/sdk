@@ -91,7 +91,10 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Fun buildFunction(tree_ir.FunctionDefinition function) {
     registerDefaultParameterValues(function.element);
     currentFunction = function.element;
-    visitStatement(function.body);
+    tree_ir.Statement statement = function.body;
+    while (statement != null) {
+      statement = visitStatement(statement);
+    }
 
     List<js.Parameter> parameters = new List<js.Parameter>();
     Set<tree_ir.Variable> parameterSet = new Set<tree_ir.Variable>();
@@ -224,9 +227,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   List<js.Expression> visitExpressionList(
       List<tree_ir.Expression> expressions) {
-    return new List<js.Expression>.generate(expressions.length,
-        (int index) => visitExpression(expressions[index]),
-        growable: false);
+    List<js.Expression> result = new List<js.Expression>(expressions.length);
+    for (int i = 0; i < expressions.length; ++i) {
+      result[i] = visitExpression(expressions[i]);
+    }
+    return result;
   }
 
   giveup(tree_ir.Node node,
@@ -610,14 +615,15 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  void visitExpressionStatement(tree_ir.ExpressionStatement node) {
+  visitExpressionStatement(tree_ir.ExpressionStatement node) {
     js.Expression exp = visitExpression(node.expression);
     if (node.next is tree_ir.Unreachable && emitUnreachableAsReturn.last) {
       // Emit as 'return exp' to assist local analysis in the VM.
       accumulator.add(new js.Return(exp));
+      return null;
     } else {
       accumulator.add(new js.ExpressionStatement(exp));
-      visitStatement(node.next);
+      return node.next;
     }
   }
 
@@ -631,7 +637,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  void visitIf(tree_ir.If node) {
+  visitIf(tree_ir.If node) {
     js.Expression condition = visitExpression(node.condition);
     int usesBefore = fallthrough.useCount;
     // Unless the 'else' part ends the method. make sure to terminate any
@@ -643,21 +649,22 @@ class CodeGenerator extends tree_ir.StatementVisitor
     if (thenHasFallthrough) {
       js.Statement elseBody = buildBodyStatement(node.elseStatement);
       accumulator.add(new js.If(condition, thenBody, elseBody));
+      return null;
     } else {
       // The 'then' body cannot complete normally, so emit a short 'if'
       // and put the 'else' body after it.
       accumulator.add(new js.If.noElse(condition, thenBody));
-      visitStatement(node.elseStatement);
+      return node.elseStatement;
     }
   }
 
   @override
-  void visitLabeledStatement(tree_ir.LabeledStatement node) {
+  visitLabeledStatement(tree_ir.LabeledStatement node) {
     fallthrough.push(node.next);
     js.Statement body = buildBodyStatement(node.body);
     fallthrough.pop();
     accumulator.add(insertLabel(node.label, body));
-    visitStatement(node.next);
+    return node.next;
   }
 
   /// Creates a name for [label] if it does not already have one.
@@ -689,7 +696,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Statement buildBodyStatement(tree_ir.Statement statement) {
     List<js.Statement> savedAccumulator = accumulator;
     accumulator = <js.Statement>[];
-    visitStatement(statement);
+    while (statement != null) {
+      statement = visitStatement(statement);
+    }
     js.Statement result = _bodyAsStatement();
     accumulator = savedAccumulator;
     return result;
@@ -698,7 +707,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Block buildBodyBlock(tree_ir.Statement statement) {
     List<js.Statement> savedAccumulator = accumulator;
     accumulator = <js.Statement>[];
-    visitStatement(statement);
+    while (statement != null) {
+      statement = visitStatement(statement);
+    }
     js.Statement result = new js.Block(accumulator);
     accumulator = savedAccumulator;
     return result;
@@ -709,7 +720,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  void visitFor(tree_ir.For node) {
+  visitFor(tree_ir.For node) {
     js.Expression condition = visitExpression(node.condition);
     shortBreak.push(node.next);
     shortContinue.push(node);
@@ -736,7 +747,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       loopNode = new js.For(init, condition, update, body);
     }
     accumulator.add(insertLabel(node.label, loopNode));
-    visitStatement(node.next);
+    return node.next;
   }
 
   @override
@@ -1006,14 +1017,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  void visitYield(tree_ir.Yield node) {
+  visitYield(tree_ir.Yield node) {
     js.Expression value = visitExpression(node.input);
     accumulator.add(new js.DartYield(value, node.hasStar));
-    visitStatement(node.next);
+    return node.next;
   }
 
   @override
-  void visitNullCheck(tree_ir.NullCheck node) {
+  visitNullCheck(tree_ir.NullCheck node) {
     js.Expression value = visitExpression(node.value);
     // TODO(sra): Try to use the selector even when [useSelector] is false. The
     // reason we use 'toString' is that it is always defined so avoids a slow
@@ -1035,7 +1046,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     } else {
       accumulator.add(new js.ExpressionStatement(access));
     }
-    visitStatement(node.next);
+    return node.next;
   }
 
   @override
