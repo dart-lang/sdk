@@ -86,7 +86,6 @@ vars = {
   "test_tag": "@0.12.6+1",
   "test_reflective_loader_tag": "@0.0.3",
   "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
-  "unittest_tag": "@0.11.6",
   "usage_rev": "@b5080dac0d26a5609b266f8fdb0d053bc4c1c638",
   "watcher_tag": "@0.9.7",
   "when_tag": "@0.2.0+2",
@@ -256,8 +255,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       (Var("github_mirror") % "test_reflective_loader") +
       Var("test_reflective_loader_tag"),
-  Var("dart_root") + "/third_party/pkg/unittest":
-      (Var("github_mirror") % "test") + Var("unittest_tag"),
   Var("dart_root") + "/third_party/pkg/usage":
       (Var("github_mirror") % "usage") + Var("usage_rev"),
   Var("dart_root") + "/third_party/pkg/utf":
@@ -381,6 +378,22 @@ hooks = [
       "--extract",
       "-s",
       Var('dart_root') + "/third_party/pkg/petitparser.tar.gz.sha1",
+    ],
+  },
+  {
+    "name": "unittest",
+    # Unittest is an early version, 0.11.6, of the package "test"
+    # Do not use it in any new tests.
+    "pattern": ".",
+    "action": [
+      "download_from_google_storage",
+      "--no_auth",
+      "--no_resume",
+      "--bucket",
+      "dart-dependencies",
+      "--extract",
+      "-s",
+      Var('dart_root') + "/third_party/pkg/unittest.tar.gz.sha1",
     ],
   },
   {
