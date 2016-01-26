@@ -367,24 +367,18 @@ class FlatTypeMask implements TypeMask {
     if (base == flatOther.base) return false;
     if (isExact && flatOther.isExact) return true;
 
-    // normalization guarantees that isExact === !isSubclass && !isSubtype
-    if (classWorld.isSubclassOf(flatOther.base, base)) return isExact;
-    if (classWorld.isSubclassOf(base, flatOther.base)) {
-      return flatOther.isExact;
-    }
+    if (isExact) return !flatOther.contains(base, classWorld);
+    if (flatOther.isExact) return !contains(flatOther.base, classWorld);
+
+    // Normalization guarantees that isExact === !isSubclass && !isSubtype.
+    // Both are subclass or subtype masks, so if there is a subclass
+    // relationship, they are not disjoint.
+    if (classWorld.isSubclassOf(flatOther.base, base)) return false;
+    if (classWorld.isSubclassOf(base, flatOther.base)) return false;
 
     // Two different base classes have no common subclass unless one is a
     // subclass of the other (checked above).
     if (isSubclass && flatOther.isSubclass) return true;
-
-    if (classWorld.isSubtypeOf(flatOther.base, base)) return !isSubtype;
-    if (classWorld.isSubtypeOf(base, flatOther.base)) {
-      return !flatOther.isSubtype;
-    }
-
-    // By now we know they are not subtypes of each other, so if either is
-    // exact, we are done.
-    if (isExact || flatOther.isExact) return true;
 
     return _isDisjointHelper(this, flatOther, classWorld);
   }
