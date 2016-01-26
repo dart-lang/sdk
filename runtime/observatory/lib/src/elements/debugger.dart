@@ -1378,7 +1378,6 @@ class ObservatoryDebugger extends Debugger {
       if ((breakOnException != iso.exceptionsPauseInfo) &&
           (iso.exceptionsPauseInfo != null)) {
         breakOnException = iso.exceptionsPauseInfo;
-        console.print("Now pausing for exceptions: $breakOnException");
       }
 
       _isolate.reload().then((response) {
@@ -1493,6 +1492,25 @@ class ObservatoryDebugger extends Debugger {
     warnOutOfDate();
   }
 
+  void _reportIsolateError(Isolate isolate) {
+    if (isolate == null) {
+      return;
+    }
+    DartError error = isolate.error;
+    if (error == null) {
+      return;
+    }
+    console.newline();
+    console.printBold('Isolate exited due to an unhandled exception:');
+    console.print(error.message);
+    console.newline();
+    console.printBold("Type 'set break-on-exception Unhandled' to pause the"
+                      " isolate when an unhandled exception occurs.");
+    console.newline();
+    console.printBold("You can make this the default by running with "
+                      "--pause-isolates-on-unhandled-exceptions");
+  }
+
   void _reportPause(ServiceEvent event) {
     if (event.kind == ServiceEvent.kPauseStart) {
       console.print(
@@ -1502,6 +1520,7 @@ class ObservatoryDebugger extends Debugger {
       console.print(
           "Paused at isolate exit "
           "(type 'continue' or [F7] to exit the isolate')");
+      _reportIsolateError(isolate);
     } else if (stack['frames'].length > 0) {
       Frame frame = stack['frames'][0];
       var script = frame.location.script;
@@ -1618,8 +1637,11 @@ class ObservatoryDebugger extends Debugger {
       case ServiceEvent.kPauseInterrupted:
       case ServiceEvent.kPauseException:
         if (event.owner == isolate) {
-          _refreshStack(event).then((_) {
+          _refreshStack(event).then((_) async {
             flushStdio();
+            if (isolate != null) {
+              await isolate.reload();
+            }
             _reportPause(event);
           });
         }
