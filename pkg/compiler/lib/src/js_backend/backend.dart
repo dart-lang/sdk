@@ -974,13 +974,12 @@ class JavaScriptBackend extends Backend {
     Iterable<MixinApplicationElement> uses = classWorld.mixinUsesOf(mixin);
     Set<ClassElement> result = null;
     for (MixinApplicationElement use in uses) {
-      Iterable<ClassElement> subclasses = classWorld.strictSubclassesOf(use);
-      for (ClassElement subclass in subclasses) {
+      classWorld.forEachStrictSubclassOf(use, (ClassElement subclass) {
         if (isNativeOrExtendsNative(subclass)) {
           if (result == null) result = new Set<ClassElement>();
           result.add(subclass);
         }
-      }
+      });
     }
     return result;
   }
@@ -2196,7 +2195,7 @@ class JavaScriptBackend extends Backend {
         });
         // 4) all overriding members of subclasses/subtypes (should be resolved)
         if (compiler.world.hasAnyStrictSubtype(cls)) {
-          for (ClassElement subcls in compiler.world.strictSubtypesOf(cls)) {
+          compiler.world.forEachStrictSubtypeOf(cls, (ClassElement subcls) {
             subcls.forEachClassMember((Member member) {
               if (memberNames.contains(member.name)) {
                 // TODO(20993): find out why this assertion fails.
@@ -2207,7 +2206,7 @@ class JavaScriptBackend extends Backend {
                 }
               }
             });
-          }
+          });
         }
         // 5) all its closures
         List<LocalFunctionElement> closures = closureMap[cls];

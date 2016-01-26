@@ -118,7 +118,7 @@ class UnionTypeMask implements TypeMask {
         // TODO(sigmund, johnniwinther): computing length here (and below) is
         // expensive. If we can't prevent `flatten` from being called a lot, it
         // might be worth caching results.
-        size = classWorld.strictSubclassesOf(candidate).length;
+        size = classWorld.strictSubclassCount(candidate);
         assert(size <= classWorld.strictSubtypesOf(candidate).length);
       } else {
         kind = FlatTypeMask.SUBTYPE;
