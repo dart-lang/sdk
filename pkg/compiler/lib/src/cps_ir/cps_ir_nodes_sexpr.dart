@@ -30,6 +30,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String access(Reference<Definition> r) {
+    if (r == null) return '**** NULL ****';
     return decorator(r, namer.getName(r.definition));
   }
 
@@ -192,7 +193,9 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   String visitInvokeContinuation(InvokeContinuation node) {
     String name = access(node.continuation);
     if (node.isRecursive) name = 'rec $name';
-    String args = node.arguments.map(access).join(' ');
+    String args = node.arguments == null
+        ? '**** NULL ****'
+	: node.arguments.map(access).join(' ');
     String escaping = node.isEscapingTry ? ' escape' : '';
     return '$indentation(InvokeContinuation $name ($args)$escaping)';
   }

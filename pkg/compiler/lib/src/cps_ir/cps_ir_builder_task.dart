@@ -1172,44 +1172,270 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   visitSwitchStatement(ast.SwitchStatement node) {
+    // Dart switch cases can be labeled and be the target of continue from
+    // within the switch.  Such cases are 'recursive'.  If there are any
+    // recursive cases, we implement the switch using a pair of switches with
+    // the second one switching over a state variable in a loop.  The first
+    // switch contains the non-recursive cases, and the second switch contains
+    // the recursive ones.
+    //
+    // For example, for the Dart switch:
+    //
+    // switch (E) {
+    //   case 0:
+    //     BODY0;
+    //     break;
+    //   LABEL0: case 1:
+    //     BODY1;
+    //     break;
+    //   case 2:
+    //     BODY2;
+    //     continue LABEL1;
+    //   LABEL1: case 3:
+    //     BODY3;
+    //     continue LABEL0;
+    //   default:
+    //     BODY4;
+    // }
+    //
+    // We translate it as if it were the JavaScript:
+    //
+    // var state = -1;
+    // switch (E) {
+    //   case 0:
+    //     BODY0;
+    //     break;
+    //   case 1:
+    //     state = 0;  // Recursive, label ID = 0.
+    //     break;
+    //   case 2:
+    //     BODY2;
+    //     state = 1;  // Continue to label ID = 1.
+    //     break;
+    //   case 3:
+    //     state = 1;  // Recursive, label ID = 1.
+    //     break;
+    //   default:
+    //     BODY4;
+    // }
+    // L: while (state != -1) {
+    //   case 0:
+    //     BODY1;
+    //     break L;  // Break from switch becomes break from loop.
+    //   case 1:
+    //     BODY2;
+    //     state = 0;  // Continue to label ID = 0.
+    //     break;
+    // }
     assert(irBuilder.isOpen);
-    // We do not handle switch statements with continue to labeled cases.
-    for (ast.SwitchCase switchCase in node.cases) {
+    // Preprocess: compute a list of cases that are the target of continue.
+    // These are the so-called 'recursive' cases.
+    List<JumpTarget> continueTargets = <JumpTarget>[];
+    List<ast.SwitchCase> switchCases = node.cases.nodes.toList();
+    for (ast.SwitchCase switchCase in switchCases) {
       for (ast.Node labelOrCase in switchCase.labelsAndCases) {
         if (labelOrCase is ast.Label) {
           LabelDefinition definition = elements.getLabelDefinition(labelOrCase);
           if (definition != null && definition.isContinueTarget) {
-            return giveup(node, "continue to a labeled switch case");
+            continueTargets.add(definition.target);
           }
         }
       }
     }
 
-    // Each switch case contains a list of interleaved labels and expressions
-    // and a non-empty body.  We can ignore the labels because they are not
-    // jump targets.
-    List<SwitchCaseInfo> cases = <SwitchCaseInfo>[];
-    SwitchCaseInfo defaultCase;
-    for (ast.SwitchCase switchCase in node.cases) {
-      SwitchCaseInfo caseInfo =
-          new SwitchCaseInfo(subbuildSequence(switchCase.statements));
-      if (switchCase.isDefaultCase) {
-        defaultCase = caseInfo;
-      } else {
-        cases.add(caseInfo);
-        for (ast.Node labelOrCase in switchCase.labelsAndCases) {
-          if (labelOrCase is ast.CaseMatch) {
-            ir.Primitive constant = translateConstant(labelOrCase.expression);
-            caseInfo.addConstant(constant);
-          }
-        }
-      }
+    // If any cases are continue targets, use an anonymous local value to
+    // implement a state machine.  The initial value is -1.
+    ir.Primitive initial;
+    int stateIndex;
+    if (continueTargets.isNotEmpty) {
+      initial = irBuilder.buildIntegerConstant(-1);
+      stateIndex = irBuilder.environment.length;
+      irBuilder.environment.extend(null, initial);
     }
+
+    // Use a simple switch for the non-recursive cases.  A break will go to the
+    // join-point after the switch.  A continue to a labeled case will assign
+    // to the state variable and go to the join-point.
     ir.Primitive value = visit(node.expression);
-    JumpTarget target = elements.getTargetDefinition(node);
-    Element error = helpers.fallThroughError;
-    irBuilder.buildSimpleSwitch(target, value, cases, defaultCase, error,
-        sourceInformationBuilder.buildGeneric(node));
+    JumpCollector join = new ForwardJumpCollector(irBuilder.environment,
+        target: elements.getTargetDefinition(node));
+    irBuilder.state.breakCollectors.add(join);
+    for (int i = 0; i < continueTargets.length; ++i) {
+      // The state value is i, the case's position in the list of recursive
+      // cases.
+      irBuilder.state.continueCollectors.add(new GotoJumpCollector(
+          continueTargets[i], stateIndex, i, join));
+    }
+
+    // For each non-default case use a pair of functions, one to translate the
+    // condition and one to translate the body.  For the default case use a
+    // function to translate the body.  Use continueTargetIterator as a pointer
+    // to the next recursive case.
+    Iterator<JumpTarget> continueTargetIterator = continueTargets.iterator;
+    continueTargetIterator.moveNext();
+    List<SwitchCaseInfo> cases = <SwitchCaseInfo>[];
+    SubbuildFunction buildDefaultBody;
+    for (ast.SwitchCase switchCase in switchCases) {
+      JumpTarget nextContinueTarget = continueTargetIterator.current;
+      if (switchCase.isDefaultCase) {
+        if (nextContinueTarget != null &&
+            switchCase == nextContinueTarget.statement) {
+          // In this simple switch, recursive cases are as if they immediately
+          // continued to themselves.
+          buildDefaultBody = nested(() {
+            irBuilder.buildContinue(nextContinueTarget);
+          });
+          continueTargetIterator.moveNext();
+        } else {
+          // Non-recursive cases consist of the translation of the body.
+          // For the default case, there is implicitly a break if control
+          // flow reaches the end.
+          buildDefaultBody = nested(() {
+            irBuilder.buildSequence(switchCase.statements, visit);
+            if (irBuilder.isOpen) irBuilder.jumpTo(join);
+          });
+        }
+        continue;
+      }
+
+      ir.Primitive buildCondition(IrBuilder builder) {
+        // There can be multiple cases sharing the same body, because empty
+        // cases are allowed to fall through to the next one.  Each case is
+        // a comparison, build a short-circuited disjunction of all of them.
+        return withBuilder(builder, () {
+          ir.Primitive condition;
+          for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+            if (labelOrCase is ast.CaseMatch) {
+              ir.Primitive buildComparison() {
+                ir.Primitive constant =
+                    translateConstant(labelOrCase.expression);
+                return irBuilder.buildIdentical(value, constant);
+              }
+
+              if (condition == null) {
+                condition = buildComparison();
+              } else {
+                condition = irBuilder.buildLogicalOperator(condition,
+                    nested(buildComparison), isLazyOr: true);
+              }
+            }
+          }
+          return condition;
+        });
+      }
+
+      SubbuildFunction buildBody;
+      if (nextContinueTarget != null &&
+          switchCase == nextContinueTarget.statement) {
+        // Recursive cases are as if they immediately continued to themselves.
+        buildBody = nested(() {
+          irBuilder.buildContinue(nextContinueTarget);
+        });
+        continueTargetIterator.moveNext();
+      } else {
+        // Non-recursive cases consist of the translation of the body.  It is a
+        // runtime error if control-flow reaches the end of the body of any but
+        // the last case.
+        buildBody = (IrBuilder builder) {
+          withBuilder(builder, () {
+            irBuilder.buildSequence(switchCase.statements, visit);
+            if (irBuilder.isOpen) {
+              if (switchCase == switchCases.last) {
+                irBuilder.jumpTo(join);
+              } else {
+                Element error = helpers.fallThroughError;
+                ir.Primitive exception = irBuilder.buildInvokeStatic(
+                    error,
+                    new Selector.fromElement(error),
+                    <ir.Primitive>[],
+                    sourceInformationBuilder.buildGeneric(node));
+                irBuilder.buildThrow(exception);
+              }
+            }
+          });
+          return null;
+        };
+      }
+
+      cases.add(new SwitchCaseInfo(buildCondition, buildBody));
+    }
+
+    irBuilder.buildSimpleSwitch(join, cases, buildDefaultBody);
+    irBuilder.state.breakCollectors.removeLast();
+    irBuilder.state.continueCollectors.length -= continueTargets.length;
+    if (continueTargets.isEmpty) return;
+
+    // If there were recursive cases build a while loop whose body is a
+    // switch containing (only) the recursive cases.  The condition is
+    // 'state != initialValue' so the loop is not taken when the state variable
+    // has not been assigned.
+    //
+    // 'loop' is the join-point of the exits from the inner switch which will
+    // perform another iteration of the loop.  'exit' is the join-point of the
+    // breaks from the switch, outside the loop.
+    JumpCollector loop = new ForwardJumpCollector(irBuilder.environment);
+    JumpCollector exit = new ForwardJumpCollector(irBuilder.environment,
+        target: elements.getTargetDefinition(node));
+    irBuilder.state.breakCollectors.add(exit);
+    for (int i = 0; i < continueTargets.length; ++i) {
+      irBuilder.state.continueCollectors.add(new GotoJumpCollector(
+          continueTargets[i], stateIndex, i, loop));
+    }
+    cases.clear();
+    for (int i = 0; i < continueTargets.length; ++i) {
+      // The conditions compare to the recursive case index.
+      ir.Primitive buildCondition(IrBuilder builder) {
+        ir.Primitive constant = builder.buildIntegerConstant(i);
+        return builder.buildIdentical(
+            builder.environment.index2value[stateIndex], constant);
+      }
+
+      ir.Primitive buildBody(IrBuilder builder) {
+        withBuilder(builder, () {
+          ast.SwitchCase switchCase = continueTargets[i].statement;
+          irBuilder.buildSequence(switchCase.statements, visit);
+          if (irBuilder.isOpen) {
+            if (switchCase == switchCases.last) {
+              irBuilder.jumpTo(exit);
+            } else {
+              Element error = helpers.fallThroughError;
+              ir.Primitive exception = irBuilder.buildInvokeStatic(
+                  error,
+                  new Selector.fromElement(error),
+                  <ir.Primitive>[],
+                  sourceInformationBuilder.buildGeneric(node));
+              irBuilder.buildThrow(exception);
+            }
+          }
+        });
+        return null;
+      }
+
+      cases.add(new SwitchCaseInfo(buildCondition, buildBody));
+    }
+
+    // A loop with a simple switch in the body.
+    IrBuilder whileBuilder = irBuilder.makeDelimitedBuilder();
+    whileBuilder.buildWhile(
+        buildCondition: (IrBuilder builder) {
+          ir.Primitive condition = builder.buildIdentical(
+              builder.environment.index2value[stateIndex], initial);
+          return builder.buildNegation(condition);
+        },
+        buildBody: (IrBuilder builder) {
+          builder.buildSimpleSwitch(loop, cases, null);
+        });
+    // Jump to the exit continuation.  This jump is the body of the loop exit
+    // continuation, so the loop exit continuation can be eta-reduced.  The
+    // jump is here for simplicity because `buildWhile` does not expose the
+    // loop's exit continuation directly and has already emitted all jumps
+    // to it anyway.
+    whileBuilder.jumpTo(exit);
+    irBuilder.add(new ir.LetCont(exit.continuation, whileBuilder.root));
+    irBuilder.environment = exit.environment;
+    irBuilder.environment.discard(1);  // Discard the state variable.
+    irBuilder.state.breakCollectors.removeLast();
+    irBuilder.state.continueCollectors.length -= continueTargets.length;
   }
 
   visitTryStatement(ast.TryStatement node) {

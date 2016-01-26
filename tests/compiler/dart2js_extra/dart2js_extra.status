@@ -68,4 +68,3 @@ big_allocation_expression_test: Crash # Issue 24635
 
 [ $compiler == dart2js && $cps_ir ]
 async_stacktrace_test/asyncStar: Crash # (foo()async*{try {tr...  cannot handle sync*/async* functions
-switch_test/none: Crash # (switch (val){foo:ba...  continue to a labeled switch case

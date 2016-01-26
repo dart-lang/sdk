@@ -251,9 +251,9 @@ async_await_syntax_test/d03a: Crash # (()async*{}): cannot handle sync*/async* f
 async_await_syntax_test/d06a: Crash # (await for(var o in st){}): await for
 async_await_syntax_test/d09a: Crash # (()async*{yield 0;}): cannot handle sync*/async* functions
 async_await_syntax_test/d10a: Crash # (()async*{yield* [] ;}): cannot handle sync*/async* functions
-async_await_test/02: Crash # (switch (v){label:ca...  continue to a labeled switch case
-async_await_test/03: Crash # (switch (v){label:ca...  continue to a labeled switch case
-async_await_test/none: Crash # (switch (v){label:ca...  continue to a labeled switch case
+async_await_test/02: Crash # bailout: (await for
+async_await_test/03: Crash # bailout: (await for
+async_await_test/none: Crash # bailout: (await for
 async_or_generator_return_type_stacktrace_test/02: Crash # (void badReturnTypeAsyncStar()async*{}): cannot handle sync*/async* functions
 async_return_types_test/nestedFuture: Crash #  cannot handle sync*/async* functions
 async_return_types_test/none: Crash # cannot handle sync*/async* functions
@@ -287,14 +287,12 @@ generic2_test: RuntimeError # Please triage this failure.
 generic_instanceof_test: RuntimeError # Please triage this failure.
 generic_native_test: RuntimeError # Please triage this failure.
 gc_test: Crash # Internal Error: Pending statics (see above).
-infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
 instanceof2_test: RuntimeError # Please triage this failure.
 instanceof4_test/01: RuntimeError # Please triage this failure.
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
 list_is_test: RuntimeError # Please triage this failure.
 list_test: RuntimeError # Please triage this failure.
 many_generic_instanceof_test: RuntimeError # Please triage this failure.
-nested_switch_label_test: Crash # (switch (target){out...  continue to a labeled switch case
 regress_23500_test/01: Crash # (await for(var c in new Stream.fromIterable([] )){}): await for
 savannah_test: RuntimeError # Success depends on the variable hints.
 super_call4_test: RuntimeError # Please triage this failure.
@@ -304,9 +302,6 @@ super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet
 super_operator_index_test/03: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
 super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
-switch_label2_test: Crash # (switch (target){cas...  continue to a labeled switch case
-switch_label_test: Crash # (switch (animal){cas...  continue to a labeled switch case
-switch_try_catch_test: Crash # (switch (0){_0:case ...  continue to a labeled switch case
 switch8_test: Crash # Pending statics: JSArray
 type_variable_closure2_test: RuntimeError # Issue 25309: T lost in List<T>
 type_variable_field_initializer_closure_test: RuntimeError # Issue 25309: T lost in List<T>
