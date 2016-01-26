@@ -4840,7 +4840,8 @@ class SsaBuilder extends ast.Visitor
     ClassWorld classWorld = compiler.world;
     if (classWorld.isUsedAsMixin(cls)) return true;
 
-    return compiler.world.anyStrictSubclassOf(cls, (ClassElement subclass) {
+    Iterable<ClassElement> subclasses = compiler.world.strictSubclassesOf(cls);
+    return subclasses.any((ClassElement subclass) {
       return !rti.isTrivialSubstitution(subclass, cls);
     });
   }

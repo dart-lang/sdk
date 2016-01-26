@@ -35,7 +35,6 @@ class RuntimeTypeGenerator {
 
   JavaScriptBackend get backend => compiler.backend;
   TypeTestRegistry get typeTestRegistry => emitterTask.typeTestRegistry;
-  CoreClasses get coreClasses => compiler.coreClasses;
 
   Set<ClassElement> get checkedClasses =>
       typeTestRegistry.checkedClasses;
@@ -182,7 +181,7 @@ class RuntimeTypeGenerator {
     }
 
     if (superclass != null &&
-        superclass != coreClasses.objectClass &&
+        superclass != compiler.coreClasses.objectClass &&
         !haveSameTypeVariables(cls, superclass)) {
       // We cannot inherit the generated substitutions, because the type
       // variable layout for this class is different.  Instead we generate
@@ -218,7 +217,7 @@ class RuntimeTypeGenerator {
 
     // A class that defines a `call` method implicitly implements
     // [Function] and needs checks for all typedefs that are used in is-checks.
-    if (checkedClasses.contains(coreClasses.functionClass) ||
+    if (checkedClasses.contains(compiler.coreClasses.functionClass) ||
         checkedFunctionTypes.isNotEmpty) {
       Element call = cls.lookupLocalMember(Identifiers.call);
       if (call == null) {
@@ -229,8 +228,8 @@ class RuntimeTypeGenerator {
         FunctionElement callFunction = call;
         // A superclass might already implement the Function interface. In such
         // a case, we can avoid emiting the is test here.
-        if (!cls.superclass.implementsFunction(coreClasses)) {
-          _generateInterfacesIsTests(coreClasses.functionClass,
+        if (!cls.superclass.implementsFunction(compiler)) {
+          _generateInterfacesIsTests(compiler.coreClasses.functionClass,
                                     generateIsTest,
                                     generateSubstitution,
                                     generated);

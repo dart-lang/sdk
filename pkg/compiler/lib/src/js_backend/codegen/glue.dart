@@ -228,7 +228,8 @@ class Glue {
     ClassWorld classWorld = _compiler.world;
     if (classWorld.isUsedAsMixin(cls)) return true;
 
-    return _compiler.world.anyStrictSubclassOf(cls, (ClassElement subclass) {
+    Iterable<ClassElement> subclasses = _compiler.world.strictSubclassesOf(cls);
+    return subclasses.any((ClassElement subclass) {
       return !_backend.rti.isTrivialSubstitution(subclass, cls);
     });
   }

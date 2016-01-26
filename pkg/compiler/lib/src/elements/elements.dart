@@ -11,8 +11,6 @@ import '../compiler.dart' show
     Compiler;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../core_types.dart' show
-    CoreClasses;
 import '../dart_types.dart';
 import '../resolution/scope.dart' show
     Scope;
@@ -1432,7 +1430,7 @@ abstract class ClassElement extends TypeDeclarationElement
 
   /// Returns `true` if this class implements [Function] either by directly
   /// implementing the interface or by providing a [call] method.
-  bool implementsFunction(CoreClasses coreClasses);
+  bool implementsFunction(Compiler compiler);
 
   /// Returns `true` if this class extends [cls] directly or indirectly.
   ///
