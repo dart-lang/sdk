@@ -90,8 +90,8 @@ void emitDart2js() {
   var enumIds = input.keys.toList();
 
   StringBuffer out = new StringBuffer();
-  out.writeln(dontEditWarning);
   out.writeln(copyrightHeader);
+  out.writeln(dontEditWarning);
   out.writeln("import '../messages.dart' show MessageTemplate;");
   out.writeln();
   out.write(("enum SharedMessageKind {\n  "));
@@ -188,8 +188,8 @@ void emitAnalyzer() {
   print("  Output: $outPath");
 
   StringBuffer out = new StringBuffer();
-  out.writeln(dontEditWarning);
   out.writeln(copyrightHeader);
+  out.writeln(dontEditWarning);
   out.writeln("import 'package:analyzer/src/generated/error.dart';");
   out.writeln();
   input.forEach((name, message) {
