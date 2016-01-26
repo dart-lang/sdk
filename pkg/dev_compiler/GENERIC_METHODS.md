@@ -84,6 +84,16 @@ This can be written more concisely by leaving off the `dynamic`.
 /*=S*/ foo/*<S>*/(/*=S*/ x) {return x;}
 ```
 
+You can also put a type to the left of the `/*=T/`. This type will be used
+for all non-strong mode tools. For example:
+
+```dart
+// This method works with `int`, `double`, or `num`. The return type will
+// match the type of the parameters.
+num/*=T*/ pickAtRandom/*<T extends num>*/(num/*=T*/ x, num/*=T*/ y) { ... }
+```
+
+
 Note that the generic parameter is in scope in the return type of the function,
 in the argument list of the function, and in the body of the function.  When
 declaring local variables and parameters, you can also use the `/*=T*/` syntax with `var`.
