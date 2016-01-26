@@ -279,7 +279,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
     treeOptimizationTask.measure(() {
       applyTreePass(new StatementRewriter());
-      applyTreePass(new VariableMerger());
+      applyTreePass(new VariableMerger(minifying: compiler.enableMinification));
       applyTreePass(new LoopRewriter());
       applyTreePass(new LogicalRewriter());
       applyTreePass(new PullIntoInitializers());
