@@ -64,6 +64,8 @@ abstract class ConstantValue {
   bool get isMinusZero => false;
   bool get isZero => false;
   bool get isOne => false;
+  bool get isPositiveInfinity => false;
+  bool get isNegativeInfinity => false;
 
   // TODO(johnniwinther): Replace with a 'type' getter.
   DartType getType(CoreTypes types);
@@ -278,6 +280,10 @@ class DoubleConstantValue extends NumConstantValue {
   bool get isZero => primitiveValue == 0.0;
 
   bool get isOne => primitiveValue == 1.0;
+
+  bool get isPositiveInfinity => primitiveValue == double.INFINITY;
+
+  bool get isNegativeInfinity => primitiveValue == -double.INFINITY;
 
   DartType getType(CoreTypes types) => types.doubleType;
 
