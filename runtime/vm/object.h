@@ -4004,6 +4004,7 @@ class CodeSourceMap : public Object {
    public:
     explicit Iterator(const CodeSourceMap& code_source_map)
         : code_source_map_(code_source_map),
+          byte_index_(0),
           cur_pc_offset_(0),
           cur_token_pos_(0) {
     }
