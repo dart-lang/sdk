@@ -1231,7 +1231,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     // Preprocess: compute a list of cases that are the target of continue.
     // These are the so-called 'recursive' cases.
     List<JumpTarget> continueTargets = <JumpTarget>[];
-    List<ast.SwitchCase> switchCases = node.cases.nodes.toList();
+    List<ast.Node> switchCases = node.cases.nodes.toList();
     for (ast.SwitchCase switchCase in switchCases) {
       for (ast.Node labelOrCase in switchCase.labelsAndCases) {
         if (labelOrCase is ast.Label) {
