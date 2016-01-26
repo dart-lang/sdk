@@ -170,7 +170,6 @@ mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - Runtim
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
-mirrors/list_constructor_test/01: RuntimeError # Issue 19635.
 
 [ $compiler == dart2js ]
 convert/chunked_conversion_utf88_test: Slow, Pass
