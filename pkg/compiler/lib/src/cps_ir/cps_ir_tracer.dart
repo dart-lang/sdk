@@ -29,7 +29,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
       builder.visit(node);
 
       for (Block block in builder.entries) {
-        printBlock(block, entryPointParameters: node.parameters);
+        printBlock(block, entryPoint: node);
       }
       for (Block block in builder.cont2block.values) {
         printBlock(block);
@@ -63,9 +63,8 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return count;
   }
 
-  /// If [entryPointParameters] is given, this block is an entry point
-  /// and [entryPointParameters] is the list of function parameters.
-  printBlock(Block block, {List<cps_ir.Definition> entryPointParameters}) {
+  /// If [entryPoint] is given, this block is an entry point.
+  printBlock(Block block, {cps_ir.FunctionDefinition entryPoint}) {
     tag("block", () {
       printProperty("name", block.name);
       printProperty("from_bci", -1);
@@ -84,9 +83,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
         String formatParameter(cps_ir.Parameter param) {
           return '${names.name(param)} ${param.type}';
         }
-        if (entryPointParameters != null) {
-          String params = entryPointParameters.map(formatParameter).join(', ');
-          printStmt('x0', 'Entry ($params)');
+        if (entryPoint != null) {
+          String thisParam = entryPoint.thisParameter != null
+              ? formatParameter(entryPoint.thisParameter)
+              : 'no receiver';
+          String params = entryPoint.parameters.map(formatParameter).join(', ');
+          printStmt('x0', 'Entry ($thisParam) ($params)');
         }
         String params = block.parameters.map(formatParameter).join(', ');
         printStmt('x0', 'Parameters ($params)');

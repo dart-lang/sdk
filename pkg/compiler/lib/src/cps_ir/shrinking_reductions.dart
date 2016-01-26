@@ -6,8 +6,6 @@ library dart2js.cps_ir.shrinking_reductions;
 
 import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
-import 'cps_fragment.dart';
-import '../constants/values.dart' as values;
 
 /**
  * [ShrinkingReducer] applies shrinking reductions to CPS terms as described
@@ -16,23 +14,65 @@ import '../constants/values.dart' as values;
 class ShrinkingReducer extends Pass {
   String get passName => 'Shrinking reductions';
 
-  List<_ReductionTask> _worklist;
-
-  static final _DeletedNode _DELETED = new _DeletedNode();
+  final List<_ReductionTask> _worklist = new List<_ReductionTask>();
 
   /// Applies shrinking reductions to root, mutating root in the process.
   @override
   void rewrite(FunctionDefinition root) {
-    _worklist = new List<_ReductionTask>();
     _RedexVisitor redexVisitor = new _RedexVisitor(_worklist);
 
     // Sweep over the term, collecting redexes into the worklist.
     redexVisitor.visit(root);
 
-    // Process the worklist.
+    _iterateWorklist();
+  }
+
+  void _iterateWorklist() {
     while (_worklist.isNotEmpty) {
       _ReductionTask task = _worklist.removeLast();
       _processTask(task);
+    }
+  }
+
+  /// Call instead of [_iterateWorklist] to check at every step that no
+  /// redex was missed.
+  void _debugWorklist(FunctionDefinition root) {
+    while (_worklist.isNotEmpty) {
+      _ReductionTask task = _worklist.removeLast();
+      String irBefore = root.debugString({
+        task.node: '${task.kind} applied here'
+      });
+      _processTask(task);
+      Set seenRedexes = _worklist.where(isValidTask).toSet();
+      Set actualRedexes = (new _RedexVisitor([])..visit(root)).worklist.toSet();
+      if (!seenRedexes.containsAll(actualRedexes)) {
+        _ReductionTask missedTask =
+            actualRedexes.firstWhere((x) => !seenRedexes.contains(x));
+        print('\nBEFORE $task:\n');
+        print(irBefore);
+        print('\nAFTER $task:\n');
+        root.debugPrint({
+          missedTask.node: 'MISSED ${missedTask.kind}'
+        });
+        throw 'Missed $missedTask after processing $task';
+      }
+    }
+  }
+
+  bool isValidTask(_ReductionTask task) {
+    switch (task.kind) {
+      case _ReductionKind.DEAD_VAL:
+        return _isDeadVal(task.node);
+      case _ReductionKind.DEAD_CONT:
+        return _isDeadCont(task.node);
+      case _ReductionKind.BETA_CONT_LIN:
+        return _isBetaContLin(task.node);
+      case _ReductionKind.ETA_CONT:
+        return _isEtaCont(task.node);
+      case _ReductionKind.DEAD_PARAMETER:
+        return _isDeadParameter(task.node);
+      case _ReductionKind.BRANCH:
+        return _isBranchRedex(task.node);
     }
   }
 
@@ -45,7 +85,14 @@ class ShrinkingReducer extends Pass {
 
     body.parent = parent;
     parent.body = body;
-    node.parent = _DELETED;
+    node.parent = null;
+
+    // The removed node could be the last node between a continuation and
+    // an InvokeContinuation in the body.
+    if (parent is Continuation) {
+      _checkEtaCont(parent);
+      _checkUselessBranchTarget(parent);
+    }
   }
 
   /// Remove a given continuation from the CPS graph.  The LetCont itself is
@@ -57,12 +104,12 @@ class ShrinkingReducer extends Pass {
     } else {
       parent.continuations.remove(cont);
     }
-    cont.parent = _DELETED;
+    cont.parent = null;
   }
 
   void _processTask(_ReductionTask task) {
     // Skip tasks for deleted nodes.
-    if (task.node.parent == _DELETED) {
+    if (task.node.parent == null) {
       return;
     }
 
@@ -93,15 +140,31 @@ class ShrinkingReducer extends Pass {
   /// Applies the dead-val reduction:
   ///   letprim x = V in E -> E (x not free in E).
   void _reduceDeadVal(_ReductionTask task) {
+    if (_isRemoved(task.node)) return;
     assert(_isDeadVal(task.node));
 
-    // Remove dead primitive.
-    LetPrim letPrim = task.node;
-    destroyRefinementsOfDeadPrimitive(letPrim.primitive);
-    _removeNode(letPrim);
+    LetPrim deadLet = task.node;
+    Primitive deadPrim = deadLet.primitive;
+    assert(deadPrim.hasNoRefinedUses);
+    // The node has no effective uses but can have refinement uses, which
+    // themselves can have more refinements uses (but only refinement uses).
+    // We must remove the entire refinement tree while looking for redexes
+    // whenever we remove one.
+    List<Primitive> deadlist = <Primitive>[deadPrim];
+    while (deadlist.isNotEmpty) {
+      Primitive node = deadlist.removeLast();
+      while (node.firstRef != null) {
+        Reference ref = node.firstRef;
+        Refinement use = ref.parent;
+        deadlist.add(use);
+        ref.unlink();
+      }
+      LetPrim binding = node.parent;
+      _removeNode(binding); // Remove the binding and check for eta redexes.
+    }
 
     // Perform bookkeeping on removed body and scan for new redexes.
-    new _RemovalVisitor(_worklist).visit(letPrim.primitive);
+    new _RemovalVisitor(_worklist).visit(deadPrim);
   }
 
   /// Applies the dead-cont reduction:
@@ -131,25 +194,36 @@ class ShrinkingReducer extends Pass {
       return;
     }
 
-    // Remove the continuation.
     Continuation cont = task.node;
-    _removeContinuation(cont);
-
-    // Replace its invocation with the continuation body.
     InvokeContinuation invoke = cont.firstRef.parent;
     InteriorNode invokeParent = invoke.parent;
+    Expression body = cont.body;
 
-    cont.body.parent = invokeParent;
-    invokeParent.body = cont.body;
+    // Replace the invocation with the continuation body.
+    invokeParent.body = body;
+    body.parent = invokeParent;
+    cont.body = null;
 
     // Substitute the invocation argument for the continuation parameter.
     for (int i = 0; i < invoke.arguments.length; i++) {
-      cont.parameters[i].replaceUsesWith(invoke.arguments[i].definition);
-      invoke.arguments[i].definition.useElementAsHint(cont.parameters[i].hint);
+      Parameter param = cont.parameters[i];
+      Primitive argument = invoke.arguments[i].definition;
+      param.replaceUsesWith(argument);
+      argument.useElementAsHint(param.hint);
+      _checkConstantBranchCondition(argument);
     }
+
+    // Remove the continuation after inlining it so we can check for eta redexes
+    // which may arise after removing the LetCont.
+    _removeContinuation(cont);
 
     // Perform bookkeeping on substituted body and scan for new redexes.
     new _RemovalVisitor(_worklist).visit(invoke);
+
+    if (invokeParent is Continuation) {
+      _checkEtaCont(invokeParent);
+      _checkUselessBranchTarget(invokeParent);
+    }
   }
 
   /// Applies the eta-cont reduction:
@@ -188,8 +262,15 @@ class ShrinkingReducer extends Pass {
       }
     }
 
-    // Replace all occurrences with the wrapped continuation.
-    cont.replaceUsesWith(wrappedCont);
+    // Replace all occurrences with the wrapped continuation and find redexes.
+    while (cont.firstRef != null) {
+      Reference ref = cont.firstRef;
+      ref.changeTo(wrappedCont);
+      Node use = ref.parent;
+      if (use is InvokeContinuation && use.parent is Continuation) {
+        _checkUselessBranchTarget(use.parent);
+      }
+    }
 
     // Perform bookkeeping on removed body and scan for new redexes.
     new _RemovalVisitor(_worklist).visit(cont);
@@ -218,7 +299,7 @@ class ShrinkingReducer extends Pass {
         /*, sourceInformation: branch.sourceInformation*/);
     branch.parent.body = invoke;
     invoke.parent = branch.parent;
-    branch.parent = _DELETED;
+    branch.parent = null;
 
     new _RemovalVisitor(_worklist).visit(branch);
   }
@@ -239,61 +320,105 @@ class ShrinkingReducer extends Pass {
     // Where the dead parameter reduction is no longer valid because we do not
     // allow removing the paramter of call continuations.  We disallow such eta
     // reductions in [_isEtaCont].
-    assert(_isDeadParameter(task.node));
-
     Parameter parameter = task.node;
+    if (_isParameterRemoved(parameter)) return;
+    assert(_isDeadParameter(parameter));
+
     Continuation continuation = parameter.parent;
     int index = continuation.parameters.indexOf(parameter);
     assert(index != -1);
+    continuation.parameters.removeAt(index);
+    parameter.parent = null; // Mark as removed.
 
     // Remove the index'th argument from each invocation.
-    Reference<Continuation> current = continuation.firstRef;
-    while (current != null) {
-      InvokeContinuation invoke = current.parent;
+    for (Reference ref = continuation.firstRef; ref != null; ref = ref.next) {
+      InvokeContinuation invoke = ref.parent;
       Reference<Primitive> argument = invoke.arguments[index];
       argument.unlink();
-      // Removing an argument can create a dead parameter or dead value redex.
-      if (argument.definition is Parameter) {
-        if (_isDeadParameter(argument.definition)) {
-          _worklist.add(new _ReductionTask(_ReductionKind.DEAD_PARAMETER,
-                                           argument.definition));
-        }
-      } else {
-        Node parent = argument.definition.parent;
-        if (parent is LetPrim) {
-          if (_isDeadVal(parent)) {
-            _worklist.add(new _ReductionTask(_ReductionKind.DEAD_VAL, parent));
-          }
-        }
-      }
       invoke.arguments.removeAt(index);
-      current = current.next;
+      // Removing an argument can create a dead primitive or an eta-redex
+      // in case the parent is a continuation that now has matching parameters.
+      _checkDeadPrimitive(argument.definition);
+      if (invoke.parent is Continuation) {
+        _checkEtaCont(invoke.parent);
+        _checkUselessBranchTarget(invoke.parent);
+      }
     }
-    continuation.parameters.removeAt(index);
 
-    // Removing an unused parameter can create an eta-redex.
+    // Removing an unused parameter can create an eta-redex, in case the
+    // body is an InvokeContinuation that now has matching arguments.
+    _checkEtaCont(continuation);
+  }
+
+  void _checkEtaCont(Continuation continuation) {
     if (_isEtaCont(continuation)) {
       _worklist.add(new _ReductionTask(_ReductionKind.ETA_CONT, continuation));
     }
   }
+
+  void _checkUselessBranchTarget(Continuation continuation) {
+    if (_isBranchTargetOfUselessIf(continuation)) {
+      _worklist.add(new _ReductionTask(_ReductionKind.BRANCH,
+          continuation.firstRef.parent));
+    }
+  }
+
+  void _checkConstantBranchCondition(Primitive primitive) {
+    if (primitive is! Constant) return;
+    for (Reference ref = primitive.firstRef; ref != null; ref = ref.next) {
+      Node use = ref.parent;
+      if (use is Branch) {
+        _worklist.add(new _ReductionTask(_ReductionKind.BRANCH, use));
+      }
+    }
+  }
+
+  void _checkDeadPrimitive(Primitive primitive) {
+    primitive = primitive.unrefined;
+    if (primitive is Parameter) {
+      if (_isDeadParameter(primitive)) {
+        _worklist.add(new _ReductionTask(_ReductionKind.DEAD_PARAMETER,
+                                         primitive));
+      }
+    } else if (primitive.parent is LetPrim) {
+      LetPrim letPrim = primitive.parent;
+      if (_isDeadVal(letPrim)) {
+        _worklist.add(new _ReductionTask(_ReductionKind.DEAD_VAL, letPrim));
+      }
+    }
+  }
+}
+
+bool _isRemoved(InteriorNode node) {
+  return node.parent == null;
+}
+
+bool _isParameterRemoved(Parameter parameter) {
+  // A parameter can be removed directly or because its continuation is removed.
+  return parameter.parent == null || _isRemoved(parameter.parent);
 }
 
 /// Returns true iff the bound primitive is unused, and has no effects
 /// preventing it from being eliminated.
 bool _isDeadVal(LetPrim node) {
-  return node.primitive.hasNoEffectiveUses &&
+  return !_isRemoved(node) &&
+         node.primitive.hasNoRefinedUses &&
          node.primitive.isSafeForElimination;
 }
 
 /// Returns true iff the continuation is unused.
 bool _isDeadCont(Continuation cont) {
-  return !cont.isReturnContinuation && !cont.hasAtLeastOneUse;
+  return !_isRemoved(cont) &&
+         !cont.isReturnContinuation &&
+         !cont.hasAtLeastOneUse;
 }
 
 /// Returns true iff the continuation has a body (i.e., it is not the return
 /// continuation), it is used exactly once, and that use is as the continuation
 /// of a continuation invocation.
 bool _isBetaContLin(Continuation cont) {
+  if (_isRemoved(cont)) return false;
+
   // There is a restriction on continuation eta-redexes that the body is not an
   // invocation of the return continuation, because that leads to worse code
   // when translating back to direct style (it duplicates returns).  There is no
@@ -307,26 +432,21 @@ bool _isBetaContLin(Continuation cont) {
   if (cont.firstRef.parent is! InvokeContinuation) return false;
 
   InvokeContinuation invoke = cont.firstRef.parent;
-  if (cont != invoke.continuation.definition) return false;
 
   // Beta-reduction will move the continuation's body to its unique invocation
   // site.  This is not safe if the body is moved into an exception handler
-  // binding.  Search from the invocation to the continuation binding to
-  // make sure that there is no binding for a handler.
-  Node current = invoke.parent;
-  while (current != cont.parent) {
-    // There is no need to reduce a beta-redex inside a deleted subterm.
-    if (current == ShrinkingReducer._DELETED) return false;
-    if (current is LetHandler) return false;
-    current = current.parent;
-  }
+  // binding.
+  if (invoke.isEscapingTry) return false;
+
   return true;
 }
 
 /// Returns true iff the continuation consists of a continuation
 /// invocation, passing on all parameters. Special cases exist (see below).
 bool _isEtaCont(Continuation cont) {
-  if (cont.isReturnContinuation || cont.body is! InvokeContinuation) {
+  if (_isRemoved(cont)) return false;
+
+  if (!cont.isJoinContinuation || cont.body is! InvokeContinuation) {
     return false;
   }
 
@@ -336,25 +456,6 @@ bool _isEtaCont(Continuation cont) {
   // Do not eta-reduce return join-points since the direct-style code is worse
   // in the common case (i.e. returns are moved inside `if` branches).
   if (invokedCont.isReturnContinuation) {
-    return false;
-  }
-
-  // Do not perform reductions replace a function call continuation with a
-  // non-call continuation.  The invoked continuation is definitely not a call
-  // continuation, because it has a direct invocation in this continuation's
-  // body.
-  bool isCallContinuation(Continuation continuation) {
-    Reference<Continuation> current = cont.firstRef;
-    while (current != null) {
-      if (current.parent is InvokeContinuation) {
-        InvokeContinuation invoke = current.parent;
-        if (invoke.continuation.definition == continuation) return false;
-      }
-      current = current.next;
-    }
-    return true;
-  }
-  if (isCallContinuation(cont)) {
     return false;
   }
 
@@ -413,6 +514,10 @@ Expression _unfoldDeadRefinements(Expression node) {
   return node;
 }
 
+bool _isBranchRedex(Branch branch) {
+  return _isUselessIf(branch) || branch.condition.definition is Constant;
+}
+
 bool _isBranchTargetOfUselessIf(Continuation cont) {
   // A useless-if has an empty then and else branch, e.g. `if (cond);`.
   //
@@ -424,10 +529,12 @@ bool _isBranchTargetOfUselessIf(Continuation cont) {
   //         in branch condition T F
   //
   if (!cont.hasExactlyOneUse) return false;
-  if (cont.firstRef.parent is! Branch) return false;
-  Branch branch = cont.firstRef.parent;
+  Node use = cont.firstRef.parent;
+  if (use is! Branch) return false;
+  return _isUselessIf(use);
+}
 
-  // Are both continuations the same InvokeContinuation on a join?
+bool _isUselessIf(Branch branch) {
   Continuation trueCont = branch.trueContinuation.definition;
   Expression trueBody = _unfoldDeadRefinements(trueCont.body);
   if (trueBody is! InvokeContinuation) return false;
@@ -448,14 +555,10 @@ bool _isBranchTargetOfUselessIf(Continuation cont) {
 }
 
 bool _isDeadParameter(Parameter parameter) {
+  if (_isParameterRemoved(parameter)) return false;
+
   // We cannot remove function parameters as an intraprocedural optimization.
   if (parameter.parent is! Continuation || parameter.hasAtLeastOneUse) {
-    return false;
-  }
-
-  // We cannot remove exception handler parameters, they have a fixed arity
-  // of two.
-  if (parameter.parent.parent is LetHandler) {
     return false;
   }
 
@@ -464,14 +567,8 @@ bool _isDeadParameter(Parameter parameter) {
   // exactly one argument).  The return continuation is a call continuation, so
   // we cannot remove its dummy parameter.
   Continuation continuation = parameter.parent;
-  if (continuation.isReturnContinuation) return false;
-  Reference<Continuation> current = continuation.firstRef;
-  while (current != null) {
-    if (current.parent is! InvokeContinuation) return false;
-    InvokeContinuation invoke = current.parent;
-    if (invoke.continuation.definition != continuation) return false;
-    current = current.next;
-  }
+  if (!continuation.isJoinContinuation) return false;
+
   return true;
 }
 
@@ -488,7 +585,7 @@ class _RedexVisitor extends TrampolineRecursiveVisitor {
   }
 
   void processBranch(Branch node) {
-    if (node.condition.definition is Constant) {
+    if (_isBranchRedex(node)) {
       worklist.add(new _ReductionTask(_ReductionKind.BRANCH, node));
     }
   }
@@ -512,9 +609,6 @@ class _RedexVisitor extends TrampolineRecursiveVisitor {
       worklist.add(new _ReductionTask(_ReductionKind.BETA_CONT_LIN, node));
     } else if (_isEtaCont(node)) {
       worklist.add(new _ReductionTask(_ReductionKind.ETA_CONT, node));
-    } else if (_isBranchTargetOfUselessIf(node)) {
-      worklist.add(new _ReductionTask(_ReductionKind.BRANCH,
-                                      node.firstRef.parent));
     }
   }
 
@@ -537,23 +631,26 @@ class _RemovalVisitor extends TrampolineRecursiveVisitor {
   _RemovalVisitor(this.worklist);
 
   void processLetPrim(LetPrim node) {
-    node.parent = ShrinkingReducer._DELETED;
+    node.parent = null;
   }
 
   void processContinuation(Continuation node) {
-    node.parent = ShrinkingReducer._DELETED;
+    node.parent = null;
   }
 
   void processReference(Reference reference) {
     reference.unlink();
 
     if (reference.definition is Primitive) {
-      Primitive primitive = reference.definition;
+      Primitive primitive = reference.definition.unrefined;
       Node parent = primitive.parent;
       // The parent might be the deleted sentinel, or it might be a
       // Continuation or FunctionDefinition if the primitive is an argument.
       if (parent is LetPrim && _isDeadVal(parent)) {
         worklist.add(new _ReductionTask(_ReductionKind.DEAD_VAL, parent));
+      } else if (primitive is Parameter && _isDeadParameter(primitive)) {
+        worklist.add(new _ReductionTask(_ReductionKind.DEAD_PARAMETER,
+            primitive));
       }
     } else if (reference.definition is Continuation) {
       Continuation cont = reference.definition;
@@ -580,24 +677,13 @@ class _RemovalVisitor extends TrampolineRecursiveVisitor {
   }
 }
 
-
-
-class _ReductionKind {
-  final String name;
-  final int hashCode;
-
-  const _ReductionKind(this.name, this.hashCode);
-
-  static const _ReductionKind DEAD_VAL = const _ReductionKind('dead-val', 0);
-  static const _ReductionKind DEAD_CONT = const _ReductionKind('dead-cont', 1);
-  static const _ReductionKind BETA_CONT_LIN =
-      const _ReductionKind('beta-cont-lin', 2);
-  static const _ReductionKind ETA_CONT = const _ReductionKind('eta-cont', 3);
-  static const _ReductionKind DEAD_PARAMETER =
-      const _ReductionKind('dead-parameter', 4);
-  static const _ReductionKind BRANCH = const _ReductionKind('branch', 5);
-
-  String toString() => name;
+enum _ReductionKind {
+  DEAD_VAL,
+  DEAD_CONT,
+  BETA_CONT_LIN,
+  ETA_CONT,
+  DEAD_PARAMETER,
+  BRANCH
 }
 
 /// Represents a reduction task on the worklist. Implements both hashCode and
@@ -607,8 +693,7 @@ class _ReductionTask {
   final Node node;
 
   int get hashCode {
-    assert(kind.hashCode < (1 << 3));
-    return (node.hashCode << 3) | kind.hashCode;
+    return (node.hashCode << 3) | kind.index;
   }
 
   _ReductionTask(this.kind, this.node) {
@@ -621,11 +706,4 @@ class _ReductionTask {
   }
 
   String toString() => "$kind: $node";
-}
-
-/// A dummy class used solely to mark nodes as deleted once they are removed
-/// from a term.
-class _DeletedNode extends Node {
-  accept(_) {}
-  setParentPointers() {}
 }

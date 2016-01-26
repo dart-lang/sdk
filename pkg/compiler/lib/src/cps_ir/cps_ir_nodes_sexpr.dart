@@ -29,6 +29,50 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     }
   }
 
+  /// Create a stringifier with an extra layer of decoration.
+  SExpressionStringifier withDecorator(Decorator subDecorator) {
+    return new SExpressionStringifier((node, String s) {
+      return subDecorator(node, decorator(node, s));
+    });
+  }
+
+  /// Create a stringifier that displays type information.
+  SExpressionStringifier withTypes() => withDecorator(typeDecorator);
+
+  /// Creates a stringifier that adds annotations from a map;
+  /// see [Node.debugString].
+  SExpressionStringifier withAnnotations(Map annotations) {
+    return withDecorator(decoratorFromMap(annotations));
+  }
+
+  static Decorator decoratorFromMap(Map annotations) {
+    Map<Node, String> nodeMap = {};
+    for (var key in annotations.keys) {
+      if (key is Node) {
+        nodeMap[key] = '${annotations[key]}';
+      } else {
+        String text = key;
+        Node node = annotations[key];
+        if (nodeMap.containsKey(node)) {
+          // In case two annotations belong to the same node,
+          // put both annotations on that node.
+          nodeMap[node] += ' $text';
+        } else {
+          nodeMap[node] = text;
+        }
+      }
+    }
+    return (node, string) {
+      String text = nodeMap[node];
+      if (text != null) return '***$string*** $text';
+      return string;
+    };
+  }
+
+  static String typeDecorator(node, String string) {
+    return node is Variable ? '$string:${node.type}' : string;
+  }
+
   String access(Reference<Definition> r) {
     if (r == null) return '**** NULL ****';
     return decorator(r, namer.getName(r.definition));
@@ -78,7 +122,8 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
       node = node.body;
       name = newValueName(node.primitive);
       value = visit(node.primitive);
-      bindings += '\n${indentation}$skip($name $value)';
+      String binding = decorator(node, '($name $value)');
+      bindings += '\n${indentation}$skip$binding';
     }
     String body = indentBlock(() => visit(node.body));
     return '$indentation(LetPrim ($bindings)\n$body)';

@@ -5,6 +5,7 @@ library dart2js.ir_nodes;
 
 import 'dart:collection';
 import 'cps_fragment.dart' show CpsFragment;
+import 'cps_ir_nodes_sexpr.dart';
 import '../constants/values.dart' as values;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
@@ -39,6 +40,37 @@ abstract class Node {
   ///
   /// All constructors call this method to initialize parent pointers.
   void setParentPointers();
+
+  /// Returns the SExpression for the subtree rooted at this node.
+  ///
+  /// [annotations] maps strings to nodes and/or nodes to values that will be
+  /// converted to strings. Each binding causes the annotation to appear on the
+  /// given node.
+  ///
+  /// For example, the following could be used to diagnose a problem with nodes
+  /// not appearing in an environment map:
+  ///
+  ///     if (environment[node] == null)
+  ///       root.debugPrint({
+  ///         'currentNode': node,
+  ///         'caller': someContinuation
+  ///       });
+  ///       throw 'Node was not in environment';
+  ///     }
+  ///
+  /// If two strings map to the same node, it will be given both annotations.
+  ///
+  /// Avoid using nodes as keys if there is a chance that two keys are the
+  /// same node.
+  String debugString([Map annotations]) {
+    return new SExpressionStringifier()
+        .withAnnotations(annotations).visit(this);
+  }
+
+  /// Prints the result of [debugString].
+  void debugPrint([Map annotations]) {
+    print(debugString(annotations));
+  }
 }
 
 /// Expressions can be evaluated, and may diverge, throw, and/or have
@@ -195,9 +227,9 @@ class EffectiveUseIterator extends Iterator<Reference<Primitive>> {
   }
 }
 
-class EffectiveUseIterable extends IterableBase<Reference<Primitive>> {
+class RefinedUseIterable extends IterableBase<Reference<Primitive>> {
   Primitive primitive;
-  EffectiveUseIterable(this.primitive);
+  RefinedUseIterable(this.primitive);
   EffectiveUseIterator get iterator => new EffectiveUseIterator(primitive);
 }
 
@@ -238,6 +270,9 @@ abstract class Primitive extends Variable<Primitive> {
   // TODO(asgerf): Also do this for [TypeCast]?
   Primitive get effectiveDefinition => this;
 
+  /// Like [effectiveDefinition] but only unfolds [Refinement] nodes.
+  Primitive get unrefined => this;
+
   /// True if the two primitives are (refinements of) the same value.
   bool sameValue(Primitive other) {
     return effectiveDefinition == other.effectiveDefinition;
@@ -252,15 +287,15 @@ abstract class Primitive extends Variable<Primitive> {
   /// - References to this primitive created during iteration will not be seen.
   /// - References to a refinement of this primitive may not be created during
   ///   iteration.
-  EffectiveUseIterable get effectiveUses => new EffectiveUseIterable(this);
+  RefinedUseIterable get refinedUses => new RefinedUseIterable(this);
 
-  bool get hasMultipleEffectiveUses {
-    Iterator it = effectiveUses.iterator;
+  bool get hasMultipleRefinedUses {
+    Iterator it = refinedUses.iterator;
     return it.moveNext() && it.moveNext();
   }
 
-  bool get hasNoEffectiveUses {
-    return effectiveUses.isEmpty;
+  bool get hasNoRefinedUses {
+    return refinedUses.isEmpty;
   }
 
   /// Unlinks all references contained in this node.
@@ -733,6 +768,8 @@ class Refinement extends Primitive {
   accept(Visitor visitor) => visitor.visitRefinement(this);
 
   Primitive get effectiveDefinition => value.definition.effectiveDefinition;
+
+  Primitive get unrefined => value.definition.unrefined;
 
   void setParentPointers() {
     value.parent = this;
@@ -1622,7 +1659,24 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
   // A continuation is recursive if it has any recursive invocations.
   bool isRecursive;
 
+  /// True if this is the return continuation.  The return continuation is bound
+  /// by [FunctionDefinition].
   bool get isReturnContinuation => body == null;
+
+  /// True if this is a branch continuation.  Branch continuations are bound
+  /// by [LetCont] and can only have one use.
+  bool get isBranchContinuation => firstRef?.parent is Branch;
+
+  /// True if this is the exception handler bound by a [LetHandler].
+  bool get isHandlerContinuation => parent is LetHandler;
+
+  /// True if this is a non-return continuation that can be targeted by
+  /// [InvokeContinuation].
+  bool get isJoinContinuation {
+    return body != null &&
+           parent is! LetHandler &&
+           (firstRef == null || firstRef.parent is InvokeContinuation);
+  }
 
   Continuation(this.parameters, {this.isRecursive: false});
 

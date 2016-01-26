@@ -1546,7 +1546,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         // Check that all uses of the iterator are 'moveNext' and 'current'.
         assert(!isInterceptedSelector(Selectors.moveNext));
         assert(!isInterceptedSelector(Selectors.current));
-        for (Reference ref in iterator.effectiveUses) {
+        for (Reference ref in iterator.refinedUses) {
           if (ref.parent is! InvokeMethod) return null;
           InvokeMethod use = ref.parent;
           if (ref != use.receiver) return null;
@@ -1563,7 +1563,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         MutableVariable current = new MutableVariable(new LoopItemEntity());
 
         // Rewrite all uses of the iterator.
-        for (Reference ref in iterator.effectiveUses) {
+        for (Reference ref in iterator.refinedUses) {
           InvokeMethod use = ref.parent;
           if (use.selector == Selectors.current) {
             // Rewrite iterator.current to a use of the 'current' variable.
@@ -1772,7 +1772,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
       // If there are multiple uses, we cannot eliminate the getter call and
       // therefore risk duplicating its side effects.
-      if (!isPure && tearOff.hasMultipleEffectiveUses) return null;
+      if (!isPure && tearOff.hasMultipleRefinedUses) return null;
 
       // If the getter call is impure, we risk reordering side effects,
       // unless it is immediately prior to the closure call.
@@ -1788,7 +1788,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         sourceInformation: node.sourceInformation);
       node.receiver.changeTo(new Parameter(null)); // Remove the tear off use.
 
-      if (tearOff.hasNoEffectiveUses) {
+      if (tearOff.hasNoRefinedUses) {
         // Eliminate the getter call if it has no more uses.
         // This cannot be delegated to other optimizations because we need to
         // avoid duplication of side effects.

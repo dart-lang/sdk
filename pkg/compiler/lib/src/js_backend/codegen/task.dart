@@ -103,7 +103,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
         }
 
         if (tracer != null) {
-          tracer.traceCompilation(element.name, null);
+          tracer.traceCompilation('$element', null);
         }
         cps.FunctionDefinition cpsFunction = compileToCpsIr(element);
         optimizeCpsBeforeInlining(cpsFunction);
@@ -129,6 +129,49 @@ class CpsFunctionCompiler implements FunctionCompiler {
     if (tracer != null) {
       tracer.traceGraph(title, irObject);
     }
+  }
+
+  String stringify(cps.FunctionDefinition node) {
+    return new SExpressionStringifier().withTypes().visit(node);
+  }
+
+  /// For debugging purposes, replace a call to [applyCpsPass] with a call
+  /// to [debugCpsPass] to check that this pass is idempotent.
+  ///
+  /// This runs [pass] followed by shrinking reductions, and then checks that
+  /// one more run of [pass] does not change the IR.  The intermediate shrinking
+  /// reductions pass is omitted if [pass] itself is shrinking reductions.
+  ///
+  /// If [targetName] is given, functions whose name contains that substring
+  /// will be dumped out if the idempotency test fails.
+  void debugCpsPass(cps_opt.Pass makePass(),
+                    cps.FunctionDefinition cpsFunction,
+                    [String targetName]) {
+    String original = stringify(cpsFunction);
+    cps_opt.Pass pass = makePass();
+    pass.rewrite(cpsFunction);
+    assert(checkCpsIntegrity(cpsFunction, pass.passName));
+    if (pass is! ShrinkingReducer) {
+      new ShrinkingReducer().rewrite(cpsFunction);
+    }
+    String before = stringify(cpsFunction);
+    makePass().rewrite(cpsFunction);
+    String after = stringify(cpsFunction);
+    if (before != after) {
+      print('SExpression changed for ${cpsFunction.element}');
+      if (targetName != null && '${cpsFunction.element}'.contains(targetName)) {
+        print(original);
+        print('\n-->\n');
+        print(before);
+        print('\n-->\n');
+        print(after);
+        compiler.outputProvider('original', 'dump')..add(original)..close();
+        compiler.outputProvider('before', 'dump')..add(before)..close();
+        compiler.outputProvider('after', 'dump')..add(after)..close();
+      }
+    }
+    traceGraph(pass.passName, cpsFunction);
+    dumpTypedIr(pass.passName, cpsFunction);
   }
 
   void applyCpsPass(cps_opt.Pass pass, cps.FunctionDefinition cpsFunction) {
