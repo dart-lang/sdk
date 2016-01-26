@@ -4,7 +4,7 @@
 
 library dev_compiler.src.codegen.module_builder;
 
-import 'package:path/path.dart' show relative;
+import 'package:path/path.dart' as path;
 
 import '../js/js_ast.dart' as JS;
 import '../js/js_ast.dart' show js;
@@ -110,7 +110,8 @@ class LegacyModuleBuilder extends ModuleBuilder {
 }
 
 String _relativeModuleName(String moduleName, {String from}) {
-  var relativeName = relative('/' + moduleName, from: '/' + from + '/..');
+  var relativeName =
+      path.relative('/' + moduleName, from: path.dirname('/$from'));
   return relativeName.startsWith('.') ? relativeName : './$relativeName';
 }
 
