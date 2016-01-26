@@ -3810,6 +3810,10 @@ class GlobalProgramInformation {
     return TypeMaskFactory.fromNativeBehavior(behavior, _compiler);
   }
 
+  bool isArrayType(TypeMask type) {
+    return type.satisfies(_backend.helpers.jsArrayClass, _compiler.world);
+  }
+
   TypeMask getTypeMaskForNativeFunction(FunctionElement function) {
     return  _compiler.typesTask.getGuaranteedReturnTypeOfElement(function);
   }

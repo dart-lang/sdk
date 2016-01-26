@@ -182,6 +182,12 @@ class UnparsedNode extends DeferredString
   String get value => _literal.value;
 }
 
+/// True if the given template consists of just a placeholder. Such templates
+/// are sometimes used to manually promote the type of an expression.
+bool isIdentityTemplate(Template template) {
+  return template.ast is InterpolatedExpression;
+}
+
 /// Returns `true` if [template] will immediately give a TypeError if the first
 /// placeholder is `null` or `undefined`.
 bool isNullGuardOnFirstArgument(Template template) {

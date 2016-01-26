@@ -8,5 +8,5 @@
 
 function(a) {
   var result = a % 13;
-  return result === 0 ? 0 : result > 0 ? result : 13 < 0 ? result - 13 : result + 13;
+  return result === 0 ? 0 : result > 0 ? result : result + 13;
 }

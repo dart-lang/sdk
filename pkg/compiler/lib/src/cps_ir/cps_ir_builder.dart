@@ -21,7 +21,8 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js show
     js,
     LiteralStatement,
-    Template;
+    Template,
+    isIdentityTemplate;
 import '../native/native.dart' show
     NativeBehavior;
 import '../tree/tree.dart' as ast;
@@ -2638,6 +2639,13 @@ class IrBuilder {
     assert(behavior != null);
     if (type == null) {
       type = program.getTypeMaskForForeign(behavior);
+    }
+    if (js.isIdentityTemplate(codeTemplate) && !program.isArrayType(type)) {
+      // JS expression is just a refinement.
+      // Do not do this for arrays - those are special because array types can
+      // change after creation.  The input and output must therefore be modeled
+      // as distinct values.
+      return addPrimitive(new ir.Refinement(arguments.single, type));
     }
     ir.Primitive result = addPrimitive(new ir.ForeignCode(
         codeTemplate,
