@@ -225,14 +225,6 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
       // finalized yet.
       return false;
     }
-    // Do not run the optimization below if in background compilation since
-    // resolution of method extractor functions may create new signature
-    // classes.
-    // TODO(regis): Remove test for background compilation once signature
-    // classes are not generated any longer.
-    if (!thread()->IsMutatorThread()) {
-      return false;
-    }
     const Array& args_desc_array = Array::Handle(Z,
         ArgumentsDescriptor::New(call->ArgumentCount(),
                                  call->argument_names()));
@@ -284,12 +276,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   // Check if getter or setter in function's class and class is currently leaf.
-  // Do not run the optimization below if in background compilation since
-  // resolution of getter functions may create new signature classes.
-  // TODO(regis): Remove test for background compilation once signature classes
-  // are not generated any longer.
-  if (thread()->IsMutatorThread() &&
-      FLAG_guess_icdata_cid &&
+  if (FLAG_guess_icdata_cid &&
       ((call->token_kind() == Token::kGET) ||
           (call->token_kind() == Token::kSET))) {
     const Class& owner_class = Class::Handle(Z, function().Owner());
