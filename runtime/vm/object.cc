@@ -141,6 +141,8 @@ RawClass* Object::code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::code_source_map_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::stackmap_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::var_descriptors_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
@@ -613,6 +615,9 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<PcDescriptors>();
   pc_descriptors_class_ = cls.raw();
 
+  cls = Class::New<CodeSourceMap>();
+  code_source_map_class_ = cls.raw();
+
   cls = Class::New<Stackmap>();
   stackmap_class_ = cls.raw();
 
@@ -945,6 +950,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(code, Code);
   SET_CLASS_NAME(instructions, Instructions);
   SET_CLASS_NAME(object_pool, ObjectPool);
+  SET_CLASS_NAME(code_source_map, CodeSourceMap);
   SET_CLASS_NAME(pc_descriptors, PcDescriptors);
   SET_CLASS_NAME(stackmap, Stackmap);
   SET_CLASS_NAME(var_descriptors, LocalVarDescriptors);
@@ -3250,6 +3256,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::Instructions().raw();
     case kObjectPoolCid:
       return Symbols::ObjectPool().raw();
+    case kCodeSourceMapCid:
+      return Symbols::CodeSourceMap().raw();
     case kPcDescriptorsCid:
       return Symbols::PcDescriptors().raw();
     case kStackmapCid:
@@ -11158,9 +11166,9 @@ void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-// Encode integer in SLEB128 format.
-void PcDescriptors::EncodeInteger(GrowableArray<uint8_t>* data,
-                                  intptr_t value) {
+// Encode integer |value| in SLEB128 format and store into |data|.
+static void EncodeSLEB128(GrowableArray<uint8_t>* data,
+                          intptr_t value) {
   bool is_last_part = false;
   while (!is_last_part) {
     uint8_t part = value & 0x7f;
@@ -11176,11 +11184,11 @@ void PcDescriptors::EncodeInteger(GrowableArray<uint8_t>* data,
 }
 
 
-// Decode SLEB128 encoded integer. Update byte_index to the next integer.
-intptr_t PcDescriptors::DecodeInteger(intptr_t* byte_index) const {
-  NoSafepointScope no_safepoint;
-  const uint8_t* data = raw_ptr()->data();
-  ASSERT(*byte_index < Length());
+// Decode integer in SLEB128 format from |data| and update |byte_index|.
+static intptr_t DecodeSLEB128(const uint8_t* data,
+                              const intptr_t data_length,
+                              intptr_t* byte_index) {
+  ASSERT(*byte_index < data_length);
   uword shift = 0;
   intptr_t value = 0;
   uint8_t part = 0;
@@ -11194,6 +11202,21 @@ intptr_t PcDescriptors::DecodeInteger(intptr_t* byte_index) const {
     value |= static_cast<intptr_t>(-1) << shift;
   }
   return value;
+}
+
+
+// Encode integer in SLEB128 format.
+void PcDescriptors::EncodeInteger(GrowableArray<uint8_t>* data,
+                                  intptr_t value) {
+  return EncodeSLEB128(data, value);
+}
+
+
+// Decode SLEB128 encoded integer. Update byte_index to the next integer.
+intptr_t PcDescriptors::DecodeInteger(intptr_t* byte_index) const {
+  NoSafepointScope no_safepoint;
+  const uint8_t* data = raw_ptr()->data();
+  return DecodeSLEB128(data, Length(), byte_index);
 }
 
 
@@ -11492,6 +11515,114 @@ void PcDescriptors::Verify(const Function& function) const {
     }
   }
 #endif  // DEBUG
+}
+
+
+intptr_t CodeSourceMap::Length() const {
+  return raw_ptr()->length_;
+}
+
+
+void CodeSourceMap::SetLength(intptr_t value) const {
+  StoreNonPointer(&raw_ptr()->length_, value);
+}
+
+
+void CodeSourceMap::CopyData(GrowableArray<uint8_t>* delta_encoded_data) {
+  NoSafepointScope no_safepoint;
+  uint8_t* data = UnsafeMutableNonPointer(&raw_ptr()->data()[0]);
+  for (intptr_t i = 0; i < delta_encoded_data->length(); ++i) {
+    data[i] = (*delta_encoded_data)[i];
+  }
+}
+
+
+RawCodeSourceMap* CodeSourceMap::New(GrowableArray<uint8_t>* data) {
+  ASSERT(Object::code_source_map_class() != Class::null());
+  Thread* thread = Thread::Current();
+  CodeSourceMap& result = CodeSourceMap::Handle(thread->zone());
+  {
+    uword size = CodeSourceMap::InstanceSize(data->length());
+    RawObject* raw = Object::Allocate(CodeSourceMap::kClassId,
+                                      size,
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.SetLength(data->length());
+    result.CopyData(data);
+  }
+  return result.raw();
+}
+
+
+RawCodeSourceMap* CodeSourceMap::New(intptr_t length) {
+  ASSERT(Object::code_source_map_class() != Class::null());
+  Thread* thread = Thread::Current();
+  CodeSourceMap& result = CodeSourceMap::Handle(thread->zone());
+  {
+    uword size = CodeSourceMap::InstanceSize(length);
+    RawObject* raw = Object::Allocate(CodeSourceMap::kClassId,
+                                      size,
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.SetLength(length);
+  }
+  return result.raw();
+}
+
+
+void CodeSourceMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
+
+const char* CodeSourceMap::ToCString() const {
+  // "*" in a printf format specifier tells it to read the field width from
+  // the printf argument list.
+#define FORMAT "%#-*" Px "\t%" Pd "\n"
+  if (Length() == 0) {
+    return "empty CodeSourceMap\n";
+  }
+  // 4 bits per hex digit.
+  const int addr_width = kBitsPerWord / 4;
+  // First compute the buffer size required.
+  intptr_t len = 1;  // Trailing '\0'.
+  {
+    Iterator iter(*this);
+    while (iter.MoveNext()) {
+      len += OS::SNPrint(NULL, 0, FORMAT, addr_width,
+                         iter.PcOffset(),
+                         iter.TokenPos());
+    }
+  }
+  // Allocate the buffer.
+  char* buffer = Thread::Current()->zone()->Alloc<char>(len);
+  // Layout the fields in the buffer.
+  intptr_t index = 0;
+  Iterator iter(*this);
+  while (iter.MoveNext()) {
+    index += OS::SNPrint((buffer + index), (len - index), FORMAT, addr_width,
+                         iter.PcOffset(),
+                         iter.TokenPos());
+  }
+  return buffer;
+#undef FORMAT
+}
+
+
+// Encode integer in SLEB128 format.
+void CodeSourceMap::EncodeInteger(GrowableArray<uint8_t>* data,
+                                  intptr_t value) {
+  return EncodeSLEB128(data, value);
+}
+
+
+// Decode SLEB128 encoded integer. Update byte_index to the next integer.
+intptr_t CodeSourceMap::DecodeInteger(intptr_t* byte_index) const {
+  NoSafepointScope no_safepoint;
+  const uint8_t* data = raw_ptr()->data();
+  return DecodeSLEB128(data, Length(), byte_index);
 }
 
 

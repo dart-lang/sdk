@@ -43,6 +43,7 @@ class RawCapability;
 class RawClass;
 class RawClosure;
 class RawClosureData;
+class RawCodeSourceMap;
 class RawContext;
 class RawContextScope;
 class RawDouble;
@@ -428,6 +429,7 @@ class SnapshotReader : public BaseReader {
   RawCode* NewCode(intptr_t pointer_offsets_length);
   RawObjectPool* NewObjectPool(intptr_t length);
   RawPcDescriptors* NewPcDescriptors(intptr_t length);
+  RawCodeSourceMap* NewCodeSourceMap(intptr_t length);
   RawLocalVarDescriptors* NewLocalVarDescriptors(intptr_t num_entries);
   RawExceptionHandlers* NewExceptionHandlers(intptr_t num_entries);
   RawStackmap* NewStackmap(intptr_t length);

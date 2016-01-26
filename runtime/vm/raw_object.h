@@ -33,6 +33,7 @@ namespace dart {
   V(Instructions)                                                              \
   V(ObjectPool)                                                                \
   V(PcDescriptors)                                                             \
+  V(CodeSourceMap)                                                             \
   V(Stackmap)                                                                  \
   V(LocalVarDescriptors)                                                       \
   V(ExceptionHandlers)                                                         \
@@ -1055,6 +1056,7 @@ class RawCode : public RawObject {
   RawObject* owner_;  // Function, Null, or a Class.
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
+  RawCodeSourceMap* code_source_map_;
   RawArray* stackmaps_;
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->stackmaps_);
@@ -1192,6 +1194,23 @@ class RawPcDescriptors : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors);
 
   int32_t length_;  // Number of descriptors.
+
+  // Variable length data follows here.
+  uint8_t* data() { OPEN_ARRAY_START(uint8_t, intptr_t); }
+  const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, intptr_t); }
+
+  friend class Object;
+  friend class SnapshotReader;
+};
+
+
+// CodeSourceMap stores a mapping between code PC ranges and source token
+// positions.
+class RawCodeSourceMap : public RawObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(CodeSourceMap);
+
+  int32_t length_;  // Number of entries.
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, intptr_t); }
@@ -2286,6 +2305,7 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          (index == kInstructionsCid) ||
          (index == kObjectPoolCid) ||
          (index == kPcDescriptorsCid) ||
+         (index == kCodeSourceMapCid) ||
          (index == kStackmapCid) ||
          (index == kLocalVarDescriptorsCid) ||
          (index == kExceptionHandlersCid) ||

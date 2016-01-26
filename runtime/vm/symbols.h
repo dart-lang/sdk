@@ -161,6 +161,7 @@ class ObjectPointerVisitor;
   V(Instructions, "Instructions")                                              \
   V(ObjectPool, "ObjectPool")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
+  V(CodeSourceMap, "CodeSourceMap")                                            \
   V(Stackmap, "Stackmap")                                                      \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(ExceptionHandlers, "ExceptionHandlers")                                    \

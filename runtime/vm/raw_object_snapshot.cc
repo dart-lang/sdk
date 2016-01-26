@@ -1676,6 +1676,51 @@ void RawPcDescriptors::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawCodeSourceMap* CodeSourceMap::ReadFrom(SnapshotReader* reader,
+                                          intptr_t object_id,
+                                          intptr_t tags,
+                                          Snapshot::Kind kind,
+                                          bool as_reference) {
+  ASSERT(reader->snapshot_code());
+  ASSERT(kind == Snapshot::kFull);
+
+  const int32_t length = reader->Read<int32_t>();
+  CodeSourceMap& result =
+      CodeSourceMap::ZoneHandle(reader->zone(),
+                                NEW_OBJECT_WITH_LEN(CodeSourceMap, length));
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
+
+  if (result.Length() > 0) {
+    NoSafepointScope no_safepoint;
+    intptr_t len = result.Length();
+    uint8_t* data = result.UnsafeMutableNonPointer(result.raw_ptr()->data());
+    reader->ReadBytes(data, len);
+  }
+
+  return result.raw();
+}
+
+
+void RawCodeSourceMap::WriteTo(SnapshotWriter* writer,
+                               intptr_t object_id,
+                               Snapshot::Kind kind,
+                               bool as_reference) {
+  ASSERT(writer->snapshot_code());
+  ASSERT(kind == Snapshot::kFull);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+  writer->WriteIndexedObject(kCodeSourceMapCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+  writer->Write<int32_t>(ptr()->length_);
+  if (ptr()->length_ > 0) {
+    intptr_t len = ptr()->length_;
+    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
+    writer->WriteBytes(data, len);
+  }
+}
+
+
 RawStackmap* Stackmap::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,

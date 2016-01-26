@@ -41,6 +41,22 @@ RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
 }
 
 
+
+void CodeSourceMapBuilder::AddEntry(intptr_t pc_offset,
+                                    intptr_t token_pos) {
+  CodeSourceMap::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
+  CodeSourceMap::EncodeInteger(&encoded_data_, token_pos - prev_token_pos);
+
+  prev_pc_offset = pc_offset;
+  prev_token_pos = token_pos;
+}
+
+
+RawCodeSourceMap* CodeSourceMapBuilder::Finalize() {
+  return CodeSourceMap::New(&encoded_data_);
+}
+
+
 void StackmapTableBuilder::AddEntry(intptr_t pc_offset,
                                     BitmapBuilder* bitmap,
                                     intptr_t register_bit_count) {

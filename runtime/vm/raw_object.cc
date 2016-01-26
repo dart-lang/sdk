@@ -144,6 +144,13 @@ intptr_t RawObject::SizeFromClass() const {
       instance_size = PcDescriptors::InstanceSize(length);
       break;
     }
+    case kCodeSourceMapCid: {
+      const RawCodeSourceMap* raw_code_source_map =
+          reinterpret_cast<const RawCodeSourceMap*>(this);
+      intptr_t length = raw_code_source_map->ptr()->length_;
+      instance_size = CodeSourceMap::InstanceSize(length);
+      break;
+    }
     case kStackmapCid: {
       const RawStackmap* map = reinterpret_cast<const RawStackmap*>(this);
       intptr_t length = map->ptr()->length_;
@@ -586,6 +593,12 @@ bool RawInstructions::ContainsPC(RawInstructions* raw_instr, uword pc) {
 intptr_t RawPcDescriptors::VisitPcDescriptorsPointers(
     RawPcDescriptors* raw_obj, ObjectPointerVisitor* visitor) {
   return PcDescriptors::InstanceSize(raw_obj->ptr()->length_);
+}
+
+
+intptr_t RawCodeSourceMap::VisitCodeSourceMapPointers(
+    RawCodeSourceMap* raw_obj, ObjectPointerVisitor* visitor) {
+  return CodeSourceMap::InstanceSize(raw_obj->ptr()->length_);
 }
 
 

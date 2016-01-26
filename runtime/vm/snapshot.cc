@@ -786,6 +786,17 @@ RawPcDescriptors* SnapshotReader::NewPcDescriptors(intptr_t len) {
 }
 
 
+RawCodeSourceMap* SnapshotReader::NewCodeSourceMap(intptr_t len) {
+  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT_NO_SAFEPOINT_SCOPE();
+  RawCodeSourceMap* obj = reinterpret_cast<RawCodeSourceMap*>(
+      AllocateUninitialized(kCodeSourceMapCid,
+                            CodeSourceMap::InstanceSize(len)));
+  obj->ptr()->length_ = len;
+  return obj;
+}
+
+
 RawStackmap* SnapshotReader::NewStackmap(intptr_t len) {
   ASSERT(kind_ == Snapshot::kFull);
   ASSERT_NO_SAFEPOINT_SCOPE();

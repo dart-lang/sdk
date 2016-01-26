@@ -507,6 +507,7 @@ class Object {
   static RawClass* instructions_class() { return instructions_class_; }
   static RawClass* object_pool_class() { return object_pool_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
+  static RawClass* code_source_map_class() { return code_source_map_class_; }
   static RawClass* stackmap_class() { return stackmap_class_; }
   static RawClass* var_descriptors_class() { return var_descriptors_class_; }
   static RawClass* exception_handlers_class() {
@@ -768,6 +769,7 @@ class Object {
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* object_pool_class_;  // Class of the ObjectPool vm object.
   static RawClass* pc_descriptors_class_;  // Class of PcDescriptors vm object.
+  static RawClass* code_source_map_class_;  // Class of CodeSourceMap vm object.
   static RawClass* stackmap_class_;  // Class of Stackmap vm object.
   static RawClass* var_descriptors_class_;  // Class of LocalVarDescriptors.
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
@@ -3973,6 +3975,76 @@ class PcDescriptors : public Object {
 };
 
 
+class CodeSourceMap : public Object {
+ public:
+  static const intptr_t kBytesPerElement = 1;
+  static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawCodeSourceMap) ==
+           OFFSET_OF_RETURNED_VALUE(RawCodeSourceMap, data));
+    return 0;
+  }
+  static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(sizeof(RawCodeSourceMap) + len);
+  }
+
+  static RawCodeSourceMap* New(GrowableArray<uint8_t>* delta_encoded_data);
+
+  void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
+
+  // Encode integer in SLEB128 format.
+  static void EncodeInteger(GrowableArray<uint8_t>* data, intptr_t value);
+
+  // Decode SLEB128 encoded integer. Update byte_index to the next integer.
+  intptr_t DecodeInteger(intptr_t* byte_index) const;
+
+  class Iterator : ValueObject {
+   public:
+    explicit Iterator(const CodeSourceMap& code_source_map)
+        : code_source_map_(code_source_map),
+          cur_pc_offset_(0),
+          cur_token_pos_(0) {
+    }
+
+    bool MoveNext() {
+      // Moves to the next record.
+      while (byte_index_ < code_source_map_.Length()) {
+        cur_pc_offset_ += code_source_map_.DecodeInteger(&byte_index_);
+        cur_token_pos_ += code_source_map_.DecodeInteger(&byte_index_);
+
+        return true;
+      }
+      return false;
+    }
+
+    uword PcOffset() const { return cur_pc_offset_; }
+    intptr_t TokenPos() const { return cur_token_pos_; }
+
+   private:
+    friend class CodeSourceMap;
+
+    const CodeSourceMap& code_source_map_;
+    intptr_t byte_index_;
+
+    intptr_t cur_pc_offset_;
+    intptr_t cur_token_pos_;
+  };
+
+ private:
+  static RawCodeSourceMap* New(intptr_t length);
+
+  intptr_t Length() const;
+  void SetLength(intptr_t value) const;
+  void CopyData(GrowableArray<uint8_t>* data);
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(CodeSourceMap, Object);
+  friend class Class;
+  friend class Object;
+};
+
+
 class Stackmap : public Object {
  public:
   static const intptr_t kNoMaximum = -1;
@@ -4201,6 +4273,15 @@ class Code : public Object {
   void set_pc_descriptors(const PcDescriptors& descriptors) const {
     ASSERT(descriptors.IsOld());
     StorePointer(&raw_ptr()->pc_descriptors_, descriptors.raw());
+  }
+
+  RawCodeSourceMap* code_source_map() const {
+    return raw_ptr()->code_source_map_;
+  }
+
+  void set_code_source_map(const CodeSourceMap& code_source_map) const {
+    ASSERT(code_source_map.IsOld());
+    StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
   }
 
   // Array of DeoptInfo objects.
