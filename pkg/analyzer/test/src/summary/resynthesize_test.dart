@@ -220,10 +220,6 @@ class ResynthTest extends ResolverTestCase {
     ElementImpl actualResynthesized = getActualElement(resynthesized, desc);
     ElementImpl actualOriginal = getActualElement(original, desc);
     for (Modifier modifier in Modifier.values) {
-      if (modifier == Modifier.MIXIN) {
-        // Skipping for now.  TODO(paulberry): fix.
-        continue;
-      }
       bool got = actualResynthesized.hasModifier(modifier);
       bool want = actualOriginal.hasModifier(modifier);
       expect(got, want,

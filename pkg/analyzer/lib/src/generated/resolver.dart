@@ -2671,11 +2671,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   bool _inFunction = false;
 
   /**
-   * A flag indicating whether the class currently being visited can be used as a mixin.
-   */
-  bool _isValidMixin = false;
-
-  /**
    * A collection holding the elements defined in a class that need to have
    * their function type fixed to take into account type parameters of the
    * enclosing class, or `null` if we are not currently processing nodes within
@@ -2737,7 +2732,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ElementHolder holder = new ElementHolder();
-    _isValidMixin = true;
     _functionTypesToFix = new List<ExecutableElementImpl>();
     //
     // Process field declarations before constructors and methods so that field
@@ -2775,7 +2769,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.constructors = constructors;
     element.fields = holder.fields;
     element.methods = holder.methods;
-    element.validMixin = _isValidMixin;
     // Function types must be initialized after the enclosing element has been
     // set, for them to pick up the type parameters.
     for (ExecutableElementImpl e in _functionTypesToFix) {
@@ -2825,7 +2818,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    _isValidMixin = false;
     ElementHolder holder = new ElementHolder();
     bool wasInFunction = _inFunction;
     _inFunction = true;
@@ -3395,12 +3387,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       parameterName.staticElement = parameter;
     }
     return super.visitSimpleFormalParameter(node);
-  }
-
-  @override
-  Object visitSuperExpression(SuperExpression node) {
-    _isValidMixin = false;
-    return super.visitSuperExpression(node);
   }
 
   @override
@@ -12026,9 +12012,6 @@ class TypeResolverVisitor extends ScopedVisitor {
           : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
       superclassType = _resolveType(extendsClause.superclass, errorCode,
           CompileTimeErrorCode.EXTENDS_ENUM, errorCode);
-      if (!identical(superclassType, typeProvider.objectType)) {
-        classElement.validMixin = false;
-      }
     }
     if (classElement != null) {
       if (superclassType == null) {

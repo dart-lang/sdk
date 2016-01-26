@@ -336,7 +336,22 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @override
-  bool get isValidMixin => hasModifier(Modifier.MIXIN);
+  bool get isValidMixin {
+    if (!context.analysisOptions.enableSuperMixins) {
+      if (hasReferenceToSuper) {
+        return false;
+      }
+      if (!supertype.isObject) {
+        return false;
+      }
+    }
+    for (ConstructorElement constructor in constructors) {
+      if (!constructor.isSynthetic && !constructor.isFactory) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   ElementKind get kind => ElementKind.CLASS;
@@ -384,13 +399,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       }
     }
     return null;
-  }
-
-  /**
-   * Set whether this class is a valid mixin.
-   */
-  void set validMixin(bool isValidMixin) {
-    setModifier(Modifier.MIXIN, isValidMixin);
   }
 
   @override
