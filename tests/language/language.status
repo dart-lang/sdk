@@ -8,6 +8,11 @@
 [ ($compiler == none || $compiler == precompiler) ]
 tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
 
+# These tests are skipped in the VM because it has "--supermixin"
+# functionality enabled unconditionally.  The tests should be removed
+# once the same is true for analyzer (#24478) and dart2js (#23773)
+mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
+mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail # Issue 6422
