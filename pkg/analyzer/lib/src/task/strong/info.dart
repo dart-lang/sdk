@@ -124,15 +124,10 @@ abstract class DownCast extends CoercionInfo {
     }
 
     // Inference "casts":
-    if (expression is Literal) {
+    if (expression is Literal || expression is FunctionExpression) {
       // fromT should be an exact type - this will almost certainly fail at
       // runtime.
       return new StaticTypeError(rules, expression, toT, reason: reason);
-    }
-    if (expression is FunctionExpression) {
-      // fromT should be an exact type - this will almost certainly fail at
-      // runtime.
-      return new UninferredClosure(rules, expression, cast);
     }
     if (expression is InstanceCreationExpression) {
       ConstructorElement e = expression.staticElement;
@@ -564,24 +559,4 @@ class StaticTypeError extends StaticError {
 
   @override
   String get name => 'STRONG_MODE_STATIC_TYPE_ERROR';
-}
-
-//
-// Temporary "casts" of allocation sites - literals, constructor invocations,
-// and closures.  These should be handled by contextual inference.  In most
-// cases, inference will be sufficient, though in some it may unmask an actual
-// error: e.g.,
-//   List<int> l = [1, 2, 3]; // Inference succeeds
-//   List<String> l = [1, 2, 3]; // Inference reveals static type error
-// We're marking all as warnings for now.
-//
-// TODO(vsm,leafp): Remove this.
-class UninferredClosure extends DownCast {
-  UninferredClosure(TypeSystem rules, FunctionExpression expression, Cast cast)
-      : super._internal(rules, expression, cast);
-
-  @override
-  String get name => 'STRONG_MODE_UNINFERRED_CLOSURE';
-
-  toErrorCode() => new StaticTypeWarningCode(name, message);
 }

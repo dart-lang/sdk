@@ -964,6 +964,16 @@ void main() {
    '''
   });
 
+  testChecker('Function subtyping: uninferred closure', {
+    '/main.dart': '''
+      typedef num Num2Num(num x);
+      void main() {
+        Num2Num g = /*info:INFERRED_TYPE_CLOSURE,severe:STATIC_TYPE_ERROR*/(int x) { return x; };
+        print(g(42));
+      }
+    '''
+  });
+
   testChecker('Relaxed casts', {
     '/main.dart': '''
 
