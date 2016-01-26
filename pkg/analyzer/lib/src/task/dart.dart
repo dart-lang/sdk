@@ -1229,10 +1229,24 @@ class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     //
+    // Build the enum members if they have not already been created.
+    //
+    EnumDeclaration findFirstEnum() {
+      for (CompilationUnitMember member in unit.declarations) {
+        if (member is EnumDeclaration) {
+          return member;
+        }
+      }
+      return null;
+    }
+    EnumDeclaration firstEnum = findFirstEnum();
+    if (firstEnum != null && firstEnum.element.accessors.isEmpty) {
+      EnumMemberBuilder builder = new EnumMemberBuilder(typeProvider);
+      unit.accept(builder);
+    }
+    //
     // Record outputs.
     //
-    EnumMemberBuilder builder = new EnumMemberBuilder(typeProvider);
-    unit.accept(builder);
     outputs[CREATED_RESOLVED_UNIT2] = true;
     outputs[RESOLVED_UNIT2] = unit;
   }

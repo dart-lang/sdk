@@ -2856,6 +2856,9 @@ abstract class EnumDeclaration extends NamedCompilationUnitMember {
    */
   NodeList<EnumConstantDeclaration> get constants;
 
+  @override
+  ClassElement get element;
+
   /**
    * Return the 'enum' keyword.
    */
