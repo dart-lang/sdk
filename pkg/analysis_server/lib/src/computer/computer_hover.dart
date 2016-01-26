@@ -6,6 +6,7 @@ library computer.hover;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     show HoverInformation;
+import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -69,7 +70,6 @@ class DartUnitHoverComputer {
             hover.containingLibraryPath = library.source.fullName;
           }
         }
-
         // documentation
         hover.dartdoc = _computeDocumentation(element);
       }
@@ -91,7 +91,23 @@ class DartUnitHoverComputer {
     if (element is ParameterElement) {
       element = element.enclosingElement;
     }
-    return removeDartDocDelimiters(element.documentationComment);
+    // The documentation of the element itself.
+    if (element.documentationComment != null) {
+      return removeDartDocDelimiters(element.documentationComment);
+    }
+    // Look for documentation comments of overridden members.
+    OverriddenElements overridden = findOverriddenElements(element);
+    for (Element superElement in []
+      ..addAll(overridden.superElements)
+      ..addAll(overridden.interfaceElements)) {
+      String rawDoc = superElement.documentationComment;
+      if (rawDoc != null) {
+        Element interfaceClass = superElement.enclosingElement;
+        return removeDartDocDelimiters(rawDoc) +
+            '\n\nCopied from `${interfaceClass.displayName}`.';
+      }
+    }
+    return null;
   }
 
   static _safeToString(obj) => obj != null ? obj.toString() : null;

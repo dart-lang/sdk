@@ -370,7 +370,7 @@ class C implements B {
 ''');
     await prepareOverrides();
     assertHasOverride('m() {} // in C');
-    expect(override.interfaceMembers, hasLength(1));
+    expect(override.interfaceMembers, hasLength(2));
     assertHasInterfaceMember('m() {} // in B');
   }
 
