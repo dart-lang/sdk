@@ -4,19 +4,18 @@
 
 library dev_compiler.src.codegen.module_builder;
 
+import 'package:path/path.dart' show relative;
+
 import '../js/js_ast.dart' as JS;
 import '../js/js_ast.dart' show js;
 import '../options.dart' show ModuleFormat;
 
 /// Helper that builds JS modules in a given [ModuleFormat].
 abstract class ModuleBuilder {
-  final String _jsPath;
-  final String _jsModuleValue;
-  final JS.Identifier _exportsVar;
   final List<String> _exports = <String>[];
   final List<_ModuleImport> _imports = <_ModuleImport>[];
 
-  ModuleBuilder._(this._jsPath, this._jsModuleValue, this._exportsVar);
+  ModuleBuilder._();
 
   /// Returns a [format]-specific [ModuleBuilder].
   /// - [jsPath] is the path of the module being built.
@@ -25,13 +24,12 @@ abstract class ModuleBuilder {
   ///   library directive). It is null in any other case.
   /// - [exportsVar] is the name of the object on which items are exported. Lazy
   ///   variables and constants are assumed to be declared on this instance.
-  factory ModuleBuilder(String jsPath, String jsModuleValue,
-      JS.Identifier exportsVar, ModuleFormat format) {
+  factory ModuleBuilder(ModuleFormat format) {
     switch (format) {
       case ModuleFormat.legacy:
-        return new LegacyModuleBuilder(jsPath, jsModuleValue, exportsVar);
+        return new LegacyModuleBuilder();
       case ModuleFormat.es6:
-        return new ES6ModuleBuilder(jsPath, jsModuleValue, exportsVar);
+        return new ES6ModuleBuilder();
     }
   }
 
@@ -48,7 +46,8 @@ abstract class ModuleBuilder {
   }
 
   /// Builds a program out of menu items.
-  JS.Program build(List<JS.ModuleItem> moduleItems);
+  JS.Program build(String jsPath, String jsModuleValue,
+      JS.Identifier exportsVar, Iterable<JS.ModuleItem> moduleItems);
 }
 
 class _ModuleImport {
@@ -63,14 +62,14 @@ class _ModuleImport {
 
 /// Generates modules for with DDC's `dart_library.js` loading mechanism.
 class LegacyModuleBuilder extends ModuleBuilder {
-  LegacyModuleBuilder(jsPath, _jsModuleValue, _exportsVar)
-      : super._(jsPath, _jsModuleValue, _exportsVar);
+  LegacyModuleBuilder() : super._();
 
-  JS.Program build(List<JS.ModuleItem> moduleItems) {
+  JS.Program build(String jsPath, String jsModuleValue,
+      JS.Identifier exportsVar, List<JS.ModuleItem> moduleItems) {
     // TODO(jmesserly): it would be great to run the renamer on the body,
     // then figure out if we really need each of these parameters.
     // See ES6 modules: https://github.com/dart-lang/dev_compiler/issues/34
-    var params = [_exportsVar];
+    var params = [exportsVar];
     var lazyParams = [];
 
     var imports = <JS.Expression>[];
@@ -90,7 +89,7 @@ class LegacyModuleBuilder extends ModuleBuilder {
       // TODO(jmesserly): make these immutable in JS?
       for (var name in _exports) {
         moduleStatements
-            .add(js.statement('#.# = #;', [_exportsVar, name, name]));
+            .add(js.statement('#.# = #;', [exportsVar, name, name]));
       }
     }
 
@@ -98,8 +97,8 @@ class LegacyModuleBuilder extends ModuleBuilder {
         js.call("function(#) { 'use strict'; #; }", [params, moduleStatements]);
 
     var moduleDef = js.statement("dart_library.library(#, #, #, #, #)", [
-      js.string(_jsPath, "'"),
-      _jsModuleValue ?? new JS.LiteralNull(),
+      js.string(jsPath, "'"),
+      jsModuleValue ?? new JS.LiteralNull(),
       js.commentExpression(
           "Imports", new JS.ArrayInitializer(imports, multiline: true)),
       js.commentExpression("Lazy imports",
@@ -110,25 +109,31 @@ class LegacyModuleBuilder extends ModuleBuilder {
   }
 }
 
+String _relativeModuleName(String moduleName, {String from}) {
+  var relativeName = relative('/' + moduleName, from: '/' + from + '/..');
+  return relativeName.startsWith('.') ? relativeName : './$relativeName';
+}
+
 /// Generates ES6 modules.
 // TODO(ochafik): Break strong dep cycles to accommodate the Closure Compiler.
 class ES6ModuleBuilder extends ModuleBuilder {
-  ES6ModuleBuilder(jsPath, _jsModuleValue, _exportsVar)
-      : super._(jsPath, _jsModuleValue, _exportsVar);
+  ES6ModuleBuilder() : super._();
 
-  JS.Program build(List<JS.ModuleItem> moduleItems) {
+  JS.Program build(String jsPath, String jsModuleValue,
+      JS.Identifier exportsVar, Iterable<JS.ModuleItem> moduleItems) {
     var moduleStatements = <JS.ModuleItem>[
       // Lazy declarations may reference exports.
-      js.statement("const # = {};", [_exportsVar])
+      js.statement("const # = {};", [exportsVar])
     ];
 
     // TODO(jmesserly): it would be great to run the renamer on the body,
     // then figure out if we really need each of these parameters.
     // See ES6 modules: https://github.com/dart-lang/dev_compiler/issues/34
     for (var i in _imports) {
+      var moduleName = js.string(_relativeModuleName(i.name, from: jsPath));
       // TODO(ochafik): laziness, late binding, etc, to support Closure...
       moduleStatements.add(new JS.ImportDeclaration(
-          defaultBinding: i.libVar, from: js.string(i.name)));
+          defaultBinding: i.libVar, from: moduleName));
     }
 
     moduleStatements.addAll(_flattenBlocks(moduleItems));
@@ -138,12 +143,12 @@ class ES6ModuleBuilder extends ModuleBuilder {
       // TODO(jmesserly): make these immutable in JS?
       for (var name in _exports) {
         moduleStatements
-            .add(js.statement('#.# = #;', [_exportsVar, name, name]));
+            .add(js.statement('#.# = #;', [exportsVar, name, name]));
       }
       moduleStatements
-          .add(new JS.ExportDeclaration(_exportsVar, isDefault: true));
+          .add(new JS.ExportDeclaration(exportsVar, isDefault: true));
     }
-    // TODO(ochafik): What to do of _jsModuleValue?
+    // TODO(ochafik): What to do of jsModuleValue?
     return new JS.Program(moduleStatements);
   }
 }
@@ -155,4 +160,5 @@ class ES6ModuleBuilder extends ModuleBuilder {
 // are generated from [JSCodegenVisitor], instead of composing them with
 // [_statements]).
 Iterable<JS.ModuleItem> _flattenBlocks(List<JS.ModuleItem> stats) =>
-    stats.expand((item) => item is JS.Block ? item.statements : [item]);
+    stats.expand((item) => item is JS.Block
+        ? _flattenBlocks(item.statements) : [item]);

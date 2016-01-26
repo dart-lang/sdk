@@ -179,11 +179,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       id.setQualified(!_loader.isLoaded(element));
     }
 
-    var moduleBuilder = new ModuleBuilder(
-        compiler.getModuleName(currentLibrary.source.uri),
-        _jsModuleValue,
-        _exportsVar,
-        options.moduleFormat);
+    var moduleBuilder = new ModuleBuilder(options.moduleFormat);
 
     _exports.forEach(moduleBuilder.addExport);
 
@@ -208,7 +204,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     // var jsBin = compiler.options.runnerOptions.v8Binary;
     // String scriptTag = null;
     // if (library.library.scriptTag != null) scriptTag = '/usr/bin/env $jsBin';
-    return moduleBuilder.build(items);
+    return moduleBuilder.build(
+        compiler.getModuleName(currentLibrary.source.uri),
+        _jsModuleValue,
+        _exportsVar,
+        items);
   }
 
   void _emitModuleItem(AstNode node) {

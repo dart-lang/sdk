@@ -1,7 +1,6 @@
-'use strict';
 const exports = {};
-import dart from "dart/_runtime";
-import core from "dart/core";
+import dart from "./dart/_runtime";
+import core from "./dart/core";
 let dartx = dart.dartx;
 const Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
 class A extends core.Object {}
