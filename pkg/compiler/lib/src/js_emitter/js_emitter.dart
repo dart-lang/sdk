@@ -34,6 +34,7 @@ import '../deferred_load.dart' show
 import '../elements/elements.dart' show
     ClassElement,
     ConstructorBodyElement,
+    ConstructorElement,
     Element,
     Elements,
     ElementKind,

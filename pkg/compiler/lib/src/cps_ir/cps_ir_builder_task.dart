@@ -1905,7 +1905,10 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
     List<ir.Primitive> arguments = argumentsNode.nodes.mapToList(visit);
     // Use default values from the effective target, not the immediate target.
-    ConstructorElement target = constructor.effectiveTarget;
+    ConstructorElement target = constructor.implementation;
+    while (target.isRedirectingFactory && !target.isCyclicRedirection) {
+      target = target.effectiveTarget.implementation;
+    }
 
     callStructure = normalizeStaticArguments(callStructure, target, arguments);
     TypeMask allocationSiteType;
@@ -1916,10 +1919,11 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         Elements.isConstructorOfTypedArraySubclass(constructor, compiler)) {
       allocationSiteType = getAllocationSiteType(send);
     }
+    ConstructorElement constructorImplementation = constructor.implementation;
     return irBuilder.buildConstructorInvocation(
         target,
         callStructure,
-        constructor.computeEffectiveTargetType(type),
+        constructorImplementation.computeEffectiveTargetType(type),
         arguments,
         sourceInformationBuilder.buildNew(node),
         allocationSiteType: allocationSiteType);
