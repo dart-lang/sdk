@@ -36,15 +36,15 @@ class ConstantValueTypeMasks extends ConstantValueVisitor<TypeMask, Compiler> {
 
   @override
   TypeMask visitDouble(DoubleConstantValue constant, Compiler compiler) {
-    // We have to distinguish -0.0 from 0, but for all practical purposes
-    // -0.0 is an integer.
-    // TODO(17235): this kind of special casing should only happen in the
-    // backend.
-    if (constant.isMinusZero &&
-        compiler.backend.constantSystem.isInt(constant)) {
-      return compiler.typesTask.uint31Type;
+    // We have to recognize double constants that are 'is int'.
+    if (compiler.backend.constantSystem.isInt(constant)) {
+      if (constant.isMinusZero) {
+        return compiler.typesTask.uint31Type;
+      } else {
+        assert(constant.isPositiveInfinity || constant.isNegativeInfinity);
+        return compiler.typesTask.intType;
+      }
     }
-    assert(!compiler.backend.constantSystem.isInt(constant));
     return compiler.typesTask.doubleType;
   }
 
