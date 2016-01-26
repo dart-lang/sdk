@@ -1548,7 +1548,6 @@ Future testNoSuchMethod() {
           }
           class Class extends A {
           }
-          """, warnings: MessageKind.UNIMPLEMENTED_METHOD_ONE,
-               infos: MessageKind.UNIMPLEMENTED_METHOD_CONT),
+          """),
   ]);
 }
