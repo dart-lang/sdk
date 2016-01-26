@@ -1170,9 +1170,6 @@ class UnlinkedPart {
  * Unlinked summary information about a specific name contributed by a
  * compilation unit to a library's public namespace.
  *
- * TODO(paulberry): add a count of generic parameters, so that resynthesis
- * doesn't have to peek into the library to obtain this info.
- *
  * TODO(paulberry): some of this information is redundant with information
  * elsewhere in the summary.  Consider reducing the redundancy to reduce
  * summary size.

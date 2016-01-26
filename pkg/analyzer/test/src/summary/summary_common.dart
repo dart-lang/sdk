@@ -2395,7 +2395,6 @@ class C {
   }
 
   test_dependencies_export_to_export_unused() {
-    // TODO(paulberry): fix this test.
     addNamedSource('/a.dart', 'export "b.dart";');
     addNamedSource('/b.dart', '');
     serializeLibraryText('export "a.dart";');
@@ -2407,7 +2406,6 @@ class C {
   }
 
   test_dependencies_export_unused() {
-    // TODO(paulberry): fix this test.
     addNamedSource('/a.dart', '');
     serializeLibraryText('export "a.dart";');
     // The main test library depends on a.dart, even though it doesn't

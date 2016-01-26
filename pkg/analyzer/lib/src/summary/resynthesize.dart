@@ -442,7 +442,6 @@ class _LibraryResynthesizer {
    */
   void buildEnum(UnlinkedEnum serializedEnum) {
     assert(!isCoreLibrary);
-    // TODO(paulberry): add offset support (for this element type and others)
     ClassElementImpl classElement =
         new ClassElementImpl(serializedEnum.name, serializedEnum.nameOffset);
     classElement.enum2 = true;
@@ -549,8 +548,6 @@ class _LibraryResynthesizer {
         } else {
           implicitVariable.setter = executableElement;
         }
-        // TODO(paulberry): do the right thing when getter and setter are in
-        // different units.
         break;
       default:
         // The only other executable type is a constructor, and that is handled
@@ -769,8 +766,6 @@ class _LibraryResynthesizer {
    */
   ImportElement buildImport(UnlinkedImport serializedImport, int dependency) {
     bool isSynthetic = serializedImport.isImplicit;
-    // TODO(paulberry): it seems problematic for the offset to be 0 for
-    // non-synthetic imports, since it is used to disambiguate location.
     ImportElementImpl importElement =
         new ImportElementImpl(isSynthetic ? -1 : serializedImport.offset);
     String absoluteUri = summaryResynthesizer.sourceFactory
@@ -985,11 +980,6 @@ class _LibraryResynthesizer {
       return currentTypeParameters[
           currentTypeParameters.length - type.paramReference].type;
     } else {
-      // TODO(paulberry): handle references to things other than classes (note:
-      // this should only occur in the case of erroneous code).
-      // TODO(paulberry): test reference to something inside a part.
-      // TODO(paulberry): test reference to something inside a part of the
-      // current lib.
       LinkedReference referenceResolution =
           linkedUnit.references[type.reference];
       String name;
