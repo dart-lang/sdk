@@ -1590,6 +1590,7 @@ class ChangeSet {
   /**
    * A list containing the sources that have been deleted.
    */
+  @deprecated
   final List<Source> deletedSources = new List<Source>();
 
   /**
@@ -1652,6 +1653,7 @@ class ChangeSet {
   /**
    * Record that the specified [source] has been deleted.
    */
+  @deprecated
   void deletedSource(Source source) {
     deletedSources.add(source);
   }
