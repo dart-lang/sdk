@@ -296,6 +296,11 @@ enum ReferenceKind {
   constructor,
 
   /**
+   * The entity is a static const field.
+   */
+  constField,
+
+  /**
    * The entity is a static method.
    */
   staticMethod,
@@ -1190,10 +1195,11 @@ class UnlinkedPublicName {
   int numTypeParameters;
 
   /**
-   * If this [UnlinkedPublicName] is a class, the list of static methods
-   * and constructors.  Otherwise empty.
+   * If this [UnlinkedPublicName] is a class, the list of members which can be
+   * referenced from constants - static constant fields, static methods, and
+   * constructors.  Otherwise empty.
    */
-  List<UnlinkedPublicName> executables;
+  List<UnlinkedPublicName> constMembers;
 }
 
 /**

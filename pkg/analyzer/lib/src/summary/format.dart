@@ -26,6 +26,11 @@ enum ReferenceKind {
   constructor,
 
   /**
+   * The entity is a static const field.
+   */
+  constField,
+
+  /**
    * The entity is a static method.
    */
   staticMethod,
@@ -4384,7 +4389,7 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   String _name;
   ReferenceKind _kind;
   int _numTypeParameters;
-  List<UnlinkedPublicNameBuilder> _executables;
+  List<UnlinkedPublicNameBuilder> _constMembers;
 
   @override
   String get name => _name ??= '';
@@ -4422,33 +4427,34 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   }
 
   @override
-  List<UnlinkedPublicNameBuilder> get executables => _executables ??= <UnlinkedPublicNameBuilder>[];
+  List<UnlinkedPublicNameBuilder> get constMembers => _constMembers ??= <UnlinkedPublicNameBuilder>[];
 
   /**
-   * If this [UnlinkedPublicName] is a class, the list of static methods
-   * and constructors.  Otherwise empty.
+   * If this [UnlinkedPublicName] is a class, the list of members which can be
+   * referenced from constants - static constant fields, static methods, and
+   * constructors.  Otherwise empty.
    */
-  void set executables(List<UnlinkedPublicNameBuilder> _value) {
+  void set constMembers(List<UnlinkedPublicNameBuilder> _value) {
     assert(!_finished);
-    _executables = _value;
+    _constMembers = _value;
   }
 
-  UnlinkedPublicNameBuilder({String name, ReferenceKind kind, int numTypeParameters, List<UnlinkedPublicNameBuilder> executables})
+  UnlinkedPublicNameBuilder({String name, ReferenceKind kind, int numTypeParameters, List<UnlinkedPublicNameBuilder> constMembers})
     : _name = name,
       _kind = kind,
       _numTypeParameters = numTypeParameters,
-      _executables = executables;
+      _constMembers = constMembers;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
     fb.Offset offset_name;
-    fb.Offset offset_executables;
+    fb.Offset offset_constMembers;
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
     }
-    if (!(_executables == null || _executables.isEmpty)) {
-      offset_executables = fbBuilder.writeList(_executables.map((b) => b.finish(fbBuilder)).toList());
+    if (!(_constMembers == null || _constMembers.isEmpty)) {
+      offset_constMembers = fbBuilder.writeList(_constMembers.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_name != null) {
@@ -4460,8 +4466,8 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
     if (_numTypeParameters != null && _numTypeParameters != 0) {
       fbBuilder.addUint32(2, _numTypeParameters);
     }
-    if (offset_executables != null) {
-      fbBuilder.addOffset(3, offset_executables);
+    if (offset_constMembers != null) {
+      fbBuilder.addOffset(3, offset_constMembers);
     }
     return fbBuilder.endTable();
   }
@@ -4497,10 +4503,11 @@ abstract class UnlinkedPublicName extends base.SummaryClass {
   int get numTypeParameters;
 
   /**
-   * If this [UnlinkedPublicName] is a class, the list of static methods
-   * and constructors.  Otherwise empty.
+   * If this [UnlinkedPublicName] is a class, the list of members which can be
+   * referenced from constants - static constant fields, static methods, and
+   * constructors.  Otherwise empty.
    */
-  List<UnlinkedPublicName> get executables;
+  List<UnlinkedPublicName> get constMembers;
 }
 
 class _UnlinkedPublicNameReader extends fb.TableReader<_UnlinkedPublicNameImpl> {
@@ -4518,7 +4525,7 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
   String _name;
   ReferenceKind _kind;
   int _numTypeParameters;
-  List<UnlinkedPublicName> _executables;
+  List<UnlinkedPublicName> _constMembers;
 
   @override
   String get name {
@@ -4539,9 +4546,9 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
   }
 
   @override
-  List<UnlinkedPublicName> get executables {
-    _executables ??= const fb.ListReader<UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bp, 3, const <UnlinkedPublicName>[]);
-    return _executables;
+  List<UnlinkedPublicName> get constMembers {
+    _constMembers ??= const fb.ListReader<UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bp, 3, const <UnlinkedPublicName>[]);
+    return _constMembers;
   }
 }
 
@@ -4551,7 +4558,7 @@ abstract class _UnlinkedPublicNameMixin implements UnlinkedPublicName {
     "name": name,
     "kind": kind,
     "numTypeParameters": numTypeParameters,
-    "executables": executables,
+    "constMembers": constMembers,
   };
 }
 

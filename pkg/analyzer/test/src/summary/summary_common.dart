@@ -1066,6 +1066,77 @@ class E {}
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
 
+  test_class_constMembers() {
+    UnlinkedClass cls = serializeClassText('''
+class C {
+  int fieldInstance = 0;
+  final int fieldInstanceFinal = 0;
+  static int fieldStatic = 0;
+  static final int fieldStaticFinal = 0;
+  static const int fieldStaticConst = 0;
+  static const int _fieldStaticConstPrivate = 0;
+  static void methodStaticPublic() {}
+  static void _methodStaticPrivate() {}
+  void methodInstancePublic() {}
+  C operator+(C c) => null;
+}
+''');
+    expect(cls.isAbstract, false);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    UnlinkedPublicName className = unlinkedUnits[0].publicNamespace.names[0];
+    expect(className.kind, ReferenceKind.classOrEnum);
+    expect(className.name, 'C');
+    expect(className.numTypeParameters, 0);
+    // executables
+    Map<String, UnlinkedPublicName> executablesMap =
+        <String, UnlinkedPublicName>{};
+    className.constMembers.forEach((e) => executablesMap[e.name] = e);
+    expect(executablesMap, hasLength(2));
+    {
+      UnlinkedPublicName executable = executablesMap['fieldStaticConst'];
+      expect(executable.kind, ReferenceKind.constField);
+      expect(executable.constMembers, isEmpty);
+    }
+    {
+      UnlinkedPublicName executable = executablesMap['methodStaticPublic'];
+      expect(executable.kind, ReferenceKind.staticMethod);
+      expect(executable.constMembers, isEmpty);
+    }
+  }
+
+  test_class_constMembers_constructors() {
+    UnlinkedClass cls = serializeClassText('''
+class C {
+  const C();
+  const C.constructorNamedPublicConst();
+  C.constructorNamedPublic();
+  C._constructorNamedPrivate();
+}
+''');
+    expect(cls.isAbstract, false);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    UnlinkedPublicName className = unlinkedUnits[0].publicNamespace.names[0];
+    expect(className.kind, ReferenceKind.classOrEnum);
+    expect(className.name, 'C');
+    expect(className.numTypeParameters, 0);
+    // executables
+    Map<String, UnlinkedPublicName> executablesMap =
+        <String, UnlinkedPublicName>{};
+    className.constMembers.forEach((e) => executablesMap[e.name] = e);
+    expect(executablesMap, hasLength(2));
+    {
+      UnlinkedPublicName executable = executablesMap[''];
+      expect(executable.kind, ReferenceKind.constructor);
+      expect(executable.constMembers, isEmpty);
+    }
+    {
+      UnlinkedPublicName executable =
+          executablesMap['constructorNamedPublicConst'];
+      expect(executable.kind, ReferenceKind.constructor);
+      expect(executable.constMembers, isEmpty);
+    }
+  }
+
   test_class_documented() {
     String text = '''
 // Extra comment so doc comment offset != 0
@@ -1098,46 +1169,6 @@ class E {}''';
     UnlinkedClass cls = serializeClassText(text);
     expect(cls.documentationComment, isNotNull);
     checkDocumentationComment(cls.documentationComment, text);
-  }
-
-  test_class_executables() {
-    UnlinkedClass cls = serializeClassText('''
-class C {
-  static void methodStaticPublic() {}
-  static void _methodStaticPrivate() {}
-  C();
-  C.constructorNamedPublic();
-  C._constructorNamedPrivate();
-  void methodInstancePublic() {}
-  C operator+(C c) => null;
-}
-''');
-    expect(cls.isAbstract, false);
-    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
-    UnlinkedPublicName className = unlinkedUnits[0].publicNamespace.names[0];
-    expect(className.kind, ReferenceKind.classOrEnum);
-    expect(className.name, 'C');
-    expect(className.numTypeParameters, 0);
-    // executables
-    Map<String, UnlinkedPublicName> executablesMap =
-        <String, UnlinkedPublicName>{};
-    className.executables.forEach((e) => executablesMap[e.name] = e);
-    expect(executablesMap, hasLength(3));
-    {
-      UnlinkedPublicName executable = executablesMap['methodStaticPublic'];
-      expect(executable.kind, ReferenceKind.staticMethod);
-      expect(executable.executables, isEmpty);
-    }
-    {
-      UnlinkedPublicName executable = executablesMap[''];
-      expect(executable.kind, ReferenceKind.constructor);
-      expect(executable.executables, isEmpty);
-    }
-    {
-      UnlinkedPublicName executable = executablesMap['constructorNamedPublic'];
-      expect(executable.kind, ReferenceKind.constructor);
-      expect(executable.executables, isEmpty);
-    }
   }
 
   test_class_interface() {

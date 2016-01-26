@@ -193,7 +193,7 @@ class _Prelinker {
         aggregated.putIfAbsent(name.name, () {
           if (name.kind == ReferenceKind.classOrEnum) {
             Map<String, _Meaning> namespace = <String, _Meaning>{};
-            name.executables.forEach((executable) {
+            name.constMembers.forEach((executable) {
               namespace[executable.name] = new _Meaning(unitNum,
                   executable.kind, dependency, executable.numTypeParameters);
             });

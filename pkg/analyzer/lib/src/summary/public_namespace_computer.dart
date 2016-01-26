@@ -64,6 +64,19 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
         node.typeParameters?.typeParameters?.length ?? 0);
     if (cls != null) {
       for (ClassMember member in node.members) {
+        if (member is FieldDeclaration &&
+            member.isStatic &&
+            member.fields.isConst) {
+          for (VariableDeclaration field in member.fields.variables) {
+            String name = field.name.name;
+            if (isPublic(name)) {
+              cls.constMembers.add(new UnlinkedPublicNameBuilder(
+                  name: name,
+                  kind: ReferenceKind.constField,
+                  numTypeParameters: 0));
+            }
+          }
+        }
         if (member is MethodDeclaration &&
             member.isStatic &&
             !member.isGetter &&
@@ -71,17 +84,17 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
             !member.isOperator) {
           String name = member.name.name;
           if (isPublic(name)) {
-            cls.executables.add(new UnlinkedPublicNameBuilder(
+            cls.constMembers.add(new UnlinkedPublicNameBuilder(
                 name: name,
                 kind: ReferenceKind.staticMethod,
                 numTypeParameters:
                     member.typeParameters?.typeParameters?.length ?? 0));
           }
         }
-        if (member is ConstructorDeclaration) {
+        if (member is ConstructorDeclaration && member.constKeyword != null) {
           String name = member.name != null ? member.name.name : '';
           if (isPublic(name)) {
-            cls.executables.add(new UnlinkedPublicNameBuilder(
+            cls.constMembers.add(new UnlinkedPublicNameBuilder(
                 name: name,
                 kind: ReferenceKind.constructor,
                 numTypeParameters: 0));

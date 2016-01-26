@@ -183,7 +183,7 @@ class _CompilationUnitSerializer {
             kind: ReferenceKind.classOrEnum,
             name: cls.name,
             numTypeParameters: cls.typeParameters.length,
-            executables: serializePublicStaticMethodsAndConstructors(cls)));
+            constMembers: serializeClassConstMembers(cls)));
       }
     }
     for (ClassElement enm in compilationUnit.enums) {
@@ -373,6 +373,43 @@ class _CompilationUnitSerializer {
     b.isMixinApplication = classElement.isMixinApplication;
     b.documentationComment = serializeDocumentation(classElement);
     return b;
+  }
+
+  /**
+   * If [cls] is a class, return the list of its members available for
+   * constants - static constant fields, static methods and constructors.
+   * Otherwise return `null`.
+   */
+  List<UnlinkedPublicNameBuilder> serializeClassConstMembers(ClassElement cls) {
+    if (cls.kind == ElementKind.CLASS) {
+      List<UnlinkedPublicNameBuilder> bs = <UnlinkedPublicNameBuilder>[];
+      for (FieldElement field in cls.fields) {
+        if (field.isStatic && field.isConst && field.isPublic) {
+          bs.add(new UnlinkedPublicNameBuilder(
+              name: field.name,
+              kind: ReferenceKind.constField,
+              numTypeParameters: 0));
+        }
+      }
+      for (MethodElement method in cls.methods) {
+        if (method.isStatic && method.isPublic) {
+          bs.add(new UnlinkedPublicNameBuilder(
+              name: method.name,
+              kind: ReferenceKind.staticMethod,
+              numTypeParameters: method.typeParameters.length));
+        }
+      }
+      for (ConstructorElement constructor in cls.constructors) {
+        if (constructor.isConst && constructor.isPublic) {
+          bs.add(new UnlinkedPublicNameBuilder(
+              name: constructor.name,
+              kind: ReferenceKind.constructor,
+              numTypeParameters: 0));
+        }
+      }
+      return bs;
+    }
+    return null;
   }
 
   /**
@@ -579,35 +616,6 @@ class _CompilationUnitSerializer {
           .add(new LinkedReferenceBuilder(kind: ReferenceKind.prefix));
       return index;
     });
-  }
-
-  /**
-   * If [cls] is a class, return the list of its public static methods and
-   * constructors.  Otherwise return `null`.
-   */
-  List<UnlinkedPublicNameBuilder> serializePublicStaticMethodsAndConstructors(
-      ClassElement cls) {
-    if (cls.kind == ElementKind.CLASS) {
-      List<UnlinkedPublicNameBuilder> bs = <UnlinkedPublicNameBuilder>[];
-      for (MethodElement method in cls.methods) {
-        if (method.isStatic && method.isPublic) {
-          bs.add(new UnlinkedPublicNameBuilder(
-              name: method.name,
-              kind: ReferenceKind.staticMethod,
-              numTypeParameters: method.typeParameters.length));
-        }
-      }
-      for (ConstructorElement constructor in cls.constructors) {
-        if (constructor.isPublic && !constructor.isSynthetic) {
-          bs.add(new UnlinkedPublicNameBuilder(
-              name: constructor.name,
-              kind: ReferenceKind.constructor,
-              numTypeParameters: 0));
-        }
-      }
-      return bs;
-    }
-    return null;
   }
 
   /**
