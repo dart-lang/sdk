@@ -7,9 +7,7 @@ library dev_compiler.test.utils_test;
 import 'package:dev_compiler/src/utils.dart';
 import 'package:test/test.dart';
 
-enum Foo {
-  first, second
-}
+enum Foo { first, second }
 
 void main() {
   group('getEnumValue', () {

@@ -151,8 +151,9 @@ $compilerMessages''';
           // We need a more comprehensive strategy to test them.
           var sourceMaps = filename == 'map_keys';
           var closure = filename == 'closure';
-          var moduleFormat =
-              filename == 'es6_modules' ? ModuleFormat.es6 : ModuleFormat.legacy;
+          var moduleFormat = filename == 'es6_modules'
+              ? ModuleFormat.es6
+              : ModuleFormat.legacy;
           var success;
           // TODO(vsm): Is it okay to reuse the same context here?  If there is
           // overlap between test files, we may need separate ones for each

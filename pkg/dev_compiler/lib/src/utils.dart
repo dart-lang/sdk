@@ -438,8 +438,7 @@ bool isDartMathMinMax(Element e) =>
 // TODO(ochafik): generic signature.
 dynamic parseEnum(String s, List enumValues) =>
     enumValues.firstWhere((v) => s == getEnumName(v),
-        orElse: () => throw new ArgumentError(
-            'Unknown enum value: $s '
+        orElse: () => throw new ArgumentError('Unknown enum value: $s '
             '(expected one of ${enumValues.map(getEnumName)})'));
 
 /// Gets the "simple" name of an enum value.

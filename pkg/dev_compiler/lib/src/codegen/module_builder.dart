@@ -132,8 +132,8 @@ class ES6ModuleBuilder extends ModuleBuilder {
     for (var i in _imports) {
       var moduleName = js.string(_relativeModuleName(i.name, from: jsPath));
       // TODO(ochafik): laziness, late binding, etc, to support Closure...
-      moduleStatements.add(new JS.ImportDeclaration(
-          defaultBinding: i.libVar, from: moduleName));
+      moduleStatements.add(
+          new JS.ImportDeclaration(defaultBinding: i.libVar, from: moduleName));
     }
 
     moduleStatements.addAll(_flattenBlocks(moduleItems));
@@ -160,5 +160,5 @@ class ES6ModuleBuilder extends ModuleBuilder {
 // are generated from [JSCodegenVisitor], instead of composing them with
 // [_statements]).
 Iterable<JS.ModuleItem> _flattenBlocks(List<JS.ModuleItem> stats) =>
-    stats.expand((item) => item is JS.Block
-        ? _flattenBlocks(item.statements) : [item]);
+    stats.expand(
+        (item) => item is JS.Block ? _flattenBlocks(item.statements) : [item]);
