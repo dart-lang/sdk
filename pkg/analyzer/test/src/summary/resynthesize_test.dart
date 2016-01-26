@@ -1228,6 +1228,26 @@ get x => null;''');
     checkLibrary('import "a.dart"; import "b.dart"; C c; D d;');
   }
 
+  test_inferred_type_is_typedef() {
+    checkLibrary('typedef int F(String s);'
+        ' class C extends D { var v; }'
+        ' abstract class D { F get v; }');
+  }
+
+  test_inferred_type_refers_to_bound_type_param() {
+    checkLibrary('class C<T> extends D<int, T> { var v; }'
+        ' abstract class D<U, V> { Map<V, U> get v; }');
+  }
+
+  test_inferred_type_via_function_typed_param() {
+    if (options.strongMode) {
+      // TODO(paulberry): get this test to pass.
+      return;
+    }
+    checkLibrary('class C extends D { f(g) {} }'
+        ' abstract class D { void f(int g(String)); }');
+  }
+
   test_library() {
     checkLibrary('');
   }

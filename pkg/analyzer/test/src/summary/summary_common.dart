@@ -3786,6 +3786,22 @@ p.B b;
     expect(unlinkedUnits[0].imports[0].uri, 'dart:async');
   }
 
+  test_inferred_type_refers_to_bound_type_param() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedClass cls = serializeClassText(
+        'class C<T> extends D<int, T> { var v; }'
+        ' abstract class D<U, V> { Map<V, U> get v; }',
+        className: 'C');
+    EntityRef type = getTypeRefForSlot(cls.fields[0].inferredTypeSlot);
+    // Check that v has inferred type Map<T, int>.
+    checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'Map',
+        allowTypeParameters: true, numTypeParameters: 2);
+    checkParamTypeRef(type.typeArguments[0], 1);
+    checkLinkedTypeRef(type.typeArguments[1], 'dart:core', 'dart:core', 'int');
+  }
+
   test_invalid_prefix_dynamic() {
     if (checkAstDerivedData) {
       // TODO(paulberry): get this to work properly.
