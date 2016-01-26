@@ -258,14 +258,26 @@ class _Prelinker {
     for (UnlinkedClass cls in unit.classes) {
       privateNamespace.putIfAbsent(cls.name, () {
         Map<String, _Meaning> namespace = <String, _Meaning>{};
+        cls.fields.forEach((field) {
+          if (field.isStatic && field.isConst) {
+            namespace[field.name] =
+                new _Meaning(unitNum, ReferenceKind.constField, 0, 0);
+          }
+        });
         cls.executables.forEach((executable) {
-          namespace[executable.name] = new _Meaning(
-              unitNum,
-              executable.kind == UnlinkedExecutableKind.constructor
-                  ? ReferenceKind.constructor
-                  : ReferenceKind.staticMethod,
-              0,
-              executable.typeParameters.length);
+          ReferenceKind kind = null;
+          if (executable.kind == UnlinkedExecutableKind.constructor &&
+              executable.isConst) {
+            kind = ReferenceKind.constructor;
+          } else if (executable.kind ==
+                  UnlinkedExecutableKind.functionOrMethod &&
+              executable.isStatic) {
+            kind = ReferenceKind.staticMethod;
+          }
+          if (kind != null) {
+            namespace[executable.name] = new _Meaning(
+                unitNum, kind, 0, executable.typeParameters.length);
+          }
         });
         return new _ClassMeaning(
             unitNum, 0, cls.typeParameters.length, namespace);

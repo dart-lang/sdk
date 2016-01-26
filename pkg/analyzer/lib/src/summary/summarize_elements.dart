@@ -28,23 +28,24 @@ LibrarySerializationResult serializeLibrary(
 }
 
 ReferenceKind _getReferenceKind(Element element) {
-  ReferenceKind kind;
   if (element == null ||
       element is ClassElement ||
       element is DynamicElementImpl) {
-    kind = ReferenceKind.classOrEnum;
+    return ReferenceKind.classOrEnum;
   } else if (element is ConstructorElement) {
-    kind = ReferenceKind.constructor;
+    return ReferenceKind.constructor;
   } else if (element is FunctionElement) {
-    kind = ReferenceKind.topLevelFunction;
+    return ReferenceKind.topLevelFunction;
   } else if (element is FunctionTypeAliasElement) {
-    kind = ReferenceKind.typedef;
+    return ReferenceKind.typedef;
   } else if (element is PropertyAccessorElement) {
-    kind = ReferenceKind.topLevelPropertyAccessor;
+    if (element.enclosingElement is ClassElement) {
+      return ReferenceKind.constField;
+    }
+    return ReferenceKind.topLevelPropertyAccessor;
   } else {
     throw new Exception('Unexpected element kind: ${element.runtimeType}');
   }
-  return kind;
 }
 
 /**
@@ -870,7 +871,14 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   EntityRefBuilder serializeIdentifier(Identifier identifier) {
     Element element = identifier.staticElement;
     assert(element != null);
-    // TODO(scheglov) how to serialize element references?
+    return new EntityRefBuilder(
+        reference: serializer._getElementReferenceId(element));
+  }
+
+  @override
+  EntityRefBuilder serializePropertyAccess(PropertyAccess access) {
+    Element element = access.propertyName.staticElement;
+    assert(element != null);
     return new EntityRefBuilder(
         reference: serializer._getElementReferenceId(element));
   }

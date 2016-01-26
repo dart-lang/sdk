@@ -56,6 +56,20 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   }
 
   @override
+  EntityRefBuilder serializePropertyAccess(PropertyAccess access) {
+    Expression target = access.target;
+    if (target is Identifier) {
+      EntityRefBuilder targetRef = serializeIdentifier(target);
+      return new EntityRefBuilder(
+          reference: visitor.serializeReference(
+              targetRef.reference, access.propertyName.name));
+    } else {
+      // TODO(scheglov) should we handle other targets in malformed constants?
+      throw new StateError('Unexpected target type: ${target.runtimeType}');
+    }
+  }
+
+  @override
   EntityRefBuilder serializeType(TypeName node) {
     return visitor.serializeTypeName(node);
   }

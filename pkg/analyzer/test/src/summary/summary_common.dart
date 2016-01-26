@@ -2012,23 +2012,6 @@ const v = C;
     ]);
   }
 
-  test_constExpr_pushReference_class_field() {
-    // TODO(scheglov) Not sure for to represent a field reference
-    // using TypeRef.
-//    UnlinkedVariable variable = serializeVariableText('''
-//class C {
-//  static const int F = 1;
-//}
-//const v = C.F;
-//''');
-//    _assertUnlinkedConst(variable.constExpr, operators: [
-//      UnlinkedConstOperation.pushReference
-//    ], references: [
-//      (TypeRef r) => checkTypeRef(r, null, null, 'F',
-//          expectedKind: ReferenceKind.classOrEnum, expectedPrefix: 'C')
-//    ]);
-  }
-
   test_constExpr_pushReference_enum() {
     UnlinkedVariable variable = serializeVariableText('''
 enum C {V1, V2, V3}
@@ -2039,6 +2022,85 @@ const v = C;
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'C',
           expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_constExpr_pushReference_field() {
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  static const int F = 1;
+}
+const v = C.F;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'F',
+              expectedKind: ReferenceKind.constField,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_field_imported() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+  static const int F = 1;
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = C.F;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'F',
+              expectedKind: ReferenceKind.constField,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_field_imported_withPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+  static const int F = 1;
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const v = p.C.F;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'F',
+              expectedKind: ReferenceKind.constField,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C'),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p',
+                    inLibraryDefiningUnit: true),
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_topLevelVariable() {
+    UnlinkedVariable variable = serializeVariableText('''
+const int a = 1;
+const v = a;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'a',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor)
     ]);
   }
 
@@ -2070,20 +2132,6 @@ const v = p.a;
             expectedKind: ReferenceKind.topLevelPropertyAccessor,
             expectedPrefix: 'p');
       }
-    ]);
-  }
-
-  test_constExpr_pushReference_topLevelVariable_local() {
-    // TODO(scheglov) use `a + b`
-    UnlinkedVariable variable = serializeVariableText('''
-const int a = 1;
-const v = a;
-''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushReference
-    ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, null, null, 'a',
-          expectedKind: ReferenceKind.topLevelPropertyAccessor)
     ]);
   }
 

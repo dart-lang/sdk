@@ -92,9 +92,16 @@ abstract class AbstractConstExprSerializer {
       operations.add(UnlinkedConstOperation.conditional);
     } else if (expr is PrefixExpression) {
       _serializePrefixExpression(expr);
-    } else if (expr is PropertyAccess && expr.propertyName.name == 'length') {
-      serialize(expr.target);
-      operations.add(UnlinkedConstOperation.length);
+    } else if (expr is PropertyAccess) {
+      // TODO(scheglov) solve ambiguity of `a.b.length` where `a` and `b` are
+      // identifiers
+      if (expr.propertyName.name == 'length') {
+        serialize(expr.target);
+        operations.add(UnlinkedConstOperation.length);
+      } else {
+        references.add(serializePropertyAccess(expr));
+        operations.add(UnlinkedConstOperation.pushReference);
+      }
     } else if (expr is ParenthesizedExpression) {
       serialize(expr.expression);
     } else {
@@ -106,6 +113,11 @@ abstract class AbstractConstExprSerializer {
    * Return [EntityRefBuilder] that corresponds to the given [identifier].
    */
   EntityRefBuilder serializeIdentifier(Identifier identifier);
+
+  /**
+   * Return [EntityRefBuilder] that corresponds to the given [access].
+   */
+  EntityRefBuilder serializePropertyAccess(PropertyAccess access);
 
   /**
    * Return [EntityRefBuilder] that corresponds to the given [type].
