@@ -468,6 +468,7 @@ abstract class SummaryTest {
   void checkTypeRef(EntityRef typeRef, String absoluteUri, String relativeUri,
       String expectedName,
       {String expectedPrefix,
+      List<_PrefixExpectation> prefixExpectations,
       bool allowTypeParameters: false,
       ReferenceKind expectedKind: ReferenceKind.classOrEnum,
       int expectedTargetUnit: 0,
@@ -497,10 +498,25 @@ abstract class SummaryTest {
       // summarize_elements.dart isn't yet able to record the prefix of
       // unresolved references.  TODO(paulberry): fix this.
       expect(reference.prefixReference, 0);
-    } else if (expectedPrefix == null) {
+    } else if (expectedPrefix != null) {
+      checkPrefix(reference.prefixReference, expectedPrefix);
+    } else if (prefixExpectations != null) {
+      for (_PrefixExpectation expectation in prefixExpectations) {
+        expect(reference.prefixReference, isNot(0));
+        reference = checkTypeRefCommonElements(
+            reference.prefixReference,
+            expectation.inLibraryDefiningUnit ? null : absoluteUri,
+            expectation.inLibraryDefiningUnit ? null : relativeUri,
+            expectation.name,
+            expectation.kind,
+            expectedTargetUnit,
+            linkedSourceUnit,
+            unlinkedSourceUnit,
+            expectation.numTypeParameters);
+      }
       expect(reference.prefixReference, 0);
     } else {
-      checkPrefix(reference.prefixReference, expectedPrefix);
+      expect(reference.prefixReference, 0);
     }
   }
 
@@ -1512,10 +1528,6 @@ class E {}
   }
 
   test_constExpr_invokeConstructor_named() {
-    if (checkAstDerivedData) {
-      // TODO(scheglov) at the moment we cannot link class member references
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   const C.named();
@@ -1527,19 +1539,16 @@ const v = const C.named();
     ], ints: [
       0,
       0
-    ], strings: [
-      'named'
     ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, null, null, 'C',
-          expectedKind: ReferenceKind.classOrEnum)
+      (EntityRef r) => checkTypeRef(r, null, null, 'named',
+              expectedKind: ReferenceKind.constructor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
     ]);
   }
 
   test_constExpr_invokeConstructor_named_imported() {
-    if (checkAstDerivedData) {
-      // TODO(scheglov) at the moment we cannot link class member references
-      return;
-    }
     addNamedSource(
         '/a.dart',
         '''
@@ -1556,11 +1565,12 @@ const v = const C.named();
     ], ints: [
       0,
       0
-    ], strings: [
-      'named'
     ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
-          expectedKind: ReferenceKind.classOrEnum)
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'named',
+              expectedKind: ReferenceKind.constructor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
     ]);
   }
 
@@ -1581,11 +1591,14 @@ const v = const p.C.named();
     ], ints: [
       0,
       0
-    ], strings: [
-      'named'
     ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
-          expectedKind: ReferenceKind.classOrEnum, expectedPrefix: 'p')
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'named',
+              expectedKind: ReferenceKind.constructor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C'),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p',
+                    inLibraryDefiningUnit: true)
+              ])
     ]);
   }
 
@@ -1623,11 +1636,60 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
       '777',
       'e',
       'g',
-      'f',
-      ''
+      'f'
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'C',
           expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_unnamed_imported() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+  const C();
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = const C();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_unnamed_imported_withPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+  const C();
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const v = const p.C();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
+              expectedKind: ReferenceKind.classOrEnum,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.prefix, 'p',
+                    inLibraryDefiningUnit: true)
+              ])
     ]);
   }
 
@@ -3258,9 +3320,10 @@ class C {
 
   test_field_inferred_type_nonstatic_explicit_uninitialized() {
     UnlinkedVariable v = serializeClassText(
-        'class C extends D { num v; } abstract class D { int get v; }',
-        className: 'C',
-        allowErrors: true).fields[0];
+            'class C extends D { num v; } abstract class D { int get v; }',
+            className: 'C',
+            allowErrors: true)
+        .fields[0];
     expect(v.inferredTypeSlot, 0);
   }
 
@@ -3271,8 +3334,9 @@ class C {
 
   test_field_inferred_type_nonstatic_implicit_uninitialized() {
     UnlinkedVariable v = serializeClassText(
-        'class C extends D { var v; } abstract class D { int get v; }',
-        className: 'C').fields[0];
+            'class C extends D { var v; } abstract class D { int get v; }',
+            className: 'C')
+        .fields[0];
     checkInferredTypeSlot(v.inferredTypeSlot, 'dart:core', 'dart:core', 'int');
   }
 
@@ -3370,26 +3434,29 @@ get f => null;''';
 
   test_getter_inferred_type_nonstatic_explicit_return() {
     UnlinkedExecutable f = serializeClassText(
-        'class C extends D { num get f => null; }'
-        ' abstract class D { int get f; }',
-        className: 'C',
-        allowErrors: true).executables[0];
+            'class C extends D { num get f => null; }'
+            ' abstract class D { int get f; }',
+            className: 'C',
+            allowErrors: true)
+        .executables[0];
     expect(f.inferredReturnTypeSlot, 0);
   }
 
   test_getter_inferred_type_nonstatic_implicit_return() {
     UnlinkedExecutable f = serializeClassText(
-        'class C extends D { get f => null; } abstract class D { int get f; }',
-        className: 'C').executables[0];
+            'class C extends D { get f => null; } abstract class D { int get f; }',
+            className: 'C')
+        .executables[0];
     checkInferredTypeSlot(
         f.inferredReturnTypeSlot, 'dart:core', 'dart:core', 'int');
   }
 
   test_getter_inferred_type_static_implicit_return() {
     UnlinkedExecutable f = serializeClassText(
-        'class C extends D { static get f => null; }'
-        ' class D { static int get f => null; }',
-        className: 'C').executables[0];
+            'class C extends D { static get f => null; }'
+            ' class D { static int get f => null; }',
+            className: 'C')
+        .executables[0];
     expect(f.inferredReturnTypeSlot, 0);
   }
 
@@ -3779,50 +3846,56 @@ class C {
 
   test_method_inferred_type_nonstatic_explicit_param() {
     UnlinkedExecutable f = serializeClassText(
-        'class C extends D { void f(num value) {} }'
-        ' abstract class D { void f(int value); }',
-        className: 'C').executables[0];
+            'class C extends D { void f(num value) {} }'
+            ' abstract class D { void f(int value); }',
+            className: 'C')
+        .executables[0];
     expect(f.parameters[0].inferredTypeSlot, 0);
   }
 
   test_method_inferred_type_nonstatic_explicit_return() {
     UnlinkedExecutable f = serializeClassText(
-        'class C extends D { num f() => null; } abstract class D { int f(); }',
-        className: 'C',
-        allowErrors: true).executables[0];
+            'class C extends D { num f() => null; } abstract class D { int f(); }',
+            className: 'C',
+            allowErrors: true)
+        .executables[0];
     expect(f.inferredReturnTypeSlot, 0);
   }
 
   test_method_inferred_type_nonstatic_implicit_param() {
     UnlinkedExecutable f = serializeClassText(
-        'class C extends D { void f(value) {} }'
-        ' abstract class D { void f(int value); }',
-        className: 'C').executables[0];
+            'class C extends D { void f(value) {} }'
+            ' abstract class D { void f(int value); }',
+            className: 'C')
+        .executables[0];
     checkInferredTypeSlot(
         f.parameters[0].inferredTypeSlot, 'dart:core', 'dart:core', 'int');
   }
 
   test_method_inferred_type_nonstatic_implicit_return() {
     UnlinkedExecutable f = serializeClassText(
-        'class C extends D { f() => null; } abstract class D { int f(); }',
-        className: 'C').executables[0];
+            'class C extends D { f() => null; } abstract class D { int f(); }',
+            className: 'C')
+        .executables[0];
     checkInferredTypeSlot(
         f.inferredReturnTypeSlot, 'dart:core', 'dart:core', 'int');
   }
 
   test_method_inferred_type_static_implicit_param() {
     UnlinkedExecutable f = serializeClassText(
-        'class C extends D { static void f(value) {} }'
-        ' class D { static void f(int value) {} }',
-        className: 'C').executables[0];
+            'class C extends D { static void f(value) {} }'
+            ' class D { static void f(int value) {} }',
+            className: 'C')
+        .executables[0];
     expect(f.parameters[0].inferredTypeSlot, 0);
   }
 
   test_method_inferred_type_static_implicit_return() {
     UnlinkedExecutable f = serializeClassText(
-        'class C extends D { static f() => null; }'
-        ' class D { static int f() => null; }',
-        className: 'C').executables[0];
+            'class C extends D { static f() => null; }'
+            ' class D { static int f() => null; }',
+            className: 'C')
+        .executables[0];
     expect(f.inferredReturnTypeSlot, 0);
   }
 
@@ -3875,9 +3948,10 @@ void set f(value) {}''';
 
   test_setter_inferred_type_nonstatic_explicit_param() {
     UnlinkedExecutable f = serializeClassText(
-        'class C extends D { void set f(num value) {} }'
-        ' abstract class D { void set f(int value); }',
-        className: 'C').executables[0];
+            'class C extends D { void set f(num value) {} }'
+            ' abstract class D { void set f(int value); }',
+            className: 'C')
+        .executables[0];
     expect(f.parameters[0].inferredTypeSlot, 0);
   }
 
@@ -3890,9 +3964,10 @@ void set f(value) {}''';
 
   test_setter_inferred_type_nonstatic_implicit_param() {
     UnlinkedExecutable f = serializeClassText(
-        'class C extends D { void set f(value) {} }'
-        ' abstract class D { void set f(int value); }',
-        className: 'C').executables[0];
+            'class C extends D { void set f(value) {} }'
+            ' abstract class D { void set f(int value); }',
+            className: 'C')
+        .executables[0];
     checkInferredTypeSlot(
         f.parameters[0].inferredTypeSlot, 'dart:core', 'dart:core', 'int');
   }
@@ -3905,9 +3980,10 @@ void set f(value) {}''';
 
   test_setter_inferred_type_static_implicit_param() {
     UnlinkedExecutable f = serializeClassText(
-        'class C extends D { static void set f(value) {} }'
-        ' class D { static void set f(int value) {} }',
-        className: 'C').executables[0];
+            'class C extends D { static void set f(value) {} }'
+            ' class D { static void set f(int value) {} }',
+            className: 'C')
+        .executables[0];
     expect(f.parameters[0].inferredTypeSlot, 0);
   }
 
@@ -4589,4 +4665,17 @@ var v;''';
       referenceValidators[i](constExpr.references[i]);
     }
   }
+}
+
+/**
+ * Description of expectations for a prelinked prefix reference.
+ */
+class _PrefixExpectation {
+  final ReferenceKind kind;
+  final String name;
+  final bool inLibraryDefiningUnit;
+  final int numTypeParameters;
+
+  _PrefixExpectation(this.kind, this.name,
+      {this.inLibraryDefiningUnit: false, this.numTypeParameters: 0});
 }

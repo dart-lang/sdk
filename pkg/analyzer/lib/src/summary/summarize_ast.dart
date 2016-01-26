@@ -28,6 +28,18 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
 
   _ConstExprSerializer(this.visitor);
 
+  @override
+  EntityRefBuilder serializeConstructorName(ConstructorName constructor) {
+    EntityRefBuilder typeBuilder = serializeType(constructor.type);
+    if (constructor.name == null) {
+      return typeBuilder;
+    } else {
+      String name = constructor.name.name;
+      int nameRef = visitor.serializeReference(typeBuilder.reference, name);
+      return new EntityRefBuilder(reference: nameRef);
+    }
+  }
+
   EntityRefBuilder serializeIdentifier(Identifier identifier) {
     EntityRefBuilder b = new EntityRefBuilder();
     if (identifier is SimpleIdentifier) {

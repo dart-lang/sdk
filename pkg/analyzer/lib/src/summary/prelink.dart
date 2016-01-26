@@ -32,13 +32,23 @@ typedef UnlinkedPublicNamespace GetImportCallback(String relativeUri);
 
 /**
  * Type of the callback used by the prelinker to obtain unlinked summaries of
- * part files of the library to be prelinked.  [relaviteUri] should be
+ * part files of the library to be prelinked.  [relativeUri] should be
  * interpreted relative to the defining compilation unit of the library being
  * prelinked.
  *
  * If no file exists at the given uri, `null` should be returned.
  */
 typedef UnlinkedUnit GetPartCallback(String relativeUri);
+
+/**
+ * A [_Meaning] representing a class.
+ */
+class _ClassMeaning extends _Meaning {
+  final Map<String, _Meaning> namespace;
+
+  _ClassMeaning(int unit, int dependency, int numTypeParameters, this.namespace)
+      : super(unit, ReferenceKind.classOrEnum, dependency, numTypeParameters);
+}
 
 /**
  * A [_Meaning] stores all the information necessary to find the declaration
@@ -180,10 +190,19 @@ class _Prelinker {
         continue;
       }
       for (UnlinkedPublicName name in importedNamespace.names) {
-        aggregated.putIfAbsent(
-            name.name,
-            () => new _Meaning(
-                unitNum, name.kind, dependency, name.numTypeParameters));
+        aggregated.putIfAbsent(name.name, () {
+          if (name.kind == ReferenceKind.classOrEnum) {
+            Map<String, _Meaning> namespace = <String, _Meaning>{};
+            name.executables.forEach((executable) {
+              namespace[executable.name] = new _Meaning(unitNum,
+                  executable.kind, dependency, executable.numTypeParameters);
+            });
+            return new _ClassMeaning(
+                unitNum, dependency, name.numTypeParameters, namespace);
+          }
+          return new _Meaning(
+              unitNum, name.kind, dependency, name.numTypeParameters);
+        });
       }
     }
 
@@ -237,10 +256,20 @@ class _Prelinker {
    */
   void extractPrivateNames(UnlinkedUnit unit, int unitNum) {
     for (UnlinkedClass cls in unit.classes) {
-      privateNamespace.putIfAbsent(
-          cls.name,
-          () => new _Meaning(unitNum, ReferenceKind.classOrEnum, 0,
-              cls.typeParameters.length));
+      privateNamespace.putIfAbsent(cls.name, () {
+        Map<String, _Meaning> namespace = <String, _Meaning>{};
+        cls.executables.forEach((executable) {
+          namespace[executable.name] = new _Meaning(
+              unitNum,
+              executable.kind == UnlinkedExecutableKind.constructor
+                  ? ReferenceKind.constructor
+                  : ReferenceKind.staticMethod,
+              0,
+              executable.typeParameters.length);
+        });
+        return new _ClassMeaning(
+            unitNum, 0, cls.typeParameters.length, namespace);
+      });
     }
     for (UnlinkedEnum enm in unit.enums) {
       privateNamespace.putIfAbsent(enm.name,
@@ -365,18 +394,20 @@ class _Prelinker {
     for (int i = 0; i < unit.references.length; i++) {
       UnlinkedReference reference = unit.references[i];
       Map<String, _Meaning> namespace;
-      if (reference.prefixReference != 0) {
+      if (reference.prefixReference == 0) {
+        namespace = privateNamespace;
+      } else {
         // Prefix references must always point backward.
         assert(reference.prefixReference < i);
         namespace = prefixNamespaces[reference.prefixReference];
         // Prefix references must always point to proper prefixes.
         assert(namespace != null);
-      } else {
-        namespace = privateNamespace;
       }
       _Meaning meaning = namespace[reference.name];
       if (meaning != null) {
         if (meaning is _PrefixMeaning) {
+          prefixNamespaces[i] = meaning.namespace;
+        } else if (meaning is _ClassMeaning) {
           prefixNamespaces[i] = meaning.namespace;
         }
         references.add(meaning.encodeReference());

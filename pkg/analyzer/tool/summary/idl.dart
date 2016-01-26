@@ -578,19 +578,16 @@ enum UnlinkedConstOperation {
    * values to create named arguments.  Then pop the top `m` values from the
    * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
    * from the end) and use them as positional arguments.  Use the lists of
-   * positional and names arguments to invoke a constant constructor whose name
-   * is obtained from [UnlinkedConst.strings], and whose class is obtained from
-   * [UnlinkedConst.references], and push the resulting value back onto the
+   * positional and names arguments to invoke a constant constructor obtained
+   * from [UnlinkedConst.references], and push the resulting value back onto the
    * stack.
    *
    * Note that for an invocation of the form `const a.b(...)` (where no type
    * arguments are specified), it is impossible to tell from the unresolved AST
    * alone whether `a` is a class name and `b` is a constructor name, or `a` is
-   * a prefix name and `b` is a class name.  In this case it is presumed that
-   * `a` is a prefix name and `b` is a class name.
-   *
-   * TODO(paulberry): figure out how to resolve this ambiguity in the
-   * "prelinked" part of the summary.
+   * a prefix name and `b` is a class name.  For consistency between AST based
+   * and elements based summaries, references to default constructors are always
+   * recorded as references to corresponding classes.
    */
   invokeConstructor,
 

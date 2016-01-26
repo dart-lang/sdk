@@ -29,16 +29,18 @@ LibrarySerializationResult serializeLibrary(
 
 ReferenceKind _getReferenceKind(Element element) {
   ReferenceKind kind;
-  if (element is PropertyAccessorElement) {
-    kind = ReferenceKind.topLevelPropertyAccessor;
-  } else if (element is FunctionTypeAliasElement) {
-    kind = ReferenceKind.typedef;
-  } else if (element == null ||
+  if (element == null ||
       element is ClassElement ||
       element is DynamicElementImpl) {
     kind = ReferenceKind.classOrEnum;
+  } else if (element is ConstructorElement) {
+    kind = ReferenceKind.constructor;
   } else if (element is FunctionElement) {
     kind = ReferenceKind.topLevelFunction;
+  } else if (element is FunctionTypeAliasElement) {
+    kind = ReferenceKind.typedef;
+  } else if (element is PropertyAccessorElement) {
+    kind = ReferenceKind.topLevelPropertyAccessor;
   } else {
     throw new Exception('Unexpected element kind: ${element.runtimeType}');
   }
@@ -785,6 +787,9 @@ class _CompilationUnitSerializer {
 
   int _getElementReferenceId(Element element, {bool linked: false}) {
     return referenceMap.putIfAbsent(element, () {
+      if (element is ConstructorElement && element.displayName.isEmpty) {
+        return _getElementReferenceId(element.enclosingElement, linked: linked);
+      }
       LibraryElement dependentLibrary = element?.library;
       int unit;
       if (dependentLibrary == null) {
@@ -812,15 +817,20 @@ class _CompilationUnitSerializer {
         linkedReference.name = name;
       } else {
         assert(unlinkedReferences.length == linkedReferences.length);
-        // Figure out a prefix that may be used to refer to the given type.
-        // TODO(paulberry): to avoid subtle relinking inconsistencies we
-        // should use the actual prefix from the AST (a given type may be
-        // reachable via multiple prefixes), but sadly, this information is
-        // not recorded in the element model.
         int prefixReference = 0;
-        PrefixElement prefix = librarySerializer.prefixMap[element];
-        if (prefix != null) {
-          prefixReference = serializePrefix(prefix);
+        Element enclosing = element?.enclosingElement;
+        if (enclosing == null || enclosing is CompilationUnitElement) {
+          // Figure out a prefix that may be used to refer to the given element.
+          // TODO(paulberry): to avoid subtle relinking inconsistencies we
+          // should use the actual prefix from the AST (a given type may be
+          // reachable via multiple prefixes), but sadly, this information is
+          // not recorded in the element model.
+          PrefixElement prefix = librarySerializer.prefixMap[element];
+          if (prefix != null) {
+            prefixReference = serializePrefix(prefix);
+          }
+        } else {
+          prefixReference = _getElementReferenceId(enclosing, linked: linked);
         }
         unlinkedReferences.add(new UnlinkedReferenceBuilder(
             name: name, prefixReference: prefixReference));
@@ -840,6 +850,14 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   final _CompilationUnitSerializer serializer;
 
   _ConstExprSerializer(this.serializer);
+
+  @override
+  EntityRefBuilder serializeConstructorName(ConstructorName constructor) {
+    ConstructorElement element = constructor.staticElement;
+    assert(element != null);
+    int referenceId = serializer._getElementReferenceId(element);
+    return new EntityRefBuilder(reference: referenceId);
+  }
 
   EntityRefBuilder serializeIdentifier(Identifier identifier) {
     Element element = identifier.staticElement;

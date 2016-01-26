@@ -113,6 +113,11 @@ abstract class AbstractConstExprSerializer {
   EntityRefBuilder serializeType(TypeName type);
 
   /**
+   * Return [EntityRefBuilder] that corresponds to the given [constructor].
+   */
+  EntityRefBuilder serializeConstructorName(ConstructorName constructor);
+
+  /**
    * Return the [UnlinkedConstBuilder] that corresponds to the state of this
    * serializer.
    */
@@ -204,12 +209,7 @@ abstract class AbstractConstExprSerializer {
     strings.addAll(argumentNames);
     ints.add(arguments.length - argumentNames.length);
     // Serialize the reference.
-    references.add(serializeType(constructor.type));
-    if (constructor.name != null) {
-      strings.add(constructor.name.name);
-    } else {
-      strings.add('');
-    }
+    references.add(serializeConstructorName(constructor));
   }
 
   void _serializeListLiteral(ListLiteral expr) {
