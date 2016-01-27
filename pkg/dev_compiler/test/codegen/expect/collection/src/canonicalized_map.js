@@ -32,9 +32,12 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         return pair == null ? null : pair.last;
       }
       set(key, value) {
-        dart.as(key, K);
-        dart.as(value, V);
-        this[_base].set(dart.as(dart.dcall(this[_canonicalize], key), C), new (utils.Pair$(K, V))(key, value));
+        (() => {
+          dart.as(key, K);
+          dart.as(value, V);
+          if (!dart.notNull(this[_isValidKey](key))) return;
+          this[_base].set(dart.as(dart.dcall(this[_canonicalize], key), C), new (utils.Pair$(K, V))(key, value));
+        })();
         return value;
       }
       addAll(other) {
