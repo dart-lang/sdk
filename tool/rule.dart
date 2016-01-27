@@ -6,30 +6,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
-String capitalize(String s) => s.substring(0, 1).toUpperCase() + s.substring(1);
-
-void generateStub(String libName, {String outDir}) {
-  var generated = _generateStub(libName, toClassName(libName));
-  if (outDir != null) {
-    var outPath = '$outDir/lib/src/rules/$libName.dart';
-    print('Writing to $outPath');
-    new File(outPath).writeAsStringSync(generated);
-  } else {
-    print(generated);
-  }
-}
-
-void generateTest(String libName, {String outDir}) {
-  var generated = _generateTest(libName, toClassName(libName));
-  if (outDir != null) {
-    var outPath = '$outDir/test/rules/$libName.dart';
-    print('Writing to $outPath');
-    new File(outPath).writeAsStringSync(generated);
-  } else {
-    print(generated);
-  }
-}
-
 /// Generates rule and rule test stub files (int src/rules and test/rules
 /// respectively), as well as the rule index (rules.dart).
 void main([args]) {
@@ -74,6 +50,30 @@ void main([args]) {
   updateRuleRegistry(libName);
 }
 
+String capitalize(String s) => s.substring(0, 1).toUpperCase() + s.substring(1);
+
+void generateStub(String libName, {String outDir}) {
+  var generated = _generateStub(libName, toClassName(libName));
+  if (outDir != null) {
+    var outPath = '$outDir/lib/src/rules/$libName.dart';
+    print('Writing to $outPath');
+    new File(outPath).writeAsStringSync(generated);
+  } else {
+    print(generated);
+  }
+}
+
+void generateTest(String libName, {String outDir}) {
+  var generated = _generateTest(libName, toClassName(libName));
+  if (outDir != null) {
+    var outPath = '$outDir/test/rules/$libName.dart';
+    print('Writing to $outPath');
+    new File(outPath).writeAsStringSync(generated);
+  } else {
+    print(generated);
+  }
+}
+
 void printUsage(ArgParser parser, [String error]) {
   var message = error ?? 'Generates rule stubs.';
 
@@ -86,8 +86,16 @@ ${parser.usage}
 String toClassName(String libName) =>
     libName.split('_').map((bit) => capitalize(bit)).join();
 
+void updateRuleRegistry(String libName) {
+  //TODO: find right place to insert into imports and ruleMap
+  print("Don't forget to update lib/rules.dart with a line like:");
+  print("  ..register(new ${toClassName(libName)}())");
+  print("Then run your test like so:");
+  print("  dart test/util/solo_test.dart $libName");
+}
+
 String _generateStub(String libName, String className) => """
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -135,18 +143,10 @@ class Visitor extends SimpleAstVisitor {
 """;
 
 String _generateTest(String libName, String className) => '''
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // test w/ `dart test/util/solo_test.dart $libName`
 
 ''';
-
-void updateRuleRegistry(String libName) {
-  //TODO: find right place to insert into imports and ruleMap
-  print("Don't forget to update lib/rules.dart with a line like:");
-  print("  ..register(new ${toClassName(libName)}())");
-  print("Then run your test like so:");
-  print("  dart test/util/solo_test.dart $libName");
-}
