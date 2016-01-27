@@ -918,15 +918,16 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       // Only call setRuntimeTypeInfo if JSArray requires the type parameter.
       if (requiresRuntimeTypes) {
         assert(parameters.length == 2);
+        closure.TypeVariableLocal typeParameter = parameters[1];
         ir.Primitive typeArgument =
-            irBuilder.buildTypeVariableAccess(parameters[1].typeVariable);
+            irBuilder.buildTypeVariableAccess(typeParameter.typeVariable);
 
         ir.Primitive typeInformation = irBuilder.addPrimitive(
             new ir.TypeExpression(ir.TypeExpressionKind.INSTANCE,
                                   element.enclosingClass.thisType,
                                   <ir.Primitive>[typeArgument]));
 
-        Element helper = helpers.setRuntimeTypeInfo;
+        MethodElement helper = helpers.setRuntimeTypeInfo;
         CallStructure callStructure = CallStructure.TWO_ARGS;
         Selector selector = new Selector.call(helper.memberName, callStructure);
         allocation = irBuilder.buildInvokeStatic(
