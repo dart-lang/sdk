@@ -505,8 +505,12 @@ abstract class SummaryTest {
         expect(reference.prefixReference, isNot(0));
         reference = checkTypeRefCommonElements(
             reference.prefixReference,
-            expectation.inLibraryDefiningUnit ? null : absoluteUri,
-            expectation.inLibraryDefiningUnit ? null : relativeUri,
+            expectation.inLibraryDefiningUnit
+                ? null
+                : expectation.absoluteUri ?? absoluteUri,
+            expectation.inLibraryDefiningUnit
+                ? null
+                : expectation.relativeUri ?? relativeUri,
             expectation.name,
             expectation.kind,
             expectedTargetUnit,
@@ -1724,7 +1728,160 @@ const v = const p.C();
     ]);
   }
 
-  test_constExpr_length() {
+  test_constExpr_length_classConstField() {
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  static const int length = 0;
+}
+const int v = C.length;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'length',
+              expectedKind: ReferenceKind.constField,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
+  }
+
+  test_constExpr_length_classConstField_imported_withPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+  static const int length = 0;
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const int v = p.C.length;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'length',
+              expectedKind: ReferenceKind.constField,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p',
+                    inLibraryDefiningUnit: true)
+              ])
+    ]);
+  }
+
+  test_constExpr_length_identifierTarget() {
+    UnlinkedVariable variable = serializeVariableText('''
+const String a = 'aaa';
+const int v = a.length;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'length',
+              expectedKind: ReferenceKind.length,
+              prefixExpectations: [
+                new _PrefixExpectation(
+                    ReferenceKind.topLevelPropertyAccessor, 'a')
+              ])
+    ]);
+  }
+
+  test_constExpr_length_identifierTarget_classConstField() {
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  static const String F = '';
+}
+const int v = C.F.length;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'length',
+              expectedKind: ReferenceKind.length,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.constField, 'F'),
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C'),
+              ])
+    ]);
+  }
+
+  test_constExpr_length_identifierTarget_imported() {
+    addNamedSource(
+        '/a.dart',
+        '''
+const String a = 'aaa';
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const int v = a.length;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'length',
+              expectedKind: ReferenceKind.length,
+              prefixExpectations: [
+                new _PrefixExpectation(
+                    ReferenceKind.topLevelPropertyAccessor, 'a',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart')
+              ])
+    ]);
+  }
+
+  test_constExpr_length_identifierTarget_imported_withPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+const String a = 'aaa';
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const int v = p.a.length;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'length',
+              expectedKind: ReferenceKind.length,
+              prefixExpectations: [
+                new _PrefixExpectation(
+                    ReferenceKind.topLevelPropertyAccessor, 'a',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p',
+                    inLibraryDefiningUnit: true)
+              ])
+    ]);
+  }
+
+  test_constExpr_length_parenthesizedBinaryTarget() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = ("abc" + "edf").length;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.add,
+      UnlinkedConstOperation.length
+    ], strings: [
+      'abc',
+      'edf'
+    ]);
+  }
+
+  test_constExpr_length_parenthesizedStringTarget() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = ("abc").length;');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushString,
+      UnlinkedConstOperation.length
+    ], strings: [
+      'abc'
+    ]);
+  }
+
+  test_constExpr_length_stringLiteralTarget() {
     UnlinkedVariable variable =
         serializeVariableText('const v = "abc".length;');
     _assertUnlinkedConst(variable.constExpr, operators: [
@@ -4767,8 +4924,13 @@ class _PrefixExpectation {
   final ReferenceKind kind;
   final String name;
   final bool inLibraryDefiningUnit;
+  final String absoluteUri;
+  final String relativeUri;
   final int numTypeParameters;
 
   _PrefixExpectation(this.kind, this.name,
-      {this.inLibraryDefiningUnit: false, this.numTypeParameters: 0});
+      {this.inLibraryDefiningUnit: false,
+      this.absoluteUri,
+      this.relativeUri,
+      this.numTypeParameters: 0});
 }

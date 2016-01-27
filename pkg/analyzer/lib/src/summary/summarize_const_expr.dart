@@ -93,9 +93,8 @@ abstract class AbstractConstExprSerializer {
     } else if (expr is PrefixExpression) {
       _serializePrefixExpression(expr);
     } else if (expr is PropertyAccess) {
-      // TODO(scheglov) solve ambiguity of `a.b.length` where `a` and `b` are
-      // identifiers
-      if (expr.propertyName.name == 'length') {
+      if (expr.target is! PrefixedIdentifier &&
+          expr.propertyName.name == 'length') {
         serialize(expr.target);
         operations.add(UnlinkedConstOperation.length);
       } else {
@@ -108,6 +107,11 @@ abstract class AbstractConstExprSerializer {
       throw new _ConstExprSerializationError('Unknown expression type: $expr');
     }
   }
+
+  /**
+   * Return [EntityRefBuilder] that corresponds to the given [constructor].
+   */
+  EntityRefBuilder serializeConstructorName(ConstructorName constructor);
 
   /**
    * Return [EntityRefBuilder] that corresponds to the given [identifier].
@@ -123,11 +127,6 @@ abstract class AbstractConstExprSerializer {
    * Return [EntityRefBuilder] that corresponds to the given [type].
    */
   EntityRefBuilder serializeType(TypeName type);
-
-  /**
-   * Return [EntityRefBuilder] that corresponds to the given [constructor].
-   */
-  EntityRefBuilder serializeConstructorName(ConstructorName constructor);
 
   /**
    * Return the [UnlinkedConstBuilder] that corresponds to the state of this

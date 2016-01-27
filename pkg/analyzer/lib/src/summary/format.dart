@@ -36,6 +36,11 @@ enum ReferenceKind {
   staticMethod,
 
   /**
+   * The `length` property access.
+   */
+  length,
+
+  /**
    * The entity is a typedef.
    */
   typedef,

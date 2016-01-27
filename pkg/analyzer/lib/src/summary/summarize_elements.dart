@@ -799,6 +799,13 @@ class _CompilationUnitSerializer {
       if (element is ConstructorElement && element.displayName.isEmpty) {
         return _getElementReferenceId(element.enclosingElement, linked: linked);
       }
+      if (element is PropertyAccessorElement) {
+        Element enclosing = element.enclosingElement;
+        if (!(enclosing is CompilationUnitElement || element.isStatic)) {
+          throw new StateError(
+              'Only top-level or static property accessors can be serialized.');
+        }
+      }
       LibraryElement dependentLibrary = element?.library;
       int unit;
       if (dependentLibrary == null) {
@@ -849,6 +856,17 @@ class _CompilationUnitSerializer {
       return index;
     });
   }
+
+  int _getLengthPropertyReference(int prefix) {
+    assert(unlinkedReferences.length == linkedReferences.length);
+    int index = linkedReferences.length;
+    unlinkedReferences.add(
+        new UnlinkedReferenceBuilder(name: 'length', prefixReference: prefix));
+    LinkedReferenceBuilder linkedReference =
+        new LinkedReferenceBuilder(kind: ReferenceKind.length);
+    linkedReferences.add(linkedReference);
+    return index;
+  }
 }
 
 /**
@@ -871,6 +889,16 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   EntityRefBuilder serializeIdentifier(Identifier identifier) {
     Element element = identifier.staticElement;
     assert(element != null);
+    // The only supported instance property accessor - `length`.
+    if (identifier is PrefixedIdentifier &&
+        element is PropertyAccessorElement &&
+        !element.isStatic) {
+      assert(element.name == 'length');
+      Element prefixElement = identifier.prefix.staticElement;
+      int prefixRef = serializer._getElementReferenceId(prefixElement);
+      int lengthRef = serializer._getLengthPropertyReference(prefixRef);
+      return new EntityRefBuilder(reference: lengthRef);
+    }
     return new EntityRefBuilder(
         reference: serializer._getElementReferenceId(element));
   }
@@ -879,6 +907,16 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   EntityRefBuilder serializePropertyAccess(PropertyAccess access) {
     Element element = access.propertyName.staticElement;
     assert(element != null);
+    // The only supported instance property accessor - `length`.
+    Expression target = access.target;
+    if (target is Identifier && element is PropertyAccessorElement &&
+        !element.isStatic) {
+      assert(element.name == 'length');
+      Element prefixElement = target.staticElement;
+      int prefixRef = serializer._getElementReferenceId(prefixElement);
+      int lengthRef = serializer._getLengthPropertyReference(prefixRef);
+      return new EntityRefBuilder(reference: lengthRef);
+    }
     return new EntityRefBuilder(
         reference: serializer._getElementReferenceId(element));
   }

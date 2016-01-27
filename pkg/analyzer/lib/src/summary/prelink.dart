@@ -412,6 +412,17 @@ class _Prelinker {
         // Prefix references must always point backward.
         assert(reference.prefixReference < i);
         namespace = prefixNamespaces[reference.prefixReference];
+        // If in `a.length` the `a` prefix is a top-level variable or a field,
+        // then it must be the `String.length` property reference.
+        if (namespace == null && reference.name == 'length') {
+          ReferenceKind prefixKind = references[reference.prefixReference].kind;
+          if (prefixKind == ReferenceKind.topLevelPropertyAccessor ||
+              prefixKind == ReferenceKind.constField) {
+            references
+                .add(new LinkedReferenceBuilder(kind: ReferenceKind.length));
+            continue;
+          }
+        }
         // Prefix references must always point to proper prefixes.
         assert(namespace != null);
       }
