@@ -96,7 +96,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
     // Resynthesize locally.
     if (components.length == 1) {
       return getLibraryElement(libraryUri);
-    } else if (components.length == 3) {
+    } else if (components.length == 3 || components.length == 4) {
       Map<String, Map<String, Element>> libraryMap =
           _resynthesizedElements[libraryUri];
       if (libraryMap == null) {
@@ -105,13 +105,38 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
         assert(libraryMap != null);
       }
       Map<String, Element> compilationUnitElements = libraryMap[components[1]];
+      Element element;
       if (compilationUnitElements != null) {
-        Element element = compilationUnitElements[components[2]];
-        if (element != null) {
-          return element;
+        element = compilationUnitElements[components[2]];
+      }
+      if (element != null && components.length == 4) {
+        String name = components[3];
+        Element parentElement = element;
+        if (parentElement is ClassElement) {
+          if (name.endsWith('?')) {
+            element =
+                parentElement.getGetter(name.substring(0, name.length - 1));
+          } else if (name.endsWith('=')) {
+            element =
+                parentElement.getSetter(name.substring(0, name.length - 1));
+          } else if (name.isEmpty) {
+            element = parentElement.unnamedConstructor;
+          } else {
+            element = parentElement.getField(name) ??
+                parentElement.getMethod(name) ??
+                parentElement.getNamedConstructor(name);
+          }
+        } else {
+          // The only elements that are currently retrieved using 4-component
+          // locations are class members.
+          throw new StateError(
+              '4-element locations not supported for ${element.runtimeType}');
         }
       }
-      throw new Exception('Element not found in summary: $location');
+      if (element == null) {
+        throw new Exception('Element not found in summary: $location');
+      }
+      return element;
     } else {
       throw new UnimplementedError(location.toString());
     }

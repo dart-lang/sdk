@@ -47,8 +47,9 @@ class ResynthTest extends ResolverTestCase {
   void checkLibrary(String text, {bool allowErrors: false}) {
     Source source = addSource(text);
     LibraryElementImpl original = resolve2(source);
-    LibraryElementImpl resynthesized =
-        resynthesizeLibrary(source, original, allowErrors);
+    LibraryElementImpl resynthesized = resynthesizeLibraryElement(
+        encodeLibrary(original, allowErrors: allowErrors),
+        source.uri.toString());
     checkLibraryElements(original, resynthesized);
   }
 
@@ -511,6 +512,58 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test initializer
   }
 
+  /**
+   * Serialize the given [library] into a summary.  Then create a
+   * [_TestSummaryResynthesizer] which can deserialize it, along with any
+   * references it makes to `dart:core`.
+   *
+   * Errors will lead to a test failure unless [allowErrors] is `true`.
+   */
+  _TestSummaryResynthesizer encodeLibrary(LibraryElementImpl library,
+      {bool allowErrors: false}) {
+    if (!allowErrors) {
+      assertNoErrors(library.source);
+    }
+    addLibrary('dart:core');
+    return encodeLibraryElement(library);
+  }
+
+  /**
+   * Convert the library element [library] into a summary, and then create a
+   * [_TestSummaryResynthesizer] which can deserialize it.
+   *
+   * Caller is responsible for checking the library for errors, and adding any
+   * dependent libraries using [addLibrary].
+   */
+  _TestSummaryResynthesizer encodeLibraryElement(LibraryElementImpl library) {
+    Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
+    LinkedLibrary getLinkedSummaryFor(LibraryElement lib) {
+      LibrarySerializationResult serialized = serializeLibrary(
+          lib, typeProvider, analysisContext.analysisOptions.strongMode);
+      for (int i = 0; i < serialized.unlinkedUnits.length; i++) {
+        unlinkedSummaries[serialized.unitUris[i]] =
+            new UnlinkedUnit.fromBuffer(serialized.unlinkedUnits[i].toBuffer());
+      }
+      return new LinkedLibrary.fromBuffer(serialized.linked.toBuffer());
+    }
+    Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{
+      library.source.uri.toString(): getLinkedSummaryFor(library)
+    };
+    for (Source source in otherLibrarySources) {
+      LibraryElement original = resolve2(source);
+      String uri = source.uri.toString();
+      linkedSummaries[uri] = getLinkedSummaryFor(original);
+    }
+    return new _TestSummaryResynthesizer(
+        null,
+        analysisContext,
+        analysisContext.typeProvider,
+        analysisContext.sourceFactory,
+        unlinkedSummaries,
+        linkedSummaries,
+        options.strongMode);
+  }
+
   fail_library_hasExtUri() {
     checkLibrary('import "dart-ext:doesNotExist.dart";');
   }
@@ -527,44 +580,13 @@ class ResynthTest extends ResolverTestCase {
     }
   }
 
-  LibraryElementImpl resynthesizeLibrary(
-      Source source, LibraryElementImpl original, bool allowErrors) {
-    if (!allowErrors) {
-      assertNoErrors(source);
-    }
-    String uri = source.uri.toString();
-    addLibrary('dart:core');
-    return resynthesizeLibraryElement(uri, original);
-  }
-
+  /**
+   * Resynthesize the library element associated with [uri] using
+   * [resynthesizer], and verify that it only had to consult one summary in
+   * order to do so.
+   */
   LibraryElementImpl resynthesizeLibraryElement(
-      String uri, LibraryElementImpl original) {
-    Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
-    LinkedLibrary getLinkedSummaryFor(LibraryElement lib) {
-      LibrarySerializationResult serialized = serializeLibrary(
-          lib, typeProvider, analysisContext.analysisOptions.strongMode);
-      for (int i = 0; i < serialized.unlinkedUnits.length; i++) {
-        unlinkedSummaries[serialized.unitUris[i]] =
-            new UnlinkedUnit.fromBuffer(serialized.unlinkedUnits[i].toBuffer());
-      }
-      return new LinkedLibrary.fromBuffer(serialized.linked.toBuffer());
-    }
-    Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{
-      uri: getLinkedSummaryFor(original)
-    };
-    for (Source source in otherLibrarySources) {
-      LibraryElement original = resolve2(source);
-      String uri = source.uri.toString();
-      linkedSummaries[uri] = getLinkedSummaryFor(original);
-    }
-    _TestSummaryResynthesizer resynthesizer = new _TestSummaryResynthesizer(
-        null,
-        analysisContext,
-        analysisContext.typeProvider,
-        analysisContext.sourceFactory,
-        unlinkedSummaries,
-        linkedSummaries,
-        options.strongMode);
+      _TestSummaryResynthesizer resynthesizer, String uri) {
     LibraryElementImpl resynthesized = resynthesizer.getLibraryElement(uri);
     // Check that no other summaries needed to be resynthesized to resynthesize
     // the library element.
@@ -905,7 +927,7 @@ class C {
     LibraryElementImpl original =
         resolve2(analysisContext2.sourceFactory.forUri(uri));
     LibraryElementImpl resynthesized =
-        resynthesizeLibraryElement(uri, original);
+        resynthesizeLibraryElement(encodeLibraryElement(original), uri);
     checkLibraryElements(original, resynthesized);
   }
 
@@ -1165,6 +1187,69 @@ f() {}''');
 
   test_functions() {
     checkLibrary('f() {} g() {}');
+  }
+
+  test_getElement_constructor_named() {
+    ConstructorElement original = resolve2(addSource('class C { C.named(); }'))
+        .getType('C')
+        .getNamedConstructor('named');
+    expect(original, isNotNull);
+    ConstructorElement resynthesized = validateGetElement(original);
+    compareConstructorElements(resynthesized, original, 'C.constructor named');
+  }
+
+  test_getElement_constructor_unnamed() {
+    ConstructorElement original =
+        resolve2(addSource('class C { C(); }')).getType('C').unnamedConstructor;
+    expect(original, isNotNull);
+    ConstructorElement resynthesized = validateGetElement(original);
+    compareConstructorElements(resynthesized, original, 'C.constructor');
+  }
+
+  test_getElement_field() {
+    FieldElement original =
+        resolve2(addSource('class C { var f; }')).getType('C').getField('f');
+    expect(original, isNotNull);
+    FieldElement resynthesized = validateGetElement(original);
+    compareFieldElements(resynthesized, original, 'C.field f');
+  }
+
+  test_getElement_getter() {
+    PropertyAccessorElement original =
+        resolve2(addSource('class C { get f => null; }'))
+            .getType('C')
+            .getGetter('f');
+    expect(original, isNotNull);
+    PropertyAccessorElement resynthesized = validateGetElement(original);
+    comparePropertyAccessorElements(resynthesized, original, 'C.getter f');
+  }
+
+  test_getElement_method() {
+    MethodElement original =
+        resolve2(addSource('class C { f() {} }')).getType('C').getMethod('f');
+    expect(original, isNotNull);
+    MethodElement resynthesized = validateGetElement(original);
+    compareMethodElements(resynthesized, original, 'C.method f');
+  }
+
+  test_getElement_operator() {
+    MethodElement original =
+        resolve2(addSource('class C { operator+(x) => null; }'))
+            .getType('C')
+            .getMethod('+');
+    expect(original, isNotNull);
+    MethodElement resynthesized = validateGetElement(original);
+    compareMethodElements(resynthesized, original, 'C.operator+');
+  }
+
+  test_getElement_setter() {
+    PropertyAccessorElement original =
+        resolve2(addSource('class C { void set f(value) {} }'))
+            .getType('C')
+            .getSetter('f');
+    expect(original, isNotNull);
+    PropertyAccessorElement resynthesized = validateGetElement(original);
+    comparePropertyAccessorElements(resynthesized, original, 'C.setter f');
   }
 
   test_getter_documented() {
@@ -1718,6 +1803,22 @@ var x;''');
 
   test_variables() {
     checkLibrary('int i; int j;');
+  }
+
+  /**
+   * Encode the library containing [original] into a summary and then use
+   * [_TestSummaryResynthesizer.getElement] to retrieve just the original
+   * element from the resynthesized summary.
+   */
+  Element validateGetElement(Element original) {
+    _TestSummaryResynthesizer resynthesizer = encodeLibrary(original.library);
+    ElementLocationImpl location = original.location;
+    Element result = resynthesizer.getElement(location);
+    // Check that no other summaries needed to be resynthesized to resynthesize
+    // the library element.
+    expect(resynthesizer.resynthesisCount, 1);
+    expect(result.location, location);
+    return result;
   }
 }
 
