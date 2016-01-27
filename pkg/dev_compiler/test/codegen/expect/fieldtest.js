@@ -78,20 +78,36 @@ dart_library.library('fieldtest', null, /* Imports */[
     dart.setSignature(Generic, {
       methods: () => ({foo: [dart.dynamic, [T]]})
     });
+    Generic.bar = 'hello';
     return Generic;
   });
   let Generic = Generic$();
-  Generic.bar = 'hello';
   class StaticFieldOrder1 extends core.Object {}
   StaticFieldOrder1.d = 4;
-  StaticFieldOrder1.c = dart.notNull(StaticFieldOrder1.d) + 2;
-  StaticFieldOrder1.b = dart.notNull(StaticFieldOrder1.c) + 3;
-  StaticFieldOrder1.a = dart.notNull(StaticFieldOrder1.b) + 1;
+  dart.defineLazyProperties(StaticFieldOrder1, {
+    get a() {
+      return dart.notNull(StaticFieldOrder1.b) + 1;
+    },
+    get c() {
+      return dart.notNull(StaticFieldOrder1.d) + 2;
+    },
+    get b() {
+      return dart.notNull(StaticFieldOrder1.c) + 3;
+    }
+  });
   class StaticFieldOrder2 extends core.Object {}
   StaticFieldOrder2.d = 4;
-  StaticFieldOrder2.c = dart.notNull(StaticFieldOrder2.d) + 2;
-  StaticFieldOrder2.b = dart.notNull(StaticFieldOrder2.c) + 3;
-  StaticFieldOrder2.a = dart.notNull(StaticFieldOrder2.b) + 1;
+  dart.defineLazyProperties(StaticFieldOrder2, {
+    get a() {
+      return dart.notNull(StaticFieldOrder2.b) + 1;
+    },
+    get c() {
+      return dart.notNull(StaticFieldOrder2.d) + 2;
+    },
+    get b() {
+      return dart.notNull(StaticFieldOrder2.c) + 3;
+    }
+  });
   class MyEnum extends core.Object {
     MyEnum(index) {
       this.index = index;

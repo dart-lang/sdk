@@ -18,9 +18,13 @@ dart_library.library('dart/typed_data', null, /* Imports */[
   dart.setSignature(Endianness, {
     constructors: () => ({_: [Endianness, [core.bool]]})
   });
-  Endianness.BIG_ENDIAN = dart.const(new Endianness._(false));
-  Endianness.LITTLE_ENDIAN = dart.const(new Endianness._(true));
   dart.defineLazyProperties(Endianness, {
+    get BIG_ENDIAN() {
+      return dart.const(new Endianness._(false));
+    },
+    get LITTLE_ENDIAN() {
+      return dart.const(new Endianness._(true));
+    },
     get HOST_ENDIAN() {
       return ByteData.view(Uint16List.fromList(dart.list([1], core.int)).buffer).getInt8(0) == 1 ? Endianness.LITTLE_ENDIAN : Endianness.BIG_ENDIAN;
     }

@@ -41,6 +41,8 @@ class ModuleItemLoadOrder {
   /// Memoized results of [_inLibraryCycle].
   final _libraryCycleMemo = new HashMap<LibraryElement, bool>();
 
+  bool _checkReferences;
+
   final ModuleItemEmitter _emitModuleItem;
 
   LibraryElement _currentLibrary;
@@ -50,6 +52,9 @@ class ModuleItemLoadOrder {
   bool isLoaded(Element e) => (e.library == _currentLibrary)
       ? _loaded[e] == true
       : libraryIsLoaded(e.library);
+
+  /// True if the element is currently being loaded.
+  bool _isLoading(Element e) => _currentElements.contains(e);
 
   /// Collect top-level elements and nodes we need to emit.
   void collectElements(
@@ -61,13 +66,7 @@ class ModuleItemLoadOrder {
       for (var decl in unit.declarations) {
         _declarationNodes[decl.element] = decl;
 
-        if (decl is ClassDeclaration) {
-          for (var member in decl.members) {
-            if (member is FieldDeclaration && member.isStatic) {
-              _collectElementsForVariable(member.fields);
-            }
-          }
-        } else if (decl is TopLevelVariableDeclaration) {
+        if (decl is TopLevelVariableDeclaration) {
           _collectElementsForVariable(decl.variables);
         }
       }
@@ -85,8 +84,6 @@ class ModuleItemLoadOrder {
   /// before this one, until [finishElement] is called.
   void startTopLevel(Element e) {
     assert(isCurrentElement(e));
-    // Assume loading will succeed until proven otherwise.
-    _loaded[e] = true;
     _topLevelElements.add(e);
   }
 
@@ -94,6 +91,26 @@ class ModuleItemLoadOrder {
   void finishTopLevel(Element e) {
     var last = _topLevelElements.removeLast();
     assert(identical(e, last));
+  }
+
+  /// Starts recording calls to [declareBeforeUse], until
+  /// [finishCheckingReferences] is called.
+  void startCheckingReferences() {
+    // This function should not be reentrant, and we should not current be
+    // emitting top-level code.
+    assert(_checkReferences == null);
+    assert(
+        _topLevelElements.isEmpty || !isCurrentElement(_topLevelElements.last));
+    // Assume true until proven otherwise
+    _checkReferences = true;
+  }
+
+  /// Finishes recording references, and returns `true` if all referenced
+  /// items were loaded (or if no items were referenced).
+  bool finishCheckingReferences() {
+    var result = _checkReferences;
+    _checkReferences = null;
+    return result;
   }
 
   // Starts generating code for the declaration element [e].
@@ -146,8 +163,17 @@ class ModuleItemLoadOrder {
   /// declarations are assumed to be available before we start execution.
   /// See [startTopLevel].
   void declareBeforeUse(Element e) {
-    if (e == null || _topLevelElements.isEmpty) return;
-    if (!isCurrentElement(_topLevelElements.last)) return;
+    if (e == null) return;
+
+    if (_checkReferences != null) {
+      _checkReferences = _checkReferences && isLoaded(e) && !_isLoading(e);
+      return;
+    }
+
+    if (_topLevelElements.isEmpty ||
+        !isCurrentElement(_topLevelElements.last)) {
+      return;
+    }
 
     // If the item is from our library, try to emit it now.
     bool loaded;

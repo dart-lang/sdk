@@ -62,6 +62,12 @@ dart_library.library('dart/convert', null, /* Imports */[
     statics: () => ({getByName: [Encoding, [core.String]]}),
     names: ['getByName']
   });
+  dart.defineLazyProperties(Encoding, {
+    get _nameToEncoding() {
+      return dart.map({"iso_8859-1:1987": LATIN1, "iso-ir-100": LATIN1, "iso_8859-1": LATIN1, "iso-8859-1": LATIN1, latin1: LATIN1, l1: LATIN1, ibm819: LATIN1, cp819: LATIN1, csisolatin1: LATIN1, "iso-ir-6": ASCII, "ansi_x3.4-1968": ASCII, "ansi_x3.4-1986": ASCII, "iso_646.irv:1991": ASCII, "iso646-us": ASCII, "us-ascii": ASCII, us: ASCII, ibm367: ASCII, cp367: ASCII, csascii: ASCII, ascii: ASCII, csutf8: UTF8, "utf-8": UTF8});
+    },
+    set _nameToEncoding(_) {}
+  });
   const _allowInvalid = Symbol('_allowInvalid');
   class AsciiCodec extends Encoding {
     AsciiCodec(opts) {
@@ -629,12 +635,6 @@ dart_library.library('dart/convert', null, /* Imports */[
     return _FusedConverter;
   });
   let _FusedConverter = _FusedConverter$();
-  dart.defineLazyProperties(Encoding, {
-    get _nameToEncoding() {
-      return dart.map({"iso_8859-1:1987": LATIN1, "iso-ir-100": LATIN1, "iso_8859-1": LATIN1, "iso-8859-1": LATIN1, latin1: LATIN1, l1: LATIN1, ibm819: LATIN1, cp819: LATIN1, csisolatin1: LATIN1, "iso-ir-6": ASCII, "ansi_x3.4-1968": ASCII, "ansi_x3.4-1986": ASCII, "iso_646.irv:1991": ASCII, "iso646-us": ASCII, "us-ascii": ASCII, us: ASCII, ibm367: ASCII, cp367: ASCII, csascii: ASCII, ascii: ASCII, csutf8: UTF8, "utf-8": UTF8});
-    },
-    set _nameToEncoding(_) {}
-  });
   const _name = Symbol('_name');
   class HtmlEscapeMode extends core.Object {
     _(name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
@@ -652,7 +652,17 @@ dart_library.library('dart/convert', null, /* Imports */[
   dart.setSignature(HtmlEscapeMode, {
     constructors: () => ({_: [HtmlEscapeMode, [core.String, core.bool, core.bool, core.bool, core.bool]]})
   });
-  HtmlEscapeMode.UNKNOWN = dart.const(new HtmlEscapeMode._('unknown', true, true, true, true));
+  dart.defineLazyProperties(HtmlEscapeMode, {
+    get UNKNOWN() {
+      return dart.const(new HtmlEscapeMode._('unknown', true, true, true, true));
+    },
+    get ATTRIBUTE() {
+      return dart.const(new HtmlEscapeMode._('attribute', false, true, false, false));
+    },
+    get ELEMENT() {
+      return dart.const(new HtmlEscapeMode._('element', true, false, false, true));
+    }
+  });
   const _convert = Symbol('_convert');
   class HtmlEscape extends Converter$(core.String, core.String) {
     HtmlEscape(mode) {
@@ -731,8 +741,6 @@ dart_library.library('dart/convert', null, /* Imports */[
     })
   });
   const HTML_ESCAPE = dart.const(new HtmlEscape());
-  HtmlEscapeMode.ATTRIBUTE = dart.const(new HtmlEscapeMode._('attribute', false, true, false, false));
-  HtmlEscapeMode.ELEMENT = dart.const(new HtmlEscapeMode._('element', true, false, false, true));
   const _escape = Symbol('_escape');
   class _HtmlEscapeSink extends StringConversionSinkBase {
     _HtmlEscapeSink(escape, sink) {

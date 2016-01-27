@@ -18,24 +18,32 @@ dart_library.library('sunflower/sunflower', null, /* Imports */[
     return dom.document.querySelector(selector);
   }
   dart.fn(querySelector, dom.Element, [core.String]);
-  exports.seeds = 0;
   dart.defineLazyProperties(exports, {
     get canvas() {
       return dart.as(querySelector("#canvas"), dom.CanvasElement);
-    },
+    }
+  });
+  dart.defineLazyProperties(exports, {
     get context() {
       return dart.as(exports.canvas.getContext('2d'), dom.CanvasRenderingContext2D);
-    },
+    }
+  });
+  dart.defineLazyProperties(exports, {
     get slider() {
       return dart.as(querySelector("#slider"), dom.InputElement);
-    },
+    }
+  });
+  dart.defineLazyProperties(exports, {
     get notes() {
       return querySelector("#notes");
-    },
+    }
+  });
+  dart.defineLazyProperties(exports, {
     get PHI() {
       return (dart.notNull(math.sqrt(5)) + 1) / 2;
     }
   });
+  exports.seeds = 0;
   function main() {
     exports.slider.addEventListener('change', dart.fn(e => draw(), dart.void, [dom.Event]));
     draw();

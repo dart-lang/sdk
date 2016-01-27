@@ -410,6 +410,7 @@ dart_library.library('dart/core', null, /* Imports */[
     }),
     names: ['parse', '_onParseErrorInt', '_onParseErrorDouble']
   });
+  num._parseError = false;
   class double extends num {
     static parse(source, onError) {
       if (onError === void 0) onError = null;
@@ -422,9 +423,13 @@ dart_library.library('dart/core', null, /* Imports */[
   });
   double.NAN = 0.0 / 0.0;
   double.INFINITY = 1.0 / 0.0;
-  double.NEGATIVE_INFINITY = -dart.notNull(double.INFINITY);
   double.MIN_POSITIVE = 5e-324;
   double.MAX_FINITE = 1.7976931348623157e+308;
+  dart.defineLazyProperties(double, {
+    get NEGATIVE_INFINITY() {
+      return -dart.notNull(double.INFINITY);
+    }
+  });
   const _duration = dart.JsSymbol('_duration');
   class Duration extends Object {
     Duration(opts) {
@@ -552,17 +557,41 @@ dart_library.library('dart/core', null, /* Imports */[
   Duration.SECONDS_PER_MINUTE = 60;
   Duration.MINUTES_PER_HOUR = 60;
   Duration.HOURS_PER_DAY = 24;
-  Duration.MICROSECONDS_PER_SECOND = dart.notNull(Duration.MICROSECONDS_PER_MILLISECOND) * dart.notNull(Duration.MILLISECONDS_PER_SECOND);
-  Duration.MICROSECONDS_PER_MINUTE = dart.notNull(Duration.MICROSECONDS_PER_SECOND) * dart.notNull(Duration.SECONDS_PER_MINUTE);
-  Duration.MICROSECONDS_PER_HOUR = dart.notNull(Duration.MICROSECONDS_PER_MINUTE) * dart.notNull(Duration.MINUTES_PER_HOUR);
-  Duration.MICROSECONDS_PER_DAY = dart.notNull(Duration.MICROSECONDS_PER_HOUR) * dart.notNull(Duration.HOURS_PER_DAY);
-  Duration.MILLISECONDS_PER_MINUTE = dart.notNull(Duration.MILLISECONDS_PER_SECOND) * dart.notNull(Duration.SECONDS_PER_MINUTE);
-  Duration.MILLISECONDS_PER_HOUR = dart.notNull(Duration.MILLISECONDS_PER_MINUTE) * dart.notNull(Duration.MINUTES_PER_HOUR);
-  Duration.MILLISECONDS_PER_DAY = dart.notNull(Duration.MILLISECONDS_PER_HOUR) * dart.notNull(Duration.HOURS_PER_DAY);
-  Duration.SECONDS_PER_HOUR = dart.notNull(Duration.SECONDS_PER_MINUTE) * dart.notNull(Duration.MINUTES_PER_HOUR);
-  Duration.SECONDS_PER_DAY = dart.notNull(Duration.SECONDS_PER_HOUR) * dart.notNull(Duration.HOURS_PER_DAY);
-  Duration.MINUTES_PER_DAY = dart.notNull(Duration.MINUTES_PER_HOUR) * dart.notNull(Duration.HOURS_PER_DAY);
-  Duration.ZERO = dart.const(new Duration({seconds: 0}));
+  dart.defineLazyProperties(Duration, {
+    get MICROSECONDS_PER_SECOND() {
+      return dart.notNull(Duration.MICROSECONDS_PER_MILLISECOND) * dart.notNull(Duration.MILLISECONDS_PER_SECOND);
+    },
+    get MICROSECONDS_PER_MINUTE() {
+      return dart.notNull(Duration.MICROSECONDS_PER_SECOND) * dart.notNull(Duration.SECONDS_PER_MINUTE);
+    },
+    get MICROSECONDS_PER_HOUR() {
+      return dart.notNull(Duration.MICROSECONDS_PER_MINUTE) * dart.notNull(Duration.MINUTES_PER_HOUR);
+    },
+    get MICROSECONDS_PER_DAY() {
+      return dart.notNull(Duration.MICROSECONDS_PER_HOUR) * dart.notNull(Duration.HOURS_PER_DAY);
+    },
+    get MILLISECONDS_PER_MINUTE() {
+      return dart.notNull(Duration.MILLISECONDS_PER_SECOND) * dart.notNull(Duration.SECONDS_PER_MINUTE);
+    },
+    get MILLISECONDS_PER_HOUR() {
+      return dart.notNull(Duration.MILLISECONDS_PER_MINUTE) * dart.notNull(Duration.MINUTES_PER_HOUR);
+    },
+    get MILLISECONDS_PER_DAY() {
+      return dart.notNull(Duration.MILLISECONDS_PER_HOUR) * dart.notNull(Duration.HOURS_PER_DAY);
+    },
+    get SECONDS_PER_HOUR() {
+      return dart.notNull(Duration.SECONDS_PER_MINUTE) * dart.notNull(Duration.MINUTES_PER_HOUR);
+    },
+    get SECONDS_PER_DAY() {
+      return dart.notNull(Duration.SECONDS_PER_HOUR) * dart.notNull(Duration.HOURS_PER_DAY);
+    },
+    get MINUTES_PER_DAY() {
+      return dart.notNull(Duration.MINUTES_PER_HOUR) * dart.notNull(Duration.HOURS_PER_DAY);
+    },
+    get ZERO() {
+      return dart.const(new Duration({seconds: 0}));
+    }
+  });
   class Error extends Object {
     Error() {
     }
@@ -1124,12 +1153,12 @@ dart_library.library('dart/core', null, /* Imports */[
         [_getKey]: [String, []]
       })
     });
+    Expando._KEY_PROPERTY_NAME = 'expando$key';
+    Expando._EXPANDO_PROPERTY_NAME = 'expando$values';
+    Expando._keyCount = 0;
     return Expando;
   });
   let Expando = Expando$();
-  Expando._KEY_PROPERTY_NAME = 'expando$key';
-  Expando._EXPANDO_PROPERTY_NAME = 'expando$values';
-  Expando._keyCount = 0;
   class Function extends Object {
     static apply(f, positionalArguments, namedArguments) {
       if (namedArguments === void 0) namedArguments = null;
@@ -1422,7 +1451,6 @@ dart_library.library('dart/core', null, /* Imports */[
   dart.setSignature(Null, {
     constructors: () => ({_uninstantiable: [Null, []]})
   });
-  num._parseError = false;
   class Pattern extends Object {}
   function print(object) {
     let line = `${object}`;

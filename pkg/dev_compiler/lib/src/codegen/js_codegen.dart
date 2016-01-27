@@ -81,7 +81,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   /// Imported libraries, and the temporaries used to refer to them.
   final _imports = new Map<LibraryElement, JS.TemporaryId>();
   final _exports = new Set<String>();
-  final _lazyFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
   final _privateNames = new HashMap<String, JS.TemporaryId>();
   final _moduleItems = <JS.Statement>[];
@@ -155,20 +154,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         } else {
           _loader.loadDeclaration(decl, decl.element);
         }
-        if (decl is ClassDeclaration) {
-          // Static fields can be emitted into the top-level code, so they need
-          // to potentially be ordered independently of the class.
-          for (var member in decl.members) {
-            if (member is FieldDeclaration) {
-              visitFieldDeclaration(member);
-            }
-          }
-        }
       }
     }
 
     // Flush any unwritten fields/properties.
-    _flushLazyFields(_moduleItems);
     _flushLibraryProperties(_moduleItems);
 
     // Mark all qualified names as qualified or not, depending on if they need
@@ -212,8 +201,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   }
 
   void _emitModuleItem(AstNode node) {
-    // Attempt to group adjacent fields/properties.
-    if (node is! VariableDeclaration) _flushLazyFields(_moduleItems);
+    // Attempt to group adjacent properties.
     if (node is! FunctionDeclaration) _flushLibraryProperties(_moduleItems);
 
     var code = _visit(node);
@@ -406,12 +394,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     var ctors = <ConstructorDeclaration>[];
     var fields = <FieldDeclaration>[];
+    var staticFields = <FieldDeclaration>[];
     var methods = <MethodDeclaration>[];
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
         ctors.add(member);
-      } else if (member is FieldDeclaration && !member.isStatic) {
-        fields.add(member);
+      } else if (member is FieldDeclaration) {
+        (member.isStatic ? staticFields : fields).add(member);
       } else if (member is MethodDeclaration) {
         methods.add(member);
       }
@@ -427,8 +416,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
           getConstantField(jsPeer, 'name', types.stringType)?.toStringValue();
     }
 
-    var body = _finishClassMembers(classElem, classExpr, ctors, fields, methods,
-        node.metadata, jsPeerName);
+    var body = _finishClassMembers(classElem, classExpr, ctors, fields,
+        staticFields, methods, node.metadata, jsPeerName);
 
     var result = _finishClassDef(type, body);
 
@@ -677,6 +666,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       JS.ClassExpression cls,
       List<ConstructorDeclaration> ctors,
       List<FieldDeclaration> fields,
+      List<FieldDeclaration> staticFields,
       List<MethodDeclaration> methods,
       List<Annotation> metadata,
       String jsPeerName) {
@@ -727,12 +717,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       }
     }
 
-    // Instance fields, if they override getter/setter pairs
+    // Emits instance fields, if they are virtual
+    // (in other words, they override a getter/setter pair).
     for (FieldDeclaration member in fields) {
-      for (VariableDeclaration fieldDecl in member.fields.variables) {
-        var field = fieldDecl.element as FieldElement;
-        if (_fieldsNeedingStorage.contains(field)) {
-          body.add(_overrideField(field));
+      for (VariableDeclaration field in member.fields.variables) {
+        if (_fieldsNeedingStorage.contains(field.element)) {
+          body.add(_overrideField(field.element));
         }
       }
     }
@@ -820,6 +810,23 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         new JS.ArrayInitializer(
             new List<JS.Expression>.from(metadata.map(_instantiateAnnotation)))
       ]));
+    }
+
+    // Emits static fields. These are eager initialized if possible, otherwise
+    // they are made lazy.
+    var lazyStatics = <VariableDeclaration>[];
+    for (FieldDeclaration member in staticFields) {
+      for (VariableDeclaration field in member.fields.variables) {
+        JS.Statement eagerField = _emitConstantStaticField(classElem, field);
+        if (eagerField != null) {
+          body.add(eagerField);
+        } else {
+          lazyStatics.add(field);
+        }
+      }
+    }
+    if (lazyStatics.isNotEmpty) {
+      body.add(_emitLazyFields(classElem, lazyStatics));
     }
 
     return _statement(body);
@@ -2121,21 +2128,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
   }
 
-  /// Emits static fields.
-  ///
-  /// Instance fields are emitted in [_initializeFields].
-  ///
-  /// These are generally treated the same as top-level fields, see
-  /// [visitTopLevelVariableDeclaration].
-  @override
-  visitFieldDeclaration(FieldDeclaration node) {
-    if (!node.isStatic) return;
-
-    for (var f in node.fields.variables) {
-      _loader.loadDeclaration(f, f.element);
-    }
-  }
-
   _addExport(String name) {
     if (!_exports.add(name)) throw 'Duplicate top level name found: $name';
   }
@@ -2164,7 +2156,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
-    if (node.element is PropertyInducingElement) return _emitStaticField(node);
+    if (node.element is PropertyInducingElement) {
+      // Static and instance fields are handled elsewhere.
+      assert(node.element is TopLevelVariableElement);
+      return _emitTopLevelField(node);
+    }
 
     var name = new JS.Identifier(node.name.name);
     return new JS.VariableInitialization(name, _visitInitializer(node));
@@ -2175,9 +2171,51 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       field.isFinal &&
       _isJSInvocation(field.initializer);
 
-  /// Emits a static or top-level field.
-  JS.Statement _emitStaticField(VariableDeclaration field) {
+  /// Try to emit a constant static field.
+  ///
+  /// If the field's initializer does not cause side effects, and if all of
+  /// dependencies are safe to refer to while we are initializing the class,
+  /// then we can initialize it eagerly:
+  ///
+  ///     // Baz must be const constructor, and the name "Baz" must be defined
+  ///     // by this point.
+  ///     Foo.bar = dart.const(new Baz(42));
+  ///
+  /// Otherwise, we'll need to generate a lazy-static field. That ensures
+  /// correct visible behavior, as well as avoiding referencing something that
+  /// isn't defined yet (because it is defined later in the module).
+  JS.Statement _emitConstantStaticField(
+      ClassElement classElem, VariableDeclaration field) {
     PropertyInducingElement element = field.element;
+    assert(element.isStatic);
+
+    _loader.startCheckingReferences();
+    JS.Expression jsInit = _visitInitializer(field);
+    bool isLoaded = _loader.finishCheckingReferences();
+
+    bool eagerInit =
+        isLoaded && (field.isConst || _constField.isFieldInitConstant(field));
+
+    var fieldName = field.name.name;
+    if (eagerInit && !JS.invalidStaticFieldName(fieldName)) {
+      return annotateVariable(
+          js.statement('#.# = #;', [
+            classElem.name,
+            _emitMemberName(fieldName, isStatic: true),
+            jsInit
+          ]),
+          field.element);
+    }
+
+    // This means it should be treated as a lazy field.
+    // TODO(jmesserly): we're throwing away the initializer expression,
+    // which will force us to regenerate it.
+    return null;
+  }
+
+  /// Emits a top-level field.
+  JS.Statement _emitTopLevelField(VariableDeclaration field) {
+    TopLevelVariableElement element = field.element;
     assert(element.isStatic);
 
     bool eagerInit;
@@ -2189,6 +2227,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       _loader.finishTopLevel(element);
       eagerInit = _loader.isLoaded(element);
     } else {
+      // TODO(jmesserly): we're visiting the initializer here, and again
+      // later on when we emit lazy fields. That seems busted.
       jsInit = _visitInitializer(field);
       eagerInit = false;
     }
@@ -2198,16 +2238,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var isJSTopLevel = field.isFinal && _isFinalJSDecl(field);
     if (isJSTopLevel) eagerInit = true;
 
-    var fieldName = field.name.name;
-    if (element is TopLevelVariableElement) {
-      fieldName = _getJSExportName(element) ?? fieldName;
-    }
-    if ((field.isConst && eagerInit && element is TopLevelVariableElement) ||
-        isJSTopLevel) {
+    var fieldName = _getJSExportName(element) ?? field.name.name;
+    if (field.isConst && eagerInit || isJSTopLevel) {
       // constant fields don't change, so we can generate them as `let`
       // but add them to the module's exports. However, make sure we generate
       // anything they depend on first.
-
       if (isPublic(fieldName)) _addExport(fieldName);
       var declKeyword = field.isConst || field.isFinal ? 'const' : 'let';
       return annotateVariable(
@@ -2221,17 +2256,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
           js.statement('# = #;', [_visit(field.name), jsInit]), field.element);
     }
 
-    var body = <JS.Statement>[];
-    if (_lazyFields.isNotEmpty) {
-      var existingTarget = _lazyFields[0].element.enclosingElement;
-      if (existingTarget != element.enclosingElement) {
-        _flushLazyFields(body);
-      }
-    }
-
-    _lazyFields.add(field);
-
-    return _statement(body);
+    return _emitLazyFields(currentLibrary, [field]);
   }
 
   JS.Expression _visitInitializer(VariableDeclaration node) {
@@ -2241,18 +2266,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     return value ?? new JS.LiteralNull();
   }
 
-  void _flushLazyFields(List<JS.Statement> body) {
-    if (_lazyFields.isEmpty) return;
-    body.add(_emitLazyFields(_lazyFields));
-    _lazyFields.clear();
-  }
-
-  JS.Statement _emitLazyFields(List<VariableDeclaration> fields) {
+  JS.Statement _emitLazyFields(
+      Element target, List<VariableDeclaration> fields) {
     var methods = [];
     for (var node in fields) {
       var name = node.name.name;
       var element = node.element;
-      var access = _emitMemberName(name, type: element.type, isStatic: true);
+      var access = _emitMemberName(name, isStatic: true);
       methods.add(annotate(
           new JS.Method(
               access,
@@ -2261,8 +2281,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
               isGetter: true),
           _findAccessor(element, getter: true)));
 
-      // TODO(jmesserly): use a dummy setter to indicate writable.
-      if (!node.isFinal) {
+      // TODO(jmesserly): currently uses a dummy setter to indicate writable.
+      if (!node.isFinal && !node.isConst) {
         methods.add(annotate(
             new JS.Method(access, js.call('function(_) {}') as JS.Fun,
                 isSetter: true),
@@ -2270,10 +2290,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       }
     }
 
-    JS.Expression objExpr = _exportsVar;
-    var target = _lazyFields[0].element.enclosingElement;
+    JS.Expression objExpr;
     if (target is ClassElement) {
       objExpr = new JS.Identifier(target.type.name);
+    } else {
+      objExpr = _libraryName(target);
     }
 
     return js
@@ -2821,9 +2842,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       member = (member as PropertyAccessorElement).variable;
     }
     bool isStatic = member is ClassMemberElement && member.isStatic;
-    if (isStatic) {
-      _loader.declareBeforeUse(member);
-    }
     var name = _emitMemberName(memberId.name,
         type: getStaticType(target), isStatic: isStatic);
     if (DynamicInvoke.get(target)) {

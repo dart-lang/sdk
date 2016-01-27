@@ -2299,11 +2299,14 @@ dart_library.library('dart/_internal', null, /* Imports */[
     names: ['getName', 'validatePublicSymbol', 'isValidSymbol']
   });
   Symbol.reservedWordRE = '(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|' + 'e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|' + 'ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|' + 'v(?:ar|oid)|w(?:hile|ith))';
-  Symbol.publicIdentifierRE = '(?!' + `${Symbol.reservedWordRE}` + '\\b(?!\\$))[a-zA-Z$][\\w$]*';
-  Symbol.identifierRE = '(?!' + `${Symbol.reservedWordRE}` + '\\b(?!\\$))[a-zA-Z$_][\\w$]*';
   Symbol.operatorRE = '(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)';
-  const POWERS_OF_TEN = dart.const([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
   dart.defineLazyProperties(Symbol, {
+    get publicIdentifierRE() {
+      return '(?!' + `${Symbol.reservedWordRE}` + '\\b(?!\\$))[a-zA-Z$][\\w$]*';
+    },
+    get identifierRE() {
+      return '(?!' + `${Symbol.reservedWordRE}` + '\\b(?!\\$))[a-zA-Z$_][\\w$]*';
+    },
     get publicSymbolPattern() {
       return core.RegExp.new(`^(?:${Symbol.operatorRE}\$|${Symbol.publicIdentifierRE}(?:=?\$|[.](?!\$)))+?\$`);
     },
@@ -2311,6 +2314,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
       return core.RegExp.new(`^(?:${Symbol.operatorRE}\$|${Symbol.identifierRE}(?:=?\$|[.](?!\$)))+?\$`);
     }
   });
+  const POWERS_OF_TEN = dart.const([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
   // Exports:
   exports.EfficientLength = EfficientLength;
   exports.ListIterable$ = ListIterable$;

@@ -19,7 +19,9 @@ dart_library.library('sunflower/painter', null, /* Imports */[
   dart.defineLazyProperties(exports, {
     get canvas() {
       return dart.as(querySelector("#canvas"), dom.CanvasElement);
-    },
+    }
+  });
+  dart.defineLazyProperties(exports, {
     get context() {
       return dart.as(exports.canvas.getContext('2d'), dom.CanvasRenderingContext2D);
     }

@@ -224,10 +224,10 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
         [_grow]: [dart.void, []]
       })
     });
+    HeapPriorityQueue._INITIAL_CAPACITY = 7;
     return HeapPriorityQueue;
   });
   let HeapPriorityQueue = HeapPriorityQueue$();
-  HeapPriorityQueue._INITIAL_CAPACITY = 7;
   const __CastType0$ = dart.generic(function(E) {
     const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [E, E]));
     return __CastType0;

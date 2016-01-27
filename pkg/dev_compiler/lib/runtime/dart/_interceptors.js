@@ -870,9 +870,9 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
     names: ['_handleIEtoString', '_bitCount', '_shru', '_shrs', '_ors', '_spread']
   });
   JSNumber[dart.metadata] = () => [dart.const(new _js_helper.JsPeerInterface({name: 'Number'}))];
-  dart.registerExtension(dart.global.Number, JSNumber);
   JSNumber._MIN_INT32 = -2147483648;
   JSNumber._MAX_INT32 = 2147483647;
+  dart.registerExtension(dart.global.Number, JSNumber);
   const _defaultSplit = Symbol('_defaultSplit');
   dart.defineExtensionNames([
     'codeUnitAt',

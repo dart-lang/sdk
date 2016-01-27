@@ -107,15 +107,15 @@ dart_library.library('closure', null, /* Imports */[
       statics: () => ({named_params: [dart.dynamic, [dart.dynamic], {b: dart.dynamic, c: dart.dynamic}]}),
       names: ['named_params']
     });
+    /** @final {string} */
+    Foo.some_static_constant = "abc";
+    /** @final {string} */
+    Foo.some_static_final = "abc";
+    /** @type {string} */
+    Foo.some_static_var = "abc";
     return Foo;
   });
   let Foo = Foo$();
-  /** @final {string} */
-  Foo.some_static_constant = "abc";
-  /** @final {string} */
-  Foo.some_static_final = "abc";
-  /** @type {string} */
-  Foo.some_static_var = "abc";
   class Bar extends core.Object {}
   class Baz extends dart.mixin(Foo$(core.int), Bar) {
     /** @param {?number} i */

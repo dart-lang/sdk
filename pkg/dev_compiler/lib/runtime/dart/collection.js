@@ -1162,14 +1162,14 @@ dart_library.library('dart/collection', null, /* Imports */[
       'last',
       'single'
     ]);
+    dart.defineLazyProperties(IterableBase, {
+      get _toStringVisiting() {
+        return [];
+      }
+    });
     return IterableBase;
   });
   let IterableBase = IterableBase$();
-  dart.defineLazyProperties(IterableBase, {
-    get _toStringVisiting() {
-      return [];
-    }
-  });
   const _iterator = Symbol('_iterator');
   const _state = Symbol('_state');
   const _move = Symbol('_move');
@@ -1205,12 +1205,12 @@ dart_library.library('dart/collection', null, /* Imports */[
         [_move]: [dart.void, []]
       })
     });
+    HasNextIterator._HAS_NEXT_AND_NEXT_IN_CURRENT = 0;
+    HasNextIterator._NO_NEXT = 1;
+    HasNextIterator._NOT_MOVED_YET = 2;
     return HasNextIterator;
   });
   let HasNextIterator = HasNextIterator$();
-  HasNextIterator._HAS_NEXT_AND_NEXT_IN_CURRENT = 0;
-  HasNextIterator._NO_NEXT = 1;
-  HasNextIterator._NOT_MOVED_YET = 2;
   const LinkedHashMap$ = dart.generic(function(K, V) {
     class LinkedHashMap extends core.Object {
       static new(opts) {
@@ -3154,10 +3154,10 @@ dart_library.library('dart/collection', null, /* Imports */[
       'last',
       'single'
     ]);
+    ListQueue._INITIAL_CAPACITY = 8;
     return ListQueue;
   });
   let ListQueue = ListQueue$();
-  ListQueue._INITIAL_CAPACITY = 8;
   const _queue = Symbol('_queue');
   const _end = Symbol('_end');
   const _position = Symbol('_position');

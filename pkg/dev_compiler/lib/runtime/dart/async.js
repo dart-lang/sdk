@@ -1189,6 +1189,15 @@ dart_library.library('dart/async', null, /* Imports */[
         [_checkState]: [dart.void, [core.bool]]
       })
     });
+    _BufferingStreamSubscription._STATE_CANCEL_ON_ERROR = 1;
+    _BufferingStreamSubscription._STATE_CLOSED = 2;
+    _BufferingStreamSubscription._STATE_INPUT_PAUSED = 4;
+    _BufferingStreamSubscription._STATE_CANCELED = 8;
+    _BufferingStreamSubscription._STATE_WAIT_FOR_CANCEL = 16;
+    _BufferingStreamSubscription._STATE_IN_CALLBACK = 32;
+    _BufferingStreamSubscription._STATE_HAS_PENDING = 64;
+    _BufferingStreamSubscription._STATE_PAUSE_COUNT = 128;
+    _BufferingStreamSubscription._STATE_PAUSE_COUNT_SHIFT = 7;
     return _BufferingStreamSubscription;
   });
   let _BufferingStreamSubscription = _BufferingStreamSubscription$();
@@ -1260,12 +1269,12 @@ dart_library.library('dart/async', null, /* Imports */[
         [_setRemoveAfterFiring]: [dart.void, []]
       })
     });
+    _BroadcastSubscription._STATE_EVENT_ID = 1;
+    _BroadcastSubscription._STATE_FIRING = 2;
+    _BroadcastSubscription._STATE_REMOVE_AFTER_FIRING = 4;
     return _BroadcastSubscription;
   });
   let _BroadcastSubscription = _BroadcastSubscription$();
-  _BroadcastSubscription._STATE_EVENT_ID = 1;
-  _BroadcastSubscription._STATE_FIRING = 2;
-  _BroadcastSubscription._STATE_REMOVE_AFTER_FIRING = 4;
   const _addStreamState = Symbol('_addStreamState');
   const _doneFuture = Symbol('_doneFuture');
   const _isEmpty = Symbol('_isEmpty');
@@ -1501,14 +1510,14 @@ dart_library.library('dart/async', null, /* Imports */[
         [_callOnCancel]: [dart.void, []]
       })
     });
+    _BroadcastStreamController._STATE_INITIAL = 0;
+    _BroadcastStreamController._STATE_EVENT_ID = 1;
+    _BroadcastStreamController._STATE_FIRING = 2;
+    _BroadcastStreamController._STATE_CLOSED = 4;
+    _BroadcastStreamController._STATE_ADDSTREAM = 8;
     return _BroadcastStreamController;
   });
   let _BroadcastStreamController = _BroadcastStreamController$();
-  _BroadcastStreamController._STATE_INITIAL = 0;
-  _BroadcastStreamController._STATE_EVENT_ID = 1;
-  _BroadcastStreamController._STATE_FIRING = 2;
-  _BroadcastStreamController._STATE_CLOSED = 4;
-  _BroadcastStreamController._STATE_ADDSTREAM = 8;
   const _SyncBroadcastStreamController$ = dart.generic(function(T) {
     class _SyncBroadcastStreamController extends _BroadcastStreamController$(T) {
       _SyncBroadcastStreamController(onListen, onCancel) {
@@ -1929,14 +1938,14 @@ dart_library.library('dart/async', null, /* Imports */[
       }),
       names: ['wait', 'forEach', 'doWhile']
     });
+    dart.defineLazyProperties(Future, {
+      get _nullFuture() {
+        return new _Future.immediate(null);
+      }
+    });
     return Future;
   });
   let Future = Future$();
-  dart.defineLazyProperties(Future, {
-    get _nullFuture() {
-      return new _Future.immediate(null);
-    }
-  });
   class TimeoutException extends core.Object {
     TimeoutException(message, duration) {
       if (duration === void 0) duration = null;
@@ -2148,11 +2157,23 @@ dart_library.library('dart/async', null, /* Imports */[
   _FutureListener.MASK_TEST_ERROR = 4;
   _FutureListener.MASK_WHENCOMPLETE = 8;
   _FutureListener.STATE_CHAIN = 0;
-  _FutureListener.STATE_THEN = _FutureListener.MASK_VALUE;
-  _FutureListener.STATE_THEN_ONERROR = dart.notNull(_FutureListener.MASK_VALUE) | dart.notNull(_FutureListener.MASK_ERROR);
-  _FutureListener.STATE_CATCHERROR = _FutureListener.MASK_ERROR;
-  _FutureListener.STATE_CATCHERROR_TEST = dart.notNull(_FutureListener.MASK_ERROR) | dart.notNull(_FutureListener.MASK_TEST_ERROR);
-  _FutureListener.STATE_WHENCOMPLETE = _FutureListener.MASK_WHENCOMPLETE;
+  dart.defineLazyProperties(_FutureListener, {
+    get STATE_THEN() {
+      return _FutureListener.MASK_VALUE;
+    },
+    get STATE_THEN_ONERROR() {
+      return dart.notNull(_FutureListener.MASK_VALUE) | dart.notNull(_FutureListener.MASK_ERROR);
+    },
+    get STATE_CATCHERROR() {
+      return _FutureListener.MASK_ERROR;
+    },
+    get STATE_CATCHERROR_TEST() {
+      return dart.notNull(_FutureListener.MASK_ERROR) | dart.notNull(_FutureListener.MASK_TEST_ERROR);
+    },
+    get STATE_WHENCOMPLETE() {
+      return _FutureListener.MASK_WHENCOMPLETE;
+    }
+  });
   const _resultOrListeners = Symbol('_resultOrListeners');
   const _isChained = Symbol('_isChained');
   const _isComplete = Symbol('_isComplete');
@@ -2608,14 +2629,14 @@ dart_library.library('dart/async', null, /* Imports */[
       }),
       names: ['_chainForeignFuture', '_chainCoreFuture', '_propagateToListeners']
     });
+    _Future._INCOMPLETE = 0;
+    _Future._PENDING_COMPLETE = 1;
+    _Future._CHAINED = 2;
+    _Future._VALUE = 4;
+    _Future._ERROR = 8;
     return _Future;
   });
   let _Future = _Future$();
-  _Future._INCOMPLETE = 0;
-  _Future._PENDING_COMPLETE = 1;
-  _Future._CHAINED = 2;
-  _Future._VALUE = 4;
-  _Future._ERROR = 8;
   const __CastType6$ = dart.generic(function(T, S) {
     const __CastType6 = dart.typedef('__CastType6', () => dart.functionType(S, [T]));
     return __CastType6;
@@ -3185,15 +3206,15 @@ dart_library.library('dart/async', null, /* Imports */[
         [_recordResume]: [dart.void, [StreamSubscription$(T)]]
       })
     });
+    _StreamController._STATE_INITIAL = 0;
+    _StreamController._STATE_SUBSCRIBED = 1;
+    _StreamController._STATE_CANCELED = 2;
+    _StreamController._STATE_SUBSCRIPTION_MASK = 3;
+    _StreamController._STATE_CLOSED = 4;
+    _StreamController._STATE_ADDSTREAM = 8;
     return _StreamController;
   });
   let _StreamController = _StreamController$();
-  _StreamController._STATE_INITIAL = 0;
-  _StreamController._STATE_SUBSCRIBED = 1;
-  _StreamController._STATE_CANCELED = 2;
-  _StreamController._STATE_SUBSCRIPTION_MASK = 3;
-  _StreamController._STATE_CLOSED = 4;
-  _StreamController._STATE_ADDSTREAM = 8;
   const _SyncStreamControllerDispatch$ = dart.generic(function(T) {
     class _SyncStreamControllerDispatch extends core.Object {
       [_sendData](data) {
@@ -3431,15 +3452,6 @@ dart_library.library('dart/async', null, /* Imports */[
     return _EventDispatch;
   });
   let _EventDispatch = _EventDispatch$();
-  _BufferingStreamSubscription._STATE_CANCEL_ON_ERROR = 1;
-  _BufferingStreamSubscription._STATE_CLOSED = 2;
-  _BufferingStreamSubscription._STATE_INPUT_PAUSED = 4;
-  _BufferingStreamSubscription._STATE_CANCELED = 8;
-  _BufferingStreamSubscription._STATE_WAIT_FOR_CANCEL = 16;
-  _BufferingStreamSubscription._STATE_IN_CALLBACK = 32;
-  _BufferingStreamSubscription._STATE_HAS_PENDING = 64;
-  _BufferingStreamSubscription._STATE_PAUSE_COUNT = 128;
-  _BufferingStreamSubscription._STATE_PAUSE_COUNT_SHIFT = 7;
   const _EventGenerator = dart.typedef('_EventGenerator', () => dart.functionType(_PendingEvents, []));
   const _isUsed = Symbol('_isUsed');
   const _GeneratedStreamImpl$ = dart.generic(function(T) {
@@ -3502,6 +3514,9 @@ dart_library.library('dart/async', null, /* Imports */[
       cancelSchedule: [dart.void, []]
     })
   });
+  _PendingEvents._STATE_UNSCHEDULED = 0;
+  _PendingEvents._STATE_SCHEDULED = 1;
+  _PendingEvents._STATE_CANCELED = 3;
   const _iterator = Symbol('_iterator');
   const _IterablePendingEvents$ = dart.generic(function(T) {
     class _IterablePendingEvents extends _PendingEvents {
@@ -3624,9 +3639,6 @@ dart_library.library('dart/async', null, /* Imports */[
     constructors: () => ({_DelayedDone: [_DelayedDone, []]}),
     methods: () => ({perform: [dart.void, [_EventDispatch]]})
   });
-  _PendingEvents._STATE_UNSCHEDULED = 0;
-  _PendingEvents._STATE_SCHEDULED = 1;
-  _PendingEvents._STATE_CANCELED = 3;
   class _StreamImplEvents extends _PendingEvents {
     _StreamImplEvents() {
       this.firstPendingEvent = null;
@@ -3770,12 +3782,12 @@ dart_library.library('dart/async', null, /* Imports */[
         [_sendDone]: [dart.void, []]
       })
     });
+    _DoneStreamSubscription._DONE_SENT = 1;
+    _DoneStreamSubscription._SCHEDULED = 2;
+    _DoneStreamSubscription._PAUSED = 4;
     return _DoneStreamSubscription;
   });
   let _DoneStreamSubscription = _DoneStreamSubscription$();
-  _DoneStreamSubscription._DONE_SENT = 1;
-  _DoneStreamSubscription._SCHEDULED = 2;
-  _DoneStreamSubscription._PAUSED = 4;
   const _source = Symbol('_source');
   const _onListenHandler = Symbol('_onListenHandler');
   const _onCancelHandler = Symbol('_onCancelHandler');
@@ -4037,15 +4049,15 @@ dart_library.library('dart/async', null, /* Imports */[
         [_onDone]: [dart.void, []]
       })
     });
+    _StreamIteratorImpl._STATE_FOUND = 0;
+    _StreamIteratorImpl._STATE_DONE = 1;
+    _StreamIteratorImpl._STATE_MOVING = 2;
+    _StreamIteratorImpl._STATE_EXTRA_DATA = 3;
+    _StreamIteratorImpl._STATE_EXTRA_ERROR = 4;
+    _StreamIteratorImpl._STATE_EXTRA_DONE = 5;
     return _StreamIteratorImpl;
   });
   let _StreamIteratorImpl = _StreamIteratorImpl$();
-  _StreamIteratorImpl._STATE_FOUND = 0;
-  _StreamIteratorImpl._STATE_DONE = 1;
-  _StreamIteratorImpl._STATE_MOVING = 2;
-  _StreamIteratorImpl._STATE_EXTRA_DATA = 3;
-  _StreamIteratorImpl._STATE_EXTRA_ERROR = 4;
-  _StreamIteratorImpl._STATE_EXTRA_DONE = 5;
   const __CastType20$ = dart.generic(function(T) {
     const __CastType20 = dart.typedef('__CastType20', () => dart.functionType(dart.void, [T]));
     return __CastType20;
@@ -4530,15 +4542,15 @@ dart_library.library('dart/async', null, /* Imports */[
       constructors: () => ({_DistinctStream: [_DistinctStream$(T), [Stream$(T), dart.functionType(core.bool, [T, T])]]}),
       methods: () => ({[_handleData]: [dart.void, [T, _EventSink$(T)]]})
     });
+    dart.defineLazyProperties(_DistinctStream, {
+      get _SENTINEL() {
+        return new core.Object();
+      },
+      set _SENTINEL(_) {}
+    });
     return _DistinctStream;
   });
   let _DistinctStream = _DistinctStream$();
-  dart.defineLazyProperties(_DistinctStream, {
-    get _SENTINEL() {
-      return new core.Object();
-    },
-    set _SENTINEL(_) {}
-  });
   const _EventSinkWrapper$ = dart.generic(function(T) {
     class _EventSinkWrapper extends core.Object {
       _EventSinkWrapper(sink) {
@@ -5019,18 +5031,23 @@ dart_library.library('dart/async', null, /* Imports */[
     }),
     names: ['_enter', '_leave']
   });
-  class _Zone extends core.Object {
-    _Zone() {
-    }
-    inSameErrorZone(otherZone) {
-      return dart.notNull(core.identical(this, otherZone)) || dart.notNull(core.identical(this.errorZone, otherZone.errorZone));
-    }
-  }
-  _Zone[dart.implements] = () => [Zone];
-  dart.setSignature(_Zone, {
-    constructors: () => ({_Zone: [_Zone, []]}),
-    methods: () => ({inSameErrorZone: [core.bool, [Zone]]})
+  dart.defineLazyProperties(Zone, {
+    get ROOT() {
+      return _ROOT_ZONE;
+    },
+    get _current() {
+      return _ROOT_ZONE;
+    },
+    set _current(_) {}
   });
+  const _delegate = Symbol('_delegate');
+  function _parentDelegate(zone) {
+    if (zone.parent == null) return null;
+    return zone.parent[_delegate];
+  }
+  dart.fn(_parentDelegate, () => dart.definiteFunctionType(ZoneDelegate, [_Zone]));
+  const _delegationTarget = Symbol('_delegationTarget');
+  const _handleUncaughtError = Symbol('_handleUncaughtError');
   const _run = Symbol('_run');
   const _runUnary = Symbol('_runUnary');
   const _runBinary = Symbol('_runBinary');
@@ -5043,207 +5060,6 @@ dart_library.library('dart/async', null, /* Imports */[
   const _createPeriodicTimer = Symbol('_createPeriodicTimer');
   const _print = Symbol('_print');
   const _fork = Symbol('_fork');
-  const _handleUncaughtError = Symbol('_handleUncaughtError');
-  const _map = Symbol('_map');
-  const _delegate = Symbol('_delegate');
-  class _RootZone extends _Zone {
-    _RootZone() {
-      super._Zone();
-    }
-    get [_run]() {
-      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRun));
-    }
-    get [_runUnary]() {
-      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRunUnary));
-    }
-    get [_runBinary]() {
-      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRunBinary));
-    }
-    get [_registerCallback]() {
-      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRegisterCallback));
-    }
-    get [_registerUnaryCallback]() {
-      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRegisterUnaryCallback));
-    }
-    get [_registerBinaryCallback]() {
-      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRegisterBinaryCallback));
-    }
-    get [_errorCallback]() {
-      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootErrorCallback));
-    }
-    get [_scheduleMicrotask]() {
-      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootScheduleMicrotask));
-    }
-    get [_createTimer]() {
-      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootCreateTimer));
-    }
-    get [_createPeriodicTimer]() {
-      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootCreatePeriodicTimer));
-    }
-    get [_print]() {
-      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootPrint));
-    }
-    get [_fork]() {
-      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootFork));
-    }
-    get [_handleUncaughtError]() {
-      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootHandleUncaughtError));
-    }
-    get parent() {
-      return null;
-    }
-    get [_map]() {
-      return _RootZone._rootMap;
-    }
-    get [_delegate]() {
-      if (_RootZone._rootDelegate != null) return _RootZone._rootDelegate;
-      return _RootZone._rootDelegate = new _ZoneDelegate(this);
-    }
-    get errorZone() {
-      return this;
-    }
-    runGuarded(f) {
-      try {
-        if (dart.notNull(core.identical(_ROOT_ZONE, Zone._current))) {
-          return f();
-        }
-        return _rootRun(null, null, this, f);
-      } catch (e) {
-        let s = dart.stackTrace(e);
-        return this.handleUncaughtError(e, s);
-      }
-
-    }
-    runUnaryGuarded(f, arg) {
-      try {
-        if (dart.notNull(core.identical(_ROOT_ZONE, Zone._current))) {
-          return dart.dcall(f, arg);
-        }
-        return _rootRunUnary(null, null, this, f, arg);
-      } catch (e) {
-        let s = dart.stackTrace(e);
-        return this.handleUncaughtError(e, s);
-      }
-
-    }
-    runBinaryGuarded(f, arg1, arg2) {
-      try {
-        if (dart.notNull(core.identical(_ROOT_ZONE, Zone._current))) {
-          return dart.dcall(f, arg1, arg2);
-        }
-        return _rootRunBinary(null, null, this, f, arg1, arg2);
-      } catch (e) {
-        let s = dart.stackTrace(e);
-        return this.handleUncaughtError(e, s);
-      }
-
-    }
-    bindCallback(f, opts) {
-      let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
-      if (dart.notNull(runGuarded)) {
-        return dart.fn((() => this.runGuarded(f)).bind(this));
-      } else {
-        return dart.fn((() => this.run(f)).bind(this));
-      }
-    }
-    bindUnaryCallback(f, opts) {
-      let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
-      if (dart.notNull(runGuarded)) {
-        return dart.fn((arg => this.runUnaryGuarded(f, arg)).bind(this));
-      } else {
-        return dart.fn((arg => this.runUnary(f, arg)).bind(this));
-      }
-    }
-    bindBinaryCallback(f, opts) {
-      let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
-      if (dart.notNull(runGuarded)) {
-        return dart.fn(((arg1, arg2) => this.runBinaryGuarded(f, arg1, arg2)).bind(this));
-      } else {
-        return dart.fn(((arg1, arg2) => this.runBinary(f, arg1, arg2)).bind(this));
-      }
-    }
-    get(key) {
-      return null;
-    }
-    handleUncaughtError(error, stackTrace) {
-      return _rootHandleUncaughtError(null, null, this, error, stackTrace);
-    }
-    fork(opts) {
-      let specification = opts && 'specification' in opts ? opts.specification : null;
-      let zoneValues = opts && 'zoneValues' in opts ? opts.zoneValues : null;
-      return _rootFork(null, null, this, specification, zoneValues);
-    }
-    run(f) {
-      if (dart.notNull(core.identical(Zone._current, _ROOT_ZONE))) return f();
-      return _rootRun(null, null, this, f);
-    }
-    runUnary(f, arg) {
-      if (dart.notNull(core.identical(Zone._current, _ROOT_ZONE))) return dart.dcall(f, arg);
-      return _rootRunUnary(null, null, this, f, arg);
-    }
-    runBinary(f, arg1, arg2) {
-      if (dart.notNull(core.identical(Zone._current, _ROOT_ZONE))) return dart.dcall(f, arg1, arg2);
-      return _rootRunBinary(null, null, this, f, arg1, arg2);
-    }
-    registerCallback(f) {
-      return f;
-    }
-    registerUnaryCallback(f) {
-      return f;
-    }
-    registerBinaryCallback(f) {
-      return f;
-    }
-    errorCallback(error, stackTrace) {
-      return null;
-    }
-    scheduleMicrotask(f) {
-      _rootScheduleMicrotask(null, null, this, f);
-    }
-    createTimer(duration, f) {
-      return Timer._createTimer(duration, f);
-    }
-    createPeriodicTimer(duration, f) {
-      return Timer._createPeriodicTimer(duration, f);
-    }
-    print(line) {
-      _internal.printToConsole(line);
-    }
-  }
-  dart.setSignature(_RootZone, {
-    constructors: () => ({_RootZone: [_RootZone, []]}),
-    methods: () => ({
-      runGuarded: [dart.dynamic, [dart.functionType(dart.dynamic, [])]],
-      runUnaryGuarded: [dart.dynamic, [dart.functionType(dart.dynamic, [dart.dynamic]), dart.dynamic]],
-      runBinaryGuarded: [dart.dynamic, [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]), dart.dynamic, dart.dynamic]],
-      bindCallback: [ZoneCallback, [dart.functionType(dart.dynamic, [])], {runGuarded: core.bool}],
-      bindUnaryCallback: [ZoneUnaryCallback, [dart.functionType(dart.dynamic, [dart.dynamic])], {runGuarded: core.bool}],
-      bindBinaryCallback: [ZoneBinaryCallback, [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])], {runGuarded: core.bool}],
-      get: [dart.dynamic, [core.Object]],
-      handleUncaughtError: [dart.dynamic, [dart.dynamic, core.StackTrace]],
-      fork: [Zone, [], {specification: ZoneSpecification, zoneValues: core.Map}],
-      run: [dart.dynamic, [dart.functionType(dart.dynamic, [])]],
-      runUnary: [dart.dynamic, [dart.functionType(dart.dynamic, [dart.dynamic]), dart.dynamic]],
-      runBinary: [dart.dynamic, [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]), dart.dynamic, dart.dynamic]],
-      registerCallback: [ZoneCallback, [dart.functionType(dart.dynamic, [])]],
-      registerUnaryCallback: [ZoneUnaryCallback, [dart.functionType(dart.dynamic, [dart.dynamic])]],
-      registerBinaryCallback: [ZoneBinaryCallback, [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]],
-      errorCallback: [AsyncError, [core.Object, core.StackTrace]],
-      scheduleMicrotask: [dart.void, [dart.functionType(dart.void, [])]],
-      createTimer: [Timer, [core.Duration, dart.functionType(dart.void, [])]],
-      createPeriodicTimer: [Timer, [core.Duration, dart.functionType(dart.void, [Timer])]],
-      print: [dart.void, [core.String]]
-    })
-  });
-  const _ROOT_ZONE = dart.const(new _RootZone());
-  Zone.ROOT = _ROOT_ZONE;
-  Zone._current = _ROOT_ZONE;
-  function _parentDelegate(zone) {
-    if (zone.parent == null) return null;
-    return zone.parent[_delegate];
-  }
-  dart.fn(_parentDelegate, ZoneDelegate, [_Zone]);
-  const _delegationTarget = Symbol('_delegationTarget');
   class _ZoneDelegate extends core.Object {
     _ZoneDelegate(delegationTarget) {
       this[_delegationTarget] = delegationTarget;
@@ -5334,7 +5150,20 @@ dart_library.library('dart/async', null, /* Imports */[
       fork: [Zone, [Zone, ZoneSpecification, core.Map]]
     })
   });
+  class _Zone extends core.Object {
+    _Zone() {
+    }
+    inSameErrorZone(otherZone) {
+      return dart.notNull(core.identical(this, otherZone)) || dart.notNull(core.identical(this.errorZone, otherZone.errorZone));
+    }
+  }
+  _Zone[dart.implements] = () => [Zone];
+  dart.setSignature(_Zone, {
+    constructors: () => ({_Zone: [_Zone, []]}),
+    methods: () => ({inSameErrorZone: [core.bool, [Zone]]})
+  });
   const _delegateCache = Symbol('_delegateCache');
+  const _map = Symbol('_map');
   class _CustomZone extends _Zone {
     get [_delegate]() {
       if (this[_delegateCache] != null) return this[_delegateCache];
@@ -5695,6 +5524,195 @@ dart_library.library('dart/async', null, /* Imports */[
     }
   }
   _RootZoneSpecification[dart.implements] = () => [ZoneSpecification];
+  class _RootZone extends _Zone {
+    _RootZone() {
+      super._Zone();
+    }
+    get [_run]() {
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRun));
+    }
+    get [_runUnary]() {
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRunUnary));
+    }
+    get [_runBinary]() {
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRunBinary));
+    }
+    get [_registerCallback]() {
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRegisterCallback));
+    }
+    get [_registerUnaryCallback]() {
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRegisterUnaryCallback));
+    }
+    get [_registerBinaryCallback]() {
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRegisterBinaryCallback));
+    }
+    get [_errorCallback]() {
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootErrorCallback));
+    }
+    get [_scheduleMicrotask]() {
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootScheduleMicrotask));
+    }
+    get [_createTimer]() {
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootCreateTimer));
+    }
+    get [_createPeriodicTimer]() {
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootCreatePeriodicTimer));
+    }
+    get [_print]() {
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootPrint));
+    }
+    get [_fork]() {
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootFork));
+    }
+    get [_handleUncaughtError]() {
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootHandleUncaughtError));
+    }
+    get parent() {
+      return null;
+    }
+    get [_map]() {
+      return _RootZone._rootMap;
+    }
+    get [_delegate]() {
+      if (_RootZone._rootDelegate != null) return _RootZone._rootDelegate;
+      return _RootZone._rootDelegate = new _ZoneDelegate(this);
+    }
+    get errorZone() {
+      return this;
+    }
+    runGuarded(f) {
+      try {
+        if (dart.notNull(core.identical(_ROOT_ZONE, Zone._current))) {
+          return f();
+        }
+        return _rootRun(null, null, this, f);
+      } catch (e) {
+        let s = dart.stackTrace(e);
+        return this.handleUncaughtError(e, s);
+      }
+
+    }
+    runUnaryGuarded(f, arg) {
+      try {
+        if (dart.notNull(core.identical(_ROOT_ZONE, Zone._current))) {
+          return dart.dcall(f, arg);
+        }
+        return _rootRunUnary(null, null, this, f, arg);
+      } catch (e) {
+        let s = dart.stackTrace(e);
+        return this.handleUncaughtError(e, s);
+      }
+
+    }
+    runBinaryGuarded(f, arg1, arg2) {
+      try {
+        if (dart.notNull(core.identical(_ROOT_ZONE, Zone._current))) {
+          return dart.dcall(f, arg1, arg2);
+        }
+        return _rootRunBinary(null, null, this, f, arg1, arg2);
+      } catch (e) {
+        let s = dart.stackTrace(e);
+        return this.handleUncaughtError(e, s);
+      }
+
+    }
+    bindCallback(f, opts) {
+      let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
+      if (dart.notNull(runGuarded)) {
+        return dart.fn((() => this.runGuarded(f)).bind(this));
+      } else {
+        return dart.fn((() => this.run(f)).bind(this));
+      }
+    }
+    bindUnaryCallback(f, opts) {
+      let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
+      if (dart.notNull(runGuarded)) {
+        return dart.fn((arg => this.runUnaryGuarded(f, arg)).bind(this));
+      } else {
+        return dart.fn((arg => this.runUnary(f, arg)).bind(this));
+      }
+    }
+    bindBinaryCallback(f, opts) {
+      let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
+      if (dart.notNull(runGuarded)) {
+        return dart.fn(((arg1, arg2) => this.runBinaryGuarded(f, arg1, arg2)).bind(this));
+      } else {
+        return dart.fn(((arg1, arg2) => this.runBinary(f, arg1, arg2)).bind(this));
+      }
+    }
+    get(key) {
+      return null;
+    }
+    handleUncaughtError(error, stackTrace) {
+      return _rootHandleUncaughtError(null, null, this, error, stackTrace);
+    }
+    fork(opts) {
+      let specification = opts && 'specification' in opts ? opts.specification : null;
+      let zoneValues = opts && 'zoneValues' in opts ? opts.zoneValues : null;
+      return _rootFork(null, null, this, specification, zoneValues);
+    }
+    run(f) {
+      if (dart.notNull(core.identical(Zone._current, _ROOT_ZONE))) return f();
+      return _rootRun(null, null, this, f);
+    }
+    runUnary(f, arg) {
+      if (dart.notNull(core.identical(Zone._current, _ROOT_ZONE))) return dart.dcall(f, arg);
+      return _rootRunUnary(null, null, this, f, arg);
+    }
+    runBinary(f, arg1, arg2) {
+      if (dart.notNull(core.identical(Zone._current, _ROOT_ZONE))) return dart.dcall(f, arg1, arg2);
+      return _rootRunBinary(null, null, this, f, arg1, arg2);
+    }
+    registerCallback(f) {
+      return f;
+    }
+    registerUnaryCallback(f) {
+      return f;
+    }
+    registerBinaryCallback(f) {
+      return f;
+    }
+    errorCallback(error, stackTrace) {
+      return null;
+    }
+    scheduleMicrotask(f) {
+      _rootScheduleMicrotask(null, null, this, f);
+    }
+    createTimer(duration, f) {
+      return Timer._createTimer(duration, f);
+    }
+    createPeriodicTimer(duration, f) {
+      return Timer._createPeriodicTimer(duration, f);
+    }
+    print(line) {
+      _internal.printToConsole(line);
+    }
+  }
+  dart.setSignature(_RootZone, {
+    constructors: () => ({_RootZone: [_RootZone, []]}),
+    methods: () => ({
+      runGuarded: [dart.dynamic, [dart.functionType(dart.dynamic, [])]],
+      runUnaryGuarded: [dart.dynamic, [dart.functionType(dart.dynamic, [dart.dynamic]), dart.dynamic]],
+      runBinaryGuarded: [dart.dynamic, [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]), dart.dynamic, dart.dynamic]],
+      bindCallback: [ZoneCallback, [dart.functionType(dart.dynamic, [])], {runGuarded: core.bool}],
+      bindUnaryCallback: [ZoneUnaryCallback, [dart.functionType(dart.dynamic, [dart.dynamic])], {runGuarded: core.bool}],
+      bindBinaryCallback: [ZoneBinaryCallback, [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])], {runGuarded: core.bool}],
+      get: [dart.dynamic, [core.Object]],
+      handleUncaughtError: [dart.dynamic, [dart.dynamic, core.StackTrace]],
+      fork: [Zone, [], {specification: ZoneSpecification, zoneValues: core.Map}],
+      run: [dart.dynamic, [dart.functionType(dart.dynamic, [])]],
+      runUnary: [dart.dynamic, [dart.functionType(dart.dynamic, [dart.dynamic]), dart.dynamic]],
+      runBinary: [dart.dynamic, [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]), dart.dynamic, dart.dynamic]],
+      registerCallback: [ZoneCallback, [dart.functionType(dart.dynamic, [])]],
+      registerUnaryCallback: [ZoneUnaryCallback, [dart.functionType(dart.dynamic, [dart.dynamic])]],
+      registerBinaryCallback: [ZoneBinaryCallback, [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]],
+      errorCallback: [AsyncError, [core.Object, core.StackTrace]],
+      scheduleMicrotask: [dart.void, [dart.functionType(dart.void, [])]],
+      createTimer: [Timer, [core.Duration, dart.functionType(dart.void, [])]],
+      createPeriodicTimer: [Timer, [core.Duration, dart.functionType(dart.void, [Timer])]],
+      print: [dart.void, [core.String]]
+    })
+  });
   _RootZone._rootDelegate = null;
   dart.defineLazyProperties(_RootZone, {
     get _rootMap() {
@@ -5702,6 +5720,7 @@ dart_library.library('dart/async', null, /* Imports */[
     },
     set _rootMap(_) {}
   });
+  const _ROOT_ZONE = dart.const(new _RootZone());
   function runZoned(body, opts) {
     let zoneValues = opts && 'zoneValues' in opts ? opts.zoneValues : null;
     let zoneSpecification = opts && 'zoneSpecification' in opts ? opts.zoneSpecification : null;

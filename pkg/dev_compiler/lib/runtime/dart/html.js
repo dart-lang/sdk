@@ -3,14 +3,14 @@ dart_library.library('dart/html', null, /* Imports */[
   'dart/math',
   'dart/core',
   'dart/_js_helper',
-  'dart/async',
   'dart/collection',
+  'dart/async',
   'dart/_foreign_helper',
   'dart/isolate'
 ], /* Lazy imports */[
   'dart/_metadata',
   'dart/html_common'
-], function(exports, dart, math, core, _js_helper, async, collection, _foreign_helper, isolate, _metadata, html_common) {
+], function(exports, dart, math, core, _js_helper, collection, async, _foreign_helper, isolate, _metadata, html_common) {
   'use strict';
   let dartx = dart.dartx;
   dart.export(exports, math, ['Rectangle', 'Point'], []);
@@ -370,6 +370,18 @@ dart_library.library('dart/html', null, /* Imports */[
     names: ['internalCreateNode']
   });
   Node[dart.metadata] = () => [dart.const(new _metadata.DomName('Node')), dart.const(new _js_helper.Native("Node"))];
+  Node.ATTRIBUTE_NODE = 2;
+  Node.CDATA_SECTION_NODE = 4;
+  Node.COMMENT_NODE = 8;
+  Node.DOCUMENT_FRAGMENT_NODE = 11;
+  Node.DOCUMENT_NODE = 9;
+  Node.DOCUMENT_TYPE_NODE = 10;
+  Node.ELEMENT_NODE = 1;
+  Node.ENTITY_NODE = 6;
+  Node.ENTITY_REFERENCE_NODE = 5;
+  Node.NOTATION_NODE = 12;
+  Node.PROCESSING_INSTRUCTION_NODE = 7;
+  Node.TEXT_NODE = 3;
   const _xtag = Symbol('_xtag');
   const _querySelectorAll = Symbol('_querySelectorAll');
   const _getComputedStyle = Symbol('_getComputedStyle');
@@ -1356,6 +1368,43 @@ dart_library.library('dart/html', null, /* Imports */[
     names: ['isTagSupported', '_offsetToHelper', '_hasCorruptedAttributes', '_hasCorruptedAttributesAdditionalCheck', '_safeTagName', 'internalCreateElement']
   });
   Element[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Element')), dart.const(new _js_helper.Native("Element"))];
+  Element._parseDocument = null;
+  Element._parseRange = null;
+  Element._defaultValidator = null;
+  Element._defaultSanitizer = null;
+  Element._tagsForWhichCreateContextualFragmentIsNotSupported = dart.const(['HEAD', 'AREA', 'BASE', 'BASEFONT', 'BR', 'COL', 'COLGROUP', 'EMBED', 'FRAME', 'FRAMESET', 'HR', 'IMAGE', 'IMG', 'INPUT', 'ISINDEX', 'LINK', 'META', 'PARAM', 'SOURCE', 'STYLE', 'TITLE', 'WBR']);
+  dart.defineLazyProperties(Element, {
+    get beforeCopyEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('beforecopy'));
+    },
+    get beforeCutEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('beforecut'));
+    },
+    get beforePasteEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('beforepaste'));
+    },
+    get copyEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('copy'));
+    },
+    get cutEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('cut'));
+    },
+    get pasteEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('paste'));
+    },
+    get searchEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('search'));
+    },
+    get selectStartEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('selectstart'));
+    },
+    get fullscreenChangeEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('webkitfullscreenchange'));
+    },
+    get fullscreenErrorEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('webkitfullscreenerror'));
+    }
+  });
   class HtmlElement extends Element {
     static new() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -1594,182 +1643,26 @@ dart_library.library('dart/html', null, /* Imports */[
     names: ['internalCreateBodyElement']
   });
   BodyElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLBodyElement')), dart.const(new _js_helper.Native("HTMLBodyElement"))];
-  const _eventType = Symbol('_eventType');
-  const _forElementList = Symbol('_forElementList');
-  const EventStreamProvider$ = dart.generic(function(T) {
-    class EventStreamProvider extends core.Object {
-      EventStreamProvider(eventType) {
-        this[_eventType] = eventType;
-      }
-      forTarget(e, opts) {
-        let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (_EventStream$(T))(e, this[_eventType], useCapture);
-      }
-      forElement(e, opts) {
-        let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (_ElementEventStreamImpl$(T))(e, this[_eventType], useCapture);
-      }
-      [_forElementList](e, opts) {
-        let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (_ElementListEventStreamImpl$(T))(dart.as(e, core.Iterable$(Element)), this[_eventType], useCapture);
-      }
-      getEventType(target) {
-        return this[_eventType];
-      }
+  dart.defineLazyProperties(BodyElement, {
+    get blurEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('blur'));
+    },
+    get errorEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('error'));
+    },
+    get focusEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('focus'));
+    },
+    get loadEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('load'));
+    },
+    get resizeEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('resize'));
+    },
+    get scrollEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('scroll'));
     }
-    dart.setSignature(EventStreamProvider, {
-      constructors: () => ({EventStreamProvider: [EventStreamProvider$(T), [core.String]]}),
-      methods: () => ({
-        forTarget: [async.Stream$(T), [EventTarget], {useCapture: core.bool}],
-        forElement: [ElementStream$(T), [Element], {useCapture: core.bool}],
-        [_forElementList]: [ElementStream$(T), [ElementList], {useCapture: core.bool}],
-        getEventType: [core.String, [EventTarget]]
-      })
-    });
-    return EventStreamProvider;
   });
-  let EventStreamProvider = EventStreamProvider$();
-  const _createEvent = Symbol('_createEvent');
-  const _initEvent = Symbol('_initEvent');
-  const _selector = Symbol('_selector');
-  const _get_currentTarget = Symbol('_get_currentTarget');
-  const _get_target = Symbol('_get_target');
-  const _initEvent_1 = Symbol('_initEvent_1');
-  const _preventDefault_1 = Symbol('_preventDefault_1');
-  const _stopImmediatePropagation_1 = Symbol('_stopImmediatePropagation_1');
-  const _stopPropagation_1 = Symbol('_stopPropagation_1');
-  class Event extends DartHtmlDomObject {
-    static new(type, opts) {
-      let canBubble = opts && 'canBubble' in opts ? opts.canBubble : true;
-      let cancelable = opts && 'cancelable' in opts ? opts.cancelable : true;
-      return Event.eventType('Event', type, {canBubble: canBubble, cancelable: cancelable});
-    }
-    static eventType(type, name, opts) {
-      let canBubble = opts && 'canBubble' in opts ? opts.canBubble : true;
-      let cancelable = opts && 'cancelable' in opts ? opts.cancelable : true;
-      let e = exports.document[_createEvent](type);
-      e[_initEvent](name, canBubble, cancelable);
-      return e;
-    }
-    get matchingTarget() {
-      if (this[_selector] == null) {
-        dart.throw(new core.UnsupportedError('Cannot call matchingTarget if this Event did' + ' not arise as a result of event delegation.'));
-      }
-      let currentTarget = dart.as(this.currentTarget, Element);
-      let target = dart.as(this.target, Element);
-      let matchedTarget = null;
-      do {
-        if (dart.notNull(target.matches(this[_selector]))) return target;
-        target = target.parent;
-      } while (target != null && !dart.equals(target, currentTarget.parent));
-      dart.throw(new core.StateError('No selector matched for populating matchedTarget.'));
-    }
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    static internalCreateEvent() {
-      return new Event.internal_();
-    }
-    internal_() {
-      this[_selector] = null;
-      super.DartHtmlDomObject();
-    }
-    ['=='](other) {
-      return dart.equals(unwrap_jso(other), unwrap_jso(this)) || dart.notNull(core.identical(this, other));
-    }
-    get hashCode() {
-      return dart.hashCode(unwrap_jso(this));
-    }
-    get bubbles() {
-      return dart.as(wrap_jso(this.raw.bubbles), core.bool);
-    }
-    get cancelable() {
-      return dart.as(wrap_jso(this.raw.cancelable), core.bool);
-    }
-    get currentTarget() {
-      return _convertNativeToDart_EventTarget(this[_get_currentTarget]);
-    }
-    get [_get_currentTarget]() {
-      return wrap_jso(this.raw.currentTarget);
-    }
-    get defaultPrevented() {
-      return dart.as(wrap_jso(this.raw.defaultPrevented), core.bool);
-    }
-    get eventPhase() {
-      return dart.as(wrap_jso(this.raw.eventPhase), core.int);
-    }
-    get path() {
-      return dart.as(wrap_jso(this.raw.path), core.List$(Node));
-    }
-    get target() {
-      return _convertNativeToDart_EventTarget(this[_get_target]);
-    }
-    get [_get_target]() {
-      return wrap_jso(this.raw.target);
-    }
-    get timeStamp() {
-      return dart.as(wrap_jso(this.raw.timeStamp), core.int);
-    }
-    get type() {
-      return dart.as(wrap_jso(this.raw.type), core.String);
-    }
-    [_initEvent](eventTypeArg, canBubbleArg, cancelableArg) {
-      this[_initEvent_1](eventTypeArg, canBubbleArg, cancelableArg);
-      return;
-    }
-    [_initEvent_1](eventTypeArg, canBubbleArg, cancelableArg) {
-      return wrap_jso(this.raw.initEvent(unwrap_jso(eventTypeArg), unwrap_jso(canBubbleArg), unwrap_jso(cancelableArg)));
-    }
-    preventDefault() {
-      this[_preventDefault_1]();
-      return;
-    }
-    [_preventDefault_1]() {
-      return wrap_jso(this.raw.preventDefault());
-    }
-    stopImmediatePropagation() {
-      this[_stopImmediatePropagation_1]();
-      return;
-    }
-    [_stopImmediatePropagation_1]() {
-      return wrap_jso(this.raw.stopImmediatePropagation());
-    }
-    stopPropagation() {
-      this[_stopPropagation_1]();
-      return;
-    }
-    [_stopPropagation_1]() {
-      return wrap_jso(this.raw.stopPropagation());
-    }
-  }
-  dart.defineNamedConstructor(Event, 'internal_');
-  dart.setSignature(Event, {
-    constructors: () => ({
-      new: [Event, [core.String], {canBubble: core.bool, cancelable: core.bool}],
-      eventType: [Event, [core.String, core.String], {canBubble: core.bool, cancelable: core.bool}],
-      _: [Event, []],
-      internal_: [Event, []]
-    }),
-    methods: () => ({
-      [_initEvent]: [dart.void, [core.String, core.bool, core.bool]],
-      [_initEvent_1]: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]],
-      preventDefault: [dart.void, []],
-      [_preventDefault_1]: [dart.void, []],
-      stopImmediatePropagation: [dart.void, []],
-      [_stopImmediatePropagation_1]: [dart.void, []],
-      stopPropagation: [dart.void, []],
-      [_stopPropagation_1]: [dart.void, []]
-    }),
-    statics: () => ({internalCreateEvent: [Event, []]}),
-    names: ['internalCreateEvent']
-  });
-  Event[dart.metadata] = () => [dart.const(new _metadata.DomName('Event')), dart.const(new _js_helper.Native("Event,InputEvent,ClipboardEvent"))];
-  BodyElement.blurEvent = dart.const(new (EventStreamProvider$(Event))('blur'));
-  BodyElement.errorEvent = dart.const(new (EventStreamProvider$(Event))('error'));
-  BodyElement.focusEvent = dart.const(new (EventStreamProvider$(Event))('focus'));
-  BodyElement.loadEvent = dart.const(new (EventStreamProvider$(Event))('load'));
-  BodyElement.resizeEvent = dart.const(new (EventStreamProvider$(Event))('resize'));
-  BodyElement.scrollEvent = dart.const(new (EventStreamProvider$(Event))('scroll'));
   const _appendData_1 = Symbol('_appendData_1');
   const _deleteData_1 = Symbol('_deleteData_1');
   const _insertData_1 = Symbol('_insertData_1');
@@ -4378,6 +4271,7 @@ dart_library.library('dart/html', null, /* Imports */[
   const _createElementNS_2 = Symbol('_createElementNS_2');
   const _createElementNS = Symbol('_createElementNS');
   const _createEvent_1 = Symbol('_createEvent_1');
+  const _createEvent = Symbol('_createEvent');
   const _createRange_1 = Symbol('_createRange_1');
   const _createTextNode_1 = Symbol('_createTextNode_1');
   const _createTextNode = Symbol('_createTextNode');
@@ -4848,10 +4742,20 @@ dart_library.library('dart/html', null, /* Imports */[
     names: ['internalCreateDocument']
   });
   Document[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Document')), dart.const(new _js_helper.Native("Document"))];
-  Document.pointerLockChangeEvent = dart.const(new (EventStreamProvider$(Event))('pointerlockchange'));
-  Document.pointerLockErrorEvent = dart.const(new (EventStreamProvider$(Event))('pointerlockerror'));
-  Document.readyStateChangeEvent = dart.const(new (EventStreamProvider$(Event))('readystatechange'));
-  Document.selectionChangeEvent = dart.const(new (EventStreamProvider$(Event))('selectionchange'));
+  dart.defineLazyProperties(Document, {
+    get pointerLockChangeEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('pointerlockchange'));
+    },
+    get pointerLockErrorEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('pointerlockerror'));
+    },
+    get readyStateChangeEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('readystatechange'));
+    },
+    get selectionChangeEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('selectionchange'));
+    }
+  });
   const _docChildren = Symbol('_docChildren');
   class DocumentFragment extends Node {
     static new() {
@@ -5321,6 +5225,7 @@ dart_library.library('dart/html', null, /* Imports */[
   });
   let ElementList = ElementList$();
   const _nodeList = Symbol('_nodeList');
+  const _forElementList = Symbol('_forElementList');
   class _FrozenElementList extends collection.ListBase$(Element) {
     _wrap(nodeList) {
       this[_nodeList] = nodeList;
@@ -5433,21 +5338,6 @@ dart_library.library('dart/html', null, /* Imports */[
     'last',
     'single'
   ]);
-  Element._parseDocument = null;
-  Element._parseRange = null;
-  Element._defaultValidator = null;
-  Element._defaultSanitizer = null;
-  Element._tagsForWhichCreateContextualFragmentIsNotSupported = dart.const(['HEAD', 'AREA', 'BASE', 'BASEFONT', 'BR', 'COL', 'COLGROUP', 'EMBED', 'FRAME', 'FRAMESET', 'HR', 'IMAGE', 'IMG', 'INPUT', 'ISINDEX', 'LINK', 'META', 'PARAM', 'SOURCE', 'STYLE', 'TITLE', 'WBR']);
-  Element.beforeCopyEvent = dart.const(new (EventStreamProvider$(Event))('beforecopy'));
-  Element.beforeCutEvent = dart.const(new (EventStreamProvider$(Event))('beforecut'));
-  Element.beforePasteEvent = dart.const(new (EventStreamProvider$(Event))('beforepaste'));
-  Element.copyEvent = dart.const(new (EventStreamProvider$(Event))('copy'));
-  Element.cutEvent = dart.const(new (EventStreamProvider$(Event))('cut'));
-  Element.pasteEvent = dart.const(new (EventStreamProvider$(Event))('paste'));
-  Element.searchEvent = dart.const(new (EventStreamProvider$(Event))('search'));
-  Element.selectStartEvent = dart.const(new (EventStreamProvider$(Event))('selectstart'));
-  Element.fullscreenChangeEvent = dart.const(new (EventStreamProvider$(Event))('webkitfullscreenchange'));
-  Element.fullscreenErrorEvent = dart.const(new (EventStreamProvider$(Event))('webkitfullscreenerror'));
   class _ElementFactoryProvider extends core.Object {
     static createElement_tag(tag, typeExtension) {
       return exports.document.createElement(tag, typeExtension);
@@ -5470,9 +5360,151 @@ dart_library.library('dart/html', null, /* Imports */[
   dart.setSignature(ScrollAlignment, {
     constructors: () => ({_internal: [ScrollAlignment, [dart.dynamic]]})
   });
-  ScrollAlignment.TOP = dart.const(new ScrollAlignment._internal('TOP'));
-  ScrollAlignment.CENTER = dart.const(new ScrollAlignment._internal('CENTER'));
-  ScrollAlignment.BOTTOM = dart.const(new ScrollAlignment._internal('BOTTOM'));
+  dart.defineLazyProperties(ScrollAlignment, {
+    get TOP() {
+      return dart.const(new ScrollAlignment._internal('TOP'));
+    },
+    get CENTER() {
+      return dart.const(new ScrollAlignment._internal('CENTER'));
+    },
+    get BOTTOM() {
+      return dart.const(new ScrollAlignment._internal('BOTTOM'));
+    }
+  });
+  const _initEvent = Symbol('_initEvent');
+  const _selector = Symbol('_selector');
+  const _get_currentTarget = Symbol('_get_currentTarget');
+  const _get_target = Symbol('_get_target');
+  const _initEvent_1 = Symbol('_initEvent_1');
+  const _preventDefault_1 = Symbol('_preventDefault_1');
+  const _stopImmediatePropagation_1 = Symbol('_stopImmediatePropagation_1');
+  const _stopPropagation_1 = Symbol('_stopPropagation_1');
+  class Event extends DartHtmlDomObject {
+    static new(type, opts) {
+      let canBubble = opts && 'canBubble' in opts ? opts.canBubble : true;
+      let cancelable = opts && 'cancelable' in opts ? opts.cancelable : true;
+      return Event.eventType('Event', type, {canBubble: canBubble, cancelable: cancelable});
+    }
+    static eventType(type, name, opts) {
+      let canBubble = opts && 'canBubble' in opts ? opts.canBubble : true;
+      let cancelable = opts && 'cancelable' in opts ? opts.cancelable : true;
+      let e = exports.document[_createEvent](type);
+      e[_initEvent](name, canBubble, cancelable);
+      return e;
+    }
+    get matchingTarget() {
+      if (this[_selector] == null) {
+        dart.throw(new core.UnsupportedError('Cannot call matchingTarget if this Event did' + ' not arise as a result of event delegation.'));
+      }
+      let currentTarget = dart.as(this.currentTarget, Element);
+      let target = dart.as(this.target, Element);
+      let matchedTarget = null;
+      do {
+        if (dart.notNull(target.matches(this[_selector]))) return target;
+        target = target.parent;
+      } while (target != null && !dart.equals(target, currentTarget.parent));
+      dart.throw(new core.StateError('No selector matched for populating matchedTarget.'));
+    }
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static internalCreateEvent() {
+      return new Event.internal_();
+    }
+    internal_() {
+      this[_selector] = null;
+      super.DartHtmlDomObject();
+    }
+    ['=='](other) {
+      return dart.equals(unwrap_jso(other), unwrap_jso(this)) || dart.notNull(core.identical(this, other));
+    }
+    get hashCode() {
+      return dart.hashCode(unwrap_jso(this));
+    }
+    get bubbles() {
+      return dart.as(wrap_jso(this.raw.bubbles), core.bool);
+    }
+    get cancelable() {
+      return dart.as(wrap_jso(this.raw.cancelable), core.bool);
+    }
+    get currentTarget() {
+      return _convertNativeToDart_EventTarget(this[_get_currentTarget]);
+    }
+    get [_get_currentTarget]() {
+      return wrap_jso(this.raw.currentTarget);
+    }
+    get defaultPrevented() {
+      return dart.as(wrap_jso(this.raw.defaultPrevented), core.bool);
+    }
+    get eventPhase() {
+      return dart.as(wrap_jso(this.raw.eventPhase), core.int);
+    }
+    get path() {
+      return dart.as(wrap_jso(this.raw.path), core.List$(Node));
+    }
+    get target() {
+      return _convertNativeToDart_EventTarget(this[_get_target]);
+    }
+    get [_get_target]() {
+      return wrap_jso(this.raw.target);
+    }
+    get timeStamp() {
+      return dart.as(wrap_jso(this.raw.timeStamp), core.int);
+    }
+    get type() {
+      return dart.as(wrap_jso(this.raw.type), core.String);
+    }
+    [_initEvent](eventTypeArg, canBubbleArg, cancelableArg) {
+      this[_initEvent_1](eventTypeArg, canBubbleArg, cancelableArg);
+      return;
+    }
+    [_initEvent_1](eventTypeArg, canBubbleArg, cancelableArg) {
+      return wrap_jso(this.raw.initEvent(unwrap_jso(eventTypeArg), unwrap_jso(canBubbleArg), unwrap_jso(cancelableArg)));
+    }
+    preventDefault() {
+      this[_preventDefault_1]();
+      return;
+    }
+    [_preventDefault_1]() {
+      return wrap_jso(this.raw.preventDefault());
+    }
+    stopImmediatePropagation() {
+      this[_stopImmediatePropagation_1]();
+      return;
+    }
+    [_stopImmediatePropagation_1]() {
+      return wrap_jso(this.raw.stopImmediatePropagation());
+    }
+    stopPropagation() {
+      this[_stopPropagation_1]();
+      return;
+    }
+    [_stopPropagation_1]() {
+      return wrap_jso(this.raw.stopPropagation());
+    }
+  }
+  dart.defineNamedConstructor(Event, 'internal_');
+  dart.setSignature(Event, {
+    constructors: () => ({
+      new: [Event, [core.String], {canBubble: core.bool, cancelable: core.bool}],
+      eventType: [Event, [core.String, core.String], {canBubble: core.bool, cancelable: core.bool}],
+      _: [Event, []],
+      internal_: [Event, []]
+    }),
+    methods: () => ({
+      [_initEvent]: [dart.void, [core.String, core.bool, core.bool]],
+      [_initEvent_1]: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]],
+      preventDefault: [dart.void, []],
+      [_preventDefault_1]: [dart.void, []],
+      stopImmediatePropagation: [dart.void, []],
+      [_stopImmediatePropagation_1]: [dart.void, []],
+      stopPropagation: [dart.void, []],
+      [_stopPropagation_1]: [dart.void, []]
+    }),
+    statics: () => ({internalCreateEvent: [Event, []]}),
+    names: ['internalCreateEvent']
+  });
+  Event[dart.metadata] = () => [dart.const(new _metadata.DomName('Event')), dart.const(new _js_helper.Native("Event,InputEvent,ClipboardEvent"))];
   Event.AT_TARGET = 2;
   Event.BUBBLING_PHASE = 3;
   Event.CAPTURING_PHASE = 1;
@@ -5968,45 +6000,11 @@ dart_library.library('dart/html', null, /* Imports */[
     names: ['internalCreateHtmlDocument', '_determineVisibilityChangeEventType']
   });
   HtmlDocument[dart.metadata] = () => [dart.const(new _metadata.DomName('HTMLDocument')), dart.const(new _js_helper.Native("HTMLDocument"))];
-  const _eventTypeGetter = Symbol('_eventTypeGetter');
-  const _CustomEventStreamProvider$ = dart.generic(function(T) {
-    class _CustomEventStreamProvider extends core.Object {
-      _CustomEventStreamProvider(eventTypeGetter) {
-        this[_eventTypeGetter] = eventTypeGetter;
-      }
-      forTarget(e, opts) {
-        let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (_EventStream$(T))(e, dart.as(dart.dcall(this[_eventTypeGetter], e), core.String), useCapture);
-      }
-      forElement(e, opts) {
-        let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (_ElementEventStreamImpl$(T))(e, dart.dcall(this[_eventTypeGetter], e), useCapture);
-      }
-      [_forElementList](e, opts) {
-        let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (_ElementListEventStreamImpl$(T))(dart.as(e, core.Iterable$(Element)), dart.as(dart.dcall(this[_eventTypeGetter], e), core.String), useCapture);
-      }
-      getEventType(target) {
-        return dart.as(dart.dcall(this[_eventTypeGetter], target), core.String);
-      }
-      get [_eventType]() {
-        return dart.throw(new core.UnsupportedError('Access type through getEventType method.'));
-      }
+  dart.defineLazyProperties(HtmlDocument, {
+    get visibilityChangeEvent() {
+      return dart.const(new (_CustomEventStreamProvider$(Event))(HtmlDocument._determineVisibilityChangeEventType));
     }
-    _CustomEventStreamProvider[dart.implements] = () => [EventStreamProvider$(T)];
-    dart.setSignature(_CustomEventStreamProvider, {
-      constructors: () => ({_CustomEventStreamProvider: [_CustomEventStreamProvider$(T), [dart.dynamic]]}),
-      methods: () => ({
-        forTarget: [async.Stream$(T), [EventTarget], {useCapture: core.bool}],
-        forElement: [ElementStream$(T), [Element], {useCapture: core.bool}],
-        [_forElementList]: [ElementStream$(T), [ElementList], {useCapture: core.bool}],
-        getEventType: [core.String, [EventTarget]]
-      })
-    });
-    return _CustomEventStreamProvider;
   });
-  let _CustomEventStreamProvider = _CustomEventStreamProvider$();
-  HtmlDocument.visibilityChangeEvent = dart.const(new (_CustomEventStreamProvider$(Event))(HtmlDocument._determineVisibilityChangeEventType));
   class HtmlHtmlElement extends HtmlElement {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -6074,6 +6072,29 @@ dart_library.library('dart/html', null, /* Imports */[
     names: ['internalCreateHttpRequestEventTarget']
   });
   HttpRequestEventTarget[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('XMLHttpRequestEventTarget')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("XMLHttpRequestEventTarget"))];
+  dart.defineLazyProperties(HttpRequestEventTarget, {
+    get abortEvent() {
+      return dart.const(new (EventStreamProvider$(ProgressEvent))('abort'));
+    },
+    get errorEvent() {
+      return dart.const(new (EventStreamProvider$(ProgressEvent))('error'));
+    },
+    get loadEvent() {
+      return dart.const(new (EventStreamProvider$(ProgressEvent))('load'));
+    },
+    get loadEndEvent() {
+      return dart.const(new (EventStreamProvider$(ProgressEvent))('loadend'));
+    },
+    get loadStartEvent() {
+      return dart.const(new (EventStreamProvider$(ProgressEvent))('loadstart'));
+    },
+    get progressEvent() {
+      return dart.const(new (EventStreamProvider$(ProgressEvent))('progress'));
+    },
+    get timeoutEvent() {
+      return dart.const(new (EventStreamProvider$(ProgressEvent))('timeout'));
+    }
+  });
   const _get_response = Symbol('_get_response');
   const _abort_1 = Symbol('_abort_1');
   const _getAllResponseHeaders_1 = Symbol('_getAllResponseHeaders_1');
@@ -6368,49 +6389,16 @@ dart_library.library('dart/html', null, /* Imports */[
     names: ['getString', 'postFormData', 'request', 'requestCrossOrigin', '_create_1', 'internalCreateHttpRequest']
   });
   HttpRequest[dart.metadata] = () => [dart.const(new _metadata.DomName('XMLHttpRequest')), dart.const(new _js_helper.Native("XMLHttpRequest"))];
-  class ProgressEvent extends Event {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    static internalCreateProgressEvent() {
-      return new ProgressEvent.internal_();
-    }
-    internal_() {
-      super.internal_();
-    }
-    get lengthComputable() {
-      return dart.as(wrap_jso(this.raw.lengthComputable), core.bool);
-    }
-    get loaded() {
-      return dart.as(wrap_jso(this.raw.loaded), core.int);
-    }
-    get total() {
-      return dart.as(wrap_jso(this.raw.total), core.int);
-    }
-  }
-  dart.defineNamedConstructor(ProgressEvent, 'internal_');
-  dart.setSignature(ProgressEvent, {
-    constructors: () => ({
-      _: [ProgressEvent, []],
-      internal_: [ProgressEvent, []]
-    }),
-    statics: () => ({internalCreateProgressEvent: [ProgressEvent, []]}),
-    names: ['internalCreateProgressEvent']
-  });
-  ProgressEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ProgressEvent')), dart.const(new _js_helper.Native("ProgressEvent"))];
-  HttpRequest.readyStateChangeEvent = dart.const(new (EventStreamProvider$(ProgressEvent))('readystatechange'));
   HttpRequest.DONE = 4;
   HttpRequest.HEADERS_RECEIVED = 2;
   HttpRequest.LOADING = 3;
   HttpRequest.OPENED = 1;
   HttpRequest.UNSENT = 0;
-  HttpRequestEventTarget.abortEvent = dart.const(new (EventStreamProvider$(ProgressEvent))('abort'));
-  HttpRequestEventTarget.errorEvent = dart.const(new (EventStreamProvider$(ProgressEvent))('error'));
-  HttpRequestEventTarget.loadEvent = dart.const(new (EventStreamProvider$(ProgressEvent))('load'));
-  HttpRequestEventTarget.loadEndEvent = dart.const(new (EventStreamProvider$(ProgressEvent))('loadend'));
-  HttpRequestEventTarget.loadStartEvent = dart.const(new (EventStreamProvider$(ProgressEvent))('loadstart'));
-  HttpRequestEventTarget.progressEvent = dart.const(new (EventStreamProvider$(ProgressEvent))('progress'));
-  HttpRequestEventTarget.timeoutEvent = dart.const(new (EventStreamProvider$(ProgressEvent))('timeout'));
+  dart.defineLazyProperties(HttpRequest, {
+    get readyStateChangeEvent() {
+      return dart.const(new (EventStreamProvider$(ProgressEvent))('readystatechange'));
+    }
+  });
   const _get_valueAsDate = Symbol('_get_valueAsDate');
   const _set_valueAsDate = Symbol('_set_valueAsDate');
   const _checkValidity_1 = Symbol('_checkValidity_1');
@@ -7785,18 +7773,6 @@ dart_library.library('dart/html', null, /* Imports */[
     'length',
     'length'
   ]);
-  Node.ATTRIBUTE_NODE = 2;
-  Node.CDATA_SECTION_NODE = 4;
-  Node.COMMENT_NODE = 8;
-  Node.DOCUMENT_FRAGMENT_NODE = 11;
-  Node.DOCUMENT_NODE = 9;
-  Node.DOCUMENT_TYPE_NODE = 10;
-  Node.ELEMENT_NODE = 1;
-  Node.ENTITY_NODE = 6;
-  Node.ENTITY_REFERENCE_NODE = 5;
-  Node.NOTATION_NODE = 12;
-  Node.PROCESSING_INSTRUCTION_NODE = 7;
-  Node.TEXT_NODE = 3;
   const _item = Symbol('_item');
   class NodeList extends dart.mixin(DartHtmlDomObject, collection.ListMixin$(Node), ImmutableListMixin$(Node)) {
     static _() {
@@ -7918,6 +7894,36 @@ dart_library.library('dart/html', null, /* Imports */[
     })
   });
   ParentNode[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ParentNode')), dart.const(new _metadata.Experimental())];
+  class ProgressEvent extends Event {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static internalCreateProgressEvent() {
+      return new ProgressEvent.internal_();
+    }
+    internal_() {
+      super.internal_();
+    }
+    get lengthComputable() {
+      return dart.as(wrap_jso(this.raw.lengthComputable), core.bool);
+    }
+    get loaded() {
+      return dart.as(wrap_jso(this.raw.loaded), core.int);
+    }
+    get total() {
+      return dart.as(wrap_jso(this.raw.total), core.int);
+    }
+  }
+  dart.defineNamedConstructor(ProgressEvent, 'internal_');
+  dart.setSignature(ProgressEvent, {
+    constructors: () => ({
+      _: [ProgressEvent, []],
+      internal_: [ProgressEvent, []]
+    }),
+    statics: () => ({internalCreateProgressEvent: [ProgressEvent, []]}),
+    names: ['internalCreateProgressEvent']
+  });
+  ProgressEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ProgressEvent')), dart.const(new _js_helper.Native("ProgressEvent"))];
   const _cloneContents_1 = Symbol('_cloneContents_1');
   const _cloneRange_1 = Symbol('_cloneRange_1');
   const _collapse_1 = Symbol('_collapse_1');
@@ -9116,9 +9122,13 @@ dart_library.library('dart/html', null, /* Imports */[
     names: ['internalCreateWindow']
   });
   Window[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Window')), dart.const(new _js_helper.Native("Window"))];
-  Window.contentLoadedEvent = dart.const(new (EventStreamProvider$(Event))('DOMContentLoaded'));
   Window.PERSISTENT = 1;
   Window.TEMPORARY = 0;
+  dart.defineLazyProperties(Window, {
+    get contentLoadedEvent() {
+      return dart.const(new (EventStreamProvider$(Event))('DOMContentLoaded'));
+    }
+  });
   class _Attr extends Node {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -9875,17 +9885,19 @@ dart_library.library('dart/html', null, /* Imports */[
   dart.setSignature(_MarginCssRect, {
     constructors: () => ({_MarginCssRect: [_MarginCssRect, [dart.dynamic]]})
   });
-  exports._CONTENT = 'content';
-  exports._PADDING = 'padding';
-  exports._MARGIN = 'margin';
   dart.defineLazyProperties(exports, {
     get _HEIGHT() {
       return ['top', 'bottom'];
-    },
+    }
+  });
+  dart.defineLazyProperties(exports, {
     get _WIDTH() {
       return ['right', 'left'];
     }
   });
+  exports._CONTENT = 'content';
+  exports._PADDING = 'padding';
+  exports._MARGIN = 'margin';
   const _sets = Symbol('_sets');
   dart.defineLazyClass(exports, {
     get _MultiElementCssClassSet() {
@@ -10191,6 +10203,40 @@ dart_library.library('dart/html', null, /* Imports */[
   });
   Dimension[dart.metadata] = () => [dart.const(new _metadata.Experimental())];
   const EventListener = dart.typedef('EventListener', () => dart.functionType(dart.dynamic, [Event]));
+  const _eventType = Symbol('_eventType');
+  const EventStreamProvider$ = dart.generic(function(T) {
+    class EventStreamProvider extends core.Object {
+      EventStreamProvider(eventType) {
+        this[_eventType] = eventType;
+      }
+      forTarget(e, opts) {
+        let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
+        return new (_EventStream$(T))(e, this[_eventType], useCapture);
+      }
+      forElement(e, opts) {
+        let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
+        return new (_ElementEventStreamImpl$(T))(e, this[_eventType], useCapture);
+      }
+      [_forElementList](e, opts) {
+        let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
+        return new (_ElementListEventStreamImpl$(T))(dart.as(e, core.Iterable$(Element)), this[_eventType], useCapture);
+      }
+      getEventType(target) {
+        return this[_eventType];
+      }
+    }
+    dart.setSignature(EventStreamProvider, {
+      constructors: () => ({EventStreamProvider: [EventStreamProvider$(T), [core.String]]}),
+      methods: () => ({
+        forTarget: [async.Stream$(T), [EventTarget], {useCapture: core.bool}],
+        forElement: [ElementStream$(T), [Element], {useCapture: core.bool}],
+        [_forElementList]: [ElementStream$(T), [ElementList], {useCapture: core.bool}],
+        getEventType: [core.String, [EventTarget]]
+      })
+    });
+    return EventStreamProvider;
+  });
+  let EventStreamProvider = EventStreamProvider$();
   const ElementStream$ = dart.generic(function(T) {
     class ElementStream extends core.Object {}
     ElementStream[dart.implements] = () => [async.Stream$(T)];
@@ -10751,6 +10797,23 @@ dart_library.library('dart/html', null, /* Imports */[
     names: ['_makeRecord', '_convertToHexString']
   });
   KeyEvent[dart.metadata] = () => [dart.const(new _metadata.Experimental())];
+  dart.defineLazyProperties(KeyEvent, {
+    get _keyboardEventDispatchRecord() {
+      return KeyEvent._makeRecord();
+    },
+    get keyDownEvent() {
+      return new _KeyboardEventHandler('keydown');
+    },
+    set keyDownEvent(_) {},
+    get keyUpEvent() {
+      return new _KeyboardEventHandler('keyup');
+    },
+    set keyUpEvent(_) {},
+    get keyPressEvent() {
+      return new _KeyboardEventHandler('keypress');
+    },
+    set keyPressEvent(_) {}
+  });
   class _CustomKeyEventStreamImpl extends _CustomEventStreamImpl$(KeyEvent) {
     _CustomKeyEventStreamImpl(type) {
       super._CustomEventStreamImpl(type);
@@ -10809,6 +10872,44 @@ dart_library.library('dart/html', null, /* Imports */[
     return _StreamPool;
   });
   let _StreamPool = _StreamPool$();
+  const _eventTypeGetter = Symbol('_eventTypeGetter');
+  const _CustomEventStreamProvider$ = dart.generic(function(T) {
+    class _CustomEventStreamProvider extends core.Object {
+      _CustomEventStreamProvider(eventTypeGetter) {
+        this[_eventTypeGetter] = eventTypeGetter;
+      }
+      forTarget(e, opts) {
+        let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
+        return new (_EventStream$(T))(e, dart.as(dart.dcall(this[_eventTypeGetter], e), core.String), useCapture);
+      }
+      forElement(e, opts) {
+        let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
+        return new (_ElementEventStreamImpl$(T))(e, dart.dcall(this[_eventTypeGetter], e), useCapture);
+      }
+      [_forElementList](e, opts) {
+        let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
+        return new (_ElementListEventStreamImpl$(T))(dart.as(e, core.Iterable$(Element)), dart.as(dart.dcall(this[_eventTypeGetter], e), core.String), useCapture);
+      }
+      getEventType(target) {
+        return dart.as(dart.dcall(this[_eventTypeGetter], target), core.String);
+      }
+      get [_eventType]() {
+        return dart.throw(new core.UnsupportedError('Access type through getEventType method.'));
+      }
+    }
+    _CustomEventStreamProvider[dart.implements] = () => [EventStreamProvider$(T)];
+    dart.setSignature(_CustomEventStreamProvider, {
+      constructors: () => ({_CustomEventStreamProvider: [_CustomEventStreamProvider$(T), [dart.dynamic]]}),
+      methods: () => ({
+        forTarget: [async.Stream$(T), [EventTarget], {useCapture: core.bool}],
+        forElement: [ElementStream$(T), [Element], {useCapture: core.bool}],
+        [_forElementList]: [ElementStream$(T), [ElementList], {useCapture: core.bool}],
+        getEventType: [core.String, [EventTarget]]
+      })
+    });
+    return _CustomEventStreamProvider;
+  });
+  let _CustomEventStreamProvider = _CustomEventStreamProvider$();
   class _Html5NodeValidator extends core.Object {
     _Html5NodeValidator(opts) {
       let uriPolicy = opts && 'uriPolicy' in opts ? opts.uriPolicy : null;
@@ -12253,26 +12354,13 @@ dart_library.library('dart/html', null, /* Imports */[
     statics: () => ({_createSafe: [HistoryBase, [dart.dynamic]]}),
     names: ['_createSafe']
   });
-  dart.defineLazyProperties(KeyEvent, {
-    get _keyboardEventDispatchRecord() {
-      return KeyEvent._makeRecord();
-    },
-    get keyDownEvent() {
-      return new _KeyboardEventHandler('keydown');
-    },
-    set keyDownEvent(_) {},
-    get keyUpEvent() {
-      return new _KeyboardEventHandler('keyup');
-    },
-    set keyUpEvent(_) {},
-    get keyPressEvent() {
-      return new _KeyboardEventHandler('keypress');
-    },
-    set keyPressEvent(_) {}
-  });
   class Platform extends core.Object {}
-  const supportsTypedData = !!window.ArrayBuffer;
   Platform.supportsSimd = false;
+  dart.defineLazyProperties(Platform, {
+    get supportsTypedData() {
+      return !!window.ArrayBuffer;
+    }
+  });
   function _wrapZone(callback) {
     if (dart.equals(async.Zone.current, async.Zone.ROOT)) return callback;
     if (callback == null) return null;
@@ -12325,6 +12413,11 @@ dart_library.library('dart/html', null, /* Imports */[
   dart.setSignature(NodeTreeSanitizer, {
     constructors: () => ({new: [NodeTreeSanitizer, [NodeValidator]]})
   });
+  dart.defineLazyProperties(NodeTreeSanitizer, {
+    get trusted() {
+      return dart.const(new _TrustedHtmlTreeSanitizer());
+    }
+  });
   class _TrustedHtmlTreeSanitizer extends core.Object {
     _TrustedHtmlTreeSanitizer() {
     }
@@ -12335,7 +12428,6 @@ dart_library.library('dart/html', null, /* Imports */[
     constructors: () => ({_TrustedHtmlTreeSanitizer: [_TrustedHtmlTreeSanitizer, []]}),
     methods: () => ({sanitizeTree: [dart.void, [Node]]})
   });
-  NodeTreeSanitizer.trusted = dart.const(new _TrustedHtmlTreeSanitizer());
   class UriPolicy extends core.Object {
     static new() {
       return new _SameOriginUriPolicy();
@@ -12574,7 +12666,9 @@ dart_library.library('dart/html', null, /* Imports */[
   dart.defineLazyProperties(exports, {
     get htmlBlinkMap() {
       return dart.map({_HistoryCrossFrame: dart.fn(() => _HistoryCrossFrame, core.Type, []), _LocationCrossFrame: dart.fn(() => _LocationCrossFrame, core.Type, []), _DOMWindowCrossFrame: dart.fn(() => _DOMWindowCrossFrame, core.Type, []), DateTime: dart.fn(() => core.DateTime, core.Type, []), JsObject: dart.fn(() => dart.dload(/* Unimplemented unknown name */js, 'JsObjectImpl')), JsFunction: dart.fn(() => dart.dload(/* Unimplemented unknown name */js, 'JsFunctionImpl')), JsArray: dart.fn(() => dart.dload(/* Unimplemented unknown name */js, 'JsArrayImpl')), Attr: dart.fn(() => _Attr, core.Type, []), CSSStyleDeclaration: dart.fn(() => CssStyleDeclaration, core.Type, []), CharacterData: dart.fn(() => CharacterData, core.Type, []), ChildNode: dart.fn(() => ChildNode, core.Type, []), ClientRect: dart.fn(() => _ClientRect, core.Type, []), Comment: dart.fn(() => Comment, core.Type, []), Console: dart.fn(() => Console, core.Type, []), ConsoleBase: dart.fn(() => ConsoleBase, core.Type, []), DOMImplementation: dart.fn(() => DomImplementation, core.Type, []), DOMTokenList: dart.fn(() => DomTokenList, core.Type, []), Document: dart.fn(() => Document, core.Type, []), DocumentFragment: dart.fn(() => DocumentFragment, core.Type, []), Element: dart.fn(() => Element, core.Type, []), Event: dart.fn(() => Event, core.Type, []), EventTarget: dart.fn(() => EventTarget, core.Type, []), HTMLAnchorElement: dart.fn(() => AnchorElement, core.Type, []), HTMLBaseElement: dart.fn(() => BaseElement, core.Type, []), HTMLBodyElement: dart.fn(() => BodyElement, core.Type, []), HTMLCollection: dart.fn(() => HtmlCollection, core.Type, []), HTMLDivElement: dart.fn(() => DivElement, core.Type, []), HTMLDocument: dart.fn(() => HtmlDocument, core.Type, []), HTMLElement: dart.fn(() => HtmlElement, core.Type, []), HTMLHeadElement: dart.fn(() => HeadElement, core.Type, []), HTMLHtmlElement: dart.fn(() => HtmlHtmlElement, core.Type, []), HTMLInputElement: dart.fn(() => InputElement, core.Type, []), HTMLStyleElement: dart.fn(() => StyleElement, core.Type, []), HTMLTemplateElement: dart.fn(() => TemplateElement, core.Type, []), History: dart.fn(() => History, core.Type, []), KeyboardEvent: dart.fn(() => KeyboardEvent, core.Type, []), Location: dart.fn(() => Location, core.Type, []), MouseEvent: dart.fn(() => MouseEvent, core.Type, []), NamedNodeMap: dart.fn(() => _NamedNodeMap, core.Type, []), Navigator: dart.fn(() => Navigator, core.Type, []), NavigatorCPU: dart.fn(() => NavigatorCpu, core.Type, []), Node: dart.fn(() => Node, core.Type, []), NodeList: dart.fn(() => NodeList, core.Type, []), ParentNode: dart.fn(() => ParentNode, core.Type, []), ProgressEvent: dart.fn(() => ProgressEvent, core.Type, []), Range: dart.fn(() => Range, core.Type, []), Screen: dart.fn(() => Screen, core.Type, []), ShadowRoot: dart.fn(() => ShadowRoot, core.Type, []), Text: dart.fn(() => Text, core.Type, []), UIEvent: dart.fn(() => UIEvent, core.Type, []), URLUtils: dart.fn(() => UrlUtils, core.Type, []), Window: dart.fn(() => Window, core.Type, []), XMLHttpRequest: dart.fn(() => HttpRequest, core.Type, []), XMLHttpRequestEventTarget: dart.fn(() => HttpRequestEventTarget, core.Type, []), XMLHttpRequestProgressEvent: dart.fn(() => _XMLHttpRequestProgressEvent, core.Type, [])});
-    },
+    }
+  });
+  dart.defineLazyProperties(exports, {
     get htmlBlinkFunctionMap() {
       return dart.map({Attr: dart.fn(() => _Attr.internalCreate_Attr, dart.functionType(_Attr, []), []), CSSStyleDeclaration: dart.fn(() => CssStyleDeclaration.internalCreateCssStyleDeclaration, dart.functionType(CssStyleDeclaration, []), []), CharacterData: dart.fn(() => CharacterData.internalCreateCharacterData, dart.functionType(CharacterData, []), []), ClientRect: dart.fn(() => _ClientRect.internalCreate_ClientRect, dart.functionType(_ClientRect, []), []), Comment: dart.fn(() => Comment.internalCreateComment, dart.functionType(Comment, []), []), Console: dart.fn(() => Console.internalCreateConsole, dart.functionType(Console, []), []), ConsoleBase: dart.fn(() => ConsoleBase.internalCreateConsoleBase, dart.functionType(ConsoleBase, []), []), DOMImplementation: dart.fn(() => DomImplementation.internalCreateDomImplementation, dart.functionType(DomImplementation, []), []), DOMTokenList: dart.fn(() => DomTokenList.internalCreateDomTokenList, dart.functionType(DomTokenList, []), []), Document: dart.fn(() => Document.internalCreateDocument, dart.functionType(Document, []), []), DocumentFragment: dart.fn(() => DocumentFragment.internalCreateDocumentFragment, dart.functionType(DocumentFragment, []), []), Element: dart.fn(() => Element.internalCreateElement, dart.functionType(Element, []), []), Event: dart.fn(() => Event.internalCreateEvent, dart.functionType(Event, []), []), EventTarget: dart.fn(() => EventTarget.internalCreateEventTarget, dart.functionType(EventTarget, []), []), HTMLAnchorElement: dart.fn(() => AnchorElement.internalCreateAnchorElement, dart.functionType(AnchorElement, []), []), HTMLBaseElement: dart.fn(() => BaseElement.internalCreateBaseElement, dart.functionType(BaseElement, []), []), HTMLBodyElement: dart.fn(() => BodyElement.internalCreateBodyElement, dart.functionType(BodyElement, []), []), HTMLCollection: dart.fn(() => HtmlCollection.internalCreateHtmlCollection, dart.functionType(HtmlCollection, []), []), HTMLDivElement: dart.fn(() => DivElement.internalCreateDivElement, dart.functionType(DivElement, []), []), HTMLDocument: dart.fn(() => HtmlDocument.internalCreateHtmlDocument, dart.functionType(HtmlDocument, []), []), HTMLElement: dart.fn(() => HtmlElement.internalCreateHtmlElement, dart.functionType(HtmlElement, []), []), HTMLHeadElement: dart.fn(() => HeadElement.internalCreateHeadElement, dart.functionType(HeadElement, []), []), HTMLHtmlElement: dart.fn(() => HtmlHtmlElement.internalCreateHtmlHtmlElement, dart.functionType(HtmlHtmlElement, []), []), HTMLInputElement: dart.fn(() => InputElement.internalCreateInputElement, dart.functionType(InputElement, []), []), HTMLStyleElement: dart.fn(() => StyleElement.internalCreateStyleElement, dart.functionType(StyleElement, []), []), HTMLTemplateElement: dart.fn(() => TemplateElement.internalCreateTemplateElement, dart.functionType(TemplateElement, []), []), History: dart.fn(() => History.internalCreateHistory, dart.functionType(History, []), []), KeyboardEvent: dart.fn(() => KeyboardEvent.internalCreateKeyboardEvent, dart.functionType(KeyboardEvent, []), []), Location: dart.fn(() => Location.internalCreateLocation, dart.functionType(Location, []), []), MouseEvent: dart.fn(() => MouseEvent.internalCreateMouseEvent, dart.functionType(MouseEvent, []), []), NamedNodeMap: dart.fn(() => _NamedNodeMap.internalCreate_NamedNodeMap, dart.functionType(_NamedNodeMap, []), []), Navigator: dart.fn(() => Navigator.internalCreateNavigator, dart.functionType(Navigator, []), []), Node: dart.fn(() => Node.internalCreateNode, dart.functionType(Node, []), []), NodeList: dart.fn(() => NodeList.internalCreateNodeList, dart.functionType(NodeList, []), []), ProgressEvent: dart.fn(() => ProgressEvent.internalCreateProgressEvent, dart.functionType(ProgressEvent, []), []), Range: dart.fn(() => Range.internalCreateRange, dart.functionType(Range, []), []), Screen: dart.fn(() => Screen.internalCreateScreen, dart.functionType(Screen, []), []), ShadowRoot: dart.fn(() => ShadowRoot.internalCreateShadowRoot, dart.functionType(ShadowRoot, []), []), Text: dart.fn(() => Text.internalCreateText, dart.functionType(Text, []), []), UIEvent: dart.fn(() => UIEvent.internalCreateUIEvent, dart.functionType(UIEvent, []), []), Window: dart.fn(() => Window.internalCreateWindow, dart.functionType(Window, []), []), XMLHttpRequest: dart.fn(() => HttpRequest.internalCreateHttpRequest, dart.functionType(HttpRequest, []), []), XMLHttpRequestEventTarget: dart.fn(() => HttpRequestEventTarget.internalCreateHttpRequestEventTarget, dart.functionType(HttpRequestEventTarget, []), []), XMLHttpRequestProgressEvent: dart.fn(() => _XMLHttpRequestProgressEvent.internalCreate_XMLHttpRequestProgressEvent, dart.functionType(_XMLHttpRequestProgressEvent, []), [])});
     }
@@ -12606,9 +12700,6 @@ dart_library.library('dart/html', null, /* Imports */[
   exports.AnchorElement = AnchorElement;
   exports.BaseElement = BaseElement;
   exports.BodyElement = BodyElement;
-  exports.EventStreamProvider$ = EventStreamProvider$;
-  exports.EventStreamProvider = EventStreamProvider;
-  exports.Event = Event;
   exports.CharacterData = CharacterData;
   exports.ChildNode = ChildNode;
   exports.Comment = Comment;
@@ -12624,6 +12715,7 @@ dart_library.library('dart/html', null, /* Imports */[
   exports.ElementList$ = ElementList$;
   exports.ElementList = ElementList;
   exports.ScrollAlignment = ScrollAlignment;
+  exports.Event = Event;
   exports.Events = Events;
   exports.ElementEvents = ElementEvents;
   exports.HeadElement = HeadElement;
@@ -12635,7 +12727,6 @@ dart_library.library('dart/html', null, /* Imports */[
   exports.HtmlHtmlElement = HtmlHtmlElement;
   exports.HttpRequestEventTarget = HttpRequestEventTarget;
   exports.HttpRequest = HttpRequest;
-  exports.ProgressEvent = ProgressEvent;
   exports.InputElement = InputElement;
   exports.InputElementBase = InputElementBase;
   exports.HiddenInputElement = HiddenInputElement;
@@ -12669,6 +12760,7 @@ dart_library.library('dart/html', null, /* Imports */[
   exports.NavigatorCpu = NavigatorCpu;
   exports.NodeList = NodeList;
   exports.ParentNode = ParentNode;
+  exports.ProgressEvent = ProgressEvent;
   exports.Range = Range;
   exports.RequestAnimationFrameCallback = RequestAnimationFrameCallback;
   exports.Screen = Screen;
@@ -12686,6 +12778,8 @@ dart_library.library('dart/html', null, /* Imports */[
   exports.CssRect = CssRect;
   exports.Dimension = Dimension;
   exports.EventListener = EventListener;
+  exports.EventStreamProvider$ = EventStreamProvider$;
+  exports.EventStreamProvider = EventStreamProvider;
   exports.ElementStream$ = ElementStream$;
   exports.ElementStream = ElementStream;
   exports.CustomStream$ = CustomStream$;
@@ -12699,7 +12793,6 @@ dart_library.library('dart/html', null, /* Imports */[
   exports.FixedSizeListIterator$ = FixedSizeListIterator$;
   exports.FixedSizeListIterator = FixedSizeListIterator;
   exports.Platform = Platform;
-  exports.supportsTypedData = supportsTypedData;
   exports.query = query;
   exports.queryAll = queryAll;
   exports.querySelector = querySelector;
