@@ -1,7 +1,7 @@
 ## 1.15.0
 
 ### Core library changes
-  * Addad `Uri.queryParametersAll` to handle multiple query parameters with
+  * Added `Uri.queryParametersAll` to handle multiple query parameters with
     the same name.
 
 ## 1.14.0
@@ -16,8 +16,10 @@
 
 * `dart:core`
   * Added `current` getter to `StackTrace` class.
-  * Added `Uri.data` getter for `data:` URIs, and `UriData` class for the
-    return type.
+  * `Uri` class added support for data URIs
+      * Added two new constructors: `dataFromBytes` and `dataFromString`.
+      * Added a `data` getter for `data:` URIs with a new `UriData` class for
+      the return type.
   * Added `growable` parameter to `List.filled` constructor.
   * Added microsecond support to `DateTime`: `DateTime.microsecond`,
     `DateTime.microsecondsSinceEpoch`, and
@@ -29,14 +31,25 @@
     embedder for every generated random value.
 
 * `dart:io`
-  * `Platform` added an `isIOS` getter and `Platform.operatingSystem` may now
-    return `ios`.
-  * Added support for WebSocket compression as standardized in RFC 7692. By
-    default compression is turned on for all WebSocket connections. The
-    optionally named parameter `compression` on the methods `WebSocket.connect`,
-    `WebSocket.fromUpgradedSocket`, and `WebSocketTransformer.upgrade` and on
-    the `WebSocketTransformer` constructor is used to select the compression
-    options.
+  * `Platform` added a static `isIOS` getter and `Platform.operatingSystem` may
+    now return `ios`.
+  * `Platform` added a static `packageConfig` getter.
+  * Added support for WebSocket compression as standardized in RFC 7692.
+  * Compression is enabled by default for all WebSocket connections.
+      * The optionally named parameter `compression` on the methods
+      `WebSocket.connect`, `WebSocket.fromUpgradedSocket`, and
+      `WebSocketTransformer.upgrade` and  the `WebSocketTransformer`
+      constructor can be used to modify or disable compression using the new
+      `CompressionOptions` class.
+
+* `dart:isolate`
+  * Added **_experimental_** support for [Package Resolution Configuration].
+    * Added `packageConfig` and `packageRoot` instance getters to `Isolate`.
+    * Added a `resolvePackageUri` method to `Isolate`.
+    * Added named arguments `packageConfig` and `automaticPackageResolution` to
+    the `Isolate.spawnUri` constructor.
+
+[Package Resolution Configuration File]: https://github.com/dart-lang/dart_enhancement_proposals/blob/master/Accepted/0005%20-%20Package%20Specification/DEP-pkgspec.md
 
 ### Tool changes
 
