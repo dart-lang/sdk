@@ -295,8 +295,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitCreateInstance(cps_ir.CreateInstance node) {
     String className = node.classElement.name;
     String arguments = node.arguments.map(formatReference).join(', ');
-    String typeInformation =
-        node.typeInformation.map(formatReference).join(', ');
+    String typeInformation = formatReference(node.typeInformation);
     return 'CreateInstance $className ($arguments) <$typeInformation>';
   }
 
@@ -320,7 +319,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitTypeExpression(cps_ir.TypeExpression node) {
-    return "TypeExpression ${node.dartType} "
+    return "TypeExpression ${node.kindAsString} ${node.dartType}"
         "${node.arguments.map(formatReference).join(', ')}";
   }
 

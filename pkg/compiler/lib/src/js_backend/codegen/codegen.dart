@@ -827,17 +827,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
       registry.registerInstantiatedClosure(classElement.methodElement);
     }
     js.Expression instance = new js.New(
-        glue.constructorAccess(classElement),
-        visitExpressionList(node.arguments))
+            glue.constructorAccess(classElement),
+            visitExpressionList(node.arguments))
         .withSourceInformation(node.sourceInformation);
 
-    List<tree_ir.Expression> typeInformation = node.typeInformation;
-    assert(typeInformation.isEmpty ||
-        typeInformation.length == classElement.typeVariables.length);
-    if (typeInformation.isNotEmpty) {
+    tree_ir.Expression typeInformation = node.typeInformation;
+    if (typeInformation != null) {
       FunctionElement helper = glue.getAddRuntimeTypeInformation();
-      js.Expression typeArguments = new js.ArrayInitializer(
-          visitExpressionList(typeInformation));
+      js.Expression typeArguments = visitExpression(typeInformation);
       return buildStaticHelperInvocation(helper,
           <js.Expression>[instance, typeArguments],
           sourceInformation: node.sourceInformation);
@@ -989,7 +986,16 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitTypeExpression(tree_ir.TypeExpression node) {
     List<js.Expression> arguments = visitExpressionList(node.arguments);
-    return glue.generateTypeRepresentation(node.dartType, arguments, registry);
+    switch (node.kind) {
+      case tree_ir.TypeExpressionKind.COMPLETE:
+        return glue.generateTypeRepresentation(
+            node.dartType, arguments, registry);
+      case tree_ir.TypeExpressionKind.INSTANCE:
+        // We expect only flat types for the INSTANCE representation.
+        assert(node.dartType == node.dartType.element.thisType);
+        registry.registerInstantiatedClass(glue.listClass);
+        return new js.ArrayInitializer(arguments);
+    }
   }
 
   js.Node handleForeignCode(tree_ir.ForeignCode node) {

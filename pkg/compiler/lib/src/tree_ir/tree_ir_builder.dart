@@ -504,7 +504,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return new CreateInstance(
         node.classElement,
         translateArguments(node.arguments),
-        translateArguments(node.typeInformation),
+        getVariableUseOrNull(node.typeInformation),
         node.sourceInformation);
   }
 
@@ -557,6 +557,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
 
   Expression visitTypeExpression(cps_ir.TypeExpression node) {
     return new TypeExpression(
+        node.kind,
         node.dartType,
         node.arguments.map(getVariableUse).toList());
   }

@@ -2411,7 +2411,7 @@ class IrBuilder {
       arguments.add(value);
     }
     return addPrimitive(new ir.CreateInstance(
-        classElement, arguments, const <ir.Primitive>[], sourceInformation));
+        classElement, arguments, null, sourceInformation));
   }
 
   /// Create a read access of [local] function, variable, or parameter.
@@ -2577,7 +2577,8 @@ class IrBuilder {
         ir.Primitive value = buildTypeVariableAccess(variable);
         arguments.add(value);
       });
-      return addPrimitive(new ir.TypeExpression(type, arguments));
+      return addPrimitive(new ir.TypeExpression(ir.TypeExpressionKind.COMPLETE,
+                                                type, arguments));
     } else if (type.treatAsDynamic) {
       return buildNullConstant();
     } else {

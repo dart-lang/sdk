@@ -382,7 +382,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     IrBuilder builder = getBuilderFor(constructor);
 
     final bool requiresTypeInformation =
-    builder.program.requiresRuntimeTypesFor(classElement);
+        builder.program.requiresRuntimeTypesFor(classElement);
 
     return withBuilder(builder, () {
       // Setup parameters and create a box if anything is captured.
@@ -410,11 +410,15 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           closureScope: getClosureScopeForFunction(constructor));
 
       // Create a list of the values of all type argument parameters, if any.
-      List<ir.Primitive> typeInformation;
+      ir.Primitive typeInformation;
       if (requiresTypeInformation) {
-        typeInformation = irParameters.sublist(firstTypeArgumentParameterIndex);
+        typeInformation = new ir.TypeExpression(
+            ir.TypeExpressionKind.INSTANCE,
+            classElement.thisType,
+            irParameters.sublist(firstTypeArgumentParameterIndex));
+        irBuilder.add(new ir.LetPrim(typeInformation));
       } else {
-        typeInformation = const <ir.Primitive>[];
+        typeInformation = null;
       }
 
       // -- Load values for type variables declared on super classes --

@@ -523,7 +523,9 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
 
   @override
   String visitTypeExpression(TypeExpression node) {
-    return node.dartType.toString();
+    String kind = '${node.kind}'.split('.').last;
+    String args = node.arguments.map(visitExpression).join(', ');
+    return 'TypeExpression($kind, ${node.dartType}, $args)';
   }
 
   @override

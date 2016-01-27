@@ -361,7 +361,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   String visitCreateInstance(CreateInstance node) {
     String className = node.classElement.name;
     String arguments = node.arguments.map(access).join(' ');
-    String typeInformation = node.typeInformation.map(access).join(' ');
+    String typeInformation = optionalAccess(node.typeInformation);
     return '(CreateInstance $className ($arguments) ($typeInformation))';
   }
 
@@ -379,7 +379,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
 
   String visitTypeExpression(TypeExpression node) {
     String args = node.arguments.map(access).join(' ');
-    return '(TypeExpression ${node.dartType} ($args))';
+    return '(TypeExpression ${node.kindAsString} ${node.dartType} ($args))';
   }
 
   String visitCreateInvocationMirror(CreateInvocationMirror node) {

@@ -1483,15 +1483,17 @@ class CreateInstance extends Primitive {
   /// May be `null` to indicate that no type information is needed because the
   /// compiler determined that the type information for instances of this class
   /// is not needed at runtime.
-  final List<Reference<Primitive>> typeInformation;
+  final Reference<Primitive> typeInformation;
 
   final SourceInformation sourceInformation;
 
   CreateInstance(this.classElement, List<Primitive> arguments,
-      List<Primitive> typeInformation,
+      Primitive typeInformation,
       this.sourceInformation)
       : this.arguments = _referenceList(arguments),
-        this.typeInformation = _referenceList(typeInformation);
+        this.typeInformation = typeInformation == null
+            ? null
+            : new Reference<Primitive>(typeInformation);
 
   accept(Visitor visitor) => visitor.visitCreateInstance(this);
 
@@ -1503,7 +1505,7 @@ class CreateInstance extends Primitive {
 
   void setParentPointers() {
     _setParentsOnList(arguments, this);
-    if (typeInformation != null) _setParentsOnList(typeInformation, this);
+    if (typeInformation != null) typeInformation.parent = this;
   }
 }
 
@@ -1798,21 +1800,74 @@ class ReadTypeVariable extends Primitive {
   }
 }
 
-/// Representation of a closed type (that is, a type without type variables).
+enum TypeExpressionKind {
+  COMPLETE,
+  INSTANCE
+}
+
+/// Constructs a representation of a closed or ground-term type (that is, a type
+/// without type variables).
 ///
-/// The resulting value is constructed from [dartType] by replacing the type
+/// There are two forms:
+///
+/// - COMPLETE: A complete form that is self contained, used for the values of
+///   type parameters and non-raw is-checks.
+///
+/// - INSTANCE: A headless flat form for representing the sequence of values of
+///   the type parameters of an instance of a generic type.
+///
+/// The COMPLETE form value is constructed from [dartType] by replacing the type
 /// variables with consecutive values from [arguments], in the order generated
 /// by [DartType.forEachTypeVariable].  The type variables in [dartType] are
 /// treated as 'holes' in the term, which means that it must be ensured at
 /// construction, that duplicate occurences of a type variable in [dartType]
 /// are assigned the same value.
+///
+/// The INSTANCE form is constructed as a list of [arguments]. This is the same
+/// as the COMPLETE form for the 'thisType', except the root term's type is
+/// missing; this is implicit as the raw type of instance.  The [dartType] of
+/// the INSTANCE form must be the thisType of some class.
+///
+/// While we would like to remove the constrains on the INSTANCE form, we can
+/// get by with a tree of TypeExpressions.  Consider:
+///
+///     class Foo<T> {
+///       ... new Set<List<T>>()
+///     }
+///     class Set<E1> {
+///       factory Set() => new _LinkedHashSet<E1>();
+///     }
+///     class List<E2> { ... }
+///     class _LinkedHashSet<E3> { ... }
+///
+/// After inlining the factory constructor for `Set<E1>`, the CreateInstance
+/// should have type `_LinkedHashSet<List<T>>` and the TypeExpression should be
+/// a tree:
+///
+///    CreateInstance(dartType: _LinkedHashSet<List<T>>,
+///        [], // No arguments
+///        TypeExpression(INSTANCE,
+///            dartType: _LinkedHashSet<E3>, // _LinkedHashSet's thisType
+///            TypeExpression(COMPLETE,  // E3 = List<T>
+///                dartType: List<E2>,
+///                ReadTypeVariable(this, T)))) // E2 = T
+//
+// TODO(sra): The INSTANCE form requires the actual instance for full
+// interpretation. I want to move to a representation where the INSTANCE form is
+// also a complete form (possibly the same).
 class TypeExpression extends Primitive {
+  final TypeExpressionKind kind;
   final DartType dartType;
   final List<Reference<Primitive>> arguments;
 
-  TypeExpression(this.dartType,
-                 [List<Primitive> arguments = const <Primitive>[]])
-      : this.arguments = _referenceList(arguments);
+  TypeExpression(this.kind,
+                 this.dartType,
+                 List<Primitive> arguments)
+      : this.arguments = _referenceList(arguments) {
+    assert(kind == TypeExpressionKind.INSTANCE
+           ? dartType == dartType.element.thisType
+           : true);
+  }
 
   @override
   accept(Visitor visitor) {
@@ -1825,6 +1880,13 @@ class TypeExpression extends Primitive {
 
   void setParentPointers() {
     _setParentsOnList(arguments, this);
+  }
+
+  String get kindAsString {
+    switch (kind) {
+      case TypeExpressionKind.COMPLETE: return 'COMPLETE';
+      case TypeExpressionKind.INSTANCE: return 'INSTANCE';
+    }
   }
 }
 
@@ -2201,7 +2263,7 @@ class DeepRecursiveVisitor implements Visitor {
   visitCreateInstance(CreateInstance node) {
     processCreateInstance(node);
     node.arguments.forEach(processReference);
-    node.typeInformation.forEach(processReference);
+    if (node.typeInformation != null) processReference(node.typeInformation);
   }
 
   processSetField(SetField node) {}
@@ -2613,8 +2675,10 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitCreateInstance(CreateInstance node) {
-    return new CreateInstance(node.classElement, getList(node.arguments),
-        getList(node.typeInformation),
+    return new CreateInstance(
+        node.classElement,
+        getList(node.arguments),
+        node.typeInformation == null ? null : getCopy(node.typeInformation),
         node.sourceInformation);
   }
 
@@ -2636,7 +2700,8 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitTypeExpression(TypeExpression node) {
-    return new TypeExpression(node.dartType, getList(node.arguments));
+    return new TypeExpression(
+        node.kind, node.dartType, getList(node.arguments));
   }
 
   Definition visitCreateInvocationMirror(CreateInvocationMirror node) {

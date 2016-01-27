@@ -372,6 +372,7 @@ class StatementRewriter extends Transformer implements Pass {
            exp is CreateInvocationMirror ||
            exp is CreateInstance ||
            exp is CreateBox ||
+           exp is TypeExpression ||
            exp is GetStatic && exp.element.isFunction ||
            exp is Interceptor ||
            exp is ApplyBuiltinOperator ||
@@ -822,6 +823,9 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitCreateInstance(CreateInstance node) {
+    if (node.typeInformation != null) {
+      node.typeInformation = visitExpression(node.typeInformation);
+    }
     _rewriteList(node.arguments);
     return node;
   }
