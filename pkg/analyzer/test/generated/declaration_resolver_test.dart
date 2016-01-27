@@ -36,6 +36,27 @@ SimpleIdentifier _findSimpleIdentifier(
 
 @reflectiveTest
 class DeclarationResolverTest extends ResolverTestCase {
+  void fail_visitMethodDeclaration_setter_duplicate() {
+    // https://github.com/dart-lang/sdk/issues/25601
+    String code = r'''
+class C {
+  set zzz(x) {}
+  set zzz(y) {}
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    PropertyAccessorElement firstElement =
+        _findSimpleIdentifier(unit, code, 'zzz(x)').staticElement;
+    PropertyAccessorElement secondElement =
+        _findSimpleIdentifier(unit, code, 'zzz(y)').staticElement;
+    // re-resolve
+    CompilationUnit unit2 = _cloneResolveUnit(unit);
+    SimpleIdentifier firstName = _findSimpleIdentifier(unit2, code, 'zzz(x)');
+    SimpleIdentifier secondName = _findSimpleIdentifier(unit2, code, 'zzz(y)');
+    expect(firstName.staticElement, same(firstElement));
+    expect(secondName.staticElement, same(secondElement));
+  }
+
   @override
   void setUp() {
     super.setUp();
@@ -97,6 +118,47 @@ main() {
     CompilationUnit unit2 = _cloneResolveUnit(unit);
     SimpleIdentifier setterName = _findSimpleIdentifier(unit2, code, 'zzz(x)');
     expect(setterName.staticElement, same(setterElement));
+  }
+
+  void test_visitMethodDeclaration_getter_duplicate() {
+    String code = r'''
+class C {
+  int get zzz => 1;
+  String get zzz => null;
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    PropertyAccessorElement firstElement =
+        _findSimpleIdentifier(unit, code, 'zzz => 1').staticElement;
+    PropertyAccessorElement secondElement =
+        _findSimpleIdentifier(unit, code, 'zzz => null').staticElement;
+    // re-resolve
+    CompilationUnit unit2 = _cloneResolveUnit(unit);
+    SimpleIdentifier firstName = _findSimpleIdentifier(unit2, code, 'zzz => 1');
+    SimpleIdentifier secondName =
+        _findSimpleIdentifier(unit2, code, 'zzz => null');
+    expect(firstName.staticElement, same(firstElement));
+    expect(secondName.staticElement, same(secondElement));
+  }
+
+  void test_visitMethodDeclaration_method_duplicate() {
+    String code = r'''
+class C {
+  void zzz(x) {}
+  void zzz(y) {}
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    MethodElement firstElement =
+        _findSimpleIdentifier(unit, code, 'zzz(x)').staticElement;
+    MethodElement secondElement =
+        _findSimpleIdentifier(unit, code, 'zzz(y)').staticElement;
+    // re-resolve
+    CompilationUnit unit2 = _cloneResolveUnit(unit);
+    SimpleIdentifier firstName = _findSimpleIdentifier(unit2, code, 'zzz(x)');
+    SimpleIdentifier secondName = _findSimpleIdentifier(unit2, code, 'zzz(y)');
+    expect(firstName.staticElement, same(firstElement));
+    expect(secondName.staticElement, same(secondElement));
   }
 }
 

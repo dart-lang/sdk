@@ -2487,7 +2487,25 @@ class DirectoryBasedSourceContainerTest {
 }
 
 @reflectiveTest
-class ElementBuilderTest extends EngineTestCase {
+class ElementBuilderTest extends ParserTestCase {
+  void fail_visitMethodDeclaration_setter_duplicate() {
+    // https://github.com/dart-lang/sdk/issues/25601
+    String code = r'''
+class C {
+  set zzz(x) {}
+  set zzz(y) {}
+}
+''';
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    unit.accept(builder);
+    ClassElement classElement = holder.types[0];
+    for (PropertyAccessorElement accessor in classElement.accessors) {
+      expect(accessor.variable.setter, same(accessor));
+    }
+  }
+
   void test_visitCatchClause() {
     // } catch (e, s) {
     ElementHolder holder = new ElementHolder();
