@@ -2701,7 +2701,7 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitForeignCode(ForeignCode node) {
-    return new ForeignCode(node.codeTemplate, node.type,
+    return new ForeignCode(node.codeTemplate, node.storedType,
         getList(node.arguments),
         node.nativeBehavior,
         dependency: node.dependency);
