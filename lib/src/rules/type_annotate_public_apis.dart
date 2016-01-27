@@ -7,6 +7,7 @@ library linter.src.rules.type_annotate_public_apis;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/linter.dart';
+import 'package:linter/src/util.dart';
 
 const desc = r'Type annotate public APIs.';
 
@@ -119,7 +120,7 @@ class _VisitorHelper extends RecursiveAstVisitor {
 
   @override
   visitSimpleFormalParameter(SimpleFormalParameter param) {
-    if (param.type == null) {
+    if (param.type == null && !isJustUnderscores(param.identifier.name)) {
       rule.reportLint(param);
     }
   }

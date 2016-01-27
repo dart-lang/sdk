@@ -47,6 +47,9 @@ class A {
   static void j(x) {} //LINT
   static void k(var v) {} //LINT
 
+  void l(_) { } //OK!
+  void ll(__) { } //OK!
+
   var _x;
   final _xx = 1;
   static const _y = '';
