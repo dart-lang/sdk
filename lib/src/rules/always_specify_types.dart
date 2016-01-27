@@ -4,13 +4,15 @@
 
 library linter.src.rules.annotate_types;
 
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart'
     show
         AstVisitor,
         DeclaredIdentifier,
         SimpleAstVisitor,
         SimpleFormalParameter,
-        VariableDeclarationList;
+        VariableDeclarationList,
+        TypeName;
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/util.dart';
 
@@ -73,6 +75,16 @@ class Visitor extends SimpleAstVisitor {
         rule.reportLintForToken(param.keyword);
       } else {
         rule.reportLint(param);
+      }
+    }
+  }
+
+  @override
+  visitTypeName(TypeName typeName) {
+    DartType type = typeName.type;
+    if (type is ParameterizedType) {
+      if (type.typeParameters.isNotEmpty && typeName.typeArguments == null) {
+        rule.reportLint(typeName);
       }
     }
   }

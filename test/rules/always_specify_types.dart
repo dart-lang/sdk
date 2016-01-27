@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+List list; // LINT
+List<List> lists; //LINT
+List<int> ints; //OK
+
 final x = 1; //LINT [1:5]
 final int xx = 3;
 const y = 2; //LINT
@@ -50,5 +54,6 @@ class Foo {
   static final int bazz = 42;
   var foo; //LINT
   Foo(var bar); //LINT [7:3]
+  void f(List l) { } //LINT
 }
 
