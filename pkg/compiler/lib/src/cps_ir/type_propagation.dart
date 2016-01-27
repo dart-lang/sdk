@@ -2275,6 +2275,44 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
     return null;
   }
+
+  visitReadTypeVariable(ReadTypeVariable node) {
+    // Pattern match on
+    //
+    //    ReadTypeVariable(var, CreateInstance(..., TypeExpression(arguments)))
+    //
+    // and extract the argument that corresponds to the type variable. This is a
+    // shrinking reduction.
+    //
+    // TODO(sra): This is a shrinking reduction that does not depend on inferred
+    // types so it should be done in the shrinking reductions pass.
+    //
+    // TODO(sra): A non-shrinking version of this rewrite could be done as part
+    // of scalar replacement.
+
+    if (node.target.definition is CreateInstance) {
+      CreateInstance instance = node.target.definition;
+      if (instance.typeInformation != null &&
+          instance.typeInformation.definition is TypeExpression) {
+        TypeExpression typeExpression = instance.typeInformation.definition;
+        assert(typeExpression.kind == TypeExpressionKind.INSTANCE);
+        ClassElement context = node.variable.element.enclosingClass;
+        // In the general case, a substitution could generate a large type
+        // term. Avoid this by restricting to direct indexing.
+        // TODO(sra): Also include cases that require substitution but the end
+        // result is the same as some indexing or a simple constant type.
+        if (!functionCompiler.glue.needsSubstitutionForTypeVariableAccess(
+                context)) {
+          int index = functionCompiler.glue.getTypeVariableIndex(node.variable);
+          if (0 <= index && index < typeExpression.arguments.length) {
+            node.replaceUsesWith(typeExpression.arguments[index].definition);
+            return new CpsFragment();
+          }
+        }
+      }
+    }
+    return null;
+  }
 }
 
 /**
