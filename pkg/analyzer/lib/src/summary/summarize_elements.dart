@@ -43,6 +43,8 @@ ReferenceKind _getReferenceKind(Element element) {
       return ReferenceKind.constField;
     }
     return ReferenceKind.topLevelPropertyAccessor;
+  } else if (element is MethodElement) {
+    return ReferenceKind.staticMethod;
   } else {
     throw new Exception('Unexpected element kind: ${element.runtimeType}');
   }
@@ -799,6 +801,9 @@ class _CompilationUnitSerializer {
       if (element is ConstructorElement && element.displayName.isEmpty) {
         return _getElementReferenceId(element.enclosingElement, linked: linked);
       }
+      if (element is MethodElement && !element.isStatic) {
+        throw new StateError('Only static methods can be serialized.');
+      }
       if (element is PropertyAccessorElement) {
         Element enclosing = element.enclosingElement;
         if (!(enclosing is CompilationUnitElement || element.isStatic)) {
@@ -909,7 +914,8 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     assert(element != null);
     // The only supported instance property accessor - `length`.
     Expression target = access.target;
-    if (target is Identifier && element is PropertyAccessorElement &&
+    if (target is Identifier &&
+        element is PropertyAccessorElement &&
         !element.isStatic) {
       assert(element.name == 'length');
       Element prefixElement = target.staticElement;

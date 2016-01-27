@@ -2248,6 +2248,72 @@ const v = p.C.F;
     ]);
   }
 
+  test_constExpr_pushReference_staticMethod() {
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  static m() {}
+}
+const v = C.m;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'm',
+              expectedKind: ReferenceKind.staticMethod,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_staticMethod_imported() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+  static m() {}
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = C.m;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'm',
+              expectedKind: ReferenceKind.staticMethod,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_staticMethod_imported_withPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+  static m() {}
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const v = p.C.m;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'm',
+              expectedKind: ReferenceKind.staticMethod,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C'),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p',
+                    inLibraryDefiningUnit: true)
+              ])
+    ]);
+  }
+
   test_constExpr_pushReference_topLevelVariable() {
     UnlinkedVariable variable = serializeVariableText('''
 const int a = 1;
