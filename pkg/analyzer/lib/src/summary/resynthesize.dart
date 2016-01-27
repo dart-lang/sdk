@@ -644,6 +644,7 @@ class _LibraryResynthesizer {
       case ReferenceKind.constructor:
       case ReferenceKind.constField:
       case ReferenceKind.staticMethod:
+      case ReferenceKind.length:
       case ReferenceKind.prefix:
       case ReferenceKind.unresolved:
         // Should never happen.  Exported names never refer to import prefixes,
