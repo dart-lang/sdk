@@ -13,6 +13,7 @@ import 'package:linter/src/rules/always_specify_types.dart';
 import 'package:linter/src/rules/avoid_as.dart';
 import 'package:linter/src/rules/avoid_empty_else.dart';
 import 'package:linter/src/rules/avoid_init_to_null.dart';
+import 'package:linter/src/rules/avoid_return_types_on_setters.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
@@ -37,6 +38,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new AlwaysSpecifyTypes())
   ..register(new AvoidAs())
   ..register(new AvoidEmptyElse())
+  ..register(new AvoidReturnTypesOnSetters())
   ..register(new AvoidInitToNull())
   ..register(new CamelCaseTypes())
   ..register(new ConstantIdentifierNames())
