@@ -93,6 +93,18 @@ abstract class ClassWorld {
   /// including [cls] itself.
   Iterable<ClassElement> strictSubclassesOf(ClassElement cls);
 
+  /// Returns the number of live classes that extend [cls] _not_
+  /// including [cls] itself.
+  int strictSubclassCount(ClassElement cls);
+
+  /// Applies [f] to each live class that extend [cls] _not_ including [cls]
+  /// itself.
+  void forEachStrictSubclassOf(ClassElement cls, ForEach f(ClassElement cls));
+
+  /// Returns `true` if [predicate] applies to any live class that extend [cls]
+  /// _not_ including [cls] itself.
+  bool anyStrictSubclassOf(ClassElement cls, bool predicate(ClassElement cls));
+
   /// Returns an iterable over the directly instantiated that implement [cls]
   /// possibly including [cls] itself, if it is live.
   Iterable<ClassElement> subtypesOf(ClassElement cls);
@@ -100,6 +112,18 @@ abstract class ClassWorld {
   /// Returns an iterable over the live classes that implement [cls] _not_
   /// including [cls] if it is live.
   Iterable<ClassElement> strictSubtypesOf(ClassElement cls);
+
+  /// Returns the number of live classes that implement [cls] _not_
+  /// including [cls] itself.
+  int strictSubtypeCount(ClassElement cls);
+
+  /// Applies [f] to each live class that implements [cls] _not_ including [cls]
+  /// itself.
+  void forEachStrictSubtypeOf(ClassElement cls, ForEach f(ClassElement cls));
+
+  /// Returns `true` if [predicate] applies to any live class that implements
+  /// [cls] _not_ including [cls] itself.
+  bool anyStrictSubtypeOf(ClassElement cls, bool predicate(ClassElement cls));
 
   /// Returns `true` if [a] and [b] have any known common subtypes.
   bool haveAnyCommonSubtypes(ClassElement a, ClassElement b);
@@ -248,6 +272,36 @@ class World implements ClassWorld {
         ClassHierarchyNode.DIRECTLY_INSTANTIATED, strict: true);
   }
 
+  /// Returns the number of live classes that extend [cls] _not_
+  /// including [cls] itself.
+  int strictSubclassCount(ClassElement cls) {
+    ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
+    if (subclasses == null) return 0;
+    return subclasses.instantiatedSubclassCount;
+  }
+
+  /// Applies [f] to each live class that extend [cls] _not_ including [cls]
+  /// itself.
+  void forEachStrictSubclassOf(ClassElement cls, ForEach f(ClassElement cls)) {
+    ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
+    if (subclasses == null) return;
+    subclasses.forEachSubclass(
+        f,
+        ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+        strict: true);
+  }
+
+  /// Returns `true` if [predicate] applies to any live class that extend [cls]
+  /// _not_ including [cls] itself.
+  bool anyStrictSubclassOf(ClassElement cls, bool predicate(ClassElement cls)) {
+    ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
+    if (subclasses == null) return false;
+    return subclasses.anySubclass(
+        predicate,
+        ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+        strict: true);
+  }
+
   /// Returns an iterable over the directly instantiated that implement [cls]
   /// possibly including [cls] itself, if it is live.
   Iterable<ClassElement> subtypesOf(ClassElement cls) {
@@ -270,6 +324,36 @@ class World implements ClassWorld {
           ClassHierarchyNode.DIRECTLY_INSTANTIATED,
           strict: true);
     }
+  }
+
+  /// Returns the number of live classes that implement [cls] _not_
+  /// including [cls] itself.
+  int strictSubtypeCount(ClassElement cls) {
+    ClassSet classSet = _classSets[cls.declaration];
+    if (classSet == null) return 0;
+    return classSet.instantiatedSubtypeCount;
+  }
+
+  /// Applies [f] to each live class that implements [cls] _not_ including [cls]
+  /// itself.
+  void forEachStrictSubtypeOf(ClassElement cls, ForEach f(ClassElement cls)) {
+    ClassSet classSet = _classSets[cls.declaration];
+    if (classSet == null) return;
+    classSet.forEachSubtype(
+        f,
+        ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+        strict: true);
+  }
+
+  /// Returns `true` if [predicate] applies to any live class that extend [cls]
+  /// _not_ including [cls] itself.
+  bool anyStrictSubtypeOf(ClassElement cls, bool predicate(ClassElement cls)) {
+    ClassSet classSet = _classSets[cls.declaration];
+    if (classSet == null) return false;
+    return classSet.anySubtype(
+        predicate,
+        ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+        strict: true);
   }
 
   /// Returns `true` if [a] and [b] have any known common subtypes.
@@ -298,7 +382,7 @@ class World implements ClassWorld {
   /// Returns `true` if any directly instantiated class other than [cls]
   /// implements [cls].
   bool hasAnyStrictSubtype(ClassElement cls) {
-    return !strictSubtypesOf(cls).isEmpty;
+    return strictSubtypeCount(cls) > 0;
   }
 
   /// Returns `true` if all directly instantiated classes that implement [cls]
@@ -306,10 +390,12 @@ class World implements ClassWorld {
   bool hasOnlySubclasses(ClassElement cls) {
     // TODO(johnniwinther): move this to ClassSet?
     if (cls == objectClass) return true;
-    Iterable<ClassElement> subtypes = strictSubtypesOf(cls);
-    if (subtypes == null) return true;
-    Iterable<ClassElement> subclasses = strictSubclassesOf(cls);
-    return subclasses != null && (subclasses.length == subtypes.length);
+    ClassSet classSet = _classSets[cls.declaration];
+    if (classSet == null) {
+      // Vacuously true.
+      return true;
+    }
+    return classSet.hasOnlyInstantiatedSubclasses;
   }
 
   @override
@@ -501,11 +587,11 @@ class World implements ClassWorld {
   ClassHierarchyNode _ensureClassHierarchyNode(ClassElement cls) {
     cls = cls.declaration;
     return _classHierarchyNodes.putIfAbsent(cls, () {
-      ClassHierarchyNode node = new ClassHierarchyNode(cls);
+      ClassHierarchyNode parentNode;
       if (cls.superclass != null) {
-        _ensureClassHierarchyNode(cls.superclass).addDirectSubclass(node);
+        parentNode = _ensureClassHierarchyNode(cls.superclass);
       }
-      return node;
+      return new ClassHierarchyNode(parentNode, cls);
     });
   }
 
@@ -534,30 +620,27 @@ class World implements ClassWorld {
     });
   }
 
-  void _updateClassHierarchyNodeForClass(
-      ClassElement cls,
-      {bool directlyInstantiated: false,
-       bool indirectlyInstantiated: false}) {
-    ClassHierarchyNode node = getClassHierarchyNode(cls);
-    bool changed = false;
-    if (directlyInstantiated && !node.isDirectlyInstantiated) {
-      node.isDirectlyInstantiated = true;
-      changed = true;
-    }
-    if (indirectlyInstantiated && !node.isIndirectlyInstantiated) {
-      node.isIndirectlyInstantiated = true;
-      changed = true;
-    }
-    if (changed && cls.superclass != null) {
-      _updateClassHierarchyNodeForClass(
-          cls.superclass, indirectlyInstantiated: true);
-    }
+  void _updateSuperClassHierarchyNodeForClass(ClassHierarchyNode node) {
     // Ensure that classes implicitly implementing `Function` are in its
     // subtype set.
+    ClassElement cls = node.cls;
     if (cls != coreClasses.functionClass &&
-        cls.implementsFunction(compiler)) {
+        cls.implementsFunction(coreClasses)) {
       ClassSet subtypeSet = _ensureClassSet(coreClasses.functionClass);
       subtypeSet.addSubtype(node);
+    }
+    if (!node.isInstantiated && node.parentNode != null) {
+      _updateSuperClassHierarchyNodeForClass(node.parentNode);
+    }
+  }
+
+  void _updateClassHierarchyNodeForClass(
+      ClassElement cls,
+      {bool directlyInstantiated: false}) {
+    ClassHierarchyNode node = getClassHierarchyNode(cls);
+    _updateSuperClassHierarchyNodeForClass(node);
+    if (directlyInstantiated) {
+      node.isDirectlyInstantiated = true;
     }
   }
 

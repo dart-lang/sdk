@@ -22,6 +22,8 @@ import '../closure.dart' show
     ClosureClassMap,
     ClosureFieldElement,
     CapturedVariable;
+import '../core_types.dart' show
+    CoreClasses;
 import '../dart_types.dart' show
     DartType,
     FunctionType,
