@@ -280,22 +280,10 @@ await_for_cancel_test: Crash # (await for(var x in controller.stream){for(int j=
 await_for_test: Crash # (await for(var x in infiniteStream()){i++ ;if(i>10)break;t4.record(x);}): await for
 await_for_use_local_test: Crash # (await for(var v in s){accum+= v;}): await for
 call_closurization_test: RuntimeError # Bad type inference for ".call" tear-off.
-closure_in_constructor_test: RuntimeError # Please triage this failure.
-closures_initializer_test: RuntimeError # Please triage this failure.
-constructor12_test: RuntimeError # Please triage this failure.
 deferred_super_dependency_test/01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 field3a_negative_test: Fail # Bogus result from type inference in case of invalid program.
-first_class_types_test: RuntimeError # Please triage this failure.
-generic2_test: RuntimeError # Please triage this failure.
-generic_instanceof_test: RuntimeError # Please triage this failure.
-generic_native_test: RuntimeError # Please triage this failure.
 gc_test: Crash # Internal Error: Pending statics (see above).
-instanceof2_test: RuntimeError # Please triage this failure.
-instanceof4_test/01: RuntimeError # Please triage this failure.
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
-list_is_test: RuntimeError # Please triage this failure.
-list_test: RuntimeError # Please triage this failure.
-many_generic_instanceof_test: RuntimeError # Please triage this failure.
 regress_23500_test/01: Crash # (await for(var c in new Stream.fromIterable([] )){}): await for
 savannah_test: RuntimeError # Success depends on the variable hints.
 super_call4_test: RuntimeError # Please triage this failure.
@@ -306,10 +294,6 @@ super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexS
 super_operator_index_test/03: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
 super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
 switch8_test: Crash # Pending statics: JSArray
-type_variable_closure2_test: RuntimeError # Issue 25309: T lost in List<T>
-type_variable_field_initializer_closure_test: RuntimeError # Issue 25309: T lost in List<T>
-type_variable_field_initializer_test: RuntimeError # Issue 25309: T lost in List<T>
-type_variable_nested_test: RuntimeError # Issue 25309: T lost in List<T>
 
 [ $compiler == dart2js && $cps_ir && $host_checked == false ]
 regress_21795_test: Pass, RuntimeError # Due to inlining?

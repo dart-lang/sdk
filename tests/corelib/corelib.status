@@ -189,13 +189,6 @@ big_integer_parsed_mul_div_vm_test: Pass, Slow
 [ $compiler == dart2js && $cps_ir ]
 data_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
 error_stack_trace1_test: Pass # H.unwrapException(...).get$stackTrace is not a function
-growable_list_test: RuntimeError # Typed lists
-iterable_empty_test: RuntimeError # Please triage this failure.
-iterable_return_type_test/none: RuntimeError # Please triage this failure.
-iterable_to_list_test: RuntimeError # Please triage this failure.
-iterable_to_set_test: RuntimeError # Please triage this failure.
-list_filled_type_argument_test: RuntimeError # Please triage this failure.
-list_unmodifiable_test: RuntimeError # Please triage this failure.
 package_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
 regexp/pcre_test: Crash # Stack Overflow in LoopHierarchy.
 symbol_operator_test/03: RuntimeError # Issue 24878

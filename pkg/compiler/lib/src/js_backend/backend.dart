@@ -1250,6 +1250,10 @@ class JavaScriptBackend extends Backend {
       addInterceptors(helpers.jsFixedArrayClass, enqueuer, registry);
       addInterceptors(helpers.jsExtendableArrayClass, enqueuer, registry);
       addInterceptors(helpers.jsUnmodifiableArrayClass, enqueuer, registry);
+      // Literal lists can be translated into calls to these functions:
+      enqueueInResolution(helpers.jsArrayTypedConstructor, registry);
+      enqueueInResolution(helpers.setRuntimeTypeInfo, registry);
+      enqueueInResolution(helpers.getTypeArgumentByIndex, registry);
     } else if (cls == coreClasses.intClass ||
                cls == helpers.jsIntClass) {
       addInterceptors(helpers.jsIntClass, enqueuer, registry);

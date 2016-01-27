@@ -757,7 +757,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     TryBoxedVariables variables = _analyzeTryBoxedVariables(node);
     tryStatements = variables.tryStatements;
     IrBuilder builder = getBuilderFor(element);
-    return withBuilder(builder, () => _makeFunctionBody(element, node));
+    return withBuilder(builder,
+        () => _makeFunctionBody(builder, element, node));
   }
 
   ir.FunctionDefinition buildStaticFieldInitializer(FieldElement element) {
@@ -879,17 +880,24 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
   }
 
-  ir.FunctionDefinition _makeFunctionBody(FunctionElement element,
-                                          ast.FunctionExpression node) {
+  ir.FunctionDefinition _makeFunctionBody(
+      IrBuilder builder,
+      FunctionElement element,
+      ast.FunctionExpression node) {
     FunctionSignature signature = element.functionSignature;
     List<Local> parameters = <Local>[];
     signature.orderedForEachParameter(
         (LocalParameterElement e) => parameters.add(e));
 
+    bool requiresRuntimeTypes = false;
     if (element.isFactoryConstructor) {
-      // Type arguments are passed in as extra parameters.
-      for (DartType typeVariable in element.enclosingClass.typeVariables) {
-        parameters.add(new closure.TypeVariableLocal(typeVariable, element));
+      requiresRuntimeTypes =
+          builder.program.requiresRuntimeTypesFor(element.enclosingElement);
+      if (requiresRuntimeTypes) {
+        // Type arguments are passed in as extra parameters.
+        for (DartType typeVariable in element.enclosingClass.typeVariables) {
+          parameters.add(new closure.TypeVariableLocal(typeVariable, element));
+        }
       }
     }
 
@@ -897,7 +905,44 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                                   closureScope: getClosureScopeForNode(node),
                                   env: getClosureEnvironment());
 
-    visit(node.body);
+    if (element == helpers.jsArrayTypedConstructor) {
+      // Generate a body for JSArray<E>.typed(allocation):
+      //
+      //    t1 = setRuntimeTypeInfo(allocation, TypeExpression($E));
+      //    return Refinement(t1, <JSArray>);
+      //
+      assert(parameters.length == 1 || parameters.length == 2);
+      ir.Primitive allocation = irBuilder.buildLocalGet(parameters[0]);
+      ClassElement classElement = element.enclosingElement;
+
+      // Only call setRuntimeTypeInfo if JSArray requires the type parameter.
+      if (requiresRuntimeTypes) {
+        assert(parameters.length == 2);
+        ir.Primitive typeArgument =
+            irBuilder.buildTypeVariableAccess(parameters[1].typeVariable);
+
+        ir.Primitive typeInformation = irBuilder.addPrimitive(
+            new ir.TypeExpression(ir.TypeExpressionKind.INSTANCE,
+                                  element.enclosingClass.thisType,
+                                  <ir.Primitive>[typeArgument]));
+
+        Element helper = helpers.setRuntimeTypeInfo;
+        CallStructure callStructure = CallStructure.TWO_ARGS;
+        Selector selector = new Selector.call(helper.memberName, callStructure);
+        allocation = irBuilder.buildInvokeStatic(
+            helper, selector, <ir.Primitive>[allocation, typeInformation],
+            sourceInformationBuilder.buildGeneric(node));
+      }
+
+      ir.Primitive refinement = irBuilder.addPrimitive(
+          new ir.Refinement(allocation, typeMaskSystem.arrayType));
+
+      irBuilder.buildReturn(value: refinement,
+          sourceInformation:
+              sourceInformationBuilder.buildImplicitReturn(element));
+    } else {
+      visit(node.body);
+    }
     return irBuilder.makeFunctionDefinition();
   }
 
@@ -1555,8 +1600,25 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
     List<ir.Primitive> values = node.elements.nodes.mapToList(visit);
     InterfaceType type = elements.getType(node);
-    return irBuilder.buildListLiteral(type, values,
-        allocationSiteType: getAllocationSiteType(node));
+    TypeMask allocationSiteType = getAllocationSiteType(node);
+    // TODO(sra): In checked mode, the elements must be checked as though
+    // operator[]= is called.
+    ir.Primitive list = irBuilder.buildListLiteral(type, values,
+          allocationSiteType: allocationSiteType);
+    if (type.treatAsRaw) return list;
+    // Call JSArray<E>.typed(allocation) to install the reified type.
+    ConstructorElement constructor = helpers.jsArrayTypedConstructor;
+    ir.Primitive tagged = irBuilder.buildConstructorInvocation(
+        constructor.effectiveTarget,
+        CallStructure.ONE_ARG,
+        constructor.computeEffectiveTargetType(type),
+        <ir.Primitive>[list],
+        sourceInformationBuilder.buildNew(node));
+
+    if (allocationSiteType == null) return tagged;
+
+    return irBuilder.addPrimitive(
+        new ir.Refinement(tagged, allocationSiteType));
   }
 
   ir.Primitive visitLiteralMap(ast.LiteralMap node) {
