@@ -254,17 +254,20 @@ class DevServer {
     var out = new Directory(outDir);
     if (!await out.exists()) await out.create(recursive: true);
 
-    var mainHandler =
+    var generatedHandler =
         shelf_static.createStaticHandler(outDir, defaultDocument: _entryPath);
     var sourceHandler = shelf_static.createStaticHandler(compiler.inputBaseDir,
         serveFilesOutsidePath: true);
+    // TODO(vsm): Is there a better builtin way to compose these handlers?
     var topLevelHandler = (shelf.Request request) {
       var path = request.url.path;
-      if (path.endsWith('.dart')) {
-        return sourceHandler(request);
-      } else {
-        return mainHandler(request);
+      // Prefer generated code
+      var response = generatedHandler(request);
+      if (response.statusCode == 404) {
+        // Fall back on original sources
+        response = sourceHandler(request);
       }
+      return response;
     };
 
     var handler = const shelf.Pipeline()
