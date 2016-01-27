@@ -114,7 +114,7 @@ class TaskDescriptorImplTest extends EngineTestCase {
     expect(descriptor.name, name);
     expect(descriptor.buildTask, equals(buildTask));
     expect(descriptor.createTaskInputs, equals(createTaskInputs));
-    expect(descriptor.isAppropriateFor(null), isTrue);
+    expect(descriptor.suitabilityFor(null), TaskSuitability.LOWEST);
     expect(descriptor.results, results);
   }
 
@@ -123,15 +123,15 @@ class TaskDescriptorImplTest extends EngineTestCase {
     BuildTask buildTask = (context, target) {};
     CreateTaskInputs createTaskInputs = (target) {};
     List<ResultDescriptor> results = <ResultDescriptor>[];
-    IsAppropriateFor isAppropriateFor = (target) => false;
+    SuitabilityFor suitabilityFor = (target) => TaskSuitability.NONE;
     TaskDescriptorImpl descriptor = new TaskDescriptorImpl(
         name, buildTask, createTaskInputs, results,
-        isAppropriateFor: isAppropriateFor);
+        suitabilityFor: suitabilityFor);
     expect(descriptor, isNotNull);
     expect(descriptor.name, name);
     expect(descriptor.buildTask, equals(buildTask));
     expect(descriptor.createTaskInputs, equals(createTaskInputs));
-    expect(descriptor.isAppropriateFor(null), isFalse);
+    expect(descriptor.suitabilityFor(null), TaskSuitability.NONE);
     expect(descriptor.results, results);
   }
 

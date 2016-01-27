@@ -5063,7 +5063,8 @@ class ScanDartTask extends SourceBasedAnalysisTask {
       'ScanDartTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[LINE_INFO, SCAN_ERRORS, TOKEN_STREAM]);
+      <ResultDescriptor>[LINE_INFO, SCAN_ERRORS, TOKEN_STREAM],
+      suitabilityFor: suitabilityFor);
 
   /**
    * Initialize a newly created task to access the content of the source
@@ -5158,6 +5159,21 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   static ScanDartTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ScanDartTask(context, target);
+  }
+
+  /**
+   * Return an indication of how suitable this task is for the given [target].
+   */
+  static TaskSuitability suitabilityFor(AnalysisTarget target) {
+    if (target is Source) {
+      if (target.shortName.endsWith(AnalysisEngine.SUFFIX_DART)) {
+        return TaskSuitability.HIGHEST;
+      }
+      return TaskSuitability.LOWEST;
+    } else if (target is DartScript) {
+      return TaskSuitability.HIGHEST;
+    }
+    return TaskSuitability.NONE;
   }
 }
 

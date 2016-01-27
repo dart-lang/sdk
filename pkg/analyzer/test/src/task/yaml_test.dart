@@ -6,6 +6,7 @@ library analyzer.test.src.task.yaml_test;
 
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/yaml.dart';
+import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/yaml.dart';
 import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
@@ -38,7 +39,7 @@ rules:
     expect(value, new isInstanceOf<Map>());
     expect(value['rules']['style_guide']['camel_case_types'], isFalse);
     expect(outputs[YAML_ERRORS], hasLength(0));
-    LineInfo lineInfo = outputs[YAML_LINE_INFO];
+    LineInfo lineInfo = outputs[LINE_INFO];
     expect(lineInfo, isNotNull);
     expect(lineInfo.getOffsetOfLine(0), 0);
     expect(lineInfo.getOffsetOfLine(1), 7);
@@ -53,7 +54,7 @@ rules:
     expect(document, isNotNull);
     expect(document.contents.value, isNull);
     expect(outputs[YAML_ERRORS], hasLength(1));
-    LineInfo lineInfo = outputs[YAML_LINE_INFO];
+    LineInfo lineInfo = outputs[LINE_INFO];
     expect(lineInfo, isNotNull);
     expect(lineInfo.getOffsetOfLine(0), 0);
   }

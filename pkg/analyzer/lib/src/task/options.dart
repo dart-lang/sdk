@@ -202,7 +202,8 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
       'GenerateOptionsErrorsTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[ANALYSIS_OPTIONS_ERRORS, LINE_INFO]);
+      <ResultDescriptor>[ANALYSIS_OPTIONS_ERRORS, LINE_INFO],
+      suitabilityFor: suitabilityFor);
 
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 
@@ -257,6 +258,17 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
   static GenerateOptionsErrorsTask createTask(
           AnalysisContext context, AnalysisTarget target) =>
       new GenerateOptionsErrorsTask(context, target);
+
+  /**
+   * Return an indication of how suitable this task is for the given [target].
+   */
+  static TaskSuitability suitabilityFor(AnalysisTarget target) {
+    if (target is Source &&
+        target.shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE) {
+      return TaskSuitability.HIGHEST;
+    }
+    return TaskSuitability.NONE;
+  }
 }
 
 /// Validates `analyzer` language configuration options.

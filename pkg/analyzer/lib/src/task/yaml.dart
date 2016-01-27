@@ -33,7 +33,8 @@ class ParseYamlTask extends SourceBasedAnalysisTask {
       'ParseYamlTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[YAML_DOCUMENT, YAML_ERRORS, YAML_LINE_INFO]);
+      <ResultDescriptor>[YAML_DOCUMENT, YAML_ERRORS, LINE_INFO],
+      suitabilityFor: suitabilityFor);
 
   /**
    * Initialize a newly created task to access the content of the source
@@ -69,7 +70,7 @@ class ParseYamlTask extends SourceBasedAnalysisTask {
         new AnalysisError(
             source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [message])
       ];
-      outputs[YAML_LINE_INFO] = new LineInfo(<int>[0]);
+      outputs[LINE_INFO] = new LineInfo(<int>[0]);
     } else {
       YamlDocument document;
       List<AnalysisError> errors = <AnalysisError>[];
@@ -90,7 +91,7 @@ class ParseYamlTask extends SourceBasedAnalysisTask {
       //
       outputs[YAML_DOCUMENT] = document;
       outputs[YAML_ERRORS] = errors;
-      outputs[YAML_LINE_INFO] = new LineInfo.fromContent(content);
+      outputs[LINE_INFO] = new LineInfo.fromContent(content);
     }
   }
 
@@ -109,6 +110,16 @@ class ParseYamlTask extends SourceBasedAnalysisTask {
   static ParseYamlTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ParseYamlTask(context, target);
+  }
+
+  /**
+   * Return an indication of how suitable this task is for the given [target].
+   */
+  static TaskSuitability suitabilityFor(AnalysisTarget target) {
+    if (target is Source && target.shortName.endsWith('.yaml')) {
+      return TaskSuitability.HIGHEST;
+    }
+    return TaskSuitability.NONE;
   }
 }
 

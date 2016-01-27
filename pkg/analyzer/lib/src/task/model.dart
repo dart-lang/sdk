@@ -126,10 +126,10 @@ class TaskDescriptorImpl implements TaskDescriptor {
   final List<ResultDescriptor> results;
 
   /**
-   * The function used to determine whether the described task is appropriate
-   * for a given target.
+   * The function used to determine whether the described task is suitable for
+   * a given target.
    */
-  final IsAppropriateFor _isAppropriateFor;
+  final SuitabilityFor _suitabilityFor;
 
   /**
    * Initialize a newly created task descriptor to have the given [name] and to
@@ -141,8 +141,8 @@ class TaskDescriptorImpl implements TaskDescriptor {
    */
   TaskDescriptorImpl(
       this.name, this.buildTask, this.createTaskInputs, this.results,
-      {IsAppropriateFor isAppropriateFor})
-      : _isAppropriateFor = isAppropriateFor ?? _alwaysTrue;
+      {SuitabilityFor suitabilityFor})
+      : _suitabilityFor = suitabilityFor ?? _defaultSuitability;
 
   @override
   AnalysisTask createTask(AnalysisContext context, AnalysisTarget target,
@@ -153,14 +153,16 @@ class TaskDescriptorImpl implements TaskDescriptor {
   }
 
   @override
-  bool isAppropriateFor(AnalysisTarget target) => _isAppropriateFor(target);
+  TaskSuitability suitabilityFor(AnalysisTarget target) =>
+      _suitabilityFor(target);
 
   @override
   String toString() => name;
 
   /**
-   * The function that will be used to determine whether a task can be applied
-   * to a given target if no other function is provided.
+   * The function that will be used to determine the suitability of a task if no
+   * other function is provided.
    */
-  static bool _alwaysTrue(AnalysisTarget target) => true;
+  static TaskSuitability _defaultSuitability(AnalysisTarget target) =>
+      TaskSuitability.LOWEST;
 }

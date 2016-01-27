@@ -21,9 +21,3 @@ final ResultDescriptor<YamlDocument> YAML_DOCUMENT =
 final ListResultDescriptor<AnalysisError> YAML_ERRORS =
     new ListResultDescriptor<AnalysisError>(
         'YAML_ERRORS', AnalysisError.NO_ERRORS);
-
-/**
- * The line information for a [Source].
- */
-final ResultDescriptor<LineInfo> YAML_LINE_INFO =
-    new ResultDescriptor<LineInfo>('YAML_LINE_INFO', null);

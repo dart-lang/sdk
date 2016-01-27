@@ -37,11 +37,11 @@ typedef Map<String, TaskInput> CreateTaskInputs(AnalysisTarget target);
 
 /**
  * A function that takes the target for which a task will produce results and
- * returns `true` if the task is appropriate for the target. Such functions are
- * passed to a [TaskDescriptor] to be used to determine the inputs needed by the
- * task.
+ * returns an indication of how suitable the task is for the target. Such
+ * functions are passed to a [TaskDescriptor] to be used to determine their
+ * suitability for computing results.
  */
-typedef bool IsAppropriateFor(AnalysisTarget target);
+typedef TaskSuitability SuitabilityFor(AnalysisTarget target);
 
 /**
  * A function that converts an object of the type [B] into a [TaskInput].
@@ -537,7 +537,7 @@ abstract class TaskDescriptor {
    */
   factory TaskDescriptor(String name, BuildTask buildTask,
       CreateTaskInputs inputBuilder, List<ResultDescriptor> results,
-      {IsAppropriateFor isAppropriateFor}) = TaskDescriptorImpl;
+      {SuitabilityFor suitabilityFor}) = TaskDescriptorImpl;
 
   /**
    * Return the builder used to build the inputs to the task.
@@ -562,9 +562,9 @@ abstract class TaskDescriptor {
       Map<String, dynamic> inputs);
 
   /**
-   * Return `true` if this task is appropriate for the given [target].
+   * Return an indication of how suitable this task is for the given [target].
    */
-  bool isAppropriateFor(AnalysisTarget target);
+  TaskSuitability suitabilityFor(AnalysisTarget target);
 }
 
 /**
@@ -661,6 +661,11 @@ abstract class TaskInputBuilder<V> {
    */
   bool moveNext();
 }
+
+/**
+ * An indication of how suitable a task is for a given target.
+ */
+enum TaskSuitability { NONE, LOWEST, HIGHEST }
 
 /**
  * [WorkManager]s are used to drive analysis.

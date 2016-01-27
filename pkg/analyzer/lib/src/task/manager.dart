@@ -83,7 +83,7 @@ class TaskManager {
       throw new AnalysisException(
           'No tasks registered to compute $result for $target');
     }
-    return _findBestTask(descriptors);
+    return _findBestTask(descriptors, target);
   }
 
   /**
@@ -104,11 +104,20 @@ class TaskManager {
 
   /**
    * Given a list of task [descriptors] that can be used to compute some
-   * unspecified result, return the descriptor that will compute the result with
-   * the least amount of work.
+   * unspecified result for the given [target], return the descriptor that
+   * should be used to compute the result.
    */
-  TaskDescriptor _findBestTask(List<TaskDescriptor> descriptors) {
-    // TODO(brianwilkerson) Improve this implementation.
-    return descriptors[0];
+  TaskDescriptor _findBestTask(
+      List<TaskDescriptor> descriptors, AnalysisTarget target) {
+    TaskDescriptor best = null;
+    for (TaskDescriptor descriptor in descriptors) {
+      TaskSuitability suitability = descriptor.suitabilityFor(target);
+      if (suitability == TaskSuitability.HIGHEST) {
+        return descriptor;
+      } else if (best == null && suitability == TaskSuitability.LOWEST) {
+        best = descriptor;
+      }
+    }
+    return best;
   }
 }
