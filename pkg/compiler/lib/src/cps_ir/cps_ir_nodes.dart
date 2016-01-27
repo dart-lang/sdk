@@ -1865,7 +1865,7 @@ class TypeExpression extends Primitive {
                  List<Primitive> arguments)
       : this.arguments = _referenceList(arguments) {
     assert(kind == TypeExpressionKind.INSTANCE
-           ? dartType == dartType.element.thisType
+           ? dartType == (dartType.element as ClassElement).thisType
            : true);
   }
 

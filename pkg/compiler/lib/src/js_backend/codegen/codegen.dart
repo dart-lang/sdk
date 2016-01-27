@@ -992,7 +992,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
             node.dartType, arguments, registry);
       case tree_ir.TypeExpressionKind.INSTANCE:
         // We expect only flat types for the INSTANCE representation.
-        assert(node.dartType == node.dartType.element.thisType);
+        assert(node.dartType ==
+               (node.dartType.element as ClassElement).thisType);
         registry.registerInstantiatedClass(glue.listClass);
         return new js.ArrayInitializer(arguments);
     }
