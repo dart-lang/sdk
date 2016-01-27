@@ -74,7 +74,7 @@ mode tools, but will be interpreted as `T` by strong mode.  For example:
 // In strong mode, the parameter x will have type S, and the return type will
 // be S
 // In normal mode, the parameter x will have type dynamic, and the return 
-// type will be S.
+// type will be dynamic.
 dynamic/*=S*/ foo/*<S>*/(dynamic/*=S*/ x) { return x; }
 ```
 
