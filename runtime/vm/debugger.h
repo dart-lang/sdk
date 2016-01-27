@@ -651,7 +651,8 @@ class Debugger {
   // interrupts, etc.
   void Pause(DebuggerEvent* event);
 
-  void HandleSteppingRequest(DebuggerStackTrace* stack_trace);
+  void HandleSteppingRequest(DebuggerStackTrace* stack_trace,
+                             bool skip_next_step = false);
 
   Isolate* isolate_;
   Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.
@@ -689,6 +690,11 @@ class Debugger {
   // frame corresponds to this fp value, or if the top frame is
   // lower on the stack.
   uword stepping_fp_;
+
+  // If we step while at a breakpoint, we would hit the same pc twice.
+  // We use this field to let us skip the next single-step after a
+  // breakpoint.
+  bool skip_next_step_;
 
   Dart_ExceptionPauseInfo exc_pause_info_;
 

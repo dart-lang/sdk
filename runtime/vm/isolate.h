@@ -718,6 +718,7 @@ class Isolate : public BaseIsolate {
   RawCode* ic_miss_code_;
   ClassTable class_table_;
   bool single_step_;
+  bool skip_step_;  // skip the next single step.
 
   ThreadRegistry* thread_registry_;
   Dart_MessageNotifyCallback message_notify_callback_;

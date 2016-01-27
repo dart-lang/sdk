@@ -275,7 +275,7 @@ IsolateTest stoppedAtLine(int line) {
       sb.write("Expected to be at line $line but actually at line $actualLine");
       sb.write("\nFull stack trace:\n");
       for (Frame f in stack['frames']) {
-        sb.write(" $f\n");
+        sb.write(" $f [${await f.location.getLine()}]\n");
       }
       throw sb.toString();
     }

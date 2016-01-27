@@ -1258,6 +1258,7 @@ Debugger::Debugger()
       obj_cache_(NULL),
       stack_trace_(NULL),
       stepping_fp_(0),
+      skip_next_step_(false),
       exc_pause_info_(kNoPauseOnExceptions) {
 }
 
@@ -2532,7 +2533,8 @@ void Debugger::EnterSingleStepMode() {
 }
 
 
-void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace) {
+void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
+                                     bool skip_next_step) {
   stepping_fp_ = 0;
   if (resume_action_ == kSingleStep) {
     // When single stepping, we need to deoptimize because we might be
@@ -2542,12 +2544,14 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace) {
     // to call an optimized function.
     DeoptimizeWorld();
     isolate_->set_single_step(true);
+    skip_next_step_ = skip_next_step;
     if (FLAG_verbose_debug) {
       OS::Print("HandleSteppingRequest- kSingleStep\n");
     }
   } else if (resume_action_ == kStepOver) {
     DeoptimizeWorld();
     isolate_->set_single_step(true);
+    skip_next_step_ = skip_next_step;
     ASSERT(stack_trace->Length() > 0);
     stepping_fp_ = stack_trace->FrameAt(0)->fp();
     if (FLAG_verbose_debug) {
@@ -2624,6 +2628,10 @@ RawError* Debugger::DebuggerStepCallback() {
   if (IsPaused()) {
     return Error::null();
   }
+  if (skip_next_step_) {
+    skip_next_step_ = false;
+    return Error::null();
+  }
 
   // Check whether we are in a Dart function that the user is
   // interested in. If we saved the frame pointer of a stack frame
@@ -2655,11 +2663,10 @@ RawError* Debugger::DebuggerStepCallback() {
     return Error::null();
   }
 
-  // Don't pause for a single step if there is a breakpoint set
-  // at this location.
-  if (HasActiveBreakpoint(frame->pc())) {
-    return Error::null();
-  }
+  // If there is an active breakpoint at this pc, then we should have
+  // already bailed out of this function in the skip_next_step_ test
+  // above.
+  ASSERT(!HasActiveBreakpoint(frame->pc()));
 
   if (FLAG_verbose_debug) {
     OS::Print(">>> single step break at %s:%" Pd " (func %s token %" Pd ")\n",
@@ -2758,7 +2765,9 @@ RawError* Debugger::SignalBpReached() {
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = stack_trace;
   SignalPausedEvent(top_frame, bpt_hit);
-  HandleSteppingRequest(stack_trace_);
+  // When we single step from a user breakpoint, our next stepping
+  // point will be at the exact same pc.  Skip it.
+  HandleSteppingRequest(stack_trace_, true /* skip next step */);
   stack_trace_ = NULL;
   if (cbpt->IsInternal()) {
     RemoveInternalBreakpoints();
@@ -3121,7 +3130,7 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
             pause_event_->breakpoint() == curr_bpt) {
           pause_event_->set_breakpoint(NULL);
         }
-        return;
+        break;
       }
 
       prev_bpt = curr_bpt;
