@@ -6,16 +6,22 @@ library summary_resynthesizer;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/task/dart.dart' show ConstantEvaluationTarget;
 
 /**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element
@@ -240,6 +246,89 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
 }
 
 /**
+ * Builder of [Expression]s from [UnlinkedConst]s.
+ */
+class _ConstExprBuilder {
+  final SummaryResynthesizer resynthesizer;
+  final UnlinkedConst uc;
+
+  int intPtr = 0;
+  int doublePtr = 0;
+  int stringPtr = 0;
+  int refPtr = 0;
+  final List<Expression> stack = <Expression>[];
+
+  _ConstExprBuilder(this.resynthesizer, this.uc);
+
+  Expression get expr => stack.single;
+
+  Expression build() {
+    // TODO(scheglov) complete implementation
+    for (UnlinkedConstOperation operation in uc.operations) {
+      switch (operation) {
+        case UnlinkedConstOperation.pushNull:
+          stack.add(AstFactory.nullLiteral());
+          break;
+        case UnlinkedConstOperation.pushFalse:
+          stack.add(AstFactory.booleanLiteral(false));
+          break;
+        case UnlinkedConstOperation.pushTrue:
+          stack.add(AstFactory.booleanLiteral(true));
+          break;
+        case UnlinkedConstOperation.pushInt:
+          int value = uc.ints[intPtr++];
+          stack.add(AstFactory.integer(value));
+          break;
+        case UnlinkedConstOperation.pushDouble:
+          double value = uc.doubles[doublePtr++];
+          stack.add(AstFactory.doubleLiteral(value));
+          break;
+        case UnlinkedConstOperation.pushString:
+          String value = uc.strings[stringPtr++];
+          stack.add(AstFactory.string2(value));
+          break;
+        case UnlinkedConstOperation.concatenate:
+          int count = uc.ints[intPtr++];
+          List<InterpolationElement> elements = <InterpolationElement>[];
+          for (int i = 0; i < count; i++) {
+            Expression expr = stack.removeLast();
+            InterpolationElement element = _newInterpolationElement(expr);
+            elements.insert(0, element);
+          }
+          stack.add(AstFactory.string(elements));
+          break;
+        default:
+          return AstFactory.nullLiteral();
+//          throw new StateError('Unsupported constant operation $operation');
+      }
+    }
+    return stack.single;
+  }
+
+  InterpolationElement _newInterpolationElement(Expression expr) {
+    if (expr is SimpleStringLiteral) {
+      return new InterpolationString(expr.literal, expr.value);
+    } else {
+      return new InterpolationExpression(
+          TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION),
+          expr,
+          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+    }
+  }
+}
+
+/**
+ * A single constant variable for which the constant value should be computed.
+ *
+ * TODO(scheglov) we will probably need to add dependency list
+ */
+class _ConstVariable {
+  final ConstVariableElement element;
+
+  _ConstVariable(this.element);
+}
+
+/**
  * An instance of [_LibraryResynthesizer] is responsible for resynthesizing the
  * elements in a single library from that library's summary.
  */
@@ -323,6 +412,11 @@ class _LibraryResynthesizer {
    * initializing formal parameters.
    */
   Map<String, FieldElementImpl> fields;
+
+  /**
+   * List of constant variables to compute values for.
+   */
+  List<_ConstVariable> constVariables = <_ConstVariable>[];
 
   _LibraryResynthesizer(this.summaryResynthesizer, this.linkedLibrary,
       this.unlinkedUnits, this.librarySource) {
@@ -897,6 +991,17 @@ class _LibraryResynthesizer {
     if (library.name != 'dart.core' && library.name != 'dart.async') {
       library.createLoadLibraryFunction(summaryResynthesizer.typeProvider);
     }
+    // Compute constants.
+    for (_ConstVariable constVariable in constVariables) {
+      AnalysisContext context = summaryResynthesizer.context;
+      ConstantEvaluationEngine constantEvaluationEngine =
+          new ConstantEvaluationEngine(
+              summaryResynthesizer.typeProvider, context.declaredVariables,
+              typeSystem: context.typeSystem);
+      ConstantEvaluationTarget constTarget =
+          constVariable.element as ConstantEvaluationTarget;
+      constantEvaluationEngine.computeConstantValue(constTarget);
+    }
     // Done.
     return library;
   }
@@ -1005,7 +1110,8 @@ class _LibraryResynthesizer {
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
-          currentTypeParameters.length - type.paramReference].type;
+              currentTypeParameters.length - type.paramReference]
+          .type;
     } else {
       LinkedReference referenceResolution =
           linkedUnit.references[type.reference];
@@ -1127,8 +1233,21 @@ class _LibraryResynthesizer {
   void buildVariable(UnlinkedVariable serializedVariable,
       [ElementHolder holder]) {
     if (holder == null) {
-      TopLevelVariableElementImpl element = new TopLevelVariableElementImpl(
-          serializedVariable.name, serializedVariable.nameOffset);
+      TopLevelVariableElementImpl element;
+      if (serializedVariable.constExpr != null) {
+        ConstTopLevelVariableElementImpl constElement =
+            new ConstTopLevelVariableElementImpl(
+                serializedVariable.name, serializedVariable.nameOffset);
+        element = constElement;
+        // TODO(scheglov) share const builder?
+        _ConstExprBuilder builder = new _ConstExprBuilder(
+            summaryResynthesizer, serializedVariable.constExpr);
+        constElement.constantInitializer = builder.build();
+        constVariables.add(new _ConstVariable(constElement));
+      } else {
+        element = new TopLevelVariableElementImpl(
+            serializedVariable.name, serializedVariable.nameOffset);
+      }
       buildVariableCommonParts(element, serializedVariable);
       unitHolder.addTopLevelVariable(element);
       buildImplicitAccessors(element, unitHolder);

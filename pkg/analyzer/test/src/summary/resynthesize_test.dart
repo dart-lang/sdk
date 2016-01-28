@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart'
@@ -29,6 +30,7 @@ main() {
 @reflectiveTest
 class ResynthTest extends ResolverTestCase {
   Set<Source> otherLibrarySources = new Set<Source>();
+  bool shouldCompareConstValues = false;
 
   /**
    * Determine the analysis options that should be used for this test.
@@ -199,6 +201,40 @@ class ResynthTest extends ResolverTestCase {
       }
     }
     // TODO(paulberry): test metadata and offsetToElementMap.
+  }
+
+  void compareConstantValues(
+      DartObject resynthesized, DartObject original, String desc) {
+    if (original == null) {
+      expect(resynthesized, isNull, reason: desc);
+    } else {
+      expect(resynthesized, isNotNull, reason: desc);
+      compareTypes(resynthesized.type, original.type, desc);
+      expect(resynthesized.hasKnownValue, original.hasKnownValue, reason: desc);
+      if (original.isNull) {
+        expect(resynthesized.isNull, isTrue, reason: desc);
+      } else if (original.toBoolValue() != null) {
+        expect(resynthesized.toBoolValue(), original.toBoolValue(),
+            reason: desc);
+      } else if (original.toIntValue() != null) {
+        expect(resynthesized.toIntValue(), original.toIntValue(), reason: desc);
+      } else if (original.toDoubleValue() != null) {
+        expect(resynthesized.toDoubleValue(), original.toDoubleValue(),
+            reason: desc);
+      } else if (original.toListValue() != null) {
+        fail('Not implemented');
+      } else if (original.toMapValue() != null) {
+        fail('Not implemented');
+      } else if (original.toStringValue() != null) {
+        expect(resynthesized.toStringValue(), original.toStringValue(),
+            reason: desc);
+      } else if (original.toSymbolValue() != null) {
+        fail('Not implemented');
+      } else if (original.toTypeValue() != null) {
+        fail('Not implemented');
+      }
+      // TODO(scheglov) implement
+    }
   }
 
   void compareConstructorElements(ConstructorElementImpl resynthesized,
@@ -509,6 +545,10 @@ class ResynthTest extends ResolverTestCase {
       VariableElementImpl original, String desc) {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
+    if (shouldCompareConstValues) {
+      compareConstantValues(
+          resynthesized.constantValue, original.constantValue, desc);
+    }
     // TODO(paulberry): test initializer
   }
 
@@ -910,6 +950,20 @@ class E {}''');
 
   test_classes() {
     checkLibrary('class C {} class D {}');
+  }
+
+  test_const_topLevel_literal() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+const vNull = null;
+const vBoolFalse = false;
+const vBoolTrue = true;
+const vInt = 1;
+const vDouble = 2.3;
+const vString = 'abc';
+const vStringConcat = 'aaa' 'bbb';
+const vStringInterpolation = 'aaa ${true} ${42} bbb';
+''');
   }
 
   test_constructor_documented() {
