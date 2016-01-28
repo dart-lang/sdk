@@ -126,6 +126,7 @@ void Precompiler::DoCompileAll(
     BindStaticCalls();
 
     DedupStackmaps();
+    DedupStackmapLists();
 
     I->object_store()->set_compile_time_constants(Array::null_array());
     I->object_store()->set_unique_dynamic_targets(Array::null_array());
@@ -1116,6 +1117,55 @@ void Precompiler::DedupStackmaps() {
   };
 
   DedupStackmapsVisitor visitor(Z);
+  VisitFunctions(&visitor);
+}
+
+
+void Precompiler::DedupStackmapLists() {
+  class DedupStackmapListsVisitor : public FunctionVisitor {
+   public:
+    explicit DedupStackmapListsVisitor(Zone* zone) :
+      zone_(zone),
+      canonical_stackmap_lists_(),
+      code_(Code::Handle(zone)),
+      stackmaps_(Array::Handle(zone)),
+      stackmap_(Stackmap::Handle(zone)) {
+    }
+
+    void VisitFunction(const Function& function) {
+      if (!function.HasCode()) {
+        ASSERT(function.HasImplicitClosureFunction());
+        return;
+      }
+      code_ = function.CurrentCode();
+      stackmaps_ = code_.stackmaps();
+      if (stackmaps_.IsNull()) return;
+
+      stackmaps_ = DedupStackmapList(stackmaps_);
+      code_.set_stackmaps(stackmaps_);
+    }
+
+    RawArray* DedupStackmapList(const Array& stackmaps) {
+      const Array* canonical_stackmap_list =
+          canonical_stackmap_lists_.Lookup(&stackmaps);
+      if (canonical_stackmap_list == NULL) {
+        canonical_stackmap_lists_.Insert(
+            &Array::ZoneHandle(zone_, stackmaps.raw()));
+        return stackmaps.raw();
+      } else {
+        return canonical_stackmap_list->raw();
+      }
+    }
+
+   private:
+    Zone* zone_;
+    ArraySet canonical_stackmap_lists_;
+    Code& code_;
+    Array& stackmaps_;
+    Stackmap& stackmap_;
+  };
+
+  DedupStackmapListsVisitor visitor(Z);
   VisitFunctions(&visitor);
 }
 
