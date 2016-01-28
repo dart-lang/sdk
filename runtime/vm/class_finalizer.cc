@@ -526,7 +526,13 @@ RawAbstractType* ClassFinalizer::ResolveType(const Class& cls,
     ASSERT(type.IsFunctionType());
     const Function& signature =
         Function::Handle(FunctionType::Cast(type).signature());
-    ResolveSignature(cls, signature);
+    const Class& scope_class =
+        Class::Handle(FunctionType::Cast(type).scope_class());
+    if (scope_class.IsTypedefClass()) {
+      ResolveSignature(scope_class, signature);
+    } else {
+      ResolveSignature(cls, signature);
+    }
     resolved_type = type.raw();
   }
   // Mark type as resolved before resolving its type arguments in order to avoid
@@ -1156,7 +1162,13 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   if (resolved_type.IsFunctionType()) {
     const Function& signature =
         Function::Handle(Z, FunctionType::Cast(resolved_type).signature());
-    FinalizeSignature(cls, signature);
+    const Class& scope_class =
+        Class::Handle(Z, FunctionType::Cast(resolved_type).scope_class());
+    if (scope_class.IsTypedefClass()) {
+      FinalizeSignature(scope_class, signature);
+    } else {
+      FinalizeSignature(cls, signature);
+    }
   }
 
   if (FLAG_trace_type_finalization) {
