@@ -26,11 +26,15 @@ main(List<String> args) async {
   List<String> currentOptions = [];
   List<List<String>> options = [currentOptions];
   int argGroup = 0;
+  bool addAnnotations = true;
   for (String arg in args) {
     if (arg == '--') {
       currentOptions = [];
       options.add(currentOptions);
       argGroup++;
+    } else if (arg == '-h') {
+      addAnnotations = false;
+      print('Hiding annotations');
     } else if (arg.startsWith('-o')) {
       out = arg.substring('-o'.length);
     } else if (arg.startsWith('--out=')) {
@@ -60,9 +64,11 @@ main(List<String> args) async {
   }
 
   print('Compiling ${options1.join(' ')} $filename');
-  CodeLinesResult result1 = await computeCodeLines(options1, filename);
+  CodeLinesResult result1 = await computeCodeLines(
+      options1, filename, addAnnotations: addAnnotations);
   print('Compiling ${options2.join(' ')} $filename');
-  CodeLinesResult result2 = await computeCodeLines(options2, filename);
+  CodeLinesResult result2 = await computeCodeLines(
+      options2, filename, addAnnotations: addAnnotations);
 
   StringBuffer sb = new StringBuffer();
   sb.write('''
@@ -107,21 +113,27 @@ main(List<String> args) async {
   sb.write('''
 <div class="header" style="left: 0px;">[${options1.join(',')}]</div>
 <div class="header" style="right: 0px;">[${options2.join(',')}]</div>
-<div style="position:absolute;top:22px;width:100%;height:18px;">
+<div style="position:absolute;left:0px;top:22px;width:100%;height:18px;">
   <span class="identical1">&nbsp;&nbsp;&nbsp;</span> 
   <span class="identical2">&nbsp;&nbsp;&nbsp;</span>
   identical blocks
   <span class="corresponding1">&nbsp;&nbsp;&nbsp;</span>
   <span class="corresponding2">&nbsp;&nbsp;&nbsp;</span> 
   corresponding blocks
+''');
+  if (addAnnotations) {
+    sb.write('''
   <span style="$WITH_SOURCE_INFO_STYLE">&nbsp;&nbsp;&nbsp;</span>
   offset with source information
   <span style="$WITHOUT_SOURCE_INFO_STYLE">&nbsp;&nbsp;&nbsp;</span>
   offset without source information
   <span style="$ADDITIONAL_SOURCE_INFO_STYLE">&nbsp;&nbsp;&nbsp;</span>
   offset with unneeded source information
+''');
+  }
+  sb.write('''
 </div>
-<table style="position:absolute;top:40px;width:100%;"><tr>
+<table style="position:absolute;left:0px;top:40px;width:100%;"><tr>
 ''');
 
   void addCell(String content) {
@@ -804,7 +816,8 @@ class CodeLinesResult {
 /// Compute [CodeLine]s and [Coverage] for [filename] using the given [options].
 Future<CodeLinesResult> computeCodeLines(
     List<String> options,
-    String filename) async {
+    String filename,
+    {bool addAnnotations: true}) async {
   SourceMapProcessor processor = new SourceMapProcessor(filename);
   List<SourceMapInfo> sourceMapInfoList =
       await processor.process(options, perElement: false);
@@ -819,29 +832,32 @@ Future<CodeLinesResult> computeCodeLines(
     List<CodeLine> codeLines;
     Coverage coverage = new Coverage();
     List<Annotation> annotations = <Annotation>[];
+
     String code = info.code;
     TraceGraph graph = createTraceGraph(info, coverage);
-    Set<js.Node> mappedNodes = new Set<js.Node>();
-    for (TraceStep step in graph.steps) {
-      int offset;
-      if (options.contains(USE_NEW_SOURCE_INFO)) {
-        offset = step.offset.subexpressionOffset;
-      } else {
-        offset = info.jsCodePositions[step.node].startPosition;
-      }
-      if (offset != null) {
-        int id = step.sourceLocation != null
-            ? WITH_SOURCE_INFO : WITHOUT_SOURCE_INFO;
-        annotations.add(
-            new Annotation(id, offset, null));
-      }
-    }
-    if (!options.contains(USE_NEW_SOURCE_INFO)) {
-      for (js.Node node in info.nodeMap.nodes) {
-        if (!mappedNodes.contains(node)) {
-          int offset = info.jsCodePositions[node].startPosition;
+    if (addAnnotations) {
+      Set<js.Node> mappedNodes = new Set<js.Node>();
+      for (TraceStep step in graph.steps) {
+        int offset;
+        if (options.contains(USE_NEW_SOURCE_INFO)) {
+          offset = step.offset.subexpressionOffset;
+        } else {
+          offset = info.jsCodePositions[step.node].startPosition;
+        }
+        if (offset != null) {
+          int id = step.sourceLocation != null
+              ? WITH_SOURCE_INFO : WITHOUT_SOURCE_INFO;
           annotations.add(
-                      new Annotation(ADDITIONAL_SOURCE_INFO, offset, null));
+              new Annotation(id, offset, null));
+        }
+      }
+      if (!options.contains(USE_NEW_SOURCE_INFO)) {
+        for (js.Node node in info.nodeMap.nodes) {
+          if (!mappedNodes.contains(node)) {
+            int offset = info.jsCodePositions[node].startPosition;
+            annotations.add(
+                        new Annotation(ADDITIONAL_SOURCE_INFO, offset, null));
+          }
         }
       }
     }
