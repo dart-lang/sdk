@@ -92,13 +92,13 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     serializeArray(x) {
       let serialized = [];
       serialized[dartx.length] = x[dartx.length];
-      for (let i = 0; dart.notNull(i) < dart.notNull(x[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(x[dartx.length]); i++) {
         serialized[dartx.set](i, this.serialize(x[dartx.get](i)));
       }
       return serialized;
     }
     serializeArrayInPlace(x) {
-      for (let i = 0; dart.notNull(i) < dart.notNull(x[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(x[dartx.length]); i++) {
         x[dartx.set](i, this.serialize(x[dartx.get](i)));
       }
       return x;
@@ -114,7 +114,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       let keys = dart.as(Object.keys(x), core.List);
       let values = [];
       values[dartx.length] = keys[dartx.length];
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
         values[dartx.set](i, this.serialize(x[keys[dartx.get](i)]));
       }
       return ['js-object', keys, values];
@@ -265,7 +265,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       return result;
     }
     deserializeArrayInPlace(x) {
-      for (let i = 0; dart.notNull(i) < dart.notNull(x[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(x[dartx.length]); i++) {
         x[dartx.set](i, this.deserialize(x[dartx.get](i)));
       }
       return x;
@@ -301,7 +301,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       let result = dart.map();
       this.deserializedObjects[dartx.add](result);
       keys = keys[dartx.map](dart.bind(this, 'deserialize'))[dartx.toList]();
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
         result.set(keys[dartx.get](i), this.deserialize(values[dartx.get](i)));
       }
       return result;
@@ -336,7 +336,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       let values = dart.as(dart.dindex(x, 2), core.List);
       let o = {};
       this.deserializedObjects[dartx.add](o);
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
         o[keys[dartx.get](i)] = this.deserialize(values[dartx.get](i));
       }
       return o;
@@ -474,9 +474,9 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     [_nativeDetectEnvironment]() {
       let isWindowDefined = exports.globalWindow != null;
       let isWorkerDefined = exports.globalWorker != null;
-      this.isWorker = !dart.notNull(isWindowDefined) && dart.notNull(exports.globalPostMessageDefined);
-      this.supportsWorkers = dart.notNull(this.isWorker) || dart.notNull(isWorkerDefined) && IsolateNatives.thisScript != null;
-      this.fromCommandLine = !dart.notNull(isWindowDefined) && !dart.notNull(this.isWorker);
+      this.isWorker = !isWindowDefined && dart.notNull(exports.globalPostMessageDefined);
+      this.supportsWorkers = dart.notNull(this.isWorker) || isWorkerDefined && IsolateNatives.thisScript != null;
+      this.fromCommandLine = !isWindowDefined && !dart.notNull(this.isWorker);
     }
     [_nativeInitWorkerMessageHandler]() {
       let func = (function(f, a) {

@@ -55,7 +55,7 @@ dart_library.library('dart/isolate', null, /* Imports */[
       if (packageRoot != null) dart.throw(new core.UnimplementedError("packageRoot"));
       try {
         if (dart.is(args, core.List)) {
-          for (let i = 0; dart.notNull(i) < dart.notNull(args[dartx.length]); i = dart.notNull(i) + 1) {
+          for (let i = 0; i < dart.notNull(args[dartx.length]); i++) {
             if (!(typeof args[dartx.get](i) == 'string')) {
               dart.throw(new core.ArgumentError(`Args must be a list of Strings ${args}`));
             }

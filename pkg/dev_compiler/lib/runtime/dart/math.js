@@ -67,13 +67,13 @@ dart_library.library('dart/math', null, /* Imports */[
         dart.as(other, Point$(T));
         let dx = dart.notNull(this.x) - dart.notNull(other.x);
         let dy = dart.notNull(this.y) - dart.notNull(other.y);
-        return sqrt(dart.notNull(dx) * dart.notNull(dx) + dart.notNull(dy) * dart.notNull(dy));
+        return sqrt(dx * dx + dy * dy);
       }
       squaredDistanceTo(other) {
         dart.as(other, Point$(T));
         let dx = dart.notNull(this.x) - dart.notNull(other.x);
         let dy = dart.notNull(this.y) - dart.notNull(other.y);
-        return dart.notNull(dx) * dart.notNull(dx) + dart.notNull(dy) * dart.notNull(dy);
+        return dx * dx + dy * dy;
       }
     }
     dart.setSignature(Point, {
@@ -378,42 +378,42 @@ dart_library.library('dart/math', null, /* Imports */[
       }
       do {
         let low = dart.notNull(seed) & dart.notNull(_Random._MASK32);
-        seed = ((dart.notNull(seed) - dart.notNull(low)) / dart.notNull(_POW2_32))[dartx.truncate]();
+        seed = ((dart.notNull(seed) - low) / dart.notNull(_POW2_32))[dartx.truncate]();
         let high = dart.notNull(seed) & dart.notNull(_Random._MASK32);
-        seed = ((dart.notNull(seed) - dart.notNull(high)) / dart.notNull(_POW2_32))[dartx.truncate]();
-        let tmplow = dart.notNull(low) << 21;
-        let tmphigh = dart.notNull(high) << 21 | dart.notNull(low) >> 11;
-        tmplow = (~dart.notNull(low) & dart.notNull(_Random._MASK32)) + dart.notNull(tmplow);
-        low = dart.notNull(tmplow) & dart.notNull(_Random._MASK32);
-        high = ~dart.notNull(high) + dart.notNull(tmphigh) + ((dart.notNull(tmplow) - dart.notNull(low)) / 4294967296)[dartx.truncate]() & dart.notNull(_Random._MASK32);
-        tmphigh = dart.notNull(high) >> 24;
-        tmplow = dart.notNull(low) >> 24 | dart.notNull(high) << 8;
-        low = dart.notNull(low) ^ dart.notNull(tmplow);
-        high = dart.notNull(high) ^ dart.notNull(tmphigh);
-        tmplow = dart.notNull(low) * 265;
-        low = dart.notNull(tmplow) & dart.notNull(_Random._MASK32);
-        high = dart.notNull(high) * 265 + ((dart.notNull(tmplow) - dart.notNull(low)) / 4294967296)[dartx.truncate]() & dart.notNull(_Random._MASK32);
-        tmphigh = dart.notNull(high) >> 14;
-        tmplow = dart.notNull(low) >> 14 | dart.notNull(high) << 18;
-        low = dart.notNull(low) ^ dart.notNull(tmplow);
-        high = dart.notNull(high) ^ dart.notNull(tmphigh);
-        tmplow = dart.notNull(low) * 21;
-        low = dart.notNull(tmplow) & dart.notNull(_Random._MASK32);
-        high = dart.notNull(high) * 21 + ((dart.notNull(tmplow) - dart.notNull(low)) / 4294967296)[dartx.truncate]() & dart.notNull(_Random._MASK32);
-        tmphigh = dart.notNull(high) >> 28;
-        tmplow = dart.notNull(low) >> 28 | dart.notNull(high) << 4;
-        low = dart.notNull(low) ^ dart.notNull(tmplow);
-        high = dart.notNull(high) ^ dart.notNull(tmphigh);
-        tmplow = dart.notNull(low) << 31;
-        tmphigh = dart.notNull(high) << 31 | dart.notNull(low) >> 1;
-        tmplow = dart.notNull(tmplow) + dart.notNull(low);
-        low = dart.notNull(tmplow) & dart.notNull(_Random._MASK32);
-        high = dart.notNull(high) + dart.notNull(tmphigh) + ((dart.notNull(tmplow) - dart.notNull(low)) / 4294967296)[dartx.truncate]() & dart.notNull(_Random._MASK32);
+        seed = ((dart.notNull(seed) - high) / dart.notNull(_POW2_32))[dartx.truncate]();
+        let tmplow = low << 21;
+        let tmphigh = high << 21 | low >> 11;
+        tmplow = (~low & dart.notNull(_Random._MASK32)) + tmplow;
+        low = tmplow & dart.notNull(_Random._MASK32);
+        high = ~high + tmphigh + ((tmplow - low) / 4294967296)[dartx.truncate]() & dart.notNull(_Random._MASK32);
+        tmphigh = high >> 24;
+        tmplow = low >> 24 | high << 8;
+        low = low ^ tmplow;
+        high = high ^ tmphigh;
+        tmplow = low * 265;
+        low = tmplow & dart.notNull(_Random._MASK32);
+        high = high * 265 + ((tmplow - low) / 4294967296)[dartx.truncate]() & dart.notNull(_Random._MASK32);
+        tmphigh = high >> 14;
+        tmplow = low >> 14 | high << 18;
+        low = low ^ tmplow;
+        high = high ^ tmphigh;
+        tmplow = low * 21;
+        low = tmplow & dart.notNull(_Random._MASK32);
+        high = high * 21 + ((tmplow - low) / 4294967296)[dartx.truncate]() & dart.notNull(_Random._MASK32);
+        tmphigh = high >> 28;
+        tmplow = low >> 28 | high << 4;
+        low = low ^ tmplow;
+        high = high ^ tmphigh;
+        tmplow = low << 31;
+        tmphigh = high << 31 | low >> 1;
+        tmplow = tmplow + low;
+        low = tmplow & dart.notNull(_Random._MASK32);
+        high = high + tmphigh + ((tmplow - low) / 4294967296)[dartx.truncate]() & dart.notNull(_Random._MASK32);
         tmplow = dart.notNull(this[_lo]) * 1037;
-        this[_lo] = dart.notNull(tmplow) & dart.notNull(_Random._MASK32);
-        this[_hi] = dart.notNull(this[_hi]) * 1037 + ((dart.notNull(tmplow) - dart.notNull(this[_lo])) / 4294967296)[dartx.truncate]() & dart.notNull(_Random._MASK32);
-        this[_lo] = dart.notNull(this[_lo]) ^ dart.notNull(low);
-        this[_hi] = dart.notNull(this[_hi]) ^ dart.notNull(high);
+        this[_lo] = tmplow & dart.notNull(_Random._MASK32);
+        this[_hi] = dart.notNull(this[_hi]) * 1037 + ((tmplow - dart.notNull(this[_lo])) / 4294967296)[dartx.truncate]() & dart.notNull(_Random._MASK32);
+        this[_lo] = dart.notNull(this[_lo]) ^ low;
+        this[_hi] = dart.notNull(this[_hi]) ^ high;
       } while (seed != empty_seed);
       if (this[_hi] == 0 && this[_lo] == 0) {
         this[_lo] = 23063;
@@ -425,15 +425,15 @@ dart_library.library('dart/math', null, /* Imports */[
     }
     [_nextState]() {
       let tmpHi = 4294901760 * dart.notNull(this[_lo]);
-      let tmpHiLo = dart.notNull(tmpHi) & dart.notNull(_Random._MASK32);
-      let tmpHiHi = dart.notNull(tmpHi) - dart.notNull(tmpHiLo);
+      let tmpHiLo = tmpHi & dart.notNull(_Random._MASK32);
+      let tmpHiHi = tmpHi - tmpHiLo;
       let tmpLo = 55905 * dart.notNull(this[_lo]);
-      let tmpLoLo = dart.notNull(tmpLo) & dart.notNull(_Random._MASK32);
-      let tmpLoHi = dart.notNull(tmpLo) - dart.notNull(tmpLoLo);
-      let newLo = dart.notNull(tmpLoLo) + dart.notNull(tmpHiLo) + dart.notNull(this[_hi]);
-      this[_lo] = dart.notNull(newLo) & dart.notNull(_Random._MASK32);
-      let newLoHi = dart.notNull(newLo) - dart.notNull(this[_lo]);
-      this[_hi] = ((dart.notNull(tmpLoHi) + dart.notNull(tmpHiHi) + dart.notNull(newLoHi)) / dart.notNull(_POW2_32))[dartx.truncate]() & dart.notNull(_Random._MASK32);
+      let tmpLoLo = tmpLo & dart.notNull(_Random._MASK32);
+      let tmpLoHi = tmpLo - tmpLoLo;
+      let newLo = tmpLoLo + tmpHiLo + dart.notNull(this[_hi]);
+      this[_lo] = newLo & dart.notNull(_Random._MASK32);
+      let newLoHi = newLo - dart.notNull(this[_lo]);
+      this[_hi] = ((tmpLoHi + tmpHiHi + newLoHi) / dart.notNull(_POW2_32))[dartx.truncate]() & dart.notNull(_Random._MASK32);
       dart.assert(dart.notNull(this[_lo]) < dart.notNull(_POW2_32));
       dart.assert(dart.notNull(this[_hi]) < dart.notNull(_POW2_32));
     }
@@ -459,7 +459,7 @@ dart_library.library('dart/math', null, /* Imports */[
       let bits26 = dart.notNull(this[_lo]) & (1 << 26) - 1;
       this[_nextState]();
       let bits27 = dart.notNull(this[_lo]) & (1 << 27) - 1;
-      return (dart.notNull(bits26) * dart.notNull(_Random._POW2_27_D) + dart.notNull(bits27)) / dart.notNull(_Random._POW2_53_D);
+      return (bits26 * dart.notNull(_Random._POW2_27_D) + bits27) / dart.notNull(_Random._POW2_53_D);
     }
     nextBool() {
       this[_nextState]();

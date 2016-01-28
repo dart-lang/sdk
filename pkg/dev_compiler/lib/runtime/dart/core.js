@@ -157,14 +157,14 @@ dart_library.library('dart/core', null, /* Imports */[
             let hourDifference = int.parse(match.get(10));
             let minuteDifference = parseIntOrZero(match.get(11));
             minuteDifference = dart.notNull(minuteDifference) + 60 * dart.notNull(hourDifference);
-            minute = dart.notNull(minute) - dart.notNull(sign) * dart.notNull(minuteDifference);
+            minute = dart.notNull(minute) - sign * dart.notNull(minuteDifference);
           }
         }
         let millisecondsSinceEpoch = DateTime._brokenDownDateToMillisecondsSinceEpoch(years, month, day, hour, minute, second, millisecond, isUtc);
         if (millisecondsSinceEpoch == null) {
           dart.throw(new FormatException("Time out of range", formattedString));
         }
-        if (dart.notNull(addOneMillisecond)) {
+        if (addOneMillisecond) {
           millisecondsSinceEpoch = dart.notNull(millisecondsSinceEpoch) + 1;
         }
         return new DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, {isUtc: isUtc});
@@ -853,8 +853,8 @@ dart_library.library('dart/core', null, /* Imports */[
       let sb = new StringBuffer();
       let i = 0;
       if (this[_arguments] != null) {
-        for (; dart.notNull(i) < dart.notNull(this[_arguments][dartx.length]); i = dart.notNull(i) + 1) {
-          if (dart.notNull(i) > 0) {
+        for (; i < dart.notNull(this[_arguments][dartx.length]); i++) {
+          if (i > 0) {
             sb.write(", ");
           }
           sb.write(Error.safeToString(this[_arguments][dartx.get](i)));
@@ -862,13 +862,13 @@ dart_library.library('dart/core', null, /* Imports */[
       }
       if (this[_namedArguments] != null) {
         this[_namedArguments].forEach(dart.fn((key, value) => {
-          if (dart.notNull(i) > 0) {
+          if (i > 0) {
             sb.write(", ");
           }
           sb.write(_symbolToString(key));
           sb.write(": ");
           sb.write(Error.safeToString(value));
-          i = dart.notNull(i) + 1;
+          i++;
         }, dart.void, [Symbol, dart.dynamic]));
       }
       if (this[_existingArgumentNames] == null) {
@@ -876,8 +876,8 @@ dart_library.library('dart/core', null, /* Imports */[
       } else {
         let actualParameters = dart.toString(sb);
         sb = new StringBuffer();
-        for (let i = 0; dart.notNull(i) < dart.notNull(this[_existingArgumentNames][dartx.length]); i = dart.notNull(i) + 1) {
-          if (dart.notNull(i) > 0) {
+        for (let i = 0; i < dart.notNull(this[_existingArgumentNames][dartx.length]); i++) {
+          if (i > 0) {
             sb.write(", ");
           }
           sb.write(this[_existingArgumentNames][dartx.get](i));
@@ -1025,7 +1025,7 @@ dart_library.library('dart/core', null, /* Imports */[
       let offset = this.offset;
       if (!(typeof this.source == 'string')) {
         if (offset != -1) {
-          report = dart.notNull(report) + ` (at offset ${offset})`;
+          report = report + ` (at offset ${offset})`;
         }
         return report;
       }
@@ -1042,24 +1042,24 @@ dart_library.library('dart/core', null, /* Imports */[
       let lineNum = 1;
       let lineStart = 0;
       let lastWasCR = null;
-      for (let i = 0; dart.notNull(i) < dart.notNull(offset); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(offset); i++) {
         let char = dart.as(dart.dsend(this.source, 'codeUnitAt', i), int);
         if (char == 10) {
           if (lineStart != i || !dart.notNull(lastWasCR)) {
-            lineNum = dart.notNull(lineNum) + 1;
+            lineNum++;
           }
-          lineStart = dart.notNull(i) + 1;
+          lineStart = i + 1;
           lastWasCR = false;
         } else if (char == 13) {
-          lineNum = dart.notNull(lineNum) + 1;
-          lineStart = dart.notNull(i) + 1;
+          lineNum++;
+          lineStart = i + 1;
           lastWasCR = true;
         }
       }
-      if (dart.notNull(lineNum) > 1) {
-        report = dart.notNull(report) + ` (at line ${lineNum}, character ${dart.notNull(offset) - dart.notNull(lineStart) + 1})\n`;
+      if (lineNum > 1) {
+        report = report + ` (at line ${lineNum}, character ${dart.notNull(offset) - lineStart + 1})\n`;
       } else {
-        report = dart.notNull(report) + ` (at character ${dart.notNull(offset) + 1})\n`;
+        report = report + ` (at character ${dart.notNull(offset) + 1})\n`;
       }
       let lineEnd = dart.as(dart.dload(this.source, 'length'), int);
       for (let i = offset; dart.notNull(i) < dart.notNull(dart.as(dart.dload(this.source, 'length'), num)); i = dart.notNull(i) + 1) {
@@ -1069,15 +1069,15 @@ dart_library.library('dart/core', null, /* Imports */[
           break;
         }
       }
-      let length = dart.notNull(lineEnd) - dart.notNull(lineStart);
+      let length = dart.notNull(lineEnd) - lineStart;
       let start = lineStart;
       let end = lineEnd;
       let prefix = "";
       let postfix = "";
-      if (dart.notNull(length) > 78) {
-        let index = dart.notNull(offset) - dart.notNull(lineStart);
-        if (dart.notNull(index) < 75) {
-          end = dart.notNull(start) + 75;
+      if (length > 78) {
+        let index = dart.notNull(offset) - lineStart;
+        if (index < 75) {
+          end = start + 75;
           postfix = "...";
         } else if (dart.notNull(end) - dart.notNull(offset) < 75) {
           start = dart.notNull(end) - 75;
@@ -1089,7 +1089,7 @@ dart_library.library('dart/core', null, /* Imports */[
         }
       }
       let slice = dart.as(dart.dsend(this.source, 'substring', start, end), String);
-      let markOffset = dart.notNull(offset) - dart.notNull(start) + dart.notNull(prefix[dartx.length]);
+      let markOffset = dart.notNull(offset) - start + dart.notNull(prefix[dartx.length]);
       return `${report}${prefix}${slice}${postfix}\n${" "[dartx['*']](markOffset)}^\n`;
     }
   }
@@ -1272,14 +1272,14 @@ dart_library.library('dart/core', null, /* Imports */[
         RangeError.checkNotNegative(count, "count");
         if (count == 0) return this;
         let newStart = dart.notNull(this[_start]) + dart.notNull(count);
-        if (dart.notNull(newStart) >= dart.notNull(this[_end])) return new (_internal.EmptyIterable$(E))();
+        if (newStart >= dart.notNull(this[_end])) return new (_internal.EmptyIterable$(E))();
         return new (exports._GeneratorIterable$(E)).slice(newStart, this[_end], this[_generator]);
       }
       take(count) {
         RangeError.checkNotNegative(count, "count");
         if (count == 0) return new (_internal.EmptyIterable$(E))();
         let newEnd = dart.notNull(this[_start]) + dart.notNull(count);
-        if (dart.notNull(newEnd) >= dart.notNull(this[_end])) return this;
+        if (newEnd >= dart.notNull(this[_end])) return this;
         return new (exports._GeneratorIterable$(E)).slice(this[_start], newEnd, this[_generator]);
       }
       static _id(n) {
@@ -1365,7 +1365,7 @@ dart_library.library('dart/core', null, /* Imports */[
       static filled(length, fill) {
         let result = List$(E).new(length);
         if (length != 0 && fill != null) {
-          for (let i = 0; dart.notNull(i) < dart.notNull(result[dartx.length]); i = dart.notNull(i) + 1) {
+          for (let i = 0; i < dart.notNull(result[dartx.length]); i++) {
             result[dartx.set](i, fill);
           }
         }
@@ -1389,7 +1389,7 @@ dart_library.library('dart/core', null, /* Imports */[
         } else {
           result = List$(E).new(length);
         }
-        for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
+        for (let i = 0; i < dart.notNull(length); i++) {
           result[dartx.set](i, generator(i));
         }
         return result;
@@ -1607,7 +1607,7 @@ dart_library.library('dart/core', null, /* Imports */[
         dart.throw(new RangeError.range(end, start, charCodes[dartx.length]));
       }
       let it = charCodes[dartx.iterator];
-      for (let i = 0; dart.notNull(i) < dart.notNull(start); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(start); i++) {
         if (!dart.notNull(it.moveNext())) {
           dart.throw(new RangeError.range(start, 0, i));
         }
@@ -1739,10 +1739,10 @@ dart_library.library('dart/core', null, /* Imports */[
       }
       let codeUnit = this.string[dartx.codeUnitAt](this[_position]);
       let nextPosition = dart.notNull(this[_position]) + 1;
-      if (dart.notNull(_isLeadSurrogate(codeUnit)) && dart.notNull(nextPosition) < dart.notNull(this.string[dartx.length])) {
+      if (dart.notNull(_isLeadSurrogate(codeUnit)) && nextPosition < dart.notNull(this.string[dartx.length])) {
         let nextCodeUnit = this.string[dartx.codeUnitAt](nextPosition);
         if (dart.notNull(_isTrailSurrogate(nextCodeUnit))) {
-          this[_nextPosition] = dart.notNull(nextPosition) + 1;
+          this[_nextPosition] = nextPosition + 1;
           this[_currentCodePoint] = _combineSurrogatePair(codeUnit, nextCodeUnit);
           return true;
         }
@@ -1759,10 +1759,10 @@ dart_library.library('dart/core', null, /* Imports */[
       }
       let position = dart.notNull(this[_position]) - 1;
       let codeUnit = this.string[dartx.codeUnitAt](position);
-      if (dart.notNull(_isTrailSurrogate(codeUnit)) && dart.notNull(position) > 0) {
-        let prevCodeUnit = this.string[dartx.codeUnitAt](dart.notNull(position) - 1);
+      if (dart.notNull(_isTrailSurrogate(codeUnit)) && position > 0) {
+        let prevCodeUnit = this.string[dartx.codeUnitAt](position - 1);
         if (dart.notNull(_isLeadSurrogate(prevCodeUnit))) {
-          this[_position] = dart.notNull(position) - 1;
+          this[_position] = position - 1;
           this[_currentCodePoint] = _combineSurrogatePair(prevCodeUnit, codeUnit);
           return true;
         }
@@ -1970,7 +1970,7 @@ dart_library.library('dart/core', null, /* Imports */[
           let portNumber = null;
           if (dart.notNull(lastColon) + 1 < dart.notNull(index)) {
             portNumber = 0;
-            for (let i = dart.notNull(lastColon) + 1; dart.notNull(i) < dart.notNull(index); i = dart.notNull(i) + 1) {
+            for (let i = dart.notNull(lastColon) + 1; i < dart.notNull(index); i++) {
               let digit = uri[dartx.codeUnitAt](i);
               if (dart.notNull(Uri._ZERO) > dart.notNull(digit) || dart.notNull(Uri._NINE) < dart.notNull(digit)) {
                 Uri._fail(uri, i, "Invalid port number");
@@ -2106,7 +2106,7 @@ dart_library.library('dart/core', null, /* Imports */[
       fragment = Uri._makeFragment(fragment, 0, Uri._stringOrNullLength(fragment));
       port = Uri._makePort(port, scheme);
       let isFile = scheme == "file";
-      if (host == null && (dart.notNull(userInfo[dartx.isNotEmpty]) || port != null || dart.notNull(isFile))) {
+      if (host == null && (dart.notNull(userInfo[dartx.isNotEmpty]) || port != null || isFile)) {
         host = "";
       }
       let ensureLeadingSlash = host != null;
@@ -2128,32 +2128,32 @@ dart_library.library('dart/core', null, /* Imports */[
       if (authority != null && dart.notNull(authority[dartx.isNotEmpty])) {
         let hostStart = 0;
         let hasUserInfo = false;
-        for (let i = 0; dart.notNull(i) < dart.notNull(authority[dartx.length]); i = dart.notNull(i) + 1) {
+        for (let i = 0; i < dart.notNull(authority[dartx.length]); i++) {
           if (authority[dartx.codeUnitAt](i) == Uri._AT_SIGN) {
             hasUserInfo = true;
             userInfo = authority[dartx.substring](0, i);
-            hostStart = dart.notNull(i) + 1;
+            hostStart = i + 1;
             break;
           }
         }
         let hostEnd = hostStart;
-        if (dart.notNull(hostStart) < dart.notNull(authority[dartx.length]) && authority[dartx.codeUnitAt](hostStart) == Uri._LEFT_BRACKET) {
-          for (; dart.notNull(hostEnd) < dart.notNull(authority[dartx.length]); hostEnd = dart.notNull(hostEnd) + 1) {
+        if (hostStart < dart.notNull(authority[dartx.length]) && authority[dartx.codeUnitAt](hostStart) == Uri._LEFT_BRACKET) {
+          for (; hostEnd < dart.notNull(authority[dartx.length]); hostEnd++) {
             if (authority[dartx.codeUnitAt](hostEnd) == Uri._RIGHT_BRACKET) break;
           }
           if (hostEnd == authority[dartx.length]) {
             dart.throw(new FormatException("Invalid IPv6 host entry.", authority, hostStart));
           }
-          Uri.parseIPv6Address(authority, dart.notNull(hostStart) + 1, hostEnd);
-          hostEnd = dart.notNull(hostEnd) + 1;
+          Uri.parseIPv6Address(authority, hostStart + 1, hostEnd);
+          hostEnd++;
           if (hostEnd != authority[dartx.length] && authority[dartx.codeUnitAt](hostEnd) != Uri._COLON) {
             dart.throw(new FormatException("Invalid end of authority", authority, hostEnd));
           }
         }
         let hasPort = false;
-        for (; dart.notNull(hostEnd) < dart.notNull(authority[dartx.length]); hostEnd = dart.notNull(hostEnd) + 1) {
+        for (; hostEnd < dart.notNull(authority[dartx.length]); hostEnd++) {
           if (authority[dartx.codeUnitAt](hostEnd) == Uri._COLON) {
-            let portString = authority[dartx.substring](dart.notNull(hostEnd) + 1);
+            let portString = authority[dartx.substring](hostEnd + 1);
             if (dart.notNull(portString[dartx.isNotEmpty])) port = int.parse(portString);
             break;
           }
@@ -2285,7 +2285,7 @@ dart_library.library('dart/core', null, /* Imports */[
         port = Uri._makePort(port, scheme);
       } else {
         port = dart.asInt(this[_port]);
-        if (dart.notNull(schemeChanged)) {
+        if (schemeChanged) {
           port = Uri._makePort(port, scheme);
         }
       }
@@ -2293,7 +2293,7 @@ dart_library.library('dart/core', null, /* Imports */[
         host = Uri._makeHost(host, 0, host[dartx.length], false);
       } else if (dart.notNull(this.hasAuthority)) {
         host = this.host;
-      } else if (dart.notNull(userInfo[dartx.isNotEmpty]) || port != null || dart.notNull(isFile)) {
+      } else if (dart.notNull(userInfo[dartx.isNotEmpty]) || port != null || isFile) {
         host = "";
       }
       let ensureLeadingSlash = host != null;
@@ -2301,7 +2301,7 @@ dart_library.library('dart/core', null, /* Imports */[
         path = Uri._makePath(path, 0, Uri._stringOrNullLength(path), pathSegments, ensureLeadingSlash, isFile);
       } else {
         path = this.path;
-        if ((dart.notNull(isFile) || dart.notNull(ensureLeadingSlash) && !dart.notNull(path[dartx.isEmpty])) && !dart.notNull(path[dartx.startsWith]('/'))) {
+        if ((isFile || ensureLeadingSlash && !dart.notNull(path[dartx.isEmpty])) && !dart.notNull(path[dartx.startsWith]('/'))) {
           path = `/${path}`;
         }
       }
@@ -2366,13 +2366,13 @@ dart_library.library('dart/core', null, /* Imports */[
         let char = host[dartx.codeUnitAt](index);
         if (char == Uri._PERCENT) {
           let replacement = Uri._normalizeEscape(host, index, true);
-          if (replacement == null && dart.notNull(isNormalized)) {
+          if (replacement == null && isNormalized) {
             index = dart.notNull(index) + 3;
             continue;
           }
           if (buffer == null) buffer = new StringBuffer();
           let slice = host[dartx.substring](sectionStart, index);
-          if (!dart.notNull(isNormalized)) slice = slice[dartx.toLowerCase]();
+          if (!isNormalized) slice = slice[dartx.toLowerCase]();
           buffer.write(slice);
           let sourceLength = 3;
           if (replacement == null) {
@@ -2382,11 +2382,11 @@ dart_library.library('dart/core', null, /* Imports */[
             sourceLength = 1;
           }
           buffer.write(replacement);
-          index = dart.notNull(index) + dart.notNull(sourceLength);
+          index = dart.notNull(index) + sourceLength;
           sectionStart = index;
           isNormalized = true;
         } else if (dart.notNull(Uri._isRegNameChar(char))) {
-          if (dart.notNull(isNormalized) && dart.notNull(Uri._UPPER_CASE_A) <= dart.notNull(char) && dart.notNull(Uri._UPPER_CASE_Z) >= dart.notNull(char)) {
+          if (isNormalized && dart.notNull(Uri._UPPER_CASE_A) <= dart.notNull(char) && dart.notNull(Uri._UPPER_CASE_Z) >= dart.notNull(char)) {
             if (buffer == null) buffer = new StringBuffer();
             if (dart.notNull(sectionStart) < dart.notNull(index)) {
               buffer.write(host[dartx.substring](sectionStart, index));
@@ -2408,17 +2408,17 @@ dart_library.library('dart/core', null, /* Imports */[
           }
           if (buffer == null) buffer = new StringBuffer();
           let slice = host[dartx.substring](sectionStart, index);
-          if (!dart.notNull(isNormalized)) slice = slice[dartx.toLowerCase]();
+          if (!isNormalized) slice = slice[dartx.toLowerCase]();
           buffer.write(slice);
           buffer.write(Uri._escapeChar(char));
-          index = dart.notNull(index) + dart.notNull(sourceLength);
+          index = dart.notNull(index) + sourceLength;
           sectionStart = index;
         }
       }
       if (buffer == null) return host[dartx.substring](start, end);
       if (dart.notNull(sectionStart) < dart.notNull(end)) {
         let slice = host[dartx.substring](sectionStart, end);
-        if (!dart.notNull(isNormalized)) slice = slice[dartx.toLowerCase]();
+        if (!isNormalized) slice = slice[dartx.toLowerCase]();
         buffer.write(slice);
       }
       return dart.toString(buffer);
@@ -2430,7 +2430,7 @@ dart_library.library('dart/core', null, /* Imports */[
         Uri._fail(scheme, 0, "Scheme not starting with alphabetic character");
       }
       let allLowercase = dart.notNull(firstCodeUnit) >= dart.notNull(Uri._LOWER_CASE_A);
-      for (let i = 0; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(end); i++) {
         let codeUnit = scheme[dartx.codeUnitAt](i);
         if (!dart.notNull(Uri._isSchemeCharacter(codeUnit))) {
           Uri._fail(scheme, i, "Illegal scheme character");
@@ -2440,7 +2440,7 @@ dart_library.library('dart/core', null, /* Imports */[
         }
       }
       scheme = scheme[dartx.substring](0, end);
-      if (!dart.notNull(allLowercase)) scheme = scheme[dartx.toLowerCase]();
+      if (!allLowercase) scheme = scheme[dartx.toLowerCase]();
       return scheme;
     }
     static _makeUserInfo(userInfo, start, end) {
@@ -2474,7 +2474,7 @@ dart_library.library('dart/core', null, /* Imports */[
       let result = new StringBuffer();
       let first = true;
       queryParameters.forEach(dart.fn((key, value) => {
-        if (!dart.notNull(first)) {
+        if (!first) {
           result.write("&");
         }
         first = false;
@@ -2516,8 +2516,8 @@ dart_library.library('dart/core', null, /* Imports */[
       }
       let value = dart.notNull(Uri._hexValue(firstDigit)) * 16 + dart.notNull(Uri._hexValue(secondDigit));
       if (dart.notNull(Uri._isUnreservedChar(value))) {
-        if (dart.notNull(lowerCase) && dart.notNull(Uri._UPPER_CASE_A) <= dart.notNull(value) && dart.notNull(Uri._UPPER_CASE_Z) >= dart.notNull(value)) {
-          value = dart.notNull(value) | 32;
+        if (dart.notNull(lowerCase) && dart.notNull(Uri._UPPER_CASE_A) <= value && dart.notNull(Uri._UPPER_CASE_Z) >= value) {
+          value = value | 32;
         }
         return String.fromCharCode(value);
       }
@@ -2549,14 +2549,14 @@ dart_library.library('dart/core', null, /* Imports */[
             flag = 240;
           }
         }
-        codeUnits = List.new(3 * dart.notNull(encodedBytes));
+        codeUnits = List.new(3 * encodedBytes);
         let index = 0;
-        while ((encodedBytes = dart.notNull(encodedBytes) - 1) >= 0) {
-          let byte = dart.as(dart.dsend(dart.dsend(dart.dsend(char, '>>', 6 * dart.notNull(encodedBytes)), '&', 63), '|', flag), int);
+        while (--encodedBytes >= 0) {
+          let byte = dart.as(dart.dsend(dart.dsend(dart.dsend(char, '>>', 6 * encodedBytes), '&', 63), '|', flag), int);
           codeUnits[dartx.set](index, Uri._PERCENT);
-          codeUnits[dartx.set](dart.notNull(index) + 1, hexDigits[dartx.codeUnitAt](dart.notNull(byte) >> 4));
-          codeUnits[dartx.set](dart.notNull(index) + 2, hexDigits[dartx.codeUnitAt](dart.notNull(byte) & 15));
-          index = dart.notNull(index) + 3;
+          codeUnits[dartx.set](index + 1, hexDigits[dartx.codeUnitAt](dart.notNull(byte) >> 4));
+          codeUnits[dartx.set](index + 2, hexDigits[dartx.codeUnitAt](dart.notNull(byte) & 15));
+          index = index + 3;
           flag = 128;
         }
       }
@@ -2629,11 +2629,11 @@ dart_library.library('dart/core', null, /* Imports */[
       let backCount = 0;
       let refStart = 0;
       while (dart.notNull(reference[dartx.startsWith]("../", refStart))) {
-        refStart = dart.notNull(refStart) + 3;
-        backCount = dart.notNull(backCount) + 1;
+        refStart = refStart + 3;
+        backCount++;
       }
       let baseEnd = base[dartx.lastIndexOf]('/');
-      while (dart.notNull(baseEnd) > 0 && dart.notNull(backCount) > 0) {
+      while (dart.notNull(baseEnd) > 0 && backCount > 0) {
         let newEnd = base[dartx.lastIndexOf]('/', dart.notNull(baseEnd) - 1);
         if (dart.notNull(newEnd) < 0) {
           break;
@@ -2643,9 +2643,9 @@ dart_library.library('dart/core', null, /* Imports */[
           break;
         }
         baseEnd = newEnd;
-        backCount = dart.notNull(backCount) - 1;
+        backCount--;
       }
-      return dart.notNull(base[dartx.substring](0, dart.notNull(baseEnd) + 1)) + dart.notNull(reference[dartx.substring](dart.notNull(refStart) - 3 * dart.notNull(backCount)));
+      return dart.notNull(base[dartx.substring](0, dart.notNull(baseEnd) + 1)) + dart.notNull(reference[dartx.substring](refStart - 3 * backCount));
     }
     [_hasDotSegments](path) {
       if (dart.notNull(path[dartx.length]) > 0 && path[dartx.codeUnitAt](0) == Uri._DOT) return true;
@@ -2667,7 +2667,7 @@ dart_library.library('dart/core', null, /* Imports */[
           output[dartx.add](segment);
         }
       }
-      if (dart.notNull(appendSlash)) output[dartx.add]("");
+      if (appendSlash) output[dartx.add]("");
       return output[dartx.join]("/");
     }
     resolve(reference) {
@@ -2780,14 +2780,14 @@ dart_library.library('dart/core', null, /* Imports */[
         Uri._checkWindowsPathReservedCharacters(segments, false);
       }
       let result = new StringBuffer();
-      if (dart.notNull(this[_isPathAbsolute]) && !dart.notNull(hasDriveLetter)) result.write("\\");
+      if (dart.notNull(this[_isPathAbsolute]) && !hasDriveLetter) result.write("\\");
       if (this.host != "") {
         result.write("\\");
         result.write(this.host);
         result.write("\\");
       }
       result.writeAll(segments, "\\");
-      if (dart.notNull(hasDriveLetter) && segments[dartx.length] == 1) result.write("\\");
+      if (hasDriveLetter && segments[dartx.length] == 1) result.write("\\");
       return dart.toString(result);
     }
     get [_isPathAbsolute]() {
@@ -2928,7 +2928,7 @@ dart_library.library('dart/core', null, /* Imports */[
             partStart = i;
           }
           if (i == partStart) {
-            if (dart.notNull(wildcardSeen)) {
+            if (wildcardSeen) {
               error('only one wildcard `::` is allowed', i);
             }
             wildcardSeen = true;
@@ -2942,10 +2942,10 @@ dart_library.library('dart/core', null, /* Imports */[
       if (parts[dartx.length] == 0) error('too few parts');
       let atEnd = partStart == end;
       let isLastWildcard = parts[dartx.last] == -1;
-      if (dart.notNull(atEnd) && !dart.notNull(isLastWildcard)) {
+      if (atEnd && !isLastWildcard) {
         error('expected a part after last `:`', end);
       }
-      if (!dart.notNull(atEnd)) {
+      if (!atEnd) {
         try {
           parts[dartx.add](parseHex(partStart, end));
         } catch (e) {
@@ -2960,7 +2960,7 @@ dart_library.library('dart/core', null, /* Imports */[
         }
 
       }
-      if (dart.notNull(wildcardSeen)) {
+      if (wildcardSeen) {
         if (dart.notNull(parts[dartx.length]) > 7) {
           error('an address with a wildcard must have less than 7 parts');
         }
@@ -2968,19 +2968,19 @@ dart_library.library('dart/core', null, /* Imports */[
         error('an address without a wildcard must contain exactly 8 parts');
       }
       let bytes = List$(int).new(16);
-      for (let i = 0, index = 0; dart.notNull(i) < dart.notNull(parts[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0, index = 0; i < dart.notNull(parts[dartx.length]); i++) {
         let value = parts[dartx.get](i);
         if (value == -1) {
           let wildCardLength = 9 - dart.notNull(parts[dartx.length]);
-          for (let j = 0; dart.notNull(j) < dart.notNull(wildCardLength); j = dart.notNull(j) + 1) {
+          for (let j = 0; j < wildCardLength; j++) {
             bytes[dartx.set](index, 0);
-            bytes[dartx.set](dart.notNull(index) + 1, 0);
-            index = dart.notNull(index) + 2;
+            bytes[dartx.set](index + 1, 0);
+            index = index + 2;
           }
         } else {
           bytes[dartx.set](index, dart.notNull(value) >> 8);
-          bytes[dartx.set](dart.notNull(index) + 1, dart.notNull(value) & 255);
-          index = dart.notNull(index) + 2;
+          bytes[dartx.set](index + 1, dart.notNull(value) & 255);
+          index = index + 2;
         }
       }
       return dart.as(bytes, List$(int));
@@ -2996,7 +2996,7 @@ dart_library.library('dart/core', null, /* Imports */[
       dart.fn(byteToHex);
       let result = new StringBuffer();
       let bytes = encoding.encode(text);
-      for (let i = 0; dart.notNull(i) < dart.notNull(bytes[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(bytes[dartx.length]); i++) {
         let byte = bytes[dartx.get](i);
         if (dart.notNull(byte) < 128 && (dart.notNull(canonicalTable[dartx.get](dart.notNull(byte) >> 4)) & 1 << (dart.notNull(byte) & 15)) != 0) {
           result.writeCharCode(byte);
@@ -3011,14 +3011,14 @@ dart_library.library('dart/core', null, /* Imports */[
     }
     static _hexCharPairToByte(s, pos) {
       let byte = 0;
-      for (let i = 0; dart.notNull(i) < 2; i = dart.notNull(i) + 1) {
-        let charCode = s[dartx.codeUnitAt](dart.notNull(pos) + dart.notNull(i));
+      for (let i = 0; i < 2; i++) {
+        let charCode = s[dartx.codeUnitAt](dart.notNull(pos) + i);
         if (48 <= dart.notNull(charCode) && dart.notNull(charCode) <= 57) {
-          byte = dart.notNull(byte) * 16 + dart.notNull(charCode) - 48;
+          byte = byte * 16 + dart.notNull(charCode) - 48;
         } else {
           charCode = dart.notNull(charCode) | 32;
           if (97 <= dart.notNull(charCode) && dart.notNull(charCode) <= 102) {
-            byte = dart.notNull(byte) * 16 + dart.notNull(charCode) - 87;
+            byte = byte * 16 + dart.notNull(charCode) - 87;
           } else {
             dart.throw(new ArgumentError("Invalid URL encoding"));
           }
@@ -3030,12 +3030,12 @@ dart_library.library('dart/core', null, /* Imports */[
       let plusToSpace = opts && 'plusToSpace' in opts ? opts.plusToSpace : false;
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
       let simple = true;
-      for (let i = 0; dart.notNull(i) < dart.notNull(text[dartx.length]) && dart.notNull(simple); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(text[dartx.length]) && simple; i++) {
         let codeUnit = text[dartx.codeUnitAt](i);
         simple = codeUnit != Uri._PERCENT && codeUnit != Uri._PLUS;
       }
       let bytes = null;
-      if (dart.notNull(simple)) {
+      if (simple) {
         if (dart.equals(encoding, convert.UTF8) || dart.equals(encoding, convert.LATIN1)) {
           return text;
         } else {
@@ -3043,17 +3043,17 @@ dart_library.library('dart/core', null, /* Imports */[
         }
       } else {
         bytes = List$(int).new();
-        for (let i = 0; dart.notNull(i) < dart.notNull(text[dartx.length]); i = dart.notNull(i) + 1) {
+        for (let i = 0; i < dart.notNull(text[dartx.length]); i++) {
           let codeUnit = text[dartx.codeUnitAt](i);
           if (dart.notNull(codeUnit) > 127) {
             dart.throw(new ArgumentError("Illegal percent encoding in URI"));
           }
           if (codeUnit == Uri._PERCENT) {
-            if (dart.notNull(i) + 3 > dart.notNull(text[dartx.length])) {
+            if (i + 3 > dart.notNull(text[dartx.length])) {
               dart.throw(new ArgumentError('Truncated URI'));
             }
-            bytes[dartx.add](Uri._hexCharPairToByte(text, dart.notNull(i) + 1));
-            i = dart.notNull(i) + 2;
+            bytes[dartx.add](Uri._hexCharPairToByte(text, i + 1));
+            i = i + 2;
           } else if (dart.notNull(plusToSpace) && codeUnit == Uri._PLUS) {
             bytes[dartx.add](Uri._SPACE);
           } else {

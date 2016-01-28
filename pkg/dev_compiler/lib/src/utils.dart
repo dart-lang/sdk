@@ -449,3 +449,27 @@ getEnumName(v) {
   }
   return parts[1];
 }
+
+/// Simplistic directed graph.
+class DirectedGraph<V> {
+  final _adjacencyList = <V, Set<V>>{};
+
+  void addEdge(V from, V to) {
+    _adjacencyList.putIfAbsent(from, () => new Set<V>()).add(to);
+  }
+
+  /// Get all the vertices reachable from the provided [roots].
+  Set<V> getTransitiveClosure(Iterable<V> roots) {
+    final reached = new Set<V>();
+
+    visit(V e) {
+      if (reached.add(e)) {
+        var destinations = _adjacencyList[e];
+        if (destinations != null) destinations.forEach(visit);
+      }
+    }
+    roots.forEach(visit);
+
+    return reached;
+  }
+}

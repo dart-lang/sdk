@@ -127,7 +127,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       }
       [dartx.remove](element) {
         this[dartx.checkGrowable]('remove');
-        for (let i = 0; dart.notNull(i) < dart.notNull(this[dartx.length]); i = dart.notNull(i) + 1) {
+        for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
           if (dart.equals(this[dartx.get](i), element)) {
             this.splice(i, 1);
             return true;
@@ -163,7 +163,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       [dartx.forEach](f) {
         dart.as(f, dart.functionType(dart.void, [E]));
         let length = this[dartx.length];
-        for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
+        for (let i = 0; i < dart.notNull(length); i++) {
           f(dart.as(this[i], E));
           if (length != this[dartx.length]) {
             dart.throw(new core.ConcurrentModificationError(this));
@@ -177,7 +177,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       [dartx.join](separator) {
         if (separator === void 0) separator = "";
         let list = core.List.new(this[dartx.length]);
-        for (let i = 0; dart.notNull(i) < dart.notNull(this[dartx.length]); i = dart.notNull(i) + 1) {
+        for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
           list[dartx.set](i, `${this[dartx.get](i)}`);
         }
         return list.join(separator);
@@ -312,7 +312,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         return _internal.IterableMixinWorkaround.lastIndexOfList(this, element, start);
       }
       [dartx.contains](other) {
-        for (let i = 0; dart.notNull(i) < dart.notNull(this[dartx.length]); i = dart.notNull(i) + 1) {
+        for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
           if (dart.equals(this[dartx.get](i), other)) return true;
         }
         return false;
@@ -659,7 +659,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       let exponent = +dart.dindex(match, 3);
       if (dart.dindex(match, 2) != null) {
         result = result + dart.dindex(match, 2);
-        exponent = dart.notNull(exponent) - dart.dindex(match, 2).length;
+        exponent = exponent - dart.dindex(match, 2).length;
       }
       return dart.notNull(result) + "0"[dartx['*']](exponent);
     }
@@ -696,11 +696,11 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       _js_helper.checkNull(other);
       let result = this % other;
       if (result == 0) return 0;
-      if (dart.notNull(result) > 0) return result;
+      if (result > 0) return result;
       if (other < 0) {
-        return dart.notNull(result) - other;
+        return result - other;
       } else {
-        return dart.notNull(result) + other;
+        return result + other;
       }
     }
     [_isInt32](value) {
@@ -773,12 +773,12 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
     }
     [dartx.toSigned](width) {
       let signMask = 1 << dart.notNull(width) - 1;
-      return (this & dart.notNull(signMask) - 1) - (this & dart.notNull(signMask));
+      return (this & signMask - 1) - (this & signMask);
     }
     get [dartx.bitLength]() {
       let nonneg = this < 0 ? -this - 1 : this;
-      if (dart.notNull(nonneg) >= 4294967296) {
-        nonneg = (dart.notNull(nonneg) / 4294967296)[dartx.truncate]();
+      if (nonneg >= 4294967296) {
+        nonneg = (nonneg / 4294967296)[dartx.truncate]();
         return dart.notNull(JSNumber._bitCount(JSNumber._spread(nonneg))) + 32;
       }
       return JSNumber._bitCount(JSNumber._spread(nonneg));
@@ -934,8 +934,8 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         dart.throw(new core.RangeError.range(start, 0, string[dartx.length]));
       }
       if (dart.notNull(start) + dart.notNull(this[dartx.length]) > dart.notNull(string[dartx.length])) return null;
-      for (let i = 0; dart.notNull(i) < dart.notNull(this[dartx.length]); i = dart.notNull(i) + 1) {
-        if (string[dartx.codeUnitAt](dart.notNull(start) + dart.notNull(i)) != this[dartx.codeUnitAt](i)) {
+      for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
+        if (string[dartx.codeUnitAt](dart.notNull(start) + i) != this[dartx.codeUnitAt](i)) {
           return null;
         }
       }
@@ -998,7 +998,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         result[dartx.add](this[dartx.substring](start, end));
         start = matchEnd;
       }
-      if (dart.notNull(start) < dart.notNull(this[dartx.length]) || dart.notNull(length) > 0) {
+      if (dart.notNull(start) < dart.notNull(this[dartx.length]) || length > 0) {
         result[dartx.add](this[dartx.substring](start));
       }
       return result;
@@ -1013,7 +1013,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         let other = pattern;
         let otherLength = other[dartx.length];
         let endIndex = dart.notNull(index) + dart.notNull(otherLength);
-        if (dart.notNull(endIndex) > dart.notNull(this[dartx.length])) return false;
+        if (endIndex > dart.notNull(this[dartx.length])) return false;
         return other == this.substring(index, endIndex);
       }
       return pattern[dartx.matchAsPrefix](this, index) != null;
@@ -1173,23 +1173,23 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       let result = '';
       let s = this;
       while (true) {
-        if ((dart.notNull(times) & 1) == 1) result = dart.notNull(s) + dart.notNull(result);
+        if ((dart.notNull(times) & 1) == 1) result = s + result;
         times = times >>> 1;
         if (times == 0) break;
-        s = dart.notNull(s) + dart.notNull(s);
+        s = s + s;
       }
       return result;
     }
     [dartx.padLeft](width, padding) {
       if (padding === void 0) padding = ' ';
       let delta = dart.notNull(width) - dart.notNull(this[dartx.length]);
-      if (dart.notNull(delta) <= 0) return this;
+      if (delta <= 0) return this;
       return padding[dartx['*']](delta) + this;
     }
     [dartx.padRight](width, padding) {
       if (padding === void 0) padding = ' ';
       let delta = dart.notNull(width) - dart.notNull(this[dartx.length]);
-      if (dart.notNull(delta) <= 0) return this;
+      if (delta <= 0) return this;
       return this[dartx['+']](padding[dartx['*']](delta));
     }
     get [dartx.codeUnits]() {
@@ -1263,14 +1263,14 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
     }
     get hashCode() {
       let hash = 0;
-      for (let i = 0; dart.notNull(i) < dart.notNull(this[dartx.length]); i = dart.notNull(i) + 1) {
-        hash = 536870911 & dart.notNull(hash) + this.charCodeAt(i);
-        hash = 536870911 & dart.notNull(hash) + ((524287 & dart.notNull(hash)) << 10);
+      for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
+        hash = 536870911 & hash + this.charCodeAt(i);
+        hash = 536870911 & hash + ((524287 & hash) << 10);
         hash = hash ^ hash >> 6;
       }
-      hash = 536870911 & dart.notNull(hash) + ((67108863 & dart.notNull(hash)) << 3);
+      hash = 536870911 & hash + ((67108863 & hash) << 3);
       hash = hash ^ hash >> 11;
-      return 536870911 & dart.notNull(hash) + ((16383 & dart.notNull(hash)) << 15);
+      return 536870911 & hash + ((16383 & hash) << 15);
     }
     get runtimeType() {
       return core.String;

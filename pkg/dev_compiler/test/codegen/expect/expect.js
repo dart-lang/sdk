@@ -11,9 +11,9 @@ dart_library.library('expect', null, /* Imports */[
         end = dart.notNull(start) + dart.notNull(length);
       } else if (dart.notNull(end) - dart.notNull(start) < dart.notNull(length)) {
         let overflow = dart.notNull(length) - (dart.notNull(end) - dart.notNull(start));
-        if (dart.notNull(overflow) > 10) overflow = 10;
-        start = dart.notNull(start) - ((dart.notNull(overflow) + 1) / 2)[dartx.truncate]();
-        end = dart.notNull(end) + (dart.notNull(overflow) / 2)[dartx.truncate]();
+        if (overflow > 10) overflow = 10;
+        start = dart.notNull(start) - ((overflow + 1) / 2)[dartx.truncate]();
+        end = dart.notNull(end) + (overflow / 2)[dartx.truncate]();
         if (dart.notNull(start) < 0) start = 0;
         if (dart.notNull(end) > dart.notNull(string[dartx.length])) end = string[dartx.length];
       }
@@ -35,13 +35,13 @@ dart_library.library('expect', null, /* Imports */[
     }
     static _stringDifference(expected, actual) {
       if (dart.notNull(expected[dartx.length]) < 20 && dart.notNull(actual[dartx.length]) < 20) return null;
-      for (let i = 0; dart.notNull(i) < dart.notNull(expected[dartx.length]) && dart.notNull(i) < dart.notNull(actual[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(expected[dartx.length]) && i < dart.notNull(actual[dartx.length]); i++) {
         if (expected[dartx.codeUnitAt](i) != actual[dartx.codeUnitAt](i)) {
           let start = i;
-          i = dart.notNull(i) + 1;
-          while (dart.notNull(i) < dart.notNull(expected[dartx.length]) && dart.notNull(i) < dart.notNull(actual[dartx.length])) {
+          i++;
+          while (i < dart.notNull(expected[dartx.length]) && i < dart.notNull(actual[dartx.length])) {
             if (expected[dartx.codeUnitAt](i) == actual[dartx.codeUnitAt](i)) break;
-            i = dart.notNull(i) + 1;
+            i++;
           }
           let end = i;
           let truncExpected = Expect._truncateString(expected, start, end, 20);
@@ -116,7 +116,7 @@ dart_library.library('expect', null, /* Imports */[
       if (reason === void 0) reason = null;
       let msg = Expect._getMessage(reason);
       let n = dart.notNull(expected[dartx.length]) < dart.notNull(actual[dartx.length]) ? expected[dartx.length] : actual[dartx.length];
-      for (let i = 0; dart.notNull(i) < dart.notNull(n); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(n); i++) {
         if (!dart.equals(expected[dartx.get](i), actual[dartx.get](i))) {
           Expect._fail(`Expect.listEquals(at index ${i}, ` + `expected: <${expected[dartx.get](i)}>, actual: <${actual[dartx.get](i)}>${msg}) fails`);
         }
@@ -156,21 +156,21 @@ dart_library.library('expect', null, /* Imports */[
         if (left == eLen || left == aLen || expected[dartx.get](left) != actual[dartx.get](left)) {
           break;
         }
-        left = dart.notNull(left) + 1;
+        left++;
       }
-      let eRem = dart.notNull(eLen) - dart.notNull(left);
-      let aRem = dart.notNull(aLen) - dart.notNull(left);
+      let eRem = dart.notNull(eLen) - left;
+      let aRem = dart.notNull(aLen) - left;
       while (true) {
-        if (right == eRem || right == aRem || expected[dartx.get](dart.notNull(eLen) - dart.notNull(right) - 1) != actual[dartx.get](dart.notNull(aLen) - dart.notNull(right) - 1)) {
+        if (right == eRem || right == aRem || expected[dartx.get](dart.notNull(eLen) - right - 1) != actual[dartx.get](dart.notNull(aLen) - right - 1)) {
           break;
         }
-        right = dart.notNull(right) + 1;
+        right++;
       }
-      let leftSnippet = expected[dartx.substring](dart.notNull(left) < 10 ? 0 : dart.notNull(left) - 10, left);
-      let rightSnippetLength = dart.notNull(right) < 10 ? right : 10;
-      let rightSnippet = expected[dartx.substring](dart.notNull(eLen) - dart.notNull(right), dart.notNull(eLen) - dart.notNull(right) + dart.notNull(rightSnippetLength));
-      let eSnippet = expected[dartx.substring](left, dart.notNull(eLen) - dart.notNull(right));
-      let aSnippet = actual[dartx.substring](left, dart.notNull(aLen) - dart.notNull(right));
+      let leftSnippet = expected[dartx.substring](left < 10 ? 0 : left - 10, left);
+      let rightSnippetLength = right < 10 ? right : 10;
+      let rightSnippet = expected[dartx.substring](dart.notNull(eLen) - right, dart.notNull(eLen) - right + rightSnippetLength);
+      let eSnippet = expected[dartx.substring](left, dart.notNull(eLen) - right);
+      let aSnippet = actual[dartx.substring](left, dart.notNull(aLen) - right);
       if (dart.notNull(eSnippet[dartx.length]) > 43) {
         eSnippet = dart.notNull(eSnippet[dartx.substring](0, 20)) + "..." + dart.notNull(eSnippet[dartx.substring](dart.notNull(eSnippet[dartx.length]) - 20));
       }
@@ -179,9 +179,9 @@ dart_library.library('expect', null, /* Imports */[
       }
       let leftLead = "...";
       let rightTail = "...";
-      if (dart.notNull(left) <= 10) leftLead = "";
-      if (dart.notNull(right) <= 10) rightTail = "";
-      let diff = `\nDiff (${left}..${dart.notNull(eLen) - dart.notNull(right)}/${dart.notNull(aLen) - dart.notNull(right)}):\n` + `${leftLead}${leftSnippet}[ ${eSnippet} ]${rightSnippet}${rightTail}\n` + `${leftLead}${leftSnippet}[ ${aSnippet} ]${rightSnippet}${rightTail}`;
+      if (left <= 10) leftLead = "";
+      if (right <= 10) rightTail = "";
+      let diff = `\nDiff (${left}..${dart.notNull(eLen) - right}/${dart.notNull(aLen) - right}):\n` + `${leftLead}${leftSnippet}[ ${eSnippet} ]${rightSnippet}${rightTail}\n` + `${leftLead}${leftSnippet}[ ${aSnippet} ]${rightSnippet}${rightTail}`;
       Expect._fail(`${defaultMessage}${diff}`);
     }
     static setEquals(expected, actual, reason) {
