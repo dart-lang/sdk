@@ -29,9 +29,8 @@ symbol_reserved_word_test/05: CompileTimeError # bug 20191
 symbol_reserved_word_test/02: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
 symbol_reserved_word_test/05: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
 
-# new Symbol('void') should be allowed.
 [ $compiler == dart2js ]
-symbol_reserved_word_test/03: RuntimeError # bug 19972
+symbol_reserved_word_test/03: RuntimeError # bug 19972, new Symbol('void') should be allowed.
 int_parse_radix_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
 int_parse_radix_test/02: Fail # No bigints.
 double_parse_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
@@ -188,15 +187,8 @@ big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == dart2js && $cps_ir ]
 data_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
-error_stack_trace1_test: Pass # H.unwrapException(...).get$stackTrace is not a function
 package_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
 regexp/pcre_test: Crash # Stack Overflow in LoopHierarchy.
-symbol_operator_test/03: RuntimeError # Issue 24878
-symbol_reserved_word_test/03: Pass # Please triage this failure.
-symbol_reserved_word_test/06: RuntimeError # Please triage this failure.
-symbol_reserved_word_test/09: RuntimeError # Please triage this failure.
-symbol_reserved_word_test/12: RuntimeError # Please triage this failure.
-symbol_test/none: RuntimeError # Please triage this failure.
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 regexp/pcre_test: Crash # Stack Overflow

@@ -2198,7 +2198,17 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
     List<ir.Primitive> arguments = argumentsNode.nodes.mapToList(visit);
     // Use default values from the effective target, not the immediate target.
-    ConstructorElement target = constructor.implementation;
+    ConstructorElement target;
+    if (constructor == compiler.symbolConstructor) {
+      // The Symbol constructor should perform validation of its argument
+      // which is not expressible as a Dart const constructor.  Instead, the
+      // libraries contain a dummy const constructor implementation that
+      // doesn't perform validation and the compiler compiles a call to
+      // (non-const) Symbol.validated when it sees new Symbol(...).
+      target = compiler.symbolValidatedConstructor;
+    } else {
+      target = constructor.implementation;
+    }
     while (target.isRedirectingFactory && !target.isCyclicRedirection) {
       target = target.effectiveTarget.implementation;
     }
