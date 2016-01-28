@@ -28,6 +28,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, use_field_guards);
+
+
 static const int kNumVmIsolateSnapshotReferences = 32 * KB;
 static const int kNumInitialReferencesInFullSnapshot = 160 * KB;
 static const int kNumInitialReferences = 64;
@@ -480,6 +483,8 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
     AddBackRef(object_id, result, state);
     cls_ ^= ReadObjectImpl(kAsInlinedObject);
     ASSERT(!cls_.IsNull());
+    // Closure instances are handled by Closure::ReadFrom().
+    ASSERT(!cls_.IsClosureClass());
     instance_size = cls_.instance_size();
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
@@ -495,8 +500,7 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
   }
   if (!as_reference) {
     // Read all the individual fields for inlined objects.
-    intptr_t next_field_offset = Class::IsSignatureClass(cls_.raw())
-        ? Closure::InstanceSize() : cls_.next_field_offset();
+    intptr_t next_field_offset = cls_.next_field_offset();
 
     intptr_t type_argument_field_offset = cls_.type_arguments_field_offset();
     ASSERT(next_field_offset > 0);
@@ -509,7 +513,8 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
       pobj_ = ReadObjectImpl(read_as_reference);
       result->SetFieldAtOffset(offset, pobj_);
       if ((offset != type_argument_field_offset) &&
-          (kind_ == Snapshot::kMessage)) {
+          (kind_ == Snapshot::kMessage) &&
+          FLAG_use_field_guards) {
         // TODO(fschneider): Consider hoisting these lookups out of the loop.
         // This would involve creating a handle, since cls_ can't be reused
         // across the call to ReadObjectImpl.
@@ -781,6 +786,17 @@ RawPcDescriptors* SnapshotReader::NewPcDescriptors(intptr_t len) {
 }
 
 
+RawCodeSourceMap* SnapshotReader::NewCodeSourceMap(intptr_t len) {
+  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT_NO_SAFEPOINT_SCOPE();
+  RawCodeSourceMap* obj = reinterpret_cast<RawCodeSourceMap*>(
+      AllocateUninitialized(kCodeSourceMapCid,
+                            CodeSourceMap::InstanceSize(len)));
+  obj->ptr()->length_ = len;
+  return obj;
+}
+
+
 RawStackmap* SnapshotReader::NewStackmap(intptr_t len) {
   ASSERT(kind_ == Snapshot::kFull);
   ASSERT_NO_SAFEPOINT_SCOPE();
@@ -921,6 +937,11 @@ RawType* SnapshotReader::NewType() {
 }
 
 
+RawFunctionType* SnapshotReader::NewFunctionType() {
+  ALLOC_NEW_OBJECT(FunctionType);
+}
+
+
 RawTypeRef* SnapshotReader::NewTypeRef() {
   ALLOC_NEW_OBJECT(TypeRef);
 }
@@ -943,6 +964,11 @@ RawMixinAppType* SnapshotReader::NewMixinAppType() {
 
 RawPatchClass* SnapshotReader::NewPatchClass() {
   ALLOC_NEW_OBJECT(PatchClass);
+}
+
+
+RawClosure* SnapshotReader::NewClosure() {
+  ALLOC_NEW_OBJECT(Closure);
 }
 
 
@@ -1389,16 +1415,20 @@ void SnapshotReader::AddPatchRecord(intptr_t object_id,
 
 void SnapshotReader::ProcessDeferredCanonicalizations() {
   Type& typeobj = Type::Handle();
+  FunctionType& funtypeobj = FunctionType::Handle();
   TypeArguments& typeargs = TypeArguments::Handle();
   Object& newobj = Object::Handle();
   for (intptr_t i = 0; i < backward_references_->length(); i++) {
     BackRefNode& backref = (*backward_references_)[i];
     if (backref.defer_canonicalization()) {
       Object* objref = backref.reference();
-      // Object should either be an abstract type or a type argument.
+      // Object should either be a type, a function type, or a type argument.
       if (objref->IsType()) {
         typeobj ^= objref->raw();
         newobj = typeobj.Canonicalize();
+      } else if (objref->IsFunctionType()) {
+        funtypeobj ^= objref->raw();
+        newobj = funtypeobj.Canonicalize();
       } else {
         ASSERT(objref->IsTypeArguments());
         typeargs ^= objref->raw();
@@ -2321,33 +2351,28 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
 }
 
 
-RawFunction* SnapshotWriter::IsSerializableClosure(RawClass* cls,
-                                                   RawObject* obj) {
-  if (Class::IsSignatureClass(cls)) {
-    // 'obj' is a closure as its class is a signature class, extract
-    // the function object to check if this closure can be sent in an
-    // isolate message.
-    RawFunction* func = Closure::GetFunction(obj);
-    // We only allow closure of top level methods or static functions in a
-    // class to be sent in isolate messages.
-    if (can_send_any_object() &&
-        Function::IsImplicitStaticClosureFunction(func)) {
-      return func;
-    }
-    // Not a closure of a top level method or static function, throw an
-    // exception as we do not allow these objects to be serialized.
-    HANDLESCOPE(thread());
-
-    const Class& clazz = Class::Handle(zone(), cls);
-    const Function& errorFunc = Function::Handle(zone(), func);
-    ASSERT(!errorFunc.IsNull());
-
-    // All other closures are errors.
-    char* chars = OS::SCreate(thread()->zone(),
-        "Illegal argument in isolate message : (object is a closure - %s %s)",
-        clazz.ToCString(), errorFunc.ToCString());
-    SetWriteException(Exceptions::kArgument, chars);
+RawFunction* SnapshotWriter::IsSerializableClosure(RawClosure* closure) {
+  // Extract the function object to check if this closure
+  // can be sent in an isolate message.
+  RawFunction* func = closure->ptr()->function_;
+  // We only allow closure of top level methods or static functions in a
+  // class to be sent in isolate messages.
+  if (can_send_any_object() &&
+      Function::IsImplicitStaticClosureFunction(func)) {
+    return func;
   }
+  // Not a closure of a top level method or static function, throw an
+  // exception as we do not allow these objects to be serialized.
+  HANDLESCOPE(thread());
+
+  const Function& errorFunc = Function::Handle(zone(), func);
+  ASSERT(!errorFunc.IsNull());
+
+  // All other closures are errors.
+  char* chars = OS::SCreate(thread()->zone(),
+      "Illegal argument in isolate message : (object is a closure - %s)",
+      errorFunc.ToCString());
+  SetWriteException(Exceptions::kArgument, chars);
   return Function::null();
 }
 
@@ -2393,19 +2418,11 @@ void SnapshotWriter::WriteInstance(RawObject* raw,
                                    intptr_t tags,
                                    intptr_t object_id,
                                    bool as_reference) {
+  // Closure instances are handled by RawClosure::WriteTo().
+  ASSERT(!Class::IsClosureClass(cls));
+
   // Check if the instance has native fields and throw an exception if it does.
   CheckForNativeFields(cls);
-
-  if ((kind() == Snapshot::kMessage) || (kind() == Snapshot::kScript)) {
-    // Check if object is a closure that is serializable, if the object is a
-    // closure that is not serializable this will throw an exception.
-    RawFunction* func = IsSerializableClosure(cls, raw);
-    if (func != Function::null()) {
-      forward_list_->SetState(object_id, kIsSerialized);
-      WriteStaticImplicitClosure(object_id, func, tags);
-      return;
-    }
-  }
 
   // Object is regular dart instance.
   if (as_reference) {
@@ -2419,8 +2436,7 @@ void SnapshotWriter::WriteInstance(RawObject* raw,
     // Write out the class information for this object.
     WriteObjectImpl(cls, kAsInlinedObject);
   } else {
-    intptr_t next_field_offset = Class::IsSignatureClass(cls) ?
-        Closure::InstanceSize() :
+    intptr_t next_field_offset =
         cls->ptr()->next_field_offset_in_words_ << kWordSizeLog2;
     ASSERT(next_field_offset > 0);
 

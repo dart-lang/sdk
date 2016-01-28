@@ -281,7 +281,7 @@ class ModelEmitter {
         isSplit ? buildDeferredInitializerGlobal() : new js.Block.empty(),
         code]);
 
-    mainOutput.addBuffer(js.prettyPrint(program, compiler,
+    mainOutput.addBuffer(js.createCodeBuffer(program, compiler,
         monitor: compiler.dumpInfoTask));
 
     if (shouldGenerateSourceMap) {
@@ -335,7 +335,7 @@ class ModelEmitter {
         buildDeferredInitializerGlobal(),
         js.js.statement('$deferredInitializersGlobal.current = #', code)]);
 
-    output.addBuffer(js.prettyPrint(program, compiler,
+    output.addBuffer(js.createCodeBuffer(program, compiler,
         monitor: compiler.dumpInfoTask));
 
     // Make a unique hash of the code (before the sourcemaps are added)

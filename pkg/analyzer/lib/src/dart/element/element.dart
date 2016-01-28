@@ -7,11 +7,12 @@ library analyzer.src.dart.element.element;
 import 'dart:collection';
 import 'dart:math' show min;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
@@ -335,7 +336,22 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @override
-  bool get isValidMixin => hasModifier(Modifier.MIXIN);
+  bool get isValidMixin {
+    if (!context.analysisOptions.enableSuperMixins) {
+      if (hasReferenceToSuper) {
+        return false;
+      }
+      if (!supertype.isObject) {
+        return false;
+      }
+    }
+    for (ConstructorElement constructor in constructors) {
+      if (!constructor.isSynthetic && !constructor.isFactory) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   ElementKind get kind => ElementKind.CLASS;
@@ -383,13 +399,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       }
     }
     return null;
-  }
-
-  /**
-   * Set whether this class is a valid mixin.
-   */
-  void set validMixin(bool isValidMixin) {
-    setModifier(Modifier.MIXIN, isValidMixin);
   }
 
   @override
@@ -2511,6 +2520,13 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
    */
   FieldFormalParameterElementImpl(Identifier name) : super.forNode(name);
 
+  /**
+   * Initialize a newly created parameter element to have the given [name] and
+   * [offset].
+   */
+  FieldFormalParameterElementImpl.forNameAndOffset(String name, int nameOffset)
+      : super(name, nameOffset);
+
   @override
   bool get isInitializingFormal => true;
 
@@ -3095,6 +3111,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       entryPoint != null && isOrImportsBrowserLibrary;
 
   @override
+  bool get isDartAsync => name == "dart.async";
+
+  @override
   bool get isDartCore => name == "dart.core";
 
   @override
@@ -3638,6 +3657,148 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   @override
   MethodDeclaration computeNode() =>
       getNodeMatching((node) => node is MethodDeclaration);
+}
+
+/**
+ * The enumeration `Modifier` defines constants for all of the modifiers defined
+ * by the Dart language and for a few additional flags that are useful.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class Modifier extends Enum<Modifier> {
+  /**
+   * Indicates that the modifier 'abstract' was applied to the element.
+   */
+  static const Modifier ABSTRACT = const Modifier('ABSTRACT', 0);
+
+  /**
+   * Indicates that an executable element has a body marked as being
+   * asynchronous.
+   */
+  static const Modifier ASYNCHRONOUS = const Modifier('ASYNCHRONOUS', 1);
+
+  /**
+   * Indicates that the modifier 'const' was applied to the element.
+   */
+  static const Modifier CONST = const Modifier('CONST', 2);
+
+  /**
+   * Indicates that the import element represents a deferred library.
+   */
+  static const Modifier DEFERRED = const Modifier('DEFERRED', 3);
+
+  /**
+   * Indicates that a class element was defined by an enum declaration.
+   */
+  static const Modifier ENUM = const Modifier('ENUM', 4);
+
+  /**
+   * Indicates that a class element was defined by an enum declaration.
+   */
+  static const Modifier EXTERNAL = const Modifier('EXTERNAL', 5);
+
+  /**
+   * Indicates that the modifier 'factory' was applied to the element.
+   */
+  static const Modifier FACTORY = const Modifier('FACTORY', 6);
+
+  /**
+   * Indicates that the modifier 'final' was applied to the element.
+   */
+  static const Modifier FINAL = const Modifier('FINAL', 7);
+
+  /**
+   * Indicates that an executable element has a body marked as being a
+   * generator.
+   */
+  static const Modifier GENERATOR = const Modifier('GENERATOR', 8);
+
+  /**
+   * Indicates that the pseudo-modifier 'get' was applied to the element.
+   */
+  static const Modifier GETTER = const Modifier('GETTER', 9);
+
+  /**
+   * A flag used for libraries indicating that the defining compilation unit
+   * contains at least one import directive whose URI uses the "dart-ext"
+   * scheme.
+   */
+  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 10);
+
+  /**
+   * Indicates that the associated element did not have an explicit type
+   * associated with it. If the element is an [ExecutableElement], then the
+   * type being referred to is the return type.
+   */
+  static const Modifier IMPLICIT_TYPE = const Modifier('IMPLICIT_TYPE', 11);
+
+  /**
+   * Indicates that a class is a mixin application.
+   */
+  static const Modifier MIXIN_APPLICATION =
+      const Modifier('MIXIN_APPLICATION', 12);
+
+  /**
+   * Indicates that the value of a parameter or local variable might be mutated
+   * within the context.
+   */
+  static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT =
+      const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 13);
+
+  /**
+   * Indicates that the value of a parameter or local variable might be mutated
+   * within the scope.
+   */
+  static const Modifier POTENTIALLY_MUTATED_IN_SCOPE =
+      const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 14);
+
+  /**
+   * Indicates that a class contains an explicit reference to 'super'.
+   */
+  static const Modifier REFERENCES_SUPER =
+      const Modifier('REFERENCES_SUPER', 15);
+
+  /**
+   * Indicates that the pseudo-modifier 'set' was applied to the element.
+   */
+  static const Modifier SETTER = const Modifier('SETTER', 16);
+
+  /**
+   * Indicates that the modifier 'static' was applied to the element.
+   */
+  static const Modifier STATIC = const Modifier('STATIC', 17);
+
+  /**
+   * Indicates that the element does not appear in the source code but was
+   * implicitly created. For example, if a class does not define any
+   * constructors, an implicit zero-argument constructor will be created and it
+   * will be marked as being synthetic.
+   */
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 18);
+
+  static const List<Modifier> values = const [
+    ABSTRACT,
+    ASYNCHRONOUS,
+    CONST,
+    DEFERRED,
+    ENUM,
+    EXTERNAL,
+    FACTORY,
+    FINAL,
+    GENERATOR,
+    GETTER,
+    HAS_EXT_URI,
+    IMPLICIT_TYPE,
+    MIXIN_APPLICATION,
+    POTENTIALLY_MUTATED_IN_CONTEXT,
+    POTENTIALLY_MUTATED_IN_SCOPE,
+    REFERENCES_SUPER,
+    SETTER,
+    STATIC,
+    SYNTHETIC
+  ];
+
+  const Modifier(String name, int ordinal) : super(name, ordinal);
 }
 
 /**

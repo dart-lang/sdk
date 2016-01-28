@@ -292,14 +292,6 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
-  Expression visitLiteralMap(LiteralMap node) {
-    super.visitLiteralMap(node);
-    if (node.type != null) {
-      ++impureCounter; // Type casts can throw.
-    }
-    return node;
-  }
-
   Expression visitTypeOperator(TypeOperator node) {
     super.visitTypeOperator(node);
     if (!node.isTypeTest) {

@@ -6,10 +6,10 @@ library analyzer.src.generated.error;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart' show AstNode;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/generated/ast.dart' show AstNode;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/scanner.dart'
@@ -18,6 +18,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
+
+import 'generated/shared_messages.dart' as shared_messages;
 
 /**
  * The descriptor used to associate error processors with analysis contexts in

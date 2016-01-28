@@ -236,9 +236,7 @@ hasStoppedAtBreakpoint,
       await DebuggerLocation.complete(debugger,
                                       'debugger_location_test.dart:11');
   expect(completions.toString(), equals(
-      '[debugger_location_test.dart:11 ,'
-      ' debugger_location_test.dart:11:,'
-      ' debugger_location_test.dart:110 ,'
+      '[debugger_location_test.dart:110 ,'
       ' debugger_location_test.dart:110:,'
       ' debugger_location_test.dart:111 ,'
       ' debugger_location_test.dart:111:,'

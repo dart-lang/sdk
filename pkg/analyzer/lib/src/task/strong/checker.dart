@@ -7,10 +7,11 @@
 library analyzer.src.task.strong.checker;
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/scanner.dart' show Token, TokenType;
 import 'package:analyzer/src/generated/type_system.dart';
@@ -129,14 +130,9 @@ class CodeChecker extends RecursiveAstVisitor {
       Expression arg = list[i];
       ParameterElement element = arg.staticParameterElement;
       if (element == null) {
-        if (type.parameters.length < len) {
-          // We found an argument mismatch, the analyzer will report this too,
-          // so no need to insert an error for this here.
-          continue;
-        }
-        element = type.parameters[i];
-        // TODO(vsm): When can this happen?
-        assert(element != null);
+        // We found an argument mismatch, the analyzer will report this too,
+        // so no need to insert an error for this here.
+        continue;
       }
       DartType expectedType = _elementType(element);
       if (expectedType == null) expectedType = DynamicTypeImpl.instance;

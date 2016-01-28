@@ -66,6 +66,27 @@
           'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO', # -Werror off
         },
       },
+      # Disable hand-coded assembly routines on ARMv6 and ARMv5TE.
+      'Dart_armv6_Base': {
+        'abstract': 1,
+        'defines': [
+          'OPENSSL_NO_ASM',
+        ],
+      },
+      'Dart_armv5te_Base': {
+        'abstract': 1,
+        'defines': [
+          'OPENSSL_NO_ASM',
+        ],
+      },
+      # TODO(24321): Also disable temporarily on arm64. Reenable after the next
+      # roll.
+      'Dart_arm64_Base': {
+        'abstract': 1,
+        'defines': [
+          'OPENSSL_NO_ASM',
+        ],
+      },
       # When being built for Android nss expects __linux__ to be defined.
       'Dart_Android_Base': {
         'target_conditions': [

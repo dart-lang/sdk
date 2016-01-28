@@ -489,15 +489,15 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kDynamicCid;
     } else if (type_->IsVoidType()) {
       cid_ = kNullCid;
+    } else if (type_->IsFunctionType() || type_->IsDartFunctionType()) {
+      cid_ = kClosureCid;
     } else if (type_->HasResolvedTypeClass()) {
       const Class& type_class = Class::Handle(type_->type_class());
       Thread* thread = Thread::Current();
       CHA* cha = thread->cha();
-      // Don't infer a cid from an abstract type for signature classes since
-      // there can be multiple compatible classes with different cids.
-      if (!type_class.IsSignatureClass() &&
-          !CHA::IsImplemented(type_class) &&
-          !CHA::HasSubclasses(type_class)) {
+      // Don't infer a cid from an abstract type since there can be multiple
+      // compatible classes with different cids.
+      if (!CHA::IsImplemented(type_class) && !CHA::HasSubclasses(type_class)) {
         if (type_class.IsPrivate()) {
           // Type of a private class cannot change through later loaded libs.
           cid_ = type_class.id();
@@ -978,10 +978,11 @@ CompileType CreateArrayInstr::ComputeType() const {
 
 CompileType AllocateObjectInstr::ComputeType() const {
   if (!closure_function().IsNull()) {
-    ASSERT(cls().raw() == closure_function().signature_class());
+    ASSERT(cls().id() == kClosureCid);
     return CompileType(CompileType::kNonNullable,
-                       cls().id(),
-                       &Type::ZoneHandle(cls().SignatureType()));
+                       kClosureCid,
+                       &FunctionType::ZoneHandle(
+                           closure_function().SignatureType()));
   }
   // TODO(vegorov): Incorporate type arguments into the returned type.
   return CompileType::FromCid(cls().id());

@@ -12,22 +12,19 @@ import '../tree_ir_nodes.dart';
 /// This phase cleans up artifacts introduced by the translation through CPS,
 /// where each source variable is translated into several copies. The copies
 /// are merged again when they are not live simultaneously.
-class VariableMerger extends RecursiveVisitor implements Pass {
+class VariableMerger implements Pass {
   String get passName => 'Variable merger';
 
-  void rewrite(FunctionDefinition node) {
-    rewriteFunction(node);
-    visitStatement(node.body);
-  }
+  final bool minifying;
 
-  /// Rewrites the given function.
-  /// This is called for the outermost function and inner functions.
-  void rewriteFunction(FunctionDefinition node) {
-    BlockGraphBuilder builder = new BlockGraphBuilder();
-    builder.build(node);
+  VariableMerger({this.minifying: false});
+
+  void rewrite(FunctionDefinition node) {
+    BlockGraphBuilder builder = new BlockGraphBuilder()..build(node);
     _computeLiveness(builder.blocks);
-    Map<Variable, Variable> subst =
-        _computeRegisterAllocation(builder.blocks, node.parameters);
+    PriorityPairs priority = new PriorityPairs()..build(node);
+    Map<Variable, Variable> subst = _computeRegisterAllocation(
+        builder.blocks, node.parameters, priority, minifying: minifying);
     new SubstituteVariables(subst).apply(node);
   }
 }
@@ -248,6 +245,54 @@ class BlockGraphBuilder extends RecursiveVisitor {
   }
 }
 
+/// Collects prioritized variable pairs -- pairs that lead to significant code
+/// reduction if merged into one variable.
+///
+/// These arise from moving assigments `v1 = v2`, and compoundable assignments
+/// `v1 = v2 [+] E` where [+] is a compoundable operator.
+//
+// TODO(asgerf): We could have a more fine-grained priority level. All pairs
+//   are treated as equally important, but some pairs can eliminate more than
+//   one assignment.
+//   Also, some assignments are more important to remove than others, as they
+//   can block a later optimization, such rewriting a loop, or removing the
+//   'else' part of an 'if'.
+//
+class PriorityPairs extends RecursiveVisitor {
+  final Map<Variable, List<Variable>> _priority = <Variable, List<Variable>>{};
+
+  void build(FunctionDefinition node) {
+    visitStatement(node.body);
+  }
+
+  void _prioritize(Variable x, Variable y) {
+    _priority.putIfAbsent(x, () => new List<Variable>()).add(y);
+    _priority.putIfAbsent(y, () => new List<Variable>()).add(x);
+  }
+
+  visitAssign(Assign node) {
+    super.visitAssign(node);
+    Expression value = node.value;
+    if (value is VariableUse) {
+      _prioritize(node.variable, value.variable);
+    } else if (value is ApplyBuiltinOperator &&
+               isCompoundableOperator(value.operator) &&
+               value.arguments[0] is VariableUse) {
+      VariableUse use = value.arguments[0];
+      _prioritize(node.variable, use.variable);
+    }
+  }
+
+  /// Returns the other half of every priority pair containing [variable].
+  List<Variable> getPriorityPairsWith(Variable variable) {
+    return _priority[variable] ?? const <Variable>[];
+  }
+
+  bool hasPriorityPairs(Variable variable) {
+    return _priority.containsKey(variable);
+  }
+}
+
 /// Computes liveness information of the given control-flow graph.
 ///
 /// The results are stored in [Block.liveIn] and [Block.liveOut].
@@ -331,14 +376,6 @@ void _computeLiveness(List<Block> blocks) {
   }
 }
 
-/// For testing purposes, this flag can be passed to merge variables that
-/// originated from different source variables.
-///
-/// Correctness should not depend on the fact that we only merge variables
-/// originating from the same source variable. Setting this flag makes a bug
-/// more likely to provoke a test case failure.
-const bool NO_PRESERVE_VARS = const bool.fromEnvironment('NO_PRESERVE_VARS');
-
 /// Based on liveness information, computes a map of variable substitutions to
 /// merge variables.
 ///
@@ -348,23 +385,30 @@ const bool NO_PRESERVE_VARS = const bool.fromEnvironment('NO_PRESERVE_VARS');
 ///
 /// We then compute a graph coloring, where the color of a node denotes which
 /// variable it will be substituted by.
-///
-/// We never merge variables that originated from distinct source variables,
-/// so we build a separate register interference graph for each source variable.
 Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks,
-                                                   List<Variable> parameters) {
+                                                   List<Variable> parameters,
+                                                   PriorityPairs priority,
+                                                   {bool minifying}) {
   Map<Variable, Set<Variable>> interference = <Variable, Set<Variable>>{};
 
-  /// Group for the given variable. We attempt to merge variables in the same
-  /// group.
-  /// By default, variables are grouped based on their source variable name,
-  /// but this can be disabled for testing purposes.
-  String group(Variable variable) {
-    if (NO_PRESERVE_VARS) return '';
-    // Group variables based on the source variable's name, not its element,
-    // so if multiple locals are declared with the same name, they will
-    // map to the same (hoisted) variable in the output.
-    return variable.element == null ? '' : variable.element.name;
+  bool allowUnmotivatedMerge(Variable x, Variable y) {
+    if (minifying) return true;
+    // Do not allow merging temporaries with named variables if they are
+    // not connected by a phi.  That would leads to confusing mergings like:
+    //    var v0 = receiver.length;
+    //        ==>
+    //    receiver = receiver.length;
+    return x.element?.name == y.element?.name;
+  }
+
+  bool allowPhiMerge(Variable x, Variable y) {
+    if (minifying) return true;
+    // Temporaries may be merged with a named variable if this eliminates a phi.
+    // The presence of the phi implies that the two variables can contain the
+    // same value, so it is not that confusing that they get the same name.
+    return x.element == null ||
+           y.element == null ||
+           x.element.name == y.element.name;
   }
 
   Set<Variable> empty = new Set<Variable>();
@@ -372,12 +416,10 @@ Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks,
   // At the assignment to a variable x, add an edge to every variable that is
   // live after the assignment (if it came from the same source variable).
   for (Block block in blocks) {
-    // Group the liveOut set by source variable.
-    Map<String, Set<Variable>> liveOut = <String, Set<Variable>>{};
+    // Track the live set while traversing the block.
+    Set<Variable> live = new Set<Variable>();
     for (Variable variable in block.liveOut) {
-      liveOut.putIfAbsent(
-          group(variable),
-          () => new Set<Variable>()).add(variable);
+      live.add(variable);
       interference.putIfAbsent(variable, () => new Set<Variable>());
     }
     // Get variables that are live at the catch block.
@@ -388,8 +430,6 @@ Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks,
     for (VariableAccess access in block.accesses.reversed) {
       Variable variable = access.variable;
       interference.putIfAbsent(variable, () => new Set<Variable>());
-      Set<Variable> live =
-          liveOut.putIfAbsent(group(variable), () => new Set<Variable>());
       if (access.isRead) {
         live.add(variable);
       } else {
@@ -410,42 +450,89 @@ Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks,
   List<Variable> variables = interference.keys.toList();
   variables.sort((x, y) => interference[y].length - interference[x].length);
 
-  Map<String, List<Variable>> registers = <String, List<Variable>>{};
+  List<Variable> registers = <Variable>[];
   Map<Variable, Variable> subst = <Variable, Variable>{};
 
-  // Parameters are special in that they must have a ParameterElement and
-  // cannot be merged with each other. Ensure that they are not substituted.
-  // Other variables can still be substituted by a parameter.
-  for (Variable parameter in parameters) {
-    if (parameter.isCaptured) continue;
-    subst[parameter] = parameter;
-    registers[group(parameter)] = <Variable>[parameter];
+  /// Called when [variable] has been assigned [target] as its register/color.
+  /// Will immediately try to satisfy its priority pairs by assigning the same
+  /// color the other half of each pair.
+  void searchPriorityPairs(Variable variable, Variable target) {
+    if (!priority.hasPriorityPairs(variable)) {
+      return; // Most variables (around 90%) do not have priority pairs.
+    }
+    List<Variable> worklist = <Variable>[variable];
+    while (worklist.isNotEmpty) {
+      Variable v1 = worklist.removeLast();
+      for (Variable v2 in priority.getPriorityPairsWith(v1)) {
+        // If v2 already has a color, we cannot change it.
+        if (subst.containsKey(v2)) continue;
+
+        // Do not merge differently named variables.
+        if (!allowPhiMerge(v1, v2)) continue;
+
+        // Ensure the graph coloring remains valid. If a neighbour of v2 already
+        // has the desired color, we cannot assign the same color to v2.
+        if (interference[v2].any((v3) => subst[v3] == target)) continue;
+
+        subst[v2] = target;
+        target.element ??= v2.element; // Preserve the name.
+        worklist.add(v2);
+      }
+    }
   }
 
+  void assignRegister(Variable variable, Variable registerRepresentative) {
+    subst[variable] = registerRepresentative;
+    // Ensure this register is never assigned to a variable with another name.
+    // This also ensures that named variables keep their name when merged
+    // with a temporary.
+    registerRepresentative.element ??= variable.element;
+    searchPriorityPairs(variable, registerRepresentative);
+  }
+
+  void assignNewRegister(Variable variable) {
+    registers.add(variable);
+    subst[variable] = variable;
+    searchPriorityPairs(variable, variable);
+  }
+
+  // Parameters cannot be merged with each other. Ensure that they are not
+  // substituted.  Other variables can still be substituted by a parameter.
+  for (Variable parameter in parameters) {
+    if (parameter.isCaptured) continue;
+    registers.add(parameter);
+    subst[parameter] = parameter;
+  }
+
+  // Try to merge parameters with locals to eliminate phis.
+  for (Variable parameter in parameters) {
+    searchPriorityPairs(parameter, parameter);
+  }
+
+  v1loop:
   for (Variable v1 in variables) {
-    // Parameters have already been assigned a substitute; skip those.
+    // Ignore if the variable has already been assigned a register.
     if (subst.containsKey(v1)) continue;
 
-    List<Variable> register = registers[group(v1)];
-
-    // Optimization: For the first variable in a group, allocate a new color
-    // without iterating over its interference edges.
-    if (register == null) {
-      registers[group(v1)] = <Variable>[v1];
-      subst[v1] = v1;
-      continue;
-    }
-
     // Optimization: If there are no interference edges for this variable,
-    // assign it the first color without copying the register list.
+    // find a color for it without copying the register list.
     Set<Variable> interferenceSet = interference[v1];
     if (interferenceSet.isEmpty) {
-      subst[v1] = register[0];
+      // Use the first register where naming constraints allow the merge.
+      for (Variable v2 in registers) {
+        if (allowUnmotivatedMerge(v1, v2)) {
+          assignRegister(v1, v2);
+          continue v1loop;
+        }
+      }
+      // No register allows merging with this one, create a new register.
+      assignNewRegister(v1);
       continue;
     }
 
     // Find an unused color.
-    Set<Variable> potential = new Set<Variable>.from(register);
+    Set<Variable> potential = new Set<Variable>.from(
+          registers.where((v2) => allowUnmotivatedMerge(v1, v2)));
     for (Variable v2 in interferenceSet) {
       Variable v2subst = subst[v2];
       if (v2subst != null) {
@@ -456,10 +543,9 @@ Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks,
 
     if (potential.isEmpty) {
       // If no free color was found, add this variable as a new color.
-      register.add(v1);
-      subst[v1] = v1;
+      assignNewRegister(v1);
     } else {
-      subst[v1] = potential.first;
+      assignRegister(v1, potential.first);
     }
   }
 

@@ -141,6 +141,8 @@ RawClass* Object::code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::code_source_map_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::stackmap_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::var_descriptors_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
@@ -613,6 +615,9 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<PcDescriptors>();
   pc_descriptors_class_ = cls.raw();
 
+  cls = Class::New<CodeSourceMap>();
+  code_source_map_class_ = cls.raw();
+
   cls = Class::New<Stackmap>();
   stackmap_class_ = cls.raw();
 
@@ -945,6 +950,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(code, Code);
   SET_CLASS_NAME(instructions, Instructions);
   SET_CLASS_NAME(object_pool, ObjectPool);
+  SET_CLASS_NAME(code_source_map, CodeSourceMap);
   SET_CLASS_NAME(pc_descriptors, PcDescriptors);
   SET_CLASS_NAME(stackmap, Stackmap);
   SET_CLASS_NAME(var_descriptors, LocalVarDescriptors);
@@ -1122,6 +1128,8 @@ RawError* Object::Init(Isolate* isolate) {
 
   // Setup type class early in the process.
   const Class& type_cls = Class::Handle(zone, Class::New<Type>());
+  const Class& function_type_cls = Class::Handle(zone,
+                                                 Class::New<FunctionType>());
   const Class& type_ref_cls = Class::Handle(zone, Class::New<TypeRef>());
   const Class& type_parameter_cls = Class::Handle(zone,
                                                   Class::New<TypeParameter>());
@@ -1176,7 +1184,7 @@ RawError* Object::Init(Isolate* isolate) {
   // could expect. Use with caution.
   type ^= Type::New(Object::Handle(zone, cls.raw()),
                     TypeArguments::Handle(zone),
-                    Scanner::kNoSourcePos);
+                    Token::kNoSourcePos);
   type.SetIsFinalized();
   type ^= type.Canonicalize();
   object_store->set_array_type(type);
@@ -1284,6 +1292,9 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(type_cls, Symbols::Type(), core_lib);
   pending_classes.Add(type_cls);
 
+  RegisterPrivateClass(function_type_cls, Symbols::FunctionType(), core_lib);
+  pending_classes.Add(function_type_cls);
+
   RegisterPrivateClass(type_ref_cls, Symbols::TypeRef(), core_lib);
   pending_classes.Add(type_ref_cls);
 
@@ -1321,15 +1332,14 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, Symbols::_Double(), core_lib);
   pending_classes.Add(cls);
 
-  // Abstract super class for all signature classes.
-  cls = Class::New<Instance>(kIllegalCid);
-  cls.set_num_type_arguments(0);
+  // Class that represents the Dart class _Closure and C++ class Closure.
+  cls = Class::New<Closure>();
+  cls.set_type_arguments_field_offset(Closure::type_arguments_offset());
+  cls.set_num_type_arguments(0);  // Although a closure has type_arguments_.
   cls.set_num_own_type_arguments(0);
-  cls.set_is_prefinalized();
-  RegisterPrivateClass(cls, Symbols::FunctionImpl(), core_lib);
+  RegisterPrivateClass(cls, Symbols::_Closure(), core_lib);
   pending_classes.Add(cls);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_function_impl_type(type);
+  object_store->set_closure_class(cls);
 
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
@@ -1606,6 +1616,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<LibraryPrefix>();
   cls = Class::New<Type>();
+  cls = Class::New<FunctionType>();
   cls = Class::New<TypeRef>();
   cls = Class::New<TypeParameter>();
   cls = Class::New<BoundedType>();
@@ -1659,6 +1670,9 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<Double>();
   object_store->set_double_class(cls);
+
+  cls = Class::New<Closure>();
+  object_store->set_closure_class(cls);
 
   cls = Class::New<Bigint>();
   object_store->set_bigint_class(cls);
@@ -1953,41 +1967,11 @@ bool Class::IsInFullSnapshot() const {
 }
 
 
-RawType* Class::SignatureType() const {
-  ASSERT(IsSignatureClass());
-  Zone* zone = Thread::Current()->zone();
-  const Function& function = Function::Handle(zone, signature_function());
-  ASSERT(!function.IsNull());
-  if (function.signature_class() != raw()) {
-    // This class is a function type alias. Return the canonical signature type.
-    const Class& canonical_signature_class =
-        Class::Handle(zone, function.signature_class());
-    return canonical_signature_class.SignatureType();
-  }
-  const Type& signature_type = Type::Handle(zone, CanonicalType());
-  if (!signature_type.IsNull()) {
-    return signature_type.raw();
-  }
-  // A signature class extends class Instance and is parameterized in the same
-  // way as the owner class of its non-static signature function.
-  // It is not type parameterized if its signature function is static.
-  // See Class::NewSignatureClass() for the setup of its type parameters.
-  // During type finalization, the type arguments of the super class of the
-  // owner class of its signature function will be prepended to the type
-  // argument vector. Therefore, we only need to set the type arguments
-  // matching the type parameters here.
-  const TypeArguments& signature_type_arguments =
-      TypeArguments::Handle(zone, type_parameters());
-  // Return the still unfinalized signature type.
-  return Type::New(*this, signature_type_arguments, token_pos());
-}
-
-
 RawAbstractType* Class::RareType() const {
   const Type& type = Type::Handle(Type::New(
       *this,
       Object::null_type_arguments(),
-      Scanner::kNoSourcePos));
+      Token::kNoSourcePos));
   return ClassFinalizer::FinalizeType(*this,
                                       type,
                                       ClassFinalizer::kCanonicalize);
@@ -1999,7 +1983,7 @@ RawAbstractType* Class::DeclarationType() const {
   const Type& type = Type::Handle(Type::New(
       *this,
       args,
-      Scanner::kNoSourcePos));
+      Token::kNoSourcePos));
   return ClassFinalizer::FinalizeType(*this,
                                       type,
                                       ClassFinalizer::kCanonicalize);
@@ -2037,7 +2021,7 @@ RawClass* Class::New() {
   result.set_num_type_arguments(0);
   result.set_num_own_type_arguments(0);
   result.set_num_native_fields(0);
-  result.set_token_pos(Scanner::kNoSourcePos);
+  result.set_token_pos(Token::kNoSourcePos);
   result.InitEmptyFields();
   Isolate::Current()->RegisterClass(result);
   return result.raw();
@@ -2049,6 +2033,7 @@ static void ReportTooManyTypeArguments(const Class& cls) {
   Report::MessageF(Report::kError,
                    Script::Handle(cls.script()),
                    cls.token_pos(),
+                   Report::AtLocation,
                    "too many type parameters declared in class '%s' or in its "
                    "super classes",
                    String::Handle(cls.Name()).ToCString());
@@ -2180,6 +2165,8 @@ void Class::SetFunctions(const Array& value) const {
       set.Insert(func);
     }
     StorePointer(&raw_ptr()->functions_hash_table_, set.Release().raw());
+  } else {
+    StorePointer(&raw_ptr()->functions_hash_table_, Array::null());
   }
 }
 
@@ -2457,14 +2444,6 @@ intptr_t Class::NumTypeArguments() const {
   cls = raw();
   intptr_t num_type_args = 0;
   do {
-    if (cls.IsSignatureClass()) {
-      Function& signature_fun = Function::Handle(zone);
-      signature_fun ^= cls.signature_function();
-      if (!signature_fun.is_static() &&
-          !signature_fun.HasInstantiatedSignature()) {
-        cls = signature_fun.Owner();
-      }
-    }
     // Calling NumOwnTypeArguments() on a mixin application class will setup the
     // type parameters if not already done.
     num_type_args += cls.NumOwnTypeArguments();
@@ -2474,8 +2453,12 @@ intptr_t Class::NumTypeArguments() const {
       break;
     }
     sup_type = cls.super_type();
-    ClassFinalizer::ResolveTypeClass(cls, sup_type);
+    // A BoundedType, TypeRef, or FunctionType can appear as type argument of
+    // sup_type, but not as sup_type itself.
+    ASSERT(sup_type.IsType());
+    sup_type = ClassFinalizer::ResolveTypeClass(cls, Type::Cast(sup_type));
     cls = sup_type.type_class();
+    ASSERT(!cls.IsTypedefClass());
   } while (true);
   set_num_type_arguments(num_type_args);
   return num_type_args;
@@ -2527,6 +2510,7 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
 
 
 void Class::CalculateFieldOffsets() const {
+  ASSERT(id() != kClosureCid);  // Class _Closure is prefinalized.
   Array& flds = Array::Handle(fields());
   const Class& super = Class::Handle(SuperClass());
   intptr_t offset = 0;
@@ -2694,7 +2678,7 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
                   false,  // Not external.
                   false,  // Not native.
                   owner,
-                  0));    // token_pos
+                  ClassifyingTokenPositions::kMethodExtractor));  // token_pos
 
   // Initialize signature: receiver is a single fixed parameter.
   const intptr_t kNumParameters = 1;
@@ -2740,9 +2724,7 @@ void Class::set_invocation_dispatcher_cache(const Array& cache) const {
 
 void Class::Finalize() const {
   ASSERT(Thread::Current()->IsMutatorThread());
-  // Even if all regular classes are prefinalized (precompilation), signature
-  // classes may be added later when we encounter local functions.
-  ASSERT(IsSignatureClass() || !Isolate::Current()->all_classes_finalized());
+  ASSERT(!Isolate::Current()->all_classes_finalized());
   ASSERT(!is_finalized());
   // Prefinalized classes have a VM internal representation and no Dart fields.
   // Their instance size  is precomputed and field offsets are known.
@@ -2898,6 +2880,7 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
           *error,  // No previous error.
           Script::Handle(patch.script()),
           func.token_pos(),
+          Report::AtLocation,
           Report::kError,
           Heap::kNew,
           "signature mismatch: '%s'", member_name.ToCString());
@@ -2943,6 +2926,7 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
           *error,  // No previous error.
           Script::Handle(patch.script()),
           field.token_pos(),
+          Report::AtLocation,
           Report::kError,
           Heap::kNew,
           "duplicate field: %s", member_name.ToCString());
@@ -3107,7 +3091,7 @@ RawClass* Class::New(intptr_t index) {
   result.set_num_type_arguments(kUnknownNumTypeArguments);
   result.set_num_own_type_arguments(kUnknownNumTypeArguments);
   result.set_num_native_fields(0);
-  result.set_token_pos(Scanner::kNoSourcePos);
+  result.set_token_pos(Token::kNoSourcePos);
   result.InitEmptyFields();
   Isolate::Current()->RegisterClass(result);
   return result.raw();
@@ -3125,79 +3109,12 @@ RawClass* Class::New(const String& name,
 }
 
 
-RawClass* Class::NewSignatureClass(const String& name,
-                                   const Function& signature_function,
-                                   const Script& script,
-                                   intptr_t token_pos) {
-  const Class& result = Class::Handle(New(name, script, token_pos));
-  // Instances of a signature class can only be closures.
-  result.set_instance_size(Closure::InstanceSize());
-  result.set_next_field_offset(Closure::NextFieldOffset());
-  // Signature classes extend the _FunctionImpl class.
-  result.set_super_type(Type::Handle(
-      Isolate::Current()->object_store()->function_impl_type()));
-  result.set_is_synthesized_class();
-  result.set_type_arguments_field_offset(Closure::type_arguments_offset());
-  if (!signature_function.IsNull()) {
-    result.PatchSignatureFunction(signature_function);
-  }
-  return result.raw();
-}
-
-
-void Class::PatchSignatureFunction(const Function& signature_function) const {
-  ASSERT(!signature_function.IsNull());
-  set_signature_function(signature_function);
-  const Class& owner_class = Class::Handle(signature_function.Owner());
-  ASSERT(!owner_class.IsNull());
-  // A signature class extends class Instance and is either not parameterized or
-  // parameterized with exactly the same list of type parameters as the owner
-  // class of its function.
-  // In case of a function type alias, the function owner is the alias class,
-  // which is also the signature class. The signature class is therefore
-  // parameterized according to the alias class declaration, even if the
-  // function type is not generic.
-  // Otherwise, if the function is static or if its signature type is
-  // non-generic, i.e. it does not depend on any type parameter of the owner
-  // class, then the signature class is not parameterized, although the owner
-  // class may be.
-  if (owner_class.raw() == raw()) {
-    // This signature class is an alias, which cannot be the canonical
-    // signature class for this signature function.
-    ASSERT(!IsCanonicalSignatureClass());
-    // Do not modify the declared type parameters of the alias, even if unused.
-  } else {
-    // Copy the type parameters only for an instance function type that is not
-    // instantiated, i.e. that depends on the type parameters of the owner
-    // class.
-    // TODO(regis): Verify that it is not a problem for the copied type
-    // parameters to refer to the owner class rather than to the signature
-    // class. In other words, uninstantiated function types should only get
-    // instantiated by the owner class as instantiator and never by the
-    // signature class itself.
-    TypeArguments& type_parameters = TypeArguments::Handle();
-    if (!signature_function.is_static() &&
-        (owner_class.NumTypeParameters() > 0) &&
-        !signature_function.HasInstantiatedSignature()) {
-      type_parameters = owner_class.type_parameters();
-    }
-    set_type_parameters(type_parameters);
-    if (signature_function.signature_class() == Object::null()) {
-      // Make this signature class the canonical signature class.
-      signature_function.set_signature_class(*this);
-      ASSERT(IsCanonicalSignatureClass());
-    }
-  }
-  set_is_prefinalized();
-}
-
-
 RawClass* Class::NewNativeWrapper(const Library& library,
                                   const String& name,
                                   int field_count) {
   Class& cls = Class::Handle(library.LookupClass(name));
   if (cls.IsNull()) {
-    cls = New(name, Script::Handle(), Scanner::kNoSourcePos);
+    cls = New(name, Script::Handle(), Token::kNoSourcePos);
     cls.SetFields(Object::empty_array());
     cls.SetFunctions(Object::empty_array());
     // Set super class to Object.
@@ -3289,12 +3206,8 @@ void Class::set_user_name(const String& value) const {
 
 
 RawString* Class::GeneratePrettyName() const {
-  if (!IsCanonicalSignatureClass()) {
-    const String& name = String::Handle(Name());
-    return String::IdentifierPrettyName(name);
-  } else {
-    return Name();
-  }
+  const String& name = String::Handle(Name());
+  return String::IdentifierPrettyName(name);
 }
 
 
@@ -3343,6 +3256,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::Instructions().raw();
     case kObjectPoolCid:
       return Symbols::ObjectPool().raw();
+    case kCodeSourceMapCid:
+      return Symbols::CodeSourceMap().raw();
     case kPcDescriptorsCid:
       return Symbols::PcDescriptors().raw();
     case kStackmapCid:
@@ -3432,12 +3347,8 @@ RawString* Class::GenerateUserVisibleName() const {
     case kExternalTypedDataFloat64ArrayCid:
       return Symbols::Float64List().raw();
     default:
-      if (!IsCanonicalSignatureClass()) {
-        const String& name = String::Handle(Name());
-        return String::IdentifierPrettyName(name);
-      } else {
-        return Name();
-      }
+      const String& name = String::Handle(Name());
+      return String::IdentifierPrettyName(name);
   }
   UNREACHABLE();
 }
@@ -3449,14 +3360,14 @@ void Class::set_script(const Script& value) const {
 
 
 void Class::set_token_pos(intptr_t token_pos) const {
-  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  ASSERT(!Token::IsClassifying(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
 intptr_t Class::ComputeEndTokenPos() const {
   // Return the begin token for synthetic classes.
-  if (IsSignatureClass() || IsMixinApplication() || IsTopLevel()) {
+  if (IsMixinApplication() || IsTopLevel()) {
     return token_pos();
   }
   const Script& scr = Script::Handle(script());
@@ -3639,7 +3550,7 @@ void Class::set_canonical_types(const Object& value) const {
 
 
 RawType* Class::CanonicalType() const {
-  if (!IsGeneric()) {
+  if (!IsGeneric() && !IsClosureClass()) {
     return reinterpret_cast<RawType*>(raw_ptr()->canonical_types_);
   }
   Array& types = Array::Handle();
@@ -3653,7 +3564,7 @@ RawType* Class::CanonicalType() const {
 
 void Class::SetCanonicalType(const Type& type) const {
   ASSERT(type.IsCanonical());
-  if (!IsGeneric()) {
+  if (!IsGeneric() && !IsClosureClass()) {
     ASSERT((canonical_types() == Object::null()) ||
            (canonical_types() == type.raw()));  // Set during own finalization.
     set_canonical_types(type);
@@ -3667,7 +3578,7 @@ void Class::SetCanonicalType(const Type& type) const {
 }
 
 
-intptr_t Class::FindCanonicalTypeIndex(const Type& needle) const {
+intptr_t Class::FindCanonicalTypeIndex(const AbstractType& needle) const {
   Thread* thread = Thread::Current();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
@@ -3697,8 +3608,8 @@ intptr_t Class::FindCanonicalTypeIndex(const Type& needle) const {
 }
 
 
-RawType* Class::CanonicalTypeFromIndex(intptr_t idx) const {
-  Type& type = Type::Handle();
+RawAbstractType* Class::CanonicalTypeFromIndex(intptr_t idx) const {
+  AbstractType& type = AbstractType::Handle();
   if (idx == 0) {
     type = CanonicalType();
     if (!type.IsNull()) {
@@ -3742,12 +3653,6 @@ void Class::DisableAllocationStub() const {
 
 bool Class::IsFunctionClass() const {
   return raw() == Type::Handle(Type::Function()).type_class();
-}
-
-
-bool Class::IsCanonicalSignatureClass() const {
-  const Function& function = Function::Handle(signature_function());
-  return (!function.IsNull() && (function.signature_class() == raw()));
 }
 
 
@@ -3823,25 +3728,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                      bound_error,
                                      space);
     }
-    const bool other_is_function_class = other.IsFunctionClass();
-    if (other.IsSignatureClass() || other_is_function_class) {
-      const Function& other_fun = Function::Handle(zone,
-                                                   other.signature_function());
-      if (thsi.IsSignatureClass()) {
-        if (other_is_function_class) {
-          return true;
-        }
-        // Check for two function types.
-        const Function& fun =
-            Function::Handle(zone, thsi.signature_function());
-        return fun.TypeTest(test_kind,
-                            type_arguments,
-                            other_fun,
-                            other_type_arguments,
-                            bound_error,
-                            space);
-      }
-      // Check if type S has a call() method of function type T.
+    if (other.IsFunctionClass()) {
+      // Check if type S has a call() method.
       Function& function =
           Function::Handle(zone, thsi.LookupDynamicFunction(Symbols::Call()));
       if (function.IsNull()) {
@@ -3853,15 +3741,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         }
       }
       if (!function.IsNull()) {
-        if (other_is_function_class ||
-            function.TypeTest(test_kind,
-                              type_arguments,
-                              other_fun,
-                              other_type_arguments,
-                              bound_error,
-                              space)) {
-              return true;
-            }
+        return true;
       }
     }
     // Check for 'direct super type' specified in the implements clause
@@ -4385,7 +4265,7 @@ RawUnresolvedClass* UnresolvedClass::New() {
 
 
 void UnresolvedClass::set_token_pos(intptr_t token_pos) const {
-  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  ASSERT(!Token::IsClassifying(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -4901,7 +4781,8 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   }
   // Cache lookup failed. Instantiate the type arguments.
   TypeArguments& result = TypeArguments::Handle();
-  result = InstantiateFrom(instantiator_type_arguments, bound_error);
+  result = InstantiateFrom(
+      instantiator_type_arguments, bound_error, NULL, Heap::kOld);
   if ((bound_error != NULL) && !bound_error->IsNull()) {
     return result.raw();
   }
@@ -5493,33 +5374,67 @@ void Function::set_implicit_closure_function(const Function& value) const {
 }
 
 
-RawClass* Function::signature_class() const {
+RawFunctionType* Function::SignatureType() const {
+  FunctionType& type = FunctionType::Handle();
+  const Object& obj = Object::Handle(raw_ptr()->data_);
   if (IsSignatureFunction()) {
-    const Object& obj = Object::Handle(raw_ptr()->data_);
-    ASSERT(obj.IsNull() || obj.IsClass());
-    return (obj.IsNull()) ? Class::null() : Class::Cast(obj).raw();
-  }
-  if (IsClosureFunction()) {
-    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(obj.IsNull() || obj.IsFunctionType());
+    type = obj.IsNull() ? FunctionType::null() : FunctionType::Cast(obj).raw();
+  } else {
+    ASSERT(IsClosureFunction());
     ASSERT(!obj.IsNull());
-    return ClosureData::Cast(obj).signature_class();
+    type = ClosureData::Cast(obj).signature_type();
   }
-  return Class::null();
+  if (type.IsNull()) {
+    // A function type is parameterized in the same way as the owner class of
+    // its non-static signature function.
+    // It is not type parameterized if its signature function is static.
+    // During type finalization, the type arguments of the super class of the
+    // owner class of its signature function will be prepended to the type
+    // argument vector. Therefore, we only need to set the type arguments
+    // matching the type parameters here.
+    // In case of a function type alias, the function owner is the alias class,
+    // i.e. the typedef. The signature type is therefore parameterized according
+    // to the alias class declaration, even if the function type is not generic.
+    // Otherwise, if the function is static or if its signature type is
+    // non-generic, i.e. it does not depend on any type parameter of the owner
+    // class, then the signature type is not parameterized, although the owner
+    // class may be. In this case, the scope class of the function type is reset
+    // to _Closure class as well as the owner of the signature function.
+    Class& scope_class = Class::Handle(Owner());
+    if (!scope_class.IsTypedefClass() &&
+        (is_static() ||
+         !scope_class.IsGeneric() ||
+         HasInstantiatedSignature())) {
+      scope_class = Isolate::Current()->object_store()->closure_class();
+      if (IsSignatureFunction()) {
+        set_owner(scope_class);
+        set_token_pos(Token::kNoSourcePos);
+      }
+    }
+    const TypeArguments& signature_type_arguments =
+        TypeArguments::Handle(scope_class.type_parameters());
+    // Return the still unfinalized signature type.
+    type = FunctionType::New(scope_class,
+                             signature_type_arguments,
+                             *this,
+                             token_pos());
+
+    SetSignatureType(type);
+  }
+  return type.raw();
 }
 
 
-void Function::set_signature_class(const Class& value) const {
+void Function::SetSignatureType(const FunctionType& value) const {
   if (IsSignatureFunction()) {
     set_data(value);
-    return;
-  }
-  if (IsClosureFunction()) {
+  } else {
+    ASSERT(IsClosureFunction());
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(!obj.IsNull());
-    ClosureData::Cast(obj).set_signature_class(value);
-    return;
+    ClosureData::Cast(obj).set_signature_type(value);
   }
-  UNREACHABLE();
 }
 
 
@@ -5640,7 +5555,7 @@ void Function::SetRedirectionTarget(const Function& target) const {
 
 // This field is heavily overloaded:
 //   eval function:           Script expression source
-//   signature function:      Class signature class
+//   signature function:      Function type
 //   method extractor:        Function extracted closure function
 //   noSuchMethod dispatcher: Array arguments descriptor
 //   invoke-field dispatcher: Array arguments descriptor
@@ -5787,7 +5702,7 @@ void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
 
 
 void Function::set_token_pos(intptr_t token_pos) const {
-  ASSERT(token_pos >= 0);
+  ASSERT(!Token::IsClassifying(token_pos) || IsMethodExtractor());
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -6169,6 +6084,7 @@ bool Function::HasCompatibleParametersWith(const Function& other,
         *bound_error,  // A bound error if non null.
         Script::Handle(other.script()),
         other.token_pos(),
+        Report::AtLocation,
         Report::kError,
         Heap::kNew,
         "signature type '%s' of function '%s' is not a subtype of signature "
@@ -6505,6 +6421,25 @@ RawFunction* Function::NewClosureFunction(const String& name,
 }
 
 
+RawFunction* Function::NewSignatureFunction(const Class& owner,
+                                            intptr_t token_pos) {
+  const Function& result = Function::Handle(Function::New(
+      Symbols::AnonymousSignature(),
+      RawFunction::kSignatureFunction,
+      /* is_static = */ false,
+      /* is_const = */ false,
+      /* is_abstract = */ false,
+      /* is_external = */ false,
+      /* is_native = */ false,
+      owner,  // Same as function type scope class.
+      token_pos));
+  result.set_is_reflectable(false);
+  result.set_is_visible(false);
+  result.set_is_debuggable(false);
+  return result.raw();
+}
+
+
 RawFunction* Function::NewEvalFunction(const Class& owner,
                                        const Script& script,
                                        bool is_static) {
@@ -6583,35 +6518,12 @@ RawFunction* Function::ImplicitClosureFunction() const {
     param_name = ParameterNameAt(has_receiver - kClosure + i);
     closure_function.SetParameterNameAt(i, param_name);
   }
-
-  // Lookup or create a new signature class for the closure function in the
-  // library of the owner class.
-  const Class& owner_class = Class::Handle(Owner());
-  ASSERT(!owner_class.IsNull() && (Owner() == closure_function.Owner()));
-  const Library& library = Library::Handle(owner_class.library());
-  ASSERT(!library.IsNull());
-  const String& signature = String::Handle(closure_function.Signature());
-  Class& signature_class = Class::ZoneHandle(
-      library.LookupLocalClass(signature));
-  if (signature_class.IsNull()) {
-    const Script& script = Script::Handle(this->script());
-    signature_class = Class::NewSignatureClass(signature,
-                                               closure_function,
-                                               script,
-                                               closure_function.token_pos());
-    library.AddClass(signature_class);
-  } else {
-    closure_function.set_signature_class(signature_class);
-  }
-  // Finalize types in signature class here, so that the
-  // signature type is not computed twice.
-  ClassFinalizer::FinalizeTypesInClass(signature_class);
-  const Type& signature_type = Type::Handle(signature_class.SignatureType());
+  const FunctionType& signature_type =
+      FunctionType::Handle(closure_function.SignatureType());
   if (!signature_type.IsFinalized()) {
     ClassFinalizer::FinalizeType(
-        signature_class, signature_type, ClassFinalizer::kCanonicalize);
+        Class::Handle(Owner()), signature_type, ClassFinalizer::kCanonicalize);
   }
-  ASSERT(closure_function.signature_class() == signature_class.raw());
   set_implicit_closure_function(closure_function);
   ASSERT(closure_function.IsImplicitClosureFunction());
   return closure_function.raw();
@@ -6716,9 +6628,6 @@ RawInstance* Function::ImplicitStaticClosure() const {
         Context::Handle(zone, object_store->empty_context());
     Instance& closure =
         Instance::Handle(zone, Closure::New(*this, context, Heap::kOld));
-    const char* error_str = NULL;
-    closure ^= closure.CheckAndCanonicalize(&error_str);
-    ASSERT(!closure.IsNull());
     set_implicit_static_closure(closure);
   }
   return implicit_static_closure();
@@ -6727,11 +6636,12 @@ RawInstance* Function::ImplicitStaticClosure() const {
 
 RawInstance* Function::ImplicitInstanceClosure(const Instance& receiver) const {
   ASSERT(IsImplicitClosureFunction());
-  const Class& cls = Class::Handle(signature_class());
+  const FunctionType& signature_type = FunctionType::Handle(SignatureType());
+  const Class& cls = Class::Handle(signature_type.type_class());
   const Context& context = Context::Handle(Context::New(1));
   context.SetAt(0, receiver);
   const Instance& result = Instance::Handle(Closure::New(*this, context));
-  if (cls.NumTypeArguments() > 0) {
+  if (cls.IsGeneric()) {
     const TypeArguments& type_arguments =
         TypeArguments::Handle(receiver.GetTypeArguments());
     result.SetTypeArguments(type_arguments);
@@ -6748,18 +6658,17 @@ RawString* Function::BuildSignature(bool instantiate,
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   String& name = String::Handle(zone);
   if (!instantiate && !is_static() && (name_visibility == kInternalName)) {
-    // Prefix the signature with its signature class and type parameters, if any
+    // Prefix the signature with its scope class and type parameters, if any
     // (e.g. "Map<K, V>(K) => bool"). In case of a function type alias, the
-    // signature class name is the alias name.
+    // scope class name is the alias name.
     // The signature of static functions cannot be type parameterized.
-    const Class& function_class = Class::Handle(zone, Owner());
-    ASSERT(!function_class.IsNull());
-    const TypeArguments& type_parameters = TypeArguments::Handle(
-        zone, function_class.type_parameters());
-    if (!type_parameters.IsNull()) {
-      const String& function_class_name =
-          String::Handle(zone, function_class.Name());
-      pieces.Add(function_class_name);
+    const Class& scope_class = Class::Handle(zone, Owner());
+    ASSERT(!scope_class.IsNull());
+    if (scope_class.IsGeneric()) {
+      const TypeArguments& type_parameters = TypeArguments::Handle(
+          zone, scope_class.type_parameters());
+      const String& scope_class_name = String::Handle(zone, scope_class.Name());
+      pieces.Add(scope_class_name);
       const intptr_t num_type_parameters = type_parameters.Length();
       pieces.Add(Symbols::LAngleBracket());
       TypeParameter& type_parameter = TypeParameter::Handle(zone);
@@ -7271,8 +7180,8 @@ void ClosureData::set_parent_function(const Function& value) const {
 }
 
 
-void ClosureData::set_signature_class(const Class& value) const {
-  StorePointer(&raw_ptr()->signature_class_, value.raw());
+void ClosureData::set_signature_type(const FunctionType& value) const {
+  StorePointer(&raw_ptr()->signature_type_, value.raw());
 }
 
 
@@ -8547,7 +8456,10 @@ TokenStream::Iterator::Iterator(const TokenStream& tokens,
       cur_token_kind_(Token::kILLEGAL),
       cur_token_obj_index_(-1),
       stream_type_(stream_type) {
-  SetCurrentPosition(token_pos);
+  ASSERT(token_pos != Token::kNoSourcePos);
+  if (token_pos >= 0) {
+    SetCurrentPosition(token_pos);
+  }
 }
 
 
@@ -9239,7 +9151,8 @@ static void ReportTooManyImports(const Library& lib) {
   const String& url = String::Handle(lib.url());
   Report::MessageF(Report::kError,
                    Script::Handle(lib.LookupScript(url)),
-                   Scanner::kNoSourcePos,
+                   Token::kNoSourcePos,
+                   Report::AtLocation,
                    "too many imports in library '%s'",
                    url.ToCString());
   UNREACHABLE();
@@ -10155,9 +10068,17 @@ static RawArray* NewDictionary(intptr_t initial_size) {
 }
 
 
-void Library::InitResolvedNamesCache(intptr_t size) const {
-  const Array& cache = Array::Handle(HashTables::New<ResolvedNamesMap>(size));
-  StorePointer(&raw_ptr()->resolved_names_, cache.raw());
+void Library::InitResolvedNamesCache(intptr_t size,
+                                     SnapshotReader* reader) const {
+  if (reader == NULL) {
+    StorePointer(&raw_ptr()->resolved_names_,
+                 HashTables::New<ResolvedNamesMap>(size));
+  } else {
+    intptr_t len = ResolvedNamesMap::ArrayLengthForNumOccupied(size);
+    *reader->ArrayHandle() ^= reader->NewArray(len);
+    StorePointer(&raw_ptr()->resolved_names_,
+                 HashTables::New<ResolvedNamesMap>(*reader->ArrayHandle()));
+  }
 }
 
 
@@ -10512,8 +10433,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
     Class& klass = Class::Handle();
     while (class_iter.HasNext()) {
       klass = class_iter.GetNextClass();
-      if (!klass.IsCanonicalSignatureClass() &&
-          !klass.IsMixinApplication()) {
+      if (!klass.IsMixinApplication()) {
         jsarr.AddValue(klass);
       }
     }
@@ -11246,15 +11166,15 @@ void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-// Encode integer in SLEB128 format.
-void PcDescriptors::EncodeInteger(GrowableArray<uint8_t>* data,
-                                  intptr_t value) {
+// Encode integer |value| in SLEB128 format and store into |data|.
+static void EncodeSLEB128(GrowableArray<uint8_t>* data,
+                          intptr_t value) {
   bool is_last_part = false;
   while (!is_last_part) {
-    intptr_t part = value & 0x7f;
+    uint8_t part = value & 0x7f;
     value >>= 7;
     if ((value == 0 && (part & 0x40) == 0) ||
-        (value == -1 && (part & 0x40) != 0)) {
+        (value == static_cast<intptr_t>(-1) && (part & 0x40) != 0)) {
       is_last_part = true;
     } else {
       part |= 0x80;
@@ -11264,24 +11184,39 @@ void PcDescriptors::EncodeInteger(GrowableArray<uint8_t>* data,
 }
 
 
+// Decode integer in SLEB128 format from |data| and update |byte_index|.
+static intptr_t DecodeSLEB128(const uint8_t* data,
+                              const intptr_t data_length,
+                              intptr_t* byte_index) {
+  ASSERT(*byte_index < data_length);
+  uword shift = 0;
+  intptr_t value = 0;
+  uint8_t part = 0;
+  do {
+    part = data[(*byte_index)++];
+    value |= static_cast<intptr_t>(part & 0x7f) << shift;
+    shift += 7;
+  } while ((part & 0x80) != 0);
+
+  if ((shift < (sizeof(value) * 8)) && ((part & 0x40) != 0)) {
+    value |= static_cast<intptr_t>(-1) << shift;
+  }
+  return value;
+}
+
+
+// Encode integer in SLEB128 format.
+void PcDescriptors::EncodeInteger(GrowableArray<uint8_t>* data,
+                                  intptr_t value) {
+  return EncodeSLEB128(data, value);
+}
+
+
 // Decode SLEB128 encoded integer. Update byte_index to the next integer.
 intptr_t PcDescriptors::DecodeInteger(intptr_t* byte_index) const {
   NoSafepointScope no_safepoint;
   const uint8_t* data = raw_ptr()->data();
-  ASSERT(*byte_index < Length());
-  uword shift = 0;
-  intptr_t value = 0;
-  intptr_t part = 0;
-  do {
-    part = data[(*byte_index)++];
-    value |= (part & 0x7f) << shift;
-    shift += 7;
-  } while ((part & 0x80) != 0);
-
-  if (shift < sizeof(value) * 8 && (part & 0x40) != 0) {
-    value |= -(1 << shift);
-  }
-  return value;
+  return DecodeSLEB128(data, Length(), byte_index);
 }
 
 
@@ -11580,6 +11515,114 @@ void PcDescriptors::Verify(const Function& function) const {
     }
   }
 #endif  // DEBUG
+}
+
+
+intptr_t CodeSourceMap::Length() const {
+  return raw_ptr()->length_;
+}
+
+
+void CodeSourceMap::SetLength(intptr_t value) const {
+  StoreNonPointer(&raw_ptr()->length_, value);
+}
+
+
+void CodeSourceMap::CopyData(GrowableArray<uint8_t>* delta_encoded_data) {
+  NoSafepointScope no_safepoint;
+  uint8_t* data = UnsafeMutableNonPointer(&raw_ptr()->data()[0]);
+  for (intptr_t i = 0; i < delta_encoded_data->length(); ++i) {
+    data[i] = (*delta_encoded_data)[i];
+  }
+}
+
+
+RawCodeSourceMap* CodeSourceMap::New(GrowableArray<uint8_t>* data) {
+  ASSERT(Object::code_source_map_class() != Class::null());
+  Thread* thread = Thread::Current();
+  CodeSourceMap& result = CodeSourceMap::Handle(thread->zone());
+  {
+    uword size = CodeSourceMap::InstanceSize(data->length());
+    RawObject* raw = Object::Allocate(CodeSourceMap::kClassId,
+                                      size,
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.SetLength(data->length());
+    result.CopyData(data);
+  }
+  return result.raw();
+}
+
+
+RawCodeSourceMap* CodeSourceMap::New(intptr_t length) {
+  ASSERT(Object::code_source_map_class() != Class::null());
+  Thread* thread = Thread::Current();
+  CodeSourceMap& result = CodeSourceMap::Handle(thread->zone());
+  {
+    uword size = CodeSourceMap::InstanceSize(length);
+    RawObject* raw = Object::Allocate(CodeSourceMap::kClassId,
+                                      size,
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.SetLength(length);
+  }
+  return result.raw();
+}
+
+
+void CodeSourceMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
+
+const char* CodeSourceMap::ToCString() const {
+  // "*" in a printf format specifier tells it to read the field width from
+  // the printf argument list.
+#define FORMAT "%#-*" Px "\t%" Pd "\n"
+  if (Length() == 0) {
+    return "empty CodeSourceMap\n";
+  }
+  // 4 bits per hex digit.
+  const int addr_width = kBitsPerWord / 4;
+  // First compute the buffer size required.
+  intptr_t len = 1;  // Trailing '\0'.
+  {
+    Iterator iter(*this);
+    while (iter.MoveNext()) {
+      len += OS::SNPrint(NULL, 0, FORMAT, addr_width,
+                         iter.PcOffset(),
+                         iter.TokenPos());
+    }
+  }
+  // Allocate the buffer.
+  char* buffer = Thread::Current()->zone()->Alloc<char>(len);
+  // Layout the fields in the buffer.
+  intptr_t index = 0;
+  Iterator iter(*this);
+  while (iter.MoveNext()) {
+    index += OS::SNPrint((buffer + index), (len - index), FORMAT, addr_width,
+                         iter.PcOffset(),
+                         iter.TokenPos());
+  }
+  return buffer;
+#undef FORMAT
+}
+
+
+// Encode integer in SLEB128 format.
+void CodeSourceMap::EncodeInteger(GrowableArray<uint8_t>* data,
+                                  intptr_t value) {
+  return EncodeSLEB128(data, value);
+}
+
+
+// Decode SLEB128 encoded integer. Update byte_index to the next integer.
+intptr_t CodeSourceMap::DecodeInteger(intptr_t* byte_index) const {
+  NoSafepointScope no_safepoint;
+  const uint8_t* data = raw_ptr()->data();
+  return DecodeSLEB128(data, Length(), byte_index);
 }
 
 
@@ -14379,7 +14422,7 @@ intptr_t SubtypeTestCache::NumberOfChecks() const {
 
 
 void SubtypeTestCache::AddCheck(
-    intptr_t instance_class_id,
+    const Object& instance_class_id_or_function,
     const TypeArguments& instance_type_arguments,
     const TypeArguments& instantiator_type_arguments,
     const Bool& test_result) const {
@@ -14389,24 +14432,24 @@ void SubtypeTestCache::AddCheck(
   data = Array::Grow(data, new_len);
   set_cache(data);
   intptr_t data_pos = old_num * kTestEntryLength;
-  data.SetAt(data_pos + kInstanceClassId,
-      Smi::Handle(Smi::New(instance_class_id)));
+  data.SetAt(data_pos + kInstanceClassIdOrFunction,
+             instance_class_id_or_function);
   data.SetAt(data_pos + kInstanceTypeArguments, instance_type_arguments);
   data.SetAt(data_pos + kInstantiatorTypeArguments,
-      instantiator_type_arguments);
+             instantiator_type_arguments);
   data.SetAt(data_pos + kTestResult, test_result);
 }
 
 
 void SubtypeTestCache::GetCheck(intptr_t ix,
-                                intptr_t* instance_class_id,
+                                Object* instance_class_id_or_function,
                                 TypeArguments* instance_type_arguments,
                                 TypeArguments* instantiator_type_arguments,
                                 Bool* test_result) const {
   Array& data = Array::Handle(cache());
   intptr_t data_pos = ix * kTestEntryLength;
-  *instance_class_id =
-      Smi::Value(Smi::RawCast(data.At(data_pos + kInstanceClassId)));
+  *instance_class_id_or_function =
+      data.At(data_pos + kInstanceClassIdOrFunction);
   *instance_type_arguments ^= data.At(data_pos + kInstanceTypeArguments);
   *instantiator_type_arguments ^=
       data.At(data_pos + kInstantiatorTypeArguments);
@@ -14503,6 +14546,7 @@ RawLanguageError* LanguageError::New() {
 RawLanguageError* LanguageError::NewFormattedV(const Error& prev_error,
                                                const Script& script,
                                                intptr_t token_pos,
+                                               bool report_after_token,
                                                Report::Kind kind,
                                                Heap::Space space,
                                                const char* format,
@@ -14519,6 +14563,7 @@ RawLanguageError* LanguageError::NewFormattedV(const Error& prev_error,
   result.set_previous_error(prev_error);
   result.set_script(script);
   result.set_token_pos(token_pos);
+  result.set_report_after_token(report_after_token);
   result.set_kind(kind);
   result.set_message(String::Handle(
       String::NewFormattedV(format, args, space)));
@@ -14529,13 +14574,15 @@ RawLanguageError* LanguageError::NewFormattedV(const Error& prev_error,
 RawLanguageError* LanguageError::NewFormatted(const Error& prev_error,
                                               const Script& script,
                                               intptr_t token_pos,
+                                              bool report_after_token,
                                               Report::Kind kind,
                                               Heap::Space space,
                                               const char* format, ...) {
   va_list args;
   va_start(args, format);
   RawLanguageError* result = LanguageError::NewFormattedV(
-      prev_error, script, token_pos, kind, space, format, args);
+      prev_error, script, token_pos, report_after_token,
+      kind, space, format, args);
   NoSafepointScope no_safepoint;
   va_end(args);
   return result;
@@ -14571,8 +14618,13 @@ void LanguageError::set_script(const Script& value) const {
 
 
 void LanguageError::set_token_pos(intptr_t token_pos) const {
-  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  ASSERT(!Token::IsClassifying(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
+}
+
+
+void LanguageError::set_report_after_token(bool value) {
+  StoreNonPointer(&raw_ptr()->report_after_token_, value);
 }
 
 
@@ -14599,6 +14651,7 @@ RawString* LanguageError::FormatMessage() const {
       Report::PrependSnippet(kind(),
                              Script::Handle(script()),
                              token_pos(),
+                             report_after_token(),
                              String::Handle(message())));
   // Prepend previous error message.
   const Error& prev_error = Error::Handle(previous_error());
@@ -14955,11 +15008,32 @@ RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
 }
 
 
-RawType* Instance::GetType() const {
+RawAbstractType* Instance::GetType() const {
   if (IsNull()) {
     return Type::NullType();
   }
   const Class& cls = Class::Handle(clazz());
+  if (cls.IsClosureClass()) {
+    const Function& signature =
+        Function::Handle(Closure::Cast(*this).function());
+    FunctionType& type = FunctionType::Handle(signature.SignatureType());
+    if (type.scope_class() == cls.raw()) {
+      // Type is not parameterized.
+      if (!type.IsCanonical()) {
+        type ^= type.Canonicalize();
+        signature.SetSignatureType(type);
+      }
+      return type.raw();
+    }
+    const Class& scope_cls = Class::Handle(type.scope_class());
+    ASSERT(scope_cls.NumTypeArguments() > 0);
+    TypeArguments& type_arguments = TypeArguments::Handle(GetTypeArguments());
+    type = FunctionType::New(
+        scope_cls, type_arguments, signature, Token::kNoSourcePos);
+    type.SetIsFinalized();
+    type ^= type.Canonicalize();
+    return type.raw();
+  }
   Type& type = Type::Handle();
   if (!cls.IsGeneric()) {
     type = cls.CanonicalType();
@@ -14969,7 +15043,7 @@ RawType* Instance::GetType() const {
     if (cls.NumTypeArguments() > 0) {
       type_arguments = GetTypeArguments();
     }
-    type = Type::New(cls, type_arguments, Scanner::kNoSourcePos);
+    type = Type::New(cls, type_arguments, Token::kNoSourcePos);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }
@@ -15008,6 +15082,47 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   }
   Zone* zone = Thread::Current()->zone();
   const Class& cls = Class::Handle(zone, clazz());
+  if (cls.IsClosureClass()) {
+    if (other.IsObjectType() || other.IsDartFunctionType()) {
+      return true;
+    }
+    Function& other_signature = Function::Handle(zone);
+    TypeArguments& other_type_arguments = TypeArguments::Handle(zone);
+    // Note that we may encounter a bound error in checked mode.
+    if (!other.IsInstantiated()) {
+      const AbstractType& instantiated_other = AbstractType::Handle(
+          zone, other.InstantiateFrom(other_instantiator, bound_error));
+      if ((bound_error != NULL) && !bound_error->IsNull()) {
+        ASSERT(Isolate::Current()->flags().type_checks());
+        return false;
+      }
+      if (instantiated_other.IsDynamicType() ||
+          instantiated_other.IsObjectType() ||
+          instantiated_other.IsDartFunctionType()) {
+        return true;
+      }
+      if (!instantiated_other.IsFunctionType()) {
+        return false;
+      }
+      other_signature = FunctionType::Cast(instantiated_other).signature();
+      other_type_arguments = instantiated_other.arguments();
+    } else {
+      if (!other.IsFunctionType()) {
+        return false;
+      }
+      other_signature = FunctionType::Cast(other).signature();
+      other_type_arguments = other.arguments();
+    }
+    const Function& signature =
+        Function::Handle(zone, Closure::Cast(*this).function());
+    const TypeArguments& type_arguments =
+        TypeArguments::Handle(zone, GetTypeArguments());
+    return signature.IsSubtypeOf(type_arguments,
+                                 other_signature,
+                                 other_type_arguments,
+                                 bound_error,
+                                 Heap::kOld);
+  }
   TypeArguments& type_arguments = TypeArguments::Handle(zone);
   if (cls.NumTypeArguments() > 0) {
     type_arguments = GetTypeArguments();
@@ -15025,20 +15140,54 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   }
   Class& other_class = Class::Handle(zone);
   TypeArguments& other_type_arguments = TypeArguments::Handle(zone);
+  AbstractType& instantiated_other = AbstractType::Handle(zone, other.raw());
   // Note that we may encounter a bound error in checked mode.
   if (!other.IsInstantiated()) {
-    const AbstractType& instantiated_other = AbstractType::Handle(
-        zone, other.InstantiateFrom(other_instantiator, bound_error));
+    instantiated_other = other.InstantiateFrom(other_instantiator, bound_error);
     if ((bound_error != NULL) && !bound_error->IsNull()) {
       ASSERT(Isolate::Current()->flags().type_checks());
       return false;
     }
-    other_class = instantiated_other.type_class();
-    other_type_arguments = instantiated_other.arguments();
-  } else {
-    other_class = other.type_class();
-    other_type_arguments = other.arguments();
+    if (instantiated_other.IsTypeRef()) {
+      instantiated_other = TypeRef::Cast(instantiated_other).type();
+    }
+    if (instantiated_other.IsDynamicType()) {
+      return true;
+    }
   }
+  other_type_arguments = instantiated_other.arguments();
+  const bool other_is_dart_function = instantiated_other.IsDartFunctionType();
+  if (other_is_dart_function || instantiated_other.IsFunctionType()) {
+    // Check if this instance understands a call() method of a compatible type.
+    Function& call =
+        Function::Handle(zone, cls.LookupDynamicFunction(Symbols::Call()));
+    if (call.IsNull()) {
+      // Walk up the super_class chain.
+      Class& super_cls = Class::Handle(zone, cls.SuperClass());
+      while (!super_cls.IsNull() && call.IsNull()) {
+        call = super_cls.LookupDynamicFunction(Symbols::Call());
+        super_cls = super_cls.SuperClass();
+      }
+    }
+    if (!call.IsNull()) {
+      if (other_is_dart_function) {
+        return true;
+      }
+      const Function& other_signature = Function::Handle(
+          zone, FunctionType::Cast(instantiated_other).signature());
+      if (call.IsSubtypeOf(type_arguments,
+                           other_signature,
+                           other_type_arguments,
+                           bound_error,
+                           Heap::kOld)) {
+        return true;
+      }
+    }
+  }
+  if (!instantiated_other.IsType()) {
+    return false;
+  }
+  other_class = instantiated_other.type_class();
   return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
                          bound_error, Heap::kOld);
 }
@@ -15104,17 +15253,11 @@ void Instance::SetNativeFields(uint16_t num_native_fields,
 }
 
 
-bool Instance::IsClosure() const {
-  const Class& cls = Class::Handle(clazz());
-  return cls.IsSignatureClass();
-}
-
-
 bool Instance::IsCallable(Function* function) const {
   Class& cls = Class::Handle(clazz());
-  if (cls.IsSignatureClass()) {
+  if (cls.IsClosureClass()) {
     if (function != NULL) {
-      *function = Closure::function(*this);
+      *function = Closure::Cast(*this).function();
     }
     return true;
   }
@@ -15219,7 +15362,7 @@ const char* Instance::ToCString() const {
     return "Instance";
   } else {
     if (IsClosure()) {
-      return Closure::ToCString(*this);
+      return Closure::Cast(*this).ToCString();
     }
     const Class& cls = Class::Handle(clazz());
     TypeArguments& type_arguments = TypeArguments::Handle();
@@ -15228,7 +15371,7 @@ const char* Instance::ToCString() const {
       type_arguments = GetTypeArguments();
     }
     const Type& type =
-        Type::Handle(Type::New(cls, type_arguments, Scanner::kNoSourcePos));
+        Type::Handle(Type::New(cls, type_arguments, Token::kNoSourcePos));
     const String& type_name = String::Handle(type.UserVisibleName());
     return OS::SCreate(Thread::Current()->zone(),
         "Instance of '%s'", type_name.ToCString());
@@ -15304,9 +15447,9 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddServiceId(*this);
   if (IsClosure()) {
     jsobj.AddProperty("closureFunction",
-                      Function::Handle(Closure::function(*this)));
+                      Function::Handle(Closure::Cast(*this).function()));
     jsobj.AddProperty("closureContext",
-                      Context::Handle(Closure::context(*this)));
+                      Context::Handle(Closure::Cast(*this).context()));
   }
   if (ref) {
     return;
@@ -15325,6 +15468,12 @@ bool AbstractType::IsResolved() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
+}
+
+
+void AbstractType::SetIsResolved() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
 }
 
 
@@ -15356,6 +15505,11 @@ RawTypeArguments* AbstractType::arguments() const  {
 }
 
 
+void AbstractType::set_arguments(const TypeArguments& value) const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+}
+
 intptr_t AbstractType::token_pos() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
@@ -15377,10 +15531,22 @@ bool AbstractType::IsFinalized() const {
 }
 
 
+void AbstractType::SetIsFinalized() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+}
+
+
 bool AbstractType::IsBeingFinalized() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
+}
+
+
+void AbstractType::SetIsBeingFinalized() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
 }
 
 
@@ -15538,8 +15704,29 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   String& class_name = String::Handle(zone);
   intptr_t first_type_param_index;
   intptr_t num_type_params;  // Number of type parameters to print.
-  if (HasResolvedTypeClass()) {
-    const Class& cls = Class::Handle(zone, type_class());
+  Class& cls = Class::Handle(zone);
+  if (IsFunctionType()) {
+    cls = type_class();
+    if (!cls.IsTypedefClass()) {
+      const Function& signature_function = Function::Handle(
+          zone, FunctionType::Cast(*this).signature());
+      if (!IsFinalized() || IsBeingFinalized() || IsMalformed()) {
+        return signature_function.UserVisibleSignature();
+      }
+      return signature_function.InstantiatedSignatureFrom(args,
+                                                          name_visibility);
+    }
+    class_name = cls.Name();  // Typedef name.
+    // We may be reporting an error about a malformed function type. In that
+    // case, avoid instantiating the signature, since it may cause divergence.
+    if (!IsFinalized() || IsBeingFinalized() || IsMalformed()) {
+      return class_name.raw();
+    }
+    // Print the name of a typedef as a regular, possibly parameterized, class.
+  } else if (HasResolvedTypeClass()) {
+    cls = type_class();
+  }
+  if (!cls.IsNull()) {
     if (IsResolved() || !cls.IsMixinApplication()) {
       // Do not print the full vector, but only the declared type parameters.
       num_type_params = cls.NumTypeParameters();
@@ -15577,29 +15764,8 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
         first_type_param_index = num_args - num_type_params;
       }
     }
-    if (cls.IsSignatureClass()) {
-      // We may be reporting an error about a malformed function type. In that
-      // case, avoid instantiating the signature, since it may cause divergence.
-      if (!IsFinalized() || IsBeingFinalized() || IsMalformed()) {
-        return class_name.raw();
-      }
-      // To avoid divergence, print the name of a typedef (non-canonical
-      // signature class) as a regular, possibly parameterized, class.
-      if (cls.IsCanonicalSignatureClass()) {
-        const Function& signature_function = Function::Handle(
-            zone, cls.signature_function());
-        // Signature classes have no super type, however, they take as many
-        // type arguments as the owner class of their signature function (if it
-        // is non static and generic, see Class::NumTypeArguments()). Therefore,
-        // first_type_param_index may be greater than 0 here.
-        return signature_function.InstantiatedSignatureFrom(args,
-                                                            name_visibility);
-      }
-    }
   } else {
-    const UnresolvedClass& cls =
-        UnresolvedClass::Handle(zone, unresolved_class());
-    class_name = cls.Name();
+    class_name = UnresolvedClass::Handle(zone, unresolved_class()).Name();
     num_type_params = num_args;
     first_type_param_index = 0;
   }
@@ -15691,7 +15857,7 @@ bool AbstractType::IsStringType() const {
 }
 
 
-bool AbstractType::IsFunctionType() const {
+bool AbstractType::IsDartFunctionType() const {
   return HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::Function()).type_class());
 }
@@ -15729,6 +15895,9 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     }
     return false;
   }
+  if (other.IsObjectType() || other.IsDynamicType()) {
+    return true;
+  }
   if (IsBoundedType() || other.IsBoundedType()) {
     if (Equals(other)) {
       return true;
@@ -15740,6 +15909,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     }
     return false;  // TODO(regis): We should return "maybe after instantiation".
   }
+  Zone* zone = Thread::Current()->zone();
   // Type parameters cannot be handled by Class::TypeTest().
   // When comparing two uninstantiated function types, one returning type
   // parameter K, the other returning type parameter V, we cannot assume that K
@@ -15748,7 +15918,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   // The same rule applies when checking the upper bound of a still
   // uninstantiated type at compile time. Returning false will defer the test
   // to run time.
-  // There are however some cases can be decided at compile time.
+  // There are however some cases that can be decided at compile time.
   // For example, with class A<K, V extends K>, new A<T, T> called from within
   // a class B<T> will never require a run time bound check, even if T is
   // uninstantiated at compile time.
@@ -15760,7 +15930,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
         return true;
       }
     }
-    const AbstractType& bound = AbstractType::Handle(type_param.bound());
+    const AbstractType& bound = AbstractType::Handle(zone, type_param.bound());
     // We may be checking bounds at finalization time and can encounter
     // a still unfinalized bound. Finalizing the bound here may lead to cycles.
     if (!bound.IsFinalized()) {
@@ -15774,13 +15944,59 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   if (other.IsTypeParameter()) {
     return false;  // TODO(regis): We should return "maybe after instantiation".
   }
-  const Class& cls = Class::Handle(type_class());
-  return cls.TypeTest(test_kind,
-                      TypeArguments::Handle(arguments()),
-                      Class::Handle(other.type_class()),
-                      TypeArguments::Handle(other.arguments()),
-                      bound_error,
-                      space);
+  const Class& type_cls = Class::Handle(zone, type_class());
+  // Function types cannot be handled by Class::TypeTest().
+  const bool other_is_dart_function_type = other.IsDartFunctionType();
+  if (other_is_dart_function_type || other.IsFunctionType()) {
+    if (IsFunctionType()) {
+      if (other_is_dart_function_type) {
+        return true;
+      }
+      const Function& other_fun =
+          Function::Handle(zone, FunctionType::Cast(other).signature());
+      // Check for two function types.
+      const Function& fun =
+          Function::Handle(zone, FunctionType::Cast(*this).signature());
+      return fun.TypeTest(test_kind,
+                          TypeArguments::Handle(zone, arguments()),
+                          other_fun,
+                          TypeArguments::Handle(zone, other.arguments()),
+                          bound_error,
+                          space);
+    }
+    // Check if type S has a call() method of function type T.
+    Function& function =
+        Function::Handle(zone, type_cls.LookupDynamicFunction(Symbols::Call()));
+    if (function.IsNull()) {
+      // Walk up the super_class chain.
+      Class& cls = Class::Handle(zone, type_cls.SuperClass());
+      while (!cls.IsNull() && function.IsNull()) {
+        function = cls.LookupDynamicFunction(Symbols::Call());
+        cls = cls.SuperClass();
+      }
+    }
+    if (!function.IsNull()) {
+      if (other_is_dart_function_type ||
+          function.TypeTest(test_kind,
+                            TypeArguments::Handle(zone, arguments()),
+                            Function::Handle(
+                                zone, FunctionType::Cast(other).signature()),
+                            TypeArguments::Handle(zone, other.arguments()),
+                            bound_error,
+                            space)) {
+        return true;
+      }
+    }
+  }
+  if (IsFunctionType()) {
+    return false;
+  }
+  return type_cls.TypeTest(test_kind,
+                           TypeArguments::Handle(zone, arguments()),
+                           Class::Handle(zone, other.type_class()),
+                           TypeArguments::Handle(zone, other.arguments()),
+                           bound_error,
+                           space);
 }
 
 
@@ -15890,7 +16106,7 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
     const TypeArguments& no_type_arguments = TypeArguments::Handle();
     type ^= Type::New(Object::Handle(type_class.raw()),
                       no_type_arguments,
-                      Scanner::kNoSourcePos);
+                      Token::kNoSourcePos);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }
@@ -15910,14 +16126,7 @@ void Type::SetIsFinalized() const {
 }
 
 
-void Type::ResetIsFinalized() const {
-  ASSERT(IsFinalized());
-  set_type_state(RawType::kBeingFinalized);
-  SetIsFinalized();
-}
-
-
-void Type::set_is_being_finalized() const {
+void Type::SetIsBeingFinalized() const {
   ASSERT(IsResolved() && !IsFinalized() && !IsBeingFinalized());
   set_type_state(RawType::kBeingFinalized);
 }
@@ -15962,8 +16171,10 @@ void Type::set_error(const LanguageError& value) const {
 }
 
 
-void Type::set_is_resolved() const {
+void Type::SetIsResolved() const {
   ASSERT(!IsResolved());
+  // A Typedef is a FunctionType, not a type.
+  ASSERT(!Class::Handle(type_class()).IsTypedefClass());
   set_type_state(RawType::kResolved);
 }
 
@@ -16001,11 +16212,6 @@ RawUnresolvedClass* Type::unresolved_class() const {
 }
 
 
-RawTypeArguments* Type::arguments() const {
-  return raw_ptr()->arguments_;
-}
-
-
 bool Type::IsInstantiated(TrailPtr trail) const {
   if (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) {
     return true;
@@ -16021,7 +16227,6 @@ bool Type::IsInstantiated(TrailPtr trail) const {
   intptr_t len = num_type_args;  // Check the full vector of type args.
   ASSERT(num_type_args > 0);
   // This type is not instantiated if it refers to type parameters.
-  // This IsInstantiated() call may be invoked on an unresolved signature type.
   // Although this type may still be unresolved, the type parameters it may
   // refer to are resolved by definition. We can therefore return the correct
   // result even for an unresolved type. We just need to look at all type
@@ -16068,7 +16273,8 @@ RawAbstractType* Type::InstantiateFrom(
 
   // This uninstantiated type is not modified, as it can be instantiated
   // with different instantiators. Allocate a new instantiated version of it.
-  instantiated_type = Type::New(cls, TypeArguments::Handle(zone), token_pos());
+  instantiated_type =
+      Type::New(cls, TypeArguments::Handle(zone), token_pos(), space);
   TypeArguments& type_arguments = TypeArguments::Handle(zone, arguments());
   ASSERT(type_arguments.Length() == cls.NumTypeArguments());
   if (type_arguments.IsRecursive()) {
@@ -16082,7 +16288,7 @@ RawAbstractType* Type::InstantiateFrom(
   if (IsFinalized()) {
     instantiated_type.SetIsFinalized();
   } else {
-    instantiated_type.set_is_resolved();
+    instantiated_type.SetIsResolved();
   }
   // Canonicalization is not part of instantiation.
   return instantiated_type.raw();
@@ -16184,9 +16390,9 @@ RawAbstractType* Type::CloneUnfinalized() const {
   ASSERT(!IsBeingFinalized());  // Cloning must occur prior to finalization.
   TypeArguments& type_args = TypeArguments::Handle(arguments());
   type_args = type_args.CloneUnfinalized();
-  const Class& type_cls = Class::Handle(type_class());
-  const Type& clone = Type::Handle(Type::New(type_cls, type_args, token_pos()));
-  clone.set_is_resolved();
+  const Type& clone = Type::Handle(
+      Type::New(Class::Handle(type_class()), type_args, token_pos()));
+  clone.SetIsResolved();
   return clone.raw();
 }
 
@@ -16228,13 +16434,14 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  Type& type = Type::Handle(zone);
+  AbstractType& type = Type::Handle(zone);
   const Class& cls = Class::Handle(zone, type_class());
+  ASSERT(!cls.IsTypedefClass());  // This type should be a FunctionType.
   if (cls.raw() == Object::dynamic_class() && (isolate != Dart::vm_isolate())) {
     return Object::dynamic_type().raw();
   }
   // Fast canonical lookup/registry for simple types.
-  if (!cls.IsGeneric()) {
+  if (!cls.IsGeneric() && !cls.IsClosureClass()) {
     type = cls.CanonicalType();
     if (type.IsNull()) {
       ASSERT(!cls.raw()->IsVMHeapObject() || (isolate == Dart::vm_isolate()));
@@ -16319,36 +16526,6 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     canonical_types = new_canonical_types.raw();
   }
   canonical_types.SetAt(index, *this);
-  if ((index == 1) && cls.IsCanonicalSignatureClass()) {
-    canonical_types.SetAt(0, *this);  // Also set canonical signature type at 0.
-#ifdef DEBUG
-    // Verify that the first canonical type is the signature type by checking
-    // that the type argument vector of the canonical type ends with the
-    // uninstantiated type parameters of the signature class. Note that these
-    // type parameters may be bounded if the super class of the owner class
-    // declares bounds.
-    // The signature type is finalized during class finalization, before the
-    // optimizer may canonicalize instantiated function types of the same
-    // signature class.
-    // Although the signature class extends class Instance, the type arguments
-    // of the super class of the owner class of its signature function will be
-    // prepended to the type argument vector during class finalization.
-    const TypeArguments& type_params =
-        TypeArguments::Handle(zone, cls.type_parameters());
-    const intptr_t num_type_params = cls.NumTypeParameters();
-    const intptr_t num_type_args = cls.NumTypeArguments();
-    AbstractType& type_arg = AbstractType::Handle(zone);
-    TypeParameter& type_param = TypeParameter::Handle(zone);
-    for (intptr_t i = 0; i < num_type_params; i++) {
-      type_arg = type_args.TypeAt(num_type_args - num_type_params + i);
-      while (type_arg.IsBoundedType()) {
-        type_arg = BoundedType::Cast(type_arg).type();
-      }
-      type_param ^= type_params.TypeAt(i);
-      ASSERT(type_arg.Equals(type_param));
-    }
-#endif
-  }
   ASSERT(IsOld());
   ASSERT(type_args.IsNull() || type_args.IsOld());
   SetCanonical();
@@ -16399,7 +16576,7 @@ RawType* Type::New(const Object& clazz,
 
 
 void Type::set_token_pos(intptr_t token_pos) const {
-  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  ASSERT(!Token::IsClassifying(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -16449,6 +16626,552 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
     intptr_t cid = type_cls.id();
     jsobj.AddFixedServiceId("classes/%" Pd "/types/%" Pd "", cid, id);
     jsobj.AddProperty("typeClass", type_cls);
+  } else {
+    jsobj.AddServiceId(*this);
+  }
+  const String& user_name = String::Handle(PrettyName());
+  const String& vm_name = String::Handle(Name());
+  AddNameProperties(&jsobj, user_name, vm_name);
+  if (ref) {
+    return;
+  }
+  const TypeArguments& typeArgs = TypeArguments::Handle(arguments());
+  if (!typeArgs.IsNull()) {
+    jsobj.AddProperty("typeArguments", typeArgs);
+  }
+}
+
+
+void FunctionType::SetIsFinalized() const {
+  ASSERT(!IsFinalized());
+  if (IsInstantiated()) {
+    set_type_state(RawFunctionType::kFinalizedInstantiated);
+  } else {
+    set_type_state(RawFunctionType::kFinalizedUninstantiated);
+  }
+}
+
+
+void FunctionType::ResetIsFinalized() const {
+  ASSERT(IsFinalized());
+  set_type_state(RawFunctionType::kBeingFinalized);
+  SetIsFinalized();
+}
+
+
+void FunctionType::SetIsBeingFinalized() const {
+  ASSERT(IsResolved() && !IsFinalized() && !IsBeingFinalized());
+  set_type_state(RawFunctionType::kBeingFinalized);
+}
+
+
+bool FunctionType::IsMalformed() const {
+  if (raw_ptr()->error_ == LanguageError::null()) {
+    return false;
+  }
+  const LanguageError& type_error = LanguageError::Handle(error());
+  return type_error.kind() == Report::kMalformedType;
+}
+
+
+bool FunctionType::IsMalbounded() const {
+  if (!Isolate::Current()->flags().type_checks()) {
+    return false;
+  }
+  if (raw_ptr()->error_ == LanguageError::null()) {
+    return false;
+  }
+  const LanguageError& type_error = LanguageError::Handle(error());
+  return type_error.kind() == Report::kMalboundedType;
+}
+
+
+bool FunctionType::IsMalformedOrMalbounded() const {
+  if (raw_ptr()->error_ == LanguageError::null()) {
+    return false;
+  }
+  const LanguageError& type_error = LanguageError::Handle(error());
+  if (type_error.kind() == Report::kMalformedType) {
+    return true;
+  }
+  ASSERT(type_error.kind() == Report::kMalboundedType);
+  return Isolate::Current()->flags().type_checks();
+}
+
+
+void FunctionType::set_error(const LanguageError& value) const {
+  StorePointer(&raw_ptr()->error_, value.raw());
+}
+
+
+void FunctionType::SetIsResolved() const {
+  ASSERT(!IsResolved());
+  set_type_state(RawFunctionType::kResolved);
+}
+
+
+bool FunctionType::IsInstantiated(TrailPtr trail) const {
+  if (raw_ptr()->type_state_ == RawFunctionType::kFinalizedInstantiated) {
+    return true;
+  }
+  if (raw_ptr()->type_state_ == RawFunctionType::kFinalizedUninstantiated) {
+    return false;
+  }
+  if (arguments() == TypeArguments::null()) {
+    return true;
+  }
+  const Class& scope_cls = Class::Handle(scope_class());
+  if (!scope_cls.IsGeneric()) {
+    ASSERT(scope_cls.IsClosureClass() || scope_cls.IsTypedefClass());
+    ASSERT(arguments() == TypeArguments::null());
+    return true;
+  }
+  const TypeArguments& type_arguments = TypeArguments::Handle(arguments());
+  const intptr_t num_type_args = scope_cls.NumTypeArguments();
+  const intptr_t num_type_params = scope_cls.NumTypeParameters();
+  // The vector may be longer than necessary. An empty vector is handled above.
+  ASSERT(type_arguments.Length() >= num_type_args);
+  return
+      (num_type_params == 0) ||
+      type_arguments.IsSubvectorInstantiated(num_type_args - num_type_params,
+                                             num_type_params);
+}
+
+
+RawAbstractType* FunctionType::InstantiateFrom(
+    const TypeArguments& instantiator_type_arguments,
+    Error* bound_error,
+    TrailPtr trail,
+    Heap::Space space) const {
+  Zone* zone = Thread::Current()->zone();
+  ASSERT(IsFinalized() || IsBeingFinalized());
+  ASSERT(!IsInstantiated());
+  ASSERT(!IsMalformed());  // FunctionType cannot be malformed.
+  // Instantiating this type with its own type arguments as instantiator can
+  // occur during finalization and bounds checking. Return the type unchanged.
+  if (arguments() == instantiator_type_arguments.raw()) {
+    return raw();
+  }
+  // If this type is recursive, we may already be instantiating it.
+  FunctionType& instantiated_type = FunctionType::Handle(zone);
+  instantiated_type ^= OnlyBuddyInTrail(trail);
+  if (!instantiated_type.IsNull()) {
+    ASSERT(IsRecursive());
+    return instantiated_type.raw();
+  }
+  // Note that the scope class has to be resolved at this time, but not
+  // necessarily finalized yet. We may be checking bounds at compile time or
+  // finalizing the type argument vector of a recursive type.
+  const Class& cls = Class::Handle(zone, scope_class());
+
+  // This uninstantiated type is not modified, as it can be instantiated
+  // with different instantiators. Allocate a new instantiated version of it.
+  instantiated_type =
+      FunctionType::New(cls,
+                        TypeArguments::Handle(zone),
+                        Function::Handle(zone, signature()),
+                        token_pos(),
+                        space);
+  TypeArguments& type_arguments = TypeArguments::Handle(zone, arguments());
+  ASSERT(type_arguments.Length() == cls.NumTypeArguments());
+  if (type_arguments.IsRecursive()) {
+    AddOnlyBuddyToTrail(&trail, instantiated_type);
+  }
+  type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
+                                                  bound_error,
+                                                  trail,
+                                                  space);
+  instantiated_type.set_arguments(type_arguments);
+  if (IsFinalized()) {
+    instantiated_type.SetIsFinalized();
+  } else {
+    instantiated_type.SetIsResolved();
+  }
+  // Canonicalization is not part of instantiation.
+  return instantiated_type.raw();
+}
+
+
+bool FunctionType::IsEquivalent(const Instance& other, TrailPtr trail) const {
+  ASSERT(!IsNull());
+  if (raw() == other.raw()) {
+    return true;
+  }
+  if (!other.IsFunctionType()) {
+    return false;
+  }
+  const FunctionType& other_type = FunctionType::Cast(other);
+  ASSERT(IsResolved() && other_type.IsResolved());
+  if (IsMalformed() || other_type.IsMalformed()) {
+    return false;
+  }
+  if (scope_class() != other_type.scope_class()) {
+    return false;
+  }
+  if ((arguments() == other_type.arguments()) &&
+      (signature() == other_type.signature())) {
+    return true;
+  }
+  if (!IsFinalized() || !other_type.IsFinalized()) {
+    return false;
+  }
+
+  // We do not instantiate the types of the signature. This happens on demand
+  // at runtime during a type test.
+  // Therefore, equal function types must have equal type arguments.
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
+  const TypeArguments& other_type_args = TypeArguments::Handle(
+      zone, other_type.arguments());
+  if (!type_args.Equals(other_type_args)) {
+    return false;
+  }
+
+  // Type arguments are equal.
+  // Equal function types must have equal signature types and equal optional
+  // named arguments.
+  if (signature() == other_type.signature()) {
+    return true;
+  }
+  const Function& sig_fun = Function::Handle(zone, signature());
+  const Function& other_sig_fun = Function::Handle(
+      zone, other_type.signature());
+
+  // Compare number of function parameters.
+  const intptr_t num_fixed_params = sig_fun.num_fixed_parameters();
+  const intptr_t other_num_fixed_params = other_sig_fun.num_fixed_parameters();
+  if (num_fixed_params != other_num_fixed_params) {
+    return false;
+  }
+  const intptr_t num_opt_pos_params = sig_fun.NumOptionalPositionalParameters();
+  const intptr_t other_num_opt_pos_params =
+      other_sig_fun.NumOptionalPositionalParameters();
+  if (num_opt_pos_params != other_num_opt_pos_params) {
+    return false;
+  }
+  const intptr_t num_opt_named_params = sig_fun.NumOptionalNamedParameters();
+  const intptr_t other_num_opt_named_params =
+      other_sig_fun.NumOptionalNamedParameters();
+  if (num_opt_named_params != other_num_opt_named_params) {
+    return false;
+  }
+  const intptr_t num_ignored_params = sig_fun.NumImplicitParameters();
+  const intptr_t other_num_ignored_params =
+      other_sig_fun.NumImplicitParameters();
+  if (num_ignored_params != other_num_ignored_params) {
+    return false;
+  }
+  AbstractType& param_type = Type::Handle(zone);
+  AbstractType& other_param_type = Type::Handle(zone);
+  // Check the result type.
+  param_type = sig_fun.result_type();
+  other_param_type = other_sig_fun.result_type();
+  if (!param_type.Equals(other_param_type)) {
+    return false;
+  }
+  // Check the types of all parameters.
+  const intptr_t num_params = sig_fun.NumParameters();
+  ASSERT(other_sig_fun.NumParameters() == num_params);
+  for (intptr_t i = 0; i < num_params; i++) {
+    param_type = sig_fun.ParameterTypeAt(i);
+    other_param_type = other_sig_fun.ParameterTypeAt(i);
+    if (!param_type.Equals(other_param_type)) {
+      return false;
+    }
+  }
+  // Check the names and types of optional named parameters.
+  if (num_opt_named_params == 0) {
+    return true;
+  }
+  for (intptr_t i = num_fixed_params; i < num_params; i++) {
+    if (sig_fun.ParameterNameAt(i) != other_sig_fun.ParameterNameAt(i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+bool FunctionType::IsRecursive() const {
+  return TypeArguments::Handle(arguments()).IsRecursive();
+}
+
+
+RawAbstractType* FunctionType::CloneUnfinalized() const {
+  ASSERT(IsResolved());
+  if (IsFinalized()) {
+    return raw();
+  }
+  ASSERT(!IsMalformed());  // Malformed types are finalized.
+  ASSERT(!IsBeingFinalized());  // Cloning must occur prior to finalization.
+  TypeArguments& type_args = TypeArguments::Handle(arguments());
+  type_args = type_args.CloneUnfinalized();
+  const FunctionType& clone = FunctionType::Handle(
+      FunctionType::New(Class::Handle(scope_class()),
+                        type_args,
+                        Function::Handle(signature()),
+                        token_pos()));
+  clone.SetIsResolved();
+  return clone.raw();
+}
+
+
+RawAbstractType* FunctionType::CloneUninstantiated(const Class& new_owner,
+                                                   TrailPtr trail) const {
+  ASSERT(IsFinalized());
+  ASSERT(!IsMalformed());
+  if (IsInstantiated()) {
+    return raw();
+  }
+  // We may recursively encounter a type already being cloned, because we clone
+  // the upper bounds of its uninstantiated type arguments in the same pass.
+  FunctionType& clone = FunctionType::Handle();
+  clone ^= OnlyBuddyInTrail(trail);
+  if (!clone.IsNull()) {
+    return clone.raw();
+  }
+  clone = FunctionType::New(Class::Handle(scope_class()),
+                            TypeArguments::Handle(),
+                            Function::Handle(signature()),
+                            token_pos());
+  TypeArguments& type_args = TypeArguments::Handle(arguments());
+  // Upper bounds of uninstantiated type arguments may form a cycle.
+  if (type_args.IsRecursive() || !type_args.IsInstantiated()) {
+    AddOnlyBuddyToTrail(&trail, clone);
+  }
+  type_args = type_args.CloneUninstantiated(new_owner, trail);
+  clone.set_arguments(type_args);
+  clone.SetIsFinalized();
+  return clone.raw();
+}
+
+
+RawAbstractType* FunctionType::Canonicalize(TrailPtr trail) const {
+  ASSERT(IsFinalized());
+  if (IsCanonical() || IsMalformed()) {
+    ASSERT(IsMalformed() || TypeArguments::Handle(arguments()).IsOld());
+    return this->raw();
+  }
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  AbstractType& type = Type::Handle(zone);
+  const Class& scope_cls = Class::Handle(zone, type_class());
+  Array& canonical_types = Array::Handle(zone);
+  canonical_types ^= scope_cls.canonical_types();
+  if (canonical_types.IsNull()) {
+    canonical_types = empty_array().raw();
+  }
+  intptr_t length = canonical_types.Length();
+  // Linear search to see whether this type is already present in the
+  // list of canonicalized types.
+  // TODO(asiva): Try to re-factor this lookup code to make sharing
+  // easy between the 4 versions of this loop.
+  intptr_t index = 1;  // Slot 0 is reserved for CanonicalType().
+  while (index < length) {
+    type ^= canonical_types.At(index);
+    if (type.IsNull()) {
+      break;
+    }
+    ASSERT(type.IsFinalized());
+    if (this->Equals(type)) {
+      ASSERT(type.IsCanonical());
+      return type.raw();
+    }
+    index++;
+  }
+  // The type was not found in the table. It is not canonical yet.
+
+  // Canonicalize the type arguments.
+  TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
+  // In case the type is first canonicalized at runtime, its type argument
+  // vector may be longer than necessary. This is not an issue.
+  ASSERT(type_args.IsNull() ||
+         (type_args.Length() >= scope_cls.NumTypeArguments()));
+  type_args = type_args.Canonicalize(trail);
+  set_arguments(type_args);
+
+  // Replace the actual function by a signature function.
+  const Function& fun = Function::Handle(zone, signature());
+  if (!fun.IsSignatureFunction()) {
+    Function& sig_fun =
+        Function::Handle(zone,
+                         Function::NewSignatureFunction(scope_cls,
+                                                        Token::kNoSourcePos));
+    type = fun.result_type();
+    type = type.Canonicalize(trail);
+    sig_fun.set_result_type(type);
+    const intptr_t num_params = fun.NumParameters();
+    sig_fun.set_num_fixed_parameters(fun.num_fixed_parameters());
+    sig_fun.SetNumOptionalParameters(fun.NumOptionalParameters(),
+                                     fun.HasOptionalPositionalParameters());
+    sig_fun.set_parameter_types(Array::Handle(Array::New(num_params,
+                                                         Heap::kOld)));
+    for (intptr_t i = 0; i < num_params; i++) {
+      type = fun.ParameterTypeAt(i);
+      type = type.Canonicalize(trail);
+      sig_fun.SetParameterTypeAt(i, type);
+    }
+    sig_fun.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
+    set_signature(sig_fun);
+  }
+
+  // Canonicalizing the type arguments and the signature may have changed the
+  // index, may have grown the table, or may even have canonicalized this type.
+  canonical_types ^= scope_cls.canonical_types();
+  if (canonical_types.IsNull()) {
+    canonical_types = empty_array().raw();
+  }
+  length = canonical_types.Length();
+  while (index < length) {
+    type ^= canonical_types.At(index);
+    if (type.IsNull()) {
+      break;
+    }
+    ASSERT(type.IsFinalized());
+    if (this->Equals(type)) {
+      ASSERT(type.IsCanonical());
+      return type.raw();
+    }
+    index++;
+  }
+
+  // The type needs to be added to the list. Grow the list if it is full.
+  if (index >= length) {
+    ASSERT((index == length) || ((index == 1) && (length == 0)));
+    const intptr_t new_length = (length > 64) ?
+        (length + 64) :
+        ((length == 0) ? 2 : (length * 2));
+    const Array& new_canonical_types = Array::Handle(
+        zone, Array::Grow(canonical_types, new_length, Heap::kOld));
+    scope_cls.set_canonical_types(new_canonical_types);
+    canonical_types = new_canonical_types.raw();
+  }
+  canonical_types.SetAt(index, *this);
+  ASSERT(IsOld());
+  ASSERT(type_args.IsNull() || type_args.IsOld());
+  SetCanonical();
+  return this->raw();
+}
+
+
+intptr_t FunctionType::Hash() const {
+  ASSERT(IsFinalized());
+  uint32_t result = 1;
+  if (IsMalformed()) return result;
+  result = CombineHashes(result, Class::Handle(scope_class()).id());
+  result = CombineHashes(result, TypeArguments::Handle(arguments()).Hash());
+  const Function& sig_fun = Function::Handle(signature());
+  AbstractType& type = AbstractType::Handle(sig_fun.result_type());
+  result = CombineHashes(result, type.Hash());
+  result = CombineHashes(result, sig_fun.NumOptionalPositionalParameters());
+  const intptr_t num_params = sig_fun.NumParameters();
+  for (intptr_t i = 0; i < num_params; i++) {
+    type = sig_fun.ParameterTypeAt(i);
+    result = CombineHashes(result, type.Hash());
+  }
+  if (sig_fun.NumOptionalNamedParameters() > 0) {
+    String& param_name = String::Handle();
+    for (intptr_t i = sig_fun.num_fixed_parameters(); i < num_params; i++) {
+      param_name = sig_fun.ParameterNameAt(i);
+      result = CombineHashes(result, param_name.Hash());
+    }
+  }
+  return FinalizeHash(result);
+}
+
+
+void FunctionType::set_scope_class(const Class& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->scope_class_, value.raw());
+}
+
+
+void FunctionType::set_arguments(const TypeArguments& value) const {
+  StorePointer(&raw_ptr()->arguments_, value.raw());
+}
+
+
+void FunctionType::set_signature(const Function& value) const {
+  StorePointer(&raw_ptr()->signature_, value.raw());
+}
+
+
+RawFunctionType* FunctionType::New(Heap::Space space) {
+  RawObject* raw = Object::Allocate(FunctionType::kClassId,
+                                    FunctionType::InstanceSize(),
+                                    space);
+  return reinterpret_cast<RawFunctionType*>(raw);
+}
+
+
+RawFunctionType* FunctionType::New(const Class& clazz,
+                                   const TypeArguments& arguments,
+                                   const Function& signature,
+                                   intptr_t token_pos,
+                                   Heap::Space space) {
+  const FunctionType& result = FunctionType::Handle(FunctionType::New(space));
+  result.set_scope_class(clazz);
+  result.set_arguments(arguments);
+  result.set_signature(signature);
+  result.set_token_pos(token_pos);
+  result.StoreNonPointer(&result.raw_ptr()->type_state_,
+                         RawFunctionType::kAllocated);
+  return result.raw();
+}
+
+
+void FunctionType::set_token_pos(intptr_t token_pos) const {
+  ASSERT(!Token::IsClassifying(token_pos));
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
+}
+
+
+void FunctionType::set_type_state(int8_t state) const {
+  ASSERT((state >= RawFunctionType::kAllocated) &&
+         (state <= RawFunctionType::kFinalizedUninstantiated));
+  StoreNonPointer(&raw_ptr()->type_state_, state);
+}
+
+
+const char* FunctionType::ToCString() const {
+  const char* unresolved = IsResolved() ? "" : "Unresolved ";
+  const Class& scope_cls = Class::Handle(scope_class());
+  const TypeArguments& type_arguments = TypeArguments::Handle(arguments());
+  const Function& signature_function = Function::Handle(signature());
+  const String& signature_string = String::Handle(
+      signature_function.InstantiatedSignatureFrom(type_arguments,
+                                                   kInternalName));
+  if (scope_cls.IsClosureClass()) {
+    ASSERT(arguments() == TypeArguments::null());
+    return OS::SCreate(
+        Thread::Current()->zone(),
+        "%sFunctionType: %s", unresolved, signature_string.ToCString());
+  }
+  const char* class_name = String::Handle(scope_cls.Name()).ToCString();
+  const char* args_cstr =
+      type_arguments.IsNull() ? "null" : type_arguments.ToCString();
+  return OS::SCreate(
+      Thread::Current()->zone(),
+      "%s FunctionType: %s (scope_cls: %s, args: %s)",
+      unresolved,
+      signature_string.ToCString(),
+      class_name,
+      args_cstr);
+}
+
+
+void FunctionType::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "FunctionType");
+  if (IsCanonical()) {
+    const Class& scope_cls = Class::Handle(scope_class());
+    intptr_t id = scope_cls.FindCanonicalTypeIndex(*this);
+    ASSERT(id >= 0);
+    intptr_t cid = scope_cls.id();
+    jsobj.AddFixedServiceId("classes/%" Pd "/types/%" Pd "", cid, id);
+    jsobj.AddProperty("scopeClass", scope_cls);
   } else {
     jsobj.AddServiceId(*this);
   }
@@ -16528,7 +17251,7 @@ RawTypeRef* TypeRef::CloneUninstantiated(const Class& new_owner,
 
 
 void TypeRef::set_type(const AbstractType& value) const {
-  ASSERT(value.HasResolvedTypeClass());
+  ASSERT(value.IsFunctionType() || value.HasResolvedTypeClass());
   ASSERT(!value.IsTypeRef());
   StorePointer(&raw_ptr()->type_, value.raw());
 }
@@ -16640,7 +17363,7 @@ void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void TypeParameter::set_is_finalized() const {
+void TypeParameter::SetIsFinalized() const {
   ASSERT(!IsFinalized());
   set_type_state(RawTypeParameter::kFinalizedUninstantiated);
 }
@@ -16747,6 +17470,7 @@ bool TypeParameter::CheckBound(const AbstractType& bounded_type,
           *bound_error,
           script,
           token_pos(),
+          Report::AtLocation,
           Report::kMalboundedType,
           Heap::kNew,
           "type parameter '%s' of class '%s' must extend bound '%s', "
@@ -16789,7 +17513,7 @@ RawAbstractType* TypeParameter::CloneUninstantiated(
                          String::Handle(name()),
                          upper_bound,
                          token_pos()));
-  clone.set_is_finalized();
+  clone.SetIsFinalized();
   return clone.raw();
 }
 
@@ -16830,7 +17554,7 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
 
 
 void TypeParameter::set_token_pos(intptr_t token_pos) const {
-  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  ASSERT(!Token::IsClassifying(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -21466,8 +22190,8 @@ void SendPort::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-const char* Closure::ToCString(const Instance& closure) {
-  const Function& fun = Function::Handle(Closure::function(closure));
+const char* Closure::ToCString() const {
+  const Function& fun = Function::Handle(function());
   const bool is_implicit_closure = fun.IsImplicitClosureFunction();
   const char* fun_sig = String::Handle(fun.UserVisibleSignature()).ToCString();
   const char* from = is_implicit_closure ? " from " : "";
@@ -21477,20 +22201,33 @@ const char* Closure::ToCString(const Instance& closure) {
 }
 
 
-RawInstance* Closure::New(const Function& function,
-                          const Context& context,
-                          Heap::Space space) {
-  const Class& cls = Class::Handle(function.signature_class());
-  ASSERT(cls.instance_size() == Closure::InstanceSize());
-  Instance& result = Instance::Handle();
+void Closure::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
+}
+
+
+RawClosure* Closure::New(const Function& function,
+                         const Context& context,
+                         Heap::Space space) {
+  Closure& result = Closure::Handle();
   {
-    RawObject* raw = Object::Allocate(cls.id(), Closure::InstanceSize(), space);
+    RawObject* raw = Object::Allocate(Closure::kClassId,
+                                      Closure::InstanceSize(),
+                                      space);
     NoSafepointScope no_safepoint;
     result ^= raw;
+    result.StorePointer(&result.raw_ptr()->function_, function.raw());
+    result.StorePointer(&result.raw_ptr()->context_, context.raw());
   }
-  Closure::set_function(result, function);
-  Closure::set_context(result, context);
   return result.raw();
+}
+
+
+RawClosure* Closure::New() {
+  RawObject* raw = Object::Allocate(Closure::kClassId,
+                                    Closure::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawClosure*>(raw);
 }
 
 

@@ -303,16 +303,18 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void AddReturnExit(intptr_t token_pos, Value* value);
 
  protected:
-  Definition* BuildStoreTemp(const LocalVariable& local, Value* value);
-  Definition* BuildStoreExprTemp(Value* value);
-  Definition* BuildLoadExprTemp();
+  Definition* BuildStoreTemp(const LocalVariable& local,
+                             Value* value,
+                             intptr_t token_pos);
+  Definition* BuildStoreExprTemp(Value* value, intptr_t token_pos);
+  Definition* BuildLoadExprTemp(intptr_t token_pos);
 
   Definition* BuildStoreLocal(const LocalVariable& local,
                               Value* value,
-                              intptr_t token_pos = Scanner::kNoSourcePos);
+                              intptr_t token_pos);
   Definition* BuildLoadLocal(const LocalVariable& local,
-                             intptr_t token_pos = Scanner::kNoSourcePos);
-  LoadLocalInstr* BuildLoadThisVar(LocalScope* scope);
+                             intptr_t token_pos);
+  LoadLocalInstr* BuildLoadThisVar(LocalScope* scope, intptr_t token_pos);
   LoadFieldInstr* BuildNativeGetter(
       NativeBodyNode* node,
       MethodRecognizer::Kind kind,
@@ -341,7 +343,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
       PushArgumentInstr** push_instantiator_type_arguments);
   void BuildTypecheckArguments(intptr_t token_pos,
                                Value** instantiator_type_arguments);
-  Value* BuildInstantiator(const Class& instantiator_class);
+  Value* BuildInstantiator(intptr_t token_pos);
   Value* BuildInstantiatorTypeArguments(intptr_t token_pos,
                                         const Class& instantiator_class,
                                         Value* instantiator);
@@ -428,7 +430,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   void BuildClosureCall(ClosureCallNode* node, bool result_needed);
 
-  Value* BuildNullValue();
+  Value* BuildNullValue(intptr_t token_pos);
 
   // Returns true if the run-time type check can be eliminated.
   bool CanSkipTypeCheck(intptr_t token_pos,
@@ -438,8 +440,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   // Helpers for allocating and deallocating temporary locals on top of the
   // expression stack.
-  LocalVariable* EnterTempLocalScope(Value* value);
-  Definition* ExitTempLocalScope(LocalVariable* var);
+  LocalVariable* EnterTempLocalScope(Value* value, intptr_t token_pos);
+  Definition* ExitTempLocalScope(LocalVariable* var, intptr_t token_pos);
 
   void BuildLetTempExpressions(LetNode* node);
 

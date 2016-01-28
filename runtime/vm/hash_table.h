@@ -435,6 +435,13 @@ class HashTables : public AllStatic {
     return table.Release().raw();
   }
 
+  template<typename Table>
+  static RawArray* New(const Array& array) {
+    Table table(array.raw());
+    table.Initialize();
+    return table.Release().raw();
+  }
+
   // Clears 'to' and inserts all elements from 'from', in iteration order.
   // The tables must have the same user payload size.
   template<typename From, typename To>

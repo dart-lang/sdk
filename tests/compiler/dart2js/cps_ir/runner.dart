@@ -33,7 +33,20 @@ runTest(String filename, {bool update: false}) {
   var match = elementNameRegExp.firstMatch(source);
   var elementName = match?.group(1);
 
-  Map files = {TEST_MAIN_FILE: source};
+  Map files = {
+      TEST_MAIN_FILE: source,
+      'package:expect/expect.dart': '''
+          class NoInline {
+            const NoInline();
+          }
+          class TrustTypeAnnotations {
+            const TrustTypeAnnotations();
+          }
+          class AssumeDynamic {
+            const AssumeDynamic();
+          }
+       ''',
+   };
   asyncTest(() async {
     Uri uri = Uri.parse('memory:$TEST_MAIN_FILE');
     String found = null;
@@ -105,7 +118,7 @@ String _formatTest(Map test) {
 String _getCodeForMain(CompilerImpl compiler) {
   Element mainFunction = compiler.mainFunction;
   js.Node ast = compiler.enqueuer.codegen.generatedCode[mainFunction];
-  return js.prettyPrint(ast, compiler).getText();
+  return js.prettyPrint(ast, compiler);
 }
 
 String _getCodeForMethod(CompilerImpl compiler,
@@ -125,5 +138,5 @@ String _getCodeForMethod(CompilerImpl compiler,
   }
 
   js.Node ast = compiler.enqueuer.codegen.generatedCode[foundElement];
-  return js.prettyPrint(ast, compiler).getText();
+  return js.prettyPrint(ast, compiler);
 }

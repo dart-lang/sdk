@@ -12,6 +12,7 @@ import 'package:analyzer/file_system/file_system.dart' as fileSystem;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
@@ -302,7 +303,8 @@ class Driver {
   /// Decide on the appropriate method for resolving URIs based on the given
   /// [options] and [customUrlMappings] settings, and return a
   /// [SourceFactory] that has been configured accordingly.
-  SourceFactory _chooseUriResolutionPolicy(CommandLineOptions options) {
+  SourceFactory _chooseUriResolutionPolicy(
+      CommandLineOptions options, EmbedderYamlLocator yamlLocator) {
     Packages packages;
     Map<String, List<fileSystem.Folder>> packageMap;
     UriResolver packageUriResolver;
@@ -356,9 +358,24 @@ class Driver {
     }
 
     // Now, build our resolver list.
+    List<UriResolver> resolvers = [];
 
     // 'dart:' URIs come first.
-    List<UriResolver> resolvers = [new DartUriResolver(sdk)];
+
+    // Setup embedding.
+    yamlLocator.refresh(packageMap);
+
+    EmbedderUriResolver embedderUriResolver =
+        new EmbedderUriResolver(yamlLocator.embedderYamls);
+    if (embedderUriResolver.length == 0) {
+      // The embedder uri resolver has no mappings. Use the default Dart SDK
+      // uri resolver.
+      resolvers.add(new DartUriResolver(sdk));
+    } else {
+      // The embedder uri resolver has mappings, use it instead of the default
+      // Dart SDK uri resolver.
+      resolvers.add(embedderUriResolver);
+    }
 
     // Next SdkExts.
     if (packageMap != null) {
@@ -401,13 +418,16 @@ class Driver {
       return;
     }
     _previousOptions = options;
+
+    // Create a context.
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
-    SourceFactory sourceFactory = _chooseUriResolutionPolicy(options);
+    SourceFactory sourceFactory = _chooseUriResolutionPolicy(
+        options, (context as InternalAnalysisContext).embedderYamlLocator);
     AnalyzeFunctionBodiesPredicate dietParsingPolicy =
         _chooseDietParsingPolicy(options);
-    // Create a context using these policies.
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
 
     context.sourceFactory = sourceFactory;
 

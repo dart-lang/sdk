@@ -964,6 +964,16 @@ void main() {
    '''
   });
 
+  testChecker('Function subtyping: uninferred closure', {
+    '/main.dart': '''
+      typedef num Num2Num(num x);
+      void main() {
+        Num2Num g = /*info:INFERRED_TYPE_CLOSURE,severe:STATIC_TYPE_ERROR*/(int x) { return x; };
+        print(g(42));
+      }
+    '''
+  });
+
   testChecker('Relaxed casts', {
     '/main.dart': '''
 
@@ -1139,6 +1149,21 @@ void main() {
             B() : super(/*severe:STATIC_TYPE_ERROR*/3);
           }
        '''
+  });
+
+  testChecker('factory constructor downcast', {
+    '/main.dart': r'''
+        class Animal {
+          Animal();
+          factory Animal.cat() => return new Cat();
+        }
+
+        class Cat extends Animal {}
+
+        void main() {
+          Cat c = /*info:ASSIGNMENT_CAST*/new Animal.cat();
+          c = /*severe:STATIC_TYPE_ERROR*/new Animal();
+        }'''
   });
 
   testChecker('field/field override', {
@@ -1389,7 +1414,51 @@ void main() {
           class DerivedFuture4<A> extends Future<A> {
             /*=B*/ then/*<B>*/(Object onValue(A a)) => null;
           }
-       '''
+      '''
+  });
+
+  testChecker('generic function wrong number of arguments', {
+      '/main.dart': r'''
+          /*=T*/ foo/*<T>*/(/*=T*/ x, /*=T*/ y) => x;
+          /*=T*/ bar/*<T>*/({/*=T*/ x, /*=T*/ y}) => x;
+
+          main() {
+            // resolving thses shouldn't crash.
+            foo(1, 2, 3);
+            String x = foo('1', '2', '3');
+            foo(1);
+            String x = foo('1');
+            x = /*severe:STATIC_TYPE_ERROR*/foo(1, 2, 3);
+            x = /*severe:STATIC_TYPE_ERROR*/foo(1);
+
+            // named arguments
+            bar(y: 1, x: 2, z: 3);
+            String x = bar(z: '1', x: '2', y: '3');
+            bar(y: 1);
+            x = bar(x: '1', z: 42);
+            x = /*severe:STATIC_TYPE_ERROR*/bar(y: 1, x: 2, z: 3);
+            x = /*severe:STATIC_TYPE_ERROR*/bar(x: 1);
+          }
+      '''
+  });
+
+  testChecker('type promotion from dynamic', {
+    '/main.dart': r'''
+          f() {
+            dynamic x;
+            if (x is int) {
+              int y = x;
+              String z = /*severe:STATIC_TYPE_ERROR*/x;
+            }
+          }
+          g() {
+            Object x;
+            if (x is int) {
+              int y = x;
+              String z = /*severe:STATIC_TYPE_ERROR*/x;
+            }
+          }
+    '''
   });
 
   testChecker('unary operators', {
@@ -1640,6 +1709,15 @@ void main() {
             }
           }
         '''
+  });
+
+  testChecker('loadLibrary', {
+    '/lib1.dart': '''library lib1;''',
+    '/main.dart': r'''
+        import 'lib1.dart' deferred as lib1;
+        main() {
+          Future f = lib1.loadLibrary();
+        }'''
   });
 
   group('invalid overrides', () {

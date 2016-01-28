@@ -6,7 +6,8 @@ library dart2js.resolution.compute_members;
 
 import '../common.dart';
 import '../common/names.dart' show
-    Identifiers;
+    Identifiers,
+    Names;
 import '../common/resolution.dart' show
     Resolution;
 import '../compiler.dart' show
@@ -76,9 +77,12 @@ abstract class MembersCreator {
   /// Compute all members of [cls] and checked that [cls] implements its
   /// interface unless it is abstract or declares a `noSuchMethod` method.
   void computeAllMembers() {
-    Map<Name, Member> declaredMembers = computeMembers(null, null);
-    if (!cls.isAbstract &&
-        !declaredMembers.containsKey(const PublicName('noSuchMethod'))) {
+    computeMembers(null, null);
+    if (!cls.isAbstract) {
+      Member member = classMembers[Names.noSuchMethod_];
+      if (member != null && !member.declarer.isObject) {
+        return;
+      }
       // Check for unimplemented members on concrete classes that neither have
       // a `@proxy` annotation nor declare a `noSuchMethod` method.
       checkInterfaceImplementation();

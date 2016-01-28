@@ -33,6 +33,7 @@ namespace dart {
   V(Instructions)                                                              \
   V(ObjectPool)                                                                \
   V(PcDescriptors)                                                             \
+  V(CodeSourceMap)                                                             \
   V(Stackmap)                                                                  \
   V(LocalVarDescriptors)                                                       \
   V(ExceptionHandlers)                                                         \
@@ -50,10 +51,12 @@ namespace dart {
     V(LibraryPrefix)                                                           \
     V(AbstractType)                                                            \
       V(Type)                                                                  \
+      V(FunctionType)                                                          \
       V(TypeRef)                                                               \
       V(TypeParameter)                                                         \
       V(BoundedType)                                                           \
       V(MixinAppType)                                                          \
+    V(Closure)                                                                 \
     V(Number)                                                                  \
       V(Integer)                                                               \
         V(Smi)                                                                 \
@@ -145,8 +148,9 @@ CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
 #define DEFINE_OBJECT_KIND(clazz)                                              \
   kTypedData##clazz##ViewCid,
 CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
-  kByteDataViewCid,
 #undef DEFINE_OBJECT_KIND
+
+  kByteDataViewCid,
 
 #define DEFINE_OBJECT_KIND(clazz)                                              \
   kExternalTypedData##clazz##Cid,
@@ -590,8 +594,8 @@ class RawObject {
   friend class Array;
   friend class Bigint;
   friend class ByteBuffer;
-  friend class Code;
   friend class Closure;
+  friend class Code;
   friend class Double;
   friend class FreeListElement;
   friend class Function;
@@ -659,7 +663,7 @@ class RawClass : public RawObject {
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawAbstractType* super_type_;
   RawType* mixin_;  // Generic mixin type, e.g. M<T>, not M<int>.
-  RawFunction* signature_function_;  // Associated function for signature class.
+  RawFunction* signature_function_;  // Associated function for typedef class.
   RawArray* constants_;  // Canonicalized values of this class.
   RawObject* canonical_types_;  // An array of canonicalized types of this class
                                 // or the canonical type.
@@ -830,7 +834,7 @@ class RawClosureData : public RawObject {
   }
   RawContextScope* context_scope_;
   RawFunction* parent_function_;  // Enclosing function of this local function.
-  RawClass* signature_class_;
+  RawFunctionType* signature_type_;
   RawInstance* closure_;  // Closure object for static implicit closures.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->closure_);
@@ -1052,6 +1056,7 @@ class RawCode : public RawObject {
   RawObject* owner_;  // Function, Null, or a Class.
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
+  RawCodeSourceMap* code_source_map_;
   RawArray* stackmaps_;
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->stackmaps_);
@@ -1189,6 +1194,23 @@ class RawPcDescriptors : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors);
 
   int32_t length_;  // Number of descriptors.
+
+  // Variable length data follows here.
+  uint8_t* data() { OPEN_ARRAY_START(uint8_t, intptr_t); }
+  const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, intptr_t); }
+
+  friend class Object;
+  friend class SnapshotReader;
+};
+
+
+// CodeSourceMap stores a mapping between code PC ranges and source token
+// positions.
+class RawCodeSourceMap : public RawObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(CodeSourceMap);
+
+  int32_t length_;  // Number of entries.
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, intptr_t); }
@@ -1471,6 +1493,7 @@ class RawLanguageError : public RawError {
     return reinterpret_cast<RawObject**>(&ptr()->formatted_message_);
   }
   int32_t token_pos_;  // Source position in script_.
+  bool report_after_token_;  // Report message at or after the token.
   int8_t kind_;  // Of type LanguageError::Kind.
 };
 
@@ -1562,6 +1585,25 @@ class RawType : public RawAbstractType {
 };
 
 
+class RawFunctionType : public RawAbstractType {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(FunctionType);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->scope_class_);
+  }
+  RawClass* scope_class_;
+  RawTypeArguments* arguments_;
+  RawFunction* signature_;
+  RawLanguageError* error_;  // Error object if type is malformed or malbounded.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->error_);
+  }
+  int32_t token_pos_;
+  int8_t type_state_;
+};
+
+
 class RawTypeRef : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);
@@ -1620,6 +1662,24 @@ class RawMixinAppType : public RawAbstractType {
   RawArray* mixin_types_;  // Array of AbstractType.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->mixin_types_);
+  }
+};
+
+
+class RawClosure : public RawInstance {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Closure);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
+  }
+
+  RawTypeArguments* type_arguments_;
+  RawFunction* function_;
+  RawContext* context_;
+
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->context_);
   }
 };
 
@@ -2245,6 +2305,7 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          (index == kInstructionsCid) ||
          (index == kObjectPoolCid) ||
          (index == kPcDescriptorsCid) ||
+         (index == kCodeSourceMapCid) ||
          (index == kStackmapCid) ||
          (index == kLocalVarDescriptorsCid) ||
          (index == kExceptionHandlersCid) ||

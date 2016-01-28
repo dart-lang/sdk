@@ -178,12 +178,12 @@ class DartUriResolver extends UriResolver {
 }
 
 /**
- * Instances of the class `LineInfo` encapsulate information about line and column information
- * within a source file.
+ * Information about line and column information within a source file.
  */
 class LineInfo {
   /**
-   * An array containing the offsets of the first character of each line in the source code.
+   * A list containing the offsets of the first character of each line in the
+   * source code.
    */
   final List<int> _lineStarts;
 
@@ -194,12 +194,23 @@ class LineInfo {
   int _previousLine = 0;
 
   /**
-   * Initialize a newly created set of line information to represent the data encoded in the given
-   * array.
-   *
-   * @param lineStarts the offsets of the first character of each line in the source code
+   * Initialize a newly created set of line information to represent the data
+   * encoded in the given list of [_lineStarts].
    */
-  LineInfo(this._lineStarts) {
+  factory LineInfo(List<int> _lineStarts) => new LineInfoWithCount(_lineStarts);
+
+  /**
+   * Initialize a newly created set of line information corresponding to the
+   * given file [content].
+   */
+  factory LineInfo.fromContent(String content) =>
+      new LineInfoWithCount(StringUtilities.computeLineStarts(content));
+
+  /**
+   * Initialize a newly created set of line information to represent the data
+   * encoded in the given list of [_lineStarts].
+   */
+  LineInfo._(this._lineStarts) {
     if (_lineStarts == null) {
       throw new IllegalArgumentException("lineStarts must be non-null");
     } else if (_lineStarts.length < 1) {
@@ -208,10 +219,7 @@ class LineInfo {
   }
 
   /**
-   * Return the location information for the character at the given offset.
-   *
-   * @param offset the offset of the character for which location information is to be returned
-   * @return the location information for the character at the given offset
+   * Return the location information for the character at the given [offset].
    */
   LineInfo_Location getLocation(int offset) {
     var min = 0;
@@ -285,6 +293,26 @@ class LineInfo_Location {
 
   @override
   String toString() => '$lineNumber:$columnNumber';
+}
+
+/**
+ * Information about line and column information within a source file,
+ * including a count of the total number of lines.
+ *
+ * TODO(paulberry): in the next major version roll of analyzer, merge this
+ * class into [LineInfo].
+ */
+class LineInfoWithCount extends LineInfo {
+  /**
+   * Initialize a newly created set of line information to represent the data
+   * encoded in the given list of [_lineStarts].
+   */
+  LineInfoWithCount(List<int> _lineStarts) : super._(_lineStarts);
+
+  /**
+   * Return the number of lines in the file.
+   */
+  int get lineCount => _lineStarts.length;
 }
 
 /**

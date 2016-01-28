@@ -29,6 +29,12 @@ class StrongTypeSystemImpl implements TypeSystem {
     return ft.parameters.any((p) => predicate(p.type));
   }
 
+  @override
+  bool canPromoteToType(DartType to, DartType from) => isSubtypeOf(to, from);
+
+  @override
+  bool isMoreSpecificThan(DartType t1, DartType t2) => isSubtypeOf(t1, t2);
+
   /**
    * Given a type t, if t is an interface type with a call method
    * defined, return the function type for the call method, otherwise
@@ -563,6 +569,25 @@ class StrongTypeSystemImpl implements TypeSystem {
  */
 abstract class TypeSystem {
   /**
+   * Returns `true` if we can promote to the first type from the second type.
+   *
+   * In the standard Dart type system, it is not possible to promote from or to
+   * `dynamic`, and we must be promoting to a more specific type, see
+   * [isMoreSpecificThan].
+   *
+   * In strong mode, this is equivalent to [isSubtypeOf].
+   */
+  bool canPromoteToType(DartType to, DartType from);
+
+  /**
+   * Return `true` if the [leftType] is more specific than the [rightType]
+   * (that is, if leftType << rightType), as defined in the Dart language spec.
+   *
+   * In strong mode, this is equivalent to [isSubtypeOf].
+   */
+  bool isMoreSpecificThan(DartType leftType, DartType rightType);
+
+  /**
    * Compute the least upper bound of two types.
    */
   DartType getLeastUpperBound(
@@ -604,6 +629,18 @@ abstract class TypeSystem {
  */
 class TypeSystemImpl implements TypeSystem {
   TypeSystemImpl();
+
+  @override
+  bool isMoreSpecificThan(DartType t1, DartType t2) =>
+      t1.isMoreSpecificThan(t2);
+
+  @override
+  bool canPromoteToType(DartType to, DartType from) {
+    // Declared type should not be "dynamic".
+    // Promoted type should not be "dynamic".
+    // Promoted type should be more specific than declared.
+    return !from.isDynamic && !to.isDynamic && to.isMoreSpecificThan(from);
+  }
 
   @override
   DartType getLeastUpperBound(

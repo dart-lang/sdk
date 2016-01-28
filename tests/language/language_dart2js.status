@@ -4,6 +4,7 @@
 
 [ $compiler == dart2js ]
 getter_setter_in_lib_test: Fail # Issue 23288
+method_name_test: Fail # issue 25574
 
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 async_star_await_pauses_test: Fail, Timeout # Issue 22853
@@ -13,7 +14,20 @@ tearoff_constructor_basic_test: Skip # Tear-off not supported
 try_catch_on_syntax_test/10: Fail # Issue 19823
 try_catch_on_syntax_test/11: Fail # Issue 19823
 
+mixin_illegal_constructor_test/20: MissingCompileTimeError # 25587
+mixin_illegal_constructor_test/21: MissingCompileTimeError # 25587
+
+deep_nesting1_negative_test: Crash # Issue 25557
+deep_nesting2_negative_test: Crash # Issue 25557
+
 call_function_apply_test: RuntimeError # Issue 23873
+
+# The following tests are supposed to fail.
+# When run for testing dart2js supports all dart:X libraries (because it
+# uses '--categories=all').
+library_env_test/has_no_html_support: RuntimeError, OK
+library_env_test/has_no_io_support: RuntimeError, OK
+library_env_test/has_no_mirror_support: RuntimeError, OK
 
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
@@ -138,7 +152,6 @@ type_variable_conflict2_test/01: RuntimeError # Issue 19725
 branch_canonicalization_test: RuntimeError # Issue 638.
 identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
 integer_division_by_zero_test: RuntimeError # Issue 8301
-built_in_identifier_prefix_test: CompileTimeError # Issue 6972
 number_identity2_test: RuntimeError # Issue 12596
 double_int_to_string_test: RuntimeError # Issue 1533
 mint_arithmetic_test: RuntimeError # Issue 1533
@@ -241,9 +254,9 @@ async_await_syntax_test/d03a: Crash # (()async*{}): cannot handle sync*/async* f
 async_await_syntax_test/d06a: Crash # (await for(var o in st){}): await for
 async_await_syntax_test/d09a: Crash # (()async*{yield 0;}): cannot handle sync*/async* functions
 async_await_syntax_test/d10a: Crash # (()async*{yield* [] ;}): cannot handle sync*/async* functions
-async_await_test/02: Crash # (switch (v){label:ca...  continue to a labeled switch case
-async_await_test/03: Crash # (switch (v){label:ca...  continue to a labeled switch case
-async_await_test/none: Crash # (switch (v){label:ca...  continue to a labeled switch case
+async_await_test/02: Crash # bailout: (await for
+async_await_test/03: Crash # bailout: (await for
+async_await_test/none: Crash # bailout: (await for
 async_or_generator_return_type_stacktrace_test/02: Crash # (void badReturnTypeAsyncStar()async*{}): cannot handle sync*/async* functions
 async_return_types_test/nestedFuture: Crash #  cannot handle sync*/async* functions
 async_return_types_test/none: Crash # cannot handle sync*/async* functions
@@ -267,26 +280,12 @@ await_for_cancel_test: Crash # (await for(var x in controller.stream){for(int j=
 await_for_test: Crash # (await for(var x in infiniteStream()){i++ ;if(i>10)break;t4.record(x);}): await for
 await_for_use_local_test: Crash # (await for(var v in s){accum+= v;}): await for
 call_closurization_test: RuntimeError # Bad type inference for ".call" tear-off.
-closure_in_constructor_test: RuntimeError # Please triage this failure.
-closures_initializer_test: RuntimeError # Please triage this failure.
-constructor12_test: RuntimeError # Please triage this failure.
 deferred_super_dependency_test/01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 field3a_negative_test: Fail # Bogus result from type inference in case of invalid program.
-first_class_types_test: RuntimeError # Please triage this failure.
-generic2_test: RuntimeError # Please triage this failure.
-generic_instanceof_test: RuntimeError # Please triage this failure.
-generic_native_test: RuntimeError # Please triage this failure.
 gc_test: Crash # Internal Error: Pending statics (see above).
-infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
-instanceof2_test: RuntimeError # Please triage this failure.
-instanceof4_test/01: RuntimeError # Please triage this failure.
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
-list_is_test: RuntimeError # Please triage this failure.
-list_test: RuntimeError # Please triage this failure.
-many_generic_instanceof_test: RuntimeError # Please triage this failure.
-nested_switch_label_test: Crash # (switch (target){out...  continue to a labeled switch case
 regress_23500_test/01: Crash # (await for(var c in new Stream.fromIterable([] )){}): await for
-stack_trace_test: Fail # Stack trace not preserved when inlining?
+savannah_test: RuntimeError # Success depends on the variable hints.
 super_call4_test: RuntimeError # Please triage this failure.
 super_getter_setter_test: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
@@ -294,14 +293,7 @@ super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet
 super_operator_index_test/03: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
 super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
-switch_label2_test: Crash # (switch (target){cas...  continue to a labeled switch case
-switch_label_test: Crash # (switch (animal){cas...  continue to a labeled switch case
-switch_try_catch_test: Crash # (switch (0){_0:case ...  continue to a labeled switch case
-type_variable_closure2_test: RuntimeError # Issue 25309: T lost in List<T>
-type_variable_closure4_test: RuntimeError # T lost in <T,T>{}
-type_variable_field_initializer_closure_test: RuntimeError # Issue 25309: T lost in List<T>
-type_variable_field_initializer_test: RuntimeError # Issue 25309: T lost in List<T>
-type_variable_nested_test: RuntimeError # Issue 25309: T lost in List<T>
+switch8_test: Crash # Pending statics: JSArray
 
 [ $compiler == dart2js && $cps_ir && $host_checked == false ]
 regress_21795_test: Pass, RuntimeError # Due to inlining?

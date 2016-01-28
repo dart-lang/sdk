@@ -51,7 +51,7 @@ class AwaitTransformer : public AstNodeVisitor {
 
  private:
   LocalVariable* EnsureCurrentTempVar();
-  LocalVariable* AddToPreambleNewTempVar(AstNode* node);
+  LocalVariable* AddToPreambleNewTempVar(AstNode* node, intptr_t token_pos);
   ArgumentListNode* TransformArguments(ArgumentListNode* node);
   AstNode* LazyTransform(const Token::Kind kind,
                          AstNode* new_left,

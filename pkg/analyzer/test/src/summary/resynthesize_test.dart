@@ -4,9 +4,14 @@
 
 library test.src.serialization.elements_test;
 
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart' show Namespace;
+import 'package:analyzer/src/generated/resolver.dart'
+    show Namespace, TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
@@ -25,6 +30,12 @@ main() {
 class ResynthTest extends ResolverTestCase {
   Set<Source> otherLibrarySources = new Set<Source>();
 
+  /**
+   * Determine the analysis options that should be used for this test.
+   */
+  AnalysisOptionsImpl get options =>
+      new AnalysisOptionsImpl()..enableGenericMethods = true;
+
   void addLibrary(String uri) {
     otherLibrarySources.add(analysisContext2.sourceFactory.forUri(uri));
   }
@@ -33,13 +44,12 @@ class ResynthTest extends ResolverTestCase {
     otherLibrarySources.add(addNamedSource(filePath, contents));
   }
 
-  void checkLibrary(String text,
-      {bool allowErrors: false, int resynthesisCount: 1}) {
+  void checkLibrary(String text, {bool allowErrors: false}) {
     Source source = addSource(text);
     LibraryElementImpl original = resolve2(source);
-    LibraryElementImpl resynthesized = resynthesizeLibrary(
-        source, original, allowErrors,
-        resynthesisCount: resynthesisCount);
+    LibraryElementImpl resynthesized = resynthesizeLibraryElement(
+        encodeLibrary(original, allowErrors: allowErrors),
+        source.uri.toString());
     checkLibraryElements(original, resynthesized);
   }
 
@@ -67,6 +77,10 @@ class ResynthTest extends ResolverTestCase {
           'export ${original.exports[i].uri}');
     }
     expect(resynthesized.nameLength, original.nameLength);
+    compareNamespaces(resynthesized.publicNamespace, original.publicNamespace,
+        '(public namespace)');
+    compareNamespaces(resynthesized.exportNamespace, original.exportNamespace,
+        '(export namespace)');
     if (original.entryPoint == null) {
       expect(resynthesized.entryPoint, isNull);
     } else {
@@ -74,10 +88,14 @@ class ResynthTest extends ResolverTestCase {
       compareFunctionElements(
           resynthesized.entryPoint, original.entryPoint, '(entry point)');
     }
-    compareNamespaces(resynthesized.publicNamespace, original.publicNamespace,
-        '(public namespace)');
-    compareNamespaces(resynthesized.exportNamespace, original.exportNamespace,
-        '(export namespace)');
+    // The libraries `dart:core` and `dart:async` cannot create their
+    // `loadLibrary` functions until after both are created.
+    if (original.name != 'dart.core' && original.name != 'dart.async') {
+      compareExecutableElements(
+          resynthesized.loadLibraryFunction as ExecutableElementImpl,
+          original.loadLibraryFunction as ExecutableElementImpl,
+          '(loadLibraryFunction)');
+    }
     // TODO(paulberry): test metadata.
   }
 
@@ -88,8 +106,8 @@ class ResynthTest extends ResolverTestCase {
         reason: '$desc fields.length');
     for (int i = 0; i < resynthesized.fields.length; i++) {
       String name = original.fields[i].name;
-      compareFieldElements(resynthesized.getField(name), original.fields[i],
-          '$desc.field $name');
+      compareFieldElements(
+          resynthesized.fields[i], original.fields[i], '$desc.field $name');
     }
     compareTypes(
         resynthesized.supertype, original.supertype, '$desc supertype');
@@ -120,18 +138,10 @@ class ResynthTest extends ResolverTestCase {
     }
     expect(resynthesized.accessors.length, original.accessors.length);
     for (int i = 0; i < resynthesized.accessors.length; i++) {
-      String name = original.accessors[i].name;
-      if (name.endsWith('=')) {
-        comparePropertyAccessorElements(
-            resynthesized.getSetter(name),
-            original.accessors[i],
-            '$desc setter ${original.accessors[i].name}');
-      } else {
-        comparePropertyAccessorElements(
-            resynthesized.getGetter(name),
-            original.accessors[i],
-            '$desc getter ${original.accessors[i].name}');
-      }
+      comparePropertyAccessorElements(
+          resynthesized.accessors[i],
+          original.accessors[i],
+          '$desc accessor ${original.accessors[i].name}');
     }
     expect(resynthesized.methods.length, original.methods.length);
     for (int i = 0; i < resynthesized.methods.length; i++) {
@@ -197,8 +207,7 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test redirectedConstructor and constantInitializers
   }
 
-  void compareElements(
-      ElementImpl resynthesized, ElementImpl original, String desc) {
+  void compareElements(Element resynthesized, Element original, String desc) {
     expect(resynthesized, isNotNull);
     expect(resynthesized.kind, original.kind);
     expect(resynthesized.location, original.location, reason: desc);
@@ -207,20 +216,20 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.documentationComment, original.documentationComment,
         reason: desc);
     expect(resynthesized.docRange, original.docRange, reason: desc);
+    // Modifiers are a pain to test via handles.  So just test them via the
+    // actual element.
+    ElementImpl actualResynthesized = getActualElement(resynthesized, desc);
+    ElementImpl actualOriginal = getActualElement(original, desc);
     for (Modifier modifier in Modifier.values) {
-      if (modifier == Modifier.MIXIN) {
-        // Skipping for now.  TODO(paulberry): fix.
-        continue;
-      }
-      bool got = resynthesized.hasModifier(modifier);
-      bool want = original.hasModifier(modifier);
+      bool got = actualResynthesized.hasModifier(modifier);
+      bool want = actualOriginal.hasModifier(modifier);
       expect(got, want,
           reason: 'Mismatch in $desc.$modifier: got $got, want $want');
     }
   }
 
-  void compareExecutableElements(ExecutableElementImpl resynthesized,
-      ExecutableElementImpl original, String desc) {
+  void compareExecutableElements(ExecutableElement resynthesized,
+      ExecutableElement original, String desc) {
     compareElements(resynthesized, original, desc);
     expect(resynthesized.parameters.length, original.parameters.length);
     for (int i = 0; i < resynthesized.parameters.length; i++) {
@@ -252,8 +261,8 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test evaluationResult
   }
 
-  void compareFunctionElements(FunctionElementImpl resynthesized,
-      FunctionElementImpl original, String desc) {
+  void compareFunctionElements(
+      FunctionElement resynthesized, FunctionElement original, String desc) {
     compareExecutableElements(resynthesized, original, desc);
   }
 
@@ -286,6 +295,7 @@ class ResynthTest extends ResolverTestCase {
     compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.importedLibrary.location,
         original.importedLibrary.location);
+    expect(resynthesized.prefixOffset, original.prefixOffset);
     if (original.prefix == null) {
       expect(resynthesized.prefix, isNull);
     } else {
@@ -347,6 +357,20 @@ class ResynthTest extends ResolverTestCase {
           '$desc parameter ${original.parameters[i].name}');
     }
     expect(resynthesized.parameterKind, original.parameterKind);
+    expect(resynthesized.isInitializingFormal, original.isInitializingFormal,
+        reason: desc);
+    expect(resynthesized is FieldFormalParameterElementImpl,
+        original is FieldFormalParameterElementImpl);
+    if (resynthesized is FieldFormalParameterElementImpl &&
+        original is FieldFormalParameterElementImpl) {
+      if (original.field == null) {
+        expect(resynthesized.field, isNull, reason: '$desc field');
+      } else {
+        expect(resynthesized.field, isNotNull, reason: '$desc field');
+        compareFieldElements(
+            resynthesized.field, original.field, '$desc field');
+      }
+    }
   }
 
   void comparePrefixElements(PrefixElementImpl resynthesized,
@@ -371,6 +395,7 @@ class ResynthTest extends ResolverTestCase {
       PropertyInducingElementImpl original,
       String desc) {
     compareVariableElements(resynthesized, original, desc);
+    compareTypes(resynthesized.propagatedType, original.propagatedType, desc);
     if (original.getter == null) {
       expect(resynthesized.getter, isNull);
     } else {
@@ -487,73 +512,104 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test initializer
   }
 
-  fail_library_hasExtUri() {
-    checkLibrary('import "dart-ext:doesNotExist.dart";');
-  }
-
-  LibraryElementImpl resynthesizeLibrary(
-      Source source, LibraryElementImpl original, bool allowErrors,
-      {int resynthesisCount: 1}) {
+  /**
+   * Serialize the given [library] into a summary.  Then create a
+   * [_TestSummaryResynthesizer] which can deserialize it, along with any
+   * references it makes to `dart:core`.
+   *
+   * Errors will lead to a test failure unless [allowErrors] is `true`.
+   */
+  _TestSummaryResynthesizer encodeLibrary(LibraryElementImpl library,
+      {bool allowErrors: false}) {
     if (!allowErrors) {
-      assertNoErrors(source);
+      assertNoErrors(library.source);
     }
-    String uri = source.uri.toString();
     addLibrary('dart:core');
-    return resynthesizeLibraryElement(uri, original,
-        resynthesisCount: resynthesisCount);
+    return encodeLibraryElement(library);
   }
 
-  LibraryElementImpl resynthesizeLibraryElement(
-      String uri, LibraryElementImpl original,
-      {int resynthesisCount: 1}) {
+  /**
+   * Convert the library element [library] into a summary, and then create a
+   * [_TestSummaryResynthesizer] which can deserialize it.
+   *
+   * Caller is responsible for checking the library for errors, and adding any
+   * dependent libraries using [addLibrary].
+   */
+  _TestSummaryResynthesizer encodeLibraryElement(LibraryElementImpl library) {
     Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
-    PrelinkedLibrary getPrelinkedSummaryFor(LibraryElement lib) {
-      LibrarySerializationResult serialized =
-          serializeLibrary(lib, typeProvider);
+    LinkedLibrary getLinkedSummaryFor(LibraryElement lib) {
+      LibrarySerializationResult serialized = serializeLibrary(
+          lib, typeProvider, analysisContext.analysisOptions.strongMode);
       for (int i = 0; i < serialized.unlinkedUnits.length; i++) {
         unlinkedSummaries[serialized.unitUris[i]] =
             new UnlinkedUnit.fromBuffer(serialized.unlinkedUnits[i].toBuffer());
       }
-      return new PrelinkedLibrary.fromBuffer(serialized.prelinked.toBuffer());
+      return new LinkedLibrary.fromBuffer(serialized.linked.toBuffer());
     }
-    Map<String, PrelinkedLibrary> prelinkedSummaries =
-        <String, PrelinkedLibrary>{uri: getPrelinkedSummaryFor(original)};
+    Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{
+      library.source.uri.toString(): getLinkedSummaryFor(library)
+    };
     for (Source source in otherLibrarySources) {
       LibraryElement original = resolve2(source);
       String uri = source.uri.toString();
-      prelinkedSummaries[uri] = getPrelinkedSummaryFor(original);
+      linkedSummaries[uri] = getLinkedSummaryFor(original);
     }
-    PrelinkedLibrary getPrelinkedSummary(String uri) {
-      PrelinkedLibrary serializedLibrary = prelinkedSummaries[uri];
-      if (serializedLibrary == null) {
-        fail('Unexpectedly tried to get prelinked summary for $uri');
-      }
-      return serializedLibrary;
-    }
-    UnlinkedUnit getUnlinkedSummary(String uri) {
-      UnlinkedUnit serializedUnit = unlinkedSummaries[uri];
-      if (serializedUnit == null) {
-        fail('Unexpectedly tried to get unlinked summary for $uri');
-      }
-      return serializedUnit;
-    }
-    SummaryResynthesizer resynthesizer = new SummaryResynthesizer(
+    return new _TestSummaryResynthesizer(
+        null,
         analysisContext,
         analysisContext.typeProvider,
-        getPrelinkedSummary,
-        getUnlinkedSummary,
-        analysisContext.sourceFactory);
+        analysisContext.sourceFactory,
+        unlinkedSummaries,
+        linkedSummaries,
+        options.strongMode);
+  }
+
+  fail_library_hasExtUri() {
+    checkLibrary('import "dart-ext:doesNotExist.dart";');
+  }
+
+  ElementImpl getActualElement(Element element, String desc) {
+    if (element is ElementHandle) {
+      return element.actualElement;
+    } else if (element is ElementImpl) {
+      return element;
+    } else {
+      fail('Unexpected type for resynthesized ($desc):'
+          ' ${element.runtimeType}');
+      return null;
+    }
+  }
+
+  /**
+   * Resynthesize the library element associated with [uri] using
+   * [resynthesizer], and verify that it only had to consult one summary in
+   * order to do so.
+   */
+  LibraryElementImpl resynthesizeLibraryElement(
+      _TestSummaryResynthesizer resynthesizer, String uri) {
     LibraryElementImpl resynthesized = resynthesizer.getLibraryElement(uri);
     // Check that no other summaries needed to be resynthesized to resynthesize
     // the library element.
-    // TODO(paulberry): once export namespaces are resynthesized from
-    // prelinked data, resynthesisCount should be hardcoded to 1.
-    expect(resynthesizer.resynthesisCount, resynthesisCount);
+    expect(resynthesizer.resynthesisCount, 1);
     return resynthesized;
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    resetWithOptions(options);
+  }
+
+  test_class_abstract() {
+    checkLibrary('abstract class C {}');
   }
 
   test_class_alias() {
     checkLibrary('class C = D with E, F; class D {} class E {} class F {}');
+  }
+
+  test_class_alias_abstract() {
+    checkLibrary('abstract class C = D with E; class D {} class E {}');
   }
 
   test_class_alias_documented() {
@@ -662,8 +718,18 @@ class E {
     checkLibrary('class C { dynamic x; C(this.x); }');
   }
 
+  test_class_constructor_field_formal_multiple_matching_fields() {
+    // This is a compile-time error but it should still analyze consistently.
+    checkLibrary('class C { C(this.x); int x; String x; }', allowErrors: true);
+  }
+
+  test_class_constructor_field_formal_no_matching_field() {
+    // This is a compile-time error but it should still analyze consistently.
+    checkLibrary('class C { C(this.x); }', allowErrors: true);
+  }
+
   test_class_constructor_field_formal_typed_dynamic() {
-    checkLibrary('class C { num x; C(dynamic this.x); }');
+    checkLibrary('class C { num x; C(dynamic this.x); }', allowErrors: true);
   }
 
   test_class_constructor_field_formal_typed_typed() {
@@ -742,6 +808,10 @@ class E {}''');
     checkLibrary('class C { int i; int j; }');
   }
 
+  test_class_getter_abstract() {
+    checkLibrary('abstract class C { int get x; }');
+  }
+
   test_class_getter_external() {
     checkLibrary('class C { external int get x; }');
   }
@@ -770,6 +840,10 @@ class E {}''');
     checkLibrary('class C implements D, E {} class D {} class E {}');
   }
 
+  test_class_method_abstract() {
+    checkLibrary('abstract class C { f(); }');
+  }
+
   test_class_method_external() {
     checkLibrary('class C { external f(); }');
   }
@@ -788,6 +862,10 @@ class E {}''');
 
   test_class_mixins() {
     checkLibrary('class C extends Object with D, E {} class D {} class E {}');
+  }
+
+  test_class_setter_abstract() {
+    checkLibrary('abstract class C { void set x(int value); }');
   }
 
   test_class_setter_external() {
@@ -849,7 +927,7 @@ class C {
     LibraryElementImpl original =
         resolve2(analysisContext2.sourceFactory.forUri(uri));
     LibraryElementImpl resynthesized =
-        resynthesizeLibraryElement(uri, original);
+        resynthesizeLibraryElement(encodeLibraryElement(original), uri);
     checkLibraryElements(original, resynthesized);
   }
 
@@ -880,28 +958,71 @@ enum E {
     checkLibrary('enum E1 { v1 } enum E2 { v2 }');
   }
 
+  test_export_class() {
+    addLibrarySource('/a.dart', 'class C {}');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_export_class_type_alias() {
+    addLibrarySource(
+        '/a.dart', 'class C {} exends _D with _E; class _D {} class _E {}');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_export_function() {
+    addLibrarySource('/a.dart', 'f() {}');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_export_getter() {
+    addLibrarySource('/a.dart', 'get f() => null;');
+    checkLibrary('export "a.dart";');
+  }
+
   test_export_hide() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" hide Stream, Future;',
-        resynthesisCount: 2);
+    checkLibrary('export "dart:async" hide Stream, Future;');
   }
 
   test_export_multiple_combinators() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" hide Stream show Future;',
-        resynthesisCount: 2);
+    checkLibrary('export "dart:async" hide Stream show Future;');
+  }
+
+  test_export_setter() {
+    addLibrarySource('/a.dart', 'void set f(value) {}');
+    checkLibrary('export "a.dart";');
   }
 
   test_export_show() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" show Future, Stream;',
-        resynthesisCount: 2);
+    checkLibrary('export "dart:async" show Future, Stream;');
+  }
+
+  test_export_typedef() {
+    addLibrarySource('/a.dart', 'typedef F();');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_export_variable() {
+    addLibrarySource('/a.dart', 'var x;');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_export_variable_const() {
+    addLibrarySource('/a.dart', 'const x = 0;');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_export_variable_final() {
+    addLibrarySource('/a.dart', 'final x = 0;');
+    checkLibrary('export "a.dart";');
   }
 
   test_exports() {
     addLibrarySource('/a.dart', 'library a;');
     addLibrarySource('/b.dart', 'library b;');
-    checkLibrary('export "a.dart"; export "b.dart";', resynthesisCount: 3);
+    checkLibrary('export "a.dart"; export "b.dart";');
   }
 
   test_field_documented() {
@@ -911,6 +1032,68 @@ class C {
    * Docs
    */
   var x;
+}''');
+  }
+
+  test_field_formal_param_inferred_type_implicit() {
+    checkLibrary('class C extends D { var v; C(this.v); }'
+        ' abstract class D { int get v; }');
+  }
+
+  test_field_inferred_type_nonstatic_explicit_initialized() {
+    checkLibrary('class C { num v = 0; }');
+  }
+
+  test_field_inferred_type_nonstatic_implicit_initialized() {
+    checkLibrary('class C { var v = 0; }');
+  }
+
+  test_field_inferred_type_nonstatic_implicit_uninitialized() {
+    checkLibrary(
+        'class C extends D { var v; } abstract class D { int get v; }');
+  }
+
+  test_field_inferred_type_static_implicit_initialized() {
+    checkLibrary('class C { static var v = 0; }');
+  }
+
+  test_field_propagatedType_const_noDep() {
+    checkLibrary('''
+class C {
+  static const x = 0;
+}''');
+  }
+
+  test_field_propagatedType_final_dep_inLib() {
+    addNamedSource('/a.dart', 'final a = 1;');
+    checkLibrary('''
+import "a.dart";
+class C {
+  final b = a / 2;
+}''');
+  }
+
+  test_field_propagatedType_final_dep_inPart() {
+    addNamedSource('/a.dart', 'part of lib; final a = 1;');
+    checkLibrary('''
+library lib;
+part "a.dart";
+class C {
+  final b = a / 2;
+}''');
+  }
+
+  test_field_propagatedType_final_noDep_instance() {
+    checkLibrary('''
+class C {
+  final x = 0;
+}''');
+  }
+
+  test_field_propagatedType_final_noDep_static() {
+    checkLibrary('''
+class C {
+  static final x = 0;
 }''');
   }
 
@@ -929,12 +1112,12 @@ f() {}''');
 
   test_function_entry_point_in_export() {
     addLibrarySource('/a.dart', 'library a; main() {}');
-    checkLibrary('export "a.dart";', resynthesisCount: 2);
+    checkLibrary('export "a.dart";');
   }
 
   test_function_entry_point_in_export_hidden() {
     addLibrarySource('/a.dart', 'library a; main() {}');
-    checkLibrary('export "a.dart" hide main;', resynthesisCount: 2);
+    checkLibrary('export "a.dart" hide main;');
   }
 
   test_function_entry_point_in_part() {
@@ -1006,6 +1189,69 @@ f() {}''');
     checkLibrary('f() {} g() {}');
   }
 
+  test_getElement_constructor_named() {
+    ConstructorElement original = resolve2(addSource('class C { C.named(); }'))
+        .getType('C')
+        .getNamedConstructor('named');
+    expect(original, isNotNull);
+    ConstructorElement resynthesized = validateGetElement(original);
+    compareConstructorElements(resynthesized, original, 'C.constructor named');
+  }
+
+  test_getElement_constructor_unnamed() {
+    ConstructorElement original =
+        resolve2(addSource('class C { C(); }')).getType('C').unnamedConstructor;
+    expect(original, isNotNull);
+    ConstructorElement resynthesized = validateGetElement(original);
+    compareConstructorElements(resynthesized, original, 'C.constructor');
+  }
+
+  test_getElement_field() {
+    FieldElement original =
+        resolve2(addSource('class C { var f; }')).getType('C').getField('f');
+    expect(original, isNotNull);
+    FieldElement resynthesized = validateGetElement(original);
+    compareFieldElements(resynthesized, original, 'C.field f');
+  }
+
+  test_getElement_getter() {
+    PropertyAccessorElement original =
+        resolve2(addSource('class C { get f => null; }'))
+            .getType('C')
+            .getGetter('f');
+    expect(original, isNotNull);
+    PropertyAccessorElement resynthesized = validateGetElement(original);
+    comparePropertyAccessorElements(resynthesized, original, 'C.getter f');
+  }
+
+  test_getElement_method() {
+    MethodElement original =
+        resolve2(addSource('class C { f() {} }')).getType('C').getMethod('f');
+    expect(original, isNotNull);
+    MethodElement resynthesized = validateGetElement(original);
+    compareMethodElements(resynthesized, original, 'C.method f');
+  }
+
+  test_getElement_operator() {
+    MethodElement original =
+        resolve2(addSource('class C { operator+(x) => null; }'))
+            .getType('C')
+            .getMethod('+');
+    expect(original, isNotNull);
+    MethodElement resynthesized = validateGetElement(original);
+    compareMethodElements(resynthesized, original, 'C.operator+');
+  }
+
+  test_getElement_setter() {
+    PropertyAccessorElement original =
+        resolve2(addSource('class C { void set f(value) {} }'))
+            .getType('C')
+            .getSetter('f');
+    expect(original, isNotNull);
+    PropertyAccessorElement resynthesized = validateGetElement(original);
+    comparePropertyAccessorElements(resynthesized, original, 'C.setter f');
+  }
+
   test_getter_documented() {
     checkLibrary('''
 // Extra comment so doc comment offset != 0
@@ -1019,6 +1265,11 @@ get x => null;''');
     checkLibrary('external int get x;');
   }
 
+  test_getter_inferred_type_nonstatic_implicit_return() {
+    checkLibrary(
+        'class C extends D { get f => null; } abstract class D { int get f; }');
+  }
+
   test_getters() {
     checkLibrary('int get x => null; get y => null;');
   }
@@ -1029,6 +1280,11 @@ get x => null;''');
 
   test_implicitTopLevelVariable_setterFirst() {
     checkLibrary('void set x(int value) {} int get x => 0;');
+  }
+
+  test_import_deferred() {
+    addLibrarySource('/a.dart', 'f() {}');
+    checkLibrary('import "a.dart" deferred as p; main() { p.f(); }');
   }
 
   test_import_hide() {
@@ -1057,6 +1313,26 @@ get x => null;''');
     checkLibrary('import "a.dart"; import "b.dart"; C c; D d;');
   }
 
+  test_inferred_type_is_typedef() {
+    checkLibrary('typedef int F(String s);'
+        ' class C extends D { var v; }'
+        ' abstract class D { F get v; }');
+  }
+
+  test_inferred_type_refers_to_bound_type_param() {
+    checkLibrary('class C<T> extends D<int, T> { var v; }'
+        ' abstract class D<U, V> { Map<V, U> get v; }');
+  }
+
+  test_inferred_type_via_function_typed_param() {
+    if (options.strongMode) {
+      // TODO(paulberry): get this test to pass.
+      return;
+    }
+    checkLibrary('class C extends D { f(g) {} }'
+        ' abstract class D { void f(int g(String)); }');
+  }
+
   test_library() {
     checkLibrary('');
   }
@@ -1078,6 +1354,51 @@ library foo;''');
     checkLibrary('library foo.bar;');
   }
 
+  test_main_class() {
+    checkLibrary('class main {}');
+  }
+
+  test_main_class_alias() {
+    checkLibrary('class main = C with D; class C {} class D {}');
+  }
+
+  test_main_class_alias_via_export() {
+    addLibrarySource('/a.dart', 'class main = C with D; class C {} class D {}');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_main_class_via_export() {
+    addLibrarySource('/a.dart', 'class main {}');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_main_getter() {
+    checkLibrary('get main => null;');
+  }
+
+  test_main_getter_via_export() {
+    addLibrarySource('/a.dart', 'get main => null;');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_main_typedef() {
+    checkLibrary('typedef main();');
+  }
+
+  test_main_typedef_via_export() {
+    addLibrarySource('/a.dart', 'typedef main();');
+    checkLibrary('export "a.dart";');
+  }
+
+  test_main_variable() {
+    checkLibrary('var main;');
+  }
+
+  test_main_variable_via_export() {
+    addLibrarySource('/a.dart', 'var main;');
+    checkLibrary('export "a.dart";');
+  }
+
   test_method_documented() {
     checkLibrary('''
 class C {
@@ -1086,6 +1407,16 @@ class C {
    */
   f() {}
 }''');
+  }
+
+  test_method_inferred_type_nonstatic_implicit_param() {
+    checkLibrary('class C extends D { void f(value) {} }'
+        ' abstract class D { void f(int value); }');
+  }
+
+  test_method_inferred_type_nonstatic_implicit_return() {
+    checkLibrary(
+        'class C extends D { f() => null; } abstract class D { int f(); }');
   }
 
   test_method_parameter_parameters() {
@@ -1124,7 +1455,7 @@ class C {
   }
 
   test_operator_equal() {
-    checkLibrary('class C { bool operator==(C other) => false; }');
+    checkLibrary('class C { bool operator==(Object other) => false; }');
   }
 
   test_operator_external() {
@@ -1166,11 +1497,36 @@ void set x(value) {}''');
     checkLibrary('external void set x(int value);');
   }
 
+  test_setter_inferred_type_nonstatic_implicit_param() {
+    checkLibrary('class C extends D { void set f(value) {} }'
+        ' abstract class D { void set f(int value); }');
+  }
+
+  test_setter_inferred_type_static_implicit_return() {
+    checkLibrary('class C { static set f(int value) {} }');
+  }
+
+  test_setter_inferred_type_top_level_implicit_return() {
+    checkLibrary('set f(int value) {}');
+  }
+
   test_setters() {
     checkLibrary('void set x(int value) {} set y(value) {}');
   }
 
-  test_type_arguments_explicit() {
+  test_type_arguments_explicit_dynamic_dynamic() {
+    checkLibrary('Map<dynamic, dynamic> m;');
+  }
+
+  test_type_arguments_explicit_dynamic_int() {
+    checkLibrary('Map<dynamic, int> m;');
+  }
+
+  test_type_arguments_explicit_String_dynamic() {
+    checkLibrary('Map<String, dynamic> m;');
+  }
+
+  test_type_arguments_explicit_String_int() {
     checkLibrary('Map<String, int> m;');
   }
 
@@ -1386,11 +1742,120 @@ typedef F();''');
 var x;''');
   }
 
+  test_variable_final() {
+    checkLibrary('final int x = 0;');
+  }
+
+  test_variable_getterInLib_setterInPart() {
+    addNamedSource('/a.dart', 'part of my.lib; void set x(int _) {}');
+    checkLibrary('library my.lib; part "a.dart"; int get x => 42;');
+  }
+
+  test_variable_getterInPart_setterInLib() {
+    addNamedSource('/a.dart', 'part of my.lib; int get x => 42;');
+    checkLibrary('library my.lib; part "a.dart"; void set x(int _) {}');
+  }
+
+  test_variable_getterInPart_setterInPart() {
+    addNamedSource('/a.dart', 'part of my.lib; int get x => 42;');
+    addNamedSource('/b.dart', 'part of my.lib; void set x(int _) {}');
+    checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+  }
+
   test_variable_implicit_type() {
     checkLibrary('var x;');
   }
 
+  test_variable_inferred_type_implicit_initialized() {
+    checkLibrary('var v = 0;');
+  }
+
+  test_variable_propagatedType_const_noDep() {
+    checkLibrary('const i = 0;');
+  }
+
+  test_variable_propagatedType_final_dep_inLib() {
+    addNamedSource('/a.dart', 'final a = 1;');
+    checkLibrary('import "a.dart"; final b = a / 2;');
+  }
+
+  test_variable_propagatedType_final_dep_inPart() {
+    addNamedSource('/a.dart', 'part of lib; final a = 1;');
+    checkLibrary('library lib; part "a.dart"; final b = a / 2;');
+  }
+
+  test_variable_propagatedType_final_noDep() {
+    checkLibrary('final i = 0;');
+  }
+
+  test_variable_propagatedType_implicit_dep() {
+    // The propagated type is defined in a library that is not imported.
+    addNamedSource('/a.dart', 'class C {}');
+    addNamedSource('/b.dart', 'import "a.dart"; C f() => null;');
+    checkLibrary('import "b.dart"; final x = f();');
+  }
+
+  test_variable_setterInPart_getterInPart() {
+    addNamedSource('/a.dart', 'part of my.lib; void set x(int _) {}');
+    addNamedSource('/b.dart', 'part of my.lib; int get x => 42;');
+    checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+  }
+
   test_variables() {
     checkLibrary('int i; int j;');
+  }
+
+  /**
+   * Encode the library containing [original] into a summary and then use
+   * [_TestSummaryResynthesizer.getElement] to retrieve just the original
+   * element from the resynthesized summary.
+   */
+  Element validateGetElement(Element original) {
+    _TestSummaryResynthesizer resynthesizer = encodeLibrary(original.library);
+    ElementLocationImpl location = original.location;
+    Element result = resynthesizer.getElement(location);
+    // Check that no other summaries needed to be resynthesized to resynthesize
+    // the library element.
+    expect(resynthesizer.resynthesisCount, 1);
+    expect(result.location, location);
+    return result;
+  }
+}
+
+class _TestSummaryResynthesizer extends SummaryResynthesizer {
+  final Map<String, UnlinkedUnit> unlinkedSummaries;
+  final Map<String, LinkedLibrary> linkedSummaries;
+
+  _TestSummaryResynthesizer(
+      SummaryResynthesizer parent,
+      AnalysisContext context,
+      TypeProvider typeProvider,
+      SourceFactory sourceFactory,
+      this.unlinkedSummaries,
+      this.linkedSummaries,
+      bool strongMode)
+      : super(parent, context, typeProvider, sourceFactory, strongMode);
+
+  @override
+  LinkedLibrary getLinkedSummary(String uri) {
+    LinkedLibrary serializedLibrary = linkedSummaries[uri];
+    if (serializedLibrary == null) {
+      fail('Unexpectedly tried to get linked summary for $uri');
+    }
+    return serializedLibrary;
+  }
+
+  @override
+  UnlinkedUnit getUnlinkedSummary(String uri) {
+    UnlinkedUnit serializedUnit = unlinkedSummaries[uri];
+    if (serializedUnit == null) {
+      fail('Unexpectedly tried to get unlinked summary for $uri');
+    }
+    return serializedUnit;
+  }
+
+  @override
+  bool hasLibrarySummary(String uri) {
+    return true;
   }
 }

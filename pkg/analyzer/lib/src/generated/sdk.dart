@@ -6,7 +6,8 @@ library analyzer.src.generated.sdk;
 
 import 'dart:collection';
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart'
     show ContentCache, Source, UriKind;
@@ -184,16 +185,20 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
    */
   LibraryMap get librariesMap => _librariesMap;
 
-
   // To be backwards-compatible the new categories field is translated to
   // an old approximation.
   String convertCategories(String categories) {
     switch (categories) {
-      case "": return "Internal";
-      case "Client": return "Client";
-      case "Server": return "Server";
-      case "Client,Server": return "Shared";
-      case "Client,Server,Embedded": return "Shared";
+      case "":
+        return "Internal";
+      case "Client":
+        return "Client";
+      case "Server":
+        return "Server";
+      case "Client,Server":
+        return "Shared";
+      case "Client,Server,Embedded":
+        return "Shared";
     }
     return "Shared";
   }

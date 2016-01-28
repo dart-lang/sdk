@@ -6,11 +6,11 @@ library analyzer.src.generated.testing.element_factory;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -100,6 +100,7 @@ class ElementFactory {
     ConstructorElementImpl constructor = name == null
         ? new ConstructorElementImpl("", -1)
         : new ConstructorElementImpl(name, 0);
+    constructor.synthetic = name == null;
     constructor.const2 = isConst;
     if (argumentTypes != null) {
       int count = argumentTypes.length;
@@ -405,11 +406,12 @@ class ElementFactory {
     field.type = type;
     field.final2 = true;
     PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(field);
+        new PropertyAccessorElementImpl(name, 0);
     getter.synthetic = false;
     getter.getter = true;
     getter.variable = field;
     getter.returnType = type;
+    getter.static = isStatic;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
     getter.type = getterType;
@@ -559,8 +561,14 @@ class ElementFactory {
     if (isConst) {
       ConstTopLevelVariableElementImpl constant =
           new ConstTopLevelVariableElementImpl(AstFactory.identifier3(name));
-      constant.constantInitializer = AstFactory.instanceCreationExpression2(
+      InstanceCreationExpression initializer = AstFactory.instanceCreationExpression2(
           Keyword.CONST, AstFactory.typeName(type.element));
+      if (type is InterfaceType) {
+        ConstructorElement element = type.element.unnamedConstructor;
+        initializer.staticElement = element;
+        initializer.constructorName.staticElement = element;
+      }
+      constant.constantInitializer = initializer;
       variable = constant;
     } else {
       variable = new TopLevelVariableElementImpl(name, -1);

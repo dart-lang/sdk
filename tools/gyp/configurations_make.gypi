@@ -76,6 +76,12 @@
         'ldflags': [ '-m32', ],
       },
 
+      'Dart_Linux_simarmv6_Base': {
+        'abstract': 1,
+        'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
+        'ldflags': [ '-m32', ],
+      },
+
       'Dart_Linux_simarmv5te_Base': {
         'abstract': 1,
         'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
@@ -111,6 +117,35 @@
         'abstract': 1,
         'cflags': [
           '-marm',
+          '-mfpu=vfp',
+          '-Wno-psabi', # suppresses va_list warning
+          '-fno-strict-overflow',
+        ],
+      },
+
+      # ARMv6 cross-build
+      'Dart_Linux_xarmv6_Base': {
+        'abstract': 1,
+        'target_conditions': [
+        ['_toolset=="target"', {
+          'cflags': [
+            '-march=armv6',
+            '-mfpu=vfp',
+            '-Wno-psabi', # suppresses va_list warning
+            '-fno-strict-overflow',
+          ],
+        }],
+        ['_toolset=="host"', {
+          'cflags': ['-m32', '-msse2', '-mfpmath=sse' ],
+          'ldflags': ['-m32'],
+        }]]
+      },
+
+      # ARMv6 native build
+      'Dart_Linux_armv6_Base': {
+        'abstract': 1,
+        'cflags': [
+          '-march=armv6',
           '-mfpu=vfp',
           '-Wno-psabi', # suppresses va_list warning
           '-fno-strict-overflow',

@@ -1537,12 +1537,10 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   Label fall_through;
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ LoadClassIdMayBeSmi(R1, R0);
+  __ CompareImmediate(R1, kClosureCid);
+  __ b(&fall_through, EQ);  // Instance is a closure.
   __ LoadClassById(R2, R1);
-
   // R2: class of instance (R0).
-  __ ldr(R3, FieldAddress(R2, Class::signature_function_offset()));
-  __ CompareObject(R3, Object::null_object());
-  __ b(&fall_through, NE);
 
   __ ldrh(R3, FieldAddress(R2, Class::num_type_arguments_offset()));
   __ CompareImmediate(R3, 0);

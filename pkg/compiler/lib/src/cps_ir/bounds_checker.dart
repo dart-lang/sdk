@@ -614,6 +614,16 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
 
   @override
   void visitInvokeMethod(InvokeMethod node) {
+    if (node.selector.isGetter && node.selector.name == 'length') {
+      // If the receiver type is not known to be indexable, the length call
+      // was not rewritten to GetLength.  But if we can prove that the call only
+      // succeeds for indexables, we can trust that it returns the length.
+      TypeMask successType =
+          types.receiverTypeFor(node.selector, node.dartReceiver.type);
+      if (types.isDefinitelyIndexable(successType)) {
+        valueOf[node] = getLength(node.dartReceiver, currentEffectNumber);
+      }
+    }
     // TODO(asgerf): What we really need is a "changes length" side effect flag.
     if (world
         .getSideEffectsOfSelector(node.selector, node.mask)

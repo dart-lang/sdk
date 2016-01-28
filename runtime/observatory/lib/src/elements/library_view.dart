@@ -30,8 +30,4 @@ class LibraryViewElement extends ObservatoryElement {
     library.variables.forEach((variable) => loads.add(variable.reload()));
     return Future.wait(loads);
   }
-
-  Future refreshCoverage() {
-    return library.refreshCoverage();
-  }
 }

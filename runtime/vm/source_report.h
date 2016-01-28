@@ -18,8 +18,9 @@ namespace dart {
 class SourceReport {
  public:
   enum ReportKind {
-    kCallSites = 0x1,
-    kCoverage  = 0x2,
+    kCallSites           = 0x1,
+    kCoverage            = 0x2,
+    kPossibleBreakpoints = 0x4,
   };
 
   enum CompileMode {
@@ -55,6 +56,8 @@ class SourceReport {
                           const Function& func, const Code& code);
   void PrintCoverageData(JSONObject* jsobj,
                          const Function& func, const Code& code);
+  void PrintPossibleBreakpointsData(JSONObject* jsobj,
+                                    const Function& func, const Code& code);
   void PrintScriptTable(JSONArray* jsarr);
 
   void VisitFunction(JSONArray* jsarr, const Function& func);

@@ -102,8 +102,12 @@ abstract class AbstractCodeOutput extends CodeOutput {
   }
 }
 
+abstract class BufferedCodeOutput {
+  String getText();
+}
+
 /// [CodeOutput] using a [StringBuffer] as backend.
-class CodeBuffer extends AbstractCodeOutput {
+class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
   StringBuffer buffer = new StringBuffer();
 
   @override

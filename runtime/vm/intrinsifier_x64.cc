@@ -1536,11 +1536,11 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ LoadClassIdMayBeSmi(RCX, RAX);
 
   // RCX: untagged cid of instance (RAX).
+  __ cmpq(RCX, Immediate(kClosureCid));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Instance is a closure.
+
   __ LoadClassById(RDI, RCX);
   // RDI: class of instance (RAX).
-  __ movq(RCX, FieldAddress(RDI, Class::signature_function_offset()));
-  __ CompareObject(RCX, Object::null_object());
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
 
   __ movzxw(RCX, FieldAddress(RDI, Class::num_type_arguments_offset()));
   __ cmpq(RCX, Immediate(0));

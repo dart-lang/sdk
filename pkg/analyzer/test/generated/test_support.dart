@@ -6,10 +6,11 @@ library analyzer.test.generated.test_support;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart'
+    show AstNode, NodeLocator, SimpleIdentifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart'
-    show AstNode, NodeLocator, SimpleIdentifier;
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -423,9 +424,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
    */
   bool _equalErrors(AnalysisError firstError, AnalysisError secondError) =>
       identical(firstError.errorCode, secondError.errorCode) &&
-          firstError.offset == secondError.offset &&
-          firstError.length == secondError.length &&
-          _equalSources(firstError.source, secondError.source);
+      firstError.offset == secondError.offset &&
+      firstError.length == secondError.length &&
+      _equalSources(firstError.source, secondError.source);
 
   /**
    * Return `true` if the two sources are equivalent.

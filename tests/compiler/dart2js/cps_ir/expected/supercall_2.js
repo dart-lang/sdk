@@ -25,5 +25,5 @@
 
 function() {
   var v0 = V.Sub$();
-  V.Base.prototype.$add.call(v0, v0, 10000 + 1);
+  V.Base.prototype.$add.call(v0, v0, 10001);
 }

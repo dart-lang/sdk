@@ -1092,17 +1092,15 @@ class AssistProcessor {
     Block targetBlock;
     {
       Statement statement = node.getAncestor((n) => n is Statement);
-      prefix = utils.getNodePrefix(statement);
       if (statement is IfStatement && statement.thenStatement is Block) {
         targetBlock = statement.thenStatement;
-      }
-      if (statement is WhileStatement && statement.body is Block) {
+      } else if (statement is WhileStatement && statement.body is Block) {
         targetBlock = statement.body;
+      } else {
+        _coverageMarker();
+        return;
       }
-    }
-    if (targetBlock == null) {
-      _coverageMarker();
-      return;
+      prefix = utils.getNodePrefix(statement);
     }
     // prepare location
     int offset;

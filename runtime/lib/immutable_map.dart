@@ -11,8 +11,9 @@ class ImmutableMap<K, V> implements Map<K, V> {
 
 
   V operator [](Object key) {
-    // TODO(hausner): Since the keys are sorted, we could do a binary
-    // search. But is it worth it?
+    // To preserve the key-value order of the map literal, the keys are
+    // not sorted. Need to do linear search or implement an additional
+    // lookup table.
     for (int i = 0; i < _kvPairs.length - 1; i += 2) {
       if (key == _kvPairs[i]) {
         return _kvPairs[i+1];

@@ -26,7 +26,10 @@ class _TestLauncher {
                             Platform.script.toFilePath(),
                             _TESTEE_MODE_FLAG] {}
 
-  Future<int> launch(bool pause_on_start, bool pause_on_exit, bool trace_service) {
+  Future<int> launch(bool pause_on_start,
+                     bool pause_on_exit,
+                     bool pause_on_unhandled_exceptions,
+                     bool trace_service) {
     assert(pause_on_start != null);
     assert(pause_on_exit != null);
     assert(trace_service != null);
@@ -40,6 +43,9 @@ class _TestLauncher {
     }
     if (pause_on_exit) {
       fullArgs.add('--pause-isolates-on-exit');
+    }
+    if (pause_on_unhandled_exceptions) {
+      fullArgs.add('--pause-isolates-on-unhandled-exceptions');
     }
     fullArgs.addAll(Platform.executableArguments);
     fullArgs.addAll(args);
@@ -110,7 +116,8 @@ void runIsolateTests(List<String> mainArgs,
                       bool pause_on_start: false,
                       bool pause_on_exit: false,
                       bool trace_service: false,
-                      bool verbose_vm: false}) {
+                      bool verbose_vm: false,
+                      bool pause_on_unhandled_exceptions: false}) {
   assert(!pause_on_start || testeeBefore == null);
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
     if (!pause_on_start) {
@@ -128,7 +135,8 @@ void runIsolateTests(List<String> mainArgs,
     }
   } else {
     var process = new _TestLauncher();
-    process.launch(pause_on_start, pause_on_exit, trace_service).then((port) {
+    process.launch(pause_on_start, pause_on_exit,
+                   pause_on_unhandled_exceptions, trace_service).then((port) {
       if (mainArgs.contains("--gdb")) {
         port = 8181;
       }
@@ -157,15 +165,14 @@ void runIsolateTests(List<String> mainArgs,
   }
 }
 
-
-Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
+Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
   isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
-        if (event.kind == ServiceEvent.kPauseBreakpoint) {
-          print('Breakpoint reached');
+        if (event.kind == kind) {
+          print('Paused with $kind');
           subscription.cancel();
           if (completer != null) {
             // Reload to update isolate.pauseEvent.
@@ -178,9 +185,9 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
     // Pause may have happened before we subscribed.
     isolate.reload().then((_) {
       if ((isolate.pauseEvent != null) &&
-         (isolate.pauseEvent.kind == ServiceEvent.kPauseBreakpoint)) {
+         (isolate.pauseEvent.kind == kind)) {
         // Already waiting at a breakpoint.
-        print('Breakpoint reached');
+        print('Paused with $kind');
         subscription.cancel();
         if (completer != null) {
           completer.complete(isolate);
@@ -193,6 +200,13 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
   return completer.future;  // Will complete when breakpoint hit.
 }
 
+Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
+  return hasPausedFor(isolate, ServiceEvent.kPauseBreakpoint);
+}
+
+Future<Isolate> hasStoppedWithUnhandledException(Isolate isolate) {
+  return hasPausedFor(isolate, ServiceEvent.kPauseException);
+}
 
 Future<Isolate> hasPausedAtStart(Isolate isolate) {
   // Set up a listener to wait for breakpoint events.
@@ -255,11 +269,13 @@ IsolateTest stoppedAtLine(int line) {
 
     Frame top = frames[0];
     Script script = await top.location.script.load();
-    if (script.tokenToLine(top.location.tokenPos) != line) {
+    int actualLine = script.tokenToLine(top.location.tokenPos);
+    if (actualLine != line) {
       var sb = new StringBuffer();
-      sb.write("Expected to be at line $line, but got stack trace:\n");
+      sb.write("Expected to be at line $line but actually at line $actualLine");
+      sb.write("\nFull stack trace:\n");
       for (Frame f in stack['frames']) {
-        sb.write(" $f\n");
+        sb.write(" $f [${await f.location.getLine()}]\n");
       }
       throw sb.toString();
     }
@@ -341,7 +357,8 @@ Future runVMTests(List<String> mainArgs,
                    bool pause_on_start: false,
                    bool pause_on_exit: false,
                    bool trace_service: false,
-                   bool verbose_vm: false}) async {
+                   bool verbose_vm: false,
+                   bool pause_on_unhandled_exceptions: false}) async {
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
     if (!pause_on_start) {
       if (testeeBefore != null) {
@@ -360,6 +377,7 @@ Future runVMTests(List<String> mainArgs,
     var process = new _TestLauncher();
     process.launch(pause_on_start,
                    pause_on_exit,
+                   pause_on_unhandled_exceptions,
                    trace_service).then((port) async {
       if (mainArgs.contains("--gdb")) {
         port = 8181;

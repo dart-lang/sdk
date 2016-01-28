@@ -12,4 +12,4 @@ set -ex
 
 gcc -m32 -shared -Wl,-soname,libprecompiled.so -o libprecompiled.so precompiled.S
 
-LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$PWD" gdb -ex run --args ./out/DebugSIMARM/dart_precompiled --run-precompiled-snapshot not_used.dart
+LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$PWD" gdb -ex run --args ./out/DebugSIMARM/dart_precompiled_runtime --run-precompiled-snapshot not_used.dart

@@ -159,15 +159,16 @@ class ModelEmitter {
 
     program.finalizers.forEach((js.TokenFinalizer f) => f.finalizeTokens());
 
+    // TODO(johnnniwinther): Support source maps in this emitter.
     for (int i = 0; i < fragmentsCode.length; ++i) {
-      String code = js.prettyPrint(fragmentsCode[i], compiler).getText();
+      String code = js.createCodeBuffer(fragmentsCode[i], compiler).getText();
       totalSize += code.length;
       compiler.outputProvider(fragments[i+1].outputFileName, deferredExtension)
         ..add(code)
         ..close();
     }
 
-    String mainCode = js.prettyPrint(mainAst, compiler).getText();
+    String mainCode = js.createCodeBuffer(mainAst, compiler).getText();
     compiler.outputProvider(mainFragment.outputFileName, 'js')
         ..add(buildGeneratedBy(compiler))
         ..add(mainCode)

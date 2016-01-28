@@ -97,6 +97,7 @@ class BuilderTest {
       builder.addInt32(2, 20);
       builder.addOffset(3, stringOffset);
       builder.addInt32(4, 40);
+      builder.addUint32(5, 0x9ABCDEF0);
       Offset offset = builder.endTable();
       byteList = builder.finish(offset);
     }
@@ -107,6 +108,23 @@ class BuilderTest {
     expect(const Int32Reader().vTableGet(object, 2), 20);
     expect(const StringReader().vTableGet(object, 3), '12345');
     expect(const Int32Reader().vTableGet(object, 4), 40);
+    expect(const Uint32Reader().vTableGet(object, 5), 0x9ABCDEF0);
+  }
+
+  void test_writeList_ofFloat64() {
+    List<double> values = <double>[-1.234567, 3.4E+9, -5.6E-13, 7.8, 12.13];
+    // write
+    List<int> byteList;
+    {
+      Builder builder = new Builder(initialSize: 0);
+      Offset offset = builder.writeListFloat64(values);
+      byteList = builder.finish(offset);
+    }
+    // read and verify
+    BufferPointer root = new BufferPointer.fromBytes(byteList);
+    List<double> items = const Float64ListReader().read(root);
+    expect(items, hasLength(5));
+    expect(items, orderedEquals(values));
   }
 
   void test_writeList_ofInt32() {
@@ -194,6 +212,20 @@ class BuilderTest {
     expect(items, hasLength(2));
     expect(items, contains('12345'));
     expect(items, contains('ABC'));
+  }
+
+  void test_writeList_ofUint32() {
+    List<int> byteList;
+    {
+      Builder builder = new Builder(initialSize: 0);
+      Offset offset = builder.writeListUint32(<int>[1, 2, 0x9ABCDEF0]);
+      byteList = builder.finish(offset);
+    }
+    // read and verify
+    BufferPointer root = new BufferPointer.fromBytes(byteList);
+    List<int> items = const ListReader<int>(const Uint32Reader()).read(root);
+    expect(items, hasLength(3));
+    expect(items, orderedEquals(<int>[1, 2, 0x9ABCDEF0]));
   }
 }
 

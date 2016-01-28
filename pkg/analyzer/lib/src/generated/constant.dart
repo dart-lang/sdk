@@ -6,11 +6,13 @@ library analyzer.src.generated.constant;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, RecordingErrorListener;
@@ -155,6 +157,13 @@ class BoolState extends InstanceState {
  */
 class ConstantAstCloner extends AstCloner {
   ConstantAstCloner() : super(true);
+
+  @override
+  ConstructorName visitConstructorName(ConstructorName node) {
+    ConstructorName name = super.visitConstructorName(node);
+    name.staticElement = node.staticElement;
+    return name;
+  }
 
   @override
   InstanceCreationExpression visitInstanceCreationExpression(
@@ -441,13 +450,6 @@ class ConstantEvaluationEngine {
    * Determine which constant elements need to have their values computed
    * prior to computing the value of [constant], and report them using
    * [callback].
-   *
-   * Note that it's possible (in erroneous code) for a constant to depend on a
-   * non-constant.  When this happens, we report the dependency anyhow so that
-   * if the non-constant changes to a constant, we will know to recompute the
-   * thing that depends on it.  [computeDependencies] and
-   * [computeConstantValue] are responsible for ignoring the request if they
-   * are asked to act on a non-constant target.
    */
   void computeDependencies(
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
@@ -1616,7 +1618,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     DartObjectImpl rightResult = node.rightOperand.accept(this);
     TokenType operatorType = node.operator.type;
     // 'null' is almost never good operand
-    if (operatorType != TokenType.BANG_EQ && operatorType != TokenType.EQ_EQ) {
+    if (operatorType != TokenType.BANG_EQ &&
+        operatorType != TokenType.EQ_EQ &&
+        operatorType != TokenType.QUESTION_QUESTION) {
       if (leftResult != null && leftResult.isNull ||
           rightResult != null && rightResult.isNull) {
         _error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -1665,6 +1669,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         return _dartObjectComputer.divide(node, leftResult, rightResult);
       } else if (operatorType == TokenType.TILDE_SLASH) {
         return _dartObjectComputer.integerDivide(node, leftResult, rightResult);
+      } else if (operatorType == TokenType.QUESTION_QUESTION) {
+        return _dartObjectComputer.questionQuestion(
+            node, leftResult, rightResult);
       } else {
         // TODO(brianwilkerson) Figure out which error to report.
         _error(node, null);
@@ -2457,6 +2464,17 @@ class DartObjectComputer {
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
+    }
+    return null;
+  }
+
+  DartObjectImpl questionQuestion(Expression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    if (leftOperand != null && rightOperand != null) {
+      if (leftOperand.isNull) {
+        return rightOperand;
+      }
+      return leftOperand;
     }
     return null;
   }
@@ -5232,7 +5250,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
     if (element is PropertyAccessorElement) {
       element = (element as PropertyAccessorElement).variable;
     }
-    if (element is VariableElement) {
+    if (element is VariableElement && element.isConst) {
       _callback(element);
     }
     return null;

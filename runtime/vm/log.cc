@@ -13,7 +13,8 @@ DEFINE_FLAG(bool, force_log_flush, false, "Always flush log messages.");
 
 DEFINE_FLAG(charp, isolate_log_filter, NULL,
             "Log isolates whose name include the filter. "
-            "Default: service isolate log messages are suppressed.");
+            "Default: service isolate log messages are suppressed "
+            "(specify 'vm-service' to log them).");
 
 Log::Log(LogPrinter printer)
     : printer_(printer),

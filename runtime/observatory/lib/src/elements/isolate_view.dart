@@ -33,8 +33,4 @@ class IsolateViewElement extends ObservatoryElement {
       await isolate.topFrame.function.load();
     }
   }
-
-  Future refreshCoverage() {
-    return isolate.refreshCoverage();
-  }
 }

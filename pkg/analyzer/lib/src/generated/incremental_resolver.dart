@@ -7,12 +7,14 @@ library analyzer.src.generated.incremental_resolver;
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -474,7 +476,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   void _assertCompatibleParameter(
       FormalParameter node, ParameterElement element) {
     _assertEquals(node.kind, element.parameterKind);
-    if (node.kind == ParameterKind.NAMED) {
+    if (node.kind == ParameterKind.NAMED ||
+        element.enclosingElement is ConstructorElement) {
       _assertEquals(node.identifier.name, element.name);
     }
     // check parameter type specific properties
@@ -597,12 +600,12 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   void _assertSameAnnotations(AnnotatedNode node, Element element) {
-    List<Annotation> nodeAnnotaitons = node.metadata;
+    List<Annotation> nodeAnnotations = node.metadata;
     List<ElementAnnotation> elementAnnotations = element.metadata;
-    int length = nodeAnnotaitons.length;
+    int length = nodeAnnotations.length;
     _assertEquals(elementAnnotations.length, length);
     for (int i = 0; i < length; i++) {
-      _assertSameAnnotation(nodeAnnotaitons[i], elementAnnotations[i]);
+      _assertSameAnnotation(nodeAnnotations[i], elementAnnotations[i]);
     }
   }
 
@@ -1468,37 +1471,67 @@ class PoorMansIncrementalResolver {
         {
           List<AstNode> oldParents = _getParents(oldNode);
           List<AstNode> newParents = _getParents(newNode);
+          // fail if an initializer change
+          if (oldParents.any((n) => n is ConstructorInitializer) ||
+              newParents.any((n) => n is ConstructorInitializer)) {
+            logger.log('Failure: a change in a constructor initializer');
+            return false;
+          }
+          // find matching methods / bodies
           int length = math.min(oldParents.length, newParents.length);
           bool found = false;
           for (int i = 0; i < length; i++) {
             AstNode oldParent = oldParents[i];
             AstNode newParent = newParents[i];
-            if (oldParent is ConstructorInitializer ||
-                newParent is ConstructorInitializer) {
-              logger.log('Failure: changes in constant constructor initializers'
-                  ' may cause external changes in constant objects.');
-              return false;
-            }
-            if (oldParent is FunctionDeclaration &&
+            if (oldParent is CompilationUnit && newParent is CompilationUnit) {
+              int oldLength = oldParent.declarations.length;
+              int newLength = newParent.declarations.length;
+              if (oldLength != newLength) {
+                logger.log(
+                    'Failure: unit declarations mismatch $oldLength vs. $newLength');
+                return false;
+              }
+            } else if (oldParent is ClassDeclaration &&
+                newParent is ClassDeclaration) {
+              int oldLength = oldParent.members.length;
+              int newLength = newParent.members.length;
+              if (oldLength != newLength) {
+                logger.log(
+                    'Failure: class declarations mismatch $oldLength vs. $newLength');
+                return false;
+              }
+            } else if (oldParent is FunctionDeclaration &&
                     newParent is FunctionDeclaration ||
-                oldParent is MethodDeclaration &&
-                    newParent is MethodDeclaration ||
                 oldParent is ConstructorDeclaration &&
-                    newParent is ConstructorDeclaration) {
+                    newParent is ConstructorDeclaration ||
+                oldParent is MethodDeclaration &&
+                    newParent is MethodDeclaration) {
               Element oldElement = (oldParent as Declaration).element;
               if (new DeclarationMatcher().matches(newParent, oldElement) ==
                   DeclarationMatchKind.MATCH) {
                 oldNode = oldParent;
                 newNode = newParent;
                 found = true;
+              } else {
+                return false;
               }
-            }
-            if (oldParent is BlockFunctionBody &&
-                newParent is BlockFunctionBody) {
-              oldNode = oldParent;
-              newNode = newParent;
-              found = true;
-              break;
+            } else if (oldParent is FunctionBody && newParent is FunctionBody) {
+              if (oldParent is BlockFunctionBody &&
+                  newParent is BlockFunctionBody) {
+                oldNode = oldParent;
+                newNode = newParent;
+                found = true;
+                break;
+              }
+              logger.log('Failure: not a block function body.');
+              return false;
+            } else if (oldParent is FunctionExpression &&
+                newParent is FunctionExpression) {
+              // skip
+            } else {
+              logger.log('Failure: old and new parent mismatch'
+                  ' ${oldParent.runtimeType} vs. ${newParent.runtimeType}');
+              return false;
             }
           }
           if (!found) {
@@ -1555,9 +1588,12 @@ class PoorMansIncrementalResolver {
         return true;
       }
     } catch (e, st) {
-      logger.log(e);
-      logger.log(st);
+      logger.logException(e, st);
       logger.log('Failure: exception.');
+      // The incremental resolver log is usually turned off,
+      // so also log the exception to the instrumentation log.
+      AnalysisEngine.instance.logger.logError(
+          'Failure in incremental resolver', new CaughtException(e, st));
     } finally {
       logger.exit();
     }
@@ -1595,8 +1631,13 @@ class PoorMansIncrementalResolver {
     // find nodes
     int offset = oldComments.offset;
     logger.log('offset: $offset');
-    Comment oldComment = _findNodeCovering(_oldUnit, offset, offset);
-    Comment newComment = _findNodeCovering(newUnit, offset, offset);
+    AstNode oldNode = _findNodeCovering(_oldUnit, offset, offset);
+    AstNode newNode = _findNodeCovering(newUnit, offset, offset);
+    if (oldNode is! Comment || newNode is! Comment) {
+      return false;
+    }
+    Comment oldComment = oldNode;
+    Comment newComment = newNode;
     logger.log('oldComment.beginToken: ${oldComment.beginToken}');
     logger.log('newComment.beginToken: ${newComment.beginToken}');
     _updateOffset = oldToken.offset - 1;
@@ -1733,7 +1774,7 @@ class PoorMansIncrementalResolver {
         Token newComment = newToken.precedingComments;
         if (_compareToken(oldComment, newComment, 0, true) != null) {
           _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
-          if (oldComment is DocumentationCommentToken ||
+          if (oldComment is DocumentationCommentToken &&
               newComment is DocumentationCommentToken) {
             diffKind = _TokenDifferenceKind.COMMENT_DOC;
           }
@@ -1769,7 +1810,7 @@ class PoorMansIncrementalResolver {
         Token newComment = newToken.precedingComments;
         if (_compareToken(oldComment, newComment, delta, true) != null) {
           _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
-          if (oldComment is DocumentationCommentToken ||
+          if (oldComment is DocumentationCommentToken &&
               newComment is DocumentationCommentToken) {
             diffKind = _TokenDifferenceKind.COMMENT_DOC;
           }

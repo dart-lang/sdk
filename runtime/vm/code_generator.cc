@@ -204,7 +204,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 2) {
   ASSERT(!type.IsNull() && !type.IsInstantiated());
   ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
   Error& bound_error = Error::Handle();
-  type = type.InstantiateFrom(instantiator, &bound_error);
+  type = type.InstantiateFrom(instantiator, &bound_error, NULL, Heap::kOld);
   if (!bound_error.IsNull()) {
     // Throw a dynamic type error.
     const intptr_t location = GetCallerLocation();
@@ -300,7 +300,7 @@ static void PrintTypeCheck(
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
 
-  const Type& instance_type = Type::Handle(instance.GetType());
+  const AbstractType& instance_type = AbstractType::Handle(instance.GetType());
   ASSERT(instance_type.IsInstantiated());
   if (type.IsInstantiated()) {
     OS::PrintErr("%s: '%s' %" Pd " %s '%s' %" Pd " (pc: %#" Px ").\n",
@@ -334,10 +334,10 @@ static void PrintTypeCheck(
 
 
 // This updates the type test cache, an array containing 4-value elements
-// (instance class, instance type arguments, instantiator type arguments and
-// test_result). It can be applied to classes with type arguments in which
-// case it contains just the result of the class subtype test, not including
-// the evaluation of type arguments.
+// (instance class (or function if the instance is a closure), instance type
+// arguments, instantiator type arguments and test_result). It can be applied to
+// classes with type arguments in which case it contains just the result of the
+// class subtype test, not including the evaluation of type arguments.
 // This operation is currently very slow (lookup of code is not efficient yet).
 static void UpdateTypeTestCache(
     const Instance& instance,
@@ -360,11 +360,16 @@ static void UpdateTypeTestCache(
     }
     return;
   }
-  TypeArguments& instance_type_arguments =
-      TypeArguments::Handle();
   const Class& instance_class = Class::Handle(instance.clazz());
-
-  if (instance_class.NumTypeArguments() > 0) {
+  Object& instance_class_id_or_function = Object::Handle();
+  if (instance_class.IsClosureClass()) {
+    instance_class_id_or_function = Closure::Cast(instance).function();
+  } else {
+    instance_class_id_or_function = Smi::New(instance_class.id());
+  }
+  TypeArguments& instance_type_arguments = TypeArguments::Handle();
+  if (instance_class.IsClosureClass() ||
+      (instance_class.NumTypeArguments() > 0)) {
     instance_type_arguments = instance.GetTypeArguments();
   }
 
@@ -377,20 +382,19 @@ static void UpdateTypeTestCache(
          instance_type_arguments.IsCanonical());
   ASSERT(instantiator_type_arguments.IsNull() ||
          instantiator_type_arguments.IsCanonical());
-  intptr_t last_instance_class_id = -1;
-  TypeArguments& last_instance_type_arguments =
-      TypeArguments::Handle();
-  TypeArguments& last_instantiator_type_arguments =
-      TypeArguments::Handle();
+  Object& last_instance_class_id_or_function = Object::Handle();
+  TypeArguments& last_instance_type_arguments = TypeArguments::Handle();
+  TypeArguments& last_instantiator_type_arguments = TypeArguments::Handle();
   Bool& last_result = Bool::Handle();
   for (intptr_t i = 0; i < len; ++i) {
     new_cache.GetCheck(
         i,
-        &last_instance_class_id,
+        &last_instance_class_id_or_function,
         &last_instance_type_arguments,
         &last_instantiator_type_arguments,
         &last_result);
-    if ((last_instance_class_id == instance_class.id()) &&
+    if ((last_instance_class_id_or_function.raw() ==
+         instance_class_id_or_function.raw()) &&
         (last_instance_type_arguments.raw() == instance_type_arguments.raw()) &&
         (last_instantiator_type_arguments.raw() ==
          instantiator_type_arguments.raw())) {
@@ -402,7 +406,7 @@ static void UpdateTypeTestCache(
     }
   }
 #endif
-  new_cache.AddCheck(instance_class.id(),
+  new_cache.AddCheck(instance_class_id_or_function,
                      instance_type_arguments,
                      instantiator_type_arguments,
                      result);
@@ -415,13 +419,13 @@ static void UpdateTypeTestCache(
       ASSERT(bound_error.IsNull());  // Malbounded types are not optimized.
     }
     OS::PrintErr("  Updated test cache %p ix: %" Pd " with "
-        "(cid: %" Pd ", type-args: %p, instantiator: %p, result: %s)\n"
+        "(cid-or-fun: %p, type-args: %p, instantiator: %p, result: %s)\n"
         "    instance  [class: (%p '%s' cid: %" Pd "),    type-args: %p %s]\n"
         "    test-type [class: (%p '%s' cid: %" Pd "), in-type-args: %p %s]\n",
         new_cache.raw(),
         len,
 
-        instance_class.id(),
+        instance_class_id_or_function.raw(),
         instance_type_arguments.raw(),
         instantiator_type_arguments.raw(),
         result.ToCString(),
@@ -745,15 +749,8 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   if (getter.IsNull() || getter.IsMethodExtractor()) {
     return false;
   }
-  const Class& cache_class = Class::Handle(receiver_class.IsSignatureClass()
-      ? receiver_class.SuperClass()
-      : receiver_class.raw());
-  ASSERT(
-      !receiver_class.IsSignatureClass() ||
-      (receiver_class.SuperClass() == Type::Handle(
-       Isolate::Current()->object_store()->function_impl_type()).type_class()));
   const Function& target_function =
-      Function::Handle(cache_class.GetInvocationDispatcher(
+      Function::Handle(receiver_class.GetInvocationDispatcher(
           target_name,
           arguments_descriptor,
           RawFunction::kInvokeFieldDispatcher,
@@ -1223,15 +1220,14 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
 // Arg1: arguments descriptor array.
 // Arg2: arguments array.
 DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
+  const Closure& receiver = Closure::CheckedHandle(arguments.ArgAt(0));
   const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(1));
   const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(2));
 
   // For closure the function name is always 'call'. Replace it with the
   // name of the closurized function so that exception contains more
   // relevant information.
-  ASSERT(receiver.IsClosure());
-  const Function& function = Function::Handle(Closure::function(receiver));
+  const Function& function = Function::Handle(receiver.function());
   const String& original_function_name =
       String::Handle(function.QualifiedUserVisibleName());
   const Object& result = Object::Handle(

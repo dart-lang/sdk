@@ -29,8 +29,8 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       loop_level_(loop_level),
       context_level_(LocalScope::kUnitializedContextLevel),
       num_context_variables_(0),
-      begin_token_pos_(Scanner::kNoSourcePos),
-      end_token_pos_(Scanner::kNoSourcePos),
+      begin_token_pos_(Token::kNoSourcePos),
+      end_token_pos_(Token::kNoSourcePos),
       variables_(),
       labels_(),
       referenced_() {

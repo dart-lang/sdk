@@ -149,8 +149,8 @@ LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please tria
 LibTest/core/List/getRange_A03_t01: RuntimeError, OK # Tests that fail because they use the legacy try-catch syntax. co19 issue 184.
 LibTest/core/List/removeAt_A02_t01: RuntimeError # Issue 1533
 LibTest/core/List/sort_A01_t06: Slow, Pass # Slow tests that needs extra time to finish.
-LibTest/core/double/INFINITY_A01_t04: RuntimeError # Please triage this failure.
-LibTest/core/double/NEGATIVE_INFINITY_A01_t04: RuntimeError # Please triage this failure.
+LibTest/core/double/INFINITY_A01_t04: RuntimeError # Expected to fail because double.INFINITY is int.
+LibTest/core/double/NEGATIVE_INFINITY_A01_t04: RuntimeError # Expected to fail because double.NEGATIVE_INFINITY is int.
 LibTest/core/int/hashCode_A01_t01: RuntimeError, OK # co19 issue 308
 LibTest/core/int/isEven_A01_t01: RuntimeError, OK # co19 issue 277
 LibTest/core/int/isOdd_A01_t01: RuntimeError, OK # co19 issue 277
@@ -687,7 +687,7 @@ LayoutTests/fast/canvas/webgl/uninitialized-test_t01: RuntimeError # Please tria
 LayoutTests/fast/canvas/webgl/webgl-depth-texture_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-layer-update_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css-generated-content/hit-test-generated-content_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css-generated-content/malformed-url_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css-generated-content/malformed-url_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css-generated-content/pseudo-animation-before-onload_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css-generated-content/pseudo-animation-display_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css-generated-content/pseudo-animation_t01: Pass, RuntimeError # Please triage this failure
@@ -9616,9 +9616,7 @@ WebPlatformTest/webstorage/storage_builtins_t01: RuntimeError # Please triage th
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 
 [ $compiler == dart2js && $cps_ir ]
-Language/Statements/Labels/scope_t04: Crash # (switch (i){L:case 0:flag=true;break;case 2:continue L;}): continue to a labeled switch case
-Language/Statements/Continue/label_t12: Crash # (switch (2){L:case 1:flag=true;break;case 2:continue L;}): continue to a labeled switch case
-Language/Statements/Continue/label_t13: Crash # (switch (2){case 2:continue L;L:case 1:flag=true;}): continue to a labeled switch case
+Language/Types/Interface_Types/subtype_t09: Crash # Pending static: JSArray
 Language/Types/Interface_Types/subtype_t39: RuntimeError # Please triage this failure.
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/core/Invocation/isAccessor_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
@@ -9632,5 +9630,3 @@ LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError # Please triage thi
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Please triage this failure.
-LibTest/core/double/INFINITY_A01_t04: Pass # Please triage this failure.
-LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Pass # Please triage this failure.

@@ -5,6 +5,7 @@ import 'cps_fragment.dart';
 import 'optimizers.dart' show Pass;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../js_backend/backend_helpers.dart';
+import '../js/js.dart' as js;
 
 /// A transformation pass that must run immediately before the tree IR builder.
 ///
@@ -76,6 +77,20 @@ class Finalize extends TrampolineRecursiveVisitor implements Pass {
   void visitGetStatic(GetStatic node) {
     if (node.witness != null) {
       node..witness.unlink()..witness = null;
+    }
+  }
+
+  void visitForeignCode(ForeignCode node) {
+    if (js.isIdentityTemplate(node.codeTemplate)) {
+      // The CPS builder replaces identity templates with refinements, except
+      // when the refined type is an array type.  Some optimizations assume the
+      // type of an object is immutable, but the type of an array can change
+      // after allocation.  After the finalize pass, this assumption is no
+      // longer needed, so we can replace the remaining idenitity templates.
+      Refinement refinement = new Refinement(
+          node.arguments.single.definition,
+          node.type)..type = node.type;
+      node.replaceWith(refinement);
     }
   }
 }

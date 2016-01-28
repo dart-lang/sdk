@@ -265,7 +265,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   __ Comment("InstantiatedTypeWithArgumentsTest");
   ASSERT(type.IsInstantiated());
   const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
-  ASSERT((type_class.NumTypeArguments() > 0) || type_class.IsSignatureClass());
+  ASSERT(type.IsFunctionType() || (type_class.NumTypeArguments() > 0));
   const Register kInstanceReg = A0;
   Error& bound_error = Error::Handle(zone());
   const Type& int_type = Type::Handle(zone(), Type::IntType());
@@ -278,15 +278,15 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   } else {
     __ beq(CMPRES1, ZR, is_not_instance_lbl);
   }
-  const intptr_t num_type_args = type_class.NumTypeArguments();
-  const intptr_t num_type_params = type_class.NumTypeParameters();
-  const intptr_t from_index = num_type_args - num_type_params;
-  const TypeArguments& type_arguments =
-      TypeArguments::ZoneHandle(zone(), type.arguments());
-  const bool is_raw_type = type_arguments.IsNull() ||
-      type_arguments.IsRaw(from_index, num_type_params);
-  // Signature class is an instantiated parameterized type.
-  if (!type_class.IsSignatureClass()) {
+  // A function type test requires checking the function signature.
+  if (!type.IsFunctionType()) {
+    const intptr_t num_type_args = type_class.NumTypeArguments();
+    const intptr_t num_type_params = type_class.NumTypeParameters();
+    const intptr_t from_index = num_type_args - num_type_params;
+    const TypeArguments& type_arguments =
+        TypeArguments::ZoneHandle(zone(), type.arguments());
+    const bool is_raw_type = type_arguments.IsNull() ||
+        type_arguments.IsRaw(from_index, num_type_params);
     if (is_raw_type) {
       const Register kClassIdReg = T0;
       // dynamic type argument, check only classes.
@@ -353,6 +353,10 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     Label* is_not_instance_lbl) {
   __ Comment("InstantiatedTypeNoArgumentsTest");
   ASSERT(type.IsInstantiated());
+  if (type.IsFunctionType()) {
+    // Fallthrough.
+    return true;
+  }
   const Class& type_class = Class::Handle(zone(), type.type_class());
   ASSERT(type_class.NumTypeArguments() == 0);
 
@@ -382,11 +386,9 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ b(is_not_instance_lbl);
     return false;
   }
-  if (type.IsFunctionType()) {
+  if (type.IsDartFunctionType()) {
     // Check if instance is a closure.
-    __ LoadClassById(T1, kClassIdReg);
-    __ lw(T1, FieldAddress(T1, Class::signature_function_offset()));
-    __ BranchNotEqual(T1, Object::null_object(), is_instance_lbl);
+    __ BranchEqual(kClassIdReg, Immediate(kClosureCid), is_instance_lbl);
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
@@ -493,7 +495,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ Bind(&fall_through);
     return type_test_cache.raw();
   }
-  if (type.IsType()) {
+  if (type.IsType() || type.IsFunctionType()) {
     const Register kInstanceReg = A0;
     const Register kTypeArgumentsReg = A1;
     __ andi(CMPRES1, kInstanceReg, Immediate(kSmiTagMask));
@@ -535,10 +537,10 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
   }
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
-    // A class equality check is only applicable with a dst type of a
-    // non-parameterized class, non-signature class, or with a raw dst type of
+    // A class equality check is only applicable with a dst type (not a
+    // function type) of a non-parameterized class or with a raw dst type of
     // a parameterized class.
-    if (type_class.IsSignatureClass() || (type_class.NumTypeArguments() > 0)) {
+    if (type.IsFunctionType() || (type_class.NumTypeArguments() > 0)) {
       return GenerateInstantiatedTypeWithArgumentsTest(token_pos,
                                                        type,
                                                        is_instance_lbl,
@@ -667,7 +669,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
   __ Comment("AssertAssignable");
-  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  ASSERT(!Token::IsClassifying(token_pos));
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.

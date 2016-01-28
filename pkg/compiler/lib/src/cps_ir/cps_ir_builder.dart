@@ -21,7 +21,8 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js show
     js,
     LiteralStatement,
-    Template;
+    Template,
+    isIdentityTemplate;
 import '../native/native.dart' show
     NativeBehavior;
 import '../tree/tree.dart' as ast;
@@ -165,6 +166,11 @@ abstract class JumpCollector {
   /// There is no environment at the destination.
   JumpCollector.retrn(this._continuation)
       : _continuationEnvironment = null, target = null;
+
+  /// Construct a collector for collecting goto jumps.
+  ///
+  /// There is no continuation or environment at the destination.
+  JumpCollector.goto(this.target) : _continuationEnvironment = null;
 
   /// True if the collector has not recorded any jumps to its continuation.
   bool get isEmpty;
@@ -421,6 +427,31 @@ class ReturnJumpCollector extends JumpCollector {
   }
 }
 
+/// Collect 'goto' jumps, continue to a labeled case from within a switch.
+///
+/// These jumps are unrestricted within the switch.  They can be forward or
+/// backward.  They are implemented by assigning to a state variable.
+class GotoJumpCollector extends JumpCollector {
+  bool isEmpty = true;
+  final ir.Continuation continuation = null;
+  final Environment environment = null;
+
+  int _stateVariableIndex;
+  int _stateValue;
+  JumpCollector _breakJoin;
+
+  GotoJumpCollector(JumpTarget target, this._stateVariableIndex,
+      this._stateValue, this._breakJoin) : super.goto(target);
+
+  void addJump(IrBuilder builder,
+      [ir.Primitive value, SourceInformation sourceInformation]) {
+    isEmpty = false;
+    ir.Primitive constant = builder.buildIntegerConstant(_stateValue);
+    builder.environment.index2value[_stateVariableIndex] = constant;
+    builder.jumpTo(_breakJoin);
+  }
+}
+
 /// Function for building a node in the context of the current builder.
 typedef ir.Node BuildFunction(node);
 
@@ -532,7 +563,7 @@ class ThisParameterLocal implements Local {
 ///
 /// The IR fragment is an expression with a hole in it. The hole represents
 /// the focus where new expressions can be added. The fragment is implemented
-/// by [_root] which is the root of the expression and [_current] which is the
+/// by [root] which is the root of the expression and [_current] which is the
 /// expression that immediately contains the hole. Not all expressions have a
 /// hole (e.g., invocations, which always occur in tail position, do not have a
 /// hole). Expressions with a hole have a plug method.
@@ -559,7 +590,7 @@ class IrBuilder {
   /// side effects.
   Map<Local, ir.MutableVariable> mutableVariables;
 
-  ir.Expression _root = null;
+  ir.Expression root = null;
   ir.Expression _current = null;
 
   GlobalProgramInformation get program => state.program;
@@ -613,7 +644,7 @@ class IrBuilder {
     return mutableVariables[local];
   }
 
-  bool get isOpen => _root == null || _current != null;
+  bool get isOpen => root == null || _current != null;
 
   List<ir.Primitive> buildFunctionHeader(Iterable<Local> parameters,
                                         {ClosureScope closureScope,
@@ -640,8 +671,8 @@ class IrBuilder {
   /// new value of current.
   void add(ir.Expression expr) {
     assert(isOpen);
-    if (_root == null) {
-      _root = _current = expr;
+    if (root == null) {
+      root = _current = expr;
     } else {
       _current = _current.plug(expr);
     }
@@ -789,8 +820,8 @@ class IrBuilder {
     //     if condition (then, else)
     ir.Continuation thenContinuation = new ir.Continuation([]);
     ir.Continuation elseContinuation = new ir.Continuation([]);
-    thenContinuation.body = thenBuilder._root;
-    elseContinuation.body = elseBuilder._root;
+    thenContinuation.body = thenBuilder.root;
+    elseContinuation.body = elseBuilder.root;
     add(new ir.LetCont(join.continuation,
             new ir.LetCont.two(thenContinuation, elseContinuation,
                 new ir.Branch.strict(condition,
@@ -812,7 +843,7 @@ class IrBuilder {
     _current = null;
   }
 
-  /// Create a [ir.FunctionDefinition] using [_root] as the body.
+  /// Create a [ir.FunctionDefinition] using [root] as the body.
   ///
   /// The protocol for building a function is:
   /// 1. Call [buildFunctionHeader].
@@ -825,7 +856,7 @@ class IrBuilder {
         state.thisParameter,
         state.functionParameters,
         state.returnContinuation,
-        _root);
+        root);
   }
 
   /// Create a invocation of the [method] on the super class where the call
@@ -1107,17 +1138,17 @@ class IrBuilder {
     // case that one of them is null, it must be the only one that is open
     // and thus contains the new hole in the context.  This case is handled
     // after the branch is plugged into the current hole.
-    thenContinuation.body = thenBuilder._root;
-    elseContinuation.body = elseBuilder._root;
+    thenContinuation.body = thenBuilder.root;
+    elseContinuation.body = elseBuilder.root;
 
     add(result);
     if (join == null) {
       // At least one subexpression is closed.
       if (thenBuilder.isOpen) {
-        if (thenBuilder._root != null) _current = thenBuilder._current;
+        if (thenBuilder.root != null) _current = thenBuilder._current;
         environment = thenBuilder.environment;
       } else if (elseBuilder.isOpen) {
-        if (elseBuilder._root != null) _current = elseBuilder._current;
+        if (elseBuilder.root != null) _current = elseBuilder._current;
         environment = elseBuilder.environment;
       } else {
         _current = null;
@@ -1243,16 +1274,16 @@ class IrBuilder {
     // it is guaranteed that the updateBuilder has a non-empty term.
     if (hasContinues) {
       outerBodyBuilder.add(new ir.LetCont(continueCollector.continuation,
-          innerBodyBuilder._root));
-      continueCollector.continuation.body = updateBuilder._root;
+          innerBodyBuilder.root));
+      continueCollector.continuation.body = updateBuilder.root;
     } else {
-      outerBodyBuilder.add(innerBodyBuilder._root);
+      outerBodyBuilder.add(innerBodyBuilder.root);
     }
 
     // Create loop exit and body entry continuations and a branch to them.
     ir.Continuation exitContinuation = new ir.Continuation([]);
     ir.Continuation bodyContinuation = new ir.Continuation([]);
-    bodyContinuation.body = outerBodyBuilder._root;
+    bodyContinuation.body = outerBodyBuilder.root;
     // Note the order of continuations: the first one is the one that will
     // be filled by LetCont.plug.
     ir.LetCont branch =
@@ -1268,7 +1299,7 @@ class IrBuilder {
     if (hasBreaks) {
       IrBuilder exitBuilder = makeDelimitedBuilder();
       exitBuilder.jumpTo(breakCollector);
-      exitContinuation.body = exitBuilder._root;
+      exitContinuation.body = exitBuilder.root;
       letBreak = new ir.LetCont(breakCollector.continuation, branch);
       add(letBreak);
       environment = breakCollector.environment;
@@ -1411,7 +1442,7 @@ class IrBuilder {
     // in branch condition (body, exit)
     ir.Continuation exitContinuation = new ir.Continuation([]);
     ir.Continuation bodyContinuation = new ir.Continuation([]);
-    bodyContinuation.body = bodyBuilder._root;
+    bodyContinuation.body = bodyBuilder.root;
     // Note the order of continuations: the first one is the one that will
     // be filled by LetCont.plug.
     ir.LetCont branch =
@@ -1427,7 +1458,7 @@ class IrBuilder {
     if (hasBreaks) {
       IrBuilder exitBuilder = makeDelimitedBuilder();
       exitBuilder.jumpTo(breakCollector);
-      exitContinuation.body = exitBuilder._root;
+      exitContinuation.body = exitBuilder.root;
       letBreak = new ir.LetCont(breakCollector.continuation, branch);
       add(letBreak);
       environment = breakCollector.environment;
@@ -1486,7 +1517,7 @@ class IrBuilder {
     // Create body entry and loop exit continuations and a branch to them.
     ir.Continuation exitContinuation = new ir.Continuation([]);
     ir.Continuation bodyContinuation = new ir.Continuation([]);
-    bodyContinuation.body = bodyBuilder._root;
+    bodyContinuation.body = bodyBuilder.root;
     // Note the order of continuations: the first one is the one that will
     // be filled by LetCont.plug.
     ir.LetCont branch =
@@ -1502,7 +1533,7 @@ class IrBuilder {
     if (hasBreaks) {
       IrBuilder exitBuilder = makeDelimitedBuilder();
       exitBuilder.jumpTo(breakCollector);
-      exitContinuation.body = exitBuilder._root;
+      exitContinuation.body = exitBuilder.root;
       letBreak = new ir.LetCont(breakCollector.continuation, branch);
       add(letBreak);
       environment = breakCollector.environment;
@@ -1569,18 +1600,18 @@ class IrBuilder {
     ir.Continuation exitContinuation = new ir.Continuation([]);
     IrBuilder exitBuilder = continueBuilder.makeDelimitedBuilder();
     exitBuilder.jumpTo(breakCollector);
-    exitContinuation.body = exitBuilder._root;
+    exitContinuation.body = exitBuilder.root;
     ir.Continuation repeatContinuation = new ir.Continuation([]);
     IrBuilder repeatBuilder = continueBuilder.makeDelimitedBuilder();
     repeatBuilder.jumpTo(loop);
-    repeatContinuation.body = repeatBuilder._root;
+    repeatContinuation.body = repeatBuilder.root;
 
     continueBuilder.add(
         new ir.LetCont.two(exitContinuation, repeatContinuation,
             new ir.Branch.strict(condition,
                                  repeatContinuation,
                                  exitContinuation)));
-    continueCollector.continuation.body = continueBuilder._root;
+    continueCollector.continuation.body = continueBuilder.root;
 
     // Construct the loop continuation (i.e., the body and condition).
     // <Loop> =
@@ -1589,56 +1620,25 @@ class IrBuilder {
     // in [[body]]; continue(v, ...)
     loopBuilder.add(
         new ir.LetCont(continueCollector.continuation,
-            bodyBuilder._root));
+            bodyBuilder.root));
 
     // And tie it all together.
-    add(new ir.LetCont(breakCollector.continuation, loopBuilder._root));
+    add(new ir.LetCont(breakCollector.continuation, loopBuilder.root));
     environment = breakCollector.environment;
   }
 
-  void buildSimpleSwitch(JumpTarget target,
-                         ir.Primitive value,
+  void buildSimpleSwitch(JumpCollector join,
                          List<SwitchCaseInfo> cases,
-                         SwitchCaseInfo defaultCase,
-                         Element error,
-                         SourceInformation sourceInformation) {
-    assert(isOpen);
-    JumpCollector join = new ForwardJumpCollector(environment, target: target);
-
+                         SubbuildFunction buildDefaultBody) {
     IrBuilder casesBuilder = makeDelimitedBuilder();
-    casesBuilder.state.breakCollectors.add(join);
     for (SwitchCaseInfo caseInfo in cases) {
-      buildConditionsFrom(int index) => (IrBuilder builder) {
-        ir.Primitive comparison = builder.buildIdentical(
-            value, caseInfo.constants[index]);
-        return (index == caseInfo.constants.length - 1)
-            ? comparison
-            : builder.buildLogicalOperator(
-                comparison, buildConditionsFrom(index + 1), isLazyOr: true);
-      };
-
-      ir.Primitive condition = buildConditionsFrom(0)(casesBuilder);
+      ir.Primitive condition = caseInfo.buildCondition(casesBuilder);
       IrBuilder thenBuilder = makeDelimitedBuilder();
       caseInfo.buildBody(thenBuilder);
-      if (thenBuilder.isOpen) {
-        // It is a runtime error to reach the end of a switch case, unless
-        // it is the last case.
-        if (caseInfo == cases.last && defaultCase == null) {
-          thenBuilder.jumpTo(join);
-        } else {
-          ir.Primitive exception = thenBuilder.buildInvokeStatic(
-              error,
-              new Selector.fromElement(error),
-              <ir.Primitive>[],
-              sourceInformation);
-          thenBuilder.buildThrow(exception);
-        }
-      }
-
       ir.Continuation thenContinuation = new ir.Continuation([]);
-      thenContinuation.body = thenBuilder._root;
+      thenContinuation.body = thenBuilder.root;
       ir.Continuation elseContinuation = new ir.Continuation([]);
-      // A LetCont.many term has a hole as the body of the first listed
+      // A LetCont.two term has a hole as the body of the first listed
       // continuation, to be plugged by the translation.  Therefore put the
       // else continuation first.
       casesBuilder.add(
@@ -1648,18 +1648,17 @@ class IrBuilder {
                                    elseContinuation)));
     }
 
-    if (defaultCase != null) {
-      defaultCase.buildBody(casesBuilder);
+    if (buildDefaultBody == null) {
+      casesBuilder.jumpTo(join);
+    } else {
+      buildDefaultBody(casesBuilder);
     }
-    if (casesBuilder.isOpen) casesBuilder.jumpTo(join);
-
-    casesBuilder.state.breakCollectors.removeLast();
 
     if (!join.isEmpty) {
-      add(new ir.LetCont(join.continuation, casesBuilder._root));
+      add(new ir.LetCont(join.continuation, casesBuilder.root));
       environment = join.environment;
-    } else if (casesBuilder._root != null) {
-      add(casesBuilder._root);
+    } else if (casesBuilder.root != null) {
+      add(casesBuilder.root);
       _current = casesBuilder._current;
       environment = casesBuilder.environment;
     } else {
@@ -1721,11 +1720,11 @@ class IrBuilder {
 
     List<ir.Parameter> catchParameters = buildCatch(catchBuilder, join);
     ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
-    catchContinuation.body = catchBuilder._root;
+    catchContinuation.body = catchBuilder.root;
     tryCatchBuilder.add(
-        new ir.LetHandler(catchContinuation, tryBuilder._root));
+        new ir.LetHandler(catchContinuation, tryBuilder.root));
 
-    leaveTryCatch(this, join, tryCatchBuilder._root);
+    leaveTryCatch(this, join, tryCatchBuilder.root);
   }
 
   /// Translates a try/catch.
@@ -1829,7 +1828,7 @@ class IrBuilder {
         }
         clause.buildCatchBlock(clauseBuilder);
         if (clauseBuilder.isOpen) clauseBuilder.jumpTo(join);
-        return clauseBuilder._root;
+        return clauseBuilder.root;
       }
 
       // Expand multiple catch clauses into an explicit if/then/else.  Iterate
@@ -1855,7 +1854,7 @@ class IrBuilder {
             new ir.Branch.strict(typeMatches,
                                  thenContinuation,
                                  elseContinuation)));
-        catchBody = checkBuilder._root;
+        catchBody = checkBuilder.root;
       }
       builder.add(catchBody);
 
@@ -1960,7 +1959,7 @@ class IrBuilder {
         IrBuilder builder = makeDelimitedBuilder(newCollector.environment);
         buildFinallyBlock(builder);
         if (builder.isOpen) builder.jumpTo(originalCollector);
-        newCollector.continuation.body = builder._root;
+        newCollector.continuation.body = builder.root;
         exits.add(newCollector.continuation);
       }
       for (int i = 0; i < newBreaks.length; ++i) {
@@ -1974,7 +1973,7 @@ class IrBuilder {
         ir.Primitive value = builder.environment.discard(1);
         buildFinallyBlock(builder);
         if (builder.isOpen) builder.buildReturn(value: value);
-        newReturn.continuation.body = builder._root;
+        newReturn.continuation.body = builder.root;
         exits.add(newReturn.continuation);
       }
       builder.add(new ir.LetCont.many(exits, body));
@@ -2062,7 +2061,8 @@ class IrBuilder {
     ir.Primitive value = buildForeignCode(
         js.js.uncachedExpressionTemplate(code),
         arguments,
-        behavior);
+        behavior,
+        type: program.getTypeMaskForNativeFunction(function));
     buildReturn(value: value, sourceInformation: source);
   }
 
@@ -2100,10 +2100,10 @@ class IrBuilder {
     bool hasBreaks = !join.isEmpty;
     if (hasBreaks) {
       if (innerBuilder.isOpen) innerBuilder.jumpTo(join);
-      add(new ir.LetCont(join.continuation, innerBuilder._root));
+      add(new ir.LetCont(join.continuation, innerBuilder.root));
       environment = join.environment;
-    } else if (innerBuilder._root != null) {
-      add(innerBuilder._root);
+    } else if (innerBuilder.root != null) {
+      add(innerBuilder.root);
       _current = innerBuilder._current;
       environment = innerBuilder.environment;
     } else {
@@ -2239,8 +2239,8 @@ class IrBuilder {
     ir.Continuation leftFalseContinuation = new ir.Continuation([]);
     ir.Continuation rightTrueContinuation = new ir.Continuation([]);
     ir.Continuation rightFalseContinuation = new ir.Continuation([]);
-    rightTrueContinuation.body = rightTrueBuilder._root;
-    rightFalseContinuation.body = rightFalseBuilder._root;
+    rightTrueContinuation.body = rightTrueBuilder.root;
+    rightFalseContinuation.body = rightFalseBuilder.root;
     // The right subexpression has two continuations.
     rightBuilder.add(
         new ir.LetCont.two(rightTrueContinuation, rightFalseContinuation,
@@ -2251,11 +2251,11 @@ class IrBuilder {
     // either the right subexpression or an invocation of the join-point
     // continuation.
     if (isLazyOr) {
-      leftTrueContinuation.body = emptyBuilder._root;
-      leftFalseContinuation.body = rightBuilder._root;
+      leftTrueContinuation.body = emptyBuilder.root;
+      leftFalseContinuation.body = rightBuilder.root;
     } else {
-      leftTrueContinuation.body = rightBuilder._root;
-      leftFalseContinuation.body = emptyBuilder._root;
+      leftTrueContinuation.body = rightBuilder.root;
+      leftFalseContinuation.body = emptyBuilder.root;
     }
 
     add(new ir.LetCont(join.continuation,
@@ -2411,7 +2411,7 @@ class IrBuilder {
       arguments.add(value);
     }
     return addPrimitive(new ir.CreateInstance(
-        classElement, arguments, const <ir.Primitive>[], sourceInformation));
+        classElement, arguments, null, sourceInformation));
   }
 
   /// Create a read access of [local] function, variable, or parameter.
@@ -2577,7 +2577,8 @@ class IrBuilder {
         ir.Primitive value = buildTypeVariableAccess(variable);
         arguments.add(value);
       });
-      return addPrimitive(new ir.TypeExpression(type, arguments));
+      return addPrimitive(new ir.TypeExpression(ir.TypeExpressionKind.COMPLETE,
+                                                type, arguments));
     } else if (type.treatAsDynamic) {
       return buildNullConstant();
     } else {
@@ -2634,9 +2635,19 @@ class IrBuilder {
   ir.Primitive buildForeignCode(js.Template codeTemplate,
                                 List<ir.Primitive> arguments,
                                 NativeBehavior behavior,
-                                {Element dependency}) {
+                                {Element dependency,
+                                 TypeMask type}) {
     assert(behavior != null);
-    TypeMask type = program.getTypeMaskForForeign(behavior);
+    if (type == null) {
+      type = program.getTypeMaskForForeign(behavior);
+    }
+    if (js.isIdentityTemplate(codeTemplate) && !program.isArrayType(type)) {
+      // JS expression is just a refinement.
+      // Do not do this for arrays - those are special because array types can
+      // change after creation.  The input and output must therefore be modeled
+      // as distinct values.
+      return addPrimitive(new ir.Refinement(arguments.single, type));
+    }
     ir.Primitive result = addPrimitive(new ir.ForeignCode(
         codeTemplate,
         type,
@@ -2834,10 +2845,8 @@ class CatchClauseInfo {
 }
 
 class SwitchCaseInfo {
-  final List<ir.Primitive> constants = <ir.Primitive>[];
+  final SubbuildFunction buildCondition;
   final SubbuildFunction buildBody;
 
-  SwitchCaseInfo(this.buildBody);
-
-  void addConstant(ir.Primitive constant) => constants.add(constant);
+  SwitchCaseInfo(this.buildCondition, this.buildBody);
 }

@@ -4,13 +4,14 @@
 
 library analyzer.test.generated.incremental_resolver_test;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/incremental_logger.dart' as log;
+import 'package:analyzer/src/generated/incremental_logger.dart' as logging;
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
 import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -495,6 +496,20 @@ class A {
 ''');
   }
 
+  void test_false_constructor_parameters_name() {
+    _assertDoesNotMatch(
+        r'''
+class A {
+  A(int a);
+}
+''',
+        r'''
+class A {
+  A(int b);
+}
+''');
+  }
+
   void test_false_constructor_parameters_type_edit() {
     _assertDoesNotMatch(
         r'''
@@ -831,6 +846,22 @@ class A {
 class A {
   final field;
   A(this.field(a));
+}
+''');
+  }
+
+  void test_false_fieldFormalParameter_changeName_wasUnresolvedField() {
+    _assertDoesNotMatch(
+        r'''
+class A {
+  final fff;
+  A(this.unresolved);
+}
+''',
+        r'''
+class A {
+  final fff;
+  A(this.fff);
 }
 ''');
   }
@@ -2506,22 +2537,6 @@ class A {
 ''');
   }
 
-  void test_true_fieldFormalParameter_changeName_wasUnresolvedField() {
-    _assertMatches(
-        r'''
-class A {
-  final fff;
-  A(this.unresolved);
-}
-''',
-        r'''
-class A {
-  final fff;
-  A(this.fff);
-}
-''');
-  }
-
   void test_true_fieldFormalParameter_function() {
     _assertMatches(
         r'''
@@ -3092,7 +3107,7 @@ class IncrementalResolverTest extends ResolverTestCase {
   void setUp() {
     super.setUp();
     test_resolveApiChanges = true;
-    log.logger = log.NULL_LOGGER;
+    logging.logger = logging.NULL_LOGGER;
   }
 
   void test_classMemberAccessor_body() {
@@ -3168,15 +3183,6 @@ class B extends A {
 }
 ''');
     _resolve(_editString('+', '*'), _isExpression);
-  }
-
-  void test_fieldFormalParameter() {
-    _resolveUnit(r'''
-class A {
-  int xy;
-  A(this.x);
-}''');
-    _resolve(_editString('this.x', 'this.xy'), _isDeclaration);
   }
 
   void test_function_localFunction_add() {
@@ -3523,6 +3529,8 @@ class B {
  */
 @reflectiveTest
 class PoorMansIncrementalResolutionTest extends ResolverTestCase {
+  final _TestLogger logger = new _TestLogger();
+
   Source source;
   String code;
   LibraryElement oldLibrary;
@@ -3800,23 +3808,6 @@ main() {
 ''');
   }
 
-  void test_endOfLineComment_localFunction_inTopLevelVariable() {
-    _resolveUnit(r'''
-typedef int Binary(one, two, three);
-
-int Global = f((a, b, c) {
-  return 0; // Some comment
-});
-''');
-    _updateAndValidate(r'''
-typedef int Binary(one, two, three);
-
-int Global = f((a, b, c) {
-  return 0; // Some  comment
-});
-''');
-  }
-
   void test_endOfLineComment_outBody_add() {
     _resolveUnit(r'''
 main() {
@@ -3886,6 +3877,25 @@ main() {
 ''');
   }
 
+  void test_endOfLineComment_toDartDoc() {
+    _resolveUnit(r'''
+class A {
+  // text
+  main() {
+    print(42);
+  }
+}''');
+    _updateAndValidate(
+        r'''
+class A {
+  /// text
+  main() {
+    print(42);
+  }
+}''',
+        expectedSuccess: false);
+  }
+
   void test_false_constConstructor_initializer() {
     _resolveUnit(r'''
 class C {
@@ -3911,6 +3921,74 @@ main() {
         expectedSuccess: false);
   }
 
+  void test_false_constructor_initializer_damage() {
+    _resolveUnit(r'''
+class Problem {
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : location = json["location"],
+        message = json["message"];
+}''');
+    _updateAndValidate(
+        r'''
+class Problem {
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : location = json["location],
+        message = json["message"];
+}''',
+        expectedSuccess: false);
+  }
+
+  void test_false_constructor_initializer_remove() {
+    _resolveUnit(r'''
+class Problem {
+  final String severity;
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : severity = json["severity"],
+        location = json["location"],
+        message = json["message"];
+}''');
+    _updateAndValidate(
+        r'''
+class Problem {
+  final String severity;
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : severity = json["severity"],
+        message = json["message"];
+}''',
+        expectedSuccess: false);
+  }
+
+  void test_false_endOfLineComment_localFunction_inTopLevelVariable() {
+    _resolveUnit(r'''
+typedef int Binary(one, two, three);
+
+int Global = f((a, b, c) {
+  return 0; // Some comment
+});
+''');
+    _updateAndValidate(
+        r'''
+typedef int Binary(one, two, three);
+
+int Global = f((a, b, c) {
+  return 0; // Some  comment
+});
+''',
+        expectedSuccess: false);
+  }
+
   void test_false_expressionBody() {
     _resolveUnit(r'''
 class A {
@@ -3922,6 +4000,44 @@ class A {
 class A {
   final f = (() => 2)();
 }
+''',
+        expectedSuccess: false);
+  }
+
+  void test_false_expressionBody2() {
+    _resolveUnit(r'''
+class A {
+  int m() => 10 * 10;
+}
+''');
+    _updateAndValidate(
+        r'''
+class A {
+  int m() => 10 * 100;
+}
+''',
+        expectedSuccess: false);
+  }
+
+  void test_false_inBody_functionExpression() {
+    _resolveUnit(r'''
+class C extends D {
+  static final f = () {
+    var x = 0;
+  }();
+}
+
+class D {}
+''');
+    _updateAndValidate(
+        r'''
+class C extends D {
+  static final f = () {
+    var x = 01;
+  }();
+}
+
+class D {}
 ''',
         expectedSuccess: false);
   }
@@ -3995,6 +4111,25 @@ class A {
         expectedSuccess: false);
   }
 
+  void test_false_wholeConstructor() {
+    _resolveUnit(r'''
+class A {
+  A(int a) {
+    print(a);
+  }
+}
+''');
+    _updateAndValidate(
+        r'''
+class A {
+  A(int b) {
+    print(b);
+  }
+}
+''',
+        expectedSuccess: false);
+  }
+
   void test_fieldClassField_propagatedType() {
     _resolveUnit(r'''
 class A {
@@ -4042,27 +4177,6 @@ class A {
     print(2 + 3);
   }
 }
-''');
-  }
-
-  void test_inBody_functionExpression() {
-    _resolveUnit(r'''
-class C extends D {
-  static final f = () {
-    var x = 0;
-  }();
-}
-
-class D {}
-''');
-    _updateAndValidate(r'''
-class C extends D {
-  static final f = () {
-    var x = 01;
-  }();
-}
-
-class D {}
 ''');
   }
 
@@ -4236,23 +4350,6 @@ foo() {
 ''');
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
     _assertEqualErrors(newErrors, oldErrors);
-  }
-
-  void test_true_wholeConstructor() {
-    _resolveUnit(r'''
-class A {
-  A(int a) {
-    print(a);
-  }
-}
-''');
-    _updateAndValidate(r'''
-class A {
-  A(int b) {
-    print(b);
-  }
-}
-''');
   }
 
   void test_true_wholeConstructor_addInitializer() {
@@ -4697,8 +4794,7 @@ class B extends A {}
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.incremental = enable;
     analysisOptions.incrementalApi = enable;
-//    log.logger = log.PRINT_LOGGER;
-    log.logger = log.NULL_LOGGER;
+    logging.logger = logger;
     analysisContext2.analysisOptions = analysisOptions;
   }
 
@@ -4730,6 +4826,7 @@ class B extends A {}
     _resetWithIncremental(true);
     analysisContext2.setContents(source, newCode);
     CompilationUnit newUnit = resolveCompilationUnit(source, oldLibrary);
+    expect(logger.hasError, isFalse);
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
     LineInfo newLineInfo = analysisContext.getLineInfo(source);
     // check for expected failure
@@ -5021,4 +5118,27 @@ class _Edit {
   final int length;
   final String replacement;
   _Edit(this.offset, this.length, this.replacement);
+}
+
+class _TestLogger implements logging.Logger {
+  bool hasError = false;
+
+  @override
+  void enter(String name) {}
+
+  @override
+  void exit() {}
+
+  @override
+  void log(Object obj) {}
+
+  @override
+  void logException(Object exception, [Object stackTrace]) {
+    hasError = true;
+  }
+
+  @override
+  logging.LoggingTimer startTimer() {
+    return new logging.LoggingTimer(this);
+  }
 }

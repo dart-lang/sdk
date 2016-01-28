@@ -4,6 +4,11 @@
 
 part of _interceptors;
 
+class _Growable {
+  const _Growable();
+}
+const _ListConstructorSentinel = const _Growable();
+
 /**
  * The interceptor class for [List]. The compiler recognizes this
  * class as an interceptor, and changes references to [:this:] to
@@ -14,6 +19,16 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   const JSArray();
 
+  // This factory constructor is the redirection target of the List() factory
+  // constructor. [length] has no type to permit the sentinel value.
+  factory JSArray.list([length = _ListConstructorSentinel]) {
+    if (_ListConstructorSentinel == length) {
+      return new JSArray<E>.emptyGrowable();
+    }
+    return new JSArray<E>.fixed(length);
+  }
+
+
   /**
    * Returns a fresh JavaScript Array, marked as fixed-length.
    *
@@ -21,7 +36,8 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
    */
   factory JSArray.fixed(int length)  {
     // Explicit type test is necessary to guard against JavaScript conversions
-    // in unchecked mode.
+    // in unchecked mode, and against `new Array(null)` which creates a single
+    // element Array containing `null`.
     if (length is !int) {
       throw new ArgumentError.value(length, "length", "is not an integer");
     }

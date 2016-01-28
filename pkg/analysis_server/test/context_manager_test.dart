@@ -14,6 +14,7 @@ import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
@@ -366,7 +367,8 @@ linter:
     // Sanity check embedder libs.
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
-    expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
+    expect(source.fullName,
+        '/my/proj/sdk_ext/entry.dart'.replaceAll('/', JavaFile.separator));
   }
 
   test_embedder_packagespec() async {
@@ -403,7 +405,8 @@ test_pack:lib/''');
     var context = contexts[0];
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
-    expect(source.fullName, equals('/my/proj/sdk_ext/entry.dart'));
+    expect(source.fullName,
+        '/my/proj/sdk_ext/entry.dart'.replaceAll('/', JavaFile.separator));
     // We can't find dart:core because we didn't list it in our
     // embedder_libs map.
     expect(context.sourceFactory.forUri('dart:core'), isNull);

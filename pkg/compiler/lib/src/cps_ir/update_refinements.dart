@@ -20,7 +20,7 @@ class UpdateRefinements extends TrampolineRecursiveVisitor implements Pass {
 
   final TypeMaskSystem typeSystem;
 
-  Map<Primitive, Refinement> refinementFor = <Primitive, Refinement>{};
+  Map<Primitive, Primitive> refinementFor = <Primitive, Primitive>{};
 
   UpdateRefinements(this.typeSystem);
 
@@ -29,11 +29,33 @@ class UpdateRefinements extends TrampolineRecursiveVisitor implements Pass {
   }
 
   Expression traverseLetPrim(LetPrim node) {
+    Expression next = node.body;
     visit(node.primitive);
-    return node.body;
+    return next;
   }
 
-  @override
+  visitNullCheck(NullCheck node) {
+    if (refine(node.value)) {
+      Primitive value = node.value.definition;
+      if (value.type.isNullable) {
+        // Update the type if the input has changed.
+        node.type = value.type.nonNullable();
+      } else {
+        node..replaceUsesWith(value)..destroy();
+        LetPrim letPrim = node.parent;
+        letPrim.remove();
+        return;
+      }
+    }
+    // Use the NullCheck as a refinement.
+    Primitive value = node.effectiveDefinition;
+    Primitive old = refinementFor[value];
+    refinementFor[value] = node;
+    pushAction(() {
+      refinementFor[value] = old;
+    });
+  }
+
   visitRefinement(Refinement node) {
     if (refine(node.value)) {
       // Update the type if the input has changed.
@@ -41,14 +63,13 @@ class UpdateRefinements extends TrampolineRecursiveVisitor implements Pass {
           node.refineType);
     }
     Primitive value = node.effectiveDefinition;
-    Refinement old = refinementFor[value];
+    Primitive old = refinementFor[value];
     refinementFor[value] = node;
     pushAction(() {
       refinementFor[value] = old;
     });
   }
 
-  @override
   processReference(Reference ref) {
     refine(ref);
   }
@@ -56,7 +77,7 @@ class UpdateRefinements extends TrampolineRecursiveVisitor implements Pass {
   bool refine(Reference ref) {
     Definition def = ref.definition;
     if (def is Primitive) {
-      Refinement refinement = refinementFor[def.effectiveDefinition];
+      Primitive refinement = refinementFor[def.effectiveDefinition];
       if (refinement != null && refinement != ref.definition) {
         ref.changeTo(refinement);
         return true;

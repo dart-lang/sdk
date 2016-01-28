@@ -13,27 +13,14 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
-script() {
-  print("This executed");
-}
-
-hasSomeCoverageData(Script script) {
-  for (var line in script.lines) {
-    if (line.hits != null) return true;
-  }
-  return false;
-}
-
 var tests = [
 (Isolate isolate) async {
   Library lib = await isolate.rootLibrary.load();
   Script script = await lib.scripts.single.load();
-  expect(hasSomeCoverageData(script), isFalse);
-  Script script2 = await script.refreshCoverage();
+  Script script2 = await isolate.getObject(script.id);
   expect(identical(script, script2), isTrue);
-  expect(hasSomeCoverageData(script), isTrue);
 },
 
 ];
 
-main(args) => runIsolateTests(args, tests, testeeBefore: script);
+main(args) => runIsolateTests(args, tests);

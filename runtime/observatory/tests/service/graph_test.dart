@@ -71,9 +71,15 @@ var tests = [
                                       bVertex.shallowSize +
                                       rVertex.shallowSize));
 
-  const int fixedSizeListCid = 62;
+  Library corelib =
+      isolate.libraries.singleWhere((lib) => lib.uri == 'dart:core');
+  await corelib.load();
+  Class _List =
+      corelib.classes.singleWhere((cls) => cls.vmName.startsWith('_List'));
+  int kArrayCid = _List.vmCid;
+  // startsWith to ignore the private mangling
   List<ObjectVertex> lists = new List.from(graph.vertices.where(
-      (ObjectVertex obj) => obj.vmCid == fixedSizeListCid));
+      (ObjectVertex obj) => obj.vmCid == kArrayCid));
   expect(lists.length >= 2, isTrue);
   // Order by decreasing retained size.
   lists.sort((u, v) => v.retainedSize - u.retainedSize);

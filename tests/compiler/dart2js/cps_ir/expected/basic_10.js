@@ -4,7 +4,7 @@
 // }
 
 function() {
-  var v0 = Date.now() < Date.now(), line = v0 ? "true" : false === v0 ? "false" : String(v0);
+  var line = Date.now() < Date.now() ? "true" : "false";
   if (typeof dartPrint == "function")
     dartPrint(line);
   else if (typeof console == "object" && typeof console.log != "undefined")

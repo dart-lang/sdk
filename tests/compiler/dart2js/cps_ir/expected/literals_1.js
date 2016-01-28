@@ -14,7 +14,7 @@ function() {
   P.print([1]);
   P.print([1, 2]);
   P.print([1, [1, 2]]);
-  P.print(P.LinkedHashMap_LinkedHashMap$_empty());
-  P.print(P.LinkedHashMap_LinkedHashMap$_literal([1, 2]));
-  P.print(P.LinkedHashMap_LinkedHashMap$_literal([[1, 2], [3, 4]]));
+  P.print(P.LinkedHashMap__makeEmpty());
+  P.print(P.LinkedHashMap__makeLiteral([1, 2]));
+  P.print(P.LinkedHashMap__makeLiteral([[1, 2], [3, 4]]));
 }

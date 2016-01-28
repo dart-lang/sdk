@@ -96,7 +96,7 @@
         }]],
     },
     {
-      'target_name': 'libdart_vm_precompiled',
+      'target_name': 'libdart_vm_precompiled_runtime',
       'type': 'static_library',
       'toolsets':['host', 'target'],
       'includes': [
@@ -112,7 +112,7 @@
         '..',
       ],
       'defines': [
-        'DART_PRECOMPILED',
+        'DART_PRECOMPILED_RUNTIME',
       ],
       'conditions': [
         ['OS=="linux"', {

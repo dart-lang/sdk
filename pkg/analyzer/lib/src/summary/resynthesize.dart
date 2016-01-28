@@ -4,40 +4,30 @@
 
 library summary_resynthesizer;
 
-import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'dart:collection';
+
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
-
-/**
- * Callback used by [SummaryResynthesizer] to obtain the prelinked summary for
- * a given URI.
- */
-typedef PrelinkedLibrary GetPrelinkedSummaryCallback(String uri);
-
-/**
- * Callback used by [SummaryResynthesizer] to obtain the unlinked summary for a
- * given URI.
- */
-typedef UnlinkedUnit GetUnlinkedSummaryCallback(String uri);
 
 /**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element
  * model from summaries.
  */
-class SummaryResynthesizer extends ElementResynthesizer {
+abstract class SummaryResynthesizer extends ElementResynthesizer {
   /**
-   * Callback used to obtain the prelinked summary for a given URI.
+   * The parent [SummaryResynthesizer] which is asked to resynthesize elements
+   * and get summaries before this resynthesizer attempts to do this.
+   * Can be `null`.
    */
-  final GetPrelinkedSummaryCallback getPrelinkedSummary;
-
-  /**
-   * Callback used to obtain the unlinked summary for a given URI.
-   */
-  final GetUnlinkedSummaryCallback getUnlinkedSummary;
+  final SummaryResynthesizer parent;
 
   /**
    * Source factory used to convert URIs to [Source] objects.
@@ -56,6 +46,12 @@ class SummaryResynthesizer extends ElementResynthesizer {
   final TypeProvider typeProvider;
 
   /**
+   * Indicates whether the summary should be resynthesized assuming strong mode
+   * semantics.
+   */
+  final bool strongMode;
+
+  /**
    * Map of top level elements resynthesized from summaries.  The three map
    * keys are the first three elements of the element's location (the library
    * URI, the compilation unit URI, and the name of the top level declaration).
@@ -70,8 +66,8 @@ class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, LibraryElement> _resynthesizedLibraries =
       <String, LibraryElement>{};
 
-  SummaryResynthesizer(AnalysisContext context, this.typeProvider,
-      this.getPrelinkedSummary, this.getUnlinkedSummary, this.sourceFactory)
+  SummaryResynthesizer(this.parent, AnalysisContext context, this.typeProvider,
+      this.sourceFactory, this.strongMode)
       : super(context);
 
   /**
@@ -79,28 +75,68 @@ class SummaryResynthesizer extends ElementResynthesizer {
    */
   int get resynthesisCount => _resynthesizedLibraries.length;
 
+  /**
+   * Perform delayed finalization of the `dart:core` and `dart:async` libraries.
+   */
+  void finalizeCoreAsyncLibraries() {
+    (_resynthesizedLibraries['dart:core'] as LibraryElementImpl)
+        .createLoadLibraryFunction(typeProvider);
+    (_resynthesizedLibraries['dart:async'] as LibraryElementImpl)
+        .createLoadLibraryFunction(typeProvider);
+  }
+
   @override
   Element getElement(ElementLocation location) {
-    if (location.components.length == 1) {
-      return getLibraryElement(location.components[0]);
-    } else if (location.components.length == 3) {
-      String uri = location.components[0];
+    List<String> components = location.components;
+    String libraryUri = components[0];
+    // Ask the parent resynthesizer.
+    if (parent != null && parent._hasLibrarySummary(libraryUri)) {
+      return parent.getElement(location);
+    }
+    // Resynthesize locally.
+    if (components.length == 1) {
+      return getLibraryElement(libraryUri);
+    } else if (components.length == 3 || components.length == 4) {
       Map<String, Map<String, Element>> libraryMap =
-          _resynthesizedElements[uri];
+          _resynthesizedElements[libraryUri];
       if (libraryMap == null) {
-        getLibraryElement(uri);
-        libraryMap = _resynthesizedElements[uri];
+        getLibraryElement(libraryUri);
+        libraryMap = _resynthesizedElements[libraryUri];
         assert(libraryMap != null);
       }
-      Map<String, Element> compilationUnitElements =
-          libraryMap[location.components[1]];
+      Map<String, Element> compilationUnitElements = libraryMap[components[1]];
+      Element element;
       if (compilationUnitElements != null) {
-        Element element = compilationUnitElements[location.components[2]];
-        if (element != null) {
-          return element;
+        element = compilationUnitElements[components[2]];
+      }
+      if (element != null && components.length == 4) {
+        String name = components[3];
+        Element parentElement = element;
+        if (parentElement is ClassElement) {
+          if (name.endsWith('?')) {
+            element =
+                parentElement.getGetter(name.substring(0, name.length - 1));
+          } else if (name.endsWith('=')) {
+            element =
+                parentElement.getSetter(name.substring(0, name.length - 1));
+          } else if (name.isEmpty) {
+            element = parentElement.unnamedConstructor;
+          } else {
+            element = parentElement.getField(name) ??
+                parentElement.getMethod(name) ??
+                parentElement.getNamedConstructor(name);
+          }
+        } else {
+          // The only elements that are currently retrieved using 4-component
+          // locations are class members.
+          throw new StateError(
+              '4-element locations not supported for ${element.runtimeType}');
         }
       }
-      throw new Exception('Element not found in summary: $location');
+      if (element == null) {
+        throw new Exception('Element not found in summary: $location');
+      }
+      return element;
     } else {
       throw new UnimplementedError(location.toString());
     }
@@ -111,16 +147,19 @@ class SummaryResynthesizer extends ElementResynthesizer {
    * hasn't been resynthesized already.
    */
   LibraryElement getLibraryElement(String uri) {
+    if (parent != null && parent._hasLibrarySummary(uri)) {
+      return parent.getLibraryElement(uri);
+    }
     return _resynthesizedLibraries.putIfAbsent(uri, () {
-      PrelinkedLibrary serializedLibrary = getPrelinkedSummary(uri);
+      LinkedLibrary serializedLibrary = _getLinkedSummaryOrThrow(uri);
       List<UnlinkedUnit> serializedUnits = <UnlinkedUnit>[
-        getUnlinkedSummary(uri)
+        _getUnlinkedSummaryOrThrow(uri)
       ];
       Source librarySource = _getSource(uri);
       for (String part in serializedUnits[0].publicNamespace.parts) {
         Source partSource = sourceFactory.resolveUri(librarySource, part);
         String partAbsUri = partSource.uri.toString();
-        serializedUnits.add(getUnlinkedSummary(partAbsUri));
+        serializedUnits.add(_getUnlinkedSummaryOrThrow(partAbsUri));
       }
       _LibraryResynthesizer libraryResynthesizer = new _LibraryResynthesizer(
           this, serializedLibrary, serializedUnits, librarySource);
@@ -131,10 +170,72 @@ class SummaryResynthesizer extends ElementResynthesizer {
   }
 
   /**
+   * Return the [LinkedLibrary] for the given [uri] or `null` if it could not
+   * be found.  Caller has already checked that `parent.hasLibrarySummary(uri)`
+   * returns `false`.
+   */
+  LinkedLibrary getLinkedSummary(String uri);
+
+  /**
+   * Return the [UnlinkedUnit] for the given [uri] or `null` if it could not
+   * be found.  Caller has already checked that `parent.hasLibrarySummary(uri)`
+   * returns `false`.
+   */
+  UnlinkedUnit getUnlinkedSummary(String uri);
+
+  /**
+   * Return `true` if this resynthesizer can provide summaries of the libraries
+   * with the given [uri].  Caller has already checked that
+   * `parent.hasLibrarySummary(uri)` returns `false`.
+   */
+  bool hasLibrarySummary(String uri);
+
+  /**
+   * Return the [LinkedLibrary] for the given [uri] or throw [StateError] if it
+   * could not be found.
+   */
+  LinkedLibrary _getLinkedSummaryOrThrow(String uri) {
+    if (parent != null && parent._hasLibrarySummary(uri)) {
+      return parent._getLinkedSummaryOrThrow(uri);
+    }
+    LinkedLibrary summary = getLinkedSummary(uri);
+    if (summary != null) {
+      return summary;
+    }
+    throw new StateError('Unable to find linked summary: $uri');
+  }
+
+  /**
    * Get the [Source] object for the given [uri].
    */
   Source _getSource(String uri) {
     return _sources.putIfAbsent(uri, () => sourceFactory.forUri(uri));
+  }
+
+  /**
+   * Return the [UnlinkedUnit] for the given [uri] or throw [StateError] if it
+   * could not be found.
+   */
+  UnlinkedUnit _getUnlinkedSummaryOrThrow(String uri) {
+    if (parent != null && parent._hasLibrarySummary(uri)) {
+      return parent._getUnlinkedSummaryOrThrow(uri);
+    }
+    UnlinkedUnit summary = getUnlinkedSummary(uri);
+    if (summary != null) {
+      return summary;
+    }
+    throw new StateError('Unable to find unlinked summary: $uri');
+  }
+
+  /**
+   * Return `true` if this resynthesizer can provide summaries of the libraries
+   * with the given [uri].
+   */
+  bool _hasLibrarySummary(String uri) {
+    if (parent != null && parent._hasLibrarySummary(uri)) {
+      return true;
+    }
+    return hasLibrarySummary(uri);
   }
 }
 
@@ -149,9 +250,9 @@ class _LibraryResynthesizer {
   final SummaryResynthesizer summaryResynthesizer;
 
   /**
-   * Prelinked summary of the library to be resynthesized.
+   * Linked summary of the library to be resynthesized.
    */
-  final PrelinkedLibrary prelinkedLibrary;
+  final LinkedLibrary linkedLibrary;
 
   /**
    * Unlinked compilation units constituting the library to be resynthesized.
@@ -182,14 +283,20 @@ class _LibraryResynthesizer {
   ElementHolder unitHolder;
 
   /**
-   * The [PrelinkedUnit] from which elements are currently being resynthesized.
+   * The [LinkedUnit] from which elements are currently being resynthesized.
    */
-  PrelinkedUnit prelinkedUnit;
+  LinkedUnit linkedUnit;
 
   /**
    * The [UnlinkedUnit] from which elements are currently being resynthesized.
    */
   UnlinkedUnit unlinkedUnit;
+
+  /**
+   * Map from slot id to the corresponding [EntityRef] object for linked types
+   * (i.e. propagated and inferred types).
+   */
+  Map<int, EntityRef> linkedTypeMap;
 
   /**
    * Map of top level elements that have been resynthesized so far.  The first
@@ -210,7 +317,14 @@ class _LibraryResynthesizer {
    */
   List<TypeParameterElement> currentTypeParameters = <TypeParameterElement>[];
 
-  _LibraryResynthesizer(this.summaryResynthesizer, this.prelinkedLibrary,
+  /**
+   * If a class is currently being resynthesized, map from field name to the
+   * corresponding field element.  This is used when resynthesizing
+   * initializing formal parameters.
+   */
+  Map<String, FieldElementImpl> fields;
+
+  _LibraryResynthesizer(this.summaryResynthesizer, this.linkedLibrary,
       this.unlinkedUnits, this.librarySource) {
     isCoreLibrary = librarySource.uri.toString() == 'dart:core';
   }
@@ -235,6 +349,7 @@ class _LibraryResynthesizer {
       }
       ClassElementImpl classElement = new ClassElementImpl(
           serializedClass.name, serializedClass.nameOffset);
+      classElement.abstract = serializedClass.isAbstract;
       classElement.mixinApplication = serializedClass.isMixinApplication;
       InterfaceTypeImpl correspondingType = new InterfaceTypeImpl(classElement);
       if (serializedClass.supertype != null) {
@@ -251,6 +366,10 @@ class _LibraryResynthesizer {
       classElement.mixins = serializedClass.mixins.map(buildType).toList();
       classElement.typeParameters = currentTypeParameters;
       ElementHolder memberHolder = new ElementHolder();
+      fields = <String, FieldElementImpl>{};
+      for (UnlinkedVariable serializedVariable in serializedClass.fields) {
+        buildVariable(serializedVariable, memberHolder);
+      }
       bool constructorFound = false;
       for (UnlinkedExecutable serializedExecutable
           in serializedClass.executables) {
@@ -266,9 +385,6 @@ class _LibraryResynthesizer {
             buildExecutable(serializedExecutable, memberHolder);
             break;
         }
-      }
-      for (UnlinkedVariable serializedVariable in serializedClass.fields) {
-        buildVariable(serializedVariable, memberHolder);
       }
       if (!serializedClass.isMixinApplication) {
         if (!constructorFound) {
@@ -292,6 +408,7 @@ class _LibraryResynthesizer {
       unitHolder.addType(classElement);
     } finally {
       currentTypeParameters = <TypeParameterElement>[];
+      fields = null;
     }
   }
 
@@ -350,7 +467,6 @@ class _LibraryResynthesizer {
    */
   void buildEnum(UnlinkedEnum serializedEnum) {
     assert(!isCoreLibrary);
-    // TODO(paulberry): add offset support (for this element type and others)
     ClassElementImpl classElement =
         new ClassElementImpl(serializedEnum.name, serializedEnum.nameOffset);
     classElement.enum2 = true;
@@ -413,6 +529,7 @@ class _LibraryResynthesizer {
         } else {
           MethodElementImpl executableElement =
               new MethodElementImpl(name, serializedExecutable.nameOffset);
+          executableElement.abstract = serializedExecutable.isAbstract;
           buildExecutableCommonParts(executableElement, serializedExecutable);
           executableElement.static = serializedExecutable.isStatic;
           holder.addMethod(executableElement);
@@ -427,6 +544,7 @@ class _LibraryResynthesizer {
           executableElement.static = true;
         } else {
           executableElement.static = serializedExecutable.isStatic;
+          executableElement.abstract = serializedExecutable.isAbstract;
         }
         buildExecutableCommonParts(executableElement, serializedExecutable);
         DartType type;
@@ -455,8 +573,6 @@ class _LibraryResynthesizer {
         } else {
           implicitVariable.setter = executableElement;
         }
-        // TODO(paulberry): do the right thing when getter and setter are in
-        // different units.
         break;
       default:
         // The only other executable type is a constructor, and that is handled
@@ -481,18 +597,21 @@ class _LibraryResynthesizer {
     }
     executableElement.parameters =
         serializedExecutable.parameters.map(buildParameter).toList();
-    if (serializedExecutable.returnType != null) {
-      executableElement.returnType = buildType(serializedExecutable.returnType);
-    } else if (serializedExecutable.kind ==
-        UnlinkedExecutableKind.constructor) {
-      // Return type was set by the caller.
+    if (serializedExecutable.kind == UnlinkedExecutableKind.constructor) {
+      // Caller handles setting the return type.
+      assert(serializedExecutable.returnType == null);
     } else {
-      executableElement.returnType = VoidTypeImpl.instance;
+      bool isSetter =
+          serializedExecutable.kind == UnlinkedExecutableKind.setter;
+      executableElement.returnType =
+          buildLinkedType(serializedExecutable.inferredReturnTypeSlot) ??
+              buildType(serializedExecutable.returnType,
+                  defaultVoid: isSetter && summaryResynthesizer.strongMode);
+      executableElement.hasImplicitReturnType =
+          serializedExecutable.returnType == null;
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
         executableElement, null, oldTypeArguments, false);
-    executableElement.hasImplicitReturnType =
-        serializedExecutable.hasImplicitReturnType;
     executableElement.external = serializedExecutable.isExternal;
     currentTypeParameters.removeRange(
         oldTypeParametersLength, currentTypeParameters.length);
@@ -520,6 +639,62 @@ class _LibraryResynthesizer {
     exportElement.uriOffset = serializedExportNonPublic.uriOffset;
     exportElement.uriEnd = serializedExportNonPublic.uriEnd;
     return exportElement;
+  }
+
+  /**
+   * Build an [ElementHandle] referring to the entity referred to by the given
+   * [exportName].
+   */
+  ElementHandle buildExportName(LinkedExportName exportName) {
+    String name = exportName.name;
+    if (exportName.kind == ReferenceKind.topLevelPropertyAccessor &&
+        !name.endsWith('=')) {
+      name += '?';
+    }
+    ElementLocationImpl location = getReferencedLocation(
+        linkedLibrary.dependencies[exportName.dependency],
+        exportName.unit,
+        name);
+    switch (exportName.kind) {
+      case ReferenceKind.classOrEnum:
+        return new ClassElementHandle(summaryResynthesizer, location);
+      case ReferenceKind.typedef:
+        return new FunctionTypeAliasElementHandle(
+            summaryResynthesizer, location);
+      case ReferenceKind.topLevelFunction:
+        return new FunctionElementHandle(summaryResynthesizer, location);
+      case ReferenceKind.topLevelPropertyAccessor:
+        return new PropertyAccessorElementHandle(
+            summaryResynthesizer, location);
+      case ReferenceKind.constructor:
+      case ReferenceKind.constField:
+      case ReferenceKind.staticMethod:
+      case ReferenceKind.length:
+      case ReferenceKind.prefix:
+      case ReferenceKind.unresolved:
+        // Should never happen.  Exported names never refer to import prefixes,
+        // and they always refer to defined top-level entities.
+        throw new StateError('Unexpected export name kind: ${exportName.kind}');
+    }
+  }
+
+  /**
+   * Build the export namespace for the library by aggregating together its
+   * [publicNamespace] and [exportNames].
+   */
+  Namespace buildExportNamespace(
+      Namespace publicNamespace, List<LinkedExportName> exportNames) {
+    HashMap<String, Element> definedNames = new HashMap<String, Element>();
+    // Start by populating all the public names from [publicNamespace].
+    publicNamespace.definedNames.forEach((String name, Element element) {
+      definedNames[name] = element;
+    });
+    // Add all the names from [exportNames].
+    for (LinkedExportName exportName in exportNames) {
+      definedNames.putIfAbsent(
+          exportName.name, () => buildExportName(exportName));
+    }
+    return new Namespace(definedNames);
   }
 
   /**
@@ -618,13 +793,10 @@ class _LibraryResynthesizer {
    */
   ImportElement buildImport(UnlinkedImport serializedImport, int dependency) {
     bool isSynthetic = serializedImport.isImplicit;
-    // TODO(paulberry): it seems problematic for the offset to be 0 for
-    // non-synthetic imports, since it is used to disambiguate location.
     ImportElementImpl importElement =
         new ImportElementImpl(isSynthetic ? -1 : serializedImport.offset);
     String absoluteUri = summaryResynthesizer.sourceFactory
-        .resolveUri(
-            librarySource, prelinkedLibrary.dependencies[dependency].uri)
+        .resolveUri(librarySource, linkedLibrary.dependencies[dependency].uri)
         .uri
         .toString();
     importElement.importedLibrary = new LibraryElementHandle(
@@ -636,7 +808,9 @@ class _LibraryResynthesizer {
       importElement.uri = serializedImport.uri;
       importElement.uriOffset = serializedImport.uriOffset;
       importElement.uriEnd = serializedImport.uriEnd;
+      importElement.deferred = serializedImport.isDeferred;
     }
+    importElement.prefixOffset = serializedImport.prefixOffset;
     if (serializedImport.prefixReference != 0) {
       UnlinkedReference serializedPrefix =
           unlinkedUnits[0].references[serializedImport.prefixReference];
@@ -653,36 +827,35 @@ class _LibraryResynthesizer {
    */
   LibraryElement buildLibrary() {
     bool hasName = unlinkedUnits[0].libraryName.isNotEmpty;
-    LibraryElementImpl libraryElement = new LibraryElementImpl(
+    LibraryElementImpl library = new LibraryElementImpl(
         summaryResynthesizer.context,
         unlinkedUnits[0].libraryName,
         hasName ? unlinkedUnits[0].libraryNameOffset : -1,
         unlinkedUnits[0].libraryNameLength);
-    buildDocumentation(
-        libraryElement, unlinkedUnits[0].libraryDocumentationComment);
+    buildDocumentation(library, unlinkedUnits[0].libraryDocumentationComment);
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl(librarySource.shortName);
-    libraryElement.definingCompilationUnit = definingCompilationUnit;
+    library.definingCompilationUnit = definingCompilationUnit;
     definingCompilationUnit.source = librarySource;
     definingCompilationUnit.librarySource = librarySource;
     List<CompilationUnitElement> parts = <CompilationUnitElement>[];
     UnlinkedUnit unlinkedDefiningUnit = unlinkedUnits[0];
     assert(unlinkedDefiningUnit.publicNamespace.parts.length + 1 ==
-        prelinkedLibrary.units.length);
-    for (int i = 1; i < prelinkedLibrary.units.length; i++) {
+        linkedLibrary.units.length);
+    for (int i = 1; i < linkedLibrary.units.length; i++) {
       CompilationUnitElementImpl part = buildPart(
           unlinkedDefiningUnit.publicNamespace.parts[i - 1],
           unlinkedDefiningUnit.parts[i - 1],
           unlinkedUnits[i]);
       parts.add(part);
     }
-    libraryElement.parts = parts;
+    library.parts = parts;
     List<ImportElement> imports = <ImportElement>[];
     for (int i = 0; i < unlinkedDefiningUnit.imports.length; i++) {
       imports.add(buildImport(unlinkedDefiningUnit.imports[i],
-          prelinkedLibrary.importDependencies[i]));
+          linkedLibrary.importDependencies[i]));
     }
-    libraryElement.imports = imports;
+    library.imports = imports;
     List<ExportElement> exports = <ExportElement>[];
     assert(unlinkedDefiningUnit.exports.length ==
         unlinkedDefiningUnit.publicNamespace.exports.length);
@@ -690,40 +863,75 @@ class _LibraryResynthesizer {
       exports.add(buildExport(unlinkedDefiningUnit.publicNamespace.exports[i],
           unlinkedDefiningUnit.exports[i]));
     }
-    libraryElement.exports = exports;
+    library.exports = exports;
     populateUnit(definingCompilationUnit, 0);
     for (int i = 0; i < parts.length; i++) {
       populateUnit(parts[i], i + 1);
     }
+    BuildLibraryElementUtils.patchTopLevelAccessors(library);
+    // Update delayed Object class references.
     if (isCoreLibrary) {
-      ClassElement objectElement = libraryElement.getType('Object');
+      ClassElement objectElement = library.getType('Object');
       assert(objectElement != null);
       for (ClassElementImpl classElement in delayedObjectSubclasses) {
         classElement.supertype = objectElement.type;
       }
     }
     // Compute namespaces.
-    libraryElement.publicNamespace =
-        new NamespaceBuilder().createPublicNamespaceForLibrary(libraryElement);
-    // TODO(paulberry): compute the export namespace from prelinked data, so
-    // that exported libraries won't be unnecessarily resynthesized.
-    libraryElement.exportNamespace =
-        new NamespaceBuilder().createExportNamespaceForLibrary(libraryElement);
-    // Find the entry point.
-    libraryElement.entryPoint =
-        libraryElement.exportNamespace.definedNames.values.firstWhere(
-            (element) => element is FunctionElement && element.isEntryPoint,
-            orElse: () => null);
+    library.publicNamespace =
+        new NamespaceBuilder().createPublicNamespaceForLibrary(library);
+    library.exportNamespace = buildExportNamespace(
+        library.publicNamespace, linkedLibrary.exportNames);
+    // Find the entry point.  Note: we can't use element.isEntryPoint because
+    // that will trigger resynthesis of exported libraries.
+    Element entryPoint =
+        library.exportNamespace.get(FunctionElement.MAIN_FUNCTION_NAME);
+    if (entryPoint is FunctionElement) {
+      library.entryPoint = entryPoint;
+    }
+    // Create the synthetic element for `loadLibrary`.
+    // Until the client received dart:core and dart:async, we cannot do this,
+    // because the TypeProvider is not fully initialized. So, it is up to the
+    // Dart SDK client to initialize TypeProvider and finish the dart:core and
+    // dart:async libraries creation.
+    if (library.name != 'dart.core' && library.name != 'dart.async') {
+      library.createLoadLibraryFunction(summaryResynthesizer.typeProvider);
+    }
     // Done.
-    return libraryElement;
+    return library;
+  }
+
+  /**
+   * Build the appropriate [DartType] object corresponding to a slot id in the
+   * [LinkedUnit.types] table.
+   */
+  DartType buildLinkedType(int slot) {
+    if (slot == 0) {
+      // A slot id of 0 means there is no [DartType] object to build.
+      return null;
+    }
+    EntityRef type = linkedTypeMap[slot];
+    if (type == null) {
+      // A missing entry in [LinkedUnit.types] means there is no [DartType]
+      // stored in this slot.
+      return null;
+    }
+    return buildType(type);
   }
 
   /**
    * Resynthesize a [ParameterElement].
    */
   ParameterElement buildParameter(UnlinkedParam serializedParameter) {
-    ParameterElementImpl parameterElement = new ParameterElementImpl(
-        serializedParameter.name, serializedParameter.nameOffset);
+    ParameterElementImpl parameterElement;
+    if (serializedParameter.isInitializingFormal) {
+      parameterElement = new FieldFormalParameterElementImpl.forNameAndOffset(
+          serializedParameter.name, serializedParameter.nameOffset)
+        ..field = fields[serializedParameter.name];
+    } else {
+      parameterElement = new ParameterElementImpl(
+          serializedParameter.name, serializedParameter.nameOffset);
+    }
     if (serializedParameter.isFunctionTyped) {
       FunctionElementImpl parameterTypeElement =
           new FunctionElementImpl('', -1);
@@ -732,16 +940,21 @@ class _LibraryResynthesizer {
           serializedParameter.parameters.map(buildParameter).toList();
       parameterTypeElement.enclosingElement = parameterElement;
       parameterTypeElement.shareParameters(parameterElement.parameters);
-      if (serializedParameter.type != null) {
-        parameterTypeElement.returnType = buildType(serializedParameter.type);
-      } else {
-        parameterTypeElement.returnType = VoidTypeImpl.instance;
-      }
+      parameterTypeElement.returnType = buildType(serializedParameter.type);
       parameterElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
           parameterTypeElement, null, currentTypeArguments, false);
     } else {
-      parameterElement.type = buildType(serializedParameter.type);
-      parameterElement.hasImplicitType = serializedParameter.hasImplicitType;
+      if (serializedParameter.isInitializingFormal &&
+          serializedParameter.type == null) {
+        // The type is inherited from the matching field.
+        parameterElement.type = fields[serializedParameter.name]?.type ??
+            summaryResynthesizer.typeProvider.dynamicType;
+      } else {
+        parameterElement.type =
+            buildLinkedType(serializedParameter.inferredTypeSlot) ??
+                buildType(serializedParameter.type);
+      }
+      parameterElement.hasImplicitType = serializedParameter.type == null;
     }
     switch (serializedParameter.kind) {
       case UnlinkedParamKind.named:
@@ -776,55 +989,47 @@ class _LibraryResynthesizer {
   }
 
   /**
-   * Build a [DartType] object based on an [UnlinkedTypeRef].  This [DartType]
+   * Build a [DartType] object based on a [EntityRef].  This [DartType]
    * may refer to elements in other libraries than the library being
    * deserialized, so handles are used to avoid having to deserialize other
    * libraries in the process.
    */
-  DartType buildType(UnlinkedTypeRef type) {
+  DartType buildType(EntityRef type, {bool defaultVoid: false}) {
+    if (type == null) {
+      if (defaultVoid) {
+        return VoidTypeImpl.instance;
+      } else {
+        return summaryResynthesizer.typeProvider.dynamicType;
+      }
+    }
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
-              currentTypeParameters.length - type.paramReference]
-          .type;
+          currentTypeParameters.length - type.paramReference].type;
     } else {
-      // TODO(paulberry): handle references to things other than classes (note:
-      // this should only occur in the case of erroneous code).
-      // TODO(paulberry): test reference to something inside a part.
-      // TODO(paulberry): test reference to something inside a part of the
-      // current lib.
-      UnlinkedReference reference = unlinkedUnit.references[type.reference];
-      PrelinkedReference referenceResolution =
-          prelinkedUnit.references[type.reference];
-      String referencedLibraryUri;
-      String partUri;
-      if (referenceResolution.dependency != 0) {
-        PrelinkedDependency dependency =
-            prelinkedLibrary.dependencies[referenceResolution.dependency];
-        Source referencedLibrarySource = summaryResynthesizer.sourceFactory
-            .resolveUri(librarySource, dependency.uri);
-        referencedLibraryUri = referencedLibrarySource.uri.toString();
-        // TODO(paulberry): consider changing Location format so that this is
-        // not necessary (2nd string in location should just be the unit
-        // number).
-        if (referenceResolution.unit != 0) {
-          UnlinkedUnit referencedLibraryDefiningUnit =
-              summaryResynthesizer.getUnlinkedSummary(referencedLibraryUri);
-          String uri = referencedLibraryDefiningUnit.publicNamespace.parts[
-              referenceResolution.unit - 1];
-          Source partSource = summaryResynthesizer.sourceFactory
-              .resolveUri(referencedLibrarySource, uri);
-          partUri = partSource.uri.toString();
-        } else {
-          partUri = referencedLibraryUri;
-        }
-      } else if (referenceResolution.kind ==
-          PrelinkedReferenceKind.unresolved) {
-        return summaryResynthesizer.typeProvider.undefinedType;
-      } else if (reference.name.isEmpty) {
-        return summaryResynthesizer.typeProvider.dynamicType;
+      LinkedReference referenceResolution =
+          linkedUnit.references[type.reference];
+      String name;
+      if (type.reference < unlinkedUnit.references.length) {
+        name = unlinkedUnit.references[type.reference].name;
       } else {
-        referencedLibraryUri = librarySource.uri.toString();
+        name = referenceResolution.name;
+      }
+      ElementLocationImpl location;
+      if (referenceResolution.dependency != 0) {
+        location = getReferencedLocation(
+            linkedLibrary.dependencies[referenceResolution.dependency],
+            referenceResolution.unit,
+            name);
+      } else if (referenceResolution.kind == ReferenceKind.unresolved) {
+        return summaryResynthesizer.typeProvider.undefinedType;
+      } else if (name == 'dynamic') {
+        return summaryResynthesizer.typeProvider.dynamicType;
+      } else if (name == 'void') {
+        return VoidTypeImpl.instance;
+      } else {
+        String referencedLibraryUri = librarySource.uri.toString();
+        String partUri;
         if (referenceResolution.unit != 0) {
           String uri = unlinkedUnits[0].publicNamespace.parts[
               referenceResolution.unit - 1];
@@ -834,9 +1039,9 @@ class _LibraryResynthesizer {
         } else {
           partUri = referencedLibraryUri;
         }
+        location = new ElementLocationImpl.con3(
+            <String>[referencedLibraryUri, partUri, name]);
       }
-      ElementLocationImpl location = new ElementLocationImpl.con3(
-          <String>[referencedLibraryUri, partUri, reference.name]);
       List<DartType> typeArguments = const <DartType>[];
       if (referenceResolution.numTypeParameters != 0) {
         typeArguments = <DartType>[];
@@ -849,16 +1054,16 @@ class _LibraryResynthesizer {
         }
       }
       switch (referenceResolution.kind) {
-        case PrelinkedReferenceKind.classOrEnum:
+        case ReferenceKind.classOrEnum:
           return new InterfaceTypeImpl.elementWithNameAndArgs(
               new ClassElementHandle(summaryResynthesizer, location),
-              reference.name,
+              name,
               typeArguments);
-        case PrelinkedReferenceKind.typedef:
+        case ReferenceKind.typedef:
           return new FunctionTypeImpl.elementWithNameAndArgs(
               new FunctionTypeAliasElementHandle(
                   summaryResynthesizer, location),
-              reference.name,
+              name,
               typeArguments,
               typeArguments.isNotEmpty);
         default:
@@ -886,12 +1091,8 @@ class _LibraryResynthesizer {
               serializedTypedef.name, serializedTypedef.nameOffset);
       functionTypeAliasElement.parameters =
           serializedTypedef.parameters.map(buildParameter).toList();
-      if (serializedTypedef.returnType != null) {
-        functionTypeAliasElement.returnType =
-            buildType(serializedTypedef.returnType);
-      } else {
-        functionTypeAliasElement.returnType = VoidTypeImpl.instance;
-      }
+      functionTypeAliasElement.returnType =
+          buildType(serializedTypedef.returnType);
       functionTypeAliasElement.type =
           new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
       functionTypeAliasElement.typeParameters = currentTypeParameters;
@@ -938,6 +1139,7 @@ class _LibraryResynthesizer {
       element.static = serializedVariable.isStatic;
       holder.addField(element);
       buildImplicitAccessors(element, holder);
+      fields[element.name] = element;
     }
   }
 
@@ -946,9 +1148,13 @@ class _LibraryResynthesizer {
    */
   void buildVariableCommonParts(PropertyInducingElementImpl element,
       UnlinkedVariable serializedVariable) {
-    element.type = buildType(serializedVariable.type);
+    element.type = buildLinkedType(serializedVariable.inferredTypeSlot) ??
+        buildType(serializedVariable.type);
     element.const3 = serializedVariable.isConst;
-    element.hasImplicitType = serializedVariable.hasImplicitType;
+    element.final2 = serializedVariable.isFinal;
+    element.hasImplicitType = serializedVariable.type == null;
+    element.propagatedType =
+        buildLinkedType(serializedVariable.propagatedTypeSlot);
     buildDocumentation(element, serializedVariable.documentationComment);
   }
 
@@ -963,12 +1169,44 @@ class _LibraryResynthesizer {
   }
 
   /**
+   * Build an [ElementLocationImpl] for the entity in the given [unit] of the
+   * given [dependency], having the given [name].
+   */
+  ElementLocationImpl getReferencedLocation(
+      LinkedDependency dependency, int unit, String name) {
+    Source referencedLibrarySource = summaryResynthesizer.sourceFactory
+        .resolveUri(librarySource, dependency.uri);
+    String referencedLibraryUri = referencedLibrarySource.uri.toString();
+    // TODO(paulberry): consider changing Location format so that this is
+    // not necessary (2nd string in location should just be the unit
+    // number).
+    String partUri;
+    if (unit != 0) {
+      UnlinkedUnit referencedLibraryDefiningUnit =
+          summaryResynthesizer._getUnlinkedSummaryOrThrow(referencedLibraryUri);
+      String uri =
+          referencedLibraryDefiningUnit.publicNamespace.parts[unit - 1];
+      Source partSource = summaryResynthesizer.sourceFactory
+          .resolveUri(referencedLibrarySource, uri);
+      partUri = partSource.uri.toString();
+    } else {
+      partUri = referencedLibraryUri;
+    }
+    return new ElementLocationImpl.con3(
+        <String>[referencedLibraryUri, partUri, name]);
+  }
+
+  /**
    * Populate a [CompilationUnitElement] by deserializing all the elements
    * contained in it.
    */
   void populateUnit(CompilationUnitElementImpl unit, int unitNum) {
-    prelinkedUnit = prelinkedLibrary.units[unitNum];
+    linkedUnit = linkedLibrary.units[unitNum];
     unlinkedUnit = unlinkedUnits[unitNum];
+    linkedTypeMap = <int, EntityRef>{};
+    for (EntityRef t in linkedUnit.types) {
+      linkedTypeMap[t.slot] = t;
+    }
     unitHolder = new ElementHolder();
     unlinkedUnit.classes.forEach(buildClass);
     unlinkedUnit.enums.forEach(buildEnum);
@@ -998,9 +1236,16 @@ class _LibraryResynthesizer {
     for (FunctionTypeAliasElement typeAlias in unit.functionTypeAliases) {
       elementMap[typeAlias.name] = typeAlias;
     }
+    for (FunctionElement function in unit.functions) {
+      elementMap[function.name] = function;
+    }
+    for (PropertyAccessorElementImpl accessor in unit.accessors) {
+      elementMap[accessor.identifier] = accessor;
+    }
     resummarizedElements[absoluteUri] = elementMap;
     unitHolder = null;
-    prelinkedUnit = null;
+    linkedUnit = null;
     unlinkedUnit = null;
+    linkedTypeMap = null;
   }
 }

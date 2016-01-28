@@ -29,7 +29,7 @@ static RawLibrary* CreateDummyLibrary(const String& library_name) {
 static RawClass* CreateDummyClass(const String& class_name,
                                   const Script& script) {
   const Class& cls = Class::Handle(
-      Class::New(class_name, script, Scanner::kNoSourcePos));
+      Class::New(class_name, script, Token::kNoSourcePos));
   cls.set_is_synthesized_class();  // Dummy class for testing.
   return cls.raw();
 }
@@ -2537,17 +2537,17 @@ TEST_CASE(ContextScope) {
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
   const String& a = String::ZoneHandle(Symbols::New("a"));
   LocalVariable* var_a =
-      new LocalVariable(Scanner::kNoSourcePos, a, dynamic_type);
+      new LocalVariable(Token::kNoSourcePos, a, dynamic_type);
   parent_scope->AddVariable(var_a);
 
   const String& b = String::ZoneHandle(Symbols::New("b"));
   LocalVariable* var_b =
-      new LocalVariable(Scanner::kNoSourcePos, b, dynamic_type);
+      new LocalVariable(Token::kNoSourcePos, b, dynamic_type);
   local_scope->AddVariable(var_b);
 
   const String& c = String::ZoneHandle(Symbols::New("c"));
   LocalVariable* var_c =
-      new LocalVariable(Scanner::kNoSourcePos, c, dynamic_type);
+      new LocalVariable(Token::kNoSourcePos, c, dynamic_type);
   parent_scope->AddVariable(var_c);
 
   bool test_only = false;  // Please, insert alias.
@@ -2630,18 +2630,13 @@ TEST_CASE(Closure) {
   Function& function = Function::Handle();
   const String& function_name = String::Handle(Symbols::New("foo"));
   function = Function::NewClosureFunction(function_name, parent, 0);
-  const Class& signature_class = Class::Handle(
-      Class::NewSignatureClass(function_name, function, script, 0));
-  const Instance& closure = Instance::Handle(Closure::New(function, context));
+  const Closure& closure = Closure::Handle(Closure::New(function, context));
   const Class& closure_class = Class::Handle(closure.clazz());
-  EXPECT(closure_class.IsSignatureClass());
-  EXPECT(closure_class.IsCanonicalSignatureClass());
-  EXPECT_EQ(closure_class.raw(), signature_class.raw());
-  const Function& signature_function =
-    Function::Handle(signature_class.signature_function());
-  EXPECT_EQ(signature_function.raw(), function.raw());
-  const Context& closure_context = Context::Handle(Closure::context(closure));
-  EXPECT_EQ(closure_context.raw(), closure_context.raw());
+  EXPECT_EQ(closure_class.id(), kClosureCid);
+  const Function& closure_function = Function::Handle(closure.function());
+  EXPECT_EQ(closure_function.raw(), function.raw());
+  const Context& closure_context = Context::Handle(closure.context());
+  EXPECT_EQ(closure_context.raw(), context.raw());
 }
 
 
@@ -3092,16 +3087,18 @@ TEST_CASE(SubtypeTestCache) {
   SubtypeTestCache& cache = SubtypeTestCache::Handle(SubtypeTestCache::New());
   EXPECT(!cache.IsNull());
   EXPECT_EQ(0, cache.NumberOfChecks());
+  const Object& class_id_or_fun = Object::Handle(Smi::New(empty_class.id()));
   const TypeArguments& targ_0 = TypeArguments::Handle(TypeArguments::New(2));
   const TypeArguments& targ_1 = TypeArguments::Handle(TypeArguments::New(3));
-  cache.AddCheck(empty_class.id(), targ_0, targ_1, Bool::True());
+  cache.AddCheck(class_id_or_fun, targ_0, targ_1, Bool::True());
   EXPECT_EQ(1, cache.NumberOfChecks());
-  intptr_t test_class_id = -1;
+  Object& test_class_id_or_fun = Object::Handle();
   TypeArguments& test_targ_0 = TypeArguments::Handle();
   TypeArguments& test_targ_1 = TypeArguments::Handle();
   Bool& test_result = Bool::Handle();
-  cache.GetCheck(0, &test_class_id, &test_targ_0, &test_targ_1, &test_result);
-  EXPECT_EQ(empty_class.id(), test_class_id);
+  cache.GetCheck(
+      0, &test_class_id_or_fun, &test_targ_0, &test_targ_1, &test_result);
+  EXPECT_EQ(class_id_or_fun.raw(), test_class_id_or_fun.raw());
   EXPECT_EQ(targ_0.raw(), test_targ_0.raw());
   EXPECT_EQ(targ_1.raw(), test_targ_1.raw());
   EXPECT_EQ(Bool::True().raw(), test_result.raw());

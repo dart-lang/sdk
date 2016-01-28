@@ -7,7 +7,10 @@ library analyzer.src.generated.parser;
 import 'dart:collection';
 import "dart:math" as math;
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/error.dart';
@@ -3798,8 +3801,7 @@ class Parser {
 
   /**
    * If the current token has the type [TokenType.GT], return it after advancing
-   * to the next token. Otherwise report an error and return the current token
-   * without advancing.
+   * to the next token. Otherwise report an error and create a synthetic token.
    */
   Token _expectGt() {
     if (_matchesGt()) {
@@ -3807,7 +3809,7 @@ class Parser {
     }
     _reportErrorForCurrentToken(
         ParserErrorCode.EXPECTED_TOKEN, [TokenType.GT.lexeme]);
-    return _currentToken;
+    return _createSyntheticToken(TokenType.GT);
   }
 
   /**
@@ -5369,12 +5371,13 @@ class Parser {
    */
   Expression _parseConstExpression() {
     Token keyword = _expectKeyword(Keyword.CONST);
-    if (_matches(TokenType.OPEN_SQUARE_BRACKET) || _matches(TokenType.INDEX)) {
+    if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
+      return _parseListOrMapLiteral(keyword);
+    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
+        _matches(TokenType.INDEX)) {
       return _parseListLiteral(keyword, null);
     } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
       return _parseMapLiteral(keyword, null);
-    } else if (_matches(TokenType.LT)) {
-      return _parseListOrMapLiteral(keyword);
     }
     return _parseInstanceCreationExpression(keyword);
   }
@@ -7394,11 +7397,6 @@ class Parser {
       return new IntegerLiteral(token, value);
     } else if (_matches(TokenType.STRING)) {
       return parseStringLiteral();
-    } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
-      return _parseMapLiteral(null, null);
-    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
-        _matches(TokenType.INDEX)) {
-      return _parseListLiteral(null, null);
     } else if (_matchesIdentifier()) {
       // TODO(brianwilkerson) The code below was an attempt to recover from an
       // error case, but it needs to be applied as a recovery only after we
@@ -7431,8 +7429,13 @@ class Parser {
       } finally {
         _inInitializer = wasInInitializer;
       }
-    } else if (_matches(TokenType.LT)) {
+    } else if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
       return _parseListOrMapLiteral(null);
+    } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
+      return _parseMapLiteral(null, null);
+    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
+        _matches(TokenType.INDEX)) {
+      return _parseListLiteral(null, null);
     } else if (_matches(TokenType.QUESTION) &&
         _tokenMatches(_peek(), TokenType.IDENTIFIER)) {
       _reportErrorForCurrentToken(
@@ -9381,9 +9384,9 @@ class ParserErrorCode extends ErrorCode {
   /**
    * Some environments, such as Fletch, do not support async.
    */
-  static const CompileTimeErrorCode ASYNC_NOT_SUPPORTED =
-      const CompileTimeErrorCode('ASYNC_NOT_SUPPORTED',
-          "Async and sync are not supported in this environment.");
+  static const ParserErrorCode ASYNC_NOT_SUPPORTED = const ParserErrorCode(
+      'ASYNC_NOT_SUPPORTED',
+      "Async and sync are not supported in this environment.");
 
   static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
       'BREAK_OUTSIDE_OF_LOOP',

@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:math';
 import 'observatory_element.dart';
+import 'nav_bar.dart';
 import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
@@ -1067,28 +1068,6 @@ class InfoCommand extends DebuggerCommand {
       'Syntax: info <subcommand>\n';
 }
 
-class RefreshCoverageCommand extends DebuggerCommand {
-  RefreshCoverageCommand(Debugger debugger) : super(debugger, 'coverage', []);
-
-  Future run(List<String> args) {
-    Set<Script> scripts = debugger.stackElement.activeScripts();
-    List pending = [];
-    for (var script in scripts) {
-      pending.add(script.refreshCoverage().then((_) {
-          debugger.console.print('Refreshed coverage for ${script.name}');
-        }));
-    }
-    return Future.wait(pending);
-  }
-
-  String helpShort = 'Refresh code coverage information for current frames';
-
-  String helpLong =
-      'Refresh code coverage information for current frames.\n'
-      '\n'
-      'Syntax: refresh coverage\n\n';
-}
-
 class RefreshStackCommand extends DebuggerCommand {
   RefreshStackCommand(Debugger debugger) : super(debugger, 'stack', []);
 
@@ -1106,7 +1085,6 @@ class RefreshStackCommand extends DebuggerCommand {
 
 class RefreshCommand extends DebuggerCommand {
   RefreshCommand(Debugger debugger) : super(debugger, 'refresh', [
-      new RefreshCoverageCommand(debugger),
       new RefreshStackCommand(debugger),
   ]);
 
@@ -1400,7 +1378,6 @@ class ObservatoryDebugger extends Debugger {
       if ((breakOnException != iso.exceptionsPauseInfo) &&
           (iso.exceptionsPauseInfo != null)) {
         breakOnException = iso.exceptionsPauseInfo;
-        console.print("Now pausing for exceptions: $breakOnException");
       }
 
       _isolate.reload().then((response) {
@@ -1515,6 +1492,25 @@ class ObservatoryDebugger extends Debugger {
     warnOutOfDate();
   }
 
+  void _reportIsolateError(Isolate isolate) {
+    if (isolate == null) {
+      return;
+    }
+    DartError error = isolate.error;
+    if (error == null) {
+      return;
+    }
+    console.newline();
+    console.printBold('Isolate exited due to an unhandled exception:');
+    console.print(error.message);
+    console.newline();
+    console.printBold("Type 'set break-on-exception Unhandled' to pause the"
+                      " isolate when an unhandled exception occurs.");
+    console.newline();
+    console.printBold("You can make this the default by running with "
+                      "--pause-isolates-on-unhandled-exceptions");
+  }
+
   void _reportPause(ServiceEvent event) {
     if (event.kind == ServiceEvent.kPauseStart) {
       console.print(
@@ -1524,6 +1520,7 @@ class ObservatoryDebugger extends Debugger {
       console.print(
           "Paused at isolate exit "
           "(type 'continue' or [F7] to exit the isolate')");
+      _reportIsolateError(isolate);
     } else if (stack['frames'].length > 0) {
       Frame frame = stack['frames'][0];
       var script = frame.location.script;
@@ -1640,8 +1637,11 @@ class ObservatoryDebugger extends Debugger {
       case ServiceEvent.kPauseInterrupted:
       case ServiceEvent.kPauseException:
         if (event.owner == isolate) {
-          _refreshStack(event).then((_) {
+          _refreshStack(event).then((_) async {
             flushStdio();
+            if (isolate != null) {
+              await isolate.reload();
+            }
             _reportPause(event);
           });
         }
@@ -1896,6 +1896,7 @@ class DebuggerPageElement extends ObservatoryElement {
     var stackElement = $['stackElement'];
     debugger.stackElement = stackElement;
     stackElement.debugger = debugger;
+    stackElement.scroller = $['stackDiv'];
     debugger.console = $['console'];
     debugger.input = $['commandline'];
     debugger.input.debugger = debugger;
@@ -1952,7 +1953,8 @@ class DebuggerPageElement extends ObservatoryElement {
     var splitterDiv = $['splitterDiv'];
     var cmdDiv = $['commandDiv'];
 
-    int navbarHeight = navbarDiv.clientHeight;
+    // For now, force navbar height to 40px in the debugger.
+    int navbarHeight = NavBarElement.height;
     int splitterHeight = splitterDiv.clientHeight;
     int cmdHeight = cmdDiv.clientHeight;
 
@@ -1960,6 +1962,7 @@ class DebuggerPageElement extends ObservatoryElement {
     int fixedHeight = navbarHeight + splitterHeight + cmdHeight;
     int available = windowHeight - fixedHeight;
     int stackHeight = available ~/ 1.6;
+    navbarDiv.style.setProperty('height', '${navbarHeight}px');
     stackDiv.style.setProperty('height', '${stackHeight}px');
   }
 
@@ -1987,6 +1990,7 @@ class DebuggerPageElement extends ObservatoryElement {
 @CustomTag('debugger-stack')
 class DebuggerStackElement extends ObservatoryElement {
   @published Isolate isolate;
+  @published Element scroller;
   @observable bool hasStack = false;
   @observable bool hasMessages = false;
   @observable bool isSampled = false;
@@ -1996,6 +2000,7 @@ class DebuggerStackElement extends ObservatoryElement {
   _addFrame(List frameList, Frame frameInfo) {
     DebuggerFrameElement frameElement = new Element.tag('debugger-frame');
     frameElement.frame = frameInfo;
+    frameElement.scroller = scroller;
 
     if (frameInfo.index == currentFrame) {
       frameElement.setCurrent(true);
@@ -2122,15 +2127,6 @@ class DebuggerStackElement extends ObservatoryElement {
     }
   }
 
-  Set<Script> activeScripts() {
-    var s = new Set<Script>();
-    List frameElements = $['frameList'].children;
-    for (var frameElement in frameElements) {
-      s.add(frameElement.children[0].script);
-    }
-    return s;
-  }
-
   Future doPauseIsolate() {
     if (debugger != null) {
       return debugger.isolate.pause();
@@ -2153,6 +2149,7 @@ class DebuggerStackElement extends ObservatoryElement {
 @CustomTag('debugger-frame')
 class DebuggerFrameElement extends ObservatoryElement {
   @published Frame frame;
+  @published Element scroller;
 
   // Is this the current frame?
   bool _current = false;
@@ -2167,17 +2164,14 @@ class DebuggerFrameElement extends ObservatoryElement {
       var frameOuter = $['frameOuter'];
       if (_current) {
         frameOuter.classes.add('current');
-        expanded = true;
-        frameOuter.classes.add('shadow');
+        _expand();
         scrollIntoView();
       } else {
         frameOuter.classes.remove('current');
         if (_pinned) {
-          expanded = true;
-          frameOuter.classes.add('shadow');
+          _expand();
         } else {
-          expanded = false;
-          frameOuter.classes.remove('shadow');
+          _unexpand();
         }
       }
       busy = false;
@@ -2189,7 +2183,6 @@ class DebuggerFrameElement extends ObservatoryElement {
   @observable bool busy = false;
 
   DebuggerFrameElement.created() : super.created();
-
 
   String makeExpandKey(String key) {
     return '${frame.function.qualifiedName}/${key}';
@@ -2206,11 +2199,87 @@ class DebuggerFrameElement extends ObservatoryElement {
 
   Script get script => frame.location.script;
 
+  int _varsTop(varsDiv) {
+    const minTop = 5;
+    if (varsDiv == null) {
+      return minTop;
+    }
+    const navbarHeight = NavBarElement.height;
+    const bottomPad = 6;
+    var parent = varsDiv.parent.getBoundingClientRect();
+    var varsHeight = varsDiv.clientHeight;
+    var maxTop = parent.height - (varsHeight + bottomPad);
+    var adjustedTop = navbarHeight - parent.top;
+    return (max(minTop, min(maxTop, adjustedTop)));
+  }
+
+  void _onScroll(event) {
+    if (!expanded) {
+      return;
+    }
+    var varsDiv = shadowRoot.querySelector('#vars');
+    if (varsDiv == null) {
+      return;
+    }
+    var currentTop = varsDiv.style.top;
+    var newTop = _varsTop(varsDiv);
+    if (currentTop != newTop) {
+      varsDiv.style.top = '${newTop}px';
+    }
+  }
+
+  void _expand() {
+    var frameOuter = $['frameOuter'];
+    expanded = true;
+    frameOuter.classes.add('shadow');
+    _subscribeToScroll();
+  }
+
+  void _unexpand() {
+    var frameOuter = $['frameOuter'];
+    expanded = false;
+    _unsubscribeToScroll();
+    frameOuter.classes.remove('shadow');
+  }
+
+  StreamSubscription _scrollSubscription;
+  StreamSubscription _resizeSubscription;
+
+  void _subscribeToScroll() {
+    if (scroller != null) {
+      if (_scrollSubscription == null) {
+        _scrollSubscription = scroller.onScroll.listen(_onScroll);
+      }
+      if (_resizeSubscription == null) {
+        _resizeSubscription = window.onResize.listen(_onScroll);
+      }
+    }
+  }
+
+  void _unsubscribeToScroll() {
+    if (_scrollSubscription != null) {
+      _scrollSubscription.cancel();
+      _scrollSubscription = null;
+    }
+    if (_resizeSubscription != null) {
+      _resizeSubscription.cancel();
+      _resizeSubscription = null;
+    }
+  }
+
   @override
   void attached() {
     super.attached();
     int windowHeight = window.innerHeight;
     scriptHeight = '${windowHeight ~/ 1.6}px';
+    if (expanded) {
+      _subscribeToScroll();
+    }
+  }
+
+  void detached() {
+    _unsubscribeToScroll();
+    super.detached();
   }
 
   void toggleExpand(var a, var b, var c) {
@@ -2220,13 +2289,10 @@ class DebuggerFrameElement extends ObservatoryElement {
     busy = true;
     frame.function.load().then((func) {
         _pinned = !_pinned;
-        var frameOuter = $['frameOuter'];
         if (_pinned) {
-          expanded = true;
-          frameOuter.classes.add('shadow');
+          _expand();
         } else {
-          expanded = false;
-          frameOuter.classes.remove('shadow');
+          _unexpand();
         }
         busy = false;
       });

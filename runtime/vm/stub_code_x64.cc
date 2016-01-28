@@ -1841,8 +1841,14 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // R13: instance type arguments.
   Label loop, found, not_found, next_iteration;
   __ SmiTag(R10);
+  __ cmpq(R10, Immediate(Smi::RawValue(kClosureCid)));
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  __ movq(R10, FieldAddress(RAX, Closure::function_offset()));
+  // R10: instance class id as Smi or function.
   __ Bind(&loop);
-  __ movq(RDI, Address(RDX, kWordSize * SubtypeTestCache::kInstanceClassId));
+  __ movq(RDI,
+          Address(RDX,
+                  kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
   __ cmpq(RDI, R9);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
   __ cmpq(RDI, R10);

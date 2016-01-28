@@ -6,6 +6,7 @@ library analyzer.dart.element.type;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart' show InterfaceTypeImpl;
+import 'package:analyzer/src/generated/type_system.dart' show TypeSystem;
 
 /**
  * The type associated with elements in the element model.
@@ -38,6 +39,12 @@ abstract class DartType {
   bool get isBottom;
 
   /**
+   * Return `true` if this type represents the type 'Future' defined in the
+   * dart:async library.
+   */
+  bool get isDartAsyncFuture;
+
+  /**
    * Return `true` if this type represents the type 'Function' defined in the
    * dart:core library.
    */
@@ -68,6 +75,19 @@ abstract class DartType {
    * such as when the type represents the type of an unnamed function.
    */
   String get name;
+
+  /**
+   * Implements the function "flatten" defined in the spec, where T is this
+   * type:
+   *
+   *     If T = Future<S> then flatten(T) = flatten(S).
+   *
+   *     Otherwise if T <: Future then let S be a type such that T << Future<S>
+   *     and for all R, if T << Future<R> then S << R.  Then flatten(T) = S.
+   *
+   *     In any other circumstance, flatten(T) = T.
+   */
+  DartType flattenFutures(TypeSystem typeSystem);
 
   /**
    * Return `true` if this type is assignable to the given [type]. A type
@@ -137,16 +157,6 @@ abstract class FunctionType implements ParameterizedType {
   List<TypeParameterElement> get boundTypeParameters;
 
   /**
-   * The formal type parameters of this generic function.
-   * For example `<T> T -> T`.
-   *
-   * These are distinct from the [typeParameters] list, which contains type
-   * parameters from surrounding contexts, and thus are free type variables from
-   * the perspective of this function type.
-   */
-  List<TypeParameterElement> get typeFormals;
-
-  /**
    * Return a map from the names of named parameters to the types of the named
    * parameters of this type of function. The entries in the map will be
    * iterated in the same order as the order in which the named parameters were
@@ -182,6 +192,16 @@ abstract class FunctionType implements ParameterizedType {
    * Return the type of object returned by this type of function.
    */
   DartType get returnType;
+
+  /**
+   * The formal type parameters of this generic function.
+   * For example `<T> T -> T`.
+   *
+   * These are distinct from the [typeParameters] list, which contains type
+   * parameters from surrounding contexts, and thus are free type variables from
+   * the perspective of this function type.
+   */
+  List<TypeParameterElement> get typeFormals;
 
   /**
    * Return the type resulting from instantiating (replacing) the given

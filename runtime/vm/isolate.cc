@@ -58,6 +58,9 @@ DEFINE_FLAG(bool, pause_isolates_on_start, false,
             "Pause isolates before starting.");
 DEFINE_FLAG(bool, pause_isolates_on_exit, false,
             "Pause isolates exiting.");
+DEFINE_FLAG(bool, pause_isolates_on_unhandled_exceptions, false,
+            "Pause isolates on unhandled exceptions.");
+
 DEFINE_FLAG(bool, break_at_isolate_spawn, false,
             "Insert a one-time breakpoint at the entrypoint for all spawned "
             "isolates");
@@ -1070,6 +1073,9 @@ bool Isolate::MakeRunnable() {
   if (!ServiceIsolate::IsServiceIsolate(this)) {
     message_handler()->set_pause_on_start(FLAG_pause_isolates_on_start);
     message_handler()->set_pause_on_exit(FLAG_pause_isolates_on_exit);
+    if (FLAG_pause_isolates_on_unhandled_exceptions) {
+      debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
+    }
   }
   IsolateSpawnState* state = spawn_state();
   if (state != NULL) {

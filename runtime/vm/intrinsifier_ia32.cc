@@ -1680,19 +1680,16 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   Label fall_through;
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ LoadClassIdMayBeSmi(EDI, EAX);
+  __ cmpl(EDI, Immediate(kClosureCid));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Instance is a closure.
   __ LoadClassById(EBX, EDI);
   // EBX: class of instance (EAX).
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ movl(EDI, FieldAddress(EBX, Class::signature_function_offset()));
-  __ cmpl(EDI, raw_null);
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
 
   __ movzxw(EDI, FieldAddress(EBX, Class::num_type_arguments_offset()));
   __ cmpl(EDI, Immediate(0));
   __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
   __ movl(EAX, FieldAddress(EBX, Class::canonical_types_offset()));
-  __ cmpl(EAX, raw_null);
+  __ CompareObject(EAX, Object::null_object());
   __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Not yet set.
   __ ret();
 

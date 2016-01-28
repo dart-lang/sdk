@@ -1073,6 +1073,8 @@ abstract class Compiler {
       dumpInfoTask.dumpInfo();
     }
 
+    backend.sourceInformationStrategy.onComplete();
+
     checkQueues();
   }
 

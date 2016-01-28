@@ -504,7 +504,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return new CreateInstance(
         node.classElement,
         translateArguments(node.arguments),
-        translateArguments(node.typeInformation),
+        getVariableUseOrNull(node.typeInformation),
         node.sourceInformation);
   }
 
@@ -543,17 +543,6 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
             translateArguments(node.values));
   }
 
-  Expression visitLiteralMap(cps_ir.LiteralMap node) {
-    return new LiteralMap(
-        node.dartType,
-        new List<LiteralMapEntry>.generate(node.entries.length, (int index) {
-          return new LiteralMapEntry(
-              getVariableUse(node.entries[index].key),
-              getVariableUse(node.entries[index].value));
-        })
-    );
-  }
-
   Expression visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
     return new ReifyRuntimeType(
         getVariableUse(node.value), node.sourceInformation);
@@ -568,6 +557,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
 
   Expression visitTypeExpression(cps_ir.TypeExpression node) {
     return new TypeExpression(
+        node.kind,
         node.dartType,
         node.arguments.map(getVariableUse).toList());
   }

@@ -49,6 +49,9 @@ class BufferPointer {
     return new BufferPointer._(_buffer, _offset + delta);
   }
 
+  double _getFloat64([int delta = 0]) =>
+      _buffer.getFloat64(_offset + delta, Endianness.LITTLE_ENDIAN);
+
   int _getInt32([int delta = 0]) =>
       _buffer.getInt32(_offset + delta, Endianness.LITTLE_ENDIAN);
 
@@ -171,6 +174,22 @@ class Builder {
       _prepare(4, 1);
       _trackField(field);
       _setUint32AtTail(_buf, _tail, _tail - offset._tail);
+    }
+  }
+
+  /**
+   * Add the [field] with the given 32-bit unsigned integer [value].  The field
+   * is not added if the [value] is equal to [def].
+   */
+  void addUint32(int field, int value, [int def]) {
+    if (_currentVTable == null) {
+      throw new StateError('Start a table before adding values.');
+    }
+    if (value != null && value != def) {
+      int size = 4;
+      _prepare(size, 1);
+      _trackField(field);
+      _setUint32AtTail(_buf, _tail, value);
     }
   }
 
@@ -299,6 +318,26 @@ class Builder {
   }
 
   /**
+   * Write the given list of 64-bit float [values].
+   */
+  Offset writeListFloat64(List<double> values) {
+    if (_currentVTable != null) {
+      throw new StateError(
+          'Cannot write a non-scalar value while writing a table.');
+    }
+    _prepare(8, 1 + values.length);
+    Offset result = new Offset(_tail);
+    int tail = _tail;
+    _setUint32AtTail(_buf, tail, values.length);
+    tail -= 8;
+    for (double value in values) {
+      _setFloat64AtTail(_buf, tail, value);
+      tail -= 8;
+    }
+    return result;
+  }
+
+  /**
    * Write the given list of signed 32-bit integer [values].
    */
   Offset writeListInt32(List<int> values) {
@@ -313,6 +352,26 @@ class Builder {
     tail -= 4;
     for (int value in values) {
       _setInt32AtTail(_buf, tail, value);
+      tail -= 4;
+    }
+    return result;
+  }
+
+  /**
+   * Write the given list of unsigned 32-bit integer [values].
+   */
+  Offset writeListUint32(List<int> values) {
+    if (_currentVTable != null) {
+      throw new StateError(
+          'Cannot write a non-scalar value while writing a table.');
+    }
+    _prepare(4, 1 + values.length);
+    Offset result = new Offset(_tail);
+    int tail = _tail;
+    _setUint32AtTail(_buf, tail, values.length);
+    tail -= 4;
+    for (int value in values) {
+      _setUint32AtTail(_buf, tail, value);
       tail -= 4;
     }
     return result;
@@ -383,6 +442,10 @@ class Builder {
     _currentVTable.addField(field, _tail);
   }
 
+  static void _setFloat64AtTail(ByteData _buf, int tail, double x) {
+    _buf.setFloat64(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+  }
+
   static void _setInt32AtTail(ByteData _buf, int tail, int x) {
     _buf.setInt32(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
   }
@@ -393,7 +456,22 @@ class Builder {
 }
 
 /**
- * The reader of 32-bit signed integers.
+ * The reader of lists of 64-bit float values.
+ *
+ * The returned unmodifiable lists lazily read values on access.
+ */
+class Float64ListReader extends Reader<List<double>> {
+  const Float64ListReader();
+
+  @override
+  int get size => 4;
+
+  @override
+  List<double> read(BufferPointer bp) => new _FbFloat64List(bp.derefObject());
+}
+
+/**
+ * The reader of signed 32-bit integers.
  */
 class Int32Reader extends Reader<int> {
   const Int32Reader() : super();
@@ -433,7 +511,7 @@ class ListReader<E> extends Reader<List<E>> {
 
   @override
   List<E> read(BufferPointer bp) =>
-      new _FbList<E>(_elementReader, bp.derefObject());
+      new _FbInt32List<E>(_elementReader, bp.derefObject());
 }
 
 /**
@@ -519,14 +597,29 @@ abstract class TableReader<T> extends Reader<T> {
   }
 }
 
-class _FbList<E> extends Object with ListMixin<E> implements List<E> {
-  final Reader<E> elementReader;
+/**
+ * The reader of unsigned 32-bit integers.
+ */
+class Uint32Reader extends Reader<int> {
+  const Uint32Reader() : super();
+
+  @override
+  int get size => 4;
+
+  @override
+  int read(BufferPointer bp) => bp._getUint32();
+}
+
+/**
+ * The list backed by 64-bit values - Uint64 length and Float64.
+ */
+class _FbFloat64List extends _FbList<double> {
   final BufferPointer bp;
 
   int _length;
-  List<E> _items;
+  List<double> _items;
 
-  _FbList(this.elementReader, this.bp);
+  _FbFloat64List(this.bp);
 
   @override
   int get length {
@@ -535,20 +628,56 @@ class _FbList<E> extends Object with ListMixin<E> implements List<E> {
   }
 
   @override
-  void set length(int i) =>
-      throw new StateError('Attempt to modify immutable list');
+  double operator [](int i) {
+    _items ??= new List<double>(length);
+    double item = _items[i];
+    if (item == null) {
+      BufferPointer ref = bp._advance(8 + 8 * i);
+      item = ref._getFloat64();
+      _items[i] = item;
+    }
+    return item;
+  }
+}
+
+/**
+ * The list backed by 32-bit values - offsets or integers.
+ */
+class _FbInt32List<E> extends _FbList<E> {
+  final Reader<E> elementReader;
+  final BufferPointer bp;
+
+  int _length;
+  List<E> _items;
+
+  _FbInt32List(this.elementReader, this.bp);
+
+  @override
+  int get length {
+    _length ??= bp._getUint32();
+    return _length;
+  }
 
   @override
   E operator [](int i) {
     _items ??= new List<E>(length);
     E item = _items[i];
     if (item == null) {
-      BufferPointer ref = bp._advance(4 + elementReader.size * i);
+      BufferPointer ref = bp._advance(4 + 4 * i);
       item = elementReader.read(ref);
       _items[i] = item;
     }
     return item;
   }
+}
+
+/**
+ * The base class for immutable lists read from flat buffers.
+ */
+abstract class _FbList<E> extends Object with ListMixin<E> implements List<E> {
+  @override
+  void set length(int i) =>
+      throw new StateError('Attempt to modify immutable list');
 
   @override
   void operator []=(int i, E e) =>

@@ -2734,7 +2734,7 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
-                                   Scanner::kNoSourcePos);
+                                   Token::kNoSourcePos);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -2760,7 +2760,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // code that matches backwards from the end of the pattern.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
-                                   Scanner::kNoSourcePos);
+                                   Token::kNoSourcePos);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -3689,6 +3689,7 @@ void NativeCallInstr::SetupNative() {
     Report::MessageF(Report::kError,
                      Script::Handle(function().script()),
                      function().token_pos(),
+                     Report::AtLocation,
                      "native function '%s' (%" Pd " arguments) cannot be found",
                      native_name().ToCString(),
                      function().NumParameters());

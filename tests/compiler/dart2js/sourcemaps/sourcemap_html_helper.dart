@@ -8,6 +8,7 @@
 library sourcemap.html.helper;
 
 import 'dart:convert';
+import 'dart:math' as Math;
 
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/io/source_information.dart';
@@ -40,9 +41,14 @@ String toPattern(int index) {
   return 'linear-gradient(to right, ${startColor.toCss}, ${endColor.toCss})';
 }
 
-/// Return the html for the [index] line number.
-String lineNumber(int index) {
-  return '<span class="lineNumber">${index + 1} </span>';
+/// Return the html for the [index] line number. If [width] is provided, shorter
+/// line numbers will be prefixed with spaces to match the width.
+String lineNumber(int index, [int width]) {
+  String text = '${index + 1}';
+  if (width != null && text.length < width) {
+    text = (' ' * (width - text.length)) + text;
+  }
+  return '<span class="lineNumber">$text </span>';
 }
 
 /// Return the html escaped [text].
@@ -59,6 +65,10 @@ class SourceMapHtmlInfo {
   SourceMapHtmlInfo(this.sourceMapInfo,
                     this.codeProcessor,
                     this.sourceLocationCollection);
+
+  String toString() {
+    return sourceMapInfo.toString();
+  }
 }
 
 /// A collection of source locations.
@@ -84,16 +94,98 @@ class SourceLocationCollection {
   }
 }
 
+abstract class CssColorScheme {
+  String singleLocationToCssColor(var id);
+
+  String multiLocationToCssColor(List ids);
+
+  bool get showLocationAsSpan;
+}
+
+class CustomColorScheme implements CssColorScheme {
+  final bool showLocationAsSpan;
+  final Function single;
+  final Function multi;
+
+  CustomColorScheme(
+      {this.showLocationAsSpan: false,
+       String this.single(var id),
+       String this.multi(List ids)});
+
+  String singleLocationToCssColor(var id) => single != null ? single(id) : null;
+
+  String multiLocationToCssColor(List ids) => multi != null ? multi(ids) : null;
+}
+
+class PatternCssColorScheme implements CssColorScheme {
+  const PatternCssColorScheme();
+
+  bool get showLocationAsSpan => true;
+
+  String singleLocationToCssColor(int index) {
+    return "background:${toPattern(index)};";
+  }
+
+  String multiLocationToCssColor(List<int> indices) {
+
+    StringBuffer sb = new StringBuffer();
+    double delta = 100.0 / (indices.length);
+    double position = 0.0;
+
+    void addColor(String color) {
+      sb.write(', ${color} ${position.toInt()}%');
+      position += delta;
+      sb.write(', ${color} ${position.toInt()}%');
+    }
+
+    for (int index in indices) {
+      addColor('${toColorCss(index)}');
+    }
+    return 'background: linear-gradient(to right${sb}); '
+           'background-size: 10px 10px;';
+  }
+}
+
+class SingleColorScheme implements CssColorScheme {
+  const SingleColorScheme();
+
+  bool get showLocationAsSpan => false;
+
+  String singleLocationToCssColor(int index) {
+    return "background:${toColorCss(index)};";
+  }
+
+  String multiLocationToCssColor(List<int> indices) {
+    StringBuffer sb = new StringBuffer();
+    double delta = 100.0 / (indices.length);
+    double position = 0.0;
+
+    void addColor(String color) {
+      sb.write(', ${color} ${position.toInt()}%');
+      position += delta;
+      sb.write(', ${color} ${position.toInt()}%');
+    }
+
+    for (int index in indices) {
+      addColor('${toColorCss(index)}');
+    }
+    return 'background: linear-gradient(to bottom${sb}); '
+           'background-size: 10px 3px;';
+  }
+}
+
 /// Processor that computes the HTML representation of a block of JavaScript
 /// code and collects the source locations mapped in the code.
 class CodeProcessor {
   int lineIndex = 0;
-  final String onclick;
+  final String name;
   int currentJsSourceOffset = 0;
   final SourceLocationCollection collection;
   final Map<int, List<SourceLocation>> codeLocations = {};
+  final CssColorScheme colorScheme;
 
-  CodeProcessor(this.onclick, this.collection);
+  CodeProcessor(this.name, this.collection,
+      {this.colorScheme: const PatternCssColorScheme()});
 
   void addSourceLocation(int targetOffset, SourceLocation sourceLocation) {
     codeLocations.putIfAbsent(targetOffset, () => []).add(sourceLocation);
@@ -101,101 +193,274 @@ class CodeProcessor {
   }
 
   String convertToHtml(String text) {
-    StringBuffer htmlBuffer = new StringBuffer();
-    int offset = 0;
-    int lineIndex = 0;
-    bool pendingSourceLocationsEnd = false;
-    htmlBuffer.write(lineNumber(lineIndex));
-    SourceLocation currentLocation;
-
-    void endCurrentLocation() {
-      if (currentLocation != null) {
-        htmlBuffer.write('</a>');
-      }
-      currentLocation = null;
-    }
-
-    void addSubstring(int until) {
-      if (until <= offset) return;
-
-      String substring = text.substring(offset, until);
-      offset = until;
-      bool first = true;
-      for (String line in substring.split('\n')) {
-        if (!first) {
-          endCurrentLocation();
-          htmlBuffer.write('\n');
-          lineIndex++;
-          htmlBuffer.write(lineNumber(lineIndex));
+    List<Annotation> annotations = <Annotation>[];
+    codeLocations.forEach((int codeOffset, List<SourceLocation> locations) {
+      for (SourceLocation location in locations) {
+        if (location != null) {
+          annotations.add(new Annotation(
+              collection.getIndex(location),
+              codeOffset,
+              location.shortText));
         }
-        htmlBuffer.write(escape(line));
-        first = false;
       }
-    }
-
-    void insertSourceLocations(List<SourceLocation> lastSourceLocations) {
-      endCurrentLocation();
-
-      String color;
-      int index;
-      String title;
-      if (lastSourceLocations.length == 1) {
-        SourceLocation sourceLocation = lastSourceLocations.single;
-        if (sourceLocation != null) {
-          index = collection.getIndex(sourceLocation);
-          color = "background:${toPattern(index)};";
-          title = sourceLocation.shortText;
-          currentLocation = sourceLocation;
-        }
-      } else {
-
-        index = collection.getIndex(lastSourceLocations.first);
-        StringBuffer sb = new StringBuffer();
-        double delta = 100.0 / (lastSourceLocations.length);
-        double position = 0.0;
-
-        void addColor(String color) {
-          sb.write(', ${color} ${position.toInt()}%');
-          position += delta;
-          sb.write(', ${color} ${position.toInt()}%');
-        }
-
-        for (SourceLocation sourceLocation in lastSourceLocations) {
-          if (sourceLocation == null) continue;
-          int colorIndex = collection.getIndex(sourceLocation);
-          addColor('${toColorCss(colorIndex)}');
-          currentLocation = sourceLocation;
-        }
-        color = 'background: linear-gradient(to right${sb}); '
-                'background-size: 10px 10px;';
-        title = lastSourceLocations.map((l) => l.shortText).join(',');
-      }
-      if (index != null) {
-        Set<int> indices =
-            lastSourceLocations.map((l) => collection.getIndex(l)).toSet();
-        String onmouseover = indices.map((i) => '\'$i\'').join(',');
-        htmlBuffer.write(
-            '<a name="js$index" href="#${index}" style="$color" title="$title" '
-            'onclick="${onclick}" onmouseover="highlight([${onmouseover}]);"'
-            'onmouseout="highlight([]);">');
-        pendingSourceLocationsEnd = true;
-      }
-      if (lastSourceLocations.last == null) {
-        endCurrentLocation();
-      }
-    }
-
-    for (int targetOffset in codeLocations.keys.toList()..sort()) {
-      List<SourceLocation> sourceLocations = codeLocations[targetOffset];
-      addSubstring(targetOffset);
-      insertSourceLocations(sourceLocations);
-    }
-
-    addSubstring(text.length);
-    endCurrentLocation();
-    return htmlBuffer.toString();
+    });
+    return convertAnnotatedCodeToHtml(
+        text, annotations, colorScheme: colorScheme,
+        elementScheme: new HighlightLinkScheme(name),
+        windowSize: 3);
   }
 }
+
+class Annotation {
+  final id;
+  final int codeOffset;
+  final String title;
+
+  Annotation(this.id, this.codeOffset, this.title);
+}
+
+class ElementScheme {
+  const ElementScheme();
+
+  String getName(var id, Set ids) => null;
+  String getHref(var id, Set ids) => null;
+  String onClick(var id, Set ids) => null;
+  String onMouseOver(var id, Set ids) => null;
+  String onMouseOut(var id, Set ids) => null;
+}
+
+class HighlightLinkScheme implements ElementScheme {
+  final String name;
+
+  HighlightLinkScheme(this.name);
+
+  @override
+  String getName(int id, Set<int> indices) {
+    return 'js$id';
+  }
+
+  @override
+  String getHref(int id, Set<int> indices) {
+    return "#${id}";
+  }
+
+  @override
+  String onClick(int id, Set<int> indices) {
+    return "show(\'$name\');";
+  }
+
+  @override
+  String onMouseOut(int id, Set<int> indices) {
+    String onmouseover = indices.map((i) => '\'$i\'').join(',');
+    return "highlight([${onmouseover}]);";
+  }
+
+  @override
+  String onMouseOver(int id, Set<int> indices) {
+    return "highlight([]);";
+  }
+}
+
+String convertAnnotatedCodeToHtml(
+    String code,
+    Iterable<Annotation> annotations,
+    {CssColorScheme colorScheme: const SingleColorScheme(),
+     ElementScheme elementScheme: const ElementScheme(),
+     int windowSize}) {
+  StringBuffer htmlBuffer = new StringBuffer();
+  List<CodeLine> lines = convertAnnotatedCodeToCodeLines(
+      code, annotations,
+      colorScheme: colorScheme,
+      elementScheme: elementScheme,
+      windowSize: windowSize);
+  int lineNoWidth;
+  if (lines.isNotEmpty) {
+    lineNoWidth = '${lines.last.lineNo + 1}'.length;
+  }
+  for (CodeLine line in lines) {
+    line.printHtmlOn(htmlBuffer, lineNoWidth);
+  }
+  return htmlBuffer.toString();
+}
+
+List<CodeLine> convertAnnotatedCodeToCodeLines(
+    String code,
+    Iterable<Annotation> annotations,
+    {CssColorScheme colorScheme: const SingleColorScheme(),
+     ElementScheme elementScheme: const ElementScheme(),
+     int windowSize}) {
+
+  List<CodeLine> lines = <CodeLine>[];
+  CodeLine currentLine;
+  int offset = 0;
+  int lineIndex = 0;
+  int firstLine;
+  int lastLine;
+  bool pendingSourceLocationsEnd = false;
+
+  void write(String code, String html) {
+    if (currentLine != null) {
+      currentLine.codeBuffer.write(code);
+      currentLine.htmlParts.add(html);
+    }
+  }
+
+  void startLine() {
+    lines.add(currentLine = new CodeLine(lines.length));
+  }
+
+  void endCurrentLocation() {
+    if (pendingSourceLocationsEnd) {
+      write('', '</a>');
+    }
+    pendingSourceLocationsEnd = false;
+  }
+
+  void addSubstring(int until, {bool isFirst: false, bool isLast: false}) {
+    if (until <= offset) return;
+    if (offset >= code.length) return;
+
+    String substring = code.substring(offset, until);
+    offset = until;
+    bool first = true;
+
+    if (isLast) {
+      lastLine = lineIndex;
+    }
+    if (isFirst) {
+      startLine();
+    }
+    for (String line in substring.split('\n')) {
+      if (!first) {
+        endCurrentLocation();
+        write('', '\n');
+        lineIndex++;
+        startLine();
+      }
+      if (pendingSourceLocationsEnd && !colorScheme.showLocationAsSpan) {
+        if (line.isNotEmpty) {
+          String before = line.substring(0, 1);
+          write(before, escape(before));
+          endCurrentLocation();
+          String after = line.substring(1);
+          write(after, escape(after));
+        }
+      } else {
+        write(line, escape(line));
+      }
+      first = false;
+    }
+    if (isFirst) {
+      firstLine = lineIndex;
+    }
+  }
+
+  void insertAnnotations(List<Annotation> annotations) {
+    endCurrentLocation();
+
+    String color;
+    var id;
+    String title;
+    if (annotations.length == 1) {
+      Annotation annotation = annotations.single;
+      if (annotation != null) {
+        id = annotation.id;
+        color = colorScheme.singleLocationToCssColor(id);
+        title = annotation.title;
+      }
+    } else {
+      id = annotations.first.id;
+      List ids = [];
+      for (Annotation annotation in annotations) {
+        ids.add(annotation.id);
+      }
+      color = colorScheme.multiLocationToCssColor(ids);
+      title = annotations.map((l) => l.title).join(',');
+    }
+    if (id != null) {
+      Set ids = annotations.map((l) => l.id).toSet();
+      String name = elementScheme.getName(id, ids);
+      String href = elementScheme.getHref(id, ids);
+      String onclick = elementScheme.onClick(id, ids);
+      String onmouseover = elementScheme.onMouseOver(id, ids);
+      String onmouseout = elementScheme.onMouseOut(id, ids);
+      write('', '<a');
+      if (href != null) {
+        write('', ' href="${href}"');
+      }
+      if (name != null) {
+        write('', ' name="${name}"');
+      }
+      if (title != null) {
+        write('', ' title="${escape(title)}"');
+      }
+      write('', ' style="${color}"');
+      if (onclick != null) {
+        write('', ' onclick="${onclick}"');
+      }
+      if (onmouseover != null) {
+        write('', ' onmouseover="${onmouseover}"');
+      }
+      if (onmouseout != null) {
+        write('', ' onmouseout="${onmouseout}"');
+      }
+      write('', '>');
+      pendingSourceLocationsEnd = true;
+    }
+    if (annotations.last == null) {
+      endCurrentLocation();
+    }
+  }
+
+  Map<int, List<Annotation>> annotationMap = <int, List<Annotation>>{};
+  for (Annotation annotation in annotations) {
+    annotationMap.putIfAbsent(annotation.codeOffset, () => <Annotation>[])
+                 .add(annotation);
+  }
+
+  bool first = true;
+  for (int codeOffset in annotationMap.keys.toList()..sort()) {
+    List<Annotation> annotationList = annotationMap[codeOffset];
+    addSubstring(codeOffset, isFirst: first);
+    insertAnnotations(annotationList);
+    first = false;
+  }
+
+  addSubstring(code.length, isFirst: first, isLast: true);
+  endCurrentLocation();
+
+  int start = 0;
+  int end = lines.length - 1;
+  if (windowSize != null) {
+    start = Math.max(firstLine - windowSize, start);
+    end = Math.min(lastLine + windowSize, end);
+  }
+  return lines.sublist(start, end);
+}
+
+class CodeLine {
+  final int lineNo;
+  final StringBuffer codeBuffer = new StringBuffer();
+  final List<String> htmlParts = <String>[];
+  String _code;
+
+  CodeLine(this.lineNo);
+
+  String get code {
+    if (_code == null) {
+      _code = codeBuffer.toString();
+    }
+    return _code;
+  }
+
+  void printHtmlOn(StringBuffer htmlBuffer, [int lineNoWidth]) {
+    htmlBuffer.write(lineNumber(lineNo, lineNoWidth));
+    for (String part in htmlParts) {
+      htmlBuffer.write(part);
+    }
+  }
+}
+
 
 /// Computes the HTML representation for a collection of JavaScript code blocks.
 String computeJsHtml(Iterable<SourceMapHtmlInfo> infoList) {
@@ -240,10 +505,10 @@ SourceMapHtmlInfo createHtmlInfo(SourceLocationCollection collection,
   js.Node node = info.node;
   String code = info.code;
   String name = info.name;
-  String onclick = 'show(\'$name\');';
   SourceLocationCollection subcollection =
       new SourceLocationCollection(collection);
-  CodeProcessor codeProcessor = new CodeProcessor(onclick, subcollection);
+  CodeProcessor codeProcessor = new CodeProcessor(name, subcollection);
+  //print('${info.element}:${info.nodeMap.nodes.length}');
   for (js.Node node in info.nodeMap.nodes) {
     info.nodeMap[node].forEach(
         (int targetOffset, List<SourceLocation> sourceLocations) {
@@ -312,6 +577,11 @@ String computeDartHtmlPart(String name,
 
     int firstLineIndex;
     int lastLineIndex;
+    List<int> lineIndices = uriMap.keys.toList()..sort();
+    int lineNoWidth;
+    if (lineIndices.isNotEmpty) {
+      lineNoWidth = '${lineIndices.last + windowSize + 1}'.length;
+    }
 
     void flush() {
       if (firstLineIndex != null && lastLineIndex != null) {
@@ -325,7 +595,7 @@ String computeDartHtmlPart(String name,
              line < firstLineIndex;
              line++) {
           if (line >= 0) {
-            dartCodeBuffer.write(lineNumber(line));
+            dartCodeBuffer.write(lineNumber(line, lineNoWidth));
             dartCodeBuffer.write(sourceFile.getLineText(line));
           }
         }
@@ -334,7 +604,7 @@ String computeDartHtmlPart(String name,
              line <= lastLineIndex + windowSize;
              line++) {
           if (line < sourceFile.lines) {
-            dartCodeBuffer.write(lineNumber(line));
+            dartCodeBuffer.write(lineNumber(line, lineNoWidth));
             dartCodeBuffer.write(sourceFile.getLineText(line));
           }
         }
@@ -345,7 +615,6 @@ String computeDartHtmlPart(String name,
       codeBuffer.clear();
     }
 
-    List<int> lineIndices = uriMap.keys.toList()..sort();
     lineIndices.forEach((int lineIndex) {
       List<SourceLocation> locations = uriMap[lineIndex];
       if (lastLineIndex != null &&
@@ -356,7 +625,7 @@ String computeDartHtmlPart(String name,
         firstLineIndex = lineIndex;
       } else {
         for (int line = lastLineIndex + 1; line < lineIndex; line++) {
-          codeBuffer.write(lineNumber(line));
+          codeBuffer.write(lineNumber(line, lineNoWidth));
           codeBuffer.write(sourceFile.getLineText(line));
         }
       }
@@ -371,7 +640,7 @@ String computeDartHtmlPart(String name,
           end = locations[i + 1].column;
         }
         if (i == 0) {
-          codeBuffer.write(lineNumber(lineIndex));
+          codeBuffer.write(lineNumber(lineIndex, lineNoWidth));
           codeBuffer.write(line.substring(0, start));
         }
         codeBuffer.write(

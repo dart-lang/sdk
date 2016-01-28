@@ -140,7 +140,7 @@ oom_error_stacktrace_test: Pass # The test only fails at runtime.
 [ $compiler == dart2js && $browser ]
 *: Skip
 
-[ $arch == simarm || $arch == simarmv5te || $arch == simmips ]
+[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 

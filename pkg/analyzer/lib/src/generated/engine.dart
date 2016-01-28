@@ -7,13 +7,14 @@ library analyzer.src.generated.engine;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -312,8 +313,8 @@ abstract class AnalysisContext {
    * Perform work until the given [result] has been computed for the given
    * [target]. Return the computed value.
    */
-  Object /*=V*/ computeResult /*<V>*/ (
-      AnalysisTarget target, ResultDescriptor /*<V>*/ result);
+  Object/*=V*/ computeResult/*<V>*/(
+      AnalysisTarget target, ResultDescriptor/*<V>*/ result);
 
   /**
    * Notifies the context that the client is going to stop using this context.
@@ -474,8 +475,8 @@ abstract class AnalysisContext {
    * If the corresponding [target] does not exist, or the [result] is not
    * computed yet, then the default value is returned.
    */
-  Object /*=V*/ getResult /*<V>*/ (
-      AnalysisTarget target, ResultDescriptor /*<V>*/ result);
+  Object/*=V*/ getResult/*<V>*/(
+      AnalysisTarget target, ResultDescriptor/*<V>*/ result);
 
   /**
    * Return a list of the sources being analyzed in this context whose full path
@@ -1589,6 +1590,7 @@ class ChangeSet {
   /**
    * A list containing the sources that have been deleted.
    */
+  @deprecated
   final List<Source> deletedSources = new List<Source>();
 
   /**
@@ -1651,6 +1653,7 @@ class ChangeSet {
   /**
    * Record that the specified [source] has been deleted.
    */
+  @deprecated
   void deletedSource(Source source) {
     deletedSources.add(source);
   }
@@ -1849,6 +1852,11 @@ class ImplicitAnalysisEvent {
  * users of the context.
  */
 abstract class InternalAnalysisContext implements AnalysisContext {
+  /**
+   * The result provider for [aboutToComputeResult].
+   */
+  ResultProvider resultProvider;
+
   /**
    * A table mapping the sources known to the context to the information known
    * about the source.

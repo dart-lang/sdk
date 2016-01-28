@@ -714,8 +714,10 @@ class TypePropagator extends Pass {
   final CpsFunctionCompiler _functionCompiler;
   final Map<Variable, ConstantValue> _values= <Variable, ConstantValue>{};
   final ConstantPropagationLattice _lattice;
+  final bool recomputeAll;
 
-  TypePropagator(CpsFunctionCompiler functionCompiler)
+  TypePropagator(CpsFunctionCompiler functionCompiler,
+      {this.recomputeAll: false})
       : _functionCompiler = functionCompiler,
         _lattice = new ConstantPropagationLattice(functionCompiler);
 
@@ -731,7 +733,7 @@ class TypePropagator extends Pass {
         _values,
         _internalError);
 
-    analyzer.analyze(root);
+    analyzer.analyze(root, recomputeAll);
 
     // Transform. Uses the data acquired in the previous analysis phase to
     // replace branches with fixed targets and side-effect-free expressions
@@ -1047,6 +1049,16 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       push(invoke);
       return;
     }
+
+    // Shortcut negation to help simplify control flow. The tree IR will insert
+    // a negation again if that's useful.
+    if (condition is ApplyBuiltinOperator &&
+        condition.operator == BuiltinOperator.IsFalsy) {
+      node.condition.changeTo(condition.arguments.single.definition);
+      node.trueContinuation.changeTo(falseCont);
+      node.falseContinuation.changeTo(trueCont);
+      return;
+    }
   }
 
   void visitInvokeContinuation(InvokeContinuation node) {
@@ -1142,7 +1154,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       return cps;
     }
 
-    if (node.selector.isOperator && node.arguments.length == 2) {
+    if (node.selector.isOperator && node.dartArgumentsLength == 1) {
       Primitive leftArg = node.dartReceiver;
       Primitive rightArg = node.dartArgument(0);
       AbstractConstantValue left = getValue(leftArg);
@@ -1223,7 +1235,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         }
       }
     }
-    if (node.selector.isOperator && node.arguments.length == 1) {
+    if (node.selector.isOperator && node.dartArgumentsLength == 0) {
       Primitive argument = node.dartReceiver;
       AbstractConstantValue value = getValue(argument);
 
@@ -1244,7 +1256,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       Primitive receiver = node.dartReceiver;
       AbstractConstantValue receiverValue = getValue(receiver);
       if (name == 'remainder') {
-        if (node.arguments.length == 2) {
+        if (node.dartArgumentsLength == 1) {
           Primitive arg = node.dartArgument(0);
           AbstractConstantValue argValue = getValue(arg);
           if (lattice.isDefinitelyInt(receiverValue, allowNull: true) &&
@@ -1255,7 +1267,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           }
         }
       } else if (name == 'codeUnitAt') {
-        if (node.arguments.length == 2) {
+        if (node.dartArgumentsLength == 1) {
           Primitive index = node.dartArgument(0);
           if (lattice.isDefinitelyString(receiverValue) &&
               lattice.isDefinitelyInt(getValue(index))) {
@@ -1534,7 +1546,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         // Check that all uses of the iterator are 'moveNext' and 'current'.
         assert(!isInterceptedSelector(Selectors.moveNext));
         assert(!isInterceptedSelector(Selectors.current));
-        for (Reference ref in iterator.effectiveUses) {
+        for (Reference ref in iterator.refinedUses) {
           if (ref.parent is! InvokeMethod) return null;
           InvokeMethod use = ref.parent;
           if (ref != use.receiver) return null;
@@ -1551,7 +1563,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         MutableVariable current = new MutableVariable(new LoopItemEntity());
 
         // Rewrite all uses of the iterator.
-        for (Reference ref in iterator.effectiveUses) {
+        for (Reference ref in iterator.refinedUses) {
           InvokeMethod use = ref.parent;
           if (use.selector == Selectors.current) {
             // Rewrite iterator.current to a use of the 'current' variable.
@@ -1760,7 +1772,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
       // If there are multiple uses, we cannot eliminate the getter call and
       // therefore risk duplicating its side effects.
-      if (!isPure && tearOff.hasMultipleEffectiveUses) return null;
+      if (!isPure && tearOff.hasMultipleRefinedUses) return null;
 
       // If the getter call is impure, we risk reordering side effects,
       // unless it is immediately prior to the closure call.
@@ -1776,7 +1788,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         sourceInformation: node.sourceInformation);
       node.receiver.changeTo(new Parameter(null)); // Remove the tear off use.
 
-      if (tearOff.hasNoEffectiveUses) {
+      if (tearOff.hasNoRefinedUses) {
         // Eliminate the getter call if it has no more uses.
         // This cannot be delegated to other optimizations because we need to
         // avoid duplication of side effects.
@@ -1991,7 +2003,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   //     Nothing happens. The primitive remains as it is.
   //
 
-  void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+  visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     ast.DartString getString(AbstractConstantValue value) {
       StringConstantValue constant = value.constant;
       return constant.primitiveValue;
@@ -2051,42 +2063,70 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         Primitive rightArg = node.arguments[1].definition;
         AbstractConstantValue left = getValue(leftArg);
         AbstractConstantValue right = getValue(rightArg);
-        if (lattice.isDefinitelyBool(left) &&
-            right.isConstant &&
-            right.constant.isTrue) {
-          // Replace identical(x, true) by x when x is known to be a boolean.
-          // Note that this is not safe if x is null, because the value might
-          // not be used as a condition.
-          node.replaceUsesWith(leftArg);
-        } else if (lattice.isDefinitelyBool(right) &&
-            left.isConstant &&
-            left.constant.isTrue) {
-          node.replaceUsesWith(rightArg);
-        } else if (left.isNullConstant || right.isNullConstant) {
+        BuiltinOperator newOperator;
+        if (left.isNullConstant || right.isNullConstant) {
           // Use `==` for comparing against null, so JS undefined and JS null
           // are considered equal.
-          node.operator = BuiltinOperator.LooseEq;
+          newOperator = BuiltinOperator.LooseEq;
         } else if (!left.isNullable || !right.isNullable) {
           // If at most one operand can be Dart null, we can use `===`.
           // This is not safe when we might compare JS null and JS undefined.
-          node.operator = BuiltinOperator.StrictEq;
+          newOperator = BuiltinOperator.StrictEq;
         } else if (lattice.isDefinitelyNum(left, allowNull: true) &&
                    lattice.isDefinitelyNum(right, allowNull: true)) {
           // If both operands can be null, but otherwise are of the same type,
           // we can use `==` for comparison.
           // This is not safe e.g. for comparing strings against numbers.
-          node.operator = BuiltinOperator.LooseEq;
+          newOperator = BuiltinOperator.LooseEq;
         } else if (lattice.isDefinitelyString(left, allowNull: true) &&
                    lattice.isDefinitelyString(right, allowNull: true)) {
-          node.operator = BuiltinOperator.LooseEq;
+          newOperator = BuiltinOperator.LooseEq;
         } else if (lattice.isDefinitelyBool(left, allowNull: true) &&
                    lattice.isDefinitelyBool(right, allowNull: true)) {
-          node.operator = BuiltinOperator.LooseEq;
+          newOperator = BuiltinOperator.LooseEq;
+        }
+        if (newOperator != null) {
+          return new ApplyBuiltinOperator(newOperator,
+              node.arguments.map((ref) => ref.definition).toList(),
+              node.sourceInformation);
+        }
+        break;
+
+      case BuiltinOperator.StrictEq:
+      case BuiltinOperator.LooseEq:
+      case BuiltinOperator.StrictNeq:
+      case BuiltinOperator.LooseNeq:
+        bool negated =
+            node.operator == BuiltinOperator.StrictNeq ||
+            node.operator == BuiltinOperator.LooseNeq;
+        for (int firstIndex in [0, 1]) {
+          int secondIndex = 1 - firstIndex;
+          Primitive firstArg = node.arguments[firstIndex].definition;
+          Primitive secondArg = node.arguments[secondIndex].definition;
+          AbstractConstantValue first = getValue(firstArg);
+          if (!lattice.isDefinitelyBool(first)) continue;
+          AbstractConstantValue second = getValue(secondArg);
+          if (!second.isConstant || !second.constant.isBool) continue;
+          bool isTrueConstant = second.constant.isTrue;
+          if (isTrueConstant == !negated) {
+            // (x === true) ==> x
+            // (x !== false) ==> x
+            node.replaceUsesWith(firstArg);
+            return null;
+          } else {
+            // (x === false) ==> !x
+            // (x !== true) ==> !x
+            return new ApplyBuiltinOperator(
+                BuiltinOperator.IsFalsy,
+                [firstArg],
+                node.sourceInformation);
+          }
         }
         break;
 
       default:
     }
+    return null;
   }
 
   void visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
@@ -2288,8 +2328,11 @@ class TypePropagationVisitor implements Visitor {
                          this.values,
                          this.internalError);
 
-  void analyze(FunctionDefinition root) {
+  void analyze(FunctionDefinition root, bool recomputeAll) {
     reachableContinuations.clear();
+    if (recomputeAll) {
+      new ResetAnalysisInfo(reachableContinuations, values).visit(root);
+    }
 
     // Initially, only the root node is reachable.
     push(root);
@@ -2532,7 +2575,7 @@ class TypePropagationVisitor implements Visitor {
 
     // Calculate the resulting constant if possible.
     String opname = node.selector.name;
-    if (node.arguments.length == 1) {
+    if (node.dartArgumentsLength == 0) {
       // Unary operator.
       if (opname == "unary-") {
         opname = "-";
@@ -2540,7 +2583,7 @@ class TypePropagationVisitor implements Visitor {
       UnaryOperator operator = UnaryOperator.parse(opname);
       AbstractConstantValue result = lattice.unaryOp(operator, receiver);
       return finish(result, canReplace: !receiver.isNullable);
-    } else if (node.arguments.length == 2) {
+    } else if (node.dartArgumentsLength == 1) {
       // Binary operator.
       AbstractConstantValue right = getValue(node.dartArgument(0));
       BinaryOperator operator = BinaryOperator.parse(opname);
@@ -2619,37 +2662,34 @@ class TypePropagationVisitor implements Visitor {
 
       case BuiltinOperator.Identical:
       case BuiltinOperator.StrictEq:
+      case BuiltinOperator.StrictNeq:
       case BuiltinOperator.LooseEq:
-        AbstractConstantValue leftConst =
-            getValue(node.arguments[0].definition);
-        AbstractConstantValue rightConst =
-            getValue(node.arguments[1].definition);
-        ConstantValue leftValue = leftConst.constant;
-        ConstantValue rightValue = rightConst.constant;
-        if (leftConst.isNothing || rightConst.isNothing) {
+      case BuiltinOperator.LooseNeq:
+        bool negated =
+            node.operator == BuiltinOperator.StrictNeq ||
+            node.operator == BuiltinOperator.LooseNeq;
+        AbstractConstantValue left = getValue(node.arguments[0].definition);
+        AbstractConstantValue right = getValue(node.arguments[1].definition);
+        if (left.isNothing || right.isNothing) {
           setValue(node, lattice.nothing);
-          return; // And come back later.
-        } else if (!leftConst.isConstant || !rightConst.isConstant) {
-          TypeMask leftType = leftConst.type;
-          TypeMask rightType = rightConst.type;
-          if (typeSystem.areDisjoint(leftType, rightType)) {
-            setValue(node,
-                constantValue(new FalseConstantValue(), typeSystem.boolType));
-          } else {
-            setValue(node, nonConstant(typeSystem.boolType));
-          }
           return;
-        } else if (leftValue.isPrimitive && rightValue.isPrimitive) {
-          assert(leftConst.isConstant && rightConst.isConstant);
-          PrimitiveConstantValue left = leftValue;
-          PrimitiveConstantValue right = rightValue;
-          // Should this be constantSystem.identity.fold(left, right)?
-          ConstantValue result =
-            new BoolConstantValue(left.primitiveValue == right.primitiveValue);
-          setValue(node, constantValue(result, typeSystem.boolType));
-        } else {
-          setValue(node, nonConstant(typeSystem.boolType));
         }
+        if (left.isConstant && right.isConstant) {
+          ConstantValue equal = lattice.constantSystem.identity.fold(
+              left.constant, right.constant);
+          if (equal != null && equal.isBool) {
+            ConstantValue result =
+                new BoolConstantValue(equal.isTrue == !negated);
+            setValue(node, constantValue(result, typeSystem.boolType));
+            return;
+          }
+        }
+        if (typeSystem.areDisjoint(left.type, right.type)) {
+          ConstantValue result = new BoolConstantValue(negated);
+          setValue(node, constantValue(result, typeSystem.boolType));
+          return;
+        }
+        setValue(node, nonConstant(typeSystem.boolType));
         break;
 
       case BuiltinOperator.NumAdd:
@@ -2862,12 +2902,6 @@ class TypePropagationVisitor implements Visitor {
     }
   }
 
-  void visitLiteralMap(LiteralMap node) {
-    // Constant maps are translated into (Constant MapConstant(...)) IR nodes,
-    // and thus LiteralMap nodes are NonConst.
-    setValue(node, nonConstant(typeSystem.mapType));
-  }
-
   void visitConstant(Constant node) {
     ConstantValue value = node.value;
     if (value.isDummy || !value.isConstant) {
@@ -2980,7 +3014,21 @@ class TypePropagationVisitor implements Visitor {
 
   @override
   void visitForeignCode(ForeignCode node) {
-    setValue(node, nonConstant(node.type));
+    bool firstArgumentIsNullable = false;
+    if (node.arguments.length > 0) {
+      AbstractConstantValue first = getValue(node.arguments.first.definition);
+      if (first.isNothing) {
+        setValue(node, nothing);
+        return;
+      }
+      firstArgumentIsNullable = first.isNullable;
+    }
+    setValue(node, nonConstant(node.storedType));
+    node.isSafeForElimination =
+        !node.nativeBehavior.sideEffects.hasSideEffects() &&
+        (!node.nativeBehavior.throwBehavior.canThrow ||
+         (!firstArgumentIsNullable &&
+          node.nativeBehavior.throwBehavior.isOnlyNullNSMGuard));
   }
 
   @override

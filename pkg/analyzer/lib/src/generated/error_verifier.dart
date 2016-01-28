@@ -7,13 +7,14 @@ library analyzer.src.generated.error_verifier;
 import 'dart:collection';
 import "dart:math" as math;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -23,7 +24,6 @@ import 'package:analyzer/src/generated/parser.dart'
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart' as sc;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
-import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
@@ -1285,27 +1285,27 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
     });
+
     if (notInitFinalFields.isNotEmpty) {
       foundError = true;
       AnalysisErrorWithProperties analysisError;
-      if (notInitFinalFields.length == 1) {
+      List<String> names = notInitFinalFields.map((item) => item.name).toList();
+      names.sort();
+      if (names.length == 1) {
         analysisError = _errorReporter.newErrorWithProperties(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
             constructor.returnType,
-            [notInitFinalFields[0].name]);
-      } else if (notInitFinalFields.length == 2) {
+            names);
+      } else if (names.length == 2) {
         analysisError = _errorReporter.newErrorWithProperties(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
             constructor.returnType,
-            [notInitFinalFields[0].name, notInitFinalFields[1].name]);
+            names);
       } else {
         analysisError = _errorReporter.newErrorWithProperties(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
-            constructor.returnType, [
-          notInitFinalFields[0].name,
-          notInitFinalFields[1].name,
-          notInitFinalFields.length - 2
-        ]);
+            constructor.returnType,
+            [names[0], names[1], names.length - 2]);
       }
       analysisError.setProperty(
           ErrorProperty.NOT_INITIALIZED_FIELDS, notInitFinalFields);
@@ -5771,9 +5771,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     DartType staticReturnType = getStaticType(returnExpression);
     if (staticReturnType != null && _enclosingFunction.isAsynchronous) {
-      return _typeProvider.futureType.substitute4(<DartType>[
-        StaticTypeAnalyzer.flattenFutures(_typeProvider, staticReturnType)
-      ]);
+      return _typeProvider.futureType.substitute4(
+          <DartType>[staticReturnType.flattenFutures(_typeSystem)]);
     }
     return staticReturnType;
   }

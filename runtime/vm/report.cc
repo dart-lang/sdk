@@ -26,6 +26,7 @@ DECLARE_FLAG(bool, always_megamorphic_calls);
 RawString* Report::PrependSnippet(Kind kind,
                                   const Script& script,
                                   intptr_t token_pos,
+                                  bool report_after_token,
                                   const String& message) {
   const char* message_header;
   switch (kind) {
@@ -41,8 +42,11 @@ RawString* Report::PrependSnippet(Kind kind,
   if (!script.IsNull()) {
     const String& script_url = String::Handle(script.url());
     if (token_pos >= 0) {
-      intptr_t line, column;
-      script.GetTokenLocation(token_pos, &line, &column);
+      intptr_t line, column, token_len;
+      script.GetTokenLocation(token_pos, &line, &column, &token_len);
+      if (report_after_token) {
+        column += token_len;
+      }
       // Only report the line position if we have the original source. We still
       // need to get a valid column so that we can report the ^ mark below the
       // snippet.
@@ -120,7 +124,7 @@ void Report::LongJumpV(const Error& prev_error,
                        const Script& script, intptr_t token_pos,
                        const char* format, va_list args) {
   const Error& error = Error::Handle(LanguageError::NewFormattedV(
-      prev_error, script, token_pos,
+      prev_error, script, token_pos, Report::AtLocation,
       kError, Heap::kNew,
       format, args));
   LongJump(error);
@@ -129,15 +133,18 @@ void Report::LongJumpV(const Error& prev_error,
 
 
 void Report::MessageF(Kind kind, const Script& script, intptr_t token_pos,
-                      const char* format, ...) {
+                      bool report_after_token, const char* format, ...) {
   va_list args;
   va_start(args, format);
-  MessageV(kind, script, token_pos, format, args);
+  MessageV(kind, script, token_pos, report_after_token, format, args);
   va_end(args);
 }
 
 
-void Report::MessageV(Kind kind, const Script& script, intptr_t token_pos,
+void Report::MessageV(Kind kind,
+                      const Script& script,
+                      intptr_t token_pos,
+                      bool report_after_token,
                       const char* format, va_list args) {
   if (kind < kError) {
     // Reporting a warning.
@@ -147,7 +154,7 @@ void Report::MessageV(Kind kind, const Script& script, intptr_t token_pos,
     if (!FLAG_warning_as_error) {
       const String& msg = String::Handle(String::NewFormattedV(format, args));
       const String& snippet_msg = String::Handle(
-          PrependSnippet(kind, script, token_pos, msg));
+          PrependSnippet(kind, script, token_pos, report_after_token, msg));
       OS::Print("%s", snippet_msg.ToCString());
       if (kind == kJSWarning) {
         TraceJSWarning(script, token_pos, msg);
@@ -166,7 +173,7 @@ void Report::MessageV(Kind kind, const Script& script, intptr_t token_pos,
   // Reporting an error (or a warning as error).
   const Error& error = Error::Handle(
       LanguageError::NewFormattedV(Error::Handle(),  // No previous error.
-                                   script, token_pos,
+                                   script, token_pos, report_after_token,
                                    kind, Heap::kNew,
                                    format, args));
   if (kind == kJSWarning) {
@@ -232,7 +239,7 @@ void Report::JSWarningFromFrame(StackFrame* caller_frame, const char* msg) {
   const intptr_t token_pos = caller_code.GetTokenIndexOfPC(caller_pc);
   const Function& caller = Function::Handle(zone, caller_code.function());
   const Script& script = Script::Handle(zone, caller.script());
-  MessageF(kJSWarning, script, token_pos, "%s", msg);
+  MessageF(kJSWarning, script, token_pos, Report::AtLocation, "%s", msg);
 }
 
 

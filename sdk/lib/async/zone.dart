@@ -135,33 +135,21 @@ abstract class ZoneSpecification {
               Map zoneValues): null
   }) {
     return new ZoneSpecification(
-      handleUncaughtError: handleUncaughtError != null
-                           ? handleUncaughtError
-                           : other.handleUncaughtError,
-      run: run != null ? run : other.run,
-      runUnary: runUnary != null ? runUnary : other.runUnary,
-      runBinary: runBinary != null ? runBinary : other.runBinary,
-      registerCallback: registerCallback != null
-                        ? registerCallback
-                        : other.registerCallback,
-      registerUnaryCallback: registerUnaryCallback != null
-                         ? registerUnaryCallback
-                         : other.registerUnaryCallback,
-      registerBinaryCallback: registerBinaryCallback != null
-                         ? registerBinaryCallback
-                         : other.registerBinaryCallback,
-      errorCallback: errorCallback != null
-                         ? errorCallback
-                         : other.errorCallback,
-      scheduleMicrotask: scheduleMicrotask != null
-                         ? scheduleMicrotask
-                         : other.scheduleMicrotask,
-      createTimer : createTimer != null ? createTimer : other.createTimer,
-      createPeriodicTimer: createPeriodicTimer != null
-                           ? createPeriodicTimer
-                           : other.createPeriodicTimer,
-      print : print != null ? print : other.print,
-      fork: fork != null ? fork : other.fork);
+      handleUncaughtError: handleUncaughtError ?? other.handleUncaughtError,
+      run: run ?? other.run,
+      runUnary: runUnary ?? other.runUnary,
+      runBinary: runBinary ?? other.runBinary,
+      registerCallback: registerCallback ?? other.registerCallback,
+      registerUnaryCallback: registerUnaryCallback ??
+                             other.registerUnaryCallback,
+      registerBinaryCallback: registerBinaryCallback ??
+                              other.registerBinaryCallback,
+      errorCallback: errorCallback ?? other.errorCallback,
+      scheduleMicrotask: scheduleMicrotask ?? other.scheduleMicrotask,
+      createTimer : createTimer ?? other.createTimer,
+      createPeriodicTimer: createPeriodicTimer ?? other.createPeriodicTimer,
+      print : print ?? other.print,
+      fork: fork ?? other.fork);
   }
 
   HandleUncaughtErrorHandler get handleUncaughtError;

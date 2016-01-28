@@ -4,8 +4,8 @@
 
 library analyzer.test.src.task.dart_work_manager_test;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show
         AnalysisErrorInfo,

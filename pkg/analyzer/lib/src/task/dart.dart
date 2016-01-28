@@ -6,11 +6,14 @@ library analyzer.src.task.dart;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -1226,10 +1229,24 @@ class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     //
+    // Build the enum members if they have not already been created.
+    //
+    EnumDeclaration findFirstEnum() {
+      for (CompilationUnitMember member in unit.declarations) {
+        if (member is EnumDeclaration) {
+          return member;
+        }
+      }
+      return null;
+    }
+    EnumDeclaration firstEnum = findFirstEnum();
+    if (firstEnum != null && firstEnum.element.accessors.isEmpty) {
+      EnumMemberBuilder builder = new EnumMemberBuilder(typeProvider);
+      unit.accept(builder);
+    }
+    //
     // Record outputs.
     //
-    EnumMemberBuilder builder = new EnumMemberBuilder(typeProvider);
-    unit.accept(builder);
     outputs[CREATED_RESOLVED_UNIT2] = true;
     outputs[RESOLVED_UNIT2] = unit;
   }
@@ -1395,7 +1412,6 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     //
     // Update "part" directives.
     //
-    LibraryDirective libraryDirective = null;
     LibraryIdentifier libraryNameNode = null;
     String partsLibraryName = _UNKNOWN_LIBRARY_NAME;
     bool hasPartDirective = false;
@@ -1406,11 +1422,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         <CompilationUnitElementImpl>[];
     for (Directive directive in definingCompilationUnit.directives) {
       if (directive is LibraryDirective) {
-        if (libraryDirective == null) {
-          libraryDirective = directive;
-          libraryNameNode = directive.name;
-          directivesToResolve.add(directive);
-        }
+        libraryNameNode = directive.name;
+        directivesToResolve.add(directive);
       } else if (directive is PartDirective) {
         PartDirective partDirective = directive;
         StringLiteral partUri = partDirective.uri;
@@ -1488,37 +1501,19 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     for (Directive directive in directivesToResolve) {
       directive.element = libraryElement;
     }
-    if (sourcedCompilationUnits.isNotEmpty) {
-      _patchTopLevelAccessors(libraryElement);
+    BuildLibraryElementUtils.patchTopLevelAccessors(libraryElement);
+    // set the library documentation to the docs associated with the first
+    // directive in the compilation unit.
+    if (definingCompilationUnit.directives.isNotEmpty) {
+      _setDoc(libraryElement, definingCompilationUnit.directives.first);
     }
-    if (libraryDirective != null) {
-      _setDoc(libraryElement, libraryDirective);
-    }
+
     //
     // Record outputs.
     //
     outputs[BUILD_LIBRARY_ERRORS] = errors;
     outputs[LIBRARY_ELEMENT1] = libraryElement;
     outputs[IS_LAUNCHABLE] = entryPoint != null;
-  }
-
-  /**
-   * Add all of the non-synthetic [getters] and [setters] defined in the given
-   * [unit] that have no corresponding accessor to one of the given collections.
-   */
-  void _collectAccessors(Map<String, PropertyAccessorElement> getters,
-      List<PropertyAccessorElement> setters, CompilationUnitElement unit) {
-    for (PropertyAccessorElement accessor in unit.accessors) {
-      if (accessor.isGetter) {
-        if (!accessor.isSynthetic && accessor.correspondingSetter == null) {
-          getters[accessor.displayName] = accessor;
-        }
-      } else {
-        if (!accessor.isSynthetic && accessor.correspondingGetter == null) {
-          setters.add(accessor);
-        }
-      }
-    }
   }
 
   /**
@@ -1550,33 +1545,6 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       }
     }
     return null;
-  }
-
-  /**
-   * Look through all of the compilation units defined for the given [library],
-   * looking for getters and setters that are defined in different compilation
-   * units but that have the same names. If any are found, make sure that they
-   * have the same variable element.
-   */
-  void _patchTopLevelAccessors(LibraryElementImpl library) {
-    HashMap<String, PropertyAccessorElement> getters =
-        new HashMap<String, PropertyAccessorElement>();
-    List<PropertyAccessorElement> setters = <PropertyAccessorElement>[];
-    _collectAccessors(getters, setters, library.definingCompilationUnit);
-    for (CompilationUnitElement unit in library.parts) {
-      _collectAccessors(getters, setters, unit);
-    }
-    for (PropertyAccessorElement setter in setters) {
-      PropertyAccessorElement getter = getters[setter.displayName];
-      if (getter != null) {
-        TopLevelVariableElementImpl variable = getter.variable;
-        TopLevelVariableElementImpl setterVariable = setter.variable;
-        CompilationUnitElementImpl setterUnit = setterVariable.enclosingElement;
-        setterUnit.replaceTopLevelVariable(setterVariable, variable);
-        variable.setter = setter;
-        (setter as PropertyAccessorElementImpl).variable = variable;
-      }
-    }
   }
 
   /**
@@ -1765,6 +1733,11 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
+    if (!context.analysisOptions.enableAsync) {
+      AnalysisContextImpl contextImpl = context;
+      asyncLibrary = contextImpl.createMockAsyncLib(coreLibrary);
+      asyncNamespace = asyncLibrary.publicNamespace;
+    }
     TypeProvider typeProvider =
         new TypeProviderImpl.forNamespaces(coreNamespace, asyncNamespace);
     (context as InternalAnalysisContext).typeProvider = typeProvider;
@@ -3257,14 +3230,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
       if (newType == null || newType.isBottom) {
         newType = typeProvider.dynamicType;
       }
-      variable.type = newType;
-      (variable.initializer as ExecutableElementImpl).returnType = newType;
-      if (variable is PropertyInducingElementImpl) {
-        setReturnType(variable.getter, newType);
-        if (!variable.isFinal && !variable.isConst) {
-          setParameterType(variable.setter, newType);
-        }
-      }
+      setFieldType(variable, newType);
     } else {
       // TODO(brianwilkerson) For now we simply don't infer any type for
       // variables or fields involved in a cycle. We could try to be smarter
@@ -3591,6 +3557,16 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     HashSet<Source> importedSourceSet =
         new HashSet.from(explicitlyImportedSourceSet);
     Source coreLibrarySource = context.sourceFactory.forUri(DartSdk.DART_CORE);
+    if (coreLibrarySource == null) {
+      String message;
+      DartSdk sdk = context.sourceFactory.dartSdk;
+      if (sdk == null) {
+        message = 'Could not resolve "dart:core": SDK not defined';
+      } else {
+        message = 'Could not resolve "dart:core": SDK incorrectly configured';
+      }
+      throw new AnalysisException(message);
+    }
     importedSourceSet.add(coreLibrarySource);
     //
     // Compute kind.
@@ -5087,7 +5063,8 @@ class ScanDartTask extends SourceBasedAnalysisTask {
       'ScanDartTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[LINE_INFO, SCAN_ERRORS, TOKEN_STREAM]);
+      <ResultDescriptor>[LINE_INFO, SCAN_ERRORS, TOKEN_STREAM],
+      suitabilityFor: suitabilityFor);
 
   /**
    * Initialize a newly created task to access the content of the source
@@ -5182,6 +5159,21 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   static ScanDartTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ScanDartTask(context, target);
+  }
+
+  /**
+   * Return an indication of how suitable this task is for the given [target].
+   */
+  static TaskSuitability suitabilityFor(AnalysisTarget target) {
+    if (target is Source) {
+      if (target.shortName.endsWith(AnalysisEngine.SUFFIX_DART)) {
+        return TaskSuitability.HIGHEST;
+      }
+      return TaskSuitability.LOWEST;
+    } else if (target is DartScript) {
+      return TaskSuitability.HIGHEST;
+    }
+    return TaskSuitability.NONE;
   }
 }
 

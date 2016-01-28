@@ -6,11 +6,12 @@
 // package:dev_compiler's tests
 library analyzer.test.src.task.strong.strong_test_helper;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart' show SdkAnalysisContext;
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -95,6 +96,7 @@ final Map<String, String> mockSdkSources = {
         }
         ''',
   'dart:async': '''
+        library dart.async;
         class Future<T> {
           Future(computation()) {}
           Future.value(T t) {}

@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisException;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart' show Keyword;
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
@@ -232,15 +233,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @deprecated
   @override
   List<TypeParameterElement> get boundTypeParameters => typeFormals;
-
-  @override
-  List<TypeParameterElement> get typeFormals {
-    if (_isInstantiated) {
-      return TypeParameterElement.EMPTY_LIST;
-    } else {
-      return element?.typeParameters ?? TypeParameterElement.EMPTY_LIST;
-    }
-  }
 
   @override
   String get displayName {
@@ -493,6 +485,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
     }
     return _typeArguments;
+  }
+
+  @override
+  List<TypeParameterElement> get typeFormals {
+    if (_isInstantiated) {
+      return TypeParameterElement.EMPTY_LIST;
+    } else {
+      return element?.typeParameters ?? TypeParameterElement.EMPTY_LIST;
+    }
   }
 
   @override
@@ -1194,6 +1195,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool get isDartAsyncFuture {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "Future" && element.library.isDartAsync;
+  }
+
+  @override
   bool get isDartCoreFunction {
     ClassElement element = this.element;
     if (element == null) {
@@ -1277,6 +1287,35 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
       buffer.write(">");
     }
+  }
+
+  @override
+  DartType flattenFutures(TypeSystem typeSystem) {
+    // Implement the case: "If T = Future<S> then flatten(T) = flatten(S)."
+    if (isDartAsyncFuture && typeArguments.isNotEmpty) {
+      return typeArguments[0].flattenFutures(typeSystem);
+    }
+
+    // Implement the case: "Otherwise if T <: Future then let S be a type
+    // such that T << Future<S> and for all R, if T << Future<R> then S << R.
+    // Then flatten(T) = S."
+    //
+    // In other words, given the set of all types R such that T << Future<R>,
+    // let S be the most specific of those types, if any such S exists.
+    //
+    // Since we only care about the most specific type, it is sufficent to
+    // look at the types appearing as a parameter to Future in the type
+    // hierarchy of T.  We don't need to consider the supertypes of those
+    // types, since they are by definition less specific.
+    List<DartType> candidateTypes =
+        _searchTypeHierarchyForFutureTypeParameters();
+    DartType flattenResult = _findMostSpecificType(candidateTypes, typeSystem);
+    if (flattenResult != null) {
+      return flattenResult;
+    }
+
+    // Implement the case: "In any other circumstance, flatten(T) = T."
+    return this;
   }
 
   @override
@@ -1678,6 +1717,34 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (JavaArrays.equals(newTypeArguments, typeArguments)) {
       return this;
     }
+
+    if (isDartAsyncFuture && newTypeArguments.isNotEmpty) {
+      //
+      // In strong mode interpret Future< T > as Future< flatten(T) >
+      //
+      // For example, Future<Future<T>> will flatten to Future<T>.
+      //
+      // In the Dart 3rd edition spec, this flatten operation is used for
+      // `async` and `await`. In strong mode, we extend it to all Future<T>
+      // instantiations. This allows typing of Future-related operations
+      // in dart:async in a way that matches their runtime behavior and provides
+      // precise return types for users of these APIs.
+      //
+      // For example:
+      //
+      //     abstract class Future<T> {
+      //       Future<S> then<S>(S onValue(T value), ...);
+      //     }
+      //
+      // Given a call where S <: Future<R> for some R, we will need to flatten
+      // the return type so it is Future< flatten(S) >, yielding Future<R>.
+      //
+      if (element.library.context.analysisOptions.strongMode) {
+        TypeImpl t = newTypeArguments[0];
+        newTypeArguments[0] = t.flattenFutures(new StrongTypeSystemImpl());
+      }
+    }
+
     InterfaceTypeImpl newType = new InterfaceTypeImpl(element, prune);
     newType.typeArguments = newTypeArguments;
     return newType;
@@ -1686,6 +1753,31 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   InterfaceTypeImpl substitute4(List<DartType> argumentTypes) =>
       substitute2(argumentTypes, typeArguments);
+
+  /**
+   * Starting from this type, search its class hierarchy for types of the form
+   * Future<R>, and return a list of the resulting R's.
+   */
+  List<DartType> _searchTypeHierarchyForFutureTypeParameters() {
+    List<DartType> result = <DartType>[];
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    void recurse(InterfaceTypeImpl type) {
+      if (type.isDartAsyncFuture && type.typeArguments.isNotEmpty) {
+        result.add(type.typeArguments[0]);
+      }
+      if (visitedClasses.add(type.element)) {
+        if (type.superclass != null) {
+          recurse(type.superclass);
+        }
+        for (InterfaceType interface in type.interfaces) {
+          recurse(interface);
+        }
+        visitedClasses.remove(type.element);
+      }
+    }
+    recurse(this);
+    return result;
+  }
 
   /**
    * Compute the least upper bound of types [i] and [j], both of which are
@@ -1846,6 +1938,61 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   /**
+   * If there is a single type which is at least as specific as all of the
+   * types in [types], return it.  Otherwise return `null`.
+   */
+  static DartType _findMostSpecificType(List<DartType> types, TypeSystem typeSystem) {
+    // The << relation ("more specific than") is a partial ordering on types,
+    // so to find the most specific type of a set, we keep a bucket of the most
+    // specific types seen so far such that no type in the bucket is more
+    // specific than any other type in the bucket.
+    List<DartType> bucket = <DartType>[];
+
+    // Then we consider each type in turn.
+    for (DartType type in types) {
+      // If any existing type in the bucket is more specific than this type,
+      // then we can ignore this type.
+      if (bucket.any((DartType t) => typeSystem.isMoreSpecificThan(t, type))) {
+        continue;
+      }
+      // Otherwise, we need to add this type to the bucket and remove any types
+      // that are less specific than it.
+      bool added = false;
+      int i = 0;
+      while (i < bucket.length) {
+        if (typeSystem.isMoreSpecificThan(type, bucket[i])) {
+          if (added) {
+            if (i < bucket.length - 1) {
+              bucket[i] = bucket.removeLast();
+            } else {
+              bucket.removeLast();
+            }
+          } else {
+            bucket[i] = type;
+            i++;
+            added = true;
+          }
+        } else {
+          i++;
+        }
+      }
+      if (!added) {
+        bucket.add(type);
+      }
+    }
+
+    // Now that we are finished, if there is exactly one type left in the
+    // bucket, it is the most specific type.
+    if (bucket.length == 1) {
+      return bucket[0];
+    }
+
+    // Otherwise, there is no single type that is more specific than the
+    // others.
+    return null;
+  }
+
+  /**
    * Return the intersection of the [first] and [second] sets of types, where
    * intersection is based on the equality of the types themselves.
    */
@@ -1986,6 +2133,9 @@ abstract class TypeImpl implements DartType {
   bool get isBottom => false;
 
   @override
+  bool get isDartAsyncFuture => false;
+
+  @override
   bool get isDartCoreFunction => false;
 
   @override
@@ -2011,6 +2161,9 @@ abstract class TypeImpl implements DartType {
       buffer.write(name);
     }
   }
+
+  @override
+  DartType flattenFutures(TypeSystem typeSystem) => this;
 
   /**
    * Return `true` if this type is assignable to the given [type] (written in

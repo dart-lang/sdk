@@ -7,8 +7,8 @@ library analyzer.src.generated.sdk_io;
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -255,20 +255,15 @@ class DirectoryBasedDartSdk implements DartSdk {
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      SdkBundle sdkBundle = _getSummarySdkBundle();
-      if (sdkBundle != null) {
-        _analysisContext = new SummarySdkAnalysisContext(sdkBundle);
-      } else {
-        _analysisContext = new SdkAnalysisContext();
-      }
+      _analysisContext = new SdkAnalysisContext();
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
-      List<String> uris = this.uris;
-      ChangeSet changeSet = new ChangeSet();
-      for (String uri in uris) {
-        changeSet.addedSource(factory.forUri(uri));
+      // Try to use summaries.
+      SdkBundle sdkBundle = _getSummarySdkBundle();
+      if (sdkBundle != null) {
+        _analysisContext.resultProvider =
+            new SdkSummaryResultProvider(_analysisContext, sdkBundle);
       }
-      _analysisContext.applyChanges(changeSet);
     }
     return _analysisContext;
   }

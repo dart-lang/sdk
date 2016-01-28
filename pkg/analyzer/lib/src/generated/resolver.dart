@@ -6,13 +6,15 @@ library analyzer.src.generated.resolver;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -517,6 +519,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
     AstNode parent = identifier.parent;
     if ((parent is ConstructorName && identical(identifier, parent.name)) ||
+        (parent is ConstructorDeclaration &&
+            identical(identifier, parent.returnType)) ||
         (parent is SuperConstructorInvocation &&
             identical(identifier, parent.constructorName)) ||
         parent is HideCombinator) {
@@ -902,6 +906,63 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
           parenthesizedExpression.parent as ParenthesizedExpression);
     }
     return parenthesizedExpression;
+  }
+}
+
+/**
+ * Utilities for [LibraryElementImpl] building.
+ */
+class BuildLibraryElementUtils {
+  /**
+   * Look through all of the compilation units defined for the given [library],
+   * looking for getters and setters that are defined in different compilation
+   * units but that have the same names. If any are found, make sure that they
+   * have the same variable element.
+   */
+  static void patchTopLevelAccessors(LibraryElementImpl library) {
+    // Without parts getters/setters already share the same variable element.
+    if (library.parts.isEmpty) {
+      return;
+    }
+    // Collect getters and setters.
+    HashMap<String, PropertyAccessorElement> getters =
+        new HashMap<String, PropertyAccessorElement>();
+    List<PropertyAccessorElement> setters = <PropertyAccessorElement>[];
+    _collectAccessors(getters, setters, library.definingCompilationUnit);
+    for (CompilationUnitElement unit in library.parts) {
+      _collectAccessors(getters, setters, unit);
+    }
+    // Move every setter to the corresponding getter's variable (if exists).
+    for (PropertyAccessorElement setter in setters) {
+      PropertyAccessorElement getter = getters[setter.displayName];
+      if (getter != null) {
+        TopLevelVariableElementImpl variable = getter.variable;
+        TopLevelVariableElementImpl setterVariable = setter.variable;
+        CompilationUnitElementImpl setterUnit = setterVariable.enclosingElement;
+        setterUnit.replaceTopLevelVariable(setterVariable, variable);
+        variable.setter = setter;
+        (setter as PropertyAccessorElementImpl).variable = variable;
+      }
+    }
+  }
+
+  /**
+   * Add all of the non-synthetic [getters] and [setters] defined in the given
+   * [unit] that have no corresponding accessor to one of the given collections.
+   */
+  static void _collectAccessors(Map<String, PropertyAccessorElement> getters,
+      List<PropertyAccessorElement> setters, CompilationUnitElement unit) {
+    for (PropertyAccessorElement accessor in unit.accessors) {
+      if (accessor.isGetter) {
+        if (!accessor.isSynthetic && accessor.correspondingSetter == null) {
+          getters[accessor.displayName] = accessor;
+        }
+      } else {
+        if (!accessor.isSynthetic && accessor.correspondingGetter == null) {
+          setters.add(accessor);
+        }
+      }
+    }
   }
 }
 
@@ -2610,11 +2671,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   bool _inFunction = false;
 
   /**
-   * A flag indicating whether the class currently being visited can be used as a mixin.
-   */
-  bool _isValidMixin = false;
-
-  /**
    * A collection holding the elements defined in a class that need to have
    * their function type fixed to take into account type parameters of the
    * enclosing class, or `null` if we are not currently processing nodes within
@@ -2676,7 +2732,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ElementHolder holder = new ElementHolder();
-    _isValidMixin = true;
     _functionTypesToFix = new List<ExecutableElementImpl>();
     //
     // Process field declarations before constructors and methods so that field
@@ -2714,7 +2769,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.constructors = constructors;
     element.fields = holder.fields;
     element.methods = holder.methods;
-    element.validMixin = _isValidMixin;
     // Function types must be initialized after the enclosing element has been
     // set, for them to pick up the type parameters.
     for (ExecutableElementImpl e in _functionTypesToFix) {
@@ -2764,7 +2818,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    _isValidMixin = false;
     ElementHolder holder = new ElementHolder();
     bool wasInFunction = _inFunction;
     _inFunction = true;
@@ -3334,12 +3387,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       parameterName.staticElement = parameter;
     }
     return super.visitSimpleFormalParameter(node);
-  }
-
-  @override
-  Object visitSuperExpression(SuperExpression node) {
-    _isValidMixin = false;
-    return super.visitSuperExpression(node);
   }
 
   @override
@@ -6938,16 +6985,6 @@ class LibraryImportScope extends Scope {
 }
 
 /**
- * Instances of the class `LibraryResolver` are used to resolve one or more mutually dependent
- * libraries within a single context.
- */
-
-/**
- * Instances of the class `LibraryResolver` are used to resolve one or more mutually dependent
- * libraries within a single context.
- */
-
-/**
  * Instances of the class `LibraryScope` implement a scope containing all of the names defined
  * in a given library.
  */
@@ -8380,11 +8417,10 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitAwaitExpression(AwaitExpression node) {
     // TODO(leafp): Handle the implicit union type here
     // https://github.com/dart-lang/sdk/issues/25322
-    DartType contextType = StaticTypeAnalyzer.flattenFutures(
-        typeProvider, InferenceContext.getType(node));
+    DartType contextType = InferenceContext.getType(node);
     if (contextType != null) {
-      InterfaceType futureT =
-          typeProvider.futureType.substitute4([contextType]);
+      InterfaceType futureT = typeProvider.futureType
+          .substitute4([contextType.flattenFutures(typeSystem)]);
       InferenceContext.setType(node.expression, futureT);
     }
     return super.visitAwaitExpression(node);
@@ -9165,105 +9201,6 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
-  /**
-   * Given an [argumentList] and the [parameters] related to the element that
-   * will be invoked using those arguments, compute the list of parameters that
-   * correspond to the list of arguments.
-   *
-   * An error will be reported to [onError] if any of the arguments cannot be
-   * matched to a parameter. onError can be null to ignore the error.
-   *
-   * The flag [reportAsError] should be `true` if a compile-time error should be
-   * reported; or `false` if a compile-time warning should be reported
-   *
-   * Returns the parameters that correspond to the arguments.
-   */
-  static List<ParameterElement> resolveArgumentsToParameters(
-      ArgumentList argumentList,
-      List<ParameterElement> parameters,
-      void onError(ErrorCode errorCode, AstNode node, [List<Object> arguments]),
-      {bool reportAsError: false}) {
-    List<ParameterElement> requiredParameters = new List<ParameterElement>();
-    List<ParameterElement> positionalParameters = new List<ParameterElement>();
-    HashMap<String, ParameterElement> namedParameters =
-        new HashMap<String, ParameterElement>();
-    for (ParameterElement parameter in parameters) {
-      ParameterKind kind = parameter.parameterKind;
-      if (kind == ParameterKind.REQUIRED) {
-        requiredParameters.add(parameter);
-      } else if (kind == ParameterKind.POSITIONAL) {
-        positionalParameters.add(parameter);
-      } else {
-        namedParameters[parameter.name] = parameter;
-      }
-    }
-    List<ParameterElement> unnamedParameters =
-        new List<ParameterElement>.from(requiredParameters);
-    unnamedParameters.addAll(positionalParameters);
-    int unnamedParameterCount = unnamedParameters.length;
-    int unnamedIndex = 0;
-    NodeList<Expression> arguments = argumentList.arguments;
-    int argumentCount = arguments.length;
-    List<ParameterElement> resolvedParameters =
-        new List<ParameterElement>(argumentCount);
-    int positionalArgumentCount = 0;
-    HashSet<String> usedNames = new HashSet<String>();
-    bool noBlankArguments = true;
-    for (int i = 0; i < argumentCount; i++) {
-      Expression argument = arguments[i];
-      if (argument is NamedExpression) {
-        SimpleIdentifier nameNode = argument.name.label;
-        String name = nameNode.name;
-        ParameterElement element = namedParameters[name];
-        if (element == null) {
-          ErrorCode errorCode = (reportAsError
-              ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER
-              : StaticWarningCode.UNDEFINED_NAMED_PARAMETER);
-          if (onError != null) {
-            onError(errorCode, nameNode, [name]);
-          }
-        } else {
-          resolvedParameters[i] = element;
-          nameNode.staticElement = element;
-        }
-        if (!usedNames.add(name)) {
-          if (onError != null) {
-            onError(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode,
-                [name]);
-          }
-        }
-      } else {
-        if (argument is SimpleIdentifier && argument.name.isEmpty) {
-          noBlankArguments = false;
-        }
-        positionalArgumentCount++;
-        if (unnamedIndex < unnamedParameterCount) {
-          resolvedParameters[i] = unnamedParameters[unnamedIndex++];
-        }
-      }
-    }
-    if (positionalArgumentCount < requiredParameters.length &&
-        noBlankArguments) {
-      ErrorCode errorCode = (reportAsError
-          ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
-          : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
-      if (onError != null) {
-        onError(errorCode, argumentList,
-            [requiredParameters.length, positionalArgumentCount]);
-      }
-    } else if (positionalArgumentCount > unnamedParameterCount &&
-        noBlankArguments) {
-      ErrorCode errorCode = (reportAsError
-          ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
-          : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
-      if (onError != null) {
-        onError(errorCode, argumentList,
-            [unnamedParameterCount, positionalArgumentCount]);
-      }
-    }
-    return resolvedParameters;
-  }
-
   @override
   Object visitNamedExpression(NamedExpression node) {
     InferenceContext.setType(node.expression, InferenceContext.getType(node));
@@ -9409,7 +9346,8 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
-  @override visitVariableDeclarationList(VariableDeclarationList node) {
+  @override
+  visitVariableDeclarationList(VariableDeclarationList node) {
     for (VariableDeclaration decl in node.variables) {
       InferenceContext.setType(decl, node.type?.type);
     }
@@ -9525,7 +9463,7 @@ class ResolverVisitor extends ScopedVisitor {
       return (typeArgs?.length == 1) ? typeArgs[0] : null;
     }
     // Must be asynchronous to reach here, so strip off any layers of Future
-    return StaticTypeAnalyzer.flattenFutures(typeProvider, declaredType);
+    return declaredType.flattenFutures(typeSystem);
   }
 
   /**
@@ -9775,24 +9713,17 @@ class ResolverVisitor extends ScopedVisitor {
         return;
       }
       // prepare current variable type
-      DartType type = _promoteManager.getType(element);
-      if (type == null) {
-        type = expression.staticType;
+      DartType type = _promoteManager.getType(element) ??
+          expression.staticType ??
+          DynamicTypeImpl.instance;
+
+      potentialType ??= DynamicTypeImpl.instance;
+
+      // Check if we can promote to potentialType from type.
+      if (typeSystem.canPromoteToType(potentialType, type)) {
+        // Do promote type of variable.
+        _promoteManager.setType(element, potentialType);
       }
-      // Declared type should not be "dynamic".
-      if (type == null || type.isDynamic) {
-        return;
-      }
-      // Promoted type should not be "dynamic".
-      if (potentialType == null || potentialType.isDynamic) {
-        return;
-      }
-      // Promoted type should be more specific than declared.
-      if (!potentialType.isMoreSpecificThan(type)) {
-        return;
-      }
-      // Do promote type of variable.
-      _promoteManager.setType(element, potentialType);
     }
   }
 
@@ -9889,6 +9820,106 @@ class ResolverVisitor extends ScopedVisitor {
     } else if (condition is ParenthesizedExpression) {
       _propagateTrueState(condition.expression);
     }
+  }
+
+  /**
+   * Given an [argumentList] and the [parameters] related to the element that
+   * will be invoked using those arguments, compute the list of parameters that
+   * correspond to the list of arguments.
+   *
+   * An error will be reported to [onError] if any of the arguments cannot be
+   * matched to a parameter. onError can be null to ignore the error.
+   *
+   * The flag [reportAsError] should be `true` if a compile-time error should be
+   * reported; or `false` if a compile-time warning should be reported.
+   *
+   * Returns the parameters that correspond to the arguments. If no parameter
+   * matched an argument, that position will be `null` in the list.
+   */
+  static List<ParameterElement> resolveArgumentsToParameters(
+      ArgumentList argumentList,
+      List<ParameterElement> parameters,
+      void onError(ErrorCode errorCode, AstNode node, [List<Object> arguments]),
+      {bool reportAsError: false}) {
+    List<ParameterElement> requiredParameters = new List<ParameterElement>();
+    List<ParameterElement> positionalParameters = new List<ParameterElement>();
+    HashMap<String, ParameterElement> namedParameters =
+        new HashMap<String, ParameterElement>();
+    for (ParameterElement parameter in parameters) {
+      ParameterKind kind = parameter.parameterKind;
+      if (kind == ParameterKind.REQUIRED) {
+        requiredParameters.add(parameter);
+      } else if (kind == ParameterKind.POSITIONAL) {
+        positionalParameters.add(parameter);
+      } else {
+        namedParameters[parameter.name] = parameter;
+      }
+    }
+    List<ParameterElement> unnamedParameters =
+        new List<ParameterElement>.from(requiredParameters);
+    unnamedParameters.addAll(positionalParameters);
+    int unnamedParameterCount = unnamedParameters.length;
+    int unnamedIndex = 0;
+    NodeList<Expression> arguments = argumentList.arguments;
+    int argumentCount = arguments.length;
+    List<ParameterElement> resolvedParameters =
+        new List<ParameterElement>(argumentCount);
+    int positionalArgumentCount = 0;
+    HashSet<String> usedNames = new HashSet<String>();
+    bool noBlankArguments = true;
+    for (int i = 0; i < argumentCount; i++) {
+      Expression argument = arguments[i];
+      if (argument is NamedExpression) {
+        SimpleIdentifier nameNode = argument.name.label;
+        String name = nameNode.name;
+        ParameterElement element = namedParameters[name];
+        if (element == null) {
+          ErrorCode errorCode = (reportAsError
+              ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER
+              : StaticWarningCode.UNDEFINED_NAMED_PARAMETER);
+          if (onError != null) {
+            onError(errorCode, nameNode, [name]);
+          }
+        } else {
+          resolvedParameters[i] = element;
+          nameNode.staticElement = element;
+        }
+        if (!usedNames.add(name)) {
+          if (onError != null) {
+            onError(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode,
+                [name]);
+          }
+        }
+      } else {
+        if (argument is SimpleIdentifier && argument.name.isEmpty) {
+          noBlankArguments = false;
+        }
+        positionalArgumentCount++;
+        if (unnamedIndex < unnamedParameterCount) {
+          resolvedParameters[i] = unnamedParameters[unnamedIndex++];
+        }
+      }
+    }
+    if (positionalArgumentCount < requiredParameters.length &&
+        noBlankArguments) {
+      ErrorCode errorCode = (reportAsError
+          ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
+          : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
+      if (onError != null) {
+        onError(errorCode, argumentList,
+            [requiredParameters.length, positionalArgumentCount]);
+      }
+    } else if (positionalArgumentCount > unnamedParameterCount &&
+        noBlankArguments) {
+      ErrorCode errorCode = (reportAsError
+          ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
+          : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
+      if (onError != null) {
+        onError(errorCode, argumentList,
+            [unnamedParameterCount, positionalArgumentCount]);
+      }
+    }
+    return resolvedParameters;
   }
 }
 
@@ -11981,9 +12012,6 @@ class TypeResolverVisitor extends ScopedVisitor {
           : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
       superclassType = _resolveType(extendsClause.superclass, errorCode,
           CompileTimeErrorCode.EXTENDS_ENUM, errorCode);
-      if (!identical(superclassType, typeProvider.objectType)) {
-        classElement.validMixin = false;
-      }
     }
     if (classElement != null) {
       if (superclassType == null) {

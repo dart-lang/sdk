@@ -77,7 +77,6 @@ const char* CanonicalFunction(const char* func) {
   }
 }
 
-#if 0
 #define API_TIMELINE_DURATION                                                  \
   TimelineDurationScope tds(Thread::Current(),                                 \
                             Timeline::GetVMApiStream(),                        \
@@ -87,10 +86,7 @@ const char* CanonicalFunction(const char* func) {
   TimelineBeginEndScope tbes(Thread::Current(),                                \
                              Timeline::GetVMApiStream(),                       \
                              CURRENT_FUNC)
-#else
-#define API_TIMELINE_DURATION ASSERT(true)
-#define API_TIMELINE_BEGIN_END ASSERT(true)
-#endif
+
 
 #if defined(DEBUG)
 // An object visitor which will iterate over all the function objects in the
@@ -111,7 +107,7 @@ class FunctionVisitor : public ObjectVisitor {
       // Verify that the result type of a function is canonical or a
       // TypeParameter.
       typeHandle_ ^= funcHandle_.result_type();
-      ASSERT(typeHandle_.IsNull() ||
+      ASSERT(typeHandle_.IsMalformed() ||
              !typeHandle_.IsResolved() ||
              typeHandle_.IsTypeParameter() ||
              typeHandle_.IsCanonical());
@@ -120,8 +116,9 @@ class FunctionVisitor : public ObjectVisitor {
       const intptr_t num_parameters = funcHandle_.NumParameters();
       for (intptr_t i = 0; i < num_parameters; i++) {
         typeHandle_ = funcHandle_.ParameterTypeAt(i);
-        ASSERT(typeHandle_.IsTypeParameter() ||
+        ASSERT(typeHandle_.IsMalformed() ||
                !typeHandle_.IsResolved() ||
+               typeHandle_.IsTypeParameter() ||
                typeHandle_.IsCanonical());
       }
     }
@@ -1858,14 +1855,7 @@ DART_EXPORT bool Dart_IsTypeVariable(Dart_Handle handle) {
 
 
 DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
-  // We can't use a fast class index check here because there are many
-  // different signature classes for closures.
-  Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
-  ReusableObjectHandleScope reused_obj_handle(thread);
-  const Instance& closure_obj =
-      Api::UnwrapInstanceHandle(reused_obj_handle, object);
-  return (!closure_obj.IsNull() && closure_obj.IsClosure());
+  return Api::ClassId(object) == kClosureCid;
 }
 
 
@@ -1917,7 +1907,8 @@ DART_EXPORT Dart_Handle Dart_InstanceGetType(Dart_Handle instance) {
   if (!obj.IsInstance()) {
     RETURN_TYPE_ERROR(Z, instance, Instance);
   }
-  const Type& type = Type::Handle(Instance::Cast(obj).GetType());
+  const AbstractType& type =
+      AbstractType::Handle(Instance::Cast(obj).GetType());
   return Api::NewHandle(T, type.Canonicalize());
 }
 
@@ -3888,7 +3879,7 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
 
   // Construct name of the constructor to invoke.
   const String& constructor_name = Api::UnwrapStringHandle(Z, name);
-  const Type& type_obj = Type::Handle(Z, instance.GetType());
+  const AbstractType& type_obj = AbstractType::Handle(Z, instance.GetType());
   const Class& cls = Class::Handle(Z, type_obj.type_class());
   const String& class_name = String::Handle(Z, cls.Name());
   const Array& strings = Array::Handle(Z, Array::New(3));
@@ -5135,7 +5126,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
 
   // Construct the type object, canonicalize it and return.
   Type& instantiated_type = Type::Handle(
-      Type::New(cls, type_args_obj, Scanner::kNoSourcePos));
+      Type::New(cls, type_args_obj, Token::kNoSourcePos));
   instantiated_type ^= ClassFinalizer::FinalizeType(
       cls, instantiated_type, ClassFinalizer::kCanonicalize);
   return Api::NewHandle(T, instantiated_type.raw());
@@ -5882,7 +5873,7 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
 }
 
 
-#if defined(DART_PRECOMPILED)
+#if defined(DART_PRECOMPILED_RUNTIME)
 
 DART_EXPORT Dart_Handle Dart_Precompile(
     Dart_QualifiedFunctionName entry_points[],
@@ -5903,7 +5894,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
   return 0;
 }
 
-#else  // DART_PRECOMPILED
+#else  // DART_PRECOMPILED_RUNTIME
 
 DART_EXPORT Dart_Handle Dart_Precompile(
     Dart_QualifiedFunctionName entry_points[],
@@ -5977,7 +5968,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
 
   return Api::Success();
 }
-#endif  // DART_PRECOMPILED
+#endif  // DART_PRECOMPILED_RUNTIME
 
 
 DART_EXPORT bool Dart_IsRunningPrecompiledCode() {

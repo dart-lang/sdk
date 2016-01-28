@@ -4,14 +4,17 @@
 
 library analyzer.src.generated.testing.test_type_provider;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
+import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 
@@ -150,6 +153,14 @@ class TestTypeProvider implements TypeProvider {
    */
   DartType _undefinedType;
 
+  /**
+   * The analysis context, if any. Used to create an appropriate 'dart:async'
+   * library to back `Future<T>`.
+   */
+  AnalysisContext _context;
+
+  TestTypeProvider([this._context]);
+
   @override
   InterfaceType get boolType {
     if (_boolType == null) {
@@ -181,8 +192,8 @@ class TestTypeProvider implements TypeProvider {
     if (_deprecatedType == null) {
       ClassElementImpl deprecatedElement =
           ElementFactory.classElement2("Deprecated");
-      ConstructorElementImpl constructor = ElementFactory.constructorElement(
-          deprecatedElement, null, true, [stringType]);
+      ConstructorElementImpl constructor = ElementFactory
+          .constructorElement(deprecatedElement, '', true, [stringType]);
       constructor.constantInitializers = <ConstructorInitializer>[
         AstFactory.constructorFieldInitializer(
             true, 'expires', AstFactory.identifier3('expires'))
@@ -240,7 +251,18 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get futureType {
     if (_futureType == null) {
-      _futureType = ElementFactory.classElement2("Future", ["T"]).type;
+      Source asyncSource = _context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      _context.setContents(asyncSource, "");
+      CompilationUnitElementImpl asyncUnit =
+          new CompilationUnitElementImpl("async.dart");
+      LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
+          _context, AstFactory.libraryIdentifier2(["dart.async"]));
+      asyncLibrary.definingCompilationUnit = asyncUnit;
+      asyncUnit.librarySource = asyncUnit.source = asyncSource;
+
+      ClassElementImpl future = ElementFactory.classElement2("Future", ["T"]);
+      _futureType = future.type;
+      asyncUnit.types = <ClassElement>[future];
     }
     return _futureType;
   }
@@ -274,7 +296,7 @@ class TestTypeProvider implements TypeProvider {
         ElementFactory.getterElement("last", false, eType)
       ]);
       iterableElement.constructors = <ConstructorElement>[
-        ElementFactory.constructorElement(iterableElement, null, true)
+        ElementFactory.constructorElement(iterableElement, '', true)
           ..isCycleFree = true
       ];
       _propagateTypeArguments(iterableElement);
@@ -317,8 +339,8 @@ class TestTypeProvider implements TypeProvider {
       ]);
       listElement.methods = <MethodElement>[
         ElementFactory.methodElement("[]", eType, [intType]),
-        ElementFactory.methodElement(
-            "[]=", VoidTypeImpl.instance, [intType, eType]),
+        ElementFactory
+            .methodElement("[]=", VoidTypeImpl.instance, [intType, eType]),
         ElementFactory.methodElement("add", VoidTypeImpl.instance, [eType])
       ];
       _propagateTypeArguments(listElement);
@@ -339,11 +361,11 @@ class TestTypeProvider implements TypeProvider {
       ]);
       mapElement.methods = <MethodElement>[
         ElementFactory.methodElement("[]", vType, [objectType]),
-        ElementFactory.methodElement(
-            "[]=", VoidTypeImpl.instance, [kType, vType])
+        ElementFactory
+            .methodElement("[]=", VoidTypeImpl.instance, [kType, vType])
       ];
       mapElement.constructors = <ConstructorElement>[
-        ElementFactory.constructorElement(mapElement, null, false)
+        ElementFactory.constructorElement(mapElement, '', false)
           ..external = true
           ..factory = true
       ];
@@ -397,7 +419,7 @@ class TestTypeProvider implements TypeProvider {
       ClassElementImpl objectElement = ElementFactory.object;
       _objectType = objectElement.type;
       ConstructorElementImpl constructor =
-          ElementFactory.constructorElement(objectElement, null, true);
+          ElementFactory.constructorElement(objectElement, '', true);
       constructor.constantInitializers = <ConstructorInitializer>[];
       objectElement.constructors = <ConstructorElement>[constructor];
       objectElement.methods = <MethodElement>[
@@ -475,8 +497,8 @@ class TestTypeProvider implements TypeProvider {
   InterfaceType get symbolType {
     if (_symbolType == null) {
       ClassElementImpl symbolClass = ElementFactory.classElement2("Symbol");
-      ConstructorElementImpl constructor = ElementFactory.constructorElement(
-          symbolClass, null, true, [stringType]);
+      ConstructorElementImpl constructor = ElementFactory
+          .constructorElement(symbolClass, '', true, [stringType]);
       constructor.factory = true;
       constructor.isCycleFree = true;
       symbolClass.constructors = <ConstructorElement>[constructor];
@@ -555,10 +577,10 @@ class TestTypeProvider implements TypeProvider {
       ElementFactory.methodElement("toInt", _intType),
       ElementFactory.methodElement("toDouble", _doubleType),
       ElementFactory.methodElement("toStringAsFixed", _stringType, [_intType]),
-      ElementFactory.methodElement(
-          "toStringAsExponential", _stringType, [_intType]),
-      ElementFactory.methodElement(
-          "toStringAsPrecision", _stringType, [_intType]),
+      ElementFactory
+          .methodElement("toStringAsExponential", _stringType, [_intType]),
+      ElementFactory
+          .methodElement("toStringAsPrecision", _stringType, [_intType]),
       ElementFactory.methodElement("toRadixString", _stringType, [_intType])
     ];
     intElement.methods = <MethodElement>[

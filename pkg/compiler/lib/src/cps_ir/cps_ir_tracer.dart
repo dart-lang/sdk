@@ -29,7 +29,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
       builder.visit(node);
 
       for (Block block in builder.entries) {
-        printBlock(block, entryPointParameters: node.parameters);
+        printBlock(block, entryPoint: node);
       }
       for (Block block in builder.cont2block.values) {
         printBlock(block);
@@ -63,9 +63,8 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return count;
   }
 
-  /// If [entryPointParameters] is given, this block is an entry point
-  /// and [entryPointParameters] is the list of function parameters.
-  printBlock(Block block, {List<cps_ir.Definition> entryPointParameters}) {
+  /// If [entryPoint] is given, this block is an entry point.
+  printBlock(Block block, {cps_ir.FunctionDefinition entryPoint}) {
     tag("block", () {
       printProperty("name", block.name);
       printProperty("from_bci", -1);
@@ -84,9 +83,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
         String formatParameter(cps_ir.Parameter param) {
           return '${names.name(param)} ${param.type}';
         }
-        if (entryPointParameters != null) {
-          String params = entryPointParameters.map(formatParameter).join(', ');
-          printStmt('x0', 'Entry ($params)');
+        if (entryPoint != null) {
+          String thisParam = entryPoint.thisParameter != null
+              ? formatParameter(entryPoint.thisParameter)
+              : 'no receiver';
+          String params = entryPoint.parameters.map(formatParameter).join(', ');
+          printStmt('x0', 'Entry ($thisParam) ($params)');
         }
         String params = block.parameters.map(formatParameter).join(', ');
         printStmt('x0', 'Parameters ($params)');
@@ -192,16 +194,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return "LiteralList ($values)";
   }
 
-  visitLiteralMap(cps_ir.LiteralMap node) {
-    List<String> entries = new List<String>();
-    for (cps_ir.LiteralMapEntry entry in node.entries) {
-      String key = formatReference(entry.key);
-      String value = formatReference(entry.value);
-      entries.add("$key: $value");
-    }
-    return "LiteralMap (${entries.join(', ')})";
-  }
-
   visitTypeCast(cps_ir.TypeCast node) {
     String value = formatReference(node.value);
     String args = node.typeArguments.map(formatReference).join(', ');
@@ -303,8 +295,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitCreateInstance(cps_ir.CreateInstance node) {
     String className = node.classElement.name;
     String arguments = node.arguments.map(formatReference).join(', ');
-    String typeInformation =
-        node.typeInformation.map(formatReference).join(', ');
+    String typeInformation = formatReference(node.typeInformation);
     return 'CreateInstance $className ($arguments) <$typeInformation>';
   }
 
@@ -328,7 +319,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitTypeExpression(cps_ir.TypeExpression node) {
-    return "TypeExpression ${node.dartType} "
+    return "TypeExpression ${node.kindAsString} ${node.dartType}"
         "${node.arguments.map(formatReference).join(', ')}";
   }
 
@@ -575,10 +566,6 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitLiteralList(cps_ir.LiteralList node) {
-    unexpectedNode(node);
-  }
-
-  visitLiteralMap(cps_ir.LiteralMap node) {
     unexpectedNode(node);
   }
 

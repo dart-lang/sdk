@@ -276,6 +276,38 @@ class C extends A {
     assertHasImplementedMember('m() {} // A');
   }
 
+  test_method_withMethod_private_differentLib() async {
+    addFile(
+        '$testFolder/lib.dart',
+        r'''
+import 'test.dart';
+class B extends A {
+  void _m() {}
+}
+''');
+    addTestFile('''
+class A {
+  _m() {} // A
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('_m() {} // A');
+  }
+
+  test_method_withMethod_private_sameLibrary() async {
+    addTestFile('''
+class A {
+  _m() {} // A
+}
+class B extends A {
+  _m() {} // B
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('_m() {} // A');
+    assertNoImplementedMember('_m() {} // B');
+  }
+
   test_method_withMethod_wasAbstract() async {
     addTestFile('''
 abstract class A {

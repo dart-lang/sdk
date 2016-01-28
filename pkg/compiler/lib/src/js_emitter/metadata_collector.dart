@@ -178,18 +178,82 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   }
 
   List<jsAst.DeferredNumber> reifyDefaultArguments(FunctionElement function) {
+    function = function.implementation;
     FunctionSignature signature = function.functionSignature;
     if (signature.optionalParameterCount == 0) return const [];
+
+    // Optional parameters of redirecting factory constructors take their
+    // defaults from the corresponding parameters of the redirection target.
+    Map<ParameterElement, ParameterElement> targetParameterMap;
+    if (function is ConstructorElement) {
+      // TODO(sra): dart2js generates a redirecting factory constructor body
+      // that has the signature of the redirecting constructor that calls the
+      // redirection target. This is wrong - it should have the signature of the
+      // target. This would make the reified default arguments trivial.
+
+      ConstructorElement constructor = function;
+      while (constructor.isRedirectingFactory &&
+             !constructor.isCyclicRedirection) {
+        // TODO(sra): Remove the loop once effectiveTarget forwards to patches.
+        constructor = constructor.effectiveTarget.implementation;
+      }
+
+      if (constructor != function) {
+        if (signature.hasOptionalParameters) {
+          targetParameterMap =
+              mapRedirectingFactoryConstructorOptionalParameters(
+                  signature, constructor.functionSignature);
+        }
+      }
+    }
+
     List<jsAst.DeferredNumber> defaultValues = <jsAst.DeferredNumber>[];
     for (ParameterElement element in signature.optionalParameters) {
-      ConstantValue constant =
-          _backend.constants.getConstantValueForVariable(element);
+      ParameterElement parameter =
+          (targetParameterMap == null) ? element : targetParameterMap[element];
+      ConstantValue constant = (parameter == null)
+          ? null
+          : _backend.constants.getConstantValueForVariable(parameter);
       jsAst.Expression expression = (constant == null)
           ? new jsAst.LiteralNull()
           : _emitter.constantReference(constant);
       defaultValues.add(_addGlobalMetadata(expression));
     }
     return defaultValues;
+  }
+
+  Map<ParameterElement, ParameterElement>
+  mapRedirectingFactoryConstructorOptionalParameters(
+      FunctionSignature source, FunctionSignature target) {
+    var map = <ParameterElement, ParameterElement>{};
+
+    if (source.optionalParametersAreNamed !=
+        target.optionalParametersAreNamed) {
+      // No legal optional arguments due to mismatch between named vs positional
+      // optional arguments.
+      return map;
+    }
+
+    if (source.optionalParametersAreNamed) {
+      for (ParameterElement element in source.optionalParameters) {
+        for (ParameterElement redirectedElement in target.optionalParameters) {
+          if (element.name == redirectedElement.name) {
+            map[element] = redirectedElement;
+            break;
+          }
+        }
+      }
+    } else {
+      int i = source.requiredParameterCount;
+      for (ParameterElement element in source.orderedOptionalParameters) {
+        if (i >= target.requiredParameterCount && i < target.parameterCount) {
+          map[element] =
+              target.orderedOptionalParameters[i - target.requiredParameterCount];
+        }
+        ++i;
+      }
+    }
+    return map;
   }
 
   jsAst.Expression reifyMetadata(MetadataAnnotation annotation) {
@@ -229,9 +293,8 @@ class MetadataCollector implements jsAst.TokenFinalizer {
 
   _MetadataEntry _addGlobalMetadata(jsAst.Node node) {
     String nameToKey(jsAst.Name name) => "${name.key}";
-    String printed = jsAst.prettyPrint(node, _compiler,
-                                       renamerForNames: nameToKey)
-                          .getText();
+    String printed = jsAst.prettyPrint(
+        node, _compiler, renamerForNames: nameToKey);
     return _globalMetadataMap.putIfAbsent(printed, () {
       _BoundMetadataEntry result = new _BoundMetadataEntry(node);
       if (_compiler.hasIncrementalSupport) {

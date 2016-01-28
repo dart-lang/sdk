@@ -9,7 +9,7 @@
  * * package:analyzer/dart/element/type.dart
  * * package:analyzer/dart/element/visitor.dart
  *
- * If your code is using API's not available in these public libraries, please
+ * If your code is using APIs not available in these public libraries, please
  * contact the analyzer team to either find an alternate API or have the API you
  * depend on added to the public API.
  */

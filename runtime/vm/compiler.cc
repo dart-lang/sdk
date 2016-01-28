@@ -80,7 +80,7 @@ DECLARE_FLAG(bool, trace_irregexp);
 bool Compiler::always_optimize_ = false;
 bool Compiler::allow_recompilation_ = true;
 
-#ifndef DART_PRECOMPILED
+#ifndef DART_PRECOMPILED_RUNTIME
 
 // TODO(zerny): Factor out unoptimizing/optimizing pipelines and remove
 // separate helpers functions & `optimizing` args.
@@ -282,14 +282,13 @@ RawError* Compiler::CompileClass(const Class& cls) {
   if (cls.is_marked_for_parsing()) {
     return Error::null();
   }
-  // If the class is a signature class there is no need to try and
+  // If the class is a typedef class there is no need to try and
   // compile it. Just finalize it directly.
-  if (cls.IsSignatureClass()) {
+  if (cls.IsTypedefClass()) {
 #if defined(DEBUG)
-    const Type& type = Type::Handle(
-        Isolate::Current()->object_store()->function_impl_type());
-    const Class& type_cls = Class::Handle(type.type_class());
-    ASSERT(type_cls.is_finalized());
+    const Class& closure_cls = Class::Handle(
+        Isolate::Current()->object_store()->closure_class());
+    ASSERT(closure_cls.is_finalized());
 #endif
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
@@ -1341,8 +1340,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
     const bool success = helper.Compile(pipeline);
     if (!success) {
-      if (optimized) {
-        ASSERT(!Compiler::always_optimize());  // Optimized is the only code.
+      if (optimized && !Compiler::always_optimize()) {
         // Optimizer bailed out. Disable optimizations and never try again.
         if (trace_compiler) {
           THR_Print("--> disabling optimizations for '%s'\n",
@@ -1359,6 +1357,8 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
         // We got an error during compilation.
         error = isolate->object_store()->sticky_error();
         isolate->object_store()->clear_sticky_error();
+        ASSERT(error.IsLanguageError() &&
+               LanguageError::Cast(error).kind() != Report::kBailout);
         return error.raw();
       }
     }
@@ -1941,7 +1941,7 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
 }
 
 
-#else  // DART_PRECOMPILED
+#else  // DART_PRECOMPILED_RUNTIME
 
 
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
@@ -2046,6 +2046,6 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
   UNREACHABLE();
 }
 
-#endif  // DART_PRECOMPILED
+#endif  // DART_PRECOMPILED_RUNTIME
 
 }  // namespace dart

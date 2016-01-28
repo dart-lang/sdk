@@ -4,14 +4,15 @@
 
 library analyzer.test.src.task.dart_test;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisOptionsImpl, CacheState;
+    show AnalysisOptions, AnalysisOptionsImpl, CacheState;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -31,6 +32,7 @@ import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 import '../../utils.dart';
 import '../context/abstract_context.dart';
+import '../mock_sdk.dart';
 
 main() {
   initializeTestEnvironment();
@@ -42,6 +44,7 @@ main() {
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildSourceExportClosureTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
+  runReflectiveTests(BuildTypeProviderTaskTest_noAsync);
   runReflectiveTests(ComputeConstantDependenciesTaskTest);
   runReflectiveTests(ComputeConstantValueTaskTest);
   runReflectiveTests(ComputeInferableStaticVariableDependenciesTaskTest);
@@ -993,6 +996,32 @@ library lib_d;
 @reflectiveTest
 class BuildTypeProviderTaskTest extends _AbstractDartTaskTest {
   test_perform() {
+    computeResult(AnalysisContextTarget.request, TYPE_PROVIDER,
+        matcher: isBuildTypeProviderTask);
+    // validate
+    TypeProvider typeProvider = outputs[TYPE_PROVIDER];
+    expect(typeProvider, isNotNull);
+    expect(typeProvider.boolType, isNotNull);
+    expect(typeProvider.intType, isNotNull);
+    expect(typeProvider.futureType, isNotNull);
+  }
+}
+
+@reflectiveTest
+class BuildTypeProviderTaskTest_noAsync extends _AbstractDartTaskTest {
+  void prepareAnalysisContext([AnalysisOptions options]) {
+    AnalysisOptionsImpl newOptions = new AnalysisOptionsImpl();
+    newOptions.enableAsync = false;
+    super.prepareAnalysisContext(newOptions);
+  }
+
+  void setUp() {
+    sdk = new MockSdk(dartAsync: false);
+    super.setUp();
+  }
+
+  test_perform_noAsync() {
+    expect(context, isNotNull);
     computeResult(AnalysisContextTarget.request, TYPE_PROVIDER,
         matcher: isBuildTypeProviderTask);
     // validate
@@ -2993,6 +3022,40 @@ class B {}''');
     expect(outputs[UNITS], hasLength(1));
   }
 
+  test_perform_computeSourceKind_noDirectives_hasContainingLibrary() {
+    // Parse "lib.dart" to let the context know that "test.dart" is included.
+    computeResult(
+        newSource(
+            '/lib.dart',
+            r'''
+library lib;
+part 'test.dart';
+'''),
+        PARSED_UNIT);
+    // If there are no the "part of" directive, then it is not a part.
+    _performParseTask('');
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+  }
+
+  test_perform_computeSourceKind_noDirectives_noContainingLibrary() {
+    _performParseTask('');
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+  }
+
+  test_perform_doesNotExist() {
+    _performParseTask(null);
+    expect(outputs, hasLength(9));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
+    expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
+    expect(outputs[PARSE_ERRORS], hasLength(0));
+    expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+    expect(outputs[UNITS], hasLength(1));
+  }
+
   test_perform_enableAsync_false() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableAsync = false;
@@ -3025,40 +3088,6 @@ class B {void foo() async {}}''');
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
-    expect(outputs[UNITS], hasLength(1));
-  }
-
-  test_perform_computeSourceKind_noDirectives_hasContainingLibrary() {
-    // Parse "lib.dart" to let the context know that "test.dart" is included.
-    computeResult(
-        newSource(
-            '/lib.dart',
-            r'''
-library lib;
-part 'test.dart';
-'''),
-        PARSED_UNIT);
-    // If there are no the "part of" directive, then it is not a part.
-    _performParseTask('');
-    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
-  }
-
-  test_perform_computeSourceKind_noDirectives_noContainingLibrary() {
-    _performParseTask('');
-    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
-  }
-
-  test_perform_doesNotExist() {
-    _performParseTask(null);
-    expect(outputs, hasLength(9));
-    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
-    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
-    _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
-    expect(outputs[INCLUDED_PARTS], hasLength(0));
-    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
-    expect(outputs[PARSE_ERRORS], hasLength(0));
-    expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[SOURCE_KIND], SourceKind.UNKNOWN);
     expect(outputs[UNITS], hasLength(1));
   }
 
@@ -3133,7 +3162,11 @@ class B {}''');
   }
 
   void _performParseTask(String content) {
-    source = newSource('/test.dart', content);
+    if (content == null) {
+      source = resourceProvider.getFile('/test.dart').createSource();
+    } else {
+      source = newSource('/test.dart', content);
+    }
     computeResult(source, PARSED_UNIT, matcher: isParseDartTask);
   }
 

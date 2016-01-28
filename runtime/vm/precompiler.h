@@ -87,6 +87,29 @@ class FunctionKeyValueTrait {
 typedef DirectChainedHashMap<FunctionKeyValueTrait> FunctionSet;
 
 
+class FieldKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Field* Key;
+  typedef const Field* Value;
+  typedef const Field* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->token_pos();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->raw() == key->raw();
+  }
+};
+
+typedef DirectChainedHashMap<FieldKeyValueTrait> FieldSet;
+
+
 class Precompiler : public ValueObject {
  public:
   static RawError* CompileAll(
@@ -125,6 +148,7 @@ class Precompiler : public ValueObject {
   void CheckForNewDynamicFunctions();
 
   void DropUncompiledFunctions();
+  void DropFields();
   void CollectDynamicFunctionNames();
   void BindStaticCalls();
   void DedupStackmaps();
@@ -155,11 +179,13 @@ class Precompiler : public ValueObject {
   intptr_t class_count_;
   intptr_t selector_count_;
   intptr_t dropped_function_count_;
+  intptr_t dropped_field_count_;
 
   const GrowableObjectArray& libraries_;
   const GrowableObjectArray& pending_functions_;
   SymbolSet sent_selectors_;
   FunctionSet enqueued_functions_;
+  FieldSet fields_to_retain_;
   Error& error_;
 };
 

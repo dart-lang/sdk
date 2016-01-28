@@ -38,47 +38,6 @@ class RangeAnalysis;
 class RangeBoundary;
 class UnboxIntegerInstr;
 
-// These token positions are used to classify instructions that can't be
-// directly tied to an actual source position.
-#define CLASSIFYING_TOKEN_POSITIONS(V)                                         \
-    V(Private, -2)                                                             \
-    V(Box, -3)                                                                 \
-    V(ParallelMove, -4)                                                        \
-    V(TempMove, -5)                                                            \
-    V(Constant, -6)                                                            \
-    V(PushArgument, -7)                                                        \
-    V(ControlFlow, -8)                                                         \
-    V(Context, -9)
-
-// COMPILE_ASSERT that all CLASSIFYING_TOKEN_POSITIONS are less than
-// Scanner::kNoSourcePos.
-#define SANITY_CHECK_VALUES(name, value)                                       \
-  COMPILE_ASSERT(value < Scanner::kNoSourcePos);
-  CLASSIFYING_TOKEN_POSITIONS(SANITY_CHECK_VALUES);
-#undef SANITY_CHECK_VALUES
-
-class ClassifyingTokenPositions : public AllStatic {
- public:
-#define DEFINE_VALUES(name, value)                                             \
-  static const intptr_t k##name = value;
-  CLASSIFYING_TOKEN_POSITIONS(DEFINE_VALUES);
-#undef DEFINE_VALUES
-
-  static const char* ToCString(intptr_t token_pos) {
-    ASSERT(token_pos < 0);
-    switch (token_pos) {
-      case Scanner::kNoSourcePos: return "NoSource";
-#define DEFINE_CASE(name, value)                                               \
-      case value: return #name;
-      CLASSIFYING_TOKEN_POSITIONS(DEFINE_CASE);
-#undef DEFINE_CASE
-      default:
-        UNIMPLEMENTED();
-        return NULL;
-    }
-  }
-};
-
 // CompileType describes type of the value produced by the definition.
 //
 // It captures the following properties:
@@ -668,7 +627,7 @@ class Instruction : public ZoneAllocated {
   const ICData* GetICData(
       const ZoneGrowableArray<const ICData*>& ic_data_array) const;
 
-  virtual intptr_t token_pos() const { return Scanner::kNoSourcePos; }
+  virtual intptr_t token_pos() const { return Token::kNoSourcePos; }
 
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
@@ -3312,7 +3271,7 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
 class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
  public:
   LoadLocalInstr(const LocalVariable& local,
-                 intptr_t token_pos = Scanner::kNoSourcePos)
+                 intptr_t token_pos)
       : local_(local), is_last_(false), token_pos_(token_pos) { }
 
   DECLARE_INSTRUCTION(LoadLocal)
@@ -3428,7 +3387,7 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
  public:
   StoreLocalInstr(const LocalVariable& local,
                   Value* value,
-                  intptr_t token_pos = Scanner::kNoSourcePos)
+                  intptr_t token_pos)
       : local_(local), is_dead_(false), is_last_(false), token_pos_(token_pos) {
     SetInputAt(0, value);
   }
@@ -3757,7 +3716,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
   StoreStaticFieldInstr(const Field& field,
                         Value* value,
-                        intptr_t token_pos = Scanner::kNoSourcePos)
+                        intptr_t token_pos)
       : field_(field),
         token_pos_(token_pos) {
     ASSERT(field.IsZoneHandle());

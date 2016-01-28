@@ -29,7 +29,52 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     }
   }
 
+  /// Create a stringifier with an extra layer of decoration.
+  SExpressionStringifier withDecorator(Decorator subDecorator) {
+    return new SExpressionStringifier((node, String s) {
+      return subDecorator(node, decorator(node, s));
+    });
+  }
+
+  /// Create a stringifier that displays type information.
+  SExpressionStringifier withTypes() => withDecorator(typeDecorator);
+
+  /// Creates a stringifier that adds annotations from a map;
+  /// see [Node.debugString].
+  SExpressionStringifier withAnnotations(Map annotations) {
+    return withDecorator(decoratorFromMap(annotations));
+  }
+
+  static Decorator decoratorFromMap(Map annotations) {
+    Map<Node, String> nodeMap = {};
+    for (var key in annotations.keys) {
+      if (key is Node) {
+        nodeMap[key] = '${annotations[key]}';
+      } else {
+        String text = key;
+        Node node = annotations[key];
+        if (nodeMap.containsKey(node)) {
+          // In case two annotations belong to the same node,
+          // put both annotations on that node.
+          nodeMap[node] += ' $text';
+        } else {
+          nodeMap[node] = text;
+        }
+      }
+    }
+    return (node, string) {
+      String text = nodeMap[node];
+      if (text != null) return '***$string*** $text';
+      return string;
+    };
+  }
+
+  static String typeDecorator(node, String string) {
+    return node is Variable ? '$string:${node.type}' : string;
+  }
+
   String access(Reference<Definition> r) {
+    if (r == null) return '**** NULL ****';
     return decorator(r, namer.getName(r.definition));
   }
 
@@ -71,24 +116,42 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   String visitLetPrim(LetPrim node) {
     String name = newValueName(node.primitive);
     String value = visit(node.primitive);
+    String bindings = '($name $value)';
+    String skip = ' ' * '(LetPrim ('.length;
+    while (node.body is LetPrim) {
+      node = node.body;
+      name = newValueName(node.primitive);
+      value = visit(node.primitive);
+      String binding = decorator(node, '($name $value)');
+      bindings += '\n${indentation}$skip$binding';
+    }
     String body = indentBlock(() => visit(node.body));
-    return '$indentation(LetPrim ($name $value)\n$body)';
+    return '$indentation(LetPrim ($bindings)\n$body)';
+  }
+
+  bool isBranchTarget(Continuation cont) {
+    return cont.hasExactlyOneUse && cont.firstRef.parent is Branch;
   }
 
   String visitLetCont(LetCont node) {
     String conts;
     bool first = true;
+    String skip = ' ' * '(LetCont ('.length;
     for (Continuation continuation in node.continuations) {
+      // Branch continuations will be printed at their use site.
+      if (isBranchTarget(continuation)) continue;
       if (first) {
         first = false;
         conts = visit(continuation);
       } else {
         // Each subsequent line is indented additional spaces to align it
         // with the previous continuation.
-        String indent = '$indentation${' ' * '(LetCont ('.length}';
-        conts = '$conts\n$indent${visit(continuation)}';
+        conts += '\n${indentation}$skip${visit(continuation)}';
       }
     }
+    // If there were no continuations printed, just print the body.
+    if (first) return visit(node.body);
+
     String body = indentBlock(() => visit(node.body));
     return '$indentation(LetCont ($conts)\n$body)';
   }
@@ -175,7 +238,9 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   String visitInvokeContinuation(InvokeContinuation node) {
     String name = access(node.continuation);
     if (node.isRecursive) name = 'rec $name';
-    String args = node.arguments.map(access).join(' ');
+    String args = node.arguments == null
+        ? '**** NULL ****'
+	: node.arguments.map(access).join(' ');
     String escaping = node.isEscapingTry ? ' escape' : '';
     return '$indentation(InvokeContinuation $name ($args)$escaping)';
   }
@@ -191,10 +256,14 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
 
   String visitBranch(Branch node) {
     String condition = access(node.condition);
-    String trueCont = access(node.trueContinuation);
-    String falseCont = access(node.falseContinuation);
+    assert(isBranchTarget(node.trueContinuation.definition));
+    assert(isBranchTarget(node.falseContinuation.definition));
+    String trueCont =
+        indentBlock(() => visit(node.trueContinuation.definition));
+    String falseCont =
+        indentBlock(() => visit(node.falseContinuation.definition));
     String strict = node.isStrictCheck ? 'Strict' : 'NonStrict';
-    return '$indentation(Branch $condition $trueCont $falseCont $strict)';
+    return '$indentation(Branch $strict $condition\n$trueCont\n$falseCont)';
   }
 
   String visitUnreachable(Unreachable node) {
@@ -207,11 +276,17 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String visitContinuation(Continuation node) {
+    if (isBranchTarget(node)) {
+      assert(node.parameters.isEmpty);
+      assert(!node.isRecursive);
+      return indentBlock(() => visit(node.body));
+    }
     String name = newContinuationName(node);
     if (node.isRecursive) name = 'rec $name';
-    // TODO(karlklose): this should be changed to `.map(visit).join(' ')`  and
-    // should recurse to [visit].  Currently we can't do that, because the
-    // unstringifier_test produces [LetConts] with dummy arguments on them.
+    // TODO(karlklose): this should be changed to `.map(visit).join(' ')`
+    // and should recurse to [visit].  Currently we can't do that, because
+    // the unstringifier_test produces [LetConts] with dummy arguments on
+    // them.
     String parameters = node.parameters
         .map((p) => '${decorator(p, newValueName(p))}')
         .join(' ');
@@ -250,12 +325,6 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '(LiteralList ($values))';
   }
 
-  String visitLiteralMap(LiteralMap node) {
-    String keys = node.entries.map((e) => access(e.key)).join(' ');
-    String values = node.entries.map((e) => access(e.value)).join(' ');
-    return '(LiteralMap ($keys) ($values))';
-  }
-
   String visitSetField(SetField node) {
     String object = access(node.object);
     String field = node.field.name;
@@ -292,7 +361,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   String visitCreateInstance(CreateInstance node) {
     String className = node.classElement.name;
     String arguments = node.arguments.map(access).join(' ');
-    String typeInformation = node.typeInformation.map(access).join(' ');
+    String typeInformation = optionalAccess(node.typeInformation);
     return '(CreateInstance $className ($arguments) ($typeInformation))';
   }
 
@@ -310,7 +379,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
 
   String visitTypeExpression(TypeExpression node) {
     String args = node.arguments.map(access).join(' ');
-    return '(TypeExpression ${node.dartType} ($args))';
+    return '(TypeExpression ${node.kindAsString} ${node.dartType} ($args))';
   }
 
   String visitCreateInvocationMirror(CreateInvocationMirror node) {

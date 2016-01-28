@@ -107,7 +107,7 @@ class NativeArguments {
       // Retrieve the receiver from the context.
       const Object& closure = Object::Handle(ArgAt(0));
       const Context& context =
-          Context::Handle(Closure::context(Instance::Cast(closure)));
+          Context::Handle(Closure::Cast(closure).context());
       return context.At(0);
     }
     return ArgAt(NumHiddenArgs(function_bits));

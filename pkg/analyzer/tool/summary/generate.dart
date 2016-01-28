@@ -88,8 +88,12 @@ class _CodeGenerator {
         if (type.isList) {
           if (_idl.classes.containsKey(type.typeName)) {
             // List of classes is ok
+          } else if (_idl.enums.containsKey(type.typeName)) {
+            // List of enums is ok
           } else if (type.typeName == 'int') {
             // List of ints is ok
+          } else if (type.typeName == 'double') {
+            // List of doubles is ok
           } else if (type.typeName == 'String') {
             // List of strings is ok
           } else {
@@ -116,12 +120,21 @@ class _CodeGenerator {
   /**
    * Generate a Dart expression representing the default value for a field
    * having the given [type], or `null` if there is no default value.
+   *
+   * If [builder] is `true`, the returned type should be appropriate for use in
+   * a builder class.
    */
-  String defaultValue(idlModel.FieldType type) {
+  String defaultValue(idlModel.FieldType type, bool builder) {
     if (type.isList) {
-      return 'const <${type.typeName}>[]';
+      if (builder) {
+        idlModel.FieldType elementType =
+            new idlModel.FieldType(type.typeName, false);
+        return '<${encodedType(elementType)}>[]';
+      } else {
+        return 'const <${type.typeName}>[]';
+      }
     } else if (_idl.enums.containsKey(type.typeName)) {
-      return '${type.typeName}.${_idl.enums[type.typeName].values[0]}';
+      return '${type.typeName}.${_idl.enums[type.typeName].values[0].name}';
     } else if (type.typeName == 'int') {
       return '0';
     } else if (type.typeName == 'String') {
@@ -200,7 +213,9 @@ class _CodeGenerator {
             new idlModel.EnumDeclaration(doc, decl.name.name);
         _idl.enums[enm.name] = enm;
         for (EnumConstantDeclaration constDecl in decl.constants) {
-          enm.values.add(constDecl.name.name);
+          String doc = _getNodeDoc(lineInfo, constDecl);
+          enm.values
+              .add(new idlModel.EnumValueDeclaration(doc, constDecl.name.name));
         }
       } else if (decl is TopLevelVariableDeclaration) {
         // Ignore top level variable declarations; they are present just to make
@@ -261,27 +276,22 @@ class _CodeGenerator {
     out("import 'base.dart' as base;");
     out("import 'flat_buffers.dart' as fb;");
     out();
-    _idl.enums.forEach((String name, idlModel.EnumDeclaration enm) {
-      outDoc(enm.documentation);
-      out('enum $name {');
-      indent(() {
-        for (String value in enm.values) {
-          out('$value,');
-        }
-      });
-      out('}');
+    for (idlModel.EnumDeclaration enm in _idl.enums.values) {
+      _generateEnum(enm);
       out();
-    });
-    for (var cls in _idl.classes.values) {
-      List<String> builderParams = _generateBuilder(cls);
+      _generateEnumReader(enm);
       out();
-      _generateEncodeFunction(cls, builderParams);
+    }
+    for (idlModel.ClassDeclaration cls in _idl.classes.values) {
+      _generateBuilder(cls);
       out();
       _generateInterface(cls);
       out();
       _generateReader(cls);
       out();
       _generateImpl(cls);
+      out();
+      _generateMixin(cls);
       out();
     }
   }
@@ -293,10 +303,13 @@ class _CodeGenerator {
     return JSON.encode(s);
   }
 
-  List<String> _generateBuilder(idlModel.ClassDeclaration cls) {
-    String builderName = cls.name + 'Builder';
-    List<String> builderParams = <String>[];
-    out('class $builderName {');
+  void _generateBuilder(idlModel.ClassDeclaration cls) {
+    String name = cls.name;
+    String builderName = name + 'Builder';
+    String mixinName = '_${name}Mixin';
+    List<String> constructorParams = <String>[];
+    out('class $builderName extends Object with $mixinName '
+        'implements $name {');
     indent(() {
       out('bool _finished = false;');
       // Generate fields.
@@ -307,23 +320,44 @@ class _CodeGenerator {
         String typeStr = encodedType(type);
         out('$typeStr _$fieldName;');
       }
-      // Generate constructor.
-      out();
-      out('$builderName();');
-      // Generate setters.
+      // Generate getters and setters.
       for (idlModel.FieldDeclaration field in cls.fields) {
         String fieldName = field.name;
-        String typeStr = encodedType(field.type);
+        idlModel.FieldType fieldType = field.type;
+        String typeStr = encodedType(fieldType);
+        String def = defaultValue(fieldType, true);
+        String defSuffix = def == null ? '' : ' ??= $def';
+        out();
+        out('@override');
+        out('$typeStr get $fieldName => _$fieldName$defSuffix;');
         out();
         outDoc(field.documentation);
-        builderParams.add('$typeStr $fieldName');
+        constructorParams.add('$typeStr $fieldName');
         out('void set $fieldName($typeStr _value) {');
         indent(() {
           String stateFieldName = '_' + fieldName;
           out('assert(!_finished);');
+          // Validate that int(s) are non-negative.
+          if (fieldType.typeName == 'int') {
+            if (!fieldType.isList) {
+              out('assert(_value == null || _value >= 0);');
+            } else {
+              out('assert(_value == null || _value.every((e) => e >= 0));');
+            }
+          }
+          // Set the value.
           out('$stateFieldName = _value;');
         });
         out('}');
+      }
+      // Generate constructor.
+      out();
+      out('$builderName({${constructorParams.join(', ')}})');
+      for (int i = 0; i < cls.fields.length; i++) {
+        idlModel.FieldDeclaration field = cls.fields[i];
+        String prefix = i == 0 ? '  : ' : '    ';
+        String suffix = i == cls.fields.length - 1 ? ';' : ',';
+        out('${prefix}_${field.name} = ${field.name}$suffix');
       }
       // Generate finish.
       if (cls.isTopLevel) {
@@ -362,8 +396,16 @@ class _CodeGenerator {
               String itemCode = 'b.finish(fbBuilder)';
               String listCode = '$valueName.map((b) => $itemCode).toList()';
               writeCode = '$offsetName = fbBuilder.writeList($listCode);';
+            } else if (_idl.enums.containsKey(fieldType.typeName)) {
+              String itemCode = 'b.index';
+              String listCode = '$valueName.map((b) => $itemCode).toList()';
+              writeCode = '$offsetName = fbBuilder.writeListUint32($listCode);';
             } else if (fieldType.typeName == 'int') {
-              writeCode = '$offsetName = fbBuilder.writeListInt32($valueName);';
+              writeCode =
+                  '$offsetName = fbBuilder.writeListUint32($valueName);';
+            } else if (fieldType.typeName == 'double') {
+              writeCode =
+                  '$offsetName = fbBuilder.writeListFloat64($valueName);';
             } else {
               assert(fieldType.typeName == 'String');
               String itemCode = 'fbBuilder.writeString(b)';
@@ -404,11 +446,11 @@ class _CodeGenerator {
             condition = '$valueName == true';
             writeCode = 'fbBuilder.addBool($index, true);';
           } else if (fieldType.typeName == 'int') {
-            condition += ' && $valueName != ${defaultValue(fieldType)}';
-            writeCode = 'fbBuilder.addInt32($index, $valueName);';
+            condition += ' && $valueName != ${defaultValue(fieldType, true)}';
+            writeCode = 'fbBuilder.addUint32($index, $valueName);';
           } else if (_idl.enums.containsKey(fieldType.typeName)) {
-            condition += ' && $valueName != ${defaultValue(fieldType)}';
-            writeCode = 'fbBuilder.addInt32($index, $valueName.index);';
+            condition += ' && $valueName != ${defaultValue(fieldType, true)}';
+            writeCode = 'fbBuilder.addUint32($index, $valueName.index);';
           }
           if (writeCode == null) {
             throw new UnimplementedError('Writing type ${fieldType.typeName}');
@@ -424,21 +466,43 @@ class _CodeGenerator {
       out('}');
     });
     out('}');
-    return builderParams;
   }
 
-  void _generateEncodeFunction(
-      idlModel.ClassDeclaration cls, List<String> builderParams) {
-    String className = cls.name;
-    String builderName = className + 'Builder';
-    out('$builderName encode$className({${builderParams.join(', ')}}) {');
+  void _generateEnum(idlModel.EnumDeclaration enm) {
+    String name = enm.name;
+    outDoc(enm.documentation);
+    out('enum $name {');
     indent(() {
-      out('$builderName builder = new $builderName();');
-      for (idlModel.FieldDeclaration field in cls.fields) {
-        String fieldName = field.name;
-        out('builder.$fieldName = $fieldName;');
+      for (idlModel.EnumValueDeclaration value in enm.values) {
+        outDoc(value.documentation);
+        if (enm.values.last == value) {
+          out('${value.name}');
+        } else {
+          out('${value.name},');
+          out();
+        }
       }
-      out('return builder;');
+    });
+    out('}');
+  }
+
+  void _generateEnumReader(idlModel.EnumDeclaration enm) {
+    String name = enm.name;
+    String readerName = '_${name}Reader';
+    out('class $readerName extends fb.Reader<$name> {');
+    indent(() {
+      out('const $readerName() : super();');
+      out();
+      out('@override');
+      out('int get size => 4;');
+      out();
+      out('@override');
+      out('$name read(fb.BufferPointer bp) {');
+      indent(() {
+        out('int index = const fb.Uint32Reader().read(bp);');
+        out('return $name.values[index];');
+      });
+      out('}');
     });
     out('}');
   }
@@ -446,7 +510,8 @@ class _CodeGenerator {
   void _generateImpl(idlModel.ClassDeclaration cls) {
     String name = cls.name;
     String implName = '_${name}Impl';
-    out('class $implName implements $name {');
+    String mixinName = '_${name}Mixin';
+    out('class $implName extends Object with $mixinName implements $name {');
     indent(() {
       out('final fb.BufferPointer _bp;');
       out();
@@ -458,59 +523,50 @@ class _CodeGenerator {
         String fieldName = field.name;
         out('$returnType _$fieldName;');
       }
-      out();
-      // Write toMap().
-      out('@override');
-      out('Map<String, Object> toMap() => {');
-      indent(() {
-        for (idlModel.FieldDeclaration field in cls.fields) {
-          String fieldName = field.name;
-          out('${quoted(fieldName)}: $fieldName,');
-        }
-      });
-      out('};');
       // Write getters.
       cls.fields.asMap().forEach((index, field) {
         String fieldName = field.name;
         idlModel.FieldType type = field.type;
         String typeName = type.typeName;
-        // Prepare "readExpr" or "readCode" + "def"
-        String readExpr;
+        // Prepare "readCode" + "def"
         String readCode;
-        String def = defaultValue(type);
+        String def = defaultValue(type, false);
         if (type.isList) {
           if (typeName == 'int') {
-            String itemCode = 'const fb.Int32Reader()';
+            String itemCode = 'const fb.Uint32Reader()';
             readCode = 'const fb.ListReader<int>($itemCode)';
+          } else if (typeName == 'double') {
+            readCode = 'const fb.Float64ListReader()';
           } else if (typeName == 'String') {
             String itemCode = 'const fb.StringReader()';
             readCode = 'const fb.ListReader<String>($itemCode)';
-          } else {
+          } else if (_idl.classes.containsKey(typeName)) {
             String itemCode = '$typeName>(const _${typeName}Reader()';
             readCode = 'const fb.ListReader<$itemCode)';
+          } else {
+            assert(_idl.enums.containsKey(typeName));
+            String itemCode = 'const _${typeName}Reader()';
+            readCode = 'const fb.ListReader<$typeName>($itemCode)';
           }
         } else if (typeName == 'bool') {
           readCode = 'const fb.BoolReader()';
         } else if (typeName == 'int') {
-          readCode = 'const fb.Int32Reader()';
+          readCode = 'const fb.Uint32Reader()';
         } else if (typeName == 'String') {
           readCode = 'const fb.StringReader()';
         } else if (_idl.enums.containsKey(typeName)) {
-          readExpr =
-              '$typeName.values[const fb.Int32Reader().vTableGet(_bp, $index, 0)]';
+          readCode = 'const _${typeName}Reader()';
         } else if (_idl.classes.containsKey(typeName)) {
           readCode = 'const _${typeName}Reader()';
         }
-        if (readExpr == null) {
-          assert(readCode != null);
-          readExpr = '$readCode.vTableGet(_bp, $index, $def)';
-        }
+        assert(readCode != null);
         // Write the getter implementation.
         out();
         out('@override');
         String returnType = dartType(type);
         out('$returnType get $fieldName {');
         indent(() {
+          String readExpr = '$readCode.vTableGet(_bp, $index, $def)';
           out('_$fieldName ??= $readExpr;');
           out('return _$fieldName;');
         });
@@ -540,6 +596,25 @@ class _CodeGenerator {
         outDoc(field.documentation);
         out('${dartType(type)} get $fieldName;');
       });
+    });
+    out('}');
+  }
+
+  void _generateMixin(idlModel.ClassDeclaration cls) {
+    String name = cls.name;
+    String mixinName = '_${name}Mixin';
+    out('abstract class $mixinName implements $name {');
+    indent(() {
+      // Write toMap().
+      out('@override');
+      out('Map<String, Object> toMap() => {');
+      indent(() {
+        for (idlModel.FieldDeclaration field in cls.fields) {
+          String fieldName = field.name;
+          out('${quoted(fieldName)}: $fieldName,');
+        }
+      });
+      out('};');
     });
     out('}');
   }

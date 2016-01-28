@@ -6,9 +6,13 @@
 # current state of the language.
 
 [ ($compiler == none || $compiler == precompiler) ]
-built_in_identifier_prefix_test: Fail # Issue 6970
 tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
-const_qq_test: Fail
+
+# These tests are skipped in the VM because it has "--supermixin"
+# functionality enabled unconditionally.  The tests should be removed
+# once the same is true for analyzer (#24478) and dart2js (#23773)
+mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
+mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail # Issue 6422
@@ -38,7 +42,10 @@ async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runti
 async_star_cancel_while_paused_test: RuntimeError
 async_star_await_pauses_test: Skip # Times out. Issue 23996
 
+library_env_test: RuntimeError
+
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) ]
+
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
@@ -101,7 +108,7 @@ large_class_declaration_test: SkipSlow # Times out. Issue 20352
 [ ($compiler == none || $compiler == precompiler) && $runtime == ContentShellOnAndroid ]
 gc_test: SkipSlow # Times out flakily. Issue 20956
 
-[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ( $arch == simarm || $arch == arm || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ( $arch == simarm || $arch == arm || $arch == simarmv6 || $arch == armv6 || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 
 [ ($compiler == none || $compiler == precompiler) && $runtime == dartium ]

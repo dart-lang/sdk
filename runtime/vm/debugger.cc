@@ -84,7 +84,7 @@ BreakpointLocation::BreakpointLocation(const Script& script,
       line_number_(-1),
       column_number_(-1) {
   ASSERT(!script.IsNull());
-  ASSERT(token_pos_ >= 0);
+  ASSERT(Token::IsReal(token_pos_));
 }
 
 // Create a latent breakpoint at given url and line number.
@@ -93,8 +93,8 @@ BreakpointLocation::BreakpointLocation(const String& url,
                                        intptr_t requested_column_number)
     : script_(Script::null()),
       url_(url.raw()),
-      token_pos_(Scanner::kNoSourcePos),
-      end_token_pos_(Scanner::kNoSourcePos),
+      token_pos_(Token::kNoSourcePos),
+      end_token_pos_(Token::kNoSourcePos),
       is_resolved_(false),
       next_(NULL),
       conditions_(NULL),
@@ -239,7 +239,7 @@ ActivationFrame::ActivationFrame(
       code_(Code::ZoneHandle(code.raw())),
       function_(Function::ZoneHandle(code.function())),
       token_pos_initialized_(false),
-      token_pos_(Scanner::kNoSourcePos),
+      token_pos_(Token::kNoSourcePos),
       try_index_(-1),
       line_number_(-1),
       column_number_(-1),
@@ -566,7 +566,7 @@ void ActivationFrame::GetPcDescriptors() {
 intptr_t ActivationFrame::TokenPos() {
   if (!token_pos_initialized_) {
     token_pos_initialized_ = true;
-    token_pos_ = Scanner::kNoSourcePos;
+    token_pos_ = Token::kNoSourcePos;
     GetPcDescriptors();
     PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
     uword pc_offset = pc_ - code().EntryPoint();
@@ -592,9 +592,10 @@ intptr_t ActivationFrame::TryIndex() {
 
 intptr_t ActivationFrame::LineNumber() {
   // Compute line number lazily since it causes scanning of the script.
-  if ((line_number_ < 0) && (TokenPos() >= 0)) {
+  if ((line_number_ < 0) && Token::IsReal(TokenPos())) {
+    const intptr_t token_pos = TokenPos();
     const Script& script = Script::Handle(SourceScript());
-    script.GetTokenLocation(TokenPos(), &line_number_, NULL);
+    script.GetTokenLocation(token_pos, &line_number_, NULL);
   }
   return line_number_;
 }
@@ -602,10 +603,11 @@ intptr_t ActivationFrame::LineNumber() {
 
 intptr_t ActivationFrame::ColumnNumber() {
   // Compute column number lazily since it causes scanning of the script.
-  if ((column_number_ < 0) && (TokenPos() >= 0)) {
+  if ((column_number_ < 0) && Token::IsReal(TokenPos())) {
+    const intptr_t token_pos = TokenPos();
     const Script& script = Script::Handle(SourceScript());
     if (script.HasSource()) {
-      script.GetTokenLocation(TokenPos(), &line_number_, &column_number_);
+      script.GetTokenLocation(token_pos, &line_number_, &column_number_);
     } else {
       column_number_ = -1;
     }
@@ -654,7 +656,7 @@ intptr_t ActivationFrame::ContextLevel() {
     ASSERT(!pc_desc_.IsNull());
     intptr_t innermost_begin_pos = 0;
     intptr_t activation_token_pos = TokenPos();
-    ASSERT(activation_token_pos >= 0);
+    ASSERT(Token::IsReal(activation_token_pos));
     GetVarDescriptors();
     intptr_t var_desc_len = var_descriptors_.Length();
     for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
@@ -767,7 +769,7 @@ void ActivationFrame::GetDescIndices() {
   GetVarDescriptors();
 
   intptr_t activation_token_pos = TokenPos();
-  if (activation_token_pos < 0) {
+  if (!Token::IsDebugPause(activation_token_pos)) {
     // We don't have a token position for this frame, so can't determine
     // which variables are visible.
     vars_initialized_ = true;
@@ -1256,6 +1258,7 @@ Debugger::Debugger()
       obj_cache_(NULL),
       stack_trace_(NULL),
       stepping_fp_(0),
+      skip_next_step_(false),
       exc_pause_info_(kNoPauseOnExceptions) {
 }
 
@@ -1626,7 +1629,6 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   // interested in exception events.
   if (ignore_breakpoints_ ||
       IsPaused() ||
-      (!HasDebugEventHandler()) ||
       (exc_pause_info_ == kNoPauseOnExceptions)) {
     return;
   }
@@ -1675,8 +1677,8 @@ static intptr_t LastTokenOnLine(const TokenStream& tokens, intptr_t pos) {
 // and:
 //   - has the lowest token position number which satisfies the above.
 //
-// When we consider a column number, we look for the closed token
-// which intersects the desired column.  For example:
+// When we consider a column number, we look for the token which
+// intersects the desired column.  For example:
 //
 //          1         2         3
 // 12345678901234567890         0
@@ -1740,7 +1742,7 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.MoveNext()) {
     const intptr_t pos = iter.TokenPos();
-    if ((pos < 0) ||
+    if ((!Token::IsReal(pos)) ||
         (pos < requested_token_pos) ||
         (pos > last_token_pos)) {
       // Token is not in the target range.
@@ -1786,7 +1788,7 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
     PcDescriptors::Iterator iter(desc, kSafepointKind);
     while (iter.MoveNext()) {
       const intptr_t pos = iter.TokenPos();
-      if ((pos < 0) ||
+      if ((!Token::IsReal(pos)) ||
           (pos < begin_pos) ||
           (pos > end_of_line_pos)) {
         // Token is not on same line as best fit.
@@ -1821,13 +1823,13 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
     return ResolveBreakpointPos(func, last_token_pos, func.end_token_pos(),
                                 -1 /* no column */);
   }
-  return -1;
+  return Token::kNoSourcePos;
 }
 
 
 void Debugger::MakeCodeBreakpointAt(const Function& func,
                                     BreakpointLocation* loc) {
-  ASSERT(loc->token_pos_ >= 0);
+  ASSERT(Token::IsReal(loc->token_pos_));
   ASSERT((loc != NULL) && loc->IsResolved());
   ASSERT(!func.HasOptimizedCode());
   Code& code = Code::Handle(func.unoptimized_code());
@@ -2144,7 +2146,7 @@ Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure) {
   if (!closure.IsClosure()) {
     return NULL;
   }
-  const Function& func = Function::Handle(Closure::function(closure));
+  const Function& func = Function::Handle(Closure::Cast(closure).function());
   const Script& script = Script::Handle(func.script());
   BreakpointLocation* bpt_location = SetBreakpoint(script,
                                                    func.token_pos(),
@@ -2242,14 +2244,14 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
   script ^= scripts.At(0);
   intptr_t first_token_idx, last_token_idx;
   script.TokenRangeAtLine(line_number, &first_token_idx, &last_token_idx);
-  if (first_token_idx < 0) {
+  if (!Token::IsReal(first_token_idx)) {
     // Script does not contain the given line number.
     if (FLAG_verbose_debug) {
       OS::Print("Script '%s' does not contain line number %" Pd "\n",
                 script_url.ToCString(), line_number);
     }
     return NULL;
-  } else if (last_token_idx < 0) {
+  } else if (!Token::IsReal(last_token_idx)) {
     // Line does not contain any tokens.
     if (FLAG_verbose_debug) {
       OS::Print("No executable code at line %" Pd " in '%s'\n",
@@ -2531,7 +2533,8 @@ void Debugger::EnterSingleStepMode() {
 }
 
 
-void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace) {
+void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
+                                     bool skip_next_step) {
   stepping_fp_ = 0;
   if (resume_action_ == kSingleStep) {
     // When single stepping, we need to deoptimize because we might be
@@ -2541,11 +2544,19 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace) {
     // to call an optimized function.
     DeoptimizeWorld();
     isolate_->set_single_step(true);
+    skip_next_step_ = skip_next_step;
+    if (FLAG_verbose_debug) {
+      OS::Print("HandleSteppingRequest- kSingleStep\n");
+    }
   } else if (resume_action_ == kStepOver) {
     DeoptimizeWorld();
     isolate_->set_single_step(true);
+    skip_next_step_ = skip_next_step;
     ASSERT(stack_trace->Length() > 0);
     stepping_fp_ = stack_trace->FrameAt(0)->fp();
+    if (FLAG_verbose_debug) {
+      OS::Print("HandleSteppingRequest- kStepOver %" Px "\n", stepping_fp_);
+    }
   } else if (resume_action_ == kStepOut) {
     DeoptimizeWorld();
     isolate_->set_single_step(true);
@@ -2556,6 +2567,9 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace) {
         stepping_fp_ = frame->fp();
         break;
       }
+    }
+    if (FLAG_verbose_debug) {
+      OS::Print("HandleSteppingRequest- kStepOut %" Px "\n", stepping_fp_);
     }
   }
 }
@@ -2614,6 +2628,10 @@ RawError* Debugger::DebuggerStepCallback() {
   if (IsPaused()) {
     return Error::null();
   }
+  if (skip_next_step_) {
+    skip_next_step_ = false;
+    return Error::null();
+  }
 
   // Check whether we are in a Dart function that the user is
   // interested in. If we saved the frame pointer of a stack frame
@@ -2627,7 +2645,7 @@ RawError* Debugger::DebuggerStepCallback() {
     // There is an "interesting frame" set. Only pause at appropriate
     // locations in this frame.
     if (stepping_fp_ > frame->fp()) {
-      // We are in a callee of the frame we're interested in.
+      // We are i n a callee of the frame we're interested in.
       // Ignore this stepping break.
       return Error::null();
     } else if (frame->fp() > stepping_fp_) {
@@ -2641,15 +2659,14 @@ RawError* Debugger::DebuggerStepCallback() {
   if (!frame->IsDebuggable()) {
     return Error::null();
   }
-  if (frame->TokenPos() < 0) {
+  if (!Token::IsDebugPause(frame->TokenPos())) {
     return Error::null();
   }
 
-  // Don't pause for a single step if there is a breakpoint set
-  // at this location.
-  if (HasActiveBreakpoint(frame->pc())) {
-    return Error::null();
-  }
+  // If there is an active breakpoint at this pc, then we should have
+  // already bailed out of this function in the skip_next_step_ test
+  // above.
+  ASSERT(!HasActiveBreakpoint(frame->pc()));
 
   if (FLAG_verbose_debug) {
     OS::Print(">>> single step break at %s:%" Pd " (func %s token %" Pd ")\n",
@@ -2748,7 +2765,9 @@ RawError* Debugger::SignalBpReached() {
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = stack_trace;
   SignalPausedEvent(top_frame, bpt_hit);
-  HandleSteppingRequest(stack_trace_);
+  // When we single step from a user breakpoint, our next stepping
+  // point will be at the exact same pc.  Skip it.
+  HandleSteppingRequest(stack_trace_, true /* skip next step */);
   stack_trace_ = NULL;
   if (cbpt->IsInternal()) {
     RemoveInternalBreakpoints();
@@ -2886,7 +2905,7 @@ void Debugger::NotifyCompilation(const Function& func) {
         intptr_t bp_pos =
             ResolveBreakpointPos(func, loc->token_pos(), loc->end_token_pos(),
                                  loc->requested_column_number());
-        if (bp_pos < 0) {
+        if (!Token::IsDebugPause(bp_pos)) {
           if (FLAG_verbose_debug) {
             OS::Print("Failed resolving breakpoint for function '%s'\n",
                       String::Handle(func.name()).ToCString());
@@ -2974,8 +2993,8 @@ void Debugger::NotifyDoneLoading() {
         ASSERT(line_number >= 0);
         intptr_t first_token_pos, last_token_pos;
         script.TokenRangeAtLine(line_number, &first_token_pos, &last_token_pos);
-        if ((first_token_pos < 0) ||
-            (last_token_pos < 0)) {
+        if (!Token::IsDebugPause(first_token_pos) ||
+            !Token::IsDebugPause(last_token_pos)) {
           // Script does not contain the given line number or there are no
           // tokens on the line. Drop the breakpoint silently.
           Breakpoint* bpt = matched_loc->breakpoints();
@@ -3111,7 +3130,7 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
             pause_event_->breakpoint() == curr_bpt) {
           pause_event_->set_breakpoint(NULL);
         }
-        return;
+        break;
       }
 
       prev_bpt = curr_bpt;

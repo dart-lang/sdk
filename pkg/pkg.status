@@ -26,6 +26,7 @@ analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # Issue 24796
 analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
+analyzer_cli/test/driver_test: Fail # Issue 25471
 
 [ $compiler == dart2js ]
 analyzer_cli/test/*: SkipByDesign # Only meant to run on vm
@@ -44,11 +45,15 @@ analysis_server/test/search/top_level_declarations_test: Pass, Slow # 19756, 216
 analysis_server/test/services/index/store/codec_test: Pass, Slow
 analysis_server/test/socket_server_test: Pass, Slow # Issue 19756, 21628
 analyzer/test/dart/element/element_test: Pass, Slow # Issue 24914
+analyzer/test/dart/ast/ast_test: Pass, Slow # Issue 19756, 21628
+analyzer/test/dart/ast/utilities_test: Pass, Slow # Issue 19756, 21628
+analyzer/test/dart/ast/visitor_test: Pass, Slow # Issue 19756, 21628
 analyzer/test/enum_test: Slow, Pass, Fail # Issue 21323
 analyzer/test/generated/all_the_rest_test: Pass, Slow # Issue 21628
 analyzer/test/generated/ast_test: Pass, Slow # Issue 21628
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow # Issue 21628
+analyzer/test/generated/constant_test.dart: Pass, Slow # Issue 24914
 analyzer/test/generated/declaration_resolver_test: Pass, Slow # Issue 24914
 analyzer/test/generated/element_test: Pass, Slow # Issue 21628
 analyzer/test/generated/engine_test: SkipSlow
@@ -66,9 +71,13 @@ analyzer/test/generated/utilities_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/cache_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/context_test: Pass, Timeout # dartbug.com/23658
 analyzer/test/src/dart/element/element_test: Pass, Slow # Issue 24914
+analyzer/test/src/summary/prelinker_test: Pass, Slow # Issue 24914
+analyzer/test/src/summary/resynthesize_strong_test: Pass, Slow
 analyzer/test/src/summary/resynthesize_test: Pass, Slow
 analyzer/test/src/summary/summary_sdk_test: Pass, Slow # Issue 24914
-analyzer/test/src/summary/summary_test: Pass, Slow # Issue 24914
+analyzer/test/src/summary/summarize_ast_test: Pass, Slow # Issue 24914
+analyzer/test/src/summary/summarize_elements_strong_test: Pass, Slow # Issue 24914
+analyzer/test/src/summary/summarize_elements_test: Pass, Slow # Issue 24914
 analyzer/test/src/task/dart_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/dart_work_manager_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/driver_test: Pass, Slow # Issue 21628
@@ -152,12 +161,13 @@ observe/test/transformer_test: Fail, OK # Uses dart:io.
 observe/test/unique_message_test: SkipByDesign  # Uses dart:io.
 dart_messages/test/dart_messages_test: Skip  # Uses dart:io.
 
-[ $runtime == vm && ($arch == simarm64 || $arch == simarm || $arch == simarmv5te || $arch == simmips || $arch == armv5te) ]
+[ $runtime == vm && ($arch == simarm64 || $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips || $arch == armv6 || $arch == armv5te) ]
 # Timeout. These are not unit tests. They do not run efficiently on our
 # simulator or low-end devices.
 *: Skip
 
 [ $runtime == vm ]
+analyzer/test/file_system/physical_resource_provider_test: Pass, Fail # Issue 25472
 # Skip tests on the VM if the package depends on dart:html
 mutation_observer: Skip
 

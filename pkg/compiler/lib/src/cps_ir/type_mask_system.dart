@@ -448,10 +448,8 @@ class TypeMaskSystem implements AbstractValueDomain {
   }
 
   @override
-  bool areDisjoint(TypeMask leftType, TypeMask rightType) {
-    TypeMask intersected = intersection(leftType, rightType);
-    return intersected.isEmpty && !intersected.isNullable;
-  }
+  bool areDisjoint(TypeMask leftType, TypeMask rightType) =>
+      leftType.isDisjoint(rightType, classWorld);
 
   @override
   bool isMorePreciseOrEqual(TypeMask t1, TypeMask t2) {
@@ -468,8 +466,8 @@ class TypeMaskSystem implements AbstractValueDomain {
     }
     if (type is types.InterfaceType) {
       TypeMask typeAsMask = allowNull
-      ? new TypeMask.subtype(type.element, classWorld)
-      : new TypeMask.nonNullSubtype(type.element, classWorld);
+          ? new TypeMask.subtype(type.element, classWorld)
+          : new TypeMask.nonNullSubtype(type.element, classWorld);
       if (areDisjoint(value, typeAsMask)) {
         // Disprove the subtype relation based on the class alone.
         return AbstractBool.False;

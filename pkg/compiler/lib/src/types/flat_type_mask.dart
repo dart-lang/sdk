@@ -358,6 +358,47 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
+  bool isDisjoint(TypeMask other, ClassWorld classWorld) {
+    if (other is! FlatTypeMask) return other.isDisjoint(this, classWorld);
+    FlatTypeMask flatOther = other;
+
+    if (isNullable && flatOther.isNullable) return false;
+    if (isEmpty || flatOther.isEmpty) return true;
+    if (base == flatOther.base) return false;
+    if (isExact && flatOther.isExact) return true;
+
+    if (isExact) return !flatOther.contains(base, classWorld);
+    if (flatOther.isExact) return !contains(flatOther.base, classWorld);
+
+    // Normalization guarantees that isExact === !isSubclass && !isSubtype.
+    // Both are subclass or subtype masks, so if there is a subclass
+    // relationship, they are not disjoint.
+    if (classWorld.isSubclassOf(flatOther.base, base)) return false;
+    if (classWorld.isSubclassOf(base, flatOther.base)) return false;
+
+    // Two different base classes have no common subclass unless one is a
+    // subclass of the other (checked above).
+    if (isSubclass && flatOther.isSubclass) return true;
+
+    return _isDisjointHelper(this, flatOther, classWorld);
+  }
+
+  static bool _isDisjointHelper(
+      FlatTypeMask a, FlatTypeMask b, ClassWorld classWorld) {
+    if (!a.isSubclass && b.isSubclass) {
+      return _isDisjointHelper(b, a, classWorld);
+    }
+    assert(a.isSubclass || a.isSubtype);
+    assert(b.isSubtype);
+    var elements = a.isSubclass
+      ? classWorld.strictSubclassesOf(a.base)
+      : classWorld.strictSubtypesOf(a.base);
+    for (var element in elements) {
+      if (classWorld.isSubtypeOf(element, b.base)) return false;
+    }
+    return true;
+  }
+
   TypeMask intersectionSame(FlatTypeMask other, ClassWorld classWorld) {
     assert(base == other.base);
     // The two masks share the base type, so we must chose the most
@@ -685,16 +726,7 @@ class FlatTypeMask implements TypeMask {
     if (xSubset == null) return null;
     Iterable<ClassElement> ySubset = containedSubset(y, classWorld);
     if (ySubset == null) return null;
-    Iterable<ClassElement> smallSet, largeSet;
-    if (xSubset.length <= ySubset.length) {
-      smallSet = xSubset;
-      largeSet = ySubset;
-    } else {
-      smallSet = ySubset;
-      largeSet = xSubset;
-    }
-    var result = smallSet.where((ClassElement each) => largeSet.contains(each));
-    return result.toSet();
+    return xSubset.toSet().intersection(ySubset.toSet());
   }
 
   static Iterable<ClassElement> containedSubset(FlatTypeMask x,

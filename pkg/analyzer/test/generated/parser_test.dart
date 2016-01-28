@@ -4,10 +4,12 @@
 
 library analyzer.test.generated.parser_test;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_scanner.dart';
@@ -937,21 +939,42 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT]);
   }
 
+  void test_emptyEnumBody() {
+    parse3("parseEnumDeclaration", <Object>[emptyCommentAndMetadata()],
+        "enum E {}", [ParserErrorCode.EMPTY_ENUM_BODY]);
+  }
+
   void test_enableAsync_false_1() {
     parseAsync = false;
-    parse4("parseFunctionDeclarationStatement",
-        "foo() async {}", [ParserErrorCode.ASYNC_NOT_SUPPORTED]);
+    FunctionDeclarationStatement stmt = parse4(
+        "parseFunctionDeclarationStatement",
+        "foo() async {}",
+        [ParserErrorCode.ASYNC_NOT_SUPPORTED]);
+    FunctionExpression expr = stmt.functionDeclaration.functionExpression;
+    expect(expr.body.isAsynchronous, isTrue);
+    expect(expr.body.isGenerator, isFalse);
   }
 
   void test_enableAsync_false_2() {
     parseAsync = false;
-    parse4("parseFunctionDeclarationStatement",
-        "foo() sync* {}", [ParserErrorCode.ASYNC_NOT_SUPPORTED]);
+    FunctionDeclarationStatement stmt = parse4(
+        "parseFunctionDeclarationStatement",
+        "foo() async => 0;",
+        [ParserErrorCode.ASYNC_NOT_SUPPORTED]);
+    FunctionExpression expr = stmt.functionDeclaration.functionExpression;
+    expect(expr.body.isAsynchronous, isTrue);
+    expect(expr.body.isGenerator, isFalse);
   }
 
-  void test_emptyEnumBody() {
-    parse3("parseEnumDeclaration", <Object>[emptyCommentAndMetadata()],
-        "enum E {}", [ParserErrorCode.EMPTY_ENUM_BODY]);
+  void test_enableAsync_false_3() {
+    parseAsync = false;
+    FunctionDeclarationStatement stmt = parse4(
+        "parseFunctionDeclarationStatement",
+        "foo() sync* {}",
+        [ParserErrorCode.ASYNC_NOT_SUPPORTED]);
+    FunctionExpression expr = stmt.functionDeclaration.functionExpression;
+    expect(expr.body.isAsynchronous, isFalse);
+    expect(expr.body.isGenerator, isTrue);
   }
 
   void test_enumInClass() {
@@ -3685,6 +3708,55 @@ class C {
         .parseStatement('List<String> v {}', [ParserErrorCode.EXPECTED_TOKEN]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
     expect(statement.toSource(), 'List<String> v;');
+  }
+
+  void test_incompleteTypeArguments_field() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
+        r'''
+class C {
+  final List<int f;
+}''',
+        [ParserErrorCode.EXPECTED_TOKEN]);
+    // one class
+    List<CompilationUnitMember> declarations = unit.declarations;
+    expect(declarations, hasLength(1));
+    ClassDeclaration classDecl = declarations[0] as ClassDeclaration;
+    // one field declaration
+    List<ClassMember> members = classDecl.members;
+    expect(members, hasLength(1));
+    FieldDeclaration fieldDecl = members[0] as FieldDeclaration;
+    // one field
+    VariableDeclarationList fieldList = fieldDecl.fields;
+    List<VariableDeclaration> fields = fieldList.variables;
+    expect(fields, hasLength(1));
+    VariableDeclaration field = fields[0];
+    expect(field.name.name, 'f');
+    // validate the type
+    TypeArgumentList typeArguments = fieldList.type.typeArguments;
+    expect(typeArguments.arguments, hasLength(1));
+    // synthetic '>'
+    Token token = typeArguments.endToken;
+    expect(token.type, TokenType.GT);
+    expect(token.isSynthetic, isTrue);
+  }
+
+  void test_incompleteTypeParameters() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
+        r'''
+class C<K {
+}''',
+        [ParserErrorCode.EXPECTED_TOKEN]);
+    // one class
+    List<CompilationUnitMember> declarations = unit.declarations;
+    expect(declarations, hasLength(1));
+    ClassDeclaration classDecl = declarations[0] as ClassDeclaration;
+    // validate the type parameters
+    TypeParameterList typeParameters = classDecl.typeParameters;
+    expect(typeParameters.typeParameters, hasLength(1));
+    // synthetic '>'
+    Token token = typeParameters.endToken;
+    expect(token.type, TokenType.GT);
+    expect(token.isSynthetic, isTrue);
   }
 
   void test_invalidFunctionBodyModifier() {
@@ -7334,6 +7406,16 @@ void''');
     expect(literal.rightBracket, isNotNull);
   }
 
+  void test_parseConstExpression_listLiteral_typed_genericComment() {
+    enableGenericMethodComments = true;
+    ListLiteral literal = parse4("parseConstExpression", "const /*<A>*/ []");
+    expect(literal.constKeyword, isNotNull);
+    expect(literal.typeArguments, isNotNull);
+    expect(literal.leftBracket, isNotNull);
+    expect(literal.elements, hasLength(0));
+    expect(literal.rightBracket, isNotNull);
+  }
+
   void test_parseConstExpression_listLiteral_untyped() {
     ListLiteral literal = parse4("parseConstExpression", "const []");
     expect(literal.constKeyword, isNotNull);
@@ -7345,6 +7427,15 @@ void''');
 
   void test_parseConstExpression_mapLiteral_typed() {
     MapLiteral literal = parse4("parseConstExpression", "const <A, B> {}");
+    expect(literal.leftBracket, isNotNull);
+    expect(literal.entries, hasLength(0));
+    expect(literal.rightBracket, isNotNull);
+    expect(literal.typeArguments, isNotNull);
+  }
+
+  void test_parseConstExpression_mapLiteral_typed_genericComment() {
+    enableGenericMethodComments = true;
+    MapLiteral literal = parse4("parseConstExpression", "const /*<A, B>*/ {}");
     expect(literal.leftBracket, isNotNull);
     expect(literal.entries, hasLength(0));
     expect(literal.rightBracket, isNotNull);
@@ -9856,6 +9947,13 @@ void''');
     expect(literal.typeArguments.arguments, hasLength(1));
   }
 
+  void test_parsePrimaryExpression_listLiteral_typed_genericComment() {
+    enableGenericMethodComments = true;
+    ListLiteral literal = parse4("parsePrimaryExpression", "/*<A>*/[ ]");
+    expect(literal.typeArguments, isNotNull);
+    expect(literal.typeArguments.arguments, hasLength(1));
+  }
+
   void test_parsePrimaryExpression_mapLiteral() {
     MapLiteral literal = parse4("parsePrimaryExpression", "{}");
     expect(literal, isNotNull);
@@ -9863,6 +9961,13 @@ void''');
 
   void test_parsePrimaryExpression_mapLiteral_typed() {
     MapLiteral literal = parse4("parsePrimaryExpression", "<A, B>{}");
+    expect(literal.typeArguments, isNotNull);
+    expect(literal.typeArguments.arguments, hasLength(2));
+  }
+
+  void test_parsePrimaryExpression_mapLiteral_typed_genericComment() {
+    enableGenericMethodComments = true;
+    MapLiteral literal = parse4("parsePrimaryExpression", "/*<A, B>*/{}");
     expect(literal.typeArguments, isNotNull);
     expect(literal.typeArguments.arguments, hasLength(2));
   }

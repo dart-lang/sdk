@@ -1943,8 +1943,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // T2: Entry start.
   // T7: null.
   __ SmiTag(T0);
+  __ BranchNotEqual(T0, Immediate(Smi::RawValue(kClosureCid)), &loop);
+  __ lw(T0, FieldAddress(A0, Closure::function_offset()));
+  // T0: instance class id as Smi or function.
   __ Bind(&loop);
-  __ lw(T3, Address(T2, kWordSize * SubtypeTestCache::kInstanceClassId));
+  __ lw(T3,
+        Address(T2, kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
   __ beq(T3, T7, &not_found);
 
   if (n == 1) {

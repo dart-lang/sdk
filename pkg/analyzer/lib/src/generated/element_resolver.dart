@@ -6,11 +6,14 @@ library analyzer.src.generated.element_resolver;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show ChildEntities, IdentifierImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -427,9 +430,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     Expression function = node.function;
-    DartType staticInvokeType =
-        _resolveGenericMethod(function.staticType, node.typeArguments, node);
-    DartType propagatedInvokeType = _resolveGenericMethod(
+    DartType staticInvokeType = _instantiateGenericMethod(
+        function.staticType, node.typeArguments, node);
+    DartType propagatedInvokeType = _instantiateGenericMethod(
         function.propagatedType, node.typeArguments, node);
 
     node.staticInvokeType = staticInvokeType;
@@ -616,7 +619,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             [(target as SimpleIdentifier).name]);
       }
       LibraryElement importedLibrary = _getImportedLibrary(target);
-      methodName.staticElement = importedLibrary.loadLibraryFunction;
+      FunctionElement loadLibraryFunction = importedLibrary.loadLibraryFunction;
+      methodName.staticElement = loadLibraryFunction;
+      node.staticInvokeType = loadLibraryFunction.type;
       return null;
     } else {
       //
@@ -650,9 +655,23 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     staticElement = _convertSetterToGetter(staticElement);
     propagatedElement = _convertSetterToGetter(propagatedElement);
 
-    DartType staticInvokeType = _computeMethodInvokeType(node, staticElement);
-    DartType propagatedInvokeType =
-        _computeMethodInvokeType(node, propagatedElement);
+    //
+    // Given the elements, determine the type of the function we are invoking
+    //
+    DartType staticInvokeType = _getInvokeType(staticElement);
+    methodName.staticType = staticInvokeType;
+
+    DartType propagatedInvokeType = _getInvokeType(propagatedElement);
+    methodName.propagatedType =
+        _propagatedInvokeTypeIfBetter(propagatedInvokeType, staticInvokeType);
+
+    //
+    // Instantiate generic function or method if needed.
+    //
+    staticInvokeType = _instantiateGenericMethod(
+        staticInvokeType, node.typeArguments, node.methodName);
+    propagatedInvokeType = _instantiateGenericMethod(
+        propagatedInvokeType, node.typeArguments, node.methodName);
 
     //
     // Record the results.
@@ -1336,30 +1355,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return null;
   }
 
-  DartType _computeMethodInvokeType(MethodInvocation node, Element element) {
-    if (element == null) {
-      // TODO(jmesserly): should we return `dynamic` in this case?
-      // Otherwise we have to guard against `null` every time we use
-      // `staticInvokeType`.
-      // If we do return `dynamic` we need to be careful that this doesn't
-      // adversely affect propagatedType code path. But it shouldn't because
-      // we'll discard `dynamic` anyway (see _propagatedInvokeTypeIfBetter).
-      return null;
-    }
-
-    DartType invokeType;
-    if (element is PropertyAccessorElement) {
-      invokeType = element.returnType;
-    } else if (element is ExecutableElement) {
-      invokeType = element.type;
-    } else if (element is VariableElement) {
-      invokeType = _promoteManager.getStaticType(element);
-    }
-
-    return _resolveGenericMethod(
-        invokeType, node.typeArguments, node.methodName);
-  }
-
   /**
    * If the given [element] is a setter, return the getter associated with it.
    * Otherwise, return the element unchanged.
@@ -1437,6 +1432,28 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Given an element, computes the type of the invocation.
+   *
+   * For executable elements (like methods, functions) this is just their type.
+   *
+   * For variables it is their type taking into account any type promotion.
+   *
+   * For calls to getters in Dart, we invoke the function that is returned by
+   * the getter, so the invoke type is the getter's returnType.
+   */
+  DartType _getInvokeType(Element element) {
+    DartType invokeType;
+    if (element is PropertyAccessorElement) {
+      invokeType = element.returnType;
+    } else if (element is ExecutableElement) {
+      invokeType = element.type;
+    } else if (element is VariableElement) {
+      invokeType = _promoteManager.getStaticType(element);
+    }
+    return invokeType ?? DynamicTypeImpl.instance;
+  }
+
+  /**
    * Return the name of the method invoked by the given postfix [expression].
    */
   String _getPostfixOperator(PostfixExpression expression) =>
@@ -1494,6 +1511,36 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       staticType = _resolver.typeProvider.functionType;
     }
     return staticType;
+  }
+
+  /**
+   * Check for a generic method & apply type arguments if any were passed.
+   */
+  DartType _instantiateGenericMethod(
+      DartType invokeType, TypeArgumentList typeArguments, AstNode node) {
+    // TODO(jmesserly): support generic "call" methods on InterfaceType.
+    if (invokeType is FunctionType) {
+      FunctionType type = invokeType;
+      List<TypeParameterElement> parameters = type.typeFormals;
+
+      NodeList<TypeName> arguments = typeArguments?.arguments;
+      if (arguments != null && arguments.length != parameters.length) {
+        // Wrong number of type arguments. Ignore them
+        arguments = null;
+        _resolver.reportErrorForNode(
+            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+            node,
+            [type, parameters.length, arguments?.length ?? 0]);
+      }
+      if (parameters.isNotEmpty) {
+        if (arguments == null) {
+          invokeType = _resolver.typeSystem.instantiateToBounds(type);
+        } else {
+          invokeType = type.instantiate(arguments.map((n) => n.type).toList());
+        }
+      }
+    }
+    return invokeType;
   }
 
   /**
@@ -2081,36 +2128,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Check for a generic method & apply type arguments if any were passed.
-   */
-  DartType _resolveGenericMethod(
-      DartType invokeType, TypeArgumentList typeArguments, AstNode node) {
-    // TODO(jmesserly): support generic "call" methods on InterfaceType.
-    if (invokeType is FunctionType) {
-      FunctionType type = invokeType;
-      List<TypeParameterElement> parameters = type.typeFormals;
-
-      NodeList<TypeName> arguments = typeArguments?.arguments;
-      if (arguments != null && arguments.length != parameters.length) {
-        // Wrong number of type arguments. Ignore them
-        arguments = null;
-        _resolver.reportErrorForNode(
-            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
-            node,
-            [type, parameters.length, arguments?.length ?? 0]);
-      }
-      if (parameters.isNotEmpty) {
-        if (arguments == null) {
-          invokeType = _resolver.typeSystem.instantiateToBounds(type);
-        } else {
-          invokeType = type.instantiate(arguments.map((n) => n.type).toList());
-        }
-      }
-    }
-    return invokeType;
-  }
-
-  /**
    * Given an invocation of the form 'm(a1, ..., an)', resolve 'm' to the
    * element being invoked. If the returned element is a method, then the method
    * will be invoked. If the returned element is a getter, the getter will be
@@ -2559,7 +2576,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
  * AST when the parser could not distinguish between a method invocation and an
  * invocation of a top-level function imported with a prefix.
  */
-class SyntheticIdentifier extends Identifier {
+class SyntheticIdentifier extends IdentifierImpl {
   /**
    * The name of the synthetic identifier.
    */

@@ -170,7 +170,6 @@ mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - Runtim
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
-mirrors/list_constructor_test/01: RuntimeError # Issue 19635.
 
 [ $compiler == dart2js ]
 convert/chunked_conversion_utf88_test: Slow, Pass
@@ -292,9 +291,6 @@ developer/metrics_num_test: Fail # Issue 20309
 profiler/metrics_test: Fail # Issue 20309
 profiler/metrics_num_test: Fail # Issue 20309
 
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-mirrors/metadata_allowed_values_test/29: Crash # Issue 25287
-
 [ ($compiler == dartanalyzer || $compiler == dart2analyzer) && $checked ]
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
 
@@ -308,7 +304,7 @@ mirrors/native_class_test: Pass, Slow
 [ ($compiler == none || $compiler == precompiler) && $arch == mips ]
 async/timer_regress22626_test: Pass, RuntimeError # Issue 22626
 
-[ $arch == simarm || $arch == simarmv5te ]
+[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
 convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
 convert/utf85_test: Skip  # Pass, Slow Issue 12644.
 
@@ -331,7 +327,7 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == release && $arch == ia32 && $system == windows ]
 convert/json_test: RuntimeError # Issue 24908
 
-[ $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv5te ]
+[ $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv6 && $arch != simarmv5te ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
@@ -341,6 +337,7 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 [ $compiler == dart2js && $cps_ir ]
 async/async_await_zones_test: Crash # (await for(var x in bar().take(100)){sum+= x;}): await for
 async/stream_iterator_test: Crash # (Stream createCancel...  cannot handle sync*/async* functions
+mirrors/parameter_annotation_mirror_test: Pass, Fail # Issue 25501.  Depends on inlining.
 mirrors/symbol_validation_test/none: RuntimeError # Please triage this failure.
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]

@@ -21,7 +21,8 @@ TEST_CASE(TraceJSWarning) {
   {
     const intptr_t token_pos = 0;
     const char* message = "High Voltage";
-    Report::MessageF(Report::kJSWarning, script, token_pos, "%s", message);
+    Report::MessageF(Report::kJSWarning,
+                     script, token_pos, Report::AtLocation, "%s", message);
     {
       JSONStream js;
       trace_buffer->PrintToJSONStream(&js);
@@ -45,7 +46,8 @@ TEST_CASE(TraceJSWarning) {
   {
     const intptr_t token_pos = 1;
     const char* message = "Low Voltage";
-    Report::MessageF(Report::kJSWarning, script, token_pos, "%s", message);
+    Report::MessageF(Report::kJSWarning,
+                     script, token_pos, Report::AtLocation, "%s", message);
   }
   EXPECT_EQ(2, trace_buffer->Length());
   EXPECT_SUBSTRING("{\"type\":\"JSCompatibilityWarning\",\"script\":{\"type\":"

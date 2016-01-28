@@ -77,7 +77,7 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
       prim..replaceUsesWith(value)..destroy();
       let.remove();
     } else if (prim is GetLength || prim is GetField || prim is GetIndex) {
-      if (prim.hasNoEffectiveUses) {
+      if (prim.hasNoRefinedUses) {
         destroyRefinementsOfDeadPrimitive(prim);
         LetPrim let = prim.parent;
         prim..destroy();

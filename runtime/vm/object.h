@@ -507,6 +507,7 @@ class Object {
   static RawClass* instructions_class() { return instructions_class_; }
   static RawClass* object_pool_class() { return object_pool_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
+  static RawClass* code_source_map_class() { return code_source_map_class_; }
   static RawClass* stackmap_class() { return stackmap_class_; }
   static RawClass* var_descriptors_class() { return var_descriptors_class_; }
   static RawClass* exception_handlers_class() {
@@ -768,6 +769,7 @@ class Object {
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* object_pool_class_;  // Class of the ObjectPool vm object.
   static RawClass* pc_descriptors_class_;  // Class of PcDescriptors vm object.
+  static RawClass* code_source_map_class_;  // Class of CodeSourceMap vm object.
   static RawClass* stackmap_class_;  // Class of Stackmap vm object.
   static RawClass* var_descriptors_class_;  // Class of LocalVarDescriptors.
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
@@ -941,26 +943,11 @@ class Class : public Object {
 
   intptr_t ComputeEndTokenPos() const;
 
-  // This class represents the signature class of a closure function if
-  // signature_function() is not null.
-  // The associated function may be a closure function (with code) or a
-  // signature function (without code) solely describing the result type and
-  // parameter types of the signature.
+  // This class represents a typedef if the signature function is not null.
   RawFunction* signature_function() const {
     return raw_ptr()->signature_function_;
   }
-  static intptr_t signature_function_offset() {
-    return OFFSET_OF(RawClass, signature_function_);
-  }
-
-  // Return the signature type of this signature class.
-  // For example, if this class represents a signature of the form
-  // 'F<T, R>(T, [b: B, c: C]) => R', then its signature type is a parameterized
-  // type with this class as the type class and type parameters 'T' and 'R'
-  // as its type argument vector.
-  // SignatureType is used as the type of formal parameters representing a
-  // function.
-  RawType* SignatureType() const;
+  void set_signature_function(const Function& value) const;
 
   // Return the Type with type parameters declared by this class filled in with
   // dynamic and type parameters declared in superclasses filled in as declared
@@ -1004,6 +991,7 @@ class Class : public Object {
   // not overlapping with the type arguments of the super class of this class.
   intptr_t NumOwnTypeArguments() const;
 
+  // Return true if this class declares type parameters.
   bool IsGeneric() const;
 
   // If this class is parameterized, each instance has a type_arguments field.
@@ -1094,21 +1082,22 @@ class Class : public Object {
   // Check if this class represents the 'Function' class.
   bool IsFunctionClass() const;
 
-  // Check if this class represents a signature class.
-  bool IsSignatureClass() const {
+  // Check if this class represents the 'Closure' class.
+  bool IsClosureClass() const  { return id() == kClosureCid; }
+  static bool IsClosureClass(RawClass* cls) {
+    NoSafepointScope no_safepoint;
+    return cls->ptr()->id_ == kClosureCid;
+  }
+
+  // Check if this class represents a typedef class.
+  bool IsTypedefClass() const {
     return signature_function() != Object::null();
   }
-  static bool IsSignatureClass(RawClass* cls) {
-    return cls->ptr()->signature_function_ != Object::null();
-  }
+
   static bool IsInFullSnapshot(RawClass* cls) {
     NoSafepointScope no_safepoint;
     return cls->ptr()->library_->ptr()->is_in_fullsnapshot_;
   }
-
-  // Check if this class represents a canonical signature class, i.e. not an
-  // alias as defined in a typedef.
-  bool IsCanonicalSignatureClass() const;
 
   // Check the subtype relationship.
   bool IsSubtypeOf(const TypeArguments& type_arguments,
@@ -1184,8 +1173,8 @@ class Class : public Object {
 
   void InsertCanonicalConstant(intptr_t index, const Instance& constant) const;
 
-  intptr_t FindCanonicalTypeIndex(const Type& needle) const;
-  RawType* CanonicalTypeFromIndex(intptr_t idx) const;
+  intptr_t FindCanonicalTypeIndex(const AbstractType& needle) const;
+  RawAbstractType* CanonicalTypeFromIndex(intptr_t idx) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClass));
@@ -1334,21 +1323,6 @@ class Class : public Object {
   // Allocate the raw ExternalTypedData classes.
   static RawClass* NewExternalTypedDataClass(intptr_t class_id);
 
-  // Allocate a class representing a function signature described by
-  // signature_function, which must be a closure function or a signature
-  // function.
-  // The class may be type parameterized unless the signature_function is in a
-  // static scope. In that case, the type parameters are copied from the owner
-  // class of signature_function.
-  // A null signature function may be passed in and patched later. See below.
-  static RawClass* NewSignatureClass(const String& name,
-                                     const Function& signature_function,
-                                     const Script& script,
-                                     intptr_t token_pos);
-
-  // Patch the signature function of a signature class allocated without it.
-  void PatchSignatureFunction(const Function& signature_function) const;
-
   // Register code that has used CHA for optimization.
   // TODO(srdjan): Also register kind of CHA optimization (e.g.: leaf class,
   // leaf method, ...).
@@ -1409,8 +1383,6 @@ class Class : public Object {
   void set_user_name(const String& value) const;
   RawString* GeneratePrettyName() const;
   RawString* GenerateUserVisibleName() const;
-  void set_signature_function(const Function& value) const;
-  void set_signature_type(const AbstractType& value) const;
   void set_state_bits(intptr_t bits) const;
 
   void set_constants(const Array& value) const;
@@ -1483,6 +1455,7 @@ class Class : public Object {
   friend class Instance;
   friend class Object;
   friend class Type;
+  friend class FunctionType;
   friend class Intrinsifier;
   friend class Precompiler;
 };
@@ -2108,6 +2081,17 @@ class Function : public Object {
 
   RawString* GetSource() const;
 
+  // Return the type of this function's signature. It may not be canonical yet.
+  // For example, if this function has a signature of the form
+  // '(T, [b: B, c: C]) => R', where 'T' and 'R' are type parameters of the
+  // owner class of this function, then its signature type is a parameterized
+  // FunctionType with uninstantiated type arguments 'T' and 'R' as elements of
+  // its type argument vector.
+  RawFunctionType* SignatureType() const;
+
+  // Update the signature type (with a canonical version).
+  void SetSignatureType(const FunctionType& value) const;
+
   // Build a string of the form 'C<T, R>(T, {b: B, c: C}) => R' representing the
   // internal signature of the given function. In this example, T and R are
   // type parameters of class C, the owner of the function.
@@ -2124,9 +2108,10 @@ class Function : public Object {
 
   // Build a string of the form '(T, {b: B, c: C}) => R' representing the
   // user visible signature of the given function. In this example, T and R are
-  // type parameters of class C, the owner of the function.
+  // type parameters of class C, the owner of the function, also called the
+  // scope class of the function type.
   // Implicit parameters are hidden, as well as the prefix denoting the
-  // signature class and its type parameters.
+  // scope class and its type parameters.
   RawString* UserVisibleSignature() const {
     const bool instantiate = false;
     return BuildSignature(
@@ -2218,10 +2203,6 @@ class Function : public Object {
 
   // Enclosing function of this local function.
   RawFunction* parent_function() const;
-
-  // Signature class of this closure function or signature function.
-  RawClass* signature_class() const;
-  void set_signature_class(const Class& value) const;
 
   void set_extracted_method_closure(const Function& function) const;
   RawFunction* extracted_method_closure() const;
@@ -2494,6 +2475,14 @@ class Function : public Object {
                     space);
   }
 
+  // Check the subtype or 'more specific' relationship.
+  bool TypeTest(TypeTestKind test_kind,
+                const TypeArguments& type_arguments,
+                const Function& other,
+                const TypeArguments& other_type_arguments,
+                Error* bound_error,
+                Heap::Space space) const;
+
   // Returns true if this function represents an explicit getter function.
   bool IsGetterFunction() const {
     return kind() == RawFunction::kGetterFunction;
@@ -2557,6 +2546,11 @@ class Function : public Object {
   bool IsSignatureFunction() const {
     return kind() == RawFunction::kSignatureFunction;
   }
+  static bool IsSignatureFunction(RawFunction* function) {
+    NoSafepointScope no_safepoint;
+    return KindBits::decode(function->ptr()->kind_tag_) ==
+        RawFunction::kSignatureFunction;
+  }
 
   bool IsAsyncFunction() const {
     return modifier() == RawFunction::kAsync;
@@ -2612,13 +2606,15 @@ class Function : public Object {
                           const Object& owner,
                           intptr_t token_pos);
 
-  // Allocates a new Function object representing a closure function, as well as
-  // a new associated Class object representing the signature class of the
-  // function.
-  // The function and the class share the same given name.
+  // Allocates a new Function object representing a closure function.
   static RawFunction* NewClosureFunction(const String& name,
                                          const Function& parent,
                                          intptr_t token_pos);
+
+  // Allocates a new Function object representing a signature function.
+  // The owner is the scope class of the function type.
+  static RawFunction* NewSignatureFunction(const Class& owner,
+                                           intptr_t token_pos);
 
   static RawFunction* NewEvalFunction(const Class& owner,
                                       const Script& script,
@@ -2775,14 +2771,6 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
                             NameVisibility name_visibility,
                             const TypeArguments& instantiator) const;
 
-  // Check the subtype or 'more specific' relationship.
-  bool TypeTest(TypeTestKind test_kind,
-                const TypeArguments& type_arguments,
-                const Function& other,
-                const TypeArguments& other_type_arguments,
-                Error* bound_error,
-                Heap::Space space) const;
-
   // Checks the type of the formal parameter at the given position for
   // subtyping or 'more specific' relationship between the type of this function
   // and the type of the other function.
@@ -2819,9 +2807,9 @@ class ClosureData: public Object {
   RawFunction* parent_function() const { return raw_ptr()->parent_function_; }
   void set_parent_function(const Function& value) const;
 
-  // Signature class of this closure function or signature function.
-  RawClass* signature_class() const { return raw_ptr()->signature_class_; }
-  void set_signature_class(const Class& value) const;
+  // Signature type of this closure function.
+  RawFunctionType* signature_type() const { return raw_ptr()->signature_type_; }
+  void set_signature_type(const FunctionType& value) const;
 
   RawInstance* implicit_static_closure() const {
     return raw_ptr()->closure_;
@@ -3601,7 +3589,8 @@ class Library : public Object {
   void InitClassDictionary() const;
 
   RawArray* resolved_names() const { return raw_ptr()->resolved_names_; }
-  void InitResolvedNamesCache(intptr_t size) const;
+  void InitResolvedNamesCache(intptr_t size,
+                              SnapshotReader* reader = NULL) const;
   void GrowResolvedNamesCache() const;
   bool LookupResolvedNamesCache(const String& name, Object* obj) const;
   void AddToResolvedNamesCache(const String& name, const Object& obj) const;
@@ -3986,6 +3975,77 @@ class PcDescriptors : public Object {
 };
 
 
+class CodeSourceMap : public Object {
+ public:
+  static const intptr_t kBytesPerElement = 1;
+  static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawCodeSourceMap) ==
+           OFFSET_OF_RETURNED_VALUE(RawCodeSourceMap, data));
+    return 0;
+  }
+  static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(sizeof(RawCodeSourceMap) + len);
+  }
+
+  static RawCodeSourceMap* New(GrowableArray<uint8_t>* delta_encoded_data);
+
+  void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
+
+  // Encode integer in SLEB128 format.
+  static void EncodeInteger(GrowableArray<uint8_t>* data, intptr_t value);
+
+  // Decode SLEB128 encoded integer. Update byte_index to the next integer.
+  intptr_t DecodeInteger(intptr_t* byte_index) const;
+
+  class Iterator : ValueObject {
+   public:
+    explicit Iterator(const CodeSourceMap& code_source_map)
+        : code_source_map_(code_source_map),
+          byte_index_(0),
+          cur_pc_offset_(0),
+          cur_token_pos_(0) {
+    }
+
+    bool MoveNext() {
+      // Moves to the next record.
+      while (byte_index_ < code_source_map_.Length()) {
+        cur_pc_offset_ += code_source_map_.DecodeInteger(&byte_index_);
+        cur_token_pos_ += code_source_map_.DecodeInteger(&byte_index_);
+
+        return true;
+      }
+      return false;
+    }
+
+    uword PcOffset() const { return cur_pc_offset_; }
+    intptr_t TokenPos() const { return cur_token_pos_; }
+
+   private:
+    friend class CodeSourceMap;
+
+    const CodeSourceMap& code_source_map_;
+    intptr_t byte_index_;
+
+    intptr_t cur_pc_offset_;
+    intptr_t cur_token_pos_;
+  };
+
+ private:
+  static RawCodeSourceMap* New(intptr_t length);
+
+  intptr_t Length() const;
+  void SetLength(intptr_t value) const;
+  void CopyData(GrowableArray<uint8_t>* data);
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(CodeSourceMap, Object);
+  friend class Class;
+  friend class Object;
+};
+
+
 class Stackmap : public Object {
  public:
   static const intptr_t kNoMaximum = -1;
@@ -4214,6 +4274,15 @@ class Code : public Object {
   void set_pc_descriptors(const PcDescriptors& descriptors) const {
     ASSERT(descriptors.IsOld());
     StorePointer(&raw_ptr()->pc_descriptors_, descriptors.raw());
+  }
+
+  RawCodeSourceMap* code_source_map() const {
+    return raw_ptr()->code_source_map_;
+  }
+
+  void set_code_source_map(const CodeSourceMap& code_source_map) const {
+    ASSERT(code_source_map.IsOld());
+    StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
   }
 
   // Array of DeoptInfo objects.
@@ -4726,7 +4795,7 @@ class MegamorphicCache : public Object {
 class SubtypeTestCache : public Object {
  public:
   enum Entries {
-    kInstanceClassId = 0,
+    kInstanceClassIdOrFunction = 0,
     kInstanceTypeArguments = 1,
     kInstantiatorTypeArguments = 2,
     kTestResult = 3,
@@ -4734,12 +4803,12 @@ class SubtypeTestCache : public Object {
   };
 
   intptr_t NumberOfChecks() const;
-  void AddCheck(intptr_t class_id,
+  void AddCheck(const Object& instance_class_id_or_function,
                 const TypeArguments& instance_type_arguments,
                 const TypeArguments& instantiator_type_arguments,
                 const Bool& test_result) const;
   void GetCheck(intptr_t ix,
-                intptr_t* class_id,
+                Object* instance_class_id_or_function,
                 TypeArguments* instance_type_arguments,
                 TypeArguments* instantiator_type_arguments,
                 Bool* test_result) const;
@@ -4817,14 +4886,16 @@ class LanguageError : public Error {
   static RawLanguageError* NewFormatted(const Error& prev_error,
                                         const Script& script,
                                         intptr_t token_pos,
+                                        bool report_after_token,
                                         Report::Kind kind,
                                         Heap::Space space,
                                         const char* format, ...)
-    PRINTF_ATTRIBUTE(6, 7);
+    PRINTF_ATTRIBUTE(7, 8);
 
   static RawLanguageError* NewFormattedV(const Error& prev_error,
                                          const Script& script,
                                          intptr_t token_pos,
+                                         bool report_after_token,
                                          Report::Kind kind,
                                          Heap::Space space,
                                          const char* format, va_list args);
@@ -4846,6 +4917,9 @@ class LanguageError : public Error {
 
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   void set_token_pos(intptr_t value) const;
+
+  bool report_after_token() const { return raw_ptr()->report_after_token_; }
+  void set_report_after_token(bool value);
 
   void set_kind(uint8_t value) const;
 
@@ -4957,7 +5031,7 @@ class Instance : public Object {
     StorePointer(FieldAddr(field), value.raw());
   }
 
-  RawType* GetType() const;
+  RawAbstractType* GetType() const;
 
   virtual RawTypeArguments* GetTypeArguments() const;
   virtual void SetTypeArguments(const TypeArguments& value) const;
@@ -4983,9 +5057,6 @@ class Instance : public Object {
   }
 
   void SetNativeField(int index, intptr_t value) const;
-
-  // Returns true if the instance is a closure object.
-  bool IsClosure() const;
 
   // If the instance is a callable object, i.e. a closure or the instance of a
   // class implementing a 'call' method, return true and set the function
@@ -5113,17 +5184,21 @@ class LibraryPrefix : public Instance {
 class AbstractType : public Instance {
  public:
   virtual bool IsFinalized() const;
+  virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const;
+  virtual void SetIsBeingFinalized() const;
   virtual bool IsMalformed() const;
   virtual bool IsMalbounded() const;
   virtual bool IsMalformedOrMalbounded() const;
   virtual RawLanguageError* error() const;
   virtual void set_error(const LanguageError& value) const;
   virtual bool IsResolved() const;
+  virtual void SetIsResolved() const;
   virtual bool HasResolvedTypeClass() const;
   virtual RawClass* type_class() const;
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const;
+  virtual void set_arguments(const TypeArguments& value) const;
   virtual intptr_t token_pos() const;
   virtual bool IsInstantiated(TrailPtr trail = NULL) const;
   virtual bool CanonicalizeEquals(const Instance& other) const {
@@ -5238,8 +5313,8 @@ class AbstractType : public Instance {
   // Check if this type represents the 'String' type.
   bool IsStringType() const;
 
-  // Check if this type represents the 'Function' type.
-  bool IsFunctionType() const;
+  // Check if this type represents the Dart 'Function' type.
+  bool IsDartFunctionType() const;
 
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other,
@@ -5291,12 +5366,11 @@ class Type : public AbstractType {
         (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
         (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);
   }
-  void SetIsFinalized() const;
-  void ResetIsFinalized() const;  // Ignore current state and set again.
+  virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const {
     return raw_ptr()->type_state_ == RawType::kBeingFinalized;
   }
-  void set_is_being_finalized() const;
+  virtual void SetIsBeingFinalized() const;
   virtual bool IsMalformed() const;
   virtual bool IsMalbounded() const;
   virtual bool IsMalformedOrMalbounded() const;
@@ -5305,13 +5379,13 @@ class Type : public AbstractType {
   virtual bool IsResolved() const {
     return raw_ptr()->type_state_ >= RawType::kResolved;
   }
-  void set_is_resolved() const;
+  virtual void SetIsResolved() const;
   virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
   virtual RawClass* type_class() const;
   void set_type_class(const Object& value) const;
   virtual RawUnresolvedClass* unresolved_class() const;
-  virtual RawTypeArguments* arguments() const;
-  void set_arguments(const TypeArguments& value) const;
+  virtual RawTypeArguments* arguments() const { return raw_ptr()->arguments_; }
+  virtual void set_arguments(const TypeArguments& value) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
@@ -5401,6 +5475,104 @@ class Type : public AbstractType {
 };
 
 
+// TODO(regis): FunctionType is very similar to Type. Instead of a separate
+// class FunctionType, we could consider an object of class Type as representing
+// a function type if it has a non-null function (signature) field.
+// In order to save space, we could reuse the error_ field? A malformed or
+// malbounded function type would lose its function reference, but the error
+// string would contain relevant info.
+
+// A FunctionType describes the signature of a function, i.e. the result type
+// and formal parameter types of the function, as well as the names of optional
+// named formal parameters.
+// If these types refer to type parameters of a class in scope, the function
+// type is generic. A generic function type may be instantiated by a type
+// argument vector.
+// Therefore, a FunctionType consists of a scope class, a type argument vector,
+// and a signature.
+// The scope class is either a generic class (or generic typedef) declaring the
+// type parameters referred to by the signature, or class _Closure in the
+// non-generic case (including the non-generic typedef case).
+// The type arguments specify an instantiation of the generic signature (null in
+// the non-generic case).
+// The signature is a reference to an actual closure function (kClosureFunction)
+// or to a signature function (kSignatureFunction).
+// Since typedefs cannot refer to themselves, directly or indirectly, a
+// FunctionType cannot be recursive. Only individual formal parameter types can.
+class FunctionType : public AbstractType {
+ public:
+  virtual bool IsFinalized() const {
+    return
+        (raw_ptr()->type_state_ == RawFunctionType::kFinalizedInstantiated) ||
+        (raw_ptr()->type_state_ == RawFunctionType::kFinalizedUninstantiated);
+  }
+  virtual void SetIsFinalized() const;
+  void ResetIsFinalized() const;  // Ignore current state and set again.
+  virtual bool IsBeingFinalized() const {
+    return raw_ptr()->type_state_ == RawFunctionType::kBeingFinalized;
+  }
+  virtual void SetIsBeingFinalized() const;
+  virtual bool IsMalformed() const;
+  virtual bool IsMalbounded() const;
+  virtual bool IsMalformedOrMalbounded() const;
+  virtual RawLanguageError* error() const { return raw_ptr()->error_; }
+  virtual void set_error(const LanguageError& value) const;
+  virtual bool IsResolved() const {
+    return raw_ptr()->type_state_ >= RawFunctionType::kResolved;
+  }
+  virtual void SetIsResolved() const;
+  // The scope class of a FunctionType is always resolved. It has no actual
+  // type class. Returning false is important for the type testers to work, e.g.
+  // IsDynamicType(), IsBoolType(), etc...
+  virtual bool HasResolvedTypeClass() const { return false; }
+  // Return scope_class from virtual type_class() to factorize finalization
+  // with Type, also a parameterized type.
+  virtual RawClass* type_class() const { return scope_class(); }
+  RawClass* scope_class() const { return raw_ptr()->scope_class_; }
+  void set_scope_class(const Class& value) const;
+  virtual RawTypeArguments* arguments() const { return raw_ptr()->arguments_; }
+  virtual void set_arguments(const TypeArguments& value) const;
+  RawFunction* signature() const { return raw_ptr()->signature_; }
+  virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+  virtual bool IsInstantiated(TrailPtr trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
+  virtual bool IsRecursive() const;
+  virtual RawAbstractType* InstantiateFrom(
+      const TypeArguments& instantiator_type_arguments,
+      Error* malformed_error,
+      TrailPtr trail = NULL,
+      Heap::Space space = Heap::kNew) const;
+  virtual RawAbstractType* CloneUnfinalized() const;
+  virtual RawAbstractType* CloneUninstantiated(
+      const Class& new_owner,
+      TrailPtr trail = NULL) const;
+  virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+
+  virtual intptr_t Hash() const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawFunctionType));
+  }
+
+  static RawFunctionType* New(const Class& scope_class,
+                              const TypeArguments& arguments,
+                              const Function& signature,
+                              intptr_t token_pos,
+                              Heap::Space space = Heap::kOld);
+
+ private:
+  void set_signature(const Function& value) const;
+  void set_token_pos(intptr_t token_pos) const;
+  void set_type_state(int8_t state) const;
+
+  static RawFunctionType* New(Heap::Space space = Heap::kOld);
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(FunctionType, AbstractType);
+  friend class Class;
+  friend class TypeArguments;
+};
+
+
 // A TypeRef is used to break cycles in the representation of recursive types.
 // Its only field is the recursive AbstractType it refers to.
 // Note that the cycle always involves type arguments.
@@ -5422,7 +5594,10 @@ class TypeRef : public AbstractType {
     return AbstractType::Handle(type()).IsMalformedOrMalbounded();
   }
   virtual bool IsResolved() const { return true; }
-  virtual bool HasResolvedTypeClass() const { return true; }
+  virtual bool HasResolvedTypeClass() const {
+    // Returns false if the ref type is a function type.
+    return AbstractType::Handle(type()).HasResolvedTypeClass();
+  }
   RawAbstractType* type() const { return raw_ptr()->type_; }
   void set_type(const AbstractType& value) const;
   virtual RawClass* type_class() const {
@@ -5491,7 +5666,7 @@ class TypeParameter : public AbstractType {
     ASSERT(raw_ptr()->type_state_ != RawTypeParameter::kFinalizedInstantiated);
     return raw_ptr()->type_state_ == RawTypeParameter::kFinalizedUninstantiated;
   }
-  void set_is_finalized() const;
+  virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const { return false; }
   virtual bool IsMalformed() const { return false; }
   virtual bool IsMalbounded() const { return false; }
@@ -7667,86 +7842,45 @@ class LinkedHashMap : public Instance {
 };
 
 
-class Closure : public AllStatic {
+class Closure : public Instance {
  public:
-  static RawFunction* function(const Instance& closure) {
-    return *FunctionAddr(closure);
+  RawFunction* function() const { return raw_ptr()->function_; }
+  void set_function(const Function& function) const {
+    // TODO(regis): Only used from deferred_objects.cc. Remove once fixed.
+    StorePointer(&raw_ptr()->function_, function.raw());
   }
-  static intptr_t function_offset() {
-    return static_cast<intptr_t>(kFunctionOffset * kWordSize);
-  }
+  static intptr_t function_offset() { return OFFSET_OF(RawClosure, function_); }
 
-  static RawContext* context(const Instance& closure) {
-    return *ContextAddr(closure);
+  RawContext* context() const { return raw_ptr()->context_; }
+  void set_context(const Context& context) const {
+    // TODO(regis): Only used from deferred_objects.cc. Remove once fixed.
+    StorePointer(&raw_ptr()->context_, context.raw());
   }
-  static intptr_t context_offset() {
-    return static_cast<intptr_t>(kContextOffset * kWordSize);
-  }
+  static intptr_t context_offset() { return OFFSET_OF(RawClosure, context_); }
 
-  static RawTypeArguments* GetTypeArguments(const Instance& closure) {
-    return *TypeArgumentsAddr(closure);
-  }
-  static void SetTypeArguments(const Instance& closure,
-                               const TypeArguments& value) {
-    ASSERT(value.IsNull() || value.IsCanonical());
-    closure.StorePointer(TypeArgumentsAddr(closure), value.raw());
-  }
   static intptr_t type_arguments_offset() {
-    return static_cast<intptr_t>(kTypeArgumentsOffset * kWordSize);
+    return OFFSET_OF(RawClosure, type_arguments_);
   }
-
-  static const char* ToCString(const Instance& closure);
 
   static intptr_t InstanceSize() {
-    intptr_t size = sizeof(RawInstance) + (kNumFields * kWordSize);
-    ASSERT(size == Object::RoundedAllocationSize(size));
-    return size;
+    return RoundedAllocationSize(sizeof(RawClosure));
   }
 
-  static RawInstance* New(const Function& function,
-                          const Context& context,
-                          Heap::Space space = Heap::kNew);
+  // Returns true if all elements are OK for canonicalization.
+  virtual bool CheckAndCanonicalizeFields(const char** error_str) const {
+    // None of the fields of a closure are instances.
+    return true;
+  }
+
+  static RawClosure* New(const Function& function,
+                         const Context& context,
+                         Heap::Space space = Heap::kNew);
 
  private:
-  static const int kTypeArgumentsOffset = 1;
-  static const int kFunctionOffset = 2;
-  static const int kContextOffset = 3;
-  static const int kNumFields = 3;
+  static RawClosure* New();
 
-  static RawTypeArguments** TypeArgumentsAddr(const Instance& obj) {
-    ASSERT(obj.IsClosure());
-    return reinterpret_cast<RawTypeArguments**>(
-        reinterpret_cast<intptr_t>(obj.raw_ptr()) + type_arguments_offset());
-  }
-  static RawFunction** FunctionAddr(const Instance& obj) {
-    ASSERT(obj.IsClosure());
-    return reinterpret_cast<RawFunction**>(
-        reinterpret_cast<intptr_t>(obj.raw_ptr()) + function_offset());
-  }
-  static RawContext** ContextAddr(const Instance& obj) {
-    ASSERT(obj.IsClosure());
-    return reinterpret_cast<RawContext**>(
-        reinterpret_cast<intptr_t>(obj.raw_ptr()) + context_offset());
-  }
-  static void set_function(const Instance& closure,
-                           const Function& value) {
-    closure.StorePointer(FunctionAddr(closure), value.raw());
-  }
-  static void set_context(const Instance& closure,
-                          const Context& value) {
-    closure.StorePointer(ContextAddr(closure), value.raw());
-  }
-  static intptr_t NextFieldOffset() {
-    // Indicates this class cannot be extended by dart code.
-    return -kWordSize;
-  }
-  static RawFunction* GetFunction(RawObject* obj) {
-    return *(reinterpret_cast<RawFunction**>(
-        reinterpret_cast<intptr_t>(obj->ptr()) + function_offset()));
-  }
-
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Closure, Instance);
   friend class Class;
-  friend class SnapshotWriter;
 };
 
 

@@ -36,7 +36,7 @@ DEFINE_FLAG(bool, trace_irregexp, false, "Trace irregexps");
 
 
 static const intptr_t kInvalidTryIndex = CatchClauseNode::kInvalidTryIndex;
-static const intptr_t kNoSourcePos = Scanner::kNoSourcePos;
+static const intptr_t kNoSourcePos = Token::kNoSourcePos;
 static const intptr_t kMinStackSize = 512;
 
 
@@ -588,13 +588,13 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
 
 
 LoadLocalInstr* IRRegExpMacroAssembler::LoadLocal(LocalVariable* local) const {
-  return new(Z) LoadLocalInstr(*local);
+  return new(Z) LoadLocalInstr(*local, kNoSourcePos);
 }
 
 
 void IRRegExpMacroAssembler::StoreLocal(LocalVariable* local,
                                         Value* value) {
-  Do(new(Z) StoreLocalInstr(*local, value));
+  Do(new(Z) StoreLocalInstr(*local, value, kNoSourcePos));
 }
 
 
@@ -621,7 +621,7 @@ Value* IRRegExpMacroAssembler::BindLoadLocal(const LocalVariable& local) {
     return Bind(new(Z) ConstantInstr(*local.ConstValue()));
   }
   ASSERT(!local.is_captured());
-  return Bind(new(Z) LoadLocalInstr(local));
+  return Bind(new(Z) LoadLocalInstr(local, kNoSourcePos));
 }
 
 
@@ -1924,7 +1924,7 @@ Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
       index_val,
       characters,
       specialization_cid_,
-      Scanner::kNoSourcePos));
+      kNoSourcePos));
 }
 
 

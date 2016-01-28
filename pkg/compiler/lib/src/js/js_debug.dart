@@ -7,7 +7,12 @@
 library js.debug;
 
 import 'package:js_ast/js_ast.dart';
-import '../util/util.dart' show Indentation, Tagging;
+
+import '../io/code_output.dart' show
+    BufferedCodeOutput;
+import '../util/util.dart' show
+    Indentation,
+    Tagging;
 
 /// Unparse the JavaScript [node].
 String nodeToString(Node node) {
@@ -25,8 +30,8 @@ String nodeToString(Node node) {
 class DebugPrinter extends BaseVisitor with Indentation, Tagging<Node> {
   StringBuffer sb = new StringBuffer();
 
-  void visitNodeWithChildren(Node node, String type) {
-    openNode(node, type);
+  void visitNodeWithChildren(Node node, String type, [Map params]) {
+    openNode(node, type, params);
     node.visitChildren(this);
     closeNode();
   }
@@ -39,6 +44,11 @@ class DebugPrinter extends BaseVisitor with Indentation, Tagging<Node> {
   @override
   void visitName(Name node) {
     openAndCloseNode(node, '${node.runtimeType}', {'name': node.name});
+  }
+
+  @override
+  void visitBinary(Binary node) {
+    visitNodeWithChildren(node, '${node.runtimeType}', {'op': node.op});
   }
 
   @override
@@ -57,7 +67,8 @@ class DebugPrinter extends BaseVisitor with Indentation, Tagging<Node> {
 }
 
 /// Simple printing context that doesn't throw on errors.
-class LenientPrintingContext extends SimpleJavaScriptPrintingContext {
+class LenientPrintingContext extends SimpleJavaScriptPrintingContext
+    implements BufferedCodeOutput {
   @override
   void error(String message) {
     buffer.write('>>$message<<');

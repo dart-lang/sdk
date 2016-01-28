@@ -414,16 +414,6 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return "list [$values]";
   }
 
-  String visitLiteralMap(LiteralMap node) {
-    List<String> entries = new List<String>();
-    node.entries.forEach((LiteralMapEntry entry) {
-      String key = visitExpression(entry.key);
-      String value = visitExpression(entry.value);
-      entries.add("$key: $value");
-    });
-    return "map [${entries.join(', ')}]";
-  }
-
   String visitConstant(Constant node) {
     return "${node.value.toStructuredString()}";
   }
@@ -533,7 +523,9 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
 
   @override
   String visitTypeExpression(TypeExpression node) {
-    return node.dartType.toString();
+    String kind = '${node.kind}'.split('.').last;
+    String args = node.arguments.map(visitExpression).join(', ');
+    return 'TypeExpression($kind, ${node.dartType}, $args)';
   }
 
   @override

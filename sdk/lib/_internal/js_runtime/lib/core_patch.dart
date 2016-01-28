@@ -106,37 +106,61 @@ class Function {
 // Patch for Expando implementation.
 @patch
 class Expando<T> {
+  static const String _EXPANDO_PROPERTY_NAME = 'expando\$values';
+
+  // Incremented to make unique keys.
+  static int _keyCount = 0;
+
+  // Stores either a JS WeakMap or a "unique" string key.
+  final Object _jsWeakMapOrKey;
+
   @patch
-  Expando([String name]) : this.name = name;
+  Expando([String name])
+      : this.name = name,
+        _jsWeakMapOrKey = JS('bool', 'typeof WeakMap == "function"')
+            ? JS('=Object|Null', 'new WeakMap()')
+            : _createKey();
 
   @patch
   T operator[](Object object) {
-    var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
-    return (values == null) ? null : Primitives.getProperty(values, _getKey());
+    if (_jsWeakMapOrKey is! String) {
+      _checkType(object);  // WeakMap doesn't check on reading, only writing.
+      return JS('', '#.get(#)', _jsWeakMapOrKey, object);
+    }
+    return _getFromObject(_jsWeakMapOrKey, object);
   }
 
   @patch
   void operator[]=(Object object, T value) {
+    if (_jsWeakMapOrKey is! String) {
+      JS('void', '#.set(#, #)', _jsWeakMapOrKey, object, value);
+    } else {
+      _setOnObject(_jsWeakMapOrKey, object, value);
+    }
+  }
+
+  static Object _getFromObject(String key, Object object) {
+    var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
+    return (values == null) ? null : Primitives.getProperty(values, key);
+  }
+
+  static void _setOnObject(String key, Object object, Object value) {
     var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
     if (values == null) {
       values = new Object();
       Primitives.setProperty(object, _EXPANDO_PROPERTY_NAME, values);
     }
-    Primitives.setProperty(values, _getKey(), value);
+    Primitives.setProperty(values, key, value);
   }
 
-  String _getKey() {
-    String key = Primitives.getProperty(this, _KEY_PROPERTY_NAME);
-    if (key == null) {
-      key = "expando\$key\$${_keyCount++}";
-      Primitives.setProperty(this, _KEY_PROPERTY_NAME, key);
+  static String _createKey() => "expando\$key\$${_keyCount++}";
+
+  static _checkType(object) {
+    if (object == null || object is bool || object is num || object is String) {
+      throw new ArgumentError.value(object,
+          "Expandos are not allowed on strings, numbers, booleans or null");
     }
-    return key;
   }
-
-  static const String _KEY_PROPERTY_NAME = 'expando\$key';
-  static const String _EXPANDO_PROPERTY_NAME = 'expando\$values';
-  static int _keyCount = 0;
 }
 
 @patch
@@ -316,20 +340,11 @@ class Stopwatch {
   static int _now() => Primitives.timerTicks();
 }
 
-class _ListConstructorSentinel extends JSInt {
-  const _ListConstructorSentinel();
-}
-
 // Patch for List implementation.
 @patch
 class List<E> {
   @patch
-  factory List([int length = const _ListConstructorSentinel()]) {
-    if (length == const _ListConstructorSentinel()) {
-      return new JSArray<E>.emptyGrowable();
-    }
-    return new JSArray<E>.fixed(length);
-  }
+  factory List([int length]) = JSArray<E>.list;
 
   @patch
   factory List.filled(int length, E fill, {bool growable: false}) {

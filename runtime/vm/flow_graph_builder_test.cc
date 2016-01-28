@@ -95,6 +95,26 @@ class SourcePositionTest : public ValueObject {
     DUMP_ASSERT(count > 0);
   }
 
+  // Expect to find an instance call at |line| and |column|.
+  void InstanceCallAt(const char* needle,
+                      intptr_t line,
+                      intptr_t column = -1) {
+    ZoneGrowableArray<Instruction*>* instructions =
+        FindInstructionsAt(line, column);
+    intptr_t count = 0;
+    for (intptr_t i = 0; i < instructions->length(); i++) {
+      Instruction* instr = instructions->At(i);
+      EXPECT(instr != NULL);
+      if (instr->IsInstanceCall()) {
+        const char* haystack = instr->ToCString();
+        if (strstr(haystack, needle) != NULL) {
+          count++;
+        }
+      }
+    }
+    DUMP_ASSERT(count > 0);
+  }
+
   // Expect to find at least one static call at |line| and |column|. The
   // static call will have |needle| in its |ToCString| representation.
   void StaticCallAt(const char* needle,
@@ -146,9 +166,26 @@ class SourcePositionTest : public ValueObject {
     }
   }
 
+  // Fails if any of the IR nodes has a token position of Token::kNoSourcePos.
+  void EnsureSourcePositions() {
+    for (intptr_t i = 0; i < blocks_->length(); i++) {
+      BlockEntryInstr* entry = (*blocks_)[i];
+      DUMP_ASSERT(entry->token_pos() != Token::kNoSourcePos);
+      for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+        Instruction* instr = it.Current();
+        DUMP_ASSERT(instr->token_pos() != Token::kNoSourcePos);
+      }
+    }
+  }
+
  private:
   void DumpInstruction(Instruction* instr) {
-    const intptr_t token_pos = instr->token_pos();
+    intptr_t token_pos = instr->token_pos();
+    bool synthetic = false;
+    if (Token::IsSynthetic(token_pos)) {
+      synthetic = true;
+      token_pos = Token::FromSynthetic(token_pos);
+    }
     if (token_pos < 0) {
       const char* token_pos_string =
           ClassifyingTokenPositions::ToCString(token_pos);
@@ -161,10 +198,17 @@ class SourcePositionTest : public ValueObject {
                                   &token_line,
                                   &token_column,
                                   NULL);
-    THR_Print("       %02d:%02d -- %s\n",
-              static_cast<int>(token_line),
-              static_cast<int>(token_column),
-              instr->ToCString());
+    if (synthetic) {
+      THR_Print("      *%02d:%02d -- %s\n",
+                static_cast<int>(token_line),
+                static_cast<int>(token_column),
+                instr->ToCString());
+    } else {
+      THR_Print("       %02d:%02d -- %s\n",
+                static_cast<int>(token_line),
+                static_cast<int>(token_column),
+                instr->ToCString());
+    }
   }
 
   Instruction* FindFirstInstructionAt(intptr_t line, intptr_t column) {
@@ -185,6 +229,9 @@ class SourcePositionTest : public ValueObject {
       for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
         Instruction* instr = it.Current();
         intptr_t token_pos = instr->token_pos();
+        if (Token::IsSynthetic(token_pos)) {
+          token_pos = Token::FromSynthetic(token_pos);
+        }
         if (token_pos < 0) {
           continue;
         }
@@ -267,6 +314,8 @@ TEST_CASE(SourcePosition_InstanceCalls) {
   spt.InstanceCallAt(4, 13, Token::kADD);
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 5, 3);
   spt.FuzzyInstructionMatchAt("Return", 5, 3);
+
+  spt.EnsureSourcePositions();
 }
 
 
@@ -294,6 +343,8 @@ TEST_CASE(SourcePosition_If) {
   spt.FuzzyInstructionMatchAt("LoadStaticField", 7, 10);
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 7, 3);
   spt.FuzzyInstructionMatchAt("Return", 7, 3);
+
+  spt.EnsureSourcePositions();
 }
 
 
@@ -323,6 +374,8 @@ TEST_CASE(SourcePosition_ForLoop) {
   spt.FuzzyInstructionMatchAt("LoadStaticField", 7, 10);
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 7, 3);
   spt.FuzzyInstructionMatchAt("Return", 7, 3);
+
+  spt.EnsureSourcePositions();
 }
 
 
@@ -370,6 +423,8 @@ TEST_CASE(SourcePosition_While) {
   spt.FuzzyInstructionMatchAt("LoadStaticField", 10, 10);
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 10, 3);
   spt.FuzzyInstructionMatchAt("Return", 10, 3);
+
+  spt.EnsureSourcePositions();
 }
 
 
@@ -408,6 +463,8 @@ TEST_CASE(SourcePosition_WhileContinueBreak) {
   spt.FuzzyInstructionMatchAt("LoadStaticField", 10, 10);
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 10, 3);
   spt.FuzzyInstructionMatchAt("Return", 10, 3);
+
+  spt.EnsureSourcePositions();
 }
 
 
@@ -445,6 +502,8 @@ TEST_CASE(SourcePosition_LoadIndexed) {
   spt.FuzzyInstructionMatchAt("Constant(#null)", 6, 1);
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 6, 1);
   spt.FuzzyInstructionMatchAt("Return", 6, 1);
+
+  spt.EnsureSourcePositions();
 }
 
 
@@ -487,6 +546,8 @@ TEST_CASE(SourcePosition_StoreIndexed) {
   spt.FuzzyInstructionMatchAt("Constant(#null)", 6, 1);
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 6, 1);
   spt.FuzzyInstructionMatchAt("Return", 6, 1);
+
+  spt.EnsureSourcePositions();
 }
 
 
@@ -535,6 +596,8 @@ TEST_CASE(SourcePosition_BitwiseOperations) {
   spt.FuzzyInstructionMatchAt("LoadLocal(z", 9, 10);
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 9, 3);
   spt.FuzzyInstructionMatchAt("Return", 9, 3);
+
+  spt.EnsureSourcePositions();
 }
 
 
@@ -563,6 +626,8 @@ TEST_CASE(SourcePosition_IfElse) {
   spt.FuzzyInstructionMatchAt("LoadStaticField", 7, 12);
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 7, 5);
   spt.FuzzyInstructionMatchAt("Return", 7, 5);
+
+  spt.EnsureSourcePositions();
 }
 
 
@@ -607,6 +672,8 @@ TEST_CASE(SourcePosition_Switch) {
   spt.FuzzyInstructionMatchAt("Constant(#5", 7, 21);             // '5'
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 7, 14);
   spt.FuzzyInstructionMatchAt("Return", 7, 14);
+
+  spt.EnsureSourcePositions();
 }
 
 
@@ -657,6 +724,82 @@ TEST_CASE(SourcePosition_TryCatchFinally) {
 
   spt.FuzzyInstructionMatchAt("Constant(#99", 10, 12);                 // '9'
   spt.FuzzyInstructionMatchAt("Return", 10, 5);                        // 'r'
+
+  spt.EnsureSourcePositions();
+}
+
+
+TEST_CASE(SourcePosition_InstanceFields) {
+  const char* kScript =
+      "class A {\n"
+      "  var x;\n"
+      "  var y;\n"
+      "}\n"
+      "main() {\n"
+      "  var z = new A();\n"
+      "  z.x = 99;\n"
+      "  z.y = z.x;\n"
+      "  return z.y;\n"
+      "}\n";
+
+  SourcePositionTest spt(thread, kScript);
+  spt.BuildGraphFor("main");
+  spt.FuzzyInstructionMatchAt("AllocateObject(A)", 6, 15);       // 'A'
+  spt.FuzzyInstructionMatchAt("StaticCall", 6, 15);              // 'A'
+  spt.FuzzyInstructionMatchAt("StoreLocal(z", 6, 9);             // '='
+  spt.InstanceCallAt("set:x", 7, 5);                             // 'x'
+  spt.InstanceCallAt("get:x", 8, 11);                            // 'x'
+  spt.InstanceCallAt("set:y", 8, 5);                             // 'y'
+
+  spt.InstanceCallAt("get:y", 9, 12);                            // 'y'
+  spt.FuzzyInstructionMatchAt("DebugStepCheck", 9, 3);
+  spt.FuzzyInstructionMatchAt("Return", 9, 3);
+
+  spt.EnsureSourcePositions();
+}
+
+
+TEST_CASE(SourcePosition_Async) {
+  const char* kScript =
+      "import 'dart:async';\n"
+      "var x = 5;\n"
+      "var y = 5;\n"
+      "foo(Future f1, Future f2) async {\n"
+      "  await f1;\n"
+      "  await f2;\n"
+      "  return 55;\n"
+      "}\n"
+      "main() {\n"
+      "  foo(new Future.value(33));\n"
+      "}\n";
+
+  SourcePositionTest spt(thread, kScript);
+  spt.BuildGraphFor("foo");
+  spt.EnsureSourcePositions();
+  spt.Dump();
+}
+
+
+static bool SyntheticRoundTripTest(intptr_t token_pos) {
+  return Token::FromSynthetic(Token::ToSynthetic(token_pos)) == token_pos;
+}
+
+
+UNIT_TEST_CASE(SourcePosition_SyntheticTokens) {
+  EXPECT(Token::kNoSourcePos == -1);
+  EXPECT(Token::kMinSourcePos == 0);
+  EXPECT(Token::kMaxSourcePos > 0);
+
+  EXPECT(!Token::IsSynthetic(0));
+  EXPECT(Token::IsSynthetic(Token::ToSynthetic(0)));
+  EXPECT(Token::IsSynthetic(Token::ToSynthetic(9)));
+  EXPECT(!Token::IsSynthetic(Token::FromSynthetic(-1)));
+  EXPECT(!Token::IsSynthetic(ClassifyingTokenPositions::kPrivate));
+  EXPECT(!Token::IsSynthetic(ClassifyingTokenPositions::kLast));
+
+  EXPECT(SyntheticRoundTripTest(0));
+  EXPECT(SyntheticRoundTripTest(Token::kMaxSourcePos));
+  EXPECT(SyntheticRoundTripTest(Token::kMinSourcePos));
 }
 
 }  // namespace dart

@@ -67,8 +67,8 @@ DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
       String::CheckedHandle(arguments->NativeArgAt(2));
   const String& dst_name = String::CheckedHandle(arguments->NativeArgAt(3));
   const String& error_msg = String::CheckedHandle(arguments->NativeArgAt(4));
-  const String& src_type_name =
-      String::Handle(Type::Handle(src_value.GetType()).UserVisibleName());
+  const String& src_type_name = String::Handle(
+      AbstractType::Handle(src_value.GetType()).UserVisibleName());
   Exceptions::CreateAndThrowTypeError(location, src_type_name,
                                       dst_type_name, dst_name, error_msg);
   UNREACHABLE();

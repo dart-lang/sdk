@@ -225,14 +225,6 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
       // finalized yet.
       return false;
     }
-    // Do not run the optimization below if in background compilation since
-    // resolution of method extractor functions may create new signature
-    // classes.
-    // TODO(regis): Remove test for background compilation once signature
-    // classes are not generated any longer.
-    if (!thread()->IsMutatorThread()) {
-      return false;
-    }
     const Array& args_desc_array = Array::Handle(Z,
         ArgumentsDescriptor::New(call->ArgumentCount(),
                                  call->argument_names()));
@@ -284,12 +276,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   // Check if getter or setter in function's class and class is currently leaf.
-  // Do not run the optimization below if in background compilation since
-  // resolution of getter functions may create new signature classes.
-  // TODO(regis): Remove test for background compilation once signature classes
-  // are not generated any longer.
-  if (thread()->IsMutatorThread() &&
-      FLAG_guess_icdata_cid &&
+  if (FLAG_guess_icdata_cid &&
       ((call->token_kind() == Token::kGET) ||
           (call->token_kind() == Token::kSET))) {
     const Class& owner_class = Class::Handle(Z, function().Owner());
@@ -3904,7 +3891,8 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(
     ZoneGrowableArray<intptr_t>* results) const {
   ASSERT(results->is_empty());
   ASSERT(ic_data.NumArgsTested() == 1);  // Unary checks only.
-  if (!type.IsInstantiated() || type.IsMalformedOrMalbounded()) {
+  if (type.IsFunctionType() || type.IsDartFunctionType() ||
+      !type.IsInstantiated() || type.IsMalformedOrMalbounded()) {
     return Bool::null();
   }
   const Class& type_class = Class::Handle(Z, type.type_class());
@@ -3959,9 +3947,9 @@ bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
   // Requires CHA.
   if (!type.IsInstantiated()) return false;
+  // Function types have different type checking rules.
+  if (type.IsFunctionType()) return false;
   const Class& type_class = Class::Handle(type.type_class());
-  // Signature classes have different type checking rules.
-  if (type_class.IsSignatureClass()) return false;
   // Could be an interface check?
   if (CHA::IsImplemented(type_class)) return false;
   // Check if there are subclasses.

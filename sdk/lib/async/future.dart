@@ -225,7 +225,7 @@ abstract class Future<T> {
     _Future result = new _Future<T>();
     new Timer(duration, () {
       try {
-        result._complete(computation == null ? null : computation());
+        result._complete(computation?.call());
       } catch (e, s) {
         _completeWithErrorCallback(result, e, s);
       }

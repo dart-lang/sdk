@@ -7,7 +7,7 @@ library analyzer.src.generated.element_handle;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -752,6 +752,9 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
 
   @override
   bool get isBrowserApplication => actualElement.isBrowserApplication;
+
+  @override
+  bool get isDartAsync => actualElement.isDartAsync;
 
   @override
   bool get isDartCore => actualElement.isDartCore;

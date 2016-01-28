@@ -4198,9 +4198,11 @@ class SsaBuilder extends ast.Visitor
       // If the isolate library is not used, we just generate code
       // to fetch the static state.
       String name = backend.namer.staticStateHolder;
-      push(new HForeignCode(js.js.parseForeignJS(name),
-                            backend.dynamicType,
-                            <HInstruction>[]));
+      push(new HForeignCode(
+          js.js.parseForeignJS(name),
+          backend.dynamicType,
+          <HInstruction>[],
+          nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
     } else {
       // Call a helper method from the isolate library. The isolate
       // library uses its own isolate structure, that encapsulates
@@ -4478,7 +4480,7 @@ class SsaBuilder extends ast.Visitor
         js.js.parseForeignJS("$isolateName = #"),
         backend.dynamicType,
         <HInstruction>[pop()],
-        nativeBehavior: native.NativeBehavior.PURE,
+        nativeBehavior: native.NativeBehavior.CHANGES_OTHER,
         effects: sideEffects));
   }
 
@@ -4488,7 +4490,8 @@ class SsaBuilder extends ast.Visitor
     }
     push(new HForeignCode(js.js.parseForeignJS(backend.namer.staticStateHolder),
                           backend.dynamicType,
-                          <HInstruction>[]));
+                          <HInstruction>[],
+                          nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
   }
 
   void handleForeignSend(ast.Send node, FunctionElement element) {
@@ -4837,8 +4840,7 @@ class SsaBuilder extends ast.Visitor
     ClassWorld classWorld = compiler.world;
     if (classWorld.isUsedAsMixin(cls)) return true;
 
-    Iterable<ClassElement> subclasses = compiler.world.strictSubclassesOf(cls);
-    return subclasses.any((ClassElement subclass) {
+    return compiler.world.anyStrictSubclassOf(cls, (ClassElement subclass) {
       return !rti.isTrivialSubstitution(subclass, cls);
     });
   }
@@ -7147,21 +7149,64 @@ class SsaBuilder extends ast.Visitor
     FunctionSignature targetSignature = targetConstructor.functionSignature;
     FunctionSignature redirectingSignature =
         redirectingConstructor.functionSignature;
-    redirectingSignature.forEachRequiredParameter((ParameterElement element) {
-      inputs.add(localsHandler.readLocal(element));
-    });
+
+    List<Element> targetRequireds = targetSignature.requiredParameters;
+    List<Element> redirectingRequireds
+        = redirectingSignature.requiredParameters;
+
     List<Element> targetOptionals =
         targetSignature.orderedOptionalParameters;
     List<Element> redirectingOptionals =
         redirectingSignature.orderedOptionalParameters;
-    int i = 0;
-    for (; i < redirectingOptionals.length; i++) {
-      ParameterElement parameter = redirectingOptionals[i];
+
+    // TODO(25579): This code can do the wrong thing redirecting constructor and
+    // the target do not correspond. It is correct if there is no
+    // warning. Ideally the redirecting constructor and the target would be the
+    // same function.
+
+    void loadLocal(ParameterElement parameter) {
       inputs.add(localsHandler.readLocal(parameter));
     }
-    for (; i < targetOptionals.length; i++) {
-      inputs.add(handleConstantForOptionalParameter(targetOptionals[i]));
+    void loadPosition(int position, ParameterElement optionalParameter) {
+      if (position < redirectingRequireds.length) {
+        loadLocal(redirectingRequireds[position]);
+      } else if (position < redirectingSignature.parameterCount &&
+                 !redirectingSignature.optionalParametersAreNamed) {
+        loadLocal(redirectingOptionals[position - redirectingRequireds.length]);
+      } else if (optionalParameter != null) {
+        inputs.add(handleConstantForOptionalParameter(optionalParameter));
+      } else {
+        // Wrong.
+        inputs.add(graph.addConstantNull(compiler));
+      }
     }
+
+    int position = 0;
+
+    for (ParameterElement targetParameter in targetRequireds) {
+      loadPosition(position++, null);
+    }
+
+    if (targetOptionals.isNotEmpty) {
+      if (targetSignature.optionalParametersAreNamed) {
+        for (ParameterElement parameter in targetOptionals) {
+          ParameterElement redirectingParameter =
+              redirectingOptionals.firstWhere(
+                  (p) => p.name == parameter.name,
+                  orElse: () => null);
+          if (redirectingParameter == null) {
+            inputs.add(handleConstantForOptionalParameter(parameter));
+          } else {
+            inputs.add(localsHandler.readLocal(redirectingParameter));
+          }
+        }
+      } else {
+        for (ParameterElement parameter in targetOptionals) {
+          loadPosition(position++, parameter);
+        }
+      }
+    }
+
     ClassElement targetClass = targetConstructor.enclosingClass;
     if (backend.classNeedsRti(targetClass)) {
       ClassElement cls = redirectingConstructor.enclosingClass;

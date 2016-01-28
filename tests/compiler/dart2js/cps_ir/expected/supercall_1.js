@@ -1,7 +1,7 @@
 // Expectation for test: 
 // class Base {
 //   m(x) {
-//     print(x+1);
+//     try { print(x+1); } finally { }
 //   }
 // }
 // class Sub extends Base {
@@ -12,15 +12,6 @@
 // }
 
 function() {
-  var line = "" + (100 + 10 + 1);
-  V.Sub$();
-  if (typeof dartPrint == "function")
-    dartPrint(line);
-  else if (typeof console == "object" && typeof console.log != "undefined")
-    console.log(line);
-  else if (!(typeof window == "object")) {
-    if (!(typeof print == "function"))
-      throw "Unable to print message: " + String(line);
-    print(line);
-  }
+  var v0 = V.Sub$();
+  V.Base.prototype.m$1.call(v0, 110);
 }

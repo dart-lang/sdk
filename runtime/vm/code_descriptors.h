@@ -42,6 +42,29 @@ class DescriptorList : public ZoneAllocated {
 };
 
 
+class CodeSourceMapBuilder : public ZoneAllocated {
+ public:
+  explicit CodeSourceMapBuilder(intptr_t initial_capacity = 64)
+    : encoded_data_(initial_capacity),
+      prev_pc_offset(0),
+      prev_token_pos(0) {}
+
+  ~CodeSourceMapBuilder() { }
+
+  void AddEntry(intptr_t pc_offset, intptr_t token_pos);
+
+  RawCodeSourceMap* Finalize();
+
+ private:
+  GrowableArray<uint8_t> encoded_data_;
+
+  intptr_t prev_pc_offset;
+  intptr_t prev_token_pos;
+
+  DISALLOW_COPY_AND_ASSIGN(CodeSourceMapBuilder);
+};
+
+
 class StackmapTableBuilder : public ZoneAllocated {
  public:
   StackmapTableBuilder()

@@ -69,7 +69,7 @@ hasStoppedAtBreakpoint,
   expect(coverage['coverage'].length, equals(1));
   expect(coverage['coverage'][0]['hits'],
          equals([15, 1, 16, 0, 18, 1, 20, 1,
-                 24, 1, 25, 1, 27, 0]));
+                 24, 1, 25, 1, 27, 0, 13, 0]));
 
   // Library
   coverage = await isolate.invokeRpcNoUpgrade('_getCoverage',
@@ -78,7 +78,7 @@ hasStoppedAtBreakpoint,
   expect(coverage['coverage'].length, equals(4));
   expect(coverage['coverage'][0]['hits'],
          equals([15, 1, 16, 0, 18, 1, 20, 1,
-                 24, 1, 25, 1, 27, 0]));
+                 24, 1, 25, 1, 27, 0, 13, 0]));
   expect(coverage['coverage'][1]['hits'],
          equals([33, 1, 34, 1, 105, 2]));
 
@@ -90,7 +90,7 @@ hasStoppedAtBreakpoint,
   expect(coverage['coverage'].length, equals(4));
   expect(coverage['coverage'][0]['hits'],
          equals([15, 1, 16, 0, 18, 1, 20, 1,
-                 24, 1, 25, 1, 27, 0]));
+                 24, 1, 25, 1, 27, 0, 13, 0]));
   expect(coverage['coverage'][1]['hits'],
          equals([33, 1, 34, 1, 105, 2]));
 
@@ -102,4 +102,6 @@ hasStoppedAtBreakpoint,
 
 ];
 
-main(args) => runIsolateTests(args, tests, testeeConcurrent: testFunction);
+main(args) => runIsolateTests(args, tests,
+                              testeeConcurrent: testFunction,
+                              trace_service: true);

@@ -8,8 +8,8 @@ import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 import 'all_the_rest_test.dart' as all_the_rest;
-import 'ast_test.dart' as ast_test;
 import 'compile_time_error_code_test.dart' as compile_time_error_code_test;
+import 'constant_test.dart' as constant_test;
 import 'declaration_resolver_test.dart' as declaration_resolver_test;
 import 'engine_test.dart' as engine_test;
 import 'incremental_resolver_test.dart' as incremental_resolver_test;
@@ -31,8 +31,8 @@ main() {
   initializeTestEnvironment();
   group('generated tests', () {
     all_the_rest.main();
-    ast_test.main();
     compile_time_error_code_test.main();
+    constant_test.main();
     declaration_resolver_test.main();
     engine_test.main();
     incremental_resolver_test.main();

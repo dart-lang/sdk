@@ -7,12 +7,14 @@ library analyzer.test.generated.test_all;
 import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
+import 'ast/test_all.dart' as ast;
 import 'element/test_all.dart' as element;
 
 /// Utility for manually running all tests.
 main() {
   initializeTestEnvironment();
   group('dart tests', () {
+    ast.main();
     element.main();
   });
 }

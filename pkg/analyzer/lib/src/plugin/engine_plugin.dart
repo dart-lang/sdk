@@ -14,6 +14,7 @@ import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
 import 'package:analyzer/src/task/options_work_manager.dart';
+import 'package:analyzer/src/task/yaml.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:plugin/plugin.dart';
 
@@ -240,6 +241,10 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, DartScriptsTask.DESCRIPTOR);
     registerExtension(taskId, HtmlErrorsTask.DESCRIPTOR);
     registerExtension(taskId, ParseHtmlTask.DESCRIPTOR);
+    //
+    // Register YAML tasks.
+    //
+    registerExtension(taskId, ParseYamlTask.DESCRIPTOR);
   }
 
   void _registerWorkManagerFactoryExtensions(

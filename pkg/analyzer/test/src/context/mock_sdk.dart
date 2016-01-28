@@ -228,12 +228,6 @@ class HtmlElement {}
       _analysisContext = new _SdkAnalysisContext(this);
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
-      ChangeSet changeSet = new ChangeSet();
-      for (String uri in uris) {
-        Source source = factory.forUri(uri);
-        changeSet.addedSource(source);
-      }
-      _analysisContext.applyChanges(changeSet);
     }
     return _analysisContext;
   }

@@ -100,8 +100,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // All intercepted classes extend `Interceptor`, so if the receiver can't be
     // a class extending `Interceptor` then it can be called directly.
     return new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, classWorld)
-        .intersection(receiver.instructionType, classWorld)
-        .isEmpty;
+        .isDisjoint(receiver.instructionType, classWorld);
   }
 
   HInstruction tryComputeConstantInterceptor(

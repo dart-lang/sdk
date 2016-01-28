@@ -2379,6 +2379,15 @@ main(p) {
     await assertNoAssistAt('if (p', DartAssistKind.INTRODUCE_LOCAL_CAST_TYPE);
   }
 
+  test_introduceLocalTestedType_BAD_notStatement() async {
+    resolveTestUnit('''
+class C {
+  bool b;
+  C(v) : b = v is int;
+}''');
+    await assertNoAssistAt('is int', DartAssistKind.INTRODUCE_LOCAL_CAST_TYPE);
+  }
+
   test_introduceLocalTestedType_OK_if_is() async {
     resolveTestUnit('''
 class MyTypeName {}

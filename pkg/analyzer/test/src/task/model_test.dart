@@ -103,7 +103,7 @@ class SimpleResultCachingPolicyTest extends EngineTestCase {
 
 @reflectiveTest
 class TaskDescriptorImplTest extends EngineTestCase {
-  test_create() {
+  test_create_noOptionalArgs() {
     String name = 'name';
     BuildTask buildTask = (context, target) {};
     CreateTaskInputs createTaskInputs = (target) {};
@@ -114,12 +114,30 @@ class TaskDescriptorImplTest extends EngineTestCase {
     expect(descriptor.name, name);
     expect(descriptor.buildTask, equals(buildTask));
     expect(descriptor.createTaskInputs, equals(createTaskInputs));
+    expect(descriptor.suitabilityFor(null), TaskSuitability.LOWEST);
+    expect(descriptor.results, results);
+  }
+
+  test_create_withIsAppropriateFor() {
+    String name = 'name';
+    BuildTask buildTask = (context, target) {};
+    CreateTaskInputs createTaskInputs = (target) {};
+    List<ResultDescriptor> results = <ResultDescriptor>[];
+    SuitabilityFor suitabilityFor = (target) => TaskSuitability.NONE;
+    TaskDescriptorImpl descriptor = new TaskDescriptorImpl(
+        name, buildTask, createTaskInputs, results,
+        suitabilityFor: suitabilityFor);
+    expect(descriptor, isNotNull);
+    expect(descriptor.name, name);
+    expect(descriptor.buildTask, equals(buildTask));
+    expect(descriptor.createTaskInputs, equals(createTaskInputs));
+    expect(descriptor.suitabilityFor(null), TaskSuitability.NONE);
     expect(descriptor.results, results);
   }
 
   test_createTask() {
-    BuildTask buildTask = (context, target) =>
-        new TestAnalysisTask(context, target);
+    BuildTask buildTask =
+        (context, target) => new TestAnalysisTask(context, target);
     CreateTaskInputs createTaskInputs = (target) {};
     List<ResultDescriptor> results = <ResultDescriptor>[];
     TaskDescriptorImpl descriptor =

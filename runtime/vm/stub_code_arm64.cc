@@ -1865,9 +1865,13 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // R3: instance class id.
   // R4: instance type arguments.
   __ SmiTag(R3);
+  __ CompareImmediate(R3, Smi::RawValue(kClosureCid));
+  __ b(&loop, NE);
+  __ LoadFieldFromOffset(R3, R0, Closure::function_offset());
+  // R3: instance class id as Smi or function.
   __ Bind(&loop);
   __ LoadFromOffset(
-      R5, R2, kWordSize * SubtypeTestCache::kInstanceClassId);
+      R5, R2, kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction);
   __ CompareObject(R5, Object::null_object());
   __ b(&not_found, EQ);
   __ CompareRegisters(R5, R3);

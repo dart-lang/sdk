@@ -74,7 +74,7 @@ LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673
 LibTest/isolate/Isolate/spawnUri_A01_t04: Crash, Pass # Issue 17440
 LibTest/isolate/Isolate/spawn_A01_t04: Crash, Pass # Issue 17440
 
-[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ($arch == simarm || $arch == simarmv5te || $arch == simmips || $arch == simarm64) ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ($arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips || $arch == simarm64) ]
 LibTest/core/Uri/Uri_A06_t03: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip  # Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip  # Timeout
@@ -134,9 +134,6 @@ Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError # Please tr
 Language/Mixins/declaring_constructor_t01: MissingCompileTimeError # Please triage this failure
 Language/Mixins/not_object_superclass_t01: MissingCompileTimeError # Please triage this failure
 Language/Mixins/reference_to_super_t01: MissingCompileTimeError # Please triage this failure
-
-[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug ]
-Language/Mixins/Mixin_Application/wrong_type_t02: Crash # Please triage this failure
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $checked ]
 Language/Errors_and_Warnings/static_warning_t01: RuntimeError # Please triage this failure

@@ -5,6 +5,7 @@ library dart2js.ir_nodes;
 
 import 'dart:collection';
 import 'cps_fragment.dart' show CpsFragment;
+import 'cps_ir_nodes_sexpr.dart';
 import '../constants/values.dart' as values;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
@@ -39,6 +40,37 @@ abstract class Node {
   ///
   /// All constructors call this method to initialize parent pointers.
   void setParentPointers();
+
+  /// Returns the SExpression for the subtree rooted at this node.
+  ///
+  /// [annotations] maps strings to nodes and/or nodes to values that will be
+  /// converted to strings. Each binding causes the annotation to appear on the
+  /// given node.
+  ///
+  /// For example, the following could be used to diagnose a problem with nodes
+  /// not appearing in an environment map:
+  ///
+  ///     if (environment[node] == null)
+  ///       root.debugPrint({
+  ///         'currentNode': node,
+  ///         'caller': someContinuation
+  ///       });
+  ///       throw 'Node was not in environment';
+  ///     }
+  ///
+  /// If two strings map to the same node, it will be given both annotations.
+  ///
+  /// Avoid using nodes as keys if there is a chance that two keys are the
+  /// same node.
+  String debugString([Map annotations]) {
+    return new SExpressionStringifier()
+        .withAnnotations(annotations).visit(this);
+  }
+
+  /// Prints the result of [debugString].
+  void debugPrint([Map annotations]) {
+    print(debugString(annotations));
+  }
 }
 
 /// Expressions can be evaluated, and may diverge, throw, and/or have
@@ -195,9 +227,9 @@ class EffectiveUseIterator extends Iterator<Reference<Primitive>> {
   }
 }
 
-class EffectiveUseIterable extends IterableBase<Reference<Primitive>> {
+class RefinedUseIterable extends IterableBase<Reference<Primitive>> {
   Primitive primitive;
-  EffectiveUseIterable(this.primitive);
+  RefinedUseIterable(this.primitive);
   EffectiveUseIterator get iterator => new EffectiveUseIterator(primitive);
 }
 
@@ -238,6 +270,9 @@ abstract class Primitive extends Variable<Primitive> {
   // TODO(asgerf): Also do this for [TypeCast]?
   Primitive get effectiveDefinition => this;
 
+  /// Like [effectiveDefinition] but only unfolds [Refinement] nodes.
+  Primitive get unrefined => this;
+
   /// True if the two primitives are (refinements of) the same value.
   bool sameValue(Primitive other) {
     return effectiveDefinition == other.effectiveDefinition;
@@ -252,15 +287,15 @@ abstract class Primitive extends Variable<Primitive> {
   /// - References to this primitive created during iteration will not be seen.
   /// - References to a refinement of this primitive may not be created during
   ///   iteration.
-  EffectiveUseIterable get effectiveUses => new EffectiveUseIterable(this);
+  RefinedUseIterable get refinedUses => new RefinedUseIterable(this);
 
-  bool get hasMultipleEffectiveUses {
-    Iterator it = effectiveUses.iterator;
+  bool get hasMultipleRefinedUses {
+    Iterator it = refinedUses.iterator;
     return it.moveNext() && it.moveNext();
   }
 
-  bool get hasNoEffectiveUses {
-    return effectiveUses.isEmpty;
+  bool get hasNoRefinedUses {
+    return refinedUses.isEmpty;
   }
 
   /// Unlinks all references contained in this node.
@@ -733,6 +768,8 @@ class Refinement extends Primitive {
   accept(Visitor visitor) => visitor.visitRefinement(this);
 
   Primitive get effectiveDefinition => value.definition.effectiveDefinition;
+
+  Primitive get unrefined => value.definition.unrefined;
 
   void setParentPointers() {
     value.parent = this;
@@ -1446,15 +1483,17 @@ class CreateInstance extends Primitive {
   /// May be `null` to indicate that no type information is needed because the
   /// compiler determined that the type information for instances of this class
   /// is not needed at runtime.
-  final List<Reference<Primitive>> typeInformation;
+  final Reference<Primitive> typeInformation;
 
   final SourceInformation sourceInformation;
 
   CreateInstance(this.classElement, List<Primitive> arguments,
-      List<Primitive> typeInformation,
+      Primitive typeInformation,
       this.sourceInformation)
       : this.arguments = _referenceList(arguments),
-        this.typeInformation = _referenceList(typeInformation);
+        this.typeInformation = typeInformation == null
+            ? null
+            : new Reference<Primitive>(typeInformation);
 
   accept(Visitor visitor) => visitor.visitCreateInstance(this);
 
@@ -1466,7 +1505,7 @@ class CreateInstance extends Primitive {
 
   void setParentPointers() {
     _setParentsOnList(arguments, this);
-    if (typeInformation != null) _setParentsOnList(typeInformation, this);
+    if (typeInformation != null) typeInformation.parent = this;
   }
 }
 
@@ -1529,12 +1568,12 @@ class CreateInvocationMirror extends Primitive {
 
 class ForeignCode extends UnsafePrimitive {
   final js.Template codeTemplate;
-  final TypeMask type;
+  final TypeMask storedType;
   final List<Reference<Primitive>> arguments;
   final native.NativeBehavior nativeBehavior;
   final FunctionElement dependency;
 
-  ForeignCode(this.codeTemplate, this.type, List<Primitive> arguments,
+  ForeignCode(this.codeTemplate, this.storedType, List<Primitive> arguments,
       this.nativeBehavior, {this.dependency})
       : this.arguments = _referenceList(arguments);
 
@@ -1596,35 +1635,6 @@ class LiteralList extends Primitive {
   }
 }
 
-class LiteralMapEntry {
-  final Reference<Primitive> key;
-  final Reference<Primitive> value;
-
-  LiteralMapEntry(Primitive key, Primitive value)
-      : this.key = new Reference<Primitive>(key),
-        this.value = new Reference<Primitive>(value);
-}
-
-class LiteralMap extends Primitive {
-  final InterfaceType dartType;
-  final List<LiteralMapEntry> entries;
-
-  LiteralMap(this.dartType, this.entries);
-
-  accept(Visitor visitor) => visitor.visitLiteralMap(this);
-
-  bool get hasValue => true;
-  bool get isSafeForElimination => true;
-  bool get isSafeForReordering => true;
-
-  void setParentPointers() {
-    for (LiteralMapEntry entry in entries) {
-      entry.key.parent = this;
-      entry.value.parent = this;
-    }
-  }
-}
-
 class Parameter extends Primitive {
   Parameter(Entity hint) {
     super.hint = hint;
@@ -1651,7 +1661,24 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
   // A continuation is recursive if it has any recursive invocations.
   bool isRecursive;
 
+  /// True if this is the return continuation.  The return continuation is bound
+  /// by [FunctionDefinition].
   bool get isReturnContinuation => body == null;
+
+  /// True if this is a branch continuation.  Branch continuations are bound
+  /// by [LetCont] and can only have one use.
+  bool get isBranchContinuation => firstRef?.parent is Branch;
+
+  /// True if this is the exception handler bound by a [LetHandler].
+  bool get isHandlerContinuation => parent is LetHandler;
+
+  /// True if this is a non-return continuation that can be targeted by
+  /// [InvokeContinuation].
+  bool get isJoinContinuation {
+    return body != null &&
+           parent is! LetHandler &&
+           (firstRef == null || firstRef.parent is InvokeContinuation);
+  }
 
   Continuation(this.parameters, {this.isRecursive: false});
 
@@ -1773,21 +1800,74 @@ class ReadTypeVariable extends Primitive {
   }
 }
 
-/// Representation of a closed type (that is, a type without type variables).
+enum TypeExpressionKind {
+  COMPLETE,
+  INSTANCE
+}
+
+/// Constructs a representation of a closed or ground-term type (that is, a type
+/// without type variables).
 ///
-/// The resulting value is constructed from [dartType] by replacing the type
+/// There are two forms:
+///
+/// - COMPLETE: A complete form that is self contained, used for the values of
+///   type parameters and non-raw is-checks.
+///
+/// - INSTANCE: A headless flat form for representing the sequence of values of
+///   the type parameters of an instance of a generic type.
+///
+/// The COMPLETE form value is constructed from [dartType] by replacing the type
 /// variables with consecutive values from [arguments], in the order generated
 /// by [DartType.forEachTypeVariable].  The type variables in [dartType] are
 /// treated as 'holes' in the term, which means that it must be ensured at
 /// construction, that duplicate occurences of a type variable in [dartType]
 /// are assigned the same value.
+///
+/// The INSTANCE form is constructed as a list of [arguments]. This is the same
+/// as the COMPLETE form for the 'thisType', except the root term's type is
+/// missing; this is implicit as the raw type of instance.  The [dartType] of
+/// the INSTANCE form must be the thisType of some class.
+///
+/// While we would like to remove the constrains on the INSTANCE form, we can
+/// get by with a tree of TypeExpressions.  Consider:
+///
+///     class Foo<T> {
+///       ... new Set<List<T>>()
+///     }
+///     class Set<E1> {
+///       factory Set() => new _LinkedHashSet<E1>();
+///     }
+///     class List<E2> { ... }
+///     class _LinkedHashSet<E3> { ... }
+///
+/// After inlining the factory constructor for `Set<E1>`, the CreateInstance
+/// should have type `_LinkedHashSet<List<T>>` and the TypeExpression should be
+/// a tree:
+///
+///    CreateInstance(dartType: _LinkedHashSet<List<T>>,
+///        [], // No arguments
+///        TypeExpression(INSTANCE,
+///            dartType: _LinkedHashSet<E3>, // _LinkedHashSet's thisType
+///            TypeExpression(COMPLETE,  // E3 = List<T>
+///                dartType: List<E2>,
+///                ReadTypeVariable(this, T)))) // E2 = T
+//
+// TODO(sra): The INSTANCE form requires the actual instance for full
+// interpretation. I want to move to a representation where the INSTANCE form is
+// also a complete form (possibly the same).
 class TypeExpression extends Primitive {
+  final TypeExpressionKind kind;
   final DartType dartType;
   final List<Reference<Primitive>> arguments;
 
-  TypeExpression(this.dartType,
-                 [List<Primitive> arguments = const <Primitive>[]])
-      : this.arguments = _referenceList(arguments);
+  TypeExpression(this.kind,
+                 this.dartType,
+                 List<Primitive> arguments)
+      : this.arguments = _referenceList(arguments) {
+    assert(kind == TypeExpressionKind.INSTANCE
+           ? dartType == (dartType.element as ClassElement).thisType
+           : true);
+  }
 
   @override
   accept(Visitor visitor) {
@@ -1800,6 +1880,13 @@ class TypeExpression extends Primitive {
 
   void setParentPointers() {
     _setParentsOnList(arguments, this);
+  }
+
+  String get kindAsString {
+    switch (kind) {
+      case TypeExpressionKind.COMPLETE: return 'COMPLETE';
+      case TypeExpressionKind.INSTANCE: return 'INSTANCE';
+    }
   }
 }
 
@@ -1965,7 +2052,6 @@ abstract class Visitor<T> implements BlockVisitor<T> {
   T visitAwait(Await node);
   T visitYield(Yield node);
   T visitLiteralList(LiteralList node);
-  T visitLiteralMap(LiteralMap node);
   T visitConstant(Constant node);
   T visitGetMutable(GetMutable node);
   T visitParameter(Parameter node);
@@ -2016,7 +2102,6 @@ class DeepRecursiveVisitor implements Visitor {
     processFunctionDefinition(node);
     if (node.thisParameter != null) visit(node.thisParameter);
     node.parameters.forEach(visit);
-    visit(node.returnContinuation);
     visit(node.body);
   }
 
@@ -2147,15 +2232,6 @@ class DeepRecursiveVisitor implements Visitor {
     node.values.forEach(processReference);
   }
 
-  processLiteralMap(LiteralMap node) {}
-  visitLiteralMap(LiteralMap node) {
-    processLiteralMap(node);
-    for (LiteralMapEntry entry in node.entries) {
-      processReference(entry.key);
-      processReference(entry.value);
-    }
-  }
-
   processConstant(Constant node) {}
   visitConstant(Constant node)  {
     processConstant(node);
@@ -2187,7 +2263,7 @@ class DeepRecursiveVisitor implements Visitor {
   visitCreateInstance(CreateInstance node) {
     processCreateInstance(node);
     node.arguments.forEach(processReference);
-    node.typeInformation.forEach(processReference);
+    if (node.typeInformation != null) processReference(node.typeInformation);
   }
 
   processSetField(SetField node) {}
@@ -2377,7 +2453,6 @@ class TrampolineRecursiveVisitor extends DeepRecursiveVisitor {
     processFunctionDefinition(node);
     if (node.thisParameter != null) visit(node.thisParameter);
     node.parameters.forEach(visit);
-    visit(node.returnContinuation);
     visit(node.body);
   }
 
@@ -2574,13 +2649,6 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
         ..allocationSiteType = node.allocationSiteType;
   }
 
-  Definition visitLiteralMap(LiteralMap node) {
-    List<LiteralMapEntry> entries = node.entries.map((LiteralMapEntry entry) {
-      return new LiteralMapEntry(getCopy(entry.key), getCopy(entry.value));
-    }).toList();
-    return new LiteralMap(node.dartType, entries);
-  }
-
   Definition visitConstant(Constant node) {
     return new Constant(node.value, sourceInformation: node.sourceInformation);
   }
@@ -2607,8 +2675,10 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitCreateInstance(CreateInstance node) {
-    return new CreateInstance(node.classElement, getList(node.arguments),
-        getList(node.typeInformation),
+    return new CreateInstance(
+        node.classElement,
+        getList(node.arguments),
+        node.typeInformation == null ? null : getCopy(node.typeInformation),
         node.sourceInformation);
   }
 
@@ -2630,7 +2700,8 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitTypeExpression(TypeExpression node) {
-    return new TypeExpression(node.dartType, getList(node.arguments));
+    return new TypeExpression(
+        node.kind, node.dartType, getList(node.arguments));
   }
 
   Definition visitCreateInvocationMirror(CreateInvocationMirror node) {
@@ -2695,7 +2766,7 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitForeignCode(ForeignCode node) {
-    return new ForeignCode(node.codeTemplate, node.type,
+    return new ForeignCode(node.codeTemplate, node.storedType,
         getList(node.arguments),
         node.nativeBehavior,
         dependency: node.dependency);
@@ -2723,6 +2794,7 @@ class CopyingVisitor extends TrampolineRecursiveVisitor {
       assert(_current != null);
       InteriorExpression interior = _current;
       interior.body = body;
+      body.parent = interior;
     }
     _current = body;
   }
@@ -2740,7 +2812,9 @@ class CopyingVisitor extends TrampolineRecursiveVisitor {
       Expression savedFirst = _first;
       _first = _current = null;
       _processBlock(cont.body);
-      _copies[cont].body = _first;
+      Continuation contCopy = _copies[cont];
+      contCopy.body = _first;
+      _first.parent = contCopy;
       _first = savedFirst;
       _current = null;
     });
