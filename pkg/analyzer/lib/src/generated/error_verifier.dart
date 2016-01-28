@@ -4280,7 +4280,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       int offset = statement.offset;
       int end = statement.rightParenthesis.end;
       _errorReporter.reportErrorForOffset(
-          CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+          StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
           offset,
           end - offset,
           [constantNames[i]]);

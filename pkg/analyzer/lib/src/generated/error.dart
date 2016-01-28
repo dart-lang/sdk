@@ -19,8 +19,6 @@ import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
 
-import 'generated/shared_messages.dart' as shared_messages;
-
 /**
  * The descriptor used to associate error processors with analysis contexts in
  * configuration data.
@@ -1660,25 +1658,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "Map literals must be prefixed with 'const' when used as a constant expression");
 
   /**
-   * Enum proposal: It is a static warning if all of the following conditions
-   * hold:
-   * * The switch statement does not have a 'default' clause.
-   * * The static type of <i>e</i> is an enumerated typed with elements
-   *   <i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>.
-   * * The sets {<i>e<sub>1</sub></i>, &hellip;, <i>e<sub>k</sub></i>} and
-   *   {<i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>} are not the
-   *   same.
-   *
-   * Parameters:
-   * 0: the name of the constant that is missing
-   */
-  static const CompileTimeErrorCode MISSING_ENUM_CONSTANT_IN_SWITCH =
-      const CompileTimeErrorCode(
-          'MISSING_ENUM_CONSTANT_IN_SWITCH',
-          "Missing case clause for '{0}'",
-          "Add a case clause for the missing constant or add a default clause.");
-
-  /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin
    * explicitly declares a constructor.
    *
@@ -2615,7 +2594,6 @@ abstract class ErrorCode {
     CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
     CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,
     CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL,
-    CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
     CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
     CompileTimeErrorCode.MIXIN_DEFERRED_CLASS,
     CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
@@ -2850,6 +2828,7 @@ abstract class ErrorCode {
     StaticWarningCode.UNDEFINED_SUPER_GETTER,
     StaticWarningCode.UNDEFINED_SUPER_SETTER,
     StaticWarningCode.VOID_RETURN_FOR_GETTER,
+    StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
     TodoCode.TODO,
 
     //
@@ -5646,6 +5625,24 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode VOID_RETURN_FOR_GETTER =
       const StaticWarningCode('VOID_RETURN_FOR_GETTER',
           "The return type of the getter must not be 'void'");
+
+  /**
+   * 17.9 Switch: It is a static warning if all of the following conditions
+   * hold:
+   * * The switch statement does not have a 'default' clause.
+   * * The static type of <i>e</i> is an enumerated typed with elements
+   *   <i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>.
+   * * The sets {<i>e<sub>1</sub></i>, &hellip;, <i>e<sub>k</sub></i>} and
+   *   {<i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>} are not the
+   *   same.
+   *
+   * Parameters:
+   * 0: the name of the constant that is missing
+   */
+  static const StaticWarningCode MISSING_ENUM_CONSTANT_IN_SWITCH =
+      const StaticWarningCode('MISSING_ENUM_CONSTANT_IN_SWITCH',
+          "Missing case clause for '{0}'",
+          "Add a case clause for the missing constant or add a default clause.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
