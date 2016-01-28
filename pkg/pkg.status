@@ -70,6 +70,7 @@ analyzer/test/generated/static_warning_code_test: Pass, Slow # Issue 21628
 analyzer/test/generated/utilities_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/cache_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/context_test: Pass, Timeout # dartbug.com/23658
+analyzer/test/src/dart/ast/utilities_test: Pass, Slow # Issue 24914
 analyzer/test/src/dart/element/element_test: Pass, Slow # Issue 24914
 analyzer/test/src/summary/prelinker_test: Pass, Slow # Issue 24914
 analyzer/test/src/summary/resynthesize_strong_test: Pass, Slow
