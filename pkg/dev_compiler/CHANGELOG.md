@@ -1,5 +1,9 @@
 # dev_compiler changelog
 
+## 0.1.16
+- rolled analyzer to 0.27.2-alpha.1
+- fixes for static fields
+
 ## 0.1.15
 - codegen fixes for dart:convert (json decode) and dart:math (max, min)
 
