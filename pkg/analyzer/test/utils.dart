@@ -12,9 +12,9 @@ import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
-void initializeTestEnvironment() {
+void initializeTestEnvironment([path.Context context]) {
   groupSep = ' | ';
-  JavaFile.pathContext = path.posix;
+  JavaFile.pathContext = context ?? path.posix;
 }
 
 /**

@@ -156,7 +156,11 @@ class EmbedderUriResolver extends DartUriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    Source sdkSource = dartSdk.fromFileUri(Uri.parse(source.fullName));
+    String path = source.fullName;
+    if (path.length > 3 && path[1] == ':' && path[2] == '\\') {
+      path = '/${path[0]}:${path.substring(2).replaceAll('\\', '/')}';
+    }
+    Source sdkSource = dartSdk.fromFileUri(Uri.parse('file://$path'));
     return sdkSource?.uri;
   }
 }

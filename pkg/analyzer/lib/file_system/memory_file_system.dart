@@ -28,11 +28,15 @@ class MemoryResourceProvider implements ResourceProvider {
       new HashMap<String, List<StreamController<WatchEvent>>>();
   int nextStamp = 0;
 
-  final AbsolutePathContext absolutePathContext =
-      new AbsolutePathContext(false);
+  final Context _pathContext;
+  final AbsolutePathContext absolutePathContext;
+
+  MemoryResourceProvider({bool isWindows: false})
+      : _pathContext = isWindows ? windows : posix,
+        absolutePathContext = new AbsolutePathContext(isWindows);
 
   @override
-  Context get pathContext => posix;
+  Context get pathContext => _pathContext;
 
   /**
    * Delete the file with the given path.
@@ -127,9 +131,8 @@ class MemoryResourceProvider implements ResourceProvider {
 
   Folder newFolder(String path) {
     path = pathContext.normalize(path);
-    if (!path.startsWith(pathContext.separator)) {
-      throw new ArgumentError(
-          "Path must start with '${pathContext.separator}' : $path");
+    if (!pathContext.isAbsolute(path)) {
+      throw new ArgumentError("Path must be absolute : $path");
     }
     _MemoryResource resource = _pathToResource[path];
     if (resource == null) {
