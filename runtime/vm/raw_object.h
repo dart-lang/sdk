@@ -431,6 +431,9 @@ class RawObject {
   bool IsCode() {
     return ((GetClassId() == kCodeCid));
   }
+  bool IsString() {
+    return IsStringClassId(GetClassId());
+  }
 
   intptr_t Size() const {
     uword tags = ptr()->tags_;

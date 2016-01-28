@@ -572,6 +572,11 @@ class Symbols : public AllStatic {
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);
 
+  // Treat the symbol table as weak and collect garbage. Answer the number of
+  // symbols deleted from the symbol table because they where not referenced
+  // from anywhere else.
+  static intptr_t Compact(Isolate* isolate);
+
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
   // TODO(7123) - Rename this to FromCString(....).

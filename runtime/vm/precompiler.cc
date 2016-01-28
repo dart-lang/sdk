@@ -55,7 +55,7 @@ RawError* Precompiler::CompileAll(
 
 Precompiler::Precompiler(Thread* thread, bool reset_fields) :
     thread_(thread),
-    zone_(thread->zone()),
+    zone_(NULL),
     isolate_(thread->isolate()),
     reset_fields_(reset_fields),
     changed_(false),
@@ -64,12 +64,12 @@ Precompiler::Precompiler(Thread* thread, bool reset_fields) :
     selector_count_(0),
     dropped_function_count_(0),
     dropped_field_count_(0),
-    libraries_(GrowableObjectArray::Handle(Z, I->object_store()->libraries())),
+    libraries_(GrowableObjectArray::Handle(I->object_store()->libraries())),
     pending_functions_(
-        GrowableObjectArray::Handle(Z, GrowableObjectArray::New())),
+        GrowableObjectArray::Handle(GrowableObjectArray::New())),
     sent_selectors_(),
     enqueued_functions_(),
-    error_(Error::Handle(Z)) {
+    error_(Error::Handle()) {
 }
 
 
@@ -77,63 +77,75 @@ void Precompiler::DoCompileAll(
     Dart_QualifiedFunctionName embedder_entry_points[]) {
   ASSERT(I->compilation_allowed());
 
-  // Make sure class hierarchy is stable before compilation so that CHA
-  // can be used. Also ensures lookup of entry points won't miss functions
-  // because their class hasn't been finalized yet.
-  FinalizeAllClasses();
+  {
+    StackZone stack_zone(T);
+    zone_ = stack_zone.GetZone();
 
-  const intptr_t kPrecompilerRounds = 1;
-  for (intptr_t round = 0; round < kPrecompilerRounds; round++) {
-    if (FLAG_trace_precompiler) {
-      OS::Print("Precompiler round %" Pd "\n", round);
+    // Make sure class hierarchy is stable before compilation so that CHA
+    // can be used. Also ensures lookup of entry points won't miss functions
+    // because their class hasn't been finalized yet.
+    FinalizeAllClasses();
+
+    const intptr_t kPrecompilerRounds = 1;
+    for (intptr_t round = 0; round < kPrecompilerRounds; round++) {
+      if (FLAG_trace_precompiler) {
+        OS::Print("Precompiler round %" Pd "\n", round);
+      }
+
+      if (round > 0) {
+        ResetPrecompilerState();
+      }
+
+      // TODO(rmacnak): We should be able to do a more thorough job and drop
+      // some
+      //  - implicit static closures
+      //  - field initializers
+      //  - invoke-field-dispatchers
+      //  - method-extractors
+      // that are needed in early iterations but optimized away in later
+      // iterations.
+      ClearAllCode();
+
+      CollectDynamicFunctionNames();
+
+      // Start with the allocations and invocations that happen from C++.
+      AddRoots(embedder_entry_points);
+
+      // Compile newly found targets and add their callees until we reach a
+      // fixed point.
+      Iterate();
     }
 
-    if (round > 0) {
-      ResetPrecompilerState();
-    }
+    I->set_compilation_allowed(false);
 
-    // TODO(rmacnak): We should be able to do a more thorough job and drop some
-    //  - implicit static closures
-    //  - field initializers
-    //  - invoke-field-dispatchers
-    //  - method-extractors
-    // that are needed in early iterations but optimized away in later
-    // iterations.
-    ClearAllCode();
+    DropUncompiledFunctions();
+    DropFields();
 
-    CollectDynamicFunctionNames();
+    // TODO(rmacnak): DropEmptyClasses();
 
-    // Start with the allocations and invocations that happen from C++.
-    AddRoots(embedder_entry_points);
+    BindStaticCalls();
 
-    // Compile newly found targets and add their callees until we reach a fixed
-    // point.
-    Iterate();
+    DedupStackmaps();
+
+    I->object_store()->set_compile_time_constants(Array::null_array());
+    I->object_store()->set_unique_dynamic_targets(Array::null_array());
+
+    zone_ = NULL;
   }
 
-  DropUncompiledFunctions();
-  DropFields();
-
-  // TODO(rmacnak): DropEmptyClasses();
-
-  BindStaticCalls();
-
-  DedupStackmaps();
+  intptr_t dropped_symbols_count = Symbols::Compact(I);
 
   if (FLAG_trace_precompiler) {
     THR_Print("Precompiled %" Pd " functions, %" Pd " dynamic types,"
               " %" Pd " dynamic selectors.\n Dropped %" Pd " functions, %" Pd
-              " fields.\n",
+              " fields, %" Pd " symbols.\n",
               function_count_,
               class_count_,
               selector_count_,
               dropped_function_count_,
-              dropped_field_count_);
+              dropped_field_count_,
+              dropped_symbols_count);
   }
-
-  I->set_compilation_allowed(false);
-  I->object_store()->set_compile_time_constants(Array::null_array());
-  I->object_store()->set_unique_dynamic_targets(Array::null_array());
 }
 
 
