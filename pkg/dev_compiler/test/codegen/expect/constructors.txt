@@ -1,2 +1,2 @@
 // Messages from compiling constructors.dart
-warning: [DOWN_CAST_COMPOSITE] y (dynamic) will need runtime check to cast to type T (test/codegen/constructors.dart, line 90, col 14)
+warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from dynamic to T (test/codegen/constructors.dart, line 90, col 14)

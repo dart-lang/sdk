@@ -25,7 +25,7 @@ dart_library.library('unittest', null, /* Imports */[
     dart.dsend(dom.window, 'test', name, dart.fn(done => {
       function _finishTest(f) {
         if (dart.is(f, async.Future)) {
-          dart.dsend(f, 'then', _finishTest);
+          f.then(_finishTest);
         } else {
           dart.dcall(done);
         }

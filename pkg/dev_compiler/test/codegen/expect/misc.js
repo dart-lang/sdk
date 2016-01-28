@@ -28,7 +28,7 @@ dart_library.library('misc', null, /* Imports */[
       this.y = 2;
     }
     ['=='](obj) {
-      return dart.is(obj, Base) && dart.equals(dart.dload(obj, 'x'), this.x) && dart.equals(dart.dload(obj, 'y'), this.y);
+      return dart.is(obj, Base) && obj.x == this.x && obj.y == this.y;
     }
   }
   class Derived extends core.Object {
@@ -36,7 +36,7 @@ dart_library.library('misc', null, /* Imports */[
       this.z = 3;
     }
     ['=='](obj) {
-      return dart.is(obj, Derived) && dart.equals(dart.dload(obj, 'z'), this.z) && super['=='](obj);
+      return dart.is(obj, Derived) && obj.z == this.z && super['=='](obj);
     }
   }
   function _isWhitespace(ch) {

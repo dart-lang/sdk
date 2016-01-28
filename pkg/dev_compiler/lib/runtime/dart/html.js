@@ -8800,10 +8800,10 @@ dart_library.library('dart/html', null, /* Imports */[
     }
     [__getter__](index_OR_name) {
       if (typeof index_OR_name == 'number') {
-        return _convertNativeToDart_Window(this[__getter___1](dart.as(index_OR_name, core.int)));
+        return _convertNativeToDart_Window(this[__getter___1](index_OR_name));
       }
       if (typeof index_OR_name == 'string') {
-        return _convertNativeToDart_Window(this[__getter___2](dart.as(index_OR_name, core.String)));
+        return _convertNativeToDart_Window(this[__getter___2](index_OR_name));
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
@@ -8898,21 +8898,21 @@ dart_library.library('dart/html', null, /* Imports */[
     scroll(x, y, scrollOptions) {
       if (scrollOptions === void 0) scrollOptions = null;
       if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
-        this[_scroll_1](dart.as(x, core.num), dart.as(y, core.num));
+        this[_scroll_1](x, y);
         return;
       }
       if (scrollOptions != null && typeof y == 'number' && typeof x == 'number') {
         let scrollOptions_1 = html_common.convertDartToNative_Dictionary(scrollOptions);
-        this[_scroll_2](dart.as(x, core.num), dart.as(y, core.num), scrollOptions_1);
+        this[_scroll_2](x, y, scrollOptions_1);
         return;
       }
       if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
-        this[_scroll_3](dart.as(x, core.int), dart.as(y, core.int));
+        this[_scroll_3](x, y);
         return;
       }
       if (scrollOptions != null && typeof y == 'number' && typeof x == 'number') {
         let scrollOptions_1 = html_common.convertDartToNative_Dictionary(scrollOptions);
-        this[_scroll_4](dart.as(x, core.int), dart.as(y, core.int), scrollOptions_1);
+        this[_scroll_4](x, y, scrollOptions_1);
         return;
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
@@ -8932,21 +8932,21 @@ dart_library.library('dart/html', null, /* Imports */[
     scrollBy(x, y, scrollOptions) {
       if (scrollOptions === void 0) scrollOptions = null;
       if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
-        this[_scrollBy_1](dart.as(x, core.num), dart.as(y, core.num));
+        this[_scrollBy_1](x, y);
         return;
       }
       if (scrollOptions != null && typeof y == 'number' && typeof x == 'number') {
         let scrollOptions_1 = html_common.convertDartToNative_Dictionary(scrollOptions);
-        this[_scrollBy_2](dart.as(x, core.num), dart.as(y, core.num), scrollOptions_1);
+        this[_scrollBy_2](x, y, scrollOptions_1);
         return;
       }
       if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
-        this[_scrollBy_3](dart.as(x, core.int), dart.as(y, core.int));
+        this[_scrollBy_3](x, y);
         return;
       }
       if (scrollOptions != null && typeof y == 'number' && typeof x == 'number') {
         let scrollOptions_1 = html_common.convertDartToNative_Dictionary(scrollOptions);
-        this[_scrollBy_4](dart.as(x, core.int), dart.as(y, core.int), scrollOptions_1);
+        this[_scrollBy_4](x, y, scrollOptions_1);
         return;
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
@@ -8966,21 +8966,21 @@ dart_library.library('dart/html', null, /* Imports */[
     scrollTo(x, y, scrollOptions) {
       if (scrollOptions === void 0) scrollOptions = null;
       if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
-        this[_scrollTo_1](dart.as(x, core.num), dart.as(y, core.num));
+        this[_scrollTo_1](x, y);
         return;
       }
       if (scrollOptions != null && typeof y == 'number' && typeof x == 'number') {
         let scrollOptions_1 = html_common.convertDartToNative_Dictionary(scrollOptions);
-        this[_scrollTo_2](dart.as(x, core.num), dart.as(y, core.num), scrollOptions_1);
+        this[_scrollTo_2](x, y, scrollOptions_1);
         return;
       }
       if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
-        this[_scrollTo_3](dart.as(x, core.int), dart.as(y, core.int));
+        this[_scrollTo_3](x, y);
         return;
       }
       if (scrollOptions != null && typeof y == 'number' && typeof x == 'number') {
         let scrollOptions_1 = html_common.convertDartToNative_Dictionary(scrollOptions);
-        this[_scrollTo_4](dart.as(x, core.int), dart.as(y, core.int), scrollOptions_1);
+        this[_scrollTo_4](x, y, scrollOptions_1);
         return;
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
@@ -11864,9 +11864,9 @@ dart_library.library('dart/html', null, /* Imports */[
       this.allowedAttributes = core.Set$(core.String).new();
       this.allowedUriAttributes = core.Set$(core.String).new();
       this.uriPolicy = uriPolicy;
-      this.allowedElements.addAll(dart.as((allowedElements != null ? allowedElements : dart.const([])), core.Iterable$(core.String)));
-      allowedAttributes = dart.as((allowedAttributes != null ? allowedAttributes : dart.const([])), core.Iterable$(core.String));
-      allowedUriAttributes = dart.as((allowedUriAttributes != null ? allowedUriAttributes : dart.const([])), core.Iterable$(core.String));
+      this.allowedElements.addAll((allowedElements != null ? allowedElements : dart.const(dart.list([], core.String))));
+      allowedAttributes = allowedAttributes != null ? allowedAttributes : dart.const(dart.list([], core.String));
+      allowedUriAttributes = allowedUriAttributes != null ? allowedUriAttributes : dart.const(dart.list([], core.String));
       let legalAttributes = allowedAttributes[dartx.where](dart.fn(x => !dart.notNull(_Html5NodeValidator._uriAttributes[dartx.contains](x)), core.bool, [core.String]));
       let extraUriAttributes = allowedAttributes[dartx.where](dart.fn(x => _Html5NodeValidator._uriAttributes[dartx.contains](x), core.bool, [core.String]));
       this.allowedAttributes.addAll(legalAttributes);
@@ -12199,7 +12199,7 @@ dart_library.library('dart/html', null, /* Imports */[
   const _window = Symbol('_window');
   function _convertDartToNative_EventTarget(e) {
     if (dart.is(e, _DOMWindowCrossFrame)) {
-      return dart.as(dart.dload(e, _window), EventTarget);
+      return dart.as(e[_window], EventTarget);
     } else {
       return dart.as(e, EventTarget);
     }
@@ -12617,7 +12617,7 @@ dart_library.library('dart/html', null, /* Imports */[
   const _wrapper = Symbol("dart_wrapper");
   function unwrap_jso(wrapped) {
     if (dart.is(wrapped, DartHtmlDomObject)) {
-      return dart.dload(wrapped, 'raw');
+      return wrapped.raw;
     }
     if (dart.is(wrapped, _F1)) {
       if (wrapped.hasOwnProperty(_wrapper)) {

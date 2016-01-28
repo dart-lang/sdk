@@ -1173,8 +1173,8 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
     writeJsonValue(object) {
       if (typeof object == 'number') {
-        if (!dart.notNull(dart.as(dart.dload(object, 'isFinite'), core.bool))) return false;
-        this.writeNumber(dart.as(object, core.num));
+        if (!dart.notNull(object[dartx.isFinite])) return false;
+        this.writeNumber(object);
         return true;
       } else if (dart.notNull(core.identical(object, true))) {
         this.writeString('true');
@@ -1187,12 +1187,12 @@ dart_library.library('dart/convert', null, /* Imports */[
         return true;
       } else if (typeof object == 'string') {
         this.writeString('"');
-        this.writeStringContent(dart.as(object, core.String));
+        this.writeStringContent(object);
         this.writeString('"');
         return true;
       } else if (dart.is(object, core.List)) {
         this[_checkCycle](object);
-        this.writeList(dart.as(object, core.List));
+        this.writeList(object);
         this[_removeSeen](object);
         return true;
       } else if (dart.is(object, core.Map)) {

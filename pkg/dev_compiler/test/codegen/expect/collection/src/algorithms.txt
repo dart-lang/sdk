@@ -1,3 +1,3 @@
 // Messages from compiling algorithms.dart
-warning: [DOWN_CAST_COMPOSITE] sortedList (List<dynamic>) will need runtime check to cast to type List<Comparable<dynamic>> (package:collection/src/algorithms.dart, line 36, col 36)
-warning: [DOWN_CAST_COMPOSITE] sortedList (List<dynamic>) will need runtime check to cast to type List<Comparable<dynamic>> (package:collection/src/algorithms.dart, line 84, col 34)
+warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from List<dynamic> to List<Comparable<dynamic>> (package:collection/src/algorithms.dart, line 36, col 36)
+warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from List<dynamic> to List<Comparable<dynamic>> (package:collection/src/algorithms.dart, line 84, col 34)

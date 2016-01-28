@@ -4199,7 +4199,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         }
       }
       static _isStringKey(key) {
-        return typeof key == 'string' && !dart.equals(key, '__proto__');
+        return typeof key == 'string' && key != '__proto__';
       }
       static _isNumericKey(key) {
         return typeof key == 'number' && (key & 0x3ffffff) === key;
@@ -4662,7 +4662,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         this[_modified]();
       }
       static _isStringKey(key) {
-        return typeof key == 'string' && !dart.equals(key, '__proto__');
+        return typeof key == 'string' && key != '__proto__';
       }
       static _isNumericKey(key) {
         return typeof key == 'number' && (key & 0x3ffffff) === key;
@@ -5087,7 +5087,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         }
       }
       static _isStringElement(element) {
-        return typeof element == 'string' && !dart.equals(element, '__proto__');
+        return typeof element == 'string' && element != '__proto__';
       }
       static _isNumericElement(element) {
         return typeof element == 'number' && (element & 0x3ffffff) === element;
@@ -5497,7 +5497,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         this[_modified]();
       }
       static _isStringElement(element) {
-        return typeof element == 'string' && !dart.equals(element, '__proto__');
+        return typeof element == 'string' && element != '__proto__';
       }
       static _isNumericElement(element) {
         return typeof element == 'number' && (element & 0x3ffffff) === element;

@@ -6,5 +6,5 @@ severe: [STATIC_TYPE_ERROR] Type check failed: const DefaultEquality() (DefaultE
 severe: [STATIC_TYPE_ERROR] Type check failed: const DefaultEquality() (DefaultEquality) is not of type Equality<E> because const DefaultEquality() cannot be typed as Equality<E> (package:collection/src/equality.dart, line 198, col 38)
 severe: [STATIC_TYPE_ERROR] Type check failed: const DefaultEquality() (DefaultEquality) is not of type Equality<K> because const DefaultEquality() cannot be typed as Equality<K> (package:collection/src/equality.dart, line 234, col 42)
 severe: [STATIC_TYPE_ERROR] Type check failed: const DefaultEquality() (DefaultEquality) is not of type Equality<V> because const DefaultEquality() cannot be typed as Equality<V> (package:collection/src/equality.dart, line 235, col 44)
-warning: [DOWN_CAST_COMPOSITE] it1.current (dynamic) will need runtime check to cast to type E (package:collection/src/equality.dart, line 68, col 36)
-warning: [DOWN_CAST_COMPOSITE] it2.current (dynamic) will need runtime check to cast to type E (package:collection/src/equality.dart, line 68, col 49)
+warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from dynamic to E (package:collection/src/equality.dart, line 68, col 36)
+warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from dynamic to E (package:collection/src/equality.dart, line 68, col 49)

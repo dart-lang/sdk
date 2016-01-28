@@ -48,14 +48,14 @@ dart_library.library('dart/js', null, /* Imports */[
         if (dart.is(o, core.Map)) {
           let convertedMap = {};
           _convertedObjects.set(o, convertedMap);
-          for (let key of dart.as(dart.dload(o, 'keys'), core.Iterable)) {
-            convertedMap[key] = _convert(dart.dindex(o, key));
+          for (let key of o.keys) {
+            convertedMap[key] = _convert(o.get(key));
           }
           return convertedMap;
         } else if (dart.is(o, core.Iterable)) {
           let convertedList = [];
           _convertedObjects.set(o, convertedList);
-          convertedList[dartx.addAll](dart.as(dart.dsend(o, 'map', _convert), core.Iterable));
+          convertedList[dartx.addAll](o[dartx.map](_convert));
           return convertedList;
         } else {
           return _convertToJS(o);
@@ -81,7 +81,7 @@ dart_library.library('dart/js', null, /* Imports */[
       return 0;
     }
     ['=='](other) {
-      return dart.is(other, JsObject) && this[_jsObject] === dart.dload(other, _jsObject);
+      return dart.is(other, JsObject) && this[_jsObject] === other[_jsObject];
     }
     hasProperty(property) {
       if (!(typeof property == 'string') && !(typeof property == 'number')) {
@@ -326,7 +326,7 @@ dart_library.library('dart/js', null, /* Imports */[
     } else if (dart.is(o, core.DateTime)) {
       return _js_helper.Primitives.lazyAsJsDate(o);
     } else if (dart.is(o, JsObject)) {
-      return dart.dload(o, _jsObject);
+      return o[_jsObject];
     } else if (dart.is(o, core.Function)) {
       return _putIfAbsent(_jsProxies, o, _wrapDartFunction);
     } else {
@@ -350,7 +350,7 @@ dart_library.library('dart/js', null, /* Imports */[
       let ms = o.getTime();
       return new core.DateTime.fromMillisecondsSinceEpoch(dart.asInt(ms));
     } else if (dart.is(o, _DartObject) && dart.jsobject != dart.realRuntimeType(o)) {
-      return dart.dload(o, _dartObj);
+      return o[_dartObj];
     } else {
       return _putIfAbsent(_dartProxies, o, _wrapToDart);
     }

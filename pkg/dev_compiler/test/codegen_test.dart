@@ -251,10 +251,6 @@ class PrintLogger implements Logger {
     print('[AnalysisEngine] error $message $exception');
   }
 
-  @override void logError2(String message, Object exception) {
-    print('[AnalysisEngine] error $message $exception');
-  }
-
   void logInformation(String message, [CaughtException exception]) {}
   void logInformation2(String message, Object exception) {}
 }

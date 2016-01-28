@@ -1,2 +1,2 @@
 // Messages from compiling iterable_zip.dart
-warning: [DOWN_CAST_COMPOSITE] iterators (List<dynamic>) will need runtime check to cast to type List<Iterator<dynamic>> (package:collection/src/iterable_zip.dart, line 33, col 47)
+warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from List<dynamic> to List<Iterator<dynamic>> (package:collection/src/iterable_zip.dart, line 33, col 47)

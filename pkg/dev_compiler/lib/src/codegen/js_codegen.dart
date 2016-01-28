@@ -505,7 +505,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var genericName = '$name\$';
 
     JS.Statement genericDef = null;
-    if (_boundTypeParametersOf(type).isNotEmpty) {
+    if (_typeFormalsOf(type).isNotEmpty) {
       genericDef = _emitGenericClassDef(type, body);
     }
     // The base class and all mixins must be declared before this class.
@@ -537,7 +537,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   JS.Statement _emitGenericClassDef(ParameterizedType type, JS.Statement body) {
     var name = type.name;
     var genericName = '$name\$';
-    var typeParams = _boundTypeParametersOf(type).map((p) => p.name);
+    var typeParams = _typeFormalsOf(type).map((p) => p.name);
     if (isPublic(name)) _exports.add(genericName);
     return js.statement('const # = dart.generic(function(#) { #; return #; });',
         [genericName, typeParams, body, name]);
@@ -1556,7 +1556,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     // indirects back to a (possibly synthetic) field.
     var element = accessor;
     if (accessor is PropertyAccessorElement) element = accessor.variable;
-    if (accessor is FunctionMember) element = accessor.baseElement;
 
     _loader.declareBeforeUse(element);
 
@@ -3262,10 +3261,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   }
 
   /// Return the bound type parameters for a ParameterizedType
-  List<TypeParameterElement> _boundTypeParametersOf(ParameterizedType type) {
-    return (type is FunctionType)
-        ? type.boundTypeParameters
-        : type.typeParameters;
+  List<TypeParameterElement> _typeFormalsOf(ParameterizedType type) {
+    return type is FunctionType ? type.typeFormals : type.typeParameters;
   }
 
   /// Like [_emitMemberName], but for declaration sites.

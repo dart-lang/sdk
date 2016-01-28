@@ -45,18 +45,18 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       if (serializationId != null) return this.makeRef(serializationId);
       serializationId = this.serializedObjectIds.length;
       this.serializedObjectIds.set(x, serializationId);
-      if (dart.is(x, _native_typed_data.NativeByteBuffer)) return this.serializeByteBuffer(dart.as(x, _native_typed_data.NativeByteBuffer));
-      if (dart.is(x, _native_typed_data.NativeTypedData)) return this.serializeTypedData(dart.as(x, _native_typed_data.NativeTypedData));
-      if (dart.is(x, _interceptors.JSIndexable)) return this.serializeJSIndexable(dart.as(x, _interceptors.JSIndexable));
-      if (dart.is(x, _js_helper.InternalMap)) return this.serializeMap(dart.as(x, core.Map));
-      if (dart.is(x, _interceptors.JSObject)) return this.serializeJSObject(dart.as(x, _interceptors.JSObject));
+      if (dart.is(x, _native_typed_data.NativeByteBuffer)) return this.serializeByteBuffer(x);
+      if (dart.is(x, _native_typed_data.NativeTypedData)) return this.serializeTypedData(x);
+      if (dart.is(x, _interceptors.JSIndexable)) return this.serializeJSIndexable(x);
+      if (dart.is(x, _js_helper.InternalMap)) return this.serializeMap(x);
+      if (dart.is(x, _interceptors.JSObject)) return this.serializeJSObject(x);
       if (dart.is(x, _interceptors.Interceptor)) this.unsupported(x);
       if (dart.is(x, isolate.RawReceivePort)) {
         this.unsupported(x, "RawReceivePorts can't be transmitted:");
       }
-      if (dart.is(x, _NativeJsSendPort)) return this.serializeJsSendPort(dart.as(x, _NativeJsSendPort));
-      if (dart.is(x, _WorkerSendPort)) return this.serializeWorkerSendPort(dart.as(x, _WorkerSendPort));
-      if (dart.is(x, core.Function)) return this.serializeClosure(dart.as(x, core.Function));
+      if (dart.is(x, _NativeJsSendPort)) return this.serializeJsSendPort(x);
+      if (dart.is(x, _WorkerSendPort)) return this.serializeWorkerSendPort(x);
+      if (dart.is(x, core.Function)) return this.serializeClosure(x);
       return this.serializeDartObject(x);
     }
     unsupported(x, message) {
@@ -1242,7 +1242,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       }).bind(this)), `receive ${message}`);
     }
     ['=='](other) {
-      return dart.is(other, _NativeJsSendPort) && dart.equals(this[_receivePort], dart.dload(other, _receivePort));
+      return dart.is(other, _NativeJsSendPort) && dart.equals(this[_receivePort], other[_receivePort]);
     }
     get hashCode() {
       return this[_receivePort][_id];
@@ -1271,7 +1271,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       }
     }
     ['=='](other) {
-      return dart.is(other, _WorkerSendPort) && dart.equals(this[_workerId], dart.dload(other, _workerId)) && dart.equals(this[_isolateId], dart.dload(other, _isolateId)) && dart.equals(this[_receivePortId], dart.dload(other, _receivePortId));
+      return dart.is(other, _WorkerSendPort) && this[_workerId] == other[_workerId] && this[_isolateId] == other[_isolateId] && this[_receivePortId] == other[_receivePortId];
     }
     get hashCode() {
       return dart.notNull(this[_workerId]) << 16 ^ dart.notNull(this[_isolateId]) << 8 ^ dart.notNull(this[_receivePortId]);

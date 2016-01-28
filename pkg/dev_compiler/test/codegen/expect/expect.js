@@ -56,7 +56,7 @@ dart_library.library('expect', null, /* Imports */[
       if (dart.equals(expected, actual)) return;
       let msg = Expect._getMessage(reason);
       if (typeof expected == 'string' && typeof actual == 'string') {
-        let stringDifference = Expect._stringDifference(dart.as(expected, core.String), dart.as(actual, core.String));
+        let stringDifference = Expect._stringDifference(expected, actual);
         if (stringDifference != null) {
           Expect._fail(`Expect.equals(${stringDifference}${msg}) fails.`);
         }

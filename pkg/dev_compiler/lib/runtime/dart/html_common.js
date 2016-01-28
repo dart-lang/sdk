@@ -299,7 +299,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
       if (typeof e == 'number') return e;
       if (typeof e == 'string') return e;
       if (dart.is(e, core.DateTime)) {
-        return convertDartToNative_DateTime(dart.as(e, core.DateTime));
+        return convertDartToNative_DateTime(e);
       }
       if (dart.is(e, core.RegExp)) {
         dart.throw(new core.UnimplementedError('structured clone of RegExp'));
@@ -315,16 +315,16 @@ dart_library.library('dart/html_common', null, /* Imports */[
         if (copy != null) return copy;
         copy = this.newJsMap();
         this.writeSlot(slot, copy);
-        dart.dsend(e, 'forEach', dart.fn(((key, value) => {
+        e.forEach(dart.fn(((key, value) => {
           this.putIntoMap(copy, key, this.walk(value));
-        }).bind(this)));
+        }).bind(this), dart.void, [dart.dynamic, dart.dynamic]));
         return copy;
       }
       if (dart.is(e, core.List)) {
         let slot = this.findSlot(e);
         let copy = this.readSlot(slot);
         if (copy != null) return copy;
-        copy = this.copyList(dart.as(e, core.List), slot);
+        copy = this.copyList(e, slot);
         return copy;
       }
       dart.throw(new core.UnimplementedError('structured clone of other type'));
@@ -478,7 +478,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
   dart.fn(convertNativeToDart_ImageData);
   function convertDartToNative_ImageData(imageData) {
     if (dart.is(imageData, _TypedImageData)) {
-      return {data: dart.dload(imageData, 'data'), height: dart.dload(imageData, 'height'), width: dart.dload(imageData, 'width')};
+      return {data: imageData.data, height: imageData.height, width: imageData.width};
     }
     return imageData;
   }

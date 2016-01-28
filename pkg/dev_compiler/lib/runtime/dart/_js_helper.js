@@ -352,7 +352,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     if (typeof other == 'string') {
       return !dart.equals(dart.dsend(receiver, 'indexOf', other, startIndex), -1);
     } else if (dart.is(other, JSSyntaxRegExp)) {
-      return dart.dsend(other, 'hasMatch', dart.dsend(receiver, 'substring', startIndex));
+      return other.hasMatch(dart.as(dart.dsend(receiver, 'substring', startIndex), core.String));
     } else {
       let substr = dart.dsend(receiver, 'substring', startIndex);
       return dart.dload(dart.dsend(other, 'allMatches', substr), 'isNotEmpty');
@@ -376,7 +376,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   function stringReplaceAllUnchecked(receiver, from, to) {
     checkString(to);
     if (typeof from == 'string') {
-      if (dart.equals(from, "")) {
+      if (from == "") {
         if (dart.equals(receiver, "")) {
           return to;
         } else {
@@ -396,7 +396,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
         return stringReplaceJS(receiver, replacer, to);
       }
     } else if (dart.is(from, JSSyntaxRegExp)) {
-      let re = regExpGetGlobalNative(dart.as(from, JSSyntaxRegExp));
+      let re = regExpGetGlobalNative(from);
       return stringReplaceJS(receiver, re, to);
     } else {
       checkNull(from);
@@ -482,9 +482,9 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     if (typeof from == 'string') {
       let index = dart.dsend(receiver, 'indexOf', from, startIndex);
       if (dart.notNull(dart.as(dart.dsend(index, '<', 0), core.bool))) return receiver;
-      return `${dart.dsend(receiver, 'substring', 0, index)}${to}` + `${dart.dsend(receiver, 'substring', dart.dsend(index, '+', dart.dload(from, 'length')))}`;
+      return `${dart.dsend(receiver, 'substring', 0, index)}${to}` + `${dart.dsend(receiver, 'substring', dart.dsend(index, '+', from[dartx.length]))}`;
     } else if (dart.is(from, JSSyntaxRegExp)) {
-      return startIndex == 0 ? stringReplaceJS(receiver, regExpGetNative(dart.as(from, JSSyntaxRegExp)), to) : stringReplaceFirstRE(receiver, from, to, startIndex);
+      return startIndex == 0 ? stringReplaceJS(receiver, regExpGetNative(from), to) : stringReplaceFirstRE(receiver, from, to, startIndex);
     } else {
       checkNull(from);
       dart.throw("String.replace(Pattern) UNIMPLEMENTED");
