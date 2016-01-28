@@ -1894,12 +1894,8 @@ const int v = p.a.length;
 
   test_constExpr_makeSymbol() {
     UnlinkedVariable variable = serializeVariableText('const v = #a.bb.ccc;');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.makeSymbol
-    ], strings: [
-      'a.bb.ccc'
-    ]);
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.makeSymbol], strings: ['a.bb.ccc']);
   }
 
   test_constExpr_makeTypedList() {
@@ -2109,45 +2105,25 @@ const int v = p.a.length;
     ]);
   }
 
-  test_constExpr_pushInt_shiftOr_long() {
+  test_constExpr_pushLongInt() {
     UnlinkedVariable variable =
         serializeVariableText('const v = 0xA123456789ABCDEF012345678;');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.shiftOr,
-      UnlinkedConstOperation.shiftOr,
-      UnlinkedConstOperation.shiftOr
-    ], ints: [
-      0xA,
-      0x12345678,
-      0x9ABCDEF0,
-      0x12345678
-    ]);
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushLongInt],
+        ints: [4, 0xA, 0x12345678, 0x9ABCDEF0, 0x12345678]);
   }
 
-  test_constExpr_pushInt_shiftOr_min() {
+  test_constExpr_pushLongInt_min2() {
     UnlinkedVariable variable = serializeVariableText('const v = 0x100000000;');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.shiftOr,
-    ], ints: [
-      1,
-      0,
-    ]);
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushLongInt], ints: [2, 1, 0,]);
   }
 
-  test_constExpr_pushInt_shiftOr_min2() {
+  test_constExpr_pushLongInt_min3() {
     UnlinkedVariable variable =
         serializeVariableText('const v = 0x10000000000000000;');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.shiftOr,
-      UnlinkedConstOperation.shiftOr,
-    ], ints: [
-      1,
-      0,
-      0,
-    ]);
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushLongInt], ints: [3, 1, 0, 0,]);
   }
 
   test_constExpr_pushNull() {

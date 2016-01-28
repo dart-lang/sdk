@@ -510,17 +510,17 @@ enum UnlinkedConstOperation {
    * onto the stack.
    *
    * Note that Dart supports integers larger than 32 bits; these are
-   * represented by composing 32 bit values using the [shiftOr] operation.
+   * represented by composing 32-bit values using the [pushLongInt] operation.
    */
   pushInt,
 
   /**
-   * Pop the top value off the stack, which should be an integer.  Multiply it
-   * by 2^32, "or" in the next value from [UnlinkedConst.ints] (which is
-   * interpreted as a 32-bit unsigned integer), and push the result back onto
-   * the stack.
+   * Get the number of components from [UnlinkedConst.ints], then do this number
+   * of times the following operations: multiple the current value by 2^32, "or"
+   * it with the next value in [UnlinkedConst.ints]. The initial value is zero.
+   * Push the result into the stack.
    */
-  shiftOr,
+  pushLongInt,
 
   /**
    * Push the next value from [UnlinkedConst.doubles] (a double precision
@@ -554,8 +554,8 @@ enum UnlinkedConstOperation {
   concatenate,
 
   /**
-   * Pop the top value from the stack which should be string, convert it to
-   * a symbol, and push it back onto the stack.
+   * Get the next value from [UnlinkedConst.strings], convert it to a symbol,
+   * and push it onto the stack.
    */
   makeSymbol,
 
