@@ -86,12 +86,6 @@ class _ReferenceKindReader extends fb.Reader<ReferenceKind> {
  */
 enum UnlinkedConstOperation {
   /**
-   * Push the value of the n-th constructor argument (where n is obtained from
-   * [UnlinkedConst.ints]) onto the stack.
-   */
-  pushArgument,
-
-  /**
    * Push the next value from [UnlinkedConst.ints] (a 32-bit unsigned integer)
    * onto the stack.
    *

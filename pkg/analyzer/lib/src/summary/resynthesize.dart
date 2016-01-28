@@ -263,41 +263,143 @@ class _ConstExprBuilder {
   Expression get expr => stack.single;
 
   Expression build() {
-    // TODO(scheglov) complete implementation
     for (UnlinkedConstOperation operation in uc.operations) {
       switch (operation) {
         case UnlinkedConstOperation.pushNull:
-          stack.add(AstFactory.nullLiteral());
+          _push(AstFactory.nullLiteral());
           break;
+        // bool
         case UnlinkedConstOperation.pushFalse:
-          stack.add(AstFactory.booleanLiteral(false));
+          _push(AstFactory.booleanLiteral(false));
           break;
         case UnlinkedConstOperation.pushTrue:
-          stack.add(AstFactory.booleanLiteral(true));
+          _push(AstFactory.booleanLiteral(true));
           break;
+        // literals
         case UnlinkedConstOperation.pushInt:
           int value = uc.ints[intPtr++];
-          stack.add(AstFactory.integer(value));
+          _push(AstFactory.integer(value));
+          break;
+        case UnlinkedConstOperation.pushLongInt:
+          int value = 0;
+          int count = uc.ints[intPtr++];
+          for (int i = 0; i < count; i++) {
+            int next = uc.ints[intPtr++];
+            value = value << 32 | next;
+          }
+          _push(AstFactory.integer(value));
           break;
         case UnlinkedConstOperation.pushDouble:
           double value = uc.doubles[doublePtr++];
-          stack.add(AstFactory.doubleLiteral(value));
+          _push(AstFactory.doubleLiteral(value));
           break;
+        case UnlinkedConstOperation.makeSymbol:
+          String component = uc.strings[stringPtr++];
+          _push(AstFactory.symbolLiteral([component]));
+          break;
+        // String
         case UnlinkedConstOperation.pushString:
           String value = uc.strings[stringPtr++];
-          stack.add(AstFactory.string2(value));
+          _push(AstFactory.string2(value));
           break;
         case UnlinkedConstOperation.concatenate:
           int count = uc.ints[intPtr++];
           List<InterpolationElement> elements = <InterpolationElement>[];
           for (int i = 0; i < count; i++) {
-            Expression expr = stack.removeLast();
+            Expression expr = _pop();
             InterpolationElement element = _newInterpolationElement(expr);
             elements.insert(0, element);
           }
-          stack.add(AstFactory.string(elements));
+          _push(AstFactory.string(elements));
           break;
-        default:
+        // binary
+        case UnlinkedConstOperation.equal:
+          _pushBinary(TokenType.EQ_EQ);
+          break;
+        case UnlinkedConstOperation.and:
+          _pushBinary(TokenType.AMPERSAND_AMPERSAND);
+          break;
+        case UnlinkedConstOperation.or:
+          _pushBinary(TokenType.BAR_BAR);
+          break;
+        case UnlinkedConstOperation.bitXor:
+          _pushBinary(TokenType.CARET);
+          break;
+        case UnlinkedConstOperation.bitAnd:
+          _pushBinary(TokenType.AMPERSAND);
+          break;
+        case UnlinkedConstOperation.bitOr:
+          _pushBinary(TokenType.BAR);
+          break;
+        case UnlinkedConstOperation.bitShiftLeft:
+          _pushBinary(TokenType.LT_LT);
+          break;
+        case UnlinkedConstOperation.bitShiftRight:
+          _pushBinary(TokenType.GT_GT);
+          break;
+        case UnlinkedConstOperation.add:
+          _pushBinary(TokenType.PLUS);
+          break;
+        case UnlinkedConstOperation.subtract:
+          _pushBinary(TokenType.MINUS);
+          break;
+        case UnlinkedConstOperation.multiply:
+          _pushBinary(TokenType.STAR);
+          break;
+        case UnlinkedConstOperation.divide:
+          _pushBinary(TokenType.SLASH);
+          break;
+        case UnlinkedConstOperation.floorDivide:
+          _pushBinary(TokenType.TILDE_SLASH);
+          break;
+        case UnlinkedConstOperation.modulo:
+          _pushBinary(TokenType.PERCENT);
+          break;
+        case UnlinkedConstOperation.greater:
+          _pushBinary(TokenType.GT);
+          break;
+        case UnlinkedConstOperation.greaterEqual:
+          _pushBinary(TokenType.GT_EQ);
+          break;
+        case UnlinkedConstOperation.less:
+          _pushBinary(TokenType.LT);
+          break;
+        case UnlinkedConstOperation.lessEqual:
+          _pushBinary(TokenType.LT_EQ);
+          break;
+        // prefix
+        case UnlinkedConstOperation.complement:
+          _pushPrefix(TokenType.TILDE);
+          break;
+        case UnlinkedConstOperation.negate:
+          _pushPrefix(TokenType.MINUS);
+          break;
+        case UnlinkedConstOperation.not:
+          _pushPrefix(TokenType.BANG);
+          break;
+        // conditional
+        case UnlinkedConstOperation.conditional:
+          Expression elseExpr = _pop();
+          Expression thenExpr = _pop();
+          Expression condition = _pop();
+          _push(
+              AstFactory.conditionalExpression(condition, thenExpr, elseExpr));
+          break;
+        // identical
+        case UnlinkedConstOperation.identical:
+          Expression second = _pop();
+          Expression first = _pop();
+          _push(AstFactory.methodInvocation(
+              null, 'identical', <Expression>[first, second]));
+          break;
+      // TODO(scheglov) complete implementation
+        case UnlinkedConstOperation.makeUntypedList:
+        case UnlinkedConstOperation.makeTypedList:
+        case UnlinkedConstOperation.makeUntypedMap:
+        case UnlinkedConstOperation.makeTypedMap:
+        case UnlinkedConstOperation.pushReference:
+        case UnlinkedConstOperation.invokeConstructor:
+        case UnlinkedConstOperation.length:
           return AstFactory.nullLiteral();
 //          throw new StateError('Unsupported constant operation $operation');
       }
@@ -314,6 +416,23 @@ class _ConstExprBuilder {
           expr,
           TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
     }
+  }
+
+  Expression _pop() => stack.removeLast();
+
+  void _push(Expression expr) {
+    stack.add(expr);
+  }
+
+  void _pushBinary(TokenType operator) {
+    Expression right = _pop();
+    Expression left = _pop();
+    _push(AstFactory.binaryExpression(left, operator, right));
+  }
+
+  void _pushPrefix(TokenType operator) {
+    Expression operand = _pop();
+    _push(AstFactory.prefixExpression(operator, operand));
   }
 }
 

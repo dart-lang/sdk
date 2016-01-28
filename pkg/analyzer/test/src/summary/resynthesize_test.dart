@@ -229,7 +229,8 @@ class ResynthTest extends ResolverTestCase {
         expect(resynthesized.toStringValue(), original.toStringValue(),
             reason: desc);
       } else if (original.toSymbolValue() != null) {
-        fail('Not implemented');
+        expect(resynthesized.toSymbolValue(), original.toSymbolValue(),
+            reason: desc);
       } else if (original.toTypeValue() != null) {
         fail('Not implemented');
       }
@@ -952,6 +953,44 @@ class E {}''');
     checkLibrary('class C {} class D {}');
   }
 
+  test_const_topLevel_binary() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+const vEqual = 1 == 2;
+const vAnd = true && false;
+const vOr = false || true;
+const vBitXor = 1 ^ 2;
+const vBitAnd = 1 & 2;
+const vBitOr = 1 | 2;
+const vBitShiftLeft = 1 << 2;
+const vBitShiftRight = 1 >> 2;
+const vAdd = 1 + 2;
+const vSubtract = 1 - 2;
+const vMiltiply = 1 * 2;
+const vDivide = 1 / 2;
+const vFloorDivide = 1 ~/ 2;
+const vModulo = 1 % 2;
+const vGreater = 1 > 2;
+const vGreaterEqual = 1 >= 2;
+const vLess = 1 < 2;
+const vLessEqual = 1 <= 2;
+''');
+  }
+
+  test_const_topLevel_conditional() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+const vConditional = (1 == 2) ? 11 : 22;
+''');
+  }
+
+  test_const_topLevel_identical() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+const vIdentical = (1 == 2) ? 11 : 22;
+''');
+  }
+
   test_const_topLevel_literal() {
     shouldCompareConstValues = true;
     checkLibrary(r'''
@@ -959,10 +998,22 @@ const vNull = null;
 const vBoolFalse = false;
 const vBoolTrue = true;
 const vInt = 1;
+const vIntLong = 0x9876543210987654321;
 const vDouble = 2.3;
 const vString = 'abc';
 const vStringConcat = 'aaa' 'bbb';
 const vStringInterpolation = 'aaa ${true} ${42} bbb';
+const vSymbol = #aaa.bbb.ccc;
+''');
+  }
+
+  test_const_topLevel_unary() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+const vNotEqual = 1 != 2;
+const vNot = !true;
+const vNegate = -1;
+const vComplement = ~1;
 ''');
   }
 
