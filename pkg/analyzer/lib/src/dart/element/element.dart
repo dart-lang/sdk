@@ -1400,10 +1400,18 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
   EvaluationResultImpl _result;
 
   /**
+   * Initialize a newly created synthetic top-level variable element to have the
+   * given [name] and [offset].
+   */
+  ConstTopLevelVariableElementImpl(String name, int offset)
+      : super(name, offset);
+
+  /**
    * Initialize a newly created top-level variable element to have the given
    * [name].
    */
-  ConstTopLevelVariableElementImpl(Identifier name) : super.forNode(name);
+  ConstTopLevelVariableElementImpl.forNode(Identifier name)
+      : super.forNode(name);
 
   @override
   DartObject get constantValue => _result.value;

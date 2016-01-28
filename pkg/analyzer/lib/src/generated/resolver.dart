@@ -3469,7 +3469,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       SimpleIdentifier variableName = node.name;
       TopLevelVariableElementImpl variable;
       if (isConst && hasInitializer) {
-        variable = new ConstTopLevelVariableElementImpl(variableName);
+        variable = new ConstTopLevelVariableElementImpl.forNode(variableName);
       } else {
         variable = new TopLevelVariableElementImpl.forNode(variableName);
       }
