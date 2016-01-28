@@ -537,6 +537,12 @@ class _LibraryResynthesizer {
    */
   List<_ConstVariable> constVariables = <_ConstVariable>[];
 
+  /**
+   * List of [_ReferenceInfo] objects describing the references in the current
+   * compilation unit.
+   */
+  List<_ReferenceInfo> referenceInfos;
+
   _LibraryResynthesizer(this.summaryResynthesizer, this.linkedLibrary,
       this.unlinkedUnits, this.librarySource) {
     isCoreLibrary = librarySource.uri.toString() == 'dart:core';
@@ -1232,70 +1238,15 @@ class _LibraryResynthesizer {
               currentTypeParameters.length - type.paramReference]
           .type;
     } else {
-      LinkedReference referenceResolution =
-          linkedUnit.references[type.reference];
-      String name;
-      if (type.reference < unlinkedUnit.references.length) {
-        name = unlinkedUnit.references[type.reference].name;
-      } else {
-        name = referenceResolution.name;
-      }
-      ElementLocationImpl location;
-      if (referenceResolution.dependency != 0) {
-        location = getReferencedLocation(
-            linkedLibrary.dependencies[referenceResolution.dependency],
-            referenceResolution.unit,
-            name);
-      } else if (referenceResolution.kind == ReferenceKind.unresolved) {
-        return summaryResynthesizer.typeProvider.undefinedType;
-      } else if (name == 'dynamic') {
-        return summaryResynthesizer.typeProvider.dynamicType;
-      } else if (name == 'void') {
-        return VoidTypeImpl.instance;
-      } else {
-        String referencedLibraryUri = librarySource.uri.toString();
-        String partUri;
-        if (referenceResolution.unit != 0) {
-          String uri = unlinkedUnits[0].publicNamespace.parts[
-              referenceResolution.unit - 1];
-          Source partSource =
-              summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
-          partUri = partSource.uri.toString();
+      DartType getTypeParameter(int i) {
+        if (i < type.typeArguments.length) {
+          return buildType(type.typeArguments[i]);
         } else {
-          partUri = referencedLibraryUri;
-        }
-        location = new ElementLocationImpl.con3(
-            <String>[referencedLibraryUri, partUri, name]);
-      }
-      List<DartType> typeArguments = const <DartType>[];
-      if (referenceResolution.numTypeParameters != 0) {
-        typeArguments = <DartType>[];
-        for (int i = 0; i < referenceResolution.numTypeParameters; i++) {
-          if (i < type.typeArguments.length) {
-            typeArguments.add(buildType(type.typeArguments[i]));
-          } else {
-            typeArguments.add(summaryResynthesizer.typeProvider.dynamicType);
-          }
+          return summaryResynthesizer.typeProvider.dynamicType;
         }
       }
-      switch (referenceResolution.kind) {
-        case ReferenceKind.classOrEnum:
-          return new InterfaceTypeImpl.elementWithNameAndArgs(
-              new ClassElementHandle(summaryResynthesizer, location),
-              name,
-              typeArguments);
-        case ReferenceKind.typedef:
-          return new FunctionTypeImpl.elementWithNameAndArgs(
-              new FunctionTypeAliasElementHandle(
-                  summaryResynthesizer, location),
-              name,
-              typeArguments,
-              typeArguments.isNotEmpty);
-        default:
-          // TODO(paulberry): figure out how to handle this case (which should
-          // only occur in the event of erroneous code).
-          throw new UnimplementedError();
-      }
+      _ReferenceInfo referenceInfo = referenceInfos[type.reference];
+      return referenceInfo.buildType(getTypeParameter);
     }
   }
 
@@ -1435,6 +1386,72 @@ class _LibraryResynthesizer {
   }
 
   /**
+   * Populate [referenceInfos] with the correct information for the current
+   * compilation unit.
+   */
+  void populateReferenceInfos() {
+    int numLinkedReferences = linkedUnit.references.length;
+    int numUnlinkedReferences = unlinkedUnit.references.length;
+    referenceInfos = new List<_ReferenceInfo>(numLinkedReferences);
+    for (int i = 0; i < numLinkedReferences; i++) {
+      LinkedReference linkedReference = linkedUnit.references[i];
+      String name;
+      if (i < numUnlinkedReferences) {
+        name = unlinkedUnit.references[i].name;
+      } else {
+        name = linkedUnit.references[i].name;
+      }
+      ElementHandle element;
+      DartType type;
+      if (linkedReference.kind == ReferenceKind.unresolved) {
+        type = summaryResynthesizer.typeProvider.undefinedType;
+      } else if (name == 'dynamic') {
+        type = summaryResynthesizer.typeProvider.dynamicType;
+      } else if (name == 'void') {
+        type = VoidTypeImpl.instance;
+      } else {
+        ElementLocation location;
+        if (linkedReference.dependency != 0) {
+          location = getReferencedLocation(
+              linkedLibrary.dependencies[linkedReference.dependency],
+              linkedReference.unit,
+              name);
+        } else {
+          String referencedLibraryUri = librarySource.uri.toString();
+          String partUri;
+          if (linkedReference.unit != 0) {
+            String uri = unlinkedUnits[0].publicNamespace.parts[
+                linkedReference.unit - 1];
+            Source partSource = summaryResynthesizer.sourceFactory
+                .resolveUri(librarySource, uri);
+            partUri = partSource.uri.toString();
+          } else {
+            partUri = referencedLibraryUri;
+          }
+          location = new ElementLocationImpl.con3(
+              <String>[referencedLibraryUri, partUri, name]);
+        }
+        switch (linkedReference.kind) {
+          case ReferenceKind.classOrEnum:
+            element = new ClassElementHandle(summaryResynthesizer, location);
+            break;
+          case ReferenceKind.typedef:
+            element = new FunctionTypeAliasElementHandle(
+                summaryResynthesizer, location);
+            break;
+          default:
+            // This is an element that doesn't (yet) need to be referred to
+            // directly, so don't bother populating an element for it.
+            // TODO(paulberry): add support for more kinds, as needed.
+            break;
+        }
+      }
+      referenceInfos[i] = new _ReferenceInfo(
+          name, element, type, linkedReference.numTypeParameters);
+    }
+  }
+
+  /**
    * Populate a [CompilationUnitElement] by deserializing all the elements
    * contained in it.
    */
@@ -1445,6 +1462,7 @@ class _LibraryResynthesizer {
     for (EntityRef t in linkedUnit.types) {
       linkedTypeMap[t.slot] = t;
     }
+    populateReferenceInfos();
     unitHolder = new ElementHolder();
     unlinkedUnit.classes.forEach(buildClass);
     unlinkedUnit.enums.forEach(buildEnum);
@@ -1485,5 +1503,101 @@ class _LibraryResynthesizer {
     linkedUnit = null;
     unlinkedUnit = null;
     linkedTypeMap = null;
+    referenceInfos = null;
+  }
+}
+
+/**
+ * Data structure used during resynthesis to record all the information that is
+ * known about how to reserialize a single entry in [LinkedUnit.references]
+ * (and its associated entry in [UnlinkedUnit.references], if it exists).
+ */
+class _ReferenceInfo {
+  /**
+   * The name of the entity referred to by this reference.
+   */
+  final String name;
+
+  /**
+   * The element referred to by this reference, or `null` if there is no
+   * associated element (e.g. because it is a reference to an undefined
+   * entity).
+   */
+  final ElementHandle element;
+
+  /**
+   * If this reference refers to a non-generic type, the type it refers to.
+   * Otherwise `null`.
+   */
+  DartType type;
+
+  /**
+   * The number of type parameters accepted by the entity referred to by this
+   * reference, or zero if it doesn't accept any type parameters.
+   */
+  final int numTypeParameters;
+
+  /**
+   * Create a new [_ReferenceInfo] object referring to an element called [name]
+   * via the element handle [elementHandle], and having [numTypeParameters]
+   * type parameters.
+   *
+   * For the special types `dynamic` and `void`, [specialType] should point to
+   * the type itself.  Otherwise, pass `null` and the type will be computed
+   * when appropriate.
+   */
+  _ReferenceInfo(
+      this.name, this.element, DartType specialType, this.numTypeParameters) {
+    if (specialType != null) {
+      type = specialType;
+    } else if (numTypeParameters == 0) {
+      // We can precompute the type because it doesn't depend on type
+      // parameters.
+      type = _buildType(null);
+    }
+  }
+
+  /**
+   * Build a [DartType] corresponding to the result of applying some type
+   * arguments to the entity referred to by this [_ReferenceInfo].  The type
+   * arguments are retrieved by calling [getTypeArgument].
+   *
+   * If the entity referred to by this [_ReferenceInfo] is not a type, `null`
+   * is returned.
+   */
+  DartType buildType(DartType getTypeArgument(int i)) {
+    DartType result =
+        numTypeParameters == 0 ? type : _buildType(getTypeArgument);
+    if (result == null) {
+      // TODO(paulberry): figure out how to handle this case (which should
+      // only occur in the event of erroneous code).
+      throw new UnimplementedError();
+    }
+    return result;
+  }
+
+  /**
+   * If this reference refers to a type, build a [DartType] which instantiates
+   * it with type arguments returned by [getTypeArgument].  Otherwise return
+   * `null`.
+   */
+  DartType _buildType(DartType getTypeArgument(int i)) {
+    List<DartType> typeArguments = const <DartType>[];
+    if (numTypeParameters != 0) {
+      typeArguments = <DartType>[];
+      for (int i = 0; i < numTypeParameters; i++) {
+        typeArguments.add(getTypeArgument(i));
+      }
+    }
+    ElementHandle element = this.element; // To allow type promotion
+    if (element is ClassElementHandle) {
+      return new InterfaceTypeImpl.elementWithNameAndArgs(
+          element, name, typeArguments);
+    } else if (element is FunctionTypeAliasElementHandle) {
+      return new FunctionTypeImpl.elementWithNameAndArgs(
+          element, name, typeArguments, typeArguments.isNotEmpty);
+    } else {
+      return null;
+    }
   }
 }
