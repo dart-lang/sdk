@@ -38,7 +38,7 @@ void main() {
   var compiler = compilerFor(TEST, uri);
   var inferrer = new MyInferrer(compiler);
   compiler.typesTask.typesInferrer = inferrer;
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     var mainElement = findElement(compiler, 'main');
     var classA = findElement(compiler, 'A');
     var fieldA = classA.lookupLocalMember('field');

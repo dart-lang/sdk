@@ -762,6 +762,12 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, rs, rt, R0, 0, MULTU);
   }
 
+  void negd(DRegister dd, DRegister ds) {
+    FRegister fd = static_cast<FRegister>(dd * 2);
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_NEG);
+  }
+
   void nop() {
     Emit(Instr::kNopInstruction);
   }

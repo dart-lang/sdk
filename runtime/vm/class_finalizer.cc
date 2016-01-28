@@ -35,9 +35,12 @@ bool ClassFinalizer::AllClassesFinalized() {
 // Only methods which owner classes where subclasses can be invalid.
 // TODO(srdjan): Be even more precise by recording the exact CHA optimization.
 static void RemoveCHAOptimizedCode(
+    const Class& subclass,
     const GrowableArray<intptr_t>& added_subclass_to_cids) {
   ASSERT(FLAG_use_cha_deopt);
-  if (added_subclass_to_cids.is_empty()) return;
+  if (added_subclass_to_cids.is_empty()) {
+    return;
+  }
   // Switch all functions' code to unoptimized.
   const ClassTable& class_table = *Isolate::Current()->class_table();
   Class& cls = Class::Handle();
@@ -45,7 +48,7 @@ static void RemoveCHAOptimizedCode(
     intptr_t cid = added_subclass_to_cids[i];
     cls = class_table.At(cid);
     ASSERT(!cls.IsNull());
-    cls.DisableCHAOptimizedCode();
+    cls.DisableCHAOptimizedCode(subclass);
   }
 }
 
@@ -1269,7 +1272,8 @@ void ClassFinalizer::FinalizeUpperBounds(const Class& cls) {
   for (intptr_t i = 0; i < num_type_params; i++) {
     type_param ^= type_params.TypeAt(i);
     bound = type_param.bound();
-    if (bound.IsFinalized() || bound.IsBeingFinalized()) {
+    // Bound may be finalized, but not canonical yet.
+    if (bound.IsCanonical() || bound.IsBeingFinalized()) {
       // A bound involved in F-bounded quantification may form a cycle.
       continue;
     }
@@ -1314,7 +1318,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     field ^= array.At(i);
     type = field.type();
     type = FinalizeType(cls, type, kCanonicalize);
-    field.set_type(type);
+    field.SetFieldType(type);
     name = field.name();
     if (field.is_static()) {
       getter_name = Field::GetterSymbol(name);
@@ -2068,11 +2072,11 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class,
 
 void ClassFinalizer::CreateForwardingConstructors(
     const Class& mixin_app,
+    const Class& mixin_cls,
     const GrowableObjectArray& cloned_funcs) {
   const String& mixin_name = String::Handle(mixin_app.Name());
   const Class& super_class = Class::Handle(mixin_app.SuperClass());
   const String& super_name = String::Handle(super_class.Name());
-  const Type& dynamic_type = Type::Handle(Type::DynamicType());
   const Array& functions = Array::Handle(super_class.functions());
   const intptr_t num_functions = functions.Length();
   Function& func = Function::Handle();
@@ -2091,6 +2095,13 @@ void ClassFinalizer::CreateForwardingConstructors(
                   ctor_name.ToCString(),
                   clone_name.ToCString());
       }
+
+      // The owner of the forwarding constructor is the mixin application
+      // class. The source is the mixin class. The source may be needed
+      // to parse field initializer expressions in the mixin class.
+      const PatchClass& owner =
+          PatchClass::Handle(PatchClass::New(mixin_app, mixin_cls));
+
       const Function& clone = Function::Handle(
           Function::New(clone_name,
                         func.kind(),
@@ -2099,13 +2110,12 @@ void ClassFinalizer::CreateForwardingConstructors(
                         false,  // Not abstract.
                         false,  // Not external.
                         false,  // Not native.
-                        mixin_app,
-                        mixin_app.token_pos()));
-
+                        owner,
+                        mixin_cls.token_pos()));
       clone.set_num_fixed_parameters(func.num_fixed_parameters());
       clone.SetNumOptionalParameters(func.NumOptionalParameters(),
                                      func.HasOptionalPositionalParameters());
-      clone.set_result_type(dynamic_type);
+      clone.set_result_type(Object::dynamic_type());
       clone.set_is_debuggable(false);
 
       const intptr_t num_parameters = func.NumParameters();
@@ -2117,7 +2127,7 @@ void ClassFinalizer::CreateForwardingConstructors(
       // The parameter types of the cloned constructor are 'dynamic'.
       clone.set_parameter_types(Array::Handle(Array::New(num_parameters)));
       for (intptr_t n = 0; n < num_parameters; n++) {
-        clone.SetParameterTypeAt(n, dynamic_type);
+        clone.SetParameterTypeAt(n, Object::dynamic_type());
       }
       cloned_funcs.Add(clone);
     }
@@ -2151,7 +2161,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   const GrowableObjectArray& cloned_funcs =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
 
-  CreateForwardingConstructors(cls, cloned_funcs);
+  CreateForwardingConstructors(cls, mixin_cls, cloned_funcs);
 
   Array& functions = Array::Handle(zone);
   Function& func = Function::Handle(zone);
@@ -2232,7 +2242,10 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   FinalizeTypeParameters(cls);  // May change super type.
   super_class = cls.SuperClass();
   ASSERT(super_class.IsNull() || super_class.is_type_finalized());
-  ResolveUpperBounds(cls);
+  // Only resolving rather than finalizing the upper bounds here would result in
+  // instantiated type parameters of the super type to temporarily have
+  // unfinalized bounds. It is more efficient to finalize them early.
+  FinalizeUpperBounds(cls);
   // Finalize super type.
   AbstractType& super_type = AbstractType::Handle(cls.super_type());
   if (!super_type.IsNull()) {
@@ -2345,6 +2358,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
 void ClassFinalizer::FinalizeClass(const Class& cls) {
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
+  ASSERT(cls.is_type_finalized());
   if (cls.is_finalized()) {
     return;
   }
@@ -2377,7 +2391,12 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
       (cls.functions() == Object::empty_array().raw())) {
     const GrowableObjectArray& cloned_funcs =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
-    CreateForwardingConstructors(cls, cloned_funcs);
+
+    const Class& mixin_app_class = Class::Handle(cls.SuperClass());
+    const Type& mixin_type = Type::Handle(mixin_app_class.mixin());
+    const Class& mixin_cls = Class::Handle(mixin_type.type_class());
+
+    CreateForwardingConstructors(cls, mixin_cls, cloned_funcs);
     const Array& functions = Array::Handle(Array::MakeArray(cloned_funcs));
     cls.SetFunctions(functions);
   }
@@ -2396,7 +2415,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     GrowableArray<intptr_t> cids;
     CollectFinalizedSuperClasses(cls, &cids);
     CollectImmediateSuperInterfaces(cls, &cids);
-    RemoveCHAOptimizedCode(cids);
+    RemoveCHAOptimizedCode(cls, cids);
   }
   if (cls.is_enum_class()) {
     AllocateEnumValues(cls);
@@ -2438,10 +2457,7 @@ void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
     enum_value.SetField(index_field, ordinal_value);
     const char* error_msg = "";
     enum_value = enum_value.CheckAndCanonicalize(&error_msg);
-    if (enum_value.IsNull()) {
-      ReportError(enum_cls, enum_cls.token_pos(), "Failed finalizing values.");
-      UNREACHABLE();
-    }
+    ASSERT(!enum_value.IsNull());
     ASSERT(enum_value.IsCanonical());
     field.SetStaticValue(enum_value, true);
     field.RecordStore(enum_value);
@@ -2450,6 +2466,9 @@ void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
     values_list.SetAt(ord, enum_value);
   }
   values_list.MakeImmutable();
+  const char* error_msg = NULL;
+  values_list ^= values_list.CheckAndCanonicalize(&error_msg);
+  ASSERT(!values_list.IsNull());
 }
 
 

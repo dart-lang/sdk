@@ -165,7 +165,7 @@ intptr_t RawObject::SizeFromClass() const {
       break;
     }
     case kFreeListElement: {
-      uword addr = RawObject::ToAddr(const_cast<RawObject*>(this));
+      uword addr = RawObject::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
       instance_size = element->Size();
       break;
@@ -277,7 +277,7 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
       }
 #undef RAW_VISITPOINTERS
       case kFreeListElement: {
-        uword addr = RawObject::ToAddr(const_cast<RawObject*>(this));
+        uword addr = RawObject::ToAddr(this);
         FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
         size = element->Size();
         break;
@@ -303,7 +303,7 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
 
 bool RawObject::FindObject(FindObjectVisitor* visitor) {
   ASSERT(visitor != NULL);
-  return visitor->FindObject(const_cast<RawObject*>(this));
+  return visitor->FindObject(this);
 }
 
 
@@ -556,9 +556,6 @@ intptr_t RawObjectPool::VisitObjectPoolPointers(
 intptr_t RawInstructions::VisitInstructionsPointers(
     RawInstructions* raw_obj, ObjectPointerVisitor* visitor) {
   RawInstructions* obj = raw_obj->ptr();
-  if (!Dart::IsRunningPrecompiledCode()) {
-    visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  }
   return Instructions::InstanceSize(obj->size_);
 }
 

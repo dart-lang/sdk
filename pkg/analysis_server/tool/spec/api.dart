@@ -22,8 +22,9 @@ class Api extends ApiNode {
   final Refactorings refactorings;
 
   Api(this.version, this.domains, this.types, this.refactorings,
-      dom.Element html)
-      : super(html);
+      dom.Element html,
+      {bool experimental})
+      : super(html, experimental);
 }
 
 /**
@@ -31,11 +32,17 @@ class Api extends ApiNode {
  */
 class ApiNode {
   /**
+   * A flag to indicate if this API is experimental.
+   */
+  final bool experimental;
+
+  /**
    * Html element representing this part of the API.
    */
   final dom.Element html;
 
-  ApiNode(this.html);
+  ApiNode(this.html, bool experimental)
+      : this.experimental = experimental ?? false;
 }
 
 /**
@@ -63,8 +70,9 @@ class Domain extends ApiNode {
   final List<Request> requests;
   final List<Notification> notifications;
 
-  Domain(this.name, this.requests, this.notifications, dom.Element html)
-      : super(html);
+  Domain(this.name, this.requests, this.notifications, dom.Element html,
+      {bool experimental})
+      : super(html, experimental);
 }
 
 /**
@@ -195,8 +203,9 @@ class Notification extends ApiNode {
    */
   final TypeObject params;
 
-  Notification(this.domainName, this.event, this.params, dom.Element html)
-      : super(html);
+  Notification(this.domainName, this.event, this.params, dom.Element html,
+      {bool experimental})
+      : super(html, experimental);
 
   /**
    * Get the name of the notification, including the domain prefix.
@@ -240,8 +249,9 @@ class Refactoring extends ApiNode {
    */
   final TypeObject options;
 
-  Refactoring(this.kind, this.feedback, this.options, dom.Element html)
-      : super(html);
+  Refactoring(this.kind, this.feedback, this.options, dom.Element html,
+      {bool experimental})
+      : super(html, experimental);
 }
 
 /**
@@ -250,7 +260,8 @@ class Refactoring extends ApiNode {
 class Refactorings extends ApiNode with IterableMixin<Refactoring> {
   final List<Refactoring> refactorings;
 
-  Refactorings(this.refactorings, dom.Element html) : super(html);
+  Refactorings(this.refactorings, dom.Element html, {bool experimental})
+      : super(html, experimental);
 
   @override
   Iterator<Refactoring> get iterator => refactorings.iterator;
@@ -283,8 +294,9 @@ class Request extends ApiNode {
   final TypeObject result;
 
   Request(
-      this.domainName, this.method, this.params, this.result, dom.Element html)
-      : super(html);
+      this.domainName, this.method, this.params, this.result, dom.Element html,
+      {bool experimental})
+      : super(html, experimental);
 
   /**
    * Get the name of the request, including the domain prefix.
@@ -329,7 +341,7 @@ class Request extends ApiNode {
  * Base class for all possible types.
  */
 abstract class TypeDecl extends ApiNode {
-  TypeDecl(dom.Element html) : super(html);
+  TypeDecl(dom.Element html, bool experimental) : super(html, experimental);
 
   accept(ApiVisitor visitor);
 }
@@ -341,7 +353,8 @@ class TypeDefinition extends ApiNode {
   final String name;
   final TypeDecl type;
 
-  TypeDefinition(this.name, this.type, dom.Element html) : super(html);
+  TypeDefinition(this.name, this.type, dom.Element html, {bool experimental})
+      : super(html, experimental);
 }
 
 /**
@@ -351,7 +364,8 @@ class TypeDefinition extends ApiNode {
 class TypeEnum extends TypeDecl {
   final List<TypeEnumValue> values;
 
-  TypeEnum(this.values, dom.Element html) : super(html);
+  TypeEnum(this.values, dom.Element html, {bool experimental})
+      : super(html, experimental);
 
   accept(ApiVisitor visitor) => visitor.visitTypeEnum(this);
 }
@@ -362,7 +376,8 @@ class TypeEnum extends TypeDecl {
 class TypeEnumValue extends ApiNode {
   final String value;
 
-  TypeEnumValue(this.value, dom.Element html) : super(html);
+  TypeEnumValue(this.value, dom.Element html, {bool experimental})
+      : super(html, experimental);
 }
 
 /**
@@ -371,7 +386,8 @@ class TypeEnumValue extends ApiNode {
 class TypeList extends TypeDecl {
   final TypeDecl itemType;
 
-  TypeList(this.itemType, dom.Element html) : super(html);
+  TypeList(this.itemType, dom.Element html, {bool experimental})
+      : super(html, experimental);
 
   accept(ApiVisitor visitor) => visitor.visitTypeList(this);
 }
@@ -392,7 +408,8 @@ class TypeMap extends TypeDecl {
    */
   final TypeDecl valueType;
 
-  TypeMap(this.keyType, this.valueType, dom.Element html) : super(html);
+  TypeMap(this.keyType, this.valueType, dom.Element html, {bool experimental})
+      : super(html, experimental);
 
   accept(ApiVisitor visitor) => visitor.visitTypeMap(this);
 }
@@ -403,7 +420,8 @@ class TypeMap extends TypeDecl {
 class TypeObject extends TypeDecl {
   final List<TypeObjectField> fields;
 
-  TypeObject(this.fields, dom.Element html) : super(html);
+  TypeObject(this.fields, dom.Element html, {bool experimental})
+      : super(html, experimental);
 
   accept(ApiVisitor visitor) => visitor.visitTypeObject(this);
 
@@ -434,8 +452,8 @@ class TypeObjectField extends ApiNode {
   final Object value;
 
   TypeObjectField(this.name, this.type, dom.Element html,
-      {this.optional: false, this.value})
-      : super(html);
+      {this.optional: false, this.value, bool experimental})
+      : super(html, experimental);
 }
 
 /**
@@ -445,7 +463,8 @@ class TypeObjectField extends ApiNode {
 class TypeReference extends TypeDecl {
   final String typeName;
 
-  TypeReference(this.typeName, dom.Element html) : super(html) {
+  TypeReference(this.typeName, dom.Element html, {bool experimental})
+      : super(html, experimental) {
     if (typeName.isEmpty) {
       throw new Exception('Empty type name');
     }
@@ -460,7 +479,8 @@ class TypeReference extends TypeDecl {
 class Types extends ApiNode with IterableMixin<TypeDefinition> {
   final Map<String, TypeDefinition> types;
 
-  Types(this.types, dom.Element html) : super(html);
+  Types(this.types, dom.Element html, {bool experimental})
+      : super(html, experimental);
 
   @override
   Iterator<TypeDefinition> get iterator => types.values.iterator;
@@ -483,7 +503,8 @@ class TypeUnion extends TypeDecl {
    */
   final String field;
 
-  TypeUnion(this.choices, this.field, dom.Element html) : super(html);
+  TypeUnion(this.choices, this.field, dom.Element html, {bool experimental})
+      : super(html, experimental);
 
   accept(ApiVisitor visitor) => visitor.visitTypeUnion(this);
 }

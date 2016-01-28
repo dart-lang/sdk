@@ -74,10 +74,10 @@ TEST_CASE(IsolateSpawn) {
 
 
   result = Dart_Invoke(test_lib, NewString("testMain"), 0, NULL);
-  EXPECT(!Dart_IsError(result));
+  EXPECT_VALID(result);
   // Run until all ports to isolate are closed.
   result = Dart_RunLoop();
-  EXPECT_ERROR(result, "Null callback specified for isolate creation");
+  EXPECT_ERROR(result, "Unsupported operation: Isolate.spawn");
   EXPECT(Dart_ErrorHasException(result));
   Dart_Handle exception_result = Dart_ErrorGetException(result);
   EXPECT_VALID(exception_result);

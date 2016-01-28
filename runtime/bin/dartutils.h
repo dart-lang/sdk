@@ -119,6 +119,7 @@ class DartUtils {
   static void CloseFile(void* stream);
   static bool EntropySource(uint8_t* buffer, intptr_t length);
   static Dart_Handle ReadStringFromFile(const char* filename);
+  static Dart_Handle MakeUint8Array(const uint8_t* buffer, intptr_t length);
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                        Dart_Handle library,
                                        Dart_Handle url);
@@ -129,7 +130,6 @@ class DartUtils {
                                            bool is_service_isolate,
                                            bool trace_loading,
                                            const char* package_root,
-                                           const char** package_map,
                                            const char* packages_file);
   static Dart_Handle PrepareCoreLibrary(Dart_Handle core_lib,
                                  Dart_Handle builtin_lib,
@@ -139,7 +139,6 @@ class DartUtils {
   static Dart_Handle PrepareIOLibrary(Dart_Handle io_lib);
   static Dart_Handle PrepareIsolateLibrary(Dart_Handle isolate_lib);
   static Dart_Handle PrepareForScriptLoading(const char* package_root,
-                                             const char** package_map,
                                              const char* packages_file,
                                              bool is_service_isolate,
                                              bool trace_loading,
@@ -215,20 +214,20 @@ class DartUtils {
   // Global state that stores the original working directory..
   static const char* original_working_directory;
 
-  static const char* kDartScheme;
-  static const char* kDartExtensionScheme;
-  static const char* kAsyncLibURL;
-  static const char* kBuiltinLibURL;
-  static const char* kCoreLibURL;
-  static const char* kInternalLibURL;
-  static const char* kIsolateLibURL;
-  static const char* kIOLibURL;
-  static const char* kIOLibPatchURL;
-  static const char* kUriLibURL;
-  static const char* kHttpScheme;
-  static const char* kVMServiceLibURL;
+  static const char* const kDartScheme;
+  static const char* const kDartExtensionScheme;
+  static const char* const kAsyncLibURL;
+  static const char* const kBuiltinLibURL;
+  static const char* const kCoreLibURL;
+  static const char* const kInternalLibURL;
+  static const char* const kIsolateLibURL;
+  static const char* const kIOLibURL;
+  static const char* const kIOLibPatchURL;
+  static const char* const kUriLibURL;
+  static const char* const kHttpScheme;
+  static const char* const kVMServiceLibURL;
 
-  static uint8_t magic_number[];
+  static const uint8_t magic_number[];
 
  private:
   DISALLOW_ALLOCATION();
@@ -580,11 +579,11 @@ class CObjectExternalUint8Array : public CObject {
 class ScopedBlockingCall {
  public:
   ScopedBlockingCall() {
-    Dart_IsolateBlocked();
+    Dart_ThreadDisableProfiling();
   }
 
   ~ScopedBlockingCall() {
-    Dart_IsolateUnblocked();
+    Dart_ThreadEnableProfiling();
   }
 };
 

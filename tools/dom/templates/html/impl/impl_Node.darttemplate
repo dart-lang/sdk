@@ -299,9 +299,8 @@ $if DARTIUM
    *
    * ## Other resources
    *
-   * * [Node.childNodes]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
-   * from MDN.
+   * * [Node.childNodes](https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
+   *   from MDN.
    */
   @DomName('Node.childNodes')
   @DocsEditable()
@@ -312,9 +311,8 @@ $else
    *
    * ## Other resources
    *
-   * * [Node.childNodes]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
-   * from MDN.
+   * * [Node.childNodes](https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
+   *   from MDN.
    */
   @DomName('Node.childNodes')
   @DocsEditable()

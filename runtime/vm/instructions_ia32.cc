@@ -11,6 +11,13 @@
 
 namespace dart {
 
+bool DecodeLoadObjectFromPoolOrThread(uword pc,
+                                      const Code& code,
+                                      Object* obj) {
+  ASSERT(code.ContainsInstructionAt(pc));
+  return false;
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.generated;
+library analyzer.test.generated.test_all;
 
 import 'package:unittest/unittest.dart';
 
@@ -10,7 +10,7 @@ import '../utils.dart';
 import 'all_the_rest_test.dart' as all_the_rest;
 import 'ast_test.dart' as ast_test;
 import 'compile_time_error_code_test.dart' as compile_time_error_code_test;
-import 'element_test.dart' as element_test;
+import 'declaration_resolver_test.dart' as declaration_resolver_test;
 import 'engine_test.dart' as engine_test;
 import 'incremental_resolver_test.dart' as incremental_resolver_test;
 import 'incremental_scanner_test.dart' as incremental_scanner_test;
@@ -33,7 +33,7 @@ main() {
     all_the_rest.main();
     ast_test.main();
     compile_time_error_code_test.main();
-    element_test.main();
+    declaration_resolver_test.main();
     engine_test.main();
     incremental_resolver_test.main();
     incremental_scanner_test.main();

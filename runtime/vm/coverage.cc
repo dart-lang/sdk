@@ -83,7 +83,7 @@ void CodeCoverage::CompileAndAdd(const Function& function,
   // Print the hit counts for all IC datas.
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new(zone) ZoneGrowableArray<const ICData*>();
-  function.RestoreICDataMap(ic_data_array);
+  function.RestoreICDataMap(ic_data_array, false /* clone descriptors */);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       zone, code.pc_descriptors());
 
@@ -191,41 +191,44 @@ void CodeCoverage::PrintClass(const Library& lib,
     }
   }
 
-  GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(cls.closures());
-  if (!closures.IsNull()) {
-    i = 0;
-    pos_to_line.Clear();
-    // We need to keep rechecking the length of the closures array, as handling
-    // a closure potentially adds new entries to the end.
+  // TODO(turnidge): This looks like it prints closures many, many times.
+  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
+      thread->isolate()->object_store()->closure_functions());
+  pos_to_line.Clear();
+  // We need to keep rechecking the length of the closures array, as handling
+  // a closure potentially adds new entries to the end.
+  i = 0;
+  while (i < closures.Length()) {
+    HANDLESCOPE(thread);
+    function ^= closures.At(i);
+    if (function.Owner() != cls.raw()) {
+      i++;
+      continue;
+    }
+    script = function.script();
+    saved_url = script.url();
+    if (!filter->ShouldOutputCoverageFor(lib, script, cls, function)) {
+      i++;
+      continue;
+    }
+    ComputeTokenPosToLineNumberMap(script, &pos_to_line);
+    JSONObject jsobj(&jsarr);
+    jsobj.AddProperty("source", saved_url.ToCString());
+    jsobj.AddProperty("script", script);
+    JSONArray hits_or_sites(&jsobj, as_call_sites ? "callSites" : "hits");
+
+    // We stay within this loop while we are seeing functions from the same
+    // source URI.
     while (i < closures.Length()) {
-      HANDLESCOPE(thread);
       function ^= closures.At(i);
       script = function.script();
-      saved_url = script.url();
-      if (!filter->ShouldOutputCoverageFor(lib, script, cls, function)) {
-        i++;
-        continue;
+      url = script.url();
+      if (!url.Equals(saved_url)) {
+        pos_to_line.Clear();
+        break;
       }
-      ComputeTokenPosToLineNumberMap(script, &pos_to_line);
-      JSONObject jsobj(&jsarr);
-      jsobj.AddProperty("source", saved_url.ToCString());
-      jsobj.AddProperty("script", script);
-      JSONArray hits_or_sites(&jsobj, as_call_sites ? "callSites" : "hits");
-
-      // We stay within this loop while we are seeing functions from the same
-      // source URI.
-      while (i < closures.Length()) {
-        function ^= closures.At(i);
-        script = function.script();
-        url = script.url();
-        if (!url.Equals(saved_url)) {
-          pos_to_line.Clear();
-          break;
-        }
-        CompileAndAdd(function, hits_or_sites, pos_to_line, as_call_sites);
-        i++;
-      }
+      CompileAndAdd(function, hits_or_sites, pos_to_line, as_call_sites);
+      i++;
     }
   }
 }

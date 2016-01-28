@@ -502,9 +502,8 @@ void Exceptions::ReThrow(Thread* thread,
 
 void Exceptions::PropagateError(const Error& error) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
-  ASSERT(isolate->top_exit_frame_info() != 0);
+  ASSERT(thread->top_exit_frame_info() != 0);
   if (error.IsUnhandledException()) {
     // If the error object represents an unhandled exception, then
     // rethrow the exception in the normal fashion.
@@ -624,10 +623,6 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kIsolateSpawn:
       library = Library::IsolateLibrary();
       class_name = &Symbols::IsolateSpawnException();
-      break;
-    case kIsolateUnhandledException:
-      library = Library::IsolateLibrary();
-      class_name = &Symbols::IsolateUnhandledException();
       break;
     case kJavascriptIntegerOverflowError:
       library = Library::CoreLibrary();

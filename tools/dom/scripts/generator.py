@@ -722,6 +722,9 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     # postMessage
     'any set MessagePort.postMessage': _serialize_SSV,
     'SerializedScriptValue set Window.postMessage': _serialize_SSV,
+    'SerializedScriptValue set Worker.postMessage': _serialize_SSV,
+    'any set DedicatedWorkerGlobalScope.postMessage' : _serialize_SSV,
+    'SerializedScriptValue set ServiceWorkerClient.postMessage': _serialize_SSV,
 
     '* get CustomEvent.detail':
       Conversion('convertNativeToDart_SerializedScriptValue',
@@ -731,6 +734,12 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     '* get MessageEvent.data':
       Conversion('convertNativeToDart_SerializedScriptValue',
                  'dynamic', 'dynamic'),
+
+    # TODO(alanknight): This generates two variations for dart2js, because of
+    # the optional argument, but not in Dartium. Should do the same for both.
+    'any set History.pushState': _serialize_SSV,
+
+    'any set History.replaceState': _serialize_SSV,
 
     '* get History.state':
       Conversion('convertNativeToDart_SerializedScriptValue',
@@ -1443,6 +1452,7 @@ def wrap_unwrap_type_blink(return_type, type_registry):
         return_type = return_type.replace('Html', 'HTML', 1)
     return (type_registry.HasInterface(return_type) or not(return_type) or
             return_type == 'Object' or
+            return_type == 'dynamic' or
             return_type == 'Future' or
             return_type == 'SqlDatabase' or # renamed to Database
             return_type == 'HTMLElement' or

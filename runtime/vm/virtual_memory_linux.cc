@@ -8,7 +8,6 @@
 #include "vm/virtual_memory.h"
 
 #include <sys/mman.h>  // NOLINT
-#include <sys/unistd.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 
 #include "platform/assert.h"
@@ -53,7 +52,9 @@ static void unmap(void* address, intptr_t size) {
 
 
 VirtualMemory::~VirtualMemory() {
-  unmap(address(), reserved_size_);
+  if (!embedder_allocated()) {
+    unmap(address(), reserved_size_);
+  }
 }
 
 

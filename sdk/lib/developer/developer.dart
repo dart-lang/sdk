@@ -13,7 +13,6 @@ library dart.developer;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:isolate' show SendPort;
 
 part 'extension.dart';
 part 'profiler.dart';

@@ -683,9 +683,11 @@ abstract class HeaderValue {
    */
   static HeaderValue parse(String value,
                            {String parameterSeparator: ";",
+                            String valueSeparator: null,
                             bool preserveBackslash: false}) {
     return _HeaderValue.parse(value,
                               parameterSeparator: parameterSeparator,
+                              valueSeparator: valueSeparator,
                               preserveBackslash: preserveBackslash);
   }
 

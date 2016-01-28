@@ -8,6 +8,8 @@ import '../common.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
+import '../resolution/tree_elements.dart' show
+    TreeElements;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show
     CallStructure;
@@ -2642,22 +2644,45 @@ class NewInvokeStructure<R, A> extends NewStructure<R, A> {
   R dispatch(SemanticSendVisitor<R, A> visitor, NewExpression node, A arg) {
     switch (semantics.kind) {
       case ConstructorAccessKind.GENERATIVE:
+        ConstructorElement constructor = semantics.element;
+        if (constructor.isRedirectingGenerative) {
+          return visitor.visitRedirectingGenerativeConstructorInvoke(
+              node, constructor, semantics.type,
+              node.send.argumentsNode, callStructure, arg);
+        }
         return visitor.visitGenerativeConstructorInvoke(
-            node, semantics.element, semantics.type,
-            node.send.argumentsNode, callStructure, arg);
-      case ConstructorAccessKind.REDIRECTING_GENERATIVE:
-        return visitor.visitRedirectingGenerativeConstructorInvoke(
-            node, semantics.element, semantics.type,
+            node, constructor, semantics.type,
             node.send.argumentsNode, callStructure, arg);
       case ConstructorAccessKind.FACTORY:
-        return visitor.visitFactoryConstructorInvoke(
-            node, semantics.element, semantics.type,
-            node.send.argumentsNode, callStructure, arg);
-      case ConstructorAccessKind.REDIRECTING_FACTORY:
-        return visitor.visitRedirectingFactoryConstructorInvoke(
-            node, semantics.element, semantics.type,
-            semantics.effectiveTargetSemantics.element,
-            semantics.effectiveTargetSemantics.type,
+        ConstructorElement constructor = semantics.element;
+        if (constructor.isRedirectingFactory) {
+          if (constructor.isEffectiveTargetMalformed) {
+            return visitor.visitUnresolvedRedirectingFactoryConstructorInvoke(
+                node, semantics.element, semantics.type,
+                node.send.argumentsNode, callStructure, arg);
+          }
+          ConstructorElement effectiveTarget = constructor.effectiveTarget;
+          InterfaceType effectiveTargetType =
+              constructor.computeEffectiveTargetType(semantics.type);
+          if (callStructure.signatureApplies(
+                  effectiveTarget.functionSignature)) {
+            return visitor.visitRedirectingFactoryConstructorInvoke(
+                node, semantics.element, semantics.type,
+                effectiveTarget, effectiveTargetType,
+                node.send.argumentsNode, callStructure, arg);
+          } else {
+            return visitor.visitUnresolvedRedirectingFactoryConstructorInvoke(
+                            node, semantics.element, semantics.type,
+                            node.send.argumentsNode, callStructure, arg);
+          }
+        }
+        if (callStructure.signatureApplies(constructor.functionSignature)) {
+          return visitor.visitFactoryConstructorInvoke(
+              node, constructor, semantics.type,
+              node.send.argumentsNode, callStructure, arg);
+        }
+        return visitor.visitConstructorIncompatibleInvoke(
+            node, constructor, semantics.type,
             node.send.argumentsNode, callStructure, arg);
       case ConstructorAccessKind.ABSTRACT:
         return visitor.visitAbstractClassConstructorInvoke(
@@ -2673,10 +2698,6 @@ class NewInvokeStructure<R, A> extends NewStructure<R, A> {
             node.send.argumentsNode, selector, arg);
       case ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR:
         return visitor.errorNonConstantConstructorInvoke(
-            node, semantics.element, semantics.type,
-            node.send.argumentsNode, callStructure, arg);
-      case ConstructorAccessKind.ERRONEOUS_REDIRECTING_FACTORY:
-        return visitor.visitUnresolvedRedirectingFactoryConstructorInvoke(
             node, semantics.element, semantics.type,
             node.send.argumentsNode, callStructure, arg);
       case ConstructorAccessKind.INCOMPATIBLE:
@@ -2719,6 +2740,50 @@ class ConstInvokeStructure<R, A> extends NewStructure<R, A> {
       case ConstantInvokeKind.STRING_FROM_ENVIRONMENT:
         return visitor.visitStringFromEnvironmentConstructorInvoke(
             node, constant, arg);
+    }
+  }
+}
+
+/// A constant constructor invocation that couldn't be determined fully during
+/// resolution.
+// TODO(johnniwinther): Remove this when all constants are computed during
+// resolution.
+class LateConstInvokeStructure<R, A> extends NewStructure<R, A> {
+  final TreeElements elements;
+
+  LateConstInvokeStructure(this.elements);
+
+  R dispatch(SemanticSendVisitor<R, A> visitor, NewExpression node, A arg) {
+    Element element = elements[node.send];
+    Selector selector = elements.getSelector(node.send);
+    DartType type = elements.getType(node);
+    ConstantExpression constant = elements.getConstant(node);
+    if (element.isMalformed ||
+        constant == null ||
+        constant.kind == ConstantExpressionKind.ERRONEOUS) {
+      // This is a non-constant constant constructor invocation, like
+      // `const Const(method())`.
+      return visitor.errorNonConstantConstructorInvoke(
+          node, element, type,
+          node.send.argumentsNode, selector.callStructure, arg);
+    } else {
+      ConstantInvokeKind kind;
+      switch (constant.kind) {
+        case ConstantExpressionKind.CONSTRUCTED:
+          return visitor.visitConstConstructorInvoke(node, constant, arg);
+        case ConstantExpressionKind.BOOL_FROM_ENVIRONMENT:
+          return visitor.visitBoolFromEnvironmentConstructorInvoke(
+              node, constant, arg);
+        case ConstantExpressionKind.INT_FROM_ENVIRONMENT:
+          return visitor.visitIntFromEnvironmentConstructorInvoke(
+              node, constant, arg);
+        case ConstantExpressionKind.STRING_FROM_ENVIRONMENT:
+          return visitor.visitStringFromEnvironmentConstructorInvoke(
+              node, constant, arg);
+        default:
+          throw new SpannableAssertionFailure(
+              node, "Unexpected constant kind $kind: ${constant.getText()}");
+      }
     }
   }
 }

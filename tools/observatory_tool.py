@@ -36,11 +36,28 @@ def BuildArguments():
   result.add_argument("--pub-executable", help="pub executable", default=None)
   result.add_argument("--directory", help="observatory root", default=None)
   result.add_argument("--command", help="[get, build, deploy]", default=None)
-  result.add_argument("--silent", help="silence all output", default=False)
-  result.add_argument("--sdk", help="Use prebuilt sdk", default=False)
+  result.add_argument("--silent", help="silence all output", default=None)
+  result.add_argument("--sdk", help="Use prebuilt sdk", default=None)
   return result
 
 def ProcessOptions(options, args):
+  # Fix broken boolean parsing in argparse, where False ends up being True.
+  if (options.silent is not None) and (options.silent == "True"):
+    options.silent = True
+  elif (options.silent is None) or (options.silent == "False"):
+    options.silent = False
+  else:
+    print "--silent expects 'True' or 'False' argument."
+    return False
+
+  if (options.sdk is not None) and (options.sdk == "True"):
+    options.sdk = True
+  elif (options.sdk is None) or (options.sdk == "False"):
+    options.sdk = False
+  else:
+    print "--sdk expects 'True' or 'False' argument."
+    return False
+
   with open(os.devnull, 'wb') as silent_sink:
     # Required options.
     if options.command is None or options.directory is None:
@@ -61,7 +78,7 @@ def ProcessOptions(options, args):
         pass
     options.pub_executable = None
 
-    if options.sdk is not None and utils.CheckedInSdkCheckExecutable():
+    if options.sdk and utils.CheckedInSdkCheckExecutable():
       # Use the checked in pub executable.
       options.pub_snapshot = os.path.join(utils.CheckedInSdkPath(),
                                           'bin',
@@ -93,7 +110,10 @@ WARNING: Your system cannot run the checked-in Dart SDK. Using the
 bootstrap Dart executable will make debug builds slow.
 Please see the Wiki for instructions on replacing the checked-in Dart SDK.
 
-https://github.com/dart-lang/sdk/wiki/The-checked-in-SDK-in--tools
+https://github.com/dart-lang/sdk/wiki/The-checked-in-SDK-in-tools
+
+To use the dart_bootstrap binary please update the PubCommand function
+in the tools/observatory_tool.py script.
 
 """
 
@@ -111,6 +131,10 @@ def PubCommand(dart_executable,
     else:
       DisplayBootstrapWarning()
       executable = [dart_executable, '--package-root=' + pkg_root, PUB_PATH]
+      # Prevent the bootstrap Dart executable from running in regular
+      # development flow.
+      # REMOVE THE FOLLOWING LINE TO USE the dart_bootstrap binary.
+      # return False
     return subprocess.call(executable + command,
                            stdout=silent_sink if silent else None,
                            stderr=silent_sink if silent else None)

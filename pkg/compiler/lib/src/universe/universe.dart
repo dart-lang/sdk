@@ -18,28 +18,11 @@ import '../world.dart' show
 
 import 'selector.dart' show
     Selector;
-
-class UniverseSelector {
-  final Selector selector;
-  final ReceiverConstraint mask;
-
-  UniverseSelector(this.selector, this.mask);
-
-  bool appliesUnnamed(Element element, ClassWorld world) {
-    return selector.appliesUnnamed(element, world) &&
-        (mask == null || mask.canHit(element, selector, world));
-  }
-
-  int get hashCode => selector.hashCode * 13 + mask.hashCode * 17;
-
-  bool operator ==(other) {
-    if (identical(this, other)) return true;
-    if (other is! UniverseSelector) return false;
-    return selector == other.selector && mask == other.mask;
-  }
-
-  String toString() => '$selector,$mask';
-}
+import 'use.dart' show
+    DynamicUse,
+    DynamicUseKind,
+    StaticUse,
+    StaticUseKind;
 
 /// The known constraint on receiver for a dynamic call site.
 ///
@@ -56,6 +39,10 @@ abstract class ReceiverConstraint {
   /// invoked on a receiver with this constraint. [selector] is used to ensure
   /// library privacy is taken into account.
   bool canHit(Element element, Selector selector, ClassWorld classWorld);
+
+  /// Returns whether this [TypeMask] applied to [selector] can hit a
+  /// [noSuchMethod].
+  bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld);
 }
 
 /// The combined constraints on receivers all the dynamic call sites of the same
@@ -75,7 +62,7 @@ abstract class ReceiverConstraint {
 ///     new A().foo(a, b);
 ///     new B().foo(0, 42);
 ///
-/// the selector constaints for dynamic calls to 'foo' with two positional
+/// the selector constraints for dynamic calls to 'foo' with two positional
 /// arguments could be 'receiver of exact instance `A` or `B`'.
 abstract class SelectorConstraints {
   /// Returns `true` if [selector] applies to [element] under these constraints
@@ -140,12 +127,6 @@ class Universe {
   ///
   /// See [_directlyInstantiatedClasses].
   final Set<DartType> _instantiatedTypes = new Set<DartType>();
-
-  /// The set of all instantiated classes, either directly, as superclasses or
-  /// as supertypes.
-  ///
-  /// Invariant: Elements are declaration elements.
-  final Set<ClassElement> _allInstantiatedClasses = new Set<ClassElement>();
 
   /// Classes implemented by directly instantiated classes.
   final Set<ClassElement> _implementedClasses = new Set<ClassElement>();
@@ -223,26 +204,12 @@ class Universe {
     return _directlyInstantiatedClasses;
   }
 
-  /// All instantiated classes, either directly, as superclasses or as
-  /// supertypes.
-  // TODO(johnniwinther): Improve semantic precision.
-  Iterable<ClassElement> get allInstantiatedClasses {
-    return _allInstantiatedClasses;
-  }
-
   /// All directly instantiated types, that is, the types of the directly
   /// instantiated classes.
   ///
   /// See [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<DartType> get instantiatedTypes => _instantiatedTypes;
-
-  /// Returns `true` if [cls] is considered to be instantiated, either directly,
-  /// through subclasses.
-  // TODO(johnniwinther): Improve semantic precision.
-  bool isInstantiated(ClassElement cls) {
-    return _allInstantiatedClasses.contains(cls.declaration);
-  }
 
   /// Returns `true` if [cls] is considered to be implemented by an
   /// instantiated class, either directly, through subclasses or through
@@ -261,6 +228,7 @@ class Universe {
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(InterfaceType type,
                                  {bool byMirrors: false,
+                                  bool isNative: false,
                                   void onImplemented(ClassElement cls)}) {
     _instantiatedTypes.add(type);
     ClassElement cls = type.element;
@@ -269,7 +237,7 @@ class Universe {
         // classes; a native abstract class may have non-abstract subclasses
         // not declared to the program.  Instances of these classes are
         // indistinguishable from the abstract class.
-        || cls.isNative
+        || isNative
         // Likewise, if this registration comes from the mirror system,
         // all bets are off.
         // TODO(herhut): Track classes required by mirrors seperately.
@@ -286,12 +254,6 @@ class Universe {
           onImplemented(supertype.element);
         }
       });
-    }
-    while (cls != null) {
-      if (!_allInstantiatedClasses.add(cls)) {
-        return;
-      }
-      cls = cls.superclass;
     }
   }
 
@@ -315,35 +277,37 @@ class Universe {
   }
 
   bool hasInvokedGetter(Element member, World world) {
-    return _hasMatchingSelector(_invokedGetters[member.name], member, world);
+    return _hasMatchingSelector(_invokedGetters[member.name], member, world) ||
+        member.isFunction && methodsNeedingSuperGetter.contains(member);
   }
 
   bool hasInvokedSetter(Element member, World world) {
     return _hasMatchingSelector(_invokedSetters[member.name], member, world);
   }
 
-  bool registerInvocation(UniverseSelector selector) {
-    return _registerNewSelector(selector, _invokedNames);
-  }
-
-  bool registerInvokedGetter(UniverseSelector selector) {
-    return _registerNewSelector(selector, _invokedGetters);
-  }
-
-  bool registerInvokedSetter(UniverseSelector selector) {
-    return _registerNewSelector(selector, _invokedSetters);
+  bool registerDynamicUse(DynamicUse dynamicUse) {
+    switch (dynamicUse.kind) {
+      case DynamicUseKind.INVOKE:
+        return _registerNewSelector(dynamicUse, _invokedNames);
+      case DynamicUseKind.GET:
+        return _registerNewSelector(dynamicUse, _invokedGetters);
+      case DynamicUseKind.SET:
+        return _registerNewSelector(dynamicUse, _invokedSetters);
+    }
   }
 
   bool _registerNewSelector(
-      UniverseSelector universeSelector,
+      DynamicUse dynamicUse,
       Map<String, Map<Selector, SelectorConstraints>> selectorMap) {
-    Selector selector = universeSelector.selector;
+    Selector selector = dynamicUse.selector;
     String name = selector.name;
-    ReceiverConstraint mask = universeSelector.mask;
+    ReceiverConstraint mask = dynamicUse.mask;
     Map<Selector, SelectorConstraints> selectors = selectorMap.putIfAbsent(
         name, () => new Maplet<Selector, SelectorConstraints>());
     UniverseSelectorConstraints constraints = selectors.putIfAbsent(
-        selector, () => selectorConstraintsStrategy.createSelectorConstraints(selector));
+        selector, () {
+      return selectorConstraintsStrategy.createSelectorConstraints(selector);
+    });
     return constraints.addReceiverConstraint(mask);
   }
 
@@ -390,11 +354,31 @@ class Universe {
     return type;
   }
 
-  void registerStaticFieldUse(FieldElement staticField) {
-    assert(Elements.isStaticOrTopLevel(staticField) && staticField.isField);
-    assert(staticField.isDeclaration);
-
-    allReferencedStaticFields.add(staticField);
+  void registerStaticUse(StaticUse staticUse) {
+    Element element = staticUse.element;
+    if (Elements.isStaticOrTopLevel(element) && element.isField) {
+      allReferencedStaticFields.add(element);
+    }
+    switch (staticUse.kind) {
+      case StaticUseKind.STATIC_TEAR_OFF:
+        staticFunctionsNeedingGetter.add(element);
+        break;
+      case StaticUseKind.FIELD_GET:
+        fieldGetters.add(element);
+        break;
+      case StaticUseKind.SUPER_FIELD_SET:
+      case StaticUseKind.FIELD_SET:
+        fieldSetters.add(element);
+        break;
+      case StaticUseKind.SUPER_TEAR_OFF:
+        methodsNeedingSuperGetter.add(element);
+        break;
+      case StaticUseKind.GENERAL:
+        break;
+      case StaticUseKind.CLOSURE:
+        allClosures.add(element);
+        break;
+    }
   }
 
   void forgetElement(Element element, Compiler compiler) {
@@ -404,7 +388,6 @@ class Universe {
     fieldSetters.remove(element);
     fieldGetters.remove(element);
     _directlyInstantiatedClasses.remove(element);
-    _allInstantiatedClasses.remove(element);
     if (element is ClassElement) {
       assert(invariant(
           element, element.thisType.isRaw,

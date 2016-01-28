@@ -11,7 +11,7 @@ import 'dart:developer';
 int globalVar = 100;
 
 class MyClass {
-       static       void myFunction(int value) {
+  static void myFunction(int value) {
     if (value < 0) {
       print("negative");
     } else {
@@ -75,7 +75,7 @@ hasStoppedAtBreakpoint,
   coverage = await isolate.invokeRpcNoUpgrade('_getCoverage',
                                               { 'targetId': lib.id });
   expect(coverage['type'], equals('CodeCoverage'));
-  expect(coverage['coverage'].length, equals(3));
+  expect(coverage['coverage'].length, equals(4));
   expect(coverage['coverage'][0]['hits'],
          equals([15, 1, 16, 0, 18, 1, 20, 1,
                  24, 1, 25, 1, 27, 0]));
@@ -87,7 +87,7 @@ hasStoppedAtBreakpoint,
   coverage = await isolate.invokeRpcNoUpgrade('_getCoverage',
                                        { 'targetId': cls.location.script.id });
   expect(coverage['type'], equals('CodeCoverage'));
-  expect(coverage['coverage'].length, equals(3));
+  expect(coverage['coverage'].length, equals(4));
   expect(coverage['coverage'][0]['hits'],
          equals([15, 1, 16, 0, 18, 1, 20, 1,
                  24, 1, 25, 1, 27, 0]));

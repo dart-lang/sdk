@@ -156,7 +156,8 @@ abstract class Iterable<E> {
    * on any element where the result isn't needed.
    * For example, [elementAt] may call `f` only once.
    */
-  Iterable map(f(E element)) => new MappedIterable<E, dynamic>(this, f);
+  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E e)) =>
+      new MappedIterable<E, dynamic/*=T*/>(this, f);
 
   /**
    * Returns a new lazy [Iterable] with all elements that satisfy the
@@ -174,7 +175,7 @@ abstract class Iterable<E> {
   Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
 
   /**
-   * Expands each element of this [Iterable]into zero or more elements.
+   * Expands each element of this [Iterable] into zero or more elements.
    *
    * The resulting Iterable runs through the elements returned
    * by [f] for each element of this, in iteration order.
@@ -182,8 +183,8 @@ abstract class Iterable<E> {
    * The returned [Iterable] is lazy, and calls [f] for each element
    * of this every time it's iterated.
    */
-  Iterable expand(Iterable f(E element)) =>
-      new ExpandIterable<E, dynamic>(this, f);
+  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element)) =>
+      new ExpandIterable<E, dynamic/*=T*/>(this, f);
 
   /**
    * Returns true if the collection contains an element equal to [element].
@@ -270,8 +271,8 @@ abstract class Iterable<E> {
    *     iterable.fold(0, (prev, element) => prev + element);
    *
    */
-  dynamic fold(var initialValue,
-               dynamic combine(var previousValue, E element)) {
+  dynamic/*=T*/ fold/*<T>*/(var/*=T*/ initialValue,
+               dynamic/*=T*/ combine(var/*=T*/ previousValue, E element)) {
     var value = initialValue;
     for (E element in this) value = combine(value, element);
     return value;

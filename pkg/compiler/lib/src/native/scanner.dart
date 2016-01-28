@@ -5,8 +5,7 @@
 part of native;
 
 void checkAllowedLibrary(ElementListener listener, Token token) {
-  LibraryElement currentLibrary = listener.compilationUnitElement.library;
-  if (currentLibrary.canUseNative) return;
+  if (listener.scannerOptions.canUseNative) return;
   listener.reportError(token, MessageKind.NATIVE_NOT_SUPPORTED);
 }
 

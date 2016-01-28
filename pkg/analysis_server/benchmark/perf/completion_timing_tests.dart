@@ -78,7 +78,7 @@ class CompletionTimingTest extends AbstractTimingTest {
     await analysisFinished;
 
     print('analysis completed in ${stopwatch.elapsed}');
-    print('completion received at : ${timings}');
+    print('completion received at : $timings');
     await shutdown();
   }
 }

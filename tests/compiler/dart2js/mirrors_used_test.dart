@@ -13,7 +13,7 @@ import 'memory_compiler.dart' show
     runCompiler;
 
 import 'package:compiler/src/apiimpl.dart' show
-    Compiler;
+    CompilerImpl;
 
 import 'package:compiler/src/constants/values.dart' show
     ConstantValue,
@@ -55,7 +55,7 @@ void main() {
       memorySourceFiles: MEMORY_SOURCE_FILES,
       diagnosticHandler: new LegacyCompilerDiagnostics(expectOnlyVerboseInfo),
       options: ['--enable-experimental-mirrors']);
-    Compiler compiler = result.compiler;
+    CompilerImpl compiler = result.compiler;
     print('');
     List generatedCode =
         Elements.sortedByPosition(compiler.enqueuer.codegen.generatedCode.keys);
@@ -88,9 +88,13 @@ void main() {
 
     // We always include the names of some native classes.
     List<Element> nativeClasses = [
-          compiler.intClass, compiler.doubleClass, compiler.numClass,
-          compiler.stringClass, compiler.boolClass, compiler.nullClass,
-          compiler.listClass
+          compiler.coreClasses.intClass,
+          compiler.coreClasses.doubleClass,
+          compiler.coreClasses.numClass,
+          compiler.coreClasses.stringClass,
+          compiler.coreClasses.boolClass,
+          compiler.coreClasses.nullClass,
+          compiler.coreClasses.listClass
         ];
     JavaScriptBackend backend = compiler.backend;
     Iterable<String> nativeNames = nativeClasses.map(backend.namer.className);

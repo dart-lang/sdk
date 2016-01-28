@@ -1,10 +1,130 @@
+## 1.14.0 - 2016-1-28
+
+### Core library changes
+* `dart:async`
+  * Added `Future.any` static method.
+  * Added `Stream.fromFutures` constructor.
+
+* `dart:convert`
+  * `Base64Decoder.convert` now takes optional `start` and `end` parameters.
+
+* `dart:core`
+  * Added `current` getter to `StackTrace` class.
+  * `Uri` class added support for data URIs
+      * Added two new constructors: `dataFromBytes` and `dataFromString`.
+      * Added a `data` getter for `data:` URIs with a new `UriData` class for
+      the return type.
+  * Added `growable` parameter to `List.filled` constructor.
+  * Added microsecond support to `DateTime`: `DateTime.microsecond`,
+    `DateTime.microsecondsSinceEpoch`, and
+    `new DateTime.fromMicrosecondsSinceEpoch`.
+
+* `dart:math`
+  * `Random` added a `secure` constructor returning a cryptographically secure
+    random generator which reads from the entropy source provided by the
+    embedder for every generated random value.
+
+* `dart:io`
+  * `Platform` added a static `isIOS` getter and `Platform.operatingSystem` may
+    now return `ios`.
+  * `Platform` added a static `packageConfig` getter.
+  * Added support for WebSocket compression as standardized in RFC 7692.
+  * Compression is enabled by default for all WebSocket connections.
+      * The optionally named parameter `compression` on the methods
+      `WebSocket.connect`, `WebSocket.fromUpgradedSocket`, and
+      `WebSocketTransformer.upgrade` and  the `WebSocketTransformer`
+      constructor can be used to modify or disable compression using the new
+      `CompressionOptions` class.
+
+* `dart:isolate`
+  * Added **_experimental_** support for [Package Resolution Configuration].
+    * Added `packageConfig` and `packageRoot` instance getters to `Isolate`.
+    * Added a `resolvePackageUri` method to `Isolate`.
+    * Added named arguments `packageConfig` and `automaticPackageResolution` to
+    the `Isolate.spawnUri` constructor.
+
+[Package Resolution Configuration]: https://github.com/dart-lang/dart_enhancement_proposals/blob/master/Accepted/0005%20-%20Package%20Specification/DEP-pkgspec.md
+
+### Tool changes
+
+* `dartfmt`
+
+  * Better line splitting in a variety of cases.
+
+  * Other optimizations and bug fixes.
+
+* Pub
+
+  * **Breaking:** Pub now eagerly emits an error when a pubspec's "name" field
+    is not a valid Dart identifier. Since packages with non-identifier names
+    were never allowed to be published, and some of them already caused crashes
+    when being written to a `.packages` file, this is unlikely to break many
+    people in practice.
+
+  * **Breaking:** Support for `barback` versions prior to 0.15.0 (released July
+    2014) has been dropped. Pub will no longer install these older barback
+    versions.
+
+  * `pub serve` now GZIPs the assets it serves to make load times more similar
+    to real-world use-cases.
+
+  * `pub deps` now supports a `--no-dev` flag, which causes it to emit the
+    dependency tree as it would be if no `dev_dependencies` were in use. This
+    makes it easier to see your package's dependency footprint as your users
+    will experience it.
+
+  * `pub global run` now detects when a global executable's SDK constraint is no
+    longer met and errors out, rather than trying to run the executable anyway.
+
+  * Pub commands that check whether the lockfile is up-to-date (`pub run`, `pub
+    deps`, `pub serve`, and `pub build`) now do additional verification. They
+    ensure that any path dependencies' pubspecs haven't been changed, and they
+    ensure that the current SDK version is compatible with all dependencies.
+
+  * Fixed a crashing bug when using `pub global run` on a global script that
+    didn't exist.
+
+  * Fixed a crashing bug when a pubspec contains a dependency without a source
+    declared.
+
+## 1.13.2 - 2016-01-06
+
+Patch release, resolves one issue:
+
+* dart2js: Stack traces are not captured correctly (SDK issue [25235]
+(https://github.com/dart-lang/sdk/issues/25235))
+
+## 1.13.1 - 2015-12-17
+
+Patch release, resolves three issues:
+
+* VM type propagation fix: Resolves a potential crash in the Dart VM (SDK commit
+ [dff13be]
+(https://github.com/dart-lang/sdk/commit/dff13bef8de104d33b04820136da2d80f3c835d7))
+
+* dart2js crash fix: Resolves a crash in pkg/js and dart2js (SDK issue [24974]
+(https://github.com/dart-lang/sdk/issues/24974))
+
+* Pub get crash on ARM: Fixes a crash triggered when running 'pub get' on ARM
+ processors such as those on a Raspberry Pi (SDK issue [24855]
+(https://github.com/dart-lang/sdk/issues/24855))
+
 ## 1.13.0 - 2015-11-18
 
 ### Core library changes
 * `dart:async`
+  * `StreamController` added getters for `onListen`, `onPause`, and `onResume`
+    with the corresponding new `typedef void ControllerCallback()`.
+  * `StreamController` added a getter for `onCancel` with the corresponding
+    new `typedef ControllerCancelCallback()`;
   * `StreamTransformer` instances created with `fromHandlers` with no
     `handleError` callback now forward stack traces along with errors to the
     resulting streams.
+
+* `dart:convert`
+  * Added support for Base-64 encoding and decoding.
+    * Added new classes `Base64Codec`, `Base64Encoder`, and `Base64Decoder`.
+    * Added new top-level `const Base64Codec BASE64`.
 
 * `dart:core`
   * `Uri` added `removeFragment` method.
@@ -15,7 +135,18 @@
 * `dart:developer`
   * Added `Timeline` class for interacting with Observatory's timeline feature.
   * Added `ServiceExtensionHandler`, `ServiceExtensionResponse`, and `registerExtension` which enable developers to provide their own VM service protocol extensions.
-  
+
+* `dart:html`, `dart:indexed_db`, `dart:svg`, `dart:web_audio`, `dart:web_gl`, `dart:web_sql`
+  * The return type of some APIs changed from `double` to `num`. Dartium is now
+    using
+    JS interop for most operations. JS does not distinguish between numeric
+    types, and will return a number as an int if it fits in an int. This will
+    mostly cause an error if you assign to something typed `double` in
+    checked mode. You may
+    need to insert a `toDouble()` call or accept `num`. Examples of APIs that
+    are affected include `Element.getBoundingClientRect` and
+    `TextMetrics.width`.
+
 * `dart:io`
   * **Breaking:** Secure networking has changed, replacing the NSS library
     with the BoringSSL library. `SecureSocket`, `SecureServerSocket`,
@@ -33,16 +164,23 @@
     allowed by the HTTP protocol.
     The `HttpServer` still gracefully receives fragments, but discards them
     before delivering the request.
-  * Removed server socket references. The use of server socket references
-    was deprecated back in 1.9. Use the `shared` flag when creating listening
-    sockets and `HttpServer` to distribute accepted sockets between isolates.
+  * To allow connections to be accepted on the same port across different
+    isolates, set the `shared` argument to `true` when creating server socket
+    and `HttpServer` instances.
+    * The deprecated `ServerSocketReference` and `RawServerSocketReference`
+      classes have been removed.
+    * The corresponding `reference` properties on `ServerSocket` and
+      `RawServerSocket` have been removed.
 
 * `dart:isolate`
   * `spawnUri` added an `environment` named argument.
 
 ### Tool changes
 
-* `docgen` and 'dartdocgen' no longer ship in the sdk. The `docgen` sources have
+* `dart2js` and Dartium now support improved Javascript Interoperability via the
+  [js package](https://pub.dartlang.org/packages/js).
+
+* `docgen` and `dartdocgen` no longer ship in the SDK. The `docgen` sources have
    been removed from the repository.
 
 * This is the last release to ship the VM's "legacy debug protocol".
@@ -51,6 +189,17 @@
 * The VM's Service Protocol has been updated to version 3.0 to take care
   of a number of issues uncovered by the first few non-observatory
   clients.  This is a potentially breaking change for clients.
+
+* Dartium has been substantially changed. Rather than using C++ calls into
+  Chromium internals for DOM operations it now uses JS interop.
+  The DOM objects in `dart:html` and related libraries now wrap
+  a JavaScript object and delegate operations to it. This should be
+  mostly transparent to users. However, performance and memory characteristics
+  may be different from previous versions. There may be some changes in which
+  DOM objects are wrapped as Dart objects. For example, if you get a reference
+  to a Window object, even through JS interop, you will always see it as a
+  Dart Window, even when used cross-frame. We expect the change to using
+  JS interop will make it much simpler to update to new Chrome versions.
 
 ## 1.12.2 - 2015-10-21
 

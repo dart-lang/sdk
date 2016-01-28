@@ -8,6 +8,7 @@
 #include "vm/intermediate_language.h"
 
 #include "vm/cpu.h"
+#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
@@ -227,8 +228,8 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
 
   // R2: instructions entry point.
-  // R5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
-  __ LoadImmediate(R5, 0);
+  // R9: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
+  __ LoadImmediate(R9, 0);
   __ blx(R2);
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
@@ -344,13 +345,12 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(R0));  // Value.
-  summary->set_in(1, Location::RegisterLocation(R2));  // Instantiator.
-  summary->set_in(2, Location::RegisterLocation(R1));  // Type arguments.
+  summary->set_in(1, Location::RegisterLocation(R1));  // Type arguments.
   summary->set_out(0, Location::RegisterLocation(R0));
   return summary;
 }
@@ -925,6 +925,7 @@ LocationSummary* NativeCallInstr::MakeLocationSummary(Zone* zone,
 
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  SetupNative();
   const Register result = locs()->out(0).reg();
 
   // Push the result place holder initialized to NULL.
@@ -942,7 +943,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   uword entry;
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const bool is_leaf_call =
-    (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
+      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
   const StubEntry* stub_entry;
   if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
@@ -970,7 +971,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ LoadImmediate(R1, argc_tag);
   ExternalLabel label(entry);
-  __ LoadNativeEntry(R5, &label, link_lazily() ? kPatchable : kNotPatchable);
+  __ LoadNativeEntry(R9, &label, link_lazily() ? kPatchable : kNotPatchable);
   compiler->GenerateCall(token_pos(),
                          *stub_entry,
                          RawPcDescriptors::kOther,
@@ -2008,7 +2009,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
   } else if (IsPotentialUnboxedStore()) {
     summary->set_in(1, ShouldEmitStoreBarrier()
         ? Location::WritableRegister()
-        :  Location::RequiresRegister());
+        : Location::RequiresRegister());
     summary->set_temp(0, Location::RequiresRegister());
     summary->set_temp(1, Location::RequiresRegister());
     summary->set_temp(2, opt ? Location::RequiresFpuRegister()
@@ -2273,13 +2274,12 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(R0));
-  summary->set_in(1, Location::RegisterLocation(R2));
-  summary->set_in(2, Location::RegisterLocation(R1));
+  summary->set_in(1, Location::RegisterLocation(R1));
   summary->set_out(0, Location::RegisterLocation(R0));
   return summary;
 }
@@ -2287,8 +2287,7 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
 
 void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == R0);  // Value.
-  ASSERT(locs()->in(1).reg() == R2);  // Instantiator.
-  ASSERT(locs()->in(2).reg() == R1);  // Instantiator type arguments.
+  ASSERT(locs()->in(1).reg() == R1);  // Instantiator type arguments.
 
   compiler->GenerateInstanceOf(token_pos(),
                                deopt_id(),
@@ -2325,8 +2324,8 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   __ TryAllocateArray(kArrayCid, instance_size, slow_path,
                       R0,  // instance
                       R3,  // end address
-                      R6,
-                      R10);
+                      R8,
+                      R6);
   // R0: new object start as a tagged pointer.
   // R3: new object end address.
 
@@ -2343,26 +2342,26 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // Initialize all array elements to raw_null.
   // R0: new object start as a tagged pointer.
   // R3: new object end address.
-  // R10: iterator which initially points to the start of the variable
+  // R6: iterator which initially points to the start of the variable
   // data area to be initialized.
-  // R6: null
+  // R8: null
   if (num_elements > 0) {
     const intptr_t array_size = instance_size - sizeof(RawArray);
-    __ LoadObject(R6, Object::null_object());
+    __ LoadObject(R8, Object::null_object());
     if (num_elements >= 2) {
-      __ mov(R7, Operand(R6));
+      __ mov(R9, Operand(R8));
     } else {
 #if defined(DEBUG)
-      // Clobber R7 with an invalid pointer.
-      __ LoadImmediate(R7, 0x1);
+      // Clobber R9 with an invalid pointer.
+      __ LoadImmediate(R9, 0x1);
 #endif  // DEBUG
     }
-    __ AddImmediate(R10, R0, sizeof(RawArray) - kHeapObjectTag);
+    __ AddImmediate(R6, R0, sizeof(RawArray) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kWordSize)) {
-      __ InitializeFieldsNoBarrierUnrolled(R0, R10, 0, num_elements * kWordSize,
-                                           R6, R7);
+      __ InitializeFieldsNoBarrierUnrolled(R0, R6, 0, num_elements * kWordSize,
+                                           R8, R9);
     } else {
-      __ InitializeFieldsNoBarrier(R0, R10, R3, R6, R7);
+      __ InitializeFieldsNoBarrier(R0, R6, R3, R8, R9);
     }
   }
   __ b(done);
@@ -2378,6 +2377,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(kLengthPos).reg() == kLengthReg);
 
   if (compiler->is_optimizing() &&
+      !Compiler::always_optimize() &&
       num_elements()->BindsToConstant() &&
       num_elements()->BoundConstant().IsSmi()) {
     const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
@@ -2445,7 +2445,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
     const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
     const Register temp = locs()->temp(0).reg();
-    __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes()));
+    __ LoadFieldFromOffset(kWord, temp, instance_reg, offset_in_bytes());
     const intptr_t cid = field()->UnboxedFieldCid();
     switch (cid) {
       case kDoubleCid:

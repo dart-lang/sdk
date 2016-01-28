@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.source_factory;
+library analyzer.test.generated.test.generated.source_factory;
 
 import 'dart:convert';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine, Logger;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -64,8 +65,17 @@ void runPackageMapTests() {
       resolvers.add(customResolver);
     }
     SourceFactory factory = new SourceFactory(resolvers, packages);
-    Source source = factory.resolveUri(containingSource, uri);
-    return source != null ? source.fullName : null;
+
+    expect(AnalysisEngine.instance.logger, Logger.NULL);
+    var logger = new TestLogger();
+    AnalysisEngine.instance.logger = logger;
+    try {
+      Source source = factory.resolveUri(containingSource, uri);
+      expect(logger.log, []);
+      return source != null ? source.fullName : null;
+    } finally {
+      AnalysisEngine.instance.logger = Logger.NULL;
+    }
   }
 
   Uri restorePackageUri(
@@ -121,6 +131,10 @@ quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
               uri: 'custom:custom.dart',
               customResolver: testResolver);
           expect(uri, testResolver.uriPath);
+        });
+        test('Bad package URI', () {
+          String uri = resolvePackageUri(config: '', uri: 'package:foo');
+          expect(uri, isNull);
         });
         test('Invalid URI', () {
           // TODO(pquitslund): fix clients to handle errors appropriately

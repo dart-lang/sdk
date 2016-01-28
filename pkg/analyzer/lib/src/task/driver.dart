@@ -8,8 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    hide AnalysisTask, AnalysisContextImpl, WorkManager;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -47,8 +46,8 @@ class AnalysisDriver {
   /**
    * The map of [ComputedResult] controllers.
    */
-  final Map<ResultDescriptor,
-          StreamController<ComputedResult>> resultComputedControllers =
+  final Map<ResultDescriptor, StreamController<ComputedResult>>
+      resultComputedControllers =
       <ResultDescriptor, StreamController<ComputedResult>>{};
 
   /**
@@ -168,7 +167,8 @@ class AnalysisDriver {
     }
     TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
     try {
-      WorkItem workItem = new WorkItem(context, target, taskDescriptor, result);
+      WorkItem workItem =
+          new WorkItem(context, target, taskDescriptor, result, 0, null);
       return new WorkOrder(taskManager, workItem);
     } catch (exception, stackTrace) {
       throw new AnalysisException(
@@ -504,7 +504,7 @@ class InfiniteTaskLoopException extends AnalysisException {
 }
 
 /**
- * Object used by CycleAwareDependencyWalker to report a single strongly
+ * Object used by [CycleAwareDependencyWalker] to report a single strongly
  * connected component of nodes.
  */
 class StronglyConnectedComponent<Node> {
@@ -530,21 +530,6 @@ class StronglyConnectedComponent<Node> {
  */
 class WorkItem {
   /**
-   * A table mapping the names of analysis tasks to the number of times each
-   * kind of task has been performed.
-   */
-  static final Map<TaskDescriptor, int> countMap =
-      new HashMap<TaskDescriptor, int>();
-
-  /**
-   * A table mapping the names of analysis tasks to stopwatches used to compute
-   * how much time was spent between creating an item and creating (for
-   * performing) of each kind of task
-   */
-  static final Map<TaskDescriptor, Stopwatch> stopwatchMap =
-      new HashMap<TaskDescriptor, Stopwatch>();
-
-  /**
    * The context in which the task will be performed.
    */
   final InternalAnalysisContext context;
@@ -565,9 +550,14 @@ class WorkItem {
   final ResultDescriptor spawningResult;
 
   /**
-   * The current inputs computing stopwatch.
+   * The level of this item in its [WorkOrder].
    */
-  Stopwatch stopwatch;
+  final int level;
+
+  /**
+   * The work order that this item is part of, may be `null`.
+   */
+  WorkOrder workOrder;
 
   /**
    * An iterator used to iterate over the descriptors of the inputs to the task,
@@ -607,11 +597,13 @@ class WorkItem {
    * Initialize a newly created work item to compute the inputs for the task
    * described by the given descriptor.
    */
-  WorkItem(this.context, this.target, this.descriptor, this.spawningResult) {
+  WorkItem(this.context, this.target, this.descriptor, this.spawningResult,
+      this.level, this.workOrder) {
     AnalysisTarget actualTarget =
         identical(target, AnalysisContextTarget.request)
             ? new AnalysisContextTarget(context)
             : target;
+//    print('${'\t' * level}$spawningResult of $actualTarget');
     Map<String, TaskInput> inputDescriptors =
         descriptor.createTaskInputs(actualTarget);
     builder = new TopLevelTaskInputBuilder(inputDescriptors);
@@ -619,19 +611,6 @@ class WorkItem {
       builder = null;
     }
     inputs = new HashMap<String, dynamic>();
-    // Update performance counters.
-    {
-      stopwatch = stopwatchMap[descriptor];
-      if (stopwatch == null) {
-        stopwatch = new Stopwatch();
-        stopwatchMap[descriptor] = stopwatch;
-      }
-      stopwatch.start();
-    }
-    {
-      int count = countMap[descriptor];
-      countMap[descriptor] = count == null ? 1 : count + 1;
-    }
   }
 
   @override
@@ -651,7 +630,6 @@ class WorkItem {
    * Build the task represented by this work item.
    */
   AnalysisTask buildTask() {
-    stopwatch.stop();
     if (builder != null) {
       throw new StateError("some inputs have not been computed");
     }
@@ -680,6 +658,25 @@ class WorkItem {
     while (builder != null) {
       AnalysisTarget inputTarget = builder.currentTarget;
       ResultDescriptor inputResult = builder.currentResult;
+
+      // TODO(scheglov) record information to debug
+      // https://github.com/dart-lang/sdk/issues/24939
+      if (inputTarget == null || inputResult == null) {
+        try {
+          String message =
+              'Invalid input descriptor ($inputTarget, $inputResult) for $this';
+          if (workOrder != null) {
+            message += '\nPath:\n' + workOrder.workItems.join('|\n');
+          }
+          throw new AnalysisException(message);
+        } catch (exception, stackTrace) {
+          this.exception = new CaughtException(exception, stackTrace);
+          AnalysisEngine.instance.logger
+              .logError('Task failed: $this', this.exception);
+        }
+        return null;
+      }
+
       inputTargetedResults.add(new TargetedResult(inputTarget, inputResult));
       CacheEntry inputEntry = context.getCacheEntry(inputTarget);
       CacheState inputState = inputEntry.getState(inputResult);
@@ -705,13 +702,19 @@ class WorkItem {
         //
         throw new UnimplementedError();
       } else if (inputState != CacheState.VALID) {
-        try {
-          TaskDescriptor descriptor =
-              taskManager.findTask(inputTarget, inputResult);
-          return new WorkItem(context, inputTarget, descriptor, inputResult);
-        } on AnalysisException catch (exception, stackTrace) {
-          this.exception = new CaughtException(exception, stackTrace);
-          return null;
+        if (context.aboutToComputeResult(inputEntry, inputResult)) {
+          inputState = CacheState.VALID;
+          builder.currentValue = inputEntry.getValue(inputResult);
+        } else {
+          try {
+            TaskDescriptor descriptor =
+                taskManager.findTask(inputTarget, inputResult);
+            return new WorkItem(context, inputTarget, descriptor, inputResult,
+                level + 1, workOrder);
+          } on AnalysisException catch (exception, stackTrace) {
+            this.exception = new CaughtException(exception, stackTrace);
+            return null;
+          }
         }
       } else {
         builder.currentValue = inputEntry.getValue(inputResult);
@@ -756,7 +759,9 @@ class WorkOrder implements Iterator<WorkItem> {
    * the given work item.
    */
   WorkOrder(TaskManager taskManager, WorkItem item)
-      : _dependencyWalker = new _WorkOrderDependencyWalker(taskManager, item);
+      : _dependencyWalker = new _WorkOrderDependencyWalker(taskManager, item) {
+    item.workOrder = this;
+  }
 
   @override
   WorkItem get current {

@@ -9,11 +9,12 @@ library source_information_tests;
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/apiimpl.dart'
-       show Compiler;
+       show CompilerImpl;
 import 'memory_compiler.dart';
 import 'package:compiler/src/cps_ir/cps_ir_nodes.dart' as ir;
 import 'package:compiler/src/cps_ir/cps_ir_nodes_sexpr.dart' as ir;
 import 'package:compiler/src/js/js.dart' as js;
+import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/elements/elements.dart';
 
 const String TEST_MAIN_FILE = 'test.dart';
@@ -34,16 +35,16 @@ String formatTest(Map test) {
   return test[TEST_MAIN_FILE];
 }
 
-js.Node getCodeForMain(Compiler compiler) {
+js.Node getCodeForMain(CompilerImpl compiler) {
   Element mainFunction = compiler.mainFunction;
   return compiler.enqueuer.codegen.generatedCode[mainFunction];
 }
 
-js.Node getJsNodeForElement(Compiler compiler, Element element) {
+js.Node getJsNodeForElement(CompilerImpl compiler, Element element) {
   return compiler.enqueuer.codegen.generatedCode[element];
 }
 
-String getCodeForMethod(Compiler compiler, String name) {
+String getCodeForMethod(CompilerImpl compiler, String name) {
   Element foundElement;
   for (Element element in compiler.enqueuer.codegen.generatedCode.keys) {
     if (element.toString() == name) {
@@ -66,7 +67,7 @@ runTests(List<TestEntry> tests) {
   for (TestEntry test in tests) {
     Map files = {TEST_MAIN_FILE: test.source};
     asyncTest(() {
-      Compiler compiler = compilerFor(
+      CompilerImpl compiler = compilerFor(
           memorySourceFiles: files, options: <String>['--use-cps-ir']);
       ir.FunctionDefinition irNodeForMain;
 
@@ -78,8 +79,9 @@ runTests(List<TestEntry> tests) {
       }
 
       Uri uri = Uri.parse('memory:$TEST_MAIN_FILE');
-      compiler.backend.functionCompiler.cpsBuilderTask.builderCallback =
-          cacheIrNodeForMain;
+      JavaScriptBackend backend = compiler.backend;
+      var functionCompiler = backend.functionCompiler;
+      functionCompiler.cpsBuilderTask.builderCallback = cacheIrNodeForMain;
 
       return compiler.run(uri).then((bool success) {
         Expect.isTrue(success);

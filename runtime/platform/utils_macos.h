@@ -60,6 +60,13 @@ inline uint64_t Utils::HostToLittleEndian64(uint64_t value) {
   return OSSwapHostToLittleInt64(value);
 }
 
+inline char* Utils::StrError(int err, char* buffer, size_t bufsize) {
+  if (strerror_r(err, buffer, bufsize) != 0) {
+    snprintf(buffer, bufsize, "%s", "strerror_r failed");
+  }
+  return buffer;
+}
+
 }  // namespace dart
 
 #endif  // PLATFORM_UTILS_MACOS_H_

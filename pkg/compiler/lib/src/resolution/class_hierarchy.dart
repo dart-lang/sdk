@@ -5,8 +5,13 @@
 library dart2js.resolution.class_hierarchy;
 
 import '../common.dart';
+import '../common/resolution.dart' show
+    Feature;
 import '../compiler.dart' show
     Compiler;
+import '../core_types.dart' show
+    CoreClasses,
+    CoreTypes;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
@@ -14,7 +19,8 @@ import '../elements/modelx.dart' show
     ErroneousElementX,
     MixinApplicationElementX,
     SynthesizedConstructorElementX,
-    TypeVariableElementX;
+    TypeVariableElementX,
+    UnnamedMixinApplicationElementX;
 import '../ordered_typeset.dart' show
     OrderedTypeSet,
     OrderedTypeSetBuilder;
@@ -49,7 +55,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
         scope = Scope.buildEnclosingScope(element),
         super(compiler, registry);
 
-  DartType get objectType => compiler.objectClass.rawType;
+  DartType get objectType => compiler.coreTypes.objectType;
 
   void resolveTypeVariableBounds(NodeList node) {
     if (node == null) return;
@@ -190,15 +196,24 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
     if (!element.hasConstructor) {
       Element superMember = element.superclass.localLookup('');
-      if (superMember == null || !superMember.isGenerativeConstructor) {
-        MessageKind kind = MessageKind.CANNOT_FIND_CONSTRUCTOR;
-        Map arguments = {'constructorName': ''};
+      if (superMember == null) {
+        MessageKind kind = MessageKind.CANNOT_FIND_UNNAMED_CONSTRUCTOR;
+        Map arguments = {'className': element.superclass.name};
         // TODO(ahe): Why is this a compile-time error? Or if it is an error,
         // why do we bother to registerThrowNoSuchMethod below?
         reporter.reportErrorMessage(node, kind, arguments);
         superMember = new ErroneousElementX(
             kind, arguments, '', element);
-        registry.registerThrowNoSuchMethod();
+        registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
+      } else if (!superMember.isGenerativeConstructor) {
+          MessageKind kind = MessageKind.SUPER_CALL_TO_FACTORY;
+          Map arguments = {'className': element.superclass.name};
+          // TODO(ahe): Why is this a compile-time error? Or if it is an error,
+          // why do we bother to registerThrowNoSuchMethod below?
+          reporter.reportErrorMessage(node, kind, arguments);
+          superMember = new ErroneousElementX(
+              kind, arguments, '', element);
+          registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
       } else {
         ConstructorElement superConstructor = superMember;
         superConstructor.computeType(resolution);
@@ -211,7 +226,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       }
       FunctionElement constructor =
           new SynthesizedConstructorElementX.forDefault(superMember, element);
-      if (superMember.isErroneous) {
+      if (superMember.isMalformed) {
         compiler.elementsWithCompileTimeErrors.add(constructor);
       }
       element.setDefaultConstructor(constructor, reporter);
@@ -310,12 +325,12 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   DartType applyMixin(DartType supertype, DartType mixinType, Node node) {
     String superName = supertype.name;
     String mixinName = mixinType.name;
-    MixinApplicationElementX mixinApplication = new MixinApplicationElementX(
-        "${superName}+${mixinName}",
-        element.compilationUnit,
-        compiler.getNextFreeClassId(),
-        node,
-        new Modifiers.withFlags(new NodeList.empty(), Modifiers.FLAG_ABSTRACT));
+    MixinApplicationElementX mixinApplication =
+        new UnnamedMixinApplicationElementX(
+          "${superName}+${mixinName}",
+          element.compilationUnit,
+          compiler.getNextFreeClassId(),
+          node);
     // Create synthetic type variables for the mixin application.
     List<DartType> typeVariables = <DartType>[];
     int index = 0;
@@ -365,16 +380,17 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return constructor;
   }
 
-  void doApplyMixinTo(MixinApplicationElementX mixinApplication,
-                      DartType supertype,
-                      DartType mixinType) {
+  void doApplyMixinTo(
+      MixinApplicationElementX mixinApplication,
+      DartType supertype,
+      DartType mixinType) {
     Node node = mixinApplication.parseNode(resolution.parsing);
 
     if (mixinApplication.supertype != null) {
       // [supertype] is not null if there was a cycle.
       assert(invariant(node, compiler.compilationFailed));
       supertype = mixinApplication.supertype;
-      assert(invariant(node, supertype.element == compiler.objectClass));
+      assert(invariant(node, supertype.isObject));
     } else {
       mixinApplication.supertype = supertype;
     }
@@ -582,7 +598,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       allSupertypes.add(compiler, cls.computeType(resolution));
       cls.allSupertypesAndSelf = allSupertypes.toTypeSet();
     } else {
-      assert(identical(cls, compiler.objectClass));
+      assert(cls == compiler.coreClasses.objectClass);
       cls.allSupertypesAndSelf =
           new OrderedTypeSet.singleton(cls.computeType(resolution));
     }
@@ -608,16 +624,17 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   isBlackListed(DartType type) {
     LibraryElement lib = element.library;
+    CoreTypes coreTypes = compiler.coreTypes;
     return
       !identical(lib, compiler.coreLibrary) &&
       !compiler.backend.isBackendLibrary(lib) &&
       (type.isDynamic ||
-       identical(type.element, compiler.boolClass) ||
-       identical(type.element, compiler.numClass) ||
-       identical(type.element, compiler.intClass) ||
-       identical(type.element, compiler.doubleClass) ||
-       identical(type.element, compiler.stringClass) ||
-       identical(type.element, compiler.nullClass));
+       type == coreTypes.boolType ||
+       type == coreTypes.numType ||
+       type == coreTypes.intType ||
+       type == coreTypes.doubleType ||
+       type == coreTypes.stringType ||
+       type == coreTypes.nullType);
   }
 }
 
@@ -629,6 +646,8 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
     : context = Scope.buildEnclosingScope(cls),
       this.classElement = cls,
       super(compiler);
+
+  CoreClasses get coreClasses => compiler.coreClasses;
 
   void loadSupertype(ClassElement element, Node from) {
     if (!element.isResolved) {
@@ -647,8 +666,8 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
 
   void visitClassNode(ClassNode node) {
     if (node.superclass == null) {
-      if (!identical(classElement, compiler.objectClass)) {
-        loadSupertype(compiler.objectClass, node);
+      if (classElement != coreClasses.objectClass) {
+        loadSupertype(coreClasses.objectClass, node);
       }
     } else {
       node.superclass.accept(this);
@@ -657,7 +676,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   }
 
   void visitEnum(Enum node) {
-    loadSupertype(compiler.objectClass, node);
+    loadSupertype(coreClasses.objectClass, node);
   }
 
   void visitMixinApplication(MixinApplication node) {

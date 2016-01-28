@@ -28,12 +28,11 @@ import 'elements/elements.dart' show
     FunctionElement,
     ImportElement,
     LibraryElement,
+    LocalFunctionElement,
     MetadataAnnotation,
     PrefixElement,
     ScopeContainerElement,
     TypedefElement;
-import 'enqueue.dart' show
-    WorldImpact;
 import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
 import 'resolution/resolution.dart' show
@@ -49,6 +48,15 @@ import 'tree/tree.dart' show
     LiteralString,
     NewExpression,
     Node;
+import 'universe/use.dart' show
+    DynamicUse,
+    StaticUse,
+    TypeUse,
+    TypeUseKind;
+import 'universe/world_impact.dart' show
+    ImpactUseCase,
+    WorldImpact,
+    WorldImpactVisitorImpl;
 import 'util/setlet.dart' show
     Setlet;
 import 'util/uri_extras.dart' as uri_extras;
@@ -74,7 +82,6 @@ class OutputUnit {
   final bool isMainOutput;
 
   /// A unique name representing this [OutputUnit].
-  /// Based on the set of [imports].
   String name;
 
   OutputUnit({this.isMainOutput: false});
@@ -119,6 +126,8 @@ class DeferredLoadTask extends CompilerTask {
   /// Will be `true` if the program contains deferred libraries.
   bool isProgramSplit = false;
 
+  static const ImpactUseCase IMPACT_USE = const ImpactUseCase('Deferred load');
+
   /// A mapping from the name of a defer import to all the output units it
   /// depends on in a list of lists to be loaded in the order they appear.
   ///
@@ -128,7 +137,10 @@ class DeferredLoadTask extends CompilerTask {
   /// can be loaded in parallel. And finally lib1 can be loaded.
   final Map<String, List<OutputUnit>> hunksToLoad =
       new Map<String, List<OutputUnit>>();
-  final Map<_DeferredImport, String> _importDeferName =
+
+  /// A cache of the result of calling `computeImportDeferName` on the keys of
+  /// this map.
+  final Map<_DeferredImport, String> importDeferName =
       <_DeferredImport, String>{};
 
   /// A mapping from elements and constants to their output unit. Query this via
@@ -149,7 +161,7 @@ class DeferredLoadTask extends CompilerTask {
 
   /// Because the token-stream is forgotten later in the program, we cache a
   /// description of each deferred import.
-  final Map<_DeferredImport, ImportDescription>_deferredImportDescriptions =
+  final Map<_DeferredImport, ImportDescription> _deferredImportDescriptions =
       <_DeferredImport, ImportDescription>{};
 
   // For each deferred import we want to know exactly what elements have to
@@ -198,7 +210,7 @@ class DeferredLoadTask extends CompilerTask {
   /// Returns the unique name for the deferred import of [prefix].
   String getImportDeferName(Spannable node, PrefixElement prefix) {
     String name =
-        _importDeferName[new _DeclaredDeferredImport(prefix.deferredImport)];
+        importDeferName[new _DeclaredDeferredImport(prefix.deferredImport)];
     if (name == null) {
       reporter.internalError(node, "No deferred name for $prefix.");
     }
@@ -259,8 +271,8 @@ class DeferredLoadTask extends CompilerTask {
       Set<ConstantValue> constants,
       isMirrorUsage) {
 
-    if (element.isErroneous) {
-      // Erroneous elements are ignored.
+    if (element.isMalformed) {
+      // Malformed elements are ignored.
       return;
     }
 
@@ -312,23 +324,38 @@ class DeferredLoadTask extends CompilerTask {
 
         WorldImpact worldImpact =
             compiler.resolution.getWorldImpact(analyzableElement);
-        elements.addAll(worldImpact.staticUses);
-        elements.addAll(worldImpact.closures);
-        for (DartType type in worldImpact.typeLiterals) {
-          if (type.isTypedef || type.isInterfaceType) {
-            elements.add(type.element);
-          }
-        }
-        for (InterfaceType type in worldImpact.instantiatedTypes) {
-          elements.add(type.element);
-        }
+        compiler.impactStrategy.visitImpact(
+            analyzableElement,
+            worldImpact,
+            new WorldImpactVisitorImpl(
+                visitStaticUse: (StaticUse staticUse) {
+                  elements.add(staticUse.element);
+                },
+                visitTypeUse: (TypeUse typeUse) {
+                  DartType type = typeUse.type;
+                  switch (typeUse.kind) {
+                    case TypeUseKind.TYPE_LITERAL:
+                      if (type.isTypedef || type.isInterfaceType) {
+                        elements.add(type.element);
+                      }
+                      break;
+                    case TypeUseKind.INSTANTIATION:
+                    case TypeUseKind.IS_CHECK:
+                    case TypeUseKind.AS_CAST:
+                    case TypeUseKind.CATCH_TYPE:
+                      collectTypeDependencies(type);
+                      break;
+                    case TypeUseKind.CHECKED_MODE_CHECK:
+                      if (compiler.enableTypeAssertions) {
+                        collectTypeDependencies(type);
+                      }
+                      break;
+                  }
+                }),
+             IMPACT_USE);
 
         TreeElements treeElements = analyzableElement.resolvedAst.elements;
         assert(treeElements != null);
-
-        for (DartType type in treeElements.requiredTypes) {
-          collectTypeDependencies(type);
-        }
 
         treeElements.forEachConstantNode((Node node, _) {
           // Explicitly depend on the backend constants.
@@ -557,7 +584,7 @@ class DeferredLoadTask extends CompilerTask {
     void computeImportDeferName(_DeferredImport import) {
       String result = import.computeImportDeferName(compiler);
       assert(result != null);
-      _importDeferName[import] = makeUnique(result, usedImportNames);
+      importDeferName[import] = makeUnique(result, usedImportNames);
     }
 
     int counter = 1;
@@ -579,25 +606,25 @@ class DeferredLoadTask extends CompilerTask {
     // Sort the output units in descending order of the number of imports they
     // include.
 
-    // The loading of the output units mut be ordered because a superclass needs
-    // to be initialized before its subclass.
+    // The loading of the output units must be ordered because a superclass
+    // needs to be initialized before its subclass.
     // But a class can only depend on another class in an output unit shared by
     // a strict superset of the imports:
     // By contradiction: Assume a class C in output unit shared by imports in
     // the set S1 = (lib1,.., lib_n) depends on a class D in an output unit
     // shared by S2 such that S2 not a superset of S1. Let lib_s be a library in
-    // S1 not in S2. lib_s must depend on C, and then in turn on D therefore D
+    // S1 not in S2. lib_s must depend on C, and then in turn on D. Therefore D
     // is not in the right output unit.
     sortedOutputUnits.sort((a, b) => b.imports.length - a.imports.length);
 
     // For each deferred import we find out which outputUnits to load.
     for (_DeferredImport import in _allDeferredImports.keys) {
       if (import == _fakeMainImport) continue;
-      hunksToLoad[_importDeferName[import]] = new List<OutputUnit>();
+      hunksToLoad[importDeferName[import]] = new List<OutputUnit>();
       for (OutputUnit outputUnit in sortedOutputUnits) {
         if (outputUnit == mainOutputUnit) continue;
         if (outputUnit.imports.contains(import)) {
-          hunksToLoad[_importDeferName[import]].add(outputUnit);
+          hunksToLoad[importDeferName[import]].add(outputUnit);
         }
       }
     }
@@ -620,7 +647,7 @@ class DeferredLoadTask extends CompilerTask {
       _mapDependencies(element: compiler.mainFunction, import: _fakeMainImport);
 
       // Also add "global" dependencies to the main OutputUnit.  These are
-      // things that the backend need but cannot associate with a particular
+      // things that the backend needs but cannot associate with a particular
       // element, for example, startRootIsolate.  This set also contains
       // elements for which we lack precise information.
       for (Element element in compiler.globalDependencies.otherDependencies) {
@@ -695,6 +722,9 @@ class DeferredLoadTask extends CompilerTask {
       // Generate a unique name for each OutputUnit.
       _assignNamesToOutputUnits(allOutputUnits);
     });
+    // Notify the impact strategy impacts are no longer needed for deferred
+    // load.
+    compiler.impactStrategy.onImpactUsed(IMPACT_USE);
   }
 
   void beforeResolution(Compiler compiler) {
@@ -850,8 +880,8 @@ class DeferredLoadTask extends CompilerTask {
   /// Where
   ///
   /// - <library uri> is the relative uri of the library making a deferred
-  ///   import
-  /// - <library name> is the name of the libary, and "<unnamed>" if it is
+  ///   import.
+  /// - <library name> is the name of the library, and "<unnamed>" if it is
   ///   unnamed.
   /// - <prefix> is the `as` prefix used for a given deferred import.
   /// - <list of files> is a list of the filenames the must be loaded when that
@@ -861,14 +891,14 @@ class DeferredLoadTask extends CompilerTask {
     Map<String, Map<String, dynamic>> mapping =
         new Map<String, Map<String, dynamic>>();
     _deferredImportDescriptions.keys.forEach((_DeferredImport import) {
-      List<OutputUnit> outputUnits = hunksToLoad[_importDeferName[import]];
+      List<OutputUnit> outputUnits = hunksToLoad[importDeferName[import]];
       ImportDescription description = _deferredImportDescriptions[import];
       Map<String, dynamic> libraryMap =
           mapping.putIfAbsent(description.importingUri,
               () => <String, dynamic>{"name": description.importingLibraryName,
                                       "imports": <String, List<String>>{}});
 
-      libraryMap["imports"][description.prefix] = outputUnits.map(
+      libraryMap["imports"][importDeferName[import]] = outputUnits.map(
             (OutputUnit outputUnit) {
           return backend.deferredPartFileName(outputUnit.name);
         }).toList();

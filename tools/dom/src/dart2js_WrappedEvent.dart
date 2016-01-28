@@ -76,9 +76,9 @@ class _WrappedEvent implements Event {
    *
    * ## Other resources
    *
-   * * [Shadow DOM extensions to Event]
-   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
-   * W3C.
+   * * [Shadow DOM extensions to
+   *   Event](http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event)
+   *   from W3C.
    */
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
   @Experimental()

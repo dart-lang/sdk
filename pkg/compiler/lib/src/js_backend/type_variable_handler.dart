@@ -32,7 +32,7 @@ class TypeVariableHandler {
 
   TypeVariableHandler(this._compiler);
 
-  ClassElement get _typeVariableClass => _backend.typeVariableClass;
+  ClassElement get _typeVariableClass => _backend.helpers.typeVariableClass;
   CodeEmitterTask get _task => _backend.emitter;
   MetadataCollector get _metadataCollector => _task.metadataCollector;
   JavaScriptBackend get _backend => _compiler.backend;
@@ -56,7 +56,9 @@ class TypeVariableHandler {
         _backend.registerInstantiatedType(
             _typeVariableClass.rawType, enqueuer, registry);
         enqueuer.registerStaticUse(
-            _backend.registerBackendUse(_backend.helpers.createRuntimeType));
+            new StaticUse.staticInvoke(
+                _backend.registerBackendUse(_backend.helpers.createRuntimeType),
+                CallStructure.ONE_ARG));
         _seenClassesWithTypeVariables = true;
       }
     } else {
@@ -119,6 +121,7 @@ class TypeVariableHandler {
               arguments);
       ConstantValue value = constant.value;
       _backend.registerCompileTimeConstant(value, _compiler.globalDependencies);
+      _backend.addCompileTimeConstantForEmission(value);
       _backend.constants.addCompileTimeConstantForEmission(value);
       constants.add(
           _reifyTypeVariableConstant(value, currentTypeVariable.element));

@@ -2,10 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.utilities.general;
+library analyzer.src.generated.utilities_general;
 
 import 'dart:collection';
 import 'dart:developer' show UserTag;
+
+/**
+ * Test if the given [value] is `false` or the string "false" (case-insensitive).
+ */
+bool isFalse(Object value) =>
+    value is bool ? !value : toLowerCase(value) == 'false';
+
+/**
+ * Test if the given [value] is `true` or the string "true" (case-insensitive).
+ */
+bool isTrue(Object value) =>
+    value is bool ? value : toLowerCase(value) == 'true';
+
+/**
+ * Safely convert this [value] to lower case, returning `null` if [value] is
+ * null.
+ */
+String toLowerCase(Object value) => value?.toString()?.toLowerCase();
+
+/**
+ * Safely convert this [value] to upper case, returning `null` if [value] is
+ * null.
+ */
+String toUpperCase(Object value) => value?.toString()?.toUpperCase();
 
 /**
  * Jenkins hash function, optimized for small integers.

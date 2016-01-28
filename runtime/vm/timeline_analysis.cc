@@ -162,10 +162,6 @@ void TimelineAnalysis::DiscoverThreads() {
       // Skip empty blocks.
       continue;
     }
-    if (block->isolate() != isolate_) {
-      // Skip blocks for other isolates.
-      continue;
-    }
     if (!block->CheckBlock()) {
       if (FLAG_trace_timeline_analysis) {
         THR_Print("DiscoverThreads block %" Pd " "
@@ -175,7 +171,7 @@ void TimelineAnalysis::DiscoverThreads() {
                "TimelineEventBlock::CheckBlock", block->block_index());
       return;
     }
-    TimelineAnalysisThread* thread = GetOrAddThread(block->thread());
+    TimelineAnalysisThread* thread = GetOrAddThread(block->thread_id());
     ASSERT(thread != NULL);
     thread->AddBlock(block);
   }
@@ -347,6 +343,10 @@ void TimelinePauses::ProcessThread(TimelineAnalysisThread* thread) {
   intptr_t event_count = 0;
   while (!has_error() && it.HasNext()) {
     TimelineEvent* event = it.Next();
+    if (event->isolate_id() != isolate_->main_port()) {
+      // Skip events that do not belong to the isolate.
+      continue;
+    }
     if (event->IsFinishedDuration()) {
       int64_t start = event->TimeOrigin();
       PopFinishedDurations(start);

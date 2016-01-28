@@ -4,11 +4,10 @@
 
 library services.src.linter;
 
-import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/analyzer.dart';
-import 'package:yaml/yaml.dart';
+import 'package:analyzer/plugin/options.dart';
 import 'package:linter/src/rules.dart';
-import 'package:linter/src/linter.dart';
+import 'package:yaml/yaml.dart';
 
 /**
  * An error code indicating an undefined lint rule.
@@ -18,7 +17,7 @@ import 'package:linter/src/linter.dart';
  */
 const AnalysisOptionsWarningCode UNDEFINED_LINT_WARNING =
     const AnalysisOptionsWarningCode(
-        'UNDEFINED_LINT_WARNING', "Undefined lint rule '{0}'");
+        'UNDEFINED_LINT_WARNING', "'{0}' is not a recognized lint rule");
 
 /// Validates `linter` rule configurations.
 class LinterRuleOptionsValidator extends OptionsValidator {

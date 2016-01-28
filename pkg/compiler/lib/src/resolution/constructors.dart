@@ -5,6 +5,8 @@
 library dart2js.resolution.constructors;
 
 import '../common.dart';
+import '../common/resolution.dart' show
+    Feature;
 import '../compiler.dart' show
     Compiler;
 import '../constants/constructors.dart' show
@@ -26,8 +28,8 @@ import '../util/util.dart' show
     Link;
 import '../universe/call_structure.dart' show
     CallStructure;
-import '../universe/selector.dart' show
-    Selector;
+import '../universe/use.dart' show
+    StaticUse;
 
 import 'members.dart' show
     lookupInScope,
@@ -64,7 +66,9 @@ class InitializerResolver {
     return node.receiver.asIdentifier().isThis();
   }
 
-  reportDuplicateInitializerError(Element field, Node init, Node existing) {
+  reportDuplicateInitializerError(Element field,
+                                  Node init,
+                                  Spannable existing) {
     reporter.reportError(
         reporter.createMessage(
             init,
@@ -88,7 +92,9 @@ class InitializerResolver {
       field.parseNode(visitor.resolution.parsing);
       Expression initializer = field.initializer;
       if (initializer != null) {
-        reportDuplicateInitializerError(field, init, initializer);
+        reportDuplicateInitializerError(field, init,
+            reporter.withCurrentElement(field,
+                () => reporter.spanFromSpannable(initializer)));
       }
     }
     initialized[field] = init;
@@ -125,8 +131,10 @@ class InitializerResolver {
     }
     if (target != null) {
       registry.useElement(init, target);
-      registry.registerStaticUse(target);
       checkForDuplicateInitializers(target, init);
+    }
+    if (field != null) {
+      registry.registerStaticUse(new StaticUse.fieldInit(field));
     }
     // Resolve initializing value.
     ResolutionResult result = visitor.visitInStaticContext(
@@ -146,7 +154,7 @@ class InitializerResolver {
                                            {bool isSuperCall}) {
     if (isSuperCall) {
       // Calculate correct lookup target and constructor name.
-      if (identical(constructor.enclosingClass, visitor.compiler.objectClass)) {
+      if (constructor.enclosingClass.isObject) {
         reporter.reportErrorMessage(
             diagnosticNode, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
         isValidAsConstant = false;
@@ -157,42 +165,49 @@ class InitializerResolver {
     return constructor.enclosingClass.thisType;
   }
 
-  ResolutionResult resolveSuperOrThisForSend(Send call) {
+  ResolutionResult resolveSuperOrThisForSend(Send node) {
     // Resolve the selector and the arguments.
     ArgumentsResult argumentsResult = visitor.inStaticContext(() {
-      visitor.resolveSelector(call, null);
-      return visitor.resolveArguments(call.argumentsNode);
+      // TODO(johnniwinther): Remove this when [SendStructure] is used directly.
+      visitor.resolveSelector(node, null);
+      return visitor.resolveArguments(node.argumentsNode);
     }, inConstantInitializer: isConst);
 
-    bool isSuperCall = Initializers.isSuperConstructorCall(call);
+    bool isSuperCall = Initializers.isSuperConstructorCall(node);
     InterfaceType targetType =
-        getSuperOrThisLookupTarget(call, isSuperCall: isSuperCall);
+        getSuperOrThisLookupTarget(node, isSuperCall: isSuperCall);
     ClassElement lookupTarget = targetType.element;
-    Selector constructorSelector =
-        visitor.getRedirectingThisOrSuperConstructorSelector(call);
-    ConstructorElement calledConstructor = findConstructor(
-        constructor.library, lookupTarget, constructorSelector.name);
+    String constructorName =
+        visitor.getRedirectingThisOrSuperConstructorName(node).text;
+    ConstructorElement foundConstructor = findConstructor(
+        constructor.library, lookupTarget, constructorName);
 
     final bool isImplicitSuperCall = false;
     final String className = lookupTarget.name;
-    verifyThatConstructorMatchesCall(calledConstructor,
-                                     argumentsResult.callStructure,
-                                     isImplicitSuperCall,
-                                     call,
-                                     className,
-                                     constructorSelector);
-    if (calledConstructor != null) {
-      registry.useElement(call, calledConstructor);
-      registry.registerStaticUse(calledConstructor);
+    CallStructure callStructure = argumentsResult.callStructure;
+    ConstructorElement calledConstructor = verifyThatConstructorMatchesCall(
+        node,
+        foundConstructor,
+        callStructure,
+        className,
+        constructorName: constructorName,
+        isThisCall: !isSuperCall,
+        isImplicitSuperCall: false);
+    // TODO(johnniwinther): Remove this when information is pulled from an
+    // [InitializerStructure].
+    registry.useElement(node, calledConstructor);
+    if (!calledConstructor.isError) {
+      registry.registerStaticUse(
+          new StaticUse.superConstructorInvoke(
+              calledConstructor, callStructure));
     }
     if (isConst) {
       if (isValidAsConstant &&
           calledConstructor.isConst &&
           argumentsResult.isValidAsConstant) {
-        CallStructure callStructure = argumentsResult.callStructure;
         List<ConstantExpression> arguments = argumentsResult.constantArguments;
         return new ConstantResult(
-            call,
+            node,
             new ConstructedConstantExpression(
                 targetType,
                 calledConstructor,
@@ -210,36 +225,33 @@ class InitializerResolver {
     // If the class has a super resolve the implicit super call.
     ClassElement classElement = constructor.enclosingClass;
     ClassElement superClass = classElement.superclass;
-    if (classElement != visitor.compiler.objectClass) {
+    if (!classElement.isObject) {
       assert(superClass != null);
       assert(superClass.isResolved);
 
       InterfaceType targetType =
           getSuperOrThisLookupTarget(functionNode, isSuperCall: true);
       ClassElement lookupTarget = targetType.element;
-      Selector constructorSelector = new Selector.callDefaultConstructor();
-      ConstructorElement calledConstructor = findConstructor(
-          constructor.library,
-          lookupTarget,
-          constructorSelector.name);
+      ConstructorElement calledConstructor =
+          findConstructor(constructor.library, lookupTarget, '');
 
       final String className = lookupTarget.name;
-      final bool isImplicitSuperCall = true;
-      verifyThatConstructorMatchesCall(calledConstructor,
-                                       CallStructure.NO_ARGS,
-                                       isImplicitSuperCall,
-                                       functionNode,
-                                       className,
-                                       constructorSelector);
-      if (calledConstructor != null) {
-        registry.registerImplicitSuperCall(calledConstructor);
-        registry.registerStaticUse(calledConstructor);
+      CallStructure callStructure = CallStructure.NO_ARGS;
+      ConstructorElement result = verifyThatConstructorMatchesCall(
+          functionNode,
+          calledConstructor,
+          callStructure,
+          className,
+          isImplicitSuperCall: true);
+      if (!result.isError) {
+        registry.registerStaticUse(
+            new StaticUse.constructorInvoke(calledConstructor, callStructure));
       }
 
       if (isConst && isValidAsConstant) {
         return new ConstructedConstantExpression(
             targetType,
-            calledConstructor,
+            result,
             CallStructure.NO_ARGS,
             const <ConstantExpression>[]);
       }
@@ -247,41 +259,65 @@ class InitializerResolver {
     return null;
   }
 
-  void verifyThatConstructorMatchesCall(
+  ConstructorElement reportAndCreateErroneousConstructor(
+      Spannable diagnosticNode,
+      String name,
+      MessageKind kind,
+      Map arguments) {
+    isValidAsConstant = false;
+    reporter.reportErrorMessage(
+        diagnosticNode, kind, arguments);
+    return new ErroneousConstructorElementX(
+        kind, arguments, name, visitor.currentClass);
+  }
+
+  /// Checks that [lookedupConstructor] is valid as a target for the super/this
+  /// constructor call using with the given [callStructure].
+  ///
+  /// If [lookedupConstructor] is valid it is returned, otherwise an error is
+  /// reported and an [ErroneousConstructorElement] is returned.
+  ConstructorElement verifyThatConstructorMatchesCall(
+      Node node,
       ConstructorElementX lookedupConstructor,
-      CallStructure call,
-      bool isImplicitSuperCall,
-      Node diagnosticNode,
+      CallStructure callStructure,
       String className,
-      Selector constructorSelector) {
-    if (lookedupConstructor == null ||
-        !lookedupConstructor.isGenerativeConstructor) {
-      String fullConstructorName = Elements.constructorNameForDiagnostics(
-              className,
-              constructorSelector.name);
+      {String constructorName: '',
+       bool isImplicitSuperCall: false,
+       bool isThisCall: false}) {
+    Element result = lookedupConstructor;
+    if (lookedupConstructor == null) {
+      String fullConstructorName =
+          Elements.constructorNameForDiagnostics(className, constructorName);
       MessageKind kind = isImplicitSuperCall
           ? MessageKind.CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT
           : MessageKind.CANNOT_RESOLVE_CONSTRUCTOR;
-      reporter.reportErrorMessage(
-          diagnosticNode, kind, {'constructorName': fullConstructorName});
-      isValidAsConstant = false;
+      result = reportAndCreateErroneousConstructor(
+          node, constructorName,
+          kind, {'constructorName': fullConstructorName});
+    } else if (!lookedupConstructor.isGenerativeConstructor) {
+      MessageKind kind = isThisCall
+          ? MessageKind.THIS_CALL_TO_FACTORY
+          : MessageKind.SUPER_CALL_TO_FACTORY;
+      result = reportAndCreateErroneousConstructor(
+          node, constructorName, kind, {});
     } else {
       lookedupConstructor.computeType(visitor.resolution);
-      if (!call.signatureApplies(lookedupConstructor.functionSignature)) {
+      if (!callStructure.signatureApplies(
+               lookedupConstructor.functionSignature)) {
         MessageKind kind = isImplicitSuperCall
-                           ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
-                           : MessageKind.NO_MATCHING_CONSTRUCTOR;
-        reporter.reportErrorMessage(diagnosticNode, kind);
-        isValidAsConstant = false;
-      } else if (constructor.isConst
-                 && !lookedupConstructor.isConst) {
+            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
+            : MessageKind.NO_MATCHING_CONSTRUCTOR;
+        result = reportAndCreateErroneousConstructor(
+            node, constructorName, kind, {});
+      } else if (constructor.isConst && !lookedupConstructor.isConst) {
         MessageKind kind = isImplicitSuperCall
-                           ? MessageKind.CONST_CALLS_NON_CONST_FOR_IMPLICIT
-                           : MessageKind.CONST_CALLS_NON_CONST;
-        reporter.reportErrorMessage(diagnosticNode, kind);
-        isValidAsConstant = false;
+            ? MessageKind.CONST_CALLS_NON_CONST_FOR_IMPLICIT
+            : MessageKind.CONST_CALLS_NON_CONST;
+        result = reportAndCreateErroneousConstructor(
+            node, constructorName, kind, {});
       }
     }
+    return result;
   }
 
   /**
@@ -453,28 +489,30 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       MessageKind kind,
       Map arguments,
       {bool isError: false,
-       bool missingConstructor: false}) {
+       bool missingConstructor: false,
+       List<DiagnosticMessage> infos: const <DiagnosticMessage>[]}) {
     if (missingConstructor) {
-      registry.registerThrowNoSuchMethod();
+      registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
     } else {
-      registry.registerThrowRuntimeError();
+      registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
     }
+    DiagnosticMessage message =
+        reporter.createMessage(diagnosticNode, kind, arguments);
     if (isError || inConstContext) {
-      reporter.reportErrorMessage(
-          diagnosticNode, kind, arguments);
+      reporter.reportError(message, infos);
     } else {
-      reporter.reportWarningMessage(
-          diagnosticNode, kind, arguments);
+      reporter.reportWarning(message, infos);
     }
     ErroneousElement error = new ErroneousConstructorElementX(
         kind, arguments, name, enclosing);
     if (type == null) {
       type = new MalformedType(error, null);
     }
-    return new ConstructorResult(resultKind, error, type);
+    return new ConstructorResult.forError(resultKind, error, type);
   }
 
   ConstructorResult resolveConstructor(
+      PrefixElement prefix,
       InterfaceType type,
       Node diagnosticNode,
       String constructorName) {
@@ -483,37 +521,46 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     ConstructorElement constructor = findConstructor(
         resolver.enclosingElement.library, cls, constructorName);
     if (constructor == null) {
-      String fullConstructorName =
-          Elements.constructorNameForDiagnostics(cls.name, constructorName);
+      MessageKind kind = constructorName.isEmpty
+          ? MessageKind.CANNOT_FIND_UNNAMED_CONSTRUCTOR
+          : MessageKind.CANNOT_FIND_CONSTRUCTOR;
       return reportAndCreateErroneousConstructorElement(
           diagnosticNode,
           ConstructorResultKind.UNRESOLVED_CONSTRUCTOR, type,
-          cls, constructorName,
-          MessageKind.CANNOT_FIND_CONSTRUCTOR,
-          {'constructorName': fullConstructorName},
+          cls, constructorName, kind,
+          {'className': cls.name, 'constructorName': constructorName},
           missingConstructor: true);
     } else if (inConstContext && !constructor.isConst) {
       reporter.reportErrorMessage(
           diagnosticNode, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
       return new ConstructorResult(
-          ConstructorResultKind.NON_CONSTANT, constructor, type);
+          ConstructorResultKind.NON_CONSTANT, prefix, constructor, type);
     } else {
+      if (cls.isEnumClass && resolver.currentClass != cls) {
+        return reportAndCreateErroneousConstructorElement(
+            diagnosticNode,
+            ConstructorResultKind.INVALID_TYPE, type,
+            cls, constructorName,
+            MessageKind.CANNOT_INSTANTIATE_ENUM,
+            {'enumName': cls.name},
+            isError: true);
+      }
       if (constructor.isGenerativeConstructor) {
         if (cls.isAbstract) {
           reporter.reportWarningMessage(
               diagnosticNode, MessageKind.ABSTRACT_CLASS_INSTANTIATION);
-          registry.registerAbstractClassInstantiation();
+          registry.registerFeature(Feature.ABSTRACT_CLASS_INSTANTIATION);
           return new ConstructorResult(
-              ConstructorResultKind.ABSTRACT, constructor, type);
+              ConstructorResultKind.ABSTRACT, prefix, constructor, type);
         } else {
           return new ConstructorResult(
-              ConstructorResultKind.GENERATIVE, constructor, type);
+              ConstructorResultKind.GENERATIVE, prefix, constructor, type);
         }
       } else {
         assert(invariant(diagnosticNode, constructor.isFactoryConstructor,
             message: "Unexpected constructor $constructor."));
         return new ConstructorResult(
-            ConstructorResultKind.FACTORY, constructor, type);
+            ConstructorResultKind.FACTORY, prefix, constructor, type);
       }
     }
   }
@@ -544,10 +591,11 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     // class.
     if (result.type != null) {
       // The unnamed constructor may not exist, so [e] may become unresolved.
-      result = resolveConstructor(result.type, diagnosticNode, '');
+      result = resolveConstructor(
+          result.prefix, result.type, diagnosticNode, '');
     } else {
       Element element = result.element;
-      if (element.isErroneous) {
+      if (element.isMalformed) {
         result = constructorResultForErroneous(diagnosticNode, element);
       } else {
         result = reportAndCreateErroneousConstructorElement(
@@ -568,8 +616,17 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
         node,
         malformedIsError: inConstContext,
         deferredIsMalformed: false);
-    registry.registerRequiredType(type, resolver.enclosingElement);
-    return constructorResultForType(node, type);
+    Send send = node.typeName.asSend();
+    PrefixElement prefix;
+    if (send != null) {
+      // The type name is of the form [: prefix . identifier :].
+      String name = send.receiver.asIdentifier().source;
+      Element element = lookupInScope(reporter, send, resolver.scope, name);
+      if (element != null && element.isPrefix) {
+        prefix = element;
+      }
+    }
+    return constructorResultForType(node, type, prefix: prefix);
   }
 
   ConstructorResult visitSend(Send node) {
@@ -577,7 +634,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     assert(invariant(node.receiver, receiver != null,
         message: 'No result returned for $node.receiver.'));
     if (receiver.kind != null) {
-      assert(invariant(node, receiver.element.isErroneous,
+      assert(invariant(node, receiver.element.isMalformed,
           message: "Unexpected prefix result: $receiver."));
       // We have already found an error.
       return receiver;
@@ -590,7 +647,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
 
     if (receiver.type != null) {
       if (receiver.type.isInterfaceType) {
-        return resolveConstructor(receiver.type, name, name.source);
+        return resolveConstructor(
+            receiver.prefix, receiver.type, name, name.source);
       } else {
         // TODO(johnniwinther): Update the message for the different types.
         return reportAndCreateErroneousConstructorElement(
@@ -602,7 +660,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     } else if (receiver.element.isPrefix) {
       PrefixElement prefix = receiver.element;
       Element member = prefix.lookupLocalMember(name.source);
-      return constructorResultForElement(node, name.source, member);
+      return constructorResultForElement(
+          node, name.source, member, prefix: prefix);
     } else {
       return reporter.internalError(
           node.receiver, 'unexpected receiver $receiver');
@@ -611,10 +670,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
 
   ConstructorResult visitIdentifier(Identifier node) {
     String name = node.source;
-    Element element = resolver.reportLookupErrorIfAny(
-        lookupInScope(reporter, node, resolver.scope, name), node, name);
+    Element element = lookupInScope(reporter, node, resolver.scope, name);
     registry.useElement(node, element);
-    // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
     return constructorResultForElement(node, name, element);
   }
 
@@ -626,7 +683,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   }
 
   ConstructorResult constructorResultForElement(
-      Node node, String name, Element element) {
+      Node node, String name, Element element,
+      {PrefixElement prefix}) {
     element = Elements.unwrap(element, reporter, node);
     if (element == null) {
       return reportAndCreateErroneousConstructorElement(
@@ -635,14 +693,23 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           resolver.enclosingElement, name,
           MessageKind.CANNOT_RESOLVE,
           {'name': name});
-    } else if (element.isErroneous) {
+    } else if (element.isAmbiguous) {
+      AmbiguousElement ambiguous = element;
+      return reportAndCreateErroneousConstructorElement(
+          node,
+          ConstructorResultKind.INVALID_TYPE, null,
+          resolver.enclosingElement, name,
+          ambiguous.messageKind,
+          ambiguous.messageArguments,
+          infos: ambiguous.computeInfos(resolver.enclosingElement, reporter));
+    } else if (element.isMalformed) {
       return constructorResultForErroneous(node, element);
     } else if (element.isClass) {
       ClassElement cls = element;
       cls.computeType(resolution);
-      return constructorResultForType(node, cls.rawType);
+      return constructorResultForType(node, cls.rawType, prefix: prefix);
     } else if (element.isPrefix) {
-      return new ConstructorResult.forElement(element);
+      return new ConstructorResult.forPrefix(element);
     } else if (element.isTypedef) {
       TypedefElement typdef = element;
       typdef.ensureResolved(resolution);
@@ -666,9 +733,9 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       error = new ErroneousConstructorElementX(
           MessageKind.NOT_A_TYPE, {'node': node},
           error.name, error);
-      registry.registerThrowRuntimeError();
+      registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
     }
-    return new ConstructorResult(
+    return new ConstructorResult.forError(
         ConstructorResultKind.INVALID_TYPE,
         error,
         new MalformedType(error, null));
@@ -676,13 +743,14 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
 
   ConstructorResult constructorResultForType(
       Node node,
-      DartType type) {
+      DartType type,
+      {PrefixElement prefix}) {
     String name = type.name;
     if (type.isMalformed) {
-      return new ConstructorResult(
+      return new ConstructorResult.forError(
           ConstructorResultKind.INVALID_TYPE, type.element, type);
     } else if (type.isInterfaceType) {
-      return new ConstructorResult.forType(type);
+      return new ConstructorResult.forType(prefix, type);
     } else if (type.isTypedef) {
       return reportAndCreateErroneousConstructorElement(
           node,
@@ -702,40 +770,88 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
 
 }
 
+/// The kind of constructor found by the [ConstructorResolver].
 enum ConstructorResultKind {
+  /// A generative or redirecting generative constructor.
   GENERATIVE,
+  /// A factory or redirecting factory constructor.
   FACTORY,
+  /// A generative or redirecting generative constructor on an abstract class.
   ABSTRACT,
+  /// No constructor was found because the type was invalid, for instance
+  /// unresolved, an enum class, a type variable, a typedef or a non-type.
   INVALID_TYPE,
+  /// No constructor of the sought name was found on the class.
   UNRESOLVED_CONSTRUCTOR,
+  /// A non-constant constructor was found for a const constructor invocation.
   NON_CONSTANT,
 }
 
+/// The (partial) result of the resolution of a new expression used in
+/// [ConstructorResolver].
 class ConstructorResult {
+  /// The prefix used to access the constructor. For instance `prefix` in `new
+  /// prefix.Class.constructorName()`.
+  final PrefixElement prefix;
+
+  /// The kind of the found constructor.
   final ConstructorResultKind kind;
+
+  /// The currently found element. Since [ConstructorResult] is used for partial
+  /// results, this might be a [PrefixElement], a [ClassElement], a
+  /// [ConstructorElement] or in the negative cases an [ErroneousElement].
   final Element element;
+
+  /// The type of the new expression. For instance `Foo<String>` in
+  /// `new prefix.Foo<String>.constructorName()`.
   final DartType type;
 
-  ConstructorResult(this.kind, this.element, this.type);
+  /// Creates a fully resolved constructor access where [element] is resolved
+  /// to a constructor and [type] to an interface type.
+  ConstructorResult(this.kind,
+                    this.prefix,
+                    ConstructorElement this.element,
+                    InterfaceType this.type);
 
-  ConstructorResult.forElement(this.element)
-      : kind = null,
+  /// Creates a fully resolved constructor access where [element] is an
+  /// [ErroneousElement].
+  // TODO(johnniwinther): Do we still need the prefix for cases like
+  // `new deferred.Class.unresolvedConstructor()` ?
+  ConstructorResult.forError(
+      this.kind, ErroneousElement this.element, this.type)
+      : prefix = null;
+
+  /// Creates a constructor access that is partially resolved to a prefix. For
+  /// instance `prefix` of `new prefix.Class()`.
+  ConstructorResult.forPrefix(this.element)
+      : prefix = null,
+        kind = null,
         type = null;
 
-  ConstructorResult.forType(this.type)
+  /// Creates a constructor access that is partially resolved to a type. For
+  /// instance `Foo<String>` of `new Foo<String>.constructorName()`.
+  ConstructorResult.forType(this.prefix, this.type)
       : kind = null,
         element = null;
+
+  bool get isDeferred => prefix != null && prefix.isDeferred;
 
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('ConstructorResult(');
     if (kind != null) {
       sb.write('kind=$kind,');
+      if (prefix != null) {
+        sb.write('prefix=$prefix,');
+      }
       sb.write('element=$element,');
       sb.write('type=$type');
     } else if (element != null) {
       sb.write('element=$element');
     } else {
+      if (prefix != null) {
+        sb.write('prefix=$prefix,');
+      }
       sb.write('type=$type');
     }
     sb.write(')');

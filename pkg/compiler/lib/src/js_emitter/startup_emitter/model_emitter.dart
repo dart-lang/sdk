@@ -35,6 +35,8 @@ import '../../constants/values.dart' show
     FunctionConstantValue;
 import '../../compiler.dart' show
     Compiler;
+import '../../core_types.dart' show
+    CoreClasses;
 import '../../elements/elements.dart' show
     ClassElement,
     FunctionElement;
@@ -54,6 +56,7 @@ import '../../js_backend/js_backend.dart' show
 import '../../util/uri_extras.dart' show
     relativize;
 
+import '../constant_ordering.dart' show deepCompareConstants;
 import '../headers.dart';
 import '../js_emitter.dart' show
     NativeEmitter;
@@ -138,9 +141,9 @@ class ModelEmitter {
     // which compresses a tiny bit better.
     int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
     if (r != 0) return r;
-    // Resolve collisions in the long name by using the constant name (i.e. JS
-    // name) which is unique.
-    return namer.constantName(a).compareTo(namer.constantName(b));
+
+    // Resolve collisions in the long name by using a structural order.
+    return deepCompareConstants(a, b);
   }
 
   js.Expression generateStaticClosureAccess(FunctionElement element) {
@@ -206,7 +209,8 @@ class ModelEmitter {
       token.setHash(hunkHashes[key]);
     });
 
-    writeMainFragment(mainFragment, mainCode);
+    writeMainFragment(mainFragment, mainCode,
+      isSplit: program.deferredFragments.isNotEmpty);
 
     if (backend.requiresPreamble &&
         !backend.htmlLibraryIsLoaded) {
@@ -247,10 +251,18 @@ class ModelEmitter {
     return hunkHashes;
   }
 
+  js.Statement buildDeferredInitializerGlobal() {
+    String global = deferredInitializersGlobal;
+    return js.js.statement(
+        "if (typeof($global) === 'undefined') var # = Object.create(null);",
+        new js.VariableDeclaration(global, allowRename: false));
+  }
+
   // Writes the given [fragment]'s [code] into a file.
   //
   // Updates the shared [outputBuffers] field with the output.
-  void writeMainFragment(MainFragment fragment, js.Statement code) {
+  void writeMainFragment(MainFragment fragment, js.Statement code,
+      {bool isSplit}) {
     LineColumnCollector lineColumnCollector;
     List<CodeOutputListener> codeOutputListeners;
     if (shouldGenerateSourceMap) {
@@ -266,6 +278,7 @@ class ModelEmitter {
     js.Program program = new js.Program([
         buildGeneratedBy(),
         new js.Comment(HOOKS_API_USAGE),
+        isSplit ? buildDeferredInitializerGlobal() : new js.Block.empty(),
         code]);
 
     mainOutput.addBuffer(js.prettyPrint(program, compiler,
@@ -319,6 +332,7 @@ class ModelEmitter {
 
     js.Program program = new js.Program([
         buildGeneratedBy(),
+        buildDeferredInitializerGlobal(),
         js.js.statement('$deferredInitializersGlobal.current = #', code)]);
 
     output.addBuffer(js.prettyPrint(program, compiler,

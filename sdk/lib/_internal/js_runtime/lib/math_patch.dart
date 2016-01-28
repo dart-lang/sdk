@@ -5,6 +5,7 @@
 // Patch file for dart:math library.
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show patch, checkNum;
+import 'dart:typed_data' show ByteData;
 
 @patch
 double sqrt(num x)
@@ -57,9 +58,14 @@ const int _POW2_32 = 0x100000000;
 
 @patch
 class Random {
+  static final _secureRandom = new _JSSecureRandom();
+
   @patch
   factory Random([int seed]) =>
       (seed == null) ? const _JSRandom() : new _Random(seed);
+
+  @patch
+  factory Random.secure() => _secureRandom;
 }
 
 class _JSRandom implements Random {
@@ -234,5 +240,91 @@ class _Random implements Random {
   bool nextBool() {
     _nextState();
     return (_lo & 1) == 0;
+  }
+}
+
+
+class _JSSecureRandom implements Random {
+  // Reused buffer with room enough for a double.
+  final _buffer = new ByteData(8);
+
+  _JSSecureRandom() {
+    var crypto = JS("", "self.crypto");
+    if (crypto != null) {
+      var getRandomValues = JS("", "#.getRandomValues", crypto);
+      if (getRandomValues != null) {
+        return;
+      }
+    }
+    throw new UnsupportedError(
+        "No source of cryptographically secure random numbers available.");
+  }
+
+  /// Fill _buffer from [start] to `start + length` with random bytes.
+  void _getRandomBytes(int start, int length) {
+    JS("void", "crypto.getRandomValues(#)",
+       _buffer.buffer.asUint8List(start, length));
+  }
+
+  bool nextBool() {
+    _getRandomBytes(0, 1);
+    return _buffer.getUint8(0).isOdd;
+  }
+
+  double nextDouble() {
+    _getRandomBytes(1, 7);
+    // Set top bits 12 of double to 0x3FF which is the exponent for numbers
+    // between 1.0 and 2.0.
+    _buffer.setUint8(0, 0x3F);
+    int highByte = _buffer.getUint8(1);
+    _buffer.setUint8(1, highByte | 0xF0);
+
+    // Buffer now contains double in the range [1.0-2.0)
+    // with 52 bits of entropy (not 53).
+    // To get 53 bits, we extract the 53rd bit from higthByte before
+    // overwriting it, and add that as a least significant bit.
+    // The getFloat64 method is big-endian as default.
+    double result = _buffer.getFloat64(0) - 1.0;
+    if (highByte & 0x10 != 0) {
+      result += 1.1102230246251565e-16;  // pow(2,-53).
+    }
+    return result;
+  }
+
+  int nextInt(int max) {
+    if (max <= 0 || max > _POW2_32) {
+      throw new RangeError("max must be in range 0 < max ≤ 2^32, was $max");
+    }
+    int byteCount = 1;
+    if (max > 0xFF) {
+      byteCount++;
+      if (max > 0xFFFF) {
+        byteCount++;
+        if (max > 0xFFFFFF) {
+          byteCount++;
+        }
+      }
+    }
+    _buffer.setUint32(0, 0);
+    int start = 4 - byteCount;
+    int randomLimit = pow(256, byteCount);
+    while (true) {
+      _getRandomBytes(start, byteCount);
+      // The getUint32 method is big-endian as default.
+      int random = _buffer.getUint32(0);
+      if (max & (max - 1) == 0) {
+        // Max is power of 2.
+        return random & (max - 1);
+      }
+      int result = random.remainder(max);
+      // Ensure results have equal probability by rejecting values in the
+      // last range of k*max .. 256**byteCount.
+      // TODO: Consider picking a higher byte count if the last range is a
+      // significant portion of the entire range - a 50% chance of having
+      // to use two more bytes is no worse than always using one more.
+      if (random - result + max < randomLimit) {
+        return result;
+      }
+    }
   }
 }

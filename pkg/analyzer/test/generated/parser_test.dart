@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.parser_test;
+library analyzer.test.generated.parser_test;
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_scanner.dart';
@@ -16,7 +18,7 @@ import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:unittest/unittest.dart';
+import 'package:unittest/unittest.dart' hide Configuration;
 
 import '../reflective_tests.dart';
 import '../utils.dart';
@@ -204,45 +206,16 @@ class ComplexParserTest extends ParserTestCase {
     expect(argumentList4.arguments, hasLength(1));
   }
 
+  void test_assignableExpression_arguments_normal_chain_typeArgumentComments() {
+    enableGenericMethodComments = true;
+    _validate_assignableExpression_arguments_normal_chain_typeArguments(
+        "a/*<E>*/(b)/*<F>*/(c).d/*<G>*/(e).f");
+  }
+
   void test_assignableExpression_arguments_normal_chain_typeArguments() {
     enableGenericMethods = true;
-    PropertyAccess propertyAccess1 = parseExpression("a<E>(b)<F>(c).d<G>(e).f");
-    expect(propertyAccess1.propertyName.name, "f");
-    //
-    // a<E>(b)<F>(c).d>G?(e)
-    //
-    MethodInvocation invocation2 = EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodInvocation,
-        MethodInvocation,
-        propertyAccess1.target);
-    expect(invocation2.methodName.name, "d");
-    expect(invocation2.typeArguments, isNotNull);
-    ArgumentList argumentList2 = invocation2.argumentList;
-    expect(argumentList2, isNotNull);
-    expect(argumentList2.arguments, hasLength(1));
-    //
-    // a<E>(b)<F>(c)
-    //
-    FunctionExpressionInvocation invocation3 = EngineTestCase.assertInstanceOf(
-        (obj) => obj is FunctionExpressionInvocation,
-        FunctionExpressionInvocation,
-        invocation2.target);
-    expect(invocation3.typeArguments, isNotNull);
-    ArgumentList argumentList3 = invocation3.argumentList;
-    expect(argumentList3, isNotNull);
-    expect(argumentList3.arguments, hasLength(1));
-    //
-    // a(b)
-    //
-    MethodInvocation invocation4 = EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodInvocation,
-        MethodInvocation,
-        invocation3.function);
-    expect(invocation4.methodName.name, "a");
-    expect(invocation4.typeArguments, isNotNull);
-    ArgumentList argumentList4 = invocation4.argumentList;
-    expect(argumentList4, isNotNull);
-    expect(argumentList4.arguments, hasLength(1));
+    _validate_assignableExpression_arguments_normal_chain_typeArguments(
+        "a<E>(b)<F>(c).d<G>(e).f");
   }
 
   void test_assignmentExpression_compound() {
@@ -528,6 +501,47 @@ class C {
     BinaryExpression expression = parseExpression("super >> 4 << 3");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.leftOperand);
+  }
+
+  void _validate_assignableExpression_arguments_normal_chain_typeArguments(
+      String code) {
+    PropertyAccess propertyAccess1 = parseExpression(code);
+    expect(propertyAccess1.propertyName.name, "f");
+    //
+    // a<E>(b)<F>(c).d<G>(e)
+    //
+    MethodInvocation invocation2 = EngineTestCase.assertInstanceOf(
+        (obj) => obj is MethodInvocation,
+        MethodInvocation,
+        propertyAccess1.target);
+    expect(invocation2.methodName.name, "d");
+    expect(invocation2.typeArguments, isNotNull);
+    ArgumentList argumentList2 = invocation2.argumentList;
+    expect(argumentList2, isNotNull);
+    expect(argumentList2.arguments, hasLength(1));
+    //
+    // a<E>(b)<F>(c)
+    //
+    FunctionExpressionInvocation invocation3 = EngineTestCase.assertInstanceOf(
+        (obj) => obj is FunctionExpressionInvocation,
+        FunctionExpressionInvocation,
+        invocation2.target);
+    expect(invocation3.typeArguments, isNotNull);
+    ArgumentList argumentList3 = invocation3.argumentList;
+    expect(argumentList3, isNotNull);
+    expect(argumentList3.arguments, hasLength(1));
+    //
+    // a(b)
+    //
+    MethodInvocation invocation4 = EngineTestCase.assertInstanceOf(
+        (obj) => obj is MethodInvocation,
+        MethodInvocation,
+        invocation3.function);
+    expect(invocation4.methodName.name, "a");
+    expect(invocation4.typeArguments, isNotNull);
+    ArgumentList argumentList4 = invocation4.argumentList;
+    expect(argumentList4, isNotNull);
+    expect(argumentList4.arguments, hasLength(1));
   }
 }
 
@@ -923,6 +937,18 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT]);
   }
 
+  void test_enableAsync_false_1() {
+    parseAsync = false;
+    parse4("parseFunctionDeclarationStatement",
+        "foo() async {}", [ParserErrorCode.ASYNC_NOT_SUPPORTED]);
+  }
+
+  void test_enableAsync_false_2() {
+    parseAsync = false;
+    parse4("parseFunctionDeclarationStatement",
+        "foo() sync* {}", [ParserErrorCode.ASYNC_NOT_SUPPORTED]);
+  }
+
   void test_emptyEnumBody() {
     parse3("parseEnumDeclaration", <Object>[emptyCommentAndMetadata()],
         "enum E {}", [ParserErrorCode.EMPTY_ENUM_BODY]);
@@ -1058,8 +1084,8 @@ class Foo {
   }
 
   void test_expectedToken_whileMissingInDoStatement() {
-    ParserTestCase.parseStatement(
-        "do {} (x);", [ParserErrorCode.EXPECTED_TOKEN]);
+    ParserTestCase
+        .parseStatement("do {} (x);", [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_expectedTypeName_is() {
@@ -1241,8 +1267,8 @@ class Foo {
   }
 
   void test_getterInFunction_expression_noReturnType() {
-    ParserTestCase.parseStatement(
-        "get x => _x;", [ParserErrorCode.GETTER_IN_FUNCTION]);
+    ParserTestCase
+        .parseStatement("get x => _x;", [ParserErrorCode.GETTER_IN_FUNCTION]);
   }
 
   void test_getterInFunction_expression_returnType() {
@@ -1330,6 +1356,11 @@ class Foo {
 
   void test_invalidInterpolationIdentifier_startWithDigit() {
     parse4("parseStringLiteral", "'\$1'", [ParserErrorCode.MISSING_IDENTIFIER]);
+  }
+
+  void test_invalidLiteralInConfiguration() {
+    parse4("parseConfiguration", "if (a == 'x \$y z') 'a.dart'",
+        [ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION]);
   }
 
   void test_invalidOperator() {
@@ -1424,6 +1455,44 @@ class Foo {
   void test_localFunctionDeclarationModifier_static() {
     ParserTestCase.parseStatement(
         "static f() {}", [ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER]);
+  }
+
+  void test_method_invalidTypeParameterComments() {
+    enableGenericMethodComments = true;
+    MethodDeclaration method = parse3(
+        "parseClassMember",
+        <Object>["C"],
+        "void m/*<E, hello!>*/() {}",
+        [
+          ParserErrorCode.EXPECTED_TOKEN /*>*/,
+          ParserErrorCode.MISSING_IDENTIFIER,
+          ParserErrorCode.EXPECTED_TOKEN /*(*/,
+          ParserErrorCode.EXPECTED_TOKEN /*)*/,
+          ParserErrorCode.MISSING_FUNCTION_BODY
+        ]);
+    expect(method.typeParameters.toString(), '<E, hello>',
+        reason: 'parser recovers what it can');
+  }
+
+  void test_method_invalidTypeParameters() {
+    // TODO(jmesserly): ideally we'd be better at parser recovery here.
+    // It doesn't try to advance past the invalid token `!` to find the
+    // valid `>`. If it did we'd get less cascading errors, at least for this
+    // particular example.
+    enableGenericMethods = true;
+    MethodDeclaration method = parse3(
+        "parseClassMember",
+        <Object>["C"],
+        "void m<E, hello!>() {}",
+        [
+          ParserErrorCode.EXPECTED_TOKEN /*>*/,
+          ParserErrorCode.MISSING_IDENTIFIER,
+          ParserErrorCode.EXPECTED_TOKEN /*(*/,
+          ParserErrorCode.EXPECTED_TOKEN /*)*/,
+          ParserErrorCode.MISSING_FUNCTION_BODY
+        ]);
+    expect(method.typeParameters.toString(), '<E, hello>',
+        reason: 'parser recovers what it can');
   }
 
   void test_missingAssignableSelector_identifiersAssigned() {
@@ -1907,9 +1976,9 @@ class Foo {
         "parseSwitchStatement",
         "switch (a) {default: return 0; default: return 1; default: return 2;}",
         [
-      ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
-      ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES
-    ]);
+          ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
+          ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES
+        ]);
   }
 
   void test_topLevel_getter() {
@@ -1999,10 +2068,10 @@ class Foo {
 void main() {
   var x = "''',
         [
-      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN
+        ]);
   }
 
   void test_unterminatedString_at_eol() {
@@ -2028,10 +2097,10 @@ void main() {
 void main() {
   var x = """''',
         [
-      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN
+        ]);
   }
 
   void test_unterminatedString_multiline_at_eof_4_quotes() {
@@ -2043,10 +2112,10 @@ void main() {
 void main() {
   var x = """"''',
         [
-      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN
+        ]);
   }
 
   void test_unterminatedString_multiline_at_eof_5_quotes() {
@@ -2058,10 +2127,10 @@ void main() {
 void main() {
   var x = """""''',
         [
-      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN
+        ]);
   }
 
   void test_useOfUnaryPlusOperator() {
@@ -2078,8 +2147,8 @@ void main() {
   }
 
   void test_varAndType_topLevelVariable() {
-    ParserTestCase.parseCompilationUnit(
-        "var int x;", [ParserErrorCode.VAR_AND_TYPE]);
+    ParserTestCase
+        .parseCompilationUnit("var int x;", [ParserErrorCode.VAR_AND_TYPE]);
   }
 
   void test_varAsTypeName_as() {
@@ -2087,13 +2156,13 @@ void main() {
   }
 
   void test_varClass() {
-    ParserTestCase.parseCompilationUnit(
-        "var class C {}", [ParserErrorCode.VAR_CLASS]);
+    ParserTestCase
+        .parseCompilationUnit("var class C {}", [ParserErrorCode.VAR_CLASS]);
   }
 
   void test_varEnum() {
-    ParserTestCase.parseCompilationUnit(
-        "var enum E {ONE}", [ParserErrorCode.VAR_ENUM]);
+    ParserTestCase
+        .parseCompilationUnit("var enum E {ONE}", [ParserErrorCode.VAR_ENUM]);
   }
 
   void test_varReturnType() {
@@ -2122,13 +2191,13 @@ void main() {
   }
 
   void test_voidVariable_parseCompilationUnit_initializer() {
-    ParserTestCase.parseCompilationUnit(
-        "void x = 0;", [ParserErrorCode.VOID_VARIABLE]);
+    ParserTestCase
+        .parseCompilationUnit("void x = 0;", [ParserErrorCode.VOID_VARIABLE]);
   }
 
   void test_voidVariable_parseCompilationUnit_noInitializer() {
-    ParserTestCase.parseCompilationUnit(
-        "void x;", [ParserErrorCode.VOID_VARIABLE]);
+    ParserTestCase
+        .parseCompilationUnit("void x;", [ParserErrorCode.VOID_VARIABLE]);
   }
 
   void test_voidVariable_parseCompilationUnitMember_initializer() {
@@ -2590,10 +2659,26 @@ class ParserTestCase extends EngineTestCase {
   static bool parseFunctionBodies = true;
 
   /**
+   * A flag indicating whether parser is to parse async.
+   */
+  bool parseAsync = true;
+
+  /**
+   * A flag indicating whether conditional directives support should be enabled
+   * for a specific test.
+   */
+  bool enableConditionalDirectives = false;
+
+  /**
    * A flag indicating whether generic method support should be enabled for a
    * specific test.
    */
   bool enableGenericMethods = false;
+
+  /**
+   * Whether generic method comments should be enabled for the test.
+   */
+  bool enableGenericMethodComments = false;
 
   /**
    * Return a CommentAndMetadata object with the given values that can be used for testing.
@@ -2638,13 +2723,17 @@ class ParserTestCase extends EngineTestCase {
     //
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
+    scanner.scanGenericMethodComments = enableGenericMethodComments;
     Token tokenStream = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     //
     // Parse the source.
     //
     Parser parser = createParser(listener);
+    parser.parseAsync = parseAsync;
+    parser.parseConditionalDirectives = enableConditionalDirectives;
     parser.parseGenericMethods = enableGenericMethods;
+    parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.parseFunctionBodies = parseFunctionBodies;
     Object result =
         invokeParserMethodImpl(parser, methodName, objects, tokenStream);
@@ -2772,10 +2861,12 @@ class ParserTestCase extends EngineTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
+    scanner.scanGenericMethodComments = enableGenericMethodComments;
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = createParser(listener);
     parser.parseGenericMethods = enableGenericMethods;
+    parser.parseGenericMethodComments = enableGenericMethodComments;
     Expression expression = parser.parseExpression(token);
     expect(expression, isNotNull);
     listener.assertErrorsWithCodes(errorCodes);
@@ -3412,8 +3503,8 @@ class B = Object with A {}''',
   }
 
   void test_incomplete_topLevelVariable() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
-        "String", [ParserErrorCode.EXPECTED_EXECUTABLE]);
+    CompilationUnit unit = ParserTestCase
+        .parseCompilationUnit("String", [ParserErrorCode.EXPECTED_EXECUTABLE]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
@@ -3562,8 +3653,8 @@ class C {
   }
 
   void test_incompleteLocalVariable_atTheEndOfBlock() {
-    Statement statement = ParserTestCase.parseStatement(
-        'String v }', [ParserErrorCode.EXPECTED_TOKEN]);
+    Statement statement = ParserTestCase
+        .parseStatement('String v }', [ParserErrorCode.EXPECTED_TOKEN]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
     expect(statement.toSource(), 'String v;');
   }
@@ -3583,15 +3674,15 @@ class C {
   }
 
   void test_incompleteLocalVariable_beforeNextBlock() {
-    Statement statement = ParserTestCase.parseStatement(
-        'String v {}', [ParserErrorCode.EXPECTED_TOKEN]);
+    Statement statement = ParserTestCase
+        .parseStatement('String v {}', [ParserErrorCode.EXPECTED_TOKEN]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
     expect(statement.toSource(), 'String v;');
   }
 
   void test_incompleteLocalVariable_parameterizedType() {
-    Statement statement = ParserTestCase.parseStatement(
-        'List<String> v {}', [ParserErrorCode.EXPECTED_TOKEN]);
+    Statement statement = ParserTestCase
+        .parseStatement('List<String> v {}', [ParserErrorCode.EXPECTED_TOKEN]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
     expect(statement.toSource(), 'List<String> v;');
   }
@@ -4641,6 +4732,13 @@ class SimpleParserTest extends ParserTestCase {
     expect(identifier.offset, 5);
   }
 
+  void fail_parseStatement_functionDeclaration_noReturnType_typeParameters() {
+    enableGenericMethods = true;
+    FunctionDeclarationStatement statement =
+        parse4("parseStatement", "f<E>(a, b) {};");
+    expect(statement.functionDeclaration, isNotNull);
+  }
+
   void test_computeStringValue_emptyInterpolationPrefix() {
     expect(_computeStringValue("'''", true, false), "");
   }
@@ -4739,28 +4837,34 @@ class SimpleParserTest extends ParserTestCase {
     ParserTestCase.parseCompilationUnit("var x = () {};");
   }
 
-  void test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer() {
+  void
+      test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer() {
     ParserTestCase.parseCompilationUnit("class C { C() : a = f(() {}); }");
   }
 
-  void test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer() {
+  void
+      test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer() {
     ParserTestCase.parseCompilationUnit("class C { C() : a = x[() {}]; }");
   }
 
-  void test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer() {
+  void
+      test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer() {
     ParserTestCase.parseCompilationUnit("class C { C() : a = [() {}]; }");
   }
 
-  void test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer() {
+  void
+      test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer() {
     ParserTestCase
         .parseCompilationUnit("class C { C() : a = {'key': () {}}; }");
   }
 
-  void test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer() {
+  void
+      test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer() {
     ParserTestCase.parseCompilationUnit("class C { C() : a = (() {}); }");
   }
 
-  void test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer() {
+  void
+      test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer() {
     ParserTestCase.parseCompilationUnit("class C { C() : a = \"\${(){}}\"; }");
   }
 
@@ -5092,6 +5196,36 @@ class SimpleParserTest extends ParserTestCase {
     expect(statement.assertKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.condition, isNotNull);
+    expect(statement.comma, isNull);
+    expect(statement.message, isNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.semicolon, isNotNull);
+  }
+
+  void test_parseAssertStatement_messageLowPrecedence() {
+    // Using a throw expression as an assert message would be silly in
+    // practice, but it's the lowest precedence expression type, so verifying
+    // that it works should give us high confidence that other expression types
+    // will work as well.
+    AssertStatement statement =
+        parse4('parseAssertStatement', 'assert (x, throw "foo");');
+    expect(statement.assertKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.comma, isNotNull);
+    expect(statement.message, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.semicolon, isNotNull);
+  }
+
+  void test_parseAssertStatement_messageString() {
+    AssertStatement statement =
+        parse4('parseAssertStatement', 'assert (x, "foo");');
+    expect(statement.assertKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.comma, isNotNull);
+    expect(statement.message, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.semicolon, isNotNull);
   }
@@ -5103,6 +5237,22 @@ class SimpleParserTest extends ParserTestCase {
         propertyAccess.target as FunctionExpressionInvocation;
     expect(invocation.function, isNotNull);
     expect(invocation.typeArguments, isNull);
+    ArgumentList argumentList = invocation.argumentList;
+    expect(argumentList, isNotNull);
+    expect(argumentList.arguments, hasLength(1));
+    expect(propertyAccess.operator, isNotNull);
+    expect(propertyAccess.propertyName, isNotNull);
+  }
+
+  void
+      test_parseAssignableExpression_expression_args_dot_typeParameterComments() {
+    enableGenericMethodComments = true;
+    PropertyAccess propertyAccess =
+        parse("parseAssignableExpression", <Object>[false], "(x)/*<F>*/(y).z");
+    FunctionExpressionInvocation invocation =
+        propertyAccess.target as FunctionExpressionInvocation;
+    expect(invocation.function, isNotNull);
+    expect(invocation.typeArguments, isNotNull);
     ArgumentList argumentList = invocation.argumentList;
     expect(argumentList, isNotNull);
     expect(argumentList.arguments, hasLength(1));
@@ -5162,6 +5312,21 @@ class SimpleParserTest extends ParserTestCase {
     MethodInvocation invocation = propertyAccess.target as MethodInvocation;
     expect(invocation.methodName.name, "x");
     expect(invocation.typeArguments, isNull);
+    ArgumentList argumentList = invocation.argumentList;
+    expect(argumentList, isNotNull);
+    expect(argumentList.arguments, hasLength(1));
+    expect(propertyAccess.operator, isNotNull);
+    expect(propertyAccess.propertyName, isNotNull);
+  }
+
+  void
+      test_parseAssignableExpression_identifier_args_dot_typeParameterComments() {
+    enableGenericMethodComments = true;
+    PropertyAccess propertyAccess =
+        parse("parseAssignableExpression", <Object>[false], "x/*<E>*/(y).z");
+    MethodInvocation invocation = propertyAccess.target as MethodInvocation;
+    expect(invocation.methodName.name, "x");
+    expect(invocation.typeArguments, isNotNull);
     ArgumentList argumentList = invocation.argumentList;
     expect(argumentList, isNotNull);
     expect(argumentList.arguments, hasLength(1));
@@ -5391,6 +5556,16 @@ class SimpleParserTest extends ParserTestCase {
     expect(section.argumentList, isNotNull);
   }
 
+  void test_parseCascadeSection_ia_typeArgumentComments() {
+    enableGenericMethodComments = true;
+    FunctionExpressionInvocation section =
+        parse4("parseCascadeSection", "..[i]/*<E>*/(b)");
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is IndexExpression, IndexExpression, section.function);
+    expect(section.typeArguments, isNotNull);
+    expect(section.argumentList, isNotNull);
+  }
+
   void test_parseCascadeSection_ia_typeArguments() {
     enableGenericMethods = true;
     FunctionExpressionInvocation section =
@@ -5408,6 +5583,19 @@ class SimpleParserTest extends ParserTestCase {
     expect(section.operator, isNotNull);
     expect(section.methodName, isNotNull);
     expect(section.typeArguments, isNull);
+    expect(section.argumentList, isNotNull);
+    expect(section.argumentList.arguments, hasLength(1));
+  }
+
+  void test_parseCascadeSection_ii_typeArgumentComments() {
+    enableGenericMethodComments = true;
+    MethodInvocation section =
+        parse4("parseCascadeSection", "..a/*<E>*/(b).c/*<F>*/(d)");
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is MethodInvocation, MethodInvocation, section.target);
+    expect(section.operator, isNotNull);
+    expect(section.methodName, isNotNull);
+    expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
     expect(section.argumentList.arguments, hasLength(1));
   }
@@ -5450,6 +5638,17 @@ class SimpleParserTest extends ParserTestCase {
         (obj) => obj is IntegerLiteral, IntegerLiteral, rhs);
   }
 
+  void test_parseCascadeSection_p_assign_withCascade_typeArgumentComments() {
+    enableGenericMethodComments = true;
+    AssignmentExpression section =
+        parse4("parseCascadeSection", "..a = 3..m/*<E>*/()");
+    expect(section.leftHandSide, isNotNull);
+    expect(section.operator, isNotNull);
+    Expression rhs = section.rightHandSide;
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is IntegerLiteral, IntegerLiteral, rhs);
+  }
+
   void test_parseCascadeSection_p_assign_withCascade_typeArguments() {
     enableGenericMethods = true;
     AssignmentExpression section =
@@ -5478,6 +5677,17 @@ class SimpleParserTest extends ParserTestCase {
     expect(section.argumentList.arguments, hasLength(1));
   }
 
+  void test_parseCascadeSection_pa_typeArgumentComments() {
+    enableGenericMethodComments = true;
+    MethodInvocation section = parse4("parseCascadeSection", "..a/*<E>*/(b)");
+    expect(section.target, isNull);
+    expect(section.operator, isNotNull);
+    expect(section.methodName, isNotNull);
+    expect(section.typeArguments, isNotNull);
+    expect(section.argumentList, isNotNull);
+    expect(section.argumentList.arguments, hasLength(1));
+  }
+
   void test_parseCascadeSection_pa_typeArguments() {
     enableGenericMethods = true;
     MethodInvocation section = parse4("parseCascadeSection", "..a<E>(b)");
@@ -5495,6 +5705,17 @@ class SimpleParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodInvocation, MethodInvocation, section.function);
     expect(section.typeArguments, isNull);
+    expect(section.argumentList, isNotNull);
+    expect(section.argumentList.arguments, hasLength(1));
+  }
+
+  void test_parseCascadeSection_paa_typeArgumentComments() {
+    enableGenericMethodComments = true;
+    FunctionExpressionInvocation section =
+        parse4("parseCascadeSection", "..a/*<E>*/(b)/*<F>*/(c)");
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is MethodInvocation, MethodInvocation, section.function);
+    expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
     expect(section.argumentList.arguments, hasLength(1));
   }
@@ -5520,6 +5741,17 @@ class SimpleParserTest extends ParserTestCase {
     expect(section.argumentList.arguments, hasLength(1));
   }
 
+  void test_parseCascadeSection_paapaa_typeArgumentComments() {
+    enableGenericMethodComments = true;
+    FunctionExpressionInvocation section = parse4(
+        "parseCascadeSection", "..a/*<E>*/(b)/*<F>*/(c).d/*<G>*/(e)/*<H>*/(f)");
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is MethodInvocation, MethodInvocation, section.function);
+    expect(section.typeArguments, isNotNull);
+    expect(section.argumentList, isNotNull);
+    expect(section.argumentList.arguments, hasLength(1));
+  }
+
   void test_parseCascadeSection_paapaa_typeArguments() {
     enableGenericMethods = true;
     FunctionExpressionInvocation section =
@@ -5533,6 +5765,14 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseCascadeSection_pap() {
     PropertyAccess section = parse4("parseCascadeSection", "..a(b).c");
+    expect(section.target, isNotNull);
+    expect(section.operator, isNotNull);
+    expect(section.propertyName, isNotNull);
+  }
+
+  void test_parseCascadeSection_pap_typeArgumentComments() {
+    enableGenericMethodComments = true;
+    PropertyAccess section = parse4("parseCascadeSection", "..a/*<E>*/(b).c");
     expect(section.target, isNotNull);
     expect(section.operator, isNotNull);
     expect(section.propertyName, isNotNull);
@@ -5865,6 +6105,74 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
+  }
+
+  void test_parseClassMember_method_generic_comment_noReturnType() {
+    enableGenericMethodComments = true;
+    MethodDeclaration method =
+        parse("parseClassMember", <Object>["C"], "m/*<T>*/() {}");
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_method_generic_comment_returnType() {
+    enableGenericMethodComments = true;
+    MethodDeclaration method =
+        parse("parseClassMember", <Object>["C"], "/*=T*/ m/*<T>*/() {}");
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType.name.name, 'T');
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_method_generic_comment_returnType_bound() {
+    enableGenericMethodComments = true;
+    MethodDeclaration method = parse("parseClassMember", <Object>["C"],
+        "num/*=T*/ m/*<T extends num>*/() {}");
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType.name.name, 'T');
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+    TypeParameter tp = method.typeParameters.typeParameters[0];
+    expect(tp.name.name, 'T');
+    expect(tp.extendsKeyword, isNotNull);
+    expect(tp.bound.name.name, 'num');
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_method_generic_comment_void() {
+    enableGenericMethodComments = true;
+    MethodDeclaration method =
+        parse("parseClassMember", <Object>["C"], "void m/*<T>*/() {}");
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_method_generic_noReturnType() {
@@ -6474,6 +6782,28 @@ void''');
     expect(reference.offset, 35);
   }
 
+  void test_parseCommentReferences_skipCodeBlock_4spaces_block() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
+          "/**\n *     a[i]\n * non-code line\n */", 3)
+    ];
+    List<CommentReference> references =
+        parse("parseCommentReferences", <Object>[tokens], "");
+    expect(references, isEmpty);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_4spaces_lines() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.SINGLE_LINE_COMMENT, "/// Code block:", 0),
+      new DocumentationCommentToken(
+          TokenType.SINGLE_LINE_COMMENT, "///     a[i] == b[i]", 0)
+    ];
+    List<CommentReference> references =
+        parse("parseCommentReferences", <Object>[tokens], "");
+    expect(references, isEmpty);
+  }
+
   void test_parseCommentReferences_skipCodeBlock_bracketed() {
     List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
       new DocumentationCommentToken(
@@ -6486,6 +6816,30 @@ void''');
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
     expect(reference.offset, 24);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_gitHub() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.MULTI_LINE_COMMENT, "/** `a[i]` and [b] */", 0)
+    ];
+    List<CommentReference> references =
+        parse("parseCommentReferences", <Object>[tokens], "");
+    expect(references, hasLength(1));
+    CommentReference reference = references[0];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 16);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_gitHub_notTerminated() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.MULTI_LINE_COMMENT, "/** `a[i] and [b] */", 0)
+    ];
+    List<CommentReference> references =
+        parse("parseCommentReferences", <Object>[tokens], "");
+    expect(references, hasLength(2));
   }
 
   void test_parseCommentReferences_skipCodeBlock_spaces() {
@@ -6702,6 +7056,30 @@ void''');
     expect(declaration.propertyKeyword, isNull);
   }
 
+  void test_parseCompilationUnitMember_function_generic_noReturnType() {
+    enableGenericMethods = true;
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember",
+        <Object>[emptyCommentAndMetadata()], "f<E>() {}");
+    expect(declaration.returnType, isNull);
+    expect(declaration.functionExpression.typeParameters, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_function_generic_returnType() {
+    enableGenericMethods = true;
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember",
+        <Object>[emptyCommentAndMetadata()], "E f<E>() {}");
+    expect(declaration.returnType, isNotNull);
+    expect(declaration.functionExpression.typeParameters, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_function_generic_void() {
+    enableGenericMethods = true;
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember",
+        <Object>[emptyCommentAndMetadata()], "void f<T>(T t) {}");
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
+  }
+
   void test_parseCompilationUnitMember_function_noType() {
     FunctionDeclaration declaration = parse("parseCompilationUnitMember",
         <Object>[emptyCommentAndMetadata()], "f() {}");
@@ -6885,6 +7263,54 @@ void''');
     expect(expression.thenExpression, isNotNull);
     expect(expression.colon, isNotNull);
     expect(expression.elseExpression, isNotNull);
+  }
+
+  void test_parseConfiguration_noOperator_dottedIdentifier() {
+    Configuration configuration =
+        parse4('parseConfiguration', "if (a.b) 'c.dart'");
+    expect(configuration.ifKeyword, isNotNull);
+    expect(configuration.leftParenthesis, isNotNull);
+    _expectDottedName(configuration.name, ["a", "b"]);
+    expect(configuration.equalToken, isNull);
+    expect(configuration.value, isNull);
+    expect(configuration.rightParenthesis, isNotNull);
+    expect(configuration.libraryUri, isNotNull);
+  }
+
+  void test_parseConfiguration_noOperator_simpleIdentifier() {
+    Configuration configuration =
+        parse4('parseConfiguration', "if (a) 'b.dart'");
+    expect(configuration.ifKeyword, isNotNull);
+    expect(configuration.leftParenthesis, isNotNull);
+    _expectDottedName(configuration.name, ["a"]);
+    expect(configuration.equalToken, isNull);
+    expect(configuration.value, isNull);
+    expect(configuration.rightParenthesis, isNotNull);
+    expect(configuration.libraryUri, isNotNull);
+  }
+
+  void test_parseConfiguration_operator_dottedIdentifier() {
+    Configuration configuration =
+        parse4('parseConfiguration', "if (a.b == 'c') 'd.dart'");
+    expect(configuration.ifKeyword, isNotNull);
+    expect(configuration.leftParenthesis, isNotNull);
+    _expectDottedName(configuration.name, ["a", "b"]);
+    expect(configuration.equalToken, isNotNull);
+    expect(configuration.value, isNotNull);
+    expect(configuration.rightParenthesis, isNotNull);
+    expect(configuration.libraryUri, isNotNull);
+  }
+
+  void test_parseConfiguration_operator_simpleIdentifier() {
+    Configuration configuration =
+        parse4('parseConfiguration', "if (a == 'b') 'c.dart'");
+    expect(configuration.ifKeyword, isNotNull);
+    expect(configuration.leftParenthesis, isNotNull);
+    _expectDottedName(configuration.name, ["a"]);
+    expect(configuration.equalToken, isNotNull);
+    expect(configuration.value, isNotNull);
+    expect(configuration.rightParenthesis, isNotNull);
+    expect(configuration.libraryUri, isNotNull);
   }
 
   void test_parseConstExpression_instanceCreation() {
@@ -7152,6 +7578,16 @@ void''');
     expect(statement.semicolon, isNotNull);
   }
 
+  void test_parseDottedName_multiple() {
+    DottedName name = parse4("parseDottedName", "a.b.c");
+    _expectDottedName(name, ["a", "b", "c"]);
+  }
+
+  void test_parseDottedName_single() {
+    DottedName name = parse4("parseDottedName", "a");
+    _expectDottedName(name, ["a"]);
+  }
+
   void test_parseEmptyStatement() {
     EmptyStatement statement = parse4("parseEmptyStatement", ";");
     expect(statement.semicolon, isNotNull);
@@ -7206,6 +7642,35 @@ void''');
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.EQ_EQ);
     expect(expression.rightOperand, isNotNull);
+  }
+
+  void test_parseExportDirective_configuration_multiple() {
+    enableConditionalDirectives = true;
+    ExportDirective directive = parse(
+        "parseExportDirective",
+        <Object>[emptyCommentAndMetadata()],
+        "export 'lib/lib.dart' if (a) 'b.dart' if (c) 'd.dart';");
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.configurations, hasLength(2));
+    _expectDottedName(directive.configurations[0].name, ['a']);
+    _expectDottedName(directive.configurations[1].name, ['c']);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseExportDirective_configuration_single() {
+    enableConditionalDirectives = true;
+    ExportDirective directive = parse(
+        "parseExportDirective",
+        <Object>[emptyCommentAndMetadata()],
+        "export 'lib/lib.dart' if (a.b == 'c.dart') '';");
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.configurations, hasLength(1));
+    _expectDottedName(directive.configurations[0].name, ['a', 'b']);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseExportDirective_hide() {
@@ -7339,6 +7804,15 @@ void''');
     expect(invocation.argumentList, isNotNull);
   }
 
+  void test_parseExpression_superMethodInvocation_typeArgumentComments() {
+    enableGenericMethodComments = true;
+    MethodInvocation invocation = parse4("parseExpression", "super.m/*<E>*/()");
+    expect(invocation.target, isNotNull);
+    expect(invocation.methodName, isNotNull);
+    expect(invocation.typeArguments, isNotNull);
+    expect(invocation.argumentList, isNotNull);
+  }
+
   void test_parseExpression_superMethodInvocation_typeArguments() {
     enableGenericMethods = true;
     MethodInvocation invocation = parse4("parseExpression", "super.m<E>()");
@@ -7386,7 +7860,19 @@ void''');
     expect(invocation.argumentList, isNotNull);
   }
 
-  void test_parseExpressionWithoutCascade_superMethodInvocation_typeArguments() {
+  void
+      test_parseExpressionWithoutCascade_superMethodInvocation_typeArgumentComments() {
+    enableGenericMethodComments = true;
+    MethodInvocation invocation =
+        parse4("parseExpressionWithoutCascade", "super.m/*<E>*/()");
+    expect(invocation.target, isNotNull);
+    expect(invocation.methodName, isNotNull);
+    expect(invocation.typeArguments, isNotNull);
+    expect(invocation.argumentList, isNotNull);
+  }
+
+  void
+      test_parseExpressionWithoutCascade_superMethodInvocation_typeArguments() {
     enableGenericMethods = true;
     MethodInvocation invocation =
         parse4("parseExpressionWithoutCascade", "super.m<E>()");
@@ -8148,6 +8634,25 @@ void''');
     expect(declaration.propertyKeyword, isNull);
   }
 
+  void test_parseFunctionDeclaration_functionWithTypeParameters_comment() {
+    enableGenericMethodComments = true;
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
+    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    FunctionDeclaration declaration = parse(
+        "parseFunctionDeclaration",
+        <Object>[commentAndMetadata(comment), null, returnType],
+        "f/*<E>*/() {}");
+    expect(declaration.documentationComment, comment);
+    expect(declaration.returnType, returnType);
+    expect(declaration.name, isNotNull);
+    FunctionExpression expression = declaration.functionExpression;
+    expect(expression, isNotNull);
+    expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNotNull);
+    expect(expression.parameters, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
+  }
+
   void test_parseFunctionDeclaration_getter() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
@@ -8186,11 +8691,26 @@ void''');
     expect(statement.functionDeclaration, isNotNull);
   }
 
+  void test_parseFunctionDeclarationStatement_typeParameterComments() {
+    enableGenericMethodComments = true;
+    FunctionDeclarationStatement statement = parse4(
+        "parseFunctionDeclarationStatement",
+        "/*=E*/ f/*<E>*/(/*=E*/ p) => p * 2;");
+    FunctionDeclaration f = statement.functionDeclaration;
+    expect(f, isNotNull);
+    expect(f.functionExpression.typeParameters, isNotNull);
+    expect(f.returnType, isNotNull);
+    SimpleFormalParameter p = f.functionExpression.parameters.parameters[0];
+    expect(p.type, isNotNull);
+  }
+
   void test_parseFunctionDeclarationStatement_typeParameters() {
     enableGenericMethods = true;
     FunctionDeclarationStatement statement =
         parse4("parseFunctionDeclarationStatement", "E f<E>(E p) => p * 2;");
     expect(statement.functionDeclaration, isNotNull);
+    expect(statement.functionDeclaration.functionExpression.typeParameters,
+        isNotNull);
   }
 
   void test_parseFunctionExpression_body_inExpression() {
@@ -8200,6 +8720,18 @@ void''');
     expect(expression.typeParameters, isNull);
     expect(expression.parameters, isNotNull);
     expect((expression.body as ExpressionFunctionBody).semicolon, isNull);
+  }
+
+  void test_parseFunctionExpression_typeParameterComments() {
+    enableGenericMethodComments = true;
+    FunctionExpression expression =
+        parse4("parseFunctionExpression", "/*<E>*/(/*=E*/ i) => i++");
+    expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNotNull);
+    expect(expression.parameters, isNotNull);
+    expect((expression.body as ExpressionFunctionBody).semicolon, isNull);
+    SimpleFormalParameter p = expression.parameters.parameters[0];
+    expect(p.type, isNotNull);
   }
 
   void test_parseFunctionExpression_typeParameters() {
@@ -8316,6 +8848,41 @@ void''');
     ImplementsClause clause = parse4("parseImplementsClause", "implements A");
     expect(clause.interfaces, hasLength(1));
     expect(clause.implementsKeyword, isNotNull);
+  }
+
+  void test_parseImportDirective_configuration_multiple() {
+    enableConditionalDirectives = true;
+    ImportDirective directive = parse(
+        "parseImportDirective",
+        <Object>[emptyCommentAndMetadata()],
+        "import 'lib/lib.dart' if (a) 'b.dart' if (c) 'd.dart';");
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.configurations, hasLength(2));
+    _expectDottedName(directive.configurations[0].name, ['a']);
+    _expectDottedName(directive.configurations[1].name, ['c']);
+    expect(directive.deferredKeyword, isNull);
+    expect(directive.asKeyword, isNull);
+    expect(directive.prefix, isNull);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseImportDirective_configuration_single() {
+    enableConditionalDirectives = true;
+    ImportDirective directive = parse(
+        "parseImportDirective",
+        <Object>[emptyCommentAndMetadata()],
+        "import 'lib/lib.dart' if (a.b == 'c.dart') '';");
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.configurations, hasLength(1));
+    _expectDottedName(directive.configurations[0].name, ['a', 'b']);
+    expect(directive.deferredKeyword, isNull);
+    expect(directive.asKeyword, isNull);
+    expect(directive.prefix, isNull);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseImportDirective_deferred() {
@@ -8951,6 +9518,16 @@ void''');
     expect(parameter.parameters, isNotNull);
   }
 
+  void test_parseNormalFormalParameter_function_noType_typeParameterComments() {
+    enableGenericMethodComments = true;
+    FunctionTypedFormalParameter parameter =
+        parse4("parseNormalFormalParameter", "a/*<E>*/())");
+    expect(parameter.returnType, isNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNotNull);
+    expect(parameter.parameters, isNotNull);
+  }
+
   void test_parseNormalFormalParameter_function_noType_typeParameters() {
     enableGenericMethods = true;
     FunctionTypedFormalParameter parameter =
@@ -8970,6 +9547,16 @@ void''');
     expect(parameter.parameters, isNotNull);
   }
 
+  void test_parseNormalFormalParameter_function_type_typeParameterComments() {
+    enableGenericMethodComments = true;
+    FunctionTypedFormalParameter parameter =
+        parse4("parseNormalFormalParameter", "A a/*<E>*/())");
+    expect(parameter.returnType, isNotNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNotNull);
+    expect(parameter.parameters, isNotNull);
+  }
+
   void test_parseNormalFormalParameter_function_type_typeParameters() {
     enableGenericMethods = true;
     FunctionTypedFormalParameter parameter =
@@ -8986,6 +9573,16 @@ void''');
     expect(parameter.returnType, isNotNull);
     expect(parameter.identifier, isNotNull);
     expect(parameter.typeParameters, isNull);
+    expect(parameter.parameters, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_function_void_typeParameterComments() {
+    enableGenericMethodComments = true;
+    FunctionTypedFormalParameter parameter =
+        parse4("parseNormalFormalParameter", "void a/*<E>*/())");
+    expect(parameter.returnType, isNotNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNotNull);
     expect(parameter.parameters, isNotNull);
   }
 
@@ -9125,11 +9722,36 @@ void''');
     expect(expression.argumentList, isNotNull);
   }
 
-  void test_parsePostfixExpression_none_methodInvocation_question_dot_typeArguments() {
+  void
+      test_parsePostfixExpression_none_methodInvocation_question_dot_typeArgumentComments() {
+    enableGenericMethodComments = true;
+    MethodInvocation expression =
+        parse4('parsePostfixExpression', 'a?.m/*<E>*/()');
+    expect(expression.target, isNotNull);
+    expect(expression.operator.type, TokenType.QUESTION_PERIOD);
+    expect(expression.methodName, isNotNull);
+    expect(expression.typeArguments, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void
+      test_parsePostfixExpression_none_methodInvocation_question_dot_typeArguments() {
     enableGenericMethods = true;
     MethodInvocation expression = parse4('parsePostfixExpression', 'a?.m<E>()');
     expect(expression.target, isNotNull);
     expect(expression.operator.type, TokenType.QUESTION_PERIOD);
+    expect(expression.methodName, isNotNull);
+    expect(expression.typeArguments, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void
+      test_parsePostfixExpression_none_methodInvocation_typeArgumentComments() {
+    enableGenericMethodComments = true;
+    MethodInvocation expression =
+        parse4("parsePostfixExpression", "a.m/*<E>*/()");
+    expect(expression.target, isNotNull);
+    expect(expression.operator.type, TokenType.PERIOD);
     expect(expression.methodName, isNotNull);
     expect(expression.typeArguments, isNotNull);
     expect(expression.argumentList, isNotNull);
@@ -9488,17 +10110,20 @@ void''');
     expect(statement.functionDeclaration, isNotNull);
   }
 
-  void test_parseStatement_functionDeclaration_noReturnType_typeParameters() {
-    enableGenericMethods = true;
+  void
+      test_parseStatement_functionDeclaration_noReturnType_typeParameterComments() {
+    enableGenericMethodComments = true;
     FunctionDeclarationStatement statement =
-        parse4("parseStatement", "f(a, b) {};");
+        parse4("parseStatement", "f/*<E>*/(a, b) {};");
     expect(statement.functionDeclaration, isNotNull);
+    expect(statement.functionDeclaration.functionExpression.typeParameters,
+        isNotNull);
   }
 
   void test_parseStatement_functionDeclaration_returnType() {
     // TODO(brianwilkerson) Implement more tests for this method.
     FunctionDeclarationStatement statement =
-        parse4("parseStatement", "int f(a, b) {};");
+        parse4("parseStatement", "int f(a, b) {};", []);
     expect(statement.functionDeclaration, isNotNull);
   }
 
@@ -10350,6 +10975,16 @@ void''');
     expect(declarationList.variables, hasLength(1));
   }
 
+  void test_parseVariableDeclarationListAfterMetadata_final_typeComment() {
+    enableGenericMethodComments = true;
+    VariableDeclarationList decl = parse(
+        "parseVariableDeclarationListAfterMetadata",
+        <Object>[emptyCommentAndMetadata()],
+        "final/*=T*/ x");
+    expect(decl.type.name.name, 'T');
+    expect(decl.isFinal, true);
+  }
+
   void test_parseVariableDeclarationListAfterMetadata_type_multiple() {
     VariableDeclarationList declarationList = parse(
         "parseVariableDeclarationListAfterMetadata",
@@ -10388,6 +11023,16 @@ void''');
     expect(declarationList.keyword, isNotNull);
     expect(declarationList.type, isNull);
     expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclarationListAfterMetadata_var_typeComment() {
+    enableGenericMethodComments = true;
+    VariableDeclarationList decl = parse(
+        "parseVariableDeclarationListAfterMetadata",
+        <Object>[emptyCommentAndMetadata()],
+        "var/*=T*/ x");
+    expect(decl.type.name.name, 'T');
+    expect(decl.keyword, isNull);
   }
 
   void test_parseVariableDeclarationListAfterType_type() {
@@ -10621,6 +11266,17 @@ void''');
   SimpleStringLiteral _createSyntheticStringLiteral() {
     GatheringErrorListener listener = new GatheringErrorListener();
     return invokeParserMethod2("createSyntheticStringLiteral", "", listener);
+  }
+
+  void _expectDottedName(DottedName name, List<String> expectedComponents) {
+    int count = expectedComponents.length;
+    NodeList<SimpleIdentifier> components = name.components;
+    expect(components, hasLength(count));
+    for (int i = 0; i < count; i++) {
+      SimpleIdentifier component = components[i];
+      expect(component, isNotNull);
+      expect(component.name, expectedComponents[i]);
+    }
   }
 
   /**

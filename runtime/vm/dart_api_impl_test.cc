@@ -8,7 +8,7 @@
 #include "include/dart_native_api.h"
 #include "include/dart_tools_api.h"
 #include "platform/assert.h"
-#include "platform/json.h"
+#include "platform/text_buffer.h"
 #include "platform/utils.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
@@ -254,7 +254,7 @@ TEST_CASE(StackOverflowStacktraceInfo) {
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(2, line_number);
-  EXPECT_EQ(3, column_number);
+  EXPECT_EQ(13, column_number);
 
   // Out-of-bounds frames.
   result = Dart_GetActivationFrame(stacktrace, frame_count, &frame);
@@ -397,7 +397,6 @@ TEST_CASE(CurrentStacktraceInfo) {
 
 
 TEST_CASE(ErrorHandleTypes) {
-  Isolate* isolate = Isolate::Current();
   const String& compile_message = String::Handle(String::New("CompileError"));
   const String& fatal_message = String::Handle(String::New("FatalError"));
 
@@ -406,9 +405,9 @@ TEST_CASE(ErrorHandleTypes) {
   Dart_Handle exception_error =
       Dart_NewUnhandledExceptionError(NewString("ExceptionError"));
   Dart_Handle compile_error =
-      Api::NewHandle(isolate, LanguageError::New(compile_message));
+      Api::NewHandle(thread, LanguageError::New(compile_message));
   Dart_Handle fatal_error =
-      Api::NewHandle(isolate, UnwindError::New(fatal_message));
+      Api::NewHandle(thread, UnwindError::New(fatal_message));
 
   EXPECT_VALID(not_error);
   EXPECT(Dart_IsError(api_error));
@@ -450,13 +449,12 @@ TEST_CASE(ErrorHandleTypes) {
 
 
 TEST_CASE(UnhandleExceptionError) {
-  Isolate* isolate = Isolate::Current();
   const char* exception_cstr = "";
 
   // Test with an API Error.
   const char* kApiError = "Api Error Exception Test.";
   Dart_Handle api_error = Api::NewHandle(
-      isolate,
+      thread,
       ApiError::New(String::Handle(String::New(kApiError))));
   Dart_Handle exception_error = Dart_NewUnhandledExceptionError(api_error);
   EXPECT(!Dart_IsApiError(exception_error));
@@ -471,7 +469,7 @@ TEST_CASE(UnhandleExceptionError) {
   const String& compile_message =
       String::Handle(String::New(kCompileError));
   Dart_Handle compile_error =
-      Api::NewHandle(isolate, LanguageError::New(compile_message));
+      Api::NewHandle(thread, LanguageError::New(compile_message));
   exception_error = Dart_NewUnhandledExceptionError(compile_error);
   EXPECT(!Dart_IsApiError(exception_error));
   EXPECT(Dart_IsUnhandledExceptionError(exception_error));
@@ -484,14 +482,14 @@ TEST_CASE(UnhandleExceptionError) {
   const String& fatal_message =
       String::Handle(String::New("FatalError Exception Test."));
   Dart_Handle fatal_error =
-      Api::NewHandle(isolate, UnwindError::New(fatal_message));
+      Api::NewHandle(thread, UnwindError::New(fatal_message));
   exception_error = Dart_NewUnhandledExceptionError(fatal_error);
   EXPECT(Dart_IsError(exception_error));
   EXPECT(!Dart_IsUnhandledExceptionError(exception_error));
 
   // Test with a Regular object.
   const char* kRegularString = "Regular String Exception Test.";
-  Dart_Handle obj = Api::NewHandle(isolate, String::New(kRegularString));
+  Dart_Handle obj = Api::NewHandle(thread, String::New(kRegularString));
   exception_error = Dart_NewUnhandledExceptionError(obj);
   EXPECT(!Dart_IsApiError(exception_error));
   EXPECT(Dart_IsUnhandledExceptionError(exception_error));
@@ -617,7 +615,7 @@ TEST_CASE(IdentityEquals) {
 
   // Non-instance objects.
   {
-    DARTSCOPE(Thread::Current());
+    DARTSCOPE(thread);
     Dart_Handle lib1 = Dart_LookupLibrary(dart_core);
     Dart_Handle lib2 = Dart_LookupLibrary(dart_mirrors);
 
@@ -662,7 +660,7 @@ TEST_CASE(IdentityHash) {
 
   // Non-instance objects.
   {
-    DARTSCOPE(Thread::Current());
+    DARTSCOPE(thread);
     Dart_Handle lib1 = Dart_LookupLibrary(dart_core);
     Dart_Handle lib2 = Dart_LookupLibrary(dart_mirrors);
 
@@ -1226,7 +1224,7 @@ TEST_CASE(ExternalStringPretenure) {
         NULL);
     EXPECT_VALID(small16);
     {
-      DARTSCOPE(Thread::Current());
+      DARTSCOPE(thread);
       String& handle = String::Handle();
       handle ^= Api::UnwrapHandle(big8);
       EXPECT(handle.IsOld());
@@ -1260,7 +1258,7 @@ TEST_CASE(ExternalTypedDataPretenure) {
         kSmallLength);
     EXPECT_VALID(small);
     {
-      DARTSCOPE(Thread::Current());
+      DARTSCOPE(thread);
       ExternalTypedData& handle = ExternalTypedData::Handle();
       handle ^= Api::UnwrapHandle(big);
       EXPECT(handle.IsOld());
@@ -2379,23 +2377,21 @@ TEST_CASE(Float32x4List) {
 UNIT_TEST_CASE(EnterExitScope) {
   TestIsolateScope __test_isolate__;
 
-  Isolate* isolate = Isolate::Current();
-  EXPECT(isolate != NULL);
-  ApiState* state = isolate->api_state();
-  EXPECT(state != NULL);
-  ApiLocalScope* scope = state->top_scope();
+  Thread* thread = Thread::Current();
+  EXPECT(thread != NULL);
+  ApiLocalScope* scope = thread->api_top_scope();
   Dart_EnterScope();
   {
-    EXPECT(state->top_scope() != NULL);
+    EXPECT(thread->api_top_scope() != NULL);
     DARTSCOPE(Thread::Current());
     const String& str1 = String::Handle(String::New("Test String"));
-    Dart_Handle ref = Api::NewHandle(isolate, str1.raw());
+    Dart_Handle ref = Api::NewHandle(thread, str1.raw());
     String& str2 = String::Handle();
     str2 ^= Api::UnwrapHandle(ref);
     EXPECT(str1.Equals(str2));
   }
   Dart_ExitScope();
-  EXPECT(scope == state->top_scope());
+  EXPECT(scope == thread->api_top_scope());
 }
 
 
@@ -2409,17 +2405,17 @@ UNIT_TEST_CASE(PersistentHandles) {
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
   EXPECT(state != NULL);
-  ApiLocalScope* scope = state->top_scope();
+  ApiLocalScope* scope = thread->api_top_scope();
   Dart_PersistentHandle handles[2000];
   Dart_EnterScope();
   {
     DARTSCOPE(Thread::Current());
-    Dart_Handle ref1 = Api::NewHandle(isolate, String::New(kTestString1));
+    Dart_Handle ref1 = Api::NewHandle(thread, String::New(kTestString1));
     for (int i = 0; i < 1000; i++) {
       handles[i] = Dart_NewPersistentHandle(ref1);
     }
     Dart_EnterScope();
-    Dart_Handle ref2 = Api::NewHandle(isolate, String::New(kTestString2));
+    Dart_Handle ref2 = Api::NewHandle(thread, String::New(kTestString2));
     for (int i = 1000; i < 2000; i++) {
       handles[i] = Dart_NewPersistentHandle(ref2);
     }
@@ -2460,7 +2456,7 @@ UNIT_TEST_CASE(PersistentHandles) {
       EXPECT(str.Equals(kTestString2));
     }
   }
-  EXPECT(scope == state->top_scope());
+  EXPECT(scope == thread->api_top_scope());
   EXPECT_EQ(2001, state->CountPersistentHandles());
   Dart_ShutdownIsolate();
 }
@@ -2502,22 +2498,22 @@ UNIT_TEST_CASE(AssignToPersistentHandle) {
   const char* kTestString2 = "Test String2";
   TestIsolateScope __test_isolate__;
 
-  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(Thread::Current());
+  Isolate* isolate = T->isolate();
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
   EXPECT(state != NULL);
-  DARTSCOPE(Thread::Current());
   String& str = String::Handle();
 
   // Start with a known persistent handle.
-  Dart_Handle ref1 = Api::NewHandle(isolate, String::New(kTestString1));
+  Dart_Handle ref1 = Api::NewHandle(T, String::New(kTestString1));
   Dart_PersistentHandle obj = Dart_NewPersistentHandle(ref1);
   EXPECT(state->IsValidPersistentHandle(obj));
   str ^= PersistentHandle::Cast(obj)->raw();
   EXPECT(str.Equals(kTestString1));
 
   // Now create another local handle and assign it to the persistent handle.
-  Dart_Handle ref2 = Api::NewHandle(isolate, String::New(kTestString2));
+  Dart_Handle ref2 = Api::NewHandle(T, String::New(kTestString2));
   Dart_SetPersistentHandle(obj, ref2);
   str ^= PersistentHandle::Cast(obj)->raw();
   EXPECT(str.Equals(kTestString2));
@@ -2585,9 +2581,8 @@ TEST_CASE(WeakPersistentHandle) {
     // Create an object in old space.
     Dart_Handle old_ref;
     {
-      Isolate* isolate = Isolate::Current();
       DARTSCOPE(Thread::Current());
-      old_ref = Api::NewHandle(isolate, String::New("old string", Heap::kOld));
+      old_ref = Api::NewHandle(thread, String::New("old string", Heap::kOld));
       EXPECT_VALID(old_ref);
     }
 
@@ -2753,7 +2748,6 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSize) {
                                          kWeak1ExternalSize,
                                          NopCallback);
     EXPECT_VALID(AsHandle(weak1));
-    EXPECT(!Dart_IsPrologueWeakPersistentHandle(weak1));
     Dart_ExitScope();
   }
   Dart_PersistentHandle strong_ref = NULL;
@@ -2783,33 +2777,6 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSize) {
   Dart_DeleteWeakPersistentHandle(isolate, weak1);
   Dart_DeleteWeakPersistentHandle(isolate, weak2);
   Dart_DeletePersistentHandle(strong_ref);
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
-}
-
-
-TEST_CASE(PrologueWeakPersistentHandleExternalAllocationSize) {
-  Heap* heap = Isolate::Current()->heap();
-  EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
-  EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
-  Dart_WeakPersistentHandle pwph = NULL;
-  static const intptr_t kWeakExternalSize = 1 * KB;
-  {
-    Dart_EnterScope();
-    Dart_Handle obj = NewString("a string");
-    EXPECT_VALID(obj);
-    pwph = Dart_NewPrologueWeakPersistentHandle(
-        obj, NULL, kWeakExternalSize, NopCallback);
-    EXPECT_VALID(AsHandle(pwph));
-    Dart_ExitScope();
-  }
-  EXPECT(heap->ExternalInWords(Heap::kNew) == kWeakExternalSize / kWordSize);
-  EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
-  // Promoting the string should transfer the external size to old.
-  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-  EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
-  EXPECT(heap->ExternalInWords(Heap::kOld) == kWeakExternalSize / kWordSize);
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
 }
@@ -2860,14 +2827,14 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
   // Check that external allocation in old space can trigger GC.
   Isolate* isolate = Isolate::Current();
   Dart_EnterScope();
-  Dart_Handle live = Api::NewHandle(isolate, String::New("live", Heap::kOld));
+  Dart_Handle live = Api::NewHandle(thread, String::New("live", Heap::kOld));
   EXPECT_VALID(live);
   Dart_WeakPersistentHandle weak = NULL;
   EXPECT_EQ(0, isolate->heap()->ExternalInWords(Heap::kOld));
   const intptr_t kSmallExternalSize = 1 * KB;
   {
     Dart_EnterScope();
-    Dart_Handle dead = Api::NewHandle(isolate, String::New("dead", Heap::kOld));
+    Dart_Handle dead = Api::NewHandle(thread, String::New("dead", Heap::kOld));
     EXPECT_VALID(dead);
     weak = Dart_NewWeakPersistentHandle(dead,
                                         NULL,
@@ -2927,402 +2894,6 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOddReferents) {
 static Dart_WeakPersistentHandle weak1 = NULL;
 static Dart_WeakPersistentHandle weak2 = NULL;
 static Dart_WeakPersistentHandle weak3 = NULL;
-static Dart_WeakPersistentHandle weak4 = NULL;
-
-
-static void ObjectGroupsCallback(void* isolate_callback_data,
-                                 Dart_WeakPersistentHandle handle,
-                                 void* peer) {
-  if (handle == weak1) {
-    weak1 = NULL;
-  } else if (handle == weak2) {
-    weak2 = NULL;
-  } else if (handle == weak3) {
-    weak3 = NULL;
-  } else if (handle == weak4) {
-    weak4 = NULL;
-  }
-}
-
-
-TEST_CASE(ObjectGroups) {
-  Dart_PersistentHandle strong = NULL;
-  Dart_WeakPersistentHandle strong_weak = NULL;
-
-  Dart_EnterScope();
-  {
-    Isolate* isolate = Isolate::Current();
-    DARTSCOPE(Thread::Current());
-
-    Dart_Handle local = Api::NewHandle(
-        isolate, String::New("strongly reachable", Heap::kOld));
-    strong = Dart_NewPersistentHandle(local);
-    strong_weak = Dart_NewWeakPersistentHandle(local, NULL, 0, NopCallback);
-    EXPECT_VALID(AsHandle(strong));
-    EXPECT(!Dart_IsNull(AsHandle(strong)));
-
-    weak1 = Dart_NewWeakPersistentHandle(
-        Api::NewHandle(isolate, String::New("weakly reachable 1", Heap::kOld)),
-        NULL, 0, ObjectGroupsCallback);
-    EXPECT_VALID(AsHandle(weak1));
-    EXPECT(!Dart_IsNull(AsHandle(weak1)));
-
-    weak2 = Dart_NewWeakPersistentHandle(
-        Api::NewHandle(isolate, String::New("weakly reachable 2", Heap::kOld)),
-        NULL, 0, ObjectGroupsCallback);
-    EXPECT_VALID(AsHandle(weak2));
-    EXPECT(!Dart_IsNull(AsHandle(weak2)));
-
-    weak3 = Dart_NewWeakPersistentHandle(
-        Api::NewHandle(isolate, String::New("weakly reachable 3", Heap::kOld)),
-        NULL, 0, ObjectGroupsCallback);
-    EXPECT_VALID(AsHandle(weak3));
-    EXPECT(!Dart_IsNull(AsHandle(weak3)));
-
-    weak4 = Dart_NewWeakPersistentHandle(
-        Api::NewHandle(isolate, String::New("weakly reachable 4", Heap::kOld)),
-        NULL, 0, ObjectGroupsCallback);
-    EXPECT_VALID(AsHandle(weak4));
-    EXPECT(!Dart_IsNull(AsHandle(weak4)));
-  }
-  Dart_ExitScope();
-
-  {
-    Dart_EnterScope();
-    EXPECT_VALID(AsHandle(strong));
-    EXPECT_VALID(AsHandle(weak1));
-    EXPECT_VALID(AsHandle(weak2));
-    EXPECT_VALID(AsHandle(weak3));
-    EXPECT_VALID(AsHandle(weak4));
-    Dart_ExitScope();
-  }
-
-  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-
-  {
-    Dart_EnterScope();
-    // New space collection should not affect old space objects
-    EXPECT(!Dart_IsNull(AsHandle(weak1)));
-    EXPECT(!Dart_IsNull(AsHandle(weak2)));
-    EXPECT(!Dart_IsNull(AsHandle(weak3)));
-    EXPECT(!Dart_IsNull(AsHandle(weak4)));
-    Dart_ExitScope();
-  }
-
-  {
-    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
-    EXPECT_NOTNULL(builder);
-
-    Dart_WeakReferenceSet set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, strong_weak, strong_weak));
-
-    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak1, weak1));
-
-    set = Dart_NewWeakReferenceSet(builder, weak3, weak3);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak2, weak2));
-
-    set = Dart_NewWeakReferenceSet(builder, weak4, weak4);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak3, weak3));
-
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  }
-
-  {
-    Dart_EnterScope();
-    // All weak references should be preserved.
-    EXPECT(!Dart_IsNull(AsHandle(strong_weak)));
-    EXPECT(!Dart_IsNull(AsHandle(weak1)));
-    EXPECT(!Dart_IsNull(AsHandle(weak2)));
-    EXPECT(!Dart_IsNull(AsHandle(weak3)));
-    EXPECT(!Dart_IsNull(AsHandle(weak4)));
-    Dart_ExitScope();
-  }
-
-  {
-    Dart_EnterScope();
-    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
-    EXPECT_NOTNULL(builder);
-
-    Dart_WeakReferenceSet set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, strong_weak, strong_weak));
-
-    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak1, weak1));
-
-    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
-    EXPECT_NOTNULL(set);
-
-    // Strong reference to weak3 to retain weak3 and weak4.
-    Dart_PersistentHandle weak3_strong_ref =
-        Dart_NewPersistentHandle(AsHandle(weak3));
-    EXPECT_VALID(AsHandle(weak3_strong_ref));
-
-    set = Dart_NewWeakReferenceSet(builder, weak4, weak4);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak3, weak3));
-
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-
-    // Delete strong reference to weak3.
-    Dart_DeletePersistentHandle(weak3_strong_ref);
-    Dart_ExitScope();
-  }
-
-  {
-    Dart_EnterScope();
-    // All weak references should be preserved.
-    EXPECT(!Dart_IsNull(AsHandle(strong_weak)));
-    EXPECT(!Dart_IsNull(AsHandle(weak1)));
-    EXPECT(!Dart_IsNull(AsHandle(weak2)));
-    EXPECT(!Dart_IsNull(AsHandle(weak3)));
-    EXPECT(!Dart_IsNull(AsHandle(weak4)));
-    Dart_ExitScope();
-  }
-
-  {
-    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
-    EXPECT_NOTNULL(builder);
-
-    Dart_WeakReferenceSet set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, strong_weak, strong_weak));
-
-    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak1, weak1));
-
-    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
-    EXPECT_NOTNULL(set);
-
-    set = Dart_NewWeakReferenceSet(builder, weak4, weak4);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak3, weak3));
-
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  }
-
-  {
-    Dart_EnterScope();
-    // Only weak1 and weak2 should be preserved.
-    EXPECT(!Dart_IsNull(AsHandle(strong_weak)));
-    EXPECT(!Dart_IsNull(AsHandle(weak1)));
-    EXPECT(!Dart_IsNull(AsHandle(weak2)));
-    EXPECT(weak3 == NULL);
-    EXPECT(weak4 == NULL);
-    Dart_ExitScope();
-  }
-
-  {
-    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
-    EXPECT_NOTNULL(builder);
-
-    Dart_WeakPersistentHandle lweak3 = Dart_NewWeakPersistentHandle(
-        Dart_Null(), NULL, 0, NopCallback);
-
-    Dart_WeakReferenceSet set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, strong_weak, strong_weak));
-
-    // lweak3 is unreferenced so weak2 is unreferenced and should be cleared
-    set = Dart_NewWeakReferenceSet(builder, weak2, weak2);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, lweak3, lweak3));
-
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  }
-
-  {
-    Dart_EnterScope();
-    // Only weak1 should be preserved, weak3 should not preserve weak2.
-    EXPECT(!Dart_IsNull(AsHandle(strong_weak)));
-    EXPECT(!Dart_IsNull(AsHandle(weak1)));
-    EXPECT(weak2 == NULL);
-    EXPECT(weak3 == NULL);  // was cleared, should remain cleared
-    EXPECT(weak4 == NULL);  // was cleared, should remain cleared
-    Dart_ExitScope();
-  }
-
-  {
-    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
-    EXPECT_NOTNULL(builder);
-
-    Dart_WeakPersistentHandle lweak2 = Dart_NewWeakPersistentHandle(
-        Dart_Null(), NULL, 0, NopCallback);
-    Dart_WeakPersistentHandle lweak3 = Dart_NewWeakPersistentHandle(
-        Dart_Null(), NULL, 0, NopCallback);
-    Dart_WeakPersistentHandle lweak4 = Dart_NewWeakPersistentHandle(
-        Dart_Null(), NULL, 0, NopCallback);
-    // lweak{2,3,4} are cleared and should have no effect on weak1
-    Dart_WeakReferenceSet set =
-        Dart_NewWeakReferenceSet(builder, strong_weak, strong_weak);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, lweak2, lweak2));
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, lweak3, lweak3));
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, lweak4, lweak4));
-
-    // weak1 is weakly reachable and should be cleared
-    set = Dart_NewWeakReferenceSet(builder, weak1, weak1);
-    EXPECT_NOTNULL(set);
-
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  }
-
-  {
-    Dart_EnterScope();
-    // All weak references should now be cleared.
-    EXPECT(!Dart_IsNull(AsHandle(strong_weak)));
-    EXPECT(weak1 == NULL);
-    EXPECT(weak2 == NULL);
-    EXPECT(weak3 == NULL);
-    EXPECT(weak4 == NULL);
-    Dart_ExitScope();
-  }
-}
-
-
-TEST_CASE(DuplicateWeakReferenceSetEntries) {
-  Isolate* isolate = Isolate::Current();
-  Dart_PersistentHandle strong = NULL;
-  Dart_WeakPersistentHandle weak = NULL;  // A weak handle to strong.
-
-  Dart_EnterScope();
-  {
-    DARTSCOPE(Thread::Current());
-
-    // Strong handle to keep the reference set alive.
-    Dart_Handle local = Api::NewHandle(isolate, String::New("string"));
-    strong = Dart_NewPersistentHandle(local);
-    EXPECT_VALID(AsHandle(strong));
-    EXPECT(!Dart_IsNull(AsHandle(strong)));
-    // Corresponding weak handle to use as key and duplicated value.
-    weak = Dart_NewWeakPersistentHandle(local, NULL, 0, NopCallback);
-    EXPECT_VALID(AsHandle(weak));
-    EXPECT(!Dart_IsNull(AsHandle(weak)));
-  }
-  Dart_ExitScope();
-
-  {
-    Dart_EnterScope();
-    // Create the weak reference set.
-    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
-    EXPECT_NOTNULL(builder);
-    // Register the key and the first copy of the value.
-    Dart_WeakReferenceSet set = Dart_NewWeakReferenceSet(builder, weak, weak);
-    EXPECT_NOTNULL(set);
-    // Add the second copy of the value.
-    Dart_Handle result = Dart_AppendValueToWeakReferenceSet(set, weak);
-    EXPECT_VALID(result);
-
-    // Trigger GC to ensure that we can visit duplicate entries in weak
-    // reference sets.
-    isolate->heap()->CollectGarbage(Heap::kNew);
-    Dart_ExitScope();
-  }
-}
-
-
-static Dart_WeakPersistentHandle old_pwph = NULL;
-static Dart_WeakPersistentHandle new_pwph = NULL;
-
-
-static void PrologueWeakHandleCallback(void* isolate_callback_data,
-                                       Dart_WeakPersistentHandle handle,
-                                       void* peer) {
-  if (handle == old_pwph) {
-    old_pwph = NULL;
-  } else if (handle == new_pwph) {
-    new_pwph = NULL;
-  }
-}
-
-
-TEST_CASE(PrologueWeakPersistentHandles) {
-  Dart_EnterScope();
-  {
-    Isolate* isolate = Isolate::Current();
-    DARTSCOPE(Thread::Current());
-    new_pwph = Dart_NewPrologueWeakPersistentHandle(
-        Api::NewHandle(isolate,
-                       String::New("new space prologue weak", Heap::kNew)),
-        NULL, 0, PrologueWeakHandleCallback);
-    EXPECT_VALID(AsHandle(new_pwph));
-    EXPECT(!Dart_IsNull(AsHandle(new_pwph)));
-    old_pwph = Dart_NewPrologueWeakPersistentHandle(
-        Api::NewHandle(isolate,
-                       String::New("old space prologue weak", Heap::kOld)),
-        NULL, 0, PrologueWeakHandleCallback);
-    EXPECT_VALID(AsHandle(old_pwph));
-    EXPECT(!Dart_IsNull(AsHandle(old_pwph)));
-  }
-  Dart_ExitScope();
-
-  {
-    Dart_EnterScope();
-    EXPECT_VALID(AsHandle(new_pwph));
-    EXPECT(!Dart_IsNull(AsHandle(new_pwph)));
-    EXPECT(Dart_IsPrologueWeakPersistentHandle(new_pwph));
-    EXPECT_VALID(AsHandle(old_pwph));
-    EXPECT(!Dart_IsNull(AsHandle(old_pwph)));
-    EXPECT(Dart_IsPrologueWeakPersistentHandle(old_pwph));
-    Dart_ExitScope();
-  }
-
-  // Garbage collect new space without invoking API callbacks.
-  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-
-  {
-    Dart_EnterScope();
-    // Both prologue weak handles should be preserved.
-    EXPECT(!Dart_IsNull(AsHandle(new_pwph)));
-    EXPECT(!Dart_IsNull(AsHandle(old_pwph)));
-    Dart_ExitScope();
-  }
-
-  // Garbage collect old space without invoking API callbacks.
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
-                                             Heap::kIgnoreApiCallbacks,
-                                             Heap::kGCTestCase);
-
-  {
-    Dart_EnterScope();
-    // Both prologue weak handles should be preserved.
-    EXPECT(!Dart_IsNull(AsHandle(new_pwph)));
-    EXPECT(!Dart_IsNull(AsHandle(old_pwph)));
-    Dart_ExitScope();
-  }
-
-  // Garbage collect new space invoking API callbacks.
-  GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
-
-  {
-    Dart_EnterScope();
-    // The prologue weak handle with a new space referent should now be
-    // cleared.  The old space referent should be preserved.
-    EXPECT(new_pwph == NULL);
-    EXPECT(!Dart_IsNull(AsHandle(old_pwph)));
-    Dart_ExitScope();
-  }
-
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
-                                             Heap::kInvokeApiCallbacks,
-                                             Heap::kGCTestCase);
-
-  {
-    Dart_EnterScope();
-    // The prologue weak handle with an old space referent should now be
-    // cleared.  The new space referent should remain cleared.
-    EXPECT(new_pwph == NULL);
-    EXPECT(old_pwph == NULL);
-    Dart_ExitScope();
-  }
-}
 
 
 static void ImplicitReferencesCallback(void* isolate_callback_data,
@@ -3344,11 +2915,10 @@ TEST_CASE(ImplicitReferencesOldSpace) {
 
   Dart_EnterScope();
   {
-    Isolate* isolate = Isolate::Current();
     DARTSCOPE(Thread::Current());
 
     Dart_Handle local = Api::NewHandle(
-        isolate, String::New("strongly reachable", Heap::kOld));
+        thread, String::New("strongly reachable", Heap::kOld));
     strong = Dart_NewPersistentHandle(local);
     strong_weak = Dart_NewWeakPersistentHandle(local, NULL, 0, NopCallback);
 
@@ -3359,19 +2929,19 @@ TEST_CASE(ImplicitReferencesOldSpace) {
     EXPECT(Dart_IdentityEquals(AsHandle(strong), AsHandle(strong_weak)))
 
     weak1 = Dart_NewWeakPersistentHandle(
-        Api::NewHandle(isolate, String::New("weakly reachable 1", Heap::kOld)),
+        Api::NewHandle(thread, String::New("weakly reachable 1", Heap::kOld)),
         NULL, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak1)));
     EXPECT_VALID(AsHandle(weak1));
 
     weak2 = Dart_NewWeakPersistentHandle(
-        Api::NewHandle(isolate, String::New("weakly reachable 2", Heap::kOld)),
+        Api::NewHandle(thread, String::New("weakly reachable 2", Heap::kOld)),
         NULL, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
     EXPECT_VALID(AsHandle(weak2));
 
     weak3 = Dart_NewWeakPersistentHandle(
-        Api::NewHandle(isolate, String::New("weakly reachable 3", Heap::kOld)),
+        Api::NewHandle(thread, String::New("weakly reachable 3", Heap::kOld)),
         NULL, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     EXPECT_VALID(AsHandle(weak3));
@@ -3398,53 +2968,6 @@ TEST_CASE(ImplicitReferencesOldSpace) {
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     Dart_ExitScope();
   }
-
-  // A strongly referenced key should preserve all the values.
-  {
-    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
-    EXPECT_NOTNULL(builder);
-
-    Dart_WeakReferenceSet set =
-        Dart_NewWeakReferenceSet(builder, strong_weak, 0);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak1));
-    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak2));
-    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak3));
-
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  }
-
-  {
-    Dart_EnterScope();
-    // All weak references should be preserved.
-    EXPECT_VALID(AsHandle(strong_weak));
-    EXPECT(!Dart_IsNull(AsHandle(weak1)));
-    EXPECT(!Dart_IsNull(AsHandle(weak2)));
-    EXPECT(!Dart_IsNull(AsHandle(weak3)));
-    Dart_ExitScope();
-  }
-
-  // Key membership does not imply a strong reference.
-  {
-    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
-    EXPECT_NOTNULL(builder);
-
-    Dart_WeakReferenceSet set =
-        Dart_NewWeakReferenceSet(builder, strong_weak, weak1);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendToWeakReferenceSet(set, weak3, weak2));
-
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  }
-
-  {
-    Dart_EnterScope();
-    // All weak references except weak3 should be preserved.
-    EXPECT(!Dart_IsNull(AsHandle(weak1)));
-    EXPECT(!Dart_IsNull(AsHandle(weak2)));
-    EXPECT(weak3 == NULL);
-    Dart_ExitScope();
-  }
 }
 
 
@@ -3455,11 +2978,10 @@ TEST_CASE(ImplicitReferencesNewSpace) {
 
   Dart_EnterScope();
   {
-    Isolate* isolate = Isolate::Current();
     DARTSCOPE(Thread::Current());
 
     Dart_Handle local = Api::NewHandle(
-        isolate, String::New("strongly reachable", Heap::kOld));
+        thread, String::New("strongly reachable", Heap::kOld));
     strong = Dart_NewPersistentHandle(local);
     strong_weak = Dart_NewWeakPersistentHandle(local, NULL, 0, NopCallback);
 
@@ -3470,19 +2992,19 @@ TEST_CASE(ImplicitReferencesNewSpace) {
     EXPECT(Dart_IdentityEquals(AsHandle(strong), AsHandle(strong_weak)))
 
     weak1 = Dart_NewWeakPersistentHandle(
-        Api::NewHandle(isolate, String::New("weakly reachable 1", Heap::kNew)),
+        Api::NewHandle(thread, String::New("weakly reachable 1", Heap::kNew)),
         NULL, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak1)));
     EXPECT_VALID(AsHandle(weak1));
 
     weak2 = Dart_NewWeakPersistentHandle(
-        Api::NewHandle(isolate, String::New("weakly reachable 2", Heap::kNew)),
+        Api::NewHandle(thread, String::New("weakly reachable 2", Heap::kNew)),
         NULL, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
     EXPECT_VALID(AsHandle(weak2));
 
     weak3 = Dart_NewWeakPersistentHandle(
-        Api::NewHandle(isolate, String::New("weakly reachable 3", Heap::kNew)),
+        Api::NewHandle(thread, String::New("weakly reachable 3", Heap::kNew)),
         NULL, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     EXPECT_VALID(AsHandle(weak3));
@@ -3506,41 +3028,6 @@ TEST_CASE(ImplicitReferencesNewSpace) {
     EXPECT(!Dart_IsNull(AsHandle(weak1)));
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
-    Dart_ExitScope();
-  }
-
-  // A strongly referenced key should preserve all the values.
-  {
-    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
-    EXPECT_NOTNULL(builder);
-
-    Dart_WeakReferenceSet set =
-        Dart_NewWeakReferenceSet(builder, strong_weak, 0);
-    EXPECT_NOTNULL(set);
-    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak1));
-    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak2));
-    EXPECT_VALID(Dart_AppendValueToWeakReferenceSet(set, weak3));
-
-    GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
-  }
-
-  {
-    Dart_EnterScope();
-    // All weak references should be preserved.
-    EXPECT(!Dart_IsNull(AsHandle(weak1)));
-    EXPECT(!Dart_IsNull(AsHandle(weak2)));
-    EXPECT(!Dart_IsNull(AsHandle(weak3)));
-    Dart_ExitScope();
-  }
-
-  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-
-  {
-    Dart_EnterScope();
-    // No weak references should be preserved.
-    EXPECT(weak1 == NULL);
-    EXPECT(weak2 == NULL);
-    EXPECT(weak3 == NULL);
     Dart_ExitScope();
   }
 }
@@ -3715,9 +3202,7 @@ UNIT_TEST_CASE(LocalHandles) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   EXPECT(isolate != NULL);
-  ApiState* state = isolate->api_state();
-  EXPECT(state != NULL);
-  ApiLocalScope* scope = state->top_scope();
+  ApiLocalScope* scope = thread->api_top_scope();
   Dart_Handle handles[300];
   {
     StackZone zone(thread);
@@ -3727,9 +3212,9 @@ UNIT_TEST_CASE(LocalHandles) {
     // Start a new scope and allocate some local handles.
     Dart_EnterScope();
     for (int i = 0; i < 100; i++) {
-      handles[i] = Api::NewHandle(isolate, Smi::New(i));
+      handles[i] = Api::NewHandle(thread, Smi::New(i));
     }
-    EXPECT_EQ(100, state->CountLocalHandles());
+    EXPECT_EQ(100, thread->CountLocalHandles());
     for (int i = 0; i < 100; i++) {
       val ^= Api::UnwrapHandle(handles[i]);
       EXPECT_EQ(i, val.Value());
@@ -3738,9 +3223,9 @@ UNIT_TEST_CASE(LocalHandles) {
     {
       Dart_EnterScope();
       for (int i = 100; i < 200; i++) {
-        handles[i] = Api::NewHandle(isolate, Smi::New(i));
+        handles[i] = Api::NewHandle(thread, Smi::New(i));
       }
-      EXPECT_EQ(200, state->CountLocalHandles());
+      EXPECT_EQ(200, thread->CountLocalHandles());
       for (int i = 100; i < 200; i++) {
         val ^= Api::UnwrapHandle(handles[i]);
         EXPECT_EQ(i, val.Value());
@@ -3750,25 +3235,25 @@ UNIT_TEST_CASE(LocalHandles) {
       {
         Dart_EnterScope();
         for (int i = 200; i < 300; i++) {
-          handles[i] = Api::NewHandle(isolate, Smi::New(i));
+          handles[i] = Api::NewHandle(thread, Smi::New(i));
         }
-        EXPECT_EQ(300, state->CountLocalHandles());
+        EXPECT_EQ(300, thread->CountLocalHandles());
         for (int i = 200; i < 300; i++) {
           val ^= Api::UnwrapHandle(handles[i]);
           EXPECT_EQ(i, val.Value());
         }
-        EXPECT_EQ(300, state->CountLocalHandles());
+        EXPECT_EQ(300, thread->CountLocalHandles());
         VERIFY_ON_TRANSITION;
         Dart_ExitScope();
       }
-      EXPECT_EQ(200, state->CountLocalHandles());
+      EXPECT_EQ(200, thread->CountLocalHandles());
       Dart_ExitScope();
     }
-    EXPECT_EQ(100, state->CountLocalHandles());
+    EXPECT_EQ(100, thread->CountLocalHandles());
     Dart_ExitScope();
   }
-  EXPECT_EQ(0, state->CountLocalHandles());
-  EXPECT(scope == state->top_scope());
+  EXPECT_EQ(0, thread->CountLocalHandles());
+  EXPECT(scope == thread->api_top_scope());
   Dart_ShutdownIsolate();
 }
 
@@ -3778,25 +3263,23 @@ UNIT_TEST_CASE(LocalHandles) {
 // exits.
 UNIT_TEST_CASE(LocalZoneMemory) {
   TestCase::CreateTestIsolate();
-  Isolate* isolate = Isolate::Current();
-  EXPECT(isolate != NULL);
-  ApiState* state = isolate->api_state();
-  EXPECT(state != NULL);
-  ApiLocalScope* scope = state->top_scope();
+  Thread* thread = Thread::Current();
+  EXPECT(thread != NULL);
+  ApiLocalScope* scope = thread->api_top_scope();
   {
     // Start a new scope and allocate some memory.
     Dart_EnterScope();
     for (int i = 0; i < 100; i++) {
       Dart_ScopeAllocate(16);
     }
-    EXPECT_EQ(1600, state->ZoneSizeInBytes());
+    EXPECT_EQ(1600, thread->ZoneSizeInBytes());
     // Start another scope and allocate some more memory.
     {
       Dart_EnterScope();
       for (int i = 0; i < 100; i++) {
         Dart_ScopeAllocate(16);
       }
-      EXPECT_EQ(3200, state->ZoneSizeInBytes());
+      EXPECT_EQ(3200, thread->ZoneSizeInBytes());
       {
         // Start another scope and allocate some more memory.
         {
@@ -3804,18 +3287,18 @@ UNIT_TEST_CASE(LocalZoneMemory) {
           for (int i = 0; i < 200; i++) {
             Dart_ScopeAllocate(16);
           }
-          EXPECT_EQ(6400, state->ZoneSizeInBytes());
+          EXPECT_EQ(6400, thread->ZoneSizeInBytes());
           Dart_ExitScope();
         }
       }
-      EXPECT_EQ(3200, state->ZoneSizeInBytes());
+      EXPECT_EQ(3200, thread->ZoneSizeInBytes());
       Dart_ExitScope();
     }
-    EXPECT_EQ(1600, state->ZoneSizeInBytes());
+    EXPECT_EQ(1600, thread->ZoneSizeInBytes());
     Dart_ExitScope();
   }
-  EXPECT_EQ(0, state->ZoneSizeInBytes());
-  EXPECT(scope == state->top_scope());
+  EXPECT_EQ(0, thread->ZoneSizeInBytes());
+  EXPECT(scope == thread->api_top_scope());
   Dart_ShutdownIsolate();
 }
 
@@ -3858,7 +3341,7 @@ UNIT_TEST_CASE(CurrentIsolateData) {
 }
 
 
-TEST_CASE(IsolateSetCheckedMode) {
+UNIT_TEST_CASE(IsolateSetCheckedMode) {
   const char* kScriptChars =
       "int bad1() {\n"
       "  int foo = 'string';\n"
@@ -3869,23 +3352,49 @@ TEST_CASE(IsolateSetCheckedMode) {
       "  int five = 5;\n"
       "  return five;"
       "}\n";
-  Dart_Handle result;
 
-  // Create a test library and Load up a test script in it.
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  result = Dart_IsolateSetStrictCompilation(true);
-  EXPECT_VALID(result);
+  // Create an isolate with checked mode flags.
+  Dart_IsolateFlags api_flags;
+  api_flags.version = DART_FLAGS_CURRENT_VERSION;
+  api_flags.enable_type_checks = true;
+  api_flags.enable_asserts = true;
+  api_flags.enable_error_on_bad_type = true;
+  api_flags.enable_error_on_bad_override = true;
 
-  result = Dart_Invoke(lib, NewString("bad1"), 0, NULL);
-  EXPECT_ERROR(result, "Unhandled exception:\n"
-      "type 'String' is not a subtype of type 'int' of 'foo'");
+  char* err;
+  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL,
+                                            bin::isolate_snapshot_buffer,
+                                            &api_flags,
+                                            NULL, &err);
+  if (isolate == NULL) {
+    OS::Print("Creation of isolate failed '%s'\n", err);
+    free(err);
+  }
+  EXPECT(isolate != NULL);
 
-  result = Dart_Invoke(lib, NewString("good1"), 0, NULL);
-  EXPECT_VALID(result);
+  {
+    Dart_EnterScope();
+    Dart_Handle url = NewString(TestCase::url());
+    Dart_Handle source = NewString(kScriptChars);
+    Dart_Handle result = Dart_SetLibraryTagHandler(TestCase::library_handler);
+    EXPECT_VALID(result);
+    Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
+    EXPECT_VALID(lib);
+    result = Dart_FinalizeLoading(false);
+    EXPECT_VALID(result);
+    result = Dart_Invoke(lib, NewString("bad1"), 0, NULL);
+    EXPECT_ERROR(result, "Unhandled exception:\n"
+        "type 'String' is not a subtype of type 'int' of 'foo'");
 
-  result = Dart_IsolateSetStrictCompilation(false);
-  EXPECT_ERROR(result, "Dart_IsolateSetStrictCompilation expects that the "
-                       "isolate has not yet compiled code.");
+    result = Dart_Invoke(lib, NewString("good1"), 0, NULL);
+    EXPECT_VALID(result);
+    Dart_ExitScope();
+  }
+
+  EXPECT(isolate != NULL);
+
+  // Shutdown the isolate.
+  Dart_ShutdownIsolate();
 }
 
 
@@ -4253,7 +3762,7 @@ TEST_CASE(FieldAccess) {
   Dart_Handle url = NewString("library_url");
   Dart_Handle source = NewString(kImportedScriptChars);
   Dart_Handle imported_lib = Dart_LoadLibrary(url, source, 0, 0);
-  Dart_Handle prefix = NewString("");
+  Dart_Handle prefix = Dart_EmptyString();
   EXPECT_VALID(imported_lib);
   Dart_Handle result = Dart_LibraryImportLibrary(lib, imported_lib, prefix);
   EXPECT_VALID(result);
@@ -5126,7 +4635,7 @@ TEST_CASE(New) {
   Dart_Handle bad_args[1];
   bad_args[0] = Dart_NewApiError("myerror");
 
-  // Invoke the unnamed constructor.
+  // Allocate and Invoke the unnamed constructor passing in Dart_Null.
   Dart_Handle result = Dart_New(type, Dart_Null(), 0, NULL);
   EXPECT_VALID(result);
   bool instanceof = false;
@@ -5146,8 +4655,8 @@ TEST_CASE(New) {
   foo = Dart_GetField(obj, NewString("foo"));
   EXPECT(Dart_IsNull(foo));
 
-  // Invoke the unnamed constructor with an empty string.
-  result = Dart_New(type, NewString(""), 0, NULL);
+  // Allocate and Invoke the unnamed constructor passing in an empty string.
+  result = Dart_New(type, Dart_EmptyString(), 0, NULL);
   EXPECT_VALID(result);
   instanceof = false;
   EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceof));
@@ -5163,7 +4672,15 @@ TEST_CASE(New) {
   instanceof = false;
   EXPECT_VALID(Dart_ObjectIsType(obj, type, &instanceof));
   EXPECT(instanceof);
-  result = Dart_InvokeConstructor(obj, NewString(""), 0, NULL);
+  // Use the empty string to invoke the unnamed constructor.
+  result = Dart_InvokeConstructor(obj, Dart_EmptyString(), 0, NULL);
+  EXPECT_VALID(result);
+  int_value = 0;
+  foo = Dart_GetField(result, NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(7, int_value);
+  // use Dart_Null to invoke the unnamed constructor.
+  result = Dart_InvokeConstructor(obj, Dart_Null(), 0, NULL);
   EXPECT_VALID(result);
   int_value = 0;
   foo = Dart_GetField(result, NewString("foo"));
@@ -5336,7 +4853,7 @@ static Dart_Handle PrivateLibName(Dart_Handle lib, const char* str) {
   Thread* thread = Thread::Current();
   const Library& library_obj = Api::UnwrapLibraryHandle(thread->zone(), lib);
   const String& name = String::Handle(String::New(str));
-  return Api::NewHandle(thread->isolate(), library_obj.PrivateName(name));
+  return Api::NewHandle(thread, library_obj.PrivateName(name));
 }
 
 
@@ -5747,11 +5264,7 @@ TEST_CASE(ThrowException) {
   const char* kScriptChars =
       "int test() native \"ThrowException_native\";";
   Dart_Handle result;
-  Isolate* isolate = Isolate::Current();
-  EXPECT(isolate != NULL);
-  ApiState* state = isolate->api_state();
-  EXPECT(state != NULL);
-  intptr_t size = state->ZoneSizeInBytes();
+  intptr_t size = thread->ZoneSizeInBytes();
   Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
   // Load up a test script which extends the native wrapper class.
@@ -5770,7 +5283,7 @@ TEST_CASE(ThrowException) {
   EXPECT(Dart_ErrorHasException(result));
 
   Dart_ExitScope();  // Exit the Dart API scope.
-  EXPECT_EQ(size, state->ZoneSizeInBytes());
+  EXPECT_EQ(size, thread->ZoneSizeInBytes());
 }
 
 
@@ -6240,6 +5753,26 @@ TEST_CASE(RootLibrary) {
   const char* uri_cstr = "";
   EXPECT_VALID(Dart_StringToCString(lib_uri, &uri_cstr));
   EXPECT_STREQ(TestCase::url(), uri_cstr);
+
+
+  Dart_Handle core_uri = Dart_NewStringFromCString("dart:core");
+  Dart_Handle core_lib = Dart_LookupLibrary(core_uri);
+  EXPECT_VALID(core_lib);
+  EXPECT(Dart_IsLibrary(core_lib));
+
+  Dart_Handle result = Dart_SetRootLibrary(core_uri);  // Not a library.
+  EXPECT(Dart_IsError(result));
+  root_lib = Dart_RootLibrary();
+  lib_uri = Dart_LibraryUrl(root_lib);
+  EXPECT_VALID(Dart_StringToCString(lib_uri, &uri_cstr));
+  EXPECT_STREQ(TestCase::url(), uri_cstr);  // Root library didn't change.
+
+  result = Dart_SetRootLibrary(core_lib);
+  EXPECT_VALID(result);
+  root_lib = Dart_RootLibrary();
+  lib_uri = Dart_LibraryUrl(root_lib);
+  EXPECT_VALID(Dart_StringToCString(lib_uri, &uri_cstr));
+  EXPECT_STREQ("dart:core", uri_cstr);  // Root library did change.
 }
 
 
@@ -7473,6 +7006,7 @@ void NewNativePort_send321(Dart_Port dest_port_id,
                            Dart_CObject* message) {
   // Gets a null message.
   EXPECT_NOTNULL(message);
+  EXPECT_EQ(Dart_CObject_kArray, message->type);
   EXPECT_EQ(Dart_CObject_kSendPort, message->value.as_array.values[0]->type);
 
   // Post integer value.
@@ -7560,34 +7094,213 @@ UNIT_TEST_CASE(NewNativePort) {
 }
 
 
+void NewNativePort_sendInteger123(Dart_Port dest_port_id,
+                                  Dart_CObject *message) {
+  // Gets a send port message.
+  EXPECT_NOTNULL(message);
+  EXPECT_EQ(Dart_CObject_kArray, message->type);
+  EXPECT_EQ(Dart_CObject_kSendPort, message->value.as_array.values[0]->type);
+
+  // Post integer value.
+  Dart_PostInteger(
+      message->value.as_array.values[0]->value.as_send_port.id, 123);
+}
+
+
+void NewNativePort_sendInteger321(Dart_Port dest_port_id,
+                                  Dart_CObject* message) {
+  // Gets a null message.
+  EXPECT_NOTNULL(message);
+  EXPECT_EQ(Dart_CObject_kArray, message->type);
+  EXPECT_EQ(Dart_CObject_kSendPort, message->value.as_array.values[0]->type);
+
+  // Post integer value.
+  Dart_PostInteger(
+      message->value.as_array.values[0]->value.as_send_port.id, 321);
+}
+
+
+TEST_CASE(NativePortPostInteger) {
+  const char* kScriptChars =
+      "import 'dart:isolate';\n"
+      "void callPort(SendPort port) {\n"
+      "  var receivePort = new RawReceivePort();\n"
+      "  var replyPort = receivePort.sendPort;\n"
+      "  port.send([replyPort]);\n"
+      "  receivePort.handler = (message) {\n"
+      "    receivePort.close();\n"
+      "    throw new Exception(message);\n"
+      "  };\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_EnterScope();
+
+  Dart_Port port_id1 =
+      Dart_NewNativePort("Port123", NewNativePort_sendInteger123, true);
+  Dart_Port port_id2 =
+      Dart_NewNativePort("Port321", NewNativePort_sendInteger321, true);
+
+  Dart_Handle send_port1 = Dart_NewSendPort(port_id1);
+  EXPECT_VALID(send_port1);
+  Dart_Handle send_port2 = Dart_NewSendPort(port_id2);
+  EXPECT_VALID(send_port2);
+
+  // Test first port.
+  Dart_Handle dart_args[1];
+  dart_args[0] = send_port1;
+  Dart_Handle result =
+      Dart_Invoke(lib, NewString("callPort"), 1, dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Exception: 123\n", Dart_GetError(result));
+
+  // result second port.
+  dart_args[0] = send_port2;
+  result = Dart_Invoke(lib, NewString("callPort"), 1, dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Exception: 321\n", Dart_GetError(result));
+
+  Dart_ExitScope();
+
+  // Delete the native ports.
+  EXPECT(Dart_CloseNativePort(port_id1));
+  EXPECT(Dart_CloseNativePort(port_id2));
+}
+
+
+void NewNativePort_nativeReceiveNull(Dart_Port dest_port_id,
+                                     Dart_CObject *message) {
+  EXPECT_NOTNULL(message);
+
+  if ((message->type == Dart_CObject_kArray) &&
+      (message->value.as_array.values[0]->type == Dart_CObject_kSendPort)) {
+    // Post integer value.
+    Dart_PostInteger(
+        message->value.as_array.values[0]->value.as_send_port.id, 123);
+  } else {
+    EXPECT_EQ(message->type, Dart_CObject_kNull);
+  }
+}
+
+
+TEST_CASE(NativePortReceiveNull) {
+  const char* kScriptChars =
+      "import 'dart:isolate';\n"
+      "void callPort(SendPort port) {\n"
+      "  var receivePort = new RawReceivePort();\n"
+      "  var replyPort = receivePort.sendPort;\n"
+      "  port.send(null);\n"
+      "  port.send([replyPort]);\n"
+      "  receivePort.handler = (message) {\n"
+      "    receivePort.close();\n"
+      "    throw new Exception(message);\n"
+      "  };\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_EnterScope();
+
+  Dart_Port port_id1 =
+      Dart_NewNativePort("PortNull", NewNativePort_nativeReceiveNull, true);
+  Dart_Handle send_port1 = Dart_NewSendPort(port_id1);
+  EXPECT_VALID(send_port1);
+
+  // Test first port.
+  Dart_Handle dart_args[1];
+  dart_args[0] = send_port1;
+  Dart_Handle result =
+      Dart_Invoke(lib, NewString("callPort"), 1, dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Exception: 123\n", Dart_GetError(result));
+
+  Dart_ExitScope();
+
+  // Delete the native ports.
+  EXPECT(Dart_CloseNativePort(port_id1));
+}
+
+
+void NewNativePort_nativeReceiveInteger(Dart_Port dest_port_id,
+                                        Dart_CObject *message) {
+  EXPECT_NOTNULL(message);
+
+  if ((message->type == Dart_CObject_kArray) &&
+      (message->value.as_array.values[0]->type == Dart_CObject_kSendPort)) {
+    // Post integer value.
+    Dart_PostInteger(
+        message->value.as_array.values[0]->value.as_send_port.id, 123);
+  } else {
+    EXPECT_EQ(message->type, Dart_CObject_kInt32);
+    EXPECT_EQ(message->value.as_int32, 321);
+  }
+}
+
+
+TEST_CASE(NativePortReceiveInteger) {
+  const char* kScriptChars =
+      "import 'dart:isolate';\n"
+      "void callPort(SendPort port) {\n"
+      "  var receivePort = new RawReceivePort();\n"
+      "  var replyPort = receivePort.sendPort;\n"
+      "  port.send(321);\n"
+      "  port.send([replyPort]);\n"
+      "  receivePort.handler = (message) {\n"
+      "    receivePort.close();\n"
+      "    throw new Exception(message);\n"
+      "  };\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_EnterScope();
+
+  Dart_Port port_id1 =
+      Dart_NewNativePort("PortNull", NewNativePort_nativeReceiveInteger, true);
+  Dart_Handle send_port1 = Dart_NewSendPort(port_id1);
+  EXPECT_VALID(send_port1);
+
+  // Test first port.
+  Dart_Handle dart_args[1];
+  dart_args[0] = send_port1;
+  Dart_Handle result =
+      Dart_Invoke(lib, NewString("callPort"), 1, dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Exception: 123\n", Dart_GetError(result));
+
+  Dart_ExitScope();
+
+  // Delete the native ports.
+  EXPECT(Dart_CloseNativePort(port_id1));
+}
+
+
 static Dart_Isolate RunLoopTestCallback(const char* script_name,
                                         const char* main,
                                         const char* package_root,
-                                        const char** package_map,
+                                        const char* package_config,
                                         Dart_IsolateFlags* flags,
                                         void* data,
                                         char** error) {
   const char* kScriptChars =
       "import 'builtin';\n"
       "import 'dart:isolate';\n"
-      "void entry(message) {\n"
-      "  var data = message[0];\n"
-      "  var replyTo = message[1];\n"
-      "  if (data) {\n"
-      "    throw new Exception('MakeChildExit');\n"
-      "  } else {\n"
-      "    replyTo.send('hello');\n"
-      "  }\n"
-      "}\n"
-      "\n"
-      "void main(exc_child, exc_parent) {\n"
-      "  var receivePort = new RawReceivePort();\n"
-      "  Isolate.spawn(entry, [exc_child, receivePort.sendPort]);\n"
-      "  receivePort.handler = (message) {\n"
-      "    receivePort.close();\n"
-      "    if (message != 'hello') throw new Exception('ShouldNotHappen');\n"
-      "    if (exc_parent) throw new Exception('MakeParentExit');\n"
+      "void main(shouldThrowException) {\n"
+      "  var rp = new RawReceivePort();\n"
+      "  rp.handler = (msg) {\n"
+      "    rp.close();\n"
+      "    if (shouldThrowException) {\n"
+      "      throw new Exception('ExceptionFromTimer');\n"
+      "    }\n"
       "  };\n"
+      "  rp.sendPort.send(1);\n"
       "}\n";
 
   if (Dart_CurrentIsolate() != NULL) {
@@ -7615,28 +7328,10 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
 }
 
 
-// The error string from the last unhandled exception. This value is only
-// valid until the next Dart_ExitScope().
-static char* last_exception = NULL;
-
-
-static void RunLoopUnhandledExceptionCallback(Dart_Handle exception) {
-  Dart_Handle error_string = Dart_ToString(exception);
-  EXPECT_VALID(error_string);
-  const char* error_text;
-  Dart_Handle result = Dart_StringToCString(error_string, &error_text);
-  // Duplicate the string since error text is freed when callback is finished.
-  last_exception = strdup(error_text);
-  EXPECT_VALID(result);
-}
-
-
 // Common code for RunLoop_Success/RunLoop_Failure.
-static void RunLoopTest(bool throw_exception_child,
-                        bool throw_exception_parent) {
+static void RunLoopTest(bool throw_exception) {
   Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
   Isolate::SetCreateCallback(RunLoopTestCallback);
-  Isolate::SetUnhandledExceptionCallback(RunLoopUnhandledExceptionCallback);
   Dart_Isolate isolate = RunLoopTestCallback(
       NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
@@ -7646,29 +7341,15 @@ static void RunLoopTest(bool throw_exception_child,
   EXPECT_VALID(lib);
 
   Dart_Handle result;
-  Dart_Handle args[2];
-  args[0] = (throw_exception_child ? Dart_True() : Dart_False());
-  args[1] = (throw_exception_parent ? Dart_True() : Dart_False());
-  result = Dart_Invoke(lib, NewString("main"), 2, args);
+  Dart_Handle args[1];
+  args[0] = (throw_exception ? Dart_True() : Dart_False());
+  result = Dart_Invoke(lib, NewString("main"), 1, args);
   EXPECT_VALID(result);
-  if (throw_exception_child) {
-    // TODO(tball): fix race-condition
-    // EXPECT_NOTNULL(last_exception);
-    // EXPECT_STREQ("UnhandledException", last_exception);
+  result = Dart_RunLoop();
+  if (throw_exception) {
+    EXPECT_ERROR(result, "Exception: ExceptionFromTimer");
   } else {
-    result = Dart_RunLoop();
-    if (throw_exception_parent) {
-      EXPECT_ERROR(result, "Exception: MakeParentExit");
-      EXPECT_NOTNULL(last_exception);
-      EXPECT_STREQ("UnhandledException", last_exception);
-    } else {
-      EXPECT_VALID(result);
-      EXPECT(last_exception == NULL);
-    }
-  }
-  if (last_exception != NULL) {
-    free(last_exception);
-    last_exception = NULL;
+    EXPECT_VALID(result);
   }
 
   Dart_ExitScope();
@@ -7679,18 +7360,12 @@ static void RunLoopTest(bool throw_exception_child,
 
 
 UNIT_TEST_CASE(RunLoop_Success) {
-  RunLoopTest(false, false);
+  RunLoopTest(false);
 }
 
 
-// This test exits the vm.  Listed as FAIL in vm.status.
-UNIT_TEST_CASE(RunLoop_ExceptionChild) {
-  RunLoopTest(true, false);
-}
-
-
-UNIT_TEST_CASE(RunLoop_ExceptionParent) {
-  RunLoopTest(false, true);
+UNIT_TEST_CASE(RunLoop_Exception) {
+  RunLoopTest(true);
 }
 
 
@@ -7776,81 +7451,6 @@ void BusyLoop_start(uword unused) {
   }
 }
 
-
-// This callback handles isolate interrupts for the IsolateInterrupt
-// test.  It ignores the first two interrupts and throws an exception
-// on the third interrupt.
-const int kInterruptCount = 10;
-static int interrupt_count = 0;
-static bool IsolateInterruptTestCallback() {
-  OS::Print(" ========== Interrupt callback called #%d\n", interrupt_count + 1);
-  {
-    MonitorLocker ml(sync);
-    interrupt_count++;
-    ml.Notify();
-  }
-  if (interrupt_count == kInterruptCount) {
-    Dart_EnterScope();
-    Dart_Handle lib = Dart_LookupLibrary(NewString(TestCase::url()));
-    EXPECT_VALID(lib);
-    Dart_Handle exc = NewString("foo");
-    EXPECT_VALID(exc);
-    Dart_Handle result = Dart_ThrowException(exc);
-    EXPECT_VALID(result);
-    UNREACHABLE();  // Dart_ThrowException only returns if it gets an error.
-    return false;
-  }
-  ASSERT(interrupt_count < kInterruptCount);
-  return true;
-}
-
-
-TEST_CASE(IsolateInterrupt) {
-  Dart_IsolateInterruptCallback saved = Isolate::InterruptCallback();
-  Isolate::SetInterruptCallback(IsolateInterruptTestCallback);
-
-  sync = new Monitor();
-  int result = OSThread::Start(BusyLoop_start, 0);
-  EXPECT_EQ(0, result);
-
-  {
-    MonitorLocker ml(sync);
-    // Wait for the other isolate to enter main.
-    while (!main_entered) {
-      ml.Wait();
-    }
-  }
-
-  // Send a number of interrupts to the other isolate. All but the
-  // last allow execution to continue. The last causes an exception in
-  // the isolate.
-  for (int i = 0; i < kInterruptCount; i++) {
-    // Space out the interrupts a bit.
-    OS::Sleep(i + 1);
-    Dart_InterruptIsolate(shared_isolate);
-    {
-      MonitorLocker ml(sync);
-      // Wait for interrupt_count to be increased.
-      while (interrupt_count == i) {
-        ml.Wait();
-      }
-      OS::Print(" ========== Interrupt processed #%d\n", interrupt_count);
-    }
-  }
-
-  {
-    MonitorLocker ml(sync);
-    // Wait for our isolate to finish.
-    while (shared_isolate != NULL) {
-      ml.Wait();
-    }
-  }
-
-  // We should have received the expected number of interrupts.
-  EXPECT_EQ(kInterruptCount, interrupt_count);
-
-  Isolate::SetInterruptCallback(saved);
-}
 
 static void* saved_callback_data;
 static void IsolateShutdownTestCallback(void* callback_data) {
@@ -8572,7 +8172,7 @@ TEST_CASE(OnePromotedPeer) {
 // by one.
 TEST_CASE(OneOldSpacePeer) {
   Isolate* isolate = Isolate::Current();
-  Dart_Handle str = Api::NewHandle(isolate, String::New("str", Heap::kOld));
+  Dart_Handle str = Api::NewHandle(thread, String::New("str", Heap::kOld));
   EXPECT_VALID(str);
   EXPECT(Dart_IsString(str));
   EXPECT_EQ(0, isolate->heap()->PeerCount());
@@ -8605,7 +8205,7 @@ TEST_CASE(CollectOneOldSpacePeer) {
   Dart_EnterScope();
   {
     DARTSCOPE(Thread::Current());
-    Dart_Handle str = Api::NewHandle(isolate, String::New("str", Heap::kOld));
+    Dart_Handle str = Api::NewHandle(T, String::New("str", Heap::kOld));
     EXPECT_VALID(str);
     EXPECT(Dart_IsString(str));
     EXPECT_EQ(0, isolate->heap()->PeerCount());
@@ -8634,7 +8234,7 @@ TEST_CASE(CollectOneOldSpacePeer) {
 // by two.
 TEST_CASE(TwoOldSpacePeers) {
   Isolate* isolate = Isolate::Current();
-  Dart_Handle s1 = Api::NewHandle(isolate, String::New("s1", Heap::kOld));
+  Dart_Handle s1 = Api::NewHandle(thread, String::New("s1", Heap::kOld));
   EXPECT_VALID(s1);
   EXPECT(Dart_IsString(s1));
   EXPECT_EQ(0, isolate->heap()->PeerCount());
@@ -8647,7 +8247,7 @@ TEST_CASE(TwoOldSpacePeers) {
   o1 = &o1;
   EXPECT_VALID(Dart_GetPeer(s1, &o1));
   EXPECT(o1 == reinterpret_cast<void*>(&p1));
-  Dart_Handle s2 = Api::NewHandle(isolate, String::New("s2", Heap::kOld));
+  Dart_Handle s2 = Api::NewHandle(thread, String::New("s2", Heap::kOld));
   EXPECT_VALID(s2);
   EXPECT(Dart_IsString(s2));
   EXPECT_EQ(1, isolate->heap()->PeerCount());
@@ -8681,7 +8281,7 @@ TEST_CASE(CollectTwoOldSpacePeers) {
   Dart_EnterScope();
   {
     DARTSCOPE(Thread::Current());
-    Dart_Handle s1 = Api::NewHandle(isolate, String::New("s1", Heap::kOld));
+    Dart_Handle s1 = Api::NewHandle(T, String::New("s1", Heap::kOld));
     EXPECT_VALID(s1);
     EXPECT(Dart_IsString(s1));
     EXPECT_EQ(0, isolate->heap()->PeerCount());
@@ -8694,7 +8294,7 @@ TEST_CASE(CollectTwoOldSpacePeers) {
     o1 = &o1;
     EXPECT_VALID(Dart_GetPeer(s1, &o1));
     EXPECT(o1 == reinterpret_cast<void*>(&p1));
-    Dart_Handle s2 = Api::NewHandle(isolate, String::New("s2", Heap::kOld));
+    Dart_Handle s2 = Api::NewHandle(T, String::New("s2", Heap::kOld));
     EXPECT_VALID(s2);
     EXPECT(Dart_IsString(s2));
     EXPECT_EQ(1, isolate->heap()->PeerCount());
@@ -8787,8 +8387,7 @@ TEST_CASE(MakeExternalString) {
 
     // Test with single character canonical string, it should not become
     // external string but the peer should be setup for it.
-    Isolate* isolate = Isolate::Current();
-    Dart_Handle canonical_str = Api::NewHandle(isolate, Symbols::New("*"));
+    Dart_Handle canonical_str = Api::NewHandle(thread, Symbols::New("*"));
     EXPECT(Dart_IsString(canonical_str));
     EXPECT(!Dart_IsExternalString(canonical_str));
     uint8_t ext_canonical_str[kLength];
@@ -8879,7 +8478,7 @@ TEST_CASE(MakeExternalString) {
     const char* symbol_ascii = "?unseen";
     expected_length = strlen(symbol_ascii);
     Dart_Handle symbol_str =
-        Api::NewHandle(isolate, Symbols::New(symbol_ascii, expected_length));
+        Api::NewHandle(thread, Symbols::New(symbol_ascii, expected_length));
     EXPECT_VALID(symbol_str);
     EXPECT(Dart_IsString(symbol_str));
     EXPECT(Dart_IsStringLatin1(symbol_str));
@@ -9418,9 +9017,9 @@ TEST_CASE(Timeline_Dart_TimelineDuration) {
   Dart_TimelineDuration("testDurationEvent", 0, 1);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimIsolateBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
-  IsolateTimelineEventFilter filter(isolate);
+  IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
   EXPECT_SUBSTRING("testDurationEvent", js.ToCString());
 }
@@ -9435,9 +9034,9 @@ TEST_CASE(Timeline_Dart_TimelineInstant) {
   Dart_TimelineInstant("testInstantEvent");
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimIsolateBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
-  IsolateTimelineEventFilter filter(isolate);
+  IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
   EXPECT_SUBSTRING("testInstantEvent", js.ToCString());
 }
@@ -9457,7 +9056,7 @@ TEST_CASE(Timeline_Dart_TimelineAsyncDisabled) {
   Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
   // Check that testAsync is not in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimIsolateBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   TimelineEventFilter filter;
   recorder->PrintJSON(&js, &filter);
@@ -9480,9 +9079,9 @@ TEST_CASE(Timeline_Dart_TimelineAsync) {
 
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimIsolateBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
-  IsolateTimelineEventFilter filter(isolate);
+  IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
   EXPECT_SUBSTRING("testAsyncEvent", js.ToCString());
 }
@@ -9554,6 +9153,12 @@ TEST_CASE(Timeline_Dart_TimelineGetTrace) {
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
 
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
   // Heartbeat test.
   EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
   EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
@@ -9601,6 +9206,12 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceOnlyDartEvents) {
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
 
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
   // Heartbeat test.
   EXPECT_SUBSTRING("\"cat\":\"Dart\"", buffer);
   EXPECT_SUBSTRING("\"name\":\"DART_NAME\"", buffer);
@@ -9646,6 +9257,12 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceWithDartEvents) {
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
 
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
   // Heartbeat test.
   EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
   EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
@@ -9689,6 +9306,12 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceGlobalOverride) {
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
 
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
   // Heartbeat test.
   EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
   EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
@@ -9730,12 +9353,24 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
 
   // Grab the global trace.
   AppendData data;
-  success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
-  EXPECT(success);
+  {
+    Thread* T = Thread::Current();
+    StackZone zone(T);
+    success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
+    EXPECT(success);
+    // The call should do no zone allocation.
+    EXPECT(zone.SizeInBytes() == 0);
+  }
   buffer = reinterpret_cast<char*>(data.buffer);
   buffer_length = data.buffer_length;
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
+
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
 
   // Heartbeat test.
   EXPECT_SUBSTRING("\"name\":\"TestVMDuration\"", buffer);
@@ -9765,12 +9400,22 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
   }
 
   // Grab the global trace.
-  success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
-  EXPECT(success);
+  {
+    Thread* T = Thread::Current();
+    StackZone zone(T);
+    success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
+    EXPECT(success);
+    EXPECT(zone.SizeInBytes() == 0);
+  }
   buffer = reinterpret_cast<char*>(data.buffer);
   buffer_length = data.buffer_length;
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
 
   // Heartbeat test for old events.
   EXPECT_SUBSTRING("\"name\":\"TestVMDuration\"", buffer);
@@ -9784,6 +9429,167 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
 
   // Free buffer allocated by AppendStreamConsumer
   free(data.buffer);
+}
+
+
+class GlobalTimelineThreadData {
+ public:
+  GlobalTimelineThreadData()
+      : monitor_(new Monitor()),
+        data_(new AppendData()),
+        running_(true),
+        join_id_(OSThread::kInvalidThreadJoinId) {
+  }
+
+  ~GlobalTimelineThreadData() {
+    delete monitor_;
+    monitor_ = NULL;
+    free(data_->buffer);
+    data_->buffer = NULL;
+    data_->buffer_length = 0;
+    delete data_;
+    data_ = NULL;
+  }
+
+  Monitor* monitor() const { return monitor_; }
+  bool running() const { return running_; }
+  AppendData* data() const { return data_; }
+  uint8_t* buffer() const { return data_->buffer; }
+  intptr_t buffer_length() const { return data_->buffer_length; }
+  ThreadJoinId join_id() const { return join_id_; }
+
+  void set_running(bool running) { running_ = running; }
+  void set_join_id(ThreadJoinId join_id) { join_id_ = join_id; }
+
+ private:
+  Monitor* monitor_;
+  AppendData* data_;
+  bool running_;
+  ThreadJoinId join_id_;
+};
+
+
+static void GlobalTimelineThread(uword parameter) {
+  GlobalTimelineThreadData* data =
+      reinterpret_cast<GlobalTimelineThreadData*>(parameter);
+  Thread* T = Thread::Current();
+  // When there is no current Thread, then Zone allocation will fail.
+  EXPECT(T == NULL);
+  {
+    MonitorLocker ml(data->monitor());
+    bool success =
+        Dart_GlobalTimelineGetTrace(AppendStreamConsumer, data->data());
+    EXPECT(success);
+    data->set_running(false);
+    data->set_join_id(OSThread::Current()->join_id());
+    ml.Notify();
+  }
+}
+
+
+// This test is the same as the one above except that the calls to
+// Dart_GlobalTimelineGetTrace are made from a fresh thread. This ensures that
+// we can call the function from a thread for which we have not set up a
+// Thread object.
+TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace_Threaded) {
+  const char* kScriptChars =
+    "bar() => 'z';\n"
+    "foo() => 'a';\n"
+    "main() => foo();\n";
+
+  // Enable all streams.
+  Dart_GlobalTimelineSetRecordedStreams(DART_TIMELINE_STREAM_ALL |
+                                        DART_TIMELINE_STREAM_VM);
+  Dart_Handle lib;
+  {
+    // Add something to the VM stream.
+    TimelineDurationScope tds(Timeline::GetVMStream(),
+                              "TestVMDuration");
+    lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  }
+
+  // Invoke main, which will be compiled resulting in a compiler event in
+  // the timeline.
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  const char* buffer = NULL;
+  intptr_t buffer_length = 0;
+
+  // Run Dart_GlobalTimelineGetTrace on a fresh thread.
+  GlobalTimelineThreadData data;
+  int err = OSThread::Start("Timeline test thread",
+      GlobalTimelineThread, reinterpret_cast<uword>(&data));
+  EXPECT(err == 0);
+  {
+    MonitorLocker ml(data.monitor());
+    while (data.running()) {
+      ml.Wait();
+    }
+    buffer = reinterpret_cast<char*>(data.buffer());
+    buffer_length = data.buffer_length();
+    OSThread::Join(data.join_id());
+  }
+  EXPECT(buffer_length > 0);
+  EXPECT(buffer != NULL);
+
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
+  // Heartbeat test.
+  EXPECT_SUBSTRING("\"name\":\"TestVMDuration\"", buffer);
+  EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
+  EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
+  EXPECT_SUBSTRING("\"function\":\"::_main\"", buffer);
+  EXPECT_NOTSUBSTRING("\"function\":\"::_bar\"", buffer);
+
+  // Retrieving the global trace resulted in all open blocks being reclaimed.
+  // Add some new events and verify that both sets of events are present
+  // in the resulting trace.
+  {
+    // Add something to the VM stream.
+    TimelineDurationScope tds(Timeline::GetVMStream(),
+                              "TestVMDuration2");
+    // Invoke bar, which will be compiled resulting in a compiler event in
+    // the timeline.
+    result = Dart_Invoke(lib, NewString("bar"), 0, NULL);
+  }
+
+  // Grab the global trace.
+  GlobalTimelineThreadData data2;
+  err = OSThread::Start("Timeline test thread",
+      GlobalTimelineThread, reinterpret_cast<uword>(&data2));
+  EXPECT(err == 0);
+  {
+    MonitorLocker ml(data2.monitor());
+    while (data2.running()) {
+      ml.Wait();
+    }
+    buffer = reinterpret_cast<char*>(data2.buffer());
+    buffer_length = data2.buffer_length();
+    OSThread::Join(data2.join_id());
+  }
+
+  EXPECT(buffer_length > 0);
+  EXPECT(buffer != NULL);
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
+  // Heartbeat test for old events.
+  EXPECT_SUBSTRING("\"name\":\"TestVMDuration\"", buffer);
+  EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
+  EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
+  EXPECT_SUBSTRING("\"function\":\"::_main\"", buffer);
+
+  // Heartbeat test for new events.
+  EXPECT_SUBSTRING("\"name\":\"TestVMDuration2\"", buffer);
+  EXPECT_SUBSTRING("\"function\":\"::_bar\"", buffer);
 }
 
 }  // namespace dart

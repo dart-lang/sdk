@@ -56,14 +56,6 @@ class Platform {
     return resolved_executable_name_;
   }
 
-  // Stores and gets the package root.
-  static void SetPackageRoot(const char* package_root) {
-    package_root_ = package_root;
-  }
-  static const char* GetPackageRoot() {
-    return package_root_;
-  }
-
   // Stores and gets the flags passed to the executable.
   static void SetExecutableArguments(int script_index, char** argv) {
     script_index_ = script_index;
@@ -76,13 +68,14 @@ class Platform {
     return argv_;
   }
 
+  static DART_NORETURN void Exit(int exit_code);
+
  private:
   // The path to the executable.
   static const char* executable_name_;
   // The path to the resolved executable.
   static const char* resolved_executable_name_;
 
-  static const char* package_root_;
   static int script_index_;
   static char** argv_;  // VM flags are argv_[1 ... script_index_ - 1]
 

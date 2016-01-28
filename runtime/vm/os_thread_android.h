@@ -20,13 +20,17 @@ typedef pthread_key_t ThreadLocalKey;
 typedef pid_t ThreadId;
 typedef pthread_t ThreadJoinId;
 
+
+static const ThreadLocalKey kUnsetThreadLocalKey =
+    static_cast<pthread_key_t>(-1);
+
+
 class ThreadInlineImpl {
  private:
   ThreadInlineImpl() {}
   ~ThreadInlineImpl() {}
 
   static uword GetThreadLocal(ThreadLocalKey key) {
-    static ThreadLocalKey kUnsetThreadLocalKey = static_cast<pthread_key_t>(-1);
     ASSERT(key != kUnsetThreadLocalKey);
     return reinterpret_cast<uword>(pthread_getspecific(key));
   }

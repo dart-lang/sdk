@@ -25,13 +25,16 @@ class WeakCodeReferences : public ValueObject {
   virtual void UpdateArrayTo(const Array& array) = 0;
   virtual void ReportDeoptimization(const Code& code) = 0;
   virtual void ReportSwitchingCode(const Code& code) = 0;
+  virtual void IncrementInvalidationGen() = 0;
 
   static bool IsOptimizedCode(const Array& dependent_code, const Code& code);
 
   void DisableCode();
 
+  bool HasCodes() const;
+
  private:
-  const Array& array_;
+  const Array& array_;  // Array of Code objects.
   DISALLOW_COPY_AND_ASSIGN(WeakCodeReferences);
 };
 

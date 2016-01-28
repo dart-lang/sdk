@@ -7,6 +7,7 @@
 #include "vm/flags.h"
 #include "vm/log.h"
 #include "vm/object_graph.h"
+#include "vm/object_store.h"
 #include "vm/timer.h"
 
 
@@ -37,11 +38,6 @@ class TokenStreamVisitor : public ObjectVisitor {
       Token::Kind kind = tkit.CurrentTokenKind();
       while (kind != Token::kEOS) {
         ++stats_->num_tokens_total;
-        if (kind == Token::kIDENT) {
-          ++stats_->num_ident_tokens_total;
-        } else if (Token::NeedsLiteralToken(kind)) {
-          ++stats_->num_literal_tokens_total;
-        }
         tkit.Advance();
         kind = tkit.CurrentTokenKind();
       }
@@ -71,8 +67,6 @@ CompilerStats::CompilerStats(Isolate* isolate)
       graphcompiler_timer(true, "flow graph compiler timer"),
       codefinalizer_timer(true, "code finalization timer"),
       num_tokens_total(0),
-      num_literal_tokens_total(0),
-      num_ident_tokens_total(0),
       num_tokens_scanned(0),
       num_tokens_consumed(0),
       num_cached_consts(0),
@@ -117,8 +111,6 @@ void CompilerStats::Update() {
   // Traverse the heap and compute number of tokens in all
   // TokenStream objects.
   num_tokens_total = 0;
-  num_literal_tokens_total = 0;
-  num_ident_tokens_total = 0;
   TokenStreamVisitor visitor(isolate_, this);
   isolate_->heap()->IterateObjects(&visitor);
   Dart::vm_isolate()->heap()->IterateObjects(&visitor);
@@ -199,10 +191,11 @@ char* CompilerStats::PrintToZone() {
   log.Print("==== Compiler Stats for isolate '%s' ====\n",
             isolate_->debugger_name());
   log.Print("Number of tokens:        %" Pd64 "\n", num_tokens_total);
-  log.Print("  Literal tokens:        %" Pd64 "\n", num_literal_tokens_total);
-  log.Print("  Ident tokens:          %" Pd64 "\n", num_ident_tokens_total);
   log.Print("Source length:           %" Pd64 " characters\n", src_length);
   log.Print("Number of source tokens: %" Pd64 "\n", num_tokens_scanned);
+
+  int64_t num_local_functions = GrowableObjectArray::Handle(
+      isolate_->object_store()->closure_functions()).Length();
 
   log.Print("==== Parser stats:\n");
   log.Print("Total tokens consumed:   %" Pd64 "\n", num_tokens_consumed);
@@ -212,6 +205,7 @@ char* CompilerStats::PrintToZone() {
   log.Print("  Tokens consumed:       %" Pd64 "\n", num_func_tokens_compiled);
   log.Print("Impl getter funcs:       %" Pd64 "\n", num_implicit_final_getters);
   log.Print("Impl method extractors:  %" Pd64 "\n", num_method_extractors);
+  log.Print("Local functions:         %" Pd64 "\n", num_local_functions);
   log.Print("Consts cached:           %" Pd64 "\n", num_cached_consts);
   log.Print("Consts cache hits:       %" Pd64 "\n", num_const_cache_hits);
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.task.html_test;
+library analyzer.test.src.task.html_test;
 
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/html.dart';
@@ -303,15 +303,22 @@ class ParseHtmlTaskTest extends AbstractContextTest {
     <title>test page</title>
   </head>
   <body>
-    <h1>Test</h1>
+    <h1 myAttr='my value'>Test</h1>
   </body>
 </html>
 ''';
     AnalysisTarget target = newSource('/test.html', code);
     computeResult(target, HTML_DOCUMENT);
     expect(task, isParseHtmlTask);
-    expect(outputs[HTML_DOCUMENT], isNotNull);
     expect(outputs[HTML_DOCUMENT_ERRORS], isEmpty);
+    // HTML_DOCUMENT
+    {
+      Document document = outputs[HTML_DOCUMENT];
+      expect(document, isNotNull);
+      // verify that attributes are not lower-cased
+      Element element = document.body.getElementsByTagName('h1').single;
+      expect(element.attributes['myAttr'], 'my value');
+    }
     // LINE_INFO
     {
       LineInfo lineInfo = outputs[LINE_INFO];

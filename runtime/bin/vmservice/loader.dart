@@ -62,32 +62,20 @@ void _loadFile(SendPort sp, int id, Uri uri) {
   });
 }
 
-var dataUriRegex = new RegExp(
-    r"data:([\w-]+/[\w-]+)?(;charset=([\w-]+))?(;base64)?,(.*)");
-
 void _loadDataUri(SendPort sp, int id, Uri uri) {
   try {
-    var match = dataUriRegex.firstMatch(uri.toString());
-    if (match == null) throw "Malformed data uri";
-
-    var mimeType = match.group(1);
-    var encoding = match.group(3);
-    var maybeBase64 = match.group(4);
-    var encodedData = match.group(5);
-
-    if (mimeType != "application/dart") {
-      throw "MIME-type must be application/dart";
+    var mime = uri.data.mimeType;
+    if ((mime != "application/dart") &&
+        (mime != "text/plain")) {
+      throw "MIME-type must be application/dart or text/plain: $mime given.";
     }
-    if (encoding != "utf-8") {
-      // Default is ASCII. The C++ portion of the embedder assumes UTF-8.
-      throw "Only utf-8 encoding is supported";
+    var charset = uri.data.charset;
+    if ((charset != "utf-8") &&
+        (charset != "US-ASCII")) {
+      // The C++ portion of the embedder assumes UTF-8.
+      throw "Only utf-8 or US-ASCII encodings are supported: $charset given.";
     }
-    if (maybeBase64 != null) {
-      throw "Only percent encoding is supported";
-    }
-
-    var data = UTF8.encode(Uri.decodeComponent(encodedData));
-    _sendResourceResponse(sp, id, data);
+    _sendResourceResponse(sp, id, uri.data.contentAsBytes());
   } catch (e) {
     _sendResourceResponse(sp, id, "Invalid data uri ($uri):\n  $e");
   }
@@ -148,7 +136,9 @@ _parsePackagesFile(SendPort sp,
                    bool traceLoading,
                    Uri packagesFile,
                    List<int> data) {
-  var result = [];
+  // The first entry contains the location of the identified .packages file
+  // instead of a mapping.
+  var result = [packagesFile.toString(), null];
   var index = 0;
   var len = data.length;
   while (index < len) {
@@ -276,7 +266,7 @@ _loadPackagesFile(SendPort sp, bool traceLoading, Uri packagesFile) async {
     if (traceLoading) {
       _log("Error loading packages: $e\n$s");
     }
-    sp.send("Uncaught error ($e) loading packags file.");
+    sp.send("Uncaught error ($e) loading packages file.");
   }
 }
 
@@ -378,6 +368,26 @@ Future<bool> _loadHttpPackagesFile(SendPort sp,
   return false;
 }
 
+_loadPackagesData(sp, traceLoading, resource){
+  try {
+    var data = resource.data;
+    var mime = data.mimeType;
+    if (mime != "text/plain") {
+      throw "MIME-type must be text/plain: $mime given.";
+    }
+    var charset = data.charset;
+    if ((charset != "utf-8") &&
+        (charset != "US-ASCII")) {
+      // The C++ portion of the embedder assumes UTF-8.
+      throw "Only utf-8 or US-ASCII encodings are supported: $charset given.";
+    }
+    _parsePackagesFile(sp, traceLoading, resource, data.contentAsBytes());
+  } catch (e) {
+    sp.send("Uncaught error ($e) loading packages data.");
+  }
+}
+
+
 _handlePackagesRequest(SendPort sp,
                        bool traceLoading,
                        int id,
@@ -416,6 +426,8 @@ _handlePackagesRequest(SendPort sp,
         if (!exists) {
           sp.send("Packages file '$resource' not found.");
         }
+      } else if (resource.scheme == 'data') {
+        _loadPackagesData(sp, traceLoading, resource);
       } else {
         sp.send("Unknown scheme (${resource.scheme}) for package file at "
                 "'$resource'.");

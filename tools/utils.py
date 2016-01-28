@@ -58,12 +58,12 @@ def GuessArchitecture():
     return 'arm64'
   elif os_id.startswith('mips'):
     return 'mips'
+  elif '64' in os_id:
+    return 'x64'
   elif (not os_id) or (not re.match('(x|i[3-6])86', os_id) is None):
     return 'ia32'
   elif os_id == 'i86pc':
     return 'ia32'
-  elif '64' in os_id:
-    return 'x64'
   else:
     guess_os = GuessOS()
     print "Warning: Guessing architecture %s based on os %s\n"\
@@ -626,6 +626,8 @@ def CheckedInSdkExecutable():
       name = 'dart-mips'
     elif arch == 'arm':
       name = 'dart-arm'
+    elif arch == 'arm64':
+      name = 'dart-arm'
   return os.path.join(CheckedInSdkPath(), 'bin', name)
 
 
@@ -634,8 +636,9 @@ def CheckedInSdkCheckExecutable():
   canary_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                'canary.dart')
   try:
-    if 42 == subprocess.call([executable, canary_script]):
-      return True
+    with open(os.devnull, 'wb') as silent_sink:
+      if 0 == subprocess.call([executable, canary_script], stdout=silent_sink):
+        return True
   except OSError as e:
     pass
   return False

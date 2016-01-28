@@ -8,8 +8,8 @@ set SCRIPTPATH=%~dp0
 REM Does the path have a trailing slash? If so, remove it.
 if %SCRIPTPATH:~-1%== set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
-REM DART_CONFIGURATION defaults to ReleaseIA32
-if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseIA32
+REM DART_CONFIGURATION defaults to ReleaseX64
+if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseX64
 
 set arguments=%*
 

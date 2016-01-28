@@ -24,8 +24,7 @@ Future<MirrorSystem> analyze(String test) {
 Future<MirrorSystem> analyzeUri(Uri testUri) {
   Uri repository = Platform.script.resolve('../../../../');
   Uri libraryRoot = repository.resolve('sdk/');
-  Uri packageRoot = Uri.base.resolveUri(
-      new Uri.file('${Platform.packageRoot}/'));
+  Uri packageRoot = Uri.base.resolve(Platform.packageRoot);
   var provider = new CompilerSourceFileProvider();
   var handler = new FormattingDiagnosticHandler(provider);
   return source_mirrors.analyze(

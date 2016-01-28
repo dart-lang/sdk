@@ -64,12 +64,44 @@ class StackmapKeyValueTrait {
 
 typedef DirectChainedHashMap<StackmapKeyValueTrait> StackmapSet;
 
+class FunctionKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Function* Key;
+  typedef const Function* Value;
+  typedef const Function* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->token_pos();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->raw() == key->raw();
+  }
+};
+
+typedef DirectChainedHashMap<FunctionKeyValueTrait> FunctionSet;
+
 
 class Precompiler : public ValueObject {
  public:
   static RawError* CompileAll(
       Dart_QualifiedFunctionName embedder_entry_points[],
       bool reset_fields);
+
+  // Returns named function that is a unique dynamic target, i.e.,
+  // - the target is identified by its name alone, since it occurs only once.
+  // - target's class has no subclasses, and neither is subclassed, i.e.,
+  //   the receiver type can be only the function's class.
+  // Returns Function::null() if there is no unique dynamic target for
+  // given 'fname'. 'fname' must be a symbol.
+  static void GetUniqueDynamicTarget(Isolate* isolate,
+                                     const String& fname,
+                                     Object* function);
 
  private:
   Precompiler(Thread* thread, bool reset_fields);
@@ -79,13 +111,13 @@ class Precompiler : public ValueObject {
   void AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]);
   void AddEntryPoints(Dart_QualifiedFunctionName entry_points[]);
   void Iterate();
-  void CleanUp();
 
   void AddCalleesOf(const Function& function);
+  void AddConstObject(const Instance& instance);
   void AddClosureCall(const ICData& call_site);
   void AddField(const Field& field);
   void AddFunction(const Function& function);
-  void AddClass(const Class& cls);
+  void AddInstantiatedClass(const Class& cls);
   void AddSelector(const String& selector);
   bool IsSent(const String& selector);
 
@@ -93,8 +125,10 @@ class Precompiler : public ValueObject {
   void CheckForNewDynamicFunctions();
 
   void DropUncompiledFunctions();
+  void CollectDynamicFunctionNames();
   void BindStaticCalls();
   void DedupStackmaps();
+  void ResetPrecompilerState();
 
   class FunctionVisitor : public ValueObject {
    public:
@@ -103,6 +137,8 @@ class Precompiler : public ValueObject {
   };
 
   void VisitFunctions(FunctionVisitor* visitor);
+
+  void FinalizeAllClasses();
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
@@ -122,8 +158,8 @@ class Precompiler : public ValueObject {
 
   const GrowableObjectArray& libraries_;
   const GrowableObjectArray& pending_functions_;
-  const GrowableObjectArray& collected_closures_;
   SymbolSet sent_selectors_;
+  FunctionSet enqueued_functions_;
   Error& error_;
 };
 

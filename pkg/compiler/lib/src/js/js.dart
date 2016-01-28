@@ -163,3 +163,26 @@ class UnparsedNode extends DeferredString
   @override
   String get value => _literal.value;
 }
+
+/// Returns `true` if [template] will immediately give a TypeError if the first
+/// placeholder is `null` or `undefined`.
+bool isNullGuardOnFirstArgument(Template template) {
+  // We look for a template of the form
+  //
+  //     #.something
+  //     #.something()
+  //
+  Node node = template.ast;
+  if (node is Call) {
+    Call call = node;
+    node = call.target;
+  }
+  if (node is PropertyAccess) {
+    PropertyAccess access = node;
+    if (access.receiver is InterpolatedExpression) {
+      InterpolatedExpression hole = access.receiver;
+      return hole.isPositional && hole.nameOrPosition == 0;
+    }
+  }
+  return false;
+}

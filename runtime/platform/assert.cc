@@ -8,6 +8,7 @@
 #include <string>
 
 #include "platform/globals.h"
+#include "vm/os.h"
 
 namespace dart {
 
@@ -38,7 +39,7 @@ void DynamicAssertionHelper::Fail(const char* format, ...) {
   // TODO(5411324): replace std::abort with OS::Abort so that we can handle
   // restoring of signal handlers before aborting.
   if (kind_ == ASSERT) {
-    abort();
+    OS::Abort();
   }
   static bool failed = false;
   if (!failed) {

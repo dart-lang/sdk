@@ -111,8 +111,8 @@ bool isFixedLength(mask, Compiler compiler) {
     return true;
   }
   // TODO(sra): Recognize any combination of fixed length indexables.
-  if (mask.containsOnly(backend.jsFixedArrayClass) ||
-      mask.containsOnly(backend.jsUnmodifiableArrayClass) ||
+  if (mask.containsOnly(backend.helpers.jsFixedArrayClass) ||
+      mask.containsOnly(backend.helpers.jsUnmodifiableArrayClass) ||
       mask.containsOnlyString(classWorld) ||
       backend.isTypedArray(mask)) {
     return true;
@@ -144,6 +144,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
                            this.backend,
                            this.optimizer,
                            this.work);
+
+  CoreClasses get coreClasses => compiler.coreClasses;
+
+  BackendHelpers get helpers => backend.helpers;
 
   void visitGraph(HGraph visitee) {
     graph = visitee;
@@ -250,7 +254,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     // All values that cannot be 'true' are boolified to false.
     TypeMask mask = input.instructionType;
-    if (!mask.contains(backend.jsBoolClass, compiler.world)) {
+    if (!mask.contains(helpers.jsBoolClass, compiler.world)) {
       return graph.addConstantBool(false, compiler);
     }
     return node;
@@ -297,17 +301,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
         ListConstantValue constant = constantInput.constant;
         return graph.addConstantInt(constant.length, compiler);
       }
-      Element element = backend.jsIndexableLength;
+      Element element = helpers.jsIndexableLength;
       bool isFixed = isFixedLength(actualReceiver.instructionType, compiler);
       TypeMask actualType = node.instructionType;
       ClassWorld classWorld = compiler.world;
       TypeMask resultType = backend.positiveIntType;
       // If we already have computed a more specific type, keep that type.
       if (HInstruction.isInstanceOf(
-              actualType, backend.jsUInt31Class, classWorld)) {
+              actualType, helpers.jsUInt31Class, classWorld)) {
         resultType = backend.uint31Type;
       } else if (HInstruction.isInstanceOf(
-              actualType, backend.jsUInt32Class, classWorld)) {
+              actualType, helpers.jsUInt32Class, classWorld)) {
         resultType = backend.uint32Type;
       }
       HFieldGet result = new HFieldGet(
@@ -351,22 +355,22 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (selector.isCall || selector.isOperator) {
       Element target;
       if (input.isExtendableArray(compiler)) {
-        if (applies(backend.jsArrayRemoveLast)) {
-          target = backend.jsArrayRemoveLast;
-        } else if (applies(backend.jsArrayAdd)) {
+        if (applies(helpers.jsArrayRemoveLast)) {
+          target = helpers.jsArrayRemoveLast;
+        } else if (applies(helpers.jsArrayAdd)) {
           // The codegen special cases array calls, but does not
           // inline argument type checks.
           if (!compiler.enableTypeAssertions) {
-            target = backend.jsArrayAdd;
+            target = helpers.jsArrayAdd;
           }
         }
       } else if (input.isStringOrNull(compiler)) {
-        if (applies(backend.jsStringSplit)) {
+        if (applies(helpers.jsStringSplit)) {
           HInstruction argument = node.inputs[2];
           if (argument.isString(compiler)) {
-            target = backend.jsStringSplit;
+            target = helpers.jsStringSplit;
           }
-        } else if (applies(backend.jsStringOperatorAdd)) {
+        } else if (applies(helpers.jsStringOperatorAdd)) {
           // `operator+` is turned into a JavaScript '+' so we need to
           // make sure the receiver and the argument are not null.
           // TODO(sra): Do this via [node.specializer].
@@ -376,7 +380,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             return new HStringConcat(input, argument, null,
                                      node.instructionType);
           }
-        } else if (applies(backend.jsStringToString)
+        } else if (applies(helpers.jsStringToString)
                    && !input.canBeNull()) {
           return input;
         }
@@ -397,7 +401,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return result;
       }
     } else if (selector.isGetter) {
-      if (selector.applies(backend.jsIndexableLength, world)) {
+      if (selector.applies(helpers.jsIndexableLength, world)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
       }
@@ -424,7 +428,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         && element.name == node.selector.name) {
       FunctionElement method = element;
 
-      if (method.isNative) {
+      if (backend.isNative(method)) {
         HInstruction folded = tryInlineNativeMethod(node, method);
         if (folded != null) return folded;
       } else {
@@ -675,22 +679,22 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return node;
     } else if (type.isTypedef) {
       return node;
-    } else if (element == compiler.functionClass) {
+    } else if (element == coreClasses.functionClass) {
       return node;
     }
 
-    if (element == compiler.objectClass || type.treatAsDynamic) {
+    if (type.isObject || type.treatAsDynamic) {
       return graph.addConstantBool(true, compiler);
     }
 
     ClassWorld classWorld = compiler.world;
     HInstruction expression = node.expression;
     if (expression.isInteger(compiler)) {
-      if (identical(element, compiler.intClass)
-          || identical(element, compiler.numClass)
-          || Elements.isNumberOrStringSupertype(element, compiler)) {
+      if (element == coreClasses.intClass ||
+          element == coreClasses.numClass ||
+          Elements.isNumberOrStringSupertype(element, compiler)) {
         return graph.addConstantBool(true, compiler);
-      } else if (identical(element, compiler.doubleClass)) {
+      } else if (element == coreClasses.doubleClass) {
         // We let the JS semantics decide for that check. Currently
         // the code we emit will always return true.
         return node;
@@ -698,11 +702,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return graph.addConstantBool(false, compiler);
       }
     } else if (expression.isDouble(compiler)) {
-      if (identical(element, compiler.doubleClass)
-          || identical(element, compiler.numClass)
-          || Elements.isNumberOrStringSupertype(element, compiler)) {
+      if (element == coreClasses.doubleClass ||
+          element == coreClasses.numClass ||
+          Elements.isNumberOrStringSupertype(element, compiler)) {
         return graph.addConstantBool(true, compiler);
-      } else if (identical(element, compiler.intClass)) {
+      } else if (element == coreClasses.intClass) {
         // We let the JS semantics decide for that check. Currently
         // the code we emit will return true for a double that can be
         // represented as a 31-bit integer and for -0.0.
@@ -711,14 +715,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return graph.addConstantBool(false, compiler);
       }
     } else if (expression.isNumber(compiler)) {
-      if (identical(element, compiler.numClass)) {
+      if (element == coreClasses.numClass) {
         return graph.addConstantBool(true, compiler);
       } else {
         // We cannot just return false, because the expression may be of
         // type int or double.
       }
-    } else if (expression.canBePrimitiveNumber(compiler)
-               && identical(element, compiler.intClass)) {
+    } else if (expression.canBePrimitiveNumber(compiler) &&
+               element == coreClasses.intClass) {
       // We let the JS semantics decide for that check.
       return node;
     // We need the [:hasTypeArguments:] check because we don't have
@@ -728,7 +732,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     } else if (!RuntimeTypes.hasTypeArguments(type)) {
       TypeMask expressionMask = expression.instructionType;
       assert(TypeMask.assertIsNormalized(expressionMask, classWorld));
-      TypeMask typeMask = (element == compiler.nullClass)
+      TypeMask typeMask = (element == coreClasses.nullClass)
           ? new TypeMask.subtype(element, classWorld)
           : new TypeMask.nonNullSubtype(element, classWorld);
       if (expressionMask.union(typeMask, classWorld) == typeMask) {
@@ -781,7 +785,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitFieldGet(HFieldGet node) {
     if (node.isNullCheck) return node;
     var receiver = node.receiver;
-    if (node.element == backend.jsIndexableLength) {
+    if (node.element == helpers.jsIndexableLength) {
       JavaScriptItemCompilationContext context = work.compilationContext;
       if (context.allocatedFixedLists.contains(receiver)) {
         // TODO(ngeoffray): checking if the second input is an integer
@@ -858,7 +862,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     bool isAssignable = !compiler.world.fieldNeverChanges(field);
 
     TypeMask type;
-    if (field.enclosingClass.isNative) {
+    if (backend.isNative(field.enclosingClass)) {
       type = TypeMaskFactory.fromNativeBehavior(
           native.NativeBehavior.ofFieldLoad(field, compiler),
           compiler);
@@ -1003,6 +1007,8 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
                    this.work,
                    this.boundsChecked);
 
+  BackendHelpers get helpers => backend.helpers;
+
   void visitGraph(HGraph graph) {
     this.graph = graph;
 
@@ -1028,7 +1034,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
                                  HInstruction indexArgument) {
     Compiler compiler = backend.compiler;
     HFieldGet length = new HFieldGet(
-        backend.jsIndexableLength, array, backend.positiveIntType,
+        helpers.jsIndexableLength, array, backend.positiveIntType,
         isAssignable: !isFixedLength(array.instructionType, compiler));
     indexNode.block.addBefore(indexNode, length);
 
@@ -1067,7 +1073,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   void visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     Element element = node.element;
     if (node.isInterceptedCall) return;
-    if (element != backend.jsArrayRemoveLast) return;
+    if (element != helpers.jsArrayRemoveLast) return;
     if (boundsChecked.contains(node)) return;
     // `0` is the index we want to check, but we want to report `-1`, as if we
     // executed `a[a.length-1]`
@@ -2129,6 +2135,8 @@ class MemorySet {
 
   MemorySet(this.compiler);
 
+  JavaScriptBackend get backend => compiler.backend;
+
   /**
    * Returns whether [first] and [second] always alias to the same object.
    */
@@ -2185,7 +2193,9 @@ class MemorySet {
   void registerFieldValueUpdate(Element element,
                                 HInstruction receiver,
                                 HInstruction value) {
-    if (element.isNative) return; // TODO(14955): Remove this restriction?
+    if (backend.isNative(element)) {
+      return; // TODO(14955): Remove this restriction?
+    }
     // [value] is being set in some place in memory, we remove it from
     // the non-escaping set.
     nonEscapingReceivers.remove(value);
@@ -2203,7 +2213,9 @@ class MemorySet {
   void registerFieldValue(Element element,
                           HInstruction receiver,
                           HInstruction value) {
-    if (element.isNative) return; // TODO(14955): Remove this restriction?
+    if (backend.isNative(element)) {
+      return; // TODO(14955): Remove this restriction?
+    }
     Map<HInstruction, HInstruction> map = fieldValues.putIfAbsent(
         element, () => <HInstruction, HInstruction> {});
     map[receiver] = value;

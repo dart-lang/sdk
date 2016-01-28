@@ -34,8 +34,7 @@ class SortMembersTest extends AbstractAnalysisTest {
     handler = new EditDomainHandler(server);
   }
 
-  Future test_BAD_doesNotExist() async {
-    await waitForTasksFinished();
+  test_BAD_doesNotExist() async {
     Request request =
         new EditSortMembersParams('/no/such/file.dart').toRequest('0');
     Response response = handler.handleRequest(request);
@@ -43,21 +42,19 @@ class SortMembersTest extends AbstractAnalysisTest {
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
   }
 
-  Future test_BAD_hasParseError() async {
+  test_BAD_hasParseError() async {
     addTestFile('''
 main() {
   print()
 }
 ''');
-    await waitForTasksFinished();
     Request request = new EditSortMembersParams(testFile).toRequest('0');
     Response response = handler.handleRequest(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS));
   }
 
-  Future test_BAD_notDartFile() async {
-    await waitForTasksFinished();
+  test_BAD_notDartFile() async {
     Request request =
         new EditSortMembersParams('/not-a-Dart-file.txt').toRequest('0');
     Response response = handler.handleRequest(request);
@@ -65,7 +62,21 @@ main() {
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
   }
 
-  Future test_OK_classMembers_method() {
+  test_OK_afterWaitForAnalysis() async {
+    addTestFile('''
+class C {}
+class A {}
+class B {}
+''');
+    await waitForTasksFinished();
+    return _assertSorted(r'''
+class A {}
+class B {}
+class C {}
+''');
+  }
+
+  test_OK_classMembers_method() async {
     addTestFile('''
 class A {
   c() {}
@@ -82,7 +93,7 @@ class A {
 ''');
   }
 
-  Future test_OK_directives() {
+  test_OK_directives() async {
     addTestFile('''
 library lib;
 
@@ -133,7 +144,7 @@ main() {
 ''');
   }
 
-  Future test_OK_unitMembers_class() {
+  test_OK_unitMembers_class() async {
     addTestFile('''
 class C {}
 class A {}
@@ -147,7 +158,6 @@ class C {}
   }
 
   Future _assertSorted(String expectedCode) async {
-    await waitForTasksFinished();
     _requestSort();
     String resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
     expect(resultCode, expectedCode);

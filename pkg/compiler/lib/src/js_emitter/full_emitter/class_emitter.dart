@@ -45,7 +45,7 @@ class ClassEmitter extends CodeEmitterHelper {
     emitRuntimeTypeInformation(cls, builder);
     emitNativeInfo(cls, builder);
 
-    if (classElement == backend.closureClass) {
+    if (classElement == backend.helpers.closureClass) {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
       jsAst.Fun function = js('function() { return this; }');
@@ -253,8 +253,7 @@ class ClassEmitter extends CodeEmitterHelper {
       emitter.containerBuilder.addMemberMethod(method, builder);
     }
 
-    if (identical(classElement, compiler.objectClass)
-        && backend.enabledNoSuchMethod) {
+    if (classElement.isObject && backend.enabledNoSuchMethod) {
       // Emit the noSuchMethod handlers on the Object prototype now,
       // so that the code in the dynamicFunction helper can find
       // them. Note that this helper is invoked before analyzing the
@@ -329,8 +328,9 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     if (!statics.isEmpty) {
-      classBuilder.addPropertyByName('static',
-                                     new jsAst.ObjectInitializer(statics));
+      classBuilder.addProperty(
+          namer.staticsPropertyName, // 'static' or its minified name.
+          new jsAst.ObjectInitializer(statics, isOneLiner: false));
     }
 
     // TODO(ahe): This method (generateClass) should return a jsAst.Expression.

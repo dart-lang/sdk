@@ -7,6 +7,8 @@ library tree_ir.optimization.statement_rewriter;
 import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
 import '../../io/source_information.dart';
+import '../../elements/elements.dart';
+import '../../js/placeholder_safety.dart';
 
 /**
  * Translates to direct-style.
@@ -165,7 +167,7 @@ class StatementRewriter extends Transformer implements Pass {
 
   /// Binding environment for variables that are assigned to effectively
   /// constant expressions (see [isEffectivelyConstant]).
-  Map<Variable, Expression> constantEnvironment;
+  Map<Variable, Expression> constantEnvironment = <Variable, Expression>{};
 
   /// Substitution map for labels. Any break to a label L should be substituted
   /// for a break to L' if L maps to L'.
@@ -184,14 +186,6 @@ class StatementRewriter extends Transformer implements Pass {
   /// variable might have changed since it was put in the environment.
   final Map<Variable, int> dominatingAssignments = <Variable, int>{};
 
-  /// Rewriter for methods.
-  StatementRewriter() : constantEnvironment = <Variable, Expression>{};
-
-  /// Rewriter for nested functions.
-  StatementRewriter.nested(StatementRewriter parent)
-      : constantEnvironment = parent.constantEnvironment,
-        unseenUses = parent.unseenUses;
-
   /// A set of labels that can be safely inlined at their use.
   ///
   /// The successor statements for labeled statements that have only one break
@@ -199,6 +193,13 @@ class StatementRewriter extends Transformer implements Pass {
   /// is not safe if the code would be moved inside the scope of an exception
   /// handler (i.e., if the code would be moved into a try from outside it).
   Set<Label> safeForInlining = new Set<Label>();
+
+  /// If the top element is true, assignments of form "x = CONST" may be
+  /// propagated into a following occurence of CONST.  This may confuse the JS
+  /// engine so it is disabled in some cases.
+  final List<bool> allowRhsPropagation = <bool>[true];
+
+  bool get isRhsPropagationAllowed => allowRhsPropagation.last;
 
   /// Returns the redirect target of [jump] or [jump] itself if it should not
   /// be redirected.
@@ -237,9 +238,14 @@ class StatementRewriter extends Transformer implements Pass {
   /// If the given expression always returns the value of one of its
   /// subexpressions, and that subexpression is a variable use, returns that
   /// variable. Otherwise `null`.
-  Variable getRightHand(Expression e) {
+  Variable getRightHandVariable(Expression e) {
     Expression value = getValueSubexpression(e);
     return value is VariableUse ? value.variable : null;
+  }
+
+  Constant getRightHandConstant(Expression e) {
+    Expression value = getValueSubexpression(e);
+    return value is Constant ? value : null;
   }
 
   /// True if the given expression (taken from [constantEnvironment]) uses a
@@ -277,6 +283,11 @@ class StatementRewriter extends Transformer implements Pass {
     // it means we are looking at the first use.
     assert(unseenUses[node.variable] < node.variable.readCount);
     assert(unseenUses[node.variable] >= 0);
+
+    // We cannot reliably find the first dynamic use of a variable that is
+    // accessed from a JS function in a foreign code fragment.
+    if (node.variable.isCaptured) return node;
+
     bool isFirstUse = unseenUses[node.variable] == 0;
 
     // Propagate constant to use site.
@@ -315,7 +326,8 @@ class StatementRewriter extends Transformer implements Pass {
       //
       //     { E.foo = x; bar(x) } ==> bar(E.foo = x)
       //
-      if (getRightHand(binding) == node.variable) {
+      if (isRhsPropagationAllowed &&
+          getRightHandVariable(binding) == node.variable) {
         environment.removeLast();
         --node.variable.readCount;
         return visitExpression(binding);
@@ -455,7 +467,9 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitAssign(Assign node) {
+    allowRhsPropagation.add(true);
     node.value = visitExpression(node.value);
+    allowRhsPropagation.removeLast();
     // Remove assignments to variables without any uses. This can happen
     // because the assignment was propagated into its use, e.g:
     //
@@ -470,10 +484,12 @@ class StatementRewriter extends Transformer implements Pass {
 
   /// Process nodes right-to-left, the opposite of evaluation order in the case
   /// of argument lists..
-  void _rewriteList(List<Node> nodes) {
+  void _rewriteList(List<Node> nodes, {bool rhsPropagation: true}) {
+    allowRhsPropagation.add(rhsPropagation);
     for (int i = nodes.length - 1; i >= 0; --i) {
       nodes[i] = visitExpression(nodes[i]);
     }
+    allowRhsPropagation.removeLast();
   }
 
   Expression visitInvokeStatic(InvokeStatic node) {
@@ -496,6 +512,11 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
+  Expression visitOneShotInterceptor(OneShotInterceptor node) {
+    _rewriteList(node.arguments);
+    return node;
+  }
+
   Expression visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
     if (node.receiverIsNotNull) {
       _rewriteList(node.arguments);
@@ -513,7 +534,19 @@ class StatementRewriter extends Transformer implements Pass {
 
   Expression visitInvokeMethodDirectly(InvokeMethodDirectly node) {
     _rewriteList(node.arguments);
-    node.receiver = visitExpression(node.receiver);
+    // The target function might not exist before the enclosing class has been
+    // instantitated for the first time.  If the receiver might be the first
+    // instantiation of its class, we cannot propgate it into the receiver
+    // expression, because the target function is evaluated before the receiver.
+    // Calls to constructor bodies are compiled so that the receiver is
+    // evaluated first, so they are safe.
+    if (node.target is! ConstructorBodyElement) {
+      inEmptyEnvironment(() {
+        node.receiver = visitExpression(node.receiver);
+      });
+    } else {
+      node.receiver = visitExpression(node.receiver);
+    }
     return node;
   }
 
@@ -561,22 +594,20 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
-  Expression visitFunctionExpression(FunctionExpression node) {
-    new StatementRewriter.nested(this).rewrite(node.definition);
-    return node;
+  bool isNullConstant(Expression node) {
+    return node is Constant && node.value.isNull;
   }
 
   Statement visitReturn(Return node) {
-    node.value = visitExpression(node.value);
+    if (!isNullConstant(node.value)) {
+      // Do not chain assignments into a null return.
+      node.value = visitExpression(node.value);
+    }
     return node;
   }
 
   Statement visitThrow(Throw node) {
     node.value = visitExpression(node.value);
-    return node;
-  }
-
-  Statement visitRethrow(Rethrow node) {
     return node;
   }
 
@@ -690,6 +721,12 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitConstant(Constant node) {
+    if (isRhsPropagationAllowed && !environment.isEmpty) {
+      Constant constant = getRightHandConstant(environment.last);
+      if (constant != null && constant.value == node.value) {
+        return visitExpression(environment.removeLast());
+      }
+    }
     return node;
   }
 
@@ -717,9 +754,37 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
+  bool sameVariable(Expression e1, Expression e2) {
+    return e1 is VariableUse && e2 is VariableUse && e1.variable == e2.variable;
+  }
+
+  bool isCompoundableBuiltin(Expression e) {
+    return e is ApplyBuiltinOperator &&
+           e.arguments.length == 2 &&
+           isCompoundableOperator(e.operator);
+  }
+
+  void destroyVariableUse(VariableUse node) {
+    --node.variable.readCount;
+  }
+
   Expression visitSetField(SetField node) {
+    allowRhsPropagation.add(true);
     node.value = visitExpression(node.value);
+    if (isCompoundableBuiltin(node.value)) {
+      ApplyBuiltinOperator rhs = node.value;
+      Expression left = rhs.arguments[0];
+      Expression right = rhs.arguments[1];
+      if (left is GetField &&
+          left.field == node.field &&
+          sameVariable(left.object, node.object)) {
+        destroyVariableUse(left.object);
+        node.compound = rhs.operator;
+        node.value = right;
+      }
+    }
     node.object = visitExpression(node.object);
+    allowRhsPropagation.removeLast();
     return node;
   }
 
@@ -733,7 +798,9 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitSetStatic(SetStatic node) {
+    allowRhsPropagation.add(true);
     node.value = visitExpression(node.value);
+    allowRhsPropagation.removeLast();
     return node;
   }
 
@@ -789,6 +856,19 @@ class StatementRewriter extends Transformer implements Pass {
 
   Expression visitSetIndex(SetIndex node) {
     node.value = visitExpression(node.value);
+    if (isCompoundableBuiltin(node.value)) {
+      ApplyBuiltinOperator rhs = node.value;
+      Expression left = rhs.arguments[0];
+      Expression right = rhs.arguments[1];
+      if (left is GetIndex &&
+          sameVariable(left.object, node.object) &&
+          sameVariable(left.index, node.index)) {
+        destroyVariableUse(left.object);
+        destroyVariableUse(left.index);
+        node.compound = rhs.operator;
+        node.value = right;
+      }
+    }
     node.index = visitExpression(node.index);
     node.object = visitExpression(node.object);
     return node;
@@ -843,31 +923,31 @@ class StatementRewriter extends Transformer implements Pass {
   /// foo() must be evaluated before bar(), so the propagation is only possible
   /// by commuting the operator.
   Expression visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
-    if (environment.isEmpty || getLeftHand(environment.last) == null) {
-      // If there is no recent assignment that might propagate, so there is no
-      // opportunity for optimization here.
-      _rewriteList(node.arguments);
-      return node;
-    }
-    Variable propagatableVariable = getLeftHand(environment.last);
-    BuiltinOperator commuted = commuteBinaryOperator(node.operator);
-    if (commuted != null) {
-      assert(node.arguments.length == 2); // Only binary operators can commute.
-      Expression left = node.arguments[0];
-      if (left is VariableUse && propagatableVariable == left.variable) {
-        Expression right = node.arguments[1];
-        if (right is This ||
-            (right is VariableUse &&
-             propagatableVariable != right.variable &&
-             !constantEnvironment.containsKey(right.variable))) {
-          // An assignment can be propagated if we commute the operator.
-          node.operator = commuted;
-          node.arguments[0] = right;
-          node.arguments[1] = left;
+    if (!environment.isEmpty && getLeftHand(environment.last) != null) {
+      Variable propagatableVariable = getLeftHand(environment.last);
+      BuiltinOperator commuted = commuteBinaryOperator(node.operator);
+      if (commuted != null) {
+        // Only binary operators can commute.
+        assert(node.arguments.length == 2);
+        Expression left = node.arguments[0];
+        if (left is VariableUse && propagatableVariable == left.variable) {
+          Expression right = node.arguments[1];
+          if (right is This ||
+              (right is VariableUse &&
+               propagatableVariable != right.variable &&
+               !constantEnvironment.containsKey(right.variable))) {
+            // An assignment can be propagated if we commute the operator.
+            node.operator = commuted;
+            node.arguments[0] = right;
+            node.arguments[1] = left;
+          }
         }
       }
     }
-    _rewriteList(node.arguments);
+    // Avoid code like `p == (q.f = null)`. JS operators with a constant operand
+    // can sometimes be compiled to a specialized instruction in the JS engine,
+    // so retain syntactically constant operands.
+    _rewriteList(node.arguments, rhsPropagation: false);
     return node;
   }
 
@@ -1126,15 +1206,33 @@ class StatementRewriter extends Transformer implements Pass {
     return polarity ? node.thenStatement : node.elseStatement;
   }
 
+  void handleForeignCode(ForeignCode node) {
+    // Some arguments will get inserted in a JS code template.  The arguments
+    // will not always be evaluated (e.g. the second placeholder in the template
+    // '# && #').
+    bool isNullable(int position) => node.nullableArguments[position];
+
+    int safeArguments =
+      PlaceholderSafetyAnalysis.analyze(node.codeTemplate.ast, isNullable);
+    inEmptyEnvironment(() {
+      for (int i = node.arguments.length - 1; i >= safeArguments; --i) {
+        node.arguments[i] = visitExpression(node.arguments[i]);
+      }
+    });
+    for (int i = safeArguments - 1; i >= 0; --i) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
+  }
+
   @override
   Expression visitForeignExpression(ForeignExpression node) {
-    _rewriteList(node.arguments);
+    handleForeignCode(node);
     return node;
   }
 
   @override
   Statement visitForeignStatement(ForeignStatement node) {
-    _rewriteList(node.arguments);
+    handleForeignCode(node);
     return node;
   }
 
@@ -1148,6 +1246,23 @@ class StatementRewriter extends Transformer implements Pass {
   Statement visitYield(Yield node) {
     node.input = visitExpression(node.input);
     node.next = visitStatement(node.next);
+    return node;
+  }
+
+  @override
+  Statement visitNullCheck(NullCheck node) {
+    inEmptyEnvironment(() {
+      node.next = visitStatement(node.next);
+    });
+    if (node.condition != null) {
+      inEmptyEnvironment(() {
+        // Value occurs in conditional context.
+        node.value = visitExpression(node.value);
+      });
+      node.condition = visitExpression(node.condition);
+    } else {
+      node.value = visitExpression(node.value);
+    }
     return node;
   }
 }
@@ -1228,8 +1343,6 @@ class IsVariableUsedVisitor extends RecursiveVisitor {
       wasFound = true;
     }
   }
-
-  visitInnerFunction(FunctionDefinition node) {}
 }
 
 typedef VariableUseCallback(VariableUse use);
@@ -1240,8 +1353,6 @@ class VariableUseVisitor extends RecursiveVisitor {
   VariableUseVisitor(this.callback);
 
   visitVariableUse(VariableUse use) => callback(use);
-
-  visitInnerFunction(FunctionDefinition node) {}
 
   static void visit(Expression node, VariableUseCallback callback) {
     new VariableUseVisitor(callback).visitExpression(node);

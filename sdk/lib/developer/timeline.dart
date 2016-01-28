@@ -5,6 +5,7 @@
 part of dart.developer;
 
 typedef dynamic TimelineSyncFunction();
+typedef Future TimelineAsyncFunction();
 
 /// Add to the timeline.
 class Timeline {
@@ -36,6 +37,24 @@ class Timeline {
     block.finish();
   }
 
+  /// Emit an instant event.
+  static void instantSync(String name, {Map arguments}) {
+    if (name is! String) {
+      throw new ArgumentError.value(name,
+                                    'name',
+                                    'Must be a String');
+    }
+    Map instantArguments;
+    if (arguments is Map) {
+      instantArguments = new Map.from(arguments);
+    }
+    _reportInstantEvent(_getTraceClock(),
+                        'Dart',
+                        name,
+                        _argumentsAsJson(instantArguments));
+  }
+
+
   /// A utility method to time a synchronous [function]. Internally calls
   /// [function] bracketed by calls to [startSync] and [finishSync].
   static dynamic timeSync(String name,
@@ -49,77 +68,103 @@ class Timeline {
     }
   }
 
+  /// The current time stamp from the clock used by the timeline. Units are
+  /// microseconds.
+  static int get now => _getTraceClock();
   static final List<_SyncBlock> _stack = new List<_SyncBlock>();
+  static final int _isolateId = _getIsolateNum();
+  static final String _isolateIdString = _isolateId.toString();
 }
 
-/// An asynchronous task on the timeline. Asynchronous tasks can live
-/// longer than the current event and can even be shared between isolates.
-/// An asynchronous task can have many (nested) blocks. To share a
-/// [_TimelineTask] across isolates, you must construct a [_TimelineTask] in
-/// both isolates using the same [taskId] and [category].
-class _TimelineTask {
+/// An asynchronous task on the timeline. An asynchronous task can have many
+/// (nested) synchronous operations. Synchronous operations can live longer than
+/// the current isolate event. To pass a [TimelineTask] to another isolate,
+/// you must first call [pass] to get the task id and then construct a new
+/// [TimelineTask] in the other isolate.
+class TimelineTask {
   /// Create a task. [taskId] will be set by the system.
-  /// Optionally you can specify a [category] name.
-  _TimelineTask({String category: 'Dart'})
-      : _taskId = _getNextAsyncId(),
-        category = category {
-    if (category is! String) {
-      throw new ArgumentError.value(category,
-                                    'category',
-                                    'Must be a String');
-    }
+  TimelineTask()
+      : _taskId = _getNextAsyncId() {
   }
 
   /// Create a task with an explicit [taskId]. This is useful if you are
-  /// passing a task between isolates. Optionally you can specify a [category]
-  /// name.
-  _TimelineTask.withTaskId(int taskId, {String category: 'Dart'})
-      : _taskId = taskId,
-        category = category {
+  /// passing a task from one isolate to another.
+  TimelineTask.withTaskId(int taskId)
+      : _taskId = taskId {
     if (taskId is! int) {
       throw new ArgumentError.value(taskId,
                                     'taskId',
                                     'Must be an int');
     }
-    if (category is! String) {
-      throw new ArgumentError.value(category,
-                                    'category',
-                                    'Must be a String');
-    }
   }
 
-  /// Start a block in this task named [name]. Optionally takes
-  /// a [Map] of [arguments].
-  /// Returns an [_AsyncBlock] which is used to finish this block.
-  _AsyncBlock start(String name, {Map arguments}) {
+  /// Start a synchronous operation within this task named [name].
+  /// Optionally takes a [Map] of [arguments].
+  void start(String name, {Map arguments}) {
     if (name is! String) {
       throw new ArgumentError.value(name,
                                     'name',
                                     'Must be a String');
     }
-    var block = new _AsyncBlock._(name, _taskId, category);
+    var block = new _AsyncBlock._(name, _taskId);
     if (arguments is Map) {
       block.arguments.addAll(arguments);
     }
-    /// Emit start event.
+    _stack.add(block);
     block._start();
-    return block;
   }
 
-  /// Retrieve the asynchronous task's id. Can be used to construct a
-  /// [_TimelineTask] in another isolate.
-  int get taskId => _taskId;
+  /// Emit an instant event for this task.
+  void instant(String name, {Map arguments}) {
+    if (name is! String) {
+      throw new ArgumentError.value(name,
+                                    'name',
+                                    'Must be a String');
+    }
+    Map instantArguments;
+    if (arguments is Map) {
+      instantArguments = new Map.from(arguments);
+    }
+    _reportTaskEvent(_getTraceClock(),
+                     _taskId,
+                     'n',
+                     'Dart',
+                     name,
+                     _argumentsAsJson(instantArguments));
+  }
+
+  /// Finish the last synchronous operation that was started.
+  void finish() {
+    if (_stack.length == 0) {
+      throw new StateError(
+          'Uneven calls to start and finish');
+    }
+    // Pop top item off of stack.
+    var block = _stack.removeLast();
+    block._finish();
+  }
+
+  /// Retrieve the [TimelineTask]'s task id. Will throw an exception if the
+  /// stack is not empty.
+  int pass() {
+    if (_stack.length > 0) {
+      throw new StateError(
+          'You cannot pass a TimelineTask without finishing all started '
+          'operations');
+    }
+    int r = _taskId;
+    return r;
+  }
+
   final int _taskId;
-  /// Retrieve the asynchronous task's category. Can be used to construct a
-  /// [_TimelineTask] in another isolate.
-  final String category;
+  final List<_AsyncBlock> _stack = [];
 }
 
 /// An asynchronous block of time on the timeline. This block can be kept
 /// open across isolate messages.
 class _AsyncBlock {
   /// The category this block belongs to.
-  final String category;
+  final String category = 'Dart';
   /// The name of this block.
   final String name;
   /// The asynchronous task id.
@@ -127,19 +172,17 @@ class _AsyncBlock {
   /// An (optional) set of arguments which will be serialized to JSON and
   /// associated with this block.
   final Map arguments = {};
-  bool _finished = false;
 
-  _AsyncBlock._(this.name, this._taskId, this.category);
+  _AsyncBlock._(this.name, this._taskId);
 
   // Emit the start event.
   void _start() {
-    String argumentsAsJson = JSON.encode(arguments);
     _reportTaskEvent(_getTraceClock(),
                      _taskId,
                      'b',
                      category,
                      name,
-                     argumentsAsJson);
+                     _argumentsAsJson(arguments));
   }
 
   // Emit the finish event.
@@ -149,30 +192,7 @@ class _AsyncBlock {
                      'e',
                      category,
                      name,
-                     JSON.encode({}));
-  }
-
-  /// Finish this block. Cannot be called twice.
-  void finish() {
-    if (_finished) {
-      throw new StateError(
-          'It is illegal to call finish twice on the same _AsyncBlock');
-    }
-    _finished = true;
-    _finish();
-  }
-
-  /// Finishes this block when [future] completes. Returns a [Future]
-  /// chained to [future].
-  Future finishWhenComplete(Future future) {
-    if (future is! Future) {
-      throw new ArgumentError.value(future,
-                                    'future',
-                                    'Must be a Future');
-    }
-    return future.whenComplete(() {
-      finish();
-    });
+                     _argumentsAsJson(null));
   }
 }
 
@@ -195,18 +215,27 @@ class _SyncBlock {
   /// Finish this block of time. At this point, this block can no longer be
   /// used.
   void finish() {
-    var end = _getTraceClock();
-
-    // Encode arguments map as JSON before reporting.
-    var argumentsAsJson = JSON.encode(arguments);
-
     // Report event to runtime.
     _reportCompleteEvent(_start,
-                         end,
+                         _getTraceClock(),
                          category,
                          name,
-                         argumentsAsJson);
+                         _argumentsAsJson(arguments));
   }
+}
+
+String _fastPathArguments;
+String _argumentsAsJson(Map arguments) {
+  if ((arguments == null) || (arguments.length == 0)) {
+    // Fast path no arguments. Avoid calling JSON.encode.
+    if (_fastPathArguments == null) {
+      _fastPathArguments = '{"isolateNumber":"${Timeline._isolateId}"}';
+    }
+    return _fastPathArguments;
+  }
+  // Add isolateNumber to arguments map.
+  arguments['isolateNumber'] = Timeline._isolateIdString;
+  return JSON.encode(arguments);
 }
 
 /// Returns the next async task id.
@@ -214,6 +243,9 @@ external int _getNextAsyncId();
 
 /// Returns the current value from the trace clock.
 external int _getTraceClock();
+
+/// Returns the isolate's main port number.
+external int _getIsolateNum();
 
 /// Reports an event for a task.
 external void _reportTaskEvent(int start,
@@ -229,3 +261,9 @@ external void _reportCompleteEvent(int start,
                                    String category,
                                    String name,
                                    String argumentsAsJson);
+
+/// Reports an instant event.
+external void _reportInstantEvent(int start,
+                                  String category,
+                                  String name,
+                                  String argumentsAsJson);

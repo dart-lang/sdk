@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, the Dart project authors.
+ * Copyright (c) 2015, the Dart project authors.
  *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -59,6 +59,12 @@ public class RequestErrorCode {
   public static final String GET_NAVIGATION_INVALID_FILE = "GET_NAVIGATION_INVALID_FILE";
 
   /**
+   * An "analysis.getReachableSources" request specified a FilePath which does not match a file
+   * currently subject to analysis.
+   */
+  public static final String GET_REACHABLE_SOURCES_INVALID_FILE = "GET_REACHABLE_SOURCES_INVALID_FILE";
+
+  /**
    * A path passed as an argument to a request (such as analysis.reanalyze) is required to be an
    * analysis root, but isn't.
    */
@@ -68,6 +74,11 @@ public class RequestErrorCode {
    * The context root used to create an execution context does not exist.
    */
   public static final String INVALID_EXECUTION_CONTEXT = "INVALID_EXECUTION_CONTEXT";
+
+  /**
+   * The format of the given file path is invalid, e.g. is not absolute and normalized.
+   */
+  public static final String INVALID_FILE_PATH_FORMAT = "INVALID_FILE_PATH_FORMAT";
 
   /**
    * An "analysis.updateContent" request contained a ChangeContentOverlay object which can't be

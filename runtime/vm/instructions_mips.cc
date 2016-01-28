@@ -121,6 +121,31 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
 }
 
 
+bool DecodeLoadObjectFromPoolOrThread(uword pc,
+                                      const Code& code,
+                                      Object* obj) {
+  ASSERT(code.ContainsInstructionAt(pc));
+
+  Instr* instr = Instr::At(pc);
+  if ((instr->OpcodeField() == LW)) {
+    intptr_t offset = instr->SImmField();
+    if (instr->RsField() == PP) {
+      intptr_t index = ObjectPool::IndexFromOffset(offset);
+      const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
+      if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+        *obj = pool.ObjectAt(index);
+        return true;
+      }
+    } else if (instr->RsField() == THR) {
+      return Thread::ObjectAtOffset(offset, obj);
+    }
+  }
+  // TODO(rmacnak): Sequence for loads beyond 16 bits.
+
+  return false;
+}
+
+
 RawICData* CallPattern::IcData() {
   if (ic_data_.IsNull()) {
     Register reg;
@@ -207,6 +232,46 @@ void CallPattern::InsertDeoptCallAt(uword pc, uword target_address) {
 
   ASSERT(kDeoptCallLengthInBytes == 4 * Instr::kInstrSize);
   CPU::FlushICache(pc, kDeoptCallLengthInBytes);
+}
+
+
+SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
+    : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
+      cache_pool_index_(-1),
+      stub_pool_index_(-1) {
+  ASSERT(code.ContainsInstructionAt(pc));
+  // Last instruction: jalr t1.
+  ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0);  // Delay slot.
+  ASSERT(*(reinterpret_cast<uword*>(pc) - 2) == 0x0120f809);
+
+  Register reg;
+  uword stub_load_end =
+      InstructionPattern::DecodeLoadWordFromPool(pc - 5 * Instr::kInstrSize,
+                                                 &reg,
+                                                 &stub_pool_index_);
+  ASSERT(reg == CODE_REG);
+  InstructionPattern::DecodeLoadWordFromPool(stub_load_end,
+                                             &reg,
+                                             &cache_pool_index_);
+  ASSERT(reg == S5);
+}
+
+
+RawObject* SwitchableCallPattern::cache() const {
+  return reinterpret_cast<RawCode*>(
+      object_pool_.ObjectAt(cache_pool_index_));
+}
+
+
+void SwitchableCallPattern::SetCache(const MegamorphicCache& cache) const {
+  ASSERT(Object::Handle(object_pool_.ObjectAt(cache_pool_index_)).IsICData());
+  object_pool_.SetObjectAt(cache_pool_index_, cache);
+}
+
+
+void SwitchableCallPattern::SetLookupStub(const Code& lookup_stub) const {
+  ASSERT(Object::Handle(object_pool_.ObjectAt(stub_pool_index_)).IsCode());
+  object_pool_.SetObjectAt(stub_pool_index_, lookup_stub);
 }
 
 

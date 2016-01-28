@@ -22,7 +22,9 @@ $else
   }
 $endif
 
+  /// UNSTABLE: Chrome-only - create a Range from the given point.
   @DomName('Document.caretRangeFromPoint')
+  @Unstable()
   Range caretRangeFromPoint(int x, int y) {
     return _caretRangeFromPoint(x, y);
   }
@@ -112,11 +114,10 @@ $endif
    *
    * ## Other resources
    *
-   * * [Using the fullscreen API]
-   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
-   * WebPlatform.org.
-   * * [Fullscreen specification]
-   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @DomName('Document.webkitExitFullscreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -140,11 +141,10 @@ $endif
    *
    * ## Other resources
    *
-   * * [Using the fullscreen API]
-   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
-   * WebPlatform.org.
-   * * [Fullscreen specification]
-   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @DomName('Document.webkitFullscreenElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -157,11 +157,10 @@ $endif
    *
    * ## Other resources
    *
-   * * [Using the fullscreen API]
-   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
-   * WebPlatform.org.
-   * * [Fullscreen specification]
-   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @DomName('Document.webkitFullscreenEnabled')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -298,16 +297,9 @@ $if DARTIUM
             createdParametersValid = createdParametersValid && parameter.isOptional;
           });
         }
-
-        // Get the created constructor source and look at the initializer;
-        // Must call super.created() if not its as an error.
-        var createdSource = methodMirror.source;
-        superCreatedCalled = createdSource.contains("super.created(");
       }
 
-      if (!superCreatedCalled) {
-        throw new DomException.jsInterop('created constructor initializer must call super.created()');
-      } else if (!createdParametersValid) {
+      if (!createdParametersValid) {
         throw new DomException.jsInterop('created constructor must have no parameters');
       }
 

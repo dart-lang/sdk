@@ -5,6 +5,7 @@
 #include "vm/flow_graph_range_analysis.h"
 
 #include "vm/bit_vector.h"
+#include "vm/compiler.h"
 #include "vm/il_printer.h"
 
 namespace dart {
@@ -1528,8 +1529,12 @@ class BoundsCheckGeneralizer {
 void RangeAnalysis::EliminateRedundantBoundsChecks() {
   if (FLAG_array_bounds_check_elimination) {
     const Function& function = flow_graph_->function();
+    // Generalization only if we have not deoptimized on a generalized
+    // check earlier, or we're compiling precompiled code (no
+    // optimistic hoisting of checks possible)
     const bool try_generalization =
-        function.allows_bounds_check_generalization();
+        function.allows_bounds_check_generalization() &&
+        !Compiler::always_optimize();
 
     BoundsCheckGeneralizer generalizer(this, flow_graph_);
 
@@ -3126,14 +3131,7 @@ bool CheckArrayBoundInstr::IsRedundant(const RangeBoundary& length) {
     return false;
   }
 
-  RangeBoundary max = CanonicalizeBoundary(
-      RangeBoundary::FromDefinition(index()->definition()),
-      RangeBoundary::PositiveInfinity());
-
-  if (max.OverflowedSmi()) {
-    return false;
-  }
-
+  RangeBoundary max = RangeBoundary::FromDefinition(index()->definition());
 
   RangeBoundary max_upper = max.UpperBound();
   RangeBoundary length_lower = length.LowerBound();

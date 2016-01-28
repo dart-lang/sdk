@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, the Dart project authors.
+ * Copyright (c) 2015, the Dart project authors.
  *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -117,6 +117,20 @@ public interface AnalysisServer {
    * @param length The length of the region for which navigation information is being requested.
    */
   public void analysis_getNavigation(String file, int offset, int length, GetNavigationConsumer consumer);
+
+  /**
+   * {@code analysis.getReachableSources}
+   *
+   * Return the transitive closure of reachable sources for a given file.
+   *
+   * If a request is made for a file which does not exist, or which is not currently subject to
+   * analysis (e.g. because it is not associated with any analysis root specified to
+   * analysis.setAnalysisRoots), an error of type GET_REACHABLE_SOURCES_INVALID_FILE will be
+   * generated.
+   *
+   * @param file The file for which reachable source information is being requested.
+   */
+  public void analysis_getReachableSources(String file, GetReachableSourcesConsumer consumer);
 
   /**
    * {@code analysis.reanalyze}
@@ -271,6 +285,13 @@ public interface AnalysisServer {
    * @param offset The offset within the file at which suggestions are to be made.
    */
   public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer);
+
+  /**
+   * {@code diagnostic.getDiagnostics}
+   *
+   * Return server diagnostics.
+   */
+  public void diagnostic_getDiagnostics(GetDiagnosticsConsumer consumer);
 
   /**
    * {@code edit.format}

@@ -13,28 +13,35 @@ import 'dart:math';
 import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
+import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_index.dart';
 import 'package:analysis_server/src/services/index/store/split_store.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
+import 'package:analysis_server/src/status/validator.dart';
+import 'package:analysis_server/src/utilities/average.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    hide AnalysisCache, AnalysisContextImpl, AnalysisTask;
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
@@ -51,6 +58,141 @@ import 'package:plugin/plugin.dart';
  * encoded).
  */
 typedef void HtmlGenerator(StringBuffer buffer);
+
+class ElementCounter extends RecursiveElementVisitor {
+  Map<Type, int> counts = new HashMap<Type, int>();
+  int elementsWithDocs = 0;
+  int totalDocSpan = 0;
+
+  void visit(Element element) {
+    SourceRange docRange = element.docRange;
+    if (docRange != null) {
+      ++elementsWithDocs;
+      totalDocSpan += docRange.length;
+    }
+
+    Type type = element.runtimeType;
+    if (counts[type] == null) {
+      counts[type] = 1;
+    } else {
+      counts[type]++;
+    }
+  }
+
+  @override
+  visitClassElement(ClassElement element) {
+    visit(element);
+    super.visitClassElement(element);
+  }
+
+  @override
+  visitCompilationUnitElement(CompilationUnitElement element) {
+    visit(element);
+    super.visitCompilationUnitElement(element);
+  }
+
+  @override
+  visitConstructorElement(ConstructorElement element) {
+    visit(element);
+    super.visitConstructorElement(element);
+  }
+
+  @override
+  visitExportElement(ExportElement element) {
+    visit(element);
+    super.visitExportElement(element);
+  }
+
+  @override
+  visitFieldElement(FieldElement element) {
+    visit(element);
+    super.visitFieldElement(element);
+  }
+
+  @override
+  visitFieldFormalParameterElement(FieldFormalParameterElement element) {
+    visit(element);
+    super.visitFieldFormalParameterElement(element);
+  }
+
+  @override
+  visitFunctionElement(FunctionElement element) {
+    visit(element);
+    super.visitFunctionElement(element);
+  }
+
+  @override
+  visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+    visit(element);
+    super.visitFunctionTypeAliasElement(element);
+  }
+
+  @override
+  visitImportElement(ImportElement element) {
+    visit(element);
+    super.visitImportElement(element);
+  }
+
+  @override
+  visitLabelElement(LabelElement element) {
+    visit(element);
+    super.visitLabelElement(element);
+  }
+
+  @override
+  visitLibraryElement(LibraryElement element) {
+    visit(element);
+    super.visitLibraryElement(element);
+  }
+
+  @override
+  visitLocalVariableElement(LocalVariableElement element) {
+    visit(element);
+    super.visitLocalVariableElement(element);
+  }
+
+  @override
+  visitMethodElement(MethodElement element) {
+    visit(element);
+    super.visitMethodElement(element);
+  }
+
+  @override
+  visitMultiplyDefinedElement(MultiplyDefinedElement element) {
+    visit(element);
+    super.visitMultiplyDefinedElement(element);
+  }
+
+  @override
+  visitParameterElement(ParameterElement element) {
+    visit(element);
+    super.visitParameterElement(element);
+  }
+
+  @override
+  visitPrefixElement(PrefixElement element) {
+    visit(element);
+    super.visitPrefixElement(element);
+  }
+
+  @override
+  visitPropertyAccessorElement(PropertyAccessorElement element) {
+    visit(element);
+    super.visitPropertyAccessorElement(element);
+  }
+
+  @override
+  visitTopLevelVariableElement(TopLevelVariableElement element) {
+    visit(element);
+    super.visitTopLevelVariableElement(element);
+  }
+
+  @override
+  visitTypeParameterElement(TypeParameterElement element) {
+    visit(element);
+    super.visitTypeParameterElement(element);
+  }
+}
 
 /**
  * Instances of the class [GetHandler] handle GET requests.
@@ -89,9 +231,25 @@ class GetHandler {
   static const String COMMUNICATION_PERFORMANCE_PATH = '/perf/communication';
 
   /**
+   * The path used to request diagnostic information for a single context.
+   */
+  static const String CONTEXT_DIAGNOSTICS_PATH = '/diagnostic/context';
+
+  /**
+   * The path used to request running a validation report for a single context.
+   */
+  static const String CONTEXT_VALIDATION_DIAGNOSTICS_PATH =
+      '/diagnostic/contextValidation';
+
+  /**
    * The path used to request information about a specific context.
    */
   static const String CONTEXT_PATH = '/context';
+
+  /**
+   * The path used to request diagnostic information.
+   */
+  static const String DIAGNOSTIC_PATH = '/diagnostic';
 
   /**
    * The path used to request information about a element model.
@@ -157,6 +315,11 @@ class GetHandler {
       new ContentType("text", "html", charset: "utf-8");
 
   /**
+   * Rolling average of calls to get diagnostics.
+   */
+  Average _diagnosticCallAverage = new Average();
+
+  /**
    * The socket server whose status is to be reported on.
    */
   SocketServer _server;
@@ -172,9 +335,21 @@ class GetHandler {
   final Map<String, String> _overlayContents = <String, String>{};
 
   /**
+   * Handler for diagnostics requests.
+   */
+  DiagnosticDomainHandler _diagnosticHandler;
+
+  /**
    * Initialize a newly created handler for GET requests.
    */
   GetHandler(this._server, this._printBuffer);
+
+  DiagnosticDomainHandler get diagnosticHandler {
+    if (_diagnosticHandler == null) {
+      _diagnosticHandler = new DiagnosticDomainHandler(_server.analysisServer);
+    }
+    return _diagnosticHandler;
+  }
 
   /**
    * Return the active [CompletionDomainHandler]
@@ -195,7 +370,7 @@ class GetHandler {
    */
   void handleGetRequest(HttpRequest request) {
     String path = request.uri.path;
-    if (path == STATUS_PATH) {
+    if (path == '/' || path == STATUS_PATH) {
       _returnServerStatus(request);
     } else if (path == ANALYSIS_PERFORMANCE_PATH) {
       _returnAnalysisPerformance(request);
@@ -209,8 +384,14 @@ class GetHandler {
       _returnCompletionInfo(request);
     } else if (path == COMMUNICATION_PERFORMANCE_PATH) {
       _returnCommunicationPerformance(request);
+    } else if (path == CONTEXT_DIAGNOSTICS_PATH) {
+      _returnContextDiagnostics(request);
+    } else if (path == CONTEXT_VALIDATION_DIAGNOSTICS_PATH) {
+      _returnContextValidationDiagnostics(request);
     } else if (path == CONTEXT_PATH) {
       _returnContextInfo(request);
+    } else if (path == DIAGNOSTIC_PATH) {
+      _returnDiagnosticInfo(request);
     } else if (path == ELEMENT_PATH) {
       _returnElement(request);
     } else if (path == INDEX_ELEMENT_BY_NAME) {
@@ -282,6 +463,10 @@ class GetHandler {
     if (unit != null) {
       return unit;
     }
+    unit = entry.getValue(RESOLVED_UNIT11);
+    if (unit != null) {
+      return unit;
+    }
     return entry.getValue(RESOLVED_UNIT);
   }
 
@@ -350,6 +535,7 @@ class GetHandler {
       results.add(RESOLVED_UNIT8);
       results.add(RESOLVED_UNIT9);
       results.add(RESOLVED_UNIT10);
+      results.add(RESOLVED_UNIT11);
       results.add(RESOLVED_UNIT);
       results.add(STRONG_MODE_ERRORS);
       results.add(USED_IMPORTED_ELEMENTS);
@@ -515,7 +701,7 @@ class GetHandler {
           //
           // Write task model timing information.
           //
-          buffer.write('<p><b>Task performace data</b></p>');
+          buffer.write('<p><b>Task performance data</b></p>');
           buffer.write(
               '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
           _writeRow(
@@ -557,51 +743,6 @@ class GetHandler {
               classes: [null, "right", "right", "right"]);
           buffer.write('</table>');
         });
-        //
-        // Write task model inputs timing information.
-        //
-        {
-          buffer.write('<p><b>Task inputs performace data</b></p>');
-          buffer.write(
-              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
-          _writeRow(
-              buffer,
-              [
-                'Task Name',
-                'Count',
-                'Total Time (in ms)',
-                'Average Time (in ms)'
-              ],
-              header: true);
-
-          Map<TaskDescriptor, int> countMap = WorkItem.countMap;
-          Map<TaskDescriptor, Stopwatch> stopwatchMap = WorkItem.stopwatchMap;
-          List<TaskDescriptor> taskClasses = stopwatchMap.keys.toList();
-          taskClasses.sort((TaskDescriptor first, TaskDescriptor second) {
-            String firstName = first.name;
-            String secondName = second.name;
-            return firstName.compareTo(secondName);
-          });
-          taskClasses.forEach((TaskDescriptor descriptor) {
-            int count = countMap[descriptor];
-            if (count == null) {
-              count = 0;
-            }
-            int taskTime = stopwatchMap[descriptor].elapsedMilliseconds;
-            _writeRow(buffer, [
-              descriptor.name,
-              count,
-              taskTime,
-              count <= 0 ? '-' : (taskTime / count).toStringAsFixed(3)
-            ], classes: [
-              null,
-              "right",
-              "right",
-              "right"
-            ]);
-          });
-          buffer.write('</table>');
-        }
       });
     });
   }
@@ -693,6 +834,7 @@ class GetHandler {
     List<Folder> allContexts = <Folder>[];
     Map<Folder, List<CacheEntry>> entryMap =
         new HashMap<Folder, List<CacheEntry>>();
+    StringBuffer invalidKeysBuffer = new StringBuffer();
     analysisServer.folderMap
         .forEach((Folder folder, InternalAnalysisContext context) {
       Source source = context.sourceFactory.forUri(sourceUri);
@@ -709,7 +851,15 @@ class GetHandler {
               entries = <CacheEntry>[];
               entryMap[folder] = entries;
             }
-            entries.add(iterator.value);
+            CacheEntry value = iterator.value;
+            if (value == null) {
+              if (invalidKeysBuffer.isNotEmpty) {
+                invalidKeysBuffer.write(', ');
+              }
+              invalidKeysBuffer.write(iterator.key.toString());
+            } else {
+              entries.add(value);
+            }
           }
         }
       }
@@ -721,6 +871,11 @@ class GetHandler {
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(buffer, 'Analysis Server - Cache Entry',
           ['Context: $contextFilter', 'File: $sourceUri'], (HttpResponse) {
+        if (invalidKeysBuffer.isNotEmpty) {
+          buffer.write('<h3>Targets with null Entries</h3><p>');
+          buffer.write(invalidKeysBuffer.toString());
+          buffer.write('</p>');
+        }
         List<CacheEntry> entries = entryMap[folder];
         buffer.write('<h3>Analyzing Contexts</h3><p>');
         bool first = true;
@@ -971,6 +1126,34 @@ class GetHandler {
   }
 
   /**
+   * Return a response displaying diagnostic information for a single context.
+   */
+  void _returnContextDiagnostics(HttpRequest request) {
+    AnalysisServer analysisServer = _server.analysisServer;
+    if (analysisServer == null) {
+      return _returnFailure(request, 'Analysis server is not running');
+    }
+    String contextFilter = request.uri.queryParameters[CONTEXT_QUERY_PARAM];
+    if (contextFilter == null) {
+      return _returnFailure(
+          request, 'Query parameter $CONTEXT_QUERY_PARAM required');
+    }
+    Folder folder = _findFolder(analysisServer, contextFilter);
+    if (folder == null) {
+      return _returnFailure(request, 'Invalid context: $contextFilter');
+    }
+
+    InternalAnalysisContext context = analysisServer.folderMap[folder];
+
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(buffer, 'Analysis Server - Context Diagnostics',
+          ['Context: $contextFilter'], (StringBuffer buffer) {
+        _writeContextDiagnostics(buffer, context);
+      });
+    });
+  }
+
+  /**
    * Return a response containing information about a single source file in the
    * cache.
    */
@@ -1030,9 +1213,6 @@ class GetHandler {
     explicitNames.sort();
     implicitNames.sort();
 
-    AnalysisDriver driver = (context as AnalysisContextImpl).driver;
-    List<WorkItem> workItems = driver.currentWorkOrder?.workItems;
-
     _overlayContents.clear();
     context.visitContentCache((String fullName, int stamp, String contents) {
       _overlayContents[fullName] = contents;
@@ -1063,26 +1243,55 @@ class GetHandler {
       _writePage(
           buffer, 'Analysis Server - Context', ['Context: $contextFilter'],
           (StringBuffer buffer) {
-        buffer.write('<h3>Most Recently Perfomed Tasks</h3>');
-        AnalysisTask.LAST_TASKS.forEach((String description) {
-          buffer.write('<p>$description</p>');
-        });
+        buffer.write('<h3>Configuration</h3>');
 
-        String _describe(WorkItem item) {
-          if (item == null) {
-            return 'None';
+        _writeTwoColumns(buffer, (StringBuffer buffer) {
+          AnalysisOptionsImpl options = context.analysisOptions;
+          buffer.write('<p><b>Options</b></p>');
+          buffer.write('<p>');
+          _writeOption(
+              buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
+          _writeOption(buffer, 'Cache size', options.cacheSize);
+          _writeOption(buffer, 'Enable async support', options.enableAsync);
+          _writeOption(
+              buffer, 'Enable generic methods', options.enableGenericMethods);
+          _writeOption(buffer, 'Enable strict call checks',
+              options.enableStrictCallChecks);
+          _writeOption(
+              buffer, 'Enable super mixins', options.enableSuperMixins);
+          _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
+          _writeOption(buffer, 'Generate errors in implicit files',
+              options.generateImplicitErrors);
+          _writeOption(buffer, 'Generate errors in SDK files',
+              options.generateSdkErrors);
+          _writeOption(buffer, 'Generate hints', options.hint);
+          _writeOption(buffer, 'Incremental resolution', options.incremental);
+          _writeOption(buffer, 'Incremental resolution with API changes',
+              options.incrementalApi);
+          _writeOption(buffer, 'Preserve comments', options.preserveComments);
+          _writeOption(buffer, 'Strong mode', options.strongMode);
+          _writeOption(buffer, 'Strong mode hints', options.strongModeHints,
+              last: true);
+          buffer.write('</p>');
+        }, (StringBuffer buffer) {
+          List<Linter> lints =
+              context.getConfigurationData(CONFIGURED_LINTS_KEY);
+          buffer.write('<p><b>Lints</b></p>');
+          if (lints.isEmpty) {
+            buffer.write('<p>none</p>');
+          } else {
+            for (Linter lint in lints) {
+              buffer.write('<p>');
+              buffer.write(lint.runtimeType);
+              buffer.write('</p>');
+            }
           }
-          return '${item.descriptor?.name} computing ${item.spawningResult?.name} for ${item.target?.toString()}';
-        }
 
-        buffer.write('<h3>Work Items</h3>');
-        buffer.write(
-            '<p><b>Current:</b> ${_describe(driver.currentWorkOrder?.current)}</p>');
-        if (workItems != null) {
-          buffer.writeAll(workItems.reversed
-              .map((item) => '<p>${_describe(item)}</p>')
-              ?.toList());
-        }
+          List<ErrorProcessor> errorProcessors =
+              context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+          int processorCount = errorProcessors?.length ?? 0;
+          buffer.write('<p><b>Error Processor count</b>: $processorCount</p>');
+        });
 
         _writeFiles(buffer, 'Priority Files', priorityNames);
         _writeFiles(buffer, 'Explicitly Analyzed Files', explicitNames);
@@ -1090,12 +1299,71 @@ class GetHandler {
 
         buffer.write('<h3>Exceptions</h3>');
         if (exceptions.isEmpty) {
-          buffer.write('<p>None</p>');
+          buffer.write('<p>none</p>');
         } else {
           exceptions.forEach((CaughtException exception) {
             _writeException(buffer, exception);
           });
         }
+
+        buffer.write('<h3>Targets Without Entries</h3>');
+        bool foundEntry = false;
+        MapIterator<AnalysisTarget, CacheEntry> iterator =
+            context.analysisCache.iterator(context: context);
+        while (iterator.moveNext()) {
+          if (iterator.value == null) {
+            foundEntry = true;
+            buffer.write('<p>');
+            buffer.write(iterator.key.toString());
+            buffer.write(' (');
+            buffer.write(iterator.key.runtimeType.toString());
+            buffer.write(')</p>');
+          }
+        }
+        if (!foundEntry) {
+          buffer.write('<p>none</p>');
+        }
+      });
+    });
+  }
+
+  /**
+   * Return a response displaying the results of running a validation report on
+   * a single context.
+   */
+  void _returnContextValidationDiagnostics(HttpRequest request) {
+    AnalysisServer analysisServer = _server.analysisServer;
+    if (analysisServer == null) {
+      return _returnFailure(request, 'Analysis server is not running');
+    }
+    String contextFilter = request.uri.queryParameters[CONTEXT_QUERY_PARAM];
+    if (contextFilter == null) {
+      return _returnFailure(
+          request, 'Query parameter $CONTEXT_QUERY_PARAM required');
+    }
+    Folder folder = _findFolder(analysisServer, contextFilter);
+    if (folder == null) {
+      return _returnFailure(request, 'Invalid context: $contextFilter');
+    }
+
+    InternalAnalysisContext context = analysisServer.folderMap[folder];
+
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(buffer, 'Analysis Server - Context Validation Diagnostics',
+          ['Context: $contextFilter'], (StringBuffer buffer) {
+        _writeContextValidationDiagnostics(buffer, context);
+      });
+    });
+  }
+
+  /**
+   * Return a response displaying diagnostic information.
+   */
+  void _returnDiagnosticInfo(HttpRequest request) {
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(buffer, 'Analysis Server - Diagnostic info', [],
+          (StringBuffer buffer) {
+        _writeDiagnosticStatus(buffer);
       });
     });
   }
@@ -1273,20 +1541,19 @@ class GetHandler {
   void _returnUnknownRequest(HttpRequest request) {
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(buffer, 'Analysis Server', [], (StringBuffer buffer) {
-        buffer.write('<h3>Pages</h3>');
-        buffer.write('<p>');
-        buffer.write(makeLink(COMPLETION_PATH, {}, 'Completion data'));
-        buffer.write('</p>');
-        buffer.write('<p>');
-        buffer
-            .write(makeLink(COMMUNICATION_PERFORMANCE_PATH, {}, 'Performance'));
-        buffer.write('</p>');
-        buffer.write('<p>');
-        buffer.write(makeLink(STATUS_PATH, {}, 'Server status'));
-        buffer.write('</p>');
-        buffer.write('<p>');
-        buffer.write(makeLink(OVERLAYS_PATH, {}, 'File overlays'));
-        buffer.write('</p>');
+        buffer.write('<h3>Unknown page: ');
+        buffer.write(request.uri.path);
+        buffer.write('</h3>');
+        buffer.write('''
+        <p>
+        You have reached an un-recognized page. If you reached this page by
+        following a link from a status page, please report the broken link to
+        the Dart analyzer team:
+        <a>https://github.com/dart-lang/sdk/issues/new</a>.
+        </p><p>
+        If you mistyped the URL, you can correct it or return to
+        ${makeLink(STATUS_PATH, {}, 'the main status page')}.
+        </p>''');
       });
     });
   }
@@ -1312,7 +1579,6 @@ class GetHandler {
     List<Folder> folders = folderMap.keys.toList();
     folders.sort((Folder first, Folder second) =>
         first.shortName.compareTo(second.shortName));
-    AnalysisOptionsImpl options = analysisServer.defaultContextOptions;
     ServerOperationQueue operationQueue = analysisServer.operationQueue;
 
     buffer.write('<h3>Analysis Domain</h3>');
@@ -1332,6 +1598,9 @@ class GetHandler {
           buffer.write('<p>Status: Analyzing</p>');
         }
       }
+      buffer.write('<p>');
+      buffer.write(makeLink(OVERLAYS_PATH, {}, 'All overlay information'));
+      buffer.write('</p>');
 
       buffer.write('<p><b>Analysis Contexts</b></p>');
       buffer.write('<p>');
@@ -1345,38 +1614,22 @@ class GetHandler {
         String key = folder.shortName;
         buffer.write(makeLink(CONTEXT_PATH, {CONTEXT_QUERY_PARAM: folder.path},
             key, _hasException(folderMap[folder])));
+        buffer.write(' <small><b>[');
+        buffer.write(makeLink(CONTEXT_DIAGNOSTICS_PATH,
+            {CONTEXT_QUERY_PARAM: folder.path}, 'diagnostics'));
+        buffer.write(']</b></small>');
         if (!folder.getChild('.packages').exists) {
-          buffer.write(' <b>[No .packages file]</b>');
+          buffer.write(' <small>[no .packages file]</small>');
         }
       });
       // TODO(brianwilkerson) Add items for the SDK contexts (currently only one).
       buffer.write('</p>');
 
-      buffer.write('<p><b>Options</b></p>');
-      buffer.write('<p>');
-      _writeOption(
-          buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
-      _writeOption(buffer, 'Cache size', options.cacheSize);
-      _writeOption(
-          buffer, 'Enable strict call checks', options.enableStrictCallChecks);
-      _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
-      _writeOption(buffer, 'Generate hints', options.hint);
-      _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
-      _writeOption(buffer, 'Generate errors in implicit files',
-          options.generateImplicitErrors);
-      _writeOption(
-          buffer, 'Generate errors in SDK files', options.generateSdkErrors);
-      _writeOption(buffer, 'Incremental resolution', options.incremental);
-      _writeOption(buffer, 'Incremental resolution with API changes',
-          options.incrementalApi);
-      _writeOption(buffer, 'Preserve comments', options.preserveComments,
-          last: true);
-      buffer.write('</p>');
       int freq = AnalysisServer.performOperationDelayFreqency;
       String delay = freq > 0 ? '1 ms every $freq ms' : 'off';
-      buffer.write('<p><b>perform operation delay:</b> $delay</p>');
 
       buffer.write('<p><b>Performance Data</b></p>');
+      buffer.write('<p>Perform operation delay: $delay</p>');
       buffer.write('<p>');
       buffer.write(makeLink(ANALYSIS_PERFORMANCE_PATH, {}, 'Task data'));
       buffer.write('</p>');
@@ -1489,6 +1742,164 @@ class GetHandler {
   }
 
   /**
+   * Write diagnostic information about the given [context] to the given
+   * [buffer].
+   */
+  void _writeContextDiagnostics(
+      StringBuffer buffer, InternalAnalysisContext context) {
+    AnalysisDriver driver = (context as AnalysisContextImpl).driver;
+    List<WorkItem> workItems = driver.currentWorkOrder?.workItems;
+
+    buffer.write('<p>');
+    buffer.write(makeLink(CONTEXT_VALIDATION_DIAGNOSTICS_PATH,
+        {CONTEXT_QUERY_PARAM: context.name}, 'Run validation'));
+    buffer.write('</p>');
+
+    buffer.write('<h3>Most Recently Perfomed Tasks</h3>');
+    AnalysisTask.LAST_TASKS.forEach((String description) {
+      buffer.write('<p>');
+      buffer.write(description);
+      buffer.write('</p>');
+    });
+
+    void writeWorkItem(StringBuffer buffer, WorkItem item) {
+      if (item == null) {
+        buffer.write('none');
+      } else {
+        buffer.write(item.descriptor?.name);
+        buffer.write(' computing ');
+        buffer.write(item.spawningResult?.name);
+        buffer.write(' for ');
+        buffer.write(item.target);
+      }
+    }
+
+    buffer.write('<h3>Work Items</h3>');
+    buffer.write('<p><b>Current:</b> ');
+    writeWorkItem(buffer, driver.currentWorkOrder?.current);
+    buffer.write('</p>');
+    if (workItems != null) {
+      workItems.reversed.forEach((WorkItem item) {
+        buffer.write('<p>');
+        writeWorkItem(buffer, item);
+        buffer.write('</p>');
+      });
+    }
+  }
+
+  /**
+   * Write diagnostic information about the given [context] to the given
+   * [buffer].
+   */
+  void _writeContextValidationDiagnostics(
+      StringBuffer buffer, InternalAnalysisContext context) {
+    Stopwatch stopwatch = new Stopwatch();
+    stopwatch.start();
+    ValidationResults results = new ValidationResults(context);
+    stopwatch.stop();
+
+    buffer.write('<h3>Validation Results</h3>');
+    buffer.write('<p>Re-analysis took ');
+    buffer.write(stopwatch.elapsedMilliseconds);
+    buffer.write(' ms</p>');
+    results.writeOn(buffer);
+  }
+
+  /**
+   * Write the status of the diagnostic domain to the given [buffer].
+   */
+  void _writeDiagnosticStatus(StringBuffer buffer) {
+    var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
+
+    var stopwatch = new Stopwatch();
+    stopwatch.start();
+    var response = diagnosticHandler.handleRequest(request);
+    stopwatch.stop();
+
+    int elapsedMs = stopwatch.elapsedMilliseconds;
+    _diagnosticCallAverage.addSample(elapsedMs);
+
+    buffer.write('<h3>Timing</h3>');
+
+    buffer.write('<p>getDiagnostic (last call): ');
+    buffer.write(elapsedMs);
+    buffer.write(' (ms)</p>');
+    buffer.write('<p>getDiagnostic (rolling average): ');
+    buffer.write(_diagnosticCallAverage.value);
+    buffer.write(' (ms)</p>&nbsp;');
+
+    var json = response.toJson()[Response.RESULT];
+    List contexts = json['contexts'];
+    contexts.sort((first, second) => first['name'].compareTo(second['name']));
+
+    // Track visited libraries.
+    Set<LibraryElement> libraries = new HashSet<LibraryElement>();
+
+    // Count SDK elements separately.
+    ElementCounter sdkCounter = new ElementCounter();
+
+    for (var context in contexts) {
+      buffer.write('<p><h3>');
+      buffer.write(context['name']);
+      buffer.write('</h3></p>');
+      buffer.write('<p>explicitFileCount: ');
+      buffer.write(context['explicitFileCount']);
+      buffer.write('</p>');
+      buffer.write('<p>implicitFileCount: ');
+      buffer.write(context['implicitFileCount']);
+      buffer.write('</p>');
+      buffer.write('<p>workItemQueueLength: ');
+      buffer.write(context['workItemQueueLength']);
+      buffer.write('</p>');
+
+      AnalysisServer server = _server.analysisServer;
+
+      if (server != null) {
+        Folder folder = _findFolder(server, context['name']);
+        InternalAnalysisContext ac = _server.analysisServer.folderMap[folder];
+        ElementCounter counter = new ElementCounter();
+
+        for (Source source in ac.librarySources) {
+          LibraryElement libraryElement = ac.getLibraryElement(source);
+          if (libraries.add(libraryElement)) {
+            if (libraryElement != null) {
+              if (libraryElement.isInSdk) {
+                libraryElement.accept(sdkCounter);
+              } else {
+                libraryElement.accept(counter);
+              }
+            }
+          }
+        }
+        buffer.write('<p>element count: ');
+        buffer.write(
+            counter.counts.values.fold(0, (prev, element) => prev + element));
+        buffer.write('</p>');
+        buffer.write('<p>  (w/docs): ');
+        buffer.write(counter.elementsWithDocs);
+        buffer.write('</p>');
+        buffer.write('<p>total doc span: ');
+        buffer.write(counter.totalDocSpan);
+        buffer.write('</p>');
+      }
+    }
+
+    buffer.write('<p><h3>');
+    buffer.write('SDK');
+    buffer.write('</h3></p>');
+    buffer.write('<p>element count: ');
+    buffer.write(
+        sdkCounter.counts.values.fold(0, (prev, element) => prev + element));
+    buffer.write('</p>');
+    buffer.write('<p>  (w/docs): ');
+    buffer.write(sdkCounter.elementsWithDocs);
+    buffer.write('</p>');
+    buffer.write('<p>total doc span: ');
+    buffer.write(sdkCounter.totalDocSpan);
+    buffer.write('</p>');
+  }
+
+  /**
    * Write the status of the edit domain (on the main status page) to the given
    * [buffer].
    */
@@ -1558,6 +1969,12 @@ class GetHandler {
     }
   }
 
+  void _writeListItem(StringBuffer buffer, writer()) {
+    buffer.write('<li>');
+    writer();
+    buffer.write('</li>');
+  }
+
   void _writeListOfStrings(
       StringBuffer buffer, String listName, Iterable<String> items) {
     List<String> itemList = items.toList();
@@ -1566,12 +1983,12 @@ class GetHandler {
       b = b.toLowerCase();
       return a.compareTo(b);
     });
-    buffer.write('List "listName" containing ${itemList.length} entries:');
+    buffer.write('List "$listName" containing ${itemList.length} entries:');
     buffer.write('<ul>');
     for (String member in itemList) {
-      buffer.write('<li>');
-      buffer.write(member);
-      buffer.write('</li>');
+      _writeListItem(buffer, () {
+        buffer.write(member);
+      });
     }
     buffer.write('</ul>');
   }
@@ -1619,6 +2036,8 @@ class GetHandler {
     buffer.write(
         'h3 {background-color: #DDDDDD; margin-top: 0em; margin-bottom: 0em;}');
     buffer.write('p {margin-top: 0.5em; margin-bottom: 0.5em;}');
+    buffer.write(
+        'p.commentary {margin-top: 1em; margin-bottom: 1em; margin-left: 2em; font-style: italic;}');
 //    response.write('span.error {text-decoration-line: underline; text-decoration-color: red; text-decoration-style: wavy;}');
     buffer.write(
         'table.column {border: 0px solid black; width: 100%; table-layout: fixed;}');
@@ -1769,12 +2188,18 @@ class GetHandler {
       buffer.write('<br>');
       buffer.write('Version: ');
       buffer.write(AnalysisServer.VERSION);
+      buffer.write('<br>');
+      buffer.write('Process ID: ');
+      buffer.write(pid);
       buffer.write('</p>');
 
       buffer.write('<p><b>Performance Data</b></p>');
       buffer.write('<p>');
       buffer.write(makeLink(
           COMMUNICATION_PERFORMANCE_PATH, {}, 'Communication performance'));
+      buffer.write('</p>');
+      buffer.write('<p>');
+      buffer.write(makeLink(DIAGNOSTIC_PATH, {}, 'General diagnostics'));
       buffer.write('</p>');
     }, (StringBuffer buffer) {
       _writeSubscriptionList(buffer, ServerService.VALUES, services);
@@ -1929,9 +2354,9 @@ class GetHandler {
       buffer.write('List containing ${value.length} entries');
       buffer.write('<ul>');
       for (var entry in value) {
-        buffer.write('<li>');
-        _writeValueAsHtml(buffer, entry, linkParameters);
-        buffer.write('</li>');
+        _writeListItem(buffer, () {
+          _writeValueAsHtml(buffer, entry, linkParameters);
+        });
       }
       buffer.write('</ul>');
     } else if (value is AstNode) {
@@ -1944,19 +2369,24 @@ class GetHandler {
       buffer.write('<i>$link</i>');
     } else if (value is UsedLocalElements) {
       buffer.write('<ul>');
-      {
+      _writeListItem(buffer, () {
         HashSet<Element> elements = value.elements;
         buffer.write('List "elements" containing ${elements.length} entries');
         buffer.write('<ul>');
         for (Element element in elements) {
-          buffer.write('<li>');
-          buffer.write('<i>${element.runtimeType}</i>  $element');
-          buffer.write('</li>');
+          _writeListItem(buffer, () {
+            String elementStr = HTML_ESCAPE.convert(element.toString());
+            buffer.write('<i>${element.runtimeType}</i>  $elementStr');
+          });
         }
         buffer.write('</ul>');
-      }
-      _writeListOfStrings(buffer, 'members', value.members);
-      _writeListOfStrings(buffer, 'readMembers', value.readMembers);
+      });
+      _writeListItem(buffer, () {
+        _writeListOfStrings(buffer, 'members', value.members);
+      });
+      _writeListItem(buffer, () {
+        _writeListOfStrings(buffer, 'readMembers', value.readMembers);
+      });
       buffer.write('</ul>');
     } else {
       buffer.write(HTML_ESCAPE.convert(value.toString()));

@@ -12,7 +12,7 @@
 #include "bin/platform.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
-#include "platform/json.h"
+#include "platform/text_buffer.h"
 
 namespace dart {
 namespace bin {
@@ -31,7 +31,9 @@ namespace bin {
   }
 
 #define kLibrarySourceNamePrefix "/vmservice"
-static const char* kVMServiceIOLibraryScriptResourceName = "vmservice_io.dart";
+static const char* const kVMServiceIOLibraryUri = "dart:vmservice_io";
+static const char* const kVMServiceIOLibraryScriptResourceName =
+    "vmservice_io.dart";
 
 struct ResourcesEntry {
   const char* path_;
@@ -87,14 +89,6 @@ class Resources {
 };
 
 
-void TriggerResourceLoad(Dart_NativeArguments args) {
-  Dart_Handle library = Dart_RootLibrary();
-  ASSERT(!Dart_IsError(library));
-  Dart_Handle result = VmService::LoadResources(library);
-  ASSERT(!Dart_IsError(result));
-}
-
-
 void NotifyServerState(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* ip_chars;
@@ -129,7 +123,6 @@ struct VmServiceIONativeEntry {
 
 
 static VmServiceIONativeEntry _VmServiceIONativeEntries[] = {
-  {"VMServiceIO_TriggerResourceLoad", 0, TriggerResourceLoad},
   {"VMServiceIO_NotifyServerState", 2, NotifyServerState},
 };
 
@@ -160,7 +153,23 @@ char VmService::server_ip_[kServerIpStringBufferSize];
 intptr_t VmService::server_port_ = 0;
 
 
-bool VmService::Setup(const char* server_ip, intptr_t server_port) {
+bool VmService::LoadForGenPrecompiled() {
+  Dart_Handle result;
+  Dart_SetLibraryTagHandler(LibraryTagHandler);
+  Dart_Handle library = LoadLibrary(kVMServiceIOLibraryScriptResourceName);
+  ASSERT(library != Dart_Null());
+  SHUTDOWN_ON_ERROR(library);
+  result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
+  SHUTDOWN_ON_ERROR(result);
+  result = Dart_FinalizeLoading(false);
+  SHUTDOWN_ON_ERROR(result);
+  return true;
+}
+
+
+bool VmService::Setup(const char* server_ip,
+                      intptr_t server_port,
+                      bool running_precompiled) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
   SetServerIPAndPort("", 0);
@@ -174,18 +183,28 @@ bool VmService::Setup(const char* server_ip, intptr_t server_port) {
   // Prepare for script loading by setting up the 'print' and 'timer'
   // closures and setting up 'package root' for URI resolution.
   result = DartUtils::PrepareForScriptLoading(
-      NULL, NULL, NULL, true, false, builtin_lib);
+      NULL, NULL, true, false, builtin_lib);
   SHUTDOWN_ON_ERROR(result);
 
-  // Load main script.
-  Dart_SetLibraryTagHandler(LibraryTagHandler);
-  Dart_Handle library = LoadScript(kVMServiceIOLibraryScriptResourceName);
-  ASSERT(library != Dart_Null());
-  SHUTDOWN_ON_ERROR(library);
-  result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
-  SHUTDOWN_ON_ERROR(result);
-  result = Dart_FinalizeLoading(false);
-  SHUTDOWN_ON_ERROR(result);
+  if (running_precompiled) {
+    Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);
+    Dart_Handle library = Dart_LookupLibrary(url);
+    SHUTDOWN_ON_ERROR(library);
+    result = Dart_SetRootLibrary(library);
+    SHUTDOWN_ON_ERROR(library);
+    result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
+    SHUTDOWN_ON_ERROR(result);
+  } else {
+    // Load main script.
+    Dart_SetLibraryTagHandler(LibraryTagHandler);
+    Dart_Handle library = LoadScript(kVMServiceIOLibraryScriptResourceName);
+    ASSERT(library != Dart_Null());
+    SHUTDOWN_ON_ERROR(library);
+    result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
+    SHUTDOWN_ON_ERROR(result);
+    result = Dart_FinalizeLoading(false);
+    SHUTDOWN_ON_ERROR(result);
+  }
 
   // Make runnable.
   Dart_ExitScope();
@@ -200,7 +219,7 @@ bool VmService::Setup(const char* server_ip, intptr_t server_port) {
   Dart_EnterIsolate(isolate);
   Dart_EnterScope();
 
-  library = Dart_RootLibrary();
+  Dart_Handle library = Dart_RootLibrary();
   SHUTDOWN_ON_ERROR(library);
 
   // Set HTTP server state.
@@ -279,73 +298,23 @@ Dart_Handle VmService::GetSource(const char* name) {
 
 
 Dart_Handle VmService::LoadScript(const char* name) {
-  Dart_Handle url = Dart_NewStringFromCString("dart:vmservice_io");
+  Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
   Dart_Handle source = GetSource(name);
-  return Dart_LoadScript(url, source, 0, 0);
+  return Dart_LoadScript(uri, source, 0, 0);
+}
+
+
+Dart_Handle VmService::LoadLibrary(const char* name) {
+  Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
+  Dart_Handle source = GetSource(name);
+  return Dart_LoadLibrary(uri, source, 0, 0);
 }
 
 
 Dart_Handle VmService::LoadSource(Dart_Handle library, const char* name) {
-  Dart_Handle url = Dart_NewStringFromCString(name);
+  Dart_Handle uri = Dart_NewStringFromCString(name);
   Dart_Handle source = GetSource(name);
-  return Dart_LoadSource(library, url, source, 0, 0);
-}
-
-
-Dart_Handle VmService::LoadResource(Dart_Handle library,
-                                    const char* resource_name) {
-  // Prepare for invoke call.
-  Dart_Handle name = Dart_NewStringFromCString(resource_name);
-  RETURN_ERROR_HANDLE(name);
-  const char* data_buffer = NULL;
-  int data_buffer_length = Resources::ResourceLookup(resource_name,
-                                                     &data_buffer);
-  if (data_buffer_length == Resources::kNoSuchInstance) {
-    printf("Could not find %s %s\n", resource_name, resource_name);
-  }
-  ASSERT(data_buffer_length != Resources::kNoSuchInstance);
-  Dart_Handle data_list = Dart_NewTypedData(Dart_TypedData_kUint8,
-                                            data_buffer_length);
-  RETURN_ERROR_HANDLE(data_list);
-  Dart_TypedData_Type type = Dart_TypedData_kInvalid;
-  void* data_list_buffer = NULL;
-  intptr_t data_list_buffer_length = 0;
-  Dart_Handle result = Dart_TypedDataAcquireData(data_list, &type,
-                                                 &data_list_buffer,
-                                                 &data_list_buffer_length);
-  RETURN_ERROR_HANDLE(result);
-  ASSERT(data_buffer_length == data_list_buffer_length);
-  ASSERT(data_list_buffer != NULL);
-  ASSERT(type == Dart_TypedData_kUint8);
-  memmove(data_list_buffer, &data_buffer[0], data_buffer_length);
-  result = Dart_TypedDataReleaseData(data_list);
-  RETURN_ERROR_HANDLE(result);
-
-  // Make invoke call.
-  const intptr_t kNumArgs = 3;
-  Dart_Handle compressed = Dart_True();
-  Dart_Handle args[kNumArgs] = { name, data_list, compressed };
-  result = Dart_Invoke(library, Dart_NewStringFromCString("_addResource"),
-                       kNumArgs, args);
-  return result;
-}
-
-
-Dart_Handle VmService::LoadResources(Dart_Handle library) {
-  Dart_Handle result = Dart_Null();
-  intptr_t prefixLen = strlen(kLibrarySourceNamePrefix);
-  for (intptr_t i = 0; Resources::Path(i) != NULL; i++) {
-    const char* path = Resources::Path(i);
-    // If it doesn't begin with kLibrarySourceNamePrefix it is a frontend
-    // resource.
-    if (strncmp(path, kLibrarySourceNamePrefix, prefixLen) != 0) {
-      result = LoadResource(library, path);
-      if (Dart_IsError(result)) {
-        break;
-      }
-    }
-  }
-  return result;
+  return Dart_LoadSource(library, uri, source, 0, 0);
 }
 
 

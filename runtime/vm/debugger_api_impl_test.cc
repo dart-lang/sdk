@@ -11,6 +11,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_osr);
 
@@ -493,6 +494,8 @@ TEST_CASE(Debug_InspectStack_NotOptimized) {
 
 
 TEST_CASE(Debug_InspectStack_Optimized) {
+  // Ensure code gets optimized.
+  FLAG_background_compilation = false;
   InspectStackTest(true);
 }
 
@@ -589,6 +592,8 @@ TEST_CASE(Debug_InspectStackWithClosure_NotOptimized) {
 
 
 TEST_CASE(Debug_InspectStackWithClosure_Optimized) {
+  // Ensure code gets optimized.
+  FLAG_background_compilation = false;
   InspectStackWithClosureTest(true);
 }
 
@@ -1506,11 +1511,11 @@ static void InterruptIsolateRun(uword unused) {
 
 
 TEST_CASE(Debug_InterruptIsolate) {
-  Dart_SetIsolateEventHandler(&TestInterruptIsolate);
   sync = new Monitor();
+  Dart_SetIsolateEventHandler(&TestInterruptIsolate);
   EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
   Dart_SetPausedEventHandler(InterruptIsolateHandler);
-  int result = OSThread::Start(InterruptIsolateRun, 0);
+  int result = OSThread::Start("DebugInterruptIsolate", InterruptIsolateRun, 0);
   EXPECT_EQ(0, result);
 
   // Wait for the test isolate to be created.
@@ -2138,8 +2143,8 @@ TEST_CASE(Debug_GetSupertype) {
       "int main() {\n"
       "}\n";
 
-  Isolate* isolate = Isolate::Current();
-  Zone* zone = isolate->current_zone();
+
+  Zone* zone = thread->zone();
   LoadScript(kScriptChars);
   ASSERT(script_lib != NULL);
   ASSERT(Dart_IsLibrary(script_lib));

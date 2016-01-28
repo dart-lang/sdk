@@ -14,6 +14,7 @@ import 'package:compiler/src/compiler.dart'
     show Compiler;
 import 'package:compiler/src/elements/elements.dart'
     show Element,
+         MemberElement,
          TypeDeclarationElement,
          ClassElement;
 
@@ -37,8 +38,6 @@ class TypeEnvironment {
                       bool stopAfterTypeInference: false,
                       String mainSource}) {
     Uri uri;
-    Function getErrors;
-    Function getWarnings;
     Compiler compiler;
     bool stopAfterTypeInference = mainSource != null;
     if (mainSource == null) {
@@ -48,6 +47,7 @@ class TypeEnvironment {
     } else {
       source = '$mainSource\n$source';
     }
+    memory.DiagnosticCollector collector;
     if (useMockCompiler) {
       uri = new Uri(scheme: 'source');
       mock.MockCompiler mockCompiler = mock.compilerFor(
@@ -56,29 +56,26 @@ class TypeEnvironment {
           analyzeAll: !stopAfterTypeInference,
           analyzeOnly: !stopAfterTypeInference);
       mockCompiler.diagnosticHandler = mock.createHandler(mockCompiler, source);
-      getErrors = () => mockCompiler.errors;
-      getWarnings = () => mockCompiler.warnings;
+      collector = mockCompiler.diagnosticCollector;
       compiler = mockCompiler;
     } else {
-      memory.DiagnosticCollector collector = new memory.DiagnosticCollector();
+      collector = new memory.DiagnosticCollector();
       uri = Uri.parse('memory:main.dart');
       compiler = memory.compilerFor(
           memorySourceFiles: {'main.dart': source},
           diagnosticHandler: collector,
           options: stopAfterTypeInference
               ? [] : [Flags.analyzeAll, Flags.analyzeOnly]);
-      getErrors = () => collector.errors;
-      getWarnings = () => collector.warnings;
     }
     compiler.stopAfterTypeInference = stopAfterTypeInference;
-    return compiler.runCompiler(uri).then((_) {
+    return compiler.run(uri).then((_) {
       if (expectNoErrors || expectNoWarningsOrErrors) {
-        var errors = getErrors();
+        var errors = collector.errors;
         Expect.isTrue(errors.isEmpty,
             'Unexpected errors: ${errors}');
       }
       if (expectNoWarningsOrErrors) {
-        var warnings = getWarnings();
+        var warnings = collector.warnings;
         Expect.isTrue(warnings.isEmpty,
             'Unexpected warnings: ${warnings}');
       }
@@ -100,7 +97,8 @@ class TypeEnvironment {
   }
 
   DartType getElementType(String name) {
-    return getElement(name).computeType(compiler.resolution);
+    var element = getElement(name);
+    return element.computeType(compiler.resolution);
   }
 
   DartType operator[] (String name) {
@@ -110,7 +108,7 @@ class TypeEnvironment {
   }
 
   DartType getMemberType(ClassElement element, String name) {
-    Element member = element.localLookup(name);
+    MemberElement member = element.localLookup(name);
     return member.computeType(compiler.resolution);
   }
 

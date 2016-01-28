@@ -173,7 +173,7 @@ main() {
   }
 
   var compiler1 = compilerFor(TEST1, uri);
-  asyncTest(() => compiler1.runCompiler(uri).then((_) {
+  asyncTest(() => compiler1.run(uri).then((_) {
     checkReturn(compiler1, 'test1', compiler1.typesTask.uint31Type);
     checkReturn(compiler1, 'test2',
         compiler1.typesTask.dynamicType.nonNullable());
@@ -186,7 +186,7 @@ main() {
   }));
 
   var compiler2 = compilerFor(TEST2, uri);
-  asyncTest(() => compiler2.runCompiler(uri).then((_) {
+  asyncTest(() => compiler2.run(uri).then((_) {
     checkReturn(compiler2, 'test1', compiler2.typesTask.mapType.nonNullable());
     checkReturn(compiler2, 'test2', compiler2.typesTask.mapType);
     checkReturn(compiler2, 'test3', compiler2.typesTask.mapType);
@@ -202,7 +202,7 @@ main() {
   }));
 
   var compiler3 = compilerFor(TEST3, uri);
-  asyncTest(() => compiler3.runCompiler(uri).then((_) {
+  asyncTest(() => compiler3.run(uri).then((_) {
     checkReturn(compiler3, 'test1', const TypeMask.nonNullEmpty());
     checkReturn(compiler3, 'test2', compiler3.typesTask.mapType);
     checkReturn(compiler3, 'test3', compiler3.typesTask.mapType);
@@ -212,7 +212,7 @@ main() {
   }));
 
   var compiler4 = compilerFor(TEST4, uri);
-  asyncTest(() => compiler4.runCompiler(uri).then((_) {
+  asyncTest(() => compiler4.run(uri).then((_) {
     checkReturn(compiler4, 'test1', const TypeMask.nonNullEmpty());
     checkReturn(compiler4, 'test2', compiler4.typesTask.mapType);
     checkReturn(compiler4, 'test3', compiler4.typesTask.mapType);

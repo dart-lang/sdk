@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.task.inputs_test;
+library analyzer.test.src.task.inputs_test;
 
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
@@ -37,6 +37,7 @@ class ConstantTaskInputBuilderTest extends EngineTestCase {
   ConstantTaskInputBuilder builder;
 
   void setUp() {
+    super.setUp();
     builder = new ConstantTaskInputBuilder(input);
   }
 
@@ -555,7 +556,7 @@ class ListToMapTaskInputTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class ObjectToListTaskInputBuilderTest extends EngineTestCase {
+class ObjectToListTaskInputBuilderTest {
   static final AnalysisTarget target = new TestSource();
   static final ResultDescriptorImpl result =
       new ResultDescriptorImpl('result', null);
@@ -705,7 +706,7 @@ class ObjectToListTaskInputTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class SimpleTaskInputBuilderTest extends EngineTestCase {
+class SimpleTaskInputBuilderTest {
   static final AnalysisTarget target = new TestSource();
   static final ResultDescriptorImpl result =
       new ResultDescriptorImpl('result', null);

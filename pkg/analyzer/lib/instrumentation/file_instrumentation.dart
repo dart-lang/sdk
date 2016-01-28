@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library file_instrumentation;
+library analyzer.instrumentation.file_instrumentation;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -30,8 +31,8 @@ class FileInstrumentationServer implements InstrumentationServer {
   }
 
   @override
-  void shutdown() {
-    _sink.close();
+  Future shutdown() async {
+    await _sink.close();
     _sink = null;
   }
 }

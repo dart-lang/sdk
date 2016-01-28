@@ -183,10 +183,6 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
   // If isolate() returns NULL StartIsolateScope does nothing.
   StartIsolateScope start_isolate(isolate());
 
-  // ThreadInterrupter may have gone to sleep while waiting for
-  // an isolate to start handling messages.
-  ThreadInterrupter::WakeUp();
-
   MessageStatus max_status = kOK;
   Message::Priority min_priority = ((allow_normal_messages && !paused())
                                     ? Message::kNormalPriority

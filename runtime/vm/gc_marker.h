@@ -38,11 +38,8 @@ class GCMarker : public ValueObject {
   void Epilogue(Isolate* isolate, bool invoke_api_callbacks);
   void IterateRoots(Isolate* isolate,
                     ObjectPointerVisitor* visitor,
-                    bool visit_prologue_weak_persistent_handles,
                     intptr_t slice_index, intptr_t num_slices);
-  void IterateWeakRoots(Isolate* isolate,
-                        HandleVisitor* visitor,
-                        bool visit_prologue_weak_persistent_handles);
+  void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
   template<class MarkingVisitorType>
   void IterateWeakReferences(Isolate* isolate, MarkingVisitorType* visitor);
   void ProcessWeakTables(PageSpace* page_space);

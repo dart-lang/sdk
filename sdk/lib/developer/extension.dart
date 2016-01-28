@@ -81,13 +81,17 @@ class ServiceExtensionResponse {
 ///
 /// Must complete to a [ServiceExtensionResponse].
 ///
-/// [method] - the method name.
-/// [parameters] - the parameters.
+/// [method] - the method name of the service protocol request.
+/// [parameters] - A map holding the parameters to the service protocol request.
+///
+/// *NOTE*: All parameter names and values are **encoded as strings**.
 typedef Future<ServiceExtensionResponse>
-    ServiceExtensionHandler(String method, Map parameters);
+    ServiceExtensionHandler(String method, Map<String, String> parameters);
 
 /// Register a [ServiceExtensionHandler] that will be invoked in this isolate
-/// for [method].
+/// for [method]. *NOTE*: Service protocol extensions must be registered
+/// in each isolate and users of extensions must always specify a target
+/// isolate.
 void registerExtension(String method, ServiceExtensionHandler handler) {
   if (method is! String) {
     throw new ArgumentError.value(method,
@@ -105,6 +109,25 @@ void registerExtension(String method, ServiceExtensionHandler handler) {
   _registerExtension(method, handler);
 }
 
+/// Post an event of [eventKind] with payload of [eventData] to the `Extension`
+/// event stream.
+void postEvent(String eventKind, Map eventData) {
+  if (eventKind is! String) {
+    throw new ArgumentError.value(eventKind,
+                                  'eventKind',
+                                  'Must be a String');
+  }
+  if (eventData is! Map) {
+    throw new ArgumentError.value(eventData,
+                                  'eventData',
+                                  'Must be a Map');
+  }
+  String eventDataAsString = JSON.encode(eventData);
+  _postEvent(eventKind, eventDataAsString);
+}
+
+external _postEvent(String eventKind, String eventData);
+
 // Both of these functions are written inside C++ to avoid updating the data
 // structures in Dart, getting an OOB, and observing stale state. Do not move
 // these into Dart code unless you can ensure that the operations will can be
@@ -112,80 +135,3 @@ void registerExtension(String method, ServiceExtensionHandler handler) {
 // LookupServiceExtensionHandler and RegisterServiceExtensionHandler.
 external ServiceExtensionHandler _lookupExtension(String method);
 external _registerExtension(String method, ServiceExtensionHandler handler);
-
-// This code is only invoked when there is no other Dart code on the stack.
-_runExtension(ServiceExtensionHandler handler,
-              String method,
-              List<String> parameterKeys,
-              List<String> parameterValues,
-              SendPort replyPort,
-              Object id) {
-  var parameters = {};
-  for (var i = 0; i < parameterKeys.length; i++) {
-    parameters[parameterKeys[i]] = parameterValues[i];
-  }
-  var response;
-  try {
-    response = handler(method, parameters);
-  } catch (e, st) {
-    var errorDetails = (st == null) ? '$e' : '$e\n$st';
-    response = new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.kExtensionError,
-        errorDetails);
-    _postResponse(replyPort, id, response);
-    return;
-  }
-  if (response is! Future) {
-    response = new ServiceExtensionResponse.error(
-          ServiceExtensionResponse.kExtensionError,
-          "Extension handler must return a Future");
-    _postResponse(replyPort, id, response);
-    return;
-  }
-  response.catchError((e, st) {
-    // Catch any errors eagerly and wrap them in a ServiceExtensionResponse.
-    var errorDetails = (st == null) ? '$e' : '$e\n$st';
-    return new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.kExtensionError,
-        errorDetails);
-  }).then((response) {
-    // Post the valid response or the wrapped error after verifying that
-    // the response is a ServiceExtensionResponse.
-    if (response is! ServiceExtensionResponse) {
-      response = new ServiceExtensionResponse.error(
-          ServiceExtensionResponse.kExtensionError,
-          "Extension handler must complete to a ServiceExtensionResponse");
-    }
-    _postResponse(replyPort, id, response);
-  }).catchError((e, st) {
-    // We do not expect any errors to occur in the .then or .catchError blocks
-    // but, suppress them just in case.
-  });
-}
-
-// This code is only invoked by _runExtension.
-_postResponse(SendPort replyPort,
-              Object id,
-              ServiceExtensionResponse response) {
-  assert(replyPort != null);
-  if (id == null) {
-    // No id -> no response.
-    replyPort.send(null);
-    return;
-  }
-  assert(id != null);
-  StringBuffer sb = new StringBuffer();
-  sb.write('{"jsonrpc":"2.0",');
-  if (response._isError()) {
-    sb.write('"error":');
-  } else {
-    sb.write('"result":');
-  }
-  sb.write('${response._toString()},');
-  if (id is String) {
-    sb.write('"id":"$id"}');
-  } else {
-    sb.write('"id":$id}');
-  }
-  replyPort.send(sb.toString());
-}

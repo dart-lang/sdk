@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/dartutils.h"
-#include "bin/dbg_connection.h"
-#include "bin/eventhandler.h"
 #include "bin/io_buffer.h"
 #include "bin/log.h"
 #include "bin/platform.h"
@@ -16,10 +14,6 @@
 
 namespace dart {
 namespace bin {
-
-// Global flag that is used to indicate that the VM should do a clean
-// shutdown.
-bool do_vm_shutdown = false;
 
 static const int kProcessIdNativeField = 0;
 
@@ -254,26 +248,8 @@ void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
   int64_t status = 0;
   // Ignore result if passing invalid argument and just exit 0.
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
-  Dart_ShutdownIsolate();
-  Process::TerminateExitCodeHandler();
-  char* error = Dart_Cleanup();
-  if (error != NULL) {
-    Log::PrintErr("VM cleanup failed: %s\n", error);
-    free(error);
-  }
-  if (do_vm_shutdown) {
-#ifdef LEGACY_DEBUG_PROTOCOL_ENABLED
-    // Note that this dependency crosses logical project boundaries by making
-    // the dart:io implementation depend upon the standalone VM's legacy debug
-    // protocol. This breaks projects which want to use our dart:io
-    // implementation. Because the protocol is going away shortly, it's
-    // reasonable to leave it behind a #ifdef that is only enabled for the
-    // standalone VM for now.
-    DebuggerConnectionHandler::StopHandler();
-#endif
-    EventHandler::Stop();
-  }
-  exit(static_cast<int>(status));
+  Dart_ExitIsolate();
+  Platform::Exit(static_cast<int>(status));
 }
 
 

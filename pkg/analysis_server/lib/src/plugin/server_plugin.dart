@@ -14,19 +14,19 @@ import 'package:analysis_server/plugin/edit/assist/assist.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/plugin/index/index.dart';
-import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/domain_execution.dart';
-import 'package:analysis_server/src/domain_experimental.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/provisional/index/index.dart';
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
@@ -189,8 +189,9 @@ class ServerPlugin implements Plugin {
    * Return a list containing all of the completion contributors that were
    * contributed.
    */
-  List<CompletionContributor> get completionContributors =>
-      completionContributorExtensionPoint.extensions;
+  Iterable<CompletionContributor> get completionContributors =>
+      completionContributorExtensionPoint.extensions
+          .map((CompletionContributorFactory factory) => factory());
 
   /**
    * Return a list containing all of the fix contributors that were contributed.
@@ -276,10 +277,10 @@ class ServerPlugin implements Plugin {
     // Register analyzed file patterns.
     //
     List<String> patterns = <String>[
-      '{*:/,/}**/*.${AnalysisEngine.SUFFIX_DART}',
-      '{*:/,/}**/*.${AnalysisEngine.SUFFIX_HTML}',
-      '{*:/,/}**/*.${AnalysisEngine.SUFFIX_HTM}',
-      '{*:/,/}**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}'
+      '**/*.${AnalysisEngine.SUFFIX_DART}',
+      '**/*.${AnalysisEngine.SUFFIX_HTML}',
+      '**/*.${AnalysisEngine.SUFFIX_HTM}',
+      '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}'
     ];
     registerExtension(ANALYZED_FILE_PATTERNS_EXTENSION_POINT_ID, patterns);
     //
@@ -291,7 +292,7 @@ class ServerPlugin implements Plugin {
     // Register completion contributors.
     //
     // TODO(brianwilkerson) Register the completion contributors.
-//    registerExtension(COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID, ???);
+    //registerExtension(COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID, ???);
     //
     // Register analysis contributors.
     //
@@ -316,7 +317,7 @@ class ServerPlugin implements Plugin {
     registerExtension(domainId,
         (AnalysisServer server) => new ExecutionDomainHandler(server));
     registerExtension(domainId,
-        (AnalysisServer server) => new ExperimentalDomainHandler(server));
+        (AnalysisServer server) => new DiagnosticDomainHandler(server));
     //
     // Register fix contributors.
     //
@@ -370,10 +371,10 @@ class ServerPlugin implements Plugin {
    * valid completion contributor.
    */
   void _validateCompletionContributorExtension(Object extension) {
-    if (extension is! CompletionContributor) {
+    if (extension is! CompletionContributorFactory) {
       String id = completionContributorExtensionPoint.uniqueIdentifier;
       throw new ExtensionError(
-          'Extensions to $id must be an CompletionContributor');
+          'Extensions to $id must be an CompletionContributorFactory');
     }
   }
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -29,7 +29,7 @@ if [ -z "$DART_CONFIGURATION" ];
 then
   DIRS=$( ls "$OUT_DIR" )
   # list of possible configurations in decreasing desirability
-  CONFIGS=("ReleaseIA32" "ReleaseX64" "DebugIA32" "DebugX64"
+  CONFIGS=("ReleaseX64" "ReleaseIA32" "DebugX64" "DebugIA32"
     "ReleaseARM"    "ReleaseARM64"    "ReleaseARMV5TE"    "ReleaseMIPS"
     "DebugARM"      "DebugARM64"      "DebugARMV5TE"      "DebugMIPS")
   DART_CONFIGURATION="None"

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library subtype_test;
+library least_upper_bound_test;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';

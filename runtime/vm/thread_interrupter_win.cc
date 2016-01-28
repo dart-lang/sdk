@@ -7,6 +7,7 @@
 
 #include "vm/flags.h"
 #include "vm/os.h"
+#include "vm/profiler.h"
 #include "vm/thread_interrupter.h"
 
 namespace dart {
@@ -51,39 +52,40 @@ class ThreadInterrupterWin : public AllStatic {
   }
 
 
-  static void Interrupt(Thread* thread) {
-    ASSERT(!OSThread::Compare(GetCurrentThreadId(), thread->id()));
+  static void Interrupt(OSThread* os_thread) {
+    ASSERT(!OSThread::Compare(GetCurrentThreadId(), os_thread->id()));
     HANDLE handle = OpenThread(THREAD_GET_CONTEXT |
                                THREAD_QUERY_INFORMATION |
                                THREAD_SUSPEND_RESUME,
                                false,
-                               thread->id());
+                               os_thread->id());
     ASSERT(handle != NULL);
     DWORD result = SuspendThread(handle);
     if (result == kThreadError) {
       if (FLAG_trace_thread_interrupter) {
         OS::Print("ThreadInterrupter failed to suspend thread %p\n",
-                  reinterpret_cast<void*>(thread->id()));
+                  reinterpret_cast<void*>(os_thread->id()));
       }
       CloseHandle(handle);
       return;
     }
     InterruptedThreadState its;
-    its.tid = thread->id();
     if (!GrabRegisters(handle, &its)) {
       // Failed to get thread registers.
       ResumeThread(handle);
       if (FLAG_trace_thread_interrupter) {
         OS::Print("ThreadInterrupter failed to get registers for %p\n",
-                  reinterpret_cast<void*>(thread->id()));
+                  reinterpret_cast<void*>(os_thread->id()));
       }
       CloseHandle(handle);
       return;
     }
-    ThreadInterruptCallback callback = NULL;
-    void* callback_data = NULL;
-    if (thread->IsThreadInterrupterEnabled(&callback, &callback_data)) {
-      callback(its, callback_data);
+    // Currently we sample only threads that are associated
+    // with an isolate. It is safe to call 'os_thread->thread()'
+    // here as the thread which is being queried is suspended.
+    Thread* thread = os_thread->thread();
+    if (thread != NULL) {
+      Profiler::SampleThread(thread, its);
     }
     ResumeThread(handle);
     CloseHandle(handle);
@@ -91,7 +93,7 @@ class ThreadInterrupterWin : public AllStatic {
 };
 
 
-void ThreadInterrupter::InterruptThread(Thread* thread) {
+void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter suspending %p\n",
               reinterpret_cast<void*>(thread->id()));
@@ -117,4 +119,3 @@ void ThreadInterrupter::RemoveSignalHandler() {
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)
-

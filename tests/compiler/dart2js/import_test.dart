@@ -9,6 +9,8 @@ library dart2js.test.import;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/diagnostics/messages.dart';
+import 'package:compiler/compiler.dart';
 import 'memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
@@ -26,15 +28,55 @@ main() {
   int i = "";
 }
 ''',
+    'part.dart': '''
+part of lib;
+
+main() {}
+''',
+    'lib.dart': '''
+library lib;
+
+import 'part.dart';
+
+part 'part.dart';
+''',
 };
+
+testEntryPointIsPart() async {
+  var collector = new DiagnosticCollector();
+  await runCompiler(
+      entryPoint: Uri.parse('memory:part.dart'),
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      diagnosticHandler: collector);
+
+  collector.checkMessages([
+      const Expected.error(MessageKind.MAIN_HAS_PART_OF)]);
+}
+
+testImportPart() async {
+  var collector = new DiagnosticCollector();
+  await runCompiler(
+      entryPoint: Uri.parse('memory:lib.dart'),
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      diagnosticHandler: collector);
+
+  collector.checkMessages([
+      const Expected.error(MessageKind.IMPORT_PART_OF),
+      const Expected.info(MessageKind.IMPORT_PART_OF_HERE)]);
+}
 
 testMissingImports() async {
   var collector = new DiagnosticCollector();
   await runCompiler(
       memorySourceFiles: MEMORY_SOURCE_FILES,
       diagnosticHandler: collector);
-  Expect.equals(4, collector.errors.length);
-  Expect.equals(1, collector.warnings.length);
+
+  collector.checkMessages([
+      const Expected.error(MessageKind.READ_SCRIPT_ERROR),
+      const Expected.error(MessageKind.LIBRARY_NOT_FOUND),
+      const Expected.error(MessageKind.READ_SCRIPT_ERROR),
+      const Expected.error(MessageKind.READ_SCRIPT_ERROR),
+      const Expected.warning(MessageKind.NOT_ASSIGNABLE)]);
 }
 
 testMissingMain() async {
@@ -42,12 +84,14 @@ testMissingMain() async {
   await runCompiler(
       entryPoint: Uri.parse('memory:missing.dart'),
       diagnosticHandler: collector);
-  Expect.equals(1, collector.errors.length);
-  Expect.equals(0, collector.warnings.length);
+  collector.checkMessages([
+      const Expected.error(MessageKind.READ_SELF_ERROR)]);
 }
 
 void main() {
   asyncTest(() async {
+    await testEntryPointIsPart();
+    await testImportPart();
     await testMissingImports();
     await testMissingMain();
   });

@@ -18,7 +18,7 @@ import 'cps_ir_nodes.dart';
 
 /**
  * Replaces aggregates with a set of local values.  Performs inlining of
- * single-use closures to generate more replacable aggregates.
+ * single-use closures to generate more replaceable aggregates.
  */
 class ScalarReplacer extends Pass {
   String get passName => 'Scalar replacement';
@@ -41,7 +41,7 @@ class ScalarReplacer extends Pass {
 
 /**
  * Do scalar replacement of aggregates on instances. Since scalar replacement
- * can create new candidiates, iterate until all scalar replacements are done.
+ * can create new candidates, iterate until all scalar replacements are done.
  */
 class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
 
@@ -104,7 +104,8 @@ class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
         (ClassElement enclosingClass, FieldElement field) {
           Primitive argument = allocation.arguments[i++].definition;
           fieldInitialValues[field] = argument;
-        });
+        },
+        includeSuperAndInjectedMembers: true);
     }
 
     // Create [MutableVariable]s for each written field. Initialize the
@@ -141,12 +142,12 @@ class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
           GetMutable getter = new GetMutable(variable);
           getter.type = getField.type;
           getter.variable.parent = getter;
-          getter.substituteFor(getField);
+          getField.replaceUsesWith(getter);
           replacePrimitive(getField, getter);
           deletePrimitive(getField);
         } else {
           Primitive value = fieldInitialValues[getField.field];
-          value.substituteFor(getField);
+          getField.replaceUsesWith(value);
           deleteLetPrimOf(getField);
         }
       } else if (use is SetField && use.object == ref) {
@@ -157,7 +158,7 @@ class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
         SetMutable setter = new SetMutable(variable, value);
         setter.variable.parent = setter;
         setter.value.parent = setter;
-        setter.substituteFor(setField);
+        setField.replaceUsesWith(setter);
         replacePrimitive(setField, setter);
         deletePrimitive(setField);
       } else {

@@ -5,16 +5,40 @@
 patch class _Platform {
   /* patch */ static int _numberOfProcessors()
       native "Platform_NumberOfProcessors";
-  /* patch */ static String _pathSeparator() native "Platform_PathSeparator";
+  /* patch */ static String _pathSeparator()
+      native "Platform_PathSeparator";
   /* patch */ static String _operatingSystem()
       native "Platform_OperatingSystem";
-  /* patch */ static _localHostname() native "Platform_LocalHostname";
-  /* patch */ static _executable() native "Platform_ExecutableName";
+  /* patch */ static _localHostname()
+      native "Platform_LocalHostname";
+  /* patch */ static _executable()
+      native "Platform_ExecutableName";
   /* patch */ static _resolvedExecutable()
       native "Platform_ResolvedExecutableName";
-  /* patch */ static _environment() native "Platform_Environment";
+  /* patch */ static _environment()
+      native "Platform_Environment";
   /* patch */ static List<String> _executableArguments()
-       native "Platform_ExecutableArguments";
-  /* patch */ static String _packageRoot() native "Platform_PackageRoot";
-  /* patch */ static String _version() native "Platform_GetVersion";
+      native "Platform_ExecutableArguments";
+  /* patch */ static String _version()
+      native "Platform_GetVersion";
+
+  /* patch */ static String _packageRoot()
+      => VMLibraryHooks.packageRootString;
+  /* patch */ static String _packageConfig()
+      => VMLibraryHooks.packageConfigString;
+
+  // This script singleton is written to by the embedder if applicable.
+  /* patch */ static void set _nativeScript(String path) {
+    if (path.startsWith('http:') ||
+        path.startsWith('https:') ||
+        path.startsWith('package:') ||
+        path.startsWith('dart:') ||
+        path.startsWith('data:') ||
+        path.startsWith('file:')) {
+      script = Uri.parse(path);
+    } else {
+      script = Uri.base.resolveUri(new Uri.file(path));
+    }
+    VMLibraryHooks.platformScript = script;
+  }
 }

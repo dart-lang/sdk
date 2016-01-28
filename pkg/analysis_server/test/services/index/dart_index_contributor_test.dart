@@ -4,14 +4,14 @@
 
 library test.services.src.index.dart_index_contributor;
 
-import 'package:analysis_server/plugin/index/index_core.dart';
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_contributor.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analysis_server/src/services/index/indexable_file.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -92,27 +92,6 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
         .thenInvoke((Element element) {
       recordedTopElements.add(element);
     });
-  }
-
-  void test_isReferencedBy_PrefixElement() {
-    _indexTestUnit('''
-import 'dart:async' as ppp;
-main() {
-  ppp.Future a;
-  ppp.Stream b;
-}
-''');
-    // prepare elements
-    PrefixElement element = findNodeElementAtString('ppp;');
-    Element elementA = findElement('a');
-    Element elementB = findElement('b');
-    IndexableElement indexable = new IndexableElement(element);
-    // verify
-    _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(elementA, 'ppp.Future'));
-    _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(elementB, 'ppp.Stream'));
-    _assertNoRecordedRelation(indexable, null, _expectedLocation(null, 'ppp;'));
   }
 
   void test_bad_unresolvedFieldFormalParameter() {
@@ -1423,6 +1402,27 @@ main() {
         _expectedLocation(mainElement, 'p: 1'));
   }
 
+  void test_isReferencedBy_PrefixElement() {
+    _indexTestUnit('''
+import 'dart:async' as ppp;
+main() {
+  ppp.Future a;
+  ppp.Stream b;
+}
+''');
+    // prepare elements
+    PrefixElement element = findNodeElementAtString('ppp;');
+    Element elementA = findElement('a');
+    Element elementB = findElement('b');
+    IndexableElement indexable = new IndexableElement(element);
+    // verify
+    _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(elementA, 'ppp.Future'));
+    _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(elementB, 'ppp.Stream'));
+    _assertNoRecordedRelation(indexable, null, _expectedLocation(null, 'ppp;'));
+  }
+
   void test_isReferencedBy_TopLevelVariableElement() {
     addSource(
         '/lib.dart',
@@ -1665,7 +1665,7 @@ main(A a, p) {
     for (RecordedRelation recordedRelation in recordedRelations) {
       if (_equalsRecordedRelation(
           recordedRelation, expectedIndexable, relationship, location)) {
-        fail('not expected: ${recordedRelation} in\n' +
+        fail('not expected: $recordedRelation in\n' +
             recordedRelations.join('\n'));
       }
     }
@@ -1781,9 +1781,7 @@ class ExpectedLocation {
   }
 }
 
-class MockIndexStore extends TypedMock implements InternalIndexStore {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class MockIndexStore extends TypedMock implements InternalIndexStore {}
 
 /**
  * Information about a relation recorded into {@link IndexStore}.

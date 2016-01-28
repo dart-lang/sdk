@@ -4,20 +4,51 @@
 
 library dart2js.js_backend.helpers;
 
+import '../common.dart';
+import '../common/names.dart' show
+    Identifiers,
+    Uris;
 import '../common/resolution.dart' show
     Resolution;
 import '../compiler.dart' show
     Compiler;
+import '../core_types.dart' show
+    CoreClasses;
 import '../elements/elements.dart' show
+    AbstractFieldElement,
     ClassElement,
+    ConstructorElement,
     Element,
+    EnumClassElement,
+    FunctionElement,
     LibraryElement,
     MethodElement;
+import '../library_loader.dart' show
+    LoadedLibraries;
 
 import 'js_backend.dart';
 
 /// Helper classes and functions for the JavaScript backend.
 class BackendHelpers {
+  static final Uri DART_JS_HELPER = new Uri(scheme: 'dart', path: '_js_helper');
+  static final Uri DART_INTERCEPTORS =
+      new Uri(scheme: 'dart', path: '_interceptors');
+  static final Uri DART_FOREIGN_HELPER =
+      new Uri(scheme: 'dart', path: '_foreign_helper');
+  static final Uri DART_JS_MIRRORS =
+      new Uri(scheme: 'dart', path: '_js_mirrors');
+  static final Uri DART_JS_NAMES =
+      new Uri(scheme: 'dart', path: '_js_names');
+  static final Uri DART_EMBEDDED_NAMES =
+      new Uri(scheme: 'dart', path: '_js_embedded_names');
+  static final Uri DART_ISOLATE_HELPER =
+      new Uri(scheme: 'dart', path: '_isolate_helper');
+  static final Uri PACKAGE_JS =
+         new Uri(scheme: 'package', path: 'js/js.dart');
+
+  static const String INVOKE_ON = '_getCachedInvocation';
+  static const String START_ROOT_ISOLATE = 'startRootIsolate';
+
   final Compiler compiler;
 
   Element cachedCheckConcurrentModificationError;
@@ -28,16 +59,350 @@ class BackendHelpers {
 
   Resolution get resolution => backend.resolution;
 
+  CoreClasses get coreClasses => compiler.coreClasses;
+
+  DiagnosticReporter get reporter => compiler.reporter;
+
   MethodElement assertTest;
   MethodElement assertThrow;
   MethodElement assertHelper;
 
-  Element findHelper(String name) => backend.findHelper(name);
-  Element findAsyncHelper(String name) => backend.findAsyncHelper(name);
-  Element findInterceptor(String name) => backend.findInterceptor(name);
 
+  LibraryElement jsHelperLibrary;
+  LibraryElement asyncLibrary;
+  LibraryElement interceptorsLibrary;
+  LibraryElement foreignLibrary;
+  LibraryElement isolateHelperLibrary;
+
+  /// Reference to the internal library to lookup functions to always inline.
+  LibraryElement internalLibrary;
+
+  ClassElement closureClass;
+  ClassElement boundClosureClass;
+  Element assertUnreachableMethod;
+  Element invokeOnMethod;
+
+  ClassElement jsInterceptorClass;
+  ClassElement jsStringClass;
+  ClassElement jsArrayClass;
+  ClassElement jsNumberClass;
+  ClassElement jsIntClass;
+  ClassElement jsDoubleClass;
+  ClassElement jsNullClass;
+  ClassElement jsBoolClass;
+  ClassElement jsPlainJavaScriptObjectClass;
+  ClassElement jsUnknownJavaScriptObjectClass;
+  ClassElement jsJavaScriptFunctionClass;
+  ClassElement jsJavaScriptObjectClass;
+
+  ClassElement jsIndexableClass;
+  ClassElement jsMutableIndexableClass;
+
+  ClassElement jsMutableArrayClass;
+  ClassElement jsFixedArrayClass;
+  ClassElement jsExtendableArrayClass;
+  ClassElement jsUnmodifiableArrayClass;
+  ClassElement jsPositiveIntClass;
+  ClassElement jsUInt32Class;
+  ClassElement jsUInt31Class;
+
+  Element jsIndexableLength;
+  Element jsArrayTypedConstructor;
+  Element jsArrayRemoveLast;
+  Element jsArrayAdd;
+  Element jsStringSplit;
+  Element jsStringToString;
+  Element jsStringOperatorAdd;
+  Element objectEquals;
+
+  ClassElement typeLiteralClass;
+  ClassElement mapLiteralClass;
+  ClassElement constMapLiteralClass;
+  ClassElement typeVariableClass;
+  ConstructorElement mapLiteralConstructor;
+  ConstructorElement mapLiteralConstructorEmpty;
+  Element mapLiteralUntypedMaker;
+  Element mapLiteralUntypedEmptyMaker;
+
+  ClassElement noSideEffectsClass;
+  ClassElement noThrowsClass;
+  ClassElement noInlineClass;
+  ClassElement forceInlineClass;
+  ClassElement irRepresentationClass;
+
+  ClassElement jsAnnotationClass;
+  ClassElement jsAnonymousClass;
+
+  Element getInterceptorMethod;
+
+  ClassElement jsInvocationMirrorClass;
+
+  ClassElement typedArrayClass;
+  ClassElement typedArrayOfIntClass;
+
+  /**
+   * Interface used to determine if an object has the JavaScript
+   * indexing behavior. The interface is only visible to specific
+   * libraries.
+   */
+  ClassElement jsIndexingBehaviorInterface;
+
+  Element getNativeInterceptorMethod;
+
+  /// Holds the method "getIsolateAffinityTag" when dart:_js_helper has been
+  /// loaded.
+  FunctionElement getIsolateAffinityTagMarker;
+
+  /// Holds the method "disableTreeShaking" in js_mirrors when
+  /// dart:mirrors has been loaded.
+  FunctionElement disableTreeShakingMarker;
+
+  /// Holds the method "preserveNames" in js_mirrors when
+  /// dart:mirrors has been loaded.
+  FunctionElement preserveNamesMarker;
+
+  /// Holds the method "preserveMetadata" in js_mirrors when
+  /// dart:mirrors has been loaded.
+  FunctionElement preserveMetadataMarker;
+
+  /// Holds the method "preserveUris" in js_mirrors when
+  /// dart:mirrors has been loaded.
+  FunctionElement preserveUrisMarker;
+
+  /// Holds the method "preserveLibraryNames" in js_mirrors when
+  /// dart:mirrors has been loaded.
+  FunctionElement preserveLibraryNamesMarker;
+
+  /// Holds the method "requiresPreamble" in _js_helper.
+  FunctionElement requiresPreambleMarker;
+
+  /// Holds the class for the [JsGetName] enum.
+  EnumClassElement jsGetNameEnum;
+
+  /// Holds the class for the [JsBuiltins] enum.
+  EnumClassElement jsBuiltinEnum;
+
+  // TODO(johnniwinther): Make these private.
+  // TODO(johnniwinther): Split into findHelperFunction and findHelperClass and
+  // add a check that the element has the expected kind.
+  Element findHelper(String name) => find(jsHelperLibrary, name);
+  Element findAsyncHelper(String name) => find(asyncLibrary, name);
+  Element findInterceptor(String name) => find(interceptorsLibrary, name);
   Element find(LibraryElement library, String name) {
-    return backend.find(library, name);
+    Element element = library.implementation.findLocal(name);
+    assert(invariant(library, element != null,
+        message: "Element '$name' not found in '${library.canonicalUri}'."));
+    return element;
+  }
+
+  void onLibraryCreated(LibraryElement library) {
+    Uri uri = library.canonicalUri;
+    if (uri == DART_JS_HELPER) {
+      jsHelperLibrary = library;
+    } else if (uri == Uris.dart_async) {
+      asyncLibrary = library;
+    } else if (uri == Uris.dart__internal) {
+      internalLibrary = library;
+    } else if (uri ==  DART_INTERCEPTORS) {
+      interceptorsLibrary = library;
+    } else if (uri ==  DART_FOREIGN_HELPER) {
+      foreignLibrary = library;
+    } else if (uri == DART_ISOLATE_HELPER) {
+      isolateHelperLibrary = library;
+    }
+  }
+
+  void initializeHelperClasses(DiagnosticReporter reporter) {
+    final List missingHelperClasses = [];
+    ClassElement lookupHelperClass(String name) {
+      ClassElement result = findHelper(name);
+      if (result == null) {
+        missingHelperClasses.add(name);
+      }
+      return result;
+    }
+    jsInvocationMirrorClass = lookupHelperClass('JSInvocationMirror');
+    boundClosureClass = lookupHelperClass('BoundClosure');
+    closureClass = lookupHelperClass('Closure');
+    if (!missingHelperClasses.isEmpty) {
+      reporter.internalError(jsHelperLibrary,
+          'dart:_js_helper library does not contain required classes: '
+          '$missingHelperClasses');
+    }
+  }
+
+  void onLibraryScanned(LibraryElement library) {
+    Uri uri = library.canonicalUri;
+
+    FunctionElement findMethod(String name) {
+      return find(library, name);
+    }
+
+    ClassElement findClass(String name) {
+      return find(library, name);
+    }
+
+    if (uri == DART_INTERCEPTORS) {
+      getInterceptorMethod = findMethod('getInterceptor');
+      getNativeInterceptorMethod = findMethod('getNativeInterceptor');
+      jsInterceptorClass = findClass('Interceptor');
+      jsStringClass = findClass('JSString');
+      jsArrayClass = findClass('JSArray');
+      // The int class must be before the double class, because the
+      // emitter relies on this list for the order of type checks.
+      jsIntClass = findClass('JSInt');
+      jsPositiveIntClass = findClass('JSPositiveInt');
+      jsUInt32Class = findClass('JSUInt32');
+      jsUInt31Class = findClass('JSUInt31');
+      jsDoubleClass = findClass('JSDouble');
+      jsNumberClass = findClass('JSNumber');
+      jsNullClass = findClass('JSNull');
+      jsBoolClass = findClass('JSBool');
+      jsMutableArrayClass = findClass('JSMutableArray');
+      jsFixedArrayClass = findClass('JSFixedArray');
+      jsExtendableArrayClass = findClass('JSExtendableArray');
+      jsUnmodifiableArrayClass = findClass('JSUnmodifiableArray');
+      jsPlainJavaScriptObjectClass = findClass('PlainJavaScriptObject');
+      jsJavaScriptObjectClass = findClass('JavaScriptObject');
+      jsJavaScriptFunctionClass = findClass('JavaScriptFunction');
+      jsUnknownJavaScriptObjectClass = findClass('UnknownJavaScriptObject');
+      jsIndexableClass = findClass('JSIndexable');
+      jsMutableIndexableClass = findClass('JSMutableIndexable');
+    } else if (uri == DART_JS_HELPER) {
+      initializeHelperClasses(reporter);
+      assertTest = findHelper('assertTest');
+      assertThrow = findHelper('assertThrow');
+      assertHelper = findHelper('assertHelper');
+      assertUnreachableMethod = findHelper('assertUnreachable');
+
+      typeLiteralClass = findClass('TypeImpl');
+      constMapLiteralClass = findClass('ConstantMap');
+      typeVariableClass = findClass('TypeVariable');
+
+      jsIndexingBehaviorInterface = findClass('JavaScriptIndexingBehavior');
+
+      noSideEffectsClass = findClass('NoSideEffects');
+      noThrowsClass = findClass('NoThrows');
+      noInlineClass = findClass('NoInline');
+      forceInlineClass = findClass('ForceInline');
+      irRepresentationClass = findClass('IrRepresentation');
+
+      getIsolateAffinityTagMarker = findMethod('getIsolateAffinityTag');
+
+      requiresPreambleMarker = findMethod('requiresPreamble');
+    } else if (uri == DART_JS_MIRRORS) {
+      disableTreeShakingMarker = find(library, 'disableTreeShaking');
+      preserveMetadataMarker = find(library, 'preserveMetadata');
+      preserveUrisMarker = find(library, 'preserveUris');
+      preserveLibraryNamesMarker = find(library, 'preserveLibraryNames');
+    } else if (uri == DART_JS_NAMES) {
+      preserveNamesMarker = find(library, 'preserveNames');
+    } else if (uri == DART_EMBEDDED_NAMES) {
+      jsGetNameEnum = find(library, 'JsGetName');
+      jsBuiltinEnum = find(library, 'JsBuiltin');
+    } else if (uri == Uris.dart__native_typed_data) {
+      typedArrayClass = findClass('NativeTypedArray');
+      typedArrayOfIntClass = findClass('NativeTypedArrayOfInt');
+    } else if (uri == PACKAGE_JS) {
+      jsAnnotationClass = find(library, 'JS');
+      jsAnonymousClass = find(library, '_Anonymous');
+    }
+  }
+
+
+  void onLibrariesLoaded(LoadedLibraries loadedLibraries) {
+    assert(loadedLibraries.containsLibrary(Uris.dart_core));
+    assert(loadedLibraries.containsLibrary(DART_INTERCEPTORS));
+    assert(loadedLibraries.containsLibrary(DART_JS_HELPER));
+
+    if (jsInvocationMirrorClass != null) {
+      jsInvocationMirrorClass.ensureResolved(resolution);
+      invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
+    }
+
+    // [LinkedHashMap] is reexported from dart:collection and can therefore not
+    // be loaded from dart:core in [onLibraryScanned].
+    mapLiteralClass = compiler.coreLibrary.find('LinkedHashMap');
+    assert(invariant(compiler.coreLibrary, mapLiteralClass != null,
+        message: "Element 'LinkedHashMap' not found in 'dart:core'."));
+
+    // TODO(kasperl): Some tests do not define the special JSArray
+    // subclasses, so we check to see if they are defined before
+    // trying to resolve them.
+    if (jsFixedArrayClass != null) {
+      jsFixedArrayClass.ensureResolved(resolution);
+    }
+    if (jsExtendableArrayClass != null) {
+      jsExtendableArrayClass.ensureResolved(resolution);
+    }
+    if (jsUnmodifiableArrayClass != null) {
+      jsUnmodifiableArrayClass.ensureResolved(resolution);
+    }
+
+    jsIndexableClass.ensureResolved(resolution);
+    jsIndexableLength = compiler.lookupElementIn(
+        jsIndexableClass, 'length');
+    if (jsIndexableLength != null && jsIndexableLength.isAbstractField) {
+      AbstractFieldElement element = jsIndexableLength;
+      jsIndexableLength = element.getter;
+    }
+
+    jsArrayClass.ensureResolved(resolution);
+    jsArrayTypedConstructor = compiler.lookupElementIn(jsArrayClass, 'typed');
+    jsArrayRemoveLast = compiler.lookupElementIn(jsArrayClass, 'removeLast');
+    jsArrayAdd = compiler.lookupElementIn(jsArrayClass, 'add');
+
+    jsStringClass.ensureResolved(resolution);
+    jsStringSplit = compiler.lookupElementIn(jsStringClass, 'split');
+    jsStringOperatorAdd = compiler.lookupElementIn(jsStringClass, '+');
+    jsStringToString = compiler.lookupElementIn(jsStringClass, 'toString');
+
+    objectEquals = compiler.lookupElementIn(coreClasses.objectClass, '==');
+  }
+
+  Element get badMain {
+    return findHelper('badMain');
+  }
+
+  Element get missingMain {
+    return findHelper('missingMain');
+  }
+
+  Element get mainHasTooManyParameters {
+    return findHelper('mainHasTooManyParameters');
+  }
+
+  Element get loadLibraryWrapper {
+    return findHelper("_loadLibraryWrapper");
+  }
+
+  Element get boolConversionCheck {
+    return findHelper('boolConversionCheck');
+  }
+
+  Element get consoleTraceHelper {
+    return findHelper('consoleTraceHelper');
+  }
+
+  Element get postTraceHelper {
+    return findHelper('postTraceHelper');
+  }
+
+  FunctionElement get closureFromTearOff {
+    return findHelper('closureFromTearOff');
+  }
+
+  Element get isJsIndexable {
+    return findHelper('isJsIndexable');
+  }
+
+
+  Element get throwIllegalArgumentException {
+    return findHelper('iae');
+  }
+
+  Element get throwIndexOutOfRangeException {
+    return findHelper('ioore');
   }
 
   Element get exceptionUnwrapper {
@@ -66,10 +431,6 @@ class BackendHelpers {
 
   Element get throwConcurrentModificationError {
     return findHelper('throwConcurrentModificationError');
-  }
-
-  Element get throwIndexOutOfBoundsError {
-    return findHelper('ioore');
   }
 
   Element get stringInterpolationHelper {
@@ -222,6 +583,18 @@ class BackendHelpers {
     return classElement;
   }
 
+  Element get futureImplementation {
+    ClassElement classElement = findAsyncHelper('_Future');
+    classElement.ensureResolved(resolution);
+    return classElement;
+  }
+
+  Element get controllerStream {
+    ClassElement classElement = findAsyncHelper("_ControllerStream");
+    classElement.ensureResolved(resolution);
+    return classElement;
+  }
+
   Element get syncStarIterableConstructor {
     ClassElement classElement = syncStarIterable;
     classElement.ensureResolved(resolution);
@@ -252,11 +625,69 @@ class BackendHelpers {
     return classElement.lookupConstructor("");
   }
 
+  ClassElement get VoidRuntimeType {
+    return findHelper('VoidRuntimeType');
+  }
+
+  ClassElement get RuntimeType {
+    return findHelper('RuntimeType');
+  }
+
+  ClassElement get RuntimeFunctionType {
+    return findHelper('RuntimeFunctionType');
+  }
+
+  ClassElement get RuntimeTypePlain {
+    return findHelper('RuntimeTypePlain');
+  }
+
+  ClassElement get RuntimeTypeGeneric {
+    return findHelper('RuntimeTypeGeneric');
+  }
+
+  ClassElement get DynamicRuntimeType {
+    return findHelper('DynamicRuntimeType');
+  }
+
   MethodElement get functionTypeTestMetaHelper {
     return findHelper('functionTypeTestMetaHelper');
   }
 
   MethodElement get defineProperty {
     return findHelper('defineProperty');
+  }
+
+  Element get startRootIsolate {
+    return find(isolateHelperLibrary, START_ROOT_ISOLATE);
+  }
+
+  Element get currentIsolate {
+    return find(isolateHelperLibrary, '_currentIsolate');
+  }
+
+  Element get callInIsolate {
+    return find(isolateHelperLibrary, '_callInIsolate');
+  }
+
+  Element get findIndexForNativeSubclassType {
+    return findInterceptor('findIndexForNativeSubclassType');
+  }
+
+  Element get convertRtiToRuntimeType {
+    return findHelper('convertRtiToRuntimeType');
+  }
+
+  ClassElement get stackTraceClass {
+    return findHelper('_StackTrace');
+  }
+
+  MethodElement _objectNoSuchMethod;
+
+  MethodElement get objectNoSuchMethod {
+    if (_objectNoSuchMethod == null) {
+      _objectNoSuchMethod =
+          coreClasses.objectClass.lookupLocalMember(Identifiers.noSuchMethod_);
+    }
+    return _objectNoSuchMethod;
   }
 }

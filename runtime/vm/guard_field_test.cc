@@ -4,7 +4,6 @@
 
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
-#include "vm/intermediate_language.h"
 #include "vm/object.h"
 #include "vm/unit_test.h"
 
@@ -54,8 +53,10 @@ TEST_CASE(GuardFieldSimpleTest) {
       "  }\n"
       "}\n"
       "main() {\n"
-      "  runFoo();\n"
-      "  runBar();\n"
+      "  for (int i = 0; i < 100; i++) {\n"
+      "    runFoo();\n"
+      "    runBar();\n"
+      "  }\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -103,8 +104,10 @@ TEST_CASE(GuardFieldFinalListTest) {
       "  }\n"
       "}\n"
       "main() {\n"
-      "  runFoo();\n"
-      "  runBar();\n"
+      "  for (int i = 0; i < 100; i++) {\n"
+      "    runFoo();\n"
+      "    runBar();\n"
+      "  }\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -154,8 +157,10 @@ TEST_CASE(GuardFieldFinalVariableLengthListTest) {
       "  }\n"
       "}\n"
       "main() {\n"
-      "  runFoo();\n"
-      "  runBar();\n"
+      "  for (int i = 0; i < 100; i++) {\n"
+      "    runFoo();\n"
+      "    runBar();\n"
+      "  }\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -209,8 +214,10 @@ TEST_CASE(GuardFieldConstructorTest) {
       "  }\n"
       "}\n"
       "main() {\n"
-      "  runFoo();\n"
-      "  runBar();\n"
+      "  for (int i = 0; i < 100; i++) {\n"
+      "    runFoo();\n"
+      "    runBar();\n"
+      "  }\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -256,8 +263,10 @@ TEST_CASE(GuardFieldConstructor2Test) {
       "  var a = new A(l);\n"
       "}\n"
       "main() {\n"
-      "  runFoo();\n"
-      "  runBar();\n"
+      "  for (int i = 0; i < 100; i++) {\n"
+      "    runFoo();\n"
+      "    runBar();\n"
+      "  }\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);

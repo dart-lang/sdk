@@ -6,17 +6,17 @@ library search.domain;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/indexable_file.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 
 /**
  * Instances of the class [SearchDomainHandler] implement a [RequestHandler]
@@ -178,8 +178,9 @@ class SearchDomainHandler implements protocol.RequestHandler {
       TypeHierarchyComputer computer =
           new TypeHierarchyComputer(searchEngine, element);
       List<protocol.TypeHierarchyItem> items = computer.computeSuper();
-      protocol.Response response = new protocol.SearchGetTypeHierarchyResult(
-          hierarchyItems: items).toResponse(request.id);
+      protocol.Response response =
+          new protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
+              .toResponse(request.id);
       server.sendResponse(response);
       return;
     }
@@ -187,8 +188,9 @@ class SearchDomainHandler implements protocol.RequestHandler {
     TypeHierarchyComputer computer =
         new TypeHierarchyComputer(searchEngine, element);
     List<protocol.TypeHierarchyItem> items = await computer.compute();
-    protocol.Response response = new protocol.SearchGetTypeHierarchyResult(
-        hierarchyItems: items).toResponse(request.id);
+    protocol.Response response =
+        new protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
+            .toResponse(request.id);
     server.sendResponse(response);
   }
 

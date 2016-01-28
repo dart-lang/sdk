@@ -6,13 +6,14 @@ library test.services.src.index.store.split_store;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/index/index_core.dart';
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';
 import 'package:analysis_server/src/services/index/store/memory_node_manager.dart';
 import 'package:analysis_server/src/services/index/store/split_store.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -420,13 +421,9 @@ class _LocationEqualsWrapper {
   }
 }
 
-class _MockFileManager extends TypedMock implements FileManager {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class _MockFileManager extends TypedMock implements FileManager {}
 
-class _MockIndexNode extends TypedMock implements IndexNode {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class _MockIndexNode extends TypedMock implements IndexNode {}
 
 @reflectiveTest
 class _RelationKeyDataTest {

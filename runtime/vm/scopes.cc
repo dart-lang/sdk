@@ -29,8 +29,8 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       loop_level_(loop_level),
       context_level_(LocalScope::kUnitializedContextLevel),
       num_context_variables_(0),
-      begin_token_pos_(0),
-      end_token_pos_(0),
+      begin_token_pos_(Scanner::kNoSourcePos),
+      end_token_pos_(Scanner::kNoSourcePos),
       variables_(),
       labels_(),
       referenced_() {
@@ -576,7 +576,7 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
     if (context_scope.IsConstAt(i)) {
       variable = new LocalVariable(context_scope.TokenIndexAt(i),
           String::ZoneHandle(context_scope.NameAt(i)),
-          AbstractType::ZoneHandle(Type::DynamicType()));
+          Object::dynamic_type());
       variable->SetConstValue(
           Instance::ZoneHandle(context_scope.ConstValueAt(i)));
     } else {

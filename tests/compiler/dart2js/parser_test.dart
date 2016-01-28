@@ -155,19 +155,23 @@ void testConditionalExpression() {
 }
 
 void testNullOperators() {
-  Expression node = parseStatement("a ?? b;").expression;
+  ExpressionStatement statement = parseStatement("a ?? b;");
+  Expression node = statement.expression;
   Expect.isNotNull(node.asSend());
   Expect.isTrue(node.asSend().isIfNull);
 
-  node = parseStatement("a ??= b;").expression;
+  statement = parseStatement("a ??= b;");
+  node = statement.expression;
   Expect.isNotNull(node.asSendSet());
   Expect.isTrue(node.asSendSet().isIfNullAssignment);
 
-  node = parseStatement("a?.b;").expression;
+  statement = parseStatement("a?.b;");
+  node = statement.expression;
   Expect.isNotNull(node.asSend());
   Expect.isTrue(node.asSend().isConditional);
 
-  node = parseStatement("a?.m();").expression;
+  statement = parseStatement("a?.m();");
+  node = statement.expression;
   Expect.isNotNull(node.asSend());
   Expect.isTrue(node.asSend().isConditional);
 }

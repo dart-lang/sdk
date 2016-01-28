@@ -18,12 +18,9 @@ class B {
   bar() => 33;
 }
 
-// Uses DateTime.now to make it impossible to predict.
-// Uses recursive call to make it harder to inline.
-confuse(x) {
-  if (new DateTime.now().millisecondsSinceEpoch == 42) return confuse(x + 1);
-  return x;
-}
+@NoInline()
+@AssumeDynamic()
+confuse(x) => x;
 
 main() {
   var f = [new A(), new B()][confuse(0)].bar;

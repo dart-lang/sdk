@@ -165,12 +165,11 @@ class ArgumentError extends Error {
 
   /**
    * Create an argument error for a `null` argument that must not be `null`.
-   *
-   * Shorthand for calling [ArgumentError.value] with a `null` value and a
-   * message of `"Must not be null"`.
    */
-  ArgumentError.notNull([String name])
-      : this.value(null, name, "Must not be null");
+  ArgumentError.notNull([this.name])
+      : _hasValue = false,
+        message = "Must not be null",
+        invalidValue = null;
 
   // Helper functions for toString overridden in subclasses.
   String get _errorName => "Invalid argument${!_hasValue ? "(s)" : ""}";

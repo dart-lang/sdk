@@ -726,7 +726,7 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   compiler.diagnosticHandler = createHandler(compiler, TEST);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;
     var world = compiler.world;
@@ -757,8 +757,8 @@ void main() {
     checkReturn('returnInt8', typesTask.positiveIntType);
     checkReturn('returnEmpty1', const TypeMask.nonNullEmpty());
     checkReturn('returnEmpty2', const TypeMask.nonNullEmpty());
-    TypeMask intType = new TypeMask.nonNullSubtype(compiler.intClass,
-        compiler.world);
+    TypeMask intType = new TypeMask.nonNullSubtype(
+        compiler.coreClasses.intClass, compiler.world);
     checkReturn('testIsCheck1', intType);
     checkReturn('testIsCheck2', intType);
     checkReturn('testIsCheck3', intType.nullable());
@@ -778,7 +778,7 @@ void main() {
     checkReturn('testIsCheck17', intType);
     checkReturn('testIsCheck18', typesTask.dynamicType);
     checkReturn('testIsCheck19', typesTask.dynamicType);
-    checkReturn('testIsCheck20', typesTask.dynamicType.nonNullable());
+    checkReturn('testIsCheck20', interceptorType);
     checkReturn('testIsCheck21', typesTask.dynamicType);
     checkReturn('testIsCheck22', typesTask.dynamicType);
     checkReturn('testIsCheck23', intType);
@@ -790,8 +790,8 @@ void main() {
     checkReturn('testIsCheck29', typesTask.dynamicType);
     checkReturn('testIf1', typesTask.uint31Type.nullable());
     checkReturn('testIf2', typesTask.uint31Type.nullable());
-    checkReturn('returnAsString',
-        new TypeMask.subtype(compiler.stringClass, compiler.world));
+    checkReturn('returnAsString', new TypeMask.subtype(
+        compiler.coreClasses.stringClass, compiler.world));
     checkReturn('returnIntAsNum', typesTask.uint31Type);
     checkReturn('returnAsTypedef', typesTask.functionType.nullable());
     checkReturn('returnTopLevelGetter', typesTask.uint31Type);

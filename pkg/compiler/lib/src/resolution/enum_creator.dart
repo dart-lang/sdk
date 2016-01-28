@@ -180,6 +180,8 @@ class AstBuilder {
   }
 }
 
+// TODO(johnniwinther): Avoid creating synthesized ASTs for enums when SSA is
+// removed.
 class EnumCreator {
   final DiagnosticReporter reporter;
   final CoreTypes coreTypes;

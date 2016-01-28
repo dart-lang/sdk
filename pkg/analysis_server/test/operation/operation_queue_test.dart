@@ -36,8 +36,6 @@ ServerOperation mockOperation(ServerOperationPriority priority) {
 
 class AnalysisContextMock extends TypedMock implements InternalAnalysisContext {
   List<Source> prioritySources = <Source>[];
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class AnalysisServerMock extends TypedMock implements AnalysisServer {
@@ -48,13 +46,9 @@ class AnalysisServerMock extends TypedMock implements AnalysisServer {
   final SearchEngine searchEngine;
 
   AnalysisServerMock({this.resourceProvider, this.searchEngine});
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class ServerContextManagerMock extends TypedMock implements ContextManager {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class ServerContextManagerMock extends TypedMock implements ContextManager {}
 
 @reflectiveTest
 class ServerOperationQueueTest {
@@ -230,21 +224,15 @@ class _MergeableOperationMock extends TypedMock implements MergeableOperation {
   ServerOperationPriority get priority {
     return ServerOperationPriority.ANALYSIS_NOTIFICATION;
   }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _ServerOperationMock extends TypedMock implements ServerOperation {
   final AnalysisContext context;
 
   _ServerOperationMock([this.context]);
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _SourceMock extends TypedMock implements Source {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class _SourceMock extends TypedMock implements Source {}
 
 class _SourceSensitiveOperationMock extends TypedMock
     implements SourceSensitiveOperation {
@@ -256,8 +244,6 @@ class _SourceSensitiveOperationMock extends TypedMock
   ServerOperationPriority get priority {
     return ServerOperationPriority.ANALYSIS_NOTIFICATION;
   }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   bool shouldBeDiscardedOnSourceChange(Source source) {

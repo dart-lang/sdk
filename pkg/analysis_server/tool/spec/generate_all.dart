@@ -6,6 +6,7 @@ library generate.all;
 
 import 'dart:io';
 
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:path/path.dart';
 
 import 'codegen_analysis_server.dart' as codegen_analysis_server;
@@ -13,8 +14,16 @@ import 'codegen_dart_protocol.dart' as codegen_dart_protocol;
 import 'codegen_inttest_methods.dart' as codegen_inttest_methods;
 import 'codegen_java_types.dart' as codegen_java_types;
 import 'codegen_matchers.dart' as codegen_matchers;
-import 'codegen_tools.dart';
 import 'to_html.dart' as to_html;
+
+/**
+ * Generate all targets
+ */
+main() {
+  String script = Platform.script.toFilePath(windows: Platform.isWindows);
+  String pkgPath = normalize(join(dirname(script), '..', '..'));
+  GeneratedContent.generateAll(pkgPath, allTargets);
+}
 
 /**
  * Get a list of all generated targets.
@@ -28,15 +37,4 @@ List<GeneratedContent> get allTargets {
   targets.add(codegen_matchers.target);
   targets.add(to_html.target);
   return targets;
-}
-
-/**
- * Generate all targets
- */
-main() {
-  String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  Directory.current = new Directory(dirname(script));
-  for (GeneratedContent generatedContent in allTargets) {
-    generatedContent.generate();
-  }
 }

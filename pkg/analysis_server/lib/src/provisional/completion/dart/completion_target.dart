@@ -4,8 +4,9 @@
 
 library analysis_server.src.provisional.completion.dart.completion_target;
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -86,6 +87,16 @@ int _computeArgIndex(AstNode containingNode, Object entity) {
  */
 class CompletionTarget {
   /**
+   * The compilation unit in which the completion is occurring.
+   */
+  final CompilationUnit unit;
+
+  /**
+   * The offset within the source at which the completion is being requested.
+   */
+  final int offset;
+
+  /**
    * The context in which the completion is occurring.  This is the AST node
    * which is a direct parent of [entity].
    */
@@ -156,10 +167,12 @@ class CompletionTarget {
             // Try to replace with a comment token.
             Token commentToken = _getContainingCommentToken(entity, offset);
             if (commentToken != null) {
-              return new CompletionTarget._(containingNode, commentToken, true);
+              return new CompletionTarget._(
+                  compilationUnit, offset, containingNode, commentToken, true);
             }
             // Target found.
-            return new CompletionTarget._(containingNode, entity, false);
+            return new CompletionTarget._(
+                compilationUnit, offset, containingNode, entity, false);
           } else {
             // Since entity is a token, we don't need to look inside it; just
             // proceed to the next entity.
@@ -188,11 +201,12 @@ class CompletionTarget {
               if (docComment != null) {
                 containingNode = docComment;
               } else {
-                return new CompletionTarget._(
+                return new CompletionTarget._(compilationUnit, offset,
                     compilationUnit, commentToken, true);
               }
             }
-            return new CompletionTarget._(containingNode, entity, false);
+            return new CompletionTarget._(
+                compilationUnit, offset, containingNode, entity, false);
           }
 
           // Otherwise, the completion target is somewhere inside the entity,
@@ -216,7 +230,8 @@ class CompletionTarget {
 
       // Since no completion target was found, we set the completion target
       // entity to null and use the compilationUnit as the parent.
-      return new CompletionTarget._(compilationUnit, null, false);
+      return new CompletionTarget._(
+          compilationUnit, offset, compilationUnit, null, false);
     }
   }
 
@@ -224,24 +239,39 @@ class CompletionTarget {
    * Create a [CompletionTarget] holding the given [containingNode] and
    * [entity].
    */
-  CompletionTarget._(AstNode containingNode, Object entity, this.isCommentText)
+  CompletionTarget._(this.unit, this.offset, AstNode containingNode,
+      Object entity, this.isCommentText)
       : this.containingNode = containingNode,
         this.entity = entity,
         this.argIndex = _computeArgIndex(containingNode, entity);
 
   /**
+   * Return `true` if the [containingNode] is a cascade
+   * and the completion insertion is not between the two dots.
+   * For example, `..d^` and `..^d` are considered a cascade
+   * from a completion standpoint, but `.^.d` is not.
+   */
+  bool get isCascade {
+    AstNode node = containingNode;
+    if (node is PropertyAccess) {
+      return node.isCascaded && offset > node.operator.offset + 1;
+    }
+    if (node is MethodInvocation) {
+      return node.isCascaded && offset > node.operator.offset + 1;
+    }
+    return false;
+  }
+
+  /**
    * Return `true` if the target is a functional argument in an argument list.
    * The target [AstNode] hierarchy *must* be resolved for this to work.
+   * See [maybeFunctionalArgument].
    */
   bool isFunctionalArgument() {
-    if (argIndex == null) {
+    if (!maybeFunctionalArgument()) {
       return false;
     }
-    AstNode argList = containingNode;
-    if (argList is! ArgumentList) {
-      return false;
-    }
-    AstNode parent = argList.parent;
+    AstNode parent = containingNode.parent;
     if (parent is InstanceCreationExpression) {
       DartType instType = parent.bestType;
       if (instType != null) {
@@ -267,6 +297,22 @@ class CompletionTarget {
       }
     }
     return false;
+  }
+
+  /**
+   * Return `true` if the target maybe a functional argument in an argument list.
+   * This is used in determining whether the target [AstNode] hierarchy
+   * needs to be resolved so that [isFunctionalArgument] will work.
+   */
+  bool maybeFunctionalArgument() {
+    if (argIndex == null) {
+      return false;
+    }
+    AstNode argList = containingNode;
+    if (argList is! ArgumentList) {
+      return false;
+    }
+    return true;
   }
 
   /**

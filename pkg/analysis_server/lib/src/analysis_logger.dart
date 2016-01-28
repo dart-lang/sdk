@@ -43,13 +43,7 @@ class AnalysisLogger implements Logger {
     } else {
       baseLogger.severe(message, exception.exception, exception.stackTrace);
     }
-    server.sendServerErrorNotification(
-        message, exception, exception?.stackTrace);
-  }
-
-  @override
-  void logError2(String message, Object exception) {
-    baseLogger.severe(message, exception);
+    server.sendServerErrorNotification(message, exception, null);
   }
 
   @override
@@ -59,10 +53,5 @@ class AnalysisLogger implements Logger {
     } else {
       baseLogger.info(message, exception.exception, exception.stackTrace);
     }
-  }
-
-  @override
-  void logInformation2(String message, Object exception) {
-    baseLogger.info(message, exception);
   }
 }

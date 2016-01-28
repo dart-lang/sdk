@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.utilities.collection;
+library analyzer.src.generated.utilities_collection;
 
-import "dart:math" as math;
 import 'dart:collection';
+import "dart:math" as math;
 
-import 'java_core.dart';
-import 'scanner.dart' show Token;
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/scanner.dart' show Token;
 
 /**
  * The class `BooleanArray` defines methods for operating on integers as if they were arrays

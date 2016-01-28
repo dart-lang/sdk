@@ -9,8 +9,10 @@ import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     as engine;
+import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/dart/element/type.dart' as engine;
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/ast.dart' as engine;
-import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
@@ -20,14 +22,29 @@ export 'package:analysis_server/plugin/protocol/protocol.dart';
 export 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 
 /**
- * Returns a list of AnalysisErrors correponding to the given list of Engine
+ * Returns a list of AnalysisErrors corresponding to the given list of Engine
  * errors.
  */
 List<AnalysisError> doAnalysisError_listFromEngine(
-    engine.LineInfo lineInfo, List<engine.AnalysisError> errors) {
-  return errors.map((engine.AnalysisError error) {
-    return newAnalysisError_fromEngine(lineInfo, error);
-  }).toList();
+    engine.AnalysisContext context,
+    engine.LineInfo lineInfo,
+    List<engine.AnalysisError> errors) {
+  List<AnalysisError> serverErrors = <AnalysisError>[];
+  for (engine.AnalysisError error in errors) {
+    ErrorProcessor processor = ErrorProcessor.getProcessor(context, error);
+    if (processor != null) {
+      engine.ErrorSeverity severity = processor.severity;
+      // Errors with null severity are filtered out.
+      if (severity != null) {
+        // Specified severities override.
+        serverErrors
+            .add(newAnalysisError_fromEngine(lineInfo, error, severity));
+      }
+    } else {
+      serverErrors.add(newAnalysisError_fromEngine(lineInfo, error));
+    }
+  }
+  return serverErrors;
 }
 
 /**
@@ -55,7 +72,7 @@ String getReturnTypeString(engine.Element element) {
     if (element.kind == engine.ElementKind.SETTER) {
       return null;
     } else {
-      return element.returnType.toString();
+      return element.returnType?.toString();
     }
   } else if (element is engine.VariableElement) {
     engine.DartType type = element.type;
@@ -69,9 +86,12 @@ String getReturnTypeString(engine.Element element) {
 
 /**
  * Construct based on error information from the analyzer engine.
+ *
+ * If an [errorSeverity] is specified, it will override the one in [error].
  */
 AnalysisError newAnalysisError_fromEngine(
-    engine.LineInfo lineInfo, engine.AnalysisError error) {
+    engine.LineInfo lineInfo, engine.AnalysisError error,
+    [engine.ErrorSeverity errorSeverity]) {
   engine.ErrorCode errorCode = error.errorCode;
   // prepare location
   Location location;
@@ -90,8 +110,12 @@ AnalysisError newAnalysisError_fromEngine(
     }
     location = new Location(file, offset, length, startLine, startColumn);
   }
+
+  // Deafult to the error's severity if none is specified.
+  errorSeverity ??= errorCode.errorSeverity;
+
   // done
-  var severity = new AnalysisErrorSeverity(errorCode.errorSeverity.name);
+  var severity = new AnalysisErrorSeverity(errorSeverity.name);
   var type = new AnalysisErrorType(errorCode.type.name);
   String message = error.message;
   String correction = error.correction;

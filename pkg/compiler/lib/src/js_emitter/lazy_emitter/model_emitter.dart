@@ -9,6 +9,8 @@ import '../../compiler.dart' show
 import '../../constants/values.dart' show
     ConstantValue,
     FunctionConstantValue;
+import '../../core_types.dart' show
+    CoreClasses;
 import '../../elements/elements.dart' show
     ClassElement,
     FunctionElement;
@@ -19,6 +21,7 @@ import '../../js_backend/js_backend.dart' show
     ConstantEmitter;
 
 import '../js_emitter.dart' show NativeEmitter;
+import '../constant_ordering.dart' show deepCompareConstants;
 
 import 'package:js_runtime/shared/embedded_names.dart' show
     CREATE_NEW_ISOLATE,
@@ -106,9 +109,9 @@ class ModelEmitter {
     // which compresses a tiny bit better.
     int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
     if (r != 0) return r;
-    // Resolve collisions in the long name by using the constant name (i.e. JS
-    // name) which is unique.
-    return namer.constantName(a).compareTo(namer.constantName(b));
+
+    // Resolve collisions in the long name by using a structural order.
+    return deepCompareConstants(a, b);
   }
 
   js.Expression generateStaticClosureAccess(FunctionElement element) {
@@ -346,12 +349,13 @@ class ModelEmitter {
   js.Property emitMangledGlobalNames() {
     List<js.Property> names = <js.Property>[];
 
+    CoreClasses coreClasses = compiler.coreClasses;
     // We want to keep the original names for the most common core classes when
     // calling toString on them.
     List<ClassElement> nativeClassesNeedingUnmangledName =
-        [compiler.intClass, compiler.doubleClass, compiler.numClass,
-         compiler.stringClass, compiler.boolClass, compiler.nullClass,
-         compiler.listClass];
+        [coreClasses.intClass, coreClasses.doubleClass, coreClasses.numClass,
+         coreClasses.stringClass, coreClasses.boolClass, coreClasses.nullClass,
+         coreClasses.listClass];
     nativeClassesNeedingUnmangledName.forEach((element) {
         names.add(new js.Property(js.quoteName(namer.className(element)),
                                   js.string(element.name)));

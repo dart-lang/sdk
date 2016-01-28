@@ -30,6 +30,8 @@ import '../elements/modelx.dart' show
     FunctionElementX,
     LibraryElementX;
 import '../js/js.dart' as js;
+import '../js_backend/backend_helpers.dart' show
+    BackendHelpers;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show
     CodeEmitterTask,
@@ -56,8 +58,8 @@ part 'js.dart';
 part 'scanner.dart';
 part 'ssa.dart';
 
-void maybeEnableNative(Compiler compiler,
-                       LibraryElementX library) {
+bool maybeEnableNative(Compiler compiler,
+                       LibraryElement library) {
   String libraryName = library.canonicalUri.toString();
   if (library.entryCompilationUnit.script.name.contains(
           'sdk/tests/compiler/dart2js_native')
@@ -72,21 +74,7 @@ void maybeEnableNative(Compiler compiler,
       || libraryName == 'dart:web_gl'
       || libraryName == 'dart:web_sql'
       || compiler.allowNativeExtensions) {
-    library.canUseNative = true;
+    return true;
   }
+  return false;
 }
-
-// The tags string contains comma-separated 'words' which are either dispatch
-// tags (having JavaScript identifier syntax) and directives that begin with
-// `!`.
-List<String> nativeTagsOfClassRaw(ClassElement cls) {
-  String quotedName = cls.nativeTagInfo;
-  return quotedName.substring(1, quotedName.length - 1).split(',');
-}
-
-List<String> nativeTagsOfClass(ClassElement cls) {
-  return nativeTagsOfClassRaw(cls).where((s) => !s.startsWith('!')).toList();
-}
-
-bool nativeTagsForcedNonLeaf(ClassElement cls) =>
-    nativeTagsOfClassRaw(cls).contains('!nonleaf');

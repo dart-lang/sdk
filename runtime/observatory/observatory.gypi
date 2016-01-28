@@ -44,6 +44,7 @@
       'target_name': 'build_observatory',
       'type': 'none',
       'dependencies': [
+        'dart_bootstrap#host',
         'fetch_observatory_deps#host',
       ],
       'toolsets': ['host'],

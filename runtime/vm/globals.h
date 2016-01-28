@@ -27,8 +27,8 @@ const intptr_t kSmiBits = kBitsPerWord - 2;
 const intptr_t kSmiMax = (static_cast<intptr_t>(1) << kSmiBits) - 1;
 const intptr_t kSmiMin =  -(static_cast<intptr_t>(1) << kSmiBits);
 
-const double kPosInfinity = bit_cast<double>(DART_UINT64_C(0x7ff0000000000000));
-const double kNegInfinity = bit_cast<double>(DART_UINT64_C(0xfff0000000000000));
+#define kPosInfinity bit_cast<double>(DART_UINT64_C(0x7ff0000000000000))
+#define kNegInfinity bit_cast<double>(DART_UINT64_C(0xfff0000000000000))
 
 // The expression ARRAY_SIZE(array) is a compile-time constant of type
 // size_t which represents the number of elements of the given
@@ -109,7 +109,11 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 #elif defined(HOST_ARCH_X64)
 #define COPY_FP_REGISTER(fp) asm volatile ("movq %%rbp, %0" : "=r" (fp) );
 #elif defined(HOST_ARCH_ARM)
+#  if defined(TARGET_OS_MAC)
+#define COPY_FP_REGISTER(fp) asm volatile ("mov %0, r7" : "=r" (fp) );
+#  else
 #define COPY_FP_REGISTER(fp) asm volatile ("mov %0, r11" : "=r" (fp) );
+#  endif
 #elif defined(HOST_ARCH_ARM64)
 #define COPY_FP_REGISTER(fp) asm volatile ("mov %0, x29" : "=r" (fp) );
 #elif defined(HOST_ARCH_MIPS)

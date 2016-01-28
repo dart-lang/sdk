@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.non_error_resolver_test;
+library analyzer.test.generated.non_error_resolver_test;
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -33,6 +33,24 @@ E e() {
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
+  }
+
+  void test_class_type_alias_documentationComment() {
+    Source source = addSource('''
+/**
+ * Documentation
+ */
+class C = D with E;
+
+class D {}
+class E {}''');
+    computeLibrarySourceErrors(source);
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = _getResolvedLibraryUnit(source);
+    ClassElement classC = unit.element.getType('C');
+    expect(classC.documentationComment, isNotNull);
   }
 
   void test_ambiguousExport() {
@@ -257,6 +275,82 @@ typedef A(int p1, String p2);
 f(A a) {
   a(1, '2');
 }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_assert_with_message_await() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+import 'dart:async';
+f() async {
+  assert(false, await g());
+}
+Future<String> g() => null;
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_assert_with_message_dynamic() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+f() {
+  assert(false, g());
+}
+g() => null;
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_assert_with_message_non_string() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+f() {
+  assert(false, 3);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_assert_with_message_null() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+f() {
+  assert(false, null);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_assert_with_message_string() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+f() {
+  assert(false, 'message');
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_assert_with_message_suppresses_unused_var_hint() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+f() {
+  String message = 'msg';
+  assert(true, message);
+}
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
@@ -850,10 +944,9 @@ abstract class A {
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "p]", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement,
-          ParameterElement, ref.staticElement);
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, "p]");
+      expect(ref.staticElement, new isInstanceOf<ParameterElement>());
     }
   }
 
@@ -872,22 +965,22 @@ enum Samurai {
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "Samurai]", (node) => node is SimpleIdentifier);
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, 'Samurai]');
       ClassElement refElement = ref.staticElement;
       expect(refElement, isNotNull);
       expect(refElement.name, 'Samurai');
     }
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "int]", (node) => node is SimpleIdentifier);
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, 'int]');
       ClassElement refElement = ref.staticElement;
       expect(refElement, isNotNull);
       expect(refElement.name, 'int');
     }
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "WITH_SWORD]", (node) => node is SimpleIdentifier);
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, 'WITH_SWORD]');
       PropertyAccessorElement refElement = ref.staticElement;
       expect(refElement, isNotNull);
       expect(refElement.name, 'WITH_SWORD');
@@ -904,10 +997,9 @@ foo(int p) {
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
-    SimpleIdentifier ref = EngineTestCase.findNode(
-        unit, code, "p]", (node) => node is SimpleIdentifier);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
+    SimpleIdentifier ref =
+        EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
+    expect(ref.staticElement, new isInstanceOf<ParameterElement>());
   }
 
   void test_commentReference_beforeFunction_expressionBody() {
@@ -919,10 +1011,42 @@ foo(int p) => null;''';
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
-    SimpleIdentifier ref = EngineTestCase.findNode(
-        unit, code, "p]", (node) => node is SimpleIdentifier);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
+    SimpleIdentifier ref =
+        EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
+    expect(ref.staticElement, new isInstanceOf<ParameterElement>());
+  }
+
+  void test_commentReference_beforeFunctionTypeAlias() {
+    String code = r'''
+/// [p]
+typedef Foo(int p);
+''';
+    Source source = addSource(code);
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = _getResolvedLibraryUnit(source);
+    SimpleIdentifier ref =
+        EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
+    expect(ref.staticElement, new isInstanceOf<ParameterElement>());
+  }
+
+  void test_commentReference_beforeGetter() {
+    String code = r'''
+abstract class A {
+  /// [int]
+  get g => null;
+}''';
+    Source source = addSource(code);
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = _getResolvedLibraryUnit(source);
+    {
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, 'int]');
+      expect(ref.staticElement, isNotNull);
+    }
   }
 
   void test_commentReference_beforeMethod() {
@@ -932,24 +1056,27 @@ abstract class A {
   ma(int p1) {}
   /// [p2]
   mb(int p2);
+  /// [p3] and [p4]
+  mc(int p3, p4());
+  /// [p5]
+  md(int p5, {int p6});
 }''';
     Source source = addSource(code);
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
-    {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "p1]", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement,
-          ParameterElement, ref.staticElement);
+    assertIsParameter(String search) {
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, search);
+      expect(ref.staticElement, new isInstanceOf<ParameterElement>());
     }
-    {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "p2]", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement,
-          ParameterElement, ref.staticElement);
-    }
+    assertIsParameter('p1');
+    assertIsParameter('p2');
+    assertIsParameter('p3');
+    assertIsParameter('p4');
+    assertIsParameter('p5');
+    assertIsParameter('p6');
   }
 
   void test_commentReference_class() {
@@ -963,10 +1090,9 @@ class A {
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
-    SimpleIdentifier ref = EngineTestCase.findNode(
-        unit, code, "foo]", (node) => node is SimpleIdentifier);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, ref.staticElement);
+    SimpleIdentifier ref =
+        EngineTestCase.findSimpleIdentifier(unit, code, 'foo]');
+    expect(ref.staticElement, new isInstanceOf<MethodElement>());
   }
 
   void test_commentReference_setter() {
@@ -987,16 +1113,14 @@ class B extends A {
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "x] in A", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccessorElement,
-          PropertyAccessorElement, ref.staticElement);
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, "x] in A");
+      expect(ref.staticElement, new isInstanceOf<PropertyAccessorElement>());
     }
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "x] in B", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccessorElement,
-          PropertyAccessorElement, ref.staticElement);
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, 'x] in B');
+      expect(ref.staticElement, new isInstanceOf<PropertyAccessorElement>());
     }
   }
 
@@ -1350,6 +1474,19 @@ main() {
 const app = 0;
 class A {
   A(@app int app) {}
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_constWithNonConstantArgument_constField() {
+    Source source = addSource(r'''
+class A {
+  const A(x);
+}
+main() {
+  const A(double.INFINITY);
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -3493,7 +3630,8 @@ f() {
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_getter() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_getter() {
     Source source = addSource(r'''
 class A {
   int get g => 0;
@@ -3507,7 +3645,8 @@ class C extends B {}''');
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_method() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_method() {
     Source source = addSource(r'''
 class A {
   m(p) {}
@@ -3521,7 +3660,8 @@ class C extends B {}''');
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_setter() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_setter() {
     Source source = addSource(r'''
 class A {
   set s(v) {}
@@ -3535,7 +3675,8 @@ class C extends B {}''');
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface() {
     // 15979
     Source source = addSource(r'''
 abstract class M {}
@@ -3562,7 +3703,8 @@ abstract class B = A with M;''');
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass() {
     // 15979
     Source source = addSource(r'''
 class M {}
@@ -3660,7 +3802,8 @@ class B extends Object with A {
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_superclass() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_superclass() {
     Source source = addSource(r'''
 class A {
   noSuchMethod(v) => '';
@@ -3673,7 +3816,8 @@ class B extends A {
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_overridesMethodInObject() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_overridesMethodInObject() {
     Source source = addSource(r'''
 class A {
   String toString([String prefix = '']) => '${prefix}Hello';
@@ -3719,6 +3863,21 @@ f(bool pb, pd) {
     verify([source]);
   }
 
+  void test_nonBoolNegationExpression_dynamic() {
+    Source source = addSource(r'''
+f1(bool dynamic) {
+  !dynamic;
+}
+f2() {
+  bool dynamic = true;
+  !dynamic;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_nonBoolOperand_and_bool() {
     Source source = addSource(r'''
 bool f(bool left, bool right) {
@@ -3753,6 +3912,15 @@ bool f(bool left, bool right) {
     Source source = addSource(r'''
 bool f(dynamic left, right) {
   return left || right;
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonConstantDefaultValue_constField() {
+    Source source = addSource(r'''
+f([a = double.INFINITY]) {
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -3813,6 +3981,19 @@ class A {
     verify([source]);
   }
 
+  void test_nonConstantDefaultValue_typedConstList() {
+    Source source = addSource(r'''
+class A {
+  m([p111 = const <String>[]]) {}
+}
+class B extends A {
+  m([p222 = const <String>[]]) {}
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_nonConstantValueInInitializer_namedArgument() {
     Source source = addSource(r'''
 class A {
@@ -3827,7 +4008,23 @@ class B extends A {
     verify([source]);
   }
 
-  void test_nonConstCaseExpression() {
+  void test_nonConstCaseExpression_constField() {
+    Source source = addSource(r'''
+f(double p) {
+  switch (p) {
+    case double.INFINITY:
+      return true;
+    default:
+      return false;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+
+  void test_nonConstCaseExpression_typeLiteral() {
     Source source = addSource(r'''
 f(Type t) {
   switch (t) {
@@ -3837,6 +4034,16 @@ f(Type t) {
     default:
       return false;
   }
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonConstListElement_constField() {
+    Source source = addSource(r'''
+main() {
+  const [double.INFINITY];
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -3867,6 +4074,27 @@ f() {
     Source source = addSource(r'''
 f() {
   <String, int> {'a' : 0, 'b' : 1};
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonConstMapKey_constField() {
+    Source source = addSource(r'''
+main() {
+  const {double.INFINITY: 0};
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+
+  void test_nonConstMapValue_constField() {
+    Source source = addSource(r'''
+main() {
+  const {0: double.INFINITY};
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -4888,7 +5116,8 @@ main(Object p) {
     verify([source]);
   }
 
-  void test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_noAssignment() {
+  void
+      test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_noAssignment() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -4925,7 +5154,8 @@ main(Object p) {
     verify([source]);
   }
 
-  void test_typePromotion_conditional_useInThen_accessedInClosure_noAssignment() {
+  void
+      test_typePromotion_conditional_useInThen_accessedInClosure_noAssignment() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {

@@ -102,6 +102,7 @@ class ExceptionHandlerList : public ZoneAllocated {
       AddPlaceHolder();
     }
     list_[try_index].outer_try_index = outer_try_index;
+    ASSERT(list_[try_index].pc_offset == ExceptionHandlers::kInvalidPcOffset);
     list_[try_index].pc_offset = pc_offset;
     ASSERT(handler_types.IsZoneHandle());
     list_[try_index].handler_types = &handler_types;

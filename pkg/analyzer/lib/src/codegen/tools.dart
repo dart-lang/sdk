@@ -9,14 +9,13 @@ library analyzer.src.codegen.tools;
 
 import 'dart:io';
 
+import 'package:analyzer/src/codegen/html.dart';
+import 'package:analyzer/src/codegen/text_formatter.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:path/path.dart';
 
-import 'html.dart';
-import 'text_formatter.dart';
-
-final RegExp trailingWhitespaceRegExp = new RegExp(r'[\n ]+$');
 final RegExp trailingSpacesInLineRegExp = new RegExp(r' +$', multiLine: true);
+final RegExp trailingWhitespaceRegExp = new RegExp(r'[\n ]+$');
 
 /**
  * Join the given strings using camelCase.  If [doCapitalize] is true, the first
@@ -43,13 +42,16 @@ String capitalize(String string) {
 
 /**
  * Type of functions used to compute the contents of a set of generated files.
+ * [pkgPath] is the path to the current package.
  */
-typedef Map<String, FileContentsComputer> DirectoryContentsComputer();
+typedef Map<String, FileContentsComputer> DirectoryContentsComputer(
+    String pkgPath);
 
 /**
  * Type of functions used to compute the contents of a generated file.
+ * [pkgPath] is the path to the current package.
  */
-typedef String FileContentsComputer();
+typedef String FileContentsComputer(String pkgPath);
 
 /**
  * Mixin class for generating code.
@@ -97,14 +99,14 @@ class CodeGenerator {
    */
   void docComment(List<dom.Node> docs, {bool removeTrailingNewLine: false}) {
     if (containsOnlyWhitespace(docs)) return;
-    writeln(codeGeneratorSettings.docCommentStartMarker);
+    if (codeGeneratorSettings.docCommentStartMarker != null) writeln(codeGeneratorSettings.docCommentStartMarker);
     int width = codeGeneratorSettings.commentLineLength;
     bool javadocStyle = codeGeneratorSettings.languageName == 'java';
     indentBy(codeGeneratorSettings.docCommentLineLeader, () {
       write(nodesToText(docs, width - _state.indent.length, javadocStyle,
           removeTrailingNewLine: removeTrailingNewLine));
     });
-    writeln(codeGeneratorSettings.docCommentEndMarker);
+    if (codeGeneratorSettings.docCommentEndMarker != null) writeln(codeGeneratorSettings.docCommentEndMarker);
   }
 
   /**
@@ -156,7 +158,7 @@ class CodeGenerator {
     if (codeGeneratorSettings.languageName == 'java') {
       header = '''
 /*
- * Copyright (c) 2014, the Dart project authors.
+ * Copyright (c) 2015, the Dart project authors.
  *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -261,10 +263,75 @@ class CodeGeneratorSettings {
       this.indent: '  '});
 }
 
+/**
+ * Abstract base class representing behaviors common to generated files and
+ * generated directories.
+ */
 abstract class GeneratedContent {
-  FileSystemEntity get outputFile;
-  bool check();
-  void generate();
+  /**
+   * Check whether the [output] has the correct contents, and return true if it
+   * does.  [pkgPath] is the path to the current package.
+   */
+  bool check(String pkgPath);
+
+  /**
+   * Replace the [output] with the correct contents.  [pkgPath] is the path to
+   * the current package.
+   */
+  void generate(String pkgPath);
+
+  /**
+   * Get a [FileSystemEntity] representing the output file or directory.
+   * [pkgPath] is the path to the current package.
+   */
+  FileSystemEntity output(String pkgPath);
+
+  /**
+   * Check that all of the [targets] are up to date.  If they are not, print
+   * out a message instructing the user to regenerate them, and exit with a
+   * nonzero error code.
+   *
+   * [pkgPath] is the path to the current package.  [generatorRelPath] is the
+   * path to a .dart script the user may use to regenerate the targets.
+   *
+   * To avoid mistakes when run on Windows, [generatorRelPath] always uses
+   * POSIX directory separators.
+   */
+  static void checkAll(String pkgPath, String generatorRelPath,
+      Iterable<GeneratedContent> targets) {
+    bool generateNeeded = false;
+    for (GeneratedContent target in targets) {
+      if (!target.check(pkgPath)) {
+        print(
+            '${target.output(pkgPath).absolute} does not have expected contents.');
+        generateNeeded = true;
+      }
+    }
+    if (generateNeeded) {
+      print('Please regenerate using:');
+      String executable = Platform.executable;
+      String packageRoot = '';
+      if (Platform.packageRoot != null) {
+        packageRoot = ' --package-root=${Platform.packageRoot}';
+      }
+      String generateScript =
+          join(pkgPath, joinAll(posix.split(generatorRelPath)));
+      print('  $executable$packageRoot $generateScript');
+      exit(1);
+    } else {
+      print('All generated files up to date.');
+    }
+  }
+
+  /**
+   * Regenerate all of the [targets].  [pkgPath] is the path to the current
+   * package.
+   */
+  static void generateAll(String pkgPath, Iterable<GeneratedContent> targets) {
+    for (GeneratedContent target in targets) {
+      target.generate(pkgPath);
+    }
+  }
 }
 
 /**
@@ -284,25 +351,15 @@ class GeneratedDirectory extends GeneratedContent {
 
   GeneratedDirectory(this.outputDirPath, this.directoryContentsComputer);
 
-  /**
-   * Get a Directory object representing the output directory.
-   */
-  Directory get outputFile =>
-      new Directory(joinAll(posix.split(outputDirPath)));
-
-  /**
-   * Check whether the directory has the correct contents, and return true if it
-   * does.
-   */
   @override
-  bool check() {
-    Map<String, FileContentsComputer> map = directoryContentsComputer();
+  bool check(String pkgPath) {
+    Directory outputDirectory = output(pkgPath);
+    Map<String, FileContentsComputer> map = directoryContentsComputer(pkgPath);
     try {
       for (String file in map.keys) {
         FileContentsComputer fileContentsComputer = map[file];
-        String expectedContents = fileContentsComputer();
-        File outputFile =
-            new File(joinAll(posix.split(posix.join(outputDirPath, file))));
+        String expectedContents = fileContentsComputer(pkgPath);
+        File outputFile = new File(posix.join(outputDirectory.path, file));
         String actualContents = outputFile.readAsStringSync();
         // Normalize Windows line endings to Unix line endings so that the
         // comparison doesn't fail on Windows.
@@ -312,7 +369,7 @@ class GeneratedDirectory extends GeneratedContent {
         }
       }
       int nonHiddenFileCount = 0;
-      outputFile
+      outputDirectory
           .listSync(recursive: false, followLinks: false)
           .forEach((FileSystemEntity fileSystemEntity) {
         if (fileSystemEntity is File &&
@@ -334,30 +391,30 @@ class GeneratedDirectory extends GeneratedContent {
     return true;
   }
 
-  /**
-   * Replace the directory with the correct contents.  [spec] is the "tool/spec"
-   * directory.  If [spec] is unspecified, it is assumed to be the directory
-   * containing Platform.executable.
-   */
   @override
-  void generate() {
+  void generate(String pkgPath) {
+    Directory outputDirectory = output(pkgPath);
     try {
       // delete the contents of the directory (and the directory itself)
-      outputFile.deleteSync(recursive: true);
+      outputDirectory.deleteSync(recursive: true);
     } catch (e) {
       // Error caught while trying to delete the directory, this can happen if
       // it didn't yet exist.
     }
     // re-create the empty directory
-    outputFile.createSync(recursive: true);
+    outputDirectory.createSync(recursive: true);
 
     // generate all of the files in the directory
-    Map<String, FileContentsComputer> map = directoryContentsComputer();
+    Map<String, FileContentsComputer> map = directoryContentsComputer(pkgPath);
     map.forEach((String file, FileContentsComputer fileContentsComputer) {
-      File outputFile = new File(joinAll(posix.split(outputDirPath + file)));
-      outputFile.writeAsStringSync(fileContentsComputer());
+      File outputFile = new File(posix.join(outputDirectory.path, file));
+      outputFile.writeAsStringSync(fileContentsComputer(pkgPath));
     });
   }
+
+  @override
+  Directory output(String pkgPath) =>
+      new Directory(join(pkgPath, joinAll(posix.split(outputDirPath))));
 }
 
 /**
@@ -379,18 +436,10 @@ class GeneratedFile extends GeneratedContent {
 
   GeneratedFile(this.outputPath, this.computeContents);
 
-  /**
-   * Get a File object representing the output file.
-   */
-  File get outputFile => new File(joinAll(posix.split(outputPath)));
-
-  /**
-   * Check whether the file has the correct contents, and return true if it
-   * does.
-   */
   @override
-  bool check() {
-    String expectedContents = computeContents();
+  bool check(String pkgPath) {
+    File outputFile = output(pkgPath);
+    String expectedContents = computeContents(pkgPath);
     try {
       String actualContents = outputFile.readAsStringSync();
       // Normalize Windows line endings to Unix line endings so that the
@@ -405,14 +454,14 @@ class GeneratedFile extends GeneratedContent {
     }
   }
 
-  /**
-   * Replace the file with the correct contents.  [spec] is the "tool/spec"
-   * directory.  If [spec] is unspecified, it is assumed to be the directory
-   * containing Platform.executable.
-   */
-  void generate() {
-    outputFile.writeAsStringSync(computeContents());
+  @override
+  void generate(String pkgPath) {
+    output(pkgPath).writeAsStringSync(computeContents(pkgPath));
   }
+
+  @override
+  File output(String pkgPath) =>
+      new File(join(pkgPath, joinAll(posix.split(outputPath))));
 }
 
 /**

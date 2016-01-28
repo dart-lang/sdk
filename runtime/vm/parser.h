@@ -63,7 +63,7 @@ class ParsedFunction : public ZoneAllocated {
     LocalVariable* temp = new(zone()) LocalVariable(
         function.token_pos(),
         Symbols::CurrentContextVar(),
-        Type::ZoneHandle(zone(), Type::DynamicType()));
+        Object::dynamic_type());
     ASSERT(temp != NULL);
     current_context_var_ = temp;
   }
@@ -205,7 +205,7 @@ class Parser : public ValueObject {
   // Parse and evaluate the metadata expressions at token_pos in the
   // class namespace of class cls (which can be the implicit toplevel
   // class if the metadata is at the top-level).
-  static RawObject* ParseMetadata(const Class& cls, intptr_t token_pos);
+  static RawObject* ParseMetadata(const Field& meta_data);
 
   // Build a function containing the initializer expression of the
   // given static field.
@@ -399,22 +399,25 @@ class Parser : public ValueObject {
   // Support for parsing of scripts.
   void ParseTopLevel();
   void ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
-                            const Class& toplevel_class,
+                            const Object& tl_owner,
                             intptr_t metadata_pos);
   void ParseEnumDefinition(const Class& cls);
   void ParseClassDeclaration(const GrowableObjectArray& pending_classes,
-                             const Class& toplevel_class,
+                             const Object& tl_owner,
                              intptr_t metadata_pos);
   void ParseClassDefinition(const Class& cls);
   void ParseMixinAppAlias(const GrowableObjectArray& pending_classes,
-                          const Class& toplevel_class,
+                          const Object& tl_owner,
                           intptr_t metadata_pos);
   void ParseTypedef(const GrowableObjectArray& pending_classes,
-                    const Class& toplevel_class,
+                    const Object& tl_owner,
                     intptr_t metadata_pos);
-  void ParseTopLevelVariable(TopLevel* top_level, intptr_t metadata_pos);
-  void ParseTopLevelFunction(TopLevel* top_level, intptr_t metadata_pos);
-  void ParseTopLevelAccessor(TopLevel* top_level, intptr_t metadata_pos);
+  void ParseTopLevelVariable(TopLevel* top_level,
+                             const Object& owner, intptr_t metadata_pos);
+  void ParseTopLevelFunction(TopLevel* top_level,
+                             const Object& owner, intptr_t metadata_pos);
+  void ParseTopLevelAccessor(TopLevel* top_level,
+                             const Object& owner, intptr_t metadata_pos);
   RawArray* EvaluateMetadata();
 
   RawFunction::AsyncModifier ParseFunctionModifier();
@@ -424,9 +427,10 @@ class Parser : public ValueObject {
                                    intptr_t token_pos,
                                    const String& url);
   void ParseIdentList(GrowableObjectArray* names);
-  void ParseLibraryDefinition();
+  void ParseLibraryDefinition(const Object& tl_owner);
   void ParseLibraryName();
-  void ParseLibraryImportExport(intptr_t metadata_pos);
+  void ParseLibraryImportExport(const Object& tl_owner,
+                                intptr_t metadata_pos);
   void ParseLibraryPart();
   void ParsePartHeader();
   void ParseLibraryNameObsoleteSyntax();
@@ -480,7 +484,6 @@ class Parser : public ValueObject {
       const Class& cls,
       intptr_t supercall_pos,
       LocalVariable* receiver,
-      AstNode* phase_parameter,
       ArgumentListNode* forwarding_args);
   StaticCallNode* ParseSuperInitializer(
       const Class& cls,
@@ -581,7 +584,6 @@ class Parser : public ValueObject {
   void AddAsyncClosureVariables();
   void AddAsyncGeneratorVariables();
 
-  LocalVariable* LookupPhaseParameter();
   LocalVariable* LookupReceiver(LocalScope* from_scope, bool test_only);
   LocalVariable* LookupTypeArgumentsParameter(LocalScope* from_scope,
                                               bool test_only);

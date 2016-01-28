@@ -38,11 +38,9 @@ UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
   Dart_CreateIsolate(
       NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  OSThread* thread = OSThread::Current();
   // Thread interrupter interferes with this test, disable interrupts.
-  thread->SetThreadInterrupter(NULL, NULL);
-  Profiler::EndExecution(isolate);
+  thread->DisableThreadInterrupts();
   Monitor* monitor = new Monitor();
   monitor->Enter();
   monitor->Exit();
@@ -136,7 +134,6 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
         // Ensure that our particular zone is visited.
         isolate_->IterateObjectPointers(
             &counter,
-            /* visit_prologue_weak_handles = */ true,
             StackFrameIterator::kValidateFrames);
         EXPECT_EQ(1, counter.count());
       }
@@ -154,7 +151,6 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
         // Ensure that our particular zone is visited.
         isolate_->IterateObjectPointers(
             &str_counter,
-            /* visit_prologue_weak_handles = */ true,
             StackFrameIterator::kValidateFrames);
         // We should visit the string object exactly once.
         EXPECT_EQ(1, str_counter.count());
@@ -281,7 +277,6 @@ class SafepointTestTask : public ThreadPool::Task {
         ObjectCounter counter(isolate_, &smi);
         isolate_->IterateObjectPointers(
             &counter,
-            /* visit_prologue_weak_handles = */ true,
             StackFrameIterator::kValidateFrames);
         {
           MutexLocker ml(mutex_);
@@ -412,18 +407,18 @@ TEST_CASE(ThreadIterator_Count) {
   intptr_t thread_count_1 = 0;
 
   {
-    ThreadIterator ti;
+    OSThreadIterator ti;
     while (ti.HasNext()) {
-      Thread* thread = ti.Next();
+      OSThread* thread = ti.Next();
       EXPECT(thread != NULL);
       thread_count_0++;
     }
   }
 
   {
-    ThreadIterator ti;
+    OSThreadIterator ti;
     while (ti.HasNext()) {
-      Thread* thread = ti.Next();
+      OSThread* thread = ti.Next();
       EXPECT(thread != NULL);
       thread_count_1++;
     }
@@ -435,82 +430,55 @@ TEST_CASE(ThreadIterator_Count) {
 }
 
 
-static bool ThreadInList(Thread* thread) {
-  ThreadIterator it;
-  while (it.HasNext()) {
-    Thread* t = it.Next();
-    if (t == thread) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
 TEST_CASE(ThreadIterator_FindSelf) {
-  Thread* current = Thread::Current();
-  EXPECT(ThreadInList(current));
+  OSThread* current = OSThread::Current();
+  EXPECT(OSThread::IsThreadInList(current->join_id()));
 }
 
 
 struct ThreadIteratorTestParams {
-  Isolate* isolate;
-  Thread* spawned_thread;
-  ThreadJoinId spawned_thread_join_id;
+  ThreadId spawned_thread_join_id;
   Monitor* monitor;
 };
 
 
 void ThreadIteratorTestMain(uword parameter) {
-  Thread::EnsureInit();
   ThreadIteratorTestParams* params =
       reinterpret_cast<ThreadIteratorTestParams*>(parameter);
-  Isolate* isolate = params->isolate;
-  EXPECT(isolate != NULL);
-  Thread* thread = Thread::Current();
+  OSThread* thread = OSThread::Current();
   EXPECT(thread != NULL);
 
   MonitorLocker ml(params->monitor);
-  params->spawned_thread = thread;
-  params->spawned_thread_join_id = OSThread::GetCurrentThreadJoinId();
+  params->spawned_thread_join_id = thread->join_id();
   EXPECT(params->spawned_thread_join_id != OSThread::kInvalidThreadJoinId);
-  EXPECT(ThreadInList(thread));
+  EXPECT(OSThread::IsThreadInList(thread->join_id()));
   ml.Notify();
 }
 
 
+// NOTE: This test case also verifies that known TLS destructors are called
+// on Windows. See |OnDartThreadExit| in os_thread_win.cc for more details.
 TEST_CASE(ThreadIterator_AddFindRemove) {
-  Isolate* isolate = thread->isolate();
   ThreadIteratorTestParams params;
-  params.isolate = isolate;
-  params.spawned_thread = NULL;
   params.spawned_thread_join_id = OSThread::kInvalidThreadJoinId;
   params.monitor = new Monitor();
 
   {
     MonitorLocker ml(params.monitor);
     EXPECT(params.spawned_thread_join_id == OSThread::kInvalidThreadJoinId);
-    EXPECT(params.spawned_thread == NULL);
     // Spawn thread and wait to receive the thread join id.
-    OSThread::Start(ThreadIteratorTestMain, reinterpret_cast<uword>(&params));
+    OSThread::Start("ThreadIteratorTest",
+                    ThreadIteratorTestMain,
+                    reinterpret_cast<uword>(&params));
     while (params.spawned_thread_join_id == OSThread::kInvalidThreadJoinId) {
       ml.Wait();
     }
     EXPECT(params.spawned_thread_join_id != OSThread::kInvalidThreadJoinId);
-    EXPECT(params.spawned_thread != NULL);
     // Join thread.
     OSThread::Join(params.spawned_thread_join_id);
   }
 
-  for (intptr_t i = 0; i < 10; i++) {
-    // Sleep for 10 milliseconds.
-    OS::Sleep(10);
-    if (!ThreadInList(params.spawned_thread)) {
-      break;
-    }
-  }
-
-  EXPECT(!ThreadInList(params.spawned_thread))
+  EXPECT(!OSThread::IsThreadInList(params.spawned_thread_join_id))
 
   delete params.monitor;
 }
@@ -598,11 +566,6 @@ TEST_CASE(HelperAllocAndGC) {
   Monitor done_monitor;
   bool done = false;
   Isolate* isolate = Thread::Current()->isolate();
-  // Flush store buffers, etc.
-  // TODO(koda): Currently, the GC only does this for the current thread, (i.e,
-  // the helper, in this test), but it should be done for all *threads*
-  // while reaching a safepoint.
-  Thread::PrepareForGC();
   Dart::thread_pool()->Run(new AllocAndGCTask(isolate, &done_monitor, &done));
   {
     while (true) {

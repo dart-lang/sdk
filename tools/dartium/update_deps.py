@@ -79,14 +79,14 @@ TARGETS = {
 # used to generated the commit message.
 REPOSITORY_INFO = {
     'webkit': (
-        'http://src.chromium.org/blink/branches/%s',
-        'http://src.chromium.org/viewvc/blink?view=rev&revision=%s'),
+        'https://src.chromium.org/blink/branches/%s',
+        'https://src.chromium.org/viewvc/blink?view=rev&revision=%s'),
     'blink': (
-        'http://src.chromium.org/blink/branches/%s',
-        'http://src.chromium.org/viewvc/blink?view=rev&revision=%s'),
+        'https://src.chromium.org/blink/branches/%s',
+        'https://src.chromium.org/viewvc/blink?view=rev&revision=%s'),
     'chromium': (
-        'http://src.chromium.org/chrome/branches/%s',
-        'http://src.chromium.org/viewvc/chrome?view=rev&revision=%s'),
+        'https://src.chromium.org/chrome/branches/%s',
+        'https://src.chromium.org/viewvc/chrome?view=rev&revision=%s'),
 }
 
 REPOSITORIES = REPOSITORY_INFO.keys()

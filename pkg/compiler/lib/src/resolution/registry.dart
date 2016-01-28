@@ -19,6 +19,7 @@ import '../compiler.dart' show
     Compiler;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
+import '../diagnostics/source_span.dart';
 import '../enqueue.dart' show
     ResolutionEnqueuer;
 import '../elements/elements.dart';
@@ -29,9 +30,16 @@ import '../universe/call_structure.dart' show
     CallStructure;
 import '../universe/selector.dart' show
     Selector;
-import '../universe/universe.dart' show
-    UniverseSelector;
-import '../world.dart' show World;
+import '../universe/use.dart' show
+    DynamicUse,
+    StaticUse,
+    TypeUse;
+import '../universe/world_impact.dart' show
+    WorldImpactBuilder;
+import '../util/enumset.dart' show
+    EnumSet;
+import '../world.dart' show
+    World;
 
 import 'send_structure.dart';
 
@@ -40,165 +48,15 @@ import 'members.dart' show
 import 'tree_elements.dart' show
     TreeElementMapping;
 
-// TODO(johnniwinther): Remove this.
-class EagerRegistry extends Registry {
-  final Compiler compiler;
-  final TreeElementMapping mapping;
-
-  EagerRegistry(this.compiler, this.mapping);
-
-  ResolutionEnqueuer get world => compiler.enqueuer.resolution;
-
-  @override
-  bool get isForResolution => true;
-
-  @override
-  void registerDynamicGetter(UniverseSelector selector) {
-    world.registerDynamicGetter(selector);
-  }
-
-  @override
-  void registerDynamicInvocation(UniverseSelector selector) {
-    world.registerDynamicInvocation(selector);
-  }
-
-  @override
-  void registerDynamicSetter(UniverseSelector selector) {
-    world.registerDynamicSetter(selector);
-  }
-
-  @override
-  void registerGetOfStaticFunction(FunctionElement element) {
-    world.registerGetOfStaticFunction(element);
-  }
-
-  @override
-  void registerInstantiation(InterfaceType type) {
-    world.registerInstantiatedType(type);
-  }
-
-  @override
-  void registerStaticInvocation(Element element) {
-    registerDependency(element);
-    world.registerStaticUse(element);
-  }
-
-  String toString() => 'EagerRegistry for ${mapping.analyzedElement}';
-}
-
-class _ResolutionWorldImpact implements ResolutionImpact {
-  final Registry registry;
-  // TODO(johnniwinther): Do we benefit from lazy initialization of the
-  // [Setlet]s?
-  Setlet<UniverseSelector> _dynamicInvocations;
-  Setlet<UniverseSelector> _dynamicGetters;
-  Setlet<UniverseSelector> _dynamicSetters;
-  Setlet<InterfaceType> _instantiatedTypes;
-  Setlet<Element> _staticUses;
-  Setlet<DartType> _isChecks;
-  Setlet<DartType> _asCasts;
-  Setlet<DartType> _checkedModeChecks;
-  Setlet<MethodElement> _closurizedFunctions;
-  Setlet<LocalFunctionElement> _closures;
-  Setlet<Feature> _features;
-  // TODO(johnniwinther): This seems to be a union of other sets.
-  Setlet<DartType> _requiredTypes;
+class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
+  final String name;
+  EnumSet<Feature> _features;
   Setlet<MapLiteralUse> _mapLiterals;
   Setlet<ListLiteralUse> _listLiterals;
-  Setlet<DartType> _typeLiterals;
   Setlet<String> _constSymbolNames;
+  Setlet<ConstantExpression> _constantLiterals;
 
-  _ResolutionWorldImpact(Compiler compiler, TreeElementMapping mapping)
-      : this.registry = new EagerRegistry(compiler, mapping);
-
-  void registerDependency(Element element) {
-    assert(element != null);
-    registry.registerDependency(element);
-  }
-
-  void registerDynamicGetter(UniverseSelector selector) {
-    assert(selector != null);
-    if (_dynamicGetters == null) {
-      _dynamicGetters = new Setlet<UniverseSelector>();
-    }
-    _dynamicGetters.add(selector);
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicGetters {
-    return _dynamicGetters != null
-        ? _dynamicGetters : const <UniverseSelector>[];
-  }
-
-  void registerDynamicInvocation(UniverseSelector selector) {
-    assert(selector != null);
-    if (_dynamicInvocations == null) {
-      _dynamicInvocations = new Setlet<UniverseSelector>();
-    }
-    _dynamicInvocations.add(selector);
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicInvocations {
-    return _dynamicInvocations != null
-        ? _dynamicInvocations : const <UniverseSelector>[];
-  }
-
-  void registerDynamicSetter(UniverseSelector selector) {
-    assert(selector != null);
-    if (_dynamicSetters == null) {
-      _dynamicSetters = new Setlet<UniverseSelector>();
-    }
-    _dynamicSetters.add(selector);
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicSetters {
-    return _dynamicSetters != null
-        ? _dynamicSetters : const <UniverseSelector>[];
-  }
-
-  void registerInstantiatedType(InterfaceType type) {
-    assert(type != null);
-    if (_instantiatedTypes == null) {
-      _instantiatedTypes = new Setlet<InterfaceType>();
-    }
-    _instantiatedTypes.add(type);
-  }
-
-  @override
-  Iterable<InterfaceType> get instantiatedTypes {
-    return _instantiatedTypes != null
-        ? _instantiatedTypes : const <InterfaceType>[];
-  }
-
-  void registerTypeLiteral(DartType type) {
-    assert(type != null);
-    if (_typeLiterals == null) {
-      _typeLiterals = new Setlet<DartType>();
-    }
-    _typeLiterals.add(type);
-  }
-
-  @override
-  Iterable<DartType> get typeLiterals {
-    return _typeLiterals != null
-        ? _typeLiterals : const <DartType>[];
-  }
-
-  void registerRequiredType(DartType type) {
-    assert(type != null);
-    if (_requiredTypes == null) {
-      _requiredTypes = new Setlet<DartType>();
-    }
-    _requiredTypes.add(type);
-  }
-
-  @override
-  Iterable<DartType> get requiredTypes {
-    return _requiredTypes != null
-        ? _requiredTypes : const <DartType>[];
-  }
+  _ResolutionWorldImpact(this.name);
 
   void registerMapLiteral(MapLiteralUse mapLiteralUse) {
     assert(mapLiteralUse != null);
@@ -228,85 +86,6 @@ class _ResolutionWorldImpact implements ResolutionImpact {
         ? _listLiterals : const <ListLiteralUse>[];
   }
 
-  void registerStaticUse(Element element) {
-    assert(element != null);
-    if (_staticUses == null) {
-      _staticUses = new Setlet<Element>();
-    }
-    _staticUses.add(element);
-  }
-
-  @override
-  Iterable<Element> get staticUses {
-    return _staticUses != null ? _staticUses : const <Element>[];
-  }
-
-  void registerIsCheck(DartType type) {
-    assert(type != null);
-    if (_isChecks == null) {
-      _isChecks = new Setlet<DartType>();
-    }
-    _isChecks.add(type);
-  }
-
-  @override
-  Iterable<DartType> get isChecks {
-    return _isChecks != null
-        ? _isChecks : const <DartType>[];
-  }
-
-  void registerAsCast(DartType type) {
-    if (_asCasts == null) {
-      _asCasts = new Setlet<DartType>();
-    }
-    _asCasts.add(type);
-  }
-
-  @override
-  Iterable<DartType> get asCasts {
-    return _asCasts != null
-        ? _asCasts : const <DartType>[];
-  }
-
-  void registerCheckedModeCheckedType(DartType type) {
-    if (_checkedModeChecks == null) {
-      _checkedModeChecks = new Setlet<DartType>();
-    }
-    _checkedModeChecks.add(type);
-  }
-
-  @override
-  Iterable<DartType> get checkedModeChecks {
-    return _checkedModeChecks != null
-        ? _checkedModeChecks : const <DartType>[];
-  }
-
-  void registerClosurizedFunction(MethodElement element) {
-    if (_closurizedFunctions == null) {
-      _closurizedFunctions = new Setlet<MethodElement>();
-    }
-    _closurizedFunctions.add(element);
-  }
-
-  @override
-  Iterable<MethodElement> get closurizedFunctions {
-    return _closurizedFunctions != null
-        ? _closurizedFunctions : const <MethodElement>[];
-  }
-
-  void registerClosure(LocalFunctionElement element) {
-    if (_closures == null) {
-      _closures = new Setlet<LocalFunctionElement>();
-    }
-    _closures.add(element);
-  }
-
-  @override
-  Iterable<LocalFunctionElement> get closures {
-    return _closures != null
-        ? _closures : const <LocalFunctionElement>[];
-  }
-
   void registerConstSymbolName(String name) {
     if (_constSymbolNames == null) {
       _constSymbolNames = new Setlet<String>();
@@ -322,17 +101,30 @@ class _ResolutionWorldImpact implements ResolutionImpact {
 
   void registerFeature(Feature feature) {
     if (_features == null) {
-      _features = new Setlet<Feature>();
+      _features = new EnumSet<Feature>();
     }
     _features.add(feature);
   }
 
   @override
   Iterable<Feature> get features {
-    return _features != null ? _features : const <Feature>[];
+    return _features != null
+        ? _features.iterable(Feature.values) : const <Feature>[];
   }
 
-  String toString() => '$registry';
+  void registerConstantLiteral(ConstantExpression constant) {
+    if (_constantLiterals == null) {
+      _constantLiterals = new Setlet<ConstantExpression>();
+    }
+    _constantLiterals.add(constant);
+  }
+
+  Iterable<ConstantExpression> get constantLiterals {
+    return _constantLiterals != null
+        ? _constantLiterals : const <ConstantExpression>[];
+  }
+
+  String toString() => '_ResolutionWorldImpact($name)';
 }
 
 /// [ResolutionRegistry] collects all resolution information. It stores node
@@ -347,7 +139,8 @@ class ResolutionRegistry extends Registry {
   ResolutionRegistry(Compiler compiler, TreeElementMapping mapping)
       : this.compiler = compiler,
         this.mapping = mapping,
-        this.worldImpact = new _ResolutionWorldImpact(compiler, mapping);
+        this.worldImpact = new _ResolutionWorldImpact(
+            mapping.analyzedElement.toString());
 
   bool get isForResolution => true;
 
@@ -407,26 +200,12 @@ class ResolutionRegistry extends Registry {
     mapping.setSelector(node, selector);
   }
 
-  Selector getSelector(Node node) => mapping.getSelector(node);
-
   void setGetterSelectorInComplexSendSet(SendSet node, Selector selector) {
     mapping.setGetterSelectorInComplexSendSet(node, selector);
   }
 
   void setOperatorSelectorInComplexSendSet(SendSet node, Selector selector) {
     mapping.setOperatorSelectorInComplexSendSet(node, selector);
-  }
-
-  void setIteratorSelector(ForIn node, Selector selector) {
-    mapping.setIteratorSelector(node, selector);
-  }
-
-  void setMoveNextSelector(ForIn node, Selector selector) {
-    mapping.setMoveNextSelector(node, selector);
-  }
-
-  void setCurrentSelector(ForIn node, Selector selector) {
-    mapping.setCurrentSelector(node, selector);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -527,83 +306,26 @@ class ResolutionRegistry extends Registry {
   //  Various Backend/Enqueuer/World registration.
   //////////////////////////////////////////////////////////////////////////////
 
-  void registerStaticUse(Element element) {
-    worldImpact.registerStaticUse(element);
-  }
-
-  void registerImplicitSuperCall(FunctionElement superConstructor) {
-    registerDependency(superConstructor);
-  }
-
-  // TODO(johnniwinther): Remove this.
-  // Use [registerInstantiatedType] of `rawType` instead.
-  @deprecated
-  void registerInstantiatedClass(ClassElement element) {
-    element.ensureResolved(compiler.resolution);
-    registerInstantiatedType(element.rawType);
-  }
-
-  void registerLazyField() {
-    worldImpact.registerFeature(Feature.LAZY_FIELD);
+  void registerStaticUse(StaticUse staticUse) {
+    worldImpact.registerStaticUse(staticUse);
   }
 
   void registerMetadataConstant(MetadataAnnotation metadata) {
     backend.registerMetadataConstant(metadata, metadata.annotatedElement, this);
   }
 
-  void registerThrowRuntimeError() {
-    worldImpact.registerFeature(Feature.THROW_RUNTIME_ERROR);
+  /// Register the use of a type.
+  void registerTypeUse(TypeUse typeUse) {
+    worldImpact.registerTypeUse(typeUse);
   }
 
-  void registerCompileTimeError(ErroneousElement error) {
-    worldImpact.registerFeature(Feature.COMPILE_TIME_ERROR);
-  }
-
-  void registerTypeVariableBoundCheck() {
-    worldImpact.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
-  }
-
-  void registerThrowNoSuchMethod() {
-    worldImpact.registerFeature(Feature.THROW_NO_SUCH_METHOD);
-  }
-
-  /// Register a checked mode check against [type].
-  void registerCheckedModeCheck(DartType type) {
-    worldImpact.registerCheckedModeCheckedType(type);
-    mapping.addRequiredType(type);
-  }
-
-  /// Register an is-test or is-not-test of [type].
-  void registerIsCheck(DartType type) {
-    worldImpact.registerIsCheck(type);
-    mapping.addRequiredType(type);
-  }
-
-  /// Register an as-cast of [type].
-  void registerAsCast(DartType type) {
-    worldImpact.registerAsCast(type);
-    mapping.addRequiredType(type);
-  }
-
-  void registerClosure(LocalFunctionElement element) {
-    worldImpact.registerClosure(element);
-  }
-
-  void registerSuperUse(Node node) {
-    mapping.addSuperUse(node);
-  }
-
-  void registerDynamicInvocation(UniverseSelector selector) {
-    worldImpact.registerDynamicInvocation(selector);
-  }
-
-  void registerSuperNoSuchMethod() {
-    worldImpact.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
+  void registerSuperUse(SourceSpan span) {
+    mapping.addSuperUse(span);
   }
 
   void registerTypeLiteral(Send node, DartType type) {
     mapping.setType(node, type);
-    worldImpact.registerTypeLiteral(type);
+    worldImpact.registerTypeUse(new TypeUse.typeLiteral(type));
   }
 
   void registerLiteralList(Node node,
@@ -633,60 +355,20 @@ class ResolutionRegistry extends Registry {
         new ForeignResolutionResolver(visitor, this));
   }
 
-  void registerGetOfStaticFunction(FunctionElement element) {
-    worldImpact.registerClosurizedFunction(element);
+  void registerDynamicUse(DynamicUse dynamicUse) {
+    worldImpact.registerDynamicUse(dynamicUse);
   }
 
-  void registerDynamicGetter(UniverseSelector selector) {
-    assert(selector.selector.isGetter);
-    worldImpact.registerDynamicGetter(selector);
-  }
-
-  void registerDynamicSetter(UniverseSelector selector) {
-    assert(selector.selector.isSetter);
-    worldImpact.registerDynamicSetter(selector);
+  void registerFeature(Feature feature) {
+    worldImpact.registerFeature(feature);
   }
 
   void registerConstSymbol(String name) {
     worldImpact.registerConstSymbolName(name);
   }
 
-  void registerSymbolConstructor() {
-    worldImpact.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
-  }
-
-  void registerInstantiatedType(InterfaceType type) {
-    worldImpact.registerInstantiatedType(type);
-    mapping.addRequiredType(type);
-  }
-
-  void registerAbstractClassInstantiation() {
-    worldImpact.registerFeature(Feature.ABSTRACT_CLASS_INSTANTIATION);
-  }
-
-  void registerRequiredType(DartType type, Element enclosingElement) {
-    worldImpact.registerRequiredType(type);
-    mapping.addRequiredType(type);
-  }
-
-  void registerStringInterpolation() {
-    worldImpact.registerFeature(Feature.STRING_INTERPOLATION);
-  }
-
-  void registerFallThroughError() {
-    worldImpact.registerFeature(Feature.FALL_THROUGH_ERROR);
-  }
-
-  void registerCatchStatement() {
-    worldImpact.registerFeature(Feature.CATCH_STATEMENT);
-  }
-
-  void registerStackTraceInCatch() {
-    worldImpact.registerFeature(Feature.STACK_TRACE_IN_CATCH);
-  }
-
-  void registerSyncForIn(Node node) {
-    worldImpact.registerFeature(Feature.SYNC_FOR_IN);
+  void registerConstantLiteral(ConstantExpression constant) {
+    worldImpact.registerConstantLiteral(constant);
   }
 
   ClassElement defaultSuperclass(ClassElement element) {
@@ -698,58 +380,22 @@ class ResolutionRegistry extends Registry {
     universe.registerMixinUse(mixinApplication, mixin);
   }
 
-  void registerThrowExpression() {
-    worldImpact.registerFeature(Feature.THROW_EXPRESSION);
-  }
-
-  void registerStaticInvocation(Element element) {
-    // TODO(johnniwinther): Increase precision of [registerStaticUse] and
-    // [registerDependency].
-    if (element == null) return;
-    registerStaticUse(element);
-  }
-
   void registerInstantiation(InterfaceType type) {
-    registerInstantiatedType(type);
-  }
-
-  void registerAssert(bool hasMessage) {
-    worldImpact.registerFeature(
-        hasMessage ? Feature.ASSERT_WITH_MESSAGE : Feature.ASSERT);
+    worldImpact.registerTypeUse(new TypeUse.instantiation(type));
   }
 
   void registerSendStructure(Send node, SendStructure sendStructure) {
     mapping.setSendStructure(node, sendStructure);
   }
 
+  void registerNewStructure(NewExpression node, NewStructure newStructure) {
+    mapping.setNewStructure(node, newStructure);
+  }
+
   // TODO(johnniwinther): Remove this when [SendStructure]s are part of the
   // [ResolutionResult].
   SendStructure getSendStructure(Send node) {
     return mapping.getSendStructure(node);
-  }
-
-  void registerAsyncMarker(FunctionElement element) {
-    switch (element.asyncMarker) {
-      case AsyncMarker.SYNC:
-        break;
-      case AsyncMarker.SYNC_STAR:
-        worldImpact.registerFeature(Feature.SYNC_STAR);
-        break;
-      case AsyncMarker.ASYNC:
-        worldImpact.registerFeature(Feature.ASYNC);
-        break;
-      case AsyncMarker.ASYNC_STAR:
-        worldImpact.registerFeature(Feature.ASYNC_STAR);
-        break;
-    }
-  }
-
-  void registerAsyncForIn(AsyncForIn node) {
-    worldImpact.registerFeature(Feature.ASYNC_FOR_IN);
-  }
-
-  void registerIncDecOperation() {
-    worldImpact.registerFeature(Feature.INC_DEC_OPERATION);
   }
 
   void registerTryStatement() {
@@ -770,7 +416,7 @@ class ForeignResolutionResolver implements ForeignResolver {
 
   @override
   void registerInstantiatedType(InterfaceType type) {
-    registry.registerInstantiatedType(type);
+    registry.registerInstantiation(type);
   }
 
   @override

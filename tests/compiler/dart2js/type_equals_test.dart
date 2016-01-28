@@ -89,7 +89,7 @@ void main() {
       """,
       uri,
       analyzeAll: true, analyzeOnly: true);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     test(compiler, "void1", "void2", expect: true);
     test(compiler, "int1", "int2", expect: true);
     test(compiler, "String1", "String2", expect: true);

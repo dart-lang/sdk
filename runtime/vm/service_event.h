@@ -21,6 +21,8 @@ class ServiceEvent {
     kIsolateExit,        // Isolate has exited
     kIsolateUpdate,      // Isolate identity information has changed
 
+    kServiceExtensionAdded,  // A service extension was registered
+
     kPauseStart,         // --pause-isolates-on-start
     kPauseExit,          // --pause-isolates-on-exit
     kPauseBreakpoint,
@@ -39,6 +41,8 @@ class ServiceEvent {
 
     kLogging,
 
+    kExtension,
+
     kIllegal,
   };
 
@@ -51,6 +55,11 @@ class ServiceEvent {
     const Instance* zone;
     const Object* error;
     const Instance* stack_trace;
+  };
+
+  struct ExtensionEvent {
+    const String* event_kind;
+    const String* event_data;
   };
 
   ServiceEvent(Isolate* isolate, EventKind event_kind);
@@ -95,6 +104,13 @@ class ServiceEvent {
            kind() == kPauseException ||
            kind() == kResume);
     top_frame_ = frame;
+  }
+
+  const String* extension_rpc() const {
+    return extension_rpc_;
+  }
+  void set_extension_rpc(const String* extension_rpc) {
+    extension_rpc_ = extension_rpc;
   }
 
   const Object* exception() const {
@@ -153,6 +169,10 @@ class ServiceEvent {
     log_record_ = log_record;
   }
 
+  void set_extension_event(const ExtensionEvent& extension_event) {
+    extension_event_ = extension_event;
+  }
+
   int64_t timestamp() const {
     return timestamp_;
   }
@@ -168,6 +188,7 @@ class ServiceEvent {
   const char* embedder_stream_id_;
   Breakpoint* breakpoint_;
   ActivationFrame* top_frame_;
+  const String* extension_rpc_;
   const Object* exception_;
   const Object* async_continuation_;
   bool at_async_jump_;
@@ -176,6 +197,7 @@ class ServiceEvent {
   const uint8_t* bytes_;
   intptr_t bytes_length_;
   LogRecord log_record_;
+  ExtensionEvent extension_event_;
   int64_t timestamp_;
 };
 

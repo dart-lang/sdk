@@ -19,7 +19,7 @@ Future<CodeBuffer> compileAll(SourceFile sourceFile) {
   Uri uri = new Uri(path: sourceFile.filename);
   compiler.sourceFiles[uri.toString()] = sourceFile;
   JavaScriptBackend backend = compiler.backend;
-  return compiler.runCompiler(uri).then((_) {
+  return compiler.run(uri).then((_) {
     // TODO(floitsch): the outputBuffers are only accessible in the full
     // emitter.
     full.Emitter fullEmitter = backend.emitter.emitter;

@@ -114,7 +114,8 @@ class SweeperTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(task_isolate_);
+    bool result = Thread::EnterIsolateAsHelper(task_isolate_);
+    ASSERT(result);
     GCSweeper sweeper;
 
     HeapPage* page = first_;

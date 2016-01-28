@@ -51,6 +51,16 @@ import 'types/types.dart' show
 import 'universe/selector.dart' show
     Selector;
 import 'universe/universe.dart';
+import 'universe/use.dart' show
+    DynamicUse,
+    StaticUse,
+    StaticUseKind,
+    TypeUse,
+    TypeUseKind;
+import 'universe/world_impact.dart' show
+    ImpactUseCase,
+    WorldImpact,
+    WorldImpactVisitor;
 import 'util/util.dart' show
     Link,
     Setlet;
@@ -86,61 +96,6 @@ class EnqueueTask extends CompilerTask {
   }
 }
 
-class WorldImpact {
-  const WorldImpact();
-
-  Iterable<UniverseSelector> get dynamicInvocations =>
-      const <UniverseSelector>[];
-  Iterable<UniverseSelector> get dynamicGetters => const <UniverseSelector>[];
-  Iterable<UniverseSelector> get dynamicSetters => const <UniverseSelector>[];
-
-  // TODO(johnniwinther): Split this into more precise subsets.
-  Iterable<Element> get staticUses => const <Element>[];
-
-  // TODO(johnniwinther): Replace this by called constructors with type
-  // arguments.
-  Iterable<InterfaceType> get instantiatedTypes => const <InterfaceType>[];
-
-  // TODO(johnniwinther): Collect checked types for checked mode separately to
-  // support serialization.
-  Iterable<DartType> get isChecks => const <DartType>[];
-
-  Iterable<DartType> get checkedModeChecks => const <DartType>[];
-
-  Iterable<DartType> get asCasts => const <DartType>[];
-
-  Iterable<MethodElement> get closurizedFunctions => const <MethodElement>[];
-
-  Iterable<LocalFunctionElement> get closures => const <LocalFunctionElement>[];
-
-  Iterable<DartType> get typeLiterals => const <DartType>[];
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-
-    void add(String title, Iterable iterable) {
-      if (iterable.isNotEmpty) {
-        sb.write('\n $title:');
-        iterable.forEach((e) => sb.write('\n  $e'));
-      }
-    }
-
-    add('dynamic invocations', dynamicInvocations);
-    add('dynamic getters', dynamicGetters);
-    add('dynamic setters', dynamicSetters);
-    add('static uses', staticUses);
-    add('instantiated types', instantiatedTypes);
-    add('is-checks', isChecks);
-    add('checked-mode checks', checkedModeChecks);
-    add('as-casts', asCasts);
-    add('closurized functions', closurizedFunctions);
-    add('closures', closures);
-    add('type literals', typeLiterals);
-
-    return sb.toString();
-  }
-}
-
 abstract class Enqueuer {
   final String name;
   final Compiler compiler; // TODO(ahe): Remove this dependency.
@@ -164,10 +119,14 @@ abstract class Enqueuer {
   bool hasEnqueuedReflectiveElements = false;
   bool hasEnqueuedReflectiveStaticFields = false;
 
+  WorldImpactVisitor impactVisitor;
+
   Enqueuer(this.name,
            this.compiler,
            this.itemCompilationContextCreator,
-           this.strategy);
+           this.strategy) {
+    impactVisitor = new _EnqueuerImpactVisitor(this);
+  }
 
   // TODO(johnniwinther): Move this to [ResolutionEnqueuer].
   Resolution get resolution => compiler.resolution;
@@ -188,6 +147,8 @@ abstract class Enqueuer {
   bool isClassProcessed(ClassElement cls) => _processedClasses.contains(cls);
 
   Iterable<ClassElement> get processedClasses => _processedClasses;
+
+  ImpactUseCase get impactUse;
 
   /**
    * Documentation wanted -- johnniwinther
@@ -213,35 +174,28 @@ abstract class Enqueuer {
 
   /// Apply the [worldImpact] of processing [element] to this enqueuer.
   void applyImpact(Element element, WorldImpact worldImpact) {
-    // TODO(johnniwinther): Optimize the application of the world impact.
-    worldImpact.dynamicInvocations.forEach(registerDynamicInvocation);
-    worldImpact.dynamicGetters.forEach(registerDynamicGetter);
-    worldImpact.dynamicSetters.forEach(registerDynamicSetter);
-    worldImpact.staticUses.forEach(registerStaticUse);
-    worldImpact.instantiatedTypes.forEach(registerInstantiatedType);
-    worldImpact.isChecks.forEach(registerIsCheck);
-    worldImpact.asCasts.forEach(registerIsCheck);
-    if (compiler.enableTypeAssertions) {
-      worldImpact.checkedModeChecks.forEach(registerIsCheck);
-    }
-    worldImpact.closurizedFunctions.forEach(registerGetOfStaticFunction);
-    worldImpact.closures.forEach(registerClosure);
+    compiler.impactStrategy.visitImpact(
+        element, worldImpact, impactVisitor, impactUse);
   }
 
-  // TODO(johnniwinther): Remove the need for passing the [registry].
   void registerInstantiatedType(InterfaceType type,
                                 {bool mirrorUsage: false}) {
     task.measure(() {
       ClassElement cls = type.element;
       cls.ensureResolved(resolution);
+      bool isNative = compiler.backend.isNative(cls);
       universe.registerTypeInstantiation(
           type,
+          isNative: isNative,
           byMirrors: mirrorUsage,
           onImplemented: (ClassElement cls) {
         compiler.backend.registerImplementedClass(
                     cls, this, compiler.globalDependencies);
       });
-      processInstantiatedClass(cls);
+      // TODO(johnniwinther): Share this reasoning with [Universe].
+      if (!cls.isAbstract || isNative || mirrorUsage) {
+        processInstantiatedClass(cls);
+      }
     });
   }
 
@@ -267,7 +221,7 @@ abstract class Enqueuer {
       // its metadata parsed and analyzed.
       // Note: this assumes that there are no non-native fields on native
       // classes, which may not be the case when a native class is subclassed.
-      if (cls.isNative) {
+      if (compiler.backend.isNative(cls)) {
         compiler.world.registerUsedElement(member);
         nativeEnqueuer.handleFieldAnnotations(member);
         if (universe.hasInvokedGetter(member, compiler.world) ||
@@ -390,33 +344,18 @@ abstract class Enqueuer {
             superclass, this, compiler.globalDependencies);
       }
 
-      while (cls != null) {
-        processClass(cls);
-        cls = cls.superclass;
+      ClassElement superclass = cls;
+      while (superclass != null) {
+        processClass(superclass);
+        superclass = superclass.superclass;
       }
     });
   }
 
-  void registerInvocation(UniverseSelector selector) {
+  void registerDynamicUse(DynamicUse dynamicUse) {
     task.measure(() {
-      if (universe.registerInvocation(selector)) {
-        handleUnseenSelector(selector);
-      }
-    });
-  }
-
-  void registerInvokedGetter(UniverseSelector selector) {
-    task.measure(() {
-      if (universe.registerInvokedGetter(selector)) {
-        handleUnseenSelector(selector);
-      }
-    });
-  }
-
-  void registerInvokedSetter(UniverseSelector selector) {
-    task.measure(() {
-      if (universe.registerInvokedSetter(selector)) {
-        handleUnseenSelector(selector);
+      if (universe.registerDynamicUse(dynamicUse)) {
+        handleUnseenSelector(dynamicUse);
       }
     });
   }
@@ -452,7 +391,7 @@ abstract class Enqueuer {
           this,
           compiler.mirrorDependencies,
           mirrorUsage: true);
-      registerStaticUse(ctor.declaration);
+      registerStaticUse(new StaticUse.foreignUse(ctor.declaration));
     }
   }
 
@@ -469,19 +408,19 @@ abstract class Enqueuer {
         typedef.ensureResolved(resolution);
         compiler.world.allTypedefs.add(element);
       } else if (Elements.isStaticOrTopLevel(element)) {
-        registerStaticUse(element.declaration);
+        registerStaticUse(new StaticUse.foreignUse(element.declaration));
       } else if (element.isInstanceMember) {
         // We need to enqueue all members matching this one in subclasses, as
         // well.
         // TODO(herhut): Use TypedSelector.subtype for enqueueing
-        UniverseSelector selector = new UniverseSelector(
+        DynamicUse dynamicUse = new DynamicUse(
             new Selector.fromElement(element), null);
-        registerSelectorUse(selector);
+        registerDynamicUse(dynamicUse);
         if (element.isField) {
-          UniverseSelector selector = new UniverseSelector(
+          DynamicUse dynamicUse = new DynamicUse(
               new Selector.setter(new Name(
                   element.name, element.library, isSetter: true)), null);
-          registerInvokedSetter(selector);
+          registerDynamicUse(dynamicUse);
         }
       }
     }
@@ -626,19 +565,19 @@ abstract class Enqueuer {
     processSet(instanceFunctionsByName, n, f);
   }
 
-  void handleUnseenSelector(UniverseSelector universeSelector) {
-    strategy.processSelector(this, universeSelector);
+  void handleUnseenSelector(DynamicUse universeSelector) {
+    strategy.processDynamicUse(this, universeSelector);
   }
 
-  void handleUnseenSelectorInternal(UniverseSelector universeSelector) {
-    Selector selector = universeSelector.selector;
+  void handleUnseenSelectorInternal(DynamicUse dynamicUse) {
+    Selector selector = dynamicUse.selector;
     String methodName = selector.name;
     processInstanceMembers(methodName, (Element member) {
-      if (universeSelector.appliesUnnamed(member, compiler.world)) {
+      if (dynamicUse.appliesUnnamed(member, compiler.world)) {
         if (member.isFunction && selector.isGetter) {
           registerClosurizedMember(member);
         }
-        if (member.isField && member.enclosingClass.isNative) {
+        if (member.isField && compiler.backend.isNative(member.enclosingClass)) {
           if (selector.isGetter || selector.isCall) {
             nativeEnqueuer.registerFieldLoad(member);
             // We have to also handle storing to the field because we only get
@@ -663,7 +602,7 @@ abstract class Enqueuer {
     });
     if (selector.isGetter) {
       processInstanceFunctions(methodName, (Element member) {
-        if (universeSelector.appliesUnnamed(member, compiler.world)) {
+        if (dynamicUse.appliesUnnamed(member, compiler.world)) {
           registerClosurizedMember(member);
           return true;
         }
@@ -677,63 +616,63 @@ abstract class Enqueuer {
    *
    * Invariant: [element] must be a declaration element.
    */
-  void registerStaticUse(Element element) {
-    if (element == null) return;
-    strategy.processStaticUse(this, element);
+  void registerStaticUse(StaticUse staticUse) {
+    strategy.processStaticUse(this, staticUse);
   }
 
-  void registerStaticUseInternal(Element element) {
+  void registerStaticUseInternal(StaticUse staticUse) {
+    Element element = staticUse.element;
     assert(invariant(element, element.isDeclaration,
         message: "Element ${element} is not the declaration."));
-    if (Elements.isStaticOrTopLevel(element) && element.isField) {
-      universe.registerStaticFieldUse(element);
-    }
-    addToWorkList(element);
+    universe.registerStaticUse(staticUse);
     compiler.backend.registerStaticUse(element, this);
-  }
-
-  void registerGetOfStaticFunction(FunctionElement element) {
-    registerStaticUse(element);
-    compiler.backend.registerGetOfStaticFunction(this);
-    universe.staticFunctionsNeedingGetter.add(element);
-  }
-
-  void registerDynamicInvocation(UniverseSelector selector) {
-    assert(selector != null);
-    registerInvocation(selector);
-  }
-
-  void registerSelectorUse(UniverseSelector universeSelector) {
-    if (universeSelector.selector.isGetter) {
-      registerInvokedGetter(universeSelector);
-    } else if (universeSelector.selector.isSetter) {
-      registerInvokedSetter(universeSelector);
-    } else {
-      registerInvocation(universeSelector);
+    bool addElement = true;
+    switch (staticUse.kind) {
+      case StaticUseKind.STATIC_TEAR_OFF:
+        compiler.backend.registerGetOfStaticFunction(this);
+        break;
+      case StaticUseKind.FIELD_GET:
+      case StaticUseKind.FIELD_SET:
+      case StaticUseKind.CLOSURE:
+        // TODO(johnniwinther): Avoid this. Currently [FIELD_GET] and
+        // [FIELD_SET] contains [BoxFieldElement]s which we cannot enqueue.
+        // Also [CLOSURE] contains [LocalFunctionElement] which we cannot
+        // enqueue.
+        addElement = false;
+        break;
+      case StaticUseKind.SUPER_FIELD_SET:
+      case StaticUseKind.SUPER_TEAR_OFF:
+      case StaticUseKind.GENERAL:
+        break;
+    }
+    if (addElement) {
+      addToWorkList(element);
     }
   }
 
-  void registerDynamicGetter(UniverseSelector selector) {
-    registerInvokedGetter(selector);
+  void registerTypeUse(TypeUse typeUse) {
+    DartType type = typeUse.type;
+    switch (typeUse.kind) {
+      case TypeUseKind.INSTANTIATION:
+        registerInstantiatedType(type);
+        break;
+      case TypeUseKind.INSTANTIATION:
+      case TypeUseKind.IS_CHECK:
+      case TypeUseKind.AS_CAST:
+      case TypeUseKind.CATCH_TYPE:
+        _registerIsCheck(type);
+        break;
+      case TypeUseKind.CHECKED_MODE_CHECK:
+        if (compiler.enableTypeAssertions) {
+          _registerIsCheck(type);
+        }
+        break;
+      case TypeUseKind.TYPE_LITERAL:
+        break;
+    }
   }
 
-  void registerDynamicSetter(UniverseSelector selector) {
-    registerInvokedSetter(selector);
-  }
-
-  void registerGetterForSuperMethod(Element element) {
-    universe.methodsNeedingSuperGetter.add(element);
-  }
-
-  void registerFieldGetter(Element element) {
-    universe.fieldGetters.add(element);
-  }
-
-  void registerFieldSetter(Element element) {
-    universe.fieldSetters.add(element);
-  }
-
-  void registerIsCheck(DartType type) {
+  void _registerIsCheck(DartType type) {
     type = universe.registerIsCheck(type, compiler);
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
@@ -756,10 +695,6 @@ abstract class Enqueuer {
     }
     compiler.backend.registerBoundClosure(this);
     universe.closurizedMembers.add(element);
-  }
-
-  void registerClosure(LocalFunctionElement element) {
-    universe.allClosures.add(element);
   }
 
   void forEach(void f(WorkItem work)) {
@@ -813,6 +748,10 @@ class ResolutionEnqueuer extends Enqueuer {
    */
   final Queue<DeferredTask> deferredTaskQueue;
 
+  static const ImpactUseCase IMPACT_USE = const ImpactUseCase('ResolutionEnqueuer');
+
+  ImpactUseCase get impactUse => IMPACT_USE;
+
   ResolutionEnqueuer(Compiler compiler,
                      ItemCompilationContext itemCompilationContextCreator(),
                      EnqueuerStrategy strategy)
@@ -852,7 +791,7 @@ class ResolutionEnqueuer extends Enqueuer {
   }
 
   bool internalAddToWorkList(Element element) {
-    if (element.isErroneous) return false;
+    if (element.isMalformed) return false;
 
     assert(invariant(element, element is AnalyzableElement,
         message: 'Element $element is not analyzable.'));
@@ -960,14 +899,17 @@ class ResolutionEnqueuer extends Enqueuer {
 /// [Enqueuer] which is specific to code generation.
 class CodegenEnqueuer extends Enqueuer {
   final Queue<CodegenWorkItem> queue;
-  final Map<Element, js.Expression> generatedCode =
-      new Map<Element, js.Expression>();
+  final Map<Element, js.Expression> generatedCode = <Element, js.Expression>{};
 
   final Set<Element> newlyEnqueuedElements;
 
-  final Set<UniverseSelector> newlySeenSelectors;
+  final Set<DynamicUse> newlySeenSelectors;
 
   bool enabledNoSuchMethod = false;
+
+  static const ImpactUseCase IMPACT_USE = const ImpactUseCase('CodegenEnqueuer');
+
+  ImpactUseCase get impactUse => IMPACT_USE;
 
   CodegenEnqueuer(Compiler compiler,
                   ItemCompilationContext itemCompilationContextCreator(),
@@ -1043,11 +985,11 @@ class CodegenEnqueuer extends Enqueuer {
     }
   }
 
-  void handleUnseenSelector(UniverseSelector selector) {
+  void handleUnseenSelector(DynamicUse dynamicUse) {
     if (compiler.hasIncrementalSupport) {
-      newlySeenSelectors.add(selector);
+      newlySeenSelectors.add(dynamicUse);
     }
-    super.handleUnseenSelector(selector);
+    super.handleUnseenSelector(dynamicUse);
   }
 }
 
@@ -1087,11 +1029,11 @@ class EnqueuerStrategy {
   /// Process a class instantiated in live code.
   void processInstantiatedClass(Enqueuer enqueuer, ClassElement cls) {}
 
-  /// Process an element statically accessed in live code.
-  void processStaticUse(Enqueuer enqueuer, Element element) {}
+  /// Process a static use of and element in live code.
+  void processStaticUse(Enqueuer enqueuer, StaticUse staticUse) {}
 
-  /// Process a selector for a call site in live code.
-  void processSelector(Enqueuer enqueuer, UniverseSelector selector) {}
+  /// Process a dynamic use for a call site in live code.
+  void processDynamicUse(Enqueuer enqueuer, DynamicUse dynamicUse) {}
 }
 
 class TreeShakingEnqueuerStrategy implements EnqueuerStrategy {
@@ -1103,12 +1045,33 @@ class TreeShakingEnqueuerStrategy implements EnqueuerStrategy {
   }
 
   @override
-  void processStaticUse(Enqueuer enqueuer, Element element) {
-    enqueuer.registerStaticUseInternal(element);
+  void processStaticUse(Enqueuer enqueuer, StaticUse staticUse) {
+    enqueuer.registerStaticUseInternal(staticUse);
   }
 
   @override
-  void processSelector(Enqueuer enqueuer, UniverseSelector selector) {
-    enqueuer.handleUnseenSelectorInternal(selector);
+  void processDynamicUse(Enqueuer enqueuer, DynamicUse dynamicUse) {
+    enqueuer.handleUnseenSelectorInternal(dynamicUse);
+  }
+}
+
+class _EnqueuerImpactVisitor implements WorldImpactVisitor {
+  final Enqueuer enqueuer;
+
+  _EnqueuerImpactVisitor(this.enqueuer);
+
+  @override
+  void visitDynamicUse(DynamicUse dynamicUse) {
+    enqueuer.registerDynamicUse(dynamicUse);
+  }
+
+  @override
+  void visitStaticUse(StaticUse staticUse) {
+    enqueuer.registerStaticUse(staticUse);
+  }
+
+  @override
+  void visitTypeUse(TypeUse typeUse) {
+    enqueuer.registerTypeUse(typeUse);
   }
 }

@@ -232,6 +232,24 @@ class Listener {
                  Token asKeyword, Token semicolon) {
   }
 
+  void beginConditionalUris(Token token) {
+  }
+
+  void endConditionalUris(int count) {
+  }
+
+  void beginConditionalUri(Token ifKeyword) {
+  }
+
+  void endConditionalUri(Token ifKeyword, Token equalitySign) {
+  }
+
+  void beginDottedName(Token token) {
+  }
+
+  void endDottedName(int count, Token firstIdentifier) {
+  }
+
   void beginInitializedIdentifier(Token token) {
   }
 

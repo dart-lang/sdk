@@ -36,7 +36,7 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
   Dart_EnterScope();  // Enter a new Dart API scope as we invoke API entries.
   Dart_NativeEntryResolver resolver = library.native_entry_resolver();
   Dart_NativeFunction native_function =
-      resolver(Api::NewHandle(Isolate::Current(), function_name.raw()),
+      resolver(Api::NewHandle(Thread::Current(), function_name.raw()),
                number_of_arguments, auto_setup_scope);
   Dart_ExitScope();  // Exit the Dart API scope.
   return reinterpret_cast<NativeFunction>(native_function);
@@ -98,8 +98,8 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
 
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  ApiLocalScope* current_top_scope = state->top_scope();
-  ApiLocalScope* scope = state->reusable_scope();
+  ApiLocalScope* current_top_scope = thread->api_top_scope();
+  ApiLocalScope* scope = thread->api_reusable_scope();
   TRACE_NATIVE_CALL("0x%" Px "", reinterpret_cast<uintptr_t>(func));
   if (scope == NULL) {
     scope = new ApiLocalScope(current_top_scope,
@@ -109,19 +109,19 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
     scope->Reinit(thread,
                   current_top_scope,
                   thread->top_exit_frame_info());
-    state->set_reusable_scope(NULL);
+    thread->set_api_reusable_scope(NULL);
   }
-  state->set_top_scope(scope);  // New scope is now the top scope.
+  thread->set_api_top_scope(scope);  // New scope is now the top scope.
 
   func(args);
 
   ASSERT(current_top_scope == scope->previous());
-  state->set_top_scope(current_top_scope);  // Reset top scope to previous.
-  if (state->reusable_scope() == NULL) {
+  thread->set_api_top_scope(current_top_scope);  // Reset top scope to previous.
+  if (thread->api_reusable_scope() == NULL) {
     scope->Reset(thread);  // Reset the old scope which we just exited.
-    state->set_reusable_scope(scope);
+    thread->set_api_reusable_scope(scope);
   } else {
-    ASSERT(state->reusable_scope() != scope);
+    ASSERT(thread->api_reusable_scope() != scope);
     delete scope;
   }
   DEOPTIMIZE_ALOT;
@@ -129,33 +129,17 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
 }
 
 
-static bool IsNativeKeyword(const TokenStream::Iterator& it) {
-  return Token::IsIdentifier(it.CurrentTokenKind()) &&
-      (it.CurrentLiteral() == Symbols::Native().raw());
-}
-
-
 static NativeFunction ResolveNativeFunction(Zone* zone,
                                             const Function& func,
                                             bool* is_bootstrap_native) {
-  const Script& script = Script::Handle(zone, func.script());
   const Class& cls = Class::Handle(zone, func.Owner());
   const Library& library = Library::Handle(zone, cls.library());
 
   *is_bootstrap_native =
       Bootstrap::IsBootstapResolver(library.native_entry_resolver());
 
-  TokenStream::Iterator it(TokenStream::Handle(zone, script.tokens()),
-                           func.token_pos());
-
-  const intptr_t end_pos = func.end_token_pos();
-  while (!IsNativeKeyword(it) && it.CurrentPosition() <= end_pos) {
-    it.Advance();
-  }
-  ASSERT(IsNativeKeyword(it));
-  it.Advance();
-  ASSERT(it.CurrentTokenKind() == Token::kSTRING);
-  const String& native_name = String::Handle(it.CurrentLiteral());
+  const String& native_name = String::Handle(zone, func.native_name());
+  ASSERT(!native_name.IsNull());
 
   const int num_params = NativeArguments::ParameterCountForResolution(func);
   bool auto_setup_scope = true;
@@ -234,7 +218,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 
     const intptr_t argc_tag = NativeArguments::ComputeArgcTag(func);
     const bool is_leaf_call =
-      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
+        (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
 
     call_through_wrapper = !is_bootstrap_native && !is_leaf_call;
 

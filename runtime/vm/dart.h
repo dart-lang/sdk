@@ -24,20 +24,20 @@ class Dart : public AllStatic {
       const uint8_t* vm_isolate_snapshot,
       const uint8_t* instructions_snapshot,
       Dart_IsolateCreateCallback create,
-      Dart_IsolateInterruptCallback interrupt,
-      Dart_IsolateUnhandledExceptionCallback unhandled,
       Dart_IsolateShutdownCallback shutdown,
       Dart_FileOpenCallback file_open,
       Dart_FileReadCallback file_read,
       Dart_FileWriteCallback file_write,
       Dart_FileCloseCallback file_close,
-      Dart_EntropySource entropy_source);
+      Dart_EntropySource entropy_source,
+      Dart_GetVMServiceAssetsArchive get_service_assets);
   static const char* Cleanup();
 
   static Isolate* CreateIsolate(const char* name_prefix,
                                 const Dart_IsolateFlags& api_flags);
   static RawError* InitializeIsolate(const uint8_t* snapshot, void* data);
   static void RunShutdownCallback();
+  static void ShutdownIsolate(Isolate* isolate);
   static void ShutdownIsolate();
 
   static Isolate* vm_isolate() { return vm_isolate_; }

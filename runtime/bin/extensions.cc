@@ -29,19 +29,20 @@ Dart_Handle Extensions::LoadExtension(const char* extension_directory,
   void* library_handle = LoadExtensionLibrary(library_file);
   free(library_file);
   if (library_handle == NULL) {
-    return Dart_NewApiError("Cannot find extension library");
+    return GetError();
   }
 
   const char* strings[] = { extension_name, "_Init", NULL };
   char* init_function_name = Concatenate(strings);
-  typedef Dart_Handle (*InitFunctionType)(Dart_Handle import_map);
-  InitFunctionType fn = reinterpret_cast<InitFunctionType>(
-      ResolveSymbol(library_handle, init_function_name));
+  void* init_function = ResolveSymbol(library_handle, init_function_name);
   free(init_function_name);
-
-  if (fn == NULL) {
-    return Dart_NewApiError("Cannot find initialization function in extension");
+  Dart_Handle result = GetError();
+  if (Dart_IsError(result)) {
+    return result;
   }
+  ASSERT(init_function != NULL);
+  typedef Dart_Handle (*InitFunctionType)(Dart_Handle import_map);
+  InitFunctionType fn = reinterpret_cast<InitFunctionType>(init_function);
   return (*fn)(parent_library);
 }
 

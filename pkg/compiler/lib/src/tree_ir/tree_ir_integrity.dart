@@ -129,10 +129,6 @@ class CheckTreeIntegrity extends RecursiveVisitor {
     labelUses[node.target]++;
   }
 
-  visitInnerFunction(FunctionDefinition node) {
-    checkBody(node);
-  }
-
   void checkBody(FunctionDefinition node) {
     node.parameters.forEach(declare);
     visitStatement(node.body);

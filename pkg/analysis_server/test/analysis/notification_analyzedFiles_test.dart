@@ -49,24 +49,21 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  test_afterAnalysis() {
+  test_afterAnalysis() async {
     addTestFile('''
 class A {}
 ''');
-    return waitForTasksFinished().then((_) {
-      return prepareAnalyzedFiles().then((_) {
-        assertHasFile(testFile);
-      });
-    });
+    await waitForTasksFinished();
+    await prepareAnalyzedFiles();
+    assertHasFile(testFile);
   }
 
-  test_beforeAnalysis() {
+  test_beforeAnalysis() async {
     addTestFile('''
 class A {}
 ''');
-    return prepareAnalyzedFiles().then((_) {
-      assertHasFile(testFile);
-    });
+    await prepareAnalyzedFiles();
+    assertHasFile(testFile);
   }
 
   test_insignificant_change() async {

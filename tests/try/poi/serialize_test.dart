@@ -519,13 +519,13 @@ final coreImports = [
     "kind": "class"
   },
   {
+    "name": "Match",
+    "kind": "class"
+  },
+  {
     "name": "print",
     "kind": "function",
     "type": "(Object) -> void"
-  },
-  {
-    "name": "Match",
-    "kind": "class"
   },
   {
     "name": "RegExp",
@@ -581,6 +581,10 @@ final coreImports = [
   },
   {
     "name": "Uri",
+    "kind": "class"
+  },
+  {
+    "name": "UriData",
     "kind": "class"
   }
 ];

@@ -8,6 +8,7 @@
   'sources': [
     'vmservice.dart',
     # The above file needs to be first as it imports required libraries.
+    'asset.dart',
     'client.dart',
     'constants.dart',
     'running_isolate.dart',

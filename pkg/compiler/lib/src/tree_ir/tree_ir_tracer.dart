@@ -82,10 +82,6 @@ class BlockCollector extends StatementVisitor {
     _addStatement(node);
   }
 
-  visitRethrow(Rethrow node) {
-    _addStatement(node);
-  }
-
   visitUnreachable(Unreachable node) {
     _addStatement(node);
   }
@@ -182,6 +178,11 @@ class BlockCollector extends StatementVisitor {
     _addStatement(node);
     visitStatement(node.next);
   }
+
+  visitNullCheck(NullCheck node) {
+    _addStatement(node);
+    visitStatement(node.next);
+  }
 }
 
 class TreeTracer extends TracerUtil with StatementVisitor {
@@ -271,10 +272,6 @@ class TreeTracer extends TracerUtil with StatementVisitor {
     printStatement(null, "throw ${expr(node.value)}");
   }
 
-  visitRethrow(Rethrow node) {
-    printStatement(null, "rethrow");
-  }
-
   visitUnreachable(Unreachable node) {
     printStatement(null, "unreachable");
   }
@@ -346,6 +343,11 @@ class TreeTracer extends TracerUtil with StatementVisitor {
     String name = node.hasStar ? 'yield*' : 'yield';
     printStatement(null, '$name ${expr(node.input)}');
   }
+
+  @override
+  visitNullCheck(NullCheck node) {
+    printStatement(null, 'NullCheck ${expr(node.value)}');
+  }
 }
 
 class SubexpressionVisitor extends ExpressionVisitor<String> {
@@ -399,6 +401,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     String args = formatArguments(node);
     String keyword = node.constant != null ? 'const' : 'new';
     return "$keyword $callName($args)";
+  }
+
+  String visitOneShotInterceptor(OneShotInterceptor node) {
+    String name = node.selector.name;
+    String args = formatArguments(node);
+    return "oneshot $name($args)";
   }
 
   String visitLiteralList(LiteralList node) {
@@ -462,10 +470,6 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
       operand = '($operand)';
     }
     return '!$operand';
-  }
-
-  String visitFunctionExpression(FunctionExpression node) {
-    return "function ${node.definition.element.name}";
   }
 
   String visitGetField(GetField node) {

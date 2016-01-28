@@ -30,7 +30,9 @@ JSONStream::JSONStream(intptr_t buf_size)
       method_(""),
       param_keys_(NULL),
       param_values_(NULL),
-      num_params_(0) {
+      num_params_(0),
+      offset_(0),
+      count_(-1) {
   ObjectIdRing* ring = NULL;
   Isolate* isolate = Isolate::Current();
   if (isolate != NULL) {
@@ -159,16 +161,8 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 
 
 void JSONStream::PostNullReply(Dart_Port port) {
-  const Object& reply = Object::Handle(Object::null());
-  ASSERT(reply.IsNull());
-
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
-  writer.WriteMessage(reply);
-  PortMap::PostMessage(new Message(port,
-                                   data,
-                                   writer.BytesWritten(),
-                                   Message::kNormalPriority));
+  PortMap::PostMessage(new Message(
+      port, Object::null(), Message::kNormalPriority));
 }
 
 
@@ -245,6 +239,36 @@ bool JSONStream::ParamIs(const char* key, const char* value) const {
 }
 
 
+void JSONStream::ComputeOffsetAndCount(intptr_t length,
+                                       intptr_t* offset,
+                                       intptr_t* count) {
+  // This function is written to avoid adding (count + offset) in case
+  // that triggers an integer overflow.
+  *offset = offset_;
+  if (*offset > length) {
+    *offset = length;
+  }
+  intptr_t remaining = length - *offset;
+  *count = count_;
+  if (*count < 0 || *count > remaining) {
+    *count = remaining;
+  }
+}
+
+
+void JSONStream::AppendSerializedObject(const char* serialized_object) {
+  PrintCommaIfNeeded();
+  buffer_.AddString(serialized_object);
+}
+
+
+void JSONStream::AppendSerializedObject(const char* property_name,
+                                        const char* serialized_object) {
+  PrintCommaIfNeeded();
+  PrintPropertyName(property_name);
+  buffer_.AddString(serialized_object);
+}
+
 void JSONStream::Clear() {
   buffer_.Clear();
   open_objects_ = 0;
@@ -284,6 +308,11 @@ void JSONStream::CloseArray() {
   buffer_.AddChar(']');
 }
 
+
+void JSONStream::PrintValueNull() {
+  PrintCommaIfNeeded();
+  buffer_.Printf("null");
+}
 
 void JSONStream::PrintValueBool(bool b) {
   PrintCommaIfNeeded();

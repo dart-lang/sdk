@@ -7,9 +7,9 @@
   'sources': [
     'assert.cc',
     'hashmap.cc',
-    'json.cc',
     'floating_point_win.cc',
     'signal_blocker.h',
+    'text_buffer.cc',
     'utils.cc',
   ],
 }

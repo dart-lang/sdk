@@ -33,7 +33,7 @@ void main() {
   var compiler = compilerFor(TEST, uri,
       expectedErrors: 0, expectedWarnings: 0);
   compiler.stopAfterTypeInference = true;
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;
     var element = findElement(compiler, 'closure');

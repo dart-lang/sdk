@@ -69,7 +69,7 @@ abstract class OptionsProcessor {
   /// options have changed and to handle those changes appropriately. In
   /// addition to the [options] map, the associated analysis [context] is
   /// provided as well to allow for context-specific configuration.
-  void optionsProcessed(AnalysisContext context, Map<String, YamlNode> options);
+  void optionsProcessed(AnalysisContext context, Map<String, Object> options);
 }
 
 /// Validates options as defined in an analysis options file.

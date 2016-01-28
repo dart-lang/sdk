@@ -4,9 +4,21 @@
 
 library dart2js.world.class_set;
 
-import 'dart:collection' show IterableBase;
-import '../elements/elements.dart' show ClassElement;
-import '../util/util.dart' show Link;
+import 'dart:collection' show
+    IterableBase;
+import '../elements/elements.dart' show
+    ClassElement;
+import '../util/enumset.dart' show
+    EnumSet;
+import '../util/util.dart' show
+    Link;
+
+/// Enum for the different kinds of instantiation of a class.
+enum Instantiation {
+  UNINSTANTIATED,
+  DIRECTLY_INSTANTIATED,
+  INDIRECTLY_INSTANTIATED,
+}
 
 /// Node for [cls] in a tree forming the subclass relation of [ClassElement]s.
 ///
@@ -34,7 +46,58 @@ import '../util/util.dart' show Link;
 ///       E
 ///
 class ClassHierarchyNode {
+  /// Enum set for selecting instantiated classes in
+  /// [ClassHierarchyNode.subclassesByMask],
+  /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
+  static final EnumSet<Instantiation> INSTANTIATED =
+      new EnumSet<Instantiation>.fromValues(
+          const <Instantiation>[
+              Instantiation.DIRECTLY_INSTANTIATED,
+              Instantiation.INDIRECTLY_INSTANTIATED],
+          fixed: true);
+
+  /// Enum set for selecting directly instantiated classes in
+  /// [ClassHierarchyNode.subclassesByMask],
+  /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
+  static final EnumSet<Instantiation> DIRECTLY_INSTANTIATED =
+      new EnumSet<Instantiation>.fromValues(
+          const <Instantiation>[Instantiation.DIRECTLY_INSTANTIATED],
+          fixed: true);
+
+  /// Enum set for selecting all classes in
+  /// [ClassHierarchyNode.subclassesByMask],
+  /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
+  static final EnumSet<Instantiation> ALL =
+      new EnumSet<Instantiation>.fromValues(
+          Instantiation.values,
+          fixed: true);
+
+  /// Creates an enum set for selecting the returned classes in
+  /// [ClassHierarchyNode.subclassesByMask],
+  /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
+  static EnumSet<Instantiation> createMask(
+      {bool includeDirectlyInstantiated: true,
+       bool includeIndirectlyInstantiated: true,
+       bool includeUninstantiated: true}) {
+    EnumSet<Instantiation> mask = new EnumSet<Instantiation>();
+    if (includeDirectlyInstantiated) {
+      mask.add(Instantiation.DIRECTLY_INSTANTIATED);
+    }
+    if (includeIndirectlyInstantiated) {
+      mask.add(Instantiation.INDIRECTLY_INSTANTIATED);
+    }
+    if (includeUninstantiated) {
+      mask.add(Instantiation.UNINSTANTIATED);
+    }
+    return mask;
+  }
+
   final ClassElement cls;
+  final EnumSet<Instantiation> _mask =
+      new EnumSet<Instantiation>.fromValues(
+          const <Instantiation>[Instantiation.UNINSTANTIATED]);
+
+  ClassElement _leastUpperInstantiatedSubclass;
 
   /// `true` if [cls] has been directly instantiated.
   ///
@@ -43,7 +106,22 @@ class ClassHierarchyNode {
   ///   class C extends B {}
   ///   main() => new C();
   ///
-  bool isDirectlyInstantiated = false;
+  bool get isDirectlyInstantiated =>
+      _mask.contains(Instantiation.DIRECTLY_INSTANTIATED);
+
+  void set isDirectlyInstantiated(bool value) {
+    if (value != isDirectlyInstantiated) {
+      if (value) {
+        _mask.remove(Instantiation.UNINSTANTIATED);
+        _mask.add(Instantiation.DIRECTLY_INSTANTIATED);
+      } else {
+        _mask.remove(Instantiation.DIRECTLY_INSTANTIATED);
+        if (_mask.isEmpty) {
+          _mask.add(Instantiation.UNINSTANTIATED);
+        }
+      }
+    }
+  }
 
   /// `true` if [cls] has been instantiated through subclasses.
   ///
@@ -53,7 +131,22 @@ class ClassHierarchyNode {
   ///   class C extends B {}
   ///   main() => [new B(), new C()];
   ///
-  bool isIndirectlyInstantiated = false;
+  bool get isIndirectlyInstantiated =>
+      _mask.contains(Instantiation.INDIRECTLY_INSTANTIATED);
+
+  void set isIndirectlyInstantiated(bool value) {
+    if (value != isIndirectlyInstantiated) {
+      if (value) {
+        _mask.remove(Instantiation.UNINSTANTIATED);
+        _mask.add(Instantiation.INDIRECTLY_INSTANTIATED);
+      } else {
+        _mask.remove(Instantiation.INDIRECTLY_INSTANTIATED);
+        if (_mask.isEmpty) {
+          _mask.add(Instantiation.UNINSTANTIATED);
+        }
+      }
+    }
+  }
 
   /// The nodes for the direct subclasses of [cls].
   Link<ClassHierarchyNode> _directSubclasses = const Link<ClassHierarchyNode>();
@@ -93,23 +186,74 @@ class ClassHierarchyNode {
        bool includeIndirectlyInstantiated: true,
        bool includeUninstantiated: true,
        bool strict: false}) {
-    return new ClassHierarchyNodeIterable(
-        this,
-        includeRoot: !strict,
+    EnumSet<Instantiation> mask = createMask(
         includeDirectlyInstantiated: includeDirectlyInstantiated,
-        includeIndirectlyInstantiated: includeIndirectlyInstantiated,
+        includeIndirectlyInstantiated:includeIndirectlyInstantiated,
         includeUninstantiated: includeUninstantiated);
+    return subclassesByMask(mask, strict: strict);
+  }
+
+  /// Returns an [Iterable] of the subclasses of [cls] possibly including [cls].
+  ///
+  /// Subclasses are included if their instantiation properties intersect with
+  /// their corresponding [Instantiation] values in [mask]. If [strict] is
+  /// `true`, [cls] itself is _not_ returned.
+  Iterable<ClassElement> subclassesByMask(
+      EnumSet<Instantiation> mask,
+      {bool strict: false}) {
+    return new ClassHierarchyNodeIterable(
+        this, mask, includeRoot: !strict);
+  }
+
+  /// Returns the most specific subclass of [cls] (including [cls]) that is
+  /// directly instantiated or a superclass of all directly instantiated
+  /// subclasses. If [cls] is not instantiated, `null` is returned.
+  ClassElement getLubOfInstantiatedSubclasses() {
+    if (!isInstantiated) return null;
+    if (_leastUpperInstantiatedSubclass == null) {
+      _leastUpperInstantiatedSubclass =
+          _computeLeastUpperInstantiatedSubclass();
+    }
+    return _leastUpperInstantiatedSubclass;
+  }
+
+  ClassElement _computeLeastUpperInstantiatedSubclass() {
+    if (isDirectlyInstantiated) {
+      return cls;
+    }
+    ClassHierarchyNode subclass;
+    for (Link<ClassHierarchyNode> link = _directSubclasses;
+         !link.isEmpty;
+         link = link.tail) {
+      if (link.head.isInstantiated) {
+        if (subclass == null) {
+          subclass = link.head;
+        } else {
+          return cls;
+        }
+      }
+    }
+    if (subclass != null) {
+      return subclass.getLubOfInstantiatedSubclasses();
+    }
+    return cls;
   }
 
   void printOn(StringBuffer sb, String indentation,
                {bool instantiatedOnly: false,
+                bool sorted: true,
                 ClassElement withRespectTo}) {
 
     bool isRelatedTo(ClassElement subclass) {
-      return subclass.implementsInterface(withRespectTo);
+      return subclass == withRespectTo ||
+          subclass.implementsInterface(withRespectTo);
     }
 
-    sb.write('$indentation$cls');
+    sb.write(indentation);
+    if (cls.isAbstract) {
+      sb.write('abstract ');
+    }
+    sb.write('class ${cls.name}:');
     if (isDirectlyInstantiated) {
       sb.write(' directly');
     }
@@ -120,11 +264,14 @@ class ClassHierarchyNode {
     if (_directSubclasses.isEmpty) {
       sb.write(']');
     } else {
+      var subclasses = _directSubclasses;
+      if (sorted) {
+        subclasses = _directSubclasses.toList()..sort((a, b) {
+          return a.cls.name.compareTo(b.cls.name);
+        });
+      }
       bool needsComma = false;
-      for (Link<ClassHierarchyNode> link = _directSubclasses;
-           !link.isEmpty;
-           link = link.tail) {
-        ClassHierarchyNode child = link.head;
+      for (ClassHierarchyNode child in subclasses) {
         if (instantiatedOnly && !child.isInstantiated) {
           continue;
         }
@@ -140,6 +287,7 @@ class ClassHierarchyNode {
             sb,
             '$indentation  ',
             instantiatedOnly: instantiatedOnly,
+            sorted: sorted,
             withRespectTo: withRespectTo);
         needsComma = true;
       }
@@ -211,6 +359,7 @@ class ClassHierarchyNode {
 ///
 class ClassSet {
   final ClassHierarchyNode node;
+  ClassElement _leastUpperInstantiatedSubtype;
 
   List<ClassHierarchyNode> _directSubtypes;
 
@@ -229,11 +378,22 @@ class ClassSet {
        bool includeIndirectlyInstantiated: true,
        bool includeUninstantiated: true,
        bool strict: false}) {
-    return node.subclasses(
-        strict: strict,
+    EnumSet<Instantiation> mask = ClassHierarchyNode.createMask(
         includeDirectlyInstantiated: includeDirectlyInstantiated,
-        includeIndirectlyInstantiated: includeIndirectlyInstantiated,
+        includeIndirectlyInstantiated:includeIndirectlyInstantiated,
         includeUninstantiated: includeUninstantiated);
+    return subclassesByMask(mask, strict: strict);
+  }
+
+  /// Returns an [Iterable] of the subclasses of [cls] possibly including [cls].
+  ///
+  /// Subclasses are included if their instantiation properties intersect with
+  /// their corresponding [Instantiation] values in [mask]. If [strict] is
+  /// `true`, [cls] itself is _not_ returned.
+  Iterable<ClassElement> subclassesByMask(
+      EnumSet<Instantiation> mask,
+      {bool strict: false}) {
+    return node.subclassesByMask(mask, strict: strict);
   }
 
   /// Returns an [Iterable] of the subtypes of [cls] possibly including [cls].
@@ -247,18 +407,31 @@ class ClassSet {
        bool includeIndirectlyInstantiated: true,
        bool includeUninstantiated: true,
        bool strict: false}) {
-    if (_directSubtypes == null) {
-      return node.subclasses(
-          strict: strict,
-          includeDirectlyInstantiated: includeDirectlyInstantiated,
-          includeIndirectlyInstantiated: includeIndirectlyInstantiated,
-          includeUninstantiated: includeUninstantiated);
-    }
-    return new SubtypesIterable.SubtypesIterator(this,
-        includeRoot: !strict,
+    EnumSet<Instantiation> mask = ClassHierarchyNode.createMask(
         includeDirectlyInstantiated: includeDirectlyInstantiated,
-        includeIndirectlyInstantiated: includeIndirectlyInstantiated,
+        includeIndirectlyInstantiated:includeIndirectlyInstantiated,
         includeUninstantiated: includeUninstantiated);
+    return subtypesByMask(mask, strict: strict);
+  }
+
+
+  /// Returns an [Iterable] of the subtypes of [cls] possibly including [cls].
+  ///
+  /// Subtypes are included if their instantiation properties intersect with
+  /// their corresponding [Instantiation] values in [mask]. If [strict] is
+  /// `true`, [cls] itself is _not_ returned.
+  Iterable<ClassElement> subtypesByMask(
+      EnumSet<Instantiation> mask,
+      {bool strict: false}) {
+    if (_directSubtypes == null) {
+      return node.subclassesByMask(
+          mask,
+          strict: strict);
+    }
+
+    return new SubtypesIterable.SubtypesIterator(this,
+        mask,
+        includeRoot: !strict);
   }
 
   /// Adds [subtype] as a subtype of [cls].
@@ -311,6 +484,42 @@ class ClassSet {
     }
   }
 
+  /// Returns the most specific subtype of [cls] (including [cls]) that is
+  /// directly instantiated or a superclass of all directly instantiated
+  /// subtypes. If no subtypes of [cls] are instantiated, `null` is returned.
+  ClassElement getLubOfInstantiatedSubtypes() {
+    if (_leastUpperInstantiatedSubtype == null) {
+      _leastUpperInstantiatedSubtype = _computeLeastUpperInstantiatedSubtype();
+    }
+    return _leastUpperInstantiatedSubtype;
+  }
+
+  ClassElement _computeLeastUpperInstantiatedSubtype() {
+    if (node.isDirectlyInstantiated) {
+      return cls;
+    }
+    if (_directSubtypes == null) {
+      return node.getLubOfInstantiatedSubclasses();
+    }
+    ClassHierarchyNode subtype;
+    if (node.isInstantiated) {
+      subtype = node;
+    }
+    for (ClassHierarchyNode subnode in _directSubtypes) {
+      if (subnode.isInstantiated) {
+        if (subtype == null) {
+          subtype = subnode;
+        } else {
+          return cls;
+        }
+      }
+    }
+    if (subtype != null) {
+      return subtype.getLubOfInstantiatedSubclasses();
+    }
+    return null;
+  }
+
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('[\n');
@@ -330,17 +539,13 @@ class ClassSet {
 /// Iterable for subclasses of a [ClassHierarchyNode].
 class ClassHierarchyNodeIterable extends IterableBase<ClassElement> {
   final ClassHierarchyNode root;
+  final EnumSet<Instantiation> mask;
   final bool includeRoot;
-  final bool includeDirectlyInstantiated;
-  final bool includeIndirectlyInstantiated;
-  final bool includeUninstantiated;
 
   ClassHierarchyNodeIterable(
       this.root,
-      {this.includeRoot: true,
-       this.includeDirectlyInstantiated: true,
-       this.includeIndirectlyInstantiated: true,
-       this.includeUninstantiated: true}) {
+      this.mask,
+      {this.includeRoot: true}) {
     if (root == null) throw new StateError("No root for iterable.");
   }
 
@@ -373,13 +578,11 @@ class ClassHierarchyNodeIterator implements Iterator<ClassElement> {
 
   bool get includeRoot => iterable.includeRoot;
 
-  bool get includeDirectlyInstantiated => iterable.includeDirectlyInstantiated;
+  EnumSet<Instantiation> get mask => iterable.mask;
 
-  bool get includeIndirectlyInstantiated {
-    return iterable.includeIndirectlyInstantiated;
+  bool get includeUninstantiated {
+    return mask.contains(Instantiation.UNINSTANTIATED);
   }
-
-  bool get includeUninstantiated => iterable.includeUninstantiated;
 
   @override
   ClassElement get current {
@@ -429,33 +632,20 @@ class ClassHierarchyNodeIterator implements Iterator<ClassElement> {
   /// Returns `true` if the class of [node] is a valid result for this iterator.
   bool _isValid(ClassHierarchyNode node) {
     if (!includeRoot && node == root) return false;
-    if (includeDirectlyInstantiated && node.isDirectlyInstantiated) {
-      return true;
-    }
-    if (includeIndirectlyInstantiated && node.isIndirectlyInstantiated) {
-      return true;
-    }
-    if (includeUninstantiated && !node.isInstantiated) {
-      return true;
-    }
-    return false;
+    return mask.intersects(node._mask);
   }
 }
 
 /// Iterable for the subtypes in a [ClassSet].
 class SubtypesIterable extends IterableBase<ClassElement> {
   final ClassSet subtypeSet;
+  final EnumSet<Instantiation> mask;
   final bool includeRoot;
-  final bool includeDirectlyInstantiated;
-  final bool includeIndirectlyInstantiated;
-  final bool includeUninstantiated;
 
   SubtypesIterable.SubtypesIterator(
       this.subtypeSet,
-      {this.includeRoot: true,
-       this.includeDirectlyInstantiated: true,
-       this.includeIndirectlyInstantiated: true,
-       this.includeUninstantiated: true});
+      this.mask,
+      {this.includeRoot: true});
 
   @override
   Iterator<ClassElement> get iterator => new SubtypesIterator(this);
@@ -471,13 +661,7 @@ class SubtypesIterator extends Iterator<ClassElement> {
 
   bool get includeRoot => iterable.includeRoot;
 
-  bool get includeDirectlyInstantiated => iterable.includeDirectlyInstantiated;
-
-  bool get includeIndirectlyInstantiated {
-    return iterable.includeIndirectlyInstantiated;
-  }
-
-  bool get includeUninstantiated => iterable.includeUninstantiated;
+  EnumSet<Instantiation> get mask => iterable.mask;
 
   @override
   ClassElement get current {
@@ -491,11 +675,9 @@ class SubtypesIterator extends Iterator<ClassElement> {
   bool moveNext() {
     if (elements == null && hierarchyNodes == null) {
       // Initial state. Iterate through subclasses.
-      elements = iterable.subtypeSet.node.subclasses(
-          strict: !includeRoot,
-          includeDirectlyInstantiated: includeDirectlyInstantiated,
-          includeIndirectlyInstantiated: includeIndirectlyInstantiated,
-          includeUninstantiated: includeUninstantiated).iterator;
+      elements = iterable.subtypeSet.node.subclassesByMask(
+          mask,
+          strict: !includeRoot).iterator;
     }
     if (elements != null && elements.moveNext()) {
       return true;
@@ -505,10 +687,7 @@ class SubtypesIterator extends Iterator<ClassElement> {
       hierarchyNodes = iterable.subtypeSet._directSubtypes.iterator;
     }
     while (hierarchyNodes.moveNext()) {
-      elements = hierarchyNodes.current.subclasses(
-          includeDirectlyInstantiated: includeDirectlyInstantiated,
-          includeIndirectlyInstantiated: includeIndirectlyInstantiated,
-          includeUninstantiated: includeUninstantiated).iterator;
+      elements = hierarchyNodes.current.subclassesByMask(mask).iterator;
       if (elements.moveNext()) {
         return true;
       }

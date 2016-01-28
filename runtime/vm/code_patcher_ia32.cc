@@ -211,6 +211,16 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
 }
 
 
+void CodePatcher::PatchSwitchableCallAt(uword return_address,
+                                        const Code& code,
+                                        const ICData& ic_data,
+                                        const MegamorphicCache& cache,
+                                        const Code& lookup_stub) {
+  // Switchable instance calls only generated for precompilation.
+  UNREACHABLE();
+}
+
+
 void CodePatcher::PatchNativeCallAt(uword return_address,
                                     const Code& code,
                                     NativeFunction target,

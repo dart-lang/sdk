@@ -16,8 +16,8 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart' show Identifier;
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
 /**
@@ -102,7 +102,6 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       }
       // ignore references from SDK and pub cache
       if (isElementInSdkOrPubCache(reference.element)) {
-        print('ignore: $reference');
         continue;
       }
       // check the element being renamed is accessible

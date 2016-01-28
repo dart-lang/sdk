@@ -99,10 +99,10 @@ Node parseBodyCode(String text, Function parseMethod,
   Uri uri = new Uri(scheme: "source");
   Script script = new Script(uri, uri,new MockFile(text));
   LibraryElement library = new LibraryElementX(script);
-  library.canUseNative = true;
-  NodeListener listener =
-      new NodeListener(reporter, library.entryCompilationUnit);
-  Parser parser = new Parser(listener);
+  NodeListener listener = new NodeListener(
+      new ScannerOptions(canUseNative: true),
+      reporter, library.entryCompilationUnit);
+  Parser parser = new Parser(listener, enableConditionalDirectives: true);
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
   Node node = listener.popNode();
@@ -147,7 +147,9 @@ Link<Element> parseUnit(String text, Compiler compiler,
   var unit = new CompilationUnitElementX(script, library);
   int id = 0;
   DiagnosticReporter reporter = compiler.reporter;
-  ElementListener listener = new ElementListener(reporter, unit, () => id++);
+  ElementListener listener = new ElementListener(
+      compiler.parsing.getScannerOptionsFor(library),
+      reporter, unit, () => id++);
   PartialParser parser = new PartialParser(listener);
   reporter.withCurrentElement(unit, () => parser.parseUnit(tokens));
   return unit.localMembers;

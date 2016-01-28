@@ -28,6 +28,9 @@ import '../world.dart' show
     ClassWorld,
     World;
 
+import 'abstract_value_domain.dart' show
+    AbstractValue;
+
 part 'container_type_mask.dart';
 part 'dictionary_type_mask.dart';
 part 'flat_type_mask.dart';
@@ -87,6 +90,9 @@ class TypesTask extends CompilerTask {
   TypeMask constMapTypeCache;
   TypeMask stringTypeCache;
   TypeMask typeTypeCache;
+  TypeMask syncStarIterableTypeCache;
+  TypeMask asyncFutureTypeCache;
+  TypeMask asyncStarStreamTypeCache;
 
   TypeMask get dynamicType {
     if (dynamicTypeCache == null) {
@@ -232,6 +238,30 @@ class TypesTask extends CompilerTask {
     return typeTypeCache;
   }
 
+  TypeMask get syncStarIterableType {
+    if (syncStarIterableTypeCache == null) {
+      syncStarIterableTypeCache = new TypeMask.nonNullExact(
+          compiler.backend.syncStarIterableImplementation, compiler.world);
+    }
+    return syncStarIterableTypeCache;
+  }
+
+  TypeMask get asyncFutureType {
+    if (asyncFutureTypeCache == null) {
+      asyncFutureTypeCache = new TypeMask.nonNullExact(
+          compiler.backend.asyncFutureImplementation, compiler.world);
+    }
+    return asyncFutureTypeCache;
+  }
+
+  TypeMask get asyncStarStreamType {
+    if (asyncStarStreamTypeCache == null) {
+      asyncStarStreamTypeCache = new TypeMask.nonNullExact(
+          compiler.backend.asyncStarStreamImplementation, compiler.world);
+    }
+    return asyncStarStreamTypeCache;
+  }
+
   TypeMask get nullType {
     if (nullTypeCache == null) {
       // TODO(johnniwinther): Assert that the null type has been resolved.
@@ -287,7 +317,7 @@ class TypesTask extends CompilerTask {
   TypeMask getGuaranteedTypeOfElement(Element element) {
     return measure(() {
       // TODO(24489): trust some JsInterop types.
-      if (element.isJsInterop) {
+      if (compiler.backend.isJsInterop(element)) {
         return dynamicType;
       }
       TypeMask guaranteedType = typesInferrer.getTypeOfElement(element);
@@ -298,7 +328,7 @@ class TypesTask extends CompilerTask {
   TypeMask getGuaranteedReturnTypeOfElement(Element element) {
     return measure(() {
       // TODO(24489): trust some JsInterop types.
-      if (element.isJsInterop) {
+      if (compiler.backend.isJsInterop(element)) {
         return dynamicType;
       }
 

@@ -23,7 +23,7 @@ Future<MirrorSystem> createMirrorSystem(String source) {
       preserveComments: true);
     compiler.registerSource(SOURCE_URI, source);
     compiler.librariesToAnalyzeWhenRun = <Uri>[SOURCE_URI];
-  return compiler.runCompiler(null).then((_) {
+  return compiler.run(null).then((_) {
     return new Dart2JsMirrorSystem(compiler);
   });
 }

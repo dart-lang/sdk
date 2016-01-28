@@ -29,11 +29,13 @@ class _Platform {
   external static _environment();
   external static List<String> _executableArguments();
   external static String _packageRoot();
+  external static String _packageConfig();
   external static String _version();
 
   static String executable = _executable();
   static String resolvedExecutable = _resolvedExecutable();
   static String packageRoot = _packageRoot();
+  static String packageConfig = _packageConfig();
 
   // Cache the OS environemnt. This can be an OSError instance if
   // retrieving the environment failed.
@@ -43,20 +45,6 @@ class _Platform {
   static String get pathSeparator => _pathSeparator();
   static String get operatingSystem => _operatingSystem();
   static Uri script;
-
-  // This script singleton is written to by the embedder if applicable.
-  static void set _nativeScript(String path) {
-    if (path.startsWith('http:') ||
-        path.startsWith('https:') ||
-        path.startsWith('package:') ||
-        path.startsWith('dart:') ||
-        path.startsWith('data:') ||
-        path.startsWith('file:')) {
-      script = Uri.parse(path);
-    } else {
-      script = Uri.base.resolveUri(new Uri.file(path));
-    }
-  }
 
   static String get localHostname {
     var result = _localHostname();

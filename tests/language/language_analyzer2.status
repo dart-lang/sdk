@@ -15,6 +15,7 @@ tearoff_constructor_basic_test: Skip # Tear-off not supported
 
 regress_17382_test: Skip # don't care about the static warning.
 regress_23408_test: Skip # don't care about the static warning.
+regress_25246_test: Skip
 getter_setter_in_lib_test: Fail # issue 23286
 
 # Test issue 12694 (was analyzer issue), (1) when "abstract" is import prefix using it as type is warning; (2) currently analyzer resolves prefix as field (don't ask)
@@ -22,7 +23,7 @@ built_in_identifier_prefix_test: CompileTimeError # Issue 12694
 
 # TBF: we should check conflicts not only for methods, but for accessors too
 override_field_test/03: fail
-method_override7_test/03: Fail # Issue 11496
+method_override7_test/03: Fail # Issue 11497
 
 external_test/21: Fail
 external_test/24: Fail
@@ -36,6 +37,11 @@ multiline_newline_test/03: CompileTimeError # Issue 23888
 multiline_newline_test/04: MissingCompileTimeError # Issue 23888
 multiline_newline_test/05: MissingCompileTimeError # Issue 23888
 multiline_newline_test/06: MissingCompileTimeError # Issue 23888
+
+const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
+
+# Unsupported configuration specific imports.
+config_import_test: CompileTimeError # Issue 24579
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
@@ -187,6 +193,7 @@ body_less_constructor_wrong_arg_negative_test: CompileTimeError # Test Issue 186
 empty_block_case_test: StaticWarning # Test Issue 18701
 error_stacktrace_test: StaticWarning # Test Issue 18702
 
+abstract_beats_arguments_test: StaticWarning
 const_counter_negative_test: CompileTimeError
 const_optional_args_negative_test: CompileTimeError
 constructor_redirect1_negative_test: CompileTimeError
@@ -475,3 +482,5 @@ no_main_test/01: Fail # Issue 20030
 # This test is expected to generate a warning, since it's
 # intentionally referring to a variable that's not in scope.
 transitive_private_library_access_test: StaticWarning
+
+const_qq_test: Fail

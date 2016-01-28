@@ -20,8 +20,9 @@ import 'package:analysis_server/src/services/refactoring/rename_class_member.dar
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
@@ -219,10 +220,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange() async {
     SourceChange change = new SourceChange(refactoringName);
     // replace occurrences with method invocation
-    for (_Occurrence occurence in _occurrences) {
-      SourceRange range = occurence.range;
+    for (_Occurrence occurrence in _occurrences) {
+      SourceRange range = occurrence.range;
       // may be replacement of duplicates disabled
-      if (!extractAll && !occurence.isSelection) {
+      if (!extractAll && !occurrence.isSelection) {
         continue;
       }
       // prepare invocation source
@@ -236,7 +237,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
           // single variable assignment / return statement
           if (_returnVariableName != null) {
             String occurrenceName =
-                occurence._parameterOldToOccurrenceName[_returnVariableName];
+                occurrence._parameterOldToOccurrenceName[_returnVariableName];
             // may be declare variable
             if (!_parametersMap.containsKey(_returnVariableName)) {
               if (variableType.isEmpty) {
@@ -272,7 +273,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
             // argument name
             {
               String argumentName =
-                  occurence._parameterOldToOccurrenceName[parameter.id];
+                  occurrence._parameterOldToOccurrenceName[parameter.id];
               sb.write(argumentName);
             }
           }
@@ -307,7 +308,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
         String returnExpressionSource = _getMethodBodySource();
         // closure
         if (_selectionFunctionExpression != null) {
-          declarationSource = '${name}${returnExpressionSource}';
+          declarationSource = '$name$returnExpressionSource';
           if (_selectionFunctionExpression.body is ExpressionFunctionBody) {
             declarationSource += ';';
           }
@@ -332,17 +333,16 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
           declarationSource = '$annotations$signature$asyncKeyword {$eol';
           declarationSource += returnExpressionSource;
           if (_returnVariableName != null) {
-            declarationSource +=
-                '${prefix}  return ${_returnVariableName};$eol';
+            declarationSource += '$prefix  return $_returnVariableName;$eol';
           }
-          declarationSource += '${prefix}}';
+          declarationSource += '$prefix}';
         }
       }
       // insert declaration
       if (declarationSource != null) {
         int offset = _parentMember.end;
-        SourceEdit edit = new SourceEdit(
-            offset, 0, '${eol}${eol}${prefix}${declarationSource}');
+        SourceEdit edit =
+            new SourceEdit(offset, 0, '$eol$eol$prefix$declarationSource');
         doSourceChange_addElementEdit(change, unitElement, edit);
       }
     }

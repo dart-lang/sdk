@@ -299,18 +299,19 @@ class JsBuilder {
   }
 
   /// Creates a literal js string from [value].
-  LiteralString escapedString(String value) {
+  LiteralString _legacyEscapedString(String value) {
    // Start by escaping the backslashes.
     String escaped = value.replaceAll('\\', '\\\\');
     // Do not escape unicode characters and ' because they are allowed in the
     // string literal anyway.
-    escaped = escaped.replaceAllMapped(new RegExp('\n|"|\b|\t|\v'), (match) {
+    escaped = escaped.replaceAllMapped(new RegExp('\n|"|\b|\t|\v|\r'), (match) {
       switch (match.group(0)) {
         case "\n" : return r"\n";
         case "\"" : return r'\"';
         case "\b" : return r"\b";
         case "\t" : return r"\t";
         case "\f" : return r"\f";
+        case "\r" : return r"\r";
         case "\v" : return r"\v";
       }
     });
@@ -319,6 +320,105 @@ class JsBuilder {
     // into ". Verify that assumption.
     assert(result.value.codeUnitAt(0) == '"'.codeUnitAt(0));
     return result;
+  }
+
+  /// Creates a literal js string from [value].
+  LiteralString escapedString(String value,
+       {bool utf8: false, bool ascii: false}) {
+    if (utf8 == false && ascii == false) return _legacyEscapedString(value);
+    if (utf8 && ascii) throw new ArgumentError('Cannot be both UTF8 and ASCII');
+
+    int singleQuotes = 0;
+    int doubleQuotes = 0;
+    int otherEscapes = 0;
+    int unpairedSurrogates = 0;
+
+    for (int rune in value.runes) {
+      if (rune == charCodes.$BACKSLASH) {
+        ++otherEscapes;
+      } else if (rune == charCodes.$SQ) {
+        ++singleQuotes;
+      } else if (rune == charCodes.$DQ) {
+        ++doubleQuotes;
+      } else if (rune == charCodes.$LF || rune == charCodes.$CR ||
+                 rune == charCodes.$LS || rune == charCodes.$PS) {
+        // Line terminators.
+        ++otherEscapes;
+      } else if (rune == charCodes.$BS || rune == charCodes.$TAB ||
+                 rune == charCodes.$VTAB || rune == charCodes.$FF) {
+        ++otherEscapes;
+      } else if (_isUnpairedSurrogate(rune)) {
+        ++unpairedSurrogates;
+      } else {
+        if (ascii && (rune < charCodes.$SPACE || rune >= charCodes.$DEL)) {
+          ++otherEscapes;
+        }
+      }
+    }
+
+    LiteralString finish(String quote, String contents) {
+      return new LiteralString('$quote$contents$quote');
+    }
+
+    if (otherEscapes == 0 && unpairedSurrogates == 0) {
+      if (doubleQuotes == 0) return finish('"', value);
+      if (singleQuotes == 0) return finish("'", value);
+    }
+
+    bool useSingleQuotes = singleQuotes < doubleQuotes;
+
+    StringBuffer sb = new StringBuffer();
+
+    for (int rune in value.runes) {
+      String escape = _irregularEscape(rune, useSingleQuotes);
+      if (escape != null) {
+        sb.write(escape);
+        continue;
+      }
+      if (rune == charCodes.$LS ||
+          rune == charCodes.$PS ||
+          _isUnpairedSurrogate(rune) ||
+          ascii && (rune < charCodes.$SPACE || rune >= charCodes.$DEL)) {
+        if (rune < 0x100) {
+          sb.write(r'\x');
+          sb.write(rune.toRadixString(16).padLeft(2, '0'));
+        } else if (rune < 0x10000) {
+          sb.write(r'\u');
+          sb.write(rune.toRadixString(16).padLeft(4, '0'));
+        } else {
+          // Not all browsers accept the ES6 \u{zzzzzz} encoding, so emit two
+          // surrogate pairs.
+          var bits = rune - 0x10000;
+          var leading = 0xD800 | (bits >> 10);
+          var trailing = 0xDC00 | (bits & 0x3ff);
+          sb.write(r'\u');
+          sb.write(leading.toRadixString(16));
+          sb.write(r'\u');
+          sb.write(trailing.toRadixString(16));
+        }
+      } else {
+        sb.writeCharCode(rune);
+      }
+    }
+
+    return finish(useSingleQuotes ? "'" : '"', sb.toString());
+  }
+
+  static bool _isUnpairedSurrogate(int code) => (code & 0xFFFFF800) == 0xD800;
+
+  static String _irregularEscape(int code, bool useSingleQuotes) {
+    switch (code) {
+      case charCodes.$SQ: return useSingleQuotes ? r"\'" : r"'";
+      case charCodes.$DQ: return useSingleQuotes ? r'"' : r'\"';
+      case charCodes.$BACKSLASH: return r'\\';
+      case charCodes.$BS: return r'\b';
+      case charCodes.$TAB: return r'\t';
+      case charCodes.$LF: return r'\n';
+      case charCodes.$VTAB: return r'\v';
+      case charCodes.$FF: return r'\f';
+      case charCodes.$CR: return r'\r';
+    }
+    return null;
   }
 
   /// Creates a literal js string from [value].

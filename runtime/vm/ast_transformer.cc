@@ -71,7 +71,7 @@ LocalVariable* AwaitTransformer::EnsureCurrentTempVar() {
   if (await_tmp == NULL) {
     // We need a new temp variable; add it to the function's top scope.
     await_tmp = new (Z) LocalVariable(
-        Scanner::kNoSourcePos, symbol, Type::ZoneHandle(Type::DynamicType()));
+        Scanner::kNoSourcePos, symbol, Object::dynamic_type());
     async_temp_scope_->AddVariable(await_tmp);
     // After adding it to the top scope, we can look it up from the preamble.
     // The following call includes an ASSERT check.
@@ -119,6 +119,7 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   //   :saved_try_ctx_var = :await_saved_try_ctx_var_y;
   //   :await_temp_var_(X+1) = :result_param;
 
+  const intptr_t token_pos = node->token_pos();
   LocalVariable* async_op = GetVariableInScope(
       preamble_->scope(), Symbols::AsyncOperation());
   LocalVariable* async_then_callback = GetVariableInScope(
@@ -136,7 +137,7 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   LocalVariable* await_temp = AddToPreambleNewTempVar(transformed_expr);
 
   AwaitMarkerNode* await_marker =
-      new (Z) AwaitMarkerNode(async_temp_scope_, node->scope());
+      new (Z) AwaitMarkerNode(async_temp_scope_, node->scope(), token_pos);
   preamble_->Add(await_marker);
 
   // :result_param = _awaitHelper(

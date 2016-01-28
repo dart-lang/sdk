@@ -6,6 +6,7 @@ library dart2js.resolution.types;
 
 import '../common.dart';
 import '../common/resolution.dart' show
+    Feature,
     Resolution;
 import '../compiler.dart' show
     Compiler;
@@ -136,13 +137,13 @@ class TypeResolver {
             reporter.createMessage(node, messageKind, messageArguments),
             infos);
       } else {
-        registry.registerThrowRuntimeError();
+        registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
         reporter.reportWarning(
             reporter.createMessage(node, messageKind, messageArguments),
             infos);
       }
       if (erroneousElement == null) {
-        registry.registerThrowRuntimeError();
+        registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
         erroneousElement = new ErroneousElementX(
             messageKind, messageArguments, typeName.source,
             visitor.enclosingElement);
@@ -165,7 +166,7 @@ class TypeResolver {
           infos: ambiguous.computeInfos(
               registry.mapping.analyzedElement, reporter));
       ;
-    } else if (element.isErroneous) {
+    } else if (element.isMalformed) {
       if (element is ErroneousElement) {
         type = reportFailureAndCreateType(
             element.messageKind, element.messageArguments,
@@ -226,7 +227,7 @@ class TypeResolver {
         if (!outer.isClass &&
             !outer.isTypedef &&
             !Elements.hasAccessToTypeVariables(visitor.enclosingElement)) {
-          registry.registerThrowRuntimeError();
+          registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
           type = reportFailureAndCreateType(
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
               {'typeVariableName': node},
@@ -240,7 +241,7 @@ class TypeResolver {
             "Unexpected element kind ${element.kind}.");
       }
       if (addTypeVariableBoundsCheck) {
-        registry.registerTypeVariableBoundCheck();
+        registry.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
         visitor.addDeferredAction(
             visitor.enclosingElement,
             () => checkTypeVariableBounds(node, type));

@@ -55,11 +55,6 @@ const String cachedClassFieldNames = r'$cachedFieldNames';
 // names we want. Furthermore, the pretty-printer minifies local variables, thus
 // reducing their size.
 const String mainBoilerplate = '''
-{
-// Declare deferred-initializer global, which is used to keep track of the
-// loaded fragments.
-#deferredInitializer;
-
 (function() {
 // Copies the own properties from [from] to [to].
 function copyProperties(from, to) {
@@ -355,8 +350,8 @@ var #staticStateDeclaration = {};
 
 // Invokes main (making sure that it records the 'current-script' value).
 #invokeMain;
-})();
-}''';
+})()
+''';
 
 /// Deferred fragments (aka 'hunks') are built similarly to the main fragment.
 ///
@@ -441,8 +436,7 @@ class FragmentEmitter {
         .where((Holder holder) => !holder.isStaticStateHolder);
 
     return js.js.statement(mainBoilerplate,
-        {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
-         'typeNameProperty': js.string(ModelEmitter.typeNameProperty),
+        {'typeNameProperty': js.string(ModelEmitter.typeNameProperty),
          'cyclicThrow': backend.emitter.staticFunctionAccess(
                  backend.helpers.cyclicThrowHelper),
          'operatorIsPrefix': js.string(namer.operatorIsPrefix),
@@ -514,15 +508,6 @@ class FragmentEmitter {
      // TODO(floitsch): only call emitNativeSupport if we need native.
      'nativeSupport': emitNativeSupport(fragment),
     });
-  }
-
-  js.Statement emitDeferredInitializerGlobal(Map loadMap) {
-    if (loadMap.isEmpty) return new js.Block.empty();
-
-    String global = ModelEmitter.deferredInitializersGlobal;
-    return js.js.statement(
-        "if (typeof($global) === 'undefined') var # = Object.create(null);",
-        new js.VariableDeclaration(global, allowRename: false));
   }
 
   /// Emits all holders, except for the static-state holder.
@@ -1091,12 +1076,13 @@ class FragmentEmitter {
   js.Property emitMangledGlobalNames() {
     List<js.Property> names = <js.Property>[];
 
+    CoreClasses coreClasses = compiler.coreClasses;
     // We want to keep the original names for the most common core classes when
     // calling toString on them.
     List<ClassElement> nativeClassesNeedingUnmangledName =
-        [compiler.intClass, compiler.doubleClass, compiler.numClass,
-         compiler.stringClass, compiler.boolClass, compiler.nullClass,
-         compiler.listClass];
+        [coreClasses.intClass, coreClasses.doubleClass, coreClasses.numClass,
+          coreClasses.stringClass, coreClasses.boolClass, coreClasses.nullClass,
+          coreClasses.listClass];
     // TODO(floitsch): this should probably be on a per-fragment basis.
     nativeClassesNeedingUnmangledName.forEach((element) {
       names.add(new js.Property(js.quoteName(namer.className(element)),

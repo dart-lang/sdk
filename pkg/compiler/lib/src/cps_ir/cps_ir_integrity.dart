@@ -10,6 +10,8 @@ import '../tracer.dart' as tracer;
 /// enabled, you typically want the other as well, so we use the same flag.
 const bool ENABLE_DUMP = tracer.TRACE_FILTER_PATTERN != null;
 
+enum ScopeType { InScope, InDefinition, NotInScope }
+
 /// Performs integrity checks on the CPS IR.
 ///
 /// To be run for debugging purposes, not for use in production.
@@ -27,45 +29,63 @@ const bool ENABLE_DUMP = tracer.TRACE_FILTER_PATTERN != null;
 class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
 
   FunctionDefinition topLevelNode;
+  final Map<Definition, ScopeType> inScope = <Definition, ScopeType>{};
+  final List<Definition> definitions = [];
   String previousPass;
 
-  Set<Definition> seenDefinitions = new Set<Definition>();
-  Map<Definition, Set<Reference>> seenReferences =
-      <Definition, Set<Reference>>{};
-
-  Set<Definition> inScope = new Set<Definition>();
-  Set<Continuation> insideContinuations = new Set<Continuation>();
-
-  void markAsSeen(Definition def) {
-    if (!seenDefinitions.add(def)) {
-      error('Redeclared $def', def);
+  void handleDeclaration(Definition def) {
+    definitions.add(def);
+    // Check the reference chain for cycles broken links.
+    Reference anchor = null;
+    int i = 0;
+    for (Reference ref = def.firstRef; ref != null; ref = ref.next) {
+      if (ref.definition != def) {
+        error('Reference to ${ref.definition} found in '
+              'reference chain for $def', def);
+      }
+      if (ref == anchor) {
+        error('Cyclic reference chain for $def', def);
+      }
+      if (i & ++i == 0) { // Move the anchor every 2^Nth step.
+        anchor = ref;
+      }
     }
-    seenReferences[def] = new Set<Reference>();
   }
 
   void enterScope(Iterable<Definition> definitions) {
-    inScope.addAll(definitions);
-    pushAction(() => inScope.removeAll(definitions));
+    for (Definition def in definitions) {
+      inScope[def] = ScopeType.InScope;
+    }
+    pushAction(() {
+      for (Definition def in definitions) {
+        inScope[def] = ScopeType.NotInScope;
+      }
+    });
   }
 
   void enterContinuation(Continuation cont) {
-    insideContinuations.add(cont);
-    pushAction(() => insideContinuations.remove(cont));
+    inScope[cont] = ScopeType.InDefinition;
+    pushAction(() {
+      inScope[cont] = ScopeType.NotInScope;
+    });
   }
 
   void check(FunctionDefinition node, String previousPass) {
-    topLevelNode = node;
+    // [check] will be called multiple times per instance to avoid reallocating
+    // the large [inScope] map. Reset the other fields.
+    this.topLevelNode = node;
     this.previousPass = previousPass;
+    this.definitions.clear();
     ParentChecker.checkParents(node, this);
     visit(node);
     // Check for broken reference chains. We check this last, so out-of-scope
     // references are not classified as a broken reference chain.
-    seenDefinitions.forEach(checkReferenceChain);
+    definitions.forEach(checkReferenceChain);
   }
 
   @override
   Expression traverseLetCont(LetCont node) {
-    node.continuations.forEach(markAsSeen);
+    node.continuations.forEach(handleDeclaration);
     node.continuations.forEach(push);
 
     // Put all continuations in scope when visiting the body.
@@ -76,7 +96,7 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
 
   @override
   Expression traverseLetPrim(LetPrim node) {
-    markAsSeen(node.primitive);
+    handleDeclaration(node.primitive);
 
     // Process references in the primitive.
     visit(node.primitive);
@@ -89,9 +109,9 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
 
   @override
   Expression traverseLetMutable(LetMutable node) {
-    markAsSeen(node.variable);
+    handleDeclaration(node.variable);
     processReference(node.value);
-    
+
     // Put the primitive in scope when visiting the body.
     enterScope([node.variable]);
 
@@ -103,7 +123,7 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
     if (cont.isReturnContinuation) {
       error('Non-return continuation missing body', cont);
     }
-    cont.parameters.forEach(markAsSeen);
+    cont.parameters.forEach(handleDeclaration);
     enterScope(cont.parameters);
     // Put every continuation in scope at its own body. The isRecursive
     // flag is checked explicitly using [insideContinuations].
@@ -115,12 +135,12 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
   @override
   visitFunctionDefinition(FunctionDefinition node) {
     if (node.thisParameter != null) {
-      markAsSeen(node.thisParameter);
+      handleDeclaration(node.thisParameter);
       enterScope([node.thisParameter]);
     }
-    node.parameters.forEach(markAsSeen);
+    node.parameters.forEach(handleDeclaration);
     enterScope(node.parameters);
-    markAsSeen(node.returnContinuation);
+    handleDeclaration(node.returnContinuation);
     enterScope([node.returnContinuation]);
     if (!node.returnContinuation.isReturnContinuation) {
       error('Return continuation with a body', node);
@@ -129,22 +149,28 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
   }
 
   @override
-  processReference(Reference reference) {
-    if (!inScope.contains(reference.definition)) {
-      error('Referenced out of scope: ${reference.definition}', reference);
+  processReference(Reference ref) {
+    Definition def = ref.definition;
+    if (inScope[def] == ScopeType.NotInScope) {
+      error('Referenced out of scope: $def', ref);
     }
-    if (!seenReferences[reference.definition].add(reference)) {
-      error('Duplicate use of Reference to ${reference.definition}', reference);
+    if (ref.previous == ref) {
+      error('Shared Reference object to $def', ref);
     }
+    if (ref.previous == null && def.firstRef != ref ||
+        ref.previous != null && ref.previous.next != ref) {
+      error('Broken .previous link in reference to $def', def);
+    }
+    ref.previous = ref; // Mark reference as "seen". We will repair it later.
   }
 
   @override
   processInvokeContinuation(InvokeContinuation node) {
     Continuation target = node.continuation.definition;
-    if (node.isRecursive && !insideContinuations.contains(target)) {
+    if (node.isRecursive && inScope[target] == ScopeType.InScope) {
       error('Non-recursive InvokeContinuation marked as recursive', node);
     }
-    if (!node.isRecursive && insideContinuations.contains(target)) {
+    if (!node.isRecursive && inScope[target] == ScopeType.InDefinition) {
       error('Recursive InvokeContinuation marked as non-recursive', node);
     }
     if (node.isRecursive && !target.isRecursive) {
@@ -156,25 +182,15 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
   }
 
   void checkReferenceChain(Definition def) {
-    Set<Reference> chainedReferences = new Set<Reference>();
-    Reference prev = null;
+    Reference previous = null;
     for (Reference ref = def.firstRef; ref != null; ref = ref.next) {
-      if (ref.definition != def) {
-        error('Reference in chain for $def points to ${ref.definition}', def);
+      if (ref.previous != ref) {
+        // Reference was not seen during IR traversal, so it is orphaned.
+        error('Orphaned reference in reference chain for $def', def);
       }
-      if (ref.previous != prev) {
-        error('Broken .previous link in reference to $def', def);
-      }
-      prev = ref;
-      if (!chainedReferences.add(ref)) {
-        error('Cyclic reference chain for $def', def);
-      }
-    }
-    if (!chainedReferences.containsAll(seenReferences[def])) {
-      error('Seen reference to $def not in reference chain', def);
-    }
-    if (!seenReferences[def].containsAll(chainedReferences)) {
-      error('Reference chain for $def contains orphaned references', def);
+      // Repair the .previous link that was used for marking.
+      ref.previous = previous;
+      previous = ref;
     }
   }
 
@@ -192,7 +208,7 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
       sexpr = '(Set DUMP_IR flag to enable SExpr dump)';
     }
     throw 'CPS integrity violation\n'
-          'After $previousPass on ${topLevelNode.element}\n'
+          'After \'$previousPass\' on ${topLevelNode.element}\n'
           '$message\n\n'
           '$sexpr\n';
   }

@@ -87,6 +87,9 @@
                                expandKey="{{ makeExpandKey(index.toString()) }}">
               </any-service-ref><br>
             </template>
+            <template if="{{ ref.length != ref.elements.length }}">
+              <div><em>{{ ref.length - ref.elements.length }} omitted elements</em></div>
+            </template>
           </div>
         </curly-block>
       </template>
@@ -103,6 +106,9 @@
                                  expandKey="{{ makeExpandKey('value') }}">
               </any-service-ref><br>
             </template>
+            <template if="{{ ref.length != ref.associations.length }}">
+              <div><em>{{ ref.length - ref.associations.length }} omitted associations</em></div>
+            </template>
           </div>
         </curly-block>
       </template>
@@ -114,6 +120,9 @@
             <template repeat="{{ index in ref.typedElements.asMap().keys }}">
               [ {{ index }} ]&nbsp;&nbsp;
               {{ ref.typedElements[index].toString() }}<br>
+            </template>
+            <template if="{{ ref.length != ref.typedElements.length }}">
+              <div><em>{{ ref.length - ref.typedElements.length }} omitted elements</em></div>
             </template>
           </div>
         </curly-block>

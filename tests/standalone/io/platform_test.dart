@@ -48,11 +48,20 @@ test() {
   Expect.isTrue(Platform.script.toFilePath().startsWith(oldDir.path));
   // Restore dir.
   Directory.current = oldDir;
-  Directory packageRoot = new Directory(Platform.packageRoot);
+  var pkgRootString = Platform.packageRoot;
+  Directory packageRoot = new Directory.fromUri(Uri.parse(pkgRootString));
   Expect.isTrue(packageRoot.existsSync());
   Expect.isTrue(new Directory("${packageRoot.path}/expect").existsSync());
   Expect.isTrue(Platform.executableArguments.any(
-      (arg) => arg.contains(Platform.packageRoot)));
+      (arg) {
+        if (!arg.startsWith("--package-root=")) {
+          return false;
+        }
+        // Cut out the '--package-root=' prefix.
+        arg = arg.substring(15);
+        return pkgRootString.contains(arg);
+      }
+  ));
 }
 
 void f(reply) {

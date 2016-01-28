@@ -14,12 +14,14 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, allow_absolute_addresses);
+DECLARE_FLAG(bool, check_code_pointer);
+DECLARE_FLAG(bool, inline_alloc);
 #if defined(USING_SIMULATOR)
 DECLARE_FLAG(int, trace_sim_after);
 #endif
-DECLARE_FLAG(bool, allow_absolute_addresses);
+
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
-DECLARE_FLAG(bool, inline_alloc);
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   ASSERT(Utils::IsAligned(data, 4));
@@ -461,6 +463,10 @@ void Assembler::SubuDetectOverflow(Register rd, Register rs, Register rt,
 
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
+  if (!FLAG_check_code_pointer) {
+    return;
+  }
+  Comment("CheckCodePointer");
   Label cid_ok, instructions_ok;
   Push(CMPRES1);
   Push(CMPRES2);
@@ -531,6 +537,7 @@ void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
 
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   ASSERT(!Thread::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
@@ -545,6 +552,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
 void Assembler::LoadObjectHelper(Register rd,
                                  const Object& object,
                                  bool is_unique) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   ASSERT(!in_delay_slot_);
   if (Thread::CanLoadFromThread(object)) {
     // Load common VM constants from the thread. This works also in places where
@@ -602,6 +610,7 @@ void Assembler::LoadNativeEntry(Register rd,
 
 
 void Assembler::PushObject(const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   ASSERT(!in_delay_slot_);
   LoadObject(TMP, object);
   Push(TMP);
@@ -728,6 +737,7 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
+  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
   ASSERT(!in_delay_slot_);
   ASSERT(value.IsSmi() || value.InVMHeap() ||
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));

@@ -20,7 +20,9 @@ import 'parser.dart' show
     Parser;
 
 class PartialParser extends Parser {
-  PartialParser(Listener listener) : super(listener);
+  PartialParser(Listener listener, {bool enableConditionalDirectives})
+      : super(listener,
+          enableConditionalDirectives: enableConditionalDirectives);
 
   Token parseClassBody(Token token) => skipClassBody(token);
 

@@ -4,24 +4,39 @@
 
 library analysis_server.src.provisional.completion.completion_core;
 
+import 'dart:async';
+
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
 
 /**
- * An object used to produce completions for a specific error. Completion
- * contributors are long-lived objects and must not retain any state between
- * invocations of [computeSuggestions].
+ * An empty list returned by [CompletionContributor]s
+ * when they have no suggestions to contribute.
+ */
+const EMPTY_LIST = const <CompletionSuggestion>[];
+
+/**
+ * An object used to instantiate a [CompletionContributor] instance
+ * for each 'completion.getSuggestions' request.
+ * Contributors should *not* be cached between requests.
+ */
+typedef CompletionContributor CompletionContributorFactory();
+
+/**
+ * An object used to produce completions at a specific location within a file.
  *
  * Clients may implement this class when implementing plugins.
  */
 abstract class CompletionContributor {
   /**
-   * Compute a list of completion suggestions based on the given completion
-   * [request]. Return the suggestions that were computed.
+   * Return a [Future] that completes with a list of suggestions
+   * for the given completion [request].
    */
-  List<CompletionSuggestion> computeSuggestions(CompletionRequest request);
+  Future<List<CompletionSuggestion>> computeSuggestions(
+      CompletionRequest request);
 }
 
 /**
@@ -47,38 +62,12 @@ abstract class CompletionRequest {
   ResourceProvider get resourceProvider;
 
   /**
+   * Return the search engine.
+   */
+  SearchEngine get searchEngine;
+
+  /**
    * Return the source in which the completion is being requested.
    */
   Source get source;
-}
-
-/**
- * The result of computing suggestions for code completion.
- *
- * Clients may implement this class when implementing plugins.
- */
-abstract class CompletionResult {
-  /**
-   * Return the length of the text to be replaced. This will be zero (0) if the
-   * suggestion is to be inserted, otherwise it will be greater than zero. For
-   * example, if the remainder of the identifier containing the cursor is to be
-   * replaced when the suggestion is applied, in which case the length will be
-   * the number of characters in the existing identifier.
-   */
-  int get replacementLength;
-
-  /**
-   * Return the offset of the start of the text to be replaced. This will be
-   * different than the offset used to request the completion suggestions if
-   * there was a portion of text that needs to be replaced. For example, if a
-   * partial identifier is immediately before the original offset, in which case
-   * the replacementOffset will be the offset of the beginning of the
-   * identifier.
-   */
-  int get replacementOffset;
-
-  /**
-   * Return the list of suggestions being contributed by the contributor.
-   */
-  List<CompletionSuggestion> get suggestions;
 }

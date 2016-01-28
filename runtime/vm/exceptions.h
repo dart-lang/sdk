@@ -60,7 +60,6 @@ class Exceptions : AllStatic {
     kOutOfMemory,
     kNullThrown,
     kIsolateSpawn,
-    kIsolateUnhandledException,
     kJavascriptIntegerOverflowError,
     kJavascriptCompatibilityError,
     kAssertion,

@@ -75,7 +75,7 @@ class TypeMaskStrategy implements SelectorConstraintsStrategy {
  * operations on it are not guaranteed to be precise and they may
  * yield conservative answers that contain too many classes.
  */
-abstract class TypeMask implements ReceiverConstraint {
+abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   factory TypeMask(ClassElement base,
                    int kind,
                    bool isNullable,
@@ -89,7 +89,7 @@ abstract class TypeMask implements ReceiverConstraint {
   factory TypeMask.exact(ClassElement base, ClassWorld classWorld) {
     assert(invariant(base, classWorld.isInstantiated(base),
         message: () => "Cannot create exact type mask for uninstantiated "
-                       "class $base.\n${classWorld.dump()}"));
+                       "class $base.\n${classWorld.dump(base)}"));
     return new FlatTypeMask.exact(base);
   }
 
@@ -99,21 +99,31 @@ abstract class TypeMask implements ReceiverConstraint {
   }
 
   factory TypeMask.subclass(ClassElement base, ClassWorld classWorld) {
-    if (classWorld.hasAnyStrictSubclass(base)) {
-      return new FlatTypeMask.subclass(base);
+    assert(invariant(base, classWorld.isInstantiated(base),
+        message: () => "Cannot create subclass type mask for uninstantiated "
+                       "class $base.\n${classWorld.dump(base)}"));
+    ClassElement topmost = classWorld.getLubOfInstantiatedSubclasses(base);
+    if (topmost == null) {
+      return new TypeMask.empty();
+    } else if (classWorld.hasAnyStrictSubclass(topmost)) {
+      return new FlatTypeMask.subclass(topmost);
     } else {
-      return new TypeMask.exactOrEmpty(base, classWorld);
+      return new TypeMask.exact(topmost, classWorld);
     }
   }
 
   factory TypeMask.subtype(ClassElement base, ClassWorld classWorld) {
-    if (classWorld.hasOnlySubclasses(base)) {
-      return new TypeMask.subclass(base, classWorld);
+    ClassElement topmost = classWorld.getLubOfInstantiatedSubtypes(base);
+    if (topmost == null) {
+      return new TypeMask.empty();
     }
-    if (classWorld.hasAnyStrictSubtype(base)) {
-      return new FlatTypeMask.subtype(base);
+    if (classWorld.hasOnlySubclasses(topmost)) {
+      return new TypeMask.subclass(topmost, classWorld);
+    }
+    if (classWorld.hasAnyStrictSubtype(topmost)) {
+      return new FlatTypeMask.subtype(topmost);
     } else {
-      return new TypeMask.exactOrEmpty(base, classWorld);
+      return new TypeMask.exact(topmost, classWorld);
     }
   }
 
@@ -121,8 +131,8 @@ abstract class TypeMask implements ReceiverConstraint {
 
   factory TypeMask.nonNullExact(ClassElement base, ClassWorld classWorld) {
     assert(invariant(base, classWorld.isInstantiated(base),
-        message: () => "Cannot create exact type mask for "
-                 "uninstantiated class $base.\n${classWorld.dump(base)}"));
+        message: () => "Cannot create exact type mask for uninstantiated "
+                       "class $base.\n${classWorld.dump(base)}"));
     return new FlatTypeMask.nonNullExact(base);
   }
 
@@ -135,21 +145,31 @@ abstract class TypeMask implements ReceiverConstraint {
   }
 
   factory TypeMask.nonNullSubclass(ClassElement base, ClassWorld classWorld) {
-    if (classWorld.hasAnyStrictSubclass(base)) {
-      return new FlatTypeMask.nonNullSubclass(base);
+    assert(invariant(base, classWorld.isInstantiated(base),
+        message: () => "Cannot create subclass type mask for uninstantiated "
+                       "class $base.\n${classWorld.dump(base)}"));
+    ClassElement topmost = classWorld.getLubOfInstantiatedSubclasses(base);
+    if (topmost == null) {
+      return new TypeMask.nonNullEmpty();
+    } else if (classWorld.hasAnyStrictSubclass(topmost)) {
+      return new FlatTypeMask.nonNullSubclass(topmost);
     } else {
-      return new TypeMask.nonNullExactOrEmpty(base, classWorld);
+      return new TypeMask.nonNullExact(topmost, classWorld);
     }
   }
 
   factory TypeMask.nonNullSubtype(ClassElement base, ClassWorld classWorld) {
-    if (classWorld.hasOnlySubclasses(base)) {
-      return new TypeMask.nonNullSubclass(base, classWorld);
+    ClassElement topmost = classWorld.getLubOfInstantiatedSubtypes(base);
+    if (topmost == null) {
+      return new TypeMask.nonNullEmpty();
     }
-    if (classWorld.hasAnyStrictSubtype(base)) {
-      return new FlatTypeMask.nonNullSubtype(base);
+    if (classWorld.hasOnlySubclasses(topmost)) {
+      return new TypeMask.nonNullSubclass(topmost, classWorld);
+    }
+    if (classWorld.hasAnyStrictSubtype(topmost)) {
+      return new FlatTypeMask.nonNullSubtype(topmost);
     } else {
-      return new TypeMask.nonNullExactOrEmpty(base, classWorld);
+      return new TypeMask.nonNullExact(topmost, classWorld);
     }
   }
 
@@ -313,12 +333,6 @@ abstract class TypeMask implements ReceiverConstraint {
    * Returns a type mask representing the intersection of [this] and [other].
    */
   TypeMask intersection(TypeMask other, ClassWorld classWorld);
-
-  /**
-   * Returns whether this [TypeMask] applied to [selector] can hit a
-   * [noSuchMethod].
-   */
-  bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld);
 
   /**
    * Returns whether [element] is a potential target when being

@@ -104,7 +104,6 @@ class Heap {
   bool NewContains(uword addr) const;
   bool OldContains(uword addr) const;
   bool CodeContains(uword addr) const;
-  bool StubCodeContains(uword addr) const;
 
   void IterateObjects(ObjectVisitor* visitor) const;
   void IterateOldObjects(ObjectVisitor* visitor) const;
@@ -126,6 +125,9 @@ class Heap {
   void CollectGarbage(Space space);
   void CollectGarbage(Space space, ApiCallbacks api_callbacks, GCReason reason);
   void CollectAllGarbage();
+  bool NeedsGarbageCollection() const {
+    return old_space_.NeedsGarbageCollection();
+  }
 
   // Enables growth control on the page space heaps.  This should be
   // called before any user code is executed.
@@ -136,7 +138,7 @@ class Heap {
 
   // Protect access to the heap. Note: Code pages are made
   // executable/non-executable when 'read_only' is true/false, respectively.
-  void WriteProtect(bool read_only);
+  void WriteProtect(bool read_only, bool include_code_pages);
   void WriteProtectCode(bool read_only) {
     old_space_.WriteProtectCode(read_only);
   }
@@ -232,8 +234,6 @@ class Heap {
     stats_.data_[id] = value;
   }
 
-  bool gc_in_progress();
-
   void UpdateGlobalMaxUsed();
 
   static bool IsAllocatableInNewSpace(intptr_t size) {
@@ -309,16 +309,24 @@ class Heap {
   // ensure thread-safety.
   bool VerifyGC(MarkExpectation mark_expectation = kForbidMarked) const;
 
+  // Helper functions for garbage collection.
+  void CollectNewSpaceGarbage(
+      Thread* thread, ApiCallbacks api_callbacks, GCReason reason);
+  void CollectOldSpaceGarbage(
+      Thread* thread, ApiCallbacks api_callbacks, GCReason reason);
+
   // GC stats collection.
   void RecordBeforeGC(Space space, GCReason reason);
-  void RecordAfterGC();
+  void RecordAfterGC(Space space);
   void PrintStats();
   void UpdateClassHeapStatsBeforeGC(Heap::Space space);
   void UpdatePretenurePolicy();
 
-  // Updates gc_in_progress.
-  void BeginGC();
-  void EndGC();
+  // Updates gc in progress flags.
+  bool BeginNewSpaceGC();
+  void EndNewSpaceGC();
+  bool BeginOldSpaceGC();
+  void EndOldSpaceGC();
 
   // If this heap is non-empty, updates start and end to the smallest range that
   // contains both the original [start, end) and the [lowest, highest) addresses
@@ -341,8 +349,9 @@ class Heap {
   bool read_only_;
 
   // GC on the heap is in progress.
-  Mutex gc_in_progress_mutex_;
-  bool gc_in_progress_;
+  Monitor gc_in_progress_monitor_;
+  bool gc_new_space_in_progress_;
+  bool gc_old_space_in_progress_;
 
   int pretenure_policy_;
 
@@ -377,8 +386,11 @@ class NoHeapGrowthControlScope : public StackResource {
 // Note: During this scope, the code pages are non-executable.
 class WritableVMIsolateScope : StackResource {
  public:
-  explicit WritableVMIsolateScope(Thread* thread);
+  explicit WritableVMIsolateScope(Thread* thread, bool include_code_pages);
   ~WritableVMIsolateScope();
+
+ private:
+  bool include_code_pages_;
 };
 
 }  // namespace dart

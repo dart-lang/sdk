@@ -10,7 +10,8 @@ import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/apiimpl.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show
-    Message;
+    Message,
+    MessageKind;
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/util/uri_extras.dart';
@@ -33,15 +34,16 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   bool hasErrors = false;
   bool lastWasWhitelisted = false;
 
-  Map<String, Map<String, int>> whiteListMap
-      = new Map<String, Map<String, int>>();
+  Map<String, Map<dynamic/*String|MessageKind*/, int>> whiteListMap
+      = new Map<String, Map<dynamic/*String|MessageKind*/, int>>();
 
-  CollectingDiagnosticHandler(Map<String, List<String>> whiteList,
-                              SourceFileProvider provider)
+  CollectingDiagnosticHandler(
+      Map<String, List/*<String|MessageKind>*/> whiteList,
+      SourceFileProvider provider)
       : super(provider) {
-    whiteList.forEach((String file, List<String> messageParts) {
-      var useMap = new Map<String,int>();
-      for (String messagePart in messageParts) {
+    whiteList.forEach((String file, List/*<String|MessageKind>*/ messageParts) {
+      var useMap = new Map<dynamic/*String|MessageKind*/, int>();
+      for (var messagePart in messageParts) {
         useMap[messagePart] = 0;
       }
       whiteListMap[file] = useMap;
@@ -57,7 +59,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   bool checkWhiteListUse() {
     bool allUsed = true;
     for (String file in whiteListMap.keys) {
-      for (String messagePart in whiteListMap[file].keys) {
+      for (var messagePart in whiteListMap[file].keys) {
         if (whiteListMap[file][messagePart] == 0) {
           print("Whitelisting '$messagePart' is unused in '$file'. "
                 "Remove the whitelisting from the whitelist map.");
@@ -70,7 +72,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
 
   void reportWhiteListUse() {
     for (String file in whiteListMap.keys) {
-      for (String messagePart in whiteListMap[file].keys) {
+      for (var messagePart in whiteListMap[file].keys) {
         int useCount = whiteListMap[file][messagePart];
         print("Whitelisted message '$messagePart' suppressed $useCount "
               "time(s) in '$file'.");
@@ -78,15 +80,22 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
     }
   }
 
-  bool checkWhiteList(Uri uri, String message) {
+  bool checkWhiteList(Uri uri, Message message, String text) {
     if (uri == null) {
       return false;
     }
     String path = uri.path;
     for (String file in whiteListMap.keys) {
       if (path.contains(file)) {
-        for (String messagePart in whiteListMap[file].keys) {
-          if (message.contains(messagePart)) {
+        for (var messagePart in whiteListMap[file].keys) {
+          bool found = false;
+          if (messagePart is String) {
+            found = text.contains(messagePart);
+          } else {
+            assert(messagePart is MessageKind);
+            found = message.kind == messagePart;
+          }
+          if (found) {
             whiteListMap[file][messagePart]++;
             return true;
           }
@@ -100,7 +109,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   void report(Message message, Uri uri, int begin, int end, String text,
               api.Diagnostic kind) {
     if (kind == api.Diagnostic.WARNING) {
-      if (checkWhiteList(uri, text)) {
+      if (checkWhiteList(uri, message, text)) {
         // Suppress whitelisted warnings.
         lastWasWhitelisted = true;
         return;
@@ -108,7 +117,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
       hasWarnings = true;
     }
     if (kind == api.Diagnostic.HINT) {
-      if (checkWhiteList(uri, text)) {
+      if (checkWhiteList(uri, message, text)) {
         // Suppress whitelisted hints.
         lastWasWhitelisted = true;
         return;
@@ -116,7 +125,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
       hasHint = true;
     }
     if (kind == api.Diagnostic.ERROR) {
-      if (checkWhiteList(uri, text)) {
+      if (checkWhiteList(uri, message, text)) {
         // Suppress whitelisted errors.
         lastWasWhitelisted = true;
         return;
@@ -131,14 +140,25 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   }
 }
 
-typedef bool CheckResults(Compiler compiler,
+typedef bool CheckResults(CompilerImpl compiler,
                           CollectingDiagnosticHandler handler);
 
+enum AnalysisMode {
+  /// Analyze all declarations in all libraries in one go.
+  ALL,
+  /// Analyze all declarations in the main library.
+  MAIN,
+  /// Analyze all declarations in the given URIs one at a time. This mode can
+  /// handle URIs for parts (i.e. skips these).
+  URI,
+  /// Analyze all declarations reachable from the entry point.
+  TREE_SHAKING,
+}
+
 Future analyze(List<Uri> uriList,
-               Map<String, List<String>> whiteList,
-               {bool analyzeAll: true,
-                bool analyzeMain: false,
-                CheckResults checkResults}) {
+               Map<String, List/*<String|MessageKind>*/> whiteList,
+               {AnalysisMode mode: AnalysisMode.ALL,
+                CheckResults checkResults}) async {
   String testFileName =
       relativize(Uri.base, Platform.script, Platform.isWindows);
 
@@ -154,14 +174,23 @@ Future analyze(List<Uri> uriList,
 
   var libraryRoot = currentDirectory.resolve('sdk/');
   var packageRoot =
-      currentDirectory.resolveUri(new Uri.file('${Platform.packageRoot}/'));
+      currentDirectory.resolve(Platform.packageRoot);
   var provider = new CompilerSourceFileProvider();
   var handler = new CollectingDiagnosticHandler(whiteList, provider);
   var options = <String>[Flags.analyzeOnly, '--categories=Client,Server',
       Flags.showPackageWarnings];
-  if (analyzeAll) options.add(Flags.analyzeAll);
-  if (analyzeMain) options.add(Flags.analyzeMain);
-  var compiler = new Compiler(
+  switch (mode) {
+    case AnalysisMode.URI:
+    case AnalysisMode.MAIN:
+      options.add(Flags.analyzeMain);
+      break;
+    case AnalysisMode.ALL:
+      options.add(Flags.analyzeAll);
+      break;
+    case AnalysisMode.TREE_SHAKING:
+      break;
+  }
+  var compiler = new CompilerImpl(
       provider,
       null,
       handler,
@@ -179,22 +208,25 @@ Future analyze(List<Uri> uriList,
 ===
 """;
 
-  void onCompletion(_) {
-    bool result;
-    if (checkResults != null) {
-      result = checkResults(compiler, handler);
-    } else {
-      result = handler.checkResults();
+  if (mode == AnalysisMode.URI) {
+    for (Uri uri in uriList) {
+      await compiler.analyzeUri(uri);
     }
-    if (!result) {
-      print(MESSAGE);
-      exit(1);
-    }
-  }
-  if (analyzeAll || analyzeMain) {
+  } else if (mode != AnalysisMode.TREE_SHAKING) {
     compiler.librariesToAnalyzeWhenRun = uriList;
-    return compiler.run(null).then(onCompletion);
+    await compiler.run(null);
   } else {
-    return compiler.run(uriList.single).then(onCompletion);
+    await compiler.run(uriList.single);
+  }
+
+  bool result;
+  if (checkResults != null) {
+    result = checkResults(compiler, handler);
+  } else {
+    result = handler.checkResults();
+  }
+  if (!result) {
+    print(MESSAGE);
+    exit(1);
   }
 }

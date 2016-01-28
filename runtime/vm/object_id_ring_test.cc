@@ -133,7 +133,7 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT(Dart_IsList(result));
   EXPECT_VALID(Dart_ListLength(result, &list_length));
   EXPECT_EQ(3, list_length);
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
   Heap* heap = isolate->heap();
   ObjectIdRing* ring = isolate->object_id_ring();
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
@@ -174,7 +174,7 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT_NE(RawObject::ToAddr(raw_obj1), RawObject::ToAddr(raw_object_moved1));
   EXPECT_NE(RawObject::ToAddr(raw_obj2), RawObject::ToAddr(raw_object_moved2));
   // Test that we still point at the same list.
-  Dart_Handle moved_handle = Api::NewHandle(isolate, raw_object_moved1);
+  Dart_Handle moved_handle = Api::NewHandle(thread, raw_object_moved1);
   EXPECT_VALID(moved_handle);
   EXPECT(!Dart_IsNull(moved_handle));
   EXPECT(Dart_IsList(moved_handle));
@@ -188,7 +188,7 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
 
 // Test that the ring table is updated with nulls when the old GC collects.
 TEST_CASE(ObjectIdRingOldGCTest) {
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
   Heap* heap = isolate->heap();
   ObjectIdRing* ring = isolate->object_id_ring();
 
@@ -199,7 +199,7 @@ TEST_CASE(ObjectIdRingOldGCTest) {
     Dart_EnterScope();
     Dart_Handle result;
     // Create a string in the old heap.
-    result = Api::NewHandle(isolate, String::New("old", Heap::kOld));
+    result = Api::NewHandle(thread, String::New("old", Heap::kOld));
     EXPECT_VALID(result);
     intptr_t string_length = 0;
     // Inspect string.

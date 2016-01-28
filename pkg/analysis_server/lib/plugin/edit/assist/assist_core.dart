@@ -4,6 +4,8 @@
 
 library analysis_server.plugin.edit.assist.assist_core;
 
+import 'dart:async';
+
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     show SourceChange;
 import 'package:analyzer/src/generated/engine.dart';
@@ -50,19 +52,42 @@ class Assist {
 }
 
 /**
+ * An object used to provide context information for [AssistContributor]s.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class AssistContext {
+  /**
+   * The [AnalysisContext] to get assists in.
+   */
+  AnalysisContext get analysisContext;
+
+  /**
+   * The length of the selection.
+   */
+  int get selectionLength;
+
+  /**
+   * The start of the selection.
+   */
+  int get selectionOffset;
+
+  /**
+   * The source to get assists in.
+   */
+  Source get source;
+}
+
+/**
  * An object used to produce assists for a specific location.
  *
  * Clients may implement this class when implementing plugins.
  */
 abstract class AssistContributor {
   /**
-   * Return a list of assists for a location in the given [source]. The location
-   * is specified by the [offset] and [length] of the selected region. The
-   * [context] can be used to get additional information that is useful for
-   * computing assists.
+   * Completes with a list of assists for the given [context].
    */
-  List<Assist> computeAssists(
-      AnalysisContext context, Source source, int offset, int length);
+  Future<List<Assist>> computeAssists(AssistContext context);
 }
 
 /**

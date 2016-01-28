@@ -7,8 +7,9 @@
  */
 library html.tools;
 
+import 'package:analyzer/src/codegen/tools.dart';
+
 import 'api.dart';
-import 'codegen_tools.dart';
 
 Map<String, ImpliedType> computeImpliedTypes(Api api) {
   _ImpliedTypesVisitor visitor = new _ImpliedTypesVisitor(api);

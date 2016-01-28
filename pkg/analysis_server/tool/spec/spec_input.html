@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.12.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.14.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -391,6 +391,42 @@
               contain multiple items if the file is being analyzed
               in multiple contexts in conflicting ways (such as a
               part that is included in multiple libraries).
+            </p>
+          </field>
+        </result>
+      </request>
+      <request method="getReachableSources">
+        <p>
+          Return the transitive closure of reachable sources for a given file.
+        </p>
+        <p>
+          If a request is made for a file which does not exist, or
+          which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          <tt>GET_REACHABLE_SOURCES_INVALID_FILE</tt> will be generated.
+        </p>
+        <params>
+          <field name="file">
+            <ref>FilePath</ref>
+            <p>
+              The file for which reachable source information is being requested.
+            </p>
+          </field>
+        </params>
+        <result>
+          <field name="sources">
+            <map>
+              <key><ref>String</ref></key>
+              <value><list>><ref>String</ref></list></value>
+            </map>
+            <p>
+              A mapping from source URIs to directly reachable source URIs. For example,
+              a file "foo.dart" that imports "bar.dart" would have the corresponding mapping
+              { "file:///foo.dart" : ["file:///bar.dart"] }.  If "bar.dart" has further imports
+              (or exports) there will be a mapping from the URI "file:///bar.dart" to them.
+              To check if a specific URI is reachable from a given file, clients can check
+              for its presence in the resulting key set.
             </p>
           </field>
         </result>
@@ -1959,6 +1995,20 @@
         </params>
       </notification>
     </domain>
+    <domain name="diagnostic">
+      <p>
+        The diagnostic domain contains server diagnostics APIs.
+      </p>
+      <request method="getDiagnostics">
+        <p>Return server diagnostics.</p>
+        <result>
+          <field name="contexts">
+            <list><ref>ContextData</ref></list>
+            <p>The list of analysis contexts.</p>
+          </field>
+        </result>
+      </request>
+    </domain>
     <types>
       <h2 class="domain"><a name="types">Types</a></h2>
       <p>
@@ -2441,6 +2491,43 @@
           <value><code>PARAMETER</code></value>
         </enum>
       </type>
+      <type name="ContextData">
+        <p>
+          Information about an analysis context.
+        </p>
+        <object>
+          <field name="name">
+            <ref>String</ref>
+            <p>
+              The name of the context.
+            </p>
+          </field>
+          <field name="explicitFileCount">
+            <ref>int</ref>
+            <p>
+              Explicitly analyzed files.
+            </p>
+          </field>
+          <field name="implicitFileCount">
+            <ref>int</ref>
+            <p>
+              Implicitly analyzed files.
+            </p>
+          </field>
+          <field name="workItemQueueLength">
+            <ref>int</ref>
+            <p>
+              The number of work items in the queue.
+            </p>
+          </field>
+          <field name="cacheEntryExceptions">
+            <list><ref>String</ref></list>
+            <p>
+              Exceptions associated with cache entries.
+            </p>
+          </field>
+        </object>
+      </type>
       <type name="Element">
         <p>
           Information about an element (something that can be declared
@@ -2534,8 +2621,14 @@
           <value><code>SETTER</code></value>
           <value><code>TOP_LEVEL_VARIABLE</code></value>
           <value><code>TYPE_PARAMETER</code></value>
-          <value><code>UNIT_TEST_GROUP</code></value>
-          <value><code>UNIT_TEST_TEST</code></value>
+          <value>
+            <code>UNIT_TEST_GROUP</code>
+            <p><b><i>Deprecated</i></b>: support for tests was removed.</p>
+          </value>
+          <value>
+            <code>UNIT_TEST_TEST</code>
+            <p><b><i>Deprecated</i></b>: support for tests was removed.</p>
+          </value>
           <value><code>UNKNOWN</code></value>
         </enum>
       </type>
@@ -2596,7 +2689,12 @@
       <type name="FilePath">
         <ref>String</ref>
         <p>
-          The absolute path of a file.
+          The absolute, normalized path of a file.
+        </p>
+        <p>
+          If the format of a file path in a request is not valid, e.g. the
+          path is not absolute or is not normalized, then an error of type
+          <tt>INVALID_FILE_PATH_FORMAT</tt> will be generated.
         </p>
       </type>
       <type name="FoldingKind">
@@ -3588,6 +3686,14 @@
             </p>
           </value>
           <value>
+            <code>GET_REACHABLE_SOURCES_INVALID_FILE</code>
+            <p>
+              An "analysis.getReachableSources" request specified a FilePath
+              which does not match a file currently subject to
+              analysis.
+            </p>
+          </value>
+          <value>
             <code>INVALID_ANALYSIS_ROOT</code>
             <p>
               A path passed as an argument to a request (such as
@@ -3599,6 +3705,13 @@
             <p>
               The context root used to create an execution context does not
               exist.
+            </p>
+          </value>
+          <value>
+            <code>INVALID_FILE_PATH_FORMAT</code>
+            <p>
+              The format of the given file path is invalid, e.g. is not
+              absolute and normalized.
             </p>
           </value>
           <value>
@@ -4035,14 +4148,14 @@
           complete expression.
         </p>
         <feedback>
-          <field name="coveringExpressionOffsets">
+          <field name="coveringExpressionOffsets" optional="true">
             <list><ref>int</ref></list>
             <p>
               The offsets of the expressions that cover the specified
               selection, from the down most to the up most.
             </p>
           </field>
-          <field name="coveringExpressionLengths">
+          <field name="coveringExpressionLengths" optional="true">
             <list><ref>int</ref></list>
             <p>
               The lengths of the expressions that cover the specified

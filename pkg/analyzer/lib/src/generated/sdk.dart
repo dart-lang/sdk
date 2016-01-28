@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.sdk;
+library analyzer.src.generated.sdk;
 
 import 'dart:collection';
 
-import 'ast.dart';
-import 'engine.dart' show AnalysisContext;
-import 'source.dart' show ContentCache, Source, UriKind;
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/source.dart'
+    show ContentCache, Source, UriKind;
 
 /**
  * A Dart SDK installed in a specified location.

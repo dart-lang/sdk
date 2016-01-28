@@ -130,18 +130,20 @@ class Server {
           request.uri.path == '/' ? ROOT_REDIRECT_PATH : request.uri.path;
 
     if (path == WEBSOCKET_PATH) {
-      WebSocketTransformer.upgrade(request).then((WebSocket webSocket) {
+      WebSocketTransformer.upgrade(request,
+                                   compression: CompressionOptions.OFF).then(
+                                   (WebSocket webSocket) {
         new WebSocketClient(webSocket, _service);
       });
       return;
     }
 
-    var resource = Resource.resources[path];
-    if (resource != null) {
-      // Serving up a static resource (e.g. .css, .html, .png).
+    Asset asset = assets[path];
+    if (asset != null) {
+      // Serving up a static asset (e.g. .css, .html, .png).
       request.response.headers.contentType =
-          ContentType.parse(resource.mimeType);
-      request.response.add(resource.data);
+          ContentType.parse(asset.mimeType);
+      request.response.add(asset.data);
       request.response.close();
       return;
     }

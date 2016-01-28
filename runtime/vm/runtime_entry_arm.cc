@@ -42,7 +42,7 @@ uword RuntimeEntry::GetEntryPoint() const {
 // Generate code to call into the stub which will call the runtime
 // function. Input for the stub is as follows:
 //   SP : points to the arguments and return value array.
-//   R5 : address of the runtime function to call.
+//   R9 : address of the runtime function to call.
 //   R4 : number of arguments to the call.
 void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   if (is_leaf()) {
@@ -51,7 +51,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
-    __ LoadFromOffset(kWord, R5, THR, Thread::OffsetFromThread(this));
+    __ LoadFromOffset(kWord, R9, THR, Thread::OffsetFromThread(this));
     __ LoadImmediate(R4, argument_count);
     __ BranchLink(*StubCode::CallToRuntime_entry(), kNotPatchable);
   }

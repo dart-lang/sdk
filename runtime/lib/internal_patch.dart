@@ -11,13 +11,25 @@ patch List makeFixedListUnmodifiable(List fixedLengthList)
 class VMLibraryHooks {
   // Example: "dart:isolate _Timer._factory"
   static var timerFactory;
+
   // Example: "dart:io _EventHandler._sendData"
   static var eventHandlerSendData;
+
+  // A nullary closure that answers the current clock value in milliseconds.
+  // Example: "dart:io _EventHandler._timerMillisecondClock"
+  static var timerMillisecondClock;
+
   // Implementation of Resource.readAsBytes.
   static var resourceReadAsBytes;
+
   // Implementation of package root/map provision.
-  static var getPackageRoot;
-  static var getPackageMap;
+  static var packageRootString;
+  static var packageConfigString;
+  static var packageRootUriFuture;
+  static var packageConfigUriFuture;
+  static var resolvePackageUriFuture;
+
+  static var platformScript;
 }
 
 patch class CodeUnits {

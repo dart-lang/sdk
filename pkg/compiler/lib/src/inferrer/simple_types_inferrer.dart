@@ -15,6 +15,9 @@ import '../compiler.dart' show
 import '../constants/values.dart' show
     ConstantValue,
     IntConstantValue;
+import '../core_types.dart' show
+    CoreClasses,
+    CoreTypes;
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir show
     Node;
 import '../dart_types.dart' show
@@ -49,148 +52,6 @@ import '../world.dart' show ClassWorld;
 import 'inferrer_visitor.dart';
 
 /**
- * An implementation of [TypeSystem] for [TypeMask].
- */
-class TypeMaskSystem implements TypeSystem<TypeMask> {
-  final Compiler compiler;
-  final ClassWorld classWorld;
-  TypeMaskSystem(Compiler compiler)
-      : this.compiler = compiler,
-        this.classWorld = compiler.world;
-
-  TypeMask narrowType(TypeMask type,
-                      DartType annotation,
-                      {bool isNullable: true}) {
-    if (annotation.treatAsDynamic) return type;
-    if (annotation.element == compiler.objectClass) return type;
-    TypeMask otherType;
-    if (annotation.isTypedef || annotation.isFunctionType) {
-      otherType = functionType;
-    } else if (annotation.isTypeVariable) {
-      // TODO(ngeoffray): Narrow to bound.
-      return type;
-    } else if (annotation.isVoid) {
-      otherType = nullType;
-    } else {
-      assert(annotation.isInterfaceType);
-      otherType = new TypeMask.nonNullSubtype(annotation.element, classWorld);
-    }
-    if (isNullable) otherType = otherType.nullable();
-    if (type == null) return otherType;
-    return type.intersection(otherType, classWorld);
-  }
-
-  TypeMask computeLUB(TypeMask firstType, TypeMask secondType) {
-    if (firstType == null) {
-      return secondType;
-    } else if (secondType == dynamicType || firstType == dynamicType) {
-      return dynamicType;
-    } else if (firstType == secondType) {
-      return firstType;
-    } else {
-      TypeMask union = firstType.union(secondType, classWorld);
-      // TODO(kasperl): If the union isn't nullable it seems wasteful
-      // to use dynamic. Fix that.
-      return union.containsAll(classWorld) ? dynamicType : union;
-    }
-  }
-
-  TypeMask allocateDiamondPhi(TypeMask firstType, TypeMask secondType) {
-    return computeLUB(firstType, secondType);
-  }
-
-  TypeMask get dynamicType => compiler.typesTask.dynamicType;
-  TypeMask get nullType => compiler.typesTask.nullType;
-  TypeMask get intType => compiler.typesTask.intType;
-  TypeMask get uint32Type => compiler.typesTask.uint32Type;
-  TypeMask get uint31Type => compiler.typesTask.uint31Type;
-  TypeMask get positiveIntType => compiler.typesTask.positiveIntType;
-  TypeMask get doubleType => compiler.typesTask.doubleType;
-  TypeMask get numType => compiler.typesTask.numType;
-  TypeMask get boolType => compiler.typesTask.boolType;
-  TypeMask get functionType => compiler.typesTask.functionType;
-  TypeMask get listType => compiler.typesTask.listType;
-  TypeMask get constListType => compiler.typesTask.constListType;
-  TypeMask get fixedListType => compiler.typesTask.fixedListType;
-  TypeMask get growableListType => compiler.typesTask.growableListType;
-  TypeMask get mapType => compiler.typesTask.mapType;
-  TypeMask get constMapType => compiler.typesTask.constMapType;
-  TypeMask get stringType => compiler.typesTask.stringType;
-  TypeMask get typeType => compiler.typesTask.typeType;
-  bool isNull(TypeMask mask) => mask.isEmpty && mask.isNullable;
-
-  TypeMask stringLiteralType(ast.DartString value) => stringType;
-  TypeMask boolLiteralType(ast.LiteralBool value) => boolType;
-
-  TypeMask nonNullSubtype(ClassElement type)
-      => new TypeMask.nonNullSubtype(type.declaration, classWorld);
-  TypeMask nonNullSubclass(ClassElement type)
-      => new TypeMask.nonNullSubclass(type.declaration, classWorld);
-  TypeMask nonNullExact(ClassElement type)
-      => new TypeMask.nonNullExact(type.declaration, classWorld);
-  TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
-
-  TypeMask allocateList(TypeMask type,
-                        ast.Node node,
-                        Element enclosing,
-                        [TypeMask elementType, int length]) {
-    return new ContainerTypeMask(type, node, enclosing, elementType, length);
-  }
-
-  TypeMask allocateMap(TypeMask type, ast.Node node, Element element,
-                       [List<TypeMask> keys, List<TypeMask> values]) {
-    return type;
-  }
-
-  TypeMask allocateClosure(ast.Node node, Element element) {
-    return functionType;
-  }
-
-  TypeMask newTypedSelector(TypeMask receiver, TypeMask mask) {
-    return receiver;
-  }
-
-  TypeMask addPhiInput(Local variable,
-                       TypeMask phiType,
-                       TypeMask newType) {
-    return computeLUB(phiType, newType);
-  }
-
-  TypeMask allocatePhi(ast.Node node,
-                       Local variable,
-                       TypeMask inputType) {
-    return inputType;
-  }
-
-  TypeMask allocateLoopPhi(ast.Node node,
-                           Local variable,
-                           TypeMask inputType) {
-    return inputType;
-  }
-
-  TypeMask simplifyPhi(ast.Node node,
-                       Local variable,
-                       TypeMask phiType) {
-    return phiType;
-  }
-
-  bool selectorNeedsUpdate(TypeMask type, TypeMask mask) {
-    return type != mask;
-  }
-
-  TypeMask refineReceiver(Selector selector,
-                          TypeMask mask,
-                          TypeMask receiverType,
-                          bool isConditional) {
-    TypeMask newType =
-        compiler.world.allFunctions.receiverType(selector, mask);
-    return receiverType.intersection(newType, classWorld);
-  }
-
-  TypeMask getConcreteTypeFor(TypeMask mask) => mask;
-}
-
-/**
  * Common super class used by [SimpleTypeInferrerVisitor] to propagate
  * type information about visited nodes, as well as to request type
  * information of elements.
@@ -206,6 +67,10 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   InferrerEngine(Compiler compiler, this.types)
       : this.compiler = compiler,
         this.classWorld = compiler.world;
+
+  CoreClasses get coreClasses => compiler.coreClasses;
+
+  CoreTypes get coreTypes => compiler.coreTypes;
 
   /**
    * Records the default type of parameter [parameter].
@@ -388,20 +253,20 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     for (var type in typesReturned) {
       T mappedType;
       if (type == native.SpecialType.JsObject) {
-        mappedType = types.nonNullExact(compiler.objectClass);
-      } else if (type.element == compiler.stringClass) {
+        mappedType = types.nonNullExact(coreClasses.objectClass);
+      } else if (type == coreTypes.stringType) {
         mappedType = types.stringType;
-      } else if (type.element == compiler.intClass) {
+      } else if (type == coreTypes.intType) {
         mappedType = types.intType;
-      } else if (type.element == compiler.numClass ||
-                 type.element == compiler.doubleClass) {
+      } else if (type == coreTypes.numType ||
+                 type == coreTypes.doubleType) {
         // Note: the backend double class is specifically for non-integer
         // doubles, and a native behavior returning 'double' does not guarantee
         // a non-integer return type, so we return the number type for those.
         mappedType = types.numType;
-      } else if (type.element == compiler.boolClass) {
+      } else if (type == coreTypes.boolType) {
         mappedType = types.boolType;
-      } else if (type.element == compiler.nullClass) {
+      } else if (type == coreTypes.nullType) {
         mappedType = types.nullType;
       } else if (type.isVoid) {
         mappedType = types.nullType;
@@ -451,9 +316,9 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   }
 
   bool isNativeElement(Element element) {
-    if (element.isNative) return true;
+    if (compiler.backend.isNative(element)) return true;
     return element.isClassMember
-        && element.enclosingClass.isNative
+        && compiler.backend.isNative(element.enclosingClass)
         && element.isField;
   }
 
@@ -472,6 +337,15 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   }
 }
 
+/// [SimpleTypeInferrerVisitor] can be thought of as a type-inference graph
+/// builder for a single element.
+///
+/// Calling [run] will start the work of visiting the body of the code to
+/// construct a set of infernece-nodes that abstractly represent what the code
+/// is doing.
+///
+/// This visitor is parameterized by an [InferenceEngine], which internally
+/// decides how to represent inference nodes.
 class SimpleTypeInferrerVisitor<T>
     extends InferrerVisitor<T, InferrerEngine<T, TypeSystem<T>>> {
   T returnType;
@@ -555,7 +429,7 @@ class SimpleTypeInferrerVisitor<T>
       inferrer.setDefaultTypeOfParameter(element, type);
     });
 
-    if (analyzedElement.isNative) {
+    if (compiler.backend.isNative(analyzedElement)) {
       // Native methods do not have a body, and we currently just say
       // they return dynamic.
       return types.dynamicType;
@@ -637,27 +511,55 @@ class SimpleTypeInferrerVisitor<T>
           }
         });
       }
-      returnType = types.nonNullExact(cls);
+      if (analyzedElement.isGenerativeConstructor && cls.isAbstract) {
+        if (compiler.world.isDirectlyInstantiated(cls)) {
+          returnType = types.nonNullExact(cls);
+        } else if (compiler.world.isIndirectlyInstantiated(cls)) {
+          returnType = types.nonNullSubclass(cls);
+        } else  {
+          // TODO(johnniwinther): Avoid analyzing [analyzedElement] in this
+          // case; it's never called.
+          returnType = types.nonNullEmpty();
+        }
+      } else {
+        returnType = types.nonNullExact(cls);
+      }
     } else {
       signature.forEachParameter((LocalParameterElement element) {
         locals.update(element, inferrer.typeOfElement(element), node);
       });
       visit(node.body);
-      if (function.asyncMarker != AsyncMarker.SYNC) {
-        // TODO(herhut): Should be type Future/Iterable/Stream instead of
-        // dynamic.
-        returnType = inferrer.addReturnTypeFor(
-            analyzedElement, returnType, types.dynamicType);
-      } else if (returnType == null) {
-        // No return in the body.
-        returnType = locals.seenReturnOrThrow
-            ? types.nonNullEmpty()  // Body always throws.
-            : types.nullType;
-      } else if (!locals.seenReturnOrThrow) {
-        // We haven't seen returns on all branches. So the method may
-        // also return null.
-        returnType = inferrer.addReturnTypeFor(
-            analyzedElement, returnType, types.nullType);
+      switch (function.asyncMarker) {
+        case AsyncMarker.SYNC:
+          if (returnType == null) {
+            // No return in the body.
+            returnType = locals.seenReturnOrThrow
+                ? types.nonNullEmpty()  // Body always throws.
+                : types.nullType;
+          } else if (!locals.seenReturnOrThrow) {
+            // We haven't seen returns on all branches. So the method may
+            // also return null.
+            returnType = inferrer.addReturnTypeFor(
+                analyzedElement, returnType, types.nullType);
+          }
+          break;
+
+        case AsyncMarker.SYNC_STAR:
+          // TODO(asgerf): Maybe make a ContainerTypeMask for these? The type
+          //               contained is the method body's return type.
+          returnType = inferrer.addReturnTypeFor(
+              analyzedElement, returnType, types.syncStarIterableType);
+          break;
+
+        case AsyncMarker.ASYNC:
+          returnType = inferrer.addReturnTypeFor(
+                analyzedElement, returnType, types.asyncFutureType);
+          break;
+
+        case AsyncMarker.ASYNC_STAR:
+          returnType = inferrer.addReturnTypeFor(
+                analyzedElement, returnType, types.asyncStarStreamType);
+          break;
       }
     }
 
@@ -901,7 +803,7 @@ class SimpleTypeInferrerVisitor<T>
       T getterType;
       T newType;
 
-      if (Elements.isErroneous(element)) return types.dynamicType;
+      if (Elements.isMalformed(element)) return types.dynamicType;
 
       if (Elements.isStaticOrTopLevelField(element)) {
         Element getterElement = elements[node.selector];
@@ -1260,7 +1162,7 @@ class SimpleTypeInferrerVisitor<T>
                           T rhsType,
                           ast.Node rhs) {
     ArgumentsTypes arguments = new ArgumentsTypes<T>([rhsType], null);
-    if (Elements.isErroneous(element)) {
+    if (Elements.isMalformed(element)) {
       // Code will always throw.
     } else if (Elements.isStaticOrTopLevelField(element)) {
       handleStaticSend(node, setterSelector, setterMask, element, arguments);
@@ -2211,7 +2113,7 @@ class SimpleTypeInferrerVisitor<T>
 
   T visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
     Element element = elements.getRedirectingTargetConstructor(node);
-    if (Elements.isErroneous(element)) {
+    if (Elements.isMalformed(element)) {
       recordReturnType(types.dynamicType);
     } else {
       // We don't create a selector for redirecting factories, and
@@ -2276,9 +2178,9 @@ class SimpleTypeInferrerVisitor<T>
   T visitAsyncForIn(ast.AsyncForIn node) {
     T expressionType = visit(node.expression);
 
-    Selector currentSelector = elements.getCurrentSelector(node);
+    Selector currentSelector = Selectors.current;
     TypeMask currentMask = elements.getCurrentTypeMask(node);
-    Selector moveNextSelector = elements.getMoveNextSelector(node);
+    Selector moveNextSelector = Selectors.moveNext;
     TypeMask moveNextMask = elements.getMoveNextTypeMask(node);
 
     js.JavaScriptBackend backend = compiler.backend;
@@ -2295,11 +2197,11 @@ class SimpleTypeInferrerVisitor<T>
 
   T visitSyncForIn(ast.SyncForIn node) {
     T expressionType = visit(node.expression);
-    Selector iteratorSelector = elements.getIteratorSelector(node);
+    Selector iteratorSelector = Selectors.iterator;
     TypeMask iteratorMask = elements.getIteratorTypeMask(node);
-    Selector currentSelector = elements.getCurrentSelector(node);
+    Selector currentSelector = Selectors.current;
     TypeMask currentMask = elements.getCurrentTypeMask(node);
-    Selector moveNextSelector = elements.getMoveNextSelector(node);
+    Selector moveNextSelector = Selectors.moveNext;
     TypeMask moveNextMask = elements.getMoveNextTypeMask(node);
 
     T iteratorType = handleDynamicSend(

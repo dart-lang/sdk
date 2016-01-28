@@ -28,11 +28,11 @@ import 'dart:_async_await_error_codes' as async_error_codes;
 class _AsyncRun {
   @patch
   static void _scheduleImmediate(void callback()) {
-    scheduleImmediateClosure(callback);
+    _scheduleImmediateClosure(callback);
   }
 
   // Lazily initialized.
-  static final Function scheduleImmediateClosure =
+  static final Function _scheduleImmediateClosure =
       _initializeScheduleImmediate();
 
   static Function _initializeScheduleImmediate() {
@@ -196,22 +196,28 @@ void _awaitOnObject(object, _WrappedAsyncBody bodyFunction) {
 typedef void _WrappedAsyncBody(int errorCode, dynamic result);
 
 _WrappedAsyncBody _wrapJsFunctionForAsync(dynamic /* js function */ function) {
-  var protected = JS('', """
-    // Invokes [function] with [errorCode] and [result].
-    //
-    // If (and as long as) the invocation throws, calls [function] again,
-    // with an error-code.
-    function(errorCode, result) {
-      while (true) {
-        try {
-          #(errorCode, result);
-          break;
-        } catch (error) {
-          result = error;
-          errorCode = #;
-        }
-      }
-    }""", function, async_error_codes.ERROR);
+  var protected = JS(
+      '',
+      """
+        (function (fn, ERROR) {
+          // Invokes [function] with [errorCode] and [result].
+          //
+          // If (and as long as) the invocation throws, calls [function] again,
+          // with an error-code.
+          return function(errorCode, result) {
+            while (true) {
+              try {
+                fn(errorCode, result);
+                break;
+              } catch (error) {
+                result = error;
+                errorCode = ERROR;
+              }
+            }
+          }
+        })(#, #)""",
+      function, async_error_codes.ERROR);
+
   return Zone.current.registerBinaryCallback((int errorCode, dynamic result) {
     JS('', '#(#, #)', protected, errorCode, result);
   });
@@ -445,22 +451,25 @@ class _SyncStarIterator implements Iterator {
   _SyncStarIterator(this._body);
 
   _runBody() {
-    return JS('', '''
-// Invokes [body] with [errorCode] and [result].
-//
-// If (and as long as) the invocation throws, calls [function] again,
-// with an error-code.
-(function(body) {
-  var errorValue, errorCode = #;
-  while (true) {
-    try {
-      return body(errorCode, errorValue);
-    } catch (error) {
-      errorValue = error;
-      errorCode = #
-    }
-  }
-})(#)''', async_error_codes.SUCCESS, async_error_codes.ERROR, _body);
+    // TODO(sra): Find a way to hard-wire SUCCESS and ERROR codes.
+    return JS('',
+        '''
+        // Invokes [body] with [errorCode] and [result].
+        //
+        // If (and as long as) the invocation throws, calls [function] again,
+        // with an error-code.
+        (function(body, SUCCESS, ERROR) {
+          var errorValue, errorCode = SUCCESS;
+          while (true) {
+            try {
+              return body(errorCode, errorValue);
+            } catch (error) {
+              errorValue = error;
+              errorCode = ERROR;
+            }
+          }
+        })(#, #, #)''',
+        _body, async_error_codes.SUCCESS, async_error_codes.ERROR);
   }
 
 

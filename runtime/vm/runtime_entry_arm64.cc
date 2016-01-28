@@ -52,14 +52,14 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     // We cache the Dart stack pointer and the stack limit in callee-saved
     // registers, then align and call, restoring CSP and SP on return from the
     // call.
-    __ mov(R25, CSP);
-    __ mov(R26, SP);
+    __ mov(R24, CSP);
+    __ mov(R25, SP);
     __ ReserveAlignedFrameSpace(0);
     __ mov(CSP, SP);
     __ ldr(TMP, Address(THR, Thread::OffsetFromThread(this)));
     __ blr(TMP);
-    __ mov(SP, R26);
-    __ mov(CSP, R25);
+    __ mov(SP, R25);
+    __ mov(CSP, R24);
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

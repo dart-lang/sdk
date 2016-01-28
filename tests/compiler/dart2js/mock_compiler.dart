@@ -13,12 +13,13 @@ import 'package:compiler/src/common/names.dart' show
     Uris;
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
-import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/js_backend/js_backend.dart'
-    show JavaScriptBackend;
+import 'package:compiler/src/js_backend/backend_helpers.dart'
+    show BackendHelpers;
+import 'package:compiler/src/js_backend/lookup_map_analysis.dart'
+    show LookupMapAnalysis;
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/resolution/members.dart';
 import 'package:compiler/src/resolution/registry.dart';
@@ -42,14 +43,9 @@ import 'package:compiler/src/deferred_load.dart'
          OutputUnit;
 
 import 'mock_libraries.dart';
+import 'diagnostic_helper.dart';
 
-class WarningMessage {
-  Spannable node;
-  Message message;
-  WarningMessage(this.node, this.message);
-
-  toString() => message.kind.toString();
-}
+export 'diagnostic_helper.dart';
 
 final Uri PATCH_CORE = new Uri(scheme: 'patch', path: 'core');
 
@@ -57,11 +53,6 @@ typedef String LibrarySourceProvider(Uri uri);
 
 class MockCompiler extends Compiler {
   api.DiagnosticHandler diagnosticHandler;
-  List<WarningMessage> warnings;
-  List<WarningMessage> errors;
-  List<WarningMessage> hints;
-  List<WarningMessage> infos;
-  List<WarningMessage> crashes;
   /// Expected number of warnings. If `null`, the number of warnings is
   /// not checked.
   final int expectedWarnings;
@@ -71,6 +62,7 @@ class MockCompiler extends Compiler {
   Node parsedTree;
   final String testedPatchVersion;
   final LibrarySourceProvider librariesOverride;
+  final DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
 
   MockCompiler.internal(
       {Map<String, String> coreSource,
@@ -109,28 +101,26 @@ class MockCompiler extends Compiler {
               trustTypeAnnotations: trustTypeAnnotations,
               trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
               diagnosticOptions:
-                  new DiagnosticOptions(showPackageWarnings: true),
+                  new DiagnosticOptions(shownPackageWarnings: const []),
               outputProvider: new LegacyCompilerOutput(outputProvider)) {
     this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);
 
-    clearMessages();
-
     registerSource(Uris.dart_core,
                    buildLibrarySource(DEFAULT_CORE_LIBRARY, coreSource));
     registerSource(PATCH_CORE, DEFAULT_PATCH_CORE_SOURCE);
 
-    registerSource(JavaScriptBackend.DART_JS_HELPER,
+    registerSource(BackendHelpers.DART_JS_HELPER,
                    buildLibrarySource(DEFAULT_JS_HELPER_LIBRARY));
-    registerSource(JavaScriptBackend.DART_FOREIGN_HELPER,
+    registerSource(BackendHelpers.DART_FOREIGN_HELPER,
                    buildLibrarySource(DEFAULT_FOREIGN_HELPER_LIBRARY));
-    registerSource(JavaScriptBackend.DART_INTERCEPTORS,
+    registerSource(BackendHelpers.DART_INTERCEPTORS,
                    buildLibrarySource(DEFAULT_INTERCEPTORS_LIBRARY));
-    registerSource(JavaScriptBackend.DART_ISOLATE_HELPER,
+    registerSource(BackendHelpers.DART_ISOLATE_HELPER,
                    buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY));
     registerSource(Uris.dart_mirrors, DEFAULT_MIRRORS_SOURCE);
-    registerSource(JavaScriptBackend.DART_JS_MIRRORS,
+    registerSource(BackendHelpers.DART_JS_MIRRORS,
         DEFAULT_JS_MIRRORS_SOURCE);
 
     Map<String, String> asyncLibrarySource = <String, String>{};
@@ -140,7 +130,7 @@ class MockCompiler extends Compiler {
     }
     registerSource(Uris.dart_async,
                    buildLibrarySource(asyncLibrarySource));
-    registerSource(JavaScriptBackend.PACKAGE_LOOKUP_MAP,
+    registerSource(LookupMapAnalysis.PACKAGE_LOOKUP_MAP,
                    buildLibrarySource(DEFAULT_LOOKUP_MAP_LIBRARY));
   }
 
@@ -159,20 +149,22 @@ class MockCompiler extends Compiler {
       // dynamic invocation the ArgumentTypesRegistry eventually iterates over
       // the interfaces of the Object class which would be 'null' if the class
       // wasn't resolved.
-      objectClass.ensureResolved(resolution);
+      coreClasses.objectClass.ensureResolved(resolution);
     }).then((_) => uri);
   }
 
-  Future runCompiler(Uri uri, [String mainSource = ""]) {
+  Future run(Uri uri, [String mainSource = ""]) {
     return init(mainSource).then((Uri mainUri) {
-      return super.runCompiler(uri == null ? mainUri : uri);
+      return super.run(uri == null ? mainUri : uri);
     }).then((result) {
       if (expectedErrors != null &&
-          expectedErrors != errors.length) {
-        throw "unexpected error during compilation ${errors}";
+          expectedErrors != diagnosticCollector.errors.length) {
+        throw "unexpected error during compilation "
+              "${diagnosticCollector.errors}";
       } else if (expectedWarnings != null &&
-                 expectedWarnings != warnings.length) {
-        throw "unexpected warnings during compilation ${warnings}";
+                 expectedWarnings != diagnosticCollector.warnings.length) {
+        throw "unexpected warnings during compilation "
+              "${diagnosticCollector.warnings}";
       } else {
         return result;
       }
@@ -194,54 +186,29 @@ class MockCompiler extends Compiler {
     sourceFiles[uri.toString()] = new MockFile(source);
   }
 
-  // TODO(johnniwinther): Remove this when we don't filter certain type checker
-  // warnings.
-  void reportWarning(
-      DiagnosticMessage message,
-      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
-    reportDiagnostic(message, infos, api.Diagnostic.WARNING);
-  }
-
   void reportDiagnostic(DiagnosticMessage message,
                         List<DiagnosticMessage> infoMessages,
                         api.Diagnostic kind) {
 
     void processMessage(DiagnosticMessage message, api.Diagnostic kind) {
-      var diagnostic = new WarningMessage(message.spannable, message.message);
-      if (kind == api.Diagnostic.CRASH) {
-        crashes.add(diagnostic);
-      } else if (kind == api.Diagnostic.ERROR) {
-        errors.add(diagnostic);
-      } else if (kind == api.Diagnostic.WARNING) {
-        warnings.add(diagnostic);
-      } else if (kind == api.Diagnostic.INFO) {
-        infos.add(diagnostic);
-      } else if (kind == api.Diagnostic.HINT) {
-        hints.add(diagnostic);
+      SourceSpan span = message.sourceSpan;
+      Uri uri;
+      int begin;
+      int end;
+      String text = '${message.message}';
+      if (span != null) {
+        uri = span.uri;
+        begin = span.begin;
+        end = span.end;
       }
+      diagnosticCollector.report(message.message, uri, begin, end, text, kind);
       if (diagnosticHandler != null) {
-        SourceSpan span = message.sourceSpan;
-        if (span != null) {
-          diagnosticHandler(
-              span.uri, span.begin, span.end, '${message.message}', kind);
-        } else {
-          diagnosticHandler(null, null, null, '${message.message}', kind);
-        }
+        diagnosticHandler(uri, begin, end, text, kind);
       }
     }
 
     processMessage(message, kind);
     infoMessages.forEach((i) => processMessage(i, api.Diagnostic.INFO));
-  }
-
-  bool get compilationFailed => !crashes.isEmpty || !errors.isEmpty;
-
-  void clearMessages() {
-    warnings = [];
-    errors = [];
-    hints = [];
-    infos = [];
-    crashes = [];
   }
 
   CollectingTreeElements resolveStatement(String text) {
@@ -316,74 +283,6 @@ class MockCompiler extends Compiler {
   static Future create(f(MockCompiler compiler)) {
     MockCompiler compiler = new MockCompiler.internal();
     return compiler.init().then((_) => f(compiler));
-  }
-}
-
-/// A function the checks [message]. If the check fails or if [message] is
-/// `null`, an error string is returned. Otherwise `null` is returned.
-typedef String CheckMessage(Message message);
-
-CheckMessage checkMessage(MessageKind kind, Map arguments) {
-  return (Message message) {
-    if (message == null) return '$kind';
-    if (message.kind != kind) return 'Expected message $kind, found $message.';
-    for (var key in arguments.keys) {
-      if (!message.arguments.containsKey(key)) {
-        return 'Expected argument $key not found in $message.kind.';
-      }
-      String expectedValue = '${arguments[key]}';
-      String foundValue = '${message.arguments[key]}';
-      if (expectedValue != foundValue) {
-        return 'Expected argument $key with value $expectedValue, '
-               'found $foundValue.';
-      }
-    }
-    return null;
-  };
-}
-
-void compareWarningKinds(String text,
-                         List expectedWarnings,
-                         List<WarningMessage> foundWarnings) {
-  compareMessageKinds(text, expectedWarnings, foundWarnings, 'warning');
-}
-
-/// [expectedMessages] must be a list of either [MessageKind] or [CheckMessage].
-void compareMessageKinds(String text,
-                         List expectedMessages,
-                         List<WarningMessage> foundMessages,
-                         String kind) {
-  var fail = (message) => Expect.fail('$text: $message');
-  HasNextIterator expectedIterator =
-      new HasNextIterator(expectedMessages.iterator);
-  HasNextIterator<WarningMessage> foundIterator =
-      new HasNextIterator(foundMessages.iterator);
-  while (expectedIterator.hasNext && foundIterator.hasNext) {
-    var expected = expectedIterator.next();
-    var found = foundIterator.next();
-    if (expected is MessageKind) {
-      Expect.equals(expected, found.message.kind);
-    } else if (expected is CheckMessage) {
-      String error = expected(found.message);
-      Expect.isNull(error, error);
-    } else {
-      Expect.fail("Unexpected $kind value: $expected.");
-    }
-  }
-  if (expectedIterator.hasNext) {
-    do {
-      var expected = expectedIterator.next();
-      if (expected is CheckMessage) expected = expected(null);
-      print('Expected $kind "${expected}" did not occur');
-    } while (expectedIterator.hasNext);
-    fail('Too few ${kind}s');
-  }
-  if (foundIterator.hasNext) {
-    do {
-      WarningMessage message = foundIterator.next();
-      print('Additional $kind "${message}: ${message.message}"');
-    } while (foundIterator.hasNext);
-    fail('Too many ${kind}s');
   }
 }
 

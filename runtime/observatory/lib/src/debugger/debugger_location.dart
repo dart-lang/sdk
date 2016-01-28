@@ -97,7 +97,8 @@ class DebuggerLocation {
         return new DebuggerLocation.file(scripts[0], line, col);
       } else {
         // TODO(turnidge): Allow the user to disambiguate.
-        return new DebuggerLocation.error("Script '${scriptName}' is ambigous");
+        return
+            new DebuggerLocation.error("Script '${scriptName}' is ambiguous");
       }
     } else {
       // No script provided.  Default to top of stack for now.
@@ -253,7 +254,7 @@ class DebuggerLocation {
       } else {
         // TODO(turnidge): Allow the user to disambiguate.
         return new DebuggerLocation.error(
-            "Function '${match.group(0)}' is ambigous");
+            "Function '${match.group(0)}' is ambiguous");
       }
       return new DebuggerLocation.error('foo');
     });

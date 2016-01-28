@@ -57,7 +57,6 @@ class ObjectPointerVisitor;
   V(AnonymousClosure, "<anonymous closure>")                                   \
   V(ImplicitClosure, "<implicit closure>")                                     \
   V(ClosureParameter, ":closure")                                              \
-  V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
   V(AssertionError, "_AssertionError")                                         \
   V(CastError, "_CastError")                                                   \
@@ -305,7 +304,6 @@ class ObjectPointerVisitor;
   V(OutOfMemoryError, "OutOfMemoryError")                                      \
   V(NullThrownError, "NullThrownError")                                        \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
-  V(IsolateUnhandledException, "_IsolateUnhandledException")                   \
   V(JavascriptIntegerOverflowError, "_JavascriptIntegerOverflowError")         \
   V(JavascriptCompatibilityError, "_JavascriptCompatibilityError")             \
   V(BooleanExpression, "boolean expression")                                   \

@@ -543,6 +543,10 @@ void MIPSDecoder::DecodeCop1(Instr* instr) {
         Format(instr, "mov.'fmt 'fd, 'fs");
         break;
       }
+      case COP1_NEG: {
+        Format(instr, "neg.'fmt 'fd, 'fs");
+        break;
+      }
       case COP1_C_F: {
         Format(instr, "c.f.'fmt 'fs, 'ft");
         break;

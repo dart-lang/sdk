@@ -42,9 +42,6 @@ class BaseIsolate {
   Thread* mutator_thread_;
 
  private:
-  // During migration, some deprecated interfaces will default to using the
-  // mutator_thread_ (can't use accessor in Isolate due to circular deps).
-  friend class StackResource;
   DISALLOW_COPY_AND_ASSIGN(BaseIsolate);
 };
 

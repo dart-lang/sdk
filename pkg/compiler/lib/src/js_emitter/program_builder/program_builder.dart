@@ -16,16 +16,19 @@ import '../js_emitter.dart' show
     TypeTestProperties;
 import '../model.dart';
 
+import '../../closure.dart' show
+    ClosureFieldElement;
 import '../../common.dart';
 import '../../common/names.dart' show
-    Names;
+    Names,
+    Selectors;
 import '../../compiler.dart' show
     Compiler;
 import '../../constants/values.dart' show
     ConstantValue,
     InterceptorConstantValue;
-import '../../closure.dart' show
-    ClosureFieldElement;
+import '../../core_types.dart' show
+    CoreClasses;
 import '../../dart_types.dart' show
     DartType,
     FunctionType,
@@ -45,13 +48,13 @@ import '../../elements/elements.dart' show
     TypedefElement,
     VariableElement;
 import '../../js/js.dart' as js;
+import '../../js_backend/backend_helpers.dart' show
+    BackendHelpers;
 import '../../js_backend/js_backend.dart' show
     Namer,
     JavaScriptBackend,
     JavaScriptConstantCompiler,
     StringBackedName;
-import '../../universe/call_structure.dart' show
-    CallStructure;
 import '../../universe/selector.dart' show
     Selector;
 import '../../universe/universe.dart' show
@@ -96,6 +99,7 @@ class ProgramBuilder {
         this._registry = new Registry(compiler);
 
   JavaScriptBackend get backend => _compiler.backend;
+  BackendHelpers get helpers => backend.helpers;
   Universe get universe => _compiler.codegenWorld;
 
   /// Mapping from [ClassElement] to constructed [Class]. We need this to
@@ -306,15 +310,12 @@ class ProgramBuilder {
 
   List<StaticField> _buildStaticLazilyInitializedFields(
       LibrariesMap librariesMap) {
-    // TODO(floitsch): lazy fields should just be in their respective
-    // libraries.
-    if (librariesMap != _registry.mainLibrariesMap) {
-      return const <StaticField>[];
-    }
-
     JavaScriptConstantCompiler handler = backend.constants;
-    List<VariableElement> lazyFields =
-        handler.getLazilyInitializedFieldsForEmission();
+    DeferredLoadTask loadTask = _compiler.deferredLoadTask;
+    Iterable<VariableElement> lazyFields = handler
+        .getLazilyInitializedFieldsForEmission()
+        .where((element) =>
+            loadTask.outputUnitForElement(element) == librariesMap.outputUnit);
     return Elements.sortedByPosition(lazyFields)
         .map(_buildLazyField)
         .where((field) => field != null)  // Happens when the field was unused.
@@ -350,15 +351,14 @@ class ProgramBuilder {
   }
 
   void _addJsInteropStubs(LibrariesMap librariesMap) {
-    if (_classes.containsKey(_compiler.objectClass)) {
-      var toStringInvocation = namer.invocationName(new Selector.call(
-          new Name("toString", _compiler.objectClass.library),
-          CallStructure.NO_ARGS));
+    if (_classes.containsKey(_compiler.coreClasses.objectClass)) {
+      var toStringInvocation = namer.invocationName(Selectors.toString_);
       // TODO(jacobr): register toString as used so that it is always accessible
       // from JavaScript.
-      _classes[_compiler.objectClass].callStubs.add(_buildStubMethod(
-          new StringBackedName("toString"),
-          js.js('function() { return this.#(this) }', toStringInvocation)));
+      _classes[_compiler.coreClasses.objectClass].callStubs.add(
+          _buildStubMethod(
+              new StringBackedName("toString"),
+              js.js('function() { return this.#(this) }', toStringInvocation)));
     }
 
     // We add all members from classes marked with isJsInterop to the base
@@ -368,11 +368,11 @@ class ProgramBuilder {
     // a regular getter that returns a JavaScript function and tearing off
     // a method in the case where there exist multiple JavaScript classes
     // that conflict on whether the member is a getter or a method.
-    var interceptorClass = _classes[backend.jsJavaScriptObjectClass];
+    var interceptorClass = _classes[helpers.jsJavaScriptObjectClass];
     var stubNames = new Set<String>();
     librariesMap.forEach((LibraryElement library, List<Element> elements) {
       for (Element e in elements) {
-        if (e is ClassElement && e.isJsInterop) {
+        if (e is ClassElement && backend.isJsInterop(e)) {
           e.declaration.forEachMember((_, Element member) {
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
@@ -423,7 +423,7 @@ class ProgramBuilder {
                   functionType = returnType;
                 } else if (returnType.treatAsDynamic ||
                     _compiler.types.isSubtype(returnType,
-                        backend.resolution.coreTypes.functionType)) {
+                        backend.coreTypes.functionType)) {
                   if (returnType.isTypedef) {
                     TypedefType typedef = returnType;
                     // TODO(jacobr): can we just use typdef.unaliased instead?
@@ -499,7 +499,7 @@ class ProgramBuilder {
         .map(_buildStaticMethod)
         .toList();
 
-    if (library == backend.interceptorsLibrary) {
+    if (library == helpers.interceptorsLibrary) {
       statics.addAll(_generateGetInterceptorMethods());
       statics.addAll(_generateOneShotInterceptors());
     }
@@ -531,12 +531,12 @@ class ProgramBuilder {
         element, name, null, [], instanceFields, [], [], [], [], [], [], null,
         isDirectlyInstantiated: true,
         onlyForRti: false,
-        isNative: element.isNative);
+        isNative: backend.isNative(element));
   }
 
   Class _buildClass(ClassElement element) {
     bool onlyForRti = collector.classesOnlyNeededForRti.contains(element);
-    if (element.isJsInterop) {
+    if (backend.isJsInterop(element)) {
       // TODO(jacobr): check whether the class has any active static fields
       // if it does not we can suppress it completely.
       onlyForRti = true;
@@ -578,7 +578,7 @@ class ProgramBuilder {
 
     List<StubMethod> noSuchMethodStubs = <StubMethod>[];
 
-    if (backend.enabledNoSuchMethod && element == _compiler.objectClass) {
+    if (backend.enabledNoSuchMethod && element.isObject) {
       Map<js.Name, Selector> selectors =
           classStubGenerator.computeSelectorsForNsmHandlers();
       selectors.forEach((js.Name name, Selector selector) {
@@ -594,7 +594,7 @@ class ProgramBuilder {
       });
     }
 
-    if (element == backend.closureClass) {
+    if (element == helpers.closureClass) {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
       js.Name name = namer.getterForMember(Names.call);
@@ -622,9 +622,9 @@ class ProgramBuilder {
 
     List<StubMethod> checkedSetters = <StubMethod>[];
     List<StubMethod> isChecks = <StubMethod>[];
-    if (element.isJsInterop) {
+    if (backend.isJsInterop(element)) {
       typeTests.properties.forEach((js.Name name, js.Node code) {
-        _classes[backend.jsInterceptorClass].isChecks.add(
+        _classes[helpers.jsInterceptorClass].isChecks.add(
             _buildStubMethod(name, code));
       });
     } else {
@@ -649,12 +649,12 @@ class ProgramBuilder {
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a class.
     Holder holder = _registry.registerHolder(holderName);
-    bool isInstantiated = !element.isJsInterop &&
+    bool isInstantiated = !backend.isJsInterop(element) &&
         _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
 
     Class result;
     if (element.isMixinApplication && !onlyForRti) {
-      assert(!element.isNative);
+      assert(!backend.isNative(element));
       assert(methods.isEmpty);
 
       result = new MixinApplication(element,
@@ -680,7 +680,7 @@ class ProgramBuilder {
                          typeTests.functionTypeIndex,
                          isDirectlyInstantiated: isInstantiated,
                          onlyForRti: onlyForRti,
-                         isNative: element.isNative);
+                         isNative: backend.isNative(element));
     }
     _classes[element] = result;
     return result;
@@ -864,7 +864,7 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(_compiler, namer, backend);
 
-    String holderName = namer.globalObjectFor(backend.interceptorsLibrary);
+    String holderName = namer.globalObjectFor(helpers.interceptorsLibrary);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
@@ -929,7 +929,7 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(_compiler, namer, backend);
 
-    String holderName = namer.globalObjectFor(backend.interceptorsLibrary);
+    String holderName = namer.globalObjectFor(helpers.interceptorsLibrary);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);

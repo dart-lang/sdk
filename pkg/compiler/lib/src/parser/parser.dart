@@ -98,11 +98,12 @@ class FormalParameterType {
 class Parser {
   final Listener listener;
   bool mayParseFunctionExpressions = true;
-  bool yieldIsKeyword;
-  bool awaitIsKeyword;
+  final bool enableConditionalDirectives;
+  bool asyncAwaitKeywordsEnabled;
 
   Parser(this.listener,
-         {this.yieldIsKeyword: false, this.awaitIsKeyword: false});
+      {this.enableConditionalDirectives: false,
+       this.asyncAwaitKeywordsEnabled: false});
 
   Token parseUnit(Token token) {
     listener.beginCompilationUnit(token);
@@ -151,12 +152,13 @@ class Parser {
     return token;
   }
 
-  /// import uri (as identifier)? combinator* ';'
+  /// import uri (if (test) uri)* (as identifier)? combinator* ';'
   Token parseImport(Token token) {
     Token importKeyword = token;
     listener.beginImport(importKeyword);
     assert(optional('import', token));
     token = parseLiteralStringOrRecoverExpression(token.next);
+    token = parseConditionalUris(token);
     Token deferredKeyword;
     if (optional('deferred', token)) {
       deferredKeyword = token;
@@ -174,12 +176,57 @@ class Parser {
     return token;
   }
 
-  /// export uri combinator* ';'
+  /// if (test) uri
+  Token parseConditionalUris(Token token) {
+    listener.beginConditionalUris(token);
+    int count = 0;
+    if (enableConditionalDirectives) {
+      while (optional('if', token)) {
+        count++;
+        token = parseConditionalUri(token);
+      }
+    }
+    listener.endConditionalUris(count);
+    return token;
+  }
+
+  Token parseConditionalUri(Token token) {
+    listener.beginConditionalUri(token);
+    Token ifKeyword = token;
+    token = expect('if', token);
+    token = expect('(', token);
+    token = parseDottedName(token);
+    Token equalitySign;
+    if (optional('==', token)) {
+      equalitySign = token;
+      token = parseLiteralStringOrRecoverExpression(token.next);
+    }
+    token = expect(')', token);
+    token = parseLiteralStringOrRecoverExpression(token);
+    listener.endConditionalUri(ifKeyword, equalitySign);
+    return token;
+  }
+
+  Token parseDottedName(Token token) {
+    listener.beginDottedName(token);
+    Token firstIdentifier = token;
+    token = parseIdentifier(token);
+    int count = 1;
+    while (optional('.', token)) {
+      token = parseIdentifier(token.next);
+      count++;
+    }
+    listener.endDottedName(count, firstIdentifier);
+    return token;
+  }
+
+  /// export uri conditional-uris* combinator* ';'
   Token parseExport(Token token) {
     Token exportKeyword = token;
     listener.beginExport(exportKeyword);
     assert(optional('export', token));
     token = parseLiteralStringOrRecoverExpression(token.next);
+    token = parseConditionalUris(token);
     token = parseCombinators(token);
     Token semicolon = token;
     token = expect(';', token);
@@ -660,15 +707,27 @@ class Parser {
 
   /**
    * Returns true if the stringValue of the [token] is either [value1],
+   * [value2], or [value3].
+   */
+  bool isOneOf3(Token token, String value1, String value2, String value3) {
+    String stringValue = token.stringValue;
+    return
+        value1 == stringValue ||
+        value2 == stringValue ||
+        value3 == stringValue;
+  }
+
+  /**
+   * Returns true if the stringValue of the [token] is either [value1],
    * [value2], [value3], or [value4].
    */
   bool isOneOf4(Token token,
                 String value1, String value2, String value3, String value4) {
     String stringValue = token.stringValue;
-    return identical(value1, stringValue) ||
-           identical(value2, stringValue) ||
-           identical(value3, stringValue) ||
-           identical(value4, stringValue);
+    return value1 == stringValue ||
+           value2 == stringValue ||
+           value3 == stringValue ||
+           value4 == stringValue;
   }
 
   bool notEofOrValue(String value, Token token) {
@@ -931,6 +990,8 @@ class Parser {
                             Token name) {
 
     Token externalModifier;
+    // TODO(johnniwinther): Move error reporting to resolution to give more
+    // specific error messages.
     for (Token modifier in modifiers) {
       if (externalModifier == null && optional('external', modifier)) {
         externalModifier = modifier;
@@ -954,12 +1015,10 @@ class Parser {
     Token token = parseIdentifier(name);
 
     token = parseFormalParametersOpt(token);
-    bool previousYieldIsKeyword = yieldIsKeyword;
-    bool previousAwaitIsKeyword = awaitIsKeyword;
+    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
     token = parseAsyncModifier(token);
     token = parseFunctionBody(token, false, externalModifier != null);
-    yieldIsKeyword = previousYieldIsKeyword;
-    awaitIsKeyword = previousAwaitIsKeyword;
+    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
     Token endToken = token;
     token = token.next;
     if (token.kind == BAD_INPUT_TOKEN) {
@@ -1306,6 +1365,8 @@ class Parser {
     Token constModifier;
     int modifierCount = 0;
     int allowedModifierCount = 1;
+    // TODO(johnniwinther): Move error reporting to resolution to give more
+    // specific error messages.
     for (Token modifier in modifiers) {
       if (externalModifier == null && optional('external', modifier)) {
         modifierCount++;
@@ -1337,6 +1398,11 @@ class Parser {
             modifier, MessageKind.EXTRANEOUS_MODIFIER, {'modifier': modifier});
       }
     }
+    if (getOrSet != null &&  constModifier != null) {
+      listener.reportError(
+          constModifier, MessageKind.EXTRANEOUS_MODIFIER,
+          {'modifier': constModifier});
+    }
     parseModifierList(modifiers);
 
     if (type == null) {
@@ -1348,7 +1414,6 @@ class Parser {
     if (optional('operator', name)) {
       token = parseOperatorName(name);
       if (staticModifier != null) {
-        // TODO(ahe): Consider a more specific error message.
         listener.reportError(
             staticModifier, MessageKind.EXTRANEOUS_MODIFIER,
             {'modifier': staticModifier});
@@ -1360,8 +1425,7 @@ class Parser {
     token = parseQualifiedRestOpt(token);
     token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
-    bool previousYieldIsKeyword = yieldIsKeyword;
-    bool previousAwaitIsKeyword = awaitIsKeyword;
+    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
     token = parseAsyncModifier(token);
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
@@ -1369,8 +1433,7 @@ class Parser {
       token = parseFunctionBody(
           token, false, staticModifier == null || externalModifier != null);
     }
-    yieldIsKeyword = previousYieldIsKeyword;
-    awaitIsKeyword = previousAwaitIsKeyword;
+    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
     listener.endMethod(getOrSet, start, token);
     return token.next;
   }
@@ -1448,16 +1511,14 @@ class Parser {
     listener.endFunctionName(token);
     token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
-    bool previousYieldIsKeyword = yieldIsKeyword;
-    bool previousAwaitIsKeyword = awaitIsKeyword;
+    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
     token = parseAsyncModifier(token);
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
     } else {
       token = parseFunctionBody(token, false, true);
     }
-    yieldIsKeyword = previousYieldIsKeyword;
-    awaitIsKeyword = previousAwaitIsKeyword;
+    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
     listener.endFunction(getOrSet, token);
     return token.next;
   }
@@ -1465,13 +1526,11 @@ class Parser {
   Token parseUnnamedFunction(Token token) {
     listener.beginUnnamedFunction(token);
     token = parseFormalParameters(token);
-    bool previousYieldIsKeyword = yieldIsKeyword;
-    bool previousAwaitIsKeyword = awaitIsKeyword;
+    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
     token = parseAsyncModifier(token);
     bool isBlock = optional('{', token);
     token = parseFunctionBody(token, true, false);
-    yieldIsKeyword = previousYieldIsKeyword;
-    awaitIsKeyword = previousAwaitIsKeyword;
+    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
     listener.endUnnamedFunction(token);
     return isBlock ? token.next : token;
   }
@@ -1492,13 +1551,11 @@ class Parser {
     listener.endFunctionName(token);
     token = parseFormalParameters(token);
     listener.handleNoInitializers();
-    bool previousYieldIsKeyword = yieldIsKeyword;
-    bool previousAwaitIsKeyword = awaitIsKeyword;
+    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
     token = parseAsyncModifier(token);
     bool isBlock = optional('{', token);
     token = parseFunctionBody(token, true, false);
-    yieldIsKeyword = previousYieldIsKeyword;
-    awaitIsKeyword = previousAwaitIsKeyword;
+    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
     listener.endFunction(null, token);
     return isBlock ? token.next : token;
   }
@@ -1567,14 +1624,12 @@ class Parser {
   Token parseAsyncModifier(Token token) {
     Token async;
     Token star;
-    awaitIsKeyword = false;
-    yieldIsKeyword = false;
+    asyncAwaitKeywordsEnabled = false;
     if (optional('async', token)) {
-      awaitIsKeyword = true;
+      asyncAwaitKeywordsEnabled = true;
       async = token;
       token = token.next;
       if (optional('*', token)) {
-        yieldIsKeyword = true;
         star = token;
         token = token.next;
       }
@@ -1582,7 +1637,7 @@ class Parser {
       async = token;
       token = token.next;
       if (optional('*', token)) {
-        yieldIsKeyword = true;
+        asyncAwaitKeywordsEnabled = true;
         star = token;
         token = token.next;
       } else {
@@ -1606,7 +1661,7 @@ class Parser {
       return parseVariablesDeclaration(token);
     } else if (identical(value, 'if')) {
       return parseIfStatement(token);
-    } else if (awaitIsKeyword && identical(value, 'await')) {
+    } else if (asyncAwaitKeywordsEnabled && identical(value, 'await')) {
       if (identical(token.next.stringValue, 'for')) {
         return parseForStatement(token, token.next);
       } else {
@@ -1637,7 +1692,7 @@ class Parser {
       return parseAssertStatement(token);
     } else if (identical(value, ';')) {
       return parseEmptyStatement(token);
-    } else if (yieldIsKeyword && identical(value, 'yield')) {
+    } else if (asyncAwaitKeywordsEnabled && identical(value, 'yield')) {
       return parseYieldStatement(token);
     } else if (identical(value, 'const')) {
       return parseExpressionStatementOrConstDeclaration(token);
@@ -1919,7 +1974,7 @@ class Parser {
   Token parseUnaryExpression(Token token, bool allowCascades) {
     String value = token.stringValue;
     // Prefix:
-    if (awaitIsKeyword && optional('await', token)) {
+    if (asyncAwaitKeywordsEnabled && optional('await', token)) {
       return parseAwaitExpression(token, allowCascades);
     } else if (identical(value, '+')) {
       // Dart no longer allows prefix-plus.
@@ -1970,44 +2025,47 @@ class Parser {
 
   Token parsePrimary(Token token) {
     final kind = token.kind;
-    if (identical(kind, IDENTIFIER_TOKEN)) {
+    if (kind == IDENTIFIER_TOKEN) {
       return parseSendOrFunctionLiteral(token);
-    } else if (identical(kind, INT_TOKEN)
-        || identical(kind, HEXADECIMAL_TOKEN)) {
+    } else if (kind == INT_TOKEN
+        || kind == HEXADECIMAL_TOKEN) {
       return parseLiteralInt(token);
-    } else if (identical(kind, DOUBLE_TOKEN)) {
+    } else if (kind == DOUBLE_TOKEN) {
       return parseLiteralDouble(token);
-    } else if (identical(kind, STRING_TOKEN)) {
+    } else if (kind == STRING_TOKEN) {
       return parseLiteralString(token);
-    } else if (identical(kind, HASH_TOKEN)) {
+    } else if (kind == HASH_TOKEN) {
       return parseLiteralSymbol(token);
-    } else if (identical(kind, KEYWORD_TOKEN)) {
+    } else if (kind == KEYWORD_TOKEN) {
       final value = token.stringValue;
-      if ((identical(value, 'true')) || (identical(value, 'false'))) {
+      if (value == 'true' || value == 'false') {
         return parseLiteralBool(token);
-      } else if (identical(value, 'null')) {
+      } else if (value == 'null') {
         return parseLiteralNull(token);
-      } else if (identical(value, 'this')) {
+      } else if (value == 'this') {
         return parseThisExpression(token);
-      } else if (identical(value, 'super')) {
+      } else if (value == 'super') {
         return parseSuperExpression(token);
-      } else if (identical(value, 'new')) {
+      } else if (value == 'new') {
         return parseNewExpression(token);
-      } else if (identical(value, 'const')) {
+      } else if (value == 'const') {
         return parseConstExpression(token);
-      } else if (identical(value, 'void')) {
+      } else if (value == 'void') {
         return parseFunctionExpression(token);
+      } else if (asyncAwaitKeywordsEnabled &&
+                 (value == 'yield' || value == 'async')) {
+        return listener.expectedExpression(token);
       } else if (token.isIdentifier()) {
         return parseSendOrFunctionLiteral(token);
       } else {
         return listener.expectedExpression(token);
       }
-    } else if (identical(kind, OPEN_PAREN_TOKEN)) {
+    } else if (kind == OPEN_PAREN_TOKEN) {
       return parseParenthesizedExpressionOrFunctionLiteral(token);
-    } else if ((identical(kind, LT_TOKEN)) ||
-               (identical(kind, OPEN_SQUARE_BRACKET_TOKEN)) ||
-               (identical(kind, OPEN_CURLY_BRACKET_TOKEN)) ||
-               identical(token.stringValue, '[]')) {
+    } else if ((kind == LT_TOKEN) ||
+               (kind == OPEN_SQUARE_BRACKET_TOKEN) ||
+               (kind == OPEN_CURLY_BRACKET_TOKEN) ||
+               token.stringValue == '[]') {
       return parseLiteralListOrMap(token);
     } else {
       return listener.expectedExpression(token);
@@ -2427,7 +2485,7 @@ class Parser {
     if (identical(value, ';')) {
       listener.handleNoExpression(token);
       return token;
-    } else if ((identical(value, 'var')) || (identical(value, 'final'))) {
+    } else if (isOneOf3(token, 'var', 'final', 'const')) {
       return parseVariablesDeclarationNoSemicolon(token);
     }
     Token identifier = peekIdentifierAfterType(token);

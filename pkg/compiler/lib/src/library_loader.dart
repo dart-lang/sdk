@@ -31,7 +31,6 @@ import 'elements/modelx.dart' show
     PrefixElementX,
     SyntheticImportElement;
 
-import 'native/native.dart' as native;
 import 'script.dart';
 import 'tree/tree.dart';
 import 'util/util.dart' show
@@ -148,7 +147,13 @@ abstract class LibraryLoaderTask implements CompilerTask {
   /// [LibraryElement] for the library and computes the import/export scope,
   /// loading and computing the import/export scopes of all required libraries
   /// in the process. The method handles cyclic dependency between libraries.
-  Future<LibraryElement> loadLibrary(Uri resolvedUri);
+  ///
+  /// If [skipFileWithPartOfTag] is `true`, `null` is returned if the
+  /// compilation unit for [resolvedUri] contains a `part of` tag. This is only
+  /// used for analysis through [Compiler.analyzeUri].
+  Future<LibraryElement> loadLibrary(
+      Uri resolvedUri,
+      {bool skipFileWithPartOfTag: false});
 
   /// Reset the library loader task to prepare for compilation. If provided,
   /// libraries matching [reuseLibrary] are reused.
@@ -340,18 +345,27 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     Uri resourceUri = library.entryCompilationUnit.script.resourceUri;
     libraryResourceUriMap[resourceUri] = library;
 
-    String name = library.libraryOrScriptName;
-    libraryNames[name] = library;
+    if (library.hasLibraryName) {
+      String name = library.libraryName;
+      libraryNames[name] = library;
+    }
   }
 
-  Future<LibraryElement> loadLibrary(Uri resolvedUri) {
+  Future<LibraryElement> loadLibrary(
+      Uri resolvedUri,
+      {bool skipFileWithPartOfTag: false}) {
     return measure(() {
       assert(currentHandler == null);
       // TODO(johnniwinther): Ensure that currentHandler correctly encloses the
       // loading of a library cluster.
       currentHandler = new LibraryDependencyHandler(this);
-      return createLibrary(currentHandler, null, resolvedUri)
+      return createLibrary(currentHandler, null, resolvedUri,
+          skipFileWithPartOfTag: skipFileWithPartOfTag)
           .then((LibraryElement library) {
+        if (library == null) {
+          currentHandler = null;
+          return null;
+        }
         return reporter.withCurrentElement(library, () {
           return measure(() {
             currentHandler.computeExports();
@@ -385,7 +399,21 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       return reporter.withCurrentElement(library, () {
 
         Uri computeUri(LibraryDependency node) {
-          String tagUriString = node.uri.dartString.slowToString();
+          StringNode uriNode = node.uri;
+          if (node.conditionalUris != null) {
+            for (ConditionalUri conditionalUri in node.conditionalUris) {
+              String key = conditionalUri.key.slowNameString;
+              String value = conditionalUri.value == null
+                  ? "true"
+                  : conditionalUri.value.dartString.slowToString();
+              String actual = compiler.fromEnvironment(key);
+              if (value == actual) {
+                uriNode = conditionalUri.uri;
+                break;
+              }
+            }
+          }
+          String tagUriString = uriNode.dartString.slowToString();
           try {
             return Uri.parse(tagUriString);
           } on FormatException {
@@ -493,7 +521,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
              'canonicalUri2': existing.canonicalUri});
       }
     } else if (library.hasLibraryName) {
-      String name = library.libraryOrScriptName;
+      String name = library.libraryName;
       existing = libraryNames.putIfAbsent(name, () => library);
       if (!identical(existing, library)) {
         reporter.withCurrentElement(library, () {
@@ -550,7 +578,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       LibraryDependencyElementX libraryDependency) {
     Uri base = library.canonicalUri;
     Uri resolvedUri = base.resolveUri(libraryDependency.uri);
-    return createLibrary(handler, library, resolvedUri, libraryDependency)
+    return createLibrary(handler, library, resolvedUri, node: libraryDependency)
         .then((LibraryElement loadedLibrary) {
           if (loadedLibrary == null) return;
           reporter.withCurrentElement(library, () {
@@ -587,10 +615,12 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
    *
    * If a new library is created, the [handler] is notified.
    */
-  Future<LibraryElement> createLibrary(LibraryDependencyHandler handler,
-                                       LibraryElement importingLibrary,
-                                       Uri resolvedUri,
-                                       [Spannable node]) {
+  Future<LibraryElement> createLibrary(
+      LibraryDependencyHandler handler,
+      LibraryElement importingLibrary,
+      Uri resolvedUri,
+      {Spannable node,
+       bool skipFileWithPartOfTag: false}) {
     Uri readableUri =
         compiler.translateResolvedUri(importingLibrary, resolvedUri, node);
     LibraryElement library = libraryCanonicalUriMap[resolvedUri];
@@ -611,6 +641,33 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         if (script == null) return null;
         LibraryElement element =
             createLibrarySync(handler, script, resolvedUri);
+        CompilationUnitElementX compilationUnit = element.entryCompilationUnit;
+        if (compilationUnit.partTag != null) {
+          if (skipFileWithPartOfTag) {
+            // TODO(johnniwinther): Avoid calling [Compiler.onLibraryCreated]
+            // for this library.
+            libraryCanonicalUriMap.remove(resolvedUri);
+            return null;
+          }
+          if (importingLibrary == null) {
+            DiagnosticMessage error = reporter.withCurrentElement(
+                compilationUnit,
+                () => reporter.createMessage(
+                    compilationUnit.partTag, MessageKind.MAIN_HAS_PART_OF));
+            reporter.reportError(error);
+          } else {
+            DiagnosticMessage error = reporter.withCurrentElement(
+                compilationUnit,
+                () => reporter.createMessage(
+                    compilationUnit.partTag, MessageKind.IMPORT_PART_OF));
+            DiagnosticMessage info = reporter.withCurrentElement(
+                importingLibrary,
+                () => reporter.createMessage(
+                    node,
+                    MessageKind.IMPORT_PART_OF_HERE));
+            reporter.reportError(error, [info]);
+          }
+        }
         return processLibraryTags(handler, element).then((_) {
           reporter.withCurrentElement(element, () {
             handler.registerLibraryExports(element);
@@ -631,7 +688,6 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         handler.registerNewLibrary(element);
         libraryCanonicalUriMap[resolvedUri] = element;
       }
-      native.maybeEnableNative(compiler, element);
       compiler.scanner.scanLibrary(element);
       return element;
     });
@@ -975,7 +1031,7 @@ class LibraryDependencyNode {
 
     Element existingElement = exportScope[name];
     if (existingElement != null && existingElement != element) {
-      if (existingElement.isErroneous) {
+      if (existingElement.isMalformed) {
         createDuplicateExportMessage(element, exports);
         createDuplicateExportDeclMessage(element, exports);
         element = existingElement;
@@ -1067,7 +1123,7 @@ class LibraryDependencyNode {
         if (element == null) {
           if (combinator.isHide) {
             if (library.isPackageLibrary &&
-                !reporter.options.showPackageWarnings) {
+                reporter.options.hidePackageWarnings) {
               // Only report hide hint on packages if we show warnings on these:
               // The hide may be non-empty in some versions of the package, in
               // which case you shouldn't remove the combinator.

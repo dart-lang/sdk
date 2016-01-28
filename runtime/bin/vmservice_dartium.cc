@@ -9,7 +9,9 @@
 #include "bin/eventhandler.h"
 #include "bin/platform.h"
 #include "bin/thread.h"
+#include "bin/utils.h"
 #include "bin/vmservice_impl.h"
+#include "zlib/zlib.h"
 
 namespace dart {
 namespace bin {
@@ -33,6 +35,7 @@ void VmServiceServer::Bootstrap() {
   }
   DartUtils::SetOriginalWorkingDirectory();
   Thread::InitOnce();
+  TimerUtils::InitOnce();
   EventHandler::Start();
 }
 
@@ -65,12 +68,13 @@ Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
   // Prepare for script loading by setting up the 'print' and 'timer'
   // closures and setting up 'package root' for URI resolution.
   result = DartUtils::PrepareForScriptLoading(
-      NULL, NULL, NULL, true, false, builtin_lib);
+      NULL, NULL, true, false, builtin_lib);
   CHECK_RESULT(result);
 
   ASSERT(Dart_IsServiceIsolate(isolate));
   if (!VmService::Setup(DEFAULT_VM_SERVICE_SERVER_IP,
-                        DEFAULT_VM_SERVICE_SERVER_PORT)) {
+                        DEFAULT_VM_SERVICE_SERVER_PORT,
+                        false /* running_precompiled */)) {
     fprintf(stderr,
             "Vmservice::Setup failed: %s\n", VmService::GetErrorMessage());
     isolate = NULL;
@@ -90,6 +94,68 @@ intptr_t VmServiceServer::GetServerPort() {
   return VmService::GetServerPort();
 }
 
+
+void VmServiceServer::DecompressAssets(const uint8_t* input,
+                                       unsigned int input_len,
+                                       uint8_t** output,
+                                       unsigned int* output_length) {
+  ASSERT(input != NULL);
+  ASSERT(input_len > 0);
+  ASSERT(output != NULL);
+  ASSERT(output_length != NULL);
+
+  // Initialize output.
+  *output = NULL;
+  *output_length = 0;
+
+  const unsigned int kChunkSize = 256 * 1024;
+  uint8_t chunk_out[kChunkSize];
+  z_stream strm;
+  strm.zalloc = Z_NULL;
+  strm.zfree = Z_NULL;
+  strm.opaque = Z_NULL;
+  strm.avail_in = 0;
+  strm.next_in = 0;
+  int ret = inflateInit2(&strm, 32 + MAX_WBITS);
+  ASSERT(ret == Z_OK);
+
+  unsigned int input_cursor = 0;
+  unsigned int output_cursor = 0;
+  do {
+    // Setup input.
+    unsigned int size_in = input_len - input_cursor;
+    if (size_in > kChunkSize) {
+      size_in = kChunkSize;
+    }
+    strm.avail_in = size_in;
+    strm.next_in = const_cast<uint8_t*>(&input[input_cursor]);
+
+    // Inflate until we've exhausted the current input chunk.
+    do {
+      // Setup output.
+      strm.avail_out = kChunkSize;
+      strm.next_out = &chunk_out[0];
+      // Inflate.
+      ret = inflate(&strm, Z_SYNC_FLUSH);
+      // We either hit the end of the stream or made forward progress.
+      ASSERT((ret == Z_STREAM_END) || (ret == Z_OK));
+      // Grow output buffer size.
+      unsigned int size_out = kChunkSize - strm.avail_out;
+      *output_length += size_out;
+      *output = reinterpret_cast<uint8_t*>(realloc(*output, *output_length));
+      // Copy output.
+      memmove(&((*output)[output_cursor]), &chunk_out[0], size_out);
+      output_cursor += size_out;
+    } while (strm.avail_out == 0);
+
+    // We've processed size_in bytes.
+    input_cursor += size_in;
+
+    // We're finished decompressing when zlib tells us.
+  } while (ret != Z_STREAM_END);
+
+  inflateEnd(&strm);
+}
 
 /* DISALLOW_ALLOCATION */
 void VmServiceServer::operator delete(void* pointer)  {

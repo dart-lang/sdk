@@ -64,12 +64,6 @@ mirrors/library_uri_io_test: SkipByDesign # Uses dart:io.
 mirrors/load_library_test: RuntimeError # Issue 6335
 mirrors/local_function_is_static_test: RuntimeError # Issue 6335
 mirrors/lru_test: Skip # dart2js_native/lru_test is used instead
-mirrors/metadata_allowed_values_test/01: MissingCompileTimeError # Issue 14548
-mirrors/metadata_allowed_values_test/05: MissingCompileTimeError # Issue 14548
-mirrors/metadata_allowed_values_test/10: MissingCompileTimeError # Issue 14548
-mirrors/metadata_allowed_values_test/11: MissingCompileTimeError # Issue 14548
-mirrors/metadata_allowed_values_test/13: MissingCompileTimeError # Issue 14548
-mirrors/metadata_allowed_values_test/14: MissingCompileTimeError # Issue 14548
 mirrors/metadata_scope_test/none: CompileTimeError # Issue 10905
 mirrors/method_mirror_name_test: RuntimeError # Issue 6335
 mirrors/method_mirror_properties_test: RuntimeError # Issue 11861
@@ -147,6 +141,7 @@ async/stream_periodic2_test: RuntimeError # Timer interface not supported; Issue
 async/stream_periodic3_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/stream_periodic4_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/stream_periodic5_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/stream_periodic6_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/run_zoned7_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/catch_errors22_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/timer_isActive_test: RuntimeError # Timer interface not supported: Issue 7728.
@@ -191,7 +186,7 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 
 # 'js' tests import the dart:js library, so they only make sense in
 # a browser environment.
-[ $runtime == vm ]
+[ ($runtime == vm || $runtime == dart_precompiled) ]
 js/*: Skip
 
 [ $compiler == dart2js && $minified ]
@@ -228,19 +223,19 @@ async/multiple_timer_test: Pass, Fail # Probably issue 14734
 # TODO(efortuna): Investigate.
 async/timer_test: Fail, Pass
 
-[ $runtime == vm ]
+[ ($runtime == vm || $runtime == dart_precompiled) ]
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 mirrors/deferred_type_test: CompileTimeError, OK # Don't have a multitest marker for dynamic compile time errors.
 
-[ $compiler == none ]
+[ ($compiler == none || $compiler == precompiler) ]
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 
-[ $compiler == none && ( $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ ($compiler == none || $compiler == precompiler) && ( $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 async/schedule_microtask6_test: Fail # Issue 10910
 async/timer_test: Fail, Pass # Issue 15487
 async/multiple_timer_test: Fail, Pass # Issue 15487
@@ -253,14 +248,14 @@ mirrors/spawn_function_root_library_test: SkipByDesign # Uses spawnFunction.
 mirrors/local_isolate_test: RuntimeError # Issue 12188
 mirrors/deferred_type_test: RuntimeError, OK # Should be CompileTimeError. Issue 22072
 
-[ $compiler == none && $runtime == drt && $system == windows ]
+[ ($compiler == none || $compiler == precompiler) && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail, Pass # See Issue 10982
 async/timer_test: Fail, Pass # See Issue 10982
 
-[ $compiler == none && $runtime == drt && $checked ]
+[ ($compiler == none || $compiler == precompiler) && $runtime == drt && $checked ]
 async/slow_consumer_test: Fail, Pass # Dartium JsInterop failure, dartbug.com/24460
 
-[$compiler == none && $runtime == ContentShellOnAndroid ]
+[($compiler == none || $compiler == precompiler) && $runtime == ContentShellOnAndroid ]
 async/stream_timeout_test: RuntimeError, Pass # Issue 19127
 async/slow_consumer3_test: SkipSlow # Times out flakily. Issue 20956
 async/slow_consumer2_test: SkipSlow # Times out flakily. Issue 20956
@@ -297,6 +292,9 @@ developer/metrics_num_test: Fail # Issue 20309
 profiler/metrics_test: Fail # Issue 20309
 profiler/metrics_num_test: Fail # Issue 20309
 
+[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+mirrors/metadata_allowed_values_test/29: Crash # Issue 25287
+
 [ ($compiler == dartanalyzer || $compiler == dart2analyzer) && $checked ]
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
 
@@ -307,7 +305,7 @@ mirrors/*deferred*: Skip # Issue 17458
 [ $compiler == dart2js && $mode == debug ]
 mirrors/native_class_test: Pass, Slow
 
-[ $compiler == none && $arch == mips ]
+[ ($compiler == none || $compiler == precompiler) && $arch == mips ]
 async/timer_regress22626_test: Pass, RuntimeError # Issue 22626
 
 [ $arch == simarm || $arch == simarmv5te ]
@@ -319,6 +317,7 @@ mirrors/mirrors_reader_test: Pass, Slow
 
 [ $compiler == dart2js ]
 developer/metrics_num_test: Skip # Because of a int / double type test.
+developer/timeline_test: Skip # Not supported
 
 [ $arch == simarm64 ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
@@ -326,30 +325,23 @@ convert/utf85_test: Skip # Pass, Slow Issue 20111.
 [ $mode == debug && $arch == ia32 && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
 
-[ $runtime == vm && $mode == debug && $arch == x64 && $system == windows ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $arch == x64 && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
+
+[ ($runtime == vm || $runtime == dart_precompiled) && $mode == release && $arch == ia32 && $system == windows ]
+convert/json_test: RuntimeError # Issue 24908
 
 [ $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv5te ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
 
-[ $runtime == vm && $mode == debug && $builder_tag == asan ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 mirrors/immutable_collections_test: SkipSlow  # Timeout.
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 
 [ $compiler == dart2js && $cps_ir ]
 async/async_await_zones_test: Crash # (await for(var x in bar().take(100)){sum+= x;}): await for
-async/stream_empty_test: RuntimeError # $async$temp1.runTest_unreachable is not a function
 async/stream_iterator_test: Crash # (Stream createCancel...  cannot handle sync*/async* functions
-convert/json_pretty_test: RuntimeError # Please triage this failure.
-convert/line_splitter_test: RuntimeError # Please triage this failure.
-mirrors/deferred_mirrors_metadata_test: RuntimeError # U.loadLibrary is not a function
-mirrors/deferred_mirrors_metatarget_test: RuntimeError # X.loadLibrary is not a function
-mirrors/deferred_mirrors_update_test: RuntimeError # U.loadLibrary is not a function
-mirrors/delegate_call_through_getter_test: RuntimeError # Please triage this failure.
-mirrors/delegate_test: RuntimeError # Please triage this failure.
-mirrors/library_enumeration_deferred_loading_test: RuntimeError # L.loadLibrary is not a function
 mirrors/symbol_validation_test/none: RuntimeError # Please triage this failure.
-mirrors/typedef_deferred_library_test: RuntimeError # G.loadLibrary is not a function
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 mirrors/circular_factory_redirection_test/02: Crash # Assertion failure: Constant constructor already computed for generative_constructor(A#circular2)
@@ -359,3 +351,8 @@ mirrors/typedef_library_test: Crash # Assertion failure: typedef(G) has not been
 
 [ $compiler != dart2js ]
 async/dart2js_uncaught_error_test: Skip  # JS-integration only test
+
+[ ($noopt || $compiler == precompiler) ]
+mirrors/*: SkipByDesign
+convert/chunked_conversion_utf88_test: Pass, Timeout
+convert/utf85_test: Pass, Timeout

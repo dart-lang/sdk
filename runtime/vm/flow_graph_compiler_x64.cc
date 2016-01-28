@@ -29,6 +29,18 @@ DECLARE_FLAG(bool, enable_simd_inline);
 DECLARE_FLAG(bool, use_megamorphic_stub);
 
 
+void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Assembler* assembler = compiler->assembler();
+#define __ assembler->
+  __ Bind(entry_label());
+  __ Comment("MegamorphicSlowPath");
+  compiler->EmitMegamorphicInstanceCall(ic_data_, argument_count_, deopt_id_,
+                                        token_pos_, locs_, try_index_);
+  __ jmp(exit_label());
+#undef __
+}
+
+
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
@@ -175,8 +187,8 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
                                              intptr_t stub_ix) {
   // Calls do not need stubs, they share a deoptimization trampoline.
   ASSERT(reason() != ICData::kDeoptAtCall);
-  Assembler* assem = compiler->assembler();
-#define __ assem->
+  Assembler* assembler = compiler->assembler();
+#define __ assembler->
   __ Comment("%s", Name());
   __ Bind(entry_label());
   if (FLAG_trap_on_deoptimization) {
@@ -187,7 +199,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 
   __ pushq(CODE_REG);
   __ Call(*StubCode::Deoptimize_entry());
-  set_pc_offset(assem->CodeSize());
+  set_pc_offset(assembler->CodeSize());
   __ int3();
 #undef __
 }
@@ -264,12 +276,11 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
   ASSERT((type_class.NumTypeArguments() > 0) || type_class.IsSignatureClass());
   const Register kInstanceReg = RAX;
-  Error& malformed_error = Error::Handle(zone());
+  Error& bound_error = Error::Handle(zone());
   const Type& int_type = Type::Handle(zone(), Type::IntType());
-  const bool smi_is_ok =
-      int_type.IsSubtypeOf(type, &malformed_error, Heap::kOld);
+  const bool smi_is_ok = int_type.IsSubtypeOf(type, &bound_error, Heap::kOld);
   // Malformed type should have been handled at graph construction time.
-  ASSERT(smi_is_ok || malformed_error.IsNull());
+  ASSERT(smi_is_ok || bound_error.IsNull());
   __ testq(kInstanceReg, Immediate(kSmiTagMask));
   if (smi_is_ok) {
     __ j(ZERO, is_instance_lbl);
@@ -451,7 +462,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   // Skip check if destination is a dynamic type.
   if (type.IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(type);
-    // Load instantiator (or null) and instantiator type arguments on stack.
+    // Load instantiator type arguments on stack.
     __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
     // RDX: instantiator type arguments.
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
@@ -461,7 +472,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
         FieldAddress(RDX, TypeArguments::type_at_offset(type_param.index())));
     // RDI: Concrete type of type.
     // Check if type argument is dynamic.
-    __ CompareObject(RDI, Type::ZoneHandle(zone(), Type::DynamicType()));
+    __ CompareObject(RDI, Object::dynamic_type());
     __ j(EQUAL,  is_instance_lbl);
     const Type& object_type = Type::ZoneHandle(zone(), Type::ObjectType());
     __ CompareObject(RDI, object_type);
@@ -577,8 +588,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // Inputs:
 // - RAX: object.
 // - RDX: instantiator type arguments or raw_null.
-// - RCX: instantiator or raw_null.
-// Clobbers RCX and RDX.
+// Clobbers RDX.
 // Returns:
 // - true or false in RAX.
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
@@ -589,7 +599,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
 
   Label is_instance, is_not_instance;
-  __ pushq(RCX);  // Store instantiator on stack.
   __ pushq(RDX);  // Store instantiator type arguments.
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
@@ -615,22 +624,20 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   if (!test_cache.IsNull()) {
     // Generate runtime call.
     __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
-    __ movq(RCX, Address(RSP, kWordSize));  // Get instantiator.
     __ PushObject(Object::null_object());  // Make room for the result.
     __ pushq(RAX);  // Push the instance.
     __ PushObject(type);  // Push the type.
-    __ pushq(RCX);  // TODO(srdjan): Pass instantiator instead of null.
     __ pushq(RDX);  // Instantiator type arguments.
     __ LoadUniqueObject(RAX, test_cache);
     __ pushq(RAX);
     GenerateRuntimeCall(token_pos,
                         deopt_id,
                         kInstanceofRuntimeEntry,
-                        5,
+                        4,
                         locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
-    __ Drop(5);
+    __ Drop(4);
     if (negate_result) {
       __ popq(RDX);
       __ LoadObject(RAX, Bool::True());
@@ -650,7 +657,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   __ LoadObject(RAX, Bool::Get(!negate_result));
   __ Bind(&done);
   __ popq(RDX);  // Remove pushed instantiator type arguments.
-  __ popq(RCX);  // Remove pushed instantiator.
 }
 
 
@@ -661,7 +667,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
 // Inputs:
 // - RAX: object.
 // - RDX: instantiator type arguments or raw_null.
-// - RCX: instantiator or raw_null.
 // Returns:
 // - object in RAX for successful assignable check (or throws TypeError).
 // Performance notes: positive checks must be quick, negative checks can be slow
@@ -671,13 +676,12 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
-  ASSERT(token_pos >= 0);
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(dst_type.IsMalformedOrMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
-  __ pushq(RCX);  // Store instantiator.
   __ pushq(RDX);  // Store instantiator type arguments.
   // A null object is always assignable and is returned as result.
   Label is_assignable, runtime_call;
@@ -700,7 +704,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
     __ Bind(&is_assignable);  // For a null object.
     __ popq(RDX);  // Remove pushed instantiator type arguments.
-    __ popq(RCX);  // Remove pushed instantiator.
     return;
   }
 
@@ -711,24 +714,21 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
   __ Bind(&runtime_call);
   __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
-  __ movq(RCX, Address(RSP, kWordSize));  // Get instantiator.
   __ PushObject(Object::null_object());  // Make room for the result.
   __ pushq(RAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
-  __ pushq(RCX);  // Instantiator.
   __ pushq(RDX);  // Instantiator type arguments.
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadUniqueObject(RAX, test_cache);
   __ pushq(RAX);
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 5, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ Drop(6);
+  __ Drop(5);
   __ popq(RAX);
 
   __ Bind(&is_assignable);
   __ popq(RDX);  // Remove pushed instantiator type arguments.
-  __ popq(RCX);  // Remove pushed instantiator.
 }
 
 
@@ -1003,6 +1003,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     if (CanOptimizeFunction() &&
         function.IsOptimizable() &&
         (!is_optimizing() || may_reoptimize())) {
+      __ Comment("Invocation Count Check");
       const Register function_reg = RDI;
       // Load function object using the callee's pool pointer.
       __ LoadFunctionFromCalleePool(function_reg, function, new_pp);
@@ -1279,29 +1280,80 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     intptr_t argument_count,
     intptr_t deopt_id,
     intptr_t token_pos,
-    LocationSummary* locs) {
+    LocationSummary* locs,
+    intptr_t try_index) {
   const String& name = String::Handle(zone(), ic_data.target_name());
   const Array& arguments_descriptor =
       Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
       MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
-  const Register receiverR = RDI;
-  const Register cacheR = RBX;
-  const Register targetR = RCX;
-  __ movq(receiverR, Address(RSP, (argument_count - 1) * kWordSize));
-  __ LoadObject(cacheR, cache);
 
+  __ Comment("MegamorphicCall");
+  __ movq(RDI, Address(RSP, (argument_count - 1) * kWordSize));
+  __ LoadObject(RBX, cache);
   if (FLAG_use_megamorphic_stub) {
     __ Call(*StubCode::MegamorphicLookup_entry());
   } else  {
-    StubCode::EmitMegamorphicLookup(assembler(), receiverR, cacheR, targetR);
+    StubCode::EmitMegamorphicLookup(assembler());
   }
-  __ LoadObject(RBX, ic_data);
-  __ LoadObject(R10, arguments_descriptor);
-  __ call(targetR);
+  __ call(RCX);
+
+  RecordSafepoint(locs);
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
+  if (Compiler::always_optimize()) {
+    // Megamorphic calls may occur in slow path stubs.
+    // If valid use try_index argument.
+    if (try_index == CatchClauseNode::kInvalidTryIndex) {
+      try_index = CurrentTryIndex();
+    }
+    pc_descriptors_list()->AddDescriptor(RawPcDescriptors::kOther,
+                                         assembler()->CodeSize(),
+                                         Thread::kNoDeoptId,
+                                         token_pos,
+                                         try_index);
+  } else if (is_optimizing()) {
+    AddCurrentDescriptor(RawPcDescriptors::kOther,
+        Thread::kNoDeoptId, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+  } else {
+    AddCurrentDescriptor(RawPcDescriptors::kOther,
+        Thread::kNoDeoptId, token_pos);
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+  }
+  __ Drop(argument_count, RCX);
+}
+
+
+void FlowGraphCompiler::EmitSwitchableInstanceCall(
+    const ICData& ic_data,
+    intptr_t argument_count,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
+  __ Comment("SwitchableCall");
+  __ movq(RDI, Address(RSP, (argument_count - 1) * kWordSize));
+  if (ic_data.NumArgsTested() == 1) {
+    __ LoadUniqueObject(RBX, ic_data);
+    __ CallPatchable(*StubCode::ICLookup_entry());
+  } else {
+    const String& name = String::Handle(zone(), ic_data.target_name());
+    const Array& arguments_descriptor =
+        Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
+    ASSERT(!arguments_descriptor.IsNull() &&
+           (arguments_descriptor.Length() > 0));
+    const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
+        MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
+
+    __ LoadUniqueObject(RBX, cache);
+    __ CallPatchable(*StubCode::MegamorphicLookup_entry());
+  }
+  __ call(RCX);
+
   AddCurrentDescriptor(RawPcDescriptors::kOther,
-      Thread::kNoDeoptId, token_pos);
+                       Thread::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
@@ -1357,7 +1409,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     } else {
       __ CallPatchable(*StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
     }
-    if (token_pos != Scanner::kNoSourcePos) {
+    if (token_pos >= 0) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
                            Thread::kNoDeoptId,
                            token_pos);
@@ -1384,7 +1436,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     } else {
       __ CallPatchable(*StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
     }
-    if (token_pos != Scanner::kNoSourcePos) {
+    if (token_pos >= 0) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
                            Thread::kNoDeoptId,
                            token_pos);

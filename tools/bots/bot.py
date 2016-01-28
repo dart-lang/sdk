@@ -241,6 +241,7 @@ def RunTest(name, build_info, targets, flags=None, swallow_error=False):
     cmd.extend(targets)
 
     print 'Running: %s' % (' '.join(map(lambda arg: '"%s"' % arg, cmd)))
+    sys.stdout.flush()
     RunProcess(cmd)
 
 

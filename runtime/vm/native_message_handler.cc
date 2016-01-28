@@ -42,8 +42,9 @@ MessageHandler::MessageStatus NativeMessageHandler::HandleMessage(
   // All allocation of objects for decoding the message is done in the
   // zone associated with this scope.
   ApiNativeScope scope;
-  ApiMessageReader reader(message->data(), message->len());
-  Dart_CObject* object = reader.ReadMessage();
+  Dart_CObject* object;
+  ApiMessageReader reader(message);
+  object = reader.ReadMessage();
   (*func())(message->dest_port(), object);
   delete message;
   return kOK;

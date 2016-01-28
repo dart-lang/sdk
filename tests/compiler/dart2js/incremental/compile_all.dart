@@ -18,7 +18,7 @@ import 'package:compiler/src/source_file_provider.dart' show
     FormattingDiagnosticHandler;
 
 import '../memory_source_file_helper.dart' show
-    Compiler;
+    CompilerImpl;
 
 import '../memory_compiler.dart' show
     compilerFor;
@@ -43,7 +43,7 @@ void compileTests(Map<String, String> sources) {
   int testCount = 0;
   int skipCount = 0;
   Set<String> crashes = new Set<String>();
-  Compiler memoryCompiler = compilerFor(memorySourceFiles: sources);
+  CompilerImpl memoryCompiler = compilerFor(memorySourceFiles: sources);
   FormattingDiagnosticHandler handler = memoryCompiler.handler;
   handler.verbose = verbose;
   var options = ['--analyze-main'];

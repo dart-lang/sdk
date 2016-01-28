@@ -405,32 +405,6 @@ class DartHtmlDomObject {
 
 }
 
-/// Upgrade a Dart HtmlElement to the user's Dart custom element class.
-_upgradeHtmlElement(dartInstance) {
-  // Only try upgrading HtmlElement (Dart class) if there is a failure then
-  // don't try it again - one failure is enough.
-  if (dartInstance.runtimeType == HtmlElement && !dartInstance.isBadUpgrade) {
-    // Must be exactly HtmlElement not something derived from it.
-
-    var customElementClass = getCustomElementType(dartInstance);
-
-    // Custom Element to upgrade.
-    if (customElementClass != null) {
-      var jsObject = dartInstance.blink_jsObject;
-      try {
-        dartInstance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
-      } catch (e) {
-        dartInstance._badUpgrade();
-      } finally {
-        dartInstance.blink_jsObject = jsObject;
-        js.setDartHtmlWrapperFor(jsObject, dartInstance);
-     }
-   }
-  }
-
-  return dartInstance;
-}
-
 @Deprecated("Internal Use Only")
 class DebugAssertException implements Exception {
   String message;
@@ -480,7 +454,12 @@ _createCustomUpgrader(Type customElementClass, $this) {
   try {
     dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
   } catch (e) {
-    dartClass._badUpgrade();
+    // Did the dartClass get allocated but the created failed?  Otherwise, other
+    // components inside of this failed somewhere (could be JS custom element).
+    if (dartClass != null) {
+      // Yes, mark as didn't upgrade.
+      dartClass._badUpgrade();
+    }
     throw e;
   } finally {
     // Need to remember the Dart class that was created for this custom so

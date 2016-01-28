@@ -699,8 +699,8 @@ Simulator::Simulator() {
   // the size specified by the user and the buffer space needed for
   // handling stack overflow exceptions. To be safe in potential
   // stack underflows we also add some underflow buffer space.
-  stack_ = new char[(Isolate::GetSpecifiedStackSize() +
-                     Isolate::kStackSizeBuffer +
+  stack_ = new char[(OSThread::GetSpecifiedStackSize() +
+                     OSThread::kStackSizeBuffer +
                      kSimulatorStackUnderflowSize)];
   icount_ = 0;
   delay_slot_ = false;
@@ -997,7 +997,7 @@ uword Simulator::StackTop() const {
   // To be safe in potential stack underflows we leave some buffer above and
   // set the stack top.
   return StackBase() +
-      (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
+      (OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer);
 }
 
 
@@ -1188,6 +1188,16 @@ uword Simulator::CompareExchange(uword* address,
     SetExclusiveAccess(reinterpret_cast<uword>(address));
   }
   return value;
+}
+
+
+uint32_t Simulator::CompareExchangeUint32(uint32_t* address,
+                                          uint32_t compare_value,
+                                          uint32_t new_value) {
+  COMPILE_ASSERT(sizeof(uword) == sizeof(uint32_t));
+  return CompareExchange(reinterpret_cast<uword*>(address),
+                         static_cast<uword>(compare_value),
+                         static_cast<uword>(new_value));
 }
 
 
@@ -1811,6 +1821,12 @@ void Simulator::DecodeCop1(Instr* instr) {
         // Format(instr, "mov.'fmt 'fd, 'fs");
         ASSERT(instr->FormatField() == FMT_D);  // Only D supported.
         set_fregister_double(instr->FdField(), fs_val);
+        break;
+      }
+      case COP1_NEG: {
+        // Format(instr, "neg.'fmt 'fd, 'fs");
+        ASSERT(instr->FormatField() == FMT_D);
+        set_fregister_double(instr->FdField(), -fs_val);
         break;
       }
       case COP1_C_F: {
@@ -2467,7 +2483,6 @@ void Simulator::Longjmp(uword pc,
   // The C++ caller has not cleaned up the stack memory of C++ frames.
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous C++ frames.
-  Isolate* isolate = thread->isolate();
   StackResource::Unwind(thread);
 
   // Unwind the C++ stack and continue simulation in the target frame.
@@ -2478,7 +2493,7 @@ void Simulator::Longjmp(uword pc,
   // Set the tag.
   thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.
-  isolate->set_top_exit_frame_info(0);
+  thread->set_top_exit_frame_info(0);
 
   ASSERT(raw_exception != Object::null());
   set_register(kExceptionObjectReg, bit_cast<int32_t>(raw_exception));

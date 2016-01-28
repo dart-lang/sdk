@@ -80,7 +80,7 @@ class FieldVisitor {
       // Keep track of whether or not we're dealing with a field mixin
       // into a native class.
       bool isMixinNativeField =
-          isClass && element.isNative && holder.isMixinApplication;
+          isClass && backend.isNative(element) && holder.isMixinApplication;
 
       // See if we can dynamically create getters and setters.
       // We can only generate getters and setters for [element] since
@@ -93,7 +93,7 @@ class FieldVisitor {
         needsSetter = fieldNeedsSetter(field);
       }
 
-      if ((isInstantiated && !holder.isNative)
+      if ((isInstantiated && !backend.isNative(holder))
           || needsGetter
           || needsSetter) {
         js.Name accessorName = namer.fieldAccessorName(field);
@@ -149,7 +149,7 @@ class FieldVisitor {
     if (field.isFinal || field.isConst) return false;
     if (backend.shouldRetainSetter(field)) return true;
     return field.isClassMember &&
-    compiler.codegenWorld.hasInvokedSetter(field, compiler.world);
+        compiler.codegenWorld.hasInvokedSetter(field, compiler.world);
   }
 
   static bool fieldAccessNeverThrows(VariableElement field) {
@@ -165,6 +165,6 @@ class FieldVisitor {
     // We never generate accessors for top-level/static fields.
     if (!member.isInstanceMember) return true;
     DartType type = member.type;
-    return type.treatAsDynamic || (type.element == compiler.objectClass);
+    return type.treatAsDynamic || type.isObject;
   }
 }

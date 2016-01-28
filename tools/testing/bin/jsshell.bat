@@ -10,4 +10,4 @@ if %SCRIPTPATH:~-1%== set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
 set arguments=%*
 
-"%SCRIPTPATH%..\..\..\third_party\firefox_jsshell\windows\js.exe" %arguments%
+"%SCRIPTPATH%..\..\..\third_party\firefox_jsshell\win\jsshell\js.exe" %arguments%

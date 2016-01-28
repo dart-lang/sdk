@@ -10,7 +10,8 @@ import '../compiler.dart' show
 import '../elements/elements.dart' show
     AstElement;
 import '../enqueue.dart' show
-    Enqueuer,
+    Enqueuer;
+import '../universe/world_impact.dart' show
     WorldImpact;
 
 

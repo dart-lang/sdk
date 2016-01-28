@@ -16,7 +16,8 @@
 #include <sys/resource.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 #if TARGET_OS_IOS
-#include <sys/sysctl.h>
+#include <sys/sysctl.h>  // NOLINT
+#include <syslog.h>  // NOLINT
 #endif
 
 #include "platform/utils.h"
@@ -26,7 +27,11 @@
 namespace dart {
 
 const char* OS::Name() {
+#if TARGET_OS_IOS
+  return "ios";
+#else
   return "macos";
+#endif
 }
 
 
@@ -85,7 +90,10 @@ int64_t OS::GetCurrentTimeMicros() {
 }
 
 
-int64_t OS::GetCurrentTraceMicros() {
+static mach_timebase_info_data_t timebase_info;
+
+
+int64_t OS::GetCurrentMonotonicTicks() {
 #if TARGET_OS_IOS
   // On iOS mach_absolute_time stops while the device is sleeping. Instead use
   // now - KERN_BOOTTIME to get a time difference that is not impacted by clock
@@ -101,23 +109,32 @@ int64_t OS::GetCurrentTraceMicros() {
   origin += boottime.tv_usec;
   return now - origin;
 #else
-  static mach_timebase_info_data_t timebase_info;
-  if (timebase_info.denom == 0) {
-    // Zero-initialization of statics guarantees that denom will be 0 before
-    // calling mach_timebase_info.  mach_timebase_info will never set denom to
-    // 0 as that would be invalid, so the zero-check can be used to determine
-    // whether mach_timebase_info has already been called.  This is
-    // recommended by Apple's QA1398.
-    kern_return_t kr = mach_timebase_info(&timebase_info);
-    ASSERT(KERN_SUCCESS == kr);
-  }
-
-  // timebase_info converts absolute time tick units into nanoseconds.  Convert
-  // to microseconds.
-  int64_t result = mach_absolute_time() / kNanosecondsPerMicrosecond;
+  ASSERT(timebase_info.denom != 0);
+  // timebase_info converts absolute time tick units into nanoseconds.
+  int64_t result = mach_absolute_time();
   result *= timebase_info.numer;
   result /= timebase_info.denom;
   return result;
+#endif  // TARGET_OS_IOS
+}
+
+
+int64_t OS::GetCurrentMonotonicFrequency() {
+#if TARGET_OS_IOS
+  return kMicrosecondsPerSecond;
+#else
+  return kNanosecondsPerSecond;
+#endif  // TARGET_OS_IOS
+}
+
+
+int64_t OS::GetCurrentMonotonicMicros() {
+#if TARGET_OS_IOS
+  ASSERT(GetCurrentMonotonicFrequency() == kMicrosecondsPerSecond);
+  return GetCurrentMonotonicTicks();
+#else
+  ASSERT(GetCurrentMonotonicFrequency() == kNanosecondsPerSecond);
+  return GetCurrentMonotonicTicks() / kNanosecondsPerMicrosecond;
 #endif  // TARGET_OS_IOS
 }
 
@@ -141,9 +158,25 @@ void OS::AlignedFree(void* ptr) {
 
 
 intptr_t OS::ActivationFrameAlignment() {
+#if TARGET_OS_IOS
+#if TARGET_ARCH_ARM
+  // Even if we generate code that maintains a stronger alignment, we cannot
+  // assert the stronger stack alignment because C++ code will not maintain it.
+  return 8;
+#elif TARGET_ARCH_ARM64
+  return 16;
+#elif TARGET_ARCH_IA32
+  return 16;  // iOS simulator
+#elif TARGET_ARCH_X64
+  return 16;  // iOS simulator
+#else
+#error Unimplemented
+#endif
+#else  // TARGET_OS_IOS
   // OS X activation frames must be 16 byte-aligned; see "Mac OS X ABI
   // Function Call Guide".
   return 16;
+#endif  // TARGET_OS_IOS
 }
 
 
@@ -224,10 +257,17 @@ char* OS::StrNDup(const char* s, intptr_t n) {
 
 
 void OS::Print(const char* format, ...) {
+#if TARGET_OS_IOS
+  va_list args;
+  va_start(args, format);
+  vsyslog(LOG_INFO, format, args);
+  va_end(args);
+#else
   va_list args;
   va_start(args, format);
   VFPrint(stdout, format, args);
   va_end(args);
+#endif
 }
 
 
@@ -312,10 +352,17 @@ void OS::RegisterCodeObservers() {
 
 
 void OS::PrintErr(const char* format, ...) {
+#if TARGET_OS_IOS
+  va_list args;
+  va_start(args, format);
+  vsyslog(LOG_ERR, format, args);
+  va_end(args);
+#else
   va_list args;
   va_start(args, format);
   VFPrint(stderr, format, args);
   va_end(args);
+#endif
 }
 
 
@@ -326,6 +373,8 @@ void OS::InitOnce() {
   static bool init_once_called = false;
   ASSERT(init_once_called == false);
   init_once_called = true;
+  kern_return_t kr = mach_timebase_info(&timebase_info);
+  ASSERT(KERN_SUCCESS == kr);
 }
 
 

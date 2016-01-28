@@ -29,9 +29,10 @@ import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/old_to_new_api.dart';
 import 'package:compiler/src/resolution/resolution.dart';
 import 'package:compiler/src/scanner/scanner_task.dart';
+import 'package:compiler/src/universe/world_impact.dart';
 import 'diagnostic_reporter_helper.dart';
 
-class TestCompiler extends apiimpl.Compiler {
+class TestCompiler extends apiimpl.CompilerImpl {
   final String testMarker;
   final String testType;
   final Function onTest;

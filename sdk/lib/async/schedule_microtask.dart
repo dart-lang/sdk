@@ -8,9 +8,8 @@ typedef void _AsyncCallback();
 
 class _AsyncCallbackEntry {
   final _AsyncCallback callback;
-  final Zone zone;
   _AsyncCallbackEntry next;
-  _AsyncCallbackEntry(this.callback, this.zone);
+  _AsyncCallbackEntry(this.callback);
 }
 
 /** Head of single linked list of pending callbacks. */
@@ -39,23 +38,21 @@ void _microtaskLoop() {
     _AsyncCallbackEntry entry = _nextCallback;
     _nextCallback = entry.next;
     if (_nextCallback == null) _lastCallback = null;
-    Zone._current = entry.zone;
-    entry.callback();
+    (entry.callback)();
   }
 }
 
-void _microtaskLoopEntry() {
+void _startMicrotaskLoop() {
   _isInCallbackLoop = true;
   try {
     // Moved to separate function because try-finally prevents
     // good optimization.
     _microtaskLoop();
   } finally {
-    Zone._current = _ROOT_ZONE;
     _lastPriorityCallback = null;
     _isInCallbackLoop = false;
     if (_nextCallback != null) {
-      _AsyncRun._scheduleImmediate(_microtaskLoopEntry);
+      _AsyncRun._scheduleImmediate(_startMicrotaskLoop);
     }
   }
 }
@@ -66,11 +63,12 @@ void _microtaskLoopEntry() {
  * The microtask is called after all other currently scheduled
  * microtasks, but as part of the current system event.
  */
-void _scheduleAsyncCallback(_AsyncCallbackEntry newEntry) {
+void _scheduleAsyncCallback(_AsyncCallback callback) {
+  _AsyncCallbackEntry newEntry = new _AsyncCallbackEntry(callback);
   if (_nextCallback == null) {
     _nextCallback = _lastCallback = newEntry;
     if (!_isInCallbackLoop) {
-      _AsyncRun._scheduleImmediate(_microtaskLoopEntry);
+      _AsyncRun._scheduleImmediate(_startMicrotaskLoop);
     }
   } else {
     _lastCallback.next = newEntry;
@@ -87,12 +85,13 @@ void _scheduleAsyncCallback(_AsyncCallbackEntry newEntry) {
  * Is always run in the root zone.
  */
 void _schedulePriorityAsyncCallback(callback) {
-  _AsyncCallbackEntry entry =
-      new _AsyncCallbackEntry(callback, _ROOT_ZONE);
   if (_nextCallback == null) {
-    _scheduleAsyncCallback(entry);
+    _scheduleAsyncCallback(callback);
     _lastPriorityCallback = _lastCallback;
-  } else if (_lastPriorityCallback == null) {
+    return;
+  }
+  _AsyncCallbackEntry entry = new _AsyncCallbackEntry(callback);
+  if (_lastPriorityCallback == null) {
     entry.next = _nextCallback;
     _nextCallback = _lastPriorityCallback = entry;
   } else {

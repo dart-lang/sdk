@@ -1724,7 +1724,7 @@ class ObservatoryDebugger extends Debugger {
         // Unambiguous completion.
         return completions[0];
       } else {
-        // Ambigous completion.
+        // Ambiguous completion.
         completions = completions.map((s) => s.trimRight()).toList();
         console.printBold(completions.toString());
         return _foldCompletions(completions);
@@ -1914,6 +1914,7 @@ class DebuggerPageElement extends ObservatoryElement {
       // TODO(turnidge): How do we want to handle this in general?
       _stdoutSubscriptionFuture.catchError((e, st) {
         Logger.root.info('Failed to subscribe to stdout: $e\n$st\n');
+        _stdoutSubscriptionFuture = null;
       });
     }
     _stderrSubscriptionFuture =
@@ -1922,6 +1923,7 @@ class DebuggerPageElement extends ObservatoryElement {
       // TODO(turnidge): How do we want to handle this in general?
       _stderrSubscriptionFuture.catchError((e, st) {
         Logger.root.info('Failed to subscribe to stderr: $e\n$st\n');
+        _stderrSubscriptionFuture = null;
       });
     }
     _logSubscriptionFuture =
@@ -2228,6 +2230,23 @@ class DebuggerFrameElement extends ObservatoryElement {
         }
         busy = false;
       });
+  }
+
+  @observable
+  get properLocals {
+    var locals = new List();
+    var homeMethod = frame.function.homeMethod;
+    if (homeMethod.dartOwner is Class && homeMethod.isStatic) {
+      locals.add(
+          {'name' : '<class>',
+           'value' : homeMethod.dartOwner});
+    } else if (homeMethod.dartOwner is Library) {
+      locals.add(
+          {'name' : '<library>',
+           'value' : homeMethod.dartOwner});
+    }
+    locals.addAll(frame.variables);
+    return locals;
   }
 }
 

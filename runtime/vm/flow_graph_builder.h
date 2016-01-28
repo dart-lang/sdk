@@ -28,34 +28,6 @@ class TypeArguments;
 class NestedStatement;
 class TestGraphVisitor;
 
-// List of recognized list factories:
-// (factory-name-symbol, result-cid, fingerprint).
-#define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
-  V(_ListFactory, kArrayCid, 850375012)                                        \
-  V(_GrowableListWithData, kGrowableObjectArrayCid, 2094352700)                \
-  V(_GrowableListFactory, kGrowableObjectArrayCid, 1518848600)                 \
-  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 439914696)                      \
-  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 1442599030)                   \
-  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 1320015159)     \
-  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 2132591678)                   \
-  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 1704816032)                 \
-  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 1115045147)                   \
-  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 1385852190)                 \
-  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 1193438555)                   \
-  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 410766246)                  \
-  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 1430631000)               \
-  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 1194249144)               \
-  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 158753569)            \
-
-
-// Class that recognizes factories and returns corresponding result cid.
-class FactoryRecognizer : public AllStatic {
- public:
-  // Return kDynamicCid if factory is not recognized.
-  static intptr_t ResultCid(const Function& factory);
-};
-
-
 // A class to collect the exits from an inlined function during graph
 // construction so they can be plugged into the caller's flow graph.
 class InlineExitCollector: public ZoneAllocated {
@@ -70,6 +42,8 @@ class InlineExitCollector: public ZoneAllocated {
   // Before replacing a call with a graph, the outer environment needs to be
   // attached to each instruction in the callee graph and the caller graph
   // needs to have its block and instruction ID state updated.
+  // Additionally we need to remove all unreachable exits from the list of
+  // collected exits.
   void PrepareGraphs(FlowGraph* callee_graph);
 
   // Inline a graph at a call site.
@@ -106,6 +80,7 @@ class InlineExitCollector: public ZoneAllocated {
 
   static int LowestBlockIdFirst(const Data* a, const Data* b);
   void SortExits();
+  void RemoveUnreachableExits(FlowGraph* callee_graph);
 
   Definition* JoinReturns(BlockEntryInstr** exit_block,
                           Instruction** last_instruction,
@@ -124,7 +99,7 @@ class InlineExitCollector: public ZoneAllocated {
 class FlowGraphBuilder : public ValueObject {
  public:
   // The inlining context is NULL if not inlining.  The osr_id is the deopt
-  // id of the OSR entry or Thread::kNoDeoptId if not compiling for OSR.
+  // id of the OSR entry or Compiler::kNoOSRDeoptId if not compiling for OSR.
   FlowGraphBuilder(const ParsedFunction& parsed_function,
                    const ZoneGrowableArray<const ICData*>& ic_data_array,
                    InlineExitCollector* exit_collector,
@@ -248,7 +223,7 @@ class FlowGraphBuilder : public ValueObject {
   // A stack of enclosing nested statements.
   NestedStatement* nesting_stack_;
 
-  // The deopt id of the OSR entry or Thread::kNoDeoptId if not compiling
+  // The deopt id of the OSR entry orCompiler::kNoOSRDeoptId if not compiling
   // for OSR.
   const intptr_t osr_id_;
 
@@ -332,8 +307,11 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Definition* BuildStoreExprTemp(Value* value);
   Definition* BuildLoadExprTemp();
 
-  Definition* BuildStoreLocal(const LocalVariable& local, Value* value);
-  Definition* BuildLoadLocal(const LocalVariable& local);
+  Definition* BuildStoreLocal(const LocalVariable& local,
+                              Value* value,
+                              intptr_t token_pos = Scanner::kNoSourcePos);
+  Definition* BuildLoadLocal(const LocalVariable& local,
+                             intptr_t token_pos = Scanner::kNoSourcePos);
   LoadLocalInstr* BuildLoadThisVar(LocalScope* scope);
   LoadFieldInstr* BuildNativeGetter(
       NativeBodyNode* node,
@@ -360,10 +338,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   void BuildTypecheckPushArguments(
       intptr_t token_pos,
-      PushArgumentInstr** push_instantiator,
       PushArgumentInstr** push_instantiator_type_arguments);
   void BuildTypecheckArguments(intptr_t token_pos,
-                               Value** instantiator,
                                Value** instantiator_type_arguments);
   Value* BuildInstantiator(const Class& instantiator_class);
   Value* BuildInstantiatorTypeArguments(intptr_t token_pos,
@@ -420,11 +396,13 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildConstructorCall(ConstructorCallNode* node,
                             PushArgumentInstr* alloc_value);
 
-  void BuildSaveContext(const LocalVariable& variable);
-  void BuildRestoreContext(const LocalVariable& variable);
+  void BuildSaveContext(const LocalVariable& variable,
+                        intptr_t token_pos);
+  void BuildRestoreContext(const LocalVariable& variable,
+                           intptr_t token_pos);
 
-  Definition* BuildStoreContext(Value* value);
-  Definition* BuildCurrentContext();
+  Definition* BuildStoreContext(Value* value, intptr_t token_pos);
+  Definition* BuildCurrentContext(intptr_t token_pos);
 
   void BuildThrowNode(ThrowNode* node);
 
@@ -445,7 +423,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   void BuildStaticSetter(StaticSetterNode* node, bool result_is_needed);
   Definition* BuildStoreStaticField(StoreStaticFieldNode* node,
-                                    bool result_is_needed);
+                                    bool result_is_needed,
+                                    intptr_t token_pos);
 
   void BuildClosureCall(ClosureCallNode* node, bool result_needed);
 

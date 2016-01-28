@@ -23,8 +23,10 @@ part 'semantic_visitor_mixins.dart';
 
 /// Mixin that couples a [SendResolverMixin] to a [SemanticSendVisitor] in a
 /// [Visitor].
-abstract class SemanticSendResolvedMixin<R, A>
-    implements Visitor<R>, SendResolverMixin {
+abstract class SemanticSendResolvedMixin<R, A> implements Visitor<R> {
+  TreeElements get elements;
+
+  internalError(Spannable spannable, String message);
 
   SemanticSendVisitor<R, A> get sendVisitor;
 
@@ -63,7 +65,7 @@ abstract class SemanticSendResolvedMixin<R, A>
     // TODO(johnniwinther): Support argument.
     A arg = null;
 
-    NewStructure structure = computeNewStructure(node);
+    NewStructure structure = elements.getNewStructure(node);
     if (structure == null) {
       return internalError(node, 'No structure for $node');
     } else {
@@ -127,7 +129,6 @@ abstract class SemanticDeclarationResolvedMixin<R, A>
 
 abstract class SemanticVisitor<R, A> extends Visitor<R>
     with SemanticSendResolvedMixin<R, A>,
-         SendResolverMixin,
          SemanticDeclarationResolvedMixin<R, A>,
          DeclarationResolverMixin {
   TreeElements elements;

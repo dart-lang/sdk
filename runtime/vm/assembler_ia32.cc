@@ -2163,6 +2163,7 @@ void Assembler::LoadIsolate(Register dst) {
 
 
 void Assembler::LoadObject(Register dst, const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   if (object.IsSmi() || object.InVMHeap()) {
     movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
@@ -2176,6 +2177,7 @@ void Assembler::LoadObject(Register dst, const Object& object) {
 
 
 void Assembler::LoadObjectSafely(Register dst, const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   if (Assembler::IsSafe(object)) {
     LoadObject(dst, object);
   } else {
@@ -2187,6 +2189,7 @@ void Assembler::LoadObjectSafely(Register dst, const Object& object) {
 
 
 void Assembler::PushObject(const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   if (object.IsSmi() || object.InVMHeap()) {
     pushl(Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
@@ -2200,6 +2203,7 @@ void Assembler::PushObject(const Object& object) {
 
 
 void Assembler::CompareObject(Register reg, const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   if (object.IsSmi() || object.InVMHeap()) {
     cmpl(reg, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
@@ -2398,6 +2402,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 
 void Assembler::UnverifiedStoreOldObject(const Address& dest,
                                          const Object& value) {
+  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
   ASSERT(value.IsOld());
   ASSERT(!value.InVMHeap());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2411,6 +2416,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value,
                                          FieldContent old_content) {
+  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
   VerifyHeapWord(dest, old_content);
   if (value.IsSmi() || value.InVMHeap()) {
     Immediate imm_value(reinterpret_cast<int32_t>(value.raw()));
@@ -2570,6 +2576,7 @@ static const intptr_t kNumberOfVolatileXmmRegisters =
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
+  Comment("EnterCallRuntimeFrame");
   EnterFrame(0);
 
   // Preserve volatile CPU registers.

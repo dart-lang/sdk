@@ -37,13 +37,6 @@ class ValueObject {
 // to a stack frame above the frame where these objects were allocated.
 class StackResource {
  public:
-  // DEPRECATED: Use Thread-based interface. During migration, this defaults
-  // to using the mutator thread (which must also be the current thread).
-  explicit StackResource(Isolate* isolate) : thread_(NULL), previous_(NULL) {
-    Init((isolate == NULL) ?
-        NULL : reinterpret_cast<BaseIsolate*>(isolate)->mutator_thread_);
-  }
-
   explicit StackResource(Thread* thread) : thread_(NULL), previous_(NULL) {
     Init(thread);
   }

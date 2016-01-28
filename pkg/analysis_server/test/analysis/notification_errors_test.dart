@@ -25,9 +25,6 @@ main() {
 class NotificationErrorsTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 
-  /// Cached model state in case tests need to set task model to on/off.
-  bool wasTaskModelEnabled;
-
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_ERRORS) {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
@@ -39,37 +36,26 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     server.handlers = [new AnalysisDomainHandler(server),];
-    wasTaskModelEnabled = AnalysisEngine.instance.useTaskModel;
   }
 
-  @override
-  void tearDown() {
-    AnalysisEngine.instance.useTaskModel = wasTaskModelEnabled;
-    super.tearDown();
-  }
-
-  test_importError() {
+  test_importError() async {
     createProject();
 
     addTestFile('''
 import 'does_not_exist.dart';
 ''');
-    return waitForTasksFinished().then((_) {
-      List<AnalysisError> errors = filesErrors[testFile];
-      // Verify that we are generating only 1 error for the bad URI.
-      // https://github.com/dart-lang/sdk/issues/23754
-      expect(errors, hasLength(1));
-      AnalysisError error = errors[0];
-      expect(error.severity, AnalysisErrorSeverity.ERROR);
-      expect(error.type, AnalysisErrorType.COMPILE_TIME_ERROR);
-      expect(error.message, startsWith('Target of URI does not exist'));
-    });
+    await waitForTasksFinished();
+    List<AnalysisError> errors = filesErrors[testFile];
+    // Verify that we are generating only 1 error for the bad URI.
+    // https://github.com/dart-lang/sdk/issues/23754
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.severity, AnalysisErrorSeverity.ERROR);
+    expect(error.type, AnalysisErrorType.COMPILE_TIME_ERROR);
+    expect(error.message, startsWith('Target of URI does not exist'));
   }
 
-  test_lintError() {
-    // Requires task model.
-    AnalysisEngine.instance.useTaskModel = true;
-
+  test_lintError() async {
     var camelCaseTypesLintName = 'camel_case_types';
 
     addFile(
@@ -86,69 +72,64 @@ linter:
         new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
 
-    return waitForTasksFinished().then((_) {
-      AnalysisContext testContext = server.getContainingContext(testFile);
-      List<Linter> lints = getLints(testContext);
-      // Registry should only contain single lint rule.
-      expect(lints, hasLength(1));
-      LintRule lint = lints.first as LintRule;
-      expect(lint.name, camelCaseTypesLintName);
-      // Verify lint error result.
-      List<AnalysisError> errors = filesErrors[testFile];
-      expect(errors, hasLength(1));
-      AnalysisError error = errors[0];
-      expect(error.location.file, '/project/bin/test.dart');
-      expect(error.severity, AnalysisErrorSeverity.INFO);
-      expect(error.type, AnalysisErrorType.LINT);
-      expect(error.message, lint.description);
-    });
+    await waitForTasksFinished();
+    AnalysisContext testContext = server.getContainingContext(testFile);
+    List<Linter> lints = getLints(testContext);
+    // Registry should only contain single lint rule.
+    expect(lints, hasLength(1));
+    LintRule lint = lints.first as LintRule;
+    expect(lint.name, camelCaseTypesLintName);
+    // Verify lint error result.
+    List<AnalysisError> errors = filesErrors[testFile];
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.location.file, '/project/bin/test.dart');
+    expect(error.severity, AnalysisErrorSeverity.INFO);
+    expect(error.type, AnalysisErrorType.LINT);
+    expect(error.message, lint.description);
   }
 
-  test_notInAnalysisRoot() {
+  test_notInAnalysisRoot() async {
     createProject();
     String otherFile = '/other.dart';
     addFile(otherFile, 'UnknownType V;');
     addTestFile('''
 import '/other.dart';
-
 main() {
   print(V);
 }
 ''');
-    return waitForTasksFinished().then((_) {
-      expect(filesErrors[otherFile], isNull);
-    });
+    await waitForTasksFinished();
+    expect(filesErrors[otherFile], isNull);
   }
 
-  test_ParserError() {
+  test_ParserError() async {
     createProject();
     addTestFile('library lib');
-    return waitForTasksFinished().then((_) {
-      List<AnalysisError> errors = filesErrors[testFile];
-      expect(errors, hasLength(1));
-      AnalysisError error = errors[0];
-      expect(error.location.file, '/project/bin/test.dart');
-      expect(error.location.offset, isPositive);
-      expect(error.location.length, isNonNegative);
-      expect(error.severity, AnalysisErrorSeverity.ERROR);
-      expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
-      expect(error.message, isNotNull);
-    });
+    await waitForTasksFinished();
+    List<AnalysisError> errors = filesErrors[testFile];
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.location.file, '/project/bin/test.dart');
+    expect(error.location.offset, isPositive);
+    expect(error.location.length, isNonNegative);
+    expect(error.severity, AnalysisErrorSeverity.ERROR);
+    expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
+    expect(error.message, isNotNull);
   }
 
-  test_StaticWarning() {
+  test_StaticWarning() async {
     createProject();
     addTestFile('''
 main() {
   print(UNKNOWN);
 }
 ''');
-    return waitForTasksFinished().then((_) {
-      List<AnalysisError> errors = filesErrors[testFile];
-      expect(errors, hasLength(1));
-      AnalysisError error = errors[0];
-      expect(error.severity, AnalysisErrorSeverity.WARNING);
-      expect(error.type, AnalysisErrorType.STATIC_WARNING);
-    });
+    await waitForTasksFinished();
+    List<AnalysisError> errors = filesErrors[testFile];
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.severity, AnalysisErrorSeverity.WARNING);
+    expect(error.type, AnalysisErrorType.STATIC_WARNING);
   }
 }

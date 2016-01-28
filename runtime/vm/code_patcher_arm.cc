@@ -69,6 +69,19 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
 }
 
 
+void CodePatcher::PatchSwitchableCallAt(uword return_address,
+                                        const Code& code,
+                                        const ICData& ic_data,
+                                        const MegamorphicCache& cache,
+                                        const Code& lookup_stub) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  SwitchableCallPattern call(return_address, code);
+  ASSERT(call.cache() == ic_data.raw());
+  call.SetLookupStub(lookup_stub);
+  call.SetCache(cache);
+}
+
+
 void CodePatcher::PatchNativeCallAt(uword return_address,
                                     const Code& code,
                                     NativeFunction target,

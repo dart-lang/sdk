@@ -127,6 +127,34 @@ class Isolate {
   external static Isolate get current;
 
   /**
+   * Returns the package root of the current isolate, if any.
+   *
+   * If the isolate is using a [packageConfig] or the isolate has not been
+   * setup for package resolution, this getter returns `null`, otherwise it
+   * returns the package root - a directory that package URIs are resolved
+   * against.
+   */
+  external static Future<Uri> get packageRoot;
+
+  /**
+   * Returns the package root of the current isolate, if any.
+   *
+   * If the isolate is using a [packageRoot] or the isolate has not been
+   * setup for package resolution, this getter returns `null`, otherwise it
+   * returns the package config URI.
+   */
+  external static Future<Uri> get packageConfig;
+
+  /**
+   * Maps a package: URI to a non-package Uri.
+   *
+   * If there is no valid mapping from the package: URI in the current
+   * isolate, then this call returns `null`. Non-package: URIs are
+   * returned unmodified.
+   */
+  external static Future<Uri> resolvePackageUri(Uri packageUri);
+
+  /**
    * Creates and spawns an isolate that shares the same code as the current
    * isolate.
    *
@@ -222,6 +250,14 @@ class Isolate {
    * resolved against this location, as by
    * `packageRoot.resolve("foo/bar.dart")`.
    *
+   * If the [packageConfig] parameter is provided, then it is used to find the
+   * location of a package resolution configuration file for the spawned
+   * isolate.
+   *
+   * If the [automaticPackageResolution] parameter is provided, then the
+   * location of the package sources in the spawned isolate is automatically
+   * determined.
+   *
    * The [environment] is a mapping from strings to strings which the
    * spawned isolate uses when looking up [String.fromEnvironment] values.
    * The system may add its own entries to environment as well.
@@ -244,7 +280,9 @@ class Isolate {
        bool errorsAreFatal,
        bool checked,
        Map<String, String> environment,
-       Uri packageRoot});
+       Uri packageRoot,
+       Uri packageConfig,
+       bool automaticPackageResolution: false});
 
   /**
    * Requests the isolate to pause.

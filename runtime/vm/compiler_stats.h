@@ -41,8 +41,6 @@ class CompilerStats {
   Timer codefinalizer_timer;   // Included in codegen_timer.
 
   int64_t num_tokens_total;    // Isolate + VM isolate
-  int64_t num_literal_tokens_total;
-  int64_t num_ident_tokens_total;
   int64_t num_tokens_scanned;
   int64_t num_tokens_consumed;
   int64_t num_cached_consts;
@@ -73,10 +71,11 @@ class CompilerStats {
   char* PrintToZone();
 };
 
-// TODO(hausner): make the increment thread-safe.
 #define INC_STAT(thread, counter, incr)                                        \
   if (FLAG_compiler_stats) {                                                   \
-      (thread)->isolate()->compiler_stats()->counter += (incr); }
+    MutexLocker ml((thread)->isolate()->mutex());                              \
+    (thread)->isolate()->compiler_stats()->counter += (incr);                  \
+  }
 
 #define STAT_VALUE(thread, counter)                                            \
   ((FLAG_compiler_stats != false) ?                                            \

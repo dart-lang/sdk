@@ -148,7 +148,7 @@ class Process {
 
 class SignalInfo {
  public:
-  SignalInfo(int fd, int signal, SignalInfo* next)
+  SignalInfo(intptr_t fd, intptr_t signal, SignalInfo* next)
       : fd_(fd),
         signal_(signal),
         // SignalInfo is expected to be created when in a isolate.
@@ -171,14 +171,14 @@ class SignalInfo {
     }
   }
 
-  int fd() const { return fd_; }
-  int signal() const { return signal_; }
+  intptr_t fd() const { return fd_; }
+  intptr_t signal() const { return signal_; }
   Dart_Port port() const { return port_; }
   SignalInfo* next() const { return next_; }
 
  private:
-  int fd_;
-  int signal_;
+  intptr_t fd_;
+  intptr_t signal_;
   // The port_ is used to identify what isolate the signal-info belongs to.
   Dart_Port port_;
   SignalInfo* next_;

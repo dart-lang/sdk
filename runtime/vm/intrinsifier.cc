@@ -4,18 +4,19 @@
 // Class for intrinsifying functions.
 
 #include "vm/assembler.h"
-#include "vm/intrinsifier.h"
+#include "vm/compiler.h"
 #include "vm/flags.h"
-#include "vm/object.h"
-#include "vm/symbols.h"
-
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
+#include "vm/intrinsifier.h"
+#include "vm/object.h"
 #include "vm/parser.h"
+#include "vm/symbols.h"
+
 
 namespace dart {
 
@@ -133,14 +134,14 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   FlowGraphBuilder builder(parsed_function,
                            *ic_data_array,
                            NULL,  // NULL = not inlining.
-                           Thread::kNoDeoptId);  // No OSR id.
+                           Compiler::kNoOSRDeoptId);
 
   intptr_t block_id = builder.AllocateBlockId();
   TargetEntryInstr* normal_entry =
       new TargetEntryInstr(block_id,
                            CatchClauseNode::kInvalidTryIndex);
   GraphEntryInstr* graph_entry = new GraphEntryInstr(
-      parsed_function, normal_entry, Thread::kNoDeoptId);  // No OSR id.
+      parsed_function, normal_entry, Compiler::kNoOSRDeoptId);
   FlowGraph* graph = new FlowGraph(parsed_function, graph_entry, block_id);
   const Function& function = parsed_function.function();
   switch (function.recognized_kind()) {
@@ -864,6 +865,25 @@ bool Intrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
                                   builder.TokenPos()));
   Definition* null_def = builder.AddNullDefinition();
   builder.AddIntrinsicReturn(new Value(null_def));
+  return true;
+}
+
+
+bool Intrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  Definition* receiver = builder.AddParameter(1);
+  Definition* unboxed_value =
+      builder.AddUnboxInstr(kUnboxedDouble, new Value(receiver));
+  Definition* unboxed_result = builder.AddDefinition(
+      new UnaryDoubleOpInstr(Token::kNEGATE,
+                             new Value(unboxed_value),
+                             Thread::kNoDeoptId));
+  Definition* result = builder.AddDefinition(
+      BoxInstr::Create(kUnboxedDouble, new Value(unboxed_result)));
+  builder.AddIntrinsicReturn(new Value(result));
   return true;
 }
 

@@ -102,6 +102,8 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
      'mangledNames': mangledNamesAccess,
      'mangledGlobalNames': mangledGlobalNamesAccess,
      'statics': staticsAccess,
+     'staticsPropertyName': namer.staticsPropertyName,
+     'staticsPropertyNameString': js.quoteName(namer.staticsPropertyName),
      'typeInformation': typeInformationAccess,
      'globalFunctions': globalFunctionsAccess,
      'enabledInvokeOn': compiler.enabledInvokeOn,
@@ -129,14 +131,14 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
      'needsNativeSupport': program.needsNativeSupport,
      'enabledJsInterop': backend.jsInteropAnalysis.enabledJsInterop,
      'jsInteropBoostrap':backend.jsInteropAnalysis.buildJsInteropBootstrap(),
-     'isInterceptorClass': namer.operatorIs(backend.jsInterceptorClass),
-     'isObject' : namer.operatorIs(compiler.objectClass),
+     'isInterceptorClass': namer.operatorIs(backend.helpers.jsInterceptorClass),
+     'isObject' : namer.operatorIs(compiler.coreClasses.objectClass),
      'specProperty': js.string(namer.nativeSpecProperty),
      'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
      'hasRetainedMetadata': backend.hasRetainedMetadata,
      'types': typesAccess,
      'objectClassName': js.quoteName(
-         namer.runtimeTypeName(compiler.objectClass)),
+         namer.runtimeTypeName(compiler.coreClasses.objectClass)),
      'needsStructuredMemberInfo': emitter.needsStructuredMemberInfo,
      'usesMangledNames':
           compiler.mirrorsLibrary != null || compiler.enabledFunctionApply,
@@ -526,10 +528,10 @@ function $setupProgramName(programData, typesOffset) {
       for (var i = 0; i < properties.length; i++) {
         var property = properties[i];
         var firstChar = property.charCodeAt(0);
-        if (property === "static") {
-          processStatics(#statics[cls] = descriptor.static,
+        if (property === #staticsPropertyNameString) {
+          processStatics(#statics[cls] = descriptor.#staticsPropertyName,
                          processedClasses);
-          delete descriptor.static;
+          delete descriptor.#staticsPropertyName;
         } else if (firstChar === 43) { // 43 is "+".
           mangledNames[previousProperty] = property.substring(1);
           var flag = descriptor[property];

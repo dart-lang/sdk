@@ -20,12 +20,12 @@ namespace dart {
 DECLARE_FLAG(bool, interpret_irregexp);
 
 // When entering intrinsics code:
-// S5: IC Data
 // S4: Arguments descriptor
 // RA: Return address
-// The S5, S4 registers can be destroyed only if there is no slow-path, i.e.
+// The S4 register can be destroyed only if there is no slow-path, i.e.
 // if the intrinsified method always executes a return.
 // The FP register should not be modified, because it is used by the profiler.
+// The PP and THR registers (see constants_mips.h) must be preserved.
 
 #define __ assembler->
 
@@ -1470,7 +1470,7 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
 
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
-  __ bne(T0, ZR, &fall_through);
+  __ bne(CMPRES1, ZR, &fall_through);
 
   // Is Smi.
   __ SmiUntag(T0);
@@ -1681,7 +1681,7 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
 
   // Checks.
   __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
-  __ bne(T1, ZR, &fall_through);  // Index is not a Smi.
+  __ bne(CMPRES1, ZR, &fall_through);  // Index is not a Smi.
   __ lw(T2, FieldAddress(T0, String::length_offset()));  // Range check.
   // Runtime throws exception.
   __ BranchUnsignedGreaterEqual(T1, T2, &fall_through);
@@ -1708,6 +1708,118 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
 }
 
 
+void GenerateSubstringMatchesSpecialization(Assembler* assembler,
+                                            intptr_t receiver_cid,
+                                            intptr_t other_cid,
+                                            Label* return_true,
+                                            Label* return_false) {
+  __ SmiUntag(A1);
+  __ lw(T1, FieldAddress(A0, String::length_offset()));  // this.length
+  __ SmiUntag(T1);
+  __ lw(T2, FieldAddress(A2, String::length_offset()));  // other.length
+  __ SmiUntag(T2);
+
+  // if (other.length == 0) return true;
+  __ beq(T2, ZR, return_true);
+
+  // if (start < 0) return false;
+  __ bltz(A1, return_false);
+
+  // if (start + other.length > this.length) return false;
+  __ addu(T0, A1, T2);
+  __ BranchSignedGreater(T0, T1, return_false);
+
+  if (receiver_cid == kOneByteStringCid) {
+    __ AddImmediate(A0, A0, OneByteString::data_offset() - kHeapObjectTag);
+    __ addu(A0, A0, A1);
+  } else {
+    ASSERT(receiver_cid == kTwoByteStringCid);
+    __ AddImmediate(A0, A0, TwoByteString::data_offset() - kHeapObjectTag);
+    __ addu(A0, A0, A1);
+    __ addu(A0, A0, A1);
+  }
+  if (other_cid == kOneByteStringCid) {
+    __ AddImmediate(A2, A2, OneByteString::data_offset() - kHeapObjectTag);
+  } else {
+    ASSERT(other_cid == kTwoByteStringCid);
+    __ AddImmediate(A2, A2, TwoByteString::data_offset() - kHeapObjectTag);
+  }
+
+  // i = 0
+  __ LoadImmediate(T0, 0);
+
+  // do
+  Label loop;
+  __ Bind(&loop);
+
+  if (receiver_cid == kOneByteStringCid) {
+    __ lbu(T3, Address(A0, 0));  // this.codeUnitAt(i + start)
+  } else {
+    __ lhu(T3, Address(A0, 0));  // this.codeUnitAt(i + start)
+  }
+  if (other_cid == kOneByteStringCid) {
+    __ lbu(T4, Address(A2, 0));  // other.codeUnitAt(i)
+  } else {
+    __ lhu(T4, Address(A2, 0));  // other.codeUnitAt(i)
+  }
+  __ bne(T3, T4, return_false);
+
+  // i++, while (i < len)
+  __ AddImmediate(T0, T0, 1);
+  __ AddImmediate(A0, A0, receiver_cid == kOneByteStringCid ? 1 : 2);
+  __ AddImmediate(A2, A2, other_cid == kOneByteStringCid ? 1 : 2);
+  __ BranchSignedLess(T0, T2, &loop);
+
+  __ b(return_true);
+}
+
+
+// bool _substringMatches(int start, String other)
+// This intrinsic handles a OneByteString or TwoByteString receiver with a
+// OneByteString other.
+void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler) {
+  Label fall_through, return_true, return_false, try_two_byte;
+  __ lw(A0, Address(SP, 2 * kWordSize));  // this
+  __ lw(A1, Address(SP, 1 * kWordSize));  // start
+  __ lw(A2, Address(SP, 0 * kWordSize));  // other
+
+  __ andi(CMPRES1, A1, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);  // 'start' is not a Smi.
+
+  __ LoadClassId(CMPRES1, A2);
+  __ BranchNotEqual(CMPRES1, Immediate(kOneByteStringCid), &fall_through);
+
+  __ LoadClassId(CMPRES1, A0);
+  __ BranchNotEqual(CMPRES1, Immediate(kOneByteStringCid), &try_two_byte);
+
+  GenerateSubstringMatchesSpecialization(assembler,
+                                         kOneByteStringCid,
+                                         kOneByteStringCid,
+                                         &return_true,
+                                         &return_false);
+
+  __ Bind(&try_two_byte);
+  __ LoadClassId(CMPRES1, A0);
+  __ BranchNotEqual(CMPRES1, Immediate(kTwoByteStringCid), &fall_through);
+
+  GenerateSubstringMatchesSpecialization(assembler,
+                                         kTwoByteStringCid,
+                                         kOneByteStringCid,
+                                         &return_true,
+                                         &return_false);
+
+  __ Bind(&return_true);
+  __ LoadObject(V0, Bool::True());
+  __ Ret();
+
+  __ Bind(&return_false);
+  __ LoadObject(V0, Bool::False());
+  __ Ret();
+
+  __ Bind(&fall_through);
+}
+
+
 void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   Label fall_through, try_two_byte_string;
 
@@ -1716,7 +1828,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
 
   // Checks.
   __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
-  __ bne(T1, ZR, &fall_through);  // Index is not a Smi.
+  __ bne(CMPRES1, ZR, &fall_through);  // Index is not a Smi.
   __ lw(T2, FieldAddress(T0, String::length_offset()));  // Range check.
   // Runtime throws exception.
   __ BranchUnsignedGreaterEqual(T1, T2, &fall_through);

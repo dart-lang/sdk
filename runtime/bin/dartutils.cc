@@ -34,20 +34,20 @@ namespace dart {
 namespace bin {
 
 const char* DartUtils::original_working_directory = NULL;
-const char* DartUtils::kDartScheme = "dart:";
-const char* DartUtils::kDartExtensionScheme = "dart-ext:";
-const char* DartUtils::kAsyncLibURL = "dart:async";
-const char* DartUtils::kBuiltinLibURL = "dart:_builtin";
-const char* DartUtils::kCoreLibURL = "dart:core";
-const char* DartUtils::kInternalLibURL = "dart:_internal";
-const char* DartUtils::kIsolateLibURL = "dart:isolate";
-const char* DartUtils::kIOLibURL = "dart:io";
-const char* DartUtils::kIOLibPatchURL = "dart:io-patch";
-const char* DartUtils::kUriLibURL = "dart:uri";
-const char* DartUtils::kHttpScheme = "http:";
-const char* DartUtils::kVMServiceLibURL = "dart:vmservice";
+const char* const DartUtils::kDartScheme = "dart:";
+const char* const DartUtils::kDartExtensionScheme = "dart-ext:";
+const char* const DartUtils::kAsyncLibURL = "dart:async";
+const char* const DartUtils::kBuiltinLibURL = "dart:_builtin";
+const char* const DartUtils::kCoreLibURL = "dart:core";
+const char* const DartUtils::kInternalLibURL = "dart:_internal";
+const char* const DartUtils::kIsolateLibURL = "dart:isolate";
+const char* const DartUtils::kIOLibURL = "dart:io";
+const char* const DartUtils::kIOLibPatchURL = "dart:io-patch";
+const char* const DartUtils::kUriLibURL = "dart:uri";
+const char* const DartUtils::kHttpScheme = "http:";
+const char* const DartUtils::kVMServiceLibURL = "dart:vmservice";
 
-uint8_t DartUtils::magic_number[] = { 0xf5, 0xf5, 0xdc, 0xdc };
+const uint8_t DartUtils::magic_number[] = { 0xf5, 0xf5, 0xdc, 0xdc };
 
 static bool IsWindowsHost() {
 #if defined(TARGET_OS_WINDOWS)
@@ -281,6 +281,27 @@ Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
   Dart_Handle str = Dart_NewStringFromUTF8(text_buffer, len);
   free(const_cast<uint8_t *>(text_buffer));
   return str;
+}
+
+
+Dart_Handle DartUtils::MakeUint8Array(const uint8_t* buffer, intptr_t len) {
+  Dart_Handle array = Dart_NewTypedData(Dart_TypedData_kUint8, len);
+  RETURN_IF_ERROR(array);
+  {
+    Dart_TypedData_Type td_type;
+    void* td_data;
+    intptr_t td_len;
+    Dart_Handle result =
+        Dart_TypedDataAcquireData(array, &td_type, &td_data, &td_len);
+    RETURN_IF_ERROR(result);
+    ASSERT(td_type == Dart_TypedData_kUint8);
+    ASSERT(td_len == len);
+    ASSERT(td_data != NULL);
+    memmove(td_data, buffer, td_len);
+    result = Dart_TypedDataReleaseData(array);
+    RETURN_IF_ERROR(result);
+  }
+  return array;
 }
 
 
@@ -587,7 +608,7 @@ void FUNCTION_NAME(Builtin_LoadSource)(Dart_NativeArguments args) {
   }
 
   if (buffer_copy != NULL) {
-    free(const_cast<uint8_t *>(buffer_copy));
+    free(buffer_copy);
   }
 
   if (Dart_IsError(result)) {
@@ -637,8 +658,7 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                                              bool is_service_isolate,
                                              bool trace_loading,
                                              const char* package_root,
-                                             const char** package_map,
-                                             const char* packages_file) {
+                                             const char* packages_config) {
   // Setup the internal library's 'internalPrint' function.
   Dart_Handle print = Dart_Invoke(
       builtin_lib, NewString("_getPrintClosure"), 0, NULL);
@@ -663,7 +683,8 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
     // Wait for the service isolate to initialize the load port.
     Dart_Port load_port = Dart_ServiceWaitForLoadPort();
     if (load_port == ILLEGAL_PORT) {
-      return NewDartUnsupportedError("Service did not return load port.");
+      return Dart_NewUnhandledExceptionError(
+          NewDartUnsupportedError("Service did not return load port."));
     }
     result = Builtin::SetLoadPort(load_port);
     RETURN_IF_ERROR(result);
@@ -671,8 +692,7 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
 
   // Set up package root if specified.
   if (package_root != NULL) {
-    ASSERT(package_map == NULL);
-    ASSERT(packages_file == NULL);
+    ASSERT(packages_config == NULL);
     result = NewString(package_root);
     RETURN_IF_ERROR(result);
     const int kNumArgs = 1;
@@ -683,35 +703,8 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                          kNumArgs,
                          dart_args);
     RETURN_IF_ERROR(result);
-  } else if (package_map != NULL) {
-    ASSERT(packages_file == NULL);
-    Dart_Handle func_name = NewString("_addPackageMapEntry");
-    RETURN_IF_ERROR(func_name);
-
-    for (int i = 0; package_map[i] != NULL; i +=2) {
-      const int kNumArgs = 2;
-      Dart_Handle dart_args[kNumArgs];
-      // Get the key.
-      result = NewString(package_map[i]);
-      RETURN_IF_ERROR(result);
-      dart_args[0] = result;
-      if (package_map[i + 1] == NULL) {
-        return Dart_NewUnhandledExceptionError(
-            NewDartArgumentError("Adding package map entry without value."));
-      }
-      // Get the value.
-      result = NewString(package_map[i + 1]);
-      RETURN_IF_ERROR(result);
-      dart_args[1] = result;
-      // Setup the next package map entry.
-      result = Dart_Invoke(builtin_lib,
-                           func_name,
-                           kNumArgs,
-                           dart_args);
-      RETURN_IF_ERROR(result);
-    }
-  } else if (packages_file != NULL) {
-    result = NewString(packages_file);
+  } else if (packages_config != NULL) {
+    result = NewString(packages_config);
     RETURN_IF_ERROR(result);
     const int kNumArgs = 1;
     Dart_Handle dart_args[kNumArgs];
@@ -767,8 +760,7 @@ Dart_Handle DartUtils::PrepareIsolateLibrary(Dart_Handle isolate_lib) {
 
 
 Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
-                                               const char** package_map,
-                                               const char* packages_file,
+                                               const char* packages_config,
                                                bool is_service_isolate,
                                                bool trace_loading,
                                                Dart_Handle builtin_lib) {
@@ -802,8 +794,7 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                  is_service_isolate,
                                  trace_loading,
                                  package_root,
-                                 package_map,
-                                 packages_file);
+                                 packages_config);
   RETURN_IF_ERROR(result);
 
   RETURN_IF_ERROR(PrepareAsyncLibrary(async_lib, isolate_lib));

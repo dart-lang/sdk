@@ -168,7 +168,7 @@ Future<CompilationResult> compile(
     throw new ArgumentError("compilerOutput must be non-null");
   }
 
-  Compiler compiler = new Compiler(
+  CompilerImpl compiler = new CompilerImpl(
       compilerInput,
       compilerOutput,
       compilerDiagnostics,

@@ -6,14 +6,15 @@ library services.src.index.index_contributor;
 
 import 'dart:collection' show Queue;
 
-import 'package:analysis_server/plugin/index/index_core.dart';
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analysis_server/src/services/index/indexable_file.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/scanner.dart';

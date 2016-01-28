@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.scanner_test;
+library analyzer.test.generated.scanner_test;
 
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -262,6 +262,18 @@ class ScannerTest {
     Token token = scanner.tokenize();
     expect(token, isNotNull);
     expect(token.precedingComments, isNull);
+  }
+
+  void test_comment_generic_method_type_assign() {
+    _assertComment(TokenType.MULTI_LINE_COMMENT, "/*=comment*/");
+    _assertComment(TokenType.GENERIC_METHOD_TYPE_ASSIGN, "/*=comment*/",
+        genericMethodComments: true);
+  }
+
+  void test_comment_generic_method_type_list() {
+    _assertComment(TokenType.MULTI_LINE_COMMENT, "/*<comment>*/");
+    _assertComment(TokenType.GENERIC_METHOD_TYPE_LIST, "/*<comment>*/",
+        genericMethodComments: true);
   }
 
   void test_comment_multi() {
@@ -1048,11 +1060,12 @@ class ScannerTest {
     _scanWithListener("'\${(}'", listener);
   }
 
-  void _assertComment(TokenType commentType, String source) {
+  void _assertComment(TokenType commentType, String source,
+      {bool genericMethodComments: false}) {
     //
     // Test without a trailing end-of-line marker
     //
-    Token token = _scan(source);
+    Token token = _scan(source, genericMethodComments: genericMethodComments);
     expect(token, isNotNull);
     expect(token.type, TokenType.EOF);
     Token comment = token.precedingComments;
@@ -1064,7 +1077,7 @@ class ScannerTest {
     //
     // Test with a trailing end-of-line marker
     //
-    token = _scan("$source\n");
+    token = _scan("$source\n", genericMethodComments: genericMethodComments);
     expect(token, isNotNull);
     expect(token.type, TokenType.EOF);
     comment = token.precedingComments;
@@ -1233,16 +1246,21 @@ class ScannerTest {
     expect(token.type, TokenType.EOF);
   }
 
-  Token _scan(String source) {
+  Token _scan(String source, {bool genericMethodComments: false}) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    Token token = _scanWithListener(source, listener);
+    Token token = _scanWithListener(source, listener,
+        genericMethodComments: genericMethodComments);
     listener.assertNoErrors();
     return token;
   }
 
-  Token _scanWithListener(String source, GatheringErrorListener listener) {
+  Token _scanWithListener(String source, GatheringErrorListener listener,
+      {bool genericMethodComments: false}) {
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
+    if (genericMethodComments) {
+      scanner.scanGenericMethodComments = true;
+    }
     Token result = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     return result;

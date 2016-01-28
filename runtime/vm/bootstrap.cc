@@ -30,6 +30,14 @@ typedef struct {
 } bootstrap_lib_props;
 
 
+enum {
+  kPathsUriOffset = 0,
+  kPathsFileOffset = 1,
+  kPathsSourceOffset = 2,
+  kPathsEntryLength = 3
+};
+
+
 static bootstrap_lib_props bootstrap_libraries[] = {
   INIT_LIBRARY(ObjectStore::kCore,
                core,
@@ -86,7 +94,7 @@ static bootstrap_lib_props bootstrap_libraries[] = {
 static RawString* GetLibrarySource(const Library& lib,
                                    const String& uri,
                                    bool patch) {
-  // First check if this is a valid boot strap library and find it's index
+  // First check if this is a valid bootstrap library and find it's index
   // in the 'bootstrap_libraries' table above.
   intptr_t index;
   const String& lib_uri = String::Handle(lib.url());
@@ -98,7 +106,7 @@ static RawString* GetLibrarySource(const Library& lib,
     }
   }
   if (bootstrap_libraries[index].index_ == ObjectStore::kNone) {
-    return String::null();  // Library is not a boot strap library.
+    return String::null();  // Library is not a bootstrap library.
   }
 
   // Try to read the source using the path specified for the uri.
@@ -109,38 +117,42 @@ static RawString* GetLibrarySource(const Library& lib,
     return String::null();  // No path mapping information exists for library.
   }
   const char* source_path = NULL;
-  for (intptr_t i = 0; source_paths[i] != NULL; i += 2) {
-    if (uri.Equals(source_paths[i])) {
-      source_path = source_paths[i + 1];
+  const char* source_data = NULL;
+  for (intptr_t i = 0; source_paths[i] != NULL; i += kPathsEntryLength) {
+    if (uri.Equals(source_paths[i + kPathsUriOffset])) {
+      source_path = source_paths[i + kPathsFileOffset];
+      source_data = source_paths[i + kPathsSourceOffset];
       break;
     }
   }
-  if (source_path == NULL) {
+  if ((source_path == NULL) && (source_data == NULL)) {
     return String::null();  // Uri does not exist in path mapping information.
-  }
-
-  Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-  Dart_FileReadCallback file_read = Isolate::file_read_callback();
-  Dart_FileCloseCallback file_close = Isolate::file_close_callback();
-  if (file_open == NULL || file_read == NULL || file_close == NULL) {
-    return String::null();  // File operations are not supported.
-  }
-
-  void* stream = (*file_open)(source_path, false);
-  if (stream == NULL) {
-    return String::null();
   }
 
   const uint8_t* utf8_array = NULL;
   intptr_t file_length = -1;
-  (*file_read)(&utf8_array, &file_length, stream);
+
+  Dart_FileOpenCallback file_open = Isolate::file_open_callback();
+  Dart_FileReadCallback file_read = Isolate::file_read_callback();
+  Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+  if ((file_open != NULL) && (file_read != NULL) && (file_close != NULL)) {
+    // Try to open and read the file.
+    void* stream = (*file_open)(source_path, false);
+    if (stream != NULL) {
+      (*file_read)(&utf8_array, &file_length, stream);
+      (*file_close)(stream);
+    }
+  }
   if (file_length == -1) {
-    return String::null();
+    if (source_data != NULL) {
+      file_length = strlen(source_data);
+      utf8_array = reinterpret_cast<const uint8_t*>(source_data);
+    } else {
+      return String::null();
+    }
   }
   ASSERT(utf8_array != NULL);
-
-  (*file_close)(stream);
-
+  ASSERT(file_length >= 0);
   return String::FromUTF8(utf8_array, file_length);
 }
 
@@ -169,7 +181,6 @@ static Dart_Handle LoadPartSource(Thread* thread,
                                   const Library& lib,
                                   const String& uri) {
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   const String& part_source = String::Handle(
       zone, GetLibrarySource(lib, uri, false));
   const String& lib_uri = String::Handle(zone, lib.url());
@@ -189,7 +200,7 @@ static Dart_Handle LoadPartSource(Thread* thread,
   const Script& part_script = Script::Handle(
       zone, Script::New(part_uri, part_source, RawScript::kSourceTag));
   const Error& error = Error::Handle(zone, Compile(lib, part_script));
-  return Api::NewHandle(isolate, error.raw());
+  return Api::NewHandle(thread, error.raw());
 }
 
 
@@ -237,8 +248,8 @@ static RawError* LoadPatchFiles(Zone* zone,
   const Array& strings = Array::Handle(zone, Array::New(3));
   strings.SetAt(0, patch_uri);
   strings.SetAt(1, Symbols::Slash());
-  for (intptr_t j = 0; patch_files[j] != NULL; j += 2) {
-    patch_file_uri = String::New(patch_files[j]);
+  for (intptr_t j = 0; patch_files[j] != NULL; j += kPathsEntryLength) {
+    patch_file_uri = String::New(patch_files[j + kPathsUriOffset]);
     source = GetLibrarySource(lib, patch_file_uri, true);
     if (source.IsNull()) {
       const String& message = String::Handle(

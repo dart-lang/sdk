@@ -11,9 +11,7 @@
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
-#include "vm/code_generator.h"
 #include "vm/code_observers.h"
-#include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart.h"
@@ -25,12 +23,9 @@
 #include "vm/disassembler.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
-#include "vm/flow_graph_builder.h"
-#include "vm/flow_graph_compiler.h"
 #include "vm/growable_array.h"
 #include "vm/hash_table.h"
 #include "vm/heap.h"
-#include "vm/intermediate_language.h"
 #include "vm/intrinsifier.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -42,6 +37,7 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
+#include "vm/thread_registry.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
 #include "vm/verified_memory.h"
@@ -72,16 +68,18 @@ DEFINE_FLAG(bool, ignore_patch_signature_mismatch, false,
 DECLARE_FLAG(charp, coverage_dir);
 DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, show_invisible_frames);
-DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, write_protect_code);
 
 
-static const char* kGetterPrefix = "get:";
+static const char* const kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
-static const char* kSetterPrefix = "set:";
+static const char* const kSetterPrefix = "set:";
 static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
+
+// A cache of VM heap allocated preinitialized empty ic data entry arrays.
+RawArray* ICData::cached_icdata_arrays_[kCachedICDataArrayCount];
 
 cpp_vtable Object::handle_vtable_ = 0;
 cpp_vtable Object::builtin_vtables_[kNumPredefinedCids] = { 0 };
@@ -116,14 +114,15 @@ Bool* Object::bool_false_ = NULL;
 Smi* Object::smi_illegal_cid_ = NULL;
 LanguageError* Object::snapshot_writer_error_ = NULL;
 LanguageError* Object::branch_offset_error_ = NULL;
+LanguageError* Object::speculative_inlining_error_ = NULL;
 Array* Object::vm_isolate_snapshot_object_table_ = NULL;
+Type* Object::dynamic_type_ = NULL;
+Type* Object::void_type_ = NULL;
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-RawType* Object::dynamic_type_ = reinterpret_cast<RawType*>(RAW_NULL);
-RawType* Object::void_type_ = reinterpret_cast<RawType*>(RAW_NULL);
 RawClass* Object::unresolved_class_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -489,7 +488,10 @@ void Object::InitOnce(Isolate* isolate) {
   smi_illegal_cid_ = Smi::ReadOnlyHandle();
   snapshot_writer_error_ = LanguageError::ReadOnlyHandle();
   branch_offset_error_ = LanguageError::ReadOnlyHandle();
+  speculative_inlining_error_ = LanguageError::ReadOnlyHandle();
   vm_isolate_snapshot_object_table_ = Array::ReadOnlyHandle();
+  dynamic_type_ = Type::ReadOnlyHandle();
+  void_type_ = Type::ReadOnlyHandle();
 
   *null_object_ = Object::null();
   *null_array_ = Array::null();
@@ -661,6 +663,11 @@ void Object::InitOnce(Isolate* isolate) {
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   cls.set_num_type_arguments(1);
   cls.set_num_own_type_arguments(1);
+  cls = Class::New<GrowableObjectArray>();
+  isolate->object_store()->set_growable_object_array_class(cls);
+  cls.set_type_arguments_field_offset(
+      GrowableObjectArray::type_arguments_offset());
+  cls.set_num_type_arguments(1);
   cls = Class::NewStringClass(kOneByteStringCid);
   isolate->object_store()->set_one_byte_string_class(cls);
   cls = Class::NewStringClass(kTwoByteStringCid);
@@ -803,10 +810,10 @@ void Object::InitOnce(Isolate* isolate) {
   cls.set_is_finalized();
 
   cls = dynamic_class_;
-  dynamic_type_ = Type::NewNonParameterizedType(cls);
+  *dynamic_type_ = Type::NewNonParameterizedType(cls);
 
   cls = void_class_;
-  void_type_ = Type::NewNonParameterizedType(cls);
+  *void_type_ = Type::NewNonParameterizedType(cls);
 
   // Allocate and initialize singleton true and false boolean objects.
   cls = Class::New<Bool>();
@@ -825,6 +832,10 @@ void Object::InitOnce(Isolate* isolate) {
   *branch_offset_error_ = LanguageError::New(error_str,
                                              Report::kBailout,
                                              Heap::kOld);
+  error_str = String::New("Speculative inlining failed", Heap::kOld);
+  *speculative_inlining_error_ = LanguageError::New(error_str,
+                                                    Report::kBailout,
+                                                    Heap::kOld);
 
   ASSERT(!null_object_->IsSmi());
   ASSERT(!null_array_->IsSmi());
@@ -864,6 +875,8 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(snapshot_writer_error_->IsLanguageError());
   ASSERT(!branch_offset_error_->IsSmi());
   ASSERT(branch_offset_error_->IsLanguageError());
+  ASSERT(!speculative_inlining_error_->IsSmi());
+  ASSERT(speculative_inlining_error_->IsLanguageError());
   ASSERT(!vm_isolate_snapshot_object_table_->IsSmi());
   ASSERT(vm_isolate_snapshot_object_table_->IsArray());
 }
@@ -901,7 +914,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
 
   // Allocate the parameter arrays for method extractor types and names.
   *extractor_parameter_types_ = Array::New(1, Heap::kOld);
-  extractor_parameter_types_->SetAt(0, Type::Handle(Type::DynamicType()));
+  extractor_parameter_types_->SetAt(0, Object::dynamic_type());
   *extractor_parameter_names_ = Array::New(1, Heap::kOld);
   extractor_parameter_names_->SetAt(0, Symbols::This());
 
@@ -955,7 +968,8 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
 
   {
     ASSERT(isolate == Dart::vm_isolate());
-    WritableVMIsolateScope scope(Thread::Current());
+    bool include_code_pages = !Dart::IsRunningPrecompiledCode();
+    WritableVMIsolateScope scope(Thread::Current(), include_code_pages);
     PremarkingVisitor premarker(isolate);
     ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
     isolate->heap()->IterateOldObjects(&premarker);
@@ -1560,10 +1574,10 @@ RawError* Object::Init(Isolate* isolate) {
 
 #define ADD_SET_FIELD(clazz)                                                   \
   field_name = Symbols::New("cid"#clazz);                                      \
-  field = Field::New(field_name, true, false, true, false, cls, 0);            \
+  field = Field::New(field_name, true, false, true, false, cls,                \
+      Type::Handle(Type::IntType()), 0);                                       \
   value = Smi::New(k##clazz##Cid);                                             \
   field.SetStaticValue(value, true);                                           \
-  field.set_type(Type::Handle(Type::IntType()));                               \
   cls.AddField(field);                                                         \
 
   CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
@@ -1765,22 +1779,10 @@ void Object::InitializeObject(uword address,
                               intptr_t class_id,
                               intptr_t size,
                               bool is_vm_object) {
-  const uword break_instruction_value = Assembler::GetBreakInstructionFiller();
-  const uword null_value = reinterpret_cast<uword>(null_);
-  const bool is_instructions = class_id == kInstructionsCid;
-  uword initial_value =
-      is_instructions ? break_instruction_value : null_value;
+  uword initial_value = (class_id == kInstructionsCid)
+      ? Assembler::GetBreakInstructionFiller() : reinterpret_cast<uword>(null_);
   uword cur = address;
   uword end = address + size;
-  if (is_instructions) {
-    // Fill the header with null. The remainder of the Instructions object will
-    // be filled with the break_instruction_value.
-    uword header_end = address + Instructions::HeaderSize();
-    while (cur < header_end) {
-      *reinterpret_cast<uword*>(cur) = null_value;
-      cur += kWordSize;
-    }
-  }
   while (cur < end) {
     *reinterpret_cast<uword*>(cur) = initial_value;
     cur += kWordSize;
@@ -1827,7 +1829,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   // New space allocation allowed only in mutator thread (Dart thread);
-  ASSERT(isolate->MutatorThreadIsCurrentThread() || (space != Heap::kNew));
+  ASSERT(thread->IsMutatorThread() || (space != Heap::kNew));
   ASSERT(thread->no_callback_scope_depth() == 0);
   Heap* heap = isolate->heap();
 
@@ -1848,7 +1850,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
   }
   const Class& cls = Class::Handle(class_table->At(cls_id));
   if (cls.TraceAllocation(isolate)) {
-    Profiler::RecordAllocation(thread, cls_id);
+    Profiler::SampleAllocation(thread, cls_id);
   }
   NoSafepointScope no_safepoint;
   InitializeObject(address, cls_id, size, (isolate == Dart::vm_isolate()));
@@ -2168,8 +2170,8 @@ void Class::SetFunctions(const Array& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->functions_, value.raw());
   const intptr_t len = value.Length();
-  ClassFunctionsSet set(HashTables::New<ClassFunctionsSet>(len, Heap::kOld));
   if (len >= kFunctionLookupHashTreshold) {
+    ClassFunctionsSet set(HashTables::New<ClassFunctionsSet>(len, Heap::kOld));
     Function& func = Function::Handle();
     for (intptr_t i = 0; i < len; ++i) {
       func ^= value.At(i);
@@ -2177,8 +2179,8 @@ void Class::SetFunctions(const Array& value) const {
       ASSERT(func.Owner() == raw());
       set.Insert(func);
     }
+    StorePointer(&raw_ptr()->functions_hash_table_, set.Release().raw());
   }
-  StorePointer(&raw_ptr()->functions_hash_table_, set.Release().raw());
 }
 
 
@@ -2204,6 +2206,7 @@ void Class::AddFunction(const Function& function) const {
 void Class::RemoveFunction(const Function& function) const {
   const Array& arr = Array::Handle(functions());
   StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
+  StorePointer(&raw_ptr()->functions_hash_table_, Array::null());
   Function& entry = Function::Handle();
   for (intptr_t i = 0; i < arr.Length(); i++) {
     entry ^= arr.At(i);
@@ -2211,29 +2214,6 @@ void Class::RemoveFunction(const Function& function) const {
       AddFunction(entry);
     }
   }
-}
-
-
-intptr_t Class::FindFunctionIndex(const Function& needle) const {
-  Thread* thread = Thread::Current();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return -1;
-  }
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  REUSABLE_FUNCTION_HANDLESCOPE(thread);
-  Array& funcs = thread->ArrayHandle();
-  Function& function = thread->FunctionHandle();
-  funcs ^= functions();
-  ASSERT(!funcs.IsNull());
-  const intptr_t len = funcs.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    function ^= funcs.At(i);
-    if (function.raw() == needle.raw()) {
-      return i;
-    }
-  }
-  // No function found.
-  return -1;
 }
 
 
@@ -2325,7 +2305,6 @@ intptr_t Class::FindInvocationDispatcherFunctionIndex(
 }
 
 
-
 RawFunction* Class::InvocationDispatcherFunctionFromIndex(intptr_t idx) const {
   Thread* thread = Thread::Current();
   REUSABLE_ARRAY_HANDLESCOPE(thread);
@@ -2338,86 +2317,6 @@ RawFunction* Class::InvocationDispatcherFunctionFromIndex(intptr_t idx) const {
     return Function::null();
   }
   return Function::Cast(object).raw();
-}
-
-
-void Class::set_closures(const GrowableObjectArray& value) const {
-  StorePointer(&raw_ptr()->closure_functions_, value.raw());
-}
-
-
-void Class::AddClosureFunction(const Function& function) const {
-  GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(raw_ptr()->closure_functions_);
-  if (closures.IsNull()) {
-    closures = GrowableObjectArray::New(4, Heap::kOld);
-    StorePointer(&raw_ptr()->closure_functions_, closures.raw());
-  }
-  ASSERT(function.IsNonImplicitClosureFunction());
-  ASSERT(function.Owner() == this->raw());
-  closures.Add(function, Heap::kOld);
-}
-
-
-// Lookup the innermost closure function that contains token at token_pos.
-RawFunction* Class::LookupClosureFunction(intptr_t token_pos) const {
-  if (raw_ptr()->closure_functions_ == GrowableObjectArray::null()) {
-    return Function::null();
-  }
-  const GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(raw_ptr()->closure_functions_);
-  Function& closure = Function::Handle();
-  intptr_t num_closures = closures.Length();
-  intptr_t best_fit_token_pos = -1;
-  intptr_t best_fit_index = -1;
-  for (intptr_t i = 0; i < num_closures; i++) {
-    closure ^= closures.At(i);
-    ASSERT(!closure.IsNull());
-    if ((closure.token_pos() <= token_pos) &&
-        (token_pos <= closure.end_token_pos()) &&
-        (best_fit_token_pos < closure.token_pos())) {
-      best_fit_index = i;
-      best_fit_token_pos = closure.token_pos();
-    }
-  }
-  closure = Function::null();
-  if (best_fit_index >= 0) {
-    closure ^= closures.At(best_fit_index);
-  }
-  return closure.raw();
-}
-
-intptr_t Class::FindClosureIndex(const Function& needle) const {
-  if (closures() == GrowableObjectArray::null()) {
-    return -1;
-  }
-  Thread* thread = Thread::Current();
-  const GrowableObjectArray& closures_array =
-      GrowableObjectArray::Handle(thread->zone(), closures());
-  REUSABLE_FUNCTION_HANDLESCOPE(thread);
-  Function& closure = thread->FunctionHandle();
-  intptr_t num_closures = closures_array.Length();
-  for (intptr_t i = 0; i < num_closures; i++) {
-    closure ^= closures_array.At(i);
-    ASSERT(!closure.IsNull());
-    if (closure.raw() == needle.raw()) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-
-RawFunction* Class::ClosureFunctionFromIndex(intptr_t idx) const {
-  const GrowableObjectArray& closures_array =
-      GrowableObjectArray::Handle(closures());
-  if ((idx < 0) || (idx >= closures_array.Length())) {
-    return Function::null();
-  }
-  Function& func = Function::Handle();
-  func ^= closures_array.At(idx);
-  ASSERT(!func.IsNull());
-  return func.raw();
 }
 
 
@@ -2447,6 +2346,12 @@ intptr_t Class::NumTypeParameters(Thread* thread) const {
     ClassFinalizer::ApplyMixinType(*this);
   }
   if (type_parameters() == TypeArguments::null()) {
+    const intptr_t cid = id();
+    if ((cid == kArrayCid) ||
+        (cid == kImmutableArrayCid) ||
+        (cid == kGrowableObjectArrayCid)) {
+      return 1;  // List's type parameter may not have been parsed yet.
+    }
     return 0;
   }
   REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
@@ -2732,7 +2637,7 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
                     false,  // Not external.
                     false,  // Not native.
                     *this,
-                    0));  // No token position.
+                    0));    // token_pos
   ArgumentsDescriptor desc(args_desc);
   invocation.set_num_fixed_parameters(desc.PositionalCount());
   invocation.SetNumOptionalParameters(desc.NamedCount(),
@@ -2742,12 +2647,12 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
   invocation.set_parameter_names(Array::Handle(Array::New(desc.Count(),
                                                           Heap::kOld)));
   // Receiver.
-  invocation.SetParameterTypeAt(0, Type::Handle(Type::DynamicType()));
+  invocation.SetParameterTypeAt(0, Object::dynamic_type());
   invocation.SetParameterNameAt(0, Symbols::This());
   // Remaining positional parameters.
   intptr_t i = 1;
   for (; i < desc.PositionalCount(); i++) {
-    invocation.SetParameterTypeAt(i, Type::Handle(Type::DynamicType()));
+    invocation.SetParameterTypeAt(i, Object::dynamic_type());
     char name[64];
     OS::SNPrint(name, 64, ":p%" Pd, i);
     invocation.SetParameterNameAt(i, String::Handle(Symbols::New(name)));
@@ -2755,17 +2660,71 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
 
   // Named parameters.
   for (; i < desc.Count(); i++) {
-    invocation.SetParameterTypeAt(i, Type::Handle(Type::DynamicType()));
+    invocation.SetParameterTypeAt(i, Object::dynamic_type());
     intptr_t index = i - desc.PositionalCount();
     invocation.SetParameterNameAt(i, String::Handle(desc.NameAt(index)));
   }
-  invocation.set_result_type(Type::Handle(Type::DynamicType()));
+  invocation.set_result_type(Object::dynamic_type());
   invocation.set_is_debuggable(false);
   invocation.set_is_visible(false);
   invocation.set_is_reflectable(false);
   invocation.set_saved_args_desc(args_desc);
 
   return invocation.raw();
+}
+
+
+// Method extractors are used to create implicit closures from methods.
+// When an expression obj.M is evaluated for the first time and receiver obj
+// does not have a getter called M but has a method called M then an extractor
+// is created and injected as a getter (under the name get:M) into the class
+// owning method M.
+RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
+  ASSERT(Field::IsGetterName(getter_name));
+  const Function& closure_function =
+      Function::Handle(ImplicitClosureFunction());
+
+  const Class& owner = Class::Handle(closure_function.Owner());
+  Function& extractor = Function::Handle(
+    Function::New(String::Handle(Symbols::New(getter_name)),
+                  RawFunction::kMethodExtractor,
+                  false,  // Not static.
+                  false,  // Not const.
+                  false,  // Not abstract.
+                  false,  // Not external.
+                  false,  // Not native.
+                  owner,
+                  0));    // token_pos
+
+  // Initialize signature: receiver is a single fixed parameter.
+  const intptr_t kNumParameters = 1;
+  extractor.set_num_fixed_parameters(kNumParameters);
+  extractor.SetNumOptionalParameters(0, 0);
+  extractor.set_parameter_types(Object::extractor_parameter_types());
+  extractor.set_parameter_names(Object::extractor_parameter_names());
+  extractor.set_result_type(Object::dynamic_type());
+
+  extractor.set_extracted_method_closure(closure_function);
+  extractor.set_is_debuggable(false);
+  extractor.set_is_visible(false);
+
+  owner.AddFunction(extractor);
+
+  return extractor.raw();
+}
+
+
+RawFunction* Function::GetMethodExtractor(const String& getter_name) const {
+  ASSERT(Field::IsGetterName(getter_name));
+  const Function& closure_function =
+      Function::Handle(ImplicitClosureFunction());
+  const Class& owner = Class::Handle(closure_function.Owner());
+  Function& result = Function::Handle(owner.LookupDynamicFunction(getter_name));
+  if (result.IsNull()) {
+    result ^= CreateMethodExtractor(getter_name);
+  }
+  ASSERT(result.kind() == RawFunction::kMethodExtractor);
+  return result.raw();
 }
 
 
@@ -2780,6 +2739,10 @@ void Class::set_invocation_dispatcher_cache(const Array& cache) const {
 
 
 void Class::Finalize() const {
+  ASSERT(Thread::Current()->IsMutatorThread());
+  // Even if all regular classes are prefinalized (precompilation), signature
+  // classes may be added later when we encounter local functions.
+  ASSERT(IsSignatureClass() || !Isolate::Current()->all_classes_finalized());
   ASSERT(!is_finalized());
   // Prefinalized classes have a VM internal representation and no Dart fields.
   // Their instance size  is precomputed and field offsets are known.
@@ -2821,25 +2784,43 @@ class CHACodeArray : public WeakCodeReferences {
     }
   }
 
+  virtual void IncrementInvalidationGen() {
+    Isolate::Current()->IncrCHAInvalidationGen();
+  }
+
  private:
   const Class& cls_;
   DISALLOW_COPY_AND_ASSIGN(CHACodeArray);
 };
 
 
+#if defined(DEBUG)
+static bool IsMutatorOrAtSafepoint() {
+  Thread* thread = Thread::Current();
+  return thread->IsMutatorThread() ||
+         thread->isolate()->thread_registry()->AtSafepoint();
+}
+#endif
+
+
 void Class::RegisterCHACode(const Code& code) {
   if (FLAG_trace_cha) {
-    THR_Print("RegisterCHACode %s class %s\n",
+    THR_Print("RegisterCHACode '%s' depends on class '%s'\n",
         Function::Handle(code.function()).ToQualifiedCString(), ToCString());
   }
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(code.is_optimized());
   CHACodeArray a(*this);
   a.Register(code);
 }
 
 
-void Class::DisableCHAOptimizedCode() {
+void Class::DisableCHAOptimizedCode(const Class& subclass) {
+  ASSERT(Thread::Current()->IsMutatorThread());
   CHACodeArray a(*this);
+  if (FLAG_trace_deoptimization && a.HasCodes()) {
+    THR_Print("Adding subclass %s\n", subclass.ToCString());
+  }
   a.DisableCode();
 }
 
@@ -2873,8 +2854,8 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
   // Shared handles used during the iteration.
   String& member_name = String::Handle();
 
-  const PatchClass& patch_class =
-      PatchClass::Handle(PatchClass::New(*this, patch));
+  const PatchClass& patch_class = PatchClass::Handle(
+      PatchClass::New(*this, Script::Handle(patch.script())));
 
   Array& orig_list = Array::Handle(functions());
   intptr_t orig_len = orig_list.Length();
@@ -2976,8 +2957,10 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
   SetFields(new_list);
 
   // The functions and fields in the patch class are no longer needed.
+  // The patch class itself is also no longer needed.
   patch.SetFunctions(Object::empty_array());
   patch.SetFields(Object::empty_array());
+  Library::Handle(patch.library()).RemovePatchClass(patch);
   return true;
 }
 
@@ -3019,11 +3002,11 @@ static RawFunction* EvaluateHelper(const Class& cls,
   const Library& lib = Library::Handle(cls.library());
   ASSERT(!lib.IsNull());
   const String& lib_key = String::Handle(lib.private_key());
-  script.Tokenize(lib_key);
+  script.Tokenize(lib_key, false);
 
   const Function& func = Function::Handle(
        Function::NewEvalFunction(cls, script, is_static));
-  func.set_result_type(Type::Handle(Type::DynamicType()));
+  func.set_result_type(Object::dynamic_type());
   const intptr_t num_implicit_params = is_static ? 0 : 1;
   func.set_num_fixed_parameters(num_implicit_params + param_names.Length());
   func.SetNumOptionalParameters(0, true);
@@ -3044,12 +3027,12 @@ RawObject* Class::Evaluate(const String& expr,
 
 
 // Ensure that top level parsing of the class has been done.
-// TODO(24109): Migrate interface to Thread*.
 RawError* Class::EnsureIsFinalized(Thread* thread) const {
   // Finalized classes have already been parsed.
   if (is_finalized()) {
     return Error::null();
   }
+  ASSERT(thread->IsMutatorThread());
   ASSERT(thread != NULL);
   const Error& error = Error::Handle(
       thread->zone(), Compiler::CompileClass(*this));
@@ -3099,46 +3082,6 @@ void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
     new_arr.SetAt(i + num_old_fields, *new_fields.At(i));
   }
   SetFields(new_arr);
-}
-
-
-intptr_t Class::FindFieldIndex(const Field& needle) const {
-  Thread* thread = Thread::Current();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return -1;
-  }
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  REUSABLE_FIELD_HANDLESCOPE(thread);
-  REUSABLE_STRING_HANDLESCOPE(thread);
-  Array& fields_array = thread->ArrayHandle();
-  Field& field = thread->FieldHandle();
-  String& field_name = thread->StringHandle();
-  fields_array ^= fields();
-  ASSERT(!fields_array.IsNull());
-  String& needle_name = String::Handle(thread->zone());
-  needle_name ^= needle.name();
-  const intptr_t len = fields_array.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    field ^= fields_array.At(i);
-    field_name ^= field.name();
-    if (field_name.Equals(needle_name)) {
-      return i;
-    }
-  }
-  // No field found.
-  return -1;
-}
-
-
-RawField* Class::FieldFromIndex(intptr_t idx) const {
-  const Array& flds = Array::Handle(fields());
-  if ((idx < 0) || (idx >= flds.Length())) {
-    return Field::null();
-  }
-  Field& field = Field::Handle();
-  field ^= flds.At(idx);
-  ASSERT(!field.IsNull());
-  return field.raw();
 }
 
 
@@ -3506,7 +3449,7 @@ void Class::set_script(const Script& value) const {
 
 
 void Class::set_token_pos(intptr_t token_pos) const {
-  ASSERT(token_pos >= 0);
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -3593,8 +3536,8 @@ void Class::set_is_cycle_free() const {
 }
 
 
-void Class::set_is_allocated() const {
-  set_state_bits(IsAllocatedBit::update(true, raw_ptr()->state_bits_));
+void Class::set_is_allocated(bool value) const {
+  set_state_bits(IsAllocatedBit::update(value, raw_ptr()->state_bits_));
 }
 
 
@@ -3602,6 +3545,14 @@ void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
   set_state_bits(ClassFinalizedBits::update(RawClass::kFinalized,
                                             raw_ptr()->state_bits_));
+}
+
+
+void Class::ResetFinalization() const {
+  ASSERT(IsTopLevel());
+  set_state_bits(ClassFinalizedBits::update(RawClass::kAllocated,
+                                            raw_ptr()->state_bits_));
+  set_state_bits(TypeFinalizedBit::update(false, raw_ptr()->state_bits_));
 }
 
 
@@ -3639,9 +3590,9 @@ bool Class::IsMixinApplication() const {
 }
 
 
-void Class::set_patch_class(const Class& cls) const {
-  ASSERT(patch_class() == Class::null());
-  StorePointer(&raw_ptr()->patch_class_, cls.raw());
+RawClass* Class::GetPatchClass() const {
+  const Library& lib = Library::Handle(library());
+  return lib.GetPatchClass(String::Handle(Name()));
 }
 
 
@@ -3688,7 +3639,7 @@ void Class::set_canonical_types(const Object& value) const {
 
 
 RawType* Class::CanonicalType() const {
-  if (NumTypeArguments() == 0) {
+  if (!IsGeneric()) {
     return reinterpret_cast<RawType*>(raw_ptr()->canonical_types_);
   }
   Array& types = Array::Handle();
@@ -3702,7 +3653,7 @@ RawType* Class::CanonicalType() const {
 
 void Class::SetCanonicalType(const Type& type) const {
   ASSERT(type.IsCanonical());
-  if (NumTypeArguments() == 0) {
+  if (!IsGeneric()) {
     ASSERT((canonical_types() == Object::null()) ||
            (canonical_types() == type.raw()));  // Set during own finalization.
     set_canonical_types(type);
@@ -3845,11 +3796,11 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     // Check for reflexivity.
     if (thsi.raw() == other.raw()) {
-      const intptr_t num_type_args = thsi.NumTypeArguments();
-      if (num_type_args == 0) {
+      const intptr_t num_type_params = thsi.NumTypeParameters();
+      if (num_type_params == 0) {
         return true;
       }
-      const intptr_t num_type_params = thsi.NumTypeParameters();
+      const intptr_t num_type_args = thsi.NumTypeArguments();
       const intptr_t from_index = num_type_args - num_type_params;
       // Since we do not truncate the type argument vector of a subclass (see
       // below), we only check a subvector of the proper length.
@@ -3925,6 +3876,12 @@ bool Class::TypeTestNonRecursive(const Class& cls,
       if (!interface.IsFinalized()) {
         // We may be checking bounds at finalization time and can encounter
         // a still unfinalized interface.
+        if (interface.IsBeingFinalized()) {
+          // Interface is part of a still unfinalized recursive type graph.
+          // Skip it. The caller will create a bounded type to be checked at
+          // runtime if this type test returns false at compile time.
+          continue;
+        }
         ClassFinalizer::FinalizeType(
             thsi, interface, ClassFinalizer::kCanonicalize);
         interfaces.SetAt(i, interface);
@@ -4223,33 +4180,6 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
 }
 
 
-RawFunction* Class::LookupFunctionAtToken(intptr_t token_pos) const {
-  // TODO(hausner): we can shortcut the negative case if we knew the
-  // beginning and end token position of the class.
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return Function::null();
-  }
-  Function& func = Function::Handle(zone);
-  func = LookupClosureFunction(token_pos);
-  if (!func.IsNull()) {
-    return func.raw();
-  }
-  Array& funcs = Array::Handle(zone, functions());
-  intptr_t len = funcs.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    func ^= funcs.At(i);
-    if ((func.token_pos() <= token_pos) &&
-        (token_pos <= func.end_token_pos())) {
-      return func.raw();
-    }
-  }
-  // No function found.
-  return Function::null();
-}
-
-
 RawField* Class::LookupInstanceField(const String& name) const {
   return LookupField(name, kInstance);
 }
@@ -4455,7 +4385,7 @@ RawUnresolvedClass* UnresolvedClass::New() {
 
 
 void UnresolvedClass::set_token_pos(intptr_t token_pos) const {
-  ASSERT(token_pos >= 0);
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -5268,10 +5198,21 @@ void PatchClass::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 RawPatchClass* PatchClass::New(const Class& patched_class,
-                               const Class& source_class) {
+                               const Class& origin_class) {
   const PatchClass& result = PatchClass::Handle(PatchClass::New());
   result.set_patched_class(patched_class);
-  result.set_source_class(source_class);
+  result.set_origin_class(origin_class);
+  result.set_script(Script::Handle(origin_class.script()));
+  return result.raw();
+}
+
+
+RawPatchClass* PatchClass::New(const Class& patched_class,
+                               const Script& script) {
+  const PatchClass& result = PatchClass::Handle(PatchClass::New());
+  result.set_patched_class(patched_class);
+  result.set_origin_class(patched_class);
+  result.set_script(script);
   return result.raw();
 }
 
@@ -5285,37 +5226,56 @@ RawPatchClass* PatchClass::New() {
 }
 
 
-RawScript* PatchClass::Script() const {
-  const Class& source_class = Class::Handle(this->source_class());
-  return source_class.script();
-}
-
-
 void PatchClass::set_patched_class(const Class& value) const {
   StorePointer(&raw_ptr()->patched_class_, value.raw());
 }
 
 
-void PatchClass::set_source_class(const Class& value) const {
-  StorePointer(&raw_ptr()->source_class_, value.raw());
+void PatchClass::set_origin_class(const Class& value) const {
+  StorePointer(&raw_ptr()->origin_class_, value.raw());
+}
+
+
+void PatchClass::set_script(const Script& value) const {
+  StorePointer(&raw_ptr()->script_, value.raw());
 }
 
 
 bool Function::HasBreakpoint() const {
-  return Isolate::Current()->debugger()->HasBreakpoint(*this);
+  Thread* thread = Thread::Current();
+  return thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
+}
+
+
+void Function::InstallOptimizedCode(const Code& code, bool is_osr) const {
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  // We may not have previous code if 'always_optimize' is set.
+  if (!is_osr && HasCode()) {
+    Code::Handle(CurrentCode()).DisableDartCode();
+  }
+  AttachCode(code);
 }
 
 
 void Function::SetInstructions(const Code& value) const {
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  SetInstructionsSafe(value);
+}
+
+
+void Function::SetInstructionsSafe(const Code& value) const {
   StorePointer(&raw_ptr()->code_, value.raw());
   StoreNonPointer(&raw_ptr()->entry_point_, value.EntryPoint());
 }
 
+
 void Function::AttachCode(const Code& value) const {
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  // Finish setting up code before activating it.
+  value.set_owner(*this);
   SetInstructions(value);
   ASSERT(Function::Handle(value.function()).IsNull() ||
-    (value.function() == this->raw()));
-  value.set_owner(*this);
+      (value.function() == this->raw()));
 }
 
 
@@ -5326,6 +5286,7 @@ bool Function::HasCode() const {
 
 
 void Function::ClearCode() const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT((usage_counter() != 0) || (ic_data_array() == Array::null()));
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
   SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
@@ -5337,6 +5298,7 @@ void Function::SwitchToUnoptimizedCode() const {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
+  ASSERT(thread->IsMutatorThread());
   const Code& current_code = Code::Handle(zone, CurrentCode());
 
   if (FLAG_trace_deoptimization_verbose) {
@@ -5358,6 +5320,7 @@ void Function::SwitchToUnoptimizedCode() const {
 
 
 void Function::set_unoptimized_code(const Code& value) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(value.IsNull() || !value.is_optimized());
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
 }
@@ -5453,6 +5416,27 @@ void Function::set_saved_args_desc(const Array& value) const {
 }
 
 
+RawField* Function::LookupImplicitGetterSetterField() const {
+  ASSERT((kind() == RawFunction::kImplicitGetter) ||
+         (kind() == RawFunction::kImplicitSetter) ||
+         (kind() == RawFunction::kImplicitStaticFinalGetter));
+  const Class& owner = Class::Handle(Owner());
+  ASSERT(!owner.IsNull());
+  const Array& fields = Array::Handle(owner.fields());
+  ASSERT(!fields.IsNull());
+  Field& field = Field::Handle();
+  for (intptr_t i = 0; i < fields.Length(); i++) {
+    field ^= fields.At(i);
+    ASSERT(!field.IsNull());
+    if (field.token_pos() == token_pos()) {
+      return field.raw();
+    }
+  }
+  return Field::null();
+}
+
+
+
 RawFunction* Function::parent_function() const {
   if (IsClosureFunction()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -5481,16 +5465,31 @@ RawFunction* Function::implicit_closure_function() const {
     return Function::null();
   }
   const Object& obj = Object::Handle(raw_ptr()->data_);
-  ASSERT(obj.IsNull() || obj.IsScript() || obj.IsFunction());
-  return (obj.IsNull() || obj.IsScript()) ? Function::null()
-                                          : Function::Cast(obj).raw();
+  ASSERT(obj.IsNull() || obj.IsScript() || obj.IsFunction() || obj.IsArray());
+  if (obj.IsNull() || obj.IsScript()) {
+    return Function::null();
+  }
+  if (obj.IsFunction()) {
+    return Function::Cast(obj).raw();
+  }
+  ASSERT(is_native());
+  ASSERT(obj.IsArray());
+  const Object& res = Object::Handle(Array::Cast(obj).At(1));
+  return res.IsNull() ? Function::null() : Function::Cast(res).raw();
 }
 
 
 void Function::set_implicit_closure_function(const Function& value) const {
   ASSERT(!IsClosureFunction() && !IsSignatureFunction());
-  ASSERT(raw_ptr()->data_ == Object::null());
-  set_data(value);
+  if (is_native()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(obj.IsArray());
+    ASSERT((Array::Cast(obj).At(1) == Object::null()) || value.IsNull());
+    Array::Cast(obj).SetAt(1, value);
+  } else {
+    ASSERT((raw_ptr()->data_ == Object::null()) || value.IsNull());
+    set_data(value);
+  }
 }
 
 
@@ -5525,7 +5524,7 @@ void Function::set_signature_class(const Class& value) const {
 
 
 bool Function::IsRedirectingFactory() const {
-  if (!IsFactory() || (raw_ptr()->data_ == Object::null())) {
+  if (!IsFactory() || !is_redirecting()) {
     return false;
   }
   ASSERT(!IsClosureFunction());  // A factory cannot also be a closure.
@@ -5535,6 +5534,7 @@ bool Function::IsRedirectingFactory() const {
 
 RawType* Function::RedirectionType() const {
   ASSERT(IsRedirectingFactory());
+  ASSERT(!is_native());
   const Object& obj = Object::Handle(raw_ptr()->data_);
   ASSERT(!obj.IsNull());
   return RedirectionData::Cast(obj).type();
@@ -5638,6 +5638,19 @@ void Function::SetRedirectionTarget(const Function& target) const {
 }
 
 
+// This field is heavily overloaded:
+//   eval function:           Script expression source
+//   signature function:      Class signature class
+//   method extractor:        Function extracted closure function
+//   noSuchMethod dispatcher: Array arguments descriptor
+//   invoke-field dispatcher: Array arguments descriptor
+//   redirecting constructor: RedirectionData
+//   closure function:        ClosureData
+//   irregexp function:       Array[0] = JSRegExp
+//                            Array[1] = Smi string specialization cid
+//   native function:         Array[0] = String native name
+//                            Array[1] = Function implicit closure function
+//   regular function:        Function for implicit closure function
 void Function::set_data(const Object& value) const {
   StorePointer(&raw_ptr()->data_, value.raw());
 }
@@ -5689,6 +5702,24 @@ void Function::SetRegExpData(const JSRegExp& regexp,
   const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
   pair.SetAt(0, regexp);
   pair.SetAt(1, Smi::Handle(Smi::New(string_specialization_cid)));
+  set_data(pair);
+}
+
+
+RawString* Function::native_name() const {
+  ASSERT(is_native());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(obj.IsArray());
+  return String::RawCast(Array::Cast(obj).At(0));
+}
+
+
+void Function::set_native_name(const String& value) const {
+  ASSERT(is_native());
+  ASSERT(raw_ptr()->data_ == Object::null());
+  const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
+  pair.SetAt(0, value);
+  // pair[1] will be the implicit closure function if needed.
   set_data(pair);
 }
 
@@ -5755,9 +5786,9 @@ void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
 }
 
 
-void Function::set_token_pos(intptr_t value) const {
-  ASSERT(value >= 0);
-  StoreNonPointer(&raw_ptr()->token_pos_, value);
+void Function::set_token_pos(intptr_t token_pos) const {
+  ASSERT(token_pos >= 0);
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
@@ -5804,7 +5835,7 @@ bool Function::IsOptimizable() const {
       ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff_in_tokens)) {
     // Additional check needed for implicit getters.
     return (unoptimized_code() == Object::null()) ||
-           (Code::Handle(unoptimized_code()).Size() <
+        (Code::Handle(unoptimized_code()).Size() <
             FLAG_huge_method_cutoff_in_code_size);
   }
   return false;
@@ -5821,6 +5852,7 @@ void Function::SetIsOptimizable(bool value) const {
   set_is_optimizable(value);
   if (!value) {
     set_is_inlinable(false);
+    set_usage_counter(INT_MIN);
   }
 }
 
@@ -5832,10 +5864,10 @@ void Function::SetIsNativeAutoSetupScope(bool value) const {
 
 
 bool Function::CanBeInlined() const {
+  Thread* thread = Thread::Current();
   return is_inlinable() &&
          !is_generated_body() &&
-         HasCode() &&
-         !Isolate::Current()->debugger()->HasBreakpoint(*this);
+         !thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
 }
 
 
@@ -5846,13 +5878,8 @@ intptr_t Function::NumParameters() const {
 
 intptr_t Function::NumImplicitParameters() const {
   if (kind() == RawFunction::kConstructor) {
-    if (is_static()) {
-      ASSERT(IsFactory());
-      return 1;  // Type arguments.
-    } else {
-      ASSERT(IsGenerativeConstructor());
-      return 2;  // Instance, phase.
-    }
+    // Type arguments for factory; instance for generative constructor.
+    return 1;
   }
   if ((kind() == RawFunction::kClosureFunction) ||
       (kind() == RawFunction::kSignatureFunction)) {
@@ -6231,10 +6258,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
   const intptr_t other_num_opt_named_params =
       other.NumOptionalNamedParameters();
   // This function requires the same arguments or less and accepts the same
-  // arguments or more.
-  // A generative constructor may be compared to a redirecting factory and be
-  // compatible although it has an additional phase parameter.
-  // More generally, we can ignore implicit parameters.
+  // arguments or more. We can ignore implicit parameters.
   const intptr_t num_ignored_params = NumImplicitParameters();
   const intptr_t other_num_ignored_params = other.NumImplicitParameters();
   if (((num_fixed_params - num_ignored_params) >
@@ -6416,7 +6440,8 @@ RawFunction* Function::New(const String& name,
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
   result.set_allows_bounds_check_generalization(true);
-  result.SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+  result.SetInstructionsSafe(
+      Code::Handle(StubCode::LazyCompile_entry()->code()));
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
@@ -6492,7 +6517,7 @@ RawFunction* Function::NewEvalFunction(const Class& owner,
                     /* is_external = */ false,
                     /* is_native = */ false,
                     owner,
-                    0));
+                    /* token_pos = */ 0));
   ASSERT(!script.IsNull());
   result.set_is_debuggable(false);
   result.set_is_visible(true);
@@ -6590,6 +6615,16 @@ RawFunction* Function::ImplicitClosureFunction() const {
   set_implicit_closure_function(closure_function);
   ASSERT(closure_function.IsImplicitClosureFunction());
   return closure_function.raw();
+}
+
+
+void Function::DropUncompiledImplicitClosureFunction() const {
+  if (implicit_closure_function() != Function::null()) {
+    const Function& func = Function::Handle(implicit_closure_function());
+    if (!func.HasCode()) {
+      set_implicit_closure_function(Function::Handle());
+    }
+  }
 }
 
 
@@ -6794,7 +6829,7 @@ RawClass* Function::origin() const {
     return Class::Cast(obj).raw();
   }
   ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).source_class();
+  return PatchClass::Cast(obj).origin_class();
 }
 
 
@@ -6815,7 +6850,7 @@ RawScript* Function::script() const {
     return Class::Cast(obj).script();
   }
   ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).Script();
+  return PatchClass::Cast(obj).script();
 }
 
 
@@ -6985,7 +7020,8 @@ void Function::SaveICDataMap(
 
 
 void Function::RestoreICDataMap(
-    ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const {
+    ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
+    bool clone_descriptors) const {
   ASSERT(deopt_id_to_ic_data->is_empty());
   Zone* zone = Thread::Current()->zone();
   const Array& saved_ic_data = Array::Handle(zone, ic_data_array());
@@ -7004,6 +7040,11 @@ void Function::RestoreICDataMap(
     for (intptr_t i = 1; i < saved_length; i++) {
       ICData& ic_data = ICData::ZoneHandle(zone);
       ic_data ^= saved_ic_data.At(i);
+      if (clone_descriptors) {
+        ICData& original_ic_data = ICData::Handle(zone, ic_data.raw());
+        ic_data = ICData::CloneDescriptor(ic_data);
+        ic_data.SetOriginal(original_ic_data);
+      }
       (*deopt_id_to_ic_data)[ic_data.deopt_id()] = &ic_data;
     }
   }
@@ -7117,7 +7158,7 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
   intptr_t id = -1;
   const char* selector = NULL;
   if (f.IsNonImplicitClosureFunction()) {
-    id = cls.FindClosureIndex(f);
+    id = Isolate::Current()->FindClosureIndex(f);
     selector = "closures";
   } else if (f.IsImplicitClosureFunction()) {
     id = cls.FindImplicitClosureFunctionIndex(f);
@@ -7173,6 +7214,8 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_kind", kind_string);
   jsobj.AddProperty("static", is_static());
   jsobj.AddProperty("const", is_const());
+  jsobj.AddProperty("_intrinsic", is_intrinsic());
+  jsobj.AddProperty("_native", is_native());
   if (ref) {
     return;
   }
@@ -7186,6 +7229,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("_optimizable", is_optimizable());
   jsobj.AddProperty("_inlinable", is_inlinable());
+  jsobj.AddProperty("_recognized", IsRecognized());
   code = unoptimized_code();
   if (!code.IsNull()) {
     jsobj.AddProperty("_unoptimizedCode", code);
@@ -7194,6 +7238,14 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_optimizedCallSiteCount", optimized_call_site_count());
   jsobj.AddProperty("_deoptimizations",
                     static_cast<intptr_t>(deoptimization_counter()));
+  if ((kind() == RawFunction::kImplicitGetter) ||
+      (kind() == RawFunction::kImplicitSetter) ||
+      (kind() == RawFunction::kImplicitStaticFinalGetter)) {
+    const Field& field = Field::Handle(LookupImplicitGetterSetterField());
+    if (!field.IsNull()) {
+      jsobj.AddProperty("_field", field);
+    }
+  }
 
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {
@@ -7352,13 +7404,27 @@ RawClass* Field::origin() const {
     return Class::Cast(obj).raw();
   }
   ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).source_class();
+  return PatchClass::Cast(obj).origin_class();
 }
 
 
-void Field::set_type(const AbstractType& value) const {
+RawScript* Field::script() const {
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    return Class::Cast(obj).script();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).script();
+}
+
+
+// Called at finalization time
+void Field::SetFieldType(const AbstractType& value) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->type_, value.raw());
+  if (value.raw() != type()) {
+    StorePointer(&raw_ptr()->type_, value.raw());
+  }
 }
 
 
@@ -7377,6 +7443,7 @@ RawField* Field::New(const String& name,
                      bool is_const,
                      bool is_reflectable,
                      const Class& owner,
+                     const AbstractType& type,
                      intptr_t token_pos) {
   ASSERT(!owner.IsNull());
   const Field& result = Field::Handle(Field::New());
@@ -7388,6 +7455,37 @@ RawField* Field::New(const String& name,
   result.set_is_final(is_final);
   result.set_is_const(is_const);
   result.set_is_reflectable(is_reflectable);
+  result.set_is_double_initialized(false);
+  result.set_owner(owner);
+  result.SetFieldType(type);
+  result.set_token_pos(token_pos);
+  result.set_has_initializer(false);
+  result.set_is_unboxing_candidate(true);
+  result.set_guarded_cid(FLAG_use_field_guards ? kIllegalCid : kDynamicCid);
+  result.set_is_nullable(FLAG_use_field_guards ? false : true);
+  result.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
+  // Presently, we only attempt to remember the list length for final fields.
+  if (is_final && FLAG_use_field_guards) {
+    result.set_guarded_list_length(Field::kUnknownFixedLength);
+  } else {
+    result.set_guarded_list_length(Field::kNoFixedLength);
+  }
+  return result.raw();
+}
+
+
+RawField* Field::NewTopLevel(const String& name,
+                             bool is_final,
+                             bool is_const,
+                             const Object& owner,
+                             intptr_t token_pos) {
+  ASSERT(!owner.IsNull());
+  const Field& result = Field::Handle(Field::New());
+  result.set_name(name);
+  result.set_is_static(true);
+  result.set_is_final(is_final);
+  result.set_is_const(is_const);
+  result.set_is_reflectable(true);
   result.set_is_double_initialized(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
@@ -7406,7 +7504,6 @@ RawField* Field::New(const String& name,
 }
 
 
-
 RawField* Field::Clone(const Class& new_owner) const {
   Field& clone = Field::Handle();
   clone ^= Object::Clone(*this, Heap::kOld);
@@ -7421,7 +7518,7 @@ RawField* Field::Clone(const Class& new_owner) const {
     // Adjust the field type to refer to type parameters of the new owner.
     AbstractType& type = AbstractType::Handle(clone.type());
     type ^= type.CloneUninstantiated(new_owner);
-    clone.set_type(type);
+    clone.SetFieldType(type);
   }
   return clone.raw();
 }
@@ -7444,6 +7541,7 @@ intptr_t Field::guarded_list_length() const {
 
 
 void Field::set_guarded_list_length(intptr_t list_length) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   StoreSmi(&raw_ptr()->guarded_list_length_, Smi::New(list_length));
 }
 
@@ -7455,27 +7553,10 @@ intptr_t Field::guarded_list_length_in_object_offset() const {
 
 void Field::set_guarded_list_length_in_object_offset(
     intptr_t list_length_offset) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   StoreNonPointer(&raw_ptr()->guarded_list_length_in_object_offset_,
                   static_cast<int8_t>(list_length_offset - kHeapObjectTag));
   ASSERT(guarded_list_length_in_object_offset() == list_length_offset);
-}
-
-
-bool Field::IsUnboxedField() const {
-  bool valid_class = (FlowGraphCompiler::SupportsUnboxedDoubles() &&
-                      (guarded_cid() == kDoubleCid)) ||
-                     (FlowGraphCompiler::SupportsUnboxedSimd128() &&
-                      (guarded_cid() == kFloat32x4Cid)) ||
-                     (FlowGraphCompiler::SupportsUnboxedSimd128() &&
-                      (guarded_cid() == kFloat64x2Cid));
-  return is_unboxing_candidate() && !is_final() && !is_nullable() &&
-         valid_class;
-}
-
-
-bool Field::IsPotentialUnboxedField() const {
-  return is_unboxing_candidate() &&
-         (IsUnboxedField() || (!is_final() && (guarded_cid() == kIllegalCid)));
 }
 
 
@@ -7493,14 +7574,16 @@ const char* Field::ToCString() const {
       "Field <%s.%s>:%s%s%s", cls_name, field_name, kF0, kF1, kF2);
 }
 
+
 void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   Class& cls = Class::Handle(owner());
-  intptr_t id = cls.FindFieldIndex(*this);
-  ASSERT(id >= 0);
-  intptr_t cid = cls.id();
+  String& field_name = String::Handle(name());
+  field_name = String::EncodeIRI(field_name);
   AddCommonObjectProperties(&jsobj, "Field", ref);
-  jsobj.AddFixedServiceId("classes/%" Pd "/fields/%" Pd "", cid, id);
+  jsobj.AddFixedServiceId("classes/%" Pd "/fields/%s",
+                          cls.id(), field_name.ToCString());
+
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(name());
   AddNameProperties(&jsobj, user_name, vm_name);
@@ -7600,9 +7683,9 @@ RawInstance* Field::AccessorClosure(bool make_setter) const {
                              true,  // is_const
                              false,  // is_reflectable
                              field_owner,
+                             Object::dynamic_type(),
                              this->token_pos());
   closure_field.SetStaticValue(Instance::Cast(result), true);
-  closure_field.set_type(Type::Handle(Type::DynamicType()));
   field_owner.AddField(closure_field);
 
   return Instance::RawCast(result.raw());
@@ -7650,11 +7733,15 @@ class FieldDependentArray : public WeakCodeReferences {
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-      THR_Print("Switching %s to unoptimized code because guard"
-                " on field %s was violated.\n",
+      THR_Print("Switching '%s' to unoptimized code because guard"
+                " on field '%s' was violated.\n",
                 function.ToFullyQualifiedCString(),
                 field_.ToCString());
     }
+  }
+
+  virtual void IncrementInvalidationGen() {
+    Isolate::Current()->IncrFieldInvalidationGen();
   }
 
  private:
@@ -7664,6 +7751,7 @@ class FieldDependentArray : public WeakCodeReferences {
 
 
 void Field::RegisterDependentCode(const Code& code) const {
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(code.is_optimized());
   FieldDependentArray a(*this);
   a.Register(code);
@@ -7671,6 +7759,7 @@ void Field::RegisterDependentCode(const Code& code) const {
 
 
 void Field::DeoptimizeDependentCode() const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   FieldDependentArray a(*this);
   a.DisableCode();
 }
@@ -7950,12 +8039,12 @@ void LiteralToken::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-RawArray* TokenStream::TokenObjects() const {
+RawGrowableObjectArray* TokenStream::TokenObjects() const {
   return raw_ptr()->token_objects_;
 }
 
 
-void TokenStream::SetTokenObjects(const Array& value) const {
+void TokenStream::SetTokenObjects(const GrowableObjectArray& value) const {
   StorePointer(&raw_ptr()->token_objects_, value.raw());
 }
 
@@ -8237,10 +8326,6 @@ class CompressedTokenTraits {
       return String::Cast(key).Hash();
     }
   }
-
-  static RawObject* NewKey(const Scanner::TokenDescriptor& descriptor) {
-    return LiteralToken::New(descriptor.kind, *descriptor.literal);
-  }
 };
 typedef UnorderedHashMap<CompressedTokenTraits> CompressedTokenMap;
 
@@ -8249,33 +8334,60 @@ typedef UnorderedHashMap<CompressedTokenTraits> CompressedTokenMap;
 class CompressedTokenStreamData : public ValueObject {
  public:
   static const intptr_t kInitialBufferSize = 16 * KB;
-  CompressedTokenStreamData() :
+  static const bool kPrintTokenObjects = false;
+
+  CompressedTokenStreamData(const GrowableObjectArray& ta,
+                            CompressedTokenMap* map) :
       buffer_(NULL),
       stream_(&buffer_, Reallocate, kInitialBufferSize),
-      tokens_(HashTables::New<CompressedTokenMap>(kInitialTableSize)) {
-  }
-  ~CompressedTokenStreamData() {
-    // Safe to discard the hash table now.
-    tokens_.Release();
+      token_objects_(ta),
+      tokens_(map),
+      value_(Object::Handle()),
+      fresh_index_smi_(Smi::Handle()) {
   }
 
   // Add an IDENT token into the stream and the token hash map.
-  void AddIdentToken(const String* ident) {
-    ASSERT(ident->IsSymbol());
-    const intptr_t fresh_index = tokens_.NumOccupied();
+  void AddIdentToken(const String& ident) {
+    ASSERT(ident.IsSymbol());
+    const intptr_t fresh_index = token_objects_.Length();
+    fresh_index_smi_ = Smi::New(fresh_index);
     intptr_t index = Smi::Value(Smi::RawCast(
-        tokens_.InsertOrGetValue(*ident,
-                                 Smi::Handle(Smi::New(fresh_index)))));
+        tokens_->InsertOrGetValue(ident, fresh_index_smi_)));
+    if (index == fresh_index) {
+      token_objects_.Add(ident);
+      if (kPrintTokenObjects) {
+        int iid = Isolate::Current()->main_port() % 1024;
+        OS::Print("ident  %03x  %p <%s>\n",
+                  iid, ident.raw(), ident.ToCString());
+      }
+    }
     WriteIndex(index);
   }
 
   // Add a LITERAL token into the stream and the token hash map.
   void AddLiteralToken(const Scanner::TokenDescriptor& descriptor) {
     ASSERT(descriptor.literal->IsSymbol());
-    const intptr_t fresh_index = tokens_.NumOccupied();
-    intptr_t index = Smi::Value(Smi::RawCast(
-        tokens_.InsertNewOrGetValue(descriptor,
-                                    Smi::Handle(Smi::New(fresh_index)))));
+    bool is_present = false;
+    value_ = tokens_->GetOrNull(descriptor, &is_present);
+    intptr_t index = -1;
+    if (is_present) {
+      ASSERT(value_.IsSmi());
+      index = Smi::Cast(value_).Value();
+    } else {
+      const intptr_t fresh_index = token_objects_.Length();
+      fresh_index_smi_ = Smi::New(fresh_index);
+      const LiteralToken& lit = LiteralToken::Handle(
+          LiteralToken::New(descriptor.kind, *descriptor.literal));
+      index = Smi::Value(Smi::RawCast(
+          tokens_->InsertOrGetValue(lit, fresh_index_smi_)));
+      token_objects_.Add(lit);
+      if (kPrintTokenObjects) {
+        int iid = Isolate::Current()->main_port() % 1024;
+        printf("lit    %03x  %p  %p  %p  <%s>\n",
+               iid, token_objects_.raw(), lit.literal(), lit.value(),
+               String::Handle(lit.literal()).ToCString());
+      }
+    }
     WriteIndex(index);
   }
 
@@ -8290,20 +8402,6 @@ class CompressedTokenStreamData : public ValueObject {
   // Return the compressed token stream length.
   intptr_t Length() const { return stream_.bytes_written(); }
 
-  // Generate and return the token objects array.
-  RawArray* MakeTokenObjectsArray() const {
-    Array& result = Array::Handle(
-        Array::New(tokens_.NumOccupied(), Heap::kOld));
-    CompressedTokenMap::Iterator it(&tokens_);
-    Object& key = Object::Handle();
-    while (it.MoveNext()) {
-      intptr_t entry = it.Current();
-      key = tokens_.GetKey(entry);
-      result.SetAt(Smi::Value(Smi::RawCast(tokens_.GetPayload(entry, 0))), key);
-    }
-    return result.raw();
-  }
-
  private:
   void WriteIndex(intptr_t value) {
     stream_.WriteUnsigned(value + Token::kNumTokens);
@@ -8316,27 +8414,53 @@ class CompressedTokenStreamData : public ValueObject {
     return reinterpret_cast<uint8_t*>(new_ptr);
   }
 
-  static const intptr_t kInitialTableSize = 32;
-
   uint8_t* buffer_;
   WriteStream stream_;
-  CompressedTokenMap tokens_;
+  const GrowableObjectArray& token_objects_;
+  CompressedTokenMap* tokens_;
+  Object& value_;
+  Smi& fresh_index_smi_;
 
   DISALLOW_COPY_AND_ASSIGN(CompressedTokenStreamData);
 };
 
 
 RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
-                                 const String& private_key) {
-  Zone* zone = Thread::Current()->zone();
+                                 const String& private_key,
+                                 bool use_shared_tokens) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   // Copy the relevant data out of the scanner into a compressed stream of
   // tokens.
-  CompressedTokenStreamData data;
+
+  GrowableObjectArray& token_objects = GrowableObjectArray::Handle(zone);
+  Array& token_objects_map = Array::Handle(zone);
+  if (use_shared_tokens) {
+    // Use the shared token objects array in the object store. Allocate
+    // a new array if necessary.
+    ObjectStore* store = thread->isolate()->object_store();
+    if (store->token_objects() == GrowableObjectArray::null()) {
+      OpenSharedTokenList(thread->isolate());
+    }
+    token_objects = store->token_objects();
+    token_objects_map = store->token_objects_map();
+  } else {
+    // Use new, non-shared token array.
+    const int kInitialPrivateCapacity = 256;
+    token_objects =
+        GrowableObjectArray::New(kInitialPrivateCapacity, Heap::kOld);
+    token_objects_map =
+        HashTables::New<CompressedTokenMap>(kInitialPrivateCapacity,
+                                            Heap::kOld);
+  }
+  CompressedTokenMap map(token_objects_map.raw());
+  CompressedTokenStreamData data(token_objects, &map);
+
   intptr_t len = tokens.length();
   for (intptr_t i = 0; i < len; i++) {
     Scanner::TokenDescriptor token = tokens[i];
     if (token.kind == Token::kIDENT) {  // Identifier token.
-      data.AddIdentToken(token.literal);
+      data.AddIdentToken(*token.literal);
     } else if (Token::NeedsLiteralToken(token.kind)) {  // Literal token.
       data.AddLiteralToken(token);
     } else {  // Keyword, pseudo keyword etc.
@@ -8354,14 +8478,37 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
   stream.AddFinalizer(data.GetStream(), DataFinalizer);
   const TokenStream& result = TokenStream::Handle(zone, New());
   result.SetPrivateKey(private_key);
-  const Array& token_objects =
-      Array::Handle(zone, data.MakeTokenObjectsArray());
   {
     NoSafepointScope no_safepoint;
     result.SetStream(stream);
     result.SetTokenObjects(token_objects);
   }
+
+  token_objects_map = map.Release().raw();
+  if (use_shared_tokens) {
+    thread->isolate()->object_store()->set_token_objects_map(token_objects_map);
+  }
   return result.raw();
+}
+
+
+void TokenStream::OpenSharedTokenList(Isolate* isolate) {
+  const int kInitialSharedCapacity = 5*1024;
+  ObjectStore* store = isolate->object_store();
+  ASSERT(store->token_objects() == GrowableObjectArray::null());
+  const GrowableObjectArray& token_objects = GrowableObjectArray::Handle(
+      GrowableObjectArray::New(kInitialSharedCapacity, Heap::kOld));
+  store->set_token_objects(token_objects);
+  const Array& token_objects_map = Array::Handle(
+      HashTables::New<CompressedTokenMap>(kInitialSharedCapacity,
+                                          Heap::kOld));
+  store->set_token_objects_map(token_objects_map);
+}
+
+
+void TokenStream::CloseSharedTokenList(Isolate* isolate) {
+  isolate->object_store()->set_token_objects(GrowableObjectArray::Handle());
+  isolate->object_store()->set_token_objects_map(Array::null_array());
 }
 
 
@@ -8393,7 +8540,8 @@ TokenStream::Iterator::Iterator(const TokenStream& tokens,
     : tokens_(TokenStream::Handle(tokens.raw())),
       data_(ExternalTypedData::Handle(tokens.GetStream())),
       stream_(reinterpret_cast<uint8_t*>(data_.DataAddr(0)), data_.Length()),
-      token_objects_(Array::Handle(tokens.TokenObjects())),
+      token_objects_(Array::Handle(
+          GrowableObjectArray::Handle(tokens.TokenObjects()).data())),
       obj_(Object::Handle()),
       cur_token_pos_(token_pos),
       cur_token_kind_(Token::kILLEGAL),
@@ -8409,7 +8557,7 @@ void TokenStream::Iterator::SetStream(const TokenStream& tokens,
   data_ = tokens.GetStream();
   stream_.SetStream(reinterpret_cast<uint8_t*>(data_.DataAddr(0)),
                     data_.Length());
-  token_objects_ = tokens.TokenObjects();
+  token_objects_ = GrowableObjectArray::Handle(tokens.TokenObjects()).data();
   obj_ = Object::null();
   cur_token_pos_ = token_pos;
   cur_token_kind_ = Token::kILLEGAL;
@@ -8538,6 +8686,10 @@ RawString* Script::Source() const {
 
 RawString* Script::GenerateSource() const {
   const TokenStream& token_stream = TokenStream::Handle(tokens());
+  if (token_stream.IsNull()) {
+    ASSERT(Dart::IsRunningPrecompiledCode());
+    return String::null();
+  }
   return token_stream.GenerateSource();
 }
 
@@ -8664,7 +8816,8 @@ void Script::set_tokens(const TokenStream& value) const {
 }
 
 
-void Script::Tokenize(const String& private_key) const {
+void Script::Tokenize(const String& private_key,
+                      bool use_shared_tokens) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const TokenStream& tkns = TokenStream::Handle(zone, tokens());
@@ -8679,7 +8832,8 @@ void Script::Tokenize(const String& private_key) const {
   Scanner scanner(src, private_key);
   const Scanner::GrowableTokenStream& ts = scanner.GetStream();
   INC_STAT(thread, num_tokens_scanned, ts.length());
-  set_tokens(TokenStream::Handle(zone, TokenStream::New(ts, private_key)));
+  set_tokens(TokenStream::Handle(zone,
+      TokenStream::New(ts, private_key, use_shared_tokens)));
   INC_STAT(thread, src_length, src.Length());
 }
 
@@ -8699,6 +8853,17 @@ void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* token_len) const {
   ASSERT(line != NULL);
   const TokenStream& tkns = TokenStream::Handle(tokens());
+  if (tkns.IsNull()) {
+    ASSERT(Dart::IsRunningPrecompiledCode());
+    *line = -1;
+    if (column != NULL) {
+      *column = -1;
+    }
+    if (token_len != NULL) {
+      *token_len = 1;
+    }
+    return;
+  }
   if (column == NULL) {
     TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
     intptr_t cur_line = line_offset() + 1;
@@ -8821,6 +8986,10 @@ RawString* Script::GetSnippet(intptr_t from_line,
                               intptr_t to_line,
                               intptr_t to_column) const {
   const String& src = String::Handle(Source());
+  if (src.IsNull()) {
+    ASSERT(Dart::IsRunningPrecompiledCode());
+    return Symbols::OptimizedOut().raw();
+  }
   intptr_t length = src.Length();
   intptr_t line = 1 + line_offset();
   intptr_t column = 1;
@@ -8941,10 +9110,12 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& source = String::Handle(Source());
   jsobj.AddProperty("lineOffset", line_offset());
   jsobj.AddProperty("columnOffset", col_offset());
-  jsobj.AddPropertyStr("source", source);
+  if (!source.IsNull()) {
+    jsobj.AddPropertyStr("source", source);
+  }
 
   // Print the line number table
-  {
+  if (!source.IsNull()) {
     JSONArray tokenPosTable(&jsobj, "tokenPosTable");
 
     const GrowableObjectArray& lineNumberArray =
@@ -9004,11 +9175,10 @@ void DictionaryIterator::MoveToNextObject() {
 ClassDictionaryIterator::ClassDictionaryIterator(const Library& library,
                                                  IterationKind kind)
     : DictionaryIterator(library),
-      anon_array_((kind == kIteratePrivate) ?
-          Array::Handle(library.anonymous_classes()) : Object::empty_array()),
-      anon_size_((kind == kIteratePrivate) ?
-                 library.num_anonymous_classes() : 0),
-      anon_ix_(0) {
+      toplevel_class_(Class::Handle(
+          (kind == kIteratePrivate)
+              ? library.toplevel_class()
+              : Class::null())) {
   MoveToNextClass();
 }
 
@@ -9022,8 +9192,9 @@ RawClass* ClassDictionaryIterator::GetNextClass() {
     MoveToNextClass();
     return cls.raw();
   }
-  ASSERT(anon_ix_ < anon_size_);
-  cls ^= anon_array_.At(anon_ix_++);
+  ASSERT(!toplevel_class_.IsNull());
+  cls = toplevel_class_.raw();
+  toplevel_class_ = Class::null();
   return cls.raw();
 }
 
@@ -9170,6 +9341,50 @@ RawInstance* Library::TransitiveLoadError() const {
 }
 
 
+void Library::AddPatchClass(const Class& cls) const {
+  ASSERT(cls.is_patch());
+  ASSERT(GetPatchClass(String::Handle(cls.Name())) == Class::null());
+  const GrowableObjectArray& patch_classes =
+      GrowableObjectArray::Handle(this->patch_classes());
+  patch_classes.Add(cls);
+}
+
+
+RawClass* Library::GetPatchClass(const String& name) const {
+  const GrowableObjectArray& patch_classes =
+      GrowableObjectArray::Handle(this->patch_classes());
+  Object& obj = Object::Handle();
+  for (intptr_t i = 0; i < patch_classes.Length(); i++) {
+    obj = patch_classes.At(i);
+    if (obj.IsClass() &&
+        (Class::Cast(obj).Name() == name.raw())) {  // Names are canonicalized.
+      return Class::RawCast(obj.raw());
+    }
+  }
+  return Class::null();
+}
+
+
+void Library::RemovePatchClass(const Class& cls) const {
+  ASSERT(cls.is_patch());
+  const GrowableObjectArray& patch_classes =
+      GrowableObjectArray::Handle(this->patch_classes());
+  const intptr_t num_classes = patch_classes.Length();
+  intptr_t i = 0;
+  while (i < num_classes) {
+    if (cls.raw() == patch_classes.At(i)) break;
+    i++;
+  }
+  if (i == num_classes) return;
+  // Replace the entry with the script. We keep the script so that
+  // Library::LoadedScripts() can find it without having to iterate
+  // over the members of each class.
+  ASSERT(i < num_classes);  // We must have found a class.
+  const Script& patch_script = Script::Handle(cls.script());
+  patch_classes.SetAt(i, patch_script);
+}
+
+
 static RawString* MakeClassMetaName(const Class& cls) {
   return Symbols::FromConcat(Symbols::At(), String::Handle(cls.Name()));
 }
@@ -9208,32 +9423,31 @@ static RawString* MakeTypeParameterMetaName(const TypeParameter& param) {
 }
 
 
-void Library::AddMetadata(const Class& cls,
+void Library::AddMetadata(const Object& owner,
                           const String& name,
                           intptr_t token_pos) const {
   const String& metaname = String::Handle(Symbols::New(name));
-  Field& field = Field::Handle(Field::New(metaname,
-                                          true,   // is_static
-                                          false,  // is_final
-                                          false,  // is_const
-                                          false,  // is_reflectable
-                                          cls,
-                                          token_pos));
-  field.set_type(Type::Handle(Type::DynamicType()));
+  const Field& field = Field::Handle(
+      Field::NewTopLevel(metaname,
+                         false,  // is_final
+                         false,  // is_const
+                         owner,
+                         token_pos));
+  field.SetFieldType(Object::dynamic_type());
+  field.set_is_reflectable(false);
   field.SetStaticValue(Array::empty_array(), true);
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(this->metadata());
   metadata.Add(field, Heap::kOld);
-  cls.AddField(field);
 }
 
 
 void Library::AddClassMetadata(const Class& cls,
-                               const Class& toplevel_class,
+                               const Object& tl_owner,
                                intptr_t token_pos) const {
   // We use the toplevel class as the owner of a class's metadata field because
   // a class's metadata is in scope of the library, not the class.
-  AddMetadata(toplevel_class,
+  AddMetadata(tl_owner,
               String::Handle(MakeClassMetaName(cls)),
               token_pos);
 }
@@ -9241,7 +9455,7 @@ void Library::AddClassMetadata(const Class& cls,
 
 void Library::AddFieldMetadata(const Field& field,
                                intptr_t token_pos) const {
-  AddMetadata(Class::Handle(field.origin()),
+  AddMetadata(Object::Handle(field.RawOwner()),
               String::Handle(MakeFieldMetaName(field)),
               token_pos);
 }
@@ -9249,7 +9463,7 @@ void Library::AddFieldMetadata(const Field& field,
 
 void Library::AddFunctionMetadata(const Function& func,
                                   intptr_t token_pos) const {
-  AddMetadata(Class::Handle(func.origin()),
+  AddMetadata(Object::Handle(func.RawOwner()),
               String::Handle(MakeFunctionMetaName(func)),
               token_pos);
 }
@@ -9263,8 +9477,9 @@ void Library::AddTypeParameterMetadata(const TypeParameter& param,
 }
 
 
-void Library::AddLibraryMetadata(const Class& cls, intptr_t token_pos) const {
-  AddMetadata(cls, Symbols::TopLevel(), token_pos);
+void Library::AddLibraryMetadata(const Object& tl_owner,
+                                 intptr_t token_pos) const {
+  AddMetadata(tl_owner, Symbols::TopLevel(), token_pos);
 }
 
 
@@ -9316,8 +9531,7 @@ RawObject* Library::GetMetadata(const Object& obj) const {
   Object& metadata = Object::Handle();
   metadata = field.StaticValue();
   if (field.StaticValue() == Object::empty_array().raw()) {
-    metadata = Parser::ParseMetadata(Class::Handle(field.owner()),
-                                     field.token_pos());
+    metadata = Parser::ParseMetadata(field);
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
       field.SetStaticValue(Array::Cast(metadata), true);
@@ -9385,7 +9599,10 @@ bool Library::LookupResolvedNamesCache(const String& name,
   ResolvedNamesMap cache(resolved_names());
   bool present = false;
   *obj = cache.GetOrNull(name, &present);
-  ASSERT(cache.Release().raw() == resolved_names());
+  // Mutator compiler thread may add entries and therefore
+  // change 'resolved_names()' while running a background compilation;
+  // do not ASSERT that 'resolved_names()' has not changed.
+  cache.Release();
   return present;
 }
 
@@ -9586,46 +9803,50 @@ RawArray* Library::LoadedScripts() const {
         GrowableObjectArray::Handle(GrowableObjectArray::New(8));
     Object& entry = Object::Handle();
     Class& cls = Class::Handle();
-    Class& patch_cls = Class::Handle();
     Script& owner_script = Script::Handle();
-    Script& patch_script = Script::Handle();
     DictionaryIterator it(*this);
     while (it.HasNext()) {
       entry = it.GetNext();
       if (entry.IsClass()) {
         owner_script = Class::Cast(entry).script();
-        patch_cls = Class::Cast(entry).patch_class();
-        if (!patch_cls.IsNull()) {
-          patch_script = patch_cls.script();
-          AddScriptIfUnique(scripts, patch_script);
-        }
       } else if (entry.IsFunction()) {
         owner_script = Function::Cast(entry).script();
       } else if (entry.IsField()) {
-        cls = Field::Cast(entry).owner();
-        owner_script = cls.script();
+        owner_script = Field::Cast(entry).script();
       } else {
         continue;
       }
       AddScriptIfUnique(scripts, owner_script);
     }
 
-    // Special case: Scripts that only contain external top-level functions are
-    // not included above, but can be referenced through a library's anonymous
-    // classes. Example: dart-core:identical.dart.
-    Array& anon_classes = Array::Handle(anonymous_classes());
-    Function& func = Function::Handle();
-    Array& functions = Array::Handle();
-    for (intptr_t i = 0; i < anon_classes.Length(); i++) {
-      cls ^= anon_classes.At(i);
-      if (cls.IsNull()) continue;
+    // Add all scripts from patch classes.
+    GrowableObjectArray& patches = GrowableObjectArray::Handle(patch_classes());
+    for (intptr_t i = 0; i < patches.Length(); i++) {
+      entry = patches.At(i);
+      if (entry.IsClass()) {
+        owner_script = Class::Cast(entry).script();
+      }  else {
+        ASSERT(entry.IsScript());
+        owner_script = Script::Cast(entry).raw();
+      }
+      AddScriptIfUnique(scripts, owner_script);
+    }
+
+    cls ^= toplevel_class();
+    if (!cls.IsNull()) {
       owner_script = cls.script();
       AddScriptIfUnique(scripts, owner_script);
-      functions = cls.functions();
+      // Special case: Scripts that only contain external top-level functions
+      // are not included above, but can be referenced through a library's
+      // anonymous classes. Example: dart-core:identical.dart.
+      Function& func = Function::Handle();
+      Array& functions = Array::Handle(cls.functions());
       for (intptr_t j = 0; j < functions.Length(); j++) {
         func ^= functions.At(j);
-        owner_script = func.script();
-        AddScriptIfUnique(scripts, owner_script);
+        if (func.is_external()) {
+          owner_script = func.script();
+          AddScriptIfUnique(scripts, owner_script);
+        }
       }
     }
 
@@ -9665,24 +9886,6 @@ RawScript* Library::LookupScript(const String& url) const {
     }
   }
   return Script::null();
-}
-
-
-RawFunction* Library::LookupFunctionInScript(const Script& script,
-                                             intptr_t token_pos) const {
-  Class& cls = Class::Handle();
-  Function& func = Function::Handle();
-  ClassDictionaryIterator it(*this, ClassDictionaryIterator::kIteratePrivate);
-  while (it.HasNext()) {
-    cls = it.GetNextClass();
-    if (script.raw() == cls.script()) {
-      func = cls.LookupFunctionAtToken(token_pos);
-      if (!func.IsNull()) {
-        return func.raw();
-      }
-    }
-  }
-  return Function::null();
 }
 
 
@@ -9861,17 +10064,9 @@ RawLibraryPrefix* Library::LookupLocalLibraryPrefix(const String& name) const {
 }
 
 
-void Library::AddAnonymousClass(const Class& cls) const {
-  intptr_t num_anonymous = this->raw_ptr()->num_anonymous_;
-  Array& anon_array = Array::Handle(this->raw_ptr()->anonymous_classes_);
-  if (num_anonymous == anon_array.Length()) {
-    intptr_t new_len = (num_anonymous == 0) ? 4 : num_anonymous * 2;
-    anon_array = Array::Grow(anon_array, new_len);
-    StorePointer(&raw_ptr()->anonymous_classes_, anon_array.raw());
-  }
-  anon_array.SetAt(num_anonymous, cls);
-  num_anonymous++;
-  StoreNonPointer(&raw_ptr()->num_anonymous_, num_anonymous);
+void Library::set_toplevel_class(const Class& value) const {
+  ASSERT(raw_ptr()->toplevel_class_ == Class::null());
+  StorePointer(&raw_ptr()->toplevel_class_, value.raw());
 }
 
 
@@ -10001,9 +10196,10 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
                       Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->metadata_,
                       GrowableObjectArray::New(4, Heap::kOld));
-  result.StorePointer(&result.raw_ptr()->anonymous_classes_,
-                      Object::empty_array().raw());
-  result.StoreNonPointer(&result.raw_ptr()->num_anonymous_, 0);
+  result.StorePointer(&result.raw_ptr()->toplevel_class_, Class::null());
+  result.StorePointer(&result.raw_ptr()->patch_classes_,
+                      GrowableObjectArray::New(Object::empty_array(),
+                                               Heap::kOld));
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
@@ -10058,12 +10254,8 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 RawObject* Library::Evaluate(const String& expr,
                              const Array& param_names,
                              const Array& param_values) const {
-  // Take or make a fake top-level class and evaluate the expression
-  // as a static function of the class.
-  Class& top_level_class = Class::Handle();
-  Array& top_level_classes = Array::Handle(anonymous_classes());
-  ASSERT(top_level_classes.Length() > 0);
-  top_level_class ^= top_level_classes.At(0);
+  // Evaluate the expression as a static function of the toplevel class.
+  Class& top_level_class = Class::Handle(toplevel_class());
   ASSERT(top_level_class.is_finalized());
   return top_level_class.Evaluate(expr, param_names, param_values);
 }
@@ -10580,7 +10772,7 @@ bool LibraryPrefix::LoadLibrary() const {
   } else if (deferred_lib.LoadNotStarted()) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    Api::Scope api_scope(isolate);
+    Api::Scope api_scope(thread);
     Zone* zone = thread->zone();
     deferred_lib.SetLoadRequested();
     const GrowableObjectArray& pending_deferred_loads =
@@ -10590,8 +10782,8 @@ bool LibraryPrefix::LoadLibrary() const {
     const String& lib_url = String::Handle(zone, deferred_lib.url());
     Dart_LibraryTagHandler handler = isolate->library_tag_handler();
     handler(Dart_kImportTag,
-            Api::NewHandle(isolate, importer()),
-            Api::NewHandle(isolate, lib_url.raw()));
+            Api::NewHandle(thread, importer()),
+            Api::NewHandle(thread, lib_url.raw()));
   } else {
     // Another load request is in flight.
     ASSERT(deferred_lib.LoadRequested());
@@ -10636,6 +10828,10 @@ class PrefixDependentArray : public WeakCodeReferences {
           code.IsDisabled() ? "'patched'" : "'unpatched'",
           Function::Handle(code.function()).ToCString());
     }
+  }
+
+  virtual void IncrementInvalidationGen() {
+    Isolate::Current()->IncrPrefixInvalidationGen();
   }
 
  private:
@@ -10724,19 +10920,17 @@ void Namespace::set_metadata_field(const Field& value) const {
 }
 
 
-void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
+void Namespace::AddMetadata(const Object& owner, intptr_t token_pos) {
   ASSERT(Field::Handle(metadata_field()).IsNull());
-  Field& field = Field::Handle(Field::New(Symbols::TopLevel(),
-                                          true,   // is_static
+  Field& field = Field::Handle(Field::NewTopLevel(Symbols::TopLevel(),
                                           false,  // is_final
                                           false,  // is_const
-                                          false,  // is_reflectable
-                                          owner_class,
+                                          owner,
                                           token_pos));
-  field.set_type(Type::Handle(Type::DynamicType()));
+  field.set_is_reflectable(false);
+  field.SetFieldType(Object::dynamic_type());
   field.SetStaticValue(Array::empty_array(), true);
   set_metadata_field(field);
-  owner_class.AddField(field);
 }
 
 
@@ -10749,8 +10943,7 @@ RawObject* Namespace::GetMetadata() const {
   Object& metadata = Object::Handle();
   metadata = field.StaticValue();
   if (field.StaticValue() == Object::empty_array().raw()) {
-    metadata = Parser::ParseMetadata(Class::Handle(field.owner()),
-                                     field.token_pos());
+    metadata = Parser::ParseMetadata(field);
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
       field.SetStaticValue(Array::Cast(metadata), true);
@@ -10877,17 +11070,19 @@ RawNamespace* Namespace::New(const Library& library,
 
 
 RawError* Library::CompileAll() {
-  Error& error = Error::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Error& error = Error::Handle(zone);
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
       Isolate::Current()->object_store()->libraries());
-  Library& lib = Library::Handle();
-  Class& cls = Class::Handle();
+  Library& lib = Library::Handle(zone);
+  Class& cls = Class::Handle(zone);
   for (int i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      error = cls.EnsureIsFinalized(Thread::Current());
+      error = cls.EnsureIsFinalized(thread);
       if (!error.IsNull()) {
         return error.raw();
       }
@@ -10895,6 +11090,24 @@ RawError* Library::CompileAll() {
       if (!error.IsNull()) {
         return error.raw();
       }
+    }
+  }
+
+  // Inner functions get added to the closures array. As part of compilation
+  // more closures can be added to the end of the array. Compile all the
+  // closures until we have reached the end of the "worklist".
+  const GrowableObjectArray& closures = GrowableObjectArray::Handle(zone,
+      Isolate::Current()->object_store()->closure_functions());
+  Function& func = Function::Handle(zone);
+  for (int i = 0; i < closures.Length(); i++) {
+    func ^= closures.At(i);
+    if (!func.HasCode()) {
+      error = Compiler::CompileFunction(thread, func);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+      func.ClearICDataArray();
+      func.ClearCode();
     }
   }
   return error.raw();
@@ -11333,18 +11546,22 @@ void PcDescriptors::PrintJSONImpl(JSONStream* stream, bool ref) const {
 // finally blocks).
 void PcDescriptors::Verify(const Function& function) const {
 #if defined(DEBUG)
-  // TODO(srdjan): Implement a more efficient way to check, currently drop
-  // the check for too large number of descriptors.
-  if (Length() > 3000) {
-    if (FLAG_trace_compiler) {
-      OS::Print("Not checking pc decriptors, length %" Pd "\n", Length());
-    }
-    return;
-  }
   // Only check ids for unoptimized code that is optimizable.
   if (!function.IsOptimizable()) {
     return;
   }
+  intptr_t max_deopt_id = 0;
+  Iterator max_iter(*this,
+                    RawPcDescriptors::kDeopt | RawPcDescriptors::kIcCall);
+  while (max_iter.MoveNext()) {
+    if (max_iter.DeoptId() > max_deopt_id) {
+      max_deopt_id = max_iter.DeoptId();
+    }
+  }
+
+  Zone* zone = Thread::Current()->zone();
+  BitVector* deopt_ids = new(zone) BitVector(zone, max_deopt_id + 1);
+  BitVector* iccall_ids = new(zone) BitVector(zone, max_deopt_id + 1);
   Iterator iter(*this, RawPcDescriptors::kDeopt | RawPcDescriptors::kIcCall);
   while (iter.MoveNext()) {
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
@@ -11354,12 +11571,12 @@ void PcDescriptors::Verify(const Function& function) const {
       // lead to issues in the future. Fix that and enable verification.
       continue;
     }
-
-    Iterator nested(iter);
-    while (nested.MoveNext()) {
-      if (iter.Kind() == nested.Kind()) {
-        ASSERT(nested.DeoptId() != iter.DeoptId());
-      }
+    if (iter.Kind() == RawPcDescriptors::kDeopt) {
+      ASSERT(!deopt_ids->Contains(iter.DeoptId()));
+      deopt_ids->Add(iter.DeoptId());
+    } else {
+      ASSERT(!iccall_ids->Contains(iter.DeoptId()));
+      iccall_ids->Add(iter.DeoptId());
     }
   }
 #endif  // DEBUG
@@ -11972,9 +12189,41 @@ const char* ICData::ToCString() const {
 }
 
 
+RawFunction* ICData::Owner() const {
+  Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsFunction()) {
+    return Function::Cast(obj).raw();
+  } else {
+    ICData& original = ICData::Handle();
+    original ^= obj.raw();
+    return original.Owner();
+  }
+}
+
+
+RawICData* ICData::Original() const {
+  if (IsNull()) {
+    return ICData::null();
+  }
+  Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsFunction()) {
+    return this->raw();
+  } else {
+    return ICData::RawCast(obj.raw());
+  }
+}
+
+
+void ICData::SetOriginal(const ICData& value) const {
+  ASSERT(value.IsOriginal());
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(value.raw()));
+}
+
+
 void ICData::set_owner(const Function& value) const {
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->owner_, value.raw());
+  StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(value.raw()));
 }
 
 
@@ -11995,7 +12244,7 @@ void ICData::set_deopt_id(intptr_t value) const {
 }
 
 
-void ICData::set_ic_data(const Array& value) const {
+void ICData::set_ic_data_array(const Array& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->ic_data_, value.raw());
 }
@@ -12103,9 +12352,9 @@ intptr_t ICData::NumberOfUsedChecks() const {
 }
 
 
-void ICData::WriteSentinel(const Array& data) const {
+void ICData::WriteSentinel(const Array& data, intptr_t test_entry_length) {
   ASSERT(!data.IsNull());
-  for (intptr_t i = 1; i <= TestEntryLength(); i++) {
+  for (intptr_t i = 1; i <= test_entry_length; i++) {
     data.SetAt(data.Length() - i, smi_illegal_cid());
   }
 }
@@ -12117,8 +12366,7 @@ bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     GrowableArray<intptr_t> class_ids;
-    Function& target = Function::Handle();
-    GetCheckAt(i, &class_ids, &target);
+    GetClassIdsAt(i, &class_ids);
     bool matches = true;
     for (intptr_t k = 0; k < class_ids.length(); k++) {
       if (class_ids[k] != cids[k]) {
@@ -12158,8 +12406,7 @@ void ICData::AddTarget(const Function& target) const {
   Array& data = Array::Handle(ic_data());
   const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
-  set_ic_data(data);
-  WriteSentinel(data);
+  WriteSentinel(data, TestEntryLength());
   intptr_t data_pos = old_num * TestEntryLength();
   ASSERT(!target.IsNull());
   data.SetAt(data_pos++, target);
@@ -12167,6 +12414,9 @@ void ICData::AddTarget(const Function& target) const {
   // call has been executed.
   const Smi& value = Smi::Handle(Smi::New(0));
   data.SetAt(data_pos, value);
+  // Multithreaded access to ICData requires setting of array to be the last
+  // operation.
+  set_ic_data_array(data);
 }
 
 
@@ -12204,8 +12454,7 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   }
   const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
-  set_ic_data(data);
-  WriteSentinel(data);
+  WriteSentinel(data, TestEntryLength());
   intptr_t data_pos = old_num * TestEntryLength();
   Smi& value = Smi::Handle();
   for (intptr_t i = 0; i < class_ids.length(); i++) {
@@ -12218,6 +12467,9 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   data.SetAt(data_pos++, target);
   value = Smi::New(1);
   data.SetAt(data_pos, value);
+  // Multithreaded access to ICData requires setting of array to be the last
+  // operation.
+  set_ic_data_array(data);
 }
 
 
@@ -12237,8 +12489,7 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   Array& data = Array::Handle(ic_data());
   const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
-  set_ic_data(data);
-  WriteSentinel(data);
+  WriteSentinel(data, TestEntryLength());
   intptr_t data_pos = old_num * TestEntryLength();
   if ((receiver_class_id == kSmiCid) && (data_pos > 0)) {
     ASSERT(GetReceiverClassIdAt(0) != kSmiCid);
@@ -12252,6 +12503,9 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
   data.SetAt(data_pos + 1, target);
   data.SetAt(data_pos + 2, Smi::Handle(Smi::New(count)));
+  // Multithreaded access to ICData requires setting of array to be the last
+  // operation.
+  set_ic_data_array(data);
 }
 
 
@@ -12268,6 +12522,19 @@ void ICData::GetCheckAt(intptr_t index,
     class_ids->Add(Smi::Value(Smi::RawCast(data.At(data_pos++))));
   }
   (*target) ^= data.At(data_pos++);
+}
+
+
+void ICData::GetClassIdsAt(intptr_t index,
+                           GrowableArray<intptr_t>* class_ids) const {
+  ASSERT(index < NumberOfChecks());
+  ASSERT(class_ids != NULL);
+  class_ids->Clear();
+  const Array& data = Array::Handle(ic_data());
+  intptr_t data_pos = index * TestEntryLength();
+  for (intptr_t i = 0; i < NumArgsTested(); i++) {
+    class_ids->Add(Smi::Value(Smi::RawCast(data.At(data_pos++))));
+  }
 }
 
 
@@ -12294,8 +12561,7 @@ intptr_t ICData::GetCidAt(intptr_t index) const {
 
 intptr_t ICData::GetClassIdAt(intptr_t index, intptr_t arg_nr) const {
   GrowableArray<intptr_t> class_ids;
-  Function& target = Function::Handle();
-  GetCheckAt(index, &class_ids, &target);
+  GetClassIdsAt(index, &class_ids);
   return class_ids[arg_nr];
 }
 
@@ -12471,12 +12737,11 @@ void ICData::GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
   ASSERT(NumArgsTested() == 2);
   first->Clear();
   second->Clear();
-  Function& target = Function::Handle();
   GrowableArray<intptr_t> class_ids;
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     if (GetCountAt(i) > 0) {
-      GetCheckAt(i, &class_ids, &target);
+      GetClassIdsAt(i, &class_ids);
       ASSERT(class_ids.length() == 2);
       first->Add(class_ids[0]);
       second->Add(class_ids[1]);
@@ -12502,6 +12767,64 @@ bool ICData::IsUsedAt(intptr_t i) const {
 }
 
 
+void ICData::InitOnce() {
+  for (int i = 0; i < kCachedICDataArrayCount; i++) {
+    cached_icdata_arrays_[i] = ICData::NewNonCachedEmptyICDataArray(i);
+  }
+}
+
+
+RawArray* ICData::NewNonCachedEmptyICDataArray(intptr_t num_args_tested) {
+  // IC data array must be null terminated (sentinel entry).
+  const intptr_t len = TestEntryLengthFor(num_args_tested);
+  const Array& array = Array::Handle(Array::New(len, Heap::kOld));
+  WriteSentinel(array, len);
+  array.MakeImmutable();
+  return array.raw();
+}
+
+
+RawArray* ICData::NewEmptyICDataArray(intptr_t num_args_tested) {
+  ASSERT(num_args_tested >= 0);
+  if (num_args_tested < kCachedICDataArrayCount) {
+    return cached_icdata_arrays_[num_args_tested];
+  }
+  return NewNonCachedEmptyICDataArray(num_args_tested);
+}
+
+
+
+// Does not initialize ICData array.
+RawICData* ICData::NewDescriptor(Zone* zone,
+                                 const Function& owner,
+                                 const String& target_name,
+                                 const Array& arguments_descriptor,
+                                 intptr_t deopt_id,
+                                 intptr_t num_args_tested) {
+  ASSERT(!owner.IsNull());
+  ASSERT(!target_name.IsNull());
+  ASSERT(!arguments_descriptor.IsNull());
+  ASSERT(Object::icdata_class() != Class::null());
+  ASSERT(num_args_tested >= 0);
+  ICData& result = ICData::Handle(zone);
+  {
+    // IC data objects are long living objects, allocate them in old generation.
+    RawObject* raw = Object::Allocate(ICData::kClassId,
+                                      ICData::InstanceSize(),
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+  result.set_owner(owner);
+  result.set_target_name(target_name);
+  result.set_arguments_descriptor(arguments_descriptor);
+  result.set_deopt_id(deopt_id);
+  result.set_state_bits(0);
+  result.SetNumArgsTested(num_args_tested);
+  return result.raw();
+}
+
+
 RawICData* ICData::New() {
   ICData& result = ICData::Handle();
   {
@@ -12523,39 +12846,23 @@ RawICData* ICData::New(const Function& owner,
                        const Array& arguments_descriptor,
                        intptr_t deopt_id,
                        intptr_t num_args_tested) {
-  ASSERT(!owner.IsNull());
-  ASSERT(!target_name.IsNull());
-  ASSERT(!arguments_descriptor.IsNull());
-  ASSERT(Object::icdata_class() != Class::null());
-  ASSERT(num_args_tested >= 0);
-  ICData& result = ICData::Handle();
-  {
-    // IC data objects are long living objects, allocate them in old generation.
-    RawObject* raw = Object::Allocate(ICData::kClassId,
-                                      ICData::InstanceSize(),
-                                      Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result ^= raw;
-  }
-  result.set_owner(owner);
-  result.set_target_name(target_name);
-  result.set_arguments_descriptor(arguments_descriptor);
-  result.set_deopt_id(deopt_id);
-  result.set_state_bits(0);
-  result.SetNumArgsTested(num_args_tested);
-  // Number of array elements in one test entry.
-  intptr_t len = result.TestEntryLength();
-  // IC data array must be null terminated (sentinel entry).
-  const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
-  result.set_ic_data(ic_data);
-  result.WriteSentinel(ic_data);
+  Zone* zone = Thread::Current()->zone();
+  const ICData& result = ICData::Handle(zone,
+                                        NewDescriptor(zone,
+                                                      owner,
+                                                      target_name,
+                                                      arguments_descriptor,
+                                                      deopt_id,
+                                                      num_args_tested));
+  result.set_ic_data_array(
+      Array::Handle(zone, NewEmptyICDataArray(num_args_tested)));
   return result.raw();
 }
 
 
 RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
   const ICData& result = ICData::Handle(ICData::New(
-      Function::Handle(from.owner()),
+      Function::Handle(from.Owner()),
       String::Handle(from.target_name()),
       Array::Handle(from.arguments_descriptor()),
       from.deopt_id(),
@@ -12566,11 +12873,28 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
 }
 
 
+RawICData* ICData::CloneDescriptor(const ICData& from) {
+  Zone* zone = Thread::Current()->zone();
+  const ICData& result = ICData::Handle(ICData::NewDescriptor(
+      zone,
+      Function::Handle(zone, from.Owner()),
+      String::Handle(zone, from.target_name()),
+      Array::Handle(zone, from.arguments_descriptor()),
+      from.deopt_id(),
+      from.NumArgsTested()));
+  // Preserve entry array.
+  result.set_ic_data_array(Array::Handle(zone, from.ic_data()));
+  // Copy deoptimization reasons.
+  result.SetDeoptReasons(from.DeoptReasons());
+  return result.raw();
+}
+
+
 void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
   jsobj.AddServiceId(*this);
-  jsobj.AddProperty("_owner", Object::Handle(owner()));
+  jsobj.AddProperty("_owner", Object::Handle(Owner()));
   jsobj.AddProperty("_selector", String::Handle(target_name()).ToCString());
   if (ref) {
     return;
@@ -12590,7 +12914,6 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
 
   JSONObject jsobj(&jsarray);
   jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
-  // TODO(turnidge): Use AddLocation instead.
   jsobj.AddProperty("tokenPos", token_pos);
   // TODO(rmacnak): Figure out how to stringify DeoptReasons().
   // jsobj.AddProperty("deoptReasons", ...);
@@ -12614,6 +12937,35 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
     }
     cache_entry.AddProperty("count", count);
     cache_entry.AddProperty("target", func);
+  }
+}
+
+
+void ICData::PrintToJSONArrayNew(const JSONArray& jsarray,
+                                 intptr_t token_pos,
+                                 bool is_static_call) const {
+  Isolate* isolate = Isolate::Current();
+  Class& cls = Class::Handle();
+  Function& func = Function::Handle();
+
+  JSONObject jsobj(&jsarray);
+  jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
+  jsobj.AddProperty("tokenPos", token_pos);
+  // TODO(rmacnak): Figure out how to stringify DeoptReasons().
+  // jsobj.AddProperty("deoptReasons", ...);
+
+  JSONArray cache_entries(&jsobj, "cacheEntries");
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    JSONObject cache_entry(&cache_entries);
+    func = GetTargetAt(i);
+    intptr_t count = GetCountAt(i);
+    if (!is_static_call) {
+      intptr_t cid = GetReceiverClassIdAt(i);
+      cls ^= isolate->class_table()->At(cid);
+      cache_entry.AddProperty("receiver", cls);
+    }
+    cache_entry.AddProperty("target", func);
+    cache_entry.AddProperty("count", count);
   }
 }
 
@@ -12660,13 +13012,12 @@ bool ICData::HasRangeFeedback() const {
   }
 
   bool initialized = false;
-  Function& t = Function::Handle();
   const intptr_t len = NumberOfChecks();
   GrowableArray<intptr_t> class_ids;
   for (intptr_t i = 0; i < len; i++) {
     if (IsUsedAt(i)) {
       initialized = true;
-      GetCheckAt(i, &class_ids, &t);
+      GetClassIdsAt(i, &class_ids);
       for (intptr_t j = 0; j < class_ids.length(); j++) {
         const intptr_t cid = class_ids[j];
         if ((cid != kSmiCid) && (cid != kMintCid)) {
@@ -12831,7 +13182,10 @@ RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
   const Instructions& instrs = Instructions::Handle(instructions());
   uword code_entry = instrs.EntryPoint();
   const Array& table = Array::Handle(deopt_info_array());
-  ASSERT(!table.IsNull());
+  if (table.IsNull()) {
+    ASSERT(Dart::IsRunningPrecompiledCode());
+    return TypedData::null();
+  }
   // Linear search for the PC offset matching the target PC.
   intptr_t length = DeoptTable::GetLength(table);
   Smi& offset = Smi::Handle();
@@ -13088,7 +13442,6 @@ RawCode* Code::FinalizeCode(const char* name,
   INC_STAT(Thread::Current(), total_instr_size, assembler->CodeSize());
   INC_STAT(Thread::Current(), total_code_size, assembler->CodeSize());
 
-  instrs.set_code(code.raw());
   // Copy the instructions into the instruction area and apply all fixups.
   // Embedded pointers are still in handles at this point.
   MemoryRegion region(reinterpret_cast<void*>(instrs.EntryPoint()),
@@ -13097,7 +13450,7 @@ RawCode* Code::FinalizeCode(const char* name,
   VerifiedMemory::Accept(region.start(), region.size());
   CPU::FlushICache(instrs.EntryPoint(), instrs.size());
 
-  code.set_compile_timestamp(OS::GetCurrentTimeMicros());
+  code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
   CodeObservers::NotifyAll(name,
                            instrs.EntryPoint(),
                            assembler->prologue_offset(),
@@ -13122,7 +13475,7 @@ RawCode* Code::FinalizeCode(const char* name,
     }
 
     // Hook up Code and Instructions objects.
-    code.set_active_instructions(instrs.raw());
+    code.SetActiveInstructions(instrs.raw());
     code.set_instructions(instrs.raw());
     code.set_is_alive(true);
 
@@ -13164,38 +13517,26 @@ RawCode* Code::FinalizeCode(const Function& function,
                         assembler,
                         optimized);
   } else {
-    return FinalizeCode("", assembler);
+    return FinalizeCode("", assembler, optimized);
   }
 }
 
 
-// Check if object matches find condition.
-bool Code::FindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
-  uword tags = raw_obj->ptr()->tags_;
-  if (RawObject::ClassIdTag::decode(tags) == kInstructionsCid) {
-    RawInstructions* raw_insts = reinterpret_cast<RawInstructions*>(raw_obj);
-    return RawInstructions::ContainsPC(raw_insts, pc_);
-  }
-  return false;
+bool Code::SlowFindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
+  return RawCode::ContainsPC(raw_obj, pc_);
 }
 
 
 RawCode* Code::LookupCodeInIsolate(Isolate* isolate, uword pc) {
   ASSERT((isolate == Isolate::Current()) || (isolate == Dart::vm_isolate()));
-  NoSafepointScope no_safepoint;
-  FindRawCodeVisitor visitor(pc);
-  RawInstructions* instr;
-  if (Dart::IsRunningPrecompiledCode()) {
-    // TODO(johnmccutchan): Make code lookup work when running precompiled.
-    UNIMPLEMENTED();
-    return Code::null();
-  }
   if (isolate->heap() == NULL) {
     return Code::null();
   }
-  instr = isolate->heap()->FindObjectInCodeSpace(&visitor);
-  if (instr != Instructions::null()) {
-    return Instructions::Handle(instr).code();
+  NoSafepointScope no_safepoint;
+  SlowFindRawCodeVisitor visitor(pc);
+  RawObject* needle = isolate->heap()->FindOldObject(&visitor);
+  if (needle != Code::null()) {
+    return static_cast<RawCode*>(needle);
   }
   return Code::null();
 }
@@ -13282,20 +13623,21 @@ const char* Code::ToCString() const {
 }
 
 
+// Called by disassembler.
 RawString* Code::Name() const {
   const Object& obj = Object::Handle(owner());
   if (obj.IsNull()) {
     // Regular stub.
     const char* name = StubCode::NameOfStub(EntryPoint());
     ASSERT(name != NULL);
-    const String& stub_name = String::Handle(String::New(name));
-    return String::Concat(Symbols::StubPrefix(), stub_name);
+    const String& stub_name = String::Handle(Symbols::New(name));
+    return Symbols::FromConcat(Symbols::StubPrefix(), stub_name);
   } else if (obj.IsClass()) {
     // Allocation stub.
     const Class& cls = Class::Cast(obj);
     String& cls_name = String::Handle(cls.Name());
     ASSERT(!cls_name.IsNull());
-    return String::Concat(Symbols::AllocationStubFor(), cls_name);
+    return Symbols::FromConcat(Symbols::AllocationStubFor(), cls_name);
   } else {
     ASSERT(obj.IsFunction());
     // Dart function.
@@ -13345,20 +13687,33 @@ bool Code::IsFunctionCode() const {
 
 
 void Code::DisableDartCode() const {
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(IsFunctionCode());
   ASSERT(instructions() == active_instructions());
   const Code& new_code =
       Code::Handle(StubCode::FixCallersTarget_entry()->code());
-  set_active_instructions(new_code.instructions());
+  SetActiveInstructions(new_code.instructions());
 }
 
 
 void Code::DisableStubCode() const {
-ASSERT(IsAllocationStubCode());
+  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(IsAllocationStubCode());
   ASSERT(instructions() == active_instructions());
   const Code& new_code =
       Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
-  set_active_instructions(new_code.instructions());
+  SetActiveInstructions(new_code.instructions());
+}
+
+
+void Code::SetActiveInstructions(RawInstructions* instructions) const {
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint() || !is_alive());
+  // RawInstructions are never allocated in New space and hence a
+  // store buffer update is not needed here.
+  StorePointer(&raw_ptr()->active_instructions_, instructions);
+  StoreNonPointer(&raw_ptr()->entry_point_,
+                  reinterpret_cast<uword>(instructions->ptr()) +
+                  Instructions::HeaderSize());
 }
 
 
@@ -13378,10 +13733,18 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("kind", "Dart");
   }
   jsobj.AddProperty("_optimized", is_optimized());
+  const Object& obj = Object::Handle(owner());
+  if (obj.IsFunction()) {
+    const Function& func = Function::Cast(obj);
+    jsobj.AddProperty("_intrinsic", func.is_intrinsic());
+    jsobj.AddProperty("_native", func.is_native());
+  } else {
+    jsobj.AddProperty("_intrinsic", false);
+    jsobj.AddProperty("_native", false);
+  }
   if (ref) {
     return;
   }
-  const Object& obj = Object::Handle(owner());
   if (obj.IsFunction()) {
     jsobj.AddProperty("function", obj);
   } else {
@@ -13621,13 +13984,13 @@ const char* Context::ToCString() const {
   Zone* zone = Thread::Current()->zone();
   const Context& parent_ctx = Context::Handle(parent());
   if (parent_ctx.IsNull()) {
-    return zone->PrintToString("Context@%p num_variables:% " Pd "",
-                               this->raw(), num_variables());
+    return zone->PrintToString("Context num_variables: %" Pd "",
+                               num_variables());
   } else {
     const char* parent_str = parent_ctx.ToCString();
     return zone->PrintToString(
-        "Context@%p num_variables:% " Pd " parent:{ %s }",
-        this->raw(), num_variables(), parent_str);
+        "Context num_variables: %" Pd " parent:{ %s }",
+        num_variables(), parent_str);
   }
 }
 
@@ -13863,7 +14226,31 @@ void MegamorphicCache::set_filled_entry_count(intptr_t count) const {
 }
 
 
+void MegamorphicCache::set_target_name(const String& value) const {
+  StorePointer(&raw_ptr()->target_name_, value.raw());
+}
+
+
+void MegamorphicCache::set_arguments_descriptor(const Array& value) const {
+  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
+}
+
+
 RawMegamorphicCache* MegamorphicCache::New() {
+  MegamorphicCache& result = MegamorphicCache::Handle();
+  { RawObject* raw = Object::Allocate(MegamorphicCache::kClassId,
+                                      MegamorphicCache::InstanceSize(),
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+  result.set_filled_entry_count(0);
+  return result.raw();
+}
+
+
+RawMegamorphicCache* MegamorphicCache::New(const String& target_name,
+                                           const Array& arguments_descriptor) {
   MegamorphicCache& result = MegamorphicCache::Handle();
   { RawObject* raw = Object::Allocate(MegamorphicCache::kClassId,
                                       MegamorphicCache::InstanceSize(),
@@ -13881,6 +14268,8 @@ RawMegamorphicCache* MegamorphicCache::New() {
   }
   result.set_buckets(buckets);
   result.set_mask(capacity - 1);
+  result.set_target_name(target_name);
+  result.set_arguments_descriptor(arguments_descriptor);
   result.set_filled_entry_count(0);
   return result.raw();
 }
@@ -13938,7 +14327,9 @@ void MegamorphicCache::Insert(const Smi& class_id,
 
 
 const char* MegamorphicCache::ToCString() const {
-  return "MegamorphicCache";
+  const String& name = String::Handle(target_name());
+  return OS::SCreate(Thread::Current()->zone(),
+                     "MegamorphicCache(%s)", name.ToCString());
 }
 
 
@@ -13946,11 +14337,14 @@ void MegamorphicCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
   jsobj.AddServiceId(*this);
+  jsobj.AddProperty("_selector", String::Handle(target_name()).ToCString());
   if (ref) {
     return;
   }
   jsobj.AddProperty("_buckets", Object::Handle(buckets()));
   jsobj.AddProperty("_mask", mask());
+  jsobj.AddProperty("_argumentsDescriptor",
+                    Object::Handle(arguments_descriptor()));
 }
 
 
@@ -14176,9 +14570,9 @@ void LanguageError::set_script(const Script& value) const {
 }
 
 
-void LanguageError::set_token_pos(intptr_t value) const {
-  ASSERT(value >= 0);
-  StoreNonPointer(&raw_ptr()->token_pos_, value);
+void LanguageError::set_token_pos(intptr_t token_pos) const {
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
@@ -14567,7 +14961,7 @@ RawType* Instance::GetType() const {
   }
   const Class& cls = Class::Handle(clazz());
   Type& type = Type::Handle();
-  if (cls.NumTypeArguments() == 0) {
+  if (!cls.IsGeneric()) {
     type = cls.CanonicalType();
   }
   if (type.IsNull()) {
@@ -14711,7 +15105,8 @@ void Instance::SetNativeFields(uint16_t num_native_fields,
 
 
 bool Instance::IsClosure() const {
-  return Class::IsSignatureClass(clazz());
+  const Class& cls = Class::Handle(clazz());
+  return cls.IsSignatureClass();
 }
 
 
@@ -15124,8 +15519,8 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     } else if (bound.IsType()) {
       const Class& cls = Class::Handle(zone, Type::Cast(bound).type_class());
       bound_name = cls.Name();
+      pieces.Add(bound_name);
       if (Type::Cast(bound).arguments() != TypeArguments::null()) {
-        pieces.Add(bound_name);
         pieces.Add(Symbols::OptimizedOut());
       }
     } else {
@@ -15306,8 +15701,8 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                             const AbstractType& other,
                             Error* bound_error,
                             Heap::Space space) const {
-  ASSERT(IsResolved());
-  ASSERT(other.IsResolved());
+  ASSERT(IsFinalized());
+  ASSERT(other.IsFinalized());
   if (IsMalformed() || other.IsMalformed()) {
     // Malformed types involved in subtype tests should be handled specially
     // by the caller. Malformed types should only be encountered here in a
@@ -15338,6 +15733,11 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     if (Equals(other)) {
       return true;
     }
+    // Redundant check if other type is equal to the upper bound of this type.
+    if (IsBoundedType() &&
+        AbstractType::Handle(BoundedType::Cast(*this).bound()).Equals(other)) {
+      return true;
+    }
     return false;  // TODO(regis): We should return "maybe after instantiation".
   }
   // Type parameters cannot be handled by Class::TypeTest().
@@ -15361,6 +15761,11 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       }
     }
     const AbstractType& bound = AbstractType::Handle(type_param.bound());
+    // We may be checking bounds at finalization time and can encounter
+    // a still unfinalized bound. Finalizing the bound here may lead to cycles.
+    if (!bound.IsFinalized()) {
+      return false;    // TODO(regis): Return "maybe after instantiation".
+    }
     if (bound.IsMoreSpecificThan(other, bound_error)) {
       return true;
     }
@@ -15404,12 +15809,12 @@ RawType* Type::NullType() {
 
 
 RawType* Type::DynamicType() {
-  return Object::dynamic_type();
+  return Object::dynamic_type().raw();
 }
 
 
 RawType* Type::VoidType() {
-  return Object::void_type();
+  return Object::void_type().raw();
 }
 
 
@@ -15480,15 +15885,6 @@ RawType* Type::Function() {
 
 RawType* Type::NewNonParameterizedType(const Class& type_class) {
   ASSERT(type_class.NumTypeArguments() == 0);
-  if (type_class.raw() == Object::dynamic_class()) {
-    // If the dynamic type has not been setup in the VM isolate, then we need
-    // to allocate it here.
-    if (Object::dynamic_type() != reinterpret_cast<RawType*>(RAW_NULL)) {
-      ASSERT(Type::Handle(Object::dynamic_type()).IsFinalized());
-      return Object::dynamic_type();
-    }
-    ASSERT(Isolate::Current() == Dart::vm_isolate());
-  }
   Type& type = Type::Handle(type_class.CanonicalType());
   if (type.IsNull()) {
     const TypeArguments& no_type_arguments = TypeArguments::Handle();
@@ -15759,6 +16155,13 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
     for (intptr_t i = 0; i < from_index; i++) {
       type_arg = type_args.TypeAt(i);
       other_type_arg = other_type_args.TypeAt(i);
+      // Ignore bounds of bounded types.
+      while (type_arg.IsBoundedType()) {
+        type_arg = BoundedType::Cast(type_arg).type();
+      }
+      while (other_type_arg.IsBoundedType()) {
+        other_type_arg = BoundedType::Cast(other_type_arg).type();
+      }
       ASSERT(type_arg.IsEquivalent(other_type_arg, trail));
     }
   }
@@ -15828,16 +16231,23 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   Type& type = Type::Handle(zone);
   const Class& cls = Class::Handle(zone, type_class());
   if (cls.raw() == Object::dynamic_class() && (isolate != Dart::vm_isolate())) {
-    return Object::dynamic_type();
+    return Object::dynamic_type().raw();
   }
   // Fast canonical lookup/registry for simple types.
-  if (cls.NumTypeArguments() == 0) {
+  if (!cls.IsGeneric()) {
     type = cls.CanonicalType();
     if (type.IsNull()) {
       ASSERT(!cls.raw()->IsVMHeapObject() || (isolate == Dart::vm_isolate()));
-      cls.set_canonical_types(*this);
-      SetCanonical();
-      return this->raw();
+      // Canonicalize the type arguments of the supertype, if any.
+      TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
+      type_args = type_args.Canonicalize(trail);
+      set_arguments(type_args);
+      type = cls.CanonicalType();  // May be set while canonicalizing type args.
+      if (type.IsNull()) {
+        cls.set_canonical_types(*this);
+        SetCanonical();
+        return this->raw();
+      }
     }
     ASSERT(this->Equals(type));
     ASSERT(type.IsCanonical());
@@ -15989,7 +16399,7 @@ RawType* Type::New(const Object& clazz,
 
 
 void Type::set_token_pos(intptr_t token_pos) const {
-  ASSERT(token_pos >= 0);
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -16420,7 +16830,7 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
 
 
 void TypeParameter::set_token_pos(intptr_t token_pos) const {
-  ASSERT(token_pos >= 0);
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -16581,13 +16991,20 @@ RawAbstractType* BoundedType::InstantiateFrom(
       // Instantiated upper_bound may not be finalized. See comment above.
     }
     if (bound_error->IsNull()) {
-      if (!type_param.CheckBound(bounded_type, upper_bound, bound_error) &&
-          bound_error->IsNull()) {
+      if (bounded_type.IsBeingFinalized() ||
+          upper_bound.IsBeingFinalized() ||
+          (!type_param.CheckBound(bounded_type, upper_bound, bound_error) &&
+           bound_error->IsNull())) {
         // We cannot determine yet whether the bounded_type is below the
-        // upper_bound, because one or both of them is still uninstantiated.
-        ASSERT(!bounded_type.IsInstantiated() || !upper_bound.IsInstantiated());
-        // Postpone bound check by returning a new BoundedType with partially
-        // instantiated bounded_type and upper_bound, but keeping type_param.
+        // upper_bound, because one or both of them is still being finalized or
+        // uninstantiated.
+        ASSERT(bounded_type.IsBeingFinalized() ||
+               upper_bound.IsBeingFinalized() ||
+               !bounded_type.IsInstantiated() ||
+               !upper_bound.IsInstantiated());
+        // Postpone bound check by returning a new BoundedType with unfinalized
+        // or partially instantiated bounded_type and upper_bound, but keeping
+        // type_param.
         bounded_type = BoundedType::New(bounded_type, upper_bound, type_param);
       }
     }
@@ -16771,9 +17188,9 @@ void Number::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 const char* Integer::ToCString() const {
-  // Integer is an interface. No instances of Integer should exist.
-  UNREACHABLE();
-  return "Integer";
+  // Integer is an interface. No instances of Integer should exist except null.
+  ASSERT(IsNull());
+  return "NULL Integer";
 }
 
 
@@ -17023,15 +17440,13 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
     const int64_t right_value = other.AsInt64Value();
     switch (operation) {
       case Token::kADD: {
-        if (((left_value < 0) != (right_value < 0)) ||
-            ((left_value + right_value) < 0) == (left_value < 0)) {
+        if (!Utils::WillAddOverflow(left_value, right_value)) {
           return Integer::New(left_value + right_value, space);
         }
         break;
       }
       case Token::kSUB: {
-        if (((left_value < 0) == (right_value < 0)) ||
-            ((left_value - right_value) < 0) == (left_value < 0)) {
+        if (!Utils::WillSubOverflow(left_value, right_value)) {
           return Integer::New(left_value - right_value, space);
         }
         break;
@@ -17565,7 +17980,7 @@ bool Bigint::CheckAndCanonicalizeFields(const char** error_str) const {
     ASSERT(!digits_.IsNull());
     set_digits(digits_);
   } else {
-    ASSERT(digits() == TypedData::EmptyUint32Array(Isolate::Current()));
+    ASSERT(digits() == TypedData::EmptyUint32Array(Thread::Current()));
   }
   return true;
 }
@@ -17587,7 +18002,7 @@ RawBigint* Bigint::New(Heap::Space space) {
   result.SetNeg(false);
   result.SetUsed(0);
   result.set_digits(
-      TypedData::Handle(zone, TypedData::EmptyUint32Array(isolate)));
+      TypedData::Handle(zone, TypedData::EmptyUint32Array(thread)));
   return result.raw();
 }
 
@@ -17621,7 +18036,7 @@ RawBigint* Bigint::New(bool neg, intptr_t used, const TypedData& digits,
   } else {
     neg = false;
     result.set_digits(
-        TypedData::Handle(zone, TypedData::EmptyUint32Array(isolate)));
+        TypedData::Handle(zone, TypedData::EmptyUint32Array(thread)));
   }
   result.SetNeg(neg);
   result.SetUsed(used);
@@ -19092,11 +19507,9 @@ static FinalizablePersistentHandle* AddFinalizer(
     Dart_WeakPersistentHandleFinalizer callback) {
   ASSERT((callback != NULL && peer != NULL) ||
          (callback == NULL && peer == NULL));
-  const bool is_prologue = false;
   // TODO(19482): Make API consistent for external size of strings/typed data.
   const intptr_t external_size = 0;
   return FinalizablePersistentHandle::New(Isolate::Current(),
-                                          is_prologue,
                                           referent,
                                           peer,
                                           callback,
@@ -20092,10 +20505,21 @@ void Array::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  intptr_t limit = offset + count;
+  ASSERT(limit <= Length());
   {
     JSONArray jsarr(&jsobj, "elements");
     Object& element = Object::Handle();
-    for (intptr_t index = 0; index < Length(); index++) {
+    for (intptr_t index = offset; index < limit; index++) {
       element = At(index);
       jsarr.AddValue(element);
     }
@@ -20330,10 +20754,21 @@ void GrowableObjectArray::PrintJSONImpl(JSONStream* stream,
   if (ref) {
     return;
   }
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  intptr_t limit = offset + count;
+  ASSERT(limit <= Length());
   {
     JSONArray jsarr(&jsobj, "elements");
     Object& element = Object::Handle();
-    for (intptr_t index = 0; index < Length(); index++) {
+    for (intptr_t index = offset; index < limit; index++) {
       element = At(index);
       jsarr.AddValue(element);
     }
@@ -20436,16 +20871,31 @@ void LinkedHashMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  intptr_t limit = offset + count;
+  ASSERT(limit <= Length());
   {
     JSONArray jsarr(&jsobj, "associations");
     Object& object = Object::Handle();
     LinkedHashMap::Iterator iterator(*this);
-    while (iterator.MoveNext()) {
-      JSONObject jsassoc(&jsarr);
-      object = iterator.CurrentKey();
-      jsassoc.AddProperty("key", object);
-      object = iterator.CurrentValue();
-      jsassoc.AddProperty("value", object);
+    int i = 0;
+    while (iterator.MoveNext() && i < limit) {
+      if (i >= offset) {
+        JSONObject jsassoc(&jsarr);
+        object = iterator.CurrentKey();
+        jsassoc.AddProperty("key", object);
+        object = iterator.CurrentValue();
+        jsassoc.AddProperty("value", object);
+      }
+      i++;
     }
   }
 }
@@ -20807,14 +21257,16 @@ RawTypedData* TypedData::New(intptr_t class_id,
 }
 
 
-RawTypedData* TypedData::EmptyUint32Array(Isolate* isolate) {
+RawTypedData* TypedData::EmptyUint32Array(Thread* thread) {
+  ASSERT(thread != NULL);
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   ASSERT(isolate->object_store() != NULL);
   if (isolate->object_store()->empty_uint32_array() != TypedData::null()) {
     // Already created.
     return isolate->object_store()->empty_uint32_array();
   }
-  const TypedData& array = TypedData::Handle(isolate->current_zone(),
+  const TypedData& array = TypedData::Handle(thread->zone(),
       TypedData::New(kTypedDataUint32ArrayCid, 0, Heap::kOld));
   isolate->object_store()->set_empty_uint32_array(array);
   return array.raw();
@@ -20837,12 +21289,23 @@ void TypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-
-  {
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  if (count == 0) {
+    jsobj.AddProperty("bytes", "");
+  } else {
     NoSafepointScope no_safepoint;
     jsobj.AddPropertyBase64("bytes",
-                            reinterpret_cast<const uint8_t*>(DataAddr(0)),
-                            LengthInBytes());
+                            reinterpret_cast<const uint8_t*>(
+                                DataAddr(offset * ElementSizeInBytes())),
+                            count * ElementSizeInBytes());
   }
 }
 
@@ -20888,12 +21351,23 @@ void ExternalTypedData::PrintJSONImpl(JSONStream* stream,
   if (ref) {
     return;
   }
-
-  {
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  if (count == 0) {
+    jsobj.AddProperty("bytes", "");
+  } else {
     NoSafepointScope no_safepoint;
     jsobj.AddPropertyBase64("bytes",
-                            reinterpret_cast<const uint8_t*>(DataAddr(0)),
-                            LengthInBytes());
+                            reinterpret_cast<const uint8_t*>(
+                                DataAddr(offset * ElementSizeInBytes())),
+                            count * ElementSizeInBytes());
   }
 }
 
@@ -21125,7 +21599,7 @@ static intptr_t PrintOneStacktrace(Zone* zone,
   const String& url = String::Handle(zone, script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  if (token_pos > 0) {
+  if (token_pos >= 0) {
     if (script.HasSource()) {
       script.GetTokenLocation(token_pos, &line, &column);
     } else {
@@ -21151,6 +21625,23 @@ static intptr_t PrintOneStacktrace(Zone* zone,
 }
 
 
+static intptr_t PrintOneStacktraceNoCode(Zone* zone,
+                                         GrowableArray<char*>* frame_strings,
+                                         const Function& function,
+                                         intptr_t frame_index) {
+  const Script& script = Script::Handle(zone, function.script());
+  const String& function_name =
+      String::Handle(zone, function.QualifiedUserVisibleName());
+  const String& url = String::Handle(zone, script.url());
+  char* chars = NULL;
+  chars = OS::SCreate(zone,
+      "#%-6" Pd " %s (%s)\n",
+      frame_index, function_name.ToCString(), url.ToCString());
+  frame_strings->Add(chars);
+  return strlen(chars);
+}
+
+
 const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
                                           intptr_t max_frames) const {
   Zone* zone = Thread::Current()->zone();
@@ -21163,7 +21654,8 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
   for (intptr_t i = 0; (i < Length()) && (*frame_index < max_frames); i++) {
     function = FunctionAtFrame(i);
     if (function.IsNull()) {
-      // Check if null function object indicates a stack trace overflow.
+      // Check if null function object indicates a gap in a StackOverflow or
+      // OutOfMemory trace.
       if ((i < (Length() - 1)) &&
           (FunctionAtFrame(i + 1) != Function::null())) {
         const char* kTruncated = "...\n...\n";
@@ -21173,31 +21665,55 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         frame_strings.Add(chars);
         total_len += truncated_len;
       }
-    } else if (function.is_visible() || FLAG_show_invisible_frames) {
+    } else {
       code = CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
       uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
       if (code.is_optimized() && expand_inlined()) {
         // Traverse inlined frames.
-        for (InlinedFunctionsIterator it(code, pc);
-             !it.Done() && (*frame_index < max_frames); it.Advance()) {
-          function = it.function();
-          if (function.is_visible() || FLAG_show_invisible_frames) {
-            code = it.code();
-            ASSERT(function.raw() == code.function());
-            uword pc = it.pc();
-            ASSERT(pc != 0);
-            ASSERT(code.EntryPoint() <= pc);
-            ASSERT(pc < (code.EntryPoint() + code.Size()));
-            total_len += PrintOneStacktrace(
-                zone, &frame_strings, pc, function, code, *frame_index);
-            (*frame_index)++;  // To account for inlined frames.
+        if (Compiler::allow_recompilation()) {
+          for (InlinedFunctionsIterator it(code, pc);
+               !it.Done() && (*frame_index < max_frames); it.Advance()) {
+            function = it.function();
+            if (function.is_visible() || FLAG_show_invisible_frames) {
+              code = it.code();
+              ASSERT(function.raw() == code.function());
+              uword pc = it.pc();
+              ASSERT(pc != 0);
+              ASSERT(code.EntryPoint() <= pc);
+              ASSERT(pc < (code.EntryPoint() + code.Size()));
+              total_len += PrintOneStacktrace(
+                  zone, &frame_strings, pc, function, code, *frame_index);
+              (*frame_index)++;  // To account for inlined frames.
+            }
+          }
+        } else {
+          // Precompilation: we don't have deopt info, so we don't know the
+          // source position of inlined functions, but we can still name them.
+          intptr_t offset = Smi::Value(PcOffsetAtFrame(i));
+          // The PC of frames below the top frame is a call's return address,
+          // which can belong to a different inlining interval than the call.
+          intptr_t effective_offset = offset - 1;
+          GrowableArray<Function*> inlined_functions;
+          code.GetInlinedFunctionsAt(effective_offset, &inlined_functions);
+          ASSERT(inlined_functions.length() >= 1);  // At least the inliner.
+          for (intptr_t j = 0; j < inlined_functions.length(); j++) {
+            Function* inlined_function = inlined_functions[j];
+            ASSERT(inlined_function != NULL);
+            ASSERT(!inlined_function->IsNull());
+            if (inlined_function->is_visible() || FLAG_show_invisible_frames) {
+              total_len += PrintOneStacktraceNoCode(
+                  zone, &frame_strings, *inlined_function, *frame_index);
+              (*frame_index)++;
+            }
           }
         }
       } else {
-        total_len += PrintOneStacktrace(
-            zone, &frame_strings, pc, function, code, *frame_index);
-        (*frame_index)++;
+        if (function.is_visible() || FLAG_show_invisible_frames) {
+          total_len += PrintOneStacktrace(
+              zone, &frame_strings, pc, function, code, *frame_index);
+          (*frame_index)++;
+        }
       }
     }
   }
@@ -21455,15 +21971,16 @@ void UserTag::MakeActive() const {
 
 
 RawUserTag* UserTag::New(const String& label, Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   // Canonicalize by name.
-  UserTag& result = UserTag::Handle(FindTagInIsolate(isolate, label));
+  UserTag& result = UserTag::Handle(FindTagInIsolate(thread, label));
   if (!result.IsNull()) {
     // Tag already exists, return existing instance.
     return result.raw();
   }
-  if (TagTableIsFull(isolate)) {
+  if (TagTableIsFull(thread)) {
     const String& error = String::Handle(
         String::NewFormatted("UserTag instance limit (%" Pd ") reached.",
                              UserTags::kMaxUserTags));
@@ -21480,7 +21997,7 @@ RawUserTag* UserTag::New(const String& label, Heap::Space space) {
     result ^= raw;
   }
   result.set_label(label);
-  AddTagToIsolate(isolate, result);
+  AddTagToIsolate(thread, result);
   return result.raw();
 }
 
@@ -21503,12 +22020,14 @@ RawUserTag* UserTag::DefaultTag() {
 }
 
 
-RawUserTag* UserTag::FindTagInIsolate(Isolate* isolate, const String& label) {
+RawUserTag* UserTag::FindTagInIsolate(Thread* thread, const String& label) {
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
-      isolate->current_zone(), isolate->tag_table());
-  UserTag& other = UserTag::Handle(isolate->current_zone());
-  String& tag_label = String::Handle(isolate->current_zone());
+      zone, isolate->tag_table());
+  UserTag& other = UserTag::Handle(zone);
+  String& tag_label = String::Handle(zone);
   for (intptr_t i = 0; i < tag_table.Length(); i++) {
     other ^= tag_table.At(i);
     ASSERT(!other.IsNull());
@@ -21522,14 +22041,16 @@ RawUserTag* UserTag::FindTagInIsolate(Isolate* isolate, const String& label) {
 }
 
 
-void UserTag::AddTagToIsolate(Isolate* isolate, const UserTag& tag) {
+void UserTag::AddTagToIsolate(Thread* thread, const UserTag& tag) {
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
-      isolate->current_zone(), isolate->tag_table());
-  ASSERT(!TagTableIsFull(isolate));
+      zone, isolate->tag_table());
+  ASSERT(!TagTableIsFull(thread));
 #if defined(DEBUG)
   // Verify that no existing tag has the same tag id.
-  UserTag& other = UserTag::Handle(isolate->current_zone());
+  UserTag& other = UserTag::Handle(thread->zone());
   for (intptr_t i = 0; i < tag_table.Length(); i++) {
     other ^= tag_table.At(i);
     ASSERT(!other.IsNull());
@@ -21546,10 +22067,11 @@ void UserTag::AddTagToIsolate(Isolate* isolate, const UserTag& tag) {
 }
 
 
-bool UserTag::TagTableIsFull(Isolate* isolate) {
+bool UserTag::TagTableIsFull(Thread* thread) {
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
-      isolate->current_zone(), isolate->tag_table());
+      thread->zone(), isolate->tag_table());
   ASSERT(tag_table.Length() <= UserTags::kMaxUserTags);
   return tag_table.Length() == UserTags::kMaxUserTags;
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.utilities_test;
+library analyzer.test.generated.utilities_test;
 
 import 'dart:collection';
 
@@ -2109,6 +2109,12 @@ class Getter_NodeReplacerTest_test_assertStatement
   Expression get(AssertStatement node) => node.condition;
 }
 
+class Getter_NodeReplacerTest_test_assertStatement_2
+    implements NodeReplacerTest_Getter {
+  @override
+  Expression get(AssertStatement node) => node.message;
+}
+
 class Getter_NodeReplacerTest_test_assignmentExpression
     implements NodeReplacerTest_Getter {
   @override
@@ -3460,9 +3466,10 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_assertStatement() {
-    AssertStatement node =
-        AstFactory.assertStatement(AstFactory.booleanLiteral(true));
+    AssertStatement node = AstFactory.assertStatement(
+        AstFactory.booleanLiteral(true), AstFactory.string2('foo'));
     _assertReplace(node, new Getter_NodeReplacerTest_test_assertStatement());
+    _assertReplace(node, new Getter_NodeReplacerTest_test_assertStatement_2());
   }
 
   void test_assignmentExpression() {
@@ -4566,6 +4573,21 @@ class SourceRangeTest {
 
 @reflectiveTest
 class StringUtilitiesTest {
+  void test_computeLineStarts_n() {
+    List<int> starts = StringUtilities.computeLineStarts('a\nbb\nccc');
+    expect(starts, <int>[0, 2, 5]);
+  }
+
+  void test_computeLineStarts_r() {
+    List<int> starts = StringUtilities.computeLineStarts('a\rbb\rccc');
+    expect(starts, <int>[0, 2, 5]);
+  }
+
+  void test_computeLineStarts_rn() {
+    List<int> starts = StringUtilities.computeLineStarts('a\r\nbb\r\nccc');
+    expect(starts, <int>[0, 3, 7]);
+  }
+
   void test_EMPTY() {
     expect(StringUtilities.EMPTY, "");
     expect(StringUtilities.EMPTY.isEmpty, isTrue);

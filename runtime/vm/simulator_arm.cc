@@ -145,7 +145,7 @@ static Register LookupCpuRegisterByName(const char* name) {
       R8,  R9,  R10, R11,
       R12, R13, R14, R15,
       PC,  LR,  SP,  IP,
-      FP,  R10, R9
+      FP,  PP,  CTX
   };
   ASSERT(ARRAY_SIZE(kNames) == ARRAY_SIZE(kRegisters));
   for (unsigned i = 0; i < ARRAY_SIZE(kNames); i++) {
@@ -700,8 +700,8 @@ Simulator::Simulator() {
   // the size specified by the user and the buffer space needed for
   // handling stack overflow exceptions. To be safe in potential
   // stack underflows we also add some underflow buffer space.
-  stack_ = new char[(Isolate::GetSpecifiedStackSize() +
-                     Isolate::kStackSizeBuffer +
+  stack_ = new char[(OSThread::GetSpecifiedStackSize() +
+                     OSThread::kStackSizeBuffer +
                      kSimulatorStackUnderflowSize)];
   pc_modified_ = false;
   icount_ = 0;
@@ -1171,13 +1171,23 @@ uword Simulator::CompareExchange(uword* address,
 }
 
 
+uint32_t Simulator::CompareExchangeUint32(uint32_t* address,
+                                          uint32_t compare_value,
+                                          uint32_t new_value) {
+  COMPILE_ASSERT(sizeof(uword) == sizeof(uint32_t));
+  return CompareExchange(reinterpret_cast<uword*>(address),
+                         static_cast<uword>(compare_value),
+                         static_cast<uword>(new_value));
+}
+
+
 // Returns the top of the stack area to enable checking for stack pointer
 // validity.
 uword Simulator::StackTop() const {
   // To be safe in potential stack underflows we leave some buffer above and
   // set the stack top.
   return StackBase() +
-      (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
+      (OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer);
 }
 
 
@@ -3738,7 +3748,9 @@ int64_t Simulator::Call(int32_t entry,
   int32_t r6_val = get_register(R6);
   int32_t r7_val = get_register(R7);
   int32_t r8_val = get_register(R8);
+#if !defined(TARGET_OS_MACOS)
   int32_t r9_val = get_register(R9);
+#endif
   int32_t r10_val = get_register(R10);
   int32_t r11_val = get_register(R11);
 
@@ -3770,7 +3782,9 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R6, callee_saved_value);
   set_register(R7, callee_saved_value);
   set_register(R8, callee_saved_value);
+#if !defined(TARGET_OS_MACOS)
   set_register(R9, callee_saved_value);
+#endif
   set_register(R10, callee_saved_value);
   set_register(R11, callee_saved_value);
 
@@ -3796,7 +3810,9 @@ int64_t Simulator::Call(int32_t entry,
   ASSERT(callee_saved_value == get_register(R6));
   ASSERT(callee_saved_value == get_register(R7));
   ASSERT(callee_saved_value == get_register(R8));
+#if !defined(TARGET_OS_MACOS)
   ASSERT(callee_saved_value == get_register(R9));
+#endif
   ASSERT(callee_saved_value == get_register(R10));
   ASSERT(callee_saved_value == get_register(R11));
 
@@ -3817,7 +3833,9 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R6, r6_val);
   set_register(R7, r7_val);
   set_register(R8, r8_val);
+#if !defined(TARGET_OS_MACOS)
   set_register(R9, r9_val);
+#endif
   set_register(R10, r10_val);
   set_register(R11, r11_val);
 
@@ -3862,7 +3880,6 @@ void Simulator::Longjmp(uword pc,
   // The C++ caller has not cleaned up the stack memory of C++ frames.
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous C++ frames.
-  Isolate* isolate = thread->isolate();
   StackResource::Unwind(thread);
 
   // Unwind the C++ stack and continue simulation in the target frame.
@@ -3873,7 +3890,7 @@ void Simulator::Longjmp(uword pc,
   // Set the tag.
   thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.
-  isolate->set_top_exit_frame_info(0);
+  thread->set_top_exit_frame_info(0);
 
   ASSERT(raw_exception != Object::null());
   set_register(kExceptionObjectReg, bit_cast<int32_t>(raw_exception));

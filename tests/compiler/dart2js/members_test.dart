@@ -8,11 +8,18 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
 import 'package:compiler/src/dart_types.dart';
-import "package:compiler/src/elements/elements.dart"
-       show Element, ClassElement, MemberSignature, Name, PublicName,
-            DeclaredMember, Member;
-import "package:compiler/src/resolution/class_members.dart"
-  show DeclaredMember, ErroneousMember, SyntheticMember;
+import "package:compiler/src/elements/elements.dart" show
+    Element,
+    ClassElement,
+    MemberSignature,
+    Name,
+    PublicName,
+    Member;
+import "package:compiler/src/resolution/class_members.dart" show
+    MembersCreator,
+    DeclaredMember,
+    ErroneousMember,
+    SyntheticMember;
 
 void main() {
   testClassMembers();
@@ -212,6 +219,8 @@ void testClassMembers() {
                 functionType: env.functionType(String_, []));
 
     InterfaceType A = env['A'];
+    MembersCreator.computeAllClassMembers(env.compiler, A.element);
+
     checkMemberCount(A, 5 /*inherited*/ + 9 /*non-static declared*/,
                      interfaceMembers: true);
     checkMemberCount(A, 5 /*inherited*/ + 9 /*non-abstract declared*/ +
@@ -255,6 +264,7 @@ void testClassMembers() {
                 isStatic: true, functionType: env.functionType(dynamic_, []));
 
     ClassElement B = env.getElement('B');
+    MembersCreator.computeAllClassMembers(env.compiler, B);
     InterfaceType B_this = B.thisType;
     TypeVariableType B_T = B_this.typeArguments.first;
     checkMemberCount(B_this, 4 /*inherited*/ + 4 /*non-static declared*/,
@@ -280,6 +290,7 @@ void testClassMembers() {
                                                optionalParameters: [B_T]));
 
     ClassElement C = env.getElement('C');
+    MembersCreator.computeAllClassMembers(env.compiler, C);
     InterfaceType C_this = C.thisType;
     TypeVariableType C_S = C_this.typeArguments.first;
     checkMemberCount(C_this, 8 /*inherited*/, interfaceMembers: true);
@@ -306,6 +317,7 @@ void testClassMembers() {
                                                optionalParameters: [C_S]));
 
     InterfaceType D = env['D'];
+    MembersCreator.computeAllClassMembers(env.compiler, D.element);
     checkMemberCount(D, 8 /*inherited*/, interfaceMembers: true);
     checkMemberCount(D, 8 /*inherited*/, interfaceMembers: false);
     InterfaceType B_int = instantiate(B, [int_]);
@@ -330,6 +342,7 @@ void testClassMembers() {
                                                optionalParameters: [int_]));
 
     InterfaceType E = env['E'];
+    MembersCreator.computeAllClassMembers(env.compiler, E.element);
     checkMemberCount(E, 8 /*inherited*/, interfaceMembers: true);
     checkMemberCount(E, 8 /*inherited*/, interfaceMembers: false);
 
@@ -410,6 +423,9 @@ void testInterfaceMembers() {
     InterfaceType B = env['B'];
     InterfaceType C = env['C'];
     InterfaceType D = env['D'];
+
+    // Ensure that members have been computed on all classes.
+    MembersCreator.computeAllClassMembers(env.compiler, D.element);
 
     // A: num method1()
     // B: int method1()
@@ -576,6 +592,9 @@ void testClassVsInterfaceMembers() {
     InterfaceType B = env['B'];
     InterfaceType C = env['C'];
 
+    // Ensure that members have been computed on all classes.
+    MembersCreator.computeAllClassMembers(env.compiler, C.element);
+
     // A: method1()
     // B: method1()
     // C class: method1() -- inherited from A.
@@ -633,6 +652,9 @@ void testMixinMembers() {
     TypeVariableType C_V = C_this.typeArguments[1];
     InterfaceType A_U = instantiate(A, [C_U]);
     InterfaceType B_V = instantiate(B, [C_V]);
+
+    // Ensure that members have been computed on all classes.
+    MembersCreator.computeAllClassMembers(env.compiler, C);
 
     // A: method1()
     // B: method1()
@@ -701,6 +723,9 @@ void testMixinMembersWithoutImplements() {
     InterfaceType A = env['A'];
     InterfaceType B = env['B'];
     InterfaceType C = env['C'];
+
+    // Ensure that members have been computed on all classes.
+    MembersCreator.computeAllClassMembers(env.compiler, C.element);
 
     checkMember(C, 'm', checkType: NO_CLASS_MEMBER,
                 inheritedFrom: A,

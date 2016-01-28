@@ -58,6 +58,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [ErrorKind](#errorkind)
 	- [Event](#event)
 	- [EventKind](#eventkind)
+	- [ExtensionData](#extensiondata)
 	- [Field](#field)
 	- [Flag](#flag)
 	- [FlagList](#flaglist)
@@ -467,7 +468,7 @@ some target.
 _targetId_ may refer to a [Library](#library), [Class](#class), or
 [Instance](#instance).
 
-If _targetId_ is a temporary id which has expired, then then _Expired_
+If _targetId_ is a temporary id which has expired, then the _Expired_
 [Sentinel](#sentinel) is returned.
 
 If _targetId_ refers to an object which has been collected by the VM's
@@ -527,13 +528,15 @@ See [Isolate](#isolate).
 
 ```
 Object|Sentinel getObject(string isolateId,
-                          string objectId)
+                          string objectId,
+                          int offset [optional],
+                          int count [optional])
 ```
 
 The _getObject_ RPC is used to lookup an _object_ from some isolate by
 its _id_.
 
-If _objectId_ is a temporary id which has expired, then then _Expired_
+If _objectId_ is a temporary id which has expired, then the _Expired_
 [Sentinel](#sentinel) is returned.
 
 If _objectId_ refers to a heap object which has been collected by the VM's
@@ -545,6 +548,13 @@ the _Collected_ [Sentinel](#sentinel) is returned.
 
 If the object handle has not expired and the object has not been
 collected, then an [Object](#object) will be returned.
+
+The _offset_ and _count_ parameters are used to request subranges of
+Instance objects with the kinds: List, Map, Uint8ClampedList,
+Uint8List, Uint16List, Uint32List, Uint64List, Int8List, Int16List,
+Int32List, Int64List, Flooat32List, Float64List, Inst32x3List,
+Float32x4List, and Float64x2List.  These parameters are otherwise
+ignored.
 
 ### getStack
 
@@ -706,9 +716,10 @@ The _streamId_ parameter may have the following published values:
 streamId | event types provided
 -------- | -----------
 VM | VMUpdate
-Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate
+Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, ServiceExtensionAdded
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect
 GC | GC
+Extension | Extension
 
 Additionally, some embedders provide the _Stdout_ and _Stderr_
 streams.  These streams allow the client to subscribe to writes to
@@ -1125,6 +1136,26 @@ class Event extends Response {
   //
   // This is provided for the WriteEvent event.
   string bytes [optional];
+
+  // The argument passed to dart:developer.inspect.
+  //
+  // This is provided for the Inspect event.
+  @Instance inspectee [optional];
+
+  // The RPC name of the extension that was added.
+  //
+  // This is provided for the ServiceExtensionAdded event.
+  string extensionRPC [optional];
+
+  // The extension event kind.
+  //
+  // This is provided for the Extension event.
+  string extensionKind [optional];
+
+  // The extension event data.
+  //
+  // This is provided for the Extension event.
+  ExtensionData extensionData [optional];
 }
 ```
 
@@ -1155,6 +1186,9 @@ enum EventKind {
   // Currently used to notify of changes to the isolate debugging name
   // via setName.
   IsolateUpdate,
+
+  // Notification that an extension RPC was registered on an isolate.
+  ServiceExtensionAdded,
 
   // An isolate has paused at start, before executing code.
   PauseStart,
@@ -1187,12 +1221,27 @@ enum EventKind {
   GC,
 
   // Notification of bytes written, for example, to stdout/stderr.
-  WriteEvent
+  WriteEvent,
+
+  // Notification from dart:developer.inspect.
+  Inspect,
+
+  // Event from dart:developer.postEvent.
+  Extension
 }
 ```
 
 Adding new values to _EventKind_ is considered a backwards compatible
 change. Clients should ignore unrecognized events.
+
+### ExtensionData
+
+```
+class ExtensionData {
+}
+```
+
+An _ExtensionData_ is an arbitrary map that can have any contents.
 
 ### Field
 
@@ -1312,8 +1361,7 @@ class @Function extends @Object {
   // The name of this function.
   string name;
 
-  // The owner of this field, which can be a Library, Class, or a
-  // Function.
+  // The owner of this function, which can be a Library, Class, or a Function.
   @Library|@Class|@Function owner;
 
   // Is this function static?
@@ -1332,8 +1380,7 @@ class Function extends Object {
   // The name of this function.
   string name;
 
-  // The owner of this field, which can be a Library, Class, or a
-  // Function.
+  // The owner of this function, which can be a Library, Class, or a Function.
   @Library|@Class|@Function owner;
 
   // The location of this function in the source code.
@@ -1374,7 +1421,7 @@ class @Instance extends @Object {
   // this property is added with the value 'true'.
   bool valueAsStringIsTruncated [optional];
 
-  // The length of a List instance.
+  // The length of a List or the number of associations in a Map.
   //
   // Provided for instance kinds:
   //   List
@@ -1447,7 +1494,7 @@ class Instance extends Object {
   // this property is added with the value 'true'.
   bool valueAsStringIsTruncated [optional];
 
-  // The length of a List instance.
+  // The length of a List or the number of associations in a Map.
   //
   // Provided for instance kinds:
   //   List
@@ -1467,6 +1514,50 @@ class Instance extends Object {
   //   Float32x4List
   //   Float64x2List
   int length [optional];
+
+  // The index of the first element or association returned.
+  // This is only provided when it is non-zero.
+  //
+  // Provided for instance kinds:
+  //   List
+  //   Map
+  //   Uint8ClampedList
+  //   Uint8List
+  //   Uint16List
+  //   Uint32List
+  //   Uint64List
+  //   Int8List
+  //   Int16List
+  //   Int32List
+  //   Int64List
+  //   Float32List
+  //   Float64List
+  //   Int32x4List
+  //   Float32x4List
+  //   Float64x2List
+  int offset [optional];
+
+  // The number of elements or associations returned.
+  // This is only provided when it is less than length.
+  //
+  // Provided for instance kinds:
+  //   List
+  //   Map
+  //   Uint8ClampedList
+  //   Uint8List
+  //   Uint16List
+  //   Uint32List
+  //   Uint64List
+  //   Int8List
+  //   Int16List
+  //   Int32List
+  //   Int64List
+  //   Float32List
+  //   Float64List
+  //   Int32x4List
+  //   Float32x4List
+  //   Float64x2List
+  int count [optional];
 
   // The name of a Type instance.
   //
@@ -1495,7 +1586,7 @@ class Instance extends Object {
   //   List
   (@Instance|Sentinel)[] elements [optional];
 
-  // The elements of a List instance.
+  // The elements of a Map instance.
   //
   // Provided for instance kinds:
   //   Map
@@ -1643,7 +1734,7 @@ enum InstanceKind {
   Float64x2,
   Int32x4
 
-  // An instance of the built-in VM TypedData implementations.  User-defined
+  // An instance of the built-in VM TypedData implementations. User-defined
   // TypedDatas will be PlainInstance.
   Uint8ClampedList,
   Uint8List,
@@ -1676,16 +1767,16 @@ enum InstanceKind {
   // An instance of the Dart class WeakProperty.
   WeakProperty,
 
-  // An instance of the Dart class Type
+  // An instance of the Dart class Type.
   Type,
 
-  // An instance of the Dart class TypeParamer
+  // An instance of the Dart class TypeParameter.
   TypeParameter,
 
-  // An instance of the Dart class TypeRef
+  // An instance of the Dart class TypeRef.
   TypeRef,
 
-  // An instance of the Dart class BoundedType
+  // An instance of the Dart class BoundedType.
   BoundedType,
 }
 ```
@@ -1753,6 +1844,12 @@ class Isolate extends Response {
 
   // The error that is causing this isolate to exit, if applicable.
   Error error [optional];
+
+  // The current pause on exception mode for this isolate.
+  ExceptionPauseMode exceptionPauseMode;
+
+  // The list of service extension RPCs that are registered for this isolate.
+  string[] extensionRPCs;
 }
 ```
 
@@ -1780,7 +1877,7 @@ class Library extends Object {
   // The uri of this library.
   string uri;
 
-  // Is this library debuggable?  Default true.
+  // Is this library debuggable? Default true.
   bool debuggable;
 
   // A list of the imports for this library.
@@ -2133,15 +2230,15 @@ class UnresolvedSourceLocation extends Response {
   // has yet to be loaded.
   string scriptUri [optional];
 
-  // An approximate token position for the source location.  This may
+  // An approximate token position for the source location. This may
   // change when the location is resolved.
   int tokenPos [optional];
 
-  // An approximate line number for the source location.  This may
+  // An approximate line number for the source location. This may
   // change when the location is resolved.
   int line [optional];
 
-  // An approximate column number for the source location.  This may
+  // An approximate column number for the source location. This may
   // change when the location is resolved.
   int column [optional];
 
@@ -2219,7 +2316,7 @@ version | comments
 ------- | --------
 1.0 | initial revision
 2.0 | Describe protocol version 2.0.
-3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.
+3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance. Added ServiceExtensionAdded event.
 
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

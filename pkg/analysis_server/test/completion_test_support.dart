@@ -16,7 +16,7 @@ import 'domain_completion_test.dart';
 /**
  * A base class for classes containing completion tests.
  */
-class CompletionTestCase extends CompletionTest {
+class CompletionTestCase extends CompletionDomainHandlerTest {
   static const String CURSOR_MARKER = '!';
 
   List get suggestedCompletions => suggestions

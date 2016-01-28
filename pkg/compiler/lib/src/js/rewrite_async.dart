@@ -1023,7 +1023,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     }
 
     if (node.init != null) {
-      addExpressionStatement(visitExpression(node.init));
+      visitExpressionIgnoreResult(node.init);
     }
     int startLabel = newLabel("for condition");
     // If there is no update, continuing the loop is the same as going to the
@@ -1553,29 +1553,17 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   @override
   js.Expression visitVariableDeclarationList(js.VariableDeclarationList node) {
-    List<js.Expression> initializations = new List<js.Expression>();
-
-    // Declaration of local variables is hoisted outside the helper but the
-    // initialization is done here.
     for (js.VariableInitialization initialization in node.declarations) {
       js.VariableDeclaration declaration = initialization.declaration;
       localVariables.add(declaration);
       if (initialization.value != null) {
         withExpression(initialization.value, (js.Expression value) {
-          initializations.add(
+          addExpressionStatement(
               new js.Assignment(new js.VariableUse(declaration.name), value));
         }, store: false);
       }
     }
-    if (initializations.isEmpty) {
-      // Dummy expression. Will be dropped by [visitExpressionIgnoreResult].
-      return js.number(0);
-    } else {
-      return initializations.reduce(
-          (js.Expression first, js.Expression second) {
-        return new js.Binary(",", first, second);
-      });
-    }
+    return js.number(0); // Dummy expression.
   }
 
   @override
@@ -2457,12 +2445,12 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
 
   @override
   bool visitStringConcatenation(js.StringConcatenation node) {
-    return true;
+    return false;
   }
 
   @override
   bool visitName(js.Name node) {
-    return true;
+    return false;
   }
 
   @override

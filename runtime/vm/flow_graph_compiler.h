@@ -214,6 +214,37 @@ class SlowPathCode : public ZoneAllocated {
 };
 
 
+class MegamorphicSlowPath : public SlowPathCode {
+ public:
+  MegamorphicSlowPath(const ICData& ic_data,
+                      intptr_t argument_count,
+                      intptr_t deopt_id,
+                      intptr_t token_pos,
+                      LocationSummary* locs,
+                      intptr_t try_index)
+    : SlowPathCode(),
+      ic_data_(ic_data),
+      argument_count_(argument_count),
+      deopt_id_(deopt_id),
+      token_pos_(token_pos),
+      locs_(locs),
+      try_index_(try_index) {}
+  virtual ~MegamorphicSlowPath() {}
+
+ private:
+  virtual void EmitNativeCode(FlowGraphCompiler* comp);
+
+  const ICData& ic_data_;
+  intptr_t argument_count_;
+  intptr_t deopt_id_;
+  intptr_t token_pos_;
+  LocationSummary* locs_;
+  const intptr_t try_index_;  // For try/catch ranges.
+
+  DISALLOW_COPY_AND_ASSIGN(MegamorphicSlowPath);
+};
+
+
 struct CidTarget {
   intptr_t cid;
   Function* target;
@@ -280,6 +311,9 @@ class FlowGraphCompiler : public ValueObject {
   static bool SupportsSinCos();
   static bool SupportsUnboxedSimd128();
   static bool SupportsHardwareDivision();
+
+  static bool IsUnboxedField(const Field& field);
+  static bool IsPotentialUnboxedField(const Field& field);
 
   // Accessors.
   Assembler* assembler() const { return assembler_; }
@@ -411,11 +445,20 @@ class FlowGraphCompiler : public ValueObject {
                                    intptr_t token_pos,
                                    LocationSummary* locs);
 
-  void EmitMegamorphicInstanceCall(const ICData& ic_data,
-                                   intptr_t argument_count,
-                                   intptr_t deopt_id,
-                                   intptr_t token_pos,
-                                   LocationSummary* locs);
+  // Pass a value for try-index where block is not available (e.g. slow path).
+  void EmitMegamorphicInstanceCall(
+      const ICData& ic_data,
+      intptr_t argument_count,
+      intptr_t deopt_id,
+      intptr_t token_pos,
+      LocationSummary* locs,
+      intptr_t try_index = CatchClauseNode::kInvalidTryIndex);
+
+  void EmitSwitchableInstanceCall(const ICData& ic_data,
+                                  intptr_t argument_count,
+                                  intptr_t deopt_id,
+                                  intptr_t token_pos,
+                                  LocationSummary* locs);
 
   void EmitTestAndCall(const ICData& ic_data,
                        intptr_t arg_count,
@@ -526,7 +569,7 @@ class FlowGraphCompiler : public ValueObject {
   }
 
   Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return isolate_; }
+  Isolate* isolate() const { return thread_->isolate(); }
   Zone* zone() const { return zone_; }
 
   void AddStubCallTarget(const Code& code);
@@ -683,7 +726,6 @@ class FlowGraphCompiler : public ValueObject {
   };
 
   Thread* thread_;
-  Isolate* isolate_;
   Zone* zone_;
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;

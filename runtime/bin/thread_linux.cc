@@ -12,6 +12,7 @@
 #include <sys/time.h>  // NOLINT
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -21,7 +22,7 @@ namespace bin {
     const int kBufferSize = 1024; \
     char error_buf[kBufferSize]; \
     FATAL2("pthread error: %d (%s)", result, \
-           strerror_r(result, error_buf, kBufferSize)); \
+           Utils::StrError(result, error_buf, kBufferSize)); \
   }
 
 
@@ -32,7 +33,7 @@ namespace bin {
     char error_buf[kBufferSize]; \
     fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", \
             __FILE__, __LINE__, result, \
-            strerror_r(result, error_buf, kBufferSize)); \
+            Utils::StrError(result, error_buf, kBufferSize)); \
     return result; \
   }
 #else
@@ -114,8 +115,9 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
 }
 
 
-ThreadLocalKey Thread::kUnsetThreadLocalKey = static_cast<pthread_key_t>(-1);
-ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(0);
+const ThreadLocalKey Thread::kUnsetThreadLocalKey =
+    static_cast<pthread_key_t>(-1);
+const ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(0);
 
 ThreadLocalKey Thread::CreateThreadLocal() {
   pthread_key_t key = kUnsetThreadLocalKey;

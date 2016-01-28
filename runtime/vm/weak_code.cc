@@ -14,6 +14,11 @@
 
 namespace dart {
 
+bool WeakCodeReferences::HasCodes() const {
+  return !array_.IsNull() && (array_.Length() > 0);
+}
+
+
 void WeakCodeReferences::Register(const Code& value) {
   if (!array_.IsNull()) {
     // Try to find and reuse cleared WeakProperty to avoid allocating new one.
@@ -57,6 +62,7 @@ bool WeakCodeReferences::IsOptimizedCode(const Array& dependent_code,
 
 
 void WeakCodeReferences::DisableCode() {
+  IncrementInvalidationGen();
   const Array& code_objects = Array::Handle(array_.raw());
   if (code_objects.IsNull()) {
     return;

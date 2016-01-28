@@ -1,4 +1,8 @@
-library java.core;
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library analyzer.src.generated.java_core;
 
 const int LONG_MAX_VALUE = 0x7fffffffffffffff;
 
@@ -295,14 +299,6 @@ class JavaString {
 }
 
 class JavaSystem {
-  @deprecated
-  static void arraycopy(
-      List src, int srcPos, List dest, int destPos, int length) {
-    for (int i = 0; i < length; i++) {
-      dest[destPos + i] = src[srcPos + i];
-    }
-  }
-
   static int currentTimeMillis() {
     return (new DateTime.now()).millisecondsSinceEpoch;
   }

@@ -51,6 +51,11 @@ class TimelineTestHelper : public AllStatic {
     }
   }
 
+  static void SetBlockThread(TimelineEventBlock* block,
+                             intptr_t ftid) {
+    block->thread_id_ = OSThread::ThreadIdFromIntPtr(ftid);
+  }
+
   static void FakeDuration(
       TimelineEventRecorder* recorder,
       const char* label,
@@ -242,10 +247,6 @@ class EventCounterRecorder : public TimelineEventStreamingRecorder {
     counts_[event->event_type()]++;
   }
 
-  void StreamDartEvent(const char* event) {
-    // NOOP.
-  }
-
   intptr_t CountFor(TimelineEvent::EventType type) {
     return counts_[type];
   }
@@ -324,12 +325,17 @@ TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
   ASSERT(recorder != NULL);
   // Blocks owned by thread "1".
   TimelineEventBlock* block_1_0 = recorder->GetNewBlock();
+  TimelineTestHelper::SetBlockThread(block_1_0, 1);
   TimelineEventBlock* block_1_1 = recorder->GetNewBlock();
+  TimelineTestHelper::SetBlockThread(block_1_1, 1);
   TimelineEventBlock* block_1_2 = recorder->GetNewBlock();
+  TimelineTestHelper::SetBlockThread(block_1_2, 1);
   // Blocks owned by thread "2".
   TimelineEventBlock* block_2_0 = recorder->GetNewBlock();
+  TimelineTestHelper::SetBlockThread(block_2_0, 2);
   // Blocks owned by thread "3".
   TimelineEventBlock* block_3_0 = recorder->GetNewBlock();
+  TimelineTestHelper::SetBlockThread(block_3_0, 3);
   USE(block_3_0);
 
   // Add events to each block for thread 1.
@@ -358,6 +364,7 @@ TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
   // Discover threads in recorder.
   TimelineAnalysis ta(zone, isolate, recorder);
   ta.BuildThreads();
+  EXPECT(!ta.has_error());
   // block_3_0 is never used by a thread, so we only have two threads.
   EXPECT_EQ(2, ta.NumThreads());
 
@@ -471,7 +478,9 @@ TEST_CASE(TimelinePauses_Basic) {
   ASSERT(recorder != NULL);
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  ThreadId tid = OSThread::GetCurrentThreadTraceId();
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  ThreadId tid = os_thread->trace_id();
 
   // Test case.
   TimelineTestHelper::FakeDuration(recorder, "a", 0, 10);
@@ -641,7 +650,9 @@ TEST_CASE(TimelinePauses_BeginEnd) {
   ASSERT(recorder != NULL);
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  ThreadId tid = OSThread::GetCurrentThreadTraceId();
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  ThreadId tid = os_thread->trace_id();
 
   // Test case.
   TimelineTestHelper::FakeBegin(recorder, "a", 0);

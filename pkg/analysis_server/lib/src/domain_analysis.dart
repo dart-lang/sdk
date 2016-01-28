@@ -21,9 +21,10 @@ import 'package:analysis_server/src/operation/operation_analysis.dart'
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
+import 'package:analysis_server/src/services/dependencies/reachable_source_collector.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:analyzer/src/generated/source.dart';
@@ -64,8 +65,9 @@ class AnalysisDomainHandler implements RequestHandler {
           if (errorInfo == null) {
             server.sendResponse(new Response.getErrorsInvalidFile(request));
           } else {
+            engine.AnalysisContext context = server.getAnalysisContext(file);
             errors = doAnalysisError_listFromEngine(
-                errorInfo.lineInfo, errorInfo.errors);
+                context, errorInfo.lineInfo, errorInfo.errors);
             server.sendResponse(
                 new AnalysisGetErrorsResult(errors).toResponse(request.id));
           }
@@ -164,6 +166,23 @@ class AnalysisDomainHandler implements RequestHandler {
     return Response.DELAYED_RESPONSE;
   }
 
+  /**
+   * Implement the `analysis.getReachableSources` request.
+   */
+  Response getReachableSources(Request request) {
+    AnalysisGetReachableSourcesParams params =
+        new AnalysisGetReachableSourcesParams.fromRequest(request);
+    ContextSourcePair pair = server.getContextSourcePair(params.file);
+    if (pair.context == null || pair.source == null) {
+      return new Response.getReachableSourcesInvalidFile(request);
+    }
+    Map<String, List<String>> sources =
+        new ReachableSourceCollector(pair.source, pair.context)
+            .collectSources();
+    return new AnalysisGetReachableSourcesResult(sources)
+        .toResponse(request.id);
+  }
+
   @override
   Response handleRequest(Request request) {
     try {
@@ -176,6 +195,8 @@ class AnalysisDomainHandler implements RequestHandler {
         return getLibraryDependencies(request);
       } else if (requestName == ANALYSIS_GET_NAVIGATION) {
         return getNavigation(request);
+      } else if (requestName == ANALYSIS_GET_REACHABLE_SOURCES) {
+        return getReachableSources(request);
       } else if (requestName == ANALYSIS_REANALYZE) {
         return reanalyze(request);
       } else if (requestName == ANALYSIS_SET_ANALYSIS_ROOTS) {
@@ -226,9 +247,22 @@ class AnalysisDomainHandler implements RequestHandler {
    */
   Response setAnalysisRoots(Request request) {
     var params = new AnalysisSetAnalysisRootsParams.fromRequest(request);
+    List<String> includedPathList = params.included;
+    List<String> excludedPathList = params.excluded;
+    // validate
+    for (String path in includedPathList) {
+      if (!server.isValidFilePath(path)) {
+        return new Response.invalidFilePathFormat(request, path);
+      }
+    }
+    for (String path in excludedPathList) {
+      if (!server.isValidFilePath(path)) {
+        return new Response.invalidFilePathFormat(request, path);
+      }
+    }
     // continue in server
-    server.setAnalysisRoots(request.id, params.included, params.excluded,
-        params.packageRoots == null ? {} : params.packageRoots);
+    server.setAnalysisRoots(request.id, includedPathList, excludedPathList,
+        params.packageRoots ?? <String, String>{});
     return new AnalysisSetAnalysisRootsResult().toResponse(request.id);
   }
 
@@ -328,8 +362,8 @@ class AnalysisDomainHandler implements RequestHandler {
 class AnalysisDomainImpl implements AnalysisDomain {
   final AnalysisServer server;
 
-  final Map<ResultDescriptor,
-          StreamController<engine.ComputedResult>> controllers =
+  final Map<ResultDescriptor, StreamController<engine.ComputedResult>>
+      controllers =
       <ResultDescriptor, StreamController<engine.ComputedResult>>{};
 
   AnalysisDomainImpl(this.server) {

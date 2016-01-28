@@ -746,8 +746,8 @@ Simulator::Simulator() {
   // the size specified by the user and the buffer space needed for
   // handling stack overflow exceptions. To be safe in potential
   // stack underflows we also add some underflow buffer space.
-  stack_ = new char[(Isolate::GetSpecifiedStackSize() +
-                     Isolate::kStackSizeBuffer +
+  stack_ = new char[(OSThread::GetSpecifiedStackSize() +
+                     OSThread::kStackSizeBuffer +
                      kSimulatorStackUnderflowSize)];
   pc_modified_ = false;
   icount_ = 0;
@@ -900,6 +900,7 @@ void Simulator::set_register(
     Instr* instr, Register reg, int64_t value, R31Type r31t) {
   // Register is in range.
   ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
+  ASSERT(instr == NULL || reg != R18);  // R18 is globally reserved on iOS.
   if ((reg != R31) || (r31t != R31IsZR)) {
     registers_[reg] = value;
     // If we're setting CSP, make sure it is 16-byte aligned. In truth, CSP
@@ -1054,7 +1055,7 @@ uword Simulator::StackTop() const {
   // To be safe in potential stack underflows we leave some buffer above and
   // set the stack top.
   return StackBase() +
-      (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
+      (OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer);
 }
 
 
@@ -1240,6 +1241,26 @@ uword Simulator::CompareExchange(uword* address,
   // writing below. No other thread is able to make a reservation while we
   // hold the lock.
   uword value = *address;
+  if (value == compare_value) {
+    *address = new_value;
+    // Same effect on exclusive access state as a successful STREX.
+    HasExclusiveAccessAndOpen(reinterpret_cast<uword>(address));
+  } else {
+    // Same effect on exclusive access state as an LDREX.
+    SetExclusiveAccess(reinterpret_cast<uword>(address));
+  }
+  return value;
+}
+
+
+uint32_t Simulator::CompareExchangeUint32(uint32_t* address,
+                                          uint32_t compare_value,
+                                          uint32_t new_value) {
+  MutexLocker ml(exclusive_access_lock_);
+  // We do not get a reservation as it would be guaranteed to be found when
+  // writing below. No other thread is able to make a reservation while we
+  // hold the lock.
+  uint32_t value = *address;
   if (value == compare_value) {
     *address = new_value;
     // Same effect on exclusive access state as a successful STREX.
@@ -1650,24 +1671,24 @@ void Simulator::DoRedirectedCall(Instr* instr) {
 
     // Zap caller-saved registers, since the actual runtime call could have
     // used them.
-    set_register(instr, R2, icount_);
-    set_register(instr, R3, icount_);
-    set_register(instr, R4, icount_);
-    set_register(instr, R5, icount_);
-    set_register(instr, R6, icount_);
-    set_register(instr, R7, icount_);
-    set_register(instr, R8, icount_);
-    set_register(instr, R9, icount_);
-    set_register(instr, R10, icount_);
-    set_register(instr, R11, icount_);
-    set_register(instr, R12, icount_);
-    set_register(instr, R13, icount_);
-    set_register(instr, R14, icount_);
-    set_register(instr, R15, icount_);
-    set_register(instr, IP0, icount_);
-    set_register(instr, IP1, icount_);
-    set_register(instr, R18, icount_);
-    set_register(instr, LR, icount_);
+    set_register(NULL, R2, icount_);
+    set_register(NULL, R3, icount_);
+    set_register(NULL, R4, icount_);
+    set_register(NULL, R5, icount_);
+    set_register(NULL, R6, icount_);
+    set_register(NULL, R7, icount_);
+    set_register(NULL, R8, icount_);
+    set_register(NULL, R9, icount_);
+    set_register(NULL, R10, icount_);
+    set_register(NULL, R11, icount_);
+    set_register(NULL, R12, icount_);
+    set_register(NULL, R13, icount_);
+    set_register(NULL, R14, icount_);
+    set_register(NULL, R15, icount_);
+    set_register(NULL, IP0, icount_);
+    set_register(NULL, IP1, icount_);
+    set_register(NULL, R18, icount_);
+    set_register(NULL, LR, icount_);
 
     // TODO(zra): Zap caller-saved fpu registers.
 
@@ -3519,7 +3540,6 @@ void Simulator::Longjmp(uword pc,
   // The C++ caller has not cleaned up the stack memory of C++ frames.
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous C++ frames.
-  Isolate* isolate = thread->isolate();
   StackResource::Unwind(thread);
 
   // Unwind the C++ stack and continue simulation in the target frame.
@@ -3530,7 +3550,7 @@ void Simulator::Longjmp(uword pc,
   // Set the tag.
   thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.
-  isolate->set_top_exit_frame_info(0);
+  thread->set_top_exit_frame_info(0);
 
   ASSERT(raw_exception != Object::null());
   set_register(NULL, kExceptionObjectReg, bit_cast<int64_t>(raw_exception));

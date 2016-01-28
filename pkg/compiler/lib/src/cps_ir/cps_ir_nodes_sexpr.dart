@@ -33,6 +33,10 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return decorator(r, namer.getName(r.definition));
   }
 
+  String optionalAccess(Reference<Definition> reference) {
+    return reference == null ? '()' : '(${access(reference)})';
+  }
+
   String visitParameter(Parameter node) {
     return namer.nameParameter(node);
   }
@@ -44,6 +48,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   /// Main entry point for creating a [String] from a [Node].  All recursive
   /// calls must go through this method.
   String visit(Node node) {
+    if (node == null) return '**** NULL ****';
     String s = node.accept(this);
     return decorator(node, s);
   }
@@ -108,72 +113,71 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String formatArguments(CallStructure call,
-                         List<Reference<Primitive>> arguments,
-                         {bool isIntercepted: false}) {
+      List<Reference<Primitive>> arguments,
+      [CallingConvention callingConvention = CallingConvention.Normal]) {
     int positionalArgumentCount = call.positionalArgumentCount;
-    if (isIntercepted) ++positionalArgumentCount;
+    if (callingConvention == CallingConvention.Intercepted ||
+        callingConvention == CallingConvention.DummyIntercepted) {
+      ++positionalArgumentCount;
+    }
     List<String> args =
-        arguments.getRange(0, positionalArgumentCount).map(access).toList();
+        arguments.take(positionalArgumentCount).map(access).toList();
     List<String> argumentNames = call.getOrderedNamedArguments();
     for (int i = 0; i < argumentNames.length; ++i) {
       String name = argumentNames[i];
       String arg = access(arguments[positionalArgumentCount + i]);
       args.add("($name: $arg)");
     }
+    // Constructors can have type parameter after the named arguments.
+    args.addAll(
+        arguments.skip(positionalArgumentCount + argumentNames.length)
+            .map(access));
     return '(${args.join(' ')})';
   }
 
   String visitInvokeStatic(InvokeStatic node) {
     String name = node.target.name;
-    String cont = access(node.continuation);
     String args = formatArguments(node.selector.callStructure, node.arguments);
-    return '$indentation(InvokeStatic $name $args $cont)';
+    return '(InvokeStatic $name $args)';
   }
 
   String visitInvokeMethod(InvokeMethod node) {
     String name = node.selector.name;
     String rcv = access(node.receiver);
-    String cont = access(node.continuation);
     String args = formatArguments(node.selector.callStructure, node.arguments,
-        isIntercepted: node.receiverIsIntercepted);
-    return '$indentation(InvokeMethod $rcv $name $args $cont)';
+        node.callingConvention);
+    return '(InvokeMethod $rcv $name $args)';
   }
 
   String visitInvokeMethodDirectly(InvokeMethodDirectly node) {
     String receiver = access(node.receiver);
     String name = node.selector.name;
-    String cont = access(node.continuation);
-    String args = formatArguments(node.selector.callStructure, node.arguments);
-    return '$indentation(InvokeMethodDirectly $receiver $name $args $cont)';
+    String args = formatArguments(node.selector.callStructure, node.arguments,
+        node.callingConvention);
+    return '(InvokeMethodDirectly $receiver $name $args)';
   }
 
   String visitInvokeConstructor(InvokeConstructor node) {
-    String className;
     // TODO(karlklose): for illegal nodes constructed for tests or unresolved
     // constructor calls in the DartBackend, we get an element with no enclosing
     // class.  Clean this up by introducing a name field to the node and
     // removing [ErroneousElement]s from the IR.
-    if (node.dartType != null) {
-      className = node.dartType.toString();
-    } else {
-      className = node.target.enclosingClass.name;
+    String name = node.dartType != null
+        ? node.dartType.toString()
+        : node.target.enclosingClass.name;
+    if (!node.target.name.isEmpty) {
+      name = '${name}.${node.target.name}';
     }
-    String callName;
-    if (node.target.name.isEmpty) {
-      callName = '${className}';
-    } else {
-      callName = '${className}.${node.target.name}';
-    }
-    String cont = access(node.continuation);
     String args = formatArguments(node.selector.callStructure, node.arguments);
-    return '$indentation(InvokeConstructor $callName $args $cont)';
+    return '(InvokeConstructor $name $args)';
   }
 
   String visitInvokeContinuation(InvokeContinuation node) {
     String name = access(node.continuation);
     if (node.isRecursive) name = 'rec $name';
     String args = node.arguments.map(access).join(' ');
-    return '$indentation(InvokeContinuation $name ($args))';
+    String escaping = node.isEscapingTry ? ' escape' : '';
+    return '$indentation(InvokeContinuation $name ($args)$escaping)';
   }
 
   String visitThrow(Throw node) {
@@ -202,12 +206,6 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '(Constant $value)';
   }
 
-  String visitCreateFunction(CreateFunction node) {
-    String function =
-        indentBlock(() => indentBlock(() => visit(node.definition)));
-    return '(CreateFunction\n$function)';
-  }
-
   String visitContinuation(Continuation node) {
     String name = newContinuationName(node);
     if (node.isRecursive) name = 'rec $name';
@@ -232,19 +230,14 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
 
   String visitTypeCast(TypeCast node) {
     String value = access(node.value);
-    String cont = access(node.continuation);
     String typeArguments = node.typeArguments.map(access).join(' ');
-    return '$indentation(TypeCast $value ${node.dartType}'
-                         ' ($typeArguments) $cont)';
+    return '(TypeCast $value ${node.dartType} ($typeArguments))';
   }
 
   String visitTypeTest(TypeTest node) {
     String value = access(node.value);
     String typeArguments = node.typeArguments.map(access).join(' ');
-    String interceptor = node.interceptor == null
-        ? ''
-        : access(node.interceptor);
-    return '(TypeTest $value ${node.dartType} ($typeArguments) ($interceptor))';
+    return '(TypeTest $value ${node.dartType} ($typeArguments))';
   }
 
   String visitTypeTestViaFlag(TypeTestViaFlag node) {
@@ -289,8 +282,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
 
   String visitGetLazyStatic(GetLazyStatic node) {
     String element = node.element.name;
-    String cont = access(node.continuation);
-    return '$indentation(GetLazyStatic $element $cont)';
+    return '(GetLazyStatic $element)';
   }
 
   String visitCreateBox(CreateBox node) {
@@ -342,10 +334,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
 
   String visitForeignCode(ForeignCode node) {
     String arguments = node.arguments.map(access).join(' ');
-    String continuation = node.continuation == null ? ''
-        : ' ${access(node.continuation)}';
-    return '$indentation(JS "${node.codeTemplate.source}"'
-        ' ($arguments)$continuation)';
+    return '(JS "${node.codeTemplate.source}" ($arguments))';
   }
 
   String visitGetLength(GetLength node) {
@@ -369,20 +358,31 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   @override
   String visitAwait(Await node) {
     String value = access(node.input);
-    String continuation = access(node.continuation);
-    return '(Await $value $continuation)';
+    return '(Await $value)';
   }
 
   @override
   String visitYield(Yield node) {
     String value = access(node.input);
-    String continuation = access(node.continuation);
-    return '(Yield $value $continuation)';
+    return '(Yield $value)';
   }
 
   String visitRefinement(Refinement node) {
     String value = access(node.value);
     return '(Refinement $value ${node.type})';
+  }
+
+  String visitBoundsCheck(BoundsCheck node) {
+    String object = access(node.object);
+    String index = optionalAccess(node.index);
+    String length = optionalAccess(node.length);
+    return '(BoundsCheck $object $index $length ${node.checkString})';
+  }
+
+  String visitNullCheck(NullCheck node) {
+    String value = access(node.value);
+    String condition = optionalAccess(node.condition);
+    return '(NullCheck $value $condition (${node.selector ?? ""}))';
   }
 }
 

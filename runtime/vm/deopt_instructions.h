@@ -23,6 +23,7 @@ class StackFrame;
 class TimelineEvent;
 
 // Holds all data relevant for execution of deoptimization instructions.
+// Structure is allocated in C-heap.
 class DeoptContext {
  public:
   enum DestFrameOptions {
@@ -30,12 +31,14 @@ class DeoptContext {
     kDestIsAllocated        // Write deopt frame to a buffer.
   };
 
+  // If 'deoptimizing_code' is false, only frame is being deoptimized.
   DeoptContext(const StackFrame* frame,
                const Code& code,
                DestFrameOptions dest_options,
                fpu_register_t* fpu_registers,
                intptr_t* cpu_registers,
-               bool is_lazy_deopt);
+               bool is_lazy_deopt,
+               bool deoptimizing_code);
   virtual ~DeoptContext();
 
   // Returns the offset of the dest fp from the dest sp.  Used in
@@ -96,6 +99,8 @@ class DeoptContext {
   RawCode* code() const { return code_; }
 
   bool is_lazy_deopt() const { return is_lazy_deopt_; }
+
+  bool deoptimizing_code() const { return deoptimizing_code_; }
 
   ICData::DeoptReasonId deopt_reason() const { return deopt_reason_; }
   bool HasDeoptFlag(ICData::DeoptFlags flag) {
@@ -224,7 +229,7 @@ class DeoptContext {
   uint32_t deopt_flags_;
   intptr_t caller_fp_;
   Thread* thread_;
-  TimelineEvent* timeline_event_;
+  int64_t deopt_start_micros_;
 
   DeferredSlot* deferred_slots_;
 
@@ -232,6 +237,7 @@ class DeoptContext {
   DeferredObject** deferred_objects_;
 
   const bool is_lazy_deopt_;
+  const bool deoptimizing_code_;
 
   DISALLOW_COPY_AND_ASSIGN(DeoptContext);
 };

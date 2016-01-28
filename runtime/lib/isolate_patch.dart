@@ -130,8 +130,6 @@ class _RawReceivePortImpl implements RawReceivePort {
     return sendPort.hashCode;
   }
 
-  Uri get remotePortUri => new Uri.https('localhost', '55');
-
   /**** Internal implementation details ****/
   _get_id() native "RawReceivePortImpl_get_id";
   _get_sendport() native "RawReceivePortImpl_get_sendport";
@@ -272,37 +270,74 @@ void _startIsolate(SendPort parentPort,
 
 patch class Isolate {
   static final _currentIsolate = _getCurrentIsolate();
+  static final _rootUri = _getCurrentRootUri();
 
   /* patch */ static Isolate get current => _currentIsolate;
+
+  /* patch */ static Future<Uri> get packageRoot {
+    var hook = VMLibraryHooks.packageRootUriFuture;
+    if (hook == null) {
+      throw new UnsupportedError("Isolate.packageRoot");
+    }
+    return hook();
+  }
+
+  /* patch */ static Future<Uri> get packageConfig {
+    var hook = VMLibraryHooks.packageConfigUriFuture;
+    if (hook == null) {
+      throw new UnsupportedError("Isolate.packageConfig");
+    }
+    return hook();
+  }
+
+  /* patch */ static Future<Uri> resolvePackageUri(Uri packageUri) {
+    var hook = VMLibraryHooks.resolvePackageUriFuture;
+    if (hook == null) {
+      throw new UnsupportedError("Isolate.resolvePackageUri");
+    }
+    return hook(packageUri);
+  }
+
+  static bool _packageSupported() =>
+      (VMLibraryHooks.packageRootUriFuture != null) &&
+      (VMLibraryHooks.packageConfigUriFuture != null) &&
+      (VMLibraryHooks.resolvePackageUriFuture != null);
 
   /* patch */ static Future<Isolate> spawn(
       void entryPoint(message), var message,
       {bool paused: false, bool errorsAreFatal,
-       SendPort onExit, SendPort onError}) {
+       SendPort onExit, SendPort onError}) async {
     // `paused` isn't handled yet.
     RawReceivePort readyPort;
     try {
       // The VM will invoke [_startIsolate] with entryPoint as argument.
       readyPort = new RawReceivePort();
-      _spawnFunction(readyPort.sendPort, entryPoint, message,
-                     paused, errorsAreFatal, onExit, onError);
-      Completer completer = new Completer<Isolate>.sync();
-      readyPort.handler = (readyMessage) {
-        readyPort.close();
-        assert(readyMessage is List);
-        assert(readyMessage.length == 2);
-        SendPort controlPort = readyMessage[0];
-        List capabilities = readyMessage[1];
-        completer.complete(new Isolate(controlPort,
-                                       pauseCapability: capabilities[0],
-                                       terminateCapability: capabilities[1]));
-      };
-      return completer.future;
+      var packageRoot = null;
+      var packageConfig = null;
+      if (Isolate._packageSupported()) {
+        packageRoot = (await Isolate.packageRoot)?.toString();
+        packageConfig = (await Isolate.packageConfig)?.toString();
+      }
+
+      var script = VMLibraryHooks.platformScript;
+      if (script == null) {
+        // We do not have enough information to support spawning the new
+        // isolate.
+        throw new UnsupportedError("Isolate.spawn");
+      }
+      if (script.scheme == "package") {
+        script = await Isolate.resolvePackageUri(script);
+      }
+
+      _spawnFunction(readyPort.sendPort, script.toString(), entryPoint, message,
+                     paused, errorsAreFatal, onExit, onError,
+                     packageRoot, packageConfig);
+      return await _spawnCommon(readyPort);
     } catch (e, st) {
       if (readyPort != null) {
         readyPort.close();
       }
-      return new Future<Isolate>.error(e, st);
+      return await new Future<Isolate>.error(e, st);
     }
   }
 
@@ -314,40 +349,102 @@ patch class Isolate {
        bool errorsAreFatal,
        bool checked,
        Map<String, String> environment,
-       Uri packageRoot}) {
+       Uri packageRoot,
+       Uri packageConfig,
+       bool automaticPackageResolution: false}) async {
     RawReceivePort readyPort;
-    if (environment != null) throw new UnimplementedError("environment");
+    if (environment != null) {
+      throw new UnimplementedError("environment");
+    }
+
+    // Verify that no mutually exclusive arguments have been passed.
+    if (automaticPackageResolution) {
+      if (packageRoot != null) {
+        throw new ArgumentError("Cannot simultaneously request "
+                                "automaticPackageResolution and specify a"
+                                "packageRoot.");
+      }
+      if (packageConfig != null) {
+        throw new ArgumentError("Cannot simultaneously request "
+                                "automaticPackageResolution and specify a"
+                                "packageConfig.");
+      }
+    } else {
+      if ((packageRoot != null) && (packageConfig != null)) {
+        throw new ArgumentError("Cannot simultaneously specify a "
+                                "packageRoot and a packageConfig.");
+      }
+    }
     try {
+      // Resolve the uri against the current isolate's root Uri first.
+      var spawnedUri = _rootUri.resolveUri(uri);
+
+      // Inherit this isolate's package resolution setup if not overridden.
+      if (!automaticPackageResolution &&
+          (packageRoot == null) &&
+          (packageConfig == null)) {
+        if (Isolate._packageSupported()) {
+          packageRoot = await Isolate.packageRoot;
+          packageConfig = await Isolate.packageConfig;
+        }
+      }
+
+      // Ensure to resolve package: URIs being handed in as parameters.
+      if (packageRoot != null) {
+        // Avoid calling resolvePackageUri if not stricly necessary in case
+        // the API is not supported.
+        if (packageRoot.scheme == "package") {
+          packageRoot = await Isolate.resolvePackageUri(packageRoot);
+        }
+      } else if (packageConfig != null) {
+        // Avoid calling resolvePackageUri if not strictly necessary in case
+        // the API is not supported.
+        if (packageConfig.scheme == "package") {
+          packageConfig = await Isolate.resolvePackageUri(packageConfig);
+        }
+      }
+
       // The VM will invoke [_startIsolate] and not `main`.
       readyPort = new RawReceivePort();
-      var packageRootString =
-          (packageRoot == null) ? null : packageRoot.toString();
-      var packagesList = null;
+      var packageRootString = packageRoot?.toString();
+      var packageConfigString = packageConfig?.toString();
 
-      _spawnUri(readyPort.sendPort, uri.toString(),
+      _spawnUri(readyPort.sendPort, spawnedUri.toString(),
                 args, message,
                 paused, onExit, onError,
                 errorsAreFatal, checked,
                 null, /* environment */
-                packageRootString, packagesList);
-      Completer completer = new Completer<Isolate>.sync();
-      readyPort.handler = (readyMessage) {
+                packageRootString, packageConfigString);
+      return await _spawnCommon(readyPort);
+    } catch (e, st) {
+      if (readyPort != null) {
         readyPort.close();
-        assert(readyMessage is List);
-        assert(readyMessage.length == 2);
+      }
+      rethrow;
+    }
+  }
+
+  static Future<Isolate> _spawnCommon(RawReceivePort readyPort) {
+    Completer completer = new Completer<Isolate>.sync();
+    readyPort.handler = (readyMessage) {
+      readyPort.close();
+      if (readyMessage is List && readyMessage.length == 2) {
         SendPort controlPort = readyMessage[0];
         List capabilities = readyMessage[1];
         completer.complete(new Isolate(controlPort,
                                        pauseCapability: capabilities[0],
                                        terminateCapability: capabilities[1]));
-      };
-      return completer.future;
-    } catch (e, st) {
-      if (readyPort != null) {
-        readyPort.close();
+      } else if (readyMessage is String) {
+        // We encountered an error while starting the new isolate.
+        completer.completeError(new IsolateSpawnException(
+            'Unable to spawn isolate: ${readyMessage}'));
+      } else {
+        // This shouldn't happen.
+        completer.completeError(new IsolateSpawnException(
+            "Internal error: unexpected format for ready message: "
+            "'${readyMessage}'"));
       }
-      return new Future<Isolate>.error(e, st);
-    }
+    };
     return completer.future;
   }
 
@@ -365,9 +462,11 @@ patch class Isolate {
   static const _ERROR_FATAL = 9;
 
 
-  static void _spawnFunction(SendPort readyPort, Function topLevelFunction,
+  static void _spawnFunction(SendPort readyPort, String uri,
+                             Function topLevelFunction,
                              var message, bool paused, bool errorsAreFatal,
-                             SendPort onExit, SendPort onError)
+                             SendPort onExit, SendPort onError,
+                             String packageRoot, String packageConfig)
       native "Isolate_spawnFunction";
 
   static void _spawnUri(SendPort readyPort, String uri,
@@ -375,7 +474,7 @@ patch class Isolate {
                         bool paused, SendPort onExit, SendPort onError,
                         bool errorsAreFatal, bool checked,
                         List environment,
-                        String packageRoot, List packages)
+                        String packageRoot, String packageConfig)
       native "Isolate_spawnUri";
 
   static void _sendOOB(port, msg) native "Isolate_sendOOB";
@@ -470,4 +569,15 @@ patch class Isolate {
 
   static List _getPortAndCapabilitiesOfCurrentIsolate()
       native "Isolate_getPortAndCapabilitiesOfCurrentIsolate";
+
+  static Uri _getCurrentRootUri() {
+    try {
+      return Uri.parse(_getCurrentRootUriStr());
+    } catch (e, s) {
+      return null;
+    }
+  }
+
+  static String _getCurrentRootUriStr()
+      native "Isolate_getCurrentRootUriStr";
 }

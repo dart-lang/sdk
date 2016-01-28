@@ -14,7 +14,7 @@ void main() {
         memorySourceFiles: MEMORY_SOURCE_FILES,
         options: ['--deferred-map=deferred_map.json'],
         outputProvider: collector);
-    Compiler compiler = result.compiler;
+    CompilerImpl compiler = result.compiler;
     // Ensure a mapping file is output.
     Expect.isNotNull(
         collector.getOutput("deferred_map.json", "deferred_map"));

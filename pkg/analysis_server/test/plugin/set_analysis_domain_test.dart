@@ -25,9 +25,7 @@ import '../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  if (AnalysisEngine.instance.useTaskModel) {
-    defineReflectiveTests(SetAnalysisDomainTest);
-  }
+  defineReflectiveTests(SetAnalysisDomainTest);
 }
 
 /**

@@ -24,7 +24,8 @@ class DisassemblyFormatter {
   virtual ~DisassemblyFormatter() { }
 
   // Consume the decoded instruction at the given pc.
-  virtual void ConsumeInstruction(char* hex_buffer,
+  virtual void ConsumeInstruction(const Code& code,
+                                  char* hex_buffer,
                                   intptr_t hex_size,
                                   char* human_buffer,
                                   intptr_t human_size,
@@ -42,7 +43,8 @@ class DisassembleToStdout : public DisassemblyFormatter {
   DisassembleToStdout() : DisassemblyFormatter() { }
   ~DisassembleToStdout() { }
 
-  virtual void ConsumeInstruction(char* hex_buffer,
+  virtual void ConsumeInstruction(const Code& code,
+                                  char* hex_buffer,
                                   intptr_t hex_size,
                                   char* human_buffer,
                                   intptr_t human_size,
@@ -63,7 +65,8 @@ class DisassembleToJSONStream : public DisassemblyFormatter {
       : DisassemblyFormatter(), jsarr_(jsarr) { }
   ~DisassembleToJSONStream() { }
 
-  virtual void ConsumeInstruction(char* hex_buffer,
+  virtual void ConsumeInstruction(const Code& code,
+                                  char* hex_buffer,
                                   intptr_t hex_size,
                                   char* human_buffer,
                                   intptr_t human_size,

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.testing.ast_factory;
+library analyzer.src.generated.testing.ast_factory;
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -46,11 +46,14 @@ class AstFactory {
       new AsExpression(
           expression, TokenFactory.tokenFromKeyword(Keyword.AS), type);
 
-  static AssertStatement assertStatement(Expression condition) =>
+  static AssertStatement assertStatement(Expression condition,
+          [Expression message]) =>
       new AssertStatement(
           TokenFactory.tokenFromKeyword(Keyword.ASSERT),
           TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
           condition,
+          message == null ? null : TokenFactory.tokenFromType(TokenType.COMMA),
+          message,
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
@@ -431,6 +434,7 @@ class AstFactory {
           metadata,
           TokenFactory.tokenFromKeyword(Keyword.EXPORT),
           string2(uri),
+          null,
           combinators,
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
@@ -657,6 +661,7 @@ class AstFactory {
           metadata,
           TokenFactory.tokenFromKeyword(Keyword.IMPORT),
           string2(uri),
+          null,
           !isDeferred ? null : TokenFactory.tokenFromKeyword(Keyword.DEFERRED),
           prefix == null ? null : TokenFactory.tokenFromKeyword(Keyword.AS),
           prefix == null ? null : identifier3(prefix),

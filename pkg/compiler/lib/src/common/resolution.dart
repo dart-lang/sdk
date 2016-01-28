@@ -8,6 +8,8 @@ library dart2js.common.resolution;
 import '../common.dart';
 import '../compiler.dart' show
     Compiler;
+import '../constants/expressions.dart' show
+    ConstantExpression;
 import '../core_types.dart' show
     CoreTypes;
 import '../dart_types.dart' show
@@ -26,18 +28,15 @@ import '../elements/elements.dart' show
     TypedefElement,
     TypeVariableElement;
 import '../enqueue.dart' show
-    ResolutionEnqueuer,
-    WorldImpact;
+    ResolutionEnqueuer;
+import '../parser/element_listener.dart' show
+    ScannerOptions;
 import '../tree/tree.dart' show
     AsyncForIn,
     Send,
     TypeAnnotation;
-import '../universe/universe.dart' show
-    UniverseSelector;
-import '../util/util.dart' show
-    Setlet;
-import 'registry.dart' show
-    Registry;
+import '../universe/world_impact.dart' show
+    WorldImpact;
 import 'work.dart' show
     ItemCompilationContext,
     WorkItem;
@@ -59,27 +58,16 @@ class ResolutionWorkItem extends WorkItem {
   bool get isAnalyzed => _isAnalyzed;
 }
 
-// TODO(johnniwinther): Rename this to something like  `BackendResolutionApi`
-// and clean up the interface.
-/// Backend callbacks function specific to the resolution phase.
-class ResolutionCallbacks {
-  /// Transform the [ResolutionImpact] into a [WorldImpact] adding the
-  /// backend dependencies for features used in [worldImpact].
-  WorldImpact transformImpact(ResolutionImpact worldImpact) => worldImpact;
-}
-
 class ResolutionImpact extends WorldImpact {
   const ResolutionImpact();
 
-  // TODO(johnniwinther): Remove this.
-  void registerDependency(Element element) {}
-
   Iterable<Feature> get features => const <Feature>[];
-  Iterable<DartType> get requiredTypes => const <DartType>[];
   Iterable<MapLiteralUse> get mapLiterals => const <MapLiteralUse>[];
   Iterable<ListLiteralUse> get listLiterals => const <ListLiteralUse>[];
-  Iterable<DartType> get typeLiterals => const <DartType>[];
   Iterable<String> get constSymbolNames => const <String>[];
+  Iterable<ConstantExpression> get constantLiterals {
+    return const <ConstantExpression>[];
+  }
 }
 
 /// A language feature seen during resolution.
@@ -111,6 +99,8 @@ enum Feature {
   STACK_TRACE_IN_CATCH,
   /// String interpolation.
   STRING_INTERPOLATION,
+  /// String juxtaposition.
+  STRING_JUXTAPOSITION,
   /// An implicit call to `super.noSuchMethod`, like calling an unresolved
   /// super method.
   SUPER_NO_SUCH_METHOD,
@@ -182,129 +172,6 @@ class ListLiteralUse {
   }
 }
 
-/// Mutable implementation of [WorldImpact] used to transform
-/// [ResolutionImpact] to [WorldImpact].
-// TODO(johnniwinther): Remove [Registry] when dependency is tracked directly
-// on [WorldImpact].
-class TransformedWorldImpact extends WorldImpact {
-  final ResolutionImpact worldImpact;
-
-  Setlet<Element> _staticUses;
-  Setlet<InterfaceType> _instantiatedTypes;
-  Setlet<UniverseSelector> _dynamicGetters;
-  Setlet<UniverseSelector> _dynamicInvocations;
-  Setlet<UniverseSelector> _dynamicSetters;
-
-  TransformedWorldImpact(this.worldImpact);
-
-  @override
-  Iterable<DartType> get asCasts => worldImpact.asCasts;
-
-  @override
-  Iterable<DartType> get checkedModeChecks => worldImpact.checkedModeChecks;
-
-  @override
-  Iterable<MethodElement> get closurizedFunctions {
-    return worldImpact.closurizedFunctions;
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicGetters {
-    return _dynamicGetters != null
-        ? _dynamicGetters : worldImpact.dynamicGetters;
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicInvocations {
-    return _dynamicInvocations != null
-        ? _dynamicInvocations : worldImpact.dynamicInvocations;
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicSetters {
-    return _dynamicSetters != null
-        ? _dynamicSetters : worldImpact.dynamicSetters;
-  }
-
-  @override
-  Iterable<DartType> get isChecks => worldImpact.isChecks;
-
-  @override
-  Iterable<Element> get staticUses {
-    if (_staticUses == null) {
-      return worldImpact.staticUses;
-    }
-    return _staticUses;
-  }
-
-  _unsupported(String message) => throw new UnsupportedError(message);
-
-  void registerDynamicGetter(UniverseSelector selector) {
-    if (_dynamicGetters == null) {
-      _dynamicGetters = new Setlet<UniverseSelector>();
-      _dynamicGetters.addAll(worldImpact.dynamicGetters);
-    }
-    _dynamicGetters.add(selector);
-  }
-
-  void registerDynamicInvocation(UniverseSelector selector) {
-    if (_dynamicInvocations == null) {
-      _dynamicInvocations = new Setlet<UniverseSelector>();
-      _dynamicInvocations.addAll(worldImpact.dynamicInvocations);
-    }
-    _dynamicInvocations.add(selector);
-  }
-
-  void registerDynamicSetter(UniverseSelector selector) {
-    if (_dynamicSetters == null) {
-      _dynamicSetters = new Setlet<UniverseSelector>();
-      _dynamicSetters.addAll(worldImpact.dynamicSetters);
-    }
-    _dynamicSetters.add(selector);
-  }
-
-  void registerInstantiatedType(InterfaceType type) {
-    // TODO(johnniwinther): Remove this when dependency tracking is done on
-    // the world impact itself.
-    worldImpact.registerDependency(type.element);
-    if (_instantiatedTypes == null) {
-      _instantiatedTypes = new Setlet<InterfaceType>();
-    }
-    _instantiatedTypes.add(type);
-  }
-
-  @override
-  Iterable<InterfaceType> get instantiatedTypes {
-    return _instantiatedTypes != null
-        ? _instantiatedTypes : const <InterfaceType>[];
-  }
-
-  @override
-  Iterable<DartType> get typeLiterals {
-    return worldImpact.typeLiterals;
-  }
-
-  void registerStaticUse(Element element) {
-    // TODO(johnniwinther): Remove this when dependency tracking is done on
-    // the world impact itself.
-    worldImpact.registerDependency(element);
-    if (_staticUses == null) {
-      _staticUses = new Setlet<Element>();
-    }
-    _staticUses.add(element);
-  }
-
-  @override
-  Iterable<LocalFunctionElement> get closures => worldImpact.closures;
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('TransformedWorldImpact($worldImpact)');
-    sb.write(super.toString());
-    return sb.toString();
-  }
-}
-
 // TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
 abstract class Resolution {
   Parsing get parsing;
@@ -319,8 +186,21 @@ abstract class Resolution {
   DartType resolveTypeAnnotation(Element element, TypeAnnotation node);
 
   bool hasBeenResolved(Element element);
+
+  /// Returns the precomputed [WorldImpact] for [element].
   WorldImpact getWorldImpact(Element element);
+
+  /// Computes the [WorldImpact] for [element].
   WorldImpact computeWorldImpact(Element element);
+
+  /// Removes the [WorldImpact] for [element] from the resolution cache. Later
+  /// calls to [getWorldImpact] or [computeWorldImpact] returns an empty impact.
+  void uncacheWorldImpact(Element element);
+
+  /// Removes the [WorldImpact]s for all [Element]s in the resolution cache. ,
+  /// Later calls to [getWorldImpact] or [computeWorldImpact] returns an empty
+  /// impact.
+  void emptyCache();
 }
 
 // TODO(johnniwinther): Rename to `Parser` or `ParsingContext`.
@@ -328,4 +208,5 @@ abstract class Parsing {
   DiagnosticReporter get reporter;
   void parsePatchClass(ClassElement cls);
   measure(f());
+  ScannerOptions getScannerOptionsFor(Element element);
 }

@@ -7,7 +7,7 @@ import 'dart:async';
 import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart' show runCompiler, OutputCollector;
 import 'package:compiler/src/apiimpl.dart' show
-    Compiler;
+    CompilerImpl;
 import 'package:compiler/src/tree/tree.dart' show
     Node;
 import 'package:compiler/src/dart_backend/dart_backend.dart';
@@ -22,7 +22,7 @@ main() {
   });
 }
 
-Future<Compiler> run({OutputCollector outputCollector,
+Future<CompilerImpl> run({OutputCollector outputCollector,
                       bool useMirrorHelperLibrary: false,
                       bool minify: false}) async {
   List<String> options = ['--output-type=dart'];
@@ -33,7 +33,7 @@ Future<Compiler> run({OutputCollector outputCollector,
       memorySourceFiles: MEMORY_SOURCE_FILES,
       outputProvider: outputCollector,
       options: options,
-      beforeRun: (Compiler compiler) {
+      beforeRun: (CompilerImpl compiler) {
         DartBackend backend = compiler.backend;
         backend.useMirrorHelperLibrary = useMirrorHelperLibrary;
       });
@@ -42,7 +42,7 @@ Future<Compiler> run({OutputCollector outputCollector,
 
 Future testWithMirrorHelperLibrary({bool minify}) async {
   OutputCollector outputCollector = new OutputCollector();
-  Compiler compiler = await run(
+  CompilerImpl compiler = await run(
       outputCollector: outputCollector,
       useMirrorHelperLibrary: true,
       minify: minify);
@@ -83,7 +83,8 @@ Future testWithMirrorHelperLibrary({bool minify}) async {
 }
 
 Future testWithoutMirrorHelperLibrary({bool minify}) async {
-  Compiler compiler = await run(useMirrorHelperLibrary: false, minify: minify);
+  CompilerImpl compiler =
+      await run(useMirrorHelperLibrary: false, minify: minify);
   DartBackend backend = compiler.backend;
   MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
 

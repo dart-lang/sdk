@@ -6,8 +6,10 @@ library analyzer.src.task.incremental_element_builder;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -222,8 +224,9 @@ class IncrementalCompilationUnitElementBuilder {
           }
         }
       }
-    } else if (node is PartDirective || node is PartOfDirective) {
-    } else if (node is Directive && node.element != null) {
+    } else if (node is PartDirective || node is PartOfDirective) {} else if (node
+        is Directive &&
+        node.element != null) {
       elements.add(node.element);
     } else if (node is Declaration && node.element != null) {
       Element element = node.element;

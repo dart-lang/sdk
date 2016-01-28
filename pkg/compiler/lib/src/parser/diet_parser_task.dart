@@ -17,20 +17,30 @@ import '../tokens/token.dart' show
 import 'listener.dart' show
     ParserError;
 import 'element_listener.dart' show
-    ElementListener;
+    ElementListener,
+    ScannerOptions;
 import 'partial_parser.dart' show
     PartialParser;
 
 class DietParserTask extends CompilerTask {
-  DietParserTask(Compiler compiler) : super(compiler);
+  final bool _enableConditionalDirectives;
+
+  DietParserTask(Compiler compiler, {bool enableConditionalDirectives})
+      : this._enableConditionalDirectives = enableConditionalDirectives,
+        super(compiler);
+
   final String name = 'Diet Parser';
 
   dietParse(CompilationUnitElement compilationUnit, Token tokens) {
     measure(() {
       Function idGenerator = compiler.getNextFreeClassId;
-      ElementListener listener =
-          new ElementListener(compiler.reporter, compilationUnit, idGenerator);
-      PartialParser parser = new PartialParser(listener);
+      ScannerOptions scannerOptions = new ScannerOptions(
+          canUseNative: compiler.backend.canLibraryUseNative(
+              compilationUnit.library));
+      ElementListener listener = new ElementListener(
+          scannerOptions, compiler.reporter, compilationUnit, idGenerator);
+      PartialParser parser = new PartialParser(
+          listener, enableConditionalDirectives: _enableConditionalDirectives);
       try {
         parser.parseUnit(tokens);
       } on ParserError catch(_) {

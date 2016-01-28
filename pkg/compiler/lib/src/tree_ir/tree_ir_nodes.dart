@@ -67,18 +67,6 @@ abstract class Statement extends Node {
  * Labels name [LabeledStatement]s.
  */
 class Label {
-  // A counter used to generate names.  The counter is reset to 0 for each
-  // function emitted.
-  static int counter = 0;
-  static String _newName() => 'L${counter++}';
-
-  String cachedName;
-
-  String get name {
-    if (cachedName == null) cachedName = _newName();
-    return cachedName;
-  }
-
   /// Number of [Break] or [Continue] statements that target this label.
   /// The [Break] constructor will increment this automatically, but the
   /// counter must be decremented by hand when a [Break] becomes orphaned.
@@ -114,15 +102,12 @@ class Variable extends Node {
 
   /// Number of places where this variable occurs as:
   /// - left-hand of an [Assign]
-  /// - left-hand of a [FunctionDeclaration]
   /// - parameter in a [FunctionDefinition]
   /// - catch parameter in a [Try]
   int writeCount = 0;
 
-  /// True if a nested function reads or writes this variable.
-  ///
-  /// Always false in JS-mode because closure conversion eliminated nested
-  /// functions.
+  /// True if an inner JS function might access this variable through a
+  /// [ForeignCode] node.
   bool isCaptured = false;
 
   Variable(this.host, this.element) {
@@ -236,6 +221,8 @@ class InvokeMethodDirectly extends Expression implements Invoke {
   InvokeMethodDirectly(this.receiver, this.target, this.selector,
       this.arguments, this.sourceInformation);
 
+  bool get isTearOff => selector.isGetter && !target.isGetter;
+
   accept(ExpressionVisitor visitor) => visitor.visitInvokeMethodDirectly(this);
   accept1(ExpressionVisitor1 visitor, arg) {
     return visitor.visitInvokeMethodDirectly(this, arg);
@@ -266,6 +253,26 @@ class InvokeConstructor extends Expression implements Invoke {
 
   accept1(ExpressionVisitor1 visitor, arg) {
     return visitor.visitInvokeConstructor(this, arg);
+  }
+}
+
+/// Call a method using a one-shot interceptor.
+///
+/// There is no explicit receiver, the first argument serves that purpose.
+class OneShotInterceptor extends Expression implements Invoke {
+  final Selector selector;
+  final TypeMask mask;
+  final List<Expression> arguments;
+  final SourceInformation sourceInformation;
+
+  OneShotInterceptor(this.selector,
+                     this.mask,
+                     this.arguments,
+                     this.sourceInformation);
+
+  accept(ExpressionVisitor visitor) => visitor.visitOneShotInterceptor(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitOneShotInterceptor(this, arg);
   }
 }
 
@@ -437,20 +444,6 @@ class Not extends Expression {
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitNot(this, arg);
 }
 
-/// Currently unused.
-///
-/// See CreateFunction in the cps_ir_nodes.dart.
-class FunctionExpression extends Expression {
-  final FunctionDefinition definition;
-
-  FunctionExpression(this.definition);
-
-  accept(ExpressionVisitor visitor) => visitor.visitFunctionExpression(this);
-  accept1(ExpressionVisitor1 visitor, arg) {
-    return visitor.visitFunctionExpression(this, arg);
-  }
-}
-
 /// A [LabeledStatement] or [WhileTrue] or [For].
 abstract class JumpTarget extends Statement {
   Label get label;
@@ -614,21 +607,6 @@ class Throw extends Statement {
   accept1(StatementVisitor1 visitor, arg) => visitor.visitThrow(this, arg);
 }
 
-/// A rethrow of an exception.
-///
-/// Rethrow can only occur nested inside a catch block.  It implicitly throws
-/// the block's caught exception value without changing the caught stack
-/// trace.  It does not have a successor statement.
-class Rethrow extends Statement {
-  Statement get next => null;
-  void set next(Statement s) => throw 'UNREACHABLE';
-
-  Rethrow();
-
-  accept(StatementVisitor visitor) => visitor.visitRethrow(this);
-  accept1(StatementVisitor1 visitor, arg) => visitor.visitRethrow(this, arg);
-}
-
 /**
  * A conditional branch based on the true value of an [Expression].
  */
@@ -738,7 +716,11 @@ class SetField extends Expression {
   Element field;
   Expression value;
 
-  SetField(this.object, this.field, this.value);
+  /// If non-null, this is a compound assignment to the field, using the given
+  /// operator.  The operator must be a compoundable operator.
+  BuiltinOperator compound;
+
+  SetField(this.object, this.field, this.value, {this.compound});
 
   accept(ExpressionVisitor visitor) => visitor.visitSetField(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitSetField(this, arg);
@@ -759,14 +741,16 @@ class GetTypeTestProperty extends Expression {
       visitor.visitGetTypeTestProperty(this, arg);
 }
 
-
 /// Read the value of a field, possibly provoking its initializer to evaluate,
 /// or tear off a static method.
 class GetStatic extends Expression {
   Element element;
   SourceInformation sourceInformation;
+  bool useLazyGetter = false;
 
   GetStatic(this.element, this.sourceInformation);
+
+  GetStatic.lazy(this.element, this.sourceInformation) : useLazyGetter = true;
 
   accept(ExpressionVisitor visitor) => visitor.visitGetStatic(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitGetStatic(this, arg);
@@ -806,8 +790,9 @@ class SetIndex extends Expression {
   Expression object;
   Expression index;
   Expression value;
+  BuiltinOperator compound;
 
-  SetIndex(this.object, this.index, this.value);
+  SetIndex(this.object, this.index, this.value, {this.compound});
 
   accept(ExpressionVisitor v) => v.visitSetIndex(this);
   accept1(ExpressionVisitor1 v, arg) => v.visitSetIndex(this, arg);
@@ -880,17 +865,22 @@ class ForeignCode extends Node {
   final types.TypeMask type;
   final List<Expression> arguments;
   final native.NativeBehavior nativeBehavior;
+  final List<bool> nullableArguments;  // One 'bit' per argument.
   final Element dependency;
 
   ForeignCode(this.codeTemplate, this.type, this.arguments, this.nativeBehavior,
-      this.dependency);
+      this.nullableArguments, this.dependency) {
+    assert(arguments.length == nullableArguments.length);
+  }
 }
 
 class ForeignExpression extends ForeignCode implements Expression {
-  ForeignExpression(js.Template codeTemplate, types.TypeMask type,
+  ForeignExpression(
+      js.Template codeTemplate, types.TypeMask type,
       List<Expression> arguments, native.NativeBehavior nativeBehavior,
+      List<bool> nullableArguments,
       Element dependency)
-      : super(codeTemplate, type, arguments, nativeBehavior,
+      : super(codeTemplate, type, arguments, nativeBehavior, nullableArguments,
           dependency);
 
   accept(ExpressionVisitor visitor) {
@@ -903,10 +893,12 @@ class ForeignExpression extends ForeignCode implements Expression {
 }
 
 class ForeignStatement extends ForeignCode implements Statement {
-  ForeignStatement(js.Template codeTemplate, types.TypeMask type,
+  ForeignStatement(
+      js.Template codeTemplate, types.TypeMask type,
       List<Expression> arguments, native.NativeBehavior nativeBehavior,
+      List<bool> nullableArguments,
       Element dependency)
-      : super(codeTemplate, type, arguments, nativeBehavior,
+      : super(codeTemplate, type, arguments, nativeBehavior, nullableArguments,
           dependency);
 
   accept(StatementVisitor visitor) {
@@ -972,6 +964,26 @@ class Yield extends Statement {
   }
 }
 
+class NullCheck extends Statement {
+  Expression condition;
+  Expression value;
+  Selector selector;
+  bool useSelector;
+  Statement next;
+  SourceInformation sourceInformation;
+
+  NullCheck({this.condition, this.value, this.selector, this.useSelector,
+      this.next, this.sourceInformation});
+
+  accept(StatementVisitor visitor) {
+    return visitor.visitNullCheck(this);
+  }
+
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitNullCheck(this, arg);
+  }
+}
+
 abstract class ExpressionVisitor<E> {
   E visitExpression(Expression node) => node.accept(this);
   E visitVariableUse(VariableUse node);
@@ -980,6 +992,7 @@ abstract class ExpressionVisitor<E> {
   E visitInvokeMethod(InvokeMethod node);
   E visitInvokeMethodDirectly(InvokeMethodDirectly node);
   E visitInvokeConstructor(InvokeConstructor node);
+  E visitOneShotInterceptor(OneShotInterceptor node);
   E visitConstant(Constant node);
   E visitThis(This node);
   E visitConditional(Conditional node);
@@ -988,7 +1001,6 @@ abstract class ExpressionVisitor<E> {
   E visitLiteralList(LiteralList node);
   E visitLiteralMap(LiteralMap node);
   E visitTypeOperator(TypeOperator node);
-  E visitFunctionExpression(FunctionExpression node);
   E visitGetField(GetField node);
   E visitSetField(SetField node);
   E visitGetStatic(GetStatic node);
@@ -1018,6 +1030,7 @@ abstract class ExpressionVisitor1<E, A> {
   E visitInvokeMethod(InvokeMethod node, A arg);
   E visitInvokeMethodDirectly(InvokeMethodDirectly node, A arg);
   E visitInvokeConstructor(InvokeConstructor node, A arg);
+  E visitOneShotInterceptor(OneShotInterceptor node, A arg);
   E visitConstant(Constant node, A arg);
   E visitThis(This node, A arg);
   E visitConditional(Conditional node, A arg);
@@ -1026,7 +1039,6 @@ abstract class ExpressionVisitor1<E, A> {
   E visitLiteralList(LiteralList node, A arg);
   E visitLiteralMap(LiteralMap node, A arg);
   E visitTypeOperator(TypeOperator node, A arg);
-  E visitFunctionExpression(FunctionExpression node, A arg);
   E visitGetField(GetField node, A arg);
   E visitSetField(SetField node, A arg);
   E visitGetStatic(GetStatic node, A arg);
@@ -1053,7 +1065,6 @@ abstract class StatementVisitor<S> {
   S visitLabeledStatement(LabeledStatement node);
   S visitReturn(Return node);
   S visitThrow(Throw node);
-  S visitRethrow(Rethrow node);
   S visitBreak(Break node);
   S visitContinue(Continue node);
   S visitIf(If node);
@@ -1064,6 +1075,7 @@ abstract class StatementVisitor<S> {
   S visitUnreachable(Unreachable node);
   S visitForeignStatement(ForeignStatement node);
   S visitYield(Yield node);
+  S visitNullCheck(NullCheck node);
 }
 
 abstract class StatementVisitor1<S, A> {
@@ -1071,7 +1083,6 @@ abstract class StatementVisitor1<S, A> {
   S visitLabeledStatement(LabeledStatement node, A arg);
   S visitReturn(Return node, A arg);
   S visitThrow(Throw node, A arg);
-  S visitRethrow(Rethrow node, A arg);
   S visitBreak(Break node, A arg);
   S visitContinue(Continue node, A arg);
   S visitIf(If node, A arg);
@@ -1082,13 +1093,12 @@ abstract class StatementVisitor1<S, A> {
   S visitUnreachable(Unreachable node, A arg);
   S visitForeignStatement(ForeignStatement node, A arg);
   S visitYield(Yield node, A arg);
+  S visitNullCheck(NullCheck node, A arg);
 }
 
 abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   visitExpression(Expression e) => e.accept(this);
   visitStatement(Statement s) => s.accept(this);
-
-  visitInnerFunction(FunctionDefinition node);
 
   visitVariable(Variable variable) {}
 
@@ -1116,6 +1126,10 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   }
 
   visitInvokeConstructor(InvokeConstructor node) {
+    node.arguments.forEach(visitExpression);
+  }
+
+  visitOneShotInterceptor(OneShotInterceptor node) {
     node.arguments.forEach(visitExpression);
   }
 
@@ -1154,10 +1168,6 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
     node.typeArguments.forEach(visitExpression);
   }
 
-  visitFunctionExpression(FunctionExpression node) {
-    visitInnerFunction(node.definition);
-  }
-
   visitLabeledStatement(LabeledStatement node) {
     visitStatement(node.body);
     visitStatement(node.next);
@@ -1170,8 +1180,6 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   visitThrow(Throw node) {
     visitExpression(node.value);
   }
-
-  visitRethrow(Rethrow node) {}
 
   visitBreak(Break node) {}
 
@@ -1300,6 +1308,12 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
     visitExpression(node.input);
     visitStatement(node.next);
   }
+
+  visitNullCheck(NullCheck node) {
+    if (node.condition != null) visitExpression(node.condition);
+    visitExpression(node.value);
+    visitStatement(node.next);
+  }
 }
 
 abstract class Transformer implements ExpressionVisitor<Expression>,
@@ -1309,10 +1323,6 @@ abstract class Transformer implements ExpressionVisitor<Expression>,
 }
 
 class RecursiveTransformer extends Transformer {
-  void visitInnerFunction(FunctionDefinition node) {
-    node.body = visitStatement(node.body);
-  }
-
   void _replaceExpressions(List<Expression> list) {
     for (int i = 0; i < list.length; i++) {
       list[i] = visitExpression(list[i]);
@@ -1344,6 +1354,11 @@ class RecursiveTransformer extends Transformer {
   }
 
   visitInvokeConstructor(InvokeConstructor node) {
+    _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitOneShotInterceptor(OneShotInterceptor node) {
     _replaceExpressions(node.arguments);
     return node;
   }
@@ -1389,11 +1404,6 @@ class RecursiveTransformer extends Transformer {
     return node;
   }
 
-  visitFunctionExpression(FunctionExpression node) {
-    visitInnerFunction(node.definition);
-    return node;
-  }
-
   visitLabeledStatement(LabeledStatement node) {
     node.body = visitStatement(node.body);
     node.next = visitStatement(node.next);
@@ -1409,8 +1419,6 @@ class RecursiveTransformer extends Transformer {
     node.value = visitExpression(node.value);
     return node;
   }
-
-  visitRethrow(Rethrow node) => node;
 
   visitBreak(Break node) => node;
 
@@ -1563,6 +1571,15 @@ class RecursiveTransformer extends Transformer {
 
   visitYield(Yield node) {
     node.input = visitExpression(node.input);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  visitNullCheck(NullCheck node) {
+    if (node.condition != null) {
+      node.condition = visitExpression(node.condition);
+    }
+    node.value = visitExpression(node.value);
     node.next = visitStatement(node.next);
     return node;
   }

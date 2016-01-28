@@ -76,7 +76,7 @@ class _HashMap<K, V> implements HashMap<K, V> {
   bool get isNotEmpty => !isEmpty;
 
   Iterable<K> get keys {
-    return new HashMapKeyIterable<K>(this);
+    return new _HashMapKeyIterable<K>(this);
   }
 
   Iterable<V> get values {
@@ -431,16 +431,16 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   String toString() => Maps.mapToString(this);
 }
 
-class HashMapKeyIterable<E> extends Iterable<E>
-                            implements EfficientLength {
+class _HashMapKeyIterable<E> extends Iterable<E>
+                             implements EfficientLength {
   final _map;
-  HashMapKeyIterable(this._map);
+  _HashMapKeyIterable(this._map);
 
   int get length => _map._length;
   bool get isEmpty => _map._length == 0;
 
   Iterator<E> get iterator {
-    return new HashMapKeyIterator<E>(_map, _map._computeKeys());
+    return new _HashMapKeyIterator<E>(_map, _map._computeKeys());
   }
 
   bool contains(Object element) {
@@ -458,13 +458,13 @@ class HashMapKeyIterable<E> extends Iterable<E>
   }
 }
 
-class HashMapKeyIterator<E> implements Iterator<E> {
+class _HashMapKeyIterator<E> implements Iterator<E> {
   final _map;
   final List _keys;
   int _offset = 0;
   E _current;
 
-  HashMapKeyIterator(this._map, this._keys);
+  _HashMapKeyIterator(this._map, this._keys);
 
   E get current => _current;
 
@@ -849,7 +849,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
 
   // Iterable.
   Iterator<E> get iterator {
-    return new HashSetIterator<E>(this, _computeElements());
+    return new _HashSetIterator<E>(this, _computeElements());
   }
 
   int get length => _length;
@@ -1160,14 +1160,14 @@ class _CustomHashSet<E> extends _HashSet<E> {
   }
 }
 
-// TODO(kasperl): Share this code with HashMapKeyIterator<E>?
-class HashSetIterator<E> implements Iterator<E> {
+// TODO(kasperl): Share this code with _HashMapKeyIterator<E>?
+class _HashSetIterator<E> implements Iterator<E> {
   final _set;
   final List _elements;
   int _offset = 0;
   E _current;
 
-  HashSetIterator(this._set, this._elements);
+  _HashSetIterator(this._set, this._elements);
 
   E get current => _current;
 
@@ -1244,8 +1244,8 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
 
   // The elements are stored in cells that are linked together
   // to form a double linked list.
-  LinkedHashSetCell _first;
-  LinkedHashSetCell _last;
+  _LinkedHashSetCell _first;
+  _LinkedHashSetCell _last;
 
   // We track the number of modifications done to the element set to
   // be able to throw when the set is modified while being iterated
@@ -1262,7 +1262,7 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
 
   // Iterable.
   Iterator<E> get iterator {
-    return new LinkedHashSetIterator(this, _modifications);
+    return new _LinkedHashSetIterator(this, _modifications);
   }
 
   int get length => _length;
@@ -1273,12 +1273,12 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     if (_isStringElement(object)) {
       var strings = _strings;
       if (strings == null) return false;
-      LinkedHashSetCell cell = _getTableEntry(strings, object);
+      _LinkedHashSetCell cell = _getTableEntry(strings, object);
       return cell != null;
     } else if (_isNumericElement(object)) {
       var nums = _nums;
       if (nums == null) return false;
-      LinkedHashSetCell cell = _getTableEntry(nums, object);
+      _LinkedHashSetCell cell = _getTableEntry(nums, object);
       return cell != null;
     } else {
       return _contains(object);
@@ -1310,7 +1310,7 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
   }
 
   void forEach(void action(E element)) {
-    LinkedHashSetCell cell = _first;
+    _LinkedHashSetCell cell = _first;
     int modifications = _modifications;
     while (cell != null) {
       action(cell._element);
@@ -1352,12 +1352,12 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     var hash = _computeHashCode(element);
     var bucket = JS('var', '#[#]', rest, hash);
     if (bucket == null) {
-      LinkedHashSetCell cell = _newLinkedCell(element);
+      _LinkedHashSetCell cell = _newLinkedCell(element);
       _setTableEntry(rest, hash, JS('var', '[#]', cell));
     } else {
       int index = _findBucketIndex(bucket, element);
       if (index >= 0) return false;
-      LinkedHashSetCell cell = _newLinkedCell(element);
+      _LinkedHashSetCell cell = _newLinkedCell(element);
       JS('void', '#.push(#)', bucket, cell);
     }
     return true;
@@ -1381,7 +1381,7 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     if (index < 0) return false;
     // Use splice to remove the [cell] element at the index and
     // unlink it.
-    LinkedHashSetCell cell = JS('var', '#.splice(#, 1)[0]', bucket, index);
+    _LinkedHashSetCell cell = JS('var', '#.splice(#, 1)[0]', bucket, index);
     _unlinkCell(cell);
     return true;
   }
@@ -1395,10 +1395,10 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
   }
 
   void _filterWhere(bool test(E element), bool removeMatching) {
-    LinkedHashSetCell cell = _first;
+    _LinkedHashSetCell cell = _first;
     while (cell != null) {
       E element = cell._element;
-      LinkedHashSetCell next = cell._next;
+      _LinkedHashSetCell next = cell._next;
       int modifications = _modifications;
       bool shouldRemove = (removeMatching == test(element));
       if (modifications != _modifications) {
@@ -1418,7 +1418,7 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
   }
 
   bool _addHashTableEntry(var table, E element) {
-    LinkedHashSetCell cell = _getTableEntry(table, element);
+    _LinkedHashSetCell cell = _getTableEntry(table, element);
     if (cell != null) return false;
     _setTableEntry(table, element, _newLinkedCell(element));
     return true;
@@ -1426,7 +1426,7 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
 
   bool _removeHashTableEntry(var table, Object element) {
     if (table == null) return false;
-    LinkedHashSetCell cell = _getTableEntry(table, element);
+    _LinkedHashSetCell cell = _getTableEntry(table, element);
     if (cell == null) return false;
     _unlinkCell(cell);
     _deleteTableEntry(table, element);
@@ -1441,12 +1441,12 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
   }
 
   // Create a new cell and link it in as the last one in the list.
-  LinkedHashSetCell _newLinkedCell(E element) {
-    LinkedHashSetCell cell = new LinkedHashSetCell(element);
+  _LinkedHashSetCell _newLinkedCell(E element) {
+    _LinkedHashSetCell cell = new _LinkedHashSetCell(element);
     if (_first == null) {
       _first = _last = cell;
     } else {
-      LinkedHashSetCell last = _last;
+      _LinkedHashSetCell last = _last;
       cell._previous = last;
       _last = last._next = cell;
     }
@@ -1456,9 +1456,9 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
   }
 
   // Unlink the given cell from the linked list of cells.
-  void _unlinkCell(LinkedHashSetCell cell) {
-    LinkedHashSetCell previous = cell._previous;
-    LinkedHashSetCell next = cell._next;
+  void _unlinkCell(_LinkedHashSetCell cell) {
+    _LinkedHashSetCell previous = cell._previous;
+    _LinkedHashSetCell next = cell._next;
     if (previous == null) {
       assert(cell == _first);
       _first = next;
@@ -1517,7 +1517,7 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
-      LinkedHashSetCell cell = JS('var', '#[#]', bucket, i);
+      _LinkedHashSetCell cell = JS('var', '#[#]', bucket, i);
       if (cell._element == element) return i;
     }
     return -1;
@@ -1551,7 +1551,7 @@ class _LinkedIdentityHashSet<E> extends _LinkedHashSet<E> {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
-      LinkedHashSetCell cell = JS('var', '#[#]', bucket, i);
+      _LinkedHashSetCell cell = JS('var', '#[#]', bucket, i);
       if (identical(cell._element, element)) return i;
     }
     return -1;
@@ -1573,7 +1573,7 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
-      LinkedHashSetCell cell = JS('var', '#[#]', bucket, i);
+      _LinkedHashSetCell cell = JS('var', '#[#]', bucket, i);
       if (_equality(cell._element, element)) return i;
     }
     return -1;
@@ -1620,23 +1620,23 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
   }
 }
 
-class LinkedHashSetCell {
+class _LinkedHashSetCell {
   final _element;
 
-  LinkedHashSetCell _next;
-  LinkedHashSetCell _previous;
+  _LinkedHashSetCell _next;
+  _LinkedHashSetCell _previous;
 
-  LinkedHashSetCell(this._element);
+  _LinkedHashSetCell(this._element);
 }
 
 // TODO(kasperl): Share this code with LinkedHashMapKeyIterator<E>?
-class LinkedHashSetIterator<E> implements Iterator<E> {
+class _LinkedHashSetIterator<E> implements Iterator<E> {
   final _set;
   final int _modifications;
-  LinkedHashSetCell _cell;
+  _LinkedHashSetCell _cell;
   E _current;
 
-  LinkedHashSetIterator(this._set, this._modifications) {
+  _LinkedHashSetIterator(this._set, this._modifications) {
     _cell = _set._first;
   }
 

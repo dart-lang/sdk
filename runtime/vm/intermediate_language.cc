@@ -5,6 +5,8 @@
 #include "vm/intermediate_language.h"
 
 #include "vm/bit_vector.h"
+#include "vm/bootstrap.h"
+#include "vm/compiler.h"
 #include "vm/constant_propagator.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
@@ -259,14 +261,14 @@ bool CheckClassInstr::IsDenseMask(intptr_t mask) {
 bool LoadFieldInstr::IsUnboxedLoad() const {
   return FLAG_unbox_numeric_fields
       && (field() != NULL)
-      && field()->IsUnboxedField();
+      && FlowGraphCompiler::IsUnboxedField(*field());
 }
 
 
 bool LoadFieldInstr::IsPotentialUnboxedLoad() const {
   return FLAG_unbox_numeric_fields
       && (field() != NULL)
-      && field()->IsPotentialUnboxedField();
+      && FlowGraphCompiler::IsPotentialUnboxedField(*field());
 }
 
 
@@ -291,14 +293,14 @@ Representation LoadFieldInstr::representation() const {
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
   return FLAG_unbox_numeric_fields
       && !field().IsNull()
-      && field().IsUnboxedField();
+      && FlowGraphCompiler::IsUnboxedField(field());
 }
 
 
 bool StoreInstanceFieldInstr::IsPotentialUnboxedStore() const {
   return FLAG_unbox_numeric_fields
       && !field().IsNull()
-      && field().IsPotentialUnboxedField();
+      && FlowGraphCompiler::IsPotentialUnboxedField(field());
 }
 
 
@@ -396,7 +398,8 @@ Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 EffectSet LoadStaticFieldInstr::Dependencies() const {
-  return StaticField().is_final() ? EffectSet::None() : EffectSet::All();
+  return (StaticField().is_final() && !FLAG_fields_may_be_reset)
+      ? EffectSet::None() : EffectSet::All();
 }
 
 
@@ -417,7 +420,9 @@ const Field& LoadStaticFieldInstr::StaticField() const {
 }
 
 
-ConstantInstr::ConstantInstr(const Object& value) : value_(value) {
+ConstantInstr::ConstantInstr(const Object& value, intptr_t token_pos)
+    : value_(value),
+      token_pos_(token_pos) {
   // Check that the value is not an incorrect Integer representation.
   ASSERT(!value.IsBigint() || !Bigint::Cast(value).FitsIntoSmi());
   ASSERT(!value.IsBigint() || !Bigint::Cast(value).FitsIntoInt64());
@@ -537,6 +542,11 @@ CatchBlockEntryInstr* GraphEntryInstr::GetCatchEntry(intptr_t index) {
 }
 
 
+bool GraphEntryInstr::IsCompiledForOsr() const {
+  return osr_id_ != Compiler::kNoOSRDeoptId;
+}
+
+
 // ==== Support for visiting flow graphs.
 
 #define DEFINE_ACCEPT(ShortName)                                               \
@@ -622,7 +632,7 @@ Instruction* Instruction::AppendInstruction(Instruction* tail) {
 }
 
 
-BlockEntryInstr* Instruction::GetBlock() const {
+BlockEntryInstr* Instruction::GetBlock() {
   // TODO(fschneider): Implement a faster way to get the block of an
   // instruction.
   ASSERT(previous() != NULL);
@@ -1727,6 +1737,19 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
 }
 
 
+Definition* BinaryIntegerOpInstr::CreateConstantResult(FlowGraph* flow_graph,
+                                                       const Integer& result) {
+  Definition* result_defn = flow_graph->GetConstant(result);
+  if (representation() != kTagged) {
+    result_defn = UnboxInstr::Create(representation(),
+                                     new Value(result_defn),
+                                     GetDeoptId());
+    flow_graph->InsertBefore(this, result_defn, env(), FlowGraph::kValue);
+  }
+  return result_defn;
+}
+
+
 Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
   // If both operands are constants evaluate this expression. Might
   // occur due to load forwarding after constant propagation pass
@@ -1739,7 +1762,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         Evaluate(Integer::Cast(left()->BoundConstant()),
                  Integer::Cast(right()->BoundConstant())));
     if (!result.IsNull()) {
-      return flow_graph->GetConstant(result);
+      return CreateConstantResult(flow_graph, result);
     }
   }
 
@@ -1864,7 +1887,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         DeoptimizeInstr* deopt =
             new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
         flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
-        return flow_graph->GetConstant(Smi::Handle(Smi::New(0)));
+        return CreateConstantResult(flow_graph, Integer::Handle(Smi::New(0)));
       }
       break;
 
@@ -1878,7 +1901,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
               new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
           flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
         }
-        return flow_graph->GetConstant(Smi::Handle(Smi::New(0)));
+        return CreateConstantResult(flow_graph, Integer::Handle(Smi::New(0)));
       }
       break;
     }
@@ -2194,11 +2217,13 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
   // Fold away UnboxInteger<rep_to>(BoxInteger<rep_from>(v)).
   BoxIntegerInstr* box_defn = value()->definition()->AsBoxInteger();
   if (box_defn != NULL) {
-    if (box_defn->value()->definition()->representation() == representation()) {
+    Representation from_representation =
+        box_defn->value()->definition()->representation();
+    if (from_representation == representation()) {
       return box_defn->value()->definition();
     } else {
       UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
-          box_defn->value()->definition()->representation(),
+          from_representation,
           representation(),
           box_defn->value()->CopyWithType(),
           (representation() == kUnboxedInt32) ?
@@ -2514,6 +2539,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
   bool negated = false;
   Definition* replacement = CanonicalizeStrictCompare(this, &negated);
   if (negated && replacement->IsComparison()) {
@@ -3649,6 +3675,30 @@ intptr_t MergedMathInstr::OutputIndexOf(Token::Kind token) {
   }
 }
 
+
+void NativeCallInstr::SetupNative() {
+  Zone* Z = Thread::Current()->zone();
+  const Class& cls = Class::Handle(Z, function().Owner());
+  const Library& library = Library::Handle(Z, cls.library());
+  const int num_params =
+      NativeArguments::ParameterCountForResolution(function());
+  bool auto_setup_scope = true;
+  NativeFunction native_function = NativeEntry::ResolveNative(
+      library, native_name(), num_params, &auto_setup_scope);
+  if (native_function == NULL) {
+    Report::MessageF(Report::kError,
+                     Script::Handle(function().script()),
+                     function().token_pos(),
+                     "native function '%s' (%" Pd " arguments) cannot be found",
+                     native_name().ToCString(),
+                     function().NumParameters());
+  }
+  set_native_c_function(native_function);
+  function().SetIsNativeAutoSetupScope(auto_setup_scope);
+  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+  bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
+  set_is_bootstrap_native(is_bootstrap_native);
+}
 
 #undef __
 

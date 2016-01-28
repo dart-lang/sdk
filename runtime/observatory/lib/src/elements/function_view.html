@@ -46,6 +46,14 @@
             <any-service-ref ref="{{ function.dartOwner }}"></any-service-ref>
           </div>
         </div>
+        <template if="{{ function.field != null }}">
+          <div class="memberItem">
+            <div class="memberName">field</div>
+            <div class="memberValue">
+              <any-service-ref ref="{{ function.field }}"></any-service-ref>
+            </div>
+          </div>
+        </template>
         <div class="memberItem">
           <div class="memberName">script</div>
           <div class="memberValue">
@@ -93,6 +101,18 @@
          <div class="memberItem">
            <div class="memberName">inlinable</div>
            <div class="memberValue">{{ function.isInlinable }}</div>
+         </div>
+         <div class="memberItem">
+           <div class="memberName">intrinsic</div>
+           <div class="memberValue">{{ function.hasIntrinsic }}</div>
+         </div>
+         <div class="memberItem">
+           <div class="memberName">recognized</div>
+           <div class="memberValue">{{ function.isRecognized }}</div>
+         </div>
+         <div class="memberItem">
+           <div class="memberName">native</div>
+           <div class="memberValue">{{ function.isNative }}</div>
          </div>
          <template if="{{ function.name != function.vmName }}">
            <div class="memberItem">

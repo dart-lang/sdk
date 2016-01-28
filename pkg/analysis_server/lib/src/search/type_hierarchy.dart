@@ -11,7 +11,8 @@ import 'package:analysis_server/src/protocol_server.dart'
     show TypeHierarchyItem, convertElement;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 /**
  * A computer for a type hierarchy of an [Element].

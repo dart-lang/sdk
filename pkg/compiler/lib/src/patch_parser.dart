@@ -159,8 +159,11 @@ import 'tokens/token.dart' show
 
 class PatchParserTask extends CompilerTask {
   final String name = "Patching Parser";
+  final bool _enableConditionalDirectives;
 
-  PatchParserTask(Compiler compiler): super(compiler);
+  PatchParserTask(Compiler compiler, {bool enableConditionalDirectives})
+      : this._enableConditionalDirectives = enableConditionalDirectives,
+        super(compiler);
 
   /**
    * Scans a library patch file, applies the method patches and
@@ -195,7 +198,9 @@ class PatchParserTask extends CompilerTask {
                                                         compilationUnit,
                                                         idGenerator);
       try {
-        new PartialParser(patchListener).parseUnit(tokens);
+        new PartialParser(patchListener,
+            enableConditionalDirectives: _enableConditionalDirectives)
+            .parseUnit(tokens);
       } on ParserError catch (e) {
         // No need to recover from a parser error in platform libraries, user
         // will never see this if the libraries are tested correctly.
@@ -212,7 +217,8 @@ class PatchParserTask extends CompilerTask {
 
     measure(() => reporter.withCurrentElement(cls, () {
       MemberListener listener = new PatchMemberListener(compiler, cls);
-      Parser parser = new PatchClassElementParser(listener);
+      Parser parser = new PatchClassElementParser(
+          listener, enableConditionalDirectives: _enableConditionalDirectives);
       try {
         Token token = parser.parseTopLevelDeclaration(cls.beginToken);
         assert(identical(token, cls.endToken.next));
@@ -233,7 +239,9 @@ class PatchMemberListener extends MemberListener {
 
   PatchMemberListener(Compiler compiler, ClassElement enclosingClass)
       : this.compiler = compiler,
-        super(compiler.reporter, enclosingClass);
+        super(compiler.parsing.getScannerOptionsFor(enclosingClass),
+              compiler.reporter,
+              enclosingClass);
 
   @override
   void addMember(Element patch) {
@@ -249,6 +257,9 @@ class PatchMemberListener extends MemberListener {
         // Skip this element.
       }
     } else {
+      if (Name.isPublicName(patch.name)) {
+        reporter.reportErrorMessage(patch, MessageKind.INJECTED_PUBLIC_MEMBER);
+      }
       enclosingClass.addMember(patch, reporter);
     }
   }
@@ -259,7 +270,9 @@ class PatchMemberListener extends MemberListener {
  * declarations.
  */
 class PatchClassElementParser extends PartialParser {
-  PatchClassElementParser(Listener listener) : super(listener);
+  PatchClassElementParser(Listener listener, {bool enableConditionalDirectives})
+      : super(listener,
+          enableConditionalDirectives: enableConditionalDirectives);
 
   Token parseClassBody(Token token) => fullParseClassBody(token);
 }
@@ -274,7 +287,8 @@ class PatchElementListener extends ElementListener implements Listener {
                        CompilationUnitElement patchElement,
                        int idGenerator())
     : this.compiler = compiler,
-      super(compiler.reporter, patchElement, idGenerator);
+      super(compiler.parsing.getScannerOptionsFor(patchElement),
+            compiler.reporter, patchElement, idGenerator);
 
   @override
   void pushElement(Element patch) {
@@ -292,6 +306,9 @@ class PatchElementListener extends ElementListener implements Listener {
         // Skip this element.
       }
     } else {
+      if (Name.isPublicName(patch.name)) {
+        reporter.reportErrorMessage(patch, MessageKind.INJECTED_PUBLIC_MEMBER);
+      }
       compilationUnitElement.addMember(patch, reporter);
     }
   }
@@ -445,8 +462,8 @@ class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
     if (element.isClass) {
       String native = getNativeAnnotation(annotation);
       if (native != null) {
-        ClassElementX declaration = element.declaration;
-        declaration.setNative(native);
+        JavaScriptBackend backend = compiler.backend;
+        backend.setNativeClassTagInfo(element, native);
         return native;
       }
     }
@@ -478,7 +495,8 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
              MetadataAnnotation annotation) {
     bool hasJsInterop = hasJsNameAnnotation(annotation);
     if (hasJsInterop) {
-      element.markAsJsInterop();
+      JavaScriptBackend backend = compiler.backend;
+      backend.markAsJsInterop(element);
     }
     // Due to semantics of apply in the baseclass we have to return null to
     // indicate that no match was found.
@@ -492,7 +510,7 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
                 ConstantValue constant) {
     JavaScriptBackend backend = compiler.backend;
     if (constant.getType(compiler.coreTypes).element !=
-        backend.jsAnnotationClass) {
+        backend.helpers.jsAnnotationClass) {
       compiler.reporter.internalError(annotation, 'Invalid @JS(...) annotation.');
     }
   }

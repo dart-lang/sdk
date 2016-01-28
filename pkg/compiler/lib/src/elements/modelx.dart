@@ -45,6 +45,12 @@ import 'elements.dart';
 import 'visitor.dart' show
     ElementVisitor;
 
+/// Object that identifies a declaration site.
+///
+/// For most elements, this is the element itself, but for variable declarations
+/// where multi-declarations like `var a, b, c` are allowed, the declaration
+/// site is a separate object.
+// TODO(johnniwinther): Add [beginToken] and [endToken] getters.
 abstract class DeclarationSite {
 }
 
@@ -58,7 +64,7 @@ abstract class ElementX extends Element with ElementCommon {
   List<MetadataAnnotation> metadataInternal;
 
   ElementX(this.name, this.kind, this.enclosingElement) {
-    assert(isErroneous || implementationLibrary != null);
+    assert(isError || implementationLibrary != null);
   }
 
   Modifiers get modifiers => Modifiers.EMPTY;
@@ -100,7 +106,6 @@ abstract class ElementX extends Element with ElementCommon {
   bool get isInstanceMember => false;
   bool get isDeferredLoaderGetter => false;
 
-  bool get isFactoryConstructor => modifiers.isFactory;
   bool get isConst => modifiers.isConst;
   bool get isFinal => modifiers.isFinal;
   bool get isStatic => modifiers.isStatic;
@@ -122,7 +127,7 @@ abstract class ElementX extends Element with ElementCommon {
 
   bool get isAssignable {
     if (isFinal || isConst) return false;
-    if (isFunction || isGenerativeConstructor) return false;
+    if (isFunction || isConstructor) return false;
     return true;
   }
 
@@ -232,62 +237,6 @@ abstract class ElementX extends Element with ElementCommon {
     }
   }
 
-  String _fixedBackendName = null;
-  bool _isNative = false;
-  String _jsInteropName = null;
-  bool _isJsInterop = false;
-
-  /// Whether the element is implemented via typed JavaScript interop.
-  bool get isJsInterop => _isJsInterop;
-  /// JavaScript name for the element if it is implemented via typed JavaScript
-  /// interop.
-  String get jsInteropName => _jsInteropName;
-
-  void markAsJsInterop() {
-    _isJsInterop = true;
-  }
-
-  void setJsInteropName(String name) {
-    assert(invariant(this,
-        _isJsInterop,
-        message: 'Element is not js interop but given a js interop name.'));
-    _jsInteropName = name;
-  }
-
-  /// Whether the element corresponds to a native JavaScript construct either
-  /// through the existing [setNative] mechanism which is only allowed
-  /// for internal libraries or via the new typed JavaScriptInterop mechanism
-  /// which is allowed for user libraries.
-  bool get isNative => _isNative || isJsInterop;
-  bool get hasFixedBackendName => fixedBackendName != null || isJsInterop;
-
-  String _jsNameHelper(Element e) {
-    assert(invariant(this,
-        !(_isJsInterop &&  _jsInteropName == null),
-        message:
-            'Element is js interop but js interop name has not yet been'
-            'computed.'));
-    if (e.jsInteropName != null && e.jsInteropName.isNotEmpty) {
-      return e.jsInteropName;
-    }
-    return e.isLibrary ? 'self' : e.name;
-  }
-
-  String get fixedBackendName {
-    if (_fixedBackendName == null && isJsInterop) {
-      // If an element isJsInterop but _isJsInterop is false that means it is
-      // considered interop as the parent class is interop.
-      _fixedBackendName =  _jsNameHelper(isConstructor ? enclosingClass : this);
-    }
-    return _fixedBackendName;
-  }
-
-  // Marks this element as a native element.
-  void setNative(String name) {
-    _isNative = true;
-    _fixedBackendName = name;
-  }
-
   FunctionElement asFunctionElement() => null;
 
   bool get isAbstract => modifiers.isAbstract;
@@ -322,6 +271,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   bool get isSynthesized => true;
 
   bool get isCyclicRedirection => false;
+
+  bool get isMalformed => true;
 
   PrefixElement get redirectionDeferredPrefix => null;
 
@@ -377,6 +328,11 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   }
 
   @override
+  get isEffectiveTargetMalformed {
+    throw new UnsupportedError("isEffectiveTargetMalformed");
+  }
+
+  @override
   bool get isFromEnvironmentConstructor => false;
 }
 
@@ -397,88 +353,132 @@ class ErroneousConstructorElementX extends ErroneousElementX
       Element enclosing)
       : super(messageKind, messageArguments, name, enclosing);
 
+  @override
   bool get isRedirectingGenerative => false;
 
+  @override
   void set isRedirectingGenerative(_) {
     throw new UnsupportedError("isRedirectingGenerative");
   }
 
+  @override
   bool get isRedirectingFactory => false;
 
+  @override
   get definingElement {
     throw new UnsupportedError("definingElement");
   }
 
+  @override
   get asyncMarker {
     throw new UnsupportedError("asyncMarker");
   }
 
+  @override
   set asyncMarker(_) {
     throw new UnsupportedError("asyncMarker=");
   }
 
-  get internalEffectiveTarget {
-    throw new UnsupportedError("internalEffectiveTarget");
+  @override
+  get effectiveTargetInternal {
+    throw new UnsupportedError("effectiveTargetInternal");
   }
 
-  set internalEffectiveTarget(_) {
-    throw new UnsupportedError("internalEffectiveTarget=");
+  @override
+  set effectiveTargetInternal(_) {
+    throw new UnsupportedError("effectiveTargetInternal=");
   }
 
+  @override
+  get _effectiveTargetType {
+    throw new UnsupportedError("_effectiveTargetType");
+  }
+
+  @override
+  set _effectiveTargetType(_) {
+    throw new UnsupportedError("_effectiveTargetType=");
+  }
+
+  @override
   get effectiveTargetType {
     throw new UnsupportedError("effectiveTargetType");
   }
 
-  set effectiveTargetType(_) {
-    throw new UnsupportedError("effectiveTargetType=");
+  @override
+  get _isEffectiveTargetMalformed {
+    throw new UnsupportedError("_isEffectiveTargetMalformed");
   }
 
+  @override
+  set _isEffectiveTargetMalformed(_) {
+    throw new UnsupportedError("_isEffectiveTargetMalformed=");
+  }
+
+  @override
+  get isEffectiveTargetMalformed {
+    throw new UnsupportedError("isEffectiveTargetMalformed");
+  }
+
+  @override
+  void setEffectiveTarget(ConstructorElement target,
+                            InterfaceType type,
+                            {bool isMalformed: false}) {
+    throw new UnsupportedError("setEffectiveTarget");
+  }
+
+  @override
   void _computeSignature(Resolution resolution) {
     throw new UnsupportedError("_computeSignature");
   }
 
+  @override
   get typeCache {
     throw new UnsupportedError("typeCache");
   }
 
+  @override
   set typeCache(_) {
     throw new UnsupportedError("typeCache=");
   }
 
+  @override
   get immediateRedirectionTarget {
     throw new UnsupportedError("immediateRedirectionTarget");
   }
 
+  @override
   set immediateRedirectionTarget(_) {
     throw new UnsupportedError("immediateRedirectionTarget=");
   }
 
+  @override
   get _functionSignatureCache {
     throw new UnsupportedError("functionSignatureCache");
   }
 
+  @override
   set _functionSignatureCache(_) {
     throw new UnsupportedError("functionSignatureCache=");
   }
 
+  @override
   set functionSignature(_) {
     throw new UnsupportedError("functionSignature=");
   }
 
+  @override
   get nestedClosures {
     throw new UnsupportedError("nestedClosures");
   }
 
+  @override
   set nestedClosures(_) {
     throw new UnsupportedError("nestedClosures=");
   }
 
+  @override
   set redirectionDeferredPrefix(_) {
     throw new UnsupportedError("redirectionDeferredPrefix=");
-  }
-
-  void set effectiveTarget(_) {
-    throw new UnsupportedError("effectiveTarget=");
   }
 }
 
@@ -636,7 +636,7 @@ class DuplicatedElementX extends AmbiguousElementX {
       : super(messageKind, messageArguments, enclosingElement, existingElement,
               newElement);
 
-  bool get isErroneous => true;
+  bool get isMalformed => true;
 }
 
 class ScopeX {
@@ -791,9 +791,9 @@ class CompilationUnitElementX extends ElementX
   void setPartOf(PartOf tag, DiagnosticReporter reporter) {
     LibraryElementX library = enclosingElement;
     if (library.entryCompilationUnit == this) {
+      // This compilation unit is loaded as a library. The error is reported by
+      // the library loader.
       partTag = tag;
-      reporter.reportErrorMessage(
-          tag, MessageKind.IMPORT_PART_OF);
       return;
     }
     if (!localMembers.isEmpty) {
@@ -1054,7 +1054,6 @@ class LibraryElementX
   LinkBuilder<LibraryTag> tagsBuilder = new LinkBuilder<LibraryTag>();
   List<LibraryTag> tagsCache;
   LibraryName libraryTag;
-  bool canUseNative = false;
   Link<Element> localMembers = const Link<Element>();
   final ScopeX localScope = new ScopeX();
   final ImportScope importScope = new ImportScope();
@@ -1707,7 +1706,7 @@ class ErroneousFieldElementX extends ElementX
 
   get initializer => null;
 
-  bool get isErroneous => true;
+  bool get isMalformed => true;
 
   get nestedClosures {
     throw new UnsupportedError("nestedClosures");
@@ -1913,7 +1912,7 @@ class ErroneousInitializingFormalElementX extends ParameterElementX
 
   bool get isLocal => false;
 
-  bool get isErroneous => true;
+  bool get isMalformed => true;
 
   DynamicType get type => const DynamicType();
 }
@@ -2053,18 +2052,6 @@ abstract class BaseFunctionElementX
     typeCache = _functionSignatureCache.type;
   }
 
-  /// An function is part of JsInterop in the following cases:
-  /// * It has a jsInteropName annotation
-  /// * It is external member of a class or library tagged as JsInterop.
-  bool get isJsInterop {
-    if (!isExternal) return false;
-
-    if (super.isJsInterop) return true;
-    if (isClassMember) return contextClass.isJsInterop;
-    if (isTopLevel) return library.isJsInterop;
-    return false;
-  }
-
   List<ParameterElement> get parameters {
     // TODO(johnniwinther): Store the list directly, possibly by using List
     // instead of Link in FunctionSignature.
@@ -2119,6 +2106,25 @@ abstract class FunctionElementX extends BaseFunctionElementX
       : super(name, kind, modifiers, enclosing);
 
   MemberElement get memberContext => this;
+
+  @override
+  SourceSpan get sourcePosition {
+    SourceSpan span = super.sourcePosition;
+    if (span != null && hasNode) {
+      FunctionExpression functionExpression = node.asFunctionExpression();
+      if (functionExpression != null) {
+        Token begin = functionExpression.getBeginToken();
+        Token end;
+        if (functionExpression.parameters != null) {
+          end = functionExpression.parameters.getEndToken();
+        } else {
+          end = functionExpression.name.getEndToken();
+        }
+        span = new SourceSpan.fromTokens(span.uri, begin, end);
+      }
+    }
+    return span;
+  }
 
   void reuseElement() {
     super.reuseElement();
@@ -2270,33 +2276,53 @@ abstract class ConstructorElementX extends FunctionElementX
   // generative constructors.
   bool get isCyclicRedirection => effectiveTarget.isRedirectingFactory;
 
-  /// This field is set by the post process queue when checking for cycles.
-  ConstructorElement internalEffectiveTarget;
-  DartType effectiveTargetType;
+  /// These fields are set by the post process queue when checking for cycles.
+  ConstructorElement effectiveTargetInternal;
+  DartType _effectiveTargetType;
+  bool _isEffectiveTargetMalformed;
 
-  void set effectiveTarget(ConstructorElement constructor) {
-    assert(constructor != null && internalEffectiveTarget == null);
-    internalEffectiveTarget = constructor;
+  void setEffectiveTarget(ConstructorElement target,
+                          DartType type,
+                          {bool isMalformed: false}) {
+    assert(invariant(this, target != null,
+        message: 'No effective target provided for $this.'));
+    assert(invariant(this, effectiveTargetInternal == null,
+        message: 'Effective target has already been computed for $this.'));
+    effectiveTargetInternal = target;
+    _effectiveTargetType = type;
+    _isEffectiveTargetMalformed = isMalformed;
   }
 
   ConstructorElement get effectiveTarget {
-    if (Elements.isErroneous(immediateRedirectionTarget)) {
+    if (Elements.isMalformed(immediateRedirectionTarget)) {
       return immediateRedirectionTarget;
     }
-    assert(!isRedirectingFactory || internalEffectiveTarget != null);
-    if (isRedirectingFactory) return internalEffectiveTarget;
+    assert(!isRedirectingFactory || effectiveTargetInternal != null);
+    if (isRedirectingFactory) {
+      return effectiveTargetInternal;
+    }
     if (isPatched) {
-      return internalEffectiveTarget ?? this;
+      return effectiveTargetInternal ?? this;
     }
     return this;
   }
 
+  InterfaceType get effectiveTargetType {
+    assert(invariant(this, _effectiveTargetType != null,
+        message: 'Effective target type has not yet been computed for $this.'));
+    return _effectiveTargetType;
+  }
+
   InterfaceType computeEffectiveTargetType(InterfaceType newType) {
     if (!isRedirectingFactory) return newType;
-    assert(invariant(this, effectiveTargetType != null,
-        message: 'Redirection target type has not yet been computed for '
-                 '$this.'));
     return effectiveTargetType.substByContext(newType);
+  }
+
+  bool get isEffectiveTargetMalformed {
+    if (!isRedirectingFactory) return false;
+    assert(invariant(this, _isEffectiveTargetMalformed != null,
+            message: 'Malformedness has not yet been computed for $this.'));
+    return _isEffectiveTargetMalformed == true;
   }
 
   accept(ElementVisitor visitor, arg) {
@@ -2435,7 +2461,7 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
 
   void _computeSignature(Resolution resolution) {
     if (hasFunctionSignature) return;
-    if (definingConstructor.isErroneous) {
+    if (definingConstructor.isMalformed) {
       functionSignature = new FunctionSignatureX(
           type: new FunctionType.synthesized(enclosingClass.thisType));
     }
@@ -2557,7 +2583,6 @@ abstract class BaseClassElementX extends ElementX
 
   DartType supertype;
   Link<DartType> interfaces;
-  String nativeTagInfo;
   int supertypeLoadState;
   int resolutionState;
   bool isProxy = false;
@@ -2682,20 +2707,8 @@ abstract class BaseClassElementX extends ElementX
   }
 
   bool implementsFunction(Compiler compiler) {
-    return asInstanceOf(compiler.functionClass) != null || callType != null;
-  }
-
-  bool get isNative => nativeTagInfo != null || isJsInterop;
-
-  void setNative(String name) {
-    // TODO(johnniwinther): Assert that this is only called once. The memory
-    // compiler copies pre-processed elements into a new compiler through
-    // [Compiler.onLibraryScanned] and thereby causes multiple calls to this
-    // method.
-    assert(invariant(this, nativeTagInfo == null || nativeTagInfo == name,
-        message: "Native tag info set inconsistently on $this: "
-                 "Existing name '$nativeTagInfo', new name '$name'."));
-    nativeTagInfo = name;
+    return asInstanceOf(compiler.coreClasses.functionClass) != null ||
+        callType != null;
   }
 
   // TODO(johnniwinther): Remove these when issue 18630 is fixed.
@@ -2783,7 +2796,8 @@ abstract class ClassElementX extends BaseClassElementX {
   }
 }
 
-class EnumClassElementX extends ClassElementX implements EnumClassElement {
+class EnumClassElementX extends ClassElementX
+    implements EnumClassElement, DeclarationSite {
   final Enum node;
   List<FieldElement> _enumValues;
 
@@ -2820,6 +2834,9 @@ class EnumClassElementX extends ClassElementX implements EnumClassElement {
         message: "enumValues has already been computed for $this."));
     _enumValues = values;
   }
+
+  @override
+  DeclarationSite get declarationSite => this;
 }
 
 class EnumConstructorElementX extends ConstructorElementX {
@@ -2880,17 +2897,14 @@ class EnumFieldElementX extends FieldElementX {
   }
 }
 
-class MixinApplicationElementX extends BaseClassElementX
+abstract class MixinApplicationElementX extends BaseClassElementX
     implements MixinApplicationElement {
-  final Node node;
-  final Modifiers modifiers;
 
   Link<ConstructorElement> constructors = new Link<ConstructorElement>();
 
   InterfaceType mixinType;
 
-  MixinApplicationElementX(String name, Element enclosing, int id,
-                           this.node, this.modifiers)
+  MixinApplicationElementX(String name, Element enclosing, int id)
       : super(name, enclosing, id, STATE_NOT_STARTED);
 
   ClassElement get mixin => mixinType != null ? mixinType.element : null;
@@ -2965,6 +2979,35 @@ class MixinApplicationElementX extends BaseClassElementX
   accept(ElementVisitor visitor, arg) {
     return visitor.visitMixinApplicationElement(this, arg);
   }
+}
+
+class NamedMixinApplicationElementX extends MixinApplicationElementX
+    implements DeclarationSite {
+  final NamedMixinApplication node;
+
+  NamedMixinApplicationElementX(
+      String name,
+      CompilationUnitElement enclosing,
+      int id,
+      this.node)
+      : super(name, enclosing, id);
+
+  Modifiers get modifiers => node.modifiers;
+
+  DeclarationSite get declarationSite => this;
+}
+
+class UnnamedMixinApplicationElementX extends MixinApplicationElementX {
+  final Node node;
+
+  UnnamedMixinApplicationElementX(
+      String name,
+      CompilationUnitElement enclosing,
+      int id,
+      this.node)
+      : super(name, enclosing, id);
+
+  bool get isAbstract => true;
 }
 
 class LabelDefinitionX implements LabelDefinition {

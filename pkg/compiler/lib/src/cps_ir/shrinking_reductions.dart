@@ -6,6 +6,7 @@ library dart2js.cps_ir.shrinking_reductions;
 
 import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
+import 'cps_fragment.dart';
 
 /**
  * [ShrinkingReducer] applies shrinking reductions to CPS terms as described
@@ -91,7 +92,8 @@ class ShrinkingReducer extends Pass {
     assert(_isDeadVal(task.node));
 
     // Remove dead primitive.
-    LetPrim letPrim = task.node;;
+    LetPrim letPrim = task.node;
+    destroyRefinementsOfDeadPrimitive(letPrim.primitive);
     _removeNode(letPrim);
 
     // Perform bookkeeping on removed body and scan for new redexes.
@@ -138,8 +140,8 @@ class ShrinkingReducer extends Pass {
 
     // Substitute the invocation argument for the continuation parameter.
     for (int i = 0; i < invoke.arguments.length; i++) {
-      Reference argRef = invoke.arguments[i];
-      argRef.definition.substituteFor(cont.parameters[i]);
+      cont.parameters[i].replaceUsesWith(invoke.arguments[i].definition);
+      invoke.arguments[i].definition.useElementAsHint(cont.parameters[i].hint);
     }
 
     // Perform bookkeeping on substituted body and scan for new redexes.
@@ -167,8 +169,23 @@ class ShrinkingReducer extends Pass {
     InvokeContinuation invoke = cont.body;
     Continuation wrappedCont = invoke.continuation.definition;
 
+    for (int i = 0; i < cont.parameters.length; ++i) {
+      wrappedCont.parameters[i].useElementAsHint(cont.parameters[i].hint);
+    }
+
+    // If the invocation of wrappedCont is escaping, then all invocations of
+    // cont will be as well, after the reduction.
+    if (invoke.isEscapingTry) {
+      Reference current = cont.firstRef;
+      while (current != null) {
+        InvokeContinuation owner = current.parent;
+        owner.isEscapingTry = true;
+        current = current.next;
+      }
+    }
+
     // Replace all occurrences with the wrapped continuation.
-    wrappedCont.substituteFor(cont);
+    cont.replaceUsesWith(wrappedCont);
 
     // Perform bookkeeping on removed body and scan for new redexes.
     new _RemovalVisitor(_worklist).visit(cont);
@@ -232,7 +249,8 @@ class ShrinkingReducer extends Pass {
 /// Returns true iff the bound primitive is unused, and has no effects
 /// preventing it from being eliminated.
 bool _isDeadVal(LetPrim node) {
-  return node.primitive.hasNoUses && node.primitive.isSafeForElimination;
+  return node.primitive.hasNoEffectiveUses &&
+         node.primitive.isSafeForElimination;
 }
 
 /// Returns true iff the continuation is unused.

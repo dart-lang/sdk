@@ -19,6 +19,9 @@
 
 namespace dart {
 
+// Defined in vm/os_thread_win.cc
+extern bool private_flag_windows_run_tls_destructors;
+
 const char* OS::Name() {
   return "windows";
 }
@@ -123,7 +126,8 @@ int64_t OS::GetCurrentTimeMicros() {
 
 static int64_t qpc_ticks_per_second = 0;
 
-int64_t OS::GetCurrentTraceMicros() {
+
+int64_t OS::GetCurrentMonotonicTicks() {
   if (qpc_ticks_per_second == 0) {
     // QueryPerformanceCounter not supported, fallback.
     return GetCurrentTimeMicros();
@@ -131,12 +135,28 @@ int64_t OS::GetCurrentTraceMicros() {
   // Grab performance counter value.
   LARGE_INTEGER now;
   QueryPerformanceCounter(&now);
-  int64_t qpc_value = static_cast<int64_t>(now.QuadPart);
+  return static_cast<int64_t>(now.QuadPart);
+}
+
+
+int64_t OS::GetCurrentMonotonicFrequency() {
+  if (qpc_ticks_per_second == 0) {
+    // QueryPerformanceCounter not supported, fallback.
+    return kMicrosecondsPerSecond;
+  }
+  return qpc_ticks_per_second;
+}
+
+
+int64_t OS::GetCurrentMonotonicMicros() {
+  int64_t ticks = GetCurrentMonotonicTicks();
+  int64_t frequency = GetCurrentMonotonicFrequency();
+
   // Convert to microseconds.
-  int64_t seconds = qpc_value / qpc_ticks_per_second;
-  int64_t leftover_ticks = qpc_value - (seconds * qpc_ticks_per_second);
+  int64_t seconds = ticks / frequency;
+  int64_t leftover_ticks = ticks - (seconds * frequency);
   int64_t result = seconds * kMicrosecondsPerSecond;
-  result += ((leftover_ticks * kMicrosecondsPerSecond) / qpc_ticks_per_second);
+  result += ((leftover_ticks * kMicrosecondsPerSecond) / frequency);
   return result;
 }
 
@@ -368,6 +388,7 @@ void OS::InitOnce() {
   init_once_called = true;
   // Do not pop up a message box when abort is called.
   _set_abort_behavior(0, _WRITE_ABORT_MSG);
+  ThreadLocalData::InitOnce();
   MonitorWaitData::monitor_wait_data_key_ = OSThread::CreateThreadLocal();
   MonitorData::GetMonitorWaitDataForThread();
   LARGE_INTEGER ticks_per_sec;
@@ -380,16 +401,24 @@ void OS::InitOnce() {
 
 
 void OS::Shutdown() {
+  // TODO(zra): Enable once VM can shutdown cleanly.
+  // ThreadLocalData::Shutdown();
 }
 
 
 void OS::Abort() {
+  // TODO(zra): Remove once VM shuts down cleanly.
+  private_flag_windows_run_tls_destructors = false;
   abort();
 }
 
 
 void OS::Exit(int code) {
-  exit(code);
+  // TODO(zra): Remove once VM shuts down cleanly.
+  private_flag_windows_run_tls_destructors = false;
+  // On Windows we use ExitProcess so that threads can't clobber the exit_code.
+  // See: https://code.google.com/p/nativeclient/issues/detail?id=2870
+  ::ExitProcess(code);
 }
 
 }  // namespace dart

@@ -4,10 +4,33 @@
 
 library library_ref_element;
 
+import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 import 'service_ref.dart';
+import 'dart:async';
 
 @CustomTag('library-ref')
 class LibraryRefElement extends ServiceRefElement {
+  @observable bool asValue = false;
+
   LibraryRefElement.created() : super.created();
+
+  String makeExpandKey(String key) {
+    return '${expandKey}/${key}';
+  }
+
+  dynamic expander() {
+    return expandEvent;
+  }
+
+  void expandEvent(bool expand, Function onDone) {
+    if (expand) {
+      Library lib = ref;
+      lib.reload().then((result) {
+        return Future.wait(lib.variables.map((field) => field.reload()));
+      }).whenComplete(onDone);
+    } else {
+      onDone();
+    }
+  }
 }

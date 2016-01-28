@@ -46,6 +46,12 @@ _registerExtension(String method, ServiceExtensionHandler handler) {
 }
 
 @patch
+_postEvent(String eventKind, String eventData) {
+  // TODO.
+}
+
+
+@patch
 int _getTraceClock() {
   // TODO.
   return _clockValue++;
@@ -62,7 +68,20 @@ void _reportCompleteEvent(int start,
 }
 
 @patch
+void _reportInstantEvent(int start,
+                         String category,
+                         String name,
+                         String argumentsAsJson) {
+  // TODO.
+}
+
+@patch
 int _getNextAsyncId() {
+  return 0;
+}
+
+@patch
+int _getIsolateNum() {
   return 0;
 }
 

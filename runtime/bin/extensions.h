@@ -26,6 +26,8 @@ class Extensions {
   static void* ResolveSymbol(void* lib_handle, const char* symbol);
 
  private:
+  static Dart_Handle GetError();
+
   // The returned string must be freed.
   static char* Concatenate(const char** strings);
 

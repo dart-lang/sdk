@@ -168,6 +168,16 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
+  Statement visitNullCheck(NullCheck node) {
+    if (node.condition != null) {
+      node.condition = visitExpression(node.condition);
+      // The value occurs in conditional context, so don't pull from that.
+    } else {
+      node.value = visitExpression(node.value);
+    }
+    return node;
+  }
+
   Expression visitAssign(Assign node) {
     bool inImpureContext = impureCounter > 0;
     bool inBranch = branchCounter > 0;
@@ -245,6 +255,12 @@ class PullIntoInitializers extends RecursiveTransformer
 
   Expression visitInvokeConstructor(InvokeConstructor node) {
     super.visitInvokeConstructor(node);
+    ++impureCounter;
+    return node;
+  }
+
+  Expression visitOneShotInterceptor(OneShotInterceptor node) {
+    super.visitOneShotInterceptor(node);
     ++impureCounter;
     return node;
   }
@@ -335,15 +351,6 @@ class PullIntoInitializers extends RecursiveTransformer
   Expression visitSetIndex(SetIndex node) {
     super.visitSetIndex(node);
     ++impureCounter;
-    return node;
-  }
-
-  void visitInnerFunction(FunctionDefinition node) {
-    new PullIntoInitializers().rewrite(node);
-  }
-
-  Expression visitFunctionExpression(FunctionExpression node) {
-    visitInnerFunction(node.definition);
     return node;
   }
 

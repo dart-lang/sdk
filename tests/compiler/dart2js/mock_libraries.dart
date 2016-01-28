@@ -6,6 +6,15 @@
 
 library mock_libraries;
 
+const DEFAULT_PLATFORM_CONFIG = """
+[libraries]
+core:core/core.dart
+async:async/async.dart
+_js_helper:_internal/js_runtime/lib/js_helper.dart
+_interceptors:_internal/js_runtime/lib/interceptors.dart
+_isolate_helper:_internal/js_runtime/lib/isolate_helper.dart
+""";
+
 String buildLibrarySource(
     Map<String, String> elementMap,
     [Map<String, String> additionalElementMap = const <String, String>{}]) {
@@ -54,11 +63,7 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
           E get current => null;
       }''',
   'LinkedHashMap': r'''
-      class LinkedHashMap {
-        factory LinkedHashMap._empty() => null;
-        factory LinkedHashMap._literal(elements) => null;
-        static _makeEmpty() => null;
-        static _makeLiteral(elements) => null;
+      class LinkedHashMap<K, V> implements Map<K, V> {
       }''',
   'List': r'''
       class List<E> extends Iterable<E> {
@@ -104,6 +109,14 @@ import 'dart:_js_helper';
 import 'dart:_interceptors';
 import 'dart:_isolate_helper';
 import 'dart:async';
+
+@patch
+class LinkedHashMap<K, V> {
+  factory LinkedHashMap._empty() => null;
+  factory LinkedHashMap._literal(elements) => null;
+  static _makeEmpty() => null;
+  static _makeLiteral(elements) => null;
+}
 ''';
 
 const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{

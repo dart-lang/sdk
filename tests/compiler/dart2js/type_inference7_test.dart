@@ -22,7 +22,7 @@ Future runTest() async {
   {
     // Assertions enabled:
     var compiler = compilerFor(TEST, uri, enableUserAssertions: true);
-    await compiler.runCompiler(uri);
+    await compiler.run(uri);
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;
     var foo = findElement(compiler, "foo");
@@ -51,7 +51,7 @@ Future runTest() async {
   {
     // Assertions disabled:
     var compiler = compilerFor(TEST, uri, enableUserAssertions: false);
-    await compiler.runCompiler(uri);
+    await compiler.run(uri);
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;
     var foo = findElement(compiler, "foo");

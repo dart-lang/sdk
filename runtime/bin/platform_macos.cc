@@ -53,7 +53,11 @@ int Platform::NumberOfProcessors() {
 
 
 const char* Platform::OperatingSystem() {
+#if TARGET_OS_IOS
+  return "ios";
+#else
   return "macos";
+#endif
 }
 
 
@@ -118,6 +122,10 @@ char* Platform::ResolveExecutablePath() {
   char* canon_path = File::GetCanonicalPath(path);
   free(path);
   return canon_path;
+}
+
+void Platform::Exit(int exit_code) {
+  exit(exit_code);
 }
 
 }  // namespace bin

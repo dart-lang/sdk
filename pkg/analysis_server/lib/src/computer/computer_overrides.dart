@@ -6,13 +6,34 @@ library computer.overrides;
 
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/dart/element/type.dart' as engine;
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart' as engine;
 
 /**
  * A computer for class member overrides in a Dart [CompilationUnit].
  */
 class DartUnitOverridesComputer {
+  static const List<ElementKind> FIELD_KINDS = const <ElementKind>[
+    ElementKind.FIELD,
+    ElementKind.GETTER,
+    ElementKind.SETTER
+  ];
+
+  static const List<ElementKind> GETTER_KINDS = const <ElementKind>[
+    ElementKind.FIELD,
+    ElementKind.GETTER
+  ];
+
+  static const List<ElementKind> METHOD_KINDS = const <ElementKind>[
+    ElementKind.METHOD
+  ];
+
+  static const List<ElementKind> SETTER_KINDS = const <ElementKind>[
+    ElementKind.FIELD,
+    ElementKind.SETTER
+  ];
+
   final CompilationUnit _unit;
 
   final List<Override> _overrides = <Override>[];
@@ -33,7 +54,16 @@ class DartUnitOverridesComputer {
               continue;
             }
             SimpleIdentifier nameNode = classMember.name;
-            _addOverride(nameNode.offset, nameNode.length, nameNode.name);
+            List<ElementKind> kinds;
+            if (classMember.isGetter) {
+              kinds = GETTER_KINDS;
+            } else if (classMember.isSetter) {
+              kinds = SETTER_KINDS;
+            } else {
+              kinds = METHOD_KINDS;
+            }
+            _addOverride(
+                nameNode.offset, nameNode.length, nameNode.name, kinds);
           }
           if (classMember is FieldDeclaration) {
             if (classMember.isStatic) {
@@ -42,7 +72,8 @@ class DartUnitOverridesComputer {
             List<VariableDeclaration> fields = classMember.fields.variables;
             for (VariableDeclaration field in fields) {
               SimpleIdentifier nameNode = field.name;
-              _addOverride(nameNode.offset, nameNode.length, nameNode.name);
+              _addOverride(
+                  nameNode.offset, nameNode.length, nameNode.name, FIELD_KINDS);
             }
           }
         }
@@ -54,6 +85,7 @@ class DartUnitOverridesComputer {
   void _addInterfaceOverrides(
       Set<engine.Element> elements,
       String name,
+      List<ElementKind> kinds,
       engine.InterfaceType type,
       bool checkType,
       Set<engine.InterfaceType> visited) {
@@ -65,7 +97,7 @@ class DartUnitOverridesComputer {
     }
     // check type
     if (checkType) {
-      engine.Element element = _lookupMember(type.element, name);
+      engine.Element element = _lookupMember(type.element, name, kinds);
       if (element != null) {
         elements.add(element);
         return;
@@ -73,25 +105,28 @@ class DartUnitOverridesComputer {
     }
     // check interfaces
     for (engine.InterfaceType interfaceType in type.interfaces) {
-      _addInterfaceOverrides(elements, name, interfaceType, true, visited);
+      _addInterfaceOverrides(
+          elements, name, kinds, interfaceType, true, visited);
     }
     // check super
-    _addInterfaceOverrides(elements, name, type.superclass, checkType, visited);
+    _addInterfaceOverrides(
+        elements, name, kinds, type.superclass, checkType, visited);
   }
 
-  void _addOverride(int offset, int length, String name) {
+  void _addOverride(
+      int offset, int length, String name, List<ElementKind> kinds) {
     // super
     engine.Element superEngineElement;
     {
       engine.InterfaceType superType = _currentClass.supertype;
       if (superType != null) {
-        superEngineElement = _lookupMember(superType.element, name);
+        superEngineElement = _lookupMember(superType.element, name, kinds);
       }
     }
     // interfaces
     Set<engine.Element> interfaceEngineElements = new Set<engine.Element>();
-    _addInterfaceOverrides(interfaceEngineElements, name, _currentClass.type,
-        false, new Set<engine.InterfaceType>());
+    _addInterfaceOverrides(interfaceEngineElements, name, kinds,
+        _currentClass.type, false, new Set<engine.InterfaceType>());
     interfaceEngineElements.remove(superEngineElement);
     // is there any override?
     if (superEngineElement != null || interfaceEngineElements.isNotEmpty) {
@@ -108,25 +143,32 @@ class DartUnitOverridesComputer {
   }
 
   static engine.Element _lookupMember(
-      engine.ClassElement classElement, String name) {
+      engine.ClassElement classElement, String name, List<ElementKind> kinds) {
     if (classElement == null) {
       return null;
     }
     engine.LibraryElement library = classElement.library;
+    engine.Element member;
     // method
-    engine.Element member = classElement.lookUpMethod(name, library);
-    if (member != null) {
-      return member;
+    if (kinds.contains(ElementKind.METHOD)) {
+      member = classElement.lookUpMethod(name, library);
+      if (member != null) {
+        return member;
+      }
     }
     // getter
-    member = classElement.lookUpGetter(name, library);
-    if (member != null) {
-      return member;
+    if (kinds.contains(ElementKind.GETTER)) {
+      member = classElement.lookUpGetter(name, library);
+      if (member != null) {
+        return member;
+      }
     }
     // setter
-    member = classElement.lookUpSetter(name + '=', library);
-    if (member != null) {
-      return member;
+    if (kinds.contains(ElementKind.SETTER)) {
+      member = classElement.lookUpSetter(name + '=', library);
+      if (member != null) {
+        return member;
+      }
     }
     // not found
     return null;

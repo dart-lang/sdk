@@ -19,8 +19,8 @@ import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/parser.dart' as engine;
@@ -130,23 +130,25 @@ class EditDomainHandler implements RequestHandler {
         .toResponse(request.id);
   }
 
-  Response getAssists(Request request) {
+  Future getAssists(Request request) async {
     EditGetAssistsParams params = new EditGetAssistsParams.fromRequest(request);
     ContextSourcePair pair = server.getContextSourcePair(params.file);
     engine.AnalysisContext context = pair.context;
     Source source = pair.source;
     List<SourceChange> changes = <SourceChange>[];
     if (context != null && source != null) {
-      List<Assist> assists = computeAssists(
+      List<Assist> assists = await computeAssists(
           server.serverPlugin, context, source, params.offset, params.length);
       assists.forEach((Assist assist) {
         changes.add(assist.change);
       });
     }
-    return new EditGetAssistsResult(changes).toResponse(request.id);
+    Response response =
+        new EditGetAssistsResult(changes).toResponse(request.id);
+    server.sendResponse(response);
   }
 
-  Response getFixes(Request request) {
+  getFixes(Request request) async {
     var params = new EditGetFixesParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
@@ -161,7 +163,7 @@ class EditDomainHandler implements RequestHandler {
         for (engine.AnalysisError error in errorInfo.errors) {
           int errorLine = lineInfo.getLocation(error.offset).lineNumber;
           if (errorLine == requestLine) {
-            List<Fix> fixes = computeFixes(server.serverPlugin,
+            List<Fix> fixes = await computeFixes(server.serverPlugin,
                 server.resourceProvider, unit.element.context, error);
             if (fixes.isNotEmpty) {
               AnalysisError serverError =
@@ -178,7 +180,8 @@ class EditDomainHandler implements RequestHandler {
       }
     }
     // respond
-    return new EditGetFixesResult(errorFixesList).toResponse(request.id);
+    return server.sendResponse(
+        new EditGetFixesResult(errorFixesList).toResponse(request.id));
   }
 
   @override
@@ -188,11 +191,13 @@ class EditDomainHandler implements RequestHandler {
       if (requestName == EDIT_FORMAT) {
         return format(request);
       } else if (requestName == EDIT_GET_ASSISTS) {
-        return getAssists(request);
+        getAssists(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_GET_AVAILABLE_REFACTORINGS) {
         return _getAvailableRefactorings(request);
       } else if (requestName == EDIT_GET_FIXES) {
-        return getFixes(request);
+        getFixes(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_GET_REFACTORING) {
         return _getRefactoring(request);
       } else if (requestName == EDIT_ORGANIZE_DIRECTIVES) {
@@ -245,15 +250,20 @@ class EditDomainHandler implements RequestHandler {
     if (!engine.AnalysisEngine.isDartFileName(file)) {
       return new Response.sortMembersInvalidFile(request);
     }
-    // prepare resolved units
-    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
-    if (units.isEmpty) {
+    // prepare location
+    ContextSourcePair contextSource = server.getContextSourcePair(file);
+    engine.AnalysisContext context = contextSource.context;
+    Source source = contextSource.source;
+    if (context == null || source == null) {
       return new Response.sortMembersInvalidFile(request);
     }
-    // prepare context
-    CompilationUnit unit = units.first;
-    engine.AnalysisContext context = unit.element.context;
-    Source source = unit.element.source;
+    // prepare parsed unit
+    CompilationUnit unit;
+    try {
+      unit = context.parseCompilationUnit(source);
+    } catch (e) {
+      return new Response.sortMembersInvalidFile(request);
+    }
     // check if there are scan/parse errors in the file
     engine.AnalysisErrorInfo errors = context.getErrors(source);
     int numScanParseErrors = _getNumberOfScanParseErrors(errors.errors);
@@ -558,7 +568,9 @@ class _RefactoringManager {
       if (units.isNotEmpty) {
         refactoring = new ExtractLocalRefactoring(units[0], offset, length);
         feedback = new ExtractLocalVariableFeedback(
-            <int>[], <int>[], <String>[], <int>[], <int>[]);
+            <String>[], <int>[], <int>[],
+            coveringExpressionOffsets: <int>[],
+            coveringExpressionLengths: <int>[]);
       }
     }
     if (kind == RefactoringKind.EXTRACT_METHOD) {
@@ -626,6 +638,10 @@ class _RefactoringManager {
       feedback.names = refactoring.names;
       feedback.offsets = refactoring.offsets;
       feedback.lengths = refactoring.lengths;
+      feedback.coveringExpressionOffsets =
+          refactoring.coveringExpressionOffsets;
+      feedback.coveringExpressionLengths =
+          refactoring.coveringExpressionLengths;
     }
     if (refactoring is ExtractMethodRefactoring) {
       ExtractMethodRefactoring refactoring = this.refactoring;

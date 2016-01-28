@@ -7,14 +7,17 @@
 #include "vm/assembler.h"
 #include "vm/globals.h"
 #include "vm/il_printer.h"
+#include "vm/instructions.h"
 #include "vm/json_stream.h"
 #include "vm/log.h"
 #include "vm/os.h"
+#include "vm/code_patcher.h"
 
 
 namespace dart {
 
-void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
+void DisassembleToStdout::ConsumeInstruction(const Code& code,
+                                             char* hex_buffer,
                                              intptr_t hex_size,
                                              char* human_buffer,
                                              intptr_t human_size,
@@ -41,18 +44,26 @@ void DisassembleToStdout::Print(const char* format, ...) {
 }
 
 
-void DisassembleToJSONStream::ConsumeInstruction(char* hex_buffer,
+void DisassembleToJSONStream::ConsumeInstruction(const Code& code,
+                                                 char* hex_buffer,
                                                  intptr_t hex_size,
                                                  char* human_buffer,
                                                  intptr_t human_size,
                                                  uword pc) {
-  // Instructions are represented as three consecutive values in a JSON array.
-  // All three are strings. The first is the address of the instruction,
-  // the second is the hex string of the code, and the final is a human
-  // readable string.
+  // Instructions are represented as four consecutive values in a JSON array.
+  // The first is the address of the instruction, the second is the hex string,
+  // of the code, and the third is a human readable string, and the fourth is
+  // the object loaded by the instruction.
   jsarr_.AddValueF("%" Pp "", pc);
   jsarr_.AddValue(hex_buffer);
   jsarr_.AddValue(human_buffer);
+
+  Object& object = Object::Handle();
+  if (DecodeLoadObjectFromPoolOrThread(pc, code, &object)) {
+    jsarr_.AddValue(object);
+  } else {
+    jsarr_.AddValueNull();  // Not a reference to null.
+  }
 }
 
 
@@ -71,12 +82,12 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
       p[i] = ' ';
     }
   }
-  // Instructions are represented as three consecutive values in a JSON array.
-  // All three are strings. Comments only use the third slot. See above comment
-  // for more information.
-  jsarr_.AddValue("");
-  jsarr_.AddValue("");
+  // Instructions are represented as four consecutive values in a JSON array.
+  // Comments only use the third slot. See above comment for more information.
+  jsarr_.AddValueNull();
+  jsarr_.AddValueNull();
   jsarr_.AddValue(p);
+  jsarr_.AddValueNull();
   free(p);
 }
 
@@ -158,7 +169,8 @@ void Disassembler::Disassemble(uword start,
                       human_buffer,
                       sizeof(human_buffer),
                       &instruction_length, pc);
-    formatter->ConsumeInstruction(hex_buffer,
+    formatter->ConsumeInstruction(code,
+                                  hex_buffer,
                                   sizeof(hex_buffer),
                                   human_buffer,
                                   sizeof(human_buffer),

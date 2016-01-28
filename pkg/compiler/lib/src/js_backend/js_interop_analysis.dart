@@ -31,6 +31,7 @@ import '../js/js.dart' show js;
 import '../universe/selector.dart' show Selector;
 import '../universe/universe.dart' show SelectorConstraints;
 
+import 'backend_helpers.dart' show BackendHelpers;
 import 'js_backend.dart' show JavaScriptBackend;
 
 class JsInteropAnalysis {
@@ -45,11 +46,13 @@ class JsInteropAnalysis {
 
   JsInteropAnalysis(this.backend);
 
+  BackendHelpers get helpers => backend.helpers;
+
   void onQueueClosed() {
     if (_inCodegen) return;
 
-    if (backend.jsAnnotationClass != null) {
-      nameField = backend.jsAnnotationClass.lookupMember('name');
+    if (helpers.jsAnnotationClass != null) {
+      nameField = helpers.jsAnnotationClass.lookupMember('name');
       backend.compiler.libraryLoader.libraries
           .forEach(processJsInteropAnnotationsInLibrary);
     }
@@ -65,14 +68,15 @@ class JsInteropAnalysis {
           annotation.constant);
       if (constant == null || constant is! ConstructedConstantValue) continue;
       ConstructedConstantValue constructedConstant = constant;
-      if (constructedConstant.type.element == backend.jsAnnotationClass) {
+      if (constructedConstant.type.element == helpers.jsAnnotationClass) {
         ConstantValue value = constructedConstant.fields[nameField];
         if (value.isString) {
           StringConstantValue stringValue = value;
-          e.setJsInteropName(stringValue.primitiveValue.slowToString());
+          backend.setJsInteropName(
+              e, stringValue.primitiveValue.slowToString());
         } else {
           // TODO(jacobr): report a warning if the value is not a String.
-          e.setJsInteropName('');
+          backend.setJsInteropName(e, '');
         }
         enabledJsInterop = true;
         return;
@@ -81,7 +85,7 @@ class JsInteropAnalysis {
   }
 
   bool hasAnonymousAnnotation(Element element) {
-    if (backend.jsAnonymousClass == null) return false;
+    if (backend.helpers.jsAnonymousClass == null) return false;
     return element.metadata.any((MetadataAnnotation annotation) {
       ConstantValue constant = backend.compiler.constants.getConstantValue(
           annotation.constant);
@@ -89,7 +93,7 @@ class JsInteropAnalysis {
           constant is! ConstructedConstantValue) return false;
       ConstructedConstantValue constructedConstant = constant;
       return constructedConstant.type.element ==
-          backend.jsAnonymousClass;
+          backend.helpers.jsAnonymousClass;
     });
   }
 
@@ -107,7 +111,7 @@ class JsInteropAnalysis {
     processJsInteropAnnotation(library);
     library.implementation.forEachLocalMember((Element element) {
       processJsInteropAnnotation(element);
-      if (!element.isJsInterop) return;
+      if (!backend.isJsInterop(element)) return;
       if (element is FunctionElement) {
         _checkFunctionParameters(element);
       }
@@ -121,7 +125,7 @@ class JsInteropAnalysis {
       if (!backend.compiler.world.isImplemented(classElement)) return;
 
       if (!classElement
-          .implementsInterface(backend.jsJavaScriptObjectClass)) {
+          .implementsInterface(helpers.jsJavaScriptObjectClass)) {
         backend.reporter.reportErrorMessage(classElement,
             MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS, {
           'cls': classElement.name,
@@ -134,7 +138,7 @@ class JsInteropAnalysis {
         processJsInteropAnnotation(member);
 
         if (!member.isSynthesized &&
-            classElement.isJsInterop &&
+            backend.isJsInterop(classElement) &&
             member is FunctionElement) {
           FunctionElement fn = member;
           if (!fn.isExternal && !fn.isAbstract && !fn.isConstructor &&

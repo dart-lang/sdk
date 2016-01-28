@@ -6,21 +6,14 @@ library codegen.protocol;
 
 import 'dart:convert';
 
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:html/dom.dart' as dom;
 
 import 'api.dart';
 import 'codegen_dart.dart';
-import 'codegen_tools.dart';
 import 'from_html.dart';
 import 'implied_types.dart';
 import 'to_html.dart';
-
-/**
- * Translate spec_input.html into protocol_matchers.dart.
- */
-main() {
-  target.generate();
-}
 
 /**
  * Special flags that need to be inserted into the declaration of the Element
@@ -35,9 +28,9 @@ const Map<String, String> specialElementFlags = const {
   'deprecated': '0x20'
 };
 
-final GeneratedFile target =
-    new GeneratedFile('../../lib/plugin/protocol/generated_protocol.dart', () {
-  CodegenProtocolVisitor visitor = new CodegenProtocolVisitor(readApi());
+final GeneratedFile target = new GeneratedFile(
+    'lib/plugin/protocol/generated_protocol.dart', (String pkgPath) {
+  CodegenProtocolVisitor visitor = new CodegenProtocolVisitor(readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 

@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 bool_from_environment2_test: Skip
 bool_from_environment_test: Skip
 from_environment_const_type_test: Skip
@@ -14,18 +14,18 @@ string_from_environment2_test: Skip
 string_from_environment3_test: Skip
 string_from_environment_test: Skip
 
-[ $compiler == none ]
+[ ($compiler == none || $compiler == precompiler) ]
 unicode_test: Fail        # Bug 6706
 compare_to2_test: Fail    # Bug 4018
 
 symbol_test/01: Fail, Pass # bug 11669
 
 # #void should be a valid symbol.
-[ $compiler == none || $compiler == dart2js ]
+[ ($compiler == none || $compiler == precompiler) || $compiler == dart2js ]
 symbol_reserved_word_test/02: CompileTimeError # bug 20191
 symbol_reserved_word_test/05: CompileTimeError # bug 20191
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 symbol_reserved_word_test/02: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
 symbol_reserved_word_test/05: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
 
@@ -42,27 +42,27 @@ int_modulo_arith_test/modPow: RuntimeError # No bigints.
 
 # With the exception of 'void', const Symbol() should not accept reserved
 # words.
-[ $compiler == none || $compiler == dart2js ]
+[ ($compiler == none || $compiler == precompiler) || $compiler == dart2js ]
 symbol_reserved_word_test/04: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/07: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/10: MissingCompileTimeError # bug 11669, 19972
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 symbol_reserved_word_test/04: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
 symbol_reserved_word_test/07: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
 symbol_reserved_word_test/10: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
 
 # With the exception of 'void', new Symbol() should not accept reserved words.
-[ $compiler == none ]
+[ ($compiler == none || $compiler == precompiler) ]
 symbol_reserved_word_test/06: RuntimeError # bug 11669
 symbol_reserved_word_test/09: RuntimeError # bug 11669
 symbol_reserved_word_test/12: RuntimeError # bug 11669
 
-[ $compiler == none && $runtime != dartium && $runtime != drt && $runtime != ContentShellOnAndroid ]
+[ ($compiler == none || $compiler == precompiler) && $runtime != dartium && $runtime != drt && $runtime != ContentShellOnAndroid ]
 symbol_test/02: MissingCompileTimeError # bug 11669
 symbol_test/03: MissingCompileTimeError # bug 11669
 
-[ $compiler == none ]
+[ ($compiler == none || $compiler == precompiler) ]
 symbol_test/none: Fail # bug 11669
 symbol_operator_test/03: Fail # bug 11669
 string_case_test/01: Fail # Bug 18061
@@ -70,10 +70,10 @@ string_case_test/01: Fail # Bug 18061
 iterable_return_type_test/01: RuntimeError # Issue 13646
 iterable_return_type_test/02: RuntimeError # Issue 13646
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 main_test: Fail  # Dartium needs to check for both main() and main(args).
 
-[ $compiler == none && $runtime == ContentShellOnAndroid ]
+[ ($compiler == none || $compiler == precompiler) && $runtime == ContentShellOnAndroid ]
 core_runtime_types_test: Pass, Fail # Issue 20525
 
 [ $runtime == ff || $runtime == jsshell ]
@@ -139,35 +139,6 @@ string_case_test/01: Fail, OK  # Bug in Firefox.
 string_case_test/02: Fail, OK  # Bug in dartium version of V8.
 string_case_test/03: Fail, OK  # Bug in dartium version of V8.
 
-[ $compiler == dartanalyzer ]
-from_environment_const_type_test: Skip # The -D option that defines a constant
-# for the Dart vm is not accepted by the deprecated java dartanalyzer.
-int_parse_radix_test: Fail, OK # Test contains errors but doesn’t mark them as expected
-list_insert_test: Fail, OK # Test contains errors but doesn’t mark them as expected
-list_removeat_test: Fail, OK # Test contains errors but doesn’t mark them as expected
-
-# Issue 16391. These tests are supposed to produce a compile time
-# error in checked mode, but they don't:
-[ $compiler == dartanalyzer && $checked ]
-from_environment_const_type_test/02: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/03: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/04: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/06: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/07: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/08: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/09: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/11: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/12: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/13: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/14: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/16: MissingCompileTimeError # Issue 16391
-from_environment_const_type_undefined_test/02: MissingCompileTimeError # Issue 16391
-from_environment_const_type_undefined_test/03: MissingCompileTimeError # Issue 16391
-from_environment_const_type_undefined_test/04: MissingCompileTimeError # Issue 16391
-from_environment_const_type_undefined_test/06: MissingCompileTimeError # Issue 16391
-from_environment_const_type_undefined_test/07: MissingCompileTimeError # Issue 16391
-from_environment_const_type_undefined_test/08: MissingCompileTimeError # Issue 16391
-
 # Analyzer's implementation of fromEnvironment assumes that undefined
 # environment variables have an unspecified value (rather than being
 # null) because it is expected that the user will supply a value when
@@ -185,8 +156,6 @@ from_environment_const_type_undefined_test/16: CompileTimeError
 int_parse_radix_test: fail
 list_insert_test: fail
 list_removeat_test: fail
-
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 hash_set_type_check_test: StaticWarning, OK # Tests failing type tests.
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
 iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
@@ -201,10 +170,10 @@ stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 # The regexp tests are not verified to work on non d8/vm platforms yet.
 regexp/*: Skip
 
-[ $runtime == vm ]
+[ ($runtime == vm || $runtime == dart_precompiled) ]
 regexp/global_test: Skip # Timeout. Issue 21709 and 21708
 
-[ $runtime != vm && $compiler != dartanalyzer && $compiler != dart2analyzer]
+[ $runtime != vm && $compiler != dart2analyzer]
 package_resource_test: RuntimeError # Issue 23825 (not implemented yet).
 data_resource_test: RuntimeError # Issue 23825 (not implemented yet).
 file_resource_test: Skip, OK # VM specific test, uses dart:io.
@@ -213,7 +182,7 @@ http_resource_test: Skip, OK # VM specific test, uses dart:io.
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
 
-[ $runtime == vm && $arch == simarmv5te ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $arch == simarmv5te ]
 int_parse_radix_test/*: Pass, Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow
 
@@ -232,7 +201,7 @@ map_values3_test: RuntimeError # Please triage this failure.
 map_values4_test: RuntimeError # Please triage this failure.
 package_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
 regexp/pcre_test: Crash # Stack Overflow in LoopHierarchy.
-symbol_operator_test/03: RuntimeError # Please triage this failure.
+symbol_operator_test/03: RuntimeError # Issue 24878
 symbol_reserved_word_test/03: Pass # Please triage this failure.
 symbol_reserved_word_test/06: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/09: RuntimeError # Please triage this failure.
@@ -241,3 +210,10 @@ symbol_test/none: RuntimeError # Please triage this failure.
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 regexp/pcre_test: Crash # Stack Overflow
+
+[ ($noopt || $compiler == precompiler) ]
+apply3_test: CompileTimeError # Imports dart:mirrors
+regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
+big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
+big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
+int_parse_radix_test: Pass, Timeout # --no_intrinsify

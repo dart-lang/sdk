@@ -6,9 +6,9 @@ library check.all;
 
 import 'dart:io';
 
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:path/path.dart';
 
-import 'codegen_tools.dart';
 import 'generate_all.dart';
 
 /**
@@ -17,26 +17,6 @@ import 'generate_all.dart';
  */
 main() {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  Directory.current = new Directory(dirname(script));
-  bool generateAllNeeded = false;
-  for (GeneratedContent generatedContent in allTargets) {
-    if (!generatedContent.check()) {
-      print(
-          '${generatedContent.outputFile.absolute} does not have expected contents.');
-      generateAllNeeded = true;
-    }
-  }
-  if (generateAllNeeded) {
-    print('Please regenerate using:');
-    String executable = Platform.executable;
-    String packageRoot = '';
-    if (Platform.packageRoot.isNotEmpty) {
-      packageRoot = ' --package-root=${Platform.packageRoot}';
-    }
-    String generateScript = join(dirname(script), 'generate_all.dart');
-    print('  $executable$packageRoot $generateScript');
-    exit(1);
-  } else {
-    print('All generated files up to date.');
-  }
+  String pkgPath = normalize(join(dirname(script), '..', '..'));
+  GeneratedContent.checkAll(pkgPath, 'tool/spec/generate_all.dart', allTargets);
 }

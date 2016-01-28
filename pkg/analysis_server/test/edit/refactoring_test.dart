@@ -275,6 +275,26 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
     super.tearDown();
   }
 
+  test_coveringExpressions() {
+    addTestFile('''
+main() {
+  var v = 111 + 222 + 333;
+}
+''');
+    return getRefactoringResult(() {
+      return sendExtractRequest(testCode.indexOf('222 +'), 0, 'res', true);
+    }).then((result) {
+      ExtractLocalVariableFeedback feedback = result.feedback;
+      expect(feedback.coveringExpressionOffsets, [
+        testCode.indexOf('222 +'),
+        testCode.indexOf('111 +'),
+        testCode.indexOf('111 +')
+      ]);
+      expect(feedback.coveringExpressionLengths,
+          ['222'.length, '111 + 222'.length, '111 + 222 + 333'.length]);
+    });
+  }
+
   test_extractAll() {
     addTestFile('''
 main() {
@@ -1881,7 +1901,7 @@ main() {
     await waitForTasksFinished();
     Request request =
         new EditGetAvailableRefactoringsParams(testFile, 0, 0).toRequest('0');
-    return _assertErrorResposeNoIndex(request);
+    return _assertErrorResponseNoIndex(request);
   }
 
   test_getRefactoring_noSearchEngine() async {
@@ -1894,10 +1914,10 @@ main() {
     Request request = new EditGetRefactoringParams(
             RefactoringKind.EXTRACT_LOCAL_VARIABLE, testFile, 0, 0, true)
         .toRequest('0');
-    return _assertErrorResposeNoIndex(request);
+    return _assertErrorResponseNoIndex(request);
   }
 
-  _assertErrorResposeNoIndex(Request request) async {
+  _assertErrorResponseNoIndex(Request request) async {
     Response response = await serverChannel.sendRequest(request);
     expect(response.error, isNotNull);
     expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);

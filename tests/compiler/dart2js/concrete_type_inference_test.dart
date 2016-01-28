@@ -11,7 +11,7 @@ Future compileAndFind(String code, String name,
                     check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(code, uri);
-  return compiler.runCompiler(uri).then((_) {
+  return compiler.run(uri).then((_) {
     var element = findElement(compiler, name);
     check(compiler, element);
   });

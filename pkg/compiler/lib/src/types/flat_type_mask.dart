@@ -546,9 +546,8 @@ class FlatTypeMask implements TypeMask {
    */
   static bool hasConcreteMatch(ClassElement cls,
                                Selector selector,
-                               World world) {
-    assert(invariant(cls,
-        world.compiler.resolverWorld.isInstantiated(cls),
+                               ClassWorld world) {
+    assert(invariant(cls, world.isInstantiated(cls),
         message: '$cls has not been instantiated.'));
     Element element = findMatchIn(cls, selector);
     if (element == null) return false;

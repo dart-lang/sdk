@@ -52,6 +52,9 @@ class RuntimeConfiguration {
       case 'vm':
         return new StandaloneDartRuntimeConfiguration();
 
+      case 'dart_precompiled':
+        return new DartPrecompiledRuntimeConfiguration();
+
       case 'drt':
         return new DrtRuntimeConfiguration();
 
@@ -215,6 +218,32 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
     }
     return <Command>[commandBuilder.getVmCommand(
           suite.dartVmBinaryFileName, arguments, environmentOverrides)];
+  }
+}
+
+
+class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
+  List<Command> computeRuntimeCommands(
+      TestSuite suite,
+      CommandBuilder commandBuilder,
+      CommandArtifact artifact,
+      List<String> arguments,
+      Map<String, String> environmentOverrides) {
+    String script = artifact.filename;
+    String type = artifact.mimeType;
+    if (script != null && type != 'application/dart-precompiled') {
+      throw "dart_precompiled cannot run files of type '$type'.";
+    }
+
+    var augmentedArgs = new List();
+    augmentedArgs.add("--run-precompiled-snapshot=${artifact.filename}");
+    augmentedArgs.addAll(arguments);
+
+    var augmentedEnv = new Map.from(environmentOverrides);
+    augmentedEnv['LD_LIBRARY_PATH'] = artifact.filename;
+
+    return <Command>[commandBuilder.getVmCommand(
+          suite.dartPrecompiledBinaryFileName, augmentedArgs, augmentedEnv)];
   }
 }
 

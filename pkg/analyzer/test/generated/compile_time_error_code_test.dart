@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.compile_time_error_code_test;
+library analyzer.test.generated.compile_time_error_code_test;
 
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -219,6 +219,59 @@ library lib2;
 class N {}''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.AMBIGUOUS_EXPORT]);
+    verify([source]);
+  }
+
+  void test_annotationWithNotClass() {
+    Source source = addSource('''
+class Property {
+  final int value;
+  const Property(this.value);
+}
+
+const Property property = const Property(42);
+
+@property(123)
+main() {
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS]);
+    verify([source]);
+  }
+
+  void test_annotationWithNotClass_prefixed() {
+    addNamedSource(
+        "/annotations.dart",
+        r'''
+class Property {
+  final int value;
+  const Property(this.value);
+}
+
+const Property property = const Property(42);
+''');
+    Source source = addSource('''
+import 'annotations.dart' as pref;
+@pref.property(123)
+main() {
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS]);
+    verify([source]);
+  }
+
+  void test_assertWithExtraArgument() {
+    // TODO(paulberry): once DEP 37 is turned on by default, this test should
+    // be removed.
+    Source source = addSource('''
+f(bool x) {
+  assert(x, 'foo');
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.EXTRA_ARGUMENT_TO_ASSERT]);
     verify([source]);
   }
 
@@ -1595,7 +1648,26 @@ part of lib;
 class A {}''');
     computeLibrarySourceErrors(librarySource);
     assertErrors(sourceB, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertNoErrors(librarySource);
     verify([librarySource, sourceA, sourceB]);
+  }
+
+  void test_duplicateDefinition_inPart() {
+    Source librarySource = addNamedSource(
+        "/lib.dart",
+        r'''
+library test;
+part 'a.dart';
+class A {}''');
+    Source sourceA = addNamedSource(
+        "/a.dart",
+        r'''
+part of test;
+class A {}''');
+    computeLibrarySourceErrors(librarySource);
+    assertErrors(sourceA, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertNoErrors(librarySource);
+    verify([librarySource, sourceA]);
   }
 
   void test_duplicateDefinition_catch() {
@@ -1896,8 +1968,7 @@ class C = a.A with M;'''
     Source source = addSource("class A extends double {}");
     computeLibrarySourceErrors(source);
     assertErrors(source, [
-      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
     ]);
     verify([source]);
   }
@@ -1926,8 +1997,7 @@ class C = a.A with M;'''
     Source source = addSource("class A extends num {}");
     computeLibrarySourceErrors(source);
     assertErrors(source, [
-      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
     ]);
     verify([source]);
   }

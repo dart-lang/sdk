@@ -24,6 +24,10 @@ extractPrivateField(obj, name) {
 class A <T> {}
 class B <S extends num> {}
 
+class S {}
+class M {}
+class MA extends S with M {}
+
 class Node {
   static var classField;
 
@@ -110,6 +114,10 @@ class Node {
   f(int x) {
     ++x;
     return x;
+  }
+
+  static staticMain() {
+    node.main();
   }
 
   main() {
@@ -240,7 +248,7 @@ main() {
   Node.classField = 'Class field value';
   typed = new Typed();
   node = new Node();
-  node.main();
+  Node.staticMain();
 }
 
 class C {

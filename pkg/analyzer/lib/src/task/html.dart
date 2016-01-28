@@ -7,7 +7,7 @@ library analyzer.src.task.html;
 import 'dart:collection';
 
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -313,7 +313,8 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
       ];
       outputs[LINE_INFO] = new LineInfo(<int>[0]);
     } else {
-      HtmlParser parser = new HtmlParser(content, generateSpans: true);
+      HtmlParser parser = new HtmlParser(content,
+          generateSpans: true, lowercaseAttrName: false);
       parser.compatMode = 'quirks';
       Document document = parser.parse();
       //
@@ -360,12 +361,7 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
    * Compute [LineInfo] for the given [content].
    */
   static LineInfo _computeLineInfo(String content) {
-    List<int> lineStarts = <int>[0];
-    for (int index = 0; index < content.length; index++) {
-      if (content.codeUnitAt(index) == 0x0A) {
-        lineStarts.add(index + 1);
-      }
-    }
+    List<int> lineStarts = StringUtilities.computeLineStarts(content);
     return new LineInfo(lineStarts);
   }
 }

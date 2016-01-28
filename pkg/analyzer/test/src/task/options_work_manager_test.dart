@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.task.options_work_manager_test;
+library analyzer.test.src.task.options_work_manager_test;
 
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -111,8 +111,8 @@ class OptionsWorkManagerTest {
   }
 
   void test_applyPriorityTargets() {
-    when(context.shouldErrorsBeAnalyzed(source2, null)).thenReturn(true);
-    when(context.shouldErrorsBeAnalyzed(source3, null)).thenReturn(true);
+    when(context.shouldErrorsBeAnalyzed(source2)).thenReturn(true);
+    when(context.shouldErrorsBeAnalyzed(source3)).thenReturn(true);
     manager.priorityResultQueue
         .add(new TargetedResult(source1, ANALYSIS_OPTIONS_ERRORS));
     manager.priorityResultQueue
@@ -136,8 +136,8 @@ class OptionsWorkManagerTest {
         source1, 1, 0, AnalysisOptionsErrorCode.PARSE_ERROR, ['']);
     AnalysisError error2 = new AnalysisError(
         source1, 2, 0, AnalysisOptionsErrorCode.PARSE_ERROR, ['']);
-    entry1.setValue(
-        ANALYSIS_OPTIONS_ERRORS, <AnalysisError>[error1, error2], []);
+    entry1
+        .setValue(ANALYSIS_OPTIONS_ERRORS, <AnalysisError>[error1, error2], []);
 
     List<AnalysisError> errors = manager.getErrors(source1);
     expect(errors, unorderedEquals([error1, error2]));
@@ -233,8 +233,8 @@ class OptionsWorkManagerTest {
         source1, 2, 0, AnalysisOptionsErrorCode.PARSE_ERROR, ['']);
     LineInfo lineInfo = new LineInfo([0]);
     entry1.setValue(LINE_INFO, lineInfo, []);
-    entry1.setValue(
-        ANALYSIS_OPTIONS_ERRORS, <AnalysisError>[error1, error2], []);
+    entry1
+        .setValue(ANALYSIS_OPTIONS_ERRORS, <AnalysisError>[error1, error2], []);
     // RESOLVED_UNIT is ready, set errors
     manager.resultsComputed(source1, {ANALYSIS_OPTIONS_ERRORS: null});
     // all of the errors are included
@@ -282,6 +282,4 @@ class _InternalAnalysisContextMock extends TypedMock
   @override
   ChangeNoticeImpl getNotice(Source source) =>
       _pendingNotices.putIfAbsent(source, () => new ChangeNoticeImpl(source));
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

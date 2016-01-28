@@ -5,10 +5,12 @@
 library dart._vmservice;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+part 'asset.dart';
 part 'client.dart';
 part 'constants.dart';
 part 'running_isolate.dart';
@@ -329,3 +331,4 @@ external bool _vmListenStream(String streamId);
 
 external void _vmCancelStream(String streamId);
 
+external Uint8List _requestAssets();

@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 interactive_test: Skip # Must be run manually.
-dromaeo_smoke_test: Skip # Issue 14521, 8257
 cross_frame_test: Skip # Test reloads itself. Issue 18558
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
@@ -33,7 +32,9 @@ wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant
 
 [ $compiler == dart2js && $checked ]
 js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
-js_typed_interop_test: Pass, Fail # Issue 24822
+
+[ $compiler == dart2js && $checked && $browser ]
+js_typed_interop_test/method: Fail # Issue 24822
 
 [ $compiler == dart2js && $csp && $browser ]
 custom/js_custom_test: Fail # Issue 14643
@@ -56,10 +57,10 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
 # Dartium seems to lose the data from the dispatchEvent.
-async_test: Fail # Uses spawn, not implemented from a DOM isolate in Dartium
 keyboard_event_test: Fail # Issue 13902
-isolates_test: Fail # Issue 13921
 fileapi_test/getFile: Pass, Fail # Issue 20488
+async_test: RuntimeError, OK  # Uses Isolate.spawn.
+isolates_test: RuntimeError, OK  # Uses Isolate.spawn.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
@@ -104,6 +105,8 @@ touchevent_test/supported: Fail # Touch events are only supported on touch devic
 element_animate_test/omit_timing: RuntimeError # Also timing out on MacOS. Issue 23507
 element_animate_test/timing_dict: RuntimeError # Also timing out on MacOS. Issue 23507
 element_animate_test/simple_timing: RuntimeError # Please triage this failure
+element_types_test/supported_object: RuntimeError # Issue 25155
+element_types_test/supported_embed: RuntimeError # Issue 25155
 
 [ $runtime == chrome && $system == macos ]
 canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
@@ -345,7 +348,6 @@ history_test/history: Skip # Issue 22050
 xhr_test/xhr: Pass, Fail # Issue 11602
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 webgl_1_test: Pass, Fail   # Issue 8219
-canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass, Fail # Firefox pre-38 does not like dataUrl videos for drawImage Issue 23479
 text_event_test: Fail # Issue 17893
 
 # Firefox Feature support statuses-
@@ -370,9 +372,13 @@ speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
 websql_test/supported: Fail
 
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+mediasource_test/supported: Pass
+mediasource_test/functional: RuntimeError # Issue 24838
+
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
-[ $runtime == vm ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 *: Skip
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
@@ -401,7 +407,7 @@ touchevent_test/supported: Fail
 [ (($runtime == dartium || $runtime == drt) && $system == macos) || $system == windows ]
 xhr_test/xhr: Skip # Times out.  Issue 21527
 
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer ]
 custom/document_register_basic_test: StaticWarning
 custom/element_upgrade_test: StaticWarning
 datalistelement_test: StaticWarning

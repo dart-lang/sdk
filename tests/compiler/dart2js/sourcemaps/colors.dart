@@ -4,7 +4,7 @@
 
 /// Utility library for creating web colors.
 
-library colors;
+library sourcemaps.colors;
 
 /// A web color.
 abstract class Color {

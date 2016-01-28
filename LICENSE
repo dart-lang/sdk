@@ -9,7 +9,6 @@ args4j - in third_party/args4j
 bzip2 - in third_party/bzip2
 Commons IO - in third_party/commons-io
 Commons Lang in third_party/commons-lang
-dromaeo - in samples/third_party/dromaeo
 Eclipse - in third_party/eclipse
 gsutil - in third_party/gsutil
 Guava - in third_party/guava

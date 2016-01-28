@@ -6,14 +6,21 @@
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/isolate.h"
+#include "vm/log.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 
 
 namespace dart {
 
+DEFINE_FLAG(bool, trace_ast_visitor, false,
+            "Trace AstVisitor.");
+
 #define DEFINE_VISIT_FUNCTION(BaseName)                                        \
 void BaseName##Node::Visit(AstNodeVisitor* visitor) {                          \
+  if (FLAG_trace_ast_visitor) {                                                \
+    THR_Print("Visiting %s\n", PrettyName());                                  \
+  }                                                                            \
   visitor->Visit##BaseName##Node(this);                                        \
 }
 
@@ -99,7 +106,7 @@ LocalVariable* LetNode::AddInitializer(AstNode* node) {
   LocalVariable* temp_var =
       new LocalVariable(token_pos(),
                         String::ZoneHandle(Symbols::New(name)),
-                        Type::ZoneHandle(Type::DynamicType()));
+                        Object::dynamic_type());
   vars_.Add(temp_var);
   return temp_var;
 }
@@ -119,6 +126,16 @@ void ArrayNode::VisitChildren(AstNodeVisitor* visitor) const {
   for (intptr_t i = 0; i < this->length(); i++) {
     ElementAt(i)->Visit(visitor);
   }
+}
+
+
+bool StringInterpolateNode::IsPotentiallyConst() const {
+  for (int i = 0; i < value_->length(); i++) {
+    if (!value_->ElementAt(i)->IsPotentiallyConst()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 

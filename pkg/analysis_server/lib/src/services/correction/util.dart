@@ -12,9 +12,9 @@ import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
-import 'package:analysis_server/src/services/search/element_visitors.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -78,7 +78,7 @@ bool allListsIdentical(List<List> lists, int position) {
 }
 
 /**
- * Climbs up [PrefixedIdentifier] and [ProperyAccess] nodes that include [node].
+ * Climbs up [PrefixedIdentifier] and [PropertyAccess] nodes that include [node].
  */
 Expression climbPropertyAccess(AstNode node) {
   while (true) {
@@ -667,20 +667,9 @@ class CorrectionUtils {
     AstNode enclosingNode = findNode(offset);
     Block enclosingBlock = enclosingNode.getAncestor((node) => node is Block);
     if (enclosingBlock != null) {
-      SourceRange newRange = rangeStartEnd(offset, enclosingBlock.end);
-      ExecutableElement enclosingExecutable =
-          getEnclosingExecutableElement(enclosingNode);
-      if (enclosingExecutable != null) {
-        visitChildren(enclosingExecutable, (Element element) {
-          if (element is LocalElement) {
-            SourceRange elementRange = element.visibleRange;
-            if (elementRange != null && elementRange.intersects(newRange)) {
-              conflicts.add(element.displayName);
-            }
-          }
-          return true;
-        });
-      }
+      _CollectReferencedUnprefixedNames visitor = new _CollectReferencedUnprefixedNames();
+      enclosingBlock.accept(visitor);
+      return visitor.names;
     }
     return conflicts;
   }
@@ -726,7 +715,7 @@ class CorrectionUtils {
       result.offset = prevDirective.end;
       String eol = endOfLine;
       if (prevDirective is LibraryDirective) {
-        result.prefix = "${eol}${eol}";
+        result.prefix = "$eol$eol";
       } else {
         result.prefix = eol;
       }
@@ -753,7 +742,7 @@ class CorrectionUtils {
       if (prevDirective is PartDirective) {
         result.prefix = eol;
       } else {
-        result.prefix = "${eol}${eol}";
+        result.prefix = "$eol$eol";
       }
       return result;
     }
@@ -1133,7 +1122,7 @@ class CorrectionUtils {
       }
       // update line
       if (right) {
-        line = "${indent}${line}";
+        line = "$indent$line";
       } else {
         line = removeStart(line, indent);
       }
@@ -1204,7 +1193,7 @@ class CorrectionUtils {
       lineOffset += line.length + eol.length;
       // update line indent
       if (!inString) {
-        line = "${newIndent}${removeStart(line, oldIndent)}";
+        line = "$newIndent${removeStart(line, oldIndent)}";
       }
       // append line
       sb.write(line);
@@ -1232,30 +1221,6 @@ class CorrectionUtils {
       SourceRange selection, AstNode node) {
     return _selectionIncludesNonWhitespaceOutsideRange(
         selection, rangeNode(node));
-  }
-
-  /**
-   * @return <code>true</code> if given range of [BinaryExpression] can be extracted.
-   */
-  bool validateBinaryExpressionRange(
-      BinaryExpression binaryExpression, SourceRange range) {
-    // only parts of associative expression are safe to extract
-    if (!binaryExpression.operator.type.isAssociativeOperator) {
-      return false;
-    }
-    // prepare selected operands
-    List<Expression> operands = _getOperandsInOrderFor(binaryExpression);
-    List<Expression> subOperands = _getOperandsForSourceRange(operands, range);
-    // if empty, then something wrong with selection
-    if (subOperands.isEmpty) {
-      return false;
-    }
-    // may be some punctuation included into selection - operators, braces, etc
-    if (_selectionIncludesNonWhitespaceOutsideOperands(range, subOperands)) {
-      return false;
-    }
-    // OK
-    return true;
   }
 
   /**
@@ -1323,11 +1288,9 @@ class CorrectionUtils {
       String expressionSource = getNodeText(isExpression.expression);
       String typeSource = getNodeText(isExpression.type);
       if (isExpression.notOperator == null) {
-        return _InvertedCondition
-            ._simple("${expressionSource} is! ${typeSource}");
+        return _InvertedCondition._simple("$expressionSource is! $typeSource");
       } else {
-        return _InvertedCondition
-            ._simple("${expressionSource} is ${typeSource}");
+        return _InvertedCondition._simple("$expressionSource is $typeSource");
       }
     }
     if (expression is PrefixExpression) {
@@ -1344,11 +1307,12 @@ class CorrectionUtils {
     }
     if (expression is ParenthesizedExpression) {
       ParenthesizedExpression pe = expression;
-      Expression innerExpresion = pe.expression;
-      while (innerExpresion is ParenthesizedExpression) {
-        innerExpresion = (innerExpresion as ParenthesizedExpression).expression;
+      Expression innerExpression = pe.expression;
+      while (innerExpression is ParenthesizedExpression) {
+        innerExpression =
+            (innerExpression as ParenthesizedExpression).expression;
       }
-      return _invertCondition0(innerExpresion);
+      return _invertCondition0(innerExpression);
     }
     DartType type = expression.bestType;
     if (type.displayName == "bool") {
@@ -1367,12 +1331,6 @@ class CorrectionUtils {
       return identical(parameterClassElement, targetClassElement);
     }
     return true;
-  }
-
-  bool _selectionIncludesNonWhitespaceOutsideOperands(
-      SourceRange selection, List<Expression> operands) {
-    return _selectionIncludesNonWhitespaceOutsideRange(
-        selection, rangeNodes(operands));
   }
 
   /**
@@ -1395,66 +1353,6 @@ class CorrectionUtils {
     }
     // only whitespace in selection around range
     return false;
-  }
-
-  /**
-   * @return [Expression]s from <code>operands</code> which are completely covered by given
-   *         [SourceRange]. Range should start and end between given [Expression]s.
-   */
-  static List<Expression> _getOperandsForSourceRange(
-      List<Expression> operands, SourceRange range) {
-    assert(!operands.isEmpty);
-    List<Expression> subOperands = [];
-    // track range enter/exit
-    bool entered = false;
-    bool exited = false;
-    // may be range starts before or on first operand
-    if (range.offset <= operands[0].offset) {
-      entered = true;
-    }
-    // iterate over gaps between operands
-    for (int i = 0; i < operands.length - 1; i++) {
-      Expression operand = operands[i];
-      Expression nextOperand = operands[i + 1];
-      SourceRange inclusiveGap =
-          rangeEndStart(operand, nextOperand).getMoveEnd(1);
-      // add operand, if already entered range
-      if (entered) {
-        subOperands.add(operand);
-        // may be last operand in range
-        if (range.endsIn(inclusiveGap)) {
-          exited = true;
-        }
-      } else {
-        // may be first operand in range
-        if (range.startsIn(inclusiveGap)) {
-          entered = true;
-        }
-      }
-    }
-    // check if last operand is in range
-    Expression lastGroupMember = operands[operands.length - 1];
-    if (range.end == lastGroupMember.end) {
-      subOperands.add(lastGroupMember);
-      exited = true;
-    }
-    // we expect that range covers only given operands
-    if (!exited) {
-      return [];
-    }
-    // done
-    return subOperands;
-  }
-
-  /**
-   * @return all operands of the given [BinaryExpression] and its children with the same
-   *         operator.
-   */
-  static List<Expression> _getOperandsInOrderFor(BinaryExpression groupRoot) {
-    List<Expression> operands = [];
-    TokenType groupOperatorType = groupRoot.operator.type;
-    groupRoot.accept(new _OrderedOperandsVisitor(groupOperatorType, operands));
-    return operands;
   }
 }
 
@@ -1527,6 +1425,26 @@ class TokenUtils {
       tokens.length == 1 && tokens[0].type == type;
 }
 
+class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
+  final Set<String> names = new Set<String>();
+
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (!_isPrefixed(node)) {
+      names.add(node.name);
+    }
+  }
+
+  static bool _isPrefixed(SimpleIdentifier node) {
+    AstNode parent = node.parent;
+    return parent is ConstructorName && parent.name == node ||
+        parent is MethodInvocation &&
+            parent.methodName == node &&
+            parent.realTarget != null ||
+        parent is PrefixedIdentifier && parent.identifier == node ||
+        parent is PropertyAccess && parent.target == node;
+  }
+}
+
 /**
  * A container with a source and its precedence.
  */
@@ -1547,9 +1465,9 @@ class _InvertedCondition {
 
   static _InvertedCondition _binary2(
       _InvertedCondition left, String operation, _InvertedCondition right) {
-    // TODO(scheglov) conside merging with "_binary()" after testing
+    // TODO(scheglov) consider merging with "_binary()" after testing
     return new _InvertedCondition(
-        1 << 20, "${left._source}${operation}${right._source}");
+        1 << 20, "${left._source}$operation${right._source}");
   }
 
   /**
@@ -1566,20 +1484,4 @@ class _InvertedCondition {
 
   static _InvertedCondition _simple(String source) =>
       new _InvertedCondition(2147483647, source);
-}
-
-class _OrderedOperandsVisitor extends GeneralizingAstVisitor {
-  final TokenType groupOperatorType;
-  final List<Expression> operands;
-
-  _OrderedOperandsVisitor(this.groupOperatorType, this.operands);
-
-  @override
-  Object visitExpression(Expression node) {
-    if (node is BinaryExpression && node.operator.type == groupOperatorType) {
-      return super.visitNode(node);
-    }
-    operands.add(node);
-    return null;
-  }
 }

@@ -41,6 +41,17 @@ int compareStrings(String a, String b) {
   return a.compareTo(b);
 }
 
+int countLeadingWhitespaces(String str) {
+  int i = 0;
+  for (; i < str.length; i++) {
+    int c = str.codeUnitAt(i);
+    if (!isWhitespace(c)) {
+      break;
+    }
+  }
+  return i;
+}
+
 /**
  * Counts how many times [sub] appears in [str].
  */
@@ -55,6 +66,17 @@ int countMatches(String str, String sub) {
     idx += sub.length;
   }
   return count;
+}
+
+int countTrailingWhitespaces(String str) {
+  int i = 0;
+  for (; i < str.length; i++) {
+    int c = str.codeUnitAt(str.length - 1 - i);
+    if (!isWhitespace(c)) {
+      break;
+    }
+  }
+  return i;
 }
 
 /**

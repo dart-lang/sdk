@@ -89,10 +89,8 @@ TEST_CASE(InvokeDynamic_CompileError) {
 
   // Invoke the constructor.
   const Instance& instance = Instance::Handle(Instance::New(cls));
-  const Array& constructor_arguments = Array::Handle(Array::New(2));
+  const Array& constructor_arguments = Array::Handle(Array::New(1));
   constructor_arguments.SetAt(0, instance);
-  constructor_arguments.SetAt(
-      1, Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
   String& constructor_name = String::Handle(Symbols::New("A."));
   Function& constructor =
     Function::Handle(cls.LookupConstructor(constructor_name));

@@ -23,9 +23,6 @@ main() {
 
 @reflectiveTest
 class AnalysisOptionsFileNotificationTest extends AbstractAnalysisTest {
-  /// Cached model state in case tests need to set task model to on/off.
-  bool wasTaskModelEnabled;
-
   Map<String, List<AnalysisError>> filesErrors = {};
 
   final testSource = '''
@@ -42,6 +39,8 @@ main() {
   String get optionsFilePath => '$projectPath/.analysis_options';
 
   AnalysisContext get testContext => server.getContainingContext(testFile);
+
+  List<AnalysisError> get testFileErrors => filesErrors[testFile];
 
   void addOptionsFile(String contents) {
     addFile(optionsFilePath, contents);
@@ -76,14 +75,76 @@ analyzer:
   void setUp() {
     super.setUp();
     server.handlers = [new AnalysisDomainHandler(server)];
-    wasTaskModelEnabled = AnalysisEngine.instance.useTaskModel;
-    AnalysisEngine.instance.useTaskModel = true;
   }
 
   @override
   void tearDown() {
-    AnalysisEngine.instance.useTaskModel = wasTaskModelEnabled;
+    filesErrors[optionsFilePath] = [];
+    filesErrors[testFile] = [];
     super.tearDown();
+  }
+
+  test_error_filter() async {
+    addOptionsFile('''
+analyzer:
+  errors:
+    unused_local_variable: ignore
+''');
+
+    addTestFile('''
+main() {
+  String unused = "";
+}
+''');
+
+    setAnalysisRoot();
+
+    await waitForTasksFinished();
+
+    // Verify options file.
+    expect(optionsFileErrors, isEmpty);
+
+    // Verify test file.
+    expect(testFileErrors, isEmpty);
+  }
+
+  test_error_filter_removed() async {
+    addOptionsFile('''
+analyzer:
+  errors:
+    unused_local_variable: ignore
+''');
+
+    addTestFile('''
+main() {
+  String unused = "";
+}
+''');
+
+    setAnalysisRoot();
+
+    await waitForTasksFinished();
+
+    // Verify options file.
+    expect(optionsFileErrors, isEmpty);
+
+    // Verify test file.
+    expect(testFileErrors, isEmpty);
+
+    addOptionsFile('''
+analyzer:
+  errors:
+  #  unused_local_variable: ignore
+''');
+
+    await pumpEventQueue();
+    await waitForTasksFinished();
+
+    // Verify options file.
+    expect(optionsFileErrors, isEmpty);
+
+    // Verify test file.
+    expect(testFileErrors, hasLength(1));
   }
 
   test_lint_options_changes() async {
@@ -185,7 +246,7 @@ linter:
     verifyStrongMode(enabled: false);
   }
 
-  test_strong_mode_changed() async {
+  test_strong_mode_changed_off() async {
     setStrongMode(true);
 
     addTestFile(testSource);
@@ -204,6 +265,24 @@ linter:
     await waitForTasksFinished();
 
     verifyStrongMode(enabled: false);
+  }
+
+  test_strong_mode_changed_on() async {
+    setStrongMode(false);
+
+    addTestFile(testSource);
+    setAnalysisRoot();
+
+    await waitForTasksFinished();
+
+    verifyStrongMode(enabled: false);
+
+    setStrongMode(true);
+
+    await pumpEventQueue();
+    await waitForTasksFinished();
+
+    verifyStrongMode(enabled: true);
   }
 
   void verifyLintsEnabled(List<String> lints) {

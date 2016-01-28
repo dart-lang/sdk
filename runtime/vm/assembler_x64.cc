@@ -18,8 +18,10 @@
 namespace dart {
 
 DECLARE_FLAG(bool, allow_absolute_addresses);
-DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
+DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
+
+DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 
 
 Assembler::Assembler(bool use_far_branches)
@@ -785,57 +787,29 @@ void Assembler::orps(XmmRegister dst, XmmRegister src) {
 }
 
 void Assembler::notps(XmmRegister dst) {
-  static const struct ALIGN16 {
-    uint32_t a;
-    uint32_t b;
-    uint32_t c;
-    uint32_t d;
-  } float_not_constant =
-      { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-  LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&float_not_constant)));
+  // { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+  movq(TMP, Address(THR, Thread::float_not_address_offset()));
   xorps(dst, Address(TMP, 0));
 }
 
 
 void Assembler::negateps(XmmRegister dst) {
-  static const struct ALIGN16 {
-    uint32_t a;
-    uint32_t b;
-    uint32_t c;
-    uint32_t d;
-  } float_negate_constant =
-      { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
-  LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&float_negate_constant)));
+  // { 0x80000000, 0x80000000, 0x80000000, 0x80000000 }
+  movq(TMP, Address(THR, Thread::float_negate_address_offset()));
   xorps(dst, Address(TMP, 0));
 }
 
 
 void Assembler::absps(XmmRegister dst) {
-  static const struct ALIGN16 {
-    uint32_t a;
-    uint32_t b;
-    uint32_t c;
-    uint32_t d;
-  } float_absolute_constant =
-      { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
-  LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&float_absolute_constant)));
+  // { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF }
+  movq(TMP, Address(THR, Thread::float_absolute_address_offset()));
   andps(dst, Address(TMP, 0));
 }
 
 
 void Assembler::zerowps(XmmRegister dst) {
-  static const struct ALIGN16 {
-    uint32_t a;
-    uint32_t b;
-    uint32_t c;
-    uint32_t d;
-  } float_zerow_constant =
-      { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000 };
-  LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&float_zerow_constant)));
+  // { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000 }
+  movq(TMP, Address(THR, Thread::float_zerow_address_offset()));
   andps(dst, Address(TMP, 0));
 }
 
@@ -1017,13 +991,8 @@ void Assembler::addpd(XmmRegister dst, XmmRegister src) {
 
 
 void Assembler::negatepd(XmmRegister dst) {
-  static const struct ALIGN16 {
-    uint64_t a;
-    uint64_t b;
-  } double_negate_constant =
-      { 0x8000000000000000LL, 0x8000000000000000LL };
-  LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&double_negate_constant)));
+  // { 0x8000000000000000LL, 0x8000000000000000LL }
+  movq(TMP, Address(THR, Thread::double_negate_address_offset()));
   xorpd(dst, Address(TMP, 0));
 }
 
@@ -1065,13 +1034,8 @@ void Assembler::divpd(XmmRegister dst, XmmRegister src) {
 
 
 void Assembler::abspd(XmmRegister dst) {
-  static const struct ALIGN16 {
-    uint64_t a;
-    uint64_t b;
-  } double_absolute_const =
-      { 0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL };
-  LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&double_absolute_const)));
+  // { 0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL }
+  movq(TMP, Address(THR, Thread::double_abs_address_offset()));
   andpd(dst, Address(TMP, 0));
 }
 
@@ -1340,13 +1304,6 @@ void Assembler::fstpl(const Address& dst) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xDD);
   EmitOperand(3, dst);
-}
-
-
-void Assembler::fildl(const Address& src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xDF);
-  EmitOperand(5, src);
 }
 
 
@@ -2782,6 +2739,7 @@ void Assembler::Drop(intptr_t stack_elements, Register tmp) {
 
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   ASSERT(!Thread::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
@@ -2817,6 +2775,7 @@ void Assembler::LoadIsolate(Register dst) {
 void Assembler::LoadObjectHelper(Register dst,
                                  const Object& object,
                                  bool is_unique) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     movq(dst, Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
@@ -2854,6 +2813,7 @@ void Assembler::LoadUniqueObject(Register dst, const Object& object) {
 
 
 void Assembler::StoreObject(const Address& dst, const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     movq(TMP, Address(THR, Thread::OffsetFromThread(object)));
     movq(dst, TMP);
@@ -2868,6 +2828,7 @@ void Assembler::StoreObject(const Address& dst, const Object& object) {
 
 
 void Assembler::PushObject(const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     pushq(Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
@@ -2881,6 +2842,7 @@ void Assembler::PushObject(const Object& object) {
 
 
 void Assembler::CompareObject(Register reg, const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     cmpq(reg, Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
@@ -3107,6 +3069,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value,
                                          FieldContent old_content) {
+  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
   VerifyHeapWord(dest, old_content);
   if (VerifiedMemory::enabled()) {
     const Register temp = RCX;
@@ -3167,25 +3130,15 @@ void Assembler::IncrementSmiField(const Address& dest, int64_t increment) {
 
 
 void Assembler::DoubleNegate(XmmRegister d) {
-  static const struct ALIGN16 {
-    uint64_t a;
-    uint64_t b;
-  } double_negate_constant =
-      {0x8000000000000000LL, 0x8000000000000000LL};
-  LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&double_negate_constant)));
+  // {0x8000000000000000LL, 0x8000000000000000LL}
+  movq(TMP, Address(THR, Thread::double_negate_address_offset()));
   xorpd(d, Address(TMP, 0));
 }
 
 
 void Assembler::DoubleAbs(XmmRegister reg) {
-  static const struct ALIGN16 {
-    uint64_t a;
-    uint64_t b;
-  } double_abs_constant =
-      {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL};
-  LoadImmediate(TMP,
-      Immediate(reinterpret_cast<intptr_t>(&double_abs_constant)));
+  // {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL}
+  movq(TMP, Address(THR, Thread::double_abs_address_offset()));
   andpd(reg, Address(TMP, 0));
 }
 
@@ -3331,6 +3284,7 @@ void Assembler::PopRegisters(intptr_t cpu_register_set,
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
+  Comment("EnterCallRuntimeFrame");
   EnterStubFrame();
 
   // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
@@ -3420,6 +3374,10 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
 
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
+  if (!FLAG_check_code_pointer) {
+    return;
+  }
+  Comment("CheckCodePointer");
   Label cid_ok, instructions_ok;
   pushq(RAX);
   LoadClassId(RAX, CODE_REG);

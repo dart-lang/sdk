@@ -112,7 +112,7 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
       new(zone) GraphEntryInstr(
         *parsed_function_,
         new(zone) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex),
-        Thread::kNoDeoptId);
+        Compiler::kNoOSRDeoptId);
   start_block_ =
       new(zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
   success_block_ =
@@ -382,9 +382,8 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
 
 LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
                                                  intptr_t index) const {
-  const Type& local_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* local =
-      new(Z) LocalVariable(kNoSourcePos, name, local_type);
+      new(Z) LocalVariable(kNoSourcePos, name, Object::dynamic_type());
 
   intptr_t param_frame_index = kParamEndSlotFromFp + kParamCount - index;
   local->set_index(param_frame_index);
@@ -394,9 +393,8 @@ LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
 
 
 LocalVariable* IRRegExpMacroAssembler::Local(const String& name) {
-  const Type& local_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* local =
-      new(Z) LocalVariable(kNoSourcePos, name, local_type);
+      new(Z) LocalVariable(kNoSourcePos, name, Object::dynamic_type());
   local->set_index(GetNextLocalIndex());
 
   return local;

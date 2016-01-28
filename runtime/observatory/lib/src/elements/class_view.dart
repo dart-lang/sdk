@@ -15,6 +15,7 @@ import 'package:polymer/polymer.dart';
 class ClassViewElement extends ObservatoryElement {
   @published Class cls;
   @observable ServiceMap instances;
+  @observable int reachableBytes;
   @observable int retainedBytes;
   @observable ObservableList mostRetained;
   SampleBufferControlElement sampleBufferControlElement;
@@ -44,6 +45,12 @@ class ClassViewElement extends ObservatoryElement {
   }
 
   // TODO(koda): Add no-arg "calculate-link" instead of reusing "eval-link".
+  Future<ServiceObject> reachableSize(var dummy) {
+    return cls.isolate.getReachableSize(cls).then((Instance obj) {
+      reachableBytes = int.parse(obj.valueAsString);
+    });
+  }
+
   Future<ServiceObject> retainedSize(var dummy) {
     return cls.isolate.getRetainedSize(cls).then((Instance obj) {
       retainedBytes = int.parse(obj.valueAsString);

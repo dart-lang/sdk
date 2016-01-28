@@ -468,17 +468,29 @@ class Object {
     return *branch_offset_error_;
   }
 
+  static const LanguageError& speculative_inlining_error() {
+    ASSERT(speculative_inlining_error_ != NULL);
+    return *speculative_inlining_error_;
+  }
+
   static const Array& vm_isolate_snapshot_object_table() {
     ASSERT(vm_isolate_snapshot_object_table_ != NULL);
     return *vm_isolate_snapshot_object_table_;
   }
+  static const Type& dynamic_type() {
+    ASSERT(dynamic_type_ != NULL);
+    return *dynamic_type_;
+  }
+  static const Type& void_type() {
+    ASSERT(void_type_ != NULL);
+    return *void_type_;
+  }
+
   static void InitVmIsolateSnapshotObjectTable(intptr_t len);
 
   static RawClass* class_class() { return class_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
-  static RawType* dynamic_type() { return dynamic_type_; }
-  static RawType* void_type() { return void_type_; }
   static RawClass* unresolved_class_class() { return unresolved_class_class_; }
   static RawClass* type_arguments_class() { return type_arguments_class_; }
   static RawClass* patch_class_class() { return patch_class_class_; }
@@ -740,8 +752,6 @@ class Object {
   static RawClass* class_class_;  // Class of the Class vm object.
   static RawClass* dynamic_class_;  // Class of the 'dynamic' type.
   static RawClass* void_class_;  // Class of the 'void' type.
-  static RawType* dynamic_type_;  // Class of the 'dynamic' type.
-  static RawType* void_type_;  // Class of the 'void' type.
   static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
   static RawClass* type_arguments_class_;  // Class of TypeArguments vm object.
   static RawClass* patch_class_class_;  // Class of the PatchClass vm object.
@@ -797,7 +807,10 @@ class Object {
   static Smi* smi_illegal_cid_;
   static LanguageError* snapshot_writer_error_;
   static LanguageError* branch_offset_error_;
+  static LanguageError* speculative_inlining_error_;
   static Array* vm_isolate_snapshot_object_table_;
+  static Type* dynamic_type_;
+  static Type* void_type_;
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;
@@ -1051,10 +1064,7 @@ class Class : public Object {
   // Note this returns false for mixin application aliases.
   bool IsMixinApplication() const;
 
-  RawClass* patch_class() const {
-    return raw_ptr()->patch_class_;
-  }
-  void set_patch_class(const Class& patch_class) const;
+  RawClass* GetPatchClass() const;
 
   // Interfaces is an array of Types.
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
@@ -1137,8 +1147,6 @@ class Class : public Object {
   void SetFields(const Array& value) const;
   void AddField(const Field& field) const;
   void AddFields(const GrowableArray<const Field*>& fields) const;
-  intptr_t FindFieldIndex(const Field& field) const;
-  RawField* FieldFromIndex(intptr_t idx) const;
 
   // Returns an array of all fields of this class and its superclasses indexed
   // by offset in words.
@@ -1152,19 +1160,9 @@ class Class : public Object {
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
   void RemoveFunction(const Function& function) const;
-  intptr_t FindFunctionIndex(const Function& function) const;
   RawFunction* FunctionFromIndex(intptr_t idx) const;
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
   RawFunction* ImplicitClosureFunctionFromIndex(intptr_t idx) const;
-
-  RawGrowableObjectArray* closures() const {
-    return raw_ptr()->closure_functions_;
-  }
-  void set_closures(const GrowableObjectArray& value) const;
-  void AddClosureFunction(const Function& function) const;
-  RawFunction* LookupClosureFunction(intptr_t token_pos) const;
-  intptr_t FindClosureIndex(const Function& function) const;
-  RawFunction* ClosureFunctionFromIndex(intptr_t idx) const;
 
   RawFunction* LookupDynamicFunction(const String& name) const;
   RawFunction* LookupDynamicFunctionAllowPrivate(const String& name) const;
@@ -1178,7 +1176,6 @@ class Class : public Object {
   RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupGetterFunction(const String& name) const;
   RawFunction* LookupSetterFunction(const String& name) const;
-  RawFunction* LookupFunctionAtToken(intptr_t token_pos) const;
   RawField* LookupInstanceField(const String& name) const;
   RawField* LookupStaticField(const String& name) const;
   RawField* LookupField(const String& name) const;
@@ -1237,6 +1234,8 @@ class Class : public Object {
 
   void set_is_prefinalized() const;
 
+  void ResetFinalization() const;
+
   bool is_marked_for_parsing() const {
     return MarkedForParsingBit::decode(raw_ptr()->state_bits_);
   }
@@ -1269,7 +1268,7 @@ class Class : public Object {
   bool is_allocated() const {
     return IsAllocatedBit::decode(raw_ptr()->state_bits_);
   }
-  void set_is_allocated() const;
+  void set_is_allocated(bool value) const;
 
   uint16_t num_native_fields() const {
     return raw_ptr()->num_native_fields_;
@@ -1355,7 +1354,7 @@ class Class : public Object {
   // leaf method, ...).
   void RegisterCHACode(const Code& code);
 
-  void DisableCHAOptimizedCode();
+  void DisableCHAOptimizedCode(const Class& subclass);
 
   RawArray* cha_codes() const { return raw_ptr()->cha_codes_; }
   void set_cha_codes(const Array& value) const;
@@ -1485,6 +1484,7 @@ class Class : public Object {
   friend class Object;
   friend class Type;
   friend class Intrinsifier;
+  friend class Precompiler;
 };
 
 
@@ -1718,8 +1718,8 @@ class TypeArguments : public Object {
 class PatchClass : public Object {
  public:
   RawClass* patched_class() const { return raw_ptr()->patched_class_; }
-  RawClass* source_class() const { return raw_ptr()->source_class_; }
-  RawScript* Script() const;
+  RawClass* origin_class() const { return raw_ptr()->origin_class_; }
+  RawScript* script() const { return raw_ptr()->script_; }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawPatchClass));
@@ -1730,11 +1730,15 @@ class PatchClass : public Object {
   }
 
   static RawPatchClass* New(const Class& patched_class,
-                            const Class& source_class);
+                            const Class& origin_class);
+
+  static RawPatchClass* New(const Class& patched_class,
+                            const Script& source);
 
  private:
   void set_patched_class(const Class& value) const;
-  void set_source_class(const Class& value) const;
+  void set_origin_class(const Class& value) const;
+  void set_script(const Script& value) const;
 
   static RawPatchClass* New();
 
@@ -1744,11 +1748,20 @@ class PatchClass : public Object {
 
 
 // Object holding information about an IC: test classes and their
-// corresponding targets.
+// corresponding targets. The owner of the ICData can be either the function
+// or the original ICData object. In case of background compilation we
+// copy the ICData in a child object, thus freezing it during background
+// compilation. Code may contain only original ICData objects.
 class ICData : public Object {
  public:
-  RawFunction* owner() const {
-    return raw_ptr()->owner_;
+  RawFunction* Owner() const;
+
+  RawICData* Original() const;
+
+  void SetOriginal(const ICData& value) const;
+
+  bool IsOriginal() const {
+    return Original() == this->raw();
   }
 
   RawString* target_name() const {
@@ -1871,10 +1884,11 @@ class ICData : public Object {
 
   // Retrieving checks.
 
-  // TODO(srdjan): GetCheckAt without target.
   void GetCheckAt(intptr_t index,
                   GrowableArray<intptr_t>* class_ids,
                   Function* target) const;
+  void GetClassIdsAt(intptr_t index, GrowableArray<intptr_t>* class_ids) const;
+
   // Only for 'num_args_checked == 1'.
   void GetOneClassCheckAt(intptr_t index,
                           intptr_t* class_id,
@@ -1915,6 +1929,12 @@ class ICData : public Object {
                         intptr_t deopt_id,
                         intptr_t num_args_tested);
   static RawICData* NewFrom(const ICData& from, intptr_t num_args_tested);
+
+  // Generates a new ICData with descriptor data copied (shallow clone).
+  // Entry array of the result is the same as in 'from'. Once entry array is
+  // created, it can only change the 'count', all other properties are invariant
+  // (target, cids, number of checks).
+  static RawICData* CloneDescriptor(const ICData& from);
 
   static intptr_t TestEntryLengthFor(intptr_t num_args);
 
@@ -2006,6 +2026,16 @@ class ICData : public Object {
   void PrintToJSONArray(const JSONArray& jsarray,
                         intptr_t token_pos,
                         bool is_static_call) const;
+  void PrintToJSONArrayNew(const JSONArray& jsarray,
+                           intptr_t token_pos,
+                           bool is_static_call) const;
+
+  // Initialize the preallocated empty ICData entry arrays.
+  static void InitOnce();
+
+  enum {
+    kCachedICDataArrayCount = 4
+  };
 
  private:
   static RawICData* New();
@@ -2019,7 +2049,7 @@ class ICData : public Object {
   void set_arguments_descriptor(const Array& value) const;
   void set_deopt_id(intptr_t value) const;
   void SetNumArgsTested(intptr_t value) const;
-  void set_ic_data(const Array& value) const;
+  void set_ic_data_array(const Array& value) const;
   void set_state_bits(uint32_t bits) const;
 
   enum {
@@ -2046,10 +2076,23 @@ class ICData : public Object {
 #endif  // DEBUG
 
   intptr_t TestEntryLength() const;
-  void WriteSentinel(const Array& data) const;
+  static RawArray* NewNonCachedEmptyICDataArray(intptr_t num_args_tested);
+  static RawArray* NewEmptyICDataArray(intptr_t num_args_tested);
+  static RawICData* NewDescriptor(Zone* zone,
+                                  const Function& owner,
+                                  const String& target_name,
+                                  const Array& arguments_descriptor,
+                                  intptr_t deopt_id,
+                                  intptr_t num_args_tested);
+
+  static void WriteSentinel(const Array& data, intptr_t test_entry_length);
+
+  // A cache of VM heap allocated preinitialized empty ic data entry arrays.
+  static RawArray* cached_icdata_arrays_[kCachedICDataArrayCount];
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
   friend class Class;
+  friend class SnapshotWriter;
 };
 
 
@@ -2111,11 +2154,15 @@ class Function : public Object {
   RawClass* Owner() const;
   RawClass* origin() const;
   RawScript* script() const;
+  RawObject* RawOwner() const { return raw_ptr()->owner_; }
 
   RawJSRegExp* regexp() const;
   intptr_t string_specialization_cid() const;
   void SetRegExpData(const JSRegExp& regexp,
                      intptr_t string_specialization_cid) const;
+
+  RawString* native_name() const;
+  void set_native_name(const String& name) const;
 
   RawAbstractType* result_type() const { return raw_ptr()->result_type_; }
   void set_result_type(const AbstractType& value) const;
@@ -2132,7 +2179,9 @@ class Function : public Object {
   RawArray* parameter_names() const { return raw_ptr()->parameter_names_; }
   void set_parameter_names(const Array& value) const;
 
+  // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
+  void InstallOptimizedCode(const Code& code, bool is_osr) const;
   void AttachCode(const Code& value) const;
   void SetInstructions(const Code& value) const;
   void ClearCode() const;
@@ -2164,6 +2213,8 @@ class Function : public Object {
 
   RawContextScope* context_scope() const;
   void set_context_scope(const ContextScope& value) const;
+
+  RawField* LookupImplicitGetterSetterField() const;
 
   // Enclosing function of this local function.
   RawFunction* parent_function() const;
@@ -2199,6 +2250,7 @@ class Function : public Object {
   // Return the closure function implicitly created for this function.
   // If none exists yet, create one and remember it.
   RawFunction* ImplicitClosureFunction() const;
+  void DropUncompiledImplicitClosureFunction() const;
 
   // Return the closure implicitly created for this function.
   // If none exists yet, create one and remember it.
@@ -2328,6 +2380,8 @@ class Function : public Object {
     return raw_ptr()->usage_counter_;
   }
   void set_usage_counter(intptr_t value) const {
+    // TODO(Srdjan): Assert that this is thread-safe, i.e., only
+    // set from mutator-thread or while at a safepoint (e.g., during marking).
     StoreNonPointer(&raw_ptr()->usage_counter_, value);
   }
 
@@ -2570,6 +2624,9 @@ class Function : public Object {
                                       const Script& script,
                                       bool is_static);
 
+  RawFunction* CreateMethodExtractor(const String& getter_name) const;
+  RawFunction* GetMethodExtractor(const String& getter_name) const;
+
   // Allocate new function object, clone values from this function. The
   // owner of the clone is new_owner.
   RawFunction* Clone(const Class& new_owner) const;
@@ -2585,18 +2642,17 @@ class Function : public Object {
   void SaveICDataMap(
       const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
       const Array& edge_counters_array) const;
+  // Uses saved ICData to populate the table 'deopt_id_to_ic_data'. Clone
+  // descriptors if 'clone_descriptors' true.
   void RestoreICDataMap(
-      ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const;
+      ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
+      bool clone_descriptors) const;
 
   RawArray* ic_data_array() const;
   void ClearICDataArray() const;
 
   // Sets deopt reason in all ICData-s with given deopt_id.
   void SetDeoptReasonForAll(intptr_t deopt_id, ICData::DeoptReasonId reason);
-
-  static const int kCtorPhaseInit = 1 << 0;
-  static const int kCtorPhaseBody = 1 << 1;
-  static const int kCtorPhaseAll = (kCtorPhaseInit | kCtorPhaseBody);
 
   void set_modifier(RawFunction::AsyncModifier value) const;
 
@@ -2655,6 +2711,7 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
 
  private:
   void set_ic_data_array(const Array& value) const;
+  void SetInstructionsSafe(const Code& value) const;
 
   enum KindTagBits {
     kKindTagPos = 0,
@@ -2821,14 +2878,21 @@ class Field : public Object {
   bool is_reflectable() const {
     return ReflectableBit::decode(raw_ptr()->kind_bits_);
   }
+  void set_is_reflectable(bool value) const {
+    set_kind_bits(ReflectableBit::update(value, raw_ptr()->kind_bits_));
+  }
   bool is_double_initialized() const {
     return DoubleInitializedBit::decode(raw_ptr()->kind_bits_);
   }
+  // Called in parser after allocating field, immutable property otherwise.
+  // Marks fields that are initialized with a simple double constant.
   void set_is_double_initialized(bool value) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
     set_kind_bits(DoubleInitializedBit::update(value, raw_ptr()->kind_bits_));
   }
 
   inline intptr_t Offset() const;
+  // Called during class finalization.
   inline void SetOffset(intptr_t offset_in_bytes) const;
 
   inline RawInstance* StaticValue() const;
@@ -2837,9 +2901,12 @@ class Field : public Object {
 
   RawClass* owner() const;
   RawClass* origin() const;  // Either mixin class, or same as owner().
+  RawScript* script() const;
+  RawObject* RawOwner() const { return raw_ptr()->owner_; }
 
   RawAbstractType* type() const  { return raw_ptr()->type_; }
-  void set_type(const AbstractType& value) const;
+  // Used by class finalizer, otherwise initialized in constructor.
+  void SetFieldType(const AbstractType& value) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawField));
@@ -2851,7 +2918,14 @@ class Field : public Object {
                        bool is_const,
                        bool is_reflectable,
                        const Class& owner,
+                       const AbstractType& type,
                        intptr_t token_pos);
+
+  static RawField* NewTopLevel(const String& name,
+                               bool is_final,
+                               bool is_const,
+                               const Object& owner,
+                               intptr_t token_pos);
 
   // Allocate new field object, clone values from this field. The
   // owner of the clone is new_owner.
@@ -2871,7 +2945,9 @@ class Field : public Object {
   bool has_initializer() const {
     return HasInitializerBit::decode(raw_ptr()->kind_bits_);
   }
+  // Called by parser after allocating field.
   void set_has_initializer(bool has_initializer) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
     set_kind_bits(HasInitializerBit::update(has_initializer,
                                             raw_ptr()->kind_bits_));
   }
@@ -2882,6 +2958,7 @@ class Field : public Object {
   intptr_t guarded_cid() const { return raw_ptr()->guarded_cid_; }
 
   void set_guarded_cid(intptr_t cid) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
     StoreNonPointer(&raw_ptr()->guarded_cid_, cid);
   }
   static intptr_t guarded_cid_offset() {
@@ -2911,17 +2988,14 @@ class Field : public Object {
   const char* GuardedPropertiesAsCString() const;
 
   intptr_t UnboxedFieldCid() const {
-    ASSERT(IsUnboxedField());
     return guarded_cid();
   }
-
-  bool IsUnboxedField() const;
-
-  bool IsPotentialUnboxedField() const;
 
   bool is_unboxing_candidate() const {
     return UnboxingCandidateBit::decode(raw_ptr()->kind_bits_);
   }
+  // Default 'true', set to false once optimizing compiler determines it should
+  // be boxed.
   void set_is_unboxing_candidate(bool b) const {
     set_kind_bits(UnboxingCandidateBit::update(b, raw_ptr()->kind_bits_));
   }
@@ -2944,6 +3018,7 @@ class Field : public Object {
     return raw_ptr()->is_nullable_ == kNullCid;
   }
   void set_is_nullable(bool val) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
     StoreNonPointer(&raw_ptr()->is_nullable_, val ? kNullCid : kIllegalCid);
   }
   static intptr_t is_nullable_offset() {
@@ -3040,9 +3115,6 @@ class Field : public Object {
   void set_is_const(bool value) const {
     set_kind_bits(ConstBit::update(value, raw_ptr()->kind_bits_));
   }
-  void set_is_reflectable(bool value) const {
-    set_kind_bits(ReflectableBit::update(value, raw_ptr()->kind_bits_));
-  }
   void set_owner(const Object& value) const {
     StorePointer(&raw_ptr()->owner_, value.raw());
   }
@@ -3089,8 +3161,8 @@ class LiteralToken : public Object {
 
 class TokenStream : public Object {
  public:
-  RawArray* TokenObjects() const;
-  void SetTokenObjects(const Array& value) const;
+  RawGrowableObjectArray* TokenObjects() const;
+  void SetTokenObjects(const GrowableObjectArray& value) const;
 
   RawExternalTypedData* GetStream() const;
   void SetStream(const ExternalTypedData& stream) const;
@@ -3110,7 +3182,11 @@ class TokenStream : public Object {
 
   static RawTokenStream* New(intptr_t length);
   static RawTokenStream* New(const Scanner::GrowableTokenStream& tokens,
-                             const String& private_key);
+                             const String& private_key,
+                             bool use_shared_tokens);
+
+  static void OpenSharedTokenList(Isolate* isolate);
+  static void CloseSharedTokenList(Isolate* isolate);
 
   // The class Iterator encapsulates iteration over the tokens
   // in a TokenStream object.
@@ -3192,7 +3268,8 @@ class Script : public Object {
 
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
 
-  void Tokenize(const String& private_key) const;
+  void Tokenize(const String& private_key,
+                bool use_shared_tokens = true) const;
 
   RawLibrary* FindLibrary() const;
   RawString* GetLine(intptr_t line_number,
@@ -3263,6 +3340,8 @@ class DictionaryIterator : public ValueObject {
 class ClassDictionaryIterator : public DictionaryIterator {
  public:
   enum IterationKind {
+    // TODO(hausner): fix call sites that use kIteratePrivate. There is only
+    // one top-level class per library left, not an array to iterate over.
     kIteratePrivate,
     kNoIteratePrivate
   };
@@ -3270,7 +3349,9 @@ class ClassDictionaryIterator : public DictionaryIterator {
   ClassDictionaryIterator(const Library& library,
                           IterationKind kind = kNoIteratePrivate);
 
-  bool HasNext() const { return (next_ix_ < size_) || (anon_ix_ < anon_size_); }
+  bool HasNext() const {
+      return (next_ix_ < size_) || !toplevel_class_.IsNull();
+  }
 
   // Returns a non-null raw class.
   RawClass* GetNextClass();
@@ -3278,9 +3359,7 @@ class ClassDictionaryIterator : public DictionaryIterator {
  private:
   void MoveToNextClass();
 
-  const Array& anon_array_;
-  const int anon_size_;  // Number of anonymous classes to iterate over.
-  int anon_ix_;  // Index of next anonymous class.
+  Class& toplevel_class_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassDictionaryIterator);
 };
@@ -3322,6 +3401,10 @@ class Library : public Object {
   RawInstance* LoadError() const { return raw_ptr()->load_error_; }
   void SetLoadError(const Instance& error) const;
   RawInstance* TransitiveLoadError() const;
+
+  void AddPatchClass(const Class& cls) const;
+  RawClass* GetPatchClass(const String& name) const;
+  void RemovePatchClass(const Class& cls) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibrary));
@@ -3376,17 +3459,23 @@ class Library : public Object {
   void AddExport(const Namespace& ns) const;
 
   void AddClassMetadata(const Class& cls,
-                        const Class& toplevel_class,
+                        const Object& tl_owner,
                         intptr_t token_pos) const;
   void AddFieldMetadata(const Field& field, intptr_t token_pos) const;
   void AddFunctionMetadata(const Function& func, intptr_t token_pos) const;
-  void AddLibraryMetadata(const Class& cls, intptr_t token_pos) const;
+  void AddLibraryMetadata(const Object& tl_owner, intptr_t token_pos) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
                                 intptr_t token_pos) const;
   RawObject* GetMetadata(const Object& obj) const;
 
-  intptr_t num_anonymous_classes() const { return raw_ptr()->num_anonymous_; }
-  RawArray* anonymous_classes() const { return raw_ptr()->anonymous_classes_; }
+  RawClass* toplevel_class() const {
+    return raw_ptr()->toplevel_class_;
+  }
+  void set_toplevel_class(const Class& value) const;
+
+  RawGrowableObjectArray* patch_classes() const {
+    return raw_ptr()->patch_classes_;
+  }
 
   // Library imports.
   RawArray* imports() const { return raw_ptr()->imports_; }
@@ -3396,9 +3485,6 @@ class Library : public Object {
   RawNamespace* ImportAt(intptr_t index) const;
   RawLibrary* ImportLibraryAt(intptr_t index) const;
   bool ImportsCorelib() const;
-
-  RawFunction* LookupFunctionInScript(const Script& script,
-                                      intptr_t token_pos) const;
 
   // Resolving native methods for script loaded in the library.
   Dart_NativeEntryResolver native_entry_resolver() const {
@@ -3533,7 +3619,7 @@ class Library : public Object {
 
   RawString* MakeMetadataName(const Object& obj) const;
   RawField* GetMetadataField(const String& metaname) const;
-  void AddMetadata(const Class& cls,
+  void AddMetadata(const Object& owner,
                    const String& name,
                    intptr_t token_pos) const;
 
@@ -3556,7 +3642,7 @@ class Namespace : public Object {
   RawArray* show_names() const { return raw_ptr()->show_names_; }
   RawArray* hide_names() const { return raw_ptr()->hide_names_; }
 
-  void AddMetadata(intptr_t token_pos, const Class& owner_class);
+  void AddMetadata(const Object& owner, intptr_t token_pos);
   RawObject* GetMetadata() const;
 
   static intptr_t InstanceSize() {
@@ -3694,13 +3780,6 @@ class Instructions : public Object {
  public:
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
 
-  RawCode* code() const {
-    // This should only be accessed when jitting.
-    // TODO(johnmccutchan): Remove code back pointer.
-    ASSERT(!Dart::IsRunningPrecompiledCode());
-    return raw_ptr()->code_;
-  }
-
   uword EntryPoint() const {
     return reinterpret_cast<uword>(raw_ptr()) + HeaderSize();
   }
@@ -3737,10 +3816,6 @@ class Instructions : public Object {
  private:
   void set_size(intptr_t size) const {
     StoreNonPointer(&raw_ptr()->size_, size);
-  }
-
-  void set_code(RawCode* code) const {
-    StorePointer(&raw_ptr()->code_, code);
   }
 
   // New is a private method as RawInstruction and RawCode objects should
@@ -4302,7 +4377,7 @@ class Code : public Object {
                                bool optimized = false);
   static RawCode* FinalizeCode(const char* name,
                                Assembler* assembler,
-                               bool optimized = false);
+                               bool optimized);
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);
   static RawCode* FindCode(uword pc, int64_t timestamp);
@@ -4347,8 +4422,9 @@ class Code : public Object {
 
   void Enable() const {
     if (!IsDisabled()) return;
+    ASSERT(Thread::Current()->IsMutatorThread());
     ASSERT(instructions() != active_instructions());
-    set_active_instructions(instructions());
+    SetActiveInstructions(instructions());
   }
 
   bool IsDisabled() const {
@@ -4375,12 +4451,11 @@ class Code : public Object {
   class AliveBit : public BitField<bool, kAliveBit, 1> {};
   class PtrOffBits : public BitField<intptr_t, kPtrOffBit, kPtrOffSize> {};
 
-  // An object finder visitor interface.
-  class FindRawCodeVisitor : public FindObjectVisitor {
+  class SlowFindRawCodeVisitor : public FindObjectVisitor {
    public:
-    explicit FindRawCodeVisitor(uword pc)
+    explicit SlowFindRawCodeVisitor(uword pc)
         : FindObjectVisitor(Isolate::Current()), pc_(pc) { }
-    virtual ~FindRawCodeVisitor() { }
+    virtual ~SlowFindRawCodeVisitor() { }
 
     // Check if object matches find condition.
     virtual bool FindObject(RawObject* obj) const;
@@ -4388,7 +4463,7 @@ class Code : public Object {
    private:
     const uword pc_;
 
-    DISALLOW_COPY_AND_ASSIGN(FindRawCodeVisitor);
+    DISALLOW_COPY_AND_ASSIGN(SlowFindRawCodeVisitor);
   };
 
   static bool IsOptimized(RawCode* code) {
@@ -4401,16 +4476,10 @@ class Code : public Object {
     StoreNonPointer(&raw_ptr()->compile_timestamp_, timestamp);
   }
 
-  void set_active_instructions(RawInstructions* instructions) const {
-    // RawInstructions are never allocated in New space and hence a
-    // store buffer update is not needed here.
-    StorePointer(&raw_ptr()->active_instructions_, instructions);
-    StoreNonPointer(&raw_ptr()->entry_point_,
-                    reinterpret_cast<uword>(instructions->ptr()) +
-                    Instructions::HeaderSize());
-  }
+  void SetActiveInstructions(RawInstructions* instructions) const;
 
   void set_instructions(RawInstructions* instructions) const {
+    ASSERT(Thread::Current()->IsMutatorThread() || !is_alive());
     StorePointer(&raw_ptr()->instructions_, instructions);
   }
 
@@ -4595,6 +4664,14 @@ class MegamorphicCache : public Object {
   intptr_t mask() const;
   void set_mask(intptr_t mask) const;
 
+  RawString* target_name() const {
+    return raw_ptr()->target_name_;
+  }
+
+  RawArray* arguments_descriptor() const {
+    return raw_ptr()->args_descriptor_;
+  }
+
   intptr_t filled_entry_count() const;
   void set_filled_entry_count(intptr_t num) const;
 
@@ -4604,8 +4681,12 @@ class MegamorphicCache : public Object {
   static intptr_t mask_offset() {
     return OFFSET_OF(RawMegamorphicCache, mask_);
   }
+  static intptr_t arguments_descriptor_offset() {
+    return OFFSET_OF(RawMegamorphicCache, args_descriptor_);
+  }
 
-  static RawMegamorphicCache* New();
+  static RawMegamorphicCache* New(const String& target_name,
+                                  const Array& arguments_descriptor);
 
   void EnsureCapacity() const;
 
@@ -4617,6 +4698,11 @@ class MegamorphicCache : public Object {
 
  private:
   friend class Class;
+
+  static RawMegamorphicCache* New();
+
+  void set_target_name(const String& value) const;
+  void set_arguments_descriptor(const Array& value) const;
 
   enum {
     kClassIdIndex,
@@ -5232,7 +5318,7 @@ class Type : public AbstractType {
   virtual bool IsRecursive() const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
-      Error* malformed_error,
+      Error* bound_error,
       TrailPtr trail = NULL,
       Heap::Space space = Heap::kNew) const;
   virtual RawAbstractType* CloneUnfinalized() const;
@@ -6739,7 +6825,11 @@ class Array : public Instance {
     // An Array is raw or takes one type argument. However, its type argument
     // vector may be longer than 1 due to a type optimization reusing the type
     // argument vector of the instantiator.
-    ASSERT(value.IsNull() || ((value.Length() >= 1) && value.IsInstantiated()));
+    ASSERT(value.IsNull() ||
+           ((value.Length() >= 1) &&
+            value.IsInstantiated() /*&& value.IsCanonical()*/));
+    // TODO(asiva): Values read from a message snapshot are not properly marked
+    // as canonical. See for example tests/isolate/mandel_isolate_test.dart.
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
@@ -6902,7 +6992,10 @@ class GrowableObjectArray : public Instance {
     // A GrowableObjectArray is raw or takes one type argument. However, its
     // type argument vector may be longer than 1 due to a type optimization
     // reusing the type argument vector of the instantiator.
-    ASSERT(value.IsNull() || ((value.Length() >= 1) && value.IsInstantiated()));
+    ASSERT(value.IsNull() ||
+           ((value.Length() >= 1) &&
+            value.IsInstantiated() &&
+            value.IsCanonical()));
     const Array& contents = Array::Handle(data());
     contents.SetTypeArguments(value);
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
@@ -7204,7 +7297,7 @@ class TypedData : public Instance {
     return RawObject::IsTypedDataClassId(cid);
   }
 
-  static RawTypedData* EmptyUint32Array(Isolate* isolate);
+  static RawTypedData* EmptyUint32Array(Thread* thread);
 
  protected:
   void SetLength(intptr_t value) const {
@@ -7450,7 +7543,11 @@ class LinkedHashMap : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const TypeArguments& value) const {
-    ASSERT(value.IsNull() || ((value.Length() >= 2) && value.IsInstantiated()));
+    ASSERT(value.IsNull() ||
+           ((value.Length() >= 2) &&
+            value.IsInstantiated() /*&& value.IsCanonical()*/));
+    // TODO(asiva): Values read from a message snapshot are not properly marked
+    // as canonical. See for example tests/isolate/message3_test.dart.
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
   static intptr_t type_arguments_offset() {
@@ -7591,6 +7688,7 @@ class Closure : public AllStatic {
   }
   static void SetTypeArguments(const Instance& closure,
                                const TypeArguments& value) {
+    ASSERT(value.IsNull() || value.IsCanonical());
     closure.StorePointer(TypeArgumentsAddr(closure), value.raw());
   }
   static intptr_t type_arguments_offset() {
@@ -7970,12 +8068,12 @@ class UserTag : public Instance {
                          Heap::Space space = Heap::kOld);
   static RawUserTag* DefaultTag();
 
-  static bool TagTableIsFull(Isolate* isolate);
+  static bool TagTableIsFull(Thread* thread);
   static RawUserTag* FindTagById(uword tag_id);
 
  private:
-  static RawUserTag* FindTagInIsolate(Isolate* isolate, const String& label);
-  static void AddTagToIsolate(Isolate* isolate, const UserTag& tag);
+  static RawUserTag* FindTagInIsolate(Thread* thread, const String& label);
+  static void AddTagToIsolate(Thread* thread, const UserTag& tag);
 
   void set_label(const String& tag_label) const {
     StorePointer(&raw_ptr()->label_, tag_label.raw());
@@ -8047,6 +8145,7 @@ RawInstance* Field::StaticValue() const {
 
 void Field::SetStaticValue(const Instance& value,
                            bool save_initial_value) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(is_static());  // Valid only for static dart fields.
   StorePointer(&raw_ptr()->value_.static_value_, value.raw());
   if (save_initial_value) {

@@ -7,9 +7,11 @@ library analysis_server.src.status.element_writer;
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:analysis_server/src/get_handler.dart';
+import 'package:analysis_server/src/status/get_handler.dart';
 import 'package:analysis_server/src/status/tree_writer.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 
 /**
  * A visitor that will produce an HTML representation of an element structure.

@@ -11,7 +11,8 @@ import '../../compiler.dart' show
     CompilerOutputProvider;
 import '../common.dart';
 import '../common/backend_api.dart' show
-    Backend;
+    Backend,
+    ImpactTransformer;
 import '../common/codegen.dart' show
     CodegenWorkItem;
 import '../common/names.dart' show
@@ -21,9 +22,7 @@ import '../common/registry.dart' show
     Registry;
 import '../common/resolution.dart' show
     Resolution,
-    ResolutionCallbacks,
-    ResolutionImpact,
-    TransformedWorldImpact;
+    ResolutionImpact;
 import '../common/tasks.dart' show
     CompilerTask;
 import '../compiler.dart' show
@@ -36,8 +35,7 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../enqueue.dart' show
     Enqueuer,
-    ResolutionEnqueuer,
-    WorldImpact;
+    ResolutionEnqueuer;
 import '../library_loader.dart' show
     LoadedLibraries;
 import '../mirror_renamer/mirror_renamer.dart';
@@ -49,8 +47,13 @@ import '../tokens/keyword.dart' show
 import '../tree/tree.dart';
 import '../universe/selector.dart' show
     Selector;
-import '../universe/universe.dart' show
-    UniverseSelector;
+import '../universe/use.dart' show
+    DynamicUse,
+    TypeUse,
+    TypeUseKind;
+import '../universe/world_impact.dart' show
+    WorldImpact,
+    TransformedWorldImpact;
 import '../util/util.dart';
 import 'backend_ast_to_frontend_ast.dart' as backend2frontend;
 

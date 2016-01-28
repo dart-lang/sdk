@@ -8,18 +8,10 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';
 import 'package:typed_mock/typed_mock.dart';
 
-class MockContextCodec extends TypedMock implements ContextCodec {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class MockContextCodec extends TypedMock implements ContextCodec {}
 
-class MockElementCodec extends TypedMock implements ElementCodec {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class MockElementCodec extends TypedMock implements ElementCodec {}
 
-class MockLocation extends TypedMock implements LocationImpl {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class MockLocation extends TypedMock implements LocationImpl {}
 
-class MockRelationshipCodec extends TypedMock implements RelationshipCodec {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class MockRelationshipCodec extends TypedMock implements RelationshipCodec {}

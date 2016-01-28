@@ -11,7 +11,6 @@ import 'dart:io';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/server/driver.dart' as analysisServer;
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
@@ -583,7 +582,7 @@ class Server {
     _pendingCommands[id] = completer;
     String line = JSON.encode(command);
     _recordStdio('SEND: $line');
-    _process.stdin.add(UTF8.encoder.convert("${line}\n"));
+    _process.stdin.add(UTF8.encoder.convert("$line\n"));
     return completer.future;
   }
 
@@ -597,7 +596,6 @@ class Server {
       {bool debugServer: false,
       int diagnosticPort,
       bool profileServer: false,
-      bool newTaskModel: true,
       bool useAnalysisHighlight2: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
@@ -615,7 +613,7 @@ class Server {
       arguments.add('--observe');
       arguments.add('--pause-isolates-on-exit');
     }
-    if (Platform.packageRoot.isNotEmpty) {
+    if (Platform.packageRoot != null) {
       arguments.add('--package-root=${Platform.packageRoot}');
     }
     arguments.add('--checked');
@@ -626,9 +624,6 @@ class Server {
     }
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
-    }
-    if (!newTaskModel) {
-      arguments.add('--${analysisServer.Driver.DISABLE_NEW_TASK_MODEL}');
     }
 //    print('Launching $serverPath');
 //    print('$dartBinary ${arguments.join(' ')}');

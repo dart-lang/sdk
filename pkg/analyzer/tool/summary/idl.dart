@@ -57,24 +57,44 @@ const informative = null;
 const private = null;
 
 /**
+ * Annotation describing a class which can be the top level object in an
+ * encoded summary.
+ */
+const topLevel = null;
+
+/**
  * Information about a dependency that exists between one library and another
  * due to an "import" declaration.
  */
 class PrelinkedDependency {
   /**
-   * The relative URI used to import one library from the other.
+   * The relative URI of the dependent library.  This URI is relative to the
+   * importing library, even if there are intervening `export` declarations.
+   * So, for example, if `a.dart` imports `b/c.dart` and `b/c.dart` exports
+   * `d/e.dart`, the URI listed for `a.dart`'s dependency on `e.dart` will be
+   * `b/d/e.dart`.
    */
   String uri;
+
+  /**
+   * URI for the compilation units listed in the library's `part` declarations.
+   * These URIs are relative to the importing library.
+   */
+  List<String> parts;
 }
 
 /**
  * Pre-linked summary of a library.
  */
+@topLevel
 class PrelinkedLibrary {
   /**
-   * The unlinked library summary.
+   * The pre-linked summary of all the compilation units constituting the
+   * library.  The summary of the defining compilation unit is listed first,
+   * followed by the summary of each part, in the order of the `part`
+   * declarations in the defining compilation unit.
    */
-  UnlinkedLibrary unlinked;
+  List<PrelinkedUnit> units;
 
   /**
    * The libraries that this library depends on (either via an explicit import
@@ -88,19 +108,44 @@ class PrelinkedLibrary {
   List<PrelinkedDependency> dependencies;
 
   /**
-   * For each import in [UnlinkedLibrary.imports], an index into [dependencies]
+   * For each import in [UnlinkedUnit.imports], an index into [dependencies]
    * of the library being imported.
    *
    * TODO(paulberry): if [dependencies] is removed, this can be removed as
    * well, since there will effectively be a one-to-one mapping.
    */
   List<int> importDependencies;
+}
+
+/**
+ * Information about the resolution of an [UnlinkedReference].
+ */
+class PrelinkedReference {
+  /**
+   * Index into [PrelinkedLibrary.dependencies] indicating which imported library
+   * declares the entity being referred to.
+   */
+  int dependency;
 
   /**
-   * For each reference in [UnlinkedLibrary.references], information about how
-   * that reference is resolved.
+   * The kind of the entity being referred to.  For the pseudo-type `dynamic`,
+   * the kind is [PrelinkedReferenceKind.classOrEnum].
    */
-  List<PrelinkedReference> references;
+  PrelinkedReferenceKind kind;
+
+  /**
+   * Integer index indicating which unit in the imported library contains the
+   * definition of the entity.  As with indices into [PrelinkedLibrary.units],
+   * zero represents the defining compilation unit, and nonzero values
+   * represent parts in the order of the corresponding `part` declarations.
+   */
+  int unit;
+
+  /**
+   * If the entity being referred to is generic, the number of type parameters
+   * it accepts.  Otherwise zero.
+   */
+  int numTypeParameters;
 }
 
 /**
@@ -124,25 +169,51 @@ enum PrelinkedReferenceKind {
   other,
 
   /**
+   * The entity is a prefix.
+   */
+  prefix,
+
+  /**
    * The entity being referred to does not exist.
    */
   unresolved
 }
 
 /**
- * Information about the resolution of an [UnlinkedReference].
+ * Pre-linked summary of a compilation unit.
  */
-class PrelinkedReference {
+class PrelinkedUnit {
   /**
-   * Index into [UnlinkedLibrary.dependencies] indicating which imported library
-   * declares the entity being referred to.
+   * For each reference in [UnlinkedUnit.references], information about how
+   * that reference is resolved.
    */
-  int dependency;
+  List<PrelinkedReference> references;
+}
+
+/**
+ * Information about SDK.
+ */
+@topLevel
+class SdkBundle {
+  /**
+   * The list of URIs of items in [prelinkedLibraries], e.g. `dart:core`.
+   */
+  List<String> prelinkedLibraryUris;
 
   /**
-   * The kind of the entity being referred to.
+   * Pre-linked libraries.
    */
-  PrelinkedReferenceKind kind;
+  List<PrelinkedLibrary> prelinkedLibraries;
+
+  /**
+   * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
+   */
+  List<String> unlinkedUnitUris;
+
+  /**
+   * Unlinked information for the compilation units constituting the SDK.
+   */
+  List<UnlinkedUnit> unlinkedUnits;
 }
 
 /**
@@ -155,11 +226,17 @@ class UnlinkedClass {
   String name;
 
   /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * class is declared in.
+   * Offset of the class name relative to the beginning of the file.
    */
   @informative
-  int unit;
+  int nameOffset;
+
+  /**
+   * Documentation comment for the class, or `null` if there is no
+   * documentation comment.
+   */
+  @informative
+  UnlinkedDocumentationComment documentationComment;
 
   /**
    * Type parameters of the class, if any.
@@ -174,7 +251,7 @@ class UnlinkedClass {
   UnlinkedTypeRef supertype;
 
   /**
-   * Mixins appering in a `with` clause, if any.
+   * Mixins appearing in a `with` clause, if any.
    */
   List<UnlinkedTypeRef> mixins;
 
@@ -202,6 +279,12 @@ class UnlinkedClass {
    * Indicates whether the class is declared using mixin application syntax.
    */
   bool isMixinApplication;
+
+  /**
+   * Indicates whether this class is the core "Object" class (and hence has no
+   * supertype)
+   */
+  bool hasNoSupertype;
 }
 
 /**
@@ -221,6 +304,30 @@ class UnlinkedCombinator {
 }
 
 /**
+ * Unlinked summary information about a documentation comment.
+ */
+class UnlinkedDocumentationComment {
+  /**
+   * Text of the documentation comment, with '\r\n' replaced by '\n'.
+   *
+   * References appearing within the doc comment in square brackets are not
+   * specially encoded.
+   */
+  String text;
+
+  /**
+   * Offset of the beginning of the documentation comment relative to the
+   * beginning of the file.
+   */
+  int offset;
+
+  /**
+   * Length of the documentation comment (prior to replacing '\r\n' with '\n').
+   */
+  int length;
+}
+
+/**
  * Unlinked summary information about an enum declaration.
  */
 class UnlinkedEnum {
@@ -230,16 +337,22 @@ class UnlinkedEnum {
   String name;
 
   /**
+   * Offset of the enum name relative to the beginning of the file.
+   */
+  @informative
+  int nameOffset;
+
+  /**
+   * Documentation comment for the enum, or `null` if there is no documentation
+   * comment.
+   */
+  @informative
+  UnlinkedDocumentationComment documentationComment;
+
+  /**
    * Values listed in the enum declaration, in declaration order.
    */
   List<UnlinkedEnumValue> values;
-
-  /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * enum is declared in.
-   */
-  @informative
-  int unit;
 }
 
 /**
@@ -251,31 +364,19 @@ class UnlinkedEnumValue {
    * Name of the enumerated value.
    */
   String name;
-}
-
-/**
- * Enum used to indicate the kind of an executable.
- */
-enum UnlinkedExecutableKind {
-  /**
-   * Executable is a function or method.
-   */
-  functionOrMethod,
 
   /**
-   * Executable is a getter.
+   * Offset of the enum value name relative to the beginning of the file.
    */
-  getter,
+  @informative
+  int nameOffset;
 
   /**
-   * Executable is a setter.
+   * Documentation comment for the enum value, or `null` if there is no
+   * documentation comment.
    */
-  setter,
-
-  /**
-   * Executable is a constructor.
-   */
-  constructor
+  @informative
+  UnlinkedDocumentationComment documentationComment;
 }
 
 /**
@@ -291,12 +392,20 @@ class UnlinkedExecutable {
   String name;
 
   /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * executable is declared in.  Zero for executables which are nested inside
-   * another declaration (i.e. local functions and method declarations).
+   * Offset of the executable name relative to the beginning of the file.  For
+   * named constructors, this excludes the class name and excludes the ".".
+   * For unnamed constructors, this is the offset of the class name (i.e. the
+   * offset of the second "C" in "class C { C(); }").
    */
   @informative
-  int unit;
+  int nameOffset;
+
+  /**
+   * Documentation comment for the executable, or `null` if there is no
+   * documentation comment.
+   */
+  @informative
+  UnlinkedDocumentationComment documentationComment;
 
   /**
    * Type parameters of the executable, if any.  Empty if support for generic
@@ -306,8 +415,8 @@ class UnlinkedExecutable {
 
   /**
    * Declared return type of the executable.  Absent if the return type is
-   * `void`.  Note that when strong mode is enabled, the actual return type may
-   * be different due to type inference.
+   * `void` or the executable is a constructor.  Note that when strong mode is
+   * enabled, the actual return type may be different due to type inference.
    */
   UnlinkedTypeRef returnType;
 
@@ -347,12 +456,75 @@ class UnlinkedExecutable {
    * Indicates whether the executable is declared using the `factory` keyword.
    */
   bool isFactory;
+
+  /**
+   * Indicates whether the executable lacks an explicit return type
+   * declaration.  False for constructors and setters.
+   */
+  bool hasImplicitReturnType;
+
+  /**
+   * Indicates whether the executable is declared using the `external` keyword.
+   */
+  bool isExternal;
 }
 
 /**
- * Unlinked summary information about an export declaration.
+ * Enum used to indicate the kind of an executable.
  */
-class UnlinkedExport {
+enum UnlinkedExecutableKind {
+  /**
+   * Executable is a function or method.
+   */
+  functionOrMethod,
+
+  /**
+   * Executable is a getter.
+   */
+  getter,
+
+  /**
+   * Executable is a setter.
+   */
+  setter,
+
+  /**
+   * Executable is a constructor.
+   */
+  constructor
+}
+
+/**
+ * Unlinked summary information about an export declaration (stored outside
+ * [UnlinkedPublicNamespace]).
+ */
+class UnlinkedExportNonPublic {
+  /**
+   * Offset of the "export" keyword.
+   */
+  @informative
+  int offset;
+
+  /**
+   * Offset of the URI string (including quotes) relative to the beginning of
+   * the file.
+   */
+  @informative
+  int uriOffset;
+
+  /**
+   * End of the URI string (including quotes) relative to the beginning of the
+   * file.
+   */
+  @informative
+  int uriEnd;
+}
+
+/**
+ * Unlinked summary information about an export declaration (stored inside
+ * [UnlinkedPublicNamespace]).
+ */
+class UnlinkedExportPublic {
   /**
    * URI used in the source code to reference the exported library.
    */
@@ -381,12 +553,12 @@ class UnlinkedImport {
   int offset;
 
   /**
-   * Index into [UnlinkedLibrary.prefixes] of the prefix declared by this
+   * Index into [UnlinkedUnit.references] of the prefix declared by this
    * import declaration, or zero if this import declaration declares no prefix.
    *
    * Note that multiple imports can declare the same prefix.
    */
-  int prefix;
+  int prefixReference;
 
   /**
    * Combinators contained in this import declaration.
@@ -402,89 +574,27 @@ class UnlinkedImport {
    * Indicates whether the import declaration is implicit.
    */
   bool isImplicit;
-}
-
-/**
- * Unlinked summary of an entire library.
- */
-class UnlinkedLibrary {
-  /**
-   * Top level and prefixed names referred to by this library.
-   */
-  List<UnlinkedReference> references;
 
   /**
-   * Information about the units constituting this library.  The first unit
-   * listed is always the defining compilation unit.
+   * Offset of the URI string (including quotes) relative to the beginning of
+   * the file.  If [isImplicit] is true, zero.
    */
-  List<UnlinkedUnit> units;
+  @informative
+  int uriOffset;
 
   /**
-   * Name of the library (from a "library" declaration, if present).
+   * End of the URI string (including quotes) relative to the beginning of the
+   * file.  If [isImplicit] is true, zero.
    */
-  String name;
+  @informative
+  int uriEnd;
 
   /**
-   * Classes declared in the library.
+   * Offset of the prefix name relative to the beginning of the file, or zero
+   * if there is no prefix.
    */
-  List<UnlinkedClass> classes;
-
-  /**
-   * Enums declared in the library.
-   */
-  List<UnlinkedEnum> enums;
-
-  /**
-   * Top level executable objects (functions, getters, and setters) declared in
-   * the library.
-   */
-  List<UnlinkedExecutable> executables;
-
-  /**
-   * Export declarations in the library.
-   */
-  List<UnlinkedExport> exports;
-
-  /**
-   * Import declarations in the library.
-   */
-  List<UnlinkedImport> imports;
-
-  /**
-   * Typedefs declared in the library.
-   */
-  List<UnlinkedTypedef> typedefs;
-
-  /**
-   * Top level variables declared in the library.
-   */
-  List<UnlinkedVariable> variables;
-
-  /**
-   * Prefixes introduced by import declarations.  The first element in this
-   * array is a pseudo-prefix used by references made with no prefix.
-   */
-  List<UnlinkedPrefix> prefixes;
-}
-
-/**
- * Enum used to indicate the kind of a parameter.
- */
-enum UnlinkedParamKind {
-  /**
-   * Parameter is required.
-   */
-  required,
-
-  /**
-   * Parameter is positional optional (enclosed in `[]`)
-   */
-  positional,
-
-  /**
-   * Parameter is named optional (enclosed in `{}`)
-   */
-  named
+  @informative
+  int prefixOffset;
 }
 
 /**
@@ -495,6 +605,12 @@ class UnlinkedParam {
    * Name of the parameter.
    */
   String name;
+
+  /**
+   * Offset of the parameter name relative to the beginning of the file.
+   */
+  @informative
+  int nameOffset;
 
   /**
    * If [isFunctionTyped] is `true`, the declared return type.  If
@@ -525,14 +641,109 @@ class UnlinkedParam {
    * declared using `this.` syntax).
    */
   bool isInitializingFormal;
+
+  /**
+   * Indicates whether this parameter lacks an explicit type declaration.
+   * Always false for a function-typed parameter.
+   */
+  bool hasImplicitType;
 }
 
-class UnlinkedPrefix {
+/**
+ * Enum used to indicate the kind of a parameter.
+ */
+enum UnlinkedParamKind {
   /**
-   * The name of the prefix, or the empty string in the case of the
-   * pseudo-prefix which represents "no prefix".
+   * Parameter is required.
+   */
+  required,
+
+  /**
+   * Parameter is positional optional (enclosed in `[]`)
+   */
+  positional,
+
+  /**
+   * Parameter is named optional (enclosed in `{}`)
+   */
+  named
+}
+
+/**
+ * Unlinked summary information about a part declaration.
+ */
+class UnlinkedPart {
+  /**
+   * Offset of the URI string (including quotes) relative to the beginning of
+   * the file.
+   */
+  @informative
+  int uriOffset;
+
+  /**
+   * End of the URI string (including quotes) relative to the beginning of the
+   * file.
+   */
+  @informative
+  int uriEnd;
+}
+
+/**
+ * Unlinked summary information about a specific name contributed by a
+ * compilation unit to a library's public namespace.
+ *
+ * TODO(paulberry): add a count of generic parameters, so that resynthesis
+ * doesn't have to peek into the library to obtain this info.
+ *
+ * TODO(paulberry): for classes, add info about static members and
+ * constructors, since this will be needed to prelink info about constants.
+ *
+ * TODO(paulberry): some of this information is redundant with information
+ * elsewhere in the summary.  Consider reducing the redundancy to reduce
+ * summary size.
+ */
+class UnlinkedPublicName {
+  /**
+   * The name itself.
    */
   String name;
+
+  /**
+   * The kind of object referred to by the name.
+   */
+  PrelinkedReferenceKind kind;
+
+  /**
+   * If the entity being referred to is generic, the number of type parameters
+   * it accepts.  Otherwise zero.
+   */
+  int numTypeParameters;
+}
+
+/**
+ * Unlinked summary information about what a compilation unit contributes to a
+ * library's public namespace.  This is the subset of [UnlinkedUnit] that is
+ * required from dependent libraries in order to perform prelinking.
+ */
+@topLevel
+class UnlinkedPublicNamespace {
+  /**
+   * Public names defined in the compilation unit.
+   *
+   * TODO(paulberry): consider sorting these names to reduce unnecessary
+   * relinking.
+   */
+  List<UnlinkedPublicName> names;
+
+  /**
+   * Export declarations in the compilation unit.
+   */
+  List<UnlinkedExportPublic> exports;
+
+  /**
+   * URIs referenced by part declarations in the compilation unit.
+   */
+  List<String> parts;
 }
 
 /**
@@ -541,15 +752,20 @@ class UnlinkedPrefix {
  */
 class UnlinkedReference {
   /**
-   * Name of the entity being referred to.
+   * Name of the entity being referred to.  The empty string refers to the
+   * pseudo-type `dynamic`.
    */
   String name;
 
   /**
-   * Prefix used to refer to the entity.  This is an index into
-   * [UnlinkedLibrary.prefixes].
+   * Prefix used to refer to the entity, or zero if no prefix is used.  This is
+   * an index into [UnlinkedUnit.references].
+   *
+   * Prefix references must always point backward; that is, for all i, if
+   * UnlinkedUnit.references[i].prefixReference != 0, then
+   * UnlinkedUnit.references[i].prefixReference < i.
    */
-  int prefix;
+  int prefixReference;
 }
 
 /**
@@ -562,11 +778,17 @@ class UnlinkedTypedef {
   String name;
 
   /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * typedef is declared in.
+   * Offset of the typedef name relative to the beginning of the file.
    */
   @informative
-  int unit;
+  int nameOffset;
+
+  /**
+   * Documentation comment for the typedef, or `null` if there is no
+   * documentation comment.
+   */
+  @informative
+  UnlinkedDocumentationComment documentationComment;
 
   /**
    * Type parameters of the typedef, if any.
@@ -594,6 +816,12 @@ class UnlinkedTypeParam {
   String name;
 
   /**
+   * Offset of the type parameter name relative to the beginning of the file.
+   */
+  @informative
+  int nameOffset;
+
+  /**
    * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
    * null.
    */
@@ -605,23 +833,35 @@ class UnlinkedTypeParam {
  */
 class UnlinkedTypeRef {
   /**
-   * Index into [UnlinkedLibrary.references] for the type being referred to, or
+   * Index into [UnlinkedUnit.references] for the type being referred to, or
    * zero if this is a reference to a type parameter.
+   *
+   * Note that since zero is also a valid index into
+   * [UnlinkedUnit.references], we cannot distinguish between references to
+   * type parameters and references to types by checking [reference] against
+   * zero.  To distinguish between references to type parameters and references
+   * to types, check whether [paramReference] is zero.
    */
   int reference;
 
   /**
-   * If this is a reference to a type parameter, one-based index into
-   * [UnlinkedClass.typeParameters] or [UnlinkedTypedef.typeParameters] for the
-   * parameter being referenced.  Otherwise zero.
+   * If this is a reference to a type parameter, one-based index into the list
+   * of [UnlinkedTypeParam]s currently in effect.  Indexing is done using De
+   * Bruijn index conventions; that is, innermost parameters come first, and
+   * if a class or method has multiple parameters, they are indexed from right
+   * to left.  So for instance, if the enclosing declaration is
    *
-   * If generic method syntax is enabled, this may also be a one-based index
-   * into [UnlinkedExecutable.typeParameters].  Note that this creates an
-   * ambiguity since it allows executables with type parameters to be nested
-   * inside other declarations with type parameters (which might themselves be
-   * executables).  The ambiguity is resolved by considering this to be a
-   * one-based index into a list that concatenates all type parameters that are
-   * in scope, listing the outermost type parameters first.
+   *     class C<T,U> {
+   *       m<V,W> {
+   *         ...
+   *       }
+   *     }
+   *
+   * Then [paramReference] values of 1, 2, 3, and 4 represent W, V, U, and T,
+   * respectively.
+   *
+   * If the type being referred to is not a type parameter, [paramReference] is
+   * zero.
    */
   int paramReference;
 
@@ -633,18 +873,88 @@ class UnlinkedTypeRef {
 }
 
 /**
- * Unlinked summary information about a compilation unit ("part file").  Note
- * that since a declaration can be moved from one part file to another without
- * changing semantics, the declarations themselves aren't stored here; they are
- * stored in [UnlinkedLibrary] and they refer to [UnlinkedUnit]s via an index
- * into [UnlinkedLibrary.units].
+ * Unlinked summary information about a compilation unit ("part file").
  */
+@topLevel
 class UnlinkedUnit {
   /**
-   * String used in the defining compilation unit to reference the part file.
-   * Empty for the defining compilation unit itself.
+   * Name of the library (from a "library" declaration, if present).
    */
-  String uri;
+  String libraryName;
+
+  /**
+   * Offset of the library name relative to the beginning of the file (or 0 if
+   * the library has no name).
+   */
+  @informative
+  int libraryNameOffset;
+
+  /**
+   * Length of the library name as it appears in the source code (or 0 if the
+   * library has no name).
+   */
+  @informative
+  int libraryNameLength;
+
+  /**
+   * Documentation comment for the library, or `null` if there is no
+   * documentation comment.
+   */
+  @informative
+  UnlinkedDocumentationComment libraryDocumentationComment;
+
+  /**
+   * Unlinked public namespace of this compilation unit.
+   */
+  UnlinkedPublicNamespace publicNamespace;
+
+  /**
+   * Top level and prefixed names referred to by this compilation unit.  The
+   * zeroth element of this array is always populated and always represents a
+   * reference to the pseudo-type "dynamic".
+   */
+  List<UnlinkedReference> references;
+
+  /**
+   * Classes declared in the compilation unit.
+   */
+  List<UnlinkedClass> classes;
+
+  /**
+   * Enums declared in the compilation unit.
+   */
+  List<UnlinkedEnum> enums;
+
+  /**
+   * Top level executable objects (functions, getters, and setters) declared in
+   * the compilation unit.
+   */
+  List<UnlinkedExecutable> executables;
+
+  /**
+   * Export declarations in the compilation unit.
+   */
+  List<UnlinkedExportNonPublic> exports;
+
+  /**
+   * Import declarations in the compilation unit.
+   */
+  List<UnlinkedImport> imports;
+
+  /**
+   * Part declarations in the compilation unit.
+   */
+  List<UnlinkedPart> parts;
+
+  /**
+   * Typedefs declared in the compilation unit.
+   */
+  List<UnlinkedTypedef> typedefs;
+
+  /**
+   * Top level variables declared in the compilation unit.
+   */
+  List<UnlinkedVariable> variables;
 }
 
 /**
@@ -658,12 +968,17 @@ class UnlinkedVariable {
   String name;
 
   /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * variable is declared in.  Zero for variables which are nested inside
-   * another declaration (i.e. local variables and fields).
+   * Offset of the variable name relative to the beginning of the file.
    */
   @informative
-  int unit;
+  int nameOffset;
+
+  /**
+   * Documentation comment for the variable, or `null` if there is no
+   * documentation comment.
+   */
+  @informative
+  UnlinkedDocumentationComment documentationComment;
 
   /**
    * Declared type of the variable.  Note that when strong mode is enabled, the
@@ -689,4 +1004,9 @@ class UnlinkedVariable {
    * Indicates whether the variable is declared using the `const` keyword.
    */
   bool isConst;
+
+  /**
+   * Indicates whether this variable lacks an explicit type declaration.
+   */
+  bool hasImplicitType;
 }

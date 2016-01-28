@@ -19,6 +19,8 @@ DEFINE_FLAG(bool, remove_redundant_phis, true, "Remove redundant phis.");
 DEFINE_FLAG(bool, trace_constant_propagation, false,
     "Print constant propagation and useless code elimination.");
 
+DECLARE_FLAG(bool, fields_may_be_reset);
+
 // Quick access to the current zone and isolate.
 #define I (isolate())
 #define Z (graph_->zone())
@@ -704,14 +706,16 @@ void ConstantPropagator::VisitInitStaticField(InitStaticFieldInstr* instr) {
 
 
 void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
-  const Field& field = instr->StaticField();
-  ASSERT(field.is_static());
-  Instance& obj = Instance::Handle(Z, field.StaticValue());
-  if (field.is_final() && (obj.raw() != Object::sentinel().raw()) &&
-      (obj.raw() != Object::transition_sentinel().raw())) {
-    if (obj.IsSmi() || obj.IsOld()) {
-      SetValue(instr, obj);
-      return;
+  if (!FLAG_fields_may_be_reset) {
+    const Field& field = instr->StaticField();
+    ASSERT(field.is_static());
+    Instance& obj = Instance::Handle(Z, field.StaticValue());
+    if (field.is_final() && (obj.raw() != Object::sentinel().raw()) &&
+        (obj.raw() != Object::transition_sentinel().raw())) {
+      if (obj.IsSmi() || obj.IsOld()) {
+        SetValue(instr, obj);
+        return;
+      }
     }
   }
   SetValue(instr, non_constant_);
@@ -739,7 +743,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
   const Object& value = def->constant_value();
   if (IsNonConstant(value)) {
     const AbstractType& checked_type = instr->type();
-    intptr_t value_cid = instr->value()->Type()->ToCid();
+    intptr_t value_cid = instr->value()->definition()->Type()->ToCid();
     Representation rep = def->representation();
     if ((checked_type.IsFloat32x4Type() && (rep == kUnboxedFloat32x4)) ||
         (checked_type.IsInt32x4Type() && (rep == kUnboxedInt32x4)) ||
@@ -760,8 +764,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
     if (value.IsInstance()) {
       const Instance& instance = Instance::Cast(value);
       const AbstractType& checked_type = instr->type();
-      if (instr->instantiator()->BindsToConstantNull() &&
-          instr->instantiator_type_arguments()->BindsToConstantNull()) {
+      if (instr->instantiator_type_arguments()->BindsToConstantNull()) {
         const TypeArguments& checked_type_arguments = TypeArguments::Handle();
         Error& bound_error = Error::Handle();
         bool is_instance = instance.IsInstanceOf(checked_type,
@@ -863,7 +866,7 @@ void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
   if (IsConstant(object)) {
     if (instr->type().IsTypeParameter()) {
       if (object.IsNull()) {
-        SetValue(instr, Type::ZoneHandle(Z, Type::DynamicType()));
+        SetValue(instr, Object::dynamic_type());
         return;
       }
       // We could try to instantiate the type parameter and return it if no

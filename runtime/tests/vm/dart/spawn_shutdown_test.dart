@@ -3,30 +3,56 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 
-// Spawn an isolate |foo| that will continue trying to spawn isolates even after
-// the timer in |main| completes. This test ensures that the VM can shutdown
-// correctly even while an isolate is attempting to spawn more isolates.
+// This test attempts to check that the vm can shutdown cleanly when
+// isolates are starting and stopping.
+//
+// We spawn a set of workers.  Each worker will kill its parent
+// worker (if any) and then spawn a child worker.  We start these
+// workers in a staggered fashion in an attempt to see a variety of
+// isolate states at the time that this program terminates.
 
-isolate1(sendPort) {
-  var receivePort = new ReceivePort();
-  sendPort.send(receivePort.sendPort);
-  receivePort.listen((msg) {});
-}
-
-void foo(_) {
-  while (true) {
-    var receivePort = new ReceivePort();
-    Isolate.spawn(isolate1, receivePort.sendPort);
-    receivePort.listen((sendPort) {
-      Isolate.spawn(isolate1,sendPort);
-      receivePort.close();
-    });
+trySpawn(Function f, Object o) async {
+  try {
+    await Isolate.spawn(f, o);
+  } catch (e) {
+    // Isolate spawning may fail if the program is ending.
+    assert(e is IsolateSpawnException);
   }
 }
 
+void worker(SendPort parentPort) {
+  var port = new RawReceivePort();
+
+  // This worker will exit when it receives any message.
+  port.handler = (_) { port.close(); };
+
+  // Send a message to terminate our parent isolate.
+  if (parentPort != null) {
+    parentPort.send(null);
+  }
+
+  // Spawn a child worker.
+  trySpawn(worker, port.sendPort);
+}
+
 void main() {
-  Isolate.spawn(foo, null);
-  new Timer(const Duration(seconds: 10), () {});
+  const numWorkers = 50;
+  const delay = const Duration(milliseconds:(1000 ~/ numWorkers));
+  const exitDelay = const Duration(seconds: 2);
+
+  // Take about a second to spin up our workers in a staggered
+  // fashion. We want to maximize the chance that they will be in a
+  // variety of states when the vm shuts down.
+  print('Starting ${numWorkers} workers...');
+  for (int i = 0; i < numWorkers; i++) {
+    trySpawn(worker, null);
+    sleep(delay);
+  }
+
+  // Let them spin for a bit before terminating the program.
+  print('Waiting for ${exitDelay} before exit...');
+  sleep(exitDelay);
 }

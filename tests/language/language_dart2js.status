@@ -3,9 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
-sync_generator2_test/07: MissingCompileTimeError # Issue 22324
-sync_generator2_test/08: MissingCompileTimeError # Issue 22324
-sync_generator2_test/10: MissingCompileTimeError # Issue 22324
 getter_setter_in_lib_test: Fail # Issue 23288
 
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
@@ -21,6 +18,9 @@ call_function_apply_test: RuntimeError # Issue 23873
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
+
+[ $compiler == dart2js && $browser ]
+config_import_test: Fail # Test flag is not passed to the compiler.
 
 [ $compiler == dart2js ]
 invocation_mirror_empty_arguments_test: Fail # Issue 24331
@@ -67,11 +67,6 @@ regress_22976_test/02: CompileTimeError # Issue 23132
 
 if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
-
-if_null_assignment_behavior_test/29: Crash # Issue 23611
-prefix_assignment_test/01: Crash # Issue 23611
-prefix_assignment_test/02: Crash # Issue 23611
-prefix_identifier_reference_test/05: Crash # Issue 23611
 
 const_error_multiply_initialized_test/02: CompileTimeError # Issue 23618
 const_error_multiply_initialized_test/04: CompileTimeError # Issue 23618
@@ -136,10 +131,6 @@ mixin_mixin_bound2_test: RuntimeError # Issue 12605
 symbol_conflict_test: RuntimeError # Issue 23857
 
 [ $compiler == dart2js ]
-async_await_syntax_test/a05h: Fail # 23716
-async_await_syntax_test/c11a: Fail # 23716
-async_await_syntax_test/c11b: Fail # 23716
-
 malformed_test/none: Fail # Expect failure in lib/_internal/js_runtime/lib/preambles/d8.js
 
 type_variable_conflict2_test/01: RuntimeError # Issue 19725
@@ -153,9 +144,7 @@ double_int_to_string_test: RuntimeError # Issue 1533
 mint_arithmetic_test: RuntimeError # Issue 1533
 left_shift_test: RuntimeError # Issue 1533
 regress_24283_test: RuntimeError # Issue 1533
-bad_override_test/01: CompileTimeError # Issue 11496
-bad_override_test/02: CompileTimeError # Issue 11496
-constructor_named_arguments_test/01: CompileTimeError # Issue 5519
+constructor_named_arguments_test/01: CompileTimeError # Issue 25225
 not_enough_positional_arguments_test/01: CompileTimeError # Issue 12838
 not_enough_positional_arguments_test/02: CompileTimeError # Issue 12838
 not_enough_positional_arguments_test/05: CompileTimeError # Issue 12838
@@ -175,10 +164,7 @@ const_switch_test/04: RuntimeError # Issue 17960
 const_dynamic_type_literal_test/02: CompileTimeError # Issue 23009
 const_dynamic_type_literal_test/03: CompileTimeError # Issue 23009
 
-generic_field_mixin4_test: Crash # Issue 18651
-
 # Compilation errors.
-method_override5_test: RuntimeError # Issue 12809
 external_test/10: CompileTimeError # Issue 12887
 external_test/13: CompileTimeError # Issue 12887
 external_test/20: CompileTimeError # Issue 12887
@@ -227,14 +213,15 @@ cha_deopt*: Pass,RuntimeError # Issue 17458
 regress_22443_test: Pass,RuntimeError # Issue 17458
 
 [ $compiler == dart2js && $cps_ir == false ]
+generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
 many_method_calls_test: Crash # Stack overflow in HGraphVisitor.visitPostDominatorTree.visitBasicBlockAndSuccessors
+method_override5_test: RuntimeError # Issue 12809
 
-[ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
+[ $compiler == dart2js && $runtime != drt && $runtime != dartium ]
 issue23244_test: RuntimeError # 23244
 
 [ $compiler == dart2js && $cps_ir ]
-assert_assignable_type_test: Crash # Internal Error: Pending statics.
 async_await_syntax_test/a03a: Crash # (a03a()async*{}): cannot handle sync*/async* functions
 async_await_syntax_test/a03b: Crash # (a03b()async*{}): cannot handle sync*/async* functions
 async_await_syntax_test/a06a: Crash # (await for(var o in st){}): await for
@@ -272,7 +259,6 @@ async_star_regression_fisk_test: Crash # (fisk()async*{res.ad...  cannot handle 
 async_star_stream_take_test: Crash # (Stream makeStream(i...  cannot handle sync*/async* functions
 async_star_take_reyield_test: Crash # (fivePartialSums(Str...  cannot handle sync*/async* functions
 async_star_test: Crash # (f()async*{}): cannot handle sync*/async* functions
-async_this_bound_test: RuntimeError # Cannot read property 'set$f' of undefined
 asyncstar_concat_test: Crash # (concat(a,b)async*{yield* a;yield* b;}): cannot handle sync*/async* functions
 asyncstar_throw_in_catch_test: Crash # (foo4(Tracer tracer)...  cannot handle sync*/async* functions
 asyncstar_yield_test: Crash # (Stream<int> foo4()a...  cannot handle sync*/async* functions
@@ -280,91 +266,29 @@ asyncstar_yieldstar_test: Crash # (foo2(Stream subStream)async*{yield* subStream
 await_for_cancel_test: Crash # (await for(var x in controller.stream){for(int j=0;j<10;j++ ){if(j==5)continue outer;}}): await for
 await_for_test: Crash # (await for(var x in infiniteStream()){i++ ;if(i>10)break;t4.record(x);}): await for
 await_for_use_local_test: Crash # (await for(var v in s){accum+= v;}): await for
-await_future_test: RuntimeError # Cannot read property '_await_future_test$_box_0' of undefined
-await_postfix_expr_test: RuntimeError # Please triage this failure.
-await_regression_test: RuntimeError # "Obelix".then$1 is not a function
-await_test: RuntimeError # Cannot read property '$add' of undefined
-cha_deopt1_test: Crash # (d.make_u()): deferred access is not implemented
-cha_deopt2_test: Crash # (d.make_u()): deferred access is not implemented
-cha_deopt3_test: Crash # (d.make_u()): deferred access is not implemented
+call_closurization_test: RuntimeError # Bad type inference for ".call" tear-off.
 closure_in_constructor_test: RuntimeError # Please triage this failure.
 closures_initializer_test: RuntimeError # Please triage this failure.
 constructor12_test: RuntimeError # Please triage this failure.
-crash_6725_test/01: Crash # unsupported operation on erroneous element
-cyclic_default_values_test: RuntimeError # Z.cyclic_default_values_test__foo$closure is not a function
-deferred_call_empty_before_load_test: Crash # (lib1.thefun()): deferred access is not implemented
-deferred_closurize_load_library_test: RuntimeError # D.loadLibrary is not a function
-deferred_constant_list_test: RuntimeError # K.loadLibrary is not a function
-deferred_constraints_constants_test/none: RuntimeError # S.loadLibrary is not a function
-deferred_constraints_constants_test/reference_after_load: RuntimeError # G.loadLibrary is not a function
-deferred_constraints_type_annotation_test/as_operation: RuntimeError # Z.loadLibrary is not a function
-deferred_constraints_type_annotation_test/catch_check: RuntimeError # D.loadLibrary is not a function
-deferred_constraints_type_annotation_test/is_check: RuntimeError # L.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new: RuntimeError # R.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new_before_load: RuntimeError # K.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new_generic1: RuntimeError # R.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new_generic2: RuntimeError # X.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new_generic3: RuntimeError # K.loadLibrary is not a function
-deferred_constraints_type_annotation_test/none: RuntimeError # D.loadLibrary is not a function
-deferred_constraints_type_annotation_test/static_method: RuntimeError # F.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation1: RuntimeError # K.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError # T.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError # Q.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError # Z.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError # Q.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # R.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError # Z.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError # U.loadLibrary is not a function
-deferred_function_type_test: RuntimeError # N.loadLibrary is not a function
-deferred_global_test: RuntimeError # Y.loadLibrary is not a function
-deferred_inlined_test: Crash # (lib.foo()): deferred access is not implemented
-deferred_load_constants_test/none: Crash # (foo.toplevel): deferred access is not implemented
-deferred_load_inval_code_test: Crash # (d.foo()): deferred access is not implemented
-deferred_load_library_wrong_args_test/none: RuntimeError # Y.loadLibrary is not a function
-deferred_mixin_test: RuntimeError # X.loadLibrary is not a function
-deferred_no_such_method_test: RuntimeError # D.loadLibrary is not a function
-deferred_not_loaded_check_test: Crash # (lib.closure(sideEffect())): deferred access is not implemented
-deferred_only_constant_test: RuntimeError # O.loadLibrary is not a function
-deferred_optimized_test: Crash # (lib.foo()): deferred access is not implemented
-deferred_redirecting_factory_test: Crash # (lib1.loadLib2()): deferred access is not implemented
-deferred_regression_22995_test: RuntimeError # U.loadLibrary is not a function
-deferred_shadow_load_library_test: RuntimeError # Y.loadLibrary is not a function
-deferred_shared_and_unshared_classes_test: RuntimeError # U.loadLibrary is not a function
-deferred_static_seperate_test: RuntimeError # L.loadLibrary is not a function
-deferred_super_dependency_test/01: RuntimeError # $async$temp1.loadLibrary is not a function
-deferred_type_dependency_test/as: Crash # (lib1.fooAs("string")): deferred access is not implemented
-deferred_type_dependency_test/is: Crash # (lib1.fooIs("string")): deferred access is not implemented
-deferred_type_dependency_test/none: Crash # (lib2.getInstance()): deferred access is not implemented
-deferred_type_dependency_test/type_annotation: Crash # (lib1.fooAnnotation("string")): deferred access is not implemented
+deferred_super_dependency_test/01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 field3a_negative_test: Fail # Bogus result from type inference in case of invalid program.
 first_class_types_test: RuntimeError # Please triage this failure.
-for2_test: Crash # The null object does not have a getter 'field'.
-for_variable_capture_test: Crash # (i=0): For-loop variable captured in loop header
 generic2_test: RuntimeError # Please triage this failure.
-generic_field_mixin3_test: RuntimeError # Please triage this failure.
 generic_instanceof_test: RuntimeError # Please triage this failure.
 generic_native_test: RuntimeError # Please triage this failure.
+gc_test: Crash # Internal Error: Pending statics (see above).
 infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
 instanceof2_test: RuntimeError # Please triage this failure.
 instanceof4_test/01: RuntimeError # Please triage this failure.
-invocation_mirror_invoke_on_test: RuntimeError # Please triage this failure.
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
-issue_1751477_test: RuntimeError # O.loadLibrary is not a function
 list_is_test: RuntimeError # Please triage this failure.
 list_test: RuntimeError # Please triage this failure.
 many_generic_instanceof_test: RuntimeError # Please triage this failure.
-many_overridden_no_such_method_test: RuntimeError # Please triage this failure.
 nested_switch_label_test: Crash # (switch (target){out...  continue to a labeled switch case
-no_such_method_test: RuntimeError # Please triage this failure.
-overridden_no_such_method_test: RuntimeError # Please triage this failure.
-regress_22443_test: RuntimeError # M.loadLibrary is not a function
-regress_23408_test: RuntimeError # G.loadLibrary is not a function
 regress_23500_test/01: Crash # (await for(var c in new Stream.fromIterable([] )){}): await for
-super_bound_closure_test/01: RuntimeError # Cannot read property 'call' of undefined
-super_bound_closure_test/none: RuntimeError # Cannot read property 'call' of undefined
+stack_trace_test: Fail # Stack trace not preserved when inlining?
 super_call4_test: RuntimeError # Please triage this failure.
 super_getter_setter_test: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
-super_implicit_closure_test: RuntimeError # Cannot read property 'call' of undefined
 super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet
@@ -373,17 +297,14 @@ super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSe
 switch_label2_test: Crash # (switch (target){cas...  continue to a labeled switch case
 switch_label_test: Crash # (switch (animal){cas...  continue to a labeled switch case
 switch_try_catch_test: Crash # (switch (0){_0:case ...  continue to a labeled switch case
-sync_generator1_test/01: RuntimeError # Expect.equals(expected: <(1, 2, 3, 5, [6])>, actual: <(1)>) fails.
-sync_generator1_test/none: RuntimeError # Expect.equals(expected: <(1, 2, 3, 5, [6])>, actual: <(1)>) fails.
-sync_generator3_test/test1: RuntimeError # Please triage this failure.
-sync_generator3_test/test2: RuntimeError # Please triage this failure.
-syncstar_yield_test/copyParameters: RuntimeError # Please triage this failure.
-syncstar_yield_test/none: RuntimeError # Please triage this failure.
-syncstar_yieldstar_test: RuntimeError # Please triage this failure.
-type_variable_closure2_test: RuntimeError # Please triage this failure.
-type_variable_field_initializer_closure_test: RuntimeError # Please triage this failure.
-type_variable_field_initializer_test: RuntimeError # Please triage this failure.
-type_variable_nested_test: RuntimeError # Please triage this failure.
+type_variable_closure2_test: RuntimeError # Issue 25309: T lost in List<T>
+type_variable_closure4_test: RuntimeError # T lost in <T,T>{}
+type_variable_field_initializer_closure_test: RuntimeError # Issue 25309: T lost in List<T>
+type_variable_field_initializer_test: RuntimeError # Issue 25309: T lost in List<T>
+type_variable_nested_test: RuntimeError # Issue 25309: T lost in List<T>
+
+[ $compiler == dart2js && $cps_ir && $host_checked == false ]
+regress_21795_test: Pass, RuntimeError # Due to inlining?
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 async_throw_in_catch_test/forceAwait: Crash # Issue 24485

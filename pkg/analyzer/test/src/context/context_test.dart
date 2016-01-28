@@ -2,34 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.context.context_test;
+library analyzer.test.src.context.context_test;
 
 import 'dart:async';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show
-        AnalysisContext,
-        AnalysisContextStatistics,
-        AnalysisDelta,
-        AnalysisEngine,
-        AnalysisErrorInfo,
-        AnalysisLevel,
-        AnalysisNotScheduledError,
-        AnalysisOptions,
-        AnalysisOptionsImpl,
-        AnalysisResult,
-        CacheState,
-        ChangeNotice,
-        ChangeSet,
-        IncrementalAnalysisCache,
-        TimestampedData;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -152,6 +137,19 @@ class AnalysisContextImplTest extends AbstractContextTest {
     });
   }
 
+  void test_applyChanges_add_makesExplicit() {
+    Source source = newSource('/test.dart');
+    // get the entry, it's not explicit
+    CacheEntry entry = context.getCacheEntry(source);
+    expect(entry.explicitlyAdded, isFalse);
+    // add the source
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(source);
+    context.applyChanges(changeSet);
+    // now the entry is explicit
+    expect(entry.explicitlyAdded, isTrue);
+  }
+
   Future test_applyChanges_change() {
     SourcesChangedListener listener = new SourcesChangedListener();
     context.onSourcesChanged.listen(listener.onData);
@@ -243,8 +241,9 @@ int b = aa;''';
     Element declarationElement = declaration.variables.variables[0].element;
     TopLevelVariableDeclaration use =
         partUnit.declarations[0] as TopLevelVariableDeclaration;
-    Element useElement = (use.variables.variables[0].initializer
-        as SimpleIdentifier).staticElement;
+    Element useElement =
+        (use.variables.variables[0].initializer as SimpleIdentifier)
+            .staticElement;
     expect((useElement as PropertyAccessorElement).variable,
         same(declarationElement));
     return pumpEventQueue().then((_) {
@@ -283,8 +282,9 @@ int b = aa;''';
   }
 
   void test_applyChanges_overriddenSource() {
-    // Note: addSource adds the source to the contentCache.
-    Source source = addSource("/test.dart", "library test;");
+    String content = "library test;";
+    Source source = addSource("/test.dart", content);
+    context.setContents(source, content);
     context.computeErrors(source);
     while (!context.sourcesNeedingProcessing.isEmpty) {
       context.performAnalysisTask();
@@ -293,7 +293,8 @@ int b = aa;''';
     // it is already overridden in the content cache.
     ChangeSet changeSet = new ChangeSet();
     changeSet.changedSource(source);
-    context.applyChanges(changeSet);
+    ApplyChangesStatus changesStatus = context.applyChanges(changeSet);
+    expect(changesStatus.hasChanges, isFalse);
     expect(context.sourcesNeedingProcessing, hasLength(0));
   }
 
@@ -312,7 +313,6 @@ import 'libB.dart';''';
     expect(importedLibraries, hasLength(2));
     context.computeErrors(libA);
     context.computeErrors(libB);
-    expect(context.sourcesNeedingProcessing, hasLength(0));
     context.setContents(libB, null);
     _removeSource(libB);
     List<Source> sources = context.sourcesNeedingProcessing;
@@ -382,7 +382,6 @@ import 'libB.dart';''';
     context.computeLibraryElement(libA);
     context.computeErrors(libA);
     context.computeErrors(libB);
-    expect(context.sourcesNeedingProcessing, hasLength(0));
     ChangeSet changeSet = new ChangeSet();
     SourceContainer removedContainer =
         new _AnalysisContextImplTest_test_applyChanges_removeContainer(libB);
@@ -605,12 +604,15 @@ main() {}''');
       expect(unit, isNotNull);
       completed = true;
     });
-    return pumpEventQueue().then((_) {
-      expect(completed, isFalse);
-      _performPendingAnalysisTasks();
-    }).then((_) => pumpEventQueue()).then((_) {
-      expect(completed, isTrue);
-    });
+    return pumpEventQueue()
+        .then((_) {
+          expect(completed, isFalse);
+          _performPendingAnalysisTasks();
+        })
+        .then((_) => pumpEventQueue())
+        .then((_) {
+          expect(completed, isTrue);
+        });
   }
 
   Future test_computeResolvedCompilationUnitAsync_afterDispose() {
@@ -699,21 +701,24 @@ main() {}''');
       expect(unit, isNotNull);
       completed = true;
     });
-    return pumpEventQueue().then((_) {
-      expect(completed, isFalse);
-      _performPendingAnalysisTasks();
-    }).then((_) => pumpEventQueue()).then((_) {
-      expect(completed, isTrue);
-    });
+    return pumpEventQueue()
+        .then((_) {
+          expect(completed, isFalse);
+          _performPendingAnalysisTasks();
+        })
+        .then((_) => pumpEventQueue())
+        .then((_) {
+          expect(completed, isTrue);
+        });
   }
 
   void test_configurationData() {
-    var key = new ResultDescriptor('test_key', '');
+    var key = new ResultDescriptor('test_key', 'TEST_DEFAULT');
     var testData = ['test', 'data'];
     context.setConfigurationData(key, testData);
     expect(context.getConfigurationData(key), testData);
-    var unusedKey = new ResultDescriptor('unused_key', '');
-    expect(context.getConfigurationData(unusedKey), null);
+    var unusedKey = new ResultDescriptor('unused_key', 'UNUSED_DEFAULT');
+    expect(context.getConfigurationData(unusedKey), 'UNUSED_DEFAULT');
   }
 
   void test_dispose() {
@@ -838,7 +843,7 @@ part of lib;
   }
 
   void test_exists_true() {
-    expect(context.exists(new AnalysisContextImplTest_Source_exists_true()),
+    expect(context.exists(new _AnalysisContextImplTest_Source_exists_true()),
         isTrue);
   }
 
@@ -1298,7 +1303,7 @@ main() {}''');
     int stamp = 42;
     expect(
         context.getModificationStamp(
-            new AnalysisContextImplTest_Source_getModificationStamp_fromSource(
+            new _AnalysisContextImplTest_Source_getModificationStamp_fromSource(
                 stamp)),
         stamp);
   }
@@ -1306,7 +1311,7 @@ main() {}''');
   void test_getModificationStamp_overridden() {
     int stamp = 42;
     Source source =
-        new AnalysisContextImplTest_Source_getModificationStamp_overridden(
+        new _AnalysisContextImplTest_Source_getModificationStamp_overridden(
             stamp);
     context.setContents(source, "");
     expect(stamp != context.getModificationStamp(source), isTrue);
@@ -1364,16 +1369,6 @@ main() {}''');
 
     context.applyChanges(changeSet);
     expect(context.getSourcesWithFullName(filePath), unorderedEquals(expected));
-  }
-
-  void test_getStatistics() {
-    AnalysisContextStatistics statistics = context.statistics;
-    expect(statistics, isNotNull);
-    // The following lines are fragile.
-    // The values depend on the number of libraries in the SDK.
-//    assertLength(0, statistics.getCacheRows());
-//    assertLength(0, statistics.getExceptions());
-//    assertLength(0, statistics.getSources());
   }
 
   void test_handleContentsChanged() {
@@ -1948,11 +1943,8 @@ library expectedToFindSemicolon
     addSource('/test.dart', 'main() {}');
     _analyzeAll_assertFinished();
     // verify
-    expect(libraryElementUris, contains('dart:core'));
     expect(libraryElementUris, contains('file:///test.dart'));
-    expect(parsedUnitUris, contains('dart:core'));
     expect(parsedUnitUris, contains('file:///test.dart'));
-    expect(resolvedUnitUris, contains('dart:core'));
     expect(resolvedUnitUris, contains('file:///test.dart'));
   }
 
@@ -2709,6 +2701,27 @@ class A {
       }
     }
   }
+}
+
+class _AnalysisContextImplTest_Source_exists_true extends TestSource {
+  @override
+  bool exists() => true;
+}
+
+class _AnalysisContextImplTest_Source_getModificationStamp_fromSource
+    extends TestSource {
+  int stamp;
+  _AnalysisContextImplTest_Source_getModificationStamp_fromSource(this.stamp);
+  @override
+  int get modificationStamp => stamp;
+}
+
+class _AnalysisContextImplTest_Source_getModificationStamp_overridden
+    extends TestSource {
+  int stamp;
+  _AnalysisContextImplTest_Source_getModificationStamp_overridden(this.stamp);
+  @override
+  int get modificationStamp => stamp;
 }
 
 class _AnalysisContextImplTest_test_applyChanges_removeContainer

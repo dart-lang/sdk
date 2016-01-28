@@ -49,8 +49,8 @@ runCompiler(String main, List<String> options,
               localProvider, localHandler, options, outputCollector);
   result.then((_) {
     onValue(outputCollector.getOutput('', 'js'), errors, warnings);
-  }, onError: (e) {
-    throw 'Compilation failed: ${Error.safeToString(e)}';
+  }, onError: (e, st) {
+    throw 'Compilation failed: ${e} ${st}';
   }).then(asyncSuccess).catchError((error, stack) {
     print('\n\n-----------------------------------------------');
     print('main source:\n$main');

@@ -10,7 +10,7 @@ import 'dart:collection';
 
 /**
  * A sequence of bytes underlying a typed data object.
- * 
+ *
  * Used to process large quantities of binary or numerical data
  * more efficiently using a typed view.
  */
@@ -404,7 +404,7 @@ class Endianness {
  * A fixed-length, random-access sequence of bytes that also provides random
  * and unaligned access to the fixed-width integers and floating point
  * numbers represented by those bytes.
- * 
+ *
  * `ByteData` may be used to pack and unpack data from external sources
  * (such as networks or files systems), and to process large quantities
  * of numerical data more efficiently than would be possible
@@ -451,7 +451,7 @@ abstract class ByteData implements TypedData {
    * Returns the (possibly negative) integer represented by the byte at the
    * specified [byteOffset] in this object, in two's complement binary
    * representation.
-   * 
+   *
    * The return value will be between -128 and 127, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -463,7 +463,7 @@ abstract class ByteData implements TypedData {
    * Sets the byte at the specified [byteOffset] in this object to the
    * two's complement binary representation of the specified [value], which
    * must fit in a single byte.
-   * 
+   *
    * In other words, [value] must be between -128 and 127, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -474,7 +474,7 @@ abstract class ByteData implements TypedData {
   /**
    * Returns the positive integer represented by the byte at the specified
    * [byteOffset] in this object, in unsigned binary form.
-   * 
+   *
    * The return value will be between 0 and 255, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -486,7 +486,7 @@ abstract class ByteData implements TypedData {
    * Sets the byte at the specified [byteOffset] in this object to the
    * unsigned binary representation of the specified [value], which must fit
    * in a single byte.
-   * 
+   *
    * In other words, [value] must be between 0 and 255, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative,
@@ -498,7 +498,7 @@ abstract class ByteData implements TypedData {
    * Returns the (possibly negative) integer represented by the two bytes at
    * the specified [byteOffset] in this object, in two's complement binary
    * form.
-   * 
+   *
    * The return value will be between 2<sup>15</sup> and 2<sup>15</sup> - 1,
    * inclusive.
    *
@@ -511,7 +511,7 @@ abstract class ByteData implements TypedData {
    * Sets the two bytes starting at the specified [byteOffset] in this
    * object to the two's complement binary representation of the specified
    * [value], which must fit in two bytes.
-   * 
+   *
    * In other words, [value] must lie
    * between 2<sup>15</sup> and 2<sup>15</sup> - 1, inclusive.
    *
@@ -526,7 +526,7 @@ abstract class ByteData implements TypedData {
    * Returns the positive integer represented by the two bytes starting
    * at the specified [byteOffset] in this object, in unsigned binary
    * form.
-   * 
+   *
    * The return value will be between 0 and  2<sup>16</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -538,7 +538,7 @@ abstract class ByteData implements TypedData {
    * Sets the two bytes starting at the specified [byteOffset] in this object
    * to the unsigned binary representation of the specified [value],
    * which must fit in two bytes.
-   * 
+   *
    * In other words, [value] must be between
    * 0 and 2<sup>16</sup> - 1, inclusive.
    *
@@ -553,7 +553,7 @@ abstract class ByteData implements TypedData {
    * Returns the (possibly negative) integer represented by the four bytes at
    * the specified [byteOffset] in this object, in two's complement binary
    * form.
-   * 
+   *
    * The return value will be between 2<sup>31</sup> and 2<sup>31</sup> - 1,
    * inclusive.
    *
@@ -566,7 +566,7 @@ abstract class ByteData implements TypedData {
    * Sets the four bytes starting at the specified [byteOffset] in this
    * object to the two's complement binary representation of the specified
    * [value], which must fit in four bytes.
-   * 
+   *
    * In other words, [value] must lie
    * between 2<sup>31</sup> and 2<sup>31</sup> - 1, inclusive.
    *
@@ -581,7 +581,7 @@ abstract class ByteData implements TypedData {
    * Returns the positive integer represented by the four bytes starting
    * at the specified [byteOffset] in this object, in unsigned binary
    * form.
-   * 
+   *
    * The return value will be between 0 and  2<sup>32</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -593,7 +593,7 @@ abstract class ByteData implements TypedData {
    * Sets the four bytes starting at the specified [byteOffset] in this object
    * to the unsigned binary representation of the specified [value],
    * which must fit in four bytes.
-   * 
+   *
    * In other words, [value] must be between
    * 0 and 2<sup>32</sup> - 1, inclusive.
    *
@@ -608,7 +608,7 @@ abstract class ByteData implements TypedData {
    * Returns the (possibly negative) integer represented by the eight bytes at
    * the specified [byteOffset] in this object, in two's complement binary
    * form.
-   * 
+   *
    * The return value will be between 2<sup>63</sup> and 2<sup>63</sup> - 1,
    * inclusive.
    *
@@ -621,7 +621,7 @@ abstract class ByteData implements TypedData {
    * Sets the eight bytes starting at the specified [byteOffset] in this
    * object to the two's complement binary representation of the specified
    * [value], which must fit in eight bytes.
-   * 
+   *
    * In other words, [value] must lie
    * between 2<sup>63</sup> and 2<sup>63</sup> - 1, inclusive.
    *
@@ -636,7 +636,7 @@ abstract class ByteData implements TypedData {
    * Returns the positive integer represented by the eight bytes starting
    * at the specified [byteOffset] in this object, in unsigned binary
    * form.
-   * 
+   *
    * The return value will be between 0 and  2<sup>64</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -648,7 +648,7 @@ abstract class ByteData implements TypedData {
    * Sets the eight bytes starting at the specified [byteOffset] in this object
    * to the unsigned binary representation of the specified [value],
    * which must fit in eight bytes.
-   * 
+   *
    * In other words, [value] must be between
    * 0 and 2<sup>64</sup> - 1, inclusive.
    *
@@ -718,9 +718,13 @@ abstract class ByteData implements TypedData {
 
 /**
  * A fixed-length list of 8-bit signed integers.
- * 
+ *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low eight bits,
+ * interpreted as a signed 8-bit two's complement integer with values in the
+ * range -128 to +127.
  */
 abstract class Int8List implements List<int>, TypedData {
   /**
@@ -732,6 +736,9 @@ abstract class Int8List implements List<int>, TypedData {
   /**
    * Creates a [Int8List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * Values are truncated to fit in the list when they are copied,
+   * the same way storing values truncates them.
    */
   external factory Int8List.fromList(List<int> elements);
 
@@ -760,9 +767,13 @@ abstract class Int8List implements List<int>, TypedData {
 
 /**
  * A fixed-length list of 8-bit unsigned integers.
- * 
+ *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low eight bits,
+ * interpreted as an unsigned 8-bit integer with values in the
+ * range 0 to 255.
  */
 abstract class Uint8List implements List<int>, TypedData {
   /**
@@ -774,6 +785,9 @@ abstract class Uint8List implements List<int>, TypedData {
   /**
    * Creates a [Uint8List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * Values are truncated to fit in the list when they are copied,
+   * the same way storing values truncates them.
    */
   external factory Uint8List.fromList(List<int> elements);
 
@@ -802,10 +816,13 @@ abstract class Uint8List implements List<int>, TypedData {
 
 /**
  * A fixed-length list of 8-bit unsigned integers.
- * 
+ *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
- * Indexed store clamps the value to range 0..0xFF.
+ *
+ * Integers stored in the list are clamped to an unsigned eight bit value.
+ * That is, all values below zero are stored as zero
+ * and all values above 255 are stored as 255.
  */
 abstract class Uint8ClampedList implements List<int>, TypedData {
   /**
@@ -817,6 +834,9 @@ abstract class Uint8ClampedList implements List<int>, TypedData {
   /**
    * Creates a [Uint8ClampedList] of the same size as the [elements]
    * list and copies over the values clamping when needed.
+   *
+   * Values are clamped to fit in the list when they are copied,
+   * the same way storing values clamps them.
    */
   external factory Uint8ClampedList.fromList(List<int> elements);
 
@@ -847,9 +867,13 @@ abstract class Uint8ClampedList implements List<int>, TypedData {
 /**
  * A fixed-length list of 16-bit signed integers that is viewable as a
  * [TypedData].
- * 
+ *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low 16 bits,
+ * interpreted as a signed 16-bit two's complement integer with values in the
+ * range -32768 to +32767.
  */
 abstract class Int16List implements List<int>, TypedData {
   /**
@@ -861,6 +885,9 @@ abstract class Int16List implements List<int>, TypedData {
   /**
    * Creates a [Int16List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * Values are truncated to fit in the list when they are copied,
+   * the same way storing values truncates them.
    */
   external factory Int16List.fromList(List<int> elements);
 
@@ -893,9 +920,13 @@ abstract class Int16List implements List<int>, TypedData {
 /**
  * A fixed-length list of 16-bit unsigned integers that is viewable as a
  * [TypedData].
- * 
+ *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low 16 bits,
+ * interpreted as an unsigned 16-bit integer with values in the
+ * range 0 to 65536.
  */
 abstract class Uint16List implements List<int>, TypedData {
   /**
@@ -907,6 +938,9 @@ abstract class Uint16List implements List<int>, TypedData {
   /**
    * Creates a [Uint16List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * Values are truncated to fit in the list when they are copied,
+   * the same way storing values truncates them.
    */
   external factory Uint16List.fromList(List<int> elements);
 
@@ -940,9 +974,13 @@ abstract class Uint16List implements List<int>, TypedData {
 /**
  * A fixed-length list of 32-bit signed integers that is viewable as a
  * [TypedData].
- * 
+ *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low 32 bits,
+ * interpreted as a signed 32-bit two's complement integer with values in the
+ * range -2147483648 to 2147483647.
  */
 abstract class Int32List implements List<int>, TypedData {
   /**
@@ -954,6 +992,9 @@ abstract class Int32List implements List<int>, TypedData {
   /**
    * Creates a [Int32List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * Values are truncated to fit in the list when they are copied,
+   * the same way storing values truncates them.
    */
   external factory Int32List.fromList(List<int> elements);
 
@@ -986,9 +1027,13 @@ abstract class Int32List implements List<int>, TypedData {
 /**
  * A fixed-length list of 32-bit unsigned integers that is viewable as a
  * [TypedData].
- * 
+ *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low 32 bits,
+ * interpreted as an unsigned 32-bit integer with values in the
+ * range 0 to 4294967295.
  */
 abstract class Uint32List implements List<int>, TypedData {
   /**
@@ -1000,6 +1045,9 @@ abstract class Uint32List implements List<int>, TypedData {
   /**
    * Creates a [Uint32List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * Values are truncated to fit in the list when they are copied,
+   * the same way storing values truncates them.
    */
   external factory Uint32List.fromList(List<int> elements);
 
@@ -1033,9 +1081,13 @@ abstract class Uint32List implements List<int>, TypedData {
 /**
  * A fixed-length list of 64-bit signed integers that is viewable as a
  * [TypedData].
- * 
+ *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low 64 bits,
+ * interpreted as a signed 64-bit two's complement integer with values in the
+ * range -9223372036854775808 to +9223372036854775807.
  */
 abstract class Int64List implements List<int>, TypedData {
   /**
@@ -1047,6 +1099,9 @@ abstract class Int64List implements List<int>, TypedData {
   /**
    * Creates a [Int64List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * Values are truncated to fit in the list when they are copied,
+   * the same way storing values truncates them.
    */
   external factory Int64List.fromList(List<int> elements);
 
@@ -1079,9 +1134,13 @@ abstract class Int64List implements List<int>, TypedData {
 /**
  * A fixed-length list of 64-bit unsigned integers that is viewable as a
  * [TypedData].
- * 
+ *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low 64 bits,
+ * interpreted as an unsigned 64-bit integer with values in the
+ * range 0 to 18446744073709551616.
  */
 abstract class Uint64List implements List<int>, TypedData {
   /**
@@ -1093,6 +1152,9 @@ abstract class Uint64List implements List<int>, TypedData {
   /**
    * Creates a [Uint64List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * Values are truncated to fit in the list when they are copied,
+   * the same way storing values truncates them.
    */
   external factory Uint64List.fromList(List<int> elements);
 
@@ -1125,11 +1187,15 @@ abstract class Uint64List implements List<int>, TypedData {
 
 /**
  * A fixed-length list of IEEE 754 single-precision binary floating-point
- * numbers  that is viewable as a [TypedData].
- * 
+ * numbers that is viewable as a [TypedData].
+ *
  * For long lists, this
  * implementation can be considerably more space- and time-efficient than
  * the default [List] implementation.
+ *
+ * Double values stored in the list are converted to the nearest
+ * single-precision value. Values read are converted to a double
+ * value with the same value.
  */
 abstract class Float32List implements List<double>, TypedData {
   /**
@@ -1141,6 +1207,9 @@ abstract class Float32List implements List<double>, TypedData {
   /**
    * Creates a [Float32List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * Values are truncated to fit in the list when they are copied,
+   * the same way storing values truncates them.
    */
   external factory Float32List.fromList(List<double> elements);
 
@@ -1173,7 +1242,7 @@ abstract class Float32List implements List<double>, TypedData {
 /**
  * A fixed-length list of IEEE 754 double-precision binary floating-point
  * numbers  that is viewable as a [TypedData].
- * 
+ *
  * For long lists, this
  * implementation can be considerably more space- and time-efficient than
  * the default [List] implementation.
@@ -1220,7 +1289,7 @@ abstract class Float64List implements List<double>, TypedData {
 /**
  * A fixed-length list of Float32x4 numbers that is viewable as a
  * [TypedData].
- * 
+ *
  * For long lists, this implementation will be considerably more
  * space- and time-efficient than the default [List] implementation.
  */
@@ -1266,7 +1335,7 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
 /**
  * A fixed-length list of Int32x4 numbers that is viewable as a
  * [TypedData].
- * 
+ *
  * For long lists, this implementation will be considerably more
  * space- and time-efficient than the default [List] implementation.
  */
@@ -1312,7 +1381,7 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
 /**
  * A fixed-length list of Float64x2 numbers that is viewable as a
  * [TypedData].
- * 
+ *
  * For long lists, this implementation will be considerably more
  * space- and time-efficient than the default [List] implementation.
  */
@@ -1357,7 +1426,7 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
 
 /**
  * Float32x4 immutable value type and operations.
- * 
+ *
  * Float32x4 stores 4 32-bit floating point values in "lanes".
  * The lanes are "x", "y", "z", and "w" respectively.
  */
@@ -1712,7 +1781,7 @@ abstract class Float32x4 {
 
 /**
  * Int32x4 and operations.
- * 
+ *
  * Int32x4 stores 4 32-bit bit-masks in "lanes".
  * The lanes are "x", "y", "z", and "w" respectively.
  */
@@ -2049,7 +2118,7 @@ abstract class Int32x4 {
 
 /**
  * Float64x2 immutable value type and operations.
- * 
+ *
  * Float64x2 stores 2 64-bit floating point values in "lanes".
  * The lanes are "x" and "y" respectively.
  */
