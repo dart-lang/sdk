@@ -15,7 +15,7 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
       if (expected[dartx.length] != actual[dartx.length]) {
         dart.throw(`Lists have different lengths: ${expected[dartx.length]} vs ${actual[dartx.length]}`);
       }
-      for (let i = 0; dart.notNull(i) < dart.notNull(actual[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(actual[dartx.length]); i++) {
         Expect.equals(expected[dartx.get](i), actual[dartx.get](i));
       }
     }
@@ -40,7 +40,7 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
       this.run();
     }
     exercise() {
-      for (let i = 0; dart.notNull(i) < 10; i = dart.notNull(i) + 1) {
+      for (let i = 0; i < 10; i++) {
         this.run();
       }
     }
@@ -55,9 +55,9 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
       while (dart.notNull(elapsed) < dart.notNull(timeMinimum)) {
         dart.dcall(f);
         elapsed = watch.elapsedMilliseconds;
-        iter = dart.notNull(iter) + 1;
+        iter++;
       }
-      return 1000.0 * dart.notNull(elapsed) / dart.notNull(iter);
+      return 1000.0 * dart.notNull(elapsed) / iter;
     }
     measure() {
       this.setup();

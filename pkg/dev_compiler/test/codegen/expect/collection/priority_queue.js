@@ -98,7 +98,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
       }
       toSet() {
         let set = new (collection.SplayTreeSet$(E))(dart.as(this.comparison, dart.functionType(core.int, [E, E])));
-        for (let i = 0; dart.notNull(i) < dart.notNull(this[_length]); i = dart.notNull(i) + 1) {
+        for (let i = 0; i < dart.notNull(this[_length]); i++) {
           set.add(this[_queue][dartx.get](i));
         }
         return set;
@@ -120,23 +120,23 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
         if (this[_length] == 0) return -1;
         let position = 1;
         do {
-          let index = dart.notNull(position) - 1;
+          let index = position - 1;
           let element = this[_queue][dartx.get](index);
           let comp = dart.dcall(this.comparison, element, object);
           if (comp == 0) return index;
           if (dart.notNull(comp) < 0) {
-            let leftChildPosition = dart.notNull(position) * 2;
-            if (dart.notNull(leftChildPosition) <= dart.notNull(this[_length])) {
+            let leftChildPosition = position * 2;
+            if (leftChildPosition <= dart.notNull(this[_length])) {
               position = leftChildPosition;
               continue;
             }
           }
           do {
             while (dart.notNull(position[dartx.isOdd])) {
-              position = dart.notNull(position) >> 1;
+              position = position >> 1;
             }
-            position = dart.notNull(position) + 1;
-          } while (dart.notNull(position) > dart.notNull(this[_length]));
+            position = position + 1;
+          } while (position > dart.notNull(this[_length]));
         } while (position != 1);
         return -1;
       }
@@ -161,8 +161,8 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
       [_bubbleDown](element, index) {
         dart.as(element, E);
         let rightChildIndex = dart.notNull(index) * 2 + 2;
-        while (dart.notNull(rightChildIndex) < dart.notNull(this[_length])) {
-          let leftChildIndex = dart.notNull(rightChildIndex) - 1;
+        while (rightChildIndex < dart.notNull(this[_length])) {
+          let leftChildIndex = rightChildIndex - 1;
           let leftChild = this[_queue][dartx.get](leftChildIndex);
           let rightChild = this[_queue][dartx.get](rightChildIndex);
           let comp = dart.dcall(this.comparison, leftChild, rightChild);
@@ -184,8 +184,8 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
           index = minChildIndex;
           rightChildIndex = dart.notNull(index) * 2 + 2;
         }
-        let leftChildIndex = dart.notNull(rightChildIndex) - 1;
-        if (dart.notNull(leftChildIndex) < dart.notNull(this[_length])) {
+        let leftChildIndex = rightChildIndex - 1;
+        if (leftChildIndex < dart.notNull(this[_length])) {
           let child = this[_queue][dartx.get](leftChildIndex);
           let comp = dart.dcall(this.comparison, element, child);
           if (dart.notNull(comp) > 0) {

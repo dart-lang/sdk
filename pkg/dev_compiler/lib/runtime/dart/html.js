@@ -220,7 +220,7 @@ dart_library.library('dart/html', null, /* Imports */[
         if (dart.notNull(core.identical(otherList[_this], this))) {
           dart.throw(new core.ArgumentError(newNodes));
         }
-        for (let i = 0, len = otherList.length; dart.notNull(i) < dart.notNull(len); i = dart.notNull(i) + 1) {
+        for (let i = 0, len = otherList.length; i < dart.notNull(len); ++i) {
           this.insertBefore(otherList[_this].firstChild, refChild);
         }
       } else {
@@ -644,7 +644,7 @@ dart_library.library('dart/html', null, /* Imports */[
         this[_scrollIntoView](true);
       } else if (dart.equals(alignment, ScrollAlignment.BOTTOM)) {
         this[_scrollIntoView](false);
-      } else if (dart.notNull(hasScrollIntoViewIfNeeded)) {
+      } else if (hasScrollIntoViewIfNeeded) {
         if (dart.equals(alignment, ScrollAlignment.CENTER)) {
           this[_scrollIntoViewIfNeeded](true);
         } else {
@@ -726,9 +726,9 @@ dart_library.library('dart/html', null, /* Imports */[
     }
     static _offsetToHelper(current, parent) {
       let sameAsParent = dart.equals(current, parent);
-      let foundAsParent = dart.notNull(sameAsParent) || parent.tagName == 'HTML';
-      if (current == null || dart.notNull(sameAsParent)) {
-        if (dart.notNull(foundAsParent)) return new math.Point(0, 0);
+      let foundAsParent = sameAsParent || parent.tagName == 'HTML';
+      if (current == null || sameAsParent) {
+        if (foundAsParent) return new math.Point(0, 0);
         dart.throw(new core.ArgumentError("Specified element is not a transitive offset " + "parent of this element."));
       }
       let parentOffset = current.offsetParent;
@@ -6162,7 +6162,7 @@ dart_library.library('dart/html', null, /* Imports */[
         let fileUri = xhr.status == 0;
         let notModified = xhr.status == 304;
         let unknownRedirect = dart.notNull(xhr.status) > 307 && dart.notNull(xhr.status) < 400;
-        if (dart.notNull(accepted) || dart.notNull(fileUri) || dart.notNull(notModified) || dart.notNull(unknownRedirect)) {
+        if (accepted || fileUri || notModified || unknownRedirect) {
           completer.complete(xhr);
         } else {
           completer.completeError(e);
@@ -7620,7 +7620,7 @@ dart_library.library('dart/html', null, /* Imports */[
       if (dart.is(iterable, _ChildNodeListLazy)) {
         let otherList = iterable;
         if (!dart.notNull(core.identical(otherList[_this], this[_this]))) {
-          for (let i = 0, len = otherList.length; dart.notNull(i) < dart.notNull(len); i = dart.notNull(i) + 1) {
+          for (let i = 0, len = otherList.length; i < dart.notNull(len); ++i) {
             this[_this].append(otherList[_this].firstChild);
           }
         }
@@ -9499,7 +9499,7 @@ dart_library.library('dart/html', null, /* Imports */[
     get keys() {
       let attributes = this[_element][_attributes];
       let keys = core.List$(core.String).new();
-      for (let i = 0, len = attributes.length; dart.notNull(i) < dart.notNull(len); i = dart.notNull(i) + 1) {
+      for (let i = 0, len = attributes.length; i < dart.notNull(len); i++) {
         if (dart.notNull(this[_matches](attributes.get(i)))) {
           keys[dartx.add](dart.as(dart.dload(attributes.get(i), 'name'), core.String));
         }
@@ -9509,7 +9509,7 @@ dart_library.library('dart/html', null, /* Imports */[
     get values() {
       let attributes = this[_element][_attributes];
       let values = core.List$(core.String).new();
-      for (let i = 0, len = attributes.length; dart.notNull(i) < dart.notNull(len); i = dart.notNull(i) + 1) {
+      for (let i = 0, len = attributes.length; i < dart.notNull(len); i++) {
         if (dart.notNull(this[_matches](attributes.get(i)))) {
           values[dartx.add](dart.as(dart.dload(attributes.get(i), 'value'), core.String));
         }
@@ -9692,7 +9692,7 @@ dart_library.library('dart/html', null, /* Imports */[
       let startUppercase = opts && 'startUppercase' in opts ? opts.startUppercase : false;
       let segments = hyphenedName[dartx.split]('-');
       let start = dart.notNull(startUppercase) ? 0 : 1;
-      for (let i = start; dart.notNull(i) < dart.notNull(segments[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = start; i < dart.notNull(segments[dartx.length]); i++) {
         let segment = segments[dartx.get](i);
         if (dart.notNull(segment[dartx.length]) > 0) {
           segments[dartx.set](i, `${segment[dartx.get](0)[dartx.toUpperCase]()}${segment[dartx.substring](1)}`);
@@ -9702,9 +9702,9 @@ dart_library.library('dart/html', null, /* Imports */[
     }
     [_toHyphenedName](word) {
       let sb = new core.StringBuffer();
-      for (let i = 0; dart.notNull(i) < dart.notNull(word[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(word[dartx.length]); i++) {
         let lower = word[dartx.get](i)[dartx.toLowerCase]();
-        if (word[dartx.get](i) != lower && dart.notNull(i) > 0) sb.write('-');
+        if (word[dartx.get](i) != lower && i > 0) sb.write('-');
         sb.write(lower);
       }
       return dart.toString(sb);
@@ -10052,12 +10052,12 @@ dart_library.library('dart/html', null, /* Imports */[
         static _removeWhere(_element, test, doRemove) {
           let list = exports._ElementCssClassSet._classListOf(_element);
           let i = 0;
-          while (dart.notNull(i) < dart.notNull(exports._ElementCssClassSet._classListLength(list))) {
+          while (i < dart.notNull(exports._ElementCssClassSet._classListLength(list))) {
             let item = list.item(i);
             if (doRemove == test(item)) {
               exports._ElementCssClassSet._classListRemove(list, item);
             } else {
-              i = dart.notNull(i) + 1;
+              ++i;
             }
           }
         }
@@ -10700,7 +10700,7 @@ dart_library.library('dart/html', null, /* Imports */[
       if (charCode != -1) {
         let hex = charCode[dartx.toRadixString](16);
         let sb = new core.StringBuffer('U+');
-        for (let i = 0; dart.notNull(i) < 4 - dart.notNull(hex[dartx.length]); i = dart.notNull(i) + 1)
+        for (let i = 0; i < 4 - dart.notNull(hex[dartx.length]); i++)
           sb.write('0');
         sb.write(hex);
         return dart.toString(sb);
@@ -12126,7 +12126,7 @@ dart_library.library('dart/html', null, /* Imports */[
       }
       moveNext() {
         let nextPosition = dart.notNull(this[_position]) + 1;
-        if (dart.notNull(nextPosition) < dart.notNull(this[_length])) {
+        if (nextPosition < dart.notNull(this[_length])) {
           this[_current] = this[_array][dartx.get](nextPosition);
           this[_position] = nextPosition;
           return true;
@@ -12156,7 +12156,7 @@ dart_library.library('dart/html', null, /* Imports */[
       }
       moveNext() {
         let nextPosition = dart.notNull(this[_position]) + 1;
-        if (dart.notNull(nextPosition) < dart.notNull(this[_array][dartx.length])) {
+        if (nextPosition < dart.notNull(this[_array][dartx.length])) {
           this[_current] = this[_array][dartx.get](nextPosition);
           this[_position] = nextPosition;
           return true;
@@ -12554,7 +12554,7 @@ dart_library.library('dart/html', null, /* Imports */[
         }
       }
       let keys = attrs.keys[dartx.toList]();
-      for (let i = dart.notNull(attrs.length) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
+      for (let i = dart.notNull(attrs.length) - 1; i >= 0; --i) {
         let name = keys[dartx.get](i);
         if (!dart.notNull(this.validator.allowsAttribute(element, dart.as(dart.dsend(name, 'toLowerCase'), core.String), dart.as(attrs.get(name), core.String)))) {
           exports.window.console.warn('Removing disallowed attribute ' + `<${tag} ${name}="${attrs.get(name)}">`);
@@ -12650,7 +12650,7 @@ dart_library.library('dart/html', null, /* Imports */[
         constructor = constructor.__proto__;
       }
     }
-    if (dart.notNull(skip)) {
+    if (skip) {
       dart.dsend(/* Unimplemented unknown name */console, 'info', `Instantiated ${name} instead`);
     }
     let wrapped = dart.dcall(f);

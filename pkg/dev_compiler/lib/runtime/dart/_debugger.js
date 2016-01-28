@@ -420,12 +420,12 @@ dart_library.library('dart/_debugger', null, /* Imports */[
       let ret = dart.list([], NameValuePair);
       let i = 0;
       for (let entry of iterable) {
-        if (dart.notNull(i) > dart.notNull(exports.maxIterableChildrenToDisplay)) {
+        if (i > dart.notNull(exports.maxIterableChildrenToDisplay)) {
           ret[dartx.add](new NameValuePair({name: 'Warning', value: 'Truncated Iterable display'}));
           break;
         }
         ret[dartx.add](new NameValuePair({name: dart.toString(i), value: entry}));
-        i = dart.notNull(i) + 1;
+        i++;
       }
       this.addMetadataChildren(object, ret);
       return ret;

@@ -30,14 +30,14 @@ dart_library.library('collection/iterable_zip', null, /* Imports */[
     }
     moveNext() {
       if (dart.notNull(this[_iterators][dartx.isEmpty])) return false;
-      for (let i = 0; dart.notNull(i) < dart.notNull(this[_iterators][dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(this[_iterators][dartx.length]); i++) {
         if (!dart.notNull(this[_iterators][dartx.get](i).moveNext())) {
           this[_current] = null;
           return false;
         }
       }
       this[_current] = core.List.new(this[_iterators][dartx.length]);
-      for (let i = 0; dart.notNull(i) < dart.notNull(this[_iterators][dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(this[_iterators][dartx.length]); i++) {
         this[_current][dartx.set](i, this[_iterators][dartx.get](i).current);
       }
       return true;

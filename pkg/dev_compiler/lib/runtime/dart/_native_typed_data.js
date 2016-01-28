@@ -128,12 +128,12 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     }
     _slowFromList(list) {
       this[_storage] = NativeFloat32List.new(dart.notNull(list[dartx.length]) * 4);
-      for (let i = 0; dart.notNull(i) < dart.notNull(list[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(list[dartx.length]); i++) {
         let e = list[dartx.get](i);
-        this[_storage].set(dart.notNull(i) * 4 + 0, e.x);
-        this[_storage].set(dart.notNull(i) * 4 + 1, e.y);
-        this[_storage].set(dart.notNull(i) * 4 + 2, e.z);
-        this[_storage].set(dart.notNull(i) * 4 + 3, e.w);
+        this[_storage].set(i * 4 + 0, e.x);
+        this[_storage].set(i * 4 + 1, e.y);
+        this[_storage].set(i * 4 + 2, e.z);
+        this[_storage].set(i * 4 + 3, e.w);
       }
     }
     get runtimeType() {
@@ -234,12 +234,12 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     }
     _slowFromList(list) {
       this[_storage] = NativeInt32List.new(dart.notNull(list[dartx.length]) * 4);
-      for (let i = 0; dart.notNull(i) < dart.notNull(list[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(list[dartx.length]); i++) {
         let e = list[dartx.get](i);
-        this[_storage].set(dart.notNull(i) * 4 + 0, e.x);
-        this[_storage].set(dart.notNull(i) * 4 + 1, e.y);
-        this[_storage].set(dart.notNull(i) * 4 + 2, e.z);
-        this[_storage].set(dart.notNull(i) * 4 + 3, e.w);
+        this[_storage].set(i * 4 + 0, e.x);
+        this[_storage].set(i * 4 + 1, e.y);
+        this[_storage].set(i * 4 + 2, e.z);
+        this[_storage].set(i * 4 + 3, e.w);
       }
     }
     get runtimeType() {
@@ -340,10 +340,10 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     }
     _slowFromList(list) {
       this[_storage] = NativeFloat64List.new(dart.notNull(list[dartx.length]) * 2);
-      for (let i = 0; dart.notNull(i) < dart.notNull(list[dartx.length]); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(list[dartx.length]); i++) {
         let e = list[dartx.get](i);
-        this[_storage].set(dart.notNull(i) * 2 + 0, e.x);
-        this[_storage].set(dart.notNull(i) * 2 + 1, e.y);
+        this[_storage].set(i * 2 + 0, e.x);
+        this[_storage].set(i * 2 + 1, e.y);
       }
     }
     static fromList(list) {
@@ -486,7 +486,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
   function _ensureNativeList(list) {
     if (dart.is(list, _interceptors.JSIndexable)) return list;
     let result = core.List.new(list[dartx.length]);
-    for (let i = 0; dart.notNull(i) < dart.notNull(list[dartx.length]); i = dart.notNull(i) + 1) {
+    for (let i = 0; i < dart.notNull(list[dartx.length]); i++) {
       result[dartx.set](i, list[dartx.get](i));
     }
     return result;
@@ -650,11 +650,11 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       let count = dart.notNull(end) - dart.notNull(start);
       if (dart.notNull(skipCount) < 0) dart.throw(new core.ArgumentError(skipCount));
       let sourceLength = source.length;
-      if (dart.notNull(sourceLength) - dart.notNull(skipCount) < dart.notNull(count)) {
+      if (dart.notNull(sourceLength) - dart.notNull(skipCount) < count) {
         dart.throw(new core.StateError('Not enough elements'));
       }
       if (skipCount != 0 || sourceLength != count) {
-        source = dart.as(source.subarray(skipCount, dart.notNull(skipCount) + dart.notNull(count)), NativeTypedArray);
+        source = dart.as(source.subarray(skipCount, dart.notNull(skipCount) + count), NativeTypedArray);
       }
       this.set(source, start);
     }
@@ -1279,42 +1279,42 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       let _cy = dart.notNull(this.y) < dart.notNull(other.y);
       let _cz = dart.notNull(this.z) < dart.notNull(other.z);
       let _cw = dart.notNull(this.w) < dart.notNull(other.w);
-      return new NativeInt32x4._truncated(dart.notNull(_cx) ? -1 : 0, dart.notNull(_cy) ? -1 : 0, dart.notNull(_cz) ? -1 : 0, dart.notNull(_cw) ? -1 : 0);
+      return new NativeInt32x4._truncated(_cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
     }
     lessThanOrEqual(other) {
       let _cx = dart.notNull(this.x) <= dart.notNull(other.x);
       let _cy = dart.notNull(this.y) <= dart.notNull(other.y);
       let _cz = dart.notNull(this.z) <= dart.notNull(other.z);
       let _cw = dart.notNull(this.w) <= dart.notNull(other.w);
-      return new NativeInt32x4._truncated(dart.notNull(_cx) ? -1 : 0, dart.notNull(_cy) ? -1 : 0, dart.notNull(_cz) ? -1 : 0, dart.notNull(_cw) ? -1 : 0);
+      return new NativeInt32x4._truncated(_cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
     }
     greaterThan(other) {
       let _cx = dart.notNull(this.x) > dart.notNull(other.x);
       let _cy = dart.notNull(this.y) > dart.notNull(other.y);
       let _cz = dart.notNull(this.z) > dart.notNull(other.z);
       let _cw = dart.notNull(this.w) > dart.notNull(other.w);
-      return new NativeInt32x4._truncated(dart.notNull(_cx) ? -1 : 0, dart.notNull(_cy) ? -1 : 0, dart.notNull(_cz) ? -1 : 0, dart.notNull(_cw) ? -1 : 0);
+      return new NativeInt32x4._truncated(_cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
     }
     greaterThanOrEqual(other) {
       let _cx = dart.notNull(this.x) >= dart.notNull(other.x);
       let _cy = dart.notNull(this.y) >= dart.notNull(other.y);
       let _cz = dart.notNull(this.z) >= dart.notNull(other.z);
       let _cw = dart.notNull(this.w) >= dart.notNull(other.w);
-      return new NativeInt32x4._truncated(dart.notNull(_cx) ? -1 : 0, dart.notNull(_cy) ? -1 : 0, dart.notNull(_cz) ? -1 : 0, dart.notNull(_cw) ? -1 : 0);
+      return new NativeInt32x4._truncated(_cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
     }
     equal(other) {
       let _cx = this.x == other.x;
       let _cy = this.y == other.y;
       let _cz = this.z == other.z;
       let _cw = this.w == other.w;
-      return new NativeInt32x4._truncated(dart.notNull(_cx) ? -1 : 0, dart.notNull(_cy) ? -1 : 0, dart.notNull(_cz) ? -1 : 0, dart.notNull(_cw) ? -1 : 0);
+      return new NativeInt32x4._truncated(_cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
     }
     notEqual(other) {
       let _cx = this.x != other.x;
       let _cy = this.y != other.y;
       let _cz = this.z != other.z;
       let _cw = this.w != other.w;
-      return new NativeInt32x4._truncated(dart.notNull(_cx) ? -1 : 0, dart.notNull(_cy) ? -1 : 0, dart.notNull(_cz) ? -1 : 0, dart.notNull(_cw) ? -1 : 0);
+      return new NativeInt32x4._truncated(_cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
     }
     scale(s) {
       let _x = dart.notNull(s) * dart.notNull(this.x);
@@ -1562,7 +1562,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       let my = (dart.notNull(this.y) & 2147483648) >> 31;
       let mz = (dart.notNull(this.z) & 2147483648) >> 31;
       let mw = (dart.notNull(this.w) & 2147483648) >> 31;
-      return dart.notNull(mx) | dart.notNull(my) << 1 | dart.notNull(mz) << 2 | dart.notNull(mw) << 3;
+      return mx | my << 1 | mz << 2 | mw << 3;
     }
     shuffle(mask) {
       if (dart.notNull(mask) < 0 || dart.notNull(mask) > 255) {
@@ -1770,7 +1770,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       NativeFloat64x2._list.set(1, this.y);
       let mx = (dart.notNull(view.get(1)) & 2147483648) >> 31;
       let my = (dart.notNull(view.get(3)) & 2147483648) >> 31;
-      return dart.notNull(mx) | dart.notNull(my) << 1;
+      return mx | my << 1;
     }
     withX(x) {
       if (!(typeof x == 'number')) dart.throw(new core.ArgumentError(x));

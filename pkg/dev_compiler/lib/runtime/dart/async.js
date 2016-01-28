@@ -51,7 +51,7 @@ dart_library.library('dart/async', null, /* Imports */[
     toString() {
       let result = `Uncaught Error: ${this.error}`;
       if (this.stackTrace != null) {
-        result = dart.notNull(result) + `\nStack Trace:\n${this.stackTrace}`;
+        result = result + `\nStack Trace:\n${this.stackTrace}`;
       }
       return result;
     }
@@ -96,11 +96,7 @@ dart_library.library('dart/async', null, /* Imports */[
         let watch = new core.Stopwatch();
         function sendEvent() {
           watch.reset();
-          let data = computation((() => {
-            let x = computationCount;
-            computationCount = dart.notNull(x) + 1;
-            return x;
-          })());
+          let data = computation(computationCount++);
           controller.add(data);
         }
         dart.fn(sendEvent, dart.void, []);
@@ -263,7 +259,7 @@ dart_library.library('dart/async', null, /* Imports */[
         let subscription = null;
         subscription = this.listen(dart.fn(element => {
           dart.as(element, T);
-          if (dart.notNull(seenFirst)) {
+          if (seenFirst) {
             _runUserCode(dart.fn(() => combine(value, element), T, []), dart.fn(newValue => {
               dart.as(newValue, T);
               value = newValue;
@@ -273,7 +269,7 @@ dart_library.library('dart/async', null, /* Imports */[
             seenFirst = true;
           }
         }, dart.void, [T]), {onError: dart.bind(result, _completeError), onDone: dart.fn(() => {
-            if (!dart.notNull(seenFirst)) {
+            if (!seenFirst) {
               try {
                 dart.throw(_internal.IterableElementError.noElement());
               } catch (e) {
@@ -312,7 +308,7 @@ dart_library.library('dart/async', null, /* Imports */[
         let first = true;
         subscription = this.listen(dart.fn(element => {
           dart.as(element, T);
-          if (!dart.notNull(first)) {
+          if (!first) {
             buffer.write(separator);
           }
           first = false;
@@ -395,7 +391,7 @@ dart_library.library('dart/async', null, /* Imports */[
         let count = 0;
         this.listen(dart.fn(_ => {
           dart.as(_, T);
-          count = dart.notNull(count) + 1;
+          count++;
         }, dart.void, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_complete](count);
           }, dart.void, []), cancelOnError: true});
@@ -484,7 +480,7 @@ dart_library.library('dart/async', null, /* Imports */[
           foundResult = true;
           result = value;
         }, dart.void, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
-            if (dart.notNull(foundResult)) {
+            if (foundResult) {
               future[_complete](result);
               return;
             }
@@ -505,7 +501,7 @@ dart_library.library('dart/async', null, /* Imports */[
         let subscription = null;
         subscription = this.listen(dart.fn(value => {
           dart.as(value, T);
-          if (dart.notNull(foundResult)) {
+          if (foundResult) {
             try {
               dart.throw(_internal.IterableElementError.tooMany());
             } catch (e) {
@@ -518,7 +514,7 @@ dart_library.library('dart/async', null, /* Imports */[
           foundResult = true;
           result = value;
         }, dart.void, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
-            if (dart.notNull(foundResult)) {
+            if (foundResult) {
               future[_complete](result);
               return;
             }
@@ -577,7 +573,7 @@ dart_library.library('dart/async', null, /* Imports */[
             }
           }, dart.dynamic, [core.bool]), dart.as(_cancelAndErrorClosure(subscription, future), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])));
         }, dart.void, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
-            if (dart.notNull(foundResult)) {
+            if (foundResult) {
               future[_complete](result);
               return;
             }
@@ -605,7 +601,7 @@ dart_library.library('dart/async', null, /* Imports */[
           dart.as(value, T);
           _runUserCode(dart.fn(() => true == test(value), core.bool, []), dart.fn(isMatch => {
             if (dart.notNull(isMatch)) {
-              if (dart.notNull(foundResult)) {
+              if (foundResult) {
                 try {
                   dart.throw(_internal.IterableElementError.tooMany());
                 } catch (e) {
@@ -620,7 +616,7 @@ dart_library.library('dart/async', null, /* Imports */[
             }
           }, dart.dynamic, [core.bool]), dart.as(_cancelAndErrorClosure(subscription, future), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])));
         }, dart.void, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
-            if (dart.notNull(foundResult)) {
+            if (foundResult) {
               future[_complete](result);
               return;
             }
@@ -645,7 +641,7 @@ dart_library.library('dart/async', null, /* Imports */[
             _cancelAndValue(subscription, future, value);
             return;
           }
-          elementIndex = dart.notNull(elementIndex) + 1;
+          elementIndex = elementIndex + 1;
         }, dart.void, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn((() => {
             future[_completeError](core.RangeError.index(index, this, "index", null, elementIndex));
           }).bind(this), dart.void, []), cancelOnError: true});
@@ -1848,7 +1844,7 @@ dart_library.library('dart/async', null, /* Imports */[
         let error = null;
         let stackTrace = null;
         function handleError(theError, theStackTrace) {
-          remaining = dart.notNull(remaining) - 1;
+          remaining--;
           if (values != null) {
             if (cleanUp != null) {
               for (let value2 of values) {
@@ -1872,10 +1868,9 @@ dart_library.library('dart/async', null, /* Imports */[
         }
         dart.fn(handleError, dart.void, [dart.dynamic, dart.dynamic]);
         for (let future of futures) {
-          let pos = remaining;
-          remaining = dart.notNull(pos) + 1;
+          let pos = remaining++;
           future.then(dart.fn(value => {
-            remaining = dart.notNull(remaining) - 1;
+            remaining--;
             if (values != null) {
               values[dartx.set](pos, dart.as(value, dart.dynamic));
               if (remaining == 0) {
@@ -2527,7 +2522,7 @@ dart_library.library('dart/async', null, /* Imports */[
               handleWhenCompleteCallback();
             }
             if (oldZone != null) Zone._leave(oldZone);
-            if (dart.notNull(isPropagationAborted)) return;
+            if (isPropagationAborted) return;
             if (dart.notNull(listenerHasValue) && !dart.notNull(core.identical(sourceValue, listenerValueOrError)) && dart.is(listenerValueOrError, Future)) {
               let chainSource = dart.as(listenerValueOrError, Future);
               let result = listener.result;
@@ -3830,7 +3825,7 @@ dart_library.library('dart/async', null, /* Imports */[
         if (this[_onCancelHandler] != null) {
           this[_zone].runUnary(this[_onCancelHandler], new _BroadcastSubscriptionWrapper(this));
         }
-        if (dart.notNull(shutdown)) {
+        if (shutdown) {
           if (this[_subscription] != null) {
             this[_subscription].cancel();
             this[_subscription] = null;

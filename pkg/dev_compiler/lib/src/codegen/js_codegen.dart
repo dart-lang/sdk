@@ -39,6 +39,7 @@ import 'js_module_item_order.dart';
 import 'js_names.dart';
 import 'js_printer.dart' show writeJsLibrary;
 import 'module_builder.dart';
+import 'nullability_inferrer.dart';
 import 'side_effect_analysis.dart';
 
 // Various dynamic helpers we call.
@@ -124,6 +125,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   TypeProvider get types => _types;
 
+  NullableExpressionPredicate _isNullable;
+
   JS.Program emitLibrary(LibraryUnit library) {
     // Modify the AST to make coercions explicit.
     new CoercionReifier(library, rules).reify();
@@ -145,7 +148,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     // for real.
     _loader.collectElements(currentLibrary, library.partsThenLibrary);
 
-    for (var unit in library.partsThenLibrary) {
+    var units = library.partsThenLibrary;
+    // TODO(ochafik): Move this down to smaller scopes (method, top-levels) to
+    // save memory.
+    _isNullable = new NullabilityInferrer(units,
+            getStaticType: getStaticType, isJSBuiltinType: _isJSBuiltinType)
+        .buildNullabilityPredicate();
+
+    for (var unit in units) {
       _constField = new ConstFieldVisitor(types, unit);
 
       for (var decl in unit.declarations) {
@@ -2387,76 +2397,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   bool unaryOperationIsPrimitive(DartType t) => typeIsPrimitiveInJS(t);
 
-  bool _isNonNullableExpression(Expression expr) {
-    // TODO(vsm): Revisit whether we really need this when we get
-    // better non-nullability in the type system.
-    // TODO(jmesserly): we do recursive calls in a few places. This could
-    // leads to O(depth) cost for calling this function. We could store the
-    // resulting value if that becomes an issue, so we maintain the invariant
-    // that each node is visited once.
-
-    if (expr is Literal && expr is! NullLiteral) return true;
-    if (expr is IsExpression) return true;
-    if (expr is ThisExpression) return true;
-    if (expr is SuperExpression) return true;
-    if (expr is ParenthesizedExpression) {
-      return _isNonNullableExpression(expr.expression);
-    }
-    if (expr is SimpleIdentifier) {
-      // Type literals are not null.
-      Element e = expr.staticElement;
-      if (e is ClassElement || e is FunctionTypeAliasElement) return true;
-    }
-    DartType type = null;
-    if (expr is BinaryExpression) {
-      switch (expr.operator.type) {
-        case TokenType.EQ_EQ:
-        case TokenType.BANG_EQ:
-        case TokenType.AMPERSAND_AMPERSAND:
-        case TokenType.BAR_BAR:
-          return true;
-        case TokenType.QUESTION_QUESTION:
-          return _isNonNullableExpression(expr.rightOperand);
-      }
-      type = getStaticType(expr.leftOperand);
-    } else if (expr is PrefixExpression) {
-      if (expr.operator.type == TokenType.BANG) return true;
-      type = getStaticType(expr.operand);
-    } else if (expr is PostfixExpression) {
-      type = getStaticType(expr.operand);
-    }
-    if (type != null && _isJSBuiltinType(type)) {
-      return true;
-    }
-    if (expr is MethodInvocation) {
-      // TODO(vsm): This logic overlaps with the resolver.
-      // Where is the best place to put this?
-      var e = expr.methodName.staticElement;
-      if (isInlineJS(e)) {
-        // Fix types for JS builtin calls.
-        //
-        // This code was taken from analyzer. It's not super sophisticated:
-        // only looks for the type name in dart:core, so we just copy it here.
-        //
-        // TODO(jmesserly): we'll likely need something that can handle a wider
-        // variety of types, especially when we get to JS interop.
-        var args = expr.argumentList.arguments;
-        var first = args.isNotEmpty ? args.first : null;
-        if (first is SimpleStringLiteral) {
-          var types = first.stringValue;
-          if (!types.split('|').contains('Null')) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
   JS.Expression notNull(Expression expr) {
     if (expr == null) return null;
     var jsExpr = _visit(expr);
-    if (_isNonNullableExpression(expr)) return jsExpr;
+    if (!_isNullable(expr)) return jsExpr;
     return js.call('dart.notNull(#)', jsExpr);
   }
 
@@ -2487,7 +2431,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (op.type.lexeme == '??') {
       // TODO(jmesserly): leave RHS for debugging?
       // This should be a hint or warning for dead code.
-      if (_isNonNullableExpression(left)) return _visit(left);
+      if (!_isNullable(left)) return _visit(left);
 
       var vars = <String, JS.Expression>{};
       // Desugar `l ?? r` as `l != null ? l : r`
@@ -2656,7 +2600,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     var dispatchType = getStaticType(expr);
     if (unaryOperationIsPrimitive(dispatchType)) {
-      if (_isNonNullableExpression(expr)) {
+      if (!_isNullable(expr)) {
         return js.call('#$op', _visit(expr));
       }
     }
@@ -2688,7 +2632,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     var dispatchType = getStaticType(expr);
     if (unaryOperationIsPrimitive(dispatchType)) {
-      if (_isNonNullableExpression(expr)) {
+      if (!_isNullable(expr)) {
         return js.call('$op#', _visit(expr));
       } else if (op.lexeme == '++' || op.lexeme == '--') {
         // We need a null check, so the increment must be expanded out.
@@ -2788,7 +2732,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       var op = _getOperator(node);
       if (op != null && op.lexeme == '?.') {
         var nodeTarget = _getTarget(node);
-        if (_isNonNullableExpression(nodeTarget)) {
+        if (!_isNullable(nodeTarget)) {
           node = _stripNullAwareOp(node, nodeTarget);
           break;
         }
@@ -2827,9 +2771,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (!_isObjectProperty(memberName)) {
       return false;
     }
-    if (!type.isObject &&
-        !_isJSBuiltinType(type) &&
-        _isNonNullableExpression(target)) {
+    if (!type.isObject && !_isJSBuiltinType(type) && !_isNullable(target)) {
       return false;
     }
     return true;

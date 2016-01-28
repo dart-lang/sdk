@@ -279,7 +279,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
     }
     findSlot(value) {
       let length = this.values[dartx.length];
-      for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(length); i++) {
         if (dart.notNull(core.identical(this.values[dartx.get](i), value))) return i;
       }
       this.values[dartx.add](value);
@@ -334,7 +334,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
       let length = e[dartx.length];
       let copy = this.newJsList(length);
       this.writeSlot(slot, copy);
-      for (; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
+      for (; i < dart.notNull(length); i++) {
         dart.dsetindex(copy, i, this.walk(e[dartx.get](i)));
       }
       return copy;
@@ -364,7 +364,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
     }
     findSlot(value) {
       let length = this.values[dartx.length];
-      for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
+      for (let i = 0; i < dart.notNull(length); i++) {
         if (dart.notNull(this.identicalInJs(this.values[dartx.get](i), value))) return i;
       }
       this.values[dartx.add](value);
@@ -407,7 +407,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
         let length = dart.as(dart.dload(e, 'length'), core.int);
         copy = dart.notNull(this.mustCopy) ? this.newDartList(length) : e;
         this.writeSlot(slot, copy);
-        for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
+        for (let i = 0; i < dart.notNull(length); i++) {
           dart.dsetindex(copy, i, this.walk(dart.dindex(e, i)));
         }
         return copy;
