@@ -1583,5 +1583,21 @@ main() {
         }
     '''
     });
+
+    // TODO(jmesserly): we should change how this inference works.
+    // For now this test will cover what we use.
+    testChecker(
+        'infer from RHS only if it wont conflict with overridden fields 2', {
+      '/main.dart': '''
+        import 'dart:_foreign_helper' show JS;
+        main() {
+          String x = /*severe:STATIC_TYPE_ERROR*/JS('int', '42');
+          var y = JS('String', '"hello"');
+          y = "world";
+          y = /*severe:STATIC_TYPE_ERROR*/42;
+        }
+    '''
+    });
+
   });
 }
