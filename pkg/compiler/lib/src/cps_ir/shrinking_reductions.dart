@@ -132,8 +132,6 @@ class ShrinkingReducer extends Pass {
       case _ReductionKind.BRANCH:
         _reduceBranch(task);
         break;
-      default:
-        assert(false);
     }
   }
 
@@ -635,6 +633,10 @@ class _RemovalVisitor extends TrampolineRecursiveVisitor {
   }
 
   void processContinuation(Continuation node) {
+    node.parent = null;
+  }
+
+  void processBranch(Branch node) {
     node.parent = null;
   }
 
