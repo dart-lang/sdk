@@ -1,4 +1,4 @@
-dart_library.library('collection/priority_queue', null, /* Imports */[
+dart_library.library('collection/src/priority_queue', null, /* Imports */[
   'dart/_runtime',
   'dart/core',
   'dart/collection'
@@ -7,7 +7,14 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   const PriorityQueue$ = dart.generic(function(E) {
-    class PriorityQueue extends core.Object {}
+    class PriorityQueue extends core.Object {
+      static new(comparison) {
+        return new (HeapPriorityQueue$(E))(comparison);
+      }
+    }
+    dart.setSignature(PriorityQueue, {
+      constructors: () => ({new: [PriorityQueue$(E), [], [dart.functionType(core.int, [E, E])]]})
+    });
     return PriorityQueue;
   });
   let PriorityQueue = PriorityQueue$();

@@ -1,4 +1,4 @@
-dart_library.library('collection/iterable_zip', null, /* Imports */[
+dart_library.library('collection/src/iterable_zip', null, /* Imports */[
   'dart/_runtime',
   'dart/collection',
   'dart/core'

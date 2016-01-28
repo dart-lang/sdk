@@ -1,0 +1,4 @@
+// Messages from compiling priority_queue.dart
+warning: [DOWN_CAST_COMPOSITE] (comparison != null) ? comparison : Comparable.compare (Function) will need runtime check to cast to type (dynamic, dynamic) → int (package:collection/src/priority_queue.dart, line 142, col 22)
+warning: [DOWN_CAST_COMPOSITE] comparison ((dynamic, dynamic) → int) will need runtime check to cast to type (E, E) → int (package:collection/src/priority_queue.dart, line 210, col 15)
+warning: [DOWN_CAST_COMPOSITE] comparison ((dynamic, dynamic) → int) will need runtime check to cast to type (E, E) → int (package:collection/src/priority_queue.dart, line 215, col 38)

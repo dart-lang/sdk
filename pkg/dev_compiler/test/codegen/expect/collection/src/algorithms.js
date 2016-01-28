@@ -1,4 +1,4 @@
-dart_library.library('collection/algorithms', null, /* Imports */[
+dart_library.library('collection/src/algorithms', null, /* Imports */[
   'dart/_runtime',
   'dart/core',
   'dart/math'
@@ -6,13 +6,13 @@ dart_library.library('collection/algorithms', null, /* Imports */[
 ], function(exports, dart, core, math) {
   'use strict';
   let dartx = dart.dartx;
-  function _comparableBinarySearch(list, key) {
+  function _comparableBinarySearch(list, value) {
     let min = 0;
     let max = list[dartx.length];
     while (min < dart.notNull(max)) {
       let mid = min + (dart.notNull(max) - min >> 1);
       let element = list[dartx.get](mid);
-      let comp = element[dartx.compareTo](key);
+      let comp = element[dartx.compareTo](value);
       if (comp == 0) return mid;
       if (dart.notNull(comp) < 0) {
         min = mid + 1;
@@ -23,17 +23,17 @@ dart_library.library('collection/algorithms', null, /* Imports */[
     return -1;
   }
   dart.fn(_comparableBinarySearch, core.int, [core.List$(core.Comparable), core.Comparable]);
-  function binarySearch(sortedList, key, opts) {
+  function binarySearch(sortedList, value, opts) {
     let compare = opts && 'compare' in opts ? opts.compare : null;
     if (compare == null) {
-      return _comparableBinarySearch(dart.as(sortedList, core.List$(core.Comparable)), dart.as(key, core.Comparable));
+      return _comparableBinarySearch(dart.as(sortedList, core.List$(core.Comparable)), dart.as(value, core.Comparable));
     }
     let min = 0;
     let max = sortedList[dartx.length];
     while (min < dart.notNull(max)) {
       let mid = min + (dart.notNull(max) - min >> 1);
       let element = sortedList[dartx.get](mid);
-      let comp = dart.dcall(compare, element, key);
+      let comp = dart.dcall(compare, element, value);
       if (comp == 0) return mid;
       if (dart.notNull(comp) < 0) {
         min = mid + 1;
@@ -44,6 +44,42 @@ dart_library.library('collection/algorithms', null, /* Imports */[
     return -1;
   }
   dart.fn(binarySearch, core.int, [core.List, dart.dynamic], {compare: dart.functionType(core.int, [dart.dynamic, dart.dynamic])});
+  function _comparableLowerBound(list, value) {
+    let min = 0;
+    let max = list[dartx.length];
+    while (min < dart.notNull(max)) {
+      let mid = min + (dart.notNull(max) - min >> 1);
+      let element = list[dartx.get](mid);
+      let comp = element[dartx.compareTo](value);
+      if (dart.notNull(comp) < 0) {
+        min = mid + 1;
+      } else {
+        max = mid;
+      }
+    }
+    return min;
+  }
+  dart.fn(_comparableLowerBound, core.int, [core.List$(core.Comparable), core.Comparable]);
+  function lowerBound(sortedList, value, opts) {
+    let compare = opts && 'compare' in opts ? opts.compare : null;
+    if (compare == null) {
+      return _comparableLowerBound(dart.as(sortedList, core.List$(core.Comparable)), dart.as(value, core.Comparable));
+    }
+    let min = 0;
+    let max = sortedList[dartx.length];
+    while (min < dart.notNull(max)) {
+      let mid = min + (dart.notNull(max) - min >> 1);
+      let element = sortedList[dartx.get](mid);
+      let comp = dart.dcall(compare, element, value);
+      if (dart.notNull(comp) < 0) {
+        min = mid + 1;
+      } else {
+        max = mid;
+      }
+    }
+    return min;
+  }
+  dart.fn(lowerBound, core.int, [core.List, dart.dynamic], {compare: dart.functionType(core.int, [dart.dynamic, dart.dynamic])});
   function shuffle(list, start, end) {
     if (start === void 0) start = 0;
     if (end === void 0) end = null;
@@ -222,6 +258,7 @@ dart_library.library('collection/algorithms', null, /* Imports */[
   dart.fn(_merge, dart.void, [dart.functionType(core.int, [dart.dynamic, dart.dynamic]), core.List, core.int, core.int, core.List, core.int, core.int, core.List, core.int]);
   // Exports:
   exports.binarySearch = binarySearch;
+  exports.lowerBound = lowerBound;
   exports.shuffle = shuffle;
   exports.reverse = reverse;
   exports.insertionSort = insertionSort;

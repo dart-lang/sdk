@@ -59114,16 +59114,6 @@ dart_library.library('language/flatten_test_01_multi', null, /* Imports */[
     return FixedPoint;
   });
   let FixedPoint = FixedPoint$();
-  const Divergent$ = dart.generic(function(T) {
-    class Divergent extends core.Object {
-      noSuchMethod(invocation) {
-        return super.noSuchMethod(invocation);
-      }
-    }
-    Divergent[dart.implements] = () => [async.Future$(Divergent$(Divergent$(T)))];
-    return Divergent;
-  });
-  let Divergent = Divergent$();
   function test() {
     return dart.async(function*() {
       let x = (yield new (Derived$(core.int))());
@@ -59139,8 +59129,6 @@ dart_library.library('language/flatten_test_01_multi', null, /* Imports */[
   exports.Derived = Derived;
   exports.FixedPoint$ = FixedPoint$;
   exports.FixedPoint = FixedPoint;
-  exports.Divergent$ = Divergent$;
-  exports.Divergent = Divergent;
   exports.test = test;
   exports.main = main;
 });
@@ -59172,19 +59160,8 @@ dart_library.library('language/flatten_test_05_multi', null, /* Imports */[
     return FixedPoint;
   });
   let FixedPoint = FixedPoint$();
-  const Divergent$ = dart.generic(function(T) {
-    class Divergent extends core.Object {
-      noSuchMethod(invocation) {
-        return super.noSuchMethod(invocation);
-      }
-    }
-    Divergent[dart.implements] = () => [async.Future$(Divergent$(Divergent$(T)))];
-    return Divergent;
-  });
-  let Divergent = Divergent$();
   function test() {
     return dart.async(function*() {
-      let x = (yield new (FixedPoint$(core.int))());
     }, dart.dynamic);
   }
   dart.fn(test);
@@ -59197,8 +59174,6 @@ dart_library.library('language/flatten_test_05_multi', null, /* Imports */[
   exports.Derived = Derived;
   exports.FixedPoint$ = FixedPoint$;
   exports.FixedPoint = FixedPoint;
-  exports.Divergent$ = Divergent$;
-  exports.Divergent = Divergent;
   exports.test = test;
   exports.main = main;
 });
@@ -59230,24 +59205,8 @@ dart_library.library('language/flatten_test_06_multi', null, /* Imports */[
     return FixedPoint;
   });
   let FixedPoint = FixedPoint$();
-  const Divergent$ = dart.generic(function(T) {
-    class Divergent extends core.Object {
-      noSuchMethod(invocation) {
-        return super.noSuchMethod(invocation);
-      }
-    }
-    Divergent[dart.implements] = () => [async.Future$(Divergent$(Divergent$(T)))];
-    return Divergent;
-  });
-  let Divergent = Divergent$();
   function test() {
     return dart.async(function*() {
-      function f() {
-        return dart.async(function*() {
-          return new (FixedPoint$(core.int))();
-        }, FixedPoint$(core.int));
-      }
-      dart.fn(f, async.Future$(FixedPoint$(core.int)), []);
     }, dart.dynamic);
   }
   dart.fn(test);
@@ -59260,8 +59219,6 @@ dart_library.library('language/flatten_test_06_multi', null, /* Imports */[
   exports.Derived = Derived;
   exports.FixedPoint$ = FixedPoint$;
   exports.FixedPoint = FixedPoint;
-  exports.Divergent$ = Divergent$;
-  exports.Divergent = Divergent;
   exports.test = test;
   exports.main = main;
 });
@@ -59293,24 +59250,8 @@ dart_library.library('language/flatten_test_07_multi', null, /* Imports */[
     return FixedPoint;
   });
   let FixedPoint = FixedPoint$();
-  const Divergent$ = dart.generic(function(T) {
-    class Divergent extends core.Object {
-      noSuchMethod(invocation) {
-        return super.noSuchMethod(invocation);
-      }
-    }
-    Divergent[dart.implements] = () => [async.Future$(Divergent$(Divergent$(T)))];
-    return Divergent;
-  });
-  let Divergent = Divergent$();
   function test() {
     return dart.async(function*() {
-      function f() {
-        return dart.async(function*() {
-          return new (FixedPoint$(core.int))();
-        }, FixedPoint$(core.int));
-      }
-      dart.fn(f, async.Future$(FixedPoint$(core.int)), []);
     }, dart.dynamic);
   }
   dart.fn(test);
@@ -59323,8 +59264,6 @@ dart_library.library('language/flatten_test_07_multi', null, /* Imports */[
   exports.Derived = Derived;
   exports.FixedPoint$ = FixedPoint$;
   exports.FixedPoint = FixedPoint;
-  exports.Divergent$ = Divergent$;
-  exports.Divergent = Divergent;
   exports.test = test;
   exports.main = main;
 });
@@ -59356,21 +59295,8 @@ dart_library.library('language/flatten_test_08_multi', null, /* Imports */[
     return FixedPoint;
   });
   let FixedPoint = FixedPoint$();
-  const Divergent$ = dart.generic(function(T) {
-    class Divergent extends core.Object {
-      noSuchMethod(invocation) {
-        return super.noSuchMethod(invocation);
-      }
-    }
-    Divergent[dart.implements] = () => [async.Future$(Divergent$(Divergent$(T)))];
-    return Divergent;
-  });
-  let Divergent = Divergent$();
   function test() {
     return dart.async(function*() {
-      let x = dart.fn(() => dart.async(function*() {
-        return new (FixedPoint$(core.int))();
-      }, FixedPoint$(core.int)), async.Future$(FixedPoint$(core.int)), [])();
     }, dart.dynamic);
   }
   dart.fn(test);
@@ -59383,8 +59309,6 @@ dart_library.library('language/flatten_test_08_multi', null, /* Imports */[
   exports.Derived = Derived;
   exports.FixedPoint$ = FixedPoint$;
   exports.FixedPoint = FixedPoint;
-  exports.Divergent$ = Divergent$;
-  exports.Divergent = Divergent;
   exports.test = test;
   exports.main = main;
 });
@@ -59416,19 +59340,8 @@ dart_library.library('language/flatten_test_09_multi', null, /* Imports */[
     return FixedPoint;
   });
   let FixedPoint = FixedPoint$();
-  const Divergent$ = dart.generic(function(T) {
-    class Divergent extends core.Object {
-      noSuchMethod(invocation) {
-        return super.noSuchMethod(invocation);
-      }
-    }
-    Divergent[dart.implements] = () => [async.Future$(Divergent$(Divergent$(T)))];
-    return Divergent;
-  });
-  let Divergent = Divergent$();
   function test() {
     return dart.async(function*() {
-      let x = (yield new (Divergent$(core.int))());
     }, dart.dynamic);
   }
   dart.fn(test);
@@ -59441,8 +59354,141 @@ dart_library.library('language/flatten_test_09_multi', null, /* Imports */[
   exports.Derived = Derived;
   exports.FixedPoint$ = FixedPoint$;
   exports.FixedPoint = FixedPoint;
-  exports.Divergent$ = Divergent$;
-  exports.Divergent = Divergent;
+  exports.test = test;
+  exports.main = main;
+});
+dart_library.library('language/flatten_test_10_multi', null, /* Imports */[
+  'dart/_runtime',
+  'dart/core',
+  'dart/async'
+], /* Lazy imports */[
+], function(exports, dart, core, async) {
+  'use strict';
+  let dartx = dart.dartx;
+  const Derived$ = dart.generic(function(T) {
+    class Derived extends core.Object {
+      noSuchMethod(invocation) {
+        return super.noSuchMethod(invocation);
+      }
+    }
+    Derived[dart.implements] = () => [async.Future$(T)];
+    return Derived;
+  });
+  let Derived = Derived$();
+  const FixedPoint$ = dart.generic(function(T) {
+    class FixedPoint extends core.Object {
+      noSuchMethod(invocation) {
+        return super.noSuchMethod(invocation);
+      }
+    }
+    FixedPoint[dart.implements] = () => [async.Future$(FixedPoint$(T))];
+    return FixedPoint;
+  });
+  let FixedPoint = FixedPoint$();
+  function test() {
+    return dart.async(function*() {
+    }, dart.dynamic);
+  }
+  dart.fn(test);
+  function main() {
+    test();
+  }
+  dart.fn(main);
+  // Exports:
+  exports.Derived$ = Derived$;
+  exports.Derived = Derived;
+  exports.FixedPoint$ = FixedPoint$;
+  exports.FixedPoint = FixedPoint;
+  exports.test = test;
+  exports.main = main;
+});
+dart_library.library('language/flatten_test_11_multi', null, /* Imports */[
+  'dart/_runtime',
+  'dart/core',
+  'dart/async'
+], /* Lazy imports */[
+], function(exports, dart, core, async) {
+  'use strict';
+  let dartx = dart.dartx;
+  const Derived$ = dart.generic(function(T) {
+    class Derived extends core.Object {
+      noSuchMethod(invocation) {
+        return super.noSuchMethod(invocation);
+      }
+    }
+    Derived[dart.implements] = () => [async.Future$(T)];
+    return Derived;
+  });
+  let Derived = Derived$();
+  const FixedPoint$ = dart.generic(function(T) {
+    class FixedPoint extends core.Object {
+      noSuchMethod(invocation) {
+        return super.noSuchMethod(invocation);
+      }
+    }
+    FixedPoint[dart.implements] = () => [async.Future$(FixedPoint$(T))];
+    return FixedPoint;
+  });
+  let FixedPoint = FixedPoint$();
+  function test() {
+    return dart.async(function*() {
+    }, dart.dynamic);
+  }
+  dart.fn(test);
+  function main() {
+    test();
+  }
+  dart.fn(main);
+  // Exports:
+  exports.Derived$ = Derived$;
+  exports.Derived = Derived;
+  exports.FixedPoint$ = FixedPoint$;
+  exports.FixedPoint = FixedPoint;
+  exports.test = test;
+  exports.main = main;
+});
+dart_library.library('language/flatten_test_12_multi', null, /* Imports */[
+  'dart/_runtime',
+  'dart/core',
+  'dart/async'
+], /* Lazy imports */[
+], function(exports, dart, core, async) {
+  'use strict';
+  let dartx = dart.dartx;
+  const Derived$ = dart.generic(function(T) {
+    class Derived extends core.Object {
+      noSuchMethod(invocation) {
+        return super.noSuchMethod(invocation);
+      }
+    }
+    Derived[dart.implements] = () => [async.Future$(T)];
+    return Derived;
+  });
+  let Derived = Derived$();
+  const FixedPoint$ = dart.generic(function(T) {
+    class FixedPoint extends core.Object {
+      noSuchMethod(invocation) {
+        return super.noSuchMethod(invocation);
+      }
+    }
+    FixedPoint[dart.implements] = () => [async.Future$(FixedPoint$(T))];
+    return FixedPoint;
+  });
+  let FixedPoint = FixedPoint$();
+  function test() {
+    return dart.async(function*() {
+    }, dart.dynamic);
+  }
+  dart.fn(test);
+  function main() {
+    test();
+  }
+  dart.fn(main);
+  // Exports:
+  exports.Derived$ = Derived$;
+  exports.Derived = Derived;
+  exports.FixedPoint$ = FixedPoint$;
+  exports.FixedPoint = FixedPoint;
   exports.test = test;
   exports.main = main;
 });
@@ -59474,16 +59520,6 @@ dart_library.library('language/flatten_test_none_multi', null, /* Imports */[
     return FixedPoint;
   });
   let FixedPoint = FixedPoint$();
-  const Divergent$ = dart.generic(function(T) {
-    class Divergent extends core.Object {
-      noSuchMethod(invocation) {
-        return super.noSuchMethod(invocation);
-      }
-    }
-    Divergent[dart.implements] = () => [async.Future$(Divergent$(Divergent$(T)))];
-    return Divergent;
-  });
-  let Divergent = Divergent$();
   function test() {
     return dart.async(function*() {
     }, dart.dynamic);
@@ -59498,8 +59534,6 @@ dart_library.library('language/flatten_test_none_multi', null, /* Imports */[
   exports.Derived = Derived;
   exports.FixedPoint$ = FixedPoint$;
   exports.FixedPoint = FixedPoint;
-  exports.Divergent$ = Divergent$;
-  exports.Divergent = Divergent;
   exports.test = test;
   exports.main = main;
 });
