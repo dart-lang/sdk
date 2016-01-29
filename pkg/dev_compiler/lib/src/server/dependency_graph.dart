@@ -156,6 +156,22 @@ abstract class SourceNode {
   }
 }
 
+/// A unique node representing all entry points in the graph. This is just for
+/// graph algorthm convenience.
+class EntryNode extends SourceNode {
+  final Iterable<SourceNode> entryPoints;
+
+  @override
+  Iterable<SourceNode> get allDeps => entryPoints;
+
+  @override
+  Iterable<SourceNode> get depsWithoutParts => entryPoints;
+
+  EntryNode(SourceGraph graph, Uri uri, Iterable<SourceNode> nodes)
+      : entryPoints = nodes,
+        super(graph, uri, null);
+}
+
 /// A node representing an entry HTML source file.
 class HtmlSourceNode extends SourceNode {
   /// Resources included by default on any application.
@@ -466,7 +482,7 @@ rebuild(SourceNode start, bool build(SourceNode node)) {
   bool shouldBuildNode(SourceNode n) {
     if (n.needsRebuild) return true;
     if (n is HtmlSourceNode) return htmlNeedsRebuild;
-    if (n is ResourceSourceNode) return false;
+    if (n is ResourceSourceNode || n is EntryNode) return false;
     return (n as DartSourceNode)
         .imports
         .any((i) => apiChangeDetected.contains(i));

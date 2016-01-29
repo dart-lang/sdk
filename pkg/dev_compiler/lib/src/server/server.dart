@@ -36,7 +36,7 @@ import 'dependency_graph.dart';
 
 /// Encapsulates the logic when the compiler is run as a development server.
 class ServerCompiler extends AbstractCompiler {
-  final SourceNode _entryNode;
+  SourceNode _entryNode;
   List<LibraryInfo> _libraries = <LibraryInfo>[];
   final _generators = <CodeGenerator>[];
   bool _hashing;
@@ -45,30 +45,36 @@ class ServerCompiler extends AbstractCompiler {
   factory ServerCompiler(AnalysisContext context, CompilerOptions options,
       {AnalysisErrorListener reporter}) {
     var srcOpts = options.sourceOptions;
-    var inputFile = options.inputs[0];
-    var inputUri =
+    var inputFiles = options.inputs;
+    var inputUris = inputFiles.map((String inputFile) =>
         inputFile.startsWith('dart:') || inputFile.startsWith('package:')
             ? Uri.parse(inputFile)
             : new Uri.file(path.absolute(srcOpts.useImplicitHtml
                 ? SourceResolverOptions.implicitHtmlFile
-                : inputFile));
+                : inputFile)));
     var graph = new SourceGraph(context, reporter, options);
-    var entryNode = graph.nodeFromUri(inputUri);
+    var entryNodes = inputUris.map((inputUri) => graph.nodeFromUri(inputUri));
 
-    return new ServerCompiler._(context, options, reporter, entryNode);
+    return new ServerCompiler._(context, options, reporter, graph, entryNodes);
   }
 
-  ServerCompiler._(AnalysisContext context, CompilerOptions options,
-      AnalysisErrorListener reporter, this._entryNode)
+  ServerCompiler._(
+      AnalysisContext context,
+      CompilerOptions options,
+      AnalysisErrorListener reporter,
+      SourceGraph graph,
+      List<SourceNode> entryNodes)
       : super(context, options, reporter) {
+    _entryNode = entryNodes.length == 1
+        ? entryNodes.first
+        : new EntryNode(graph, new Uri.file(inputBaseDir), entryNodes);
+
     if (outputDir != null) {
       _generators.add(new JSGenerator(this));
     }
     // TODO(sigmund): refactor to support hashing of the dart output?
     _hashing = options.enableHashing && _generators.length == 1;
   }
-
-  Uri get entryPointUri => _entryNode.uri;
 
   CheckerResults run() {
     var clock = new Stopwatch()..start();
@@ -112,9 +118,12 @@ class ServerCompiler extends AbstractCompiler {
       return;
     }
 
-    var filename = path.basename(node.uri.path);
-    String outputFile = path.join(outputDir, filename);
-    new File(outputFile).writeAsStringSync(output);
+    var filepath =
+        resourceOutputPath(node.uri, _entryNode.uri, options.runtimeDir);
+    String outputFile = path.join(outputDir, filepath);
+    new File(outputFile)
+      ..createSync(recursive: true)
+      ..writeAsStringSync(output);
   }
 
   void _buildResourceFile(ResourceSourceNode node) {

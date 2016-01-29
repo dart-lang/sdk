@@ -233,8 +233,6 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
     customUrlMappings[splitMapping[0]] = splitMapping[1];
   }
 
-  if (serverMode && args.rest.length != 1) showUsage = true;
-
   return new CompilerOptions(
       codegenOptions: new CodegenOptions(
           emitSourceMaps: args['source-maps'],

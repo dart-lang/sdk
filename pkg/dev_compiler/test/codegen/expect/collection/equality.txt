@@ -1,10 +1,1 @@
 // Messages from compiling equality.dart
-severe: [AnalyzerMessage] The redirected constructor '() → DefaultEquality' has incompatible parameters with '() → Equality<E>' (package:collection/equality.dart, line 18, col 30)
-severe: [STATIC_TYPE_ERROR] Type check failed: const DefaultEquality() (DefaultEquality) is not of type Equality<E> because const DefaultEquality() cannot be typed as Equality<E> (package:collection/equality.dart, line 75, col 31)
-severe: [STATIC_TYPE_ERROR] Type check failed: const DefaultEquality() (DefaultEquality) is not of type Equality<E> because const DefaultEquality() cannot be typed as Equality<E> (package:collection/equality.dart, line 120, col 53)
-severe: [STATIC_TYPE_ERROR] Type check failed: const DefaultEquality() (DefaultEquality) is not of type Equality<E> because const DefaultEquality() cannot be typed as Equality<E> (package:collection/equality.dart, line 205, col 38)
-severe: [STATIC_TYPE_ERROR] Type check failed: const DefaultEquality() (DefaultEquality) is not of type Equality<E> because const DefaultEquality() cannot be typed as Equality<E> (package:collection/equality.dart, line 223, col 38)
-severe: [STATIC_TYPE_ERROR] Type check failed: const DefaultEquality() (DefaultEquality) is not of type Equality<K> because const DefaultEquality() cannot be typed as Equality<K> (package:collection/equality.dart, line 263, col 42)
-severe: [STATIC_TYPE_ERROR] Type check failed: const DefaultEquality() (DefaultEquality) is not of type Equality<V> because const DefaultEquality() cannot be typed as Equality<V> (package:collection/equality.dart, line 264, col 44)
-warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from dynamic to E (package:collection/equality.dart, line 87, col 36)
-warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from dynamic to E (package:collection/equality.dart, line 87, col 49)

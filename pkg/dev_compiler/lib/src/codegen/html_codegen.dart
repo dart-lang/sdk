@@ -68,10 +68,16 @@ String generateEntryHtml(HtmlSourceNode root, AbstractCompiler compiler) {
     }
   });
 
+  var rootDir = path.dirname(root.uri.path);
+  String rootRelative(String fullPath) {
+    return path.relative(path.join(compiler.inputBaseDir, fullPath),
+        from: rootDir);
+  }
+
   var fragment = new DocumentFragment();
   for (var resource in resources) {
-    var resourcePath =
-        resourceOutputPath(resource.uri, root.uri, options.runtimeDir);
+    var resourcePath = rootRelative(
+        resourceOutputPath(resource.uri, root.uri, options.runtimeDir));
     var ext = path.extension(resourcePath);
     if (resource.cachingHash != null) {
       resourcePath = _addHash(resourcePath, resource.cachingHash);
@@ -92,7 +98,7 @@ String generateEntryHtml(HtmlSourceNode root, AbstractCompiler compiler) {
     var info = lib.info;
     if (info == null) continue;
     var uri = info.library.source.uri;
-    var jsPath = compiler.getModulePath(uri);
+    var jsPath = rootRelative(compiler.getModulePath(uri));
     if (uri == scriptUri) mainLibraryName = compiler.getModuleName(uri);
     if (lib.cachingHash != null) {
       jsPath = _addHash(jsPath, lib.cachingHash);

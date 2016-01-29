@@ -304,10 +304,10 @@ class BatchCompiler extends AbstractCompiler {
       }
     }
 
-    new File(getOutputPath(source.uri)).openSync(mode: FileMode.WRITE)
-      ..writeStringSync(document.outerHtml)
-      ..writeStringSync('\n')
-      ..closeSync();
+    var outputFile = getOutputPath(source.uri);
+    new File(outputFile)
+      ..createSync(recursive: true)
+      ..writeAsStringSync(document.outerHtml + '\n');
   }
 
   html.DocumentFragment _linkLibraries(
