@@ -14,11 +14,12 @@ const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
+List<int> readLocalFile(path) => (new File(localFile(path))).readAsBytesSync();
 
 SecurityContext untrustedServerContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/untrusted_server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/untrusted_server_key.pem'),
-                  password: 'dartdart');
+  ..usePrivateKeyAsBytes(readLocalFile('certificates/untrusted_server_key.pem'),
+                         password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));

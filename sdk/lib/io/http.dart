@@ -100,7 +100,7 @@ abstract class HttpStatus {
  *     import 'dart:io';
  *     import "dart:isolate";
  *
- *     main() {
+ *     main() async {
  *       SecurityContext context = new SecurityContext();
  *       var chain =
  *           Platform.script.resolve('certificates/server_chain.pem')
@@ -109,7 +109,7 @@ abstract class HttpStatus {
  *           Platform.script.resolve('certificates/server_key.pem')
  *           .toFilePath();
  *       context.useCertificateChain(chain);
- *       context.usePrivateKey(key, password: 'dartdart');
+ *       await context.usePrivateKey(key, password: 'dartdart');
  *
  *       HttpServer
  *           .bindSecure(InternetAddress.ANY_IP_V6,

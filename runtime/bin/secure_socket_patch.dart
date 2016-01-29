@@ -137,8 +137,13 @@ class _SecurityContext
   static final SecurityContext defaultContext =
       new _SecurityContext().._trustBuiltinRoots();
 
-  void usePrivateKey(String keyFile, {String password})
-      native "SecurityContext_UsePrivateKey";
+  Future usePrivateKey(String keyFile, {String password}) {
+    return (new File(keyFile)).readAsBytes().then((bytes) {
+      usePrivateKeyAsBytes(bytes, password: password);
+    });
+  }
+  void usePrivateKeyAsBytes(List<int> keyBytes, {String password})
+      native "SecurityContext_UsePrivateKeyAsBytes";
   void setTrustedCertificates({String file, String directory})
       native "SecurityContext_SetTrustedCertificates";
   void useCertificateChain(String file)

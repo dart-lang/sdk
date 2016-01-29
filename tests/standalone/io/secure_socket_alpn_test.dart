@@ -15,14 +15,15 @@ const String MESSAGE_LENGTH_ERROR =
     'The maximum message length supported is 2^13-1';
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
+List<int> readLocalFile(path) => (new File(localFile(path))).readAsBytesSync();
 
 SecurityContext clientContext() => new SecurityContext()
   ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
 
 SecurityContext serverContext() => new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-                    password: 'dartdart');
+  ..usePrivateKeyAsBytes(readLocalFile('certificates/server_key.pem'),
+                         password: 'dartdart');
 
 // Tests that client/server with same protocol can securely establish a
 // connection, negotiate the protocol and can send data to each other.
@@ -67,7 +68,7 @@ void testInvalidArgument(List<String> protocols, String errorIncludes) {
 }
 
 void testInvalidArgumentServerContext(List<String> protocols,
-                                      String errorIncludes) { 
+                                      String errorIncludes) {
   Expect.throws(() => serverContext().setAlpnProtocols(protocols, true), (e) {
     Expect.isTrue(e is ArgumentError);
     Expect.isTrue(e.toString().contains(errorIncludes));
@@ -76,7 +77,7 @@ void testInvalidArgumentServerContext(List<String> protocols,
 }
 
 void testInvalidArgumentClientContext(List<String> protocols,
-                                      String errorIncludes) { 
+                                      String errorIncludes) {
   Expect.throws(() => clientContext().setAlpnProtocols(protocols, false), (e) {
     Expect.isTrue(e is ArgumentError);
     Expect.isTrue(e.toString().contains(errorIncludes));

@@ -8,7 +8,7 @@ part of dart.io;
  * The object containing the certificates to trust when making
  * a secure client connection, and the certificate chain and
  * private key to serve from a secure server.
- * 
+ *
  * The [SecureSocket]  and [SecureServer] classes take a SecurityContext
  * as an argument to their connect and bind methods.
  *
@@ -35,13 +35,28 @@ abstract class SecurityContext {
 
   /**
    * Sets the private key for a server certificate or client certificate.
+   *
    * A secure connection using this SecurityContext will use this key with
    * the server or client certificate to sign and decrypt messages.
    * [keyFile] is a PEM file containing an encrypted
    * private key, encrypted with [password].  An unencrypted file can be
    * used, but this is not usual.
+   *
+   * The function returns a [Future] that completes when the key has been added
+   * to the context.
    */
-  void usePrivateKey(String keyFile, {String password});
+  Future usePrivateKey(String keyFile, {String password});
+
+  /**
+   * Sets the private key for a server certificate or client certificate.
+   *
+   * A secure connection using this SecurityContext will use this key with
+   * the server or client certificate to sign and decrypt messages.
+   * [keyBytes] is the contents of a PEM file containing an encrypted
+   * private key, encrypted with [password].  An unencrypted file can be
+   * used, but this is not usual.
+   */
+  void usePrivateKeyAsBytes(List<int> keyBytes, {String password});
 
   /**
    * Sets the set of trusted X509 certificates used by [SecureSocket]

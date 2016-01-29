@@ -107,7 +107,7 @@ namespace bin {
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
   V(SecureSocket_Renegotiate, 4)                                               \
   V(SecurityContext_Allocate, 1)                                               \
-  V(SecurityContext_UsePrivateKey, 3)                                          \
+  V(SecurityContext_UsePrivateKeyAsBytes, 3)                                   \
   V(SecurityContext_SetAlpnProtocols, 3)                                       \
   V(SecurityContext_SetClientAuthorities, 2)                                   \
   V(SecurityContext_SetTrustedCertificates, 3)                                 \
