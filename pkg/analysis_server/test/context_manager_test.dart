@@ -147,7 +147,7 @@ class AbstractContextManagerTest {
     newFile(
         [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
         r'''
-embedder_libs:
+embedded_libs:
   "dart:foobar": "../sdk_ext/entry.dart"
 analyzer:
   language:
@@ -290,7 +290,7 @@ linter:
     newFile(
         [libPath, '_embedder.yaml'],
         r'''
-embedder_libs:
+embedded_libs:
   "dart:foobar": "../sdk_ext/entry.dart"
 analyzer:
   strong-mode: true
@@ -384,7 +384,7 @@ linter:
     newFile(
         [libPath, '_embedder.yaml'],
         r'''
-embedder_libs:
+embedded_libs:
   "dart:foobar": "../sdk_ext/entry.dart"
   "dart:typed_data": "../sdk_ext/src/part"
   ''');
@@ -408,10 +408,10 @@ test_pack:lib/''');
     expect(source.fullName,
         '/my/proj/sdk_ext/entry.dart'.replaceAll('/', JavaFile.separator));
     // We can't find dart:core because we didn't list it in our
-    // embedder_libs map.
+    // embedded_libs map.
     expect(context.sourceFactory.forUri('dart:core'), isNull);
     // We can find dart:typed_data because we listed it in our
-    // embedder_libs map.
+    // embedded_libs map.
     expect(context.sourceFactory.forUri('dart:typed_data'), isNotNull);
   }
 

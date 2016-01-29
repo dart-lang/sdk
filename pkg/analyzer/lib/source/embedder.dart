@@ -99,12 +99,12 @@ class EmbedderYamlLocator {
 }
 
 /// Given the [embedderYamls] from [EmbedderYamlLocator] check each one for the
-/// top level key 'embedder_libs'. Under the 'embedder_libs' key are key value
+/// top level key 'embedded_libs'. Under the 'embedded_libs' key are key value
 /// pairs. Each key is a 'dart:' library uri and each value is a path
 /// (relative to the directory containing `_embedder.yaml`) to a dart script
 /// for the given library. For example:
 ///
-/// embedder_libs:
+/// embedded_libs:
 ///   'dart:io': '../../sdk/io/io.dart'
 ///
 /// If a key doesn't begin with `dart:` it is ignored.
@@ -124,19 +124,19 @@ class EmbedderUriResolver extends DartUriResolver {
   }
 
   void _processEmbedderYaml(Folder libDir, YamlMap map) {
-    YamlNode embedder_libs = map['embedder_libs'];
-    if (embedder_libs == null) {
+    YamlNode embedded_libs = map['embedded_libs'];
+    if (embedded_libs == null) {
       return;
     }
-    if (embedder_libs is! YamlMap) {
+    if (embedded_libs is! YamlMap) {
       return;
     }
-    (embedder_libs as YamlMap)
-        .forEach((k, v) => _processEmbedderLibs(k, v, libDir));
+    (embedded_libs as YamlMap)
+        .forEach((k, v) => _processEmbeddedLibs(k, v, libDir));
   }
 
   /// Install the mapping from [name] to [libDir]/[file].
-  void _processEmbedderLibs(String name, String file, Folder libDir) {
+  void _processEmbeddedLibs(String name, String file, Folder libDir) {
     if (!name.startsWith(_DART_COLON_PREFIX)) {
       // SDK libraries must begin with 'dart:'.
       // TODO(pquitslund): Notify developer that something is wrong with the
@@ -151,7 +151,7 @@ class EmbedderUriResolver extends DartUriResolver {
     (dartSdk as EmbedderSdk)._librariesMap.setLibrary(name, library);
   }
 
-  /// Number of embedder libraries.
+  /// Number of embedded libraries.
   int get length => _urlMappings.length;
 
   @override

@@ -150,7 +150,7 @@ buildResourceProvider() {
     ..newFile(
         '/tmp/_embedder.yaml',
         r'''
-embedder_libs:
+embedded_libs:
   "dart:fox": "slippy.dart"
   "dart:bear": "grizzly.dart"
   "dart:relative": "../relative.dart"
