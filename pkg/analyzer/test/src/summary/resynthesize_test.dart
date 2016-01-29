@@ -1501,13 +1501,14 @@ get x => null;''');
         ' abstract class D<U, V> { Map<V, U> get v; }');
   }
 
-  test_inferred_type_via_function_typed_param() {
-    if (options.strongMode) {
-      // TODO(paulberry): get this test to pass.
-      return;
-    }
-    checkLibrary('class C extends D { f(g) {} }'
-        ' abstract class D { void f(int g(String)); }');
+  test_inferred_type_refers_to_method_function_typed_parameter_type() {
+    checkLibrary('class C extends D { void f(int x, g) {} }'
+        ' abstract class D { void f(int x, int g(String s)); }');
+  }
+
+  test_inferred_type_refers_to_setter_function_typed_parameter_type() {
+    checkLibrary('class C extends D { void set f(g) {} }'
+        ' abstract class D { void set f(int g(String s)); }');
   }
 
   test_library() {

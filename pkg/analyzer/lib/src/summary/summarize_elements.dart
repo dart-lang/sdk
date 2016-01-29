@@ -686,7 +686,36 @@ class _CompilationUnitSerializer {
     if (type is TypeParameterType) {
       b.paramReference = findTypeParameterIndex(type, context);
     } else {
-      b.reference = serializeReferenceForType(type, linked);
+      if (type is FunctionType &&
+          type.element.enclosingElement is ParameterElement) {
+        // Code cannot refer to function types implicitly defined by parameters
+        // directly, so if we get here, we must be serializing a linked
+        // reference from type inference.
+        assert(linked);
+        ParameterElement parameterElement = type.element.enclosingElement;
+        while (true) {
+          Element parent = parameterElement.enclosingElement;
+          if (parent is ExecutableElement) {
+            Element grandParent = parent.enclosingElement;
+            b.implicitFunctionTypeIndices
+                .insert(0, parent.parameters.indexOf(parameterElement));
+            if (grandParent is ParameterElement) {
+              // Function-typed parameter inside a function-typed parameter.
+              parameterElement = grandParent;
+              continue;
+            } else {
+              // Function-typed parameter inside a top level function or method.
+              b.reference = _getElementReferenceId(parent, linked: linked);
+              break;
+            }
+          } else {
+            throw new StateError(
+                'Unexpected element enclosing parameter: ${parent.runtimeType}');
+          }
+        }
+      } else {
+        b.reference = serializeReferenceForType(type, linked);
+      }
       List<DartType> typeArguments = getTypeArguments(type);
       if (typeArguments != null) {
         // Trailing type arguments of type 'dynamic' should be omitted.
@@ -801,16 +830,6 @@ class _CompilationUnitSerializer {
       if (element is ConstructorElement && element.displayName.isEmpty) {
         return _getElementReferenceId(element.enclosingElement, linked: linked);
       }
-      if (element is MethodElement && !element.isStatic) {
-        throw new StateError('Only static methods can be serialized.');
-      }
-      if (element is PropertyAccessorElement) {
-        Element enclosing = element.enclosingElement;
-        if (!(enclosing is CompilationUnitElement || element.isStatic)) {
-          throw new StateError(
-              'Only top-level or static property accessors can be serialized.');
-        }
-      }
       LibraryElement dependentLibrary = element?.library;
       int unit;
       if (dependentLibrary == null) {
@@ -836,6 +855,11 @@ class _CompilationUnitSerializer {
       String name = element == null ? 'void' : element.name;
       if (linked) {
         linkedReference.name = name;
+        Element enclosing = element?.enclosingElement;
+        if (enclosing is ClassElement) {
+          linkedReference.containingReference =
+              _getElementReferenceId(enclosing, linked: linked);
+        }
       } else {
         assert(unlinkedReferences.length == linkedReferences.length);
         int prefixReference = 0;

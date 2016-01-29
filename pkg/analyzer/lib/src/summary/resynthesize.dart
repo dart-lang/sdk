@@ -418,17 +418,6 @@ class _ConstExprBuilder {
     return stack.single;
   }
 
-  void _pushMap(TypeArgumentList typeArguments) {
-    int count = uc.ints[intPtr++];
-    List<MapLiteralEntry> entries = <MapLiteralEntry>[];
-    for (int i = 0; i < count; i++) {
-      Expression value = _pop();
-      Expression key = _pop();
-      entries.insert(0, AstFactory.mapLiteralEntry2(key, value));
-    }
-    _push(AstFactory.mapLiteral(Keyword.CONST, typeArguments, entries));
-  }
-
   TypeName _buildTypeAst(DartType type) {
     if (type is DynamicTypeImpl) {
       return AstFactory.typeName4('dynamic')..type = type;
@@ -482,6 +471,17 @@ class _ConstExprBuilder {
       elements.insert(0, _pop());
     }
     _push(AstFactory.listLiteral2(Keyword.CONST, typeArguments, elements));
+  }
+
+  void _pushMap(TypeArgumentList typeArguments) {
+    int count = uc.ints[intPtr++];
+    List<MapLiteralEntry> entries = <MapLiteralEntry>[];
+    for (int i = 0; i < count; i++) {
+      Expression value = _pop();
+      Expression key = _pop();
+      entries.insert(0, AstFactory.mapLiteralEntry2(key, value));
+    }
+    _push(AstFactory.mapLiteral(Keyword.CONST, typeArguments, entries));
   }
 
   void _pushPrefix(TokenType operator) {
@@ -1299,7 +1299,8 @@ class _LibraryResynthesizer {
         }
       }
       _ReferenceInfo referenceInfo = referenceInfos[type.reference];
-      return referenceInfo.buildType(getTypeParameter);
+      return referenceInfo.buildType(
+          getTypeParameter, type.implicitFunctionTypeIndices);
     }
   }
 
@@ -1463,10 +1464,13 @@ class _LibraryResynthesizer {
     for (int i = 0; i < numLinkedReferences; i++) {
       LinkedReference linkedReference = linkedUnit.references[i];
       String name;
+      int containingReference;
       if (i < numUnlinkedReferences) {
         name = unlinkedUnit.references[i].name;
+        containingReference = unlinkedUnit.references[i].prefixReference;
       } else {
         name = linkedUnit.references[i].name;
+        containingReference = linkedUnit.references[i].containingReference;
       }
       ElementHandle element;
       DartType type;
@@ -1477,9 +1481,21 @@ class _LibraryResynthesizer {
       } else if (name == 'void') {
         type = VoidTypeImpl.instance;
       } else {
-        ElementLocation location = new ElementLocationImpl.con3(
-            getReferencedLocationComponents(
-                linkedReference.dependency, linkedReference.unit, name));
+        List<String> locationComponents;
+        if (containingReference != 0 &&
+            referenceInfos[containingReference].element is ClassElement) {
+          locationComponents = referenceInfos[containingReference]
+              .element
+              .location
+              .components
+              .toList();
+          locationComponents.add(name);
+        } else {
+          locationComponents = getReferencedLocationComponents(
+              linkedReference.dependency, linkedReference.unit, name);
+        }
+        ElementLocation location =
+            new ElementLocationImpl.con3(locationComponents);
         switch (linkedReference.kind) {
           case ReferenceKind.classOrEnum:
             element = new ClassElementHandle(summaryResynthesizer, location);
@@ -1487,6 +1503,15 @@ class _LibraryResynthesizer {
           case ReferenceKind.typedef:
             element = new FunctionTypeAliasElementHandle(
                 summaryResynthesizer, location);
+            break;
+          case ReferenceKind.propertyAccessor:
+            assert(location.components.length == 4);
+            element = new PropertyAccessorElementHandle(
+                summaryResynthesizer, location);
+            break;
+          case ReferenceKind.method:
+            assert(location.components.length == 4);
+            element = new MethodElementHandle(summaryResynthesizer, location);
             break;
           default:
             // This is an element that doesn't (yet) need to be referred to
@@ -1572,7 +1597,7 @@ class _ReferenceInfo {
    * associated element (e.g. because it is a reference to an undefined
    * entity).
    */
-  final ElementHandle element;
+  final Element element;
 
   /**
    * If this reference refers to a non-generic type, the type it refers to.
@@ -1602,7 +1627,7 @@ class _ReferenceInfo {
     } else if (numTypeParameters == 0) {
       // We can precompute the type because it doesn't depend on type
       // parameters.
-      type = _buildType(null);
+      type = _buildType(null, null);
     }
   }
 
@@ -1611,12 +1636,20 @@ class _ReferenceInfo {
    * arguments to the entity referred to by this [_ReferenceInfo].  The type
    * arguments are retrieved by calling [getTypeArgument].
    *
+   * If [implicitFunctionTypeIndices] is not empty, a [DartType] should be
+   * created which refers to a function type implicitly defined by one of the
+   * element's parameters.  [implicitFunctionTypeIndices] is interpreted as in
+   * [EntityRef.implicitFunctionTypeIndices].
+   *
    * If the entity referred to by this [_ReferenceInfo] is not a type, `null`
    * is returned.
    */
-  DartType buildType(DartType getTypeArgument(int i)) {
+  DartType buildType(
+      DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
     DartType result =
-        numTypeParameters == 0 ? type : _buildType(getTypeArgument);
+        (numTypeParameters == 0 && implicitFunctionTypeIndices.isEmpty)
+            ? type
+            : _buildType(getTypeArgument, implicitFunctionTypeIndices);
     if (result == null) {
       // TODO(paulberry): figure out how to handle this case (which should
       // only occur in the event of erroneous code).
@@ -1629,8 +1662,14 @@ class _ReferenceInfo {
    * If this reference refers to a type, build a [DartType] which instantiates
    * it with type arguments returned by [getTypeArgument].  Otherwise return
    * `null`.
+   *
+   * If [implicitFunctionTypeIndices] is not null, a [DartType] should be
+   * created which refers to a function type implicitly defined by one of the
+   * element's parameters.  [implicitFunctionTypeIndices] is interpreted as in
+   * [EntityRef.implicitFunctionTypeIndices].
    */
-  DartType _buildType(DartType getTypeArgument(int i)) {
+  DartType _buildType(
+      DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
     List<DartType> typeArguments = const <DartType>[];
     if (numTypeParameters != 0) {
       typeArguments = <DartType>[];
@@ -1645,6 +1684,17 @@ class _ReferenceInfo {
     } else if (element is FunctionTypeAliasElementHandle) {
       return new FunctionTypeImpl.elementWithNameAndArgs(
           element, name, typeArguments, typeArguments.isNotEmpty);
+    } else if (element is FunctionTypedElement &&
+        implicitFunctionTypeIndices != null) {
+      FunctionTypedElementComputer computer = () {
+        FunctionTypedElement element = this.element;
+        for (int index in implicitFunctionTypeIndices) {
+          element = element.parameters[index].type.element;
+        }
+        return element;
+      };
+      return new DeferredFunctionTypeImpl(
+          computer, null, typeArguments, typeArguments.isNotEmpty);
     } else {
       return null;
     }
