@@ -263,6 +263,7 @@ class _ConstExprBuilder {
   Expression get expr => stack.single;
 
   Expression build() {
+    // TODO(scheglov) complete implementation
     for (UnlinkedConstOperation operation in uc.operations) {
       switch (operation) {
         case UnlinkedConstOperation.pushNull:
@@ -392,10 +393,25 @@ class _ConstExprBuilder {
           _push(AstFactory.methodInvocation(
               null, 'identical', <Expression>[first, second]));
           break;
-        // TODO(scheglov) complete implementation
         case UnlinkedConstOperation.makeUntypedList:
-        case UnlinkedConstOperation.makeTypedList:
+          int count = uc.ints[intPtr++];
+          List<Expression> elements = <Expression>[];
+          for (int i=  0; i < count; i++) {
+            elements.insert(0, _pop());
+          }
+          _push(AstFactory.listLiteral2(Keyword.CONST, null, elements));
+          break;
         case UnlinkedConstOperation.makeUntypedMap:
+          int count = uc.ints[intPtr++];
+          List<MapLiteralEntry> entries = <MapLiteralEntry>[];
+          for (int i=  0; i < count; i++) {
+            Expression value = _pop();
+            Expression key = _pop();
+            entries.insert(0, AstFactory.mapLiteralEntry2(key, value));
+          }
+          _push(AstFactory.mapLiteral(Keyword.CONST, null, entries));
+          break;
+        case UnlinkedConstOperation.makeTypedList:
         case UnlinkedConstOperation.makeTypedMap:
         case UnlinkedConstOperation.pushReference:
         case UnlinkedConstOperation.invokeConstructor:

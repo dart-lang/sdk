@@ -222,9 +222,27 @@ class ResynthTest extends ResolverTestCase {
         expect(resynthesized.toDoubleValue(), original.toDoubleValue(),
             reason: desc);
       } else if (original.toListValue() != null) {
-        fail('Not implemented');
+        List<DartObject> resynthesizedList = resynthesized.toListValue();
+        List<DartObject> originalList = original.toListValue();
+        expect(resynthesizedList, hasLength(originalList.length));
+        for (int i = 0; i < originalList.length; i++) {
+          compareConstantValues(resynthesizedList[i], originalList[i], desc);
+        }
       } else if (original.toMapValue() != null) {
-        fail('Not implemented');
+        Map<DartObject, DartObject> resynthesizedMap =
+            resynthesized.toMapValue();
+        Map<DartObject, DartObject> originalMap = original.toMapValue();
+        expect(resynthesizedMap, hasLength(originalMap.length));
+        List<DartObject> resynthesizedKeys = resynthesizedMap.keys.toList();
+        List<DartObject> originalKeys = originalMap.keys.toList();
+        for (int i = 0; i < originalKeys.length; i++) {
+          DartObject resynthesizedKey = resynthesizedKeys[i];
+          DartObject originalKey = originalKeys[i];
+          compareConstantValues(resynthesizedKey, originalKey, desc);
+          DartObject resynthesizedValue = resynthesizedMap[resynthesizedKey];
+          DartObject originalValue = originalMap[originalKey];
+          compareConstantValues(resynthesizedValue, originalValue, desc);
+        }
       } else if (original.toStringValue() != null) {
         expect(resynthesized.toStringValue(), original.toStringValue(),
             reason: desc);
@@ -1014,6 +1032,20 @@ const vNotEqual = 1 != 2;
 const vNot = !true;
 const vNegate = -1;
 const vComplement = ~1;
+''');
+  }
+
+  test_const_topLevel_untypedList() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+const v = const [1, 2, 3];
+''');
+  }
+
+  test_const_topLevel_untypedMap() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+const v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
 ''');
   }
 

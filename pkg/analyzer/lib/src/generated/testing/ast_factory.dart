@@ -800,6 +800,10 @@ class AstFactory {
       new MapLiteralEntry(
           string2(key), TokenFactory.tokenFromType(TokenType.COLON), value);
 
+  static MapLiteralEntry mapLiteralEntry2(Expression key, Expression value) =>
+      new MapLiteralEntry(
+          key, TokenFactory.tokenFromType(TokenType.COLON), value);
+
   static MethodDeclaration methodDeclaration(
           Keyword modifier,
           TypeName returnType,
