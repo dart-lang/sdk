@@ -44,30 +44,30 @@ main() {
   initializeTestEnvironment();
   runReflectiveTests(AnalysisDeltaTest);
   runReflectiveTests(ChangeSetTest);
-  runReflectiveTests(DisableAsyncTestCase);
-  runReflectiveTests(EnclosedScopeTest);
-  runReflectiveTests(LibraryImportScopeTest);
-  runReflectiveTests(LibraryScopeTest);
-  runReflectiveTests(ScopeTest);
-  runReflectiveTests(ElementResolverTest);
-  runReflectiveTests(InheritanceManagerTest);
-  runReflectiveTests(StaticTypeAnalyzerTest);
-  runReflectiveTests(StaticTypeAnalyzer2Test);
-  runReflectiveTests(SubtypeManagerTest);
-  runReflectiveTests(TypeOverrideManagerTest);
-  runReflectiveTests(TypeProviderImplTest);
-  runReflectiveTests(TypeResolverVisitorTest);
   runReflectiveTests(CheckedModeCompileTimeErrorCodeTest);
+  runReflectiveTests(DisableAsyncTestCase);
+  runReflectiveTests(ElementResolverTest);
+  runReflectiveTests(EnclosedScopeTest);
   runReflectiveTests(ErrorResolverTest);
   runReflectiveTests(HintCodeTest);
+  runReflectiveTests(InheritanceManagerTest);
+  runReflectiveTests(LibraryImportScopeTest);
+  runReflectiveTests(LibraryScopeTest);
   runReflectiveTests(MemberMapTest);
   runReflectiveTests(NonHintCodeTest);
+  runReflectiveTests(ScopeTest);
   runReflectiveTests(SimpleResolverTest);
+  runReflectiveTests(StaticTypeAnalyzerTest);
+  runReflectiveTests(StaticTypeAnalyzer2Test);
   runReflectiveTests(StrictModeTest);
-  runReflectiveTests(TypePropagationTest);
   runReflectiveTests(StrongModeDownwardsInferenceTest);
   runReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
   runReflectiveTests(StrongModeTypePropagationTest);
+  runReflectiveTests(SubtypeManagerTest);
+  runReflectiveTests(TypeOverrideManagerTest);
+  runReflectiveTests(TypePropagationTest);
+  runReflectiveTests(TypeProviderImplTest);
+  runReflectiveTests(TypeResolverVisitorTest);
 }
 
 /**

@@ -7677,7 +7677,7 @@ class PartialResolverVisitor extends ResolverVisitor {
    */
   void _addPropagableVariables(List<VariableDeclaration> variables) {
     for (VariableDeclaration variable in variables) {
-      if (variable.initializer != null) {
+      if (variable.name.name.isNotEmpty && variable.initializer != null) {
         VariableElement element = variable.element;
         if (element.isConst || element.isFinal) {
           propagableVariables.add(element);
@@ -7695,7 +7695,7 @@ class PartialResolverVisitor extends ResolverVisitor {
    */
   void _addStaticVariables(List<VariableDeclaration> variables) {
     for (VariableDeclaration variable in variables) {
-      if (variable.initializer != null) {
+      if (variable.name.name.isNotEmpty && variable.initializer != null) {
         staticVariables.add(variable.element);
       }
     }

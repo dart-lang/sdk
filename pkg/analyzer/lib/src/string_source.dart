@@ -7,25 +7,39 @@ library analyzer.src.string_source;
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
 
-/// An implementation of [Source] that's based on an in-memory Dart string.
+/**
+ * An implementation of [Source] that's based on an in-memory Dart string.
+ */
 class StringSource extends Source {
+  /**
+   * The content of the source.
+   */
   final String _contents;
+
+  @override
   final String fullName;
+
+  @override
   final int modificationStamp;
 
   StringSource(this._contents, this.fullName)
       : modificationStamp = new DateTime.now().millisecondsSinceEpoch;
 
+  @override
   TimestampedData<String> get contents =>
       new TimestampedData(modificationStamp, _contents);
 
+  @override
   String get encoding =>
-      throw new UnsupportedError("StringSource doesn't support " "encoding.");
+      throw new UnsupportedError("StringSource doesn't support encoding.");
 
+  @override
   int get hashCode => _contents.hashCode ^ fullName.hashCode;
 
+  @override
   bool get isInSystemLibrary => false;
 
+  @override
   String get shortName => fullName;
 
   @override
@@ -33,18 +47,25 @@ class StringSource extends Source {
       throw new UnsupportedError("StringSource doesn't support uri.");
 
   UriKind get uriKind =>
-      throw new UnsupportedError("StringSource doesn't support " "uriKind.");
+      throw new UnsupportedError("StringSource doesn't support uriKind.");
 
+  /**
+   * Return `true` if the given [object] is a string source that is equal to
+   * this source.
+   */
   bool operator ==(Object object) {
-    if (object is StringSource) {
-      StringSource ssObject = object;
-      return ssObject._contents == _contents && ssObject.fullName == fullName;
-    }
-    return false;
+    return object is StringSource &&
+        object._contents == _contents &&
+        object.fullName == fullName;
   }
 
+  @override
   bool exists() => true;
 
+  @override
   Uri resolveRelativeUri(Uri relativeUri) => throw new UnsupportedError(
       "StringSource doesn't support resolveRelative.");
+
+  @override
+  String toString() => 'StringSource ($fullName)';
 }
