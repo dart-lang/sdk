@@ -28,14 +28,14 @@ inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
 }
 
 
-inline intptr_t AtomicOperations::FetchAndIncrementBy(intptr_t* p,
-                                                      intptr_t value) {
+inline uintptr_t AtomicOperations::FetchAndIncrementBy(intptr_t* p,
+                                                       intptr_t value) {
 #if defined(HOST_ARCH_X64)
-  return static_cast<intptr_t>(
+  return static_cast<uintptr_t>(
       InterlockedAdd64(reinterpret_cast<LONGLONG*>(p),
                        static_cast<LONGLONG>(value))) - value;
 #elif defined(HOST_ARCH_IA32)
-  return static_cast<intptr_t>(
+  return static_cast<uintptr_t>(
       InterlockedAdd(reinterpret_cast<LONG*>(p),
                      static_cast<LONGLONG>(value))) - value;
 #else
@@ -57,14 +57,14 @@ inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
 }
 
 
-inline intptr_t AtomicOperations::FetchAndDecrementBy(intptr_t* p,
-                                                      intptr_t value) {
+inline uintptr_t AtomicOperations::FetchAndDecrementBy(intptr_t* p,
+                                                       intptr_t value) {
 #if defined(HOST_ARCH_X64)
-  return static_cast<intptr_t>(
+  return static_cast<uintptr_t>(
       InterlockedAdd64(reinterpret_cast<LONGLONG*>(p),
                        static_cast<LONGLONG>(-value))) + value;
 #elif defined(HOST_ARCH_IA32)
-  return static_cast<intptr_t>(
+  return static_cast<uintptr_t>(
       InterlockedAdd(reinterpret_cast<LONG*>(p),
                      static_cast<LONGLONG>(-value))) + value;
 #else
