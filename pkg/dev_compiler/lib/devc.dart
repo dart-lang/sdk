@@ -10,4 +10,4 @@ export 'src/compiler.dart' show BatchCompiler, setupLogger, createErrorReporter;
 export 'src/server/server.dart' show DevServer;
 
 // When updating this version, also update the version in the pubspec.
-const devCompilerVersion = '0.1.16';
+const devCompilerVersion = '0.1.17';
