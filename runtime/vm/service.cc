@@ -3486,7 +3486,7 @@ static bool GetVersion(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
   jsobj.AddProperty("major", static_cast<intptr_t>(3));
-  jsobj.AddProperty("minor", static_cast<intptr_t>(0));
+  jsobj.AddProperty("minor", static_cast<intptr_t>(1));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
   return true;

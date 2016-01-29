@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.0
+# Dart VM Service Protocol 3.1
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.0_ of the Dart VM Service Protocol. This
+This document describes of _version 3.1_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -32,6 +32,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [getFlagList](#getflaglist)
 	- [getIsolate](#getisolate)
 	- [getObject](#getobject)
+	- [getSourceReport](#getsourcereport)
 	- [getStack](#getstack)
 	- [getVersion](#getversion)
 	- [getVM](#getvm)
@@ -77,6 +78,10 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [SentinelKind](#sentinelkind)
 	- [Script](#script)
 	- [SourceLocation](#sourcelocation)
+	- [SourceReport](#sourcereport)
+	- [SourceReportCoverage](#sourcereportcoverage)
+	- [SourceReportKind](#sourcereportkind)
+	- [SourceReportRange](#sourcereportrange)
 	- [Stack](#stack)
 	- [StepOption](#stepoption)
 	- [Success](#success)
@@ -566,6 +571,52 @@ The _getStack_ RPC is used to retrieve the current execution stack and
 message queue for an isolate. The isolate does not need to be paused.
 
 See [Stack](#stack).
+
+### getSourceReport
+
+```
+SourceReport getSourceReport(string isolateId,
+                             SourceReportKind[] reports,
+                             string scriptId [optional],
+                             int tokenPos [optional],
+                             int endTokenPos [optional],
+                             bool forceCompile [optional])
+```
+
+The _getSourceReport_ RPC is used to generate a set of reports tied to
+source locations in an isolate.
+
+The _reports_ parameter is used to specify which reports should be
+generated.  The _reports_ parameter is a list, which allows multiple
+reports to be generated simultaneously from a consistent isolate
+state.  The _reports_ parameter is allowed to be empty (this might be
+used to force compilation of a particular subrange of some script).
+
+The available report kinds are:
+
+report kind | meaning
+----------- | -------
+Coverage | Provide code coverage information
+PossibleBreakpoints | Provide a list of token positions which correspond to possible breakpoints.
+
+The _scriptId_ parameter is used to restrict the report to a
+particular script.  When analyzing a particular script, either or both
+of the _tokenPos_ and _endTokenPos_ parameters may be provided to
+restrict the analysis to a subrange of a script (for example, these
+can be used to restrict the report to the range of a particular class
+or function).
+
+If the _scriptId_ parameter is not provided then the reports are
+generated for all loaded scripts and the _tokenPos_ and _endTokenPos_
+parameters are disallowed.
+
+The _forceCompilation_ parameter can be used to force compilation of
+all functions in the range of the report.  Forcing compilation can
+cause a compilation error, which could terminate the running Dart
+program.  If this parameter is not provided, it is considered to have
+the value _false_.
+
+See [SourceReport](#sourcereport).
 
 ### getVersion
 
@@ -2149,6 +2200,97 @@ class SourceLocation extends Response {
 The _SourceLocation_ class is used to designate a position or range in
 some script.
 
+### SourceReport
+
+```
+class SourceReport extends Response {
+  // A list of ranges in the program source.  These ranges correspond
+  // to ranges of executable code in the user's program (functions,
+  // methods, constructors, etc.)
+  //
+  // Note that ranges may nest in other ranges, in the case of nested
+  // functions.
+  //
+  // Note that ranges may be duplicated, in the case of mixins.
+  SourceReportRange[] ranges;
+
+  // A list of scripts, referenced by index in the report's ranges.
+  ScriptRef[] scripts;
+}
+```
+
+The _SourceReport_ class represents a set of reports tied to source
+locations in an isolate.
+
+### SourceReportCoverage
+
+```
+class SourceReportCoverage {
+  // A list of token positions in a SourceReportRange which have been
+  // executed.  The list is sorted.
+  int[] hits;
+
+  // A list of token positions in a SourceReportRange which have not been
+  // executed.  The list is sorted.
+  int[] misses;
+}
+```
+
+The _SourceReportCoverage_ class represents coverage information for
+one [SourceReportRange](#sourcereportrange).
+
+Note that _SourceReportCoverage_ does not extend [Response](#response)
+and therefore will not contain a _type_ property.
+
+### SourceReportKind
+
+```
+enum SourceReportKind {
+  // Used to request a code coverage information.
+  Coverage,
+
+  // Used to request a list of token positions of possible breakpoints.
+  PossibleBreakpoints
+}
+```
+
+### SourceReportRange
+
+```
+class SourceReportRange {
+  // An index into the script table of the SourceReport, indicating
+  // which script contains this range of code.
+  int scriptIndex;
+
+  // The token position at which this range begins.
+  int startPos;
+
+  // The token position at which this range ends.  Inclusive.
+  int endPos;
+
+  // Has this range been compiled by the Dart VM?
+  bool compiled;
+
+  // Code coverage information for this range.  Provided only when the
+  // Coverage report has been requested and the range has been
+  // compiled.
+  SourceReportCoverage coverage [optional];
+
+  // Possible breakpoint information for this range, represented as a
+  // sorted list of token positions.  Provided only when the when the
+  // PossibleBreakpoint report has been requested and the range has been
+  // compiled.
+  int possibleBreakpoints[] [optional];
+}
+```
+
+The _SourceReportRange_ class represents a range of executable code
+(function, method, constructor, etc) in the running program.  It is
+part of a [SourceReport](#sourcereport).
+
+Note that _SourceReportRange_ does not extend [Response](#response)
+and therefore will not contain a _type_ property.
+
 ### Stack
 
 ```
@@ -2317,6 +2459,7 @@ version | comments
 1.0 | initial revision
 2.0 | Describe protocol version 2.0.
 3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance. Added ServiceExtensionAdded event.
+3.1 | Add the getSourceReport RPC.
 
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
