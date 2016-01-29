@@ -454,6 +454,7 @@ class Driver {
     contextOptions.lint = options.lints;
     contextOptions.strongMode = options.strongMode;
     context.analysisOptions = contextOptions;
+    sourceFactory.dartSdk.context.analysisOptions = contextOptions;
     _context = context;
 
     // Process analysis options file (and notify all interested parties).
