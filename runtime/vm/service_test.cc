@@ -167,6 +167,7 @@ TEST_CASE(Service_Code) {
       "}";
 
   Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Library& vmlib = Library::Handle();
@@ -273,7 +274,7 @@ TEST_CASE(Service_TokenStream) {
       "}";
 
   Isolate* isolate = thread->isolate();
-
+  isolate->set_is_runnable(true);
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Library& vmlib = Library::Handle();
@@ -332,6 +333,7 @@ TEST_CASE(Service_PcDescriptors) {
     "}";
 
   Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Library& vmlib = Library::Handle();
@@ -393,6 +395,7 @@ TEST_CASE(Service_LocalVarDescriptors) {
     "}";
 
   Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Library& vmlib = Library::Handle();
@@ -443,6 +446,7 @@ TEST_CASE(Service_Address) {
       "}";
 
   Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
 
@@ -603,6 +607,7 @@ TEST_CASE(Service_Profile) {
       "}";
 
   Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
