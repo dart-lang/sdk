@@ -392,7 +392,7 @@ class _ConstExprBuilder {
           _push(AstFactory.methodInvocation(
               null, 'identical', <Expression>[first, second]));
           break;
-      // TODO(scheglov) complete implementation
+        // TODO(scheglov) complete implementation
         case UnlinkedConstOperation.makeUntypedList:
         case UnlinkedConstOperation.makeTypedList:
         case UnlinkedConstOperation.makeUntypedMap:
@@ -870,10 +870,9 @@ class _LibraryResynthesizer {
         !name.endsWith('=')) {
       name += '?';
     }
-    ElementLocationImpl location = getReferencedLocation(
-        linkedLibrary.dependencies[exportName.dependency],
-        exportName.unit,
-        name);
+    ElementLocationImpl location = new ElementLocationImpl.con3(
+        getReferencedLocationComponents(
+            exportName.dependency, exportName.unit, name));
     switch (exportName.kind) {
       case ReferenceKind.classOrEnum:
         return new ClassElementHandle(summaryResynthesizer, location);
@@ -1358,11 +1357,26 @@ class _LibraryResynthesizer {
   }
 
   /**
-   * Build an [ElementLocationImpl] for the entity in the given [unit] of the
-   * given [dependency], having the given [name].
+   * Build the components of an [ElementLocationImpl] for the entity in the
+   * given [unit] of the dependency located at [dependencyIndex], and having
+   * the given [name].
    */
-  ElementLocationImpl getReferencedLocation(
-      LinkedDependency dependency, int unit, String name) {
+  List<String> getReferencedLocationComponents(
+      int dependencyIndex, int unit, String name) {
+    if (dependencyIndex == 0) {
+      String referencedLibraryUri = librarySource.uri.toString();
+      String partUri;
+      if (unit != 0) {
+        String uri = unlinkedUnits[0].publicNamespace.parts[unit - 1];
+        Source partSource =
+            summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
+        partUri = partSource.uri.toString();
+      } else {
+        partUri = referencedLibraryUri;
+      }
+      return <String>[referencedLibraryUri, partUri, name];
+    }
+    LinkedDependency dependency = linkedLibrary.dependencies[dependencyIndex];
     Source referencedLibrarySource = summaryResynthesizer.sourceFactory
         .resolveUri(librarySource, dependency.uri);
     String referencedLibraryUri = referencedLibrarySource.uri.toString();
@@ -1381,8 +1395,7 @@ class _LibraryResynthesizer {
     } else {
       partUri = referencedLibraryUri;
     }
-    return new ElementLocationImpl.con3(
-        <String>[referencedLibraryUri, partUri, name]);
+    return <String>[referencedLibraryUri, partUri, name];
   }
 
   /**
@@ -1410,27 +1423,9 @@ class _LibraryResynthesizer {
       } else if (name == 'void') {
         type = VoidTypeImpl.instance;
       } else {
-        ElementLocation location;
-        if (linkedReference.dependency != 0) {
-          location = getReferencedLocation(
-              linkedLibrary.dependencies[linkedReference.dependency],
-              linkedReference.unit,
-              name);
-        } else {
-          String referencedLibraryUri = librarySource.uri.toString();
-          String partUri;
-          if (linkedReference.unit != 0) {
-            String uri = unlinkedUnits[0].publicNamespace.parts[
-                linkedReference.unit - 1];
-            Source partSource = summaryResynthesizer.sourceFactory
-                .resolveUri(librarySource, uri);
-            partUri = partSource.uri.toString();
-          } else {
-            partUri = referencedLibraryUri;
-          }
-          location = new ElementLocationImpl.con3(
-              <String>[referencedLibraryUri, partUri, name]);
-        }
+        ElementLocation location = new ElementLocationImpl.con3(
+            getReferencedLocationComponents(
+                linkedReference.dependency, linkedReference.unit, name));
         switch (linkedReference.kind) {
           case ReferenceKind.classOrEnum:
             element = new ClassElementHandle(summaryResynthesizer, location);
