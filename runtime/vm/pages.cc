@@ -50,7 +50,9 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   ASSERT(memory != NULL);
   ASSERT(memory->size() > VirtualMemory::PageSize());
   bool is_executable = (type == kExecutable);
-  if (!memory->Commit(is_executable)) {
+  // Create the new page executable (RWX) only if we're not in W^X mode
+  bool create_executable = !FLAG_write_protect_code && is_executable;
+  if (!memory->Commit(create_executable)) {
     return NULL;
   }
   HeapPage* result = reinterpret_cast<HeapPage*>(memory->address());
