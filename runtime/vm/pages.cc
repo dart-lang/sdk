@@ -843,8 +843,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   bool collect_code = FLAG_collect_code && ShouldCollectCode();
   GCMarker marker(heap_);
   marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
-  AtomicOperations::FetchAndIncrementBy(&(usage_.used_in_words),
-                                        marker.marked_words());
+  usage_.used_in_words = marker.marked_words();
 
   int64_t mid1 = OS::GetCurrentTimeMicros();
 
