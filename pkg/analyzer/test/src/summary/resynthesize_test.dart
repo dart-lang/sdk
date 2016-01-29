@@ -1025,6 +1025,46 @@ const vSymbol = #aaa.bbb.ccc;
 ''');
   }
 
+  test_const_topLevel_typedList() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+const vNull = const <Null>[];
+const vDynamic = const <dynamic>[1, 2, 3];
+const vInterfaceNoTypeParameters = const <int>[1, 2, 3];
+const vInterfaceNoTypeArguments = const <List>[];
+const vInterfaceWithTypeArguments = const <List<String>>[];
+const vInterfaceWithTypeArguments2 = const <Map<int, List<String>>>[];
+''');
+  }
+
+  test_const_topLevel_typedList_imported() {
+    shouldCompareConstValues = true;
+    addNamedSource('/a.dart', 'class C {}');
+    checkLibrary(r'''
+import 'a.dart';
+const v = const <C>[];
+''');
+  }
+
+  test_const_topLevel_typedList_importedWithPrefix() {
+    shouldCompareConstValues = true;
+    addNamedSource('/a.dart', 'class C {}');
+    checkLibrary(r'''
+import 'a.dart' as p;
+const v = const <p.C>[];
+''');
+  }
+
+  test_const_topLevel_typedMap() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+const vDynamic1 = const <dynamic, int>{};
+const vDynamic2 = const <int, dynamic>{};
+const vInterface = const <int, String>{};
+const vInterfaceWithTypeArguments = const <int, List<String>>{};
+''');
+  }
+
   test_const_topLevel_unary() {
     shouldCompareConstValues = true;
     checkLibrary(r'''

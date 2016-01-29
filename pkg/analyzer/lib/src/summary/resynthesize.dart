@@ -249,7 +249,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
  * Builder of [Expression]s from [UnlinkedConst]s.
  */
 class _ConstExprBuilder {
-  final SummaryResynthesizer resynthesizer;
+  final _LibraryResynthesizer resynthesizer;
   final UnlinkedConst uc;
 
   int intPtr = 0;
@@ -394,25 +394,20 @@ class _ConstExprBuilder {
               null, 'identical', <Expression>[first, second]));
           break;
         case UnlinkedConstOperation.makeUntypedList:
-          int count = uc.ints[intPtr++];
-          List<Expression> elements = <Expression>[];
-          for (int i=  0; i < count; i++) {
-            elements.insert(0, _pop());
-          }
-          _push(AstFactory.listLiteral2(Keyword.CONST, null, elements));
-          break;
-        case UnlinkedConstOperation.makeUntypedMap:
-          int count = uc.ints[intPtr++];
-          List<MapLiteralEntry> entries = <MapLiteralEntry>[];
-          for (int i=  0; i < count; i++) {
-            Expression value = _pop();
-            Expression key = _pop();
-            entries.insert(0, AstFactory.mapLiteralEntry2(key, value));
-          }
-          _push(AstFactory.mapLiteral(Keyword.CONST, null, entries));
+          _pushList(null);
           break;
         case UnlinkedConstOperation.makeTypedList:
+          TypeName itemType = _newTypeName();
+          _pushList(AstFactory.typeArgumentList(<TypeName>[itemType]));
+          break;
+        case UnlinkedConstOperation.makeUntypedMap:
+          _pushMap(null);
+          break;
         case UnlinkedConstOperation.makeTypedMap:
+          TypeName keyType = _newTypeName();
+          TypeName valueType = _newTypeName();
+          _pushMap(AstFactory.typeArgumentList(<TypeName>[keyType, valueType]));
+          break;
         case UnlinkedConstOperation.pushReference:
         case UnlinkedConstOperation.invokeConstructor:
         case UnlinkedConstOperation.length:
@@ -421,6 +416,30 @@ class _ConstExprBuilder {
       }
     }
     return stack.single;
+  }
+
+  void _pushMap(TypeArgumentList typeArguments) {
+    int count = uc.ints[intPtr++];
+    List<MapLiteralEntry> entries = <MapLiteralEntry>[];
+    for (int i = 0; i < count; i++) {
+      Expression value = _pop();
+      Expression key = _pop();
+      entries.insert(0, AstFactory.mapLiteralEntry2(key, value));
+    }
+    _push(AstFactory.mapLiteral(Keyword.CONST, typeArguments, entries));
+  }
+
+  TypeName _buildTypeAst(DartType type) {
+    if (type is DynamicTypeImpl) {
+      return AstFactory.typeName4('dynamic')..type = type;
+    } else if (type is InterfaceType) {
+      List<TypeName> argumentNodes =
+          type.typeArguments.map(_buildTypeAst).toList();
+      TypeName node = AstFactory.typeName4(type.name, argumentNodes);
+      node.type = type;
+      return node;
+    }
+    throw new StateError('Unsupported type $type');
   }
 
   InterpolationElement _newInterpolationElement(Expression expr) {
@@ -434,6 +453,16 @@ class _ConstExprBuilder {
     }
   }
 
+  /**
+   * Convert the next reference to the [DartType] and return the AST
+   * corresponding to this type.
+   */
+  TypeName _newTypeName() {
+    EntityRef typeRef = uc.references[refPtr++];
+    DartType type = resynthesizer.buildType(typeRef);
+    return _buildTypeAst(type);
+  }
+
   Expression _pop() => stack.removeLast();
 
   void _push(Expression expr) {
@@ -444,6 +473,15 @@ class _ConstExprBuilder {
     Expression right = _pop();
     Expression left = _pop();
     _push(AstFactory.binaryExpression(left, operator, right));
+  }
+
+  void _pushList(TypeArgumentList typeArguments) {
+    int count = uc.ints[intPtr++];
+    List<Expression> elements = <Expression>[];
+    for (int i = 0; i < count; i++) {
+      elements.insert(0, _pop());
+    }
+    _push(AstFactory.listLiteral2(Keyword.CONST, typeArguments, elements));
   }
 
   void _pushPrefix(TokenType operator) {
@@ -1325,8 +1363,8 @@ class _LibraryResynthesizer {
                 serializedVariable.name, serializedVariable.nameOffset);
         element = constElement;
         // TODO(scheglov) share const builder?
-        _ConstExprBuilder builder = new _ConstExprBuilder(
-            summaryResynthesizer, serializedVariable.constExpr);
+        _ConstExprBuilder builder =
+            new _ConstExprBuilder(this, serializedVariable.constExpr);
         constElement.constantInitializer = builder.build();
         constVariables.add(new _ConstVariable(constElement));
       } else {
