@@ -40,11 +40,11 @@ ReferenceKind _getReferenceKind(Element element) {
     return ReferenceKind.typedef;
   } else if (element is PropertyAccessorElement) {
     if (element.enclosingElement is ClassElement) {
-      return ReferenceKind.constField;
+      return ReferenceKind.propertyAccessor;
     }
     return ReferenceKind.topLevelPropertyAccessor;
   } else if (element is MethodElement) {
-    return ReferenceKind.staticMethod;
+    return ReferenceKind.method;
   } else {
     throw new Exception('Unexpected element kind: ${element.runtimeType}');
   }
@@ -390,7 +390,7 @@ class _CompilationUnitSerializer {
         if (field.isStatic && field.isConst && field.isPublic) {
           bs.add(new UnlinkedPublicNameBuilder(
               name: field.name,
-              kind: ReferenceKind.constField,
+              kind: ReferenceKind.propertyAccessor,
               numTypeParameters: 0));
         }
       }
@@ -398,7 +398,7 @@ class _CompilationUnitSerializer {
         if (method.isStatic && method.isPublic) {
           bs.add(new UnlinkedPublicNameBuilder(
               name: method.name,
-              kind: ReferenceKind.staticMethod,
+              kind: ReferenceKind.method,
               numTypeParameters: method.typeParameters.length));
         }
       }

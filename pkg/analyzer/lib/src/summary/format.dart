@@ -26,14 +26,16 @@ enum ReferenceKind {
   constructor,
 
   /**
-   * The entity is a static const field.
+   * The entity is a getter or setter inside a class.  Note: this is used in
+   * the case where a constant refers to a static const declared inside a
+   * class.
    */
-  constField,
+  propertyAccessor,
 
   /**
-   * The entity is a static method.
+   * The entity is a method.
    */
-  staticMethod,
+  method,
 
   /**
    * The `length` property access.

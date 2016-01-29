@@ -1098,12 +1098,12 @@ class C {
     expect(executablesMap, hasLength(2));
     {
       UnlinkedPublicName executable = executablesMap['fieldStaticConst'];
-      expect(executable.kind, ReferenceKind.constField);
+      expect(executable.kind, ReferenceKind.propertyAccessor);
       expect(executable.constMembers, isEmpty);
     }
     {
       UnlinkedPublicName executable = executablesMap['methodStaticPublic'];
-      expect(executable.kind, ReferenceKind.staticMethod);
+      expect(executable.kind, ReferenceKind.method);
       expect(executable.constMembers, isEmpty);
     }
   }
@@ -1739,7 +1739,7 @@ const int v = C.length;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'length',
-              expectedKind: ReferenceKind.constField,
+              expectedKind: ReferenceKind.propertyAccessor,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
               ])
@@ -1762,7 +1762,7 @@ const int v = p.C.length;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'length',
-              expectedKind: ReferenceKind.constField,
+              expectedKind: ReferenceKind.propertyAccessor,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
@@ -1802,7 +1802,7 @@ const int v = C.F.length;
       (EntityRef r) => checkTypeRef(r, null, null, 'length',
               expectedKind: ReferenceKind.length,
               prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.constField, 'F'),
+                new _PrefixExpectation(ReferenceKind.propertyAccessor, 'F'),
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C'),
               ])
     ]);
@@ -2169,7 +2169,7 @@ const v = C.F;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'F',
-              expectedKind: ReferenceKind.constField,
+              expectedKind: ReferenceKind.propertyAccessor,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
               ])
@@ -2192,7 +2192,7 @@ const v = C.F;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'F',
-              expectedKind: ReferenceKind.constField,
+              expectedKind: ReferenceKind.propertyAccessor,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
               ])
@@ -2215,7 +2215,7 @@ const v = p.C.F;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'F',
-              expectedKind: ReferenceKind.constField,
+              expectedKind: ReferenceKind.propertyAccessor,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C'),
                 new _PrefixExpectation(ReferenceKind.prefix, 'p',
@@ -2235,7 +2235,7 @@ const v = C.m;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'm',
-              expectedKind: ReferenceKind.staticMethod,
+              expectedKind: ReferenceKind.method,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
               ])
@@ -2258,7 +2258,7 @@ const v = C.m;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'm',
-              expectedKind: ReferenceKind.staticMethod,
+              expectedKind: ReferenceKind.method,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
               ])
@@ -2281,7 +2281,7 @@ const v = p.C.m;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'm',
-              expectedKind: ReferenceKind.staticMethod,
+              expectedKind: ReferenceKind.method,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C'),
                 new _PrefixExpectation(ReferenceKind.prefix, 'p',

@@ -939,8 +939,8 @@ class _LibraryResynthesizer {
         return new PropertyAccessorElementHandle(
             summaryResynthesizer, location);
       case ReferenceKind.constructor:
-      case ReferenceKind.constField:
-      case ReferenceKind.staticMethod:
+      case ReferenceKind.propertyAccessor:
+      case ReferenceKind.method:
       case ReferenceKind.length:
       case ReferenceKind.prefix:
       case ReferenceKind.unresolved:

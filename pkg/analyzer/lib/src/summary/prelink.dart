@@ -261,7 +261,7 @@ class _Prelinker {
         cls.fields.forEach((field) {
           if (field.isStatic && field.isConst) {
             namespace[field.name] =
-                new _Meaning(unitNum, ReferenceKind.constField, 0, 0);
+                new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0);
           }
         });
         cls.executables.forEach((executable) {
@@ -272,7 +272,7 @@ class _Prelinker {
           } else if (executable.kind ==
                   UnlinkedExecutableKind.functionOrMethod &&
               executable.isStatic) {
-            kind = ReferenceKind.staticMethod;
+            kind = ReferenceKind.method;
           }
           if (kind != null) {
             namespace[executable.name] = new _Meaning(
@@ -417,7 +417,7 @@ class _Prelinker {
         if (namespace == null && reference.name == 'length') {
           ReferenceKind prefixKind = references[reference.prefixReference].kind;
           if (prefixKind == ReferenceKind.topLevelPropertyAccessor ||
-              prefixKind == ReferenceKind.constField) {
+              prefixKind == ReferenceKind.propertyAccessor) {
             references
                 .add(new LinkedReferenceBuilder(kind: ReferenceKind.length));
             continue;
