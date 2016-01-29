@@ -252,10 +252,9 @@ class ModelEmitter {
   }
 
   js.Statement buildDeferredInitializerGlobal() {
-    String global = deferredInitializersGlobal;
-    return js.js.statement(
-        "if (typeof($global) === 'undefined') var # = Object.create(null);",
-        new js.VariableDeclaration(global, allowRename: false));
+    return js.js.statement('self.#deferredInitializers = '
+        'self.#deferredInitializers || Object.create(null);',
+        {'deferredInitializers': deferredInitializersGlobal});
   }
 
   // Writes the given [fragment]'s [code] into a file.

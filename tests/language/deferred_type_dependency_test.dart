@@ -7,9 +7,10 @@
 
 import "deferred_type_dependency_lib1.dart" deferred as lib1;
 import "deferred_type_dependency_lib2.dart" deferred as lib2;
+import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-main() async {
+runTest() async {
   await lib1.loadLibrary();
   // Split the cases into a multi-test to test each feature separately.
   Expect.isFalse(
@@ -27,4 +28,9 @@ main() async {
       (lib2.getInstance())
       is! String /// none: ok
   );
+}
+
+main() {
+  asyncStart();
+  runTest().then((_) => asyncEnd());
 }
