@@ -1376,8 +1376,6 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
   I->heap()->IterateObjects(&check_canonical);
 #endif  // #if defined(DEBUG).
 
-  // Since this is only a snapshot the root library should not be set.
-  I->object_store()->set_root_library(Library::Handle(Z));
   FullSnapshotWriter writer(vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer,
                             NULL, /* instructions_snapshot_buffer */
