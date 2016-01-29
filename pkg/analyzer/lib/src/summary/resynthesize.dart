@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -21,7 +20,6 @@ import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/task/dart.dart' show ConstantEvaluationTarget;
 
 /**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element
@@ -317,6 +315,9 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.equal:
           _pushBinary(TokenType.EQ_EQ);
           break;
+        case UnlinkedConstOperation.notEqual:
+          _pushBinary(TokenType.BANG_EQ);
+          break;
         case UnlinkedConstOperation.and:
           _pushBinary(TokenType.AMPERSAND_AMPERSAND);
           break;
@@ -393,6 +394,7 @@ class _ConstExprBuilder {
           _push(AstFactory.methodInvocation(
               null, 'identical', <Expression>[first, second]));
           break;
+        // containers
         case UnlinkedConstOperation.makeUntypedList:
           _pushList(null);
           break;
@@ -420,12 +422,16 @@ class _ConstExprBuilder {
 
   TypeName _buildTypeAst(DartType type) {
     if (type is DynamicTypeImpl) {
-      return AstFactory.typeName4('dynamic')..type = type;
+      TypeName node = AstFactory.typeName4('dynamic');
+      node.type = type;
+      (node.name as SimpleIdentifier).staticElement = type.element;
+      return node;
     } else if (type is InterfaceType) {
       List<TypeName> argumentNodes =
           type.typeArguments.map(_buildTypeAst).toList();
       TypeName node = AstFactory.typeName4(type.name, argumentNodes);
       node.type = type;
+      (node.name as SimpleIdentifier).staticElement = type.element;
       return node;
     }
     throw new StateError('Unsupported type $type');
@@ -488,17 +494,6 @@ class _ConstExprBuilder {
     Expression operand = _pop();
     _push(AstFactory.prefixExpression(operator, operand));
   }
-}
-
-/**
- * A single constant variable for which the constant value should be computed.
- *
- * TODO(scheglov) we will probably need to add dependency list
- */
-class _ConstVariable {
-  final ConstVariableElement element;
-
-  _ConstVariable(this.element);
 }
 
 /**
@@ -585,11 +580,6 @@ class _LibraryResynthesizer {
    * initializing formal parameters.
    */
   Map<String, FieldElementImpl> fields;
-
-  /**
-   * List of constant variables to compute values for.
-   */
-  List<_ConstVariable> constVariables = <_ConstVariable>[];
 
   /**
    * List of [_ReferenceInfo] objects describing the references in the current
@@ -1169,17 +1159,6 @@ class _LibraryResynthesizer {
     if (library.name != 'dart.core' && library.name != 'dart.async') {
       library.createLoadLibraryFunction(summaryResynthesizer.typeProvider);
     }
-    // Compute constants.
-    for (_ConstVariable constVariable in constVariables) {
-      AnalysisContext context = summaryResynthesizer.context;
-      ConstantEvaluationEngine constantEvaluationEngine =
-          new ConstantEvaluationEngine(
-              summaryResynthesizer.typeProvider, context.declaredVariables,
-              typeSystem: context.typeSystem);
-      ConstantEvaluationTarget constTarget =
-          constVariable.element as ConstantEvaluationTarget;
-      constantEvaluationEngine.computeConstantValue(constTarget);
-    }
     // Done.
     return library;
   }
@@ -1367,7 +1346,6 @@ class _LibraryResynthesizer {
         _ConstExprBuilder builder =
             new _ConstExprBuilder(this, serializedVariable.constExpr);
         constElement.constantInitializer = builder.build();
-        constVariables.add(new _ConstVariable(constElement));
       } else {
         element = new TopLevelVariableElementImpl(
             serializedVariable.name, serializedVariable.nameOffset);

@@ -168,8 +168,7 @@ abstract class AbstractConstExprSerializer {
     if (operator == TokenType.EQ_EQ) {
       operations.add(UnlinkedConstOperation.equal);
     } else if (operator == TokenType.BANG_EQ) {
-      operations.add(UnlinkedConstOperation.equal);
-      operations.add(UnlinkedConstOperation.not);
+      operations.add(UnlinkedConstOperation.notEqual);
     } else if (operator == TokenType.AMPERSAND_AMPERSAND) {
       operations.add(UnlinkedConstOperation.and);
     } else if (operator == TokenType.BAR_BAR) {

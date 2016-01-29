@@ -680,10 +680,14 @@ enum UnlinkedConstOperation {
   /**
    * Pop the top 2 values from the stack, evaluate `v1 == v2`, and push the
    * result back onto the stack.
-   *
-   * This is also used to represent `v1 != v2`, by composition with [not].
    */
   equal,
+
+  /**
+   * Pop the top 2 values from the stack, evaluate `v1 != v2`, and push the
+   * result back onto the stack.
+   */
+  notEqual,
 
   /**
    * Pop the top value from the stack, compute its boolean negation, and push

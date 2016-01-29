@@ -1413,8 +1413,7 @@ class E {}
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.equal,
-      UnlinkedConstOperation.not
+      UnlinkedConstOperation.notEqual
     ], ints: [
       1,
       2

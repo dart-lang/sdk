@@ -4,11 +4,11 @@
 
 library test.src.serialization.elements_test;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart'
@@ -203,56 +203,91 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test metadata and offsetToElementMap.
   }
 
-  void compareConstantValues(
-      DartObject resynthesized, DartObject original, String desc) {
-    if (original == null) {
-      expect(resynthesized, isNull, reason: desc);
-    } else {
-      expect(resynthesized, isNotNull, reason: desc);
-      compareTypes(resynthesized.type, original.type, desc);
-      expect(resynthesized.hasKnownValue, original.hasKnownValue, reason: desc);
-      if (original.isNull) {
-        expect(resynthesized.isNull, isTrue, reason: desc);
-      } else if (original.toBoolValue() != null) {
-        expect(resynthesized.toBoolValue(), original.toBoolValue(),
-            reason: desc);
-      } else if (original.toIntValue() != null) {
-        expect(resynthesized.toIntValue(), original.toIntValue(), reason: desc);
-      } else if (original.toDoubleValue() != null) {
-        expect(resynthesized.toDoubleValue(), original.toDoubleValue(),
-            reason: desc);
-      } else if (original.toListValue() != null) {
-        List<DartObject> resynthesizedList = resynthesized.toListValue();
-        List<DartObject> originalList = original.toListValue();
-        expect(resynthesizedList, hasLength(originalList.length));
-        for (int i = 0; i < originalList.length; i++) {
-          compareConstantValues(resynthesizedList[i], originalList[i], desc);
-        }
-      } else if (original.toMapValue() != null) {
-        Map<DartObject, DartObject> resynthesizedMap =
-            resynthesized.toMapValue();
-        Map<DartObject, DartObject> originalMap = original.toMapValue();
-        expect(resynthesizedMap, hasLength(originalMap.length));
-        List<DartObject> resynthesizedKeys = resynthesizedMap.keys.toList();
-        List<DartObject> originalKeys = originalMap.keys.toList();
-        for (int i = 0; i < originalKeys.length; i++) {
-          DartObject resynthesizedKey = resynthesizedKeys[i];
-          DartObject originalKey = originalKeys[i];
-          compareConstantValues(resynthesizedKey, originalKey, desc);
-          DartObject resynthesizedValue = resynthesizedMap[resynthesizedKey];
-          DartObject originalValue = originalMap[originalKey];
-          compareConstantValues(resynthesizedValue, originalValue, desc);
-        }
-      } else if (original.toStringValue() != null) {
-        expect(resynthesized.toStringValue(), original.toStringValue(),
-            reason: desc);
-      } else if (original.toSymbolValue() != null) {
-        expect(resynthesized.toSymbolValue(), original.toSymbolValue(),
-            reason: desc);
-      } else if (original.toTypeValue() != null) {
-        fail('Not implemented');
+  void compareConstantExpressions(Expression r, Expression o, String desc) {
+    void compareLists(List<Object> rItems, List<Object> oItems) {
+      if (rItems == null && oItems == null) {
+        return;
       }
-      // TODO(scheglov) implement
+      expect(rItems != null && oItems != null, isTrue);
+      expect(rItems, hasLength(oItems.length));
+      for (int i = 0; i < oItems.length; i++) {
+        Object rItem = rItems[i];
+        Object oItem = oItems[i];
+        if (rItem is Expression && oItem is Expression) {
+          compareConstantExpressions(rItem, oItem, desc);
+        } else if (rItem is TypeName && oItem is TypeName) {
+          compareConstantExpressions(rItem.name, oItem.name, desc);
+        } else if (rItem is InterpolationString &&
+            oItem is InterpolationString) {
+          expect(rItem.value, oItem.value);
+        } else if (rItem is InterpolationExpression &&
+            oItem is InterpolationExpression) {
+          compareConstantExpressions(rItem.expression, oItem.expression, desc);
+        } else if (rItem is MapLiteralEntry && oItem is MapLiteralEntry) {
+          compareConstantExpressions(rItem.key, oItem.key, desc);
+          compareConstantExpressions(rItem.value, oItem.value, desc);
+        } else {
+          fail('$desc Incompatible item types: '
+              '${rItem.runtimeType} vs. ${oItem.runtimeType}');
+        }
+      }
+    }
+    if (o == null) {
+      expect(r, isNull, reason: desc);
+    } else {
+      expect(r, isNotNull, reason: desc);
+      compareTypes(r.staticType, o.staticType, desc);
+      if (o is ParenthesizedExpression) {
+        // We don't resynthesize parenthesis, so just ignore it.
+        compareConstantExpressions(r, o.expression, desc);
+      } else if (o is SimpleIdentifier && r is SimpleIdentifier) {
+        expect(r.name, o.name);
+        compareTypes(r.staticType, o.staticType, desc);
+        compareElements(r.staticElement, o.staticElement, desc);
+      } else if (o is PrefixedIdentifier) {
+        // We don't resynthesize prefixed identifiers.
+        // We use simple identifiers with correct elements and types.
+        compareConstantExpressions(r as SimpleIdentifier, o.identifier, desc);
+      } else if (o is NullLiteral) {
+        expect(r, new isInstanceOf<NullLiteral>(), reason: desc);
+      } else if (o is BooleanLiteral && r is BooleanLiteral) {
+        expect(r.value, o.value, reason: desc);
+      } else if (o is IntegerLiteral && r is IntegerLiteral) {
+        expect(r.value, o.value, reason: desc);
+      } else if (o is DoubleLiteral && r is DoubleLiteral) {
+        expect(r.value, o.value, reason: desc);
+      } else if (o is StringInterpolation && r is StringInterpolation) {
+        compareLists(r.elements, o.elements);
+      } else if (o is StringLiteral && r is StringLiteral) {
+        // We don't keep all the tokens of AdjacentStrings.
+        // So, we can compare only their values.
+        expect(r.stringValue, o.stringValue, reason: desc);
+      } else if (o is SymbolLiteral && r is SymbolLiteral) {
+        // We don't keep all the tokens of symbol literals.
+        // So, we can compare only their values.
+        expect(r.components.map((t) => t.lexeme).join('.'),
+            o.components.map((t) => t.lexeme).join('.'),
+            reason: desc);
+      } else if (o is BinaryExpression && r is BinaryExpression) {
+        expect(r.operator.lexeme, o.operator.lexeme, reason: desc);
+        compareConstantExpressions(r.leftOperand, o.leftOperand, desc);
+        compareConstantExpressions(r.rightOperand, o.rightOperand, desc);
+      } else if (o is PrefixExpression && r is PrefixExpression) {
+        expect(r.operator.lexeme, o.operator.lexeme, reason: desc);
+        compareConstantExpressions(r.operand, o.operand, desc);
+      } else if (o is ConditionalExpression && r is ConditionalExpression) {
+        compareConstantExpressions(r.condition, o.condition, desc);
+        compareConstantExpressions(r.thenExpression, o.thenExpression, desc);
+        compareConstantExpressions(r.elseExpression, o.elseExpression, desc);
+      } else if (o is ListLiteral && r is ListLiteral) {
+        compareLists(r.typeArguments?.arguments, o.typeArguments?.arguments);
+        compareLists(r.elements, o.elements);
+      } else if (o is MapLiteral && r is MapLiteral) {
+        compareLists(r.typeArguments?.arguments, o.typeArguments?.arguments);
+        compareLists(r.entries, o.entries);
+      } else {
+        fail('Not implemented for ${r.runtimeType} vs. ${o.runtimeType}');
+      }
     }
   }
 
@@ -565,8 +600,8 @@ class ResynthTest extends ResolverTestCase {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
     if (shouldCompareConstValues) {
-      compareConstantValues(
-          resynthesized.constantValue, original.constantValue, desc);
+      compareConstantExpressions(resynthesized.constantInitializer,
+          original.constantInitializer, desc);
     }
     // TODO(paulberry): test initializer
   }
@@ -1025,6 +1060,16 @@ const vSymbol = #aaa.bbb.ccc;
 ''');
   }
 
+  test_const_topLevel_prefix() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+const vNotEqual = 1 != 2;
+const vNot = !true;
+const vNegate = -1;
+const vComplement = ~1;
+''');
+  }
+
   test_const_topLevel_typedList() {
     shouldCompareConstValues = true;
     checkLibrary(r'''
@@ -1039,7 +1084,7 @@ const vInterfaceWithTypeArguments2 = const <Map<int, List<String>>>[];
 
   test_const_topLevel_typedList_imported() {
     shouldCompareConstValues = true;
-    addNamedSource('/a.dart', 'class C {}');
+    addLibrarySource('/a.dart', 'class C {}');
     checkLibrary(r'''
 import 'a.dart';
 const v = const <C>[];
@@ -1048,7 +1093,7 @@ const v = const <C>[];
 
   test_const_topLevel_typedList_importedWithPrefix() {
     shouldCompareConstValues = true;
-    addNamedSource('/a.dart', 'class C {}');
+    addLibrarySource('/a.dart', 'class C {}');
     checkLibrary(r'''
 import 'a.dart' as p;
 const v = const <p.C>[];
@@ -1062,16 +1107,6 @@ const vDynamic1 = const <dynamic, int>{};
 const vDynamic2 = const <int, dynamic>{};
 const vInterface = const <int, String>{};
 const vInterfaceWithTypeArguments = const <int, List<String>>{};
-''');
-  }
-
-  test_const_topLevel_unary() {
-    shouldCompareConstValues = true;
-    checkLibrary(r'''
-const vNotEqual = 1 != 2;
-const vNot = !true;
-const vNegate = -1;
-const vComplement = ~1;
 ''');
   }
 
