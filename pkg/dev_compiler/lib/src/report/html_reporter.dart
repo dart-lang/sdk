@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dev_compiler.src.html_reporter;
-
 import 'dart:collection' show LinkedHashSet;
 import 'dart:convert' show HTML_ESCAPE;
 import 'dart:io';

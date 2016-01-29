@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Development server that compiles Dart to JS on the fly.
-library dev_compiler.src.server;
 
 import 'dart:async';
 import 'dart:convert';

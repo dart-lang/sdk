@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dev_compiler.src.codegen.html_codegen;
-
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' show parseFragment;
 import 'package:logging/logging.dart' show Logger;

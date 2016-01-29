@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dev_compiler.src.closure.closure_annotation;
-
 import 'closure_type.dart';
 
 /// Set of closure annotations that can be [toString]ed to a single JsDoc comment.

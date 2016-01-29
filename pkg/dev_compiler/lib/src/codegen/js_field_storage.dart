@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dev_compiler.src.codegen.js_field_storage;
-
 import 'dart:collection' show HashMap, HashSet;
 import 'package:analyzer/src/generated/ast.dart' show Identifier;
 import 'package:analyzer/src/generated/element.dart';

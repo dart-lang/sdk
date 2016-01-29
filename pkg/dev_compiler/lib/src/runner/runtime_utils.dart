@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// JS runtime files utilities used by dartdevrun.
-library dev_compiler.src.runner.runtime_utils;
 
 import 'dart:async';
 import 'dart:io';

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Summary of error messages produced by a `SummaryReporter`.
-library dev_compiler.src.summary;
 
 import 'dart:collection' show HashSet;
 

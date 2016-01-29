@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Tracks the shape of the import/export graph and dependencies between files.
-library dev_compiler.src.dependency_graph;
 
 import 'dart:collection' show HashSet, HashMap;
 

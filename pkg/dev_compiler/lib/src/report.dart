@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Summarizes the information produced by the checker.
-library dev_compiler.src.report;
 
 import 'dart:math' show max;
 

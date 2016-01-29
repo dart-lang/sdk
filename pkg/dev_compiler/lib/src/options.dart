@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Set of flags and options passed to the compiler
-library dev_compiler.src.options;
 
 import 'dart:io';
 

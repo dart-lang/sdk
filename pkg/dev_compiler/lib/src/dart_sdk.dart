@@ -5,7 +5,6 @@
 /// Common logic needed to provide a Dart SDK to the analyzer's resolver. This
 /// includes logic to determine where the sdk is located in the filesystem, and
 /// definitions to provide mock sdks.
-library dev_compiler.src.dart_sdk;
 
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, TimestampedData;

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// This library displays [MessageSummary]s from the Dart Dev Compiler.
-library dev_compiler.messages;
 
 import 'dart:convert';
 import 'dart:html';

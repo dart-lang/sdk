@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Command line tool to run the checker on a Dart program.
-library dev_compiler.src.compiler;
 
 import 'dart:async';
 import 'dart:collection';

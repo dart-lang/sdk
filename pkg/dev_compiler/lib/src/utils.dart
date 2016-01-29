@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Holds a couple utility functions used at various places in the system.
-library dev_compiler.src.utils;
 
 import 'dart:io';
 

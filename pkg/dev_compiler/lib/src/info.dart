@@ -4,7 +4,6 @@
 
 /// Defines static information collected by the type checker and used later by
 /// emitters to generate code.
-library dev_compiler.src.info;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';

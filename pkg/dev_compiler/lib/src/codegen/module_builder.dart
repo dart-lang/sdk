@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dev_compiler.src.codegen.module_builder;
-
 import 'package:path/path.dart' as path;
 
 import '../js/js_ast.dart' as JS;

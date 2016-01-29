@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// V8 runner support used by dartdevrun.
-library dev_compiler.src.runner.v8_utils;
 
 import 'dart:async';
 import 'dart:io';
