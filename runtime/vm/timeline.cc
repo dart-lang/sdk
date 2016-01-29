@@ -190,12 +190,14 @@ TimelineEvent::~TimelineEvent() {
 
 
 void TimelineEvent::Reset() {
-  set_event_type(kNone);
+  state_ = 0;
   thread_ = OSThread::kInvalidThreadId;
   isolate_id_ = ILLEGAL_PORT;
   category_ = "";
   label_ = NULL;
   FreeArguments();
+  set_pre_serialized_json(false);
+  set_event_type(kNone);
 }
 
 
@@ -367,7 +369,7 @@ void TimelineEvent::StreamInit(TimelineStream* stream) {
 void TimelineEvent::Init(EventType event_type,
                          const char* label) {
   ASSERT(label != NULL);
-  set_event_type(event_type);
+  state_ = 0;
   timestamp0_ = 0;
   timestamp1_ = 0;
   OSThread* os_thread = OSThread::Current();
@@ -381,6 +383,8 @@ void TimelineEvent::Init(EventType event_type,
   }
   label_ = label;
   FreeArguments();
+  set_pre_serialized_json(false);
+  set_event_type(event_type);
 }
 
 
