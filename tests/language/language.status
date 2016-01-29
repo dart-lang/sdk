@@ -97,6 +97,13 @@ disassemble_test: Pass, Fail # Issue 18122
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && $arch == mips && $checked ]
 generic_instanceof3_test: Pass, Crash # Issue 17440.
 
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && $mode == debug ]
+mixin_supertype_subclass3_test/01: Crash # Issue 25617
+mixin_supertype_subclass3_test/02: Crash # Issue 25617
+mixin_supertype_subclass3_test/03: Crash # Issue 25617
+mixin_supertype_subclass3_test/04: Crash # Issue 25617
+mixin_supertype_subclass3_test/05: Crash # Issue 25617
+
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && $arch == mips && $mode == debug ]
 stack_overflow_test: Skip # Crashes. Issue 17440.
 stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
