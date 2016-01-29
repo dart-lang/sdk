@@ -484,3 +484,15 @@ no_main_test/01: Fail # Issue 20030
 transitive_private_library_access_test: StaticWarning
 
 conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
+
+mixin_supertype_subclass_test/02: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass_test/05: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass2_test/02: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass2_test/05: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass3_test/02: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass3_test/05: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass4_test/01: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass4_test/02: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass4_test/03: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass4_test/04: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass4_test/05: MissingStaticWarning # Issue 25614
