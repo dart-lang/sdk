@@ -3952,6 +3952,83 @@ class CssStyleDeclarationBase {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+
+@DomName('CustomEvent')
+@Native("CustomEvent")
+class CustomEvent extends Event {
+  var _dartDetail;
+
+  factory CustomEvent(String type,
+      {bool canBubble: true, bool cancelable: true, Object detail}) {
+
+    final CustomEvent e = document._createEvent('CustomEvent');
+
+    e._dartDetail = detail;
+
+    // Only try setting the detail if it's one of these types to avoid
+    // first-chance exceptions. Can expand this list in the future as needed.
+    if (detail is List || detail is Map || detail is String || detail is num) {
+      try {
+        e._initCustomEvent(type, canBubble, cancelable, detail);
+      } catch(_) {
+        e._initCustomEvent(type, canBubble, cancelable, null);
+      }
+    } else {
+      e._initCustomEvent(type, canBubble, cancelable, null);
+    }
+
+    return e;
+  }
+
+  @DomName('CustomEvent.detail')
+  get detail {
+    if (_dartDetail != null) {
+      return _dartDetail;
+    }
+    return _detail;
+  }
+  // To suppress missing implicit constructor warnings.
+  factory CustomEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static CustomEvent internalCreateCustomEvent() {
+    return new CustomEvent.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  CustomEvent.internal_() : super.internal_();
+
+
+  @DomName('CustomEvent._detail')
+  @DocsEditable()
+  @Experimental() // untriaged
+  dynamic get _detail => convertNativeToDart_SerializedScriptValue(this._get__detail);
+  @JSName('detail')
+  @DomName('CustomEvent._detail')
+  @DocsEditable()
+  @Experimental() // untriaged
+  @Creates('Null')
+  dynamic get _get__detail => wrap_jso(JS("dynamic", "#.detail", this.raw));
+
+  @DomName('CustomEvent.initCustomEvent')
+  @DocsEditable()
+  void _initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) {
+    _initCustomEvent_1(typeArg, canBubbleArg, cancelableArg, detailArg);
+    return;
+  }
+  @JSName('initCustomEvent')
+  @DomName('CustomEvent.initCustomEvent')
+  @DocsEditable()
+  void _initCustomEvent_1(typeArg, canBubbleArg, cancelableArg, detailArg) => wrap_jso(JS("void ", "#.raw.initCustomEvent(#, #, #, #)", this, unwrap_jso(typeArg), unwrap_jso(canBubbleArg), unwrap_jso(cancelableArg), unwrap_jso(detailArg)));
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 @DocsEditable()
 /**
@@ -19566,18 +19643,19 @@ wrap_jso(jso) {
   var constructor = JS('', '#.constructor', jso)
   var f = null;
   String name;
-  bool skip = false;
+  String skip = null;
   while (f == null) {
     name = JS('String', '#.name', constructor);
     f = getHtmlCreateFunction(name);
     if (f == null) {
-      console.error('Could not instantiate $name');
-      skip = true;
+      if (skip == null) {
+        skip = name;
+      }
       constructor = JS('', '#.__proto__', constructor);
     }
   }
-  if (skip) {
-    console.info('Instantiated $name instead');
+  if (skip != null) {
+    console.warn('Instantiated $name instead of $skip');
   }
   var wrapped = f();
   wrapped.raw = jso;
@@ -19605,6 +19683,7 @@ final htmlBlinkMap = {
   'Comment': () => Comment,
   'Console': () => Console,
   'ConsoleBase': () => ConsoleBase,
+  'CustomEvent': () => CustomEvent,
   'DOMImplementation': () => DomImplementation,
   'DOMTokenList': () => DomTokenList,
   'Document': () => Document,
@@ -19657,6 +19736,7 @@ final htmlBlinkFunctionMap = {
   'Comment': () => Comment.internalCreateComment,
   'Console': () => Console.internalCreateConsole,
   'ConsoleBase': () => ConsoleBase.internalCreateConsoleBase,
+  'CustomEvent': () => CustomEvent.internalCreateCustomEvent,
   'DOMImplementation': () => DomImplementation.internalCreateDomImplementation,
   'DOMTokenList': () => DomTokenList.internalCreateDomTokenList,
   'Document': () => Document.internalCreateDocument,

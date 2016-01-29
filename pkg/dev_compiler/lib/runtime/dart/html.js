@@ -4223,6 +4223,213 @@ dart_library.library('dart/html', null, /* Imports */[
   dart.setSignature(_CssStyleDeclarationSet, {
     constructors: () => ({_CssStyleDeclarationSet: [_CssStyleDeclarationSet, [core.Iterable$(Element)]]})
   });
+  const _createEvent = Symbol('_createEvent');
+  const _initEvent = Symbol('_initEvent');
+  const _selector = Symbol('_selector');
+  const _get_currentTarget = Symbol('_get_currentTarget');
+  const _get_target = Symbol('_get_target');
+  const _initEvent_1 = Symbol('_initEvent_1');
+  const _preventDefault_1 = Symbol('_preventDefault_1');
+  const _stopImmediatePropagation_1 = Symbol('_stopImmediatePropagation_1');
+  const _stopPropagation_1 = Symbol('_stopPropagation_1');
+  class Event extends DartHtmlDomObject {
+    static new(type, opts) {
+      let canBubble = opts && 'canBubble' in opts ? opts.canBubble : true;
+      let cancelable = opts && 'cancelable' in opts ? opts.cancelable : true;
+      return Event.eventType('Event', type, {canBubble: canBubble, cancelable: cancelable});
+    }
+    static eventType(type, name, opts) {
+      let canBubble = opts && 'canBubble' in opts ? opts.canBubble : true;
+      let cancelable = opts && 'cancelable' in opts ? opts.cancelable : true;
+      let e = exports.document[_createEvent](type);
+      e[_initEvent](name, canBubble, cancelable);
+      return e;
+    }
+    get matchingTarget() {
+      if (this[_selector] == null) {
+        dart.throw(new core.UnsupportedError('Cannot call matchingTarget if this Event did' + ' not arise as a result of event delegation.'));
+      }
+      let currentTarget = dart.as(this.currentTarget, Element);
+      let target = dart.as(this.target, Element);
+      let matchedTarget = null;
+      do {
+        if (dart.notNull(target.matches(this[_selector]))) return target;
+        target = target.parent;
+      } while (target != null && !dart.equals(target, currentTarget.parent));
+      dart.throw(new core.StateError('No selector matched for populating matchedTarget.'));
+    }
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static internalCreateEvent() {
+      return new Event.internal_();
+    }
+    internal_() {
+      this[_selector] = null;
+      super.DartHtmlDomObject();
+    }
+    ['=='](other) {
+      return dart.equals(unwrap_jso(other), unwrap_jso(this)) || dart.notNull(core.identical(this, other));
+    }
+    get hashCode() {
+      return dart.hashCode(unwrap_jso(this));
+    }
+    get bubbles() {
+      return dart.as(wrap_jso(this.raw.bubbles), core.bool);
+    }
+    get cancelable() {
+      return dart.as(wrap_jso(this.raw.cancelable), core.bool);
+    }
+    get currentTarget() {
+      return _convertNativeToDart_EventTarget(this[_get_currentTarget]);
+    }
+    get [_get_currentTarget]() {
+      return wrap_jso(this.raw.currentTarget);
+    }
+    get defaultPrevented() {
+      return dart.as(wrap_jso(this.raw.defaultPrevented), core.bool);
+    }
+    get eventPhase() {
+      return dart.as(wrap_jso(this.raw.eventPhase), core.int);
+    }
+    get path() {
+      return dart.as(wrap_jso(this.raw.path), core.List$(Node));
+    }
+    get target() {
+      return _convertNativeToDart_EventTarget(this[_get_target]);
+    }
+    get [_get_target]() {
+      return wrap_jso(this.raw.target);
+    }
+    get timeStamp() {
+      return dart.as(wrap_jso(this.raw.timeStamp), core.int);
+    }
+    get type() {
+      return dart.as(wrap_jso(this.raw.type), core.String);
+    }
+    [_initEvent](eventTypeArg, canBubbleArg, cancelableArg) {
+      this[_initEvent_1](eventTypeArg, canBubbleArg, cancelableArg);
+      return;
+    }
+    [_initEvent_1](eventTypeArg, canBubbleArg, cancelableArg) {
+      return wrap_jso(this.raw.initEvent(unwrap_jso(eventTypeArg), unwrap_jso(canBubbleArg), unwrap_jso(cancelableArg)));
+    }
+    preventDefault() {
+      this[_preventDefault_1]();
+      return;
+    }
+    [_preventDefault_1]() {
+      return wrap_jso(this.raw.preventDefault());
+    }
+    stopImmediatePropagation() {
+      this[_stopImmediatePropagation_1]();
+      return;
+    }
+    [_stopImmediatePropagation_1]() {
+      return wrap_jso(this.raw.stopImmediatePropagation());
+    }
+    stopPropagation() {
+      this[_stopPropagation_1]();
+      return;
+    }
+    [_stopPropagation_1]() {
+      return wrap_jso(this.raw.stopPropagation());
+    }
+  }
+  dart.defineNamedConstructor(Event, 'internal_');
+  dart.setSignature(Event, {
+    constructors: () => ({
+      new: [Event, [core.String], {canBubble: core.bool, cancelable: core.bool}],
+      eventType: [Event, [core.String, core.String], {canBubble: core.bool, cancelable: core.bool}],
+      _: [Event, []],
+      internal_: [Event, []]
+    }),
+    methods: () => ({
+      [_initEvent]: [dart.void, [core.String, core.bool, core.bool]],
+      [_initEvent_1]: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]],
+      preventDefault: [dart.void, []],
+      [_preventDefault_1]: [dart.void, []],
+      stopImmediatePropagation: [dart.void, []],
+      [_stopImmediatePropagation_1]: [dart.void, []],
+      stopPropagation: [dart.void, []],
+      [_stopPropagation_1]: [dart.void, []]
+    }),
+    statics: () => ({internalCreateEvent: [Event, []]}),
+    names: ['internalCreateEvent']
+  });
+  Event[dart.metadata] = () => [dart.const(new _metadata.DomName('Event')), dart.const(new _js_helper.Native("Event,InputEvent,ClipboardEvent"))];
+  Event.AT_TARGET = 2;
+  Event.BUBBLING_PHASE = 3;
+  Event.CAPTURING_PHASE = 1;
+  const _dartDetail = Symbol('_dartDetail');
+  const _initCustomEvent = Symbol('_initCustomEvent');
+  const _detail = Symbol('_detail');
+  const _get__detail = Symbol('_get__detail');
+  const _initCustomEvent_1 = Symbol('_initCustomEvent_1');
+  class CustomEvent extends Event {
+    static new(type, opts) {
+      let canBubble = opts && 'canBubble' in opts ? opts.canBubble : true;
+      let cancelable = opts && 'cancelable' in opts ? opts.cancelable : true;
+      let detail = opts && 'detail' in opts ? opts.detail : null;
+      let e = dart.as(exports.document[_createEvent]('CustomEvent'), CustomEvent);
+      e[_dartDetail] = detail;
+      if (dart.is(detail, core.List) || dart.is(detail, core.Map) || typeof detail == 'string' || typeof detail == 'number') {
+        try {
+          e[_initCustomEvent](type, canBubble, cancelable, detail);
+        } catch (_) {
+          e[_initCustomEvent](type, canBubble, cancelable, null);
+        }
+
+      } else {
+        e[_initCustomEvent](type, canBubble, cancelable, null);
+      }
+      return e;
+    }
+    get detail() {
+      if (this[_dartDetail] != null) {
+        return this[_dartDetail];
+      }
+      return this[_detail];
+    }
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static internalCreateCustomEvent() {
+      return new CustomEvent.internal_();
+    }
+    internal_() {
+      this[_dartDetail] = null;
+      super.internal_();
+    }
+    get [_detail]() {
+      return html_common.convertNativeToDart_SerializedScriptValue(this[_get__detail]);
+    }
+    get [_get__detail]() {
+      return wrap_jso(this.raw.detail);
+    }
+    [_initCustomEvent](typeArg, canBubbleArg, cancelableArg, detailArg) {
+      this[_initCustomEvent_1](typeArg, canBubbleArg, cancelableArg, detailArg);
+      return;
+    }
+    [_initCustomEvent_1](typeArg, canBubbleArg, cancelableArg, detailArg) {
+      return wrap_jso(this.raw.initCustomEvent(unwrap_jso(typeArg), unwrap_jso(canBubbleArg), unwrap_jso(cancelableArg), unwrap_jso(detailArg)));
+    }
+  }
+  dart.defineNamedConstructor(CustomEvent, 'internal_');
+  dart.setSignature(CustomEvent, {
+    constructors: () => ({
+      new: [CustomEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, detail: core.Object}],
+      _: [CustomEvent, []],
+      internal_: [CustomEvent, []]
+    }),
+    methods: () => ({
+      [_initCustomEvent]: [dart.void, [core.String, core.bool, core.bool, core.Object]],
+      [_initCustomEvent_1]: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]]
+    }),
+    statics: () => ({internalCreateCustomEvent: [CustomEvent, []]}),
+    names: ['internalCreateCustomEvent']
+  });
+  CustomEvent[dart.metadata] = () => [dart.const(new _metadata.DomName('CustomEvent')), dart.const(new _js_helper.Native("CustomEvent"))];
   class DivElement extends HtmlElement {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -4271,7 +4478,6 @@ dart_library.library('dart/html', null, /* Imports */[
   const _createElementNS_2 = Symbol('_createElementNS_2');
   const _createElementNS = Symbol('_createElementNS');
   const _createEvent_1 = Symbol('_createEvent_1');
-  const _createEvent = Symbol('_createEvent');
   const _createRange_1 = Symbol('_createRange_1');
   const _createTextNode_1 = Symbol('_createTextNode_1');
   const _createTextNode = Symbol('_createTextNode');
@@ -5371,143 +5577,6 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.const(new ScrollAlignment._internal('BOTTOM'));
     }
   });
-  const _initEvent = Symbol('_initEvent');
-  const _selector = Symbol('_selector');
-  const _get_currentTarget = Symbol('_get_currentTarget');
-  const _get_target = Symbol('_get_target');
-  const _initEvent_1 = Symbol('_initEvent_1');
-  const _preventDefault_1 = Symbol('_preventDefault_1');
-  const _stopImmediatePropagation_1 = Symbol('_stopImmediatePropagation_1');
-  const _stopPropagation_1 = Symbol('_stopPropagation_1');
-  class Event extends DartHtmlDomObject {
-    static new(type, opts) {
-      let canBubble = opts && 'canBubble' in opts ? opts.canBubble : true;
-      let cancelable = opts && 'cancelable' in opts ? opts.cancelable : true;
-      return Event.eventType('Event', type, {canBubble: canBubble, cancelable: cancelable});
-    }
-    static eventType(type, name, opts) {
-      let canBubble = opts && 'canBubble' in opts ? opts.canBubble : true;
-      let cancelable = opts && 'cancelable' in opts ? opts.cancelable : true;
-      let e = exports.document[_createEvent](type);
-      e[_initEvent](name, canBubble, cancelable);
-      return e;
-    }
-    get matchingTarget() {
-      if (this[_selector] == null) {
-        dart.throw(new core.UnsupportedError('Cannot call matchingTarget if this Event did' + ' not arise as a result of event delegation.'));
-      }
-      let currentTarget = dart.as(this.currentTarget, Element);
-      let target = dart.as(this.target, Element);
-      let matchedTarget = null;
-      do {
-        if (dart.notNull(target.matches(this[_selector]))) return target;
-        target = target.parent;
-      } while (target != null && !dart.equals(target, currentTarget.parent));
-      dart.throw(new core.StateError('No selector matched for populating matchedTarget.'));
-    }
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    static internalCreateEvent() {
-      return new Event.internal_();
-    }
-    internal_() {
-      this[_selector] = null;
-      super.DartHtmlDomObject();
-    }
-    ['=='](other) {
-      return dart.equals(unwrap_jso(other), unwrap_jso(this)) || dart.notNull(core.identical(this, other));
-    }
-    get hashCode() {
-      return dart.hashCode(unwrap_jso(this));
-    }
-    get bubbles() {
-      return dart.as(wrap_jso(this.raw.bubbles), core.bool);
-    }
-    get cancelable() {
-      return dart.as(wrap_jso(this.raw.cancelable), core.bool);
-    }
-    get currentTarget() {
-      return _convertNativeToDart_EventTarget(this[_get_currentTarget]);
-    }
-    get [_get_currentTarget]() {
-      return wrap_jso(this.raw.currentTarget);
-    }
-    get defaultPrevented() {
-      return dart.as(wrap_jso(this.raw.defaultPrevented), core.bool);
-    }
-    get eventPhase() {
-      return dart.as(wrap_jso(this.raw.eventPhase), core.int);
-    }
-    get path() {
-      return dart.as(wrap_jso(this.raw.path), core.List$(Node));
-    }
-    get target() {
-      return _convertNativeToDart_EventTarget(this[_get_target]);
-    }
-    get [_get_target]() {
-      return wrap_jso(this.raw.target);
-    }
-    get timeStamp() {
-      return dart.as(wrap_jso(this.raw.timeStamp), core.int);
-    }
-    get type() {
-      return dart.as(wrap_jso(this.raw.type), core.String);
-    }
-    [_initEvent](eventTypeArg, canBubbleArg, cancelableArg) {
-      this[_initEvent_1](eventTypeArg, canBubbleArg, cancelableArg);
-      return;
-    }
-    [_initEvent_1](eventTypeArg, canBubbleArg, cancelableArg) {
-      return wrap_jso(this.raw.initEvent(unwrap_jso(eventTypeArg), unwrap_jso(canBubbleArg), unwrap_jso(cancelableArg)));
-    }
-    preventDefault() {
-      this[_preventDefault_1]();
-      return;
-    }
-    [_preventDefault_1]() {
-      return wrap_jso(this.raw.preventDefault());
-    }
-    stopImmediatePropagation() {
-      this[_stopImmediatePropagation_1]();
-      return;
-    }
-    [_stopImmediatePropagation_1]() {
-      return wrap_jso(this.raw.stopImmediatePropagation());
-    }
-    stopPropagation() {
-      this[_stopPropagation_1]();
-      return;
-    }
-    [_stopPropagation_1]() {
-      return wrap_jso(this.raw.stopPropagation());
-    }
-  }
-  dart.defineNamedConstructor(Event, 'internal_');
-  dart.setSignature(Event, {
-    constructors: () => ({
-      new: [Event, [core.String], {canBubble: core.bool, cancelable: core.bool}],
-      eventType: [Event, [core.String, core.String], {canBubble: core.bool, cancelable: core.bool}],
-      _: [Event, []],
-      internal_: [Event, []]
-    }),
-    methods: () => ({
-      [_initEvent]: [dart.void, [core.String, core.bool, core.bool]],
-      [_initEvent_1]: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]],
-      preventDefault: [dart.void, []],
-      [_preventDefault_1]: [dart.void, []],
-      stopImmediatePropagation: [dart.void, []],
-      [_stopImmediatePropagation_1]: [dart.void, []],
-      stopPropagation: [dart.void, []],
-      [_stopPropagation_1]: [dart.void, []]
-    }),
-    statics: () => ({internalCreateEvent: [Event, []]}),
-    names: ['internalCreateEvent']
-  });
-  Event[dart.metadata] = () => [dart.const(new _metadata.DomName('Event')), dart.const(new _js_helper.Native("Event,InputEvent,ClipboardEvent"))];
-  Event.AT_TARGET = 2;
-  Event.BUBBLING_PHASE = 3;
-  Event.CAPTURING_PHASE = 1;
   const _ptr = Symbol('_ptr');
   class Events extends core.Object {
     Events(ptr) {
@@ -12640,18 +12709,19 @@ dart_library.library('dart/html', null, /* Imports */[
     let constructor = jso.constructor;
     let f = null;
     let name = null;
-    let skip = false;
+    let skip = null;
     while (f == null) {
       name = constructor.name;
       f = getHtmlCreateFunction(name);
       if (f == null) {
-        dart.dsend(/* Unimplemented unknown name */console, 'error', `Could not instantiate ${name}`);
-        skip = true;
+        if (skip == null) {
+          skip = name;
+        }
         constructor = constructor.__proto__;
       }
     }
-    if (skip) {
-      dart.dsend(/* Unimplemented unknown name */console, 'info', `Instantiated ${name} instead`);
+    if (skip != null) {
+      dart.dsend(/* Unimplemented unknown name */console, 'warn', `Instantiated ${name} instead of ${skip}`);
     }
     let wrapped = dart.dcall(f);
     dart.dput(wrapped, 'raw', jso);
@@ -12665,12 +12735,12 @@ dart_library.library('dart/html', null, /* Imports */[
   dart.fn(createCustomUpgrader, dart.dynamic, [core.Type, dart.dynamic]);
   dart.defineLazyProperties(exports, {
     get htmlBlinkMap() {
-      return dart.map({_HistoryCrossFrame: dart.fn(() => _HistoryCrossFrame, core.Type, []), _LocationCrossFrame: dart.fn(() => _LocationCrossFrame, core.Type, []), _DOMWindowCrossFrame: dart.fn(() => _DOMWindowCrossFrame, core.Type, []), DateTime: dart.fn(() => core.DateTime, core.Type, []), JsObject: dart.fn(() => dart.dload(/* Unimplemented unknown name */js, 'JsObjectImpl')), JsFunction: dart.fn(() => dart.dload(/* Unimplemented unknown name */js, 'JsFunctionImpl')), JsArray: dart.fn(() => dart.dload(/* Unimplemented unknown name */js, 'JsArrayImpl')), Attr: dart.fn(() => _Attr, core.Type, []), CSSStyleDeclaration: dart.fn(() => CssStyleDeclaration, core.Type, []), CharacterData: dart.fn(() => CharacterData, core.Type, []), ChildNode: dart.fn(() => ChildNode, core.Type, []), ClientRect: dart.fn(() => _ClientRect, core.Type, []), Comment: dart.fn(() => Comment, core.Type, []), Console: dart.fn(() => Console, core.Type, []), ConsoleBase: dart.fn(() => ConsoleBase, core.Type, []), DOMImplementation: dart.fn(() => DomImplementation, core.Type, []), DOMTokenList: dart.fn(() => DomTokenList, core.Type, []), Document: dart.fn(() => Document, core.Type, []), DocumentFragment: dart.fn(() => DocumentFragment, core.Type, []), Element: dart.fn(() => Element, core.Type, []), Event: dart.fn(() => Event, core.Type, []), EventTarget: dart.fn(() => EventTarget, core.Type, []), HTMLAnchorElement: dart.fn(() => AnchorElement, core.Type, []), HTMLBaseElement: dart.fn(() => BaseElement, core.Type, []), HTMLBodyElement: dart.fn(() => BodyElement, core.Type, []), HTMLCollection: dart.fn(() => HtmlCollection, core.Type, []), HTMLDivElement: dart.fn(() => DivElement, core.Type, []), HTMLDocument: dart.fn(() => HtmlDocument, core.Type, []), HTMLElement: dart.fn(() => HtmlElement, core.Type, []), HTMLHeadElement: dart.fn(() => HeadElement, core.Type, []), HTMLHtmlElement: dart.fn(() => HtmlHtmlElement, core.Type, []), HTMLInputElement: dart.fn(() => InputElement, core.Type, []), HTMLStyleElement: dart.fn(() => StyleElement, core.Type, []), HTMLTemplateElement: dart.fn(() => TemplateElement, core.Type, []), History: dart.fn(() => History, core.Type, []), KeyboardEvent: dart.fn(() => KeyboardEvent, core.Type, []), Location: dart.fn(() => Location, core.Type, []), MouseEvent: dart.fn(() => MouseEvent, core.Type, []), NamedNodeMap: dart.fn(() => _NamedNodeMap, core.Type, []), Navigator: dart.fn(() => Navigator, core.Type, []), NavigatorCPU: dart.fn(() => NavigatorCpu, core.Type, []), Node: dart.fn(() => Node, core.Type, []), NodeList: dart.fn(() => NodeList, core.Type, []), ParentNode: dart.fn(() => ParentNode, core.Type, []), ProgressEvent: dart.fn(() => ProgressEvent, core.Type, []), Range: dart.fn(() => Range, core.Type, []), Screen: dart.fn(() => Screen, core.Type, []), ShadowRoot: dart.fn(() => ShadowRoot, core.Type, []), Text: dart.fn(() => Text, core.Type, []), UIEvent: dart.fn(() => UIEvent, core.Type, []), URLUtils: dart.fn(() => UrlUtils, core.Type, []), Window: dart.fn(() => Window, core.Type, []), XMLHttpRequest: dart.fn(() => HttpRequest, core.Type, []), XMLHttpRequestEventTarget: dart.fn(() => HttpRequestEventTarget, core.Type, []), XMLHttpRequestProgressEvent: dart.fn(() => _XMLHttpRequestProgressEvent, core.Type, [])});
+      return dart.map({_HistoryCrossFrame: dart.fn(() => _HistoryCrossFrame, core.Type, []), _LocationCrossFrame: dart.fn(() => _LocationCrossFrame, core.Type, []), _DOMWindowCrossFrame: dart.fn(() => _DOMWindowCrossFrame, core.Type, []), DateTime: dart.fn(() => core.DateTime, core.Type, []), JsObject: dart.fn(() => dart.dload(/* Unimplemented unknown name */js, 'JsObjectImpl')), JsFunction: dart.fn(() => dart.dload(/* Unimplemented unknown name */js, 'JsFunctionImpl')), JsArray: dart.fn(() => dart.dload(/* Unimplemented unknown name */js, 'JsArrayImpl')), Attr: dart.fn(() => _Attr, core.Type, []), CSSStyleDeclaration: dart.fn(() => CssStyleDeclaration, core.Type, []), CharacterData: dart.fn(() => CharacterData, core.Type, []), ChildNode: dart.fn(() => ChildNode, core.Type, []), ClientRect: dart.fn(() => _ClientRect, core.Type, []), Comment: dart.fn(() => Comment, core.Type, []), Console: dart.fn(() => Console, core.Type, []), ConsoleBase: dart.fn(() => ConsoleBase, core.Type, []), CustomEvent: dart.fn(() => CustomEvent, core.Type, []), DOMImplementation: dart.fn(() => DomImplementation, core.Type, []), DOMTokenList: dart.fn(() => DomTokenList, core.Type, []), Document: dart.fn(() => Document, core.Type, []), DocumentFragment: dart.fn(() => DocumentFragment, core.Type, []), Element: dart.fn(() => Element, core.Type, []), Event: dart.fn(() => Event, core.Type, []), EventTarget: dart.fn(() => EventTarget, core.Type, []), HTMLAnchorElement: dart.fn(() => AnchorElement, core.Type, []), HTMLBaseElement: dart.fn(() => BaseElement, core.Type, []), HTMLBodyElement: dart.fn(() => BodyElement, core.Type, []), HTMLCollection: dart.fn(() => HtmlCollection, core.Type, []), HTMLDivElement: dart.fn(() => DivElement, core.Type, []), HTMLDocument: dart.fn(() => HtmlDocument, core.Type, []), HTMLElement: dart.fn(() => HtmlElement, core.Type, []), HTMLHeadElement: dart.fn(() => HeadElement, core.Type, []), HTMLHtmlElement: dart.fn(() => HtmlHtmlElement, core.Type, []), HTMLInputElement: dart.fn(() => InputElement, core.Type, []), HTMLStyleElement: dart.fn(() => StyleElement, core.Type, []), HTMLTemplateElement: dart.fn(() => TemplateElement, core.Type, []), History: dart.fn(() => History, core.Type, []), KeyboardEvent: dart.fn(() => KeyboardEvent, core.Type, []), Location: dart.fn(() => Location, core.Type, []), MouseEvent: dart.fn(() => MouseEvent, core.Type, []), NamedNodeMap: dart.fn(() => _NamedNodeMap, core.Type, []), Navigator: dart.fn(() => Navigator, core.Type, []), NavigatorCPU: dart.fn(() => NavigatorCpu, core.Type, []), Node: dart.fn(() => Node, core.Type, []), NodeList: dart.fn(() => NodeList, core.Type, []), ParentNode: dart.fn(() => ParentNode, core.Type, []), ProgressEvent: dart.fn(() => ProgressEvent, core.Type, []), Range: dart.fn(() => Range, core.Type, []), Screen: dart.fn(() => Screen, core.Type, []), ShadowRoot: dart.fn(() => ShadowRoot, core.Type, []), Text: dart.fn(() => Text, core.Type, []), UIEvent: dart.fn(() => UIEvent, core.Type, []), URLUtils: dart.fn(() => UrlUtils, core.Type, []), Window: dart.fn(() => Window, core.Type, []), XMLHttpRequest: dart.fn(() => HttpRequest, core.Type, []), XMLHttpRequestEventTarget: dart.fn(() => HttpRequestEventTarget, core.Type, []), XMLHttpRequestProgressEvent: dart.fn(() => _XMLHttpRequestProgressEvent, core.Type, [])});
     }
   });
   dart.defineLazyProperties(exports, {
     get htmlBlinkFunctionMap() {
-      return dart.map({Attr: dart.fn(() => _Attr.internalCreate_Attr, dart.functionType(_Attr, []), []), CSSStyleDeclaration: dart.fn(() => CssStyleDeclaration.internalCreateCssStyleDeclaration, dart.functionType(CssStyleDeclaration, []), []), CharacterData: dart.fn(() => CharacterData.internalCreateCharacterData, dart.functionType(CharacterData, []), []), ClientRect: dart.fn(() => _ClientRect.internalCreate_ClientRect, dart.functionType(_ClientRect, []), []), Comment: dart.fn(() => Comment.internalCreateComment, dart.functionType(Comment, []), []), Console: dart.fn(() => Console.internalCreateConsole, dart.functionType(Console, []), []), ConsoleBase: dart.fn(() => ConsoleBase.internalCreateConsoleBase, dart.functionType(ConsoleBase, []), []), DOMImplementation: dart.fn(() => DomImplementation.internalCreateDomImplementation, dart.functionType(DomImplementation, []), []), DOMTokenList: dart.fn(() => DomTokenList.internalCreateDomTokenList, dart.functionType(DomTokenList, []), []), Document: dart.fn(() => Document.internalCreateDocument, dart.functionType(Document, []), []), DocumentFragment: dart.fn(() => DocumentFragment.internalCreateDocumentFragment, dart.functionType(DocumentFragment, []), []), Element: dart.fn(() => Element.internalCreateElement, dart.functionType(Element, []), []), Event: dart.fn(() => Event.internalCreateEvent, dart.functionType(Event, []), []), EventTarget: dart.fn(() => EventTarget.internalCreateEventTarget, dart.functionType(EventTarget, []), []), HTMLAnchorElement: dart.fn(() => AnchorElement.internalCreateAnchorElement, dart.functionType(AnchorElement, []), []), HTMLBaseElement: dart.fn(() => BaseElement.internalCreateBaseElement, dart.functionType(BaseElement, []), []), HTMLBodyElement: dart.fn(() => BodyElement.internalCreateBodyElement, dart.functionType(BodyElement, []), []), HTMLCollection: dart.fn(() => HtmlCollection.internalCreateHtmlCollection, dart.functionType(HtmlCollection, []), []), HTMLDivElement: dart.fn(() => DivElement.internalCreateDivElement, dart.functionType(DivElement, []), []), HTMLDocument: dart.fn(() => HtmlDocument.internalCreateHtmlDocument, dart.functionType(HtmlDocument, []), []), HTMLElement: dart.fn(() => HtmlElement.internalCreateHtmlElement, dart.functionType(HtmlElement, []), []), HTMLHeadElement: dart.fn(() => HeadElement.internalCreateHeadElement, dart.functionType(HeadElement, []), []), HTMLHtmlElement: dart.fn(() => HtmlHtmlElement.internalCreateHtmlHtmlElement, dart.functionType(HtmlHtmlElement, []), []), HTMLInputElement: dart.fn(() => InputElement.internalCreateInputElement, dart.functionType(InputElement, []), []), HTMLStyleElement: dart.fn(() => StyleElement.internalCreateStyleElement, dart.functionType(StyleElement, []), []), HTMLTemplateElement: dart.fn(() => TemplateElement.internalCreateTemplateElement, dart.functionType(TemplateElement, []), []), History: dart.fn(() => History.internalCreateHistory, dart.functionType(History, []), []), KeyboardEvent: dart.fn(() => KeyboardEvent.internalCreateKeyboardEvent, dart.functionType(KeyboardEvent, []), []), Location: dart.fn(() => Location.internalCreateLocation, dart.functionType(Location, []), []), MouseEvent: dart.fn(() => MouseEvent.internalCreateMouseEvent, dart.functionType(MouseEvent, []), []), NamedNodeMap: dart.fn(() => _NamedNodeMap.internalCreate_NamedNodeMap, dart.functionType(_NamedNodeMap, []), []), Navigator: dart.fn(() => Navigator.internalCreateNavigator, dart.functionType(Navigator, []), []), Node: dart.fn(() => Node.internalCreateNode, dart.functionType(Node, []), []), NodeList: dart.fn(() => NodeList.internalCreateNodeList, dart.functionType(NodeList, []), []), ProgressEvent: dart.fn(() => ProgressEvent.internalCreateProgressEvent, dart.functionType(ProgressEvent, []), []), Range: dart.fn(() => Range.internalCreateRange, dart.functionType(Range, []), []), Screen: dart.fn(() => Screen.internalCreateScreen, dart.functionType(Screen, []), []), ShadowRoot: dart.fn(() => ShadowRoot.internalCreateShadowRoot, dart.functionType(ShadowRoot, []), []), Text: dart.fn(() => Text.internalCreateText, dart.functionType(Text, []), []), UIEvent: dart.fn(() => UIEvent.internalCreateUIEvent, dart.functionType(UIEvent, []), []), Window: dart.fn(() => Window.internalCreateWindow, dart.functionType(Window, []), []), XMLHttpRequest: dart.fn(() => HttpRequest.internalCreateHttpRequest, dart.functionType(HttpRequest, []), []), XMLHttpRequestEventTarget: dart.fn(() => HttpRequestEventTarget.internalCreateHttpRequestEventTarget, dart.functionType(HttpRequestEventTarget, []), []), XMLHttpRequestProgressEvent: dart.fn(() => _XMLHttpRequestProgressEvent.internalCreate_XMLHttpRequestProgressEvent, dart.functionType(_XMLHttpRequestProgressEvent, []), [])});
+      return dart.map({Attr: dart.fn(() => _Attr.internalCreate_Attr, dart.functionType(_Attr, []), []), CSSStyleDeclaration: dart.fn(() => CssStyleDeclaration.internalCreateCssStyleDeclaration, dart.functionType(CssStyleDeclaration, []), []), CharacterData: dart.fn(() => CharacterData.internalCreateCharacterData, dart.functionType(CharacterData, []), []), ClientRect: dart.fn(() => _ClientRect.internalCreate_ClientRect, dart.functionType(_ClientRect, []), []), Comment: dart.fn(() => Comment.internalCreateComment, dart.functionType(Comment, []), []), Console: dart.fn(() => Console.internalCreateConsole, dart.functionType(Console, []), []), ConsoleBase: dart.fn(() => ConsoleBase.internalCreateConsoleBase, dart.functionType(ConsoleBase, []), []), CustomEvent: dart.fn(() => CustomEvent.internalCreateCustomEvent, dart.functionType(CustomEvent, []), []), DOMImplementation: dart.fn(() => DomImplementation.internalCreateDomImplementation, dart.functionType(DomImplementation, []), []), DOMTokenList: dart.fn(() => DomTokenList.internalCreateDomTokenList, dart.functionType(DomTokenList, []), []), Document: dart.fn(() => Document.internalCreateDocument, dart.functionType(Document, []), []), DocumentFragment: dart.fn(() => DocumentFragment.internalCreateDocumentFragment, dart.functionType(DocumentFragment, []), []), Element: dart.fn(() => Element.internalCreateElement, dart.functionType(Element, []), []), Event: dart.fn(() => Event.internalCreateEvent, dart.functionType(Event, []), []), EventTarget: dart.fn(() => EventTarget.internalCreateEventTarget, dart.functionType(EventTarget, []), []), HTMLAnchorElement: dart.fn(() => AnchorElement.internalCreateAnchorElement, dart.functionType(AnchorElement, []), []), HTMLBaseElement: dart.fn(() => BaseElement.internalCreateBaseElement, dart.functionType(BaseElement, []), []), HTMLBodyElement: dart.fn(() => BodyElement.internalCreateBodyElement, dart.functionType(BodyElement, []), []), HTMLCollection: dart.fn(() => HtmlCollection.internalCreateHtmlCollection, dart.functionType(HtmlCollection, []), []), HTMLDivElement: dart.fn(() => DivElement.internalCreateDivElement, dart.functionType(DivElement, []), []), HTMLDocument: dart.fn(() => HtmlDocument.internalCreateHtmlDocument, dart.functionType(HtmlDocument, []), []), HTMLElement: dart.fn(() => HtmlElement.internalCreateHtmlElement, dart.functionType(HtmlElement, []), []), HTMLHeadElement: dart.fn(() => HeadElement.internalCreateHeadElement, dart.functionType(HeadElement, []), []), HTMLHtmlElement: dart.fn(() => HtmlHtmlElement.internalCreateHtmlHtmlElement, dart.functionType(HtmlHtmlElement, []), []), HTMLInputElement: dart.fn(() => InputElement.internalCreateInputElement, dart.functionType(InputElement, []), []), HTMLStyleElement: dart.fn(() => StyleElement.internalCreateStyleElement, dart.functionType(StyleElement, []), []), HTMLTemplateElement: dart.fn(() => TemplateElement.internalCreateTemplateElement, dart.functionType(TemplateElement, []), []), History: dart.fn(() => History.internalCreateHistory, dart.functionType(History, []), []), KeyboardEvent: dart.fn(() => KeyboardEvent.internalCreateKeyboardEvent, dart.functionType(KeyboardEvent, []), []), Location: dart.fn(() => Location.internalCreateLocation, dart.functionType(Location, []), []), MouseEvent: dart.fn(() => MouseEvent.internalCreateMouseEvent, dart.functionType(MouseEvent, []), []), NamedNodeMap: dart.fn(() => _NamedNodeMap.internalCreate_NamedNodeMap, dart.functionType(_NamedNodeMap, []), []), Navigator: dart.fn(() => Navigator.internalCreateNavigator, dart.functionType(Navigator, []), []), Node: dart.fn(() => Node.internalCreateNode, dart.functionType(Node, []), []), NodeList: dart.fn(() => NodeList.internalCreateNodeList, dart.functionType(NodeList, []), []), ProgressEvent: dart.fn(() => ProgressEvent.internalCreateProgressEvent, dart.functionType(ProgressEvent, []), []), Range: dart.fn(() => Range.internalCreateRange, dart.functionType(Range, []), []), Screen: dart.fn(() => Screen.internalCreateScreen, dart.functionType(Screen, []), []), ShadowRoot: dart.fn(() => ShadowRoot.internalCreateShadowRoot, dart.functionType(ShadowRoot, []), []), Text: dart.fn(() => Text.internalCreateText, dart.functionType(Text, []), []), UIEvent: dart.fn(() => UIEvent.internalCreateUIEvent, dart.functionType(UIEvent, []), []), Window: dart.fn(() => Window.internalCreateWindow, dart.functionType(Window, []), []), XMLHttpRequest: dart.fn(() => HttpRequest.internalCreateHttpRequest, dart.functionType(HttpRequest, []), []), XMLHttpRequestEventTarget: dart.fn(() => HttpRequestEventTarget.internalCreateHttpRequestEventTarget, dart.functionType(HttpRequestEventTarget, []), []), XMLHttpRequestProgressEvent: dart.fn(() => _XMLHttpRequestProgressEvent.internalCreate_XMLHttpRequestProgressEvent, dart.functionType(_XMLHttpRequestProgressEvent, []), [])});
     }
   });
   function getHtmlCreateFunction(key) {
@@ -12707,6 +12777,8 @@ dart_library.library('dart/html', null, /* Imports */[
   exports.ConsoleBase = ConsoleBase;
   exports.CssStyleDeclarationBase = CssStyleDeclarationBase;
   exports.CssStyleDeclaration = CssStyleDeclaration;
+  exports.Event = Event;
+  exports.CustomEvent = CustomEvent;
   exports.DivElement = DivElement;
   exports.Document = Document;
   exports.DocumentFragment = DocumentFragment;
@@ -12715,7 +12787,6 @@ dart_library.library('dart/html', null, /* Imports */[
   exports.ElementList$ = ElementList$;
   exports.ElementList = ElementList;
   exports.ScrollAlignment = ScrollAlignment;
-  exports.Event = Event;
   exports.Events = Events;
   exports.ElementEvents = ElementEvents;
   exports.HeadElement = HeadElement;
