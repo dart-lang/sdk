@@ -855,7 +855,7 @@ class C {
     expect(parameter.parameters, hasLength(0));
   }
 
-  void test_visitFieldFormalParameter_funtionTyped() {
+  void test_visitFieldFormalParameter_functionTyped() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String parameterName = "p";
@@ -2213,7 +2213,7 @@ class A {
         (obj) => obj is FieldElement, FieldElement, element);
   }
 
-  void test_locate_Identifier_propertAccess() {
+  void test_locate_Identifier_propertyAccess() {
     AstNode id = _findNodeIn(
         "length",
         r'''

@@ -284,6 +284,8 @@ class ConstantEvaluatorTest extends ResolverTestCase {
     EvaluationResult result =
         _getExpressionValue("const {'a' : 'm', 'b' : 'n', 'c' : 'o'}");
     expect(result.isValid, isTrue);
+    Map<DartObject, DartObject> map = result.value.toMapValue();
+    expect(map.keys.map((k) => k.toStringValue()), ['a', 'b', 'c']);
   }
 
   void test_literal_null() {
@@ -834,7 +836,7 @@ class C {
     _evaluateAnnotation(compilationUnit, "C", "f");
   }
 
-  void test_annotation_toplevelVariable() {
+  void test_annotation_topLevelVariable() {
     CompilationUnit compilationUnit = resolveSource(r'''
 const int i = 5;
 class C {
@@ -847,8 +849,8 @@ class C {
     expect(_assertValidInt(result), 5);
   }
 
-  void test_annotation_toplevelVariable_args() {
-    // Applying arguments to an annotation that is a toplevel variable is
+  void test_annotation_topLevelVariable_args() {
+    // Applying arguments to an annotation that is a top-level variable is
     // illegal, but shouldn't crash analysis.
     CompilationUnit compilationUnit = resolveSource(r'''
 const int i = 5;
@@ -1377,7 +1379,7 @@ class B {
     _assertIntField(fields, "k", 7);
   }
 
-  void test_instanceCreationExpression_computedField_usesToplevelConst() {
+  void test_instanceCreationExpression_computedField_usesTopLevelConst() {
     CompilationUnit compilationUnit = resolveSource(r'''
 const foo = const A(3);
 const bar = 4;
@@ -1585,7 +1587,7 @@ class A {
     _assertValidUnknown(_evaluateTopLevelVariable(compilationUnit, "foo"));
   }
 
-  void test_instanceCreationExpression_redirect_extern() {
+  void test_instanceCreationExpression_redirect_external() {
     CompilationUnit compilationUnit = resolveSource(r'''
 const foo = const A();
 class A {
