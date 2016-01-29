@@ -1963,10 +1963,15 @@ void ClassFinalizer::ApplyMixinAppAlias(const Class& mixin_app_class,
   const intptr_t num_super_type_params = super_class.NumTypeParameters();
   AbstractType& type = AbstractType::Handle(zone);
   // The instantiator is mapping finalized type parameters of mixin_class to
-  // unfinalized type parameters of mixin_app_class.
-  ASSERT(aliased_mixin_type.IsFinalized());
+  // unfinalized type parameters of mixin_app_class. Therefore, the type
+  // arguments of mixin_class_super_type must be finalized, since they get
+  // instantiated by this instantiator. Finalizing the types in mixin_class
+  // will finalize mixin_class_super_type.
+  // The aliased_mixin_type does not need to be finalized, but only resolved.
+  ASSERT(aliased_mixin_type.IsResolved());
   const Class& aliased_mixin_type_class = Class::Handle(zone,
       aliased_mixin_type.type_class());
+  FinalizeTypesInClass(mixin_class);
   const intptr_t num_aliased_mixin_type_params =
       aliased_mixin_type_class.NumTypeParameters();
   ASSERT(inserted_class.NumTypeParameters() ==
