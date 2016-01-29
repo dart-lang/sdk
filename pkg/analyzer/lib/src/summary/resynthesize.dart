@@ -1693,8 +1693,9 @@ class _ReferenceInfo {
         }
         return element;
       };
-      return new DeferredFunctionTypeImpl(
-          computer, null, typeArguments, typeArguments.isNotEmpty);
+      // TODO(paulberry): Is it a bug that we have to pass `false` for
+      // isInstantiated?
+      return new DeferredFunctionTypeImpl(computer, null, typeArguments, false);
     } else {
       return null;
     }

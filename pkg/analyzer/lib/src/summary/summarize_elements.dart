@@ -388,6 +388,7 @@ class _CompilationUnitSerializer {
       List<UnlinkedPublicNameBuilder> bs = <UnlinkedPublicNameBuilder>[];
       for (FieldElement field in cls.fields) {
         if (field.isStatic && field.isConst && field.isPublic) {
+          // TODO(paulberry): should numTypeParameters include class params?
           bs.add(new UnlinkedPublicNameBuilder(
               name: field.name,
               kind: ReferenceKind.propertyAccessor,
@@ -396,6 +397,7 @@ class _CompilationUnitSerializer {
       }
       for (MethodElement method in cls.methods) {
         if (method.isStatic && method.isPublic) {
+          // TODO(paulberry): should numTypeParameters include class params?
           bs.add(new UnlinkedPublicNameBuilder(
               name: method.name,
               kind: ReferenceKind.method,
@@ -404,6 +406,7 @@ class _CompilationUnitSerializer {
       }
       for (ConstructorElement constructor in cls.constructors) {
         if (constructor.isConst && constructor.isPublic) {
+          // TODO(paulberry): should numTypeParameters include class params?
           bs.add(new UnlinkedPublicNameBuilder(
               name: constructor.name,
               kind: ReferenceKind.constructor,
@@ -843,15 +846,13 @@ class _CompilationUnitSerializer {
         unit = dependentLibrary.units.indexOf(unitElement);
         assert(unit != -1);
       }
-      int numTypeParameters = 0;
-      if (element is TypeParameterizedElement) {
-        numTypeParameters = element.typeParameters.length;
-      }
       LinkedReferenceBuilder linkedReference = new LinkedReferenceBuilder(
           dependency: librarySerializer.serializeDependency(dependentLibrary),
           kind: _getReferenceKind(element),
-          unit: unit,
-          numTypeParameters: numTypeParameters);
+          unit: unit);
+      if (element is TypeParameterizedElement) {
+        linkedReference.numTypeParameters = element.typeParameters.length;
+      }
       String name = element == null ? 'void' : element.name;
       if (linked) {
         linkedReference.name = name;
@@ -859,6 +860,7 @@ class _CompilationUnitSerializer {
         if (enclosing is ClassElement) {
           linkedReference.containingReference =
               _getElementReferenceId(enclosing, linked: linked);
+          linkedReference.numTypeParameters += enclosing.typeParameters.length;
         }
       } else {
         assert(unlinkedReferences.length == linkedReferences.length);

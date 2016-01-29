@@ -1501,6 +1501,19 @@ get x => null;''');
         ' abstract class D<U, V> { Map<V, U> get v; }');
   }
 
+  test_inferred_type_refers_to_function_typed_parameter_type_generic_class() {
+    checkLibrary('class C<T, U> extends D<U, int> { void f(int x, g) {} }'
+        ' abstract class D<V, W> { void f(int x, W g(V s)); }');
+  }
+
+  test_inferred_type_refers_to_function_typed_parameter_type_other_lib() {
+    addLibrarySource(
+        '/a.dart', 'import "b.dart"; abstract class D extends E {}');
+    addLibrarySource(
+        '/b.dart', 'abstract class E { void f(int x, int g(String s)); }');
+    checkLibrary('import "a.dart"; class C extends D { void f(int x, g) {} }');
+  }
+
   test_inferred_type_refers_to_method_function_typed_parameter_type() {
     checkLibrary('class C extends D { void f(int x, g) {} }'
         ' abstract class D { void f(int x, int g(String s)); }');

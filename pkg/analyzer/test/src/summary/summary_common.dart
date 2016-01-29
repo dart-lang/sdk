@@ -3992,6 +3992,71 @@ p.B b;
     checkLinkedTypeRef(type.typeArguments[1], 'dart:core', 'dart:core', 'int');
   }
 
+  test_inferred_type_refers_to_function_typed_parameter_type_generic_class() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedClass cls = serializeClassText(
+        'class C<T, U> extends D<U, int> { void f(int x, g) {} }'
+        ' abstract class D<V, W> { void f(int x, W g(V s)); }',
+        className: 'C');
+    EntityRef type =
+        getTypeRefForSlot(cls.executables[0].parameters[1].inferredTypeSlot);
+    // Check that parameter g's inferred type is the type implied by D.f's 1st
+    // (zero-based) parameter.
+    expect(type.implicitFunctionTypeIndices, [1]);
+    expect(type.paramReference, 0);
+    expect(type.typeArguments, hasLength(2));
+    checkParamTypeRef(type.typeArguments[0], 1);
+    checkTypeRef(type.typeArguments[1], 'dart:core', 'dart:core', 'int');
+    expect(type.reference,
+        greaterThanOrEqualTo(unlinkedUnits[0].references.length));
+    LinkedReference linkedReference =
+        linked.units[0].references[type.reference];
+    expect(linkedReference.dependency, 0);
+    expect(linkedReference.kind, ReferenceKind.method);
+    expect(linkedReference.name, 'f');
+    expect(linkedReference.numTypeParameters, 2);
+    expect(linkedReference.unit, 0);
+    expect(linkedReference.containingReference, isNot(0));
+    expect(linkedReference.containingReference, lessThan(type.reference));
+    checkReferenceIndex(linkedReference.containingReference, null, null, 'D',
+        numTypeParameters: 2);
+  }
+
+  test_inferred_type_refers_to_function_typed_parameter_type_other_lib() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    addNamedSource('/a.dart', 'import "b.dart"; abstract class D extends E {}');
+    addNamedSource(
+        '/b.dart', 'abstract class E { void f(int x, int g(String s)); }');
+    UnlinkedClass cls = serializeClassText(
+        'import "a.dart"; class C extends D { void f(int x, g) {} }');
+    EntityRef type =
+        getTypeRefForSlot(cls.executables[0].parameters[1].inferredTypeSlot);
+    // Check that parameter g's inferred type is the type implied by D.f's 1st
+    // (zero-based) parameter.
+    expect(type.implicitFunctionTypeIndices, [1]);
+    expect(type.paramReference, 0);
+    expect(type.typeArguments, isEmpty);
+    expect(type.reference,
+        greaterThanOrEqualTo(unlinkedUnits[0].references.length));
+    LinkedReference linkedReference =
+        linked.units[0].references[type.reference];
+    int expectedDep =
+        checkHasDependency(absUri('/b.dart'), 'b.dart', fullyLinked: true);
+    expect(linkedReference.dependency, expectedDep);
+    expect(linkedReference.kind, ReferenceKind.method);
+    expect(linkedReference.name, 'f');
+    expect(linkedReference.numTypeParameters, 0);
+    expect(linkedReference.unit, 0);
+    expect(linkedReference.containingReference, isNot(0));
+    expect(linkedReference.containingReference, lessThan(type.reference));
+    checkReferenceIndex(
+        linkedReference.containingReference, absUri('/b.dart'), 'b.dart', 'E');
+  }
+
   test_inferred_type_refers_to_method_function_typed_parameter_type() {
     if (!strongMode || skipFullyLinkedData) {
       return;
@@ -4004,8 +4069,7 @@ p.B b;
         getTypeRefForSlot(cls.executables[0].parameters[1].inferredTypeSlot);
     // Check that parameter g's inferred type is the type implied by D.f's 1st
     // (zero-based) parameter.
-    expect(type.implicitFunctionTypeIndices, hasLength(1));
-    expect(type.implicitFunctionTypeIndices[0], 1);
+    expect(type.implicitFunctionTypeIndices, [1]);
     expect(type.paramReference, 0);
     expect(type.typeArguments, isEmpty);
     expect(type.reference,
@@ -4034,8 +4098,7 @@ p.B b;
         getTypeRefForSlot(cls.executables[0].parameters[0].inferredTypeSlot);
     // Check that parameter g's inferred type is the type implied by D.f's 1st
     // (zero-based) parameter.
-    expect(type.implicitFunctionTypeIndices, hasLength(1));
-    expect(type.implicitFunctionTypeIndices[0], 0);
+    expect(type.implicitFunctionTypeIndices, [0]);
     expect(type.paramReference, 0);
     expect(type.typeArguments, isEmpty);
     expect(type.reference,
