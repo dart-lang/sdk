@@ -84,6 +84,8 @@ DEFINE_FLAG(bool, error_on_bad_override, false,
 DEFINE_FLAG(bool, error_on_bad_type, false,
             "Report error for malformed types.");
 
+DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
+
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
   FLAG_enable_type_checks = value;
@@ -569,7 +571,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
 
 
 void IsolateMessageHandler::NotifyPauseOnStart() {
-  if (Service::debug_stream.enabled()) {
+  if (Service::debug_stream.enabled() || FLAG_warn_on_pause_with_no_debugger) {
     StartIsolateScope start_isolate(I);
     StackZone zone(T);
     HandleScope handle_scope(T);
@@ -583,7 +585,7 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
 
 
 void IsolateMessageHandler::NotifyPauseOnExit() {
-  if (Service::debug_stream.enabled()) {
+  if (Service::debug_stream.enabled() || FLAG_warn_on_pause_with_no_debugger) {
     StartIsolateScope start_isolate(I);
     StackZone zone(T);
     HandleScope handle_scope(T);

@@ -44,6 +44,7 @@ DEFINE_FLAG(bool, steal_breakpoints, false,
             "the VM service.");
 
 DECLARE_FLAG(bool, trace_isolates);
+DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
@@ -281,7 +282,8 @@ static bool ServiceNeedsDebuggerEvent(DebuggerEvent::EventType type) {
     case DebuggerEvent::kBreakpointReached:
     case DebuggerEvent::kExceptionThrown:
     case DebuggerEvent::kIsolateInterrupted:
-      return Service::debug_stream.enabled();
+      return (Service::debug_stream.enabled() ||
+              FLAG_warn_on_pause_with_no_debugger);
 
     case DebuggerEvent::kIsolateCreated:
     case DebuggerEvent::kIsolateShutdown:

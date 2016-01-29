@@ -70,6 +70,19 @@ class ServiceEvent {
 
   EventKind kind() const { return kind_; }
 
+  bool IsPause() const {
+    switch (kind())  {
+      case kPauseStart:
+      case kPauseExit:
+      case kPauseBreakpoint:
+      case kPauseInterrupted:
+      case kPauseException:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   const char* embedder_kind() const { return embedder_kind_; }
 
   const char* KindAsCString() const;

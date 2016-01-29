@@ -47,6 +47,10 @@ DEFINE_FLAG(charp, vm_name, "vm",
             "The default name of this vm as reported by the VM service "
             "protocol");
 
+DEFINE_FLAG(bool, warn_on_pause_with_no_debugger, false,
+            "Print a message when an isolate is paused but there is no "
+            "debugger attached.");
+
 // The name of this of this vm as reported by the VM service protocol.
 static char* vm_name = NULL;
 
@@ -947,10 +951,59 @@ void Service::SendEventWithData(const char* stream_id,
 }
 
 
+static void ReportPauseOnConsole(ServiceEvent* event) {
+  const char* name = event->isolate()->debugger_name();
+  switch (event->kind())  {
+    case ServiceEvent::kPauseStart:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused at "
+          "start.", name);
+      break;
+    case ServiceEvent::kPauseExit:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused at "
+          "exit.", name);
+      break;
+    case ServiceEvent::kPauseException:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused due "
+          "to exception.", name);
+      break;
+    case ServiceEvent::kPauseInterrupted:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused due "
+          "to interrupt.", name);
+      break;
+    case ServiceEvent::kPauseBreakpoint:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused.",
+          name);
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+  if (!ServiceIsolate::IsRunning()) {
+    OS::PrintErr("  Start the vm-service to debug.\n");
+  } else if (ServiceIsolate::server_address() == NULL) {
+    OS::PrintErr("  Connect to Observatory to debug.\n");
+  } else {
+    OS::PrintErr("  Connect to Observatory at %s to debug.\n",
+                 ServiceIsolate::server_address());
+  }
+}
+
+
 void Service::HandleEvent(ServiceEvent* event) {
   if (event->isolate() != NULL &&
       ServiceIsolate::IsServiceIsolateDescendant(event->isolate())) {
     return;
+  }
+  if (FLAG_warn_on_pause_with_no_debugger &&
+      event->IsPause() && !Service::debug_stream.enabled()) {
+    // If we are about to pause a running program which has no
+    // debugger connected, tell the user about it.
+    ReportPauseOnConsole(event);
   }
   if (!ServiceIsolate::IsRunning()) {
     return;
