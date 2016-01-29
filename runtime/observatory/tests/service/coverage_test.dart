@@ -80,7 +80,7 @@ hasStoppedAtBreakpoint,
          equals([15, 1, 16, 0, 18, 1, 20, 1,
                  24, 1, 25, 1, 27, 0, 13, 0]));
   expect(coverage['coverage'][1]['hits'],
-         equals([33, 1, 34, 1, 105, 2]));
+         equals([33, 1, 34, 1, 106, 2]));
 
   // Script
   await cls.load();
@@ -92,10 +92,11 @@ hasStoppedAtBreakpoint,
          equals([15, 1, 16, 0, 18, 1, 20, 1,
                  24, 1, 25, 1, 27, 0, 13, 0]));
   expect(coverage['coverage'][1]['hits'],
-         equals([33, 1, 34, 1, 105, 2]));
+         equals([33, 1, 34, 1, 106, 2]));
 
   // Isolate
   coverage = await isolate.invokeRpcNoUpgrade('_getCoverage', {});
+  print('Done processing _getCoverage for full isolate');
   expect(coverage['type'], equals('CodeCoverage'));
   expect(coverage['coverage'].length, greaterThan(100));
 },
