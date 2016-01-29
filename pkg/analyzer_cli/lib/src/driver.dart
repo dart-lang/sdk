@@ -30,9 +30,11 @@ import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer_cli/plugin/analysis/resolver_provider.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
+import 'package:analyzer_cli/starter.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:package_config/discovery.dart' as pkgDiscovery;
 import 'package:package_config/packages.dart' show Packages;
@@ -61,7 +63,7 @@ bool containsLintRuleEntry(Map<String, YamlNode> options) {
 
 typedef ErrorSeverity _BatchRunnerHandler(List<String> args);
 
-class Driver {
+class Driver implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
       new PerformanceTag("Driver._analyzeAll");
 
@@ -79,17 +81,20 @@ class Driver {
   /// creation.
   CommandLineOptions _previousOptions;
 
+  @override
+  ResolverProvider packageResolverProvider;
+
   /// This Driver's current analysis context.
   ///
   /// *Visible for testing.*
   AnalysisContext get context => _context;
 
-  /// Set the [plugins] that are defined outside the `analyzer_cli` package.
+  @override
   void set userDefinedPlugins(List<Plugin> plugins) {
     _userDefinedPlugins = plugins == null ? <Plugin>[] : plugins;
   }
 
-  /// Use the given command-line [args] to start this analysis driver.
+  @override
   void start(List<String> args) {
     int startTime = new DateTime.now().millisecondsSinceEpoch;
 
@@ -309,6 +314,21 @@ class Driver {
     Map<String, List<fileSystem.Folder>> packageMap;
     UriResolver packageUriResolver;
 
+    // Create a custom package resolver if one has been specified.
+    if (packageResolverProvider != null) {
+      fileSystem.Folder folder =
+          PhysicalResourceProvider.INSTANCE.getResource('.');
+      UriResolver resolver = packageResolverProvider(folder);
+      if (resolver != null) {
+        // TODO(brianwilkerson) This doesn't support either embedder files or sdk extensions.
+        List<UriResolver> resolvers = <UriResolver>[
+          new DartUriResolver(sdk),
+          resolver,
+          new FileUriResolver()
+        ];
+        return new SourceFactory(resolvers);
+      }
+    }
     // Process options, caching package resolution details.
     if (options.packageConfigPath != null) {
       String packageConfigPath = options.packageConfigPath;
