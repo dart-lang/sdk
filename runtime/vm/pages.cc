@@ -346,7 +346,8 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
     // Start of the newly allocated page is the allocated object.
     result = page->object_start();
     // Note: usage_.capacity_in_words is increased by AllocatePage.
-    usage_.used_in_words += size >> kWordSizeLog2;
+    AtomicOperations::FetchAndIncrementBy(&(usage_.used_in_words),
+                                          (size >> kWordSizeLog2));
     // Enqueue the remainder in the free list.
     uword free_start = result + size;
     intptr_t free_size = page->object_end() - free_start;
@@ -383,7 +384,8 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       result = TryAllocateInFreshPage(size, type, growth_policy, is_locked);
       // usage_ is updated by the call above.
     } else {
-      usage_.used_in_words += size >> kWordSizeLog2;
+      AtomicOperations::FetchAndIncrementBy(&(usage_.used_in_words),
+                                            (size >> kWordSizeLog2));
     }
   } else {
     // Large page allocation.
@@ -402,21 +404,19 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       if (page != NULL) {
         result = page->object_start();
         // Note: usage_.capacity_in_words is increased by AllocateLargePage.
-        usage_.used_in_words += size >> kWordSizeLog2;
+        AtomicOperations::FetchAndIncrementBy(&(usage_.used_in_words),
+                                              (size >> kWordSizeLog2));
       }
     }
   }
-  if (result != 0) {
 #ifdef DEBUG
+  if (result != 0) {
     // A successful allocation should increase usage_.
     ASSERT(usage_before.used_in_words < usage_.used_in_words);
-#endif
-  } else {
-#ifdef DEBUG
-    // A failed allocation should not change used_in_words.
-    ASSERT(usage_before.used_in_words == usage_.used_in_words);
-#endif
   }
+  // Note we cannot assert that a failed allocation should not change
+  // used_in_words as another thread could have changed used_in_words.
+#endif
   ASSERT((result & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
   return result;
 }
@@ -434,14 +434,16 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
 
 void PageSpace::AllocateExternal(intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
-  usage_.external_in_words += size_in_words;
+  AtomicOperations::FetchAndIncrementBy(&(usage_.external_in_words),
+                                        size_in_words);
   // TODO(koda): Control growth.
 }
 
 
 void PageSpace::FreeExternal(intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
-  usage_.external_in_words -= size_in_words;
+  AtomicOperations::FetchAndDecrementBy(&(usage_.external_in_words),
+                                        size_in_words);
 }
 
 
@@ -841,7 +843,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   bool collect_code = FLAG_collect_code && ShouldCollectCode();
   GCMarker marker(heap_);
   marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
-  usage_.used_in_words = marker.marked_words();
+  AtomicOperations::FetchAndIncrementBy(&(usage_.used_in_words),
+                                        marker.marked_words());
 
   int64_t mid1 = OS::GetCurrentTimeMicros();
 
@@ -1007,7 +1010,8 @@ uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
   ASSERT(remaining >= size);
   uword result = bump_top_;
   bump_top_ += size;
-  usage_.used_in_words += size >> kWordSizeLog2;
+  AtomicOperations::FetchAndIncrementBy(&(usage_.used_in_words),
+                                        (size >> kWordSizeLog2));
   // Note: Remaining block is unwalkable until MakeIterable is called.
 #ifdef DEBUG
   if (bump_top_ < bump_end_) {
@@ -1037,7 +1041,8 @@ uword PageSpace::TryAllocatePromoLocked(intptr_t size,
   FreeList* freelist = &freelist_[HeapPage::kData];
   uword result = freelist->TryAllocateSmallLocked(size);
   if (result != 0) {
-    usage_.used_in_words += size >> kWordSizeLog2;
+    AtomicOperations::FetchAndIncrementBy(&(usage_.used_in_words),
+                                          (size >> kWordSizeLog2));
     return result;
   }
   result = TryAllocateDataBumpLocked(size, growth_policy);

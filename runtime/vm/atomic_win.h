@@ -28,6 +28,22 @@ inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
 }
 
 
+inline intptr_t AtomicOperations::FetchAndIncrementBy(intptr_t* p,
+                                                      intptr_t value) {
+#if defined(HOST_ARCH_X64)
+  return static_cast<intptr_t>(
+      InterlockedAdd64(reinterpret_cast<LONGLONG*>(p),
+                       static_cast<LONGLONG>(value))) - value;
+#elif defined(HOST_ARCH_IA32)
+  return static_cast<intptr_t>(
+      InterlockedAdd(reinterpret_cast<LONG*>(p),
+                     static_cast<LONGLONG>(value))) - value;
+#else
+#error Unsupported host architecture.
+#endif
+}
+
+
 inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
 #if defined(HOST_ARCH_X64)
   return static_cast<uintptr_t>(
@@ -35,6 +51,22 @@ inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
 #elif defined(HOST_ARCH_IA32)
   return static_cast<uintptr_t>(
       InterlockedDecrement(reinterpret_cast<LONG*>(p))) + 1;
+#else
+#error Unsupported host architecture.
+#endif
+}
+
+
+inline intptr_t AtomicOperations::FetchAndDecrementBy(intptr_t* p,
+                                                      intptr_t value) {
+#if defined(HOST_ARCH_X64)
+  return static_cast<intptr_t>(
+      InterlockedAdd64(reinterpret_cast<LONGLONG*>(p),
+                       static_cast<LONGLONG>(-value))) + value;
+#elif defined(HOST_ARCH_IA32)
+  return static_cast<intptr_t>(
+      InterlockedAdd(reinterpret_cast<LONG*>(p),
+                     static_cast<LONGLONG>(-value))) + value;
 #else
 #error Unsupported host architecture.
 #endif
