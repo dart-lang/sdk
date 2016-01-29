@@ -173,6 +173,12 @@ abstract class FunctionType implements ParameterizedType {
   List<DartType> get normalParameterTypes;
 
   /**
+   * The names of the required positional parameters of this type of function,
+   * in the order that the parameters appear.
+   */
+  List<String> get normalParameterNames;
+
+  /**
    * Return a map from the names of optional (positional) parameters to the
    * types of the optional parameters of this type of function. The entries in
    * the map will be iterated in the same order as the order in which the
@@ -180,6 +186,12 @@ abstract class FunctionType implements ParameterizedType {
    * declared then the map will be empty.
    */
   List<DartType> get optionalParameterTypes;
+
+  /**
+   * The names of the optional positional parameters of this type of function,
+   * in the order that the parameters appear.
+   */
+  List<String> get optionalParameterNames;
 
   /**
    * Return a list containing the parameters elements of this type of function.

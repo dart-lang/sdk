@@ -5,6 +5,7 @@
 library analyzer.src.generated.type_system;
 
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<Element> visited);
 typedef bool _SubtypeChecker<T>(T t1, T t2);
@@ -709,17 +711,90 @@ class TypeSystemImpl implements TypeSystem {
       }
       return result;
     } else if (type1 is FunctionType && type2 is FunctionType) {
-      FunctionType result =
-          FunctionTypeImpl.computeLeastUpperBound(type1, type2);
-      if (result == null) {
-        return typeProvider.functionType;
-      }
-      return result;
+      return _functionLeastUpperBound(typeProvider, type1, type2);
     } else {
       // Should never happen.  As a defensive measure, return the dynamic type.
       assert(false);
       return typeProvider.dynamicType;
     }
+  }
+
+  /**
+   * Compute the least upper bound of function types [f] and [g].
+   *
+   * The spec rules for LUB on function types, informally, are pretty simple
+   * (though unsound):
+   *
+   * - If the functions don't have the same number of required parameters,
+   *   always return `Function`.
+   *
+   * - Discard any optional named or positional parameters the two types do not
+   *   have in common.
+   *
+   * - Compute the LUB of each corresponding pair of parameter and return types.
+   *   Return a function type with those types.
+   */
+  DartType _functionLeastUpperBound(
+      TypeProvider provider, FunctionType f, FunctionType g) {
+    // TODO(rnystrom): Right now, this assumes f and g do not have any type
+    // parameters. Revisit that in the presence of generic methods.
+    List<DartType> fRequired = f.normalParameterTypes;
+    List<DartType> gRequired = g.normalParameterTypes;
+
+    // We need some parameter names for in the synthesized function type, so
+    // arbitrarily use f's.
+    List<String> fRequiredNames = f.normalParameterNames;
+    List<String> fPositionalNames = f.optionalParameterNames;
+
+    // If F and G differ in their number of required parameters, then the
+    // least upper bound of F and G is Function.
+    if (fRequired.length != gRequired.length) {
+      return provider.functionType;
+    }
+
+    // Calculate the LUB of each corresponding pair of parameters.
+    List<ParameterElement> parameters = [];
+
+    for (int i = 0; i < fRequired.length; i++) {
+      parameters.add(new ParameterElementImpl.synthetic(
+          fRequiredNames[i],
+          getLeastUpperBound(provider, fRequired[i], gRequired[i]),
+          ParameterKind.REQUIRED));
+    }
+
+    List<DartType> fPositional = f.optionalParameterTypes;
+    List<DartType> gPositional = g.optionalParameterTypes;
+
+    // Ignore any extra optional positional parameters if one has more than the
+    // other.
+    int length =  math.min(fPositional.length, gPositional.length);
+    for (int i = 0; i < length; i++) {
+      parameters.add(new ParameterElementImpl.synthetic(
+          fPositionalNames[i],
+          getLeastUpperBound(provider, fPositional[i], gPositional[i]),
+          ParameterKind.POSITIONAL));
+    }
+
+    Map<String, DartType> fNamed = f.namedParameterTypes;
+    Map<String, DartType> gNamed = g.namedParameterTypes;
+    for (String name in fNamed.keys.toSet()..retainAll(gNamed.keys)) {
+      parameters.add(new ParameterElementImpl.synthetic(
+          name,
+          getLeastUpperBound(provider, fNamed[name], gNamed[name]),
+          ParameterKind.NAMED));
+    }
+
+    // Calculate the LUB of the return type.
+    DartType returnType =
+        getLeastUpperBound(provider, f.returnType, g.returnType);
+
+    FunctionElementImpl function = new FunctionElementImpl("", -1);
+    function.synthetic = true;
+    function.returnType = returnType;
+    function.parameters = parameters;
+
+    function.type = new FunctionTypeImpl(function);
+    return function.type;
   }
 
   /**

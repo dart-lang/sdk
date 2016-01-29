@@ -409,6 +409,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
+  List<String> get normalParameterNames {
+    return baseParameters
+        .where((parameter) => parameter.parameterKind == ParameterKind.REQUIRED)
+        .map((parameter) => parameter.name)
+        .toList();
+  }
+
+  @override
   List<DartType> get optionalParameterTypes {
     List<ParameterElement> parameters = baseParameters;
     if (parameters.length == 0) {
@@ -431,6 +439,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
     }
     return types;
+  }
+
+  @override
+  List<String> get optionalParameterNames {
+    return baseParameters
+        .where(
+            (parameter) => parameter.parameterKind == ParameterKind.POSITIONAL)
+        .map((parameter) => parameter.name)
+        .toList();
   }
 
   @override
@@ -1026,19 +1043,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else if (type is InterfaceType) {
       _freeVariablesInInterfaceType(type, free);
     }
-  }
-
-  /**
-   * Compute the least upper bound of types [f] and [g], both of which are
-   * known to be function types.
-   *
-   * In the event that f and g have different numbers of required parameters,
-   * `null` is returned, in which case the least upper bound is the interface
-   * type `Function`.
-   */
-  static FunctionType computeLeastUpperBound(FunctionType f, FunctionType g) {
-    // TODO(paulberry): implement this.
-    return null;
   }
 
   /**
@@ -1941,7 +1945,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * If there is a single type which is at least as specific as all of the
    * types in [types], return it.  Otherwise return `null`.
    */
-  static DartType _findMostSpecificType(List<DartType> types, TypeSystem typeSystem) {
+  static DartType _findMostSpecificType(
+      List<DartType> types, TypeSystem typeSystem) {
     // The << relation ("more specific than") is a partial ordering on types,
     // so to find the most specific type of a set, we keep a bucket of the most
     // specific types seen so far such that no type in the bucket is more

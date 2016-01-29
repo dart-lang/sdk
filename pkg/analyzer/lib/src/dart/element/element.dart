@@ -4104,6 +4104,18 @@ class ParameterElementImpl extends VariableElementImpl
    */
   ParameterElementImpl.forNode(Identifier name) : super.forNode(name);
 
+  /**
+   * Creates a synthetic parameter with [name], [type] and [kind].
+   */
+  factory ParameterElementImpl.synthetic(String name, DartType type,
+      ParameterKind kind) {
+    ParameterElementImpl element = new ParameterElementImpl(name, -1);
+    element.type = type;
+    element.synthetic = true;
+    element.parameterKind = kind;
+    return element;
+  }
+
   @override
   String get defaultValueCode => _defaultValueCode;
 
