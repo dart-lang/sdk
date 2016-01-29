@@ -115,6 +115,11 @@ void NotifyServerState(Dart_NativeArguments args) {
   Dart_ExitScope();
 }
 
+
+static void Shutdown(Dart_NativeArguments args) {
+  // NO-OP.
+}
+
 struct VmServiceIONativeEntry {
   const char* name;
   int num_arguments;
@@ -124,6 +129,7 @@ struct VmServiceIONativeEntry {
 
 static VmServiceIONativeEntry _VmServiceIONativeEntries[] = {
   {"VMServiceIO_NotifyServerState", 2, NotifyServerState},
+  {"VMServiceIO_Shutdown", 0, Shutdown },
 };
 
 

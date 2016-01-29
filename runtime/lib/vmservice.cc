@@ -134,6 +134,17 @@ DEFINE_NATIVE_ENTRY(VMService_OnExit, 0) {
 }
 
 
+DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 1) {
+  GET_NATIVE_ARGUMENT(String, address, arguments->NativeArgAt(0));
+  if (address.IsNull()) {
+    ServiceIsolate::SetServerAddress(NULL);
+  } else {
+    ServiceIsolate::SetServerAddress(address.ToCString());
+  }
+  return Object::null();
+}
+
+
 DEFINE_NATIVE_ENTRY(VMService_ListenStream, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
   bool result = Service::ListenStream(stream_id.ToCString());

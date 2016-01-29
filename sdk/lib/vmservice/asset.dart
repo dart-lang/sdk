@@ -59,6 +59,17 @@ class Asset {
   String toString() => '$name ($mimeType)';
 }
 
+HashMap<String, Asset> _assets;
+HashMap<String, Asset> get assets {
+  if (_assets == null) {
+    try {
+      _assets = Asset.request();
+    } catch (e) {
+      print('Could not load Observatory assets: $e');
+    }
+  }
+  return _assets;
+}
 
 class _ByteStream {
   final Uint8List bytes;
