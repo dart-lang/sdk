@@ -1,5 +1,9 @@
 # dev_compiler changelog
 
+## 0.1.17
+- preliminary node module support
+- support for compiling / serving multiple html files
+
 ## 0.1.16
 - rolled analyzer to 0.27.2-alpha.1
 - fixes for static fields
