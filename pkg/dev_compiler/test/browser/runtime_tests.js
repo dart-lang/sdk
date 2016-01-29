@@ -22,7 +22,7 @@ suite('generic', () => {
         new RegExp('NoSuchMethodError.*\nReceiver: 42', 'm'),
         'Calls with non-function receiver should throw a NoSuchMethodError' +
         ' with correct target');
-    
+
     // TODO(jmesserly): we should show the name "print" in there somewhere.
     assert.throws(() => dart.dcall(core.print, 1, 2, 3),
         new RegExp('NoSuchMethodError.*\n' +

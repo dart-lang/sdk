@@ -513,12 +513,26 @@ const corelibOrder = const [
   'dart._js_mirrors',
   'dart.js',
   'dart._metadata',
-  'dart.dom.html_common',
   'dart.dom.html',
+  'dart.dom.html_common',
   'dart._debugger'
   // _foreign_helper is not included, as it only defines the JS builtin that
   // the compiler handles at compile time.
 ];
+
+/// Returns the JS module name corresponding to a core library name (must be
+/// from the [corelibOrder] list).
+String getCorelibModuleName(String lib) {
+  assert(corelibOrder.contains(lib));
+  switch (lib) {
+    case 'dart.dom.html_common':
+      return 'dart/html_common';
+    case 'dart.dom.html':
+      return 'dart/html';
+    default:
+      return lib.replaceAll('dart.', 'dart/');
+  }
+}
 
 /// Runtime files added to all applications when running the compiler in the
 /// command line.

@@ -23,4 +23,3 @@ part 'conversions_dart2js.dart';
 part 'device.dart';
 part 'filtered_element_list.dart';
 part 'lists.dart';
-

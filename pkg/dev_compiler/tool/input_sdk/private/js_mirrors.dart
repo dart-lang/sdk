@@ -25,7 +25,6 @@ TypeMirror reflectType(Type key) {
 }
 
 final dynamic _dart = JS('', 'dart');
-final _metadata = JS('', '#.metadata', _dart);
 
 dynamic _dload(obj, String name) {
   return JS('', '#.dload(#, #)', _dart, obj, name);

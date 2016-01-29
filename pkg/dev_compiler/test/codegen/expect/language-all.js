@@ -26391,6 +26391,253 @@ dart_library.library('language/built_in_identifier_prefix_library_typedef', null
   exports.C$ = C$;
   exports.C = C;
 });
+dart_library.library('language/built_in_identifier_test_01_multi', null, /* Imports */[
+  'dart/_runtime',
+  'dart/core',
+  'expect/expect'
+], /* Lazy imports */[
+], function(exports, dart, core, expect) {
+  'use strict';
+  let dartx = dart.dartx;
+  class PseudoKWTest extends core.Object {
+    static testMain() {
+      let abstract = 0;
+      let as = 0;
+      let dynamic = 0;
+      let export$ = 0;
+      let external = 0;
+      let factory = 0;
+      let get = 0;
+      let implements$ = 0;
+      let import$ = 0;
+      let library = 0;
+      let operator = 0;
+      let part = 0;
+      let set = 0;
+      let static$ = 0;
+      let typedef = 0;
+      let native = 0;
+      {
+        function factory(set) {
+          return;
+        }
+        dart.fn(factory, dart.void, [dart.dynamic]);
+      }
+      get:
+        while (import$ > 0) {
+          break get;
+        }
+      return static$ + library * operator;
+    }
+  }
+  dart.setSignature(PseudoKWTest, {
+    statics: () => ({testMain: [dart.dynamic, []]}),
+    names: ['testMain']
+  });
+  function typedef(x) {
+    return `typedef ${x}`;
+  }
+  dart.fn(typedef);
+  function static$(abstract) {
+    return dart.equals(abstract, true);
+  }
+  dart.fn(static$);
+  class A extends core.Object {
+    A() {
+      this.typedef = 0;
+      this.operator = "smooth";
+    }
+    set(x) {
+      this.typedef = dart.as(x, core.int);
+    }
+    get() {
+      return dart.notNull(this.typedef) - 5;
+    }
+    static static() {
+      return 1;
+    }
+    static check() {
+      let o = new A();
+      o.set(55);
+      expect.Expect.equals(50, o.get());
+      A.static();
+    }
+  }
+  dart.setSignature(A, {
+    methods: () => ({
+      set: [dart.dynamic, [dart.dynamic]],
+      get: [dart.dynamic, []]
+    }),
+    statics: () => ({
+      static: [dart.dynamic, []],
+      check: [dart.dynamic, []]
+    }),
+    names: ['static', 'check']
+  });
+  class B extends core.Object {
+    B() {
+      this.set = 100;
+    }
+    get get() {
+      return this.set;
+    }
+    set get(get) {
+      return this.set = dart.asInt(2 * dart.notNull(dart.as(dart.dload(get, 'get'), core.num)));
+    }
+    static() {
+      let set = new B();
+      set.get = set;
+      expect.Expect.equals(200, set.get);
+    }
+    operator() {
+      return 1;
+    }
+  }
+  dart.setSignature(B, {
+    methods: () => ({
+      static: [dart.dynamic, []],
+      operator: [core.int, []]
+    })
+  });
+  class C extends core.Object {
+    static get set() {
+      return 111;
+    }
+    static set set(set) {}
+  }
+  C.operator = 5;
+  C.get = null;
+  function main() {
+    PseudoKWTest.testMain();
+    A.check();
+    new B().static();
+    expect.Expect.equals(1, new B().operator());
+    expect.Expect.equals(1, A.static());
+    typedef("T");
+    expect.Expect.equals("typedef T", typedef("T"));
+    static$("true");
+    expect.Expect.equals(false, static$("true"));
+    expect.Expect.equals(5, C.operator);
+    expect.Expect.equals(null, C.get);
+    C.set = 0;
+    expect.Expect.equals(111, C.set);
+  }
+  dart.fn(main);
+  // Exports:
+  exports.PseudoKWTest = PseudoKWTest;
+  exports.typedef = typedef;
+  exports.static = static$;
+  exports.A = A;
+  exports.B = B;
+  exports.C = C;
+  exports.main = main;
+});
+dart_library.library('language/built_in_identifier_test_none_multi', null, /* Imports */[
+  'dart/_runtime',
+  'dart/core',
+  'expect/expect'
+], /* Lazy imports */[
+], function(exports, dart, core, expect) {
+  'use strict';
+  let dartx = dart.dartx;
+  class PseudoKWTest extends core.Object {
+    static testMain() {
+      let as = 0;
+      let dynamic = 0;
+      let export$ = 0;
+      let factory = 0;
+      let get = 0;
+      let implements$ = 0;
+      let import$ = 0;
+      let library = 0;
+      let operator = 0;
+      let part = 0;
+      let set = 0;
+      let typedef = 0;
+      let native = 0;
+      {
+        function factory(set) {
+        }
+        dart.fn(factory, dart.void, [dart.dynamic]);
+      }
+      get:
+        while (import$ > 0) {
+          break get;
+        }
+      return library * operator;
+    }
+  }
+  dart.setSignature(PseudoKWTest, {
+    statics: () => ({testMain: [dart.dynamic, []]}),
+    names: ['testMain']
+  });
+  class A extends core.Object {
+    A() {
+      this.typedef = 0;
+      this.operator = "smooth";
+    }
+    set(x) {
+      this.typedef = dart.as(x, core.int);
+    }
+    get() {
+      return dart.notNull(this.typedef) - 5;
+    }
+    static check() {
+      let o = new A();
+      o.set(55);
+      expect.Expect.equals(50, o.get());
+    }
+  }
+  dart.setSignature(A, {
+    methods: () => ({
+      set: [dart.dynamic, [dart.dynamic]],
+      get: [dart.dynamic, []]
+    }),
+    statics: () => ({check: [dart.dynamic, []]}),
+    names: ['check']
+  });
+  class B extends core.Object {
+    B() {
+      this.set = 100;
+    }
+    get get() {
+      return this.set;
+    }
+    set get(get) {
+      return this.set = dart.asInt(2 * dart.notNull(dart.as(dart.dload(get, 'get'), core.num)));
+    }
+    operator() {
+      return 1;
+    }
+  }
+  dart.setSignature(B, {
+    methods: () => ({operator: [core.int, []]})
+  });
+  class C extends core.Object {
+    static get set() {
+      return 111;
+    }
+    static set set(set) {}
+  }
+  C.operator = 5;
+  C.get = null;
+  function main() {
+    PseudoKWTest.testMain();
+    A.check();
+    expect.Expect.equals(1, new B().operator());
+    expect.Expect.equals(5, C.operator);
+    expect.Expect.equals(null, C.get);
+    C.set = 0;
+    expect.Expect.equals(111, C.set);
+  }
+  dart.fn(main);
+  // Exports:
+  exports.PseudoKWTest = PseudoKWTest;
+  exports.A = A;
+  exports.B = B;
+  exports.C = C;
+  exports.main = main;
+});
 dart_library.library('language/call_argument_inference_test', null, /* Imports */[
   'dart/_runtime',
   'dart/core',
@@ -60417,6 +60664,131 @@ dart_library.library('language/function_getter_test', null, /* Imports */[
   exports.A = A;
   exports.main = main;
 });
+dart_library.library('language/function_literals_test', null, /* Imports */[
+  'dart/_runtime',
+  'dart/core',
+  'expect/expect'
+], /* Lazy imports */[
+], function(exports, dart, core, expect) {
+  'use strict';
+  let dartx = dart.dartx;
+  const IntFunc = dart.typedef('IntFunc', () => dart.functionType(core.int, [dart.dynamic]));
+  class FunctionLiteralsTest extends core.Object {
+    static checkIntFunction(expected, f, arg) {
+      expect.Expect.equals(expected, dart.dcall(f, arg));
+    }
+    static checkIntFuncFunction(expected, f, arg) {
+      expect.Expect.equals(expected, dart.dcall(dart.dcall(f, arg), arg));
+    }
+    func1(x) {
+      return x;
+    }
+    func2(x) {
+      return dart.as(x, core.int);
+    }
+    func3(x) {
+      return x;
+    }
+    func4(x) {
+      return dart.as(x, core.int);
+    }
+    FunctionLiteralsTest() {
+    }
+    static testMain() {
+      let test = new FunctionLiteralsTest();
+      test.testArrow();
+      test.testArrowArrow();
+      test.testArrowBlock();
+      test.testBlock();
+      test.testBlockArrow();
+      test.testBlockBlock();
+      test.testFunctionRef();
+    }
+    testArrow() {
+      FunctionLiteralsTest.checkIntFunction(42, dart.fn(x => dart.as(x, core.int), core.int, [dart.dynamic]), 42);
+      FunctionLiteralsTest.checkIntFunction(42, dart.fn(x => x, core.int, [core.int]), 42);
+    }
+    testArrowArrow() {
+      FunctionLiteralsTest.checkIntFuncFunction(84, dart.fn(x => dart.fn(y => dart.as(dart.dsend(x, '+', y), core.int), core.int, [dart.dynamic]), dart.functionType(core.int, [dart.dynamic]), [dart.dynamic]), 42);
+      FunctionLiteralsTest.checkIntFuncFunction(84, dart.as(dart.fn(x => dart.fn(y => dart.notNull(x) + dart.notNull(dart.as(y, core.num)), core.num, [dart.dynamic]), dart.functionType(core.num, [dart.dynamic]), [core.int]), __CastType0), 42);
+      FunctionLiteralsTest.checkIntFuncFunction(84, dart.fn(x => dart.fn(y => dart.as(dart.dsend(x, '+', y), core.int), core.int, [dart.dynamic]), dart.functionType(core.int, [dart.dynamic]), [dart.dynamic]), 42);
+      FunctionLiteralsTest.checkIntFuncFunction(84, dart.as(dart.fn(x => dart.fn(y => dart.notNull(x) + dart.notNull(dart.as(y, core.num)), core.num, [dart.dynamic]), dart.functionType(core.num, [dart.dynamic]), [core.int]), dart.functionType(IntFunc, [dart.dynamic])), 42);
+    }
+    testArrowBlock() {
+      FunctionLiteralsTest.checkIntFuncFunction(84, dart.fn(x => dart.fn(y => {
+        return dart.as(dart.dsend(x, '+', y), core.int);
+      }, core.int, [dart.dynamic]), dart.functionType(core.int, [dart.dynamic]), [dart.dynamic]), 42);
+      FunctionLiteralsTest.checkIntFuncFunction(84, dart.fn(x => dart.fn(y => {
+        return dart.asInt(dart.notNull(x) + dart.notNull(dart.as(y, core.num)));
+      }, core.int, [dart.dynamic]), dart.functionType(core.int, [dart.dynamic]), [core.int]), 42);
+    }
+    testBlock() {
+      FunctionLiteralsTest.checkIntFunction(42, dart.fn(x => {
+        return dart.as(x, core.int);
+      }, core.int, [dart.dynamic]), 42);
+      FunctionLiteralsTest.checkIntFunction(42, dart.fn(x => {
+        return x;
+      }, core.int, [core.int]), 42);
+    }
+    testBlockArrow() {
+      FunctionLiteralsTest.checkIntFuncFunction(84, dart.fn(x => {
+        return dart.fn(y => dart.as(dart.dsend(x, '+', y), core.int), core.int, [dart.dynamic]);
+      }, IntFunc, [dart.dynamic]), 42);
+      FunctionLiteralsTest.checkIntFuncFunction(84, dart.fn(x => {
+        return dart.as(dart.fn(y => dart.notNull(x) + dart.notNull(dart.as(y, core.num)), core.num, [dart.dynamic]), IntFunc);
+      }, IntFunc, [core.int]), 42);
+    }
+    testBlockBlock() {
+      FunctionLiteralsTest.checkIntFuncFunction(84, dart.fn(x => {
+        return dart.fn(y => {
+          return dart.as(dart.dsend(x, '+', y), core.int);
+        }, core.int, [dart.dynamic]);
+      }, IntFunc, [dart.dynamic]), 42);
+      FunctionLiteralsTest.checkIntFuncFunction(84, dart.fn(x => {
+        return dart.fn(y => {
+          return dart.asInt(dart.notNull(x) + dart.notNull(dart.as(y, core.num)));
+        }, core.int, [dart.dynamic]);
+      }, IntFunc, [core.int]), 42);
+    }
+    testFunctionRef() {
+      FunctionLiteralsTest.checkIntFunction(42, dart.bind(this, 'func1'), 42);
+      FunctionLiteralsTest.checkIntFunction(42, dart.bind(this, 'func2'), 42);
+      FunctionLiteralsTest.checkIntFunction(42, dart.bind(this, 'func3'), 42);
+      FunctionLiteralsTest.checkIntFunction(42, dart.bind(this, 'func4'), 42);
+    }
+  }
+  dart.setSignature(FunctionLiteralsTest, {
+    constructors: () => ({FunctionLiteralsTest: [FunctionLiteralsTest, []]}),
+    methods: () => ({
+      func1: [core.int, [core.int]],
+      func2: [core.int, [dart.dynamic]],
+      func3: [core.int, [core.int]],
+      func4: [core.int, [dart.dynamic]],
+      testArrow: [dart.void, []],
+      testArrowArrow: [dart.void, []],
+      testArrowBlock: [dart.void, []],
+      testBlock: [dart.void, []],
+      testBlockArrow: [dart.void, []],
+      testBlockBlock: [dart.void, []],
+      testFunctionRef: [dart.void, []]
+    }),
+    statics: () => ({
+      checkIntFunction: [dart.void, [dart.dynamic, dart.functionType(core.int, [dart.dynamic]), dart.dynamic]],
+      checkIntFuncFunction: [dart.void, [dart.dynamic, dart.functionType(IntFunc, [dart.dynamic]), dart.dynamic]],
+      testMain: [dart.void, []]
+    }),
+    names: ['checkIntFunction', 'checkIntFuncFunction', 'testMain']
+  });
+  function main() {
+    FunctionLiteralsTest.testMain();
+  }
+  dart.fn(main);
+  const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(IntFunc, [dart.dynamic]));
+  // Exports:
+  exports.IntFunc = IntFunc;
+  exports.FunctionLiteralsTest = FunctionLiteralsTest;
+  exports.main = main;
+});
 dart_library.library('language/function_propagation_test', null, /* Imports */[
   'dart/_runtime',
   'dart/core',
@@ -72541,6 +72913,129 @@ dart_library.library('language/if_null_assignment_static_test_03_multi', null, /
   exports.DerivedClass = DerivedClass;
   exports.main = main;
 });
+dart_library.library('language/if_null_assignment_static_test_05_multi', null, /* Imports */[
+  'dart/_runtime',
+  'dart/core',
+  'expect/expect'
+], /* Lazy imports */[
+], function(exports, dart, core, expect) {
+  'use strict';
+  let dartx = dart.dartx;
+  dart.copyProperties(exports, {
+    get checkedMode() {
+      let checked = false;
+      dart.assert(checked = true);
+      return checked;
+    }
+  });
+  function noMethod(e) {
+    return dart.is(e, core.NoSuchMethodError);
+  }
+  dart.fn(noMethod);
+  function bad() {
+    expect.Expect.fail('Should not be executed');
+  }
+  dart.fn(bad);
+  class A extends core.Object {
+    A() {
+      this.a = null;
+    }
+  }
+  class B extends A {
+    B() {
+      this.b = null;
+      super.A();
+    }
+  }
+  class C extends A {
+    C() {
+      this.c = null;
+      super.A();
+    }
+  }
+  dart.copyProperties(exports, {
+    get a() {
+      return null;
+    },
+    set a(value) {},
+    get b() {
+      return null;
+    },
+    set b(value) {}
+  });
+  class ClassWithStaticGetters extends core.Object {
+    static get a() {
+      return null;
+    }
+    static set a(value) {}
+    static get b() {
+      return null;
+    }
+    static set b(value) {}
+  }
+  class ClassWithInstanceGetters extends core.Object {
+    get a() {
+      return null;
+    }
+    set a(value) {}
+    get b() {
+      return null;
+    }
+    set b(value) {}
+  }
+  class DerivedClass extends ClassWithInstanceGetters {
+    get a() {
+      return dart.as(bad(), A);
+    }
+    set a(value) {
+      bad();
+    }
+    get b() {
+      return dart.as(bad(), B);
+    }
+    set b(value) {
+      bad();
+    }
+    derivedTest() {
+      if (!dart.notNull(exports.checkedMode)) {
+        (() => {
+          let t = super.b;
+          return t == null ? super.b = new A() : t;
+        })().a;
+      }
+    }
+  }
+  dart.setSignature(DerivedClass, {
+    methods: () => ({derivedTest: [dart.void, []]})
+  });
+  function main() {
+    let _ = null;
+    let t = _;
+    t == null ? _ = null : t;
+    new DerivedClass().derivedTest();
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+  }
+  dart.fn(main);
+  // Exports:
+  exports.noMethod = noMethod;
+  exports.bad = bad;
+  exports.A = A;
+  exports.B = B;
+  exports.C = C;
+  exports.ClassWithStaticGetters = ClassWithStaticGetters;
+  exports.ClassWithInstanceGetters = ClassWithInstanceGetters;
+  exports.DerivedClass = DerivedClass;
+  exports.main = main;
+});
 dart_library.library('language/if_null_assignment_static_test_08_multi', null, /* Imports */[
   'dart/_runtime',
   'dart/core',
@@ -72765,6 +73260,129 @@ dart_library.library('language/if_null_assignment_static_test_10_multi', null, /
       return t == null ? exports.a = new B() : t;
     })().a;
     if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+  }
+  dart.fn(main);
+  // Exports:
+  exports.noMethod = noMethod;
+  exports.bad = bad;
+  exports.A = A;
+  exports.B = B;
+  exports.C = C;
+  exports.ClassWithStaticGetters = ClassWithStaticGetters;
+  exports.ClassWithInstanceGetters = ClassWithInstanceGetters;
+  exports.DerivedClass = DerivedClass;
+  exports.main = main;
+});
+dart_library.library('language/if_null_assignment_static_test_12_multi', null, /* Imports */[
+  'dart/_runtime',
+  'dart/core',
+  'expect/expect'
+], /* Lazy imports */[
+], function(exports, dart, core, expect) {
+  'use strict';
+  let dartx = dart.dartx;
+  dart.copyProperties(exports, {
+    get checkedMode() {
+      let checked = false;
+      dart.assert(checked = true);
+      return checked;
+    }
+  });
+  function noMethod(e) {
+    return dart.is(e, core.NoSuchMethodError);
+  }
+  dart.fn(noMethod);
+  function bad() {
+    expect.Expect.fail('Should not be executed');
+  }
+  dart.fn(bad);
+  class A extends core.Object {
+    A() {
+      this.a = null;
+    }
+  }
+  class B extends A {
+    B() {
+      this.b = null;
+      super.A();
+    }
+  }
+  class C extends A {
+    C() {
+      this.c = null;
+      super.A();
+    }
+  }
+  dart.copyProperties(exports, {
+    get a() {
+      return null;
+    },
+    set a(value) {},
+    get b() {
+      return null;
+    },
+    set b(value) {}
+  });
+  class ClassWithStaticGetters extends core.Object {
+    static get a() {
+      return null;
+    }
+    static set a(value) {}
+    static get b() {
+      return null;
+    }
+    static set b(value) {}
+  }
+  class ClassWithInstanceGetters extends core.Object {
+    get a() {
+      return null;
+    }
+    set a(value) {}
+    get b() {
+      return null;
+    }
+    set b(value) {}
+  }
+  class DerivedClass extends ClassWithInstanceGetters {
+    get a() {
+      return dart.as(bad(), A);
+    }
+    set a(value) {
+      bad();
+    }
+    get b() {
+      return dart.as(bad(), B);
+    }
+    set b(value) {
+      bad();
+    }
+    derivedTest() {
+      if (!dart.notNull(exports.checkedMode)) {
+      }
+    }
+  }
+  dart.setSignature(DerivedClass, {
+    methods: () => ({derivedTest: [dart.void, []]})
+  });
+  function main() {
+    let _ = null;
+    let t = _;
+    t == null ? _ = null : t;
+    new DerivedClass().derivedTest();
+    if (!dart.notNull(exports.checkedMode)) {
+      (() => {
+        let t = exports.b;
+        return t == null ? exports.b = new A() : t;
+      })().a;
     }
     if (!dart.notNull(exports.checkedMode)) {
     }
@@ -73033,6 +73651,129 @@ dart_library.library('language/if_null_assignment_static_test_17_multi', null, /
   exports.DerivedClass = DerivedClass;
   exports.main = main;
 });
+dart_library.library('language/if_null_assignment_static_test_19_multi', null, /* Imports */[
+  'dart/_runtime',
+  'dart/core',
+  'expect/expect'
+], /* Lazy imports */[
+], function(exports, dart, core, expect) {
+  'use strict';
+  let dartx = dart.dartx;
+  dart.copyProperties(exports, {
+    get checkedMode() {
+      let checked = false;
+      dart.assert(checked = true);
+      return checked;
+    }
+  });
+  function noMethod(e) {
+    return dart.is(e, core.NoSuchMethodError);
+  }
+  dart.fn(noMethod);
+  function bad() {
+    expect.Expect.fail('Should not be executed');
+  }
+  dart.fn(bad);
+  class A extends core.Object {
+    A() {
+      this.a = null;
+    }
+  }
+  class B extends A {
+    B() {
+      this.b = null;
+      super.A();
+    }
+  }
+  class C extends A {
+    C() {
+      this.c = null;
+      super.A();
+    }
+  }
+  dart.copyProperties(exports, {
+    get a() {
+      return null;
+    },
+    set a(value) {},
+    get b() {
+      return null;
+    },
+    set b(value) {}
+  });
+  class ClassWithStaticGetters extends core.Object {
+    static get a() {
+      return null;
+    }
+    static set a(value) {}
+    static get b() {
+      return null;
+    }
+    static set b(value) {}
+  }
+  class ClassWithInstanceGetters extends core.Object {
+    get a() {
+      return null;
+    }
+    set a(value) {}
+    get b() {
+      return null;
+    }
+    set b(value) {}
+  }
+  class DerivedClass extends ClassWithInstanceGetters {
+    get a() {
+      return dart.as(bad(), A);
+    }
+    set a(value) {
+      bad();
+    }
+    get b() {
+      return dart.as(bad(), B);
+    }
+    set b(value) {
+      bad();
+    }
+    derivedTest() {
+      if (!dart.notNull(exports.checkedMode)) {
+      }
+    }
+  }
+  dart.setSignature(DerivedClass, {
+    methods: () => ({derivedTest: [dart.void, []]})
+  });
+  function main() {
+    let _ = null;
+    let t = _;
+    t == null ? _ = null : t;
+    new DerivedClass().derivedTest();
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+      (() => {
+        let o = ClassWithStaticGetters, t = o.b;
+        return t == null ? o.b = new A() : t;
+      })().a;
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+  }
+  dart.fn(main);
+  // Exports:
+  exports.noMethod = noMethod;
+  exports.bad = bad;
+  exports.A = A;
+  exports.B = B;
+  exports.C = C;
+  exports.ClassWithStaticGetters = ClassWithStaticGetters;
+  exports.ClassWithInstanceGetters = ClassWithInstanceGetters;
+  exports.DerivedClass = DerivedClass;
+  exports.main = main;
+});
 dart_library.library('language/if_null_assignment_static_test_22_multi', null, /* Imports */[
   'dart/_runtime',
   'dart/core',
@@ -73261,6 +74002,129 @@ dart_library.library('language/if_null_assignment_static_test_24_multi', null, /
       return t == null ? o.a = new B() : t;
     })().a;
     if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+  }
+  dart.fn(main);
+  // Exports:
+  exports.noMethod = noMethod;
+  exports.bad = bad;
+  exports.A = A;
+  exports.B = B;
+  exports.C = C;
+  exports.ClassWithStaticGetters = ClassWithStaticGetters;
+  exports.ClassWithInstanceGetters = ClassWithInstanceGetters;
+  exports.DerivedClass = DerivedClass;
+  exports.main = main;
+});
+dart_library.library('language/if_null_assignment_static_test_26_multi', null, /* Imports */[
+  'dart/_runtime',
+  'dart/core',
+  'expect/expect'
+], /* Lazy imports */[
+], function(exports, dart, core, expect) {
+  'use strict';
+  let dartx = dart.dartx;
+  dart.copyProperties(exports, {
+    get checkedMode() {
+      let checked = false;
+      dart.assert(checked = true);
+      return checked;
+    }
+  });
+  function noMethod(e) {
+    return dart.is(e, core.NoSuchMethodError);
+  }
+  dart.fn(noMethod);
+  function bad() {
+    expect.Expect.fail('Should not be executed');
+  }
+  dart.fn(bad);
+  class A extends core.Object {
+    A() {
+      this.a = null;
+    }
+  }
+  class B extends A {
+    B() {
+      this.b = null;
+      super.A();
+    }
+  }
+  class C extends A {
+    C() {
+      this.c = null;
+      super.A();
+    }
+  }
+  dart.copyProperties(exports, {
+    get a() {
+      return null;
+    },
+    set a(value) {},
+    get b() {
+      return null;
+    },
+    set b(value) {}
+  });
+  class ClassWithStaticGetters extends core.Object {
+    static get a() {
+      return null;
+    }
+    static set a(value) {}
+    static get b() {
+      return null;
+    }
+    static set b(value) {}
+  }
+  class ClassWithInstanceGetters extends core.Object {
+    get a() {
+      return null;
+    }
+    set a(value) {}
+    get b() {
+      return null;
+    }
+    set b(value) {}
+  }
+  class DerivedClass extends ClassWithInstanceGetters {
+    get a() {
+      return dart.as(bad(), A);
+    }
+    set a(value) {
+      bad();
+    }
+    get b() {
+      return dart.as(bad(), B);
+    }
+    set b(value) {
+      bad();
+    }
+    derivedTest() {
+      if (!dart.notNull(exports.checkedMode)) {
+      }
+    }
+  }
+  dart.setSignature(DerivedClass, {
+    methods: () => ({derivedTest: [dart.void, []]})
+  });
+  function main() {
+    let _ = null;
+    let t = _;
+    t == null ? _ = null : t;
+    new DerivedClass().derivedTest();
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+      (() => {
+        let o = new ClassWithInstanceGetters(), t = o.b;
+        return t == null ? o.b = new A() : t;
+      })().a;
     }
     if (!dart.notNull(exports.checkedMode)) {
     }
@@ -73525,6 +74389,129 @@ dart_library.library('language/if_null_assignment_static_test_31_multi', null, /
   exports.DerivedClass = DerivedClass;
   exports.main = main;
 });
+dart_library.library('language/if_null_assignment_static_test_33_multi', null, /* Imports */[
+  'dart/_runtime',
+  'dart/core',
+  'expect/expect'
+], /* Lazy imports */[
+], function(exports, dart, core, expect) {
+  'use strict';
+  let dartx = dart.dartx;
+  dart.copyProperties(exports, {
+    get checkedMode() {
+      let checked = false;
+      dart.assert(checked = true);
+      return checked;
+    }
+  });
+  function noMethod(e) {
+    return dart.is(e, core.NoSuchMethodError);
+  }
+  dart.fn(noMethod);
+  function bad() {
+    expect.Expect.fail('Should not be executed');
+  }
+  dart.fn(bad);
+  class A extends core.Object {
+    A() {
+      this.a = null;
+    }
+  }
+  class B extends A {
+    B() {
+      this.b = null;
+      super.A();
+    }
+  }
+  class C extends A {
+    C() {
+      this.c = null;
+      super.A();
+    }
+  }
+  dart.copyProperties(exports, {
+    get a() {
+      return null;
+    },
+    set a(value) {},
+    get b() {
+      return null;
+    },
+    set b(value) {}
+  });
+  class ClassWithStaticGetters extends core.Object {
+    static get a() {
+      return null;
+    }
+    static set a(value) {}
+    static get b() {
+      return null;
+    }
+    static set b(value) {}
+  }
+  class ClassWithInstanceGetters extends core.Object {
+    get a() {
+      return null;
+    }
+    set a(value) {}
+    get b() {
+      return null;
+    }
+    set b(value) {}
+  }
+  class DerivedClass extends ClassWithInstanceGetters {
+    get a() {
+      return dart.as(bad(), A);
+    }
+    set a(value) {
+      bad();
+    }
+    get b() {
+      return dart.as(bad(), B);
+    }
+    set b(value) {
+      bad();
+    }
+    derivedTest() {
+      if (!dart.notNull(exports.checkedMode)) {
+      }
+    }
+  }
+  dart.setSignature(DerivedClass, {
+    methods: () => ({derivedTest: [dart.void, []]})
+  });
+  function main() {
+    let _ = null;
+    let t = _;
+    t == null ? _ = null : t;
+    new DerivedClass().derivedTest();
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+      (() => {
+        let o = dart.list([null], B), i = 0, t = o[dartx.get](i);
+        return t == null ? o[dartx.set](i, new A()) : t;
+      })().a;
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+  }
+  dart.fn(main);
+  // Exports:
+  exports.noMethod = noMethod;
+  exports.bad = bad;
+  exports.A = A;
+  exports.B = B;
+  exports.C = C;
+  exports.ClassWithStaticGetters = ClassWithStaticGetters;
+  exports.ClassWithInstanceGetters = ClassWithInstanceGetters;
+  exports.DerivedClass = DerivedClass;
+  exports.main = main;
+});
 dart_library.library('language/if_null_assignment_static_test_36_multi', null, /* Imports */[
   'dart/_runtime',
   'dart/core',
@@ -73757,6 +74744,129 @@ dart_library.library('language/if_null_assignment_static_test_38_multi', null, /
       return t == null ? (o == null ? null : o.a = new B()) : t;
     })().a;
     if (!dart.notNull(exports.checkedMode)) {
+    }
+  }
+  dart.fn(main);
+  // Exports:
+  exports.noMethod = noMethod;
+  exports.bad = bad;
+  exports.A = A;
+  exports.B = B;
+  exports.C = C;
+  exports.ClassWithStaticGetters = ClassWithStaticGetters;
+  exports.ClassWithInstanceGetters = ClassWithInstanceGetters;
+  exports.DerivedClass = DerivedClass;
+  exports.main = main;
+});
+dart_library.library('language/if_null_assignment_static_test_40_multi', null, /* Imports */[
+  'dart/_runtime',
+  'dart/core',
+  'expect/expect'
+], /* Lazy imports */[
+], function(exports, dart, core, expect) {
+  'use strict';
+  let dartx = dart.dartx;
+  dart.copyProperties(exports, {
+    get checkedMode() {
+      let checked = false;
+      dart.assert(checked = true);
+      return checked;
+    }
+  });
+  function noMethod(e) {
+    return dart.is(e, core.NoSuchMethodError);
+  }
+  dart.fn(noMethod);
+  function bad() {
+    expect.Expect.fail('Should not be executed');
+  }
+  dart.fn(bad);
+  class A extends core.Object {
+    A() {
+      this.a = null;
+    }
+  }
+  class B extends A {
+    B() {
+      this.b = null;
+      super.A();
+    }
+  }
+  class C extends A {
+    C() {
+      this.c = null;
+      super.A();
+    }
+  }
+  dart.copyProperties(exports, {
+    get a() {
+      return null;
+    },
+    set a(value) {},
+    get b() {
+      return null;
+    },
+    set b(value) {}
+  });
+  class ClassWithStaticGetters extends core.Object {
+    static get a() {
+      return null;
+    }
+    static set a(value) {}
+    static get b() {
+      return null;
+    }
+    static set b(value) {}
+  }
+  class ClassWithInstanceGetters extends core.Object {
+    get a() {
+      return null;
+    }
+    set a(value) {}
+    get b() {
+      return null;
+    }
+    set b(value) {}
+  }
+  class DerivedClass extends ClassWithInstanceGetters {
+    get a() {
+      return dart.as(bad(), A);
+    }
+    set a(value) {
+      bad();
+    }
+    get b() {
+      return dart.as(bad(), B);
+    }
+    set b(value) {
+      bad();
+    }
+    derivedTest() {
+      if (!dart.notNull(exports.checkedMode)) {
+      }
+    }
+  }
+  dart.setSignature(DerivedClass, {
+    methods: () => ({derivedTest: [dart.void, []]})
+  });
+  function main() {
+    let _ = null;
+    let t = _;
+    t == null ? _ = null : t;
+    new DerivedClass().derivedTest();
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+    }
+    if (!dart.notNull(exports.checkedMode)) {
+      (() => {
+        let o = new ClassWithInstanceGetters(), t = dart.nullSafe(o, _ => _.b);
+        return t == null ? (o == null ? null : o.b = new A()) : t;
+      })().a;
     }
   }
   dart.fn(main);
@@ -140247,6 +141357,103 @@ dart_library.library('language/type_promotion_more_specific_test_03_multi', null
       x = b.b;
     }
     if (dart.is(x, A)) {
+    }
+  }
+  dart.fn(testInterface, dart.void, []);
+  function testGeneric() {
+    let x = null;
+    let y = null;
+    let d1 = new (E$(B))(null);
+    if (dart.is(d1, E)) {
+    }
+    if (dart.is(d1, E$(A))) {
+    }
+    let d2 = new (E$(B))(null);
+    if (dart.is(d2, E)) {
+    }
+    let d3 = new (E$(B))(new B());
+    if (dart.is(d3, E$(B))) {
+    }
+  }
+  dart.fn(testGeneric);
+  // Exports:
+  exports.A = A;
+  exports.B = B;
+  exports.C = C;
+  exports.D$ = D$;
+  exports.D = D;
+  exports.E$ = E$;
+  exports.E = E;
+  exports.main = main;
+  exports.testInterface = testInterface;
+  exports.testGeneric = testGeneric;
+});
+dart_library.library('language/type_promotion_more_specific_test_04_multi', null, /* Imports */[
+  'dart/_runtime',
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, dart, core) {
+  'use strict';
+  let dartx = dart.dartx;
+  class A extends core.Object {
+    A() {
+      this.a = null;
+    }
+  }
+  class B extends A {
+    B() {
+      this.b = null;
+      super.A();
+    }
+  }
+  class C extends core.Object {
+    C() {
+      this.c = null;
+    }
+  }
+  const D$ = dart.generic(function(T) {
+    class D extends core.Object {
+      D(d) {
+        this.d = d;
+      }
+    }
+    dart.setSignature(D, {
+      constructors: () => ({D: [D$(T), [T]]})
+    });
+    return D;
+  });
+  let D = D$();
+  const E$ = dart.generic(function(T) {
+    class E extends D$(T) {
+      E(e) {
+        this.e = dart.as(e, T);
+        super.D(dart.as(e, T));
+      }
+    }
+    dart.setSignature(E, {
+      constructors: () => ({E: [E$(T), [dart.dynamic]]})
+    });
+    return E;
+  });
+  let E = E$();
+  function main() {
+    testInterface();
+    testGeneric();
+  }
+  dart.fn(main, dart.void, []);
+  function testInterface() {
+    let x = null;
+    let y = null;
+    let a = new B();
+    if (dart.is(a, B)) {
+    }
+    if (dart.is(a, C)) {
+    }
+    let b = new B();
+    if (dart.is(b, A)) {
+    }
+    if (dart.is(x, A)) {
+      y = dart.dload(x, 'b');
     }
   }
   dart.fn(testInterface, dart.void, []);

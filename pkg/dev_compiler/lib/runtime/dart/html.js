@@ -12427,7 +12427,7 @@ dart_library.library('dart/html', null, /* Imports */[
   Platform.supportsSimd = false;
   dart.defineLazyProperties(Platform, {
     get supportsTypedData() {
-      return !!window.ArrayBuffer;
+      return !!dart.global.ArrayBuffer;
     }
   });
   function _wrapZone(callback) {
@@ -12667,10 +12667,12 @@ dart_library.library('dart/html', null, /* Imports */[
       sanitizeNode: [dart.void, [Node, Node]]
     })
   });
-  dart.copyProperties(exports, {
+  dart.defineLazyProperties(exports, {
     get window() {
-      return dart.as(wrap_jso(window), Window);
-    },
+      return dart.as(wrap_jso(dart.global), Window);
+    }
+  });
+  dart.copyProperties(exports, {
     get document() {
       return dart.as(wrap_jso(document), HtmlDocument);
     }

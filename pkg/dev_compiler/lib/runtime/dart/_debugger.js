@@ -13,14 +13,14 @@ dart_library.library('dart/_debugger', null, /* Imports */[
     },
     set _devtoolsFormatter(_) {}
   });
-  function typeof$(object) {
+  function _typeof(object) {
     return typeof object;
   }
-  dart.fn(typeof$, core.String, [dart.dynamic]);
-  function instanceof$(object, clazz) {
+  dart.fn(_typeof, core.String, [dart.dynamic]);
+  function _instanceof(object, clazz) {
     return object instanceof clazz;
   }
-  dart.fn(instanceof$, core.bool, [dart.dynamic, dart.dynamic]);
+  dart.fn(_instanceof, core.bool, [dart.dynamic, dart.dynamic]);
   function getOwnPropertyNames(object) {
     return dart.as(dart.list(Object.getOwnPropertyNames(object), core.String), core.List$(core.String));
   }
@@ -45,14 +45,14 @@ dart_library.library('dart/_debugger', null, /* Imports */[
     names: ['getProperty', 'setProperty']
   });
   function isRegularDartObject(object) {
-    if (typeof$(object) == 'function') return false;
-    return instanceof$(object, core.Object);
+    if (_typeof(object) == 'function') return false;
+    return _instanceof(object, core.Object);
   }
   dart.fn(isRegularDartObject, core.bool, [dart.dynamic]);
   function getObjectTypeName(object) {
     let realRuntimeType = dart.realRuntimeType(object);
     if (realRuntimeType == null) {
-      if (typeof$(object) == 'function') {
+      if (_typeof(object) == 'function') {
         return '[[Raw JavaScript Function]]';
       }
       return '<Error getting type name>';
@@ -217,7 +217,7 @@ dart_library.library('dart/_debugger', null, /* Imports */[
         let nameSpan = new JsonMLElement('span');
         nameSpan.createTextChild(child.name != null ? dart.notNull(child.name) + ': ' : '');
         nameSpan.setStyle('color: rgb(136, 19, 145);');
-        if (typeof$(child.value) == 'object' || typeof$(child.value) == 'function') {
+        if (_typeof(child.value) == 'object' || _typeof(child.value) == 'function') {
           nameSpan.addStyle("padding-left: 13px;");
           li.appendChild(nameSpan);
           let objectTag = li.createObjectTag(child.value);
@@ -354,7 +354,7 @@ dart_library.library('dart/_debugger', null, /* Imports */[
   });
   class FunctionFormatter extends Formatter {
     accept(object) {
-      if (typeof$(object) != 'function') return false;
+      if (_typeof(object) != 'function') return false;
       return dart.realRuntimeType(object) != null;
     }
     hasChildren(object) {
@@ -537,8 +537,6 @@ dart_library.library('dart/_debugger', null, /* Imports */[
   dart.fn(registerDevtoolsFormatter);
   // Exports:
   exports.skipDartConfig = skipDartConfig;
-  exports.typeof = typeof$;
-  exports.instanceof = instanceof$;
   exports.getOwnPropertyNames = getOwnPropertyNames;
   exports.getOwnPropertySymbols = getOwnPropertySymbols;
   exports.JSNative = JSNative;

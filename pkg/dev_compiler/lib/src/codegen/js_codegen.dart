@@ -25,7 +25,8 @@ import '../js/js_ast.dart' as JS;
 import '../js/js_ast.dart' show js;
 
 import '../closure/closure_annotator.dart' show ClosureAnnotator;
-import '../compiler.dart' show AbstractCompiler;
+import '../compiler.dart'
+    show AbstractCompiler, corelibOrder, getCorelibModuleName;
 import '../info.dart';
 import '../options.dart' show CodegenOptions;
 import '../utils.dart';
@@ -81,7 +82,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   /// Imported libraries, and the temporaries used to refer to them.
   final _imports = new Map<LibraryElement, JS.TemporaryId>();
-  final _exports = new Set<String>();
+  final _exports = <String, String>{};
   final _properties = <FunctionDeclaration>[];
   final _privateNames = new HashMap<String, JS.TemporaryId>();
   final _moduleItems = <JS.Statement>[];
@@ -184,6 +185,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     var items = <JS.ModuleItem>[];
     if (!_isDartRuntime) {
+      if (currentLibrary.source.isInSystemLibrary) {
+        // Force the import order of runtime libs.
+        // TODO(ochafik): Reduce this to a minimum.
+        for (var lib in corelibOrder.reversed) {
+          // TODO(ochafik): Use uris instead in corelibOrder.
+          moduleBuilder.addImport(getCorelibModuleName(lib), null);
+        }
+      }
       moduleBuilder.addImport('dart/_runtime', _runtimeLibVar);
 
       var dartxImport =
@@ -264,7 +273,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       args.add(new JS.ArrayInitializer(hiddenNames));
     }
 
-    // When we compile _runtime.js, we need to source export_ from _utils.js:
     _moduleItems.add(js.statement('dart.export(#);', [args]));
   }
 
@@ -538,7 +546,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var name = type.name;
     var genericName = '$name\$';
     var typeParams = _typeFormalsOf(type).map((p) => p.name);
-    if (isPublic(name)) _exports.add(genericName);
+    if (isPublic(name)) _addExport(genericName);
     return js.statement('const # = dart.generic(function(#) { #; return #; });',
         [genericName, typeParams, body, name]);
   }
@@ -1302,7 +1310,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var body = <JS.Statement>[];
     _flushLibraryProperties(body);
 
-    var name = _getJSExportName(node.element) ?? node.name.name;
+    var name = node.name.name;
 
     var fn = _visit(node.functionExpression);
 
@@ -1318,7 +1326,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
           .toStatement());
     }
 
-    if (isPublic(name)) _addExport(name);
+    if (isPublic(name)) {
+      _addExport(name, _getJSExportName(node.element) ?? name);
+    }
     return _statement(body);
   }
 
@@ -1751,7 +1761,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   JS.Expression _emitTopLevelName(Element e, {String suffix: ''}) {
     var libName = _libraryName(e.library);
-    var nameExpr = _propertyName((_getJSExportName(e) ?? e.name) + suffix);
 
     // Always qualify:
     // * mutable top-level fields
@@ -1760,6 +1769,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         !e.isConst &&
         !_isFinalJSDecl(e.computeNode());
     bool fromAnotherLibrary = e.library != currentLibrary;
+    var nameExpr;
+    if (fromAnotherLibrary) {
+      nameExpr = _propertyName((_getJSExportName(e) ?? e.name) + suffix);
+    } else {
+      nameExpr = _propertyName(e.name + suffix);
+    }
     if (mutableTopLevel || fromAnotherLibrary) {
       return new JS.PropertyAccess(libName, nameExpr);
     }
@@ -2137,8 +2152,26 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
   }
 
-  _addExport(String name) {
-    if (!_exports.add(name)) throw 'Duplicate top level name found: $name';
+  /// Emits static fields.
+  ///
+  /// Instance fields are emitted in [_initializeFields].
+  ///
+  /// These are generally treated the same as top-level fields, see
+  /// [visitTopLevelVariableDeclaration].
+  @override
+  visitFieldDeclaration(FieldDeclaration node) {
+    if (!node.isStatic) return;
+
+    for (var f in node.fields.variables) {
+      _loader.loadDeclaration(f, f.element);
+    }
+  }
+
+  _addExport(String name, [String exportName]) {
+    if (_exports.containsKey(name)) {
+      throw 'Duplicate top level name found: $name';
+    }
+    _exports[name] = exportName ?? name;
   }
 
   @override
@@ -2247,12 +2280,18 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var isJSTopLevel = field.isFinal && _isFinalJSDecl(field);
     if (isJSTopLevel) eagerInit = true;
 
-    var fieldName = _getJSExportName(element) ?? field.name.name;
-    if (field.isConst && eagerInit || isJSTopLevel) {
+    var fieldName = field.name.name;
+    var exportName = fieldName;
+    if (element is TopLevelVariableElement) {
+      exportName = _getJSExportName(element) ?? fieldName;
+    }
+    if ((field.isConst && eagerInit && element is TopLevelVariableElement) ||
+        isJSTopLevel) {
       // constant fields don't change, so we can generate them as `let`
       // but add them to the module's exports. However, make sure we generate
       // anything they depend on first.
-      if (isPublic(fieldName)) _addExport(fieldName);
+
+      if (isPublic(fieldName)) _addExport(fieldName, exportName);
       var declKeyword = field.isConst || field.isFinal ? 'const' : 'let';
       return annotateVariable(
           js.statement(

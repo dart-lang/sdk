@@ -5,7 +5,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   'dart/_js_helper',
   'dart/async',
   'dart/collection'
-], function(exports, core, _interceptors, _js_helper, async$, collection) {
+], function(exports, core, _interceptors, _js_helper, async, collection) {
   'use strict';
   function mixin(base, ...mixins) {
     class Mixin extends base {
@@ -38,7 +38,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     return clazz[_mixins];
   }
   function getImplements(clazz) {
-    return clazz[implements$];
+    return clazz[implements_];
   }
   const _typeArguments = Symbol("typeArguments");
   const _originalDeclaration = Symbol("originalDeclaration");
@@ -53,7 +53,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
         throwInternalError('requires ' + length + ' or 0 type arguments');
       }
       while (args.length < length)
-        args.push(dynamic);
+        args.push(dynamicR);
       let value = resultMap;
       for (let i = 0; i < length; i++) {
         let arg = args[i];
@@ -111,7 +111,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     if (f === void 0) f = obj[name];
     f = f.bind(obj);
     let sig = getMethodType(obj, name);
-    assert(sig);
+    assert_(sig);
     tag(f, sig);
     return f;
   }
@@ -185,7 +185,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   function registerExtension(jsType, dartExtType) {
     let extProto = dartExtType.prototype;
     let jsProto = jsType.prototype;
-    assert(jsProto[_extensionType] === void 0);
+    assert_(jsProto[_extensionType] === void 0);
     jsProto[_extensionType] = extProto;
     let dartObjProto = core.Object.prototype;
     while (extProto !== dartObjProto && extProto !== jsProto) {
@@ -193,7 +193,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
       extProto = extProto.__proto__;
     }
     let originalSigFn = getOwnPropertyDescriptor(dartExtType, _methodSig).get;
-    assert(originalSigFn);
+    assert_(originalSigFn);
     defineMemoizedGetter(jsType, _methodSig, originalSigFn);
   }
   function defineExtensionMembers(type, methodNames) {
@@ -229,13 +229,13 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     derived.prototype.__proto__ = base.prototype;
   }
   function throwCastError(actual, type) {
-    throw$(new _js_helper.CastErrorImplementation(actual, type));
+    throw_(new _js_helper.CastErrorImplementation(actual, type));
   }
   function throwAssertionError() {
-    throw$(new core.AssertionError());
+    throw_(new core.AssertionError());
   }
   function throwNullValueError() {
-    throw$(new core.NoSuchMethodError(null, new core.Symbol('<Unexpected Null Value>'), null, null, null));
+    throw_(new core.NoSuchMethodError(null, new core.Symbol('<Unexpected Null Value>'), null, null, null));
   }
   const _jsIterator = Symbol("_jsIterator");
   const _current = Symbol("_current");
@@ -243,7 +243,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     const SyncIterable_E = getGenericClass(_js_helper.SyncIterable)(E);
     return new SyncIterable_E(gen, args);
   }
-  function async(gen, T, ...args) {
+  function async_(gen, T, ...args) {
     let iter;
     function onValue(res) {
       if (res === void 0) res = null;
@@ -255,12 +255,12 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     function next(ret) {
       if (ret.done) return ret.value;
       let future = ret.value;
-      if (!instanceOf(future, getGenericClass(async$.Future))) {
-        future = async$.Future.value(future);
+      if (!instanceOf(future, getGenericClass(async.Future))) {
+        future = async.Future.value(future);
       }
       return future.then(onValue, {onError: onError});
     }
-    return getGenericClass(async$.Future)(T).new(function() {
+    return getGenericClass(async.Future)(T).new(function() {
       iter = gen(...args)[Symbol.iterator]();
       return onValue();
     });
@@ -273,7 +273,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
       this.isSuspendedAtYield = false;
       this.canceler = null;
       this.iterator = generator(this, ...args)[Symbol.iterator]();
-      this.controller = getGenericClass(async$.StreamController)(T).new({
+      this.controller = getGenericClass(async.StreamController)(T).new({
         onListen: (() => this.scheduleGenerator()).bind(this),
         onResume: (() => this.onResume()).bind(this),
         onCancel: (() => this.onCancel()).bind(this)
@@ -289,7 +289,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
         return null;
       }
       if (this.canceler == null) {
-        this.canceler = async$.Completer.new();
+        this.canceler = async.Completer.new();
         this.scheduleGenerator();
       }
       return this.canceler.future;
@@ -305,7 +305,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
         return;
       }
       this.isScheduled = true;
-      async$.scheduleMicrotask((() => this.runBody()).bind(this));
+      async.scheduleMicrotask((() => this.runBody()).bind(this));
     }
     runBody(opt_awaitValue) {
       this.isScheduled = false;
@@ -327,8 +327,8 @@ dart_library.library('dart/_runtime', null, /* Imports */[
       if (this.isSuspendedAtYield || this.isAdding) return;
       this.isWaiting = true;
       let future = iter.value;
-      if (!instanceOf(future, getGenericClass(async$.Future))) {
-        future = async$.Future.value(future);
+      if (!instanceOf(future, getGenericClass(async.Future))) {
+        future = async.Future.value(future);
       }
       return future.then((x => this.runBody(x)).bind(this), {
         onError: ((e, s) => this.throwError(e, s)).bind(this)
@@ -419,7 +419,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     return true;
   }
   function throwNoSuchMethod(obj, name, pArgs, nArgs, extras) {
-    throw$(new core.NoSuchMethodError(obj, name, pArgs, nArgs, extras));
+    throw_(new core.NoSuchMethodError(obj, name, pArgs, nArgs, extras));
   }
   function throwNoSuchMethodFunc(obj, name, pArgs, opt_func) {
     if (obj === void 0) obj = opt_func;
@@ -468,7 +468,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     return value;
   }
   function _ignoreTypeFailure(actual, type) {
-    if (isSubtype(type, core.Iterable) && isSubtype(actual, core.Iterable) || isSubtype(type, async$.Future) && isSubtype(actual, async$.Future) || isSubtype(type, core.Map) && isSubtype(actual, core.Map) || isSubtype(type, core.Function) && isSubtype(actual, core.Function) || isSubtype(type, async$.Stream) && isSubtype(actual, async$.Stream) || isSubtype(type, async$.StreamSubscription) && isSubtype(actual, async$.StreamSubscription)) {
+    if (isSubtype(type, core.Iterable) && isSubtype(actual, core.Iterable) || isSubtype(type, async.Future) && isSubtype(actual, async.Future) || isSubtype(type, core.Map) && isSubtype(actual, core.Map) || isSubtype(type, core.Function) && isSubtype(actual, core.Function) || isSubtype(type, async.Stream) && isSubtype(actual, async.Stream) || isSubtype(type, async.StreamSubscription) && isSubtype(actual, async.StreamSubscription)) {
       console.warn('Ignoring cast fail from ' + typeName(actual) + ' to ' + typeName(type));
       return true;
     }
@@ -535,11 +535,11 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     }
     return map;
   }
-  function assert(condition) {
+  function assert_(condition) {
     if (!condition) throwAssertionError();
   }
   const _stack = new WeakMap();
-  function throw$(obj) {
+  function throw_(obj) {
     if (obj != null && (typeof obj == 'object' || typeof obj == 'function')) {
       _stack.set(obj, new Error());
     }
@@ -580,7 +580,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     return value;
   }
   const constants = new Map();
-  function const$(obj) {
+  function const_(obj) {
     let objectKey = [realRuntimeType(obj)];
     for (let name of getOwnNamesAndSymbols(obj)) {
       objectKey.push(name);
@@ -642,7 +642,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     }
     let t;
     if (args.length == 0) {
-      t = definiteFunctionType(dynamic, Array(closure.length).fill(dynamic));
+      t = definiteFunctionType(dynamicR, Array(closure.length).fill(dynamicR));
     } else {
       t = definiteFunctionType.apply(null, args);
     }
@@ -682,7 +682,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     return obj.runtimeType;
   }
   function getFunctionType(obj) {
-    let args = Array(obj.length).fill(dynamic);
+    let args = Array(obj.length).fill(dynamicR);
     return definiteFunctionType(bottom, args);
   }
   function realRuntimeType(obj) {
@@ -724,7 +724,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     tagComputed(value, getter);
   }
   const _mixins = Symbol("mixins");
-  const implements$ = Symbol("implements");
+  const implements_ = Symbol("implements");
   const metadata = Symbol("metadata");
   const TypeRep = class TypeRep extends LazyTagged(() => core.Type) {
     get name() {
@@ -736,13 +736,13 @@ dart_library.library('dart/_runtime', null, /* Imports */[
       return "dynamic";
     }
   };
-  const dynamic = new Dynamic();
+  const dynamicR = new Dynamic();
   const Void = class Void extends TypeRep {
     toString() {
       return "void";
     }
   };
-  const void$ = new Void();
+  const voidR = new Void();
   const Bottom = class Bottom extends TypeRep {
     toString() {
       return "bottom";
@@ -829,7 +829,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     _canonize() {
       if (this.definite) return;
       function replace(a) {
-        return a == dynamic ? bottom : a;
+        return a == dynamicR ? bottom : a;
       }
       this.args = this.args.map(replace);
       if (this.optionals.length > 0) {
@@ -935,7 +935,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     let ret1 = ft1.returnType;
     let ret2 = ft2.returnType;
     if (!isSubtype_(ret1, ret2)) {
-      if (ret2 != void$) {
+      if (ret2 != voidR) {
         return false;
       }
     }
@@ -1008,7 +1008,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     return type == bottom;
   }
   function _isTop(type) {
-    return type == core.Object || type == dynamic;
+    return type == core.Object || type == dynamicR;
   }
   function isSubtype_(t1, t2) {
     t1 = canonicalType(t1);
@@ -1030,10 +1030,10 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   }
   function isClassSubType(t1, t2) {
     t1 = canonicalType(t1);
-    assert(t2 == canonicalType(t2));
+    assert_(t2 == canonicalType(t2));
     if (t1 == t2) return true;
     if (t1 == core.Object) return false;
-    if (t1 == null) return t2 == core.Object || t2 == dynamic;
+    if (t1 == null) return t2 == core.Object || t2 == dynamicR;
     let raw1 = getGenericClass(t1);
     let raw2 = getGenericClass(t2);
     if (raw1 != null && raw1 == raw2) {
@@ -1045,7 +1045,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
       } else if (length == 0) {
         return false;
       }
-      assert(length == typeArguments2.length);
+      assert_(length == typeArguments2.length);
       for (let i = 0; i < length; ++i) {
         if (!isSubtype(typeArguments1[i], typeArguments2[i])) {
           return false;
@@ -1086,7 +1086,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     let typeArgs = getGenericArgs(type);
     if (!typeArgs) return true;
     for (let t of typeArgs) {
-      if (t != core.Object && t != dynamic) return false;
+      if (t != core.Object && t != dynamicR) return false;
     }
     return true;
   }
@@ -1161,7 +1161,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   function copyProperties(to, from) {
     return copyTheseProperties(to, from, getOwnNamesAndSymbols(from));
   }
-  function export$(to, from, show, hide) {
+  function export_(to, from, show, hide) {
     if (show == void 0 || show.length == 0) {
       show = getOwnNamesAndSymbols(from);
     }
@@ -1174,9 +1174,9 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   const defineLazyClass = defineLazy;
   const defineLazyProperties = defineLazy;
   const defineLazyClassGeneric = defineLazyProperty;
-  const as = cast;
-  const is = instanceOf;
-  const global = typeof window == "undefined" ? global : window;
+  const as_ = cast;
+  const is_ = instanceOf;
+  const global_ = typeof window == "undefined" ? global : window;
   const JsSymbol = Symbol;
   // Exports:
   exports.mixin = mixin;
@@ -1205,7 +1205,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   exports.throwAssertionError = throwAssertionError;
   exports.throwNullValueError = throwNullValueError;
   exports.syncStar = syncStar;
-  exports.async = async;
+  exports.async = async_;
   exports.asyncStar = asyncStar;
   exports.dload = dload;
   exports.dput = dput;
@@ -1227,15 +1227,15 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   exports.equals = equals;
   exports.notNull = notNull;
   exports.map = map;
-  exports.assert = assert;
-  exports.throw = throw$;
+  exports.assert = assert_;
+  exports.throw = throw_;
   exports.getError = getError;
   exports.stackPrint = stackPrint;
   exports.stackTrace = stackTrace;
   exports.nullSafe = nullSafe;
   exports.multiKeyPutIfAbsent = multiKeyPutIfAbsent;
   exports.constants = constants;
-  exports.const = const$;
+  exports.const = const_;
   exports.hashCode = hashCode;
   exports.toString = toString;
   exports.noSuchMethod = noSuchMethod;
@@ -1250,13 +1250,13 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   exports.tag = tag;
   exports.tagComputed = tagComputed;
   exports.tagMemoized = tagMemoized;
-  exports.implements = implements$;
+  exports.implements = implements_;
   exports.metadata = metadata;
   exports.TypeRep = TypeRep;
   exports.Dynamic = Dynamic;
-  exports.dynamic = dynamic;
+  exports.dynamic = dynamicR;
   exports.Void = Void;
-  exports.void = void$;
+  exports.void = voidR;
   exports.Bottom = Bottom;
   exports.bottom = bottom;
   exports.JSObject = JSObject;
@@ -1292,12 +1292,12 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   exports.defineMemoizedGetter = defineMemoizedGetter;
   exports.copyTheseProperties = copyTheseProperties;
   exports.copyProperties = copyProperties;
-  exports.export = export$;
+  exports.export = export_;
   exports.defineLazyClass = defineLazyClass;
   exports.defineLazyProperties = defineLazyProperties;
   exports.defineLazyClassGeneric = defineLazyClassGeneric;
-  exports.as = as;
-  exports.is = is;
-  exports.global = global;
+  exports.as = as_;
+  exports.is = is_;
+  exports.global = global_;
   exports.JsSymbol = JsSymbol;
 });

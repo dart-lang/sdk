@@ -18,8 +18,8 @@ final int maxIterableChildrenToDisplay = 50;
 
 var _devtoolsFormatter = new JsonMLFormatter(new DartFormatter());
 
-String typeof(object) => JS('String', 'typeof #', object);
-bool instanceof(object, clazz) => JS('bool', '# instanceof #', object, clazz);
+String _typeof(object) => JS('String', 'typeof #', object);
+bool _instanceof(object, clazz) => JS('bool', '# instanceof #', object, clazz);
 
 List<String> getOwnPropertyNames(object) =>
     dart.list(JS('List', 'Object.getOwnPropertyNames(#)', object), String);
@@ -37,14 +37,14 @@ class JSNative {
 }
 
 bool isRegularDartObject(object) {
-  if (typeof(object) == 'function') return false;
-  return instanceof(object, Object);
+  if (_typeof(object) == 'function') return false;
+  return _instanceof(object, Object);
 }
 
 String getObjectTypeName(object) {
   var realRuntimeType = dart.realRuntimeType(object);
   if (realRuntimeType == null) {
-    if (typeof(object) == 'function') {
+    if (_typeof(object) == 'function') {
       return '[[Raw JavaScript Function]]';
     }
     return '<Error getting type name>';
@@ -209,8 +209,8 @@ class JsonMLFormatter {
       var nameSpan = new JsonMLElement('span')
         ..createTextChild(child.name != null ? child.name + ': ' : '')
         ..setStyle('color: rgb(136, 19, 145);');
-      if (typeof(child.value) == 'object' ||
-          typeof(child.value) == 'function') {
+      if (_typeof(child.value) == 'object' ||
+          _typeof(child.value) == 'function') {
         nameSpan.addStyle("padding-left: 13px;");
 
         li.appendChild(nameSpan);
@@ -356,7 +356,7 @@ class ObjectFormatter extends Formatter {
 /// runtime type information.
 class FunctionFormatter extends Formatter {
   accept(object) {
-    if (typeof(object) != 'function') return false;
+    if (_typeof(object) != 'function') return false;
     return dart.realRuntimeType(object) != null;
   }
 

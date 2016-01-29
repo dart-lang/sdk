@@ -58,7 +58,7 @@ class SourceResolverOptions {
       this.useImplicitHtml: false});
 }
 
-enum ModuleFormat { es6, legacy }
+enum ModuleFormat { es6, legacy, node }
 ModuleFormat parseModuleFormat(String s) => parseEnum(s, ModuleFormat.values);
 
 // TODO(jmesserly): refactor all codegen options here.
@@ -315,7 +315,9 @@ final ArgParser argParser = new ArgParser()
       allowedHelp: {
         getEnumName(ModuleFormat.es6): 'es6 modules',
         getEnumName(ModuleFormat.legacy):
-            'a custom format used by dartdevc, similar to AMD'
+            'a custom format used by dartdevc, similar to AMD',
+        getEnumName(ModuleFormat.node):
+            'node.js modules (https://nodejs.org/api/modules.html)'
       },
       defaultsTo: getEnumName(ModuleFormat.legacy))
 

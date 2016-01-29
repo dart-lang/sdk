@@ -24,6 +24,7 @@
  */
 library dart.dom.html;
 
+import 'dart:_runtime' show global_;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:_internal' hide Symbol;
@@ -4927,7 +4928,7 @@ class DocumentFragment extends Node implements ParentNode {
         treeSanitizer: treeSanitizer));
   }
 
-  /** 
+  /**
    * Alias for [querySelector]. Note this function is deprecated because its
    * semantics will be changing in the future.
    */
@@ -4938,7 +4939,7 @@ class DocumentFragment extends Node implements ParentNode {
     return querySelector(relativeSelectors);
   }
 
-  /** 
+  /**
    * Alias for [querySelectorAll]. Note this function is deprecated because its
    * semantics will be changing in the future.
    */
@@ -7605,7 +7606,7 @@ class Event extends DartHtmlDomObject {
     e._initEvent(name, canBubble, cancelable);
     return e;
   }
-  
+
   /** The CSS selector involved with event delegation. */
   String _selector;
 
@@ -7840,18 +7841,18 @@ class Events {
 class ElementEvents extends Events {
   /* Raw event target. */
   static final webkitEvents = {
-    'animationend' : 'webkitAnimationEnd', 
-    'animationiteration' : 'webkitAnimationIteration', 
-    'animationstart' : 'webkitAnimationStart', 
-    'fullscreenchange' : 'webkitfullscreenchange', 
+    'animationend' : 'webkitAnimationEnd',
+    'animationiteration' : 'webkitAnimationIteration',
+    'animationstart' : 'webkitAnimationStart',
+    'fullscreenchange' : 'webkitfullscreenchange',
     'fullscreenerror' : 'webkitfullscreenerror',
-    'keyadded' : 'webkitkeyadded', 
-    'keyerror' : 'webkitkeyerror', 
-    'keymessage' : 'webkitkeymessage', 
-    'needkey' : 'webkitneedkey', 
-    'pointerlockchange' : 'webkitpointerlockchange', 
-    'pointerlockerror' : 'webkitpointerlockerror', 
-    'resourcetimingbufferfull' : 'webkitresourcetimingbufferfull', 
+    'keyadded' : 'webkitkeyadded',
+    'keyerror' : 'webkitkeyerror',
+    'keymessage' : 'webkitkeymessage',
+    'needkey' : 'webkitneedkey',
+    'pointerlockchange' : 'webkitpointerlockchange',
+    'pointerlockerror' : 'webkitpointerlockerror',
+    'resourcetimingbufferfull' : 'webkitresourcetimingbufferfull',
     'transitionend': 'webkitTransitionEnd',
     'speechchange' : 'webkitSpeechChange'
   };
@@ -8681,7 +8682,7 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * By default `request` will perform an HTTP GET request, but a different
    * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the
-   * [method] parameter. (See also [HttpRequest.postFormData] for `POST` 
+   * [method] parameter. (See also [HttpRequest.postFormData] for `POST`
    * requests only.
    *
    * The Future is completed when the response is available.
@@ -8690,8 +8691,8 @@ class HttpRequest extends HttpRequestEventTarget {
    * [Blob], [Document], [String], or [FormData] along with the HttpRequest.
    *
    * If specified, [responseType] sets the desired response format for the
-   * request. By default it is [String], but can also be 'arraybuffer', 'blob', 
-   * 'document', 'json', or 'text'. See also [HttpRequest.responseType] 
+   * request. By default it is [String], but can also be 'arraybuffer', 'blob',
+   * 'document', 'json', or 'text'. See also [HttpRequest.responseType]
    * for more information.
    *
    * The [withCredentials] parameter specified that credentials such as a cookie
@@ -8774,7 +8775,7 @@ class HttpRequest extends HttpRequestEventTarget {
       // redirect case will be handled by the browser before it gets to us,
       // so if we see it we should pass it through to the user.
       var unknownRedirect = xhr.status > 307 && xhr.status < 400;
-      
+
       if (accepted || fileUri || notModified || unknownRedirect) {
         completer.complete(xhr);
       } else {
@@ -10634,15 +10635,15 @@ abstract class ButtonInputElement implements InputElementBase {
 @Native("KeyboardEvent")
 class KeyboardEvent extends UIEvent {
 
-  /** 
-   * Programmatically create a KeyboardEvent. 
+  /**
+   * Programmatically create a KeyboardEvent.
    *
    * Due to browser differences, keyCode, charCode, or keyIdentifier values
    * cannot be specified in this base level constructor. This constructor
    * enables the user to programmatically create and dispatch a [KeyboardEvent],
    * but it will not contain any particular key content. For programmatically
    * creating keyboard events with specific key value contents, see the custom
-   * Event [KeyEvent]. 
+   * Event [KeyEvent].
    */
   factory KeyboardEvent(String type,
       {Window view, bool canBubble: true, bool cancelable: true,
@@ -18577,7 +18578,7 @@ class FixedSizeListIterator<T> implements Iterator<T> {
   final int _length;  // Cache array length for faster access.
   int _position;
   T _current;
-  
+
   FixedSizeListIterator(List<T> array)
       : _array = array,
         _position = -1,
@@ -19036,14 +19037,13 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 class Platform {
   /**
    * Returns true if dart:typed_data types are supported on this
    * browser.  If false, using these types will generate a runtime
    * error.
    */
-  static final supportsTypedData = JS('bool', '!!(window.ArrayBuffer)');
+  static final supportsTypedData = JS('bool', '!!($global_.ArrayBuffer)');
 
   /**
    * Returns true if SIMD types in dart:typed_data types are supported
@@ -19555,7 +19555,8 @@ export 'dart:math' show Rectangle, Point;
  *
  *   * [Window](https://developer.mozilla.org/en-US/docs/Web/API/window) from MDN.
  */
-Window get window => wrap_jso(JS('', 'window'));
+
+final Window window = wrap_jso(JS('', '$global_'));
 
 /**
  * Root node for all content in a web page.
@@ -19798,4 +19799,3 @@ Function _getHtmlFunction(String key) {
   }
   return null;
 }
-

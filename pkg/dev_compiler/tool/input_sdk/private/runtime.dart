@@ -31,7 +31,8 @@ final as_ = JS('', '$cast');
 @JSExportName('is')
 final is_ = JS('', '$instanceOf');
 
-final global = JS('', 'typeof window == "undefined" ? global : window');
+@JSExportName('global')
+final global_ = JS('', 'typeof window == "undefined" ? global : window');
 final JsSymbol = JS('', 'Symbol');
 
 // TODO(vsm): This is referenced (as init.globalState) from

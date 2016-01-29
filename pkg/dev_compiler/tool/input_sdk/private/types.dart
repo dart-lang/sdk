@@ -57,7 +57,6 @@ final Void = JS('', '''
     toString() { return "void"; }
   }
 ''');
-
 @JSExportName('void')
 final voidR = JS('', 'new $Void()');
 
