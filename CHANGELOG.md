@@ -49,7 +49,7 @@
     * Added named arguments `packageConfig` and `automaticPackageResolution` to
     the `Isolate.spawnUri` constructor.
 
-[Package Resolution Configuration File]: https://github.com/dart-lang/dart_enhancement_proposals/blob/master/Accepted/0005%20-%20Package%20Specification/DEP-pkgspec.md
+[Package Resolution Configuration]: https://github.com/dart-lang/dart_enhancement_proposals/blob/master/Accepted/0005%20-%20Package%20Specification/DEP-pkgspec.md
 
 ### Tool changes
 
