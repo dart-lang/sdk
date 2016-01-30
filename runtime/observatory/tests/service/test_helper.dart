@@ -109,15 +109,86 @@ String serviceHttpAddress;
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether
 /// to run tests or testee in this invokation of the script.
-void runIsolateTests(List<String> mainArgs,
-                     List<IsolateTest> tests,
-                     {void testeeBefore(),
-                      void testeeConcurrent(),
-                      bool pause_on_start: false,
-                      bool pause_on_exit: false,
-                      bool trace_service: false,
-                      bool verbose_vm: false,
-                      bool pause_on_unhandled_exceptions: false}) {
+Future runIsolateTests(List<String> mainArgs,
+                       List<IsolateTest> tests,
+                       {testeeBefore(),
+                        void testeeConcurrent(),
+                        bool pause_on_start: false,
+                        bool pause_on_exit: false,
+                        bool trace_service: false,
+                        bool verbose_vm: false,
+                        bool pause_on_unhandled_exceptions: false}) async {
+  assert(!pause_on_start || testeeBefore == null);
+  if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
+    if (!pause_on_start) {
+      if (testeeBefore != null) {
+        var result = testeeBefore();
+        if (result is Future) {
+          await result;
+        }
+      }
+      print(''); // Print blank line to signal that we are ready.
+    }
+    if (testeeConcurrent != null) {
+      testeeConcurrent();
+    }
+    if (!pause_on_exit) {
+      // Wait around for the process to be killed.
+      stdin.first.then((_) => exit(0));
+    }
+  } else {
+    var process = new _TestLauncher();
+    process.launch(pause_on_start, pause_on_exit,
+                   pause_on_unhandled_exceptions, trace_service).then((port) {
+      if (mainArgs.contains("--gdb")) {
+        port = 8181;
+      }
+      String addr = 'ws://localhost:$port/ws';
+      serviceHttpAddress = 'http://localhost:$port';
+      var testIndex = 1;
+      var totalTests = tests.length;
+      var name = Platform.script.pathSegments.last;
+      runZoned(() {
+        new WebSocketVM(new WebSocketVMTarget(addr)).load()
+            .then((VM vm) => vm.isolates.first.load())
+            .then((Isolate isolate) => Future.forEach(tests, (test) {
+              isolate.vm.verbose = verbose_vm;
+              print('Running $name [$testIndex/$totalTests]');
+              testIndex++;
+              return test(isolate);
+            })).then((_) => process.requestExit());
+      }, onError: (e, st) {
+        process.requestExit();
+        if (!_isWebSocketDisconnect(e)) {
+          print('Unexpected exception in service tests: $e $st');
+          throw e;
+        }
+      });
+    });
+  }
+}
+
+/// Runs [tests] in sequence, each of which should take an [Isolate] and
+/// return a [Future]. Code for setting up state can run before and/or
+/// concurrently with the tests. Uses [mainArgs] to determine whether
+/// to run tests or testee in this invokation of the script.
+///
+/// This is a special version of this test harness specifically for the
+/// pause_on_unhandled_exceptions_test, which cannot properly function
+/// in an async context (because exceptions are *always* handled in async
+/// functions).
+///
+/// TODO(johnmccutchan): Don't use the shared harness for the
+/// pause_on_unhandled_exceptions_test.
+void runIsolateTestsSynchronous(List<String> mainArgs,
+                                List<IsolateTest> tests,
+                                {void testeeBefore(),
+                                 void testeeConcurrent(),
+                                 bool pause_on_start: false,
+                                 bool pause_on_exit: false,
+                                 bool trace_service: false,
+                                 bool verbose_vm: false,
+                                 bool pause_on_unhandled_exceptions: false}) {
   assert(!pause_on_start || testeeBefore == null);
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
     if (!pause_on_start) {

@@ -15,13 +15,15 @@ doThrow() {
 
 var tests = [
   hasStoppedWithUnhandledException,
+
   (Isolate isolate) async {
+    print("We stoppped!");
     var stack = await isolate.getStack();
     expect(stack['frames'][0].function.name, equals('doThrow'));
   }
 ];
 
-main(args) => runIsolateTests(args,
-                              tests,
-                              pause_on_unhandled_exceptions: true,
-                              testeeConcurrent: doThrow);
+main(args) => runIsolateTestsSynchronous(args,
+                                         tests,
+                                         pause_on_unhandled_exceptions: true,
+                                         testeeConcurrent: doThrow);
