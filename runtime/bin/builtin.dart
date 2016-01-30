@@ -123,11 +123,18 @@ _log(msg) {
 
 // A class wrapping the load error message in an Error object.
 class _LoadError extends Error {
+  final _LoadRequest request;
   final String message;
-  final String uri;
-  _LoadError(this.uri, this.message);
+  _LoadError(this.request, this.message);
 
-  String toString() => 'Load Error for "$uri": $message';
+  String toString() {
+    var context = request._context;
+    if (context == null || context is! String) {
+      return 'Could not load "${request._uri}": $message';
+    } else {
+      return 'Could not import "${request._uri}" from "$context": $message';
+    }
+  }
 }
 
 // Class collecting all of the information about a particular load request.
@@ -372,13 +379,13 @@ void _handleLoaderReply(msg) {
       _finishLoadRequest(req);
     } else {
       assert(dataOrError is String);
-      var error = new _LoadError(req._uri, dataOrError.toString());
+      var error = new _LoadError(req, dataOrError.toString());
       _asyncLoadError(req, error, null);
     }
   } catch(e, s) {
     // Wrap inside a _LoadError unless we are already propagating a
     // previous _LoadError.
-    var error = (e is _LoadError) ? e : new _LoadError(req._uri, e.toString());
+    var error = (e is _LoadError) ? e : new _LoadError(req, e.toString());
     assert(req != null);
     _asyncLoadError(req, error, s);
   }
@@ -576,11 +583,12 @@ _loadDataFromLoadPort(int tag, String uri, Uri resourceUri, context) {
     if (_traceLoading) {
       _log("Exception when communicating with service isolate: $e");
     }
+    // Register a dummy load request so we can fail to load it.
+    var req = new _LoadRequest(tag, uri, resourceUri, context);
+
     // Wrap inside a _LoadError unless we are already propagating a previously
     // seen _LoadError.
-    var error = (e is _LoadError) ? e : new _LoadError(uri, e.toString());
-    // Register a dummy load request and fail to load it.
-    var req = new _LoadRequest(tag, uri, resourceUri, context);
+    var error = (e is _LoadError) ? e : new _LoadError(req, e.toString());
     _asyncLoadError(req, error, s);
   }
 }
@@ -597,11 +605,12 @@ _loadPackage(int tag, String uri, Uri resourceUri, context) {
       if (_traceLoading) {
         _log("Exception ($e) when resolving package URI: $resourceUri");
       }
+      // Register a dummy load request so we can fail to load it.
+      var req = new _LoadRequest(tag, uri, resourceUri, context);
+
       // Wrap inside a _LoadError unless we are already propagating a previously
       // seen _LoadError.
-      var error = (e is _LoadError) ? e : new _LoadError(uri, e.toString());
-      // Register a dummy load request and fail to load it.
-      var req = new _LoadRequest(tag, uri, resourceUri, context);
+      var error = (e is _LoadError) ? e : new _LoadError(req, e.toString());
       _asyncLoadError(req, error, s);
     }
     _loadData(tag, uri, resolvedUri, context);
