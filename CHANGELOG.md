@@ -4,7 +4,7 @@
   * Added `Uri.queryParametersAll` to handle multiple query parameters with
     the same name.
 
-## 1.14.0
+## 1.14.0 - 2016-01-28
 
 ### Core library changes
 * `dart:async`
