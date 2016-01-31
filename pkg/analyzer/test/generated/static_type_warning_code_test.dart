@@ -27,6 +27,79 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void fail_method_lookup_mixin_of_extends() {
+    // See dartbug.com/25605
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource('''
+class A { a() => null; }
+class B {}
+abstract class M extends A {}
+class T = B with M; // Warning: B does not extend A
+main() {
+  new T().a(); // Warning: The method 'a' is not defined for the class 'T'
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      // TODO(paulberry): when dartbug.com/25614 is fixed, add static warning
+      // code for "B does not extend A".
+      StaticTypeWarningCode.UNDEFINED_METHOD
+    ]);
+  }
+
+  void fail_method_lookup_mixin_of_implements() {
+    // See dartbug.com/25605
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource('''
+class A { a() => null; }
+class B {}
+abstract class M implements A {}
+class T = B with M; // Warning: Missing concrete implementation of 'A.a'
+main() {
+  new T().a(); // Warning: The method 'a' is not defined for the class 'T'
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+      StaticTypeWarningCode.UNDEFINED_METHOD
+    ]);
+  }
+
+  void fail_method_lookup_mixin_of_mixin() {
+    // See dartbug.com/25605
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource('''
+class A {}
+class B { b() => null; }
+class C {}
+class M extends A with B {}
+class T = C with M;
+main() {
+  new T().b();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
+  void fail_method_lookup_mixin_of_mixin_application() {
+    // See dartbug.com/25605
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource('''
+class A { a() => null; }
+class B {}
+class C {}
+class M = A with B;
+class T = C with M;
+main() {
+  new T().a();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
   void fail_undefinedEnumConstant() {
     // We need a way to set the parseEnum flag in the parser to true.
     Source source = addSource(r'''
