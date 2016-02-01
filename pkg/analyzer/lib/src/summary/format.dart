@@ -860,8 +860,8 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
   String get name => _name ??= '';
 
   /**
-   * Name of the exported entity.  TODO(paulberry): do we include the trailing
-   * '=' for a setter?
+   * Name of the exported entity.  For an exported setter, this name includes
+   * the trailing '='.
    */
   void set name(String _value) {
     assert(!_finished);
@@ -944,8 +944,8 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
 abstract class LinkedExportName extends base.SummaryClass {
 
   /**
-   * Name of the exported entity.  TODO(paulberry): do we include the trailing
-   * '=' for a setter?
+   * Name of the exported entity.  For an exported setter, this name includes
+   * the trailing '='.
    */
   String get name;
 

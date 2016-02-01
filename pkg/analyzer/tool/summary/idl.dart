@@ -166,8 +166,8 @@ class LinkedDependency {
  */
 class LinkedExportName {
   /**
-   * Name of the exported entity.  TODO(paulberry): do we include the trailing
-   * '=' for a setter?
+   * Name of the exported entity.  For an exported setter, this name includes
+   * the trailing '='.
    */
   String name;
 
