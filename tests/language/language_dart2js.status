@@ -288,6 +288,11 @@ call_closurization_test: RuntimeError # Bad type inference for ".call" tear-off.
 deferred_super_dependency_test/01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 field3a_negative_test: Fail # Bogus result from type inference in case of invalid program.
 gc_test: Crash # Internal Error: Pending statics (see above).
+if_null_assignment_static_test/29: Crash # Pending statics: JSArray
+if_null_assignment_static_test/31: Crash # Pending statics: JSArray
+if_null_assignment_static_test/32: Crash # Pending statics: JSArray
+if_null_assignment_static_test/33: Crash # Pending statics: JSArray
+if_null_assignment_static_test/35: Crash # Pending statics: JSArray
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
 regress_23500_test/01: Crash # (await for(var c in new Stream.fromIterable([] )){}): await for
 savannah_test: RuntimeError # Success depends on the variable hints.
