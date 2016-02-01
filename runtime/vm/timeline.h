@@ -94,7 +94,6 @@ class TimelineEvent {
   // Keep in sync with StateBits below.
   enum EventType {
     kNone,
-    kSerializedJSON,  // Events from Dart code.
     kBegin,
     kEnd,
     kDuration,
@@ -385,6 +384,10 @@ class TimelineEventScope : public StackResource {
 
   bool ShouldEmitEvent() const {
     return enabled_;
+  }
+
+  void set_enabled(bool enabled) {
+    enabled_ = enabled;
   }
 
   const char* label() const {
