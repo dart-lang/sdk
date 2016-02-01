@@ -349,6 +349,27 @@ class A {}
 ''');
   }
 
+  test_addSync_asyncFor() async {
+    resolveTestUnit('''
+import 'dart:async';
+main(Stream<String> names) {
+  await for (String name in names) {
+    print(name);
+  }
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_ASYNC,
+        '''
+import 'dart:async';
+main(Stream<String> names) async {
+  await for (String name in names) {
+    print(name);
+  }
+}
+''');
+  }
+
   test_addSync_BAD_nullFunctionBody() async {
     resolveTestUnit('''
 var F = await;

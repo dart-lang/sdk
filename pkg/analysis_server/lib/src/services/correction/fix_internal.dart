@@ -149,6 +149,9 @@ class FixProcessor {
         CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE) {
       _addFix_replaceWithConstInstanceCreation();
     }
+    if (errorCode == CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT) {
+      bool isAsync = _addFix_addAsync_asyncFor();
+    }
     if (errorCode == CompileTimeErrorCode.INVALID_ANNOTATION) {
       if (node is Annotation) {
         Annotation annotation = node;
@@ -392,6 +395,14 @@ class FixProcessor {
       }
     }
     return false;
+  }
+
+  void _addFix_addAsync_asyncFor() {
+    FunctionBody body = node.getAncestor((n) => n is FunctionBody);
+    if (body != null && body.keyword == null) {
+      _addReplaceEdit(rf.rangeStartLength(body, 0), 'async ');
+      _addFix(DartFixKind.ADD_ASYNC, []);
+    }
   }
 
   void _addFix_addMissingParameter() {
