@@ -274,9 +274,9 @@ dart_library.library('dart/_runtime', null, /* Imports */[
       this.canceler = null;
       this.iterator = generator(this, ...args)[Symbol.iterator]();
       this.controller = getGenericClass(async.StreamController)(T).new({
-        onListen: (() => this.scheduleGenerator()).bind(this),
-        onResume: (() => this.onResume()).bind(this),
-        onCancel: (() => this.onCancel()).bind(this)
+        onListen: () => this.scheduleGenerator(),
+        onResume: () => this.onResume(),
+        onCancel: () => this.onCancel()
       });
     }
     onResume() {
@@ -305,7 +305,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
         return;
       }
       this.isScheduled = true;
-      async.scheduleMicrotask((() => this.runBody()).bind(this));
+      async.scheduleMicrotask(() => this.runBody());
     }
     runBody(opt_awaitValue) {
       this.isScheduled = false;
@@ -330,8 +330,8 @@ dart_library.library('dart/_runtime', null, /* Imports */[
       if (!instanceOf(future, getGenericClass(async.Future))) {
         future = async.Future.value(future);
       }
-      return future.then((x => this.runBody(x)).bind(this), {
-        onError: ((e, s) => this.throwError(e, s)).bind(this)
+      return future.then(x => this.runBody(x), {
+        onError: (e, s) => this.throwError(e, s)
       });
     }
     add(event) {
@@ -344,11 +344,11 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     addStream(stream) {
       if (!this.controller.hasListener) return true;
       this.isAdding = true;
-      this.controller.addStream(stream, {cancelOnError: false}).then((() => {
+      this.controller.addStream(stream, {cancelOnError: false}).then(() => {
         this.isAdding = false;
         this.scheduleGenerator();
-      }).bind(this), {
-        onError: ((e, s) => this.throwError(e, s)).bind(this)
+      }, {
+        onError: (e, s) => this.throwError(e, s)
       });
     }
     throwError(error, stackTrace) {

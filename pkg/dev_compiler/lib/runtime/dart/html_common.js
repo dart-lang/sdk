@@ -105,14 +105,14 @@ dart_library.library('dart/html_common', null, /* Imports */[
       return result;
     }
     addAll(iterable) {
-      this.modify(dart.fn((s => s.addAll(iterable[dartx.map](dart.bind(this, _validateToken)))).bind(this), dart.void, [core.Set$(core.String)]));
+      this.modify(dart.fn(s => s.addAll(iterable[dartx.map](dart.bind(this, _validateToken))), dart.void, [core.Set$(core.String)]));
     }
     removeAll(iterable) {
-      this.modify(dart.fn((s => s.removeAll(iterable[dartx.map](dart.as(dart.bind(this, _validateToken), __CastType0)))).bind(this), dart.void, [core.Set$(core.String)]));
+      this.modify(dart.fn(s => s.removeAll(iterable[dartx.map](dart.as(dart.bind(this, _validateToken), __CastType0))), dart.void, [core.Set$(core.String)]));
     }
     toggleAll(iterable, shouldAdd) {
       if (shouldAdd === void 0) shouldAdd = null;
-      iterable[dartx.forEach](dart.fn((e => this.toggle(e, shouldAdd)).bind(this), core.bool, [core.String]));
+      iterable[dartx.forEach](dart.fn(e => this.toggle(e, shouldAdd), core.bool, [core.String]));
     }
     retainAll(iterable) {
       this.modify(dart.fn(s => s.retainAll(iterable), dart.void, [core.Set$(core.String)]));
@@ -315,9 +315,9 @@ dart_library.library('dart/html_common', null, /* Imports */[
         if (copy != null) return copy;
         copy = this.newJsMap();
         this.writeSlot(slot, copy);
-        e.forEach(dart.fn(((key, value) => {
+        e.forEach(dart.fn((key, value) => {
           this.putIntoMap(copy, key, this.walk(value));
-        }).bind(this), dart.void, [dart.dynamic, dart.dynamic]));
+        }, dart.void, [dart.dynamic, dart.dynamic]));
         return copy;
       }
       if (dart.is(e, core.List)) {
@@ -397,7 +397,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
         if (copy != null) return copy;
         copy = dart.map();
         this.writeSlot(slot, copy);
-        this.forEachJsField(e, dart.fn(((key, value) => dart.dsetindex(copy, key, this.walk(value))).bind(this)));
+        this.forEachJsField(e, dart.fn((key, value) => dart.dsetindex(copy, key, this.walk(value))));
         return copy;
       }
       if (dart.notNull(isJavaScriptArray(e))) {

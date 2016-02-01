@@ -1138,8 +1138,6 @@ class ArrowFun extends FunctionExpression {
   final List<Parameter> params;
   final body; // Expression or Block
 
-  bool _closesOverThis; // lazy initialized
-
   ArrowFun(this.params, this.body);
 
   accept(NodeVisitor visitor) => visitor.visitArrowFun(this);
@@ -1147,12 +1145,6 @@ class ArrowFun extends FunctionExpression {
   void visitChildren(NodeVisitor visitor) {
     for (Parameter param in params) param.accept(visitor);
     body.accept(visitor);
-  }
-  /// True if this function actually closes of `this`. We use this in some
-  /// situations to generate different code.
-  bool get closesOverThis {
-    if (_closesOverThis == null) _closesOverThis = This.foundIn(this);
-    return _closesOverThis;
   }
 
   int get precedenceLevel => PRIMARY_LOW_PRECEDENCE;

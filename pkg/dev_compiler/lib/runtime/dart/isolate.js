@@ -142,14 +142,14 @@ dart_library.library('dart/isolate', null, /* Imports */[
         controller.addError(error, error.stackTrace);
       }
       dart.fn(handleError, dart.void, [dart.dynamic]);
-      controller = async.StreamController.broadcast({sync: true, onListen: dart.fn((() => {
+      controller = async.StreamController.broadcast({sync: true, onListen: dart.fn(() => {
           port = RawReceivePort.new(handleError);
           this.addErrorListener(port.sendPort);
-        }).bind(this), dart.void, []), onCancel: dart.fn((() => {
+        }, dart.void, []), onCancel: dart.fn(() => {
           this.removeErrorListener(port.sendPort);
           port.close();
           port = null;
-        }).bind(this), dart.void, [])});
+        }, dart.void, [])});
       return controller.stream;
     }
   }

@@ -77,10 +77,6 @@ class CodegenOptions {
   /// Enable ES6 destructuring of named parameters.
   final bool destructureNamedParams;
 
-  /// Whether to emit a workaround for missing arrow function bind-this in
-  /// other V8 builds
-  final bool arrowFnBindThisWorkaround;
-
   /// Which module format to support.
   /// Currently 'es6' and 'legacy' are supported.
   final ModuleFormat moduleFormat;
@@ -91,7 +87,6 @@ class CodegenOptions {
       this.closure: _CLOSURE_DEFAULT,
       this.destructureNamedParams: _DESTRUCTURE_NAMED_PARAMS_DEFAULT,
       this.outputDir,
-      this.arrowFnBindThisWorkaround: false,
       this.moduleFormat: ModuleFormat.legacy});
 }
 
@@ -240,7 +235,6 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
           closure: args['closure'],
           destructureNamedParams: args['destructure-named-params'],
           outputDir: outputDir,
-          arrowFnBindThisWorkaround: args['arrow-fn-bind-this'],
           moduleFormat: parseModuleFormat(args['modules'])),
       sourceOptions: new SourceResolverOptions(
           useMockSdk: args['mock-sdk'],
@@ -304,8 +298,6 @@ final ArgParser argParser = new ArgParser()
       help: 'Whether to emit source map files', defaultsTo: true)
   ..addOption('runtime-dir',
       help: 'Where to find dev_compiler\'s runtime files', defaultsTo: null)
-  ..addFlag('arrow-fn-bind-this',
-      help: 'Work around `this` binding in => functions')
   ..addOption('modules',
       help: 'Which module pattern to emit',
       allowed: ModuleFormat.values.map(getEnumName).toList(),

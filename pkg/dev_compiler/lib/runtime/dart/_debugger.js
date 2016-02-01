@@ -156,7 +156,7 @@ dart_library.library('dart/_debugger', null, /* Imports */[
         let _ = this.createChild('object');
         _.addAttribute('object', object);
         return _;
-      }).bind(this)();
+      })();
     }
     setStyle(style) {
       dart.dput(this[_attributes], 'style', style);

@@ -114,7 +114,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       }
       bind(source) {
         dart.as(source, async.Stream$(S));
-        return async.Stream$(T).eventTransformed(source, dart.fn((sink => new _ConverterStreamEventSink(this, sink)).bind(this), _ConverterStreamEventSink, [async.EventSink]));
+        return async.Stream$(T).eventTransformed(source, dart.fn(sink => new _ConverterStreamEventSink(this, sink), _ConverterStreamEventSink, [async.EventSink]));
       }
     }
     Converter[dart.implements] = () => [async.StreamTransformer$(S, T)];
@@ -1218,13 +1218,13 @@ dart_library.library('dart/convert', null, /* Imports */[
     writeMap(map) {
       this.writeString('{');
       let separator = '"';
-      map.forEach(dart.fn(((key, value) => {
+      map.forEach(dart.fn((key, value) => {
         this.writeString(separator);
         separator = ',"';
         this.writeStringContent(key);
         this.writeString('":');
         this.writeObject(value);
-      }).bind(this), dart.void, [core.String, core.Object]));
+      }, dart.void, [core.String, core.Object]));
       this.writeString('}');
     }
   }
@@ -1287,7 +1287,7 @@ dart_library.library('dart/convert', null, /* Imports */[
         this.writeString('{\n');
         this[_indentLevel] = dart.notNull(this[_indentLevel]) + 1;
         let first = true;
-        map.forEach(dart.fn(((key, value) => {
+        map.forEach(dart.fn((key, value) => {
           if (!first) {
             this.writeString(",\n");
           }
@@ -1297,7 +1297,7 @@ dart_library.library('dart/convert', null, /* Imports */[
           this.writeString('": ');
           this.writeObject(value);
           first = false;
-        }).bind(this), dart.void, [core.String, core.Object]));
+        }, dart.void, [core.String, core.Object]));
         this.writeString('\n');
         this[_indentLevel] = dart.notNull(this[_indentLevel]) - 1;
         this.writeIndentation(this[_indentLevel]);
@@ -1468,7 +1468,7 @@ dart_library.library('dart/convert', null, /* Imports */[
         let x = this.index;
         this.index = dart.notNull(x) + 1;
         return x;
-      }).bind(this)(), byte);
+      })(), byte);
     }
   }
   dart.setSignature(_JsonUtf8Stringifier, {
@@ -2103,39 +2103,39 @@ dart_library.library('dart/convert', null, /* Imports */[
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), 240 | dart.notNull(rune) >> 18);
+        })(), 240 | dart.notNull(rune) >> 18);
         this[_buffer][dartx.set]((() => {
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), 128 | dart.notNull(rune) >> 12 & 63);
+        })(), 128 | dart.notNull(rune) >> 12 & 63);
         this[_buffer][dartx.set]((() => {
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), 128 | dart.notNull(rune) >> 6 & 63);
+        })(), 128 | dart.notNull(rune) >> 6 & 63);
         this[_buffer][dartx.set]((() => {
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), 128 | dart.notNull(rune) & 63);
+        })(), 128 | dart.notNull(rune) & 63);
         return true;
       } else {
         this[_buffer][dartx.set]((() => {
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), 224 | dart.notNull(leadingSurrogate) >> 12);
+        })(), 224 | dart.notNull(leadingSurrogate) >> 12);
         this[_buffer][dartx.set]((() => {
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), 128 | dart.notNull(leadingSurrogate) >> 6 & 63);
+        })(), 128 | dart.notNull(leadingSurrogate) >> 6 & 63);
         this[_buffer][dartx.set]((() => {
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), 128 | dart.notNull(leadingSurrogate) & 63);
+        })(), 128 | dart.notNull(leadingSurrogate) & 63);
         return false;
       }
     }
@@ -2152,7 +2152,7 @@ dart_library.library('dart/convert', null, /* Imports */[
             let x = this[_bufferIndex];
             this[_bufferIndex] = dart.notNull(x) + 1;
             return x;
-          }).bind(this)(), codeUnit);
+          })(), codeUnit);
         } else if (dart.notNull(_isLeadSurrogate(codeUnit))) {
           if (dart.notNull(this[_bufferIndex]) + 3 >= dart.notNull(this[_buffer][dartx.length])) break;
           let nextCodeUnit = str[dartx.codeUnitAt](dart.notNull(stringIndex) + 1);
@@ -2168,12 +2168,12 @@ dart_library.library('dart/convert', null, /* Imports */[
               let x = this[_bufferIndex];
               this[_bufferIndex] = dart.notNull(x) + 1;
               return x;
-            }).bind(this)(), 192 | dart.notNull(rune) >> 6);
+            })(), 192 | dart.notNull(rune) >> 6);
             this[_buffer][dartx.set]((() => {
               let x = this[_bufferIndex];
               this[_bufferIndex] = dart.notNull(x) + 1;
               return x;
-            }).bind(this)(), 128 | dart.notNull(rune) & 63);
+            })(), 128 | dart.notNull(rune) & 63);
           } else {
             dart.assert(dart.notNull(rune) <= dart.notNull(_THREE_BYTE_LIMIT));
             if (dart.notNull(this[_bufferIndex]) + 2 >= dart.notNull(this[_buffer][dartx.length])) break;
@@ -2181,17 +2181,17 @@ dart_library.library('dart/convert', null, /* Imports */[
               let x = this[_bufferIndex];
               this[_bufferIndex] = dart.notNull(x) + 1;
               return x;
-            }).bind(this)(), 224 | dart.notNull(rune) >> 12);
+            })(), 224 | dart.notNull(rune) >> 12);
             this[_buffer][dartx.set]((() => {
               let x = this[_bufferIndex];
               this[_bufferIndex] = dart.notNull(x) + 1;
               return x;
-            }).bind(this)(), 128 | dart.notNull(rune) >> 6 & 63);
+            })(), 128 | dart.notNull(rune) >> 6 & 63);
             this[_buffer][dartx.set]((() => {
               let x = this[_bufferIndex];
               this[_bufferIndex] = dart.notNull(x) + 1;
               return x;
-            }).bind(this)(), 128 | dart.notNull(rune) & 63);
+            })(), 128 | dart.notNull(rune) & 63);
           }
         }
       }
@@ -2576,7 +2576,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
     get values() {
       if (dart.notNull(this[_isUpgraded])) return this[_upgradedMap].values;
-      return _internal.MappedIterable.new(this[_computeKeys](), dart.fn((each => this.get(each)).bind(this)));
+      return _internal.MappedIterable.new(this[_computeKeys](), dart.fn(each => this.get(each)));
     }
     set(key, value) {
       if (dart.notNull(this[_isUpgraded])) {
@@ -2594,9 +2594,9 @@ dart_library.library('dart/convert', null, /* Imports */[
       return value;
     }
     addAll(other) {
-      other.forEach(dart.fn(((key, value) => {
+      other.forEach(dart.fn((key, value) => {
         this.set(key, value);
-      }).bind(this), dart.void, [dart.dynamic, dart.dynamic]));
+      }, dart.void, [dart.dynamic, dart.dynamic]));
     }
     containsValue(value) {
       if (dart.notNull(this[_isUpgraded])) return this[_upgradedMap].containsValue(value);

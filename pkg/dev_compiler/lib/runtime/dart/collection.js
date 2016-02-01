@@ -191,7 +191,7 @@ dart_library.library('dart/collection', null, /* Imports */[
           let _ = core.List$(E).new();
           _[dartx.length] = this.length;
           return _;
-        }).bind(this)() : core.List$(E).new(this.length);
+        })() : core.List$(E).new(this.length);
         let i = 0;
         for (let element of this)
           result[dartx.set](i++, element);
@@ -456,7 +456,7 @@ dart_library.library('dart/collection', null, /* Imports */[
           let _ = this[_newSet]();
           _.addAll(this);
           return _;
-        }).bind(this)();
+        })();
       }
     }
     dart.setSignature(_HashSetBase, {
@@ -1363,7 +1363,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       addAll(entries) {
         dart.as(entries, core.Iterable$(E));
-        entries[dartx.forEach](dart.fn((entry => this[_insertAfter](this[_previous], entry)).bind(this), dart.void, [E]));
+        entries[dartx.forEach](dart.fn(entry => this[_insertAfter](this[_previous], entry), dart.void, [E]));
       }
       remove(entry) {
         dart.as(entry, E);
@@ -1763,7 +1763,7 @@ dart_library.library('dart/collection', null, /* Imports */[
           let x = this.length;
           this.length = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), element);
+        })(), element);
       }
       addAll(iterable) {
         dart.as(iterable, core.Iterable$(E));
@@ -1772,7 +1772,7 @@ dart_library.library('dart/collection', null, /* Imports */[
             let x = this.length;
             this.length = dart.notNull(x) + 1;
             return x;
-          }).bind(this)(), element);
+          })(), element);
         }
       }
       remove(element) {
@@ -3442,7 +3442,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         return null;
       }
       set(key, value) {
-        ((() => {
+        (() => {
           dart.as(key, K);
           dart.as(value, V);
           if (key == null) dart.throw(new core.ArgumentError(key));
@@ -3453,7 +3453,7 @@ dart_library.library('dart/collection', null, /* Imports */[
             return;
           }
           this[_addNewRoot](new (_SplayTreeMapNode$(K, dart.dynamic))(key, value), comp);
-        }).bind(this))();
+        })();
         return value;
       }
       putIfAbsent(key, ifAbsent) {
@@ -3480,11 +3480,11 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
-        other.forEach(dart.fn(((key, value) => {
+        other.forEach(dart.fn((key, value) => {
           dart.as(key, K);
           dart.as(value, V);
           this.set(key, value);
-        }).bind(this), dart.void, [K, V]));
+        }, dart.void, [K, V]));
       }
       get isEmpty() {
         return this[_root] == null;
@@ -4006,7 +4006,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         return new (HashMapKeyIterable$(K))(this);
       }
       get values() {
-        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn((each => this.get(each)).bind(this), V, [K]));
+        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => this.get(each), V, [K]));
       }
       containsKey(key) {
         if (dart.notNull(_HashMap$()._isStringKey(key))) {
@@ -4026,15 +4026,15 @@ dart_library.library('dart/collection', null, /* Imports */[
         return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this[_computeKeys]()[dartx.any](dart.fn((each => dart.equals(this.get(each), value)).bind(this), core.bool, [dart.dynamic]));
+        return this[_computeKeys]()[dartx.any](dart.fn(each => dart.equals(this.get(each), value), core.bool, [dart.dynamic]));
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
-        other.forEach(dart.fn(((key, value) => {
+        other.forEach(dart.fn((key, value) => {
           dart.as(key, K);
           dart.as(value, V);
           this.set(key, value);
-        }).bind(this), dart.void, [K, V]));
+        }, dart.void, [K, V]));
       }
       get(key) {
         if (dart.notNull(_HashMap$()._isStringKey(key))) {
@@ -4466,7 +4466,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         return new (LinkedHashMapKeyIterable$(K))(this);
       }
       get values() {
-        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn((each => this.get(each)).bind(this), V, [K]));
+        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => this.get(each), V, [K]));
       }
       containsKey(key) {
         if (dart.notNull(_LinkedHashMap$()._isStringKey(key))) {
@@ -4490,15 +4490,15 @@ dart_library.library('dart/collection', null, /* Imports */[
         return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this.keys[dartx.any](dart.fn((each => dart.equals(this.get(each), value)).bind(this), core.bool, [K]));
+        return this.keys[dartx.any](dart.fn(each => dart.equals(this.get(each), value), core.bool, [K]));
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
-        other.forEach(dart.fn(((key, value) => {
+        other.forEach(dart.fn((key, value) => {
           dart.as(key, K);
           dart.as(value, V);
           this.set(key, value);
-        }).bind(this), dart.void, [K, V]));
+        }, dart.void, [K, V]));
       }
       get(key) {
         if (dart.notNull(_LinkedHashMap$()._isStringKey(key))) {

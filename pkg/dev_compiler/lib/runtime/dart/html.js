@@ -9536,9 +9536,9 @@ dart_library.library('dart/html', null, /* Imports */[
       this[_element] = element;
     }
     addAll(other) {
-      other.forEach(dart.fn(((k, v) => {
+      other.forEach(dart.fn((k, v) => {
         this.set(k, v);
-      }).bind(this), dart.void, [core.String, core.String]));
+      }, dart.void, [core.String, core.String]));
     }
     containsValue(value) {
       for (let v of this.values) {
@@ -9686,9 +9686,9 @@ dart_library.library('dart/html', null, /* Imports */[
       this[_attributes] = attributes;
     }
     addAll(other) {
-      other.forEach(dart.fn(((k, v) => {
+      other.forEach(dart.fn((k, v) => {
         this.set(k, v);
-      }).bind(this), dart.void, [core.String, core.String]));
+      }, dart.void, [core.String, core.String]));
     }
     containsValue(value) {
       return this.values[dartx.any](dart.fn(v => dart.equals(v, value), core.bool, [core.String]));
@@ -9715,28 +9715,28 @@ dart_library.library('dart/html', null, /* Imports */[
       }
     }
     forEach(f) {
-      this[_attributes].forEach(dart.fn(((key, value) => {
+      this[_attributes].forEach(dart.fn((key, value) => {
         if (dart.notNull(this[_matches](key))) {
           f(this[_strip](key), value);
         }
-      }).bind(this), dart.void, [core.String, core.String]));
+      }, dart.void, [core.String, core.String]));
     }
     get keys() {
       let keys = core.List$(core.String).new();
-      this[_attributes].forEach(dart.fn(((key, value) => {
+      this[_attributes].forEach(dart.fn((key, value) => {
         if (dart.notNull(this[_matches](key))) {
           keys[dartx.add](this[_strip](key));
         }
-      }).bind(this), dart.void, [core.String, core.String]));
+      }, dart.void, [core.String, core.String]));
       return keys;
     }
     get values() {
       let values = core.List$(core.String).new();
-      this[_attributes].forEach(dart.fn(((key, value) => {
+      this[_attributes].forEach(dart.fn((key, value) => {
         if (dart.notNull(this[_matches](key))) {
           values[dartx.add](value);
         }
-      }).bind(this), dart.void, [core.String, core.String]));
+      }, dart.void, [core.String, core.String]));
       return values;
     }
     get length() {
@@ -10914,7 +10914,7 @@ dart_library.library('dart/html', null, /* Imports */[
       add(stream) {
         dart.as(stream, async.Stream$(T));
         if (dart.notNull(this[_subscriptions].containsKey(stream))) return;
-        this[_subscriptions].set(stream, stream.listen(dart.bind(this[_controller], 'add'), {onError: dart.bind(this[_controller], 'addError'), onDone: dart.fn((() => this.remove(stream)).bind(this), dart.void, [])}));
+        this[_subscriptions].set(stream, stream.listen(dart.bind(this[_controller], 'add'), {onError: dart.bind(this[_controller], 'addError'), onDone: dart.fn(() => this.remove(stream), dart.void, [])}));
       }
       remove(stream) {
         dart.as(stream, async.Stream$(T));

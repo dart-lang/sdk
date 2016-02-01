@@ -28,10 +28,6 @@ void _showUsageAndExit() {
 }
 
 main(List<String> args) async {
-  args = []
-    ..add('--arrow-fn-bind-this')
-    ..addAll(args);
-
   CompilerOptions options;
 
   try {

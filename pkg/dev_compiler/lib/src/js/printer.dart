@@ -15,16 +15,12 @@ class JavaScriptPrintingOptions {
   /// Modern JS engines support this.
   final bool allowKeywordsInProperties;
 
-  /// Workaround if `this` is not bound in arrow functions.
-  final bool arrowFnBindThisWorkaround;
-
   JavaScriptPrintingOptions(
       {this.shouldCompressOutput: false,
        this.minifyLocalVariables: false,
        this.preferSemicolonToNewlineInMinifiedOutput: false,
        this.allowKeywordsInProperties: false,
-       this.allowSingleLineIfStatements: false,
-       this.arrowFnBindThisWorkaround: false});
+       this.allowSingleLineIfStatements: false});
 }
 
 
@@ -578,11 +574,6 @@ class Printer implements NodeVisitor {
   visitNestedExpression(Expression node, int requiredPrecedence,
                         {bool newInForInit, bool newAtStatementBegin}) {
     int nodePrecedence = node.precedenceLevel;
-    if (options.arrowFnBindThisWorkaround) {
-      if (node is ArrowFun && node.closesOverThis) {
-        nodePrecedence = CALL;
-      }
-    }
     bool needsParentheses =
         // a - (b + c).
         (requiredPrecedence != EXPRESSION &&
@@ -929,10 +920,6 @@ class Printer implements NodeVisitor {
   }
 
   visitArrowFun(ArrowFun fun) {
-    bool bindThis = options.arrowFnBindThisWorkaround && fun.closesOverThis;
-    if (bindThis) {
-      out("(");
-    }
     localNamer.enterScope(fun);
     if (fun.params.length == 1) {
       visitNestedExpression(fun.params.single, SPREAD,
@@ -959,9 +946,6 @@ class Printer implements NodeVisitor {
       blockBody(fun.body, needsSeparation: false, needsNewline: false);
     }
     localNamer.leaveScope();
-    if (bindThis) {
-      out(").bind(this)");
-    }
   }
 
   visitLiteralBool(LiteralBool node) {

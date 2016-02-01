@@ -3563,8 +3563,7 @@ class JSGenerator extends CodeGenerator {
         ? Uri.parse('http://${flags.host}:${flags.port}/')
         : null;
     return writeJsLibrary(module, out, compiler.inputBaseDir, serverUri,
-        emitSourceMaps: options.emitSourceMaps,
-        arrowFnBindThisWorkaround: options.arrowFnBindThisWorkaround);
+        emitSourceMaps: options.emitSourceMaps);
   }
 }
 

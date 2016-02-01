@@ -18,7 +18,7 @@ import 'js_names.dart' show TemporaryNamer;
 
 String writeJsLibrary(
     JS.Program jsTree, String outputPath, String inputDir, Uri serverUri,
-    {bool emitSourceMaps: false, bool arrowFnBindThisWorkaround: false}) {
+    {bool emitSourceMaps: false}) {
   var outFilename = path.basename(outputPath);
   var outDir = path.dirname(outputPath);
   new Directory(outDir).createSync(recursive: true);
@@ -33,9 +33,7 @@ String writeJsLibrary(
   }
 
   var opts = new JS.JavaScriptPrintingOptions(
-      allowKeywordsInProperties: true,
-      allowSingleLineIfStatements: true,
-      arrowFnBindThisWorkaround: arrowFnBindThisWorkaround);
+      allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
   var jsNamer = new TemporaryNamer(jsTree);
   jsTree.accept(new JS.Printer(opts, context, localNamer: jsNamer));
 

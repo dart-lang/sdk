@@ -3,8 +3,7 @@ set -e
 # switch to the root directory of dev_compiler
 cd $( dirname "${BASH_SOURCE[0]}" )/..
 
-output_dir=tmp/node
-[[ -d $output_dir ]] || mkdir -p $output_dir
+output_dir=`mktemp -d /tmp/ddc_node_test.XXXXXX`
 
 ddc_options=(
   --destructure-named-params
