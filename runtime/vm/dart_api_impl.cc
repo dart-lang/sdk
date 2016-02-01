@@ -1547,7 +1547,7 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     while (!data.done) {
       ml.Wait();
     }
-    Dart_EnterIsolate(Api::CastIsolate(I));
+    ::Dart_EnterIsolate(Api::CastIsolate(I));
   }
   if (I->object_store()->sticky_error() != Object::null()) {
     Dart_Handle error = Api::NewHandle(T, I->object_store()->sticky_error());
