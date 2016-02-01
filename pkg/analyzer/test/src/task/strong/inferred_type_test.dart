@@ -1584,10 +1584,32 @@ main() {
     '''
     });
 
+    // Regression test for https://github.com/dart-lang/dev_compiler/issues/47
+    testChecker('null literal should not infer as bottom', {
+      '/main.dart': '''
+        var h = null;
+        void foo(int f(Object _)) {}
+
+        main() {
+          var f = (x) => null;
+          f = (x) => 'hello';
+
+          var g = null;
+          g = 'hello';
+          (/*info:DYNAMIC_INVOKE*/g.foo());
+
+          h = 'hello';
+          (/*info:DYNAMIC_INVOKE*/h.foo());
+
+          foo(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) => null);
+          foo(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) => throw "not implemented");
+        }
+    '''
+    });
+
     // TODO(jmesserly): we should change how this inference works.
     // For now this test will cover what we use.
-    testChecker(
-        'infer from RHS only if it wont conflict with overridden fields 2', {
+    testChecker('infer JS builtin', {
       '/main.dart': '''
         import 'dart:_foreign_helper' show JS;
         main() {
@@ -1598,6 +1620,5 @@ main() {
         }
     '''
     });
-
   });
 }

@@ -466,10 +466,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         node.element as ExecutableElementImpl;
     DartType computedType = _computeStaticReturnTypeOfFunctionExpression(node);
     if (_strongMode) {
+      // In strong mode, we don't want to allow the function's return type to
+      // be bottom. If the surrounding context has a more precise type, we
+      // will push it down with inference, below. If not we want to use dynamic.
+      // TODO(jmesserly): should we  do this for the `null` literal always in
+      // strong mode, instead of handling it here?
+      if (computedType.isBottom) {
+        computedType = DynamicTypeImpl.instance;
+      }
+
       DartType functionType = InferenceContext.getType(node);
       if (functionType is FunctionType) {
         DartType returnType = functionType.returnType;
-        if ((computedType.isDynamic || computedType.isBottom) &&
+        if (computedType.isDynamic &&
             !(returnType.isDynamic || returnType.isBottom)) {
           computedType = returnType;
           _resolver.inferenceContext.recordInference(node, functionType);
