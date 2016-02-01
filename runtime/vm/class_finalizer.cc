@@ -2570,7 +2570,15 @@ bool ClassFinalizer::IsTypedefCycleFree(const Class& cls,
     AbstractType& other_type = AbstractType::Handle();
     if (resolved_type.IsFunctionType()) {
       const Class& scope_class = Class::Handle(resolved_type.type_class());
-      if (!scope_class.is_type_finalized() && scope_class.IsTypedefClass()) {
+      const Function& signature_function =
+          Function::Handle(FunctionType::Cast(resolved_type).signature());
+      // The signature function of this function type may be a local signature
+      // function used in a formal parameter type of the typedef signature, but
+      // not the typedef signature function itself, thus not qualifying as an
+      // illegal self reference.
+      if (!scope_class.is_type_finalized() &&
+          scope_class.IsTypedefClass() &&
+          (scope_class.signature_function() == signature_function.raw())) {
         checking_typedef = true;
         const intptr_t scope_class_id = scope_class.id();
         ASSERT(visited != NULL);
@@ -2597,16 +2605,14 @@ bool ClassFinalizer::IsTypedefCycleFree(const Class& cls,
         }
       }
       // Check the result type of the signature of this function type.
-      const Function& function =
-          Function::Handle(FunctionType::Cast(resolved_type).signature());
-      other_type = function.result_type();
+      other_type = signature_function.result_type();
       if (!IsTypedefCycleFree(cls, other_type, visited)) {
         return false;
       }
       // Check the parameter types of the signature of this function type.
-      const intptr_t num_parameters = function.NumParameters();
+      const intptr_t num_parameters = signature_function.NumParameters();
       for (intptr_t i = 0; i < num_parameters; i++) {
-        other_type = function.ParameterTypeAt(i);
+        other_type = signature_function.ParameterTypeAt(i);
         if (!IsTypedefCycleFree(cls, other_type, visited)) {
           return false;
         }

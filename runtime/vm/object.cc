@@ -15709,9 +15709,10 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   Class& cls = Class::Handle(zone);
   if (IsFunctionType()) {
     cls = type_class();
-    if (!cls.IsTypedefClass()) {
-      const Function& signature_function = Function::Handle(
-          zone, FunctionType::Cast(*this).signature());
+    const Function& signature_function = Function::Handle(
+        zone, FunctionType::Cast(*this).signature());
+    if (!cls.IsTypedefClass() ||
+        (cls.signature_function() != signature_function.raw())) {
       if (!IsFinalized() || IsBeingFinalized() || IsMalformed()) {
         return signature_function.UserVisibleSignature();
       }
@@ -17141,9 +17142,11 @@ const char* FunctionType::ToCString() const {
   const Class& scope_cls = Class::Handle(scope_class());
   const TypeArguments& type_arguments = TypeArguments::Handle(arguments());
   const Function& signature_function = Function::Handle(signature());
-  const String& signature_string = String::Handle(
-      signature_function.InstantiatedSignatureFrom(type_arguments,
-                                                   kInternalName));
+  const String& signature_string = IsFinalized() ?
+      String::Handle(
+          signature_function.InstantiatedSignatureFrom(type_arguments,
+                                                       kInternalName)) :
+      String::Handle(signature_function.Signature());
   if (scope_cls.IsClosureClass()) {
     ASSERT(arguments() == TypeArguments::null());
     return OS::SCreate(
