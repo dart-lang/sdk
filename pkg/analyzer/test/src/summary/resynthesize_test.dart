@@ -242,8 +242,10 @@ class ResynthTest extends ResolverTestCase {
         compareConstantExpressions(r, o.expression, desc);
       } else if (o is SimpleIdentifier && r is SimpleIdentifier) {
         expect(r.name, o.name);
-        compareTypes(r.staticType, o.staticType, desc);
         compareElements(r.staticElement, o.staticElement, desc);
+        // ConstantAstCloner does not copy static types, and constant values
+        // computer does not use static types. So, we don't set them during
+        // resynthesis and should not check them.
       } else if (o is PrefixedIdentifier) {
         // We don't resynthesize prefixed identifiers.
         // We use simple identifiers with correct elements and types.
@@ -599,7 +601,9 @@ class ResynthTest extends ResolverTestCase {
       VariableElementImpl original, String desc) {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
-    if (shouldCompareConstValues) {
+    // TODO(scheglov) implement and validate other constant variable types
+    if (shouldCompareConstValues &&
+        original is ConstTopLevelVariableElementImpl) {
       compareConstantExpressions(resynthesized.constantInitializer,
           original.constantInitializer, desc);
     }
@@ -1004,6 +1008,57 @@ class E {}''');
 
   test_classes() {
     checkLibrary('class C {} class D {}');
+  }
+
+  test_const_reference_type() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+class C {}
+class D<T> {}
+enum E {a, b, c}
+typedef F(int a, String b);
+const vDynamic = dynamic;
+const vNull = Null;
+const vObject = Object;
+const vClass = C;
+const vGenericClass = D;
+const vEnum = E;
+const vFunctionTypeAlias = F;
+''');
+  }
+
+  test_const_reference_type_imported() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C {}
+enum E {a, b, c}
+typedef F(int a, String b);
+''');
+    checkLibrary(r'''
+import 'a.dart';
+const vClass = C;
+const vEnum = E;
+const vFunctionTypeAlias = F;
+''');
+  }
+
+  test_const_reference_type_imported_withPrefix() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C {}
+enum E {a, b, c}
+typedef F(int a, String b);
+''');
+    checkLibrary(r'''
+import 'a.dart' as p;
+const vClass = p.C;
+const vEnum = p.E;
+const vFunctionTypeAlias = p.F;
+''');
   }
 
   test_const_topLevel_binary() {

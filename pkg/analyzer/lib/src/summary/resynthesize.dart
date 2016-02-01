@@ -411,6 +411,16 @@ class _ConstExprBuilder {
           _pushMap(AstFactory.typeArgumentList(<TypeName>[keyType, valueType]));
           break;
         case UnlinkedConstOperation.pushReference:
+          EntityRef ref = uc.references[refPtr++];
+          _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
+          if (info.type != null) {
+            Identifier node = _buildTypeIdentifierAst(info.type);
+            _push(node);
+          } else {
+            throw new StateError(
+                'Unsupported reference ${info.element?.runtimeType}');
+          }
+          break;
         case UnlinkedConstOperation.invokeConstructor:
         case UnlinkedConstOperation.length:
           return AstFactory.nullLiteral();
@@ -435,6 +445,13 @@ class _ConstExprBuilder {
       return node;
     }
     throw new StateError('Unsupported type $type');
+  }
+
+  Identifier _buildTypeIdentifierAst(DartType type) {
+    String name = type.name;
+    SimpleIdentifier node = AstFactory.identifier3(name);
+    node.staticElement = type.element;
+    return node;
   }
 
   InterpolationElement _newInterpolationElement(Expression expr) {
@@ -1270,7 +1287,7 @@ class _LibraryResynthesizer {
               currentTypeParameters.length - type.paramReference]
           .type;
     } else {
-      DartType getTypeParameter(int i) {
+      DartType getTypeArgument(int i) {
         if (i < type.typeArguments.length) {
           return buildType(type.typeArguments[i]);
         } else {
@@ -1279,7 +1296,7 @@ class _LibraryResynthesizer {
       }
       _ReferenceInfo referenceInfo = referenceInfos[type.reference];
       return referenceInfo.buildType(
-          getTypeParameter, type.implicitFunctionTypeIndices);
+          getTypeArgument, type.implicitFunctionTypeIndices);
     }
   }
 
@@ -1591,8 +1608,8 @@ class _ReferenceInfo {
 
   /**
    * Create a new [_ReferenceInfo] object referring to an element called [name]
-   * via the element handle [elementHandle], and having [numTypeParameters]
-   * type parameters.
+   * via the element handle [element], and having [numTypeParameters] type
+   * parameters.
    *
    * For the special types `dynamic` and `void`, [specialType] should point to
    * the type itself.  Otherwise, pass `null` and the type will be computed
@@ -1602,10 +1619,8 @@ class _ReferenceInfo {
       this.name, this.element, DartType specialType, this.numTypeParameters) {
     if (specialType != null) {
       type = specialType;
-    } else if (numTypeParameters == 0) {
-      // We can precompute the type because it doesn't depend on type
-      // parameters.
-      type = _buildType(null, null);
+    } else {
+      type = _buildType((_) => DynamicTypeImpl.instance, null);
     }
   }
 
