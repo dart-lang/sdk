@@ -566,7 +566,9 @@ void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
   } else if (new_socket == ServerSocket::kTemporaryFailure) {
     Dart_SetReturnValue(args, Dart_False());
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    Dart_Handle err = DartUtils::NewDartOSError();
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
   }
 }
 
