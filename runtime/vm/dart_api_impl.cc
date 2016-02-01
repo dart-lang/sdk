@@ -7,6 +7,7 @@
 #include "include/dart_native_api.h"
 
 #include "platform/assert.h"
+#include "lib/stacktrace.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
 #include "vm/dart.h"
@@ -4792,6 +4793,11 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   ASSERT(arguments->thread()->isolate() == Isolate::Current());
   if ((retval != Api::Null()) && (!Api::IsInstance(retval))) {
+    // Print the current stack trace to make the problematic caller
+    // easier to find.
+    const Stacktrace& stacktrace = GetCurrentStacktrace(0);
+    OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
+
     const Object& ret_obj = Object::Handle(Api::UnwrapHandle(retval));
     FATAL1("Return value check failed: saw '%s' expected a dart Instance.",
            ret_obj.ToCString());
