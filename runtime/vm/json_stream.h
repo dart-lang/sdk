@@ -159,7 +159,7 @@ class JSONStream : ValueObject {
   void PrintValue(Metric* metric);
   void PrintValue(MessageQueue* queue);
   void PrintValue(Isolate* isolate, bool ref = true);
-  bool PrintValueStr(const String& s, intptr_t limit);
+  bool PrintValueStr(const String& s, intptr_t offset, intptr_t count);
   void PrintValue(TimelineEvent* timeline_event);
   void PrintValueVM(bool ref = true);
 
@@ -174,7 +174,8 @@ class JSONStream : ValueObject {
                            const uint8_t* bytes,
                            intptr_t length);
   void PrintProperty(const char* name, const char* s);
-  bool PrintPropertyStr(const char* name, const String& s, intptr_t limit);
+  bool PrintPropertyStr(const char* name, const String& s,
+                        intptr_t offset, intptr_t count);
   void PrintPropertyNoEscape(const char* name, const char* s);
   void PrintfProperty(const char* name, const char* format, ...)
   PRINTF_ATTRIBUTE(3, 4);
@@ -191,7 +192,7 @@ class JSONStream : ValueObject {
   void PrintCommaIfNeeded();
   bool NeedComma();
 
-  bool AddDartString(const String& s, intptr_t limit);
+  bool AddDartString(const String& s, intptr_t offset, intptr_t count);
   void AddEscapedUTF8String(const char* s);
   void AddEscapedUTF8String(const char* s, intptr_t len);
 
@@ -276,8 +277,9 @@ class JSONObject : public ValueObject {
   }
   bool AddPropertyStr(const char* name,
                       const String& s,
-                      intptr_t limit = -1) const {
-    return stream_->PrintPropertyStr(name, s, limit);
+                      intptr_t offset = 0,
+                      intptr_t count = -1) const {
+    return stream_->PrintPropertyStr(name, s, offset, count);
   }
   void AddPropertyNoEscape(const char* name, const char* s) const {
     stream_->PrintPropertyNoEscape(name, s);

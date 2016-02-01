@@ -4266,7 +4266,7 @@ VM_TEST_CASE(PrintJSONPrimitives) {
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_OneByteString\",\"_vmName\":\"\"},"
         "\"kind\":\"String\","
-        "\"id\":\"\",\"valueAsString\":\"dw\"}",
+        "\"id\":\"\",\"length\":2,\"valueAsString\":\"dw\"}",
         buffer);
   }
   // Array reference

@@ -86,6 +86,99 @@ var tests = [
     expect(result['fields'], isEmpty);
   },
 
+  // A string
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, '"Chattanooga"');
+    var params = {
+      'objectId': evalResult['id'],
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('String'));
+    expect(result['_vmType'], equals('String'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], equals('Chattanooga'));
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_OneByteString'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(11));
+    expect(result['offset'], isNull);
+    expect(result['count'], isNull);
+  },
+
+  // String prefix.
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, '"Chattanooga"');
+    var params = {
+      'objectId': evalResult['id'],
+      'count': 4,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('String'));
+    expect(result['_vmType'], equals('String'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], equals('Chat'));
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_OneByteString'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(11));
+    expect(result['offset'], isNull);
+    expect(result['count'], equals(4));
+  },
+
+  // String subrange.
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, '"Chattanooga"');
+    var params = {
+      'objectId': evalResult['id'],
+      'offset': 4,
+      'count': 6,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('String'));
+    expect(result['_vmType'], equals('String'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], equals('tanoog'));
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_OneByteString'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(11));
+    expect(result['offset'], equals(4));
+    expect(result['count'], equals(6));
+  },
+
+  // String with wacky offset.
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, '"Chattanooga"');
+    var params = {
+      'objectId': evalResult['id'],
+      'offset': 100,
+      'count': 2,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('String'));
+    expect(result['_vmType'], equals('String'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], equals(''));
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_OneByteString'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(11));
+    expect(result['offset'], equals(11));
+    expect(result['count'], equals(0));
+  },
+
   // A built-in List.
   (Isolate isolate) async {
     // Call eval to get a Dart list.

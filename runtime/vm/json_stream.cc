@@ -396,10 +396,12 @@ void JSONStream::PrintValue(const char* s) {
 }
 
 
-bool JSONStream::PrintValueStr(const String& s, intptr_t limit) {
+bool JSONStream::PrintValueStr(const String& s,
+                               intptr_t offset,
+                               intptr_t count) {
   PrintCommaIfNeeded();
   buffer_.AddChar('"');
-  bool did_truncate = AddDartString(s, limit);
+  bool did_truncate = AddDartString(s, offset, count);
   buffer_.AddChar('"');
   return did_truncate;
 }
@@ -534,9 +536,10 @@ void JSONStream::PrintPropertyBase64(const char* name,
 
 bool JSONStream::PrintPropertyStr(const char* name,
                                   const String& s,
-                                  intptr_t limit) {
+                                  intptr_t offset,
+                                  intptr_t count) {
   PrintPropertyName(name);
-  return PrintValueStr(s, limit);
+  return PrintValueStr(s, offset, count);
 }
 
 
@@ -702,23 +705,24 @@ void JSONStream::AddEscapedUTF8String(const char* s, intptr_t len) {
 }
 
 
-bool JSONStream::AddDartString(const String& s, intptr_t limit) {
-  bool did_truncate = false;
+bool JSONStream::AddDartString(const String& s,
+                               intptr_t offset,
+                               intptr_t count) {
   intptr_t length = s.Length();
-  if (limit == -1) {
-    limit = length;
+  ASSERT(offset >= 0);
+  if (offset > length) {
+    offset = length;
   }
-  if (length <= limit) {
-    limit = length;
-  } else {
-    did_truncate = true;
+  if (!Utils::RangeCheck(offset, count, length)) {
+    count = length - offset;
   }
-
-  for (intptr_t i = 0; i < limit; i++) {
+  intptr_t limit = offset + count;
+  for (intptr_t i = offset; i < limit; i++) {
     intptr_t code_unit = s.CharAt(i);
     buffer_.EscapeAndAddCodeUnit(code_unit);
   }
-  return did_truncate;
+  // Return value indicates whether the string is truncated.
+  return (offset > 0) || (limit < length);
 }
 
 

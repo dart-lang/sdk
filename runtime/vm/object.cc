@@ -20212,15 +20212,27 @@ void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "String");
   jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
   if (ref) {
-    bool did_truncate = jsobj.AddPropertyStr("valueAsString", *this, 128);
-    if (did_truncate) {
-      jsobj.AddProperty("valueAsStringIsTruncated", did_truncate);
+    // String refs always truncate to a fixed count;
+    const intptr_t kFixedCount = 128;
+    if (jsobj.AddPropertyStr("valueAsString", *this, 0, kFixedCount)) {
+      jsobj.AddProperty("count", kFixedCount);
+      jsobj.AddProperty("valueAsStringIsTruncated", true);
     }
-  } else {
-    bool did_truncate = jsobj.AddPropertyStr("valueAsString", *this);
-    ASSERT(!did_truncate);
+    return;
   }
+
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  jsobj.AddPropertyStr("valueAsString", *this, offset, count);
 }
 
 
