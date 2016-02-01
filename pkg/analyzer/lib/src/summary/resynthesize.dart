@@ -413,12 +413,14 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.pushReference:
           EntityRef ref = uc.references[refPtr++];
           _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
-          if (info.type != null) {
-            Identifier node = _buildTypeIdentifierAst(info.type);
+          if (info.element != null) {
+            Identifier node = _buildElementAst(info.name, info.element);
+            _push(node);
+          } else if (info.type != null) {
+            Identifier node = _buildElementAst(info.name, info.type.element);
             _push(node);
           } else {
-            throw new StateError(
-                'Unsupported reference ${info.element?.runtimeType}');
+            throw new StateError('Unsupported reference ${ref.toMap()}');
           }
           break;
         case UnlinkedConstOperation.invokeConstructor:
@@ -428,6 +430,12 @@ class _ConstExprBuilder {
       }
     }
     return stack.single;
+  }
+
+  Identifier _buildElementAst(String name, Element element) {
+    SimpleIdentifier node = AstFactory.identifier3(name);
+    node.staticElement = element;
+    return node;
   }
 
   TypeName _buildTypeAst(DartType type) {
@@ -445,13 +453,6 @@ class _ConstExprBuilder {
       return node;
     }
     throw new StateError('Unsupported type $type');
-  }
-
-  Identifier _buildTypeIdentifierAst(DartType type) {
-    String name = type.name;
-    SimpleIdentifier node = AstFactory.identifier3(name);
-    node.staticElement = type.element;
-    return node;
   }
 
   InterpolationElement _newInterpolationElement(Expression expr) {
@@ -1479,15 +1480,17 @@ class _LibraryResynthesizer {
         List<String> locationComponents;
         if (containingReference != 0 &&
             referenceInfos[containingReference].element is ClassElement) {
+          String identifier = _getElementIdentifier(name, linkedReference.kind);
           locationComponents = referenceInfos[containingReference]
               .element
               .location
               .components
               .toList();
-          locationComponents.add(name);
+          locationComponents.add(identifier);
         } else {
+          String identifier = _getElementIdentifier(name, linkedReference.kind);
           locationComponents = getReferencedLocationComponents(
-              linkedReference.dependency, linkedReference.unit, name);
+              linkedReference.dependency, linkedReference.unit, identifier);
         }
         ElementLocation location =
             new ElementLocationImpl.con3(locationComponents);
@@ -1497,6 +1500,10 @@ class _LibraryResynthesizer {
             break;
           case ReferenceKind.typedef:
             element = new FunctionTypeAliasElementHandle(
+                summaryResynthesizer, location);
+            break;
+          case ReferenceKind.topLevelPropertyAccessor:
+            element = new PropertyAccessorElementHandle(
                 summaryResynthesizer, location);
             break;
           case ReferenceKind.propertyAccessor:
@@ -1574,11 +1581,26 @@ class _LibraryResynthesizer {
     linkedTypeMap = null;
     referenceInfos = null;
   }
+
+  /**
+   * If the given [kind] is a top-level or class member property accessor, and
+   * the given [name] does not end with `=`, i.e. does not denote a setter,
+   * return the getter identifier by appending `?`.
+   */
+  static String _getElementIdentifier(String name, ReferenceKind kind) {
+    if (kind == ReferenceKind.topLevelPropertyAccessor ||
+        kind == ReferenceKind.propertyAccessor) {
+      if (!name.endsWith('=')) {
+        return name + '?';
+      }
+    }
+    return name;
+  }
 }
 
 /**
  * Data structure used during resynthesis to record all the information that is
- * known about how to reserialize a single entry in [LinkedUnit.references]
+ * known about how to resynthesize a single entry in [LinkedUnit.references]
  * (and its associated entry in [UnlinkedUnit.references], if it exists).
  */
 class _ReferenceInfo {

@@ -246,10 +246,14 @@ class ResynthTest extends ResolverTestCase {
         // ConstantAstCloner does not copy static types, and constant values
         // computer does not use static types. So, we don't set them during
         // resynthesis and should not check them.
-      } else if (o is PrefixedIdentifier) {
+      } else if (o is PrefixedIdentifier && r is SimpleIdentifier) {
         // We don't resynthesize prefixed identifiers.
-        // We use simple identifiers with correct elements and types.
-        compareConstantExpressions(r as SimpleIdentifier, o.identifier, desc);
+        // We use simple identifiers with correct elements.
+        compareConstantExpressions(r, o.identifier, desc);
+      } else if (o is PropertyAccess && r is SimpleIdentifier) {
+        // We don't resynthesize property access.
+        // We use simple identifiers with correct elements.
+        compareConstantExpressions(r, o.propertyName, desc);
       } else if (o is NullLiteral) {
         expect(r, new isInstanceOf<NullLiteral>(), reason: desc);
       } else if (o is BooleanLiteral && r is BooleanLiteral) {
@@ -1008,6 +1012,80 @@ class E {}''');
 
   test_classes() {
     checkLibrary('class C {} class D {}');
+  }
+
+  test_const_reference_staticField() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+class C {
+  static const int F = 42;
+}
+const V = C.F;
+''');
+  }
+
+  test_const_reference_staticField_imported() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C {
+  static const int F = 42;
+}
+''');
+    checkLibrary(r'''
+import 'a.dart';
+const V = C.F;
+''');
+  }
+
+  test_const_reference_staticField_imported_withPrefix() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C {
+  static const int F = 42;
+}
+''');
+    checkLibrary(r'''
+import 'a.dart' as p;
+const V = p.C.F;
+''');
+  }
+
+  test_const_reference_topLevelVariable() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+const A = 1;
+const B = A + 2;
+''');
+  }
+
+  test_const_reference_topLevelVariable_imported() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+const A = 1;
+''');
+    checkLibrary(r'''
+import 'a.dart';
+const B = A + 2;
+''');
+  }
+
+  test_const_reference_topLevelVariable_imported_withPrefix() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+const A = 1;
+''');
+    checkLibrary(r'''
+import 'a.dart' as p;
+const B = p.A + 2;
+''');
   }
 
   test_const_reference_type() {
