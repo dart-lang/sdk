@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:analyzer/file_system/file_system.dart' as fileSystem;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/plugin/options.dart';
+import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/package_map_provider.dart';
@@ -30,7 +31,6 @@ import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer_cli/plugin/analysis/resolver_provider.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';

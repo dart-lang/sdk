@@ -4,7 +4,7 @@
 
 library analyzer_cli.starter;
 
-import 'package:analyzer_cli/plugin/analysis/resolver_provider.dart';
+import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:plugin/plugin.dart';
 
