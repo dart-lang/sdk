@@ -150,7 +150,7 @@ class FixProcessor {
       _addFix_replaceWithConstInstanceCreation();
     }
     if (errorCode == CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT) {
-      bool isAsync = _addFix_addAsync_asyncFor();
+      _addFix_addAsync_asyncFor();
     }
     if (errorCode == CompileTimeErrorCode.INVALID_ANNOTATION) {
       if (node is Annotation) {
