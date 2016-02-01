@@ -29718,10 +29718,10 @@ dart_library.library('language/class_syntax2_test', null, /* Imports */[
   dart.fn(main, dart.void, []);
   class Cool extends core.Object {
     Cool(option) {
-      this.thing = dart.notNull(option) ? dart.map() : dart.list([], core.String);
+      this.thing = dart.notNull(option) ? dart.map({}, core.String, core.String) : dart.list([], core.String);
     }
     alt(option) {
-      this.thing = !dart.notNull(option) ? dart.list([], core.String) : dart.map();
+      this.thing = !dart.notNull(option) ? dart.list([], core.String) : dart.map({}, core.String, core.String);
     }
   }
   dart.defineNamedConstructor(Cool, 'alt');
@@ -44700,9 +44700,10 @@ dart_library.library('language/const_map3_test_none_multi', null, /* Imports */[
 });
 dart_library.library('language/const_map4_test', null, /* Imports */[
   'dart/_runtime',
-  'expect/expect'
+  'expect/expect',
+  'dart/core'
 ], /* Lazy imports */[
-], function(exports, dart, expect) {
+], function(exports, dart, expect, core) {
   'use strict';
   let dartx = dart.dartx;
   function main() {
@@ -44712,10 +44713,10 @@ dart_library.library('language/const_map4_test', null, /* Imports */[
     a = dart.const(dart.map([1, 'a', 2, 'b', 3, 'c']));
     b = dart.const(dart.map([1, 'a', 2, 'b', 3, 'c']));
     expect.Expect.equals(true, dart.equals(a, b));
-    a = dart.const(dart.map([1, 'a', 2, 'b', 3, 'c']));
+    a = dart.const(dart.map([1, 'a', 2, 'b', 3, 'c'], core.num, core.String));
     b = dart.const(dart.map([1, 'a', 2, 'b', 3, 'c']));
     expect.Expect.equals(false, dart.equals(a, b));
-    a = dart.const(dart.map([1, 'a', 2, 'b', 3, 'c']));
+    a = dart.const(dart.map([1, 'a', 2, 'b', 3, 'c'], dart.dynamic, dart.dynamic));
     b = dart.const(dart.map([1, 'a', 2, 'b', 3, 'c']));
     expect.Expect.equals(true, dart.equals(a, b));
   }
@@ -45320,8 +45321,8 @@ dart_library.library('language/const_types_test_none_multi', null, /* Imports */
         use(dart.const(dart.list([], Class$())));
         use(dart.const(dart.list([], Class$(core.int))));
         use(dart.const(dart.map()));
-        use(dart.const(dart.map()));
-        use(dart.const(dart.map()));
+        use(dart.const(dart.map({}, core.String, Class$())));
+        use(dart.const(dart.map({}, core.String, Class$(core.int))));
         use(dart.const(new (Class$())()));
         use(dart.const(new (Class$(core.int))()));
         use(dart.const(new (Class$()).named()));
@@ -45390,15 +45391,15 @@ dart_library.library('language/const_var_test', null, /* Imports */[
   let dartx = dart.dartx;
   const untypedTopLevel = 1;
   const typedTopLevel = 2;
-  const genericTopLevel = dart.const(dart.map());
+  const genericTopLevel = dart.const(dart.map({}, core.String, core.String));
   function main() {
     let untypedLocal = 3;
     let typedLocal = 4;
-    let genericLocal = dart.const(dart.map());
+    let genericLocal = dart.const(dart.map({}, core.String, core.String));
     dart.const([]);
     dart.const(dart.map());
     dart.const(dart.list([], core.int));
-    dart.const(dart.map());
+    dart.const(dart.map({}, core.String, core.int));
     dart.const(new Foo());
     dart.const(new (Foo$(core.int))());
     dart.const(new const_var_helper.Foo());
@@ -112000,7 +112001,7 @@ dart_library.library('language/map_literal7_test', null, /* Imports */[
     expect.Expect.isTrue(dart.is(m1, core.Map$(core.String, core.int)));
     expect.Expect.isTrue(dart.is(m1, core.Map$(core.int, dart.dynamic)));
     expect.Expect.isTrue(dart.is(m1, core.Map$(dart.dynamic, core.String)));
-    let m2 = dart.const(dart.map({"0": 0, "1": 1}));
+    let m2 = dart.const(dart.map({"0": 0, "1": 1}, core.String, core.int));
     expect.Expect.isTrue(dart.is(m2, core.Map));
     expect.Expect.isTrue(dart.is(m2, core.Map$(core.String, core.int)));
     expect.Expect.isFalse(dart.is(m2, core.Map$(core.int, dart.dynamic)));
@@ -112045,9 +112046,9 @@ dart_library.library('language/map_literal_syntax_test', null, /* Imports */[
   class Foo extends core.Object {
     Foo() {
       this.x = dart.map();
-      this.y = dart.map();
+      this.y = dart.map({}, core.String, core.int);
       this.z = dart.const(dart.map());
-      this.v = dart.const(dart.map());
+      this.v = dart.const(dart.map({}, core.String, core.int));
     }
   }
   dart.setSignature(Foo, {
@@ -136300,7 +136301,7 @@ dart_library.library('language/symbol_literal_test_none_multi', null, /* Imports
     dart.dcall(exports.check, dart.const(core.Symbol.new("==")), dart.const(new core.Symbol('==')));
     dart.dcall(exports.check, dart.const(core.Symbol.new("a.toString")), dart.const(new core.Symbol('a.toString')));
     expect.Expect.equals(1, testSwitch(dart.const(new core.Symbol('abc'))));
-    let m = dart.const(dart.map([dart.const(new core.Symbol('A')), 0, dart.const(new core.Symbol('B')), 1]));
+    let m = dart.const(dart.map([dart.const(new core.Symbol('A')), 0, dart.const(new core.Symbol('B')), 1], core.Symbol, core.int));
     expect.Expect.equals(1, m.get(dart.const(new core.Symbol('B'))));
   }
   dart.fn(main);
@@ -141313,7 +141314,7 @@ dart_library.library('language/type_variable_closure2_test', null, /* Imports */
         return dart.fn(() => dart.list([], T), core.List$(T), []);
       }
       map() {
-        return dart.fn(() => dart.map(), core.Map$(T, T), []);
+        return dart.fn(() => dart.map({}, T, T), core.Map$(T, T), []);
       }
     }
     dart.setSignature(C, {

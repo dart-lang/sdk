@@ -6190,7 +6190,7 @@ dart_library.library('dart/html', null, /* Imports */[
       }, dart.void, [core.String, core.String]));
       let formData = parts[dartx.join]('&');
       if (requestHeaders == null) {
-        requestHeaders = dart.map();
+        requestHeaders = dart.map({}, core.String, core.String);
       }
       requestHeaders.putIfAbsent('Content-Type', dart.fn(() => 'application/x-www-form-urlencoded; charset=UTF-8', core.String, []));
       return HttpRequest.request(url, {method: 'POST', withCredentials: withCredentials, responseType: responseType, requestHeaders: requestHeaders, sendData: formData, onProgress: onProgress});
@@ -6267,7 +6267,7 @@ dart_library.library('dart/html', null, /* Imports */[
       }
     }
     get responseHeaders() {
-      let headers = dart.map();
+      let headers = dart.map({}, core.String, core.String);
       let headersString = this.getAllResponseHeaders();
       if (headersString == null) {
         return headers;

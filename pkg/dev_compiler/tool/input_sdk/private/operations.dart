@@ -246,8 +246,12 @@ notNull(x) => JS('', '''(() => {
 /// example `map()`.
 ///
 // TODO(jmesserly): this could be faster
-map(values) => JS('', '''(() => {
-  let map = $LinkedHashMap.new();
+// TODO(jmesserly): we can use default values `= dynamic` once #417 is fixed.
+// TODO(jmesserly): move this to classes for consistentcy with list literals?
+map(values, [K, V]) => JS('', '''(() => {
+  if ($K == null) $K = $dynamicR;
+  if ($V == null) $V = $dynamicR;
+  let map = ${getGenericClass(LinkedHashMap)}($K, $V).new();
   if (Array.isArray($values)) {
     for (let i = 0, end = $values.length - 1; i < end; i += 2) {
       let key = $values[i];

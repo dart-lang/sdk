@@ -3204,7 +3204,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     JS.Expression emitMap() {
       var entries = node.entries;
       var mapArguments = null;
-      if (entries.isEmpty) {
+      var typeArgs = node.typeArguments;
+      if (entries.isEmpty && typeArgs == null) {
         mapArguments = [];
       } else if (entries.every((e) => e.key is StringLiteral)) {
         // Use JS object literal notation if possible, otherwise use an array.
@@ -3223,8 +3224,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         }
         mapArguments = new JS.ArrayInitializer(values);
       }
-      // TODO(jmesserly): add generic types args.
-      return js.call('dart.map(#)', [mapArguments]);
+      var types = <JS.Expression>[];
+      if (typeArgs != null) {
+        types.addAll(typeArgs.arguments.map((e) => _emitTypeName(e.type)));
+      }
+      return js.call('dart.map(#, #)', [mapArguments, types]);
     }
     if (node.constKeyword != null) return _emitConst(emitMap);
     return emitMap();

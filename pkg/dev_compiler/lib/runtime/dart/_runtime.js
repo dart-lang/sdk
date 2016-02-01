@@ -520,20 +520,26 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     if (x == null) throwNullValueError();
     return x;
   }
-  function map(values) {
-    let map = collection.LinkedHashMap.new();
-    if (Array.isArray(values)) {
-      for (let i = 0, end = values.length - 1; i < end; i += 2) {
-        let key = values[i];
-        let value = values[i + 1];
-        map.set(key, value);
+  function map(values, K, V) {
+    if (K === void 0) K = null;
+    if (V === void 0) V = null;
+    return (() => {
+      if (K == null) K = dynamicR;
+      if (V == null) V = dynamicR;
+      let map = getGenericClass(collection.LinkedHashMap)(K, V).new();
+      if (Array.isArray(values)) {
+        for (let i = 0, end = values.length - 1; i < end; i += 2) {
+          let key = values[i];
+          let value = values[i + 1];
+          map.set(key, value);
+        }
+      } else if (typeof values === 'object') {
+        for (let key of getOwnPropertyNames(values)) {
+          map.set(key, values[key]);
+        }
       }
-    } else if (typeof values === 'object') {
-      for (let key of getOwnPropertyNames(values)) {
-        map.set(key, values[key]);
-      }
-    }
-    return map;
+      return map;
+    })();
   }
   function assert_(condition) {
     if (!condition) throwAssertionError();
