@@ -414,10 +414,8 @@ class _ConstExprBuilder {
           EntityRef ref = uc.references[refPtr++];
           _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
           if (info.element != null) {
-            Identifier node = _buildElementAst(info.name, info.element);
-            _push(node);
-          } else if (info.type != null) {
-            Identifier node = _buildElementAst(info.name, info.type.element);
+            SimpleIdentifier node = AstFactory.identifier3(info.name);
+            node.staticElement = info.element;
             _push(node);
           } else {
             throw new StateError('Unsupported reference ${ref.toMap()}');
@@ -430,12 +428,6 @@ class _ConstExprBuilder {
       }
     }
     return stack.single;
-  }
-
-  Identifier _buildElementAst(String name, Element element) {
-    SimpleIdentifier node = AstFactory.identifier3(name);
-    node.staticElement = element;
-    return node;
   }
 
   TypeName _buildTypeAst(DartType type) {
@@ -1468,14 +1460,17 @@ class _LibraryResynthesizer {
         name = linkedUnit.references[i].name;
         containingReference = linkedUnit.references[i].containingReference;
       }
-      ElementHandle element;
+      Element element;
       DartType type;
       if (linkedReference.kind == ReferenceKind.unresolved) {
         type = summaryResynthesizer.typeProvider.undefinedType;
+        element = type.element;
       } else if (name == 'dynamic') {
         type = summaryResynthesizer.typeProvider.dynamicType;
+        element = type.element;
       } else if (name == 'void') {
         type = VoidTypeImpl.instance;
+        element = type.element;
       } else {
         List<String> locationComponents;
         if (containingReference != 0 &&
