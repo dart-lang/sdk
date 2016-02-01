@@ -29,6 +29,7 @@
 #include "vm/port.h"
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
+#include "vm/safepoint.h"
 #include "vm/service.h"
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
@@ -748,6 +749,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       class_table_(),
       single_step_(false),
       thread_registry_(new ThreadRegistry()),
+      safepoint_handler_(new SafepointHandler(this)),
       message_notify_callback_(NULL),
       name_(NULL),
       debugger_name_(NULL),
@@ -841,15 +843,9 @@ Isolate::~Isolate() {
     delete compiler_stats_;
     compiler_stats_ = NULL;
   }
+  delete safepoint_handler_;
   delete thread_registry_;
 }
-
-
-#if defined(DEBUG)
-bool Isolate::IsIsolateOf(Thread* thread) {
-  return this == thread->isolate();
-}
-#endif  // DEBUG
 
 
 void Isolate::InitOnce() {
@@ -1459,7 +1455,6 @@ uword Isolate::GetAndClearInterrupts() {
 RawError* Isolate::HandleInterrupts() {
   uword interrupt_bits = GetAndClearInterrupts();
   if ((interrupt_bits & kVMInterrupt) != 0) {
-    thread_registry()->CheckSafepoint();
     if (store_buffer()->Overflowed()) {
       if (FLAG_verbose_gc) {
         OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
@@ -1768,7 +1763,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     deopt_context()->VisitObjectPointers(visitor);
   }
 
-  // Visit objects in thread registry (e.g., Dart stack, handles in zones).
+  // Visit objects in all threads (e.g., Dart stack, handles in zones).
   thread_registry()->VisitObjectPointers(visitor, validate_frames);
 }
 
@@ -1777,6 +1772,11 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
   if (api_state() != NULL) {
     api_state()->VisitWeakHandles(visitor);
   }
+}
+
+
+void Isolate::PrepareForGC() {
+  thread_registry()->PrepareForGC();
 }
 
 
@@ -2334,6 +2334,77 @@ void Isolate::WaitForOutstandingSpawns() {
   while (spawn_count_ > 0) {
     ml.Wait();
   }
+}
+
+
+Monitor* Isolate::threads_lock() const {
+  return thread_registry_->threads_lock();
+}
+
+
+Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
+  // Schedule the thread into the isolate by associating
+  // a 'Thread' structure with it (this is done while we are holding
+  // the thread registry lock).
+  Thread* thread = NULL;
+  OSThread* os_thread = OSThread::Current();
+  if (os_thread != NULL) {
+    MonitorLocker ml(threads_lock());
+
+    // If a safepoint operation is in progress wait for it
+    // to finish before scheduling this thread in.
+    while (!bypass_safepoint && safepoint_handler()->safepoint_in_progress()) {
+      ml.Wait();
+    }
+
+    // Now get a free Thread structure.
+    thread = thread_registry()->GetFreeThreadLocked(this, is_mutator);
+    ASSERT(thread != NULL);
+
+    // Set up other values and set the TLS value.
+    thread->isolate_ = this;
+    ASSERT(heap() != NULL);
+    thread->heap_ = heap();
+    thread->set_os_thread(os_thread);
+    ASSERT(thread->execution_state() == Thread::kThreadInVM);
+    thread->set_safepoint_state(0);
+    thread->set_vm_tag(VMTag::kVMTagId);
+    os_thread->set_thread(thread);
+    if (is_mutator) {
+      mutator_thread_ = thread;
+    }
+    Thread::SetCurrent(thread);
+    os_thread->EnableThreadInterrupts();
+  }
+  return thread;
+}
+
+
+void Isolate::UnscheduleThread(Thread* thread,
+                               bool is_mutator,
+                               bool bypass_safepoint) {
+  // Disassociate the 'Thread' structure and unschedule the thread
+  // from this isolate.
+  MonitorLocker ml(threads_lock());
+  if (!bypass_safepoint) {
+    // Ensure that the thread reports itself as being at a safepoint.
+    thread->EnterSafepoint();
+  }
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  os_thread->DisableThreadInterrupts();
+  os_thread->set_thread(NULL);
+  OSThread::SetCurrent(os_thread);
+  if (is_mutator) {
+    mutator_thread_ = NULL;
+  }
+  thread->isolate_ = NULL;
+  thread->heap_ = NULL;
+  thread->set_os_thread(NULL);
+  thread->set_execution_state(Thread::kThreadInVM);
+  thread->set_safepoint_state(0);
+  // Return thread structure.
+  thread_registry()->ReturnThreadLocked(is_mutator, thread);
 }
 
 

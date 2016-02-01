@@ -353,6 +353,7 @@ static void FilenameFinalizer(void* peer) {
 
 DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypedData, data, arguments->NativeArgAt(0));
+  TransitionVMToNative transition(thread);
   Api::Scope scope(thread);
 
   Dart_Handle data_handle = Api::NewHandle(thread, data.raw());

@@ -485,7 +485,7 @@ void GCMarker::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
     (isolate->gc_prologue_callback())();
   }
-  isolate->thread_registry()->PrepareForGC();
+  isolate->PrepareForGC();
   // The store buffers will be rebuilt as part of marking, reset them now.
   isolate->store_buffer()->Reset();
 }

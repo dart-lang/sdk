@@ -8,16 +8,16 @@
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/object.h"
+#include "vm/safepoint.h"
 #include "vm/symbols.h"
 #include "vm/thread_pool.h"
-#include "vm/thread_registry.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
 DECLARE_FLAG(bool, background_compilation);
 
-TEST_CASE(CompileScript) {
+VM_TEST_CASE(CompileScript) {
   const char* kScriptChars =
       "class A {\n"
       "  static foo() { return 42; }\n"
@@ -32,7 +32,7 @@ TEST_CASE(CompileScript) {
 }
 
 
-TEST_CASE(CompileFunction) {
+VM_TEST_CASE(CompileFunction) {
   const char* kScriptChars =
             "class A {\n"
             "  static foo() { return 42; }\n"
@@ -73,7 +73,7 @@ TEST_CASE(CompileFunction) {
 }
 
 
-TEST_CASE(CompileFunctionOnHelperThread) {
+VM_TEST_CASE(CompileFunctionOnHelperThread) {
   // Create a simple function and compile it without optimization.
   const char* kScriptChars =
             "class A {\n"
@@ -106,8 +106,7 @@ TEST_CASE(CompileFunctionOnHelperThread) {
   Monitor* m = new Monitor();
   MonitorLocker ml(m);
   while (!func.HasOptimizedCode()) {
-    Isolate::Current()->thread_registry()->CheckSafepoint();
-    ml.Wait(1);
+    ml.WaitWithSafepointCheck(thread, 1);
   }
   BackgroundCompiler::Stop(isolate->background_compiler());
 }
@@ -167,6 +166,7 @@ TEST_CASE(EvalExpression) {
       Dart_Invoke(lib, Dart_NewStringFromCString("makeObj"), 0,  NULL);
   EXPECT(!Dart_IsNull(obj_handle));
   EXPECT(!Dart_IsError(obj_handle));
+  TransitionNativeToVM transition(thread);
   const Object& obj = Object::Handle(Api::UnwrapHandle(obj_handle));
   EXPECT(!obj.IsNull());
   EXPECT(obj.IsInstance());
@@ -184,7 +184,7 @@ TEST_CASE(EvalExpression) {
 }
 
 
-TEST_CASE(EvalExpressionWithLazyCompile) {
+VM_TEST_CASE(EvalExpressionWithLazyCompile) {
   Library& lib = Library::Handle(Library::CoreLibrary());
 
   const String& expression = String::Handle(String::New(
@@ -199,7 +199,7 @@ TEST_CASE(EvalExpressionWithLazyCompile) {
 }
 
 
-TEST_CASE(EvalExpressionExhaustCIDs) {
+VM_TEST_CASE(EvalExpressionExhaustCIDs) {
   Library& lib = Library::Handle(Library::CoreLibrary());
 
   const String& expression = String::Handle(String::New("3 + 4"));

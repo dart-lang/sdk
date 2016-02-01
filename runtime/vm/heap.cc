@@ -99,20 +99,20 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   if (addr != 0) {
     return addr;
   }
-  // If we are in the process of running a sweep wait for the sweeper to free
+  // If we are in the process of running a sweep, wait for the sweeper to free
   // memory.
+  Thread* thread = Thread::Current();
   {
     MonitorLocker ml(old_space_.tasks_lock());
     addr = old_space_.TryAllocate(size, type);
     while ((addr == 0) && (old_space_.tasks() > 0)) {
-      ml.Wait();
+      ml.WaitWithSafepointCheck(thread);
       addr = old_space_.TryAllocate(size, type);
     }
   }
   if (addr != 0) {
     return addr;
   }
-  Thread* thread = Thread::Current();
   if (thread->CanCollectGarbage()) {
     // All GC tasks finished without allocating successfully. Run a full GC.
     CollectAllGarbage();
@@ -125,7 +125,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
       MonitorLocker ml(old_space_.tasks_lock());
       addr = old_space_.TryAllocate(size, type);
       while ((addr == 0) && (old_space_.tasks() > 0)) {
-        ml.Wait();
+        ml.WaitWithSafepointCheck(thread);
         addr = old_space_.TryAllocate(size, type);
       }
     }
@@ -142,7 +142,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
     {
       MonitorLocker ml(old_space_.tasks_lock());
       while (old_space_.tasks() > 0) {
-        ml.Wait();
+        ml.WaitWithSafepointCheck(thread);
       }
     }
   }
@@ -314,13 +314,13 @@ RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
 }
 
 
-bool Heap::BeginNewSpaceGC() {
+bool Heap::BeginNewSpaceGC(Thread* thread) {
   MonitorLocker ml(&gc_in_progress_monitor_);
   bool start_gc_on_thread = true;
   while (gc_new_space_in_progress_ ||
          gc_old_space_in_progress_) {
     start_gc_on_thread = !gc_new_space_in_progress_;
-    ml.Wait();
+    ml.WaitWithSafepointCheck(thread);
   }
   if (start_gc_on_thread) {
     gc_new_space_in_progress_ = true;
@@ -338,13 +338,13 @@ void Heap::EndNewSpaceGC() {
 }
 
 
-bool Heap::BeginOldSpaceGC() {
+bool Heap::BeginOldSpaceGC(Thread* thread) {
   MonitorLocker ml(&gc_in_progress_monitor_);
   bool start_gc_on_thread = true;
   while (gc_new_space_in_progress_ ||
          gc_old_space_in_progress_) {
     start_gc_on_thread = !gc_old_space_in_progress_;
-    ml.Wait();
+    ml.WaitWithSafepointCheck(thread);
   }
   if (start_gc_on_thread) {
     gc_old_space_in_progress_ = true;
@@ -375,7 +375,7 @@ void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
 void Heap::CollectNewSpaceGarbage(Thread* thread,
                                   ApiCallbacks api_callbacks,
                                   GCReason reason) {
-  if (BeginNewSpaceGC()) {
+  if (BeginNewSpaceGC(thread)) {
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kNew, reason);
     VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
@@ -400,7 +400,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
 void Heap::CollectOldSpaceGarbage(Thread* thread,
                                   ApiCallbacks api_callbacks,
                                   GCReason reason) {
-  if (BeginOldSpaceGC()) {
+  if (BeginOldSpaceGC(thread)) {
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kOld, reason);
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);

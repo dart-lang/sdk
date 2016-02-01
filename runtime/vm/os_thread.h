@@ -237,9 +237,9 @@ class OSThread : public BaseThread {
   static OSThread* thread_list_head_;
   static bool creation_enabled_;
 
+  friend class Isolate;  // to access set_thread(Thread*).
   friend class OSThreadIterator;
   friend class ThreadInterrupterWin;
-  friend class ThreadRegistry;
 };
 
 

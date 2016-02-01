@@ -9,6 +9,7 @@
 #include "vm/flags.h"
 #include "vm/native_arguments.h"
 #include "vm/runtime_entry_list.h"
+#include "vm/safepoint.h"
 #include "vm/tags.h"
 
 namespace dart {
@@ -95,6 +96,7 @@ class RuntimeEntry : public ValueObject {
       Thread* thread = arguments.thread();                                     \
       ASSERT(thread == Thread::Current());                                     \
       Isolate* isolate = thread->isolate();                                    \
+      TransitionGeneratedToVM transition(thread);                              \
       StackZone zone(thread);                                                  \
       HANDLESCOPE(thread);                                                     \
       DRT_Helper##name(isolate, thread, zone.GetZone(), arguments);            \

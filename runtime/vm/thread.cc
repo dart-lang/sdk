@@ -41,6 +41,7 @@ Thread::~Thread() {
 Thread::Thread(Isolate* isolate)
     : BaseThread(false),
       os_thread_(NULL),
+      thread_lock_(new Monitor()),
       isolate_(NULL),
       heap_(NULL),
       zone_(NULL),
@@ -63,6 +64,8 @@ Thread::Thread(Isolate* isolate)
       pending_functions_(GrowableObjectArray::null()),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
+      safepoint_state_(0),
+      execution_state_(kThreadInVM),
       next_(NULL) {
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
   member_name = default_init_value;
@@ -174,13 +177,8 @@ RawGrowableObjectArray* Thread::pending_functions() {
 
 bool Thread::EnterIsolate(Isolate* isolate) {
   const bool kIsMutatorThread = true;
-  const bool kDontBypassSafepoints = false;
-  ThreadRegistry* tr = isolate->thread_registry();
-  Thread* thread = tr->Schedule(
-      isolate, kIsMutatorThread, kDontBypassSafepoints);
+  Thread* thread = isolate->ScheduleThread(kIsMutatorThread);
   if (thread != NULL) {
-    isolate->MakeCurrentThreadMutator(thread);
-    thread->set_vm_tag(VMTag::kVMTagId);
     ASSERT(thread->store_buffer_block_ == NULL);
     thread->StoreBufferAcquire();
     return true;
@@ -191,33 +189,29 @@ bool Thread::EnterIsolate(Isolate* isolate) {
 
 void Thread::ExitIsolate() {
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
-  ASSERT(thread->IsMutatorThread());
-#if defined(DEBUG)
-  ASSERT(!thread->IsAnyReusableHandleScopeActive());
-#endif  // DEBUG
+  ASSERT(thread != NULL && thread->IsMutatorThread());
+  DEBUG_ASSERT(!thread->IsAnyReusableHandleScopeActive());
+
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != NULL);
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   // Clear since GC will not visit the thread once it is unscheduled.
   thread->ClearReusableHandles();
   thread->StoreBufferRelease();
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL);
   if (isolate->is_runnable()) {
     thread->set_vm_tag(VMTag::kIdleTagId);
   } else {
     thread->set_vm_tag(VMTag::kLoadWaitTagId);
   }
   const bool kIsMutatorThread = true;
-  const bool kDontBypassSafepoints = false;
-  ThreadRegistry* tr = isolate->thread_registry();
-  tr->Unschedule(thread, kIsMutatorThread, kDontBypassSafepoints);
-  isolate->ClearMutatorThread();
+  isolate->UnscheduleThread(thread, kIsMutatorThread);
 }
 
 
 bool Thread::EnterIsolateAsHelper(Isolate* isolate, bool bypass_safepoint) {
   const bool kIsNotMutatorThread = false;
-  ThreadRegistry* tr = isolate->thread_registry();
-  Thread* thread = tr->Schedule(isolate, kIsNotMutatorThread, bypass_safepoint);
+  Thread* thread = isolate->ScheduleThread(kIsNotMutatorThread,
+                                           bypass_safepoint);
   if (thread != NULL) {
     ASSERT(thread->store_buffer_block_ == NULL);
     // TODO(koda): Use StoreBufferAcquire once we properly flush
@@ -236,18 +230,19 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
   ASSERT(!thread->IsMutatorThread());
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   thread->StoreBufferRelease();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   const bool kIsNotMutatorThread = false;
-  ThreadRegistry* tr = isolate->thread_registry();
-  tr->Unschedule(thread, kIsNotMutatorThread, bypass_safepoint);
+  isolate->UnscheduleThread(thread, kIsNotMutatorThread, bypass_safepoint);
 }
 
 
 void Thread::PrepareForGC() {
-  ASSERT(isolate()->thread_registry()->AtSafepoint());
+  ASSERT(IsAtSafepoint());
   // Prevent scheduling another GC by ignoring the threshold.
+  ASSERT(store_buffer_block_ != NULL);
   StoreBufferRelease(StoreBuffer::kIgnoreThreshold);
   // Make sure to get an *empty* block; the isolate needs all entries
   // at GC time.
@@ -299,9 +294,7 @@ bool Thread::CanCollectGarbage() const {
   // We have non mutator threads grow the heap instead of triggering
   // a garbage collection when they are at a safepoint (e.g: background
   // compiler thread finalizing and installing code at a safepoint).
-  // Note: This code will change once the new Safepoint logic is in place.
-  return (IsMutatorThread() ||
-          (isolate_ != NULL && !isolate_->thread_registry()->AtSafepoint()));
+  return (IsMutatorThread() || IsAtSafepoint());
 }
 
 
@@ -451,6 +444,21 @@ void Thread::UnwindScopes(uword stack_marker) {
     delete scope;
     scope = api_top_scope_;
   }
+}
+
+
+void Thread::EnterSafepointUsingLock() {
+  isolate()->safepoint_handler()->EnterSafepointUsingLock(this);
+}
+
+
+void Thread::ExitSafepointUsingLock() {
+  isolate()->safepoint_handler()->ExitSafepointUsingLock(this);
+}
+
+
+void Thread::BlockForSafepoint() {
+  isolate()->safepoint_handler()->BlockForSafepoint(this);
 }
 
 

@@ -993,15 +993,13 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // into the runtime system.
   uword entry;
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
-  const bool is_leaf_call =
-      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
   const StubEntry* stub_entry;
   if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
     entry = NativeEntry::LinkNativeCallEntry();
   } else {
     entry = reinterpret_cast<uword>(native_c_function());
-    if (is_bootstrap_native() || is_leaf_call) {
+    if (is_bootstrap_native()) {
       stub_entry = StubCode::CallBootstrapCFunction_entry();
 #if defined(USING_SIMULATOR)
       entry = Simulator::RedirectExternalReference(
@@ -1012,12 +1010,6 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // stub generates the redirection address when running under the simulator
       // and hence we do not change 'entry' here.
       stub_entry = StubCode::CallNativeCFunction_entry();
-#if defined(USING_SIMULATOR)
-      if (!function().IsNativeAutoSetupScope()) {
-        entry = Simulator::RedirectExternalReference(
-            entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
-      }
-#endif
     }
   }
   __ LoadImmediate(A1, argc_tag);

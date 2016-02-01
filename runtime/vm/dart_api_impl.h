@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/native_arguments.h"
 #include "vm/object.h"
+#include "vm/safepoint.h"
 
 namespace dart {
 
@@ -51,11 +52,12 @@ const char* CanonicalFunction(const char* func);
       FATAL1("%s expects to find a current scope. Did you forget to call "     \
            "Dart_EnterScope?", CURRENT_FUNC);                                  \
     }                                                                          \
-  } while (0)
+  } while (0);                                                                 \
 
 #define DARTSCOPE(thread)                                                      \
   Thread* T = (thread);                                                        \
   CHECK_API_SCOPE(T);                                                          \
+  TransitionNativeToVM trainsition(T);                                         \
   HANDLESCOPE(T);
 
 

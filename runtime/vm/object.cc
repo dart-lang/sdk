@@ -2779,8 +2779,7 @@ class CHACodeArray : public WeakCodeReferences {
 #if defined(DEBUG)
 static bool IsMutatorOrAtSafepoint() {
   Thread* thread = Thread::Current();
-  return thread->IsMutatorThread() ||
-         thread->isolate()->thread_registry()->AtSafepoint();
+  return thread->IsMutatorThread() || thread->IsAtSafepoint();
 }
 #endif
 
@@ -10692,7 +10691,6 @@ bool LibraryPrefix::LoadLibrary() const {
   } else if (deferred_lib.LoadNotStarted()) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    Api::Scope api_scope(thread);
     Zone* zone = thread->zone();
     deferred_lib.SetLoadRequested();
     const GrowableObjectArray& pending_deferred_loads =
@@ -10701,9 +10699,13 @@ bool LibraryPrefix::LoadLibrary() const {
     pending_deferred_loads.Add(deferred_lib);
     const String& lib_url = String::Handle(zone, deferred_lib.url());
     Dart_LibraryTagHandler handler = isolate->library_tag_handler();
-    handler(Dart_kImportTag,
-            Api::NewHandle(thread, importer()),
-            Api::NewHandle(thread, lib_url.raw()));
+    {
+      TransitionVMToNative transition(thread);
+      Api::Scope api_scope(thread);
+      handler(Dart_kImportTag,
+              Api::NewHandle(thread, importer()),
+              Api::NewHandle(thread, lib_url.raw()));
+    }
   } else {
     // Another load request is in flight.
     ASSERT(deferred_lib.LoadRequested());

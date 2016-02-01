@@ -307,12 +307,15 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
     Service::HandleEvent(&service_event);
   }
 
-  if ((FLAG_steal_breakpoints || (event_handler_ == NULL)) &&
-      event->IsPauseEvent()) {
-    // We allow the embedder's default breakpoint handler to be overridden.
-    isolate_->PauseEventHandler();
-  } else if (event_handler_ != NULL) {
-    (*event_handler_)(event);
+  {
+    TransitionVMToNative transition(Thread::Current());
+    if ((FLAG_steal_breakpoints || (event_handler_ == NULL)) &&
+        event->IsPauseEvent()) {
+      // We allow the embedder's default breakpoint handler to be overridden.
+      isolate_->PauseEventHandler();
+    } else if (event_handler_ != NULL) {
+      (*event_handler_)(event);
+    }
   }
 
   if (ServiceNeedsDebuggerEvent(event->type()) && event->IsPauseEvent()) {

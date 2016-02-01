@@ -178,7 +178,10 @@ static void NativeFunc(Dart_NativeArguments args) {
   EXPECT_EQ(10, value);
   EXPECT_VALID(Dart_IntegerToInt64(k, &value));
   EXPECT_EQ(20, value);
-  Isolate::Current()->heap()->CollectAllGarbage();
+  {
+    TransitionNativeToVM transition(Thread::Current());
+    Isolate::Current()->heap()->CollectAllGarbage();
+  }
 }
 
 
@@ -211,6 +214,8 @@ TEST_CASE(StackmapGC) {
       "}\n";
   // First setup the script and compile the script.
   TestCase::LoadTestScript(kScriptChars, native_resolver);
+  TransitionNativeToVM transition(thread);
+
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
   const Library& lib = Library::Handle(Library::LookupLibrary(name));
@@ -248,7 +253,8 @@ TEST_CASE(StackmapGC) {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   int call_count = 0;
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kUnoptStaticCall);
+  PcDescriptors::Iterator iter(descriptors,
+                               RawPcDescriptors::kUnoptStaticCall);
   while (iter.MoveNext()) {
     stackmap_table_builder->AddEntry(iter.PcOffset(), stack_bitmap, 0);
     ++call_count;

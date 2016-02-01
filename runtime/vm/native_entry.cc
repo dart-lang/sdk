@@ -12,6 +12,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/object_store.h"
 #include "vm/reusable_handles.h"
+#include "vm/safepoint.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
@@ -33,12 +34,16 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
     // class belongs in.
     return NULL;
   }
-  Dart_EnterScope();  // Enter a new Dart API scope as we invoke API entries.
-  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
-  Dart_NativeFunction native_function =
-      resolver(Api::NewHandle(Thread::Current(), function_name.raw()),
-               number_of_arguments, auto_setup_scope);
-  Dart_ExitScope();  // Exit the Dart API scope.
+  Dart_NativeFunction native_function = NULL;
+  {
+    Thread* T = Thread::Current();
+    TransitionVMToNative transition(T);
+    Dart_EnterScope();  // Enter a new Dart API scope as we invoke API entries.
+    Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+    native_function = resolver(Api::NewHandle(T, function_name.raw()),
+                               number_of_arguments, auto_setup_scope);
+    Dart_ExitScope();  // Exit the Dart API scope.
+  }
   return reinterpret_cast<NativeFunction>(native_function);
 }
 
@@ -94,38 +99,43 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
   /* Tell MemorySanitizer 'arguments' is initialized by generated code. */
   MSAN_UNPOISON(arguments, sizeof(*arguments));
   Thread* thread = arguments->thread();
-  Isolate* isolate = thread->isolate();
-
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  ApiLocalScope* current_top_scope = thread->api_top_scope();
-  ApiLocalScope* scope = thread->api_reusable_scope();
-  TRACE_NATIVE_CALL("0x%" Px "", reinterpret_cast<uintptr_t>(func));
-  if (scope == NULL) {
-    scope = new ApiLocalScope(current_top_scope,
-                              thread->top_exit_frame_info());
-    ASSERT(scope != NULL);
+  if (!arguments->IsNativeAutoSetupScope()) {
+    TransitionGeneratedToNative transition(thread);
+    func(args);
   } else {
-    scope->Reinit(thread,
-                  current_top_scope,
-                  thread->top_exit_frame_info());
-    thread->set_api_reusable_scope(NULL);
-  }
-  thread->set_api_top_scope(scope);  // New scope is now the top scope.
+    Isolate* isolate = thread->isolate();
+    ApiState* state = isolate->api_state();
+    ASSERT(state != NULL);
+    ApiLocalScope* current_top_scope = thread->api_top_scope();
+    ApiLocalScope* scope = thread->api_reusable_scope();
+    TRACE_NATIVE_CALL("0x%" Px "", reinterpret_cast<uintptr_t>(func));
+    TransitionGeneratedToNative transition(thread);
+    if (scope == NULL) {
+      scope = new ApiLocalScope(current_top_scope,
+                                thread->top_exit_frame_info());
+      ASSERT(scope != NULL);
+    } else {
+      scope->Reinit(thread,
+                    current_top_scope,
+                    thread->top_exit_frame_info());
+      thread->set_api_reusable_scope(NULL);
+    }
+    thread->set_api_top_scope(scope);  // New scope is now the top scope.
 
-  func(args);
+    func(args);
 
-  ASSERT(current_top_scope == scope->previous());
-  thread->set_api_top_scope(current_top_scope);  // Reset top scope to previous.
-  if (thread->api_reusable_scope() == NULL) {
-    scope->Reset(thread);  // Reset the old scope which we just exited.
-    thread->set_api_reusable_scope(scope);
-  } else {
-    ASSERT(thread->api_reusable_scope() != scope);
-    delete scope;
+    ASSERT(current_top_scope == scope->previous());
+    thread->set_api_top_scope(current_top_scope);  // Reset top scope to prev.
+    if (thread->api_reusable_scope() == NULL) {
+      scope->Reset(thread);  // Reset the old scope which we just exited.
+      thread->set_api_reusable_scope(scope);
+    } else {
+      ASSERT(thread->api_reusable_scope() != scope);
+      delete scope;
+    }
+    DEOPTIMIZE_ALOT;
+    VERIFY_ON_TRANSITION;
   }
-  DEOPTIMIZE_ALOT;
-  VERIFY_ON_TRANSITION;
 }
 
 
@@ -168,11 +178,9 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 
   NativeFunction target_function = NULL;
   bool call_through_wrapper = false;
-#ifdef USING_SIMULATOR
-  bool is_native_auto_setup_scope = false;
-#endif
 
   {
+    TransitionGeneratedToVM transition(arguments->thread());
     StackZone zone(arguments->thread());
 
     DartFrameIterator iterator;
@@ -180,9 +188,6 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 
     const Code& code = Code::Handle(caller_frame->LookupDartCode());
     const Function& func = Function::Handle(code.function());
-#ifdef USING_SIMULATOR
-    is_native_auto_setup_scope = func.IsNativeAutoSetupScope();
-#endif
 
     if (FLAG_trace_natives) {
       OS::Print("Resolving native target for %s\n", func.ToCString());
@@ -216,19 +221,14 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
     }
 #endif
 
-    const intptr_t argc_tag = NativeArguments::ComputeArgcTag(func);
-    const bool is_leaf_call =
-        (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
-
-    call_through_wrapper = !is_bootstrap_native && !is_leaf_call;
-
+    call_through_wrapper = !is_bootstrap_native;
     const Code& trampoline = Code::Handle(call_through_wrapper ?
         StubCode::CallNativeCFunction_entry()->code() :
         StubCode::CallBootstrapCFunction_entry()->code());
 
     NativeFunction patch_target_function = target_function;
 #if defined(USING_SIMULATOR)
-    if (!call_through_wrapper || !is_native_auto_setup_scope) {
+    if (!call_through_wrapper) {
       patch_target_function = reinterpret_cast<NativeFunction>(
           Simulator::RedirectExternalReference(
               reinterpret_cast<uword>(patch_target_function),
@@ -240,10 +240,9 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
         caller_frame->pc(), code, patch_target_function, trampoline);
 
     if (FLAG_trace_natives) {
-      OS::Print("    -> %p (%s, %s)\n",
+      OS::Print("    -> %p (%s)\n",
                 target_function,
-                is_bootstrap_native ? "bootstrap" : "non-bootstrap",
-                is_leaf_call ? "leaf" : "non-leaf");
+                is_bootstrap_native ? "bootstrap" : "non-bootstrap");
     }
   }
   VERIFY_ON_TRANSITION;

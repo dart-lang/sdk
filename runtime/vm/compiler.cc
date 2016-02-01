@@ -1058,14 +1058,13 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // instruction object, since the creation of instruction object
           // changes code page access permissions (makes them temporary not
           // executable).
-          isolate()->thread_registry()->SafepointThreads();
           {
+            SafepointOperationScope safepoint_scope(thread());
             // Do not Garbage collect during this stage and instead allow the
             // heap to grow.
             NoHeapGrowthControlScope no_growth_control;
             FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
           }
-          isolate()->thread_registry()->ResumeAllThreads();
           if (isolate()->heap()->NeedsGarbageCollection()) {
             isolate()->heap()->CollectAllGarbage();
           }
@@ -1899,9 +1898,7 @@ void BackgroundCompiler::Stop(BackgroundCompiler* task) {
   {
     MonitorLocker ml_done(done_monitor);
     while (!(*task_done)) {
-      // In case that the compiler is waiting for safepoint.
-      Isolate::Current()->thread_registry()->CheckSafepoint();
-      ml_done.Wait(1);
+      ml_done.WaitWithSafepointCheck(Thread::Current());
     }
   }
   delete task_done;

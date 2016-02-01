@@ -530,7 +530,6 @@ class TimelineEventBlock {
   void Finish();
 
   friend class Thread;
-  friend class ThreadRegistry;
   friend class TimelineEventRecorder;
   friend class TimelineEventRingRecorder;
   friend class TimelineEventEndlessRecorder;

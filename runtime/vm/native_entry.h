@@ -54,6 +54,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
       Thread* thread = arguments->thread();                                    \
       ASSERT(thread == Thread::Current());                                     \
       Isolate* isolate = thread->isolate();                                    \
+      TransitionGeneratedToVM transition(thread);                              \
       StackZone zone(thread);                                                  \
       SET_NATIVE_RETVAL(arguments,                                             \
                         DN_Helper##name(isolate,                               \

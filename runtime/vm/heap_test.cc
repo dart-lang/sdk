@@ -26,6 +26,7 @@ TEST_CASE(OldGC) {
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
   EXPECT(Dart_IsList(result));
+  TransitionNativeToVM transition(thread);
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
   heap->CollectGarbage(Heap::kOld);
@@ -45,6 +46,7 @@ TEST_CASE(OldGC_Unsync) {
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
   EXPECT(Dart_IsList(result));
+  TransitionNativeToVM transition(thread);
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
   heap->CollectGarbage(Heap::kOld);
@@ -64,6 +66,7 @@ TEST_CASE(LargeSweep) {
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
   EXPECT(Dart_IsList(result));
+  TransitionNativeToVM transition(thread);
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
   heap->CollectGarbage(Heap::kOld);
@@ -115,6 +118,7 @@ TEST_CASE(ClassHeapStats) {
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
+  TransitionNativeToVM transition(thread);
   Library& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(h_lib);
   EXPECT(!lib.IsNull());

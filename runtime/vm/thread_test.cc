@@ -7,8 +7,9 @@
 #include "vm/lockers.h"
 #include "vm/unit_test.h"
 #include "vm/profiler.h"
+#include "vm/safepoint.h"
+#include "vm/stack_frame.h"
 #include "vm/thread_pool.h"
-#include "vm/thread_registry.h"
 
 namespace dart {
 
@@ -172,7 +173,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
 };
 
 
-TEST_CASE(ManyTasksWithZones) {
+VM_TEST_CASE(ManyTasksWithZones) {
   const int kTaskCount = 100;
   Monitor sync[kTaskCount];
   bool done[kTaskCount];
@@ -208,7 +209,7 @@ TEST_CASE(ThreadRegistry) {
   Isolate* orig = Thread::Current()->isolate();
   Zone* orig_zone = Thread::Current()->zone();
   char* orig_str = orig_zone->PrintToString("foo");
-  Thread::ExitIsolate();
+  Dart_ExitIsolate();
   // Create and enter a new isolate.
   Dart_CreateIsolate(
       NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
@@ -226,7 +227,7 @@ TEST_CASE(ThreadRegistry) {
     EXPECT(zone1 != orig_zone);
   }
   Dart_ShutdownIsolate();
-  Thread::EnterIsolate(orig);
+  Dart_EnterIsolate(reinterpret_cast<Dart_Isolate>(orig));
   // Original zone should be preserved.
   EXPECT_EQ(orig_zone, Thread::Current()->zone());
   EXPECT_STREQ("foo", orig_str);
@@ -244,12 +245,12 @@ class SafepointTestTask : public ThreadPool::Task {
   static const intptr_t kTaskCount;
 
   SafepointTestTask(Isolate* isolate,
-                    Mutex* mutex,
+                    Monitor* monitor,
                     intptr_t* expected_count,
                     intptr_t* total_done,
                     intptr_t* exited)
     : isolate_(isolate),
-      mutex_(mutex),
+      monitor_(monitor),
       expected_count_(expected_count),
       total_done_(total_done),
       exited_(exited),
@@ -258,11 +259,11 @@ class SafepointTestTask : public ThreadPool::Task {
   virtual void Run() {
     Thread::EnterIsolateAsHelper(isolate_);
     {
-      MutexLocker ml(mutex_);
+      MonitorLocker ml(monitor_);
       ++*expected_count_;
     }
-    for (int i = 0; ; ++i) {
-      Thread* thread = Thread::Current();
+    Thread* thread = Thread::Current();
+    for (int i = reinterpret_cast<intptr_t>(thread); ; ++i) {
       StackZone stack_zone(thread);
       Zone* zone = thread->zone();
       HANDLESCOPE(thread);
@@ -270,23 +271,23 @@ class SafepointTestTask : public ThreadPool::Task {
       Smi& smi = Smi::Handle(zone, Smi::New(kUniqueSmi));
       if ((i % 100) != 0) {
         // Usually, we just cooperate.
-        isolate_->thread_registry()->CheckSafepoint();
+        TransitionVMToBlocked transition(thread);
       } else {
         // But occasionally, organize a rendezvous.
-        isolate_->thread_registry()->SafepointThreads();
+        SafepointOperationScope safepoint_scope(thread);
         ObjectCounter counter(isolate_, &smi);
         isolate_->IterateObjectPointers(
             &counter,
             StackFrameIterator::kValidateFrames);
         {
-          MutexLocker ml(mutex_);
+          MonitorLocker ml(monitor_);
           EXPECT_EQ(*expected_count_, counter.count());
         }
         UserTag& tag = UserTag::Handle(zone, isolate_->current_tag());
         if (tag.raw() != isolate_->default_tag()) {
           String& label = String::Handle(zone, tag.label());
           EXPECT(label.Equals("foo"));
-          MutexLocker ml(mutex_);
+          MonitorLocker ml(monitor_);
           if (*expected_count_ == kTaskCount && !local_done_) {
             // Success for the first time! Remember that we are done, and
             // update the total count.
@@ -294,11 +295,10 @@ class SafepointTestTask : public ThreadPool::Task {
             ++*total_done_;
           }
         }
-        isolate_->thread_registry()->ResumeAllThreads();
       }
       // Check whether everyone is done.
       {
-        MutexLocker ml(mutex_);
+        MonitorLocker ml(monitor_);
         if (*total_done_ == kTaskCount) {
           // Another task might be at SafepointThreads when resuming. Ensure its
           // expectation reflects reality, since we pop our handles here.
@@ -309,14 +309,15 @@ class SafepointTestTask : public ThreadPool::Task {
     }
     Thread::ExitIsolateAsHelper();
     {
-      MutexLocker ml(mutex_);
+      MonitorLocker ml(monitor_);
       ++*exited_;
+      ml.Notify();
     }
   }
 
  private:
   Isolate* isolate_;
-  Mutex* mutex_;
+  Monitor* monitor_;
   intptr_t* expected_count_;  // # copies of kUniqueSmi we expect to visit.
   intptr_t* total_done_;      // # tasks that successfully safepointed once.
   intptr_t* exited_;          // # tasks that are no longer running.
@@ -334,13 +335,13 @@ const intptr_t SafepointTestTask::kTaskCount = 5;
 // - helpers.
 TEST_CASE(SafepointTestDart) {
   Isolate* isolate = Thread::Current()->isolate();
-  Mutex mutex;
+  Monitor monitor;
   intptr_t expected_count = 0;
   intptr_t total_done = 0;
   intptr_t exited = 0;
   for (int i = 0; i < SafepointTestTask::kTaskCount; i++) {
     Dart::thread_pool()->Run(new SafepointTestTask(
-        isolate, &mutex, &expected_count, &total_done, &exited));
+        isolate, &monitor, &expected_count, &total_done, &exited));
   }
   // Run Dart code on the main thread long enough to allow all helpers
   // to get their verification done and exit. Use a specific UserTag
@@ -367,7 +368,10 @@ TEST_CASE(SafepointTestDart) {
   EXPECT_VALID(result);
   // Ensure we looped long enough to allow all helpers to succeed and exit.
   {
-    MutexLocker ml(&mutex);
+    MonitorLocker ml(&monitor);
+    while (exited != SafepointTestTask::kTaskCount) {
+      ml.Wait();
+    }
     EXPECT_EQ(SafepointTestTask::kTaskCount, total_done);
     EXPECT_EQ(SafepointTestTask::kTaskCount, exited);
   }
@@ -379,30 +383,27 @@ TEST_CASE(SafepointTestDart) {
 // - main thread in VM code,
 // organized by
 // - helpers.
-TEST_CASE(SafepointTestVM) {
+VM_TEST_CASE(SafepointTestVM) {
   Isolate* isolate = thread->isolate();
-  Mutex mutex;
+  Monitor monitor;
   intptr_t expected_count = 0;
   intptr_t total_done = 0;
   intptr_t exited = 0;
   for (int i = 0; i < SafepointTestTask::kTaskCount; i++) {
     Dart::thread_pool()->Run(new SafepointTestTask(
-        isolate, &mutex, &expected_count, &total_done, &exited));
+        isolate, &monitor, &expected_count, &total_done, &exited));
   }
   String& label = String::Handle(String::New("foo"));
   UserTag& tag = UserTag::Handle(UserTag::New(label));
   isolate->set_current_tag(tag);
-  while (true) {
-    isolate->thread_registry()->CheckSafepoint();
-    MutexLocker ml(&mutex);
-    if (exited == SafepointTestTask::kTaskCount) {
-      break;
-    }
+  MonitorLocker ml(&monitor);
+  while (exited != SafepointTestTask::kTaskCount) {
+    ml.WaitWithSafepointCheck(thread);
   }
 }
 
 
-TEST_CASE(ThreadIterator_Count) {
+VM_TEST_CASE(ThreadIterator_Count) {
   intptr_t thread_count_0 = 0;
   intptr_t thread_count_1 = 0;
 
@@ -430,7 +431,7 @@ TEST_CASE(ThreadIterator_Count) {
 }
 
 
-TEST_CASE(ThreadIterator_FindSelf) {
+VM_TEST_CASE(ThreadIterator_FindSelf) {
   OSThread* current = OSThread::Current();
   EXPECT(OSThread::IsThreadInList(current->join_id()));
 }
@@ -490,36 +491,32 @@ TEST_CASE(ThreadIterator_AddFindRemove) {
 // organized by
 // - main thread, and
 // - helpers.
-TEST_CASE(SafepointTestVM2) {
+VM_TEST_CASE(SafepointTestVM2) {
   Isolate* isolate = thread->isolate();
-  Mutex mutex;
+  Monitor monitor;
   intptr_t expected_count = 0;
   intptr_t total_done = 0;
   intptr_t exited = 0;
   for (int i = 0; i < SafepointTestTask::kTaskCount; i++) {
     Dart::thread_pool()->Run(new SafepointTestTask(
-        isolate, &mutex, &expected_count, &total_done, &exited));
+        isolate, &monitor, &expected_count, &total_done, &exited));
   }
   bool all_helpers = false;
   do {
-    isolate->thread_registry()->SafepointThreads();
+    SafepointOperationScope safepoint_scope(thread);
     {
-      MutexLocker ml(&mutex);
+      MonitorLocker ml(&monitor);
       if (expected_count == SafepointTestTask::kTaskCount) {
         all_helpers = true;
       }
     }
-    isolate->thread_registry()->ResumeAllThreads();
   } while (!all_helpers);
   String& label = String::Handle(String::New("foo"));
   UserTag& tag = UserTag::Handle(UserTag::New(label));
   isolate->set_current_tag(tag);
-  while (true) {
-    isolate->thread_registry()->CheckSafepoint();
-    MutexLocker ml(&mutex);
-    if (exited == SafepointTestTask::kTaskCount) {
-      break;
-    }
+  MonitorLocker ml(&monitor);
+  while (exited != SafepointTestTask::kTaskCount) {
+    ml.WaitWithSafepointCheck(thread);
   }
 }
 
@@ -562,14 +559,14 @@ class AllocAndGCTask : public ThreadPool::Task {
 };
 
 
-TEST_CASE(HelperAllocAndGC) {
+VM_TEST_CASE(HelperAllocAndGC) {
   Monitor done_monitor;
   bool done = false;
-  Isolate* isolate = Thread::Current()->isolate();
+  Isolate* isolate = thread->isolate();
   Dart::thread_pool()->Run(new AllocAndGCTask(isolate, &done_monitor, &done));
   {
     while (true) {
-      isolate->thread_registry()->CheckSafepoint();
+      TransitionVMToBlocked transition(thread);
       MonitorLocker ml(&done_monitor);
       if (done) {
         break;

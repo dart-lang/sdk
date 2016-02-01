@@ -79,7 +79,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
                                          int argument_count,
                                          bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = false;
+  *auto_setup_scope = true;
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   ASSERT(obj.IsString());
   const char* function_name = obj.ToCString();

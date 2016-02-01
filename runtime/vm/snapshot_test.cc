@@ -1120,7 +1120,7 @@ static void IterateScripts(const Library& lib) {
   }
 }
 
-TEST_CASE(GenerateSource) {
+VM_TEST_CASE(GenerateSource) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
@@ -1841,10 +1841,12 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
   EXPECT(Dart_IsString(crappy_string_result));
 
   {
-    DARTSCOPE(Thread::Current());
+    Thread* thread = Thread::Current();
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
 
     {
-      StackZone zone(Thread::Current());
+      StackZone zone(thread);
       Smi& smi = Smi::Handle();
       smi ^= Api::UnwrapHandle(smi_result);
       uint8_t* buffer;
@@ -1862,7 +1864,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       CheckEncodeDecodeMessage(root);
     }
     {
-      StackZone zone(Thread::Current());
+      StackZone zone(thread);
       Bigint& bigint = Bigint::Handle();
       bigint ^= Api::UnwrapHandle(bigint_result);
       uint8_t* buffer;
@@ -1933,7 +1935,8 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {
@@ -2057,7 +2060,8 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {
@@ -2296,7 +2300,8 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {
@@ -2521,7 +2526,8 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {
@@ -2762,7 +2768,8 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {

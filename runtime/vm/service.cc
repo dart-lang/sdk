@@ -146,6 +146,8 @@ bool Service::ListenStream(const char* stream_id) {
     }
   }
   if (stream_listen_callback_) {
+    Thread* T = Thread::Current();
+    TransitionVMToNative transition(T);
     return (*stream_listen_callback_)(stream_id);
   }
   return false;
@@ -166,12 +168,15 @@ void Service::CancelStream(const char* stream_id) {
     }
   }
   if (stream_cancel_callback_) {
+    Thread* T = Thread::Current();
+    TransitionVMToNative transition(T);
     return (*stream_cancel_callback_)(stream_id);
   }
 }
 
 RawObject* Service::RequestAssets() {
   Thread* T = Thread::Current();
+  TransitionVMToNative transition(T);
   Api::Scope api_scope(T);
   if (get_service_assets_callback_ == NULL) {
     return Object::null();

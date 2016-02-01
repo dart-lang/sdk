@@ -30,6 +30,7 @@
 #include "vm/regexp_assembler.h"
 #include "vm/report.h"
 #include "vm/resolver.h"
+#include "vm/safepoint.h"
 #include "vm/scanner.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
@@ -5672,24 +5673,28 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
   // Block class finalization attempts when calling into the library
   // tag handler.
   I->BlockClassFinalization();
-  Api::Scope api_scope(T);
-  Dart_Handle result = handler(tag,
-                               Api::NewHandle(T, library_.raw()),
-                               Api::NewHandle(T, url.raw()));
+  Object& result = Object::Handle(Z);
+  {
+    TransitionVMToNative transition(T);
+    Api::Scope api_scope(T);
+    Dart_Handle retval = handler(tag,
+                                 Api::NewHandle(T, library_.raw()),
+                                 Api::NewHandle(T, url.raw()));
+    result = Api::UnwrapHandle(retval);
+  }
   I->UnblockClassFinalization();
-  if (Dart_IsError(result)) {
+  if (result.IsError()) {
     // In case of an error we append an explanatory error message to the
     // error obtained from the library tag handler.
-    Error& prev_error = Error::Handle(Z);
-    prev_error ^= Api::UnwrapHandle(result);
+    const Error& prev_error = Error::Cast(result);
     Report::LongJumpF(prev_error, script_, token_pos, "library handler failed");
   }
   if (tag == Dart_kCanonicalizeUrl) {
-    if (!Dart_IsString(result)) {
+    if (!result.IsString()) {
       ReportError(token_pos, "library handler failed URI canonicalization");
     }
   }
-  return Api::UnwrapHandle(result);
+  return result.raw();
 }
 
 

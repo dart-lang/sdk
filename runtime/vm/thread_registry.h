@@ -18,62 +18,32 @@ namespace dart {
 class ThreadRegistry {
  public:
   ThreadRegistry()
-      : monitor_(new Monitor()),
+      : threads_lock_(new Monitor()),
         active_list_(NULL),
         free_list_(NULL),
-        mutator_thread_(NULL),
-        in_rendezvous_(false),
-        remaining_(0),
-        round_(0) {}
-
+        mutator_thread_(NULL) {}
   ~ThreadRegistry();
 
-  Thread* active_list() const { return active_list_; }
-
-  // Bring all threads in this isolate to a safepoint. The caller is
-  // expected to be implicitly at a safepoint. The threads will wait
-  // until ResumeAllThreads is called. First participates in any
-  // already pending rendezvous requested by another thread. Any
-  // thread that tries to enter this isolate during rendezvous will
-  // wait in RestoreStateTo. Nesting is not supported: the caller must
-  // call ResumeAllThreads before making further calls to
-  // SafepointThreads.
-  void SafepointThreads();
-
-  // Unblocks all threads participating in the rendezvous that was organized
-  // by a prior call to SafepointThreads.
-  // TODO(koda): Consider adding a scope helper to avoid omitting this call.
-  void ResumeAllThreads();
-
-  // Indicate that the current thread is at a safepoint, and offer to wait for
-  // any pending rendezvous request (if none, returns immediately).
-  void CheckSafepoint() {
-    MonitorLocker ml(monitor_);
-    CheckSafepointLocked();
-  }
-
-  bool AtSafepoint() const { return in_rendezvous_; }
-  Thread* Schedule(Isolate* isolate, bool is_mutator, bool bypass_safepoint);
-  void Unschedule(Thread* thread, bool is_mutator, bool bypass_safepoint);
   void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
   void PrepareForGC();
 
  private:
-  void AddThreadToActiveList(Thread* thread);
-  void RemoveThreadFromActiveList(Thread* thread);
-  Thread* GetThreadFromFreelist(Isolate* isolate);
-  void ReturnThreadToFreelist(Thread* thread);
+  Thread* active_list() const { return active_list_; }
+  Monitor* threads_lock() const { return threads_lock_; }
 
-  // Note: Lock should be taken before this function is called.
-  void CheckSafepointLocked();
+  Thread* GetFreeThreadLocked(Isolate* isolate, bool is_mutator);
+  void ReturnThreadLocked(bool is_mutator, Thread* thread);
+  void AddToActiveListLocked(Thread* thread);
+  void RemoveFromActiveListLocked(Thread* thread);
+  Thread* GetFromFreelistLocked(Isolate* isolate);
+  void ReturnToFreelistLocked(Thread* thread);
 
-  // Returns the number threads that are scheduled on this isolate.
-  // Note: Lock should be taken before this function is called.
-  intptr_t CountScheduledLocked();
-
-  Monitor* monitor_;  // All access is synchronized through this monitor.
+  // This monitor protects the threads list for an isolate, it is used whenever
+  // we need to iterate over threads (both active and free) in an isolate.
+  Monitor* threads_lock_;
   Thread* active_list_;  // List of active threads in the isolate.
   Thread* free_list_;  // Free list of Thread objects that can be reused.
+
   // TODO(asiva): Currently we treat a mutator thread as a special thread
   // and always schedule execution of Dart code on the same mutator thread
   // object. The ApiLocalScope has been made thread specific but we still
@@ -89,12 +59,8 @@ class ThreadRegistry {
   // added.
   Thread* mutator_thread_;
 
-  // Safepoint rendezvous state.
-  bool in_rendezvous_;    // A safepoint rendezvous request is in progress.
-  intptr_t remaining_;    // Number of threads yet to reach their safepoint.
-  int64_t round_;         // Counter, to prevent missing updates to remaining_
-                          // (see comments in CheckSafepointLocked).
-
+  friend class Isolate;
+  friend class SafepointHandler;
   DISALLOW_COPY_AND_ASSIGN(ThreadRegistry);
 };
 

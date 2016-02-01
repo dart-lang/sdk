@@ -96,6 +96,10 @@ class NativeArguments {
     return *arg_ptr;
   }
 
+  bool IsNativeAutoSetupScope() const {
+    return AutoSetupScopeBits::decode(argc_tag_);
+  }
+
   int NativeArgCount() const {
     int function_bits = FunctionBits::decode(argc_tag_);
     return ArgCount() - NumHiddenArgs(function_bits);

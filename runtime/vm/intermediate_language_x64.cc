@@ -775,8 +775,6 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   SetupNative();
   Register result = locs()->out(0).reg();
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
-  const bool is_leaf_call =
-      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
 
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());
@@ -794,9 +792,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ExternalLabel label(NativeEntry::LinkNativeCallEntry());
     __ LoadNativeEntry(RBX, &label, kPatchable);
   } else {
-    stub_entry = (is_bootstrap_native() || is_leaf_call)
-        ? StubCode::CallBootstrapCFunction_entry()
-        : StubCode::CallNativeCFunction_entry();
+    stub_entry = (is_bootstrap_native()) ?
+        StubCode::CallBootstrapCFunction_entry() :
+        StubCode::CallNativeCFunction_entry();
     const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
     __ LoadNativeEntry(RBX, &label, kNotPatchable);
   }

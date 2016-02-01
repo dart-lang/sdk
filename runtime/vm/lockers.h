@@ -50,6 +50,9 @@ class MonitorLocker : public ValueObject {
     return monitor_->Wait(millis);
   }
 
+  Monitor::WaitResult WaitWithSafepointCheck(
+      Thread* thread, int64_t millis = Monitor::kNoTimeout);
+
   Monitor::WaitResult WaitMicros(int64_t micros = Monitor::kNoTimeout) {
     return monitor_->WaitMicros(micros);
   }
