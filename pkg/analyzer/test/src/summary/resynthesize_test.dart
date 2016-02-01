@@ -336,6 +336,13 @@ class ResynthTest extends ResolverTestCase {
     compareTypes(
         resynthesized.returnType, original.returnType, '$desc return type');
     compareTypes(resynthesized.type, original.type, desc);
+    expect(resynthesized.typeParameters.length, original.typeParameters.length);
+    for (int i = 0; i < resynthesized.typeParameters.length; i++) {
+      compareTypeParameterElements(
+          resynthesized.typeParameters[i],
+          original.typeParameters[i],
+          '$desc type parameter ${original.typeParameters[i].name}');
+    }
   }
 
   void compareExportElements(ExportElementImpl resynthesized,
@@ -408,7 +415,6 @@ class ResynthTest extends ResolverTestCase {
       MethodElementImpl original, String desc) {
     // TODO(paulberry): do we need to deal with
     // MultiplyInheritedMethodElementImpl?
-    // TODO(paulberry): compare type parameters for generic methods.
     compareExecutableElements(resynthesized, original, desc);
   }
 
