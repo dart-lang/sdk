@@ -513,3 +513,10 @@ mixin_of_mixin_test/17: MissingStaticWarning # Issue 25605
 mixin_of_mixin_test/19: MissingStaticWarning # Issue 25605
 mixin_of_mixin_test/20: MissingStaticWarning # Issue 25605
 mixin_of_mixin_test/21: MissingStaticWarning # Issue 25605
+
+accessor_conflict_export2_test: StaticWarning # Issue 25624
+accessor_conflict_export_test: StaticWarning # Issue 25624
+accessor_conflict_import2_test: StaticWarning # Issue 25624
+accessor_conflict_import_prefixed2_test: StaticWarning # Issue 25624
+accessor_conflict_import_prefixed_test: StaticWarning # Issue 25624
+accessor_conflict_import_test: StaticWarning # Issue 25624
