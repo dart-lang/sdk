@@ -422,6 +422,8 @@ class _ConstExprBuilder {
           }
           break;
         case UnlinkedConstOperation.invokeConstructor:
+          _pushInstanceCreation();
+          break;
         case UnlinkedConstOperation.length:
           return AstFactory.nullLiteral();
 //          throw new StateError('Unsupported constant operation $operation');
@@ -480,6 +482,65 @@ class _ConstExprBuilder {
     _push(AstFactory.binaryExpression(left, operator, right));
   }
 
+  void _pushInstanceCreation() {
+    EntityRef ref = uc.references[refPtr++];
+    _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
+    // prepare ClassElement / ConstructorElement
+    String className;
+    ClassElement classElement;
+    String constructorName;
+    ConstructorElement constructorElement;
+    if (info.element is ConstructorElement) {
+      constructorName = info.name;
+      constructorElement = info.element;
+      className = info.enclosing.name;
+      classElement = info.enclosing.element as ClassElement;
+    } else if (info.element is ClassElement) {
+      className = info.name;
+      classElement = info.element;
+      constructorName = null;
+      constructorElement = new ConstructorElementHandle(
+          resynthesizer.summaryResynthesizer,
+          new ElementLocationImpl.con3(
+              classElement.location.components.toList()..add('')));
+    } else {
+      throw new StateError('Unsupported element for invokeConstructor '
+          '${info.element?.runtimeType}');
+    }
+    // prepare arguments
+    List<Expression> arguments;
+    {
+      int numNamedArgs = uc.ints[intPtr++];
+      int numPositionalArgs = uc.ints[intPtr++];
+      int numArgs = numNamedArgs + numPositionalArgs;
+      arguments = _removeTopItems(numArgs);
+      // add names to the named arguments
+      for (int i = 0; i < numNamedArgs; i++) {
+        String name = uc.strings[stringPtr++];
+        int index = numPositionalArgs + i;
+        arguments[index] = AstFactory.namedExpression2(name, arguments[index]);
+      }
+    }
+    // create TypeName
+    SimpleIdentifier typeNameNode = AstFactory.identifier3(className);
+    typeNameNode.staticElement = classElement;
+    TypeName typeNode = AstFactory.typeName3(typeNameNode);
+    // create ConstructorName
+    ConstructorName constructorNode;
+    if (constructorName != null) {
+      constructorNode = AstFactory.constructorName(typeNode, info.name);
+      constructorNode.name.staticElement = constructorElement;
+    } else {
+      constructorNode = AstFactory.constructorName(typeNode, null);
+    }
+    constructorNode.staticElement = constructorElement;
+    // create InstanceCreationExpression
+    InstanceCreationExpression instanceCreation = AstFactory
+        .instanceCreationExpression(Keyword.CONST, constructorNode, arguments);
+    instanceCreation.staticElement = constructorElement;
+    _push(instanceCreation);
+  }
+
   void _pushList(TypeArgumentList typeArguments) {
     int count = uc.ints[intPtr++];
     List<Expression> elements = <Expression>[];
@@ -503,6 +564,14 @@ class _ConstExprBuilder {
   void _pushPrefix(TokenType operator) {
     Expression operand = _pop();
     _push(AstFactory.prefixExpression(operator, operand));
+  }
+
+  List<Expression> _removeTopItems(int count) {
+    int start = stack.length - count;
+    int end = stack.length;
+    List<Expression> items = stack.getRange(start, end).toList();
+    stack.removeRange(start, end);
+    return items;
   }
 }
 
@@ -1445,6 +1514,7 @@ class _LibraryResynthesizer {
     referenceInfos = new List<_ReferenceInfo>(numLinkedReferences);
     for (int i = 0; i < numLinkedReferences; i++) {
       LinkedReference linkedReference = linkedUnit.references[i];
+      _ReferenceInfo enclosingInfo = null;
       String name;
       int containingReference;
       if (i < numUnlinkedReferences) {
@@ -1470,11 +1540,9 @@ class _LibraryResynthesizer {
         if (containingReference != 0 &&
             referenceInfos[containingReference].element is ClassElement) {
           String identifier = _getElementIdentifier(name, linkedReference.kind);
-          locationComponents = referenceInfos[containingReference]
-              .element
-              .location
-              .components
-              .toList();
+          enclosingInfo = referenceInfos[containingReference];
+          locationComponents =
+              enclosingInfo.element.location.components.toList();
           locationComponents.add(identifier);
         } else {
           String identifier = _getElementIdentifier(name, linkedReference.kind);
@@ -1495,6 +1563,11 @@ class _LibraryResynthesizer {
             element = new PropertyAccessorElementHandle(
                 summaryResynthesizer, location);
             break;
+          case ReferenceKind.constructor:
+            assert(location.components.length == 4);
+            element =
+                new ConstructorElementHandle(summaryResynthesizer, location);
+            break;
           case ReferenceKind.propertyAccessor:
             assert(location.components.length == 4);
             element = new PropertyAccessorElementHandle(
@@ -1511,8 +1584,8 @@ class _LibraryResynthesizer {
             break;
         }
       }
-      referenceInfos[i] = new _ReferenceInfo(
-          name, element, type, linkedReference.numTypeParameters);
+      referenceInfos[i] = new _ReferenceInfo(enclosingInfo, name, element, type,
+          linkedReference.numTypeParameters);
     }
   }
 
@@ -1594,6 +1667,11 @@ class _LibraryResynthesizer {
  */
 class _ReferenceInfo {
   /**
+   * The enclosing [_ReferenceInfo], or `null` for top-level elements.
+   */
+  final _ReferenceInfo enclosing;
+
+  /**
    * The name of the entity referred to by this reference.
    */
   final String name;
@@ -1626,8 +1704,8 @@ class _ReferenceInfo {
    * the type itself.  Otherwise, pass `null` and the type will be computed
    * when appropriate.
    */
-  _ReferenceInfo(
-      this.name, this.element, DartType specialType, this.numTypeParameters) {
+  _ReferenceInfo(this.enclosing, this.name, this.element, DartType specialType,
+      this.numTypeParameters) {
     if (specialType != null) {
       type = specialType;
     } else {
