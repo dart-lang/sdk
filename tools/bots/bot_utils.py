@@ -199,13 +199,11 @@ class GCSNamerApiDocs(object):
     self.channel = channel
     self.bucket = 'gs://dartlang-api-docs'
 
-  def docs_dirpath(self, revision):
-    assert len('%s' % revision) > 0
-    return '%s/channels/%s/%s' % (self.bucket, self.channel, revision)
-
   def dartdocs_dirpath(self, revision):
     assert len('%s' % revision) > 0
-    return '%s/gen-dartdocs/%s' % (self.bucket, revision)
+    if self.channel == Channel.BLEEDING_EDGE:
+      return '%s/gen-dartdocs/builds/%s' % (self.bucket, revision)
+    return '%s/gen-dartdocs/%s/%s' % (self.bucket, self.channel, revision)
 
   def docs_latestpath(self, revision):
     assert len('%s' % revision) > 0
