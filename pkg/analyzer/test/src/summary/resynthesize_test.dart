@@ -51,7 +51,8 @@ class ResynthTest extends ResolverTestCase {
     LibraryElementImpl original = resolve2(source);
     LibraryElementImpl resynthesized = resynthesizeLibraryElement(
         encodeLibrary(original, allowErrors: allowErrors),
-        source.uri.toString());
+        source.uri.toString(),
+        original);
     checkLibraryElements(original, resynthesized);
   }
 
@@ -99,6 +100,29 @@ class ResynthTest extends ResolverTestCase {
           '(loadLibraryFunction)');
     }
     // TODO(paulberry): test metadata.
+  }
+
+  /**
+   * Verify that the [resynthesizer] didn't do any unnecessary work when
+   * resynthesizing [library].
+   */
+  void checkMinimalResynthesisWork(
+      _TestSummaryResynthesizer resynthesizer, LibraryElement library) {
+    // Check that no other summaries needed to be resynthesized to resynthesize
+    // the library element.
+    expect(resynthesizer.resynthesisCount, 1);
+    // Check that the only linked summary consulted was that for [uri].
+    expect(resynthesizer.linkedSummariesRequested, hasLength(1));
+    expect(resynthesizer.linkedSummariesRequested.first,
+        library.source.uri.toString());
+    // Check that the only unlinked summaries consulted were those for the
+    // library in question.
+    Set<String> expectedCompilationUnitUris = library.units
+        .map((CompilationUnitElement unit) => unit.source.uri.toString())
+        .toSet();
+    for (String requestedUri in resynthesizer.unlinkedSummariesRequested) {
+      expect(expectedCompilationUnitUris, contains(requestedUri));
+    }
   }
 
   void compareClassElements(
@@ -690,14 +714,15 @@ class ResynthTest extends ResolverTestCase {
   /**
    * Resynthesize the library element associated with [uri] using
    * [resynthesizer], and verify that it only had to consult one summary in
-   * order to do so.
+   * order to do so.  [original] is consulted merely to verify that no
+   * unnecessary resynthesis work was performed.
    */
   LibraryElementImpl resynthesizeLibraryElement(
-      _TestSummaryResynthesizer resynthesizer, String uri) {
+      _TestSummaryResynthesizer resynthesizer,
+      String uri,
+      LibraryElement original) {
     LibraryElementImpl resynthesized = resynthesizer.getLibraryElement(uri);
-    // Check that no other summaries needed to be resynthesized to resynthesize
-    // the library element.
-    expect(resynthesizer.resynthesisCount, 1);
+    checkMinimalResynthesisWork(resynthesizer, original);
     return resynthesized;
   }
 
@@ -1316,8 +1341,8 @@ class C {
     String uri = 'dart:core';
     LibraryElementImpl original =
         resolve2(analysisContext2.sourceFactory.forUri(uri));
-    LibraryElementImpl resynthesized =
-        resynthesizeLibraryElement(encodeLibraryElement(original), uri);
+    LibraryElementImpl resynthesized = resynthesizeLibraryElement(
+        encodeLibraryElement(original), uri, original);
     checkLibraryElements(original, resynthesized);
   }
 
@@ -2218,6 +2243,7 @@ var x;''');
     _TestSummaryResynthesizer resynthesizer = encodeLibrary(original.library);
     ElementLocationImpl location = original.location;
     Element result = resynthesizer.getElement(location);
+    checkMinimalResynthesisWork(resynthesizer, original.library);
     // Check that no other summaries needed to be resynthesized to resynthesize
     // the library element.
     expect(resynthesizer.resynthesisCount, 1);
@@ -2229,6 +2255,18 @@ var x;''');
 class _TestSummaryResynthesizer extends SummaryResynthesizer {
   final Map<String, UnlinkedUnit> unlinkedSummaries;
   final Map<String, LinkedLibrary> linkedSummaries;
+
+  /**
+   * The set of uris for which unlinked summaries have been requested using
+   * [getUnlinkedSummary].
+   */
+  final Set<String> unlinkedSummariesRequested = new Set<String>();
+
+  /**
+   * The set of uris for which linked summaries have been requested using
+   * [getLinkedSummary].
+   */
+  final Set<String> linkedSummariesRequested = new Set<String>();
 
   _TestSummaryResynthesizer(
       SummaryResynthesizer parent,
@@ -2242,6 +2280,7 @@ class _TestSummaryResynthesizer extends SummaryResynthesizer {
 
   @override
   LinkedLibrary getLinkedSummary(String uri) {
+    linkedSummariesRequested.add(uri);
     LinkedLibrary serializedLibrary = linkedSummaries[uri];
     if (serializedLibrary == null) {
       fail('Unexpectedly tried to get linked summary for $uri');
@@ -2251,6 +2290,7 @@ class _TestSummaryResynthesizer extends SummaryResynthesizer {
 
   @override
   UnlinkedUnit getUnlinkedSummary(String uri) {
+    unlinkedSummariesRequested.add(uri);
     UnlinkedUnit serializedUnit = unlinkedSummaries[uri];
     if (serializedUnit == null) {
       fail('Unexpectedly tried to get unlinked summary for $uri');

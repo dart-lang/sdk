@@ -1423,15 +1423,9 @@ class _LibraryResynthesizer {
     Source referencedLibrarySource = summaryResynthesizer.sourceFactory
         .resolveUri(librarySource, dependency.uri);
     String referencedLibraryUri = referencedLibrarySource.uri.toString();
-    // TODO(paulberry): consider changing Location format so that this is
-    // not necessary (2nd string in location should just be the unit
-    // number).
     String partUri;
     if (unit != 0) {
-      UnlinkedUnit referencedLibraryDefiningUnit =
-          summaryResynthesizer._getUnlinkedSummaryOrThrow(referencedLibraryUri);
-      String uri =
-          referencedLibraryDefiningUnit.publicNamespace.parts[unit - 1];
+      String uri = dependency.parts[unit - 1];
       Source partSource = summaryResynthesizer.sourceFactory
           .resolveUri(referencedLibrarySource, uri);
       partUri = partSource.uri.toString();
