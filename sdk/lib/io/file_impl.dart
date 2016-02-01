@@ -446,8 +446,8 @@ class _File extends FileSystemEntity implements File {
       var completer = new Completer();
       void read() {
         file.read(_BLOCK_SIZE).then((data) {
-          if (data.length > 0) builder.add(data);
-          if (data.length == _BLOCK_SIZE) {
+          if (data.length > 0) {
+            builder.add(data);
             read();
           } else {
             completer.complete(builder.takeBytes());
@@ -480,7 +480,7 @@ class _File extends FileSystemEntity implements File {
         do {
           data = opened.readSync(_BLOCK_SIZE);
           if (data.length > 0) builder.add(data);
-        } while (data.length == _BLOCK_SIZE);
+        } while (data.length > 0);
         data = builder.takeBytes();
       } else {
         data = opened.readSync(length);
