@@ -1694,15 +1694,17 @@ class _ReferenceInfo {
     } else if (element is FunctionTypeAliasElementHandle) {
       return new FunctionTypeImpl.elementWithNameAndArgs(
           element, name, typeArguments, typeArguments.isNotEmpty);
-    } else if (element is FunctionTypedElement &&
-        implicitFunctionTypeIndices != null) {
-      FunctionTypedElementComputer computer = () {
-        FunctionTypedElement element = this.element;
-        for (int index in implicitFunctionTypeIndices) {
-          element = element.parameters[index].type.element;
-        }
-        return element;
-      };
+    } else if (element is FunctionTypedElement) {
+      FunctionTypedElementComputer computer =
+          implicitFunctionTypeIndices != null
+              ? () {
+                  FunctionTypedElement element = this.element;
+                  for (int index in implicitFunctionTypeIndices) {
+                    element = element.parameters[index].type.element;
+                  }
+                  return element;
+                }
+              : () => this.element;
       // TODO(paulberry): Is it a bug that we have to pass `false` for
       // isInstantiated?
       return new DeferredFunctionTypeImpl(computer, null, typeArguments, false);

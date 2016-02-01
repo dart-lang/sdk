@@ -236,16 +236,15 @@ class ResynthTest extends ResolverTestCase {
       expect(r, isNull, reason: desc);
     } else {
       expect(r, isNotNull, reason: desc);
-      compareTypes(r.staticType, o.staticType, desc);
+      // ConstantAstCloner does not copy static types, and constant values
+      // computer does not use static types. So, we don't set them during
+      // resynthesis and should not check them here.
       if (o is ParenthesizedExpression) {
         // We don't resynthesize parenthesis, so just ignore it.
         compareConstantExpressions(r, o.expression, desc);
       } else if (o is SimpleIdentifier && r is SimpleIdentifier) {
         expect(r.name, o.name);
         compareElements(r.staticElement, o.staticElement, desc);
-        // ConstantAstCloner does not copy static types, and constant values
-        // computer does not use static types. So, we don't set them during
-        // resynthesis and should not check them.
       } else if (o is PrefixedIdentifier && r is SimpleIdentifier) {
         // We don't resynthesize prefixed identifiers.
         // We use simple identifiers with correct elements.
@@ -1051,6 +1050,46 @@ class C {
     checkLibrary(r'''
 import 'a.dart' as p;
 const V = p.C.F;
+''');
+  }
+
+  test_const_reference_staticMethod() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+class C {
+  static int m(int a, String b) => 42;
+}
+const V = C.m;
+''');
+  }
+
+  test_const_reference_staticMethod_imported() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C {
+  static int m(int a, String b) => 42;
+}
+''');
+    checkLibrary(r'''
+import 'a.dart';
+const V = C.m;
+''');
+  }
+
+  test_const_reference_staticMethod_imported_withPrefix() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C {
+  static int m(int a, String b) => 42;
+}
+''');
+    checkLibrary(r'''
+import 'a.dart' as p;
+const V = p.C.m;
 ''');
   }
 
