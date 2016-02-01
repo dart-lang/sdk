@@ -352,7 +352,7 @@ class A {}
   test_addSync_asyncFor() async {
     resolveTestUnit('''
 import 'dart:async';
-main(Stream<String> names) {
+void main(Stream<String> names) {
   await for (String name in names) {
     print(name);
   }
@@ -362,7 +362,7 @@ main(Stream<String> names) {
         DartFixKind.ADD_ASYNC,
         '''
 import 'dart:async';
-main(Stream<String> names) async {
+Future main(Stream<String> names) async {
   await for (String name in names) {
     print(name);
   }
@@ -430,6 +430,98 @@ main() => await foo();
         '''
 foo() {}
 main() async => await foo();
+''');
+  }
+
+  test_addSync_returnFuture() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
+    };
+    resolveTestUnit('''
+foo() {}
+int main() {
+  await foo();
+  return 42;
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_ASYNC,
+        '''
+import 'dart:async';
+
+foo() {}
+Future<int> main() async {
+  await foo();
+  return 42;
+}
+''');
+  }
+
+  test_addSync_returnFuture_alreadyFuture() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
+    };
+    resolveTestUnit('''
+import 'dart:async';
+foo() {}
+Future<int> main() {
+  await foo();
+  return 42;
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_ASYNC,
+        '''
+import 'dart:async';
+foo() {}
+Future<int> main() async {
+  await foo();
+  return 42;
+}
+''');
+  }
+
+  test_addSync_returnFuture_dynamic() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
+    };
+    resolveTestUnit('''
+foo() {}
+dynamic main() {
+  await foo();
+  return 42;
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_ASYNC,
+        '''
+foo() {}
+dynamic main() async {
+  await foo();
+  return 42;
+}
+''');
+  }
+
+  test_addSync_returnFuture_noType() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
+    };
+    resolveTestUnit('''
+foo() {}
+main() {
+  await foo();
+  return 42;
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_ASYNC,
+        '''
+foo() {}
+main() async {
+  await foo();
+  return 42;
+}
 ''');
   }
 
