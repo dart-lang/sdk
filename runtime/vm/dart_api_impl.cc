@@ -856,6 +856,7 @@ DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
     return Api::NewError("No Dart frames on stack, cannot propagate error.");
   }
 
+  TransitionNativeToVM transition(thread);
   // Unwind all the API scopes till the exit frame before propagating.
   const Error* error;
   {
@@ -1568,7 +1569,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_BEGIN_END;
-  TransitionNativeToVM trainsition(T);
+  TransitionNativeToVM transition(T);
   if (I->message_handler()->HandleNextMessage() != MessageHandler::kOK) {
     Dart_Handle error = Api::NewHandle(T, I->object_store()->sticky_error());
     I->object_store()->clear_sticky_error();
@@ -1584,7 +1585,7 @@ DART_EXPORT bool Dart_HandleServiceMessages() {
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_DURATION;
-  TransitionNativeToVM trainsition(T);
+  TransitionNativeToVM transition(T);
   ASSERT(I->GetAndClearResumeRequest() == false);
   MessageHandler::MessageStatus status =
       I->message_handler()->HandleOOBMessages();
@@ -4421,6 +4422,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
     return Api::NewError("No Dart frames on stack, cannot throw exception");
   }
 
+  TransitionNativeToVM transition(thread);
   // Unwind all the API scopes till the exit frame before throwing an
   // exception.
   const Instance* saved_exception;
@@ -4459,6 +4461,7 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
     return Api::NewError("No Dart frames on stack, cannot throw exception");
   }
 
+  TransitionNativeToVM transition(thread);
   // Unwind all the API scopes till the exit frame before throwing an
   // exception.
   const Instance* saved_exception;
