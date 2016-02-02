@@ -8719,7 +8719,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       outer_try->try_index() : CatchClauseNode::kInvalidTryIndex;
 
   // The finally block contains a call to cancel the stream.
-  // :for-in-iter.cancel()
+  // :for-in-iter.cancel();
 
   // Inline the finally block to the exit points in the try block.
   intptr_t node_index = 0;
@@ -8729,6 +8729,17 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   }
   do {
     OpenBlock();
+
+    // Restore the saved try context of the enclosing try block if one
+    // exists.
+    if (outer_saved_try_ctx != NULL) {
+      current_block_->statements->Add(new (Z) StoreLocalNode(
+          TokenPosition::kNoSource,
+          outer_saved_try_ctx,
+          new (Z) LoadLocalNode(TokenPosition::kNoSource,
+                                outer_async_saved_try_ctx)));
+    }
+    // :for-in-iter.cancel();
     ArgumentListNode* no_args =
         new(Z) ArgumentListNode(TokenPosition::kNoSource);
     current_block_->statements->Add(
@@ -8737,6 +8748,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
             Symbols::Cancel(),
             no_args));
     finally_clause = CloseBlock();
+
     AstNode* node_to_inline = try_statement->GetNodeToInlineFinally(node_index);
     if (node_to_inline != NULL) {
       InlinedFinallyNode* node =
@@ -9127,7 +9139,7 @@ SequenceNode* Parser::EnsureFinallyClause(
   if (try_stack_ != NULL) {
     try_stack_->enter_finally();
   }
-  // In case of async closures we need to restore the saved try index of an
+  // In case of async closures we need to restore the saved try context of an
   // outer try block (if it exists).  The current try block has already been
   // removed from the stack of try blocks.
   if (is_async) {
