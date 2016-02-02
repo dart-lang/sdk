@@ -86,6 +86,8 @@ class Exceptions : AllStatic {
   // otherwise returns a RawError.
   static RawObject* Create(ExceptionType type, const Array& arguments);
 
+  static void PrintStackTraceAndAbort(const char* reason);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(Exceptions);
 };
