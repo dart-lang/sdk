@@ -135,6 +135,7 @@ def PubCommand(dart_executable,
       # development flow.
       # REMOVE THE FOLLOWING LINE TO USE the dart_bootstrap binary.
       # return False
+    print >> sys.stderr, ('Running command "%s"') % (executable + command)
     return subprocess.call(executable + command,
                            stdout=silent_sink if silent else None,
                            stderr=silent_sink if silent else None)

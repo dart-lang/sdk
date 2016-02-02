@@ -47,6 +47,10 @@ DEFINE_FLAG(charp, vm_name, "vm",
             "The default name of this vm as reported by the VM service "
             "protocol");
 
+DEFINE_FLAG(bool, warn_on_pause_with_no_debugger, false,
+            "Print a message when an isolate is paused but there is no "
+            "debugger attached.");
+
 // The name of this of this vm as reported by the VM service protocol.
 static char* vm_name = NULL;
 
@@ -142,6 +146,8 @@ bool Service::ListenStream(const char* stream_id) {
     }
   }
   if (stream_listen_callback_) {
+    Thread* T = Thread::Current();
+    TransitionVMToNative transition(T);
     return (*stream_listen_callback_)(stream_id);
   }
   return false;
@@ -162,12 +168,15 @@ void Service::CancelStream(const char* stream_id) {
     }
   }
   if (stream_cancel_callback_) {
+    Thread* T = Thread::Current();
+    TransitionVMToNative transition(T);
     return (*stream_cancel_callback_)(stream_id);
   }
 }
 
 RawObject* Service::RequestAssets() {
   Thread* T = Thread::Current();
+  TransitionVMToNative transition(T);
   Api::Scope api_scope(T);
   if (get_service_assets_callback_ == NULL) {
     return Object::null();
@@ -233,6 +242,7 @@ static void PrintSuccess(JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Success");
 }
+
 
 static bool GetIntegerId(const char* s, intptr_t* id, int base = 10) {
   if ((s == NULL) || (*s == '\0')) {
@@ -404,6 +414,12 @@ class MethodParameter {
     return required_;
   }
 
+  virtual void PrintError(const char* name,
+                          const char* value,
+                          JSONStream* js) const {
+    PrintInvalidParamError(js, name);
+  }
+
  private:
   const char* name_;
   bool required_;
@@ -420,9 +436,6 @@ class NoSuchParameter : public MethodParameter {
     return (value == NULL);
   }
 };
-
-
-#define NO_ISOLATE_PARAMETER new NoSuchParameter("isolateId")
 
 
 class BoolParameter : public MethodParameter {
@@ -519,8 +532,29 @@ class IdParameter : public MethodParameter {
 };
 
 
-#define ISOLATE_PARAMETER new IdParameter("isolateId", true)
+class RunnableIsolateParameter : public MethodParameter {
+ public:
+  explicit RunnableIsolateParameter(const char* name)
+      : MethodParameter(name, true) {
+  }
 
+  virtual bool Validate(const char* value) const {
+    Isolate* isolate = Isolate::Current();
+    return (value != NULL) && (isolate != NULL) && (isolate->is_runnable());
+  }
+
+  virtual void PrintError(const char* name,
+                          const char* value,
+                          JSONStream* js) const {
+    js->PrintError(kIsolateMustBeRunnable,
+                   "Isolate must be runnable before this request is made.");
+  }
+};
+
+
+#define ISOLATE_PARAMETER new IdParameter("isolateId", true)
+#define NO_ISOLATE_PARAMETER new NoSuchParameter("isolateId")
+#define RUNNABLE_ISOLATE_PARAMETER new RunnableIsolateParameter("isolateId")
 
 class EnumParameter : public MethodParameter {
  public:
@@ -708,7 +742,7 @@ static bool ValidateParameters(const MethodParameter* const* parameters,
       return false;
     }
     if (has_parameter && !parameter->Validate(value)) {
-      PrintInvalidParamError(js, name);
+      parameter->PrintError(name, value, js);
       return false;
     }
   }
@@ -922,10 +956,59 @@ void Service::SendEventWithData(const char* stream_id,
 }
 
 
+static void ReportPauseOnConsole(ServiceEvent* event) {
+  const char* name = event->isolate()->debugger_name();
+  switch (event->kind())  {
+    case ServiceEvent::kPauseStart:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused at "
+          "start.", name);
+      break;
+    case ServiceEvent::kPauseExit:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused at "
+          "exit.", name);
+      break;
+    case ServiceEvent::kPauseException:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused due "
+          "to exception.", name);
+      break;
+    case ServiceEvent::kPauseInterrupted:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused due "
+          "to interrupt.", name);
+      break;
+    case ServiceEvent::kPauseBreakpoint:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused.",
+          name);
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+  if (!ServiceIsolate::IsRunning()) {
+    OS::PrintErr("  Start the vm-service to debug.\n");
+  } else if (ServiceIsolate::server_address() == NULL) {
+    OS::PrintErr("  Connect to Observatory to debug.\n");
+  } else {
+    OS::PrintErr("  Connect to Observatory at %s to debug.\n",
+                 ServiceIsolate::server_address());
+  }
+}
+
+
 void Service::HandleEvent(ServiceEvent* event) {
   if (event->isolate() != NULL &&
       ServiceIsolate::IsServiceIsolateDescendant(event->isolate())) {
     return;
+  }
+  if (FLAG_warn_on_pause_with_no_debugger &&
+      event->IsPause() && !Service::debug_stream.enabled()) {
+    // If we are about to pause a running program which has no
+    // debugger connected, tell the user about it.
+    ReportPauseOnConsole(event);
   }
   if (!ServiceIsolate::IsRunning()) {
     return;
@@ -1170,7 +1253,7 @@ static bool GetIsolate(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* get_stack_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new BoolParameter("_full", false),
   NULL,
 };
@@ -1779,7 +1862,7 @@ static bool PrintInboundReferences(Thread* thread,
 
 
 static const MethodParameter* get_inbound_references_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -1878,7 +1961,7 @@ static bool PrintRetainingPath(Thread* thread,
 
 
 static const MethodParameter* get_retaining_path_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -1921,7 +2004,7 @@ static bool GetRetainingPath(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* get_retained_size_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new IdParameter("targetId", true),
   NULL,
 };
@@ -1963,7 +2046,7 @@ static bool GetRetainedSize(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* get_reachable_size_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new IdParameter("targetId", true),
   NULL,
 };
@@ -2005,7 +2088,7 @@ static bool GetReachableSize(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* evaluate_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -2076,7 +2159,7 @@ static bool Evaluate(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* evaluate_in_frame_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new UIntParameter("frameIndex", true),
   new MethodParameter("expression", true),
   NULL,
@@ -2141,7 +2224,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
 
 
 static const MethodParameter* get_instances_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -2299,7 +2382,7 @@ static bool GetHitsOrSites(Thread* thread, JSONStream* js, bool as_sites) {
 
 
 static const MethodParameter* get_coverage_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new IdParameter("targetId", false),
   NULL,
 };
@@ -2329,7 +2412,7 @@ static const EnumListParameter* reports_parameter =
 
 
 static const MethodParameter* get_source_report_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   reports_parameter,
   new IdParameter("scriptId", false),
   new UIntParameter("tokenPos", false),
@@ -2390,13 +2473,16 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
     }
   }
   SourceReport report(report_set, compile_mode);
-  report.PrintJSON(js, script, start_pos, end_pos);
+  report.PrintJSON(js,
+                   script,
+                   TokenPosition(start_pos),
+                   TokenPosition(end_pos));
   return true;
 }
 
 
 static const MethodParameter* get_call_site_data_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new IdParameter("targetId", false),
   NULL,
 };
@@ -2443,7 +2529,7 @@ static bool AddBreakpointCommon(Thread* thread,
 
 
 static const MethodParameter* add_breakpoint_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new IdParameter("scriptId", true),
   new UIntParameter("line", true),
   new UIntParameter("column", false),
@@ -2471,7 +2557,7 @@ static bool AddBreakpoint(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* add_breakpoint_with_script_uri_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new IdParameter("scriptUri", true),
   new UIntParameter("line", true),
   new UIntParameter("column", false),
@@ -2492,7 +2578,7 @@ static bool AddBreakpointWithScriptUri(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* add_breakpoint_at_entry_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new IdParameter("functionId", true),
   NULL,
 };
@@ -2525,7 +2611,7 @@ static bool AddBreakpointAtEntry(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* add_breakpoint_at_activation_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new IdParameter("objectId", true),
   NULL,
 };
@@ -2558,7 +2644,7 @@ static bool AddBreakpointAtActivation(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* remove_breakpoint_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -2688,7 +2774,7 @@ static bool HandleDartMetric(Thread* thread, JSONStream* js, const char* id) {
 
 
 static const MethodParameter* get_isolate_metric_list_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -2716,7 +2802,7 @@ static bool GetIsolateMetricList(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* get_isolate_metric_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -2864,7 +2950,7 @@ static bool GetVMTimeline(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* resume_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -2917,7 +3003,7 @@ static bool Resume(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* pause_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -2936,7 +3022,7 @@ static bool Pause(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* get_tag_profile_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -2970,7 +3056,7 @@ static const Profile::TagOrder tags_enum_values[] = {
 
 
 static const MethodParameter* get_cpu_profile_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new EnumParameter("tags", true, tags_enum_names),
   new BoolParameter("_codeTransitionTags", false),
   new Int64Parameter("timeOriginMicros", false),
@@ -3001,7 +3087,7 @@ static bool GetCpuProfile(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* get_cpu_profile_timeline_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new EnumParameter("tags", true, tags_enum_names),
   new Int64Parameter("timeOriginMicros", false),
   new Int64Parameter("timeExtentMicros", false),
@@ -3025,7 +3111,7 @@ static bool GetCpuProfileTimeline(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* get_allocation_samples_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new EnumParameter("tags", true, tags_enum_names),
   new IdParameter("classId", false),
   new Int64Parameter("timeOriginMicros", false),
@@ -3060,7 +3146,7 @@ static bool GetAllocationSamples(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* clear_cpu_profile_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -3073,7 +3159,7 @@ static bool ClearCpuProfile(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* get_allocation_profile_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -3112,7 +3198,7 @@ static bool GetAllocationProfile(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* get_heap_map_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -3125,7 +3211,7 @@ static bool GetHeapMap(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* request_heap_snapshot_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -3279,7 +3365,7 @@ class ContainsAddressVisitor : public FindObjectVisitor {
 
 
 static const MethodParameter* get_object_by_address_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -3334,7 +3420,7 @@ static bool GetObjectByAddress(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* get_ports_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -3367,7 +3453,7 @@ static bool RespondWithMalformedObject(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* get_object_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new UIntParameter("offset", false),
   new UIntParameter("count", false),
   NULL,
@@ -3429,7 +3515,7 @@ static bool GetObject(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* get_class_list_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -3443,7 +3529,7 @@ static bool GetClassList(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* get_type_arguments_list_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   NULL,
 };
 
@@ -3486,7 +3572,7 @@ static bool GetVersion(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
   jsobj.AddProperty("major", static_cast<intptr_t>(3));
-  jsobj.AddProperty("minor", static_cast<intptr_t>(0));
+  jsobj.AddProperty("minor", static_cast<intptr_t>(1));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
   return true;
@@ -3652,7 +3738,7 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* set_library_debuggable_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new IdParameter("libraryId", true),
   new BoolParameter("isDebuggable", true),
   NULL,
@@ -3716,7 +3802,7 @@ static bool SetVMName(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* set_trace_class_allocation_params[] = {
-  ISOLATE_PARAMETER,
+  RUNNABLE_ISOLATE_PARAMETER,
   new IdParameter("classId", true),
   new BoolParameter("enable", true),
   NULL,

@@ -375,16 +375,12 @@ abstract class SummaryTest {
     if (!allowTypeParameters) {
       expect(typeRef.typeArguments, isEmpty);
     }
-    checkTypeRefCommonElements(
-        index,
-        absoluteUri,
-        relativeUri,
-        expectedName,
-        expectedKind,
-        expectedTargetUnit,
-        linkedSourceUnit,
-        unlinkedSourceUnit,
-        numTypeParameters);
+    checkReferenceIndex(index, absoluteUri, relativeUri, expectedName,
+        expectedKind: expectedKind,
+        expectedTargetUnit: expectedTargetUnit,
+        linkedSourceUnit: linkedSourceUnit,
+        unlinkedSourceUnit: unlinkedSourceUnit,
+        numTypeParameters: numTypeParameters);
   }
 
   /**
@@ -452,95 +448,20 @@ abstract class SummaryTest {
   }
 
   /**
-   * Verify that the given [typeRef] represents a reference to a type declared
-   * in a file reachable via [absoluteUri] and [relativeUri], having name
-   * [expectedName].  If [expectedPrefix] is supplied, verify that the type is
-   * reached via the given prefix.  If [allowTypeParameters] is true, allow the
-   * type reference to supply type parameters.  [expectedKind] is the kind of
-   * object referenced.  [linkedSourceUnit] and [unlinkedSourceUnit] refer
-   * to the compilation unit within which the [typeRef] appears; if not
-   * specified they are assumed to refer to the defining compilation unit.
-   * [expectedTargetUnit] is the index of the compilation unit in which the
-   * target of the [typeRef] is expected to appear; if not specified it is
-   * assumed to be the defining compilation unit.  [numTypeParameters] is the
-   * number of type parameters of the thing being referred to.
+   * Check the data structures that are reachable from an index in the
+   * references table..  If the reference in question is an explicit
+   * reference, return the [UnlinkedReference] that is used to make the
+   * explicit reference.  If the type reference in question is an implicit
+   * reference, return `null`.
    */
-  void checkTypeRef(EntityRef typeRef, String absoluteUri, String relativeUri,
-      String expectedName,
-      {String expectedPrefix,
-      List<_PrefixExpectation> prefixExpectations,
-      bool allowTypeParameters: false,
-      ReferenceKind expectedKind: ReferenceKind.classOrEnum,
+  UnlinkedReference checkReferenceIndex(int referenceIndex, String absoluteUri,
+      String relativeUri, String expectedName,
+      {ReferenceKind expectedKind: ReferenceKind.classOrEnum,
       int expectedTargetUnit: 0,
       LinkedUnit linkedSourceUnit,
       UnlinkedUnit unlinkedSourceUnit,
       int numTypeParameters: 0}) {
     linkedSourceUnit ??= definingUnit;
-    expect(typeRef, new isInstanceOf<EntityRef>());
-    expect(typeRef.paramReference, 0);
-    int index = typeRef.reference;
-    if (!allowTypeParameters) {
-      expect(typeRef.typeArguments, isEmpty);
-    }
-    UnlinkedReference reference = checkTypeRefCommonElements(
-        index,
-        absoluteUri,
-        relativeUri,
-        expectedName,
-        expectedKind,
-        expectedTargetUnit,
-        linkedSourceUnit,
-        unlinkedSourceUnit,
-        numTypeParameters);
-    expect(reference, isNotNull,
-        reason: 'Unlinked type refs must refer to an explicit reference');
-    if (expectedKind == ReferenceKind.unresolved && !checkAstDerivedData) {
-      // summarize_elements.dart isn't yet able to record the prefix of
-      // unresolved references.  TODO(paulberry): fix this.
-      expect(reference.prefixReference, 0);
-    } else if (expectedPrefix != null) {
-      checkPrefix(reference.prefixReference, expectedPrefix);
-    } else if (prefixExpectations != null) {
-      for (_PrefixExpectation expectation in prefixExpectations) {
-        expect(reference.prefixReference, isNot(0));
-        reference = checkTypeRefCommonElements(
-            reference.prefixReference,
-            expectation.inLibraryDefiningUnit
-                ? null
-                : expectation.absoluteUri ?? absoluteUri,
-            expectation.inLibraryDefiningUnit
-                ? null
-                : expectation.relativeUri ?? relativeUri,
-            expectation.name,
-            expectation.kind,
-            expectedTargetUnit,
-            linkedSourceUnit,
-            unlinkedSourceUnit,
-            expectation.numTypeParameters);
-      }
-      expect(reference.prefixReference, 0);
-    } else {
-      expect(reference.prefixReference, 0);
-    }
-  }
-
-  /**
-   * Check the data structures that are common between [checkTypeRef] and
-   * [checkLinkedTypeRef].  If the type reference in question is an explicit
-   * reference, return the [UnlinkedReference] that is used to make the
-   * explicit reference.  If the type reference in question is an implicit
-   * reference, return `null`.
-   */
-  UnlinkedReference checkTypeRefCommonElements(
-      int referenceIndex,
-      String absoluteUri,
-      String relativeUri,
-      String expectedName,
-      ReferenceKind expectedKind,
-      int expectedTargetUnit,
-      LinkedUnit linkedSourceUnit,
-      UnlinkedUnit unlinkedSourceUnit,
-      int numTypeParameters) {
     unlinkedSourceUnit ??= unlinkedUnits[0];
     LinkedReference referenceResolution =
         linkedSourceUnit.references[referenceIndex];
@@ -584,6 +505,76 @@ abstract class SummaryTest {
     expect(referenceResolution.unit, expectedTargetUnit);
     expect(referenceResolution.numTypeParameters, numTypeParameters);
     return reference;
+  }
+
+  /**
+   * Verify that the given [typeRef] represents a reference to a type declared
+   * in a file reachable via [absoluteUri] and [relativeUri], having name
+   * [expectedName].  If [expectedPrefix] is supplied, verify that the type is
+   * reached via the given prefix.  If [allowTypeParameters] is true, allow the
+   * type reference to supply type parameters.  [expectedKind] is the kind of
+   * object referenced.  [linkedSourceUnit] and [unlinkedSourceUnit] refer
+   * to the compilation unit within which the [typeRef] appears; if not
+   * specified they are assumed to refer to the defining compilation unit.
+   * [expectedTargetUnit] is the index of the compilation unit in which the
+   * target of the [typeRef] is expected to appear; if not specified it is
+   * assumed to be the defining compilation unit.  [numTypeParameters] is the
+   * number of type parameters of the thing being referred to.
+   */
+  void checkTypeRef(EntityRef typeRef, String absoluteUri, String relativeUri,
+      String expectedName,
+      {String expectedPrefix,
+      List<_PrefixExpectation> prefixExpectations,
+      bool allowTypeParameters: false,
+      ReferenceKind expectedKind: ReferenceKind.classOrEnum,
+      int expectedTargetUnit: 0,
+      LinkedUnit linkedSourceUnit,
+      UnlinkedUnit unlinkedSourceUnit,
+      int numTypeParameters: 0}) {
+    linkedSourceUnit ??= definingUnit;
+    expect(typeRef, new isInstanceOf<EntityRef>());
+    expect(typeRef.paramReference, 0);
+    int index = typeRef.reference;
+    if (!allowTypeParameters) {
+      expect(typeRef.typeArguments, isEmpty);
+    }
+    UnlinkedReference reference = checkReferenceIndex(
+        index, absoluteUri, relativeUri, expectedName,
+        expectedKind: expectedKind,
+        expectedTargetUnit: expectedTargetUnit,
+        linkedSourceUnit: linkedSourceUnit,
+        unlinkedSourceUnit: unlinkedSourceUnit,
+        numTypeParameters: numTypeParameters);
+    expect(reference, isNotNull,
+        reason: 'Unlinked type refs must refer to an explicit reference');
+    if (expectedKind == ReferenceKind.unresolved && !checkAstDerivedData) {
+      // summarize_elements.dart isn't yet able to record the prefix of
+      // unresolved references.  TODO(paulberry): fix this.
+      expect(reference.prefixReference, 0);
+    } else if (expectedPrefix != null) {
+      checkPrefix(reference.prefixReference, expectedPrefix);
+    } else if (prefixExpectations != null) {
+      for (_PrefixExpectation expectation in prefixExpectations) {
+        expect(reference.prefixReference, isNot(0));
+        reference = checkReferenceIndex(
+            reference.prefixReference,
+            expectation.inLibraryDefiningUnit
+                ? null
+                : expectation.absoluteUri ?? absoluteUri,
+            expectation.inLibraryDefiningUnit
+                ? null
+                : expectation.relativeUri ?? relativeUri,
+            expectation.name,
+            expectedKind: expectation.kind,
+            expectedTargetUnit: expectedTargetUnit,
+            linkedSourceUnit: linkedSourceUnit,
+            unlinkedSourceUnit: unlinkedSourceUnit,
+            numTypeParameters: expectation.numTypeParameters);
+      }
+      expect(reference.prefixReference, 0);
+    } else {
+      expect(reference.prefixReference, 0);
+    }
   }
 
   /**
@@ -1098,12 +1089,12 @@ class C {
     expect(executablesMap, hasLength(2));
     {
       UnlinkedPublicName executable = executablesMap['fieldStaticConst'];
-      expect(executable.kind, ReferenceKind.constField);
+      expect(executable.kind, ReferenceKind.propertyAccessor);
       expect(executable.constMembers, isEmpty);
     }
     {
       UnlinkedPublicName executable = executablesMap['methodStaticPublic'];
-      expect(executable.kind, ReferenceKind.staticMethod);
+      expect(executable.kind, ReferenceKind.method);
       expect(executable.constMembers, isEmpty);
     }
   }
@@ -1422,8 +1413,7 @@ class E {}
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.equal,
-      UnlinkedConstOperation.not
+      UnlinkedConstOperation.notEqual
     ], ints: [
       1,
       2
@@ -1559,6 +1549,185 @@ class E {}
       UnlinkedConstOperation.identical
     ], ints: [
       42
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_generic_named() {
+    UnlinkedVariable variable = serializeVariableText('''
+class C<K, V> {
+  const C.named();
+}
+const v = const C<int, String>.named();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) {
+        checkTypeRef(r, null, null, 'named',
+            expectedKind: ReferenceKind.constructor,
+            prefixExpectations: [
+              new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                  numTypeParameters: 2)
+            ],
+            allowTypeParameters: true);
+        checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
+        checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
+      }
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_generic_named_imported() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C<K, V> {
+  const C.named();
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = const C<int, String>.named();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) {
+        checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'named',
+            expectedKind: ReferenceKind.constructor,
+            prefixExpectations: [
+              new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                  numTypeParameters: 2)
+            ],
+            allowTypeParameters: true);
+        checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
+        checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
+      }
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_generic_named_imported_withPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C<K, V> {
+  const C.named();
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const v = const p.C<int, String>.named();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) {
+        checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'named',
+            expectedKind: ReferenceKind.constructor,
+            prefixExpectations: [
+              new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                  numTypeParameters: 2),
+              new _PrefixExpectation(ReferenceKind.prefix, 'p',
+                  inLibraryDefiningUnit: true)
+            ],
+            allowTypeParameters: true);
+        checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
+        checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
+      }
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_generic_unnamed() {
+    UnlinkedVariable variable = serializeVariableText('''
+class C<K, V> {
+  const C();
+}
+const v = const C<int, String>();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) {
+        checkTypeRef(r, null, null, 'C',
+            expectedKind: ReferenceKind.classOrEnum,
+            numTypeParameters: 2,
+            allowTypeParameters: true);
+        checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
+        checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
+      }
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_generic_unnamed_imported() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C<K, V> {
+  const C();
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = const C<int, String>();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) {
+        checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
+            expectedKind: ReferenceKind.classOrEnum,
+            numTypeParameters: 2,
+            allowTypeParameters: true);
+        checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
+        checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
+      }
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_generic_unnamed_imported_withPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C<K, V> {
+  const C();
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const v = const p.C<int, String>();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) {
+        checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
+            expectedKind: ReferenceKind.classOrEnum,
+            numTypeParameters: 2,
+            allowTypeParameters: true,
+            prefixExpectations: [
+              new _PrefixExpectation(ReferenceKind.prefix, 'p',
+                  inLibraryDefiningUnit: true)
+            ]);
+        checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
+        checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
+      }
     ]);
   }
 
@@ -1739,7 +1908,7 @@ const int v = C.length;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'length',
-              expectedKind: ReferenceKind.constField,
+              expectedKind: ReferenceKind.propertyAccessor,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
               ])
@@ -1762,7 +1931,7 @@ const int v = p.C.length;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'length',
-              expectedKind: ReferenceKind.constField,
+              expectedKind: ReferenceKind.propertyAccessor,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
@@ -1802,7 +1971,7 @@ const int v = C.F.length;
       (EntityRef r) => checkTypeRef(r, null, null, 'length',
               expectedKind: ReferenceKind.length,
               prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.constField, 'F'),
+                new _PrefixExpectation(ReferenceKind.propertyAccessor, 'F'),
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C'),
               ])
     ]);
@@ -1894,12 +2063,8 @@ const int v = p.a.length;
 
   test_constExpr_makeSymbol() {
     UnlinkedVariable variable = serializeVariableText('const v = #a.bb.ccc;');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.makeSymbol
-    ], strings: [
-      'a.bb.ccc'
-    ]);
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.makeSymbol], strings: ['a.bb.ccc']);
   }
 
   test_constExpr_makeTypedList() {
@@ -2109,45 +2274,25 @@ const int v = p.a.length;
     ]);
   }
 
-  test_constExpr_pushInt_shiftOr_long() {
+  test_constExpr_pushLongInt() {
     UnlinkedVariable variable =
         serializeVariableText('const v = 0xA123456789ABCDEF012345678;');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.shiftOr,
-      UnlinkedConstOperation.shiftOr,
-      UnlinkedConstOperation.shiftOr
-    ], ints: [
-      0xA,
-      0x12345678,
-      0x9ABCDEF0,
-      0x12345678
-    ]);
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushLongInt],
+        ints: [4, 0xA, 0x12345678, 0x9ABCDEF0, 0x12345678]);
   }
 
-  test_constExpr_pushInt_shiftOr_min() {
+  test_constExpr_pushLongInt_min2() {
     UnlinkedVariable variable = serializeVariableText('const v = 0x100000000;');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.shiftOr,
-    ], ints: [
-      1,
-      0,
-    ]);
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushLongInt], ints: [2, 1, 0,]);
   }
 
-  test_constExpr_pushInt_shiftOr_min2() {
+  test_constExpr_pushLongInt_min3() {
     UnlinkedVariable variable =
         serializeVariableText('const v = 0x10000000000000000;');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.shiftOr,
-      UnlinkedConstOperation.shiftOr,
-    ], ints: [
-      1,
-      0,
-      0,
-    ]);
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushLongInt], ints: [3, 1, 0, 0,]);
   }
 
   test_constExpr_pushNull() {
@@ -2193,7 +2338,7 @@ const v = C.F;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'F',
-              expectedKind: ReferenceKind.constField,
+              expectedKind: ReferenceKind.propertyAccessor,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
               ])
@@ -2216,7 +2361,7 @@ const v = C.F;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'F',
-              expectedKind: ReferenceKind.constField,
+              expectedKind: ReferenceKind.propertyAccessor,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
               ])
@@ -2239,7 +2384,7 @@ const v = p.C.F;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'F',
-              expectedKind: ReferenceKind.constField,
+              expectedKind: ReferenceKind.propertyAccessor,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C'),
                 new _PrefixExpectation(ReferenceKind.prefix, 'p',
@@ -2259,7 +2404,7 @@ const v = C.m;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'm',
-              expectedKind: ReferenceKind.staticMethod,
+              expectedKind: ReferenceKind.method,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
               ])
@@ -2282,7 +2427,7 @@ const v = C.m;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'm',
-              expectedKind: ReferenceKind.staticMethod,
+              expectedKind: ReferenceKind.method,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
               ])
@@ -2305,7 +2450,7 @@ const v = p.C.m;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'm',
-              expectedKind: ReferenceKind.staticMethod,
+              expectedKind: ReferenceKind.method,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C'),
                 new _PrefixExpectation(ReferenceKind.prefix, 'p',
@@ -4023,6 +4168,129 @@ p.B b;
         allowTypeParameters: true, numTypeParameters: 2);
     checkParamTypeRef(type.typeArguments[0], 1);
     checkLinkedTypeRef(type.typeArguments[1], 'dart:core', 'dart:core', 'int');
+  }
+
+  test_inferred_type_refers_to_function_typed_parameter_type_generic_class() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedClass cls = serializeClassText(
+        'class C<T, U> extends D<U, int> { void f(int x, g) {} }'
+        ' abstract class D<V, W> { void f(int x, W g(V s)); }',
+        className: 'C');
+    EntityRef type =
+        getTypeRefForSlot(cls.executables[0].parameters[1].inferredTypeSlot);
+    // Check that parameter g's inferred type is the type implied by D.f's 1st
+    // (zero-based) parameter.
+    expect(type.implicitFunctionTypeIndices, [1]);
+    expect(type.paramReference, 0);
+    expect(type.typeArguments, hasLength(2));
+    checkParamTypeRef(type.typeArguments[0], 1);
+    checkTypeRef(type.typeArguments[1], 'dart:core', 'dart:core', 'int');
+    expect(type.reference,
+        greaterThanOrEqualTo(unlinkedUnits[0].references.length));
+    LinkedReference linkedReference =
+        linked.units[0].references[type.reference];
+    expect(linkedReference.dependency, 0);
+    expect(linkedReference.kind, ReferenceKind.method);
+    expect(linkedReference.name, 'f');
+    expect(linkedReference.numTypeParameters, 2);
+    expect(linkedReference.unit, 0);
+    expect(linkedReference.containingReference, isNot(0));
+    expect(linkedReference.containingReference, lessThan(type.reference));
+    checkReferenceIndex(linkedReference.containingReference, null, null, 'D',
+        numTypeParameters: 2);
+  }
+
+  test_inferred_type_refers_to_function_typed_parameter_type_other_lib() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    addNamedSource('/a.dart', 'import "b.dart"; abstract class D extends E {}');
+    addNamedSource(
+        '/b.dart', 'abstract class E { void f(int x, int g(String s)); }');
+    UnlinkedClass cls = serializeClassText(
+        'import "a.dart"; class C extends D { void f(int x, g) {} }');
+    EntityRef type =
+        getTypeRefForSlot(cls.executables[0].parameters[1].inferredTypeSlot);
+    // Check that parameter g's inferred type is the type implied by D.f's 1st
+    // (zero-based) parameter.
+    expect(type.implicitFunctionTypeIndices, [1]);
+    expect(type.paramReference, 0);
+    expect(type.typeArguments, isEmpty);
+    expect(type.reference,
+        greaterThanOrEqualTo(unlinkedUnits[0].references.length));
+    LinkedReference linkedReference =
+        linked.units[0].references[type.reference];
+    int expectedDep =
+        checkHasDependency(absUri('/b.dart'), 'b.dart', fullyLinked: true);
+    expect(linkedReference.dependency, expectedDep);
+    expect(linkedReference.kind, ReferenceKind.method);
+    expect(linkedReference.name, 'f');
+    expect(linkedReference.numTypeParameters, 0);
+    expect(linkedReference.unit, 0);
+    expect(linkedReference.containingReference, isNot(0));
+    expect(linkedReference.containingReference, lessThan(type.reference));
+    checkReferenceIndex(
+        linkedReference.containingReference, absUri('/b.dart'), 'b.dart', 'E');
+  }
+
+  test_inferred_type_refers_to_method_function_typed_parameter_type() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedClass cls = serializeClassText(
+        'class C extends D { void f(int x, g) {} }'
+        ' abstract class D { void f(int x, int g(String s)); }',
+        className: 'C');
+    EntityRef type =
+        getTypeRefForSlot(cls.executables[0].parameters[1].inferredTypeSlot);
+    // Check that parameter g's inferred type is the type implied by D.f's 1st
+    // (zero-based) parameter.
+    expect(type.implicitFunctionTypeIndices, [1]);
+    expect(type.paramReference, 0);
+    expect(type.typeArguments, isEmpty);
+    expect(type.reference,
+        greaterThanOrEqualTo(unlinkedUnits[0].references.length));
+    LinkedReference linkedReference =
+        linked.units[0].references[type.reference];
+    expect(linkedReference.dependency, 0);
+    expect(linkedReference.kind, ReferenceKind.method);
+    expect(linkedReference.name, 'f');
+    expect(linkedReference.numTypeParameters, 0);
+    expect(linkedReference.unit, 0);
+    expect(linkedReference.containingReference, isNot(0));
+    expect(linkedReference.containingReference, lessThan(type.reference));
+    checkReferenceIndex(linkedReference.containingReference, null, null, 'D');
+  }
+
+  test_inferred_type_refers_to_setter_function_typed_parameter_type() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedClass cls = serializeClassText(
+        'class C extends D { void set f(g) {} }'
+        ' abstract class D { void set f(int g(String s)); }',
+        className: 'C');
+    EntityRef type =
+        getTypeRefForSlot(cls.executables[0].parameters[0].inferredTypeSlot);
+    // Check that parameter g's inferred type is the type implied by D.f's 1st
+    // (zero-based) parameter.
+    expect(type.implicitFunctionTypeIndices, [0]);
+    expect(type.paramReference, 0);
+    expect(type.typeArguments, isEmpty);
+    expect(type.reference,
+        greaterThanOrEqualTo(unlinkedUnits[0].references.length));
+    LinkedReference linkedReference =
+        linked.units[0].references[type.reference];
+    expect(linkedReference.dependency, 0);
+    expect(linkedReference.kind, ReferenceKind.propertyAccessor);
+    expect(linkedReference.name, 'f=');
+    expect(linkedReference.numTypeParameters, 0);
+    expect(linkedReference.unit, 0);
+    expect(linkedReference.containingReference, isNot(0));
+    expect(linkedReference.containingReference, lessThan(type.reference));
+    checkReferenceIndex(linkedReference.containingReference, null, null, 'D');
   }
 
   test_invalid_prefix_dynamic() {

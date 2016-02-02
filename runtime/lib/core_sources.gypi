@@ -47,6 +47,7 @@
     'resource_patch.dart',
     'stacktrace.cc',
     'stacktrace.dart',
+    'stacktrace.h',
     'stopwatch.cc',
     'stopwatch_patch.dart',
     'string.cc',

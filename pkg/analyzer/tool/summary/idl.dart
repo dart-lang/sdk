@@ -108,6 +108,30 @@ class EntityRef {
   int paramReference;
 
   /**
+   * If this is a reference to a function type implicitly defined by a
+   * function-typed parameter, a list of zero-based indices indicating the path
+   * from the entity referred to by [reference] to the appropriate type
+   * parameter.  Otherwise the empty list.
+   *
+   * If there are N indices in this list, then the entity being referred to is
+   * the function type implicitly defined by a function-typed parameter of a
+   * function-typed parameter, to N levels of nesting.  The first index in the
+   * list refers to the outermost level of nesting; for example if [reference]
+   * refers to the entity defined by:
+   *
+   *     void f(x, void g(y, z, int h(String w))) { ... }
+   *
+   * Then to refer to the function type implicitly defined by parameter `h`
+   * (which is parameter 2 of parameter 1 of `f`), then
+   * [implicitFunctionTypeIndices] should be [1, 2].
+   *
+   * Note that if the entity being referred to is a generic method inside a
+   * generic class, then the type arguments in [typeArguments] are applied
+   * first to the class and then to the method.
+   */
+  List<int> implicitFunctionTypeIndices;
+
+  /**
    * If this is an instantiation of a generic type or generic executable, the
    * type arguments used to instantiate it.  Trailing type arguments of type
    * `dynamic` are omitted.
@@ -142,8 +166,8 @@ class LinkedDependency {
  */
 class LinkedExportName {
   /**
-   * Name of the exported entity.  TODO(paulberry): do we include the trailing
-   * '=' for a setter?
+   * Name of the exported entity.  For an exported setter, this name includes
+   * the trailing '='.
    */
   String name;
 
@@ -228,6 +252,9 @@ class LinkedReference {
   /**
    * Index into [LinkedLibrary.dependencies] indicating which imported library
    * declares the entity being referred to.
+   *
+   * Zero if this entity is contained within another entity (e.g. a class
+   * member).
    */
   int dependency;
 
@@ -242,6 +269,9 @@ class LinkedReference {
    * definition of the entity.  As with indices into [LinkedLibrary.units],
    * zero represents the defining compilation unit, and nonzero values
    * represent parts in the order of the corresponding `part` declarations.
+   *
+   * Zero if this entity is contained within another entity (e.g. a class
+   * member).
    */
   int unit;
 
@@ -257,6 +287,19 @@ class LinkedReference {
    * string is "dynamic".  For the pseudo-type `void`, the string is "void".
    */
   String name;
+
+  /**
+   * If this [LinkedReference] doesn't have an associated [UnlinkedReference],
+   * and the entity being referred to is contained within another entity, index
+   * of the containing entity.  This behaves similarly to
+   * [UnlinkedReference.prefixReference], however it is only used for class
+   * members, not for prefixed imports.
+   *
+   * Containing references must always point backward; that is, for all i, if
+   * LinkedUnit.references[i].containingReference != 0, then
+   * LinkedUnit.references[i].containingReference < i.
+   */
+  int containingReference;
 }
 
 /**
@@ -296,14 +339,16 @@ enum ReferenceKind {
   constructor,
 
   /**
-   * The entity is a static const field.
+   * The entity is a getter or setter inside a class.  Note: this is used in
+   * the case where a constant refers to a static const declared inside a
+   * class.
    */
-  constField,
+  propertyAccessor,
 
   /**
-   * The entity is a static method.
+   * The entity is a method.
    */
-  staticMethod,
+  method,
 
   /**
    * The `length` property access.
@@ -500,27 +545,21 @@ class UnlinkedConst {
  */
 enum UnlinkedConstOperation {
   /**
-   * Push the value of the n-th constructor argument (where n is obtained from
-   * [UnlinkedConst.ints]) onto the stack.
-   */
-  pushArgument,
-
-  /**
    * Push the next value from [UnlinkedConst.ints] (a 32-bit unsigned integer)
    * onto the stack.
    *
    * Note that Dart supports integers larger than 32 bits; these are
-   * represented by composing 32 bit values using the [shiftOr] operation.
+   * represented by composing 32-bit values using the [pushLongInt] operation.
    */
   pushInt,
 
   /**
-   * Pop the top value off the stack, which should be an integer.  Multiply it
-   * by 2^32, "or" in the next value from [UnlinkedConst.ints] (which is
-   * interpreted as a 32-bit unsigned integer), and push the result back onto
-   * the stack.
+   * Get the number of components from [UnlinkedConst.ints], then do this number
+   * of times the following operations: multiple the current value by 2^32, "or"
+   * it with the next value in [UnlinkedConst.ints]. The initial value is zero.
+   * Push the result into the stack.
    */
-  shiftOr,
+  pushLongInt,
 
   /**
    * Push the next value from [UnlinkedConst.doubles] (a double precision
@@ -554,8 +593,8 @@ enum UnlinkedConstOperation {
   concatenate,
 
   /**
-   * Pop the top value from the stack which should be string, convert it to
-   * a symbol, and push it back onto the stack.
+   * Get the next value from [UnlinkedConst.strings], convert it to a symbol,
+   * and push it onto the stack.
    */
   makeSymbol,
 
@@ -641,10 +680,14 @@ enum UnlinkedConstOperation {
   /**
    * Pop the top 2 values from the stack, evaluate `v1 == v2`, and push the
    * result back onto the stack.
-   *
-   * This is also used to represent `v1 != v2`, by composition with [not].
    */
   equal,
+
+  /**
+   * Pop the top 2 values from the stack, evaluate `v1 != v2`, and push the
+   * result back onto the stack.
+   */
+  notEqual,
 
   /**
    * Pop the top value from the stack, compute its boolean negation, and push

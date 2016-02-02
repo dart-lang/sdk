@@ -230,7 +230,7 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name,
                                         int argc,
                                         bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = false;
+  *auto_setup_scope = true;
   const char* name_str = NULL;
   EXPECT(Dart_IsString(name));
   EXPECT_VALID(Dart_StringToCString(name, &name_str));

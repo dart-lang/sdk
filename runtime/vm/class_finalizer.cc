@@ -526,7 +526,13 @@ RawAbstractType* ClassFinalizer::ResolveType(const Class& cls,
     ASSERT(type.IsFunctionType());
     const Function& signature =
         Function::Handle(FunctionType::Cast(type).signature());
-    ResolveSignature(cls, signature);
+    const Class& scope_class =
+        Class::Handle(FunctionType::Cast(type).scope_class());
+    if (scope_class.IsTypedefClass()) {
+      ResolveSignature(scope_class, signature);
+    } else {
+      ResolveSignature(cls, signature);
+    }
     resolved_type = type.raw();
   }
   // Mark type as resolved before resolving its type arguments in order to avoid
@@ -1156,7 +1162,13 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   if (resolved_type.IsFunctionType()) {
     const Function& signature =
         Function::Handle(Z, FunctionType::Cast(resolved_type).signature());
-    FinalizeSignature(cls, signature);
+    const Class& scope_class =
+        Class::Handle(Z, FunctionType::Cast(resolved_type).scope_class());
+    if (scope_class.IsTypedefClass()) {
+      FinalizeSignature(scope_class, signature);
+    } else {
+      FinalizeSignature(cls, signature);
+    }
   }
 
   if (FLAG_trace_type_finalization) {
@@ -1951,10 +1963,15 @@ void ClassFinalizer::ApplyMixinAppAlias(const Class& mixin_app_class,
   const intptr_t num_super_type_params = super_class.NumTypeParameters();
   AbstractType& type = AbstractType::Handle(zone);
   // The instantiator is mapping finalized type parameters of mixin_class to
-  // unfinalized type parameters of mixin_app_class.
-  ASSERT(aliased_mixin_type.IsFinalized());
+  // unfinalized type parameters of mixin_app_class. Therefore, the type
+  // arguments of mixin_class_super_type must be finalized, since they get
+  // instantiated by this instantiator. Finalizing the types in mixin_class
+  // will finalize mixin_class_super_type.
+  // The aliased_mixin_type does not need to be finalized, but only resolved.
+  ASSERT(aliased_mixin_type.IsResolved());
   const Class& aliased_mixin_type_class = Class::Handle(zone,
       aliased_mixin_type.type_class());
+  FinalizeTypesInClass(mixin_class);
   const intptr_t num_aliased_mixin_type_params =
       aliased_mixin_type_class.NumTypeParameters();
   ASSERT(inserted_class.NumTypeParameters() ==
@@ -2060,10 +2077,10 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class,
   const Class& mixin_class = Class::Handle(mixin_type.type_class());
 
   if (FLAG_trace_class_finalization) {
-    THR_Print("Applying mixin type '%s' to %s at pos %" Pd "\n",
+    THR_Print("Applying mixin type '%s' to %s at pos %s\n",
               String::Handle(mixin_type.Name()).ToCString(),
               mixin_app_class.ToCString(),
-              mixin_app_class.token_pos());
+              mixin_app_class.token_pos().ToCString());
   }
 
   // Check for illegal self references.
@@ -2190,10 +2207,10 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   // A default constructor will be created for the mixin app alias class.
 
   if (FLAG_trace_class_finalization) {
-    THR_Print("Applying mixin members of %s to %s at pos %" Pd "\n",
+    THR_Print("Applying mixin members of %s to %s at pos %s\n",
               mixin_cls.ToCString(),
               cls.ToCString(),
-              cls.token_pos());
+              cls.token_pos().ToCString());
   }
 
   const GrowableObjectArray& cloned_funcs =
@@ -2553,7 +2570,15 @@ bool ClassFinalizer::IsTypedefCycleFree(const Class& cls,
     AbstractType& other_type = AbstractType::Handle();
     if (resolved_type.IsFunctionType()) {
       const Class& scope_class = Class::Handle(resolved_type.type_class());
-      if (!scope_class.is_type_finalized() && scope_class.IsTypedefClass()) {
+      const Function& signature_function =
+          Function::Handle(FunctionType::Cast(resolved_type).signature());
+      // The signature function of this function type may be a local signature
+      // function used in a formal parameter type of the typedef signature, but
+      // not the typedef signature function itself, thus not qualifying as an
+      // illegal self reference.
+      if (!scope_class.is_type_finalized() &&
+          scope_class.IsTypedefClass() &&
+          (scope_class.signature_function() == signature_function.raw())) {
         checking_typedef = true;
         const intptr_t scope_class_id = scope_class.id();
         ASSERT(visited != NULL);
@@ -2580,16 +2605,14 @@ bool ClassFinalizer::IsTypedefCycleFree(const Class& cls,
         }
       }
       // Check the result type of the signature of this function type.
-      const Function& function =
-          Function::Handle(FunctionType::Cast(resolved_type).signature());
-      other_type = function.result_type();
+      other_type = signature_function.result_type();
       if (!IsTypedefCycleFree(cls, other_type, visited)) {
         return false;
       }
       // Check the parameter types of the signature of this function type.
-      const intptr_t num_parameters = function.NumParameters();
+      const intptr_t num_parameters = signature_function.NumParameters();
       for (intptr_t i = 0; i < num_parameters; i++) {
-        other_type = function.ParameterTypeAt(i);
+        other_type = signature_function.ParameterTypeAt(i);
         if (!IsTypedefCycleFree(cls, other_type, visited)) {
           return false;
         }
@@ -3119,7 +3142,7 @@ void ClassFinalizer::MarkTypeMalformed(const Error& prev_error,
 
 RawType* ClassFinalizer::NewFinalizedMalformedType(const Error& prev_error,
                                                    const Script& script,
-                                                   intptr_t type_pos,
+                                                   TokenPosition type_pos,
                                                    const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -3179,7 +3202,7 @@ void ClassFinalizer::ReportError(const Error& error) {
 
 void ClassFinalizer::ReportErrors(const Error& prev_error,
                                   const Class& cls,
-                                  intptr_t token_pos,
+                                  TokenPosition token_pos,
                                   const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -3191,7 +3214,7 @@ void ClassFinalizer::ReportErrors(const Error& prev_error,
 
 
 void ClassFinalizer::ReportError(const Class& cls,
-                                 intptr_t token_pos,
+                                 TokenPosition token_pos,
                                  const char* format, ...) {
   va_list args;
   va_start(args, format);

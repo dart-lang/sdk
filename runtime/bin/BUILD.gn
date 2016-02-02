@@ -10,9 +10,9 @@ declare_args() {
 
 resources_sources_gypi =
     exec_script("../../tools/gypi_to_gn.py",
-                [rebase_path("resources_sources.gypi")],
+                [rebase_path("vmservice/vmservice_sources.gypi")],
                 "scope",
-                ["resources_sources.gypi"])
+                ["vmservice/vmservice_sources.gypi"])
 
 # Generate a resources.cc file for the service isolate without Observatory.
 action("gen_resources_cc") {
@@ -21,7 +21,11 @@ action("gen_resources_cc") {
   inputs = [
     "../tools/create_resources.py",
   ]
-  sources = resources_sources_gypi.sources
+  # The path below is hard coded for the Mojo and Flutter trees. When moving
+  # the Dart runtime to gn, this path might need to be updated.
+  sources = rebase_path(resources_sources_gypi.sources,
+                        "",
+                        "//dart/runtime/bin/vmservice/")
   outputs = [ "$target_gen_dir/resources_gen.cc" ]
   args = [
     "--output",

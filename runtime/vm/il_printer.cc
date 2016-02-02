@@ -145,7 +145,7 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
 
 
 void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
-                                      intptr_t token_pos,
+                                      TokenPosition token_pos,
                                       Value* value,
                                       const AbstractType& dst_type,
                                       const String& dst_name,

@@ -56,6 +56,7 @@ class RawError;
 class RawFloat32x4;
 class RawInt32x4;
 class RawUserTag;
+class SafepointHandler;
 class SampleBuffer;
 class SendPort;
 class ServiceIdZone;
@@ -126,9 +127,13 @@ class Isolate : public BaseIsolate {
   // Visits weak object pointers.
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
+  // Prepares all threads in an isolate for Garbage Collection.
+  void PrepareForGC();
+
   StoreBuffer* store_buffer() { return store_buffer_; }
 
-  ThreadRegistry* thread_registry() { return thread_registry_; }
+  ThreadRegistry* thread_registry() const { return thread_registry_; }
+  SafepointHandler* safepoint_handler() const { return safepoint_handler_; }
 
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
@@ -635,7 +640,7 @@ class Isolate : public BaseIsolate {
 
   void AddClosureFunction(const Function& function) const;
   RawFunction* LookupClosureFunction(const Function& parent,
-                                     intptr_t token_pos) const;
+                                     TokenPosition token_pos) const;
   intptr_t FindClosureIndex(const Function& needle) const;
   RawFunction* ClosureFunctionFromIndex(intptr_t idx) const;
 
@@ -687,17 +692,10 @@ class Isolate : public BaseIsolate {
   void set_registered_service_extension_handlers(
       const GrowableObjectArray& value);
 
-  void ClearMutatorThread() {
-    mutator_thread_ = NULL;
-  }
-  void MakeCurrentThreadMutator(Thread* thread) {
-    ASSERT(thread == Thread::Current());
-    DEBUG_ASSERT(IsIsolateOf(thread));
-    mutator_thread_ = thread;
-  }
-#if defined(DEBUG)
-  bool IsIsolateOf(Thread* thread);
-#endif  // DEBUG
+  Monitor* threads_lock() const;
+  Thread* ScheduleThread(bool is_mutator, bool bypass_safepoint = false);
+  void UnscheduleThread(
+      Thread* thread, bool is_mutator, bool bypass_safepoint = false);
 
   // DEPRECATED: Use Thread's methods instead. During migration, these default
   // to using the mutator thread (which must also be the current thread).
@@ -721,6 +719,7 @@ class Isolate : public BaseIsolate {
   bool skip_step_;  // skip the next single step.
 
   ThreadRegistry* thread_registry_;
+  SafepointHandler* safepoint_handler_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
   char* debugger_name_;
@@ -860,6 +859,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class GCMarker;  // VisitObjectPointers
+  friend class SafepointHandler;
   friend class Scavenger;  // VisitObjectPointers
   friend class ServiceIsolate;
   friend class Thread;

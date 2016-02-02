@@ -261,12 +261,14 @@ class FinalizablePersistentHandle {
 
   // This part of external_data_ is the number of externally allocated bytes.
   // TODO(koda): Measure size in words instead.
-  class ExternalSizeBits : public BitField<intptr_t,
+  class ExternalSizeBits : public BitField<uword,
+                                           intptr_t,
                                            kExternalSizeBits,
-                                           kExternalSizeBitsSize> {};  // NOLINT
+                                           kExternalSizeBitsSize> {};
   // This bit of external_data_ is true if the referent was created in new
   // space and UpdateRelocated has not yet detected any promotion.
-  class ExternalNewSpaceBit : public BitField<bool, kExternalNewSpaceBit, 1> {};
+  class ExternalNewSpaceBit :
+      public BitField<uword, bool, kExternalNewSpaceBit, 1> {};
 
   friend class FinalizablePersistentHandles;
 

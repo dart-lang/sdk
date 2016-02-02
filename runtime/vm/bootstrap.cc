@@ -209,6 +209,9 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
                                               Dart_Handle uri) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  // This handler calls into the VM directly and does not use the Dart
+  // API so we transition back to VM.
+  TransitionNativeToVM transition(thread);
   if (!Dart_IsLibrary(library)) {
     return Api::NewError("not a library");
   }

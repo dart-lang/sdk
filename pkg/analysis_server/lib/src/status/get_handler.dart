@@ -1666,6 +1666,9 @@ class GetHandler {
           buffer.write('<p>Status: Analyzing</p>');
         }
       }
+      buffer.write('<p>Using package resolver provider: ');
+      buffer.write(_server.packageResolverProvider != null);
+      buffer.write('</p>');
       buffer.write('<p>');
       buffer.write(makeLink(OVERLAYS_PATH, {}, 'All overlay information'));
       buffer.write('</p>');

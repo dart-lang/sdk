@@ -26,7 +26,7 @@ class DescriptorList : public ZoneAllocated {
   void AddDescriptor(RawPcDescriptors::Kind kind,
                      intptr_t pc_offset,
                      intptr_t deopt_id,
-                     intptr_t token_pos,
+                     TokenPosition token_pos,
                      intptr_t try_index);
 
   RawPcDescriptors* FinalizePcDescriptors(uword entry_point);
@@ -51,7 +51,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
 
   ~CodeSourceMapBuilder() { }
 
-  void AddEntry(intptr_t pc_offset, intptr_t token_pos);
+  void AddEntry(intptr_t pc_offset, TokenPosition token_pos);
 
   RawCodeSourceMap* Finalize();
 

@@ -331,6 +331,91 @@ void Symbols::SetupSymbolTable(Isolate* isolate) {
 }
 
 
+intptr_t Symbols::Compact(Isolate* isolate) {
+  ASSERT(isolate != Dart::vm_isolate());
+
+  Zone* zone = Thread::Current()->zone();
+  intptr_t initial_size = -1;
+  intptr_t final_size = -1;
+
+  // 1. Build a collection of all the predefined symbols so they are
+  // strongly referenced (the read only handles are not traced).
+  {
+    SymbolTable table(zone, isolate->object_store()->symbol_table());
+    initial_size = table.NumOccupied();
+
+    if (Object::vm_isolate_snapshot_object_table().Length() == 0) {
+      GrowableObjectArray& predefined_symbols = GrowableObjectArray::Handle(
+          GrowableObjectArray::New(kMaxPredefinedId));
+      String& symbol = String::Handle();
+      for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
+        const unsigned char* name =
+          reinterpret_cast<const unsigned char*>(names[i]);
+        symbol ^= table.GetOrNull(Latin1Array(name, strlen(names[i])));
+        ASSERT(!symbol.IsNull());
+        predefined_symbols.Add(symbol);
+      }
+      for (intptr_t c = 0; c < kNumberOfOneCharCodeSymbols; c++) {
+        intptr_t idx = (kNullCharId + c);
+        ASSERT(idx < kMaxPredefinedId);
+        ASSERT(Utf::IsLatin1(c));
+        uint8_t ch = static_cast<uint8_t>(c);
+        symbol ^= table.GetOrNull(Latin1Array(&ch, 1));
+        ASSERT(!symbol.IsNull());
+        predefined_symbols.Add(symbol);
+      }
+    }
+    table.Release();
+  }
+
+  // 2. Knock out the symbol table and do a full garbage collection.
+  isolate->object_store()->set_symbol_table(Object::empty_array());
+  isolate->heap()->CollectAllGarbage();
+
+  // 3. Walk the heap and build a new table from surviving symbols.
+  GrowableArray<String*> symbols;
+  class SymbolCollector : public ObjectVisitor {
+   public:
+    SymbolCollector(Thread* thread,
+                    GrowableArray<String*>* symbols)
+        : ObjectVisitor(thread->isolate()),
+          symbols_(symbols),
+          zone_(thread->zone()) {}
+
+    void VisitObject(RawObject* obj) {
+      if (obj->IsString() && obj->IsCanonical()) {
+        symbols_->Add(&String::ZoneHandle(zone_, String::RawCast(obj)));
+      }
+    }
+
+   private:
+    GrowableArray<String*>* symbols_;
+    Zone* zone_;
+  };
+
+  SymbolCollector visitor(Thread::Current(), &symbols);
+  isolate->heap()->IterateObjects(&visitor);
+
+  {
+    Array& array =
+        Array::Handle(HashTables::New<SymbolTable>(symbols.length() * 4 / 3,
+                                                   Heap::kOld));
+    SymbolTable table(zone, array.raw());
+    for (intptr_t i = 0; i < symbols.length(); i++) {
+      String& symbol = *symbols[i];
+      ASSERT(symbol.IsString());
+      ASSERT(symbol.IsCanonical());
+      bool present = table.Insert(symbol);
+      ASSERT(!present);
+    }
+    final_size = table.NumOccupied();
+    isolate->object_store()->set_symbol_table(table.Release());
+  }
+
+  return initial_size - final_size;
+}
+
+
 void Symbols::GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity) {
   ASSERT(isolate != NULL);
   SymbolTable table(isolate->object_store()->symbol_table());

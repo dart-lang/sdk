@@ -118,6 +118,14 @@ final Map<String, String> mockSdkSources = {
         num/*=T*/ min/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) => null;
         num/*=T*/ max/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) => null;
         ''',
+
+  'dart:_foreign_helper': '''
+  library dart._foreign_helper;
+
+  JS(String typeDescription, String codeTemplate,
+    [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11])
+  {}
+  '''
 };
 
 /// Returns an ANSII color escape sequence corresponding to [levelName]. Colors

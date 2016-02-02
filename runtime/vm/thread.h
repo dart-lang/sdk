@@ -6,6 +6,9 @@
 #define VM_THREAD_H_
 
 #include "include/dart_api.h"
+#include "platform/assert.h"
+#include "vm/atomic.h"
+#include "vm/bitfield.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
 #include "vm/os_thread.h"
@@ -143,6 +146,9 @@ class Thread : public BaseThread {
     os_thread_ = os_thread;
   }
 
+  // Monitor corresponding to this thread.
+  Monitor* thread_lock() const { return thread_lock_; }
+
   // The topmost zone used for allocation in this thread.
   Zone* zone() const { return zone_; }
 
@@ -209,7 +215,9 @@ class Thread : public BaseThread {
     return OFFSET_OF(Thread, store_buffer_block_);
   }
 
-  uword top_exit_frame_info() const { return top_exit_frame_info_; }
+  uword top_exit_frame_info() const {
+    return top_exit_frame_info_;
+  }
   static intptr_t top_exit_frame_info_offset() {
     return OFFSET_OF(Thread, top_exit_frame_info_);
   }
@@ -356,6 +364,8 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
     return OFFSET_OF(Thread, vm_tag_);
   }
 
+  RawGrowableObjectArray* pending_functions();
+
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
   void set_reusable_##object##_handle_scope_active(bool value) {               \
@@ -385,7 +395,120 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE)
 #undef REUSABLE_HANDLE
 
-  RawGrowableObjectArray* pending_functions();
+  /*
+   * Fields used to support safepointing a thread.
+   *
+   * - Bit 0 of the safepoint_state_ field is used to indicate if the thread is
+   *   already at a safepoint,
+   * - Bit 1 of the safepoint_state_ field is used to indicate if a safepoint
+   *   operation is requested for this thread.
+   * - Bit 2 of the safepoint_state_ field is used to indicate that the thread
+   *   is blocked for the safepoint operation to complete.
+   *
+   * The safepoint execution state (described above) for a thread is stored in
+   * in the execution_state_ field.
+   * Potential execution states a thread could be in:
+   *   kThreadInGenerated - The thread is running jitted dart/stub code.
+   *   kThreadInVM - The thread is running VM code.
+   *   kThreadInNative - The thread is running native code.
+   *   kThreadInBlockedState - The thread is blocked waiting for a resource.
+   */
+  static intptr_t safepoint_state_offset() {
+    return OFFSET_OF(Thread, safepoint_state_);
+  }
+  static bool IsAtSafepoint(uint32_t state) {
+    return AtSafepointField::decode(state);
+  }
+  bool IsAtSafepoint() const {
+    return AtSafepointField::decode(safepoint_state_);
+  }
+  static uint32_t SetAtSafepoint(bool value, uint32_t state) {
+    return AtSafepointField::update(value, state);
+  }
+  void SetAtSafepoint(bool value) {
+    ASSERT(thread_lock()->IsOwnedByCurrentThread());
+    safepoint_state_ = AtSafepointField::update(value, safepoint_state_);
+  }
+  bool IsSafepointRequested() const {
+    return SafepointRequestedField::decode(safepoint_state_);
+  }
+  static uint32_t SetSafepointRequested(bool value, uint32_t state) {
+    return SafepointRequestedField::update(value, state);
+  }
+  uint32_t SetSafepointRequested(bool value) {
+    ASSERT(thread_lock()->IsOwnedByCurrentThread());
+    uint32_t old_state;
+    uint32_t new_state;
+    do {
+      old_state = safepoint_state_;
+      new_state = SafepointRequestedField::update(value, old_state);
+    } while (AtomicOperations::CompareAndSwapUint32(&safepoint_state_,
+                                                    old_state,
+                                                    new_state) != old_state);
+    return old_state;
+  }
+  static bool IsBlockedForSafepoint(uint32_t state) {
+    return BlockedForSafepointField::decode(state);
+  }
+  bool IsBlockedForSafepoint() const {
+    return BlockedForSafepointField::decode(safepoint_state_);
+  }
+  void SetBlockedForSafepoint(bool value) {
+    ASSERT(thread_lock()->IsOwnedByCurrentThread());
+    safepoint_state_ =
+        BlockedForSafepointField::update(value, safepoint_state_);
+  }
+
+  enum ExecutionState {
+    kThreadInVM = 0,
+    kThreadInGenerated,
+    kThreadInNative,
+    kThreadInBlockedState
+  };
+
+  ExecutionState execution_state() const {
+    return static_cast<ExecutionState>(execution_state_);
+  }
+  void set_execution_state(ExecutionState state) {
+    execution_state_ = static_cast<uint32_t>(state);
+  }
+  static intptr_t execution_state_offset() {
+    return OFFSET_OF(Thread, execution_state_);
+  }
+
+  void EnterSafepoint() {
+    // First try a fast update of the thread state to indicate it is at a
+    // safepoint.
+    uint32_t new_state = SetAtSafepoint(true, 0);
+    uword addr = reinterpret_cast<uword>(this) + safepoint_state_offset();
+    if (AtomicOperations::CompareAndSwapUint32(
+            reinterpret_cast<uint32_t*>(addr), 0, new_state) != 0) {
+      // Fast update failed which means we could potentially be in the middle
+      // of a safepoint operation.
+      EnterSafepointUsingLock();
+    }
+  }
+
+  void ExitSafepoint() {
+    // First try a fast update of the thread state to indicate it is not at a
+    // safepoint anymore.
+    uint32_t old_state = SetAtSafepoint(true, 0);
+    uword addr = reinterpret_cast<uword>(this) + safepoint_state_offset();
+    if (AtomicOperations::CompareAndSwapUint32(
+            reinterpret_cast<uint32_t*>(addr), old_state, 0) != old_state) {
+      // Fast update failed which means we could potentially be in the middle
+      // of a safepoint operation.
+      ExitSafepointUsingLock();
+    }
+  }
+
+  void CheckForSafepoint() {
+    if (IsSafepointRequested()) {
+      BlockForSafepoint();
+    }
+  }
+
+  Thread* next() const { return next_; }
 
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -401,6 +524,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   template<class T> T* AllocateReusableHandle();
 
   OSThread* os_thread_;
+  Monitor* thread_lock_;
   Isolate* isolate_;
   Heap* heap_;
   Zone* zone_;
@@ -453,6 +577,12 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef REUSABLE_HANDLE_SCOPE_VARIABLE
 #endif  // defined(DEBUG)
 
+  class AtSafepointField : public BitField<uint32_t, bool, 0, 1> {};
+  class SafepointRequestedField : public BitField<uint32_t, bool, 1, 1> {};
+  class BlockedForSafepointField : public BitField<uint32_t, bool, 2, 1> {};
+  uint32_t safepoint_state_;
+  uint32_t execution_state_;
+
   Thread* next_;  // Used to chain the thread structures in an isolate.
 
   explicit Thread(Isolate* isolate);
@@ -468,6 +598,13 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
   void set_top_exit_frame_info(uword top_exit_frame_info) {
     top_exit_frame_info_ = top_exit_frame_info;
   }
+
+  void set_safepoint_state(uint32_t value) {
+    safepoint_state_ = value;
+  }
+  void EnterSafepointUsingLock();
+  void ExitSafepointUsingLock();
+  void BlockForSafepoint();
 
   static void SetCurrent(Thread* current) {
     OSThread::SetCurrentTLS(reinterpret_cast<uword>(current));

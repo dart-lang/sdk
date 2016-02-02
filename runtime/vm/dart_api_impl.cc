@@ -7,6 +7,7 @@
 #include "include/dart_native_api.h"
 
 #include "platform/assert.h"
+#include "lib/stacktrace.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
 #include "vm/dart.h"
@@ -354,6 +355,26 @@ static RawObject* Send1Arg(const Instance& receiver,
 }
 
 
+static const char* GetErrorString(Thread* thread, const Object& obj) {
+  // This function requires an API scope to be present.
+  if (obj.IsError()) {
+    ASSERT(thread->api_top_scope() != NULL);
+    const Error& error = Error::Cast(obj);
+    const char* str = error.ToErrorCString();
+    intptr_t len = strlen(str) + 1;
+    char* str_copy = Api::TopScope(thread)->zone()->Alloc<char>(len);
+    strncpy(str_copy, str, len);
+    // Strip a possible trailing '\n'.
+    if ((len > 1) && (str_copy[len - 2] == '\n')) {
+      str_copy[len - 2] = '\0';
+    }
+    return str_copy;
+  } else {
+    return "";
+  }
+}
+
+
 Dart_Handle Api::InitNewHandle(Thread* thread, RawObject* raw) {
   LocalHandles* local_handles = Api::TopScope(thread)->local_handles();
   ASSERT(local_handles != NULL);
@@ -448,7 +469,9 @@ Dart_Isolate Api::CastIsolate(Isolate* isolate) {
 
 
 Dart_Handle Api::NewError(const char* format, ...) {
-  DARTSCOPE(Thread::Current());
+  Thread* T = Thread::Current();
+  CHECK_API_SCOPE(T);
+  HANDLESCOPE(T);
   CHECK_CALLBACK_STATE(T);
 
   va_list args;
@@ -745,20 +768,7 @@ DART_EXPORT const char* Dart_GetError(Dart_Handle handle) {
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
-  if (obj.IsError()) {
-    const Error& error = Error::Cast(obj);
-    const char* str = error.ToErrorCString();
-    intptr_t len = strlen(str) + 1;
-    char* str_copy = Api::TopScope(T)->zone()->Alloc<char>(len);
-    strncpy(str_copy, str, len);
-    // Strip a possible trailing '\n'.
-    if ((len > 1) && (str_copy[len - 2] == '\n')) {
-      str_copy[len - 2] = '\0';
-    }
-    return str_copy;
-  } else {
-    return "";
-  }
+  return GetErrorString(T, obj);
 }
 
 
@@ -815,7 +825,8 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
   Instance& obj = Instance::Handle(Z);
   intptr_t class_id = Api::ClassId(exception);
   if ((class_id == kApiErrorCid) || (class_id == kLanguageErrorCid)) {
-    obj = String::New(::Dart_GetError(exception));
+    const Object& excp = Object::Handle(Z, Api::UnwrapHandle(exception));
+    obj = String::New(GetErrorString(T, excp));
   } else {
     obj = Api::UnwrapInstanceHandle(Z, exception).raw();
     if (obj.IsNull()) {
@@ -845,6 +856,7 @@ DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
     return Api::NewError("No Dart frames on stack, cannot propagate error.");
   }
 
+  TransitionNativeToVM transition(thread);
   // Unwind all the API scopes till the exit frame before propagating.
   const Error* error;
   {
@@ -1030,6 +1042,7 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
   if (callback == NULL) {
     return NULL;
   }
+  TransitionNativeToVM transition(thread);
   return AllocateFinalizableHandle(thread,
                                    object,
                                    peer,
@@ -1248,6 +1261,12 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
   #endif  // defined(DART_NO_SNAPSHOT).
       // We exit the API scope entered above.
       Dart_ExitScope();
+      // A Thread structure has been associated to the thread, we do the
+      // safepoint transition explicity here instead of using the
+      // TransitionXXX scope objects as the reverse transition happens
+      // outside this scope in Dart_ShutdownIsolate/Dart_ExitIsolate.
+      T->set_execution_state(Thread::kThreadInNative);
+      T->EnterSafepoint();
       return Api::CastIsolate(I);
     }
     *error = strdup(error_obj.ToErrorCString());
@@ -1269,6 +1288,12 @@ DART_EXPORT void Dart_ShutdownIsolate() {
     HandleScope handle_scope(T);
     Dart::RunShutdownCallback();
   }
+  // The Thread structure is disassociated from the isolate, we do the
+  // safepoint transition explicity here instead of using the TransitionXXX
+  // scope objects as the original transition happened outside this scope in
+  // Dart_EnterIsolate/Dart_CreateIsolate.
+  T->ExitSafepoint();
+  T->set_execution_state(Thread::kThreadInVM);
   Dart::ShutdownIsolate();
 }
 
@@ -1312,6 +1337,13 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   if (!Thread::EnterIsolate(iso)) {
     FATAL("Unable to Enter Isolate as Dart VM is shutting down");
   }
+  // A Thread structure has been associated to the thread, we do the
+  // safepoint transition explicity here instead of using the
+  // TransitionXXX scope objects as the reverse transition happens
+  // outside this scope in Dart_ExitIsolate/Dart_ShutdownIsolate.
+  Thread* T = Thread::Current();
+  T->set_execution_state(Thread::kThreadInNative);
+  T->EnterSafepoint();
 }
 
 
@@ -1334,7 +1366,15 @@ DART_EXPORT void Dart_ThreadEnableProfiling() {
 
 
 DART_EXPORT void Dart_ExitIsolate() {
-  CHECK_ISOLATE(Isolate::Current());
+  Thread* T = Thread::Current();
+  CHECK_ISOLATE(T->isolate());
+  // The Thread structure is disassociated from the isolate, we do the
+  // safepoint transition explicity here instead of using the TransitionXXX
+  // scope objects as the original transition happened outside this scope in
+  // Dart_EnterIsolate/Dart_CreateIsolate.
+  ASSERT(T->execution_state() == Thread::kThreadInNative);
+  T->ExitSafepoint();
+  T->set_execution_state(Thread::kThreadInVM);
   Thread::ExitIsolate();
 }
 
@@ -1376,8 +1416,6 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
   I->heap()->IterateObjects(&check_canonical);
 #endif  // #if defined(DEBUG).
 
-  // Since this is only a snapshot the root library should not be set.
-  I->object_store()->set_root_library(Library::Handle(Z));
   FullSnapshotWriter writer(vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer,
                             NULL, /* instructions_snapshot_buffer */
@@ -1500,7 +1538,7 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
   {
     // The message handler run loop does not expect to have a current isolate
     // so we exit the isolate here and enter it again after the runloop is done.
-    Thread::ExitIsolate();
+    Dart_ExitIsolate();
     RunLoopData data;
     data.monitor = &monitor;
     data.done = false;
@@ -1510,9 +1548,7 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     while (!data.done) {
       ml.Wait();
     }
-    if (!Thread::EnterIsolate(I)) {
-      FATAL("Inconsistent state, VM shutting down while in run loop.");
-    }
+    ::Dart_EnterIsolate(Api::CastIsolate(I));
   }
   if (I->object_store()->sticky_error() != Object::null()) {
     Dart_Handle error = Api::NewHandle(T, I->object_store()->sticky_error());
@@ -1533,6 +1569,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_BEGIN_END;
+  TransitionNativeToVM transition(T);
   if (I->message_handler()->HandleNextMessage() != MessageHandler::kOK) {
     Dart_Handle error = Api::NewHandle(T, I->object_store()->sticky_error());
     I->object_store()->clear_sticky_error();
@@ -1548,6 +1585,7 @@ DART_EXPORT bool Dart_HandleServiceMessages() {
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_DURATION;
+  TransitionNativeToVM transition(T);
   ASSERT(I->GetAndClearResumeRequest() == false);
   MessageHandler::MessageStatus status =
       I->message_handler()->HandleOOBMessages();
@@ -4384,6 +4422,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
     return Api::NewError("No Dart frames on stack, cannot throw exception");
   }
 
+  TransitionNativeToVM transition(thread);
   // Unwind all the API scopes till the exit frame before throwing an
   // exception.
   const Instance* saved_exception;
@@ -4422,6 +4461,7 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
     return Api::NewError("No Dart frames on stack, cannot throw exception");
   }
 
+  TransitionNativeToVM transition(thread);
   // Unwind all the API scopes till the exit frame before throwing an
   // exception.
   const Instance* saved_exception;
@@ -4794,6 +4834,11 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   ASSERT(arguments->thread()->isolate() == Isolate::Current());
   if ((retval != Api::Null()) && (!Api::IsInstance(retval))) {
+    // Print the current stack trace to make the problematic caller
+    // easier to find.
+    const Stacktrace& stacktrace = GetCurrentStacktrace(0);
+    OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
+
     const Object& ret_obj = Object::Handle(Api::UnwrapHandle(retval));
     FATAL1("Return value check failed: saw '%s' expected a dart Instance.",
            ret_obj.ToCString());
@@ -4819,10 +4864,11 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
 // --- Environment ---
 RawString* Api::CallEnvironmentCallback(Thread* thread, const String& name) {
   Isolate* isolate = thread->isolate();
-  Scope api_scope(thread);
   Dart_EnvironmentCallback callback = isolate->environment_callback();
   String& result = String::Handle(thread->zone());
   if (callback != NULL) {
+    TransitionVMToNative transition(thread);
+    Scope api_scope(thread);
     Dart_Handle response = callback(Api::NewHandle(thread, name.raw()));
     if (::Dart_IsString(response)) {
       result ^= Api::UnwrapHandle(response);
@@ -5126,7 +5172,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
 
   // Construct the type object, canonicalize it and return.
   Type& instantiated_type = Type::Handle(
-      Type::New(cls, type_args_obj, Token::kNoSourcePos));
+      Type::New(cls, type_args_obj, TokenPosition::kNoSource));
   instantiated_type ^= ClassFinalizer::FinalizeType(
       cls, instantiated_type, ClassFinalizer::kCanonicalize);
   return Api::NewHandle(T, instantiated_type.raw());

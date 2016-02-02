@@ -166,29 +166,29 @@ class SourcePositionTest : public ValueObject {
     }
   }
 
-  // Fails if any of the IR nodes has a token position of Token::kNoSourcePos.
+  // Fails if any of the IR nodes has a token position of
+  // TokenPosition::kNoSourcePos.
   void EnsureSourcePositions() {
     for (intptr_t i = 0; i < blocks_->length(); i++) {
       BlockEntryInstr* entry = (*blocks_)[i];
-      DUMP_ASSERT(entry->token_pos() != Token::kNoSourcePos);
+      DUMP_ASSERT(entry->token_pos() != TokenPosition::kNoSource);
       for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
         Instruction* instr = it.Current();
-        DUMP_ASSERT(instr->token_pos() != Token::kNoSourcePos);
+        DUMP_ASSERT(instr->token_pos() != TokenPosition::kNoSource);
       }
     }
   }
 
  private:
   void DumpInstruction(Instruction* instr) {
-    intptr_t token_pos = instr->token_pos();
+    TokenPosition token_pos = instr->token_pos();
     bool synthetic = false;
-    if (Token::IsSynthetic(token_pos)) {
+    if (token_pos.IsSynthetic()) {
       synthetic = true;
-      token_pos = Token::FromSynthetic(token_pos);
+      token_pos = token_pos.FromSynthetic();
     }
-    if (token_pos < 0) {
-      const char* token_pos_string =
-          ClassifyingTokenPositions::ToCString(token_pos);
+    if (token_pos.IsClassifying()) {
+      const char* token_pos_string = token_pos.ToCString();
       THR_Print("%12s -- %s\n", token_pos_string, instr->ToCString());
       return;
     }
@@ -228,11 +228,11 @@ class SourcePositionTest : public ValueObject {
       BlockEntryInstr* entry = (*blocks_)[i];
       for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
         Instruction* instr = it.Current();
-        intptr_t token_pos = instr->token_pos();
-        if (Token::IsSynthetic(token_pos)) {
-          token_pos = Token::FromSynthetic(token_pos);
+        TokenPosition token_pos = instr->token_pos();
+        if (token_pos.IsSynthetic()) {
+          token_pos = token_pos.FromSynthetic();
         }
-        if (token_pos < 0) {
+        if (!token_pos.IsReal()) {
           continue;
         }
         intptr_t token_line = -1;
@@ -258,7 +258,7 @@ class SourcePositionTest : public ValueObject {
       BlockEntryInstr* entry = (*blocks_)[i];
       for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
         Instruction* instr = it.Current();
-        if (instr->token_pos() == token_pos) {
+        if (instr->token_pos().value() == token_pos) {
           instructions->Add(instr);
         }
       }
@@ -780,26 +780,28 @@ TEST_CASE(SourcePosition_Async) {
 }
 
 
-static bool SyntheticRoundTripTest(intptr_t token_pos) {
-  return Token::FromSynthetic(Token::ToSynthetic(token_pos)) == token_pos;
+static bool SyntheticRoundTripTest(TokenPosition token_pos) {
+  const TokenPosition synthetic_token_pos = token_pos.ToSynthetic();
+  return synthetic_token_pos.FromSynthetic() == token_pos;
 }
 
 
 UNIT_TEST_CASE(SourcePosition_SyntheticTokens) {
-  EXPECT(Token::kNoSourcePos == -1);
-  EXPECT(Token::kMinSourcePos == 0);
-  EXPECT(Token::kMaxSourcePos > 0);
-
-  EXPECT(!Token::IsSynthetic(0));
-  EXPECT(Token::IsSynthetic(Token::ToSynthetic(0)));
-  EXPECT(Token::IsSynthetic(Token::ToSynthetic(9)));
-  EXPECT(!Token::IsSynthetic(Token::FromSynthetic(-1)));
-  EXPECT(!Token::IsSynthetic(ClassifyingTokenPositions::kPrivate));
-  EXPECT(!Token::IsSynthetic(ClassifyingTokenPositions::kLast));
-
-  EXPECT(SyntheticRoundTripTest(0));
-  EXPECT(SyntheticRoundTripTest(Token::kMaxSourcePos));
-  EXPECT(SyntheticRoundTripTest(Token::kMinSourcePos));
+  EXPECT(TokenPosition::kNoSourcePos == -1);
+  EXPECT(TokenPosition::kMinSourcePos == 0);
+  EXPECT(TokenPosition::kMaxSourcePos > 0);
+  EXPECT(TokenPosition::kMaxSourcePos > TokenPosition::kMinSourcePos);
+  EXPECT(TokenPosition::kMinSource.value() == TokenPosition::kMinSourcePos);
+  EXPECT(TokenPosition::kMaxSource.value() == TokenPosition::kMaxSourcePos);
+  EXPECT(!TokenPosition(0).IsSynthetic());
+  EXPECT(TokenPosition(0).ToSynthetic().IsSynthetic());
+  EXPECT(TokenPosition(9).ToSynthetic().IsSynthetic());
+  EXPECT(!TokenPosition(-1).FromSynthetic().IsSynthetic());
+  EXPECT(!TokenPosition::kNoSource.IsSynthetic());
+  EXPECT(!TokenPosition::kLast.IsSynthetic());
+  EXPECT(SyntheticRoundTripTest(TokenPosition(0)));
+  EXPECT(SyntheticRoundTripTest(TokenPosition::kMaxSource));
+  EXPECT(SyntheticRoundTripTest(TokenPosition::kMinSource));
 }
 
 }  // namespace dart

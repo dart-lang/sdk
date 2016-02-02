@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.0
+# Dart VM Service Protocol 3.1
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.0_ of the Dart VM Service Protocol. This
+This document describes of _version 3.1_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -32,6 +32,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [getFlagList](#getflaglist)
 	- [getIsolate](#getisolate)
 	- [getObject](#getobject)
+	- [getSourceReport](#getsourcereport)
 	- [getStack](#getstack)
 	- [getVersion](#getversion)
 	- [getVM](#getvm)
@@ -77,6 +78,10 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [SentinelKind](#sentinelkind)
 	- [Script](#script)
 	- [SourceLocation](#sourcelocation)
+	- [SourceReport](#sourcereport)
+	- [SourceReportCoverage](#sourcereportcoverage)
+	- [SourceReportKind](#sourcereportkind)
+	- [SourceReportRange](#sourcereportrange)
 	- [Stack](#stack)
 	- [StepOption](#stepoption)
 	- [Success](#success)
@@ -177,6 +182,7 @@ code | message | meaning
 102 | Cannot add breakpoint | The VM is unable to add a breakpoint at the specified line or function
 103 | Stream already subscribed | The client is already subscribed to the specified _streamId_
 104 | Stream not subscribed | The client is not subscribed to the specified _streamId_
+105 | Isolate must be runnable | This operation cannot happen until the isolate is runnable
 
 
 
@@ -550,7 +556,7 @@ If the object handle has not expired and the object has not been
 collected, then an [Object](#object) will be returned.
 
 The _offset_ and _count_ parameters are used to request subranges of
-Instance objects with the kinds: List, Map, Uint8ClampedList,
+Instance objects with the kinds: String, List, Map, Uint8ClampedList,
 Uint8List, Uint16List, Uint32List, Uint64List, Int8List, Int16List,
 Int32List, Int64List, Flooat32List, Float64List, Inst32x3List,
 Float32x4List, and Float64x2List.  These parameters are otherwise
@@ -566,6 +572,52 @@ The _getStack_ RPC is used to retrieve the current execution stack and
 message queue for an isolate. The isolate does not need to be paused.
 
 See [Stack](#stack).
+
+### getSourceReport
+
+```
+SourceReport getSourceReport(string isolateId,
+                             SourceReportKind[] reports,
+                             string scriptId [optional],
+                             int tokenPos [optional],
+                             int endTokenPos [optional],
+                             bool forceCompile [optional])
+```
+
+The _getSourceReport_ RPC is used to generate a set of reports tied to
+source locations in an isolate.
+
+The _reports_ parameter is used to specify which reports should be
+generated.  The _reports_ parameter is a list, which allows multiple
+reports to be generated simultaneously from a consistent isolate
+state.  The _reports_ parameter is allowed to be empty (this might be
+used to force compilation of a particular subrange of some script).
+
+The available report kinds are:
+
+report kind | meaning
+----------- | -------
+Coverage | Provide code coverage information
+PossibleBreakpoints | Provide a list of token positions which correspond to possible breakpoints.
+
+The _scriptId_ parameter is used to restrict the report to a
+particular script.  When analyzing a particular script, either or both
+of the _tokenPos_ and _endTokenPos_ parameters may be provided to
+restrict the analysis to a subrange of a script (for example, these
+can be used to restrict the report to the range of a particular class
+or function).
+
+If the _scriptId_ parameter is not provided then the reports are
+generated for all loaded scripts and the _tokenPos_ and _endTokenPos_
+parameters are disallowed.
+
+The _forceCompilation_ parameter can be used to force compilation of
+all functions in the range of the report.  Forcing compilation can
+cause a compilation error, which could terminate the running Dart
+program.  If this parameter is not provided, it is considered to have
+the value _false_.
+
+See [SourceReport](#sourcereport).
 
 ### getVersion
 
@@ -1419,11 +1471,15 @@ class @Instance extends @Object {
 
   // The valueAsString for String references may be truncated. If so,
   // this property is added with the value 'true'.
+  //
+  // New code should use 'length' and 'count' instead.
   bool valueAsStringIsTruncated [optional];
 
-  // The length of a List or the number of associations in a Map.
+  // The length of a List or the number of associations in a Map or the
+  // number of codeunits in a String.
   //
   // Provided for instance kinds:
+  //   String
   //   List
   //   Map
   //   Uint8ClampedList
@@ -1492,11 +1548,15 @@ class Instance extends Object {
 
   // The valueAsString for String references may be truncated. If so,
   // this property is added with the value 'true'.
+  //
+  // New code should use 'length' and 'count' instead.
   bool valueAsStringIsTruncated [optional];
 
-  // The length of a List or the number of associations in a Map.
+  // The length of a List or the number of associations in a Map or the
+  // number of codeunits in a String.
   //
   // Provided for instance kinds:
+  //   String
   //   List
   //   Map
   //   Uint8ClampedList
@@ -1515,10 +1575,11 @@ class Instance extends Object {
   //   Float64x2List
   int length [optional];
 
-  // The index of the first element or association returned.
+  // The index of the first element or association or codeunit returned.
   // This is only provided when it is non-zero.
   //
   // Provided for instance kinds:
+  //   String
   //   List
   //   Map
   //   Uint8ClampedList
@@ -1537,10 +1598,11 @@ class Instance extends Object {
   //   Float64x2List
   int offset [optional];
 
-  // The number of elements or associations returned.
+  // The number of elements or associations or codeunits returned.
   // This is only provided when it is less than length.
   //
   // Provided for instance kinds:
+  //   String
   //   List
   //   Map
   //   Uint8ClampedList
@@ -2149,6 +2211,97 @@ class SourceLocation extends Response {
 The _SourceLocation_ class is used to designate a position or range in
 some script.
 
+### SourceReport
+
+```
+class SourceReport extends Response {
+  // A list of ranges in the program source.  These ranges correspond
+  // to ranges of executable code in the user's program (functions,
+  // methods, constructors, etc.)
+  //
+  // Note that ranges may nest in other ranges, in the case of nested
+  // functions.
+  //
+  // Note that ranges may be duplicated, in the case of mixins.
+  SourceReportRange[] ranges;
+
+  // A list of scripts, referenced by index in the report's ranges.
+  ScriptRef[] scripts;
+}
+```
+
+The _SourceReport_ class represents a set of reports tied to source
+locations in an isolate.
+
+### SourceReportCoverage
+
+```
+class SourceReportCoverage {
+  // A list of token positions in a SourceReportRange which have been
+  // executed.  The list is sorted.
+  int[] hits;
+
+  // A list of token positions in a SourceReportRange which have not been
+  // executed.  The list is sorted.
+  int[] misses;
+}
+```
+
+The _SourceReportCoverage_ class represents coverage information for
+one [SourceReportRange](#sourcereportrange).
+
+Note that _SourceReportCoverage_ does not extend [Response](#response)
+and therefore will not contain a _type_ property.
+
+### SourceReportKind
+
+```
+enum SourceReportKind {
+  // Used to request a code coverage information.
+  Coverage,
+
+  // Used to request a list of token positions of possible breakpoints.
+  PossibleBreakpoints
+}
+```
+
+### SourceReportRange
+
+```
+class SourceReportRange {
+  // An index into the script table of the SourceReport, indicating
+  // which script contains this range of code.
+  int scriptIndex;
+
+  // The token position at which this range begins.
+  int startPos;
+
+  // The token position at which this range ends.  Inclusive.
+  int endPos;
+
+  // Has this range been compiled by the Dart VM?
+  bool compiled;
+
+  // Code coverage information for this range.  Provided only when the
+  // Coverage report has been requested and the range has been
+  // compiled.
+  SourceReportCoverage coverage [optional];
+
+  // Possible breakpoint information for this range, represented as a
+  // sorted list of token positions.  Provided only when the when the
+  // PossibleBreakpoint report has been requested and the range has been
+  // compiled.
+  int possibleBreakpoints[] [optional];
+}
+```
+
+The _SourceReportRange_ class represents a range of executable code
+(function, method, constructor, etc) in the running program.  It is
+part of a [SourceReport](#sourcereport).
+
+Note that _SourceReportRange_ does not extend [Response](#response)
+and therefore will not contain a _type_ property.
+
 ### Stack
 
 ```
@@ -2317,6 +2470,7 @@ version | comments
 1.0 | initial revision
 2.0 | Describe protocol version 2.0.
 3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance. Added ServiceExtensionAdded event.
+3.1 | Add the getSourceReport RPC.  The getObject RPC now accepts offset and count for string objects.  String objects now contain length, offset, and count properties.
 
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

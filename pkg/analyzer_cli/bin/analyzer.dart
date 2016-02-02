@@ -3,14 +3,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer_cli/src/driver.dart';
+import 'package:analyzer_cli/starter.dart';
 
-
-
-
-/// The entry point for the analyzer.
+/// The entry point for the command-line analyzer.
 void main(List<String> args) {
-  var starter = new Driver();
+  CommandLineStarter starter = new CommandLineStarter();
   starter.start(args);
-  
 }

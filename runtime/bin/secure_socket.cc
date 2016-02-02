@@ -376,16 +376,17 @@ void CheckStatus(int status,
 }
 
 
-void FUNCTION_NAME(SecurityContext_UsePrivateKey)(Dart_NativeArguments args) {
+void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
+    Dart_NativeArguments args) {
   SSL_CTX* context = GetSecurityContext(args);
-  Dart_Handle filename_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
-  const char* filename = NULL;
-  if (Dart_IsString(filename_object)) {
-    ThrowIfError(Dart_StringToCString(filename_object, &filename));
-  } else {
+
+  Dart_Handle key_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
+  if (!Dart_IsTypedData(key_object) && !Dart_IsList(key_object)) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "File argument to SecurityContext.usePrivateKey is not a String"));
+        "keyBytes argument to SecurityContext.usePrivateKeyBytes "
+        "is not a List<int>"));
   }
+
   Dart_Handle password_object = ThrowIfError(Dart_GetNativeArgument(args, 2));
   const char* password = NULL;
   if (Dart_IsString(password_object)) {
@@ -402,16 +403,45 @@ void FUNCTION_NAME(SecurityContext_UsePrivateKey)(Dart_NativeArguments args) {
         "SecurityContext.usePrivateKey password is not a String or null"));
   }
 
-  SSL_CTX_set_default_passwd_cb(context, PasswordCallback);
-  SSL_CTX_set_default_passwd_cb_userdata(context, const_cast<char*>(password));
-  int status = SSL_CTX_use_PrivateKey_file(context,
-                                           filename,
-                                           SSL_FILETYPE_PEM);
+  uint8_t* key_bytes = NULL;
+  intptr_t key_bytes_len = 0;
+  bool is_typed_data = false;
+  if (Dart_IsTypedData(key_object)) {
+    is_typed_data = true;
+    Dart_TypedData_Type typ;
+    ThrowIfError(Dart_TypedDataAcquireData(
+        key_object,
+        &typ,
+        reinterpret_cast<void**>(&key_bytes),
+        &key_bytes_len));
+  } else {
+    ASSERT(Dart_IsList(key_object));
+    ThrowIfError(Dart_ListLength(key_object, &key_bytes_len));
+    key_bytes = new uint8_t[key_bytes_len];
+    Dart_Handle err =
+        Dart_ListGetAsBytes(key_object, 0, key_bytes, key_bytes_len);
+    if (Dart_IsError(err)) {
+      delete[] key_bytes;
+      Dart_PropagateError(err);
+    }
+  }
+  ASSERT(key_bytes != NULL);
+
+  BIO* bio = BIO_new_mem_buf(key_bytes, key_bytes_len);
+  EVP_PKEY *key = PEM_read_bio_PrivateKey(
+      bio, NULL, PasswordCallback, const_cast<char*>(password));
+  int status = SSL_CTX_use_PrivateKey(context, key);
+  BIO_free(bio);
+  if (is_typed_data) {
+    ThrowIfError(Dart_TypedDataReleaseData(key_object));
+  } else {
+    delete[] key_bytes;
+  }
+
   // TODO(24184): Handle different expected errors here - file missing,
   // incorrect password, file not a PEM, and throw exceptions.
   // CheckStatus should also throw an exception in uncaught cases.
-  CheckStatus(status, "TlsException", "Failure in usePrivateKey");
-  SSL_CTX_set_default_passwd_cb_userdata(context, NULL);
+  CheckStatus(status, "TlsException", "Failure in usePrivateKeyBytes");
 }
 
 
@@ -459,22 +489,111 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
 }
 
 
-void FUNCTION_NAME(SecurityContext_UseCertificateChain)(
+static int UseChainBytes(
+    SSL_CTX* context, uint8_t* chain_bytes, intptr_t chain_bytes_len) {
+  int status = 0;
+  BIO* bio = BIO_new_mem_buf(chain_bytes, chain_bytes_len);
+  if (bio == NULL) {
+    return 0;
+  }
+
+  X509* x509 = PEM_read_bio_X509_AUX(bio, NULL, NULL, NULL);
+  if (x509 == NULL) {
+    BIO_free(bio);
+    return 0;
+  }
+
+  status = SSL_CTX_use_certificate(context, x509);
+  if (ERR_peek_error() != 0) {
+    // Key/certificate mismatch doesn't imply status is 0.
+    status = 0;
+  }
+  if (status == 0) {
+    X509_free(x509);
+    BIO_free(bio);
+    return status;
+  }
+
+  SSL_CTX_clear_chain_certs(context);
+
+  while (true) {
+    X509* ca = PEM_read_bio_X509(bio, NULL, NULL, NULL);
+    if (ca == NULL) {
+      break;
+    }
+    status = SSL_CTX_add0_chain_cert(context, ca);
+    if (status == 0) {
+      X509_free(ca);
+      X509_free(x509);
+      BIO_free(bio);
+      return status;
+    }
+    // Note that we must not free `ca` if it was successfully added to the
+    // chain. We must free the main certificate x509, though since its reference
+    // count is increased by SSL_CTX_use_certificate.
+  }
+
+  uint32_t err = ERR_peek_last_error();
+  if ((ERR_GET_LIB(err) == ERR_LIB_PEM) &&
+      (ERR_GET_REASON(err) == PEM_R_NO_START_LINE)) {
+    // Reached the end of the buffer.
+    ERR_clear_error();
+  } else {
+    // Some real error happened.
+    status = 0;
+  }
+
+  X509_free(x509);
+  BIO_free(bio);
+  return status;
+}
+
+
+void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
     Dart_NativeArguments args) {
   SSL_CTX* context = GetSecurityContext(args);
-  Dart_Handle filename_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
-  const char* filename = NULL;
-  if (Dart_IsString(filename_object)) {
-    ThrowIfError(Dart_StringToCString(filename_object, &filename));
-  } else {
+
+  Dart_Handle chain_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
+  if (!Dart_IsTypedData(chain_object) && !Dart_IsList(chain_object)) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "file argument in SecurityContext.useCertificateChain"
-        " is not a String"));
+        "chainBytes argument to SecurityContext.useCertificateChainBytes "
+        "is not a List<int>"));
   }
-  int status = SSL_CTX_use_certificate_chain_file(context, filename);
+
+  uint8_t* chain_bytes = NULL;
+  intptr_t chain_bytes_len = 0;
+  bool is_typed_data = false;
+  if (Dart_IsTypedData(chain_object)) {
+    is_typed_data = true;
+    Dart_TypedData_Type typ;
+    ThrowIfError(Dart_TypedDataAcquireData(
+        chain_object,
+        &typ,
+        reinterpret_cast<void**>(&chain_bytes),
+        &chain_bytes_len));
+  } else {
+    ASSERT(Dart_IsList(chain_object));
+    ThrowIfError(Dart_ListLength(chain_object, &chain_bytes_len));
+    chain_bytes = new uint8_t[chain_bytes_len];
+    Dart_Handle err =
+        Dart_ListGetAsBytes(chain_object, 0, chain_bytes, chain_bytes_len);
+    if (Dart_IsError(err)) {
+      delete[] chain_bytes;
+      Dart_PropagateError(err);
+    }
+  }
+  ASSERT(chain_bytes != NULL);
+
+  int status = UseChainBytes(context, chain_bytes, chain_bytes_len);
+
+  if (is_typed_data) {
+    ThrowIfError(Dart_TypedDataReleaseData(chain_object));
+  } else {
+    delete[] chain_bytes;
+  }
   CheckStatus(status,
               "TlsException",
-              "Failure in useCertificateChain");
+              "Failure in useCertificateChainBytes");
 }
 
 

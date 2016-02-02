@@ -11,19 +11,20 @@ import "package:path/path.dart";
 
 const HOST_NAME = "localhost";
 String localFile(path) => Platform.script.resolve(path).toFilePath();
+List<int> readLocalFile(path) => (new File(localFile(path))).readAsBytesSync();
 
 SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+  ..useCertificateChainBytes(readLocalFile('certificates/server_chain.pem'))
+  ..usePrivateKeyBytes(readLocalFile('certificates/server_key.pem'),
+                       password: 'dartdart');
 // TODO: Specify which client certificate roots to trust.
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'))
 // TODO: Set a client certificate here.
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+  ..useCertificateChainBytes(readLocalFile('certificates/server_chain.pem'))
+  ..usePrivateKeyBytes(readLocalFile('certificates/server_key.pem'),
+                         password: 'dartdart');
 
 void main() {
   asyncStart();

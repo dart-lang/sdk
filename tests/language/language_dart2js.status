@@ -21,6 +21,11 @@ deep_nesting1_negative_test: Crash # Issue 25557
 deep_nesting2_negative_test: Crash # Issue 25557
 
 call_function_apply_test: RuntimeError # Issue 23873
+mixin_supertype_subclass_test: CompileTimeError # Issue 23773
+mixin_supertype_subclass2_test: CompileTimeError # Issue 23773
+mixin_supertype_subclass3_test: CompileTimeError # Issue 23773
+mixin_supertype_subclass4_test: CompileTimeError # Issue 23773
+mixin_of_mixin_test: CompileTimeError # Issue 23773
 
 # The following tests are supposed to fail.
 # When run for testing dart2js supports all dart:X libraries (because it
@@ -28,6 +33,13 @@ call_function_apply_test: RuntimeError # Issue 23873
 library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
 library_env_test/has_no_mirror_support: RuntimeError, OK
+
+accessor_conflict_export2_test: Crash # Issue 25626
+accessor_conflict_export_test: Crash # Issue 25626
+accessor_conflict_import2_test: RuntimeError # Issue 25626
+accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
+accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
+accessor_conflict_import_test: RuntimeError # Issue 25626
 
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
@@ -283,6 +295,11 @@ call_closurization_test: RuntimeError # Bad type inference for ".call" tear-off.
 deferred_super_dependency_test/01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 field3a_negative_test: Fail # Bogus result from type inference in case of invalid program.
 gc_test: Crash # Internal Error: Pending statics (see above).
+if_null_assignment_static_test/29: Crash # Pending statics: JSArray
+if_null_assignment_static_test/31: Crash # Pending statics: JSArray
+if_null_assignment_static_test/32: Crash # Pending statics: JSArray
+if_null_assignment_static_test/33: Crash # Pending statics: JSArray
+if_null_assignment_static_test/35: Crash # Pending statics: JSArray
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
 regress_23500_test/01: Crash # (await for(var c in new Stream.fromIterable([] )){}): await for
 savannah_test: RuntimeError # Success depends on the variable hints.

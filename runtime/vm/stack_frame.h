@@ -82,7 +82,7 @@ class StackFrame : public ValueObject {
                             bool* needs_stacktrace,
                             bool* is_catch_all) const;
   // Returns token_pos of the pc(), or -1 if none exists.
-  intptr_t GetTokenPos() const;
+  TokenPosition GetTokenPos() const;
 
  protected:
   explicit StackFrame(Thread* thread)

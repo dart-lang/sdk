@@ -21,43 +21,38 @@ String _ip;
 bool _autoStart;
 
 bool _isWindows = false;
-
 var _signalWatch;
 var _signalSubscription;
 
 // HTTP server.
 Server server;
 Future<Server> serverFuture;
-HashMap<String, Asset> _assets;
-HashMap<String, Asset> get assets {
-  if (_assets == null) {
-    try {
-      _assets = Asset.request();
-    } catch (e) {
-      print('Could not load Observatory assets: $e');
-    }
-  }
-  return _assets;
-}
 
-_onShutdown() {
+_lazyServerBoot() {
   if (server != null) {
-    server.close(true).catchError((e, st) {
-      print("Error in vm-service shutdown: $e\n$st\n");
-    });
+    return;
   }
-  if (_signalSubscription != null) {
-    _signalSubscription.cancel();
-    _signalSubscription = null;
-  }
-}
-
-_bootServer() {
   // Lazily create service.
   var service = new VMService();
-  service.onShutdown = _onShutdown;
   // Lazily create server.
   server = new Server(service, _ip, _port);
+}
+
+Future cleanupCallback() async {
+  // Cancel the sigquit subscription.
+  if (_signalSubscription != null) {
+    await _signalSubscription.cancel();
+    _signalSubscription = null;
+  }
+  if (server != null) {
+    try {
+      await server.cleanup(true);
+    } catch (e, st) {
+      print("Error in vm-service shutdown: $e\n$st\n");
+    }
+  }
+  // Call out to embedder's shutdown callback.
+  _shutdown();
 }
 
 _clearFuture(_) {
@@ -69,9 +64,7 @@ _onSignal(ProcessSignal signal) {
     // Still waiting.
     return;
   }
-  if (server == null) {
-    _bootServer();
-  }
+  _lazyServerBoot();
   // Toggle HTTP server.
   if (server.running) {
     serverFuture = server.shutdown(true).then(_clearFuture);
@@ -81,6 +74,10 @@ _onSignal(ProcessSignal signal) {
 }
 
 _registerSignalHandler() {
+  if (_signalWatch == null) {
+    // Cannot register for signals.
+    return;
+  }
   if (_isWindows) {
     // Cannot register for signals on Windows.
     return;
@@ -88,28 +85,23 @@ _registerSignalHandler() {
   _signalSubscription = _signalWatch(ProcessSignal.SIGQUIT).listen(_onSignal);
 }
 
-const _shortDelay = const Duration(milliseconds: 10);
-
 main() {
+  // Set embedder hooks.
+  VMServiceEmbedderHooks.cleanup = cleanupCallback;
   if (_autoStart) {
-    _bootServer();
+    _lazyServerBoot();
     server.startup();
     // It's just here to push an event on the event loop so that we invoke the
     // scheduled microtasks.
     Timer.run(() {});
   }
-  // TODO(johnmccutchan, turnidge) Creating a VMService object here causes
-  // strange behavior from the legacy debug protocol and coverage tool.
-  // Enable this code, and remove the call to Isolate::KillIsolate() from
-  // service_isolate.cc when the strange behavior is solved.
-  // See: https://github.com/dart-lang/sdk/issues/23977
-  // else {
-  //   var service = new VMService();
-  //   service.onShutdown = _onShutdown;
-  // }
+  // TODO(johnmccutchan): Fixup service isolate shutdown in the general case.
+  // See ServiceIsolate::KillServiceIsolate and ServiceIsolate::Shutdown.
   scriptLoadPort.handler = _processLoadRequest;
   // Register signal handler after a small delay to avoid stalling main
   // isolate startup.
-  new Timer(_shortDelay, _registerSignalHandler);
+  new Timer(shortDelay, _registerSignalHandler);
   return scriptLoadPort;
 }
+
+_shutdown() native "VMServiceIO_Shutdown";

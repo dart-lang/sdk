@@ -18,7 +18,7 @@
 
 namespace dart {
 
-static const intptr_t kPos = Token::kNoSourcePos;
+static const TokenPosition kPos = TokenPosition::kNoSource;
 
 
 CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
@@ -178,7 +178,10 @@ static void NativeFunc(Dart_NativeArguments args) {
   EXPECT_EQ(10, value);
   EXPECT_VALID(Dart_IntegerToInt64(k, &value));
   EXPECT_EQ(20, value);
-  Isolate::Current()->heap()->CollectAllGarbage();
+  {
+    TransitionNativeToVM transition(Thread::Current());
+    Isolate::Current()->heap()->CollectAllGarbage();
+  }
 }
 
 
@@ -211,6 +214,8 @@ TEST_CASE(StackmapGC) {
       "}\n";
   // First setup the script and compile the script.
   TestCase::LoadTestScript(kScriptChars, native_resolver);
+  TransitionNativeToVM transition(thread);
+
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
   const Library& lib = Library::Handle(Library::LookupLibrary(name));
@@ -248,7 +253,8 @@ TEST_CASE(StackmapGC) {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   int call_count = 0;
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kUnoptStaticCall);
+  PcDescriptors::Iterator iter(descriptors,
+                               RawPcDescriptors::kUnoptStaticCall);
   while (iter.MoveNext()) {
     stackmap_table_builder->AddEntry(iter.PcOffset(), stack_bitmap, 0);
     ++call_count;
@@ -287,15 +293,15 @@ TEST_CASE(DescriptorList_TokenPositions) {
     33,
     5,
     5,
-    Token::kMinSourcePos,
-    Token::kMaxSourcePos,
+    TokenPosition::kMinSourcePos,
+    TokenPosition::kMaxSourcePos,
   };
   const intptr_t num_token_positions =
       sizeof(token_positions) / sizeof(token_positions[0]);
 
   for (intptr_t i = 0; i < num_token_positions; i++) {
     descriptors->AddDescriptor(RawPcDescriptors::kRuntimeCall, 0, 0,
-                               token_positions[i], 0);
+                               TokenPosition(token_positions[i]), 0);
   }
 
   const PcDescriptors& finalized_descriptors =
@@ -307,11 +313,11 @@ TEST_CASE(DescriptorList_TokenPositions) {
 
   intptr_t i = 0;
   while (it.MoveNext()) {
-    if (token_positions[i] != it.TokenPos()) {
+    if (token_positions[i] != it.TokenPos().value()) {
       OS::Print("[%" Pd "]: Expected: %" Pd " != %" Pd "\n",
-                i, token_positions[i], it.TokenPos());
+                i, token_positions[i], it.TokenPos().value());
     }
-    EXPECT(token_positions[i] == it.TokenPos());
+    EXPECT(token_positions[i] == it.TokenPos().value());
     i++;
   }
 }
@@ -333,8 +339,8 @@ TEST_CASE(CodeSourceMap_TokenPositions) {
     33,
     5,
     5,
-    Token::kMinSourcePos,
-    Token::kMaxSourcePos,
+    TokenPosition::kMinSourcePos,
+    TokenPosition::kMaxSourcePos,
   };
   const intptr_t num_token_positions =
       sizeof(token_positions) / sizeof(token_positions[0]);
@@ -343,7 +349,7 @@ TEST_CASE(CodeSourceMap_TokenPositions) {
   ASSERT(builder != NULL);
 
   for (intptr_t i = 0; i < num_token_positions; i++) {
-    builder->AddEntry(i, token_positions[i]);
+    builder->AddEntry(i, TokenPosition(token_positions[i]));
   }
 
   const CodeSourceMap& code_Source_map =
@@ -355,11 +361,11 @@ TEST_CASE(CodeSourceMap_TokenPositions) {
   uintptr_t i = 0;
   while (it.MoveNext()) {
     EXPECT(it.PcOffset() == i);
-    if (token_positions[i] != it.TokenPos()) {
+    if (token_positions[i] != it.TokenPos().value()) {
       OS::Print("[%" Pd "]: Expected: %" Pd " != %" Pd "\n",
-                i, token_positions[i], it.TokenPos());
+                i, token_positions[i], it.TokenPos().value());
     }
-    EXPECT(token_positions[i] == it.TokenPos());
+    EXPECT(token_positions[i] == it.TokenPos().value());
     i++;
   }
 }

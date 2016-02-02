@@ -19,7 +19,7 @@ TEST_CASE(TraceJSWarning) {
       Script::New(url, source, RawScript::kEvaluateTag));
   script.Tokenize(String::Handle(String::New("")));
   {
-    const intptr_t token_pos = 0;
+    const TokenPosition token_pos = TokenPosition(0);
     const char* message = "High Voltage";
     Report::MessageF(Report::kJSWarning,
                      script, token_pos, Report::AtLocation, "%s", message);
@@ -44,7 +44,7 @@ TEST_CASE(TraceJSWarning) {
     }
   }
   {
-    const intptr_t token_pos = 1;
+    const TokenPosition token_pos = TokenPosition(1);
     const char* message = "Low Voltage";
     Report::MessageF(Report::kJSWarning,
                      script, token_pos, Report::AtLocation, "%s", message);

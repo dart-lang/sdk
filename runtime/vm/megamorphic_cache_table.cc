@@ -71,7 +71,7 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
                                      false,  // Not external.
                                      false,  // Not native.
                                      cls,
-                                     0));  // No token position.
+                                     TokenPosition::kNoSource));
   function.set_result_type(Type::Handle(Type::DynamicType()));
   function.set_is_debuggable(false);
   function.set_is_visible(false);

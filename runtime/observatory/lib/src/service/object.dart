@@ -41,6 +41,7 @@ class ServerRpcException extends RpcException {
   static const kCannotAddBreakpoint     = 102;
   static const kStreamAlreadySubscribed = 103;
   static const kStreamNotSubscribed     = 104;
+  static const kIsolateMustBeRunnable   = 105;
 
   int code;
   Map data;

@@ -10,17 +10,23 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, abort_on_assertion_errors);
+
 // Allocate and throw a new AssertionError.
 // Arg0: index of the first token of the failed assertion.
 // Arg1: index of the first token after the failed assertion.
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
+  if (FLAG_abort_on_assertion_errors) {
+    Exceptions::PrintStackTraceAndAbort("an assertion failure");
+  }
+
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
-  intptr_t assertion_start =
-      Smi::CheckedHandle(arguments->NativeArgAt(0)).Value();
-  intptr_t assertion_end =
-      Smi::CheckedHandle(arguments->NativeArgAt(1)).Value();
+  const TokenPosition assertion_start =
+      TokenPosition(Smi::CheckedHandle(arguments->NativeArgAt(0)).Value());
+  const TokenPosition assertion_end =
+      TokenPosition(Smi::CheckedHandle(arguments->NativeArgAt(1)).Value());
 
   const Array& args = Array::Handle(Array::New(4));
 
@@ -60,7 +66,8 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
 DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
-  intptr_t location = Smi::CheckedHandle(arguments->NativeArgAt(0)).Value();
+  const TokenPosition location =
+      TokenPosition(Smi::CheckedHandle(arguments->NativeArgAt(0)).Value());
   const Instance& src_value =
       Instance::CheckedHandle(arguments->NativeArgAt(1));
   const String& dst_type_name =
@@ -81,7 +88,7 @@ DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
-  intptr_t fallthrough_pos = smi_pos.Value();
+  TokenPosition fallthrough_pos = TokenPosition(smi_pos.Value());
 
   const Array& args = Array::Handle(Array::New(2));
 
@@ -107,7 +114,7 @@ DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
 DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, class_name, arguments->NativeArgAt(1));
-  intptr_t error_pos = smi_pos.Value();
+  TokenPosition error_pos = TokenPosition(smi_pos.Value());
 
   const Array& args = Array::Handle(Array::New(3));
 

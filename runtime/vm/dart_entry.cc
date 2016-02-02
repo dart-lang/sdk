@@ -10,6 +10,7 @@
 #include "vm/debugger.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
+#include "vm/safepoint.h"
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -113,6 +114,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   ASSERT(thread->no_callback_scope_depth() == 0);
   ScopedIsolateStackLimits stack_limit(thread);
   SuspendLongJumpScope suspend_long_jump_scope(thread);
+  TransitionToGenerated transition(thread);
 #if defined(USING_SIMULATOR)
   return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
       reinterpret_cast<intptr_t>(entrypoint),

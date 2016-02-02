@@ -94,7 +94,6 @@ class TimelineEvent {
   // Keep in sync with StateBits below.
   enum EventType {
     kNone,
-    kSerializedJSON,  // Events from Dart code.
     kBegin,
     kEnd,
     kDuration,
@@ -283,9 +282,9 @@ class TimelineEvent {
     kNextBit = 5,
   };
 
-  class EventTypeField : public BitField<EventType, kEventTypeBit, 4> {};
+  class EventTypeField : public BitField<uword, EventType, kEventTypeBit, 4> {};
   class PreSerializedJSON :
-      public BitField<bool, kPreSerializedJSON, 1> {};
+      public BitField<uword, bool, kPreSerializedJSON, 1> {};
 
   int64_t timestamp0_;
   int64_t timestamp1_;
@@ -385,6 +384,10 @@ class TimelineEventScope : public StackResource {
 
   bool ShouldEmitEvent() const {
     return enabled_;
+  }
+
+  void set_enabled(bool enabled) {
+    enabled_ = enabled;
   }
 
   const char* label() const {
@@ -530,7 +533,6 @@ class TimelineEventBlock {
   void Finish();
 
   friend class Thread;
-  friend class ThreadRegistry;
   friend class TimelineEventRecorder;
   friend class TimelineEventRingRecorder;
   friend class TimelineEventEndlessRecorder;

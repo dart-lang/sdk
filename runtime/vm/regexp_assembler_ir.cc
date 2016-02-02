@@ -36,7 +36,7 @@ DEFINE_FLAG(bool, trace_irregexp, false, "Trace irregexps");
 
 
 static const intptr_t kInvalidTryIndex = CatchClauseNode::kInvalidTryIndex;
-static const intptr_t kNoSourcePos = Token::kNoSourcePos;
+static const TokenPosition kNoSourcePos = TokenPosition::kNoSource;
 static const intptr_t kMinStackSize = 512;
 
 

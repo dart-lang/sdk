@@ -28,12 +28,13 @@ class IsolateSaver {
       : saved_isolate_(current_isolate) {
     if (current_isolate != NULL) {
       ASSERT(current_isolate == Isolate::Current());
-      Thread::ExitIsolate();
+      Dart_ExitIsolate();
     }
   }
   ~IsolateSaver() {
     if (saved_isolate_ != NULL) {
-      Thread::EnterIsolate(saved_isolate_);
+      Dart_Isolate I = reinterpret_cast<Dart_Isolate>(saved_isolate_);
+      Dart_EnterIsolate(I);
     }
   }
  private:

@@ -96,6 +96,10 @@ class NativeArguments {
     return *arg_ptr;
   }
 
+  bool IsNativeAutoSetupScope() const {
+    return AutoSetupScopeBits::decode(argc_tag_);
+  }
+
   int NativeArgCount() const {
     int function_bits = FunctionBits::decode(argc_tag_);
     return ArgCount() - NumHiddenArgs(function_bits);
@@ -185,9 +189,11 @@ class NativeArguments {
     kFunctionSize = 2,
     kAutoSetupScopeBit = 26,
   };
-  class ArgcBits : public BitField<int, kArgcBit, kArgcSize> {};
-  class FunctionBits : public BitField<int, kFunctionBit, kFunctionSize> {};
-  class AutoSetupScopeBits : public BitField<int, kAutoSetupScopeBit, 1> {};
+  class ArgcBits : public BitField<intptr_t, int32_t, kArgcBit, kArgcSize> {};
+  class FunctionBits :
+      public BitField<intptr_t, int, kFunctionBit, kFunctionSize> {};
+  class AutoSetupScopeBits :
+      public BitField<intptr_t, int, kAutoSetupScopeBit, 1> {};
   friend class Api;
   friend class BootstrapNatives;
   friend class Simulator;
@@ -222,7 +228,7 @@ class NativeArguments {
   }
 
   Thread* thread_;  // Current thread pointer.
-  int argc_tag_;  // Encodes argument count and invoked native call type.
+  intptr_t argc_tag_;  // Encodes argument count and invoked native call type.
   RawObject*(*argv_)[];  // Pointer to an array of arguments to runtime call.
   RawObject** retval_;  // Pointer to the return value area.
 };

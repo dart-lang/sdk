@@ -26,6 +26,9 @@ no_assert_test: Fail, OK # This is testing a vm flag.
 package/package_isolate_test: Fail # Issue 12474
 io/observatory_test: Fail
 package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
+javascript_int_overflow_test: Skip  # Fails if the bot's uptime becomes too high.
+javascript_int_overflow_literal_test: Skip  # Fails if the bot's uptime becomes too high.
+
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $checked ]
 # These tests have type errors on purpose.
@@ -45,6 +48,14 @@ io/directory_fuzz_test: Skip
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
+
+[ $runtime == vm && $system == linux ]
+# These tests have started timing out and issue 25649 has been filed to
+# investigate, skipping these tests temporarily to get the bots to be
+# green again.
+io/http_proxy_test: Skip
+io/secure_builtin_roots_test: Skip
+
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 typed_array_test: RuntimeError, OK  # Uses Isolate.spawn

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -75,7 +76,7 @@ class AnalyzedSourcesListener {
 
 class CompilationUnitMock extends TypedMock implements CompilationUnit {}
 
-class MockSourceFactory extends SourceFactory {
+class MockSourceFactory extends SourceFactoryImpl {
   MockSourceFactory() : super([]);
   Source resolveUri(Source containingSource, String containedUri) {
     throw new JavaIOException();

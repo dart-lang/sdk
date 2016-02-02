@@ -64,6 +64,38 @@ class StackmapKeyValueTrait {
 
 typedef DirectChainedHashMap<StackmapKeyValueTrait> StackmapSet;
 
+
+class ArrayKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Array* Key;
+  typedef const Array* Value;
+  typedef const Array* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->Length();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    if (pair->Length() != key->Length()) {
+      return false;
+    }
+    for (intptr_t i = 0; i < pair->Length(); i++) {
+      if (pair->At(i) != key->At(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+};
+
+typedef DirectChainedHashMap<ArrayKeyValueTrait> ArraySet;
+
+
 class FunctionKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -76,7 +108,7 @@ class FunctionKeyValueTrait {
   static Value ValueOf(Pair kv) { return kv; }
 
   static inline intptr_t Hashcode(Key key) {
-    return key->token_pos();
+    return key->token_pos().value();
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
@@ -99,7 +131,7 @@ class FieldKeyValueTrait {
   static Value ValueOf(Pair kv) { return kv; }
 
   static inline intptr_t Hashcode(Key key) {
-    return key->token_pos();
+    return key->token_pos().value();
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
@@ -152,6 +184,7 @@ class Precompiler : public ValueObject {
   void CollectDynamicFunctionNames();
   void BindStaticCalls();
   void DedupStackmaps();
+  void DedupStackmapLists();
   void ResetPrecompilerState();
 
   class FunctionVisitor : public ValueObject {

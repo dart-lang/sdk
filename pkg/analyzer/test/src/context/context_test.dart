@@ -490,6 +490,13 @@ library lib;
     expect(context.computeDocumentationComment(null), isNull);
   }
 
+  void test_computeErrors_dart_malformedCode() {
+    Source source = addSource("/lib.dart", "final int , = 42;");
+    List<AnalysisError> errors = context.computeErrors(source);
+    expect(errors, isNotNull);
+    expect(errors.length > 0, isTrue);
+  }
+
   void test_computeErrors_dart_none() {
     Source source = addSource("/lib.dart", "library lib;");
     List<AnalysisError> errors = context.computeErrors(source);

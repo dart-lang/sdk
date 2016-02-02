@@ -18,15 +18,17 @@ class AtomicOperations : public AllStatic {
   // Returns the original value at p.
   //
   // NOTE: Not to be used for any atomic operations involving memory locations
-  // that are accessed by generated code
+  // that are accessed by generated code.
   static uintptr_t FetchAndIncrement(uintptr_t* p);
+  static uintptr_t FetchAndIncrementBy(intptr_t* p, intptr_t value);
 
   // Atomically fetch the value at p and decrement the value at p.
   // Returns the original value at p.
   //
   // NOTE: Not to be used for any atomic operations involving memory locations
-  // that are accessed by generated code
+  // that are accessed by generated code.
   static uintptr_t FetchAndDecrement(uintptr_t* p);
+  static uintptr_t FetchAndDecrementBy(intptr_t* p, intptr_t value);
 
   // Atomically compare *ptr to old_value, and if equal, store new_value.
   // Returns the original value at ptr.

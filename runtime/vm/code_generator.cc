@@ -63,6 +63,7 @@ DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(int, max_polymorphic_checks);
+DECLARE_FLAG(bool, precompilation);
 
 DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");
 DEFINE_FLAG(bool, trace_osr, false, "Trace attempts at on-stack replacement.");
@@ -147,7 +148,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
 
 
 // Helper returning the token position of the Dart caller.
-static intptr_t GetCallerLocation() {
+static TokenPosition GetCallerLocation() {
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
@@ -207,7 +208,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 2) {
   type = type.InstantiateFrom(instantiator, &bound_error, NULL, Heap::kOld);
   if (!bound_error.IsNull()) {
     // Throw a dynamic type error.
-    const intptr_t location = GetCallerLocation();
+    const TokenPosition location = GetCallerLocation();
     String& bound_error_message =  String::Handle(
         String::New(bound_error.ToErrorCString()));
     Exceptions::CreateAndThrowTypeError(
@@ -246,7 +247,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
                                                       &bound_error);
     if (!bound_error.IsNull()) {
       // Throw a dynamic type error.
-      const intptr_t location = GetCallerLocation();
+      const TokenPosition location = GetCallerLocation();
       String& bound_error_message =  String::Handle(
           String::New(bound_error.ToErrorCString()));
       Exceptions::CreateAndThrowTypeError(
@@ -475,7 +476,7 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 4) {
   }
   if (!result.value() && !bound_error.IsNull()) {
     // Throw a dynamic type error only if the instanceof test fails.
-    const intptr_t location = GetCallerLocation();
+    const TokenPosition location = GetCallerLocation();
     String& bound_error_message =  String::Handle(
         String::New(bound_error.ToErrorCString()));
     Exceptions::CreateAndThrowTypeError(
@@ -522,7 +523,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
   }
   if (!is_instance_of) {
     // Throw a dynamic type error.
-    const intptr_t location = GetCallerLocation();
+    const TokenPosition location = GetCallerLocation();
     const AbstractType& src_type = AbstractType::Handle(src_instance.GetType());
     String& src_type_name = String::Handle(src_type.UserVisibleName());
     String& dst_type_name = String::Handle();
@@ -575,7 +576,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
 // Arg0: bad object.
 // Return value: none, throws TypeError or AssertionError.
 DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
-  const intptr_t location = GetCallerLocation();
+  const TokenPosition location = GetCallerLocation();
   const Instance& src_instance = Instance::CheckedHandle(arguments.ArgAt(0));
 
   if (src_instance.IsNull()) {
@@ -612,7 +613,7 @@ DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
 // Arg2: type of destination being assigned to.
 // Return value: none, throws an exception.
 DEFINE_RUNTIME_ENTRY(BadTypeError, 3) {
-  const intptr_t location = GetCallerLocation();
+  const TokenPosition location = GetCallerLocation();
   const Instance& src_value = Instance::CheckedHandle(arguments.ArgAt(0));
   const String& dst_name = String::CheckedHandle(arguments.ArgAt(1));
   const AbstractType& dst_type =
@@ -1377,10 +1378,10 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     intptr_t num_frames = stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
-      // Variable locations and number are unknown when 'always_optimize'.
+      // Variable locations and number are unknown when precompiling.
       const int num_vars =
-         Compiler::always_optimize() ? 0 : frame->NumLocalVariables();
-      intptr_t unused;
+         FLAG_precompilation ? 0 : frame->NumLocalVariables();
+      TokenPosition unused = TokenPosition::kNoSource;
       for (intptr_t v = 0; v < num_vars; v++) {
         frame->VariableAt(v, &var_name, &unused, &unused, &var_value);
       }

@@ -515,7 +515,7 @@
       'type': 'none',
       'toolsets':['host'],
       'includes': [
-        'resources_sources.gypi',
+        'vmservice/vmservice_sources.gypi',
       ],
       'actions': [
         {
@@ -546,7 +546,7 @@
       'type': 'none',
       'toolsets':['host'],
       'includes': [
-        'resources_sources.gypi',
+        'vmservice/vmservice_sources.gypi',
       ],
       'actions': [
         {

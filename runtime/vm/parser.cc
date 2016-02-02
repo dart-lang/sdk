@@ -30,6 +30,7 @@
 #include "vm/regexp_assembler.h"
 #include "vm/report.h"
 #include "vm/resolver.h"
+#include "vm/safepoint.h"
 #include "vm/scanner.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
@@ -67,12 +68,12 @@ DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 #define Z (zone())
 
 // Quick synthetic token position.
-#define ST(token_pos) Token::ToSynthetic(token_pos)
+#define ST(token_pos) ((token_pos).ToSynthetic())
 
 #if defined(DEBUG)
 class TraceParser : public ValueObject {
  public:
-  TraceParser(intptr_t token_pos,
+  TraceParser(TokenPosition token_pos,
               const Script& script,
               intptr_t* trace_indent,
               const char* msg) {
@@ -84,7 +85,7 @@ class TraceParser : public ValueObject {
         script.GetTokenLocation(token_pos, &line, &column);
         PrintIndent();
         OS::Print("%s (line %" Pd ", col %" Pd ", token %" Pd ")\n",
-                  msg, line, column, token_pos);
+                  msg, line, column, token_pos.value());
       }
       (*indent_)++;
     }
@@ -262,8 +263,11 @@ void ParsedFunction::AllocateVariables() {
 
 struct CatchParamDesc {
   CatchParamDesc()
-      : token_pos(Token::kNoSourcePos), type(NULL), name(NULL), var(NULL) { }
-  intptr_t token_pos;
+      : token_pos(TokenPosition::kNoSource),
+        type(NULL),
+        name(NULL),
+        var(NULL) { }
+  TokenPosition token_pos;
   const AbstractType* type;
   const String* name;
   LocalVariable* var;
@@ -349,7 +353,9 @@ void Parser::TryStack::AddNodeForFinallyInlining(AstNode* node) {
 
 
 // For parsing a compilation unit.
-Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
+Parser::Parser(const Script& script,
+               const Library& library,
+               TokenPosition token_pos)
     : isolate_(Thread::Current()->isolate()),
       thread_(Thread::Current()),
       script_(Script::Handle(zone(), script.raw())),
@@ -380,12 +386,12 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
 // For parsing a function.
 Parser::Parser(const Script& script,
                ParsedFunction* parsed_function,
-               intptr_t token_position)
+               TokenPosition token_pos)
     : isolate_(Thread::Current()->isolate()),
       thread_(Thread::Current()),
       script_(Script::Handle(zone(), script.raw())),
       tokens_iterator_(TokenStream::Handle(zone(), script.tokens()),
-                       token_position),
+                       token_pos),
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
       is_top_level_(false),
@@ -435,7 +441,7 @@ int16_t Parser::AllocateTryIndex() {
 }
 
 
-void Parser::SetScript(const Script& script, intptr_t token_pos) {
+void Parser::SetScript(const Script& script, TokenPosition token_pos) {
   script_ = script.raw();
   tokens_iterator_.SetStream(
       TokenStream::Handle(Z, script.tokens()), token_pos);
@@ -471,7 +477,7 @@ void Parser::set_current_class(const Class& value) {
 }
 
 
-void Parser::SetPosition(intptr_t position) {
+void Parser::SetPosition(TokenPosition position) {
   tokens_iterator_.SetCurrentPosition(position);
   token_kind_ = Token::kILLEGAL;
   prev_token_pos_ = position;
@@ -492,7 +498,7 @@ void Parser::ParseCompilationUnit(const Library& library,
     tds.CopyArgument(0, "script", String::Handle(script.url()).ToCString());
   }
 
-  Parser parser(script, library, 0);
+  Parser parser(script, library, TokenPosition::kMinSource);
   parser.ParseTopLevel();
 }
 
@@ -544,7 +550,7 @@ RawInteger* Parser::CurrentIntegerLiteral() const {
 struct ParamDesc {
   ParamDesc()
       : type(NULL),
-        name_pos(Token::kNoSourcePos),
+        name_pos(TokenPosition::kNoSource),
         name(NULL),
         default_value(NULL),
         metadata(NULL),
@@ -553,7 +559,7 @@ struct ParamDesc {
         is_field_initializer(false),
         has_explicit_type(false) { }
   const AbstractType* type;
-  intptr_t name_pos;
+  TokenPosition name_pos;
   const String* name;
   const Instance* default_value;  // NULL if not an optional parameter.
   const Object* metadata;  // NULL if no metadata or metadata not evaluated.
@@ -581,7 +587,7 @@ struct ParamList {
     this->parameters = new ZoneGrowableArray<ParamDesc>();
   }
 
-  void AddFinalParameter(intptr_t name_pos,
+  void AddFinalParameter(TokenPosition name_pos,
                          const String* name,
                          const AbstractType* type) {
     this->num_fixed_parameters++;
@@ -593,7 +599,8 @@ struct ParamList {
     this->parameters->Add(param);
   }
 
-  void AddReceiver(const AbstractType* receiver_type, intptr_t token_pos) {
+  void AddReceiver(const AbstractType* receiver_type,
+                   TokenPosition token_pos) {
     ASSERT(this->parameters->is_empty());
     AddFinalParameter(token_pos, &Symbols::This(), receiver_type);
   }
@@ -649,10 +656,10 @@ struct MemberDesc {
     has_factory = false;
     has_operator = false;
     has_native = false;
-    metadata_pos = Token::kNoSourcePos;
+    metadata_pos = TokenPosition::kNoSource;
     operator_token = Token::kILLEGAL;
     type = NULL;
-    name_pos = Token::kNoSourcePos;
+    name_pos = TokenPosition::kNoSource;
     name = NULL;
     redirect_name = NULL;
     dict_name = NULL;
@@ -702,11 +709,11 @@ struct MemberDesc {
   bool has_factory;
   bool has_operator;
   bool has_native;
-  intptr_t metadata_pos;
+  TokenPosition metadata_pos;
   Token::Kind operator_token;
   const AbstractType* type;
-  intptr_t name_pos;
-  intptr_t decl_begin_pos;
+  TokenPosition name_pos;
+  TokenPosition decl_begin_pos;
   String* name;
   // For constructors: NULL or name of redirected to constructor.
   String* redirect_name;
@@ -729,7 +736,7 @@ class ClassDesc : public ValueObject {
             const Class& cls,
             const String& cls_name,
             bool is_interface,
-            intptr_t token_pos)
+            TokenPosition token_pos)
       : zone_(zone),
         clazz_(cls),
         class_name_(cls_name),
@@ -772,7 +779,7 @@ class ClassDesc : public ValueObject {
     return false;
   }
 
-  intptr_t token_pos() const {
+  TokenPosition token_pos() const {
     return token_pos_;
   }
 
@@ -806,7 +813,7 @@ class ClassDesc : public ValueObject {
   Zone* zone_;
   const Class& clazz_;
   const String& class_name_;
-  intptr_t token_pos_;   // Token index of "class" keyword.
+  TokenPosition token_pos_;   // Token index of "class" keyword.
   GrowableArray<const Function*> functions_;
   GrowableArray<const Field*> fields_;
   GrowableArray<MemberDesc> members_;
@@ -1068,7 +1075,7 @@ RawObject* Parser::ParseMetadata(const Field& meta_data) {
     Zone* zone = stack_zone.GetZone();
     const Class& owner_class = Class::Handle(zone, meta_data.owner());
     const Script& script = Script::Handle(zone, meta_data.script());
-    const intptr_t token_pos = meta_data.token_pos();
+    const TokenPosition token_pos = meta_data.token_pos();
     // Parsing metadata can involve following paths in the parser that are
     // normally used for expressions and assume current_function is non-null,
     // so we create a fake function to use as the current_function rather than
@@ -1113,7 +1120,7 @@ RawArray* Parser::EvaluateMetadata() {
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
   while (CurrentToken() == Token::kAT) {
     ConsumeToken();
-    intptr_t expr_pos = TokenPos();
+    TokenPosition expr_pos = TokenPos();
     if (!IsIdentifier()) {
       ExpectIdentifier("identifier expected");
     }
@@ -1157,7 +1164,7 @@ RawArray* Parser::EvaluateMetadata() {
                       "or constructor");
         }
         ConsumeToken();
-        const intptr_t ident_pos = TokenPos();
+        const TokenPosition ident_pos = TokenPos();
         String* ident = ExpectIdentifier("identifier expected");
         const Field& field = Field::Handle(Z, cls.LookupStaticField(*ident));
         if (field.IsNull()) {
@@ -1190,7 +1197,7 @@ SequenceNode* Parser::ParseStaticInitializer() {
   CheckToken(Token::kASSIGN, "field initialier expected");
   ConsumeToken();
   OpenFunctionBlock(parsed_function()->function());
-  intptr_t expr_pos = TokenPos();
+  TokenPosition expr_pos = TokenPos();
   AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
   ReturnNode* ret = new(Z) ReturnNode(expr_pos, expr);
   current_block_->statements->Add(ret);
@@ -1264,7 +1271,7 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
   OpenFunctionBlock(func);
   AddFormalParamsToScope(&params, current_block_->scope);
 
-  intptr_t ident_pos = TokenPos();
+  TokenPosition ident_pos = TokenPos();
   const String& field_name = *ExpectIdentifier("field name expected");
   const Class& field_class = Class::Handle(Z, func.Owner());
   const Field& field =
@@ -1274,7 +1281,7 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
   // Static final fields must have an initializer.
   ExpectToken(Token::kASSIGN);
 
-  const intptr_t expr_pos = TokenPos();
+  const TokenPosition expr_pos = TokenPos();
   if (field.is_const()) {
     // We don't want to use ParseConstExpr() here because we don't want
     // the constant folding code to create, compile and execute a code
@@ -1312,7 +1319,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
   TRACE_PARSER("ParseInstanceGetter");
   ParamList params;
   // func.token_pos() points to the name of the field.
-  const intptr_t ident_pos = func.token_pos();
+  const TokenPosition ident_pos = func.token_pos();
   ASSERT(current_class().raw() == func.Owner());
   params.AddReceiver(ReceiverType(current_class()), ident_pos);
   ASSERT(func.num_fixed_parameters() == 1);  // receiver.
@@ -1351,7 +1358,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
 SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
   TRACE_PARSER("ParseInstanceSetter");
   // func.token_pos() points to the name of the field.
-  const intptr_t ident_pos = func.token_pos();
+  const TokenPosition ident_pos = func.token_pos();
   const String& field_name = *CurrentLiteral();
   const Class& field_class = Class::ZoneHandle(Z, func.Owner());
   const Field& field =
@@ -1388,7 +1395,7 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
 
 SequenceNode* Parser::ParseConstructorClosure(const Function& func) {
   TRACE_PARSER("ParseConstructorClosure");
-  const intptr_t token_pos = func.token_pos();
+  const TokenPosition token_pos = func.token_pos();
 
   Function& constructor = Function::ZoneHandle(Z);
   TypeArguments& type_args = TypeArguments::ZoneHandle(Z);
@@ -1442,7 +1449,7 @@ SequenceNode* Parser::ParseConstructorClosure(const Function& func) {
 
 SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
   TRACE_PARSER("ParseImplicitClosure");
-  intptr_t token_pos = func.token_pos();
+  TokenPosition token_pos = func.token_pos();
 
   OpenFunctionBlock(func);
 
@@ -1454,7 +1461,7 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
 
   const Function& parent = Function::ZoneHandle(func.parent_function());
   if (parent.IsImplicitSetterFunction()) {
-    const intptr_t ident_pos = func.token_pos();
+    const TokenPosition ident_pos = func.token_pos();
     ASSERT(IsIdentifier());
     const String& field_name = *CurrentLiteral();
     const Class& field_class = Class::ZoneHandle(Z, parent.Owner());
@@ -1508,8 +1515,8 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
 
   ParamList params;
 
-  const intptr_t ident_pos = func.token_pos();
-  ASSERT(func.token_pos() == ClassifyingTokenPositions::kMethodExtractor);
+  const TokenPosition ident_pos = func.token_pos();
+  ASSERT(func.token_pos() == TokenPosition::kMethodExtractor);
   ASSERT(current_class().raw() == func.Owner());
   params.AddReceiver(ReceiverType(current_class()), ident_pos);
   ASSERT(func.num_fixed_parameters() == 1);  // Receiver.
@@ -1539,7 +1546,7 @@ void Parser::BuildDispatcherScope(const Function& func,
                                   const ArgumentsDescriptor& desc) {
   ParamList params;
   // Receiver first.
-  intptr_t token_pos = func.token_pos();
+  TokenPosition token_pos = func.token_pos();
   params.AddReceiver(ReceiverType(current_class()), token_pos);
   // Remaining positional parameters.
   intptr_t i = 1;
@@ -1579,8 +1586,8 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
   TRACE_PARSER("ParseNoSuchMethodDispatcher");
   ASSERT(FLAG_lazy_dispatchers);
   ASSERT(func.IsNoSuchMethodDispatcher());
-  intptr_t token_pos = func.token_pos();
-  ASSERT(func.token_pos() == 0);
+  TokenPosition token_pos = func.token_pos();
+  ASSERT(func.token_pos() == TokenPosition::kMinSource);
   ASSERT(current_class().raw() == func.Owner());
 
   ArgumentsDescriptor desc(Array::Handle(Z, func.saved_args_desc()));
@@ -1634,8 +1641,8 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
 SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func) {
   TRACE_PARSER("ParseInvokeFieldDispatcher");
   ASSERT(func.IsInvokeFieldDispatcher());
-  intptr_t token_pos = func.token_pos();
-  ASSERT(func.token_pos() == 0);
+  TokenPosition token_pos = func.token_pos();
+  ASSERT(func.token_pos() == TokenPosition::kMinSource);
   ASSERT(current_class().raw() == func.Owner());
 
   const Array& args_desc = Array::Handle(Z, func.saved_args_desc());
@@ -1696,7 +1703,7 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func) {
 }
 
 
-AstNode* Parser::BuildClosureCall(intptr_t token_pos,
+AstNode* Parser::BuildClosureCall(TokenPosition token_pos,
                                   AstNode* closure,
                                   ArgumentListNode* arguments) {
   return new InstanceCallNode(token_pos,
@@ -1711,17 +1718,17 @@ void Parser::SkipToMatching() {
   ASSERT((opening_token == Token::kLBRACE) ||
          (opening_token == Token::kLPAREN));
   GrowableArray<Token::Kind> token_stack(8);
-  GrowableArray<intptr_t> token_pos_stack(8);
+  GrowableArray<TokenPosition> token_pos_stack(8);
   // Adding the first opening brace here, because it will be consumed
   // in the loop right away.
   token_stack.Add(opening_token);
-  const intptr_t start_pos =  TokenPos();
-  intptr_t opening_pos = start_pos;
+  const TokenPosition start_pos =  TokenPos();
+  TokenPosition opening_pos = start_pos;
   token_pos_stack.Add(start_pos);
   bool is_match = true;
   bool unexpected_token_found = false;
   Token::Kind token = opening_token;
-  intptr_t token_pos;
+  TokenPosition token_pos;
   do {
     ConsumeToken();
     token = CurrentToken();
@@ -1912,7 +1919,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       // actual current class as owner of the signature function.
       const Function& signature_function = Function::Handle(Z,
           Function::NewSignatureFunction(current_class(),
-                                         Token::kNoSourcePos));
+                                         TokenPosition::kNoSource));
       signature_function.set_result_type(result_type);
       AddFormalParamsToFunction(&func_params, signature_function);
       FunctionType& signature_type =
@@ -2053,7 +2060,7 @@ String& Parser::ParseNativeDeclaration() {
 // If it is not found, and resolve_getter is true, try to resolve a getter of
 // the same name. If it is still not found, return noSuchMethod and
 // set is_no_such_method to true..
-RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
+RawFunction* Parser::GetSuperFunction(TokenPosition token_pos,
                                       const String& name,
                                       ArgumentListNode* arguments,
                                       bool resolve_getter,
@@ -2089,12 +2096,12 @@ RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
 
 
 StaticCallNode* Parser::BuildInvocationMirrorAllocation(
-    intptr_t call_pos,
+    TokenPosition call_pos,
     const String& function_name,
     const ArgumentListNode& function_args,
     const LocalVariable* temp_for_last_arg,
     bool is_super_invocation) {
-  const intptr_t args_pos = function_args.token_pos();
+  const TokenPosition args_pos = function_args.token_pos();
   // Build arguments to the call to the static
   // InvocationMirror._allocateInvocationMirror method.
   ArgumentListNode* arguments = new ArgumentListNode(args_pos);
@@ -2138,13 +2145,13 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
 
 
 ArgumentListNode* Parser::BuildNoSuchMethodArguments(
-    intptr_t call_pos,
+    TokenPosition call_pos,
     const String& function_name,
     const ArgumentListNode& function_args,
     const LocalVariable* temp_for_last_arg,
     bool is_super_invocation) {
   ASSERT(function_args.length() >= 1);  // The receiver is the first argument.
-  const intptr_t args_pos = function_args.token_pos();
+  const TokenPosition args_pos = function_args.token_pos();
   ArgumentListNode* arguments = new ArgumentListNode(args_pos);
   arguments->Add(function_args.NodeAt(0));
   // The second argument is the invocation mirror.
@@ -2160,7 +2167,7 @@ ArgumentListNode* Parser::BuildNoSuchMethodArguments(
 AstNode* Parser::ParseSuperCall(const String& function_name) {
   TRACE_PARSER("ParseSuperCall");
   ASSERT(CurrentToken() == Token::kLPAREN);
-  const intptr_t supercall_pos = TokenPos();
+  const TokenPosition supercall_pos = TokenPos();
 
   // 'this' parameter is the first argument to super call.
   ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
@@ -2208,7 +2215,7 @@ static bool IsSimpleLocalOrLiteralNode(AstNode* node) {
 AstNode* Parser::BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super) {
   ASSERT(super->IsSuper());
   AstNode* super_op = NULL;
-  const intptr_t super_pos = super->token_pos();
+  const TokenPosition super_pos = super->token_pos();
   if ((op == Token::kNEGATE) ||
       (op == Token::kBIT_NOT)) {
     // Resolve the operator function in the superclass.
@@ -2240,7 +2247,7 @@ AstNode* Parser::BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super) {
 AstNode* Parser::ParseSuperOperator() {
   TRACE_PARSER("ParseSuperOperator");
   AstNode* super_op = NULL;
-  const intptr_t operator_pos = TokenPos();
+  const TokenPosition operator_pos = TokenPos();
 
   if (CurrentToken() == Token::kLBRACK) {
     ConsumeToken();
@@ -2297,7 +2304,7 @@ AstNode* Parser::ParseSuperOperator() {
 
 
 ClosureNode* Parser::CreateImplicitClosureNode(const Function& func,
-                                               intptr_t token_pos,
+                                               TokenPosition token_pos,
                                                AstNode* receiver) {
   Function& implicit_closure_function =
       Function::ZoneHandle(Z, func.ImplicitClosureFunction());
@@ -2319,7 +2326,7 @@ ClosureNode* Parser::CreateImplicitClosureNode(const Function& func,
 
 
 AstNode* Parser::ParseSuperFieldAccess(const String& field_name,
-                                       intptr_t field_pos) {
+                                       TokenPosition field_pos) {
   TRACE_PARSER("ParseSuperFieldAccess");
   const Class& super_class = Class::ZoneHandle(Z, current_class().SuperClass());
   if (super_class.IsNull()) {
@@ -2366,7 +2373,7 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name,
 
 StaticCallNode* Parser::GenerateSuperConstructorCall(
       const Class& cls,
-      intptr_t supercall_pos,
+      TokenPosition supercall_pos,
       LocalVariable* receiver,
       ArgumentListNode* forwarding_args) {
   const Class& super_class = Class::Handle(Z, cls.SuperClass());
@@ -2433,7 +2440,7 @@ StaticCallNode* Parser::ParseSuperInitializer(const Class& cls,
                                               LocalVariable* receiver) {
   TRACE_PARSER("ParseSuperInitializer");
   ASSERT(CurrentToken() == Token::kSUPER);
-  const intptr_t supercall_pos = TokenPos();
+  const TokenPosition supercall_pos = TokenPos();
   ConsumeToken();
   const Class& super_class = Class::Handle(Z, cls.SuperClass());
   ASSERT(!super_class.IsNull());
@@ -2484,7 +2491,7 @@ AstNode* Parser::ParseInitializer(const Class& cls,
                                   LocalVariable* receiver,
                                   GrowableArray<Field*>* initialized_fields) {
   TRACE_PARSER("ParseInitializer");
-  const intptr_t field_pos = TokenPos();
+  const TokenPosition field_pos = TokenPos();
   if (CurrentToken() == Token::kTHIS) {
     ConsumeToken();
     ExpectToken(Token::kPERIOD);
@@ -2560,7 +2567,7 @@ AstNode* Parser::ParseExternalInitializedField(const Field& field) {
   const Class& saved_class = Class::Handle(Z, current_class().raw());
   const Library& saved_library = Library::Handle(Z, library().raw());
   const Script& saved_script = Script::Handle(Z, script().raw());
-  const intptr_t saved_token_pos = TokenPos();
+  const TokenPosition saved_token_pos = TokenPos();
 
   set_current_class(Class::Handle(Z, field.origin()));
   set_library(Library::Handle(Z, current_class().library()));
@@ -2570,7 +2577,7 @@ AstNode* Parser::ParseExternalInitializedField(const Field& field) {
   ConsumeToken();
   ExpectToken(Token::kASSIGN);
   AstNode* init_expr = NULL;
-  intptr_t expr_pos = TokenPos();
+  TokenPosition expr_pos = TokenPos();
   if (field.is_const()) {
     init_expr = ParseConstExpr();
   } else {
@@ -2597,7 +2604,7 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
   TRACE_PARSER("ParseInitializedInstanceFields");
   const Array& fields = Array::Handle(Z, cls.fields());
   Field& f = Field::Handle(Z);
-  const intptr_t saved_pos = TokenPos();
+  const TokenPosition saved_pos = TokenPos();
   for (int i = 0; i < fields.Length(); i++) {
     f ^= fields.At(i);
     if (!f.is_static() && f.has_initializer()) {
@@ -2622,7 +2629,7 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
           // expression must be a compile-time constant.
           init_expr = ParseConstExpr();
         } else {
-          intptr_t expr_pos = TokenPos();
+          TokenPosition expr_pos = TokenPos();
           init_expr = ParseExpr(kAllowConst, kConsumeCascades);
           if (init_expr->EvalConstExpr() != NULL) {
             Instance& expr_value = Instance::ZoneHandle(Z);
@@ -2651,7 +2658,7 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
 
 
 AstNode* Parser::CheckDuplicateFieldInit(
-    intptr_t init_pos,
+    TokenPosition init_pos,
     GrowableArray<Field*>* initialized_fields,
     AstNode* instance,
     Field* field,
@@ -2824,7 +2831,7 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   TRACE_PARSER("ParseConstructorRedirection");
   ExpectToken(Token::kCOLON);
   ASSERT(CurrentToken() == Token::kTHIS);
-  const intptr_t call_pos = TokenPos();
+  const TokenPosition call_pos = TokenPos();
   ConsumeToken();
   String& ctor_name = String::Handle(Z, cls.Name());
   GrowableHandlePtrArray<const String> pieces(Z, 3);
@@ -2868,11 +2875,13 @@ void Parser::ParseConstructorRedirection(const Class& cls,
 SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   ASSERT(func.IsGenerativeConstructor());
   ASSERT(func.Owner() == current_class().raw());
-  const intptr_t ctor_pos = TokenPos();
+  const TokenPosition ctor_pos = TokenPos();
   OpenFunctionBlock(func);
 
   LocalVariable* receiver = new LocalVariable(
-      Token::kNoSourcePos, Symbols::This(), *ReceiverType(current_class()));
+      TokenPosition::kNoSource,
+      Symbols::This(),
+      *ReceiverType(current_class()));
   current_block_->scope->InsertParameterAt(0, receiver);
 
   // Parse expressions of instance fields that have an explicit
@@ -2918,7 +2927,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
     forwarding_args = new ArgumentListNode(ST(ctor_pos));
     for (int i = 1; i < func.NumParameters(); i++) {
       LocalVariable* param = new LocalVariable(
-          Token::kNoSourcePos,
+          TokenPosition::kNoSource,
           String::ZoneHandle(Z, func.ParameterNameAt(i)),
           Object::dynamic_type());
       current_block_->scope->InsertParameterAt(i, param);
@@ -3275,7 +3284,7 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     }
   }
 
-  const intptr_t modifier_pos = TokenPos();
+  const TokenPosition modifier_pos = TokenPos();
   RawFunction::AsyncModifier func_modifier = ParseFunctionModifier();
   if (!func.is_generated_body()) {
     // Don't add a modifier to the closure representing the body of
@@ -3314,7 +3323,7 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
 
   BoolScope allow_await(&this->await_is_keyword_,
                         func.IsAsyncOrGenerator() || func.is_generated_body());
-  intptr_t end_token_pos = Token::kNoSourcePos;
+  TokenPosition end_token_pos = TokenPosition::kNoSource;
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
     if (String::Handle(Z, func.name()).Equals(Symbols::EqualOperator())) {
@@ -3339,7 +3348,7 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
         AddEqualityNullCheck();
       }
     }
-    const intptr_t expr_pos = TokenPos();
+    const TokenPosition expr_pos = TokenPos();
     AstNode* expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
     ASSERT(expr != NULL);
     current_block_->statements->Add(new ReturnNode(expr_pos, expr));
@@ -3407,24 +3416,24 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
 
 void Parser::AddEqualityNullCheck() {
   AstNode* argument =
-      new LoadLocalNode(Token::kNoSourcePos,
+      new LoadLocalNode(TokenPosition::kNoSource,
                         current_block_->scope->parent()->VariableAt(1));
   LiteralNode* null_operand =
-      new LiteralNode(Token::kNoSourcePos, Instance::ZoneHandle(Z));
+      new LiteralNode(TokenPosition::kNoSource, Instance::ZoneHandle(Z));
   ComparisonNode* check_arg =
-      new ComparisonNode(Token::kNoSourcePos,
+      new ComparisonNode(TokenPosition::kNoSource,
                          Token::kEQ_STRICT,
                          argument,
                          null_operand);
   ComparisonNode* result =
-      new ComparisonNode(Token::kNoSourcePos,
+      new ComparisonNode(TokenPosition::kNoSource,
                          Token::kEQ_STRICT,
-                         LoadReceiver(Token::kNoSourcePos),
+                         LoadReceiver(TokenPosition::kNoSource),
                          null_operand);
-  SequenceNode* arg_is_null = new SequenceNode(Token::kNoSourcePos,
+  SequenceNode* arg_is_null = new SequenceNode(TokenPosition::kNoSource,
                                                current_block_->scope);
-  arg_is_null->Add(new ReturnNode(Token::kNoSourcePos, result));
-  IfNode* if_arg_null = new IfNode(Token::kNoSourcePos,
+  arg_is_null->Add(new ReturnNode(TokenPosition::kNoSource, result));
+  IfNode* if_arg_null = new IfNode(TokenPosition::kNoSource,
                                    check_arg,
                                    arg_is_null,
                                    NULL);
@@ -3536,7 +3545,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   // Parse the formal parameters.
   const bool are_implicitly_final = method->has_const;
   const bool allow_explicit_default_values = true;
-  const intptr_t formal_param_pos = TokenPos();
+  const TokenPosition formal_param_pos = TokenPos();
   method->params.Clear();
   // Static functions do not have a receiver.
   // The first parameter of a factory is the TypeArguments vector of
@@ -3610,7 +3619,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                   method->name->ToCString());
     }
     ConsumeToken();
-    const intptr_t type_pos = TokenPos();
+    const TokenPosition type_pos = TokenPos();
     is_redirecting = true;
     const bool consume_unresolved_prefix =
         (LookaheadToken(3) == Token::kLT) ||
@@ -3689,7 +3698,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                 method->name->ToCString());
   }
 
-  const intptr_t modifier_pos = TokenPos();
+  const TokenPosition modifier_pos = TokenPos();
   RawFunction::AsyncModifier async_modifier = ParseFunctionModifier();
   if ((method->IsFactoryOrConstructor() || method->IsSetter()) &&
       (async_modifier != RawFunction::kNoModifier)) {
@@ -3699,7 +3708,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                 method->name->ToCString());
   }
 
-  intptr_t method_end_pos = TokenPos();
+  TokenPosition method_end_pos = TokenPos();
   String* native_name = NULL;
   if ((CurrentToken() == Token::kLBRACE) ||
       (CurrentToken() == Token::kARROW)) {
@@ -3831,7 +3840,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   if (library_.is_dart_scheme() && library_.IsPrivate(*method->name)) {
     func.set_is_reflectable(false);
   }
-  if (FLAG_enable_mirrors && (method->metadata_pos >= 0)) {
+  if (FLAG_enable_mirrors && (method->metadata_pos.IsReal())) {
     library_.AddFunctionMetadata(func, method->metadata_pos);
   }
   if (method->has_native) {
@@ -3862,7 +3871,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
          CurrentToken() == Token::kCOMMA ||
          CurrentToken() == Token::kASSIGN);
   ASSERT(field->type != NULL);
-  ASSERT(field->name_pos >= 0);
+  ASSERT(field->name_pos.IsReal());
   ASSERT(current_member_ == field);
   // All const fields are also final.
   ASSERT(!field->has_const || field->has_final);
@@ -3931,7 +3940,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     class_field.set_has_initializer(has_initializer);
     members->AddField(class_field);
     field->field_ = &class_field;
-    if (FLAG_enable_mirrors && (field->metadata_pos >= 0)) {
+    if (FLAG_enable_mirrors && (field->metadata_pos.IsReal())) {
       library_.AddFieldMetadata(class_field, field->metadata_pos);
     }
 
@@ -4078,7 +4087,7 @@ void Parser::CheckMemberNameConflict(ClassDesc* members,
 
 
 void Parser::ParseClassMemberDefinition(ClassDesc* members,
-                                        intptr_t metadata_pos) {
+                                        TokenPosition metadata_pos) {
   TRACE_PARSER("ParseClassMemberDefinition");
   MemberDesc member;
   current_member_ = &member;
@@ -4289,12 +4298,12 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
 
 void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
                                   const Object& tl_owner,
-                                  intptr_t metadata_pos) {
+                                  TokenPosition metadata_pos) {
   TRACE_PARSER("ParseEnumDeclaration");
-  const intptr_t declaration_pos = (metadata_pos >= 0) ? metadata_pos
-                                                       : TokenPos();
+  const TokenPosition declaration_pos =
+      (metadata_pos.IsReal()) ? metadata_pos : TokenPos();
   ConsumeToken();
-  const intptr_t name_pos = TokenPos();
+  const TokenPosition name_pos = TokenPos();
   String* enum_name =
       ExpectUserDefinedTypeIdentifier("enum type name expected");
   if (FLAG_trace_parser) {
@@ -4329,7 +4338,7 @@ void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
   library_.AddClass(cls);
   cls.set_is_synthesized_class();
   cls.set_is_enum_class();
-  if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
+  if (FLAG_enable_mirrors && (metadata_pos.IsReal())) {
     library_.AddClassMetadata(cls, tl_owner, metadata_pos);
   }
   cls.set_super_type(Type::Handle(Z, Type::ObjectType()));
@@ -4339,11 +4348,12 @@ void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
 
 void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                                    const Object& tl_owner,
-                                   intptr_t metadata_pos) {
+                                   TokenPosition metadata_pos) {
   TRACE_PARSER("ParseClassDeclaration");
   bool is_patch = false;
   bool is_abstract = false;
-  intptr_t declaration_pos = (metadata_pos >= 0) ? metadata_pos : TokenPos();
+  TokenPosition declaration_pos =
+      metadata_pos.IsReal() ? metadata_pos : TokenPos();
   if (is_patch_source() &&
       (CurrentToken() == Token::kIDENT) &&
       CurrentLiteral()->Equals("patch")) {
@@ -4354,7 +4364,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     ConsumeToken();
   }
   ExpectToken(Token::kCLASS);
-  const intptr_t classname_pos = TokenPos();
+  const TokenPosition classname_pos = TokenPos();
   String& class_name = *ExpectUserDefinedTypeIdentifier("class name expected");
   if (FLAG_trace_parser) {
     OS::Print("TopLevel parsing class '%s'\n", class_name.ToCString());
@@ -4448,7 +4458,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   if (is_abstract) {
     cls.set_is_abstract();
   }
-  if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
+  if (FLAG_enable_mirrors && metadata_pos.IsReal()) {
     library_.AddClassMetadata(cls, tl_owner, metadata_pos);
   }
 
@@ -4462,7 +4472,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   AbstractType& super_type = Type::Handle(Z);
   if ((CurrentToken() == Token::kEXTENDS) || is_mixin_declaration) {
     ConsumeToken();  // extends or =
-    const intptr_t type_pos = TokenPos();
+    const TokenPosition type_pos = TokenPos();
     super_type = ParseType(ClassFinalizer::kResolveTypeParameters);
     if (super_type.IsMalformedOrMalbounded()) {
       ReportError(Error::Handle(Z, super_type.error()));
@@ -4539,14 +4549,14 @@ void Parser::ParseClassDefinition(const Class& cls) {
     ConsumeToken();
   }
   ExpectToken(Token::kCLASS);
-  const intptr_t class_pos = TokenPos();
+  const TokenPosition class_pos = TokenPos();
   ClassDesc members(Z, cls, class_name, false, class_pos);
   while (CurrentToken() != Token::kLBRACE) {
     ConsumeToken();
   }
   ExpectToken(Token::kLBRACE);
   while (CurrentToken() != Token::kRBRACE) {
-    intptr_t metadata_pos = SkipMetadata();
+    TokenPosition metadata_pos = SkipMetadata();
     ParseClassMemberDefinition(&members, metadata_pos);
   }
   ExpectToken(Token::kRBRACE);
@@ -4825,9 +4835,9 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
 void Parser::ParseMixinAppAlias(
     const GrowableObjectArray& pending_classes,
     const Object& tl_owner,
-    intptr_t metadata_pos) {
+    TokenPosition metadata_pos) {
   TRACE_PARSER("ParseMixinAppAlias");
-  const intptr_t classname_pos = TokenPos();
+  const TokenPosition classname_pos = TokenPos();
   String& class_name = *ExpectUserDefinedTypeIdentifier("class name expected");
   if (FLAG_trace_parser) {
     OS::Print("toplevel parsing mixin application alias class '%s'\n",
@@ -4852,7 +4862,7 @@ void Parser::ParseMixinAppAlias(
     ConsumeToken();
   }
 
-  const intptr_t type_pos = TokenPos();
+  const TokenPosition type_pos = TokenPos();
   AbstractType& type =
       AbstractType::Handle(Z,
                            ParseType(ClassFinalizer::kResolveTypeParameters));
@@ -4877,7 +4887,7 @@ void Parser::ParseMixinAppAlias(
   }
   ExpectSemicolon();
   pending_classes.Add(mixin_application, Heap::kOld);
-  if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
+  if (FLAG_enable_mirrors && metadata_pos.IsReal()) {
     library_.AddClassMetadata(mixin_application, tl_owner, metadata_pos);
   }
 }
@@ -4891,7 +4901,7 @@ bool Parser::IsFunctionTypeAliasName() {
   if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
     return true;
   }
-  const intptr_t saved_pos = TokenPos();
+  const TokenPosition saved_pos = TokenPos();
   bool is_alias_name = false;
   if (IsIdentifier() && (LookaheadToken(1) == Token::kLT)) {
     ConsumeToken();
@@ -4910,7 +4920,7 @@ bool Parser::IsMixinAppAlias() {
   if (IsIdentifier() && (LookaheadToken(1) == Token::kASSIGN)) {
     return true;
   }
-  const intptr_t saved_pos = TokenPos();
+  const TokenPosition saved_pos = TokenPos();
   bool is_mixin_def = false;
   if (IsIdentifier() && (LookaheadToken(1) == Token::kLT)) {
     ConsumeToken();
@@ -4925,9 +4935,10 @@ bool Parser::IsMixinAppAlias() {
 
 void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
                           const Object& tl_owner,
-                          intptr_t metadata_pos) {
+                          TokenPosition metadata_pos) {
   TRACE_PARSER("ParseTypedef");
-  intptr_t declaration_pos = (metadata_pos >= 0) ? metadata_pos : TokenPos();
+  TokenPosition declaration_pos =
+      metadata_pos.IsReal() ? metadata_pos : TokenPos();
   ExpectToken(Token::kTYPEDEF);
 
   if (IsMixinAppAlias()) {
@@ -4949,7 +4960,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
     result_type = ParseType(ClassFinalizer::kDoNotResolve);
   }
 
-  const intptr_t alias_name_pos = TokenPos();
+  const TokenPosition alias_name_pos = TokenPos();
   const String* alias_name =
       ExpectUserDefinedTypeIdentifier("function alias name expected");
 
@@ -5012,7 +5023,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   // checked in the class finalizer for illegal self references.
   ASSERT(!function_type_alias.is_finalized());
   pending_classes.Add(function_type_alias, Heap::kOld);
-  if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
+  if (FLAG_enable_mirrors && metadata_pos.IsReal()) {
     library_.AddClassMetadata(function_type_alias,
                               tl_owner,
                               metadata_pos);
@@ -5035,11 +5046,11 @@ void Parser::ConsumeRightAngleBracket() {
 }
 
 
-intptr_t Parser::SkipMetadata() {
+TokenPosition Parser::SkipMetadata() {
   if (CurrentToken() != Token::kAT) {
-    return Token::kNoSourcePos;
+    return TokenPosition::kNoSource;
   }
-  intptr_t metadata_pos = TokenPos();
+  TokenPosition metadata_pos = TokenPos();
   while (CurrentToken() == Token::kAT) {
     ConsumeToken();
     ExpectIdentifier("identifier expected");
@@ -5103,10 +5114,10 @@ void Parser::ParseTypeParameters(const Class& cls) {
     AbstractType& type_parameter_bound = Type::Handle(Z);
     do {
       ConsumeToken();
-      const intptr_t metadata_pos = SkipMetadata();
-      const intptr_t type_parameter_pos = TokenPos();
-      const intptr_t declaration_pos = (metadata_pos >= 0) ? metadata_pos
-                                                           : type_parameter_pos;
+      const TokenPosition metadata_pos = SkipMetadata();
+      const TokenPosition type_parameter_pos = TokenPos();
+      const TokenPosition declaration_pos =
+          metadata_pos.IsReal() ? metadata_pos : type_parameter_pos;
       String& type_parameter_name =
           *ExpectUserDefinedTypeIdentifier("type parameter expected");
       // Check for duplicate type parameters.
@@ -5135,7 +5146,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
                                           declaration_pos);
       type_parameters_array.Add(
           &AbstractType::ZoneHandle(Z, type_parameter.raw()));
-      if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
+      if (FLAG_enable_mirrors && metadata_pos.IsReal()) {
         library_.AddTypeParameterMetadata(type_parameter, metadata_pos);
       }
       index++;
@@ -5210,7 +5221,7 @@ void Parser::ParseInterfaceList(const Class& cls) {
   // Now parse and add the new interfaces.
   do {
     ConsumeToken();
-    intptr_t interface_pos = TokenPos();
+    TokenPosition interface_pos = TokenPos();
     interface = ParseType(ClassFinalizer::kResolveTypeParameters);
     if (interface.IsTypeParameter()) {
       ReportError(interface_pos,
@@ -5252,7 +5263,7 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
 
 void Parser::ParseTopLevelVariable(TopLevel* top_level,
                                    const Object& owner,
-                                   intptr_t metadata_pos) {
+                                   TokenPosition metadata_pos) {
   TRACE_PARSER("ParseTopLevelVariable");
   const bool is_const = (CurrentToken() == Token::kCONST);
   // Const fields are implicitly final.
@@ -5263,7 +5274,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
   Field& field = Field::Handle(Z);
   Function& getter = Function::Handle(Z);
   while (true) {
-    const intptr_t name_pos = TokenPos();
+    const TokenPosition name_pos = TokenPos();
     String& var_name = *ExpectIdentifier("variable name expected");
 
     if (library_.LookupLocalObject(var_name) != Object::null()) {
@@ -5294,7 +5305,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     field.SetStaticValue(Object::null_instance(), true);
     top_level->AddField(field);
     library_.AddObject(field, var_name);
-    if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
+    if (FLAG_enable_mirrors && metadata_pos.IsReal()) {
       library_.AddFieldMetadata(field, metadata_pos);
     }
     if (CurrentToken() == Token::kASSIGN) {
@@ -5370,9 +5381,9 @@ RawFunction::AsyncModifier Parser::ParseFunctionModifier() {
 
 void Parser::ParseTopLevelFunction(TopLevel* top_level,
                                    const Object& owner,
-                                   intptr_t metadata_pos) {
+                                   TokenPosition metadata_pos) {
   TRACE_PARSER("ParseTopLevelFunction");
-  const intptr_t decl_begin_pos = TokenPos();
+  const TokenPosition decl_begin_pos = TokenPos();
   AbstractType& result_type = Type::Handle(Z, Type::DynamicType());
   const bool is_static = true;
   bool is_external = false;
@@ -5397,7 +5408,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
       result_type = ParseType(ClassFinalizer::kResolveTypeParameters);
     }
   }
-  const intptr_t name_pos = TokenPos();
+  const TokenPosition name_pos = TokenPos();
   const String& func_name = *ExpectIdentifier("function name expected");
 
   bool found = library_.LookupLocalObject(func_name) != Object::null();
@@ -5416,15 +5427,15 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   // not need to check setters.
 
   CheckToken(Token::kLPAREN);
-  const intptr_t function_pos = TokenPos();
+  const TokenPosition function_pos = TokenPos();
   ParamList params;
   const bool allow_explicit_default_values = true;
   ParseFormalParameterList(allow_explicit_default_values, false, &params);
 
-  const intptr_t modifier_pos = TokenPos();
+  const TokenPosition modifier_pos = TokenPos();
   RawFunction::AsyncModifier func_modifier = ParseFunctionModifier();
 
-  intptr_t function_end_pos = function_pos;
+  TokenPosition function_end_pos = function_pos;
   bool is_native = false;
   String* native_name = NULL;
   if (is_external) {
@@ -5485,7 +5496,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     toplevel_cls.RemoveFunction(replaced_func);
     library_.ReplaceObject(func, func_name);
   }
-  if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
+  if (FLAG_enable_mirrors && metadata_pos.IsReal()) {
     library_.AddFunctionMetadata(func, metadata_pos);
   }
 }
@@ -5493,9 +5504,9 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
 
 void Parser::ParseTopLevelAccessor(TopLevel* top_level,
                                    const Object& owner,
-                                   intptr_t metadata_pos) {
+                                   TokenPosition metadata_pos) {
   TRACE_PARSER("ParseTopLevelAccessor");
-  const intptr_t decl_begin_pos = TokenPos();
+  const TokenPosition decl_begin_pos = TokenPos();
   const bool is_static = true;
   bool is_external = false;
   bool is_patch = false;
@@ -5528,10 +5539,10 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
       UnexpectedToken();
     }
   }
-  const intptr_t name_pos = TokenPos();
+  const TokenPosition name_pos = TokenPos();
   const String* field_name = ExpectIdentifier("accessor name expected");
 
-  const intptr_t accessor_pos = TokenPos();
+  const TokenPosition accessor_pos = TokenPos();
   ParamList params;
 
   if (!is_getter) {
@@ -5578,14 +5589,14 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
                 field_name->ToCString());
   }
 
-  const intptr_t modifier_pos = TokenPos();
+  const TokenPosition modifier_pos = TokenPos();
   RawFunction::AsyncModifier func_modifier = ParseFunctionModifier();
   if (!is_getter && (func_modifier != RawFunction::kNoModifier)) {
     ReportError(modifier_pos,
                 "setter function cannot be async, async* or sync*");
   }
 
-  intptr_t accessor_end_pos = accessor_pos;
+  TokenPosition accessor_end_pos = accessor_pos;
   bool is_native = false;
   String* native_name = NULL;
   if (is_external) {
@@ -5650,14 +5661,14 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     toplevel_cls.RemoveFunction(replaced_func);
     library_.ReplaceObject(func, accessor_name);
   }
-  if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
+  if (FLAG_enable_mirrors && metadata_pos.IsReal()) {
     library_.AddFunctionMetadata(func, metadata_pos);
   }
 }
 
 
 RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
-                                         intptr_t token_pos,
+                                         TokenPosition token_pos,
                                          const String& url) {
   Dart_LibraryTagHandler handler = I->library_tag_handler();
   if (handler == NULL) {
@@ -5672,24 +5683,28 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
   // Block class finalization attempts when calling into the library
   // tag handler.
   I->BlockClassFinalization();
-  Api::Scope api_scope(T);
-  Dart_Handle result = handler(tag,
-                               Api::NewHandle(T, library_.raw()),
-                               Api::NewHandle(T, url.raw()));
+  Object& result = Object::Handle(Z);
+  {
+    TransitionVMToNative transition(T);
+    Api::Scope api_scope(T);
+    Dart_Handle retval = handler(tag,
+                                 Api::NewHandle(T, library_.raw()),
+                                 Api::NewHandle(T, url.raw()));
+    result = Api::UnwrapHandle(retval);
+  }
   I->UnblockClassFinalization();
-  if (Dart_IsError(result)) {
+  if (result.IsError()) {
     // In case of an error we append an explanatory error message to the
     // error obtained from the library tag handler.
-    Error& prev_error = Error::Handle(Z);
-    prev_error ^= Api::UnwrapHandle(result);
+    const Error& prev_error = Error::Cast(result);
     Report::LongJumpF(prev_error, script_, token_pos, "library handler failed");
   }
   if (tag == Dart_kCanonicalizeUrl) {
-    if (!Dart_IsString(result)) {
+    if (!result.IsString()) {
       ReportError(token_pos, "library handler failed URI canonicalization");
     }
   }
-  return Api::UnwrapHandle(result);
+  return result.raw();
 }
 
 
@@ -5728,11 +5743,11 @@ void Parser::ParseIdentList(GrowableObjectArray* names) {
 
 
 void Parser::ParseLibraryImportExport(const Object& tl_owner,
-                                      intptr_t metadata_pos) {
+                                      TokenPosition metadata_pos) {
   bool is_import = (CurrentToken() == Token::kIMPORT);
   bool is_export = (CurrentToken() == Token::kEXPORT);
   ASSERT(is_import || is_export);
-  const intptr_t import_pos = TokenPos();
+  const TokenPosition import_pos = TokenPos();
   ConsumeToken();
   CheckToken(Token::kSTRING, "library url expected");
   AstNode* url_literal = ParseStringLiteral(false);
@@ -5796,7 +5811,7 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
     CheckToken(Token::kAS, "'as' expected");
   }
   String& prefix = String::Handle(Z);
-  intptr_t prefix_pos = Token::kNoSourcePos;
+  TokenPosition prefix_pos = TokenPosition::kNoSource;
   if (is_import && (CurrentToken() == Token::kAS)) {
     ConsumeToken();
     prefix_pos = TokenPos();
@@ -5859,7 +5874,7 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
 
   Namespace& ns = Namespace::Handle(Z,
       Namespace::New(library, show_names, hide_names));
-  if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
+  if (FLAG_enable_mirrors && metadata_pos.IsReal()) {
     ns.AddMetadata(tl_owner, metadata_pos);
   }
 
@@ -5909,7 +5924,7 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
 
 
 void Parser::ParseLibraryPart() {
-  const intptr_t source_pos = TokenPos();
+  const TokenPosition source_pos = TokenPos();
   ConsumeToken();  // Consume "part".
   CheckToken(Token::kSTRING, "url expected");
   AstNode* url_literal = ParseStringLiteral(false);
@@ -5938,14 +5953,14 @@ void Parser::ParseLibraryDefinition(const Object& tl_owner) {
   // declaration that follows the library definitions. Therefore, we
   // need to remember the position of the last token that was
   // successfully consumed.
-  intptr_t rewind_pos = TokenPos();
-  intptr_t metadata_pos = SkipMetadata();
+  TokenPosition rewind_pos = TokenPos();
+  TokenPosition metadata_pos = SkipMetadata();
   if (CurrentToken() == Token::kLIBRARY) {
     if (is_patch_source()) {
       ReportError("patch cannot override library name");
     }
     ParseLibraryName();
-    if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
+    if (FLAG_enable_mirrors && metadata_pos.IsReal()) {
       library_.AddLibraryMetadata(tl_owner, metadata_pos);
     }
     rewind_pos = TokenPos();
@@ -6002,7 +6017,7 @@ void Parser::ParseTopLevel() {
   ObjectStore* object_store = I->object_store();
   const GrowableObjectArray& pending_classes =
       GrowableObjectArray::Handle(Z, object_store->pending_classes());
-  SetPosition(0);
+  SetPosition(TokenPosition::kMinSource);
   is_top_level_ = true;
   TopLevel top_level(Z);
 
@@ -6027,7 +6042,7 @@ void Parser::ParseTopLevel() {
   const Class& cls = Class::Handle(Z);
   while (true) {
     set_current_class(cls);  // No current class.
-    intptr_t metadata_pos = SkipMetadata();
+    TokenPosition metadata_pos = SkipMetadata();
     if (CurrentToken() == Token::kCLASS) {
       ParseClassDeclaration(pending_classes, tl_owner, metadata_pos);
     } else if (CurrentToken() == Token::kENUM) {
@@ -6152,7 +6167,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   // We only get here when parsing an async generator body.
   ASSERT(innermost_function().IsAsyncGenClosure());
 
-  const intptr_t try_end_pos = innermost_function().end_token_pos();
+  const TokenPosition try_end_pos = innermost_function().end_token_pos();
 
   // The try-block (closure body code) has been parsed. We are now
   // generating the code for the catch block.
@@ -6164,10 +6179,10 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   // Add the exception and stack trace parameters to the scope.
   CatchParamDesc exception_param;
   CatchParamDesc stack_trace_param;
-  exception_param.token_pos = Token::kNoSourcePos;
+  exception_param.token_pos = TokenPosition::kNoSource;
   exception_param.type = &Object::dynamic_type();
   exception_param.name = &Symbols::ExceptionParameter();
-  stack_trace_param.token_pos = Token::kNoSourcePos;
+  stack_trace_param.token_pos = TokenPosition::kNoSource;
   stack_trace_param.type = &Object::dynamic_type();
   stack_trace_param.name = &Symbols::StackTraceParameter();
 
@@ -6187,9 +6202,9 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
     // Generate code to load the exception object (:exception_var) into
     // the exception variable specified in this block.
     current_block_->statements->Add(new(Z) StoreLocalNode(
-        Token::kNoSourcePos,
+        TokenPosition::kNoSource,
         exception_param.var,
-        new(Z) LoadLocalNode(Token::kNoSourcePos, exception_var)));
+        new(Z) LoadLocalNode(TokenPosition::kNoSource, exception_var)));
   }
 
   LocalVariable* stack_trace_var =
@@ -6200,9 +6215,9 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
     // to load the stack trace object (:stack_trace_var) into the stack
     // trace variable specified in this block.
     current_block_->statements->Add(new(Z) StoreLocalNode(
-        Token::kNoSourcePos,
+        TokenPosition::kNoSource,
         stack_trace_param.var,
-        new(Z) LoadLocalNode(Token::kNoSourcePos, stack_trace_var)));
+        new(Z) LoadLocalNode(TokenPosition::kNoSource, stack_trace_var)));
   }
   LocalVariable* saved_exception_var = try_scope->LocalLookupVariable(
       Symbols::SavedExceptionVar());
@@ -6221,15 +6236,17 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
       current_block_->scope->LookupVariable(Symbols::Controller(), false);
   ASSERT(controller != NULL);
   ArgumentListNode* args =
-      new(Z) ArgumentListNode(Token::kNoSourcePos);
-  args->Add(new(Z) LoadLocalNode(Token::kNoSourcePos, exception_param.var));
-  args->Add(new(Z) LoadLocalNode(Token::kNoSourcePos, stack_trace_param.var));
+      new(Z) ArgumentListNode(TokenPosition::kNoSource);
+  args->Add(new(Z) LoadLocalNode(
+      TokenPosition::kNoSource, exception_param.var));
+  args->Add(new(Z) LoadLocalNode(
+      TokenPosition::kNoSource, stack_trace_param.var));
   current_block_->statements->Add(
       new(Z) InstanceCallNode(try_end_pos,
-          new(Z) LoadLocalNode(Token::kNoSourcePos, controller),
+          new(Z) LoadLocalNode(TokenPosition::kNoSource, controller),
           Symbols::AddError(),
           args));
-  ReturnNode* return_node = new(Z) ReturnNode(Token::kNoSourcePos);
+  ReturnNode* return_node = new(Z) ReturnNode(TokenPosition::kNoSource);
   AddNodeForFinallyInlining(return_node);
   current_block_->statements->Add(return_node);
   AstNode* catch_block = CloseBlock();
@@ -6254,10 +6271,10 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   do {
     OpenBlock();
     ArgumentListNode* no_args =
-        new(Z) ArgumentListNode(Token::kNoSourcePos);
+        new(Z) ArgumentListNode(TokenPosition::kNoSource);
     current_block_->statements->Add(
         new(Z) InstanceCallNode(try_end_pos,
-            new(Z) LoadLocalNode(Token::kNoSourcePos, controller),
+            new(Z) LoadLocalNode(TokenPosition::kNoSource, controller),
             Symbols::Close(),
             no_args));
 
@@ -6265,7 +6282,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
     AwaitMarkerNode* await_marker =
         new(Z) AwaitMarkerNode(async_temp_scope_,
                                current_block_->scope,
-                               Token::kNoSourcePos);
+                               TokenPosition::kNoSource);
     current_block_->statements->Add(await_marker);
     ReturnNode* continuation_ret = new(Z) ReturnNode(try_end_pos);
     continuation_ret->set_return_type(ReturnNode::kContinuationTarget);
@@ -6296,7 +6313,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   handler_types.Add(Object::dynamic_type());
 
   CatchClauseNode* catch_clause = new(Z) CatchClauseNode(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       catch_handler_list,
       Array::ZoneHandle(Z, Array::MakeArray(handler_types)),
       context_var,
@@ -6310,7 +6327,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   const intptr_t try_index = try_statement->try_index();
 
   AstNode* try_catch_node =
-      new(Z) TryCatchNode(Token::kNoSourcePos,
+      new(Z) TryCatchNode(TokenPosition::kNoSource,
                           body,
                           context_var,
                           catch_clause,
@@ -6335,10 +6352,10 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   OpenBlock();  // Catch block.
   CatchParamDesc exception_param;
   CatchParamDesc stack_trace_param;
-  exception_param.token_pos = Token::kNoSourcePos;
+  exception_param.token_pos = TokenPosition::kNoSource;
   exception_param.type = &Object::dynamic_type();
   exception_param.name = &Symbols::ExceptionParameter();
-  stack_trace_param.token_pos = Token::kNoSourcePos;
+  stack_trace_param.token_pos = TokenPosition::kNoSource;
   stack_trace_param.type = &Object::dynamic_type();
   stack_trace_param.name = &Symbols::StackTraceParameter();
 
@@ -6356,9 +6373,9 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
     // the exception variable specified in this block.
     ASSERT(exception_var != NULL);
     current_block_->statements->Add(new(Z) StoreLocalNode(
-        Token::kNoSourcePos,
+        TokenPosition::kNoSource,
         exception_param.var,
-        new(Z) LoadLocalNode(Token::kNoSourcePos, exception_var)));
+        new(Z) LoadLocalNode(TokenPosition::kNoSource, exception_var)));
   }
 
   LocalVariable* stack_trace_var =
@@ -6369,9 +6386,9 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
     // trace variable specified in this block.
     ASSERT(stack_trace_var != NULL);
     current_block_->statements->Add(new(Z) StoreLocalNode(
-        Token::kNoSourcePos,
+        TokenPosition::kNoSource,
         stack_trace_param.var,
-        new(Z) LoadLocalNode(Token::kNoSourcePos, stack_trace_var)));
+        new(Z) LoadLocalNode(TokenPosition::kNoSource, stack_trace_var)));
   }
   LocalVariable* saved_exception_var = try_scope->LocalLookupVariable(
       Symbols::SavedExceptionVar());
@@ -6389,17 +6406,18 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
       Symbols::AsyncCompleter(), false);
   ASSERT(async_completer != NULL);
   ArgumentListNode* completer_args =
-      new (Z) ArgumentListNode(Token::kNoSourcePos);
+      new (Z) ArgumentListNode(TokenPosition::kNoSource);
   completer_args->Add(
-      new (Z) LoadLocalNode(Token::kNoSourcePos, exception_param.var));
+      new (Z) LoadLocalNode(TokenPosition::kNoSource, exception_param.var));
   completer_args->Add(
-      new (Z) LoadLocalNode(Token::kNoSourcePos, stack_trace_param.var));
+      new (Z) LoadLocalNode(TokenPosition::kNoSource,
+                            stack_trace_param.var));
   current_block_->statements->Add(new (Z) InstanceCallNode(
       TokenPos(),
-      new (Z) LoadLocalNode(Token::kNoSourcePos, async_completer),
+      new (Z) LoadLocalNode(TokenPosition::kNoSource, async_completer),
       Symbols::CompleterCompleteError(),
       completer_args));
-  ReturnNode* return_node = new (Z) ReturnNode(Token::kNoSourcePos);
+  ReturnNode* return_node = new (Z) ReturnNode(TokenPosition::kNoSource);
   // Behavior like a continuation return, i.e,. don't call a completer.
   return_node->set_return_type(ReturnNode::kContinuation);
   current_block_->statements->Add(return_node);
@@ -6416,7 +6434,7 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   const intptr_t try_index = try_statement->try_index();
 
   CatchClauseNode* catch_clause = new (Z) CatchClauseNode(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       catch_handler_list,
       Array::ZoneHandle(Z, Array::MakeArray(handler_types)),
       context_var,
@@ -6427,7 +6445,7 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
       CatchClauseNode::kInvalidTryIndex,
       true);
   AstNode* try_catch_node = new (Z) TryCatchNode(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       try_block,
       context_var,
       catch_clause,
@@ -6473,7 +6491,9 @@ void Parser::AddSyncGenClosureParameters(ParamList* params) {
   // Add implicit closure parameter if not already present.
   if (params->parameters->length() == 0) {
     params->AddFinalParameter(
-        0, &Symbols::ClosureParameter(), &Object::dynamic_type());
+        TokenPosition::kMinSource,
+        &Symbols::ClosureParameter(),
+        &Object::dynamic_type());
   }
   ParamDesc iterator_param;
   iterator_param.name = &Symbols::IteratorParameter();
@@ -6490,7 +6510,7 @@ void Parser::AddAsyncGenClosureParameters(ParamList* params) {
 }
 
 
-RawFunction* Parser::OpenSyncGeneratorFunction(intptr_t func_pos) {
+RawFunction* Parser::OpenSyncGeneratorFunction(TokenPosition func_pos) {
   Function& body = Function::Handle(Z);
   String& body_closure_name = String::Handle(Z);
   bool is_new_closure = false;
@@ -6557,10 +6577,10 @@ SequenceNode* Parser::CloseSyncGenFunction(const Function& closure,
   // :await_jump_var = -1;
   LocalVariable* jump_var =
       current_block_->scope->LookupVariable(Symbols::AwaitJumpVar(), false);
-  LiteralNode* init_value =
-      new(Z) LiteralNode(Token::kNoSourcePos, Smi::ZoneHandle(Smi::New(-1)));
+  LiteralNode* init_value = new(Z) LiteralNode(TokenPosition::kNoSource,
+                                               Smi::ZoneHandle(Smi::New(-1)));
   current_block_->statements->Add(
-      new(Z) StoreLocalNode(Token::kNoSourcePos, jump_var, init_value));
+      new(Z) StoreLocalNode(TokenPosition::kNoSource, jump_var, init_value));
 
   // return new SyncIterable(body_closure);
   const Class& iterable_class =
@@ -6574,17 +6594,18 @@ SequenceNode* Parser::CloseSyncGenFunction(const Function& closure,
   const String& closure_name = String::Handle(Z, closure.name());
   ASSERT(closure_name.IsSymbol());
 
-  ArgumentListNode* arguments = new(Z) ArgumentListNode(Token::kNoSourcePos);
+  ArgumentListNode* arguments =
+      new(Z) ArgumentListNode(TokenPosition::kNoSource);
   ClosureNode* closure_obj = new(Z) ClosureNode(
-      Token::kNoSourcePos, closure, NULL, closure_body->scope());
+      TokenPosition::kNoSource, closure, NULL, closure_body->scope());
   arguments->Add(closure_obj);
   ConstructorCallNode* new_iterable =
-      new(Z) ConstructorCallNode(Token::kNoSourcePos,
+      new(Z) ConstructorCallNode(TokenPosition::kNoSource,
           TypeArguments::ZoneHandle(Z),
           iterable_constructor,
           arguments);
   ReturnNode* return_node =
-      new (Z) ReturnNode(Token::kNoSourcePos, new_iterable);
+      new (Z) ReturnNode(TokenPosition::kNoSource, new_iterable);
   current_block_->statements->Add(return_node);
   return CloseBlock();
 }
@@ -6599,7 +6620,9 @@ void Parser::AddAsyncClosureParameters(ParamList* params) {
   // Add implicit closure parameter if not yet present.
   if (params->parameters->length() == 0) {
     params->AddFinalParameter(
-        0, &Symbols::ClosureParameter(), &Object::dynamic_type());
+        TokenPosition::kMinSource,
+        &Symbols::ClosureParameter(),
+        &Object::dynamic_type());
   }
   ParamDesc result_param;
   result_param.name = &Symbols::AsyncOperationParam();
@@ -6621,7 +6644,7 @@ void Parser::AddAsyncClosureParameters(ParamList* params) {
 }
 
 
-RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
+RawFunction* Parser::OpenAsyncFunction(TokenPosition async_func_pos) {
   TRACE_PARSER("OpenAsyncFunction");
   AddContinuationVariables();
   AddAsyncClosureVariables();
@@ -6678,10 +6701,12 @@ void Parser::AddContinuationVariables() {
   //   var :await_jump_var;
   //   var :await_ctx_var;
   LocalVariable* await_jump_var = new (Z) LocalVariable(
-      Token::kNoSourcePos, Symbols::AwaitJumpVar(), Object::dynamic_type());
+      TokenPosition::kNoSource,
+      Symbols::AwaitJumpVar(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(await_jump_var);
   LocalVariable* await_ctx_var = new (Z) LocalVariable(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       Symbols::AwaitContextVar(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(await_ctx_var);
@@ -6695,20 +6720,22 @@ void Parser::AddAsyncClosureVariables() {
   //   var :async_catch_error_callback;
   //   var :async_completer;
   LocalVariable* async_op_var = new(Z) LocalVariable(
-      Token::kNoSourcePos, Symbols::AsyncOperation(), Object::dynamic_type());
+      TokenPosition::kNoSource,
+      Symbols::AsyncOperation(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(async_op_var);
   LocalVariable* async_then_callback_var = new(Z) LocalVariable(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       Symbols::AsyncThenCallback(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_then_callback_var);
   LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       Symbols::AsyncCatchErrorCallback(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_catch_error_callback_var);
   LocalVariable* async_completer = new(Z) LocalVariable(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       Symbols::AsyncCompleter(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_completer);
@@ -6727,25 +6754,30 @@ void Parser::AddAsyncGeneratorVariables() {
   // These variables are used to store the async generator closure containing
   // the body of the async* function. They are used by the await operator.
   LocalVariable* controller_var = new(Z) LocalVariable(
-      Token::kNoSourcePos, Symbols::Controller(), Object::dynamic_type());
+      TokenPosition::kNoSource,
+      Symbols::Controller(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(controller_var);
   LocalVariable* async_op_var = new(Z) LocalVariable(
-      Token::kNoSourcePos, Symbols::AsyncOperation(), Object::dynamic_type());
+      TokenPosition::kNoSource,
+      Symbols::AsyncOperation(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(async_op_var);
   LocalVariable* async_then_callback_var = new(Z) LocalVariable(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       Symbols::AsyncThenCallback(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_then_callback_var);
   LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       Symbols::AsyncCatchErrorCallback(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_catch_error_callback_var);
 }
 
 
-RawFunction* Parser::OpenAsyncGeneratorFunction(intptr_t async_func_pos) {
+RawFunction* Parser::OpenAsyncGeneratorFunction(
+    TokenPosition async_func_pos) {
   TRACE_PARSER("OpenAsyncGeneratorFunction");
   AddContinuationVariables();
   AddAsyncGeneratorVariables();
@@ -6856,19 +6888,19 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
   // :await_jump_var = -1;
   LocalVariable* jump_var =
       current_block_->scope->LookupVariable(Symbols::AwaitJumpVar(), false);
-  LiteralNode* init_value =
-      new(Z) LiteralNode(Token::kNoSourcePos, Smi::ZoneHandle(Smi::New(-1)));
+  LiteralNode* init_value = new(Z) LiteralNode(TokenPosition::kNoSource,
+                                               Smi::ZoneHandle(Smi::New(-1)));
   current_block_->statements->Add(
-      new(Z) StoreLocalNode(Token::kNoSourcePos, jump_var, init_value));
+      new(Z) StoreLocalNode(TokenPosition::kNoSource, jump_var, init_value));
 
   // Add to AST:
   //   :async_op = <closure>;  (containing the original body)
   LocalVariable* async_op_var =
       current_block_->scope->LookupVariable(Symbols::AsyncOperation(), false);
   ClosureNode* closure_obj = new(Z) ClosureNode(
-      Token::kNoSourcePos, closure_func, NULL, closure_body->scope());
+      TokenPosition::kNoSource, closure_func, NULL, closure_body->scope());
   StoreLocalNode* store_async_op = new (Z) StoreLocalNode(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       async_op_var,
       closure_obj);
 
@@ -6880,18 +6912,18 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
           Symbols::AsyncThenWrapperHelper()));
   ASSERT(!async_then_wrapper_helper.IsNull());
   ArgumentListNode* async_then_wrapper_helper_args = new (Z) ArgumentListNode(
-      Token::kNoSourcePos);
+      TokenPosition::kNoSource);
   async_then_wrapper_helper_args->Add(
-      new (Z) LoadLocalNode(Token::kNoSourcePos, async_op_var));
+      new (Z) LoadLocalNode(TokenPosition::kNoSource, async_op_var));
   StaticCallNode* then_wrapper_call = new (Z) StaticCallNode(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       async_then_wrapper_helper,
       async_then_wrapper_helper_args);
   LocalVariable* async_then_callback_var =
       current_block_->scope->LookupVariable(
           Symbols::AsyncThenCallback(), false);
   StoreLocalNode* store_async_then_callback = new (Z) StoreLocalNode(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       async_then_callback_var,
       then_wrapper_call);
 
@@ -6904,43 +6936,45 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
           Symbols::AsyncErrorWrapperHelper()));
   ASSERT(!async_error_wrapper_helper.IsNull());
   ArgumentListNode* async_error_wrapper_helper_args = new (Z) ArgumentListNode(
-      Token::kNoSourcePos);
+      TokenPosition::kNoSource);
   async_error_wrapper_helper_args->Add(
-      new (Z) LoadLocalNode(Token::kNoSourcePos, async_op_var));
+      new (Z) LoadLocalNode(TokenPosition::kNoSource, async_op_var));
   StaticCallNode* error_wrapper_call = new (Z) StaticCallNode(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       async_error_wrapper_helper,
       async_error_wrapper_helper_args);
   LocalVariable* async_catch_error_callback_var =
       current_block_->scope->LookupVariable(
           Symbols::AsyncCatchErrorCallback(), false);
   StoreLocalNode* store_async_catch_error_callback = new (Z) StoreLocalNode(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       async_catch_error_callback_var,
       error_wrapper_call);
 
   current_block_->statements->Add(store_async_catch_error_callback);
 
   // :controller = new _AsyncStarStreamController(body_closure);
-  ArgumentListNode* arguments = new(Z) ArgumentListNode(Token::kNoSourcePos);
-  arguments->Add(new (Z) LoadLocalNode(Token::kNoSourcePos, async_op_var));
+  ArgumentListNode* arguments =
+      new(Z) ArgumentListNode(TokenPosition::kNoSource);
+  arguments->Add(
+      new (Z) LoadLocalNode(TokenPosition::kNoSource, async_op_var));
   ConstructorCallNode* controller_constructor_call =
-      new(Z) ConstructorCallNode(Token::kNoSourcePos,
+      new(Z) ConstructorCallNode(TokenPosition::kNoSource,
                                  TypeArguments::ZoneHandle(Z),
                                  controller_constructor,
                                  arguments);
   LocalVariable* controller_var =
      current_block_->scope->LookupVariable(Symbols::Controller(), false);
   StoreLocalNode* store_controller =
-      new(Z) StoreLocalNode(Token::kNoSourcePos,
+      new(Z) StoreLocalNode(TokenPosition::kNoSource,
                             controller_var,
                             controller_constructor_call);
   current_block_->statements->Add(store_controller);
 
   // return :controller.stream;
-  ReturnNode* return_node = new(Z) ReturnNode(Token::kNoSourcePos,
-      new(Z) InstanceGetterNode(Token::kNoSourcePos,
-          new(Z) LoadLocalNode(Token::kNoSourcePos,
+  ReturnNode* return_node = new(Z) ReturnNode(TokenPosition::kNoSource,
+      new(Z) InstanceGetterNode(TokenPosition::kNoSource,
+          new(Z) LoadLocalNode(TokenPosition::kNoSource,
               controller_var),
               Symbols::Stream()));
   current_block_->statements->Add(return_node);
@@ -6966,7 +7000,8 @@ SequenceNode* Parser::CloseAsyncGeneratorClosure(SequenceNode* body) {
 
 
 // Add a return node to the sequence if necessary.
-void Parser::EnsureHasReturnStatement(SequenceNode* seq, intptr_t return_pos) {
+void Parser::EnsureHasReturnStatement(SequenceNode* seq,
+                                      TokenPosition return_pos) {
   if ((seq->length() == 0) ||
       !seq->NodeAt(seq->length() - 1)->IsReturnNode()) {
     const Function& func = innermost_function();
@@ -7034,7 +7069,7 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   LocalVariable* async_completer = current_block_->scope->LookupVariable(
       Symbols::AsyncCompleter(), false);
 
-  const intptr_t token_pos = ST(closure_body->token_pos());
+  const TokenPosition token_pos = ST(closure_body->token_pos());
   // Add to AST:
   //   :async_completer = new Completer.sync();
   ArgumentListNode* empty_args =
@@ -7280,7 +7315,7 @@ void Parser::CaptureInstantiator() {
 }
 
 
-AstNode* Parser::LoadReceiver(intptr_t token_pos) {
+AstNode* Parser::LoadReceiver(TokenPosition token_pos) {
   // A nested function may access 'this', referring to the receiver of the
   // outermost enclosing function.
   const bool kTestOnly = false;
@@ -7292,7 +7327,7 @@ AstNode* Parser::LoadReceiver(intptr_t token_pos) {
 }
 
 
-InstanceGetterNode* Parser::CallGetter(intptr_t token_pos,
+InstanceGetterNode* Parser::CallGetter(TokenPosition token_pos,
                                        AstNode* object,
                                        const String& name) {
   return new(Z) InstanceGetterNode(token_pos, object, name);
@@ -7306,10 +7341,10 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
                                           SequenceNode** await_preamble) {
   TRACE_PARSER("ParseVariableDeclaration");
   ASSERT(IsIdentifier());
-  const intptr_t ident_pos = TokenPos();
+  const TokenPosition ident_pos = TokenPos();
   const String& ident = *CurrentLiteral();
   ConsumeToken();  // Variable identifier.
-  const intptr_t assign_pos = TokenPos();
+  const TokenPosition assign_pos = TokenPos();
   AstNode* initialization = NULL;
   LocalVariable* variable = NULL;
   if (CurrentToken() == Token::kASSIGN) {
@@ -7317,7 +7352,7 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     ConsumeToken();
     AstNode* expr = ParseAwaitableExpr(
         is_const, kConsumeCascades, await_preamble);
-    const intptr_t expr_end_pos = TokenPos();
+    const TokenPosition expr_end_pos = TokenPos();
     variable = new(Z) LocalVariable(
         expr_end_pos, ident, type);
     initialization = new(Z) StoreLocalNode(
@@ -7339,9 +7374,9 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
   }
 
   ASSERT(current_block_ != NULL);
-  const intptr_t previous_pos =
+  const TokenPosition previous_pos =
       current_block_->scope->PreviousReferencePos(ident);
-  if (previous_pos >= 0) {
+  if (previous_pos.IsReal()) {
     ASSERT(!script_.IsNull());
     if (previous_pos > ident_pos) {
       ReportError(ident_pos,
@@ -7468,8 +7503,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
 
   result_type = Type::DynamicType();
 
-  const intptr_t function_pos = TokenPos();
-  intptr_t metadata_pos = Token::kNoSourcePos;
+  const TokenPosition function_pos = TokenPos();
+  TokenPosition metadata_pos = TokenPosition::kNoSource;
   if (is_literal) {
     ASSERT(CurrentToken() == Token::kLPAREN);
     function_name = &Symbols::AnonymousClosure();
@@ -7482,16 +7517,16 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
                (LookaheadToken(1) != Token::kLPAREN)) {
       result_type = ParseType(ClassFinalizer::kCanonicalize);
     }
-    const intptr_t name_pos = TokenPos();
+    const TokenPosition name_pos = TokenPos();
     variable_name = ExpectIdentifier("function name expected");
     function_name = variable_name;
 
     // Check that the function name has not been referenced
     // before this declaration.
     ASSERT(current_block_ != NULL);
-    const intptr_t previous_pos =
+    const TokenPosition previous_pos =
         current_block_->scope->PreviousReferencePos(*function_name);
-    if (previous_pos >= 0) {
+    if (previous_pos.IsReal()) {
       ASSERT(!script_.IsNull());
       intptr_t line_number;
       script_.GetTokenLocation(previous_pos, &line_number, NULL);
@@ -7521,7 +7556,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
                                             innermost_function(),
                                             function_pos);
     function.set_result_type(result_type);
-    if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
+    if (FLAG_enable_mirrors && metadata_pos.IsReal()) {
       library_.AddFunctionMetadata(function, metadata_pos);
     }
   }
@@ -7797,7 +7832,7 @@ bool Parser::IsVariableDeclaration() {
   }
   // Skip optional metadata.
   if (CurrentToken() == Token::kAT) {
-    const intptr_t saved_pos = TokenPos();
+    const TokenPosition saved_pos = TokenPos();
     SkipMetadata();
     const bool is_var_decl = IsVariableDeclaration();
     SetPosition(saved_pos);
@@ -7807,7 +7842,7 @@ bool Parser::IsVariableDeclaration() {
     // Not a legal type identifier or const keyword or metadata.
     return false;
   }
-  const intptr_t saved_pos = TokenPos();
+  const TokenPosition saved_pos = TokenPos();
   bool is_var_decl = false;
   bool have_type = false;
   if (CurrentToken() == Token::kCONST) {
@@ -7820,7 +7855,7 @@ bool Parser::IsVariableDeclaration() {
         (follower == Token::kPERIOD) ||  // Qualified class name of type.
         Token::IsIdentifier(follower)) {  // Variable name following a type.
       // We see the beginning of something that could be a type.
-      const intptr_t type_pos = TokenPos();
+      const TokenPosition type_pos = TokenPos();
       if (TryParseOptionalType()) {
         have_type = true;
       } else {
@@ -7844,7 +7879,7 @@ bool Parser::IsVariableDeclaration() {
 // Look ahead to detect whether the next tokens should be parsed as
 // a function declaration. Token position remains unchanged.
 bool Parser::IsFunctionDeclaration() {
-  const intptr_t saved_pos = TokenPos();
+  const TokenPosition saved_pos = TokenPos();
   bool is_external = false;
   SkipMetadata();
   if (is_top_level_) {
@@ -7892,7 +7927,7 @@ bool Parser::IsFunctionDeclaration() {
 
 
 bool Parser::IsTopLevelAccessor() {
-  const intptr_t saved_pos = TokenPos();
+  const TokenPosition saved_pos = TokenPos();
   if (is_patch_source() && IsSymbol(Symbols::Patch())) {
     ConsumeToken();
   } else if (CurrentToken() == Token::kEXTERNAL) {
@@ -7919,7 +7954,7 @@ bool Parser::IsFunctionLiteral() {
   if (CurrentToken() != Token::kLPAREN || !allow_function_literals_) {
     return false;
   }
-  const intptr_t saved_pos = TokenPos();
+  const TokenPosition saved_pos = TokenPos();
   bool is_function_literal = false;
   SkipToMatchingParenthesis();
   ParseFunctionModifier();
@@ -7936,7 +7971,7 @@ bool Parser::IsFunctionLiteral() {
 // statement. Returns true if we recognize a for ( .. in expr)
 // statement.
 bool Parser::IsForInStatement() {
-  const intptr_t saved_pos = TokenPos();
+  const TokenPosition saved_pos = TokenPos();
   bool result = false;
   // Allow const modifier as well when recognizing a for-in statement
   // pattern. We will get an error later if the loop variable is
@@ -7988,7 +8023,7 @@ void Parser::ParseStatementSequence() {
   bool abrupt_completing_seen = false;
   RecursionChecker rc(this);
   while (CurrentToken() != Token::kRBRACE) {
-    const intptr_t statement_pos = TokenPos();
+    const TokenPosition statement_pos = TokenPos();
     AstNode* statement = ParseStatement();
     // Do not add statements with no effect (e.g., LoadLocalNode).
     if ((statement != NULL) && statement->IsLoadLocalNode()) {
@@ -8040,7 +8075,7 @@ SequenceNode* Parser::ParseNestedStatement(bool parsing_loop_body,
 AstNode* Parser::ParseIfStatement(String* label_name) {
   TRACE_PARSER("ParseIfStatement");
   ASSERT(CurrentToken() == Token::kIF);
-  const intptr_t if_pos = TokenPos();
+  const TokenPosition if_pos = TokenPos();
   SourceLabel* label = NULL;
   if (label_name != NULL) {
     label = SourceLabel::New(if_pos, label_name, SourceLabel::kStatement);
@@ -8095,7 +8130,7 @@ RawClass* Parser::CheckCaseExpressions(
   const Instance& first_value = values[0]->literal();
   for (intptr_t i = 0; i < num_expressions; i++) {
     const Instance& val = values[i]->literal();
-    const intptr_t val_pos = values[i]->token_pos();
+    const TokenPosition val_pos = values[i]->token_pos();
     if (first_value.IsInteger()) {
       if (!val.IsInteger()) {
         ReportError(val_pos, "expected case expression of type int");
@@ -8143,7 +8178,7 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
                                   SourceLabel* case_label) {
   TRACE_PARSER("ParseCaseClause");
   bool default_seen = false;
-  const intptr_t case_pos = TokenPos();
+  const TokenPosition case_pos = TokenPos();
   // The case expressions node sequence does not own the enclosing scope.
   SequenceNode* case_expressions = new(Z) SequenceNode(case_pos, NULL);
   while (CurrentToken() == Token::kCASE || CurrentToken() == Token::kDEFAULT) {
@@ -8152,7 +8187,7 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
         ReportError("default clause must be last case");
       }
       ConsumeToken();  // Keyword case.
-      const intptr_t expr_pos = TokenPos();
+      const TokenPosition expr_pos = TokenPos();
       AstNode* expr = ParseExpr(kRequireConst, kConsumeCascades);
       ASSERT(expr->IsLiteralNode());
       case_expr_values->Add(expr->AsLiteralNode());
@@ -8195,7 +8230,8 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
       if (!abrupt_completing_seen) {
         ArgumentListNode* arguments = new(Z) ArgumentListNode(TokenPos());
         arguments->Add(new(Z) LiteralNode(
-            TokenPos(), Integer::ZoneHandle(Z, Integer::New(TokenPos()))));
+            TokenPos(),
+            Integer::ZoneHandle(Z, Integer::New(TokenPos().value()))));
         current_block_->statements->Add(
             MakeStaticCall(Symbols::FallThroughError(),
                            Library::PrivateCoreLibName(Symbols::ThrowNew()),
@@ -8219,12 +8255,12 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
 AstNode* Parser::ParseSwitchStatement(String* label_name) {
   TRACE_PARSER("ParseSwitchStatement");
   ASSERT(CurrentToken() == Token::kSWITCH);
-  const intptr_t switch_pos = TokenPos();
+  const TokenPosition switch_pos = TokenPos();
   SourceLabel* label =
       SourceLabel::New(switch_pos, label_name, SourceLabel::kSwitch);
   ConsumeToken();
   ExpectToken(Token::kLPAREN);
-  const intptr_t expr_pos = TokenPos();
+  const TokenPosition expr_pos = TokenPos();
   AstNode* switch_expr = ParseAwaitableExpr(
       kAllowConst, kConsumeCascades, NULL);
   ExpectToken(Token::kRPAREN);
@@ -8258,7 +8294,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
     if (IsIdentifier() && LookaheadToken(1) == Token::kCOLON) {
       // Case statements start with a label.
       String* label_name = CurrentLiteral();
-      const intptr_t label_pos = TokenPos();
+      const TokenPosition label_pos = TokenPos();
       ConsumeToken();  // Consume label identifier.
       ConsumeToken();  // Consume colon.
       case_label = current_block_->scope->LocalLookupLabel(*label_name);
@@ -8318,7 +8354,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
 
 AstNode* Parser::ParseWhileStatement(String* label_name) {
   TRACE_PARSER("ParseWhileStatement");
-  const intptr_t while_pos = TokenPos();
+  const TokenPosition while_pos = TokenPos();
   SourceLabel* label =
       SourceLabel::New(while_pos, label_name, SourceLabel::kWhile);
   ConsumeToken();
@@ -8340,7 +8376,7 @@ AstNode* Parser::ParseWhileStatement(String* label_name) {
 
 AstNode* Parser::ParseDoWhileStatement(String* label_name) {
   TRACE_PARSER("ParseDoWhileStatement");
-  const intptr_t do_pos = TokenPos();
+  const TokenPosition do_pos = TokenPos();
   SourceLabel* label =
       SourceLabel::New(do_pos, label_name, SourceLabel::kDoWhile);
   ConsumeToken();
@@ -8349,7 +8385,7 @@ AstNode* Parser::ParseDoWhileStatement(String* label_name) {
   ExpectToken(Token::kWHILE);
   ExpectToken(Token::kLPAREN);
   SequenceNode* await_preamble = NULL;
-  intptr_t expr_pos = TokenPos();
+  TokenPosition expr_pos = TokenPos();
   AstNode* cond_expr =
       ParseAwaitableExpr(kAllowConst, kConsumeCascades, &await_preamble);
   if (await_preamble != NULL) {
@@ -8450,11 +8486,12 @@ AstNode* Parser::DartPrint(const char* str) {
   const Function& print_fn = Function::ZoneHandle(
       Z, lib.LookupFunctionAllowPrivate(Symbols::print()));
   ASSERT(!print_fn.IsNull());
-  ArgumentListNode* one_arg = new(Z) ArgumentListNode(Token::kNoSourcePos);
+  ArgumentListNode* one_arg =
+      new(Z) ArgumentListNode(TokenPosition::kNoSource);
   String& msg = String::ZoneHandle(Symbols::NewFormatted("%s", str));
-  one_arg->Add(new(Z) LiteralNode(Token::kNoSourcePos, msg));
+  one_arg->Add(new(Z) LiteralNode(TokenPosition::kNoSource, msg));
   AstNode* print_call =
-      new(Z) StaticCallNode(Token::kNoSourcePos, print_fn, one_arg);
+      new(Z) StaticCallNode(TokenPosition::kNoSource, print_fn, one_arg);
   return print_call;
 }
 
@@ -8462,7 +8499,7 @@ AstNode* Parser::DartPrint(const char* str) {
 AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   TRACE_PARSER("ParseAwaitForStatement");
   ASSERT(IsAwaitKeyword());
-  const intptr_t await_for_pos = TokenPos();
+  const TokenPosition await_for_pos = TokenPos();
   ConsumeToken();  // await.
   ASSERT(CurrentToken() == Token::kFOR);
   ConsumeToken();  // for.
@@ -8492,12 +8529,12 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
        I->flags().type_checks() ? ClassFinalizer::kCanonicalize :
                                   ClassFinalizer::kIgnore);
   }
-  intptr_t loop_var_pos = TokenPos();
+  TokenPosition loop_var_pos = TokenPos();
   const String* loop_var_name = ExpectIdentifier("variable name expected");
 
   // Parse stream expression.
   ExpectToken(Token::kIN);
-  const intptr_t stream_expr_pos = TokenPos();
+  const TokenPosition stream_expr_pos = TokenPos();
   AstNode* stream_expr =
       ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   ExpectToken(Token::kRPAREN);
@@ -8594,7 +8631,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   SourceLabel* label =
       SourceLabel::New(await_for_pos, label_name, SourceLabel::kFor);
   current_block_->scope->AddLabel(label);
-  const intptr_t loop_var_assignment_pos = TokenPos();
+  const TokenPosition loop_var_assignment_pos = TokenPos();
 
   AstNode* iterator_current = new(Z) InstanceGetterNode(
       loop_var_assignment_pos,
@@ -8659,9 +8696,9 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
 
   if (outer_saved_try_ctx != NULL) {
     catch_block->Add(new (Z) StoreLocalNode(
-        Token::kNoSourcePos,
+        TokenPosition::kNoSource,
         outer_saved_try_ctx,
-        new (Z) LoadLocalNode(Token::kNoSourcePos,
+        new (Z) LoadLocalNode(TokenPosition::kNoSource,
                               outer_async_saved_try_ctx)));
   }
 
@@ -8682,7 +8719,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       outer_try->try_index() : CatchClauseNode::kInvalidTryIndex;
 
   // The finally block contains a call to cancel the stream.
-  // :for-in-iter.cancel()
+  // :for-in-iter.cancel();
 
   // Inline the finally block to the exit points in the try block.
   intptr_t node_index = 0;
@@ -8692,18 +8729,30 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   }
   do {
     OpenBlock();
+
+    // Restore the saved try context of the enclosing try block if one
+    // exists.
+    if (outer_saved_try_ctx != NULL) {
+      current_block_->statements->Add(new (Z) StoreLocalNode(
+          TokenPosition::kNoSource,
+          outer_saved_try_ctx,
+          new (Z) LoadLocalNode(TokenPosition::kNoSource,
+                                outer_async_saved_try_ctx)));
+    }
+    // :for-in-iter.cancel();
     ArgumentListNode* no_args =
-        new(Z) ArgumentListNode(Token::kNoSourcePos);
+        new(Z) ArgumentListNode(TokenPosition::kNoSource);
     current_block_->statements->Add(
-        new(Z) InstanceCallNode(Token::kNoSourcePos,
-            new(Z) LoadLocalNode(Token::kNoSourcePos, iterator_var),
+        new(Z) InstanceCallNode(TokenPosition::kNoSource,
+            new(Z) LoadLocalNode(TokenPosition::kNoSource, iterator_var),
             Symbols::Cancel(),
             no_args));
     finally_clause = CloseBlock();
+
     AstNode* node_to_inline = try_statement->GetNodeToInlineFinally(node_index);
     if (node_to_inline != NULL) {
       InlinedFinallyNode* node =
-          new(Z) InlinedFinallyNode(Token::kNoSourcePos,
+          new(Z) InlinedFinallyNode(TokenPosition::kNoSource,
                                     finally_clause,
                                     context_var,
                                     outer_try_index);
@@ -8751,7 +8800,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
 }
 
 
-AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
+AstNode* Parser::ParseForInStatement(TokenPosition forin_pos,
                                      SourceLabel* label) {
   TRACE_PARSER("ParseForInStatement");
   bool loop_var_is_final = (CurrentToken() == Token::kFINAL);
@@ -8759,7 +8808,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     ReportError("Loop variable cannot be 'const'");
   }
   const String* loop_var_name = NULL;
-  intptr_t loop_var_pos = Token::kNoSourcePos;
+  TokenPosition loop_var_pos = TokenPosition::kNoSource;
   bool new_loop_var = false;
   AbstractType& loop_var_type =  AbstractType::ZoneHandle(Z);
   if (LookaheadToken(1) == Token::kIN) {
@@ -8776,7 +8825,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     loop_var_name = ExpectIdentifier("variable name expected");
   }
   ExpectToken(Token::kIN);
-  const intptr_t collection_pos = TokenPos();
+  const TokenPosition collection_pos = TokenPos();
   AstNode* collection_expr =
       ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   ExpectToken(Token::kRPAREN);
@@ -8815,7 +8864,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   // loop body.
   OpenLoopBlock();
   current_block_->scope->AddLabel(label);
-  const intptr_t loop_var_assignment_pos = TokenPos();
+  const TokenPosition loop_var_assignment_pos = TokenPos();
 
   AstNode* iterator_current = new(Z) InstanceGetterNode(
       loop_var_assignment_pos,
@@ -8873,7 +8922,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
 
 AstNode* Parser::ParseForStatement(String* label_name) {
   TRACE_PARSER("ParseForStatement");
-  const intptr_t for_pos = TokenPos();
+  const TokenPosition for_pos = TokenPos();
   ConsumeToken();
   ExpectToken(Token::kLPAREN);
   SourceLabel* label = SourceLabel::New(for_pos, label_name, SourceLabel::kFor);
@@ -8884,7 +8933,7 @@ AstNode* Parser::ParseForStatement(String* label_name) {
   // that we allocate a new context if the loop variable is captured.
   OpenLoopBlock();
   AstNode* initializer = NULL;
-  const intptr_t init_pos = TokenPos();
+  const TokenPosition init_pos = TokenPos();
   LocalScope* init_scope = current_block_->scope;
   if (CurrentToken() != Token::kSEMICOLON) {
     if (IsVariableDeclaration()) {
@@ -8902,7 +8951,7 @@ AstNode* Parser::ParseForStatement(String* label_name) {
   }
   ExpectSemicolon();
   AstNode* increment = NULL;
-  const intptr_t incr_pos = TokenPos();
+  const TokenPosition incr_pos = TokenPos();
   if (CurrentToken() != Token::kRPAREN) {
     increment = ParseAwaitableExprList();
   }
@@ -8955,12 +9004,12 @@ AstNode* Parser::MakeStaticCall(const String& cls_name,
 }
 
 
-AstNode* Parser::MakeAssertCall(intptr_t begin, intptr_t end) {
+AstNode* Parser::MakeAssertCall(TokenPosition begin, TokenPosition end) {
   ArgumentListNode* arguments = new(Z) ArgumentListNode(begin);
   arguments->Add(new(Z) LiteralNode(begin,
-      Integer::ZoneHandle(Z, Integer::New(begin))));
+      Integer::ZoneHandle(Z, Integer::New(begin.value()))));
   arguments->Add(new(Z) LiteralNode(end,
-      Integer::ZoneHandle(Z, Integer::New(end))));
+      Integer::ZoneHandle(Z, Integer::New(end.value()))));
   return MakeStaticCall(Symbols::AssertionError(),
                         Library::PrivateCoreLibName(Symbols::ThrowNew()),
                         arguments);
@@ -8972,7 +9021,7 @@ AstNode* Parser::InsertClosureCallNodes(AstNode* condition) {
       (condition->IsStoreLocalNode() &&
        condition->AsStoreLocalNode()->value()->IsClosureNode())) {
     // Function literal in assert implies a call.
-    const intptr_t pos = condition->token_pos();
+    const TokenPosition pos = condition->token_pos();
     condition = BuildClosureCall(pos,
                                  condition,
                                  new(Z) ArgumentListNode(pos));
@@ -8989,14 +9038,14 @@ AstNode* Parser::ParseAssertStatement() {
   TRACE_PARSER("ParseAssertStatement");
   ConsumeToken();  // Consume assert keyword.
   ExpectToken(Token::kLPAREN);
-  const intptr_t condition_pos = TokenPos();
+  const TokenPosition condition_pos = TokenPos();
   if (!I->flags().asserts()) {
     SkipExpr();
     ExpectToken(Token::kRPAREN);
     return NULL;
   }
   AstNode* condition = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
-  const intptr_t condition_end = TokenPos();
+  const TokenPosition condition_end = TokenPos();
   ExpectToken(Token::kRPAREN);
   condition = InsertClosureCallNodes(condition);
   condition = new(Z) UnaryOpNode(condition_pos, Token::kNOT, condition);
@@ -9060,16 +9109,16 @@ void Parser::SaveExceptionAndStacktrace(SequenceNode* statements,
   ASSERT(saved_exception_var != NULL);
   ASSERT(exception_var != NULL);
   statements->Add(new(Z) StoreLocalNode(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       saved_exception_var,
-      new(Z) LoadLocalNode(Token::kNoSourcePos, exception_var)));
+      new(Z) LoadLocalNode(TokenPosition::kNoSource, exception_var)));
 
   ASSERT(saved_stack_trace_var != NULL);
   ASSERT(stack_trace_var != NULL);
   statements->Add(new(Z) StoreLocalNode(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       saved_stack_trace_var,
-      new(Z) LoadLocalNode(Token::kNoSourcePos, stack_trace_var)));
+      new(Z) LoadLocalNode(TokenPosition::kNoSource, stack_trace_var)));
 }
 
 
@@ -9090,7 +9139,7 @@ SequenceNode* Parser::EnsureFinallyClause(
   if (try_stack_ != NULL) {
     try_stack_->enter_finally();
   }
-  // In case of async closures we need to restore the saved try index of an
+  // In case of async closures we need to restore the saved try context of an
   // outer try block (if it exists).  The current try block has already been
   // removed from the stack of try blocks.
   if (is_async) {
@@ -9104,9 +9153,9 @@ SequenceNode* Parser::EnsureFinallyClause(
                                           try_stack_->try_index());
         current_block_->statements->Add(
             new (Z) StoreLocalNode(
-                Token::kNoSourcePos,
+                TokenPosition::kNoSource,
                 saved_try_ctx,
-                new (Z) LoadLocalNode(Token::kNoSourcePos,
+                new (Z) LoadLocalNode(TokenPosition::kNoSource,
                                       async_saved_try_ctx)));
       }
     }
@@ -9190,7 +9239,7 @@ void Parser::AddFinallyClauseToNode(bool is_async,
 
 
 SequenceNode* Parser::ParseCatchClauses(
-    intptr_t handler_pos,
+    TokenPosition handler_pos,
     bool is_async,
     LocalVariable* exception_var,
     LocalVariable* stack_trace_var,
@@ -9210,7 +9259,7 @@ SequenceNode* Parser::ParseCatchClauses(
     // Open a block that contains the if or an unconditional body.  It's
     // closed in the loop that builds the if-then-else nest.
     OpenBlock();
-    const intptr_t catch_pos = TokenPos();
+    const TokenPosition catch_pos = TokenPos();
     CatchParamDesc exception_param;
     CatchParamDesc stack_trace_param;
     if (IsSymbol(Symbols::On())) {
@@ -9377,9 +9426,9 @@ SequenceNode* Parser::ParseCatchClauses(
                                           try_block->try_index());
         async_code->Add(
             new (Z) StoreLocalNode(
-                Token::kNoSourcePos,
+                TokenPosition::kNoSource,
                 saved_try_ctx,
-                new (Z) LoadLocalNode(Token::kNoSourcePos,
+                new (Z) LoadLocalNode(TokenPosition::kNoSource,
                                       async_saved_try_ctx)));
       }
     }
@@ -9406,16 +9455,16 @@ void Parser::SetupSavedTryContext(LocalVariable* saved_try_context) {
                            Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
                            last_used_try_index_ - 1));
   LocalVariable* async_saved_try_ctx = new (Z) LocalVariable(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       async_saved_try_ctx_name,
       Object::dynamic_type());
   ASSERT(async_temp_scope_ != NULL);
   async_temp_scope_->AddVariable(async_saved_try_ctx);
   ASSERT(saved_try_context != NULL);
   current_block_->statements->Add(new(Z) StoreLocalNode(
-      Token::kNoSourcePos,
+      TokenPosition::kNoSource,
       async_saved_try_ctx,
-      new(Z) LoadLocalNode(Token::kNoSourcePos, saved_try_context)));
+      new(Z) LoadLocalNode(TokenPosition::kNoSource, saved_try_context)));
 }
 
 
@@ -9494,7 +9543,7 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
 AstNode* Parser::ParseTryStatement(String* label_name) {
   TRACE_PARSER("ParseTryStatement");
 
-  const intptr_t try_pos = TokenPos();
+  const TokenPosition try_pos = TokenPos();
   SourceLabel* try_label = NULL;
   if (label_name != NULL) {
     try_label = SourceLabel::New(try_pos, label_name, SourceLabel::kStatement);
@@ -9543,7 +9592,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
 
   // Now parse the 'catch' blocks if any.
   try_stack_->enter_catch();
-  const intptr_t handler_pos = TokenPos();
+  const TokenPosition handler_pos = TokenPos();
   const GrowableObjectArray& handler_types =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
   bool needs_stack_trace = false;
@@ -9574,7 +9623,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     if (parse) {
       ConsumeToken();  // Consume the 'finally'.
     }
-    const intptr_t finally_pos = TokenPos();
+    const TokenPosition finally_pos = TokenPos();
     // Add the finally block to the exit points recorded so far.
     intptr_t node_index = 0;
     AstNode* node_to_inline = try_statement->GetNodeToInlineFinally(node_index);
@@ -9654,7 +9703,7 @@ AstNode* Parser::ParseJump(String* label_name) {
   TRACE_PARSER("ParseJump");
   ASSERT(CurrentToken() == Token::kBREAK || CurrentToken() == Token::kCONTINUE);
   Token::Kind jump_kind = CurrentToken();
-  const intptr_t jump_pos = TokenPos();
+  const TokenPosition jump_pos = TokenPos();
   SourceLabel* target = NULL;
   ConsumeToken();
   if (IsIdentifier()) {
@@ -9719,7 +9768,7 @@ AstNode* Parser::ParseJump(String* label_name) {
 
 AstNode* Parser::ParseYieldStatement() {
   bool is_yield_each = false;
-  const intptr_t yield_pos = TokenPos();
+  const TokenPosition yield_pos = TokenPos();
   ConsumeToken();  // yield reserved word.
   if (CurrentToken() == Token::kMUL) {
     is_yield_each = true;
@@ -9744,9 +9793,9 @@ AstNode* Parser::ParseYieldStatement() {
     ASSERT(iterator_param != NULL);
     // Generate :iterator.current = expr;
     AstNode* iterator =
-        new(Z) LoadLocalNode(Token::kNoSourcePos, iterator_param);
+        new(Z) LoadLocalNode(TokenPosition::kNoSource, iterator_param);
     AstNode* store_current =
-        new(Z) InstanceSetterNode(Token::kNoSourcePos,
+        new(Z) InstanceSetterNode(TokenPosition::kNoSource,
                                   iterator,
                                   String::ZoneHandle(Symbols::Current().raw()),
                                   expr);
@@ -9754,7 +9803,7 @@ AstNode* Parser::ParseYieldStatement() {
     if (is_yield_each) {
       // Generate :iterator.isYieldEach = true;
       AstNode* set_is_yield_each =
-          new(Z) InstanceSetterNode(Token::kNoSourcePos,
+          new(Z) InstanceSetterNode(TokenPosition::kNoSource,
               iterator,
               String::ZoneHandle(Symbols::IsYieldEach().raw()),
               new(Z) LiteralNode(TokenPos(), Bool::True()));
@@ -9763,7 +9812,7 @@ AstNode* Parser::ParseYieldStatement() {
     AwaitMarkerNode* await_marker =
         new(Z) AwaitMarkerNode(async_temp_scope_,
                                current_block_->scope,
-                               Token::kNoSourcePos);
+                               TokenPosition::kNoSource);
     yield->AddNode(await_marker);
     // Return true to indicate that a value has been generated.
     ReturnNode* return_true = new(Z) ReturnNode(yield_pos,
@@ -9784,15 +9833,15 @@ AstNode* Parser::ParseYieldStatement() {
                            &outer_async_saved_try_ctx);
     if (saved_try_ctx != NULL) {
       yield->AddNode(new (Z) StoreLocalNode(
-          Token::kNoSourcePos,
+          TokenPosition::kNoSource,
           saved_try_ctx,
-          new (Z) LoadLocalNode(Token::kNoSourcePos,
+          new (Z) LoadLocalNode(TokenPosition::kNoSource,
                                 async_saved_try_ctx)));
       if (outer_saved_try_ctx != NULL) {
         yield->AddNode(new (Z) StoreLocalNode(
-            Token::kNoSourcePos,
+            TokenPosition::kNoSource,
             outer_saved_try_ctx,
-            new (Z) LoadLocalNode(Token::kNoSourcePos,
+            new (Z) LoadLocalNode(TokenPosition::kNoSource,
                                   outer_async_saved_try_ctx)));
       }
     } else {
@@ -9810,7 +9859,7 @@ AstNode* Parser::ParseYieldStatement() {
     add_args->Add(expr);
     AstNode* add_call =
         new(Z) InstanceCallNode(yield_pos,
-            new(Z) LoadLocalNode(Token::kNoSourcePos, controller_var),
+            new(Z) LoadLocalNode(TokenPosition::kNoSource, controller_var),
             is_yield_each ? Symbols::AddStream() : Symbols::add(),
             add_args);
 
@@ -9822,18 +9871,18 @@ AstNode* Parser::ParseYieldStatement() {
     // restore saved_try_context
 
     SequenceNode* true_branch =
-        new(Z) SequenceNode(Token::kNoSourcePos, NULL);
+        new(Z) SequenceNode(TokenPosition::kNoSource, NULL);
     AstNode* return_from_generator = new(Z) ReturnNode(yield_pos);
     true_branch->Add(return_from_generator);
     AddNodeForFinallyInlining(return_from_generator);
     AstNode* if_is_cancelled =
-       new(Z) IfNode(Token::kNoSourcePos, add_call, true_branch, NULL);
+       new(Z) IfNode(TokenPosition::kNoSource, add_call, true_branch, NULL);
     yield->AddNode(if_is_cancelled);
 
     AwaitMarkerNode* await_marker =
         new(Z) AwaitMarkerNode(async_temp_scope_,
                                current_block_->scope,
-                               Token::kNoSourcePos);
+                               TokenPosition::kNoSource);
     yield->AddNode(await_marker);
     ReturnNode* continuation_return = new(Z) ReturnNode(yield_pos);
     continuation_return->set_return_type(ReturnNode::kContinuationTarget);
@@ -9852,15 +9901,15 @@ AstNode* Parser::ParseYieldStatement() {
                            &outer_async_saved_try_ctx);
     if (saved_try_ctx != NULL) {
       yield->AddNode(new (Z) StoreLocalNode(
-          Token::kNoSourcePos,
+          TokenPosition::kNoSource,
           saved_try_ctx,
-          new (Z) LoadLocalNode(Token::kNoSourcePos,
+          new (Z) LoadLocalNode(TokenPosition::kNoSource,
                                 async_saved_try_ctx)));
       if (outer_saved_try_ctx != NULL) {
         yield->AddNode(new (Z) StoreLocalNode(
-            Token::kNoSourcePos,
+            TokenPosition::kNoSource,
             outer_saved_try_ctx,
-            new (Z) LoadLocalNode(Token::kNoSourcePos,
+            new (Z) LoadLocalNode(TokenPosition::kNoSource,
                                   outer_async_saved_try_ctx)));
       }
     } else {
@@ -9874,19 +9923,19 @@ AstNode* Parser::ParseYieldStatement() {
 AstNode* Parser::ParseStatement() {
   TRACE_PARSER("ParseStatement");
   AstNode* statement = NULL;
-  intptr_t label_pos = Token::kNoSourcePos;
+  TokenPosition label_pos = TokenPosition::kNoSource;
   String* label_name = NULL;
   if (IsIdentifier()) {
     if (LookaheadToken(1) == Token::kCOLON) {
       // Statement starts with a label.
       label_name = CurrentLiteral();
       label_pos = TokenPos();
-      ASSERT(label_pos >= 0);
+      ASSERT(label_pos.IsReal());
       ConsumeToken();  // Consume identifier.
       ConsumeToken();  // Consume colon.
     }
   }
-  const intptr_t statement_pos = TokenPos();
+  const TokenPosition statement_pos = TokenPos();
   const Token::Kind token = CurrentToken();
 
   if (token == Token::kWHILE) {
@@ -9902,10 +9951,10 @@ AstNode* Parser::ParseStatement() {
   } else if (token == Token::kTRY) {
     statement = ParseTryStatement(label_name);
   } else if (token == Token::kRETURN) {
-    const intptr_t return_pos = TokenPos();
+    const TokenPosition return_pos = TokenPos();
     ConsumeToken();
     if (CurrentToken() != Token::kSEMICOLON) {
-      const intptr_t expr_pos = TokenPos();
+      const TokenPosition expr_pos = TokenPos();
       if (current_function().IsGenerativeConstructor() &&
           (current_block_->scope->function_level() == 0)) {
         ReportError(expr_pos,
@@ -10021,7 +10070,7 @@ void Parser::ReportError(const Error& error) {
 
 
 void Parser::ReportErrors(const Error& prev_error,
-                          const Script& script, intptr_t token_pos,
+                          const Script& script, TokenPosition token_pos,
                           const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -10031,7 +10080,8 @@ void Parser::ReportErrors(const Error& prev_error,
 }
 
 
-void Parser::ReportError(intptr_t token_pos, const char* format, ...) const {
+void Parser::ReportError(TokenPosition token_pos,
+                         const char* format, ...) const {
   va_list args;
   va_start(args, format);
   Report::MessageV(Report::kError,
@@ -10062,7 +10112,8 @@ void Parser::ReportError(const char* format, ...) const {
 }
 
 
-void Parser::ReportWarning(intptr_t token_pos, const char* format, ...) const {
+void Parser::ReportWarning(TokenPosition token_pos,
+                           const char* format, ...) const {
   va_list args;
   va_start(args, format);
   Report::MessageV(Report::kWarning,
@@ -10162,7 +10213,7 @@ static bool IsPrefixOperator(Token::Kind token) {
 }
 
 
-SequenceNode* Parser::NodeAsSequenceNode(intptr_t sequence_pos,
+SequenceNode* Parser::NodeAsSequenceNode(TokenPosition sequence_pos,
                                          AstNode* node,
                                          LocalScope* scope) {
   if ((node == NULL) || !node->IsSequenceNode()) {
@@ -10177,7 +10228,8 @@ SequenceNode* Parser::NodeAsSequenceNode(intptr_t sequence_pos,
 
 
 // Call _throwNewIfNotLoaded if prefix is not NULL, otherwise call _throwNew.
-AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type,
+AstNode* Parser::ThrowTypeError(TokenPosition type_pos,
+                                const AbstractType& type,
                                 LibraryPrefix* prefix) {
   ArgumentListNode* arguments = new(Z) ArgumentListNode(type_pos);
 
@@ -10191,7 +10243,7 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type,
   }
   // Location argument.
   arguments->Add(new(Z) LiteralNode(
-      type_pos, Integer::ZoneHandle(Z, Integer::New(type_pos))));
+      type_pos, Integer::ZoneHandle(Z, Integer::New(type_pos.value()))));
   // Src value argument.
   arguments->Add(new(Z) LiteralNode(type_pos, Object::null_instance()));
   // Dst type name argument.
@@ -10208,7 +10260,7 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type,
 
 
 // Call _throwNewIfNotLoaded if prefix is not NULL, otherwise call _throwNew.
-AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
+AstNode* Parser::ThrowNoSuchMethodError(TokenPosition call_pos,
                                         const Class& cls,
                                         const String& function_name,
                                         ArgumentListNode* function_arguments,
@@ -10314,7 +10366,7 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
   while (current_preced >= min_preced) {
     while (Token::Precedence(CurrentToken()) == current_preced) {
       Token::Kind op_kind = CurrentToken();
-      const intptr_t op_pos = TokenPos();
+      const TokenPosition op_pos = TokenPos();
       ConsumeToken();
       AstNode* right_operand = NULL;
       if ((op_kind != Token::kIS) && (op_kind != Token::kAS)) {
@@ -10325,7 +10377,7 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
           ConsumeToken();
           op_kind = Token::kISNOT;
         }
-        const intptr_t type_pos = TokenPos();
+        const TokenPosition type_pos = TokenPos();
         const AbstractType& type = AbstractType::ZoneHandle(Z,
             ParseType(ClassFinalizer::kCanonicalize));
         if (!type.IsInstantiated() &&
@@ -10403,10 +10455,10 @@ void Parser::EnsureExpressionTemp() {
 }
 
 
-LocalVariable* Parser::CreateTempConstVariable(intptr_t token_pos,
+LocalVariable* Parser::CreateTempConstVariable(TokenPosition token_pos,
                                                const char* s) {
   char name[64];
-  OS::SNPrint(name, 64, ":%s%" Pd, s, token_pos);
+  OS::SNPrint(name, 64, ":%s%" Pd "", s, token_pos.value());
   LocalVariable* temp = new(Z) LocalVariable(
       token_pos,
       String::ZoneHandle(Z, Symbols::New(name)),
@@ -10418,7 +10470,7 @@ LocalVariable* Parser::CreateTempConstVariable(intptr_t token_pos,
 
 
 // TODO(srdjan): Implement other optimizations.
-AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
+AstNode* Parser::OptimizeBinaryOpNode(TokenPosition op_pos,
                                       Token::Kind binary_op,
                                       AstNode* lhs,
                                       AstNode* rhs) {
@@ -10476,7 +10528,7 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
     LetNode* result = new(Z) LetNode(op_pos);
     LocalVariable* left_temp = result->AddInitializer(lhs);
     left_temp->set_is_final();
-    const intptr_t no_pos = Token::kNoSourcePos;
+    const TokenPosition no_pos = TokenPosition::kNoSource;
     LiteralNode* null_operand =
         new(Z) LiteralNode(no_pos, Object::null_instance());
     LoadLocalNode* load_left_temp = new(Z) LoadLocalNode(no_pos, left_temp);
@@ -10495,7 +10547,7 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
 }
 
 
-AstNode* Parser::ExpandAssignableOp(intptr_t op_pos,
+AstNode* Parser::ExpandAssignableOp(TokenPosition op_pos,
                                     Token::Kind assignment_op,
                                     AstNode* lhs,
                                     AstNode* rhs) {
@@ -10539,7 +10591,7 @@ AstNode* Parser::ExpandAssignableOp(intptr_t op_pos,
 
 // Evaluates the value of the compile time constant expression
 // and returns a literal node for the value.
-LiteralNode* Parser::FoldConstExpr(intptr_t expr_pos, AstNode* expr) {
+LiteralNode* Parser::FoldConstExpr(TokenPosition expr_pos, AstNode* expr) {
   if (expr->IsLiteralNode()) {
     return expr->AsLiteralNode();
   }
@@ -10553,7 +10605,7 @@ LiteralNode* Parser::FoldConstExpr(intptr_t expr_pos, AstNode* expr) {
 
 LetNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
   AstNode* node = *expr;
-  intptr_t token_pos = node->token_pos();
+  TokenPosition token_pos = node->token_pos();
   LetNode* result = new(Z) LetNode(token_pos);
   if (node->IsLoadIndexedNode()) {
     LoadIndexedNode* load_indexed = node->AsLoadIndexedNode();
@@ -10597,8 +10649,8 @@ LetNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
 // A syntactically legal assignable expression always ends with an
 // identifier token or a ] token. We rewind the token iterator and
 // check whether the token before end_pos is an identifier or ].
-bool Parser::IsLegalAssignableSyntax(AstNode* expr, intptr_t end_pos) {
-  ASSERT(expr->token_pos() >= 0);
+bool Parser::IsLegalAssignableSyntax(AstNode* expr, TokenPosition end_pos) {
+  ASSERT(expr->token_pos().IsReal());
   ASSERT(expr->token_pos() < end_pos);
   SetPosition(expr->token_pos());
   Token::Kind token = Token::kILLEGAL;
@@ -10614,7 +10666,7 @@ bool Parser::IsLegalAssignableSyntax(AstNode* expr, intptr_t end_pos) {
 AstNode* Parser::CreateAssignmentNode(AstNode* original,
                                       AstNode* rhs,
                                       const String* left_ident,
-                                      intptr_t left_pos,
+                                      TokenPosition left_pos,
                                       bool is_compound /* = false */) {
   AstNode* result = original->MakeAssignmentNode(rhs);
   if (result == NULL) {
@@ -10672,7 +10724,7 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
 
 
 AstNode* Parser::ParseCascades(AstNode* expr) {
-  intptr_t cascade_pos = TokenPos();
+  TokenPosition cascade_pos = TokenPos();
   LetNode* cascade = new(Z) LetNode(cascade_pos);
   LocalVariable* cascade_receiver_var = cascade->AddInitializer(expr);
   while (CurrentToken() == Token::kCASCADE) {
@@ -10689,14 +10741,14 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
     }
     String* expr_ident =
         Token::IsIdentifier(CurrentToken()) ? CurrentLiteral() : NULL;
-    const intptr_t expr_pos = TokenPos();
+    const TokenPosition expr_pos = TokenPos();
     expr = ParseSelectors(load_cascade_receiver, true);
 
     // Assignments after a cascade are part of the cascade. The
     // assigned expression must not contain cascades.
     if (Token::IsAssignmentOperator(CurrentToken())) {
       Token::Kind assignment_op = CurrentToken();
-      const intptr_t assignment_pos = TokenPos();
+      const TokenPosition assignment_pos = TokenPos();
       ConsumeToken();
       AstNode* right_expr = ParseExpr(kAllowConst, kNoCascades);
       if (assignment_op != Token::kASSIGN) {
@@ -10776,7 +10828,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
   TRACE_PARSER("ParseExpr");
   String* expr_ident =
       Token::IsIdentifier(CurrentToken()) ? CurrentLiteral() : NULL;
-  const intptr_t expr_pos = TokenPos();
+  const TokenPosition expr_pos = TokenPos();
 
   RecursionChecker rc(this);
 
@@ -10822,9 +10874,9 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
     ReportError(expr_pos, "expression is not assignable");
   }
   const Token::Kind assignment_op = CurrentToken();
-  const intptr_t assignment_pos = TokenPos();
+  const TokenPosition assignment_pos = TokenPos();
   ConsumeToken();
-  const intptr_t right_expr_pos = TokenPos();
+  const TokenPosition right_expr_pos = TokenPos();
   if (require_compiletime_const && (assignment_op != Token::kASSIGN)) {
     ReportError(right_expr_pos,
                 "expression is not a valid compile-time constant");
@@ -10852,7 +10904,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
 
 LiteralNode* Parser::ParseConstExpr() {
   TRACE_PARSER("ParseConstExpr");
-  intptr_t expr_pos = TokenPos();
+  TokenPosition expr_pos = TokenPos();
   AstNode* expr = ParseExpr(kRequireConst, kNoCascades);
   if (!expr->IsLiteralNode()) {
     ReportError(expr_pos, "expression must be a compile-time constant");
@@ -10863,7 +10915,7 @@ LiteralNode* Parser::ParseConstExpr() {
 
 AstNode* Parser::ParseConditionalExpr() {
   TRACE_PARSER("ParseConditionalExpr");
-  const intptr_t expr_pos = TokenPos();
+  const TokenPosition expr_pos = TokenPos();
   AstNode* expr = ParseBinaryExpr(Token::Precedence(Token::kIFNULL));
   if (CurrentToken() == Token::kCONDITIONAL) {
     EnsureExpressionTemp();
@@ -10880,7 +10932,7 @@ AstNode* Parser::ParseConditionalExpr() {
 AstNode* Parser::ParseUnaryExpr() {
   TRACE_PARSER("ParseUnaryExpr");
   AstNode* expr = NULL;
-  const intptr_t op_pos = TokenPos();
+  const TokenPosition op_pos = TokenPos();
   if (IsAwaitKeyword()) {
     TRACE_PARSER("ParseAwaitExpr");
     if (!innermost_function().IsAsyncFunction() &&
@@ -10924,7 +10976,7 @@ AstNode* Parser::ParseUnaryExpr() {
     ConsumeToken();
     String* expr_ident =
         Token::IsIdentifier(CurrentToken()) ? CurrentLiteral() : NULL;
-    const intptr_t expr_pos = TokenPos();
+    const TokenPosition expr_pos = TokenPos();
     expr = ParseUnaryExpr();
     if (!IsLegalAssignableSyntax(expr, TokenPos())) {
       ReportError(expr_pos, "expression is not assignable");
@@ -11005,9 +11057,9 @@ ArgumentListNode* Parser::ParseActualParameters(
 
 AstNode* Parser::ParseStaticCall(const Class& cls,
                                  const String& func_name,
-                                 intptr_t ident_pos) {
+                                 TokenPosition ident_pos) {
   TRACE_PARSER("ParseStaticCall");
-  const intptr_t call_pos = TokenPos();
+  const TokenPosition call_pos = TokenPos();
   ASSERT(CurrentToken() == Token::kLPAREN);
   ArgumentListNode* arguments = ParseActualParameters(NULL, kAllowConst);
   const int num_arguments = arguments->length();
@@ -11093,7 +11145,7 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
 
 AstNode* Parser::ParseInstanceCall(AstNode* receiver,
                                    const String& func_name,
-                                   intptr_t ident_pos,
+                                   TokenPosition ident_pos,
                                    bool is_conditional) {
   TRACE_PARSER("ParseInstanceCall");
   CheckToken(Token::kLPAREN);
@@ -11108,7 +11160,7 @@ AstNode* Parser::ParseInstanceCall(AstNode* receiver,
 
 AstNode* Parser::ParseClosureCall(AstNode* closure) {
   TRACE_PARSER("ParseClosureCall");
-  const intptr_t call_pos = TokenPos();
+  const TokenPosition call_pos = TokenPos();
   ASSERT(CurrentToken() == Token::kLPAREN);
   ArgumentListNode* arguments = ParseActualParameters(NULL, kAllowConst);
   return BuildClosureCall(call_pos, closure, arguments);
@@ -11116,7 +11168,7 @@ AstNode* Parser::ParseClosureCall(AstNode* closure) {
 
 
 AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
-                                           intptr_t ident_pos) {
+                                           TokenPosition ident_pos) {
   // If the static field has an initializer, initialize the field at compile
   // time, which is only possible if the field is const.
   AstNode* initializing_getter = RunStaticFieldInitializer(field, ident_pos);
@@ -11150,7 +11202,7 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
 // Reference to 'field_name' with explicit class as primary.
 AstNode* Parser::GenerateStaticFieldAccess(const Class& cls,
                                            const String& field_name,
-                                           intptr_t ident_pos) {
+                                           TokenPosition ident_pos) {
   AstNode* access = NULL;
   const Field& field = Field::ZoneHandle(Z, cls.LookupStaticField(field_name));
   Function& func = Function::ZoneHandle(Z);
@@ -11257,7 +11309,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       ConsumeToken();
       if (left->IsPrimaryNode()) {
         PrimaryNode* primary_node = left->AsPrimaryNode();
-        const intptr_t primary_pos = primary_node->token_pos();
+        const TokenPosition primary_pos = primary_node->token_pos();
         if (primary_node->primary().IsFunction()) {
           left = LoadClosure(primary_node);
         } else if (primary_node->primary().IsTypeParameter()) {
@@ -11287,7 +11339,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           left = LoadFieldIfUnresolved(left);
         }
       }
-      const intptr_t ident_pos = TokenPos();
+      const TokenPosition ident_pos = TokenPos();
       String* ident = ExpectIdentifier("identifier expected");
       if (CurrentToken() == Token::kLPAREN) {
         // Identifier followed by a opening paren: method call.
@@ -11333,7 +11385,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       // Super index operator handled in ParseSuperOperator().
       ASSERT(!left->IsPrimaryNode() || !left->AsPrimaryNode()->IsSuper());
 
-      const intptr_t bracket_pos = TokenPos();
+      const TokenPosition bracket_pos = TokenPos();
       ConsumeToken();
       left = LoadFieldIfUnresolved(left);
       const bool saved_mode = SetAllowFunctionLiterals(true);
@@ -11343,7 +11395,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       AstNode* array = left;
       if (left->IsPrimaryNode()) {
         PrimaryNode* primary_node = left->AsPrimaryNode();
-        const intptr_t primary_pos = primary_node->token_pos();
+        const TokenPosition primary_pos = primary_node->token_pos();
         if (primary_node->primary().IsFunction()) {
           array = LoadClosure(primary_node);
         } else if (primary_node->primary().IsClass()) {
@@ -11385,7 +11437,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
     } else if (CurrentToken() == Token::kLPAREN) {
       if (left->IsPrimaryNode()) {
         PrimaryNode* primary_node = left->AsPrimaryNode();
-        const intptr_t primary_pos = primary_node->token_pos();
+        const TokenPosition primary_pos = primary_node->token_pos();
         if (primary_node->primary().IsFunction()) {
           const Function& func = Function::Cast(primary_node->primary());
           const String& func_name = String::ZoneHandle(Z, func.name());
@@ -11461,7 +11513,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       left = LoadFieldIfUnresolved(left);
       if (left->IsPrimaryNode()) {
         PrimaryNode* primary_node = left->AsPrimaryNode();
-        const intptr_t primary_pos = primary->token_pos();
+        const TokenPosition primary_pos = primary->token_pos();
         if (primary_node->primary().IsFunction()) {
           // Treat as implicit closure.
           left = LoadClosure(primary_node);
@@ -11514,7 +11566,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
 // Closurization e#m of getter, setter, method or operator.
 AstNode* Parser::ParseClosurization(AstNode* primary) {
   ExpectToken(Token::kHASH);
-  intptr_t property_pos = TokenPos();
+  TokenPosition property_pos = TokenPos();
   bool is_setter_name = false;
 
   String& extractor_name = String::ZoneHandle(Z);
@@ -11655,7 +11707,7 @@ AstNode* Parser::ParsePostfixExpr() {
   TRACE_PARSER("ParsePostfixExpr");
   String* expr_ident =
       Token::IsIdentifier(CurrentToken()) ? CurrentLiteral() : NULL;
-  const intptr_t expr_pos = TokenPos();
+  const TokenPosition expr_pos = TokenPos();
   AstNode* expr = ParsePrimary();
   if (CurrentToken() == Token::kHASH) {
     expr = LoadFieldIfUnresolved(expr);
@@ -11669,7 +11721,7 @@ AstNode* Parser::ParsePostfixExpr() {
       ReportError(expr_pos, "expression is not assignable");
     }
     Token::Kind incr_op = CurrentToken();
-    const intptr_t op_pos = TokenPos();
+    const TokenPosition op_pos = TokenPos();
     ConsumeToken();
     // Not prefix.
     LetNode* let_expr = PrepareCompoundAssignmentNodes(&expr);
@@ -11802,7 +11854,7 @@ LocalVariable* Parser::LookupLocalScope(const String& ident) {
 }
 
 
-void Parser::CheckInstanceFieldAccess(intptr_t field_pos,
+void Parser::CheckInstanceFieldAccess(TokenPosition field_pos,
                                       const String& field_name) {
   // Fields are not accessible from a static function, except from a
   // constructor, which is considered as non-static by the compiler.
@@ -11865,10 +11917,10 @@ bool Parser::IsInstantiatorRequired() const {
 // ConstantPosKey allows us to look up a constant in the map without
 // allocating a key pair (array).
 struct ConstantPosKey : ValueObject {
-  ConstantPosKey(const String& url, intptr_t pos)
+  ConstantPosKey(const String& url, TokenPosition pos)
       : script_url(url), token_pos(pos) { }
   const String& script_url;
-  intptr_t token_pos;
+  TokenPosition token_pos;
 };
 
 
@@ -11884,7 +11936,7 @@ class ConstMapKeyEqualsTraits {
     const Array& key2 = Array::Cast(b);
     // Compare raw strings of script url symbol and token positon.
     return (key1.script_url.raw() == key2.At(0))
-        && (key1.token_pos == Smi::Value(Smi::RawCast(key2.At(1))));
+        && (key1.token_pos.value() == Smi::Value(Smi::RawCast(key2.At(1))));
   }
   static uword Hash(const Object& obj) {
     const Array& key = Array::Cast(obj);
@@ -11894,13 +11946,13 @@ class ConstMapKeyEqualsTraits {
   }
   static uword Hash(const ConstantPosKey& key) {
     return HashValue(String::HashRawSymbol(key.script_url.raw()),
-                     key.token_pos);
+                     key.token_pos.value());
   }
   // Used by CachConstantValue if a new constant is added to the map.
   static RawObject* NewKey(const ConstantPosKey& key) {
     const Array& key_obj = Array::Handle(Array::New(2));
     key_obj.SetAt(0, key.script_url);
-    key_obj.SetAt(1, Smi::Handle(Smi::New(key.token_pos)));
+    key_obj.SetAt(1, Smi::Handle(Smi::New(key.token_pos.value())));
     return key_obj.raw();;
   }
 
@@ -11912,7 +11964,8 @@ class ConstMapKeyEqualsTraits {
 typedef UnorderedHashMap<ConstMapKeyEqualsTraits> ConstantsMap;
 
 
-void Parser::CacheConstantValue(intptr_t token_pos, const Instance& value) {
+void Parser::CacheConstantValue(TokenPosition token_pos,
+                                const Instance& value) {
   ConstantPosKey key(String::Handle(Z, script_.url()), token_pos);
   if (isolate()->object_store()->compile_time_constants() == Array::null()) {
     const intptr_t kInitialConstMapSize = 16;
@@ -11929,7 +11982,7 @@ void Parser::CacheConstantValue(intptr_t token_pos, const Instance& value) {
 }
 
 
-bool Parser::GetCachedConstant(intptr_t token_pos, Instance* value) {
+bool Parser::GetCachedConstant(TokenPosition token_pos, Instance* value) {
   if (isolate()->object_store()->compile_time_constants() == Array::null()) {
     return false;
   }
@@ -11949,7 +12002,7 @@ bool Parser::GetCachedConstant(intptr_t token_pos, Instance* value) {
 
 
 RawInstance* Parser::TryCanonicalize(const Instance& instance,
-                                     intptr_t token_pos) {
+                                     TokenPosition token_pos) {
   if (instance.IsNull()) {
     return instance.raw();
   }
@@ -11966,8 +12019,8 @@ RawInstance* Parser::TryCanonicalize(const Instance& instance,
 // If the field is already initialized, return no ast (NULL).
 // Otherwise, if the field is constant, initialize the field and return no ast.
 // If the field is not initialized and not const, return the ast for the getter.
-StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
-                                                    intptr_t field_ref_pos) {
+StaticGetterNode* Parser::RunStaticFieldInitializer(
+    const Field& field, TokenPosition field_ref_pos) {
   ASSERT(field.is_static());
   const Class& field_owner = Class::ZoneHandle(Z, field.owner());
   const String& field_name = String::ZoneHandle(Z, field.name());
@@ -12104,7 +12157,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
 // Do a lookup for the identifier in the block scope and the class scope
 // return true if the identifier is found, false otherwise.
 // If node is non NULL return an AST node corresponding to the identifier.
-bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
+bool Parser::ResolveIdentInLocalScope(TokenPosition ident_pos,
                                       const String &ident,
                                       AstNode** node) {
   TRACE_PARSER("ResolveIdentInLocalScope");
@@ -12209,7 +12262,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
 // Resolve an identifier by checking the global scope of the current
 // library. If not found in the current library, then look in the scopes
 // of all libraries that are imported without a library prefix.
-AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
+AstNode* Parser::ResolveIdentInCurrentLibraryScope(TokenPosition ident_pos,
                                                    const String& ident) {
   TRACE_PARSER("ResolveIdentInCurrentLibraryScope");
   HANDLESCOPE(thread());
@@ -12255,7 +12308,7 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
 // Do a lookup for the identifier in the scope of the specified
 // library prefix. This means trying to resolve it locally in all of the
 // libraries present in the library prefix.
-AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
+AstNode* Parser::ResolveIdentInPrefixScope(TokenPosition ident_pos,
                                            const LibraryPrefix& prefix,
                                            const String& ident) {
   TRACE_PARSER("ResolveIdentInPrefixScope");
@@ -12334,7 +12387,7 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
 // If the name cannot be resolved, turn it into an instance field access
 // if we're compiling an instance method, or generate
 // throw NoSuchMethodError if we're compiling a static method.
-AstNode* Parser::ResolveIdent(intptr_t ident_pos,
+AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
                               const String& ident,
                               bool allow_closure_names) {
   TRACE_PARSER("ResolveIdent");
@@ -12365,7 +12418,7 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
   }
   if (resolved->IsPrimaryNode()) {
     PrimaryNode* primary = resolved->AsPrimaryNode();
-    const intptr_t primary_pos = primary->token_pos();
+    const TokenPosition primary_pos = primary->token_pos();
     if (primary->primary().IsString()) {
       // We got an unresolved name. If we are compiling a static
       // method, evaluation of an unresolved identifier causes a
@@ -12424,7 +12477,7 @@ RawAbstractType* Parser::ParseType(
     LibraryPrefix* prefix) {
   TRACE_PARSER("ParseType");
   CheckToken(Token::kIDENT, "type name expected");
-  intptr_t ident_pos = TokenPos();
+  TokenPosition ident_pos = TokenPos();
   String& type_name = String::Handle(Z);
 
   if (finalization == ClassFinalizer::kIgnore) {
@@ -12537,7 +12590,7 @@ RawAbstractType* Parser::ParseType(
 
 
 void Parser::CheckConstructorCallTypeArguments(
-    intptr_t pos, const Function& constructor,
+    TokenPosition pos, const Function& constructor,
     const TypeArguments& type_arguments) {
   if (!type_arguments.IsNull()) {
     const Class& constructor_class = Class::Handle(Z, constructor.Owner());
@@ -12557,13 +12610,13 @@ void Parser::CheckConstructorCallTypeArguments(
 // Note: if the list literal is empty and the brackets have no whitespace
 // between them, the scanner recognizes the opening and closing bracket
 // as one token of type Token::kINDEX.
-AstNode* Parser::ParseListLiteral(intptr_t type_pos,
+AstNode* Parser::ParseListLiteral(TokenPosition type_pos,
                                   bool is_const,
                                   const TypeArguments& type_arguments) {
   TRACE_PARSER("ParseListLiteral");
-  ASSERT(type_pos >= 0);
+  ASSERT(type_pos.IsReal());
   ASSERT(CurrentToken() == Token::kLBRACK || CurrentToken() == Token::kINDEX);
-  const intptr_t literal_pos = TokenPos();
+  const TokenPosition literal_pos = TokenPos();
 
   if (is_const) {
     Instance& existing_const = Instance::ZoneHandle(Z);
@@ -12617,7 +12670,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
   if (!is_empty_literal) {
     const bool saved_mode = SetAllowFunctionLiterals(true);
     while (CurrentToken() != Token::kRBRACK) {
-      const intptr_t element_pos = TokenPos();
+      const TokenPosition element_pos = TokenPos();
       AstNode* element = ParseExpr(is_const, kConsumeCascades);
       if (I->flags().type_checks() &&
           !is_const &&
@@ -12723,7 +12776,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
 
 
 ConstructorCallNode* Parser::CreateConstructorCallNode(
-    intptr_t token_pos,
+    TokenPosition token_pos,
     const TypeArguments& type_arguments,
     const Function& constructor,
     ArgumentListNode* arguments) {
@@ -12760,13 +12813,13 @@ static void AddKeyValuePair(GrowableArray<AstNode*>* pairs,
 }
 
 
-AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
+AstNode* Parser::ParseMapLiteral(TokenPosition type_pos,
                                  bool is_const,
                                  const TypeArguments& type_arguments) {
   TRACE_PARSER("ParseMapLiteral");
-  ASSERT(type_pos >= 0);
+  ASSERT(type_pos.IsReal());
   ASSERT(CurrentToken() == Token::kLBRACE);
-  const intptr_t literal_pos = TokenPos();
+  const TokenPosition literal_pos = TokenPos();
 
   if (is_const) {
     Instance& existing_const = Instance::ZoneHandle(Z);
@@ -12819,7 +12872,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   // comma after the last entry.
   while (CurrentToken() != Token::kRBRACE) {
     const bool saved_mode = SetAllowFunctionLiterals(true);
-    const intptr_t key_pos = TokenPos();
+    const TokenPosition key_pos = TokenPos();
     AstNode* key = ParseExpr(is_const, kConsumeCascades);
     if (I->flags().type_checks() &&
         !is_const &&
@@ -12841,7 +12894,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       }
     }
     ExpectToken(Token::kCOLON);
-    const intptr_t value_pos = TokenPos();
+    const TokenPosition value_pos = TokenPos();
     AstNode* value = ParseExpr(is_const, kConsumeCascades);
     SetAllowFunctionLiterals(saved_mode);
     if (I->flags().type_checks() &&
@@ -12991,7 +13044,7 @@ AstNode* Parser::ParseCompoundLiteral() {
     is_const = true;
     ConsumeToken();
   }
-  const intptr_t type_pos = TokenPos();
+  const TokenPosition type_pos = TokenPos();
   TypeArguments& type_arguments = TypeArguments::Handle(Z,
       ParseTypeArguments(ClassFinalizer::kCanonicalize));
   // Malformed type arguments are mapped to dynamic, so we will not encounter
@@ -13014,7 +13067,7 @@ AstNode* Parser::ParseCompoundLiteral() {
 AstNode* Parser::ParseSymbolLiteral() {
   ASSERT(CurrentToken() == Token::kHASH);
   ConsumeToken();
-  intptr_t symbol_pos = TokenPos();
+  TokenPosition symbol_pos = TokenPos();
   String& symbol = String::ZoneHandle(Z);
   if (IsIdentifier()) {
     symbol = CurrentLiteral()->raw();
@@ -13064,8 +13117,8 @@ AstNode* Parser::ParseSymbolLiteral() {
 }
 
 
-RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
-                                                     intptr_t token_pos) {
+RawFunction* Parser::BuildConstructorClosureFunction(
+    const Function& ctr, TokenPosition token_pos) {
   ASSERT(ctr.kind() == RawFunction::kConstructor);
   Function& closure = Function::Handle(Z);
   closure = I->LookupClosureFunction(innermost_function(), token_pos);
@@ -13182,13 +13235,13 @@ void Parser::ParseConstructorClosurization(Function* constructor,
 
 AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   TRACE_PARSER("ParseNewOperator");
-  const intptr_t new_pos = TokenPos();
+  const TokenPosition new_pos = TokenPos();
   ASSERT((op_kind == Token::kNEW) || (op_kind == Token::kCONST));
   bool is_const = (op_kind == Token::kCONST);
   if (!IsIdentifier()) {
     ReportError("type name expected");
   }
-  intptr_t type_pos = TokenPos();
+  TokenPosition type_pos = TokenPos();
   // Can't allocate const objects of a deferred type.
   const bool allow_deferred_type = !is_const;
   const Token::Kind la3 = LookaheadToken(3);
@@ -13259,7 +13312,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   }
 
   // Parse constructor parameters.
-  intptr_t call_pos = TokenPos();
+  TokenPosition call_pos = TokenPos();
   ArgumentListNode* arguments = NULL;
   if (!is_tearoff_expression) {
     CheckToken(Token::kLPAREN);
@@ -13399,7 +13452,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     }
     ArgumentListNode* error_arguments = new(Z) ArgumentListNode(type_pos);
     error_arguments->Add(new(Z) LiteralNode(
-        TokenPos(), Integer::ZoneHandle(Z, Integer::New(type_pos))));
+        TokenPos(), Integer::ZoneHandle(Z, Integer::New(type_pos.value()))));
     error_arguments->Add(new(Z) LiteralNode(
         TokenPos(), String::ZoneHandle(Z, type_class_name.raw())));
     result->AddNode(
@@ -13577,7 +13630,7 @@ String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
 AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
   TRACE_PARSER("ParseStringLiteral");
   AstNode* primary = NULL;
-  const intptr_t literal_start = TokenPos();
+  const TokenPosition literal_start = TokenPos();
   ASSERT(CurrentToken() == Token::kSTRING);
   Token::Kind l1_token = LookaheadToken(1);
   if ((l1_token != Token::kSTRING) &&
@@ -13616,7 +13669,7 @@ AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
       }
       has_interpolation = true;
       AstNode* expr = NULL;
-      const intptr_t expr_pos = TokenPos();
+      const TokenPosition expr_pos = TokenPos();
       if (CurrentToken() == Token::kINTERPOL_VAR) {
         expr = ResolveIdent(TokenPos(), *CurrentLiteral(), true);
         ConsumeToken();
@@ -13689,7 +13742,7 @@ AstNode* Parser::ParsePrimary() {
     primary = ParseFunctionStatement(true);
     CloseBlock();
   } else if (IsIdentifier()) {
-    intptr_t qual_ident_pos = TokenPos();
+    TokenPosition qual_ident_pos = TokenPos();
     const LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(Z, ParsePrefix());
     if (!prefix.IsNull()) {
       if (CurrentToken() == Token::kHASH) {
@@ -13848,11 +13901,11 @@ AstNode* Parser::ParsePrimary() {
       ReportError("class '%s' does not have a superclass",
                   String::Handle(Z, current_class().Name()).ToCString());
     }
-    const intptr_t super_pos = TokenPos();
+    const TokenPosition super_pos = TokenPos();
     ConsumeToken();
     if (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
-      const intptr_t ident_pos = TokenPos();
+      const TokenPosition ident_pos = TokenPos();
       const String& ident = *ExpectIdentifier("identifier expected");
       if (CurrentToken() == Token::kLPAREN) {
         primary = ParseSuperCall(ident);
@@ -13877,7 +13930,8 @@ AstNode* Parser::ParsePrimary() {
 
 // Evaluate expression in expr and return the value. The expression must
 // be a compile time constant.
-const Instance& Parser::EvaluateConstExpr(intptr_t expr_pos, AstNode* expr) {
+const Instance& Parser::EvaluateConstExpr(TokenPosition expr_pos,
+                                          AstNode* expr) {
   if (expr->IsLiteralNode()) {
     return expr->AsLiteralNode()->literal();
   } else if (expr->IsLoadLocalNode() &&
@@ -14349,7 +14403,7 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
 
 
 ArgumentListNode* Parser::BuildNoSuchMethodArguments(
-    intptr_t call_pos,
+    TokenPosition call_pos,
     const String& function_name,
     const ArgumentListNode& function_args,
     const LocalVariable* temp_for_last_arg,

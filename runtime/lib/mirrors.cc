@@ -140,7 +140,7 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     has_extra_parameter_info = false;
   }
   if (func.IsSignatureFunction() &&
-      (func.token_pos() == Token::kNoSourcePos)) {
+      (func.token_pos() == TokenPosition::kNoSource)) {
     // Signature functions (except those describing typedefs) get canonicalized,
     // hence do not have a token position, and therefore cannot be reparsed.
     has_extra_parameter_info = false;
@@ -1448,7 +1448,7 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
           TypeArguments::Handle(closure.GetTypeArguments());
       const Class& cls =
           Class::Handle(Isolate::Current()->object_store()->object_class());
-      instantiator = Type::New(cls, arguments, Token::kNoSourcePos);
+      instantiator = Type::New(cls, arguments, TokenPosition::kNoSource);
       instantiator.SetIsFinalized();
     }
     return CreateMethodMirror(function,
@@ -1969,7 +1969,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
   }
 
   Script& script = Script::Handle();
-  intptr_t token_pos = Token::kNoSourcePos;
+  TokenPosition token_pos = TokenPosition::kNoSource;
 
   if (decl.IsFunction()) {
     const Function& func = Function::Cast(decl);
@@ -2017,13 +2017,13 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
       return CreateSourceLocation(uri, 1, 1);
     }
     const TokenStream& stream = TokenStream::Handle(script.tokens());
-    TokenStream::Iterator tkit(stream, 0);
+    TokenStream::Iterator tkit(stream, TokenPosition::kMinSource);
     if (tkit.CurrentTokenKind() == Token::kSCRIPTTAG) tkit.Advance();
     token_pos = tkit.CurrentPosition();
   }
 
   ASSERT(!script.IsNull());
-  ASSERT(token_pos != Token::kNoSourcePos);
+  ASSERT(token_pos != TokenPosition::kNoSource);
 
   const String& uri = String::Handle(script.url());
   intptr_t from_line = 0;

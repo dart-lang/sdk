@@ -26,21 +26,19 @@ void main() {
           Comparator<K> _comparator;
           _Predicate _validKey;
 
-          // Initializing _comparator needs a cast, since K may not always be
-          // Comparable.
-          // Initializing _validKey shouldn't need a cast.  Currently
-          // it requires inference to work because of dartbug.com/23381
+          // TODO(rnystrom): Initializing _comparator should have a cast, since
+          // K may not always be Comparable. It doesn't currently get one
+          // because we're using the spec's LUB on function types, which isn't
+          // sound.
           SplayTreeMap([int compare(K key1, K key2),
                         bool isValidKey(potentialKey)]) {
-            : _comparator = /*warning:DOWN_CAST_COMPOSITE*/(compare == null)
-                           ? Comparable.compare : compare,
-              _validKey = /*warning:DOWN_CAST_COMPOSITE*/(isValidKey != null)
-                         ? isValidKey : ((v) => true);
-             _Predicate<Object> _v = /*warning:DOWN_CAST_COMPOSITE*/(isValidKey != null)
-                                    ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(v) => true);
-        // TODO(leafp): Fix unimplemented LUB in analyzer
-        _v = /*warning:DOWN_CAST_COMPOSITE*/(isValidKey != null)
-             ? _v : (/*info:INFERRED_TYPE_CLOSURE*/(v) => true);
+            : _comparator = (compare == null) ? Comparable.compare : compare,
+              _validKey = (isValidKey != null) ? isValidKey : ((v) => true);
+             _Predicate<Object> v = /*warning:DOWN_CAST_COMPOSITE*/(isValidKey != null)
+                                    ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
+
+            v = (isValidKey != null)
+                 ? v : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
           }
         }
         void main() {

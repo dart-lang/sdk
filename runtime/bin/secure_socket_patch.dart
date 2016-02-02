@@ -137,12 +137,22 @@ class _SecurityContext
   static final SecurityContext defaultContext =
       new _SecurityContext().._trustBuiltinRoots();
 
-  void usePrivateKey(String keyFile, {String password})
-      native "SecurityContext_UsePrivateKey";
+  Future usePrivateKey(String keyFile, {String password}) {
+    return (new File(keyFile)).readAsBytes().then((bytes) {
+      usePrivateKeyBytes(bytes, password: password);
+    });
+  }
+  void usePrivateKeyBytes(List<int> keyBytes, {String password})
+      native "SecurityContext_UsePrivateKeyBytes";
   void setTrustedCertificates({String file, String directory})
       native "SecurityContext_SetTrustedCertificates";
-  void useCertificateChain(String file)
-      native "SecurityContext_UseCertificateChain";
+  Future useCertificateChain(String chainFile) {
+    return (new File(chainFile)).readAsBytes().then((bytes) {
+      useCertificateChainBytes(bytes);
+    });
+  }
+  void useCertificateChainBytes(List<int> chainBytes)
+      native "SecurityContext_UseCertificateChainBytes";
   void setClientAuthorities(String file)
       native "SecurityContext_SetClientAuthorities";
   void setAlpnProtocols(List<String> protocols, bool isServer) {

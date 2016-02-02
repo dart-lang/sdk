@@ -30,6 +30,6 @@ void main() {
   var newId;
   do {
     newId = computeId();
-  } while (!usedIds.contains(newId));
+  } while (usedIds.contains(newId));
   print("Available id: $newId");
 }

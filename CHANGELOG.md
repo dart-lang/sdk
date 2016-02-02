@@ -4,7 +4,7 @@
   * Added `Uri.queryParametersAll` to handle multiple query parameters with
     the same name.
 
-## 1.14.0
+## 1.14.0 - 2016-01-28
 
 ### Core library changes
 * `dart:async`
@@ -49,7 +49,7 @@
     * Added named arguments `packageConfig` and `automaticPackageResolution` to
     the `Isolate.spawnUri` constructor.
 
-[Package Resolution Configuration File]: https://github.com/dart-lang/dart_enhancement_proposals/blob/master/Accepted/0005%20-%20Package%20Specification/DEP-pkgspec.md
+[Package Resolution Configuration]: https://github.com/dart-lang/dart_enhancement_proposals/blob/master/Accepted/0005%20-%20Package%20Specification/DEP-pkgspec.md
 
 ### Tool changes
 

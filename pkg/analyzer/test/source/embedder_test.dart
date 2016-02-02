@@ -4,21 +4,26 @@
 
 library analyzer.test.source.embedder_test;
 
+import 'dart:core' hide Resource;
+
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/embedder.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/absolute_path.dart';
+import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
   group('EmbedderUriResolverTest', () {
     setUp(() {
+      initializeTestEnvironment(path.context);
       buildResourceProvider();
     });
     tearDown(() {
+      initializeTestEnvironment();
       clearResourceProvider();
     });
     test('test_NullEmbedderYamls', () {
@@ -27,20 +32,20 @@ main() {
     });
     test('test_NoEmbedderYamls', () {
       var locator = new EmbedderYamlLocator({
-        'fox': [resourceProvider.getResource('/empty')]
+        'fox': [pathTranslator.getResource('/empty')]
       });
       expect(locator.embedderYamls.length, equals(0));
     });
     test('test_EmbedderYaml', () {
       var locator = new EmbedderYamlLocator({
-        'fox': [resourceProvider.getResource('/tmp')]
+        'fox': [pathTranslator.getResource('/tmp')]
       });
       var resolver = new EmbedderUriResolver(locator.embedderYamls);
 
-      expectResolved(dartUri, filePath) {
+      expectResolved(dartUri, posixPath) {
         Source source = resolver.resolveAbsolute(Uri.parse(dartUri));
         expect(source, isNotNull, reason: dartUri);
-        expect(source.fullName, filePath.replaceAll('/', JavaFile.separator));
+        expect(source.fullName, posixToOSPath(posixPath));
       }
 
       // We have four mappings.
@@ -58,12 +63,13 @@ main() {
     });
     test('test_restoreAbsolute', () {
       var locator = new EmbedderYamlLocator({
-        'fox': [resourceProvider.getResource('/tmp')]
+        'fox': [pathTranslator.getResource('/tmp')]
       });
       var resolver = new EmbedderUriResolver(locator.embedderYamls);
 
       expectRestore(String dartUri, [String expected]) {
-        var source = resolver.resolveAbsolute(Uri.parse(dartUri));
+        var parsedUri = Uri.parse(dartUri);
+        var source = resolver.resolveAbsolute(parsedUri);
         expect(source, isNotNull);
         // Restore source's uri.
         var restoreUri = resolver.restoreAbsolute(source);
@@ -75,72 +81,54 @@ main() {
         expect(restoreUri.path, equals(split[1]));
       }
 
-      try {
-        expectRestore('dart:deep');
-        expectRestore('dart:deep/file.dart', 'dart:deep');
-        expectRestore('dart:deep/part.dart');
-        expectRestore('dart:deep/deep/file.dart');
-        if (JavaFile.separator == '\\') {
-          // See https://github.com/dart-lang/sdk/issues/25498
-          fail('expected to fail on Windows');
-        }
-      } catch (_) {
-        // Test is broken on Windows, but should run elsewhere
-        if (JavaFile.separator != '\\') {
-          rethrow;
-        }
-      }
+      expectRestore('dart:deep');
+      expectRestore('dart:deep/file.dart', 'dart:deep');
+      expectRestore('dart:deep/part.dart');
+      expectRestore('dart:deep/deep/file.dart');
     });
 
     test('test_EmbedderSdk_fromFileUri', () {
       var locator = new EmbedderYamlLocator({
-        'fox': [resourceProvider.getResource('/tmp')]
+        'fox': [pathTranslator.getResource('/tmp')]
       });
       var resolver = new EmbedderUriResolver(locator.embedderYamls);
       var sdk = resolver.dartSdk;
 
-      expectSource(String filePath, String dartUri) {
-        var uri = Uri.parse(filePath);
+      expectSource(String posixPath, String dartUri) {
+        var uri = Uri.parse(posixToOSFileUri(posixPath));
         var source = sdk.fromFileUri(uri);
-        expect(source, isNotNull, reason: filePath);
+        expect(source, isNotNull, reason: posixPath);
         expect(source.uri.toString(), dartUri);
-        expect(source.fullName, filePath.replaceAll('/', JavaFile.separator));
+        expect(source.fullName, posixToOSPath(posixPath));
       }
 
-      //TODO(danrubel) fix embedder on Windows
-      isWindows() => JavaFile.separator == '\\';
-      try {
-        expectSource('/tmp/slippy.dart', 'dart:fox');
-        expectSource('/tmp/deep/directory/file.dart', 'dart:deep');
-        expectSource('/tmp/deep/directory/part.dart', 'dart:deep/part.dart');
-        if (isWindows()) fail('expected to fail on windows');
-      } catch (e) {
-        if (!isWindows()) rethrow;
-      }
+      expectSource('/tmp/slippy.dart', 'dart:fox');
+      expectSource('/tmp/deep/directory/file.dart', 'dart:deep');
+      expectSource('/tmp/deep/directory/part.dart', 'dart:deep/part.dart');
     });
     test('test_EmbedderSdk_getSdkLibrary', () {
       var locator = new EmbedderYamlLocator({
-        'fox': [resourceProvider.getResource('/tmp')]
+        'fox': [pathTranslator.getResource('/tmp')]
       });
       var resolver = new EmbedderUriResolver(locator.embedderYamls);
       var sdk = resolver.dartSdk;
       var lib = sdk.getSdkLibrary('dart:fox');
       expect(lib, isNotNull);
-      expect(lib.path, '/tmp/slippy.dart');
+      expect(lib.path, posixToOSPath('/tmp/slippy.dart'));
       expect(lib.shortName, 'fox');
     });
     test('test_EmbedderSdk_mapDartUri', () {
       var locator = new EmbedderYamlLocator({
-        'fox': [resourceProvider.getResource('/tmp')]
+        'fox': [pathTranslator.getResource('/tmp')]
       });
       var resolver = new EmbedderUriResolver(locator.embedderYamls);
       var sdk = resolver.dartSdk;
 
-      expectSource(String dartUri, String filePath) {
+      expectSource(String dartUri, String posixPath) {
         var source = sdk.mapDartUri(dartUri);
-        expect(source, isNotNull, reason: filePath);
+        expect(source, isNotNull, reason: posixPath);
         expect(source.uri.toString(), dartUri);
-        expect(source.fullName, filePath.replaceAll('/', JavaFile.separator));
+        expect(source.fullName, posixToOSPath(posixPath));
       }
 
       expectSource('dart:fox', '/tmp/slippy.dart');
@@ -150,16 +138,19 @@ main() {
   });
 }
 
-MemoryResourceProvider resourceProvider;
+ResourceProvider resourceProvider;
+TestPathTranslator pathTranslator;
 
 buildResourceProvider() {
-  resourceProvider = new MemoryResourceProvider();
-  resourceProvider.newFolder('/empty');
-  resourceProvider.newFolder('/tmp');
-  resourceProvider.newFile(
-      '/tmp/_embedder.yaml',
-      r'''
-embedder_libs:
+  var rawProvider = new MemoryResourceProvider(isWindows: isWindows);
+  resourceProvider = new TestResourceProvider(rawProvider);
+  pathTranslator = new TestPathTranslator(rawProvider)
+    ..newFolder('/empty')
+    ..newFolder('/tmp')
+    ..newFile(
+        '/tmp/_embedder.yaml',
+        r'''
+embedded_libs:
   "dart:fox": "slippy.dart"
   "dart:bear": "grizzly.dart"
   "dart:relative": "../relative.dart"
@@ -170,4 +161,117 @@ embedder_libs:
 
 clearResourceProvider() {
   resourceProvider = null;
+  pathTranslator = null;
+}
+
+// TODO(danrubel) if this approach works well for running tests
+// in a platform specific way, then move all of the following functionality
+// into a separate test utility library.
+
+bool get isWindows => path.Style.platform == path.Style.windows;
+
+/**
+ * Assert that the given path is posix.
+ */
+void expectAbsolutePosixPath(String posixPath) {
+  expect(posixPath, startsWith('/'),
+      reason: 'Expected absolute posix path, but found $posixPath');
+}
+
+/**
+ * Translate the given posixPath to a path appropriate for the
+ * platform on which the tests are executing.
+ */
+String posixToOSPath(String posixPath) {
+  expectAbsolutePosixPath(posixPath);
+  if (isWindows) {
+    String windowsPath = posixPath.replaceAll('/', '\\');
+    if (posixPath.startsWith('/')) {
+      return 'C:$windowsPath';
+    }
+    return windowsPath;
+  }
+  return posixPath;
+}
+
+/**
+ * Translate the given posixPath to a file URI appropriate for the
+ * platform on which the tests are executing.
+ */
+String posixToOSFileUri(String posixPath) {
+  expectAbsolutePosixPath(posixPath);
+  return isWindows ? 'file:///C:$posixPath' : 'file://$posixPath';
+}
+
+/**
+ * A convenience utility for setting up a test [MemoryResourceProvider].
+ * All supplied paths are assumed to be in [path.posix] format
+ * and are automatically translated to [path.context].
+ *
+ * This class intentionally does not implement [ResourceProvider]
+ * directly or indirectly so that it cannot be used as a resource provider.
+ * We do not want functionality under test to interact with a resource provider
+ * that automatically translates paths.
+ */
+class TestPathTranslator {
+  final MemoryResourceProvider _provider;
+
+  TestPathTranslator(this._provider);
+
+  Resource getResource(String posixPath) =>
+      _provider.getResource(posixToOSPath(posixPath));
+
+  File newFile(String posixPath, String content) =>
+      _provider.newFile(posixToOSPath(posixPath), content);
+
+  Folder newFolder(String posixPath) =>
+      _provider.newFolder(posixToOSPath(posixPath));
+}
+
+/**
+ * A resource provider for testing that asserts that any supplied paths
+ * are appropriate for the OS platform on which the tests are running.
+ */
+class TestResourceProvider implements ResourceProvider {
+  final ResourceProvider _provider;
+
+  TestResourceProvider(this._provider) {
+    expect(_provider.absolutePathContext.separator, isWindows ? '\\' : '/');
+  }
+
+  @override
+  AbsolutePathContext get absolutePathContext => _provider.absolutePathContext;
+
+  @override
+  File getFile(String path) => _provider.getFile(_assertPath(path));
+
+  @override
+  Folder getFolder(String path) => _provider.getFolder(_assertPath(path));
+
+  @override
+  Resource getResource(String path) => _provider.getResource(_assertPath(path));
+
+  @override
+  Folder getStateLocation(String pluginId) =>
+      _provider.getStateLocation(pluginId);
+
+  @override
+  path.Context get pathContext => _provider.pathContext;
+
+  /**
+   * Assert that the given path is valid for the OS platform on which the
+   * tests are running.
+   */
+  String _assertPath(String path) {
+    if (isWindows) {
+      if (path.contains('/')) {
+        fail('Expected windows path, but found: $path');
+      }
+    } else {
+      if (path.contains('\\')) {
+        fail('Expected posix path, but found: $path');
+      }
+    }
+    return path;
+  }
 }

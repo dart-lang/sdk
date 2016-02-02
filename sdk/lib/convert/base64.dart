@@ -270,7 +270,7 @@ abstract class _Base64EncoderSink extends ByteConversionSinkBase {
 class _AsciiBase64EncoderSink extends _Base64EncoderSink {
   final _Base64Encoder _encoder = new _BufferCachingBase64Encoder();
 
-  final ChunkedConversionSink<String> _sink;
+  final Sink<String> _sink;
 
   _AsciiBase64EncoderSink(this._sink);
 
@@ -684,7 +684,7 @@ class _Base64Decoder {
 
 class _Base64DecoderSink extends StringConversionSinkBase {
   /** Output sink */
-  final ChunkedConversionSink<List<int>> _sink;
+  final Sink<List<int>> _sink;
   final _Base64Decoder _decoder = new _Base64Decoder();
 
   _Base64DecoderSink(this._sink);

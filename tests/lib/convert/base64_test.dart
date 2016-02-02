@@ -20,6 +20,7 @@ main() {
     testRoundtrip(new Uint8List.fromList(list), "Uint8List#${list.length}");
   }
   testErrors();
+  testIssue25577();
 
   // Decoder is lenienet with mixed styles.
   Expect.listEquals([0xfb, 0xff, 0xbf, 0x00], BASE64.decode("-_+/AA%3D="));
@@ -235,4 +236,19 @@ void testErrors() {
   badEncode(0x10000);
   badEncode(0x100000000);          /// 01: ok
   badEncode(0x10000000000000000);  /// 01: continued
+}
+
+void testIssue25577() {
+  // Regression test for http://dartbug.com/25577
+  // Should not fail in checked mode.
+  StringConversionSink decodeSink =
+      BASE64.decoder.startChunkedConversion(new TestSink<List<int>>());
+  ByteConversionSink encodeSink =
+      BASE64.encoder.startChunkedConversion(new TestSink<String>());
+}
+
+// Implementation of Sink<T> to test type constraints.
+class TestSink<T> implements Sink<T> {
+  void add(T value) {}
+  void close() {}
 }

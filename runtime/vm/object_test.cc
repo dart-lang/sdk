@@ -29,13 +29,13 @@ static RawLibrary* CreateDummyLibrary(const String& library_name) {
 static RawClass* CreateDummyClass(const String& class_name,
                                   const Script& script) {
   const Class& cls = Class::Handle(
-      Class::New(class_name, script, Token::kNoSourcePos));
+      Class::New(class_name, script, TokenPosition::kNoSource));
   cls.set_is_synthesized_class();  // Dummy class for testing.
   return cls.raw();
 }
 
 
-TEST_CASE(Class) {
+VM_TEST_CASE(Class) {
   // Allocate the class first.
   const String& class_name = String::Handle(Symbols::New("MyClass"));
   const Script& script = Script::Handle();
@@ -68,12 +68,12 @@ TEST_CASE(Class) {
   function_name = Symbols::New("foo");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      false, false, false, false, false, cls, 0);
+      false, false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, function);
   function_name = Symbols::New("bar");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      false, false, false, false, false, cls, 0);
+      false, false, false, false, false, cls, TokenPosition::kMinSource);
 
   const int kNumFixedParameters = 2;
   const int kNumOptionalParameters = 3;
@@ -86,24 +86,24 @@ TEST_CASE(Class) {
   function_name = Symbols::New("baz");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      false, false, false, false, false, cls, 0);
+      false, false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(2, function);
 
   function_name = Symbols::New("Foo");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      true, false, false, false, false, cls, 0);
+      true, false, false, false, false, cls, TokenPosition::kMinSource);
 
   functions.SetAt(3, function);
   function_name = Symbols::New("Bar");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      true, false, false, false, false, cls, 0);
+      true, false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(4, function);
   function_name = Symbols::New("BaZ");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      true, false, false, false, false, cls, 0);
+      true, false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(5, function);
 
   // Setup the functions in the class.
@@ -143,7 +143,7 @@ TEST_CASE(Class) {
 }
 
 
-TEST_CASE(TypeArguments) {
+VM_TEST_CASE(TypeArguments) {
   const Type& type1 = Type::Handle(Type::Double());
   const Type& type2 = Type::Handle(Type::StringType());
   const TypeArguments& type_arguments1 = TypeArguments::Handle(
@@ -165,7 +165,7 @@ TEST_CASE(TypeArguments) {
 }
 
 
-TEST_CASE(TokenStream) {
+VM_TEST_CASE(TokenStream) {
   String& source = String::Handle(String::New("= ( 9 , ."));
   String& private_key = String::Handle(String::New(""));
   Scanner scanner(source, private_key);
@@ -174,7 +174,7 @@ TEST_CASE(TokenStream) {
   EXPECT_EQ(Token::kLPAREN, ts[1].kind);
   const TokenStream& token_stream = TokenStream::Handle(
       TokenStream::New(ts, private_key, false));
-  TokenStream::Iterator iterator(token_stream, 0);
+  TokenStream::Iterator iterator(token_stream, TokenPosition::kMinSource);
   // EXPECT_EQ(6, token_stream.Length());
   iterator.Advance();  // Advance to '(' token.
   EXPECT_EQ(Token::kLPAREN, iterator.CurrentTokenKind());
@@ -187,7 +187,7 @@ TEST_CASE(TokenStream) {
 }
 
 
-TEST_CASE(GenerateExactSource) {
+VM_TEST_CASE(GenerateExactSource) {
   // Verify the exact formatting of generated sources.
   const char* kScriptChars =
   "\n"
@@ -241,7 +241,7 @@ TEST_CASE(Class_ComputeEndTokenPos) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(String::New("A"))));
   EXPECT(!cls.IsNull());
-  const intptr_t end_token_pos = cls.ComputeEndTokenPos();
+  const TokenPosition end_token_pos = cls.ComputeEndTokenPos();
   const Script& scr = Script::Handle(cls.script());
   intptr_t line;
   intptr_t col;
@@ -250,7 +250,7 @@ TEST_CASE(Class_ComputeEndTokenPos) {
 }
 
 
-TEST_CASE(InstanceClass) {
+VM_TEST_CASE(InstanceClass) {
   // Allocate the class first.
   String& class_name = String::Handle(Symbols::New("EmptyClass"));
   Script& script = Script::Handle();
@@ -282,7 +282,7 @@ TEST_CASE(InstanceClass) {
   const String& field_name = String::Handle(Symbols::New("the_field"));
   const Field& field = Field::Handle(
       Field::New(field_name, false, false, false, true, one_field_class,
-                 Object::dynamic_type(), 0));
+                 Object::dynamic_type(), TokenPosition::kMinSource));
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
   one_field_class.Finalize();
@@ -296,7 +296,7 @@ TEST_CASE(InstanceClass) {
 }
 
 
-TEST_CASE(Smi) {
+VM_TEST_CASE(Smi) {
   const Smi& smi = Smi::Handle(Smi::New(5));
   Object& smi_object = Object::Handle(smi.raw());
   EXPECT(smi.IsSmi());
@@ -358,7 +358,7 @@ TEST_CASE(Smi) {
 }
 
 
-TEST_CASE(StringCompareTo) {
+VM_TEST_CASE(StringCompareTo) {
   const String& abcd = String::Handle(String::New("abcd"));
   const String& abce = String::Handle(String::New("abce"));
   EXPECT_EQ(0, abcd.CompareTo(abcd));
@@ -402,7 +402,7 @@ TEST_CASE(StringCompareTo) {
 }
 
 
-TEST_CASE(StringEncodeIRI) {
+VM_TEST_CASE(StringEncodeIRI) {
   const char* kInput =
       "file:///usr/local/johnmccutchan/workspace/dart-repo/dart/test.dart";
   const char* kOutput =
@@ -415,7 +415,7 @@ TEST_CASE(StringEncodeIRI) {
 }
 
 
-TEST_CASE(StringDecodeIRI) {
+VM_TEST_CASE(StringDecodeIRI) {
   const char* kOutput =
       "file:///usr/local/johnmccutchan/workspace/dart-repo/dart/test.dart";
   const char* kInput =
@@ -428,7 +428,7 @@ TEST_CASE(StringDecodeIRI) {
 }
 
 
-TEST_CASE(StringDecodeIRIInvalid) {
+VM_TEST_CASE(StringDecodeIRIInvalid) {
   String& input = String::Handle();
   input = String::New("file%");
   String& decoded = String::Handle();
@@ -443,7 +443,7 @@ TEST_CASE(StringDecodeIRIInvalid) {
 }
 
 
-TEST_CASE(StringIRITwoByte) {
+VM_TEST_CASE(StringIRITwoByte) {
   const intptr_t kInputLen = 3;
   const uint16_t kInput[kInputLen] = { 'x', '/', 256 };
   const String& input = String::Handle(String::FromUTF16(kInput, kInputLen));
@@ -458,7 +458,7 @@ TEST_CASE(StringIRITwoByte) {
 }
 
 
-TEST_CASE(Mint) {
+VM_TEST_CASE(Mint) {
 // On 64-bit architectures a Smi is stored in a 64 bit word. A Midint cannot
 // be allocated if it does fit into a Smi.
 #if !defined(ARCH_IS_64_BIT)
@@ -532,7 +532,7 @@ TEST_CASE(Mint) {
 }
 
 
-TEST_CASE(Double) {
+VM_TEST_CASE(Double) {
   {
     const double dbl_const = 5.0;
     const Double& dbl = Double::Handle(Double::New(dbl_const));
@@ -616,7 +616,7 @@ TEST_CASE(Double) {
 }
 
 
-TEST_CASE(Bigint) {
+VM_TEST_CASE(Bigint) {
   Bigint& b = Bigint::Handle();
   EXPECT(b.IsNull());
   const char* cstr = "18446744073709551615000";
@@ -655,7 +655,7 @@ TEST_CASE(Bigint) {
 }
 
 
-TEST_CASE(Integer) {
+VM_TEST_CASE(Integer) {
   Integer& i = Integer::Handle();
   i = Integer::NewCanonical(String::Handle(String::New("12")));
   EXPECT(i.IsSmi());
@@ -672,7 +672,7 @@ TEST_CASE(Integer) {
 }
 
 
-TEST_CASE(String) {
+VM_TEST_CASE(String) {
   const char* kHello = "Hello World!";
   int32_t hello_len = strlen(kHello);
   const String& str = String::Handle(String::New(kHello));
@@ -819,7 +819,7 @@ TEST_CASE(String) {
 }
 
 
-TEST_CASE(StringFormat) {
+VM_TEST_CASE(StringFormat) {
   const char* hello_str = "Hello World!";
   const String& str =
       String::Handle(String::NewFormatted("Hello %s!", "World"));
@@ -832,7 +832,7 @@ TEST_CASE(StringFormat) {
 }
 
 
-TEST_CASE(StringConcat) {
+VM_TEST_CASE(StringConcat) {
   // Create strings from concatenated 1-byte empty strings.
   {
     const String& empty1 = String::Handle(String::New(""));
@@ -1366,7 +1366,7 @@ TEST_CASE(StringConcat) {
 }
 
 
-TEST_CASE(StringHashConcat) {
+VM_TEST_CASE(StringHashConcat) {
   EXPECT_EQ(String::Handle(String::New("onebyte")).Hash(),
             String::HashConcat(String::Handle(String::New("one")),
                                String::Handle(String::New("byte"))));
@@ -1382,7 +1382,7 @@ TEST_CASE(StringHashConcat) {
 }
 
 
-TEST_CASE(StringSubStringDifferentWidth) {
+VM_TEST_CASE(StringSubStringDifferentWidth) {
   // Create 1-byte substring from a 1-byte source string.
   const char* onechars =
       "\xC3\xB6\xC3\xB1\xC3\xA9";
@@ -1444,7 +1444,7 @@ TEST_CASE(StringSubStringDifferentWidth) {
 }
 
 
-TEST_CASE(StringFromUtf8Literal) {
+VM_TEST_CASE(StringFromUtf8Literal) {
   // Create a 1-byte string from a UTF-8 encoded string literal.
   {
     const char* src =
@@ -1612,7 +1612,7 @@ TEST_CASE(StringFromUtf8Literal) {
 }
 
 
-TEST_CASE(StringEqualsUtf8) {
+VM_TEST_CASE(StringEqualsUtf8) {
   const char* onesrc = "abc";
   const String& onestr = String::Handle(String::New(onesrc));
   EXPECT(onestr.IsOneByteString());
@@ -1643,7 +1643,7 @@ TEST_CASE(StringEqualsUtf8) {
 }
 
 
-TEST_CASE(StringEqualsUTF32) {
+VM_TEST_CASE(StringEqualsUTF32) {
   const String& empty = String::Handle(String::New(""));
   const String& t_str = String::Handle(String::New("t"));
   const String& th_str = String::Handle(String::New("th"));
@@ -1660,7 +1660,7 @@ TEST_CASE(StringEqualsUTF32) {
 }
 
 
-TEST_CASE(ExternalOneByteString) {
+VM_TEST_CASE(ExternalOneByteString) {
   uint8_t characters[] = { 0xF6, 0xF1, 0xE9 };
   intptr_t len = ARRAY_SIZE(characters);
 
@@ -1692,7 +1692,7 @@ TEST_CASE(ExternalOneByteString) {
 }
 
 
-TEST_CASE(EscapeSpecialCharactersOneByteString) {
+VM_TEST_CASE(EscapeSpecialCharactersOneByteString) {
   uint8_t characters[] =
       { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
   intptr_t len = ARRAY_SIZE(characters);
@@ -1713,7 +1713,7 @@ TEST_CASE(EscapeSpecialCharactersOneByteString) {
 }
 
 
-TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
+VM_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
   uint8_t characters[] =
       { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
   intptr_t len = ARRAY_SIZE(characters);
@@ -1738,7 +1738,7 @@ TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
   EXPECT_EQ(escaped_empty_str.Length(), 0);
 }
 
-TEST_CASE(EscapeSpecialCharactersTwoByteString) {
+VM_TEST_CASE(EscapeSpecialCharactersTwoByteString) {
   uint16_t characters[] =
       { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
   intptr_t len = ARRAY_SIZE(characters);
@@ -1761,7 +1761,7 @@ TEST_CASE(EscapeSpecialCharactersTwoByteString) {
 }
 
 
-TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
+VM_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
   uint16_t characters[] =
       { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
   intptr_t len = ARRAY_SIZE(characters);
@@ -1786,7 +1786,7 @@ TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
 }
 
 
-TEST_CASE(ExternalTwoByteString) {
+VM_TEST_CASE(ExternalTwoByteString) {
   uint16_t characters[] = { 0x1E6B, 0x1E85, 0x1E53 };
   intptr_t len = ARRAY_SIZE(characters);
 
@@ -1819,7 +1819,7 @@ TEST_CASE(ExternalTwoByteString) {
 }
 
 
-TEST_CASE(Symbol) {
+VM_TEST_CASE(Symbol) {
   const String& one = String::Handle(Symbols::New("Eins"));
   EXPECT(one.IsSymbol());
   const String& two = String::Handle(Symbols::New("Zwei"));
@@ -1881,7 +1881,7 @@ TEST_CASE(Symbol) {
 }
 
 
-TEST_CASE(SymbolUnicode) {
+VM_TEST_CASE(SymbolUnicode) {
   uint16_t monkey_utf16[] = { 0xd83d, 0xdc35 };  // Unicode Monkey Face.
   String& monkey = String::Handle(Symbols::FromUTF16(monkey_utf16, 2));
   EXPECT(monkey.IsSymbol());
@@ -1903,13 +1903,13 @@ TEST_CASE(SymbolUnicode) {
 }
 
 
-TEST_CASE(Bool) {
+VM_TEST_CASE(Bool) {
   EXPECT(Bool::True().value());
   EXPECT(!Bool::False().value());
 }
 
 
-TEST_CASE(Array) {
+VM_TEST_CASE(Array) {
   const int kArrayLen = 5;
   const Array& array = Array::Handle(Array::New(kArrayLen));
   EXPECT_EQ(kArrayLen, array.Length());
@@ -2056,7 +2056,7 @@ TEST_CASE(Int8ListLengthMaxElements) {
 }
 
 
-TEST_CASE(StringCodePointIterator) {
+VM_TEST_CASE(StringCodePointIterator) {
   const String& str0 = String::Handle(String::New(""));
   String::CodePointIterator it0(str0);
   EXPECT(!it0.Next());
@@ -2111,7 +2111,7 @@ TEST_CASE(StringCodePointIterator) {
 }
 
 
-TEST_CASE(StringCodePointIteratorRange) {
+VM_TEST_CASE(StringCodePointIteratorRange) {
   const String& str = String::Handle(String::New("foo bar baz"));
 
   String::CodePointIterator it0(str, 3, 0);
@@ -2128,7 +2128,7 @@ TEST_CASE(StringCodePointIteratorRange) {
 }
 
 
-TEST_CASE(GrowableObjectArray) {
+VM_TEST_CASE(GrowableObjectArray) {
   const int kArrayLen = 5;
   Smi& value = Smi::Handle();
   Smi& expected_value = Smi::Handle();
@@ -2250,7 +2250,7 @@ TEST_CASE(GrowableObjectArray) {
 }
 
 
-TEST_CASE(InternalTypedData) {
+VM_TEST_CASE(InternalTypedData) {
   uint8_t data[] = { 253, 254, 255, 0, 1, 2, 3, 4 };
   intptr_t data_length = ARRAY_SIZE(data);
 
@@ -2306,7 +2306,7 @@ TEST_CASE(InternalTypedData) {
 }
 
 
-TEST_CASE(ExternalTypedData) {
+VM_TEST_CASE(ExternalTypedData) {
   uint8_t data[] = { 253, 254, 255, 0, 1, 2, 3, 4 };
   intptr_t data_length = ARRAY_SIZE(data);
 
@@ -2407,7 +2407,7 @@ TEST_CASE(Script) {
 }
 
 
-TEST_CASE(EmbeddedScript) {
+VM_TEST_CASE(EmbeddedScript) {
   const char* url_chars = "builtin:test-case";
   const char* text =
       /* 1 */ "<!DOCTYPE html>\n"
@@ -2462,47 +2462,47 @@ TEST_CASE(EmbeddedScript) {
 
   intptr_t line, col;
   intptr_t fast_line;
-  script.GetTokenLocation(0, &line, &col);
+  script.GetTokenLocation(TokenPosition(0), &line, &col);
   EXPECT_EQ(first_dart_line, line);
   EXPECT_EQ(col, col_offset + 1);
 
   // We allow asking for only the line number, which only scans the token stream
   // instead of rescanning the script.
-  script.GetTokenLocation(0, &fast_line, NULL);
+  script.GetTokenLocation(TokenPosition(0), &fast_line, NULL);
   EXPECT_EQ(line, fast_line);
 
-  script.GetTokenLocation(5, &line, &col);  // Token 'return'
+  script.GetTokenLocation(TokenPosition(5), &line, &col);  // Token 'return'
   EXPECT_EQ(4, line);  // 'return' is in line 4.
   EXPECT_EQ(5, col);   // Four spaces before 'return'.
 
   // We allow asking for only the line number, which only scans the token stream
   // instead of rescanning the script.
-  script.GetTokenLocation(5, &fast_line, NULL);
+  script.GetTokenLocation(TokenPosition(5), &fast_line, NULL);
   EXPECT_EQ(line, fast_line);
 
-  intptr_t first_idx, last_idx;
+  TokenPosition first_idx, last_idx;
   script.TokenRangeAtLine(3, &first_idx, &last_idx);
-  EXPECT_EQ(0, first_idx);  // Token 'main' is first token.
-  EXPECT_EQ(3, last_idx);   // Token { is last token.
+  EXPECT_EQ(0, first_idx.value());  // Token 'main' is first token.
+  EXPECT_EQ(3, last_idx.value());   // Token { is last token.
   script.TokenRangeAtLine(4, &first_idx, &last_idx);
-  EXPECT_EQ(5, first_idx);  // Token 'return' is first token.
-  EXPECT_EQ(7, last_idx);   // Token ; is last token.
+  EXPECT_EQ(5, first_idx.value());  // Token 'return' is first token.
+  EXPECT_EQ(7, last_idx.value());   // Token ; is last token.
   script.TokenRangeAtLine(5, &first_idx, &last_idx);
-  EXPECT_EQ(9, first_idx);  // Token } is first and only token.
-  EXPECT_EQ(9, last_idx);
+  EXPECT_EQ(9, first_idx.value());  // Token } is first and only token.
+  EXPECT_EQ(9, last_idx.value());
   script.TokenRangeAtLine(1, &first_idx, &last_idx);
-  EXPECT_EQ(0, first_idx);
-  EXPECT_EQ(3, last_idx);
+  EXPECT_EQ(0, first_idx.value());
+  EXPECT_EQ(3, last_idx.value());
   script.TokenRangeAtLine(6, &first_idx, &last_idx);
-  EXPECT_EQ(-1, first_idx);
-  EXPECT_EQ(-1, last_idx);
+  EXPECT_EQ(-1, first_idx.value());
+  EXPECT_EQ(-1, last_idx.value());
   script.TokenRangeAtLine(1000, &first_idx, &last_idx);
-  EXPECT_EQ(-1, first_idx);
-  EXPECT_EQ(-1, last_idx);
+  EXPECT_EQ(-1, first_idx.value());
+  EXPECT_EQ(-1, last_idx.value());
 }
 
 
-TEST_CASE(Context) {
+VM_TEST_CASE(Context) {
   const int kNumVariables = 5;
   const Context& parent_context = Context::Handle(Context::New(0));
   const Context& context = Context::Handle(Context::New(kNumVariables));
@@ -2525,7 +2525,7 @@ TEST_CASE(Context) {
 }
 
 
-TEST_CASE(ContextScope) {
+VM_TEST_CASE(ContextScope) {
   const intptr_t parent_scope_function_level = 0;
   LocalScope* parent_scope =
       new LocalScope(NULL, parent_scope_function_level, 0);
@@ -2537,17 +2537,17 @@ TEST_CASE(ContextScope) {
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
   const String& a = String::ZoneHandle(Symbols::New("a"));
   LocalVariable* var_a =
-      new LocalVariable(Token::kNoSourcePos, a, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource, a, dynamic_type);
   parent_scope->AddVariable(var_a);
 
   const String& b = String::ZoneHandle(Symbols::New("b"));
   LocalVariable* var_b =
-      new LocalVariable(Token::kNoSourcePos, b, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource, b, dynamic_type);
   local_scope->AddVariable(var_b);
 
   const String& c = String::ZoneHandle(Symbols::New("c"));
   LocalVariable* var_c =
-      new LocalVariable(Token::kNoSourcePos, c, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource, c, dynamic_type);
   parent_scope->AddVariable(var_c);
 
   bool test_only = false;  // Please, insert alias.
@@ -2612,7 +2612,7 @@ TEST_CASE(ContextScope) {
 }
 
 
-TEST_CASE(Closure) {
+VM_TEST_CASE(Closure) {
   // Allocate the class first.
   const String& class_name = String::Handle(Symbols::New("MyClass"));
   const Script& script = Script::Handle();
@@ -2623,13 +2623,15 @@ TEST_CASE(Closure) {
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New("foo_papa"));
   parent = Function::New(parent_name, RawFunction::kRegularFunction,
-                         false, false, false, false, false, cls, 0);
+                         false, false, false, false, false, cls,
+                         TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
 
   Function& function = Function::Handle();
   const String& function_name = String::Handle(Symbols::New("foo"));
-  function = Function::NewClosureFunction(function_name, parent, 0);
+  function = Function::NewClosureFunction(
+      function_name, parent, TokenPosition::kMinSource);
   const Closure& closure = Closure::Handle(Closure::New(function, context));
   const Class& closure_class = Class::Handle(closure.clazz());
   EXPECT_EQ(closure_class.id(), kClosureCid);
@@ -2640,7 +2642,7 @@ TEST_CASE(Closure) {
 }
 
 
-TEST_CASE(ObjectPrinting) {
+VM_TEST_CASE(ObjectPrinting) {
   // Simple Smis.
   EXPECT_STREQ("2", Smi::Handle(Smi::New(2)).ToCString());
   EXPECT_STREQ("-15", Smi::Handle(Smi::New(-15)).ToCString());
@@ -2659,7 +2661,7 @@ TEST_CASE(ObjectPrinting) {
 }
 
 
-TEST_CASE(CheckedHandle) {
+VM_TEST_CASE(CheckedHandle) {
   // Ensure that null handles have the correct C++ vtable setup.
   const String& str1 = String::Handle();
   EXPECT(str1.IsString());
@@ -2692,12 +2694,13 @@ static RawFunction* CreateFunction(const char* name) {
   owner_class.set_library(owner_library);
   const String& function_name = String::ZoneHandle(Symbols::New(name));
   return Function::New(function_name, RawFunction::kRegularFunction,
-                       true, false, false, false, false, owner_class, 0);
+                       true, false, false, false, false, owner_class,
+                       TokenPosition::kMinSource);
 }
 
 
 // Test for Code and Instruction object creation.
-TEST_CASE(Code) {
+VM_TEST_CASE(Code) {
   extern void GenerateIncrement(Assembler* assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
@@ -2715,7 +2718,7 @@ TEST_CASE(Code) {
 
 // Test for immutability of generated instructions. The test crashes with a
 // segmentation fault when writing into it.
-TEST_CASE(CodeImmutability) {
+VM_TEST_CASE(CodeImmutability) {
   extern void GenerateIncrement(Assembler* assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
@@ -2737,7 +2740,7 @@ TEST_CASE(CodeImmutability) {
 
 
 // Test for Embedded String object in the instructions.
-TEST_CASE(EmbedStringInCode) {
+VM_TEST_CASE(EmbedStringInCode) {
   extern void GenerateEmbedStringInCode(Assembler* assembler, const char* str);
   const char* kHello = "Hello World!";
   word expected_length = static_cast<word>(strlen(kHello));
@@ -2760,7 +2763,7 @@ TEST_CASE(EmbedStringInCode) {
 
 
 // Test for Embedded Smi object in the instructions.
-TEST_CASE(EmbedSmiInCode) {
+VM_TEST_CASE(EmbedSmiInCode) {
   extern void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value);
   const intptr_t kSmiTestValue = 5;
   Assembler _assembler_;
@@ -2777,7 +2780,7 @@ TEST_CASE(EmbedSmiInCode) {
 
 #if defined(ARCH_IS_64_BIT)
 // Test for Embedded Smi object in the instructions.
-TEST_CASE(EmbedSmiIn64BitCode) {
+VM_TEST_CASE(EmbedSmiIn64BitCode) {
   extern void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value);
   const intptr_t kSmiTestValue = DART_INT64_C(5) << 32;
   Assembler _assembler_;
@@ -2793,7 +2796,7 @@ TEST_CASE(EmbedSmiIn64BitCode) {
 #endif  // ARCH_IS_64_BIT
 
 
-TEST_CASE(ExceptionHandlers) {
+VM_TEST_CASE(ExceptionHandlers) {
   const int kNumEntries = 4;
   // Add an exception handler table to the code.
   ExceptionHandlers& exception_handlers = ExceptionHandlers::Handle();
@@ -2831,16 +2834,22 @@ TEST_CASE(ExceptionHandlers) {
 }
 
 
-TEST_CASE(PcDescriptors) {
+VM_TEST_CASE(PcDescriptors) {
   DescriptorList* builder = new DescriptorList(0);
 
   // kind, pc_offset, deopt_id, token_pos, try_index
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 1, 20, 1);
-  builder->AddDescriptor(RawPcDescriptors::kDeopt, 20, 2, 30, 0);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 30, 3, 40, 1);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 4, 40, 2);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 5, 80, 3);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 80, 6, 150, 3);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         10, 1, TokenPosition(20), 1);
+  builder->AddDescriptor(RawPcDescriptors::kDeopt,
+                         20, 2, TokenPosition(30), 0);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         30, 3, TokenPosition(40), 1);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         10, 4, TokenPosition(40), 2);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         10, 5, TokenPosition(80), 3);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         80, 6, TokenPosition(150), 3);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
@@ -2857,47 +2866,53 @@ TEST_CASE(PcDescriptors) {
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(20, iter.TokenPos());
+  EXPECT_EQ(20, iter.TokenPos().value());
   EXPECT_EQ(1, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(10), iter.PcOffset());
   EXPECT_EQ(1, iter.DeoptId());
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(30, iter.TokenPos());
+  EXPECT_EQ(30, iter.TokenPos().value());
   EXPECT_EQ(RawPcDescriptors::kDeopt, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(40, iter.TokenPos());
+  EXPECT_EQ(40, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(40, iter.TokenPos());
+  EXPECT_EQ(40, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(80, iter.TokenPos());
+  EXPECT_EQ(80, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(150, iter.TokenPos());
+  EXPECT_EQ(150, iter.TokenPos().value());
 
   EXPECT_EQ(3, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(80), iter.PcOffset());
-  EXPECT_EQ(150, iter.TokenPos());
+  EXPECT_EQ(150, iter.TokenPos().value());
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
   EXPECT_EQ(false, iter.MoveNext());
 }
 
 
-TEST_CASE(PcDescriptorsLargeDeltas) {
+VM_TEST_CASE(PcDescriptorsLargeDeltas) {
   DescriptorList* builder = new DescriptorList(0);
 
   // kind, pc_offset, deopt_id, token_pos, try_index
-  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 1, 200, 1);
-  builder->AddDescriptor(RawPcDescriptors::kDeopt, 200, 2, 300, 0);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 300, 3, 400, 1);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 4, 0, 2);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 5, 800, 3);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 800, 6, 150, 3);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         100, 1, TokenPosition(200), 1);
+  builder->AddDescriptor(RawPcDescriptors::kDeopt,
+                         200, 2, TokenPosition(300), 0);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         300, 3, TokenPosition(400), 1);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         100, 4, TokenPosition(0), 2);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         100, 5, TokenPosition(800), 3);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         800, 6, TokenPosition(150), 3);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
@@ -2914,31 +2929,31 @@ TEST_CASE(PcDescriptorsLargeDeltas) {
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(200, iter.TokenPos());
+  EXPECT_EQ(200, iter.TokenPos().value());
   EXPECT_EQ(1, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(100), iter.PcOffset());
   EXPECT_EQ(1, iter.DeoptId());
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(300, iter.TokenPos());
+  EXPECT_EQ(300, iter.TokenPos().value());
   EXPECT_EQ(RawPcDescriptors::kDeopt, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(400, iter.TokenPos());
+  EXPECT_EQ(400, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(0, iter.TokenPos());
+  EXPECT_EQ(0, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(800, iter.TokenPos());
+  EXPECT_EQ(800, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(150, iter.TokenPos());
+  EXPECT_EQ(150, iter.TokenPos().value());
 
   EXPECT_EQ(3, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(800), iter.PcOffset());
-  EXPECT_EQ(150, iter.TokenPos());
+  EXPECT_EQ(150, iter.TokenPos().value());
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
   EXPECT_EQ(false, iter.MoveNext());
@@ -2958,12 +2973,12 @@ static RawField* CreateTestField(const char* name) {
   const String& field_name = String::Handle(Symbols::New(name));
   const Field& field =
       Field::Handle(Field::New(field_name, true, false, false, true, cls,
-          Object::dynamic_type(), 0));
+          Object::dynamic_type(), TokenPosition::kMinSource));
   return field.raw();
 }
 
 
-TEST_CASE(ClassDictionaryIterator) {
+VM_TEST_CASE(ClassDictionaryIterator) {
   Class& ae66 = Class::ZoneHandle(CreateTestClass("Ae6/6"));
   Class& re44 = Class::ZoneHandle(CreateTestClass("Re4/4"));
   Field& ce68 = Field::ZoneHandle(CreateTestField("Ce6/8"));
@@ -3003,11 +3018,11 @@ static RawFunction* GetDummyTarget(const char* name) {
                        is_external,
                        is_native,
                        cls,
-                       0);
+                       TokenPosition::kMinSource);
 }
 
 
-TEST_CASE(ICData) {
+VM_TEST_CASE(ICData) {
   Function& function = Function::Handle(GetDummyTarget("Bern"));
   const intptr_t id = 12;
   const intptr_t num_args_tested = 1;
@@ -3079,7 +3094,7 @@ TEST_CASE(ICData) {
 }
 
 
-TEST_CASE(SubtypeTestCache) {
+VM_TEST_CASE(SubtypeTestCache) {
   String& class_name = String::Handle(Symbols::New("EmptyClass"));
   Script& script = Script::Handle();
   const Class& empty_class =
@@ -3105,7 +3120,7 @@ TEST_CASE(SubtypeTestCache) {
 }
 
 
-TEST_CASE(FieldTests) {
+VM_TEST_CASE(FieldTests) {
   const String& f = String::Handle(String::New("oneField"));
   const String& getter_f = String::Handle(Field::GetterName(f));
   const String& setter_f = String::Handle(Field::SetterName(f));
@@ -3128,7 +3143,7 @@ TEST_CASE(FieldTests) {
 bool EqualsIgnoringPrivate(const String& name, const String& private_name);
 
 
-TEST_CASE(EqualsIgnoringPrivate) {
+VM_TEST_CASE(EqualsIgnoringPrivate) {
   String& mangled_name = String::Handle();
   String& bare_name = String::Handle();
 
@@ -3261,7 +3276,7 @@ TEST_CASE(EqualsIgnoringPrivate) {
 }
 
 
-TEST_CASE(ArrayNew_Overflow_Crash) {
+VM_TEST_CASE(ArrayNew_Overflow_Crash) {
   Array::Handle(Array::New(Array::kMaxElements + 1));
 }
 
@@ -3327,7 +3342,7 @@ TEST_CASE(StackTraceFormat) {
 }
 
 
-TEST_CASE(WeakProperty_PreserveCrossGen) {
+VM_TEST_CASE(WeakProperty_PreserveCrossGen) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   {
@@ -3439,7 +3454,7 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
 }
 
 
-TEST_CASE(WeakProperty_PreserveRecurse) {
+VM_TEST_CASE(WeakProperty_PreserveRecurse) {
   // This used to end in an infinite recursion. Caused by scavenging the weak
   // property before scavenging the key.
   Isolate* isolate = Isolate::Current();
@@ -3462,7 +3477,7 @@ TEST_CASE(WeakProperty_PreserveRecurse) {
 }
 
 
-TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
+VM_TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   String& key = String::Handle();
@@ -3481,7 +3496,7 @@ TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
 }
 
 
-TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
+VM_TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   String& key1 = String::Handle();
@@ -3510,7 +3525,7 @@ TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
 }
 
 
-TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
+VM_TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
@@ -3537,7 +3552,7 @@ TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
 }
 
 
-TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
+VM_TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   String& key = String::Handle();
@@ -3556,7 +3571,7 @@ TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
 }
 
 
-TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
+VM_TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   String& key1 = String::Handle();
@@ -3585,7 +3600,7 @@ TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
 }
 
 
-TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
+VM_TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
@@ -3612,7 +3627,7 @@ TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
 }
 
 
-TEST_CASE(WeakProperty_ClearOne_NewSpace) {
+VM_TEST_CASE(WeakProperty_ClearOne_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   {
@@ -3633,7 +3648,7 @@ TEST_CASE(WeakProperty_ClearOne_NewSpace) {
 }
 
 
-TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
+VM_TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
@@ -3660,7 +3675,7 @@ TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
 }
 
 
-TEST_CASE(WeakProperty_ClearOne_OldSpace) {
+VM_TEST_CASE(WeakProperty_ClearOne_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   {
@@ -3681,7 +3696,7 @@ TEST_CASE(WeakProperty_ClearOne_OldSpace) {
 }
 
 
-TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
+VM_TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
@@ -3708,7 +3723,7 @@ TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
 }
 
 
-TEST_CASE(MirrorReference) {
+VM_TEST_CASE(MirrorReference) {
   const MirrorReference& reference =
       MirrorReference::Handle(MirrorReference::New(Object::Handle()));
   Object& initial_referent = Object::Handle(reference.referent());
@@ -3766,7 +3781,7 @@ static RawClass* GetClass(const Library& lib, const char* name) {
 }
 
 
-TEST_CASE(FindClosureIndex) {
+VM_TEST_CASE(FindClosureIndex) {
   // Allocate the class first.
   const String& class_name = String::Handle(Symbols::New("MyClass"));
   const Script& script = Script::Handle();
@@ -3777,13 +3792,15 @@ TEST_CASE(FindClosureIndex) {
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New("foo_papa"));
   parent = Function::New(parent_name, RawFunction::kRegularFunction,
-                         false, false, false, false, false, cls, 0);
+                         false, false, false, false, false, cls,
+                         TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
 
   Function& function = Function::Handle();
   const String& function_name = String::Handle(Symbols::New("foo"));
-  function = Function::NewClosureFunction(function_name, parent, 0);
+  function = Function::NewClosureFunction(function_name, parent,
+                                          TokenPosition::kMinSource);
   // Add closure function to class.
   iso->AddClosureFunction(function);
 
@@ -3802,7 +3819,7 @@ TEST_CASE(FindClosureIndex) {
 }
 
 
-TEST_CASE(FindInvocationDispatcherFunctionIndex) {
+VM_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   const String& class_name = String::Handle(Symbols::New("MyClass"));
   const Script& script = Script::Handle();
   const Class& cls = Class::Handle(CreateDummyClass(class_name, script));
@@ -3812,7 +3829,8 @@ TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New("foo_papa"));
   parent = Function::New(parent_name, RawFunction::kRegularFunction,
-                         false, false, false, false, false, cls, 0);
+                         false, false, false, false, false, cls,
+                         TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
   cls.Finalize();
@@ -4053,7 +4071,7 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
 }
 
 
-TEST_CASE(SpecialClassesHaveEmptyArrays) {
+VM_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   Class& cls = Class::Handle();
   Object& array = Object::Handle();
@@ -4108,7 +4126,7 @@ class ObjectAccumulator : public ObjectVisitor {
 };
 
 
-TEST_CASE(PrintJSON) {
+VM_TEST_CASE(PrintJSON) {
   Heap* heap = Isolate::Current()->heap();
   heap->CollectAllGarbage();
   GrowableArray<Object*> objects;
@@ -4122,7 +4140,7 @@ TEST_CASE(PrintJSON) {
 }
 
 
-TEST_CASE(PrintJSONPrimitives) {
+VM_TEST_CASE(PrintJSONPrimitives) {
   char buffer[1024];
   Isolate* isolate = Isolate::Current();
 
@@ -4266,7 +4284,7 @@ TEST_CASE(PrintJSONPrimitives) {
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_OneByteString\",\"_vmName\":\"\"},"
         "\"kind\":\"String\","
-        "\"id\":\"\",\"valueAsString\":\"dw\"}",
+        "\"id\":\"\",\"length\":2,\"valueAsString\":\"dw\"}",
         buffer);
   }
   // Array reference
@@ -4587,7 +4605,7 @@ static void CheckConcatAll(const String* data[], intptr_t n) {
 }
 
 
-TEST_CASE(Symbols_FromConcatAll) {
+VM_TEST_CASE(Symbols_FromConcatAll) {
   {
     const String* data[3] = { &Symbols::FallThroughError(),
                               &Symbols::Dot(),
@@ -4659,7 +4677,7 @@ struct TestResult {
 };
 
 
-TEST_CASE(String_IdentifierPrettyName) {
+VM_TEST_CASE(String_IdentifierPrettyName) {
   TestResult tests[] = {
     {"(dynamic, dynamic) => void", "(dynamic, dynamic) => void"},
     {"_List@915557746", "_List"},

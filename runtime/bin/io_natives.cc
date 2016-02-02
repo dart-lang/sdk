@@ -107,12 +107,12 @@ namespace bin {
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
   V(SecureSocket_Renegotiate, 4)                                               \
   V(SecurityContext_Allocate, 1)                                               \
-  V(SecurityContext_UsePrivateKey, 3)                                          \
+  V(SecurityContext_UsePrivateKeyBytes, 3)                                     \
   V(SecurityContext_SetAlpnProtocols, 3)                                       \
   V(SecurityContext_SetClientAuthorities, 2)                                   \
   V(SecurityContext_SetTrustedCertificates, 3)                                 \
   V(SecurityContext_TrustBuiltinRoots, 1)                                      \
-  V(SecurityContext_UseCertificateChain, 2)                                    \
+  V(SecurityContext_UseCertificateChainBytes, 2)                               \
   V(ServerSocket_Accept, 2)                                                    \
   V(ServerSocket_CreateBindListen, 6)                                          \
   V(Socket_CreateConnect, 3)                                                   \

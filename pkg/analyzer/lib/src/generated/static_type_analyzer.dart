@@ -466,10 +466,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         node.element as ExecutableElementImpl;
     DartType computedType = _computeStaticReturnTypeOfFunctionExpression(node);
     if (_strongMode) {
+      // In strong mode, we don't want to allow the function's return type to
+      // be bottom. If the surrounding context has a more precise type, we
+      // will push it down with inference, below. If not we want to use dynamic.
+      // TODO(jmesserly): should we  do this for the `null` literal always in
+      // strong mode, instead of handling it here?
+      if (computedType.isBottom) {
+        computedType = DynamicTypeImpl.instance;
+      }
+
       DartType functionType = InferenceContext.getType(node);
       if (functionType is FunctionType) {
         DartType returnType = functionType.returnType;
-        if ((computedType.isDynamic || computedType.isBottom) &&
+        if (computedType.isDynamic &&
             !(returnType.isDynamic || returnType.isBottom)) {
           computedType = returnType;
           _resolver.inferenceContext.recordInference(node, functionType);
@@ -718,7 +727,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     SimpleIdentifier methodNameNode = node.methodName;
     Element staticMethodElement = methodNameNode.staticElement;
     if (_strongMode) {
-      _inferMethodInvocation(node);
+      _inferMethodInvocationGeneric(node);
     }
     // Record types of the variable invoked as a function.
     if (staticMethodElement is VariableElement) {
@@ -726,8 +735,16 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       _resolver.recordPropagatedTypeIfBetter(methodNameNode, propagatedType);
     }
     // Record static return type of the static element.
-    DartType staticStaticType = _computeInvokeReturnType(node.staticInvokeType);
-    _recordStaticType(node, staticStaticType);
+    bool inferredStaticType = _strongMode &&
+        (_inferMethodInvocationObject(node) ||
+            _inferMethodInvocationInlineJS(node));
+
+    if (!inferredStaticType) {
+      DartType staticStaticType =
+          _computeInvokeReturnType(node.staticInvokeType);
+      _recordStaticType(node, staticStaticType);
+    }
+
     // Record propagated return type of the static element.
     DartType staticPropagatedType =
         _computePropagatedReturnType(staticMethodElement);
@@ -998,6 +1015,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (staticElement is VariableElement) {
       staticType = staticElement.type;
     }
+    if (_strongMode) {
+      staticType = _inferGenericInstantiationFromContext(
+          InferenceContext.getType(node), staticType);
+    }
     if (!(_strongMode &&
         _inferObjectAccess(node, staticType, prefixedIdentifier))) {
       _recordStaticType(prefixedIdentifier, staticType);
@@ -1127,6 +1148,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
+    if (_strongMode) {
+      staticType = _inferGenericInstantiationFromContext(
+          InferenceContext.getType(node), staticType);
+    }
     if (!(_strongMode && _inferObjectAccess(node, staticType, propertyName))) {
       _recordStaticType(propertyName, staticType);
       _recordStaticType(node, staticType);
@@ -1226,6 +1251,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       staticType = _typeProvider.typeType;
     } else {
       staticType = _dynamicType;
+    }
+    if (_strongMode) {
+      staticType = _inferGenericInstantiationFromContext(
+          InferenceContext.getType(node), staticType);
     }
     _recordStaticType(node, staticType);
     // TODO(brianwilkerson) I think we want to repeat the logic above using the
@@ -1845,16 +1874,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given a method invocation [node], attempt to infer a better
-   * type for the result.
-   */
-  bool _inferMethodInvocation(MethodInvocation node) {
-    return _inferMethodInvocationObject(node) ||
-        _inferMethodInvocationGeneric(node) ||
-        _inferMethodInvocationInlineJS(node);
-  }
-
-  /**
    * Given a generic method invocation [node], attempt to infer the method's
    * type variables, using the actual types of the arguments.
    */
@@ -1876,9 +1895,27 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Given an uninstantiated generic type, try to infer the instantiated generic
+   * type from the surrounding context.
+   */
+  DartType _inferGenericInstantiationFromContext(
+      DartType context, DartType type) {
+    TypeSystem ts = _typeSystem;
+    if (context is FunctionType &&
+        type is FunctionType &&
+        ts is StrongTypeSystemImpl) {
+      return ts.inferFunctionTypeInstantiation(_typeProvider, context, type);
+    }
+    return type;
+  }
+
+  /**
    * Given a method invocation [node], attempt to infer a better
    * type for the result if it is an inline JS invocation
    */
+  // TODO(jmesserly): we should remove this, and infer type from context, rather
+  // than try to understand the dart2js type grammar.
+  // (At the very least, we should lookup type name in the correct scope.)
   bool _inferMethodInvocationInlineJS(MethodInvocation node) {
     Element e = node.methodName.staticElement;
     if (e is FunctionElement &&
@@ -1905,6 +1942,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * type for the result if the target is dynamic and the method
    * being called is one of the object methods.
    */
+  // TODO(jmesserly): we should move this logic to ElementResolver.
+  // If we do it here, we won't have correct parameter elements set on the
+  // node's argumentList. (This likely affects only explicit calls to
+  // `Object.noSuchMethod`.)
   bool _inferMethodInvocationObject(MethodInvocation node) {
     // If we have a call like `toString()` or `libraryPrefix.toString()` don't
     // infer it.

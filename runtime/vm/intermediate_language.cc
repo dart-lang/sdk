@@ -127,7 +127,7 @@ static int LowestFirst(const intptr_t* a, const intptr_t* b) {
 CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
                                  const ICData& unary_checks,
-                                 intptr_t token_pos)
+                                 TokenPosition token_pos)
     : TemplateInstruction(deopt_id),
       unary_checks_(unary_checks),
       cids_(unary_checks.NumberOfChecks()),
@@ -420,7 +420,7 @@ const Field& LoadStaticFieldInstr::StaticField() const {
 }
 
 
-ConstantInstr::ConstantInstr(const Object& value, intptr_t token_pos)
+ConstantInstr::ConstantInstr(const Object& value, TokenPosition token_pos)
     : value_(value),
       token_pos_(token_pos) {
   // Check that the value is not an incorrect Integer representation.
@@ -2734,7 +2734,7 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
-                                   Token::kNoSourcePos);
+                                   TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -2760,7 +2760,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // code that matches backwards from the end of the pattern.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
-                                   Token::kNoSourcePos);
+                                   TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -2961,7 +2961,7 @@ void DropTempsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
+StrictCompareInstr::StrictCompareInstr(TokenPosition token_pos,
                                        Token::Kind kind,
                                        Value* left,
                                        Value* right,
@@ -3519,7 +3519,7 @@ InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     ZoneGrowableArray<Value*>* inputs,
     intptr_t deopt_id,
     MethodRecognizer::Kind recognized_kind,
-    intptr_t token_pos)
+    TokenPosition token_pos)
     : PureDefinition(deopt_id),
       inputs_(inputs),
       recognized_kind_(recognized_kind),

@@ -25,7 +25,7 @@ DECLARE_FLAG(bool, always_megamorphic_calls);
 
 RawString* Report::PrependSnippet(Kind kind,
                                   const Script& script,
-                                  intptr_t token_pos,
+                                  TokenPosition token_pos,
                                   bool report_after_token,
                                   const String& message) {
   const char* message_header;
@@ -41,7 +41,7 @@ RawString* Report::PrependSnippet(Kind kind,
   String& result = String::Handle();
   if (!script.IsNull()) {
     const String& script_url = String::Handle(script.url());
-    if (token_pos >= 0) {
+    if (token_pos.IsReal()) {
       intptr_t line, column, token_len;
       script.GetTokenLocation(token_pos, &line, &column, &token_len);
       if (report_after_token) {
@@ -110,7 +110,7 @@ void Report::LongJump(const Error& error) {
 
 
 void Report::LongJumpF(const Error& prev_error,
-                       const Script& script, intptr_t token_pos,
+                       const Script& script, TokenPosition token_pos,
                        const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -121,7 +121,7 @@ void Report::LongJumpF(const Error& prev_error,
 
 
 void Report::LongJumpV(const Error& prev_error,
-                       const Script& script, intptr_t token_pos,
+                       const Script& script, TokenPosition token_pos,
                        const char* format, va_list args) {
   const Error& error = Error::Handle(LanguageError::NewFormattedV(
       prev_error, script, token_pos, Report::AtLocation,
@@ -132,8 +132,11 @@ void Report::LongJumpV(const Error& prev_error,
 }
 
 
-void Report::MessageF(Kind kind, const Script& script, intptr_t token_pos,
-                      bool report_after_token, const char* format, ...) {
+void Report::MessageF(Kind kind,
+                      const Script& script,
+                      TokenPosition token_pos,
+                      bool report_after_token,
+                      const char* format, ...) {
   va_list args;
   va_start(args, format);
   MessageV(kind, script, token_pos, report_after_token, format, args);
@@ -143,7 +146,7 @@ void Report::MessageF(Kind kind, const Script& script, intptr_t token_pos,
 
 void Report::MessageV(Kind kind,
                       const Script& script,
-                      intptr_t token_pos,
+                      TokenPosition token_pos,
                       bool report_after_token,
                       const char* format, va_list args) {
   if (kind < kError) {
@@ -236,7 +239,7 @@ void Report::JSWarningFromFrame(StackFrame* caller_frame, const char* msg) {
                                          caller_frame->LookupDartCode());
   ASSERT(!caller_code.IsNull());
   const uword caller_pc = caller_frame->pc();
-  const intptr_t token_pos = caller_code.GetTokenIndexOfPC(caller_pc);
+  const TokenPosition token_pos = caller_code.GetTokenIndexOfPC(caller_pc);
   const Function& caller = Function::Handle(zone, caller_code.function());
   const Script& script = Script::Handle(zone, caller.script());
   MessageF(kJSWarning, script, token_pos, Report::AtLocation, "%s", msg);
@@ -244,7 +247,7 @@ void Report::JSWarningFromFrame(StackFrame* caller_frame, const char* msg) {
 
 
 void Report::TraceJSWarning(const Script& script,
-                            intptr_t token_pos,
+                            TokenPosition token_pos,
                             const String& message) {
   const int64_t micros = OS::GetCurrentTimeMicros();
   Isolate* isolate = Isolate::Current();

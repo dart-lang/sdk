@@ -39,6 +39,7 @@ void Benchmark::RunAll(const char* executable) {
 BENCHMARK(CorelibCompileAll) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+  TransitionNativeToVM transition(thread);
   Timer timer(true, "Compile all of Core lib benchmark");
   timer.Start();
   const Error& error = Error::Handle(Library::CompileAll());
@@ -55,6 +56,7 @@ BENCHMARK(CorelibCompileAll) {
 BENCHMARK(CorelibCompilerStats) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+  TransitionNativeToVM transition(thread);
   CompilerStats* stats = thread->isolate()->compiler_stats();
   ASSERT(stats != NULL);
   stats->EnableBenchmark();
@@ -78,7 +80,7 @@ BENCHMARK(CorelibIsolateStartup) {
   const int kNumIterations = 1000;
   Timer timer(true, "CorelibIsolateStartup");
   Isolate* isolate = thread->isolate();
-  Thread::ExitIsolate();
+  Dart_ExitIsolate();
   for (int i = 0; i < kNumIterations; i++) {
     timer.Start();
     TestCase::CreateTestIsolate();
@@ -86,7 +88,7 @@ BENCHMARK(CorelibIsolateStartup) {
     Dart_ShutdownIsolate();
   }
   benchmark->set_score(timer.TotalElapsedTime() / kNumIterations);
-  Thread::EnterIsolate(isolate);
+  Dart_EnterIsolate(reinterpret_cast<Dart_Isolate>(isolate));
 }
 
 
@@ -142,7 +144,7 @@ static Dart_NativeFunction bm_uda_lookup(Dart_Handle name,
                                          int argument_count,
                                          bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = false;
+  *auto_setup_scope = true;
   const char* cstr = NULL;
   Dart_Handle result = Dart_StringToCString(name, &cstr);
   EXPECT_VALID(result);
@@ -693,6 +695,7 @@ BENCHMARK(SerializeSmi) {
 
 
 BENCHMARK(SimpleMessage) {
+  TransitionNativeToVM transition(thread);
   const Array& array_object = Array::Handle(Array::New(2));
   array_object.SetAt(0, Integer::Handle(Smi::New(42)));
   array_object.SetAt(1, Object::Handle());

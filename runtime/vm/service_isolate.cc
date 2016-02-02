@@ -78,6 +78,18 @@ intptr_t ServiceIsolate::exit_message_length_ = 0;
 Monitor* ServiceIsolate::monitor_ = NULL;
 bool ServiceIsolate::initializing_ = true;
 bool ServiceIsolate::shutting_down_ = false;
+char* ServiceIsolate::server_address_ = NULL;
+
+void ServiceIsolate::SetServerAddress(const char* address) {
+  if (server_address_ != NULL) {
+    free(server_address_);
+    server_address_ = NULL;
+  }
+  if (address == NULL) {
+    return;
+  }
+  server_address_ = strdup(address);
+}
 
 
 bool ServiceIsolate::NameEquals(const char* name) {
@@ -466,6 +478,10 @@ void ServiceIsolate::Shutdown() {
     while (shutting_down_ && (port_ != ILLEGAL_PORT)) {
       ml.Wait();
     }
+  }
+  if (server_address_ != NULL) {
+    free(server_address_);
+    server_address_ = NULL;
   }
 }
 

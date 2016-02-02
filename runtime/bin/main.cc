@@ -425,6 +425,8 @@ static bool ProcessObserveOption(const char* option_value,
   }
 
   vm_options->AddArgument("--pause-isolates-on-exit");
+  vm_options->AddArgument("--pause-isolates-on-unhandled-exceptions");
+  vm_options->AddArgument("--warn-on-pause-with-no-debugger");
   return true;
 }
 
@@ -860,9 +862,11 @@ static void PrintUsage() {
 "--packages=<path>\n"
 "  Where to find a package spec file.\n"
 "--observe[=<port>[/<bind-address>]]\n"
-"  Enable the VM service and cause isolates to pause on exit (default port is\n"
-"  8181, default bind address is 127.0.0.1). With the default options,\n"
-"  Observatory will be available locally at http://127.0.0.1:8181/\n"
+"  The observe flag is used to run a program with a default set of options\n"
+"  for debugging under Observatory. With the default options, Observatory\n"
+"  will be available at http://127.0.0.1:8181/ (default port is 8181,\n"
+"  default bind address is 127.0.0.1).  Isolates will pause at exit and\n"
+"  when they throw unhandled exceptions.\n"
 "--version\n"
 "  Print the VM version.\n");
   } else {
@@ -878,9 +882,11 @@ static void PrintUsage() {
 "--packages=<path>\n"
 "  Where to find a package spec file.\n"
 "--observe[=<port>[/<bind-address>]]\n"
-"  Enable the VM service and cause isolates to pause on exit (default port is\n"
-"  8181, default bind address is 127.0.0.1). With the default options,\n"
-"  Observatory will be available locally at http://127.0.0.1:8181/\n"
+"  The observe flag is used to run a program with a default set of options\n"
+"  for debugging under Observatory. With the default options, Observatory\n"
+"  will be available at http://127.0.0.1:8181/ (default port is 8181,\n"
+"  default bind address is 127.0.0.1).  Isolates will pause at exit and\n"
+"  when they throw unhandled exceptions.\n"
 "--version\n"
 "  Print the VM version.\n"
 "\n"
@@ -890,9 +896,9 @@ static void PrintUsage() {
 "--trace-loading\n"
 "  enables tracing of library and script loading\n"
 "\n"
-"--enable-vm-service[:<port number>]\n"
+"--enable-vm-service[:<port>[/<bind-address>]]\n"
 "  enables the VM service and listens on specified port for connections\n"
-"  (default port number is 8181)\n"
+"  (default port number is 8181, default bind address is 127.0.0.1).\n"
 "\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");

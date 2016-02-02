@@ -264,7 +264,7 @@ class BlockBuilder : public ValueObject {
                          SPREG));
   }
 
-  intptr_t TokenPos() {
+  TokenPosition TokenPos() {
     return flow_graph_->function().token_pos();
   }
 
@@ -294,7 +294,7 @@ static void PrepareIndexedOp(BlockBuilder* builder,
                              Definition* array,
                              Definition* index,
                              intptr_t length_offset) {
-  intptr_t token_pos = builder->TokenPos();
+  TokenPosition token_pos = builder->TokenPos();
   builder->AddInstruction(
       new CheckSmiInstr(new Value(index),
                         Thread::kNoDeoptId,
@@ -304,7 +304,7 @@ static void PrepareIndexedOp(BlockBuilder* builder,
       new LoadFieldInstr(new Value(array),
                          length_offset,
                          Type::ZoneHandle(Type::SmiType()),
-                         Token::kNoSourcePos));
+                         TokenPosition::kNoSource));
   builder->AddInstruction(
       new CheckArrayBoundInstr(new Value(length),
                                new Value(index),

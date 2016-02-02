@@ -22,11 +22,12 @@ const WEB_SOCKET_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 const String HOST_NAME = 'localhost';
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
+List<int> readLocalFile(path) => (new File(localFile(path))).readAsBytesSync();
 
 SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+  ..useCertificateChainBytes(readLocalFile('certificates/server_chain.pem'))
+  ..usePrivateKeyBytes(readLocalFile('certificates/server_key.pem'),
+                         password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));

@@ -1799,8 +1799,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return null;
     }
     bool errorOccurred = false;
-    HashMap<DartObjectImpl, DartObjectImpl> map =
-        new HashMap<DartObjectImpl, DartObjectImpl>();
+    LinkedHashMap<DartObjectImpl, DartObjectImpl> map =
+        new LinkedHashMap<DartObjectImpl, DartObjectImpl>();
     for (MapLiteralEntry entry in node.entries) {
       DartObjectImpl keyResult = entry.key.accept(this);
       DartObjectImpl valueResult = entry.value.accept(this);

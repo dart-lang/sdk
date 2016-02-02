@@ -157,7 +157,6 @@ class Server {
             '${request.uri}\n$e\n');
       rethrow;
     }
-
   }
 
   Future startup() {
@@ -166,26 +165,29 @@ class Server {
       return new Future.value(this);
     }
 
+    var address = new InternetAddress(_ip);
     // Startup HTTP server.
-    return HttpServer.bind(_ip, _port).then((s) {
+    return HttpServer.bind(address, _port).then((s) {
       _server = s;
-      _server.listen(_requestHandler);
+      _server.listen(_requestHandler, cancelOnError: true);
       var ip = _server.address.address.toString();
+      var port = _server.port.toString();
       if (_displayMessages) {
-        var port = _server.port.toString();
         print('Observatory listening on http://$ip:$port');
       }
       // Server is up and running.
       _notifyServerState(ip, _server.port);
+      onServerAddressChange('http://$ip:$port');
       return this;
     }).catchError((e, st) {
       print('Could not start Observatory HTTP server:\n$e\n$st\n');
       _notifyServerState("", 0);
+      onServerAddressChange(null);
       return this;
     });
   }
 
-  close(bool force) {
+  Future cleanup(bool force) {
     if (_server == null) {
       return new Future.value(null);
     }
@@ -204,17 +206,19 @@ class Server {
     // Shutdown HTTP server and subscription.
     var ip = _server.address.address.toString();
     var port = _server.port.toString();
-    return close(forced).then((_) {
+    return cleanup(forced).then((_) {
       if (_displayMessages) {
         print('Observatory no longer listening on http://$ip:$port');
       }
       _server = null;
       _notifyServerState("", 0);
+      onServerAddressChange(null);
       return this;
     }).catchError((e, st) {
       _server = null;
       print('Could not shutdown Observatory HTTP server:\n$e\n$st\n');
       _notifyServerState("", 0);
+      onServerAddressChange(null);
       return this;
     });
   }

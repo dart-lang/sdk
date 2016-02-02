@@ -26,14 +26,16 @@ enum ReferenceKind {
   constructor,
 
   /**
-   * The entity is a static const field.
+   * The entity is a getter or setter inside a class.  Note: this is used in
+   * the case where a constant refers to a static const declared inside a
+   * class.
    */
-  constField,
+  propertyAccessor,
 
   /**
-   * The entity is a static method.
+   * The entity is a method.
    */
-  staticMethod,
+  method,
 
   /**
    * The `length` property access.
@@ -86,27 +88,21 @@ class _ReferenceKindReader extends fb.Reader<ReferenceKind> {
  */
 enum UnlinkedConstOperation {
   /**
-   * Push the value of the n-th constructor argument (where n is obtained from
-   * [UnlinkedConst.ints]) onto the stack.
-   */
-  pushArgument,
-
-  /**
    * Push the next value from [UnlinkedConst.ints] (a 32-bit unsigned integer)
    * onto the stack.
    *
    * Note that Dart supports integers larger than 32 bits; these are
-   * represented by composing 32 bit values using the [shiftOr] operation.
+   * represented by composing 32-bit values using the [pushLongInt] operation.
    */
   pushInt,
 
   /**
-   * Pop the top value off the stack, which should be an integer.  Multiply it
-   * by 2^32, "or" in the next value from [UnlinkedConst.ints] (which is
-   * interpreted as a 32-bit unsigned integer), and push the result back onto
-   * the stack.
+   * Get the number of components from [UnlinkedConst.ints], then do this number
+   * of times the following operations: multiple the current value by 2^32, "or"
+   * it with the next value in [UnlinkedConst.ints]. The initial value is zero.
+   * Push the result into the stack.
    */
-  shiftOr,
+  pushLongInt,
 
   /**
    * Push the next value from [UnlinkedConst.doubles] (a double precision
@@ -140,8 +136,8 @@ enum UnlinkedConstOperation {
   concatenate,
 
   /**
-   * Pop the top value from the stack which should be string, convert it to
-   * a symbol, and push it back onto the stack.
+   * Get the next value from [UnlinkedConst.strings], convert it to a symbol,
+   * and push it onto the stack.
    */
   makeSymbol,
 
@@ -227,10 +223,14 @@ enum UnlinkedConstOperation {
   /**
    * Pop the top 2 values from the stack, evaluate `v1 == v2`, and push the
    * result back onto the stack.
-   *
-   * This is also used to represent `v1 != v2`, by composition with [not].
    */
   equal,
+
+  /**
+   * Pop the top 2 values from the stack, evaluate `v1 != v2`, and push the
+   * result back onto the stack.
+   */
+  notEqual,
 
   /**
    * Pop the top value from the stack, compute its boolean negation, and push
@@ -455,6 +455,7 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements EntityRef 
   int _slot;
   int _reference;
   int _paramReference;
+  List<int> _implicitFunctionTypeIndices;
   List<EntityRefBuilder> _typeArguments;
 
   @override
@@ -515,6 +516,37 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements EntityRef 
   }
 
   @override
+  List<int> get implicitFunctionTypeIndices => _implicitFunctionTypeIndices ??= <int>[];
+
+  /**
+   * If this is a reference to a function type implicitly defined by a
+   * function-typed parameter, a list of zero-based indices indicating the path
+   * from the entity referred to by [reference] to the appropriate type
+   * parameter.  Otherwise the empty list.
+   *
+   * If there are N indices in this list, then the entity being referred to is
+   * the function type implicitly defined by a function-typed parameter of a
+   * function-typed parameter, to N levels of nesting.  The first index in the
+   * list refers to the outermost level of nesting; for example if [reference]
+   * refers to the entity defined by:
+   *
+   *     void f(x, void g(y, z, int h(String w))) { ... }
+   *
+   * Then to refer to the function type implicitly defined by parameter `h`
+   * (which is parameter 2 of parameter 1 of `f`), then
+   * [implicitFunctionTypeIndices] should be [1, 2].
+   *
+   * Note that if the entity being referred to is a generic method inside a
+   * generic class, then the type arguments in [typeArguments] are applied
+   * first to the class and then to the method.
+   */
+  void set implicitFunctionTypeIndices(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _implicitFunctionTypeIndices = _value;
+  }
+
+  @override
   List<EntityRefBuilder> get typeArguments => _typeArguments ??= <EntityRefBuilder>[];
 
   /**
@@ -527,16 +559,21 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements EntityRef 
     _typeArguments = _value;
   }
 
-  EntityRefBuilder({int slot, int reference, int paramReference, List<EntityRefBuilder> typeArguments})
+  EntityRefBuilder({int slot, int reference, int paramReference, List<int> implicitFunctionTypeIndices, List<EntityRefBuilder> typeArguments})
     : _slot = slot,
       _reference = reference,
       _paramReference = paramReference,
+      _implicitFunctionTypeIndices = implicitFunctionTypeIndices,
       _typeArguments = typeArguments;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
+    fb.Offset offset_implicitFunctionTypeIndices;
     fb.Offset offset_typeArguments;
+    if (!(_implicitFunctionTypeIndices == null || _implicitFunctionTypeIndices.isEmpty)) {
+      offset_implicitFunctionTypeIndices = fbBuilder.writeListUint32(_implicitFunctionTypeIndices);
+    }
     if (!(_typeArguments == null || _typeArguments.isEmpty)) {
       offset_typeArguments = fbBuilder.writeList(_typeArguments.map((b) => b.finish(fbBuilder)).toList());
     }
@@ -550,8 +587,11 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements EntityRef 
     if (_paramReference != null && _paramReference != 0) {
       fbBuilder.addUint32(2, _paramReference);
     }
+    if (offset_implicitFunctionTypeIndices != null) {
+      fbBuilder.addOffset(3, offset_implicitFunctionTypeIndices);
+    }
     if (offset_typeArguments != null) {
-      fbBuilder.addOffset(3, offset_typeArguments);
+      fbBuilder.addOffset(4, offset_typeArguments);
     }
     return fbBuilder.endTable();
   }
@@ -600,6 +640,30 @@ abstract class EntityRef extends base.SummaryClass {
   int get paramReference;
 
   /**
+   * If this is a reference to a function type implicitly defined by a
+   * function-typed parameter, a list of zero-based indices indicating the path
+   * from the entity referred to by [reference] to the appropriate type
+   * parameter.  Otherwise the empty list.
+   *
+   * If there are N indices in this list, then the entity being referred to is
+   * the function type implicitly defined by a function-typed parameter of a
+   * function-typed parameter, to N levels of nesting.  The first index in the
+   * list refers to the outermost level of nesting; for example if [reference]
+   * refers to the entity defined by:
+   *
+   *     void f(x, void g(y, z, int h(String w))) { ... }
+   *
+   * Then to refer to the function type implicitly defined by parameter `h`
+   * (which is parameter 2 of parameter 1 of `f`), then
+   * [implicitFunctionTypeIndices] should be [1, 2].
+   *
+   * Note that if the entity being referred to is a generic method inside a
+   * generic class, then the type arguments in [typeArguments] are applied
+   * first to the class and then to the method.
+   */
+  List<int> get implicitFunctionTypeIndices;
+
+  /**
    * If this is an instantiation of a generic type or generic executable, the
    * type arguments used to instantiate it.  Trailing type arguments of type
    * `dynamic` are omitted.
@@ -622,6 +686,7 @@ class _EntityRefImpl extends Object with _EntityRefMixin implements EntityRef {
   int _slot;
   int _reference;
   int _paramReference;
+  List<int> _implicitFunctionTypeIndices;
   List<EntityRef> _typeArguments;
 
   @override
@@ -643,8 +708,14 @@ class _EntityRefImpl extends Object with _EntityRefMixin implements EntityRef {
   }
 
   @override
+  List<int> get implicitFunctionTypeIndices {
+    _implicitFunctionTypeIndices ??= const fb.ListReader<int>(const fb.Uint32Reader()).vTableGet(_bp, 3, const <int>[]);
+    return _implicitFunctionTypeIndices;
+  }
+
+  @override
   List<EntityRef> get typeArguments {
-    _typeArguments ??= const fb.ListReader<EntityRef>(const _EntityRefReader()).vTableGet(_bp, 3, const <EntityRef>[]);
+    _typeArguments ??= const fb.ListReader<EntityRef>(const _EntityRefReader()).vTableGet(_bp, 4, const <EntityRef>[]);
     return _typeArguments;
   }
 }
@@ -655,6 +726,7 @@ abstract class _EntityRefMixin implements EntityRef {
     "slot": slot,
     "reference": reference,
     "paramReference": paramReference,
+    "implicitFunctionTypeIndices": implicitFunctionTypeIndices,
     "typeArguments": typeArguments,
   };
 }
@@ -788,8 +860,8 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
   String get name => _name ??= '';
 
   /**
-   * Name of the exported entity.  TODO(paulberry): do we include the trailing
-   * '=' for a setter?
+   * Name of the exported entity.  For an exported setter, this name includes
+   * the trailing '='.
    */
   void set name(String _value) {
     assert(!_finished);
@@ -872,8 +944,8 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
 abstract class LinkedExportName extends base.SummaryClass {
 
   /**
-   * Name of the exported entity.  TODO(paulberry): do we include the trailing
-   * '=' for a setter?
+   * Name of the exported entity.  For an exported setter, this name includes
+   * the trailing '='.
    */
   String get name;
 
@@ -1215,6 +1287,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
   int _unit;
   int _numTypeParameters;
   String _name;
+  int _containingReference;
 
   @override
   int get dependency => _dependency ??= 0;
@@ -1222,6 +1295,9 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
   /**
    * Index into [LinkedLibrary.dependencies] indicating which imported library
    * declares the entity being referred to.
+   *
+   * Zero if this entity is contained within another entity (e.g. a class
+   * member).
    */
   void set dependency(int _value) {
     assert(!_finished);
@@ -1249,6 +1325,9 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * definition of the entity.  As with indices into [LinkedLibrary.units],
    * zero represents the defining compilation unit, and nonzero values
    * represent parts in the order of the corresponding `part` declarations.
+   *
+   * Zero if this entity is contained within another entity (e.g. a class
+   * member).
    */
   void set unit(int _value) {
     assert(!_finished);
@@ -1282,12 +1361,33 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
     _name = _value;
   }
 
-  LinkedReferenceBuilder({int dependency, ReferenceKind kind, int unit, int numTypeParameters, String name})
+  @override
+  int get containingReference => _containingReference ??= 0;
+
+  /**
+   * If this [LinkedReference] doesn't have an associated [UnlinkedReference],
+   * and the entity being referred to is contained within another entity, index
+   * of the containing entity.  This behaves similarly to
+   * [UnlinkedReference.prefixReference], however it is only used for class
+   * members, not for prefixed imports.
+   *
+   * Containing references must always point backward; that is, for all i, if
+   * LinkedUnit.references[i].containingReference != 0, then
+   * LinkedUnit.references[i].containingReference < i.
+   */
+  void set containingReference(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _containingReference = _value;
+  }
+
+  LinkedReferenceBuilder({int dependency, ReferenceKind kind, int unit, int numTypeParameters, String name, int containingReference})
     : _dependency = dependency,
       _kind = kind,
       _unit = unit,
       _numTypeParameters = numTypeParameters,
-      _name = name;
+      _name = name,
+      _containingReference = containingReference;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -1312,6 +1412,9 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
     if (offset_name != null) {
       fbBuilder.addOffset(4, offset_name);
     }
+    if (_containingReference != null && _containingReference != 0) {
+      fbBuilder.addUint32(5, _containingReference);
+    }
     return fbBuilder.endTable();
   }
 }
@@ -1324,6 +1427,9 @@ abstract class LinkedReference extends base.SummaryClass {
   /**
    * Index into [LinkedLibrary.dependencies] indicating which imported library
    * declares the entity being referred to.
+   *
+   * Zero if this entity is contained within another entity (e.g. a class
+   * member).
    */
   int get dependency;
 
@@ -1338,6 +1444,9 @@ abstract class LinkedReference extends base.SummaryClass {
    * definition of the entity.  As with indices into [LinkedLibrary.units],
    * zero represents the defining compilation unit, and nonzero values
    * represent parts in the order of the corresponding `part` declarations.
+   *
+   * Zero if this entity is contained within another entity (e.g. a class
+   * member).
    */
   int get unit;
 
@@ -1353,6 +1462,19 @@ abstract class LinkedReference extends base.SummaryClass {
    * string is "dynamic".  For the pseudo-type `void`, the string is "void".
    */
   String get name;
+
+  /**
+   * If this [LinkedReference] doesn't have an associated [UnlinkedReference],
+   * and the entity being referred to is contained within another entity, index
+   * of the containing entity.  This behaves similarly to
+   * [UnlinkedReference.prefixReference], however it is only used for class
+   * members, not for prefixed imports.
+   *
+   * Containing references must always point backward; that is, for all i, if
+   * LinkedUnit.references[i].containingReference != 0, then
+   * LinkedUnit.references[i].containingReference < i.
+   */
+  int get containingReference;
 }
 
 class _LinkedReferenceReader extends fb.TableReader<_LinkedReferenceImpl> {
@@ -1372,6 +1494,7 @@ class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements 
   int _unit;
   int _numTypeParameters;
   String _name;
+  int _containingReference;
 
   @override
   int get dependency {
@@ -1402,6 +1525,12 @@ class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements 
     _name ??= const fb.StringReader().vTableGet(_bp, 4, '');
     return _name;
   }
+
+  @override
+  int get containingReference {
+    _containingReference ??= const fb.Uint32Reader().vTableGet(_bp, 5, 0);
+    return _containingReference;
+  }
 }
 
 abstract class _LinkedReferenceMixin implements LinkedReference {
@@ -1412,6 +1541,7 @@ abstract class _LinkedReferenceMixin implements LinkedReference {
     "unit": unit,
     "numTypeParameters": numTypeParameters,
     "name": name,
+    "containingReference": containingReference,
   };
 }
 

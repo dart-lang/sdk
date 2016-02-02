@@ -23,12 +23,13 @@ namespace dart {
 ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const String& class_name = String::Handle(Symbols::New("ownerClass"));
   const Script& script = Script::Handle();
-  const Class& owner_class =
-      Class::Handle(Class::New(class_name, script, Token::kNoSourcePos));
+  const Class& owner_class = Class::Handle(
+      Class::New(class_name, script, TokenPosition::kNoSource));
   const String& function_name = String::Handle(Symbols::New("callerFunction"));
   const Function& function = Function::Handle(
       Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, false, owner_class, 0));
+                    true, false, false, false, false, owner_class,
+                    TokenPosition::kNoSource));
 
   const String& target_name = String::Handle(String::New("targetFunction"));
   const Array& args_descriptor =

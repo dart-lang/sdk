@@ -149,6 +149,9 @@ class FixProcessor {
         CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE) {
       _addFix_replaceWithConstInstanceCreation();
     }
+    if (errorCode == CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT) {
+      _addFix_addAsync_asyncFor();
+    }
     if (errorCode == CompileTimeErrorCode.INVALID_ANNOTATION) {
       if (node is Annotation) {
         Annotation annotation = node;
@@ -387,11 +390,21 @@ class FixProcessor {
       FunctionBody body = node.getAncestor((n) => n is FunctionBody);
       if (body != null && body.keyword == null) {
         _addReplaceEdit(rf.rangeStartLength(body, 0), 'async ');
+        _replaceReturnTypeWithFuture(body);
         _addFix(DartFixKind.ADD_ASYNC, []);
         return true;
       }
     }
     return false;
+  }
+
+  void _addFix_addAsync_asyncFor() {
+    FunctionBody body = node.getAncestor((n) => n is FunctionBody);
+    if (body != null && body.keyword == null) {
+      _addReplaceEdit(rf.rangeStartLength(body, 0), 'async ');
+      _replaceReturnTypeWithFuture(body);
+      _addFix(DartFixKind.ADD_ASYNC, []);
+    }
   }
 
   void _addFix_addMissingParameter() {
@@ -1346,19 +1359,9 @@ class FixProcessor {
   }
 
   void _addFix_illegalAsyncReturnType() {
-    InterfaceType futureType = context.typeProvider.futureType;
-    String futureTypeCode = utils.getTypeSource(futureType, librariesToImport);
     // prepare the existing type
     TypeName typeName = node.getAncestor((n) => n is TypeName);
-    String nodeCode = utils.getNodeText(typeName);
-    // wrap the existing type with Future
-    String returnTypeCode;
-    if (nodeCode == 'void') {
-      returnTypeCode = futureTypeCode;
-    } else {
-      returnTypeCode = '$futureTypeCode<$nodeCode>';
-    }
-    _addReplaceEdit(rf.rangeNode(typeName), returnTypeCode);
+    _replaceTypeWithFuture(typeName);
     // add proposal
     _addFix(DartFixKind.REPLACE_RETURN_TYPE_FUTURE, []);
   }
@@ -2774,6 +2777,40 @@ class FixProcessor {
       _addRemoveEdit(rf.rangeToken(parenthesized.rightParenthesis));
       expr = parenthesized;
     }
+  }
+
+  void _replaceReturnTypeWithFuture(AstNode node) {
+    for (; node != null; node = node.parent) {
+      if (node is FunctionDeclaration) {
+        _replaceTypeWithFuture(node.returnType);
+        return;
+      } else if (node is MethodDeclaration) {
+        _replaceTypeWithFuture(node.returnType);
+        return;
+      }
+    }
+  }
+
+  void _replaceTypeWithFuture(TypeName typeName) {
+    InterfaceType futureType = context.typeProvider.futureType;
+    // validate the type
+    DartType type = typeName?.type;
+    if (type == null ||
+        type.isDynamic ||
+        type is InterfaceType && type.element == futureType.element) {
+      return;
+    }
+    // prepare code for the types
+    String futureTypeCode = utils.getTypeSource(futureType, librariesToImport);
+    String nodeCode = utils.getNodeText(typeName);
+    // wrap the existing type with Future
+    String returnTypeCode;
+    if (nodeCode == 'void') {
+      returnTypeCode = futureTypeCode;
+    } else {
+      returnTypeCode = '$futureTypeCode<$nodeCode>';
+    }
+    _addReplaceEdit(rf.rangeNode(typeName), returnTypeCode);
   }
 
   void _updateFinderWithClassMembers(

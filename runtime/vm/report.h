@@ -6,6 +6,7 @@
 #define VM_REPORT_H_
 
 #include "vm/allocation.h"
+#include "vm/token_position.h"
 
 namespace dart {
 
@@ -36,17 +37,21 @@ class Report : AllStatic {
 
   // Concatenate and report an already formatted error and a new error message.
   static void LongJumpF(const Error& prev_error,
-                        const Script& script, intptr_t token_pos,
+                        const Script& script, TokenPosition token_pos,
                         const char* format, ...) PRINTF_ATTRIBUTE(4, 5);
   static void LongJumpV(const Error& prev_error,
-                        const Script& script, intptr_t token_pos,
+                        const Script& script, TokenPosition token_pos,
                         const char* format, va_list args);
 
   // Report a warning/jswarning/error/bailout message.
-  static void MessageF(Kind kind, const Script& script, intptr_t token_pos,
+  static void MessageF(Kind kind,
+                       const Script& script,
+                       TokenPosition token_pos,
                        bool report_after_token,
                        const char* format, ...) PRINTF_ATTRIBUTE(5, 6);
-  static void MessageV(Kind kind, const Script& script, intptr_t token_pos,
+  static void MessageV(Kind kind,
+                       const Script& script,
+                       TokenPosition token_pos,
                        bool report_after_token,
                        const char* format, va_list args);
 
@@ -71,14 +76,14 @@ class Report : AllStatic {
   // A null script means no source and a negative token_pos means no position.
   static RawString* PrependSnippet(Kind kind,
                                    const Script& script,
-                                   intptr_t token_pos,
+                                   TokenPosition token_pos,
                                    bool report_after_token,
                                    const String& message);
 
  private:
   // Emit a Javascript compatibility warning to the current trace buffer.
   static void TraceJSWarning(const Script& script,
-                             intptr_t token_pos,
+                             TokenPosition token_pos,
                              const String& message);
 
   DISALLOW_COPY_AND_ASSIGN(Report);

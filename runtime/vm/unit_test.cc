@@ -200,12 +200,15 @@ char* TestCase::BigintToHexValue(Dart_CObject* bigint) {
 void AssemblerTest::Assemble() {
   const String& function_name = String::ZoneHandle(Symbols::New(name_));
   const Class& cls = Class::ZoneHandle(
-      Class::New(function_name, Script::Handle(), 0));
+      Class::New(function_name,
+                 Script::Handle(),
+                 TokenPosition::kMinSource));
   const Library& lib = Library::ZoneHandle(Library::New(function_name));
   cls.set_library(lib);
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, false, cls, 0));
+                    true, false, false, false, false, cls,
+                    TokenPosition::kMinSource));
   code_ = Code::FinalizeCode(function, assembler_);
   if (FLAG_disassemble) {
     OS::Print("Code for test '%s' {\n", name_);
@@ -220,7 +223,7 @@ void AssemblerTest::Assemble() {
 
 CodeGenTest::CodeGenTest(const char* name)
   : function_(Function::ZoneHandle()),
-    node_sequence_(new SequenceNode(0,
+    node_sequence_(new SequenceNode(TokenPosition::kMinSource,
                                     new LocalScope(NULL, 0, 0))),
     default_parameter_values_(new ZoneGrowableArray<const Instance*> ()) {
   ASSERT(name != NULL);
@@ -228,10 +231,11 @@ CodeGenTest::CodeGenTest(const char* name)
   // Add function to a class and that class to the class dictionary so that
   // frame walking can be used.
   const Class& cls = Class::ZoneHandle(
-       Class::New(function_name, Script::Handle(), 0));
+       Class::New(function_name, Script::Handle(),
+                  TokenPosition::kMinSource));
   function_ = Function::New(
       function_name, RawFunction::kRegularFunction,
-      true, false, false, false, false, cls, 0);
+      true, false, false, false, false, cls, TokenPosition::kMinSource);
   function_.set_result_type(Type::Handle(Type::DynamicType()));
   const Array& functions = Array::Handle(Array::New(1));
   functions.SetAt(0, function_);

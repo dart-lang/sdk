@@ -864,7 +864,9 @@ static void GenerateSourceAndCheck(const Script& script) {
   // the same.
   const TokenStream& expected_tokens = TokenStream::Handle(script.tokens());
   TokenStream::Iterator expected_iterator(
-      expected_tokens, 0, TokenStream::Iterator::kAllTokens);
+      expected_tokens,
+      TokenPosition::kMinSource,
+      TokenStream::Iterator::kAllTokens);
   const String& str = String::Handle(expected_tokens.GenerateSource());
   const String& private_key = String::Handle(expected_tokens.PrivateKey());
   Scanner scanner(str, private_key);
@@ -872,9 +874,11 @@ static void GenerateSourceAndCheck(const Script& script) {
       TokenStream::Handle(TokenStream::New(scanner.GetStream(),
                                            private_key,
                                            false));
-  expected_iterator.SetCurrentPosition(0);
+  expected_iterator.SetCurrentPosition(TokenPosition::kMinSource);
   TokenStream::Iterator reconstructed_iterator(
-      reconstructed_tokens, 0, TokenStream::Iterator::kAllTokens);
+      reconstructed_tokens,
+      TokenPosition::kMinSource,
+      TokenStream::Iterator::kAllTokens);
   Token::Kind expected_kind = expected_iterator.CurrentTokenKind();
   Token::Kind reconstructed_kind = reconstructed_iterator.CurrentTokenKind();
   String& expected_literal = String::Handle();
@@ -971,8 +975,10 @@ TEST_CASE(SerializeScript) {
   const ExternalTypedData& serialized_data =
       ExternalTypedData::Handle(serialized_tokens.GetStream());
   EXPECT_EQ(expected_data.Length(), serialized_data.Length());
-  TokenStream::Iterator expected_iterator(expected_tokens, 0);
-  TokenStream::Iterator serialized_iterator(serialized_tokens, 0);
+  TokenStream::Iterator expected_iterator(expected_tokens,
+                                          TokenPosition::kMinSource);
+  TokenStream::Iterator serialized_iterator(serialized_tokens,
+                                            TokenPosition::kMinSource);
   Token::Kind expected_kind = expected_iterator.CurrentTokenKind();
   Token::Kind serialized_kind = serialized_iterator.CurrentTokenKind();
   while (expected_kind != Token::kEOS && serialized_kind != Token::kEOS) {
@@ -1120,7 +1126,7 @@ static void IterateScripts(const Library& lib) {
   }
 }
 
-TEST_CASE(GenerateSource) {
+VM_TEST_CASE(GenerateSource) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
@@ -1841,10 +1847,12 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
   EXPECT(Dart_IsString(crappy_string_result));
 
   {
-    DARTSCOPE(Thread::Current());
+    Thread* thread = Thread::Current();
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
 
     {
-      StackZone zone(Thread::Current());
+      StackZone zone(thread);
       Smi& smi = Smi::Handle();
       smi ^= Api::UnwrapHandle(smi_result);
       uint8_t* buffer;
@@ -1862,7 +1870,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       CheckEncodeDecodeMessage(root);
     }
     {
-      StackZone zone(Thread::Current());
+      StackZone zone(thread);
       Bigint& bigint = Bigint::Handle();
       bigint ^= Api::UnwrapHandle(bigint_result);
       uint8_t* buffer;
@@ -1933,7 +1941,8 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {
@@ -2057,7 +2066,8 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {
@@ -2296,7 +2306,8 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {
@@ -2521,7 +2532,8 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {
@@ -2762,7 +2774,8 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {

@@ -42,7 +42,7 @@ class ClassFinalizer : public AllStatic {
   // string and its arguments.
   static RawType* NewFinalizedMalformedType(const Error& prev_error,
                                             const Script& script,
-                                            intptr_t type_pos,
+                                            TokenPosition type_pos,
                                             const char* format, ...)
        PRINTF_ATTRIBUTE(4, 5);
 
@@ -166,11 +166,11 @@ class ClassFinalizer : public AllStatic {
                                 va_list args);
   static void ReportError(const Error& error);
   static void ReportError(const Class& cls,
-                          intptr_t token_pos,
+                          TokenPosition token_pos,
                           const char* format, ...) PRINTF_ATTRIBUTE(3, 4);
   static void ReportErrors(const Error& prev_error,
                            const Class& cls,
-                           intptr_t token_pos,
+                           TokenPosition token_pos,
                            const char* format, ...) PRINTF_ATTRIBUTE(4, 5);
 
   // Verify implicit offsets recorded in the VM for direct access to fields of

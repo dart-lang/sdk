@@ -6,6 +6,7 @@ library summary_resynthesizer;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -13,7 +14,10 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 
@@ -240,6 +244,338 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
 }
 
 /**
+ * Builder of [Expression]s from [UnlinkedConst]s.
+ */
+class _ConstExprBuilder {
+  final _LibraryResynthesizer resynthesizer;
+  final UnlinkedConst uc;
+
+  int intPtr = 0;
+  int doublePtr = 0;
+  int stringPtr = 0;
+  int refPtr = 0;
+  final List<Expression> stack = <Expression>[];
+
+  _ConstExprBuilder(this.resynthesizer, this.uc);
+
+  Expression get expr => stack.single;
+
+  Expression build() {
+    // TODO(scheglov) complete implementation
+    for (UnlinkedConstOperation operation in uc.operations) {
+      switch (operation) {
+        case UnlinkedConstOperation.pushNull:
+          _push(AstFactory.nullLiteral());
+          break;
+        // bool
+        case UnlinkedConstOperation.pushFalse:
+          _push(AstFactory.booleanLiteral(false));
+          break;
+        case UnlinkedConstOperation.pushTrue:
+          _push(AstFactory.booleanLiteral(true));
+          break;
+        // literals
+        case UnlinkedConstOperation.pushInt:
+          int value = uc.ints[intPtr++];
+          _push(AstFactory.integer(value));
+          break;
+        case UnlinkedConstOperation.pushLongInt:
+          int value = 0;
+          int count = uc.ints[intPtr++];
+          for (int i = 0; i < count; i++) {
+            int next = uc.ints[intPtr++];
+            value = value << 32 | next;
+          }
+          _push(AstFactory.integer(value));
+          break;
+        case UnlinkedConstOperation.pushDouble:
+          double value = uc.doubles[doublePtr++];
+          _push(AstFactory.doubleLiteral(value));
+          break;
+        case UnlinkedConstOperation.makeSymbol:
+          String component = uc.strings[stringPtr++];
+          _push(AstFactory.symbolLiteral([component]));
+          break;
+        // String
+        case UnlinkedConstOperation.pushString:
+          String value = uc.strings[stringPtr++];
+          _push(AstFactory.string2(value));
+          break;
+        case UnlinkedConstOperation.concatenate:
+          int count = uc.ints[intPtr++];
+          List<InterpolationElement> elements = <InterpolationElement>[];
+          for (int i = 0; i < count; i++) {
+            Expression expr = _pop();
+            InterpolationElement element = _newInterpolationElement(expr);
+            elements.insert(0, element);
+          }
+          _push(AstFactory.string(elements));
+          break;
+        // binary
+        case UnlinkedConstOperation.equal:
+          _pushBinary(TokenType.EQ_EQ);
+          break;
+        case UnlinkedConstOperation.notEqual:
+          _pushBinary(TokenType.BANG_EQ);
+          break;
+        case UnlinkedConstOperation.and:
+          _pushBinary(TokenType.AMPERSAND_AMPERSAND);
+          break;
+        case UnlinkedConstOperation.or:
+          _pushBinary(TokenType.BAR_BAR);
+          break;
+        case UnlinkedConstOperation.bitXor:
+          _pushBinary(TokenType.CARET);
+          break;
+        case UnlinkedConstOperation.bitAnd:
+          _pushBinary(TokenType.AMPERSAND);
+          break;
+        case UnlinkedConstOperation.bitOr:
+          _pushBinary(TokenType.BAR);
+          break;
+        case UnlinkedConstOperation.bitShiftLeft:
+          _pushBinary(TokenType.LT_LT);
+          break;
+        case UnlinkedConstOperation.bitShiftRight:
+          _pushBinary(TokenType.GT_GT);
+          break;
+        case UnlinkedConstOperation.add:
+          _pushBinary(TokenType.PLUS);
+          break;
+        case UnlinkedConstOperation.subtract:
+          _pushBinary(TokenType.MINUS);
+          break;
+        case UnlinkedConstOperation.multiply:
+          _pushBinary(TokenType.STAR);
+          break;
+        case UnlinkedConstOperation.divide:
+          _pushBinary(TokenType.SLASH);
+          break;
+        case UnlinkedConstOperation.floorDivide:
+          _pushBinary(TokenType.TILDE_SLASH);
+          break;
+        case UnlinkedConstOperation.modulo:
+          _pushBinary(TokenType.PERCENT);
+          break;
+        case UnlinkedConstOperation.greater:
+          _pushBinary(TokenType.GT);
+          break;
+        case UnlinkedConstOperation.greaterEqual:
+          _pushBinary(TokenType.GT_EQ);
+          break;
+        case UnlinkedConstOperation.less:
+          _pushBinary(TokenType.LT);
+          break;
+        case UnlinkedConstOperation.lessEqual:
+          _pushBinary(TokenType.LT_EQ);
+          break;
+        // prefix
+        case UnlinkedConstOperation.complement:
+          _pushPrefix(TokenType.TILDE);
+          break;
+        case UnlinkedConstOperation.negate:
+          _pushPrefix(TokenType.MINUS);
+          break;
+        case UnlinkedConstOperation.not:
+          _pushPrefix(TokenType.BANG);
+          break;
+        // conditional
+        case UnlinkedConstOperation.conditional:
+          Expression elseExpr = _pop();
+          Expression thenExpr = _pop();
+          Expression condition = _pop();
+          _push(
+              AstFactory.conditionalExpression(condition, thenExpr, elseExpr));
+          break;
+        // identical
+        case UnlinkedConstOperation.identical:
+          Expression second = _pop();
+          Expression first = _pop();
+          _push(AstFactory.methodInvocation(
+              null, 'identical', <Expression>[first, second]));
+          break;
+        // containers
+        case UnlinkedConstOperation.makeUntypedList:
+          _pushList(null);
+          break;
+        case UnlinkedConstOperation.makeTypedList:
+          TypeName itemType = _newTypeName();
+          _pushList(AstFactory.typeArgumentList(<TypeName>[itemType]));
+          break;
+        case UnlinkedConstOperation.makeUntypedMap:
+          _pushMap(null);
+          break;
+        case UnlinkedConstOperation.makeTypedMap:
+          TypeName keyType = _newTypeName();
+          TypeName valueType = _newTypeName();
+          _pushMap(AstFactory.typeArgumentList(<TypeName>[keyType, valueType]));
+          break;
+        case UnlinkedConstOperation.pushReference:
+          EntityRef ref = uc.references[refPtr++];
+          _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
+          if (info.element != null) {
+            SimpleIdentifier node = AstFactory.identifier3(info.name);
+            node.staticElement = info.element;
+            _push(node);
+          } else {
+            throw new StateError('Unsupported reference ${ref.toMap()}');
+          }
+          break;
+        case UnlinkedConstOperation.invokeConstructor:
+          _pushInstanceCreation();
+          break;
+        case UnlinkedConstOperation.length:
+          return AstFactory.nullLiteral();
+//          throw new StateError('Unsupported constant operation $operation');
+      }
+    }
+    return stack.single;
+  }
+
+  TypeName _buildTypeAst(DartType type) {
+    if (type is DynamicTypeImpl) {
+      TypeName node = AstFactory.typeName4('dynamic');
+      node.type = type;
+      (node.name as SimpleIdentifier).staticElement = type.element;
+      return node;
+    } else if (type is InterfaceType) {
+      List<TypeName> argumentNodes =
+          type.typeArguments.map(_buildTypeAst).toList();
+      TypeName node = AstFactory.typeName4(type.name, argumentNodes);
+      node.type = type;
+      (node.name as SimpleIdentifier).staticElement = type.element;
+      return node;
+    }
+    throw new StateError('Unsupported type $type');
+  }
+
+  InterpolationElement _newInterpolationElement(Expression expr) {
+    if (expr is SimpleStringLiteral) {
+      return new InterpolationString(expr.literal, expr.value);
+    } else {
+      return new InterpolationExpression(
+          TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION),
+          expr,
+          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+    }
+  }
+
+  /**
+   * Convert the next reference to the [DartType] and return the AST
+   * corresponding to this type.
+   */
+  TypeName _newTypeName() {
+    EntityRef typeRef = uc.references[refPtr++];
+    DartType type = resynthesizer.buildType(typeRef);
+    return _buildTypeAst(type);
+  }
+
+  Expression _pop() => stack.removeLast();
+
+  void _push(Expression expr) {
+    stack.add(expr);
+  }
+
+  void _pushBinary(TokenType operator) {
+    Expression right = _pop();
+    Expression left = _pop();
+    _push(AstFactory.binaryExpression(left, operator, right));
+  }
+
+  void _pushInstanceCreation() {
+    EntityRef ref = uc.references[refPtr++];
+    _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
+    // prepare ClassElement / ConstructorElement
+    String className;
+    ClassElement classElement;
+    String constructorName;
+    ConstructorElement constructorElement;
+    if (info.element is ConstructorElement) {
+      constructorName = info.name;
+      constructorElement = info.element;
+      className = info.enclosing.name;
+      classElement = info.enclosing.element as ClassElement;
+    } else if (info.element is ClassElement) {
+      className = info.name;
+      classElement = info.element;
+      constructorName = null;
+      constructorElement = new ConstructorElementHandle(
+          resynthesizer.summaryResynthesizer,
+          new ElementLocationImpl.con3(
+              classElement.location.components.toList()..add('')));
+    } else {
+      throw new StateError('Unsupported element for invokeConstructor '
+          '${info.element?.runtimeType}');
+    }
+    // prepare arguments
+    List<Expression> arguments;
+    {
+      int numNamedArgs = uc.ints[intPtr++];
+      int numPositionalArgs = uc.ints[intPtr++];
+      int numArgs = numNamedArgs + numPositionalArgs;
+      arguments = _removeTopItems(numArgs);
+      // add names to the named arguments
+      for (int i = 0; i < numNamedArgs; i++) {
+        String name = uc.strings[stringPtr++];
+        int index = numPositionalArgs + i;
+        arguments[index] = AstFactory.namedExpression2(name, arguments[index]);
+      }
+    }
+    // create TypeName
+    SimpleIdentifier typeNameNode = AstFactory.identifier3(className);
+    typeNameNode.staticElement = classElement;
+    TypeName typeNode = AstFactory.typeName3(typeNameNode);
+    // create ConstructorName
+    ConstructorName constructorNode;
+    if (constructorName != null) {
+      constructorNode = AstFactory.constructorName(typeNode, info.name);
+      constructorNode.name.staticElement = constructorElement;
+    } else {
+      constructorNode = AstFactory.constructorName(typeNode, null);
+    }
+    constructorNode.staticElement = constructorElement;
+    // create InstanceCreationExpression
+    InstanceCreationExpression instanceCreation = AstFactory
+        .instanceCreationExpression(Keyword.CONST, constructorNode, arguments);
+    instanceCreation.staticElement = constructorElement;
+    _push(instanceCreation);
+  }
+
+  void _pushList(TypeArgumentList typeArguments) {
+    int count = uc.ints[intPtr++];
+    List<Expression> elements = <Expression>[];
+    for (int i = 0; i < count; i++) {
+      elements.insert(0, _pop());
+    }
+    _push(AstFactory.listLiteral2(Keyword.CONST, typeArguments, elements));
+  }
+
+  void _pushMap(TypeArgumentList typeArguments) {
+    int count = uc.ints[intPtr++];
+    List<MapLiteralEntry> entries = <MapLiteralEntry>[];
+    for (int i = 0; i < count; i++) {
+      Expression value = _pop();
+      Expression key = _pop();
+      entries.insert(0, AstFactory.mapLiteralEntry2(key, value));
+    }
+    _push(AstFactory.mapLiteral(Keyword.CONST, typeArguments, entries));
+  }
+
+  void _pushPrefix(TokenType operator) {
+    Expression operand = _pop();
+    _push(AstFactory.prefixExpression(operator, operand));
+  }
+
+  List<Expression> _removeTopItems(int count) {
+    int start = stack.length - count;
+    int end = stack.length;
+    List<Expression> items = stack.getRange(start, end).toList();
+    stack.removeRange(start, end);
+    return items;
+  }
+}
+
+/**
  * An instance of [_LibraryResynthesizer] is responsible for resynthesizing the
  * elements in a single library from that library's summary.
  */
@@ -323,6 +659,12 @@ class _LibraryResynthesizer {
    * initializing formal parameters.
    */
   Map<String, FieldElementImpl> fields;
+
+  /**
+   * List of [_ReferenceInfo] objects describing the references in the current
+   * compilation unit.
+   */
+  List<_ReferenceInfo> referenceInfos;
 
   _LibraryResynthesizer(this.summaryResynthesizer, this.linkedLibrary,
       this.unlinkedUnits, this.librarySource) {
@@ -651,10 +993,9 @@ class _LibraryResynthesizer {
         !name.endsWith('=')) {
       name += '?';
     }
-    ElementLocationImpl location = getReferencedLocation(
-        linkedLibrary.dependencies[exportName.dependency],
-        exportName.unit,
-        name);
+    ElementLocationImpl location = new ElementLocationImpl.con3(
+        getReferencedLocationComponents(
+            exportName.dependency, exportName.unit, name));
     switch (exportName.kind) {
       case ReferenceKind.classOrEnum:
         return new ClassElementHandle(summaryResynthesizer, location);
@@ -667,8 +1008,8 @@ class _LibraryResynthesizer {
         return new PropertyAccessorElementHandle(
             summaryResynthesizer, location);
       case ReferenceKind.constructor:
-      case ReferenceKind.constField:
-      case ReferenceKind.staticMethod:
+      case ReferenceKind.propertyAccessor:
+      case ReferenceKind.method:
       case ReferenceKind.length:
       case ReferenceKind.prefix:
       case ReferenceKind.unresolved:
@@ -1005,72 +1346,19 @@ class _LibraryResynthesizer {
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
-          currentTypeParameters.length - type.paramReference].type;
+              currentTypeParameters.length - type.paramReference]
+          .type;
     } else {
-      LinkedReference referenceResolution =
-          linkedUnit.references[type.reference];
-      String name;
-      if (type.reference < unlinkedUnit.references.length) {
-        name = unlinkedUnit.references[type.reference].name;
-      } else {
-        name = referenceResolution.name;
-      }
-      ElementLocationImpl location;
-      if (referenceResolution.dependency != 0) {
-        location = getReferencedLocation(
-            linkedLibrary.dependencies[referenceResolution.dependency],
-            referenceResolution.unit,
-            name);
-      } else if (referenceResolution.kind == ReferenceKind.unresolved) {
-        return summaryResynthesizer.typeProvider.undefinedType;
-      } else if (name == 'dynamic') {
-        return summaryResynthesizer.typeProvider.dynamicType;
-      } else if (name == 'void') {
-        return VoidTypeImpl.instance;
-      } else {
-        String referencedLibraryUri = librarySource.uri.toString();
-        String partUri;
-        if (referenceResolution.unit != 0) {
-          String uri = unlinkedUnits[0].publicNamespace.parts[
-              referenceResolution.unit - 1];
-          Source partSource =
-              summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
-          partUri = partSource.uri.toString();
+      DartType getTypeArgument(int i) {
+        if (i < type.typeArguments.length) {
+          return buildType(type.typeArguments[i]);
         } else {
-          partUri = referencedLibraryUri;
-        }
-        location = new ElementLocationImpl.con3(
-            <String>[referencedLibraryUri, partUri, name]);
-      }
-      List<DartType> typeArguments = const <DartType>[];
-      if (referenceResolution.numTypeParameters != 0) {
-        typeArguments = <DartType>[];
-        for (int i = 0; i < referenceResolution.numTypeParameters; i++) {
-          if (i < type.typeArguments.length) {
-            typeArguments.add(buildType(type.typeArguments[i]));
-          } else {
-            typeArguments.add(summaryResynthesizer.typeProvider.dynamicType);
-          }
+          return summaryResynthesizer.typeProvider.dynamicType;
         }
       }
-      switch (referenceResolution.kind) {
-        case ReferenceKind.classOrEnum:
-          return new InterfaceTypeImpl.elementWithNameAndArgs(
-              new ClassElementHandle(summaryResynthesizer, location),
-              name,
-              typeArguments);
-        case ReferenceKind.typedef:
-          return new FunctionTypeImpl.elementWithNameAndArgs(
-              new FunctionTypeAliasElementHandle(
-                  summaryResynthesizer, location),
-              name,
-              typeArguments,
-              typeArguments.isNotEmpty);
-        default:
-          // TODO(paulberry): figure out how to handle this case (which should
-          // only occur in the event of erroneous code).
-          throw new UnimplementedError();
-      }
+      _ReferenceInfo referenceInfo = referenceInfos[type.reference];
+      return referenceInfo.buildType(
+          getTypeArgument, type.implicitFunctionTypeIndices);
     }
   }
 
@@ -1127,8 +1415,20 @@ class _LibraryResynthesizer {
   void buildVariable(UnlinkedVariable serializedVariable,
       [ElementHolder holder]) {
     if (holder == null) {
-      TopLevelVariableElementImpl element = new TopLevelVariableElementImpl(
-          serializedVariable.name, serializedVariable.nameOffset);
+      TopLevelVariableElementImpl element;
+      if (serializedVariable.constExpr != null) {
+        ConstTopLevelVariableElementImpl constElement =
+            new ConstTopLevelVariableElementImpl(
+                serializedVariable.name, serializedVariable.nameOffset);
+        element = constElement;
+        // TODO(scheglov) share const builder?
+        _ConstExprBuilder builder =
+            new _ConstExprBuilder(this, serializedVariable.constExpr);
+        constElement.constantInitializer = builder.build();
+      } else {
+        element = new TopLevelVariableElementImpl(
+            serializedVariable.name, serializedVariable.nameOffset);
+      }
       buildVariableCommonParts(element, serializedVariable);
       unitHolder.addTopLevelVariable(element);
       buildImplicitAccessors(element, unitHolder);
@@ -1169,31 +1469,124 @@ class _LibraryResynthesizer {
   }
 
   /**
-   * Build an [ElementLocationImpl] for the entity in the given [unit] of the
-   * given [dependency], having the given [name].
+   * Build the components of an [ElementLocationImpl] for the entity in the
+   * given [unit] of the dependency located at [dependencyIndex], and having
+   * the given [name].
    */
-  ElementLocationImpl getReferencedLocation(
-      LinkedDependency dependency, int unit, String name) {
+  List<String> getReferencedLocationComponents(
+      int dependencyIndex, int unit, String name) {
+    if (dependencyIndex == 0) {
+      String referencedLibraryUri = librarySource.uri.toString();
+      String partUri;
+      if (unit != 0) {
+        String uri = unlinkedUnits[0].publicNamespace.parts[unit - 1];
+        Source partSource =
+            summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
+        partUri = partSource.uri.toString();
+      } else {
+        partUri = referencedLibraryUri;
+      }
+      return <String>[referencedLibraryUri, partUri, name];
+    }
+    LinkedDependency dependency = linkedLibrary.dependencies[dependencyIndex];
     Source referencedLibrarySource = summaryResynthesizer.sourceFactory
         .resolveUri(librarySource, dependency.uri);
     String referencedLibraryUri = referencedLibrarySource.uri.toString();
-    // TODO(paulberry): consider changing Location format so that this is
-    // not necessary (2nd string in location should just be the unit
-    // number).
     String partUri;
     if (unit != 0) {
-      UnlinkedUnit referencedLibraryDefiningUnit =
-          summaryResynthesizer._getUnlinkedSummaryOrThrow(referencedLibraryUri);
-      String uri =
-          referencedLibraryDefiningUnit.publicNamespace.parts[unit - 1];
+      String uri = dependency.parts[unit - 1];
       Source partSource = summaryResynthesizer.sourceFactory
           .resolveUri(referencedLibrarySource, uri);
       partUri = partSource.uri.toString();
     } else {
       partUri = referencedLibraryUri;
     }
-    return new ElementLocationImpl.con3(
-        <String>[referencedLibraryUri, partUri, name]);
+    return <String>[referencedLibraryUri, partUri, name];
+  }
+
+  /**
+   * Populate [referenceInfos] with the correct information for the current
+   * compilation unit.
+   */
+  void populateReferenceInfos() {
+    int numLinkedReferences = linkedUnit.references.length;
+    int numUnlinkedReferences = unlinkedUnit.references.length;
+    referenceInfos = new List<_ReferenceInfo>(numLinkedReferences);
+    for (int i = 0; i < numLinkedReferences; i++) {
+      LinkedReference linkedReference = linkedUnit.references[i];
+      _ReferenceInfo enclosingInfo = null;
+      String name;
+      int containingReference;
+      if (i < numUnlinkedReferences) {
+        name = unlinkedUnit.references[i].name;
+        containingReference = unlinkedUnit.references[i].prefixReference;
+      } else {
+        name = linkedUnit.references[i].name;
+        containingReference = linkedUnit.references[i].containingReference;
+      }
+      Element element;
+      DartType type;
+      if (linkedReference.kind == ReferenceKind.unresolved) {
+        type = summaryResynthesizer.typeProvider.undefinedType;
+        element = type.element;
+      } else if (name == 'dynamic') {
+        type = summaryResynthesizer.typeProvider.dynamicType;
+        element = type.element;
+      } else if (name == 'void') {
+        type = VoidTypeImpl.instance;
+        element = type.element;
+      } else {
+        List<String> locationComponents;
+        if (containingReference != 0 &&
+            referenceInfos[containingReference].element is ClassElement) {
+          String identifier = _getElementIdentifier(name, linkedReference.kind);
+          enclosingInfo = referenceInfos[containingReference];
+          locationComponents =
+              enclosingInfo.element.location.components.toList();
+          locationComponents.add(identifier);
+        } else {
+          String identifier = _getElementIdentifier(name, linkedReference.kind);
+          locationComponents = getReferencedLocationComponents(
+              linkedReference.dependency, linkedReference.unit, identifier);
+        }
+        ElementLocation location =
+            new ElementLocationImpl.con3(locationComponents);
+        switch (linkedReference.kind) {
+          case ReferenceKind.classOrEnum:
+            element = new ClassElementHandle(summaryResynthesizer, location);
+            break;
+          case ReferenceKind.typedef:
+            element = new FunctionTypeAliasElementHandle(
+                summaryResynthesizer, location);
+            break;
+          case ReferenceKind.topLevelPropertyAccessor:
+            element = new PropertyAccessorElementHandle(
+                summaryResynthesizer, location);
+            break;
+          case ReferenceKind.constructor:
+            assert(location.components.length == 4);
+            element =
+                new ConstructorElementHandle(summaryResynthesizer, location);
+            break;
+          case ReferenceKind.propertyAccessor:
+            assert(location.components.length == 4);
+            element = new PropertyAccessorElementHandle(
+                summaryResynthesizer, location);
+            break;
+          case ReferenceKind.method:
+            assert(location.components.length == 4);
+            element = new MethodElementHandle(summaryResynthesizer, location);
+            break;
+          default:
+            // This is an element that doesn't (yet) need to be referred to
+            // directly, so don't bother populating an element for it.
+            // TODO(paulberry): add support for more kinds, as needed.
+            break;
+        }
+      }
+      referenceInfos[i] = new _ReferenceInfo(enclosingInfo, name, element, type,
+          linkedReference.numTypeParameters);
+    }
   }
 
   /**
@@ -1207,6 +1600,7 @@ class _LibraryResynthesizer {
     for (EntityRef t in linkedUnit.types) {
       linkedTypeMap[t.slot] = t;
     }
+    populateReferenceInfos();
     unitHolder = new ElementHolder();
     unlinkedUnit.classes.forEach(buildClass);
     unlinkedUnit.enums.forEach(buildEnum);
@@ -1247,5 +1641,147 @@ class _LibraryResynthesizer {
     linkedUnit = null;
     unlinkedUnit = null;
     linkedTypeMap = null;
+    referenceInfos = null;
+  }
+
+  /**
+   * If the given [kind] is a top-level or class member property accessor, and
+   * the given [name] does not end with `=`, i.e. does not denote a setter,
+   * return the getter identifier by appending `?`.
+   */
+  static String _getElementIdentifier(String name, ReferenceKind kind) {
+    if (kind == ReferenceKind.topLevelPropertyAccessor ||
+        kind == ReferenceKind.propertyAccessor) {
+      if (!name.endsWith('=')) {
+        return name + '?';
+      }
+    }
+    return name;
+  }
+}
+
+/**
+ * Data structure used during resynthesis to record all the information that is
+ * known about how to resynthesize a single entry in [LinkedUnit.references]
+ * (and its associated entry in [UnlinkedUnit.references], if it exists).
+ */
+class _ReferenceInfo {
+  /**
+   * The enclosing [_ReferenceInfo], or `null` for top-level elements.
+   */
+  final _ReferenceInfo enclosing;
+
+  /**
+   * The name of the entity referred to by this reference.
+   */
+  final String name;
+
+  /**
+   * The element referred to by this reference, or `null` if there is no
+   * associated element (e.g. because it is a reference to an undefined
+   * entity).
+   */
+  final Element element;
+
+  /**
+   * If this reference refers to a non-generic type, the type it refers to.
+   * Otherwise `null`.
+   */
+  DartType type;
+
+  /**
+   * The number of type parameters accepted by the entity referred to by this
+   * reference, or zero if it doesn't accept any type parameters.
+   */
+  final int numTypeParameters;
+
+  /**
+   * Create a new [_ReferenceInfo] object referring to an element called [name]
+   * via the element handle [element], and having [numTypeParameters] type
+   * parameters.
+   *
+   * For the special types `dynamic` and `void`, [specialType] should point to
+   * the type itself.  Otherwise, pass `null` and the type will be computed
+   * when appropriate.
+   */
+  _ReferenceInfo(this.enclosing, this.name, this.element, DartType specialType,
+      this.numTypeParameters) {
+    if (specialType != null) {
+      type = specialType;
+    } else {
+      type = _buildType((_) => DynamicTypeImpl.instance, null);
+    }
+  }
+
+  /**
+   * Build a [DartType] corresponding to the result of applying some type
+   * arguments to the entity referred to by this [_ReferenceInfo].  The type
+   * arguments are retrieved by calling [getTypeArgument].
+   *
+   * If [implicitFunctionTypeIndices] is not empty, a [DartType] should be
+   * created which refers to a function type implicitly defined by one of the
+   * element's parameters.  [implicitFunctionTypeIndices] is interpreted as in
+   * [EntityRef.implicitFunctionTypeIndices].
+   *
+   * If the entity referred to by this [_ReferenceInfo] is not a type, `null`
+   * is returned.
+   */
+  DartType buildType(
+      DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
+    DartType result =
+        (numTypeParameters == 0 && implicitFunctionTypeIndices.isEmpty)
+            ? type
+            : _buildType(getTypeArgument, implicitFunctionTypeIndices);
+    if (result == null) {
+      // TODO(paulberry): figure out how to handle this case (which should
+      // only occur in the event of erroneous code).
+      throw new UnimplementedError();
+    }
+    return result;
+  }
+
+  /**
+   * If this reference refers to a type, build a [DartType] which instantiates
+   * it with type arguments returned by [getTypeArgument].  Otherwise return
+   * `null`.
+   *
+   * If [implicitFunctionTypeIndices] is not null, a [DartType] should be
+   * created which refers to a function type implicitly defined by one of the
+   * element's parameters.  [implicitFunctionTypeIndices] is interpreted as in
+   * [EntityRef.implicitFunctionTypeIndices].
+   */
+  DartType _buildType(
+      DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
+    List<DartType> typeArguments = const <DartType>[];
+    if (numTypeParameters != 0) {
+      typeArguments = <DartType>[];
+      for (int i = 0; i < numTypeParameters; i++) {
+        typeArguments.add(getTypeArgument(i));
+      }
+    }
+    ElementHandle element = this.element; // To allow type promotion
+    if (element is ClassElementHandle) {
+      return new InterfaceTypeImpl.elementWithNameAndArgs(
+          element, name, typeArguments);
+    } else if (element is FunctionTypeAliasElementHandle) {
+      return new FunctionTypeImpl.elementWithNameAndArgs(
+          element, name, typeArguments, typeArguments.isNotEmpty);
+    } else if (element is FunctionTypedElement) {
+      FunctionTypedElementComputer computer =
+          implicitFunctionTypeIndices != null
+              ? () {
+                  FunctionTypedElement element = this.element;
+                  for (int index in implicitFunctionTypeIndices) {
+                    element = element.parameters[index].type.element;
+                  }
+                  return element;
+                }
+              : () => this.element;
+      // TODO(paulberry): Is it a bug that we have to pass `false` for
+      // isInstantiated?
+      return new DeferredFunctionTypeImpl(computer, null, typeArguments, false);
+    } else {
+      return null;
+    }
   }
 }

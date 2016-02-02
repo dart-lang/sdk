@@ -1151,7 +1151,8 @@ main() {
       ''';
     testChecker('infer downwards', {'/main.dart': code});
 
-    testChecker('infer if value types match context', {'/main.dart': r'''
+    testChecker('infer if value types match context', {
+      '/main.dart': r'''
 class DartType {}
 typedef void Asserter<T>(T type);
 typedef Asserter<T> AsserterBuilder<S, T>(S arg);
@@ -1206,7 +1207,8 @@ main() {
   g.assertAOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
   g.assertDOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
 }
-    '''});
+    '''
+    });
   });
 
   group('downwards inference on function arguments', () {
@@ -1578,10 +1580,116 @@ main() {
         main() {
           Iterable<Future<int>> list = <int>[1, 2, 3].map(make);
           Future<List<int>> results = Future.wait(list);
-          Future<String> results2 = results.then((List<int> list) 
+          Future<String> results2 = results.then((List<int> list)
             => list.fold('', (String x, int y) => x + y.toString()));
         }
     '''
     });
+
+    // TODO(jmesserly): we should change how this inference works.
+    // For now this test will cover what we use.
+    testChecker('infer JS builtin', {
+      '/main.dart': '''
+import 'dart:math' as math;
+import 'dart:math' show min;
+
+class C {
+  /*=T*/ m/*<T extends num>*/(/*=T*/ x, /*=T*/ y) => null;
+}
+
+main() {
+  takeIII(math.max);
+  takeDDD(math.max);
+  takeNNN(math.max);
+  takeIDN(math.max);
+  takeDIN(math.max);
+  takeIIN(math.max);
+  takeDDN(math.max);
+  takeIIO(math.max);
+  takeDDO(math.max);
+
+  takeOOI(/*severe:STATIC_TYPE_ERROR*/math.max);
+  takeIDI(/*severe:STATIC_TYPE_ERROR*/math.max);
+  takeDID(/*severe:STATIC_TYPE_ERROR*/math.max);
+
+  takeOON(/*warning:DOWN_CAST_COMPOSITE*/math.max);
+  takeOOO(/*warning:DOWN_CAST_COMPOSITE*/math.max);
+
+  // Also test SimpleIdentifier
+  takeIII(min);
+  takeDDD(min);
+  takeNNN(min);
+  takeIDN(min);
+  takeDIN(min);
+  takeIIN(min);
+  takeDDN(min);
+  takeIIO(min);
+  takeDDO(min);
+
+  takeOOI(/*severe:STATIC_TYPE_ERROR*/min);
+  takeIDI(/*severe:STATIC_TYPE_ERROR*/min);
+  takeDID(/*severe:STATIC_TYPE_ERROR*/min);
+
+  takeOON(/*warning:DOWN_CAST_COMPOSITE*/min);
+  takeOOO(/*warning:DOWN_CAST_COMPOSITE*/min);
+  
+  // Also PropertyAccess
+  takeIII(new C().m);
+  takeDDD(new C().m);
+  takeNNN(new C().m);
+  takeIDN(new C().m);
+  takeDIN(new C().m);
+  takeIIN(new C().m);
+  takeDDN(new C().m);
+  takeIIO(new C().m);
+  takeDDO(new C().m);
+
+  takeOOI(/*severe:STATIC_TYPE_ERROR*/new C().m);
+  takeIDI(/*severe:STATIC_TYPE_ERROR*/new C().m);
+  takeDID(/*severe:STATIC_TYPE_ERROR*/new C().m);
+
+  takeOON(/*warning:DOWN_CAST_COMPOSITE*/new C().m);
+  takeOOO(/*warning:DOWN_CAST_COMPOSITE*/new C().m);
+}
+
+void takeIII(int fn(int a, int b)) {}
+void takeDDD(double fn(double a, double b)) {}
+void takeIDI(int fn(double a, int b)) {}
+void takeDID(double fn(int a, double b)) {}
+void takeIDN(num fn(double a, int b)) {}
+void takeDIN(num fn(int a, double b)) {}
+void takeIIN(num fn(int a, int b)) {}
+void takeDDN(num fn(double a, double b)) {}
+void takeNNN(num fn(num a, num b)) {}
+void takeOON(num fn(Object a, Object b)) {}
+void takeOOO(num fn(Object a, Object b)) {}
+void takeOOI(int fn(Object a, Object b)) {}
+void takeIIO(Object fn(int a, int b)) {}
+void takeDDO(Object fn(double a, double b)) {}
+  '''
+    });
+  });
+
+  // Regression test for https://github.com/dart-lang/dev_compiler/issues/47
+  testChecker('null literal should not infer as bottom', {
+    '/main.dart': '''
+      var h = null;
+      void foo(int f(Object _)) {}
+
+      main() {
+        var f = (x) => null;
+        f = (x) => 'hello';
+
+        var g = null;
+        g = 'hello';
+        (/*info:DYNAMIC_INVOKE*/g.foo());
+
+        h = 'hello';
+        (/*info:DYNAMIC_INVOKE*/h.foo());
+
+        foo(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) => null);
+        foo(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) => throw "not implemented");
+      }
+  '''
   });
 }

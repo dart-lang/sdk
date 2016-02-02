@@ -19,6 +19,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, abort_on_assertion_errors, false,
+            "Abort on assertion and typecheck failures");
 DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
             "Prints a stack trace everytime a throw occurs.");
 
@@ -424,7 +426,7 @@ RawInstance* Exceptions::NewInstance(const char* class_name) {
 
 // Allocate, initialize, and throw a TypeError or CastError.
 // If error_msg is not null, throw a TypeError, even for a type cast.
-void Exceptions::CreateAndThrowTypeError(intptr_t location,
+void Exceptions::CreateAndThrowTypeError(TokenPosition location,
                                          const String& src_type_name,
                                          const String& dst_type_name,
                                          const String& dst_name,
@@ -457,7 +459,7 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
 
   // Type errors in the core library may be difficult to diagnose.
   // Print type error information before throwing the error when debugging.
-  if (FLAG_print_stacktrace_at_throw) {
+  if (FLAG_print_stacktrace_at_throw || FLAG_abort_on_assertion_errors) {
     if (!error_msg.IsNull()) {
       OS::Print("%s\n", error_msg.ToCString());
     }
@@ -472,6 +474,11 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
       OS::Print("type error.\n");
     }
   }
+
+  if (FLAG_abort_on_assertion_errors) {
+    PrintStackTraceAndAbort("a type error");
+  }
+
   // Throw TypeError or CastError instance.
   Exceptions::ThrowByType(exception_type, args);
   UNREACHABLE();
@@ -675,6 +682,16 @@ void Exceptions::ThrowJavascriptCompatibilityError(const char* msg) {
   const String& msg_str = String::Handle(String::New(msg));
   exc_args.SetAt(0, msg_str);
   Exceptions::ThrowByType(Exceptions::kJavascriptCompatibilityError, exc_args);
+}
+
+
+void Exceptions::PrintStackTraceAndAbort(const char* reason) {
+  const Instance& stacktrace = Instance::Handle(CurrentStacktrace());
+
+  OS::PrintErr("\n\n\nAborting due to %s. Stacktrace:\n%s\n",
+               reason,
+               stacktrace.ToCString());
+  OS::Abort();
 }
 
 }  // namespace dart

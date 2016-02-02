@@ -15,16 +15,16 @@ SourceReport::SourceReport(intptr_t report_set, CompileMode compile_mode)
       compile_mode_(compile_mode),
       thread_(NULL),
       script_(NULL),
-      start_pos_(-1),
-      end_pos_(-1),
+      start_pos_(TokenPosition::kNoSource),
+      end_pos_(TokenPosition::kNoSource),
       next_script_index_(0) {
 }
 
 
 void SourceReport::Init(Thread* thread,
                         const Script* script,
-                        intptr_t start_pos,
-                        intptr_t end_pos) {
+                        TokenPosition start_pos,
+                        TokenPosition end_pos) {
   thread_ = thread;
   script_ = script;
   start_pos_ = start_pos;
@@ -46,8 +46,10 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
       // The function is from the wrong script.
       return true;
     }
-    if (((start_pos_ > 0) && (func.end_token_pos() < start_pos_)) ||
-        ((end_pos_ > 0) && (func.token_pos() > end_pos_))) {
+    if (((start_pos_ > TokenPosition::kMinSource) &&
+         (func.end_token_pos() < start_pos_)) ||
+        ((end_pos_ > TokenPosition::kMinSource) &&
+         (func.token_pos() > end_pos_))) {
       // The function does not intersect with the requested token range.
       return true;
     }
@@ -111,8 +113,8 @@ bool SourceReport::ScriptIsLoadedByLibrary(const Script& script,
 void SourceReport::PrintCallSitesData(JSONObject* jsobj,
                                       const Function& func,
                                       const Code& code) {
-  const intptr_t begin_pos = func.token_pos();
-  const intptr_t end_pos = func.end_token_pos();
+  const TokenPosition begin_pos = func.token_pos();
+  const TokenPosition end_pos = func.end_token_pos();
 
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new(zone()) ZoneGrowableArray<const ICData*>();
@@ -129,7 +131,7 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
     HANDLESCOPE(thread());
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
     if (!ic_data->IsNull()) {
-      const intptr_t token_pos = iter.TokenPos();
+      const TokenPosition token_pos = iter.TokenPos();
       if ((token_pos < begin_pos) || (token_pos > end_pos)) {
         // Does not correspond to a valid source position.
         continue;
@@ -143,8 +145,8 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
                                      const Function& func,
                                      const Code& code) {
-  const intptr_t begin_pos = func.token_pos();
-  const intptr_t end_pos = func.end_token_pos();
+  const TokenPosition begin_pos = func.token_pos();
+  const TokenPosition end_pos = func.end_token_pos();
 
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new(zone()) ZoneGrowableArray<const ICData*>();
@@ -156,7 +158,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   const int kCoverageMiss = 1;
   const int kCoverageHit = 2;
 
-  intptr_t func_length = (end_pos - begin_pos) + 1;
+  intptr_t func_length = (end_pos.Pos() - begin_pos.Pos()) + 1;
   GrowableArray<char> coverage(func_length);
   coverage.SetLength(func_length);
   for (int i = 0; i < func_length; i++) {
@@ -170,13 +172,13 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
     HANDLESCOPE(thread());
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
     if (!ic_data->IsNull()) {
-      const intptr_t token_pos = iter.TokenPos();
+      const TokenPosition token_pos = iter.TokenPos();
       if ((token_pos < begin_pos) || (token_pos > end_pos)) {
         // Does not correspond to a valid source position.
         continue;
       }
       intptr_t count = ic_data->AggregateCount();
-      intptr_t token_offset = token_pos - begin_pos;
+      intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
       if (count > 0) {
         coverage[token_offset] = kCoverageHit;
       } else {
@@ -192,7 +194,8 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
     JSONArray hits(&cov, "hits");
     for (int i = 0; i < func_length; i++) {
       if (coverage[i] == kCoverageHit) {
-        hits.AddValue(begin_pos + i);  // Add the token position of the hit.
+        // Add the token position of the hit.
+        hits.AddValue(begin_pos.Pos() + i);
       }
     }
   }
@@ -200,7 +203,8 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
     JSONArray misses(&cov, "misses");
     for (int i = 0; i < func_length; i++) {
       if (coverage[i] == kCoverageMiss) {
-        misses.AddValue(begin_pos + i);  // Add the token position of the miss.
+        // Add the token position of the miss.
+        misses.AddValue(begin_pos.Pos() + i);
       }
     }
   }
@@ -212,13 +216,13 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
   const uint8_t kSafepointKind = (RawPcDescriptors::kIcCall |
                                   RawPcDescriptors::kUnoptStaticCall |
                                   RawPcDescriptors::kRuntimeCall);
-  const intptr_t begin_pos = func.token_pos();
-  const intptr_t end_pos = func.end_token_pos();
+  const TokenPosition begin_pos = func.token_pos();
+  const TokenPosition end_pos = func.end_token_pos();
 
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       zone(), code.pc_descriptors());
 
-  intptr_t func_length = (end_pos - begin_pos) + 1;
+  intptr_t func_length = (end_pos.Pos() - begin_pos.Pos()) + 1;
   GrowableArray<char> possible(func_length);
   possible.SetLength(func_length);
   for (int i = 0; i < func_length; i++) {
@@ -227,19 +231,20 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
 
   PcDescriptors::Iterator iter(descriptors, kSafepointKind);
   while (iter.MoveNext()) {
-    const intptr_t token_pos = iter.TokenPos();
+    const TokenPosition token_pos = iter.TokenPos();
     if ((token_pos < begin_pos) || (token_pos > end_pos)) {
       // Does not correspond to a valid source position.
       continue;
     }
-    intptr_t token_offset = token_pos - begin_pos;
+    intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
     possible[token_offset] = true;
   }
 
   JSONArray bpts(jsobj, "possibleBreakpoints");
   for (int i = 0; i < func_length; i++) {
     if (possible[i]) {
-      bpts.AddValue(begin_pos + i);  // Add the token position.
+      // Add the token position.
+      bpts.AddValue(begin_pos.Pos() + i);
     }
   }
 }
@@ -259,8 +264,8 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   }
 
   const Script& script = Script::Handle(zone(), func.script());
-  const intptr_t begin_pos = func.token_pos();
-  const intptr_t end_pos = func.end_token_pos();
+  const TokenPosition begin_pos = func.token_pos();
+  const TokenPosition end_pos = func.end_token_pos();
 
   Code& code = Code::Handle(zone(), func.unoptimized_code());
   if (code.IsNull()) {
@@ -341,7 +346,8 @@ void SourceReport::VisitClosures(JSONArray* jsarr) {
 
 void SourceReport::PrintJSON(JSONStream* js,
                              const Script& script,
-                             intptr_t start_pos, intptr_t end_pos) {
+                             TokenPosition start_pos,
+                             TokenPosition end_pos) {
   Init(Thread::Current(), &script, start_pos, end_pos);
 
   JSONObject report(js);

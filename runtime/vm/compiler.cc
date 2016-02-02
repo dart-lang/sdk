@@ -75,10 +75,8 @@ DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_inlining_intervals);
 DECLARE_FLAG(bool, trace_irregexp);
+DECLARE_FLAG(bool, precompilation);
 
-
-bool Compiler::always_optimize_ = false;
-bool Compiler::allow_recompilation_ = true;
 
 #ifndef DART_PRECOMPILED_RUNTIME
 
@@ -550,7 +548,7 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
     // Register code with the classes it depends on because of CHA and
     // fields it depends on because of store guards, unless we cannot
     // deopt.
-    if (Compiler::allow_recompilation()) {
+    if (!FLAG_precompilation) {
       // Deoptimize field dependent code first, before registering
       // this yet uninstalled code as dependent on a field.
       // TODO(srdjan): Debugging dart2js crashes;
@@ -575,7 +573,7 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
       }
     }
   } else {  // not optimized.
-    if (!Compiler::always_optimize() &&
+    if (!FLAG_precompilation &&
         (function.ic_data_array() == Array::null())) {
       function.SaveICDataMap(
           graph_compiler->deopt_id_to_ic_data(),
@@ -726,7 +724,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         FlowGraphOptimizer optimizer(flow_graph,
                                      use_speculative_inlining,
                                      &inlining_black_list);
-        if (Compiler::always_optimize()) {
+        if (FLAG_precompilation) {
           optimizer.PopulateWithICData();
 
           optimizer.ApplyClassIds();
@@ -1058,14 +1056,13 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // instruction object, since the creation of instruction object
           // changes code page access permissions (makes them temporary not
           // executable).
-          isolate()->thread_registry()->SafepointThreads();
           {
+            SafepointOperationScope safepoint_scope(thread());
             // Do not Garbage collect during this stage and instead allow the
             // heap to grow.
             NoHeapGrowthControlScope no_growth_control;
             FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
           }
-          isolate()->thread_registry()->ResumeAllThreads();
           if (isolate()->heap()->NeedsGarbageCollection()) {
             isolate()->heap()->CollectAllGarbage();
           }
@@ -1092,7 +1089,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // that caused the bailout.
         done = false;
 #if defined(DEBUG)
-        ASSERT(Compiler::always_optimize());
+        ASSERT(FLAG_precompilation);
         ASSERT(use_speculative_inlining);
         for (intptr_t i = 0; i < inlining_black_list.length(); ++i) {
           ASSERT(inlining_black_list[i] != val);
@@ -1220,7 +1217,8 @@ static void DisassembleCode(const Function& function, bool optimized) {
         THR_Print("  context var '%s' level %d offset %d",
             var_name.ToCString(), var_info.scope_id, var_info.index());
       }
-      THR_Print(" (valid %d-%d)\n", var_info.begin_pos, var_info.end_pos);
+      THR_Print(" (valid %s-%s)\n", var_info.begin_pos.ToCString(),
+                                    var_info.end_pos.ToCString());
     }
   }
   THR_Print("}\n");
@@ -1296,11 +1294,11 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        bool optimized,
                                        intptr_t osr_id) {
-  // Check that we optimize if 'Compiler::always_optimize()' is set to true,
+  // Check that we optimize if 'FLAG_precompilation' is set to true,
   // except if the function is marked as not optimizable.
   ASSERT(!function.IsOptimizable() ||
-         !Compiler::always_optimize() || optimized);
-  ASSERT(Compiler::allow_recompilation() || !function.HasCode());
+         !FLAG_precompilation || optimized);
+  ASSERT(!FLAG_precompilation || !function.HasCode());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
@@ -1316,12 +1314,14 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     ParsedFunction* parsed_function = new(zone) ParsedFunction(
         thread, Function::ZoneHandle(zone, function.raw()));
     if (trace_compiler) {
-      THR_Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
+      const intptr_t token_size = function.end_token_pos().Pos() -
+                                  function.token_pos().Pos();
+      THR_Print("Compiling %s%sfunction: '%s' @ token %s, size %" Pd "\n",
                 (osr_id == Compiler::kNoOSRDeoptId ? "" : "osr "),
                 (optimized ? "optimized " : ""),
                 function.ToFullyQualifiedCString(),
-                function.token_pos(),
-                (function.end_token_pos() - function.token_pos()));
+                function.token_pos().ToCString(),
+                token_size);
     }
     INC_STAT(thread, num_functions_compiled, 1);
     if (optimized) {
@@ -1340,7 +1340,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
     const bool success = helper.Compile(pipeline);
     if (!success) {
-      if (optimized && !Compiler::always_optimize()) {
+      if (optimized && !FLAG_precompilation) {
         // Optimizer bailed out. Disable optimizations and never try again.
         if (trace_compiler) {
           THR_Print("--> disabling optimizations for '%s'\n",
@@ -1399,7 +1399,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     isolate->object_store()->clear_sticky_error();
     // Unoptimized compilation or precompilation may encounter compile-time
     // errors, but regular optimized compilation should not.
-    ASSERT(!optimized || Compiler::always_optimize());
+    ASSERT(!optimized || FLAG_precompilation);
     // Do not attempt to optimize functions that can cause errors.
     function.set_is_optimizable(false);
     return error.raw();
@@ -1416,9 +1416,9 @@ RawError* Compiler::CompileFunction(Thread* thread,
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "Function", function);
 
   if (!isolate->compilation_allowed()) {
-    FATAL3("Precompilation missed function %s (%" Pd ", %s)\n",
+    FATAL3("Precompilation missed function %s (%s, %s)\n",
            function.ToLibNamePrefixedQualifiedCString(),
-           function.token_pos(),
+           function.token_pos().ToCString(),
            Function::KindToCString(function.kind()));
   }
 
@@ -1426,7 +1426,7 @@ RawError* Compiler::CompileFunction(Thread* thread,
       CompilationPipeline::New(thread->zone(), function);
 
   const bool optimized =
-      Compiler::always_optimize() && function.IsOptimizable();
+      FLAG_precompilation && function.IsOptimizable();
 
   return CompileFunctionHelper(pipeline,
                                function,
@@ -1899,9 +1899,7 @@ void BackgroundCompiler::Stop(BackgroundCompiler* task) {
   {
     MonitorLocker ml_done(done_monitor);
     while (!(*task_done)) {
-      // In case that the compiler is waiting for safepoint.
-      Isolate::Current()->thread_registry()->CheckSafepoint();
-      ml_done.Wait(1);
+      ml_done.WaitWithSafepointCheck(Thread::Current());
     }
   }
   delete task_done;

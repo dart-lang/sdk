@@ -190,12 +190,14 @@ TimelineEvent::~TimelineEvent() {
 
 
 void TimelineEvent::Reset() {
-  set_event_type(kNone);
+  state_ = 0;
   thread_ = OSThread::kInvalidThreadId;
   isolate_id_ = ILLEGAL_PORT;
   category_ = "";
   label_ = NULL;
   FreeArguments();
+  set_pre_serialized_json(false);
+  set_event_type(kNone);
 }
 
 
@@ -367,7 +369,7 @@ void TimelineEvent::StreamInit(TimelineStream* stream) {
 void TimelineEvent::Init(EventType event_type,
                          const char* label) {
   ASSERT(label != NULL);
-  set_event_type(event_type);
+  state_ = 0;
   timestamp0_ = 0;
   timestamp1_ = 0;
   OSThread* os_thread = OSThread::Current();
@@ -381,6 +383,8 @@ void TimelineEvent::Init(EventType event_type,
   }
   label_ = label;
   FreeArguments();
+  set_pre_serialized_json(false);
+  set_event_type(event_type);
 }
 
 
@@ -717,6 +721,7 @@ void TimelineBeginEndScope::EmitBegin() {
   TimelineEvent* event = stream()->StartEvent();
   if (event == NULL) {
     // Stream is now disabled.
+    set_enabled(false);
     return;
   }
   ASSERT(event != NULL);
@@ -733,6 +738,7 @@ void TimelineBeginEndScope::EmitEnd() {
   TimelineEvent* event = stream()->StartEvent();
   if (event == NULL) {
     // Stream is now disabled.
+    set_enabled(false);
     return;
   }
   ASSERT(event != NULL);
@@ -1156,17 +1162,35 @@ TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked() {
   return head_;
 }
 
+static int TimelineEventBlockCompare(TimelineEventBlock* const* a,
+                                     TimelineEventBlock* const* b) {
+  return (*a)->LowerTimeBound() - (*b)->LowerTimeBound();
+}
+
 
 void TimelineEventEndlessRecorder::PrintJSONEvents(
     JSONArray* events,
     TimelineEventFilter* filter) {
   MutexLocker ml(&lock_);
+  // Collect all interesting blocks.
+  MallocGrowableArray<TimelineEventBlock*> blocks(8);
   TimelineEventBlock* current = head_;
   while (current != NULL) {
-    if (!filter->IncludeBlock(current)) {
-      current = current->next();
-      continue;
+    if (filter->IncludeBlock(current)) {
+      blocks.Add(current);
     }
+    current = current->next();
+  }
+  // Bail early.
+  if (blocks.length() == 0) {
+    return;
+  }
+  // Sort the interesting blocks so that blocks with earlier events are
+  // outputted first.
+  blocks.Sort(TimelineEventBlockCompare);
+  // Output blocks in sorted order.
+  for (intptr_t block_idx = 0; block_idx < blocks.length(); block_idx++) {
+    current = blocks[block_idx];
     intptr_t length = current->length();
     for (intptr_t i = 0; i < length; i++) {
       TimelineEvent* event = current->At(i);
@@ -1176,7 +1200,6 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
         events->AddValue(event);
       }
     }
-    current = current->next();
   }
 }
 

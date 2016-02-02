@@ -36,7 +36,8 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     } else {
       String name = constructor.name.name;
       int nameRef = visitor.serializeReference(typeBuilder.reference, name);
-      return new EntityRefBuilder(reference: nameRef);
+      return new EntityRefBuilder(
+          reference: nameRef, typeArguments: typeBuilder.typeArguments);
     }
   }
 

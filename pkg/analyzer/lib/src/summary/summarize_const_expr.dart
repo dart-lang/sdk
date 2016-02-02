@@ -57,7 +57,6 @@ abstract class AbstractConstExprSerializer {
       _serializeString(expr);
     } else if (expr is SymbolLiteral) {
       strings.add(expr.components.map((token) => token.lexeme).join('.'));
-      operations.add(UnlinkedConstOperation.pushString);
       operations.add(UnlinkedConstOperation.makeSymbol);
     } else if (expr is NullLiteral) {
       operations.add(UnlinkedConstOperation.pushNull);
@@ -144,9 +143,18 @@ abstract class AbstractConstExprSerializer {
   void _pushInt(int value) {
     assert(value >= 0);
     if (value >= (1 << 32)) {
-      _pushInt(value >> 32);
-      operations.add(UnlinkedConstOperation.shiftOr);
-      ints.add(value & 0xFFFFFFFF);
+      int numOfComponents = 0;
+      ints.add(numOfComponents);
+      void pushComponents(int value) {
+        if (value >= (1 << 32)) {
+          pushComponents(value >> 32);
+        }
+        numOfComponents++;
+        ints.add(value & 0xFFFFFFFF);
+      }
+      pushComponents(value);
+      ints[ints.length - 1 - numOfComponents] = numOfComponents;
+      operations.add(UnlinkedConstOperation.pushLongInt);
     } else {
       operations.add(UnlinkedConstOperation.pushInt);
       ints.add(value);
@@ -160,8 +168,7 @@ abstract class AbstractConstExprSerializer {
     if (operator == TokenType.EQ_EQ) {
       operations.add(UnlinkedConstOperation.equal);
     } else if (operator == TokenType.BANG_EQ) {
-      operations.add(UnlinkedConstOperation.equal);
-      operations.add(UnlinkedConstOperation.not);
+      operations.add(UnlinkedConstOperation.notEqual);
     } else if (operator == TokenType.AMPERSAND_AMPERSAND) {
       operations.add(UnlinkedConstOperation.and);
     } else if (operator == TokenType.BAR_BAR) {

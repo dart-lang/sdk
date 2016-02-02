@@ -5,7 +5,6 @@
 #include "vm/flow_graph_range_analysis.h"
 
 #include "vm/bit_vector.h"
-#include "vm/compiler.h"
 #include "vm/il_printer.h"
 
 namespace dart {
@@ -15,6 +14,7 @@ DEFINE_FLAG(bool, array_bounds_check_elimination, true,
 DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 DEFINE_FLAG(bool, trace_integer_ir_selection, false,
     "Print integer IR selection optimization pass.");
+DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, trace_constant_propagation);
 
 // Quick access to the locally defined isolate() and zone() methods.
@@ -1534,7 +1534,7 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
     // optimistic hoisting of checks possible)
     const bool try_generalization =
         function.allows_bounds_check_generalization() &&
-        !Compiler::always_optimize();
+        !FLAG_precompilation;
 
     BoundsCheckGeneralizer generalizer(this, flow_graph_);
 

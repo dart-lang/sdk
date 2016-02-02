@@ -323,9 +323,9 @@ class Heap {
   void UpdatePretenurePolicy();
 
   // Updates gc in progress flags.
-  bool BeginNewSpaceGC();
+  bool BeginNewSpaceGC(Thread* thread);
   void EndNewSpaceGC();
-  bool BeginOldSpaceGC();
+  bool BeginOldSpaceGC(Thread* thread);
   void EndOldSpaceGC();
 
   // If this heap is non-empty, updates start and end to the smallest range that

@@ -298,6 +298,7 @@ static const char* CanonicalizeUri(Thread* thread,
   Isolate* isolate = thread->isolate();
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler != NULL) {
+    TransitionVMToNative transition(thread);
     Dart_EnterScope();
     Dart_Handle handle = handler(Dart_kCanonicalizeUrl,
                                  Api::NewHandle(thread, library.raw()),

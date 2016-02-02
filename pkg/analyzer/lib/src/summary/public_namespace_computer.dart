@@ -72,7 +72,7 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
             if (isPublic(name)) {
               cls.constMembers.add(new UnlinkedPublicNameBuilder(
                   name: name,
-                  kind: ReferenceKind.constField,
+                  kind: ReferenceKind.propertyAccessor,
                   numTypeParameters: 0));
             }
           }
@@ -86,7 +86,7 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
           if (isPublic(name)) {
             cls.constMembers.add(new UnlinkedPublicNameBuilder(
                 name: name,
-                kind: ReferenceKind.staticMethod,
+                kind: ReferenceKind.method,
                 numTypeParameters:
                     member.typeParameters?.typeParameters?.length ?? 0));
           }

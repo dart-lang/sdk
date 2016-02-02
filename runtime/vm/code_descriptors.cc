@@ -3,32 +3,34 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/code_descriptors.h"
-#include "vm/compiler.h"
 
 namespace dart {
+
+DECLARE_FLAG(bool, precompilation);
 
 void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
                                    intptr_t pc_offset,
                                    intptr_t deopt_id,
-                                   intptr_t token_pos,
+                                   TokenPosition token_pos,
                                    intptr_t try_index) {
   ASSERT((kind == RawPcDescriptors::kRuntimeCall) ||
          (kind == RawPcDescriptors::kOther) ||
          (deopt_id != Thread::kNoDeoptId));
 
   // When precompiling, we only use pc descriptors for exceptions.
-  if (Compiler::allow_recompilation() || try_index != -1) {
+  if (!FLAG_precompilation || try_index != -1) {
     intptr_t merged_kind_try =
         RawPcDescriptors::MergedKindTry::Encode(kind, try_index);
 
     PcDescriptors::EncodeInteger(&encoded_data_, merged_kind_try);
     PcDescriptors::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
     PcDescriptors::EncodeInteger(&encoded_data_, deopt_id - prev_deopt_id);
-    PcDescriptors::EncodeInteger(&encoded_data_, token_pos - prev_token_pos);
+    PcDescriptors::EncodeInteger(&encoded_data_,
+                                 token_pos.value() - prev_token_pos);
 
     prev_pc_offset = pc_offset;
     prev_deopt_id = deopt_id;
-    prev_token_pos = token_pos;
+    prev_token_pos = token_pos.value();
   }
 }
 
@@ -43,12 +45,13 @@ RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
 
 
 void CodeSourceMapBuilder::AddEntry(intptr_t pc_offset,
-                                    intptr_t token_pos) {
+                                    TokenPosition token_pos) {
   CodeSourceMap::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
-  CodeSourceMap::EncodeInteger(&encoded_data_, token_pos - prev_token_pos);
+  CodeSourceMap::EncodeInteger(&encoded_data_,
+                               token_pos.value() - prev_token_pos);
 
   prev_pc_offset = pc_offset;
-  prev_token_pos = token_pos;
+  prev_token_pos = token_pos.value();
 }
 
 

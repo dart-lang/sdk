@@ -107,11 +107,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_load_deferred_eagerly = true;
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
-    Compiler::set_always_optimize(true);
-    // Triggers assert if we try to recompile (e.g., because of deferred
-    // loading, deoptimization, ...). Noopt mode simulates behavior
-    // of precompiled code, therefore do not allow recompilation.
-    Compiler::set_allow_recompilation(false);
     // Precompilation finalizes all classes and thus allows CHA optimizations.
     // Do not require CHA triggered deoptimization.
     FLAG_use_cha_deopt = false;
@@ -449,7 +444,7 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 
 
 void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
-  if ((instr->token_pos() < 0) || (instr->env() == NULL)) {
+  if (!instr->token_pos().IsReal() || (instr->env() == NULL)) {
     return;
   }
   const Script& script =
@@ -764,7 +759,7 @@ void FlowGraphCompiler::SetNeedsStacktrace(intptr_t try_index) {
 // Uses current pc position and try-index.
 void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                                              intptr_t deopt_id,
-                                             intptr_t token_pos) {
+                                             TokenPosition token_pos) {
   // When running with optimizations disabled, don't emit deopt-descriptors.
   if (!CanOptimize() && (kind == RawPcDescriptors::kDeopt)) return;
   pc_descriptors_list()->AddDescriptor(kind,
@@ -790,7 +785,7 @@ void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
 
 
 void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
-                                            intptr_t token_pos) {
+                                            TokenPosition token_pos) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
   CompilerDeoptInfo* info =
@@ -940,7 +935,7 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
   }
 
   // No deoptimization allowed when 'always_optimize' is set.
-  if (Compiler::always_optimize()) {
+  if (FLAG_precompilation) {
     if (FLAG_trace_compiler) {
       THR_Print(
           "Retrying compilation %s, suppressing inlining of deopt_id:%" Pd "\n",
@@ -988,7 +983,7 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 
 RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
   // No deopt information if we 'always_optimize' (no deoptimization allowed).
-  if (Compiler::always_optimize()) {
+  if (FLAG_precompilation) {
     return Array::empty_array().raw();
   }
   // For functions with optional arguments, all incoming arguments are copied
@@ -1049,8 +1044,8 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     RawLocalVarDescriptors::VarInfo info;
     info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
     info.scope_id = 0;
-    info.begin_pos = 0;
-    info.end_pos = 0;
+    info.begin_pos = TokenPosition::kMinSource;
+    info.end_pos = TokenPosition::kMinSource;
     info.set_index(parsed_function().current_context_var()->index());
     var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
   }
@@ -1140,12 +1135,12 @@ bool FlowGraphCompiler::TryIntrinsify() {
 
 void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t deopt_id,
-    intptr_t token_pos,
+    TokenPosition token_pos,
     intptr_t argument_count,
     LocationSummary* locs,
     const ICData& ic_data_in) {
   const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
-  if (Compiler::always_optimize()) {
+  if (FLAG_precompilation) {
     EmitSwitchableInstanceCall(ic_data, argument_count,
                                deopt_id, token_pos, locs);
     return;
@@ -1206,7 +1201,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
 
 
 void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
-                                           intptr_t token_pos,
+                                           TokenPosition token_pos,
                                            const Function& function,
                                            intptr_t argument_count,
                                            const Array& argument_names,
@@ -1785,7 +1780,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     intptr_t argument_count,
     const Array& argument_names,
     intptr_t deopt_id,
-    intptr_t token_pos,
+    TokenPosition token_pos,
     LocationSummary* locs) {
   if (FLAG_polymorphic_with_deopt) {
     Label* deopt = AddDeoptStub(deopt_id,

@@ -132,8 +132,6 @@ class ShrinkingReducer extends Pass {
       case _ReductionKind.BRANCH:
         _reduceBranch(task);
         break;
-      default:
-        assert(false);
     }
   }
 
@@ -547,11 +545,15 @@ bool _isUselessIf(Branch branch) {
       falseInvoke.continuation.definition) {
     return false;
   }
-  assert(trueInvoke.arguments.length == falseInvoke.arguments.length);
   // Matching zero arguments should be adequate, since isomorphic true and false
   // invocations should result in redundant phis which are removed elsewhere.
-  if (trueInvoke.arguments.isNotEmpty) return false;
-  return true;
+  //
+  // Note that the argument lists are not necessarily the same length here,
+  // because we could be looking for new redexes in the middle of performing a
+  // dead parameter reduction, where some but not all of the invocations have
+  // been rewritten.  In that case, we will find the redex (once) after both
+  // of these invocations have been rewritten.
+  return trueInvoke.arguments.isEmpty && falseInvoke.arguments.isEmpty;
 }
 
 bool _isDeadParameter(Parameter parameter) {
@@ -635,6 +637,10 @@ class _RemovalVisitor extends TrampolineRecursiveVisitor {
   }
 
   void processContinuation(Continuation node) {
+    node.parent = null;
+  }
+
+  void processBranch(Branch node) {
     node.parent = null;
   }
 

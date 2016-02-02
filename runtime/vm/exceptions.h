@@ -6,6 +6,7 @@
 #define VM_EXCEPTIONS_H_
 
 #include "vm/allocation.h"
+#include "vm/token_position.h"
 
 namespace dart {
 
@@ -42,7 +43,7 @@ class Exceptions : AllStatic {
   static RawStacktrace* CurrentStacktrace();
   static RawScript* GetCallerScript(DartFrameIterator* iterator);
   static RawInstance* NewInstance(const char* class_name);
-  static void CreateAndThrowTypeError(intptr_t location,
+  static void CreateAndThrowTypeError(TokenPosition location,
                                       const String& src_type_name,
                                       const String& dst_type_name,
                                       const String& dst_name,
@@ -85,6 +86,8 @@ class Exceptions : AllStatic {
   // Returns a RawInstance if the exception is successfully created,
   // otherwise returns a RawError.
   static RawObject* Create(ExceptionType type, const Array& arguments);
+
+  static void PrintStackTraceAndAbort(const char* reason);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Exceptions);

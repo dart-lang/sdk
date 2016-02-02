@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -983,7 +984,6 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
-    List<AnalysisError> errors = <AnalysisError>[];
     //
     // Prepare inputs.
     //
@@ -997,114 +997,17 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
         getRequiredInput(IMPORTS_SOURCE_KIND_INPUT_NAME);
     Map<Source, SourceKind> exportSourceKindMap =
         getRequiredInput(EXPORTS_SOURCE_KIND_INPUT_NAME);
-    Source librarySource = libraryElement.source;
     //
-    // Resolve directives.
+    // Build elements.
     //
-    HashMap<String, PrefixElementImpl> nameToPrefixMap =
-        new HashMap<String, PrefixElementImpl>();
-    List<ImportElement> imports = <ImportElement>[];
-    List<ExportElement> exports = <ExportElement>[];
-    bool explicitlyImportsCore = false;
-    for (Directive directive in libraryUnit.directives) {
-      if (directive is ImportDirective) {
-        ImportDirective importDirective = directive;
-        String uriContent = importDirective.uriContent;
-        if (DartUriResolver.isDartExtUri(uriContent)) {
-          libraryElement.hasExtUri = true;
-        }
-        Source importedSource = importDirective.source;
-        if (importedSource != null && context.exists(importedSource)) {
-          // The imported source will be null if the URI in the import
-          // directive was invalid.
-          LibraryElement importedLibrary = importLibraryMap[importedSource];
-          if (importedLibrary != null) {
-            if (importedLibrary.isDartCore) {
-              explicitlyImportsCore = true;
-            }
-            ImportElementImpl importElement =
-                new ImportElementImpl(directive.offset);
-            StringLiteral uriLiteral = importDirective.uri;
-            if (uriLiteral != null) {
-              importElement.uriOffset = uriLiteral.offset;
-              importElement.uriEnd = uriLiteral.end;
-            }
-            importElement.uri = uriContent;
-            importElement.deferred = importDirective.deferredKeyword != null;
-            importElement.combinators = _buildCombinators(importDirective);
-            importElement.importedLibrary = importedLibrary;
-            _setDoc(importElement, importDirective);
-            SimpleIdentifier prefixNode = directive.prefix;
-            if (prefixNode != null) {
-              importElement.prefixOffset = prefixNode.offset;
-              String prefixName = prefixNode.name;
-              PrefixElementImpl prefix = nameToPrefixMap[prefixName];
-              if (prefix == null) {
-                prefix = new PrefixElementImpl.forNode(prefixNode);
-                nameToPrefixMap[prefixName] = prefix;
-              }
-              importElement.prefix = prefix;
-              prefixNode.staticElement = prefix;
-            }
-            directive.element = importElement;
-            imports.add(importElement);
-            if (importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
-              ErrorCode errorCode = (importElement.isDeferred
-                  ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
-                  : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
-              errors.add(new AnalysisError(importedSource, uriLiteral.offset,
-                  uriLiteral.length, errorCode, [uriLiteral.toSource()]));
-            }
-          }
-        }
-      } else if (directive is ExportDirective) {
-        ExportDirective exportDirective = directive;
-        Source exportedSource = exportDirective.source;
-        if (exportedSource != null && context.exists(exportedSource)) {
-          // The exported source will be null if the URI in the export
-          // directive was invalid.
-          LibraryElement exportedLibrary = exportLibraryMap[exportedSource];
-          if (exportedLibrary != null) {
-            ExportElementImpl exportElement =
-                new ExportElementImpl(directive.offset);
-            StringLiteral uriLiteral = exportDirective.uri;
-            if (uriLiteral != null) {
-              exportElement.uriOffset = uriLiteral.offset;
-              exportElement.uriEnd = uriLiteral.end;
-            }
-            exportElement.uri = exportDirective.uriContent;
-            exportElement.combinators = _buildCombinators(exportDirective);
-            exportElement.exportedLibrary = exportedLibrary;
-            _setDoc(exportElement, exportDirective);
-            directive.element = exportElement;
-            exports.add(exportElement);
-            if (exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
-              errors.add(new AnalysisError(
-                  exportedSource,
-                  uriLiteral.offset,
-                  uriLiteral.length,
-                  CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-                  [uriLiteral.toSource()]));
-            }
-          }
-        }
-      }
-    }
-    //
-    // Ensure "dart:core" import.
-    //
-    Source coreLibrarySource = context.sourceFactory.forUri(DartSdk.DART_CORE);
-    if (!explicitlyImportsCore && coreLibrarySource != librarySource) {
-      ImportElementImpl importElement = new ImportElementImpl(-1);
-      importElement.importedLibrary = importLibraryMap[coreLibrarySource];
-      importElement.synthetic = true;
-      imports.add(importElement);
-    }
-    //
-    // Populate the library element.
-    //
-    libraryElement.imports = imports;
-    libraryElement.exports = exports;
+    DirectiveElementBuilder builder = new DirectiveElementBuilder(
+        context,
+        libraryElement,
+        importLibraryMap,
+        importSourceKindMap,
+        exportLibraryMap,
+        exportSourceKindMap);
+    libraryUnit.accept(builder);
     // See commentary in the computation of the LIBRARY_CYCLE result
     // for details on library cycle invalidation.
     libraryElement.invalidateLibraryCycles();
@@ -1112,20 +1015,7 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
     // Record outputs.
     //
     outputs[LIBRARY_ELEMENT2] = libraryElement;
-    outputs[BUILD_DIRECTIVES_ERRORS] = errors;
-  }
-
-  /**
-   * If the given [node] has a documentation comment, remember its content
-   * and range into the given [element].
-   */
-  void _setDoc(ElementImpl element, AnnotatedNode node) {
-    Comment comment = node.documentationComment;
-    if (comment != null && comment.isDocumentation) {
-      element.documentationComment =
-          comment.tokens.map((Token t) => t.lexeme).join('\n');
-      element.setDocRange(comment.offset, comment.length);
-    }
+    outputs[BUILD_DIRECTIVES_ERRORS] = builder.errors;
   }
 
   /**
@@ -1157,36 +1047,6 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
   static BuildDirectiveElementsTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new BuildDirectiveElementsTask(context, target);
-  }
-
-  /**
-   * Build the element model representing the combinators declared by
-   * the given [directive].
-   */
-  static List<NamespaceCombinator> _buildCombinators(
-      NamespaceDirective directive) {
-    List<NamespaceCombinator> combinators = <NamespaceCombinator>[];
-    for (Combinator combinator in directive.combinators) {
-      if (combinator is ShowCombinator) {
-        ShowElementCombinatorImpl show = new ShowElementCombinatorImpl();
-        show.offset = combinator.offset;
-        show.end = combinator.end;
-        show.shownNames = _getIdentifiers(combinator.shownNames);
-        combinators.add(show);
-      } else if (combinator is HideCombinator) {
-        HideElementCombinatorImpl hide = new HideElementCombinatorImpl();
-        hide.hiddenNames = _getIdentifiers(combinator.hiddenNames);
-        combinators.add(hide);
-      }
-    }
-    return combinators;
-  }
-
-  /**
-   * Return the lexical identifiers associated with the given [identifiers].
-   */
-  static List<String> _getIdentifiers(NodeList<SimpleIdentifier> identifiers) {
-    return identifiers.map((identifier) => identifier.name).toList();
   }
 }
 

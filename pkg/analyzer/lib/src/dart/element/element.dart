@@ -1400,10 +1400,18 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
   EvaluationResultImpl _result;
 
   /**
+   * Initialize a newly created synthetic top-level variable element to have the
+   * given [name] and [offset].
+   */
+  ConstTopLevelVariableElementImpl(String name, int offset)
+      : super(name, offset);
+
+  /**
    * Initialize a newly created top-level variable element to have the given
    * [name].
    */
-  ConstTopLevelVariableElementImpl(Identifier name) : super.forNode(name);
+  ConstTopLevelVariableElementImpl.forNode(Identifier name)
+      : super.forNode(name);
 
   @override
   DartObject get constantValue => _result.value;
@@ -4095,6 +4103,18 @@ class ParameterElementImpl extends VariableElementImpl
    * Initialize a newly created parameter element to have the given [name].
    */
   ParameterElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Creates a synthetic parameter with [name], [type] and [kind].
+   */
+  factory ParameterElementImpl.synthetic(String name, DartType type,
+      ParameterKind kind) {
+    ParameterElementImpl element = new ParameterElementImpl(name, -1);
+    element.type = type;
+    element.synthetic = true;
+    element.parameterKind = kind;
+    return element;
+  }
 
   @override
   String get defaultValueCode => _defaultValueCode;

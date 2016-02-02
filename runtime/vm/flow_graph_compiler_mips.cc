@@ -24,6 +24,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(bool, use_megamorphic_stub);
+DECLARE_FLAG(bool, precompilation);
 
 
 void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -258,7 +259,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
 // Clobbers T0.
 RawSubtypeTestCache*
 FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
-    intptr_t token_pos,
+    TokenPosition token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
@@ -347,7 +348,7 @@ void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
 // Clobbers: T0, T1, T2
 // Returns true if there is a fallthrough.
 bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
-    intptr_t token_pos,
+    TokenPosition token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
@@ -415,7 +416,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 // arrays can grow too high, but they may be useful when optimizing
 // code (type-feedback).
 RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
-    intptr_t token_pos,
+    TokenPosition token_pos,
     const Class& type_class,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
@@ -442,7 +443,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
 // Generates inlined check if 'type' is a type parameter or type itself
 // A0: instance (preserved).
 RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
-    intptr_t token_pos,
+    TokenPosition token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
@@ -525,7 +526,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 // may fall through to it. Otherwise, this inline code will jump to the label
 // is_instance or to the label is_not_instance.
 RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
-    intptr_t token_pos,
+    TokenPosition token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
@@ -578,7 +579,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // - A1: instantiator type arguments or raw_null.
 // Returns:
 // - true or false in V0.
-void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
+void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            intptr_t deopt_id,
                                            const AbstractType& type,
                                            bool negate_result,
@@ -663,13 +664,13 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
 // Clobbers: T0, T1, T2
 // Performance notes: positive checks must be quick, negative checks can be slow
 // as they throw an exception.
-void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
+void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
                                                  intptr_t deopt_id,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
   __ Comment("AssertAssignable");
-  ASSERT(!Token::IsClassifying(token_pos));
+  ASSERT(!token_pos.IsClassifying());
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
@@ -1137,7 +1138,7 @@ void FlowGraphCompiler::CompileGraph() {
   __ break_(0);
   GenerateDeferredCode();
 
-  if (is_optimizing() && Compiler::allow_recompilation()) {
+  if (is_optimizing() && !FLAG_precompilation) {
     // Leave enough space for patching in case of lazy deoptimization from
     // deferred code.
     for (intptr_t i = 0;
@@ -1151,7 +1152,7 @@ void FlowGraphCompiler::CompileGraph() {
 }
 
 
-void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
+void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      const StubEntry& stub_entry,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
@@ -1162,7 +1163,7 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
 
 
 void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
-                                         intptr_t token_pos,
+                                         TokenPosition token_pos,
                                          const StubEntry& stub_entry,
                                          RawPcDescriptors::Kind kind,
                                          LocationSummary* locs) {
@@ -1184,7 +1185,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
 }
 
 
-void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
+void FlowGraphCompiler::GenerateRuntimeCall(TokenPosition token_pos,
                                             intptr_t deopt_id,
                                             const RuntimeEntry& entry,
                                             intptr_t argument_count,
@@ -1229,7 +1230,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
     const ICData& ic_data,
     intptr_t argument_count,
     intptr_t deopt_id,
-    intptr_t token_pos,
+    TokenPosition token_pos,
     LocationSummary* locs) {
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
   // Each ICData propagated from unoptimized to optimized code contains the
@@ -1254,7 +1255,7 @@ void FlowGraphCompiler::EmitInstanceCall(const StubEntry& stub_entry,
                                          const ICData& ic_data,
                                          intptr_t argument_count,
                                          intptr_t deopt_id,
-                                         intptr_t token_pos,
+                                         TokenPosition token_pos,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
   __ Comment("InstanceCall");
@@ -1273,7 +1274,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     const ICData& ic_data,
     intptr_t argument_count,
     intptr_t deopt_id,
-    intptr_t token_pos,
+    TokenPosition token_pos,
     LocationSummary* locs,
     intptr_t try_index) {
   const String& name = String::Handle(zone(), ic_data.target_name());
@@ -1295,7 +1296,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 
   RecordSafepoint(locs);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
-  if (Compiler::always_optimize()) {
+  if (FLAG_precompilation) {
     // Megamorphic calls may occur in slow path stubs.
     // If valid use try_index argument.
     if (try_index == CatchClauseNode::kInvalidTryIndex) {
@@ -1325,7 +1326,7 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
     const ICData& ic_data,
     intptr_t argument_count,
     intptr_t deopt_id,
-    intptr_t token_pos,
+    TokenPosition token_pos,
     LocationSummary* locs) {
   __ Comment("SwitchableCall");
   __ lw(T0, Address(SP, (argument_count - 1) * kWordSize));
@@ -1364,7 +1365,7 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
 void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     intptr_t argument_count,
     intptr_t deopt_id,
-    intptr_t token_pos,
+    TokenPosition token_pos,
     LocationSummary* locs,
     const ICData& ic_data) {
   const StubEntry* stub_entry =
@@ -1384,7 +1385,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     const Array& arguments_descriptor,
     intptr_t argument_count,
     intptr_t deopt_id,
-    intptr_t token_pos,
+    TokenPosition token_pos,
     LocationSummary* locs) {
   __ Comment("StaticCall");
   __ LoadObject(S4, arguments_descriptor);
@@ -1404,7 +1405,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     Register reg,
     const Object& obj,
     bool needs_number_check,
-    intptr_t token_pos) {
+    TokenPosition token_pos) {
   __ Comment("EqualityRegConstCompare");
   ASSERT(!needs_number_check ||
          (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()));
@@ -1421,7 +1422,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
       __ BranchLinkPatchable(
           *StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
     }
-    if (token_pos >= 0) {
+    if (token_pos.IsReal()) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
                            Thread::kNoDeoptId,
                            token_pos);
@@ -1439,10 +1440,11 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
 }
 
 
-Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
-                                                       Register right,
-                                                       bool needs_number_check,
-                                                       intptr_t token_pos) {
+Condition FlowGraphCompiler::EmitEqualityRegRegCompare(
+    Register left,
+    Register right,
+    bool needs_number_check,
+    TokenPosition token_pos) {
   __ Comment("EqualityRegRegCompare");
   if (needs_number_check) {
     __ addiu(SP, SP, Immediate(-2 * kWordSize));
@@ -1455,7 +1457,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
       __ BranchLinkPatchable(
           *StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
     }
-    if (token_pos >= 0) {
+    if (token_pos.IsReal()) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
                            Thread::kNoDeoptId,
                            token_pos);
@@ -1575,7 +1577,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Label* failed,
                                         Label* match_found,
                                         intptr_t deopt_id,
-                                        intptr_t token_index,
+                                        TokenPosition token_index,
                                         LocationSummary* locs) {
   ASSERT(is_optimizing());
   __ Comment("EmitTestAndCall");

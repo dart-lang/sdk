@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--throw_on_javascript_int_overflow --optimization_counter_threshold=10 --no-use-osr
+// VMOptions=--throw_on_javascript_int_overflow --print_stacktrace_at_throw --optimization_counter_threshold=10 --no-use-osr
 
 
 import "package:expect/expect.dart";

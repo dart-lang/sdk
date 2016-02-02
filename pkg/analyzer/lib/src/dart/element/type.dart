@@ -18,6 +18,11 @@ import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
+ * Type of callbacks used by [DeferredFunctionTypeImpl].
+ */
+typedef FunctionTypedElement FunctionTypedElementComputer();
+
+/**
  * A [Type] that represents the type 'bottom'.
  */
 class BottomTypeImpl extends TypeImpl {
@@ -87,6 +92,41 @@ class CircularTypeImpl extends DynamicTypeImpl {
 
   @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
+}
+
+/**
+ * The type of a function, method, constructor, getter, or setter that has been
+ * resynthesized from a summary.  The actual underlying element won't be
+ * constructed until it's needed.
+ */
+class DeferredFunctionTypeImpl extends FunctionTypeImpl {
+  /**
+   * Callback which should be invoked when the element associated with this
+   * function type is needed.
+   *
+   * Once the callback has been invoked, it is set to `null` to reduce GC
+   * pressure.
+   */
+  FunctionTypedElementComputer _computeElement;
+
+  /**
+   * If [_computeElement] has been called, the value it returned.  Otherwise
+   * `null`.
+   */
+  FunctionTypedElement _computedElement;
+
+  DeferredFunctionTypeImpl(this._computeElement, String name,
+      List<DartType> typeArguments, bool isInstantiated)
+      : super._(null, name, null, typeArguments, isInstantiated);
+
+  @override
+  FunctionTypedElement get element {
+    if (_computeElement != null) {
+      _computedElement = _computeElement();
+      _computeElement = null;
+    }
+    return _computedElement;
+  }
 }
 
 /**
@@ -409,6 +449,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
+  List<String> get normalParameterNames {
+    return baseParameters
+        .where((parameter) => parameter.parameterKind == ParameterKind.REQUIRED)
+        .map((parameter) => parameter.name)
+        .toList();
+  }
+
+  @override
   List<DartType> get optionalParameterTypes {
     List<ParameterElement> parameters = baseParameters;
     if (parameters.length == 0) {
@@ -431,6 +479,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
     }
     return types;
+  }
+
+  @override
+  List<String> get optionalParameterNames {
+    return baseParameters
+        .where(
+            (parameter) => parameter.parameterKind == ParameterKind.POSITIONAL)
+        .map((parameter) => parameter.name)
+        .toList();
   }
 
   @override
@@ -1026,19 +1083,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else if (type is InterfaceType) {
       _freeVariablesInInterfaceType(type, free);
     }
-  }
-
-  /**
-   * Compute the least upper bound of types [f] and [g], both of which are
-   * known to be function types.
-   *
-   * In the event that f and g have different numbers of required parameters,
-   * `null` is returned, in which case the least upper bound is the interface
-   * type `Function`.
-   */
-  static FunctionType computeLeastUpperBound(FunctionType f, FunctionType g) {
-    // TODO(paulberry): implement this.
-    return null;
   }
 
   /**
@@ -1941,7 +1985,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * If there is a single type which is at least as specific as all of the
    * types in [types], return it.  Otherwise return `null`.
    */
-  static DartType _findMostSpecificType(List<DartType> types, TypeSystem typeSystem) {
+  static DartType _findMostSpecificType(
+      List<DartType> types, TypeSystem typeSystem) {
     // The << relation ("more specific than") is a partial ordering on types,
     // so to find the most specific type of a set, we keep a bucket of the most
     // specific types seen so far such that no type in the bucket is more
