@@ -49,6 +49,14 @@ io/directory_fuzz_test: Skip
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
 
+[ $runtime == vm && $system == linux ]
+# These tests have started timing out and issue 25649 has been filed to
+# investigate, skipping these tests temporarily to get the bots to be
+# green again.
+io/http_proxy_test: Skip
+io/secure_builtin_roots_test: Skip
+
+
 [ ($compiler == none || $compiler == precompiler) && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 typed_array_test: RuntimeError, OK  # Uses Isolate.spawn
 typed_array_int64_uint64_test: RuntimeError, OK  # Uses Isolate.spawn
