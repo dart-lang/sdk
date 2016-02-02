@@ -953,42 +953,44 @@ class IncrementalResolver {
   /**
    * The context the compilation unit being resolved in.
    */
-  AnalysisContext _context;
+  final AnalysisContext _context;
 
   /**
    * The object used to access the types from the core library.
    */
-  TypeProvider _typeProvider;
+  final TypeProvider _typeProvider;
 
   /**
    * The type system primitives.
    */
-  TypeSystem _typeSystem;
+  final TypeSystem _typeSystem;
 
   /**
    * The element for the library containing the compilation unit being resolved.
    */
-  LibraryElementImpl _definingLibrary;
+  final LibraryElementImpl _definingLibrary;
+
+  final AnalysisCache _cache;
 
   /**
    * The [CacheEntry] corresponding to the source being resolved.
    */
-  CacheEntry newSourceEntry;
+  final CacheEntry newSourceEntry;
 
   /**
    * The [CacheEntry] corresponding to the [LibrarySpecificUnit] being resolved.
    */
-  CacheEntry newUnitEntry;
+  final CacheEntry newUnitEntry;
 
   /**
    * The source representing the compilation unit being visited.
    */
-  Source _source;
+  final Source _source;
 
   /**
    * The source representing the library of the compilation unit being visited.
    */
-  Source _librarySource;
+  final Source _librarySource;
 
   /**
    * The offset of the changed contents.
@@ -1008,14 +1010,14 @@ class IncrementalResolver {
   /**
    * The delta between [_updateEndNew] and [_updateEndOld].
    */
-  int _updateDelta;
+  final int _updateDelta;
 
   /**
    * The set of [AnalysisError]s that have been already shifted.
    */
-  Set<AnalysisError> _alreadyShiftedErrors = new HashSet.identity();
+  final Set<AnalysisError> _alreadyShiftedErrors = new HashSet.identity();
 
-  RecordingErrorListener errorListener = new RecordingErrorListener();
+  final RecordingErrorListener errorListener = new RecordingErrorListener();
   ResolutionContext _resolutionContext;
 
   List<AnalysisError> _resolveErrors = AnalysisError.NO_ERRORS;
@@ -1026,20 +1028,23 @@ class IncrementalResolver {
    * given source in the given library.
    */
   IncrementalResolver(
+      this._cache,
       this.newSourceEntry,
       this.newUnitEntry,
-      this._definingUnit,
+      CompilationUnitElementImpl definingUnit,
       this._updateOffset,
-      this._updateEndOld,
-      this._updateEndNew) {
-    _updateDelta = _updateEndNew - _updateEndOld;
-    _definingLibrary = _definingUnit.library;
-    _librarySource = _definingLibrary.source;
-    _source = _definingUnit.source;
-    _context = _definingUnit.context;
-    _typeProvider = _context.typeProvider;
-    _typeSystem = _context.typeSystem;
-  }
+      int updateEndOld,
+      int updateEndNew)
+      : _definingUnit = definingUnit,
+        _context = definingUnit.context,
+        _typeProvider = definingUnit.context.typeProvider,
+        _typeSystem = definingUnit.context.typeSystem,
+        _definingLibrary = definingUnit.library,
+        _source = definingUnit.source,
+        _librarySource = definingUnit.library.source,
+        _updateEndOld = updateEndOld,
+        _updateEndNew = updateEndNew,
+        _updateDelta = updateEndNew - updateEndOld;
 
   /**
    * Resolve [node], reporting any errors or warnings to the given listener.
@@ -1280,8 +1285,8 @@ class IncrementalResolver {
   void _updateElementNameOffsets() {
     LoggingTimer timer = logger.startTimer();
     try {
-      _definingUnit
-          .accept(new _ElementOffsetUpdater(_updateOffset, _updateDelta));
+      _definingUnit.accept(
+          new _ElementOffsetUpdater(_updateOffset, _updateDelta, _cache));
       _definingUnit.afterIncrementalResolution();
     } finally {
       timer.stop('update element offsets');
@@ -1359,16 +1364,17 @@ class IncrementalResolver {
 class PoorMansIncrementalResolver {
   final TypeProvider _typeProvider;
   final Source _unitSource;
+  final AnalysisCache _cache;
 
   /**
    * The [CacheEntry] corresponding to the source being resolved.
    */
-  CacheEntry _sourceEntry;
+  final CacheEntry _sourceEntry;
 
   /**
    * The [CacheEntry] corresponding to the [LibrarySpecificUnit] being resolved.
    */
-  CacheEntry _unitEntry;
+  final CacheEntry _unitEntry;
 
   final CompilationUnit _oldUnit;
   CompilationUnitElement _unitElement;
@@ -1385,6 +1391,7 @@ class PoorMansIncrementalResolver {
   PoorMansIncrementalResolver(
       this._typeProvider,
       this._unitSource,
+      this._cache,
       this._sourceEntry,
       this._unitEntry,
       this._oldUnit,
@@ -1445,6 +1452,7 @@ class PoorMansIncrementalResolver {
             _shiftTokens(firstPair.oldToken);
             {
               IncrementalResolver incrementalResolver = new IncrementalResolver(
+                  _cache,
                   _sourceEntry,
                   _unitEntry,
                   _unitElement,
@@ -1571,6 +1579,7 @@ class PoorMansIncrementalResolver {
         }
         // perform incremental resolution
         IncrementalResolver incrementalResolver = new IncrementalResolver(
+            _cache,
             _sourceEntry,
             _unitEntry,
             _unitElement,
@@ -1649,6 +1658,7 @@ class PoorMansIncrementalResolver {
     NodeReplacer.replace(oldComment, newComment);
     // update elements
     IncrementalResolver incrementalResolver = new IncrementalResolver(
+        _cache,
         _sourceEntry,
         _unitEntry,
         _unitElement,
@@ -2037,17 +2047,26 @@ class ResolutionContextBuilder {
  */
 class _DeclarationMismatchException {}
 
+/**
+ * Adjusts the location of each Element that moved.
+ *
+ * Since operator== and hashCode of an Element are based
+ * on the element location, we also need to remove each
+ * moved element from the cache to avoid a memory leak.
+ */
 class _ElementOffsetUpdater extends GeneralizingElementVisitor {
   final int updateOffset;
   final int updateDelta;
+  final AnalysisCache cache;
 
-  _ElementOffsetUpdater(this.updateOffset, this.updateDelta);
+  _ElementOffsetUpdater(this.updateOffset, this.updateDelta, this.cache);
 
   @override
   visitElement(Element element) {
     // name offset
     int nameOffset = element.nameOffset;
     if (nameOffset > updateOffset) {
+      cache.remove(element);
       (element as ElementImpl).nameOffset = nameOffset + updateDelta;
     }
     // visible range

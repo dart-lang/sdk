@@ -1875,6 +1875,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
           typeProvider,
           unitSource,
+          _cache,
           sourceEntry,
           unitEntry,
           oldUnit,

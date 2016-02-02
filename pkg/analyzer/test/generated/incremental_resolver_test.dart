@@ -22,8 +22,10 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -115,6 +117,20 @@ void _assertEqualErrors(
     AnalysisError incrError = incrErrors[i];
     AnalysisError fullError = fullErrors[i];
     _assertEqualError(incrError, fullError);
+  }
+}
+
+void _checkCacheEntries(AnalysisCache cache) {
+  Set seen = new Set();
+  MapIterator<AnalysisTarget, CacheEntry> it = cache.iterator();
+  while (it.moveNext()) {
+    AnalysisTarget key = it.key;
+    if (cache.get(key) == null) {
+      fail("cache corrupted: value of $key changed to null");
+    }
+    if (!seen.add(key)) {
+      fail("cache corrupted: $key appears more than once");
+    }
   }
 }
 
@@ -3121,6 +3137,21 @@ class A {
     _resolve(_editString('+', '*'), _isFunctionBody);
   }
 
+  void test_computeConstants_offsetChanged() {
+    _resolveUnit(r'''
+int f() => 0;
+main() {
+  const x1 = f();
+  const x2 = f();
+  const x3 = f();
+  const x4 = f();
+  const x5 = f();
+  print(x1 + x2 + x3 + x4 + x5 + 1);
+}
+''');
+    _resolve(_editString('x1', ' x1'), _isFunctionBody);
+  }
+
   void test_constructor_body() {
     _resolveUnit(r'''
 class A {
@@ -3426,6 +3457,9 @@ class B {
         edit.replacement +
         code.substring(offset + edit.length);
     CompilationUnit newUnit = _parseUnit(newCode);
+    AnalysisCache cache = analysisContext2.analysisCache;
+    _checkCacheEntries(cache);
+
     // replace the node
     AstNode oldNode = _findNodeAt(unit, offset, predicate);
     AstNode newNode = _findNodeAt(newUnit, offset, predicate);
@@ -3444,11 +3478,12 @@ class B {
     int updateOldNew = updateOffset + edit.replacement.length;
     IncrementalResolver resolver;
     LibrarySpecificUnit lsu = new LibrarySpecificUnit(source, source);
-    AnalysisCache cache = analysisContext2.analysisCache;
-    resolver = new IncrementalResolver(cache.get(source), cache.get(lsu),
+    resolver = new IncrementalResolver(cache, cache.get(source), cache.get(lsu),
         unit.element, updateOffset, updateEndOld, updateOldNew);
     bool success = resolver.resolve(newNode);
     expect(success, isTrue);
+    _checkCacheEntries(cache);
+
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
     // resolve "newCode" from scratch
     CompilationUnit fullNewUnit;
@@ -3458,6 +3493,8 @@ class B {
       LibraryElement library = resolve2(source);
       fullNewUnit = resolveCompilationUnit(source, library);
     }
+    _checkCacheEntries(cache);
+
     try {
       assertSameResolution(unit, fullNewUnit);
     } on IncrementalResolutionMismatch catch (mismatch) {
@@ -3477,6 +3514,7 @@ class B {
     library = resolve2(source);
     unit = resolveCompilationUnit(source, library);
     _runTasks();
+    _checkCacheEntries(analysisContext2.analysisCache);
   }
 
   void _runTasks() {
@@ -4867,6 +4905,7 @@ class B extends A {}
           analysisContext.getErrors(source).errors;
       _assertEqualErrors(newErrors, newFullErrors);
     }
+    _checkCacheEntries(analysisContext2.analysisCache);
   }
 
   static void _assertEqualToken(Token incrToken, Token fullToken) {
