@@ -56,7 +56,7 @@ abstract class SecurityContext {
    * private key, encrypted with [password].  An unencrypted file can be
    * used, but this is not usual.
    */
-  void usePrivateKeyAsBytes(List<int> keyBytes, {String password});
+  void usePrivateKeyBytes(List<int> keyBytes, {String password});
 
   /**
    * Sets the set of trusted X509 certificates used by [SecureSocket]
@@ -101,7 +101,7 @@ abstract class SecurityContext {
    * certificate. The private key for the server certificate is set by
    * [usePrivateKey].
    */
-  void useCertificateChainAsBytes(List<int> chainBytes);
+  void useCertificateChainBytes(List<int> chainBytes);
 
   /**
    * Sets the list of authority names that a [SecureServer] will advertise
