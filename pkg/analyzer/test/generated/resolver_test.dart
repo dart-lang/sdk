@@ -1604,11 +1604,14 @@ class ElementResolverTest extends EngineTestCase {
     Annotation annotationNode =
         AstFactory.annotation(AstFactory.identifier3('a'));
     annotationNode.element = ElementFactory.classElement2('A');
+    annotationNode.elementAnnotation = new ElementAnnotationImpl(enumElement);
     enumNode.metadata.add(annotationNode);
     enumNode.name.staticElement = enumElement;
+    List<ElementAnnotation> metadata = <ElementAnnotation>[
+      annotationNode.elementAnnotation
+    ];
     _resolveNode(enumNode);
-    List<ElementAnnotation> metadata = enumElement.metadata;
-    expect(metadata, hasLength(1));
+    expect(metadata[0].element, annotationNode.element);
   }
 
   void test_visitExportDirective_noCombinators() {

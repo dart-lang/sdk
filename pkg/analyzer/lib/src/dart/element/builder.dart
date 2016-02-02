@@ -62,7 +62,8 @@ class CompilationUnitBuilder {
  * Instances of the class `DirectiveElementBuilder` build elements for top
  * level library directives.
  */
-class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
+class DirectiveElementBuilder extends SimpleAstVisitor<Object>
+    with _ElementBuilderMixin {
   /**
    * The analysis context within which directive elements are being built.
    */
@@ -186,6 +187,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
               CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
               [uriLiteral.toSource()]));
         }
+        setMetadata(exportElement, node);
       }
     }
     return null;
@@ -238,8 +240,27 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
           errors.add(new AnalysisError(importedSource, uriLiteral.offset,
               uriLiteral.length, errorCode, [uriLiteral.toSource()]));
         }
+        setMetadata(importElement, node);
       }
     }
+    return null;
+  }
+
+  @override
+  Object visitLibraryDirective(LibraryDirective node) {
+    setMetadata(node.element, node);
+    return null;
+  }
+
+  @override
+  Object visitPartDirective(PartDirective node) {
+    setMetadata(node.element, node);
+    return null;
+  }
+
+  @override
+  Object visitPartOfDirective(PartOfDirective node) {
+    setMetadata(node.element, node);
     return null;
   }
 
@@ -275,7 +296,8 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
  * Instances of the class `ElementBuilder` traverse an AST structure and build the element
  * model representing the AST structure.
  */
-class ElementBuilder extends RecursiveAstVisitor<Object> {
+class ElementBuilder extends RecursiveAstVisitor<Object>
+    with _ElementBuilderMixin {
   /**
    * The element holder associated with the element that is currently being built.
    */
@@ -400,6 +422,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     className.staticElement = element;
     _fieldMap = null;
     holder.validate();
+    setMetadata(element, node);
     return null;
   }
 
@@ -434,6 +457,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _currentHolder.addType(element);
     className.staticElement = element;
     holder.validate();
+    setMetadata(element, node);
     return null;
   }
 
@@ -483,6 +507,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       element.nameEnd = constructorName.end;
     }
     holder.validate();
+    setMetadata(element, node);
     return null;
   }
 
@@ -502,6 +527,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     }
     _currentHolder.addLocalVariable(element);
     variableName.staticElement = element;
+    setMetadata(element, node);
     return super.visitDeclaredIdentifier(node);
   }
 
@@ -566,6 +592,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     enumElement.constructors = ConstructorElement.EMPTY_LIST;
     _currentHolder.addEnum(enumElement);
     enumName.staticElement = enumElement;
+    setMetadata(enumElement, node);
     return super.visitEnumDeclaration(node);
   }
 
@@ -608,6 +635,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.parameters = holder.parameters;
     element.typeParameters = holder.typeParameters;
     holder.validate();
+    _setMetadataForParameter(element, node);
     return null;
   }
 
@@ -658,6 +686,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         _currentHolder.addFunction(element);
         expression.element = element;
         functionName.staticElement = element;
+        setMetadata(element, node);
       } else {
         SimpleIdentifier propertyNameNode = node.name;
         if (propertyNameNode == null) {
@@ -699,6 +728,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           _currentHolder.addAccessor(getter);
           expression.element = getter;
           propertyNameNode.staticElement = getter;
+          setMetadata(getter, node);
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
@@ -727,6 +757,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           _currentHolder.addAccessor(setter);
           expression.element = setter;
           propertyNameNode.staticElement = setter;
+          setMetadata(setter, node);
         }
       }
       holder.validate();
@@ -800,6 +831,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _currentHolder.addTypeAlias(element);
     aliasName.staticElement = element;
     holder.validate();
+    setMetadata(element, node);
     return null;
   }
 
@@ -824,6 +856,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.parameters = holder.parameters;
     element.typeParameters = holder.typeParameters;
     holder.validate();
+    _setMetadataForParameter(element, node);
     return null;
   }
 
@@ -885,6 +918,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         }
         _currentHolder.addMethod(element);
         methodName.staticElement = element;
+        setMetadata(element, node);
       } else {
         SimpleIdentifier propertyNameNode = node.name;
         String propertyName = propertyNameNode.name;
@@ -923,6 +957,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           }
           _currentHolder.addAccessor(getter);
           propertyNameNode.staticElement = getter;
+          setMetadata(getter, node);
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
@@ -951,6 +986,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           field.final2 = false;
           _currentHolder.addAccessor(setter);
           propertyNameNode.staticElement = setter;
+          setMetadata(setter, node);
         }
       }
       holder.validate();
@@ -1007,7 +1043,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       _currentHolder.addParameter(parameter);
       parameterName.staticElement = parameter;
     }
-    return super.visitSimpleFormalParameter(node);
+    super.visitSimpleFormalParameter(node);
+    _setMetadataForParameter(node.element, node);
+    return null;
   }
 
   @override
@@ -1042,6 +1080,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     typeParameter.type = typeParameterType;
     _currentHolder.addTypeParameter(typeParameter);
     parameterName.staticElement = typeParameter;
+    setMetadata(typeParameter, node);
     return super.visitTypeParameter(node);
   }
 
@@ -1150,6 +1189,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         element.setter = setter;
       }
     }
+    setMetadata(element, node);
     return null;
   }
 
@@ -1311,6 +1351,75 @@ class _ElementBuilder_visitClassDeclaration extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitNode(AstNode node) => node.accept(builder);
+}
+
+/**
+ * Helper methods used by element builder classes.
+ */
+class _ElementBuilderMixin {
+  /**
+   * Given a [node] that can have annotations associated with it and the
+   * [element] to which that node has been resolved, create the annotations in
+   * the element model representing the annotations on the node.
+   */
+  void setMetadata(Element element, AnnotatedNode node) {
+    if (element is! ElementImpl) {
+      return;
+    }
+    List<ElementAnnotationImpl> annotationList = <ElementAnnotationImpl>[];
+    _addAnnotations(annotationList, node.metadata, element);
+    if (node is VariableDeclaration && node.parent is VariableDeclarationList) {
+      VariableDeclarationList list = node.parent as VariableDeclarationList;
+      _addAnnotations(annotationList, list.metadata, element);
+      if (list.parent is FieldDeclaration) {
+        FieldDeclaration fieldDeclaration = list.parent as FieldDeclaration;
+        _addAnnotations(annotationList, fieldDeclaration.metadata, element);
+      } else if (list.parent is TopLevelVariableDeclaration) {
+        TopLevelVariableDeclaration variableDeclaration =
+            list.parent as TopLevelVariableDeclaration;
+        _addAnnotations(annotationList, variableDeclaration.metadata, element);
+      }
+    }
+    if (!annotationList.isEmpty) {
+      (element as ElementImpl).metadata = annotationList;
+    }
+  }
+
+  /**
+   * Given a [node] that can have annotations associated with it and the
+   * [element] to which that node has been resolved, create the annotations in
+   * the element model representing the annotations on the node.
+   */
+  void _setMetadataForParameter(Element element, NormalFormalParameter node) {
+    if (element is! ElementImpl) {
+      return;
+    }
+    List<ElementAnnotationImpl> annotationList =
+        new List<ElementAnnotationImpl>();
+    _addAnnotations(annotationList, node.metadata, element);
+    if (!annotationList.isEmpty) {
+      (element as ElementImpl).metadata = annotationList;
+    }
+  }
+
+  /**
+   * Generate annotation elements for each of the annotations in the
+   * [annotationList] and add them to the given list of [annotations].
+   *
+   * [annotatedElement] is the element to which the annotations are being
+   * applied.
+   */
+  static void _addAnnotations(List<ElementAnnotationImpl> annotationList,
+      NodeList<Annotation> annotations, Element annotatedElement) {
+    int annotationCount = annotations.length;
+    for (int i = 0; i < annotationCount; i++) {
+      Annotation annotation = annotations[i];
+      ElementAnnotationImpl elementAnnotation =
+          new ElementAnnotationImpl(annotatedElement);
+      annotation.elementAnnotation = elementAnnotation;
+      annotationList.add(elementAnnotation);
+    }
+  }
 }
 
 /**
