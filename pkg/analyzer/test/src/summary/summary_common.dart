@@ -1552,6 +1552,185 @@ class E {}
     ]);
   }
 
+  test_constExpr_invokeConstructor_generic_named() {
+    UnlinkedVariable variable = serializeVariableText('''
+class C<K, V> {
+  const C.named();
+}
+const v = const C<int, String>.named();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) {
+        checkTypeRef(r, null, null, 'named',
+            expectedKind: ReferenceKind.constructor,
+            prefixExpectations: [
+              new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                  numTypeParameters: 2)
+            ],
+            allowTypeParameters: true);
+        checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
+        checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
+      }
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_generic_named_imported() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C<K, V> {
+  const C.named();
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = const C<int, String>.named();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) {
+        checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'named',
+            expectedKind: ReferenceKind.constructor,
+            prefixExpectations: [
+              new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                  numTypeParameters: 2)
+            ],
+            allowTypeParameters: true);
+        checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
+        checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
+      }
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_generic_named_imported_withPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C<K, V> {
+  const C.named();
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const v = const p.C<int, String>.named();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) {
+        checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'named',
+            expectedKind: ReferenceKind.constructor,
+            prefixExpectations: [
+              new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                  numTypeParameters: 2),
+              new _PrefixExpectation(ReferenceKind.prefix, 'p',
+                  inLibraryDefiningUnit: true)
+            ],
+            allowTypeParameters: true);
+        checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
+        checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
+      }
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_generic_unnamed() {
+    UnlinkedVariable variable = serializeVariableText('''
+class C<K, V> {
+  const C();
+}
+const v = const C<int, String>();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) {
+        checkTypeRef(r, null, null, 'C',
+            expectedKind: ReferenceKind.classOrEnum,
+            numTypeParameters: 2,
+            allowTypeParameters: true);
+        checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
+        checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
+      }
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_generic_unnamed_imported() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C<K, V> {
+  const C();
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = const C<int, String>();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) {
+        checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
+            expectedKind: ReferenceKind.classOrEnum,
+            numTypeParameters: 2,
+            allowTypeParameters: true);
+        checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
+        checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
+      }
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_generic_unnamed_imported_withPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C<K, V> {
+  const C();
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const v = const p.C<int, String>();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) {
+        checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
+            expectedKind: ReferenceKind.classOrEnum,
+            numTypeParameters: 2,
+            allowTypeParameters: true,
+            prefixExpectations: [
+              new _PrefixExpectation(ReferenceKind.prefix, 'p',
+                  inLibraryDefiningUnit: true)
+            ]);
+        checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
+        checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
+      }
+    ]);
+  }
+
   test_constExpr_invokeConstructor_named() {
     UnlinkedVariable variable = serializeVariableText('''
 class C {
