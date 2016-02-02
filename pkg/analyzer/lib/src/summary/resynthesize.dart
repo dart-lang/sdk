@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -449,6 +450,23 @@ class _ConstExprBuilder {
     throw new StateError('Unsupported type $type');
   }
 
+  /**
+   * Return the [ConstructorElement] by applying [typeArgumentRefs] to the
+   * given linked [info].  Both cases when [info] is a [ClassElement] and
+   * [ConstructorElement] are supported.
+   */
+  _DeferredConstructorElement _createConstructorElement(
+      _ReferenceInfo info, List<EntityRef> typeArgumentRefs) {
+    bool isClass = info.element is ClassElement;
+    _ReferenceInfo classInfo = isClass ? info : info.enclosing;
+    List<DartType> typeArguments =
+        typeArgumentRefs.map(resynthesizer.buildType).toList();
+    InterfaceType classType =
+        classInfo.buildType((i) => typeArguments[i], const <int>[]);
+    String name = isClass ? '' : info.name;
+    return new _DeferredConstructorElement(classType, name);
+  }
+
   InterpolationElement _newInterpolationElement(Expression expr) {
     if (expr is SimpleStringLiteral) {
       return new InterpolationString(expr.literal, expr.value);
@@ -485,28 +503,18 @@ class _ConstExprBuilder {
   void _pushInstanceCreation() {
     EntityRef ref = uc.references[refPtr++];
     _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
-    // prepare ClassElement / ConstructorElement
-    String className;
-    ClassElement classElement;
+    // prepare ConstructorElement
     String constructorName;
-    ConstructorElement constructorElement;
     if (info.element is ConstructorElement) {
       constructorName = info.name;
-      constructorElement = info.element;
-      className = info.enclosing.name;
-      classElement = info.enclosing.element as ClassElement;
     } else if (info.element is ClassElement) {
-      className = info.name;
-      classElement = info.element;
       constructorName = null;
-      constructorElement = new ConstructorElementHandle(
-          resynthesizer.summaryResynthesizer,
-          new ElementLocationImpl.con3(
-              classElement.location.components.toList()..add('')));
     } else {
       throw new StateError('Unsupported element for invokeConstructor '
           '${info.element?.runtimeType}');
     }
+    _DeferredConstructorElement constructorElement =
+        _createConstructorElement(info, ref.typeArguments);
     // prepare arguments
     List<Expression> arguments;
     {
@@ -522,13 +530,11 @@ class _ConstExprBuilder {
       }
     }
     // create TypeName
-    SimpleIdentifier typeNameNode = AstFactory.identifier3(className);
-    typeNameNode.staticElement = classElement;
-    TypeName typeNode = AstFactory.typeName3(typeNameNode);
+    TypeName typeNode = _buildTypeAst(constructorElement.definingType);
     // create ConstructorName
     ConstructorName constructorNode;
     if (constructorName != null) {
-      constructorNode = AstFactory.constructorName(typeNode, info.name);
+      constructorNode = AstFactory.constructorName(typeNode, constructorName);
       constructorNode.name.staticElement = constructorElement;
     } else {
       constructorNode = AstFactory.constructorName(typeNode, null);
@@ -572,6 +578,42 @@ class _ConstExprBuilder {
     List<Expression> items = stack.getRange(start, end).toList();
     stack.removeRange(start, end);
     return items;
+  }
+}
+
+/**
+ * The constructor element that has been resynthesized from a summary.  The
+ * actual element won't be constructed until it is requested.  But properties
+ * [definingType], [displayName], [enclosingElement] and [name] can be used
+ * without creating the actual element.
+ */
+class _DeferredConstructorElement extends ConstructorElementHandle {
+  final InterfaceType definingType;
+  final String name;
+
+  factory _DeferredConstructorElement(InterfaceType definingType, String name) {
+    List<String> components = definingType.element.location.components.toList();
+    components.add(name);
+    ElementLocationImpl location = new ElementLocationImpl.con3(components);
+    return new _DeferredConstructorElement._(definingType, name, location);
+  }
+
+  _DeferredConstructorElement._(
+      this.definingType, this.name, ElementLocation location)
+      : super(null, location);
+
+  @override
+  Element get actualElement {
+    ConstructorElement element = enclosingElement.getNamedConstructor(name);
+    return new ConstructorMember(element, definingType);
+  }
+
+  @override
+  String get displayName => name;
+
+  @override
+  ClassElement get enclosingElement {
+    return definingType.element;
   }
 }
 
@@ -1526,6 +1568,7 @@ class _LibraryResynthesizer {
       }
       Element element;
       DartType type;
+      int numTypeParameters = linkedReference.numTypeParameters;
       if (linkedReference.kind == ReferenceKind.unresolved) {
         type = summaryResynthesizer.typeProvider.undefinedType;
         element = type.element;
@@ -1567,6 +1610,7 @@ class _LibraryResynthesizer {
             assert(location.components.length == 4);
             element =
                 new ConstructorElementHandle(summaryResynthesizer, location);
+            numTypeParameters = enclosingInfo.numTypeParameters;
             break;
           case ReferenceKind.propertyAccessor:
             assert(location.components.length == 4);
@@ -1584,8 +1628,8 @@ class _LibraryResynthesizer {
             break;
         }
       }
-      referenceInfos[i] = new _ReferenceInfo(enclosingInfo, name, element, type,
-          linkedReference.numTypeParameters);
+      referenceInfos[i] = new _ReferenceInfo(
+          enclosingInfo, name, element, type, numTypeParameters);
     }
   }
 

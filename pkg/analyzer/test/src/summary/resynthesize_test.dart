@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -332,6 +333,8 @@ class ResynthTest extends ResolverTestCase {
         expect(rType, isNotNull, reason: desc);
         compareConstantExpressions(rType.name, oType.name, desc);
         compareConstantExpressions(rConstructor.name, oConstructor.name, desc);
+        compareLists(
+            rType.typeArguments?.arguments, oType.typeArguments?.arguments);
         compareLists(r.argumentList.arguments, o.argumentList.arguments);
       } else if (o is ConstructorName && r is ConstructorName) {
         fail('Not implemented for ${r.runtimeType} vs. ${o.runtimeType}');
@@ -365,6 +368,13 @@ class ResynthTest extends ResolverTestCase {
       bool want = actualOriginal.hasModifier(modifier);
       expect(got, want,
           reason: 'Mismatch in $desc.$modifier: got $got, want $want');
+    }
+    // Validate members.
+    if (actualOriginal is Member) {
+      expect(actualResynthesized, new isInstanceOf<Member>(), reason: desc);
+    } else {
+      expect(actualResynthesized, isNot(new isInstanceOf<Member>()),
+          reason: desc);
     }
   }
 
@@ -721,10 +731,12 @@ class ResynthTest extends ResolverTestCase {
   }
 
   ElementImpl getActualElement(Element element, String desc) {
-    if (element is ElementHandle) {
-      return element.actualElement;
-    } else if (element is ElementImpl) {
+    if (element is ElementImpl) {
       return element;
+    } else if (element is ElementHandle) {
+      return getActualElement(element.actualElement, desc);
+    } else if (element is Member) {
+      return getActualElement(element.baseElement, desc);
     } else {
       fail('Unexpected type for resynthesized ($desc):'
           ' ${element.runtimeType}');
@@ -1063,6 +1075,86 @@ class E {}''');
 
   test_classes() {
     checkLibrary('class C {} class D {}');
+  }
+
+  test_const_invokeConstructor_generic_named() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+class C<K, V> {
+  const C.named(K k, V v);
+}
+const V = const C<int, String>.named(1, '222');
+''');
+  }
+
+  test_const_invokeConstructor_generic_named_imported() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C<K, V> {
+  const C.named(K k, V v);
+}
+''');
+    checkLibrary(r'''
+import 'a.dart';
+const V = const C<int, String>.named(1, '222');
+''');
+  }
+
+  test_const_invokeConstructor_generic_named_imported_withPrefix() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C<K, V> {
+  const C.named(K k, V v);
+}
+''');
+    checkLibrary(r'''
+import 'a.dart' as p;
+const V = const p.C<int, String>.named(1, '222');
+''');
+  }
+
+  test_const_invokeConstructor_generic_unnamed() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+class C<K, V> {
+  const C();
+}
+const V = const C<int, String>();
+''');
+  }
+
+  test_const_invokeConstructor_generic_unnamed_imported() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C<K, V> {
+  const C();
+}
+''');
+    checkLibrary(r'''
+import 'a.dart';
+const V = const C<int, String>();
+''');
+  }
+
+  test_const_invokeConstructor_generic_unnamed_imported_withPrefix() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C<K, V> {
+  const C();
+}
+''');
+    checkLibrary(r'''
+import 'a.dart' as p;
+const V = const p.C<int, String>();
+''');
   }
 
   test_const_invokeConstructor_named() {

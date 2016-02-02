@@ -1134,7 +1134,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   /**
    * Initialize a newly created type to be declared by the given [element],
-   * with the given [name] and [typeArguents].
+   * with the given [name] and [typeArguments].
    */
   InterfaceTypeImpl.elementWithNameAndArgs(
       ClassElement element, String name, List<DartType> typeArguments)
