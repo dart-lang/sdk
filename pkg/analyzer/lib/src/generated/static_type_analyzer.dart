@@ -1015,6 +1015,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (staticElement is VariableElement) {
       staticType = staticElement.type;
     }
+    if (_strongMode) {
+      staticType = _inferGenericInstantiationFromContext(
+          InferenceContext.getType(node), staticType);
+    }
     if (!(_strongMode &&
         _inferObjectAccess(node, staticType, prefixedIdentifier))) {
       _recordStaticType(prefixedIdentifier, staticType);
@@ -1144,6 +1148,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
+    if (_strongMode) {
+      staticType = _inferGenericInstantiationFromContext(
+          InferenceContext.getType(node), staticType);
+    }
     if (!(_strongMode && _inferObjectAccess(node, staticType, propertyName))) {
       _recordStaticType(propertyName, staticType);
       _recordStaticType(node, staticType);
@@ -1243,6 +1251,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       staticType = _typeProvider.typeType;
     } else {
       staticType = _dynamicType;
+    }
+    if (_strongMode) {
+      staticType = _inferGenericInstantiationFromContext(
+          InferenceContext.getType(node), staticType);
     }
     _recordStaticType(node, staticType);
     // TODO(brianwilkerson) I think we want to repeat the logic above using the
@@ -1880,6 +1892,21 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
     }
     return false;
+  }
+
+  /**
+   * Given an uninstantiated generic type, try to infer the instantiated generic
+   * type from the surrounding context.
+   */
+  DartType _inferGenericInstantiationFromContext(
+      DartType context, DartType type) {
+    TypeSystem ts = _typeSystem;
+    if (context is FunctionType &&
+        type is FunctionType &&
+        ts is StrongTypeSystemImpl) {
+      return ts.inferFunctionTypeInstantiation(_typeProvider, context, type);
+    }
+    return type;
   }
 
   /**
