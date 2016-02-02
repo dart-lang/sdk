@@ -122,7 +122,7 @@ static void DebuggerEventHandler(DebuggerEvent* event) {
       location.script_url = Api::NewHandle(thread, top_frame->SourceUrl());
       const Library& lib = Library::Handle(top_frame->Library());
       location.library_id = lib.index();
-      location.token_pos = top_frame->TokenPos();
+      location.token_pos = top_frame->TokenPos().Pos();
       intptr_t bp_id = 0;
       if (event->breakpoint() != NULL) {
         ASSERT(event->breakpoint()->id() != ILLEGAL_BREAKPOINT_ID);
@@ -138,11 +138,11 @@ static void DebuggerEventHandler(DebuggerEvent* event) {
       Zone* zone = thread->zone();
       Library& library = Library::Handle(zone);
       Script& script = Script::Handle(zone);
-      intptr_t token_pos;
+      TokenPosition token_pos;
       bpt->bpt_location()->GetCodeLocation(&library, &script, &token_pos);
       location.script_url = Api::NewHandle(thread, script.url());
       location.library_id = library.index();
-      location.token_pos = token_pos;
+      location.token_pos = token_pos.Pos();
       (*bp_resolved_handler)(isolate_id, bpt->id(), location);
     }
   } else if (event->type() == DebuggerEvent::kExceptionThrown) {
@@ -292,7 +292,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
     location->script_url = Api::NewHandle(T, frame->SourceUrl());
     const Library& lib = Library::Handle(Z, frame->Library());
     location->library_id = lib.index();
-    location->token_pos = frame->TokenPos();
+    location->token_pos = frame->TokenPos().Pos();
   }
   return Api::Success();
 }
@@ -652,7 +652,7 @@ DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type_in) {
 
   // Construct the super type object, canonicalize it and return.
   Type& instantiated_type = Type::Handle(
-      Type::New(super_cls, super_type_args_array, Token::kNoSourcePos));
+      Type::New(super_cls, super_type_args_array, TokenPosition::kNoSource));
   ASSERT(!instantiated_type.IsNull());
   instantiated_type.SetIsFinalized();
   return Api::NewHandle(T, instantiated_type.Canonicalize());
@@ -681,7 +681,7 @@ DART_EXPORT Dart_Handle Dart_GetClosureInfo(
   }
 
   if (location != NULL) {
-    if (func.token_pos() >= 0) {
+    if (func.token_pos().IsReal()) {
       const Class& cls = Class::Handle(Z, func.origin());
       ASSERT(!cls.IsNull());
       const Library& lib = Library::Handle(Z, cls.library());
@@ -691,7 +691,7 @@ DART_EXPORT Dart_Handle Dart_GetClosureInfo(
       ASSERT(!script.IsNull());
       location->script_url = Api::NewHandle(T, script.url());
       location->library_id = lib.index();
-      location->token_pos = func.token_pos();
+      location->token_pos = func.token_pos().Pos();
     } else {
       location->script_url = Api::NewHandle(T, String::null());
       location->library_id = -1;

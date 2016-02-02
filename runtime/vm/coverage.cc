@@ -41,10 +41,13 @@ static void ComputeTokenPosToLineNumberMap(const Script& script,
     (*map)[i] = -1;
   }
 #endif
-  TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
+  TokenStream::Iterator tkit(tkns,
+                             TokenPosition::kMinSource,
+                             TokenStream::Iterator::kAllTokens);
   intptr_t cur_line = script.line_offset() + 1;
   while (tkit.CurrentTokenKind() != Token::kEOS) {
-    (*map)[tkit.CurrentPosition()] = cur_line;
+    const intptr_t position = tkit.CurrentPosition().Pos();
+    (*map)[position] = cur_line;
     if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
       cur_line++;
     }
@@ -87,8 +90,8 @@ void CodeCoverage::CompileAndAdd(const Function& function,
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       zone, code.pc_descriptors());
 
-  const intptr_t begin_pos = function.token_pos();
-  const intptr_t end_pos = function.end_token_pos();
+  const TokenPosition begin_pos = function.token_pos();
+  const TokenPosition end_pos = function.end_token_pos();
   intptr_t last_line = -1;
   intptr_t last_count = 0;
   // Only IC based calls have counting.
@@ -98,16 +101,18 @@ void CodeCoverage::CompileAndAdd(const Function& function,
     HANDLESCOPE(thread);
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
     if (!ic_data->IsNull()) {
-      const intptr_t token_pos = iter.TokenPos();
+      const TokenPosition token_pos = iter.TokenPos();
       // Filter out descriptors that do not map to tokens in the source code.
       if ((token_pos < begin_pos) || (token_pos > end_pos)) {
         continue;
       }
       if (as_call_sites) {
         bool is_static_call = iter.Kind() == RawPcDescriptors::kUnoptStaticCall;
-        ic_data->PrintToJSONArray(hits_or_sites, token_pos, is_static_call);
+        ic_data->PrintToJSONArray(hits_or_sites,
+                                  token_pos,
+                                  is_static_call);
       } else {
-        intptr_t line = pos_to_line[token_pos];
+        intptr_t line = pos_to_line[token_pos.Pos()];
 #if defined(DEBUG)
         const Script& script = Script::Handle(zone, function.script());
         intptr_t test_line = -1;

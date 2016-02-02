@@ -475,6 +475,8 @@
     'timer.h',
     'token.cc',
     'token.h',
+    'token_position.cc',
+    'token_position.h',
     'trace_buffer.cc',
     'trace_buffer.h',
     'trace_buffer_test.cc',

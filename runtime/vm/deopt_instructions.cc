@@ -356,7 +356,7 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
     const Code& code = Code::Handle(top_frame->LookupDartCode());
     const Function& top_function = Function::Handle(code.function());
     const Script& script = Script::Handle(top_function.script());
-    const intptr_t token_pos = code.GetTokenIndexOfPC(top_frame->pc());
+    const TokenPosition token_pos = code.GetTokenIndexOfPC(top_frame->pc());
     intptr_t line, column;
     script.GetTokenLocation(token_pos, &line, &column);
     String& line_string = String::Handle(script.GetLine(line));

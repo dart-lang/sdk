@@ -108,7 +108,7 @@ class FunctionKeyValueTrait {
   static Value ValueOf(Pair kv) { return kv; }
 
   static inline intptr_t Hashcode(Key key) {
-    return key->token_pos();
+    return key->token_pos().value();
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
@@ -131,7 +131,7 @@ class FieldKeyValueTrait {
   static Value ValueOf(Pair kv) { return kv; }
 
   static inline intptr_t Hashcode(Key key) {
-    return key->token_pos();
+    return key->token_pos().value();
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {

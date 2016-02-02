@@ -640,7 +640,7 @@ class Isolate : public BaseIsolate {
 
   void AddClosureFunction(const Function& function) const;
   RawFunction* LookupClosureFunction(const Function& parent,
-                                     intptr_t token_pos) const;
+                                     TokenPosition token_pos) const;
   intptr_t FindClosureIndex(const Function& needle) const;
   RawFunction* ClosureFunctionFromIndex(intptr_t idx) const;
 

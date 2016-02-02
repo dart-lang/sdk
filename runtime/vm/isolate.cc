@@ -1505,7 +1505,7 @@ void Isolate::AddClosureFunction(const Function& function) const {
 // all closure functions becomes more difficult, especially when
 // the list/map changes while iterating over it.
 RawFunction* Isolate::LookupClosureFunction(const Function& parent,
-                                            intptr_t token_pos) const {
+                                            TokenPosition token_pos) const {
   const GrowableObjectArray& closures =
       GrowableObjectArray::Handle(object_store()->closure_functions());
   ASSERT(!closures.IsNull());

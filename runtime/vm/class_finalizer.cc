@@ -2077,10 +2077,10 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class,
   const Class& mixin_class = Class::Handle(mixin_type.type_class());
 
   if (FLAG_trace_class_finalization) {
-    THR_Print("Applying mixin type '%s' to %s at pos %" Pd "\n",
+    THR_Print("Applying mixin type '%s' to %s at pos %s\n",
               String::Handle(mixin_type.Name()).ToCString(),
               mixin_app_class.ToCString(),
-              mixin_app_class.token_pos());
+              mixin_app_class.token_pos().ToCString());
   }
 
   // Check for illegal self references.
@@ -2207,10 +2207,10 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   // A default constructor will be created for the mixin app alias class.
 
   if (FLAG_trace_class_finalization) {
-    THR_Print("Applying mixin members of %s to %s at pos %" Pd "\n",
+    THR_Print("Applying mixin members of %s to %s at pos %s\n",
               mixin_cls.ToCString(),
               cls.ToCString(),
-              cls.token_pos());
+              cls.token_pos().ToCString());
   }
 
   const GrowableObjectArray& cloned_funcs =
@@ -3142,7 +3142,7 @@ void ClassFinalizer::MarkTypeMalformed(const Error& prev_error,
 
 RawType* ClassFinalizer::NewFinalizedMalformedType(const Error& prev_error,
                                                    const Script& script,
-                                                   intptr_t type_pos,
+                                                   TokenPosition type_pos,
                                                    const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -3202,7 +3202,7 @@ void ClassFinalizer::ReportError(const Error& error) {
 
 void ClassFinalizer::ReportErrors(const Error& prev_error,
                                   const Class& cls,
-                                  intptr_t token_pos,
+                                  TokenPosition token_pos,
                                   const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -3214,7 +3214,7 @@ void ClassFinalizer::ReportErrors(const Error& prev_error,
 
 
 void ClassFinalizer::ReportError(const Class& cls,
-                                 intptr_t token_pos,
+                                 TokenPosition token_pos,
                                  const char* format, ...) {
   va_list args;
   va_start(args, format);

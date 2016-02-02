@@ -21,7 +21,7 @@ class LocalScope;
 
 class LocalVariable : public ZoneAllocated {
  public:
-  LocalVariable(intptr_t token_pos,
+  LocalVariable(TokenPosition token_pos,
                 const String& name,
                 const AbstractType& type)
     : token_pos_(token_pos),
@@ -39,7 +39,7 @@ class LocalVariable : public ZoneAllocated {
     ASSERT(name.IsSymbol());
   }
 
-  intptr_t token_pos() const { return token_pos_; }
+  TokenPosition token_pos() const { return token_pos_; }
   const String& name() const { return name_; }
   LocalScope* owner() const { return owner_; }
   void set_owner(LocalScope* owner) {
@@ -109,7 +109,7 @@ class LocalVariable : public ZoneAllocated {
  private:
   static const int kUninitializedIndex = INT_MIN;
 
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   const String& name_;
   LocalScope* owner_;  // Local scope declaring this variable.
 
@@ -132,16 +132,16 @@ class LocalVariable : public ZoneAllocated {
 
 class NameReference : public ZoneAllocated {
  public:
-  NameReference(intptr_t token_pos, const String& name)
+  NameReference(TokenPosition token_pos, const String& name)
     : token_pos_(token_pos),
       name_(name) {
     ASSERT(name.IsSymbol());
   }
   const String& name() const { return name_; }
-  intptr_t token_pos() const { return token_pos_; }
-  void set_token_pos(intptr_t value) { token_pos_ = value; }
+  TokenPosition token_pos() const { return token_pos_; }
+  void set_token_pos(TokenPosition value) { token_pos_ = value; }
  private:
-  intptr_t token_pos_;
+  TokenPosition token_pos_;
   const String& name_;
 };
 
@@ -160,7 +160,7 @@ class SourceLabel : public ZoneAllocated {
     kStatement  // Any statement other than the above
   };
 
-  SourceLabel(intptr_t token_pos, const String& name, Kind kind)
+  SourceLabel(TokenPosition token_pos, const String& name, Kind kind)
     : token_pos_(token_pos),
       name_(name),
       owner_(NULL),
@@ -168,7 +168,7 @@ class SourceLabel : public ZoneAllocated {
     ASSERT(name.IsSymbol());
   }
 
-  static SourceLabel* New(intptr_t token_pos, String* name, Kind kind) {
+  static SourceLabel* New(TokenPosition token_pos, String* name, Kind kind) {
     if (name != NULL) {
       return new SourceLabel(token_pos, *name, kind);
     } else {
@@ -178,7 +178,7 @@ class SourceLabel : public ZoneAllocated {
     }
   }
 
-  intptr_t token_pos() const { return token_pos_; }
+  TokenPosition token_pos() const { return token_pos_; }
   const String& name() const { return name_; }
   LocalScope* owner() const { return owner_; }
   void set_owner(LocalScope* owner) {
@@ -194,7 +194,7 @@ class SourceLabel : public ZoneAllocated {
   void ResolveForwardReference() { kind_ = kCase; }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   const String& name_;
   LocalScope* owner_;  // Local scope declaring this label.
 
@@ -232,11 +232,11 @@ class LocalScope : public ZoneAllocated {
     context_level_ = context_level;
   }
 
-  intptr_t begin_token_pos() const { return begin_token_pos_; }
-  void set_begin_token_pos(intptr_t value) { begin_token_pos_ = value; }
+  TokenPosition begin_token_pos() const { return begin_token_pos_; }
+  void set_begin_token_pos(TokenPosition value) { begin_token_pos_ = value; }
 
-  intptr_t end_token_pos() const { return end_token_pos_; }
-  void set_end_token_pos(intptr_t value) { end_token_pos_ = value; }
+  TokenPosition end_token_pos() const { return end_token_pos_; }
+  void set_end_token_pos(TokenPosition value) { end_token_pos_ = value; }
 
   // The number of variables allocated in the context and belonging to this
   // scope and to its children at the same loop level.
@@ -302,8 +302,8 @@ class LocalScope : public ZoneAllocated {
   // Add a reference to the given name into this scope and the enclosing
   // scopes that do not have a local variable declaration for this name
   // already.
-  void AddReferencedName(intptr_t token_pos, const String& name);
-  intptr_t PreviousReferencePos(const String& name) const;
+  void AddReferencedName(TokenPosition token_pos, const String& name);
+  TokenPosition PreviousReferencePos(const String& name) const;
 
   // Allocate both captured and non-captured variables declared in this scope
   // and in its children scopes of the same function level. Allocating means
@@ -367,8 +367,8 @@ class LocalScope : public ZoneAllocated {
   int loop_level_;      // Reflects the loop nesting level.
   int context_level_;   // Reflects the level of the runtime context.
   int num_context_variables_;   // Only set if this scope is a context owner.
-  intptr_t begin_token_pos_;  // Token index of beginning of scope.
-  intptr_t end_token_pos_;    // Token index of end of scope.
+  TokenPosition begin_token_pos_;  // Token index of beginning of scope.
+  TokenPosition end_token_pos_;    // Token index of end of scope.
   GrowableArray<LocalVariable*> variables_;
   GrowableArray<SourceLabel*> labels_;
 

@@ -23,6 +23,7 @@
 #include "vm/scanner.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
+#include "vm/token_position.h"
 #include "vm/verified_memory.h"
 
 namespace dart {
@@ -938,10 +939,10 @@ class Class : public Object {
   RawScript* script() const { return raw_ptr()->script_; }
   void set_script(const Script& value) const;
 
-  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-  void set_token_pos(intptr_t value) const;
+  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
+  void set_token_pos(TokenPosition value) const;
 
-  intptr_t ComputeEndTokenPos() const;
+  TokenPosition ComputeEndTokenPos() const;
 
   // This class represents a typedef if the signature function is not null.
   RawFunction* signature_function() const {
@@ -1306,7 +1307,7 @@ class Class : public Object {
   // Allocate instance classes.
   static RawClass* New(const String& name,
                        const Script& script,
-                       intptr_t token_pos);
+                       TokenPosition token_pos);
   static RawClass* NewNativeWrapper(const Library& library,
                                     const String& name,
                                     int num_fields);
@@ -1469,7 +1470,7 @@ class UnresolvedClass : public Object {
     return raw_ptr()->library_prefix_;
   }
   RawString* ident() const { return raw_ptr()->ident_; }
-  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
 
   RawString* Name() const;
 
@@ -1479,12 +1480,12 @@ class UnresolvedClass : public Object {
 
   static RawUnresolvedClass* New(const LibraryPrefix& library_prefix,
                                  const String& ident,
-                                 intptr_t token_pos);
+                                 TokenPosition token_pos);
 
  private:
   void set_library_prefix(const LibraryPrefix& library_prefix) const;
   void set_ident(const String& ident) const;
-  void set_token_pos(intptr_t token_pos) const;
+  void set_token_pos(TokenPosition token_pos) const;
 
   static RawUnresolvedClass* New();
 
@@ -1997,10 +1998,10 @@ class ICData : public Object {
   RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
 
   void PrintToJSONArray(const JSONArray& jsarray,
-                        intptr_t token_pos,
+                        TokenPosition token_pos,
                         bool is_static_call) const;
   void PrintToJSONArrayNew(const JSONArray& jsarray,
-                           intptr_t token_pos,
+                           TokenPosition token_pos,
                            bool is_static_call) const;
 
   // Initialize the preallocated empty ICData entry arrays.
@@ -2312,11 +2313,11 @@ class Function : public Object {
   }
   bool IsInFactoryScope() const;
 
-  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-  void set_token_pos(intptr_t value) const;
+  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
+  void set_token_pos(TokenPosition value) const;
 
-  intptr_t end_token_pos() const { return raw_ptr()->end_token_pos_; }
-  void set_end_token_pos(intptr_t value) const {
+  TokenPosition end_token_pos() const { return raw_ptr()->end_token_pos_; }
+  void set_end_token_pos(TokenPosition value) const {
     StoreNonPointer(&raw_ptr()->end_token_pos_, value);
   }
 
@@ -2604,17 +2605,17 @@ class Function : public Object {
                           bool is_external,
                           bool is_native,
                           const Object& owner,
-                          intptr_t token_pos);
+                          TokenPosition token_pos);
 
   // Allocates a new Function object representing a closure function.
   static RawFunction* NewClosureFunction(const String& name,
                                          const Function& parent,
-                                         intptr_t token_pos);
+                                         TokenPosition token_pos);
 
   // Allocates a new Function object representing a signature function.
   // The owner is the scope class of the function type.
   static RawFunction* NewSignatureFunction(const Class& owner,
-                                           intptr_t token_pos);
+                                           TokenPosition token_pos);
 
   static RawFunction* NewEvalFunction(const Class& owner,
                                       const Script& script,
@@ -2907,13 +2908,13 @@ class Field : public Object {
                        bool is_reflectable,
                        const Class& owner,
                        const AbstractType& type,
-                       intptr_t token_pos);
+                       TokenPosition token_pos);
 
   static RawField* NewTopLevel(const String& name,
                                bool is_final,
                                bool is_const,
                                const Object& owner,
-                               intptr_t token_pos);
+                               TokenPosition token_pos);
 
   // Allocate new field object, clone values from this field. The
   // owner of the clone is new_owner.
@@ -2928,7 +2929,7 @@ class Field : public Object {
 
   static intptr_t kind_bits_offset() { return OFFSET_OF(RawField, kind_bits_); }
 
-  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
 
   bool has_initializer() const {
     return HasInitializerBit::decode(raw_ptr()->kind_bits_);
@@ -3106,7 +3107,7 @@ class Field : public Object {
   void set_owner(const Object& value) const {
     StorePointer(&raw_ptr()->owner_, value.raw());
   }
-  void set_token_pos(intptr_t token_pos) const {
+  void set_token_pos(TokenPosition token_pos) const {
     StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
   }
   void set_kind_bits(intptr_t value) const {
@@ -3156,8 +3157,9 @@ class TokenStream : public Object {
   void SetStream(const ExternalTypedData& stream) const;
 
   RawString* GenerateSource() const;
-  RawString* GenerateSource(intptr_t start, intptr_t end) const;
-  intptr_t ComputeSourcePosition(intptr_t tok_pos) const;
+  RawString* GenerateSource(TokenPosition start,
+                            TokenPosition end) const;
+  TokenPosition ComputeSourcePosition(TokenPosition tok_pos) const;
 
   RawString* PrivateKey() const;
 
@@ -3186,10 +3188,10 @@ class TokenStream : public Object {
     };
 
     Iterator(const TokenStream& tokens,
-             intptr_t token_pos,
+             TokenPosition token_pos,
              Iterator::StreamType stream_type = kNoNewlines);
 
-    void SetStream(const TokenStream& tokens, intptr_t token_pos);
+    void SetStream(const TokenStream& tokens, TokenPosition token_pos);
     bool IsValid() const;
 
     inline Token::Kind CurrentTokenKind() const {
@@ -3198,8 +3200,8 @@ class TokenStream : public Object {
 
     Token::Kind LookaheadTokenKind(intptr_t num_tokens);
 
-    intptr_t CurrentPosition() const;
-    void SetCurrentPosition(intptr_t value);
+    TokenPosition CurrentPosition() const;
+    void SetCurrentPosition(TokenPosition token_pos);
 
     void Advance();
 
@@ -3269,7 +3271,7 @@ class Script : public Object {
 
   void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
-  void GetTokenLocation(intptr_t token_pos,
+  void GetTokenLocation(TokenPosition token_pos,
                         intptr_t* line,
                         intptr_t* column,
                         intptr_t* token_len = NULL) const;
@@ -3279,8 +3281,8 @@ class Script : public Object {
   // after, but not on given line, returns in *first_token_index the index of
   // the first token after the line, and a negative value in *last_token_index.
   void TokenRangeAtLine(intptr_t line_number,
-                        intptr_t* first_token_index,
-                        intptr_t* last_token_index) const;
+                        TokenPosition* first_token_index,
+                        TokenPosition* last_token_index) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawScript));
@@ -3448,12 +3450,14 @@ class Library : public Object {
 
   void AddClassMetadata(const Class& cls,
                         const Object& tl_owner,
-                        intptr_t token_pos) const;
-  void AddFieldMetadata(const Field& field, intptr_t token_pos) const;
-  void AddFunctionMetadata(const Function& func, intptr_t token_pos) const;
-  void AddLibraryMetadata(const Object& tl_owner, intptr_t token_pos) const;
+                        TokenPosition token_pos) const;
+  void AddFieldMetadata(const Field& field, TokenPosition token_pos) const;
+  void AddFunctionMetadata(const Function& func,
+                           TokenPosition token_pos) const;
+  void AddLibraryMetadata(const Object& tl_owner,
+                          TokenPosition token_pos) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
-                                intptr_t token_pos) const;
+                                TokenPosition token_pos) const;
   RawObject* GetMetadata(const Object& obj) const;
 
   RawClass* toplevel_class() const {
@@ -3610,7 +3614,7 @@ class Library : public Object {
   RawField* GetMetadataField(const String& metaname) const;
   void AddMetadata(const Object& owner,
                    const String& name,
-                   intptr_t token_pos) const;
+                   TokenPosition token_pos) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 
@@ -3631,7 +3635,7 @@ class Namespace : public Object {
   RawArray* show_names() const { return raw_ptr()->show_names_; }
   RawArray* hide_names() const { return raw_ptr()->hide_names_; }
 
-  void AddMetadata(const Object& owner, intptr_t token_pos);
+  void AddMetadata(const Object& owner, TokenPosition token_pos);
   RawObject* GetMetadata() const;
 
   static intptr_t InstanceSize() {
@@ -3928,7 +3932,7 @@ class PcDescriptors : public Object {
 
     uword PcOffset() const { return cur_pc_offset_; }
     intptr_t DeoptId() const { return cur_deopt_id_; }
-    intptr_t TokenPos() const { return cur_token_pos_; }
+    TokenPosition TokenPos() const { return TokenPosition(cur_token_pos_); }
     intptr_t TryIndex() const { return cur_try_index_; }
     RawPcDescriptors::Kind Kind() const {
       return static_cast<RawPcDescriptors::Kind>(cur_kind_);
@@ -4021,7 +4025,7 @@ class CodeSourceMap : public Object {
     }
 
     uword PcOffset() const { return cur_pc_offset_; }
-    intptr_t TokenPos() const { return cur_token_pos_; }
+    TokenPosition TokenPos() const { return TokenPosition(cur_token_pos_); }
 
    private:
     friend class CodeSourceMap;
@@ -4455,7 +4459,7 @@ class Code : public Object {
     NoSafepointScope no_safepoint;
     return *PointerOffsetAddrAt(index);
   }
-  intptr_t GetTokenIndexOfPC(uword pc) const;
+  TokenPosition GetTokenIndexOfPC(uword pc) const;
 
   enum {
     kInvalidPc = -1
@@ -4660,8 +4664,8 @@ class ContextScope : public Object {
  public:
   intptr_t num_variables() const { return raw_ptr()->num_variables_; }
 
-  intptr_t TokenIndexAt(intptr_t scope_index) const;
-  void SetTokenIndexAt(intptr_t scope_index, intptr_t token_pos) const;
+  TokenPosition TokenIndexAt(intptr_t scope_index) const;
+  void SetTokenIndexAt(intptr_t scope_index, TokenPosition token_pos) const;
 
   RawString* NameAt(intptr_t scope_index) const;
   void SetNameAt(intptr_t scope_index, const String& name) const;
@@ -4885,7 +4889,7 @@ class LanguageError : public Error {
   // A null script means no source and a negative token_pos means no position.
   static RawLanguageError* NewFormatted(const Error& prev_error,
                                         const Script& script,
-                                        intptr_t token_pos,
+                                        TokenPosition token_pos,
                                         bool report_after_token,
                                         Report::Kind kind,
                                         Heap::Space space,
@@ -4894,7 +4898,7 @@ class LanguageError : public Error {
 
   static RawLanguageError* NewFormattedV(const Error& prev_error,
                                          const Script& script,
-                                         intptr_t token_pos,
+                                         TokenPosition token_pos,
                                          bool report_after_token,
                                          Report::Kind kind,
                                          Heap::Space space,
@@ -4915,8 +4919,8 @@ class LanguageError : public Error {
   RawScript* script() const { return raw_ptr()->script_; }
   void set_script(const Script& value) const;
 
-  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-  void set_token_pos(intptr_t value) const;
+  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
+  void set_token_pos(TokenPosition value) const;
 
   bool report_after_token() const { return raw_ptr()->report_after_token_; }
   void set_report_after_token(bool value);
@@ -5199,7 +5203,7 @@ class AbstractType : public Instance {
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const;
   virtual void set_arguments(const TypeArguments& value) const;
-  virtual intptr_t token_pos() const;
+  virtual TokenPosition token_pos() const;
   virtual bool IsInstantiated(TrailPtr trail = NULL) const;
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
@@ -5386,7 +5390,7 @@ class Type : public AbstractType {
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const { return raw_ptr()->arguments_; }
   virtual void set_arguments(const TypeArguments& value) const;
-  virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+  virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
@@ -5460,11 +5464,11 @@ class Type : public AbstractType {
 
   static RawType* New(const Object& clazz,
                       const TypeArguments& arguments,
-                      intptr_t token_pos,
+                      TokenPosition token_pos,
                       Heap::Space space = Heap::kOld);
 
  private:
-  void set_token_pos(intptr_t token_pos) const;
+  void set_token_pos(TokenPosition token_pos) const;
   void set_type_state(int8_t state) const;
 
   static RawType* New(Heap::Space space = Heap::kOld);
@@ -5533,7 +5537,7 @@ class FunctionType : public AbstractType {
   virtual RawTypeArguments* arguments() const { return raw_ptr()->arguments_; }
   virtual void set_arguments(const TypeArguments& value) const;
   RawFunction* signature() const { return raw_ptr()->signature_; }
-  virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+  virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
@@ -5557,12 +5561,12 @@ class FunctionType : public AbstractType {
   static RawFunctionType* New(const Class& scope_class,
                               const TypeArguments& arguments,
                               const Function& signature,
-                              intptr_t token_pos,
+                              TokenPosition token_pos,
                               Heap::Space space = Heap::kOld);
 
  private:
   void set_signature(const Function& value) const;
-  void set_token_pos(intptr_t token_pos) const;
+  void set_token_pos(TokenPosition token_pos) const;
   void set_type_state(int8_t state) const;
 
   static RawFunctionType* New(Heap::Space space = Heap::kOld);
@@ -5606,7 +5610,7 @@ class TypeRef : public AbstractType {
   virtual RawTypeArguments* arguments() const {
     return AbstractType::Handle(type()).arguments();
   }
-  virtual intptr_t token_pos() const {
+  virtual TokenPosition token_pos() const {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const;
@@ -5689,7 +5693,7 @@ class TypeParameter : public AbstractType {
                   const AbstractType& upper_bound,
                   Error* bound_error,
                   Heap::Space space = Heap::kNew) const;
-  virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+  virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const {
     return false;
   }
@@ -5717,12 +5721,12 @@ class TypeParameter : public AbstractType {
                                intptr_t index,
                                const String& name,
                                const AbstractType& bound,
-                               intptr_t token_pos);
+                               TokenPosition token_pos);
 
  private:
   void set_parameterized_class(const Class& value) const;
   void set_name(const String& value) const;
-  void set_token_pos(intptr_t token_pos) const;
+  void set_token_pos(TokenPosition token_pos) const;
   void set_type_state(int8_t state) const;
 
   static RawTypeParameter* New();
@@ -5768,7 +5772,7 @@ class BoundedType : public AbstractType {
   RawTypeParameter* type_parameter() const {
     return raw_ptr()->type_parameter_;
   }
-  virtual intptr_t token_pos() const {
+  virtual TokenPosition token_pos() const {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const {
@@ -5832,7 +5836,7 @@ class MixinAppType : public AbstractType {
   virtual bool IsResolved() const { return false; }
   virtual bool HasResolvedTypeClass() const { return false; }
   virtual RawString* Name() const;
-  virtual intptr_t token_pos() const;
+  virtual TokenPosition token_pos() const;
 
   // Returns the mixin composition depth of this mixin application type.
   intptr_t Depth() const;

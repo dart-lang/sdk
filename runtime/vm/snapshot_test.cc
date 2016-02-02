@@ -864,7 +864,9 @@ static void GenerateSourceAndCheck(const Script& script) {
   // the same.
   const TokenStream& expected_tokens = TokenStream::Handle(script.tokens());
   TokenStream::Iterator expected_iterator(
-      expected_tokens, 0, TokenStream::Iterator::kAllTokens);
+      expected_tokens,
+      TokenPosition::kMinSource,
+      TokenStream::Iterator::kAllTokens);
   const String& str = String::Handle(expected_tokens.GenerateSource());
   const String& private_key = String::Handle(expected_tokens.PrivateKey());
   Scanner scanner(str, private_key);
@@ -872,9 +874,11 @@ static void GenerateSourceAndCheck(const Script& script) {
       TokenStream::Handle(TokenStream::New(scanner.GetStream(),
                                            private_key,
                                            false));
-  expected_iterator.SetCurrentPosition(0);
+  expected_iterator.SetCurrentPosition(TokenPosition::kMinSource);
   TokenStream::Iterator reconstructed_iterator(
-      reconstructed_tokens, 0, TokenStream::Iterator::kAllTokens);
+      reconstructed_tokens,
+      TokenPosition::kMinSource,
+      TokenStream::Iterator::kAllTokens);
   Token::Kind expected_kind = expected_iterator.CurrentTokenKind();
   Token::Kind reconstructed_kind = reconstructed_iterator.CurrentTokenKind();
   String& expected_literal = String::Handle();
@@ -971,8 +975,10 @@ TEST_CASE(SerializeScript) {
   const ExternalTypedData& serialized_data =
       ExternalTypedData::Handle(serialized_tokens.GetStream());
   EXPECT_EQ(expected_data.Length(), serialized_data.Length());
-  TokenStream::Iterator expected_iterator(expected_tokens, 0);
-  TokenStream::Iterator serialized_iterator(serialized_tokens, 0);
+  TokenStream::Iterator expected_iterator(expected_tokens,
+                                          TokenPosition::kMinSource);
+  TokenStream::Iterator serialized_iterator(serialized_tokens,
+                                            TokenPosition::kMinSource);
   Token::Kind expected_kind = expected_iterator.CurrentTokenKind();
   Token::Kind serialized_kind = serialized_iterator.CurrentTokenKind();
   while (expected_kind != Token::kEOS && serialized_kind != Token::kEOS) {

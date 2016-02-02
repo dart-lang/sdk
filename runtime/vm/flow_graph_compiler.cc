@@ -444,7 +444,7 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 
 
 void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
-  if ((instr->token_pos() < 0) || (instr->env() == NULL)) {
+  if (!instr->token_pos().IsReal() || (instr->env() == NULL)) {
     return;
   }
   const Script& script =
@@ -759,7 +759,7 @@ void FlowGraphCompiler::SetNeedsStacktrace(intptr_t try_index) {
 // Uses current pc position and try-index.
 void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                                              intptr_t deopt_id,
-                                             intptr_t token_pos) {
+                                             TokenPosition token_pos) {
   // When running with optimizations disabled, don't emit deopt-descriptors.
   if (!CanOptimize() && (kind == RawPcDescriptors::kDeopt)) return;
   pc_descriptors_list()->AddDescriptor(kind,
@@ -785,7 +785,7 @@ void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
 
 
 void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
-                                            intptr_t token_pos) {
+                                            TokenPosition token_pos) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
   CompilerDeoptInfo* info =
@@ -1044,8 +1044,8 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     RawLocalVarDescriptors::VarInfo info;
     info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
     info.scope_id = 0;
-    info.begin_pos = 0;
-    info.end_pos = 0;
+    info.begin_pos = TokenPosition::kMinSource;
+    info.end_pos = TokenPosition::kMinSource;
     info.set_index(parsed_function().current_context_var()->index());
     var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
   }
@@ -1135,7 +1135,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
 
 void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t deopt_id,
-    intptr_t token_pos,
+    TokenPosition token_pos,
     intptr_t argument_count,
     LocationSummary* locs,
     const ICData& ic_data_in) {
@@ -1201,7 +1201,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
 
 
 void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
-                                           intptr_t token_pos,
+                                           TokenPosition token_pos,
                                            const Function& function,
                                            intptr_t argument_count,
                                            const Array& argument_names,
@@ -1780,7 +1780,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     intptr_t argument_count,
     const Array& argument_names,
     intptr_t deopt_id,
-    intptr_t token_pos,
+    TokenPosition token_pos,
     LocationSummary* locs) {
   if (FLAG_polymorphic_with_deopt) {
     Label* deopt = AddDeoptStub(deopt_id,

@@ -384,10 +384,10 @@ void Precompiler::ProcessFunction(const Function& function) {
     function_count_++;
 
     if (FLAG_trace_precompiler) {
-      THR_Print("Precompiling %" Pd " %s (%" Pd ", %s)\n",
+      THR_Print("Precompiling %" Pd " %s (%s, %s)\n",
                 function_count_,
                 function.ToLibNamePrefixedQualifiedCString(),
-                function.token_pos(),
+                function.token_pos().ToCString(),
                 Function::KindToCString(function.kind()));
     }
 
@@ -402,9 +402,9 @@ void Precompiler::ProcessFunction(const Function& function) {
     if (FLAG_trace_precompiler) {
       // This function was compiled from somewhere other than Precompiler,
       // such as const constructors compiled by the parser.
-      THR_Print("Already has code: %s (%" Pd ", %s)\n",
+      THR_Print("Already has code: %s (%s, %s)\n",
                 function.ToLibNamePrefixedQualifiedCString(),
-                function.token_pos(),
+                function.token_pos().ToCString(),
                 Function::KindToCString(function.kind()));
     }
   }

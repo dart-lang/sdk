@@ -29,8 +29,8 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       loop_level_(loop_level),
       context_level_(LocalScope::kUnitializedContextLevel),
       num_context_variables_(0),
-      begin_token_pos_(Token::kNoSourcePos),
-      end_token_pos_(Token::kNoSourcePos),
+      begin_token_pos_(TokenPosition::kNoSourcePos),
+      end_token_pos_(TokenPosition::kNoSourcePos),
       variables_(),
       labels_(),
       referenced_() {
@@ -110,7 +110,7 @@ NameReference* LocalScope::FindReference(const String& name) const {
 }
 
 
-void LocalScope::AddReferencedName(intptr_t token_pos,
+void LocalScope::AddReferencedName(TokenPosition token_pos,
                                    const String& name) {
   if (LocalLookupVariable(name) != NULL) {
     return;
@@ -132,12 +132,12 @@ void LocalScope::AddReferencedName(intptr_t token_pos,
 }
 
 
-intptr_t LocalScope::PreviousReferencePos(const String& name) const {
+TokenPosition LocalScope::PreviousReferencePos(const String& name) const {
   NameReference* ref = FindReference(name);
   if (ref != NULL) {
     return ref->token_pos();
   }
-  return -1;
+  return TokenPosition::kNoSource;
 }
 
 
@@ -328,8 +328,8 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         desc.name = &var->name();
         desc.info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
         desc.info.scope_id = 0;
-        desc.info.begin_pos = 0;
-        desc.info.end_pos = 0;
+        desc.info.begin_pos = TokenPosition::kMinSource;
+        desc.info.end_pos = TokenPosition::kMinSource;
         desc.info.set_index(var->index());
         vars->Add(desc);
       } else if (!IsFilteredIdentifier(var->name())) {

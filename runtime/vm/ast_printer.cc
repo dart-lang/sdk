@@ -30,9 +30,9 @@ void AstPrinter::VisitSequenceNode(SequenceNode* node) {
   LocalScope* scope = node->scope();
   THR_Print("(%s (scope \"%p\"", node->PrettyName(), scope);
   if (scope != NULL) {
-    THR_Print(" (%" Pd "-%" Pd ") loop %d",
-              scope->begin_token_pos(),
-              scope->end_token_pos(),
+    THR_Print(" (%s-%s) loop %d",
+              scope->begin_token_pos().ToCString(),
+              scope->end_token_pos().ToCString(),
               scope->loop_level());
     if (scope->HasContextLevel()) {
       THR_Print(" context %d captures %d",
@@ -478,9 +478,9 @@ void AstPrinter::PrintLocalScopeVariable(const LocalScope* scope,
   } else if (var->owner()->function_level() != 0) {
     THR_Print(" lev %d", var->owner()->function_level());
   }
-  THR_Print(" valid %" Pd "-%" Pd ")\n",
-            var->token_pos(),
-            scope->end_token_pos());
+  THR_Print(" valid %s-%s)\n",
+            var->token_pos().ToCString(),
+            scope->end_token_pos().ToCString());
 }
 
 
@@ -551,9 +551,9 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
         THR_Print(" ctx %d", param->owner()->context_level());
       }
     }
-    THR_Print(" valid %" Pd "-%" Pd ")\n",
-              param->token_pos(),
-              scope->end_token_pos());
+    THR_Print(" valid %s-%s)\n",
+              param->token_pos().ToCString(),
+              scope->end_token_pos().ToCString());
     pos++;
   }
   // Visit remaining non-parameter variables and children scopes.

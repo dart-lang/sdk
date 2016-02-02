@@ -2473,7 +2473,10 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
     }
   }
   SourceReport report(report_set, compile_mode);
-  report.PrintJSON(js, script, start_pos, end_pos);
+  report.PrintJSON(js,
+                   script,
+                   TokenPosition(start_pos),
+                   TokenPosition(end_pos));
   return true;
 }
 

@@ -11,7 +11,7 @@ DECLARE_FLAG(bool, precompilation);
 void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
                                    intptr_t pc_offset,
                                    intptr_t deopt_id,
-                                   intptr_t token_pos,
+                                   TokenPosition token_pos,
                                    intptr_t try_index) {
   ASSERT((kind == RawPcDescriptors::kRuntimeCall) ||
          (kind == RawPcDescriptors::kOther) ||
@@ -25,11 +25,12 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
     PcDescriptors::EncodeInteger(&encoded_data_, merged_kind_try);
     PcDescriptors::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
     PcDescriptors::EncodeInteger(&encoded_data_, deopt_id - prev_deopt_id);
-    PcDescriptors::EncodeInteger(&encoded_data_, token_pos - prev_token_pos);
+    PcDescriptors::EncodeInteger(&encoded_data_,
+                                 token_pos.value() - prev_token_pos);
 
     prev_pc_offset = pc_offset;
     prev_deopt_id = deopt_id;
-    prev_token_pos = token_pos;
+    prev_token_pos = token_pos.value();
   }
 }
 
@@ -44,12 +45,13 @@ RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
 
 
 void CodeSourceMapBuilder::AddEntry(intptr_t pc_offset,
-                                    intptr_t token_pos) {
+                                    TokenPosition token_pos) {
   CodeSourceMap::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
-  CodeSourceMap::EncodeInteger(&encoded_data_, token_pos - prev_token_pos);
+  CodeSourceMap::EncodeInteger(&encoded_data_,
+                               token_pos.value() - prev_token_pos);
 
   prev_pc_offset = pc_offset;
-  prev_token_pos = token_pos;
+  prev_token_pos = token_pos.value();
 }
 
 

@@ -22,14 +22,15 @@ namespace dart {
 static Function* CreateFunction(const char* name) {
   const String& class_name = String::Handle(Symbols::New("ownerClass"));
   const Script& script = Script::Handle();
-  const Class& owner_class =
-      Class::Handle(Class::New(class_name, script, Token::kNoSourcePos));
+  const Class& owner_class = Class::Handle(
+      Class::New(class_name, script, TokenPosition::kNoSource));
   const Library& lib = Library::Handle(Library::New(class_name));
   owner_class.set_library(lib);
   const String& function_name = String::ZoneHandle(Symbols::New(name));
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, false, owner_class, 0));
+                    true, false, false, false, false, owner_class,
+                    TokenPosition::kNoSource));
   return &function;
 }
 

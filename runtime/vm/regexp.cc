@@ -5267,7 +5267,7 @@ static void CreateSpecializedFunction(Zone* zone,
       false,  // Not external.
       false,  // Not native.
       owner,
-      0));  // No token position.
+      TokenPosition::kMinSource));
 
   // TODO(zerny): Share these arrays between all irregexp functions.
   fn.set_num_fixed_parameters(kParamCount);

@@ -14,7 +14,7 @@ namespace dart {
 #define Z (thread()->zone())
 
 // Quick synthetic token position.
-#define ST(token_pos) Token::ToSynthetic(token_pos)
+#define ST(token_pos) ((token_pos).ToSynthetic())
 
 // Nodes that are unreachable from already parsed expressions.
 #define FOR_EACH_UNREACHABLE_NODE(V)                                           \
@@ -74,7 +74,7 @@ LocalVariable* AwaitTransformer::EnsureCurrentTempVar() {
   if (await_tmp == NULL) {
     // We need a new temp variable; add it to the function's top scope.
     await_tmp = new (Z) LocalVariable(
-        Token::kNoSourcePos, symbol, Object::dynamic_type());
+        TokenPosition::kNoSource, symbol, Object::dynamic_type());
     async_temp_scope_->AddVariable(await_tmp);
     // After adding it to the top scope, we can look it up from the preamble.
     // The following call includes an ASSERT check.
@@ -92,10 +92,11 @@ LocalVariable* AwaitTransformer::GetVariableInScope(LocalScope* scope,
 }
 
 
-LocalVariable* AwaitTransformer::AddToPreambleNewTempVar(AstNode* node,
-                                                         intptr_t token_pos) {
+LocalVariable* AwaitTransformer::AddToPreambleNewTempVar(
+    AstNode* node,
+    TokenPosition token_pos) {
   LocalVariable* tmp_var = EnsureCurrentTempVar();
-  ASSERT(Token::IsSynthetic(token_pos) || Token::IsNoSource(token_pos));
+  ASSERT(token_pos.IsSynthetic() || token_pos.IsNoSource());
   preamble_->Add(new(Z) StoreLocalNode(token_pos, tmp_var, node));
   NextTempVar();
   return tmp_var;
@@ -124,7 +125,7 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   //   :saved_try_ctx_var = :await_saved_try_ctx_var_y;
   //   :await_temp_var_(X+1) = :result_param;
 
-  const intptr_t token_pos = ST(node->token_pos());
+  const TokenPosition token_pos = ST(node->token_pos());
   LocalVariable* async_op = GetVariableInScope(
       preamble_->scope(), Symbols::AsyncOperation());
   LocalVariable* async_then_callback = GetVariableInScope(

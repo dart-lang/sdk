@@ -48,7 +48,7 @@ class FlowGraphPrinter : public ValueObject {
   void PrintInstruction(Instruction* instr);
   static void PrintOneInstruction(Instruction* instr, bool print_locations);
   static void PrintTypeCheck(const ParsedFunction& parsed_function,
-                             intptr_t token_pos,
+                             TokenPosition token_pos,
                              Value* value,
                              const AbstractType& dst_type,
                              const String& dst_name,

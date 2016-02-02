@@ -426,7 +426,7 @@ RawInstance* Exceptions::NewInstance(const char* class_name) {
 
 // Allocate, initialize, and throw a TypeError or CastError.
 // If error_msg is not null, throw a TypeError, even for a type cast.
-void Exceptions::CreateAndThrowTypeError(intptr_t location,
+void Exceptions::CreateAndThrowTypeError(TokenPosition location,
                                          const String& src_type_name,
                                          const String& dst_type_name,
                                          const String& dst_name,

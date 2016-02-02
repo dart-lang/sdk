@@ -329,7 +329,7 @@ LocationSummary* AssertBooleanInstr::MakeLocationSummary(Zone* zone,
 
 
 static void EmitAssertBoolean(Register reg,
-                              intptr_t token_pos,
+                              TokenPosition token_pos,
                               intptr_t deopt_id,
                               LocationSummary* locs,
                               FlowGraphCompiler* compiler) {
@@ -1683,7 +1683,7 @@ class BoxAllocationSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(Location::RegisterLocation(result_));
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Token::kNoSourcePos,  // No token position.
+    compiler->GenerateCall(TokenPosition::kNoSource,  // No token position.
                            stub_entry,
                            RawPcDescriptors::kOther,
                            locs);
@@ -2626,7 +2626,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       // In unoptimized code, record loop stack checks as possible OSR entries.
       compiler->AddCurrentDescriptor(RawPcDescriptors::kOsrEntry,
                                      instruction_->deopt_id(),
-                                     0);  // No token position.
+                                     TokenPosition::kNoSource);
     }
     compiler->pending_deoptimization_env_ = NULL;
     compiler->RestoreLiveRegisters(instruction_->locs());
@@ -6190,7 +6190,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // may be inserted before this instruction.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
-                                   Token::kNoSourcePos);
+                                   TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -6442,7 +6442,7 @@ void GrowRegExpStackInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
   __ PushObject(Object::null_object());
   __ pushq(typed_data);
-  compiler->GenerateRuntimeCall(Token::kNoSourcePos,  // No token position.
+  compiler->GenerateRuntimeCall(TokenPosition::kNoSource,
                                 deopt_id(),
                                 kGrowRegExpStackRuntimeEntry,
                                 1,

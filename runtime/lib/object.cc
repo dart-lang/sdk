@@ -193,7 +193,7 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
     DartFrameIterator iterator;
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
-    const intptr_t location = caller_frame->GetTokenPos();
+    const TokenPosition location = caller_frame->GetTokenPos();
     String& bound_error_message = String::Handle(
         zone, String::New(bound_error.ToErrorCString()));
     Exceptions::CreateAndThrowTypeError(
@@ -303,7 +303,7 @@ DEFINE_NATIVE_ENTRY(Object_as, 3) {
     DartFrameIterator iterator;
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
-    const intptr_t location = caller_frame->GetTokenPos();
+    const TokenPosition location = caller_frame->GetTokenPos();
     const AbstractType& instance_type =
         AbstractType::Handle(instance.GetType());
     const String& instance_type_name =

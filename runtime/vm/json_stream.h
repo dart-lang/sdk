@@ -9,6 +9,7 @@
 #include "platform/text_buffer.h"
 #include "vm/allocation.h"
 #include "vm/service.h"
+#include "vm/token_position.h"
 
 
 namespace dart {
@@ -155,6 +156,7 @@ class JSONStream : ValueObject {
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintValue(const Object& o, bool ref = true);
   void PrintValue(Breakpoint* bpt);
+  void PrintValue(TokenPosition tp);
   void PrintValue(const ServiceEvent* event);
   void PrintValue(Metric* metric);
   void PrintValue(MessageQueue* queue);
@@ -183,6 +185,7 @@ class JSONStream : ValueObject {
 
   void PrintProperty(const char* name, const ServiceEvent* event);
   void PrintProperty(const char* name, Breakpoint* bpt);
+  void PrintProperty(const char* name, TokenPosition tp);
   void PrintProperty(const char* name, Metric* metric);
   void PrintProperty(const char* name, MessageQueue* queue);
   void PrintProperty(const char* name, Isolate* isolate);
@@ -241,9 +244,10 @@ class JSONObject : public ValueObject {
 
   void AddFixedServiceId(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 
-  void AddLocation(const Script& script,
-                   intptr_t token_pos,
-                   intptr_t end_token_pos = -1) const;
+  void AddLocation(
+      const Script& script,
+      TokenPosition token_pos,
+      TokenPosition end_token_pos = TokenPosition::kNoSource) const;
 
   void AddLocation(const BreakpointLocation* bpt_loc) const;
 
@@ -292,6 +296,9 @@ class JSONObject : public ValueObject {
   }
   void AddProperty(const char* name, Breakpoint* bpt) const {
     stream_->PrintProperty(name, bpt);
+  }
+  void AddProperty(const char* name, TokenPosition tp) const {
+    stream_->PrintProperty(name, tp);
   }
   void AddProperty(const char* name, Metric* metric) const {
     stream_->PrintProperty(name, metric);
@@ -356,6 +363,9 @@ class JSONArray : public ValueObject {
   }
   void AddValue(Breakpoint* bpt) const {
     stream_->PrintValue(bpt);
+  }
+  void AddValue(TokenPosition tp) const {
+    stream_->PrintValue(tp);
   }
   void AddValue(const ServiceEvent* event) const {
     stream_->PrintValue(event);

@@ -91,7 +91,7 @@ void ArgumentListNode::VisitChildren(AstNodeVisitor* visitor) const {
 }
 
 
-LetNode::LetNode(intptr_t token_pos)
+LetNode::LetNode(TokenPosition token_pos)
   : AstNode(token_pos),
     vars_(1),
     initializers_(1),
@@ -101,8 +101,8 @@ LetNode::LetNode(intptr_t token_pos)
 LocalVariable* LetNode::AddInitializer(AstNode* node) {
   initializers_.Add(node);
   char name[64];
-  OS::SNPrint(name, sizeof(name), ":lt%" Pd "_%" Pd "",
-      token_pos(), vars_.length());
+  OS::SNPrint(name, sizeof(name), ":lt%s_%" Pd "",
+      token_pos().ToCString(), vars_.length());
   LocalVariable* temp_var =
       new LocalVariable(token_pos(),
                         String::ZoneHandle(Symbols::New(name)),
@@ -433,7 +433,7 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
 }
 
 
-AstNode* UnaryOpNode::UnaryOpOrLiteral(intptr_t token_pos,
+AstNode* UnaryOpNode::UnaryOpOrLiteral(TokenPosition token_pos,
                                        Token::Kind kind,
                                        AstNode* operand) {
   AstNode* new_operand = operand->ApplyUnaryOp(kind);

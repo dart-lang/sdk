@@ -9,6 +9,7 @@
 #include "vm/flags.h"
 #include "vm/hash_map.h"
 #include "vm/object.h"
+#include "vm/token_position.h"
 
 namespace dart {
 
@@ -38,11 +39,12 @@ class SourceReport {
   // If script is null, then the report is generated for all scripts
   // in the isolate.
   void PrintJSON(JSONStream* js, const Script& script,
-                 intptr_t start_pos = -1, intptr_t end_pos = -1);
+                 TokenPosition start_pos = TokenPosition::kNoSource,
+                 TokenPosition end_pos = TokenPosition::kNoSource);
 
  private:
   void Init(Thread* thread, const Script* script,
-            intptr_t start_pos, intptr_t end_pos);
+            TokenPosition start_pos, TokenPosition end_pos);
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
@@ -100,8 +102,8 @@ class SourceReport {
   CompileMode compile_mode_;
   Thread* thread_;
   const Script* script_;
-  intptr_t start_pos_;
-  intptr_t end_pos_;
+  TokenPosition start_pos_;
+  TokenPosition end_pos_;
   GrowableArray<ScriptTableEntry> script_table_entries_;
   DirectChainedHashMap<ScriptTableTrait> script_table_;
   intptr_t next_script_index_;

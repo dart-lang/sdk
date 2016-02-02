@@ -1217,7 +1217,8 @@ static void DisassembleCode(const Function& function, bool optimized) {
         THR_Print("  context var '%s' level %d offset %d",
             var_name.ToCString(), var_info.scope_id, var_info.index());
       }
-      THR_Print(" (valid %d-%d)\n", var_info.begin_pos, var_info.end_pos);
+      THR_Print(" (valid %s-%s)\n", var_info.begin_pos.ToCString(),
+                                    var_info.end_pos.ToCString());
     }
   }
   THR_Print("}\n");
@@ -1313,12 +1314,14 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     ParsedFunction* parsed_function = new(zone) ParsedFunction(
         thread, Function::ZoneHandle(zone, function.raw()));
     if (trace_compiler) {
-      THR_Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
+      const intptr_t token_size = function.end_token_pos().Pos() -
+                                  function.token_pos().Pos();
+      THR_Print("Compiling %s%sfunction: '%s' @ token %s, size %" Pd "\n",
                 (osr_id == Compiler::kNoOSRDeoptId ? "" : "osr "),
                 (optimized ? "optimized " : ""),
                 function.ToFullyQualifiedCString(),
-                function.token_pos(),
-                (function.end_token_pos() - function.token_pos()));
+                function.token_pos().ToCString(),
+                token_size);
     }
     INC_STAT(thread, num_functions_compiled, 1);
     if (optimized) {
@@ -1413,9 +1416,9 @@ RawError* Compiler::CompileFunction(Thread* thread,
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "Function", function);
 
   if (!isolate->compilation_allowed()) {
-    FATAL3("Precompilation missed function %s (%" Pd ", %s)\n",
+    FATAL3("Precompilation missed function %s (%s, %s)\n",
            function.ToLibNamePrefixedQualifiedCString(),
-           function.token_pos(),
+           function.token_pos().ToCString(),
            Function::KindToCString(function.kind()));
   }
 

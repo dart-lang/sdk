@@ -29,7 +29,7 @@ static RawLibrary* CreateDummyLibrary(const String& library_name) {
 static RawClass* CreateDummyClass(const String& class_name,
                                   const Script& script) {
   const Class& cls = Class::Handle(
-      Class::New(class_name, script, Token::kNoSourcePos));
+      Class::New(class_name, script, TokenPosition::kNoSource));
   cls.set_is_synthesized_class();  // Dummy class for testing.
   return cls.raw();
 }
@@ -68,12 +68,12 @@ VM_TEST_CASE(Class) {
   function_name = Symbols::New("foo");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      false, false, false, false, false, cls, 0);
+      false, false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, function);
   function_name = Symbols::New("bar");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      false, false, false, false, false, cls, 0);
+      false, false, false, false, false, cls, TokenPosition::kMinSource);
 
   const int kNumFixedParameters = 2;
   const int kNumOptionalParameters = 3;
@@ -86,24 +86,24 @@ VM_TEST_CASE(Class) {
   function_name = Symbols::New("baz");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      false, false, false, false, false, cls, 0);
+      false, false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(2, function);
 
   function_name = Symbols::New("Foo");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      true, false, false, false, false, cls, 0);
+      true, false, false, false, false, cls, TokenPosition::kMinSource);
 
   functions.SetAt(3, function);
   function_name = Symbols::New("Bar");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      true, false, false, false, false, cls, 0);
+      true, false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(4, function);
   function_name = Symbols::New("BaZ");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      true, false, false, false, false, cls, 0);
+      true, false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(5, function);
 
   // Setup the functions in the class.
@@ -174,7 +174,7 @@ VM_TEST_CASE(TokenStream) {
   EXPECT_EQ(Token::kLPAREN, ts[1].kind);
   const TokenStream& token_stream = TokenStream::Handle(
       TokenStream::New(ts, private_key, false));
-  TokenStream::Iterator iterator(token_stream, 0);
+  TokenStream::Iterator iterator(token_stream, TokenPosition::kMinSource);
   // EXPECT_EQ(6, token_stream.Length());
   iterator.Advance();  // Advance to '(' token.
   EXPECT_EQ(Token::kLPAREN, iterator.CurrentTokenKind());
@@ -241,7 +241,7 @@ TEST_CASE(Class_ComputeEndTokenPos) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(String::New("A"))));
   EXPECT(!cls.IsNull());
-  const intptr_t end_token_pos = cls.ComputeEndTokenPos();
+  const TokenPosition end_token_pos = cls.ComputeEndTokenPos();
   const Script& scr = Script::Handle(cls.script());
   intptr_t line;
   intptr_t col;
@@ -282,7 +282,7 @@ VM_TEST_CASE(InstanceClass) {
   const String& field_name = String::Handle(Symbols::New("the_field"));
   const Field& field = Field::Handle(
       Field::New(field_name, false, false, false, true, one_field_class,
-                 Object::dynamic_type(), 0));
+                 Object::dynamic_type(), TokenPosition::kMinSource));
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
   one_field_class.Finalize();
@@ -2462,43 +2462,43 @@ VM_TEST_CASE(EmbeddedScript) {
 
   intptr_t line, col;
   intptr_t fast_line;
-  script.GetTokenLocation(0, &line, &col);
+  script.GetTokenLocation(TokenPosition(0), &line, &col);
   EXPECT_EQ(first_dart_line, line);
   EXPECT_EQ(col, col_offset + 1);
 
   // We allow asking for only the line number, which only scans the token stream
   // instead of rescanning the script.
-  script.GetTokenLocation(0, &fast_line, NULL);
+  script.GetTokenLocation(TokenPosition(0), &fast_line, NULL);
   EXPECT_EQ(line, fast_line);
 
-  script.GetTokenLocation(5, &line, &col);  // Token 'return'
+  script.GetTokenLocation(TokenPosition(5), &line, &col);  // Token 'return'
   EXPECT_EQ(4, line);  // 'return' is in line 4.
   EXPECT_EQ(5, col);   // Four spaces before 'return'.
 
   // We allow asking for only the line number, which only scans the token stream
   // instead of rescanning the script.
-  script.GetTokenLocation(5, &fast_line, NULL);
+  script.GetTokenLocation(TokenPosition(5), &fast_line, NULL);
   EXPECT_EQ(line, fast_line);
 
-  intptr_t first_idx, last_idx;
+  TokenPosition first_idx, last_idx;
   script.TokenRangeAtLine(3, &first_idx, &last_idx);
-  EXPECT_EQ(0, first_idx);  // Token 'main' is first token.
-  EXPECT_EQ(3, last_idx);   // Token { is last token.
+  EXPECT_EQ(0, first_idx.value());  // Token 'main' is first token.
+  EXPECT_EQ(3, last_idx.value());   // Token { is last token.
   script.TokenRangeAtLine(4, &first_idx, &last_idx);
-  EXPECT_EQ(5, first_idx);  // Token 'return' is first token.
-  EXPECT_EQ(7, last_idx);   // Token ; is last token.
+  EXPECT_EQ(5, first_idx.value());  // Token 'return' is first token.
+  EXPECT_EQ(7, last_idx.value());   // Token ; is last token.
   script.TokenRangeAtLine(5, &first_idx, &last_idx);
-  EXPECT_EQ(9, first_idx);  // Token } is first and only token.
-  EXPECT_EQ(9, last_idx);
+  EXPECT_EQ(9, first_idx.value());  // Token } is first and only token.
+  EXPECT_EQ(9, last_idx.value());
   script.TokenRangeAtLine(1, &first_idx, &last_idx);
-  EXPECT_EQ(0, first_idx);
-  EXPECT_EQ(3, last_idx);
+  EXPECT_EQ(0, first_idx.value());
+  EXPECT_EQ(3, last_idx.value());
   script.TokenRangeAtLine(6, &first_idx, &last_idx);
-  EXPECT_EQ(-1, first_idx);
-  EXPECT_EQ(-1, last_idx);
+  EXPECT_EQ(-1, first_idx.value());
+  EXPECT_EQ(-1, last_idx.value());
   script.TokenRangeAtLine(1000, &first_idx, &last_idx);
-  EXPECT_EQ(-1, first_idx);
-  EXPECT_EQ(-1, last_idx);
+  EXPECT_EQ(-1, first_idx.value());
+  EXPECT_EQ(-1, last_idx.value());
 }
 
 
@@ -2537,17 +2537,17 @@ VM_TEST_CASE(ContextScope) {
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
   const String& a = String::ZoneHandle(Symbols::New("a"));
   LocalVariable* var_a =
-      new LocalVariable(Token::kNoSourcePos, a, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource, a, dynamic_type);
   parent_scope->AddVariable(var_a);
 
   const String& b = String::ZoneHandle(Symbols::New("b"));
   LocalVariable* var_b =
-      new LocalVariable(Token::kNoSourcePos, b, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource, b, dynamic_type);
   local_scope->AddVariable(var_b);
 
   const String& c = String::ZoneHandle(Symbols::New("c"));
   LocalVariable* var_c =
-      new LocalVariable(Token::kNoSourcePos, c, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource, c, dynamic_type);
   parent_scope->AddVariable(var_c);
 
   bool test_only = false;  // Please, insert alias.
@@ -2623,13 +2623,15 @@ VM_TEST_CASE(Closure) {
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New("foo_papa"));
   parent = Function::New(parent_name, RawFunction::kRegularFunction,
-                         false, false, false, false, false, cls, 0);
+                         false, false, false, false, false, cls,
+                         TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
 
   Function& function = Function::Handle();
   const String& function_name = String::Handle(Symbols::New("foo"));
-  function = Function::NewClosureFunction(function_name, parent, 0);
+  function = Function::NewClosureFunction(
+      function_name, parent, TokenPosition::kMinSource);
   const Closure& closure = Closure::Handle(Closure::New(function, context));
   const Class& closure_class = Class::Handle(closure.clazz());
   EXPECT_EQ(closure_class.id(), kClosureCid);
@@ -2692,7 +2694,8 @@ static RawFunction* CreateFunction(const char* name) {
   owner_class.set_library(owner_library);
   const String& function_name = String::ZoneHandle(Symbols::New(name));
   return Function::New(function_name, RawFunction::kRegularFunction,
-                       true, false, false, false, false, owner_class, 0);
+                       true, false, false, false, false, owner_class,
+                       TokenPosition::kMinSource);
 }
 
 
@@ -2835,12 +2838,18 @@ VM_TEST_CASE(PcDescriptors) {
   DescriptorList* builder = new DescriptorList(0);
 
   // kind, pc_offset, deopt_id, token_pos, try_index
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 1, 20, 1);
-  builder->AddDescriptor(RawPcDescriptors::kDeopt, 20, 2, 30, 0);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 30, 3, 40, 1);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 4, 40, 2);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 5, 80, 3);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 80, 6, 150, 3);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         10, 1, TokenPosition(20), 1);
+  builder->AddDescriptor(RawPcDescriptors::kDeopt,
+                         20, 2, TokenPosition(30), 0);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         30, 3, TokenPosition(40), 1);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         10, 4, TokenPosition(40), 2);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         10, 5, TokenPosition(80), 3);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         80, 6, TokenPosition(150), 3);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
@@ -2857,31 +2866,31 @@ VM_TEST_CASE(PcDescriptors) {
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(20, iter.TokenPos());
+  EXPECT_EQ(20, iter.TokenPos().value());
   EXPECT_EQ(1, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(10), iter.PcOffset());
   EXPECT_EQ(1, iter.DeoptId());
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(30, iter.TokenPos());
+  EXPECT_EQ(30, iter.TokenPos().value());
   EXPECT_EQ(RawPcDescriptors::kDeopt, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(40, iter.TokenPos());
+  EXPECT_EQ(40, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(40, iter.TokenPos());
+  EXPECT_EQ(40, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(80, iter.TokenPos());
+  EXPECT_EQ(80, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(150, iter.TokenPos());
+  EXPECT_EQ(150, iter.TokenPos().value());
 
   EXPECT_EQ(3, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(80), iter.PcOffset());
-  EXPECT_EQ(150, iter.TokenPos());
+  EXPECT_EQ(150, iter.TokenPos().value());
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
   EXPECT_EQ(false, iter.MoveNext());
@@ -2892,12 +2901,18 @@ VM_TEST_CASE(PcDescriptorsLargeDeltas) {
   DescriptorList* builder = new DescriptorList(0);
 
   // kind, pc_offset, deopt_id, token_pos, try_index
-  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 1, 200, 1);
-  builder->AddDescriptor(RawPcDescriptors::kDeopt, 200, 2, 300, 0);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 300, 3, 400, 1);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 4, 0, 2);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 5, 800, 3);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 800, 6, 150, 3);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         100, 1, TokenPosition(200), 1);
+  builder->AddDescriptor(RawPcDescriptors::kDeopt,
+                         200, 2, TokenPosition(300), 0);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         300, 3, TokenPosition(400), 1);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         100, 4, TokenPosition(0), 2);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         100, 5, TokenPosition(800), 3);
+  builder->AddDescriptor(RawPcDescriptors::kOther,
+                         800, 6, TokenPosition(150), 3);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
@@ -2914,31 +2929,31 @@ VM_TEST_CASE(PcDescriptorsLargeDeltas) {
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(200, iter.TokenPos());
+  EXPECT_EQ(200, iter.TokenPos().value());
   EXPECT_EQ(1, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(100), iter.PcOffset());
   EXPECT_EQ(1, iter.DeoptId());
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(300, iter.TokenPos());
+  EXPECT_EQ(300, iter.TokenPos().value());
   EXPECT_EQ(RawPcDescriptors::kDeopt, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(400, iter.TokenPos());
+  EXPECT_EQ(400, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(0, iter.TokenPos());
+  EXPECT_EQ(0, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(800, iter.TokenPos());
+  EXPECT_EQ(800, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(150, iter.TokenPos());
+  EXPECT_EQ(150, iter.TokenPos().value());
 
   EXPECT_EQ(3, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(800), iter.PcOffset());
-  EXPECT_EQ(150, iter.TokenPos());
+  EXPECT_EQ(150, iter.TokenPos().value());
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
   EXPECT_EQ(false, iter.MoveNext());
@@ -2958,7 +2973,7 @@ static RawField* CreateTestField(const char* name) {
   const String& field_name = String::Handle(Symbols::New(name));
   const Field& field =
       Field::Handle(Field::New(field_name, true, false, false, true, cls,
-          Object::dynamic_type(), 0));
+          Object::dynamic_type(), TokenPosition::kMinSource));
   return field.raw();
 }
 
@@ -3003,7 +3018,7 @@ static RawFunction* GetDummyTarget(const char* name) {
                        is_external,
                        is_native,
                        cls,
-                       0);
+                       TokenPosition::kMinSource);
 }
 
 
@@ -3777,13 +3792,15 @@ VM_TEST_CASE(FindClosureIndex) {
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New("foo_papa"));
   parent = Function::New(parent_name, RawFunction::kRegularFunction,
-                         false, false, false, false, false, cls, 0);
+                         false, false, false, false, false, cls,
+                         TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
 
   Function& function = Function::Handle();
   const String& function_name = String::Handle(Symbols::New("foo"));
-  function = Function::NewClosureFunction(function_name, parent, 0);
+  function = Function::NewClosureFunction(function_name, parent,
+                                          TokenPosition::kMinSource);
   // Add closure function to class.
   iso->AddClosureFunction(function);
 
@@ -3812,7 +3829,8 @@ VM_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New("foo_papa"));
   parent = Function::New(parent_name, RawFunction::kRegularFunction,
-                         false, false, false, false, false, cls, 0);
+                         false, false, false, false, false, cls,
+                         TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
   cls.Finalize();

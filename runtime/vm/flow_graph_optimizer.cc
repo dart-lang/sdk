@@ -1128,7 +1128,7 @@ void FlowGraphOptimizer::AddCheckSmi(Definition* to_check,
 Instruction* FlowGraphOptimizer::GetCheckClass(Definition* to_check,
                                                const ICData& unary_checks,
                                                intptr_t deopt_id,
-                                               intptr_t token_pos) {
+                                               TokenPosition token_pos) {
   if ((unary_checks.NumberOfUsedChecks() == 1) &&
       unary_checks.HasReceiverClassId(kSmiCid)) {
     return new(Z) CheckSmiInstr(new(Z) Value(to_check),
@@ -1282,7 +1282,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
     const Function& target,
     Instruction* call,
     Definition* receiver,
-    intptr_t token_pos,
+    TokenPosition token_pos,
     const ICData& value_check,
     TargetEntryInstr** entry,
     Definition** last) {
@@ -1453,7 +1453,7 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                                    const Function& target,
                                                    Instruction* call,
                                                    Definition* receiver,
-                                                   intptr_t token_pos,
+                                                   TokenPosition token_pos,
                                                    const ICData& ic_data,
                                                    TargetEntryInstr** entry,
                                                    Definition** last) {

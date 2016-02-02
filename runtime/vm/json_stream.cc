@@ -444,6 +444,12 @@ void JSONStream::PrintValue(Breakpoint* bpt) {
 }
 
 
+void JSONStream::PrintValue(TokenPosition tp) {
+  PrintCommaIfNeeded();
+  PrintValue(tp.value());
+}
+
+
 void JSONStream::PrintValue(const ServiceEvent* event) {
   PrintCommaIfNeeded();
   event->PrintJSON(this);
@@ -558,6 +564,12 @@ void JSONStream::PrintProperty(const char* name, const ServiceEvent* event) {
 void JSONStream::PrintProperty(const char* name, Breakpoint* bpt) {
   PrintPropertyName(name);
   PrintValue(bpt);
+}
+
+
+void JSONStream::PrintProperty(const char* name, TokenPosition tp) {
+  PrintPropertyName(name);
+  PrintValue(tp);
 }
 
 
@@ -753,13 +765,13 @@ void JSONObject::AddFixedServiceId(const char* format, ...) const {
 
 
 void JSONObject::AddLocation(const Script& script,
-                             intptr_t token_pos,
-                             intptr_t end_token_pos) const {
+                             TokenPosition token_pos,
+                             TokenPosition end_token_pos) const {
   JSONObject location(this, "location");
   location.AddProperty("type", "SourceLocation");
   location.AddProperty("script", script);
   location.AddProperty("tokenPos", token_pos);
-  if (end_token_pos >= 0) {
+  if (end_token_pos.IsReal()) {
     location.AddProperty("endTokenPos", end_token_pos);
   }
 }
@@ -771,7 +783,7 @@ void JSONObject::AddLocation(const BreakpointLocation* bpt_loc) const {
   Zone* zone = Thread::Current()->zone();
   Library& library = Library::Handle(zone);
   Script& script = Script::Handle(zone);
-  intptr_t token_pos;
+  TokenPosition token_pos = TokenPosition::kNoSource;
   bpt_loc->GetCodeLocation(&library, &script, &token_pos);
   AddLocation(script, token_pos);
 }
@@ -784,7 +796,7 @@ void JSONObject::AddUnresolvedLocation(
   Zone* zone = Thread::Current()->zone();
   Library& library = Library::Handle(zone);
   Script& script = Script::Handle(zone);
-  intptr_t token_pos;
+  TokenPosition token_pos = TokenPosition::kNoSource;
   bpt_loc->GetCodeLocation(&library, &script, &token_pos);
 
   JSONObject location(this, "location");

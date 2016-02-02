@@ -10,6 +10,7 @@
 #include "vm/globals.h"
 #include "vm/snapshot.h"
 #include "vm/token.h"
+#include "vm/token_position.h"
 #include "vm/verified_memory.h"
 
 namespace dart {
@@ -678,7 +679,7 @@ class RawClass : public RawObject {
   }
 
   cpp_vtable handle_vtable_;
-  int32_t token_pos_;
+  TokenPosition token_pos_;
   int32_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   int32_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
   int32_t next_field_offset_in_words_;  // Offset of the next instance field.
@@ -707,7 +708,7 @@ class RawUnresolvedClass : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->ident_);
   }
-  int32_t token_pos_;
+  TokenPosition token_pos_;
 };
 
 
@@ -816,8 +817,8 @@ class RawFunction : public RawObject {
   }
   uword entry_point_;
 
-  int32_t token_pos_;
-  int32_t end_token_pos_;
+  TokenPosition token_pos_;
+  TokenPosition end_token_pos_;
   int32_t usage_counter_;  // Incremented while function is running.
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
@@ -893,7 +894,7 @@ class RawField : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
   }
 
-  int32_t token_pos_;
+  TokenPosition token_pos_;
   classid_t guarded_cid_;
   classid_t is_nullable_;  // kNullCid if field can contain null value and
                            // any other value otherwise.
@@ -1279,8 +1280,8 @@ class RawLocalVarDescriptors : public RawObject {
   struct VarInfo {
     int32_t index_kind;  // Bitfield for slot index on stack or in context,
                          // and Entry kind of type VarInfoKind.
-    int32_t begin_pos;   // Token position of scope start.
-    int32_t end_pos;     // Token position of scope end.
+    TokenPosition begin_pos;   // Token position of scope start.
+    TokenPosition end_pos;     // Token position of scope end.
     int16_t scope_id;    // Scope to which the variable belongs.
 
     VarInfoKind kind() const {
@@ -1495,7 +1496,7 @@ class RawLanguageError : public RawError {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->formatted_message_);
   }
-  int32_t token_pos_;  // Source position in script_.
+  TokenPosition token_pos_;  // Source position in script_.
   bool report_after_token_;  // Report message at or after the token.
   int8_t kind_;  // Of type LanguageError::Kind.
 };
@@ -1583,7 +1584,7 @@ class RawType : public RawAbstractType {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->error_);
   }
-  int32_t token_pos_;
+  TokenPosition token_pos_;
   int8_t type_state_;
 };
 
@@ -1602,7 +1603,7 @@ class RawFunctionType : public RawAbstractType {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->error_);
   }
-  int32_t token_pos_;
+  TokenPosition token_pos_;
   int8_t type_state_;
 };
 
@@ -1632,7 +1633,7 @@ class RawTypeParameter : public RawAbstractType {
   RawString* name_;
   RawAbstractType* bound_;  // ObjectType if no explicit bound specified.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->bound_); }
-  int32_t token_pos_;
+  TokenPosition token_pos_;
   int16_t index_;
   int8_t type_state_;
 };

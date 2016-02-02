@@ -1185,7 +1185,7 @@ RawError* Object::Init(Isolate* isolate) {
   // could expect. Use with caution.
   type ^= Type::New(Object::Handle(zone, cls.raw()),
                     TypeArguments::Handle(zone),
-                    Token::kNoSourcePos);
+                    TokenPosition::kNoSource);
   type.SetIsFinalized();
   type ^= type.Canonicalize();
   object_store->set_array_type(type);
@@ -1586,7 +1586,7 @@ RawError* Object::Init(Isolate* isolate) {
 #define ADD_SET_FIELD(clazz)                                                   \
   field_name = Symbols::New("cid"#clazz);                                      \
   field = Field::New(field_name, true, false, true, false, cls,                \
-      Type::Handle(Type::IntType()), 0);                                       \
+      Type::Handle(Type::IntType()), TokenPosition::kMinSource);             \
   value = Smi::New(k##clazz##Cid);                                             \
   field.SetStaticValue(value, true);                                           \
   cls.AddField(field);                                                         \
@@ -1972,7 +1972,7 @@ RawAbstractType* Class::RareType() const {
   const Type& type = Type::Handle(Type::New(
       *this,
       Object::null_type_arguments(),
-      Token::kNoSourcePos));
+      TokenPosition::kNoSource));
   return ClassFinalizer::FinalizeType(*this,
                                       type,
                                       ClassFinalizer::kCanonicalize);
@@ -1984,7 +1984,7 @@ RawAbstractType* Class::DeclarationType() const {
   const Type& type = Type::Handle(Type::New(
       *this,
       args,
-      Token::kNoSourcePos));
+      TokenPosition::kNoSource));
   return ClassFinalizer::FinalizeType(*this,
                                       type,
                                       ClassFinalizer::kCanonicalize);
@@ -2022,7 +2022,7 @@ RawClass* Class::New() {
   result.set_num_type_arguments(0);
   result.set_num_own_type_arguments(0);
   result.set_num_native_fields(0);
-  result.set_token_pos(Token::kNoSourcePos);
+  result.set_token_pos(TokenPosition::kNoSource);
   result.InitEmptyFields();
   Isolate::Current()->RegisterClass(result);
   return result.raw();
@@ -2622,7 +2622,7 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
                     false,  // Not external.
                     false,  // Not native.
                     *this,
-                    0));    // token_pos
+                    TokenPosition::kMinSource));
   ArgumentsDescriptor desc(args_desc);
   invocation.set_num_fixed_parameters(desc.PositionalCount());
   invocation.SetNumOptionalParameters(desc.NamedCount(),
@@ -2679,7 +2679,7 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
                   false,  // Not external.
                   false,  // Not native.
                   owner,
-                  ClassifyingTokenPositions::kMethodExtractor));  // token_pos
+                  TokenPosition::kMethodExtractor));
 
   // Initialize signature: receiver is a single fixed parameter.
   const intptr_t kNumParameters = 1;
@@ -3091,7 +3091,7 @@ RawClass* Class::New(intptr_t index) {
   result.set_num_type_arguments(kUnknownNumTypeArguments);
   result.set_num_own_type_arguments(kUnknownNumTypeArguments);
   result.set_num_native_fields(0);
-  result.set_token_pos(Token::kNoSourcePos);
+  result.set_token_pos(TokenPosition::kNoSource);
   result.InitEmptyFields();
   Isolate::Current()->RegisterClass(result);
   return result.raw();
@@ -3100,7 +3100,7 @@ RawClass* Class::New(intptr_t index) {
 
 RawClass* Class::New(const String& name,
                      const Script& script,
-                     intptr_t token_pos) {
+                     TokenPosition token_pos) {
   Class& result = Class::Handle(New<Instance>(kIllegalCid));
   result.set_name(name);
   result.set_script(script);
@@ -3114,7 +3114,7 @@ RawClass* Class::NewNativeWrapper(const Library& library,
                                   int field_count) {
   Class& cls = Class::Handle(library.LookupClass(name));
   if (cls.IsNull()) {
-    cls = New(name, Script::Handle(), Token::kNoSourcePos);
+    cls = New(name, Script::Handle(), TokenPosition::kNoSource);
     cls.SetFields(Object::empty_array());
     cls.SetFunctions(Object::empty_array());
     // Set super class to Object.
@@ -3359,13 +3359,13 @@ void Class::set_script(const Script& value) const {
 }
 
 
-void Class::set_token_pos(intptr_t token_pos) const {
-  ASSERT(!Token::IsClassifying(token_pos));
+void Class::set_token_pos(TokenPosition token_pos) const {
+  ASSERT(!token_pos.IsClassifying());
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
-intptr_t Class::ComputeEndTokenPos() const {
+TokenPosition Class::ComputeEndTokenPos() const {
   // Return the begin token for synthetic classes.
   if (IsMixinApplication() || IsTopLevel()) {
     return token_pos();
@@ -3373,8 +3373,9 @@ intptr_t Class::ComputeEndTokenPos() const {
   const Script& scr = Script::Handle(script());
   ASSERT(!scr.IsNull());
   const TokenStream& tkns = TokenStream::Handle(scr.tokens());
-  TokenStream::Iterator tkit(
-      tkns, token_pos(), TokenStream::Iterator::kNoNewlines);
+  TokenStream::Iterator tkit(tkns,
+                             token_pos(),
+                             TokenStream::Iterator::kNoNewlines);
   intptr_t level = 0;
   while (tkit.CurrentTokenKind() != Token::kEOS) {
     if (tkit.CurrentTokenKind() == Token::kLBRACE) {
@@ -3387,7 +3388,7 @@ intptr_t Class::ComputeEndTokenPos() const {
     tkit.Advance();
   }
   UNREACHABLE();
-  return 0;
+  return TokenPosition::kNoSource;
 }
 
 
@@ -4246,7 +4247,7 @@ void Class::InsertCanonicalConstant(intptr_t index,
 
 RawUnresolvedClass* UnresolvedClass::New(const LibraryPrefix& library_prefix,
                                          const String& ident,
-                                         intptr_t token_pos) {
+                                         TokenPosition token_pos) {
   const UnresolvedClass& type = UnresolvedClass::Handle(UnresolvedClass::New());
   type.set_library_prefix(library_prefix);
   type.set_ident(ident);
@@ -4264,8 +4265,8 @@ RawUnresolvedClass* UnresolvedClass::New() {
 }
 
 
-void UnresolvedClass::set_token_pos(intptr_t token_pos) const {
-  ASSERT(!Token::IsClassifying(token_pos));
+void UnresolvedClass::set_token_pos(TokenPosition token_pos) const {
+  ASSERT(!token_pos.IsClassifying());
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -5259,7 +5260,7 @@ RawScript* Function::eval_script() const {
 
 
 void Function::set_eval_script(const Script& script) const {
-  ASSERT(token_pos() == 0);
+  ASSERT(token_pos() == TokenPosition::kMinSource);
   ASSERT(raw_ptr()->data_ == Object::null());
   set_data(script);
 }
@@ -5409,7 +5410,7 @@ RawFunctionType* Function::SignatureType() const {
       scope_class = Isolate::Current()->object_store()->closure_class();
       if (IsSignatureFunction()) {
         set_owner(scope_class);
-        set_token_pos(Token::kNoSourcePos);
+        set_token_pos(TokenPosition::kNoSource);
       }
     }
     const TypeArguments& signature_type_arguments =
@@ -5701,8 +5702,8 @@ void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
 }
 
 
-void Function::set_token_pos(intptr_t token_pos) const {
-  ASSERT(!Token::IsClassifying(token_pos) || IsMethodExtractor());
+void Function::set_token_pos(TokenPosition token_pos) const {
+  ASSERT(!token_pos.IsClassifying() || IsMethodExtractor());
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -5746,8 +5747,9 @@ bool Function::IsOptimizable() const {
     // Native methods don't need to be optimized.
     return false;
   }
+  const intptr_t function_length = end_token_pos().Pos() - token_pos().Pos();
   if (is_optimizable() && (script() != Script::null()) &&
-      ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff_in_tokens)) {
+      (function_length < FLAG_huge_method_cutoff_in_tokens)) {
     // Additional check needed for implicit getters.
     return (unoptimized_code() == Object::null()) ||
         (Code::Handle(unoptimized_code()).Size() <
@@ -6321,7 +6323,7 @@ RawFunction* Function::New(const String& name,
                            bool is_external,
                            bool is_native,
                            const Object& owner,
-                           intptr_t token_pos) {
+                           TokenPosition token_pos) {
   ASSERT(!owner.IsNull());
   const Function& result = Function::Handle(Function::New());
   result.set_parameter_types(Object::empty_array());
@@ -6401,7 +6403,7 @@ RawFunction* Function::Clone(const Class& new_owner) const {
 
 RawFunction* Function::NewClosureFunction(const String& name,
                                           const Function& parent,
-                                          intptr_t token_pos) {
+                                          TokenPosition token_pos) {
   ASSERT(!parent.IsNull());
   // Use the owner defining the parent function and not the class containing it.
   const Object& parent_owner = Object::Handle(parent.raw_ptr()->owner_);
@@ -6422,7 +6424,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
 
 
 RawFunction* Function::NewSignatureFunction(const Class& owner,
-                                            intptr_t token_pos) {
+                                            TokenPosition token_pos) {
   const Function& result = Function::Handle(Function::New(
       Symbols::AnonymousSignature(),
       RawFunction::kSignatureFunction,
@@ -6452,7 +6454,7 @@ RawFunction* Function::NewEvalFunction(const Class& owner,
                     /* is_external = */ false,
                     /* is_native = */ false,
                     owner,
-                    /* token_pos = */ 0));
+                    TokenPosition::kMinSource));
   ASSERT(!script.IsNull());
   result.set_is_debuggable(false);
   result.set_is_visible(true);
@@ -6743,7 +6745,7 @@ RawClass* Function::origin() const {
 
 
 RawScript* Function::script() const {
-  if (token_pos() == 0) {
+  if (token_pos() == TokenPosition::kMinSource) {
     // Testing for position 0 is an optimization that relies on temporary
     // eval functions having token position 0.
     const Script& script = Script::Handle(eval_script());
@@ -6846,7 +6848,7 @@ RawString* Function::GetSource() const {
   if (!func_script.HasSource()) {
     // When source is not available, avoid printing the whole token stream and
     // doing expensive position calculations.
-    return stream.GenerateSource(token_pos(), end_token_pos() + 1);
+    return stream.GenerateSource(token_pos(), end_token_pos().Next());
   }
 
   const TokenStream::Iterator tkit(stream, end_token_pos());
@@ -7353,7 +7355,7 @@ RawField* Field::New(const String& name,
                      bool is_reflectable,
                      const Class& owner,
                      const AbstractType& type,
-                     intptr_t token_pos) {
+                     TokenPosition token_pos) {
   ASSERT(!owner.IsNull());
   const Field& result = Field::Handle(Field::New());
   result.set_name(name);
@@ -7387,7 +7389,7 @@ RawField* Field::NewTopLevel(const String& name,
                              bool is_final,
                              bool is_const,
                              const Object& owner,
-                             intptr_t token_pos) {
+                             TokenPosition token_pos) {
   ASSERT(!owner.IsNull());
   const Field& result = Field::Handle(Field::New());
   result.set_name(name);
@@ -7986,11 +7988,12 @@ void TokenStream::SetPrivateKey(const String& value) const {
 }
 
 RawString* TokenStream::GenerateSource() const {
-  return GenerateSource(0, kMaxElements);
+  return GenerateSource(TokenPosition::kMinSource,
+                        TokenPosition::kMaxSource);
 }
 
-RawString* TokenStream::GenerateSource(intptr_t start_pos,
-                                       intptr_t end_pos) const {
+RawString* TokenStream::GenerateSource(TokenPosition start_pos,
+                                       TokenPosition end_pos) const {
   Iterator iterator(*this, start_pos, Iterator::kAllTokens);
   const ExternalTypedData& data = ExternalTypedData::Handle(GetStream());
   const GrowableObjectArray& literals =
@@ -8164,14 +8167,15 @@ RawString* TokenStream::GenerateSource(intptr_t start_pos,
 }
 
 
-intptr_t TokenStream::ComputeSourcePosition(intptr_t tok_pos) const {
-  Iterator iterator(*this, 0, Iterator::kAllTokens);
-  intptr_t src_pos = 0;
+TokenPosition TokenStream::ComputeSourcePosition(
+    TokenPosition tok_pos) const {
+  Iterator iterator(*this, TokenPosition::kMinSource, Iterator::kAllTokens);
+  TokenPosition src_pos = TokenPosition::kMinSource;
   Token::Kind kind = iterator.CurrentTokenKind();
-  while (iterator.CurrentPosition() < tok_pos && kind != Token::kEOS) {
+  while ((iterator.CurrentPosition() < tok_pos) && (kind != Token::kEOS)) {
     iterator.Advance();
     kind = iterator.CurrentTokenKind();
-    src_pos += 1;
+    src_pos.Next();
   }
   return src_pos;
 }
@@ -8206,7 +8210,7 @@ RawTokenStream* TokenStream::New(intptr_t len) {
 
 
 // CompressedTokenMap maps String and LiteralToken keys to Smi values.
-// It also supports lookup by Scanner::TokenDescriptor.
+// It also supports lookup by TokenDescriptor.
 class CompressedTokenTraits {
  public:
   static bool IsMatch(const Scanner::TokenDescriptor& descriptor,
@@ -8444,7 +8448,7 @@ void TokenStream::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 TokenStream::Iterator::Iterator(const TokenStream& tokens,
-                                intptr_t token_pos,
+                                TokenPosition token_pos,
                                 Iterator::StreamType stream_type)
     : tokens_(TokenStream::Handle(tokens.raw())),
       data_(ExternalTypedData::Handle(tokens.GetStream())),
@@ -8452,26 +8456,26 @@ TokenStream::Iterator::Iterator(const TokenStream& tokens,
       token_objects_(Array::Handle(
           GrowableObjectArray::Handle(tokens.TokenObjects()).data())),
       obj_(Object::Handle()),
-      cur_token_pos_(token_pos),
+      cur_token_pos_(token_pos.Pos()),
       cur_token_kind_(Token::kILLEGAL),
       cur_token_obj_index_(-1),
       stream_type_(stream_type) {
-  ASSERT(token_pos != Token::kNoSourcePos);
-  if (token_pos >= 0) {
+  ASSERT(token_pos != TokenPosition::kNoSource);
+  if (token_pos.IsReal()) {
     SetCurrentPosition(token_pos);
   }
 }
 
 
 void TokenStream::Iterator::SetStream(const TokenStream& tokens,
-                                      intptr_t token_pos) {
+                                      TokenPosition token_pos) {
   tokens_ = tokens.raw();
   data_ = tokens.GetStream();
   stream_.SetStream(reinterpret_cast<uint8_t*>(data_.DataAddr(0)),
                     data_.Length());
   token_objects_ = GrowableObjectArray::Handle(tokens.TokenObjects()).data();
   obj_ = Object::null();
-  cur_token_pos_ = token_pos;
+  cur_token_pos_ = token_pos.Pos();
   cur_token_kind_ = Token::kILLEGAL;
   cur_token_obj_index_ = -1;
   SetCurrentPosition(token_pos);
@@ -8513,13 +8517,13 @@ Token::Kind TokenStream::Iterator::LookaheadTokenKind(intptr_t num_tokens) {
 }
 
 
-intptr_t TokenStream::Iterator::CurrentPosition() const {
-  return cur_token_pos_;
+TokenPosition TokenStream::Iterator::CurrentPosition() const {
+  return TokenPosition(cur_token_pos_);
 }
 
 
-void TokenStream::Iterator::SetCurrentPosition(intptr_t value) {
-  stream_.SetPosition(value);
+void TokenStream::Iterator::SetCurrentPosition(TokenPosition token_pos) {
+  stream_.SetPosition(token_pos.value());
   Advance();
 }
 
@@ -8617,7 +8621,9 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   Smi& value = Smi::Handle(zone);
   String& tokenValue = String::Handle(zone);
   ASSERT(!tkns.IsNull());
-  TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
+  TokenStream::Iterator tkit(tkns,
+                             TokenPosition::kMinSource,
+                             TokenStream::Iterator::kAllTokens);
   int current_line = -1;
   Scanner s(source, key);
   s.Scan();
@@ -8672,7 +8678,7 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
     // TODO(hausner): Could optimize here by not reporting tokens
     // that will never be a location used by the debugger, e.g.
     // braces, semicolons, most keywords etc.
-    value = Smi::New(tkit.CurrentPosition());
+    value = Smi::New(tkit.CurrentPosition().Pos());
     info.Add(value);
     int column = s.current_token().position.column;
     // On the first line of the script we must add the column offset.
@@ -8759,7 +8765,7 @@ void Script::SetLocationOffset(intptr_t line_offset,
 }
 
 
-void Script::GetTokenLocation(intptr_t token_pos,
+void Script::GetTokenLocation(TokenPosition token_pos,
                               intptr_t* line,
                               intptr_t* column,
                               intptr_t* token_len) const {
@@ -8777,10 +8783,12 @@ void Script::GetTokenLocation(intptr_t token_pos,
     return;
   }
   if (column == NULL) {
-    TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
+    TokenStream::Iterator tkit(tkns,
+                               TokenPosition::kMinSource,
+                               TokenStream::Iterator::kAllTokens);
     intptr_t cur_line = line_offset() + 1;
-    while (tkit.CurrentPosition() < token_pos &&
-           tkit.CurrentTokenKind() != Token::kEOS) {
+    while ((tkit.CurrentPosition() < token_pos) &&
+           (tkit.CurrentTokenKind() != Token::kEOS)) {
       if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
         cur_line++;
       }
@@ -8789,7 +8797,7 @@ void Script::GetTokenLocation(intptr_t token_pos,
     *line = cur_line;
   } else {
     const String& src = String::Handle(Source());
-    intptr_t src_pos = tkns.ComputeSourcePosition(token_pos);
+    TokenPosition src_pos = tkns.ComputeSourcePosition(token_pos);
     Scanner scanner(src, Symbols::Empty());
     scanner.ScanTo(src_pos);
     intptr_t relative_line = scanner.CurrentPosition().line;
@@ -8811,16 +8819,18 @@ void Script::GetTokenLocation(intptr_t token_pos,
 
 
 void Script::TokenRangeAtLine(intptr_t line_number,
-                              intptr_t* first_token_index,
-                              intptr_t* last_token_index) const {
+                              TokenPosition* first_token_index,
+                              TokenPosition* last_token_index) const {
   ASSERT(first_token_index != NULL && last_token_index != NULL);
   ASSERT(line_number > 0);
-  *first_token_index = -1;
-  *last_token_index = -1;
+  *first_token_index = TokenPosition::kNoSource;
+  *last_token_index = TokenPosition::kNoSource;
   const TokenStream& tkns = TokenStream::Handle(tokens());
   line_number -= line_offset();
   if (line_number < 1) line_number = 1;
-  TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
+  TokenStream::Iterator tkit(tkns,
+                             TokenPosition::kMinSource,
+                             TokenStream::Iterator::kAllTokens);
   // Scan through the token stream to the required line.
   intptr_t cur_line = 1;
   while (cur_line < line_number && tkit.CurrentTokenKind() != Token::kEOS) {
@@ -8848,7 +8858,7 @@ void Script::TokenRangeAtLine(intptr_t line_number,
   *first_token_index = tkit.CurrentPosition();
   // We cannot do "CurrentPosition() - 1" for the last token, because we do not
   // know whether the previous token is a simple one or not.
-  intptr_t end_pos = *first_token_index;
+  TokenPosition end_pos = *first_token_index;
   while (tkit.CurrentTokenKind() != Token::kNEWLINE &&
          tkit.CurrentTokenKind() != Token::kEOS) {
     end_pos = tkit.CurrentPosition();
@@ -9151,7 +9161,7 @@ static void ReportTooManyImports(const Library& lib) {
   const String& url = String::Handle(lib.url());
   Report::MessageF(Report::kError,
                    Script::Handle(lib.LookupScript(url)),
-                   Token::kNoSourcePos,
+                   TokenPosition::kNoSource,
                    Report::AtLocation,
                    "too many imports in library '%s'",
                    url.ToCString());
@@ -9338,7 +9348,7 @@ static RawString* MakeTypeParameterMetaName(const TypeParameter& param) {
 
 void Library::AddMetadata(const Object& owner,
                           const String& name,
-                          intptr_t token_pos) const {
+                          TokenPosition token_pos) const {
   const String& metaname = String::Handle(Symbols::New(name));
   const Field& field = Field::Handle(
       Field::NewTopLevel(metaname,
@@ -9357,7 +9367,7 @@ void Library::AddMetadata(const Object& owner,
 
 void Library::AddClassMetadata(const Class& cls,
                                const Object& tl_owner,
-                               intptr_t token_pos) const {
+                               TokenPosition token_pos) const {
   // We use the toplevel class as the owner of a class's metadata field because
   // a class's metadata is in scope of the library, not the class.
   AddMetadata(tl_owner,
@@ -9367,7 +9377,7 @@ void Library::AddClassMetadata(const Class& cls,
 
 
 void Library::AddFieldMetadata(const Field& field,
-                               intptr_t token_pos) const {
+                               TokenPosition token_pos) const {
   AddMetadata(Object::Handle(field.RawOwner()),
               String::Handle(MakeFieldMetaName(field)),
               token_pos);
@@ -9375,7 +9385,7 @@ void Library::AddFieldMetadata(const Field& field,
 
 
 void Library::AddFunctionMetadata(const Function& func,
-                                  intptr_t token_pos) const {
+                                  TokenPosition token_pos) const {
   AddMetadata(Object::Handle(func.RawOwner()),
               String::Handle(MakeFunctionMetaName(func)),
               token_pos);
@@ -9383,7 +9393,7 @@ void Library::AddFunctionMetadata(const Function& func,
 
 
 void Library::AddTypeParameterMetadata(const TypeParameter& param,
-                                       intptr_t token_pos) const {
+                                       TokenPosition token_pos) const {
   AddMetadata(Class::Handle(param.parameterized_class()),
               String::Handle(MakeTypeParameterMetaName(param)),
               token_pos);
@@ -9391,7 +9401,7 @@ void Library::AddTypeParameterMetadata(const TypeParameter& param,
 
 
 void Library::AddLibraryMetadata(const Object& tl_owner,
-                                 intptr_t token_pos) const {
+                                 TokenPosition token_pos) const {
   AddMetadata(tl_owner, Symbols::TopLevel(), token_pos);
 }
 
@@ -10843,7 +10853,7 @@ void Namespace::set_metadata_field(const Field& value) const {
 }
 
 
-void Namespace::AddMetadata(const Object& owner, intptr_t token_pos) {
+void Namespace::AddMetadata(const Object& owner, TokenPosition token_pos) {
   ASSERT(Field::Handle(metadata_field()).IsNull());
   Field& field = Field::Handle(Field::NewTopLevel(Symbols::TopLevel(),
                                           false,  // is_final
@@ -11412,7 +11422,7 @@ void PcDescriptors::PrintHeaderString() {
 const char* PcDescriptors::ToCString() const {
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
-#define FORMAT "%#-*" Px "\t%s\t%" Pd "\t\t%" Pd "\t%" Pd "\n"
+#define FORMAT "%#-*" Px "\t%s\t%" Pd "\t\t%s\t%" Pd "\n"
   if (Length() == 0) {
     return "empty PcDescriptors\n";
   }
@@ -11427,7 +11437,7 @@ const char* PcDescriptors::ToCString() const {
                          iter.PcOffset(),
                          KindAsStr(iter.Kind()),
                          iter.DeoptId(),
-                         iter.TokenPos(),
+                         iter.TokenPos().ToCString(),
                          iter.TryIndex());
     }
   }
@@ -11441,7 +11451,7 @@ const char* PcDescriptors::ToCString() const {
                          iter.PcOffset(),
                          KindAsStr(iter.Kind()),
                          iter.DeoptId(),
-                         iter.TokenPos(),
+                         iter.TokenPos().ToCString(),
                          iter.TryIndex());
   }
   return buffer;
@@ -11583,7 +11593,7 @@ void CodeSourceMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
 const char* CodeSourceMap::ToCString() const {
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
-#define FORMAT "%#-*" Px "\t%" Pd "\n"
+#define FORMAT "%#-*" Px "\t%s\n"
   if (Length() == 0) {
     return "empty CodeSourceMap\n";
   }
@@ -11596,7 +11606,7 @@ const char* CodeSourceMap::ToCString() const {
     while (iter.MoveNext()) {
       len += OS::SNPrint(NULL, 0, FORMAT, addr_width,
                          iter.PcOffset(),
-                         iter.TokenPos());
+                         iter.TokenPos().ToCString());
     }
   }
   // Allocate the buffer.
@@ -11607,7 +11617,7 @@ const char* CodeSourceMap::ToCString() const {
   while (iter.MoveNext()) {
     index += OS::SNPrint((buffer + index), (len - index), FORMAT, addr_width,
                          iter.PcOffset(),
-                         iter.TokenPos());
+                         iter.TokenPos().ToCString());
   }
   return buffer;
 #undef FORMAT
@@ -11797,8 +11807,8 @@ static int PrintVarInfo(char* buffer, int len,
                        LocalVarDescriptors::KindToCString(kind),
                        index,
                        info.scope_id,
-                       info.begin_pos,
-                       info.end_pos);
+                       static_cast<int>(info.begin_pos.Pos()),
+                       static_cast<int>(info.end_pos.Pos()));
   } else if (kind == RawLocalVarDescriptors::kContextVar) {
     return OS::SNPrint(buffer, len,
                        "%2" Pd " %-13s level=%-3d index=%-3d"
@@ -11807,8 +11817,8 @@ static int PrintVarInfo(char* buffer, int len,
                        LocalVarDescriptors::KindToCString(kind),
                        info.scope_id,
                        index,
-                       info.begin_pos,
-                       info.end_pos,
+                       static_cast<int>(info.begin_pos.Pos()),
+                       static_cast<int>(info.end_pos.Pos()),
                        var_name.ToCString());
   } else {
     return OS::SNPrint(buffer, len,
@@ -11818,8 +11828,8 @@ static int PrintVarInfo(char* buffer, int len,
                        LocalVarDescriptors::KindToCString(kind),
                        info.scope_id,
                        index,
-                       info.begin_pos,
-                       info.end_pos,
+                       static_cast<int>(info.begin_pos.Pos()),
+                       static_cast<int>(info.end_pos.Pos()),
                        var_name.ToCString());
   }
 }
@@ -11874,8 +11884,8 @@ void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream,
     JSONObject var(&members);
     var.AddProperty("name", var_name.ToCString());
     var.AddProperty("index", static_cast<intptr_t>(info.index()));
-    var.AddProperty("beginPos", static_cast<intptr_t>(info.begin_pos));
-    var.AddProperty("endPos", static_cast<intptr_t>(info.end_pos));
+    var.AddProperty("beginPos", info.begin_pos);
+    var.AddProperty("endPos", info.end_pos);
     var.AddProperty("scopeId", static_cast<intptr_t>(info.scope_id));
     var.AddProperty("kind", KindToCString(info.kind()));
   }
@@ -12952,7 +12962,7 @@ void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 void ICData::PrintToJSONArray(const JSONArray& jsarray,
-                              intptr_t token_pos,
+                              TokenPosition token_pos,
                               bool is_static_call) const {
   Isolate* isolate = Isolate::Current();
   Class& cls = Class::Handle();
@@ -12988,7 +12998,7 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
 
 
 void ICData::PrintToJSONArrayNew(const JSONArray& jsarray,
-                                 intptr_t token_pos,
+                                 TokenPosition token_pos,
                                  bool is_static_call) const {
   Isolate* isolate = Isolate::Current();
   Class& cls = Class::Handle();
@@ -12996,7 +13006,7 @@ void ICData::PrintToJSONArrayNew(const JSONArray& jsarray,
 
   JSONObject jsobj(&jsarray);
   jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
-  jsobj.AddProperty("tokenPos", token_pos);
+  jsobj.AddProperty("tokenPos", token_pos.value());
   // TODO(rmacnak): Figure out how to stringify DeoptReasons().
   // jsobj.AddProperty("deoptReasons", ...);
 
@@ -13616,7 +13626,7 @@ RawCode* Code::FindCode(uword pc, int64_t timestamp) {
 }
 
 
-intptr_t Code::GetTokenIndexOfPC(uword pc) const {
+TokenPosition Code::GetTokenIndexOfPC(uword pc) const {
   uword pc_offset = pc - EntryPoint();
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
@@ -13625,7 +13635,7 @@ intptr_t Code::GetTokenIndexOfPC(uword pc) const {
       return iter.TokenPos();
     }
   }
-  return -1;
+  return TokenPosition::kNoSource;
 }
 
 
@@ -14123,15 +14133,15 @@ RawContextScope* ContextScope::New(intptr_t num_variables, bool is_implicit) {
 }
 
 
-intptr_t ContextScope::TokenIndexAt(intptr_t scope_index) const {
-  return Smi::Value(VariableDescAddr(scope_index)->token_pos);
+TokenPosition ContextScope::TokenIndexAt(intptr_t scope_index) const {
+  return TokenPosition(Smi::Value(VariableDescAddr(scope_index)->token_pos));
 }
 
 
 void ContextScope::SetTokenIndexAt(intptr_t scope_index,
-                                   intptr_t token_pos) const {
+                                   TokenPosition token_pos) const {
   StoreSmi(&VariableDescAddr(scope_index)->token_pos,
-           Smi::New(token_pos));
+           Smi::New(token_pos.value()));
 }
 
 
@@ -14222,12 +14232,12 @@ const char* ContextScope::ToCString() const {
   for (int i = 0; i < num_variables(); i++) {
     name = NameAt(i);
     const char* cname = name.ToCString();
-    intptr_t pos = TokenIndexAt(i);
+    TokenPosition pos = TokenIndexAt(i);
     intptr_t idx = ContextIndexAt(i);
     intptr_t lvl = ContextLevelAt(i);
     char* chars = OS::SCreate(Thread::Current()->zone(),
-        "%s\nvar %s  token-pos %" Pd "  ctx lvl %" Pd "  index %" Pd "",
-        prev_cstr, cname, pos, lvl, idx);
+        "%s\nvar %s  token-pos %s  ctx lvl %" Pd "  index %" Pd "",
+        prev_cstr, cname, pos.ToCString(), lvl, idx);
     prev_cstr = chars;
   }
   return prev_cstr;
@@ -14548,7 +14558,7 @@ RawLanguageError* LanguageError::New() {
 
 RawLanguageError* LanguageError::NewFormattedV(const Error& prev_error,
                                                const Script& script,
-                                               intptr_t token_pos,
+                                               TokenPosition token_pos,
                                                bool report_after_token,
                                                Report::Kind kind,
                                                Heap::Space space,
@@ -14576,7 +14586,7 @@ RawLanguageError* LanguageError::NewFormattedV(const Error& prev_error,
 
 RawLanguageError* LanguageError::NewFormatted(const Error& prev_error,
                                               const Script& script,
-                                              intptr_t token_pos,
+                                              TokenPosition token_pos,
                                               bool report_after_token,
                                               Report::Kind kind,
                                               Heap::Space space,
@@ -14620,8 +14630,8 @@ void LanguageError::set_script(const Script& value) const {
 }
 
 
-void LanguageError::set_token_pos(intptr_t token_pos) const {
-  ASSERT(!Token::IsClassifying(token_pos));
+void LanguageError::set_token_pos(TokenPosition token_pos) const {
+  ASSERT(!token_pos.IsClassifying());
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -15032,7 +15042,7 @@ RawAbstractType* Instance::GetType() const {
     ASSERT(scope_cls.NumTypeArguments() > 0);
     TypeArguments& type_arguments = TypeArguments::Handle(GetTypeArguments());
     type = FunctionType::New(
-        scope_cls, type_arguments, signature, Token::kNoSourcePos);
+        scope_cls, type_arguments, signature, TokenPosition::kNoSource);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
     return type.raw();
@@ -15046,7 +15056,7 @@ RawAbstractType* Instance::GetType() const {
     if (cls.NumTypeArguments() > 0) {
       type_arguments = GetTypeArguments();
     }
-    type = Type::New(cls, type_arguments, Token::kNoSourcePos);
+    type = Type::New(cls, type_arguments, TokenPosition::kNoSource);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }
@@ -15373,8 +15383,8 @@ const char* Instance::ToCString() const {
     if (num_type_arguments > 0) {
       type_arguments = GetTypeArguments();
     }
-    const Type& type =
-        Type::Handle(Type::New(cls, type_arguments, Token::kNoSourcePos));
+    const Type& type = Type::Handle(
+        Type::New(cls, type_arguments, TokenPosition::kNoSource));
     const String& type_name = String::Handle(type.UserVisibleName());
     return OS::SCreate(Thread::Current()->zone(),
         "Instance of '%s'", type_name.ToCString());
@@ -15513,10 +15523,10 @@ void AbstractType::set_arguments(const TypeArguments& value) const {
   UNREACHABLE();
 }
 
-intptr_t AbstractType::token_pos() const {
+TokenPosition AbstractType::token_pos() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
-  return -1;
+  return TokenPosition::kNoSource;
 }
 
 
@@ -16110,7 +16120,7 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
     const TypeArguments& no_type_arguments = TypeArguments::Handle();
     type ^= Type::New(Object::Handle(type_class.raw()),
                       no_type_arguments,
-                      Token::kNoSourcePos);
+                      TokenPosition::kNoSource);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }
@@ -16568,7 +16578,7 @@ RawType* Type::New(Heap::Space space) {
 
 RawType* Type::New(const Object& clazz,
                    const TypeArguments& arguments,
-                   intptr_t token_pos,
+                   TokenPosition token_pos,
                    Heap::Space space) {
   const Type& result = Type::Handle(Type::New(space));
   result.set_type_class(clazz);
@@ -16579,8 +16589,8 @@ RawType* Type::New(const Object& clazz,
 }
 
 
-void Type::set_token_pos(intptr_t token_pos) const {
-  ASSERT(!Token::IsClassifying(token_pos));
+void Type::set_token_pos(TokenPosition token_pos) const {
+  ASSERT(!token_pos.IsClassifying());
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -16998,10 +17008,8 @@ RawAbstractType* FunctionType::Canonicalize(TrailPtr trail) const {
   // Replace the actual function by a signature function.
   const Function& fun = Function::Handle(zone, signature());
   if (!fun.IsSignatureFunction()) {
-    Function& sig_fun =
-        Function::Handle(zone,
-                         Function::NewSignatureFunction(scope_cls,
-                                                        Token::kNoSourcePos));
+    Function& sig_fun = Function::Handle(zone,
+        Function::NewSignatureFunction(scope_cls, TokenPosition::kNoSource));
     type = fun.result_type();
     type = type.Canonicalize(trail);
     sig_fun.set_result_type(type);
@@ -17112,7 +17120,7 @@ RawFunctionType* FunctionType::New(Heap::Space space) {
 RawFunctionType* FunctionType::New(const Class& clazz,
                                    const TypeArguments& arguments,
                                    const Function& signature,
-                                   intptr_t token_pos,
+                                   TokenPosition token_pos,
                                    Heap::Space space) {
   const FunctionType& result = FunctionType::Handle(FunctionType::New(space));
   result.set_scope_class(clazz);
@@ -17125,8 +17133,8 @@ RawFunctionType* FunctionType::New(const Class& clazz,
 }
 
 
-void FunctionType::set_token_pos(intptr_t token_pos) const {
-  ASSERT(!Token::IsClassifying(token_pos));
+void FunctionType::set_token_pos(TokenPosition token_pos) const {
+  ASSERT(!token_pos.IsClassifying());
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -17546,7 +17554,7 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
                                      intptr_t index,
                                      const String& name,
                                      const AbstractType& bound,
-                                     intptr_t token_pos) {
+                                     TokenPosition token_pos) {
   const TypeParameter& result = TypeParameter::Handle(TypeParameter::New());
   result.set_parameterized_class(parameterized_class);
   result.set_index(index);
@@ -17559,8 +17567,8 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
 }
 
 
-void TypeParameter::set_token_pos(intptr_t token_pos) const {
-  ASSERT(!Token::IsClassifying(token_pos));
+void TypeParameter::set_token_pos(TokenPosition token_pos) const {
+  ASSERT(!token_pos.IsClassifying());
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -17837,7 +17845,7 @@ void BoundedType::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-intptr_t MixinAppType::token_pos() const {
+TokenPosition MixinAppType::token_pos() const {
   return AbstractType::Handle(MixinTypeAt(0)).token_pos();
 }
 
@@ -22347,14 +22355,14 @@ static intptr_t PrintOneStacktrace(Zone* zone,
                                    const Function& function,
                                    const Code& code,
                                    intptr_t frame_index) {
-  const intptr_t token_pos = code.GetTokenIndexOfPC(pc);
+  const TokenPosition token_pos = code.GetTokenIndexOfPC(pc);
   const Script& script = Script::Handle(zone, function.script());
   const String& function_name =
       String::Handle(zone, function.QualifiedUserVisibleName());
   const String& url = String::Handle(zone, script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  if (token_pos >= 0) {
+  if (token_pos.IsReal()) {
     if (script.HasSource()) {
       script.GetTokenLocation(token_pos, &line, &column);
     } else {
