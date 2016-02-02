@@ -423,8 +423,10 @@ class DeoptRetAddressInstr : public DeoptInstr {
 
  private:
   static const intptr_t kFieldWidth = kBitsPerWord / 2;
-  class ObjectTableIndex : public BitField<intptr_t, 0, kFieldWidth> { };
-  class DeoptId : public BitField<intptr_t, kFieldWidth, kFieldWidth> { };
+  class ObjectTableIndex :
+      public BitField<intptr_t, intptr_t, 0, kFieldWidth> { };
+  class DeoptId :
+      public BitField<intptr_t, intptr_t, kFieldWidth, kFieldWidth> { };
 
   const intptr_t object_table_index_;
   const intptr_t deopt_id_;
@@ -547,8 +549,9 @@ class DeoptMintPairInstr: public DeoptIntegerInstrBase {
 
  private:
   static const intptr_t kFieldWidth = kBitsPerWord / 2;
-  class LoRegister : public BitField<intptr_t, 0, kFieldWidth> { };
-  class HiRegister : public BitField<intptr_t, kFieldWidth, kFieldWidth> { };
+  class LoRegister : public BitField<intptr_t, intptr_t, 0, kFieldWidth> { };
+  class HiRegister :
+      public BitField<intptr_t, intptr_t, kFieldWidth, kFieldWidth> { };
 
   const CpuRegisterSource lo_;
   const CpuRegisterSource hi_;

@@ -285,7 +285,8 @@ class RawObject {
 
    private:
     // The actual unscaled bit field used within the tag field.
-    class SizeBits : public BitField<intptr_t, kSizeTagPos, kSizeTagSize> {};
+    class SizeBits :
+        public BitField<uword, intptr_t, kSizeTagPos, kSizeTagSize> {};
 
     static intptr_t SizeToTagValue(intptr_t size) {
       ASSERT(Utils::IsAligned(size, kObjectAlignment));
@@ -297,7 +298,7 @@ class RawObject {
   };
 
   class ClassIdTag :
-      public BitField<intptr_t, kClassIdTagPos, kClassIdTagSize> {};  // NOLINT
+      public BitField<uword, intptr_t, kClassIdTagPos, kClassIdTagSize> {};
 
   bool IsWellFormed() const {
     uword value = reinterpret_cast<uword>(this);
@@ -497,18 +498,18 @@ class RawObject {
  private:
   uword tags_;  // Various object tags (bits).
 
-  class WatchedBit : public BitField<bool, kWatchedBit, 1> {};
+  class WatchedBit : public BitField<uword, bool, kWatchedBit, 1> {};
 
-  class MarkBit : public BitField<bool, kMarkBit, 1> {};
+  class MarkBit : public BitField<uword, bool, kMarkBit, 1> {};
 
-  class RememberedBit : public BitField<bool, kRememberedBit, 1> {};
+  class RememberedBit : public BitField<uword, bool, kRememberedBit, 1> {};
 
-  class CanonicalObjectTag : public BitField<bool, kCanonicalBit, 1> {};
+  class CanonicalObjectTag : public BitField<uword, bool, kCanonicalBit, 1> {};
 
-  class VMHeapObjectTag : public BitField<bool, kVMHeapObjectBit, 1> {};
+  class VMHeapObjectTag : public BitField<uword, bool, kVMHeapObjectBit, 1> {};
 
   class ReservedBits : public
-      BitField<intptr_t, kReservedTagPos, kReservedTagSize> {};  // NOLINT
+      BitField<uword, intptr_t, kReservedTagPos, kReservedTagSize> {};
 
   // TODO(koda): After handling tags_, return const*, like Object::raw_ptr().
   RawObject* ptr() const {
@@ -1274,8 +1275,8 @@ class RawLocalVarDescriptors : public RawObject {
     kMaxIndex = (1 << (kIndexSize - 1)) - 1,
   };
 
-  class IndexBits : public BitField<int32_t, kIndexPos, kIndexSize> {};
-  class KindBits : public BitField<int8_t, kKindPos, kKindSize>{};
+  class IndexBits : public BitField<int32_t, int32_t, kIndexPos, kIndexSize> {};
+  class KindBits : public BitField<int32_t, int8_t, kKindPos, kKindSize>{};
 
   struct VarInfo {
     int32_t index_kind;  // Bitfield for slot index on stack or in context,

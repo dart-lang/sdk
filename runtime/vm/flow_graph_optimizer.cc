@@ -5822,10 +5822,11 @@ class Place : public ValueObject {
     return offset & ~(ElementSizeMultiplier(size) - 1);
   }
 
-  typedef BitField<Kind, 0, 3> KindBits;
-  typedef BitField<Representation, KindBits::kNextBit, 11> RepresentationBits;
-  typedef BitField<
-      ElementSize, RepresentationBits::kNextBit, 3> ElementSizeBits;
+  class KindBits : public BitField<uword, Kind, 0, 3> {};
+  class RepresentationBits :
+      public BitField<uword, Representation, KindBits::kNextBit, 11> {};
+  class ElementSizeBits :
+      public BitField<uword, ElementSize, RepresentationBits::kNextBit, 3> {};
 
   uword flags_;
   Definition* instance_;

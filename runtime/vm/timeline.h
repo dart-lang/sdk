@@ -282,9 +282,9 @@ class TimelineEvent {
     kNextBit = 5,
   };
 
-  class EventTypeField : public BitField<EventType, kEventTypeBit, 4> {};
+  class EventTypeField : public BitField<uword, EventType, kEventTypeBit, 4> {};
   class PreSerializedJSON :
-      public BitField<bool, kPreSerializedJSON, 1> {};
+      public BitField<uword, bool, kPreSerializedJSON, 1> {};
 
   int64_t timestamp0_;
   int64_t timestamp1_;

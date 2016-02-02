@@ -1362,22 +1362,29 @@ class Class : public Object {
     kEnumBit = 13,
     kIsAllocatedBit = 15,
   };
-  class ConstBit : public BitField<bool, kConstBit, 1> {};
-  class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
-  class TypeFinalizedBit : public BitField<bool, kTypeFinalizedBit, 1> {};
-  class ClassFinalizedBits : public BitField<RawClass::ClassFinalizedState,
-      kClassFinalizedPos, kClassFinalizedSize> {};  // NOLINT
-  class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
-  class PatchBit : public BitField<bool, kPatchBit, 1> {};
-  class SynthesizedClassBit : public BitField<bool, kSynthesizedClassBit, 1> {};
-  class MarkedForParsingBit : public BitField<bool, kMarkedForParsingBit, 1> {};
-  class MixinAppAliasBit : public BitField<bool, kMixinAppAliasBit, 1> {};
-  class MixinTypeAppliedBit : public BitField<bool, kMixinTypeAppliedBit, 1> {};
-  class FieldsMarkedNullableBit : public BitField<bool,
-      kFieldsMarkedNullableBit, 1> {};  // NOLINT
-  class CycleFreeBit : public BitField<bool, kCycleFreeBit, 1> {};
-  class EnumBit : public BitField<bool, kEnumBit, 1> {};
-  class IsAllocatedBit : public BitField<bool, kIsAllocatedBit, 1> {};
+  class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
+  class ImplementedBit : public BitField<uint16_t, bool, kImplementedBit, 1> {};
+  class TypeFinalizedBit :
+      public BitField<uint16_t, bool, kTypeFinalizedBit, 1> {};
+  class ClassFinalizedBits : public BitField<uint16_t,
+                                             RawClass::ClassFinalizedState,
+                                             kClassFinalizedPos,
+                                             kClassFinalizedSize> {};
+  class AbstractBit : public BitField<uint16_t, bool, kAbstractBit, 1> {};
+  class PatchBit : public BitField<uint16_t, bool, kPatchBit, 1> {};
+  class SynthesizedClassBit :
+      public BitField<uint16_t, bool, kSynthesizedClassBit, 1> {};
+  class MarkedForParsingBit :
+      public BitField<uint16_t, bool, kMarkedForParsingBit, 1> {};
+  class MixinAppAliasBit :
+      public BitField<uint16_t, bool, kMixinAppAliasBit, 1> {};
+  class MixinTypeAppliedBit :
+      public BitField<uint16_t, bool, kMixinTypeAppliedBit, 1> {};
+  class FieldsMarkedNullableBit :
+      public BitField<uint16_t, bool, kFieldsMarkedNullableBit, 1> {};
+  class CycleFreeBit : public BitField<uint16_t, bool, kCycleFreeBit, 1> {};
+  class EnumBit : public BitField<uint16_t, bool, kEnumBit, 1> {};
+  class IsAllocatedBit : public BitField<uint16_t, bool, kIsAllocatedBit, 1> {};
 
   void set_name(const String& value) const;
   void set_pretty_name(const String& value) const;
@@ -2037,12 +2044,19 @@ class ICData : public Object {
   };
 
   class NumArgsTestedBits : public BitField<uint32_t,
-      kNumArgsTestedPos, kNumArgsTestedSize> {};  // NOLINT
+                                            uint32_t,
+                                            kNumArgsTestedPos,
+                                            kNumArgsTestedSize> {};
   class DeoptReasonBits : public BitField<uint32_t,
-      ICData::kDeoptReasonPos, ICData::kDeoptReasonSize> {};  // NOLINT
-  class IssuedJSWarningBit : public BitField<bool, kIssuedJSWarningBit, 1> {};
+                                          uint32_t,
+                                          ICData::kDeoptReasonPos,
+                                          ICData::kDeoptReasonSize> {};
+  class IssuedJSWarningBit :
+      public BitField<uint32_t, bool, kIssuedJSWarningBit, 1> {};
   class RangeFeedbackBits : public BitField<uint32_t,
-      ICData::kRangeFeedbackPos, ICData::kRangeFeedbackSize> {};  // NOLINT
+                                            uint32_t,
+                                            ICData::kRangeFeedbackPos,
+                                            ICData::kRangeFeedbackSize> {};
 
 #if defined(DEBUG)
   // Used in asserts to verify that a check is not added twice.
@@ -2732,18 +2746,19 @@ FOR_EACH_FUNCTION_KIND_BIT(DECLARE_BIT)
       (kBitsPerByte * sizeof(static_cast<RawFunction*>(0)->kind_tag_)));
 
   class KindBits :
-    public BitField<RawFunction::Kind, kKindTagPos, kKindTagSize> {};  // NOLINT
+    public BitField<uint32_t, RawFunction::Kind, kKindTagPos, kKindTagSize> {};
 
-  class RecognizedBits : public BitField<MethodRecognizer::Kind,
+  class RecognizedBits : public BitField<uint32_t,
+                                         MethodRecognizer::Kind,
                                          kRecognizedTagPos,
                                          kRecognizedTagSize> {};
-  class ModifierBits :
-    public BitField<RawFunction::AsyncModifier,
-                   kModifierPos,
-                   kModifierSize> {};  // NOLINT
+  class ModifierBits : public BitField<uint32_t,
+                                       RawFunction::AsyncModifier,
+                                       kModifierPos,
+                                       kModifierSize> {};
 
 #define DEFINE_BIT(name, _) \
-  class name##Bit : public BitField<bool, k##name##Bit, 1> {};
+  class name##Bit : public BitField<uint32_t, bool, k##name##Bit, 1> {};
 FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
 #undef DEFINE_BIT
 
@@ -3080,15 +3095,16 @@ class Field : public Object {
     kReflectableBit,
     kDoubleInitializedBit,
   };
-  class ConstBit : public BitField<bool, kConstBit, 1> {};
-  class StaticBit : public BitField<bool, kStaticBit, 1> {};
-  class FinalBit : public BitField<bool, kFinalBit, 1> {};
-  class HasInitializerBit : public BitField<bool, kHasInitializerBit, 1> {};
-  class UnboxingCandidateBit : public BitField<bool,
-                                               kUnboxingCandidateBit, 1> {};
-  class ReflectableBit : public BitField<bool, kReflectableBit, 1> {};
-  class DoubleInitializedBit : public BitField<bool,
-                                               kDoubleInitializedBit, 1> {};
+  class ConstBit : public BitField<uint8_t, bool, kConstBit, 1> {};
+  class StaticBit : public BitField<uint8_t, bool, kStaticBit, 1> {};
+  class FinalBit : public BitField<uint8_t, bool, kFinalBit, 1> {};
+  class HasInitializerBit :
+      public BitField<uint8_t, bool, kHasInitializerBit, 1> {};
+  class UnboxingCandidateBit :
+      public BitField<uint8_t, bool, kUnboxingCandidateBit, 1> {};
+  class ReflectableBit : public BitField<uint8_t, bool, kReflectableBit, 1> {};
+  class DoubleInitializedBit :
+      public BitField<uint8_t, bool, kDoubleInitializedBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -3110,8 +3126,8 @@ class Field : public Object {
   void set_token_pos(TokenPosition token_pos) const {
     StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
   }
-  void set_kind_bits(intptr_t value) const {
-    StoreNonPointer(&raw_ptr()->kind_bits_, static_cast<uint8_t>(value));
+  void set_kind_bits(uint8_t value) const {
+    StoreNonPointer(&raw_ptr()->kind_bits_, value);
   }
 
   static RawField* New();
@@ -4520,9 +4536,10 @@ class Code : public Object {
     kPtrOffSize = 30,
   };
 
-  class OptimizedBit : public BitField<bool, kOptimizedBit, 1> {};
-  class AliveBit : public BitField<bool, kAliveBit, 1> {};
-  class PtrOffBits : public BitField<intptr_t, kPtrOffBit, kPtrOffSize> {};
+  class OptimizedBit : public BitField<int32_t, bool, kOptimizedBit, 1> {};
+  class AliveBit : public BitField<int32_t, bool, kAliveBit, 1> {};
+  class PtrOffBits :
+      public BitField<int32_t, intptr_t, kPtrOffBit, kPtrOffSize> {};
 
   class SlowFindRawCodeVisitor : public FindObjectVisitor {
    public:
@@ -8016,8 +8033,8 @@ class JSRegExp : public Instance {
     kFlagsSize = 4,
   };
 
-  class TypeBits : public BitField<RegExType, kTypePos, kTypeSize> {};
-  class FlagsBits : public BitField<intptr_t, kFlagsPos, kFlagsSize> {};
+  class TypeBits : public BitField<int8_t, RegExType, kTypePos, kTypeSize> {};
+  class FlagsBits : public BitField<int8_t, intptr_t, kFlagsPos, kFlagsSize> {};
 
   bool is_initialized() const { return (type() != kUnitialized); }
   bool is_simple() const { return (type() == kSimple); }

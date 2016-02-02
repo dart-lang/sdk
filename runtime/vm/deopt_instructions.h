@@ -399,8 +399,9 @@ class RegisterSource {
   }
 
  private:
-  class KindField : public BitField<intptr_t, 0, 1> { };
-  class RawIndexField : public BitField<intptr_t, 1, kBitsPerWord - 1> { };
+  class KindField : public BitField<intptr_t, intptr_t, 0, 1> { };
+  class RawIndexField :
+      public BitField<intptr_t, intptr_t, 1, kBitsPerWord - 1> { };
 
   bool is_register() const {
     return KindField::decode(source_index_) == kRegister;
@@ -543,8 +544,9 @@ class DeoptTable : public AllStatic {
                     FlagsField::encode(flags));
   }
 
-  class ReasonField : public BitField<ICData::DeoptReasonId, 0, 8> { };
-  class FlagsField : public BitField<uint32_t, 8, 8> { };
+  class ReasonField :
+      public BitField<intptr_t, ICData::DeoptReasonId, 0, 8> { };
+  class FlagsField : public BitField<intptr_t, uint32_t, 8, 8> { };
 
  private:
   static const intptr_t kEntrySize = 3;

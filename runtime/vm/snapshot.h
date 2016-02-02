@@ -121,16 +121,12 @@ static const bool kAsInlinedObject = false;
 static const intptr_t kInvalidPatchIndex = -1;
 
 
-class SerializedHeaderTag : public BitField<enum SerializedHeaderType,
-                                            0,
-                                            kHeaderTagBits> {
-};
+class SerializedHeaderTag :
+    public BitField<intptr_t, enum SerializedHeaderType, 0, kHeaderTagBits> {};
 
 
-class SerializedHeaderData : public BitField<intptr_t,
-                                             kHeaderTagBits,
-                                             kObjectIdBits> {
-};
+class SerializedHeaderData :
+    public BitField<intptr_t, intptr_t, kHeaderTagBits, kObjectIdBits> {};
 
 
 enum DeserializeState {

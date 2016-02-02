@@ -132,7 +132,8 @@ class ClassHeapStats {
     kTraceAllocationBit = 0,
   };
 
-  class TraceAllocationBit : public BitField<bool, kTraceAllocationBit, 1> {};
+  class TraceAllocationBit :
+      public BitField<intptr_t, bool, kTraceAllocationBit, 1> {};
 
   // Recent old at start of last new GC (used to compute promoted_*).
   intptr_t old_pre_new_gc_count_;

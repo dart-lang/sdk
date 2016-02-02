@@ -17994,7 +17994,7 @@ RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
   const bool is_smi = Smi::IsValid(value);
   if (!silent &&
       FLAG_throw_on_javascript_int_overflow &&
-      !Utils::IsJavascriptInt64(value)) {
+      !Utils::IsJavascriptInt(value)) {
     const Integer& i = is_smi ?
         Integer::Handle(Smi::New(static_cast<intptr_t>(value))) :
         Integer::Handle(Mint::New(value, space));
@@ -18092,7 +18092,7 @@ bool Integer::CheckJavascriptIntegerOverflow() const {
       value = AsInt64Value();
     }
   }
-  return !Utils::IsJavascriptInt64(value);
+  return !Utils::IsJavascriptInt(value);
 }
 
 
@@ -18114,7 +18114,9 @@ RawInteger* Integer::AsValidInteger() const {
   if (Bigint::Cast(*this).FitsIntoInt64()) {
     const int64_t value = AsInt64Value();
     if (Smi::IsValid(value)) {
-      return Smi::New(value);
+      // This cast is safe because Smi::IsValid verifies that value will fit.
+      intptr_t val = static_cast<intptr_t>(value);
+      return Smi::New(val);
     }
     return Mint::New(value);
   }

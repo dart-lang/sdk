@@ -387,19 +387,20 @@ class Location : public ValueObject {
     return PayloadField::decode(value_);
   }
 
-  typedef BitField<Kind, 0, kBitsForKind> KindField;
-  typedef BitField<uword, kBitsForKind, kBitsForPayload> PayloadField;
+  class KindField : public BitField<uword, Kind, 0, kBitsForKind> {};
+  class PayloadField :
+      public BitField<uword, uword, kBitsForKind, kBitsForPayload> {};
 
   // Layout for kUnallocated locations payload.
-  typedef BitField<Policy, 0, 3> PolicyField;
+  typedef BitField<uword, Policy, 0, 3> PolicyField;
 
   // Layout for stack slots.
   static const intptr_t kBitsForBaseReg = 5;
   static const intptr_t kBitsForStackIndex = kBitsForPayload - kBitsForBaseReg;
-  typedef BitField<Register, 0, kBitsForBaseReg> StackSlotBaseField;
-  typedef BitField<intptr_t,
-                   kBitsForBaseReg,
-                   kBitsForStackIndex> StackIndexField;
+  class StackSlotBaseField :
+      public BitField<uword, Register, 0, kBitsForBaseReg> {};
+  class StackIndexField :
+      public BitField<uword, intptr_t, kBitsForBaseReg, kBitsForStackIndex> {};
   COMPILE_ASSERT(1 << kBitsForBaseReg >= kNumberOfCpuRegisters);
 
   static const intptr_t kStackIndexBias =
