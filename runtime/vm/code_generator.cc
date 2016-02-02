@@ -63,6 +63,7 @@ DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(int, max_polymorphic_checks);
+DECLARE_FLAG(bool, precompilation);
 
 DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");
 DEFINE_FLAG(bool, trace_osr, false, "Trace attempts at on-stack replacement.");
@@ -1377,9 +1378,9 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     intptr_t num_frames = stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
-      // Variable locations and number are unknown when 'always_optimize'.
+      // Variable locations and number are unknown when precompiling.
       const int num_vars =
-         Compiler::always_optimize() ? 0 : frame->NumLocalVariables();
+         FLAG_precompilation ? 0 : frame->NumLocalVariables();
       intptr_t unused;
       for (intptr_t v = 0; v < num_vars; v++) {
         frame->VariableAt(v, &var_name, &unused, &unused, &var_value);

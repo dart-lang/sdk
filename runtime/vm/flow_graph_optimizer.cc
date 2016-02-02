@@ -254,7 +254,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     return true;
   }
 
-  if (Compiler::always_optimize() &&
+  if (FLAG_precompilation &&
       (isolate()->object_store()->unique_dynamic_targets() != Array::null())) {
     // Check if the target is unique.
     Function& target_function = Function::Handle(Z);
@@ -3173,7 +3173,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
-  if (Compiler::always_optimize()) {
+  if (FLAG_precompilation) {
     // Cannot handle unboxed instructions.
     return false;
   }
@@ -3220,7 +3220,7 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
 bool FlowGraphOptimizer::TryInlineFloat64x2Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
-  if (Compiler::always_optimize()) {
+  if (FLAG_precompilation) {
     // Cannot handle unboxed instructions.
     return false;
   }
@@ -3259,7 +3259,7 @@ bool FlowGraphOptimizer::TryInlineFloat64x2Constructor(
 bool FlowGraphOptimizer::TryInlineInt32x4Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
-  if (Compiler::always_optimize()) {
+  if (FLAG_precompilation) {
     // Cannot handle unboxed instructions.
     return false;
   }
@@ -4363,7 +4363,7 @@ void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
-  if (Compiler::always_optimize()) {
+  if (FLAG_precompilation) {
     InstanceCallNoopt(instr);
     return;
   }
@@ -4495,7 +4495,7 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
       break;
   }
   if (unary_kind != MathUnaryInstr::kIllegal) {
-    if (Compiler::always_optimize()) {
+    if (FLAG_precompilation) {
       // TODO(srdjan): Adapt MathUnaryInstr to allow tagged inputs as well.
     } else {
       MathUnaryInstr* math_unary =
@@ -4564,7 +4564,7 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
       }
     }
   } else if (recognized_kind == MethodRecognizer::kMathDoublePow) {
-    if (Compiler::always_optimize()) {
+    if (FLAG_precompilation) {
       // No UnboxDouble instructons allowed.
       return;
     }
@@ -5226,7 +5226,7 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
 
 void LICM::OptimisticallySpecializeSmiPhis() {
   if (!flow_graph()->function().allows_hoisting_check_class() ||
-      Compiler::always_optimize()) {
+      FLAG_precompilation) {
     // Do not hoist any: Either deoptimized on a hoisted check,
     // or compiling precompiled code where we can't do optimistic
     // hoisting of checks.

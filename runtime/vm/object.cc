@@ -67,6 +67,7 @@ DEFINE_FLAG(bool, ignore_patch_signature_mismatch, false,
 
 DECLARE_FLAG(charp, coverage_dir);
 DECLARE_FLAG(bool, load_deferred_eagerly);
+DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
@@ -22425,7 +22426,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
       uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
       if (code.is_optimized() && expand_inlined()) {
         // Traverse inlined frames.
-        if (Compiler::allow_recompilation()) {
+        if (!FLAG_precompilation) {
           for (InlinedFunctionsIterator it(code, pc);
                !it.Done() && (*frame_index < max_frames); it.Advance()) {
             function = it.function();

@@ -7,7 +7,6 @@
 
 #include "vm/intermediate_language.h"
 
-#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
@@ -28,6 +27,7 @@ DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, use_osr);
+DECLARE_FLAG(bool, precompilation);
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register RAX.
@@ -2113,7 +2113,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label slow_path, done;
   if (compiler->is_optimizing() &&
-      !Compiler::always_optimize() &&
+      !FLAG_precompilation &&
       num_elements()->BindsToConstant() &&
       num_elements()->BoundConstant().IsSmi()) {
     const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();

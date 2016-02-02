@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/code_descriptors.h"
-#include "vm/compiler.h"
 
 namespace dart {
+
+DECLARE_FLAG(bool, precompilation);
 
 void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
                                    intptr_t pc_offset,
@@ -17,7 +18,7 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
          (deopt_id != Thread::kNoDeoptId));
 
   // When precompiling, we only use pc descriptors for exceptions.
-  if (Compiler::allow_recompilation() || try_index != -1) {
+  if (!FLAG_precompilation || try_index != -1) {
     intptr_t merged_kind_try =
         RawPcDescriptors::MergedKindTry::Encode(kind, try_index);
 

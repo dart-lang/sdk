@@ -7,7 +7,6 @@
 
 #include "vm/intermediate_language.h"
 
-#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
@@ -27,6 +26,7 @@ namespace dart {
 DECLARE_FLAG(bool, allow_absolute_addresses);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, use_osr);
 
 // Generic summary for call instructions that have all arguments pushed
@@ -2092,7 +2092,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(kLengthPos).reg() == kLengthReg);
 
   if (compiler->is_optimizing() &&
-      !Compiler::always_optimize() &&
+      !FLAG_precompilation &&
       num_elements()->BindsToConstant() &&
       num_elements()->BoundConstant().IsSmi()) {
     const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();

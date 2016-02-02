@@ -107,11 +107,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_load_deferred_eagerly = true;
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
-    Compiler::set_always_optimize(true);
-    // Triggers assert if we try to recompile (e.g., because of deferred
-    // loading, deoptimization, ...). Noopt mode simulates behavior
-    // of precompiled code, therefore do not allow recompilation.
-    Compiler::set_allow_recompilation(false);
     // Precompilation finalizes all classes and thus allows CHA optimizations.
     // Do not require CHA triggered deoptimization.
     FLAG_use_cha_deopt = false;
@@ -940,7 +935,7 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
   }
 
   // No deoptimization allowed when 'always_optimize' is set.
-  if (Compiler::always_optimize()) {
+  if (FLAG_precompilation) {
     if (FLAG_trace_compiler) {
       THR_Print(
           "Retrying compilation %s, suppressing inlining of deopt_id:%" Pd "\n",
@@ -988,7 +983,7 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 
 RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
   // No deopt information if we 'always_optimize' (no deoptimization allowed).
-  if (Compiler::always_optimize()) {
+  if (FLAG_precompilation) {
     return Array::empty_array().raw();
   }
   // For functions with optional arguments, all incoming arguments are copied
@@ -1145,7 +1140,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     LocationSummary* locs,
     const ICData& ic_data_in) {
   const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
-  if (Compiler::always_optimize()) {
+  if (FLAG_precompilation) {
     EmitSwitchableInstanceCall(ic_data, argument_count,
                                deopt_id, token_pos, locs);
     return;

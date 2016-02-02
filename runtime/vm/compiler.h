@@ -93,22 +93,7 @@ class Compiler : public AllStatic {
   // Returns Error::null() if there is no compilation error.
   static RawError* CompileAllFunctions(const Class& cls);
 
-  // The following global flags are changed by --noopt handler;
-  // the flags are changed when generating best unoptimized code (no runtime
-  // feedback, no deoptimization).
-
-  // Default: false.
-  static bool always_optimize() { return always_optimize_; }
-  static void set_always_optimize(bool value) { always_optimize_ = value; }
-
-  static bool allow_recompilation() { return allow_recompilation_; }
-  static void set_allow_recompilation(bool value) {
-    allow_recompilation_ = value;
-  }
-
- private:
-  static bool always_optimize_;
-  static bool allow_recompilation_;
+  static bool always_optimize();
 };
 
 
