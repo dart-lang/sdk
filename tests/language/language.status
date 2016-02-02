@@ -116,7 +116,7 @@ gc_test: SkipSlow # Times out flakily. Issue 20956
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ( $arch == simarm || $arch == arm || $arch == simarmv6 || $arch == armv6 || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 
-[ ($compiler == none || $compiler == precompiler) && $runtime == dartium ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == dartium || $runtime == drt) ]
 issue23244_test: Fail # Issue 23244
 
 [ ($compiler == none || $compiler == precompiler) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium) && $arch == ia32 ]
