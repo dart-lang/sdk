@@ -21,8 +21,8 @@ SecurityContext clientContext() => new SecurityContext()
   ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
 
 SecurityContext serverContext() => new SecurityContext()
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKeyAsBytes(readLocalFile('certificates/server_key.pem'),
+  ..useCertificateChainBytes(readLocalFile('certificates/server_chain.pem'))
+  ..usePrivateKeyBytes(readLocalFile('certificates/server_key.pem'),
                          password: 'dartdart');
 
 // Tests that client/server with same protocol can securely establish a

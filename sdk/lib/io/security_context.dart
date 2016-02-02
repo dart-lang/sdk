@@ -80,12 +80,28 @@ abstract class SecurityContext {
   /**
    * Sets the chain of X509 certificates served by [SecureServer]
    * when making secure connections, including the server certificate.
-   * [file] is an PEM file containing X509 certificates, starting with
+   *
+   * [file] is a PEM file containing X509 certificates, starting with
    * the root authority and intermediate authorities forming the signed
    * chain to the server certificate, and ending with the server certificate.
    * The private key for the server certificate is set by [usePrivateKey].
+   *
+   * The function returns a [Future] that completes when the certificate chain
+   * has been set.
    */
-  void useCertificateChain(String file);
+  Future useCertificateChain(String file);
+
+  /**
+   * Sets the chain of X509 certificates served by [SecureServer]
+   * when making secure connections, including the server certificate.
+   *
+   * [chainBytes] is the contents of a PEM file containing X509 certificates,
+   * starting with the root authority and intermediate authorities forming the
+   * signed chain to the server certificate, and ending with the server
+   * certificate. The private key for the server certificate is set by
+   * [usePrivateKey].
+   */
+  void useCertificateChainAsBytes(List<int> chainBytes);
 
   /**
    * Sets the list of authority names that a [SecureServer] will advertise

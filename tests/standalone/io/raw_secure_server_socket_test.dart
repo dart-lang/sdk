@@ -18,8 +18,8 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 List<int> readLocalFile(path) => (new File(localFile(path))).readAsBytesSync();
 
 SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKeyAsBytes(readLocalFile('certificates/server_key.pem'),
+  ..useCertificateChainBytes(readLocalFile('certificates/server_chain.pem'))
+  ..usePrivateKeyBytes(readLocalFile('certificates/server_key.pem'),
                        password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
@@ -578,8 +578,10 @@ runTests() {
   context.useCertificateChain(chain);
   testSimpleConnectFail(context, false);
   testSimpleConnectFail(context, true);
-  var key = 'certificates/untrusted_server_key.pem';
-  context.usePrivateKeyAsBytes(readLocalFile(key), password: 'dartdart');
+  var key =
+      Platform.script.resolve('certificates/untrusted_server_key.pem')
+       .toFilePath();
+  context.usePrivateKey(key, password: 'dartdart');
   testSimpleConnectFail(context, false);
   testSimpleConnectFail(context, true);
   testServerListenAfterConnect();

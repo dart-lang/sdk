@@ -139,15 +139,20 @@ class _SecurityContext
 
   Future usePrivateKey(String keyFile, {String password}) {
     return (new File(keyFile)).readAsBytes().then((bytes) {
-      usePrivateKeyAsBytes(bytes, password: password);
+      usePrivateKeyBytes(bytes, password: password);
     });
   }
-  void usePrivateKeyAsBytes(List<int> keyBytes, {String password})
-      native "SecurityContext_UsePrivateKeyAsBytes";
+  void usePrivateKeyBytes(List<int> keyBytes, {String password})
+      native "SecurityContext_UsePrivateKeyBytes";
   void setTrustedCertificates({String file, String directory})
       native "SecurityContext_SetTrustedCertificates";
-  void useCertificateChain(String file)
-      native "SecurityContext_UseCertificateChain";
+  Future useCertificateChain(String chainFile) {
+    return (new File(chainFile)).readAsBytes().then((bytes) {
+      useCertificateChainBytes(bytes);
+    });
+  }
+  void useCertificateChainBytes(List<int> chainBytes)
+      native "SecurityContext_UseCertificateChainBytes";
   void setClientAuthorities(String file)
       native "SecurityContext_SetClientAuthorities";
   void setAlpnProtocols(List<String> protocols, bool isServer) {

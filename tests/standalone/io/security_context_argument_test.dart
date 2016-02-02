@@ -16,27 +16,27 @@ bool tlsException(e) => e is TlsException;
 
 void testUsePrivateKeyArguments() {
     var c = new SecurityContext();
-    c.useCertificateChain(localFile('certificates/server_chain.pem'));
-    Expect.throws(() => c.usePrivateKeyAsBytes(
+    c.useCertificateChainBytes(readLocalFile('certificates/server_chain.pem'));
+    Expect.throws(() => c.usePrivateKeyBytes(
           readLocalFile('certificates/server_key.pem'),
                         password: "dart" * 1000),
         argumentError);
-    Expect.throws(() => c.usePrivateKeyAsBytes(
+    Expect.throws(() => c.usePrivateKeyBytes(
           readLocalFile('certificates/server_key.pem')),
         tlsException);
-    Expect.throws(() => c.usePrivateKeyAsBytes(
+    Expect.throws(() => c.usePrivateKeyBytes(
           readLocalFile('certificates/server_key.pem'), password: "iHackSites"),
         tlsException);
-    Expect.throws(() => c.usePrivateKeyAsBytes(
+    Expect.throws(() => c.usePrivateKeyBytes(
           readLocalFile('certificates/server_key_oops.pem'),
                         password: "dartdart"),
         fileSystemException);
-    Expect.throws(() => c.usePrivateKeyAsBytes(1), argumentOrTypeError);
-    Expect.throws(() => c.usePrivateKeyAsBytes(null), argumentError);
-    Expect.throws(() => c.usePrivateKeyAsBytes(
+    Expect.throws(() => c.usePrivateKeyBytes(1), argumentOrTypeError);
+    Expect.throws(() => c.usePrivateKeyBytes(null), argumentError);
+    Expect.throws(() => c.usePrivateKeyBytes(
           readLocalFile('certificates/server_key_oops.pem'), password: 3),
         fileSystemException);
-    c.usePrivateKeyAsBytes(
+    c.usePrivateKeyBytes(
         readLocalFile('certificates/server_key.pem'), password: "dartdart");
 }
 

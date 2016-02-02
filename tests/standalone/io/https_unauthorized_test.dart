@@ -17,8 +17,9 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 List<int> readLocalFile(path) => (new File(localFile(path))).readAsBytesSync();
 
 SecurityContext untrustedServerContext = new SecurityContext()
-  ..useCertificateChain(localFile('certificates/untrusted_server_chain.pem'))
-  ..usePrivateKeyAsBytes(readLocalFile('certificates/untrusted_server_key.pem'),
+  ..useCertificateChainBytes(readLocalFile(
+      'certificates/untrusted_server_chain.pem'))
+  ..usePrivateKeyBytes(readLocalFile('certificates/untrusted_server_key.pem'),
                          password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()

@@ -108,7 +108,7 @@ abstract class HttpStatus {
  *       var key =
  *           Platform.script.resolve('certificates/server_key.pem')
  *           .toFilePath();
- *       context.useCertificateChain(chain);
+ *       await context.useCertificateChain(chain);
  *       await context.usePrivateKey(key, password: 'dartdart');
  *
  *       HttpServer
