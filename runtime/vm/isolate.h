@@ -353,8 +353,8 @@ class Isolate : public BaseIsolate {
 
   const Flags& flags() const { return flags_; }
 
-  // Requests that the debugger resume execution.
-  void Resume() {
+  // Lets the embedder know that a service message resulted in a resume request.
+  void SetResumeRequest() {
     resume_request_ = true;
     set_last_resume_timestamp();
   }

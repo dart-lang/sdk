@@ -61,10 +61,10 @@ MessageHandler::MessageHandler()
       oob_message_handling_allowed_(true),
       live_ports_(0),
       paused_(0),
-      pause_on_start_(false),
-      pause_on_exit_(false),
-      paused_on_start_(false),
-      paused_on_exit_(false),
+      should_pause_on_start_(false),
+      should_pause_on_exit_(false),
+      is_paused_on_start_(false),
+      is_paused_on_exit_(false),
       paused_timestamp_(-1),
       pool_(NULL),
       task_(NULL),
@@ -258,6 +258,18 @@ MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
 }
 
 
+MessageHandler::MessageStatus MessageHandler::HandleAllMessages() {
+  // We can only call HandleAllMessages when this handler is not
+  // assigned to a thread pool.
+  MonitorLocker ml(&monitor_);
+  ASSERT(pool_ == NULL);
+#if defined(DEBUG)
+  CheckAccess();
+#endif
+  return HandleMessages(true, true);
+}
+
+
 MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
   if (!oob_message_handling_allowed_) {
     return kOK;
@@ -270,17 +282,33 @@ MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
 }
 
 
-bool MessageHandler::HasOOBMessages() {
-  MonitorLocker ml(&monitor_);
-  return !oob_queue_->IsEmpty();
+bool MessageHandler::ShouldPauseOnStart(MessageStatus status) const {
+  Isolate* owning_isolate = isolate();
+  if (owning_isolate == NULL) {
+    return false;
+  }
+  // If we are restarting or shutting down, we do not want to honor
+  // should_pause_on_start or should_pause_on_exit.
+  return (status != MessageHandler::kRestart &&
+          status != MessageHandler::kShutdown) &&
+         should_pause_on_start() && owning_isolate->is_runnable();
 }
 
 
-static bool ShouldPause(MessageHandler::MessageStatus status) {
-  // If we are restarting or shutting down, we do not want to honor
-  // pause_on_start or pause_on_exit.
+bool MessageHandler::ShouldPauseOnExit(MessageStatus status) const {
+  Isolate* owning_isolate = isolate();
+  if (owning_isolate == NULL) {
+    return false;
+  }
   return (status != MessageHandler::kRestart &&
-          status != MessageHandler::kShutdown);
+          status != MessageHandler::kShutdown) &&
+         should_pause_on_exit() && owning_isolate->is_runnable();
+}
+
+
+bool MessageHandler::HasOOBMessages() {
+  MonitorLocker ml(&monitor_);
+  return !oob_queue_->IsEmpty();
 }
 
 
@@ -294,28 +322,19 @@ void MessageHandler::TaskCallback() {
     // all pending OOB messages, or we may miss a request for vm
     // shutdown.
     MonitorLocker ml(&monitor_);
-    if (pause_on_start()) {
-      if (!paused_on_start_) {
-        // Temporarily release the monitor when calling out to
-        // NotifyPauseOnStart.  This avoids a dead lock that can occur
-        // when this message handler tries to post a message while a
-        // message is being posted to it.
-        paused_on_start_ = true;
-        paused_timestamp_ = OS::GetCurrentTimeMillis();
-        monitor_.Exit();
-        NotifyPauseOnStart();
-        monitor_.Enter();
+    if (ShouldPauseOnStart(kOK)) {
+      if (!is_paused_on_start()) {
+        PausedOnStartLocked(true);
       }
       // More messages may have come in before we (re)acquired the monitor.
       status = HandleMessages(false, false);
-      if (ShouldPause(status) && pause_on_start()) {
+      if (ShouldPauseOnStart(status)) {
         // Still paused.
         ASSERT(oob_queue_->IsEmpty());
         task_ = NULL;  // No task in queue.
         return;
       } else {
-        paused_on_start_ = false;
-        paused_timestamp_ = -1;
+        PausedOnStartLocked(false);
       }
     }
 
@@ -342,33 +361,23 @@ void MessageHandler::TaskCallback() {
     // The isolate exits when it encounters an error or when it no
     // longer has live ports.
     if (status != kOK || !HasLivePorts()) {
-      if (ShouldPause(status) && pause_on_exit()) {
-        if (!paused_on_exit_) {
+      if (ShouldPauseOnExit(status)) {
+        if (!is_paused_on_exit()) {
           if (FLAG_trace_service_pause_events) {
             OS::PrintErr("Isolate %s paused before exiting. "
                          "Use the Observatory to release it.\n", name());
           }
-          // Temporarily release the monitor when calling out to
-          // NotifyPauseOnExit.  This avoids a dead lock that can
-          // occur when this message handler tries to post a message
-          // while a message is being posted to it.
-          paused_on_exit_ = true;
-          paused_timestamp_ = OS::GetCurrentTimeMillis();
-          monitor_.Exit();
-          NotifyPauseOnExit();
-          monitor_.Enter();
-
+          PausedOnExitLocked(true);
           // More messages may have come in while we released the monitor.
-          HandleMessages(false, false);
+          status = HandleMessages(false, false);
         }
-        if (ShouldPause(status) && pause_on_exit()) {
+        if (ShouldPauseOnExit(status)) {
           // Still paused.
           ASSERT(oob_queue_->IsEmpty());
           task_ = NULL;  // No task in queue.
           return;
         } else {
-          paused_on_exit_ = false;
-          paused_timestamp_ = -1;
+          PausedOnExitLocked(false);
         }
       }
       if (FLAG_trace_isolates) {
@@ -440,6 +449,74 @@ void MessageHandler::decrement_live_ports() {
   CheckAccess();
 #endif
   live_ports_--;
+}
+
+
+void MessageHandler::PausedOnStart(bool paused) {
+  MonitorLocker ml(&monitor_);
+  PausedOnStartLocked(paused);
+}
+
+
+void MessageHandler::PausedOnStartLocked(bool paused) {
+  if (paused) {
+    ASSERT(!is_paused_on_start_);
+    is_paused_on_start_ = true;
+    paused_timestamp_ = OS::GetCurrentTimeMillis();
+  } else {
+    ASSERT(is_paused_on_start_);
+    is_paused_on_start_ = false;
+    paused_timestamp_ = -1;
+  }
+  if (is_paused_on_start_) {
+    // Temporarily release the monitor when calling out to
+    // NotifyPauseOnStart.  This avoids a dead lock that can occur
+    // when this message handler tries to post a message while a
+    // message is being posted to it.
+    monitor_.Exit();
+    NotifyPauseOnStart();
+    monitor_.Enter();
+  } else {
+    // Resumed. Clear the resume request of the owning isolate.
+    Isolate* owning_isolate = isolate();
+    if (owning_isolate != NULL) {
+      owning_isolate->GetAndClearResumeRequest();
+    }
+  }
+}
+
+
+void MessageHandler::PausedOnExit(bool paused) {
+  MonitorLocker ml(&monitor_);
+  PausedOnExitLocked(paused);
+}
+
+
+void MessageHandler::PausedOnExitLocked(bool paused) {
+  if (paused) {
+    ASSERT(!is_paused_on_exit_);
+    is_paused_on_exit_ = true;
+    paused_timestamp_ = OS::GetCurrentTimeMillis();
+  } else {
+    ASSERT(is_paused_on_exit_);
+    is_paused_on_exit_ = false;
+    paused_timestamp_ = -1;
+  }
+  if (is_paused_on_exit_) {
+    // Temporarily release the monitor when calling out to
+    // NotifyPauseOnExit.  This avoids a dead lock that can
+    // occur when this message handler tries to post a message
+    // while a message is being posted to it.
+    monitor_.Exit();
+    NotifyPauseOnExit();
+    monitor_.Enter();
+  } else {
+    // Resumed. Clear the resume request of the owning isolate.
+    Isolate* owning_isolate = isolate();
+    if (owning_isolate != NULL) {
+      owning_isolate->GetAndClearResumeRequest();
+    }
+  }
 }
 
 

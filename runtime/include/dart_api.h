@@ -1078,6 +1078,76 @@ DART_EXPORT void Dart_SetMessageNotifyCallback(
  * is impossible to mess up. */
 
 /**
+ * The VM's default message handler supports pausing an isolate before it starts
+ * and before it exits. This is controlled by two VM flags:
+ *
+ *   `--pause-isolates-on-start`
+ *   `--pause-isolates-on-exit`
+ *
+ * When an embedder is using a Dart_MessageNotifyCallback the following
+ * functions can be used to implement pausing on start and exit.
+ */
+
+/**
+ * If the VM flag `--pause-isolates-on-start` was passed this will be true.
+ *
+ * \return A boolean value indicating if pause on start was requested.
+ */
+DART_EXPORT bool Dart_ShouldPauseOnStart();
+
+/**
+ * Override the VM flag `--pause-isolates-on-start` for the current isolate.
+ *
+ * NOTE: This must be called before Dart_IsolateMakeRunnable.
+ */
+DART_EXPORT void Dart_SetShouldPauseOnStart(bool value);
+
+/**
+ * Is the current isolate paused on start?
+ *
+ * \return A boolean value indicating if the isolate is paused on start.
+ */
+DART_EXPORT bool Dart_IsPausedOnStart();
+
+/**
+ * Called when the embedder has paused the current isolate on start and when
+ * the embedder has released the isolate.
+ *
+ * \return A boolean value indicating if the isolate is paused on start.
+ */
+DART_EXPORT void Dart_SetPausedOnStart(bool value);
+
+/**
+ * If the VM flag `--pause-isolates-on-exit` was passed this will be true.
+ *
+ * \return A boolean value indicating if pause on start was requested.
+ */
+DART_EXPORT bool Dart_ShouldPauseOnExit();
+
+/**
+ * Override the VM flag `--pause-isolates-on-start` for the current isolate.
+ *
+ * NOTE: This must be called before Dart_IsolateMakeRunnable.
+ */
+DART_EXPORT void Dart_SetShouldPauseOnExit(bool value);
+
+/**
+ * Is the current isolate paused on exit?
+ *
+ * \return A boolean value indicating if the isolate is paused on start.
+ */
+DART_EXPORT bool Dart_IsPausedOnExit();
+
+/**
+ * Called when the embedder has paused the current isolate on start and when
+ * the embedder has released the isolate.
+ *
+ * \return A boolean value indicating if the isolate is paused on start.
+ */
+DART_EXPORT void Dart_SetPausedOnExit(bool value);
+
+
+/**
  * Handles the next pending message for the current isolate.
  *
  * May generate an unhandled exception error.
@@ -1085,6 +1155,15 @@ DART_EXPORT void Dart_SetMessageNotifyCallback(
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_HandleMessage();
+
+/**
+ * Handles all pending messages for the current isolate.
+ *
+ * May generate an unhandled exception error.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_HandleMessages();
 
 /**
  * Handles any pending messages for the vm service for the current

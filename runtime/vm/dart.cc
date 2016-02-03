@@ -14,6 +14,7 @@
 #include "vm/handles.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/message_handler.h"
 #include "vm/metrics.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -36,6 +37,8 @@ namespace dart {
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, trace_time_all);
+DECLARE_FLAG(bool, pause_isolates_on_start);
+DECLARE_FLAG(bool, pause_isolates_on_exit);
 DEFINE_FLAG(bool, keep_code, false,
             "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, shutdown, true, "Do a clean shutdown of the VM");
@@ -388,7 +391,12 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   }
 
   ServiceIsolate::MaybeMakeServiceIsolate(I);
-
+  if (!ServiceIsolate::IsServiceIsolate(I)) {
+    I->message_handler()->set_should_pause_on_start(
+        FLAG_pause_isolates_on_start);
+    I->message_handler()->set_should_pause_on_exit(
+        FLAG_pause_isolates_on_exit);
+  }
   ServiceIsolate::SendIsolateStartupMessage();
   I->debugger()->NotifyIsolateCreated();
 

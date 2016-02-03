@@ -1366,6 +1366,66 @@ DART_EXPORT void Dart_ThreadEnableProfiling() {
 }
 
 
+DART_EXPORT bool Dart_ShouldPauseOnStart() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  return isolate->message_handler()->should_pause_on_start();
+}
+
+
+DART_EXPORT void Dart_SetShouldPauseOnStart(bool should_pause) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  return isolate->message_handler()->set_should_pause_on_start(should_pause);
+}
+
+
+DART_EXPORT bool Dart_IsPausedOnStart() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  return isolate->message_handler()->is_paused_on_start();
+}
+
+
+DART_EXPORT void Dart_SetPausedOnStart(bool paused) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (isolate->message_handler()->is_paused_on_start() != paused) {
+    isolate->message_handler()->PausedOnStart(paused);
+  }
+}
+
+
+DART_EXPORT bool Dart_ShouldPauseOnExit() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  return isolate->message_handler()->should_pause_on_exit();
+}
+
+
+DART_EXPORT void Dart_SetShouldPauseOnExit(bool should_pause) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  return isolate->message_handler()->set_should_pause_on_exit(should_pause);
+}
+
+
+DART_EXPORT bool Dart_IsPausedOnExit() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  return isolate->message_handler()->is_paused_on_exit();
+}
+
+
+DART_EXPORT void Dart_SetPausedOnExit(bool paused) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (isolate->message_handler()->is_paused_on_exit() != paused) {
+    isolate->message_handler()->PausedOnExit(paused);
+  }
+}
+
+
 DART_EXPORT void Dart_ExitIsolate() {
   Thread* T = Thread::Current();
   CHECK_ISOLATE(T->isolate());
@@ -1572,6 +1632,22 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   API_TIMELINE_BEGIN_END;
   TransitionNativeToVM transition(T);
   if (I->message_handler()->HandleNextMessage() != MessageHandler::kOK) {
+    Dart_Handle error = Api::NewHandle(T, I->object_store()->sticky_error());
+    I->object_store()->clear_sticky_error();
+    return error;
+  }
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_HandleMessages() {
+  Thread* T = Thread::Current();
+  Isolate* I = T->isolate();
+  CHECK_API_SCOPE(T);
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_BEGIN_END;
+  TransitionNativeToVM transition(T);
+  if (I->message_handler()->HandleAllMessages() != MessageHandler::kOK) {
     Dart_Handle error = Api::NewHandle(T, I->object_store()->sticky_error());
     I->object_store()->clear_sticky_error();
     return error;

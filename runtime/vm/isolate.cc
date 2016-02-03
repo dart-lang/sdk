@@ -1069,8 +1069,6 @@ bool Isolate::MakeRunnable() {
   ASSERT(object_store()->root_library() != Library::null());
   set_is_runnable(true);
   if (!ServiceIsolate::IsServiceIsolate(this)) {
-    message_handler()->set_pause_on_start(FLAG_pause_isolates_on_start);
-    message_handler()->set_pause_on_exit(FLAG_pause_isolates_on_exit);
     if (FLAG_pause_isolates_on_unhandled_exceptions) {
       debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
     }
@@ -1818,13 +1816,13 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   }
 
   jsobj.AddProperty("livePorts", message_handler()->live_ports());
-  jsobj.AddProperty("pauseOnExit", message_handler()->pause_on_exit());
+  jsobj.AddProperty("pauseOnExit", message_handler()->should_pause_on_exit());
 
-  if (message_handler()->paused_on_start()) {
+  if (message_handler()->is_paused_on_start()) {
     ASSERT(debugger()->PauseEvent() == NULL);
     ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
     jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if (message_handler()->paused_on_exit()) {
+  } else if (message_handler()->is_paused_on_exit()) {
     ASSERT(debugger()->PauseEvent() == NULL);
     ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
     jsobj.AddProperty("pauseEvent", &pause_event);
