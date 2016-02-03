@@ -1,4 +1,4 @@
-# Strong mode generic method prototype syntax
+# Prototype Syntax for Generic Methods
 
 This is a summary of the current (as of January 2016) comment-based generic
 method syntax supported by the analyzer strong mode and the Dart Dev Compiler.
