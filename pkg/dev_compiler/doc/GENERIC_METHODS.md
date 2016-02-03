@@ -73,7 +73,7 @@ mode tools, but will be interpreted as `T` by strong mode.  For example:
 // foo is a generic method which takes a single generic method parameter S.
 // In strong mode, the parameter x will have type S, and the return type will
 // be S
-// In normal mode, the parameter x will have type dynamic, and the return 
+// In normal mode, the parameter x will have type dynamic, and the return
 // type will be dynamic.
 dynamic/*=S*/ foo/*<S>*/(dynamic/*=S*/ x) { return x; }
 ```
@@ -102,7 +102,7 @@ declaring local variables and parameters, you can also use the `/*=T*/` syntax w
 // foo is a generic method that takes a single generic parameter S, and a value
 // x of type S
 void foo/*<S>*/(var /*=S*/ x) {
-  // In strong mode, y will also have type S 
+  // In strong mode, y will also have type S
   var /*=S*/ y = x;
 
   // In strong mode, z will also have type S
@@ -135,7 +135,7 @@ List<dynamic /*=S*/> foo/*<S>*/(/*=S*/ x) {
    // l0 is a list literal whose reified type will be List<S> in strong mode,
    // and List<dynamic> in normal mode.
    var l0 = <dynamic /*=S*/>[x];
-   
+
    // as above, but with a regular constructor.
    var l1 = new List<dynamic /*=S*/>();
    return l1;
@@ -150,7 +150,7 @@ enclosed in parentheses, eliminating the need for explicitly writing `dynamic`.
 List/*<S>*/ foo/*<S>*/(/*=S*/ x) {
    // The shorthand syntax is not yet supported for list and map literals
    var l0 = <dynamic /*=S*/>[x];
-   
+
    // but with regular constructors you can use it
    var l1 = new List/*<S>*/();
    return l1;
