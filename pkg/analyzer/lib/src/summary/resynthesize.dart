@@ -20,7 +20,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 
 /**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element

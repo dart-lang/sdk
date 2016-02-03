@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/summary/format.dart' show SdkBundle;
+import 'package:analyzer/src/summary/idl.dart' show SdkBundle;
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:path/path.dart' as pathos;
 

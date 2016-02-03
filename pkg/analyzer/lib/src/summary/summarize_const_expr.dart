@@ -7,6 +7,7 @@ library serialization.summarize_const_expr;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 
 /**
  * Instances of this class keep track of intermediate state during

@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
 

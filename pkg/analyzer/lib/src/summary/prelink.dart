@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 
 /**

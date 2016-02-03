@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
 

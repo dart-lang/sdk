@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show Namespace, TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:unittest/unittest.dart';

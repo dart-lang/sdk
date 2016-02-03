@@ -9,6 +9,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
 import 'package:analyzer/src/summary/summarize_elements.dart'

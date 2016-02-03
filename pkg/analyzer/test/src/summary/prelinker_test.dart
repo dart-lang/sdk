@@ -7,7 +7,7 @@ library analyzer.test.src.summary.prelinker_test;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:unittest/unittest.dart';
 
