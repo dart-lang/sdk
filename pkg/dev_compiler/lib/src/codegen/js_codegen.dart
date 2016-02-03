@@ -86,6 +86,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   final _moduleItems = <JS.Statement>[];
   final _temps = new HashMap<Element, JS.TemporaryId>();
   final _qualifiedIds = new List<Tuple2<Element, JS.MaybeQualifiedId>>();
+  final _topLevelExtensionNames = new Set<String>();
 
   /// The name for the library's exports inside itself.
   /// `exports` was chosen as the most similar to ES module patterns.
@@ -168,6 +169,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     // Flush any unwritten fields/properties.
     _flushLibraryProperties(_moduleItems);
+    // TODO(ochafik): Refactor to merge this with the dartxNames codepath.
+    if (_topLevelExtensionNames.isNotEmpty) {
+      _moduleItems.add(_emitExtensionNamesDeclaration(
+          _topLevelExtensionNames.map(js.string).toList()));
+    }
 
     // Mark all qualified names as qualified or not, depending on if they need
     // to be loaded lazily or not.
@@ -675,6 +681,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
   }
 
+  JS.Statement _emitExtensionNamesDeclaration(List<JS.Expression> names) =>
+      js.statement('dart.defineExtensionNames(#)',
+          [new JS.ArrayInitializer(names.toList(), multiline: true)]);
+
+  JS.Expression _emitExtensionName(String name) =>
+      js.call('dartx.#', _propertyName(name));
+
   _isQualifiedPath(JS.Expression node) =>
       node is JS.Identifier ||
       node is JS.PropertyAccess &&
@@ -719,8 +732,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         }
       }
       if (dartxNames.isNotEmpty) {
-        body.add(js.statement('dart.defineExtensionNames(#)',
-            [new JS.ArrayInitializer(dartxNames, multiline: true)]));
+        body.add(_emitExtensionNamesDeclaration(dartxNames));
       }
     }
 
@@ -2259,7 +2271,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         isLoaded && (field.isConst || _constField.isFieldInitConstant(field));
 
     var fieldName = field.name.name;
-    if (eagerInit && !JS.invalidStaticFieldName(fieldName)) {
+    if (eagerInit && !JS.invalidStaticFieldName(fieldName, options)) {
       return annotateVariable(
           js.statement('#.# = #;', [
             classElem.name,
@@ -2319,7 +2331,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
           field.element);
     }
 
-    if (eagerInit && !JS.invalidStaticFieldName(fieldName)) {
+    if (eagerInit && !JS.invalidStaticFieldName(fieldName, options)) {
       return annotateVariable(
           js.statement('# = #;', [_visit(field.name), jsInit]), field.element);
     }
@@ -3393,8 +3405,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       bool unary: false,
       bool isStatic: false,
       bool allowExtensions: true}) {
-    // Static members skip the rename steps.
-    if (isStatic) return _propertyName(name);
+    // Static members skip the rename steps, except for Function properties.
+    if (isStatic) {
+      // Avoid colliding with names on Function that are disallowed in ES6,
+      // or where we need to work around transpilers.
+      if (invalidStaticFieldName(name, options)) {
+        _topLevelExtensionNames.add(name);
+        return _emitExtensionName(name);
+      } else {
+        return _propertyName(name);
+      }
+    }
 
     if (name.startsWith('_')) {
       return _privateNames.putIfAbsent(
@@ -3421,7 +3442,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (allowExtensions &&
         _extensionTypes.contains(baseType.element) &&
         !_isObjectProperty(name)) {
-      return js.call('dartx.#', _propertyName(name));
+      return _emitExtensionName(name);
     }
 
     return _propertyName(name);

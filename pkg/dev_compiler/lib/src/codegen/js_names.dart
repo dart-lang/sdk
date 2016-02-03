@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import '../js/js_ast.dart';
+import '../options.dart';
 
 /// Unique instance for temporary variables. Will be renamed consistently
 /// across the entire file. Different instances will be named differently
@@ -283,14 +284,20 @@ bool invalidVariableName(String keyword, {bool strictMode: true}) {
   return false;
 }
 
-/// Returns true for invalid static field names in strict mode.
+/// Returns true for invalid static field names in strict mode or for some
+/// transpilers (e.g. when doing ES6->ES5 lowering with the Closure Compiler).
 /// In particular, "caller" "callee" and "arguments" cannot be used.
-bool invalidStaticFieldName(String name) {
+bool invalidStaticFieldName(String name, CodegenOptions options) {
   switch (name) {
     case "arguments":
     case "caller":
     case "callee":
       return true;
+    // Workarounds for Closure:
+    // (see https://github.com/google/closure-compiler/issues/1460)
+    case "name":
+    case "length":
+      return options.closure;
   }
   return false;
 }
