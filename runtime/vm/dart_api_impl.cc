@@ -4411,7 +4411,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
   CHECK_ISOLATE(isolate);
   CHECK_CALLBACK_STATE(thread);
   if (Api::IsError(exception)) {
-    Dart_PropagateError(exception);
+    ::Dart_PropagateError(exception);
   }
 
   {
