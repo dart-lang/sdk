@@ -107,6 +107,7 @@ element_animate_test/timing_dict: RuntimeError # Also timing out on MacOS. Issue
 element_animate_test/simple_timing: RuntimeError # Please triage this failure
 element_types_test/supported_object: RuntimeError # Issue 25155
 element_types_test/supported_embed: RuntimeError # Issue 25155
+svgelement_test/PathElement: RuntimeError # Issue 25665
 
 [ $runtime == chrome && $system == macos ]
 canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
@@ -155,7 +156,6 @@ audiobuffersourcenode_test/supported: Fail
 audiocontext_test/supported: Fail
 crypto_test/supported: Fail
 css_test/supportsPointConversions: Fail
-document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
 element_types_test/supported_keygen: Fail
@@ -214,7 +214,6 @@ audiobuffersourcenode_test/supported: Fail
 audiocontext_test/supported: Fail
 crypto_test/supported: Fail
 css_test/supportsPointConversions: Fail
-document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
 element_types_test/supported_keygen: Fail
@@ -334,7 +333,6 @@ audiobuffersourcenode_test/supported: Fail
 audiocontext_test/supported: Fail
 crypto_test/supported: Fail
 css_test/supportsPointConversions: Fail
-document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_template: Fail
 indexeddb_1_test/supported: Fail
 indexeddb_1_test/supportsDatabaseNames: Fail
@@ -352,7 +350,6 @@ text_event_test: Fail # Issue 17893
 
 # Firefox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
-document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_details: Fail
 element_types_test/supported_embed: Fail
 element_types_test/supported_keygen: Fail
@@ -366,15 +363,10 @@ input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
-mediasource_test/supported: Fail # Behind a flag as of FF 36
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
 websql_test/supported: Fail
-
-[ $compiler == dart2js && $runtime == ff && $system == windows ]
-mediasource_test/supported: Pass
-mediasource_test/functional: RuntimeError # Issue 24838
 
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
