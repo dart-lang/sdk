@@ -158,10 +158,11 @@ class Condition : public ValueObject {
     kImmSize = 16,
   };
 
-  class LeftBits : public BitField<Register, kLeftPos, kLeftSize> {};
-  class RightBits : public BitField<Register, kRightPos, kRightSize> {};
-  class RelOpBits : public BitField<RelationOperator, kRelOpPos, kRelOpSize> {};
-  class ImmBits : public BitField<uint16_t, kImmPos, kImmSize> {};
+  class LeftBits : public BitField<uword, Register, kLeftPos, kLeftSize> {};
+  class RightBits : public BitField<uword, Register, kRightPos, kRightSize> {};
+  class RelOpBits :
+      public BitField<uword, RelationOperator, kRelOpPos, kRelOpSize> {};
+  class ImmBits : public BitField<uword, uint16_t, kImmPos, kImmSize> {};
 
   Register left() const { return LeftBits::decode(bits_); }
   Register right() const { return RightBits::decode(bits_); }
