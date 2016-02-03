@@ -2238,7 +2238,7 @@ class FixProcessor {
           {
             sb.startPosition('TYPE$i');
             sb.append(typeSource);
-            _addSuperTypeProposals(sb, new Set(), type);
+            _addSuperTypeProposals(sb, type);
             sb.endPosition();
           }
           sb.append(' ');
@@ -2340,7 +2340,7 @@ class FixProcessor {
     if (typeSource != 'dynamic') {
       sb.startPosition('TYPE$index');
       sb.append(typeSource);
-      _addSuperTypeProposals(sb, new Set(), type);
+      _addSuperTypeProposals(sb, type);
       sb.endPosition();
       sb.append(' ');
     }
@@ -2821,16 +2821,14 @@ class FixProcessor {
     }
   }
 
-  static void _addSuperTypeProposals(
-      SourceBuilder sb, Set<DartType> alreadyAdded, DartType type) {
-    if (type != null &&
-        type.element is ClassElement &&
-        alreadyAdded.add(type)) {
-      ClassElement element = type.element as ClassElement;
-      sb.addSuggestion(LinkedEditSuggestionKind.TYPE, element.name);
-      _addSuperTypeProposals(sb, alreadyAdded, element.supertype);
-      for (InterfaceType interfaceType in element.interfaces) {
-        _addSuperTypeProposals(sb, alreadyAdded, interfaceType);
+  static void _addSuperTypeProposals(SourceBuilder sb, DartType type,
+      [Set<DartType> alreadyAdded]) {
+    alreadyAdded ??= new Set<DartType>();
+    if (type is InterfaceType && alreadyAdded.add(type)) {
+      sb.addSuggestion(LinkedEditSuggestionKind.TYPE, type.displayName);
+      _addSuperTypeProposals(sb, type.superclass, alreadyAdded);
+      for (InterfaceType interfaceType in type.interfaces) {
+        _addSuperTypeProposals(sb, interfaceType, alreadyAdded);
       }
     }
   }

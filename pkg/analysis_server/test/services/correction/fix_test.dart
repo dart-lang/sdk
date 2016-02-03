@@ -3884,6 +3884,11 @@ class A {
 void process(List<int> items) {
 }
 ''');
+    _assertLinkedGroup(
+        change.linkedEditGroups[2],
+        ['List<int> items) {'],
+        expectedSuggestions(LinkedEditSuggestionKind.TYPE,
+            ['List<int>', 'Iterable<int>', 'Object']));
   }
 
   test_undefinedFunction_create_importType() async {
@@ -4436,19 +4441,19 @@ class A {
         change.linkedEditGroups[index++],
         ['int i'],
         expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['int', 'num', 'Object', 'Comparable']));
+            ['int', 'num', 'Object', 'Comparable<num>']));
     _assertLinkedGroup(change.linkedEditGroups[index++], ['i,']);
     _assertLinkedGroup(
         change.linkedEditGroups[index++],
         ['double d'],
         expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['double', 'num', 'Object', 'Comparable']));
+            ['double', 'num', 'Object', 'Comparable<num>']));
     _assertLinkedGroup(change.linkedEditGroups[index++], ['d,']);
     _assertLinkedGroup(
         change.linkedEditGroups[index++],
         ['String s'],
-        expectedSuggestions(
-            LinkedEditSuggestionKind.TYPE, ['String', 'Object', 'Comparable']));
+        expectedSuggestions(LinkedEditSuggestionKind.TYPE,
+            ['String', 'Object', 'Comparable<String>']));
     _assertLinkedGroup(change.linkedEditGroups[index++], ['s)']);
   }
 
@@ -4482,18 +4487,18 @@ class A {
         change.linkedEditGroups[index++],
         ['int i'],
         expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['int', 'num', 'Object', 'Comparable']));
+            ['int', 'num', 'Object', 'Comparable<num>']));
     _assertLinkedGroup(change.linkedEditGroups[index++], ['i,']);
     _assertLinkedGroup(
         change.linkedEditGroups[index++],
         ['double bbb'],
         expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['double', 'num', 'Object', 'Comparable']));
+            ['double', 'num', 'Object', 'Comparable<num>']));
     _assertLinkedGroup(
         change.linkedEditGroups[index++],
         ['String ccc'],
-        expectedSuggestions(
-            LinkedEditSuggestionKind.TYPE, ['String', 'Object', 'Comparable']));
+        expectedSuggestions(LinkedEditSuggestionKind.TYPE,
+            ['String', 'Object', 'Comparable<String>']));
   }
 
   test_undefinedMethod_createUnqualified_returnType() async {
