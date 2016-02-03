@@ -1022,9 +1022,6 @@ int main(int argc, char** argv) {
   EventHandler::Start();
 
   vm_options.AddArgument("--load_deferred_eagerly");
-  // Workaround until issue 21620 is fixed.
-  // (https://github.com/dart-lang/sdk/issues/21620)
-  vm_options.AddArgument("--no-concurrent_sweep");
 
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
