@@ -218,8 +218,11 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
     if (script != null && type != 'application/dart') {
       throw "Dart VM cannot run files of type '$type'.";
     }
+    String executable = suite.configuration['noopt'] 
+        ? suite.dartVmNooptBinaryFileName
+        : suite.dartVmBinaryFileName;
     return <Command>[commandBuilder.getVmCommand(
-          suite.dartVmBinaryFileName, arguments, environmentOverrides)];
+          executable, arguments, environmentOverrides)];
   }
 }
 

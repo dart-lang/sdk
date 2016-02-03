@@ -343,19 +343,6 @@ static bool ProcessRunPrecompiledSnapshotOption(
 }
 
 
-static bool ProcessNooptOption(
-    const char* arg,
-    CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg != '\0') {
-    return false;
-  }
-  has_noopt = true;
-  vm_options->AddArgument("--precompilation");
-  return true;
-}
-
-
 static bool ProcessScriptSnapshotOptionHelper(const char* filename,
                                               bool* snapshot_option) {
   *snapshot_option = false;
@@ -487,7 +474,6 @@ static struct {
   { "--compile_all", ProcessCompileAllOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
   { "--gen-precompiled-snapshot", ProcessGenPrecompiledSnapshotOption },
-  { "--noopt", ProcessNooptOption },
   { "--observe", ProcessObserveOption },
   { "--run-precompiled-snapshot", ProcessRunPrecompiledSnapshotOption },
   { "--shutdown", ProcessShutdownOption },
@@ -1459,6 +1445,16 @@ void main(int argc, char** argv) {
   if (generate_script_snapshot) {
     vm_options.AddArgument("--load_deferred_eagerly");
   }
+
+#if defined(DART_PRECOMPILER) && !defined(DART_NO_SNAPSHOT)
+  // Always set --precompilation with dart_noopt, unless already set by these
+  // command line options.
+  if (!has_gen_precompiled_snapshot &&
+      !has_run_precompiled_snapshot) {
+    has_noopt = true;
+    vm_options.AddArgument("--precompilation");
+  }
+#endif
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 

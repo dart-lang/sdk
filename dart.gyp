@@ -25,6 +25,7 @@
       'type': 'none',
       'dependencies': [
         'runtime/dart-runtime.gyp:dart',
+        'runtime/dart-runtime.gyp:dart_noopt',
         'runtime/dart-runtime.gyp:dart_precompiled_runtime',
         'runtime/dart-runtime.gyp:dart_no_snapshot',
         'runtime/dart-runtime.gyp:run_vm_tests',
