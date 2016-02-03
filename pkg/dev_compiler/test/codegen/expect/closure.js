@@ -67,21 +67,6 @@ dart_library.library('closure', null, /* Imports */[
         let b = opts && 'b' in opts ? opts.b : null;
         let c = opts && 'c' in opts ? opts.c : null;
       }
-      static [dartx.name]() {
-        return 'Foo.name()';
-      }
-      static [dartx.length]() {
-        return 'Foo.length()';
-      }
-      static [dartx.arguments]() {
-        return 'Foo.arguments()';
-      }
-      static [dartx.caller]() {
-        return 'Foo.caller()';
-      }
-      static [dartx.callee]() {
-        return 'Foo.callee()';
-      }
       nullary_method() {}
       /**
        * @param {function(?, ?=):?number} f
@@ -119,15 +104,8 @@ dart_library.library('closure', null, /* Imports */[
         nullary_method: [dart.dynamic, []],
         function_params: [dart.dynamic, [dart.functionType(core.int, [dart.dynamic], [dart.dynamic]), dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}), Callback]]
       }),
-      statics: () => ({
-        named_params: [dart.dynamic, [dart.dynamic], {b: dart.dynamic, c: dart.dynamic}],
-        [dartx.name]: [dart.dynamic, []],
-        [dartx.length]: [dart.dynamic, []],
-        [dartx.arguments]: [dart.dynamic, []],
-        [dartx.caller]: [dart.dynamic, []],
-        [dartx.callee]: [dart.dynamic, []]
-      }),
-      names: ['named_params', dartx.name, dartx.length, dartx.arguments, dartx.caller, dartx.callee]
+      statics: () => ({named_params: [dart.dynamic, [dart.dynamic], {b: dart.dynamic, c: dart.dynamic}]}),
+      names: ['named_params']
     });
     /** @final {string} */
     Foo.some_static_constant = "abc";
@@ -151,11 +129,6 @@ dart_library.library('closure', null, /* Imports */[
   });
   /** @param {?} args */
   function main(args) {
-    core.print(Foo[dartx.name]());
-    core.print(Foo[dartx.length]());
-    core.print(Foo[dartx.arguments]());
-    core.print(Foo[dartx.caller]());
-    core.print(Foo[dartx.callee]());
   }
   dart.fn(main, dart.void, [dart.dynamic]);
   /** @final {string} */
@@ -164,13 +137,6 @@ dart_library.library('closure', null, /* Imports */[
   exports.some_top_level_final = "abc";
   /** @type {string} */
   exports.some_top_level_var = "abc";
-  dart.defineExtensionNames([
-    "name",
-    "length",
-    "arguments",
-    "caller",
-    "callee"
-  ]);
   // Exports:
   exports.Callback = Callback;
   exports.Foo$ = Foo$;

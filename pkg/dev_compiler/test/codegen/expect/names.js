@@ -20,45 +20,40 @@ dart_library.library('names', null, /* Imports */[
   }
   dart.fn(_foo);
   class Frame extends core.Object {
-    [dartx.caller](arguments$) {
+    caller(arguments$) {
       this.arguments = arguments$;
     }
-    static [dartx.callee]() {
+    static callee() {
       return null;
     }
   }
-  dart.defineNamedConstructor(Frame, dartx.caller);
+  dart.defineNamedConstructor(Frame, 'caller');
   dart.setSignature(Frame, {
-    constructors: () => ({[dartx.caller]: [Frame, [core.List]]}),
-    statics: () => ({[dartx.callee]: [dart.dynamic, []]}),
-    names: [dartx.callee]
+    constructors: () => ({caller: [Frame, [core.List]]}),
+    statics: () => ({callee: [dart.dynamic, []]}),
+    names: ['callee']
   });
   class Frame2 extends core.Object {}
   dart.defineLazyProperties(Frame2, {
-    get [dartx.caller]() {
+    get caller() {
       return 100;
     },
-    set [dartx.caller](_) {},
-    get [dartx.arguments]() {
+    set caller(_) {},
+    get arguments() {
       return 200;
     },
-    set [dartx.arguments](_) {}
+    set arguments(_) {}
   });
   function main() {
     core.print(exports.exports);
     core.print(new Foo()[_foo$]());
     core.print(_foo());
-    core.print(new Frame[dartx.caller]([1, 2, 3]));
-    let eval$ = Frame[dartx.callee];
+    core.print(new Frame.caller([1, 2, 3]));
+    let eval$ = Frame.callee;
     core.print(eval$);
-    core.print(dart.notNull(Frame2[dartx.caller]) + dart.notNull(Frame2[dartx.arguments]));
+    core.print(dart.notNull(Frame2.caller) + dart.notNull(Frame2.arguments));
   }
   dart.fn(main);
-  dart.defineExtensionNames([
-    "caller",
-    "callee",
-    "arguments"
-  ]);
   // Exports:
   exports.Foo = Foo;
   exports.Frame = Frame;
