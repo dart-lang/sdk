@@ -50,6 +50,7 @@ enum JSONRpcErrorCode {
   kCannotAddBreakpoint     = 102,
   kStreamAlreadySubscribed = 103,
   kStreamNotSubscribed     = 104,
+  kIsolateMustBeRunnable   = 105,
 };
 
 

@@ -177,6 +177,7 @@ code | message | meaning
 102 | Cannot add breakpoint | The VM is unable to add a breakpoint at the specified line or function
 103 | Stream already subscribed | The client is already subscribed to the specified _streamId_
 104 | Stream not subscribed | The client is not subscribed to the specified _streamId_
+105 | Isolate must be runnable | This operation cannot happen until the isolate is runnable
 
 
 
