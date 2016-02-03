@@ -117,7 +117,8 @@ dart_library.library('closure', null, /* Imports */[
   });
   let Foo = Foo$();
   class Bar extends core.Object {}
-  class Baz extends dart.mixin(Foo$(core.int), Bar) {
+  const Baz$super = dart.mixin(Foo$(core.int), Bar);
+  class Baz extends Baz$super {
     /** @param {?number} i */
     Baz(i) {
       super.Foo(i, 123);

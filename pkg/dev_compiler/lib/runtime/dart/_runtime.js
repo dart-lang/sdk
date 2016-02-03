@@ -732,7 +732,8 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   const _mixins = Symbol("mixins");
   const implements_ = Symbol("implements");
   const metadata = Symbol("metadata");
-  const TypeRep = class TypeRep extends LazyTagged(() => core.Type) {
+  const _TypeRepBase = LazyTagged(() => core.Type);
+  const TypeRep = class TypeRep extends _TypeRepBase {
     get name() {
       return this.toString();
     }

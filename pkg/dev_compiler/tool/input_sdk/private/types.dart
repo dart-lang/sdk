@@ -38,8 +38,9 @@ final metadata = JS('', 'Symbol("metadata")');
 ///  String toString();
 ///
 ///
+final _TypeRepBase = JS('', '$LazyTagged(() => $Type)');
 final TypeRep = JS('', '''
-  class TypeRep extends $LazyTagged(() => $Type) {
+  class TypeRep extends $_TypeRepBase {
     get name() {return this.toString();}
   }
 ''');
