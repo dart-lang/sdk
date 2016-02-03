@@ -500,15 +500,29 @@ TEST_CASE(UnhandleExceptionError) {
 }
 
 
+// Should we propagate the error via Dart_SetReturnValue?
+static bool use_set_return = false;
+
+// Should we propagate the error via Dart_ThrowException?
+static bool use_throw_exception = false;
+
+
 void PropagateErrorNative(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle closure = Dart_GetNativeArgument(args, 0);
   EXPECT(Dart_IsClosure(closure));
   Dart_Handle result = Dart_InvokeClosure(closure, 0, NULL);
   EXPECT(Dart_IsError(result));
-  result = Dart_PropagateError(result);
-  EXPECT_VALID(result);  // We do not expect to reach here.
-  UNREACHABLE();
+  if (use_set_return) {
+    Dart_SetReturnValue(args, result);
+  } else if (use_throw_exception) {
+    result = Dart_ThrowException(result);
+    EXPECT_VALID(result);  // We do not expect to reach here.
+    UNREACHABLE();
+  } else {
+    result = Dart_PropagateError(result);
+    EXPECT_VALID(result);  // We do not expect to reach here.
+    UNREACHABLE();
+  }
 }
 
 
@@ -542,6 +556,38 @@ TEST_CASE(Dart_PropagateError) {
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars, &PropagateError_native_lookup);
   Dart_Handle result;
+
+  // Use Dart_PropagateError to propagate the error.
+  use_throw_exception = false;
+  use_set_return = false;
+
+  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT(!Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
+
+  result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("myException", Dart_GetError(result));
+
+  // Use Dart_SetReturnValue to propagate the error.
+  use_throw_exception = false;
+  use_set_return = true;
+
+  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT(!Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
+
+  result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("myException", Dart_GetError(result));
+
+  // Use Dart_ThrowException to propagate the error.
+  use_throw_exception = true;
+  use_set_return = false;
 
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));

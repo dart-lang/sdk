@@ -733,7 +733,7 @@ void FinalizablePersistentHandle::Finalize(
 // --- Handles ---
 
 DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
-  return RawObject::IsErrorClassId(Api::ClassId(handle));
+  return Api::IsError(handle);
 }
 
 
@@ -4410,6 +4410,10 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
   CHECK_CALLBACK_STATE(thread);
+  if (Api::IsError(exception)) {
+    Dart_PropagateError(exception);
+  }
+
   {
     const Instance& excp = Api::UnwrapInstanceHandle(zone, exception);
     if (excp.IsNull()) {
@@ -4833,15 +4837,17 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   ASSERT(arguments->thread()->isolate() == Isolate::Current());
-  if ((retval != Api::Null()) && (!Api::IsInstance(retval))) {
+  if ((retval != Api::Null()) &&
+      !Api::IsInstance(retval) &&
+      !Api::IsError(retval)) {
     // Print the current stack trace to make the problematic caller
     // easier to find.
     const Stacktrace& stacktrace = GetCurrentStacktrace(0);
     OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
 
     const Object& ret_obj = Object::Handle(Api::UnwrapHandle(retval));
-    FATAL1("Return value check failed: saw '%s' expected a dart Instance.",
-           ret_obj.ToCString());
+    FATAL1("Return value check failed: saw '%s' expected a dart Instance or "
+           "an Error.", ret_obj.ToCString());
   }
   ASSERT(retval != 0);
   Api::SetReturnValue(arguments, retval);

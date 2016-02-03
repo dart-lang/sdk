@@ -144,19 +144,27 @@ typedef struct _Dart_Isolate* Dart_Isolate;
  * by Dart_Error and exit the program.
  *
  * When an error is returned while in the body of a native function,
- * it can be propagated by calling Dart_PropagateError.  Errors should
- * be propagated unless there is a specific reason not to.  If an
- * error is not propagated then it is ignored.  For example, if an
- * unhandled exception error is ignored, that effectively "catches"
- * the unhandled exception.  Fatal errors must always be propagated.
+ * it can be propagated up the call stack by calling
+ * Dart_PropagateError, Dart_SetReturnValue, or Dart_ThrowException.
+ * Errors should be propagated unless there is a specific reason not
+ * to.  If an error is not propagated then it is ignored.  For
+ * example, if an unhandled exception error is ignored, that
+ * effectively "catches" the unhandled exception.  Fatal errors must
+ * always be propagated.
  *
- * Note that a call to Dart_PropagateError never returns.  Instead it
- * transfers control non-locally using a setjmp-like mechanism.  This
- * can be inconvenient if you have resources that you need to clean up
- * before propagating the error.  When an error is propagated, any
- * current scopes created by Dart_EnterScope will be exited.
+ * When an error is propagated, any current scopes created by
+ * Dart_EnterScope will be exited.
  *
- * To deal with this inconvenience, we often return error handles
+ * Using Dart_SetReturnValue to propagate an exception is somewhat
+ * more convenient than using Dart_PropagateError, and should be
+ * preferred for reasons discussed below.
+ *
+ * Dart_PropagateError and Dart_ThrowException do not return.  Instead
+ * they transfer control non-locally using a setjmp-like mechanism.
+ * This can be inconvenient if you have resources that you need to
+ * clean up before propagating the error.
+ *
+ * When relying on Dart_PropagateError, we often return error handles
  * rather than propagating them from helper functions.  Consider the
  * following contrived example:
  *
@@ -190,6 +198,38 @@ typedef struct _Dart_Isolate* Dart_Isolate;
  * chance to call FreeMyResource(), causing a leak.  Instead, the
  * helper function returns the error handle to the caller, giving the
  * caller a chance to clean up before propagating the error handle.
+ *
+ * When an error is propagated by calling Dart_SetReturnValue, the
+ * native function will be allowed to complete normally and then the
+ * exception will be propagated only once the native call
+ * returns. This can be convenient, as it allows the C code to clean
+ * up normally.
+ *
+ * The example can be written more simply using Dart_SetReturnValue to
+ * propagate the error.
+ *
+ * 1    Dart_Handle isLongStringHelper(Dart_Handle arg) {
+ * 2      intptr_t* length = 0;
+ * 3      result = Dart_StringLength(arg, &length);
+ * 4      if (Dart_IsError(result)) {
+ * 5        return result
+ * 6      }
+ * 7      return Dart_NewBoolean(length > 100);
+ * 8    }
+ * 9
+ * 10   void NativeFunction_isLongString(Dart_NativeArguments args) {
+ * 11     Dart_EnterScope();
+ * 12     AllocateMyResource();
+ * 13     Dart_Handle arg = Dart_GetNativeArgument(args, 0);
+ * 14     Dart_SetReturnValue(isLongStringHelper(arg));
+ * 15     FreeMyResource();
+ * 16     Dart_ExitScope();
+ * 17   }
+ *
+ * In this example, the call to Dart_SetReturnValue on line 14 will
+ * either return the normal return value or the error (potentially
+ * generated on line 3).  The call to FreeMyResource on line 15 will
+ * execute in either case.
  *
  * --- Local and persistent handles ---
  *
@@ -2143,6 +2183,10 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
  * appropriate 'catch' block is found, executing 'finally' blocks,
  * etc.
  *
+ * If an error handle is passed into this function, the error is
+ * propagated immediately.  See Dart_PropagateError for a discussion
+ * of error propagation.
+ *
  * If successful, this function does not return. Note that this means
  * that the destructors of any stack-allocated C++ objects will not be
  * called. If there are no Dart frames on the stack, an error occurs.
@@ -2380,6 +2424,10 @@ DART_EXPORT Dart_Handle Dart_GetNativeDoubleArgument(Dart_NativeArguments args,
 
 /**
  * Sets the return value for a native function.
+ *
+ * If retval is an Error handle, then error will be propagated once
+ * the native functions exits. See Dart_PropagateError for a
+ * discussion of how different types of errors are propagated.
  */
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval);

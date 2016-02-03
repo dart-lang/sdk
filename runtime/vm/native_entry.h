@@ -121,6 +121,9 @@ class NativeEntry : public AllStatic {
 
   static uword LinkNativeCallEntry();
   static void LinkNativeCall(Dart_NativeArguments args);
+ private:
+  static bool ReturnValueIsError(NativeArguments* arguments);
+  static void PropagateErrors(NativeArguments* arguments);
 };
 
 }  // namespace dart

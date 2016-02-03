@@ -91,6 +91,25 @@ uword NativeEntry::NativeCallWrapperEntry() {
 }
 
 
+bool NativeEntry::ReturnValueIsError(NativeArguments* arguments) {
+  RawObject* retval = arguments->ReturnValue();
+  return (retval->IsHeapObject() &&
+          RawObject::IsErrorClassId(retval->GetClassId()));
+}
+
+
+void NativeEntry::PropagateErrors(NativeArguments* arguments) {
+  Thread* thread = arguments->thread();
+  thread->UnwindScopes(thread->top_exit_frame_info());
+
+  // The thread->zone() is different here than before we unwound.
+  const Object& error =
+      Object::Handle(thread->zone(), arguments->ReturnValue());
+  Exceptions::PropagateError(Error::Cast(error));
+  UNREACHABLE();
+}
+
+
 void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
                                     Dart_NativeFunction func) {
   CHECK_STACK_ALIGNMENT;
@@ -102,6 +121,9 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
   if (!arguments->IsNativeAutoSetupScope()) {
     TransitionGeneratedToNative transition(thread);
     func(args);
+    if (ReturnValueIsError(arguments)) {
+      PropagateErrors(arguments);
+    }
   } else {
     Isolate* isolate = thread->isolate();
     ApiState* state = isolate->api_state();
@@ -123,6 +145,9 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
     thread->set_api_top_scope(scope);  // New scope is now the top scope.
 
     func(args);
+    if (ReturnValueIsError(arguments)) {
+      PropagateErrors(arguments);
+    }
 
     ASSERT(current_top_scope == scope->previous());
     thread->set_api_top_scope(current_top_scope);  // Reset top scope to prev.
