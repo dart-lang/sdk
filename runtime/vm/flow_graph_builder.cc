@@ -175,7 +175,7 @@ JoinEntryInstr* NestedStatement::BreakTargetFor(SourceLabel* label) {
   if (break_target_ == NULL) {
     break_target_ =
         new(owner()->zone()) JoinEntryInstr(owner()->AllocateBlockId(),
-                                            owner()->try_index());
+                                            try_index());
   }
   return break_target_;
 }
@@ -251,7 +251,7 @@ JoinEntryInstr* NestedLoop::ContinueTargetFor(SourceLabel* label) {
   if (continue_target_ == NULL) {
     continue_target_ =
         new(owner()->zone()) JoinEntryInstr(owner()->AllocateBlockId(),
-                                               try_index());
+                                            try_index());
   }
   return continue_target_;
 }
@@ -295,7 +295,7 @@ JoinEntryInstr* NestedSwitch::ContinueTargetFor(SourceLabel* label) {
     if (case_targets_[i] == NULL) {
       case_targets_[i] =
           new(owner()->zone()) JoinEntryInstr(owner()->AllocateBlockId(),
-                                                 try_index());
+                                              try_index());
     }
     return case_targets_[i];
   }
