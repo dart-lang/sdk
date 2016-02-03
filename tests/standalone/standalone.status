@@ -237,11 +237,18 @@ map_literal_oom_test: Pass, Crash # Issue 24678
 javascript*: SkipByDesign # JS overflow flag unsupported
 io/web_socket_test: Pass, RuntimeError # Issue 24674
 assert_test: RuntimeError # Expects line and column numbers
+precompilation_test: Skip # Platform.executable
+precompilation_dart2js_test: Skip  # Platform.executable
+io/test_extension_test: Skip # Platform.executable
+io/test_extension_fail_test: Skip # Platform.executable
+io/platform_test: Skip # Platform.executable
+io/code_collection_test: Skip # Platform.executable
+full_coverage_test: Skip # Platform.executable
 
 [ $runtime == dart_precompiled ]
 debugger/*: Skip
 noopt_test: Skip
-precompilation_dart2js_test: Skip
+precompilation_dart2js_test: Skip # Platform.executable
 
 full_coverage_test: RuntimeError # Platform.executable
 http_launch_test: RuntimeError # Platform.executable
