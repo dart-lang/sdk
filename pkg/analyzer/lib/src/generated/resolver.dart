@@ -7724,7 +7724,7 @@ class ResolverVisitor extends ScopedVisitor {
     //
     if (node.metadata != null) {
       node.metadata.accept(this);
-      ElementResolver.resolveMetadata(node);
+      ElementResolver.setMetadata(node.element, node);
     }
     //
     // Continue the enum resolution.
@@ -10864,8 +10864,8 @@ class TypeResolverVisitor extends ScopedVisitor {
   Object visitAnnotation(Annotation node) {
     //
     // Visit annotations, if the annotation is @proxy, on a class, and "proxy"
-    // resolves to the proxy annotation in dart.core, then resolve the
-    // ElementAnnotation.
+    // resolves to the proxy annotation in dart.core, then create create the
+    // ElementAnnotationImpl and set it as the metadata on the enclosing class.
     //
     // Element resolution is done in the ElementResolver, and this work will be
     // done in the general case for all annotations in the ElementResolver.
@@ -10882,8 +10882,12 @@ class TypeResolverVisitor extends ScopedVisitor {
           element.library.isDartCore &&
           element is PropertyAccessorElement) {
         // This is the @proxy from dart.core
-        ElementAnnotationImpl elementAnnotation = node.elementAnnotation;
-        elementAnnotation.element = element;
+        ClassDeclaration classDeclaration = node.parent as ClassDeclaration;
+        ElementAnnotationImpl elementAnnotation =
+            new ElementAnnotationImpl(element);
+        node.elementAnnotation = elementAnnotation;
+        (classDeclaration.element as ClassElementImpl).metadata =
+            <ElementAnnotationImpl>[elementAnnotation];
       }
     }
     return null;

@@ -242,18 +242,6 @@ class B = Object with A;
 
 @reflectiveTest
 class BuildDirectiveElementsTaskTest extends _AbstractDartTaskTest {
-  /**
-   * Verify that the given [element] has exactly one annotation, and that its
-   * [ElementAnnotationImpl] is unresolved and points back to [element].
-   */
-  void checkMetadata(Element element) {
-    expect(element.metadata, hasLength(1));
-    expect(element.metadata[0], new isInstanceOf<ElementAnnotationImpl>());
-    ElementAnnotationImpl elementAnnotation = element.metadata[0];
-    expect(elementAnnotation.element, isNull); // Not yet resolved
-    expect(elementAnnotation.annotatedElement, element);
-  }
-
   test_perform() {
     List<Source> sources = newSources({
       '/libA.dart': '''
@@ -479,37 +467,6 @@ library libC;
     ImportElement importElementC = importNodeC.element;
     expect(prefixNodeC.staticElement, prefixElement);
     expect(importElementC.prefix, prefixElement);
-  }
-
-  test_perform_metadata() {
-    List<Source> sources = newSources({
-      '/libA.dart': '''
-@a library libA;
-@b import 'libB.dart';
-@c export 'libC.dart';
-@d part 'part.dart';''',
-      '/libB.dart': 'library libB;',
-      '/libC.dart': 'library libC;',
-      '/part.dart': '@e part of libA;'
-    });
-    Source sourceA = sources[0];
-    Source sourceD = sources[3];
-    // perform task
-    computeResult(sourceA, LIBRARY_ELEMENT2,
-        matcher: isBuildDirectiveElementsTask);
-    // Get outputs
-    LibraryElement libraryA =
-        context.getCacheEntry(sourceA).getValue(LIBRARY_ELEMENT2);
-    CompilationUnit part = context
-        .getCacheEntry(new LibrarySpecificUnit(sourceA, sourceD))
-        .getValue(RESOLVED_UNIT1);
-    // Validate metadata
-    checkMetadata(libraryA);
-    checkMetadata(libraryA.imports[0]);
-    checkMetadata(libraryA.exports[0]);
-    checkMetadata(libraryA.parts[0]);
-    expect(part.directives[0], new isInstanceOf<PartOfDirective>());
-    checkMetadata(part.directives[0].element);
   }
 
   void _assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {

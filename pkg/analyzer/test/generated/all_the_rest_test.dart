@@ -266,30 +266,6 @@ class DirectoryBasedSourceContainerTest {
 
 @reflectiveTest
 class ElementBuilderTest extends ParserTestCase {
-  /**
-   * Parse the given [code], pass it through [ElementBuilder], and return the
-   * resulting [ElementHolder].
-   */
-  ElementHolder buildElementsForText(String code) {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
-    unit.accept(builder);
-    return holder;
-  }
-
-  /**
-   * Verify that the given [element] has exactly one annotation, and that its
-   * [ElementAnnotationImpl] is unresolved and points back to [element].
-   */
-  void checkMetadata(Element element) {
-    expect(element.metadata, hasLength(1));
-    expect(element.metadata[0], new isInstanceOf<ElementAnnotationImpl>());
-    ElementAnnotationImpl elementAnnotation = element.metadata[0];
-    expect(elementAnnotation.element, isNull); // Not yet resolved
-    expect(elementAnnotation.annotatedElement, element);
-  }
-
   void fail_visitMethodDeclaration_setter_duplicate() {
     // https://github.com/dart-lang/sdk/issues/25601
     String code = r'''
@@ -298,121 +274,14 @@ class C {
   set zzz(y) {}
 }
 ''';
-    ClassElement classElement = buildElementsForText(code).types[0];
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    unit.accept(builder);
+    ClassElement classElement = holder.types[0];
     for (PropertyAccessorElement accessor in classElement.accessors) {
       expect(accessor.variable.setter, same(accessor));
     }
-  }
-
-  void test_metadata_variableDeclaration() {
-    List<TopLevelVariableElement> topLevelVariables =
-        buildElementsForText('@a int x, y;').topLevelVariables;
-    checkMetadata(topLevelVariables[0]);
-    checkMetadata(topLevelVariables[1]);
-  }
-
-  void test_metadata_visitClassDeclaration() {
-    ClassElement classElement = buildElementsForText('@a class C {}').types[0];
-    checkMetadata(classElement);
-  }
-
-  void test_metadata_visitClassTypeAlias() {
-    ClassElement classElement =
-        buildElementsForText('@a class C = D with E;').types[0];
-    checkMetadata(classElement);
-  }
-
-  void test_metadata_visitConstructorDeclaration() {
-    ConstructorElement constructorElement =
-        buildElementsForText('class C { @a C(); }').types[0].constructors[0];
-    checkMetadata(constructorElement);
-  }
-
-  void test_metadata_visitDeclaredIdentifier() {
-    LocalVariableElement localVariableElement =
-        buildElementsForText('f() { for (@a var x in y) {} }')
-            .functions[0]
-            .localVariables[0];
-    checkMetadata(localVariableElement);
-  }
-
-  void test_metadata_visitEnumDeclaration() {
-    ClassElement classElement =
-        buildElementsForText('@a enum E { v }').enums[0];
-    checkMetadata(classElement);
-  }
-
-  void test_metadata_visitFieldFormalParameter() {
-    ParameterElement parameterElement =
-        buildElementsForText('class C { var x; C(@a this.x); }')
-            .types[0]
-            .constructors[0]
-            .parameters[0];
-    checkMetadata(parameterElement);
-  }
-
-  void test_metadata_visitFunctionDeclaration_function() {
-    FunctionElement functionElement =
-        buildElementsForText('@a f() {}').functions[0];
-    checkMetadata(functionElement);
-  }
-
-  void test_metadata_visitFunctionDeclaration_getter() {
-    PropertyAccessorElement propertyAccessorElement =
-        buildElementsForText('@a get f => null;').accessors[0];
-    checkMetadata(propertyAccessorElement);
-  }
-
-  void test_metadata_visitFunctionDeclaration_setter() {
-    PropertyAccessorElement propertyAccessorElement =
-        buildElementsForText('@a set f(value) {}').accessors[0];
-    checkMetadata(propertyAccessorElement);
-  }
-
-  void test_metadata_visitFunctionTypeAlias() {
-    FunctionTypeAliasElement functionTypeAliasElement =
-        buildElementsForText('@a typedef F();').typeAliases[0];
-    checkMetadata(functionTypeAliasElement);
-  }
-
-  void test_metadata_visitFunctionTypedFormalParameter() {
-    ParameterElement parameterElement =
-        buildElementsForText('f(@a g()) {}').functions[0].parameters[0];
-    checkMetadata(parameterElement);
-  }
-
-  void test_metadata_visitMethodDeclaration_getter() {
-    PropertyAccessorElement propertyAccessorElement =
-        buildElementsForText('class C { @a get m => null; }')
-            .types[0]
-            .accessors[0];
-    checkMetadata(propertyAccessorElement);
-  }
-
-  void test_metadata_visitMethodDeclaration_method() {
-    MethodElement methodElement =
-        buildElementsForText('class C { @a m() {} }').types[0].methods[0];
-    checkMetadata(methodElement);
-  }
-
-  void test_metadata_visitMethodDeclaration_setter() {
-    PropertyAccessorElement propertyAccessorElement =
-        buildElementsForText('class C { @a set f(value) {} }')
-            .types[0]
-            .accessors[0];
-    checkMetadata(propertyAccessorElement);
-  }
-
-  void test_metadata_visitSimpleFormalParameter() {
-    ParameterElement parameterElement =
-        buildElementsForText('f(@a x) {}').functions[0].parameters[0];
-    checkMetadata(parameterElement);
-  }
-
-  void test_metadata_visitTypeParameter() {
-    TypeParameterElement typeParameterElement =
-        buildElementsForText('class C<@a T> {}').types[0].typeParameters[0];
-    checkMetadata(typeParameterElement);
   }
 
   void test_visitCatchClause() {

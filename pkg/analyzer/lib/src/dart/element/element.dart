@@ -1568,12 +1568,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
    * The element representing the field, variable, or constructor being used as
    * an annotation.
    */
-  Element element;
-
-  /**
-   * The element which this annotation annotates.
-   */
-  final Element annotatedElement;
+  final Element element;
 
   /**
    * The result of evaluating this annotation as a compile-time constant
@@ -1583,10 +1578,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
   EvaluationResultImpl evaluationResult;
 
   /**
-   * Initialize a newly created annotation. The given [annotatedElement] is the
-   * element to which the annotation is being applied.
+   * Initialize a newly created annotation. The given [element] is the element
+   * representing the field, variable, or constructor being used as an
+   * annotation.
    */
-  ElementAnnotationImpl(this.annotatedElement);
+  ElementAnnotationImpl(this.element);
 
   @override
   DartObject get constantValue => evaluationResult.value;

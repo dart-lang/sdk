@@ -205,13 +205,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
-    resolveMetadata(node);
+    setMetadata(node.element, node);
     return null;
   }
 
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
-    resolveMetadata(node);
+    setMetadata(node.element, node);
     return null;
   }
 
@@ -336,7 +336,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           }
         }
       }
-      resolveMetadata(node);
+      setMetadata(constructorElement, node);
     }
     return null;
   }
@@ -392,13 +392,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
-    resolveMetadata(node);
+    setMetadata(node.element, node);
     return null;
   }
 
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
-    resolveMetadata(node);
+    setMetadata(node.element, node);
     return null;
   }
 
@@ -410,20 +410,20 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       // TODO(brianwilkerson) Figure out whether the element can ever be
       // something other than an ExportElement
       _resolveCombinators(exportElement.exportedLibrary, node.combinators);
-      resolveMetadata(node);
+      setMetadata(exportElement, node);
     }
     return null;
   }
 
   @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
-    _resolveMetadataForParameter(node.element, node);
+    _setMetadataForParameter(node.element, node);
     return super.visitFieldFormalParameter(node);
   }
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
-    resolveMetadata(node);
+    setMetadata(node.element, node);
     return null;
   }
 
@@ -455,13 +455,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
-    resolveMetadata(node);
+    setMetadata(node.element, node);
     return null;
   }
 
   @override
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    _resolveMetadataForParameter(node.element, node);
+    _setMetadataForParameter(node.element, node);
     return null;
   }
 
@@ -484,7 +484,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (library != null) {
         _resolveCombinators(library, node.combinators);
       }
-      resolveMetadata(node);
+      setMetadata(importElement, node);
     }
     return null;
   }
@@ -577,13 +577,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitLibraryDirective(LibraryDirective node) {
-    resolveMetadata(node);
+    setMetadata(node.element, node);
     return null;
   }
 
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
-    resolveMetadata(node);
+    setMetadata(node.element, node);
     return null;
   }
 
@@ -821,13 +821,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitPartDirective(PartDirective node) {
-    resolveMetadata(node);
+    setMetadata(node.element, node);
     return null;
   }
 
   @override
   Object visitPartOfDirective(PartOfDirective node) {
-    resolveMetadata(node);
+    setMetadata(node.element, node);
     return null;
   }
 
@@ -1029,7 +1029,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _resolveMetadataForParameter(node.element, node);
+    _setMetadataForParameter(node.element, node);
     return null;
   }
 
@@ -1183,13 +1183,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitTypeParameter(TypeParameter node) {
-    resolveMetadata(node);
+    setMetadata(node.element, node);
     return null;
   }
 
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
-    resolveMetadata(node);
+    setMetadata(node.element, node);
     return null;
   }
 
@@ -2217,15 +2217,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given a [node] that can have annotations associated with it, resolve the
-   * annotations in the element model representing annotations to the node.
-   */
-  void _resolveMetadataForParameter(
-      Element element, NormalFormalParameter node) {
-    _resolveAnnotations(node.metadata);
-  }
-
-  /**
    * Given that we are accessing a property of the given [targetType] with the
    * given [propertyName], return the element that represents the property. The
    * [target] is the target of the invocation ('e').
@@ -2442,6 +2433,23 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Given a [node] that can have annotations associated with it and the
+   * [element] to which that node has been resolved, create the annotations in
+   * the element model representing the annotations on the node.
+   */
+  void _setMetadataForParameter(Element element, NormalFormalParameter node) {
+    if (element is! ElementImpl) {
+      return;
+    }
+    List<ElementAnnotationImpl> annotationList =
+        new List<ElementAnnotationImpl>();
+    _addAnnotations(annotationList, node.metadata);
+    if (!annotationList.isEmpty) {
+      (element as ElementImpl).metadata = annotationList;
+    }
+  }
+
+  /**
    * Return `true` if we should report an error as a result of looking up a
    * [member] in the given [type] and not finding any member.
    */
@@ -2468,21 +2476,48 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given a [node] that can have annotations associated with it, resolve the
-   * annotations in the element model representing the annotations on the node.
+   * Given a [node] that can have annotations associated with it and the
+   * [element] to which that node has been resolved, create the annotations in
+   * the element model representing the annotations on the node.
    */
-  static void resolveMetadata(AnnotatedNode node) {
-    _resolveAnnotations(node.metadata);
+  static void setMetadata(Element element, AnnotatedNode node) {
+    if (element is! ElementImpl) {
+      return;
+    }
+    List<ElementAnnotationImpl> annotationList = <ElementAnnotationImpl>[];
+    _addAnnotations(annotationList, node.metadata);
     if (node is VariableDeclaration && node.parent is VariableDeclarationList) {
       VariableDeclarationList list = node.parent as VariableDeclarationList;
-      _resolveAnnotations(list.metadata);
+      _addAnnotations(annotationList, list.metadata);
       if (list.parent is FieldDeclaration) {
         FieldDeclaration fieldDeclaration = list.parent as FieldDeclaration;
-        _resolveAnnotations(fieldDeclaration.metadata);
+        _addAnnotations(annotationList, fieldDeclaration.metadata);
       } else if (list.parent is TopLevelVariableDeclaration) {
         TopLevelVariableDeclaration variableDeclaration =
             list.parent as TopLevelVariableDeclaration;
-        _resolveAnnotations(variableDeclaration.metadata);
+        _addAnnotations(annotationList, variableDeclaration.metadata);
+      }
+    }
+    if (!annotationList.isEmpty) {
+      (element as ElementImpl).metadata = annotationList;
+    }
+  }
+
+  /**
+   * Generate annotation elements for each of the annotations in the
+   * [annotationList] and add them to the given list of [annotations].
+   */
+  static void _addAnnotations(List<ElementAnnotationImpl> annotationList,
+      NodeList<Annotation> annotations) {
+    int annotationCount = annotations.length;
+    for (int i = 0; i < annotationCount; i++) {
+      Annotation annotation = annotations[i];
+      Element resolvedElement = annotation.element;
+      if (resolvedElement != null) {
+        ElementAnnotationImpl elementAnnotation =
+            new ElementAnnotationImpl(resolvedElement);
+        annotation.elementAnnotation = elementAnnotation;
+        annotationList.add(elementAnnotation);
       }
     }
   }
@@ -2532,16 +2567,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
     }
     return false;
-  }
-
-  /**
-   * Resolve each of the annotations in the given list of [annotations].
-   */
-  static void _resolveAnnotations(NodeList<Annotation> annotations) {
-    for (Annotation annotation in annotations) {
-      ElementAnnotationImpl elementAnnotation = annotation.elementAnnotation;
-      elementAnnotation.element = annotation.element;
-    }
   }
 }
 
