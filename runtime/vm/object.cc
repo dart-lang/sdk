@@ -9669,7 +9669,7 @@ RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
   while (!entry.IsNull()) {
     entry_name = entry.DictionaryName();
     ASSERT(!entry_name.IsNull());
-     if (entry_name.Equals(name)) {
+    if (entry_name.Equals(name)) {
       return entry.raw();
     }
     *index = (*index + 1) % dict_size;
@@ -9688,6 +9688,51 @@ void Library::ReplaceObject(const Object& obj, const String& name) const {
   // The value is guaranteed to be found.
   const Array& dict = Array::Handle(dictionary());
   dict.SetAt(index, obj);
+}
+
+
+bool Library::RemoveObject(const Object& obj, const String& name) const {
+  Object& entry = Object::Handle();
+
+  intptr_t index;
+  entry = LookupEntry(name, &index);
+  if (entry.raw() != obj.raw()) {
+    return false;
+  }
+
+  const Array& dict = Array::Handle(dictionary());
+  dict.SetAt(index, Object::null_object());
+  intptr_t dict_size = dict.Length() - 1;
+
+  // Fix any downstream collisions.
+  String& key = String::Handle();
+  for (;;) {
+    index = (index + 1) % dict_size;
+    entry = dict.At(index);
+
+    if (entry.IsNull()) break;
+
+    key = entry.DictionaryName();
+    intptr_t new_index = key.Hash() % dict_size;
+    while ((dict.At(new_index) != entry.raw()) &&
+           (dict.At(new_index) != Object::null())) {
+      new_index = (new_index + 1) % dict_size;
+    }
+
+    if (index != new_index) {
+      ASSERT(dict.At(new_index) == Object::null());
+      dict.SetAt(new_index, entry);
+      dict.SetAt(index, Object::null_object());
+    }
+  }
+
+  // Update used count.
+  intptr_t used_elements = Smi::Value(Smi::RawCast(dict.At(dict_size))) - 1;
+  dict.SetAt(dict_size, Smi::Handle(Smi::New(used_elements)));
+
+  InvalidateResolvedNamesCache();
+
+  return true;
 }
 
 

@@ -52,6 +52,7 @@ namespace dart {
 #define Z (T->zone())
 
 
+DECLARE_FLAG(bool, enable_mirrors);
 DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, print_class_table);
@@ -5445,12 +5446,14 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   // newly loaded code and trigger one of these breakpoints.
   I->debugger()->NotifyDoneLoading();
 
-  // Notify mirrors that MirrorSystem.libraries needs to be recomputed.
-  const Library& libmirrors = Library::Handle(Z, Library::MirrorsLibrary());
-  const Field& dirty_bit = Field::Handle(Z,
-      libmirrors.LookupLocalField(String::Handle(String::New("dirty"))));
-  ASSERT(!dirty_bit.IsNull() && dirty_bit.is_static());
-  dirty_bit.SetStaticValue(Bool::True());
+  if (FLAG_enable_mirrors) {
+    // Notify mirrors that MirrorSystem.libraries needs to be recomputed.
+    const Library& libmirrors = Library::Handle(Z, Library::MirrorsLibrary());
+    const Field& dirty_bit = Field::Handle(Z,
+        libmirrors.LookupLocalField(String::Handle(String::New("dirty"))));
+    ASSERT(!dirty_bit.IsNull() && dirty_bit.is_static());
+    dirty_bit.SetStaticValue(Bool::True());
+  }
 
   if (complete_futures) {
     const Library& corelib = Library::Handle(Z, Library::CoreLibrary());

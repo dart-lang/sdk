@@ -69,6 +69,7 @@ Precompiler::Precompiler(Thread* thread, bool reset_fields) :
         GrowableObjectArray::Handle(GrowableObjectArray::New())),
     sent_selectors_(),
     enqueued_functions_(),
+    fields_to_retain_(),
     error_(Error::Handle()) {
 }
 
@@ -118,7 +119,7 @@ void Precompiler::DoCompileAll(
 
     I->set_compilation_allowed(false);
 
-    DropUncompiledFunctions();
+    DropFunctions();
     DropFields();
 
     // TODO(rmacnak): DropEmptyClasses();
@@ -897,7 +898,7 @@ void Precompiler::GetUniqueDynamicTarget(Isolate* isolate,
 }
 
 
-void Precompiler::DropUncompiledFunctions() {
+void Precompiler::DropFunctions() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
@@ -905,6 +906,7 @@ void Precompiler::DropUncompiledFunctions() {
   Function& function2 = Function::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
+  String& name = String::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -932,6 +934,15 @@ void Precompiler::DropUncompiledFunctions() {
           retained_functions.Add(function);
           function.DropUncompiledImplicitClosureFunction();
         } else {
+          bool top_level = cls.IsTopLevel();
+          if (top_level &&
+              (function.kind() != RawFunction::kImplicitStaticFinalGetter)) {
+            // Implicit static final getters are not added to the library
+            // dictionary in the first place.
+            name = function.DictionaryName();
+            bool removed = lib.RemoveObject(function, name);
+            ASSERT(removed);
+          }
           dropped_function_count_++;
           if (FLAG_trace_precompiler) {
             THR_Print("Precompilation dropping %s\n",
@@ -973,6 +984,7 @@ void Precompiler::DropFields() {
   Array& fields = Array::Handle(Z);
   Field& field = Field::Handle(Z);
   GrowableObjectArray& retained_fields = GrowableObjectArray::Handle(Z);
+  String& name = String::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -987,15 +999,21 @@ void Precompiler::DropFields() {
       retained_fields = GrowableObjectArray::New();
       for (intptr_t j = 0; j < fields.Length(); j++) {
         field ^= fields.At(j);
-        bool drop = fields_to_retain_.Lookup(&field) == NULL;
-        if (drop) {
+        bool retain = fields_to_retain_.Lookup(&field) != NULL;
+        if (retain) {
+          retained_fields.Add(field);
+        } else {
+          bool top_level = cls.IsTopLevel();
+          if (top_level) {
+            name = field.DictionaryName();
+            bool removed = lib.RemoveObject(field, name);
+            ASSERT(removed);
+          }
           dropped_field_count_++;
           if (FLAG_trace_precompiler) {
             THR_Print("Precompilation dropping %s\n",
                       field.ToCString());
           }
-        } else {
-          retained_fields.Add(field);
         }
       }
 
@@ -1252,6 +1270,7 @@ void Precompiler::ResetPrecompilerState() {
   class_count_ = 0;
   selector_count_ = 0;
   dropped_function_count_ = 0;
+  dropped_field_count_ = 0;
   ASSERT(pending_functions_.Length() == 0);
   sent_selectors_.Clear();
   enqueued_functions_.Clear();

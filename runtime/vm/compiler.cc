@@ -1943,7 +1943,11 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
 
 
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
-  UNREACHABLE();
+  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
+  FATAL3("Precompilation missed function %s (%" Pd ", %s)\n",
+         function.ToLibNamePrefixedQualifiedCString(),
+         function.token_pos().value(),
+         Function::KindToCString(function.kind()));
 }
 
 

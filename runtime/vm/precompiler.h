@@ -179,13 +179,14 @@ class Precompiler : public ValueObject {
   void ProcessFunction(const Function& function);
   void CheckForNewDynamicFunctions();
 
-  void DropUncompiledFunctions();
+  void DropFunctions();
   void DropFields();
-  void CollectDynamicFunctionNames();
   void BindStaticCalls();
   void DedupStackmaps();
   void DedupStackmapLists();
   void ResetPrecompilerState();
+
+  void CollectDynamicFunctionNames();
 
   class FunctionVisitor : public ValueObject {
    public:
