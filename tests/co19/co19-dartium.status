@@ -117,10 +117,7 @@ LayoutTests/fast/canvas/webgl/canvas-test_t01: Pass, RuntimeError # co19-roll r8
 LayoutTests/fast/canvas/webgl/context-attributes-alpha-depth-stencil-antialias-t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/copy-tex-image-and-sub-image-2d_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/drawingbuffer-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/gl-object-get-calls_t01: Pass #  Issue 20
-LayoutTests/fast/canvas/webgl/incorrect-context-object-behaviour_t01: Pass # Issue 20
 LayoutTests/fast/canvas/webgl/is-object_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/webgl/null-object-behaviour_t01: Pass # Issue 20
 LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/canvas/webgl/premultiplyalpha-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/renderbuffer-initialization_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
@@ -1214,19 +1211,15 @@ LayoutTests/fast/forms/input-inputmode_t01: RuntimeError # Experimental feature 
 
 [ $compiler == none && $runtime == dartium ]
 LayoutTests/fast/canvas/webgl/array-bounds-clamping_t01: RuntimeError # Issue 25653
-LayoutTests/fast/canvas/webgl/bad-arguments-test_t01: Pass # Issue 20
 LayoutTests/fast/canvas/webgl/canvas-2d-webgl-texture_t01: RuntimeError # Issue 25653
 LayoutTests/fast/canvas/webgl/context-attributes-alpha-depth-stencil-antialias-t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-lost-restored_t01: RuntimeError # Issue 25653
-LayoutTests/fast/canvas/webgl/context-lost_t01: Pass # Issue 20
 LayoutTests/fast/canvas/webgl/copy-tex-image-and-sub-image-2d_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/framebuffer-bindings-unaffected-on-resize_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/framebuffer-test_t01: Pass # Issue 20 
 LayoutTests/fast/canvas/webgl/gl-bind-attrib-location-test_t01: RuntimeError # Issue 25653
 LayoutTests/fast/canvas/webgl/gl-pixelstorei_t01: RuntimeError # Issue 25653
 LayoutTests/fast/canvas/webgl/gl-teximage_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/invalid-passed-params_t01: Pass # Issue 20
 LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # Issue 25653
 LayoutTests/fast/canvas/webgl/point-size_t01: RuntimeError # Issue 25653
@@ -1250,8 +1243,6 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-webgl_t01: RuntimeError # Issue 25653
-LayoutTests/fast/canvas/webgl/tex-input-validation_t01: Pass # Issue 20
-LayoutTests/fast/canvas/webgl/tex-sub-image-2d-bad-args_t01: Pass # Issue 20
 LayoutTests/fast/canvas/webgl/tex-sub-image-2d_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-sub-image-cube-maps_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/texImage2DImageDataTest_t01: RuntimeError # Issue 25653
@@ -1339,6 +1330,15 @@ LayoutTests/fast/canvas/webgl/webgl-layer-update_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/webgl-specific_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/webgl-unprefixed-context-id_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/webgl-viewport-parameters-preserved_t01: RuntimeError # Issue 22026
+LayoutTests/fast/canvas/webgl/gl-object-get-calls_t01: RuntimeError #  Issue 20, 22026
+LayoutTests/fast/canvas/webgl/incorrect-context-object-behaviour_t01: RuntimeError # Issue 20, 22026
+LayoutTests/fast/canvas/webgl/null-object-behaviour_t01: RuntimeError # Issue 20, 22026
+LayoutTests/fast/canvas/webgl/bad-arguments-test_t01: RuntimeError # Issue 20, 22026
+LayoutTests/fast/canvas/webgl/context-lost_t01: RuntimeError # Issue 20, 22026
+LayoutTests/fast/canvas/webgl/framebuffer-test_t01: RuntimeError # Issue 20, 22026
+LayoutTests/fast/canvas/webgl/invalid-passed-params_t01: RuntimeError # Issue 20, 22026
+LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Issue 20, 22026
+LayoutTests/fast/canvas/webgl/tex-sub-image-2d-bad-args_t01: RuntimeError # Issue 20, 22026
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $system != windows ]
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # co19-roll r761: Please triage this failure.
