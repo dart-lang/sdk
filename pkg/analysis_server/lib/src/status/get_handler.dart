@@ -33,6 +33,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -1353,6 +1354,16 @@ class GetHandler {
           int processorCount = errorProcessors?.length ?? 0;
           buffer.write('<p><b>Error Processor count</b>: $processorCount</p>');
         });
+        
+        SourceFactory sourceFactory = context.sourceFactory;
+        if (sourceFactory is SourceFactoryImpl) {
+          buffer.write('<h3>Resolvers</h3>');
+          for (UriResolver resolver in sourceFactory.resolvers) {
+            buffer.write('<p>');
+            buffer.write(resolver.runtimeType);
+            buffer.write('</p>');
+          }
+        }
 
         _writeFiles(
             buffer, 'Priority Files (${priorityNames.length})', priorityNames);
