@@ -72,6 +72,8 @@ class AbstractContextManagerTest {
 
   UriResolver packageResolver = null;
 
+  UriResolver embeddedUriResolver = null;
+
   String projPath = '/my/proj';
 
   AnalysisError missing_return =
@@ -127,16 +129,20 @@ class AbstractContextManagerTest {
     manager.processPlugins(plugins);
   }
 
-  UriResolver providePackageResolver(Folder folder) {
-    return packageResolver;
-  }
+  UriResolver provideEmbeddedUriResolver(Folder folder) => embeddedUriResolver;
+
+  UriResolver providePackageResolver(Folder folder) => packageResolver;
 
   void setUp() {
     processRequiredPlugins();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
-    manager = new ContextManagerImpl(resourceProvider, providePackageResolver,
-        packageMapProvider, InstrumentationService.NULL_SERVICE);
+    manager = new ContextManagerImpl(
+        resourceProvider,
+        providePackageResolver,
+        provideEmbeddedUriResolver,
+        packageMapProvider,
+        InstrumentationService.NULL_SERVICE);
     callbacks = new TestContextManagerCallbacks(resourceProvider);
     manager.callbacks = callbacks;
     resourceProvider.newFolder(projPath);
@@ -1292,8 +1298,8 @@ analyzer:
   exclude:
     - 'example'
 ''');
-    manager.setRoots(
-        <String>[project, example], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[project, example], <String>[], <String, String>{});
     // verify
     {
       ContextInfo rootInfo = manager.rootInfo;
@@ -1356,8 +1362,8 @@ analyzer:
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFile(examplePubspec, 'name: example');
-    manager.setRoots(
-        <String>[example, project], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[example, project], <String>[], <String, String>{});
     // verify
     {
       ContextInfo rootInfo = manager.rootInfo;
@@ -1384,8 +1390,8 @@ analyzer:
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFolder(example);
-    manager.setRoots(
-        <String>[project, example], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[project, example], <String>[], <String, String>{});
     // verify
     {
       ContextInfo rootInfo = manager.rootInfo;
@@ -1408,8 +1414,8 @@ analyzer:
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFile(examplePubspec, 'name: example');
-    manager.setRoots(
-        <String>[project, example], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[project, example], <String>[], <String, String>{});
     // verify
     {
       ContextInfo rootInfo = manager.rootInfo;
@@ -1555,8 +1561,8 @@ analyzer:
     resourceProvider.newFile(subProjectA_file, '// sub-a');
     resourceProvider.newFile(subProjectB_file, '// sub-b');
     // set roots
-    manager.setRoots(
-        <String>[projectA, projectB], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[projectA, projectB], <String>[], <String, String>{});
     callbacks
         .assertContextPaths([projectA, subProjectA, projectB, subProjectB]);
     callbacks.assertContextFiles(projectA, [projectA_file]);
@@ -1603,8 +1609,8 @@ analyzer:
     resourceProvider.newFile(subProjectA_file, '// sub-a');
     resourceProvider.newFile(subProjectB_file, '// sub-b');
     // set roots
-    manager.setRoots(
-        <String>[projectA, projectB], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[projectA, projectB], <String>[], <String, String>{});
     callbacks
         .assertContextPaths([projectA, subProjectA, projectB, subProjectB]);
     callbacks.assertContextFiles(projectA, [projectA_file]);

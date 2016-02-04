@@ -19,6 +19,7 @@ import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
@@ -297,6 +298,12 @@ class Driver implements ServerStarter {
   InstrumentationServer instrumentationServer;
 
   /**
+   * The embedded library URI resolver provider used to override the way
+   * embedded library URI's are resolved in some contexts.
+   */
+  EmbeddedResolverProvider embeddedUriResolverProvider;
+
+  /**
    * The package resolver provider used to override the way package URI's are
    * resolved in some contexts.
    */
@@ -414,7 +421,7 @@ class Driver implements ServerStarter {
     // Create the sockets and start listening for requests.
     //
     socketServer = new SocketServer(analysisServerOptions, defaultSdk, service,
-        serverPlugin, packageResolverProvider);
+        serverPlugin, packageResolverProvider, embeddedUriResolverProvider);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
     socketServer.userDefinedPlugins = _userDefinedPlugins;

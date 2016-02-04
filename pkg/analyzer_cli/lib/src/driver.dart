@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:analyzer/file_system/file_system.dart' as fileSystem;
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
@@ -80,6 +81,9 @@ class Driver implements CommandLineStarter {
   /// If [_context] is not `null`, the [CommandLineOptions] that guided its
   /// creation.
   CommandLineOptions _previousOptions;
+
+  @override
+  EmbeddedResolverProvider embeddedUriResolverProvider;
 
   @override
   ResolverProvider packageResolverProvider;
@@ -320,9 +324,23 @@ class Driver implements CommandLineStarter {
           PhysicalResourceProvider.INSTANCE.getResource('.');
       UriResolver resolver = packageResolverProvider(folder);
       if (resolver != null) {
-        // TODO(brianwilkerson) This doesn't support either embedder files or sdk extensions.
+        UriResolver sdkResolver;
+
+        // Check for a resolver provider.
+        if (embeddedUriResolverProvider != null) {
+          EmbedderUriResolver embedderUriResolver =
+              embeddedUriResolverProvider(folder);
+          if (embedderUriResolver != null && embedderUriResolver.length != 0) {
+            sdkResolver = embedderUriResolver;
+          }
+        }
+
+        // Default to a Dart URI resolver if no embedder is found.
+        sdkResolver ??= new DartUriResolver(sdk);
+
+        // TODO(brianwilkerson) This doesn't sdk extensions.
         List<UriResolver> resolvers = <UriResolver>[
-          new DartUriResolver(sdk),
+          sdkResolver,
           resolver,
           new FileUriResolver()
         ];
