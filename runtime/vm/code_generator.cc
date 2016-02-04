@@ -30,7 +30,7 @@ namespace dart {
 DEFINE_FLAG(bool, deoptimize_alot, false,
     "Deoptimizes all live frames when we are about to return to Dart code from"
     " native entries.");
-DEFINE_FLAG(bool, background_compilation, false,
+DEFINE_FLAG(bool, background_compilation, true,
     "Run optimizing compilation in background");
 DEFINE_FLAG(int, max_subtype_cache_entries, 100,
     "Maximum number of subtype cache entries (number of checks cached).");
