@@ -1078,6 +1078,13 @@ DART_EXPORT void Dart_SetMessageNotifyCallback(
  * is impossible to mess up. */
 
 /**
+ * Query the current message notify callback for the isolate.
+ *
+ * \return The current message notify callback for the isolate.
+ */
+DART_EXPORT Dart_MessageNotifyCallback Dart_GetMessageNotifyCallback();
+
+/**
  * The VM's default message handler supports pausing an isolate before it
  * processes the first message and right after the it processes the isolate's
  * final message. This can be controlled for all isolates by two VM flags:

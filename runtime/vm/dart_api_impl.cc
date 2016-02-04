@@ -1577,6 +1577,13 @@ DART_EXPORT void Dart_SetMessageNotifyCallback(
 }
 
 
+DART_EXPORT Dart_MessageNotifyCallback Dart_GetMessageNotifyCallback() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  return isolate->message_notify_callback();
+}
+
+
 struct RunLoopData {
   Monitor* monitor;
   bool done;
