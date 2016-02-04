@@ -16,7 +16,6 @@ import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<Element> visited);
-typedef bool _SubtypeChecker<T>(T t1, T t2);
 
 /**
  * Implementation of [TypeSystem] using the strong mode rules.
@@ -313,6 +312,7 @@ class StrongTypeSystemImpl implements TypeSystem {
 
   /**
    * Check that [f1] is a subtype of [f2].
+   *
    * [fuzzyArrows] indicates whether or not the f1 and f2 should be
    * treated as fuzzy arrow types (and hence dynamic parameters to f2 treated
    * as bottom).
@@ -327,83 +327,13 @@ class StrongTypeSystemImpl implements TypeSystem {
         return _isGenericFunctionSubtypeOf(f1, f2, fuzzyArrows: fuzzyArrows);
       }
     }
-    final List<DartType> r1s = f1.normalParameterTypes;
-    final List<DartType> r2s = f2.normalParameterTypes;
-    final List<DartType> o1s = f1.optionalParameterTypes;
-    final List<DartType> o2s = f2.optionalParameterTypes;
-    final Map<String, DartType> n1s = f1.namedParameterTypes;
-    final Map<String, DartType> n2s = f2.namedParameterTypes;
-    final DartType ret1 = f1.returnType;
-    final DartType ret2 = f2.returnType;
 
-    // A -> B <: C -> D if C <: A and
-    // either D is void or B <: D
-    if (!ret2.isVoid && !isSubtypeOf(ret1, ret2)) {
-      return false;
-    }
-
-    // Reject if one has named and the other has optional
-    if (n1s.length > 0 && o2s.length > 0) {
-      return false;
-    }
-    if (n2s.length > 0 && o1s.length > 0) {
-      return false;
-    }
-
-    // Rebind _isSubtypeOf for convenience
-    _SubtypeChecker<DartType> parameterSubtype = (DartType t1, DartType t2) =>
-        _isSubtypeOf(t1, t2, null, dynamicIsBottom: fuzzyArrows);
-
-    // f2 has named parameters
-    if (n2s.length > 0) {
-      // Check that every named parameter in f2 has a match in f1
-      for (String k2 in n2s.keys) {
-        if (!n1s.containsKey(k2)) {
-          return false;
-        }
-        if (!parameterSubtype(n2s[k2], n1s[k2])) {
-          return false;
-        }
-      }
-    }
-    // If we get here, we either have no named parameters,
-    // or else the named parameters match and we have no optional
-    // parameters
-
-    // If f1 has more required parameters, reject
-    if (r1s.length > r2s.length) {
-      return false;
-    }
-
-    // If f2 has more required + optional parameters, reject
-    if (r2s.length + o2s.length > r1s.length + o1s.length) {
-      return false;
-    }
-
-    // The parameter lists must look like the following at this point
-    // where rrr is a region of required, and ooo is a region of optionals.
-    // f1: rrr ooo ooo ooo
-    // f2: rrr rrr ooo
-    int rr = r1s.length; // required in both
-    int or = r2s.length - r1s.length; // optional in f1, required in f2
-    int oo = o2s.length; // optional in both
-
-    for (int i = 0; i < rr; ++i) {
-      if (!parameterSubtype(r2s[i], r1s[i])) {
-        return false;
-      }
-    }
-    for (int i = 0, j = rr; i < or; ++i, ++j) {
-      if (!parameterSubtype(r2s[j], o1s[i])) {
-        return false;
-      }
-    }
-    for (int i = or, j = 0; i < oo; ++i, ++j) {
-      if (!parameterSubtype(o2s[j], o1s[i])) {
-        return false;
-      }
-    }
-    return true;
+    return FunctionTypeImpl.structuralCompare(
+        f1,
+        f2,
+        (DartType t1, DartType t2) =>
+            _isSubtypeOf(t2, t1, null, dynamicIsBottom: fuzzyArrows),
+        isSubtypeOf);
   }
 
   /**

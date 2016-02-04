@@ -727,44 +727,78 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       [bool withDynamic = false, Set<Element> visitedElements]) {
     // Note: visitedElements is only used for breaking recursion in the type
     // hierarchy; we don't use it when recursing into the function type.
-    return _testTypeRelation(
-        type, (TypeImpl t, TypeImpl s) => t.isMoreSpecificThan(s, withDynamic));
+    bool relation = _trivialFunctionRelation(type);
+    if (relation != null) {
+      return relation;
+    }
+
+    return structuralCompare(this, type,
+        (TypeImpl t, TypeImpl s) => t.isMoreSpecificThan(s, withDynamic));
   }
 
   @override
   bool isSubtypeOf(DartType type) {
-    return _testTypeRelation(
-        type, (TypeImpl t, TypeImpl s) => t.isAssignableTo(s));
+    bool relation = _trivialFunctionRelation(type);
+    if (relation != null) {
+      return relation;
+    }
+
+    return structuralCompare(
+        this, type, (TypeImpl t, TypeImpl s) => t.isAssignableTo(s));
   }
 
   /**
-   * Determines if this function type has a [relation] with [type].
+   * Tests if [other] meets any of the easy relation cases for [isSubtypeOf]
+   * and [isMoreSpecificThan].
    *
-   * Used for both [isMoreSpecificThan] and [isSubtypeOf] which are structurally
-   * identical but use their own relation when recursing into parameters and
-   * return types.
+   * Returns `true` if the relation is known to hold, `false` if it isn't, or
+   * `null` if it's unknown and a deeper structural comparison is needed.
    */
-  bool _testTypeRelation(DartType type, bool relation(TypeImpl t, TypeImpl s)) {
+  bool _trivialFunctionRelation(DartType other) {
     // Trivial base cases.
-    if (type == null) {
+    if (other == null) {
       return false;
-    } else if (identical(this, type) ||
-        type.isDynamic ||
-        type.isDartCoreFunction ||
-        type.isObject) {
+    } else if (identical(this, other) ||
+        other.isDynamic ||
+        other.isDartCoreFunction ||
+        other.isObject) {
       return true;
-    } else if (type is! FunctionType) {
+    } else if (other is! FunctionType) {
       return false;
-    } else if (this == type) {
+    } else if (this == other) {
       return true;
     }
 
-    FunctionType s = type as FunctionType;
-    List<DartType> tRequired = normalParameterTypes;
+    return null;
+  }
+
+  /**
+   * Compares two function types [t] and [s] to see if their corresponding
+   * parameter types match [parameterRelation] and their return types match
+   * [returnRelation].
+   *
+   * Used for the various relations on function types which have the same
+   * structural rules for handling optional parameters and arity, but use their
+   * own relation for comparing corresponding paramaters or return types.
+   *
+   * If [returnRelation] is omitted, uses [parameterRelation] for both.
+   */
+  static bool structuralCompare(FunctionType t, FunctionType s,
+      bool parameterRelation(DartType t, DartType s),
+      [bool returnRelation(DartType t, DartType s)]) {
+    // Test the return types.
+    returnRelation ??= parameterRelation;
+    DartType sRetType = s.returnType;
+    if (!sRetType.isVoid && !returnRelation(t.returnType, sRetType)) {
+      return false;
+    }
+
+    // Test the parameter types.
+    List<DartType> tRequired = t.normalParameterTypes;
     List<DartType> sRequired = s.normalParameterTypes;
-    List<DartType> tOptional = optionalParameterTypes;
+    List<DartType> tOptional = t.optionalParameterTypes;
     List<DartType> sOptional = s.optionalParameterTypes;
-    Map<String, DartType> tNamed = namedParameterTypes;
+    Map<String, DartType> tNamed = t.namedParameterTypes;
     Map<String, DartType> sNamed = s.namedParameterTypes;
 
     // If one function has positional and the other has named parameters,
@@ -787,7 +821,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (tParamType == null) {
         return false;
       }
-      if (!relation(tParamType, sNamed[key])) {
+      if (!parameterRelation(tParamType, sNamed[key])) {
         return false;
       }
     }
@@ -816,13 +850,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
 
     for (int i = 0; i < sPositional.length; i++) {
-      if (!relation(tPositional[i], sPositional[i])) {
+      if (!parameterRelation(tPositional[i], sPositional[i])) {
         return false;
       }
     }
 
-    DartType sRetType = s.returnType;
-    return sRetType.isVoid || relation(returnType, sRetType);
+    return true;
   }
 
   @override
