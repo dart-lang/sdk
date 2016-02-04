@@ -4,6 +4,14 @@
   * Added `Uri.queryParametersAll` to handle multiple query parameters with
     the same name.
 
+## 1.14.1 - 2016-02-04
+
+Patch release, resolves one issue:
+
+* Debugger: Fixes a VM crash when a debugger attempts to set a break point
+during isolate initialization.
+(SDK issue [25618](https://github.com/dart-lang/sdk/issues/25618))
+
 ## 1.14.0 - 2016-01-28
 
 ### Core library changes
