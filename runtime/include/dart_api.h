@@ -1078,14 +1078,22 @@ DART_EXPORT void Dart_SetMessageNotifyCallback(
  * is impossible to mess up. */
 
 /**
- * The VM's default message handler supports pausing an isolate before it starts
- * and before it exits. This is controlled by two VM flags:
+ * The VM's default message handler supports pausing an isolate before it
+ * processes the first message and right after the it processes the isolate's
+ * final message. This can be controlled for all isolates by two VM flags:
  *
  *   `--pause-isolates-on-start`
  *   `--pause-isolates-on-exit`
  *
- * When an embedder is using a Dart_MessageNotifyCallback the following
- * functions can be used to implement pausing on start and exit.
+ * Additionally, Dart_SetShouldPauseOnStart and Dart_SetShouldPauseOnExit can be
+ * used to control this behaviour on a per-isolate basis.
+ *
+ * When an embedder is using a Dart_MessageNotifyCallback the embedder
+ * needs to cooperate with the VM so that the service protocol can report
+ * accurate information about isolates and so that tools such as debuggers
+ * work reliably.
+ *
+ * The following functions can be used to implement pausing on start and exit.
  */
 
 /**
@@ -1098,9 +1106,11 @@ DART_EXPORT bool Dart_ShouldPauseOnStart();
 /**
  * Override the VM flag `--pause-isolates-on-start` for the current isolate.
  *
+ * \param should_pause Should the isolate be paused on start?
+ *
  * NOTE: This must be called before Dart_IsolateMakeRunnable.
  */
-DART_EXPORT void Dart_SetShouldPauseOnStart(bool value);
+DART_EXPORT void Dart_SetShouldPauseOnStart(bool should_pause);
 
 /**
  * Is the current isolate paused on start?
@@ -1111,40 +1121,41 @@ DART_EXPORT bool Dart_IsPausedOnStart();
 
 /**
  * Called when the embedder has paused the current isolate on start and when
- * the embedder has released the isolate.
+ * the embedder has resumed the isolate.
  *
- * \return A boolean value indicating if the isolate is paused on start.
+ * \param paused Is the isolate paused on start?
  */
-DART_EXPORT void Dart_SetPausedOnStart(bool value);
+DART_EXPORT void Dart_SetPausedOnStart(bool paused);
 
 /**
  * If the VM flag `--pause-isolates-on-exit` was passed this will be true.
  *
- * \return A boolean value indicating if pause on start was requested.
+ * \return A boolean value indicating if pause on exit was requested.
  */
 DART_EXPORT bool Dart_ShouldPauseOnExit();
 
 /**
- * Override the VM flag `--pause-isolates-on-start` for the current isolate.
+ * Override the VM flag `--pause-isolates-on-exit` for the current isolate.
  *
- * NOTE: This must be called before Dart_IsolateMakeRunnable.
+ * \param should_pause Should the isolate be paused on exit?
+ *
  */
-DART_EXPORT void Dart_SetShouldPauseOnExit(bool value);
+DART_EXPORT void Dart_SetShouldPauseOnExit(bool should_pause);
 
 /**
  * Is the current isolate paused on exit?
  *
- * \return A boolean value indicating if the isolate is paused on start.
+ * \return A boolean value indicating if the isolate is paused on exit.
  */
 DART_EXPORT bool Dart_IsPausedOnExit();
 
 /**
- * Called when the embedder has paused the current isolate on start and when
- * the embedder has released the isolate.
+ * Called when the embedder has paused the current isolate on exit and when
+ * the embedder has resumed the isolate.
  *
- * \return A boolean value indicating if the isolate is paused on start.
+ * \param paused Is the isolate paused on exit?
  */
-DART_EXPORT void Dart_SetPausedOnExit(bool value);
+DART_EXPORT void Dart_SetPausedOnExit(bool paused);
 
 
 /**

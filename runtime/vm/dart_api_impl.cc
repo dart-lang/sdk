@@ -1376,6 +1376,10 @@ DART_EXPORT bool Dart_ShouldPauseOnStart() {
 DART_EXPORT void Dart_SetShouldPauseOnStart(bool should_pause) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  if (isolate->is_runnable()) {
+    FATAL1("%s expects the current isolate to not be runnable yet.",
+           CURRENT_FUNC);
+  }
   return isolate->message_handler()->set_should_pause_on_start(should_pause);
 }
 
