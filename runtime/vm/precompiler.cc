@@ -312,24 +312,30 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
 
     lib = Library::LookupLibrary(library_uri);
     if (lib.IsNull()) {
-      if (FLAG_trace_precompiler) {
-        THR_Print("WARNING: Missing %s\n", entry_points[i].library_uri);
-      }
-      continue;
+      String& msg = String::Handle(Z, String::NewFormatted(
+          "Cannot find entry point %s\n", entry_points[i].library_uri));
+      Jump(Error::Handle(Z, ApiError::New(msg)));
+      UNREACHABLE();
     }
 
     if (class_name.raw() == Symbols::TopLevel().raw()) {
-      func = lib.LookupFunctionAllowPrivate(function_name);
-      field = lib.LookupFieldAllowPrivate(function_name);
+      if (Library::IsPrivate(function_name)) {
+        function_name = lib.PrivateName(function_name);
+      }
+      func = lib.LookupLocalFunction(function_name);
+      field = lib.LookupLocalField(function_name);
     } else {
-      cls = lib.LookupClassAllowPrivate(class_name);
+      if (Library::IsPrivate(class_name)) {
+        class_name = lib.PrivateName(class_name);
+      }
+      cls = lib.LookupLocalClass(class_name);
       if (cls.IsNull()) {
-        if (FLAG_trace_precompiler) {
-          THR_Print("WARNING: Missing %s %s\n",
-                    entry_points[i].library_uri,
-                    entry_points[i].class_name);
-        }
-        continue;
+        String& msg = String::Handle(Z, String::NewFormatted(
+            "Cannot find entry point %s %s\n",
+            entry_points[i].library_uri,
+            entry_points[i].class_name));
+        Jump(Error::Handle(Z, ApiError::New(msg)));
+        UNREACHABLE();
       }
 
       ASSERT(!cls.IsNull());
@@ -338,12 +344,13 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
     }
 
     if (func.IsNull() && field.IsNull()) {
-      if (FLAG_trace_precompiler) {
-        THR_Print("WARNING: Missing %s %s %s\n",
-                  entry_points[i].library_uri,
-                  entry_points[i].class_name,
-                  entry_points[i].function_name);
-      }
+      String& msg = String::Handle(Z, String::NewFormatted(
+          "Cannot find entry point %s %s %s\n",
+          entry_points[i].library_uri,
+          entry_points[i].class_name,
+          entry_points[i].function_name));
+      Jump(Error::Handle(Z, ApiError::New(msg)));
+      UNREACHABLE();
     }
 
     if (!func.IsNull()) {

@@ -1177,7 +1177,7 @@ bool RunMainIsolate(const char* script_name,
         reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
     result = Dart_LibraryImportLibrary(
         isolate_data->builtin_lib(), root_lib, Dart_Null());
-    if (has_gen_precompiled_snapshot) {
+    if (has_noopt || has_gen_precompiled_snapshot) {
       // Load the embedder's portion of the VM service's Dart code so it will
       // be included in the precompiled snapshot.
       if (!VmService::LoadForGenPrecompiled()) {
@@ -1224,7 +1224,6 @@ bool RunMainIsolate(const char* script_name,
         { "dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE" },
         { "dart:io", "_SecureFilterImpl", "get:SIZE" },
         { "dart:vmservice_io", "::", "main" },
-        { "dart:vmservice_io", "::", "boot" },
         { NULL, NULL, NULL }  // Must be terminated with NULL entries.
       };
 
