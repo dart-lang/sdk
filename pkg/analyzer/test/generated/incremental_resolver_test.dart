@@ -3471,6 +3471,10 @@ class B {
     {
       int delta = edit.replacement.length - edit.length;
       _shiftTokens(unit.beginToken, offset, delta);
+      Token oldBeginToken = oldNode.beginToken;
+      Token oldEndTokenNext = oldNode.endToken.next;
+      oldBeginToken.previous.setNext(newNode.beginToken);
+      newNode.endToken.setNext(oldEndTokenNext);
     }
     // do incremental resolution
     int updateOffset = edit.offset;
