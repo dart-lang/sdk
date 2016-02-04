@@ -2068,23 +2068,56 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
     if (nameOffset > updateOffset) {
       cache.remove(element);
       (element as ElementImpl).nameOffset = nameOffset + updateDelta;
+      if (element is ConstVariableElement) {
+        ConstVariableElement constVariable = element as ConstVariableElement;
+        Expression initializer = constVariable.constantInitializer;
+        if (initializer != null) {
+          _shiftTokens(initializer.beginToken);
+        }
+      }
     }
     // visible range
     if (element is LocalElement) {
       SourceRange visibleRange = element.visibleRange;
-      if (visibleRange != null && visibleRange.offset > updateOffset) {
-        int newOffset = visibleRange.offset + updateDelta;
-        int length = visibleRange.length;
-        if (element is FunctionElementImpl) {
-          element.setVisibleRange(newOffset, length);
-        } else if (element is LocalVariableElementImpl) {
-          element.setVisibleRange(newOffset, length);
-        } else if (element is ParameterElementImpl) {
-          element.setVisibleRange(newOffset, length);
+      if (visibleRange != null) {
+        int oldOffset = visibleRange.offset;
+        int oldLength = visibleRange.length;
+        int newOffset = oldOffset;
+        int newLength = oldLength;
+        newOffset += oldOffset > updateOffset ? updateDelta : 0;
+        newLength += visibleRange.contains(updateOffset) ? updateDelta : 0;
+        if (newOffset != oldOffset || newLength != oldLength) {
+          if (element is FunctionElementImpl) {
+            element.setVisibleRange(newOffset, newLength);
+          } else if (element is LocalVariableElementImpl) {
+            element.setVisibleRange(newOffset, newLength);
+          } else if (element is ParameterElementImpl) {
+            element.setVisibleRange(newOffset, newLength);
+          }
         }
       }
     }
     super.visitElement(element);
+  }
+
+  void _shiftTokens(Token token) {
+    while (token != null) {
+      if (token.offset > updateOffset) {
+        token.offset += updateDelta;
+      }
+      // comments
+      _shiftTokens(token.precedingComments);
+      if (token is DocumentationCommentToken) {
+        for (Token reference in token.references) {
+          _shiftTokens(reference);
+        }
+      }
+      // next
+      if (token.type == TokenType.EOF) {
+        break;
+      }
+      token = token.next;
+    }
   }
 }
 

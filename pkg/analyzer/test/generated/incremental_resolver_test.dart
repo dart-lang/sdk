@@ -4544,6 +4544,19 @@ class A {
     expect(errors, isEmpty);
   }
 
+  void test_updateConstantInitializer() {
+    _resolveUnit(r'''
+main() {
+  const v = const [Unknown];
+}
+''');
+    _updateAndValidate(r'''
+main() {
+   const v = const [Unknown];
+}
+''');
+  }
+
   void test_updateErrors_addNew_hint1() {
     _resolveUnit(r'''
 int main() {
