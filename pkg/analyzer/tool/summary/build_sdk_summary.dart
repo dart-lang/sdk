@@ -12,6 +12,7 @@ import 'package:analyzer/src/summary/summarize_elements.dart';
 main(List<String> args) {
   if (args.length < 1 || args.length > 2) {
     _printUsage();
+    exitCode = 1;
     return;
   }
   //
@@ -21,6 +22,7 @@ main(List<String> args) {
   if (FileSystemEntity.isDirectorySync(outputFilePath)) {
     print("'$outputFilePath' is a directory.");
     _printUsage();
+    exitCode = 1;
     return;
   }
   //
@@ -32,6 +34,7 @@ main(List<String> args) {
     if (!FileSystemEntity.isDirectorySync('$sdkPath/lib')) {
       print("'$sdkPath/lib' does not exist.");
       _printUsage();
+      exitCode = 1;
       return;
     }
   } else {
