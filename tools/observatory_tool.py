@@ -210,6 +210,8 @@ def main():
     options.pub_executable = os.path.abspath(options.pub_executable)
   if (options.pub_snapshot != None):
     options.pub_snapshot = os.path.abspath(options.pub_snapshot)
+  if (options.stamp != ''):
+    options.stamp = os.path.abspath(options.stamp)
   if len(args) == 1:
     args[0] = os.path.abspath(args[0])
   # Pub must be run from the project's root directory.
