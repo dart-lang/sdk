@@ -1692,4 +1692,35 @@ void takeDDO(Object fn(double a, double b)) {}
       }
   '''
   });
+
+  // Regression test for https://github.com/dart-lang/sdk/issues/25668
+  testChecker('infer generic method type', {
+    '/main.dart': '''
+class C {
+  /*=T*/ m/*<T>*/(/*=T*/ x) => x;
+}
+class D extends C {
+  m/*<S>*/(x) => x;
+}
+main() {
+  int y = new D().m/*<int>*/(42);
+  print(y);
+}
+    '''
+  });
+
+  testChecker('do not infer invalid override of generic method', {
+    '/main.dart': '''
+class C {
+  /*=T*/ m/*<T>*/(/*=T*/ x) => x;
+}
+class D extends C {
+  /*severe:INVALID_METHOD_OVERRIDE*/m(x) => x;
+}
+main() {
+  int y = /*info:DYNAMIC_CAST*/new D().m/*<int>*/(42);
+  print(y);
+}
+    '''
+  });
 }
