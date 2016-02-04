@@ -51,15 +51,8 @@
         'defines': [
           'DEBUG',
         ],
-        'conditions': [
-          ['c_frame_pointers==1', {
-            'cflags': [
-              '-fno-omit-frame-pointer',
-            ],
-            'defines': [
-              'NATIVE_CODE_HAS_FRAME_POINTERS'
-            ],
-          }],
+        'cflags': [
+          '-fno-omit-frame-pointer',
         ],
       },
       'Dart_Android_Release': {
@@ -72,19 +65,26 @@
           '-Os',
         ],
         'cflags': [
+          '-fno-omit-frame-pointer',
           '-fdata-sections',
           '-ffunction-sections',
           '-O3',
         ],
-        'conditions': [
-          ['c_frame_pointers==1', {
-            'cflags': [
-              '-fno-omit-frame-pointer',
-            ],
-            'defines': [
-              'NATIVE_CODE_HAS_FRAME_POINTERS'
-            ],
-          }],
+      },
+      'Dart_Android_Product': {
+        'abstract': 1,
+        'defines': [
+          'NDEBUG',
+          'PRODUCT',
+        ],
+        'cflags!': [
+          '-O2',
+          '-Os',
+        ],
+        'cflags': [
+          '-fdata-sections',
+          '-ffunction-sections',
+          '-O3',
         ],
       },
       'Dart_Android_ia32_Base': {

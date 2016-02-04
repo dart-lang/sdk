@@ -13,10 +13,6 @@
 
 namespace dart {
 
-DEFINE_DEBUG_FLAG(bool, trace_zones,
-                  false, "Traces allocation sizes in the zone.");
-
-
 // Zone segments represent chunks of memory: They have starting
 // address encoded in the this pointer and a size in bytes. They are
 // chained together to form the backing storage for an expanding zone.
@@ -115,7 +111,6 @@ intptr_t Zone::SizeInBytes() const {
 
 
 uword Zone::AllocateExpand(intptr_t size) {
-#if defined(DEBUG)
   ASSERT(size >= 0);
   if (FLAG_trace_zones) {
     OS::PrintErr("*** Expanding zone 0x%" Px "\n",
@@ -127,7 +122,6 @@ uword Zone::AllocateExpand(intptr_t size) {
   ASSERT(Utils::IsAligned(size, kAlignment));
   intptr_t free_size = (limit_ - position_);
   ASSERT(free_size <  size);
-#endif
 
   // First check to see if we should just chain it as a large segment.
   intptr_t max_size = Utils::RoundDown(kSegmentSize - sizeof(Segment),
@@ -150,14 +144,12 @@ uword Zone::AllocateExpand(intptr_t size) {
 
 
 uword Zone::AllocateLargeSegment(intptr_t size) {
-#if defined(DEBUG)
   ASSERT(size >= 0);
   // Make sure the requested size is already properly aligned and that
   // there isn't enough room in the Zone to satisfy the request.
   ASSERT(Utils::IsAligned(size, kAlignment));
   intptr_t free_size = (limit_ - position_);
   ASSERT(free_size <  size);
-#endif
 
   // Create a new large segment and chain it up.
   ASSERT(Utils::IsAligned(sizeof(Segment), kAlignment));
@@ -192,7 +184,6 @@ char* Zone::ConcatStrings(const char* a, const char* b, char join) {
 }
 
 
-#if defined(DEBUG)
 void Zone::DumpZoneSizes() {
   intptr_t size = 0;
   for (Segment* s = large_segments_; s != NULL; s = s->next()) {
@@ -202,7 +193,6 @@ void Zone::DumpZoneSizes() {
                " Total = %" Pd " Large Segments = %" Pd "\n",
                reinterpret_cast<intptr_t>(this), SizeInBytes(), size);
 }
-#endif
 
 
 void Zone::VisitObjectPointers(ObjectPointerVisitor* visitor) {

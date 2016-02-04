@@ -6,6 +6,7 @@
 #define VM_FLAGS_H_
 
 #include "platform/assert.h"
+#include "vm/flag_list.h"
 #include "vm/globals.h"
 
 typedef const char* charp;
@@ -17,20 +18,11 @@ typedef const char* charp;
   type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
                                             #name,                             \
                                             default_value,                     \
-                                            comment)
+                                            comment);
 
 #define DEFINE_FLAG_HANDLER(handler, name, comment)                            \
-  bool DUMMY_##name = Flags::Register_func(handler, #name, comment)
+  bool DUMMY_##name = Flags::Register_func(handler, #name, comment);
 
-
-#if defined(DEBUG)
-#define DECLARE_DEBUG_FLAG(type, name) DECLARE_FLAG(type, name)
-#define DEFINE_DEBUG_FLAG(type, name, default_value, comment)                  \
-  DEFINE_FLAG(type, name, default_value, comment)
-#else
-#define DECLARE_DEBUG_FLAG(type, name)
-#define DEFINE_DEBUG_FLAG(type, name, default_value, comment)
-#endif
 
 namespace dart {
 
@@ -106,6 +98,35 @@ class Flags {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Flags);
 };
+
+#define PRODUCT_FLAG_MARCO(name, type, default_value, comment) \
+  extern type FLAG_##name;
+
+#if defined(DEBUG)
+#define DEBUG_FLAG_MARCO(name, type, default_value, comment)                   \
+  extern type FLAG_##name;
+#else  // defined(DEBUG)
+#define DEBUG_FLAG_MARCO(name, type, default_value, comment)                   \
+  const type FLAG_##name = default_value;
+#endif  // defined(DEBUG)
+
+#if defined(PRODUCT)
+#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
+  const type FLAG_##name = product_value;
+
+#else  // defined(PRODUCT)
+
+#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
+  extern type FLAG_##name;
+
+#endif  // defined(PRODUCT)
+
+// Now declare all flags here.
+FLAG_LIST(PRODUCT_FLAG_MARCO, RELEASE_FLAG_MARCO, DEBUG_FLAG_MARCO)
+
+#undef RELEASE_FLAG_MARCO
+#undef DEBUG_FLAG_MARCO
+#undef PRODUCT_FLAG_MARCO
 
 }  // namespace dart
 

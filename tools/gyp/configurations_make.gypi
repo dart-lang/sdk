@@ -42,32 +42,12 @@
         'abstract': 1,
         'cflags': [ '-m32', '-msse2', '-mfpmath=sse' ],
         'ldflags': [ '-m32', ],
-        'conditions': [
-          ['c_frame_pointers==1', {
-            'cflags': [
-              # Clang on Linux will still omit frame pointers from leaf
-              # functions unless told otherwise:
-              # (note this flag only works on recent GCC versions.)
-              '-mno-omit-leaf-frame-pointer',
-            ],
-          }],
-        ],
       },
 
       'Dart_Linux_x64_Base': {
         'abstract': 1,
         'cflags': [ '-m64', '-msse2' ],
         'ldflags': [ '-m64', ],
-        'conditions': [
-          ['c_frame_pointers==1', {
-            'cflags': [
-              # Clang on Linux will still omit frame pointers from leaf
-              # functions unless told otherwise:
-              # (note this flag only works on recent GCC versions.)
-              '-mno-omit-leaf-frame-pointer',
-            ],
-          }],
-        ],
       },
 
       'Dart_Linux_simarm_Base': {
@@ -243,36 +223,38 @@
 
       'Dart_Linux_Debug': {
         'abstract': 1,
-        'conditions': [
-          ['c_frame_pointers==1', {
-            'cflags': [
-              '-fno-omit-frame-pointer',
-            ],
-            'defines': [
-              'NATIVE_CODE_HAS_FRAME_POINTERS'
-            ],
-          }],
-        ],
         'cflags': [
           '-O<(dart_debug_optimization_level)',
+          '-fno-omit-frame-pointer',
+          # Clang on Linux will still omit frame pointers from leaf
+          # functions unless told otherwise:
+          # (note this flag only works on recent GCC versions.)
+          '-mno-omit-leaf-frame-pointer',
         ],
       },
 
       'Dart_Linux_Release': {
         'abstract': 1,
-        'conditions': [
-          ['c_frame_pointers==1', {
-            'cflags': [
-              '-fno-omit-frame-pointer',
-            ],
-            'defines': [
-              'NATIVE_CODE_HAS_FRAME_POINTERS'
-            ],
-          }],
-        ],
         'cflags': [
           '-O3',
           '-ffunction-sections',
+          '-fno-omit-frame-pointer',
+          # Clang on Linux will still omit frame pointers from leaf
+          # functions unless told otherwise:
+          # (note this flag only works on recent GCC versions.)
+          '-mno-omit-leaf-frame-pointer',
+        ],
+        'ldflags': [
+          '-Wl,--gc-sections',
+        ],
+      },
+
+      'Dart_Linux_Product': {
+        'abstract': 1,
+        'cflags': [
+          '-O3',
+          '-ffunction-sections',
+          '-fomit-frame-pointer',
         ],
         'ldflags': [
           '-Wl,--gc-sections',

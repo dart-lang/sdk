@@ -48,7 +48,7 @@ def BuildOptions():
   result = optparse.OptionParser(usage=usage)
   result.add_option("-m", "--mode",
       help='Build variants (comma-separated).',
-      metavar='[all,debug,release]',
+      metavar='[all,debug,release,product]',
       default='debug')
   result.add_option("-v", "--verbose",
       help='Verbose output.',
@@ -97,7 +97,7 @@ def ProcessOptions(options, args):
   options.arch = options.arch.split(',')
   options.os = options.os.split(',')
   for mode in options.mode:
-    if not mode in ['debug', 'release']:
+    if not mode in ['debug', 'release', 'product']:
       print "Unknown mode %s" % mode
       return False
   for arch in options.arch:

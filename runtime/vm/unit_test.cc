@@ -25,8 +25,6 @@ using dart::bin::DartUtils;
 
 namespace dart {
 
-DECLARE_FLAG(bool, disassemble);
-
 TestCaseBase* TestCaseBase::first_ = NULL;
 TestCaseBase* TestCaseBase::tail_ = NULL;
 

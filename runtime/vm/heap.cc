@@ -34,13 +34,11 @@ DEFINE_FLAG(int, pretenure_interval, 10,
             "Back off pretenuring after this many cycles.");
 DEFINE_FLAG(int, pretenure_threshold, 98,
             "Trigger pretenuring when this many percent are promoted.");
-DEFINE_FLAG(bool, verbose_gc, false, "Enables verbose GC.");
 DEFINE_FLAG(int, verbose_gc_hdr, 40, "Print verbose GC header interval.");
 DEFINE_FLAG(bool, verify_after_gc, false,
             "Enables heap verification after GC.");
 DEFINE_FLAG(bool, verify_before_gc, false,
             "Enables heap verification before GC.");
-DEFINE_FLAG(bool, pretenure_all, false, "Global pretenuring (for testing).");
 
 
 Heap::Heap(Isolate* isolate,

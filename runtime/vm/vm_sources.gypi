@@ -165,6 +165,7 @@
     'exceptions.h',
     'exceptions_test.cc',
     'find_code_object_test.cc',
+    'flag_list.h',
     'flags.cc',
     'flags.h',
     'flags_test.cc',

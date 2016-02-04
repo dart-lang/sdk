@@ -36,9 +36,6 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
 #undef DEFINE_KEYWORD_SYMBOL_INDEX
 };
 
-DEFINE_FLAG(bool, dump_symbol_stats, false, "Dump symbol table statistics");
-
-
 RawString* StringFrom(const uint8_t* data, intptr_t len, Heap::Space space) {
   return String::FromLatin1(data, len, space);
 }

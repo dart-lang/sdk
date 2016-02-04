@@ -14,6 +14,41 @@ DEFINE_FLAG(bool, print_flags, false, "Print flags as they are being parsed.");
 DEFINE_FLAG(bool, ignore_unrecognized_flags, false,
     "Ignore unrecognized flags.");
 
+#define PRODUCT_FLAG_MARCO(name, type, default_value, comment) \
+  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
+                                            #name,                             \
+                                            default_value,                     \
+                                            comment);
+
+#if defined(DEBUG)
+#define DEBUG_FLAG_MARCO(name, type, default_value, comment) \
+  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
+                                            #name,                             \
+                                            default_value,                     \
+                                            comment);
+#else  // defined(DEBUG)
+#define DEBUG_FLAG_MARCO(name, type, default_value, comment)
+#endif  // defined(DEBUG)
+
+#if defined(PRODUCT)
+// Nothing to be done for the product flag definitions.
+#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)
+#else  // defined(PRODUCT)
+#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
+  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
+                                            #name,                             \
+                                            default_value,                     \
+                                            comment);
+#endif  // defined(PRODUCT)
+
+// Define all of the non-product flags here.
+FLAG_LIST(PRODUCT_FLAG_MARCO, RELEASE_FLAG_MARCO, DEBUG_FLAG_MARCO)
+
+#undef RELEASE_FLAG_MARCO
+#undef DEBUG_FLAG_MARCO
+#undef PRODUCT_FLAG_MARCO
+
+
 bool Flags::initialized_ = false;
 
 // List of registered flags.

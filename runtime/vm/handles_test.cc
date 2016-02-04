@@ -12,9 +12,6 @@
 
 namespace dart {
 
-DECLARE_DEBUG_FLAG(bool, trace_handles);
-
-
 // Unit test for Zone handle allocation.
 TEST_CASE(AllocateZoneHandle) {
 #if defined(DEBUG)

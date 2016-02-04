@@ -2340,7 +2340,20 @@ class TestUtils {
     // is an X in front of the arch. We don't allow both a cross compiled
     // and a normal version to be present (except if you specifically pass
     // in the build_directory).
-    var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
+    var mode;
+    switch (configuration['mode']) {
+      case 'debug':
+        mode = 'Debug';
+        break;
+      case 'release':
+        mode = 'Release';
+        break;
+      case 'product':
+        mode = 'Product';
+        break;
+      default:
+        throw 'Unrecognized mode configuration: ${configuration['mode']}';
+    }
     var arch = configuration['arch'].toUpperCase();
     var normal = '$mode$arch';
     var cross = '${mode}X$arch';

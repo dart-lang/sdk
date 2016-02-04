@@ -53,8 +53,6 @@ DECLARE_FLAG(bool, collect_dynamic_function_names);
 DECLARE_FLAG(bool, deoptimize_alot);
 DECLARE_FLAG(int, deoptimize_every);
 DECLARE_FLAG(charp, deoptimize_filter);
-DECLARE_FLAG(bool, disassemble);
-DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, fields_may_be_reset);
 DECLARE_FLAG(bool, guess_icdata_cid);

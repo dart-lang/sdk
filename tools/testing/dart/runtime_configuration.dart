@@ -66,7 +66,7 @@ class RuntimeConfiguration {
   RuntimeConfiguration._subclass();
 
   int computeTimeoutMultiplier({
-      bool isDebug: false,
+      String mode,
       bool isChecked: false,
       String arch}) {
     return 1;
@@ -165,7 +165,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
       : super._subclass();
 
   int computeTimeoutMultiplier({
-      bool isDebug: false,
+      String mode,
       bool isChecked: false,
       String arch}) {
     int multiplier = 1;
@@ -182,7 +182,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
         multiplier *= 4;
         break;
     }
-    if (isDebug) {
+    if (mode == 'debug') {
       multiplier *= 2;
     }
     return multiplier;
@@ -193,7 +193,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
 /// program named Dump Render Tree, hence the name.
 class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
   int computeTimeoutMultiplier({
-      bool isDebug: false,
+      String mode,
       bool isChecked: false,
       String arch}) {
     return 4 // Allow additional time for browser testing to run.
@@ -201,7 +201,7 @@ class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
         // JavaScript and Dart code.  I'm not convinced the inherited timeout
         // multiplier is relevant for JavaScript.
         * super.computeTimeoutMultiplier(
-            isDebug: isDebug, isChecked: isChecked);
+            mode: mode, isChecked: isChecked);
   }
 }
 
