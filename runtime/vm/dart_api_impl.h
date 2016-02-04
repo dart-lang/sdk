@@ -260,12 +260,11 @@ class Api : AllStatic {
   static void SetWeakHandleReturnValue(NativeArguments* args,
                                        Dart_WeakPersistentHandle retval);
 
-  static RawString* GetEnvironmentValue(Thread* thread, const String& name);
+  static RawString* CallEnvironmentCallback(Thread* thread,
+                                            const String& name);
 
  private:
   static Dart_Handle InitNewHandle(Thread* thread, RawObject* raw);
-
-  static RawString* CallEnvironmentCallback(Thread* thread, const String& name);
 
   // Thread local key used by the API. Currently holds the current
   // ApiNativeScope if any.

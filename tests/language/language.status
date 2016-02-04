@@ -42,6 +42,8 @@ async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runti
 async_star_cancel_while_paused_test: RuntimeError
 async_star_await_pauses_test: Skip # Times out. Issue 23996
 
+library_env_test: RuntimeError
+
 accessor_conflict_export2_test: RuntimeError # Issue 25625
 accessor_conflict_import2_test: RuntimeError # Issue 25625
 accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25625
@@ -160,15 +162,3 @@ ct_const2_test: Pass, Crash # Incompatible flag --compile_all
 hello_dart_test: Pass, Crash # Incompatible flag --compile_all
 
 implicit_closure_test: Pass, Crash # --use_slow_path
-
-[ $compiler == none && $browser ]
-# The following tests are supposed to fail.
-library_env_test/has_io_support: RuntimeError, OK
-library_env_test/has_no_html_support: RuntimeError, OK
-library_env_test/has_no_mirror_support: RuntimeError, OK
-
-[ $compiler == none && $browser != true ]
-# The following tests are supposed to fail.
-library_env_test/has_html_support: RuntimeError, OK
-library_env_test/has_no_io_support: RuntimeError, OK
-library_env_test/has_no_mirror_support: RuntimeError, OK
