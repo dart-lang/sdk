@@ -2127,6 +2127,28 @@ main() {
 ''');
   }
 
+  test_createMissingOverrides_field_untyped() async {
+    resolveTestUnit('''
+class A {
+  var f;
+}
+
+class B implements A {
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_MISSING_OVERRIDES,
+        '''
+class A {
+  var f;
+}
+
+class B implements A {
+  var f;
+}
+''');
+  }
+
   test_createMissingOverrides_functionTypeAlias() async {
     resolveTestUnit('''
 typedef int Binary(int left, int right);

@@ -1249,7 +1249,7 @@ class FixProcessor {
           // add field
           addEolIfNotFirst();
           sb.append(utils.getIndent(1));
-          _appendType(sb, element.type.returnType);
+          _appendType(sb, element.type.returnType, orVar: true);
           sb.append(element.name);
           sb.append(';');
           sb.append(eol);
