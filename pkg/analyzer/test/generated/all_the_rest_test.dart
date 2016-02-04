@@ -382,6 +382,29 @@ class C {
     checkMetadata(localVariableElement);
   }
 
+  void test_metadata_visitDefaultFormalParameter_fieldFormalParameter() {
+    ParameterElement parameterElement =
+        buildElementsForText('class C { var x; C([@a this.x = null]); }')
+            .types[0]
+            .constructors[0]
+            .parameters[0];
+    checkMetadata(parameterElement);
+  }
+
+  void
+      test_metadata_visitDefaultFormalParameter_functionTypedFormalParameter() {
+    ParameterElement parameterElement =
+        buildElementsForText('f([@a g() = null]) {}').functions[0].parameters[
+            0];
+    checkMetadata(parameterElement);
+  }
+
+  void test_metadata_visitDefaultFormalParameter_simpleFormalParameter() {
+    ParameterElement parameterElement =
+        buildElementsForText('f([@a gx = null]) {}').functions[0].parameters[0];
+    checkMetadata(parameterElement);
+  }
+
   void test_metadata_visitEnumDeclaration() {
     ClassElement classElement =
         buildElementsForText('@a enum E { v }').enums[0];
