@@ -3782,6 +3782,32 @@ main() {
 ''');
   }
 
+  test_undefinedFunction_create_duplicateArgumentNames() async {
+    resolveTestUnit('''
+class C {
+  int x;
+}
+
+foo(C c1, C c2) {
+  bar(c1.x, c2.x);
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_FUNCTION,
+        '''
+class C {
+  int x;
+}
+
+foo(C c1, C c2) {
+  bar(c1.x, c2.x);
+}
+
+void bar(int x, int x2) {
+}
+''');
+  }
+
   test_undefinedFunction_create_dynamicArgument() async {
     resolveTestUnit('''
 main() {
@@ -4431,6 +4457,34 @@ main() {
 }
 ''');
     await assertNoFix(DartFixKind.CREATE_METHOD);
+  }
+
+  test_undefinedMethod_createUnqualified_duplicateArgumentNames() async {
+    resolveTestUnit('''
+class C {
+  int x;
+}
+
+class D {
+  foo(C c1, C c2) {
+    bar(c1.x, c2.x);
+  }
+}''');
+    await assertHasFix(
+        DartFixKind.CREATE_METHOD,
+        '''
+class C {
+  int x;
+}
+
+class D {
+  foo(C c1, C c2) {
+    bar(c1.x, c2.x);
+  }
+
+  void bar(int x, int x2) {
+  }
+}''');
   }
 
   test_undefinedMethod_createUnqualified_parameters() async {

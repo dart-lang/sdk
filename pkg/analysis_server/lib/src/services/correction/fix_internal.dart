@@ -447,7 +447,8 @@ class FixProcessor {
           if (numRequired != 0) {
             sb.append(', ');
           }
-          _appendParameterForArgument(sb, numRequired, argument);
+          _appendParameterForArgument(
+              sb, new Set<String>(), numRequired, argument);
           if (numRequired != numParameters) {
             sb.append(', ');
           }
@@ -463,7 +464,8 @@ class FixProcessor {
             sb.append(', ');
           }
           sb.append('[');
-          _appendParameterForArgument(sb, numRequired, argument);
+          _appendParameterForArgument(
+              sb, new Set<String>(), numRequired, argument);
           sb.append(']');
           // add proposal
           _insertBuilder(sb, targetElement);
@@ -2032,6 +2034,7 @@ class FixProcessor {
 
   void _addFix_undefinedMethod_create_parameters(
       SourceBuilder sb, ArgumentList argumentList) {
+    Set<String> usedNames = new Set<String>();
     // append parameters
     sb.append('(');
     List<Expression> arguments = argumentList.arguments;
@@ -2047,7 +2050,7 @@ class FixProcessor {
         hasNamedParameters = true;
         sb.append('{');
       }
-      _appendParameterForArgument(sb, i, argument);
+      _appendParameterForArgument(sb, usedNames, i, argument);
     }
     if (hasNamedParameters) {
       sb.append('}');
@@ -2333,7 +2336,7 @@ class FixProcessor {
   }
 
   void _appendParameterForArgument(
-      SourceBuilder sb, int index, Expression argument) {
+      SourceBuilder sb, Set<String> excluded, int index, Expression argument) {
     // append type name
     DartType type = argument.bestType;
     String typeSource = utils.getTypeSource(type, librariesToImport);
@@ -2348,7 +2351,6 @@ class FixProcessor {
     if (argument is NamedExpression) {
       sb.append(argument.name.label.name);
     } else {
-      Set<String> excluded = new Set<String>();
       List<String> suggestions =
           _getArgumentNameSuggestions(excluded, type, argument, index);
       String favorite = suggestions[0];
