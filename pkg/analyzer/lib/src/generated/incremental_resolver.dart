@@ -909,8 +909,6 @@ class IncrementalBodyDelta extends Delta {
         isByTask(ReadyLibraryElement5Task.DESCRIPTOR) ||
         isByTask(ReadyLibraryElement6Task.DESCRIPTOR) ||
         isByTask(ReadyResolvedUnitTask.DESCRIPTOR) ||
-        isByTask(ReadyResolvedUnit10Task.DESCRIPTOR) ||
-        isByTask(ReadyResolvedUnit11Task.DESCRIPTOR) ||
         isByTask(EvaluateUnitConstantsTask.DESCRIPTOR) ||
         isByTask(GenerateHintsTask.DESCRIPTOR) ||
         isByTask(InferInstanceMembersInUnitTask.DESCRIPTOR) ||

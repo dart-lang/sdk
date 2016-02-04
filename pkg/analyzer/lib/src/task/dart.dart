@@ -561,24 +561,6 @@ final ResultDescriptor<bool> READY_RESOLVED_UNIT =
     new ResultDescriptor<bool>('READY_RESOLVED_UNIT', false);
 
 /**
- * The flag specifying that [RESOLVED_UNIT10] is ready for all of the units of a
- * library and its import/export closure.
- *
- * The result is only available for [Source]s representing a library.
- */
-final ResultDescriptor<bool> READY_RESOLVED_UNIT10 =
-    new ResultDescriptor<bool>('READY_RESOLVED_UNIT10', false);
-
-/**
- * The flag specifying that [RESOLVED_UNIT11] is ready for all of the units of a
- * library and its import/export closure.
- *
- * The result is only available for [Source]s representing a library.
- */
-final ResultDescriptor<bool> READY_RESOLVED_UNIT11 =
-    new ResultDescriptor<bool>('READY_RESOLVED_UNIT11', false);
-
-/**
  * The names (resolved and not) referenced by a unit.
  *
  * The result is only available for [Source]s representing a compilation unit.
@@ -4067,94 +4049,6 @@ class ReadyLibraryElement6Task extends SourceBasedAnalysisTask {
   static ReadyLibraryElement6Task createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ReadyLibraryElement6Task(context, target);
-  }
-}
-
-/**
- * A task that ensures that [RESOLVED_UNIT10] is ready for every unit of the
- * target library source and its import/export closure.
- */
-class ReadyResolvedUnit10Task extends SourceBasedAnalysisTask {
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'ReadyResolvedUnit10Task',
-      createTask,
-      buildInputs,
-      <ResultDescriptor>[READY_RESOLVED_UNIT10]);
-
-  ReadyResolvedUnit10Task(
-      InternalAnalysisContext context, AnalysisTarget target)
-      : super(context, target);
-
-  @override
-  TaskDescriptor get descriptor => DESCRIPTOR;
-
-  @override
-  bool get handlesDependencyCycles => true;
-
-  @override
-  void internalPerform() {
-    outputs[READY_RESOLVED_UNIT10] = true;
-  }
-
-  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
-    Source source = target;
-    return <String, TaskInput>{
-      'thisLibraryUnitsReady':
-          LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT10),
-      'directlyImportedLibrariesReady':
-          IMPORTED_LIBRARIES.of(source).toListOf(READY_RESOLVED_UNIT10),
-      'directlyExportedLibrariesReady':
-          EXPORTED_LIBRARIES.of(source).toListOf(READY_RESOLVED_UNIT10),
-    };
-  }
-
-  static ReadyResolvedUnit10Task createTask(
-      AnalysisContext context, AnalysisTarget target) {
-    return new ReadyResolvedUnit10Task(context, target);
-  }
-}
-
-/**
- * A task that ensures that [RESOLVED_UNIT11] is ready for every unit of the
- * target library source and its import/export closure.
- */
-class ReadyResolvedUnit11Task extends SourceBasedAnalysisTask {
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'ReadyResolvedUnit11Task',
-      createTask,
-      buildInputs,
-      <ResultDescriptor>[READY_RESOLVED_UNIT11]);
-
-  ReadyResolvedUnit11Task(
-      InternalAnalysisContext context, AnalysisTarget target)
-      : super(context, target);
-
-  @override
-  TaskDescriptor get descriptor => DESCRIPTOR;
-
-  @override
-  bool get handlesDependencyCycles => true;
-
-  @override
-  void internalPerform() {
-    outputs[READY_RESOLVED_UNIT11] = true;
-  }
-
-  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
-    Source source = target;
-    return <String, TaskInput>{
-      'thisLibraryUnitsReady':
-          LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT11),
-      'directlyImportedLibrariesReady':
-          IMPORTED_LIBRARIES.of(source).toListOf(READY_RESOLVED_UNIT11),
-      'directlyExportedLibrariesReady':
-          EXPORTED_LIBRARIES.of(source).toListOf(READY_RESOLVED_UNIT11),
-    };
-  }
-
-  static ReadyResolvedUnit11Task createTask(
-      AnalysisContext context, AnalysisTarget target) {
-    return new ReadyResolvedUnit11Task(context, target);
   }
 }
 
