@@ -499,7 +499,14 @@ class ConstantFinderTest {
    * represents a reference to a compile-time constant variable).
    */
   void test_visitAnnotation_constantVariable() {
-    _node = AstFactory.annotation(AstFactory.identifier3('x'));
+    CompilationUnitElement compilationUnitElement =
+        ElementFactory.compilationUnit('/test.dart', _source)..source = _source;
+    ElementFactory.library(_context, 'L').definingCompilationUnit =
+        compilationUnitElement;
+    ElementAnnotationImpl elementAnnotation =
+        new ElementAnnotationImpl(compilationUnitElement);
+    _node = elementAnnotation.annotationAst = AstFactory.annotation(
+        AstFactory.identifier3('x'))..elementAnnotation = elementAnnotation;
     expect(_findAnnotations(), contains(_node));
   }
 
@@ -508,9 +515,25 @@ class ConstantFinderTest {
    * constructor.
    */
   void test_visitAnnotation_invocation() {
-    _node = AstFactory.annotation2(
-        AstFactory.identifier3('A'), null, AstFactory.argumentList());
+    CompilationUnitElement compilationUnitElement =
+        ElementFactory.compilationUnit('/test.dart', _source)..source = _source;
+    ElementFactory.library(_context, 'L').definingCompilationUnit =
+        compilationUnitElement;
+    ElementAnnotationImpl elementAnnotation =
+        new ElementAnnotationImpl(compilationUnitElement);
+    _node = elementAnnotation.annotationAst = AstFactory.annotation2(
+        AstFactory.identifier3('A'), null, AstFactory.argumentList())
+      ..elementAnnotation = elementAnnotation;
     expect(_findAnnotations(), contains(_node));
+  }
+
+  void test_visitAnnotation_partOf() {
+    // Analyzer ignores annotations on "part of" directives.
+    Annotation annotation = AstFactory.annotation2(
+        AstFactory.identifier3('A'), null, AstFactory.argumentList());
+    _node = AstFactory.partOfDirective2(
+        <Annotation>[annotation], AstFactory.libraryIdentifier2(<String>['L']));
+    expect(_findConstants(), isEmpty);
   }
 
   void test_visitConstructorDeclaration_const() {
@@ -590,10 +613,10 @@ class ConstantFinderTest {
   List<Annotation> _findAnnotations() {
     Set<Annotation> annotations = new Set<Annotation>();
     for (ConstantEvaluationTarget target in _findConstants()) {
-      if (target is ConstantEvaluationTarget_Annotation) {
+      if (target is ElementAnnotationImpl) {
         expect(target.context, same(_context));
         expect(target.source, same(_source));
-        annotations.add(target.annotation);
+        annotations.add(target.annotationAst);
       }
     }
     return new List<Annotation>.from(annotations);
@@ -1824,6 +1847,7 @@ const A a = const A();
   }
 
   int _assertValidInt(EvaluationResultImpl result) {
+    expect(result, isNotNull);
     expect(result.value, isNotNull);
     DartObjectImpl value = result.value;
     expect(value.type, typeProvider.intType);

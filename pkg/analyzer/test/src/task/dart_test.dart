@@ -185,8 +185,7 @@ f() {
       unitElement.types[0].fields[0],
       unitElement.functions[0].localVariables[0],
       unitElement.types[0].constructors[0],
-      new ConstantEvaluationTarget_Annotation(
-          context, source, source, annotation),
+      annotation.elementAnnotation,
       unitElement.types[0].constructors[0].parameters[0]
     ];
     expect(
@@ -1141,10 +1140,7 @@ class D { const D(value); }
     // Now compute the dependencies for the annotation, and check that it is
     // the set [x, constructorForD].
     // TODO(paulberry): test librarySource != source
-    computeResult(
-        new ConstantEvaluationTarget_Annotation(
-            context, source, source, annotation),
-        CONSTANT_DEPENDENCIES,
+    computeResult(annotation.elementAnnotation, CONSTANT_DEPENDENCIES,
         matcher: isComputeConstantDependenciesTask);
     expect(
         outputs[CONSTANT_DEPENDENCIES].toSet(), [x, constructorForD].toSet());
@@ -1171,10 +1167,7 @@ const x = 1;
     Annotation annotation = findClassAnnotation(unit, 'C');
     // Now compute the dependencies for the annotation, and check that it is
     // the list [x].
-    computeResult(
-        new ConstantEvaluationTarget_Annotation(
-            context, source, source, annotation),
-        CONSTANT_DEPENDENCIES,
+    computeResult(annotation.elementAnnotation, CONSTANT_DEPENDENCIES,
         matcher: isComputeConstantDependenciesTask);
     expect(outputs[CONSTANT_DEPENDENCIES], [x]);
   }
@@ -1238,9 +1231,7 @@ class ComputeConstantValueTaskTest extends _AbstractDartTaskTest {
       if (member is ClassDeclaration && member.name.name == className) {
         expect(member.metadata, hasLength(1));
         Annotation annotation = member.metadata[0];
-        ConstantEvaluationTarget_Annotation target =
-            new ConstantEvaluationTarget_Annotation(
-                context, source, source, annotation);
+        ElementAnnotationImpl target = annotation.elementAnnotation;
         computeResult(target, CONSTANT_VALUE,
             matcher: isComputeConstantValueTask);
         expect(outputs[CONSTANT_VALUE], same(target));

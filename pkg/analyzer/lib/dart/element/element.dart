@@ -744,7 +744,7 @@ abstract class Element implements AnalysisTarget {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ElementAnnotation {
+abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /**
    * An empty list of annotations.
    */

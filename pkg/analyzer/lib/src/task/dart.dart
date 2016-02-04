@@ -1669,7 +1669,7 @@ class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
       CompilationUnitElementImpl unit = target
           .getAncestor((Element element) => element is CompilationUnitElement);
       librarySource = unit.librarySource;
-    } else if (target is ConstantEvaluationTarget_Annotation) {
+    } else if (target is ElementAnnotationImpl) {
       librarySource = target.librarySource;
     } else {
       throw new AnalysisException(

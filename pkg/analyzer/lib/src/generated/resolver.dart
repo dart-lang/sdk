@@ -7362,6 +7362,14 @@ class ResolverVisitor extends ScopedVisitor {
     safelyVisit(node.arguments);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+    ElementAnnotationImpl elementAnnotationImpl = node.elementAnnotation;
+    if (elementAnnotationImpl == null) {
+      // Analyzer ignores annotations on "part of" directives.
+      assert(parent is PartOfDirective);
+    } else {
+      elementAnnotationImpl.annotationAst =
+          new ConstantAstCloner().cloneNode(node);
+    }
     return null;
   }
 

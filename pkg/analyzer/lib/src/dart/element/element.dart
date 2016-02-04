@@ -1573,7 +1573,13 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /**
    * The compliation unit in which this annotation appears.
    */
-  final CompilationUnitElement compilationUnit;
+  final CompilationUnitElementImpl compilationUnit;
+
+  /**
+   * The AST of the annotation itself, cloned from the resolved AST for the
+   * source code.
+   */
+  Annotation annotationAst;
 
   /**
    * The result of evaluating this annotation as a compile-time constant
@@ -1590,6 +1596,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   DartObject get constantValue => evaluationResult.value;
+
+  @override
+  AnalysisContext get context => compilationUnit.library.context;
 
   @override
   bool get isDeprecated {
@@ -1638,6 +1647,14 @@ class ElementAnnotationImpl implements ElementAnnotation {
     }
     return false;
   }
+
+  /**
+   * Get the library containing this annotation.
+   */
+  Source get librarySource => compilationUnit.librarySource;
+
+  @override
+  Source get source => compilationUnit.source;
 
   @override
   String toString() => '@$element';
@@ -4111,8 +4128,8 @@ class ParameterElementImpl extends VariableElementImpl
   /**
    * Creates a synthetic parameter with [name], [type] and [kind].
    */
-  factory ParameterElementImpl.synthetic(String name, DartType type,
-      ParameterKind kind) {
+  factory ParameterElementImpl.synthetic(
+      String name, DartType type, ParameterKind kind) {
     ParameterElementImpl element = new ParameterElementImpl(name, -1);
     element.type = type;
     element.synthetic = true;
