@@ -28,7 +28,7 @@ mixin_supertype_subclass4_test: CompileTimeError # Issue 23773
 mixin_of_mixin_test: CompileTimeError # Issue 23773
 
 # The following tests are supposed to fail.
-# When run for testing dart2js supports all dart:X libraries (because it
+# In testing-mode, dart2js supports all dart:X libraries (because it
 # uses '--categories=all').
 library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
