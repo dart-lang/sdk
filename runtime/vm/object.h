@@ -2542,7 +2542,7 @@ class Function : public Object {
   bool IsImplicitStaticClosureFunction() const {
     return is_static() && IsImplicitClosureFunction();
   }
-  bool static IsImplicitStaticClosureFunction(RawFunction* func);
+  static bool IsImplicitStaticClosureFunction(RawFunction* func);
 
   // Returns true if this function represents an implicit instance closure
   // function.
