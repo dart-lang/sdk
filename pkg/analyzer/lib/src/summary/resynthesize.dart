@@ -426,8 +426,12 @@ class _ConstExprBuilder {
           _pushInstanceCreation();
           break;
         case UnlinkedConstOperation.length:
-          return AstFactory.nullLiteral();
-//          throw new StateError('Unsupported constant operation $operation');
+          Expression target = _pop();
+          SimpleIdentifier property = AstFactory.identifier3('length');
+          property.staticElement =
+              resynthesizer._buildStringLengthPropertyAccessorElement();
+          _push(AstFactory.propertyAccess(target, property));
+          break;
       }
     }
     return stack.single;
@@ -1621,6 +1625,9 @@ class _LibraryResynthesizer {
             assert(location.components.length == 4);
             element = new MethodElementHandle(summaryResynthesizer, location);
             break;
+          case ReferenceKind.length:
+            element = _buildStringLengthPropertyAccessorElement();
+            break;
           default:
             // This is an element that doesn't (yet) need to be referred to
             // directly, so don't bother populating an element for it.
@@ -1687,6 +1694,15 @@ class _LibraryResynthesizer {
     linkedTypeMap = null;
     referenceInfos = null;
   }
+
+  /**
+   * Return the new handle of the `String.length` getter element.
+   */
+  PropertyAccessorElementHandle _buildStringLengthPropertyAccessorElement() =>
+      new PropertyAccessorElementHandle(
+          summaryResynthesizer,
+          new ElementLocationImpl.con3(
+              <String>['dart:core', 'dart:core', 'String', 'length?']));
 
   /**
    * If the given [kind] is a top-level or class member property accessor, and

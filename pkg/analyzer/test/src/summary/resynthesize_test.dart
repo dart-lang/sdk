@@ -268,12 +268,17 @@ class ResynthTest extends ResolverTestCase {
         // We don't resynthesize parenthesis, so just ignore it.
         compareConstantExpressions(r, o.expression, desc);
       } else if (o is SimpleIdentifier && r is SimpleIdentifier) {
-        expect(r.name, o.name);
+        expect(r.name, o.name, reason: desc);
         compareElements(r.staticElement, o.staticElement, desc);
       } else if (o is PrefixedIdentifier && r is SimpleIdentifier) {
         // We don't resynthesize prefixed identifiers.
         // We use simple identifiers with correct elements.
         compareConstantExpressions(r, o.identifier, desc);
+      } else if (o is PropertyAccess && r is PropertyAccess) {
+        compareConstantExpressions(r.target, o.target, desc);
+        expect(r.propertyName.name, o.propertyName.name, reason: desc);
+        compareElements(
+            r.propertyName.staticElement, o.propertyName.staticElement, desc);
       } else if (o is PropertyAccess && r is SimpleIdentifier) {
         // We don't resynthesize property access.
         // We use simple identifiers with correct elements.
@@ -1234,6 +1239,97 @@ class C {
     checkLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C();
+''');
+  }
+
+  test_const_length_ofClassConstField() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+class C {
+  static const String F = '';
+}
+const int v = C.F.length;
+''');
+  }
+
+  test_const_length_ofClassConstField_imported() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C {
+  static const String F = '';
+}
+''');
+    checkLibrary(r'''
+import 'a.dart';
+const int v = C.F.length;
+''');
+  }
+
+  test_const_length_ofClassConstField_imported_withPrefix() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C {
+  static const String F = '';
+}
+''');
+    checkLibrary(r'''
+import 'a.dart' as p;
+const int v = p.C.F.length;
+''');
+  }
+
+  test_const_length_ofStringLiteral() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+const v = 'abc'.length;
+''');
+  }
+
+  test_const_length_ofTopLevelVariable() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+const String S = 'abc';
+const v = S.length;
+''');
+  }
+
+  test_const_length_ofTopLevelVariable_imported() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+const String S = 'abc';
+''');
+    checkLibrary(r'''
+import 'a.dart';
+const v = S.length;
+''');
+  }
+
+  test_const_length_ofTopLevelVariable_imported_withPrefix() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+const String S = 'abc';
+''');
+    checkLibrary(r'''
+import 'a.dart' as p;
+const v = p.S.length;
+''');
+  }
+
+  test_const_length_staticMethod() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+class C {
+  static int length() => 42;
+}
+const v = C.length;
 ''');
   }
 
