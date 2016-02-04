@@ -58,6 +58,8 @@ namespace dart {
   V(double, LibcRound, double)                                                 \
   V(double, LibcCos, double)                                                   \
   V(double, LibcSin, double)                                                   \
+  V(double, LibcAtan, double)                                                  \
+  V(double, LibcAtan2, double, double)                                         \
   V(RawBool*, CaseInsensitiveCompareUC16,                                      \
     RawString*, RawSmi*, RawSmi*, RawSmi*)                                     \
 

@@ -54,6 +54,8 @@ namespace dart {
   V(_Double, _div, DoubleDiv, 1201505037)                                      \
   V(::, sin, MathSin, 1741396147)                                              \
   V(::, cos, MathCos, 1951197905)                                              \
+  V(::, atan, MathAtan, 1668754384)                                            \
+  V(::, atan2, MathAtan2, 1931713076)                                          \
   V(::, min, MathMin, 478627534)                                               \
   V(::, max, MathMax, 212291192)                                               \
   V(::, _doublePow, MathDoublePow, 1286501289)                                 \

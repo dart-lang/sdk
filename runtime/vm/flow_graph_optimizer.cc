@@ -4563,12 +4563,13 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
         ReplaceCall(call, min_max);
       }
     }
-  } else if (recognized_kind == MethodRecognizer::kMathDoublePow) {
+  } else if ((recognized_kind == MethodRecognizer::kMathDoublePow) ||
+             (recognized_kind == MethodRecognizer::kMathAtan) ||
+             (recognized_kind == MethodRecognizer::kMathAtan2)) {
     if (FLAG_precompilation) {
       // No UnboxDouble instructons allowed.
       return;
     }
-    // We know that first argument is double, the second is num.
     // InvokeMathCFunctionInstr requires unboxed doubles. UnboxDouble
     // instructions contain type checks and conversions to double.
     ZoneGrowableArray<Value*>* args =
