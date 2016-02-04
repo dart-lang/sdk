@@ -6,6 +6,7 @@ library engine.declaration_resolver_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -18,6 +19,7 @@ import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
+  runReflectiveTests(DeclarationResolverMetadataTest);
   runReflectiveTests(DeclarationResolverTest);
   runReflectiveTests(StrongModeDeclarationResolverTest);
 }
@@ -32,6 +34,207 @@ SimpleIdentifier _findSimpleIdentifier(
     AstNode root, String code, String search) {
   return EngineTestCase.findNode(
       root, code, search, (n) => n is SimpleIdentifier);
+}
+
+@reflectiveTest
+class DeclarationResolverMetadataTest extends ResolverTestCase {
+  String code;
+  CompilationUnit unit;
+  CompilationUnit unit2;
+
+  void checkMetadata(String search) {
+    NodeList<Annotation> metadata = _findMetadata(unit, search);
+    NodeList<Annotation> metadata2 = _findMetadata(unit2, search);
+    expect(metadata, isNotEmpty);
+    for (int i = 0; i < metadata.length; i++) {
+      expect(
+          metadata2[i].elementAnnotation, same(metadata[i].elementAnnotation));
+    }
+  }
+
+  void setupCode(String code) {
+    this.code = code;
+    unit = resolveSource(code + ' const a = null;');
+    unit2 = _cloneResolveUnit(unit);
+  }
+
+  void test_metadata_classDeclaration() {
+    setupCode('@a class C {}');
+    checkMetadata('C');
+  }
+
+  void test_metadata_classTypeAlias() {
+    setupCode('@a class C = D with E; class D {} class E {}');
+    checkMetadata('C');
+  }
+
+  void test_metadata_constructorDeclaration_named() {
+    setupCode('class C { @a C.x(); }');
+    checkMetadata('x');
+  }
+
+  void test_metadata_constructorDeclaration_unnamed() {
+    setupCode('class C { @a C(); }');
+    checkMetadata('C()');
+  }
+
+  void test_metadata_declaredIdentifier() {
+    setupCode('f(x, y) { for (@a var x in y) {} }');
+    checkMetadata('var');
+  }
+
+  void test_metadata_enumDeclaration() {
+    setupCode('@a enum E { v }');
+    checkMetadata('E');
+  }
+
+  void test_metadata_exportDirective() {
+    addNamedSource('/foo.dart', 'class C {}');
+    setupCode('@a export "foo.dart";');
+    checkMetadata('export');
+  }
+
+  void test_metadata_fieldDeclaration() {
+    setupCode('class C { @a int x; }');
+    checkMetadata('x');
+  }
+
+  void test_metadata_fieldFormalParameter() {
+    setupCode('class C { var x; C(@a this.x); }');
+    checkMetadata('this');
+  }
+
+  void test_metadata_fieldFormalParameter_withDefault() {
+    setupCode('class C { var x; C([@a this.x = null]); }');
+    checkMetadata('this');
+  }
+
+  void test_metadata_functionDeclaration_function() {
+    setupCode('@a f() {}');
+    checkMetadata('f');
+  }
+
+  void test_metadata_functionDeclaration_getter() {
+    setupCode('@a get f() => null;');
+    checkMetadata('f');
+  }
+
+  void test_metadata_functionDeclaration_setter() {
+    setupCode('@a set f(value) {}');
+    checkMetadata('f');
+  }
+
+  void test_metadata_functionTypeAlias() {
+    setupCode('@a typedef F();');
+    checkMetadata('F');
+  }
+
+  void test_metadata_functionTypedFormalParameter() {
+    setupCode('f(@a g()) {}');
+    checkMetadata('g');
+  }
+
+  void test_metadata_functionTypedFormalParameter_withDefault() {
+    setupCode('f([@a g() = null]) {}');
+    checkMetadata('g');
+  }
+
+  void test_metadata_importDirective() {
+    addNamedSource('/foo.dart', 'class C {}');
+    setupCode('@a import "foo.dart";');
+    checkMetadata('import');
+  }
+
+  void test_metadata_libraryDirective() {
+    setupCode('@a library L;');
+    checkMetadata('L');
+  }
+
+  void test_metadata_localFunctionDeclaration() {
+    setupCode('f() { @a g() {} }');
+    // Note: metadata on local function declarations is ignored by the
+    // analyzer.  TODO(paulberry): is this a bug?
+    FunctionDeclaration node = EngineTestCase.findNode(
+        unit, code, 'g', (AstNode n) => n is FunctionDeclaration);
+    expect((node as FunctionDeclarationImpl).metadata, isEmpty);
+  }
+
+  void test_metadata_localVariableDeclaration() {
+    setupCode('f() { @a int x; }');
+    checkMetadata('x');
+  }
+
+  void test_metadata_methodDeclaration_getter() {
+    setupCode('class C { @a get m => null; }');
+    checkMetadata('m');
+  }
+
+  void test_metadata_methodDeclaration_method() {
+    setupCode('class C { @a m() {} }');
+    checkMetadata('m');
+  }
+
+  void test_metadata_methodDeclaration_setter() {
+    setupCode('class C { @a set m(value) {} }');
+    checkMetadata('m');
+  }
+
+  void test_metadata_partDirective() {
+    addNamedSource('/foo.dart', 'part of L;');
+    setupCode('library L; @a part "foo.dart";');
+    checkMetadata('part');
+  }
+
+  void test_metadata_simpleFormalParameter() {
+    setupCode('f(@a x) {}) {}');
+    checkMetadata('x');
+  }
+
+  void test_metadata_simpleFormalParameter_withDefault() {
+    setupCode('f([@a x = null]) {}');
+    checkMetadata('x');
+  }
+
+  void test_metadata_topLevelVariableDeclaration() {
+    setupCode('@a int x;');
+    checkMetadata('x');
+  }
+
+  void test_metadata_typeParameter_ofClass() {
+    setupCode('class C<@a T> {}');
+    checkMetadata('T');
+  }
+
+  void test_metadata_typeParameter_ofClassTypeAlias() {
+    setupCode('class C<@a T> = D with E; class D {} class E {}');
+    checkMetadata('T');
+  }
+
+  void test_metadata_typeParameter_ofFunction() {
+    setupCode('f<@a T>() {}');
+    checkMetadata('T');
+  }
+
+  void test_metadata_typeParameter_ofTypedef() {
+    setupCode('typedef F<@a T>();');
+    checkMetadata('T');
+  }
+
+  NodeList<Annotation> _findMetadata(CompilationUnit unit, String search) {
+    AstNode node =
+        EngineTestCase.findNode(unit, code, search, (AstNode _) => true);
+    while (node != null) {
+      if (node is AnnotatedNode && node.metadata.isNotEmpty) {
+        return node.metadata;
+      }
+      if (node is NormalFormalParameter && node.metadata.isNotEmpty) {
+        return node.metadata;
+      }
+      node = node.parent;
+    }
+    fail('Node not found');
+    return null;
+  }
 }
 
 @reflectiveTest

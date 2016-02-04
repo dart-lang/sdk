@@ -2097,7 +2097,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     try {
       SimpleIdentifier className = node.name;
       _enclosingClass = _findIdentifier(_enclosingUnit.types, className);
-      return super.visitClassDeclaration(node);
+      super.visitClassDeclaration(node);
+      _resolveMetadata(node.metadata, _enclosingClass);
+      return null;
     } finally {
       _enclosingClass = outerClass;
     }
@@ -2109,7 +2111,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     try {
       SimpleIdentifier className = node.name;
       _enclosingClass = _findIdentifier(_enclosingUnit.types, className);
-      return super.visitClassTypeAlias(node);
+      super.visitClassTypeAlias(node);
+      _resolveMetadata(node.metadata, _enclosingClass);
+      return null;
     } finally {
       _enclosingClass = outerClass;
     }
@@ -2128,7 +2132,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         constructorName.staticElement = _enclosingExecutable;
       }
       node.element = _enclosingExecutable as ConstructorElement;
-      return super.visitConstructorDeclaration(node);
+      super.visitConstructorDeclaration(node);
+      _resolveMetadata(node.metadata, _enclosingExecutable);
+      return null;
     } finally {
       _enclosingExecutable = outerExecutable;
     }
@@ -2137,8 +2143,11 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     SimpleIdentifier variableName = node.identifier;
-    _findIdentifier(_enclosingExecutable.localVariables, variableName);
-    return super.visitDeclaredIdentifier(node);
+    Element element =
+        _findIdentifier(_enclosingExecutable.localVariables, variableName);
+    super.visitDeclaredIdentifier(node);
+    _resolveMetadata(node.metadata, element);
+    return null;
   }
 
   @override
@@ -2162,7 +2171,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     ParameterElement outerParameter = _enclosingParameter;
     try {
       _enclosingParameter = element;
-      return super.visitDefaultFormalParameter(node);
+      super.visitDefaultFormalParameter(node);
+      _resolveMetadata(node.metadata, element);
+      return null;
     } finally {
       _enclosingParameter = outerParameter;
     }
@@ -2176,21 +2187,33 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     for (EnumConstantDeclaration constant in node.constants) {
       _findIdentifier(constants, constant.name);
     }
-    return super.visitEnumDeclaration(node);
+    super.visitEnumDeclaration(node);
+    _resolveMetadata(node.metadata, enclosingEnum);
+    return null;
   }
 
   @override
   Object visitExportDirective(ExportDirective node) {
     String uri = _getStringValue(node.uri);
+    ExportElement exportElement;
     if (uri != null) {
       LibraryElement library = _enclosingUnit.library;
-      ExportElement exportElement = _findExport(
+      exportElement = _findExport(
           library.exports,
           _enclosingUnit.context.sourceFactory
               .resolveUri(_enclosingUnit.source, uri));
       node.element = exportElement;
     }
-    return super.visitExportDirective(node);
+    super.visitExportDirective(node);
+    _resolveMetadata(node.metadata, exportElement);
+    return null;
+  }
+
+  @override
+  Object visitFieldDeclaration(FieldDeclaration node) {
+    super.visitFieldDeclaration(node);
+    _resolveMetadata(node.metadata, node.fields.variables[0].element);
+    return null;
   }
 
   @override
@@ -2201,7 +2224,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       ParameterElement outerParameter = _enclosingParameter;
       try {
         _enclosingParameter = element;
-        return super.visitFieldFormalParameter(node);
+        super.visitFieldFormalParameter(node);
+        _resolveMetadata(node.metadata, element);
+        return null;
       } finally {
         _enclosingParameter = outerParameter;
       }
@@ -2239,7 +2264,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         }
       }
       node.functionExpression.element = _enclosingExecutable;
-      return super.visitFunctionDeclaration(node);
+      super.visitFunctionDeclaration(node);
+      _resolveMetadata(node.metadata, _enclosingExecutable);
+      return null;
     } finally {
       _enclosingExecutable = outerExecutable;
     }
@@ -2268,7 +2295,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       SimpleIdentifier aliasName = node.name;
       _enclosingAlias =
           _findIdentifier(_enclosingUnit.functionTypeAliases, aliasName);
-      return super.visitFunctionTypeAlias(node);
+      super.visitFunctionTypeAlias(node);
+      _resolveMetadata(node.metadata, _enclosingAlias);
+      return null;
     } finally {
       _enclosingAlias = outerAlias;
     }
@@ -2282,7 +2311,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       ParameterElement outerParameter = _enclosingParameter;
       try {
         _enclosingParameter = element;
-        return super.visitFunctionTypedFormalParameter(node);
+        super.visitFunctionTypedFormalParameter(node);
+        _resolveMetadata(node.metadata, _enclosingParameter);
+        return null;
       } finally {
         _enclosingParameter = outerParameter;
       }
@@ -2294,16 +2325,19 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitImportDirective(ImportDirective node) {
     String uri = _getStringValue(node.uri);
+    ImportElement importElement;
     if (uri != null) {
       LibraryElement library = _enclosingUnit.library;
-      ImportElement importElement = _findImport(
+      importElement = _findImport(
           library.imports,
           _enclosingUnit.context.sourceFactory
               .resolveUri(_enclosingUnit.source, uri),
           node.prefix);
       node.element = importElement;
     }
-    return super.visitImportDirective(node);
+    super.visitImportDirective(node);
+    _resolveMetadata(node.metadata, importElement);
+    return null;
   }
 
   @override
@@ -2317,8 +2351,11 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitLibraryDirective(LibraryDirective node) {
-    node.element = _enclosingUnit.library;
-    return super.visitLibraryDirective(node);
+    LibraryElement libraryElement = _enclosingUnit.library;
+    node.element = libraryElement;
+    super.visitLibraryDirective(node);
+    _resolveMetadata(node.metadata, libraryElement);
+    return null;
   }
 
   @override
@@ -2341,7 +2378,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         }
         _enclosingExecutable = accessor;
       }
-      return super.visitMethodDeclaration(node);
+      super.visitMethodDeclaration(node);
+      _resolveMetadata(node.metadata, _enclosingExecutable);
+      return null;
     } finally {
       _enclosingExecutable = outerExecutable;
     }
@@ -2350,12 +2389,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitPartDirective(PartDirective node) {
     String uri = _getStringValue(node.uri);
+    CompilationUnitElement compilationUnitElement;
     if (uri != null) {
       Source partSource = _enclosingUnit.context.sourceFactory
           .resolveUri(_enclosingUnit.source, uri);
-      node.element = _findPart(_enclosingUnit.library.parts, partSource);
+      compilationUnitElement =
+          _findPart(_enclosingUnit.library.parts, partSource);
+      node.element = compilationUnitElement;
     }
-    return super.visitPartDirective(node);
+    super.visitPartDirective(node);
+    _resolveMetadata(node.metadata, compilationUnitElement);
+    return null;
   }
 
   @override
@@ -2372,7 +2416,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       ParameterElement outerParameter = _enclosingParameter;
       try {
         _enclosingParameter = element;
-        return super.visitSimpleFormalParameter(node);
+        super.visitSimpleFormalParameter(node);
+        _resolveMetadata(node.metadata, element);
+        return null;
       } finally {
         _enclosingParameter = outerParameter;
       }
@@ -2399,6 +2445,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    super.visitTopLevelVariableDeclaration(node);
+    _resolveMetadata(node.metadata, node.variables.variables[0].element);
+    return null;
+  }
+
+  @override
   Object visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.name;
 
@@ -2409,12 +2462,16 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
     if (element == null) {
       if (_enclosingClass != null) {
-        _findIdentifier(_enclosingClass.typeParameters, parameterName);
+        element =
+            _findIdentifier(_enclosingClass.typeParameters, parameterName);
       } else if (_enclosingAlias != null) {
-        _findIdentifier(_enclosingAlias.typeParameters, parameterName);
+        element =
+            _findIdentifier(_enclosingAlias.typeParameters, parameterName);
       }
     }
-    return super.visitTypeParameter(node);
+    super.visitTypeParameter(node);
+    _resolveMetadata(node.metadata, element);
+    return null;
   }
 
   @override
@@ -2446,6 +2503,16 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       }
     }
     return super.visitVariableDeclaration(node);
+  }
+
+  @override
+  Object visitVariableDeclarationList(VariableDeclarationList node) {
+    super.visitVariableDeclarationList(node);
+    if (node.parent is! FieldDeclaration &&
+        node.parent is! TopLevelVariableDeclaration) {
+      _resolveMetadata(node.metadata, node.variables[0].element);
+    }
+    return null;
   }
 
   /**
@@ -2610,6 +2677,24 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       return null;
     }
     return literal.stringValue;
+  }
+
+  /**
+   * If [element] is not `null`, associate each [Annotation] in [astMetadata]
+   * with the corresponding [ElementAnnotation] in [element.metadata].
+   *
+   * If [element] is `null`, do nothing--this allows us to be robust in the
+   * case where we are operating on an element model that hasn't been fully
+   * built.
+   */
+  void _resolveMetadata(NodeList<Annotation> astMetadata, Element element) {
+    if (element != null) {
+      List<ElementAnnotation> elementMetadata = element.metadata;
+      assert(astMetadata.length == elementMetadata.length);
+      for (int i = 0; i < astMetadata.length; i++) {
+        astMetadata[i].elementAnnotation = elementMetadata[i];
+      }
+    }
   }
 }
 
