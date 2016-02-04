@@ -74,8 +74,6 @@ import 'spannable.dart' show
 
 import 'generated/shared_messages.dart' as shared_messages;
 
-export 'generated/shared_messages.dart' show SharedMessageKind;
-
 const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
 
 /// Keys for the [MessageTemplate]s.
@@ -146,7 +144,7 @@ enum MessageKind {
   CONSIDER_ANALYZE_ALL,
   CONST_CALLS_NON_CONST,
   CONST_CALLS_NON_CONST_FOR_IMPLICIT,
-  CONST_CONSTRUCTOR_HAS_BODY,
+  CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD,
@@ -978,17 +976,6 @@ main() {}"""},
       MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY:
         const MessageTemplate(MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY,
           "Redirecting constructor can't have a body."),
-
-      MessageKind.CONST_CONSTRUCTOR_HAS_BODY:
-        const MessageTemplate(MessageKind.CONST_CONSTRUCTOR_HAS_BODY,
-          "Const constructor or factory can't have a body.",
-          howToFix: "Remove the 'const' keyword or the body",
-          examples: const ["""
-class C {
-  const C() {}
-}
-
-main() => new C();"""]),
 
       MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER:
         const MessageTemplate(

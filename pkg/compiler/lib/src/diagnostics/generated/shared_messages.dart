@@ -9,29 +9,26 @@ Messages are maintained in `lib/shared_messages.dart` of that same package.
 After any change to that file, run `bin/publish.dart` to generate a new version
 of the json, dart2js and analyzer representations.
 */
-import '../messages.dart' show MessageTemplate;
+import '../messages.dart' show MessageKind, MessageTemplate;
 
-enum SharedMessageKind {
-  exampleMessage
-}
-
-const Map<SharedMessageKind, MessageTemplate> TEMPLATES = const <SharedMessageKind, MessageTemplate>{ 
-  SharedMessageKind.exampleMessage: const MessageTemplate(
-    SharedMessageKind.exampleMessage,
-    "#use #named #arguments",
-    howToFix: "an explanation on how to fix things",
+const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageTemplate>{ 
+  MessageKind.CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY: const MessageTemplate(
+    MessageKind.CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY,
+    "Const constructor or factory can't have a body.",
+    howToFix: "Remove the 'const' keyword or the body.",
     examples: const [
       r'''
-      Some multiline example;
-      That generates the bug.''',
-      const {
-      'fileA.dart': r'''
-        or a map from file to content.
-        again multiline''',
-      'fileB.dart': r'''
-        with possibly multiple files.
-        muliline too''',
-      },
+         class C {
+           const C() {}
+         }
+
+         main() => new C();''',
+      r'''
+         class C {
+           const factory C() {}
+         }
+
+         main() => new C();''',
     ]
   ),  // Generated. Don't edit.
 };

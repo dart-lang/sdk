@@ -14,6 +14,8 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/generated/shared_messages.dart'
+    as shared_messages;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -9410,15 +9412,13 @@ class ParserErrorCode extends ErrorCode {
       'CONST_CLASS', "Classes cannot be declared to be 'const'");
 
   static const ParserErrorCode CONST_CONSTRUCTOR_WITH_BODY =
-      const ParserErrorCode('CONST_CONSTRUCTOR_WITH_BODY',
-          "'const' constructors cannot have a body");
+      shared_messages.CONST_CONSTRUCTOR_WITH_BODY;
 
   static const ParserErrorCode CONST_ENUM = const ParserErrorCode(
       'CONST_ENUM', "Enums cannot be declared to be 'const'");
 
-  static const ParserErrorCode CONST_FACTORY = const ParserErrorCode(
-      'CONST_FACTORY',
-      "Only redirecting factory constructors can be declared to be 'const'");
+  static const ParserErrorCode CONST_FACTORY =
+      shared_messages.CONST_FACTORY;
 
   static const ParserErrorCode CONST_METHOD = const ParserErrorCode(
       'CONST_METHOD',

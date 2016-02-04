@@ -70,17 +70,25 @@ class Category {
 
   static final analysisOptionsWarning = new Category("AnalysisOptionsWarning");
 
-  static final checkedModeCompileTimeError = new Category(
-      "CheckedModeCompileTimeError");
+  static final checkedModeCompileTimeError =
+      new Category("CheckedModeCompileTimeError");
+
+  static final parserError = new Category("ParserError");
 
   final String name;
 
   Category(this.name);
 }
 
+enum Platform {
+  dart2js, analyzer,
+}
+const dart2js = Platform.dart2js;
+const analyzer = Platform.analyzer;
 
 class Message {
   final String id;
+  final int subId;
   final Category category;
   final String template;
   // The analyzer fills holes positionally (and not named). The following field
@@ -90,23 +98,37 @@ class Message {
   // provide the class `cls` and then only `field`.
   // This list is generally `null`, but when it is provided it must contain all
   // holes.
-  final List templateHoleOrder;
+  final List<String> templateHoleOrder;
   final String howToFix;
   final List<String> options;
   final List examples;
+  final List<Platform> usedBy;
 
-  Message({this.id, this.category, this.template, this.templateHoleOrder,
-      this.howToFix, this.options, this.examples});
+  Message(
+      {this.id,
+      this.subId: 0,
+      this.category,
+      this.template,
+      this.templateHoleOrder,
+      this.howToFix,
+      this.options,
+      this.usedBy: const [],
+      this.examples});
 }
 
 String get messagesAsJson {
   var jsonified = {};
   MESSAGES.forEach((String name, Message message) {
-    jsonified[name] =  {
+    jsonified[name] = {
       'id': message.id,
+      'subId': message.subId,
       'category': message.category.name,
       'template': message.template,
-      'howToFix': message.howToFix
+      'templateHoleOrder': message.templateHoleOrder,
+      'howToFix': message.howToFix,
+      'options': message.options,
+      'usedBy': message.usedBy.map((platform) => platform.toString()).toList(),
+      'examples': message.examples,
     };
   });
   return JSON.encode(jsonified);
@@ -119,17 +141,74 @@ final Map<String, Message> MESSAGES = {
       template: "#use #named #arguments",
       templateHoleOrder: ["arguments", "named", "use"],
       howToFix: "an explanation on how to fix things",
-      examples: [r'''
+      examples: [
+        r'''
       Some multiline example;
       That generates the bug.''',
-      {
-      'fileA.dart': '''
+        {
+          'fileA.dart': '''
         or a map from file to content.
         again multiline''',
-      'fileB.dart': '''
+          'fileB.dart': '''
         with possibly multiple files.
         muliline too'''
-      }
-    ]
-  ),
+        }
+      ]),
+
+  // Const constructors (factory or not) may not have a body.
+  'CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY': new Message(
+      id: 'LGJGHW',
+      subId: 0,
+      category: Category.parserError,
+      template: "Const constructor or factory can't have a body.",
+      howToFix: "Remove the 'const' keyword or the body.",
+      usedBy: [dart2js],
+      examples: const [
+        r"""
+         class C {
+           const C() {}
+         }
+
+         main() => new C();""",
+        r"""
+         class C {
+           const factory C() {}
+         }
+
+         main() => new C();"""
+      ]),
+  // Const constructors may not have a body.
+  'CONST_CONSTRUCTOR_WITH_BODY': new Message(
+      id: 'LGJGHW',
+      subId: 1,
+      category: Category.parserError,
+      template: "Const constructor can't have a body.",
+      howToFix: "Try removing the 'const' keyword or the body.",
+      usedBy: [analyzer],
+      examples: const [
+        r"""
+         class C {
+           const C() {}
+         }
+
+         main() => new C();"""
+      ]),
+  // Const constructor factories may only redirect (and must not have a body).
+  'CONST_FACTORY': new Message(
+      id: 'LGJGHW',
+      subId: 2,
+      category: Category.parserError,
+      template: "Only redirecting factory constructors can be declared to "
+          "be 'const'.",
+      howToFix: "Try removing the 'const' keyword or replacing the body with "
+          "'=' followed by a valid target",
+      usedBy: [analyzer],
+      examples: const [
+        r"""
+         class C {
+           const factory C() {}
+         }
+
+         main() => new C();"""
+      ]),
 };

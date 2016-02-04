@@ -239,7 +239,7 @@ class ResolverTask extends CompilerTask {
             tree.hasBody() &&
             !tree.isRedirectingFactory) {
           reporter.reportErrorMessage(
-              tree, MessageKind.CONST_CONSTRUCTOR_HAS_BODY);
+              tree, MessageKind.CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY);
         }
       }
 

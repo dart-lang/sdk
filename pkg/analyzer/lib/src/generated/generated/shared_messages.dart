@@ -10,8 +10,14 @@ After any change to that file, run `bin/publish.dart` to generate a new version
 of the json, dart2js and analyzer representations.
 */
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 
-const AnalysisOptionsErrorCode exampleMessage = const AnalysisOptionsErrorCode(
-    'exampleMessage',
-    "{2} {1} {0}",
-    "an explanation on how to fix things");  // Generated. Don't edit.
+const ParserErrorCode CONST_CONSTRUCTOR_WITH_BODY = const ParserErrorCode(
+    'CONST_CONSTRUCTOR_WITH_BODY',
+    "Const constructor can't have a body.",
+    "Try removing the 'const' keyword or the body.");  // Generated. Don't edit.
+
+const ParserErrorCode CONST_FACTORY = const ParserErrorCode(
+    'CONST_FACTORY',
+    "Only redirecting factory constructors can be declared to be 'const'.",
+    "Try removing the 'const' keyword or replacing the body with '=' followed by a valid target");  // Generated. Don't edit.
