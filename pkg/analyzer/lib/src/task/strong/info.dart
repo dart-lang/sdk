@@ -138,6 +138,19 @@ abstract class DownCast extends CoercionInfo {
       }
     }
 
+    Element element = null;
+    if (expression is PropertyAccess) {
+      element = expression.propertyName.staticElement;
+    } else if (expression is Identifier) {
+      element = expression.staticElement;
+    }
+    // First class functions and static methods, where we know the original
+    // declaration, will have an exact type, so we know a downcast will fail.
+    if (element is FunctionElement ||
+        element is MethodElement && element.isStatic) {
+      return new StaticTypeError(rules, expression, toT, reason: reason);
+    }
+
     // TODO(vsm): Change this to an assert when we have generic methods and
     // fix TypeRules._coerceTo to disallow implicit sideways casts.
     if (!rules.isSubtypeOf(toT, fromT)) {

@@ -283,8 +283,9 @@ void main() {
    '''
   });
 
-  testChecker('Ground type subtyping: dynamic is top', {
-    '/main.dart': '''
+  group('Ground type subtyping:', () {
+    testChecker('dynamic is top', {
+      '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -305,10 +306,10 @@ void main() {
          y = b;
       }
    '''
-  });
+    });
 
-  testChecker('Ground type subtyping: dynamic downcasts', {
-    '/main.dart': '''
+    testChecker('dynamic downcasts', {
+      '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -329,10 +330,10 @@ void main() {
          b = /*info:DYNAMIC_CAST*/y;
       }
    '''
-  });
+    });
 
-  testChecker('Ground type subtyping: assigning a class', {
-    '/main.dart': '''
+    testChecker('assigning a class', {
+      '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -354,10 +355,10 @@ void main() {
          b = /*info:DOWN_CAST_IMPLICIT*/a;
       }
    '''
-  });
+    });
 
-  testChecker('Ground type subtyping: assigning a subclass', {
-    '/main.dart': '''
+    testChecker('assigning a subclass', {
+      '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -382,10 +383,10 @@ void main() {
          c = /*severe:STATIC_TYPE_ERROR*/b;
       }
    '''
-  });
+    });
 
-  testChecker('Ground type subtyping: interfaces', {
-    '/main.dart': '''
+    testChecker('interfaces', {
+      '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -423,10 +424,12 @@ void main() {
          }
       }
    '''
+    });
   });
 
-  testChecker('Function typing and subtyping: int and object', {
-    '/main.dart': '''
+  group('Function typing and subtyping:', () {
+    testChecker('int and object', {
+      '/main.dart': '''
 
       typedef Object Top(int x);      // Top of the lattice
       typedef int Left(int x);        // Left branch
@@ -434,13 +437,20 @@ void main() {
       typedef Object Right(Object x); // Right branch
       typedef int Bot(Object x);      // Bottom of the lattice
 
-      Object top(int x) => x;
-      int left(int x) => x;
-      Object right(Object x) => x;
+      Object globalTop(int x) => x;
+      int globalLeft(int x) => x;
+      Object globalRight(Object x) => x;
       int _bot(Object x) => /*info:DOWN_CAST_IMPLICIT*/x;
-      int bot(Object x) => x as int;
+      int globalBot(Object x) => x as int;
 
       void main() {
+        // Note: use locals so we only know the type, not that it's a specific
+        // function declaration. (we can issue better errors in that case.)
+        var top = globalTop;
+        var left = globalLeft;
+        var right = globalRight;
+        var bot = globalBot;
+
         { // Check typedef equality
           Left f = left;
           Left2 g = f;
@@ -475,10 +485,10 @@ void main() {
         }
       }
    '''
-  });
+    });
 
-  testChecker('Function typing and subtyping: classes', {
-    '/main.dart': '''
+    testChecker('classes', {
+      '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -509,31 +519,31 @@ void main() {
         }
         {
           Left f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
           f = left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/right; // Should we reject this?
+          f = /*severe:STATIC_TYPE_ERROR*/right;
           f = bot;
         }
         {
           Right f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left; // Should we reject this?
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
           f = right;
           f = bot;
         }
         {
           Bot f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/right;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/right;
           f = bot;
         }
       }
    '''
-  });
+    });
 
-  testChecker('Function typing and subtyping: dynamic', {
-    '/main.dart': '''
+    testChecker('dynamic', {
+      '/main.dart': '''
 
       class A {}
 
@@ -557,31 +567,31 @@ void main() {
         }
         {
           Left f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
           f = left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/right;
+          f = /*severe:STATIC_TYPE_ERROR*/right;
           f = bot;
         }
         {
           Right f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
           f = right;
           f = bot;
         }
         {
           Bottom f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/right;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/right;
           f = bot;
         }
       }
    '''
-  });
+    });
 
-  testChecker('Function typing and subtyping: function literal variance', {
-    '/main.dart': '''
+    testChecker('function literal variance', {
+      '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -603,31 +613,31 @@ void main() {
         }
         {
           Function2<B, B> f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
           f = left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/right; // Should we reject this?
+          f = /*severe:STATIC_TYPE_ERROR*/right;
           f = bot;
         }
         {
           Function2<A, A> f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left; // Should we reject this?
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
           f = right;
           f = bot;
         }
         {
           Function2<A, B> f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/right;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/right;
           f = bot;
         }
       }
    '''
-  });
+    });
 
-  testChecker('Function typing and subtyping: function variable variance', {
-    '/main.dart': '''
+    testChecker('function variable variance', {
+      '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -663,10 +673,107 @@ void main() {
         }
       }
    '''
-  });
+    });
 
-  testChecker('Function typing and subtyping: higher order function literals', {
-    '/main.dart': '''
+    testChecker('static method variance', {
+      '/main.dart': '''
+
+      class A {}
+      class B extends A {}
+
+      class C {
+        static A top(B x) => x;
+        static B left(B x) => x;
+        static A right(A x) => x;
+        static B bot(A x) => x as B;
+      }
+
+      typedef T Function2<S, T>(S z);
+
+      void main() {
+        {
+          Function2<B, A> f;
+          f = C.top;
+          f = C.left;
+          f = C.right;
+          f = C.bot;
+        }
+        {
+          Function2<B, B> f;
+          f = /*severe:STATIC_TYPE_ERROR*/C.top;
+          f = C.left;
+          f = /*severe:STATIC_TYPE_ERROR*/C.right;
+          f = C.bot;
+        }
+        {
+          Function2<A, A> f;
+          f = /*severe:STATIC_TYPE_ERROR*/C.top;
+          f = /*severe:STATIC_TYPE_ERROR*/C.left;
+          f = C.right;
+          f = C.bot;
+        }
+        {
+          Function2<A, B> f;
+          f = /*severe:STATIC_TYPE_ERROR*/C.top;
+          f = /*severe:STATIC_TYPE_ERROR*/C.left;
+          f = /*severe:STATIC_TYPE_ERROR*/C.right;
+          f = C.bot;
+        }
+      }
+   '''
+    });
+
+    testChecker('instance method variance', {
+      '/main.dart': '''
+
+      class A {}
+      class B extends A {}
+
+      class C {
+        A top(B x) => x;
+        B left(B x) => x;
+        A right(A x) => x;
+        B bot(A x) => x as B;
+      }
+
+      typedef T Function2<S, T>(S z);
+
+      void main() {
+        C c = new C();
+        {
+          Function2<B, A> f;
+          f = c.top;
+          f = c.left;
+          f = c.right;
+          f = c.bot;
+        }
+        {
+          Function2<B, B> f;
+          f = /*warning:DOWN_CAST_COMPOSITE*/c.top;
+          f = c.left;
+          f = /*warning:DOWN_CAST_COMPOSITE*/c.right;
+          f = c.bot;
+        }
+        {
+          Function2<A, A> f;
+          f = /*warning:DOWN_CAST_COMPOSITE*/c.top;
+          f = /*warning:DOWN_CAST_COMPOSITE*/c.left;
+          f = c.right;
+          f = c.bot;
+        }
+        {
+          Function2<A, B> f;
+          f = /*warning:DOWN_CAST_COMPOSITE*/c.top;
+          f = /*warning:DOWN_CAST_COMPOSITE*/c.left;
+          f = /*warning:DOWN_CAST_COMPOSITE*/c.right;
+          f = c.bot;
+        }
+      }
+   '''
+    });
+
+    testChecker('higher order function literals 1', {
+      '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -682,12 +789,99 @@ void main() {
       AToB _bot(BToA f) => /*warning:DOWN_CAST_COMPOSITE*/f;
       AToB bot(BToA f) => f as AToB;
 
+      void main() {
+        {
+          Function2<AToB, BToA> f; // Top
+          f = top;
+          f = left;
+          f = right;
+          f = bot;
+        }
+        {
+          Function2<AToB, AToB> f; // Left
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = left;
+          f = /*severe:STATIC_TYPE_ERROR*/right;
+          f = bot;
+        }
+        {
+          Function2<BToA, BToA> f; // Right
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = right;
+          f = bot;
+        }
+        {
+          Function2<BToA, AToB> f; // Bot
+          f = bot;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+        }
+      }
+   '''
+    });
+
+    testChecker('higher order function literals 2', {
+      '/main.dart': '''
+
+      class A {}
+      class B extends A {}
+
+      typedef T Function2<S, T>(S z);
+
+      typedef A BToA(B x);  // Top of the base lattice
+      typedef B AToB(A x);  // Bot of the base lattice
+
       Function2<B, A> top(AToB f) => f;
       Function2<A, B> left(AToB f) => f;
       Function2<B, A> right(BToA f) => f;
       Function2<A, B> _bot(BToA f) => /*warning:DOWN_CAST_COMPOSITE*/f;
       Function2<A, B> bot(BToA f) => f as Function2<A, B>;
 
+      void main() {
+        {
+          Function2<AToB, BToA> f; // Top
+          f = top;
+          f = left;
+          f = right;
+          f = bot;
+        }
+        {
+          Function2<AToB, AToB> f; // Left
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = left;
+          f = /*severe:STATIC_TYPE_ERROR*/right;
+          f = bot;
+        }
+        {
+          Function2<BToA, BToA> f; // Right
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = right;
+          f = bot;
+        }
+        {
+          Function2<BToA, AToB> f; // Bot
+          f = bot;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+        }
+      }
+   '''
+    });
+
+    testChecker('higher order function literals 3', {
+      '/main.dart': '''
+
+      class A {}
+      class B extends A {}
+
+      typedef T Function2<S, T>(S z);
+
+      typedef A BToA(B x);  // Top of the base lattice
+      typedef B AToB(A x);  // Bot of the base lattice
 
       BToA top(Function2<A, B> f) => f;
       AToB left(Function2<A, B> f) => f;
@@ -705,32 +899,31 @@ void main() {
         }
         {
           Function2<AToB, AToB> f; // Left
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
           f = left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/right; // Should we reject this?
+          f = /*severe:STATIC_TYPE_ERROR*/right;
           f = bot;
         }
         {
           Function2<BToA, BToA> f; // Right
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left; // Should we reject this?
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
           f = right;
           f = bot;
         }
         {
           Function2<BToA, AToB> f; // Bot
           f = bot;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
         }
       }
    '''
-  });
+    });
 
-  testChecker(
-      'Function typing and subtyping: higher order function variables', {
-    '/main.dart': '''
+    testChecker('higher order function variables', {
+      '/main.dart': '''
 
     class A {}
     class B extends A {}
@@ -768,10 +961,10 @@ void main() {
       }
     }
    '''
-  });
+    });
 
-  testChecker('Function typing and subtyping: named and optional parameters', {
-    '/main.dart': '''
+    testChecker('named and optional parameters', {
+      '/main.dart': '''
 
       class A {}
 
@@ -887,10 +1080,10 @@ void main() {
          nnn = nnn;
       }
    '''
-  });
+    });
 
-  testChecker('Function subtyping: objects with call methods', {
-    '/main.dart': '''
+    testChecker('Function subtyping: objects with call methods', {
+      '/main.dart': '''
 
       typedef int I2I(int x);
       typedef num N2N(num x);
@@ -908,7 +1101,7 @@ void main() {
            f = new A();
            f = /*severe:STATIC_TYPE_ERROR*/new B();
            f = i2i;
-           f = /*warning:DOWN_CAST_COMPOSITE*/n2n;
+           f = /*severe:STATIC_TYPE_ERROR*/n2n;
            f = /*warning:DOWN_CAST_COMPOSITE*/i2i as Object;
            f = /*warning:DOWN_CAST_COMPOSITE*/n2n as Function;
          }
@@ -916,7 +1109,7 @@ void main() {
            N2N f;
            f = /*severe:STATIC_TYPE_ERROR*/new A();
            f = new B();
-           f = /*warning:DOWN_CAST_COMPOSITE*/i2i;
+           f = /*severe:STATIC_TYPE_ERROR*/i2i;
            f = n2n;
            f = /*warning:DOWN_CAST_COMPOSITE*/i2i as Object;
            f = /*warning:DOWN_CAST_COMPOSITE*/n2n as Function;
@@ -950,26 +1143,27 @@ void main() {
          }
       }
    '''
-  });
+    });
 
-  testChecker('Function typing and subtyping: void', {
-    '/main.dart': '''
+    testChecker('void', {
+      '/main.dart': '''
 
       class A {
         void bar() => null;
         void foo() => bar; // allowed
       }
    '''
-  });
+    });
 
-  testChecker('Function subtyping: uninferred closure', {
-    '/main.dart': '''
+    testChecker('uninferred closure', {
+      '/main.dart': '''
       typedef num Num2Num(num x);
       void main() {
         Num2Num g = /*info:INFERRED_TYPE_CLOSURE,severe:STATIC_TYPE_ERROR*/(int x) { return x; };
         print(g(42));
       }
     '''
+    });
   });
 
   testChecker('Relaxed casts', {
@@ -1416,7 +1610,7 @@ void main() {
   });
 
   testChecker('generic function wrong number of arguments', {
-      '/main.dart': r'''
+    '/main.dart': r'''
           /*=T*/ foo/*<T>*/(/*=T*/ x, /*=T*/ y) => x;
           /*=T*/ bar/*<T>*/({/*=T*/ x, /*=T*/ y}) => x;
 

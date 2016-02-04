@@ -1611,9 +1611,8 @@ main() {
   takeOOI(/*severe:STATIC_TYPE_ERROR*/math.max);
   takeIDI(/*severe:STATIC_TYPE_ERROR*/math.max);
   takeDID(/*severe:STATIC_TYPE_ERROR*/math.max);
-
-  takeOON(/*warning:DOWN_CAST_COMPOSITE*/math.max);
-  takeOOO(/*warning:DOWN_CAST_COMPOSITE*/math.max);
+  takeOON(/*severe:STATIC_TYPE_ERROR*/math.max);
+  takeOOO(/*severe:STATIC_TYPE_ERROR*/math.max);
 
   // Also test SimpleIdentifier
   takeIII(min);
@@ -1629,9 +1628,8 @@ main() {
   takeOOI(/*severe:STATIC_TYPE_ERROR*/min);
   takeIDI(/*severe:STATIC_TYPE_ERROR*/min);
   takeDID(/*severe:STATIC_TYPE_ERROR*/min);
-
-  takeOON(/*warning:DOWN_CAST_COMPOSITE*/min);
-  takeOOO(/*warning:DOWN_CAST_COMPOSITE*/min);
+  takeOON(/*severe:STATIC_TYPE_ERROR*/min);
+  takeOOO(/*severe:STATIC_TYPE_ERROR*/min);
   
   // Also PropertyAccess
   takeIII(new C().m);
@@ -1648,6 +1646,8 @@ main() {
   takeIDI(/*severe:STATIC_TYPE_ERROR*/new C().m);
   takeDID(/*severe:STATIC_TYPE_ERROR*/new C().m);
 
+  // Note: this is a warning because a downcast of a method tear-off could work
+  // (derived method can be a subtype).
   takeOON(/*warning:DOWN_CAST_COMPOSITE*/new C().m);
   takeOOO(/*warning:DOWN_CAST_COMPOSITE*/new C().m);
 }
