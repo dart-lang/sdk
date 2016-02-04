@@ -8144,6 +8144,16 @@ RawString* TokenStream::GenerateSource(TokenPosition start_pos,
       separator = NULL;
     } else if ((curr == Token::kSEMICOLON) && (next != Token::kNEWLINE)) {
       separator = &Symbols::Blank();
+    } else if ((curr == Token::kIS) && (next == Token::kNOT)) {
+      separator = NULL;
+    } else if ((prev == Token::kIS) && (curr == Token::kNOT)) {
+      separator = &Symbols::Blank();
+    } else if ((curr == Token::kIDENT) &&
+               ((next == Token::kINCR) || (next == Token::kDECR))) {
+      separator = NULL;
+    } else if (((curr == Token::kINCR) || (curr == Token::kDECR)) &&
+               (next == Token::kIDENT)) {
+      separator = NULL;
     }
 
     // Add the separator.
