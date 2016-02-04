@@ -81,8 +81,8 @@
         'abstract': 1,
         'xcode_settings': {
           'OTHER_CFLAGS': [
-          '-fno-omit-frame-pointer',
-          '-mno-omit-leaf-frame-pointer',
+            '-fno-omit-frame-pointer',
+            '-mno-omit-leaf-frame-pointer',
           ],
         },
       },
@@ -90,8 +90,8 @@
         'abstract': 1,
         'xcode_settings': {
           'OTHER_CFLAGS': [
-          '-fno-omit-frame-pointer',
-          '-mno-omit-leaf-frame-pointer',
+            '-fno-omit-frame-pointer',
+            '-mno-omit-leaf-frame-pointer',
           ],
         },
       },
@@ -99,8 +99,8 @@
         'abstract': 1,
         'xcode_settings': {
           'OTHER_CFLAGS': [
-          '-fomit-frame-pointer',
-          '-momit-leaf-frame-pointer',
+            '-fomit-frame-pointer',
+            '-momit-leaf-frame-pointer',
           ],
         },
       },

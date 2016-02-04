@@ -40,38 +40,77 @@
 
       'Dart_Linux_ia32_Base': {
         'abstract': 1,
-        'cflags': [ '-m32', '-msse2', '-mfpmath=sse' ],
-        'ldflags': [ '-m32', ],
+        'cflags': [
+          '-m32',
+          '-msse2',
+          '-mfpmath=sse',
+        ],
+        'ldflags': [
+          '-m32',
+        ],
       },
 
       'Dart_Linux_x64_Base': {
         'abstract': 1,
-        'cflags': [ '-m64', '-msse2' ],
-        'ldflags': [ '-m64', ],
+        'cflags': [
+          '-m64',
+          '-msse2',
+        ],
+        'ldflags': [
+          '-m64',
+        ],
       },
 
       'Dart_Linux_simarm_Base': {
         'abstract': 1,
-        'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
-        'ldflags': [ '-m32', ],
+        'cflags': [
+          '-O3',
+          '-m32',
+          '-msse2',
+          '-mfpmath=sse',
+        ],
+        'ldflags': [
+          '-m32',
+        ],
       },
 
       'Dart_Linux_simarmv6_Base': {
         'abstract': 1,
-        'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
-        'ldflags': [ '-m32', ],
+        'cflags': [
+          '-O3',
+          '-m32',
+          '-msse2',
+          '-mfpmath=sse',
+        ],
+        'ldflags': [
+          '-m32',
+        ],
       },
 
       'Dart_Linux_simarmv5te_Base': {
         'abstract': 1,
-        'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
-        'ldflags': [ '-m32', ],
+        'cflags': [
+          '-O3',
+          '-m32',
+          '-msse2',
+          '-mfpmath=sse',
+        ],
+        'ldflags': [
+          '-m32',
+        ],
       },
 
       'Dart_Linux_simarm64_Base': {
         'abstract': 1,
-        'cflags': [ '-O3', '-m64', '-msse2', '-mfpmath=sse' ],
-        'ldflags': [ '-m64', ],
+        'cflags': [
+          '-O3',
+          '-m64',
+          '-msse2',
+          '-mfpmath=sse',
+        ],
+        'ldflags': [
+          '-m64',
+        ],
       },
 
       # ARM cross-build
@@ -87,8 +126,14 @@
           ],
         }],
         ['_toolset=="host"', {
-          'cflags': ['-m32', '-msse2', '-mfpmath=sse' ],
-          'ldflags': ['-m32'],
+          'cflags': [
+            '-m32',
+            '-msse2',
+            '-mfpmath=sse',
+          ],
+          'ldflags': [
+            '-m32',
+          ],
         }]]
       },
 
@@ -116,8 +161,14 @@
           ],
         }],
         ['_toolset=="host"', {
-          'cflags': ['-m32', '-msse2', '-mfpmath=sse' ],
-          'ldflags': ['-m32'],
+          'cflags': [
+            '-m32',
+            '-msse2',
+            '-mfpmath=sse',
+          ],
+          'ldflags': [
+            '-m32',
+          ],
         }]]
       },
 
@@ -147,8 +198,14 @@
           ],
         }],
         ['_toolset=="host"', {
-          'cflags': ['-m32', '-msse2', '-mfpmath=sse' ],
-          'ldflags': ['-m32'],
+          'cflags': [
+            '-m32',
+            '-msse2',
+            '-mfpmath=sse',
+          ],
+          'ldflags': [
+            '-m32',
+          ],
         }]]
       },
 
@@ -170,24 +227,41 @@
         'abstract': 1,
         'target_conditions': [
         ['_toolset=="target"', {
-          'cflags': [ '-O3', ],
+          'cflags': [
+            '-O3',
+          ],
         }],
         ['_toolset=="host"', {
-          'cflags': ['-O3', '-m64', '-msse2'],
-          'ldflags': ['-m64'],
+          'cflags': [
+            '-O3',
+            '-m64',
+            '-msse2',
+          ],
+          'ldflags': [
+            '-m64',
+          ],
         }]]
       },
 
       # ARM64 native build
       'Dart_Linux_arm64_Base': {
         'abstract': 1,
-        'cflags': [ '-O3', ],
+        'cflags': [
+          '-O3',
+        ],
       },
 
       'Dart_Linux_simmips_Base': {
         'abstract': 1,
-        'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
-        'ldflags': [ '-m32', ],
+        'cflags': [
+          '-O3',
+          '-m32',
+          '-msse2',
+          '-mfpmath=sse',
+        ],
+        'ldflags': [
+          '-m32',
+        ],
       },
 
       # MIPS cross-build
@@ -206,8 +280,15 @@
             ],
           }],
           ['_toolset=="host"',{
-            'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
-            'ldflags': [ '-m32' ],
+            'cflags': [
+              '-O3',
+              '-m32',
+              '-msse2',
+              '-mfpmath=sse',
+            ],
+            'ldflags': [
+              '-m32',
+            ],
         }]]
       },
 
@@ -229,7 +310,7 @@
           # Clang on Linux will still omit frame pointers from leaf
           # functions unless told otherwise:
           # (note this flag only works on recent GCC versions.)
-          '-mno-omit-leaf-frame-pointer',
+          #'-mno-omit-leaf-frame-pointer',
         ],
       },
 
@@ -242,7 +323,7 @@
           # Clang on Linux will still omit frame pointers from leaf
           # functions unless told otherwise:
           # (note this flag only works on recent GCC versions.)
-          '-mno-omit-leaf-frame-pointer',
+          #'-mno-omit-leaf-frame-pointer',
         ],
         'ldflags': [
           '-Wl,--gc-sections',
