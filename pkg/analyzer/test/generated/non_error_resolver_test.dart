@@ -170,6 +170,14 @@ class N2 {}''');
     assertNoErrors(source);
   }
 
+  void test_annotated_partOfDeclaration() {
+    Source source = addSource('library L; part "part.dart";');
+    addNamedSource('/part.dart', '@deprecated part of L;');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_argumentTypeNotAssignable_classWithCall_Function() {
     Source source = addSource(r'''
   caller(Function callee) {

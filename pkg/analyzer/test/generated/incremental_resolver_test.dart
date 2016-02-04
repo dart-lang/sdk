@@ -3094,7 +3094,7 @@ class B extends Object with A {}
     // build elements
     {
       ElementHolder holder = new ElementHolder();
-      ElementBuilder builder = new ElementBuilder(holder);
+      ElementBuilder builder = new ElementBuilder(holder, oldUnit.element);
       newUnit.accept(builder);
     }
     // match

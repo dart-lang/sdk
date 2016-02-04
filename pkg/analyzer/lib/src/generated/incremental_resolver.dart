@@ -1085,7 +1085,7 @@ class IncrementalResolver {
     LoggingTimer timer = logger.startTimer();
     try {
       ElementHolder holder = new ElementHolder();
-      ElementBuilder builder = new ElementBuilder(holder);
+      ElementBuilder builder = new ElementBuilder(holder, _definingUnit);
       if (_resolutionContext.enclosingClassDeclaration != null) {
         builder.visitClassDeclarationIncrementally(
             _resolutionContext.enclosingClassDeclaration);
