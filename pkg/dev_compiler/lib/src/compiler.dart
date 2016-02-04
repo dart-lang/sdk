@@ -32,7 +32,7 @@ import 'info.dart'
 import 'options.dart';
 import 'report.dart';
 import 'report/html_reporter.dart';
-import 'utils.dart' show isStrongModeError;
+import 'utils.dart' show FileSystem, isStrongModeError;
 
 /// Sets up the type checker logger to print a span that highlights error
 /// messages.
@@ -100,12 +100,13 @@ class BatchCompiler extends AbstractCompiler {
   final _pendingLibraries = <LibraryUnit>[];
 
   BatchCompiler(AnalysisContext context, CompilerOptions options,
-      {AnalysisErrorListener reporter})
+      {AnalysisErrorListener reporter,
+      FileSystem fileSystem: const FileSystem()})
       : super(
             context,
             options,
-            new ErrorCollector(
-                reporter ?? AnalysisErrorListener.NULL_LISTENER)) {
+            new ErrorCollector(reporter ?? AnalysisErrorListener.NULL_LISTENER),
+            fileSystem) {
     _inputBaseDir = options.inputBaseDir;
     if (outputDir != null) {
       _jsGen = new JSGenerator(this);
@@ -264,8 +265,7 @@ class BatchCompiler extends AbstractCompiler {
           output.lastModifiedSync() == input.lastModifiedSync()) {
         continue;
       }
-      new Directory(path.dirname(output.path)).createSync(recursive: true);
-      input.copySync(output.path);
+      fileSystem.copySync(input.path, output.path);
     }
   }
 
@@ -304,10 +304,8 @@ class BatchCompiler extends AbstractCompiler {
       }
     }
 
-    var outputFile = getOutputPath(source.uri);
-    new File(outputFile)
-      ..createSync(recursive: true)
-      ..writeAsStringSync(document.outerHtml + '\n');
+    fileSystem.writeAsStringSync(
+        getOutputPath(source.uri), document.outerHtml + '\n');
   }
 
   html.DocumentFragment _linkLibraries(
@@ -357,8 +355,10 @@ abstract class AbstractCompiler {
   final CompilerOptions options;
   final AnalysisContext context;
   final AnalysisErrorListener reporter;
+  final FileSystem fileSystem;
 
-  AbstractCompiler(this.context, this.options, [AnalysisErrorListener listener])
+  AbstractCompiler(this.context, this.options,
+      [AnalysisErrorListener listener, this.fileSystem = const FileSystem()])
       : reporter = listener ?? AnalysisErrorListener.NULL_LISTENER;
 
   String get outputDir => options.codegenOptions.outputDir;

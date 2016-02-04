@@ -10,6 +10,8 @@ homepage: https://github.com/dart-lang/dev_compiler
 
 dependencies:
   analyzer: ^0.27.2-alpha.1
+  barback: ^0.15.2+7
+  code_transformers: ^0.4.0
   args: ^0.13.0
   cli_util: ^0.0.1
   crypto: ^0.9.0
@@ -30,6 +32,7 @@ dev_dependencies:
   # changes, may change the output format.
   dart_style: 0.2.2
   test: ^0.12.0
+  transformer_test: ^0.1.0
 
 environment:
   sdk: ">=1.12.0 <2.0.0"
