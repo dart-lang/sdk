@@ -743,30 +743,29 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     return isolate;
   }
 
-  // Load the specified application script into the newly created isolate.
+  // Prepare builtin and other core libraries for use to resolve URIs.
+  // Set up various closures, e.g: printing, timers etc.
+  // Set up 'package root' for URI resolution.
+  result = DartUtils::PrepareForScriptLoading(false, has_trace_loading);
+  CHECK_RESULT(result);
 
-  // Prepare builtin and its dependent libraries for use to resolve URIs.
-  // The builtin library is part of the core snapshot and would already be
-  // available here in the case of script snapshot loading.
-  Dart_Handle builtin_lib =
-      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-  CHECK_RESULT(builtin_lib);
+  // Set up the load port provided by the service isolate so that we can
+  // load scripts.
+  result = DartUtils::SetupServiceLoadPort();
+  CHECK_RESULT(result);
 
-  // Prepare for script loading by setting up the 'print' and 'timer'
-  // closures and setting up 'package root' for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(package_root,
-                                              packages_config,
-                                              false,
-                                              has_trace_loading,
-                                              builtin_lib);
+  // Setup package root if specified.
+  result = DartUtils::SetupPackageRoot(package_root, packages_config);
   CHECK_RESULT(result);
 
   result = Dart_SetEnvironmentCallback(EnvironmentCallback);
   CHECK_RESULT(result);
 
   if (!has_run_precompiled_snapshot) {
+    // Load the specified application script into the newly created isolate.
+
     // Load the script.
-    result = DartUtils::LoadScript(script_uri, builtin_lib);
+    result = DartUtils::LoadScript(script_uri);
     CHECK_RESULT(result);
 
     // Run event-loop and wait for script loading to complete.
@@ -1174,11 +1173,10 @@ bool RunMainIsolate(const char* script_name,
     Dart_Handle root_lib = Dart_RootLibrary();
     // Import the root library into the builtin library so that we can easily
     // lookup the main entry point exported from the root library.
-    Dart_Handle builtin_lib =
-        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    ASSERT(!Dart_IsError(builtin_lib));
-    result = Dart_LibraryImportLibrary(builtin_lib, root_lib, Dart_Null());
-
+    IsolateData* isolate_data =
+        reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
+    result = Dart_LibraryImportLibrary(
+        isolate_data->builtin_lib(), root_lib, Dart_Null());
     if (has_gen_precompiled_snapshot) {
       // Load the embedder's portion of the VM service's Dart code so it will
       // be included in the precompiled snapshot.
@@ -1268,7 +1266,7 @@ bool RunMainIsolate(const char* script_name,
       // The helper function _getMainClosure creates a closure for the main
       // entry point which is either explicitly or implictly exported from the
       // root library.
-      Dart_Handle main_closure = Dart_Invoke(builtin_lib,
+      Dart_Handle main_closure = Dart_Invoke(isolate_data->builtin_lib(),
           Dart_NewStringFromCString("_getMainClosure"), 0, NULL);
       CHECK_RESULT(main_closure);
 

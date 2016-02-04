@@ -11,6 +11,8 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
+#include "bin/isolate_data.h"
+
 namespace dart {
 namespace bin {
 
@@ -123,26 +125,12 @@ class DartUtils {
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                        Dart_Handle library,
                                        Dart_Handle url);
-  static Dart_Handle LoadScript(const char* script_uri,
-                                Dart_Handle builtin_lib);
-  static Dart_Handle PrepareBuiltinLibrary(Dart_Handle builtin_lib,
-                                           Dart_Handle internal_lib,
-                                           bool is_service_isolate,
-                                           bool trace_loading,
-                                           const char* package_root,
-                                           const char* packages_file);
-  static Dart_Handle PrepareCoreLibrary(Dart_Handle core_lib,
-                                 Dart_Handle builtin_lib,
-                                 bool is_service_isolate);
-  static Dart_Handle PrepareAsyncLibrary(Dart_Handle async_lib,
-                                  Dart_Handle isolate_lib);
-  static Dart_Handle PrepareIOLibrary(Dart_Handle io_lib);
-  static Dart_Handle PrepareIsolateLibrary(Dart_Handle isolate_lib);
-  static Dart_Handle PrepareForScriptLoading(const char* package_root,
-                                             const char* packages_file,
-                                             bool is_service_isolate,
-                                             bool trace_loading,
-                                             Dart_Handle builtin_lib);
+  static Dart_Handle LoadScript(const char* script_uri);
+  static Dart_Handle PrepareForScriptLoading(bool is_service_isolate,
+                                             bool trace_loading);
+  static Dart_Handle SetupServiceLoadPort();
+  static Dart_Handle SetupPackageRoot(const char* package_root,
+                                      const char* packages_file);
   static Dart_Handle SetupIOLibrary(const char* script_uri);
 
   static bool PostNull(Dart_Port port_id);
@@ -179,25 +167,20 @@ class DartUtils {
   static Dart_Handle NewError(const char* format, ...);
   static Dart_Handle NewInternalError(const char* message);
 
+  static Dart_Handle BuiltinLib() {
+    IsolateData* isolate_data =
+        reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
+    return isolate_data->builtin_lib();
+  }
+
   static bool SetOriginalWorkingDirectory();
 
   static const char* MapLibraryUrl(CommandLineOptions* url_mapping,
                                    const char* url_string);
 
-  static Dart_Handle SetWorkingDirectory(Dart_Handle builtin_lib);
-
-  static Dart_Handle ResolveUriInWorkingDirectory(Dart_Handle script_uri,
-                                                  Dart_Handle builtin_lib);
-
-  static Dart_Handle FilePathFromUri(Dart_Handle script_uri,
-                                     Dart_Handle builtin_lib);
-
-  static Dart_Handle ExtensionPathFromUri(Dart_Handle extension_uri,
-                                          Dart_Handle builtin_lib);
-
-  static Dart_Handle ResolveUri(Dart_Handle library_url,
-                                Dart_Handle url,
-                                Dart_Handle builtin_lib);
+  static Dart_Handle ResolveUriInWorkingDirectory(Dart_Handle script_uri);
+  static Dart_Handle FilePathFromUri(Dart_Handle script_uri);
+  static Dart_Handle ResolveUri(Dart_Handle library_url, Dart_Handle url);
 
   // Sniffs the specified text_buffer to see if it contains the magic number
   // representing a script snapshot. If the text_buffer is a script snapshot
@@ -230,6 +213,21 @@ class DartUtils {
   static const uint8_t magic_number[];
 
  private:
+  static Dart_Handle SetWorkingDirectory();
+  static Dart_Handle ExtensionPathFromUri(Dart_Handle extension_uri);
+
+  static Dart_Handle PrepareBuiltinLibrary(Dart_Handle builtin_lib,
+                                           Dart_Handle internal_lib,
+                                           bool is_service_isolate,
+                                           bool trace_loading);
+  static Dart_Handle PrepareCoreLibrary(Dart_Handle core_lib,
+                                 Dart_Handle builtin_lib,
+                                 bool is_service_isolate);
+  static Dart_Handle PrepareAsyncLibrary(Dart_Handle async_lib,
+                                  Dart_Handle isolate_lib);
+  static Dart_Handle PrepareIOLibrary(Dart_Handle io_lib);
+  static Dart_Handle PrepareIsolateLibrary(Dart_Handle isolate_lib);
+
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(DartUtils);
 };
