@@ -134,7 +134,7 @@ class Driver extends IntegrationTestMixin {
       // doesn't exit, then forcibly terminate it.
       sendServerShutdown();
       await server.exitCode.timeout(timeout, onTimeout: () {
-        return server.kill();
+        return server.kill('server failed to exit');
       });
     }
     _resultsReady();
