@@ -2030,8 +2030,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
 }
 
 /**
- * Instances of the class `DeclarationResolver` are used to resolve declarations in an AST
- * structure to already built elements.
+ * A visitor that resolves declarations in an AST structure to already built
+ * elements.
  */
 class DeclarationResolver extends RecursiveAstVisitor<Object> {
   /**
@@ -2040,35 +2040,33 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   CompilationUnitElement _enclosingUnit;
 
   /**
-   * The function type alias containing the AST nodes being visited, or `null` if we are not
-   * in the scope of a function type alias.
+   * The function type alias containing the AST nodes being visited, or `null`
+   * if we are not in the scope of a function type alias.
    */
   FunctionTypeAliasElement _enclosingAlias;
 
   /**
-   * The class containing the AST nodes being visited, or `null` if we are not in the scope of
-   * a class.
+   * The class containing the AST nodes being visited, or `null` if we are not
+   * in the scope of a class.
    */
   ClassElement _enclosingClass;
 
   /**
-   * The method or function containing the AST nodes being visited, or `null` if we are not in
-   * the scope of a method or function.
+   * The method or function containing the AST nodes being visited, or `null` if
+   * we are not in the scope of a method or function.
    */
   ExecutableElement _enclosingExecutable;
 
   /**
-   * The parameter containing the AST nodes being visited, or `null` if we are not in the
-   * scope of a parameter.
+   * The parameter containing the AST nodes being visited, or `null` if we are
+   * not in the scope of a parameter.
    */
   ParameterElement _enclosingParameter;
 
   /**
-   * Resolve the declarations within the given compilation unit to the elements rooted at the given
-   * element.
-   *
-   * @param unit the compilation unit to be resolved
-   * @param element the root of the element model used to resolve the AST nodes
+   * Resolve the declarations within the given compilation [unit] to the
+   * elements rooted at the given [element]. Throw an [ElementMismatchException]
+   * if the element model and compilation unit do not match each other.
    */
   void resolve(CompilationUnit unit, CompilationUnitElement element) {
     _enclosingUnit = element;
@@ -2126,9 +2124,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       SimpleIdentifier constructorName = node.name;
       if (constructorName == null) {
         _enclosingExecutable = _enclosingClass.unnamedConstructor;
+        if (_enclosingExecutable == null) {
+          _mismatch('Could not find default constructor', node);
+        }
       } else {
         _enclosingExecutable =
             _enclosingClass.getNamedConstructor(constructorName.name);
+        if (_enclosingExecutable == null) {
+          _mismatch(
+              'Could not find constructor element with name "${constructorName.name}',
+              node);
+        }
         constructorName.staticElement = _enclosingExecutable;
       }
       node.element = _enclosingExecutable as ConstructorElement;
@@ -2158,11 +2164,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (defaultValue != null) {
       ExecutableElement outerExecutable = _enclosingExecutable;
       try {
-        if (element == null) {
-          // TODO(brianwilkerson) Report this internal error.
-        } else {
-          _enclosingExecutable = element.initializer;
-        }
+        _enclosingExecutable = element.initializer;
         defaultValue.accept(this);
       } finally {
         _enclosingExecutable = outerExecutable;
@@ -2199,6 +2201,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (uri != null) {
       LibraryElement library = _enclosingUnit.library;
       exportElement = _findExport(
+          node,
           library.exports,
           _enclosingUnit.context.sourceFactory
               .resolveUri(_enclosingUnit.source, uri));
@@ -2254,10 +2257,18 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
           _enclosingExecutable =
               _findIdentifier(_enclosingExecutable.functions, functionName);
         } else {
-          PropertyAccessorElement accessor =
-              _findIdentifier(_enclosingUnit.accessors, functionName);
-          if ((property as KeywordToken).keyword == Keyword.SET) {
-            accessor = accessor.variable.setter;
+          List<PropertyAccessorElement> accessors;
+          if (_enclosingClass != null) {
+            accessors = _enclosingClass.accessors;
+          } else {
+            accessors = _enclosingUnit.accessors;
+          }
+          PropertyAccessorElement accessor;
+          if ((property as KeywordToken).keyword == Keyword.GET) {
+            accessor = _findIdentifier(accessors, functionName);
+          } else if ((property as KeywordToken).keyword == Keyword.SET) {
+            accessor = _findWithNameAndOffset(accessors, functionName,
+                functionName.name + '=', functionName.offset);
             functionName.staticElement = accessor;
           }
           _enclosingExecutable = accessor;
@@ -2275,8 +2286,8 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
-      FunctionElement element =
-          _findAtOffset(_enclosingExecutable.functions, node.beginToken.offset);
+      FunctionElement element = _findAtOffset(
+          _enclosingExecutable.functions, node, node.beginToken.offset);
       node.element = element;
     }
     ExecutableElement outerExecutable = _enclosingExecutable;
@@ -2329,10 +2340,10 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (uri != null) {
       LibraryElement library = _enclosingUnit.library;
       importElement = _findImport(
+          node,
           library.imports,
           _enclosingUnit.context.sourceFactory
-              .resolveUri(_enclosingUnit.source, uri),
-          node.prefix);
+              .resolveUri(_enclosingUnit.source, uri));
       node.element = importElement;
     }
     super.visitImportDirective(node);
@@ -2366,14 +2377,16 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       SimpleIdentifier methodName = node.name;
       String nameOfMethod = methodName.name;
       if (property == null) {
-        _enclosingExecutable = _findWithNameAndOffset(
-            _enclosingClass.methods, nameOfMethod, methodName.offset);
+        _enclosingExecutable = _findWithNameAndOffset(_enclosingClass.methods,
+            methodName, nameOfMethod, methodName.offset);
         methodName.staticElement = _enclosingExecutable;
       } else {
-        PropertyAccessorElement accessor =
-            _findIdentifier(_enclosingClass.accessors, methodName);
-        if ((property as KeywordToken).keyword == Keyword.SET) {
-          accessor = accessor.variable.setter;
+        PropertyAccessorElement accessor;
+        if ((property as KeywordToken).keyword == Keyword.GET) {
+          accessor = _findIdentifier(_enclosingClass.accessors, methodName);
+        } else if ((property as KeywordToken).keyword == Keyword.SET) {
+          accessor = _findWithNameAndOffset(_enclosingClass.accessors,
+              methodName, methodName.name + '=', methodName.offset);
           methodName.staticElement = accessor;
         }
         _enclosingExecutable = accessor;
@@ -2394,8 +2407,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       Source partSource = _enclosingUnit.context.sourceFactory
           .resolveUri(_enclosingUnit.source, uri);
       compilationUnitElement =
-          _findPart(_enclosingUnit.library.parts, partSource);
-      node.element = compilationUnitElement;
+          _findPart(_enclosingUnit.library.parts, node, partSource);
     }
     super.visitPartDirective(node);
     _resolveMetadata(node.metadata, compilationUnitElement);
@@ -2454,11 +2466,11 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.name;
-
-    Element element;
+    Element element = null;
     if (_enclosingExecutable != null) {
-      element =
-          _findIdentifier(_enclosingExecutable.typeParameters, parameterName);
+      element = _findIdentifier(
+          _enclosingExecutable.typeParameters, parameterName,
+          required: false);
     }
     if (element == null) {
       if (_enclosingClass != null) {
@@ -2479,11 +2491,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     VariableElement element = null;
     SimpleIdentifier variableName = node.name;
     if (_enclosingExecutable != null) {
-      element =
-          _findIdentifier(_enclosingExecutable.localVariables, variableName);
+      element = _findIdentifier(
+          _enclosingExecutable.localVariables, variableName,
+          required: false);
     }
     if (element == null && _enclosingClass != null) {
-      element = _findIdentifier(_enclosingClass.fields, variableName);
+      element = _findIdentifier(_enclosingClass.fields, variableName,
+          required: false);
     }
     if (element == null && _enclosingUnit != null) {
       element = _findIdentifier(_enclosingUnit.topLevelVariables, variableName);
@@ -2492,11 +2506,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (initializer != null) {
       ExecutableElement outerExecutable = _enclosingExecutable;
       try {
-        if (element == null) {
-          // TODO(brianwilkerson) Report this internal error.
-        } else {
-          _enclosingExecutable = element.initializer;
-        }
+        _enclosingExecutable = element.initializer;
         return super.visitVariableDeclaration(node);
       } finally {
         _enclosingExecutable = outerExecutable;
@@ -2516,63 +2526,61 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Return the element in the given array of elements that was created for the declaration at the
-   * given offset. This method should only be used when there is no name
+   * Return the element in the given list of [elements] that was created for the
+   * declaration at the given [offset]. Throw an [ElementMismatchException] if
+   * an element at that offset cannot be found.
    *
-   * @param elements the elements of the appropriate kind that exist in the current context
-   * @param offset the offset of the name of the element to be returned
-   * @return the element at the given offset
+   * This method should only be used when there is no name associated with the
+   * node.
    */
-  Element _findAtOffset(List<Element> elements, int offset) =>
-      _findWithNameAndOffset(elements, "", offset);
+  Element _findAtOffset(List<Element> elements, AstNode node, int offset) =>
+      _findWithNameAndOffset(elements, node, '', offset);
 
   /**
-   * Return the export element from the given array whose library has the given source, or
-   * `null` if there is no such export.
-   *
-   * @param exports the export elements being searched
-   * @param source the source of the library associated with the export element to being searched
-   *          for
-   * @return the export element whose library has the given source
+   * Return the export element from the given list of [exports] whose library
+   * has the given [source]. Throw an [ElementMismatchException] if an element
+   * corresponding to the identifier cannot be found.
    */
-  ExportElement _findExport(List<ExportElement> exports, Source source) {
+  ExportElement _findExport(
+      ExportDirective node, List<ExportElement> exports, Source source) {
     for (ExportElement export in exports) {
       if (export.exportedLibrary.source == source) {
         return export;
       }
     }
-    return null;
+    _mismatch("Could not find export element for '$source'", node);
+    return null; // Never reached
   }
 
   /**
-   * Return the element in the given array of elements that was created for the declaration with the
-   * given name.
-   *
-   * @param elements the elements of the appropriate kind that exist in the current context
-   * @param identifier the name node in the declaration of the element to be returned
-   * @return the element created for the declaration with the given name
+   * Return the element in the given list of [elements] that was created for the
+   * declaration with the given [identifier]. As a side-effect, associate the
+   * returned element with the identifier. Throw an [ElementMismatchException]
+   * if an element corresponding to the identifier cannot be found unless
+   * [required] is `false`, in which case return `null`.
    */
-  Element _findIdentifier(List<Element> elements, SimpleIdentifier identifier) {
-    Element element =
-        _findWithNameAndOffset(elements, identifier.name, identifier.offset);
+  Element _findIdentifier(List<Element> elements, SimpleIdentifier identifier,
+      {bool required: true}) {
+    Element element = _findWithNameAndOffset(
+        elements, identifier, identifier.name, identifier.offset,
+        required: required);
     identifier.staticElement = element;
     return element;
   }
 
   /**
-   * Return the import element from the given array whose library has the given source and that has
-   * the given prefix, or `null` if there is no such import.
-   *
-   * @param imports the import elements being searched
-   * @param source the source of the library associated with the import element to being searched
-   *          for
-   * @param prefix the prefix with which the library was imported
-   * @return the import element whose library has the given source and prefix
+   * Return the import element from the given list of [imports] whose library
+   * has the given [source] and that has the given [prefix]. Throw an
+   * [ElementMismatchException] if an element corresponding to the identifier
+   * cannot be found.
    */
   ImportElement _findImport(
-      List<ImportElement> imports, Source source, SimpleIdentifier prefix) {
+      ImportDirective node, List<ImportElement> imports, Source source) {
+    SimpleIdentifier prefix = node.prefix;
+    bool foundSource = false;
     for (ImportElement element in imports) {
       if (element.importedLibrary.source == source) {
+        foundSource = true;
         PrefixElement prefixElement = element.prefix;
         if (prefix == null) {
           if (prefixElement == null) {
@@ -2586,52 +2594,76 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         }
       }
     }
-    return null;
+    if (foundSource) {
+      if (prefix == null) {
+        _mismatch(
+            "Could not find import element for '$source' with no prefix", node);
+      }
+      _mismatch(
+          "Could not find import element for '$source' with prefix ${prefix.name}",
+          node);
+    }
+    _mismatch("Could not find import element for '$source'", node);
+    return null; // Never reached
   }
 
   /**
-   * Return the element for the part with the given source, or `null` if there is no element
-   * for the given source.
-   *
-   * @param parts the elements for the parts
-   * @param partSource the source for the part whose element is to be returned
-   * @return the element for the part with the given source
+   * Return the element in the given list of [parts] that was created for the
+   * part with the given [source]. Throw an [ElementMismatchException] if an
+   * element corresponding to the source cannot be found.
    */
-  CompilationUnitElement _findPart(
-      List<CompilationUnitElement> parts, Source partSource) {
+  CompilationUnitElement _findPart(List<CompilationUnitElement> parts,
+      PartDirective directive, Source source) {
     for (CompilationUnitElement part in parts) {
-      if (part.source == partSource) {
+      if (part.source == source) {
         return part;
       }
     }
-    return null;
+    _mismatch(
+        'Could not find compilation unit element for "$source"', directive);
+    return null; // Never reached
   }
 
   /**
-   * Return the element in the given array of elements that was created for the declaration with the
-   * given name at the given offset.
-   *
-   * @param elements the elements of the appropriate kind that exist in the current context
-   * @param name the name of the element to be returned
-   * @param offset the offset of the name of the element to be returned
-   * @return the element with the given name and offset
+   * Return the element in the given list of [elements] that was created for the
+   * declaration with the given [name] at the given [offset]. Throw an
+   * [ElementMismatchException] if an element corresponding to the identifier
+   * cannot be found unless [required] is `false`, in which case return `null`.
    */
   Element _findWithNameAndOffset(
-      List<Element> elements, String name, int offset) {
+      List<Element> elements, AstNode node, String name, int offset,
+      {bool required: true}) {
     for (Element element in elements) {
-      if (element.nameOffset == offset && element.displayName == name) {
+      if (element.nameOffset == offset && element.name == name) {
         return element;
       }
     }
-    return null;
+    if (!required) {
+      return null;
+    }
+    for (Element element in elements) {
+      if (element.name == name) {
+        _mismatch(
+            'Found element with name "$name" at ${element.nameOffset}, '
+            'but expected offset of $offset',
+            node);
+      }
+      if (element.nameOffset == offset) {
+        _mismatch(
+            'Found element with name "${element.name}" at $offset, '
+            'but expected element with name "$name"',
+            node);
+      }
+    }
+    _mismatch('Could not find element with name "$name" at $offset', node);
+    return null; // Never reached
   }
 
   /**
-   * Search the most closely enclosing list of parameters for a parameter with the given name.
-   *
-   * @param node the node defining the parameter with the given name
-   * @param parameterName the name of the parameter being searched for
-   * @return the element representing the parameter with that name
+   * Search the most closely enclosing list of parameter elements for a
+   * parameter, defined by the given [node], with the given [parameterName].
+   * Return the element that was found, or throw an [ElementMismatchException]
+   * if an element corresponding to the identifier cannot be found.
    */
   ParameterElement _getElementForParameter(
       FormalParameter node, SimpleIdentifier parameterName) {
@@ -2645,38 +2677,48 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (parameters == null && _enclosingAlias != null) {
       parameters = _enclosingAlias.parameters;
     }
-    ParameterElement element =
-        parameters == null ? null : _findIdentifier(parameters, parameterName);
-    if (element == null) {
+    if (parameters == null) {
       StringBuffer buffer = new StringBuffer();
-      buffer.writeln("Invalid state found in the Analysis Engine:");
+      buffer.writeln('Could not find parameter in enclosing scope');
       buffer.writeln(
-          "DeclarationResolver.getElementForParameter() is visiting a parameter that does not appear to be in a method or function.");
-      buffer.writeln("Ancestors:");
-      AstNode parent = node.parent;
-      while (parent != null) {
-        buffer.writeln(parent.runtimeType.toString());
-        buffer.writeln("---------");
-        parent = parent.parent;
-      }
-      AnalysisEngine.instance.logger.logError(buffer.toString(),
-          new CaughtException(new AnalysisException(), null));
+          '(_enclosingParameter == null) == ${_enclosingParameter == null}');
+      buffer.writeln(
+          '(_enclosingExecutable == null) == ${_enclosingExecutable == null}');
+      buffer.writeln('(_enclosingAlias == null) == ${_enclosingAlias == null}');
+      _mismatch(buffer.toString(), parameterName);
     }
-    return element;
+    return _findIdentifier(parameters, parameterName);
   }
 
   /**
-   * Return the value of the given string literal, or `null` if the string is not a constant
-   * string without any string interpolation.
-   *
-   * @param literal the string literal whose value is to be returned
-   * @return the value of the given string literal
+   * Return the value of the given string [literal], or `null` if the string is
+   * not a constant string without any string interpolation.
    */
   String _getStringValue(StringLiteral literal) {
     if (literal is StringInterpolation) {
       return null;
     }
     return literal.stringValue;
+  }
+
+  /**
+   * Throw an [ElementMismatchException] to report that the element model and
+   * the AST do not match. The [message] will have the path to the given [node]
+   * appended to it.
+   */
+  void _mismatch(String message, AstNode node) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.writeln(message);
+    buffer.write('Path to root:');
+    String separator = ' ';
+    AstNode parent = node;
+    while (parent != null) {
+      buffer.write(separator);
+      buffer.write(parent.runtimeType.toString());
+      separator = ', ';
+      parent = parent.parent;
+    }
+    throw new ElementMismatchException(buffer.toString());
   }
 
   /**
@@ -3057,6 +3099,15 @@ class ElementHolder {
           .logError("Failed to capture elements: $buffer");
     }
   }
+}
+
+class ElementMismatchException extends AnalysisException {
+  /**
+   * Initialize a newly created exception to have the given [message] and
+   * [cause].
+   */
+  ElementMismatchException(String message, [CaughtException cause = null])
+      : super(message, cause);
 }
 
 /**

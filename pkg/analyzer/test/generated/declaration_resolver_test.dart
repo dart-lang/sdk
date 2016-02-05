@@ -239,27 +239,6 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
 
 @reflectiveTest
 class DeclarationResolverTest extends ResolverTestCase {
-  void fail_visitMethodDeclaration_setter_duplicate() {
-    // https://github.com/dart-lang/sdk/issues/25601
-    String code = r'''
-class C {
-  set zzz(x) {}
-  set zzz(y) {}
-}
-''';
-    CompilationUnit unit = resolveSource(code);
-    PropertyAccessorElement firstElement =
-        _findSimpleIdentifier(unit, code, 'zzz(x)').staticElement;
-    PropertyAccessorElement secondElement =
-        _findSimpleIdentifier(unit, code, 'zzz(y)').staticElement;
-    // re-resolve
-    CompilationUnit unit2 = _cloneResolveUnit(unit);
-    SimpleIdentifier firstName = _findSimpleIdentifier(unit2, code, 'zzz(x)');
-    SimpleIdentifier secondName = _findSimpleIdentifier(unit2, code, 'zzz(y)');
-    expect(firstName.staticElement, same(firstElement));
-    expect(secondName.staticElement, same(secondElement));
-  }
-
   @override
   void setUp() {
     super.setUp();
@@ -344,6 +323,27 @@ class C {
     expect(secondName.staticElement, same(secondElement));
   }
 
+  void test_visitMethodDeclaration_getterSetter() {
+    String code = r'''
+class C {
+  int _field = 0;
+  int get field => _field;
+  void set field(value) {_field = value;}
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    FieldElement getterElement =
+        _findSimpleIdentifier(unit, code, 'field =').staticElement;
+    PropertyAccessorElement setterElement =
+        _findSimpleIdentifier(unit, code, 'field(').staticElement;
+    // re-resolve
+    CompilationUnit unit2 = _cloneResolveUnit(unit);
+    SimpleIdentifier getterName = _findSimpleIdentifier(unit2, code, 'field =');
+    SimpleIdentifier setterName = _findSimpleIdentifier(unit2, code, 'field(');
+    expect(getterName.staticElement, same(getterElement));
+    expect(setterName.staticElement, same(setterElement));
+  }
+
   void test_visitMethodDeclaration_method_duplicate() {
     String code = r'''
 class C {
@@ -355,6 +355,27 @@ class C {
     MethodElement firstElement =
         _findSimpleIdentifier(unit, code, 'zzz(x)').staticElement;
     MethodElement secondElement =
+        _findSimpleIdentifier(unit, code, 'zzz(y)').staticElement;
+    // re-resolve
+    CompilationUnit unit2 = _cloneResolveUnit(unit);
+    SimpleIdentifier firstName = _findSimpleIdentifier(unit2, code, 'zzz(x)');
+    SimpleIdentifier secondName = _findSimpleIdentifier(unit2, code, 'zzz(y)');
+    expect(firstName.staticElement, same(firstElement));
+    expect(secondName.staticElement, same(secondElement));
+  }
+
+  void test_visitMethodDeclaration_setter_duplicate() {
+    // https://github.com/dart-lang/sdk/issues/25601
+    String code = r'''
+class C {
+  set zzz(x) {}
+  set zzz(y) {}
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    PropertyAccessorElement firstElement =
+        _findSimpleIdentifier(unit, code, 'zzz(x)').staticElement;
+    PropertyAccessorElement secondElement =
         _findSimpleIdentifier(unit, code, 'zzz(y)').staticElement;
     // re-resolve
     CompilationUnit unit2 = _cloneResolveUnit(unit);
