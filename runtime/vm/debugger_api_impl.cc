@@ -18,6 +18,7 @@ namespace dart {
 // Facilitate quick access to the current zone once we have the curren thread.
 #define Z (T->zone())
 
+#ifndef PRODUCT
 
 #define UNWRAP_AND_CHECK_PARAM(type, var, param)                               \
   type& var = type::Handle();                                                  \
@@ -959,5 +960,13 @@ DART_EXPORT Dart_IsolateId Dart_GetIsolateId(Dart_Isolate dart_isolate) {
   Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
   return isolate->debugger()->GetIsolateId();
 }
+
+#else
+
+DART_EXPORT void Dart_SetPausedEventHandler(Dart_PausedEventHandler handler) {
+  // NOOP.
+}
+
+#endif  // !PRODUCT
 
 }  // namespace dart

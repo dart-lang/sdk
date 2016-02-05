@@ -249,6 +249,9 @@ void Report::JSWarningFromFrame(StackFrame* caller_frame, const char* msg) {
 void Report::TraceJSWarning(const Script& script,
                             TokenPosition token_pos,
                             const String& message) {
+  if (!FLAG_support_service) {
+    return;
+  }
   const int64_t micros = OS::GetCurrentTimeMicros();
   Isolate* isolate = Isolate::Current();
   TraceBuffer* trace_buffer = isolate->trace_buffer();

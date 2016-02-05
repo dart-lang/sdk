@@ -1286,6 +1286,9 @@ UNIT_TEST_CASE(FullSnapshot1) {
 }
 
 
+#ifndef PRODUCT
+
+
 UNIT_TEST_CASE(ScriptSnapshot) {
   const char* kLibScriptChars =
       "library dart_import_lib;"
@@ -1464,6 +1467,9 @@ UNIT_TEST_CASE(ScriptSnapshot) {
   free(full_snapshot);
   free(script_snapshot);
 }
+
+
+#endif  // !PRODUCT
 
 
 UNIT_TEST_CASE(ScriptSnapshot1) {

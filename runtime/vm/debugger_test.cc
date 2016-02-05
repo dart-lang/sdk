@@ -8,6 +8,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 // Search for the formatted string in buffer.
 //
 // TODO(turnidge): This function obscures the line number of failing
@@ -134,5 +136,7 @@ TEST_CASE(Debugger_PauseEvent) {
   // We ran the code in InspectPausedEvent.
   EXPECT(saw_paused_event);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

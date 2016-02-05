@@ -4039,6 +4039,9 @@ TEST_CASE(FunctionSourceFingerprint) {
 
 
 TEST_CASE(FunctionWithBreakpointNotInlined) {
+  if (!FLAG_support_debugger) {
+    return;
+  }
   const char* kScriptChars =
       "class A {\n"
       "  a() {\n"
@@ -4106,6 +4109,9 @@ VM_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
 }
+
+
+#ifndef PRODUCT
 
 
 class ObjectAccumulator : public ObjectVisitor {
@@ -4434,6 +4440,9 @@ VM_TEST_CASE(PrintJSONPrimitives) {
         buffer);
   }
 }
+
+
+#endif  // !PRODUCT
 
 
 TEST_CASE(InstanceEquality) {

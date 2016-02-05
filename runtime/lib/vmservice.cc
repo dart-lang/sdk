@@ -6,6 +6,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/datastream.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/message.h"
 #include "vm/native_entry.h"
@@ -103,7 +104,9 @@ DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 2) {
 
 DEFINE_NATIVE_ENTRY(VMService_SendRootServiceMessage, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
-  Service::HandleRootMessage(message);
+  if (FLAG_support_service) {
+    Service::HandleRootMessage(message);
+  }
   return Object::null();
 }
 
@@ -147,23 +150,32 @@ DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 1) {
 
 DEFINE_NATIVE_ENTRY(VMService_ListenStream, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
-  bool result = Service::ListenStream(stream_id.ToCString());
+  bool result = false;
+  if (FLAG_support_service) {
+    result = Service::ListenStream(stream_id.ToCString());
+  }
   return Bool::Get(result).raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(VMService_CancelStream, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
-  Service::CancelStream(stream_id.ToCString());
+  if (FLAG_support_service) {
+    Service::CancelStream(stream_id.ToCString());
+  }
   return Object::null();
 }
 
 
 DEFINE_NATIVE_ENTRY(VMService_RequestAssets, 0) {
+  if (!FLAG_support_service) {
+    return Object::null();
+  }
   return Service::RequestAssets();
 }
 
 
+#ifndef PRODUCT
 // TODO(25041): When reading, this class copies out the filenames and contents
 // into new buffers. It does this because the lifetime of |bytes| is uncertain.
 // If |bytes| is pinned in memory, then we could instead load up
@@ -351,7 +363,14 @@ static void FilenameFinalizer(void* peer) {
 }
 
 
+#endif
+
+
 DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
+#ifndef PRODUCT
+  if (!FLAG_support_service) {
+    return Object::null();
+  }
   GET_NON_NULL_NATIVE_ARGUMENT(TypedData, data, arguments->NativeArgAt(0));
   TransitionVMToNative transition(thread);
   Api::Scope scope(thread);
@@ -403,6 +422,9 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
   }
 
   return result_list.raw();
+#else
+  return Object::null();
+#endif
 }
 
 }  // namespace dart

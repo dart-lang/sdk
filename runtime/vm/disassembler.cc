@@ -44,6 +44,8 @@ void DisassembleToStdout::Print(const char* format, ...) {
 }
 
 
+#ifndef PRODUCT
+
 void DisassembleToJSONStream::ConsumeInstruction(const Code& code,
                                                  char* hex_buffer,
                                                  intptr_t hex_size,
@@ -91,6 +93,7 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
   free(p);
 }
 
+#endif  // !PRODUCT
 
 class FindAddrVisitor : public FindObjectVisitor {
  public:

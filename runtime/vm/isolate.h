@@ -304,6 +304,9 @@ class Isolate : public BaseIsolate {
   Mutex* mutex() const { return mutex_; }
 
   Debugger* debugger() const {
+    if (!FLAG_support_debugger) {
+      return NULL;
+    }
     ASSERT(debugger_ != NULL);
     return debugger_;
   }

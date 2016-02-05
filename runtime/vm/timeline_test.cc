@@ -15,6 +15,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 class TimelineRecorderOverride : public ValueObject {
  public:
   explicit TimelineRecorderOverride(TimelineEventRecorder* new_recorder)
@@ -853,5 +855,7 @@ TEST_CASE(TimelinePauses_BeginEnd) {
   }
   TimelineTestHelper::Clear(recorder);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

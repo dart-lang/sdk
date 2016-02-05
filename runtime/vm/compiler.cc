@@ -1371,7 +1371,9 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                 per_compile_timer.TotalElapsedTime());
     }
 
-    isolate->debugger()->NotifyCompilation(function);
+    if (FLAG_support_debugger) {
+      isolate->debugger()->NotifyCompilation(function);
+    }
 
     if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
       DisassembleCode(function, optimized);

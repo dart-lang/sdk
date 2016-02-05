@@ -65,7 +65,6 @@ DECLARE_FLAG(int, regexp_optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
-DECLARE_FLAG(bool, support_debugger);
 DECLARE_FLAG(bool, use_field_guards);
 DECLARE_FLAG(bool, use_cha_deopt);
 DECLARE_FLAG(bool, use_osr);
@@ -99,7 +98,9 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_use_field_guards = false;
     FLAG_use_osr = false;
     FLAG_emit_edge_counters = false;
+#ifndef PRODUCT
     FLAG_support_debugger = false;
+#endif
     FLAG_ic_range_profiling = false;
     FLAG_collect_code = false;
     FLAG_load_deferred_eagerly = true;

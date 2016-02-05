@@ -5531,7 +5531,9 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   // the new code, the debugger convert them to unresolved source breakpoints.
   // The code that completes the futures (invoked below) may call into the
   // newly loaded code and trigger one of these breakpoints.
-  I->debugger()->NotifyDoneLoading();
+  if (FLAG_support_debugger) {
+    I->debugger()->NotifyDoneLoading();
+  }
 
   if (FLAG_enable_mirrors) {
     // Notify mirrors that MirrorSystem.libraries needs to be recomputed.
@@ -5639,7 +5641,9 @@ DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
     const char* name,
     Dart_ServiceRequestCallback callback,
     void* user_data) {
-  Service::RegisterIsolateEmbedderCallback(name, callback, user_data);
+  if (FLAG_support_service) {
+    Service::RegisterIsolateEmbedderCallback(name, callback, user_data);
+  }
 }
 
 
@@ -5647,13 +5651,18 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     const char* name,
     Dart_ServiceRequestCallback callback,
     void* user_data) {
-  Service::RegisterRootEmbedderCallback(name, callback, user_data);
+  if (FLAG_support_service) {
+    Service::RegisterRootEmbedderCallback(name, callback, user_data);
+  }
 }
 
 
 DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
     Dart_ServiceStreamListenCallback listen_callback,
     Dart_ServiceStreamCancelCallback cancel_callback) {
+  if (!FLAG_support_service) {
+    return Api::Success();
+  }
   if (listen_callback != NULL) {
     if (Service::stream_listen_callback() != NULL) {
       return Api::NewError(
@@ -5691,6 +5700,9 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
                                                   const char* event_kind,
                                                   const uint8_t* bytes,
                                                   intptr_t bytes_length) {
+#ifdef PRODUCT
+  return Api::Success();
+#else
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   if (stream_id == NULL) {
@@ -5709,6 +5721,7 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
   Service::SendEmbedderEvent(I, stream_id, event_kind,
                              bytes, bytes_length);
   return Api::Success();
+#endif  // PRODUCT
 }
 
 
@@ -5866,6 +5879,9 @@ static bool StreamTraceEvents(Dart_StreamConsumer consumer,
 
 DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
                                        void* user_data) {
+  if (!FLAG_support_timeline) {
+    return false;
+  }
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   if (consumer == NULL) {
@@ -5888,6 +5904,9 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
 
 DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
                                              void* user_data) {
+  if (!FLAG_support_timeline) {
+    return false;
+  }
   // To support various embedders, it must be possible to call this function
   // from a thread for which we have not entered an Isolate and set up a Thread
   // TLS object. Therefore, a Zone may not be available, a StackZone cannot be

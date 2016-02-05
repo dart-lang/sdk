@@ -49,6 +49,8 @@ DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 DECLARE_FLAG(bool, precompilation);
 
 
+#ifndef PRODUCT
+
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
 
 
@@ -3278,5 +3280,7 @@ void Debugger::RegisterCodeBreakpoint(CodeBreakpoint* bpt) {
   bpt->set_next(code_breakpoints_);
   code_breakpoints_ = bpt;
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

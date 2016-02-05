@@ -357,7 +357,7 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
       if (!I->VerifyPauseCapability(obj)) return Error::null();
 
       // If we are already paused, don't pause again.
-      if (I->debugger()->PauseEvent() == NULL) {
+      if (FLAG_support_debugger && (I->debugger()->PauseEvent() == NULL)) {
         return I->debugger()->SignalIsolateInterrupted();
       }
       break;
@@ -510,7 +510,11 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
         if (oob_tag.IsSmi()) {
           switch (Smi::Cast(oob_tag).Value()) {
             case Message::kServiceOOBMsg: {
-              Service::HandleIsolateMessage(I, oob_msg);
+              if (FLAG_support_service) {
+                Service::HandleIsolateMessage(I, oob_msg);
+              } else {
+                UNREACHABLE();
+              }
               break;
             }
             case Message::kIsolateLibOOBMsg: {
@@ -572,6 +576,9 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
 
 
 void IsolateMessageHandler::NotifyPauseOnStart() {
+  if (!FLAG_support_service) {
+    return;
+  }
   if (Service::debug_stream.enabled() || FLAG_warn_on_pause_with_no_debugger) {
     StartIsolateScope start_isolate(I);
     StackZone zone(T);
@@ -586,6 +593,9 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
 
 
 void IsolateMessageHandler::NotifyPauseOnExit() {
+  if (!FLAG_support_service) {
+    return;
+  }
   if (Service::debug_stream.enabled() || FLAG_warn_on_pause_with_no_debugger) {
     StartIsolateScope start_isolate(I);
     StackZone zone(T);
@@ -638,7 +648,9 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     if ((exception == I->object_store()->out_of_memory()) ||
         (exception == I->object_store()->stack_overflow())) {
       // We didn't notify the debugger when the stack was full. Do it now.
-      I->debugger()->SignalExceptionThrown(Instance::Handle(exception));
+      if (FLAG_support_debugger) {
+        I->debugger()->SignalExceptionThrown(Instance::Handle(exception));
+      }
     }
   }
 
@@ -823,7 +835,9 @@ Isolate::~Isolate() {
   delete heap_;
   delete object_store_;
   delete api_state_;
-  delete debugger_;
+  if (FLAG_support_debugger) {
+    delete debugger_;
+  }
 #if defined(USING_SIMULATOR)
   delete simulator_;
 #endif
@@ -833,7 +847,9 @@ Isolate::~Isolate() {
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
   delete spawn_state_;
-  delete object_id_ring_;
+  if (FLAG_support_service) {
+    delete object_id_ring_;
+  }
   object_id_ring_ = NULL;
   delete pause_loop_monitor_;
   pause_loop_monitor_ = NULL;
@@ -913,8 +929,10 @@ Isolate* Isolate::Init(const char* name_prefix,
   result->set_terminate_capability(result->random()->NextUInt64());
 
   result->BuildName(name_prefix);
-  result->debugger_ = new Debugger();
-  result->debugger_->Initialize(result);
+  if (FLAG_support_debugger) {
+    result->debugger_ = new Debugger();
+    result->debugger_->Initialize(result);
+  }
   if (FLAG_trace_isolates) {
     if (name_prefix == NULL || strcmp(name_prefix, "vm-isolate") != 0) {
       OS::Print("[+] Starting isolate:\n"
@@ -927,7 +945,9 @@ Isolate* Isolate::Init(const char* name_prefix,
     result->compiler_stats_->EnableBenchmark();
   }
 
-  ObjectIdRing::Init(result);
+  if (FLAG_support_service) {
+    ObjectIdRing::Init(result);
+  }
 
   // Add to isolate list. Shutdown and delete the isolate on failure.
   if (!AddIsolateToList(result)) {
@@ -1068,7 +1088,7 @@ bool Isolate::MakeRunnable() {
   // isolate on thread pool for execution.
   ASSERT(object_store()->root_library() != Library::null());
   set_is_runnable(true);
-  if (!ServiceIsolate::IsServiceIsolate(this)) {
+  if (FLAG_support_debugger && !ServiceIsolate::IsServiceIsolate(this)) {
     if (FLAG_pause_isolates_on_unhandled_exceptions) {
       debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
     }
@@ -1085,7 +1105,7 @@ bool Isolate::MakeRunnable() {
     event->Instant("Runnable");
     event->Complete();
   }
-  if (Service::isolate_stream.enabled()) {
+  if (FLAG_support_service && Service::isolate_stream.enabled()) {
     ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
     Service::HandleEvent(&runnableEvent);
   }
@@ -1357,7 +1377,7 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
     // way to debug. Set the breakpoint on the static function instead
     // of its implicit closure function because that latter is merely
     // a dispatcher that is marked as undebuggable.
-    if (FLAG_break_at_isolate_spawn) {
+    if (FLAG_support_debugger && FLAG_break_at_isolate_spawn) {
       isolate->debugger()->OneTimeBreakAtEntry(func);
     }
 
@@ -1578,7 +1598,10 @@ void Isolate::LowLevelShutdown() {
   }
 
   // Clean up debugger resources.
-  debugger()->Shutdown();
+  if (FLAG_support_debugger) {
+    debugger()->Shutdown();
+  }
+
 
   // Close all the ports owned by this isolate.
   PortMap::ClosePorts(message_handler());
@@ -1754,7 +1777,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
       reinterpret_cast<RawObject**>(&registered_service_extension_handlers_));
 
   // Visit objects in the debugger.
-  debugger()->VisitObjectPointers(visitor);
+  if (FLAG_support_debugger) {
+    debugger()->VisitObjectPointers(visitor);
+  }
 
   // Visit objects that are being used for deoptimization.
   if (deopt_context() != NULL) {
@@ -1794,6 +1819,9 @@ static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
 
 
 void Isolate::PrintJSON(JSONStream* stream, bool ref) {
+  if (!FLAG_support_service) {
+    return;
+  }
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
   jsobj.AddFixedServiceId("isolates/%" Pd64 "",
@@ -1952,6 +1980,9 @@ void Isolate::set_registered_service_extension_handlers(
 
 
 RawObject* Isolate::InvokePendingServiceExtensionCalls() {
+  if (!FLAG_support_service) {
+    return Object::null();
+  }
   GrowableObjectArray& calls =
       GrowableObjectArray::Handle(GetAndClearPendingServiceExtensionCalls());
   if (calls.IsNull()) {
@@ -2059,6 +2090,9 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
 // done atomically.
 void Isolate::RegisterServiceExtensionHandler(const String& name,
                                               const Instance& closure) {
+  if (!FLAG_support_service) {
+    return;
+  }
   GrowableObjectArray& handlers =
       GrowableObjectArray::Handle(registered_service_extension_handlers());
   if (handlers.IsNull()) {
@@ -2091,6 +2125,9 @@ void Isolate::RegisterServiceExtensionHandler(const String& name,
 // to Dart code unless you can ensure that the operations will can be
 // done atomically.
 RawInstance* Isolate::LookupServiceExtensionHandler(const String& name) {
+  if (!FLAG_support_service) {
+    return Instance::null();
+  }
   const GrowableObjectArray& handlers =
       GrowableObjectArray::Handle(registered_service_extension_handlers());
   if (handlers.IsNull()) {

@@ -705,6 +705,9 @@ static void CheckResultError(const Object& result) {
 // Gets called from debug stub when code reaches a breakpoint
 // set on a runtime stub call.
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
+  if (!FLAG_support_debugger) {
+    UNREACHABLE();
+  }
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
@@ -720,6 +723,9 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
+  if (!FLAG_support_debugger) {
+    UNREACHABLE();
+  }
   const Error& error =
       Error::Handle(isolate->debugger()->DebuggerStepCallback());
   if (!error.IsNull()) {
@@ -1242,13 +1248,15 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
 
 
 static bool CanOptimizeFunction(const Function& function, Thread* thread) {
-  Isolate* isolate = thread->isolate();
-  if (isolate->debugger()->IsStepping() ||
-      isolate->debugger()->HasBreakpoint(function, thread->zone())) {
-    // We cannot set breakpoints and single step in optimized code,
-    // so do not optimize the function.
-    function.set_usage_counter(0);
-    return false;
+  if (FLAG_support_debugger) {
+    Isolate* isolate = thread->isolate();
+    if (isolate->debugger()->IsStepping() ||
+        isolate->debugger()->HasBreakpoint(function, thread->zone())) {
+      // We cannot set breakpoints and single step in optimized code,
+      // so do not optimize the function.
+      function.set_usage_counter(0);
+      return false;
+    }
   }
   if (function.deoptimization_counter() >=
       FLAG_max_deoptimization_counter_threshold) {
@@ -1371,7 +1379,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // TODO(turnidge): Consider using DeoptimizeAt instead.
     DeoptimizeFunctionsOnStack();
   }
-  if (do_stacktrace) {
+  if (FLAG_support_debugger && do_stacktrace) {
     String& var_name = String::Handle();
     Instance& var_value = Instance::Handle();
     DebuggerStackTrace* stack = isolate->debugger()->StackTrace();

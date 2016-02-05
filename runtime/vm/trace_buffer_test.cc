@@ -10,6 +10,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 TEST_CASE(TraceBufferEmpty) {
   Isolate* isolate = Isolate::Current();
   TraceBuffer::Init(isolate, 3);
@@ -102,5 +104,7 @@ TEST_CASE(TraceBufferTraceF) {
   }
   delete trace_buffer;
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

@@ -11,6 +11,7 @@
 
 namespace dart {
 
+#ifndef PRODUCT
 
 class ObjectIdRingTestHelper {
  public:
@@ -273,5 +274,7 @@ VM_TEST_CASE(ObjectIdRingExpiredEntryTest) {
   EXPECT_NE(obj.raw(), obj_lookup);
   EXPECT_EQ(Object::null(), obj_lookup);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

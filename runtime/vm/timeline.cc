@@ -420,6 +420,9 @@ const char* TimelineEvent::GetSerializedJSON() const {
 
 
 void TimelineEvent::PrintJSON(JSONStream* stream) const {
+  if (!FLAG_support_service) {
+    return;
+  }
   if (pre_serialized_json()) {
     // Event has already been serialized into JSON- just append the
     // raw data.
@@ -778,6 +781,9 @@ TimelineEventRecorder::TimelineEventRecorder()
 
 
 void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
+  if (!FLAG_support_service) {
+    return;
+  }
   OSThreadIterator it;
   while (it.HasNext()) {
     OSThread* thread = it.Next();
@@ -871,6 +877,9 @@ void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
 
 
 void TimelineEventRecorder::WriteTo(const char* directory) {
+  if (!FLAG_support_service) {
+    return;
+  }
   Dart_FileOpenCallback file_open = Isolate::file_open_callback();
   Dart_FileWriteCallback file_write = Isolate::file_write_callback();
   Dart_FileCloseCallback file_close = Isolate::file_close_callback();
@@ -968,6 +977,9 @@ TimelineEventRingRecorder::~TimelineEventRingRecorder() {
 void TimelineEventRingRecorder::PrintJSONEvents(
     JSONArray* events,
     TimelineEventFilter* filter) {
+  if (!FLAG_support_service) {
+    return;
+  }
   MutexLocker ml(&lock_);
   intptr_t block_offset = FindOldestBlockIndex();
   if (block_offset == -1) {
@@ -994,6 +1006,9 @@ void TimelineEventRingRecorder::PrintJSONEvents(
 
 void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
                                           TimelineEventFilter* filter) {
+  if (!FLAG_support_service) {
+    return;
+  }
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "_Timeline");
   {
@@ -1006,6 +1021,9 @@ void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
 
 void TimelineEventRingRecorder::PrintTraceEvent(JSONStream* js,
                                                 TimelineEventFilter* filter) {
+  if (!FLAG_support_service) {
+    return;
+  }
   JSONArray events(js);
   PrintJSONEvents(&events, filter);
 }
@@ -1079,6 +1097,9 @@ TimelineEventStreamingRecorder::~TimelineEventStreamingRecorder() {
 
 void TimelineEventStreamingRecorder::PrintJSON(JSONStream* js,
                                                TimelineEventFilter* filter) {
+  if (!FLAG_support_service) {
+    return;
+  }
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "_Timeline");
   {
@@ -1091,6 +1112,9 @@ void TimelineEventStreamingRecorder::PrintJSON(JSONStream* js,
 void TimelineEventStreamingRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
+  if (!FLAG_support_service) {
+    return;
+  }
   JSONArray events(js);
 }
 
@@ -1115,6 +1139,9 @@ TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
 
 void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
                                              TimelineEventFilter* filter) {
+  if (!FLAG_support_service) {
+    return;
+  }
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "_Timeline");
   {
@@ -1128,6 +1155,9 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
 void TimelineEventEndlessRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
+  if (!FLAG_support_service) {
+    return;
+  }
   JSONArray events(js);
   PrintJSONEvents(&events, filter);
 }
@@ -1171,6 +1201,9 @@ static int TimelineEventBlockCompare(TimelineEventBlock* const* a,
 void TimelineEventEndlessRecorder::PrintJSONEvents(
     JSONArray* events,
     TimelineEventFilter* filter) {
+  if (!FLAG_support_service) {
+    return;
+  }
   MutexLocker ml(&lock_);
   // Collect all interesting blocks.
   MallocGrowableArray<TimelineEventBlock*> blocks(8);

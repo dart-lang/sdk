@@ -23,6 +23,8 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, verify_acquired_data);
 DECLARE_FLAG(bool, ignore_patch_signature_mismatch);
 
+#ifndef PRODUCT
+
 TEST_CASE(ErrorHandleBasics) {
   const char* kScriptChars =
       "void testMain() {\n"
@@ -394,6 +396,9 @@ TEST_CASE(CurrentStacktraceInfo) {
   EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(42, value);
 }
+
+
+#endif  // !PRODUCT
 
 
 TEST_CASE(ErrorHandleTypes) {
@@ -6027,6 +6032,10 @@ TEST_CASE(LibraryName) {
   EXPECT_STREQ("library1_name", cstr);
 }
 
+
+#ifndef PRODUCT
+
+
 TEST_CASE(LibraryId) {
   const char* kLibrary1Chars =
       "library library1_name;";
@@ -6062,6 +6071,9 @@ TEST_CASE(LibraryId) {
   EXPECT_VALID(Dart_StringToCString(result, &cstr));
   EXPECT_STREQ("library1_name", cstr);
 }
+
+
+#endif  // !PRODUCT
 
 
 TEST_CASE(LibraryUrl) {
@@ -9166,6 +9178,9 @@ TEST_CASE(StringFromExternalTypedData) {
 }
 
 
+#ifndef PRODUCT
+
+
 TEST_CASE(Timeline_Dart_TimelineDuration) {
   Isolate* isolate = Isolate::Current();
   // Grab embedder stream.
@@ -9750,5 +9765,7 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace_Threaded) {
   EXPECT_SUBSTRING("\"name\":\"TestVMDuration2\"", buffer);
   EXPECT_SUBSTRING("\"function\":\"::_bar\"", buffer);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

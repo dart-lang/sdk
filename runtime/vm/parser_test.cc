@@ -168,10 +168,13 @@ TEST_CASE(Parser_TopLevel) {
 }
 
 
-const char* saved_vars = NULL;
+#ifndef PRODUCT
 
 
-char* SkipIndex(const char* input) {
+static const char* saved_vars = NULL;
+
+
+static char* SkipIndex(const char* input) {
   char* output_buffer = new char[strlen(input)];
   char* output = output_buffer;
 
@@ -564,5 +567,7 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
       " 3 StackVar      scope=2   begin=11  end=79  name=b\n",
       CaptureVarsAtLine(lib, "a", 10));
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

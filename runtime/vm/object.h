@@ -11,6 +11,7 @@
 #include "vm/json_stream.h"
 #include "vm/bitmap.h"
 #include "vm/dart.h"
+#include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
@@ -137,15 +138,7 @@ class Symbols;
     return reinterpret_cast<Raw##object*>(Object::null());                     \
   }                                                                            \
   virtual const char* ToCString() const;                                       \
-  /* Object is printed as JSON into stream. If ref is true only a header */    \
-  /* with an object id is printed. If ref is false the object is fully   */    \
-  /* printed.                                                            */    \
-  virtual const char* JSONType() const {                                       \
-    return ""#object;                                                          \
-  }                                                                            \
   static const ClassId kClassId = k##object##Cid;                              \
- protected:  /* NOLINT */                                                      \
-  virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;              \
  private:  /* NOLINT */                                                        \
   /* Initialize the handle based on the raw_ptr in the presence of null. */    \
   static void initializeHandle(object* obj, RawObject* raw_ptr) {              \
@@ -169,6 +162,28 @@ class Symbols;
   void operator=(const object& value);                                         \
   void operator=(const super& value);                                          \
 
+// Conditionally include object_service.cc functionality in the vtable to avoid
+// link errors like the following:
+//
+// object.o:(.rodata._ZTVN4....E[_ZTVN4...E]+0x278):
+// undefined reference to
+// `dart::Instance::PrintSharedInstanceJSON(dart::JSONObject*, bool) const'.
+//
+#ifndef PRODUCT
+#define OBJECT_SERVICE_SUPPORT(object)                                         \
+   protected:  /* NOLINT */                                                    \
+  /* Object is printed as JSON into stream. If ref is true only a header */    \
+  /* with an object id is printed. If ref is false the object is fully   */    \
+  /* printed.                                                            */    \
+    virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;            \
+    virtual const char* JSONType() const {                                     \
+      return ""#object;                                                        \
+    }
+#else
+#define OBJECT_SERVICE_SUPPORT(object)                                         \
+   protected:  /* NOLINT */
+#endif  // !PRODUCT
+
 #define SNAPSHOT_READER_SUPPORT(object)                                        \
   static Raw##object* ReadFrom(SnapshotReader* reader,                         \
                                intptr_t object_id,                             \
@@ -189,6 +204,7 @@ class Symbols;
  protected:  /* NOLINT */                                                      \
   object() : super() {}                                                        \
   BASE_OBJECT_IMPLEMENTATION(object, super)                                    \
+  OBJECT_SERVICE_SUPPORT(object)
 
 #define HEAP_OBJECT_IMPLEMENTATION(object, super)                              \
   OBJECT_IMPLEMENTATION(object, super);                                        \
@@ -214,6 +230,7 @@ class Symbols;
  private:  /* NOLINT */                                                        \
   object() : super() {}                                                        \
   BASE_OBJECT_IMPLEMENTATION(object, super)                                    \
+  OBJECT_SERVICE_SUPPORT(object)                                               \
   const Raw##object* raw_ptr() const {                                         \
     ASSERT(raw() != null());                                                   \
     return raw()->ptr();                                                       \
@@ -280,11 +297,13 @@ class Object {
     }
   }
 
+#ifndef PRODUCT
   void PrintJSON(JSONStream* stream, bool ref = true) const;
-
+  virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;
   virtual const char* JSONType() const {
     return IsNull() ? "null" : "Object";
   }
+#endif
 
   // Returns the name that is used to identify an object in the
   // namespace dictionary.
@@ -707,8 +726,6 @@ class Object {
   void AddCommonObjectProperties(JSONObject* jsobj,
                                  const char* protocol_type,
                                  bool ref) const;
-
-  virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;
 
  private:
   static intptr_t NextFieldOffset() {
@@ -5108,7 +5125,9 @@ class Instance : public Object {
   static intptr_t ElementSizeFor(intptr_t cid);
 
  protected:
+#ifndef PRODUCT
   virtual void PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const;
+#endif
 
  private:
   RawObject** FieldAddrAtOffset(intptr_t offset) const {
@@ -5895,6 +5914,7 @@ class Number : public Instance {
 
  private:
   OBJECT_IMPLEMENTATION(Number, Instance);
+
   friend class Class;
 };
 
@@ -6036,7 +6056,7 @@ class Smi : public Integer {
 
   Smi() : Integer() {}
   BASE_OBJECT_IMPLEMENTATION(Smi, Integer);
-
+  OBJECT_SERVICE_SUPPORT(Smi);
   friend class Api;  // For ValueFromRaw
   friend class Class;
   friend class Object;

@@ -200,7 +200,10 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Isolate::SetCreateCallback(create);
   Isolate::SetShutdownCallback(shutdown);
 
-  Service::SetGetServiceAssetsCallback(get_service_assets);
+  if (FLAG_support_service) {
+    Service::SetGetServiceAssetsCallback(get_service_assets);
+  }
+
   ServiceIsolate::Run();
 
   return NULL;
@@ -398,8 +401,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
         FLAG_pause_isolates_on_exit);
   }
   ServiceIsolate::SendIsolateStartupMessage();
-  I->debugger()->NotifyIsolateCreated();
-
+  if (FLAG_support_debugger) {
+    I->debugger()->NotifyIsolateCreated();
+  }
   // Create tag table.
   I->set_tag_table(GrowableObjectArray::Handle(GrowableObjectArray::New()));
   // Set up default UserTag.

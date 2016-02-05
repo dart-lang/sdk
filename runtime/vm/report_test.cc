@@ -8,6 +8,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 TEST_CASE(TraceJSWarning) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -76,5 +78,7 @@ TEST_CASE(TraceJSWarning) {
 
   delete trace_buffer;
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

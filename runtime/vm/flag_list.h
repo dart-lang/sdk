@@ -44,5 +44,13 @@ R(verify_after_gc, false, bool, false,                                         \
   "Enables heap verification after GC.")                                       \
 R(verify_before_gc, false, bool, false,                                        \
   "Enables heap verification before GC.")                                      \
+R(support_debugger, false, bool, true,                                         \
+  "Support the debugger.")                                                     \
+R(support_service, false, bool, true,                                          \
+  "Support the service protocol.")                                             \
+R(support_coverage, false, bool, true,                                         \
+  "Support code coverage.")                                                    \
+R(support_timeline, false, bool, true,                                         \
+  "Support timeline.")                                                         \
 
 #endif  // VM_FLAG_LIST_H_

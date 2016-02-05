@@ -51,6 +51,7 @@ DEFINE_FLAG(bool, warn_on_pause_with_no_debugger, false,
             "Print a message when an isolate is paused but there is no "
             "debugger attached.");
 
+#ifndef PRODUCT
 // The name of this of this vm as reported by the VM service protocol.
 static char* vm_name = NULL;
 
@@ -3958,5 +3959,6 @@ const ServiceMethodDescriptor* FindMethod(const char* method_name) {
   return NULL;
 }
 
+#endif  // !PRODUCT
 
 }  // namespace dart

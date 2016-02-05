@@ -10,6 +10,7 @@
 
 namespace dart {
 
+#ifndef PRODUCT
 
 TEST_CASE(JSON_TextBuffer) {
   TextBuffer w(5);  // Small enough to make buffer grow at least once.
@@ -313,5 +314,7 @@ TEST_CASE(JSON_JSONStream_Params) {
   EXPECT(js.ParamIs("cat", "banana"));
   EXPECT(!js.ParamIs("dog", "banana"));
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

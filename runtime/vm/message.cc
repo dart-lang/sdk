@@ -181,6 +181,9 @@ Message* MessageQueue::FindMessageById(intptr_t id) {
 
 
 void MessageQueue::PrintJSON(JSONStream* stream) {
+  if (!FLAG_support_service) {
+    return;
+  }
   JSONArray messages(stream);
 
   Object& msg_handler = Object::Handle();

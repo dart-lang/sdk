@@ -556,7 +556,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
   const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, handler);
   args.SetAt(1, message);
-  if (isolate->debugger()->IsStepping()) {
+  if (FLAG_support_debugger && isolate->debugger()->IsStepping()) {
     // If the isolate is being debugged and the debugger was stepping
     // through code, enable single stepping so debugger will stop
     // at the first location the user is interested in.
