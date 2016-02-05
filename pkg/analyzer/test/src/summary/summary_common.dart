@@ -2459,6 +2459,59 @@ const v = p.C.m;
     ]);
   }
 
+  test_constExpr_pushReference_topLevelFunction() {
+    UnlinkedVariable variable = serializeVariableText('''
+f() {}
+const v = f;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'f',
+          expectedKind: ReferenceKind.topLevelFunction)
+    ]);
+  }
+
+  test_constExpr_pushReference_topLevelFunction_imported() {
+    addNamedSource(
+        '/a.dart',
+        '''
+f() {}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = f;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'f',
+          expectedKind: ReferenceKind.topLevelFunction)
+    ]);
+  }
+
+  test_constExpr_pushReference_topLevelFunction_imported_withPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+f() {}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const v = p.f;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'f',
+              expectedKind: ReferenceKind.topLevelFunction,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.prefix, 'p',
+                    inLibraryDefiningUnit: true)
+              ])
+    ]);
+  }
+
   test_constExpr_pushReference_topLevelVariable() {
     UnlinkedVariable variable = serializeVariableText('''
 const int a = 1;
