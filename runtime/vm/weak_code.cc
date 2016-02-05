@@ -102,11 +102,9 @@ void WeakCodeReferences::DisableCode() {
     } else if (owner.IsClass()) {
       Class& cls = Class::Handle();
       cls ^= owner.raw();
-      OS::Print("Skipping code owned by class %s\n", cls.ToCString());
       cls.DisableAllocationStub();
       continue;
     } else if (owner.IsNull()) {
-      OS::Print("Skipping code owned by null: ");
       code.Print();
       continue;
     }

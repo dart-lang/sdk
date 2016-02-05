@@ -24,9 +24,6 @@ class Isolate;
 class JSONObject;
 class ScavengerVisitor;
 
-DECLARE_FLAG(bool, gc_at_alloc);
-
-
 // Wrapper around VirtualMemory that adds caching and handles the empty case.
 class SemiSpace {
  public:

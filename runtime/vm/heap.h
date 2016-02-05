@@ -24,10 +24,6 @@ class ObjectSet;
 class ServiceEvent;
 class VirtualMemory;
 
-DECLARE_FLAG(bool, verify_before_gc);
-DECLARE_FLAG(bool, verify_after_gc);
-DECLARE_FLAG(bool, gc_at_alloc);
-
 class Heap {
  public:
   enum Space {

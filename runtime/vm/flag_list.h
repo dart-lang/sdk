@@ -13,13 +13,36 @@
 //   enabled.
 // * R elease flags: Generally available flags except when building product.
 
-#define FLAG_LIST(P, R, D) \
-R(disassemble, false, bool, false, "Disassemble dart code.")                   \
-R(disassemble_optimized, false, bool, false, "Disassemble optimized code.")    \
-R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")       \
-R(pretenure_all, false, bool, false, "Global pretenuring (for testing).")      \
-D(trace_handles, bool, false, "Traces allocation of handles.")                 \
-D(trace_zones, bool, false, "Traces allocation sizes in the zone.")            \
-P(verbose_gc, bool, false, "Enables verbose GC.")                              \
+#define FLAG_LIST(P, R, D)                                                     \
+R(disable_alloc_stubs_after_gc, false, bool, false,                            \
+  "Stress testing flag.")                                                      \
+R(disassemble, false, bool, false,                                             \
+  "Disassemble dart code.")                                                    \
+R(disassemble_optimized, false, bool, false,                                   \
+  "Disassemble optimized code.")                                               \
+R(dump_symbol_stats, false, bool, false,                                       \
+  "Dump symbol table statistics")                                              \
+R(gc_at_alloc, false, bool, false,                                             \
+  "GC at every allocation.")                                                   \
+P(new_gen_ext_limit, int, 64,                                                  \
+  "maximum total external size (MB) in new gen before triggering GC")          \
+R(pretenure_all, false, bool, false,                                           \
+  "Global pretenuring (for testing).")                                         \
+P(pretenure_interval, int, 10,                                                 \
+  "Back off pretenuring after this many cycles.")                              \
+P(pretenure_threshold, int, 98,                                                \
+  "Trigger pretenuring when this many percent are promoted.")                  \
+D(trace_handles, bool, false,                                                  \
+  "Traces allocation of handles.")                                             \
+D(trace_zones, bool, false,                                                    \
+  "Traces allocation sizes in the zone.")                                      \
+P(verbose_gc, bool, false,                                                     \
+  "Enables verbose GC.")                                                       \
+P(verbose_gc_hdr, int, 40,                                                     \
+  "Print verbose GC header interval.")                                         \
+R(verify_after_gc, false, bool, false,                                         \
+  "Enables heap verification after GC.")                                       \
+R(verify_before_gc, false, bool, false,                                        \
+  "Enables heap verification before GC.")                                      \
 
 #endif  // VM_FLAG_LIST_H_
