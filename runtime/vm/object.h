@@ -6288,6 +6288,7 @@ class String : public Instance {
     this->SetHash(result);
     return result;
   }
+
   bool HasHash() const {
     ASSERT(Smi::New(0) == NULL);
     return (raw_ptr()->hash_ != NULL);
@@ -6317,9 +6318,10 @@ class String : public Instance {
   intptr_t CharSize() const;
 
   inline bool Equals(const String& str) const;
-  inline bool Equals(const String& str,
-                     intptr_t begin_index,  // begin index on 'str'.
-                     intptr_t len) const;  // len on 'str'.
+
+  bool Equals(const String& str,
+              intptr_t begin_index,  // begin index on 'str'.
+              intptr_t len) const;  // len on 'str'.
 
   // Compares to a '\0' terminated array of UTF-8 encoded characters.
   bool Equals(const char* cstr) const;
@@ -8354,26 +8356,13 @@ bool String::Equals(const String& str) const {
   if (str.IsNull()) {
     return false;
   }
+  if (IsCanonical() && str.IsCanonical()) {
+    return false;  // Two symbols that aren't identical aren't equal.
+  }
+  if (HasHash() && str.HasHash() && (Hash() != str.Hash())) {
+    return false;  // Both sides have hash codes and they do not match.
+  }
   return Equals(str, 0, str.Length());
-}
-
-
-bool String::Equals(const String& str,
-                    intptr_t begin_index,
-                    intptr_t len) const {
-  ASSERT(begin_index >= 0);
-  ASSERT((begin_index == 0) || (begin_index < str.Length()));
-  ASSERT(len >= 0);
-  ASSERT(len <= str.Length());
-  if (len != this->Length()) {
-    return false;  // Lengths don't match.
-  }
-  for (intptr_t i = 0; i < len; i++) {
-    if (this->CharAt(i) != str.CharAt(begin_index + i)) {
-      return false;
-    }
-  }
-  return true;
 }
 
 

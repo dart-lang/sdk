@@ -10286,9 +10286,17 @@ RawLibrary* Library::LookupLibrary(const String &url) {
   String& lib_url = String::Handle(zone, String::null());
   GrowableObjectArray& libs = GrowableObjectArray::Handle(
       zone, isolate->object_store()->libraries());
-  for (int i = 0; i < libs.Length(); i++) {
+
+  // Make sure the URL string has an associated hash code
+  // to speed up the repeated equality checks.
+  url.Hash();
+
+  intptr_t len = libs.Length();
+  for (intptr_t i = 0; i < len; i++) {
     lib ^= libs.At(i);
     lib_url ^= lib.url();
+
+    ASSERT(url.HasHash() && lib_url.HasHash());
     if (lib_url.Equals(url)) {
       return lib.raw();
     }
@@ -10395,6 +10403,7 @@ RawLibrary* Library::GetLibrary(intptr_t index) {
 
 void Library::Register() const {
   ASSERT(Library::LookupLibrary(String::Handle(url())) == Library::null());
+  ASSERT(String::Handle(url()).HasHash());
   ObjectStore* object_store = Isolate::Current()->object_store();
   GrowableObjectArray& libs =
       GrowableObjectArray::Handle(object_store->libraries());
@@ -19599,16 +19608,36 @@ bool String::Equals(const Instance& other) const {
     return true;
   }
 
-  if (!other.IsString() || other.IsNull()) {
+  if (!other.IsString()) {
     return false;
   }
 
   const String& other_string = String::Cast(other);
-  if (this->HasHash() && other_string.HasHash() &&
-      (this->Hash() != other_string.Hash())) {
-    return false;  // Both sides have a hash code and it does not match.
+  return Equals(other_string);
+}
+
+
+bool String::Equals(const String& str,
+                    intptr_t begin_index,
+                    intptr_t len) const {
+  ASSERT(begin_index >= 0);
+  ASSERT((begin_index == 0) || (begin_index < str.Length()));
+  ASSERT(len >= 0);
+  ASSERT(len <= str.Length());
+  if (len != this->Length()) {
+    return false;  // Lengths don't match.
   }
-  return Equals(other_string, 0, other_string.Length());
+
+  Scanner::CharAtFunc this_char_at_func = this->CharAtFunc();
+  Scanner::CharAtFunc str_char_at_func = str.CharAtFunc();
+  for (intptr_t i = 0; i < len; i++) {
+    if (this_char_at_func(*this, i) !=
+        str_char_at_func(str, begin_index + i)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 
