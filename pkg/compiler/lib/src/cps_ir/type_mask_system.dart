@@ -559,11 +559,8 @@ class TypeMaskSystem implements AbstractValueDomain {
     if (isDefinitelyString(type)) {
       return stringType;
     }
-    if (type.satisfies(helpers.typedArrayClass, classWorld)) {
-      if (type.satisfies(helpers.typedArrayOfIntClass, classWorld)) {
-        return intType;
-      }
-      return numType;
+    if (type.satisfies(helpers.jsIndexingBehaviorInterface, classWorld)) {
+      return getInvokeReturnType(new Selector.index(), type);
     }
     return dynamicType;
   }

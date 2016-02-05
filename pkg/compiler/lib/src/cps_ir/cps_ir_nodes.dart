@@ -699,6 +699,9 @@ class InvokeMethodDirectly extends InvocationPrimitive {
     receiver.parent = this;
     _setParentsOnList(arguments, this);
   }
+
+  bool get isConstructorBodyCall => target is ConstructorBodyElement;
+  bool get isTearOff => selector.isGetter && !target.isGetter;
 }
 
 /// Non-const call to a constructor.

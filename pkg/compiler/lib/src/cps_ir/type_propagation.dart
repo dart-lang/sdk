@@ -368,7 +368,9 @@ class ConstantPropagationLattice {
   AbstractConstantValue negateSpecial(AbstractConstantValue value) {
     AbstractConstantValue folded = foldUnary(constantSystem.negate, value);
     if (folded != null) return folded;
-    if (isDefinitelyInt(value)) return nonConstant(typeSystem.intType);
+    if (isDefinitelyInt(value, allowNull: true)) {
+      return nonConstant(typeSystem.intType);
+    }
     return null;
   }
 
@@ -385,7 +387,8 @@ class ConstantPropagationLattice {
 
   AbstractConstantValue closedOnInt(AbstractConstantValue left,
                                     AbstractConstantValue right) {
-    if (isDefinitelyInt(left) && isDefinitelyInt(right, allowNull: true)) {
+    if (isDefinitelyInt(left, allowNull: true) &&
+        isDefinitelyInt(right, allowNull: true)) {
       return nonConstant(typeSystem.intType);
     }
     return null;
@@ -393,7 +396,8 @@ class ConstantPropagationLattice {
 
   AbstractConstantValue closedOnUint(AbstractConstantValue left,
                                      AbstractConstantValue right) {
-    if (isDefinitelyUint(left) && isDefinitelyUint(right, allowNull: true)) {
+    if (isDefinitelyUint(left, allowNull: true) &&
+        isDefinitelyUint(right, allowNull: true)) {
       return nonConstant(typeSystem.uintType);
     }
     return null;
@@ -401,7 +405,8 @@ class ConstantPropagationLattice {
 
   AbstractConstantValue closedOnUint31(AbstractConstantValue left,
                                        AbstractConstantValue right) {
-    if (isDefinitelyUint31(left) && isDefinitelyUint31(right, allowNull: true)) {
+    if (isDefinitelyUint31(left, allowNull: true) &&
+        isDefinitelyUint31(right, allowNull: true)) {
       return nonConstant(typeSystem.uint31Type);
     }
     return null;
@@ -411,8 +416,8 @@ class ConstantPropagationLattice {
                                    AbstractConstantValue right) {
     AbstractConstantValue folded = foldBinary(constantSystem.add, left, right);
     if (folded != null) return folded;
-    if (isDefinitelyNum(left)) {
-      if (isDefinitelyUint31(left) &&
+    if (isDefinitelyNum(left, allowNull: true)) {
+      if (isDefinitelyUint31(left, allowNull: true) &&
           isDefinitelyUint31(right, allowNull: true)) {
         return nonConstant(typeSystem.uint32Type);
       }
@@ -445,15 +450,22 @@ class ConstantPropagationLattice {
     AbstractConstantValue folded =
         foldBinary(constantSystem.truncatingDivide, left, right);
     if (folded != null) return folded;
-    if (isDefinitelyNum(left)) {
-      if (isDefinitelyUint32(left) && isDefinitelyIntInRange(right, min: 2)) {
+    if (isDefinitelyNum(left, allowNull: true)) {
+      if (isDefinitelyUint32(left, allowNull: true) &&
+          isDefinitelyIntInRange(right, min: 2)) {
         return nonConstant(typeSystem.uint31Type);
       }
       if (isDefinitelyUint(right, allowNull: true)) {
         // `0` will be an exception, other values will shrink the result.
-        if (isDefinitelyUint31(left)) return nonConstant(typeSystem.uint31Type);
-        if (isDefinitelyUint32(left)) return nonConstant(typeSystem.uint32Type);
-        if (isDefinitelyUint(left)) return nonConstant(typeSystem.uintType);
+        if (isDefinitelyUint31(left, allowNull: true)) {
+          return nonConstant(typeSystem.uint31Type);
+        }
+        if (isDefinitelyUint32(left, allowNull: true)) {
+          return nonConstant(typeSystem.uint32Type);
+        }
+        if (isDefinitelyUint(left, allowNull: true)) {
+          return nonConstant(typeSystem.uintType);
+        }
       }
       return nonConstant(typeSystem.intType);
     }
@@ -499,8 +511,8 @@ class ConstantPropagationLattice {
     AbstractConstantValue folded =
         foldBinary(constantSystem.bitAnd, left, right);
     if (folded != null) return folded;
-    if (isDefinitelyNum(left)) {
-      if (isDefinitelyUint31(left) ||
+    if (isDefinitelyNum(left, allowNull: true)) {
+      if (isDefinitelyUint31(left, allowNull: true) ||
           isDefinitelyUint31(right, allowNull: true)) {
         // Either 31-bit argument will truncate the other.
         return nonConstant(typeSystem.uint31Type);
@@ -533,9 +545,9 @@ class ConstantPropagationLattice {
     AbstractConstantValue folded =
         foldBinary(constantSystem.shiftRight, left, right);
     if (folded != null) return folded;
-    if (isDefinitelyUint31(left)) {
+    if (isDefinitelyUint31(left, allowNull: true)) {
       return nonConstant(typeSystem.uint31Type);
-    } else if (isDefinitelyUint32(left)) {
+    } else if (isDefinitelyUint32(left, allowNull: true)) {
       if (isDefinitelyIntInRange(right, min: 1, max: 31)) {
         // A zero will be shifted into the 'sign' bit.
         return nonConstant(typeSystem.uint31Type);
@@ -626,6 +638,8 @@ class ConstantPropagationLattice {
       TypeMask type = typeSystem.indexWithConstant(left.type, index);
       if (type != null) return nonConstant(type);
     }
+    // TODO(asgerf): Handle case where 'left' is a List or Map constant but
+    //               the index is unknown.
     return null;  // The caller will use return type from type inference.
   }
 
@@ -2828,8 +2842,13 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitInvokeMethodDirectly(InvokeMethodDirectly node) {
-    // TODO(karlklose): lookup the function and get ites return type.
-    setResult(node, nonConstant());
+    if (node.isConstructorBodyCall) {
+      setResult(node, lattice.nullValue);
+    } else if (node.isTearOff) {
+      setResult(node, nonConstant(typeSystem.functionType));
+    } else {
+      setResult(node, nonConstant(typeSystem.getReturnType(node.target)));
+    }
   }
 
   void visitInvokeConstructor(InvokeConstructor node) {
@@ -3227,18 +3246,26 @@ class ResetAnalysisInfo extends TrampolineRecursiveVisitor {
 
   ResetAnalysisInfo(this.reachableContinuations, this.values);
 
+  void clear(Variable variable) {
+    variable.type = null;
+    values[variable] = null;
+  }
+
+  processFunctionDefinition(FunctionDefinition node) {
+    clear(node.returnContinuation.parameters.single);
+    node.parameters.forEach(clear);
+  }
+
   processContinuation(Continuation cont) {
     reachableContinuations.remove(cont);
-    cont.parameters.forEach(values.remove);
+    cont.parameters.forEach(clear);
   }
 
   processLetPrim(LetPrim node) {
-    node.primitive.type = null;
-    values[node.primitive] = null;
+    clear(node.primitive);
   }
 
   processLetMutable(LetMutable node) {
-    node.variable.type = null;
-    values[node.variable] = null;
+    clear(node.variable);
   }
 }
