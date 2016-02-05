@@ -1312,12 +1312,32 @@ class _LibraryResynthesizer {
   ParameterElement buildParameter(UnlinkedParam serializedParameter) {
     ParameterElementImpl parameterElement;
     if (serializedParameter.isInitializingFormal) {
-      parameterElement = new FieldFormalParameterElementImpl(
-          serializedParameter.name, serializedParameter.nameOffset)
-        ..field = fields[serializedParameter.name];
+      FieldFormalParameterElementImpl initializingParameter;
+      if (serializedParameter.defaultValue != null) {
+        DefaultFieldFormalParameterElementImpl defaultParameter =
+            new DefaultFieldFormalParameterElementImpl(
+                serializedParameter.name, serializedParameter.nameOffset);
+        initializingParameter = defaultParameter;
+        defaultParameter.constantInitializer =
+            _buildConstExpression(serializedParameter.defaultValue);
+      } else {
+        initializingParameter = new FieldFormalParameterElementImpl(
+            serializedParameter.name, serializedParameter.nameOffset);
+      }
+      parameterElement = initializingParameter;
+      initializingParameter.field = fields[serializedParameter.name];
     } else {
-      parameterElement = new ParameterElementImpl(
-          serializedParameter.name, serializedParameter.nameOffset);
+      if (serializedParameter.defaultValue != null) {
+        DefaultParameterElementImpl defaultParameter =
+            new DefaultParameterElementImpl(
+                serializedParameter.name, serializedParameter.nameOffset);
+        parameterElement = defaultParameter;
+        defaultParameter.constantInitializer =
+            _buildConstExpression(serializedParameter.defaultValue);
+      } else {
+        parameterElement = new ParameterElementImpl(
+            serializedParameter.name, serializedParameter.nameOffset);
+      }
     }
     if (serializedParameter.isFunctionTyped) {
       FunctionElementImpl parameterTypeElement =
@@ -1467,10 +1487,8 @@ class _LibraryResynthesizer {
             new ConstTopLevelVariableElementImpl(
                 serializedVariable.name, serializedVariable.nameOffset);
         element = constElement;
-        // TODO(scheglov) share const builder?
-        _ConstExprBuilder builder =
-            new _ConstExprBuilder(this, serializedVariable.constExpr);
-        constElement.constantInitializer = builder.build();
+        constElement.constantInitializer =
+            _buildConstExpression(serializedVariable.constExpr);
       } else {
         element = new TopLevelVariableElementImpl(
             serializedVariable.name, serializedVariable.nameOffset);
@@ -1479,8 +1497,17 @@ class _LibraryResynthesizer {
       unitHolder.addTopLevelVariable(element);
       buildImplicitAccessors(element, unitHolder);
     } else {
-      FieldElementImpl element = new FieldElementImpl(
-          serializedVariable.name, serializedVariable.nameOffset);
+      FieldElementImpl element;
+      if (serializedVariable.constExpr != null) {
+        ConstFieldElementImpl constElement = new ConstFieldElementImpl(
+            serializedVariable.name, serializedVariable.nameOffset);
+        element = constElement;
+        constElement.constantInitializer =
+            _buildConstExpression(serializedVariable.constExpr);
+      } else {
+        element = new FieldElementImpl(
+            serializedVariable.name, serializedVariable.nameOffset);
+      }
       buildVariableCommonParts(element, serializedVariable);
       element.static = serializedVariable.isStatic;
       holder.addField(element);
@@ -1695,6 +1722,10 @@ class _LibraryResynthesizer {
     unlinkedUnit = null;
     linkedTypeMap = null;
     referenceInfos = null;
+  }
+
+  Expression _buildConstExpression(UnlinkedConst uc) {
+    return new _ConstExprBuilder(this, uc).build();
   }
 
   /**

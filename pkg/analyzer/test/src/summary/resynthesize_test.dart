@@ -670,13 +670,13 @@ class ResynthTest extends ResolverTestCase {
       VariableElementImpl original, String desc) {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
-    // TODO(scheglov) implement and validate other constant variable types
-    if (shouldCompareConstValues &&
-        original is ConstTopLevelVariableElementImpl) {
-      compareConstantExpressions(resynthesized.constantInitializer,
-          original.constantInitializer, desc);
+    // TODO(scheglov) enable for any ConstVariableElement
+    if (shouldCompareConstValues) {
+      if (original is ConstVariableElement) {
+        compareConstantExpressions(resynthesized.constantInitializer,
+            original.constantInitializer, desc);
+      }
     }
-    // TODO(paulberry): test initializer
   }
 
   /**
@@ -1333,6 +1333,49 @@ const v = C.length;
 ''');
   }
 
+  test_const_parameterDefaultValue_initializingFormal_functionTyped() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+class C {
+  final x;
+  const C({this.x: foo});
+}
+int foo() => 42;
+''');
+  }
+
+  test_const_parameterDefaultValue_initializingFormal_named() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+class C {
+  final x;
+  const C({this.x: 1 + 2});
+}
+''');
+  }
+
+  test_const_parameterDefaultValue_initializingFormal_positional() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+class C {
+  final x;
+  const C([this.x = 1 + 2]);
+}
+''');
+  }
+
+  test_const_parameterDefaultValue_normal() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+class C {
+  const C.positional([p = 1 + 2]);
+  const C.named({p: 1 + 2});
+  void methodPositional([p = 1 + 2]) {}
+  void methodNamed({p: 1 + 2}) {}
+}
+''');
+  }
+
   test_const_reference_staticField() {
     shouldCompareConstValues = true;
     checkLibrary(r'''
@@ -1803,7 +1846,7 @@ class C {
   }
 
   test_field_propagatedType_final_dep_inLib() {
-    addNamedSource('/a.dart', 'final a = 1;');
+    addLibrarySource('/a.dart', 'final a = 1;');
     checkLibrary('''
 import "a.dart";
 class C {
