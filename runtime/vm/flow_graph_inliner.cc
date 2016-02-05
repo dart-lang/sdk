@@ -894,8 +894,8 @@ class CallSiteInliner : public ValueObject {
             &call_data->caller, &function, call);
         return true;
       } else {
-        error = isolate()->object_store()->sticky_error();
-        isolate()->object_store()->clear_sticky_error();
+        error = thread()->sticky_error();
+        thread()->clear_sticky_error();
         ASSERT(error.IsLanguageError());
 
         if (LanguageError::Cast(error).kind() == Report::kBailout) {

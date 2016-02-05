@@ -843,6 +843,13 @@ void Object::InitOnce(Isolate* isolate) {
                                                     Report::kBailout,
                                                     Heap::kOld);
 
+  // Some thread fields need to be reinitialized as null constants have not been
+  // initialized until now.
+  Thread* thr = Thread::Current();
+  ASSERT(thr != NULL);
+  thr->clear_sticky_error();
+  thr->clear_pending_functions();
+
   ASSERT(!null_object_->IsSmi());
   ASSERT(!null_array_->IsSmi());
   ASSERT(null_array_->IsArray());

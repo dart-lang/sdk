@@ -123,8 +123,7 @@ bool ClassFinalizer::ProcessPendingClasses() {
   ASSERT(isolate != NULL);
   HANDLESCOPE(thread);
   ObjectStore* object_store = isolate->object_store();
-  const Error& error =
-      Error::Handle(thread->zone(), object_store->sticky_error());
+  const Error& error = Error::Handle(thread->zone(), thread->sticky_error());
   if (!error.IsNull()) {
     return false;
   }
@@ -242,7 +241,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   // by Object::Init().
   if (!ProcessPendingClasses()) {
     // TODO(srdjan): Exit like a real VM instead.
-    const Error& err = Error::Handle(object_store->sticky_error());
+    const Error& err = Error::Handle(Thread::Current()->sticky_error());
     OS::PrintErr("Could not verify bootstrap classes : %s\n",
                  err.ToErrorCString());
     OS::Exit(255);

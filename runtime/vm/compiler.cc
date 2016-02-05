@@ -209,11 +209,10 @@ RawError* Compiler::Compile(const Library& library, const Script& script) {
     return Error::null();
   } else {
     Thread* const thread = Thread::Current();
-    Isolate* const isolate = thread->isolate();
     StackZone zone(thread);
     Error& error = Error::Handle();
-    error = isolate->object_store()->sticky_error();
-    isolate->object_store()->clear_sticky_error();
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
     return error.raw();
   }
   UNREACHABLE();
@@ -292,16 +291,14 @@ RawError* Compiler::CompileClass(const Class& cls) {
       return Error::null();
     } else {
       Thread* thread = Thread::Current();
-      Isolate* isolate = thread->isolate();
       Error& error = Error::Handle(thread->zone());
-      error = isolate->object_store()->sticky_error();
-      isolate->object_store()->clear_sticky_error();
+      error = thread->sticky_error();
+      thread->clear_sticky_error();
       return error.raw();
     }
   }
 
   Thread* const thread = Thread::Current();
-  Isolate* const isolate = thread->isolate();
   StackZone zone(thread);
   // We remember all the classes that are being compiled in these lists. This
   // also allows us to reset the marked_for_parsing state in case we see an
@@ -385,8 +382,8 @@ RawError* Compiler::CompileClass(const Class& cls) {
       }
     }
     Error& error = Error::Handle(zone.GetZone());
-    error = isolate->object_store()->sticky_error();
-    isolate->object_store()->clear_sticky_error();
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
     return error.raw();
   }
   UNREACHABLE();
@@ -1073,8 +1070,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       done = true;
     } else {
       // We bailed out or we encountered an error.
-      const Error& error = Error::Handle(
-          isolate()->object_store()->sticky_error());
+      const Error& error = Error::Handle(thread()->sticky_error());
 
       if (error.raw() == Object::branch_offset_error().raw()) {
         // Compilation failed due to an out of range branch offset in the
@@ -1115,7 +1111,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // Clear the error if it was not a real error, but just a bailout.
       if (error.IsLanguageError() &&
           (LanguageError::Cast(error).kind() == Report::kBailout)) {
-        isolate()->object_store()->clear_sticky_error();
+        thread()->clear_sticky_error();
       }
       is_compiled = false;
     }
@@ -1353,8 +1349,8 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
         // Encountered error.
         Error& error = Error::Handle();
         // We got an error during compilation.
-        error = isolate->object_store()->sticky_error();
-        isolate->object_store()->clear_sticky_error();
+        error = thread->sticky_error();
+        thread->clear_sticky_error();
         ASSERT(error.IsLanguageError() &&
                LanguageError::Cast(error).kind() != Report::kBailout);
         return error.raw();
@@ -1391,12 +1387,11 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     return Error::null();
   } else {
     Thread* const thread = Thread::Current();
-    Isolate* const isolate = thread->isolate();
     StackZone stack_zone(thread);
     Error& error = Error::Handle();
     // We got an error during compilation.
-    error = isolate->object_store()->sticky_error();
-    isolate->object_store()->clear_sticky_error();
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
     // Unoptimized compilation or precompilation may encounter compile-time
     // errors, but regular optimized compilation should not.
     ASSERT(!optimized || FLAG_precompilation);
@@ -1502,11 +1497,11 @@ RawError* Compiler::CompileParsedFunction(
     }
     return Error::null();
   } else {
-    Isolate* const isolate = Isolate::Current();
     Error& error = Error::Handle();
+    Thread* thread = Thread::Current();
     // We got an error during compilation.
-    error = isolate->object_store()->sticky_error();
-    isolate->object_store()->clear_sticky_error();
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
     return error.raw();
   }
   UNREACHABLE();
@@ -1621,11 +1616,9 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
     return DartEntry::InvokeFunction(initializer, Object::empty_array());
   } else {
     Thread* const thread = Thread::Current();
-    Isolate* const isolate = thread->isolate();
     StackZone zone(thread);
-    const Error& error =
-        Error::Handle(thread->zone(), isolate->object_store()->sticky_error());
-    isolate->object_store()->clear_sticky_error();
+    const Error& error = Error::Handle(thread->zone(), thread->sticky_error());
+    thread->clear_sticky_error();
     return error.raw();
   }
   UNREACHABLE();
@@ -1687,10 +1680,8 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     return result.raw();
   } else {
     Thread* const thread = Thread::Current();
-    Isolate* const isolate = thread->isolate();
-    const Object& result =
-      PassiveObject::Handle(isolate->object_store()->sticky_error());
-    isolate->object_store()->clear_sticky_error();
+    const Object& result = PassiveObject::Handle(thread->sticky_error());
+    thread->clear_sticky_error();
     return result.raw();
   }
   UNREACHABLE();

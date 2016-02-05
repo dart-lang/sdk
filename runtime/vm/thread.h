@@ -40,6 +40,7 @@ class PcDescriptors;
 class RawBool;
 class RawObject;
 class RawCode;
+class RawError;
 class RawGrowableObjectArray;
 class RawString;
 class RuntimeEntry;
@@ -365,6 +366,11 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   }
 
   RawGrowableObjectArray* pending_functions();
+  void clear_pending_functions();
+
+  RawError* sticky_error() const;
+  void set_sticky_error(const Error& value);
+  void clear_sticky_error();
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
@@ -547,6 +553,8 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   intptr_t deopt_id_;  // Compilation specific counter.
   uword vm_tag_;
   RawGrowableObjectArray* pending_functions_;
+
+  RawError* sticky_error_;
 
   // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \

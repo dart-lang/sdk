@@ -621,9 +621,9 @@ bool IsolateMessageHandler::IsCurrentIsolate() const {
 }
 
 
-static MessageHandler::MessageStatus StoreError(Isolate* isolate,
+static MessageHandler::MessageStatus StoreError(Thread* thread,
                                                 const Error& error) {
-  isolate->object_store()->set_sticky_error(error);
+  thread->set_sticky_error(error);
   if (error.IsUnwindError()) {
     const UnwindError& unwind = UnwindError::Cast(error);
     if (!unwind.is_user_initiated()) {
@@ -680,14 +680,14 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
   if (result.IsUnwindError()) {
     // When unwinding we don't notify error listeners and we ignore
     // whether errors are fatal for the current isolate.
-    return StoreError(I, result);
+    return StoreError(T, result);
   } else {
     bool has_listener = I->NotifyErrorListeners(exc_str, stacktrace_str);
     if (I->ErrorsFatal()) {
       if (has_listener) {
-        I->object_store()->clear_sticky_error();
+        T->clear_sticky_error();
       } else {
-        I->object_store()->set_sticky_error(result);
+        T->set_sticky_error(result);
       }
       return kError;
     }
@@ -1354,8 +1354,7 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
     if (!ClassFinalizer::ProcessPendingClasses()) {
       // Error is in sticky error already.
 #if defined(DEBUG)
-      const Error& error =
-          Error::Handle(isolate->object_store()->sticky_error());
+      const Error& error = Error::Handle(thread->sticky_error());
       ASSERT(!error.IsUnwindError());
 #endif
       return MessageHandler::kError;
@@ -1365,7 +1364,7 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
     result = state->ResolveFunction();
     bool is_spawn_uri = state->is_spawn_uri();
     if (result.IsError()) {
-      return StoreError(isolate, Error::Cast(result));
+      return StoreError(thread, Error::Cast(result));
     }
     ASSERT(result.IsFunction());
     Function& func = Function::Handle(thread->zone());
@@ -1420,7 +1419,7 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
 
     result = DartEntry::InvokeFunction(entry_point, args);
     if (result.IsError()) {
-      return StoreError(isolate, Error::Cast(result));
+      return StoreError(thread, Error::Cast(result));
     }
   }
   return MessageHandler::kOK;
@@ -1440,7 +1439,7 @@ static void ShutdownIsolate(uword parameter) {
     ASSERT(thread->isolate() == isolate);
     StackZone zone(thread);
     HandleScope handle_scope(thread);
-    const Error& error = Error::Handle(isolate->object_store()->sticky_error());
+    const Error& error = Error::Handle(thread->sticky_error());
     if (!error.IsNull() && !error.IsUnwindError()) {
       OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
     }
@@ -1490,9 +1489,10 @@ RawError* Isolate::HandleInterrupts() {
         OS::Print("[!] Terminating isolate due to OOB message:\n"
                   "\tisolate:    %s\n", name());
       }
-      const Error& error = Error::Handle(object_store()->sticky_error());
+      Thread* thread = Thread::Current();
+      const Error& error = Error::Handle(thread->sticky_error());
       ASSERT(!error.IsNull() && error.IsUnwindError());
-      object_store()->clear_sticky_error();
+      thread->clear_sticky_error();
       return error.raw();
     }
   }
@@ -1589,7 +1589,7 @@ void Isolate::LowLevelShutdown() {
 
   // Notify exit listeners that this isolate is shutting down.
   if (object_store() != NULL) {
-    const Error& error = Error::Handle(object_store()->sticky_error());
+    const Error& error = Error::Handle(thread->sticky_error());
     if (error.IsNull() ||
         !error.IsUnwindError() ||
         UnwindError::Cast(error).is_user_initiated()) {
@@ -1881,8 +1881,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     JSONObject tagCounters(&jsobj, "_tagCounters");
     vm_tag_counters()->PrintToJSONObject(&tagCounters);
   }
-  if (object_store()->sticky_error() != Object::null()) {
-    Error& error = Error::Handle(object_store()->sticky_error());
+  if (Thread::Current()->sticky_error() != Object::null()) {
+    Error& error = Error::Handle(Thread::Current()->sticky_error());
     ASSERT(!error.IsNull());
     jsobj.AddProperty("error", error, false);
   }

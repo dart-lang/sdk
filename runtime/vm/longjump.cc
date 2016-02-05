@@ -49,7 +49,6 @@ void LongJumpScope::Jump(int value, const Error& error) {
   ASSERT(IsSafeToJump());
 
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
 
 #if defined(DEBUG)
 #define CHECK_REUSABLE_HANDLE(name)                                            \
@@ -59,7 +58,7 @@ REUSABLE_HANDLE_LIST(CHECK_REUSABLE_HANDLE)
 #endif  // defined(DEBUG)
 
   // Remember the error in the sticky error of this isolate.
-  isolate->object_store()->set_sticky_error(error);
+  thread->set_sticky_error(error);
 
   // Destruct all the active StackResource objects.
   StackResource::UnwindAbove(thread, top_);

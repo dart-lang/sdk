@@ -382,7 +382,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 
   if (snapshot_buffer == NULL) {
     if (!I->object_store()->PreallocateObjects()) {
-      return I->object_store()->sticky_error();
+      return T->sticky_error();
     }
   }
 

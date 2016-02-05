@@ -382,8 +382,7 @@ void MessageHandler::TaskCallback() {
       }
       if (FLAG_trace_isolates) {
         if (status != kOK && isolate() != NULL) {
-          const Error& error =
-              Error::Handle(isolate()->object_store()->sticky_error());
+          const Error& error = Error::Handle(thread()->sticky_error());
           OS::Print("[-] Stopping message handler (%s):\n"
                     "\thandler:    %s\n"
                     "\terror:    %s\n",

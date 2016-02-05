@@ -45,9 +45,9 @@ RawError* Precompiler::CompileAll(
     precompiler.DoCompileAll(embedder_entry_points);
     return Error::null();
   } else {
-    Isolate* isolate = Isolate::Current();
-    const Error& error = Error::Handle(isolate->object_store()->sticky_error());
-    isolate->object_store()->clear_sticky_error();
+    Thread* thread = Thread::Current();
+    const Error& error = Error::Handle(thread->sticky_error());
+    thread->clear_sticky_error();
     return error.raw();
   }
 }

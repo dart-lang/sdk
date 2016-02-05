@@ -919,10 +919,9 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
     return param_descriptor.raw();
   } else {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
     Error& error = Error::Handle();
-    error = isolate->object_store()->sticky_error();
-    isolate->object_store()->clear_sticky_error();
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
     return error.raw();
   }
   UNREACHABLE();
@@ -953,7 +952,7 @@ bool Parser::ParseFormalParameters(const Function& func, ParamList* params) {
     parser.ParseFormalParameterList(true, true, params);
     return true;
   } else {
-    Thread::Current()->isolate()->object_store()->clear_sticky_error();
+    Thread::Current()->clear_sticky_error();
     params->Clear();
     return false;
   }
@@ -1101,12 +1100,11 @@ RawObject* Parser::ParseMetadata(const Field& meta_data) {
     return metadata;
   } else {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
     StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();
     Error& error = Error::Handle(zone);
-    error = isolate->object_store()->sticky_error();
-    isolate->object_store()->clear_sticky_error();
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
     return error.raw();
   }
   UNREACHABLE();

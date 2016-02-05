@@ -459,8 +459,8 @@ Dart_Handle Api::CheckAndFinalizePendingClasses(Thread* thread) {
   if (ClassFinalizer::ProcessPendingClasses()) {
     return Api::Success();
   }
-  ASSERT(isolate->object_store()->sticky_error() != Object::null());
-  return Api::NewHandle(thread, isolate->object_store()->sticky_error());
+  ASSERT(thread->sticky_error() != Object::null());
+  return Api::NewHandle(thread, thread->sticky_error());
 }
 
 
@@ -1622,9 +1622,9 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     }
     ::Dart_EnterIsolate(Api::CastIsolate(I));
   }
-  if (I->object_store()->sticky_error() != Object::null()) {
-    Dart_Handle error = Api::NewHandle(T, I->object_store()->sticky_error());
-    I->object_store()->clear_sticky_error();
+  if (T->sticky_error() != Object::null()) {
+    Dart_Handle error = Api::NewHandle(T, T->sticky_error());
+    T->clear_sticky_error();
     return error;
   }
   if (FLAG_print_class_table) {
@@ -1643,8 +1643,8 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   API_TIMELINE_BEGIN_END;
   TransitionNativeToVM transition(T);
   if (I->message_handler()->HandleNextMessage() != MessageHandler::kOK) {
-    Dart_Handle error = Api::NewHandle(T, I->object_store()->sticky_error());
-    I->object_store()->clear_sticky_error();
+    Dart_Handle error = Api::NewHandle(T, T->sticky_error());
+    T->clear_sticky_error();
     return error;
   }
   return Api::Success();
@@ -1659,8 +1659,8 @@ DART_EXPORT Dart_Handle Dart_HandleMessages() {
   API_TIMELINE_BEGIN_END;
   TransitionNativeToVM transition(T);
   if (I->message_handler()->HandleAllMessages() != MessageHandler::kOK) {
-    Dart_Handle error = Api::NewHandle(T, I->object_store()->sticky_error());
-    I->object_store()->clear_sticky_error();
+    Dart_Handle error = Api::NewHandle(T, T->sticky_error());
+    T->clear_sticky_error();
     return error;
   }
   return Api::Success();
