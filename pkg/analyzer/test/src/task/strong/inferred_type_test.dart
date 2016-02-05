@@ -1629,8 +1629,18 @@ main() {
 
     // TODO(jmesserly): we should change how this inference works.
     // For now this test will cover what we use.
-    // TODO(jmesserly): it looks like we lost our "infer JS builtin" test in
-    // a bad merge. Restore it.
+    test('infer JS builtin', () {
+      checkFile('''
+        import 'dart:_foreign_helper' show JS;
+        main() {
+          String x = /*severe:STATIC_TYPE_ERROR*/JS('int', '42');
+          var y = JS('String', '"hello"');
+          y = "world";
+          y = /*severe:STATIC_TYPE_ERROR*/42;
+        }
+    ''');
+    });
+
 
     test('inferred generic instantiation', () {
       checkFile('''
