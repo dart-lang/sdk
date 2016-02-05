@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/utilities.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -2035,6 +2036,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
  */
 class DeclarationResolver extends RecursiveAstVisitor<Object> {
   /**
+   * The elements that are reachable from the compilation unit element. When a
+   * compilation unit has been resolved, this set should be empty.
+   */
+  Set<Element> _expectedElements;
+
+  /**
    * The compilation unit containing the AST nodes being visited.
    */
   CompilationUnitElement _enclosingUnit;
@@ -2069,9 +2076,14 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
    * if the element model and compilation unit do not match each other.
    */
   void resolve(CompilationUnit unit, CompilationUnitElement element) {
+    ElementGatherer gatherer = new ElementGatherer();
+    element.accept(gatherer);
+    _expectedElements = gatherer.elements;
     _enclosingUnit = element;
+    _expectedElements.remove(element);
     unit.element = element;
     unit.accept(this);
+    _validateResolution();
   }
 
   @override
@@ -2137,6 +2149,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         }
         constructorName.staticElement = _enclosingExecutable;
       }
+      _expectedElements.remove(_enclosingExecutable);
       node.element = _enclosingExecutable as ConstructorElement;
       super.visitConstructorDeclaration(node);
       _resolveMetadata(node.metadata, _enclosingExecutable);
@@ -2269,6 +2282,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
           } else if ((property as KeywordToken).keyword == Keyword.SET) {
             accessor = _findWithNameAndOffset(accessors, functionName,
                 functionName.name + '=', functionName.offset);
+            _expectedElements.remove(accessor);
             functionName.staticElement = accessor;
           }
           _enclosingExecutable = accessor;
@@ -2379,6 +2393,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       if (property == null) {
         _enclosingExecutable = _findWithNameAndOffset(_enclosingClass.methods,
             methodName, nameOfMethod, methodName.offset);
+        _expectedElements.remove(_enclosingExecutable);
         methodName.staticElement = _enclosingExecutable;
       } else {
         PropertyAccessorElement accessor;
@@ -2387,6 +2402,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         } else if ((property as KeywordToken).keyword == Keyword.SET) {
           accessor = _findWithNameAndOffset(_enclosingClass.accessors,
               methodName, methodName.name + '=', methodName.offset);
+          _expectedElements.remove(accessor);
           methodName.staticElement = accessor;
         }
         _enclosingExecutable = accessor;
@@ -2564,6 +2580,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     Element element = _findWithNameAndOffset(
         elements, identifier, identifier.name, identifier.offset,
         required: required);
+    _expectedElements.remove(element);
     identifier.staticElement = element;
     return element;
   }
@@ -2736,6 +2753,23 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       for (int i = 0; i < astMetadata.length; i++) {
         astMetadata[i].elementAnnotation = elementMetadata[i];
       }
+    }
+  }
+
+  /**
+   * Throw an exception if there are non-synthetic elements in the element model
+   * that were not associated with an AST node.
+   */
+  void _validateResolution() {
+    if (_expectedElements.isNotEmpty) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.write(_expectedElements.length);
+      buffer.writeln(' unmatched elements found:');
+      for (Element element in _expectedElements) {
+        buffer.write('  ');
+        buffer.writeln(element);
+      }
+      throw new ElementMismatchException(buffer.toString());
     }
   }
 }
