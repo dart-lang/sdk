@@ -12,56 +12,58 @@ import 'package:unittest/unittest.dart';
 import 'strong_test_helper.dart';
 
 void main() {
+  initStrongModeTests();
+
   // Error also expected when declared type is `int`.
-  testChecker('infer type on var', {
-    '/main.dart': '''
+  test('infer type on var', () {
+    checkFile('''
       test1() {
         int x = 3;
         x = /*severe:STATIC_TYPE_ERROR*/"hi";
       }
-    '''
+    ''');
   });
 
   // If inferred type is `int`, error is also reported
-  testChecker('infer type on var 2', {
-    '/main.dart': '''
+  test('infer type on var 2', () {
+    checkFile('''
       test2() {
         var x = 3;
         x = /*severe:STATIC_TYPE_ERROR*/"hi";
       }
-    '''
+    ''');
   });
 
-  testChecker('No error when declared type is `num` and assigned null.', {
-    '/main.dart': '''
+  test('No error when declared type is `num` and assigned null.', () {
+    checkFile('''
         test1() {
           num x = 3;
           x = null;
         }
-      '''
+      ''');
   });
 
-  testChecker('do not infer type on dynamic', {
-    '/main.dart': '''
+  test('do not infer type on dynamic', () {
+    checkFile('''
       test() {
         dynamic x = 3;
         x = "hi";
       }
-    '''
+    ''');
   });
 
-  testChecker('do not infer type when initializer is null', {
-    '/main.dart': '''
+  test('do not infer type when initializer is null', () {
+    checkFile('''
       test() {
         var x = null;
         x = "hi";
         x = 3;
       }
-    '''
+    ''');
   });
 
-  testChecker('infer type on var from field', {
-    '/main.dart': '''
+  test('infer type on var from field', () {
+    checkFile('''
       class A {
         int x = 0;
 
@@ -80,11 +82,11 @@ void main() {
         int y; // field def after use
         final z = 42; // should infer `int`
       }
-    '''
+    ''');
   });
 
-  testChecker('infer type on var from top-level', {
-    '/main.dart': '''
+  test('infer type on var from top-level', () {
+    checkFile('''
       int x = 0;
 
       test1() {
@@ -101,11 +103,11 @@ void main() {
 
       int y = 0; // field def after use
       final z = 42; // should infer `int`
-    '''
+    ''');
   });
 
-  testChecker('do not infer field type when initializer is null', {
-    '/main.dart': '''
+  test('do not infer field type when initializer is null', () {
+    checkFile('''
       var x = null;
       var y = 3;
       class A {
@@ -124,14 +126,16 @@ void main() {
         new A().x2 = "hi";
         new A().y2 = /*severe:STATIC_TYPE_ERROR*/"hi";
       }
-    '''
+    ''');
   });
 
-  testChecker('infer from variables in non-cycle imports with flag', {
-    '/a.dart': '''
+  test('infer from variables in non-cycle imports with flag', () {
+    addFile(
+        '''
           var x = 2;
       ''',
-    '/main.dart': '''
+        name: '/a.dart');
+    checkFile('''
           import 'a.dart';
           var y = x;
 
@@ -139,14 +143,16 @@ void main() {
             x = /*severe:STATIC_TYPE_ERROR*/"hi";
             y = /*severe:STATIC_TYPE_ERROR*/"hi";
           }
-    '''
+    ''');
   });
 
-  testChecker('infer from variables in non-cycle imports with flag 2', {
-    '/a.dart': '''
+  test('infer from variables in non-cycle imports with flag 2', () {
+    addFile(
+        '''
           class A { static var x = 2; }
       ''',
-    '/main.dart': '''
+        name: '/a.dart');
+    checkFile('''
           import 'a.dart';
           class B { static var y = A.x; }
 
@@ -154,15 +160,17 @@ void main() {
             A.x = /*severe:STATIC_TYPE_ERROR*/"hi";
             B.y = /*severe:STATIC_TYPE_ERROR*/"hi";
           }
-    '''
+    ''');
   });
 
-  testChecker('infer from variables in cycle libs when flag is on', {
-    '/a.dart': '''
+  test('infer from variables in cycle libs when flag is on', () {
+    addFile(
+        '''
           import 'main.dart';
           var x = 2; // ok to infer
       ''',
-    '/main.dart': '''
+        name: '/a.dart');
+    checkFile('''
           import 'a.dart';
           var y = x; // now ok :)
 
@@ -171,15 +179,17 @@ void main() {
             t = x;
             t = y;
           }
-    '''
+    ''');
   });
 
-  testChecker('infer from variables in cycle libs when flag is on 2', {
-    '/a.dart': '''
+  test('infer from variables in cycle libs when flag is on 2', () {
+    addFile(
+        '''
           import 'main.dart';
           class A { static var x = 2; }
       ''',
-    '/main.dart': '''
+        name: '/a.dart');
+    checkFile('''
           import 'a.dart';
           class B { static var y = A.x; }
 
@@ -188,24 +198,28 @@ void main() {
             t = A.x;
             t = B.y;
           }
-    '''
+    ''');
   });
 
-  testChecker('can infer also from static and instance fields (flag on)', {
-    '/a.dart': '''
+  test('can infer also from static and instance fields (flag on)', () {
+    addFile(
+        '''
           import 'b.dart';
           class A {
             static final a1 = B.b1;
             final a2 = new B().b2;
           }
       ''',
-    '/b.dart': '''
+        name: '/a.dart');
+    addFile(
+        '''
           class B {
             static final b1 = 1;
             final b2 = 1;
           }
       ''',
-    '/main.dart': '''
+        name: '/b.dart');
+    checkFile('''
           import "a.dart";
 
           test1() {
@@ -214,24 +228,29 @@ void main() {
             x = A.a1;
             x = new A().a2;
           }
-    '''
+    ''');
   });
 
-  testChecker('inference in cycles is deterministic', {
-    '/a.dart': '''
+  test('inference in cycles is deterministic', () {
+    addFile(
+        '''
           import 'b.dart';
           class A {
             static final a1 = B.b1;
             final a2 = new B().b2;
           }
       ''',
-    '/b.dart': '''
+        name: '/a.dart');
+    addFile(
+        '''
           class B {
             static final b1 = 1;
             final b2 = 1;
           }
       ''',
-    '/c.dart': '''
+        name: '/b.dart');
+    addFile(
+        '''
           import "main.dart"; // creates a cycle
 
           class C {
@@ -239,7 +258,9 @@ void main() {
             final c2 = 1;
           }
       ''',
-    '/e.dart': '''
+        name: '/c.dart');
+    addFile(
+        '''
           import 'a.dart';
           part 'e2.dart';
 
@@ -252,16 +273,21 @@ void main() {
             final e6 = new A().a2;
           }
       ''',
-    '/f.dart': '''
+        name: '/e.dart');
+    addFile(
+        '''
           part 'f2.dart';
       ''',
-    '/e2.dart': '''
+        name: '/f.dart');
+    addFile(
+        '''
           class F {
             static final f1 = 1;
             final f2 = 1;
           }
       ''',
-    '/main.dart': '''
+        name: '/e2.dart');
+    checkFile('''
           import "a.dart";
           import "c.dart";
           import "e.dart";
@@ -299,12 +325,11 @@ void main() {
             x = F.f1;
             x = new F().f2;
           }
-    '''
+    ''');
   });
 
-  testChecker(
-      'infer from complex expressions if the outer-most value is precise', {
-    '/main.dart': '''
+  test('infer from complex expressions if the outer-most value is precise', () {
+    checkFile('''
         class A { int x; B operator+(other) {} }
         class B extends A { B(ignore); }
         var a = new A();
@@ -346,11 +371,11 @@ void main() {
           j = /*severe:STATIC_TYPE_ERROR*/false;
           j = /*severe:STATIC_TYPE_ERROR*/[];
         }
-    '''
+    ''');
   });
 
-  testChecker('infer list literal nested in map literal', {
-    '/main.dart': r'''
+  test('infer list literal nested in map literal', () {
+    checkFile(r'''
 class Resource {}
 class Folder extends Resource {}
 
@@ -376,17 +401,19 @@ main() {
     /*info:INFERRED_TYPE_LITERAL*/[/*info:DOWN_CAST_IMPLICIT*/getResource('/pkgA/lib/')]
   );
 }
-    '''
+    ''');
   });
 
   // but flags can enable this behavior.
-  testChecker('infer if complex expressions read possibly inferred field', {
-    '/a.dart': '''
+  test('infer if complex expressions read possibly inferred field', () {
+    addFile(
+        '''
         class A {
           var x = 3;
         }
       ''',
-    '/main.dart': '''
+        name: '/a.dart');
+    checkFile('''
         import 'a.dart';
         class B {
           var y = 3;
@@ -406,12 +433,12 @@ main() {
           i = /*info:DYNAMIC_CAST*/t4;
           i = new B().y; // B.y was inferred though
         }
-    '''
+    ''');
   });
 
   group('infer types on loop indices', () {
-    testChecker('foreach loop', {
-      '/main.dart': '''
+    test('foreach loop', () {
+      checkFile('''
       class Foo {
         int bar = 42;
       }
@@ -474,22 +501,22 @@ main() {
           String y = x;
         }
       }
-      '''
+      ''');
     });
 
-    testChecker('for loop, with inference', {
-      '/main.dart': '''
+    test('for loop, with inference', () {
+      checkFile('''
       test() {
         for (var i = 0; i < 10; i++) {
           int j = i + 1;
         }
       }
-      '''
+      ''');
     });
   });
 
-  testChecker('propagate inference to field in class', {
-    '/main.dart': '''
+  test('propagate inference to field in class', () {
+    checkFile('''
       class A {
         int x = 2;
       }
@@ -500,11 +527,11 @@ main() {
         print(a.x);     // doesn't require dynamic invoke
         print(a.x + 2); // ok to use in bigger expression
       }
-    '''
+    ''');
   });
 
-  testChecker('propagate inference to field in class dynamic warnings', {
-    '/main.dart': '''
+  test('propagate inference to field in class dynamic warnings', () {
+    checkFile('''
       class A {
         int x = 2;
       }
@@ -515,11 +542,11 @@ main() {
         print(/*info:DYNAMIC_INVOKE*/a.x);
         print(/*info:DYNAMIC_INVOKE*/(/*info:DYNAMIC_INVOKE*/a.x) + 2);
       }
-    '''
+    ''');
   });
 
-  testChecker('propagate inference transitively', {
-    '/main.dart': '''
+  test('propagate inference transitively', () {
+    checkFile('''
       class A {
         int x = 2;
       }
@@ -531,11 +558,11 @@ main() {
         A a2 = new A();
         a2.x = /*severe:STATIC_TYPE_ERROR*/"hi";
       }
-    '''
+    ''');
   });
 
-  testChecker('propagate inference transitively 2', {
-    '/main.dart': '''
+  test('propagate inference transitively 2', () {
+    checkFile('''
       class A {
         int x = 42;
       }
@@ -559,12 +586,12 @@ main() {
         D d2 = new D();
         print(d2.c.b.a.x);
       }
-    '''
+    ''');
   });
 
   group('infer type on overridden fields', () {
-    testChecker('2', {
-      '/main.dart': '''
+    test('2', () {
+      checkFile('''
         class A {
           int x = 2;
         }
@@ -577,11 +604,11 @@ main() {
           String y = /*severe:STATIC_TYPE_ERROR*/new B().x;
           int z = new B().x;
         }
-    '''
+    ''');
     });
 
-    testChecker('4', {
-      '/main.dart': '''
+    test('4', () {
+      checkFile('''
         class A {
           int x = 2;
         }
@@ -594,13 +621,13 @@ main() {
           String y = /*severe:STATIC_TYPE_ERROR*/new B().x;
           int z = new B().x;
         }
-    '''
+    ''');
     });
   });
 
   group('infer types on generic instantiations', () {
-    testChecker('infer', {
-      '/main.dart': '''
+    test('infer', () {
+      checkFile('''
         class A<T> {
           T x;
         }
@@ -613,11 +640,11 @@ main() {
           String y = /*info:DYNAMIC_CAST*/new B().x;
           int z = /*info:DYNAMIC_CAST*/new B().x;
         }
-    '''
+    ''');
     });
 
-    testChecker('3', {
-      '/main.dart': '''
+    test('3', () {
+      checkFile('''
         class A<T> {
           T x;
           T w;
@@ -632,11 +659,11 @@ main() {
           String y = /*severe:STATIC_TYPE_ERROR*/new B().x;
           int z = new B().x;
         }
-    '''
+    ''');
     });
 
-    testChecker('4', {
-      '/main.dart': '''
+    test('4', () {
+      checkFile('''
         class A<T> {
           T x;
         }
@@ -650,11 +677,11 @@ main() {
           int y = /*severe:STATIC_TYPE_ERROR*/new B<String>().x;
           String z = new B<String>().x;
         }
-    '''
+    ''');
     });
 
-    testChecker('5', {
-      '/main.dart': '''
+    test('5', () {
+      checkFile('''
         abstract class I<E> {
           String m(a, String f(v, T e));
         }
@@ -679,17 +706,19 @@ main() {
           int y = /*severe:STATIC_TYPE_ERROR*/new B().m(null, null);
           String z = new B().m(null, null);
         }
-    '''
+    ''');
     });
   });
 
-  testChecker('infer type regardless of declaration order or cycles', {
-    '/b.dart': '''
+  test('infer type regardless of declaration order or cycles', () {
+    addFile(
+        '''
         import 'main.dart';
 
         class B extends A { }
       ''',
-    '/main.dart': '''
+        name: '/b.dart');
+    checkFile('''
         import 'b.dart';
         class C extends B {
           get x;
@@ -701,20 +730,22 @@ main() {
           int y = new C().x;
           String y = /*severe:STATIC_TYPE_ERROR*/new C().x;
         }
-    '''
+    ''');
   });
 
   // Note: this is a regression test for a non-deterministic behavior we used to
   // have with inference in library cycles. If you see this test flake out,
   // change `test` to `skip_test` and reopen bug #48.
-  testChecker('infer types on generic instantiations in library cycle', {
-    '/a.dart': '''
+  test('infer types on generic instantiations in library cycle', () {
+    addFile(
+        '''
           import 'main.dart';
         abstract class I<E> {
           A<E> m(a, String f(v, int e));
         }
       ''',
-    '/main.dart': '''
+        name: '/a.dart');
+    checkFile('''
           import 'a.dart';
 
         abstract class A<E> implements I<E> {
@@ -738,12 +769,12 @@ main() {
           int y = /*severe:STATIC_TYPE_ERROR*/new B<String>().m(null, null).value;
           String z = new B<String>().m(null, null).value;
         }
-    '''
+    ''');
   });
 
   group('do not infer overridden fields that explicitly say dynamic', () {
-    testChecker('infer', {
-      '/main.dart': '''
+    test('infer', () {
+      checkFile('''
           class A {
             int x = 2;
           }
@@ -756,12 +787,12 @@ main() {
             String y = /*info:DYNAMIC_CAST*/new B().x;
             int z = /*info:DYNAMIC_CAST*/new B().x;
           }
-      '''
+      ''');
     });
   });
 
-  testChecker('conflicts can happen', {
-    '/main.dart': '''
+  test('conflicts can happen', () {
+    checkFile('''
         class I1 {
           int x;
         }
@@ -785,11 +816,11 @@ main() {
         class C2 implements B, A {
           /*severe:INVALID_METHOD_OVERRIDE*/get a => null;
         }
-    '''
+    ''');
   });
 
-  testChecker('conflicts can happen 2', {
-    '/main.dart': '''
+  test('conflicts can happen 2', () {
+    checkFile('''
         class I1 {
           int x;
         }
@@ -817,12 +848,11 @@ main() {
         class C2 implements A, B {
           /*severe:INVALID_METHOD_OVERRIDE*/get a => null;
         }
-    '''
+    ''');
   });
 
-  testChecker(
-      'infer from RHS only if it wont conflict with overridden fields', {
-    '/main.dart': '''
+  test('infer from RHS only if it wont conflict with overridden fields', () {
+    checkFile('''
         class A {
           var x;
         }
@@ -835,12 +865,11 @@ main() {
           String y = /*info:DYNAMIC_CAST*/new B().x;
           int z = /*info:DYNAMIC_CAST*/new B().x;
         }
-    '''
+    ''');
   });
 
-  testChecker(
-      'infer from RHS only if it wont conflict with overridden fields 2', {
-    '/main.dart': '''
+  test('infer from RHS only if it wont conflict with overridden fields 2', () {
+    checkFile('''
         class A {
           final x;
         }
@@ -853,11 +882,11 @@ main() {
           String y = /*severe:STATIC_TYPE_ERROR*/new B().x;
           int z = new B().x;
         }
-    '''
+    ''');
   });
 
-  testChecker('infer correctly on multiple variables declared together', {
-    '/main.dart': '''
+  test('infer correctly on multiple variables declared together', () {
+    checkFile('''
         class A {
           var x, y = 2, z = "hi";
         }
@@ -880,20 +909,24 @@ main() {
           i = /*severe:STATIC_TYPE_ERROR*/new B().z;
           i = new B().w;
         }
-    '''
+    ''');
   });
 
-  testChecker('infer consts transitively', {
-    '/b.dart': '''
+  test('infer consts transitively', () {
+    addFile(
+        '''
         const b1 = 2;
       ''',
-    '/a.dart': '''
+        name: '/b.dart');
+    addFile(
+        '''
         import 'main.dart';
         import 'b.dart';
         const a1 = m2;
         const a2 = b1;
       ''',
-    '/main.dart': '''
+        name: '/a.dart');
+    checkFile('''
         import 'a.dart';
         const m1 = a1;
         const m2 = a2;
@@ -902,14 +935,17 @@ main() {
           int i;
           i = m1;
         }
-    '''
+    ''');
   });
 
-  testChecker('infer statics transitively', {
-    '/b.dart': '''
+  test('infer statics transitively', () {
+    addFile(
+        '''
         final b1 = 2;
       ''',
-    '/a.dart': '''
+        name: '/b.dart');
+    addFile(
+        '''
         import 'main.dart';
         import 'b.dart';
         final a1 = m2;
@@ -917,7 +953,8 @@ main() {
           static final a2 = b1;
         }
       ''',
-    '/main.dart': '''
+        name: '/a.dart');
+    checkFile('''
         import 'a.dart';
         final m1 = a1;
         final m2 = A.a2;
@@ -926,11 +963,11 @@ main() {
           int i;
           i = m1;
         }
-    '''
+    ''');
   });
 
-  testChecker('infer statics transitively 2', {
-    '/main.dart': '''
+  test('infer statics transitively 2', () {
+    checkFile('''
         const x1 = 1;
         final x2 = 1;
         final y1 = x1;
@@ -941,18 +978,20 @@ main() {
           i = y1;
           i = y2;
         }
-    '''
+    ''');
   });
 
-  testChecker('infer statics transitively 3', {
-    '/a.dart': '''
+  test('infer statics transitively 3', () {
+    addFile(
+        '''
         const a1 = 3;
         const a2 = 4;
         class A {
           a3;
         }
       ''',
-    '/main.dart': '''
+        name: '/a.dart');
+    checkFile('''
         import 'a.dart' show a1, A;
         import 'a.dart' as p show a2, A;
         const t1 = 1;
@@ -969,14 +1008,16 @@ main() {
           i = t3;
           i = t4;
         }
-    '''
+    ''');
   });
 
-  testChecker('infer statics with method invocations', {
-    '/a.dart': '''
+  test('infer statics with method invocations', () {
+    addFile(
+        '''
         m3(String a, String b, [a1,a2]) {}
       ''',
-    '/main.dart': '''
+        name: '/a.dart');
+    checkFile('''
         import 'a.dart';
         class T {
           static final T foo = m1(m2(m3('', '')));
@@ -985,11 +1026,11 @@ main() {
         }
 
 
-    '''
+    ''');
   });
 
-  testChecker('downwards inference: miscellaneous', {
-    '/main.dart': '''
+  test('downwards inference: miscellaneous', () {
+    checkFile('''
       typedef T Function2<S, T>(S x);
       class A<T> {
         Function2<T, T> x;
@@ -1007,12 +1048,12 @@ main() {
             A<int> a = /*info:INFERRED_TYPE_ALLOCATION*/new A(f);
           }
       }
-      '''
+      ''');
   });
 
   group('downwards inference on instance creations', () {
-    String info = 'info:INFERRED_TYPE_ALLOCATION';
-    String code = '''
+    test('infer downwards', () {
+      checkFile('''
       class A<S, T> {
         S x;
         T y;
@@ -1046,8 +1087,8 @@ main() {
 
       void main() {
         {
-          A<int, String> a0 = /*$info*/new A(3, "hello");
-          A<int, String> a1 = /*$info*/new A.named(3, "hello");
+          A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new A(3, "hello");
+          A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new A.named(3, "hello");
           A<int, String> a2 = new A<int, String>(3, "hello");
           A<int, String> a3 = new A<int, String>.named(3, "hello");
           A<int, String> a4 = /*severe:STATIC_TYPE_ERROR*/new A<int, dynamic>(3, "hello");
@@ -1058,8 +1099,8 @@ main() {
           A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new A.named(/*severe:STATIC_TYPE_ERROR*/"hello", /*severe:STATIC_TYPE_ERROR*/3);
         }
         {
-          A<int, String> a0 = /*$info*/new B("hello", 3);
-          A<int, String> a1 = /*$info*/new B.named("hello", 3);
+          A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new B("hello", 3);
+          A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new B.named("hello", 3);
           A<int, String> a2 = new B<String, int>("hello", 3);
           A<int, String> a3 = new B<String, int>.named("hello", 3);
           A<int, String> a4 = /*severe:STATIC_TYPE_ERROR*/new B<String, dynamic>("hello", 3);
@@ -1070,8 +1111,8 @@ main() {
           A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new B.named(/*severe:STATIC_TYPE_ERROR*/3, /*severe:STATIC_TYPE_ERROR*/"hello");
         }
         {
-          A<int, int> a0 = /*$info*/new C(3);
-          A<int, int> a1 = /*$info*/new C.named(3);
+          A<int, int> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new C(3);
+          A<int, int> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new C.named(3);
           A<int, int> a2 = new C<int>(3);
           A<int, int> a3 = new C<int>.named(3);
           A<int, int> a4 = /*severe:STATIC_TYPE_ERROR*/new C<dynamic>(3);
@@ -1082,8 +1123,8 @@ main() {
           A<int, int> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new C.named(/*severe:STATIC_TYPE_ERROR*/"hello");
         }
         {
-          A<int, String> a0 = /*$info*/new D("hello");
-          A<int, String> a1 = /*$info*/new D.named("hello");
+          A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new D("hello");
+          A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new D.named("hello");
           A<int, String> a2 = new D<int, String>("hello");
           A<int, String> a3 = new D<String, String>.named("hello");
           A<int, String> a4 = /*severe:STATIC_TYPE_ERROR*/new D<num, dynamic>("hello");
@@ -1097,29 +1138,29 @@ main() {
           A<C<int>, String> a0 = /*severe:STATIC_TYPE_ERROR*/new E("hello");
         }
         { // Check named and optional arguments
-          A<int, String> a0 = /*$info*/new F(3, "hello", a: /*info:INFERRED_TYPE_LITERAL*/[3], b: /*info:INFERRED_TYPE_LITERAL*/["hello"]);
+          A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new F(3, "hello", a: /*info:INFERRED_TYPE_LITERAL*/[3], b: /*info:INFERRED_TYPE_LITERAL*/["hello"]);
           A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new F(3, "hello", a: /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"], b: /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/3]);
-          A<int, String> a2 = /*$info*/new F.named(3, "hello", 3, "hello");
-          A<int, String> a3 = /*$info*/new F.named(3, "hello");
+          A<int, String> a2 = /*info:INFERRED_TYPE_ALLOCATION*/new F.named(3, "hello", 3, "hello");
+          A<int, String> a3 = /*info:INFERRED_TYPE_ALLOCATION*/new F.named(3, "hello");
           A<int, String> a4 = /*info:INFERRED_TYPE_ALLOCATION*/new F.named(3, "hello", /*severe:STATIC_TYPE_ERROR*/"hello", /*severe:STATIC_TYPE_ERROR*/3);
           A<int, String> a5 = /*info:INFERRED_TYPE_ALLOCATION*/new F.named(3, "hello", /*severe:STATIC_TYPE_ERROR*/"hello");
         }
       }
-        ''';
-    testChecker('infer downwards', {'/main.dart': code});
+        ''');
+    });
   });
 
   group('downwards inference on list literals', () {
-    String info = "info:INFERRED_TYPE_LITERAL";
-    String code = '''
-      void foo([List<String> list1 = /*$info*/const [],
+    test('infer downwards', () {
+      checkFile('''
+      void foo([List<String> list1 = /*info:INFERRED_TYPE_LITERAL*/const [],
                 List<String> list2 = /*info:INFERRED_TYPE_LITERAL*/const [/*severe:STATIC_TYPE_ERROR*/42]]) {
       }
 
       void main() {
         {
-          List<int> l0 = /*$info*/[];
-          List<int> l1 = /*$info*/[3];
+          List<int> l0 = /*info:INFERRED_TYPE_LITERAL*/[];
+          List<int> l1 = /*info:INFERRED_TYPE_LITERAL*/[3];
           List<int> l2 = /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"];
           List<int> l3 = /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3];
         }
@@ -1136,23 +1177,23 @@ main() {
           List<int> l3 = /*severe:STATIC_TYPE_ERROR*/<num>[/*severe:STATIC_TYPE_ERROR*/"hello", 3];
         }
         {
-          Iterable<int> i0 = /*$info*/[];
-          Iterable<int> i1 = /*$info*/[3];
+          Iterable<int> i0 = /*info:INFERRED_TYPE_LITERAL*/[];
+          Iterable<int> i1 = /*info:INFERRED_TYPE_LITERAL*/[3];
           Iterable<int> i2 = /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"];
           Iterable<int> i3 = /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3];
         }
         {
-          const List<int> c0 = /*$info*/const [];
-          const List<int> c1 = /*$info*/const [3];
+          const List<int> c0 = /*info:INFERRED_TYPE_LITERAL*/const [];
+          const List<int> c1 = /*info:INFERRED_TYPE_LITERAL*/const [3];
           const List<int> c2 = /*info:INFERRED_TYPE_LITERAL*/const [/*severe:STATIC_TYPE_ERROR*/"hello"];
           const List<int> c3 = /*info:INFERRED_TYPE_LITERAL*/const [/*severe:STATIC_TYPE_ERROR*/"hello", 3];
         }
       }
-      ''';
-    testChecker('infer downwards', {'/main.dart': code});
+      ''');
+    });
 
-    testChecker('infer if value types match context', {
-      '/main.dart': r'''
+    test('infer if value types match context', () {
+      checkFile(r'''
 class DartType {}
 typedef void Asserter<T>(T type);
 typedef Asserter<T> AsserterBuilder<S, T>(S arg);
@@ -1207,51 +1248,53 @@ main() {
   g.assertAOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
   g.assertDOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
 }
-    '''
+    ''');
     });
   });
 
   group('downwards inference on function arguments', () {
     String info = "info:INFERRED_TYPE_LITERAL";
-    String code = '''
+    test('infer downwards', () {
+      checkFile('''
       void f0(List<int> a) {};
       void f1({List<int> a}) {};
       void f2(Iterable<int> a) {};
       void f3(Iterable<Iterable<int>> a) {};
       void f4({Iterable<Iterable<int>> a}) {};
       void main() {
-        f0(/*$info*/[]);
-        f0(/*$info*/[3]);
+        f0(/*info:INFERRED_TYPE_LITERAL*/[]);
+        f0(/*info:INFERRED_TYPE_LITERAL*/[3]);
         f0(/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
         f0(/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3]);
 
-        f1(a: /*$info*/[]);
-        f1(a: /*$info*/[3]);
-        f1(a: /*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
-        f1(a: /*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3]);
+        f1(a: /*info:INFERRED_TYPE_LITERAL*/[]);
+        f1(a: /*info:INFERRED_TYPE_LITERAL*/[3]);
+        f1(a: /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
+        f1(a: /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3]);
 
-        f2(/*$info*/[]);
-        f2(/*$info*/[3]);
-        f2(/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
-        f2(/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3]);
+        f2(/*info:INFERRED_TYPE_LITERAL*/[]);
+        f2(/*info:INFERRED_TYPE_LITERAL*/[3]);
+        f2(/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
+        f2(/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3]);
 
-        f3(/*$info*/[]);
-        f3(/*$info*/[/*$info*/[3]]);
-        f3(/*$info*/[/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"]]);
-        f3(/*$info*/[/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"], /*$info*/[3]]);
+        f3(/*info:INFERRED_TYPE_LITERAL*/[]);
+        f3(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[3]]);
+        f3(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]]);
+        f3(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"], /*info:INFERRED_TYPE_LITERAL*/[3]]);
 
-        f4(a: /*$info*/[]);
-        f4(a: /*$info*/[/*$info*/[3]]);
-        f4(a: /*$info*/[/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"]]);
-        f4(a: /*$info*/[/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"], /*$info*/[3]]);
+        f4(a: /*info:INFERRED_TYPE_LITERAL*/[]);
+        f4(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[3]]);
+        f4(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]]);
+        f4(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"], /*info:INFERRED_TYPE_LITERAL*/[3]]);
       }
-      ''';
-    testChecker('infer downwards', {'/main.dart': code});
+      ''');
+    });
   });
 
   group('downwards inference on constructor arguments', () {
     String info = "info:INFERRED_TYPE_LITERAL";
-    String code = '''
+    test('infer downwards', () {
+      checkFile('''
       class F0 {
         F0(List<int> a) {};
       }
@@ -1268,41 +1311,42 @@ main() {
         F4({Iterable<Iterable<int>> a}) {};
       }
       void main() {
-        new F0(/*$info*/[]);
-        new F0(/*$info*/[3]);
+        new F0(/*info:INFERRED_TYPE_LITERAL*/[]);
+        new F0(/*info:INFERRED_TYPE_LITERAL*/[3]);
         new F0(/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
         new F0(/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello",
                                             3]);
 
-        new F1(a: /*$info*/[]);
-        new F1(a: /*$info*/[3]);
-        new F1(a: /*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
-        new F1(a: /*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3]);
+        new F1(a: /*info:INFERRED_TYPE_LITERAL*/[]);
+        new F1(a: /*info:INFERRED_TYPE_LITERAL*/[3]);
+        new F1(a: /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
+        new F1(a: /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3]);
 
-        new F2(/*$info*/[]);
-        new F2(/*$info*/[3]);
-        new F2(/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
-        new F2(/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3]);
+        new F2(/*info:INFERRED_TYPE_LITERAL*/[]);
+        new F2(/*info:INFERRED_TYPE_LITERAL*/[3]);
+        new F2(/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
+        new F2(/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3]);
 
-        new F3(/*$info*/[]);
-        new F3(/*$info*/[/*$info*/[3]]);
-        new F3(/*$info*/[/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"]]);
-        new F3(/*$info*/[/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"],
-                         /*$info*/[3]]);
+        new F3(/*info:INFERRED_TYPE_LITERAL*/[]);
+        new F3(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[3]]);
+        new F3(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]]);
+        new F3(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"],
+                         /*info:INFERRED_TYPE_LITERAL*/[3]]);
 
-        new F4(a: /*$info*/[]);
-        new F4(a: /*$info*/[/*$info*/[3]]);
-        new F4(a: /*$info*/[/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"]]);
-        new F4(a: /*$info*/[/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"],
-                            /*$info*/[3]]);
+        new F4(a: /*info:INFERRED_TYPE_LITERAL*/[]);
+        new F4(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[3]]);
+        new F4(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]]);
+        new F4(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"],
+                            /*info:INFERRED_TYPE_LITERAL*/[3]]);
       }
-      ''';
-    testChecker('infer downwards', {'/main.dart': code});
+      ''');
+    });
   });
 
   group('downwards inference on generic constructor arguments', () {
     String info = "info:INFERRED_TYPE_LITERAL";
-    String code = '''
+    test('infer downwards', () {
+      checkFile('''
       class F0<T> {
         F0(List<T> a) {};
       }
@@ -1319,61 +1363,62 @@ main() {
         F4({Iterable<Iterable<T>> a}) {};
       }
       void main() {
-        new F0<int>(/*$info*/[]);
-        new F0<int>(/*$info*/[3]);
+        new F0<int>(/*info:INFERRED_TYPE_LITERAL*/[]);
+        new F0<int>(/*info:INFERRED_TYPE_LITERAL*/[3]);
         new F0<int>(/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
         new F0<int>(/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello",
                                             3]);
 
-        new F1<int>(a: /*$info*/[]);
-        new F1<int>(a: /*$info*/[3]);
-        new F1<int>(a: /*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
-        new F1<int>(a: /*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3]);
+        new F1<int>(a: /*info:INFERRED_TYPE_LITERAL*/[]);
+        new F1<int>(a: /*info:INFERRED_TYPE_LITERAL*/[3]);
+        new F1<int>(a: /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
+        new F1<int>(a: /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3]);
 
-        new F2<int>(/*$info*/[]);
-        new F2<int>(/*$info*/[3]);
-        new F2<int>(/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
-        new F2<int>(/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3]);
+        new F2<int>(/*info:INFERRED_TYPE_LITERAL*/[]);
+        new F2<int>(/*info:INFERRED_TYPE_LITERAL*/[3]);
+        new F2<int>(/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]);
+        new F2<int>(/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello", 3]);
 
-        new F3<int>(/*$info*/[]);
-        new F3<int>(/*$info*/[/*$info*/[3]]);
-        new F3<int>(/*$info*/[/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"]]);
-        new F3<int>(/*$info*/[/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"],
-                         /*$info*/[3]]);
+        new F3<int>(/*info:INFERRED_TYPE_LITERAL*/[]);
+        new F3<int>(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[3]]);
+        new F3<int>(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]]);
+        new F3<int>(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"],
+                         /*info:INFERRED_TYPE_LITERAL*/[3]]);
 
-        new F4<int>(a: /*$info*/[]);
-        new F4<int>(a: /*$info*/[/*$info*/[3]]);
-        new F4<int>(a: /*$info*/[/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"]]);
-        new F4<int>(a: /*$info*/[/*$info*/[/*severe:STATIC_TYPE_ERROR*/"hello"],
-                            /*$info*/[3]]);
+        new F4<int>(a: /*info:INFERRED_TYPE_LITERAL*/[]);
+        new F4<int>(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[3]]);
+        new F4<int>(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"]]);
+        new F4<int>(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"],
+                            /*info:INFERRED_TYPE_LITERAL*/[3]]);
 
-        new F3(/*$info*/[]);
-        new F3(/*$info*/[[3]]);
-        new F3(/*$info*/[["hello"]]);
-        new F3(/*$info*/[["hello"], [3]]);
+        new F3(/*info:INFERRED_TYPE_LITERAL*/[]);
+        new F3(/*info:INFERRED_TYPE_LITERAL*/[[3]]);
+        new F3(/*info:INFERRED_TYPE_LITERAL*/[["hello"]]);
+        new F3(/*info:INFERRED_TYPE_LITERAL*/[["hello"], [3]]);
 
-        new F4(a: /*$info*/[]);
-        new F4(a: /*$info*/[[3]]);
-        new F4(a: /*$info*/[["hello"]]);
-        new F4(a: /*$info*/[["hello"], [3]]);
+        new F4(a: /*info:INFERRED_TYPE_LITERAL*/[]);
+        new F4(a: /*info:INFERRED_TYPE_LITERAL*/[[3]]);
+        new F4(a: /*info:INFERRED_TYPE_LITERAL*/[["hello"]]);
+        new F4(a: /*info:INFERRED_TYPE_LITERAL*/[["hello"], [3]]);
       }
-      ''';
-    testChecker('infer downwards', {'/main.dart': code});
+      ''');
+    });
   });
 
   group('downwards inference on map literals', () {
     String info = "info:INFERRED_TYPE_LITERAL";
-    String code = '''
-      void foo([Map<int, String> m1 = /*$info*/const {1: "hello"},
-        Map<int, String> m1 = /*$info*/const {(/*severe:STATIC_TYPE_ERROR*/"hello"): "world"}]) {
+    test('infer downwards', () {
+      checkFile('''
+      void foo([Map<int, String> m1 = /*info:INFERRED_TYPE_LITERAL*/const {1: "hello"},
+        Map<int, String> m1 = /*info:INFERRED_TYPE_LITERAL*/const {(/*severe:STATIC_TYPE_ERROR*/"hello"): "world"}]) {
       }
       void main() {
         {
-          Map<int, String> l0 = /*$info*/{};
-          Map<int, String> l1 = /*$info*/{3: "hello"};
-          Map<int, String> l2 = /*$info*/{(/*severe:STATIC_TYPE_ERROR*/"hello"): "hello"};
-          Map<int, String> l3 = /*$info*/{3: /*severe:STATIC_TYPE_ERROR*/3};
-          Map<int, String> l4 = /*$info*/{3:"hello", (/*severe:STATIC_TYPE_ERROR*/"hello"): /*severe:STATIC_TYPE_ERROR*/3};
+          Map<int, String> l0 = /*info:INFERRED_TYPE_LITERAL*/{};
+          Map<int, String> l1 = /*info:INFERRED_TYPE_LITERAL*/{3: "hello"};
+          Map<int, String> l2 = /*info:INFERRED_TYPE_LITERAL*/{(/*severe:STATIC_TYPE_ERROR*/"hello"): "hello"};
+          Map<int, String> l3 = /*info:INFERRED_TYPE_LITERAL*/{3: /*severe:STATIC_TYPE_ERROR*/3};
+          Map<int, String> l4 = /*info:INFERRED_TYPE_LITERAL*/{3:"hello", (/*severe:STATIC_TYPE_ERROR*/"hello"): /*severe:STATIC_TYPE_ERROR*/3};
         }
         {
           Map<dynamic, dynamic> l0 = {};
@@ -1383,18 +1428,18 @@ main() {
           Map<dynamic, dynamic> l4 = {3:"hello", "hello": 3};
         }
         {
-          Map<dynamic, String> l0 = /*$info*/{};
-          Map<dynamic, String> l1 = /*$info*/{3: "hello"};
-          Map<dynamic, String> l2 = /*$info*/{"hello": "hello"};
-          Map<dynamic, String> l3 = /*$info*/{3: /*severe:STATIC_TYPE_ERROR*/3};
-          Map<dynamic, String> l4 = /*$info*/{3:"hello", "hello": /*severe:STATIC_TYPE_ERROR*/3};
+          Map<dynamic, String> l0 = /*info:INFERRED_TYPE_LITERAL*/{};
+          Map<dynamic, String> l1 = /*info:INFERRED_TYPE_LITERAL*/{3: "hello"};
+          Map<dynamic, String> l2 = /*info:INFERRED_TYPE_LITERAL*/{"hello": "hello"};
+          Map<dynamic, String> l3 = /*info:INFERRED_TYPE_LITERAL*/{3: /*severe:STATIC_TYPE_ERROR*/3};
+          Map<dynamic, String> l4 = /*info:INFERRED_TYPE_LITERAL*/{3:"hello", "hello": /*severe:STATIC_TYPE_ERROR*/3};
         }
         {
-          Map<int, dynamic> l0 = /*$info*/{};
-          Map<int, dynamic> l1 = /*$info*/{3: "hello"};
-          Map<int, dynamic> l2 = /*$info*/{(/*severe:STATIC_TYPE_ERROR*/"hello"): "hello"};
-          Map<int, dynamic> l3 = /*$info*/{3: 3};
-          Map<int, dynamic> l4 = /*$info*/{3:"hello", (/*severe:STATIC_TYPE_ERROR*/"hello"): 3};
+          Map<int, dynamic> l0 = /*info:INFERRED_TYPE_LITERAL*/{};
+          Map<int, dynamic> l1 = /*info:INFERRED_TYPE_LITERAL*/{3: "hello"};
+          Map<int, dynamic> l2 = /*info:INFERRED_TYPE_LITERAL*/{(/*severe:STATIC_TYPE_ERROR*/"hello"): "hello"};
+          Map<int, dynamic> l3 = /*info:INFERRED_TYPE_LITERAL*/{3: 3};
+          Map<int, dynamic> l4 = /*info:INFERRED_TYPE_LITERAL*/{3:"hello", (/*severe:STATIC_TYPE_ERROR*/"hello"): 3};
         }
         {
           Map<int, String> l0 = /*severe:STATIC_TYPE_ERROR*/<num, dynamic>{};
@@ -1402,19 +1447,19 @@ main() {
           Map<int, String> l3 = /*severe:STATIC_TYPE_ERROR*/<num, dynamic>{3: 3};
         }
         {
-          const Map<int, String> l0 = /*$info*/const {};
-          const Map<int, String> l1 = /*$info*/const {3: "hello"};
-          const Map<int, String> l2 = /*$info*/const {(/*severe:STATIC_TYPE_ERROR*/"hello"): "hello"};
-          const Map<int, String> l3 = /*$info*/const {3: /*severe:STATIC_TYPE_ERROR*/3};
-          const Map<int, String> l4 = /*$info*/const {3:"hello", (/*severe:STATIC_TYPE_ERROR*/"hello"): /*severe:STATIC_TYPE_ERROR*/3};
+          const Map<int, String> l0 = /*info:INFERRED_TYPE_LITERAL*/const {};
+          const Map<int, String> l1 = /*info:INFERRED_TYPE_LITERAL*/const {3: "hello"};
+          const Map<int, String> l2 = /*info:INFERRED_TYPE_LITERAL*/const {(/*severe:STATIC_TYPE_ERROR*/"hello"): "hello"};
+          const Map<int, String> l3 = /*info:INFERRED_TYPE_LITERAL*/const {3: /*severe:STATIC_TYPE_ERROR*/3};
+          const Map<int, String> l4 = /*info:INFERRED_TYPE_LITERAL*/const {3:"hello", (/*severe:STATIC_TYPE_ERROR*/"hello"): /*severe:STATIC_TYPE_ERROR*/3};
         }
       }
-      ''';
-    testChecker('infer downwards', {'/main.dart': code});
+      ''');
+    });
   });
 
-  testChecker('downwards inference on function expressions', {
-    '/main.dart': '''
+  test('downwards inference on function expressions', () {
+    checkFile('''
       typedef T Function2<S, T>(S x);
 
       void main () {
@@ -1447,11 +1492,11 @@ main() {
           Function2<String, String> l4 = /*info:INFERRED_TYPE_CLOSURE*/(x) => x.substring(3);
         }
       }
-      '''
+      ''');
   });
 
-  testChecker('downwards inference initializing formal, default formal', {
-    '/main.dart': '''
+  test('downwards inference initializing formal, default formal', () {
+    checkFile('''
       typedef T Function2<S, T>([S x]);
       class Foo {
         List<int> x;
@@ -1461,20 +1506,20 @@ main() {
       void f([List<int> l = /*info:INFERRED_TYPE_LITERAL*/const [1]]) {}
 // We do this inference in an early task but don't preserve the infos.
       Function2<List<int>, String> g = /*pass should be info:INFERRED_TYPE_CLOSURE*/([llll = /*info:INFERRED_TYPE_LITERAL*/const [1]]) => "hello";
-'''
+''');
   });
 
-  testChecker('downwards inference async/await', {
-    '/main.dart': '''
+  test('downwards inference async/await', () {
+    checkFile('''
       import 'dart:async';
       Future<int> test() async {
         List<int> l0 = /*warning:DOWN_CAST_COMPOSITE should be pass*/await /*pass should be info:INFERRED_TYPE_LITERAL*/[3];
         List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*info:INFERRED_TYPE_LITERAL*/[3]);
-        '''
+        ''');
   });
 
-  testChecker('downwards inference foreach', {
-    '/main.dart': '''
+  test('downwards inference foreach', () {
+    checkFile('''
       import 'dart:async';
       void main() {
         for(int x in /*info:INFERRED_TYPE_LITERAL*/[1, 2, 3]) {
@@ -1482,11 +1527,11 @@ main() {
         await for(int x in /*info:INFERRED_TYPE_ALLOCATION*/new Stream()) {
         }
       }
-        '''
+        ''');
   });
 
-  testChecker('downwards inference yield/yield*', {
-    '/main.dart': '''
+  test('downwards inference yield/yield*', () {
+    checkFile('''
       import 'dart:async';
         Stream<List<int>> foo() async* {
           yield /*info:INFERRED_TYPE_LITERAL*/[];
@@ -1501,11 +1546,11 @@ main() {
           yield* /*severe:STATIC_TYPE_ERROR*/{};
           yield* /*info:INFERRED_TYPE_ALLOCATION*/new List();
         }
-        '''
+        ''');
   });
 
-  testChecker('downwards inference, annotations', {
-    '/main.dart': '''
+  test('downwards inference, annotations', () {
+    checkFile('''
         class Foo {
           const Foo(List<String> l);
           const Foo.named(List<String> l);
@@ -1514,30 +1559,30 @@ main() {
         class Bar {}
         @Foo.named(/*info:INFERRED_TYPE_LITERAL*/const [])
         class Baz {}
-        '''
+        ''');
   });
 
-  testChecker('downwards inference, assignment statements', {
-    '/main.dart': '''
+  test('downwards inference, assignment statements', () {
+    checkFile('''
     void main() {
       List<int> l;
       l = /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/"hello"];
       l = (l = /*info:INFERRED_TYPE_LITERAL*/[1]);
     }
-'''
+''');
   });
 
-  testChecker('inferred initializing formal checks default value', {
-    '/main.dart': '''
+  test('inferred initializing formal checks default value', () {
+    checkFile('''
       class Foo {
         var x = 1;
         Foo([this.x = /*severe:STATIC_TYPE_ERROR*/"1"]);
-      }'''
+      }''');
   });
 
   group('generic methods', () {
-    testChecker('dart:math min/max', {
-      '/main.dart': '''
+    test('dart:math min/max', () {
+      checkFile('''
         import 'dart:math';
 
         void printInt(int x) => print(x);
@@ -1568,11 +1613,11 @@ main() {
                   /*severe:STATIC_TYPE_ERROR*/"hi",
                   /*severe:STATIC_TYPE_ERROR*/"there"));
         }
-    '''
+    ''');
     });
 
-    testChecker('Iterable and Future', {
-      '/main.dart': '''
+    test('Iterable and Future', () {
+      checkFile('''
         import 'dart:async';
 
         Future<int> make(int x) => (/*info:INFERRED_TYPE_ALLOCATION*/new Future(() => x));
@@ -1583,13 +1628,16 @@ main() {
           Future<String> results2 = results.then((List<int> list)
             => list.fold('', (String x, int y) => x + y.toString()));
         }
-    '''
+    ''');
     });
 
     // TODO(jmesserly): we should change how this inference works.
     // For now this test will cover what we use.
-    testChecker('infer JS builtin', {
-      '/main.dart': '''
+    // TODO(jmesserly): it looks like we lost our "infer JS builtin" test in
+    // a bad merge. Restore it.
+
+    test('inferred generic instantiation', () {
+      checkFile('''
 import 'dart:math' as math;
 import 'dart:math' show min;
 
@@ -1630,7 +1678,7 @@ main() {
   takeDID(/*severe:STATIC_TYPE_ERROR*/min);
   takeOON(/*severe:STATIC_TYPE_ERROR*/min);
   takeOOO(/*severe:STATIC_TYPE_ERROR*/min);
-  
+
   // Also PropertyAccess
   takeIII(new C().m);
   takeDDD(new C().m);
@@ -1666,13 +1714,13 @@ void takeOOO(num fn(Object a, Object b)) {}
 void takeOOI(int fn(Object a, Object b)) {}
 void takeIIO(Object fn(int a, int b)) {}
 void takeDDO(Object fn(double a, double b)) {}
-  '''
+  ''');
     });
   });
 
   // Regression test for https://github.com/dart-lang/dev_compiler/issues/47
-  testChecker('null literal should not infer as bottom', {
-    '/main.dart': '''
+  test('null literal should not infer as bottom', () {
+    checkFile('''
       var h = null;
       void foo(int f(Object _)) {}
 
@@ -1690,12 +1738,12 @@ void takeDDO(Object fn(double a, double b)) {}
         foo(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) => null);
         foo(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) => throw "not implemented");
       }
-  '''
+  ''');
   });
 
   // Regression test for https://github.com/dart-lang/sdk/issues/25668
-  testChecker('infer generic method type', {
-    '/main.dart': '''
+  test('infer generic method type', () {
+    checkFile('''
 class C {
   /*=T*/ m/*<T>*/(/*=T*/ x) => x;
 }
@@ -1706,11 +1754,11 @@ main() {
   int y = new D().m/*<int>*/(42);
   print(y);
 }
-    '''
+    ''');
   });
 
-  testChecker('do not infer invalid override of generic method', {
-    '/main.dart': '''
+  test('do not infer invalid override of generic method', () {
+    checkFile('''
 class C {
   /*=T*/ m/*<T>*/(/*=T*/ x) => x;
 }
@@ -1721,6 +1769,6 @@ main() {
   int y = /*info:DYNAMIC_CAST*/new D().m/*<int>*/(42);
   print(y);
 }
-    '''
+    ''');
   });
 }
