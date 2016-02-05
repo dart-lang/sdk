@@ -247,6 +247,12 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   int numSlots = 0;
 
   /**
+   * A flag indicating whether a variable declaration is in the context of a
+   * field declaration.
+   */
+  bool inFieldContext = false;
+
+  /**
    * Create a slot id for storing a propagated or inferred type.
    */
   int assignTypeSlot() => ++numSlots;
@@ -621,7 +627,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       b.nameOffset = variable.name.offset;
       b.type = serializeTypeName(variables.type);
       b.documentationComment = serializeDocumentation(documentationComment);
-      if (variable.isConst) {
+      if (variable.isConst || variable.isFinal && inFieldContext) {
         Expression initializer = variable.initializer;
         if (initializer != null) {
           b.constExpr = serializeConstExpr(initializer);
@@ -724,8 +730,13 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    serializeVariables(node.fields, node.staticKeyword != null,
-        node.documentationComment, true);
+    try {
+      inFieldContext = true;
+      serializeVariables(node.fields, node.staticKeyword != null,
+          node.documentationComment, true);
+    } finally {
+      inFieldContext = false;
+    }
   }
 
   @override

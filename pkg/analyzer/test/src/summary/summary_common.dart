@@ -3854,6 +3854,7 @@ int foo(int a, String b) => 0;
     expect(variable.isConst, isFalse);
     expect(variable.isStatic, isFalse);
     expect(variable.isFinal, isFalse);
+    expect(variable.constExpr, isNull);
     expect(findExecutable('i', executables: cls.executables), isNull);
     expect(findExecutable('i=', executables: cls.executables), isNull);
   }
@@ -3883,6 +3884,8 @@ class C {
     UnlinkedVariable variable =
         serializeClassText('class C { final int i = 0; }').fields[0];
     expect(variable.isFinal, isTrue);
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushInt], ints: [0]);
   }
 
   test_field_formal_param_inferred_type_explicit() {
@@ -5253,6 +5256,7 @@ var v;''';
     UnlinkedVariable variable =
         serializeVariableText('final int i = 0;', variableName: 'i');
     expect(variable.isFinal, isTrue);
+    expect(variable.constExpr, isNull);
   }
 
   test_variable_implicit_dynamic() {

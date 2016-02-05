@@ -784,7 +784,7 @@ class _CompilationUnitSerializer {
     b.isFinal = variable.isFinal;
     b.isConst = variable.isConst;
     b.documentationComment = serializeDocumentation(variable);
-    if (variable.isConst && variable is ConstVariableElement) {
+    if (variable is ConstVariableElement) {
       ConstVariableElement constVariable = variable as ConstVariableElement;
       Expression initializer = constVariable.constantInitializer;
       if (initializer != null) {
