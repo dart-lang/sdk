@@ -103,37 +103,43 @@ $compilerMessages''';
     return !compiler.failure;
   }
 
+  var testDirs = <String>['language', path.join('lib', 'typed_data')];
+
   var multitests = new Set<String>();
   {
     // Expand wacky multitests into a bunch of test files.
     // We'll compile each one as if it was an input.
-    var languageDir = path.join(inputDir, 'language');
-    var testFiles = _findTests(languageDir, filePattern);
+    for (var testDir in testDirs) {
+      var fullDir = path.join(inputDir, testDir);
+      var testFiles = _findTests(fullDir, filePattern);
 
-    for (var filePath in testFiles) {
-      if (filePath.endsWith('_multi.dart')) continue;
+      for (var filePath in testFiles) {
+        if (filePath.endsWith('_multi.dart')) continue;
 
-      var contents = new File(filePath).readAsStringSync();
-      if (isMultiTest(contents)) {
-        multitests.add(filePath);
+        var contents = new File(filePath).readAsStringSync();
+        if (isMultiTest(contents)) {
+          multitests.add(filePath);
 
-        var tests = new Map<String, String>();
-        var outcomes = new Map<String, Set<String>>();
-        extractTestsFromMultitest(filePath, contents, tests, outcomes);
+          var tests = new Map<String, String>();
+          var outcomes = new Map<String, Set<String>>();
+          extractTestsFromMultitest(filePath, contents, tests, outcomes);
 
-        var filename = path.basenameWithoutExtension(filePath);
-        tests.forEach((name, contents) {
-          new File(path.join(languageDir, '${filename}_${name}_multi.dart'))
-              .writeAsStringSync(contents);
-        });
+          var filename = path.basenameWithoutExtension(filePath);
+          tests.forEach((name, contents) {
+            new File(path.join(fullDir, '${filename}_${name}_multi.dart'))
+                .writeAsStringSync(contents);
+          });
+        }
       }
     }
   }
 
   var batchCompiler = createCompiler(realSdkContext);
 
-  for (var dir in [null, 'language']) {
-    if (codeCoverage && dir == 'language') continue;
+  var allDirs = [null];
+  allDirs.addAll(testDirs);
+  for (var dir in allDirs) {
+    if (codeCoverage && dir != null) continue;
 
     group('dartdevc ' + path.join('test', 'codegen', dir), () {
       var outDir = new Directory(path.join(expectDir, dir));

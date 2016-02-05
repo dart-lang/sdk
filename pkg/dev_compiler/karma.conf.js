@@ -30,6 +30,7 @@ module.exports = function(config) {
       'test/codegen/expect/language-all.js',
       'test/codegen/expect/language/sub/sub.js',
       'test/codegen/expect/language/*.lib',
+      'test/codegen/expect/lib-typed_data-all.js',
       'test/browser/*.js',
       'test-main.js',
     ],

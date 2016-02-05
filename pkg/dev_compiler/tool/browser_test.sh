@@ -34,5 +34,6 @@ if [[ "$OSTYPE" == "linux-gnu" ]] && [[ -z "$CHROME_CANARY_BIN" ]]; then
 fi
 
 cat test/codegen/expect/language/*.js > test/codegen/expect/language-all.js
+cat test/codegen/expect/lib/typed_data/*.js > test/codegen/expect/lib-typed_data-all.js
 npm install
 npm test
