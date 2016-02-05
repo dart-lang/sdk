@@ -4132,7 +4132,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   /**
    * Initialize a newly created parameter element to have the given [name] and
-   * [nameOffset].
+   * [offset].
    */
   ParameterElementImpl(String name, int nameOffset) : super(name, nameOffset);
 

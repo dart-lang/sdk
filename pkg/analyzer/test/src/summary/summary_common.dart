@@ -2664,7 +2664,7 @@ class C {
   test_constructor_initializing_formal_function_typed_implicit_return_type() {
     if (!checkAstDerivedData) {
       // TODO(paulberry): this test fails when building the summary from the
-      // element model because the elment model doesn't record whether a
+      // element model because the element model doesn't record whether a
       // function-typed parameter's return type is implicit.
       return;
     }
@@ -2702,6 +2702,26 @@ class C {
     expect(parameter.parameters[1].name, 'b');
   }
 
+  test_constructor_initializing_formal_function_typed_withDefault() {
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(r'''
+class C {
+  C([this.x() = foo]);
+  final x;
+}
+int foo() => 0;
+''').executables);
+    UnlinkedParam param = executable.parameters[0];
+    expect(param.isFunctionTyped, isTrue);
+    expect(param.kind, UnlinkedParamKind.positional);
+    _assertUnlinkedConst(param.defaultValue, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'foo',
+          expectedKind: ReferenceKind.topLevelFunction)
+    ]);
+  }
+
   test_constructor_initializing_formal_implicit_type() {
     // Note: the implicit type of an initializing formal is the type of the
     // field.
@@ -2721,12 +2741,22 @@ class C {
   }
 
   test_constructor_initializing_formal_named() {
-    // TODO(paulberry): also test default value
     UnlinkedExecutable executable = findExecutable('',
         executables: serializeClassText('class C { C({this.x}); final x; }')
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.named);
+    expect(parameter.defaultValue, isNull);
+  }
+
+  test_constructor_initializing_formal_named_withDefault() {
+    UnlinkedExecutable executable = findExecutable('',
+        executables: serializeClassText('class C { C({this.x: 42}); final x; }')
+            .executables);
+    UnlinkedParam parameter = executable.parameters[0];
+    expect(parameter.kind, UnlinkedParamKind.named);
+    _assertUnlinkedConst(parameter.defaultValue,
+        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
   test_constructor_initializing_formal_non_function_typed() {
@@ -2738,12 +2768,23 @@ class C {
   }
 
   test_constructor_initializing_formal_positional() {
-    // TODO(paulberry): also test default value
     UnlinkedExecutable executable = findExecutable('',
         executables: serializeClassText('class C { C([this.x]); final x; }')
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.positional);
+    expect(parameter.defaultValue, isNull);
+  }
+
+  test_constructor_initializing_formal_positional_withDefault() {
+    UnlinkedExecutable executable = findExecutable('',
+        executables:
+            serializeClassText('class C { C([this.x = 42]); final x; }')
+                .executables);
+    UnlinkedParam parameter = executable.parameters[0];
+    expect(parameter.kind, UnlinkedParamKind.positional);
+    _assertUnlinkedConst(parameter.defaultValue,
+        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
   test_constructor_initializing_formal_required() {
@@ -2762,6 +2803,19 @@ class C {
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.isFunctionTyped, isFalse);
     expect(parameter.parameters, isEmpty);
+  }
+
+  test_constructor_initializing_formal_withDefault() {
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(r'''
+class C {
+  C([this.x = 42]);
+  final int x;
+}''').executables);
+    UnlinkedParam param = executable.parameters[0];
+    expect(param.kind, UnlinkedParamKind.positional);
+    _assertUnlinkedConst(param.defaultValue,
+        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
   test_constructor_named() {
@@ -3314,19 +3368,56 @@ enum E { v }''';
     checkVoidTypeRef(executable.parameters[0].type);
   }
 
+  test_executable_param_function_typed_withDefault() {
+    UnlinkedExecutable executable = serializeExecutableText(r'''
+f([int p(int a2, String b2) = foo]) {}
+int foo(int a, String b) => 0;
+''');
+    UnlinkedParam param = executable.parameters[0];
+    expect(param.kind, UnlinkedParamKind.positional);
+    _assertUnlinkedConst(param.defaultValue, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'foo',
+          expectedKind: ReferenceKind.topLevelFunction)
+    ]);
+  }
+
   test_executable_param_kind_named() {
     UnlinkedExecutable executable = serializeExecutableText('f({x}) {}');
-    expect(executable.parameters[0].kind, UnlinkedParamKind.named);
+    UnlinkedParam param = executable.parameters[0];
+    expect(param.kind, UnlinkedParamKind.named);
+    expect(param.defaultValue, isNull);
+  }
+
+  test_executable_param_kind_named_withDefault() {
+    UnlinkedExecutable executable = serializeExecutableText('f({x: 42}) {}');
+    UnlinkedParam param = executable.parameters[0];
+    expect(param.kind, UnlinkedParamKind.named);
+    _assertUnlinkedConst(param.defaultValue,
+        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
   test_executable_param_kind_positional() {
     UnlinkedExecutable executable = serializeExecutableText('f([x]) {}');
-    expect(executable.parameters[0].kind, UnlinkedParamKind.positional);
+    UnlinkedParam param = executable.parameters[0];
+    expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.defaultValue, isNull);
+  }
+
+  test_executable_param_kind_positional_withDefault() {
+    UnlinkedExecutable executable = serializeExecutableText('f([x = 42]) {}');
+    UnlinkedParam param = executable.parameters[0];
+    expect(param.kind, UnlinkedParamKind.positional);
+    _assertUnlinkedConst(param.defaultValue,
+        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
   test_executable_param_kind_required() {
     UnlinkedExecutable executable = serializeExecutableText('f(x) {}');
-    expect(executable.parameters[0].kind, UnlinkedParamKind.required);
+    UnlinkedParam param = executable.parameters[0];
+    expect(param.kind, UnlinkedParamKind.required);
+    expect(param.defaultValue, isNull);
   }
 
   test_executable_param_name() {

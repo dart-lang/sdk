@@ -991,7 +991,7 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   bool get isExternal;
 
   /**
-   * If this executable's return type is inferrable, nonzero slot id
+   * If this executable's return type is inferable, nonzero slot id
    * identifying which entry in [LinkedLibrary.types] contains the inferred
    * return type.  If there is no matching entry in [LinkedLibrary.types], then
    * no return type was inferred for this variable, so its static type is
@@ -1172,17 +1172,23 @@ abstract class UnlinkedParam extends base.SummaryClass {
   bool get isInitializingFormal;
 
   /**
-   * If this parameter's type is inferrable, nonzero slot id identifying which
+   * If this parameter's type is inferable, nonzero slot id identifying which
    * entry in [LinkedLibrary.types] contains the inferred type.  If there is no
    * matching entry in [LinkedLibrary.types], then no type was inferred for
    * this variable, so its static type is `dynamic`.
    *
    * Note that although strong mode considers initializing formals to be
-   * inferrable, they are not marked as such in the summary; if their type is
+   * inferable, they are not marked as such in the summary; if their type is
    * not specified, they always inherit the static type of the corresponding
    * field.
    */
   int get inferredTypeSlot;
+
+  /**
+   * If the parameter has a default value the constant expression in the
+   * default value.
+   */
+  UnlinkedConst get defaultValue;
 }
 
 /**
@@ -1522,7 +1528,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
   int get propagatedTypeSlot;
 
   /**
-   * If this variable is inferrable, nonzero slot id identifying which entry in
+   * If this variable is inferable, nonzero slot id identifying which entry in
    * [LinkedLibrary.types] contains the inferred type for this variable.  If
    * there is no matching entry in [LinkedLibrary.types], then no type was
    * inferred for this variable, so its static type is `dynamic`.

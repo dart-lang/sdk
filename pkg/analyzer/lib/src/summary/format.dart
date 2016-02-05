@@ -2347,7 +2347,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   int get inferredReturnTypeSlot => _inferredReturnTypeSlot ??= 0;
 
   /**
-   * If this executable's return type is inferrable, nonzero slot id
+   * If this executable's return type is inferable, nonzero slot id
    * identifying which entry in [LinkedLibrary.types] contains the inferred
    * return type.  If there is no matching entry in [LinkedLibrary.types], then
    * no return type was inferred for this variable, so its static type is
@@ -3047,6 +3047,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   bool _isFunctionTyped;
   bool _isInitializingFormal;
   int _inferredTypeSlot;
+  UnlinkedConstBuilder _defaultValue;
 
   @override
   String get name => _name ??= '';
@@ -3133,13 +3134,13 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   int get inferredTypeSlot => _inferredTypeSlot ??= 0;
 
   /**
-   * If this parameter's type is inferrable, nonzero slot id identifying which
+   * If this parameter's type is inferable, nonzero slot id identifying which
    * entry in [LinkedLibrary.types] contains the inferred type.  If there is no
    * matching entry in [LinkedLibrary.types], then no type was inferred for
    * this variable, so its static type is `dynamic`.
    *
    * Note that although strong mode considers initializing formals to be
-   * inferrable, they are not marked as such in the summary; if their type is
+   * inferable, they are not marked as such in the summary; if their type is
    * not specified, they always inherit the static type of the corresponding
    * field.
    */
@@ -3149,7 +3150,19 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     _inferredTypeSlot = _value;
   }
 
-  UnlinkedParamBuilder({String name, int nameOffset, EntityRefBuilder type, List<UnlinkedParamBuilder> parameters, idl.UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, int inferredTypeSlot})
+  @override
+  UnlinkedConstBuilder get defaultValue => _defaultValue;
+
+  /**
+   * If the parameter has a default value the constant expression in the
+   * default value.
+   */
+  void set defaultValue(UnlinkedConstBuilder _value) {
+    assert(!_finished);
+    _defaultValue = _value;
+  }
+
+  UnlinkedParamBuilder({String name, int nameOffset, EntityRefBuilder type, List<UnlinkedParamBuilder> parameters, idl.UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, int inferredTypeSlot, UnlinkedConstBuilder defaultValue})
     : _name = name,
       _nameOffset = nameOffset,
       _type = type,
@@ -3157,7 +3170,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
       _kind = kind,
       _isFunctionTyped = isFunctionTyped,
       _isInitializingFormal = isInitializingFormal,
-      _inferredTypeSlot = inferredTypeSlot;
+      _inferredTypeSlot = inferredTypeSlot,
+      _defaultValue = defaultValue;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -3165,6 +3179,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     fb.Offset offset_name;
     fb.Offset offset_type;
     fb.Offset offset_parameters;
+    fb.Offset offset_defaultValue;
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
     }
@@ -3173,6 +3188,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     }
     if (!(_parameters == null || _parameters.isEmpty)) {
       offset_parameters = fbBuilder.writeList(_parameters.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_defaultValue != null) {
+      offset_defaultValue = _defaultValue.finish(fbBuilder);
     }
     fbBuilder.startTable();
     if (offset_name != null) {
@@ -3199,6 +3217,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     if (_inferredTypeSlot != null && _inferredTypeSlot != 0) {
       fbBuilder.addUint32(7, _inferredTypeSlot);
     }
+    if (offset_defaultValue != null) {
+      fbBuilder.addOffset(8, offset_defaultValue);
+    }
     return fbBuilder.endTable();
   }
 }
@@ -3223,6 +3244,7 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   bool _isFunctionTyped;
   bool _isInitializingFormal;
   int _inferredTypeSlot;
+  idl.UnlinkedConst _defaultValue;
 
   @override
   String get name {
@@ -3271,6 +3293,12 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
     _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 7, 0);
     return _inferredTypeSlot;
   }
+
+  @override
+  idl.UnlinkedConst get defaultValue {
+    _defaultValue ??= const _UnlinkedConstReader().vTableGet(_bp, 8, null);
+    return _defaultValue;
+  }
 }
 
 abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
@@ -3284,6 +3312,7 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     "isFunctionTyped": isFunctionTyped,
     "isInitializingFormal": isInitializingFormal,
     "inferredTypeSlot": inferredTypeSlot,
+    "defaultValue": defaultValue,
   };
 }
 
@@ -4623,7 +4652,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   int get inferredTypeSlot => _inferredTypeSlot ??= 0;
 
   /**
-   * If this variable is inferrable, nonzero slot id identifying which entry in
+   * If this variable is inferable, nonzero slot id identifying which entry in
    * [LinkedLibrary.types] contains the inferred type for this variable.  If
    * there is no matching entry in [LinkedLibrary.types], then no type was
    * inferred for this variable, so its static type is `dynamic`.

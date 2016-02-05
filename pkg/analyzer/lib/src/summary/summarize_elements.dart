@@ -608,6 +608,13 @@ class _CompilationUnitSerializer {
         b.type = serializeTypeRef(type, context);
       }
     }
+    if (parameter is ConstVariableElement) {
+      ConstVariableElement constParameter = parameter as ConstVariableElement;
+      Expression initializer = constParameter.constantInitializer;
+      if (initializer != null) {
+        b.defaultValue = serializeConstExpr(initializer);
+      }
+    }
     return b;
   }
 
