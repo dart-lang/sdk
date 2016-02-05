@@ -80,7 +80,12 @@ static const char* precompiled_snapshot_directory = NULL;
 // Global flag that is used to indicate that we want to compile everything in
 // the same way as precompilation before main, then continue running in the
 // same process.
-static bool has_noopt = false;
+// Always set this with dart_noopt.
+#if defined(DART_PRECOMPILER) && !defined(DART_NO_SNAPSHOT)
+static const bool has_noopt = true;
+#else
+static const bool has_noopt = false;
+#endif
 
 
 extern const char* kPrecompiledLibraryName;
@@ -597,12 +602,12 @@ static int ParseArguments(int argc,
   }
   if (has_noopt) {
     if (has_gen_precompiled_snapshot) {
-      Log::PrintErr("Specifying --noopt and --gen_precompiled_snapshot"
+      Log::PrintErr("Running dart_noopt with --gen_precompiled_snapshot"
                     " is invalid.\n");
       return -1;
     }
     if (has_run_precompiled_snapshot) {
-      Log::PrintErr("Specifying --noopt and --run_precompiled_snapshot"
+      Log::PrintErr("Running dart_noopt with --run_precompiled_snapshot"
                     " is invalid.\n");
       return -1;
     }
@@ -1444,13 +1449,9 @@ void main(int argc, char** argv) {
   }
 
 #if defined(DART_PRECOMPILER) && !defined(DART_NO_SNAPSHOT)
-  // Always set --precompilation with dart_noopt, unless already set by these
-  // command line options.
-  if (!has_gen_precompiled_snapshot &&
-      !has_run_precompiled_snapshot) {
-    has_noopt = true;
-    vm_options.AddArgument("--precompilation");
-  }
+  // Always set --precompilation with dart_noopt.
+  ASSERT(!has_gen_precompiled_snapshot && !has_run_precompiled_snapshot);
+  vm_options.AddArgument("--precompilation");
 #endif
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
