@@ -1413,6 +1413,40 @@ const V = p.C.m;
 ''');
   }
 
+  test_const_reference_topLevelFunction() {
+    shouldCompareConstValues = true;
+    checkLibrary(r'''
+foo() {}
+const V = foo;
+''');
+  }
+
+  test_const_reference_topLevelFunction_imported() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+foo() {}
+''');
+    checkLibrary(r'''
+import 'a.dart';
+const V = foo;
+''');
+  }
+
+  test_const_reference_topLevelFunction_imported_withPrefix() {
+    shouldCompareConstValues = true;
+    addLibrarySource(
+        '/a.dart',
+        r'''
+foo() {}
+''');
+    checkLibrary(r'''
+import 'a.dart' as p;
+const V = p.foo;
+''');
+  }
+
   test_const_reference_topLevelVariable() {
     shouldCompareConstValues = true;
     checkLibrary(r'''

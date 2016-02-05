@@ -1602,36 +1602,38 @@ class _LibraryResynthesizer {
           case ReferenceKind.classOrEnum:
             element = new ClassElementHandle(summaryResynthesizer, location);
             break;
-          case ReferenceKind.typedef:
-            element = new FunctionTypeAliasElementHandle(
-                summaryResynthesizer, location);
-            break;
-          case ReferenceKind.topLevelPropertyAccessor:
-            element = new PropertyAccessorElementHandle(
-                summaryResynthesizer, location);
-            break;
           case ReferenceKind.constructor:
             assert(location.components.length == 4);
             element =
                 new ConstructorElementHandle(summaryResynthesizer, location);
             numTypeParameters = enclosingInfo.numTypeParameters;
             break;
-          case ReferenceKind.propertyAccessor:
-            assert(location.components.length == 4);
-            element = new PropertyAccessorElementHandle(
-                summaryResynthesizer, location);
+          case ReferenceKind.length:
+            element = _buildStringLengthPropertyAccessorElement();
             break;
           case ReferenceKind.method:
             assert(location.components.length == 4);
             element = new MethodElementHandle(summaryResynthesizer, location);
             break;
-          case ReferenceKind.length:
-            element = _buildStringLengthPropertyAccessorElement();
+          case ReferenceKind.propertyAccessor:
+            assert(location.components.length == 4);
+            element = new PropertyAccessorElementHandle(
+                summaryResynthesizer, location);
             break;
-          default:
-            // This is an element that doesn't (yet) need to be referred to
-            // directly, so don't bother populating an element for it.
-            // TODO(paulberry): add support for more kinds, as needed.
+          case ReferenceKind.topLevelFunction:
+            assert(location.components.length == 3);
+            element = new FunctionElementHandle(summaryResynthesizer, location);
+            break;
+          case ReferenceKind.topLevelPropertyAccessor:
+            element = new PropertyAccessorElementHandle(
+                summaryResynthesizer, location);
+            break;
+          case ReferenceKind.typedef:
+            element = new FunctionTypeAliasElementHandle(
+                summaryResynthesizer, location);
+            break;
+          case ReferenceKind.prefix:
+          case ReferenceKind.unresolved:
             break;
         }
       }
