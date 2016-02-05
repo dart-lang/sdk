@@ -1460,9 +1460,17 @@ class DefaultFieldFormalParameterElementImpl
   EvaluationResultImpl _result;
 
   /**
+   * Initialize a newly created parameter element to have the given [name] and
+   * [nameOffset].
+   */
+  DefaultFieldFormalParameterElementImpl(String name, int nameOffset)
+      : super(name, nameOffset);
+
+  /**
    * Initialize a newly created parameter element to have the given [name].
    */
-  DefaultFieldFormalParameterElementImpl(Identifier name) : super(name);
+  DefaultFieldFormalParameterElementImpl.forNode(Identifier name)
+      : super.forNode(name);
 
   @override
   DartObject get constantValue => _result.value;
@@ -1487,9 +1495,16 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   EvaluationResultImpl _result;
 
   /**
+   * Initialize a newly created parameter element to have the given [name] and
+   * [nameOffset].
+   */
+  DefaultParameterElementImpl(String name, int nameOffset)
+      : super(name, nameOffset);
+
+  /**
    * Initialize a newly created parameter element to have the given [name].
    */
-  DefaultParameterElementImpl(Identifier name) : super.forNode(name);
+  DefaultParameterElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
   DartObject get constantValue => _result.value;
@@ -2545,16 +2560,17 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   FieldElement field;
 
   /**
-   * Initialize a newly created parameter element to have the given [name].
+   * Initialize a newly created parameter element to have the given [name] and
+   * [nameOffset].
    */
-  FieldFormalParameterElementImpl(Identifier name) : super.forNode(name);
+  FieldFormalParameterElementImpl(String name, int nameOffset)
+      : super(name, nameOffset);
 
   /**
-   * Initialize a newly created parameter element to have the given [name] and
-   * [offset].
+   * Initialize a newly created parameter element to have the given [name].
    */
-  FieldFormalParameterElementImpl.forNameAndOffset(String name, int nameOffset)
-      : super(name, nameOffset);
+  FieldFormalParameterElementImpl.forNode(Identifier name)
+      : super.forNode(name);
 
   @override
   bool get isInitializingFormal => true;
@@ -4116,7 +4132,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   /**
    * Initialize a newly created parameter element to have the given [name] and
-   * [offset].
+   * [nameOffset].
    */
   ParameterElementImpl(String name, int nameOffset) : super(name, nameOffset);
 

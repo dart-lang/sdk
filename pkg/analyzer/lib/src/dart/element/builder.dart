@@ -550,14 +550,15 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier parameterName = normalParameter.identifier;
     ParameterElementImpl parameter;
     if (normalParameter is FieldFormalParameter) {
-      parameter = new DefaultFieldFormalParameterElementImpl(parameterName);
+      parameter =
+          new DefaultFieldFormalParameterElementImpl.forNode(parameterName);
       FieldElement field =
           _fieldMap == null ? null : _fieldMap[parameterName.name];
       if (field != null) {
         (parameter as DefaultFieldFormalParameterElementImpl).field = field;
       }
     } else {
-      parameter = new DefaultParameterElementImpl(parameterName);
+      parameter = new DefaultParameterElementImpl.forNode(parameterName);
     }
     parameter.const3 = node.isConst;
     parameter.final2 = node.isFinal;
@@ -633,7 +634,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       FieldElement field =
           _fieldMap == null ? null : _fieldMap[parameterName.name];
       FieldFormalParameterElementImpl parameter =
-          new FieldFormalParameterElementImpl(parameterName);
+          new FieldFormalParameterElementImpl.forNode(parameterName);
       parameter.const3 = node.isConst;
       parameter.final2 = node.isFinal;
       parameter.parameterKind = node.kind;

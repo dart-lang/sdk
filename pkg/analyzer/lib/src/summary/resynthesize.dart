@@ -1312,7 +1312,7 @@ class _LibraryResynthesizer {
   ParameterElement buildParameter(UnlinkedParam serializedParameter) {
     ParameterElementImpl parameterElement;
     if (serializedParameter.isInitializingFormal) {
-      parameterElement = new FieldFormalParameterElementImpl.forNameAndOffset(
+      parameterElement = new FieldFormalParameterElementImpl(
           serializedParameter.name, serializedParameter.nameOffset)
         ..field = fields[serializedParameter.name];
     } else {
