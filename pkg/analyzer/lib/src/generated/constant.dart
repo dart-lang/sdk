@@ -1330,14 +1330,6 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
     }
     return null;
   }
-
-  AnalysisContext _getOwningContext() {
-    if (context is InternalAnalysisContext) {
-      InternalAnalysisContext internalContext = context;
-      return internalContext.getContextFor(librarySource);
-    }
-    return context;
-  }
 }
 
 /**

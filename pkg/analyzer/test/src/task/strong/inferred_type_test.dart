@@ -1253,7 +1253,6 @@ main() {
   });
 
   group('downwards inference on function arguments', () {
-    String info = "info:INFERRED_TYPE_LITERAL";
     test('infer downwards', () {
       checkFile('''
       void f0(List<int> a) {};
@@ -1292,7 +1291,6 @@ main() {
   });
 
   group('downwards inference on constructor arguments', () {
-    String info = "info:INFERRED_TYPE_LITERAL";
     test('infer downwards', () {
       checkFile('''
       class F0 {
@@ -1344,7 +1342,6 @@ main() {
   });
 
   group('downwards inference on generic constructor arguments', () {
-    String info = "info:INFERRED_TYPE_LITERAL";
     test('infer downwards', () {
       checkFile('''
       class F0<T> {
@@ -1406,7 +1403,6 @@ main() {
   });
 
   group('downwards inference on map literals', () {
-    String info = "info:INFERRED_TYPE_LITERAL";
     test('infer downwards', () {
       checkFile('''
       void foo([Map<int, String> m1 = /*info:INFERRED_TYPE_LITERAL*/const {1: "hello"},

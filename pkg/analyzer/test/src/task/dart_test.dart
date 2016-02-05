@@ -496,7 +496,6 @@ library libC;
       '/part.dart': 'part of libA;'
     });
     Source sourceA = sources[0];
-    Source sourcePart = sources[3];
     // perform task
     computeResult(sourceA, LIBRARY_ELEMENT2,
         matcher: isBuildDirectiveElementsTask);

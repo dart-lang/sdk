@@ -46,12 +46,6 @@ void checkFile(String content) {
   check();
 }
 
-/// Adds [files] using [addFiles] and calls [check].
-void checkFiles(Map<String, String> files) {
-  addFiles(files);
-  check();
-}
-
 /// Adds a file to check. The file should contain:
 ///
 ///   * all expected failures are listed in the source code using comments

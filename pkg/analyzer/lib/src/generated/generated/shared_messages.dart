@@ -9,7 +9,6 @@ Messages are maintained in `lib/shared_messages.dart` of that same package.
 After any change to that file, run `bin/publish.dart` to generate a new version
 of the json, dart2js and analyzer representations.
 */
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 
 const ParserErrorCode CONST_CONSTRUCTOR_WITH_BODY = const ParserErrorCode(
