@@ -729,7 +729,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * declares the entity being referred to.
    *
    * Zero if this entity is contained within another entity (e.g. a class
-   * member).
+   * member), or if [kind] is [ReferenceKind.prefix].
    */
   void set dependency(int _value) {
     assert(!_finished);

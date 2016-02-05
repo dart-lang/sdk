@@ -92,6 +92,7 @@ class UnlinkedSummarizeAstTest extends Object with SummaryTest {
     }
     linked = new LinkedLibrary.fromBuffer(
         prelink(definingUnit, getPart, getImport).toBuffer());
+    validateLinkedLibrary(linked);
     unlinkedUnits = <UnlinkedUnit>[definingUnit];
     for (String relativeUri in definingUnit.publicNamespace.parts) {
       UnlinkedUnit unit = uriToUnit[resolveToAbsoluteUri(relativeUri)];

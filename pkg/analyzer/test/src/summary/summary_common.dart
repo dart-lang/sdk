@@ -1598,10 +1598,12 @@ const v = const C<int, String>.named();
       0
     ], referenceValidators: [
       (EntityRef r) {
-        checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'named',
+        checkTypeRef(r, null, null, 'named',
             expectedKind: ReferenceKind.constructor,
             prefixExpectations: [
               new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                  absoluteUri: absUri('/a.dart'),
+                  relativeUri: 'a.dart',
                   numTypeParameters: 2)
             ],
             allowTypeParameters: true);
@@ -1630,10 +1632,12 @@ const v = const p.C<int, String>.named();
       0
     ], referenceValidators: [
       (EntityRef r) {
-        checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'named',
+        checkTypeRef(r, null, null, 'named',
             expectedKind: ReferenceKind.constructor,
             prefixExpectations: [
               new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                  absoluteUri: absUri('/a.dart'),
+                  relativeUri: 'a.dart',
                   numTypeParameters: 2),
               new _PrefixExpectation(ReferenceKind.prefix, 'p',
                   inLibraryDefiningUnit: true)
@@ -1770,10 +1774,11 @@ const v = const C.named();
       0,
       0
     ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'named',
+      (EntityRef r) => checkTypeRef(r, null, null, 'named',
               expectedKind: ReferenceKind.constructor,
               prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart')
               ])
     ]);
   }
@@ -1796,10 +1801,11 @@ const v = const p.C.named();
       0,
       0
     ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'named',
+      (EntityRef r) => checkTypeRef(r, null, null, 'named',
               expectedKind: ReferenceKind.constructor,
               prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C'),
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
                 new _PrefixExpectation(ReferenceKind.prefix, 'p',
                     inLibraryDefiningUnit: true)
               ])
@@ -1930,7 +1936,7 @@ const int v = p.C.length;
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'length',
+      (EntityRef r) => checkTypeRef(r, null, null, 'length',
               expectedKind: ReferenceKind.propertyAccessor,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
@@ -2360,10 +2366,11 @@ const v = C.F;
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'F',
+      (EntityRef r) => checkTypeRef(r, null, null, 'F',
               expectedKind: ReferenceKind.propertyAccessor,
               prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart')
               ])
     ]);
   }
@@ -2383,10 +2390,11 @@ const v = p.C.F;
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'F',
+      (EntityRef r) => checkTypeRef(r, null, null, 'F',
               expectedKind: ReferenceKind.propertyAccessor,
               prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C'),
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
                 new _PrefixExpectation(ReferenceKind.prefix, 'p',
                     inLibraryDefiningUnit: true),
               ])
@@ -2426,10 +2434,11 @@ const v = C.m;
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'm',
+      (EntityRef r) => checkTypeRef(r, null, null, 'm',
               expectedKind: ReferenceKind.method,
               prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart')
               ])
     ]);
   }
@@ -2449,10 +2458,11 @@ const v = p.C.m;
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'm',
+      (EntityRef r) => checkTypeRef(r, null, null, 'm',
               expectedKind: ReferenceKind.method,
               prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C'),
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
                 new _PrefixExpectation(ReferenceKind.prefix, 'p',
                     inLibraryDefiningUnit: true)
               ])
@@ -4366,9 +4376,7 @@ p.B b;
         greaterThanOrEqualTo(unlinkedUnits[0].references.length));
     LinkedReference linkedReference =
         linked.units[0].references[type.reference];
-    int expectedDep =
-        checkHasDependency(absUri('/b.dart'), 'b.dart', fullyLinked: true);
-    expect(linkedReference.dependency, expectedDep);
+    expect(linkedReference.dependency, 0);
     expect(linkedReference.kind, ReferenceKind.method);
     expect(linkedReference.name, 'f');
     expect(linkedReference.numTypeParameters, 0);
@@ -5374,6 +5382,42 @@ var v;''';
     UnlinkedVariable variable =
         serializeVariableText('int i;', variableName: 'i');
     checkTypeRef(variable.type, 'dart:core', 'dart:core', 'int');
+  }
+
+  /**
+   * Verify invariants of the given [linkedLibrary].
+   */
+  void validateLinkedLibrary(LinkedLibrary linkedLibrary) {
+    for (LinkedUnit unit in linkedLibrary.units) {
+      for (LinkedReference reference in unit.references) {
+        switch (reference.kind) {
+          case ReferenceKind.classOrEnum:
+          case ReferenceKind.topLevelPropertyAccessor:
+          case ReferenceKind.topLevelFunction:
+          case ReferenceKind.typedef:
+            // This reference can have either a zero or a nonzero dependency,
+            // since it refers to top level element which might or might not be
+            // imported from another library.
+            break;
+          case ReferenceKind.prefix:
+            // Prefixes should have a dependency of 0, since they come from the
+            // current library.
+            expect(reference.dependency, 0,
+                reason: 'Nonzero dependency for prefix');
+            break;
+          case ReferenceKind.unresolved:
+            // Unresolved references always have a dependency of 0.
+            expect(reference.dependency, 0,
+                reason: 'Nonzero dependency for undefined');
+            break;
+          default:
+            // This reference should have a dependency of 0, since it refers to
+            // an element that is contained within some other element.
+            expect(reference.dependency, 0,
+                reason: 'Nonzero dependency for ${reference.kind}');
+        }
+      }
+    }
   }
 
   void _assertUnlinkedConst(UnlinkedConst constExpr,

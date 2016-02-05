@@ -838,11 +838,15 @@ class _CompilationUnitSerializer {
 
   int _getElementReferenceId(Element element, {bool linked: false}) {
     return referenceMap.putIfAbsent(element, () {
-      LibraryElement dependentLibrary = element?.library;
+      LibraryElement dependentLibrary;
+      if (element != null) {
+        Element enclosingElement = element.enclosingElement;
+        if (enclosingElement is CompilationUnitElement) {
+          dependentLibrary = enclosingElement.library;
+        }
+      }
       int unit;
       if (dependentLibrary == null) {
-        assert(element == librarySerializer.typeProvider.dynamicType.element ||
-            element == null);
         unit = 0;
         dependentLibrary = librarySerializer.libraryElement;
       } else {
@@ -928,7 +932,6 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       int refId = serializer.linkedReferences.length;
       serializer.linkedReferences.add(new LinkedReferenceBuilder(
           kind: ReferenceKind.constructor,
-          dependency: typeLinkedRef.dependency,
           unit: typeLinkedRef.unit));
       return new EntityRefBuilder(
           reference: refId, typeArguments: typeRef.typeArguments);

@@ -93,6 +93,7 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
     {
       List<int> buffer = serializedLib.linked.toBuffer();
       linked = new LinkedLibrary.fromBuffer(buffer);
+      validateLinkedLibrary(linked);
     }
     unlinkedUnits = serializedLib.unlinkedUnits.map((UnlinkedUnitBuilder b) {
       List<int> buffer = b.toBuffer();
