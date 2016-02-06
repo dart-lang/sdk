@@ -31,7 +31,6 @@ main() {
 @reflectiveTest
 class ResynthTest extends ResolverTestCase {
   Set<Source> otherLibrarySources = new Set<Source>();
-  bool shouldCompareConstValues = false;
 
   /**
    * Determine the analysis options that should be used for this test.
@@ -670,12 +669,9 @@ class ResynthTest extends ResolverTestCase {
       VariableElementImpl original, String desc) {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
-    // TODO(scheglov) enable for any ConstVariableElement
-    if (shouldCompareConstValues) {
-      if (original is ConstVariableElement) {
-        compareConstantExpressions(resynthesized.constantInitializer,
-            original.constantInitializer, desc);
-      }
+    if (original is ConstVariableElement) {
+      compareConstantExpressions(resynthesized.constantInitializer,
+          original.constantInitializer, desc);
     }
   }
 
@@ -1083,7 +1079,6 @@ class E {}''');
   }
 
   test_const_invokeConstructor_generic_named() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 class C<K, V> {
   const C.named(K k, V v);
@@ -1093,7 +1088,6 @@ const V = const C<int, String>.named(1, '222');
   }
 
   test_const_invokeConstructor_generic_named_imported() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1108,7 +1102,6 @@ const V = const C<int, String>.named(1, '222');
   }
 
   test_const_invokeConstructor_generic_named_imported_withPrefix() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1123,7 +1116,6 @@ const V = const p.C<int, String>.named(1, '222');
   }
 
   test_const_invokeConstructor_generic_unnamed() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 class C<K, V> {
   const C();
@@ -1133,7 +1125,6 @@ const V = const C<int, String>();
   }
 
   test_const_invokeConstructor_generic_unnamed_imported() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1148,7 +1139,6 @@ const V = const C<int, String>();
   }
 
   test_const_invokeConstructor_generic_unnamed_imported_withPrefix() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1163,7 +1153,6 @@ const V = const p.C<int, String>();
   }
 
   test_const_invokeConstructor_named() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 class C {
   const C.named(bool a, int b, int c, {String d, double e});
@@ -1173,7 +1162,6 @@ const V = const C.named(true, 1, 2, d: 'ccc', e: 3.4);
   }
 
   test_const_invokeConstructor_named_imported() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1188,7 +1176,6 @@ const V = const C.named();
   }
 
   test_const_invokeConstructor_named_imported_withPrefix() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1203,7 +1190,6 @@ const V = const p.C.named();
   }
 
   test_const_invokeConstructor_unnamed() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 class C {
   const C();
@@ -1213,7 +1199,6 @@ const V = const C();
   }
 
   test_const_invokeConstructor_unnamed_imported() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1228,7 +1213,6 @@ const V = const C();
   }
 
   test_const_invokeConstructor_unnamed_imported_withPrefix() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1243,7 +1227,6 @@ const V = const p.C();
   }
 
   test_const_length_ofClassConstField() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 class C {
   static const String F = '';
@@ -1253,7 +1236,6 @@ const int v = C.F.length;
   }
 
   test_const_length_ofClassConstField_imported() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1268,7 +1250,6 @@ const int v = C.F.length;
   }
 
   test_const_length_ofClassConstField_imported_withPrefix() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1283,14 +1264,12 @@ const int v = p.C.F.length;
   }
 
   test_const_length_ofStringLiteral() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 const v = 'abc'.length;
 ''');
   }
 
   test_const_length_ofTopLevelVariable() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 const String S = 'abc';
 const v = S.length;
@@ -1298,7 +1277,6 @@ const v = S.length;
   }
 
   test_const_length_ofTopLevelVariable_imported() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1311,7 +1289,6 @@ const v = S.length;
   }
 
   test_const_length_ofTopLevelVariable_imported_withPrefix() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1324,7 +1301,6 @@ const v = p.S.length;
   }
 
   test_const_length_staticMethod() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 class C {
   static int length() => 42;
@@ -1334,7 +1310,6 @@ const v = C.length;
   }
 
   test_const_parameterDefaultValue_initializingFormal_functionTyped() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 class C {
   final x;
@@ -1345,7 +1320,6 @@ int foo() => 42;
   }
 
   test_const_parameterDefaultValue_initializingFormal_named() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 class C {
   final x;
@@ -1355,7 +1329,6 @@ class C {
   }
 
   test_const_parameterDefaultValue_initializingFormal_positional() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 class C {
   final x;
@@ -1365,7 +1338,6 @@ class C {
   }
 
   test_const_parameterDefaultValue_normal() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 class C {
   const C.positional([p = 1 + 2]);
@@ -1377,7 +1349,6 @@ class C {
   }
 
   test_const_reference_staticField() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 class C {
   static const int F = 42;
@@ -1387,7 +1358,6 @@ const V = C.F;
   }
 
   test_const_reference_staticField_imported() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1402,7 +1372,6 @@ const V = C.F;
   }
 
   test_const_reference_staticField_imported_withPrefix() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1417,7 +1386,6 @@ const V = p.C.F;
   }
 
   test_const_reference_staticMethod() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 class C {
   static int m(int a, String b) => 42;
@@ -1427,7 +1395,6 @@ const V = C.m;
   }
 
   test_const_reference_staticMethod_imported() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1442,7 +1409,6 @@ const V = C.m;
   }
 
   test_const_reference_staticMethod_imported_withPrefix() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1457,7 +1423,6 @@ const V = p.C.m;
   }
 
   test_const_reference_topLevelFunction() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 foo() {}
 const V = foo;
@@ -1465,7 +1430,6 @@ const V = foo;
   }
 
   test_const_reference_topLevelFunction_imported() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1478,7 +1442,6 @@ const V = foo;
   }
 
   test_const_reference_topLevelFunction_imported_withPrefix() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1491,7 +1454,6 @@ const V = p.foo;
   }
 
   test_const_reference_topLevelVariable() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 const A = 1;
 const B = A + 2;
@@ -1499,7 +1461,6 @@ const B = A + 2;
   }
 
   test_const_reference_topLevelVariable_imported() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1512,7 +1473,6 @@ const B = A + 2;
   }
 
   test_const_reference_topLevelVariable_imported_withPrefix() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1525,7 +1485,6 @@ const B = p.A + 2;
   }
 
   test_const_reference_type() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 class C {}
 class D<T> {}
@@ -1542,7 +1501,6 @@ const vFunctionTypeAlias = F;
   }
 
   test_const_reference_type_imported() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1559,7 +1517,6 @@ const vFunctionTypeAlias = F;
   }
 
   test_const_reference_type_imported_withPrefix() {
-    shouldCompareConstValues = true;
     addLibrarySource(
         '/a.dart',
         r'''
@@ -1576,7 +1533,6 @@ const vFunctionTypeAlias = p.F;
   }
 
   test_const_topLevel_binary() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 const vEqual = 1 == 2;
 const vAnd = true && false;
@@ -1600,21 +1556,18 @@ const vLessEqual = 1 <= 2;
   }
 
   test_const_topLevel_conditional() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 const vConditional = (1 == 2) ? 11 : 22;
 ''');
   }
 
   test_const_topLevel_identical() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 const vIdentical = (1 == 2) ? 11 : 22;
 ''');
   }
 
   test_const_topLevel_literal() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 const vNull = null;
 const vBoolFalse = false;
@@ -1630,7 +1583,6 @@ const vSymbol = #aaa.bbb.ccc;
   }
 
   test_const_topLevel_prefix() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 const vNotEqual = 1 != 2;
 const vNot = !true;
@@ -1640,7 +1592,6 @@ const vComplement = ~1;
   }
 
   test_const_topLevel_typedList() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 const vNull = const <Null>[];
 const vDynamic = const <dynamic>[1, 2, 3];
@@ -1652,7 +1603,6 @@ const vInterfaceWithTypeArguments2 = const <Map<int, List<String>>>[];
   }
 
   test_const_topLevel_typedList_imported() {
-    shouldCompareConstValues = true;
     addLibrarySource('/a.dart', 'class C {}');
     checkLibrary(r'''
 import 'a.dart';
@@ -1661,7 +1611,6 @@ const v = const <C>[];
   }
 
   test_const_topLevel_typedList_importedWithPrefix() {
-    shouldCompareConstValues = true;
     addLibrarySource('/a.dart', 'class C {}');
     checkLibrary(r'''
 import 'a.dart' as p;
@@ -1670,7 +1619,6 @@ const v = const <p.C>[];
   }
 
   test_const_topLevel_typedMap() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 const vDynamic1 = const <dynamic, int>{};
 const vDynamic2 = const <int, dynamic>{};
@@ -1680,14 +1628,12 @@ const vInterfaceWithTypeArguments = const <int, List<String>>{};
   }
 
   test_const_topLevel_untypedList() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 const v = const [1, 2, 3];
 ''');
   }
 
   test_const_topLevel_untypedMap() {
-    shouldCompareConstValues = true;
     checkLibrary(r'''
 const v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
 ''');
