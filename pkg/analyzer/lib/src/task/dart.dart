@@ -117,6 +117,17 @@ final ListResultDescriptor<ConstantEvaluationTarget> CONSTANT_DEPENDENCIES =
         'CONSTANT_DEPENDENCIES', const <ConstantEvaluationTarget>[]);
 
 /**
+ * The flag specifying that the target constant element expression AST is
+ * resolved, i.e. identifiers have all required elements set.
+ *
+ * The result is only available for targets representing a
+ * [ConstantEvaluationTarget] (i.e. a constant variable declaration, a constant
+ * constructor, or a parameter element with a default value).
+ */
+final ResultDescriptor<bool> CONSTANT_EXPRESSION_RESOLVED =
+    new ResultDescriptor<bool>('CONSTANT_EXPRESSION_RESOLVED', false);
+
+/**
  * The list of [ConstantEvaluationTarget]s on which constant expressions of a
  * unit depend.
  *
@@ -1654,30 +1665,8 @@ class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
    * given [target].
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
-    //
-    // TODO(brianwilkerson) I believe that this does not properly guarantee that
-    // all of the constructor initializers that we might encounter have been
-    // copied into the element model. We tried forcing the computation of the
-    // RESOLVED_UNIT9 for each unit reachable from the target's library, but
-    // that had too big a performance impact. We could potentially mitigate the
-    // impact by computing a more accurate list of the sources containing
-    // constructors that are actually referenced, but other approaches should
-    // be considered.
-    //
-    Source librarySource;
-    if (target is Element) {
-      CompilationUnitElementImpl unit = target
-          .getAncestor((Element element) => element is CompilationUnitElement);
-      librarySource = unit.librarySource;
-    } else if (target is ElementAnnotationImpl) {
-      librarySource = target.librarySource;
-    } else {
-      throw new AnalysisException(
-          'Cannot build inputs for a ${target.runtimeType}');
-    }
     return <String, TaskInput>{
-      'resolvedUnit': RESOLVED_UNIT10
-          .of(new LibrarySpecificUnit(librarySource, target.source)),
+      'constantExpressionResolved': CONSTANT_EXPRESSION_RESOLVED.of(target),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
@@ -4186,6 +4175,65 @@ class ReferencedNamesBuilder extends RecursiveAstVisitor {
         dependsOn.add(name);
       }
     }
+  }
+}
+
+/**
+ * A task that ensures that the expression AST for a constant is resolved and
+ * sets the [CONSTANT_EXPRESSION_RESOLVED] result.
+ */
+class ResolveConstantExpressionTask extends ConstantEvaluationAnalysisTask {
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ResolveConstantExpressionTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[CONSTANT_EXPRESSION_RESOLVED]);
+
+  ResolveConstantExpressionTask(
+      InternalAnalysisContext context, ConstantEvaluationTarget constant)
+      : super(context, constant);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    //
+    // Record outputs.
+    //
+    outputs[CONSTANT_EXPRESSION_RESOLVED] = true;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    Source librarySource;
+    if (target is Element) {
+      CompilationUnitElementImpl unit = target
+          .getAncestor((Element element) => element is CompilationUnitElement);
+      librarySource = unit.librarySource;
+    } else if (target is ElementAnnotationImpl) {
+      librarySource = target.librarySource;
+    } else {
+      throw new AnalysisException(
+          'Cannot build inputs for a ${target.runtimeType}');
+    }
+    return <String, TaskInput>{
+      'createdResolvedUnit': CREATED_RESOLVED_UNIT10
+          .of(new LibrarySpecificUnit(librarySource, target.source))
+    };
+  }
+
+  /**
+   * Create a [ResolveConstantExpressionTask] based on the given [target] in
+   * the given [context].
+   */
+  static ResolveConstantExpressionTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ResolveConstantExpressionTask(context, target);
   }
 }
 

@@ -237,7 +237,7 @@ class ConstantEvaluationEngine {
   final TypeProvider typeProvider;
 
   /**
-   * The type system.  This is used to gues the types of constants when their
+   * The type system.  This is used to guess the types of constants when their
    * exact value is unknown.
    */
   final TypeSystem typeSystem;
@@ -426,7 +426,7 @@ class ConstantEvaluationEngine {
     } else if (constant is VariableElement) {
       // constant is a VariableElement but not a VariableElementImpl.  This can
       // happen sometimes in the case of invalid user code (for example, a
-      // constant expression that refers to a nonstatic field inside a generic
+      // constant expression that refers to a non-static field inside a generic
       // class will wind up referring to a FieldMember).  The error is detected
       // elsewhere, so just silently ignore it here.
     } else {
@@ -446,14 +446,7 @@ class ConstantEvaluationEngine {
   void computeDependencies(
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
     ReferenceFinder referenceFinder = new ReferenceFinder(callback);
-    if (constant is ParameterElementImpl) {
-      if (constant.initializer != null) {
-        Expression defaultValue = constant.constantInitializer;
-        if (defaultValue != null) {
-          defaultValue.accept(referenceFinder);
-        }
-      }
-    } else if (constant is VariableElementImpl) {
+    if (constant is VariableElementImpl) {
       Expression initializer = constant.constantInitializer;
       if (initializer != null) {
         initializer.accept(referenceFinder);
@@ -465,8 +458,7 @@ class ConstantEvaluationEngine {
             getConstRedirectedConstructor(constant);
         if (redirectedConstructor != null) {
           ConstructorElement redirectedConstructorBase =
-              ConstantEvaluationEngine
-                  ._getConstructorBase(redirectedConstructor);
+              _getConstructorBase(redirectedConstructor);
           callback(redirectedConstructorBase);
           return;
         } else if (constant.isFactory) {
@@ -494,8 +486,8 @@ class ConstantEvaluationEngine {
           InterfaceType superclass =
               (constant.returnType as InterfaceType).superclass;
           if (superclass != null && !superclass.isObject) {
-            ConstructorElement unnamedConstructor = ConstantEvaluationEngine
-                ._getConstructorBase(superclass.element.unnamedConstructor);
+            ConstructorElement unnamedConstructor =
+                _getConstructorBase(superclass.element.unnamedConstructor);
             if (unnamedConstructor != null) {
               callback(unnamedConstructor);
             }
@@ -536,7 +528,7 @@ class ConstantEvaluationEngine {
     } else if (constant is VariableElement) {
       // constant is a VariableElement but not a VariableElementImpl.  This can
       // happen sometimes in the case of invalid user code (for example, a
-      // constant expression that refers to a nonstatic field inside a generic
+      // constant expression that refers to a non-static field inside a generic
       // class will wind up referring to a FieldMember).  So just don't bother
       // computing any dependencies.
     } else {

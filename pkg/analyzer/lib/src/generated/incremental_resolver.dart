@@ -922,6 +922,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(PropagateVariableTypesInUnitTask.DESCRIPTOR) ||
         isByTask(PropagateVariableTypeTask.DESCRIPTOR) ||
         isByTask(ScanDartTask.DESCRIPTOR) ||
+        isByTask(ResolveConstantExpressionTask.DESCRIPTOR) ||
         isByTask(ResolveInstanceFieldsInUnitTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryReferencesTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTask.DESCRIPTOR) ||

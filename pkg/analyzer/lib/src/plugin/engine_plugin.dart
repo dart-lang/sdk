@@ -223,6 +223,7 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, ReadyLibraryElement5Task.DESCRIPTOR);
     registerExtension(taskId, ReadyLibraryElement6Task.DESCRIPTOR);
     registerExtension(taskId, ReadyResolvedUnitTask.DESCRIPTOR);
+    registerExtension(taskId, ResolveConstantExpressionTask.DESCRIPTOR);
     registerExtension(taskId, ResolveInstanceFieldsInUnitTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryReferencesTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryTask.DESCRIPTOR);
