@@ -35,6 +35,8 @@ digraph G {
   CONSTANT_DEPENDENCIES [shape=box]
   CONSTANT_EXPRESSIONS_DEPENDENCIES -> EvaluateUnitConstantsTask
   CONSTANT_EXPRESSIONS_DEPENDENCIES [shape=box]
+  CONSTANT_EXPRESSION_RESOLVED -> ComputeConstantDependenciesTask
+  CONSTANT_EXPRESSION_RESOLVED [shape=box]
   CONSTANT_VALUE -> ComputeConstantValueTask
   CONSTANT_VALUE -> EvaluateUnitConstantsTask
   CONSTANT_VALUE [shape=box]
@@ -44,6 +46,7 @@ digraph G {
   CONTENT [shape=box]
   CREATED_RESOLVED_UNIT [shape=box]
   CREATED_RESOLVED_UNIT1 [shape=box]
+  CREATED_RESOLVED_UNIT10 -> ResolveConstantExpressionTask
   CREATED_RESOLVED_UNIT10 [shape=box]
   CREATED_RESOLVED_UNIT11 [shape=box]
   CREATED_RESOLVED_UNIT2 [shape=box]
@@ -219,7 +222,6 @@ digraph G {
   RESOLVED_UNIT1 -> BuildEnumMemberElementsTask
   RESOLVED_UNIT1 -> BuildLibraryElementTask
   RESOLVED_UNIT1 [shape=box]
-  RESOLVED_UNIT10 -> ComputeConstantDependenciesTask
   RESOLVED_UNIT10 -> EvaluateUnitConstantsTask
   RESOLVED_UNIT10 -> GatherUsedImportedElementsTask
   RESOLVED_UNIT10 -> GatherUsedLocalElementsTask
@@ -257,6 +259,7 @@ digraph G {
   ReadyLibraryElement5Task -> READY_LIBRARY_ELEMENT5
   ReadyLibraryElement6Task -> READY_LIBRARY_ELEMENT6
   ReadyResolvedUnitTask -> READY_RESOLVED_UNIT
+  ResolveConstantExpressionTask -> CONSTANT_EXPRESSION_RESOLVED
   ResolveInstanceFieldsInUnitTask -> CREATED_RESOLVED_UNIT8
   ResolveInstanceFieldsInUnitTask -> RESOLVED_UNIT8
   ResolveLibraryReferencesTask -> LIBRARY_ELEMENT8
