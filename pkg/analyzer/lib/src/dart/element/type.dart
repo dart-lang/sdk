@@ -29,12 +29,7 @@ class BottomTypeImpl extends TypeImpl {
   /**
    * The unique instance of this class.
    */
-  static BottomTypeImpl _INSTANCE = new BottomTypeImpl._();
-
-  /**
-   * Return the unique instance of this class.
-   */
-  static BottomTypeImpl get instance => _INSTANCE;
+  static final BottomTypeImpl instance = new BottomTypeImpl._();
 
   /**
    * Prevent the creation of instances of this class.
@@ -136,12 +131,7 @@ class DynamicTypeImpl extends TypeImpl {
   /**
    * The unique instance of this class.
    */
-  static DynamicTypeImpl _INSTANCE = new DynamicTypeImpl._();
-
-  /**
-   * Return the unique instance of this class.
-   */
-  static DynamicTypeImpl get instance => _INSTANCE;
+  static final DynamicTypeImpl instance = new DynamicTypeImpl._();
 
   /**
    * Prevent the creation of instances of this class.
@@ -155,7 +145,7 @@ class DynamicTypeImpl extends TypeImpl {
    * Constructor used by [CircularTypeImpl].
    */
   DynamicTypeImpl._circular()
-      : super(_INSTANCE.element, Keyword.DYNAMIC.syntax);
+      : super(instance.element, Keyword.DYNAMIC.syntax);
 
   @override
   int get hashCode => 1;
@@ -2360,12 +2350,7 @@ class UndefinedTypeImpl extends TypeImpl {
   /**
    * The unique instance of this class.
    */
-  static UndefinedTypeImpl _INSTANCE = new UndefinedTypeImpl._();
-
-  /**
-   * Return the unique instance of this class.
-   */
-  static UndefinedTypeImpl get instance => _INSTANCE;
+  static final UndefinedTypeImpl instance = new UndefinedTypeImpl._();
 
   /**
    * Prevent the creation of instances of this class.
@@ -2435,17 +2420,12 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   /**
    * The unique instance of this class.
    */
-  static VoidTypeImpl _INSTANCE = new VoidTypeImpl();
-
-  /**
-   * Return the unique instance of this class.
-   */
-  static VoidTypeImpl get instance => _INSTANCE;
+  static final VoidTypeImpl instance = new VoidTypeImpl._();
 
   /**
    * Prevent the creation of instances of this class.
    */
-  VoidTypeImpl() : super(null, Keyword.VOID.syntax);
+  VoidTypeImpl._() : super(null, Keyword.VOID.syntax);
 
   @override
   int get hashCode => 2;
