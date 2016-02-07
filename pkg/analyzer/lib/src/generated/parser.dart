@@ -4171,7 +4171,7 @@ class Parser {
     return false;
   }
 
-  bool _isLikelyParameterList() {
+  bool _isLikelyArgumentList() {
     if (_matches(TokenType.OPEN_PAREN)) {
       return true;
     }
@@ -4239,7 +4239,7 @@ class Parser {
     if (!parseGenericMethods) {
       return false;
     }
-    Token token = _skipTypeArgumentList(_peek());
+    Token token = _skipTypeParameterList(_peek());
     return token != null && _tokenMatches(token, TokenType.OPEN_PAREN);
   }
 
@@ -4459,7 +4459,7 @@ class Parser {
     Expression expression = _parsePrimaryExpression();
     bool isOptional = primaryAllowed || expression is SimpleIdentifier;
     while (true) {
-      while (_isLikelyParameterList()) {
+      while (_isLikelyArgumentList()) {
         TypeArgumentList typeArguments = _parseOptionalTypeArguments();
         ArgumentList argumentList = parseArgumentList();
         if (expression is SimpleIdentifier) {
@@ -4667,8 +4667,8 @@ class Parser {
     }
     assert((expression == null && functionName != null) ||
         (expression != null && functionName == null));
-    if (_isLikelyParameterList()) {
-      while (_isLikelyParameterList()) {
+    if (_isLikelyArgumentList()) {
+      while (_isLikelyArgumentList()) {
         TypeArgumentList typeArguments = _parseOptionalTypeArguments();
         if (functionName != null) {
           expression = new MethodInvocation(expression, period, functionName,
@@ -4696,7 +4696,7 @@ class Parser {
       if (!identical(selector, expression)) {
         expression = selector;
         progress = true;
-        while (_isLikelyParameterList()) {
+        while (_isLikelyArgumentList()) {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
           if (expression is PropertyAccess) {
             PropertyAccess propertyAccess = expression as PropertyAccess;
@@ -7304,7 +7304,7 @@ class Parser {
         _matches(TokenType.OPEN_PAREN) ||
         (parseGenericMethods && _matches(TokenType.LT))) {
       do {
-        if (_isLikelyParameterList()) {
+        if (_isLikelyArgumentList()) {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
           ArgumentList argumentList = parseArgumentList();
           if (operand is PropertyAccess) {
@@ -9417,8 +9417,7 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode CONST_ENUM = const ParserErrorCode(
       'CONST_ENUM', "Enums cannot be declared to be 'const'");
 
-  static const ParserErrorCode CONST_FACTORY =
-      shared_messages.CONST_FACTORY;
+  static const ParserErrorCode CONST_FACTORY = shared_messages.CONST_FACTORY;
 
   static const ParserErrorCode CONST_METHOD = const ParserErrorCode(
       'CONST_METHOD',

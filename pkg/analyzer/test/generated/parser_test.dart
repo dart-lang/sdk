@@ -7136,6 +7136,15 @@ void''');
     expect(declaration.functionExpression.typeParameters, isNotNull);
   }
 
+  void
+      test_parseCompilationUnitMember_function_generic_noReturnType_annotated() {
+    enableGenericMethods = true;
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember",
+        <Object>[emptyCommentAndMetadata()], "f<@a E>() {}");
+    expect(declaration.returnType, isNull);
+    expect(declaration.functionExpression.typeParameters, isNotNull);
+  }
+
   void test_parseCompilationUnitMember_function_generic_returnType() {
     enableGenericMethods = true;
     FunctionDeclaration declaration = parse("parseCompilationUnitMember",
