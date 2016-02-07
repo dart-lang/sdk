@@ -2,6 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Defines the type model. The type model is part of the
+ * [element model](element.dart) in that most types are defined by Dart code
+ * (the types `dynamic` and `void` being the notable exceptions). All types are
+ * represented by an instance of a subclass of [DartType].
+ *
+ * Other than `dynamic` and `void`, all of the types define either the interface
+ * defined by a class (an instance of [InterfaceType]) or the type of a function
+ * (an instance of [FunctionType]).
+ *
+ * We make a distinction between the declaration of a class (a [ClassElement])
+ * and the type defined by that class (an [InterfaceType]). The biggest reason
+ * for the distinction is to allow us to more cleanly represent the distinction
+ * between type parameters and type arguments. For example, if we define a class
+ * as `class Pair<K, V> {}`, the declarations of `K` and `V` represent type
+ * parameters. But if we declare a variable as `Pair<String, int> pair;` the
+ * references to `String` and `int` are type arguments.
+ */
 library analyzer.dart.element.type;
 
 import 'package:analyzer/dart/element/element.dart';
@@ -166,6 +184,12 @@ abstract class FunctionType implements ParameterizedType {
   Map<String, DartType> get namedParameterTypes;
 
   /**
+   * The names of the required positional parameters of this type of function,
+   * in the order that the parameters appear.
+   */
+  List<String> get normalParameterNames;
+
+  /**
    * Return a list containing the types of the normal parameters of this type of
    * function. The parameter types are in the same order as they appear in the
    * declaration of the function.
@@ -173,10 +197,10 @@ abstract class FunctionType implements ParameterizedType {
   List<DartType> get normalParameterTypes;
 
   /**
-   * The names of the required positional parameters of this type of function,
+   * The names of the optional positional parameters of this type of function,
    * in the order that the parameters appear.
    */
-  List<String> get normalParameterNames;
+  List<String> get optionalParameterNames;
 
   /**
    * Return a map from the names of optional (positional) parameters to the
@@ -186,12 +210,6 @@ abstract class FunctionType implements ParameterizedType {
    * declared then the map will be empty.
    */
   List<DartType> get optionalParameterTypes;
-
-  /**
-   * The names of the optional positional parameters of this type of function,
-   * in the order that the parameters appear.
-   */
-  List<String> get optionalParameterNames;
 
   /**
    * Return a list containing the parameters elements of this type of function.

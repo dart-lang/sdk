@@ -2,6 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Defines the element model. The element model describes the semantic (as
+ * opposed to syntactic) structure of Dart code. The syntactic structure of the
+ * code is modeled by the [AST structure](../ast/ast.dart).
+ *
+ * The element model consists of two closely related kinds of objects: elements
+ * (instances of a subclass of [Element]) and types. This library defines the
+ * elements, the types are defined in [type.dart](type.dart).
+ *
+ * Generally speaking, an element represents something that is declared in the
+ * code, such as a class, method, or variable. Elements are organized in a tree
+ * structure in which the children of an element are the elements that are
+ * logically (and often syntactically) part of the declaration of the parent.
+ * For example, the elements representing the methods and fields in a class are
+ * children of the element representing the class.
+ *
+ * Every complete element structure is rooted by an instance of the class
+ * [LibraryElement]. A library element represents a single Dart library. Every
+ * library is defined by one or more compilation units (the library and all of
+ * its parts). The compilation units are represented by the class
+ * [CompilationUnitElement] and are children of the library that is defined by
+ * them. Each compilation unit can contain zero or more top-level declarations,
+ * such as classes, functions, and variables. Each of these is in turn
+ * represented as an element that is a child of the compilation unit. Classes
+ * contain methods and fields, methods can contain local variables, etc.
+ *
+ * The element model does not contain everything in the code, only those things
+ * that are declared by the code. For example, it does not include any
+ * representation of the statements in a method body, but if one of those
+ * statements declares a local variable then the local variable will be
+ * represented by an element.
+ */
 library analyzer.dart.element.element;
 
 import 'package:analyzer/dart/ast/ast.dart';
