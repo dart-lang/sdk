@@ -8,6 +8,7 @@
 
 #include "vm/ast_printer.h"
 #include "vm/block_scheduler.h"
+#include "vm/branch_optimizer.h"
 #include "vm/cha.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"

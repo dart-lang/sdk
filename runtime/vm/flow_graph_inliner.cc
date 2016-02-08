@@ -5,6 +5,7 @@
 #include "vm/flow_graph_inliner.h"
 
 #include "vm/block_scheduler.h"
+#include "vm/branch_optimizer.h"
 #include "vm/compiler.h"
 #include "vm/flags.h"
 #include "vm/flow_graph.h"

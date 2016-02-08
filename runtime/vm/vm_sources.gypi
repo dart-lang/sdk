@@ -63,6 +63,8 @@
     'bootstrap.h',
     'bootstrap_natives.cc',
     'bootstrap_natives.h',
+    'branch_optimizer.cc',
+    'branch_optimizer.h',
     'cha.cc',
     'cha.h',
     'cha_test.cc',
