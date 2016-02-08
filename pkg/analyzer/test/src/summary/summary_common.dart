@@ -1540,6 +1540,33 @@ class E {}
     ]);
   }
 
+  test_constExpr_classMember_shadows_typeParam() {
+    // Although it is an error for a class member to have the same name as a
+    // type parameter, the spec makes it clear that the class member scope is
+    // nested inside the type parameter scope.  So go ahead and verify that
+    // the class member shadows the type parameter.
+    String text = '''
+class C<T> {
+  static const T = null;
+  final x;
+  const C() : x = T;
+}
+''';
+    UnlinkedClass cls = serializeClassText(text, allowErrors: true);
+    _assertUnlinkedConst(cls.executables[0].constantInitializers[0].expression,
+        operators: [
+          UnlinkedConstOperation.pushReference
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, null, 'T',
+                  expectedKind: ReferenceKind.propertyAccessor,
+                  prefixExpectations: [
+                    new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                        numTypeParameters: 1)
+                  ])
+        ]);
+  }
+
   test_constExpr_conditional() {
     UnlinkedVariable variable =
         serializeVariableText('const v = true ? 1 : 2;', allowErrors: true);
@@ -1552,6 +1579,31 @@ class E {}
       1,
       2
     ]);
+  }
+
+  test_constExpr_constructorParam_shadows_classMember() {
+    UnlinkedClass cls = serializeClassText('''
+class C {
+  static const a = null;
+  final b;
+  const C(a) : b = a;
+}
+''');
+    _assertUnlinkedConst(cls.executables[0].constantInitializers[0].expression,
+        operators: [UnlinkedConstOperation.pushConstructorParameter],
+        strings: ['a']);
+  }
+
+  test_constExpr_constructorParam_shadows_typeParam() {
+    UnlinkedClass cls = serializeClassText('''
+class C<T> {
+  final x;
+  const C(T) : x = T;
+}
+''');
+    _assertUnlinkedConst(cls.executables[0].constantInitializers[0].expression,
+        operators: [UnlinkedConstOperation.pushConstructorParameter],
+        strings: ['T']);
   }
 
   test_constExpr_identical() {
