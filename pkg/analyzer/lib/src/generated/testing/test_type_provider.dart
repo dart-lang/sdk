@@ -194,10 +194,13 @@ class TestTypeProvider implements TypeProvider {
           ElementFactory.classElement2("Deprecated");
       ConstructorElementImpl constructor = ElementFactory
           .constructorElement(deprecatedElement, '', true, [stringType]);
-      constructor.constantInitializers = <ConstructorInitializer>[
-        AstFactory.constructorFieldInitializer(
-            true, 'expires', AstFactory.identifier3('expires'))
-      ];
+      (constructor.parameters[0] as ParameterElementImpl).name = 'expires';
+      ConstructorFieldInitializer expiresInit =
+          AstFactory.constructorFieldInitializer(
+              true, 'expires', AstFactory.identifier3('expires'));
+      (expiresInit.expression as SimpleIdentifier).staticElement =
+          constructor.parameters[0];
+      constructor.constantInitializers = <ConstructorInitializer>[expiresInit];
       deprecatedElement.constructors = <ConstructorElement>[constructor];
       _deprecatedType = deprecatedElement.type;
     }

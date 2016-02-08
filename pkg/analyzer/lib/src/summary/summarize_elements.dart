@@ -343,7 +343,7 @@ class _CompilationUnitSerializer {
       return const <UnlinkedConstBuilder>[];
     }
     return element.metadata.map((ElementAnnotationImpl a) {
-      _ConstExprSerializer serializer = new _ConstExprSerializer(this);
+      _ConstExprSerializer serializer = new _ConstExprSerializer(this, null);
       serializer.serializeAnnotation(a.annotationAst);
       return serializer.toBuilder();
     }).toList();
@@ -455,8 +455,10 @@ class _CompilationUnitSerializer {
   /**
    * Serialize the given [expression], creating an [UnlinkedConstBuilder].
    */
-  UnlinkedConstBuilder serializeConstExpr(Expression expression) {
-    _ConstExprSerializer serializer = new _ConstExprSerializer(this);
+  UnlinkedConstBuilder serializeConstExpr(Expression expression,
+      [Set<String> constructorParameterNames]) {
+    _ConstExprSerializer serializer =
+        new _ConstExprSerializer(this, constructorParameterNames);
     serializer.serialize(expression);
     return serializer.toBuilder();
   }
@@ -526,10 +528,22 @@ class _CompilationUnitSerializer {
       } else {
         b.kind = UnlinkedExecutableKind.setter;
       }
-    } else if (executableElement is ConstructorElement) {
+    } else if (executableElement is ConstructorElementImpl) {
       b.kind = UnlinkedExecutableKind.constructor;
       b.isConst = executableElement.isConst;
       b.isFactory = executableElement.isFactory;
+      if (executableElement.isConst &&
+          executableElement.constantInitializers != null) {
+        Set<String> constructorParameterNames =
+            executableElement.parameters.map((p) => p.name).toSet();
+        b.constantInitializers = executableElement.constantInitializers
+            .map((ConstructorInitializer initializer) =>
+                serializeConstructorInitializer(
+                    initializer,
+                    (expr) =>
+                        serializeConstExpr(expr, constructorParameterNames)))
+            .toList();
+      }
     } else {
       b.kind = UnlinkedExecutableKind.functionOrMethod;
     }
@@ -943,7 +957,13 @@ class _CompilationUnitSerializer {
 class _ConstExprSerializer extends AbstractConstExprSerializer {
   final _CompilationUnitSerializer serializer;
 
-  _ConstExprSerializer(this.serializer);
+  /**
+   * If a constructor initializer expression is being serialized, the names of
+   * the constructor parameters.  Otherwise `null`.
+   */
+  final Set<String> constructorParameterNames;
+
+  _ConstExprSerializer(this.serializer, this.constructorParameterNames);
 
   @override
   void serializeAnnotation(Annotation annotation) {
@@ -1030,6 +1050,11 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   EntityRefBuilder serializeType(TypeName typeName) {
     DartType type = typeName != null ? typeName.type : DynamicTypeImpl.instance;
     return serializer.serializeTypeRef(type, null);
+  }
+
+  @override
+  bool isConstructorParameterName(String name) {
+    return constructorParameterNames?.contains(name) ?? false;
   }
 }
 

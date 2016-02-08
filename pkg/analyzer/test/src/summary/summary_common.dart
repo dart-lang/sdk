@@ -2705,6 +2705,140 @@ class C {
     expect(executable, isNull);
   }
 
+  test_constructor_initializers_field() {
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(r'''
+class C {
+  final x;
+  const C() : x = 42;
+}
+''').executables);
+    expect(executable.constantInitializers, hasLength(1));
+    UnlinkedConstructorInitializer initializer =
+        executable.constantInitializers[0];
+    expect(initializer.kind, UnlinkedConstructorInitializerKind.field);
+    expect(initializer.name, 'x');
+    _assertUnlinkedConst(initializer.expression,
+        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
+    expect(initializer.arguments, isEmpty);
+  }
+
+  test_constructor_initializers_field_withParameter() {
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(r'''
+class C {
+  final x;
+  const C(int p) : x = p;
+}
+''').executables);
+    expect(executable.constantInitializers, hasLength(1));
+    UnlinkedConstructorInitializer initializer =
+        executable.constantInitializers[0];
+    expect(initializer.kind, UnlinkedConstructorInitializerKind.field);
+    expect(initializer.name, 'x');
+    _assertUnlinkedConst(initializer.expression,
+        operators: [UnlinkedConstOperation.pushConstructorParameter],
+        strings: ['p']);
+    expect(initializer.arguments, isEmpty);
+  }
+
+  test_constructor_initializers_notConst() {
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(r'''
+class C {
+  final x;
+  C() : x = 42;
+}
+''').executables);
+    expect(executable.constantInitializers, isEmpty);
+  }
+
+  test_constructor_initializers_superInvocation_named() {
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(r'''
+class A {
+  const A.aaa(int p);
+}
+class C extends A {
+  const C() : super.aaa(42);
+}
+''').executables);
+    expect(executable.constantInitializers, hasLength(1));
+    UnlinkedConstructorInitializer initializer =
+        executable.constantInitializers[0];
+    expect(
+        initializer.kind, UnlinkedConstructorInitializerKind.superInvocation);
+    expect(initializer.name, 'aaa');
+    expect(initializer.expression, isNull);
+    expect(initializer.arguments, hasLength(1));
+    _assertUnlinkedConst(initializer.arguments[0],
+        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
+  }
+
+  test_constructor_initializers_superInvocation_unnamed() {
+    UnlinkedExecutable executable =
+        findExecutable('ccc', executables: serializeClassText(r'''
+class A {
+  const A(int p);
+}
+class C extends A {
+  const C.ccc() : super(42);
+}
+''').executables);
+    expect(executable.constantInitializers, hasLength(1));
+    UnlinkedConstructorInitializer initializer =
+        executable.constantInitializers[0];
+    expect(
+        initializer.kind, UnlinkedConstructorInitializerKind.superInvocation);
+    expect(initializer.name, '');
+    expect(initializer.expression, isNull);
+    expect(initializer.arguments, hasLength(1));
+    _assertUnlinkedConst(initializer.arguments[0],
+        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
+  }
+
+  test_constructor_initializers_thisInvocation_named() {
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(r'''
+class C {
+  const C() : this.named(1, 'bbb');
+  const C.named(int a, String b);
+}
+''').executables);
+    expect(executable.constantInitializers, hasLength(1));
+    UnlinkedConstructorInitializer initializer =
+        executable.constantInitializers[0];
+    expect(initializer.kind, UnlinkedConstructorInitializerKind.thisInvocation);
+    expect(initializer.name, 'named');
+    expect(initializer.expression, isNull);
+    expect(initializer.arguments, hasLength(2));
+    _assertUnlinkedConst(initializer.arguments[0],
+        operators: [UnlinkedConstOperation.pushInt], ints: [1]);
+    _assertUnlinkedConst(initializer.arguments[1],
+        operators: [UnlinkedConstOperation.pushString], strings: ['bbb']);
+  }
+
+  test_constructor_initializers_thisInvocation_unnamed() {
+    UnlinkedExecutable executable =
+        findExecutable('named', executables: serializeClassText(r'''
+class C {
+  const C.named() : this(1, 'bbb');
+  const C(int a, String b);
+}
+''').executables);
+    expect(executable.constantInitializers, hasLength(1));
+    UnlinkedConstructorInitializer initializer =
+        executable.constantInitializers[0];
+    expect(initializer.kind, UnlinkedConstructorInitializerKind.thisInvocation);
+    expect(initializer.name, '');
+    expect(initializer.expression, isNull);
+    expect(initializer.arguments, hasLength(2));
+    _assertUnlinkedConst(initializer.arguments[0],
+        operators: [UnlinkedConstOperation.pushInt], ints: [1]);
+    _assertUnlinkedConst(initializer.arguments[1],
+        operators: [UnlinkedConstOperation.pushString], strings: ['bbb']);
+  }
+
   test_constructor_initializing_formal() {
     UnlinkedExecutable executable = findExecutable('',
         executables:
@@ -4866,10 +5000,9 @@ D d;''');
   }
 
   test_metadata_typeParameter_ofFunction() {
-    checkAnnotationA(
-        serializeExecutableText('const a = null; f<@a T>() {}')
-            .typeParameters[0]
-            .annotations);
+    checkAnnotationA(serializeExecutableText('const a = null; f<@a T>() {}')
+        .typeParameters[0]
+        .annotations);
   }
 
   test_metadata_typeParameter_ofTypedef() {

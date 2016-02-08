@@ -36,6 +36,19 @@ class _UnlinkedConstOperationReader extends fb.Reader<idl.UnlinkedConstOperation
   }
 }
 
+class _UnlinkedConstructorInitializerKindReader extends fb.Reader<idl.UnlinkedConstructorInitializerKind> {
+  const _UnlinkedConstructorInitializerKindReader() : super();
+
+  @override
+  int get size => 4;
+
+  @override
+  idl.UnlinkedConstructorInitializerKind read(fb.BufferPointer bp) {
+    int index = const fb.Uint32Reader().read(bp);
+    return idl.UnlinkedConstructorInitializerKind.values[index];
+  }
+}
+
 class _UnlinkedExecutableKindReader extends fb.Reader<idl.UnlinkedExecutableKind> {
   const _UnlinkedExecutableKindReader() : super();
 
@@ -1830,6 +1843,153 @@ abstract class _UnlinkedConstMixin implements idl.UnlinkedConst {
   };
 }
 
+class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConstructorInitializer {
+  bool _finished = false;
+
+  idl.UnlinkedConstructorInitializerKind _kind;
+  String _name;
+  UnlinkedConstBuilder _expression;
+  List<UnlinkedConstBuilder> _arguments;
+
+  @override
+  idl.UnlinkedConstructorInitializerKind get kind => _kind ??= idl.UnlinkedConstructorInitializerKind.field;
+
+  /**
+   * The kind of the constructor initializer (field, redirect, super).
+   */
+  void set kind(idl.UnlinkedConstructorInitializerKind _value) {
+    assert(!_finished);
+    _kind = _value;
+  }
+
+  @override
+  String get name => _name ??= '';
+
+  /**
+   * Depending on the [kind] is the name of the field declared in the class,
+   * or the name of the constructor to redirect to (may be `null`), or the name
+   * of the invoked super constructor (may be `null`).
+   */
+  void set name(String _value) {
+    assert(!_finished);
+    _name = _value;
+  }
+
+  @override
+  UnlinkedConstBuilder get expression => _expression;
+
+  /**
+   * If [UnlinkedConstructorInitializerKind.field], the expression of the
+   * field initializer.  Otherwise `null`.
+   */
+  void set expression(UnlinkedConstBuilder _value) {
+    assert(!_finished);
+    _expression = _value;
+  }
+
+  @override
+  List<UnlinkedConstBuilder> get arguments => _arguments ??= <UnlinkedConstBuilder>[];
+
+  /**
+   * If [UnlinkedConstructorInitializerKind.thisInvocation] or
+   * [UnlinkedConstructorInitializerKind.superInvocation], the arguments of
+   * the invocation.  Otherwise empty.
+   */
+  void set arguments(List<UnlinkedConstBuilder> _value) {
+    assert(!_finished);
+    _arguments = _value;
+  }
+
+  UnlinkedConstructorInitializerBuilder({idl.UnlinkedConstructorInitializerKind kind, String name, UnlinkedConstBuilder expression, List<UnlinkedConstBuilder> arguments})
+    : _kind = kind,
+      _name = name,
+      _expression = expression,
+      _arguments = arguments;
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    assert(!_finished);
+    _finished = true;
+    fb.Offset offset_name;
+    fb.Offset offset_expression;
+    fb.Offset offset_arguments;
+    if (_name != null) {
+      offset_name = fbBuilder.writeString(_name);
+    }
+    if (_expression != null) {
+      offset_expression = _expression.finish(fbBuilder);
+    }
+    if (!(_arguments == null || _arguments.isEmpty)) {
+      offset_arguments = fbBuilder.writeList(_arguments.map((b) => b.finish(fbBuilder)).toList());
+    }
+    fbBuilder.startTable();
+    if (_kind != null && _kind != idl.UnlinkedConstructorInitializerKind.field) {
+      fbBuilder.addUint32(0, _kind.index);
+    }
+    if (offset_name != null) {
+      fbBuilder.addOffset(1, offset_name);
+    }
+    if (offset_expression != null) {
+      fbBuilder.addOffset(2, offset_expression);
+    }
+    if (offset_arguments != null) {
+      fbBuilder.addOffset(3, offset_arguments);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _UnlinkedConstructorInitializerReader extends fb.TableReader<_UnlinkedConstructorInitializerImpl> {
+  const _UnlinkedConstructorInitializerReader();
+
+  @override
+  _UnlinkedConstructorInitializerImpl createObject(fb.BufferPointer bp) => new _UnlinkedConstructorInitializerImpl(bp);
+}
+
+class _UnlinkedConstructorInitializerImpl extends Object with _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConstructorInitializer {
+  final fb.BufferPointer _bp;
+
+  _UnlinkedConstructorInitializerImpl(this._bp);
+
+  idl.UnlinkedConstructorInitializerKind _kind;
+  String _name;
+  idl.UnlinkedConst _expression;
+  List<idl.UnlinkedConst> _arguments;
+
+  @override
+  idl.UnlinkedConstructorInitializerKind get kind {
+    _kind ??= const _UnlinkedConstructorInitializerKindReader().vTableGet(_bp, 0, idl.UnlinkedConstructorInitializerKind.field);
+    return _kind;
+  }
+
+  @override
+  String get name {
+    _name ??= const fb.StringReader().vTableGet(_bp, 1, '');
+    return _name;
+  }
+
+  @override
+  idl.UnlinkedConst get expression {
+    _expression ??= const _UnlinkedConstReader().vTableGet(_bp, 2, null);
+    return _expression;
+  }
+
+  @override
+  List<idl.UnlinkedConst> get arguments {
+    _arguments ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 3, const <idl.UnlinkedConst>[]);
+    return _arguments;
+  }
+}
+
+abstract class _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConstructorInitializer {
+  @override
+  Map<String, Object> toMap() => {
+    "kind": kind,
+    "name": name,
+    "expression": expression,
+    "arguments": arguments,
+  };
+}
+
 class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumentationComment {
   bool _finished = false;
 
@@ -2251,6 +2411,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   bool _isFactory;
   bool _isExternal;
   int _inferredReturnTypeSlot;
+  List<UnlinkedConstructorInitializerBuilder> _constantInitializers;
 
   @override
   String get name => _name ??= '';
@@ -2416,8 +2577,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
 
   /**
    * If this executable's return type is inferable, nonzero slot id
-   * identifying which entry in [LinkedLibrary.types] contains the inferred
-   * return type.  If there is no matching entry in [LinkedLibrary.types], then
+   * identifying which entry in [LinkedUnit.types] contains the inferred
+   * return type.  If there is no matching entry in [LinkedUnit.types], then
    * no return type was inferred for this variable, so its static type is
    * `dynamic`.
    */
@@ -2427,7 +2588,19 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _inferredReturnTypeSlot = _value;
   }
 
-  UnlinkedExecutableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedConstBuilder> annotations, List<UnlinkedTypeParamBuilder> typeParameters, EntityRefBuilder returnType, List<UnlinkedParamBuilder> parameters, idl.UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool isExternal, int inferredReturnTypeSlot})
+  @override
+  List<UnlinkedConstructorInitializerBuilder> get constantInitializers => _constantInitializers ??= <UnlinkedConstructorInitializerBuilder>[];
+
+  /**
+   * If a constant [UnlinkedExecutableKind.constructor], the constructor
+   * initializers.  Otherwise empty.
+   */
+  void set constantInitializers(List<UnlinkedConstructorInitializerBuilder> _value) {
+    assert(!_finished);
+    _constantInitializers = _value;
+  }
+
+  UnlinkedExecutableBuilder({String name, int nameOffset, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedConstBuilder> annotations, List<UnlinkedTypeParamBuilder> typeParameters, EntityRefBuilder returnType, List<UnlinkedParamBuilder> parameters, idl.UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool isExternal, int inferredReturnTypeSlot, List<UnlinkedConstructorInitializerBuilder> constantInitializers})
     : _name = name,
       _nameOffset = nameOffset,
       _documentationComment = documentationComment,
@@ -2441,7 +2614,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       _isConst = isConst,
       _isFactory = isFactory,
       _isExternal = isExternal,
-      _inferredReturnTypeSlot = inferredReturnTypeSlot;
+      _inferredReturnTypeSlot = inferredReturnTypeSlot,
+      _constantInitializers = constantInitializers;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -2452,6 +2626,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     fb.Offset offset_typeParameters;
     fb.Offset offset_returnType;
     fb.Offset offset_parameters;
+    fb.Offset offset_constantInitializers;
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
     }
@@ -2469,6 +2644,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     }
     if (!(_parameters == null || _parameters.isEmpty)) {
       offset_parameters = fbBuilder.writeList(_parameters.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_constantInitializers == null || _constantInitializers.isEmpty)) {
+      offset_constantInitializers = fbBuilder.writeList(_constantInitializers.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_name != null) {
@@ -2513,6 +2691,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     if (_inferredReturnTypeSlot != null && _inferredReturnTypeSlot != 0) {
       fbBuilder.addUint32(13, _inferredReturnTypeSlot);
     }
+    if (offset_constantInitializers != null) {
+      fbBuilder.addOffset(14, offset_constantInitializers);
+    }
     return fbBuilder.endTable();
   }
 }
@@ -2543,6 +2724,7 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   bool _isFactory;
   bool _isExternal;
   int _inferredReturnTypeSlot;
+  List<idl.UnlinkedConstructorInitializer> _constantInitializers;
 
   @override
   String get name {
@@ -2627,6 +2809,12 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
     _inferredReturnTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 13, 0);
     return _inferredReturnTypeSlot;
   }
+
+  @override
+  List<idl.UnlinkedConstructorInitializer> get constantInitializers {
+    _constantInitializers ??= const fb.ListReader<idl.UnlinkedConstructorInitializer>(const _UnlinkedConstructorInitializerReader()).vTableGet(_bp, 14, const <idl.UnlinkedConstructorInitializer>[]);
+    return _constantInitializers;
+  }
 }
 
 abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
@@ -2646,6 +2834,7 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     "isFactory": isFactory,
     "isExternal": isExternal,
     "inferredReturnTypeSlot": inferredReturnTypeSlot,
+    "constantInitializers": constantInitializers,
   };
 }
 

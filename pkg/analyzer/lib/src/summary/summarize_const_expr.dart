@@ -10,6 +10,35 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
 /**
+ * Serialize the given constructor initializer [node].
+ */
+UnlinkedConstructorInitializer serializeConstructorInitializer(
+    ConstructorInitializer node,
+    UnlinkedConstBuilder serializeConstExpr(Expression expr)) {
+  if (node is ConstructorFieldInitializer) {
+    return new UnlinkedConstructorInitializerBuilder(
+        kind: UnlinkedConstructorInitializerKind.field,
+        name: node.fieldName.name,
+        expression: serializeConstExpr(node.expression));
+  }
+  if (node is RedirectingConstructorInvocation) {
+    return new UnlinkedConstructorInitializerBuilder(
+        kind: UnlinkedConstructorInitializerKind.thisInvocation,
+        name: node?.constructorName?.name,
+        arguments:
+            node.argumentList.arguments.map(serializeConstExpr).toList());
+  }
+  if (node is SuperConstructorInvocation) {
+    return new UnlinkedConstructorInitializerBuilder(
+        kind: UnlinkedConstructorInitializerKind.superInvocation,
+        name: node?.constructorName?.name,
+        arguments:
+            node.argumentList.arguments.map(serializeConstExpr).toList());
+  }
+  throw new StateError('Unexpected initializer type ${node.runtimeType}');
+}
+
+/**
  * Instances of this class keep track of intermediate state during
  * serialization of a single constant [Expression].
  */
@@ -40,6 +69,12 @@ abstract class AbstractConstExprSerializer {
   final List<EntityRefBuilder> references = <EntityRefBuilder>[];
 
   /**
+   * Return `true` if a constructor initializer expression is being serialized
+   * and the given [name] is a constructor parameter reference.
+   */
+  bool isConstructorParameterName(String name);
+
+  /**
    * Serialize the given [expr] expression into this serializer state.
    */
   void serialize(Expression expr) {
@@ -62,8 +97,13 @@ abstract class AbstractConstExprSerializer {
     } else if (expr is NullLiteral) {
       operations.add(UnlinkedConstOperation.pushNull);
     } else if (expr is Identifier) {
-      references.add(serializeIdentifier(expr));
-      operations.add(UnlinkedConstOperation.pushReference);
+      if (expr is SimpleIdentifier && isConstructorParameterName(expr.name)) {
+        strings.add(expr.name);
+        operations.add(UnlinkedConstOperation.pushConstructorParameter);
+      } else {
+        references.add(serializeIdentifier(expr));
+        operations.add(UnlinkedConstOperation.pushReference);
+      }
     } else if (expr is InstanceCreationExpression) {
       serializeInstanceCreation(
           serializeConstructorName(

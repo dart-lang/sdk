@@ -27,7 +27,18 @@ UnlinkedUnitBuilder serializeAstUnlinked(CompilationUnit compilationUnit) {
 class _ConstExprSerializer extends AbstractConstExprSerializer {
   final _SummarizeAstVisitor visitor;
 
-  _ConstExprSerializer(this.visitor);
+  /**
+   * If a constructor initializer expression is being serialized, the names of
+   * the constructor parameters.  Otherwise `null`.
+   */
+  final Set<String> constructorParameterNames;
+
+  _ConstExprSerializer(this.visitor, this.constructorParameterNames);
+
+  @override
+  bool isConstructorParameterName(String name) {
+    return constructorParameterNames?.contains(name) ?? false;
+  }
 
   @override
   void serializeAnnotation(Annotation annotation) {
@@ -322,7 +333,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       return const <UnlinkedConstBuilder>[];
     }
     return annotations.map((Annotation a) {
-      _ConstExprSerializer serializer = new _ConstExprSerializer(this);
+      _ConstExprSerializer serializer = new _ConstExprSerializer(this, null);
       serializer.serializeAnnotation(a);
       return serializer.toBuilder();
     }).toList();
@@ -436,8 +447,10 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   /**
    * Serialize the given [expression], creating an [UnlinkedConstBuilder].
    */
-  UnlinkedConstBuilder serializeConstExpr(Expression expression) {
-    _ConstExprSerializer serializer = new _ConstExprSerializer(this);
+  UnlinkedConstBuilder serializeConstExpr(Expression expression,
+      [Set<String> constructorParameterNames]) {
+    _ConstExprSerializer serializer =
+        new _ConstExprSerializer(this, constructorParameterNames);
     serializer.serialize(expression);
     return serializer.toBuilder();
   }
@@ -752,6 +765,16 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
     b.isExternal = node.externalKeyword != null;
     b.documentationComment = serializeDocumentation(node.documentationComment);
     b.annotations = serializeAnnotations(node.metadata);
+    if (node.constKeyword != null) {
+      Set<String> constructorParameterNames =
+          node.parameters.parameters.map((p) => p.identifier.name).toSet();
+      b.constantInitializers = node.initializers
+          .map((ConstructorInitializer initializer) =>
+              serializeConstructorInitializer(initializer, (Expression expr) {
+                return serializeConstExpr(expr, constructorParameterNames);
+              }))
+          .toList();
+    }
     executables.add(b);
   }
 

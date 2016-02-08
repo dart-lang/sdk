@@ -432,6 +432,10 @@ class _ConstExprBuilder {
               resynthesizer._buildStringLengthPropertyAccessorElement();
           _push(AstFactory.propertyAccess(target, property));
           break;
+        case UnlinkedConstOperation.pushConstructorParameter:
+          // TODO(scheglov) implement
+          throw new UnimplementedError('$operation');
+          break;
       }
     }
     return stack.single;

@@ -619,6 +619,12 @@ enum UnlinkedConstOperation {
   pushNull,
 
   /**
+   * Push the value of the constant constructor parameter with
+   * the name obtained from [UnlinkedConst.strings].
+   */
+  pushConstructorParameter,
+
+  /**
    * Evaluate a (potentially qualified) identifier expression and push the
    * resulting value onto the stack.  The identifier to be evaluated is
    * obtained from [UnlinkedConst.references].
@@ -838,6 +844,56 @@ enum UnlinkedConstOperation {
 }
 
 /**
+ * Unlinked summary information about a constructor initializer.
+ */
+abstract class UnlinkedConstructorInitializer extends base.SummaryClass {
+  /**
+   * The kind of the constructor initializer (field, redirect, super).
+   */
+  UnlinkedConstructorInitializerKind get kind;
+
+  /**
+   * If [kind] is `field`, the name of the field declared in the class.  If
+   * [kind] is `thisInvocation`, the name of the constructor, declared in this
+   * class, to redirect to.  If [kind] is `superInvocation`, the name of the
+   * constructor, declared in the superclass, to invoke.
+   */
+  String get name;
+
+  /**
+   * If [kind] is `field`, the expression of the field initializer.
+   * Otherwise `null`.
+   */
+  UnlinkedConst get expression;
+
+  /**
+   * If [kind] is `thisInvocation` or `superInvocation`, the arguments of the
+   * invocation.  Otherwise empty.
+   */
+  List<UnlinkedConst> get arguments;
+}
+
+/**
+ * Enum used to indicate the kind of an constructor initializer.
+ */
+enum UnlinkedConstructorInitializerKind {
+  /**
+   * Initialization of a field.
+   */
+  field,
+
+  /**
+   * Invocation of a constructor in the same class.
+   */
+  thisInvocation,
+
+  /**
+   * Invocation of a superclass' constructor.
+   */
+  superInvocation
+}
+
+/**
  * Unlinked summary information about a documentation comment.
  */
 abstract class UnlinkedDocumentationComment extends base.SummaryClass {
@@ -1007,12 +1063,18 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
 
   /**
    * If this executable's return type is inferable, nonzero slot id
-   * identifying which entry in [LinkedLibrary.types] contains the inferred
-   * return type.  If there is no matching entry in [LinkedLibrary.types], then
+   * identifying which entry in [LinkedUnit.types] contains the inferred
+   * return type.  If there is no matching entry in [LinkedUnit.types], then
    * no return type was inferred for this variable, so its static type is
    * `dynamic`.
    */
   int get inferredReturnTypeSlot;
+
+  /**
+   * If a constant [UnlinkedExecutableKind.constructor], the constructor
+   * initializers.  Otherwise empty.
+   */
+  List<UnlinkedConstructorInitializer> get constantInitializers;
 }
 
 /**
