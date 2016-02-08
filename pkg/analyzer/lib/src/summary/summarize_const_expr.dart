@@ -65,7 +65,10 @@ abstract class AbstractConstExprSerializer {
       references.add(serializeIdentifier(expr));
       operations.add(UnlinkedConstOperation.pushReference);
     } else if (expr is InstanceCreationExpression) {
-      _serializeInstanceCreation(expr);
+      serializeInstanceCreation(
+          serializeConstructorName(
+              expr.constructorName.type, expr.constructorName.name),
+          expr.argumentList);
     } else if (expr is ListLiteral) {
       _serializeListLiteral(expr);
     } else if (expr is MapLiteral) {
@@ -109,9 +112,16 @@ abstract class AbstractConstExprSerializer {
   }
 
   /**
-   * Return [EntityRefBuilder] that corresponds to the given [constructor].
+   * Serialize the given [annotation] into this serializer state.
    */
-  EntityRefBuilder serializeConstructorName(ConstructorName constructor);
+  void serializeAnnotation(Annotation annotation);
+
+  /**
+   * Return [EntityRefBuilder] that corresponds to the constructor having name
+   * [name] in the class identified by [type].
+   */
+  EntityRefBuilder serializeConstructorName(
+      TypeName type, SimpleIdentifier name);
 
   /**
    * Return [EntityRefBuilder] that corresponds to the given [identifier].
@@ -209,9 +219,9 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
-  void _serializeInstanceCreation(InstanceCreationExpression expr) {
-    ConstructorName constructor = expr.constructorName;
-    List<Expression> arguments = expr.argumentList.arguments;
+  void serializeInstanceCreation(
+      EntityRefBuilder constructor, ArgumentList argumentList) {
+    List<Expression> arguments = argumentList.arguments;
     // Serialize the arguments.
     List<String> argumentNames = <String>[];
     arguments.forEach((arg) {
@@ -228,7 +238,7 @@ abstract class AbstractConstExprSerializer {
     strings.addAll(argumentNames);
     ints.add(arguments.length - argumentNames.length);
     // Serialize the reference.
-    references.add(serializeConstructorName(constructor));
+    references.add(constructor);
   }
 
   void _serializeListLiteral(ListLiteral expr) {

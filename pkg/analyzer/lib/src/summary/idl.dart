@@ -440,6 +440,11 @@ abstract class UnlinkedClass extends base.SummaryClass {
   UnlinkedDocumentationComment get documentationComment;
 
   /**
+   * Annotations for this class.
+   */
+  List<UnlinkedConst> get annotations;
+
+  /**
    * Type parameters of the class, if any.
    */
   List<UnlinkedTypeParam> get typeParameters;
@@ -879,6 +884,11 @@ abstract class UnlinkedEnum extends base.SummaryClass {
   UnlinkedDocumentationComment get documentationComment;
 
   /**
+   * Annotations for this enum.
+   */
+  List<UnlinkedConst> get annotations;
+
+  /**
    * Values listed in the enum declaration, in declaration order.
    */
   List<UnlinkedEnumValue> get values;
@@ -935,6 +945,11 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    */
   @informative
   UnlinkedDocumentationComment get documentationComment;
+
+  /**
+   * Annotations for this executable.
+   */
+  List<UnlinkedConst> get annotations;
 
   /**
    * Type parameters of the executable, if any.  Empty if support for generic
@@ -1049,6 +1064,11 @@ abstract class UnlinkedExportNonPublic extends base.SummaryClass {
    */
   @informative
   int get uriEnd;
+
+  /**
+   * Annotations for this export directive.
+   */
+  List<UnlinkedConst> get annotations;
 }
 
 /**
@@ -1082,6 +1102,11 @@ abstract class UnlinkedImport extends base.SummaryClass {
    */
   @informative
   int get offset;
+
+  /**
+   * Annotations for this import declaration.
+   */
+  List<UnlinkedConst> get annotations;
 
   /**
    * Index into [UnlinkedUnit.references] of the prefix declared by this
@@ -1142,6 +1167,11 @@ abstract class UnlinkedParam extends base.SummaryClass {
    */
   @informative
   int get nameOffset;
+
+  /**
+   * Annotations for this parameter.
+   */
+  List<UnlinkedConst> get annotations;
 
   /**
    * If [isFunctionTyped] is `true`, the declared return type.  If
@@ -1228,6 +1258,11 @@ abstract class UnlinkedPart extends base.SummaryClass {
    */
   @informative
   int get uriEnd;
+
+  /**
+   * Annotations for this part declaration.
+   */
+  List<UnlinkedConst> get annotations;
 }
 
 /**
@@ -1337,6 +1372,11 @@ abstract class UnlinkedTypedef extends base.SummaryClass {
   UnlinkedDocumentationComment get documentationComment;
 
   /**
+   * Annotations for this typedef.
+   */
+  List<UnlinkedConst> get annotations;
+
+  /**
    * Type parameters of the typedef, if any.
    */
   List<UnlinkedTypeParam> get typeParameters;
@@ -1366,6 +1406,11 @@ abstract class UnlinkedTypeParam extends base.SummaryClass {
    */
   @informative
   int get nameOffset;
+
+  /**
+   * Annotations for this type parameter.
+   */
+  List<UnlinkedConst> get annotations;
 
   /**
    * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
@@ -1407,6 +1452,12 @@ abstract class UnlinkedUnit extends base.SummaryClass {
    */
   @informative
   UnlinkedDocumentationComment get libraryDocumentationComment;
+
+  /**
+   * Annotations for the library declaration, or the empty list if there is no
+   * library declaration.
+   */
+  List<UnlinkedConst> get libraryAnnotations;
 
   /**
    * Unlinked public namespace of this compilation unit.
@@ -1486,6 +1537,11 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    */
   @informative
   UnlinkedDocumentationComment get documentationComment;
+
+  /**
+   * Annotations for this variable.
+   */
+  List<UnlinkedConst> get annotations;
 
   /**
    * Declared type of the variable.  Absent if the type is implicit.

@@ -4,9 +4,12 @@
 
 library test.src.serialization.elements_test;
 
+import 'dart:convert';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -22,6 +25,7 @@ import 'package:unittest/unittest.dart';
 
 import '../../generated/resolver_test.dart';
 import '../../reflective_tests.dart';
+import 'summary_common.dart' show canonicalize;
 
 main() {
   groupSep = ' | ';
@@ -46,11 +50,13 @@ class ResynthTest extends ResolverTestCase {
     otherLibrarySources.add(addNamedSource(filePath, contents));
   }
 
-  void checkLibrary(String text, {bool allowErrors: false}) {
+  void checkLibrary(String text,
+      {bool allowErrors: false, bool dumpSummaries: false}) {
     Source source = addSource(text);
     LibraryElementImpl original = resolve2(source);
     LibraryElementImpl resynthesized = resynthesizeLibraryElement(
-        encodeLibrary(original, allowErrors: allowErrors),
+        encodeLibrary(original,
+            allowErrors: allowErrors, dumpSummaries: dumpSummaries),
         source.uri.toString(),
         original);
     checkLibraryElements(original, resynthesized);
@@ -99,7 +105,6 @@ class ResynthTest extends ResolverTestCase {
           original.loadLibraryFunction as ExecutableElementImpl,
           '(loadLibraryFunction)');
     }
-    // TODO(paulberry): test metadata.
   }
 
   /**
@@ -191,10 +196,12 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.topLevelVariables.length,
         original.topLevelVariables.length);
     for (int i = 0; i < resynthesized.topLevelVariables.length; i++) {
+      String name = resynthesized.topLevelVariables[i].name;
       compareTopLevelVariableElements(
           resynthesized.topLevelVariables[i],
-          original.topLevelVariables[i],
-          'variable ${original.topLevelVariables[i].name}');
+          original.topLevelVariables
+              .singleWhere((TopLevelVariableElement e) => e.name == name),
+          'variable $name');
     }
     expect(resynthesized.functions.length, original.functions.length);
     for (int i = 0; i < resynthesized.functions.length; i++) {
@@ -216,18 +223,25 @@ class ResynthTest extends ResolverTestCase {
     }
     expect(resynthesized.accessors.length, original.accessors.length);
     for (int i = 0; i < resynthesized.accessors.length; i++) {
+      String name = resynthesized.accessors[i].name;
       if (original.accessors[i].isGetter) {
-        comparePropertyAccessorElements(resynthesized.accessors[i],
-            original.accessors[i], 'getter ${original.accessors[i].name}');
+        comparePropertyAccessorElements(
+            resynthesized.accessors[i],
+            original.accessors
+                .singleWhere((PropertyAccessorElement e) => e.name == name),
+            'getter $name');
       } else {
-        comparePropertyAccessorElements(resynthesized.accessors[i],
-            original.accessors[i], 'setter ${original.accessors[i].name}');
+        comparePropertyAccessorElements(
+            resynthesized.accessors[i],
+            original.accessors
+                .singleWhere((PropertyAccessorElement e) => e.name == name),
+            'setter $name');
       }
     }
     // TODO(paulberry): test metadata and offsetToElementMap.
   }
 
-  void compareConstantExpressions(Expression r, Expression o, String desc) {
+  void compareConstantAsts(AstNode r, AstNode o, String desc) {
     void compareLists(List<Object> rItems, List<Object> oItems) {
       if (rItems == null && oItems == null) {
         return;
@@ -238,18 +252,18 @@ class ResynthTest extends ResolverTestCase {
         Object rItem = rItems[i];
         Object oItem = oItems[i];
         if (rItem is Expression && oItem is Expression) {
-          compareConstantExpressions(rItem, oItem, desc);
+          compareConstantAsts(rItem, oItem, desc);
         } else if (rItem is TypeName && oItem is TypeName) {
-          compareConstantExpressions(rItem.name, oItem.name, desc);
+          compareConstantAsts(rItem.name, oItem.name, desc);
         } else if (rItem is InterpolationString &&
             oItem is InterpolationString) {
           expect(rItem.value, oItem.value);
         } else if (rItem is InterpolationExpression &&
             oItem is InterpolationExpression) {
-          compareConstantExpressions(rItem.expression, oItem.expression, desc);
+          compareConstantAsts(rItem.expression, oItem.expression, desc);
         } else if (rItem is MapLiteralEntry && oItem is MapLiteralEntry) {
-          compareConstantExpressions(rItem.key, oItem.key, desc);
-          compareConstantExpressions(rItem.value, oItem.value, desc);
+          compareConstantAsts(rItem.key, oItem.key, desc);
+          compareConstantAsts(rItem.value, oItem.value, desc);
         } else {
           fail('$desc Incompatible item types: '
               '${rItem.runtimeType} vs. ${oItem.runtimeType}');
@@ -265,23 +279,26 @@ class ResynthTest extends ResolverTestCase {
       // resynthesis and should not check them here.
       if (o is ParenthesizedExpression) {
         // We don't resynthesize parenthesis, so just ignore it.
-        compareConstantExpressions(r, o.expression, desc);
+        compareConstantAsts(r, o.expression, desc);
       } else if (o is SimpleIdentifier && r is SimpleIdentifier) {
         expect(r.name, o.name, reason: desc);
         compareElements(r.staticElement, o.staticElement, desc);
       } else if (o is PrefixedIdentifier && r is SimpleIdentifier) {
-        // We don't resynthesize prefixed identifiers.
+        // We often don't resynthesize prefixed identifiers.
         // We use simple identifiers with correct elements.
-        compareConstantExpressions(r, o.identifier, desc);
+        compareConstantAsts(r, o.identifier, desc);
+      } else if (o is PrefixedIdentifier && r is PrefixedIdentifier) {
+        compareConstantAsts(r.prefix, o.prefix, desc);
+        compareConstantAsts(r.identifier, o.identifier, desc);
       } else if (o is PropertyAccess && r is PropertyAccess) {
-        compareConstantExpressions(r.target, o.target, desc);
+        compareConstantAsts(r.target, o.target, desc);
         expect(r.propertyName.name, o.propertyName.name, reason: desc);
         compareElements(
             r.propertyName.staticElement, o.propertyName.staticElement, desc);
       } else if (o is PropertyAccess && r is SimpleIdentifier) {
         // We don't resynthesize property access.
         // We use simple identifiers with correct elements.
-        compareConstantExpressions(r, o.propertyName, desc);
+        compareConstantAsts(r, o.propertyName, desc);
       } else if (o is NullLiteral) {
         expect(r, new isInstanceOf<NullLiteral>(), reason: desc);
       } else if (o is BooleanLiteral && r is BooleanLiteral) {
@@ -304,18 +321,18 @@ class ResynthTest extends ResolverTestCase {
             reason: desc);
       } else if (o is NamedExpression && r is NamedExpression) {
         expect(r.name.label.name, o.name.label.name, reason: desc);
-        compareConstantExpressions(r.expression, o.expression, desc);
+        compareConstantAsts(r.expression, o.expression, desc);
       } else if (o is BinaryExpression && r is BinaryExpression) {
         expect(r.operator.lexeme, o.operator.lexeme, reason: desc);
-        compareConstantExpressions(r.leftOperand, o.leftOperand, desc);
-        compareConstantExpressions(r.rightOperand, o.rightOperand, desc);
+        compareConstantAsts(r.leftOperand, o.leftOperand, desc);
+        compareConstantAsts(r.rightOperand, o.rightOperand, desc);
       } else if (o is PrefixExpression && r is PrefixExpression) {
         expect(r.operator.lexeme, o.operator.lexeme, reason: desc);
-        compareConstantExpressions(r.operand, o.operand, desc);
+        compareConstantAsts(r.operand, o.operand, desc);
       } else if (o is ConditionalExpression && r is ConditionalExpression) {
-        compareConstantExpressions(r.condition, o.condition, desc);
-        compareConstantExpressions(r.thenExpression, o.thenExpression, desc);
-        compareConstantExpressions(r.elseExpression, o.elseExpression, desc);
+        compareConstantAsts(r.condition, o.condition, desc);
+        compareConstantAsts(r.thenExpression, o.thenExpression, desc);
+        compareConstantAsts(r.elseExpression, o.elseExpression, desc);
       } else if (o is ListLiteral && r is ListLiteral) {
         compareLists(r.typeArguments?.arguments, o.typeArguments?.arguments);
         compareLists(r.elements, o.elements);
@@ -335,11 +352,45 @@ class ResynthTest extends ResolverTestCase {
         TypeName rType = rConstructor.type;
         expect(oType, isNotNull, reason: desc);
         expect(rType, isNotNull, reason: desc);
-        compareConstantExpressions(rType.name, oType.name, desc);
-        compareConstantExpressions(rConstructor.name, oConstructor.name, desc);
+        compareConstantAsts(rType.name, oType.name, desc);
+        compareConstantAsts(rConstructor.name, oConstructor.name, desc);
         compareLists(
             rType.typeArguments?.arguments, oType.typeArguments?.arguments);
         compareLists(r.argumentList.arguments, o.argumentList.arguments);
+      } else if (o is AnnotationImpl && r is AnnotationImpl) {
+        expect(o.atSign.lexeme, r.atSign.lexeme, reason: desc);
+        Identifier rName = r.name;
+        Identifier oName = o.name;
+        if (oName is PrefixedIdentifier && o.constructorName != null) {
+          // E.g. `@prefix.cls.ctor`.  This gets resynthesized as `@cls.ctor`,
+          // with `cls.ctor` represented as a PrefixedIdentifier.
+          expect(rName, new isInstanceOf<PrefixedIdentifier>(), reason: desc);
+          if (rName is PrefixedIdentifier) {
+            compareConstantAsts(rName.prefix, oName.identifier, desc);
+            expect(rName.period.lexeme, '.', reason: desc);
+            compareConstantAsts(rName.identifier, o.constructorName, desc);
+            expect(r.period, isNull, reason: desc);
+            expect(r.constructorName, isNull, reason: desc);
+          }
+        } else {
+          compareConstantAsts(r.name, o.name, desc);
+          expect(r.period?.lexeme, o.period?.lexeme, reason: desc);
+          compareConstantAsts(r.constructorName, o.constructorName, desc);
+        }
+        compareLists(r.arguments?.arguments, o.arguments?.arguments);
+        Element expectedElement = o.element;
+        if (oName is PrefixedIdentifier && o.constructorName != null) {
+          // Due to dartbug.com/25706, [o.element] incorrectly points to the
+          // class rather than the named constructor.  Hack around this.
+          // TODO(paulberry): when dartbug.com/25706 is fixed, remove this.
+          expectedElement = (expectedElement as ClassElement)
+              .getNamedConstructor(o.constructorName.name);
+          expect(expectedElement, isNotNull, reason: desc);
+        }
+        compareElements(r.element, expectedElement, desc);
+        // elementAnnotation should be null; it is only used in the full AST.
+        expect(o.elementAnnotation, isNull);
+        expect(r.elementAnnotation, isNull);
       } else if (o is ConstructorName && r is ConstructorName) {
         fail('Not implemented for ${r.runtimeType} vs. ${o.runtimeType}');
       } else {
@@ -354,6 +405,21 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test redirectedConstructor and constantInitializers
   }
 
+  void compareElementAnnotations(ElementAnnotationImpl resynthesized,
+      ElementAnnotationImpl original, String desc) {
+    expect(resynthesized.element, isNotNull, reason: desc);
+    expect(resynthesized.element.kind, original.element.kind, reason: desc);
+    expect(resynthesized.element.location, original.element.location,
+        reason: desc);
+    expect(resynthesized.compilationUnit, isNotNull, reason: desc);
+    expect(resynthesized.compilationUnit.location,
+        original.compilationUnit.location,
+        reason: desc);
+    expect(resynthesized.annotationAst, isNotNull, reason: desc);
+    compareConstantAsts(
+        resynthesized.annotationAst, original.annotationAst, desc);
+  }
+
   void compareElements(Element resynthesized, Element original, String desc) {
     expect(resynthesized, isNotNull);
     expect(resynthesized.kind, original.kind);
@@ -363,6 +429,7 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.documentationComment, original.documentationComment,
         reason: desc);
     expect(resynthesized.docRange, original.docRange, reason: desc);
+    compareMetadata(resynthesized.metadata, original.metadata, desc);
     // Modifiers are a pain to test via handles.  So just test them via the
     // actual element.
     ElementImpl actualResynthesized = getActualElement(resynthesized, desc);
@@ -467,6 +534,15 @@ class ResynthTest extends ResolverTestCase {
     for (int i = 0; i < resynthesized.combinators.length; i++) {
       compareNamespaceCombinators(
           resynthesized.combinators[i], original.combinators[i]);
+    }
+  }
+
+  void compareMetadata(List<ElementAnnotation> resynthesized,
+      List<ElementAnnotation> original, String desc) {
+    expect(resynthesized, hasLength(original.length), reason: desc);
+    for (int i = 0; i < original.length; i++) {
+      compareElementAnnotations(
+          resynthesized[i], original[i], '$desc annotation $i');
     }
   }
 
@@ -670,7 +746,7 @@ class ResynthTest extends ResolverTestCase {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
     if (original is ConstVariableElement) {
-      compareConstantExpressions(resynthesized.constantInitializer,
+      compareConstantAsts(resynthesized.constantInitializer,
           original.constantInitializer, desc);
     }
   }
@@ -683,12 +759,12 @@ class ResynthTest extends ResolverTestCase {
    * Errors will lead to a test failure unless [allowErrors] is `true`.
    */
   _TestSummaryResynthesizer encodeLibrary(LibraryElementImpl library,
-      {bool allowErrors: false}) {
+      {bool allowErrors: false, bool dumpSummaries: false}) {
     if (!allowErrors) {
       assertNoErrors(library.source);
     }
     addLibrary('dart:core');
-    return encodeLibraryElement(library);
+    return encodeLibraryElement(library, dumpSummaries: dumpSummaries);
   }
 
   /**
@@ -698,7 +774,8 @@ class ResynthTest extends ResolverTestCase {
    * Caller is responsible for checking the library for errors, and adding any
    * dependent libraries using [addLibrary].
    */
-  _TestSummaryResynthesizer encodeLibraryElement(LibraryElementImpl library) {
+  _TestSummaryResynthesizer encodeLibraryElement(LibraryElementImpl library,
+      {bool dumpSummaries: false}) {
     Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
     LinkedLibrary getLinkedSummaryFor(LibraryElement lib) {
       LibrarySerializationResult serialized = serializeLibrary(
@@ -716,6 +793,14 @@ class ResynthTest extends ResolverTestCase {
       LibraryElement original = resolve2(source);
       String uri = source.uri.toString();
       linkedSummaries[uri] = getLinkedSummaryFor(original);
+    }
+    if (dumpSummaries) {
+      unlinkedSummaries.forEach((String path, UnlinkedUnit unit) {
+        print('Unlinked $path: ${JSON.encode(canonicalize(unit))}');
+      });
+      linkedSummaries.forEach((String path, LinkedLibrary lib) {
+        print('Linked $path: ${JSON.encode(canonicalize(lib))}');
+      });
     }
     return new _TestSummaryResynthesizer(
         null,
@@ -2138,6 +2223,150 @@ library foo;''');
   test_main_variable_via_export() {
     addLibrarySource('/a.dart', 'var main;');
     checkLibrary('export "a.dart";');
+  }
+
+  test_metadata_classDeclaration() {
+    checkLibrary('const a = null; @a class C {}');
+  }
+
+  test_metadata_classTypeAlias() {
+    checkLibrary(
+        'const a = null; @a class C = D with E; class D {} class E {}');
+  }
+
+  test_metadata_constructor_call_named() {
+    checkLibrary('class A { const A.named(); } @A.named() class C {}');
+  }
+
+  test_metadata_constructor_call_named_prefixed() {
+    addLibrarySource('/foo.dart', 'class A { const A.named(); }');
+    checkLibrary('import "foo.dart" as foo; @foo.A.named() class C {}');
+  }
+
+  test_metadata_constructor_call_unnamed() {
+    checkLibrary('class A { const A(); } @A() class C {}');
+  }
+
+  test_metadata_constructor_call_unnamed_prefixed() {
+    addLibrarySource('/foo.dart', 'class A { const A(); }');
+    checkLibrary('import "foo.dart" as foo; @foo.A() class C {}');
+  }
+
+  test_metadata_constructor_call_with_args() {
+    checkLibrary('class A { const A(x); } @A(null) class C {}');
+  }
+
+  test_metadata_constructorDeclaration_named() {
+    checkLibrary('const a = null; class C { @a C.named(); }');
+  }
+
+  test_metadata_constructorDeclaration_unnamed() {
+    checkLibrary('const a = null; class C { @a C(); }');
+  }
+
+  test_metadata_enumDeclaration() {
+    checkLibrary('const a = null; @a enum E { v }');
+  }
+
+  test_metadata_exportDirective() {
+    addLibrarySource('/foo.dart', '');
+    checkLibrary('@a export "foo.dart"; const a = null;');
+  }
+
+  test_metadata_fieldDeclaration() {
+    checkLibrary('const a = null; class C { @a int x; }');
+  }
+
+  test_metadata_fieldFormalParameter() {
+    checkLibrary('const a = null; class C { var x; C(@a this.x); }');
+  }
+
+  test_metadata_fieldFormalParameter_withDefault() {
+    checkLibrary('const a = null; class C { var x; C([@a this.x = null]); }');
+  }
+
+  test_metadata_functionDeclaration_function() {
+    checkLibrary('const a = null; @a f() {}');
+  }
+
+  test_metadata_functionDeclaration_getter() {
+    checkLibrary('const a = null; @a get f => null;');
+  }
+
+  test_metadata_functionDeclaration_setter() {
+    checkLibrary('const a = null; @a set f(value) {}');
+  }
+
+  test_metadata_functionTypeAlias() {
+    checkLibrary('const a = null; @a typedef F();');
+  }
+
+  test_metadata_functionTypedFormalParameter() {
+    checkLibrary('const a = null; f(@a g()) {}');
+  }
+
+  test_metadata_functionTypedFormalParameter_withDefault() {
+    checkLibrary('const a = null; f([@a g() = null]) {}');
+  }
+
+  test_metadata_importDirective() {
+    addLibrarySource('/foo.dart', 'const b = null;');
+    checkLibrary('@a import "foo.dart"; const a = b;');
+  }
+
+  test_metadata_libraryDirective() {
+    checkLibrary('@a library L; const a = null;');
+  }
+
+  test_metadata_methodDeclaration_getter() {
+    checkLibrary('const a = null; class C { @a get m => null; }');
+  }
+
+  test_metadata_methodDeclaration_method() {
+    checkLibrary('const a = null; class C { @a m() {} }');
+  }
+
+  test_metadata_methodDeclaration_setter() {
+    checkLibrary('const a = null; class C { @a set m(value) {} }');
+  }
+
+  test_metadata_partDirective() {
+    addNamedSource('/foo.dart', 'part of L;');
+    checkLibrary('library L; @a part "foo.dart"; const a = null;');
+  }
+
+  test_metadata_prefixed_variable() {
+    addLibrarySource('/a.dart', 'const b = null;');
+    checkLibrary('import "a.dart" as a; @a.b class C {}');
+  }
+
+  test_metadata_simpleFormalParameter() {
+    checkLibrary('const a = null; f(@a x) {}');
+  }
+
+  test_metadata_simpleFormalParameter_withDefault() {
+    checkLibrary('const a = null; f([@a x = null]) {}');
+  }
+
+  test_metadata_topLevelVariableDeclaration() {
+    checkLibrary('const a = null; @a int v;');
+  }
+
+  test_metadata_typeParameter_ofClass() {
+    checkLibrary('const a = null; class C<@a T> {}');
+  }
+
+  test_metadata_typeParameter_ofClassTypeAlias() {
+    checkLibrary(
+        'const a = null; class C<@a T> = D with E; class D {} class E {}');
+  }
+
+  test_metadata_typeParameter_ofFunction() {
+    checkLibrary('const a = null; f<@a T>() {}');
+  }
+
+  test_metadata_typeParameter_ofTypedef() {
+    checkLibrary('const a = null; typedef F<@a T>();');
   }
 
   test_method_documented() {

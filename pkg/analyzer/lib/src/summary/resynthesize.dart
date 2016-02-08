@@ -681,6 +681,12 @@ class _LibraryResynthesizer {
   Map<int, EntityRef> linkedTypeMap;
 
   /**
+   * The [CompilationUnitElementImpl] for the compilation unit currently being
+   * resynthesized.
+   */
+  CompilationUnitElementImpl currentCompilationUnit;
+
+  /**
    * Map of top level elements that have been resynthesized so far.  The first
    * key is the URI of the compilation unit; the second is the name of the top
    * level element.
@@ -723,6 +729,40 @@ class _LibraryResynthesizer {
   List<TypeParameterType> get currentTypeArguments => currentTypeParameters
       ?.map((TypeParameterElement param) => param.type)
       ?.toList();
+
+  /**
+   * Build the annotations for the given [element].
+   */
+  void buildAnnotations(
+      ElementImpl element, List<UnlinkedConst> serializedAnnotations) {
+    if (serializedAnnotations.isNotEmpty) {
+      element.metadata = serializedAnnotations.map((UnlinkedConst a) {
+        ElementAnnotationImpl elementAnnotation =
+            new ElementAnnotationImpl(this.currentCompilationUnit);
+        Expression constExpr = _buildConstExpression(a);
+        if (constExpr is Identifier) {
+          elementAnnotation.element = constExpr.staticElement;
+          elementAnnotation.annotationAst = AstFactory.annotation(constExpr);
+        } else if (constExpr is InstanceCreationExpression) {
+          elementAnnotation.element = constExpr.staticElement;
+          Identifier typeName = constExpr.constructorName.type.name;
+          SimpleIdentifier constructorName = constExpr.constructorName.name;
+          if (typeName is SimpleIdentifier && constructorName != null) {
+            // E.g. `@cls.ctor()`.  Since `cls.ctor` would have been parsed as
+            // a PrefixedIdentifier, we need to resynthesize it as one.
+            typeName = AstFactory.identifier(typeName, constructorName);
+            constructorName = null;
+          }
+          elementAnnotation.annotationAst = AstFactory.annotation2(
+              typeName, constructorName, constExpr.argumentList);
+        } else {
+          throw new StateError(
+              'Unexpected annotation type: ${constExpr.runtimeType}');
+        }
+        return elementAnnotation;
+      }).toList();
+    }
+  }
 
   /**
    * Resynthesize a [ClassElement] and place it in [unitHolder].
@@ -793,6 +833,7 @@ class _LibraryResynthesizer {
       correspondingType.typeArguments = currentTypeArguments;
       classElement.type = correspondingType;
       buildDocumentation(classElement, serializedClass.documentationComment);
+      buildAnnotations(classElement, serializedClass.annotations);
       unitHolder.addType(classElement);
     } finally {
       currentTypeParameters = <TypeParameterElement>[];
@@ -862,6 +903,7 @@ class _LibraryResynthesizer {
     classElement.type = enumType;
     classElement.supertype = summaryResynthesizer.typeProvider.objectType;
     buildDocumentation(classElement, serializedEnum.documentationComment);
+    buildAnnotations(classElement, serializedEnum.annotations);
     ElementHolder memberHolder = new ElementHolder();
     FieldElementImpl indexField = new FieldElementImpl('index', -1);
     indexField.final2 = true;
@@ -1005,6 +1047,7 @@ class _LibraryResynthesizer {
         oldTypeParametersLength, currentTypeParameters.length);
     buildDocumentation(
         executableElement, serializedExecutable.documentationComment);
+    buildAnnotations(executableElement, serializedExecutable.annotations);
   }
 
   /**
@@ -1026,6 +1069,7 @@ class _LibraryResynthesizer {
         serializedExportPublic.combinators.map(buildCombinator).toList();
     exportElement.uriOffset = serializedExportNonPublic.uriOffset;
     exportElement.uriEnd = serializedExportNonPublic.uriEnd;
+    buildAnnotations(exportElement, serializedExportNonPublic.annotations);
     return exportElement;
   }
 
@@ -1082,17 +1126,6 @@ class _LibraryResynthesizer {
           exportName.name, () => buildExportName(exportName));
     }
     return new Namespace(definedNames);
-  }
-
-  /**
-   * Resynthesize a [FieldElement].
-   */
-  FieldElement buildField(UnlinkedVariable serializedField) {
-    FieldElementImpl fieldElement =
-        new FieldElementImpl(serializedField.name, -1);
-    fieldElement.type = buildType(serializedField.type);
-    fieldElement.const3 = serializedField.isConst;
-    return fieldElement;
   }
 
   /**
@@ -1196,6 +1229,7 @@ class _LibraryResynthesizer {
       importElement.uriOffset = serializedImport.uriOffset;
       importElement.uriEnd = serializedImport.uriEnd;
       importElement.deferred = serializedImport.isDeferred;
+      buildAnnotations(importElement, serializedImport.annotations);
     }
     importElement.prefixOffset = serializedImport.prefixOffset;
     if (serializedImport.prefixReference != 0) {
@@ -1213,6 +1247,9 @@ class _LibraryResynthesizer {
    * Main entry point.  Resynthesize the [LibraryElement] and return it.
    */
   LibraryElement buildLibrary() {
+    CompilationUnitElementImpl definingCompilationUnit =
+        new CompilationUnitElementImpl(librarySource.shortName);
+    prepareUnit(definingCompilationUnit, 0);
     bool hasName = unlinkedUnits[0].libraryName.isNotEmpty;
     LibraryElementImpl library = new LibraryElementImpl(
         summaryResynthesizer.context,
@@ -1220,8 +1257,7 @@ class _LibraryResynthesizer {
         hasName ? unlinkedUnits[0].libraryNameOffset : -1,
         unlinkedUnits[0].libraryNameLength);
     buildDocumentation(library, unlinkedUnits[0].libraryDocumentationComment);
-    CompilationUnitElementImpl definingCompilationUnit =
-        new CompilationUnitElementImpl(librarySource.shortName);
+    buildAnnotations(library, unlinkedUnits[0].libraryAnnotations);
     library.definingCompilationUnit = definingCompilationUnit;
     definingCompilationUnit.source = librarySource;
     definingCompilationUnit.librarySource = librarySource;
@@ -1252,8 +1288,11 @@ class _LibraryResynthesizer {
     }
     library.exports = exports;
     populateUnit(definingCompilationUnit, 0);
+    finishUnit();
     for (int i = 0; i < parts.length; i++) {
+      prepareUnit(parts[i], i + 1);
       populateUnit(parts[i], i + 1);
+      finishUnit();
     }
     BuildLibraryElementUtils.patchTopLevelAccessors(library);
     // Update delayed Object class references.
@@ -1339,6 +1378,7 @@ class _LibraryResynthesizer {
             serializedParameter.name, serializedParameter.nameOffset);
       }
     }
+    buildAnnotations(parameterElement, serializedParameter.annotations);
     if (serializedParameter.isFunctionTyped) {
       FunctionElementImpl parameterTypeElement =
           new FunctionElementImpl('', -1);
@@ -1392,6 +1432,7 @@ class _LibraryResynthesizer {
     partUnit.source = unitSource;
     partUnit.librarySource = librarySource;
     partUnit.uri = uri;
+    buildAnnotations(partUnit, partDecl.annotations);
     return partUnit;
   }
 
@@ -1452,6 +1493,7 @@ class _LibraryResynthesizer {
       functionTypeAliasElement.typeParameters = currentTypeParameters;
       buildDocumentation(
           functionTypeAliasElement, serializedTypedef.documentationComment);
+      buildAnnotations(functionTypeAliasElement, serializedTypedef.annotations);
       unitHolder.addTypeAlias(functionTypeAliasElement);
     } finally {
       currentTypeParameters = <TypeParameterElement>[];
@@ -1472,6 +1514,7 @@ class _LibraryResynthesizer {
         new TypeParameterElementImpl(
             serializedTypeParameter.name, serializedTypeParameter.nameOffset);
     typeParameterElement.type = new TypeParameterTypeImpl(typeParameterElement);
+    buildAnnotations(typeParameterElement, serializedTypeParameter.annotations);
     return typeParameterElement;
   }
 
@@ -1529,6 +1572,7 @@ class _LibraryResynthesizer {
     element.propagatedType =
         buildLinkedType(serializedVariable.propagatedTypeSlot);
     buildDocumentation(element, serializedVariable.documentationComment);
+    buildAnnotations(element, serializedVariable.annotations);
   }
 
   /**
@@ -1539,6 +1583,19 @@ class _LibraryResynthesizer {
     if (serializedTypeParameter.bound != null) {
       typeParameterElement.bound = buildType(serializedTypeParameter.bound);
     }
+  }
+
+  /**
+   * Tear down data structures used during deserialization of a compilation
+   * unit.
+   */
+  void finishUnit() {
+    unitHolder = null;
+    linkedUnit = null;
+    unlinkedUnit = null;
+    linkedTypeMap = null;
+    referenceInfos = null;
+    currentCompilationUnit = null;
   }
 
   /**
@@ -1674,14 +1731,6 @@ class _LibraryResynthesizer {
    * contained in it.
    */
   void populateUnit(CompilationUnitElementImpl unit, int unitNum) {
-    linkedUnit = linkedLibrary.units[unitNum];
-    unlinkedUnit = unlinkedUnits[unitNum];
-    linkedTypeMap = <int, EntityRef>{};
-    for (EntityRef t in linkedUnit.types) {
-      linkedTypeMap[t.slot] = t;
-    }
-    populateReferenceInfos();
-    unitHolder = new ElementHolder();
     unlinkedUnit.classes.forEach(buildClass);
     unlinkedUnit.enums.forEach(buildEnum);
     unlinkedUnit.executables.forEach(buildExecutable);
@@ -1717,11 +1766,21 @@ class _LibraryResynthesizer {
       elementMap[accessor.identifier] = accessor;
     }
     resummarizedElements[absoluteUri] = elementMap;
-    unitHolder = null;
-    linkedUnit = null;
-    unlinkedUnit = null;
-    linkedTypeMap = null;
-    referenceInfos = null;
+  }
+
+  /**
+   * Set up data structures for deserializing a compilation unit.
+   */
+  void prepareUnit(CompilationUnitElementImpl unit, int unitNum) {
+    linkedUnit = linkedLibrary.units[unitNum];
+    unlinkedUnit = unlinkedUnits[unitNum];
+    linkedTypeMap = <int, EntityRef>{};
+    currentCompilationUnit = unit;
+    for (EntityRef t in linkedUnit.types) {
+      linkedTypeMap[t.slot] = t;
+    }
+    populateReferenceInfos();
+    unitHolder = new ElementHolder();
   }
 
   Expression _buildConstExpression(UnlinkedConst uc) {

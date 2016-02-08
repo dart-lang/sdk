@@ -186,6 +186,20 @@ abstract class SummaryTest {
   Source addNamedSource(String filePath, String contents);
 
   /**
+   * Check that [annotations] contains a single entry which is a reference to
+   * a top level variable called `a` in the current library.
+   */
+  void checkAnnotationA(List<UnlinkedConst> annotations) {
+    expect(annotations, hasLength(1));
+    _assertUnlinkedConst(annotations[0], operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'a',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor)
+    ]);
+  }
+
+  /**
    * Verify that the [dependency]th element of the dependency table represents
    * a file reachable via the given [absoluteUri] and [relativeUri].
    */
@@ -4568,6 +4582,300 @@ C c;
 D d;''');
     checkTypeRef(findVariable('c').type, null, null, 'C');
     checkTypeRef(findVariable('d').type, absUri('/a.dart'), 'a.dart', 'D');
+  }
+
+  test_metadata_classDeclaration() {
+    checkAnnotationA(
+        serializeClassText('const a = null; @a class C {}').annotations);
+  }
+
+  test_metadata_classTypeAlias() {
+    checkAnnotationA(serializeClassText(
+            'const a = null; @a class C = D with E; class D {} class E {}',
+            className: 'C')
+        .annotations);
+  }
+
+  test_metadata_constructor_call_named() {
+    UnlinkedClass cls = serializeClassText(
+        'class A { const A.named(); } @A.named() class C {}');
+    expect(cls.annotations, hasLength(1));
+    _assertUnlinkedConst(cls.annotations[0], operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'named',
+              expectedKind: ReferenceKind.constructor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'A')
+              ])
+    ]);
+  }
+
+  test_metadata_constructor_call_named_prefixed() {
+    addNamedSource('/foo.dart', 'class A { const A.named(); }');
+    UnlinkedClass cls = serializeClassText(
+        'import "foo.dart" as foo; @foo.A.named() class C {}');
+    expect(cls.annotations, hasLength(1));
+    _assertUnlinkedConst(cls.annotations[0], operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'named',
+              expectedKind: ReferenceKind.constructor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'A',
+                    absoluteUri: absUri('/foo.dart'), relativeUri: 'foo.dart'),
+                new _PrefixExpectation(ReferenceKind.prefix, 'foo')
+              ])
+    ]);
+  }
+
+  test_metadata_constructor_call_unnamed() {
+    UnlinkedClass cls =
+        serializeClassText('class A { const A(); } @A() class C {}');
+    expect(cls.annotations, hasLength(1));
+    _assertUnlinkedConst(cls.annotations[0], operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'A',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_metadata_constructor_call_unnamed_prefixed() {
+    addNamedSource('/foo.dart', 'class A { const A(); }');
+    UnlinkedClass cls =
+        serializeClassText('import "foo.dart" as foo; @foo.A() class C {}');
+    expect(cls.annotations, hasLength(1));
+    _assertUnlinkedConst(cls.annotations[0], operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/foo.dart'), 'foo.dart', 'A',
+          expectedKind: ReferenceKind.classOrEnum, expectedPrefix: 'foo')
+    ]);
+  }
+
+  test_metadata_constructor_call_with_args() {
+    UnlinkedClass cls =
+        serializeClassText('class A { const A(x); } @A(null) class C {}');
+    expect(cls.annotations, hasLength(1));
+    _assertUnlinkedConst(cls.annotations[0], operators: [
+      UnlinkedConstOperation.pushNull,
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      1
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'A',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_metadata_constructorDeclaration_named() {
+    checkAnnotationA(
+        serializeClassText('const a = null; class C { @a C.named(); }')
+            .executables[0]
+            .annotations);
+  }
+
+  test_metadata_constructorDeclaration_unnamed() {
+    checkAnnotationA(serializeClassText('const a = null; class C { @a C(); }')
+        .executables[0]
+        .annotations);
+  }
+
+  test_metadata_enumDeclaration() {
+    checkAnnotationA(
+        serializeEnumText('const a = null; @a enum E { v }').annotations);
+  }
+
+  test_metadata_exportDirective() {
+    addNamedSource('/foo.dart', '');
+    serializeLibraryText('@a export "foo.dart"; const a = null;');
+    checkAnnotationA(unlinkedUnits[0].exports[0].annotations);
+  }
+
+  test_metadata_fieldDeclaration() {
+    checkAnnotationA(serializeClassText('const a = null; class C { @a int x; }')
+        .fields[0]
+        .annotations);
+  }
+
+  test_metadata_fieldFormalParameter() {
+    checkAnnotationA(
+        serializeClassText('const a = null; class C { var x; C(@a this.x); }')
+            .executables[0]
+            .parameters[0]
+            .annotations);
+  }
+
+  test_metadata_fieldFormalParameter_withDefault() {
+    checkAnnotationA(serializeClassText(
+            'const a = null; class C { var x; C([@a this.x = null]); }')
+        .executables[0]
+        .parameters[0]
+        .annotations);
+  }
+
+  test_metadata_functionDeclaration_function() {
+    checkAnnotationA(
+        serializeExecutableText('const a = null; @a f() {}').annotations);
+  }
+
+  test_metadata_functionDeclaration_getter() {
+    checkAnnotationA(
+        serializeExecutableText('const a = null; @a get f => null;')
+            .annotations);
+  }
+
+  test_metadata_functionDeclaration_setter() {
+    checkAnnotationA(
+        serializeExecutableText('const a = null; @a set f(value) {}', 'f=')
+            .annotations);
+  }
+
+  test_metadata_functionTypeAlias() {
+    checkAnnotationA(
+        serializeTypedefText('const a = null; @a typedef F();').annotations);
+  }
+
+  test_metadata_functionTypedFormalParameter() {
+    checkAnnotationA(serializeExecutableText('const a = null; f(@a g()) {}')
+        .parameters[0]
+        .annotations);
+  }
+
+  test_metadata_functionTypedFormalParameter_withDefault() {
+    checkAnnotationA(
+        serializeExecutableText('const a = null; f([@a g() = null]) {}')
+            .parameters[0]
+            .annotations);
+  }
+
+  test_metadata_importDirective() {
+    addNamedSource('/foo.dart', 'const b = null;');
+    serializeLibraryText('@a import "foo.dart"; const a = b;');
+    checkAnnotationA(unlinkedUnits[0].imports[0].annotations);
+  }
+
+  test_metadata_libraryDirective() {
+    serializeLibraryText('@a library L; const a = null;');
+    checkAnnotationA(unlinkedUnits[0].libraryAnnotations);
+  }
+
+  test_metadata_methodDeclaration_getter() {
+    checkAnnotationA(
+        serializeClassText('const a = null; class C { @a get m => null; }')
+            .executables[0]
+            .annotations);
+  }
+
+  test_metadata_methodDeclaration_method() {
+    checkAnnotationA(serializeClassText('const a = null; class C { @a m() {} }')
+        .executables[0]
+        .annotations);
+  }
+
+  test_metadata_methodDeclaration_setter() {
+    checkAnnotationA(
+        serializeClassText('const a = null; class C { @a set m(value) {} }')
+            .executables[0]
+            .annotations);
+  }
+
+  test_metadata_multiple_annotations() {
+    UnlinkedClass cls =
+        serializeClassText('const a = null, b = null; @a @b class C {}');
+    List<UnlinkedConst> annotations = cls.annotations;
+    expect(annotations, hasLength(2));
+    _assertUnlinkedConst(annotations[0], operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'a',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor)
+    ]);
+    _assertUnlinkedConst(annotations[1], operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'b',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor)
+    ]);
+  }
+
+  test_metadata_partDirective() {
+    addNamedSource('/foo.dart', 'part of L;');
+    serializeLibraryText('library L; @a part "foo.dart"; const a = null;');
+    checkAnnotationA(unlinkedUnits[0].parts[0].annotations);
+  }
+
+  test_metadata_prefixed_variable() {
+    addNamedSource('/a.dart', 'const b = null;');
+    UnlinkedClass cls =
+        serializeClassText('import "a.dart" as a; @a.b class C {}');
+    expect(cls.annotations, hasLength(1));
+    _assertUnlinkedConst(cls.annotations[0], operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'b',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor,
+          expectedPrefix: 'a')
+    ]);
+  }
+
+  test_metadata_simpleFormalParameter() {
+    checkAnnotationA(serializeExecutableText('const a = null; f(@a x) {}')
+        .parameters[0]
+        .annotations);
+  }
+
+  test_metadata_simpleFormalParameter_withDefault() {
+    checkAnnotationA(
+        serializeExecutableText('const a = null; f([@a x = null]) {}')
+            .parameters[0]
+            .annotations);
+  }
+
+  test_metadata_topLevelVariableDeclaration() {
+    checkAnnotationA(
+        serializeVariableText('const a = null; @a int v;').annotations);
+  }
+
+  test_metadata_typeParameter_ofClass() {
+    checkAnnotationA(serializeClassText('const a = null; class C<@a T> {}')
+        .typeParameters[0]
+        .annotations);
+  }
+
+  test_metadata_typeParameter_ofClassTypeAlias() {
+    checkAnnotationA(serializeClassText(
+            'const a = null; class C<@a T> = D with E; class D {} class E {}',
+            className: 'C')
+        .typeParameters[0]
+        .annotations);
+  }
+
+  test_metadata_typeParameter_ofFunction() {
+    checkAnnotationA(
+        serializeExecutableText('const a = null; f<@a T>() {}')
+            .typeParameters[0]
+            .annotations);
+  }
+
+  test_metadata_typeParameter_ofTypedef() {
+    checkAnnotationA(serializeTypedefText('const a = null; typedef F<@a T>();')
+        .typeParameters[0]
+        .annotations);
   }
 
   test_method_documented() {
