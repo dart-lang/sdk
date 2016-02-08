@@ -186,9 +186,10 @@ main() {
     });
     test('valueSetNullProxy', () {
       final e = new TextInputElement();
-      var list = new List(5);
-      e.value = list[0];
+      e.value = _undefined;
       expect(e.value, '');
     });
   });
 }
+
+var _undefined = (() => new List(5)[0])();

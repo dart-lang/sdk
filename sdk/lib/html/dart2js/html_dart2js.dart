@@ -15416,7 +15416,7 @@ class Event extends Interceptor {
   @DomName('Event.currentTarget')
   @DocsEditable()
   @Creates('Null')
-  @Returns('EventTarget|=Object')
+  @Returns('EventTarget|=Object|Null')
   final dynamic _get_currentTarget;
 
   @DomName('Event.defaultPrevented')
@@ -15451,7 +15451,7 @@ class Event extends Interceptor {
   @DomName('Event.target')
   @DocsEditable()
   @Creates('Node')
-  @Returns('EventTarget|=Object')
+  @Returns('EventTarget|=Object|Null')
   final dynamic _get_target;
 
   @DomName('Event.timeStamp')
@@ -22962,7 +22962,7 @@ class MouseEvent extends UIEvent {
   @DomName('MouseEvent.relatedTarget')
   @DocsEditable()
   @Creates('Node')
-  @Returns('EventTarget|=Object')
+  @Returns('EventTarget|=Object|Null')
   final dynamic _get_relatedTarget;
 
   @JSName('screenX')
