@@ -90,7 +90,7 @@ def ProcessOptions(options, args):
   if options.arch == 'all':
     options.arch = 'ia32,x64,simarm,simmips,simarm64'
   if options.mode == 'all':
-    options.mode = 'release,debug'
+    options.mode = 'debug,release,product'
   if options.os == 'all':
     options.os = 'host,android'
   options.mode = options.mode.split(',')
