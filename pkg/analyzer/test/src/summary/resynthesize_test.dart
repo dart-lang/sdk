@@ -1724,6 +1724,24 @@ const v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
 ''');
   }
 
+  test_constExpr_pushReference_field_simpleIdentifier() {
+    checkLibrary('''
+class C {
+  static const a = b;
+  static const b = null;
+}
+''');
+  }
+
+  test_constExpr_pushReference_staticMethod_simpleIdentifier() {
+    checkLibrary('''
+class C {
+  static const a = m;
+  static m() {}
+}
+''');
+  }
+
   test_constructor_documented() {
     checkLibrary('''
 class C {

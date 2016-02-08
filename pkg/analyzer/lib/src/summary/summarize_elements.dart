@@ -1030,6 +1030,9 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       int lengthRef = serializer._getLengthPropertyReference(prefixRef);
       return new EntityRefBuilder(reference: lengthRef);
     }
+    if (element is TypeParameterElement) {
+      throw new StateError('Constants may not refer to type parameters.');
+    }
     return new EntityRefBuilder(
         reference: serializer._getElementReferenceId(element));
   }

@@ -2415,6 +2415,24 @@ const v = p.C.F;
     ]);
   }
 
+  test_constExpr_pushReference_field_simpleIdentifier() {
+    UnlinkedVariable variable = serializeClassText('''
+class C {
+  static const a = b;
+  static const b = null;
+}
+''').fields[0];
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'b',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
+  }
+
   test_constExpr_pushReference_staticMethod() {
     UnlinkedVariable variable = serializeVariableText('''
 class C {
@@ -2479,6 +2497,24 @@ const v = p.C.m;
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
                 new _PrefixExpectation(ReferenceKind.prefix, 'p',
                     inLibraryDefiningUnit: true)
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_staticMethod_simpleIdentifier() {
+    UnlinkedVariable variable = serializeClassText('''
+class C {
+  static const a = m;
+  static m() {}
+}
+''').fields[0];
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'm',
+              expectedKind: ReferenceKind.method,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
               ])
     ]);
   }
@@ -2578,6 +2614,17 @@ const v = p.a;
             expectedPrefix: 'p');
       }
     ]);
+  }
+
+  test_constExpr_pushReference_typeParameter() {
+    String text = '''
+class C<T> {
+  static const a = T;
+}
+''';
+    UnlinkedVariable variable =
+        serializeClassText(text, allowErrors: true).fields[0];
+    _assertUnlinkedConst(variable.constExpr, isInvalid: true);
   }
 
   test_constExpr_pushString_adjacent() {

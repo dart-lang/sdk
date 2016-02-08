@@ -76,9 +76,9 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   EntityRefBuilder serializeIdentifier(Identifier identifier) {
     EntityRefBuilder b = new EntityRefBuilder();
     if (identifier is SimpleIdentifier) {
-      b.reference = visitor.serializeReference(null, identifier.name);
+      b.reference = visitor.serializeSimpleReference(identifier.name);
     } else if (identifier is PrefixedIdentifier) {
-      int prefix = visitor.serializeReference(null, identifier.prefix.name);
+      int prefix = visitor.serializeSimpleReference(identifier.prefix.name);
       b.reference =
           visitor.serializeReference(prefix, identifier.identifier.name);
     } else {
@@ -109,19 +109,6 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
 }
 
 /**
- * An [_OtherScopedEntity] is a [_ScopedEntity] that does not refer to a type
- * parameter.  Since we don't need to track any special information about these
- * types of scoped entities, it is a singleton class.
- */
-class _OtherScopedEntity extends _ScopedEntity {
-  static final _OtherScopedEntity _instance = new _OtherScopedEntity._();
-
-  factory _OtherScopedEntity() => _instance;
-
-  _OtherScopedEntity._();
-}
-
-/**
  * A [_Scope] represents a set of name/value pairs defined locally within a
  * limited span of a compilation unit.  (Note that the spec also uses the term
  * "scope" to refer to the set of names defined at top level within a
@@ -145,6 +132,18 @@ class _Scope {
   void operator []=(String name, _ScopedEntity entity) {
     _definedNames[name] = entity;
   }
+}
+
+/**
+ * A [_ScopedClassMember] is a [_ScopedEntity] refers to a member of a class.
+ */
+class _ScopedClassMember extends _ScopedEntity {
+  /**
+   * The name of the class.
+   */
+  final String className;
+
+  _ScopedClassMember(this.className);
 }
 
 /**
@@ -231,7 +230,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
 
   /**
    * List of [_Scope]s currently in effect.  This is used to resolve type names
-   * to type parameters within classes, typedefs, and executables.
+   * to type parameters within classes, typedefs, and executables, as well as
+   * references to class members.
    */
   final List<_Scope> scopes = <_Scope>[];
 
@@ -299,7 +299,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
    * Build a [_Scope] object containing the names defined within the body of a
    * class declaration.
    */
-  _Scope buildClassMemberScope(NodeList<ClassMember> members) {
+  _Scope buildClassMemberScope(
+      String className, NodeList<ClassMember> members) {
     _Scope scope = new _Scope();
     for (ClassMember member in members) {
       // TODO(paulbery): consider replacing these if-tests with dynamic method
@@ -307,16 +308,16 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       if (member is MethodDeclaration) {
         if (member.isSetter || member.isOperator) {
           // We don't have to handle setters or operators because the only
-          // thing we look up is type names.
+          // things we look up are type names and identifiers.
         } else {
-          scope[member.name.name] = new _OtherScopedEntity();
+          scope[member.name.name] = new _ScopedClassMember(className);
         }
       } else if (member is FieldDeclaration) {
         for (VariableDeclaration field in member.fields.variables) {
           // A field declaration introduces two names, one with a trailing `=`.
           // We don't have to worry about the one with a trailing `=` because
-          // the only thing we look up is type names.
-          scope[field.name.name] = new _OtherScopedEntity();
+          // the only things we look up are type names and identifiers.
+          scope[field.name.name] = new _ScopedClassMember(className);
         }
       }
     }
@@ -379,7 +380,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
           implementsClause.interfaces.map(serializeTypeName).toList();
     }
     if (members != null) {
-      scopes.add(buildClassMemberScope(members));
+      scopes.add(buildClassMemberScope(name, members));
       for (ClassMember member in members) {
         member.accept(this);
       }
@@ -593,6 +594,30 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       });
 
   /**
+   * Serialize a reference to a name declared either at top level or in a
+   * nested scope.
+   */
+  int serializeSimpleReference(String name) {
+    for (int i = scopes.length - 1; i >= 0; i--) {
+      _Scope scope = scopes[i];
+      _ScopedEntity entity = scope[name];
+      if (entity != null) {
+        if (entity is _ScopedClassMember) {
+          return serializeReference(
+              serializeReference(null, entity.className), name);
+        } else {
+          // Invalid reference to a type parameter.  Should never happen in
+          // legal Dart code.
+          // TODO(paulberry): could this exception ever be uncaught in illegal
+          // code?
+          throw new StateError('Invalid identifier reference');
+        }
+      }
+    }
+    return serializeReference(null, name);
+  }
+
+  /**
    * Serialize a type name (which might be defined in a nested scope, at top
    * level within this library, or at top level within an imported library) to
    * a [EntityRef].  Note that this method does the right thing if the
@@ -629,7 +654,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
         b.reference = serializeReference(null, name);
       } else if (identifier is PrefixedIdentifier) {
         int prefixIndex = prefixIndices.putIfAbsent(identifier.prefix.name,
-            () => serializeReference(null, identifier.prefix.name));
+            () => serializeSimpleReference(identifier.prefix.name));
         b.reference =
             serializeReference(prefixIndex, identifier.identifier.name);
       } else {
