@@ -4497,134 +4497,157 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
   if (unary_kind != MathUnaryInstr::kIllegal) {
     if (FLAG_precompilation) {
       // TODO(srdjan): Adapt MathUnaryInstr to allow tagged inputs as well.
-    } else {
-      MathUnaryInstr* math_unary =
-          new(Z) MathUnaryInstr(unary_kind,
-                                new(Z) Value(call->ArgumentAt(0)),
-                                call->deopt_id());
-      ReplaceCall(call, math_unary);
-    }
-  } else if ((recognized_kind == MethodRecognizer::kFloat32x4Zero) ||
-             (recognized_kind == MethodRecognizer::kFloat32x4Splat) ||
-             (recognized_kind == MethodRecognizer::kFloat32x4Constructor) ||
-             (recognized_kind == MethodRecognizer::kFloat32x4FromFloat64x2)) {
-    TryInlineFloat32x4Constructor(call, recognized_kind);
-  } else if ((recognized_kind == MethodRecognizer::kFloat64x2Constructor) ||
-             (recognized_kind == MethodRecognizer::kFloat64x2Zero) ||
-             (recognized_kind == MethodRecognizer::kFloat64x2Splat) ||
-             (recognized_kind == MethodRecognizer::kFloat64x2FromFloat32x4)) {
-    TryInlineFloat64x2Constructor(call, recognized_kind);
-  } else if ((recognized_kind == MethodRecognizer::kInt32x4BoolConstructor) ||
-             (recognized_kind == MethodRecognizer::kInt32x4Constructor)) {
-    TryInlineInt32x4Constructor(call, recognized_kind);
-  } else if (recognized_kind == MethodRecognizer::kObjectConstructor) {
-    // Remove the original push arguments.
-    for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-      PushArgumentInstr* push = call->PushArgumentAt(i);
-      push->ReplaceUsesWith(push->value()->definition());
-      push->RemoveFromGraph();
-    }
-    // Manually replace call with global null constant. ReplaceCall can't
-    // be used for definitions that are already in the graph.
-    call->ReplaceUsesWith(flow_graph_->constant_null());
-    ASSERT(current_iterator()->Current() == call);
-    current_iterator()->RemoveCurrentFromGraph();;
-  } else if ((recognized_kind == MethodRecognizer::kMathMin) ||
-             (recognized_kind == MethodRecognizer::kMathMax)) {
-    // We can handle only monomorphic min/max call sites with both arguments
-    // being either doubles or smis.
-    if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
-      const ICData& ic_data = *call->ic_data();
-      intptr_t result_cid = kIllegalCid;
-      if (ICDataHasReceiverArgumentClassIds(ic_data, kDoubleCid, kDoubleCid)) {
-        result_cid = kDoubleCid;
-      } else if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
-        result_cid = kSmiCid;
-      }
-      if (result_cid != kIllegalCid) {
-        MathMinMaxInstr* min_max = new(Z) MathMinMaxInstr(
-            recognized_kind,
-            new(Z) Value(call->ArgumentAt(0)),
-            new(Z) Value(call->ArgumentAt(1)),
-            call->deopt_id(),
-            result_cid);
-        const ICData& unary_checks =
-            ICData::ZoneHandle(Z, ic_data.AsUnaryClassChecks());
-        AddCheckClass(min_max->left()->definition(),
-                      unary_checks,
-                      call->deopt_id(),
-                      call->env(),
-                      call);
-        AddCheckClass(min_max->right()->definition(),
-                      unary_checks,
-                      call->deopt_id(),
-                      call->env(),
-                      call);
-        ReplaceCall(call, min_max);
-      }
-    }
-  } else if ((recognized_kind == MethodRecognizer::kMathDoublePow) ||
-             (recognized_kind == MethodRecognizer::kMathAtan) ||
-             (recognized_kind == MethodRecognizer::kMathAtan2)) {
-    if (FLAG_precompilation) {
-      // No UnboxDouble instructons allowed.
       return;
     }
-    // InvokeMathCFunctionInstr requires unboxed doubles. UnboxDouble
-    // instructions contain type checks and conversions to double.
-    ZoneGrowableArray<Value*>* args =
-        new(Z) ZoneGrowableArray<Value*>(call->ArgumentCount());
-    for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-      args->Add(new(Z) Value(call->ArgumentAt(i)));
+    MathUnaryInstr* math_unary =
+        new(Z) MathUnaryInstr(unary_kind,
+                              new(Z) Value(call->ArgumentAt(0)),
+                              call->deopt_id());
+    ReplaceCall(call, math_unary);
+    return;
+  }
+  switch (recognized_kind) {
+    case MethodRecognizer::kFloat32x4Zero:
+    case MethodRecognizer::kFloat32x4Splat:
+    case MethodRecognizer::kFloat32x4Constructor:
+    case MethodRecognizer::kFloat32x4FromFloat64x2:
+      TryInlineFloat32x4Constructor(call, recognized_kind);
+      break;
+    case MethodRecognizer::kFloat64x2Constructor:
+    case MethodRecognizer::kFloat64x2Zero:
+    case MethodRecognizer::kFloat64x2Splat:
+    case MethodRecognizer::kFloat64x2FromFloat32x4:
+      TryInlineFloat64x2Constructor(call, recognized_kind);
+      break;
+    case MethodRecognizer::kInt32x4BoolConstructor:
+    case MethodRecognizer::kInt32x4Constructor:
+      TryInlineInt32x4Constructor(call, recognized_kind);
+      break;
+    case MethodRecognizer::kObjectConstructor: {
+      // Remove the original push arguments.
+      for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+        PushArgumentInstr* push = call->PushArgumentAt(i);
+        push->ReplaceUsesWith(push->value()->definition());
+        push->RemoveFromGraph();
+      }
+      // Manually replace call with global null constant. ReplaceCall can't
+      // be used for definitions that are already in the graph.
+      call->ReplaceUsesWith(flow_graph_->constant_null());
+      ASSERT(current_iterator()->Current() == call);
+      current_iterator()->RemoveCurrentFromGraph();
+      break;
     }
-    InvokeMathCFunctionInstr* invoke =
-        new(Z) InvokeMathCFunctionInstr(args,
-                                        call->deopt_id(),
-                                        recognized_kind,
-                                        call->token_pos());
-    ReplaceCall(call, invoke);
-  } else if (recognized_kind == MethodRecognizer::kDoubleFromInteger) {
-    if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
-      const ICData& ic_data = *call->ic_data();
-      if (CanUnboxDouble()) {
-        if (ArgIsAlways(kSmiCid, ic_data, 1)) {
-          Definition* arg = call->ArgumentAt(1);
-          AddCheckSmi(arg, call->deopt_id(), call->env(), call);
-          ReplaceCall(call,
-                      new(Z) SmiToDoubleInstr(new(Z) Value(arg),
-                                              call->token_pos()));
-        } else if (ArgIsAlways(kMintCid, ic_data, 1) &&
-                   CanConvertUnboxedMintToDouble()) {
-          Definition* arg = call->ArgumentAt(1);
-          ReplaceCall(call,
-                      new(Z) MintToDoubleInstr(new(Z) Value(arg),
-                                               call->deopt_id()));
+    case MethodRecognizer::kMathMin:
+    case MethodRecognizer::kMathMax: {
+      // We can handle only monomorphic min/max call sites with both arguments
+      // being either doubles or smis.
+      if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
+        const ICData& ic_data = *call->ic_data();
+        intptr_t result_cid = kIllegalCid;
+        if (ICDataHasReceiverArgumentClassIds(ic_data,
+                                              kDoubleCid, kDoubleCid)) {
+          result_cid = kDoubleCid;
+        } else if (ICDataHasReceiverArgumentClassIds(ic_data,
+                                                     kSmiCid, kSmiCid)) {
+          result_cid = kSmiCid;
+        }
+        if (result_cid != kIllegalCid) {
+          MathMinMaxInstr* min_max = new(Z) MathMinMaxInstr(
+              recognized_kind,
+              new(Z) Value(call->ArgumentAt(0)),
+              new(Z) Value(call->ArgumentAt(1)),
+              call->deopt_id(),
+              result_cid);
+          const ICData& unary_checks =
+              ICData::ZoneHandle(Z, ic_data.AsUnaryClassChecks());
+          AddCheckClass(min_max->left()->definition(),
+                        unary_checks,
+                        call->deopt_id(),
+                        call->env(),
+                        call);
+          AddCheckClass(min_max->right()->definition(),
+                        unary_checks,
+                        call->deopt_id(),
+                        call->env(),
+                        call);
+          ReplaceCall(call, min_max);
         }
       }
+      break;
     }
-  } else if (call->function().IsFactory()) {
-    const Class& function_class =
-        Class::Handle(Z, call->function().Owner());
-    if ((function_class.library() == Library::CoreLibrary()) ||
-        (function_class.library() == Library::TypedDataLibrary())) {
-      intptr_t cid = FactoryRecognizer::ResultCid(call->function());
-      switch (cid) {
-        case kArrayCid: {
-          Value* type = new(Z) Value(call->ArgumentAt(0));
-          Value* num_elements = new(Z) Value(call->ArgumentAt(1));
-          if (num_elements->BindsToConstant() &&
-              num_elements->BoundConstant().IsSmi()) {
-            intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
-            if (length >= 0 && length <= Array::kMaxElements) {
-              CreateArrayInstr* create_array =
-                  new(Z) CreateArrayInstr(
-                      call->token_pos(), type, num_elements);
-              ReplaceCall(call, create_array);
-            }
+    case MethodRecognizer::kMathDoublePow:
+    case MethodRecognizer::kMathTan:
+    case MethodRecognizer::kMathAsin:
+    case MethodRecognizer::kMathAcos:
+    case MethodRecognizer::kMathAtan:
+    case MethodRecognizer::kMathAtan2: {
+      if (FLAG_precompilation) {
+        // No UnboxDouble instructons allowed.
+        return;
+      }
+      // InvokeMathCFunctionInstr requires unboxed doubles. UnboxDouble
+      // instructions contain type checks and conversions to double.
+      ZoneGrowableArray<Value*>* args =
+          new(Z) ZoneGrowableArray<Value*>(call->ArgumentCount());
+      for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+        args->Add(new(Z) Value(call->ArgumentAt(i)));
+      }
+      InvokeMathCFunctionInstr* invoke =
+          new(Z) InvokeMathCFunctionInstr(args,
+                                          call->deopt_id(),
+                                          recognized_kind,
+                                          call->token_pos());
+      ReplaceCall(call, invoke);
+      break;
+    }
+    case MethodRecognizer::kDoubleFromInteger: {
+      if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
+        const ICData& ic_data = *call->ic_data();
+        if (CanUnboxDouble()) {
+          if (ArgIsAlways(kSmiCid, ic_data, 1)) {
+            Definition* arg = call->ArgumentAt(1);
+            AddCheckSmi(arg, call->deopt_id(), call->env(), call);
+            ReplaceCall(call,
+                        new(Z) SmiToDoubleInstr(new(Z) Value(arg),
+                                                call->token_pos()));
+          } else if (ArgIsAlways(kMintCid, ic_data, 1) &&
+                     CanConvertUnboxedMintToDouble()) {
+            Definition* arg = call->ArgumentAt(1);
+            ReplaceCall(call,
+                        new(Z) MintToDoubleInstr(new(Z) Value(arg),
+                                                 call->deopt_id()));
           }
         }
-        default:
-          break;
+      }
+      break;
+    }
+    default: {
+      if (call->function().IsFactory()) {
+        const Class& function_class =
+            Class::Handle(Z, call->function().Owner());
+        if ((function_class.library() == Library::CoreLibrary()) ||
+            (function_class.library() == Library::TypedDataLibrary())) {
+          intptr_t cid = FactoryRecognizer::ResultCid(call->function());
+          switch (cid) {
+            case kArrayCid: {
+              Value* type = new(Z) Value(call->ArgumentAt(0));
+              Value* num_elements = new(Z) Value(call->ArgumentAt(1));
+              if (num_elements->BindsToConstant() &&
+                  num_elements->BoundConstant().IsSmi()) {
+                intptr_t length =
+                    Smi::Cast(num_elements->BoundConstant()).Value();
+                if (length >= 0 && length <= Array::kMaxElements) {
+                  CreateArrayInstr* create_array =
+                      new(Z) CreateArrayInstr(
+                          call->token_pos(), type, num_elements);
+                  ReplaceCall(call, create_array);
+                }
+              }
+            }
+            default:
+              break;
+          }
+        }
       }
     }
   }

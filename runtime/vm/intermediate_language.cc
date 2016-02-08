@@ -3544,6 +3544,9 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     }
     case MethodRecognizer::kDoubleRound:
     case MethodRecognizer::kMathAtan:
+    case MethodRecognizer::kMathTan:
+    case MethodRecognizer::kMathAcos:
+    case MethodRecognizer::kMathAsin:
       return 1;
     case MethodRecognizer::kDoubleMod:
     case MethodRecognizer::kMathDoublePow:
@@ -3587,6 +3590,30 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcRound, 1, true /* is_float */,
     reinterpret_cast<RuntimeFunction>(
         static_cast<UnaryMathCFunction>(&round)));
 
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcCos, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&cos)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcSin, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&sin)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcAsin, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&asin)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcAcos, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&acos)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcTan, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&tan)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcAtan, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&atan)));
+
 
 const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
   switch (recognized_kind_) {
@@ -3602,6 +3629,12 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
       return kLibcPowRuntimeEntry;
     case MethodRecognizer::kDoubleMod:
       return kDartModuloRuntimeEntry;
+    case MethodRecognizer::kMathTan:
+      return kLibcTanRuntimeEntry;
+    case MethodRecognizer::kMathAsin:
+      return kLibcAsinRuntimeEntry;
+    case MethodRecognizer::kMathAcos:
+      return kLibcAcosRuntimeEntry;
     case MethodRecognizer::kMathAtan:
       return kLibcAtanRuntimeEntry;
     case MethodRecognizer::kMathAtan2:
@@ -3612,18 +3645,6 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
   return kLibcPowRuntimeEntry;
 }
 
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcCos, 1, true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&cos)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcSin, 1, true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&sin)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcAtan, 1, true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&atan)));
 
 const RuntimeEntry& MathUnaryInstr::TargetFunction() const {
   switch (kind()) {
