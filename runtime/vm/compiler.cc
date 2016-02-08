@@ -646,6 +646,10 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           const bool clone_descriptors = Compiler::IsBackgroundCompilation();
           function.RestoreICDataMap(ic_data_array, clone_descriptors);
 
+          if (Compiler::IsBackgroundCompilation() &&
+              (function.ic_data_array() == Array::null())) {
+            Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+          }
           if (FLAG_print_ic_data_map) {
             for (intptr_t i = 0; i < ic_data_array->length(); i++) {
               if ((*ic_data_array)[i] != NULL) {
@@ -1691,6 +1695,13 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 }
 
 
+void Compiler::AbortBackgroundCompilation(intptr_t deopt_id) {
+  ASSERT(Compiler::IsBackgroundCompilation());
+  Thread::Current()->long_jump_base()->Jump(
+      deopt_id, Object::background_compilation_error());
+}
+
+
 // C-heap allocated background compilation queue element.
 class QueueElement {
  public:
@@ -2019,6 +2030,11 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
   UNREACHABLE();
   return Object::null();
+}
+
+
+void Compiler::AbortBackgroundCompilation(intptr_t deopt_id) {
+  UNREACHABLE();
 }
 
 

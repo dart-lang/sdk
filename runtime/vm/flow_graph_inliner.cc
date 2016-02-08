@@ -707,6 +707,10 @@ class CallSiteInliner : public ValueObject {
               new(Z) ZoneGrowableArray<const ICData*>();
         const bool clone_descriptors = Compiler::IsBackgroundCompilation();
         function.RestoreICDataMap(ic_data_array, clone_descriptors);
+        if (Compiler::IsBackgroundCompilation() &&
+            (function.ic_data_array() == Array::null())) {
+          Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+        }
 
         // Build the callee graph.
         InlineExitCollector* exit_collector =

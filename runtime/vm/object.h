@@ -493,6 +493,11 @@ class Object {
     return *speculative_inlining_error_;
   }
 
+  static const LanguageError& background_compilation_error() {
+    ASSERT(background_compilation_error_ != NULL);
+    return *background_compilation_error_;
+  }
+
   static const Array& vm_isolate_snapshot_object_table() {
     ASSERT(vm_isolate_snapshot_object_table_ != NULL);
     return *vm_isolate_snapshot_object_table_;
@@ -828,6 +833,7 @@ class Object {
   static LanguageError* snapshot_writer_error_;
   static LanguageError* branch_offset_error_;
   static LanguageError* speculative_inlining_error_;
+  static LanguageError* background_compilation_error_;
   static Array* vm_isolate_snapshot_object_table_;
   static Type* dynamic_type_;
   static Type* void_type_;
@@ -2670,11 +2676,10 @@ class Function : public Object {
   void SaveICDataMap(
       const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
       const Array& edge_counters_array) const;
-  // Uses saved ICData to populate the table 'deopt_id_to_ic_data'. Clone
+  // Uses 'ic_data_array' to populate the table 'deopt_id_to_ic_data'. Clone
   // descriptors if 'clone_descriptors' true.
-  void RestoreICDataMap(
-      ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
-      bool clone_descriptors) const;
+  void RestoreICDataMap(ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
+                        bool clone_descriptors) const;
 
   RawArray* ic_data_array() const;
   void ClearICDataArray() const;

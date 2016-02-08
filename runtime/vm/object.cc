@@ -116,6 +116,7 @@ Smi* Object::smi_illegal_cid_ = NULL;
 LanguageError* Object::snapshot_writer_error_ = NULL;
 LanguageError* Object::branch_offset_error_ = NULL;
 LanguageError* Object::speculative_inlining_error_ = NULL;
+LanguageError* Object::background_compilation_error_ = NULL;
 Array* Object::vm_isolate_snapshot_object_table_ = NULL;
 Type* Object::dynamic_type_ = NULL;
 Type* Object::void_type_ = NULL;
@@ -492,6 +493,7 @@ void Object::InitOnce(Isolate* isolate) {
   snapshot_writer_error_ = LanguageError::ReadOnlyHandle();
   branch_offset_error_ = LanguageError::ReadOnlyHandle();
   speculative_inlining_error_ = LanguageError::ReadOnlyHandle();
+  background_compilation_error_ = LanguageError::ReadOnlyHandle();
   vm_isolate_snapshot_object_table_ = Array::ReadOnlyHandle();
   dynamic_type_ = Type::ReadOnlyHandle();
   void_type_ = Type::ReadOnlyHandle();
@@ -842,6 +844,10 @@ void Object::InitOnce(Isolate* isolate) {
   *speculative_inlining_error_ = LanguageError::New(error_str,
                                                     Report::kBailout,
                                                     Heap::kOld);
+  error_str = String::New("Background Compilation Failed", Heap::kOld);
+  *background_compilation_error_ = LanguageError::New(error_str,
+                                                      Report::kBailout,
+                                                      Heap::kOld);
 
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
@@ -890,6 +896,8 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(branch_offset_error_->IsLanguageError());
   ASSERT(!speculative_inlining_error_->IsSmi());
   ASSERT(speculative_inlining_error_->IsLanguageError());
+  ASSERT(!background_compilation_error_->IsSmi());
+  ASSERT(background_compilation_error_->IsLanguageError());
   ASSERT(!vm_isolate_snapshot_object_table_->IsSmi());
   ASSERT(vm_isolate_snapshot_object_table_->IsArray());
 }
@@ -6737,6 +6745,7 @@ void Function::RestoreICDataMap(
   Zone* zone = Thread::Current()->zone();
   const Array& saved_ic_data = Array::Handle(zone, ic_data_array());
   if (saved_ic_data.IsNull()) {
+    // Could happen with deferred loading.
     return;
   }
   const intptr_t saved_length = saved_ic_data.Length();
@@ -10256,7 +10265,9 @@ class PrefixDependentArray : public WeakCodeReferences {
 
 void LibraryPrefix::RegisterDependentCode(const Code& code) const {
   ASSERT(is_deferred_load());
-  ASSERT(!is_loaded());
+  // In background compilation, a library can be loaded while we are compiling.
+  // The generated code will be rejected in that case,
+  ASSERT(!is_loaded() || Compiler::IsBackgroundCompilation());
   PrefixDependentArray a(*this);
   a.Register(code);
 }

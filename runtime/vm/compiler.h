@@ -94,6 +94,12 @@ class Compiler : public AllStatic {
   static RawError* CompileAllFunctions(const Class& cls);
 
   static bool always_optimize();
+
+  // Notify the compiler that background (optimized) compilation has failed
+  // because the mutator thread changed the state (e.g., deoptimization,
+  // deferred loading). The background compilation may retry to compile
+  // the same function later.
+  static void AbortBackgroundCompilation(intptr_t deopt_id);
 };
 
 
