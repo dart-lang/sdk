@@ -144,6 +144,12 @@ class FlowGraph : public ZoneAllocated {
     return BlockIterator(postorder());
   }
 
+  void EnsureSSATempIndex(Definition* defn, Definition* replacement);
+
+  void ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
+                                 Instruction* current,
+                                 Instruction* replacement);
+
   intptr_t current_ssa_temp_index() const { return current_ssa_temp_index_; }
   void set_current_ssa_temp_index(intptr_t index) {
     current_ssa_temp_index_ = index;

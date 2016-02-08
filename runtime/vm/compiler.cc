@@ -31,6 +31,7 @@
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/parser.h"
+#include "vm/redundancy_elimination.h"
 #include "vm/regexp_parser.h"
 #include "vm/regexp_assembler.h"
 #include "vm/scanner.h"

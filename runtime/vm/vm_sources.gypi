@@ -355,6 +355,8 @@
     'raw_object.cc',
     'raw_object.h',
     'raw_object_snapshot.cc',
+    'redundancy_elimination.cc',
+    'redundancy_elimination.h',
     'regexp.cc',
     'regexp.h',
     'regexp_assembler.cc',
