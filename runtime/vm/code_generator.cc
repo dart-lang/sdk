@@ -707,6 +707,7 @@ static void CheckResultError(const Object& result) {
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   if (!FLAG_support_debugger) {
     UNREACHABLE();
+    return;
   }
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
@@ -725,6 +726,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
   if (!FLAG_support_debugger) {
     UNREACHABLE();
+    return;
   }
   const Error& error =
       Error::Handle(isolate->debugger()->DebuggerStepCallback());
