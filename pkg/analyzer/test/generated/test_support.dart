@@ -7,7 +7,7 @@ library analyzer.test.generated.test_support;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart'
-    show AstNode, NodeLocator, SimpleIdentifier;
+    show AstNode, SimpleIdentifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
