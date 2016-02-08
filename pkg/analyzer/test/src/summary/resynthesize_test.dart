@@ -35,6 +35,7 @@ main() {
 @reflectiveTest
 class ResynthTest extends ResolverTestCase {
   Set<Source> otherLibrarySources = new Set<Source>();
+  bool constantInitializersAreInvalid = false;
 
   /**
    * Determine the analysis options that should be used for this test.
@@ -746,8 +747,14 @@ class ResynthTest extends ResolverTestCase {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
     if (original is ConstVariableElement) {
-      compareConstantAsts(resynthesized.constantInitializer,
-          original.constantInitializer, desc);
+      Expression initializer = resynthesized.constantInitializer;
+      if (constantInitializersAreInvalid) {
+        expect(initializer, new isInstanceOf<SimpleIdentifier>(), reason: desc);
+        SimpleIdentifier identifier = initializer;
+        expect(identifier.staticElement, isNull, reason: desc);
+      } else {
+        compareConstantAsts(initializer, original.constantInitializer, desc);
+      }
     }
   }
 
@@ -1161,6 +1168,40 @@ class E {}''');
 
   test_classes() {
     checkLibrary('class C {} class D {}');
+  }
+
+  test_const_invalid_field_const() {
+    constantInitializersAreInvalid = true;
+    checkLibrary(
+        r'''
+class C {
+  static const f = 1 + foo();
+}
+int foo() => 42;
+''',
+        allowErrors: true);
+  }
+
+  test_const_invalid_field_final() {
+    constantInitializersAreInvalid = true;
+    checkLibrary(
+        r'''
+class C {
+  final f = 1 + foo();
+}
+int foo() => 42;
+''',
+        allowErrors: true);
+  }
+
+  test_const_invalid_topLevel() {
+    constantInitializersAreInvalid = true;
+    checkLibrary(
+        r'''
+const v = 1 + foo();
+int foo() => 42;
+''',
+        allowErrors: true);
   }
 
   test_const_invokeConstructor_generic_named() {

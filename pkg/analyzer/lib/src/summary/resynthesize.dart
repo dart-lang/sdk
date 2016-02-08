@@ -262,7 +262,9 @@ class _ConstExprBuilder {
   Expression get expr => stack.single;
 
   Expression build() {
-    // TODO(scheglov) complete implementation
+    if (uc.isInvalid) {
+      return AstFactory.identifier3(r'$$invalidConstExpr$$');
+    }
     for (UnlinkedConstOperation operation in uc.operations) {
       switch (operation) {
         case UnlinkedConstOperation.pushNull:
