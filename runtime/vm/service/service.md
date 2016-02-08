@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.1
+# Dart VM Service Protocol 3.2
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.1_ of the Dart VM Service Protocol. This
+This document describes of _version 3.2_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1881,6 +1881,9 @@ class Isolate extends Response {
   // Suitable to pass to DateTime.fromMillisecondsSinceEpoch.
   int startTime;
 
+  // Is the isolate in a runnable state?
+  bool runnable;
+
   // The number of live ports for this isolate.
   int livePorts;
 
@@ -2471,6 +2474,7 @@ version | comments
 2.0 | Describe protocol version 2.0.
 3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance. Added ServiceExtensionAdded event.
 3.1 | Add the getSourceReport RPC.  The getObject RPC now accepts offset and count for string objects.  String objects now contain length, offset, and count properties.
+3.2 | Isolate objects now include the runnable bit and many debugger related RPCs will return an error if executed on an isolate before it is runnable.
 
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

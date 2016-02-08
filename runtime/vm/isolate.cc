@@ -1843,6 +1843,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     heap()->PrintToJSONObject(Heap::kOld, &jsheap);
   }
 
+  jsobj.AddProperty("runnable", is_runnable());
   jsobj.AddProperty("livePorts", message_handler()->live_ports());
   jsobj.AddProperty("pauseOnExit", message_handler()->should_pause_on_exit());
 
