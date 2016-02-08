@@ -1448,7 +1448,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(
     __ popq(right);
     __ popq(left);
   } else {
-    __ cmpl(left, right);
+    __ CompareRegisters(left, right);
   }
   return EQUAL;
 }
