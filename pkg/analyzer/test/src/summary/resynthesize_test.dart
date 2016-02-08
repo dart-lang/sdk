@@ -239,7 +239,9 @@ class ResynthTest extends ResolverTestCase {
             'setter $name');
       }
     }
-    // TODO(paulberry): test metadata and offsetToElementMap.
+    // Note: no need to test CompilationUnitElementImpl._offsetToElementMap
+    // since it is built on demand when needed (see
+    // CompilationUnitElementImpl.getElementAt])
   }
 
   void compareConstAstLists(
