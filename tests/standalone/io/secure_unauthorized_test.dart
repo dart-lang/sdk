@@ -12,13 +12,12 @@ import "dart:io";
 
 const HOST_NAME = "localhost";
 String localFile(path) => Platform.script.resolve(path).toFilePath();
-List<int> readLocalFile(path) => (new File(localFile(path))).readAsBytesSync();
 
 SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChainBytes(readLocalFile(
+  ..useCertificateChainSync(localFile(
       'certificates/untrusted_server_chain.pem'))
-  ..usePrivateKeyBytes(readLocalFile('certificates/untrusted_server_key.pem'),
-                         password: 'dartdart');
+  ..usePrivateKeySync(localFile('certificates/untrusted_server_key.pem'),
+                      password: 'dartdart');
 
 Future<SecureServerSocket> runServer() {
   return SecureServerSocket.bind(HOST_NAME, 0, serverContext)

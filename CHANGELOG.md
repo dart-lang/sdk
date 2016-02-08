@@ -4,6 +4,19 @@
   * Added `Uri.queryParametersAll` to handle multiple query parameters with
     the same name.
 
+* `dart:io`
+  * Added `SecurityContext.usePrivateKeyBytes`,
+          `SecurityContext.useCertificateChainBytes`,
+          `SecurityContext.setTrustedCertificatesBytes`, and
+          `SecurityContext.setClientAuthoritiesBytes`.
+  * The non-`Bytes` methods of `SecurityContext` are being renamed -`Sync`, as
+    they will do synchronous IO. The non-`Bytes` and non-`Sync` methods are
+    deprecated and will be removed in a later release.
+  * **Breaking** The named `directory` argument of
+    `SecurityContext.setTrustedCertificates` is no longer supported.
+    The method now only supports one argument for the PEM file name containing
+    the trusted certificates.
+
 ## 1.14.1 - 2016-02-04
 
 Patch release, resolves one issue:

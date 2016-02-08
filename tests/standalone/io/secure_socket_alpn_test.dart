@@ -15,15 +15,14 @@ const String MESSAGE_LENGTH_ERROR =
     'The maximum message length supported is 2^13-1';
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
-List<int> readLocalFile(path) => (new File(localFile(path))).readAsBytesSync();
 
 SecurityContext clientContext() => new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+  ..setTrustedCertificatesSync(localFile('certificates/trusted_certs.pem'));
 
 SecurityContext serverContext() => new SecurityContext()
-  ..useCertificateChainBytes(readLocalFile('certificates/server_chain.pem'))
-  ..usePrivateKeyBytes(readLocalFile('certificates/server_key.pem'),
-                         password: 'dartdart');
+  ..useCertificateChainSync(localFile('certificates/server_chain.pem'))
+  ..usePrivateKeySync(localFile('certificates/server_key.pem'),
+                      password: 'dartdart');
 
 // Tests that client/server with same protocol can securely establish a
 // connection, negotiate the protocol and can send data to each other.

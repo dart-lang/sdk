@@ -11,23 +11,22 @@ import "package:expect/expect.dart";
 InternetAddress HOST;
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
-List<int> readLocalFile(path) => (new File(localFile(path))).readAsBytesSync();
 
 SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChainBytes(readLocalFile('certificates/server_chain.pem'))
-  ..usePrivateKeyBytes(readLocalFile('certificates/server_key.pem'),
-                       password: 'dartdart')
-  ..setTrustedCertificates(file: localFile('certificates/client_authority.pem'))
-  ..setClientAuthorities(localFile('certificates/client_authority.pem'));
+  ..useCertificateChainSync(localFile('certificates/server_chain.pem'))
+  ..usePrivateKeySync(localFile('certificates/server_key.pem'),
+                      password: 'dartdart')
+  ..setTrustedCertificatesSync(localFile('certificates/client_authority.pem'))
+  ..setClientAuthoritiesSync(localFile('certificates/client_authority.pem'));
 
 SecurityContext clientCertContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'))
-  ..useCertificateChainBytes(readLocalFile('certificates/client1.pem'))
-  ..usePrivateKeyBytes(readLocalFile('certificates/client1_key.pem'),
-                                       password: 'dartdart');
+  ..setTrustedCertificatesSync(localFile('certificates/trusted_certs.pem'))
+  ..useCertificateChainSync(localFile('certificates/client1.pem'))
+  ..usePrivateKeySync(localFile('certificates/client1_key.pem'),
+                                password: 'dartdart');
 
 SecurityContext clientNoCertContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+  ..setTrustedCertificatesSync(localFile('certificates/trusted_certs.pem'));
 
 Future testClientCertificate({bool required, bool sendCert}) async {
   var server = await SecureServerSocket.bind(HOST, 0, serverContext,

@@ -29,7 +29,9 @@ class OSError;
  * API functions return any error handles passed in as arguments, unchanged.
  */
 static inline Dart_Handle ThrowIfError(Dart_Handle handle) {
-  if (Dart_IsError(handle)) Dart_PropagateError(handle);
+  if (Dart_IsError(handle)) {
+    Dart_PropagateError(handle);
+  }
   return handle;
 }
 
