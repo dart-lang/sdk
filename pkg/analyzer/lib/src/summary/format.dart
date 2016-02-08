@@ -1664,11 +1664,24 @@ abstract class _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
 class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements idl.UnlinkedConst {
   bool _finished = false;
 
+  bool _isInvalid;
   List<idl.UnlinkedConstOperation> _operations;
   List<int> _ints;
   List<double> _doubles;
   List<String> _strings;
   List<EntityRefBuilder> _references;
+
+  @override
+  bool get isInvalid => _isInvalid ??= false;
+
+  /**
+   * Indicates whether the expression is not a valid potentially constant
+   * expression.
+   */
+  void set isInvalid(bool _value) {
+    assert(!_finished);
+    _isInvalid = _value;
+  }
 
   @override
   List<idl.UnlinkedConstOperation> get operations => _operations ??= <idl.UnlinkedConstOperation>[];
@@ -1733,8 +1746,9 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
     _references = _value;
   }
 
-  UnlinkedConstBuilder({List<idl.UnlinkedConstOperation> operations, List<int> ints, List<double> doubles, List<String> strings, List<EntityRefBuilder> references})
-    : _operations = operations,
+  UnlinkedConstBuilder({bool isInvalid, List<idl.UnlinkedConstOperation> operations, List<int> ints, List<double> doubles, List<String> strings, List<EntityRefBuilder> references})
+    : _isInvalid = isInvalid,
+      _operations = operations,
       _ints = ints,
       _doubles = doubles,
       _strings = strings,
@@ -1764,20 +1778,23 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
       offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
+    if (_isInvalid == true) {
+      fbBuilder.addBool(0, true);
+    }
     if (offset_operations != null) {
-      fbBuilder.addOffset(0, offset_operations);
+      fbBuilder.addOffset(1, offset_operations);
     }
     if (offset_ints != null) {
-      fbBuilder.addOffset(1, offset_ints);
+      fbBuilder.addOffset(2, offset_ints);
     }
     if (offset_doubles != null) {
-      fbBuilder.addOffset(2, offset_doubles);
+      fbBuilder.addOffset(3, offset_doubles);
     }
     if (offset_strings != null) {
-      fbBuilder.addOffset(3, offset_strings);
+      fbBuilder.addOffset(4, offset_strings);
     }
     if (offset_references != null) {
-      fbBuilder.addOffset(4, offset_references);
+      fbBuilder.addOffset(5, offset_references);
     }
     return fbBuilder.endTable();
   }
@@ -1795,6 +1812,7 @@ class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements idl.
 
   _UnlinkedConstImpl(this._bp);
 
+  bool _isInvalid;
   List<idl.UnlinkedConstOperation> _operations;
   List<int> _ints;
   List<double> _doubles;
@@ -1802,32 +1820,38 @@ class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements idl.
   List<idl.EntityRef> _references;
 
   @override
+  bool get isInvalid {
+    _isInvalid ??= const fb.BoolReader().vTableGet(_bp, 0, false);
+    return _isInvalid;
+  }
+
+  @override
   List<idl.UnlinkedConstOperation> get operations {
-    _operations ??= const fb.ListReader<idl.UnlinkedConstOperation>(const _UnlinkedConstOperationReader()).vTableGet(_bp, 0, const <idl.UnlinkedConstOperation>[]);
+    _operations ??= const fb.ListReader<idl.UnlinkedConstOperation>(const _UnlinkedConstOperationReader()).vTableGet(_bp, 1, const <idl.UnlinkedConstOperation>[]);
     return _operations;
   }
 
   @override
   List<int> get ints {
-    _ints ??= const fb.ListReader<int>(const fb.Uint32Reader()).vTableGet(_bp, 1, const <int>[]);
+    _ints ??= const fb.ListReader<int>(const fb.Uint32Reader()).vTableGet(_bp, 2, const <int>[]);
     return _ints;
   }
 
   @override
   List<double> get doubles {
-    _doubles ??= const fb.Float64ListReader().vTableGet(_bp, 2, const <double>[]);
+    _doubles ??= const fb.Float64ListReader().vTableGet(_bp, 3, const <double>[]);
     return _doubles;
   }
 
   @override
   List<String> get strings {
-    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 3, const <String>[]);
+    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 4, const <String>[]);
     return _strings;
   }
 
   @override
   List<idl.EntityRef> get references {
-    _references ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 4, const <idl.EntityRef>[]);
+    _references ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 5, const <idl.EntityRef>[]);
     return _references;
   }
 }
@@ -1835,6 +1859,7 @@ class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements idl.
 abstract class _UnlinkedConstMixin implements idl.UnlinkedConst {
   @override
   Map<String, Object> toMap() => {
+    "isInvalid": isInvalid,
     "operations": operations,
     "ints": ints,
     "doubles": doubles,
@@ -1866,9 +1891,10 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
   String get name => _name ??= '';
 
   /**
-   * Depending on the [kind] is the name of the field declared in the class,
-   * or the name of the constructor to redirect to (may be `null`), or the name
-   * of the invoked super constructor (may be `null`).
+   * If [kind] is `field`, the name of the field declared in the class.  If
+   * [kind] is `thisInvocation`, the name of the constructor, declared in this
+   * class, to redirect to.  If [kind] is `superInvocation`, the name of the
+   * constructor, declared in the superclass, to invoke.
    */
   void set name(String _value) {
     assert(!_finished);
@@ -1879,8 +1905,8 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
   UnlinkedConstBuilder get expression => _expression;
 
   /**
-   * If [UnlinkedConstructorInitializerKind.field], the expression of the
-   * field initializer.  Otherwise `null`.
+   * If [kind] is `field`, the expression of the field initializer.
+   * Otherwise `null`.
    */
   void set expression(UnlinkedConstBuilder _value) {
     assert(!_finished);
@@ -1891,9 +1917,8 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
   List<UnlinkedConstBuilder> get arguments => _arguments ??= <UnlinkedConstBuilder>[];
 
   /**
-   * If [UnlinkedConstructorInitializerKind.thisInvocation] or
-   * [UnlinkedConstructorInitializerKind.superInvocation], the arguments of
-   * the invocation.  Otherwise empty.
+   * If [kind] is `thisInvocation` or `superInvocation`, the arguments of the
+   * invocation.  Otherwise empty.
    */
   void set arguments(List<UnlinkedConstBuilder> _value) {
     assert(!_finished);
@@ -3495,8 +3520,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   UnlinkedConstBuilder get defaultValue => _defaultValue;
 
   /**
-   * If the parameter has a default value the constant expression in the
-   * default value.
+   * If the parameter has a default value, the constant expression in the
+   * default value.  Note that the presence of this expression does not mean
+   * that it is a valid, check [UnlinkedConst.isInvalid].
    */
   void set defaultValue(UnlinkedConstBuilder _value) {
     assert(!_finished);
@@ -5069,7 +5095,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
 
   /**
    * If [isConst] is true, and the variable has an initializer, the constant
-   * expression in the initializer.
+   * expression in the initializer.  Note that the presence of this expression
+   * does not mean that it is a valid, check [UnlinkedConst.isInvalid].
    */
   void set constExpr(UnlinkedConstBuilder _value) {
     assert(!_finished);

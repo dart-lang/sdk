@@ -966,6 +966,11 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   _ConstExprSerializer(this.serializer, this.constructorParameterNames);
 
   @override
+  bool isConstructorParameterName(String name) {
+    return constructorParameterNames?.contains(name) ?? false;
+  }
+
+  @override
   void serializeAnnotation(Annotation annotation) {
     if (annotation.arguments == null) {
       assert(annotation.constructorName == null);
@@ -1017,7 +1022,9 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     if (identifier is PrefixedIdentifier &&
         element is PropertyAccessorElement &&
         !element.isStatic) {
-      assert(element.name == 'length');
+      if (element.name != 'length') {
+        throw new StateError('Only "length" property is allowed in constants.');
+      }
       Element prefixElement = identifier.prefix.staticElement;
       int prefixRef = serializer._getElementReferenceId(prefixElement);
       int lengthRef = serializer._getLengthPropertyReference(prefixRef);
@@ -1050,11 +1057,6 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   EntityRefBuilder serializeType(TypeName typeName) {
     DartType type = typeName != null ? typeName.type : DynamicTypeImpl.instance;
     return serializer.serializeTypeRef(type, null);
-  }
-
-  @override
-  bool isConstructorParameterName(String name) {
-    return constructorParameterNames?.contains(name) ?? false;
   }
 }
 

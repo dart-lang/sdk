@@ -521,6 +521,12 @@ abstract class UnlinkedCombinator extends base.SummaryClass {
  */
 abstract class UnlinkedConst extends base.SummaryClass {
   /**
+   * Indicates whether the expression is not a valid potentially constant
+   * expression.
+   */
+  bool get isInvalid;
+
+  /**
    * Sequence of operations to execute (starting with an empty stack) to form
    * the constant value.
    */
@@ -1277,8 +1283,9 @@ abstract class UnlinkedParam extends base.SummaryClass {
   int get inferredTypeSlot;
 
   /**
-   * If the parameter has a default value the constant expression in the
-   * default value.
+   * If the parameter has a default value, the constant expression in the
+   * default value.  Note that the presence of this expression does not mean
+   * that it is a valid, check [UnlinkedConst.isInvalid].
    */
   UnlinkedConst get defaultValue;
 }
@@ -1612,7 +1619,8 @@ abstract class UnlinkedVariable extends base.SummaryClass {
 
   /**
    * If [isConst] is true, and the variable has an initializer, the constant
-   * expression in the initializer.
+   * expression in the initializer.  Note that the presence of this expression
+   * does not mean that it is a valid, check [UnlinkedConst.isInvalid].
    */
   UnlinkedConst get constExpr;
 

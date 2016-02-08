@@ -4036,6 +4036,16 @@ class C {
         operators: [UnlinkedConstOperation.pushInt], ints: [0]);
   }
 
+  test_field_final_invalidConstExpr() {
+    UnlinkedVariable variable = serializeClassText(r'''
+class C {
+  final int f = 1 + m();
+  static int m() => 42;
+}''').fields[0];
+    expect(variable.isFinal, isTrue);
+    _assertUnlinkedConst(variable.constExpr, isInvalid: true);
+  }
+
   test_field_formal_param_inferred_type_explicit() {
     UnlinkedClass cls = serializeClassText(
         'class C extends D { var v; C(int this.v); }'
@@ -5866,13 +5876,15 @@ var v;''';
   }
 
   void _assertUnlinkedConst(UnlinkedConst constExpr,
-      {List<UnlinkedConstOperation> operators,
+      {bool isInvalid: false,
+      List<UnlinkedConstOperation> operators: const <UnlinkedConstOperation>[],
       List<int> ints: const <int>[],
       List<double> doubles: const <double>[],
       List<String> strings: const <String>[],
       List<_EntityRefValidator> referenceValidators:
           const <_EntityRefValidator>[]}) {
     expect(constExpr, isNotNull);
+    expect(constExpr.isInvalid, isInvalid);
     expect(constExpr.operations, operators);
     expect(constExpr.ints, ints);
     expect(constExpr.doubles, doubles);
