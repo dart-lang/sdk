@@ -466,25 +466,6 @@ class DirectedGraph_SccFinder<N> {
 }
 
 /**
- * The class `ListUtilities` defines utility methods useful for working with [List
- ].
- */
-class ListUtilities {
-  /**
-   * Add all of the elements in the given array to the given list.
-   *
-   * @param list the list to which the elements are to be added
-   * @param elements the elements to be added to the list
-   */
-  static void addAll(List list, List<Object> elements) {
-    int count = elements.length;
-    for (int i = 0; i < count; i++) {
-      list.add(elements[i]);
-    }
-  }
-}
-
-/**
  * The interface `MapIterator` defines the behavior of objects that iterate over the entries
  * in a map.
  *

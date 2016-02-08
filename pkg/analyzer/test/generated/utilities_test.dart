@@ -30,7 +30,6 @@ main() {
   runReflectiveTests(SourceRangeTest);
   runReflectiveTests(BooleanArrayTest);
   runReflectiveTests(DirectedGraphTest);
-  runReflectiveTests(ListUtilitiesTest);
   runReflectiveTests(MultipleMapIteratorTest);
   runReflectiveTests(SingleMapIteratorTest);
   runReflectiveTests(TokenMapTest);
@@ -2753,39 +2752,6 @@ class ListGetter_NodeReplacerTest_testSwitchMember_2
 
   @override
   NodeList<Statement> getList(SwitchMember node) => node.statements;
-}
-
-@reflectiveTest
-class ListUtilitiesTest {
-  void test_addAll_emptyToEmpty() {
-    List<String> list = new List<String>();
-    List<String> elements = <String>[];
-    ListUtilities.addAll(list, elements);
-    expect(list.length, 0);
-  }
-
-  void test_addAll_emptyToNonEmpty() {
-    List<String> list = new List<String>();
-    list.add("a");
-    List<String> elements = <String>[];
-    ListUtilities.addAll(list, elements);
-    expect(list.length, 1);
-  }
-
-  void test_addAll_nonEmptyToEmpty() {
-    List<String> list = new List<String>();
-    List<String> elements = ["b", "c"];
-    ListUtilities.addAll(list, elements);
-    expect(list.length, 2);
-  }
-
-  void test_addAll_nonEmptyToNonEmpty() {
-    List<String> list = new List<String>();
-    list.add("a");
-    List<String> elements = ["b", "c"];
-    ListUtilities.addAll(list, elements);
-    expect(list.length, 3);
-  }
 }
 
 @reflectiveTest
