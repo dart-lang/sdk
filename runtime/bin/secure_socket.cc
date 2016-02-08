@@ -412,7 +412,7 @@ class MemBIOScope {
 
     object_ = object;
     bytes_ = bytes;
-    bytes_len_ = bytes_len_;
+    bytes_len_ = bytes_len;
     bio_ = BIO_new_mem_buf(bytes, bytes_len);
     ASSERT(bio_ != NULL);
     is_typed_data_ = is_typed_data;
