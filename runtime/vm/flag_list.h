@@ -14,6 +14,8 @@
 // * R elease flags: Generally available flags except when building product.
 
 #define FLAG_LIST(P, R, D)                                                     \
+R(dedup_instructions, true, bool, false,                                       \
+  "Canonicalize instructions when precompiling.")                              \
 R(disable_alloc_stubs_after_gc, false, bool, false,                            \
   "Stress testing flag.")                                                      \
 R(disassemble, false, bool, false,                                             \

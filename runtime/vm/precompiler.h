@@ -96,6 +96,29 @@ class ArrayKeyValueTrait {
 typedef DirectChainedHashMap<ArrayKeyValueTrait> ArraySet;
 
 
+class InstructionsKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Instructions* Key;
+  typedef const Instructions* Value;
+  typedef const Instructions* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->size();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->Equals(*key);
+  }
+};
+
+typedef DirectChainedHashMap<InstructionsKeyValueTrait> InstructionsSet;
+
+
 class FunctionKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -184,6 +207,7 @@ class Precompiler : public ValueObject {
   void BindStaticCalls();
   void DedupStackmaps();
   void DedupStackmapLists();
+  void DedupInstructions();
   void ResetPrecompilerState();
 
   void CollectDynamicFunctionNames();

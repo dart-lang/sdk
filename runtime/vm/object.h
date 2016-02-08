@@ -3840,6 +3840,14 @@ class Instructions : public Object {
         entry_point - HeaderSize() + kHeapObjectTag);
   }
 
+  bool Equals(const Instructions& other) const {
+    if (size() != other.size()) {
+      return false;
+    }
+    NoSafepointScope no_safepoint;
+    return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(size())) == 0;
+  }
+
  private:
   void set_size(intptr_t size) const {
     StoreNonPointer(&raw_ptr()->size_, size);
@@ -4623,6 +4631,7 @@ class Code : public Object {
   friend class Class;
   friend class SnapshotWriter;
   friend class CodePatcher;  // for set_instructions
+  friend class Precompiler;  // for set_instructions
   // So that the RawFunction pointer visitor can determine whether code the
   // function points to is optimized.
   friend class RawFunction;

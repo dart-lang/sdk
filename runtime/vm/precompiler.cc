@@ -129,6 +129,11 @@ void Precompiler::DoCompileAll(
     DedupStackmaps();
     DedupStackmapLists();
 
+    if (FLAG_dedup_instructions) {
+      // Reduces binary size but obfuscates profiler results.
+      DedupInstructions();
+    }
+
     I->object_store()->set_compile_time_constants(Array::null_array());
     I->object_store()->set_unique_dynamic_targets(Array::null_array());
 
@@ -1194,6 +1199,52 @@ void Precompiler::DedupStackmapLists() {
   VisitFunctions(&visitor);
 }
 
+
+void Precompiler::DedupInstructions() {
+  class DedupInstructionsVisitor : public FunctionVisitor {
+   public:
+    explicit DedupInstructionsVisitor(Zone* zone) :
+      zone_(zone),
+      canonical_instructions_set_(),
+      code_(Code::Handle(zone)),
+      instructions_(Instructions::Handle(zone)) {
+    }
+
+    void VisitFunction(const Function& function) {
+      if (!function.HasCode()) {
+        ASSERT(function.HasImplicitClosureFunction());
+        return;
+      }
+      code_ = function.CurrentCode();
+      instructions_ = code_.instructions();
+      instructions_ = DedupOneInstructions(instructions_);
+      code_.SetActiveInstructions(instructions_.raw());
+      code_.set_instructions(instructions_.raw());
+      function.SetInstructions(code_);  // Update cached entry point.
+    }
+
+    RawInstructions* DedupOneInstructions(const Instructions& instructions) {
+      const Instructions* canonical_instructions =
+          canonical_instructions_set_.Lookup(&instructions);
+      if (canonical_instructions == NULL) {
+        canonical_instructions_set_.Insert(
+            &Instructions::ZoneHandle(zone_, instructions.raw()));
+        return instructions.raw();
+      } else {
+        return canonical_instructions->raw();
+      }
+    }
+
+   private:
+    Zone* zone_;
+    InstructionsSet canonical_instructions_set_;
+    Code& code_;
+    Instructions& instructions_;
+  };
+
+  DedupInstructionsVisitor visitor(Z);
+  VisitFunctions(&visitor);
+}
 
 void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
   Library& lib = Library::Handle(Z);
