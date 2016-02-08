@@ -288,8 +288,9 @@ enum MessageKind {
   INVALID_YIELD,
   JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
-  JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
+  JS_INTEROP_INDEX_NOT_SUPPORTED,
   JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
+  JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
   JS_PLACEHOLDER_CAPTURE,
   LIBRARY_NAME_MISMATCH,
   LIBRARY_NOT_FOUND,
@@ -2323,6 +2324,36 @@ main() => A.A = 1;
                 new Foo().bar(4, baz: 5);
               }
               """]),
+      MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED:
+        const MessageTemplate(
+           MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED,
+           "Js-interop does not support [] and []= operator methods.",
+           howToFix: "Try replacing [] and []= operator methods with normal "
+                     "methods.",
+           examples: const [
+               """
+        import 'package:js/js.dart';
+
+        @JS()
+        class Foo {
+          external operator [](arg);
+        }
+
+        main() {
+          new Foo()[0];
+        }
+        """, """
+        import 'package:js/js.dart';
+
+        @JS()
+        class Foo {
+          external operator []=(arg, value);
+        }
+
+        main() {
+          new Foo()[0] = 1;
+        }
+        """]),
 
       MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS:
         const MessageTemplate(

@@ -31,7 +31,8 @@ import '../elements/elements.dart' show
     Element,
     FunctionElement,
     LibraryElement,
-    MetadataAnnotation;
+    MetadataAnnotation,
+    MethodElement;
 import '../enqueue.dart' show
     Enqueuer,
     CodegenEnqueuer,
@@ -282,9 +283,9 @@ abstract class Backend {
     return native.maybeEnableNative(compiler, library);
   }
 
-  /// Processes [element] for resolution and returns the [FunctionElement] that
+  /// Processes [element] for resolution and returns the [MethodElement] that
   /// defines the implementation of [element].
-  FunctionElement resolveExternalFunction(FunctionElement element) => element;
+  MethodElement resolveExternalFunction(MethodElement element) => element;
 
   /// Returns `true` if [library] is a backend specific library whose members
   /// have special treatment, such as being allowed to extends blacklisted
