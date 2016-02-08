@@ -10738,7 +10738,7 @@ const char* ObjectPool::ToCString() const {
 
 
 void ObjectPool::DebugPrint() const {
-  THR_Print("Object Pool: {\n");
+  THR_Print("Object Pool: 0x%" Px "{\n", reinterpret_cast<uword>(raw()));
   for (intptr_t i = 0; i < Length(); i++) {
     intptr_t offset = OffsetFromIndex(i);
     THR_Print("  %" Pd " PP+0x%" Px ": ", i, offset);

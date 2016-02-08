@@ -1454,9 +1454,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ popq(RAX);  // Pop returned function object into RAX.
   __ popq(RBX);  // Restore IC data array.
   __ popq(R10);  // Restore arguments descriptor array.
-  if (range_collection_mode == kCollectRanges) {
-    __ RestoreCodePointer();
-  }
+  __ RestoreCodePointer();
   __ LeaveStubFrame();
   Label call_target_function;
   if (!FLAG_lazy_dispatchers) {

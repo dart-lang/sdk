@@ -1555,9 +1555,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Remove the call arguments pushed earlier, including the IC data object
   // and the arguments descriptor array.
   __ addiu(SP, SP, Immediate(num_slots * kWordSize));
-  if (range_collection_mode == kCollectRanges) {
-    __ RestoreCodePointer();
-  }
+  __ RestoreCodePointer();
   __ LeaveStubFrame();
 
   Label call_target_function;
