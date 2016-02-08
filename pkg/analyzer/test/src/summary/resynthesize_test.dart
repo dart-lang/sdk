@@ -242,35 +242,56 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test metadata and offsetToElementMap.
   }
 
-  void compareConstantAsts(AstNode r, AstNode o, String desc) {
-    void compareLists(List<Object> rItems, List<Object> oItems) {
-      if (rItems == null && oItems == null) {
-        return;
-      }
-      expect(rItems != null && oItems != null, isTrue);
-      expect(rItems, hasLength(oItems.length));
-      for (int i = 0; i < oItems.length; i++) {
-        Object rItem = rItems[i];
-        Object oItem = oItems[i];
-        if (rItem is Expression && oItem is Expression) {
-          compareConstantAsts(rItem, oItem, desc);
-        } else if (rItem is TypeName && oItem is TypeName) {
-          compareConstantAsts(rItem.name, oItem.name, desc);
-        } else if (rItem is InterpolationString &&
-            oItem is InterpolationString) {
-          expect(rItem.value, oItem.value);
-        } else if (rItem is InterpolationExpression &&
-            oItem is InterpolationExpression) {
-          compareConstantAsts(rItem.expression, oItem.expression, desc);
-        } else if (rItem is MapLiteralEntry && oItem is MapLiteralEntry) {
-          compareConstantAsts(rItem.key, oItem.key, desc);
-          compareConstantAsts(rItem.value, oItem.value, desc);
+  void compareConstAstLists(
+      List<Object> rItems, List<Object> oItems, String desc) {
+    if (rItems == null && oItems == null) {
+      return;
+    }
+    expect(rItems != null && oItems != null, isTrue);
+    expect(rItems, hasLength(oItems.length));
+    for (int i = 0; i < oItems.length; i++) {
+      Object rItem = rItems[i];
+      Object oItem = oItems[i];
+      if (rItem is Expression && oItem is Expression) {
+        compareConstAsts(rItem, oItem, desc);
+      } else if (rItem is TypeName && oItem is TypeName) {
+        compareConstAsts(rItem.name, oItem.name, desc);
+      } else if (rItem is InterpolationString && oItem is InterpolationString) {
+        expect(rItem.value, oItem.value);
+      } else if (rItem is InterpolationExpression &&
+          oItem is InterpolationExpression) {
+        compareConstAsts(rItem.expression, oItem.expression, desc);
+      } else if (rItem is MapLiteralEntry && oItem is MapLiteralEntry) {
+        compareConstAsts(rItem.key, oItem.key, desc);
+        compareConstAsts(rItem.value, oItem.value, desc);
+      } else if (oItem is ConstructorFieldInitializer &&
+          rItem is ConstructorFieldInitializer) {
+        compareConstAsts(rItem.fieldName, oItem.fieldName, desc);
+        if (constantInitializersAreInvalid) {
+          _assertUnresolvedIdentifier(rItem.expression, desc);
         } else {
-          fail('$desc Incompatible item types: '
-              '${rItem.runtimeType} vs. ${oItem.runtimeType}');
+          compareConstAsts(rItem.expression, oItem.expression, desc);
         }
+      } else if (oItem is SuperConstructorInvocation &&
+          rItem is SuperConstructorInvocation) {
+        compareElements(rItem.staticElement, oItem.staticElement, desc);
+        compareConstAsts(rItem.constructorName, oItem.constructorName, desc);
+        compareConstAstLists(
+            rItem.argumentList.arguments, oItem.argumentList.arguments, desc);
+      } else if (oItem is RedirectingConstructorInvocation &&
+          rItem is RedirectingConstructorInvocation) {
+        compareElements(rItem.staticElement, oItem.staticElement, desc);
+        compareConstAsts(rItem.constructorName, oItem.constructorName, desc);
+        compareConstAstLists(
+            rItem.argumentList.arguments, oItem.argumentList.arguments, desc);
+      } else {
+        fail('$desc Incompatible item types: '
+            '${rItem.runtimeType} vs. ${oItem.runtimeType}');
       }
     }
+  }
+
+  void compareConstAsts(AstNode r, AstNode o, String desc) {
     if (o == null) {
       expect(r, isNull, reason: desc);
     } else {
@@ -280,26 +301,26 @@ class ResynthTest extends ResolverTestCase {
       // resynthesis and should not check them here.
       if (o is ParenthesizedExpression) {
         // We don't resynthesize parenthesis, so just ignore it.
-        compareConstantAsts(r, o.expression, desc);
+        compareConstAsts(r, o.expression, desc);
       } else if (o is SimpleIdentifier && r is SimpleIdentifier) {
         expect(r.name, o.name, reason: desc);
         compareElements(r.staticElement, o.staticElement, desc);
       } else if (o is PrefixedIdentifier && r is SimpleIdentifier) {
         // We often don't resynthesize prefixed identifiers.
         // We use simple identifiers with correct elements.
-        compareConstantAsts(r, o.identifier, desc);
+        compareConstAsts(r, o.identifier, desc);
       } else if (o is PrefixedIdentifier && r is PrefixedIdentifier) {
-        compareConstantAsts(r.prefix, o.prefix, desc);
-        compareConstantAsts(r.identifier, o.identifier, desc);
+        compareConstAsts(r.prefix, o.prefix, desc);
+        compareConstAsts(r.identifier, o.identifier, desc);
       } else if (o is PropertyAccess && r is PropertyAccess) {
-        compareConstantAsts(r.target, o.target, desc);
+        compareConstAsts(r.target, o.target, desc);
         expect(r.propertyName.name, o.propertyName.name, reason: desc);
         compareElements(
             r.propertyName.staticElement, o.propertyName.staticElement, desc);
       } else if (o is PropertyAccess && r is SimpleIdentifier) {
         // We don't resynthesize property access.
         // We use simple identifiers with correct elements.
-        compareConstantAsts(r, o.propertyName, desc);
+        compareConstAsts(r, o.propertyName, desc);
       } else if (o is NullLiteral) {
         expect(r, new isInstanceOf<NullLiteral>(), reason: desc);
       } else if (o is BooleanLiteral && r is BooleanLiteral) {
@@ -309,7 +330,7 @@ class ResynthTest extends ResolverTestCase {
       } else if (o is DoubleLiteral && r is DoubleLiteral) {
         expect(r.value, o.value, reason: desc);
       } else if (o is StringInterpolation && r is StringInterpolation) {
-        compareLists(r.elements, o.elements);
+        compareConstAstLists(r.elements, o.elements, desc);
       } else if (o is StringLiteral && r is StringLiteral) {
         // We don't keep all the tokens of AdjacentStrings.
         // So, we can compare only their values.
@@ -322,24 +343,26 @@ class ResynthTest extends ResolverTestCase {
             reason: desc);
       } else if (o is NamedExpression && r is NamedExpression) {
         expect(r.name.label.name, o.name.label.name, reason: desc);
-        compareConstantAsts(r.expression, o.expression, desc);
+        compareConstAsts(r.expression, o.expression, desc);
       } else if (o is BinaryExpression && r is BinaryExpression) {
         expect(r.operator.lexeme, o.operator.lexeme, reason: desc);
-        compareConstantAsts(r.leftOperand, o.leftOperand, desc);
-        compareConstantAsts(r.rightOperand, o.rightOperand, desc);
+        compareConstAsts(r.leftOperand, o.leftOperand, desc);
+        compareConstAsts(r.rightOperand, o.rightOperand, desc);
       } else if (o is PrefixExpression && r is PrefixExpression) {
         expect(r.operator.lexeme, o.operator.lexeme, reason: desc);
-        compareConstantAsts(r.operand, o.operand, desc);
+        compareConstAsts(r.operand, o.operand, desc);
       } else if (o is ConditionalExpression && r is ConditionalExpression) {
-        compareConstantAsts(r.condition, o.condition, desc);
-        compareConstantAsts(r.thenExpression, o.thenExpression, desc);
-        compareConstantAsts(r.elseExpression, o.elseExpression, desc);
+        compareConstAsts(r.condition, o.condition, desc);
+        compareConstAsts(r.thenExpression, o.thenExpression, desc);
+        compareConstAsts(r.elseExpression, o.elseExpression, desc);
       } else if (o is ListLiteral && r is ListLiteral) {
-        compareLists(r.typeArguments?.arguments, o.typeArguments?.arguments);
-        compareLists(r.elements, o.elements);
+        compareConstAstLists(
+            r.typeArguments?.arguments, o.typeArguments?.arguments, desc);
+        compareConstAstLists(r.elements, o.elements, desc);
       } else if (o is MapLiteral && r is MapLiteral) {
-        compareLists(r.typeArguments?.arguments, o.typeArguments?.arguments);
-        compareLists(r.entries, o.entries);
+        compareConstAstLists(
+            r.typeArguments?.arguments, o.typeArguments?.arguments, desc);
+        compareConstAstLists(r.entries, o.entries, desc);
       } else if (o is InstanceCreationExpression &&
           r is InstanceCreationExpression) {
         compareElements(r.staticElement, o.staticElement, desc);
@@ -353,11 +376,12 @@ class ResynthTest extends ResolverTestCase {
         TypeName rType = rConstructor.type;
         expect(oType, isNotNull, reason: desc);
         expect(rType, isNotNull, reason: desc);
-        compareConstantAsts(rType.name, oType.name, desc);
-        compareConstantAsts(rConstructor.name, oConstructor.name, desc);
-        compareLists(
-            rType.typeArguments?.arguments, oType.typeArguments?.arguments);
-        compareLists(r.argumentList.arguments, o.argumentList.arguments);
+        compareConstAsts(rType.name, oType.name, desc);
+        compareConstAsts(rConstructor.name, oConstructor.name, desc);
+        compareConstAstLists(rType.typeArguments?.arguments,
+            oType.typeArguments?.arguments, desc);
+        compareConstAstLists(
+            r.argumentList.arguments, o.argumentList.arguments, desc);
       } else if (o is AnnotationImpl && r is AnnotationImpl) {
         expect(o.atSign.lexeme, r.atSign.lexeme, reason: desc);
         Identifier rName = r.name;
@@ -367,18 +391,19 @@ class ResynthTest extends ResolverTestCase {
           // with `cls.ctor` represented as a PrefixedIdentifier.
           expect(rName, new isInstanceOf<PrefixedIdentifier>(), reason: desc);
           if (rName is PrefixedIdentifier) {
-            compareConstantAsts(rName.prefix, oName.identifier, desc);
+            compareConstAsts(rName.prefix, oName.identifier, desc);
             expect(rName.period.lexeme, '.', reason: desc);
-            compareConstantAsts(rName.identifier, o.constructorName, desc);
+            compareConstAsts(rName.identifier, o.constructorName, desc);
             expect(r.period, isNull, reason: desc);
             expect(r.constructorName, isNull, reason: desc);
           }
         } else {
-          compareConstantAsts(r.name, o.name, desc);
+          compareConstAsts(r.name, o.name, desc);
           expect(r.period?.lexeme, o.period?.lexeme, reason: desc);
-          compareConstantAsts(r.constructorName, o.constructorName, desc);
+          compareConstAsts(r.constructorName, o.constructorName, desc);
         }
-        compareLists(r.arguments?.arguments, o.arguments?.arguments);
+        compareConstAstLists(
+            r.arguments?.arguments, o.arguments?.arguments, desc);
         Element expectedElement = o.element;
         if (oName is PrefixedIdentifier && o.constructorName != null) {
           // Due to dartbug.com/25706, [o.element] incorrectly points to the
@@ -392,8 +417,6 @@ class ResynthTest extends ResolverTestCase {
         // elementAnnotation should be null; it is only used in the full AST.
         expect(o.elementAnnotation, isNull);
         expect(r.elementAnnotation, isNull);
-      } else if (o is ConstructorName && r is ConstructorName) {
-        fail('Not implemented for ${r.runtimeType} vs. ${o.runtimeType}');
       } else {
         fail('Not implemented for ${r.runtimeType} vs. ${o.runtimeType}');
       }
@@ -403,7 +426,9 @@ class ResynthTest extends ResolverTestCase {
   void compareConstructorElements(ConstructorElementImpl resynthesized,
       ConstructorElementImpl original, String desc) {
     compareExecutableElements(resynthesized, original, desc);
-    // TODO(paulberry): test redirectedConstructor and constantInitializers
+    compareConstAstLists(resynthesized.constantInitializers,
+        original.constantInitializers, desc);
+    // TODO(paulberry): test redirectedConstructor
   }
 
   void compareElementAnnotations(ElementAnnotationImpl resynthesized,
@@ -417,8 +442,7 @@ class ResynthTest extends ResolverTestCase {
         original.compilationUnit.location,
         reason: desc);
     expect(resynthesized.annotationAst, isNotNull, reason: desc);
-    compareConstantAsts(
-        resynthesized.annotationAst, original.annotationAst, desc);
+    compareConstAsts(resynthesized.annotationAst, original.annotationAst, desc);
   }
 
   void compareElements(Element resynthesized, Element original, String desc) {
@@ -749,11 +773,9 @@ class ResynthTest extends ResolverTestCase {
     if (original is ConstVariableElement) {
       Expression initializer = resynthesized.constantInitializer;
       if (constantInitializersAreInvalid) {
-        expect(initializer, new isInstanceOf<SimpleIdentifier>(), reason: desc);
-        SimpleIdentifier identifier = initializer;
-        expect(identifier.staticElement, isNull, reason: desc);
+        _assertUnresolvedIdentifier(initializer, desc);
       } else {
-        compareConstantAsts(initializer, original.constantInitializer, desc);
+        compareConstAsts(initializer, original.constantInitializer, desc);
       }
     }
   }
@@ -1791,6 +1813,77 @@ class C {
    */
   C();
 }''');
+  }
+
+  test_constructor_initializers_field() {
+    checkLibrary('''
+class C {
+  final x;
+  const C() : x = 42;
+}
+''');
+  }
+
+  test_constructor_initializers_field_notConst() {
+    constantInitializersAreInvalid = true;
+    checkLibrary(
+        '''
+class C {
+  final x;
+  const A() : x = foo();
+}
+int foo() => 42;
+''',
+        allowErrors: true);
+  }
+
+  test_constructor_initializers_field_withParameter() {
+    checkLibrary('''
+class C {
+  final x;
+  const C(int p) : x = 1 + p;
+}
+''');
+  }
+
+  test_constructor_initializers_superInvocation_named() {
+    checkLibrary('''
+class A {
+  const A.aaa(int p);
+}
+class C extends A {
+  const C() : super.aaa(42);
+}
+''');
+  }
+
+  test_constructor_initializers_superInvocation_unnamed() {
+    checkLibrary('''
+class A {
+  const A(int p);
+}
+class C extends A {
+  const C.ccc() : super(42);
+}
+''');
+  }
+
+  test_constructor_initializers_thisInvocation_named() {
+    checkLibrary('''
+class C {
+  const C() : this.named(1, 'bbb');
+  const C.named(int a, String b);
+}
+''');
+  }
+
+  test_constructor_initializers_thisInvocation_unnamed() {
+    checkLibrary('''
+class C {
+  const C.named() : this(1, 'bbb');
+  const C(int a, String b);
+}
+''');
   }
 
   test_core() {
@@ -2849,6 +2942,12 @@ var x;''');
     expect(resynthesizer.resynthesisCount, 1);
     expect(result.location, location);
     return result;
+  }
+
+  void _assertUnresolvedIdentifier(Expression initializer, String desc) {
+    expect(initializer, new isInstanceOf<SimpleIdentifier>(), reason: desc);
+    SimpleIdentifier identifier = initializer;
+    expect(identifier.staticElement, isNull, reason: desc);
   }
 }
 

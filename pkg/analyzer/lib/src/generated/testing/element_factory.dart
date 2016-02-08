@@ -118,6 +118,9 @@ class ElementFactory {
     constructor.returnType = type;
     constructor.enclosingElement = definingClass;
     constructor.type = new FunctionTypeImpl(constructor);
+    if (!constructor.isSynthetic) {
+      constructor.constantInitializers = <ConstructorInitializer>[];
+    }
     return constructor;
   }
 
