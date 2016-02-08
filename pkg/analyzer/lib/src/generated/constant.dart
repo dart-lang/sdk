@@ -13,6 +13,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/generated/element_handle.dart'
+    show ConstructorElementHandle;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, RecordingErrorListener;
@@ -27,6 +29,16 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
+
+ConstructorElementImpl _getConstructorImpl(ConstructorElement constructor) {
+  if (constructor is ConstructorElementHandle) {
+    constructor = (constructor as ConstructorElementHandle).actualElement;
+  }
+  while (constructor is ConstructorMember) {
+    constructor = (constructor as ConstructorMember).baseElement;
+  }
+  return constructor;
+}
 
 /**
  * Callback used by [ReferenceFinder] to report that a dependency was found.
@@ -339,17 +351,15 @@ class ConstantEvaluationEngine {
   void computeConstantValue(ConstantEvaluationTarget constant) {
     validator.beforeComputeValue(constant);
     if (constant is ParameterElementImpl) {
-      if (constant.initializer != null) {
-        Expression defaultValue = constant.constantInitializer;
-        if (defaultValue != null) {
-          RecordingErrorListener errorListener = new RecordingErrorListener();
-          ErrorReporter errorReporter =
-              new ErrorReporter(errorListener, constant.source);
-          DartObjectImpl dartObject =
-              defaultValue.accept(new ConstantVisitor(this, errorReporter));
-          constant.evaluationResult =
-              new EvaluationResultImpl(dartObject, errorListener.errors);
-        }
+      Expression defaultValue = constant.constantInitializer;
+      if (defaultValue != null) {
+        RecordingErrorListener errorListener = new RecordingErrorListener();
+        ErrorReporter errorReporter =
+            new ErrorReporter(errorListener, constant.source);
+        DartObjectImpl dartObject =
+            defaultValue.accept(new ConstantVisitor(this, errorReporter));
+        constant.evaluationResult =
+            new EvaluationResultImpl(dartObject, errorListener.errors);
       }
     } else if (constant is VariableElementImpl) {
       Expression constantInitializer = constant.constantInitializer;
@@ -446,6 +456,9 @@ class ConstantEvaluationEngine {
   void computeDependencies(
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
     ReferenceFinder referenceFinder = new ReferenceFinder(callback);
+    if (constant is ConstructorElement) {
+      constant = _getConstructorImpl(constant);
+    }
     if (constant is VariableElementImpl) {
       Expression initializer = constant.constantInitializer;
       if (initializer != null) {
@@ -458,7 +471,7 @@ class ConstantEvaluationEngine {
             getConstRedirectedConstructor(constant);
         if (redirectedConstructor != null) {
           ConstructorElement redirectedConstructorBase =
-              _getConstructorBase(redirectedConstructor);
+              _getConstructorImpl(redirectedConstructor);
           callback(redirectedConstructorBase);
           return;
         } else if (constant.isFactory) {
@@ -487,7 +500,7 @@ class ConstantEvaluationEngine {
               (constant.returnType as InterfaceType).superclass;
           if (superclass != null && !superclass.isObject) {
             ConstructorElement unnamedConstructor =
-                _getConstructorBase(superclass.element.unnamedConstructor);
+                _getConstructorImpl(superclass.element.unnamedConstructor);
             if (unnamedConstructor != null) {
               callback(unnamedConstructor);
             }
@@ -582,7 +595,7 @@ class ConstantEvaluationEngine {
       ConstructorElement constructor,
       ConstantVisitor constantVisitor,
       ErrorReporter errorReporter) {
-    if (!_getConstructorBase(constructor).isCycleFree) {
+    if (!_getConstructorImpl(constructor).isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
       // TODO(paulberry): ensure that a reasonable error message is produced
       // in this case, as well as other cases involving constant expression
@@ -672,7 +685,7 @@ class ConstantEvaluationEngine {
       // it an unknown value will suppress further errors.
       return new DartObjectImpl.validWithUnknownValue(definingClass);
     }
-    ConstructorElementImpl constructorBase = _getConstructorBase(constructor);
+    ConstructorElementImpl constructorBase = _getConstructorImpl(constructor);
     validator.beforeGetConstantInitializers(constructorBase);
     List<ConstructorInitializer> initializers =
         constructorBase.constantInitializers;
@@ -890,10 +903,10 @@ class ConstantEvaluationEngine {
       if (redirectedConstructor == null) {
         break;
       } else {
-        ConstructorElement constructorBase = _getConstructorBase(constructor);
+        ConstructorElement constructorBase = _getConstructorImpl(constructor);
         constructorsVisited.add(constructorBase);
         ConstructorElement redirectedConstructorBase =
-            _getConstructorBase(redirectedConstructor);
+            _getConstructorImpl(redirectedConstructor);
         if (constructorsVisited.contains(redirectedConstructorBase)) {
           // Cycle in redirecting factory constructors--this is not allowed
           // and is checked elsewhere--see
@@ -991,14 +1004,6 @@ class ConstantEvaluationEngine {
       name.isEmpty ||
       name == "void" ||
       new JavaPatternMatcher(_PUBLIC_SYMBOL_PATTERN, name).matches();
-
-  static ConstructorElementImpl _getConstructorBase(
-      ConstructorElement constructor) {
-    while (constructor is ConstructorMember) {
-      constructor = (constructor as ConstructorMember).baseElement;
-    }
-    return constructor;
-  }
 }
 
 /**
@@ -5155,8 +5160,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      ConstructorElement constructor =
-          ConstantEvaluationEngine._getConstructorBase(node.staticElement);
+      ConstructorElement constructor = _getConstructorImpl(node.staticElement);
       if (constructor != null) {
         _callback(constructor);
       }
@@ -5178,8 +5182,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   Object visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     super.visitRedirectingConstructorInvocation(node);
-    ConstructorElement target =
-        ConstantEvaluationEngine._getConstructorBase(node.staticElement);
+    ConstructorElement target = _getConstructorImpl(node.staticElement);
     if (target != null) {
       _callback(target);
     }
@@ -5201,8 +5204,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     super.visitSuperConstructorInvocation(node);
-    ConstructorElement constructor =
-        ConstantEvaluationEngine._getConstructorBase(node.staticElement);
+    ConstructorElement constructor = _getConstructorImpl(node.staticElement);
     if (constructor != null) {
       _callback(constructor);
     }
