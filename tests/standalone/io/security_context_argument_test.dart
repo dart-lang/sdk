@@ -32,8 +32,8 @@ void testUsePrivateKeyArguments() {
     Expect.throws(() => c.usePrivateKeySync(1), argumentOrTypeError);
     Expect.throws(() => c.usePrivateKeySync(null), argumentError);
     Expect.throws(() => c.usePrivateKeySync(
-        localFile('certificates/server_key_oops.pem'), password: 3),
-        fileSystemException);
+        localFile('certificates/server_key.pem'), password: 3),
+        argumentOrTypeError);
     c.usePrivateKeySync(
         localFile('certificates/server_key.pem'), password: "dartdart");
 }
