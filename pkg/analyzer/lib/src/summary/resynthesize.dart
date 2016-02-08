@@ -624,6 +624,9 @@ class _DeferredConstructorElement extends ConstructorElementHandle {
   }
 
   @override
+  AnalysisContext get context => definingType.element.context;
+
+  @override
   String get displayName => name;
 
   @override
