@@ -126,7 +126,7 @@ class AbstractAnalysisTest {
         index,
         serverPlugin,
         new AnalysisServerOptions(),
-        new MockSdk(),
+        () => new MockSdk(),
         InstrumentationService.NULL_SERVICE);
   }
 

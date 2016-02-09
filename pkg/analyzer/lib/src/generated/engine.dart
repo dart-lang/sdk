@@ -1123,6 +1123,19 @@ abstract class AnalysisOptions {
    * Return `true` if strong mode analysis should be used.
    */
   bool get strongMode;
+
+  /**
+   * Return an integer encoding of the values of the options that need to be the
+   * same across all of the contexts associated with partitions that are to be
+   * shared by a single analysis context.
+   */
+  int encodeCrossContextOptions();
+
+  /**
+   * Set the values of the cross-context options to match those in the given set
+   * of [options].
+   */
+  void setCrossContextOptionsFrom(AnalysisOptions options);
 }
 
 /**
@@ -1134,6 +1147,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * The maximum number of sources for which data should be kept in the cache.
    */
   static const int DEFAULT_CACHE_SIZE = 64;
+
+  static const int ENABLE_ASSERT_FLAG = 0x01;
+  static const int ENABLE_ASYNC_FLAG = 0x02;
+  static const int ENABLE_GENERIC_METHODS_FLAG = 0x04;
+  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x08;
+  static const int ENABLE_STRONG_MODE_FLAG = 0x10;
+  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x20;
+  static const int ENABLE_SUPER_MIXINS_FLAG = 0x40;
 
   /**
    * A predicate indicating whether analysis is to parse and analyze function
@@ -1306,6 +1327,29 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       throw new ArgumentError.notNull('analyzeFunctionBodiesPredicate');
     }
     _analyzeFunctionBodiesPredicate = value;
+  }
+
+  @override
+  int encodeCrossContextOptions() =>
+      (enableAssertMessage ? ENABLE_ASSERT_FLAG : 0) |
+      (enableAsync ? ENABLE_ASYNC_FLAG : 0) |
+      (enableGenericMethods ? ENABLE_GENERIC_METHODS_FLAG : 0) |
+      (enableStrictCallChecks ? ENABLE_STRICT_CALL_CHECKS_FLAG : 0) |
+      (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
+      (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0) |
+      (enableSuperMixins ? ENABLE_SUPER_MIXINS_FLAG : 0);
+
+  @override
+  void setCrossContextOptionsFrom(AnalysisOptions options) {
+    enableAssertMessage = options.enableAssertMessage;
+    enableAsync = options.enableAsync;
+    enableGenericMethods = options.enableGenericMethods;
+    enableStrictCallChecks = options.enableStrictCallChecks;
+    enableSuperMixins = options.enableSuperMixins;
+    strongMode = options.strongMode;
+    if (options is AnalysisOptionsImpl) {
+      strongModeHints = options.strongModeHints;
+    }
   }
 
   /**

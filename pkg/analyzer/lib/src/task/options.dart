@@ -30,6 +30,11 @@ final ListResultDescriptor<AnalysisError> ANALYSIS_OPTIONS_ERRORS =
 
 final _OptionsProcessor _processor = new _OptionsProcessor();
 
+void applyToAnalysisOptions(
+    AnalysisOptionsImpl options, Map<String, Object> optionMap) {
+  _processor.applyToAnalysisOptions(options, optionMap);
+}
+
 /// Configure this [context] based on configuration details specified in
 /// the given [options].  If [options] is `null`, default values are applied.
 void configureContextOptions(
@@ -412,6 +417,28 @@ class TrueOrFalseValueErrorBuilder extends ErrorBuilder {
 class _OptionsProcessor {
   static final Map<String, Object> defaults = {'analyzer': {}};
 
+  /**
+   * Apply the options in the given [optionMap] to the given analysis [options].
+   */
+  void applyToAnalysisOptions(
+      AnalysisOptionsImpl options, Map<String, Object> optionMap) {
+    if (optionMap == null) {
+      return;
+    }
+    var analyzer = optionMap[AnalyzerOptions.analyzer];
+    if (analyzer is! Map) {
+      return;
+    }
+    // Process strong mode option.
+    var strongMode = analyzer[AnalyzerOptions.strong_mode];
+    if (strongMode is bool) {
+      options.strongMode = strongMode;
+    }
+    // Process language options.
+    var language = analyzer[AnalyzerOptions.language];
+    _applyLanguageOptions(options, language);
+  }
+
   /// Configure [context] based on the given [options] (which can be `null`
   /// to restore [defaults]).
   void configure(AnalysisContext context, Map<String, Object> options) {
@@ -491,6 +518,36 @@ class _OptionsProcessor {
           new AnalysisOptionsImpl.from(context.analysisOptions);
       options.strongMode = strong;
       context.analysisOptions = options;
+    }
+  }
+
+  void _applyLanguageOption(
+      AnalysisOptionsImpl options, Object feature, Object value) {
+    bool boolValue = toBool(value);
+    if (boolValue != null) {
+      if (feature == AnalyzerOptions.enableAsync) {
+        options.enableAsync = boolValue;
+      }
+      if (feature == AnalyzerOptions.enableSuperMixins) {
+        options.enableSuperMixins = boolValue;
+      }
+      if (feature == AnalyzerOptions.enableGenericMethods) {
+        options.enableGenericMethods = boolValue;
+      }
+    }
+  }
+
+  void _applyLanguageOptions(AnalysisOptionsImpl options, Object configs) {
+    if (configs is YamlMap) {
+      configs.nodes.forEach((key, value) {
+        if (key is YamlScalar && value is YamlScalar) {
+          String feature = key.value?.toString();
+          _applyLanguageOption(options, feature, value.value);
+        }
+      });
+    } else if (configs is Map) {
+      configs
+          .forEach((key, value) => _applyLanguageOption(options, key, value));
     }
   }
 }

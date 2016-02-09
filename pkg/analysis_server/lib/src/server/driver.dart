@@ -375,14 +375,20 @@ class Driver implements ServerStarter {
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
-    DartSdk defaultSdk;
+    JavaFile defaultSdkDirectory;
     if (results[SDK_OPTION] != null) {
-      defaultSdk = new DirectoryBasedDartSdk(new JavaFile(results[SDK_OPTION]));
+      defaultSdkDirectory = new JavaFile(results[SDK_OPTION]);
     } else {
-      // No path to the SDK provided; use DirectoryBasedDartSdk.defaultSdk,
-      // which will make a guess.
-      defaultSdk = DirectoryBasedDartSdk.defaultSdk;
+      // No path to the SDK was provided.
+      // Use DirectoryBasedDartSdk.defaultSdkDirectory, which will make a guess.
+      defaultSdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
     }
+    SdkCreator defaultSdkCreator =
+        () => new DirectoryBasedDartSdk(defaultSdkDirectory);
+    // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
+    // cannot be re-used, but the SDK is needed to create a package map provider
+    // in the case where we need to run `pub` in order to get the package map.
+    DirectoryBasedDartSdk defaultSdk = defaultSdkCreator();
     //
     // Initialize the instrumentation service.
     //
@@ -420,8 +426,14 @@ class Driver implements ServerStarter {
     //
     // Create the sockets and start listening for requests.
     //
-    socketServer = new SocketServer(analysisServerOptions, defaultSdk, service,
-        serverPlugin, packageResolverProvider, embeddedUriResolverProvider);
+    socketServer = new SocketServer(
+        analysisServerOptions,
+        defaultSdkCreator,
+        defaultSdk,
+        service,
+        serverPlugin,
+        packageResolverProvider,
+        embeddedUriResolverProvider);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
     socketServer.userDefinedPlugins = _userDefinedPlugins;

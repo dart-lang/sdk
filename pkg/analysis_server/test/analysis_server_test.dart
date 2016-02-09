@@ -141,7 +141,7 @@ import "../foo/foo.dart";
         null,
         new ServerPlugin(),
         new AnalysisServerOptions(),
-        new MockSdk(),
+        () => new MockSdk(),
         InstrumentationService.NULL_SERVICE,
         rethrowExceptions: true);
     processRequiredPlugins();
@@ -152,12 +152,15 @@ import "../foo/foo.dart";
     resourceProvider.newFile('/foo/bar.dart', 'library lib;');
     server.setAnalysisRoots('0', ['/foo'], [], {});
     AnalysisContext context;
-    return pumpEventQueue().then((_) {
-      context = server.getAnalysisContext('/foo/bar.dart');
-      server.setAnalysisRoots('1', [], [], {});
-    }).then((_) => pumpEventQueue()).then((_) {
-      expect(context.isDisposed, isTrue);
-    });
+    return pumpEventQueue()
+        .then((_) {
+          context = server.getAnalysisContext('/foo/bar.dart');
+          server.setAnalysisRoots('1', [], [], {});
+        })
+        .then((_) => pumpEventQueue())
+        .then((_) {
+          expect(context.isDisposed, isTrue);
+        });
   }
 
   Future test_contextsChangedEvent() {
@@ -529,8 +532,9 @@ analyzer:
   void _assertContextOfFolder(
       AnalysisContext context, String expectedFolderPath) {
     Folder expectedFolder = resourceProvider.newFolder(expectedFolderPath);
-    ContextInfo expectedContextInfo = (server.contextManager
-        as ContextManagerImpl).getContextInfoFor(expectedFolder);
+    ContextInfo expectedContextInfo =
+        (server.contextManager as ContextManagerImpl)
+            .getContextInfoFor(expectedFolder);
     expect(expectedContextInfo, isNotNull);
     expect(context, same(expectedContextInfo.context));
   }

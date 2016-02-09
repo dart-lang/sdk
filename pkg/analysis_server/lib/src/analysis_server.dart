@@ -9,7 +9,8 @@ import 'dart:collection';
 import 'dart:core' hide Resource;
 import 'dart:math' show max;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide AnalysisOptions, Element;
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/context_manager.dart';
@@ -140,9 +141,14 @@ class AnalysisServer {
   List<RequestHandler> handlers;
 
   /**
-   * The current default [DartSdk].
+   * The function used to create a new SDK using the default SDK.
    */
-  final DartSdk defaultSdk;
+  final SdkCreator defaultSdkCreator;
+
+  /**
+   * The object used to manage the SDK's known to this server.
+   */
+  DartSdkManager sdkManager;
 
   /**
    * The instrumentation service that is to be used by this analysis server.
@@ -300,7 +306,7 @@ class AnalysisServer {
       Index _index,
       this.serverPlugin,
       this.options,
-      this.defaultSdk,
+      this.defaultSdkCreator,
       this.instrumentationService,
       {ResolverProvider packageResolverProvider: null,
       EmbeddedResolverProvider embeddedResolverProvider: null,
@@ -342,6 +348,7 @@ class AnalysisServer {
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
+    sdkManager = new DartSdkManager(defaultSdkCreator);
   }
 
   /**
@@ -424,6 +431,19 @@ class AnalysisServer {
     if (contextManager.isInAnalysisRoot(notice.source.fullName)) {
       _onFileAnalyzedController.add(notice);
     }
+  }
+
+  /**
+   * Return one of the SDKs that has been created, or `null` if no SDKs have
+   * been created yet.
+   */
+  DartSdk findSdk() {
+    DartSdk sdk = sdkManager.anySdk;
+    if (sdk != null) {
+      return sdk;
+    }
+    // TODO(brianwilkerson) Should we create an SDK using the default options?
+    return null;
   }
 
   /**
@@ -510,11 +530,13 @@ class AnalysisServer {
   ContextSourcePair getContextSourcePair(String path) {
     // try SDK
     {
-      Uri uri = resourceProvider.pathContext.toUri(path);
-      Source sdkSource = defaultSdk.fromFileUri(uri);
-      if (sdkSource != null) {
-        AnalysisContext sdkContext = defaultSdk.context;
-        return new ContextSourcePair(sdkContext, sdkSource);
+      DartSdk sdk = findSdk();
+      if (sdk != null) {
+        Uri uri = resourceProvider.pathContext.toUri(path);
+        Source sdkSource = sdk.fromFileUri(uri);
+        if (sdkSource != null) {
+          return new ContextSourcePair(sdk.context, sdkSource);
+        }
       }
     }
     // try to find the deep-most containing context
@@ -1459,15 +1481,20 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  AnalysisContext addContext(Folder folder, FolderDisposition disposition) {
+  AnalysisOptions get defaultAnalysisOptions =>
+      analysisServer.defaultContextOptions;
+
+  @override
+  AnalysisContext addContext(
+      Folder folder, AnalysisOptions options, FolderDisposition disposition) {
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
     _locateEmbedderYamls(context, disposition);
-    context.sourceFactory = _createSourceFactory(context, disposition, folder);
-    context.analysisOptions =
-        new AnalysisOptionsImpl.from(analysisServer.defaultContextOptions);
+    context.sourceFactory =
+        _createSourceFactory(context, options, disposition, folder);
+    context.analysisOptions = options;
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
@@ -1536,8 +1563,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void updateContextPackageUriResolver(
       Folder contextFolder, FolderDisposition disposition) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
-    context.sourceFactory =
-        _createSourceFactory(context, disposition, contextFolder);
+    context.sourceFactory = _createSourceFactory(
+        context, context.analysisOptions, disposition, contextFolder);
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
@@ -1556,7 +1583,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
    * given [disposition].
    */
   SourceFactory _createSourceFactory(InternalAnalysisContext context,
-      FolderDisposition disposition, Folder folder) {
+      AnalysisOptions options, FolderDisposition disposition, Folder folder) {
     List<UriResolver> resolvers = [];
     List<UriResolver> packageUriResolvers =
         disposition.createPackageUriResolvers(resourceProvider);
@@ -1579,7 +1606,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     if (embedderUriResolver.length == 0) {
       // The embedder uri resolver has no mappings. Use the default Dart SDK
       // uri resolver.
-      resolvers.add(new DartUriResolver(analysisServer.defaultSdk));
+      resolvers.add(new DartUriResolver(
+          analysisServer.sdkManager.getSdkForOptions(options)));
     } else {
       // The embedder uri resolver has mappings, use it instead of the default
       // Dart SDK uri resolver.

@@ -20,6 +20,24 @@ bool isTrue(Object value) =>
     value is bool ? value : toLowerCase(value) == 'true';
 
 /**
+ * Safely convert the given [value] to a bool value, or return `null` if the
+ * value coult not be converted.
+ */
+bool toBool(Object value) {
+  if (value is bool) {
+    return value;
+  }
+  String string = toLowerCase(value);
+  if (string == 'true') {
+    return true;
+  }
+  if (string == 'false') {
+    return false;
+  }
+  return null;
+}
+
+/**
  * Safely convert this [value] to lower case, returning `null` if [value] is
  * null.
  */

@@ -15,6 +15,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:plugin/plugin.dart';
 
@@ -26,6 +27,12 @@ import 'package:plugin/plugin.dart';
  */
 class SocketServer {
   final AnalysisServerOptions analysisServerOptions;
+
+  /**
+   * The function used to create a new SDK using the default SDK.
+   */
+  final SdkCreator defaultSdkCreator;
+
   final DirectoryBasedDartSdk defaultSdk;
   final InstrumentationService instrumentationService;
   final ServerPlugin serverPlugin;
@@ -45,6 +52,7 @@ class SocketServer {
 
   SocketServer(
       this.analysisServerOptions,
+      this.defaultSdkCreator,
       this.defaultSdk,
       this.instrumentationService,
       this.serverPlugin,
@@ -91,7 +99,7 @@ class SocketServer {
         index,
         serverPlugin,
         analysisServerOptions,
-        defaultSdk,
+        defaultSdkCreator,
         instrumentationService,
         packageResolverProvider: packageResolverProvider,
         embeddedResolverProvider: embeddedResolverProvider,
