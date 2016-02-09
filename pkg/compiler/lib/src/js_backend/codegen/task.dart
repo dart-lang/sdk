@@ -281,6 +281,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
       applyCpsPass(new LoopInvariantBranchMotion(), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
       applyCpsPass(new ScalarReplacer(compiler), cpsFunction);
+      applyCpsPass(new UseFieldInitializers(backend), cpsFunction);
       applyCpsPass(new MutableVariableEliminator(), cpsFunction);
       applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
       applyCpsPass(new RedundantPhiEliminator(), cpsFunction);

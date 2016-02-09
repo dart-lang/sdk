@@ -431,7 +431,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
       /// Maps each field from this class or a superclass to its initial value.
       Map<FieldElement, ir.Primitive> fieldValues =
-      <FieldElement, ir.Primitive>{};
+          <FieldElement, ir.Primitive>{};
 
       // -- Evaluate field initializers ---
       // Evaluate field initializers in constructor and super constructors.

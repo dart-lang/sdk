@@ -2011,23 +2011,25 @@ abstract class BlockVisitor<T> {
 
   /// Visits block-level nodes in lexical pre-order.
   ///
-  /// The IR may be transformed during the traversal, but the currently
-  /// visited node should not be removed, as its 'body' pointer is needed
-  /// for the traversal.
+  /// Traversal continues at the original success for the current node, so:
+  /// - The current node can safely be removed.
+  /// - Nodes inserted immediately below the current node will not be seen.
+  /// - The body of the current node should not be moved/removed, as traversal
+  ///   would otherwise continue into an orphaned or relocated node.
   static void traverseInPreOrder(FunctionDefinition root, BlockVisitor v) {
     List<Continuation> stack = <Continuation>[];
     void walkBlock(InteriorNode block) {
       v.visit(block);
       Expression node = block.body;
-      v.visit(node);
-      while (node.next != null) {
+      while (node != null) {
         if (node is LetCont) {
           stack.addAll(node.continuations);
         } else if (node is LetHandler) {
           stack.add(node.handler);
         }
-        node = node.next;
+        Expression next = node.next;
         v.visit(node);
+        node = next;
       }
     }
     walkBlock(root);
