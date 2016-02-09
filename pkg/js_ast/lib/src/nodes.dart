@@ -904,7 +904,7 @@ class NamedFunction extends Expression {
   }
   NamedFunction _clone() => new NamedFunction(name, function);
 
-  int get precedenceLevel => CALL;
+  int get precedenceLevel => LEFT_HAND_SIDE;
 }
 
 class Fun extends Expression {
@@ -923,7 +923,7 @@ class Fun extends Expression {
 
   Fun _clone() => new Fun(params, body, asyncModifier: asyncModifier);
 
-  int get precedenceLevel => CALL;
+  int get precedenceLevel => LEFT_HAND_SIDE;
 }
 
 class AsyncModifier {
@@ -969,7 +969,7 @@ class PropertyAccess extends Expression {
 
   PropertyAccess _clone() => new PropertyAccess(receiver, selector);
 
-  int get precedenceLevel => CALL;
+  int get precedenceLevel => LEFT_HAND_SIDE;
 }
 
 /// A [DeferredToken] is a placeholder for some [Expression] that is not known

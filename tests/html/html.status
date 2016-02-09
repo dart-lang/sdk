@@ -452,6 +452,4 @@ js_typed_interop_test: RuntimeError # Need package:js support #24978
 mirrors_js_typed_interop_test: RuntimeError # Need package:js support #24978
 
 # These are raw dart:js tests that fail due to bugs in the CPS IR:
-js_test/JsObject_methods: RuntimeError # Bad code for new #(). Issue #25708
-js_test/new_JsObject: RuntimeError # Bad code for new #(). Issue #25708
 js_test/Dart_functions: RuntimeError # Tree-shaking an escaping closure #25720
