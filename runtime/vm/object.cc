@@ -29,6 +29,7 @@
 #include "vm/intrinsifier.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/precompiler.h"
 #include "vm/profiler.h"
 #include "vm/report.h"
 #include "vm/reusable_handles.h"
@@ -4938,7 +4939,7 @@ bool Function::HasBreakpoint() const {
 
 void Function::InstallOptimizedCode(const Code& code, bool is_osr) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
-  // We may not have previous code if 'always_optimize' is set.
+  // We may not have previous code if FLAG_precompile is set.
   if (!is_osr && HasCode()) {
     Code::Handle(CurrentCode()).DisableDartCode();
   }
@@ -7342,7 +7343,8 @@ void Field::EvaluateInitializer() const {
   ASSERT(is_static());
   if (StaticValue() == Object::sentinel().raw()) {
     SetStaticValue(Object::transition_sentinel());
-    Object& value = Object::Handle(Compiler::EvaluateStaticInitializer(*this));
+    const Object& value =
+        Object::Handle(Compiler::EvaluateStaticInitializer(*this));
     if (value.IsError()) {
       SetStaticValue(Object::null_instance());
       Exceptions::PropagateError(Error::Cast(value));

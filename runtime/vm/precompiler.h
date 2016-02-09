@@ -18,6 +18,7 @@ class Field;
 class Function;
 class GrowableObjectArray;
 class RawError;
+class SequenceNode;
 class String;
 
 class SymbolKeyValueTrait {
@@ -181,8 +182,16 @@ class Precompiler : public ValueObject {
                                      const String& fname,
                                      Object* function);
 
+  static RawError* CompileFunction(Thread* thread, const Function& function);
+
+  static RawObject* EvaluateStaticInitializer(const Field& field);
+  static RawObject* ExecuteOnce(SequenceNode* fragment);
+
  private:
   Precompiler(Thread* thread, bool reset_fields);
+
+
+  static RawFunction* CompileStaticInitializer(const Field& field);
 
   void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
   void ClearAllCode();

@@ -250,6 +250,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     return true;
   }
 
+#ifdef DART_PRECOMPILER
   if (FLAG_precompilation &&
       (isolate()->object_store()->unique_dynamic_targets() != Array::null())) {
     // Check if the target is unique.
@@ -270,6 +271,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
       return true;
     }
   }
+#endif
 
   // Check if getter or setter in function's class and class is currently leaf.
   if (FLAG_guess_icdata_cid &&

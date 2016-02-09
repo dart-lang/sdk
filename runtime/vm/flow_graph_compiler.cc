@@ -933,7 +933,7 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
     return &intrinsic_slow_path_label_;
   }
 
-  // No deoptimization allowed when 'always_optimize' is set.
+  // No deoptimization allowed when 'FLAG_precompilation' is set.
   if (FLAG_precompilation) {
     if (FLAG_trace_compiler) {
       THR_Print(
@@ -981,7 +981,7 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 
 
 RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
-  // No deopt information if we 'always_optimize' (no deoptimization allowed).
+  // No deopt information if we precompile (no deoptimization allowed).
   if (FLAG_precompilation) {
     return Array::empty_array().raw();
   }
