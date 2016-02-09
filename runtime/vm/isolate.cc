@@ -154,6 +154,17 @@ static Message* SerializeMessage(
 }
 
 
+NoOOBMessageScope::NoOOBMessageScope(Thread* thread) : StackResource(thread) {
+  isolate()->DeferOOBMessageInterrupts();
+}
+
+
+NoOOBMessageScope::~NoOOBMessageScope() {
+  isolate()->RestoreOOBMessageInterrupts();
+}
+
+
+
 void Isolate::RegisterClass(const Class& cls) {
   class_table()->Register(cls);
 }
@@ -788,6 +799,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       simulator_(NULL),
       mutex_(new Mutex()),
       saved_stack_limit_(0),
+      deferred_interrupts_mask_(0),
+      deferred_interrupts_(0),
       stack_overflow_flags_(0),
       stack_overflow_count_(0),
       message_handler_(NULL),
@@ -1050,16 +1063,6 @@ void Isolate::SetStackLimit(uword limit) {
 
 void Isolate::ClearStackLimit() {
   SetStackLimit(~static_cast<uword>(0));
-}
-
-
-void Isolate::ScheduleInterrupts(uword interrupt_bits) {
-  MutexLocker ml(mutex_);
-  ASSERT((interrupt_bits & ~kInterruptsMask) == 0);  // Must fit in mask.
-  if (stack_limit_ == saved_stack_limit_) {
-    stack_limit_ = (~static_cast<uword>(0)) & ~kInterruptsMask;
-  }
-  stack_limit_ |= interrupt_bits;
 }
 
 
@@ -1466,6 +1469,27 @@ void Isolate::Run() {
 }
 
 
+void Isolate::ScheduleInterrupts(uword interrupt_bits) {
+  MutexLocker ml(mutex_);
+  ASSERT((interrupt_bits & ~kInterruptsMask) == 0);  // Must fit in mask.
+
+  // Check to see if any of the requested interrupts should be deferred.
+  uword defer_bits = interrupt_bits & deferred_interrupts_mask_;
+  if (defer_bits != 0) {
+    deferred_interrupts_ |= defer_bits;
+    interrupt_bits &= ~deferred_interrupts_mask_;
+    if (interrupt_bits == 0) {
+      return;
+    }
+  }
+
+  if (stack_limit_ == saved_stack_limit_) {
+    stack_limit_ = (~static_cast<uword>(0)) & ~kInterruptsMask;
+  }
+  stack_limit_ |= interrupt_bits;
+}
+
+
 uword Isolate::GetAndClearInterrupts() {
   MutexLocker ml(mutex_);
   if (stack_limit_ == saved_stack_limit_) {
@@ -1474,6 +1498,40 @@ uword Isolate::GetAndClearInterrupts() {
   uword interrupt_bits = stack_limit_ & kInterruptsMask;
   stack_limit_ = saved_stack_limit_;
   return interrupt_bits;
+}
+
+
+void Isolate::DeferOOBMessageInterrupts() {
+  MutexLocker ml(mutex_);
+  ASSERT(deferred_interrupts_mask_ == 0);
+  deferred_interrupts_mask_ = kMessageInterrupt;
+
+  if (stack_limit_ != saved_stack_limit_) {
+    // Defer any interrupts which are currently pending.
+    deferred_interrupts_ = stack_limit_ & deferred_interrupts_mask_;
+
+    // Clear deferrable interrupts, if present.
+    stack_limit_ &= ~deferred_interrupts_mask_;
+
+    if ((stack_limit_ & kInterruptsMask) == 0) {
+      // No other pending interrupts.  Restore normal stack limit.
+      stack_limit_ = saved_stack_limit_;
+    }
+  }
+}
+
+
+void Isolate::RestoreOOBMessageInterrupts() {
+  MutexLocker ml(mutex_);
+  ASSERT(deferred_interrupts_mask_ == kMessageInterrupt);
+  deferred_interrupts_mask_ = 0;
+  if (deferred_interrupts_ != 0) {
+    if (stack_limit_ == saved_stack_limit_) {
+      stack_limit_ = (~static_cast<uword>(0)) & ~kInterruptsMask;
+    }
+    stack_limit_ |= deferred_interrupts_;
+    deferred_interrupts_ = 0;
+  }
 }
 
 

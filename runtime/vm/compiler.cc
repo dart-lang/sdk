@@ -1466,6 +1466,10 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
+
+    // Don't allow message interrupts while executing constant
+    // expressions.  They can cause bogus recursive compilation.
+    NoOOBMessageScope no_msg_scope(thread);
     if (FLAG_trace_compiler) {
       THR_Print("compiling expression: ");
       if (FLAG_support_ast_printer) {

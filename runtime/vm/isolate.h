@@ -81,6 +81,16 @@ class IsolateVisitor {
 };
 
 
+// Disallow OOB message handling within this scope.
+class NoOOBMessageScope : public StackResource {
+ public:
+  explicit NoOOBMessageScope(Thread* thread);
+  ~NoOOBMessageScope();
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NoOOBMessageScope);
+};
+
+
 class Isolate : public BaseIsolate {
  public:
   // Keep both these enums in sync with isolate_patch.dart.
@@ -665,6 +675,7 @@ class Isolate : public BaseIsolate {
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
+  friend class NoOOBMessageScope;
 
   explicit Isolate(const Dart_IsolateFlags& api_flags);
 
@@ -690,6 +701,9 @@ class Isolate : public BaseIsolate {
   void set_user_tag(uword tag) {
     user_tag_ = tag;
   }
+
+  void DeferOOBMessageInterrupts();
+  void RestoreOOBMessageInterrupts();
 
   RawGrowableObjectArray* GetAndClearPendingServiceExtensionCalls();
   RawGrowableObjectArray* pending_service_extension_calls() const {
@@ -754,6 +768,8 @@ class Isolate : public BaseIsolate {
   Simulator* simulator_;
   Mutex* mutex_;  // protects stack_limit_, saved_stack_limit_, compiler stats.
   uword saved_stack_limit_;
+  uword deferred_interrupts_mask_;
+  uword deferred_interrupts_;
   uword stack_overflow_flags_;
   int32_t stack_overflow_count_;
   MessageHandler* message_handler_;
@@ -876,6 +892,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
   friend class ServiceIsolate;
   friend class Thread;
   friend class Timeline;
+  friend class IsolateTestHelper;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };
