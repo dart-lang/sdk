@@ -431,8 +431,7 @@ class _CompilationUnitSerializer {
         }
       }
       for (ConstructorElement constructor in cls.constructors) {
-        if (constructor.isPublic &&
-            constructor.name.isNotEmpty) {
+        if (constructor.isPublic && constructor.name.isNotEmpty) {
           // TODO(paulberry): should numTypeParameters include class params?
           bs.add(new UnlinkedPublicNameBuilder(
               name: constructor.name,
@@ -692,14 +691,8 @@ class _CompilationUnitSerializer {
    * Serialize the given [prefix] into an index into the references table.
    */
   int serializePrefix(PrefixElement element) {
-    return referenceMap.putIfAbsent(element, () {
-      assert(unlinkedReferences.length == linkedReferences.length);
-      int index = unlinkedReferences.length;
-      unlinkedReferences.add(new UnlinkedReferenceBuilder(name: element.name));
-      linkedReferences
-          .add(new LinkedReferenceBuilder(kind: ReferenceKind.prefix));
-      return index;
-    });
+    return referenceMap.putIfAbsent(element,
+        () => serializeUnlinkedReference(element.name, ReferenceKind.prefix));
   }
 
   /**
@@ -821,6 +814,23 @@ class _CompilationUnitSerializer {
   }
 
   /**
+   * Create a new entry in the references table ([UnlinkedLibrary.references]
+   * and [LinkedLibrary.references]) representing an entity having the given
+   * [name] and [kind].  If [unit] is given, it is the index of the compilation
+   * unit containing the entity being referred to.  If [prefixReference] is
+   * given, it indicates the entry in the references table for the prefix.
+   */
+  int serializeUnlinkedReference(String name, ReferenceKind kind,
+      {int unit: 0, int prefixReference: 0}) {
+    assert(unlinkedReferences.length == linkedReferences.length);
+    int index = unlinkedReferences.length;
+    unlinkedReferences.add(new UnlinkedReferenceBuilder(
+        name: name, prefixReference: prefixReference));
+    linkedReferences.add(new LinkedReferenceBuilder(kind: kind, unit: unit));
+    return index;
+  }
+
+  /**
    * Return the index of the entry in the references table
    * ([UnlinkedLibrary.references] and [LinkedLibrary.references]) used for
    * unresolved references.  A new entry is added to the table if necessary to
@@ -832,12 +842,8 @@ class _CompilationUnitSerializer {
     // the element model.  For the moment we use a name that can't possibly
     // ever exist.
     if (unresolvedReferenceIndex == null) {
-      assert(unlinkedReferences.length == linkedReferences.length);
-      unresolvedReferenceIndex = unlinkedReferences.length;
-      unlinkedReferences
-          .add(new UnlinkedReferenceBuilder(name: '*unresolved*'));
-      linkedReferences
-          .add(new LinkedReferenceBuilder(kind: ReferenceKind.unresolved));
+      return serializeUnlinkedReference(
+          '*unresolved*', ReferenceKind.unresolved);
     }
     return unresolvedReferenceIndex;
   }
@@ -928,22 +934,21 @@ class _CompilationUnitSerializer {
         unit = dependentLibrary.units.indexOf(unitElement);
         assert(unit != -1);
       }
-      LinkedReferenceBuilder linkedReference = new LinkedReferenceBuilder(
-          dependency: librarySerializer.serializeDependency(dependentLibrary),
-          kind: _getReferenceKind(element),
-          unit: unit);
-      if (element is TypeParameterizedElement) {
-        linkedReference.numTypeParameters = element.typeParameters.length;
-      }
+      ReferenceKind kind = _getReferenceKind(element);
       String name = element == null ? 'void' : element.name;
+      int index;
+      LinkedReferenceBuilder linkedReference;
       if (linked) {
-        linkedReference.name = name;
+        linkedReference =
+            new LinkedReferenceBuilder(kind: kind, unit: unit, name: name);
         Element enclosing = element?.enclosingElement;
         if (enclosing is ClassElement) {
           linkedReference.containingReference =
               _getElementReferenceId(enclosing, linked: linked);
-          linkedReference.numTypeParameters += enclosing.typeParameters.length;
+          linkedReference.numTypeParameters = enclosing.typeParameters.length;
         }
+        index = linkedReferences.length;
+        linkedReferences.add(linkedReference);
       } else {
         assert(unlinkedReferences.length == linkedReferences.length);
         int prefixReference = 0;
@@ -961,24 +966,22 @@ class _CompilationUnitSerializer {
         } else {
           prefixReference = _getElementReferenceId(enclosing, linked: linked);
         }
-        unlinkedReferences.add(new UnlinkedReferenceBuilder(
-            name: name, prefixReference: prefixReference));
+        index = serializeUnlinkedReference(name, kind,
+            prefixReference: prefixReference, unit: unit);
+        linkedReference = linkedReferences[index];
       }
-      int index = linkedReferences.length;
-      linkedReferences.add(linkedReference);
+      linkedReference.dependency =
+          librarySerializer.serializeDependency(dependentLibrary);
+      if (element is TypeParameterizedElement) {
+        linkedReference.numTypeParameters += element.typeParameters.length;
+      }
       return index;
     });
   }
 
   int _getLengthPropertyReference(int prefix) {
-    assert(unlinkedReferences.length == linkedReferences.length);
-    int index = linkedReferences.length;
-    unlinkedReferences.add(
-        new UnlinkedReferenceBuilder(name: 'length', prefixReference: prefix));
-    LinkedReferenceBuilder linkedReference =
-        new LinkedReferenceBuilder(kind: ReferenceKind.length);
-    linkedReferences.add(linkedReference);
-    return index;
+    return serializeUnlinkedReference('length', ReferenceKind.length,
+        prefixReference: prefix);
   }
 }
 
@@ -1035,13 +1038,11 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     if (name == null) {
       return typeRef;
     } else {
-      int typeId = typeRef.reference;
-      LinkedReference typeLinkedRef = serializer.linkedReferences[typeId];
-      serializer.unlinkedReferences.add(new UnlinkedReferenceBuilder(
-          name: name.name, prefixReference: typeId));
-      int refId = serializer.linkedReferences.length;
-      serializer.linkedReferences.add(new LinkedReferenceBuilder(
-          kind: ReferenceKind.constructor, unit: typeLinkedRef.unit));
+      LinkedReference typeLinkedRef =
+          serializer.linkedReferences[typeRef.reference];
+      int refId = serializer.serializeUnlinkedReference(
+          name.name, ReferenceKind.constructor,
+          prefixReference: typeRef.reference, unit: typeLinkedRef.unit);
       return new EntityRefBuilder(
           reference: refId, typeArguments: typeRef.typeArguments);
     }
