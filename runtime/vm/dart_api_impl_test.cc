@@ -2819,6 +2819,7 @@ UNIT_TEST_CASE(WeakPersistentHandlesCallbackShutdown) {
                                &peer,
                                0,
                                WeakPersistentHandlePeerFinalizer);
+  Dart_ExitScope();
   Dart_ShutdownIsolate();
   EXPECT(peer == 42);
 }

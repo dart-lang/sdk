@@ -1537,6 +1537,7 @@ UNIT_TEST_CASE(ScriptSnapshot1) {
     EXPECT(script_snapshot != NULL);
     result = Dart_LoadScriptFromSnapshot(script_snapshot, size);
     EXPECT_VALID(result);
+    Dart_ExitScope();
   }
 
   FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
@@ -1657,6 +1658,7 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
     // Invoke the test_b function.
     result = Dart_Invoke(lib, NewString("test_b"), 0, NULL);
     EXPECT(Dart_IsError(result) == saved_enable_type_checks_mode);
+    Dart_ExitScope();
   }
   Dart_ShutdownIsolate();
   free(full_snapshot);

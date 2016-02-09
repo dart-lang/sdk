@@ -210,6 +210,7 @@ void MessageEvent::Process() {
     OS::Print("<< Shutting down isolate(%p)\n", isolate());
     event_queue->RemoveEventsForIsolate(isolate());
     Dart_SetMessageNotifyCallback(NULL);
+    Dart_ExitScope();
     Dart_ShutdownIsolate();
   } else {
     Dart_ExitScope();
