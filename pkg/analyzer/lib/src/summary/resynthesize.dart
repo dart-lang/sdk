@@ -455,8 +455,10 @@ class _ConstExprBuilder {
       (node.name as SimpleIdentifier).staticElement = type.element;
       return node;
     } else if (type is InterfaceType) {
-      List<TypeName> argumentNodes =
-          type.typeArguments.map(_buildTypeAst).toList();
+      List<DartType> typeArguments = type.typeArguments;
+      List<TypeName> argumentNodes = typeArguments.every((a) => a.isDynamic)
+          ? null
+          : typeArguments.map(_buildTypeAst).toList();
       TypeName node = AstFactory.typeName4(type.name, argumentNodes);
       node.type = type;
       (node.name as SimpleIdentifier).staticElement = type.element;
@@ -476,8 +478,13 @@ class _ConstExprBuilder {
     _ReferenceInfo classInfo = isClass ? info : info.enclosing;
     List<DartType> typeArguments =
         typeArgumentRefs.map(resynthesizer.buildType).toList();
-    InterfaceType classType =
-        classInfo.buildType((i) => typeArguments[i], const <int>[]);
+    InterfaceType classType = classInfo.buildType((i) {
+      if (i < typeArguments.length) {
+        return typeArguments[i];
+      } else {
+        return DynamicTypeImpl.instance;
+      }
+    }, const <int>[]);
     String name = isClass ? '' : info.name;
     return new _DeferredConstructorElement(classType, name);
   }

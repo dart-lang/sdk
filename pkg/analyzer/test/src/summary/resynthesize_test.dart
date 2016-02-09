@@ -1265,6 +1265,15 @@ const V = const p.C<int, String>.named(1, '222');
 ''');
   }
 
+  test_const_invokeConstructor_generic_noTypeArguments() {
+    checkLibrary(r'''
+class C<K, V> {
+  const C();
+}
+const V = const C();
+''');
+  }
+
   test_const_invokeConstructor_generic_unnamed() {
     checkLibrary(r'''
 class C<K, V> {
