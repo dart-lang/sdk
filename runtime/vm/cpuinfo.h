@@ -45,15 +45,9 @@ class CpuInfo : public AllStatic {
 
   // Returns true if the cpuinfo field contains the string.
   static bool FieldContains(CpuInfoIndices idx, const char* search_string);
-  static bool FieldContainsByString(
-      const char* field, const char* search_string);
 
   // Returns true if the cpuinfo field [field] exists and is non-empty.
   static bool HasField(const char* field);
-
-  // Returns the field. Caller is responsible for freeing the result.
-  static const char* ExtractField(CpuInfoIndices idx);
-  static const char* ExtractFieldByString(const char* field);
 
   // Returns the field describing the CPU model. Caller is responsible for
   // freeing the result.
@@ -66,6 +60,9 @@ class CpuInfo : public AllStatic {
   }
 
  private:
+  // Returns the field. Caller is responsible for freeing the result.
+  static const char* ExtractField(CpuInfoIndices idx);
+
   // The method to use to acquire info about the CPU.
   static CpuInfoMethod method_;
 

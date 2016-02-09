@@ -52,22 +52,9 @@ bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
 }
 
 
-bool CpuInfo::FieldContainsByString(const char* field,
-                                    const char* search_string) {
-  ASSERT(method_ != kCpuInfoDefault);
-  return ProcCpuInfo::FieldContains(field, search_string);
-}
-
-
 const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
   ASSERT(method_ != kCpuInfoDefault);
   return ProcCpuInfo::ExtractField(FieldName(idx));
-}
-
-
-const char* CpuInfo::ExtractFieldByString(const char* field) {
-  ASSERT(method_ != kCpuInfoDefault);
-  return ProcCpuInfo::ExtractField(field);
 }
 
 

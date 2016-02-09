@@ -31,10 +31,10 @@ void CpuInfo::InitOnce() {
 void CpuInfo::Cleanup() {}
 
 
-bool CpuInfo::FieldContainsByString(const char* field,
-                                    const char* search_string) {
+bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
   ASSERT(method_ != kCpuInfoDefault);
   ASSERT(search_string != NULL);
+  const char* field = FieldName[idx];
   char dest[1024];
   size_t dest_len = 1024;
 
@@ -48,14 +48,9 @@ bool CpuInfo::FieldContainsByString(const char* field,
 }
 
 
-bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
+const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
   ASSERT(method_ != kCpuInfoDefault);
-  return FieldContainsByString(FieldName(idx), search_string);
-}
-
-
-const char* CpuInfo::ExtractFieldByString(const char* field) {
-  ASSERT(method_ != kCpuInfoDefault);
+  const char* field = FieldName(idx);
   ASSERT(field != NULL);
   size_t result_len;
 
@@ -65,19 +60,13 @@ const char* CpuInfo::ExtractFieldByString(const char* field) {
     return 0;
   }
 
-  char* result = new char[result_len];
+  char* result = reinterpret_cast<char*>(malloc(result_len));
   if (sysctlbyname(field, result, &result_len, NULL, 0) != 0) {
     UNREACHABLE();
     return 0;
   }
 
   return result;
-}
-
-
-const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
-  ASSERT(method_ != kCpuInfoDefault);
-  return ExtractFieldByString(FieldName(idx));
 }
 
 
