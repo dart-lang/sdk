@@ -173,11 +173,27 @@ class TypeMaskSystem implements AbstractValueDomain {
   }
 
   @override
-  bool methodUsesReceiverArgument(FunctionElement function) {
+  bool methodIgnoresReceiverArgument(FunctionElement function) {
     assert(backend.isInterceptedMethod(function));
     ClassElement clazz = function.enclosingClass.declaration;
-    return clazz.isSubclassOf(helpers.jsInterceptorClass) ||
-           classWorld.isUsedAsMixin(clazz);
+    return !clazz.isSubclassOf(helpers.jsInterceptorClass) &&
+           !classWorld.isUsedAsMixin(clazz);
+  }
+
+  @override
+  bool targetIgnoresReceiverArgument(TypeMask type, Selector selector) {
+    // Check if any of the possible targets depend on the extra receiver
+    // argument. Mixins do this, and tear-offs always needs the extra receiver
+    // argument because BoundClosure uses it for equality and hash code.
+    // TODO(15933): Make automatically generated property extraction
+    // closures work with the dummy receiver optimization.
+    bool needsReceiver(Element target) {
+      if (target is! FunctionElement) return false;
+      FunctionElement function = target;
+      return selector.isGetter && !function.isGetter ||
+             !methodIgnoresReceiverArgument(function);
+    }
+    return !classWorld.allFunctions.filter(selector, type).any(needsReceiver);
   }
 
   @override

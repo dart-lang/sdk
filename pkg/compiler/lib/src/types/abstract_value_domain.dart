@@ -53,7 +53,13 @@ abstract class AbstractValueDomain {
 
   AbstractValue get interceptedTypes;
 
-  bool methodUsesReceiverArgument(FunctionElement function);
+  /// If true, [function] ignores its explicit receiver argument and will use
+  /// its `this` value instead.
+  bool methodIgnoresReceiverArgument(FunctionElement function);
+
+  /// If true, the explicit receiver argument can be ignored when invoking
+  /// [selector] on a value of [type].
+  bool targetIgnoresReceiverArgument(AbstractValue type, Selector selector);
 
   Element locateSingleElement(AbstractValue mask, Selector selector);
 

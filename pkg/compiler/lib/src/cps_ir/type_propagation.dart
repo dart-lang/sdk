@@ -2009,20 +2009,10 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       // the error message when the receiver is null, but we accept this.
       node.receiver.changeTo(node.dartReceiver);
 
-      // Check if any of the possible targets depend on the extra receiver
-      // argument. Mixins do this, and tear-offs always needs the extra receiver
-      // argument because BoundClosure uses it for equality and hash code.
-      // TODO(15933): Make automatically generated property extraction
-      // closures work with the dummy receiver optimization.
-      bool needsReceiver(Element target) {
-        if (target is! FunctionElement) return false;
-        FunctionElement function = target;
-        return typeSystem.methodUsesReceiverArgument(function) ||
-               node.selector.isGetter && !function.isGetter;
-      }
-      if (!getAllTargets(receiverType, node.selector).any(needsReceiver)) {
-        // Replace the extra receiver argument with a dummy value if the
-        // target definitely does not use it.
+      // Replace the extra receiver argument with a dummy value if the
+      // target definitely does not use it.
+      if (typeSystem.targetIgnoresReceiverArgument(receiverType,
+            node.selector)) {
         Constant dummy = makeConstantPrimitive(new IntConstantValue(0));
         new LetPrim(dummy).insertAbove(node.parent);
         node.arguments[0].changeTo(dummy);
@@ -2573,7 +2563,7 @@ class TypePropagationVisitor implements Visitor {
     // change the abstract value.
     if (node.thisParameter != null && getValue(node.thisParameter).isNothing) {
       if (isIntercepted &&
-          typeSystem.methodUsesReceiverArgument(node.element)) {
+          !typeSystem.methodIgnoresReceiverArgument(node.element)) {
         setValue(node.thisParameter, nonConstant(typeSystem.nonNullType));
       } else {
         setValue(node.thisParameter,
@@ -2581,11 +2571,11 @@ class TypePropagationVisitor implements Visitor {
       }
     }
     if (isIntercepted && getValue(node.parameters[0]).isNothing) {
-      if (typeSystem.methodUsesReceiverArgument(node.element)) {
+      if (typeSystem.methodIgnoresReceiverArgument(node.element)) {
+        setValue(node.parameters[0], nonConstant());
+      } else {
         setValue(node.parameters[0],
             nonConstant(typeSystem.getReceiverType(node.element)));
-      } else {
-        setValue(node.parameters[0], nonConstant());
       }
     }
     bool hasParameterWithoutValue = false;

@@ -1,12 +1,23 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-library dart2js.cps_ir.duplicate_branch;
+library dart2js.cps_ir.duplicate_branch; // FIXME: Rename file.
 
 import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
 import 'cps_fragment.dart';
+import '../js_backend/js_backend.dart';
+import '../constants/values.dart';
+import '../elements/elements.dart';
+import '../universe/selector.dart';
+import '../types/types.dart';
+import 'type_mask_system.dart';
 
+/// Optimizations based on intraprocedural forward dataflow analysis, taking
+/// into account path information that is not expressed by [Refinement] nodes.
+///
+/// ---
+///
 /// Removes branches that branch on the same value as a previously seen branch.
 /// For example:
 ///
@@ -27,6 +38,23 @@ import 'cps_fragment.dart';
 ///     if (b) {
 ///       TRUE
 ///     }
+///
+/// ---
+///
+/// Removes interceptors for method calls whose receiver is known to be a
+/// self-interceptor. For example:
+///
+///     x.foo$1();
+///     getInterceptor(x).$eq(x, y);
+///
+/// ==> (`x` is a self-interceptor, remove the `getInterceptor` call)
+///
+///     x.foo$1();
+///     x.$eq(0, y);
+///
+/// Although there is a [Refinement] node after the call to `x.foo$1()`, the
+/// refined type cannot always be represented exactly, and type propagation
+/// may therefore not see that `x` is a self-interceptor.
 //
 // TODO(asgerf): A kind of redundant join can arise where a branching condition
 // is known to be true/false on all but one predecessor for a branch. We could
@@ -35,18 +63,25 @@ import 'cps_fragment.dart';
 // TODO(asgerf): Could be more precise if GVN shared expressions that are not
 // in direct scope of one another, e.g. by using phis pass the shared value.
 //
-class DuplicateBranchEliminator extends TrampolineRecursiveVisitor
-                                implements Pass {
-  String get passName => 'Duplicate branch elimination';
+class PathBasedOptimizer extends TrampolineRecursiveVisitor
+                         implements Pass {
+  String get passName => 'Path-based optimizations';
 
+  // Classification of all values.
   static const int TRUE = 1 << 0;
-  static const int OTHER_TRUTHY = 1 << 1;
-  static const int FALSE = 1 << 2;
-  static const int OTHER_FALSY = 1 << 3;
+  static const int SELF_INTERCEPTOR = 1 << 1;
+  static const int INTERCEPTED_TRUTHY = 1 << 2;
+  static const int FALSE = 1 << 3;
+  static const int OTHER_FALSY = 1 << 4;
 
-  static const int TRUTHY = TRUE | OTHER_TRUTHY;
+  static const int TRUTHY = TRUE | SELF_INTERCEPTOR | INTERCEPTED_TRUTHY;
   static const int FALSY = FALSE | OTHER_FALSY;
   static const int ANY = TRUTHY | FALSY;
+
+  final JavaScriptBackend backend;
+  final TypeMaskSystem typeSystem;
+
+  PathBasedOptimizer(this.backend, this.typeSystem);
 
   /// The possible values of the given primitive (or ANY if absent) at the
   /// current traversal position.
@@ -118,6 +153,32 @@ class DuplicateBranchEliminator extends TrampolineRecursiveVisitor
     } else {
       valuesAt[trueCont] = copy(valueOf)..[condition] = values & positiveValues;
       valuesAt[falseCont] = valueOf..[condition] = values & negativeValues;
+    }
+  }
+
+  void visitInvokeMethod(InvokeMethod node) {
+    int receiverValue = valueOf[node.dartReceiver] ?? ANY;
+    if (!backend.isInterceptedSelector(node.selector)) {
+      // Only self-interceptors can respond to a non-intercepted selector.
+      valueOf[node.dartReceiver] = receiverValue & SELF_INTERCEPTOR;
+    } else if (receiverValue & ~SELF_INTERCEPTOR == 0 &&
+               node.callingConvention == CallingConvention.Intercepted) {
+      // This is an intercepted call whose receiver is definitely a
+      // self-interceptor.
+      // TODO(25646): If TypeMasks could represent "any self-interceptor" this
+      //   optimization should be subsumed by type propagation.
+      node.receiver.changeTo(node.dartReceiver);
+
+      // Replace the extra receiver argument with a dummy value if the
+      // target definitely does not use it.
+      if (typeSystem.targetIgnoresReceiverArgument(node.dartReceiver.type,
+            node.selector)) {
+        Constant dummy = new Constant(new IntConstantValue(0))
+            ..type = typeSystem.intType;
+        new LetPrim(dummy).insertAbove(node.parent);
+        node.arguments[0].changeTo(dummy);
+        node.callingConvention = CallingConvention.DummyIntercepted;
+      }
     }
   }
 }
