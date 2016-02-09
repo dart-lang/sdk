@@ -16,21 +16,7 @@ import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, Source, SourceFactory, SourceKind;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
-import 'package:analyzer/src/task/dart.dart'
-    show
-        CONSTANT_VALUE,
-        LIBRARY_ELEMENT1,
-        LIBRARY_ELEMENT2,
-        LIBRARY_ELEMENT3,
-        LIBRARY_ELEMENT4,
-        LIBRARY_ELEMENT5,
-        LIBRARY_ELEMENT6,
-        LIBRARY_ELEMENT7,
-        LIBRARY_ELEMENT8,
-        READY_LIBRARY_ELEMENT2,
-        READY_LIBRARY_ELEMENT5,
-        READY_LIBRARY_ELEMENT6,
-        TYPE_PROVIDER;
+import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart'
     show AnalysisTarget, ResultDescriptor, TargetedResult;
@@ -55,20 +41,22 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
   @override
   bool compute(CacheEntry entry, ResultDescriptor result) {
     if (result == TYPE_PROVIDER) {
-//      print('SummarySdkAnalysisContext: $result');
       entry.setValue(result, typeProvider, TargetedResult.EMPTY_LIST);
       return true;
     }
     AnalysisTarget target = entry.target;
-    // TODO(scheglov) we don't actually update "evaluationResult" yet
-    if (result == CONSTANT_VALUE) {
-      if (target.source != null && target.source.isInSystemLibrary) {
-        entry.setValue(result, target, TargetedResult.EMPTY_LIST);
-        return true;
-      }
+    // Only SDK sources after this point.
+    if (target.source == null || !target.source.isInSystemLibrary) {
+      return false;
     }
-    if (target is Source && target.isInSystemLibrary) {
-//      print('SummarySdkAnalysisContext: $result of $target');
+//    print('SummarySdkAnalysisContext: $result of $target');
+    // Constant expressions are always resolved in summaries.
+    if (result == CONSTANT_EXPRESSION_RESOLVED &&
+        target is ConstantEvaluationTarget) {
+      entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+      return true;
+    }
+    if (target is Source) {
       if (result == LIBRARY_ELEMENT1 ||
           result == LIBRARY_ELEMENT2 ||
           result == LIBRARY_ELEMENT3 ||

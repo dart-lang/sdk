@@ -556,7 +556,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    */
   SdkBundle _getSummarySdkBundle() {
     String rootPath = directory.getAbsolutePath();
-    String path = pathos.join(rootPath, 'lib', '_internal', 'analysis_summary');
+    String path = pathos.join(rootPath, 'lib', '_internal', 'spec.sum');
     try {
       File file = new File(path);
       if (file.existsSync()) {
