@@ -34,7 +34,7 @@ void CpuInfo::Cleanup() {}
 bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
   ASSERT(method_ != kCpuInfoDefault);
   ASSERT(search_string != NULL);
-  const char* field = FieldName[idx];
+  const char* field = FieldName(idx);
   char dest[1024];
   size_t dest_len = 1024;
 
