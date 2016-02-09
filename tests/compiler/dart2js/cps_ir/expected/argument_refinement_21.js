@@ -10,9 +10,12 @@
 // }
 
 function() {
-  var x = P.int_parse("1233", null, null), y = P.int_parse("1234", null, null), v0 = typeof y === "number";
-  P.print(J.$div$n(x, 2));
+  var x = P.int_parse("1233", null, null), y = P.int_parse("1234", null, null), v0;
+  if (typeof x !== "number")
+    return x.$div();
+  P.print(x / 2);
   P.print(true);
+  v0 = typeof y === "number";
   P.print(v0);
   if (!v0)
     throw H.wrapException(H.argumentErrorValue(y));

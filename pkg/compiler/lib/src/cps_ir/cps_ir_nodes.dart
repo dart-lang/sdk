@@ -260,7 +260,7 @@ abstract class Primitive extends Variable<Primitive> {
   // TODO(johnniwinther): Require source information for all primitives.
   SourceInformation get sourceInformation => null;
 
-  /// If this is a [Refinement], [BoundsCheck] or [NullCheck] node, returns the
+  /// If this is a [Refinement], [BoundsCheck] or [ReceiverCheck] node, returns the
   /// value being refined, the indexable object being checked, or the value
   /// that was checked to be non-null, respectively.
   ///
@@ -805,7 +805,7 @@ class Refinement extends Primitive {
 class BoundsCheck extends Primitive {
   final Reference<Primitive> object;
   Reference<Primitive> index;
-  Reference<Primitive> length; // FIXME write docs for length
+  Reference<Primitive> length;
   int checks;
   final SourceInformation sourceInformation;
 
@@ -879,53 +879,99 @@ class BoundsCheck extends Primitive {
   Primitive get effectiveDefinition => object.definition.effectiveDefinition;
 }
 
-/// Throw an exception if [value] is `null`.
+/// Throw a [NoSuchMethodError] if [value] cannot respond to [selector].
 ///
 /// Returns [value] so this can be used to restrict code motion.
 ///
-/// In the simplest form this compiles to `value.toString;`.
+/// The check can take one of three forms:
 ///
-/// [selector] holds the selector that is the cause of the null check. This is
-/// usually a method that was inlined where [value] the receiver.
+///     value.toString;
+///     value.selectorName;
+///     value.selectorName();    (should only be used if check always fails)
 ///
-/// If [selector] is set and [useSelector] is true, `toString` is replaced with
-/// the (possibly minified) invocation name of the selector.  This can be
-/// shorter and generate a more meaningful error message, but is expensive if
-/// [value] is non-null and does not have that property at runtime.
+/// The first two forms are used when it is known that only null fails the
+/// check.  Additionally, the check may be guarded by a [condition], allowing
+/// for three more forms:
 ///
-/// If [condition] is set, it is assumed that [condition] is true if and only
-/// if [value] is null.  The check then compiles to:
+///     if (condition) value.toString;          (this form is valid but unused)
+///     if (condition) value.selectorName;
+///     if (condition) value.selectorName();
 ///
-///     if (condition) value.toString;  (or .selector if non-null)
+/// The condition must be true if and only if the check should fail. It should
+/// ideally be of a form understood by JS engines, e.g. a `typeof` test.
 ///
-/// The latter form is useful when [condition] is a form understood by the JS
-/// runtime, such as a `typeof` test.
-class NullCheck extends Primitive {
+/// If [useSelector] is false, the first form instead becomes `value.toString;`.
+/// This form is faster when the value is non-null and the accessed property has
+/// been removed by tree shaking.
+///
+/// [selector] may not be one of the selectors implemented by the null object.
+class ReceiverCheck extends Primitive {
   final Reference<Primitive> value;
   final Selector selector;
-  final bool useSelector;
-  final Reference<Primitive> condition;
   final SourceInformation sourceInformation;
+  final Reference<Primitive> condition;
+  final int _flags;
 
-  NullCheck(Primitive value, this.sourceInformation,
-            {Primitive condition,
-             this.selector,
-             this.useSelector: false})
-      : this.value = new Reference<Primitive>(value),
-        this.condition =
-            condition == null ? null : new Reference<Primitive>(condition);
+  static const int _USE_SELECTOR = 1 << 0;
+  static const int _NULL_CHECK = 1 << 1;
 
-  NullCheck.guarded(Primitive condition, Primitive value, this.selector,
-        this.sourceInformation)
-      : this.condition = new Reference<Primitive>(condition),
-        this.value = new Reference<Primitive>(value),
-        this.useSelector = true;
+  /// True if the selector name should be used in the check; otherwise
+  /// `toString` will be used.
+  bool get useSelector => _flags & _USE_SELECTOR != 0;
+
+  /// True if null is the only possible input that cannot respond to [selector].
+  bool get isNullCheck => _flags & _NULL_CHECK != 0;
+
+
+  /// Constructor for creating checks in arbitrary configurations.
+  ///
+  /// Consider using one of the named constructors instead.
+  ///
+  /// [useSelector] and [isNullCheck] are mandatory named arguments.
+  ReceiverCheck(Primitive value, this.selector, this.sourceInformation,
+        {Primitive condition, bool useSelector, bool isNullCheck})
+      : value = new Reference<Primitive>(value),
+        condition = _optionalReference(condition),
+        _flags = (useSelector ? _USE_SELECTOR : 0) |
+                 (isNullCheck ? _NULL_CHECK : 0);
+
+  /// Simplified constructor for building null checks.
+  ///
+  /// Null must be the only possible input value that does not respond to
+  /// [selector].
+  ReceiverCheck.nullCheck(
+        Primitive value,
+        Selector selector,
+        SourceInformation sourceInformation,
+        {Primitive condition})
+      : this(value,
+            selector,
+            sourceInformation,
+            condition: condition,
+            useSelector: condition != null,
+            isNullCheck: true);
+
+  /// Simplified constructor for building the general check of form:
+  ///
+  ///     if (condition) value.selectorName();
+  ///
+  ReceiverCheck.generalCheck(
+        Primitive value,
+        Selector selector,
+        SourceInformation sourceInformation,
+        Primitive condition)
+      : this(value,
+            selector,
+            sourceInformation,
+            condition: condition,
+            useSelector: true,
+            isNullCheck: false);
 
   bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
   bool get hasValue => true;
 
-  accept(Visitor visitor) => visitor.visitNullCheck(this);
+  accept(Visitor visitor) => visitor.visitReceiverCheck(this);
 
   void setParentPointers() {
     value.parent = this;
@@ -935,6 +981,10 @@ class NullCheck extends Primitive {
   }
 
   Primitive get effectiveDefinition => value.definition.effectiveDefinition;
+
+  String get nullCheckString => isNullCheck ? 'null-check' : 'general-check';
+  String get useSelectorString => useSelector ? 'use-selector' : 'no-selector';
+  String get flagString => '$nullCheckString $useSelectorString';
 }
 
 /// An "is" type test.
@@ -1930,6 +1980,16 @@ class Yield extends UnsafePrimitive {
   }
 }
 
+Reference<Primitive> _reference(Primitive definition) {
+  return new Reference<Primitive>(definition);
+}
+
+Reference<Primitive> _optionalReference(Primitive definition) {
+  return definition == null
+      ? null
+      : new Reference<Primitive>(definition);
+}
+
 List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {
   return definitions.map((e) => new Reference<Primitive>(e)).toList();
 }
@@ -2079,7 +2139,7 @@ abstract class Visitor<T> implements BlockVisitor<T> {
   T visitSetIndex(SetIndex node);
   T visitRefinement(Refinement node);
   T visitBoundsCheck(BoundsCheck node);
-  T visitNullCheck(NullCheck node);
+  T visitReceiverCheck(ReceiverCheck node);
   T visitForeignCode(ForeignCode node);
 }
 
@@ -2402,8 +2462,8 @@ class DeepRecursiveVisitor implements Visitor {
     }
   }
 
-  processNullCheck(NullCheck node) {}
-  visitNullCheck(NullCheck node) {
+  processNullCheck(ReceiverCheck node) {}
+  visitReceiverCheck(ReceiverCheck node) {
     processNullCheck(node);
     processReference(node.value);
     if (node.condition != null) {
@@ -2763,11 +2823,13 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
     }
   }
 
-  Definition visitNullCheck(NullCheck node) {
-    return new NullCheck(getCopy(node.value), node.sourceInformation,
+  Definition visitReceiverCheck(ReceiverCheck node) {
+    return new ReceiverCheck(getCopy(node.value),
+        node.selector,
+        node.sourceInformation,
         condition: node.condition == null ? null : getCopy(node.condition),
-        selector: node.selector,
-        useSelector: node.useSelector);
+        useSelector: node.useSelector,
+        isNullCheck: node.isNullCheck);
   }
 
   Definition visitForeignCode(ForeignCode node) {

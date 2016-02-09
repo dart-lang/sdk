@@ -702,6 +702,17 @@ class ConstantPropagationLattice {
     return nonConstant(value.type.nonNullable());
   }
 
+  AbstractConstantValue intersectWithType(AbstractConstantValue value,
+        TypeMask type) {
+    if (value.isNothing || typeSystem.areDisjoint(value.type, type)) {
+      return nothing;
+    } else if (value.isConstant) {
+      return value;
+    } else {
+      return nonConstant(typeSystem.intersection(value.type, type));
+    }
+  }
+
   /// If [value] is an integer constant, returns its value, otherwise `null`.
   int intValue(AbstractConstantValue value) {
     if (value.isConstant && value.constant.isInt) {
@@ -798,11 +809,17 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
   final List<Node> stack = <Node>[];
 
+  TypeCheckOperator checkIsNumber;
+
   TransformingVisitor(this.compiler,
                       this.functionCompiler,
                       this.lattice,
                       this.analyzer,
-                      this.internalError);
+                      this.internalError) {
+    checkIsNumber = new ClassTypeCheckOperator(
+        helpers.jsNumberClass,
+        BuiltinOperator.IsNotNumber);
+  }
 
   void transform(FunctionDefinition root) {
     // If one of the parameters has no value, the function is unreachable.
@@ -1116,41 +1133,99 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   ///
   /// Returns `true` if the node was replaced.
   specializeOperatorCall(InvokeMethod node) {
+    if (!backend.isInterceptedSelector(node.selector)) return null;
+    if (node.dartArgumentsLength > 1) return null;
+    if (node.callingConvention == CallingConvention.OneShotIntercepted) {
+      return null;
+    }
+
     bool trustPrimitives = compiler.trustPrimitives;
 
-    /// Throws a [NoSuchMethodError] if the receiver is null, where [guard]
-    /// is a predicate that is true if and only if the receiver is null.
-    ///
-    /// See [NullCheck.guarded].
-    Primitive guardReceiver(CpsFragment cps, BuiltinOperator guard) {
-      if (guard == null || getValue(node.dartReceiver).isDefinitelyNotNull) {
-        return node.dartReceiver;
+    /// Check that the receiver and argument satisfy the given type checks, and
+    /// throw a [NoSuchMethodError] or [ArgumentError] if the check fails.
+    CpsFragment makeGuard(TypeCheckOperator receiverGuard,
+                          [TypeCheckOperator argumentGuard]) {
+      CpsFragment cps = new CpsFragment(node.sourceInformation);
+
+      // Make no guards if trusting primitives.
+      if (trustPrimitives) return cps;
+
+      // Determine which guards are needed.
+      ChecksNeeded receiverChecks =
+          receiverGuard.getChecksNeeded(node.dartReceiver, classWorld);
+      bool needReceiverGuard = receiverChecks != ChecksNeeded.None;
+      bool needArgumentGuard =
+          argumentGuard != null &&
+          argumentGuard.needsCheck(node.dartArgument(0), classWorld);
+
+      if (!needReceiverGuard && !needArgumentGuard) return cps;
+
+      // If we only need the receiver check, emit the specialized receiver
+      // check instruction. Examples:
+      //
+      //   if (typeof receiver !== "number") return receiver.$lt;
+      //   if (typeof receiver !== "number") return receiver.$lt();
+      //
+      if (!needArgumentGuard) {
+        Primitive condition = receiverGuard.makeCheck(cps, node.dartReceiver);
+        cps.letPrim(new ReceiverCheck(
+            node.dartReceiver,
+            node.selector,
+            node.sourceInformation,
+            condition: condition,
+            useSelector: true,
+            isNullCheck: receiverChecks == ChecksNeeded.Null
+        ));
+        return cps;
       }
-      if (!trustPrimitives) {
-        // TODO(asgerf): Perhaps a separate optimization should decide that
-        // the guarded check is better based on the type?
-        Primitive check = cps.applyBuiltin(guard, [node.dartReceiver]);
-        return cps.letPrim(new NullCheck.guarded(check, node.dartReceiver,
-          node.selector, node.sourceInformation));
-      } else {
-        // Refine the receiver to be non-null for use in the operator.
-        // This restricts code motion and improves the type computed for the
-        // built-in operator that depends on it.
-        // This must be done even if trusting primitives.
-        return cps.letPrim(
-            new Refinement(node.dartReceiver, typeSystem.nonNullType));
+
+      // TODO(asgerf): We should consider specialized instructions for
+      //   argument checks and receiver+argument checks, to avoid breaking up
+      //   basic blocks.
+
+      // Emit as `H.iae(x)` if only the argument check may fail. For example:
+      //
+      //   if (typeof argument !== "number") return H.iae(argument);
+      //
+      if (!needReceiverGuard) {
+        cps.ifTruthy(argumentGuard.makeCheck(cps, node.dartArgument(0)))
+           .invokeStaticThrower(helpers.throwIllegalArgumentException,
+              [node.dartArgument(0)]);
+        return cps;
       }
+
+      // Both receiver and argument check is needed. Emit as a combined check
+      // using a one-shot interceptor to produce the exact error message in
+      // the error case.  For example:
+      //
+      //   if (typeof receiver !== "number" || typeof argument !== "number")
+      //       return J.$lt(receiver, argument);
+      //
+      Continuation fail = cps.letCont();
+      cps.ifTruthy(receiverGuard.makeCheck(cps, node.dartReceiver))
+         .invokeContinuation(fail);
+      cps.ifTruthy(argumentGuard.makeCheck(cps, node.dartArgument(0)))
+         .invokeContinuation(fail);
+
+      cps.insideContinuation(fail)
+         ..invokeMethod(node.dartReceiver, node.selector, node.mask,
+             [node.dartArgument(0)], CallingConvention.OneShotIntercepted)
+         ..put(new Unreachable());
+
+      return cps;
     }
 
     /// Replaces the call with [operator], using the receiver and first argument
     /// as operands (in that order).
     ///
-    /// If [guard] is given, the receiver is checked using [guardReceiver],
-    /// unless it is known not to be null.
-    CpsFragment makeBinary(BuiltinOperator operator, {BuiltinOperator guard}) {
-      CpsFragment cps = new CpsFragment(node.sourceInformation);
-      Primitive left = guardReceiver(cps, guard);
-      Primitive right = node.dartArgument(0);
+    /// If [guard] is given, the receiver and argument are both checked using
+    /// that operator.
+    CpsFragment makeBinary(BuiltinOperator operator,
+                           {TypeCheckOperator guard: TypeCheckOperator.none}) {
+      CpsFragment cps = makeGuard(guard, guard);
+      Primitive left = guard.makeRefinement(cps, node.dartReceiver, classWorld);
+      Primitive right =
+          guard.makeRefinement(cps, node.dartArgument(0), classWorld);
       Primitive result = cps.applyBuiltin(operator, [left, right]);
       result.hint = node.hint;
       node.replaceUsesWith(result);
@@ -1159,14 +1234,19 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
     /// Like [makeBinary] but for unary operators with the receiver as the
     /// argument.
-    CpsFragment makeUnary(BuiltinOperator operator, {BuiltinOperator guard}) {
-      CpsFragment cps = new CpsFragment(node.sourceInformation);
-      Primitive argument = guardReceiver(cps, guard);
+    CpsFragment makeUnary(BuiltinOperator operator,
+                          {TypeCheckOperator guard: TypeCheckOperator.none}) {
+      CpsFragment cps = makeGuard(guard);
+      Primitive argument =
+          guard.makeRefinement(cps, node.dartReceiver, classWorld);
       Primitive result = cps.applyBuiltin(operator, [argument]);
       result.hint = node.hint;
       node.replaceUsesWith(result);
       return cps;
     }
+
+    TypeMask successType =
+        typeSystem.receiverTypeFor(node.selector, node.dartReceiver.type);
 
     if (node.selector.isOperator && node.dartArgumentsLength == 1) {
       Primitive leftArg = node.dartReceiver;
@@ -1198,13 +1278,17 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           return makeBinary(BuiltinOperator.Identical);
         }
       } else {
-        if (lattice.isDefinitelyNum(left, allowNull: true) &&
-            lattice.isDefinitelyNum(right, allowNull: trustPrimitives)) {
+        if (typeSystem.isDefinitelyNum(successType)) {
           // Try to insert a numeric operator.
           BuiltinOperator operator = NumBinaryBuiltins[opname];
           if (operator != null) {
-            return makeBinary(operator, guard: BuiltinOperator.IsNotNumber);
+            return makeBinary(operator, guard: checkIsNumber);
           }
+
+          // The following specializations only apply to integers.
+          // The Math.floor test is quite large, so we only apply these in cases
+          // where the guard does not involve Math.floor.
+
           // Shift operators are not in [NumBinaryBuiltins] because Dart shifts
           // behave different to JS shifts, especially in the handling of the
           // shift count.
@@ -1212,8 +1296,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           if (opname == '<<' &&
               lattice.isDefinitelyInt(left, allowNull: true) &&
               lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
-            return makeBinary(BuiltinOperator.NumShl,
-                guard: BuiltinOperator.IsNotNumber);
+            return makeBinary(BuiltinOperator.NumShl, guard: checkIsNumber);
           }
           // Try to insert a shift-right operator. JavaScript's right shift is
           // consistent with Dart's only for left operands in the unsigned
@@ -1221,8 +1304,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           if (opname == '>>' &&
               lattice.isDefinitelyUint32(left, allowNull: true) &&
               lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
-            return makeBinary(BuiltinOperator.NumShr,
-                guard: BuiltinOperator.IsNotNumber);
+            return makeBinary(BuiltinOperator.NumShr, guard: checkIsNumber);
           }
           // Try to use remainder for '%'. Both operands must be non-negative
           // and the divisor must be non-zero.
@@ -1231,14 +1313,14 @@ class TransformingVisitor extends DeepRecursiveVisitor {
               lattice.isDefinitelyUint(right) &&
               lattice.isDefinitelyIntInRange(right, min: 1)) {
             return makeBinary(BuiltinOperator.NumRemainder,
-                guard: BuiltinOperator.IsNotNumber);
+                guard: checkIsNumber);
           }
 
           if (opname == '~/' &&
               lattice.isDefinitelyUint32(left, allowNull: true) &&
               lattice.isDefinitelyIntInRange(right, min: 2)) {
             return makeBinary(BuiltinOperator.NumTruncatingDivideToSigned32,
-                guard: BuiltinOperator.IsNotNumber);
+                guard: checkIsNumber);
           }
         }
         if (lattice.isDefinitelyString(left, allowNull: trustPrimitives) &&
@@ -1250,18 +1332,13 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       }
     }
     if (node.selector.isOperator && node.dartArgumentsLength == 0) {
-      Primitive argument = node.dartReceiver;
-      AbstractConstantValue value = getValue(argument);
-
-      if (lattice.isDefinitelyNum(value, allowNull: true)) {
+      if (typeSystem.isDefinitelyNum(successType)) {
         String opname = node.selector.name;
         if (opname == '~') {
-          return makeUnary(BuiltinOperator.NumBitNot,
-              guard: BuiltinOperator.IsNotNumber);
+          return makeUnary(BuiltinOperator.NumBitNot, guard: checkIsNumber);
         }
         if (opname == 'unary-') {
-          return makeUnary(BuiltinOperator.NumNegate,
-              guard: BuiltinOperator.IsNotNumber);
+          return makeUnary(BuiltinOperator.NumNegate, guard: checkIsNumber);
         }
       }
     }
@@ -1277,7 +1354,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
               lattice.isDefinitelyInt(argValue) &&
               isIntNotZero(argValue)) {
             return makeBinary(BuiltinOperator.NumRemainder,
-                guard: BuiltinOperator.IsNotNumber);
+                guard: checkIsNumber);
           }
         }
       } else if (name == 'codeUnitAt') {
@@ -1391,6 +1468,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
       case '[]':
         Primitive index = node.dartArgument(0);
+        // TODO(asgerf): Consider inserting a guard and specialize anyway.
         if (!lattice.isDefinitelyInt(getValue(index))) return null;
         CpsFragment cps = new CpsFragment(node.sourceInformation);
         receiver = makeBoundsCheck(cps, receiver, index);
@@ -2282,9 +2360,12 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
   }
 
-  visitNullCheck(NullCheck node) {
-    if (!getValue(node.value.definition).isNullable) {
-      node.replaceUsesWith(node.value.definition);
+  visitReceiverCheck(ReceiverCheck node) {
+    Primitive input = node.value.definition;
+    if (!input.type.isNullable &&
+        (node.isNullCheck ||
+         !input.type.needsNoSuchMethodHandling(node.selector, classWorld))) {
+      node.replaceUsesWith(input);
       return new CpsFragment();
     }
     return null;
@@ -3128,16 +3209,9 @@ class TypePropagationVisitor implements Visitor {
 
   @override
   void visitRefinement(Refinement node) {
-    AbstractConstantValue value = getValue(node.value.definition);
-    if (value.isNothing ||
-        typeSystem.areDisjoint(value.type, node.refineType)) {
-      setValue(node, nothing);
-    } else if (value.isConstant) {
-      setValue(node, value);
-    } else {
-      setValue(node,
-          nonConstant(value.type.intersection(node.refineType, classWorld)));
-    }
+    setValue(node, lattice.intersectWithType(
+        getValue(node.value.definition),
+        node.refineType));
   }
 
   @override
@@ -3146,8 +3220,19 @@ class TypePropagationVisitor implements Visitor {
   }
 
   @override
-  void visitNullCheck(NullCheck node) {
-    setValue(node, lattice.nonNullable(getValue(node.value.definition)));
+  void visitReceiverCheck(ReceiverCheck node) {
+    AbstractConstantValue value = getValue(node.value.definition);
+    if (node.isNullCheck) {
+      // Avoid expensive TypeMask operations for null checks.
+      setValue(node, lattice.nonNullable(value));
+    } else if (value.isConstant &&
+        !value.type.needsNoSuchMethodHandling(node.selector, classWorld)) {
+      // Preserve constants, unless the check fails for the constant.
+      setValue(node, value);
+    } else {
+      setValue(node,
+          nonConstant(typeSystem.receiverTypeFor(node.selector, value.type)));
+    }
   }
 }
 
@@ -3267,5 +3352,91 @@ class ResetAnalysisInfo extends TrampolineRecursiveVisitor {
 
   processLetMutable(LetMutable node) {
     clear(node.variable);
+  }
+}
+
+enum ChecksNeeded {
+  /// No check is needed.
+  None,
+
+  /// Only null may fail the check.
+  Null,
+
+  /// Full check required.
+  Complete,
+}
+
+/// Generates runtime checks against a some type criteria, and determines at
+/// compile-time if the check is needed.
+///
+/// This class only generates the condition for determining if a check should
+/// fail.  Throwing the appropriate error in response to a failure is handled
+/// elsewhere.
+abstract class TypeCheckOperator {
+  const TypeCheckOperator();
+  static const TypeCheckOperator none = const NoTypeCheckOperator();
+
+  /// Determines to what extent a runtime check is needed.
+  ///
+  /// Sometimes a check can be slightly improved if it is known that null is the
+  /// only possible input that fails the check.
+  ChecksNeeded getChecksNeeded(Primitive value, World world);
+
+  /// Make an expression that returns `true` if [value] should fail the check.
+  ///
+  /// The result should be used in a check of the form:
+  ///
+  ///     if (makeCheck(value)) throw Error(value);
+  ///
+  Primitive makeCheck(CpsFragment cps, Primitive value);
+
+  /// Refine [value] after a succesful check.
+  Primitive makeRefinement(CpsFragment cps, Primitive value, World world);
+
+  bool needsCheck(Primitive value, World world) {
+    return getChecksNeeded(value, world) != ChecksNeeded.None;
+  }
+}
+
+/// Check that always passes.
+class NoTypeCheckOperator extends TypeCheckOperator {
+  const NoTypeCheckOperator();
+
+  ChecksNeeded getChecksNeeded(Primitive value, World world) {
+    return ChecksNeeded.None;
+  }
+
+  Primitive makeCheck(CpsFragment cps, Primitive value) {
+    return cps.makeFalse();
+  }
+
+  Primitive makeRefinement(CpsFragment cps, Primitive value, World world) {
+    return value;
+  }
+}
+
+/// Checks using a built-in operator that a value is an instance of a given
+/// class.
+class ClassTypeCheckOperator extends TypeCheckOperator {
+  ClassElement classElement;
+  BuiltinOperator negatedOperator;
+
+  ClassTypeCheckOperator(this.classElement, this.negatedOperator);
+
+  ChecksNeeded getChecksNeeded(Primitive value, World world) {
+    TypeMask type = value.type;
+    if (type.satisfies(classElement, world)) {
+      return type.isNullable ? ChecksNeeded.Null : ChecksNeeded.None;
+    } else {
+      return ChecksNeeded.Complete;
+    }
+  }
+
+  Primitive makeCheck(CpsFragment cps, Primitive value) {
+    return cps.applyBuiltin(negatedOperator, [value]);
+  }
+
+  Primitive makeRefinement(CpsFragment cps, Primitive value, World world) {
+    return cps.refine(value, new TypeMask.nonNullSubclass(classElement, world));
   }
 }

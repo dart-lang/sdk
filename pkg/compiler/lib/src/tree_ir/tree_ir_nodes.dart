@@ -950,23 +950,24 @@ class Yield extends Statement {
   }
 }
 
-class NullCheck extends Statement {
+class ReceiverCheck extends Statement {
   Expression condition;
   Expression value;
   Selector selector;
   bool useSelector;
+  bool useInvoke;
   Statement next;
   SourceInformation sourceInformation;
 
-  NullCheck({this.condition, this.value, this.selector, this.useSelector,
-      this.next, this.sourceInformation});
+  ReceiverCheck({this.condition, this.value, this.selector, this.useSelector,
+      this.useInvoke, this.next, this.sourceInformation});
 
   accept(StatementVisitor visitor) {
-    return visitor.visitNullCheck(this);
+    return visitor.visitReceiverCheck(this);
   }
 
   accept1(StatementVisitor1 visitor, arg) {
-    return visitor.visitNullCheck(this, arg);
+    return visitor.visitReceiverCheck(this, arg);
   }
 }
 
@@ -1059,7 +1060,7 @@ abstract class StatementVisitor<S> {
   S visitUnreachable(Unreachable node);
   S visitForeignStatement(ForeignStatement node);
   S visitYield(Yield node);
-  S visitNullCheck(NullCheck node);
+  S visitReceiverCheck(ReceiverCheck node);
 }
 
 abstract class StatementVisitor1<S, A> {
@@ -1077,7 +1078,7 @@ abstract class StatementVisitor1<S, A> {
   S visitUnreachable(Unreachable node, A arg);
   S visitForeignStatement(ForeignStatement node, A arg);
   S visitYield(Yield node, A arg);
-  S visitNullCheck(NullCheck node, A arg);
+  S visitReceiverCheck(ReceiverCheck node, A arg);
 }
 
 abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
@@ -1286,7 +1287,7 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
     visitStatement(node.next);
   }
 
-  visitNullCheck(NullCheck node) {
+  visitReceiverCheck(ReceiverCheck node) {
     if (node.condition != null) visitExpression(node.condition);
     visitExpression(node.value);
     visitStatement(node.next);
@@ -1546,7 +1547,7 @@ class RecursiveTransformer extends Transformer {
     return node;
   }
 
-  visitNullCheck(NullCheck node) {
+  visitReceiverCheck(ReceiverCheck node) {
     if (node.condition != null) {
       node.condition = visitExpression(node.condition);
     }

@@ -3,6 +3,7 @@ library dart2js.cps_ir.update_refinements;
 import 'cps_ir_nodes.dart';
 import 'optimizers.dart' show Pass;
 import 'type_mask_system.dart';
+import '../world.dart';
 
 /// Updates all references to use the most refined version in scope.
 ///
@@ -19,6 +20,7 @@ class UpdateRefinements extends TrampolineRecursiveVisitor implements Pass {
   String get passName => 'Update refinements';
 
   final TypeMaskSystem typeSystem;
+  World get classWorld => typeSystem.classWorld;
 
   Map<Primitive, Primitive> refinementFor = <Primitive, Primitive>{};
 
@@ -34,20 +36,21 @@ class UpdateRefinements extends TrampolineRecursiveVisitor implements Pass {
     return next;
   }
 
-  visitNullCheck(NullCheck node) {
+  visitReceiverCheck(ReceiverCheck node) {
     if (refine(node.value)) {
+      // Update the type if the input has changed.
       Primitive value = node.value.definition;
-      if (value.type.isNullable) {
-        // Update the type if the input has changed.
-        node.type = value.type.nonNullable();
+      if (value.type.needsNoSuchMethodHandling(node.selector, classWorld)) {
+        node.type = typeSystem.receiverTypeFor(node.selector, value.type);
       } else {
+        // Check is no longer needed.
         node..replaceUsesWith(value)..destroy();
         LetPrim letPrim = node.parent;
         letPrim.remove();
         return;
       }
     }
-    // Use the NullCheck as a refinement.
+    // Use the ReceiverCheck as a refinement.
     Primitive value = node.effectiveDefinition;
     Primitive old = refinementFor[value];
     refinementFor[value] = node;

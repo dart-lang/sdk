@@ -19,11 +19,11 @@ import 'cps_fragment.dart';
 ///
 ///     print(x.length);
 ///
-/// `x.length` will throw when x is null, so the original [NullCheck] is not
+/// `x.length` will throw when x is null, so the original [ReceiverCheck] is not
 /// needed.  This changes the error message, but at least for now we are
 /// willing to accept this.
 ///
-/// Note that code motion may not occur after this pass, since the [NullCheck]
+/// Note that code motion may not occur after this pass, since the [ReceiverCheck]
 /// nodes are not there to restrict it.
 //
 // TODO(asgerf): It would be nice with a clear specification of when we allow
@@ -53,7 +53,7 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
   /// Returns a reference to an operand of [prim], where [prim] throws if null
   /// is passed into that operand.
   Reference<Primitive> getNullCheckedOperand(Primitive prim) {
-    if (prim is NullCheck) return prim.value;
+    if (prim is ReceiverCheck) return prim.value;
     if (prim is GetLength) return prim.object;
     if (prim is GetField) return prim.object;
     if (prim is GetIndex) return prim.object;
@@ -71,7 +71,7 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
   /// It has been determined that the null check in [prim] made redundant by
   /// [newNullCheck].  Eliminate [prim] if it is not needed any more.
   void tryEliminateRedundantNullCheck(Primitive prim, Primitive newNullCheck) {
-    if (prim is NullCheck) {
+    if (prim is ReceiverCheck && prim.isNullCheck) {
       Primitive value = prim.value.definition;
       LetPrim let = prim.parent;
       prim..replaceUsesWith(value)..destroy();

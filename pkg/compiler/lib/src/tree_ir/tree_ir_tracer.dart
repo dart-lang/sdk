@@ -179,7 +179,7 @@ class BlockCollector extends StatementVisitor {
     visitStatement(node.next);
   }
 
-  visitNullCheck(NullCheck node) {
+  visitReceiverCheck(ReceiverCheck node) {
     _addStatement(node);
     visitStatement(node.next);
   }
@@ -345,7 +345,7 @@ class TreeTracer extends TracerUtil with StatementVisitor {
   }
 
   @override
-  visitNullCheck(NullCheck node) {
+  visitReceiverCheck(ReceiverCheck node) {
     printStatement(null, 'NullCheck ${expr(node.value)}');
   }
 }

@@ -192,7 +192,7 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
 
   bool isHoistablePrimitive(Primitive prim) {
     if (prim.isSafeForElimination) return true;
-    if (prim is NullCheck ||
+    if (prim is ReceiverCheck ||
         prim is BoundsCheck ||
         prim is GetLength ||
         prim is GetField ||

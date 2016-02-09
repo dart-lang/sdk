@@ -168,7 +168,7 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
-  Statement visitNullCheck(NullCheck node) {
+  Statement visitReceiverCheck(ReceiverCheck node) {
     if (node.condition != null) {
       node.condition = visitExpression(node.condition);
       // The value occurs in conditional context, so don't pull from that.

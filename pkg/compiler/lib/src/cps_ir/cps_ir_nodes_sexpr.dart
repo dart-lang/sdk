@@ -448,10 +448,11 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '(BoundsCheck $object $index $length ${node.checkString})';
   }
 
-  String visitNullCheck(NullCheck node) {
+  String visitReceiverCheck(ReceiverCheck node) {
     String value = access(node.value);
     String condition = optionalAccess(node.condition);
-    return '(NullCheck $value $condition (${node.selector ?? ""}))';
+    return '(ReceiverCheck $value ${node.selector} $condition '
+        '${node.flagString}))';
   }
 }
 

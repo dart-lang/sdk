@@ -393,10 +393,11 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return 'BoundsCheck $object $index $length ${node.checkString}';
   }
 
-  visitNullCheck(cps_ir.NullCheck node) {
+  visitReceiverCheck(cps_ir.ReceiverCheck node) {
     String value = formatReference(node.value);
     String condition = formatReference(node.condition);
-    return 'NullCheck $value condition:$condition selector:${node.selector}';
+    return 'ReceiverCheck $value $condition ${node.selector} '
+        '${node.flagString}';
   }
 }
 
@@ -681,7 +682,7 @@ class BlockCollector implements cps_ir.Visitor {
     unexpectedNode(node);
   }
 
-  visitNullCheck(cps_ir.NullCheck node) {
+  visitReceiverCheck(cps_ir.ReceiverCheck node) {
     unexpectedNode(node);
   }
 }
