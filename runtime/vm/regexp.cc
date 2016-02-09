@@ -5272,9 +5272,9 @@ static void CreateSpecializedFunction(Zone* zone,
   // TODO(zerny): Share these arrays between all irregexp functions.
   fn.set_num_fixed_parameters(kParamCount);
   fn.set_parameter_types(Array::Handle(zone, Array::New(kParamCount,
-                                                           Heap::kOld)));
+                                                        Heap::kOld)));
   fn.set_parameter_names(Array::Handle(zone, Array::New(kParamCount,
-                                                           Heap::kOld)));
+                                                        Heap::kOld)));
   fn.SetParameterTypeAt(RegExpMacroAssembler::kParamRegExpIndex,
                         Object::dynamic_type());
   fn.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,

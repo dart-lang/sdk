@@ -518,18 +518,8 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
     }
 
     // Register code with the classes it depends on because of CHA and
-    // fields it depends on because of store guards.
-    // Deoptimize field dependent code first, before registering
-    // this yet uninstalled code as dependent on a field.
-    // TODO(srdjan): Debugging dart2js crashes;
-    // FlowGraphOptimizer::VisitStoreInstanceField populates
-    // deoptimize_dependent_code() list, currently disabled.
-    for (intptr_t i = 0;
-         i < flow_graph->deoptimize_dependent_code().length();
-         i++) {
-      const Field* field = flow_graph->deoptimize_dependent_code()[i];
-      field->DeoptimizeDependentCode();
-    }
+    // fields it depends on because of store guards, unless we cannot
+    // deopt.
     for (intptr_t i = 0;
          i < thread()->cha()->leaf_classes().length();
          ++i) {
@@ -1325,8 +1315,11 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
 
   // Optimization must happen in non-mutator/Dart thread if background
   // compilation is on. OSR compilation still occurs in the main thread.
+  // TODO(Srdjan): Remove assert allowance for regular expression functions
+  // once they can be compiled in background.
   ASSERT((osr_id != kNoOSRDeoptId) || !FLAG_background_compilation ||
-         !thread->IsMutatorThread());
+         !thread->IsMutatorThread() ||
+         function.IsIrregexpFunction());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline,

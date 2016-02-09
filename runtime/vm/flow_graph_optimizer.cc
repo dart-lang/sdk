@@ -4643,6 +4643,13 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
       }
     }
     if (!unboxed_field) {
+      // TODO(srdjan): Instead of aborting pass this field to the mutator thread
+      // so that it can:
+      // - set it to unboxed
+      // - deoptimize dependent code.
+      if (Compiler::IsBackgroundCompilation()) {
+        Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+      }
       if (FLAG_trace_optimization || FLAG_trace_field_guards) {
         THR_Print("Disabling unboxing of %s\n", field.ToCString());
         if (!setter.IsNull()) {
@@ -4654,10 +4661,7 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
       }
       field.set_is_unboxing_candidate(false);
       if (Compiler::IsBackgroundCompilation()) {
-        // Delay deoptimization of dependent code to the code installation time.
-        // The invalidation of the background compilation result occurs only
-        // when the deoptimization is triggered at code installation.
-        flow_graph()->deoptimize_dependent_code().Add(&field);
+        UNIMPLEMENTED();
       } else {
         field.DeoptimizeDependentCode();
       }

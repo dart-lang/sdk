@@ -423,6 +423,7 @@ Parser::~Parser() {
   if (unregister_pending_function_) {
     const GrowableObjectArray& pending_functions =
         GrowableObjectArray::Handle(T->pending_functions());
+    ASSERT(!pending_functions.IsNull());
     ASSERT(pending_functions.Length() > 0);
     ASSERT(pending_functions.At(pending_functions.Length() - 1) ==
         current_function().raw());
@@ -2961,6 +2962,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
 void Parser::CheckRecursiveInvocation() {
   const GrowableObjectArray& pending_functions =
       GrowableObjectArray::Handle(Z, T->pending_functions());
+  ASSERT(!pending_functions.IsNull());
   for (int i = 0; i < pending_functions.Length(); i++) {
     if (pending_functions.At(i) == current_function().raw()) {
       const String& fname =
@@ -2969,7 +2971,7 @@ void Parser::CheckRecursiveInvocation() {
     }
   }
   ASSERT(!unregister_pending_function_);
-  pending_functions.Add(current_function());
+  pending_functions.Add(current_function(), Heap::kOld);
   unregister_pending_function_ = true;
 }
 
