@@ -2294,7 +2294,7 @@ class SourceReportRange {
   // sorted list of token positions.  Provided only when the when the
   // PossibleBreakpoint report has been requested and the range has been
   // compiled.
-  int possibleBreakpoints[] [optional];
+  int[] possibleBreakpoints [optional];
 }
 ```
 
