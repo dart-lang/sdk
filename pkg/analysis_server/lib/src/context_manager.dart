@@ -23,6 +23,7 @@ import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/context.dart' as context;
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -846,14 +847,57 @@ class ContextManagerImpl implements ContextManager {
       String path, ContextInfo info, Folder folder) {
     // Check to see if this is the .packages file for this context and if so,
     // update the context's source factory.
-    if (absolutePathContext.basename(path) == PACKAGE_SPEC_NAME &&
-        info.isPathToPackageDescription(path)) {
+    if (absolutePathContext.basename(path) == PACKAGE_SPEC_NAME) {
       File packagespec = resourceProvider.getFile(path);
       if (packagespec.exists) {
-        Packages packages = _readPackagespec(packagespec);
-        if (packages != null) {
-          callbacks.updateContextPackageUriResolver(
-              folder, new PackagesFileDisposition(packages));
+        // Locate embedder yamls for this .packages file.
+        // If any embedder libs are contributed and this context does not
+        // have an embedded URI resolver, we need to create a new context.
+
+        List<int> bytes = packagespec.readAsStringSync().codeUnits;
+        Map<String, Uri> packages =
+            pkgfile.parse(bytes, new Uri.file(packagespec.path));
+
+        Map<String, List<Folder>> packageMap =
+            new PackagesFileDisposition(new MapPackages(packages))
+                .buildPackageMap(resourceProvider);
+        Map<Folder, YamlMap> embedderYamls =
+            new EmbedderYamlLocator(packageMap).embedderYamls;
+
+        SourceFactory sourceFactory = info.context.sourceFactory;
+
+        // Check for library embedders.
+        if (embedderYamls.values.any(definesEmbeddedLibs)) {
+          // If there is no embedded URI resolver, a new source factory needs to
+          // be recreated.
+          if (sourceFactory is SourceFactoryImpl) {
+            if (!sourceFactory.resolvers
+                .any((UriResolver r) => r is EmbedderUriResolver)) {
+
+              // Get all but the dart: Uri resolver.
+              List<UriResolver> resolvers = sourceFactory.resolvers
+                  .where((r) => r is! DartUriResolver)
+                  .toList();
+              // Add an embedded URI resolver in its place.
+              resolvers.add(new EmbedderUriResolver(embedderYamls));
+
+              // Set a new source factory.
+              SourceFactoryImpl newFactory = sourceFactory.clone();
+              newFactory.resolvers.clear();
+              newFactory.resolvers.addAll(resolvers);
+              info.context.sourceFactory = newFactory;
+              return;
+            }
+          }
+        }
+
+        // Next check for package URI updates.
+        if (info.isPathToPackageDescription(path)) {
+          Packages packages = _readPackagespec(packagespec);
+          if (packages != null) {
+            callbacks.updateContextPackageUriResolver(
+                folder, new PackagesFileDisposition(packages));
+          }
         }
       }
     }

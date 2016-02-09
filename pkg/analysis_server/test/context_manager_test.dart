@@ -286,6 +286,59 @@ linter:
     expect(contexts, contains(subProjContextInfo.context));
   }
 
+  test_embedder_added() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    newFile([libPath, 'nope.dart']);
+    String embedderPath = newFolder([projPath, 'embedder']);
+    newFile([embedderPath, 'entry.dart']);
+    String embedderSrcPath = newFolder([projPath, 'embedder', 'src']);
+    newFile([embedderSrcPath, 'part.dart']);
+
+    // Setup _embedder.yaml.
+    newFile(
+        [libPath, '_embedder.yaml'],
+        r'''
+embedded_libs:
+  "dart:foobar": "../embedder/entry.dart"
+  "dart:typed_data": "../embedder/src/part"
+  ''');
+
+    Folder projectFolder = resourceProvider.newFolder(projPath);
+
+    // NOTE that this is Not in our package path yet.
+
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+    // Confirm that one context was created.
+    List<AnalysisContext> contexts =
+        manager.contextsInAnalysisRoot(projectFolder);
+    expect(contexts, isNotNull);
+    expect(contexts, hasLength(1));
+
+    // No embedded libs yet.
+    expect(contexts.first.sourceFactory.forUri('dart:typed_data'), isNull);
+
+    // Add .packages file that introduces a dependency with embedded libs.
+    newFile(
+        [projPath, '.packages'],
+        r'''
+test_pack:lib/''');
+
+    await pumpEventQueue();
+
+    contexts = manager.contextsInAnalysisRoot(projectFolder);
+
+    // Confirm that we still have just one context.
+    expect(contexts, isNotNull);
+    expect(contexts, hasLength(1));
+
+    // Embedded lib should be defined now.
+    expect(contexts.first.sourceFactory.forUri('dart:typed_data'), isNotNull);
+  }
+
   test_embedder_options() async {
     // Create files.
     String libPath = newFolder([projPath, LIB_NAME]);
