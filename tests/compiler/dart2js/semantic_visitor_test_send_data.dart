@@ -1308,16 +1308,6 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GET)),
-    const Test.clazz(
-            '''
-    class B {
-    }
-    class C extends B {
-      m() => super.o = 42;
-    }
-    ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SET,
-                    rhs: '42')),
   ],
   'Super properties': const [
     // Super properties

@@ -1080,17 +1080,6 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Element element,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GET));
-    return super.visitUnresolvedSuperGet(node, element, arg);
-  }
-
-  @override
-  visitUnresolvedSuperSet(
-      Send node,
-      Element element,
-      Node rhs,
-      arg) {
-    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SET, rhs: rhs));
-    return super.visitUnresolvedSuperSet(node, element, rhs, arg);
   }
 
   @override

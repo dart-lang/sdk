@@ -4553,10 +4553,7 @@ class SsaBuilder extends ast.Visitor
     String name = selector.name;
 
     ClassElement cls = currentNonClosureClass;
-    MethodElement element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
-    if (!Selectors.noSuchMethod_.signatureApplies(element)) {
-      element = coreClasses.objectClass.lookupMember(Identifiers.noSuchMethod_);
-    }
+    Element element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
     if (compiler.enabledInvokeOn && !element.enclosingClass.isObject) {
       // Register the call as dynamic if [noSuchMethod] on the super
       // class is _not_ the default implementation from [Object], in
@@ -4691,15 +4688,6 @@ class SsaBuilder extends ast.Visitor
   void visitUnresolvedSuperGet(
       ast.Send node,
       Element element,
-      _) {
-    handleUnresolvedSuperInvoke(node);
-  }
-
-  @override
-  void visitUnresolvedSuperSet(
-      ast.Send node,
-      Element element,
-      ast.Node rhs,
       _) {
     handleUnresolvedSuperInvoke(node);
   }

@@ -769,11 +769,7 @@ class SetStructure<R, A> implements SendStructure<R, A> {
         // TODO(johnniwinther): Should this be a valid case?
         break;
       case AccessKind.UNRESOLVED_SUPER:
-        return visitor.visitUnresolvedSuperSet(
-            node,
-            semantics.element,
-            node.arguments.single,
-            arg);
+        // TODO(johnniwinther): Handle this separately.
       case AccessKind.UNRESOLVED:
         return visitor.visitUnresolvedSet(
             node,

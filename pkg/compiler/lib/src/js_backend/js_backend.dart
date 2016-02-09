@@ -22,7 +22,6 @@ import '../common/codegen.dart' show
     CodegenWorkItem;
 import '../common/names.dart' show
     Identifiers,
-    Names,
     Selectors,
     Uris;
 import '../common/registry.dart' show
