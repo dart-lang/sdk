@@ -278,13 +278,13 @@ throw_(obj) => JS('', '''(() => {
     // TODO(jmesserly): couldn't we store the most recent stack in a single
     // variable? There should only be one active stack trace. That would
     // allow it to work for things like strings and numbers.
-    _stack.set($obj, new Error());
+    $_stack.set($obj, new Error());
   }
   throw $obj;
 })()''');
 
 getError(exception) => JS('', '''(() => {
-  var stack = _stack.get($exception);
+  var stack = $_stack.get($exception);
   return stack !== void 0 ? stack : $exception;
 })()''');
 
@@ -338,9 +338,9 @@ multiKeyPutIfAbsent(map, keys, valueFn) => JS('', '''(() => {
     }
     $map = value;
   }
-  if ($map.has(_value)) return $map.get(_value);
+  if ($map.has($_value)) return $map.get($_value);
   let value = $valueFn();
-  $map.set(_value, value);
+  $map.set($_value, value);
   return value;
 })()''');
 

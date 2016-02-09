@@ -263,7 +263,7 @@ _functionType(definite, returnType, args, extra) => JS('', '''(() => {
 /// they will be replaced with bottom.
 ///
 functionType(returnType, args, extra) => JS('', '''(() => {
-  return _functionType(false, $returnType, $args, $extra);
+  return $_functionType(false, $returnType, $args, $extra);
 })()''');
 
 ///
@@ -271,7 +271,7 @@ functionType(returnType, args, extra) => JS('', '''(() => {
 /// bottom occurs.
 ///
 definiteFunctionType(returnType, args, extra) => JS('', '''(() => {
-  return _functionType(true, $returnType, $args, $extra);
+  return $_functionType(true, $returnType, $args, $extra);
 })()''');
 
 typedef(name, closure) => JS('', '''(() => {

@@ -219,5 +219,5 @@ final _AsyncStarStreamController = JS('', '''
 /// Returns a Stream of T implemented by an async* function. */
 ///
 asyncStar(gen, T, @rest args) => JS('', '''(() => {
-  return new _AsyncStarStreamController($gen, $T, $args).controller.stream;
+  return new $_AsyncStarStreamController($gen, $T, $args).controller.stream;
 })()''');
