@@ -3626,6 +3626,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                  const Class& other,
                                  const TypeArguments& other_type_arguments,
                                  Error* bound_error,
+                                 TrailPtr bound_trail,
                                  Heap::Space space) {
   // Use the thsi object as if it was the receiver of this method, but instead
   // of recursing reset it to the super class and loop.
@@ -3684,6 +3685,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                      from_index,
                                      num_type_params,
                                      bound_error,
+                                     bound_trail,
                                      space);
     }
     if (other.IsFunctionClass()) {
@@ -3744,7 +3746,11 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // The index of the type parameters is adjusted upon finalization.
         error = Error::null();
         interface_args =
-            interface_args.InstantiateFrom(type_arguments, &error, NULL, space);
+            interface_args.InstantiateFrom(type_arguments,
+                                           &error,
+                                           NULL,
+                                           bound_trail,
+                                           space);
         if (!error.IsNull()) {
           // Return the first bound error to the caller if it requests it.
           if ((bound_error != NULL) && bound_error->IsNull()) {
@@ -3758,6 +3764,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                    other,
                                    other_type_arguments,
                                    bound_error,
+                                   bound_trail,
                                    space)) {
         return true;
       }
@@ -3784,6 +3791,7 @@ bool Class::TypeTest(TypeTestKind test_kind,
                      const Class& other,
                      const TypeArguments& other_type_arguments,
                      Error* bound_error,
+                     TrailPtr bound_trail,
                      Heap::Space space) const {
   return TypeTestNonRecursive(*this,
                               test_kind,
@@ -3791,6 +3799,7 @@ bool Class::TypeTest(TypeTestKind test_kind,
                               other,
                               other_type_arguments,
                               bound_error,
+                              bound_trail,
                               space);
 }
 
@@ -4300,6 +4309,7 @@ bool TypeArguments::TypeTest(TypeTestKind test_kind,
                              intptr_t from_index,
                              intptr_t len,
                              Error* bound_error,
+                             TrailPtr bound_trail,
                              Heap::Space space) const {
   ASSERT(Length() >= (from_index + len));
   ASSERT(!other.IsNull());
@@ -4311,7 +4321,11 @@ bool TypeArguments::TypeTest(TypeTestKind test_kind,
     ASSERT(!type.IsNull());
     other_type = other.TypeAt(from_index + i);
     ASSERT(!other_type.IsNull());
-    if (!type.TypeTest(test_kind, other_type, bound_error, space)) {
+    if (!type.TypeTest(test_kind,
+                       other_type,
+                       bound_error,
+                       bound_trail,
+                       space)) {
       return false;
     }
   }
@@ -4361,6 +4375,7 @@ RawAbstractType* TypeArguments::TypeAt(intptr_t index) const {
 
 void TypeArguments::SetTypeAt(intptr_t index,
                                 const AbstractType& value) const {
+  ASSERT(!IsCanonical());
   StorePointer(TypeAddr(index), value.raw());
 }
 
@@ -4538,7 +4553,8 @@ bool TypeArguments::IsBounded() const {
 RawTypeArguments* TypeArguments::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    TrailPtr trail,
+    TrailPtr instantiation_trail,
+    TrailPtr bound_trail,
     Heap::Space space) const {
   ASSERT(!IsInstantiated());
   if (!instantiator_type_arguments.IsNull() &&
@@ -4561,7 +4577,8 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
     if (!type.IsNull() && !type.IsInstantiated()) {
       type = type.InstantiateFrom(instantiator_type_arguments,
                                   bound_error,
-                                  trail,
+                                  instantiation_trail,
+                                  bound_trail,
                                   space);
     }
     instantiated_array.SetTypeAt(i, type);
@@ -4595,7 +4612,7 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   // Cache lookup failed. Instantiate the type arguments.
   TypeArguments& result = TypeArguments::Handle();
   result = InstantiateFrom(
-      instantiator_type_arguments, bound_error, NULL, Heap::kOld);
+      instantiator_type_arguments, bound_error, NULL, NULL, Heap::kOld);
   if ((bound_error != NULL) && !bound_error->IsNull()) {
     return result.raw();
   }
@@ -4826,6 +4843,11 @@ RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
     for (intptr_t i = 0; i < num_types; i++) {
       type_arg = TypeAt(i);
       type_arg = type_arg.Canonicalize(trail);
+      if (IsCanonical()) {
+        // Canonicalizing this type_arg canonicalized this type.
+        ASSERT(IsRecursive());
+        return this->raw();
+      }
       SetTypeAt(i, type_arg);
     }
     // Canonicalization of a recursive type may change its hash.
@@ -5938,10 +5960,12 @@ bool Function::TestParameterType(
   AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
   if (!other_param_type.IsInstantiated()) {
-    other_param_type = other_param_type.InstantiateFrom(other_type_arguments,
-                                                        bound_error,
-                                                        NULL,  // trail
-                                                        space);
+    other_param_type =
+        other_param_type.InstantiateFrom(other_type_arguments,
+                                         bound_error,
+                                         NULL,  // instantiation_trail
+                                         NULL,  // bound_trail
+                                         space);
     ASSERT((bound_error == NULL) || bound_error->IsNull());
   }
   if (other_param_type.IsDynamicType()) {
@@ -5950,21 +5974,25 @@ bool Function::TestParameterType(
   AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
   if (!param_type.IsInstantiated()) {
-    param_type = param_type.InstantiateFrom(
-        type_arguments, bound_error, NULL /*trail*/, space);
+    param_type = param_type.InstantiateFrom(type_arguments,
+                                            bound_error,
+                                            NULL,  // instantiation_trail
+                                            NULL,  // bound_trail
+                                            space);
     ASSERT((bound_error == NULL) || bound_error->IsNull());
   }
   if (param_type.IsDynamicType()) {
     return test_kind == kIsSubtypeOf;
   }
   if (test_kind == kIsSubtypeOf) {
-    if (!param_type.IsSubtypeOf(other_param_type, bound_error, space) &&
-        !other_param_type.IsSubtypeOf(param_type, bound_error, space)) {
+    if (!param_type.IsSubtypeOf(other_param_type, bound_error, NULL, space) &&
+        !other_param_type.IsSubtypeOf(param_type, bound_error, NULL, space)) {
       return false;
     }
   } else {
     ASSERT(test_kind == kIsMoreSpecificThan);
-    if (!param_type.IsMoreSpecificThan(other_param_type, bound_error, space)) {
+    if (!param_type.IsMoreSpecificThan(
+            other_param_type, bound_error, NULL, space)) {
       return false;
     }
   }
@@ -6387,7 +6415,9 @@ void Function::BuildSignatureParameters(
   while (i < num_fixed_params) {
     param_type = ParameterTypeAt(i);
     ASSERT(!param_type.IsNull());
-    if (instantiate && !param_type.IsInstantiated()) {
+    if (instantiate &&
+        param_type.IsFinalized() &&
+        !param_type.IsInstantiated()) {
       param_type = param_type.InstantiateFrom(instantiator, NULL);
     }
     name = param_type.BuildName(name_visibility);
@@ -6412,7 +6442,9 @@ void Function::BuildSignatureParameters(
         pieces->Add(Symbols::ColonSpace());
       }
       param_type = ParameterTypeAt(i);
-      if (instantiate && !param_type.IsInstantiated()) {
+      if (instantiate &&
+          param_type.IsFinalized() &&
+          !param_type.IsInstantiated()) {
         param_type = param_type.InstantiateFrom(instantiator, NULL);
       }
       ASSERT(!param_type.IsNull());
@@ -6510,7 +6542,7 @@ RawString* Function::BuildSignature(bool instantiate,
                            &pieces);
   pieces.Add(Symbols::RParenArrow());
   AbstractType& res_type = AbstractType::Handle(zone, result_type());
-  if (instantiate && !res_type.IsInstantiated()) {
+  if (instantiate && res_type.IsFinalized() && !res_type.IsInstantiated()) {
     res_type = res_type.InstantiateFrom(instantiator, NULL);
   }
   name = res_type.BuildName(name_visibility);
@@ -14287,7 +14319,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   }
   other_class = instantiated_other.type_class();
   return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
-                         bound_error, Heap::kOld);
+                         bound_error, NULL, Heap::kOld);
 }
 
 
@@ -14614,7 +14646,8 @@ bool AbstractType::IsRecursive() const {
 RawAbstractType* AbstractType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    TrailPtr trail,
+    TrailPtr instantiation_trail,
+    TrailPtr bound_trail,
     Heap::Space space) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
@@ -14671,6 +14704,47 @@ void AbstractType::AddOnlyBuddyToTrail(TrailPtr* trail,
   }
   (*trail)->Add(*this);
   (*trail)->Add(buddy);
+}
+
+
+bool AbstractType::TestAndAddToTrail(TrailPtr* trail) const {
+  if (*trail == NULL) {
+    *trail = new Trail(Thread::Current()->zone(), 4);
+  } else {
+    const intptr_t len = (*trail)->length();
+    for (intptr_t i = 0; i < len; i++) {
+      if ((*trail)->At(i).raw() == this->raw()) {
+        return true;
+      }
+    }
+  }
+  (*trail)->Add(*this);
+  return false;
+}
+
+
+bool AbstractType::TestAndAddBuddyToTrail(TrailPtr* trail,
+                                          const AbstractType& buddy) const {
+  if (*trail == NULL) {
+    *trail = new Trail(Thread::Current()->zone(), 4);
+  } else {
+    const intptr_t len = (*trail)->length();
+    ASSERT((len % 2) == 0);
+    const bool this_is_typeref = IsTypeRef();
+    const bool buddy_is_typeref = buddy.IsTypeRef();
+    ASSERT(this_is_typeref || buddy_is_typeref);
+    for (intptr_t i = 0; i < len; i += 2) {
+      if ((((*trail)->At(i).raw() == this->raw()) ||
+           (buddy_is_typeref && (*trail)->At(i).Equals(*this))) &&
+          (((*trail)->At(i + 1).raw() == buddy.raw()) ||
+           (this_is_typeref && (*trail)->At(i + 1).Equals(buddy)))) {
+        return true;
+      }
+    }
+  }
+  (*trail)->Add(*this);
+  (*trail)->Add(buddy);
+  return false;
 }
 
 
@@ -14880,6 +14954,7 @@ bool AbstractType::IsDartFunctionType() const {
 bool AbstractType::TypeTest(TypeTestKind test_kind,
                             const AbstractType& other,
                             Error* bound_error,
+                            TrailPtr bound_trail,
                             Heap::Space space) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
@@ -14950,7 +15025,9 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     if (!bound.IsFinalized()) {
       return false;    // TODO(regis): Return "maybe after instantiation".
     }
-    if (bound.IsMoreSpecificThan(other, bound_error)) {
+    // The current bound_trail cannot be used, because operands are swapped and
+    // the test is different anyway (more specific vs. subtype).
+    if (bound.IsMoreSpecificThan(other, bound_error, NULL)) {
       return true;
     }
     return false;  // TODO(regis): We should return "maybe after instantiation".
@@ -15010,6 +15087,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                            Class::Handle(zone, other.type_class()),
                            TypeArguments::Handle(zone, other.arguments()),
                            bound_error,
+                           bound_trail,
                            space);
 }
 
@@ -15254,7 +15332,8 @@ bool Type::IsInstantiated(TrailPtr trail) const {
 RawAbstractType* Type::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    TrailPtr trail,
+    TrailPtr instantiation_trail,
+    TrailPtr bound_trail,
     Heap::Space space) const {
   Zone* zone = Thread::Current()->zone();
   ASSERT(IsFinalized() || IsBeingFinalized());
@@ -15268,32 +15347,21 @@ RawAbstractType* Type::InstantiateFrom(
   if (arguments() == instantiator_type_arguments.raw()) {
     return raw();
   }
-  // If this type is recursive, we may already be instantiating it.
-  Type& instantiated_type = Type::Handle(zone);
-  instantiated_type ^= OnlyBuddyInTrail(trail);
-  if (!instantiated_type.IsNull()) {
-    ASSERT(IsRecursive());
-    return instantiated_type.raw();
-  }
   // Note that the type class has to be resolved at this time, but not
   // necessarily finalized yet. We may be checking bounds at compile time or
   // finalizing the type argument vector of a recursive type.
   const Class& cls = Class::Handle(zone, type_class());
-
-  // This uninstantiated type is not modified, as it can be instantiated
-  // with different instantiators. Allocate a new instantiated version of it.
-  instantiated_type =
-      Type::New(cls, TypeArguments::Handle(zone), token_pos(), space);
   TypeArguments& type_arguments = TypeArguments::Handle(zone, arguments());
   ASSERT(type_arguments.Length() == cls.NumTypeArguments());
-  if (type_arguments.IsRecursive()) {
-    AddOnlyBuddyToTrail(&trail, instantiated_type);
-  }
   type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
                                                   bound_error,
-                                                  trail,
+                                                  instantiation_trail,
+                                                  bound_trail,
                                                   space);
-  instantiated_type.set_arguments(type_arguments);
+  // This uninstantiated type is not modified, as it can be instantiated
+  // with different instantiators. Allocate a new instantiated version of it.
+  const Type& instantiated_type =
+      Type::Handle(zone, Type::New(cls, type_arguments, token_pos(), space));
   if (IsFinalized()) {
     instantiated_type.SetIsFinalized();
   } else {
@@ -15457,6 +15525,11 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
       // Canonicalize the type arguments of the supertype, if any.
       TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
       type_args = type_args.Canonicalize(trail);
+      if (IsCanonical()) {
+        // Canonicalizing type_args canonicalized this type.
+        ASSERT(IsRecursive());
+        return this->raw();
+      }
       set_arguments(type_args);
       type = cls.CanonicalType();  // May be set while canonicalizing type args.
       if (type.IsNull()) {
@@ -15501,6 +15574,11 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   // vector may be longer than necessary. This is not an issue.
   ASSERT(type_args.IsNull() || (type_args.Length() >= cls.NumTypeArguments()));
   type_args = type_args.Canonicalize(trail);
+  if (IsCanonical()) {
+    // Canonicalizing type_args canonicalized this type as a side effect.
+    ASSERT(IsRecursive());
+    return this->raw();
+  }
   set_arguments(type_args);
 
   // Canonicalizing the type arguments may have changed the index, may have
@@ -15559,6 +15637,7 @@ void Type::set_type_class(const Object& value) const {
 
 
 void Type::set_arguments(const TypeArguments& value) const {
+  ASSERT(!IsCanonical());
   StorePointer(&raw_ptr()->arguments_, value.raw());
 }
 
@@ -15723,7 +15802,8 @@ bool FunctionType::IsInstantiated(TrailPtr trail) const {
 RawAbstractType* FunctionType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    TrailPtr trail,
+    TrailPtr instantiation_trail,
+    TrailPtr bound_trail,
     Heap::Space space) const {
   Zone* zone = Thread::Current()->zone();
   ASSERT(IsFinalized() || IsBeingFinalized());
@@ -15734,36 +15814,25 @@ RawAbstractType* FunctionType::InstantiateFrom(
   if (arguments() == instantiator_type_arguments.raw()) {
     return raw();
   }
-  // If this type is recursive, we may already be instantiating it.
-  FunctionType& instantiated_type = FunctionType::Handle(zone);
-  instantiated_type ^= OnlyBuddyInTrail(trail);
-  if (!instantiated_type.IsNull()) {
-    ASSERT(IsRecursive());
-    return instantiated_type.raw();
-  }
   // Note that the scope class has to be resolved at this time, but not
   // necessarily finalized yet. We may be checking bounds at compile time or
   // finalizing the type argument vector of a recursive type.
   const Class& cls = Class::Handle(zone, scope_class());
-
-  // This uninstantiated type is not modified, as it can be instantiated
-  // with different instantiators. Allocate a new instantiated version of it.
-  instantiated_type =
-      FunctionType::New(cls,
-                        TypeArguments::Handle(zone),
-                        Function::Handle(zone, signature()),
-                        token_pos(),
-                        space);
   TypeArguments& type_arguments = TypeArguments::Handle(zone, arguments());
   ASSERT(type_arguments.Length() == cls.NumTypeArguments());
-  if (type_arguments.IsRecursive()) {
-    AddOnlyBuddyToTrail(&trail, instantiated_type);
-  }
   type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
                                                   bound_error,
-                                                  trail,
+                                                  instantiation_trail,
+                                                  bound_trail,
                                                   space);
-  instantiated_type.set_arguments(type_arguments);
+  // This uninstantiated type is not modified, as it can be instantiated
+  // with different instantiators. Allocate a new instantiated version of it.
+  const FunctionType& instantiated_type = FunctionType::Handle(zone,
+      FunctionType::New(cls,
+                        type_arguments,
+                        Function::Handle(zone, signature()),
+                        token_pos(),
+                        space));
   if (IsFinalized()) {
     instantiated_type.SetIsFinalized();
   } else {
@@ -15971,6 +16040,13 @@ RawAbstractType* FunctionType::Canonicalize(TrailPtr trail) const {
   ASSERT(type_args.IsNull() ||
          (type_args.Length() >= scope_cls.NumTypeArguments()));
   type_args = type_args.Canonicalize(trail);
+  if (IsCanonical()) {
+    // Canonicalizing type_args canonicalized this type as a side effect.
+    ASSERT(IsRecursive());
+    // Cycles via typedefs are detected and disallowed, but a function type can
+    // be recursive due to a cycle in its type arguments.
+    return this->raw();
+  }
   set_arguments(type_args);
 
   // Replace the actual function by a signature function.
@@ -16068,6 +16144,7 @@ void FunctionType::set_scope_class(const Class& value) const {
 
 
 void FunctionType::set_arguments(const TypeArguments& value) const {
+  ASSERT(!IsCanonical());
   StorePointer(&raw_ptr()->arguments_, value.raw());
 }
 
@@ -16168,21 +16245,28 @@ bool TypeRef::IsEquivalent(const Instance& other, TrailPtr trail) const {
 RawTypeRef* TypeRef::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    TrailPtr trail,
+    TrailPtr instantiation_trail,
+    TrailPtr bound_trail,
     Heap::Space space) const {
   TypeRef& instantiated_type_ref = TypeRef::Handle();
-  instantiated_type_ref ^= OnlyBuddyInTrail(trail);
+  instantiated_type_ref ^= OnlyBuddyInTrail(instantiation_trail);
   if (!instantiated_type_ref.IsNull()) {
     return instantiated_type_ref.raw();
   }
+  instantiated_type_ref = TypeRef::New();
+  AddOnlyBuddyToTrail(&instantiation_trail, instantiated_type_ref);
+
   AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsTypeRef());
   AbstractType& instantiated_ref_type = AbstractType::Handle();
   instantiated_ref_type = ref_type.InstantiateFrom(
-      instantiator_type_arguments, bound_error, trail, space);
+      instantiator_type_arguments,
+      bound_error,
+      instantiation_trail,
+      bound_trail,
+      space);
   ASSERT(!instantiated_ref_type.IsTypeRef());
-  instantiated_type_ref = TypeRef::New(instantiated_ref_type);
-  AddOnlyBuddyToTrail(&trail, instantiated_type_ref);
+  instantiated_type_ref.set_type(instantiated_ref_type);
   return instantiated_type_ref.raw();
 }
 
@@ -16194,13 +16278,14 @@ RawTypeRef* TypeRef::CloneUninstantiated(const Class& new_owner,
   if (!cloned_type_ref.IsNull()) {
     return cloned_type_ref.raw();
   }
+  cloned_type_ref = TypeRef::New();
+  AddOnlyBuddyToTrail(&trail, cloned_type_ref);
   AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsTypeRef());
   AbstractType& cloned_ref_type = AbstractType::Handle();
   cloned_ref_type = ref_type.CloneUninstantiated(new_owner, trail);
   ASSERT(!cloned_ref_type.IsTypeRef());
-  cloned_type_ref = TypeRef::New(cloned_ref_type);
-  AddOnlyBuddyToTrail(&trail, cloned_type_ref);
+  cloned_type_ref.set_type(cloned_ref_type);
   return cloned_type_ref.raw();
 }
 
@@ -16234,42 +16319,6 @@ intptr_t TypeRef::Hash() const {
   const uint32_t result =
       Class::Handle(AbstractType::Handle(type()).type_class()).id();
   return FinalizeHash(result);
-}
-
-
-bool TypeRef::TestAndAddToTrail(TrailPtr* trail) const {
-  if (*trail == NULL) {
-    *trail = new Trail(Thread::Current()->zone(), 4);
-  } else {
-    const intptr_t len = (*trail)->length();
-    for (intptr_t i = 0; i < len; i++) {
-      if ((*trail)->At(i).raw() == this->raw()) {
-        return true;
-      }
-    }
-  }
-  (*trail)->Add(*this);
-  return false;
-}
-
-
-bool TypeRef::TestAndAddBuddyToTrail(TrailPtr* trail,
-                                     const AbstractType& buddy) const {
-  if (*trail == NULL) {
-    *trail = new Trail(Thread::Current()->zone(), 4);
-  } else {
-    const intptr_t len = (*trail)->length();
-    ASSERT((len % 2) == 0);
-    for (intptr_t i = 0; i < len; i += 2) {
-      if (((*trail)->At(i).raw() == this->raw()) &&
-          ((*trail)->At(i + 1).raw() == buddy.raw())) {
-        return true;
-      }
-    }
-  }
-  (*trail)->Add(*this);
-  (*trail)->Add(buddy);
-  return false;
 }
 
 
@@ -16361,7 +16410,8 @@ void TypeParameter::set_bound(const AbstractType& value) const {
 RawAbstractType* TypeParameter::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    TrailPtr trail,
+    TrailPtr instantiation_trail,
+    TrailPtr bound_trail,
     Heap::Space space) const {
   ASSERT(IsFinalized());
   if (instantiator_type_arguments.IsNull()) {
@@ -16373,6 +16423,12 @@ RawAbstractType* TypeParameter::InstantiateFrom(
   // type arguments are canonicalized at type finalization time. It would be too
   // early to canonicalize the returned type argument here, since instantiation
   // not only happens at run time, but also during type finalization.
+
+  // If the instantiated type parameter type_arg is a BoundedType, it means that
+  // it is still uninstantiated and that we are instantiating at finalization
+  // time (i.e. compile time).
+  // Indeed, the instantiator (type arguments of an instance) is always
+  // instantiated at run time and any bounds were checked during allocation.
   return type_arg.raw();
 }
 
@@ -16380,12 +16436,21 @@ RawAbstractType* TypeParameter::InstantiateFrom(
 bool TypeParameter::CheckBound(const AbstractType& bounded_type,
                                const AbstractType& upper_bound,
                                Error* bound_error,
+                               TrailPtr bound_trail,
                                Heap::Space space) const {
   ASSERT((bound_error != NULL) && bound_error->IsNull());
   ASSERT(bounded_type.IsFinalized());
   ASSERT(upper_bound.IsFinalized());
   ASSERT(!bounded_type.IsMalformed());
-  if (bounded_type.IsSubtypeOf(upper_bound, bound_error, space)) {
+  if (bounded_type.IsTypeRef() || upper_bound.IsTypeRef()) {
+    // Shortcut the bound check if the pair <bounded_type, upper_bound> is
+    // already in the trail.
+    if (bounded_type.TestAndAddBuddyToTrail(&bound_trail, upper_bound)) {
+      return true;
+    }
+  }
+
+  if (bounded_type.IsSubtypeOf(upper_bound, bound_error, bound_trail, space)) {
     return true;
   }
   // Set bound_error if the caller is interested and if this is the first error.
@@ -16442,18 +16507,24 @@ RawAbstractType* TypeParameter::CloneUnfinalized() const {
 RawAbstractType* TypeParameter::CloneUninstantiated(
     const Class& new_owner, TrailPtr trail) const {
   ASSERT(IsFinalized());
-  AbstractType& upper_bound = AbstractType::Handle(bound());
-  upper_bound = upper_bound.CloneUninstantiated(new_owner, trail);
+  TypeParameter& clone = TypeParameter::Handle();
+  clone ^= OnlyBuddyInTrail(trail);
+  if (!clone.IsNull()) {
+    return clone.raw();
+  }
   const Class& old_owner = Class::Handle(parameterized_class());
   const intptr_t new_index = index() +
       new_owner.NumTypeArguments() - old_owner.NumTypeArguments();
-  const TypeParameter& clone = TypeParameter::Handle(
-      TypeParameter::New(new_owner,
-                         new_index,
-                         String::Handle(name()),
-                         upper_bound,
-                         token_pos()));
+  AbstractType& upper_bound = AbstractType::Handle(bound());
+  clone = TypeParameter::New(new_owner,
+                             new_index,
+                             String::Handle(name()),
+                             upper_bound,  // Not cloned yet.
+                             token_pos());
   clone.SetIsFinalized();
+  AddOnlyBuddyToTrail(&trail, clone);
+  upper_bound = upper_bound.CloneUninstantiated(new_owner, trail);
+  clone.set_bound(upper_bound);
   return clone.raw();
 }
 
@@ -16608,18 +16679,24 @@ void BoundedType::set_type_parameter(const TypeParameter& value) const {
 RawAbstractType* BoundedType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    TrailPtr trail,
+    TrailPtr instantiation_trail,
+    TrailPtr bound_trail,
     Heap::Space space) const {
   ASSERT(IsFinalized());
   AbstractType& bounded_type = AbstractType::Handle(type());
   ASSERT(bounded_type.IsFinalized());
+  AbstractType& instantiated_bounded_type =
+      AbstractType::Handle(bounded_type.raw());
   if (!bounded_type.IsInstantiated()) {
-    bounded_type = bounded_type.InstantiateFrom(instantiator_type_arguments,
-                                                bound_error,
-                                                trail,
-                                                space);
-    // In case types of instantiator_type_arguments are not finalized, then
-    // the instantiated bounded_type is not finalized either.
+    instantiated_bounded_type =
+        bounded_type.InstantiateFrom(instantiator_type_arguments,
+                                     bound_error,
+                                     instantiation_trail,
+                                     bound_trail,
+                                     space);
+    // In case types of instantiator_type_arguments are not finalized
+    // (or instantiated), then the instantiated_bounded_type is not finalized
+    // (or instantiated) either.
     // Note that instantiator_type_arguments must have the final length, though.
   }
   if ((Isolate::Current()->flags().type_checks()) &&
@@ -16627,34 +16704,49 @@ RawAbstractType* BoundedType::InstantiateFrom(
     AbstractType& upper_bound = AbstractType::Handle(bound());
     ASSERT(upper_bound.IsFinalized());
     ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());
-    const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
+    AbstractType& instantiated_upper_bound =
+        AbstractType::Handle(upper_bound.raw());
     if (!upper_bound.IsInstantiated()) {
-      upper_bound = upper_bound.InstantiateFrom(instantiator_type_arguments,
-                                                bound_error,
-                                                trail,
-                                                space);
-      // Instantiated upper_bound may not be finalized. See comment above.
+      instantiated_upper_bound =
+          upper_bound.InstantiateFrom(instantiator_type_arguments,
+                                      bound_error,
+                                      instantiation_trail,
+                                      bound_trail,
+                                      space);
+      // The instantiated_upper_bound may not be finalized or instantiated.
+      // See comment above.
     }
     if (bound_error->IsNull()) {
-      if (bounded_type.IsBeingFinalized() ||
-          upper_bound.IsBeingFinalized() ||
-          (!type_param.CheckBound(bounded_type, upper_bound, bound_error) &&
+      // Shortcut the F-bounded case where we have reached a fixpoint.
+      if (instantiated_bounded_type.Equals(bounded_type) &&
+          instantiated_upper_bound.Equals(upper_bound)) {
+        return bounded_type.raw();
+      }
+      const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
+      if (instantiated_bounded_type.IsBeingFinalized() ||
+          instantiated_upper_bound.IsBeingFinalized() ||
+          (!type_param.CheckBound(instantiated_bounded_type,
+                                  instantiated_upper_bound,
+                                  bound_error,
+                                  bound_trail) &&
            bound_error->IsNull())) {
         // We cannot determine yet whether the bounded_type is below the
         // upper_bound, because one or both of them is still being finalized or
         // uninstantiated.
-        ASSERT(bounded_type.IsBeingFinalized() ||
-               upper_bound.IsBeingFinalized() ||
-               !bounded_type.IsInstantiated() ||
-               !upper_bound.IsInstantiated());
+        ASSERT(instantiated_bounded_type.IsBeingFinalized() ||
+               instantiated_upper_bound.IsBeingFinalized() ||
+               !instantiated_bounded_type.IsInstantiated() ||
+               !instantiated_upper_bound.IsInstantiated());
         // Postpone bound check by returning a new BoundedType with unfinalized
         // or partially instantiated bounded_type and upper_bound, but keeping
         // type_param.
-        bounded_type = BoundedType::New(bounded_type, upper_bound, type_param);
+        instantiated_bounded_type = BoundedType::New(instantiated_bounded_type,
+                                                     instantiated_upper_bound,
+                                                     type_param);
       }
     }
   }
-  return bounded_type.raw();
+  return instantiated_bounded_type.raw();
 }
 
 

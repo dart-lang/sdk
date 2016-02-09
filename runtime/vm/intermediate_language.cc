@@ -2057,7 +2057,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     Error& bound_error = Error::Handle();
     const AbstractType& new_dst_type = AbstractType::Handle(
         dst_type().InstantiateFrom(
-            instantiator_type_args, &bound_error, NULL, Heap::kOld));
+            instantiator_type_args, &bound_error, NULL, NULL, Heap::kOld));
     // If dst_type is instantiated to dynamic or Object, skip the test.
     if (!new_dst_type.IsMalformedOrMalbounded() && bound_error.IsNull() &&
         (new_dst_type.IsDynamicType() || new_dst_type.IsObjectType())) {
@@ -2344,7 +2344,7 @@ static bool MayBeBoxableNumber(intptr_t cid) {
 
 static bool MaybeNumber(CompileType* type) {
   ASSERT(Type::Handle(Type::Number()).IsMoreSpecificThan(
-         Type::Handle(Type::Number()), NULL, Heap::kOld));
+             Type::Handle(Type::Number()), NULL, NULL, Heap::kOld));
   return type->ToAbstractType()->IsDynamicType()
       || type->ToAbstractType()->IsObjectType()
       || type->ToAbstractType()->IsTypeParameter()

@@ -3887,6 +3887,7 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(
         type_class,
         TypeArguments::Handle(Z),
         NULL,
+        NULL,
         Heap::kOld);
     results->Add(cls.id());
     results->Add(is_subtype);
@@ -3980,6 +3981,7 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
     const bool smi_is_subtype = cls.IsSubtypeOf(TypeArguments::Handle(),
                                                 type_class,
                                                 TypeArguments::Handle(),
+                                                NULL,
                                                 NULL,
                                                 Heap::kOld);
     results->Add((*results)[results->length() - 2]);

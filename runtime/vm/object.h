@@ -907,6 +907,10 @@ class PassiveObject : public Object {
 };
 
 
+typedef ZoneGrowableHandlePtrArray<const AbstractType> Trail;
+typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
+
+
 class Class : public Object {
  public:
   intptr_t instance_size() const {
@@ -1128,12 +1132,14 @@ class Class : public Object {
                    const Class& other,
                    const TypeArguments& other_type_arguments,
                    Error* bound_error,
+                   TrailPtr bound_trail = NULL,
                    Heap::Space space = Heap::kNew) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
                     other,
                     other_type_arguments,
                     bound_error,
+                    bound_trail,
                     space);
   }
 
@@ -1142,12 +1148,14 @@ class Class : public Object {
                           const Class& other,
                           const TypeArguments& other_type_arguments,
                           Error* bound_error,
+                          TrailPtr bound_trail = NULL,
                           Heap::Space space = Heap::kNew) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
                     other,
                     other_type_arguments,
                     bound_error,
+                    bound_trail,
                     space);
   }
 
@@ -1470,6 +1478,7 @@ class Class : public Object {
                 const Class& other,
                 const TypeArguments& other_type_arguments,
                 Error* bound_error,
+                TrailPtr bound_trail,
                 Heap::Space space) const;
 
   static bool TypeTestNonRecursive(
@@ -1479,6 +1488,7 @@ class Class : public Object {
       const Class& other,
       const TypeArguments& other_type_arguments,
       Error* bound_error,
+      TrailPtr bound_trail,
       Heap::Space space);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Class, Object);
@@ -1523,9 +1533,6 @@ class UnresolvedClass : public Object {
   friend class Class;
 };
 
-
-typedef ZoneGrowableHandlePtrArray<const AbstractType> Trail;
-typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
 
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public Object {
@@ -1575,8 +1582,10 @@ class TypeArguments : public Object {
                    intptr_t from_index,
                    intptr_t len,
                    Error* bound_error,
+                   TrailPtr bound_trail = NULL,
                    Heap::Space space = Heap::kNew) const {
-    return TypeTest(kIsSubtypeOf, other, from_index, len, bound_error, space);
+    return TypeTest(kIsSubtypeOf, other, from_index, len,
+                    bound_error, bound_trail, space);
   }
 
   // Check the 'more specific' relationship, considering only a subvector of
@@ -1585,9 +1594,10 @@ class TypeArguments : public Object {
                           intptr_t from_index,
                           intptr_t len,
                           Error* bound_error,
+                          TrailPtr bound_trail = NULL,
                           Heap::Space space = Heap::kNew) const {
-    return TypeTest(kIsMoreSpecificThan,
-        other, from_index, len, bound_error, space);
+    return TypeTest(kIsMoreSpecificThan, other, from_index, len,
+                    bound_error, bound_trail, space);
   }
 
   // Check if the vectors are equal (they may be null).
@@ -1643,7 +1653,8 @@ class TypeArguments : public Object {
   RawTypeArguments* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL,
+      TrailPtr instantiation_trail = NULL,
+      TrailPtr bound_trail = NULL,
       Heap::Space space = Heap::kNew) const;
 
   // Runtime instantiation with canonicalization. Not to be used during type
@@ -1700,6 +1711,7 @@ class TypeArguments : public Object {
                 intptr_t from_index,
                 intptr_t len,
                 Error* bound_error,
+                TrailPtr bound_trail,
                 Heap::Space space) const;
 
   // Return the internal or public name of a subvector of this type argument
@@ -2504,7 +2516,7 @@ class Function : public Object {
                           const Function& other,
                           const TypeArguments& other_type_arguments,
                           Error* bound_error,
-                   Heap::Space space = Heap::kNew) const {
+                          Heap::Space space = Heap::kNew) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
                     other,
@@ -5271,7 +5283,8 @@ class AbstractType : public Instance {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL,
+      TrailPtr instantiation_trail = NULL,
+      TrailPtr bound_trail = NULL,
       Heap::Space space = Heap::kNew) const;
 
   // Return a clone of this unfinalized type or the type itself if it is
@@ -5301,6 +5314,17 @@ class AbstractType : public Instance {
   // If the trail is null, allocate a trail, add the pair <receiver, buddy> to
   // the trail. The receiver may only be added once with its only buddy.
   void AddOnlyBuddyToTrail(TrailPtr* trail, const AbstractType& buddy) const;
+
+  // Return true if the receiver is contained in the trail.
+  // Otherwise, if the trail is null, allocate a trail, then add the receiver to
+  // the trail and return false.
+  bool TestAndAddToTrail(TrailPtr* trail) const;
+
+  // Return true if the pair <receiver, buddy> is contained in the trail.
+  // Otherwise, if the trail is null, allocate a trail, add the pair <receiver,
+  // buddy> to the trail and return false.
+  // The receiver may be added several times, each time with a different buddy.
+  bool TestAndAddBuddyToTrail(TrailPtr* trail, const AbstractType& buddy) const;
 
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const {
@@ -5374,15 +5398,18 @@ class AbstractType : public Instance {
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other,
                    Error* bound_error,
+                   TrailPtr bound_trail = NULL,
                    Heap::Space space = Heap::kNew) const {
-    return TypeTest(kIsSubtypeOf, other, bound_error, space);
+    return TypeTest(kIsSubtypeOf, other, bound_error, bound_trail, space);
   }
 
   // Check the 'more specific' relationship.
   bool IsMoreSpecificThan(const AbstractType& other,
                           Error* bound_error,
+                          TrailPtr bound_trail = NULL,
                           Heap::Space space = Heap::kNew) const {
-    return TypeTest(kIsMoreSpecificThan, other, bound_error, space);
+    return TypeTest(kIsMoreSpecificThan, other,
+                    bound_error, bound_trail, space);
   }
 
  private:
@@ -5390,6 +5417,7 @@ class AbstractType : public Instance {
   bool TypeTest(TypeTestKind test_kind,
                 const AbstractType& other,
                 Error* bound_error,
+                TrailPtr bound_trail,
                 Heap::Space space) const;
 
   // Return the internal or public name of this type, including the names of its
@@ -5448,7 +5476,8 @@ class Type : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL,
+      TrailPtr instantiation_trail = NULL,
+      TrailPtr bound_trail = NULL,
       Heap::Space space = Heap::kNew) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
@@ -5595,7 +5624,8 @@ class FunctionType : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* malformed_error,
-      TrailPtr trail = NULL,
+      TrailPtr instantiation_trail = NULL,
+      TrailPtr bound_trail = NULL,
       Heap::Space space = Heap::kNew) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
@@ -5671,7 +5701,8 @@ class TypeRef : public AbstractType {
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL,
+      TrailPtr instantiation_trail = NULL,
+      TrailPtr bound_trail = NULL,
       Heap::Space space = Heap::kNew) const;
   virtual RawTypeRef* CloneUninstantiated(
       const Class& new_owner,
@@ -5679,17 +5710,6 @@ class TypeRef : public AbstractType {
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
 
   virtual intptr_t Hash() const;
-
-  // Return true if the receiver is contained in the trail.
-  // Otherwise, if the trail is null, allocate a trail, then add the receiver to
-  // the trail and return false.
-  bool TestAndAddToTrail(TrailPtr* trail) const;
-
-  // Return true if the pair <receiver, buddy> is contained in the trail.
-  // Otherwise, if the trail is null, allocate a trail, add the pair <receiver,
-  // buddy> to the trail and return false.
-  // The receiver may be added several times, each time with a different buddy.
-  bool TestAndAddBuddyToTrail(TrailPtr* trail, const AbstractType& buddy) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawTypeRef));
@@ -5743,6 +5763,7 @@ class TypeParameter : public AbstractType {
   bool CheckBound(const AbstractType& bounded_type,
                   const AbstractType& upper_bound,
                   Error* bound_error,
+                  TrailPtr bound_trail = NULL,
                   Heap::Space space = Heap::kNew) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const {
@@ -5753,7 +5774,8 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL,
+      TrailPtr instantiation_trail = NULL,
+      TrailPtr bound_trail = NULL,
       Heap::Space space = Heap::kNew) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
@@ -5838,7 +5860,8 @@ class BoundedType : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL,
+      TrailPtr instantiation_trail = NULL,
+      TrailPtr bound_trail = NULL,
       Heap::Space space = Heap::kNew) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(

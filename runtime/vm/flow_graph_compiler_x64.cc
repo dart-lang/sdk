@@ -278,7 +278,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const Register kInstanceReg = RAX;
   Error& bound_error = Error::Handle(zone());
   const Type& int_type = Type::Handle(zone(), Type::IntType());
-  const bool smi_is_ok = int_type.IsSubtypeOf(type, &bound_error, Heap::kOld);
+  const bool smi_is_ok =
+      int_type.IsSubtypeOf(type, &bound_error, NULL, Heap::kOld);
   // Malformed type should have been handled at graph construction time.
   ASSERT(smi_is_ok || bound_error.IsNull());
   __ testq(kInstanceReg, Immediate(kSmiTagMask));
@@ -318,7 +319,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
         ASSERT(tp_argument.HasResolvedTypeClass());
         // Check if type argument is dynamic or Object.
         const Type& object_type = Type::Handle(zone(), Type::ObjectType());
-        if (object_type.IsSubtypeOf(tp_argument, NULL, Heap::kOld)) {
+        if (object_type.IsSubtypeOf(tp_argument, NULL, NULL, Heap::kOld)) {
           // Instance class test only necessary.
           return GenerateSubtype1TestCacheLookup(
               token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
@@ -377,6 +378,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
                             type_class,
                             TypeArguments::Handle(zone()),
                             NULL,
+                            NULL,
                             Heap::kOld)) {
     __ j(ZERO, is_instance_lbl);
   } else {
@@ -404,7 +406,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
   if (type.IsSubtypeOf(
-      Type::Handle(zone(), Type::Number()), NULL, Heap::kOld)) {
+      Type::Handle(zone(), Type::Number()), NULL, NULL, Heap::kOld)) {
     GenerateNumberTypeCheck(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
     return false;

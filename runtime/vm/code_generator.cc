@@ -206,7 +206,8 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 2) {
   ASSERT(!type.IsNull() && !type.IsInstantiated());
   ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
   Error& bound_error = Error::Handle();
-  type = type.InstantiateFrom(instantiator, &bound_error, NULL, Heap::kOld);
+  type =
+      type.InstantiateFrom(instantiator, &bound_error, NULL, NULL, Heap::kOld);
   if (!bound_error.IsNull()) {
     // Throw a dynamic type error.
     const TokenPosition location = GetCallerLocation();
