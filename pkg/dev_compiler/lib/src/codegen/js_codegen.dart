@@ -963,14 +963,20 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
           node.element);
     }
 
+    // For const constructors we need to ensure default values are
+    // available for use by top-level constant initializers.
+    ClassDeclaration cls = node.parent;
+    if (node.constKeyword != null) _loader.startTopLevel(cls.element);
+    var params = _emitFormalParameterList(node.parameters);
+    if (node.constKeyword != null) _loader.finishTopLevel(cls.element);
+
     // Factory constructors are essentially static methods.
     if (node.factoryKeyword != null) {
       var body = <JS.Statement>[];
       var init = _emitArgumentInitializers(node, constructor: true);
       if (init != null) body.add(init);
       body.add(_visit(node.body));
-      var fun = new JS.Fun(
-          _visit(node.parameters) as List<JS.Parameter>, new JS.Block(body));
+      var fun = new JS.Fun(params, new JS.Block(body));
       return annotate(
           new JS.Method(name, fun, isStatic: true)..sourceInformation = node,
           node.element);
@@ -1009,9 +1015,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     // this allows use of `super` for instance methods/properties.
     // It also avoids V8 restrictions on `super` in default constructors.
     return annotate(
-        new JS.Method(name,
-            new JS.Fun(_visit(node.parameters) as List<JS.Parameter>, body))
-          ..sourceInformation = node,
+        new JS.Method(name, new JS.Fun(params, body))..sourceInformation = node,
         node.element);
   }
 
@@ -1221,7 +1225,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       var jsParam = _visit(param.identifier);
 
       if (param.kind == ParameterKind.NAMED) {
-        if (!_isDestructurableNamedParam(param)) {
+        if (!options.destructureNamedParams) {
           // Parameters will be passed using their real names, not the (possibly
           // renamed) local variable.
           var paramName = js.string(param.identifier.name, "'");
@@ -1237,7 +1241,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
             _defaultParamValue(param),
           ]));
         }
-      } else if (param.kind == ParameterKind.POSITIONAL) {
+      } else if (param.kind == ParameterKind.POSITIONAL &&
+          !options.destructureNamedParams) {
         body.add(js.statement('if (# === void 0) # = #;',
             [jsParam, jsParam, _defaultParamValue(param)]));
       }
@@ -2044,13 +2049,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   bool _isNamedParam(FormalParameter param) =>
       param.kind == ParameterKind.NAMED;
 
-  /// We cannot destructure named params that clash with JS reserved names:
-  /// see discussion in https://github.com/dart-lang/dev_compiler/issues/392.
-  bool _isDestructurableNamedParam(FormalParameter param) =>
-      _isNamedParam(param) &&
-      !invalidVariableName(param.identifier.name) &&
-      options.destructureNamedParams;
-
   @override
   List<JS.Parameter> visitFormalParameterList(FormalParameterList node) =>
       _emitFormalParameterList(node);
@@ -2060,8 +2058,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var result = <JS.Parameter>[];
 
     var namedVars = <JS.DestructuredVariable>[];
-    var destructure = allowDestructuring &&
-        node.parameters.where(_isNamedParam).every(_isDestructurableNamedParam);
+    var destructure = allowDestructuring && options.destructureNamedParams;
     var hasNamedArgsConflictingWithObjectProperties = false;
     var needsOpts = false;
 
@@ -2071,14 +2068,30 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
           if (_jsObjectProperties.contains(param.identifier.name)) {
             hasNamedArgsConflictingWithObjectProperties = true;
           }
+          JS.Expression name;
+          JS.SimpleBindingPattern structure = null;
+          String paramName = param.identifier.name;
+          if (invalidVariableName(paramName)) {
+            name = js.string(paramName);
+            structure = new JS.SimpleBindingPattern(_visit(param.identifier));
+          } else {
+            name = _visit(param.identifier);
+          }
           namedVars.add(new JS.DestructuredVariable(
-              name: _visit(param.identifier),
+              name: name,
+              structure: structure,
               defaultValue: _defaultParamValue(param)));
         } else {
           needsOpts = true;
         }
       } else {
-        result.add(_visit(param));
+        var jsParam = _visit(param);
+        result.add(
+            param is DefaultFormalParameter && options.destructureNamedParams
+                ? new JS.DestructuredVariable(
+                    name: jsParam,
+                    defaultValue: _defaultParamValue(param))
+                : jsParam);
       }
     }
 

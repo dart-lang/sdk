@@ -55,18 +55,12 @@ dart_library.library('closure', null, /* Imports */[
        * @param {?=} b
        * @param {?=} c
        */
-      optional_params(a, b, c) {
-        if (b === void 0) b = null;
-        if (c === void 0) c = null;
-      }
+      optional_params(a, b = null, c = null) {}
       /**
        * @param {?} a
        * @param {{b: (?|undefined), c: (?|undefined)}=} opts
        */
-      static named_params(a, opts) {
-        let b = opts && 'b' in opts ? opts.b : null;
-        let c = opts && 'c' in opts ? opts.c : null;
-      }
+      static named_params(a, {b = null, c = null} = {}) {}
       nullary_method() {}
       /**
        * @param {function(?, ?=):?number} f

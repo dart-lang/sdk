@@ -857,6 +857,10 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
           makeVars.map((m) => m(arguments)).toList());
     };
   }
+
+  @override
+  Instantiator visitSimpleBindingPattern(SimpleBindingPattern node) =>
+      (arguments) => new SimpleBindingPattern(new Identifier(node.name.name));
 }
 
 /**

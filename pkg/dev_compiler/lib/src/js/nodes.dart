@@ -92,6 +92,7 @@ abstract class NodeVisitor<T> {
   T visitArrayBindingPattern(ArrayBindingPattern node);
   T visitObjectBindingPattern(ObjectBindingPattern node);
   T visitDestructuredVariable(DestructuredVariable node);
+  T visitSimpleBindingPattern(SimpleBindingPattern node);
 }
 
 class BaseVisitor<T> implements NodeVisitor<T> {
@@ -221,6 +222,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitObjectBindingPattern(ObjectBindingPattern node)
       => visitBindingPattern(node);
   T visitDestructuredVariable(DestructuredVariable node) => visitNode(node);
+  T visitSimpleBindingPattern(SimpleBindingPattern node) => visitNode(node);
 }
 
 abstract class Node {
@@ -777,7 +779,8 @@ abstract class VariableBinding extends Expression {
 }
 
 class DestructuredVariable extends Expression implements Parameter {
-  final Identifier name;
+  /// [LiteralString] or [Identifier].
+  final Expression name;
   final BindingPattern structure;
   final Expression defaultValue;
   DestructuredVariable({this.name, this.structure, this.defaultValue}) {
@@ -805,6 +808,17 @@ abstract class BindingPattern extends Expression implements VariableBinding {
   void visitChildren(NodeVisitor visitor) {
     for (DestructuredVariable v in variables) v.accept(visitor);
   }
+}
+
+class SimpleBindingPattern extends BindingPattern {
+  final Identifier name;
+  SimpleBindingPattern(Identifier name)
+      : super([new DestructuredVariable(name: name)]), this.name = name;
+  accept(NodeVisitor visitor) => visitor.visitSimpleBindingPattern(this);
+
+  /// Avoid parenthesis when pretty-printing.
+  @override int get precedenceLevel => PRIMARY;
+  @override Node _clone() => new SimpleBindingPattern(name);
 }
 
 class ObjectBindingPattern extends BindingPattern {

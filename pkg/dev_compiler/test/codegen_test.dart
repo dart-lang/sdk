@@ -67,6 +67,7 @@ main(arguments) {
   BatchCompiler createCompiler(AnalysisContext context,
       {bool checkSdk: false,
       bool sourceMaps: false,
+      bool destructureNamedParams: false,
       bool closure: false,
       ModuleFormat moduleFormat: ModuleFormat.legacy}) {
     // TODO(jmesserly): add a way to specify flags in the test file, so
@@ -77,6 +78,7 @@ main(arguments) {
             outputDir: expectDir,
             emitSourceMaps: sourceMaps,
             closure: closure,
+            destructureNamedParams: destructureNamedParams,
             forceCompile: checkSdk,
             moduleFormat: moduleFormat),
         useColors: false,
@@ -157,6 +159,7 @@ $compilerMessages''';
           // We need a more comprehensive strategy to test them.
           var sourceMaps = filename == 'map_keys';
           var closure = filename == 'closure';
+          var destructureNamedParams = filename == 'destructuring' || closure;
           var moduleFormat = filename == 'es6_modules'
               ? ModuleFormat.es6
               : filename == 'node_modules'
@@ -166,13 +169,16 @@ $compilerMessages''';
           // TODO(vsm): Is it okay to reuse the same context here?  If there is
           // overlap between test files, we may need separate ones for each
           // compiler.
-          var compiler =
-              (sourceMaps || closure || moduleFormat != ModuleFormat.legacy)
-                  ? createCompiler(realSdkContext,
-                      sourceMaps: sourceMaps,
-                      closure: closure,
-                      moduleFormat: moduleFormat)
-                  : batchCompiler;
+          var compiler = (sourceMaps ||
+                  closure ||
+                  destructureNamedParams ||
+                  moduleFormat != ModuleFormat.legacy)
+              ? createCompiler(realSdkContext,
+                  sourceMaps: sourceMaps,
+                  destructureNamedParams: destructureNamedParams,
+                  closure: closure,
+                  moduleFormat: moduleFormat)
+              : batchCompiler;
           success = compile(compiler, filePath);
 
           var outFile = new File(path.join(outDir.path, '$filename.js'));

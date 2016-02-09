@@ -621,8 +621,17 @@ class Printer implements NodeVisitor {
   }
 
   visitDestructuredVariable(DestructuredVariable node) {
-    var hasName = node.name != null;
-    if (hasName) visit(node.name);
+    var name = node.name;
+    var hasName = name != null;
+    if (hasName) {
+      if (name is LiteralString) {
+        out("[");
+        out(name.value);
+        out("]");
+      } else {
+        visit(name);
+      }
+    }
     if (node.structure != null) {
       if (hasName) {
         out(":");
@@ -637,6 +646,10 @@ class Printer implements NodeVisitor {
       visitNestedExpression(node.defaultValue, EXPRESSION,
                             newInForInit: false, newAtStatementBegin: false);
     }
+  }
+
+  visitSimpleBindingPattern(SimpleBindingPattern node) {
+    visit(node.name);
   }
 
   visitAssignment(Assignment assignment) {
@@ -1585,13 +1598,23 @@ abstract class VariableDeclarationVisitor<T> extends BaseVisitor<T> {
 
   _scanVariableBinding(VariableBinding d) {
     if (d is Identifier) declare(d);
-    if (d is RestParameter) _scanVariableBinding(d.parameter);
-    else if (d is BindingPattern) {
-      for (var v in d.variables) {
-        if (v.name != null) declare(v.name);
-        if (v.structure != null) _scanVariableBinding(v.structure);
-      }
-    }
+    else d.accept(this);
+  }
+
+  visitRestParameter(RestParameter node) {
+    _scanVariableBinding(node.parameter);
+    super.visitRestParameter(node);
+  }
+
+  visitDestructuredVariable(DestructuredVariable node) {
+    var name = node.name;
+    if (name is Identifier) _scanVariableBinding(name);
+    super.visitDestructuredVariable(node);
+  }
+
+  visitSimpleBindingPattern(SimpleBindingPattern node) {
+    _scanVariableBinding(node.name);
+    super.visitSimpleBindingPattern(node);
   }
 
   visitVariableInitialization(VariableInitialization node) {
