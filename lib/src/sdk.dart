@@ -11,15 +11,13 @@ import 'package:analyzer/src/context/cache.dart'
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, ChangeSet;
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart'
     show DartSdk, LibraryMap, SdkLibrary;
-import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, Source, SourceFactory;
 
 /// Mock SDK for testing purposes.
-class MockSdk implements DartSdk, DirectoryBasedDartSdk {
+class MockSdk implements DartSdk {
   static const _MockSdkLibrary LIB_CORE = const _MockSdkLibrary(
       'dart:core',
       '/lib/core/core.dart',
@@ -138,14 +136,14 @@ class Future<T> {
 }
 ''',
       const <_MockSdkFile>[
-    const _MockSdkFile(
-        '/lib/async/stream.dart',
-        r'''
+        const _MockSdkFile(
+            '/lib/async/stream.dart',
+            r'''
 part of dart.async;
 class Stream<T> {}
 abstract class StreamTransformer<S, T> {}
 ''')
-  ]);
+      ]);
 
   static const _MockSdkLibrary LIB_COLLECTION = const _MockSdkLibrary(
       'dart:collection',
@@ -239,36 +237,6 @@ class HtmlElement {}
   }
 
   @override
-  JavaFile get dart2JsExecutable => null;
-
-  @override
-  String get dartiumBinaryName => null;
-
-  @override
-  JavaFile get dartiumExecutable => null;
-
-  @override
-  JavaFile get dartiumWorkingDirectory => null;
-
-  @override
-  JavaFile get directory => null;
-
-  @override
-  JavaFile get docDirectory => null;
-
-  @override
-  bool get hasDocumentation => null;
-
-  @override
-  bool get isDartiumInstalled => null;
-
-  @override
-  JavaFile get libraryDirectory => null;
-
-  @override
-  JavaFile get pubExecutable => null;
-
-  @override
   List<SdkLibrary> get sdkLibraries => LIBRARIES;
 
   @override
@@ -284,12 +252,6 @@ class HtmlElement {}
     }
     return uris;
   }
-
-  @override
-  String get vmBinaryName => null;
-
-  @override
-  JavaFile get vmExecutable => null;
 
   @override
   Source fromFileUri(Uri uri) {
@@ -325,21 +287,12 @@ class HtmlElement {}
   }
 
   @override
-  JavaFile getDartiumWorkingDirectory(JavaFile installDir) => null;
-
-  @override
-  JavaFile getDocFileFor(String libraryName) => null;
-
-  @override
   SdkLibrary getSdkLibrary(String dartUri) {
     // getSdkLibrary() is only used to determine whether a library is internal
     // to the SDK.  The mock SDK doesn't have any internals, so it's safe to
     // return null.
     return null;
   }
-
-  @override
-  LibraryMap initialLibraryMap(bool useDart2jsPaths) => null;
 
   @override
   Source mapDartUri(String dartUri) {
@@ -419,8 +372,7 @@ class _SdkAnalysisContext extends AnalysisContextImpl {
     if (factory == null) {
       return super.createCacheFromSourceFactory(factory);
     }
-    return new AnalysisCache(<CachePartition>[
-      AnalysisEngine.instance.partitionManager.forSdk(sdk)
-    ]);
+    return new AnalysisCache(
+        <CachePartition>[AnalysisEngine.instance.partitionManager.forSdk(sdk)]);
   }
 }

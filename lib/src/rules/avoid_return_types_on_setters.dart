@@ -5,7 +5,6 @@
 library linter.src.rules.avoid_return_types_on_setters;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:linter/src/linter.dart';
 
 const desc = r'Avoid return types on setters.';
