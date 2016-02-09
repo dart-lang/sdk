@@ -4890,7 +4890,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
       continue;
     }
 
-    if (FLAG_trace_smi_widening) {
+    if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
       THR_Print("analysing candidate: %s\n", op->ToCString());
     }
     worklist.Clear();
@@ -4902,14 +4902,14 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
     for (intptr_t j = 0; j < worklist.definitions().length(); j++) {
       Definition* defn = worklist.definitions()[j];
 
-      if (FLAG_trace_smi_widening) {
+      if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
         THR_Print("> %s\n", defn->ToCString());
       }
 
       if (defn->IsBinarySmiOp() &&
           BenefitsFromWidening(defn->AsBinarySmiOp())) {
         gain++;
-        if (FLAG_trace_smi_widening) {
+        if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
           THR_Print("^ [%" Pd "] (o) %s\n", gain, defn->ToCString());
         }
       }
@@ -4927,7 +4927,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
         } else if (input->IsBinaryMintOp()) {
           // Mint operation produces untagged result. We avoid tagging.
           gain++;
-          if (FLAG_trace_smi_widening) {
+          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
             THR_Print("^ [%" Pd "] (i) %s\n", gain, input->ToCString());
           }
         } else if (defn_loop == loops[input->GetBlock()->preorder_number()] &&
@@ -4938,7 +4938,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           // known to be smi have to be checked and this check can be
           // coalesced with untagging. Start coalescing them.
           gain--;
-          if (FLAG_trace_smi_widening) {
+          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
             THR_Print("v [%" Pd "] (i) %s\n", gain, input->ToCString());
           }
         }
@@ -4955,7 +4955,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           // very little compared to the cost of the return/call itself.
           if (!instr->IsReturn() && !instr->IsPushArgument()) {
             gain--;
-            if (FLAG_trace_smi_widening) {
+            if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
               THR_Print("v [%" Pd "] (u) %s\n",
                         gain,
                         use->instruction()->ToCString());
@@ -4973,14 +4973,14 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           // Converting kUnboxedInt32 to kUnboxedMint is essentially zero cost
           // sign extension operation.
           gain++;
-          if (FLAG_trace_smi_widening) {
+          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
             THR_Print("^ [%" Pd "] (u) %s\n",
                       gain,
                       use->instruction()->ToCString());
           }
         } else if (defn_loop == loops[instr->GetBlock()->preorder_number()]) {
           gain--;
-          if (FLAG_trace_smi_widening) {
+          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
             THR_Print("v [%" Pd "] (u) %s\n",
                       gain,
                       use->instruction()->ToCString());
@@ -4991,7 +4991,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
 
     processed->AddAll(worklist.contains_vector());
 
-    if (FLAG_trace_smi_widening) {
+    if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
       THR_Print("~ %s gain %" Pd "\n", op->ToCString(), gain);
     }
 
