@@ -10,6 +10,7 @@ import os.path
 import sys
 import time
 import utilities
+import dependency
 
 _logger = logging.getLogger('fremontcutbuilder')
 
@@ -50,6 +51,7 @@ def build_database(idl_files, database_dir, feature_defines=None,
   db.Delete()
 
   builder = databasebuilder.DatabaseBuilder(db)
+  dependency.set_builder(builder)
 
   # TODO(vsm): Move this to a README.
   # This is the Dart SVN revision.

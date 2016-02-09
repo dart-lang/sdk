@@ -10,11 +10,10 @@ execfile(os.path.join(path, 'src', 'dart', 'tools', 'deps', 'dartium.deps', 'DEP
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "dartium_base": "http://src.chromium.org",
-  "dartium_chromium_branch": "master",
-  "dartium_chromium_commit": "62a7524d4f71c9e0858d24b0aa1bbff3a2d09bff",
-  "chromium_base_revision": "297060",
-  "dartium_webkit_branch": "/blink/branches/dart/dartium",
-  "dartium_webkit_revision": "202760",
+  "dartium_chromium_commit": "526d891ac24d8bd27a6bd5e1d7c384a72509cfc0",
+  "chromium_base_revision": "338390",
+  "dartium_webkit_branch": "/blink/branches/dart/2454_1",
+  "dartium_webkit_revision": "202773",
 
   # We use mirrors of all github repos to guarantee reproducibility and
   # consistency between what users see and what the bots see.
@@ -69,30 +68,30 @@ vars.update({
   "yaml_rev": "@563a5ffd4a800a2897b8f4dd6b19f2a370df2f2b",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
-  "WebCore_rev": "@4f90b41b0165f23f412cecdba07b7d81d3fbb5b5",
+  "WebCore_rev": "@5ecb723fd9ffcc0d108f5e0e24d12b8b3df7b200",
 
   "co19_rev": "@3ed795ea02e022ef19c77cf1b6095b7c8f5584d0",
 })
 
-def massage_deps(deps):
-  for key, value in deps.items():
-    if value is None: continue
-
-    if value.startswith('/trunk'):
-      deps[key] = Var("chromium_url") + value
-      continue
-
-    if value.startswith(Var("webkit_trunk")):
-      path, revision = value.split('@') # and svn revision.
-      path = path[len(Var("webkit_trunk")):]  # Strip WebKit repo.
-      value = (Var("dartium_base") + Var("dartium_webkit_branch") + path +
-               '@' + Var("dartium_webkit_revision"))
-      deps[key] = value
-      continue
-
-massage_deps(deps)
-for os_deps in deps_os.values():
-  massage_deps(os_deps)
+# def massage_deps(deps):
+#   for key, value in deps.items():
+#     if value is None: continue
+#
+#     if value.startswith('/trunk'):
+#       deps[key] = Var("chromium_url") + value
+#       continue
+#
+#     if value.startswith(Var("webkit_trunk")):
+#       path, revision = value.split('@') # and svn revision.
+#       path = path[len(Var("webkit_trunk")):]  # Strip WebKit repo.
+#       value = (Var("dartium_base") + Var("dartium_webkit_branch") + path +
+#                '@' + Var("dartium_webkit_revision"))
+#       deps[key] = value
+#       continue
+#
+# massage_deps(deps)
+# for os_deps in deps_os.values():
+#   massage_deps(os_deps)
 
 deps.update({
   "src":

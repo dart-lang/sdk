@@ -91,7 +91,7 @@ vars = {
   "when_tag": "@0.2.0+2",
   "which_tag": "@0.1.3+1",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
-  "WebCore_rev": "@4f90b41b0165f23f412cecdba07b7d81d3fbb5b5",
+  "WebCore_rev": "@5ecb723fd9ffcc0d108f5e0e24d12b8b3df7b200",
   "yaml_tag": "@2.1.5",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "barback-0.13.0_rev": "@34853",

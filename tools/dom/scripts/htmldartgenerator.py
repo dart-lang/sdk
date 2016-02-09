@@ -311,6 +311,11 @@ class HtmlDartGenerator(object):
       self.EmitAttribute(attribute, attr_name, read_only)
 
   def AddOperation(self, info, declare_only=False, dart_js_interop=False):
+    # TODO(terry): Hack window has 2 overloaded getter one returns Window and
+    #              and other object (we'll always return Window)?
+    if self._interface.id == "Window" and info.name == '__getter__':
+      info.operations[1].type = info.operations[0].type;
+
     """ Adds an operation to the generated class.
     Arguments:
       info - The operation info of the operation to be added.
@@ -528,7 +533,9 @@ class HtmlDartGenerator(object):
   def _AddConstructor(self,
       constructor_info, factory_name, factory_constructor_name):
     # Hack to ignore the Image constructor used by JavaScript.
-    if ((self._interface.id == 'HTMLImageElement' or self._interface.id == 'Blob')
+    if ((self._interface.id == 'HTMLImageElement' or
+         self._interface.id == 'Blob' or
+         self._interface.id == 'DOMException')
       and not constructor_info.pure_dart_constructor):
       return
 
@@ -850,17 +857,20 @@ class HtmlDartGenerator(object):
         verified_type = temp_type  # verified by assignment in checked mode.
       else:
         converted_arguments.append(info.param_infos[position].name)
-        param_type = self._NarrowInputType(arg.type.id)
-        # Verified by argument checking on entry to the dispatcher.
-
-        verified_type = self._InputType(
-            info.param_infos[position].type_id, info)
-        # The native method does not need an argument type if we know the type.
-        # But we do need the native methods to have correct function types, so
-        # be conservative.
-        if param_type == verified_type:
-          if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
-            param_type = 'dynamic'
+        if self._database.HasTypeDef(arg.type.id):
+          param_type = 'dynamic'
+        else:
+          param_type = self._NarrowInputType(arg.type.id)
+          # Verified by argument checking on entry to the dispatcher.
+  
+          verified_type = self._InputType(
+              info.param_infos[position].type_id, info)
+          # The native method does not need an argument type if we know the type.
+          # But we do need the native methods to have correct function types, so
+          # be conservative.
+          if param_type == verified_type:
+            if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
+              param_type = 'dynamic'
 
       target_parameters.append(
           '%s%s' % (TypeOrNothing(param_type), param_name))
@@ -872,4 +882,8 @@ class HtmlDartGenerator(object):
     if conversion:
       return conversion.input_type
     else:
-      return self._NarrowInputType(type_name) if type_name else 'dynamic'
+      # If typedef it's a union return dynamic.
+      if self._database.HasTypeDef(type_name):
+        return 'dynamic'
+      else:
+        return self._NarrowInputType(type_name) if type_name else 'dynamic'

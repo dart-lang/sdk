@@ -545,6 +545,9 @@
     {
       'target_name': 'generate_bootstrap_resources_cc_file',
       'type': 'none',
+      'dependencies': [
+        'bin/zlib.gyp:zlib_dart',
+      ],
       'toolsets':['host'],
       'includes': [
         'vmservice/vmservice_sources.gypi',

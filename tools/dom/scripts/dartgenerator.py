@@ -38,6 +38,10 @@ class DartGenerator(object):
     if IsRegisteredType(type_name):
       return True
 
+    # References a typedef - normally a union type.
+    if database.HasTypeDef(type_name):
+      return True
+
     if type_name.endswith('?'):
       return self._IsCompoundType(database, type_name[:-len('?')])
 
