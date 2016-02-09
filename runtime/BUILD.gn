@@ -50,6 +50,10 @@ config("dart_config") {
     defines += ["NDEBUG"]
   }
 
+  if (is_ios || is_mac) {
+    defines += ["DART_PRECOMPILER"]
+  }
+
   cflags = [
     "-Werror",
     "-Wall",
