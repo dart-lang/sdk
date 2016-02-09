@@ -87,6 +87,7 @@ class _Builder {
     //
     DirectoryBasedDartSdk sdk =
         new DirectoryBasedDartSdk(new JavaFile(sdkPath));
+    sdk.useSummary = false;
     context = sdk.context;
     context.analysisOptions = new AnalysisOptionsImpl()
       ..strongMode = strongMode;
