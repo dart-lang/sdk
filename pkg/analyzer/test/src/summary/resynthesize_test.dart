@@ -646,7 +646,6 @@ class ResynthTest extends ResolverTestCase {
   void comparePrefixElements(PrefixElementImpl resynthesized,
       PrefixElementImpl original, String desc) {
     compareElements(resynthesized, original, desc);
-    // TODO(paulberry): test _importedLibraries.
   }
 
   void comparePropertyAccessorElements(

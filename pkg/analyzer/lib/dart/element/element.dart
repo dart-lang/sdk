@@ -1621,9 +1621,13 @@ abstract class PrefixElement implements Element {
   LibraryElement get enclosingElement;
 
   /**
-   * Return a list containing all of the libraries that are imported using this
-   * prefix.
+   * Return the empty list.
+   *
+   * Deprecated: this getter was intended to return a list containing all of
+   * the libraries that are imported using this prefix, but it was never
+   * implemented.  Due to lack of demand, it is being removed.
    */
+  @deprecated
   List<LibraryElement> get importedLibraries;
 }
 

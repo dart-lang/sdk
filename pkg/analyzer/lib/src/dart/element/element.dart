@@ -4300,11 +4300,6 @@ abstract class ParameterElementMixin implements ParameterElement {
  */
 class PrefixElementImpl extends ElementImpl implements PrefixElement {
   /**
-   * A list containing all of the libraries that are imported using this prefix.
-   */
-  List<LibraryElement> _importedLibraries = LibraryElement.EMPTY_LIST;
-
-  /**
    * Initialize a newly created method element to have the given [name] and
    * [offset].
    */
@@ -4323,18 +4318,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   String get identifier => "_${super.identifier}";
 
   @override
-  List<LibraryElement> get importedLibraries => _importedLibraries;
-
-  /**
-   * Set the libraries that are imported using this prefix to the given
-   * [libraries].
-   */
-  void set importedLibraries(List<LibraryElement> libraries) {
-    for (LibraryElement library in libraries) {
-      (library as LibraryElementImpl).enclosingElement = this;
-    }
-    _importedLibraries = libraries;
-  }
+  List<LibraryElement> get importedLibraries => LibraryElement.EMPTY_LIST;
 
   @override
   ElementKind get kind => ElementKind.PREFIX;
