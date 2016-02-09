@@ -1,3 +1,24 @@
+## 1.14.2 - 2016-02-10
+
+Patch release, resolves three issues:
+
+* VM: Fixes a code generation bug on x64.
+  (SDK commit [834b3f02](https://github.com/dart-lang/sdk/commit/834b3f02b6ab740a213fd808e6c6f3269bed80e5))
+
+* `dart:io`: Fix EOF detection when reading some special device files.
+  (SDK issue [25596](https://github.com/dart-lang/sdk/issues/25596))
+
+* Pub: Fix an error using hosted dependencies in SDK version 1.14.
+  (Pub issue [1386](https://github.com/dart-lang/pub/issues/1386))
+
+## 1.14.1 - 2016-02-04
+
+Patch release, resolves one issue:
+
+* Debugger: Fixes a VM crash when a debugger attempts to set a break point
+during isolate initialization.
+(SDK issue [25618](https://github.com/dart-lang/sdk/issues/25618))
+
 ## 1.14.0 - 2016-1-28
 
 ### Core library changes
