@@ -139,6 +139,7 @@ class HGraph {
   bool isRecursiveMethod = false;
   bool calledInLoop = false;
   final List<HBasicBlock> blocks = <HBasicBlock>[];
+  SourceInformation sourceInformation;
 
   // We canonicalize all constants used within a graph so we do not
   // have to worry about them for global value numbering.

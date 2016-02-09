@@ -247,7 +247,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     shouldGroupVarDeclarations = allocator.names.numberOfVariables > 1;
   }
 
-  void handleDelayedVariableDeclarations() {
+  void handleDelayedVariableDeclarations(SourceInformation sourceInformation) {
     // If we have only one variable declaration and the first statement is an
     // assignment to that variable then we can merge the two.  We count the
     // number of variables in the variable allocator to try to avoid this issue,
@@ -269,7 +269,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
               js.VariableInitialization initialization =
                   new js.VariableInitialization(decl, assignment.value);
               currentContainer.statements[0] = new js.ExpressionStatement(
-                  new js.VariableDeclarationList([initialization]));
+                  new js.VariableDeclarationList([initialization]))
+                      .withSourceInformation(sourceInformation);
               return;
             }
           }
@@ -283,7 +284,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         declarations.add(new js.VariableInitialization(
             new js.VariableDeclaration(name), null));
       });
-      var declarationList = new js.VariableDeclarationList(declarations);
+      var declarationList = new js.VariableDeclarationList(declarations)
+          .withSourceInformation(sourceInformation);;
       insertStatementAtStart(new js.ExpressionStatement(declarationList));
     }
   }
@@ -293,7 +295,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     currentGraph = graph;
     subGraph = new SubGraph(graph.entry, graph.exit);
     visitBasicBlock(graph.entry);
-    handleDelayedVariableDeclarations();
+    handleDelayedVariableDeclarations(graph.sourceInformation);
   }
 
   void visitSubGraph(SubGraph newSubGraph) {

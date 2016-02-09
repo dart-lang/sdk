@@ -81,6 +81,8 @@ abstract class NodeVisitor<T> {
 }
 
 class BaseVisitor<T> implements NodeVisitor<T> {
+  const BaseVisitor();
+
   T visitNode(Node node) {
     node.visitChildren(this);
     return null;

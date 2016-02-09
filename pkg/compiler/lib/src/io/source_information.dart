@@ -104,6 +104,10 @@ class SourceInformationBuilder {
 
   /// Generate [SourceInformation] for the assignment in [node].
   SourceInformation buildAssignment(Node node) => null;
+
+  /// Generate [SourceInformation] for the variable declaration inserted as
+  /// first statement of a function.
+  SourceInformation buildVariableDeclaration() => null;
 }
 
 /// A location in a source file.

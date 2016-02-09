@@ -1109,6 +1109,8 @@ class SsaBuilder extends ast.Visitor
     sourceElementStack.add(target);
     sourceInformationBuilder = sourceInformationFactory.createBuilderForContext(
             target);
+    graph.sourceInformation =
+        sourceInformationBuilder.buildVariableDeclaration();
   }
 
   BackendHelpers get helpers => backend.helpers;

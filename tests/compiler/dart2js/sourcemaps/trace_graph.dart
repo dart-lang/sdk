@@ -8,6 +8,7 @@ import 'dart:collection';
 
 import 'package:compiler/src/io/source_information.dart';
 import 'package:compiler/src/io/position_information.dart';
+import 'package:compiler/src/js/js_debug.dart';
 
 import 'sourcemap_html_helper.dart';
 
@@ -15,9 +16,24 @@ class TraceGraph {
   List<TraceStep> steps = <TraceStep>[];
   TraceStep entry;
   Queue stack = new Queue();
+  Map<int, TraceStep> offsetMap = {};
 
   void addStep(TraceStep step) {
     steps.add(step);
+    int offset = step.offset.subexpressionOffset;
+    TraceStep existingStep = offsetMap[offset];
+    if (existingStep != null) {
+      // TODO(johnniwinther): Fix problems with reuse of JS nodes from
+      // templates.
+      if (identical(existingStep.node, step.node)) {
+        print('duplicate node: ${nodeToString(step.node)}');
+      } else {
+        print('duplicate offset: ${offset} : ${nodeToString(step.node)}');
+      }
+      print('  ${existingStep.id}:${existingStep.text}:${existingStep.offset}');
+      print('  ${step.id}:${step.text}:${step.offset}');
+    }
+    offsetMap[offset] = step;
     step.stack = stack.toList();
   }
 
@@ -31,6 +47,7 @@ class TraceGraph {
 }
 
 class TraceStep {
+  final kind;
   final int id;
   final node;
   final Offset offset;
@@ -43,6 +60,7 @@ class TraceStep {
   List stack;
 
   TraceStep(
+      this.kind,
       this.id,
       this.node,
       this.offset,

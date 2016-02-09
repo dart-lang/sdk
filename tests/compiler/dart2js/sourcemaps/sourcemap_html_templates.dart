@@ -179,6 +179,11 @@ $css,
 .code {
   font-family: monospace;
 }
+td,.code {
+  font-family: monospace;
+  max-width: 400px;
+  overflow: hidden;
+}
 </style>
 </head>
 <body>

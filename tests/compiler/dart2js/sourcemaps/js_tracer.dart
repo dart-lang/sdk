@@ -22,7 +22,8 @@ TraceGraph createTraceGraph(SourceMapInfo info, Coverage coverage) {
   return graph;
 }
 
-class StepTraceListener extends TraceListener {
+class StepTraceListener extends TraceListener
+    with NodeToSourceInformationMixin {
   Map<js.Node, TraceStep> steppableMap = <js.Node, TraceStep>{};
   final TraceGraph graph;
 
@@ -30,7 +31,7 @@ class StepTraceListener extends TraceListener {
 
   @override
   void onStep(js.Node node, Offset offset, StepKind kind) {
-    SourceInformation sourceInformation = node.sourceInformation;
+    SourceInformation sourceInformation = computeSourceInformation(node);
     SourcePositionKind sourcePositionKind = SourcePositionKind.START;
     List text = [node];
     switch (kind) {
@@ -81,14 +82,16 @@ class StepTraceListener extends TraceListener {
 
     }
     createTraceStep(
+        kind,
         node,
         offset: offset,
         sourceLocation: getSourceLocation(
-            node.sourceInformation, sourcePositionKind),
+            sourceInformation, sourcePositionKind),
         text: text);
   }
 
   void createTraceStep(
+      StepKind kind,
       js.Node node,
       {Offset offset,
        List text,
@@ -101,9 +104,12 @@ class StepTraceListener extends TraceListener {
     }
 
     TraceStep step = new TraceStep(
-        id, node,
+        kind,
+        id,
+        node,
         offset,
-        text, sourceLocation);
+        text,
+        sourceLocation);
     graph.addStep(step);
 
     steppableMap[node] = step;

@@ -112,6 +112,9 @@ abstract class Token implements Spannable {
     }
   }
 
+  /// The character offset of the end of this token within the source text.
+  int get charEnd => charOffset + charCount;
+
   int get hashCode => computeHashCode(charOffset, info, value);
 }
 
