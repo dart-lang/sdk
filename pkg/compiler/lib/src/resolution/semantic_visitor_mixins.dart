@@ -2650,6 +2650,15 @@ abstract class SetBulkMixin<R, A>
       A arg) {
     return bulkHandleSet(node, arg);
   }
+
+  @override
+  R visitUnresolvedSuperSet(
+      Send node,
+      Element element,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
 }
 
 /// Mixin that implements all `visitXIndexSet` methods of [SemanticSendVisitor]
@@ -3327,6 +3336,15 @@ abstract class SuperBulkMixin<R, A>
   R visitUnresolvedSuperGet(
       Send node,
       Element element,
+      A arg) {
+    return bulkHandleSuper(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperSet(
+      Send node,
+      Element element,
+      Node rhs,
       A arg) {
     return bulkHandleSuper(node, arg);
   }
@@ -4494,6 +4512,16 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       Element element,
       A arg) {
+    return null;
+  }
+
+  @override
+  R visitUnresolvedSuperSet(
+      Send node,
+      Element element,
+      Node rhs,
+      A arg) {
+    apply(rhs, arg);
     return null;
   }
 

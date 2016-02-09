@@ -1312,6 +1312,24 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
+  T visitSuperGetterSet(
+      ast.Send node,
+      MethodElement getter,
+      ast.Node rhs,
+      _) {
+    return handleErroneousSuperSend(node);
+  }
+
+  @override
+  T visitUnresolvedSuperSet(
+      ast.Send node,
+      Element element,
+      ast.Node rhs,
+      _) {
+    return handleErroneousSuperSend(node);
+  }
+
+  @override
   T visitUnresolvedSuperInvoke(
       ast.Send node,
       Element element,

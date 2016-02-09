@@ -14,7 +14,7 @@ part of js_backend;
  *
  * The situation can be ameliorated with some heuristics for disregarding some
  * `noSuchMethod` implementations during type inference. We can partition
- * `noSuchMethod` implementations into 3 categories.
+ * `noSuchMethod` implementations into 4 categories.
  *
  * Implementations in category A are the default implementations
  * `Object.noSuchMethod` and `Interceptor.noSuchMethod`.
@@ -23,8 +23,13 @@ part of js_backend;
  *
  *     noSuchMethod(x) => throw 'not implemented'
  *
- * Implementations that do not fall into category A or B are in category C. They
- * are the only category of implementation that are considered during type
+ * Implementations in category C are not applicable, for example:
+ *
+ *     noSuchMethod() { /* missing parameter */ }
+ *     noSuchMethod(a, b) { /* too many parameters */ }
+ *
+ * Implementations that do not fall into category A, B or C are in category D.
+ * They are the only category of implementation that are considered during type
  * inference.
  *
  * Implementations that syntactically just forward to the super implementation,
@@ -42,11 +47,13 @@ class NoSuchMethodRegistry {
   /// The implementations that fall into category B, described above.
   final Set<FunctionElement> throwingImpls = new Set<FunctionElement>();
   /// The implementations that fall into category C, described above.
+  final Set<FunctionElement> notApplicableImpls = new Set<FunctionElement>();
+  /// The implementations that fall into category D, described above.
   final Set<FunctionElement> otherImpls = new Set<FunctionElement>();
 
-  /// The implementations that fall into category C1
+  /// The implementations that fall into category D1
   final Set<FunctionElement> complexNoReturnImpls = new Set<FunctionElement>();
-  /// The implementations that fall into category C2
+  /// The implementations that fall into category D2
   final Set<FunctionElement> complexReturningImpls = new Set<FunctionElement>();
 
   /// The implementations that have not yet been categorized.
@@ -73,8 +80,8 @@ class NoSuchMethodRegistry {
     _uncategorizedImpls.clear();
   }
 
-  /// Now that type inference is complete, split category C into two
-  /// subcategories: C1, those that have no return type, and C2, those
+  /// Now that type inference is complete, split category D into two
+  /// subcategories: D1, those that have no return type, and D2, those
   /// that have a return type.
   void onTypeInferenceComplete() {
     otherImpls.forEach(_subcategorizeOther);
@@ -104,7 +111,7 @@ class NoSuchMethodRegistry {
 
   /// Returns [true] if the given element is a complex [noSuchMethod]
   /// implementation. An implementation is complex if it falls into
-  /// category C, as described above.
+  /// category D, as described above.
   bool isComplex(FunctionElement element) {
     assert(element.name == Identifiers.noSuchMethod_);
     return otherImpls.contains(element);
@@ -131,9 +138,12 @@ class NoSuchMethodRegistry {
     if (otherImpls.contains(element)) {
       return NsmCategory.OTHER;
     }
+    if (notApplicableImpls.contains(element)) {
+      return NsmCategory.NOT_APPLICABLE;
+    }
     if (!Selectors.noSuchMethod_.signatureApplies(element)) {
-      otherImpls.add(element);
-      return NsmCategory.OTHER;
+      notApplicableImpls.add(element);
+      return NsmCategory.NOT_APPLICABLE;
     }
     if (_isDefaultNoSuchMethodImplementation(element)) {
       defaultImpls.add(element);
@@ -141,8 +151,8 @@ class NoSuchMethodRegistry {
     } else if (_hasForwardingSyntax(element)) {
       // If the implementation is 'noSuchMethod(x) => super.noSuchMethod(x);'
       // then it is in the same category as the super call.
-      Element superCall = element.enclosingClass
-          .lookupSuperByName(Selectors.noSuchMethod_.memberName);
+      Element superCall =
+          element.enclosingClass.lookupSuperByName(Names.noSuchMethod_);
       NsmCategory category = _categorizeImpl(superCall);
       switch(category) {
         case NsmCategory.DEFAULT:
@@ -153,6 +163,12 @@ class NoSuchMethodRegistry {
           break;
         case NsmCategory.OTHER:
           otherImpls.add(element);
+          break;
+        case NsmCategory.NOT_APPLICABLE:
+          // If the super method is not applicable, the call is redirected to
+          // `Object.noSuchMethod`.
+          defaultImpls.add(element);
+          category = NsmCategory.DEFAULT;
           break;
       }
       return category;
@@ -224,4 +240,9 @@ class NoSuchMethodRegistry {
   }
 }
 
-enum NsmCategory { DEFAULT, THROWING, OTHER }
+enum NsmCategory {
+  DEFAULT,
+  THROWING,
+  NOT_APPLICABLE,
+  OTHER,
+}
