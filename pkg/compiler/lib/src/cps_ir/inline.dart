@@ -246,15 +246,19 @@ class SizeVisitor extends TrampolineRecursiveVisitor {
   // Inlining a function incurs a cost equal to the number of primitives and
   // non-jump tail expressions.
   // TODO(kmillikin): Tune the size computation and size bound.
-  processLetPrim(LetPrim node) {
-    if (node.primitive is! Refinement) {
-      ++size;
-    }
-  }
+  processLetPrim(LetPrim node) => ++size;
   processLetMutable(LetMutable node) => ++size;
   processBranch(Branch node) => ++size;
   processThrow(Throw nose) => ++size;
   processRethrow(Rethrow node) => ++size;
+
+  // Discount primitives that do not generate code.
+  processRefinement(Refinement node) => --size;
+  processBoundsCheck(BoundsCheck node) {
+    if (node.hasNoChecks) {
+      --size;
+    }
+  }
 }
 
 class InliningVisitor extends TrampolineRecursiveVisitor {
