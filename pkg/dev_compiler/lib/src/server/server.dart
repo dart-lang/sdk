@@ -53,7 +53,8 @@ class ServerCompiler extends AbstractCompiler {
                 ? SourceResolverOptions.implicitHtmlFile
                 : inputFile)));
     var graph = new SourceGraph(context, reporter, options);
-    var entryNodes = inputUris.map((inputUri) => graph.nodeFromUri(inputUri));
+    var entryNodes =
+        inputUris.map((inputUri) => graph.nodeFromUri(inputUri)).toList();
 
     return new ServerCompiler._(context, options, reporter, graph, entryNodes);
   }
