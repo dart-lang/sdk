@@ -10,6 +10,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 DECLARE_FLAG(bool, trace_timeline_analysis);
 DECLARE_FLAG(bool, timing);
 
@@ -628,5 +630,7 @@ void TimelinePauseTrace::PrintPauseInfo(
   THR_Print("%.3f ms max executing.\n",
             MicrosecondsToMilliseconds(pause_info->max_exclusive_micros()));
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

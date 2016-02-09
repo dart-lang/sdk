@@ -4622,11 +4622,11 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   VMTagScope tagScope(Thread::Current(),
                       VMTag::kCompileFlowGraphBuilderTagId,
                       FLAG_profile_vm);
-  if (FLAG_print_ast) {
+  if (FLAG_support_ast_printer && FLAG_print_ast) {
     // Print the function ast before IL generation.
     AstPrinter::PrintFunctionNodes(parsed_function());
   }
-  if (FLAG_print_scopes) {
+  if (FLAG_support_ast_printer && FLAG_print_scopes) {
     AstPrinter::PrintFunctionScope(parsed_function());
   }
   TargetEntryInstr* normal_entry =

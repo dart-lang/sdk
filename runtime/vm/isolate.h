@@ -557,10 +557,17 @@ class Isolate : public BaseIsolate {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
 #undef ISOLATE_METRIC_ACCESSOR
 
+#ifndef PRODUCT
 #define ISOLATE_TIMELINE_STREAM_ACCESSOR(name, not_used)                       \
   TimelineStream* Get##name##Stream() { return &stream_##name##_; }
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_ACCESSOR)
 #undef ISOLATE_TIMELINE_STREAM_ACCESSOR
+#else
+#define ISOLATE_TIMELINE_STREAM_ACCESSOR(name, not_used)                       \
+  TimelineStream* Get##name##Stream() { return NULL; }
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_ACCESSOR)
+#undef ISOLATE_TIMELINE_STREAM_ACCESSOR
+#endif  // !PRODUCT
 
   static intptr_t IsolateListLength();
 
@@ -831,10 +838,12 @@ class Isolate : public BaseIsolate {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
+#ifndef PRODUCT
 #define ISOLATE_TIMELINE_STREAM_VARIABLE(name, not_used)                       \
   TimelineStream stream_##name##_;
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_VARIABLE)
 #undef ISOLATE_TIMELINE_STREAM_VARIABLE
+#endif  // !PRODUCT
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;

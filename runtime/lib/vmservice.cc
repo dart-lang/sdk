@@ -25,6 +25,7 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 }
 
 
+#ifndef PRODUCT
 class RegisterRunningIsolatesVisitor : public IsolateVisitor {
  public:
   explicit RegisterRunningIsolatesVisitor(Thread* thread)
@@ -79,9 +80,12 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
   Function& register_function_;
   Isolate* service_isolate_;
 };
-
+#endif  // !PRODUCT
 
 DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 2) {
+  if (!FLAG_support_service) {
+    return Bool::Get(false).raw();
+  }
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, sp, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(1));
 
@@ -117,14 +121,17 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
   }
   // Boot the dart:vmservice library.
   ServiceIsolate::BootVmServiceLibrary();
-
+  if (!FLAG_support_service) {
+    return Object::null();
+  }
+#ifndef PRODUCT
   // Register running isolates with service.
   RegisterRunningIsolatesVisitor register_isolates(thread);
   if (FLAG_trace_service) {
     OS::Print("vm-service: Registering running isolates.\n");
   }
   Isolate::VisitIsolates(&register_isolates);
-
+#endif
   return Object::null();
 }
 
@@ -138,6 +145,9 @@ DEFINE_NATIVE_ENTRY(VMService_OnExit, 0) {
 
 
 DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 1) {
+  if (!FLAG_support_service) {
+    return Object::null();
+  }
   GET_NATIVE_ARGUMENT(String, address, arguments->NativeArgAt(0));
   if (address.IsNull()) {
     ServiceIsolate::SetServerAddress(NULL);

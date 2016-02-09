@@ -11,6 +11,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 // Notes:
 //
 // The ThreadInterrupter interrupts all threads actively running isolates once
@@ -223,5 +225,7 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
     shutdown_ml.Notify();
   }
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

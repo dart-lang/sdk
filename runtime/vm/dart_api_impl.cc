@@ -79,6 +79,7 @@ const char* CanonicalFunction(const char* func) {
   }
 }
 
+#ifndef PRODUCT
 #define API_TIMELINE_DURATION                                                  \
   TimelineDurationScope tds(Thread::Current(),                                 \
                             Timeline::GetVMApiStream(),                        \
@@ -88,7 +89,10 @@ const char* CanonicalFunction(const char* func) {
   TimelineBeginEndScope tbes(Thread::Current(),                                \
                              Timeline::GetVMApiStream(),                       \
                              CURRENT_FUNC)
-
+#else
+#define API_TIMELINE_DURATION do { } while (false)
+#define API_TIMELINE_BEGIN_END do { } while (false)
+#endif  // !PRODUCT
 
 #if defined(DEBUG)
 // An object visitor which will iterate over all the function objects in the
@@ -1255,11 +1259,11 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
     const Error& error_obj =
         Error::Handle(Z, Dart::InitializeIsolate(snapshot, callback_data));
     if (error_obj.IsNull()) {
-  #if defined(DART_NO_SNAPSHOT)
+  #if defined(DART_NO_SNAPSHOT) && !defined(PRODUCT)
       if (FLAG_check_function_fingerprints) {
         Library::CheckFunctionFingerprints();
       }
-  #endif  // defined(DART_NO_SNAPSHOT).
+  #endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
       // We exit the API scope entered above.
       Dart_ExitScope();
       // A Thread structure has been associated to the thread, we do the
@@ -5731,6 +5735,9 @@ DART_EXPORT int64_t Dart_TimelineGetMicros() {
 
 
 DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask) {
+  if (!FLAG_support_timeline) {
+    return;
+  }
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   isolate->GetAPIStream()->set_enabled(
@@ -5752,6 +5759,9 @@ DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask) {
 
 DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
   // Per isolate overrides.
+  if (!FLAG_support_timeline) {
+    return;
+  }
   const bool api_enabled = (stream_mask & DART_TIMELINE_STREAM_API) != 0;
   const bool compiler_enabled =
       (stream_mask & DART_TIMELINE_STREAM_COMPILER) != 0;
@@ -5930,6 +5940,9 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
 DART_EXPORT Dart_Handle Dart_TimelineDuration(const char* label,
                                               int64_t start_micros,
                                               int64_t end_micros) {
+  if (!FLAG_support_timeline) {
+    return Api::Success();
+  }
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   if (label == NULL) {
@@ -5951,6 +5964,9 @@ DART_EXPORT Dart_Handle Dart_TimelineDuration(const char* label,
 
 
 DART_EXPORT Dart_Handle Dart_TimelineInstant(const char* label) {
+  if (!FLAG_support_timeline) {
+    return Api::Success();
+  }
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   if (label == NULL) {
@@ -5969,6 +5985,9 @@ DART_EXPORT Dart_Handle Dart_TimelineInstant(const char* label) {
 
 DART_EXPORT Dart_Handle Dart_TimelineAsyncBegin(const char* label,
                                                 int64_t* async_id) {
+  if (!FLAG_support_timeline) {
+    return Api::Success();
+  }
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   if (label == NULL) {
@@ -5994,6 +6013,9 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncBegin(const char* label,
 
 DART_EXPORT Dart_Handle Dart_TimelineAsyncInstant(const char* label,
                                                   int64_t async_id) {
+  if (!FLAG_support_timeline) {
+    return Api::Success();
+  }
   if (async_id < 0) {
     return Api::Success();
   }
@@ -6015,6 +6037,9 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncInstant(const char* label,
 
 DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
                                               int64_t async_id) {
+  if (!FLAG_support_timeline) {
+    return Api::Success();
+  }
   if (async_id < 0) {
     return Api::Success();
   }

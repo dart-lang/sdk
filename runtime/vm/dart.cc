@@ -92,16 +92,22 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   OS::InitOnce();
   VirtualMemory::InitOnce();
   OSThread::InitOnce();
-  Timeline::InitOnce();
+  if (FLAG_support_timeline) {
+    Timeline::InitOnce();
+  }
+#ifndef PRODUCT
   TimelineDurationScope tds(Timeline::GetVMStream(),
                             "Dart::InitOnce");
+#endif
   Isolate::InitOnce();
   PortMap::InitOnce();
   FreeListElement::InitOnce();
   Api::InitOnce();
   CodeObservers::InitOnce();
-  ThreadInterrupter::InitOnce();
-  Profiler::InitOnce();
+  if (FLAG_profiler) {
+    ThreadInterrupter::InitOnce();
+    Profiler::InitOnce();
+  }
   SemiSpace::InitOnce();
   Metric::InitOnce();
   StoreBuffer::InitOnce();
@@ -228,8 +234,11 @@ const char* Dart::Cleanup() {
     return "VM already terminated.";
   }
 
-  // Shut down profiling.
-  Profiler::Shutdown();
+  if (FLAG_profiler) {
+    // Shut down profiling.
+    Profiler::Shutdown();
+  }
+
 
   {
     // Set the VM isolate as current isolate when shutting down
@@ -292,7 +301,9 @@ const char* Dart::Cleanup() {
   }
 
   CodeObservers::DeleteAll();
-  Timeline::Shutdown();
+  if (FLAG_support_timeline) {
+    Timeline::Shutdown();
+  }
 
   return NULL;
 }
@@ -310,15 +321,18 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
+#ifndef PRODUCT
   TimelineDurationScope tds(T, I->GetIsolateStream(), "InitializeIsolate");
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
-
+#endif  // !PRODUCT
   ASSERT(I != NULL);
   StackZone zone(T);
   HandleScope handle_scope(T);
   {
+#ifndef PRODUCT
     TimelineDurationScope tds(T, I->GetIsolateStream(), "ObjectStore::Init");
+#endif  // !PRODUCT
     ObjectStore::Init(I);
   }
 
@@ -328,8 +342,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   }
   if (snapshot_buffer != NULL) {
     // Read the snapshot and setup the initial state.
+#ifndef PRODUCT
     TimelineDurationScope tds(
         T, I->GetIsolateStream(), "IsolateSnapshotReader");
+#endif  // !PRODUCT
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     if (snapshot == NULL) {
@@ -367,7 +383,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 #endif
 
   {
+#ifndef PRODUCT
     TimelineDurationScope tds(T, I->GetIsolateStream(), "StubCode::Init");
+#endif  // !PRODUCT
     StubCode::Init(I);
   }
 

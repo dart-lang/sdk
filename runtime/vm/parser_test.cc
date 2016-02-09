@@ -18,7 +18,9 @@ namespace dart {
 DECLARE_FLAG(bool, show_invisible_frames);
 
 
-void DumpFunction(const Library& lib, const char* cname, const char* fname) {
+static void DumpFunction(const Library& lib,
+                         const char* cname,
+                         const char* fname) {
   const String& classname = String::Handle(Symbols::New(cname));
   String& funcname = String::Handle(String::New(fname));
 
@@ -36,7 +38,11 @@ void DumpFunction(const Library& lib, const char* cname, const char* fname) {
     Parser::ParseFunction(parsed_function);
     EXPECT(parsed_function->node_sequence() != NULL);
     printf("Class %s function %s:\n", cname, fname);
-    AstPrinter::PrintFunctionNodes(*parsed_function);
+    if (FLAG_support_ast_printer) {
+      AstPrinter::PrintFunctionNodes(*parsed_function);
+    } else {
+      OS::Print("AST printer not supported.");
+    }
     retval = true;
   } else {
     retval = false;

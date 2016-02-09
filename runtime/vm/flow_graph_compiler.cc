@@ -268,9 +268,11 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
 
 
 void FlowGraphCompiler::InitCompiler() {
+#ifndef PRODUCT
   TimelineDurationScope tds(thread(),
                             isolate()->GetCompilerStream(),
                             "InitCompiler");
+#endif  // !PRODUCT
   pc_descriptors_list_ = new(zone()) DescriptorList(64);
   exception_handlers_list_ = new(zone()) ExceptionHandlerList();
   block_info_.Clear();
@@ -1281,10 +1283,15 @@ void FlowGraphCompiler::GenerateListTypeCheck(Register kClassIdReg,
 
 
 void FlowGraphCompiler::EmitComment(Instruction* instr) {
+  if (!FLAG_support_il_printer || !FLAG_support_disassembler) {
+    return;
+  }
+#ifndef PRODUCT
   char buffer[256];
   BufferFormatter f(buffer, sizeof(buffer));
   instr->PrintTo(&f);
   assembler()->Comment("%s", buffer);
+#endif
 }
 
 

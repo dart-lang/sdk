@@ -11,6 +11,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
 DEFINE_FLAG(charp, print_flow_graph_filter, NULL,
     "Print only IR of functions with matching names");
@@ -1216,5 +1218,45 @@ const char* Environment::ToCString() const {
   PrintTo(&bf);
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
+
+#else  // PRODUCT
+
+void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
+                                           bool print_locations) {
+  UNREACHABLE();
+}
+
+
+void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
+                                      TokenPosition token_pos,
+                                      Value* value,
+                                      const AbstractType& dst_type,
+                                      const String& dst_name,
+                                      bool eliminated) {
+  UNREACHABLE();
+}
+
+
+void FlowGraphPrinter::PrintBlock(BlockEntryInstr* block,
+                                  bool print_locations) {
+  UNREACHABLE();
+}
+
+
+void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
+  UNREACHABLE();
+}
+
+
+void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
+  UNREACHABLE();
+}
+
+
+bool FlowGraphPrinter::ShouldPrint(const Function& function) {
+  return false;
+}
+
+#endif  // !PRODUCT
 
 }  // namespace dart

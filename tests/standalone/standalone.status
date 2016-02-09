@@ -266,7 +266,7 @@ io/snapshot_fail_test: RuntimeError # Platform.executable
 io/stdin_sync_test: RuntimeError # Platform.executable
 io/test_extension_fail_test: RuntimeError # Platform.executable
 precompilation_test: RuntimeError # Platform.executable
-standalone/io/file_read_special_device_test: RuntimeError # Platform.executable
+io/file_read_special_device_test: RuntimeError # Platform.executable
 verbose_gc_to_bmu_test: RuntimeError # Platform.executable
 io/http_server_close_response_after_error_test: RuntimeError # Platform.executable
 io/http_client_stays_alive_test: RuntimeError # Platform.executable
@@ -288,3 +288,17 @@ io/test_extension_test: RuntimeError # Platform.executable
 io/regress_7679_test: RuntimeError # Platform.executable
 
 io/process_*: Skip # Most use Platform.executable
+
+# Code coverage is not supported in product mode.
+[ $mode == product ]
+full_coverage_test: SkipByDesign
+
+# Overriding these flags are not supported in product mode.
+[ $mode == product ]
+no_profiler_test: SkipByDesign
+no_support_coverage_test: SkipByDesign
+no_support_debugger_test: SkipByDesign
+no_support_disassembler_test: SkipByDesign
+no_support_il_printer_test: SkipByDesign
+no_support_service_test: SkipByDesign
+no_support_timeline_test: SkipByDesign

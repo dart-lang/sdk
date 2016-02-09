@@ -490,6 +490,7 @@ void Parser::ParseCompilationUnit(const Library& library,
   ASSERT(thread->long_jump_base()->IsSafeToJump());
   CSTAT_TIMER_SCOPE(thread, parser_timer);
   VMTagScope tagScope(thread, VMTag::kCompileTopLevelTagId);
+#ifndef PRODUCT
   TimelineDurationScope tds(thread,
                             thread->isolate()->GetCompilerStream(),
                             "CompileTopLevel");
@@ -497,6 +498,7 @@ void Parser::ParseCompilationUnit(const Library& library,
     tds.SetNumArguments(1);
     tds.CopyArgument(0, "script", String::Handle(script.url()).ToCString());
   }
+#endif
 
   Parser parser(script, library, TokenPosition::kMinSource);
   parser.ParseTopLevel();
@@ -854,6 +856,7 @@ void Parser::ParseClass(const Class& cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const int64_t num_tokes_before = STAT_VALUE(thread, num_tokens_consumed);
+#ifndef PRODUCT
   TimelineDurationScope tds(thread,
                             thread->isolate()->GetCompilerStream(),
                             "ParseClass");
@@ -861,6 +864,7 @@ void Parser::ParseClass(const Class& cls) {
     tds.SetNumArguments(1);
     tds.CopyArgument(0, "class", String::Handle(cls.Name()).ToCString());
   }
+#endif
   if (!cls.is_synthesized_class()) {
     ASSERT(thread->long_jump_base()->IsSafeToJump());
     CSTAT_TIMER_SCOPE(thread, parser_timer);
@@ -969,18 +973,22 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   INC_STAT(thread, num_functions_parsed, 1);
   VMTagScope tagScope(thread, VMTag::kCompileParseFunctionTagId,
                       FLAG_profile_vm);
+#ifndef PRODUCT
   TimelineDurationScope tds(thread,
                             thread->isolate()->GetCompilerStream(),
                             "ParseFunction");
+#endif  // !PRODUCT
   ASSERT(thread->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
   const Script& script = Script::Handle(zone, func.script());
   Parser parser(script, parsed_function, func.token_pos());
+#ifndef PRODUCT
   if (tds.enabled()) {
     tds.SetNumArguments(1);
     tds.CopyArgument(0, "function", String::Handle(func.name()).ToCString());
   }
+#endif  // !PRODUCT
   SequenceNode* node_sequence = NULL;
   switch (func.kind()) {
     case RawFunction::kClosureFunction:

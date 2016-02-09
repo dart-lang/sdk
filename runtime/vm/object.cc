@@ -1100,9 +1100,11 @@ RawError* Object::Init(Isolate* isolate) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(isolate == thread->isolate());
+#ifndef PRODUCT
   TimelineDurationScope tds(thread,
                             isolate->GetIsolateStream(),
                             "Object::Init");
+#endif
 
 #if defined(DART_NO_SNAPSHOT)
   // Object::Init version when we are running in a version of dart that does
@@ -1819,7 +1821,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
     class_table->UpdateAllocatedOld(cls_id, size);
   }
   const Class& cls = Class::Handle(class_table->At(cls_id));
-  if (cls.TraceAllocation(isolate)) {
+  if (FLAG_profiler && cls.TraceAllocation(isolate)) {
     Profiler::SampleAllocation(thread, cls_id);
   }
   NoSafepointScope no_safepoint;
@@ -10563,7 +10565,7 @@ RawFunction* Library::GetFunction(const GrowableArray<Library*>& libs,
 }
 
 
-#if defined(DART_NO_SNAPSHOT)
+#if defined(DART_NO_SNAPSHOT) && !defined(PRODUCT)
 void Library::CheckFunctionFingerprints() {
   GrowableArray<Library*> all_libs;
   Function& func = Function::Handle();
@@ -10625,7 +10627,7 @@ Class& cls = Class::Handle();
     FATAL("Fingerprint mismatch.");
   }
 }
-#endif  // defined(DART_NO_SNAPSHOT).
+#endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
 
 
 RawInstructions* Instructions::New(intptr_t size) {
@@ -12624,6 +12626,9 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
 
 
 void Code::Disassemble(DisassemblyFormatter* formatter) const {
+  if (!FLAG_support_disassembler) {
+    return;
+  }
   const Instructions& instr = Instructions::Handle(instructions());
   uword start = instr.EntryPoint();
   if (formatter == NULL) {

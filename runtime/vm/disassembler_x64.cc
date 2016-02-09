@@ -15,6 +15,7 @@
 
 namespace dart {
 
+#ifndef PRODUCT
 
 enum OperandType {
   UNSET_OP_ORDER = 0,
@@ -1946,6 +1947,8 @@ void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
     *out_instr_len = instruction_length;
   }
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart
 

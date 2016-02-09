@@ -445,9 +445,11 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
   HandleScope handle_scope(thread);
+#ifndef PRODUCT
   TimelineDurationScope tds(thread, I->GetIsolateStream(), "HandleMessage");
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
+#endif
 
   // If the message is in band we lookup the handler to dispatch to.  If the
   // receive port was closed, we drop the message without deserializing it.
@@ -884,6 +886,7 @@ Isolate* Isolate::Init(const char* name_prefix,
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_INIT);
 #undef ISOLATE_METRIC_INIT
 
+#ifndef PRODUCT
   // Initialize Timeline streams.
 #define ISOLATE_TIMELINE_STREAM_INIT(name, enabled_by_default)                 \
   result->stream_##name##_.Init(#name,                                         \
@@ -891,6 +894,7 @@ Isolate* Isolate::Init(const char* name_prefix,
                                 Timeline::Stream##name##EnabledFlag());
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
 #undef ISOLATE_TIMELINE_STREAM_INIT
+#endif  // !PRODUCT
 
   Heap::Init(result,
              is_vm_isolate
@@ -1098,13 +1102,17 @@ bool Isolate::MakeRunnable() {
     ASSERT(this == state->isolate());
     Run();
   }
-  TimelineStream* stream = GetIsolateStream();
-  ASSERT(stream != NULL);
-  TimelineEvent* event = stream->StartEvent();
-  if (event != NULL) {
-    event->Instant("Runnable");
-    event->Complete();
+#ifndef PRODUCT
+  if (FLAG_support_timeline) {
+    TimelineStream* stream = GetIsolateStream();
+    ASSERT(stream != NULL);
+    TimelineEvent* event = stream->StartEvent();
+    if (event != NULL) {
+      event->Instant("Runnable");
+      event->Complete();
+    }
   }
+#endif  // !PRODUCT
   if (FLAG_support_service && Service::isolate_stream.enabled()) {
     ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
     Service::HandleEvent(&runnableEvent);
@@ -1609,15 +1617,19 @@ void Isolate::LowLevelShutdown() {
   // Fail fast if anybody tries to post any more messsages to this isolate.
   delete message_handler();
   set_message_handler(NULL);
-
-  // Before analyzing the isolate's timeline blocks- reclaim all cached blocks.
-  Timeline::ReclaimCachedBlocksFromThreads();
+  if (FLAG_support_timeline) {
+    // Before analyzing the isolate's timeline blocks- reclaim all cached
+    // blocks.
+    Timeline::ReclaimCachedBlocksFromThreads();
+  }
 
   // Dump all timing data for the isolate.
-  if (FLAG_timing) {
+#ifndef PRODUCT
+  if (FLAG_support_timeline && FLAG_timing) {
     TimelinePauseTrace tpt;
     tpt.Print();
   }
+#endif  // !PRODUCT
 
   // Finalize any weak persistent handles with a non-null referent.
   FinalizeWeakPersistentHandlesVisitor visitor;

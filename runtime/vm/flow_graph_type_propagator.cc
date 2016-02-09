@@ -21,12 +21,14 @@ DECLARE_FLAG(bool, fields_may_be_reset);
 
 
 void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
+#ifndef PRODUCT
   Thread* thread = flow_graph->thread();
   Isolate* const isolate = flow_graph->isolate();
   TimelineStream* compiler_timeline = isolate->GetCompilerStream();
   TimelineDurationScope tds2(thread,
                              compiler_timeline,
                              "FlowGraphTypePropagator");
+#endif  // !PRODUCT
   FlowGraphTypePropagator propagator(flow_graph);
   propagator.Propagate();
 }
@@ -80,13 +82,13 @@ void FlowGraphTypePropagator::Propagate() {
   // definitions.
   while (!worklist_.is_empty()) {
     Definition* def = RemoveLastFromWorklist();
-    if (FLAG_trace_type_propagation) {
+    if (FLAG_support_il_printer && FLAG_trace_type_propagation) {
       THR_Print("recomputing type of v%" Pd ": %s\n",
                 def->ssa_temp_index(),
                 def->Type()->ToCString());
     }
     if (def->RecomputeType()) {
-      if (FLAG_trace_type_propagation) {
+      if (FLAG_support_il_printer && FLAG_trace_type_propagation) {
         THR_Print("  ... new type %s\n", def->Type()->ToCString());
       }
       for (Value::Iterator it(def->input_use_list());
@@ -216,7 +218,7 @@ void FlowGraphTypePropagator::VisitValue(Value* value) {
   CompileType* type = TypeOf(value->definition());
   value->SetReachingType(type);
 
-  if (FLAG_trace_type_propagation) {
+  if (FLAG_support_il_printer && FLAG_trace_type_propagation) {
     THR_Print("reaching type to v%" Pd " for v%" Pd " is %s\n",
               value->instruction()->IsDefinition() ?
                   value->instruction()->AsDefinition()->ssa_temp_index() : -1,
@@ -655,7 +657,7 @@ CompileType PhiInstr::ComputeType() const {
 bool PhiInstr::RecomputeType() {
   CompileType result = CompileType::None();
   for (intptr_t i = 0; i < InputCount(); i++) {
-    if (FLAG_trace_type_propagation) {
+    if (FLAG_support_il_printer && FLAG_trace_type_propagation) {
       THR_Print("  phi %" Pd " input %" Pd ": v%" Pd " has reaching type %s\n",
                 ssa_temp_index(),
                 i,

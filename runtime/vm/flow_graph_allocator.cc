@@ -2969,8 +2969,12 @@ void FlowGraphAllocator::AllocateRegisters() {
 
     THR_Print("-- [before ssa allocator] ir [%s] -------------\n",
               function.ToFullyQualifiedCString());
-    FlowGraphPrinter printer(flow_graph_, true);
-    printer.PrintBlocks();
+    if (FLAG_support_il_printer) {
+#ifndef PRODUCT
+      FlowGraphPrinter printer(flow_graph_, true);
+      printer.PrintBlocks();
+#endif
+    }
     THR_Print("----------------------------------------------\n");
   }
 
@@ -3010,8 +3014,12 @@ void FlowGraphAllocator::AllocateRegisters() {
 
     THR_Print("-- [after ssa allocator] ir [%s] -------------\n",
               function.ToFullyQualifiedCString());
-    FlowGraphPrinter printer(flow_graph_, true);
-    printer.PrintBlocks();
+    if (FLAG_support_il_printer) {
+#ifndef PRODUCT
+      FlowGraphPrinter printer(flow_graph_, true);
+      printer.PrintBlocks();
+#endif
+    }
     THR_Print("----------------------------------------------\n");
   }
 }

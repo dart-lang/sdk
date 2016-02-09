@@ -13,6 +13,7 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
 #include "vm/object_store.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"

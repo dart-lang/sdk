@@ -2094,7 +2094,7 @@ class LoadOptimizer : public ValueObject {
     graph_->AllocateSSAIndexes(phi);
     phis_.Add(phi);  // Postpone phi insertion until after load forwarding.
 
-    if (FLAG_trace_load_optimization) {
+    if (FLAG_support_il_printer && FLAG_trace_load_optimization) {
       THR_Print("created pending phi %s for %s at B%" Pd "\n",
                 phi->ToCString(),
                 aliased_set_->places()[place_id]->ToCString(),
@@ -2322,7 +2322,7 @@ class LoadOptimizer : public ValueObject {
         ASSERT(Dominates(b, a));
       }
 
-      if (FLAG_trace_load_optimization) {
+      if (FLAG_support_il_printer && FLAG_trace_load_optimization) {
         THR_Print("Replacing %s with congruent %s\n",
                   a->ToCString(),
                   b->ToCString());
@@ -2756,7 +2756,7 @@ static bool IsAllocationSinkingCandidate(Definition* alloc,
        use != NULL;
        use = use->next_use()) {
     if (!IsSafeUse(use, check_type)) {
-      if (FLAG_trace_optimization) {
+      if (FLAG_support_il_printer && FLAG_trace_optimization) {
         THR_Print("use of %s at %s is unsafe for allocation sinking\n",
                   alloc->ToCString(),
                   use->instruction()->ToCString());

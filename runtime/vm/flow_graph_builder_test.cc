@@ -11,6 +11,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 #define DUMP_ASSERT(condition)                                                 \
   if (!(condition)) {                                                          \
     dart::Expect(__FILE__, __LINE__).Fail("expected: %s", #condition);         \
@@ -779,6 +781,7 @@ TEST_CASE(SourcePosition_Async) {
   spt.Dump();
 }
 
+#endif  // !PRODUCT
 
 static bool SyntheticRoundTripTest(TokenPosition token_pos) {
   const TokenPosition synthetic_token_pos = token_pos.ToSynthetic();

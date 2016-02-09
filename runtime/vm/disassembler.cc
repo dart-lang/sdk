@@ -17,6 +17,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 DECLARE_FLAG(bool, trace_inlining_intervals);
 
 void DisassembleToStdout::ConsumeInstruction(const Code& code,
@@ -46,8 +48,6 @@ void DisassembleToStdout::Print(const char* format, ...) {
   va_end(args);
 }
 
-
-#ifndef PRODUCT
 
 void DisassembleToJSONStream::ConsumeInstruction(const Code& code,
                                                  char* hex_buffer,
@@ -96,7 +96,6 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
   free(p);
 }
 
-#endif  // !PRODUCT
 
 class FindAddrVisitor : public FindObjectVisitor {
  public:
@@ -326,5 +325,6 @@ void Disassembler::DisassembleCode(const Function& function, bool optimized) {
   }
 }
 
+#endif  // !PRODUCT
 
 }  // namespace dart

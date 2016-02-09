@@ -15,6 +15,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
 DEFINE_FLAG(bool, trace_timeline, false,
             "Trace timeline backend");
@@ -668,6 +670,9 @@ void TimelineEventScope::StealArguments(TimelineEvent* event) {
 TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
                                              const char* label)
     : TimelineEventScope(stream, label) {
+  if (!FLAG_support_timeline) {
+    return;
+  }
   timestamp_ = OS::GetCurrentMonotonicMicros();
 }
 
@@ -676,11 +681,17 @@ TimelineDurationScope::TimelineDurationScope(Thread* thread,
                                              TimelineStream* stream,
                                              const char* label)
     : TimelineEventScope(thread, stream, label) {
+  if (!FLAG_support_timeline) {
+    return;
+  }
   timestamp_ = OS::GetCurrentMonotonicMicros();
 }
 
 
 TimelineDurationScope::~TimelineDurationScope() {
+  if (!FLAG_support_timeline) {
+    return;
+  }
   if (!ShouldEmitEvent()) {
     return;
   }
@@ -700,6 +711,9 @@ TimelineDurationScope::~TimelineDurationScope() {
 TimelineBeginEndScope::TimelineBeginEndScope(TimelineStream* stream,
                                              const char* label)
     : TimelineEventScope(stream, label) {
+  if (!FLAG_support_timeline) {
+    return;
+  }
   EmitBegin();
 }
 
@@ -708,16 +722,25 @@ TimelineBeginEndScope::TimelineBeginEndScope(Thread* thread,
                                              TimelineStream* stream,
                                              const char* label)
     : TimelineEventScope(thread, stream, label) {
+  if (!FLAG_support_timeline) {
+    return;
+  }
   EmitBegin();
 }
 
 
 TimelineBeginEndScope::~TimelineBeginEndScope() {
+  if (!FLAG_support_timeline) {
+    return;
+  }
   EmitEnd();
 }
 
 
 void TimelineBeginEndScope::EmitBegin() {
+  if (!FLAG_support_timeline) {
+    return;
+  }
   if (!ShouldEmitEvent()) {
     return;
   }
@@ -735,6 +758,9 @@ void TimelineBeginEndScope::EmitBegin() {
 
 
 void TimelineBeginEndScope::EmitEnd() {
+  if (!FLAG_support_timeline) {
+    return;
+  }
   if (!ShouldEmitEvent()) {
     return;
   }
@@ -1379,5 +1405,7 @@ TimelineEventBlock* TimelineEventBlockIterator::Next() {
   current_ = current_->next();
   return r;
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart
