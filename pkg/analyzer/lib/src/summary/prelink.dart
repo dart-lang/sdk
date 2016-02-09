@@ -194,9 +194,9 @@ class _Prelinker {
         aggregated.putIfAbsent(name.name, () {
           if (name.kind == ReferenceKind.classOrEnum) {
             Map<String, _Meaning> namespace = <String, _Meaning>{};
-            name.constMembers.forEach((executable) {
-              namespace[executable.name] = new _Meaning(unitNum,
-                  executable.kind, 0, executable.numTypeParameters);
+            name.members.forEach((executable) {
+              namespace[executable.name] = new _Meaning(
+                  unitNum, executable.kind, 0, executable.numTypeParameters);
             });
             return new _ClassMeaning(
                 unitNum, dependency, name.numTypeParameters, namespace);
@@ -267,15 +267,14 @@ class _Prelinker {
         });
         cls.executables.forEach((executable) {
           ReferenceKind kind = null;
-          if (executable.kind == UnlinkedExecutableKind.constructor &&
-              executable.isConst) {
+          if (executable.kind == UnlinkedExecutableKind.constructor) {
             kind = ReferenceKind.constructor;
           } else if (executable.kind ==
                   UnlinkedExecutableKind.functionOrMethod &&
               executable.isStatic) {
             kind = ReferenceKind.method;
           }
-          if (kind != null) {
+          if (kind != null && executable.name.isNotEmpty) {
             namespace[executable.name] = new _Meaning(
                 unitNum, kind, 0, executable.typeParameters.length);
           }

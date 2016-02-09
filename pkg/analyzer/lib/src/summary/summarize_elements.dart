@@ -187,7 +187,7 @@ class _CompilationUnitSerializer {
             kind: ReferenceKind.classOrEnum,
             name: cls.name,
             numTypeParameters: cls.typeParameters.length,
-            constMembers: serializeClassConstMembers(cls)));
+            members: serializeClassConstMembers(cls)));
       }
     }
     for (ClassElement enm in compilationUnit.enums) {
@@ -404,6 +404,12 @@ class _CompilationUnitSerializer {
    * Otherwise return `null`.
    */
   List<UnlinkedPublicNameBuilder> serializeClassConstMembers(ClassElement cls) {
+    if (cls.isMixinApplication) {
+      // Mixin application members can't be determined directly from the AST so
+      // we can't store them in UnlinkedPublicName.
+      // TODO(paulberry): find somewhere else to store them.
+      return null;
+    }
     if (cls.kind == ElementKind.CLASS) {
       List<UnlinkedPublicNameBuilder> bs = <UnlinkedPublicNameBuilder>[];
       for (FieldElement field in cls.fields) {
@@ -425,7 +431,8 @@ class _CompilationUnitSerializer {
         }
       }
       for (ConstructorElement constructor in cls.constructors) {
-        if (constructor.isConst && constructor.isPublic) {
+        if (constructor.isPublic &&
+            constructor.name.isNotEmpty) {
           // TODO(paulberry): should numTypeParameters include class params?
           bs.add(new UnlinkedPublicNameBuilder(
               name: constructor.name,

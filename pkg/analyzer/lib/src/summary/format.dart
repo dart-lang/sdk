@@ -3816,23 +3816,10 @@ abstract class _UnlinkedPartMixin implements idl.UnlinkedPart {
 class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin implements idl.UnlinkedPublicName {
   bool _finished = false;
 
-  List<UnlinkedPublicNameBuilder> _constMembers;
   idl.ReferenceKind _kind;
+  List<UnlinkedPublicNameBuilder> _members;
   String _name;
   int _numTypeParameters;
-
-  @override
-  List<UnlinkedPublicNameBuilder> get constMembers => _constMembers ??= <UnlinkedPublicNameBuilder>[];
-
-  /**
-   * If this [UnlinkedPublicName] is a class, the list of members which can be
-   * referenced from constants - static constant fields, static methods, and
-   * constructors.  Otherwise empty.
-   */
-  void set constMembers(List<UnlinkedPublicNameBuilder> _value) {
-    assert(!_finished);
-    _constMembers = _value;
-  }
 
   @override
   idl.ReferenceKind get kind => _kind ??= idl.ReferenceKind.classOrEnum;
@@ -3843,6 +3830,22 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   void set kind(idl.ReferenceKind _value) {
     assert(!_finished);
     _kind = _value;
+  }
+
+  @override
+  List<UnlinkedPublicNameBuilder> get members => _members ??= <UnlinkedPublicNameBuilder>[];
+
+  /**
+   * If this [UnlinkedPublicName] is a class, the list of members which can be
+   * referenced from constants or factory redirects - static constant fields,
+   * static methods, and constructors.  Otherwise empty.
+   *
+   * Unnamed constructors are not included since they do not constitute a
+   * separate name added to any namespace.
+   */
+  void set members(List<UnlinkedPublicNameBuilder> _value) {
+    assert(!_finished);
+    _members = _value;
   }
 
   @override
@@ -3869,29 +3872,29 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
     _numTypeParameters = _value;
   }
 
-  UnlinkedPublicNameBuilder({List<UnlinkedPublicNameBuilder> constMembers, idl.ReferenceKind kind, String name, int numTypeParameters})
-    : _constMembers = constMembers,
-      _kind = kind,
+  UnlinkedPublicNameBuilder({idl.ReferenceKind kind, List<UnlinkedPublicNameBuilder> members, String name, int numTypeParameters})
+    : _kind = kind,
+      _members = members,
       _name = name,
       _numTypeParameters = numTypeParameters;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
-    fb.Offset offset_constMembers;
+    fb.Offset offset_members;
     fb.Offset offset_name;
-    if (!(_constMembers == null || _constMembers.isEmpty)) {
-      offset_constMembers = fbBuilder.writeList(_constMembers.map((b) => b.finish(fbBuilder)).toList());
+    if (!(_members == null || _members.isEmpty)) {
+      offset_members = fbBuilder.writeList(_members.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
     }
     fbBuilder.startTable();
-    if (offset_constMembers != null) {
-      fbBuilder.addOffset(0, offset_constMembers);
-    }
     if (_kind != null && _kind != idl.ReferenceKind.classOrEnum) {
-      fbBuilder.addUint32(1, _kind.index);
+      fbBuilder.addUint32(0, _kind.index);
+    }
+    if (offset_members != null) {
+      fbBuilder.addOffset(1, offset_members);
     }
     if (offset_name != null) {
       fbBuilder.addOffset(2, offset_name);
@@ -3915,21 +3918,21 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
 
   _UnlinkedPublicNameImpl(this._bp);
 
-  List<idl.UnlinkedPublicName> _constMembers;
   idl.ReferenceKind _kind;
+  List<idl.UnlinkedPublicName> _members;
   String _name;
   int _numTypeParameters;
 
   @override
-  List<idl.UnlinkedPublicName> get constMembers {
-    _constMembers ??= const fb.ListReader<idl.UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bp, 0, const <idl.UnlinkedPublicName>[]);
-    return _constMembers;
+  idl.ReferenceKind get kind {
+    _kind ??= const _ReferenceKindReader().vTableGet(_bp, 0, idl.ReferenceKind.classOrEnum);
+    return _kind;
   }
 
   @override
-  idl.ReferenceKind get kind {
-    _kind ??= const _ReferenceKindReader().vTableGet(_bp, 1, idl.ReferenceKind.classOrEnum);
-    return _kind;
+  List<idl.UnlinkedPublicName> get members {
+    _members ??= const fb.ListReader<idl.UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bp, 1, const <idl.UnlinkedPublicName>[]);
+    return _members;
   }
 
   @override
@@ -3948,8 +3951,8 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
 abstract class _UnlinkedPublicNameMixin implements idl.UnlinkedPublicName {
   @override
   Map<String, Object> toMap() => {
-    "constMembers": constMembers,
     "kind": kind,
+    "members": members,
     "name": name,
     "numTypeParameters": numTypeParameters,
   };

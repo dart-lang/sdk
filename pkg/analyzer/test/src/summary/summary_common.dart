@@ -1099,17 +1099,17 @@ class C {
     // executables
     Map<String, UnlinkedPublicName> executablesMap =
         <String, UnlinkedPublicName>{};
-    className.constMembers.forEach((e) => executablesMap[e.name] = e);
+    className.members.forEach((e) => executablesMap[e.name] = e);
     expect(executablesMap, hasLength(2));
     {
       UnlinkedPublicName executable = executablesMap['fieldStaticConst'];
       expect(executable.kind, ReferenceKind.propertyAccessor);
-      expect(executable.constMembers, isEmpty);
+      expect(executable.members, isEmpty);
     }
     {
       UnlinkedPublicName executable = executablesMap['methodStaticPublic'];
       expect(executable.kind, ReferenceKind.method);
-      expect(executable.constMembers, isEmpty);
+      expect(executable.members, isEmpty);
     }
   }
 
@@ -1131,18 +1131,18 @@ class C {
     // executables
     Map<String, UnlinkedPublicName> executablesMap =
         <String, UnlinkedPublicName>{};
-    className.constMembers.forEach((e) => executablesMap[e.name] = e);
+    className.members.forEach((e) => executablesMap[e.name] = e);
     expect(executablesMap, hasLength(2));
-    {
-      UnlinkedPublicName executable = executablesMap[''];
-      expect(executable.kind, ReferenceKind.constructor);
-      expect(executable.constMembers, isEmpty);
-    }
     {
       UnlinkedPublicName executable =
           executablesMap['constructorNamedPublicConst'];
       expect(executable.kind, ReferenceKind.constructor);
-      expect(executable.constMembers, isEmpty);
+      expect(executable.members, isEmpty);
+    }
+    {
+      UnlinkedPublicName executable = executablesMap['constructorNamedPublic'];
+      expect(executable.kind, ReferenceKind.constructor);
+      expect(executable.members, isEmpty);
     }
   }
 
