@@ -2430,11 +2430,14 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   bool _isConst;
   bool _isExternal;
   bool _isFactory;
+  bool _isRedirectedConstructor;
   bool _isStatic;
   idl.UnlinkedExecutableKind _kind;
   String _name;
   int _nameOffset;
   List<UnlinkedParamBuilder> _parameters;
+  EntityRefBuilder _redirectedConstructor;
+  String _redirectedConstructorName;
   EntityRefBuilder _returnType;
   List<UnlinkedTypeParamBuilder> _typeParameters;
 
@@ -2534,6 +2537,17 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
+  bool get isRedirectedConstructor => _isRedirectedConstructor ??= false;
+
+  /**
+   * Indicates whether the executable is a redirected constructor.
+   */
+  void set isRedirectedConstructor(bool _value) {
+    assert(!_finished);
+    _isRedirectedConstructor = _value;
+  }
+
+  @override
   bool get isStatic => _isStatic ??= false;
 
   /**
@@ -2602,6 +2616,31 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
+  EntityRefBuilder get redirectedConstructor => _redirectedConstructor;
+
+  /**
+   * If [isRedirectedConstructor] and [isFactory] are both `true`, the
+   * constructor to which this constructor redirects; otherwise empty.
+   */
+  void set redirectedConstructor(EntityRefBuilder _value) {
+    assert(!_finished);
+    _redirectedConstructor = _value;
+  }
+
+  @override
+  String get redirectedConstructorName => _redirectedConstructorName ??= '';
+
+  /**
+   * If [isRedirectedConstructor] is `true` and [isFactory] is `false`, the
+   * name of the constructor that this constructor redirects to; otherwise
+   * empty.
+   */
+  void set redirectedConstructorName(String _value) {
+    assert(!_finished);
+    _redirectedConstructorName = _value;
+  }
+
+  @override
   EntityRefBuilder get returnType => _returnType;
 
   /**
@@ -2625,7 +2664,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _typeParameters = _value;
   }
 
-  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedConstructorInitializerBuilder> constantInitializers, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isStatic, idl.UnlinkedExecutableKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters})
+  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedConstructorInitializerBuilder> constantInitializers, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters})
     : _annotations = annotations,
       _constantInitializers = constantInitializers,
       _documentationComment = documentationComment,
@@ -2634,11 +2673,14 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       _isConst = isConst,
       _isExternal = isExternal,
       _isFactory = isFactory,
+      _isRedirectedConstructor = isRedirectedConstructor,
       _isStatic = isStatic,
       _kind = kind,
       _name = name,
       _nameOffset = nameOffset,
       _parameters = parameters,
+      _redirectedConstructor = redirectedConstructor,
+      _redirectedConstructorName = redirectedConstructorName,
       _returnType = returnType,
       _typeParameters = typeParameters;
 
@@ -2650,6 +2692,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     fb.Offset offset_documentationComment;
     fb.Offset offset_name;
     fb.Offset offset_parameters;
+    fb.Offset offset_redirectedConstructor;
+    fb.Offset offset_redirectedConstructorName;
     fb.Offset offset_returnType;
     fb.Offset offset_typeParameters;
     if (!(_annotations == null || _annotations.isEmpty)) {
@@ -2666,6 +2710,12 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     }
     if (!(_parameters == null || _parameters.isEmpty)) {
       offset_parameters = fbBuilder.writeList(_parameters.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_redirectedConstructor != null) {
+      offset_redirectedConstructor = _redirectedConstructor.finish(fbBuilder);
+    }
+    if (_redirectedConstructorName != null) {
+      offset_redirectedConstructorName = fbBuilder.writeString(_redirectedConstructorName);
     }
     if (_returnType != null) {
       offset_returnType = _returnType.finish(fbBuilder);
@@ -2698,26 +2748,35 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     if (_isFactory == true) {
       fbBuilder.addBool(7, true);
     }
-    if (_isStatic == true) {
+    if (_isRedirectedConstructor == true) {
       fbBuilder.addBool(8, true);
     }
+    if (_isStatic == true) {
+      fbBuilder.addBool(9, true);
+    }
     if (_kind != null && _kind != idl.UnlinkedExecutableKind.functionOrMethod) {
-      fbBuilder.addUint32(9, _kind.index);
+      fbBuilder.addUint32(10, _kind.index);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(10, offset_name);
+      fbBuilder.addOffset(11, offset_name);
     }
     if (_nameOffset != null && _nameOffset != 0) {
-      fbBuilder.addUint32(11, _nameOffset);
+      fbBuilder.addUint32(12, _nameOffset);
     }
     if (offset_parameters != null) {
-      fbBuilder.addOffset(12, offset_parameters);
+      fbBuilder.addOffset(13, offset_parameters);
+    }
+    if (offset_redirectedConstructor != null) {
+      fbBuilder.addOffset(14, offset_redirectedConstructor);
+    }
+    if (offset_redirectedConstructorName != null) {
+      fbBuilder.addOffset(15, offset_redirectedConstructorName);
     }
     if (offset_returnType != null) {
-      fbBuilder.addOffset(13, offset_returnType);
+      fbBuilder.addOffset(16, offset_returnType);
     }
     if (offset_typeParameters != null) {
-      fbBuilder.addOffset(14, offset_typeParameters);
+      fbBuilder.addOffset(17, offset_typeParameters);
     }
     return fbBuilder.endTable();
   }
@@ -2743,11 +2802,14 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   bool _isConst;
   bool _isExternal;
   bool _isFactory;
+  bool _isRedirectedConstructor;
   bool _isStatic;
   idl.UnlinkedExecutableKind _kind;
   String _name;
   int _nameOffset;
   List<idl.UnlinkedParam> _parameters;
+  idl.EntityRef _redirectedConstructor;
+  String _redirectedConstructorName;
   idl.EntityRef _returnType;
   List<idl.UnlinkedTypeParam> _typeParameters;
 
@@ -2800,44 +2862,62 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   }
 
   @override
+  bool get isRedirectedConstructor {
+    _isRedirectedConstructor ??= const fb.BoolReader().vTableGet(_bp, 8, false);
+    return _isRedirectedConstructor;
+  }
+
+  @override
   bool get isStatic {
-    _isStatic ??= const fb.BoolReader().vTableGet(_bp, 8, false);
+    _isStatic ??= const fb.BoolReader().vTableGet(_bp, 9, false);
     return _isStatic;
   }
 
   @override
   idl.UnlinkedExecutableKind get kind {
-    _kind ??= const _UnlinkedExecutableKindReader().vTableGet(_bp, 9, idl.UnlinkedExecutableKind.functionOrMethod);
+    _kind ??= const _UnlinkedExecutableKindReader().vTableGet(_bp, 10, idl.UnlinkedExecutableKind.functionOrMethod);
     return _kind;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 10, '');
+    _name ??= const fb.StringReader().vTableGet(_bp, 11, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 11, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 12, 0);
     return _nameOffset;
   }
 
   @override
   List<idl.UnlinkedParam> get parameters {
-    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 12, const <idl.UnlinkedParam>[]);
+    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 13, const <idl.UnlinkedParam>[]);
     return _parameters;
   }
 
   @override
+  idl.EntityRef get redirectedConstructor {
+    _redirectedConstructor ??= const _EntityRefReader().vTableGet(_bp, 14, null);
+    return _redirectedConstructor;
+  }
+
+  @override
+  String get redirectedConstructorName {
+    _redirectedConstructorName ??= const fb.StringReader().vTableGet(_bp, 15, '');
+    return _redirectedConstructorName;
+  }
+
+  @override
   idl.EntityRef get returnType {
-    _returnType ??= const _EntityRefReader().vTableGet(_bp, 13, null);
+    _returnType ??= const _EntityRefReader().vTableGet(_bp, 16, null);
     return _returnType;
   }
 
   @override
   List<idl.UnlinkedTypeParam> get typeParameters {
-    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bp, 14, const <idl.UnlinkedTypeParam>[]);
+    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bp, 17, const <idl.UnlinkedTypeParam>[]);
     return _typeParameters;
   }
 }
@@ -2853,11 +2933,14 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     "isConst": isConst,
     "isExternal": isExternal,
     "isFactory": isFactory,
+    "isRedirectedConstructor": isRedirectedConstructor,
     "isStatic": isStatic,
     "kind": kind,
     "name": name,
     "nameOffset": nameOffset,
     "parameters": parameters,
+    "redirectedConstructor": redirectedConstructor,
+    "redirectedConstructorName": redirectedConstructorName,
     "returnType": returnType,
     "typeParameters": typeParameters,
   };

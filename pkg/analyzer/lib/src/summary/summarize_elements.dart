@@ -539,6 +539,31 @@ class _CompilationUnitSerializer {
       b.kind = UnlinkedExecutableKind.constructor;
       b.isConst = executableElement.isConst;
       b.isFactory = executableElement.isFactory;
+      if (executableElement.redirectedConstructor != null) {
+        b.isRedirectedConstructor = true;
+        if (executableElement.isFactory) {
+          EntityRefBuilder typeRef = serializeTypeRef(
+              executableElement.redirectedConstructor.enclosingElement.type,
+              executableElement);
+          if (executableElement.redirectedConstructor.name.isNotEmpty) {
+            String name = executableElement.redirectedConstructor.name;
+            int typeId = typeRef.reference;
+            LinkedReference typeLinkedRef = linkedReferences[typeId];
+            unlinkedReferences.add(new UnlinkedReferenceBuilder(
+                name: name, prefixReference: typeId));
+            int refId = linkedReferences.length;
+            linkedReferences.add(new LinkedReferenceBuilder(
+                kind: ReferenceKind.constructor, unit: typeLinkedRef.unit));
+            b.redirectedConstructor = new EntityRefBuilder(
+                reference: refId, typeArguments: typeRef.typeArguments);
+          } else {
+            b.redirectedConstructor = typeRef;
+          }
+        } else {
+          b.redirectedConstructorName =
+              executableElement.redirectedConstructor.name;
+        }
+      }
       if (executableElement.isConst &&
           executableElement.constantInitializers != null) {
         Set<String> constructorParameterNames =

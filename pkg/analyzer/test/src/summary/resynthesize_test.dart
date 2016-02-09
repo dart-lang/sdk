@@ -428,9 +428,16 @@ class ResynthTest extends ResolverTestCase {
   void compareConstructorElements(ConstructorElementImpl resynthesized,
       ConstructorElementImpl original, String desc) {
     compareExecutableElements(resynthesized, original, desc);
-    compareConstAstLists(resynthesized.constantInitializers,
-        original.constantInitializers, desc);
-    // TODO(paulberry): test redirectedConstructor
+    if (original.isConst) {
+      compareConstAstLists(resynthesized.constantInitializers,
+          original.constantInitializers, desc);
+    }
+    if (original.redirectedConstructor == null) {
+      expect(resynthesized.redirectedConstructor, isNull, reason: desc);
+    } else {
+      compareElements(resynthesized.redirectedConstructor,
+          original.redirectedConstructor, desc);
+    }
   }
 
   void compareElementAnnotations(ElementAnnotationImpl resynthesized,
@@ -1893,6 +1900,138 @@ class C {
 class C {
   const C.named() : this(1, 'bbb');
   const C(int a, String b);
+}
+''');
+  }
+
+  test_constructor_redirected_factory_named() {
+    checkLibrary('''
+class C {
+  factory C() = D.named;
+  C._();
+}
+class D extends C {
+  D.named() : super._();
+}
+''');
+  }
+
+  test_constructor_redirected_factory_named_imported() {
+    addLibrarySource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D extends C {
+  D.named() : super._();
+}
+''');
+    checkLibrary('''
+import 'foo.dart';
+class C {
+  factory C() = D.named;
+  C._();
+}
+''');
+  }
+
+  test_constructor_redirected_factory_named_prefixed() {
+    addLibrarySource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D extends C {
+  D.named() : super._();
+}
+''');
+    checkLibrary('''
+import 'foo.dart' as foo;
+class C {
+  factory C() = foo.D.named;
+  C._();
+}
+''');
+  }
+
+  test_constructor_redirected_factory_unnamed() {
+    checkLibrary('''
+class C {
+  factory C() = D;
+  C._();
+}
+class D extends C {
+  D() : super._();
+}
+''');
+  }
+
+  test_constructor_redirected_factory_unnamed_imported() {
+    addLibrarySource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D extends C {
+  D() : super._();
+}
+''');
+    checkLibrary('''
+import 'foo.dart';
+class C {
+  factory C() = D;
+  C._();
+}
+''');
+  }
+
+  test_constructor_redirected_factory_unnamed_prefixed() {
+    addLibrarySource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D extends C {
+  D() : super._();
+}
+''');
+    checkLibrary('''
+import 'foo.dart' as foo;
+class C {
+  factory C() = foo.D;
+  C._();
+}
+''');
+  }
+
+  test_constructor_redirected_thisInvocation_named() {
+    checkLibrary('''
+class C {
+  C.named();
+  C() : this.named();
+}
+''');
+  }
+
+  test_constructor_redirected_thisInvocation_named_generic() {
+    checkLibrary('''
+class C<T> {
+  C.named();
+  C() : this.named();
+}
+''');
+  }
+
+  test_constructor_redirected_thisInvocation_unnamed() {
+    checkLibrary('''
+class C {
+  C();
+  C.named() : this();
+}
+''');
+  }
+
+  test_constructor_redirected_thisInvocation_unnamed_generic() {
+    checkLibrary('''
+class C<T> {
+  C();
+  C.named() : this();
 }
 ''');
   }

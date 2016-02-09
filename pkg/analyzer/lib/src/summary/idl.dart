@@ -1033,6 +1033,11 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   bool get isFactory;
 
   /**
+   * Indicates whether the executable is a redirected constructor.
+   */
+  bool get isRedirectedConstructor;
+
+  /**
    * Indicates whether the executable is declared using the `static` keyword.
    *
    * Note that for top level executables, this flag is false, since they are
@@ -1069,6 +1074,19 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    * parameter.
    */
   List<UnlinkedParam> get parameters;
+
+  /**
+   * If [isRedirectedConstructor] and [isFactory] are both `true`, the
+   * constructor to which this constructor redirects; otherwise empty.
+   */
+  EntityRef get redirectedConstructor;
+
+  /**
+   * If [isRedirectedConstructor] is `true` and [isFactory] is `false`, the
+   * name of the constructor that this constructor redirects to; otherwise
+   * empty.
+   */
+  String get redirectedConstructorName;
 
   /**
    * Declared return type of the executable.  Absent if the executable is a

@@ -2746,6 +2746,9 @@ class C<T> {
     expect(executable.returnType, isNull);
     expect(executable.isExternal, isFalse);
     expect(executable.nameOffset, text.indexOf('C();'));
+    expect(executable.isRedirectedConstructor, isFalse);
+    expect(executable.redirectedConstructor, isNull);
+    expect(executable.redirectedConstructorName, isEmpty);
   }
 
   test_constructor_anonymous() {
@@ -3160,6 +3163,76 @@ class C {
         serializeClassText('class C { C(v); }').executables[0];
     expect(ctor.kind, UnlinkedExecutableKind.constructor);
     expect(ctor.parameters[0].inferredTypeSlot, 0);
+  }
+
+  test_constructor_redirected_factory_named() {
+    String text = '''
+class C {
+  factory C() = D.named;
+  C._();
+}
+class D extends C {
+  D.named() : super._();
+}
+''';
+    UnlinkedExecutable executable =
+        serializeClassText(text, className: 'C').executables[0];
+    expect(executable.isRedirectedConstructor, isTrue);
+    expect(executable.isFactory, isTrue);
+    expect(executable.redirectedConstructorName, isEmpty);
+    checkTypeRef(executable.redirectedConstructor, null, null, 'named',
+        expectedKind: ReferenceKind.constructor,
+        prefixExpectations: [
+          new _PrefixExpectation(ReferenceKind.classOrEnum, 'D')
+        ]);
+  }
+
+  test_constructor_redirected_factory_unnamed() {
+    String text = '''
+class C {
+  factory C() = D;
+  C._();
+}
+class D extends C {
+  D() : super._();
+}
+''';
+    UnlinkedExecutable executable =
+        serializeClassText(text, className: 'C').executables[0];
+    expect(executable.isRedirectedConstructor, isTrue);
+    expect(executable.isFactory, isTrue);
+    expect(executable.redirectedConstructorName, isEmpty);
+    checkTypeRef(executable.redirectedConstructor, null, null, 'D');
+  }
+
+  test_constructor_redirected_thisInvocation_named() {
+    String text = '''
+class C {
+  C() : this.named();
+  C.named();
+}
+''';
+    UnlinkedExecutable executable =
+        serializeClassText(text, className: 'C').executables[0];
+    expect(executable.isRedirectedConstructor, isTrue);
+    expect(executable.isFactory, isFalse);
+    expect(executable.redirectedConstructorName, 'named');
+    expect(executable.redirectedConstructor, isNull);
+  }
+
+  test_constructor_redirected_thisInvocation_unnamed() {
+    String text = '''
+class C {
+  C.named() : this();
+  C();
+}
+''';
+    UnlinkedExecutable executable =
+        serializeClassText(text, className: 'C').executables[0];
+    expect(executable.isRedirectedConstructor, isTrue);
+    expect(executable.isFactory, isFalse);
+    expect(executable.redirectedConstructorName, isEmpty);
+    expect(executable.redirectedConstructor, isNull);
   }
 
   test_constructor_return_type() {

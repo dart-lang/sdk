@@ -467,28 +467,6 @@ class _ConstExprBuilder {
     throw new StateError('Unsupported type $type');
   }
 
-  /**
-   * Return the [ConstructorElement] by applying [typeArgumentRefs] to the
-   * given linked [info].  Both cases when [info] is a [ClassElement] and
-   * [ConstructorElement] are supported.
-   */
-  _DeferredConstructorElement _createConstructorElement(
-      _ReferenceInfo info, List<EntityRef> typeArgumentRefs) {
-    bool isClass = info.element is ClassElement;
-    _ReferenceInfo classInfo = isClass ? info : info.enclosing;
-    List<DartType> typeArguments =
-        typeArgumentRefs.map(resynthesizer.buildType).toList();
-    InterfaceType classType = classInfo.buildType((i) {
-      if (i < typeArguments.length) {
-        return typeArguments[i];
-      } else {
-        return DynamicTypeImpl.instance;
-      }
-    }, const <int>[]);
-    String name = isClass ? '' : info.name;
-    return new _DeferredConstructorElement(classType, name);
-  }
-
   InterpolationElement _newInterpolationElement(Expression expr) {
     if (expr is SimpleStringLiteral) {
       return new InterpolationString(expr.literal, expr.value);
@@ -536,7 +514,7 @@ class _ConstExprBuilder {
           '${info.element?.runtimeType}');
     }
     _DeferredConstructorElement constructorElement =
-        _createConstructorElement(info, ref.typeArguments);
+        resynthesizer._createConstructorElement(info, ref.typeArguments);
     // prepare arguments
     List<Expression> arguments;
     {
@@ -939,6 +917,25 @@ class _LibraryResynthesizer {
         .constantInitializers
         .map(buildConstantInitializer)
         .toList();
+    if (serializedExecutable.isRedirectedConstructor) {
+      if (serializedExecutable.isFactory) {
+        EntityRef redirectedConstructor =
+            serializedExecutable.redirectedConstructor;
+        currentConstructor.redirectedConstructor = _createConstructorElement(
+            referenceInfos[redirectedConstructor.reference],
+            redirectedConstructor.typeArguments);
+      } else {
+        List<String> locationComponents =
+            currentCompilationUnit.location.components.toList();
+        locationComponents.add(classType.name);
+        locationComponents.add(serializedExecutable.redirectedConstructorName);
+        currentConstructor.redirectedConstructor =
+            new _DeferredConstructorElement._(
+                classType,
+                serializedExecutable.redirectedConstructorName,
+                new ElementLocationImpl.con3(locationComponents));
+      }
+    }
     holder.addConstructor(currentConstructor);
     currentConstructor = null;
   }
@@ -1889,6 +1886,27 @@ class _LibraryResynthesizer {
           summaryResynthesizer,
           new ElementLocationImpl.con3(
               <String>['dart:core', 'dart:core', 'String', 'length?']));
+
+  /**
+   * Return the [ConstructorElement] by applying [typeArgumentRefs] to the
+   * given linked [info].  Both cases when [info] is a [ClassElement] and
+   * [ConstructorElement] are supported.
+   */
+  _DeferredConstructorElement _createConstructorElement(
+      _ReferenceInfo info, List<EntityRef> typeArgumentRefs) {
+    bool isClass = info.element is ClassElement;
+    _ReferenceInfo classInfo = isClass ? info : info.enclosing;
+    List<DartType> typeArguments = typeArgumentRefs.map(buildType).toList();
+    InterfaceType classType = classInfo.buildType((i) {
+      if (i < typeArguments.length) {
+        return typeArguments[i];
+      } else {
+        return DynamicTypeImpl.instance;
+      }
+    }, const <int>[]);
+    String name = isClass ? '' : info.name;
+    return new _DeferredConstructorElement(classType, name);
+  }
 
   /**
    * If the given [kind] is a top-level or class member property accessor, and

@@ -785,7 +785,22 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
         .map((FormalParameter p) => p.accept(this))
         .toList();
     b.kind = UnlinkedExecutableKind.constructor;
-    b.isFactory = node.factoryKeyword != null;
+    if (node.factoryKeyword != null) {
+      b.isFactory = true;
+      if (node.redirectedConstructor != null) {
+        b.isRedirectedConstructor = true;
+        b.redirectedConstructor = new _ConstExprSerializer(this, null)
+            .serializeConstructorName(node.redirectedConstructor.type,
+                node.redirectedConstructor.name);
+      }
+    } else {
+      for (ConstructorInitializer initializer in node.initializers) {
+        if (initializer is RedirectingConstructorInvocation) {
+          b.isRedirectedConstructor = true;
+          b.redirectedConstructorName = initializer.constructorName?.name;
+        }
+      }
+    }
     b.isConst = node.constKeyword != null;
     b.isExternal = node.externalKeyword != null;
     b.documentationComment = serializeDocumentation(node.documentationComment);
