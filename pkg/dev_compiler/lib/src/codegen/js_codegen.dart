@@ -2089,8 +2089,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         result.add(
             param is DefaultFormalParameter && options.destructureNamedParams
                 ? new JS.DestructuredVariable(
-                    name: jsParam,
-                    defaultValue: _defaultParamValue(param))
+                    name: jsParam, defaultValue: _defaultParamValue(param))
                 : jsParam);
       }
     }

@@ -2,9 +2,9 @@ library dev_compiler.test.transformer.transformer_test;
 
 import 'package:barback/barback.dart' show BarbackMode, BarbackSettings;
 import 'package:dev_compiler/transformer.dart';
+import 'package:dev_compiler/src/compiler.dart' show defaultRuntimeFiles;
 import 'package:test/test.dart';
 import 'package:transformer_test/utils.dart';
-import 'package:dev_compiler/src/compiler.dart' show defaultRuntimeFiles;
 
 makePhases([Map config = const {}]) => [
       [
@@ -89,8 +89,8 @@ export default exports;
         }),
         {},
         [
-          "warning: A value of type \'String\' cannot be assigned to a variable of type \'int\'",
-          "error: Type check failed: '2' (String) is not of type int"
+          "warning: A value of type \'String\' cannot be assigned to a variable of type \'int\' (package:foo/Foo.dart 3 19)",
+          "error: Type check failed: '2' (String) is not of type int (package:foo/Foo.dart 3 19)"
         ]);
   });
 }

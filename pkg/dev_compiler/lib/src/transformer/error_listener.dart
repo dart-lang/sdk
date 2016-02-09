@@ -4,27 +4,55 @@
 
 library dev_compiler.src.transformer.error_listener;
 
-import 'package:barback/barback.dart' show TransformLogger;
 import 'package:analyzer/analyzer.dart'
     show AnalysisError, ErrorSeverity, AnalysisErrorListener;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:barback/barback.dart' show TransformLogger, AssetId;
+import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
+
+import 'uri_resolver.dart';
+
+typedef void _LoggingFunction(String message, {AssetId asset, SourceSpan span});
 
 class TransformAnalysisErrorListener extends AnalysisErrorListener {
-  TransformLogger _logger;
-  TransformAnalysisErrorListener(this._logger);
+  final TransformLogger _logger;
+  final AnalysisContext _context;
+  TransformAnalysisErrorListener(this._logger, this._context);
 
   @override
   void onError(AnalysisError error) {
-    // TODO(ochafik): Proper location / span.
-    switch (error.errorCode.errorSeverity) {
+    var content = error.source.contents.data;
+    var sourceUrl = error.source.uri.toString();
+    var lineInfo = _context.getLineInfo(error.source);
+    SourceLocation makeLocation(int offset) {
+      var location = lineInfo.getLocation(offset);
+      return new SourceLocation(offset,
+          sourceUrl: sourceUrl,
+          line: location.lineNumber,
+          column: location.columnNumber);
+    }
+    int start = error.offset;
+    int end = error.offset + error.length;
+    var assetId = resolveAssetId(error.source.uri);
+    var span = new SourceSpan(
+        makeLocation(start), makeLocation(end), content.substring(start, end));
+
+    var logger = _getLogger(error.errorCode.errorSeverity);
+    logger(error.message, asset: assetId, span: span);
+  }
+
+  _LoggingFunction _getLogger(ErrorSeverity severity) {
+    switch (severity) {
       case ErrorSeverity.ERROR:
-        _logger.error(error.message);
-        break;
+        return _logger.error;
       case ErrorSeverity.WARNING:
-        _logger.warning(error.message);
-        break;
+        return _logger.warning;
+      case ErrorSeverity.INFO:
+        return _logger.info;
+      case ErrorSeverity.NONE:
+        return _logger.fine;
       default:
-        _logger.info(error.message);
-        break;
+        throw new ArgumentError.value(severity, "severity", "not supported");
     }
   }
 }

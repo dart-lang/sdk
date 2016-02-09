@@ -70,7 +70,7 @@ class DdcTransformer extends AggregateTransformer {
             '--runtime-dir',
             _fakeRuntimeDir
           ])),
-        reporter: new TransformAnalysisErrorListener(transform.logger),
+        reporter: new TransformAnalysisErrorListener(transform.logger, context),
         fileSystem: fileSystem);
 
     for (var asset in inputs) {
