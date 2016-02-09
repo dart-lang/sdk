@@ -8,6 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 import 'context/test_all.dart' as context;
+import 'dart/test_all.dart' as dart;
 import 'plugin/plugin_config_test.dart' as plugin;
 import 'summary/test_all.dart' as summary;
 import 'task/test_all.dart' as task;
@@ -18,6 +19,7 @@ main() {
   initializeTestEnvironment();
   group('src tests', () {
     context.main();
+    dart.main();
     plugin.main();
     summary.main();
     task.main();
