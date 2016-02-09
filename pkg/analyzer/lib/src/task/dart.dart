@@ -268,6 +268,13 @@ final ResultDescriptor<bool> CREATED_RESOLVED_UNIT9 =
     new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT9', false);
 
 /**
+ * The [Element]s defined in a [LibrarySpecificUnit].
+ */
+final ListResultDescriptor<Element> DEFINED_ELEMENTS =
+    new ListResultDescriptor<Element>('DEFINED_ELEMENTS', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
+
+/**
  * The sources representing the export closure of a library.
  * The [Source]s include only library sources, not their units.
  *
@@ -2538,7 +2545,7 @@ class GatherUsedLocalElementsTask extends SourceBasedAnalysisTask {
       'GatherUsedLocalElementsTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[USED_LOCAL_ELEMENTS]);
+      <ResultDescriptor>[DEFINED_ELEMENTS, USED_LOCAL_ELEMENTS]);
 
   GatherUsedLocalElementsTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -2553,7 +2560,7 @@ class GatherUsedLocalElementsTask extends SourceBasedAnalysisTask {
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
     //
-    // Prepare used local elements.
+    // Prepare defined and used local elements.
     //
     GatherUsedLocalElementsVisitor visitor =
         new GatherUsedLocalElementsVisitor(libraryElement);
@@ -2561,6 +2568,7 @@ class GatherUsedLocalElementsTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
+    outputs[DEFINED_ELEMENTS] = visitor.definedElements;
     outputs[USED_LOCAL_ELEMENTS] = visitor.usedElements;
   }
 
@@ -2592,6 +2600,11 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
    * The name of the [RESOLVED_UNIT10] input.
    */
   static const String RESOLVED_UNIT_INPUT = 'RESOLVED_UNIT';
+
+  /**
+   * The name of a list of [DEFINED_ELEMENTS] for each library unit input.
+   */
+  static const String DEFINED_ELEMENTS_INPUT = 'DEFINED_ELEMENTS';
 
   /**
    * The name of a list of [USED_LOCAL_ELEMENTS] for each library unit input.
@@ -2639,6 +2652,8 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     CompilationUnit unit = getRequiredInput(RESOLVED_UNIT_INPUT);
     List<UsedImportedElements> usedImportedElementsList =
         getRequiredInput(USED_IMPORTED_ELEMENTS_INPUT);
+    List<List<Element>> definedElementsList =
+        getRequiredInput(DEFINED_ELEMENTS_INPUT);
     List<UsedLocalElements> usedLocalElementsList =
         getRequiredInput(USED_LOCAL_ELEMENTS_INPUT);
     CompilationUnitElement unitElement = unit.element;
@@ -2663,7 +2678,11 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
           new UsedLocalElements.merge(usedLocalElementsList);
       UnusedLocalElementsVerifier visitor =
           new UnusedLocalElementsVerifier(errorListener, usedElements);
-      unitElement.accept(visitor);
+      for (List<Element> definedElements in definedElementsList) {
+        for (Element element in definedElements) {
+          element.accept(visitor);
+        }
+      }
     }
     // Dart2js analysis.
     if (analysisOptions.dart2jsHint) {
@@ -2695,6 +2714,8 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     Source libSource = unit.library;
     return <String, TaskInput>{
       RESOLVED_UNIT_INPUT: RESOLVED_UNIT.of(unit),
+      DEFINED_ELEMENTS_INPUT:
+          LIBRARY_SPECIFIC_UNITS.of(libSource).toListOf(DEFINED_ELEMENTS),
       USED_LOCAL_ELEMENTS_INPUT:
           LIBRARY_SPECIFIC_UNITS.of(libSource).toListOf(USED_LOCAL_ELEMENTS),
       USED_IMPORTED_ELEMENTS_INPUT:

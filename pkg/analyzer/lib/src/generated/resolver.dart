@@ -4001,6 +4001,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
  * An [AstVisitor] that fills [UsedLocalElements].
  */
 class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
+  final List<Element> definedElements = <Element>[];
   final UsedLocalElements usedElements = new UsedLocalElements();
 
   final LibraryElement _enclosingLibrary;
@@ -4070,10 +4071,11 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
+    Element element = node.staticElement;
     if (node.inDeclarationContext()) {
+      definedElements.add(element);
       return;
     }
-    Element element = node.staticElement;
     bool isIdentifierRead = _isReadIdentifier(node);
     if (element is LocalVariableElement) {
       if (isIdentifierRead) {
@@ -12148,7 +12150,7 @@ class TypeResolverVisitor extends ScopedVisitor {
  * structure looking for cases of [HintCode.UNUSED_ELEMENT],
  * [HintCode.UNUSED_FIELD], [HintCode.UNUSED_LOCAL_VARIABLE], etc.
  */
-class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
+class UnusedLocalElementsVerifier extends SimpleElementVisitor {
   /**
    * The error listener to which errors will be reported.
    */
