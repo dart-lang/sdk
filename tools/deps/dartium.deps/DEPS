@@ -10,7 +10,7 @@ execfile(os.path.join(path, 'src', 'dart', 'tools', 'deps', 'dartium.deps', 'DEP
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "dartium_base": "http://src.chromium.org",
-  "dartium_chromium_commit": "526d891ac24d8bd27a6bd5e1d7c384a72509cfc0",
+  "dartium_chromium_commit": "8df9de5a8f073d9c0feadf8d652408807e4a254e",
   "chromium_base_revision": "338390",
   "dartium_webkit_branch": "/blink/branches/dart/2454_1",
   "dartium_webkit_revision": "202773",
