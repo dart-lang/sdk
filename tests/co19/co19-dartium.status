@@ -462,8 +462,6 @@ LayoutTests/fast/media/mq-parsing_t01: Pass, RuntimeError # False passes on Fire
 LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: Skip # Issue 22111
 LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: Skip # Passes on Safari, Issue 23475 # co19 issue 11.
 LayoutTests/fast/mediastream/getusermedia_t01: Skip # co19 issue 738
-LayoutTests/fast/multicol/balance-short-trailing-empty-block_t01: RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/multicol/balance-trailing-border_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/balance-trailing-border_t02: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/balance-unbreakable_t01: Pass, RuntimeError # co19 issue 11.
 LayoutTests/fast/multicol/break-after-always-bottom-margin_t01: RuntimeError # co19-roll r801: Please triage this failure.
@@ -507,7 +505,6 @@ LayoutTests/fast/multicol/vertical-rl/float-truncation_t01: RuntimeError # co19-
 LayoutTests/fast/multicol/vertical-rl/image-inside-nested-blocks-with-border_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/widows_t01: Pass, RuntimeError # co19 issue 11.
 LayoutTests/fast/multicol/widows_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/multicol/widows_t02: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/zeroColumnCount_t01: RuntimeError # co19 issue 11.
 LayoutTests/fast/overflow/child-100percent-height-inside-fixed-container-with-overflow-auto_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/overflow/child-100percent-height-inside-fixed-container-with-overflow-auto_t01: RuntimeError # co19 issue 11.
@@ -731,7 +728,6 @@ LibTest/html/Element/dataset_A02_t01: RuntimeError # co19-roll r706.  Please tri
 LibTest/html/Element/focus_A01_t01: Skip # co19-roll r706.  Please triage this failure.
 LibTest/html/Element/getAttributeNS_A01_t01: RuntimeError # co19-roll r706.  Issue 16395
 LibTest/html/Element/getAttributeNS_A01_t02: RuntimeError # Please triage this failure.
-LibTest/html/Element/getClientRects_A01_t02: RuntimeError # co19-roll r706.  Issue 16575
 LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # co19-roll r706.  Issue 16395
 LibTest/html/Element/isContentEditable_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Element/isContentEditable_A02_t01: RuntimeError # co19-roll r706.  Please triage this failure.
@@ -763,7 +759,6 @@ LibTest/html/IFrameElement/createFragment_A01_t03: RuntimeError # co19-roll r706
 LibTest/html/IFrameElement/createShadowRoot_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/enteredView_A01_t01: Skip # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/focus_A01_t01: Skip # co19-roll r706.  Please triage this failure.
-LibTest/html/IFrameElement/getClientRects_A01_t02: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/getNamespacedAttributes_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/innerHtml_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/isContentEditable_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
@@ -780,7 +775,6 @@ LibTest/html/Node/nodes_A01_t01: RuntimeError # co19-roll r722: Please triage th
 LibTest/html/Node/nodes_A01_t02: RuntimeError # co19-roll r722: Please triage this failure.
 LibTest/html/Node/parent_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LibTest/html/Node/previousNode_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LibTest/html/Window/close_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/find_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/find_A03_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/find_A06_t01: RuntimeError # co19-roll r706.  Please triage this failure.
@@ -863,12 +857,12 @@ LibTest/isolate/ReceivePort/transform_A01_t01: RuntimeError, OK  # Uses Isolate.
 LibTest/isolate/ReceivePort/transform_A01_t02: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/ReceivePort/where_A01_t01: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/ReceivePort/where_A01_t02: RuntimeError, OK  # Uses Isolate.spawn.
+LibTest/isolate/ReceivePort/close_A01_t01: Pass, RuntimeError # Issue 13921, co19 issue for false pass https://github.com/dart-lang/co19/issues/13
 LibTest/isolate/ReceivePort/asBroadcastStream_A01_t02: Pass, RuntimeError # Issue 13921, co19 issue for false pass https://github.com/dart-lang/co19/issues/13
 LibTest/isolate/ReceivePort/asBroadcastStream_A02_t01: RuntimeError # Issue 13921
 LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: Pass, RuntimeError # Issue 13921, co19 issue for false pass https://github.com/dart-lang/co19/issues/13
 LibTest/isolate/ReceivePort/asBroadcastStream_A03_t02: Pass, RuntimeError # Issue 13921, co19 issue for false pass https://github.com/dart-lang/co19/issues/13
 LibTest/isolate/ReceivePort/asBroadcastStream_A03_t03: Pass, RuntimeError # Issue 13921, co19 issue for false pass https://github.com/dart-lang/co19/issues/13
-LibTest/isolate/ReceivePort/close_A01_t01: Pass, RuntimeError # Issue 13921, co19 issue for false pass https://github.com/dart-lang/co19/issues/13
 LibTest/isolate/ReceivePort/close_A02_t01: Pass, RuntimeError # Issue 13921, co19 issue for false pass https://github.com/dart-lang/co19/issues/13
 LibTest/isolate/ReceivePort/sendPort_A01_t01: RuntimeError # Issue 13921
 LibTest/isolate/SendPort/send_A01_t01: RuntimeError, OK  # Uses Isolate.spawn.
@@ -1050,8 +1044,6 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocume
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # co19-roll r761: Please triage this failure.
-WebPlatformTest/webstorage/event_local_key_t01: RuntimeError # co19-roll r761: Please triage this failure.
-WebPlatformTest/webstorage/event_session_key_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out flakily. co19-roll r761: Please triage this failure.
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out flakily. co19-roll r761: Please triage this failure.
 
