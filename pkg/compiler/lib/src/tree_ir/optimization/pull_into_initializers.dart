@@ -265,6 +265,12 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
+  Expression visitAwait(Await node) {
+    super.visitAwait(node);
+    ++impureCounter;
+    return node;
+  }
+
   Expression visitConditional(Conditional node) {
     node.condition = visitExpression(node.condition);
     // Visit the branches to detect impure subexpressions, but do not pull

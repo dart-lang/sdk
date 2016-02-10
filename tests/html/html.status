@@ -421,9 +421,6 @@ typing_test: StaticWarning
 webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
 
-[ $compiler == dart2js && $cps_ir ]
-resource_http_test: Crash # (await for(var b in r.openRead()){bytes.addAll(b);}): await for
-
 [ $compiler == dart2js && $cps_ir && $browser ]
 # Custom element support:
 custom/constructor_calls_created_synchronously_test: RuntimeError # Need custom element support #25484

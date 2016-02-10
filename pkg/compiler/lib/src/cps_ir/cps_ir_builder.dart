@@ -1401,8 +1401,8 @@ class IrBuilder {
       Selector selector = new Selector.setter(
           new Name(variableElement.name, variableElement.library));
       List<ir.Primitive> value = <ir.Primitive>[currentValue];
-      // Note the order of the comparisons below.  It can be the case that an
-      // element isError and isMalformed.
+      // Note the comparison below.  It can be the case that an element isError
+      // and isMalformed.
       if (Elements.isError(variableElement)) {
         bodyBuilder.buildStaticNoSuchMethod(selector, value);
       } else {
