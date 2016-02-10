@@ -18,6 +18,7 @@ import 'package:linter/src/rules/avoid_return_types_on_setters.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
+import 'package:linter/src/rules/hash_and_equals.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/library_names.dart';
 import 'package:linter/src/rules/library_prefixes.dart';
@@ -45,6 +46,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new CamelCaseTypes())
   ..register(new ConstantIdentifierNames())
   ..register(new EmptyConstructorBodies())
+  ..register(new HashAndEquals())
   ..register(new ImplementationImports())
   ..register(new LibraryNames())
   ..register(new LibraryPrefixes())

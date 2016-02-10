@@ -58,10 +58,18 @@ AstNode getNodeToAnnotate(Declaration node) {
   return mostSpecific ?? node;
 }
 
+/// Returns `true` if this element is the `==` method declaration.
+bool isEquals(ClassMember element) =>
+    element is MethodDeclaration && element.name?.name == '==';
+
 /// Returns `true` if the keyword associated with this token is `final` or
 /// `const`.
 bool isFinalOrConst(Token token) =>
     isKeyword(token, Keyword.FINAL) || isKeyword(token, Keyword.CONST);
+
+/// Returns `true` if this element is the `hashCode` method declaration.
+bool isHashCode(ClassMember element) =>
+    element is MethodDeclaration && element.name?.name == 'hashCode';
 
 /// Returns `true` if the keyword associated with the given [token] matches
 /// [keyword].
@@ -73,6 +81,10 @@ bool isKeyWord(String id) => Keyword.keywords.keys.contains(id);
 
 /// Returns `true` if the given [ClassMember] is a method.
 bool isMethod(ClassMember m) => m is MethodDeclaration;
+
+/// Check if the given identifier has a private name.
+bool isPrivate(SimpleIdentifier identifier) =>
+    identifier != null ? Identifier.isPrivateName(identifier.name) : false;
 
 /// Returns `true` if the given [ClassMember] is a public method.
 bool isPublicMethod(ClassMember m) => isMethod(m) && m.element.isPublic;
@@ -243,10 +255,6 @@ AstNode _getNodeToAnnotate(Declaration node) {
   }
   return null;
 }
-
-/// Check if the given identifier has a private name.
-bool isPrivate(SimpleIdentifier identifier) =>
-    identifier != null ? Identifier.isPrivateName(identifier.name) : false;
 
 /// An [Element] processor function type.
 /// If `true` is returned, children of [element] will be visited.
