@@ -530,7 +530,7 @@ class _ConstExprBuilder {
       }
     }
     // create TypeName
-    TypeName typeNode = _buildTypeAst(constructorElement.definingType);
+    TypeName typeNode = _buildTypeAst(constructorElement._definingType);
     // create ConstructorName
     ConstructorName constructorNode;
     if (constructorName != null) {
@@ -584,39 +584,59 @@ class _ConstExprBuilder {
 /**
  * The constructor element that has been resynthesized from a summary.  The
  * actual element won't be constructed until it is requested.  But properties
- * [definingType], [displayName], [enclosingElement] and [name] can be used
- * without creating the actual element.
+ * [displayName], [enclosingElement] and [name] can be used without creating
+ * the actual element.
  */
 class _DeferredConstructorElement extends ConstructorElementHandle {
-  final InterfaceType definingType;
+  /**
+   * The type defining this constructor element.  If [_isMember] is `false`,
+   * then the type parameters of [_definingType] are not guaranteed to be
+   * valid.
+   */
+  final InterfaceType _definingType;
+
+  /**
+   * The constructor name.
+   */
   final String name;
+
+  /**
+   * Indicates whether the deferred element is a [ConstructorMember] or simply
+   * a [ConstructorElement].
+   */
+  final bool _isMember;
 
   factory _DeferredConstructorElement(InterfaceType definingType, String name) {
     List<String> components = definingType.element.location.components.toList();
     components.add(name);
     ElementLocationImpl location = new ElementLocationImpl.con3(components);
-    return new _DeferredConstructorElement._(definingType, name, location);
+    return new _DeferredConstructorElement._(
+        definingType, name, location, true);
   }
 
   _DeferredConstructorElement._(
-      this.definingType, this.name, ElementLocation location)
+      this._definingType, this.name, ElementLocation location, this._isMember)
       : super(null, location);
 
   @override
   Element get actualElement {
     ConstructorElement element = enclosingElement.getNamedConstructor(name);
-    return new ConstructorMember(element, definingType);
+    if (_isMember && _definingType.typeArguments.isNotEmpty) {
+      return new ConstructorMember(element, _definingType);
+    } else {
+      return element;
+    }
   }
 
   @override
-  AnalysisContext get context => definingType.element.context;
+  AnalysisContext get context => _definingType.element.context;
 
   @override
   String get displayName => name;
 
   @override
   ClassElement get enclosingElement {
-    return definingType.element;
+    return _definingType.element;
   }
 }
 
@@ -933,7 +953,8 @@ class _LibraryResynthesizer {
             new _DeferredConstructorElement._(
                 classType,
                 serializedExecutable.redirectedConstructorName,
-                new ElementLocationImpl.con3(locationComponents));
+                new ElementLocationImpl.con3(locationComponents),
+                false);
       }
     }
     holder.addConstructor(currentConstructor);

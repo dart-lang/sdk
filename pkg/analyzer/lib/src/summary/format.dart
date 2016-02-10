@@ -2621,8 +2621,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * If [isRedirectedConstructor] and [isFactory] are both `true`, the
    * constructor to which this constructor redirects; otherwise empty.
-   *
-   * Note: type arguments are ignored.
    */
   void set redirectedConstructor(EntityRefBuilder _value) {
     assert(!_finished);

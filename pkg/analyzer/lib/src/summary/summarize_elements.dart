@@ -7,6 +7,7 @@ library serialization.elements;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -538,14 +539,18 @@ class _CompilationUnitSerializer {
       b.kind = UnlinkedExecutableKind.constructor;
       b.isConst = executableElement.isConst;
       b.isFactory = executableElement.isFactory;
-      if (executableElement.redirectedConstructor != null) {
+      ConstructorElement redirectedConstructor =
+          executableElement.redirectedConstructor;
+      if (redirectedConstructor != null) {
         b.isRedirectedConstructor = true;
         if (executableElement.isFactory) {
-          EntityRefBuilder typeRef = serializeTypeRef(
-              executableElement.redirectedConstructor.enclosingElement.type,
-              executableElement.redirectedConstructor.enclosingElement);
-          if (executableElement.redirectedConstructor.name.isNotEmpty) {
-            String name = executableElement.redirectedConstructor.name;
+          InterfaceType returnType = redirectedConstructor is ConstructorMember
+              ? redirectedConstructor.definingType
+              : redirectedConstructor.enclosingElement.type;
+          EntityRefBuilder typeRef =
+              serializeTypeRef(returnType, executableElement);
+          if (redirectedConstructor.name.isNotEmpty) {
+            String name = redirectedConstructor.name;
             int typeId = typeRef.reference;
             LinkedReference typeLinkedRef = linkedReferences[typeId];
             unlinkedReferences.add(new UnlinkedReferenceBuilder(
@@ -559,8 +564,7 @@ class _CompilationUnitSerializer {
             b.redirectedConstructor = typeRef;
           }
         } else {
-          b.redirectedConstructorName =
-              executableElement.redirectedConstructor.name;
+          b.redirectedConstructorName = redirectedConstructor.name;
         }
       }
       if (executableElement.isConst &&

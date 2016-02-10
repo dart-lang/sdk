@@ -3209,6 +3209,8 @@ class D<T, U> extends C<U, T> {
               numTypeParameters: 2)
         ],
         allowTypeParameters: true);
+    checkParamTypeRef(executable.redirectedConstructor.typeArguments[0], 1);
+    checkParamTypeRef(executable.redirectedConstructor.typeArguments[1], 2);
   }
 
   test_constructor_redirected_factory_unnamed() {
@@ -3246,6 +3248,8 @@ class D<T, U> extends C<U, T> {
     expect(executable.redirectedConstructorName, isEmpty);
     checkTypeRef(executable.redirectedConstructor, null, null, 'D',
         allowTypeParameters: true, numTypeParameters: 2);
+    checkParamTypeRef(executable.redirectedConstructor.typeArguments[0], 1);
+    checkParamTypeRef(executable.redirectedConstructor.typeArguments[1], 2);
   }
 
   test_constructor_redirected_thisInvocation_named() {

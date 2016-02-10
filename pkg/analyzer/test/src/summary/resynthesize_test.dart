@@ -425,18 +425,46 @@ class ResynthTest extends ResolverTestCase {
     }
   }
 
-  void compareConstructorElements(ConstructorElementImpl resynthesized,
-      ConstructorElementImpl original, String desc) {
+  void compareConstructorElements(ConstructorElement resynthesized,
+      ConstructorElement original, String desc) {
     compareExecutableElements(resynthesized, original, desc);
     if (original.isConst) {
-      compareConstAstLists(resynthesized.constantInitializers,
-          original.constantInitializers, desc);
+      ConstructorElementImpl resynthesizedImpl =
+          getActualElement(resynthesized, desc);
+      ConstructorElementImpl originalImpl = getActualElement(original, desc);
+      compareConstAstLists(resynthesizedImpl.constantInitializers,
+          originalImpl.constantInitializers, desc);
     }
     if (original.redirectedConstructor == null) {
       expect(resynthesized.redirectedConstructor, isNull, reason: desc);
     } else {
-      compareElements(resynthesized.redirectedConstructor,
-          original.redirectedConstructor, desc);
+      compareConstructorElements(resynthesized.redirectedConstructor,
+          original.redirectedConstructor, '$desc redirectedConstructor');
+    }
+    ConstructorElement resynthesizedNonHandle =
+        resynthesized is ConstructorElementHandle
+            ? resynthesized.actualElement
+            : resynthesized;
+    if (original is ConstructorMember) {
+      expect(resynthesizedNonHandle, new isInstanceOf<ConstructorMember>(),
+          reason: desc);
+      if (resynthesizedNonHandle is ConstructorMember) {
+        List<DartType> resynthesizedTypeArguments =
+            resynthesizedNonHandle.definingType.typeArguments;
+        List<DartType> originalTypeArguments =
+            original.definingType.typeArguments;
+        expect(
+            resynthesizedTypeArguments, hasLength(originalTypeArguments.length),
+            reason: desc);
+        for (int i = 0; i < originalTypeArguments.length; i++) {
+          compareTypeImpls(resynthesizedTypeArguments[i],
+              originalTypeArguments[i], '$desc type argument $i');
+        }
+      }
+    } else {
+      expect(
+          resynthesizedNonHandle, isNot(new isInstanceOf<ConstructorMember>()),
+          reason: desc);
     }
   }
 
