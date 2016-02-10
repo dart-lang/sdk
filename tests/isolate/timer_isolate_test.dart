@@ -23,18 +23,16 @@ createTimer(replyTo) {
 
 main() {
   test("timer in isolate", () {
-    int startTime;
-    int endTime;
-
+    Stopwatch stopwatch = new Stopwatch();
     ReceivePort port = new ReceivePort();
 
     port.first.then(expectAsync((msg) {
       expect("timer_fired", msg);
-      int endTime = (new DateTime.now()).millisecondsSinceEpoch;
-      expect(endTime - startTime + safetyMargin, greaterThanOrEqualTo(TIMEOUT.inMilliseconds));
+      expect(stopwatch.elapsedMilliseconds + safetyMargin,
+             greaterThanOrEqualTo(TIMEOUT.inMilliseconds));
     }));
 
-    startTime = (new DateTime.now()).millisecondsSinceEpoch;
+    stopwatch.start();
     var remote = Isolate.spawn(createTimer, port.sendPort);
   });
 }

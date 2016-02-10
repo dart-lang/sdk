@@ -11,7 +11,7 @@ const int STARTTIMEOUT = 1050;
 const int DECREASE = 200;
 const int ITERATIONS = 5;
 
-int startTime;
+Stopwatch stopwatch = new Stopwatch();
 int timeout;
 int iteration;
 
@@ -21,13 +21,13 @@ int iteration;
 int get safetyMargin => identical(1, 1.0) ? 100 : 0;
 
 void timeoutHandler() {
-  int endTime = (new DateTime.now()).millisecondsSinceEpoch;
-  expect(endTime - startTime + safetyMargin, greaterThanOrEqualTo(timeout));
+  expect(stopwatch.elapsedMilliseconds + safetyMargin,
+         greaterThanOrEqualTo(timeout));
   if (iteration < ITERATIONS) {
     iteration++;
     timeout = timeout - DECREASE;
     Duration duration = new Duration(milliseconds: timeout);
-    startTime = (new DateTime.now()).millisecondsSinceEpoch;
+    stopwatch.reset();
     new Timer(duration, expectAsync(timeoutHandler));
   }
 }
@@ -37,7 +37,7 @@ main() {
     iteration = 0;
     timeout = STARTTIMEOUT;
     Duration duration = new Duration(milliseconds: timeout);
-    startTime = (new DateTime.now()).millisecondsSinceEpoch;
+    stopwatch.start();
     new Timer(duration, expectAsync(timeoutHandler));
   });
 }
