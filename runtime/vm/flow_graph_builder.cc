@@ -4442,8 +4442,23 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
                                          *method_arguments,
                                          temp,
                                          is_super_invocation);
-  const Function& no_such_method_func = Function::ZoneHandle(Z,
-      Resolver::ResolveDynamicAnyArgs(target_class, Symbols::NoSuchMethod()));
+  // Make sure we resolve to a compatible noSuchMethod, otherwise call
+  // noSuchMethod of class Object.
+  const int kNumArguments = 2;
+  ArgumentsDescriptor args_desc(
+      Array::ZoneHandle(Z, ArgumentsDescriptor::New(kNumArguments)));
+  Function& no_such_method_func = Function::ZoneHandle(Z,
+      Resolver::ResolveDynamicForReceiverClass(target_class,
+                                               Symbols::NoSuchMethod(),
+                                               args_desc));
+  if (no_such_method_func.IsNull()) {
+    const Class& object_class =
+        Class::ZoneHandle(Z, isolate()->object_store()->object_class());
+    no_such_method_func =
+        Resolver::ResolveDynamicForReceiverClass(object_class,
+                                                 Symbols::NoSuchMethod(),
+                                                 args_desc);
+  }
   // We are guaranteed to find noSuchMethod of class Object.
   ASSERT(!no_such_method_func.IsNull());
   ZoneGrowableArray<PushArgumentInstr*>* push_arguments =
