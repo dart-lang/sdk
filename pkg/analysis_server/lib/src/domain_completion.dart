@@ -53,12 +53,17 @@ class CompletionDomainHandler implements RequestHandler {
   CompletionPerformance computeCachePerformance;
 
   /**
+   * The current request being processed or `null` if none.
+   */
+  CompletionRequestImpl _currentRequest;
+
+  /**
    * Initialize a new request handler for the given [server].
    */
   CompletionDomainHandler(this.server);
 
   /**
-   * Compute completion results for the given reqeust and append them to the stream.
+   * Compute completion results for the given request and append them to the stream.
    * Clients should not call this method directly as it is automatically called
    * when a client listens to the stream returned by [results].
    * Subclasses should override this method, append at least one result
@@ -76,7 +81,12 @@ class CompletionDomainHandler implements RequestHandler {
     for (CompletionContributor contributor in newContributors) {
       String contributorTag = 'computeSuggestions - ${contributor.runtimeType}';
       performance.logStartTime(contributorTag);
-      suggestions.addAll(await contributor.computeSuggestions(request));
+      try {
+        suggestions.addAll(await contributor.computeSuggestions(request));
+      } on AbortCompletion {
+        suggestions.clear();
+        break;
+      }
       performance.logElapseTime(contributorTag);
     }
 
@@ -139,7 +149,7 @@ class CompletionDomainHandler implements RequestHandler {
 
     recordRequest(performance, context, source, params.offset);
 
-    CompletionRequest completionRequest = new CompletionRequestImpl(
+    CompletionRequestImpl completionRequest = new CompletionRequestImpl(
         context,
         server.resourceProvider,
         server.searchEngine,
@@ -147,6 +157,9 @@ class CompletionDomainHandler implements RequestHandler {
         params.offset,
         performance);
     String completionId = (_nextCompletionId++).toString();
+
+    _abortCurrentRequest();
+    _currentRequest = completionRequest;
 
     // Compute suggestions in the background
     computeSuggestions(completionRequest).then((CompletionResult result) {
@@ -161,6 +174,10 @@ class CompletionDomainHandler implements RequestHandler {
       performance.suggestionCountFirst = result.suggestions.length;
       performance.suggestionCountLast = result.suggestions.length;
       performance.complete();
+    }).whenComplete(() {
+      if (_currentRequest == completionRequest) {
+        _currentRequest = null;
+      }
     });
 
     // initial response without results
@@ -197,6 +214,16 @@ class CompletionDomainHandler implements RequestHandler {
     server.sendNotification(new CompletionResultsParams(
             completionId, replacementOffset, replacementLength, results, true)
         .toNotification());
+  }
+
+  /**
+   * Abort the current completion request, if any.
+   */
+  void _abortCurrentRequest() {
+    if (_currentRequest != null) {
+      _currentRequest.abort();
+      _currentRequest = null;
+    }
   }
 }
 

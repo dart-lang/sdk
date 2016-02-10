@@ -26,6 +26,14 @@ const EMPTY_LIST = const <CompletionSuggestion>[];
 typedef CompletionContributor CompletionContributorFactory();
 
 /**
+ * [AbortCompletion] is thrown when the current completion request
+ * should be aborted because either
+ * the source changed since the request was made, or
+ * a new completion request was received.
+ */
+class AbortCompletion {}
+
+/**
  * An object used to produce completions at a specific location within a file.
  *
  * Clients may implement this class when implementing plugins.
@@ -33,7 +41,8 @@ typedef CompletionContributor CompletionContributorFactory();
 abstract class CompletionContributor {
   /**
    * Return a [Future] that completes with a list of suggestions
-   * for the given completion [request].
+   * for the given completion [request]. This will
+   * throw [AbortCompletion] if the completion request has been aborted.
    */
   Future<List<CompletionSuggestion>> computeSuggestions(
       CompletionRequest request);
@@ -70,4 +79,9 @@ abstract class CompletionRequest {
    * Return the source in which the completion is being requested.
    */
   Source get source;
+
+  /**
+   * Throw [AbortCompletion] if the completion request has been aborted.
+   */
+  void checkAborted();
 }

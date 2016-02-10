@@ -24,6 +24,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   int replacementLength;
   List<CompletionSuggestion> suggestions = [];
   bool suggestionsDone = false;
+  Map<String,List<CompletionSuggestion>> allSuggestions = {};
 
   String addTestFile(String content, {int offset}) {
     completionOffset = content.indexOf('^');
@@ -109,6 +110,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
         expect(suggestionsDone, isNotNull);
         suggestions = params.results;
       }
+      allSuggestions[id] = params.results;
     } else if (notification.event == SERVER_ERROR) {
       fail('server error: ${notification.toJson()}');
     }
