@@ -520,7 +520,6 @@ class ResynthTest extends ResolverTestCase {
   void compareFieldElements(
       FieldElementImpl resynthesized, FieldElementImpl original, String desc) {
     comparePropertyInducingElements(resynthesized, original, desc);
-    // TODO(paulberry): test evaluationResult
   }
 
   void compareFunctionElements(
@@ -684,7 +683,6 @@ class ResynthTest extends ResolverTestCase {
       TopLevelVariableElementImpl original,
       String desc) {
     comparePropertyInducingElements(resynthesized, original, desc);
-    // TODO(paulberry): test evaluationResult
   }
 
   void compareTypeImpls(
@@ -2339,12 +2337,10 @@ f() {}''');
   }
 
   test_function_parameter_kind_named() {
-    // TODO(paulberry): also test default value.
     checkLibrary('f({x}) {}');
   }
 
   test_function_parameter_kind_positional() {
-    // TODO(paulberry): also test default value.
     checkLibrary('f([x]) {}');
   }
 

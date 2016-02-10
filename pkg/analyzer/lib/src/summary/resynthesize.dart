@@ -1049,9 +1049,6 @@ class _LibraryResynthesizer {
           type = executableElement.parameters[0].type;
         }
         holder.addAccessor(executableElement);
-        // TODO(paulberry): consider removing implicit variables from the
-        // element model; the spec doesn't call for them, and they cause
-        // trouble when getters/setters exist in different parts.
         PropertyInducingElementImpl implicitVariable;
         if (isTopLevel) {
           implicitVariable = buildImplicitTopLevelVariable(name, kind, holder);
@@ -1514,7 +1511,6 @@ class _LibraryResynthesizer {
       }
     }
     if (type.paramReference != 0) {
-      // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
               currentTypeParameters.length - type.paramReference]
           .type;

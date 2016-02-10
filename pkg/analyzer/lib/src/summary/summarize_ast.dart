@@ -303,8 +303,6 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       String className, NodeList<ClassMember> members) {
     _Scope scope = new _Scope();
     for (ClassMember member in members) {
-      // TODO(paulbery): consider replacing these if-tests with dynamic method
-      // dispatch.
       if (member is MethodDeclaration) {
         if (member.isSetter || member.isOperator) {
           // We don't have to handle setters or operators because the only

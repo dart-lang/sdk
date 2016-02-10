@@ -48,21 +48,8 @@ import 'format.dart' as generated;
  * Annotation describing information which is not part of Dart semantics; in
  * other words, if this information (or any information it refers to) changes,
  * static analysis and runtime behavior of the library are unaffected.
- *
- * TODO(paulberry): some informative information is currently missing from the
- * summary format.
  */
 const informative = null;
-
-/**
- * Annotation describing information which is not part of the public API to a
- * library; in other words, if this information (or any information it refers
- * to) changes, libraries outside this one are unaffected.
- *
- * TODO(paulberry): currently the summary format does not contain private
- * information.
- */
-const private = null;
 
 /**
  * Annotation describing a class which can be the top level object in an
