@@ -53,6 +53,7 @@ class RawMint;
 class RawObject;
 class RawInteger;
 class RawError;
+class RawField;
 class RawFloat32x4;
 class RawInt32x4;
 class RawUserTag;
@@ -642,6 +643,12 @@ class Isolate : public BaseIsolate {
   void ResetPrefixInvalidationGen() { prefix_invalidation_gen_ = kInvalidGen; }
   uint32_t prefix_invalidation_gen() const { return prefix_invalidation_gen_; }
 
+  // Used by background compiler which field became boxed and must trigger
+  // deoptimization in the mutator thread.
+  void AddDeoptimizingBoxedField(const Field& field);
+  // Returns Field::null() if none available in the list.
+  RawField* GetDeoptimizingBoxedField();
+
   RawObject* InvokePendingServiceExtensionCalls();
   void AppendServiceExtensionCall(const Instance& closure,
                            const String& method_name,
@@ -843,6 +850,11 @@ class Isolate : public BaseIsolate {
   uint32_t cha_invalidation_gen_;
   uint32_t field_invalidation_gen_;
   uint32_t prefix_invalidation_gen_;
+
+  // Protect access to boxed_field_list_.
+  Monitor* boxed_field_list_monitor_;
+  // List of fields that became boxed and that trigger deoptimization.
+  RawGrowableObjectArray* boxed_field_list_;
 
   // This guards spawn_count_. An isolate cannot complete shutdown and be
   // destroyed while there are child isolates in the midst of a spawn.

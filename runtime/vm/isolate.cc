@@ -764,6 +764,8 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
 #define REUSABLE_HANDLE_INITIALIZERS(object)                                   \
   object##_handle_(NULL),
 
+// TODO(srdjan): Some Isolate monitors can be shared. Replace their usage with
+// that shared monitor.
 Isolate::Isolate(const Dart_IsolateFlags& api_flags)
   :   stack_limit_(0),
       store_buffer_(new StoreBuffer()),
@@ -831,6 +833,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       cha_invalidation_gen_(kInvalidGen),
       field_invalidation_gen_(kInvalidGen),
       prefix_invalidation_gen_(kInvalidGen),
+      boxed_field_list_monitor_(new Monitor()),
+      boxed_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(new Monitor()),
       spawn_count_(0) {
   flags_.CopyFrom(api_flags);
@@ -868,6 +872,8 @@ Isolate::~Isolate() {
   object_id_ring_ = NULL;
   delete pause_loop_monitor_;
   pause_loop_monitor_ = NULL;
+  delete boxed_field_list_monitor_;
+  boxed_field_list_monitor_ = NULL;
   ASSERT(spawn_count_ == 0);
   delete spawn_count_monitor_;
   if (compiler_stats_ != NULL) {
@@ -1846,6 +1852,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&registered_service_extension_handlers_));
 
+  // Visit the boxed_field_list.
+  // 'boxed_field_list_' access via mutator and background compilation threads
+  // is guarded with a monitor. This means that we can visit it only
+  // when at safepoint or the boxed_field_list_monitor_ lock has been taken.
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&boxed_field_list_));
+
   // Visit objects in the debugger.
   if (FLAG_support_debugger) {
     debugger()->VisitObjectPointers(visitor);
@@ -2047,6 +2059,31 @@ void Isolate::set_pending_service_extension_calls(
 void Isolate::set_registered_service_extension_handlers(
     const GrowableObjectArray& value) {
   registered_service_extension_handlers_ = value.raw();
+}
+
+
+void Isolate::AddDeoptimizingBoxedField(const Field& field) {
+  MonitorLocker ml(boxed_field_list_monitor_);
+  if (boxed_field_list_ == GrowableObjectArray::null()) {
+    boxed_field_list_ = GrowableObjectArray::New(Heap::kOld);
+  }
+  const GrowableObjectArray& array =
+      GrowableObjectArray::Handle(boxed_field_list_);
+  array.Add(field, Heap::kOld);
+}
+
+
+RawField* Isolate::GetDeoptimizingBoxedField() {
+  MonitorLocker ml(boxed_field_list_monitor_);
+  if (boxed_field_list_ == GrowableObjectArray::null()) {
+    return Field::null();
+  }
+  const GrowableObjectArray& array =
+      GrowableObjectArray::Handle(boxed_field_list_);
+  if (array.Length() == 0) {
+    return Field::null();
+  }
+  return Field::RawCast(array.RemoveLast());
 }
 
 

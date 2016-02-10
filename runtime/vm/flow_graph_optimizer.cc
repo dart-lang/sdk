@@ -4622,7 +4622,9 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
       // - set it to unboxed
       // - deoptimize dependent code.
       if (Compiler::IsBackgroundCompilation()) {
+        isolate()->AddDeoptimizingBoxedField(field);
         Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+        UNREACHABLE();
       }
       if (FLAG_trace_optimization || FLAG_trace_field_guards) {
         THR_Print("Disabling unboxing of %s\n", field.ToCString());
@@ -4634,11 +4636,7 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
         }
       }
       field.set_is_unboxing_candidate(false);
-      if (Compiler::IsBackgroundCompilation()) {
-        UNIMPLEMENTED();
-      } else {
-        field.DeoptimizeDependentCode();
-      }
+      field.DeoptimizeDependentCode();
     } else {
       FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
     }

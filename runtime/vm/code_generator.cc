@@ -65,6 +65,8 @@ DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(bool, trace_compiler);
+DECLARE_FLAG(bool, trace_field_guards);
+DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(int, max_polymorphic_checks);
@@ -1494,6 +1496,18 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(function.HasCode());
 
   if (CanOptimizeFunction(function, thread)) {
+    if (FLAG_background_compilation) {
+      Field& field = Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
+      while (!field.IsNull()) {
+        if (FLAG_trace_optimization || FLAG_trace_field_guards) {
+          THR_Print("Lazy disabling unboxing of %s\n", field.ToCString());
+        }
+        field.set_is_unboxing_candidate(false);
+        field.DeoptimizeDependentCode();
+        // Get next field.
+        field = isolate->GetDeoptimizingBoxedField();
+      }
+    }
     // TODO(srdjan): Fix background compilation of regular expressions.
     if (FLAG_background_compilation &&
         (!function.IsIrregexpFunction() || FLAG_regexp_opt_in_background)) {
