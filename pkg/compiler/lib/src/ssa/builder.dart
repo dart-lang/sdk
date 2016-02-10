@@ -7535,7 +7535,10 @@ class SsaBuilder extends ast.Visitor
     TypeMask mask = elements.getIteratorTypeMask(node);
 
     ClassWorld classWorld = compiler.world;
-    if (mask != null && mask.satisfies(helpers.jsIndexableClass, classWorld)) {
+    if (mask != null &&
+        mask.satisfies(helpers.jsIndexableClass, classWorld) &&
+        // String is indexable but not iterable.
+        !mask.satisfies(helpers.jsStringClass, classWorld)) {
       return buildSyncForInIndexable(node, mask);
     }
     buildSyncForInIterator(node);
