@@ -20,7 +20,7 @@ class SourceSpan implements Spannable {
 
   factory SourceSpan.fromNode(Uri uri, Node node) {
     return new SourceSpan.fromTokens(
-        uri, node.getBeginToken(), node.getEndToken());
+        uri, node.getBeginToken(), node.getPrefixEndToken());
   }
 
   factory SourceSpan.fromTokens(Uri uri, Token begin, Token end) {
