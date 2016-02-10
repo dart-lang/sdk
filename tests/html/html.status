@@ -18,6 +18,14 @@ js_test/JsArray: RuntimeError # Dartium JSInterop failure
 native_gc_test: Skip # Dartium JSInterop failure
 transferables_test: RuntimeError # Dartium JSInterop failure
 
+blob_constructor_test: RuntimeError # Dartium 45 roll
+crypto_test/functional: RuntimeError # Dartium 45 roll
+element_animate_test/omit_timing: RuntimeError # Dartium 45 roll
+element_animate_test/simple_timing: RuntimeError # Dartium 45 roll
+element_animate_test/timing_dict: RuntimeError # Dartium 45 roll
+svgelement_test/constructors: RuntimeError # Dartium 45 roll
+url_test: RuntimeError # Dartium 45 roll
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) ]
 worker_api_test: Fail # Issue 10223
 resource_http_test: Fail # Issue 24203
