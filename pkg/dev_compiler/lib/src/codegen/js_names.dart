@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import '../js/js_ast.dart';
+import 'package:dev_compiler/src/options.dart';
 
 /// Unique instance for temporary variables. Will be renamed consistently
 /// across the entire file. Different instances will be named differently
@@ -293,4 +294,10 @@ bool invalidStaticFieldName(String name) {
       return true;
   }
   return false;
+}
+
+/// We cannot destructure named params that clash with JS reserved names:
+/// see discussion in https://github.com/dart-lang/dev_compiler/issues/392.
+bool canDestructureNamedParams(Iterable<String> names, CodegenOptions options) {
+  return options.destructureNamedParams && !names.any(invalidVariableName);
 }

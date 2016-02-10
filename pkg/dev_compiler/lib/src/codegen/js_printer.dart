@@ -32,7 +32,9 @@ String writeJsLibrary(
   }
 
   var opts = new JS.JavaScriptPrintingOptions(
-      allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
+      shouldEmitTypes: true,
+      allowKeywordsInProperties: true,
+      allowSingleLineIfStatements: true);
   var jsNamer = new TemporaryNamer(jsTree);
   jsTree.accept(new JS.Printer(opts, context, localNamer: jsNamer));
 

@@ -7,31 +7,32 @@ library dev_compiler.test.closure_annotation_test;
 import 'package:test/test.dart';
 
 import 'package:dev_compiler/src/closure/closure_annotation.dart';
-import 'package:dev_compiler/src/closure/closure_type.dart';
+import 'package:dev_compiler/src/js/js_ast.dart' show TypeRef, Identifier;
 
 void main() {
   group('ClosureAnnotation', () {
-    var allType = new ClosureType.all();
-    var unknownType = new ClosureType.unknown();
-    var numberType = new ClosureType.number();
-    var stringType = new ClosureType.string();
-    var booleanType = new ClosureType.boolean();
-    var fooType = new ClosureType.type("foo.Foo");
-    var barType = new ClosureType.type("bar.Bar");
-    var bazType = new ClosureType.type("baz.Baz");
-    var bamType = new ClosureType.type("bam.Bam");
-    var batType = new ClosureType.type("bat.Bat");
+    var anyType = new TypeRef.any();
+    var unknownType = new TypeRef.unknown();
+    var numberType = new TypeRef.number();
+    var stringType = new TypeRef.string();
+    var booleanType = new TypeRef.boolean();
+    var fooType = new TypeRef.qualified(
+        [new Identifier("foo"), new Identifier("Foo")]);
+    var barType = new TypeRef.named("Bar");
+    var bazType = new TypeRef.named("Baz");
+    var bamType = new TypeRef.named("Bam");
+    var batType = new TypeRef.named("Bat");
 
     test('gives empty comment when no has no meaningful info', () {
       expect(new ClosureAnnotation().toString(), "");
-      expect(new ClosureAnnotation(type: allType).toString(), "");
+      expect(new ClosureAnnotation(type: anyType).toString(), "");
       expect(new ClosureAnnotation(type: unknownType).toString(), "");
     });
 
     test('gives single line comment when it fits', () {
       expect(new ClosureAnnotation(type: numberType).toString(),
           "/** @type {number} */");
-      expect(new ClosureAnnotation(paramTypes: {'foo': allType}).toString(),
+      expect(new ClosureAnnotation(paramTypes: {'foo': anyType}).toString(),
           "/** @param {*} foo */");
       expect(new ClosureAnnotation(paramTypes: {'foo': unknownType}).toString(),
           "/** @param {?} foo */");
@@ -109,14 +110,14 @@ void main() {
           ' * @override\n'
           ' * @nosideeffects\n'
           ' * @nocollapse\n'
-          ' * @lends {bat.Bat}\n'
+          ' * @lends {Bat}\n'
           ' * @private @protected @final @const\n'
-          ' * @constructor @struct @extends {bar.Bar}\n'
-          ' * @implements {baz.Baz}\n'
+          ' * @constructor @struct @extends {Bar}\n'
+          ' * @implements {Baz}\n'
           ' * @param {string} x\n'
           ' * @param {number} y\n'
           ' * @return {boolean}\n'
-          ' * @throws {bam.Bam}\n'
+          ' * @throws {Bam}\n'
           ' */');
     });
   });

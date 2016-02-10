@@ -1,5 +1,5 @@
 // Messages from compiling unmodifiable_wrappers.dart
-severe: [AnalyzerMessage] Missing concrete implementation of 'Iterable.expand' and 'Iterable.map' (package:collection/src/unmodifiable_wrappers.dart, line 20, col 7)
+severe: [AnalyzerMessage] Missing concrete implementation of 'Iterable.map' and 'Iterable.expand' (package:collection/src/unmodifiable_wrappers.dart, line 20, col 7)
 severe: [AnalyzerMessage] Missing concrete implementation of 'Iterable.expand' and 'Iterable.map' (package:collection/src/unmodifiable_wrappers.dart, line 93, col 7)
 warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from dynamic to E (package:collection/src/unmodifiable_wrappers.dart, line 59, col 28)
 warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from dynamic to E (package:collection/src/unmodifiable_wrappers.dart, line 63, col 21)

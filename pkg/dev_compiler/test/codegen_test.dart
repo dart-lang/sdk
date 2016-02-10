@@ -160,7 +160,7 @@ $compilerMessages''';
           var sourceMaps = filename == 'map_keys';
           var closure = filename == 'closure';
           var destructureNamedParams = filename == 'destructuring' || closure;
-          var moduleFormat = filename == 'es6_modules'
+          var moduleFormat = filename == 'es6_modules' || closure
               ? ModuleFormat.es6
               : filename == 'node_modules'
                   ? ModuleFormat.node

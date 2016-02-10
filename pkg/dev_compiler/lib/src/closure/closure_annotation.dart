@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'closure_type.dart';
+import '../js/js_ast.dart' as JS show TypeRef, JsTypeRef, ClosureTypePrinter;
 
 /// Set of closure annotations that can be [toString]ed to a single JsDoc comment.
 /// See https://developers.google.com/closure/compiler/docs/js-for-compiler
 ///
 /// TODO(ochafik): Support inclusion of 'normal' comments (including @param comments).
 class ClosureAnnotation {
+  final String comment;
   final bool isConst;
   final bool isConstructor;
   final bool isFinal;
@@ -19,18 +20,19 @@ class ClosureAnnotation {
   final bool isProtected;
   final bool isStruct;
   final bool isTypedef;
-  final ClosureType lendsToType;
-  final ClosureType returnType;
-  final ClosureType superType;
-  final ClosureType thisType;
-  final ClosureType throwsType;
-  final ClosureType type;
-  final List<ClosureType> interfaces;
+  final JS.TypeRef lendsToType;
+  final JS.TypeRef returnType;
+  final JS.TypeRef superType;
+  final JS.TypeRef thisType;
+  final JS.TypeRef throwsType;
+  final JS.TypeRef type;
+  final List<JS.TypeRef> interfaces;
   final List<String> templates;
-  final Map<String, ClosureType> paramTypes;
+  final Map<String, JS.TypeRef> paramTypes;
 
   ClosureAnnotation(
-      {this.interfaces: const [],
+      {this.comment,
+      this.interfaces: const [],
       this.isConst: false,
       this.isConstructor: false,
       this.isFinal: false,
@@ -61,21 +63,24 @@ class ClosureAnnotation {
   String toString([String indent = '']) =>
       _cachedString.replaceAll('\n', '\n$indent');
 
+  String _print(JS.TypeRef t) =>
+      (new JS.ClosureTypePrinter()..visit(t)).toString();
+
   String __cachedString;
   String get _cachedString {
     if (__cachedString == null) {
-      bool isNonWildcard(ClosureType t) =>
-          t != null && !t.isAll && !t.isUnknown;
+      bool isNonWildcard(JS.TypeRef t) => t != null && !t.isAny && !t.isUnknown;
 
       var lines = <String>[];
+      if (comment != null) lines.addAll(comment.split('\n'));
       if (templates != null && templates.isNotEmpty) {
         lines.add('@template ${templates.join(', ')}');
       }
-      if (thisType != null) lines.add('@this {$thisType}');
+      if (thisType != null) lines.add('@this {${_print(thisType)}}');
       if (isOverride) lines.add('@override');
       if (isNoSideEffects) lines.add('@nosideeffects');
       if (isNoCollapse) lines.add('@nocollapse');
-      if (lendsToType != null) lines.add('@lends {$lendsToType}');
+      if (lendsToType != null) lines.add('@lends {${_print(lendsToType)}}');
 
       {
         var typeHolders = <String>[];
@@ -86,7 +91,7 @@ class ClosureAnnotation {
         if (isTypedef) typeHolders.add('@typedef');
         if (isNonWildcard(type)) {
           if (typeHolders.isEmpty) typeHolders.add('@type');
-          typeHolders.add('{$type}');
+          typeHolders.add('{${_print(type)}}');
         }
         if (!typeHolders.isEmpty) lines.add(typeHolders.join(' '));
       }
@@ -96,22 +101,29 @@ class ClosureAnnotation {
         if (isConstructor) constructorLine.add('@constructor');
         if (isStruct) constructorLine.add('@struct');
         if (isNonWildcard(superType)) {
-          constructorLine.add('@extends {$superType}');
+          constructorLine.add('@extends {${_print(superType)}}');
         }
 
         if (constructorLine.isNotEmpty) lines.add(constructorLine.join(' '));
       }
 
-      for (var interface in interfaces) {
-        if (isNonWildcard(interface)) lines.add('@implements {$interface}');
+      if (interfaces != null) {
+        for (var interface in interfaces) {
+          if (isNonWildcard(interface))
+            lines.add('@implements {${_print(interface)}}');
+        }
       }
 
-      paramTypes.forEach((String paramName, ClosureType paramType) {
-        // Must output params even with wildcard type.
-        lines.add('@param {$paramType} $paramName');
-      });
-      if (isNonWildcard(returnType)) lines.add('@return {$returnType}');
-      if (isNonWildcard(throwsType)) lines.add('@throws {$throwsType}');
+      if (paramTypes != null) {
+        paramTypes.forEach((String paramName, JS.TypeRef paramType) {
+          // Must output params even with wildcard type.
+          lines.add('@param {${_print(paramType)}} $paramName');
+        });
+      }
+      if (isNonWildcard(returnType))
+        lines.add('@return {${_print(returnType)}}');
+      if (isNonWildcard(throwsType))
+        lines.add('@throws {${_print(throwsType)}}');
 
       if (lines.length == 0) return '';
       if (lines.length == 1) return '/** ${lines.single} */';
