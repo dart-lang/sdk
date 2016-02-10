@@ -553,11 +553,9 @@ class _CompilationUnitSerializer {
             String name = redirectedConstructor.name;
             int typeId = typeRef.reference;
             LinkedReference typeLinkedRef = linkedReferences[typeId];
-            unlinkedReferences.add(new UnlinkedReferenceBuilder(
-                name: name, prefixReference: typeId));
-            int refId = linkedReferences.length;
-            linkedReferences.add(new LinkedReferenceBuilder(
-                kind: ReferenceKind.constructor, unit: typeLinkedRef.unit));
+            int refId = serializeUnlinkedReference(
+                name, ReferenceKind.constructor,
+                unit: typeLinkedRef.unit, prefixReference: typeId);
             b.redirectedConstructor = new EntityRefBuilder(
                 reference: refId, typeArguments: typeRef.typeArguments);
           } else {
