@@ -19,6 +19,8 @@
 
 namespace dart {
 
+// TODO(vegorov): Remove --abort_on_assertion_errors flag and associated
+// infrastructure (dartbug.com/25753)
 DEFINE_FLAG(bool, abort_on_assertion_errors, false,
             "Abort on assertion and typecheck failures");
 DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
@@ -687,8 +689,25 @@ void Exceptions::ThrowJavascriptCompatibilityError(const char* msg) {
 }
 
 
+static bool IsLikelyInternalDart2JSCrash(const Stacktrace& stacktrace) {
+  Function& function = Function::Handle();
+  String& name = String::Handle();
+  for (intptr_t i = 0, len = stacktrace.Length(); i < len; i++) {
+    function = stacktrace.FunctionAtFrame(i);
+    name = function.QualifiedPrettyName();
+    if (name.Equals("_CompilerDiagnosticReporter.withCurrentElement")) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 void Exceptions::PrintStackTraceAndAbort(const char* reason) {
-  const Instance& stacktrace = Instance::Handle(CurrentStacktrace());
+  const Stacktrace& stacktrace = Stacktrace::Handle(CurrentStacktrace());
+  if (!IsLikelyInternalDart2JSCrash(stacktrace)) {
+    return;
+  }
 
   OS::PrintErr("\n\n\nAborting due to %s. Stacktrace:\n%s\n",
                reason,
