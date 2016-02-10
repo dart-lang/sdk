@@ -16,6 +16,7 @@
     `SecurityContext.setTrustedCertificates` is no longer supported.
     The method now only supports one argument for the PEM file name containing
     the trusted certificates.
+  * Added support to SecurityContext for PKCS12 certificate and key containers.
 
 ## 1.14.1 - 2016-02-04
 

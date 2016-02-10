@@ -7,6 +7,7 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:path/path.dart";
 import "dart:async";
@@ -14,19 +15,20 @@ import "dart:io";
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
-SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChainSync(localFile('certificates/server_chain.pem'))
-  ..usePrivateKeySync(localFile('certificates/server_key.pem'),
+SecurityContext serverContext(String certType) => new SecurityContext()
+  ..useCertificateChainSync(localFile('certificates/server_chain.$certType'))
+  ..usePrivateKeySync(localFile('certificates/server_key.$certType'),
                       password: 'dartdart');
 
-SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificatesSync(localFile('certificates/trusted_certs.pem'));
+SecurityContext clientContext(String certType) => new SecurityContext()
+  ..setTrustedCertificatesSync(localFile(
+      'certificates/trusted_certs.$certType'));
 
-Future<HttpServer> startServer() {
+Future<HttpServer> startServer(String certType) {
   return HttpServer.bindSecure(
       "localhost",
       0,
-      serverContext,
+      serverContext(certType),
       backlog: 5).then((server) {
     server.listen((HttpRequest request) {
       request.listen(
@@ -43,10 +45,11 @@ Future<HttpServer> startServer() {
   });
 }
 
-void main() {
+Future test(String certType) {
   List<int> body = <int>[];
-  startServer().then((server) {
-    SecureSocket.connect("localhost", server.port, context: clientContext)
+  startServer(certType).then((server) {
+    SecureSocket.connect(
+        "localhost", server.port, context: clientContext(certType))
     .then((socket) {
       socket.write("GET / HTTP/1.0\r\nHost: localhost\r\n\r\n");
       socket.close();
@@ -67,4 +70,11 @@ void main() {
         });
     });
   });
+}
+
+main() async {
+  asyncStart();
+  await test('pem');
+  await test('p12');
+  asyncEnd();
 }
