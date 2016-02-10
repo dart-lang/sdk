@@ -2049,9 +2049,9 @@ class _DeclarationMismatchException {}
 /**
  * Adjusts the location of each Element that moved.
  *
- * Since operator== and hashCode of an Element are based
- * on the element location, we also need to remove each
- * moved element from the cache to avoid a memory leak.
+ * Since `==` and `hashCode` of a local variable or function Element are based
+ * on the element name offsets, we also need to remove these elements from the
+ * cache to avoid a memory leak. TODO(scheglov) fix and remove this
  */
 class _ElementOffsetUpdater extends GeneralizingElementVisitor {
   final int updateOffset;
@@ -2065,7 +2065,13 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
     // name offset
     int nameOffset = element.nameOffset;
     if (nameOffset > updateOffset) {
-      cache.remove(element);
+      // TODO(scheglov) make sure that we don't put local variables
+      // and functions into the cache at all.
+      if (element is LocalVariableElement ||
+          element is FunctionElement &&
+              element.enclosingElement is ExecutableElement) {
+        cache.remove(element);
+      }
       (element as ElementImpl).nameOffset = nameOffset + updateDelta;
       if (element is ConstVariableElement) {
         ConstVariableElement constVariable = element as ConstVariableElement;
