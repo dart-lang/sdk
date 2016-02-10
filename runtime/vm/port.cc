@@ -305,6 +305,9 @@ void PortMap::InitOnce() {
 
 void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
                                           JSONStream* stream) {
+  if (!FLAG_support_service) {
+    return;
+  }
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "_Ports");
   Object& msg_handler = Object::Handle();

@@ -13,6 +13,7 @@ package/scenarios/empty_packages_file/empty_packages_file_discovery_test: Fail, 
 package/scenarios/empty_packages_file/empty_packages_file_option_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/invalid/invalid_package_name_test: RuntimeError, CompileTimeError # Errors intentionally
 package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTimeError # Errors intentionally
+full_coverage_test: Pass, Slow
 
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
@@ -237,11 +238,18 @@ map_literal_oom_test: Pass, Crash # Issue 24678
 javascript*: SkipByDesign # JS overflow flag unsupported
 io/web_socket_test: Pass, RuntimeError # Issue 24674
 assert_test: RuntimeError # Expects line and column numbers
+precompilation_test: Skip # Platform.executable
+precompilation_dart2js_test: Skip  # Platform.executable
+io/test_extension_test: Skip # Platform.executable
+io/test_extension_fail_test: Skip # Platform.executable
+io/platform_test: Skip # Platform.executable
+io/code_collection_test: Skip # Platform.executable
+full_coverage_test: Skip # Platform.executable
 
 [ $runtime == dart_precompiled ]
 debugger/*: Skip
 noopt_test: Skip
-precompilation_dart2js_test: Skip
+precompilation_dart2js_test: Skip # Platform.executable
 
 full_coverage_test: RuntimeError # Platform.executable
 http_launch_test: RuntimeError # Platform.executable
@@ -258,7 +266,7 @@ io/snapshot_fail_test: RuntimeError # Platform.executable
 io/stdin_sync_test: RuntimeError # Platform.executable
 io/test_extension_fail_test: RuntimeError # Platform.executable
 precompilation_test: RuntimeError # Platform.executable
-standalone/io/file_read_special_device_test: RuntimeError # Platform.executable
+io/file_read_special_device_test: RuntimeError # Platform.executable
 verbose_gc_to_bmu_test: RuntimeError # Platform.executable
 io/http_server_close_response_after_error_test: RuntimeError # Platform.executable
 io/http_client_stays_alive_test: RuntimeError # Platform.executable
@@ -280,3 +288,17 @@ io/test_extension_test: RuntimeError # Platform.executable
 io/regress_7679_test: RuntimeError # Platform.executable
 
 io/process_*: Skip # Most use Platform.executable
+
+# Code coverage is not supported in product mode.
+[ $mode == product ]
+full_coverage_test: SkipByDesign
+
+# Overriding these flags are not supported in product mode.
+[ $mode == product ]
+no_profiler_test: SkipByDesign
+no_support_coverage_test: SkipByDesign
+no_support_debugger_test: SkipByDesign
+no_support_disassembler_test: SkipByDesign
+no_support_il_printer_test: SkipByDesign
+no_support_service_test: SkipByDesign
+no_support_timeline_test: SkipByDesign

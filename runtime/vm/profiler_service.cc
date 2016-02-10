@@ -19,6 +19,8 @@ DECLARE_FLAG(int, profile_period);
 
 DEFINE_FLAG(bool, trace_profiler, false, "Trace profiler.");
 
+#ifndef PRODUCT
+
 class DeoptimizedCodeSet : public ZoneAllocated {
  public:
   explicit DeoptimizedCodeSet(Isolate* isolate)
@@ -2406,5 +2408,7 @@ void ProfilerService::ClearSamples() {
   ClearProfileVisitor clear_profile(isolate);
   sample_buffer->VisitSamples(&clear_profile);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

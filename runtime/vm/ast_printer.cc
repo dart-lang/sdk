@@ -12,6 +12,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 AstPrinter::AstPrinter() : indent_(0) { }
 
 
@@ -573,5 +575,7 @@ void AstPrinter::PrintFunctionNodes(const ParsedFunction& parsed_function) {
   node_sequence->Visit(&ast_printer);
   THR_Print("}\n");
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

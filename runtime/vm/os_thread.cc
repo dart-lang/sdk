@@ -51,8 +51,10 @@ OSThread::~OSThread() {
   RemoveThreadFromList(this);
   delete log_;
   log_ = NULL;
-  if (Timeline::recorder() != NULL) {
-    Timeline::recorder()->FinishBlock(timeline_block_);
+  if (FLAG_support_timeline) {
+    if (Timeline::recorder() != NULL) {
+      Timeline::recorder()->FinishBlock(timeline_block_);
+    }
   }
   timeline_block_ = NULL;
   delete timeline_block_lock_;
@@ -70,7 +72,7 @@ void OSThread::EnableThreadInterrupts() {
   ASSERT(OSThread::Current() == this);
   uintptr_t old =
       AtomicOperations::FetchAndDecrement(&thread_interrupt_disabled_);
-  if (old == 1) {
+  if (FLAG_profiler && (old == 1)) {
     // We just decremented from 1 to 0.
     // Make sure the thread interrupter is awake.
     ThreadInterrupter::WakeUp();

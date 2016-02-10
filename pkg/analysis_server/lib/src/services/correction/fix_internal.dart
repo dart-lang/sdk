@@ -447,7 +447,8 @@ class FixProcessor {
           if (numRequired != 0) {
             sb.append(', ');
           }
-          _appendParameterForArgument(sb, numRequired, argument);
+          _appendParameterForArgument(
+              sb, new Set<String>(), numRequired, argument);
           if (numRequired != numParameters) {
             sb.append(', ');
           }
@@ -463,7 +464,8 @@ class FixProcessor {
             sb.append(', ');
           }
           sb.append('[');
-          _appendParameterForArgument(sb, numRequired, argument);
+          _appendParameterForArgument(
+              sb, new Set<String>(), numRequired, argument);
           sb.append(']');
           // add proposal
           _insertBuilder(sb, targetElement);
@@ -1249,7 +1251,7 @@ class FixProcessor {
           // add field
           addEolIfNotFirst();
           sb.append(utils.getIndent(1));
-          _appendType(sb, element.type.returnType);
+          _appendType(sb, element.type.returnType, orVar: true);
           sb.append(element.name);
           sb.append(';');
           sb.append(eol);
@@ -2032,6 +2034,7 @@ class FixProcessor {
 
   void _addFix_undefinedMethod_create_parameters(
       SourceBuilder sb, ArgumentList argumentList) {
+    Set<String> usedNames = new Set<String>();
     // append parameters
     sb.append('(');
     List<Expression> arguments = argumentList.arguments;
@@ -2047,7 +2050,7 @@ class FixProcessor {
         hasNamedParameters = true;
         sb.append('{');
       }
-      _appendParameterForArgument(sb, i, argument);
+      _appendParameterForArgument(sb, usedNames, i, argument);
     }
     if (hasNamedParameters) {
       sb.append('}');
@@ -2238,7 +2241,7 @@ class FixProcessor {
           {
             sb.startPosition('TYPE$i');
             sb.append(typeSource);
-            _addSuperTypeProposals(sb, new Set(), type);
+            _addSuperTypeProposals(sb, type);
             sb.endPosition();
           }
           sb.append(' ');
@@ -2333,14 +2336,14 @@ class FixProcessor {
   }
 
   void _appendParameterForArgument(
-      SourceBuilder sb, int index, Expression argument) {
+      SourceBuilder sb, Set<String> excluded, int index, Expression argument) {
     // append type name
     DartType type = argument.bestType;
     String typeSource = utils.getTypeSource(type, librariesToImport);
     if (typeSource != 'dynamic') {
       sb.startPosition('TYPE$index');
       sb.append(typeSource);
-      _addSuperTypeProposals(sb, new Set(), type);
+      _addSuperTypeProposals(sb, type);
       sb.endPosition();
       sb.append(' ');
     }
@@ -2348,7 +2351,6 @@ class FixProcessor {
     if (argument is NamedExpression) {
       sb.append(argument.name.label.name);
     } else {
-      Set<String> excluded = new Set<String>();
       List<String> suggestions =
           _getArgumentNameSuggestions(excluded, type, argument, index);
       String favorite = suggestions[0];
@@ -2821,16 +2823,14 @@ class FixProcessor {
     }
   }
 
-  static void _addSuperTypeProposals(
-      SourceBuilder sb, Set<DartType> alreadyAdded, DartType type) {
-    if (type != null &&
-        type.element is ClassElement &&
-        alreadyAdded.add(type)) {
-      ClassElement element = type.element as ClassElement;
-      sb.addSuggestion(LinkedEditSuggestionKind.TYPE, element.name);
-      _addSuperTypeProposals(sb, alreadyAdded, element.supertype);
-      for (InterfaceType interfaceType in element.interfaces) {
-        _addSuperTypeProposals(sb, alreadyAdded, interfaceType);
+  static void _addSuperTypeProposals(SourceBuilder sb, DartType type,
+      [Set<DartType> alreadyAdded]) {
+    alreadyAdded ??= new Set<DartType>();
+    if (type is InterfaceType && alreadyAdded.add(type)) {
+      sb.addSuggestion(LinkedEditSuggestionKind.TYPE, type.displayName);
+      _addSuperTypeProposals(sb, type.superclass, alreadyAdded);
+      for (InterfaceType interfaceType in type.interfaces) {
+        _addSuperTypeProposals(sb, interfaceType, alreadyAdded);
       }
     }
   }

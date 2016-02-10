@@ -18,6 +18,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 DECLARE_FLAG(bool, trace_service);
 
 JSONStream::JSONStream(intptr_t buf_size)
@@ -856,5 +858,7 @@ void JSONArray::AddValueF(const char* format, ...) const {
   stream_->buffer_.AddChar('"');
   free(p);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

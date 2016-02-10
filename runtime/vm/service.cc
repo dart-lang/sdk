@@ -51,6 +51,7 @@ DEFINE_FLAG(bool, warn_on_pause_with_no_debugger, false,
             "Print a message when an isolate is paused but there is no "
             "debugger attached.");
 
+#ifndef PRODUCT
 // The name of this of this vm as reported by the VM service protocol.
 static char* vm_name = NULL;
 
@@ -2958,14 +2959,14 @@ static const MethodParameter* resume_params[] = {
 static bool Resume(Thread* thread, JSONStream* js) {
   const char* step_param = js->LookupParam("step");
   Isolate* isolate = thread->isolate();
-  if (isolate->message_handler()->paused_on_start()) {
+  if (isolate->message_handler()->is_paused_on_start()) {
     // If the user is issuing a 'Over' or an 'Out' step, that is the
     // same as a regular resume request.
     if ((step_param != NULL) && (strcmp(step_param, "Into") == 0)) {
       isolate->debugger()->EnterSingleStepMode();
     }
-    isolate->message_handler()->set_pause_on_start(false);
-    isolate->set_last_resume_timestamp();
+    isolate->message_handler()->set_should_pause_on_start(false);
+    isolate->SetResumeRequest();
     if (Service::debug_stream.enabled()) {
       ServiceEvent event(isolate, ServiceEvent::kResume);
       Service::HandleEvent(&event);
@@ -2973,8 +2974,9 @@ static bool Resume(Thread* thread, JSONStream* js) {
     PrintSuccess(js);
     return true;
   }
-  if (isolate->message_handler()->paused_on_exit()) {
-    isolate->message_handler()->set_pause_on_exit(false);
+  if (isolate->message_handler()->is_paused_on_exit()) {
+    isolate->message_handler()->set_should_pause_on_exit(false);
+    isolate->SetResumeRequest();
     // We don't send a resume event because we will be exiting.
     PrintSuccess(js);
     return true;
@@ -2992,7 +2994,7 @@ static bool Resume(Thread* thread, JSONStream* js) {
         return true;
       }
     }
-    isolate->Resume();
+    isolate->SetResumeRequest();
     PrintSuccess(js);
     return true;
   }
@@ -3572,7 +3574,7 @@ static bool GetVersion(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
   jsobj.AddProperty("major", static_cast<intptr_t>(3));
-  jsobj.AddProperty("minor", static_cast<intptr_t>(1));
+  jsobj.AddProperty("minor", static_cast<intptr_t>(2));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
   return true;
@@ -3957,5 +3959,6 @@ const ServiceMethodDescriptor* FindMethod(const char* method_name) {
   return NULL;
 }
 
+#endif  // !PRODUCT
 
 }  // namespace dart

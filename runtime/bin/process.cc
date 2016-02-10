@@ -188,6 +188,9 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
         os_error_message != NULL ? os_error_message
                                  : "Cannot get error message");
     if (Dart_IsError(result)) {
+      delete[] string_args;
+      delete[] string_environment;
+      free(os_error_message);
       Dart_PropagateError(result);
     }
   }
@@ -230,7 +233,6 @@ void FUNCTION_NAME(Process_Wait)(Dart_NativeArguments args) {
   } else {
     Dart_Handle error = DartUtils::NewDartOSError();
     Process::Kill(pid, 9);
-    if (Dart_IsError(error)) Dart_PropagateError(error);
     Dart_ThrowException(error);
   }
 }
@@ -340,7 +342,6 @@ void FUNCTION_NAME(SystemEncodingToString)(Dart_NativeArguments args) {
   result =
       Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(str), len);
   free(str);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
   Dart_SetReturnValue(args, result);
 }
 
@@ -363,13 +364,11 @@ void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
   }
   uint8_t* buffer = NULL;
   Dart_Handle external_array = IOBuffer::Allocate(system_len, &buffer);
-  if (Dart_IsError(external_array)) {
-    free(const_cast<char*>(system_string));
-    Dart_PropagateError(result);
+  if (!Dart_IsError(external_array)) {
+    memmove(buffer, system_string, system_len);
   }
-  memmove(buffer, system_string, system_len);
-  free(const_cast<char*>(system_string));
   Dart_SetReturnValue(args, external_array);
+  free(const_cast<char*>(system_string));
 }
 
 }  // namespace bin

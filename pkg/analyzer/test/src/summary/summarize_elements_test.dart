@@ -9,6 +9,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
 import 'package:analyzer/src/summary/summarize_elements.dart'
@@ -92,6 +93,7 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
     {
       List<int> buffer = serializedLib.linked.toBuffer();
       linked = new LinkedLibrary.fromBuffer(buffer);
+      validateLinkedLibrary(linked);
     }
     unlinkedUnits = serializedLib.unlinkedUnits.map((UnlinkedUnitBuilder b) {
       List<int> buffer = b.toBuffer();

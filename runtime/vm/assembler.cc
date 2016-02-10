@@ -13,9 +13,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, disassemble);
-DECLARE_FLAG(bool, disassemble_optimized);
-
 DEFINE_FLAG(bool, check_code_pointer, false,
             "Verify instructions offset in code object."
             "NOTE: This breaks the profiler.");

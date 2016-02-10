@@ -40,6 +40,7 @@ var tests = [
     expect(event.logRecord['level'], equals(Level.FINE));
     expect(event.logRecord['time'], new isInstanceOf<DateTime>());
   }),
+  hasStoppedAtBreakpoint,
   resumeIsolateAndAwaitEvent(Isolate.kLoggingStream, (ServiceEvent event) {
     expect(event.kind, equals(ServiceEvent.kLogging));
     expect(event.logRecord['sequenceNumber'], equals(1));

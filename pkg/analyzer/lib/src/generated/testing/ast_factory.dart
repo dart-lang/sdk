@@ -35,7 +35,9 @@ class AstFactory {
       new Annotation(
           TokenFactory.tokenFromType(TokenType.AT),
           name,
-          TokenFactory.tokenFromType(TokenType.PERIOD),
+          constructorName == null
+              ? null
+              : TokenFactory.tokenFromType(TokenType.PERIOD),
           constructorName,
           arguments);
 

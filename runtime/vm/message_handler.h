@@ -56,6 +56,13 @@ class MessageHandler {
   // Returns true on success.
   MessageStatus HandleNextMessage();
 
+  // Handles all messages for this message handler.  Should only
+  // be used when not running the handler on the thread pool (via Run
+  // or RunBlocking).
+  //
+  // Returns true on success.
+  MessageStatus HandleAllMessages();
+
   // Handles any OOB messages for this message handler.  Can be used
   // even if the message handler is running on the thread pool.
   //
@@ -78,36 +85,39 @@ class MessageHandler {
   void increment_paused() { paused_++; }
   void decrement_paused() { ASSERT(paused_ > 0); paused_--; }
 
-  bool pause_on_start() const {
-    return pause_on_start_;
+  bool ShouldPauseOnStart(MessageStatus status) const;
+  bool should_pause_on_start() const {
+    return should_pause_on_start_;
   }
 
-  void set_pause_on_start(bool pause_on_start) {
-    pause_on_start_ = pause_on_start;
+  void set_should_pause_on_start(bool should_pause_on_start) {
+    should_pause_on_start_ = should_pause_on_start;
   }
 
-  bool paused_on_start() const {
-    // If pause_on_start_ is still set, tell the user we are paused,
-    // even if we haven't hit the pause point yet.
-    return paused_on_start_;
+  bool is_paused_on_start() const {
+    return is_paused_on_start_;
   }
 
-  bool pause_on_exit() const {
-    return pause_on_exit_;
+  bool ShouldPauseOnExit(MessageStatus status) const;
+  bool should_pause_on_exit() const {
+    return should_pause_on_exit_;
   }
 
-  void set_pause_on_exit(bool pause_on_exit) {
-    pause_on_exit_ = pause_on_exit;
+  void set_should_pause_on_exit(bool should_pause_on_exit) {
+    should_pause_on_exit_ = should_pause_on_exit;
   }
 
-  bool paused_on_exit() const {
-    return paused_on_exit_;
+  bool is_paused_on_exit() const {
+    return is_paused_on_exit_;
   }
 
   // Timestamp of the paused on start or paused on exit.
   int64_t paused_timestamp() const {
     return paused_timestamp_;
   }
+
+  void PausedOnStart(bool paused);
+  void PausedOnExit(bool paused);
 
   class AcquiredQueues : public ValueObject {
    public:
@@ -203,6 +213,11 @@ class MessageHandler {
   // Called by MessageHandlerTask to process our task queue.
   void TaskCallback();
 
+  // NOTE: These two functions release and reacquire the monitor, you may
+  // need to call HandleMessages to ensure all pending messages are handled.
+  void PausedOnStartLocked(bool paused);
+  void PausedOnExitLocked(bool paused);
+
   // Dequeue the next message.  Prefer messages from the oob_queue_ to
   // messages from the queue_.
   Message* DequeueMessage(Message::Priority min_priority);
@@ -221,10 +236,10 @@ class MessageHandler {
   bool oob_message_handling_allowed_;
   intptr_t live_ports_;  // The number of open ports, including control ports.
   intptr_t paused_;  // The number of pause messages received.
-  bool pause_on_start_;
-  bool pause_on_exit_;
-  bool paused_on_start_;
-  bool paused_on_exit_;
+  bool should_pause_on_start_;
+  bool should_pause_on_exit_;
+  bool is_paused_on_start_;
+  bool is_paused_on_exit_;
   int64_t paused_timestamp_;
   ThreadPool* pool_;
   ThreadPool::Task* task_;

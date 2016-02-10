@@ -8,6 +8,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 // Translate from the legacy DebugEvent to a ServiceEvent.
 static ServiceEvent::EventKind TranslateEventKind(
     DebuggerEvent::EventType kind) {
@@ -270,5 +272,7 @@ void ServiceEvent::PrintJSONHeader(JSONObject* jsobj) const {
   ASSERT(timestamp_ != -1);
   jsobj->AddPropertyTimeMillis("timestamp", timestamp_);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

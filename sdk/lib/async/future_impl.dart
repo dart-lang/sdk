@@ -680,9 +680,9 @@ class _Future<T> implements Future<T> {
     }
   }
 
-  Future timeout(Duration timeLimit, {onTimeout()}) {
+  Future<T> timeout(Duration timeLimit, {onTimeout()}) {
     if (_isComplete) return new _Future.immediate(this);
-    _Future result = new _Future();
+    _Future result = new _Future<T>();
     Timer timer;
     if (onTimeout == null) {
       timer = new Timer(timeLimit, () {

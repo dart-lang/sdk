@@ -265,7 +265,12 @@ class DocumentationCommentToken extends CommentToken {
       : super(type, value, offset);
 
   @override
-  CommentToken copy() => new DocumentationCommentToken(type, _value, offset);
+  CommentToken copy() {
+    DocumentationCommentToken copy =
+        new DocumentationCommentToken(type, _value, offset);
+    references.forEach((ref) => copy.references.add(ref.copy()));
+    return copy;
+  }
 }
 
 /**
@@ -2580,7 +2585,8 @@ class TokenType {
    * operators can have an effect because evaluation of the right-hand operand
    * is conditional.
    */
-  bool get isAssociativeOperator => this == AMPERSAND ||
+  bool get isAssociativeOperator =>
+      this == AMPERSAND ||
       this == AMPERSAND_AMPERSAND ||
       this == BAR ||
       this == BAR_BAR ||
@@ -2608,7 +2614,8 @@ class TokenType {
   /**
    * Return `true` if this token type represents an operator.
    */
-  bool get isOperator => _tokenClass != TokenClass.NO_CLASS &&
+  bool get isOperator =>
+      _tokenClass != TokenClass.NO_CLASS &&
       this != OPEN_PAREN &&
       this != OPEN_SQUARE_BRACKET &&
       this != PERIOD;
@@ -2640,7 +2647,8 @@ class TokenType {
    * Return `true` if this token type represents an operator that can be defined
    * by users.
    */
-  bool get isUserDefinableOperator => identical(lexeme, "==") ||
+  bool get isUserDefinableOperator =>
+      identical(lexeme, "==") ||
       identical(lexeme, "~") ||
       identical(lexeme, "[]") ||
       identical(lexeme, "[]=") ||

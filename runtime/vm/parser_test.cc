@@ -18,7 +18,9 @@ namespace dart {
 DECLARE_FLAG(bool, show_invisible_frames);
 
 
-void DumpFunction(const Library& lib, const char* cname, const char* fname) {
+static void DumpFunction(const Library& lib,
+                         const char* cname,
+                         const char* fname) {
   const String& classname = String::Handle(Symbols::New(cname));
   String& funcname = String::Handle(String::New(fname));
 
@@ -36,7 +38,11 @@ void DumpFunction(const Library& lib, const char* cname, const char* fname) {
     Parser::ParseFunction(parsed_function);
     EXPECT(parsed_function->node_sequence() != NULL);
     printf("Class %s function %s:\n", cname, fname);
-    AstPrinter::PrintFunctionNodes(*parsed_function);
+    if (FLAG_support_ast_printer) {
+      AstPrinter::PrintFunctionNodes(*parsed_function);
+    } else {
+      OS::Print("AST printer not supported.");
+    }
     retval = true;
   } else {
     retval = false;
@@ -168,10 +174,13 @@ TEST_CASE(Parser_TopLevel) {
 }
 
 
-const char* saved_vars = NULL;
+#ifndef PRODUCT
 
 
-char* SkipIndex(const char* input) {
+static const char* saved_vars = NULL;
+
+
+static char* SkipIndex(const char* input) {
   char* output_buffer = new char[strlen(input)];
   char* output = output_buffer;
 
@@ -564,5 +573,7 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
       " 3 StackVar      scope=2   begin=11  end=79  name=b\n",
       CaptureVarsAtLine(lib, "a", 10));
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

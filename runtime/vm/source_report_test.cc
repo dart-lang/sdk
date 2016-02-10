@@ -8,6 +8,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 static RawObject* ExecuteScript(const char* script) {
   Dart_Handle h_lib = TestCase::LoadTestScript(script, NULL);
   EXPECT_VALID(h_lib);
@@ -502,5 +504,7 @@ TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

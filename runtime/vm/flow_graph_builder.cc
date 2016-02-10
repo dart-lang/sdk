@@ -36,7 +36,6 @@ DEFINE_FLAG(bool, eliminate_type_checks, true,
             "Eliminate type checks when allowed by static type analysis.");
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
-DEFINE_FLAG(bool, support_debugger, true, "Emit code needed for debugging");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 
@@ -175,7 +174,7 @@ JoinEntryInstr* NestedStatement::BreakTargetFor(SourceLabel* label) {
   if (break_target_ == NULL) {
     break_target_ =
         new(owner()->zone()) JoinEntryInstr(owner()->AllocateBlockId(),
-                                            owner()->try_index());
+                                            try_index());
   }
   return break_target_;
 }
@@ -251,7 +250,7 @@ JoinEntryInstr* NestedLoop::ContinueTargetFor(SourceLabel* label) {
   if (continue_target_ == NULL) {
     continue_target_ =
         new(owner()->zone()) JoinEntryInstr(owner()->AllocateBlockId(),
-                                               try_index());
+                                            try_index());
   }
   return continue_target_;
 }
@@ -295,7 +294,7 @@ JoinEntryInstr* NestedSwitch::ContinueTargetFor(SourceLabel* label) {
     if (case_targets_[i] == NULL) {
       case_targets_[i] =
           new(owner()->zone()) JoinEntryInstr(owner()->AllocateBlockId(),
-                                                 try_index());
+                                              try_index());
     }
     return case_targets_[i];
   }
@@ -1627,7 +1626,7 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   // All objects are instances of type T if Object type is a subtype of type T.
   const Type& object_type = Type::Handle(Z, Type::ObjectType());
   if (type.IsInstantiated() &&
-      object_type.IsSubtypeOf(type, NULL, Heap::kOld)) {
+      object_type.IsSubtypeOf(type, NULL, NULL, Heap::kOld)) {
     // Must evaluate left side.
     EffectGraphVisitor for_left_value(owner());
     node->left()->Visit(&for_left_value);
@@ -4623,11 +4622,11 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   VMTagScope tagScope(Thread::Current(),
                       VMTag::kCompileFlowGraphBuilderTagId,
                       FLAG_profile_vm);
-  if (FLAG_print_ast) {
+  if (FLAG_support_ast_printer && FLAG_print_ast) {
     // Print the function ast before IL generation.
     AstPrinter::PrintFunctionNodes(parsed_function());
   }
-  if (FLAG_print_scopes) {
+  if (FLAG_support_ast_printer && FLAG_print_scopes) {
     AstPrinter::PrintFunctionScope(parsed_function());
   }
   TargetEntryInstr* normal_entry =

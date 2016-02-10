@@ -131,6 +131,10 @@ class NativeArguments {
     *retval_ = value.raw();
   }
 
+  RawObject* ReturnValue() const {
+    return *retval_;
+  }
+
   static intptr_t thread_offset() {
     return OFFSET_OF(NativeArguments, thread_);
   }

@@ -699,12 +699,16 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     }
   }
 
-  visitNullCheck(cps_ir.NullCheck node) => (Statement next) {
-    return new NullCheck(
+  visitReceiverCheck(cps_ir.ReceiverCheck node) => (Statement next) {
+    // The CPS IR uses 'isNullCheck' because the semantics are important.
+    // In the Tree IR, syntax is more important, so the receiver check uses
+    // "useInvoke" to denote if an invocation should be emitted.
+    return new ReceiverCheck(
         condition: getVariableUseOrNull(node.condition),
         value: getVariableUse(node.value),
         selector: node.selector,
         useSelector: node.useSelector,
+        useInvoke: !node.isNullCheck,
         next: next,
         sourceInformation: node.sourceInformation);
   };

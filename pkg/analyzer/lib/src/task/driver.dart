@@ -722,11 +722,10 @@ class WorkItem {
             this.exception = new CaughtException(exception, stackTrace);
             return null;
           } catch (exception, stackTrace) {
-            this.exception = new CaughtException(
-                throw new AnalysisException(
-                    'Cannot create work order to build $inputResult for $inputTarget',
-                    exception),
-                stackTrace);
+            this.exception = new CaughtException(exception, stackTrace);
+            throw new AnalysisException(
+                'Cannot create work order to build $inputResult for $inputTarget',
+                this.exception);
             return null;
           }
         }

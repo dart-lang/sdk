@@ -1031,10 +1031,6 @@ UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
 
   bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
   FLAG_load_deferred_eagerly = true;
-  // Workaround until issue 21620 is fixed.
-  // (https://github.com/dart-lang/sdk/issues/21620)
-  bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
-  FLAG_concurrent_sweep = false;
   {
     // Start an Isolate, and create a full snapshot of it.
     TestIsolateScope __test_isolate__;
@@ -1051,7 +1047,6 @@ UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
     Dart_ExitScope();
   }
   FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
-  FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
 
   {
     // Now Create an Isolate using the full snapshot and load the
@@ -1291,6 +1286,9 @@ UNIT_TEST_CASE(FullSnapshot1) {
 }
 
 
+#ifndef PRODUCT
+
+
 UNIT_TEST_CASE(ScriptSnapshot) {
   const char* kLibScriptChars =
       "library dart_import_lib;"
@@ -1347,10 +1345,6 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 
   bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
   FLAG_load_deferred_eagerly = true;
-  // Workaround until issue 21620 is fixed.
-  // (https://github.com/dart-lang/sdk/issues/21620)
-  bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
-  FLAG_concurrent_sweep = false;
   {
     // Start an Isolate, and create a full snapshot of it.
     TestIsolateScope __test_isolate__;
@@ -1367,7 +1361,6 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     Dart_ExitScope();
   }
   FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
-  FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
 
   // Test for Dart_CreateScriptSnapshot.
   {
@@ -1474,6 +1467,9 @@ UNIT_TEST_CASE(ScriptSnapshot) {
   free(full_snapshot);
   free(script_snapshot);
 }
+
+
+#endif  // !PRODUCT
 
 
 UNIT_TEST_CASE(ScriptSnapshot1) {

@@ -5,6 +5,7 @@
 #include "vm/flow_graph_inliner.h"
 
 #include "vm/block_scheduler.h"
+#include "vm/branch_optimizer.h"
 #include "vm/compiler.h"
 #include "vm/flags.h"
 #include "vm/flow_graph.h"
@@ -706,6 +707,10 @@ class CallSiteInliner : public ValueObject {
               new(Z) ZoneGrowableArray<const ICData*>();
         const bool clone_descriptors = Compiler::IsBackgroundCompilation();
         function.RestoreICDataMap(ic_data_array, clone_descriptors);
+        if (Compiler::IsBackgroundCompilation() &&
+            (function.ic_data_array() == Array::null())) {
+          Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+        }
 
         // Build the callee graph.
         InlineExitCollector* exit_collector =
@@ -805,7 +810,7 @@ class CallSiteInliner : public ValueObject {
           DEBUG_ASSERT(callee_graph->VerifyUseLists());
         }
 
-        if (FLAG_trace_inlining &&
+        if (FLAG_support_il_printer && FLAG_trace_inlining &&
             (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
           THR_Print("Callee graph for inlining %s\n",
                     function.ToFullyQualifiedCString());
@@ -894,8 +899,8 @@ class CallSiteInliner : public ValueObject {
             &call_data->caller, &function, call);
         return true;
       } else {
-        error = isolate()->object_store()->sticky_error();
-        isolate()->object_store()->clear_sticky_error();
+        error = thread()->sticky_error();
+        thread()->clear_sticky_error();
         ASSERT(error.IsLanguageError());
 
         if (LanguageError::Cast(error).kind() == Report::kBailout) {
@@ -1903,7 +1908,8 @@ void FlowGraphInliner::Inline() {
 
   TRACE_INLINING(THR_Print("Inlining calls in %s\n", top.ToCString()));
 
-  if (trace_inlining() &&
+  if (FLAG_support_il_printer &&
+      trace_inlining() &&
       (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
     THR_Print("Before Inlining of %s\n", flow_graph_->
               function().ToFullyQualifiedCString());
@@ -1921,7 +1927,8 @@ void FlowGraphInliner::Inline() {
     flow_graph_->DiscoverBlocks();
     if (trace_inlining()) {
       THR_Print("Inlining growth factor: %f\n", inliner.GrowthFactor());
-      if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
+      if (FLAG_support_il_printer &&
+          (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
         THR_Print("After Inlining of %s\n", flow_graph_->
                   function().ToFullyQualifiedCString());
         FlowGraphPrinter printer(*flow_graph_);

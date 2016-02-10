@@ -35,6 +35,8 @@ digraph G {
   CONSTANT_DEPENDENCIES [shape=box]
   CONSTANT_EXPRESSIONS_DEPENDENCIES -> EvaluateUnitConstantsTask
   CONSTANT_EXPRESSIONS_DEPENDENCIES [shape=box]
+  CONSTANT_EXPRESSION_RESOLVED -> ComputeConstantDependenciesTask
+  CONSTANT_EXPRESSION_RESOLVED [shape=box]
   CONSTANT_VALUE -> ComputeConstantValueTask
   CONSTANT_VALUE -> EvaluateUnitConstantsTask
   CONSTANT_VALUE [shape=box]
@@ -44,6 +46,7 @@ digraph G {
   CONTENT [shape=box]
   CREATED_RESOLVED_UNIT [shape=box]
   CREATED_RESOLVED_UNIT1 [shape=box]
+  CREATED_RESOLVED_UNIT10 -> ResolveConstantExpressionTask
   CREATED_RESOLVED_UNIT10 [shape=box]
   CREATED_RESOLVED_UNIT11 [shape=box]
   CREATED_RESOLVED_UNIT2 [shape=box]
@@ -79,8 +82,6 @@ digraph G {
   EXPORTED_LIBRARIES -> ReadyLibraryElement2Task
   EXPORTED_LIBRARIES -> ReadyLibraryElement5Task
   EXPORTED_LIBRARIES -> ReadyLibraryElement6Task
-  EXPORTED_LIBRARIES -> ReadyResolvedUnit10Task
-  EXPORTED_LIBRARIES -> ReadyResolvedUnit11Task
   EXPORTED_LIBRARIES [shape=box]
   EXPORT_SOURCE_CLOSURE -> BuildExportNamespaceTask
   EXPORT_SOURCE_CLOSURE [shape=box]
@@ -96,8 +97,6 @@ digraph G {
   IMPORTED_LIBRARIES -> ReadyLibraryElement2Task
   IMPORTED_LIBRARIES -> ReadyLibraryElement5Task
   IMPORTED_LIBRARIES -> ReadyLibraryElement6Task
-  IMPORTED_LIBRARIES -> ReadyResolvedUnit10Task
-  IMPORTED_LIBRARIES -> ReadyResolvedUnit11Task
   IMPORTED_LIBRARIES -> ResolveUnitTypeNamesTask
   IMPORTED_LIBRARIES [shape=box]
   INCLUDED_PARTS -> BuildLibraryElementTask
@@ -158,8 +157,6 @@ digraph G {
   LIBRARY_ERRORS_READY [shape=box]
   LIBRARY_SPECIFIC_UNITS -> GenerateHintsTask
   LIBRARY_SPECIFIC_UNITS -> PropagateVariableTypesInLibraryTask
-  LIBRARY_SPECIFIC_UNITS -> ReadyResolvedUnit10Task
-  LIBRARY_SPECIFIC_UNITS -> ReadyResolvedUnit11Task
   LIBRARY_SPECIFIC_UNITS -> ReadyResolvedUnitTask
   LIBRARY_SPECIFIC_UNITS -> ResolveLibraryReferencesTask
   LIBRARY_SPECIFIC_UNITS -> ResolveLibraryTypeNamesTask
@@ -215,10 +212,6 @@ digraph G {
   READY_RESOLVED_UNIT -> ResolveLibraryTask
   READY_RESOLVED_UNIT -> VerifyUnitTask
   READY_RESOLVED_UNIT [shape=box]
-  READY_RESOLVED_UNIT10 -> ReadyResolvedUnit10Task
-  READY_RESOLVED_UNIT10 [shape=box]
-  READY_RESOLVED_UNIT11 -> ReadyResolvedUnit11Task
-  READY_RESOLVED_UNIT11 [shape=box]
   REFERENCED_NAMES [shape=box]
   RESOLVED_UNIT -> GenerateHintsTask
   RESOLVED_UNIT -> GenerateLintsTask
@@ -229,14 +222,11 @@ digraph G {
   RESOLVED_UNIT1 -> BuildEnumMemberElementsTask
   RESOLVED_UNIT1 -> BuildLibraryElementTask
   RESOLVED_UNIT1 [shape=box]
-  RESOLVED_UNIT10 -> ComputeConstantDependenciesTask
   RESOLVED_UNIT10 -> EvaluateUnitConstantsTask
   RESOLVED_UNIT10 -> GatherUsedImportedElementsTask
   RESOLVED_UNIT10 -> GatherUsedLocalElementsTask
-  RESOLVED_UNIT10 -> ReadyResolvedUnit10Task
   RESOLVED_UNIT10 -> ResolveLibraryReferencesTask
   RESOLVED_UNIT10 [shape=box]
-  RESOLVED_UNIT11 -> ReadyResolvedUnit11Task
   RESOLVED_UNIT11 -> StrongModeVerifyUnitTask
   RESOLVED_UNIT11 [shape=box]
   RESOLVED_UNIT2 -> ResolveUnitTypeNamesTask
@@ -268,9 +258,8 @@ digraph G {
   ReadyLibraryElement2Task -> READY_LIBRARY_ELEMENT2
   ReadyLibraryElement5Task -> READY_LIBRARY_ELEMENT5
   ReadyLibraryElement6Task -> READY_LIBRARY_ELEMENT6
-  ReadyResolvedUnit10Task -> READY_RESOLVED_UNIT10
-  ReadyResolvedUnit11Task -> READY_RESOLVED_UNIT11
   ReadyResolvedUnitTask -> READY_RESOLVED_UNIT
+  ResolveConstantExpressionTask -> CONSTANT_EXPRESSION_RESOLVED
   ResolveInstanceFieldsInUnitTask -> CREATED_RESOLVED_UNIT8
   ResolveInstanceFieldsInUnitTask -> RESOLVED_UNIT8
   ResolveLibraryReferencesTask -> LIBRARY_ELEMENT8

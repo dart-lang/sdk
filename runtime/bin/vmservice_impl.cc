@@ -182,14 +182,10 @@ bool VmService::Setup(const char* server_ip,
 
   Dart_Handle result;
 
-  Dart_Handle builtin_lib =
-      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-  SHUTDOWN_ON_ERROR(builtin_lib);
-
-  // Prepare for script loading by setting up the 'print' and 'timer'
-  // closures and setting up 'package root' for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(
-      NULL, NULL, true, false, builtin_lib);
+  // Prepare builtin and its dependent libraries for use to resolve URIs.
+  // Set up various closures, e.g: printing, timers etc.
+  // Set up 'package root' for URI resolution.
+  result = DartUtils::PrepareForScriptLoading(true, false);
   SHUTDOWN_ON_ERROR(result);
 
   if (running_precompiled) {

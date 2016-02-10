@@ -366,6 +366,7 @@
       'defines': [
         'DART_SHARED_LIB',
         'DART_NO_SNAPSHOT',
+        'DART_PRECOMPILER',
       ],
     },
     {
@@ -628,6 +629,64 @@
       },
     },
     {
+      # dart binary with a snapshot of corelibs built in and support for testing
+      # precompilation (aka --noopt)
+      'target_name': 'dart_noopt',
+      'type': 'executable',
+      'dependencies': [
+        'libdart_noopt',
+        'libdart_builtin',
+        'libdart_io',
+        'build_observatory#host',
+        'generate_snapshot_file#host',
+        'generate_resources_cc_file#host',
+        'generate_observatory_assets_cc_file#host',
+      ],
+      'include_dirs': [
+        '..',
+        '../../third_party/', # Zlib
+      ],
+      'sources': [
+        'main.cc',
+        'builtin_common.cc',
+        'builtin_natives.cc',
+        'builtin_nolib.cc',
+        'builtin.h',
+        'io_natives.h',
+        'vmservice_impl.cc',
+        'vmservice_impl.h',
+        '<(snapshot_cc_file)',
+        '<(resources_cc_file)',
+        '<(observatory_assets_cc_file)',
+      ],
+      'defines': [
+        'DART_PRECOMPILER',
+      ],
+      'conditions': [
+        ['OS=="win"', {
+          'link_settings': {
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
+          },
+          # Generate an import library on Windows, by exporting a function.
+          # Extensions use this import library to link to the API in dart.exe.
+          'msvs_settings': {
+            'VCLinkerTool': {
+              'AdditionalOptions': [ '/EXPORT:Dart_True' ],
+            },
+          },
+        }],
+      ],
+      'configurations': {
+        'Dart_Linux_Base': {
+          # Have the linker add all symbols to the dynamic symbol table
+          # so that extensions can look them up dynamically in the binary.
+          'ldflags': [
+            '-rdynamic',
+          ],
+        },
+      },
+    },
+    {
       # dart binary for running precompiled snapshots without the compiler.
       'target_name': 'dart_precompiled_runtime',
       'type': 'executable',
@@ -759,6 +818,10 @@
         '<(resources_cc_file)',
         '<(observatory_assets_cc_file)',
         'snapshot_empty.cc',
+      ],
+      'defines': [
+        'DART_NO_SNAPSHOT',
+        'DART_PRECOMPILER',
       ],
       'conditions': [
         ['OS=="win"', {

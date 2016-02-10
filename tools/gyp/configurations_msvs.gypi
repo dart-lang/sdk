@@ -46,6 +46,7 @@
             'ExceptionHandling': '0',
             'RuntimeTypeInfo': 'false',
             'RuntimeLibrary': '1',  # /MTd - Multi-threaded, static (debug)
+            'OmitFramePointers': 'false',
           },
           'VCLinkerTool': {
             'LinkIncremental': '2',
@@ -58,18 +59,6 @@
             ],
           },
         },
-        'conditions': [
-          ['c_frame_pointers==1', {
-            'msvs_settings': {
-              'VCCLCompilerTool': {
-                'OmitFramePointers': 'false',
-              },
-            },
-            'defines': [
-              'NATIVE_CODE_HAS_FRAME_POINTERS'
-            ],
-          }],
-        ],
         # C4351 warns MSVC follows the C++ specification regarding array
         # initialization in member initializers.  Code that expects the
         # specified behavior should silence this warning.
@@ -77,6 +66,39 @@
       },
 
       'Dart_Win_Release': {
+        'abstract': 1,
+        'msvs_settings': {
+          'VCCLCompilerTool': {
+            'Optimization': '2',
+            'InlineFunctionExpansion': '2',
+            'EnableIntrinsicFunctions': 'true',
+            'FavorSizeOrSpeed': '0',
+            'ExceptionHandling': '0',
+            'RuntimeTypeInfo': 'false',
+            'StringPooling': 'true',
+            'RuntimeLibrary': '0',  # /MT - Multi-threaded, static
+            'OmitFramePointers': 'false',
+          },
+          'VCLinkerTool': {
+            'LinkIncremental': '1',
+            'GenerateDebugInformation': 'true',
+            'OptimizeReferences': '2',
+            'EnableCOMDATFolding': '2',
+            'StackReserveSize': '2097152',
+            'AdditionalDependencies': [
+              'advapi32.lib',
+              'shell32.lib',
+              'dbghelp.lib',
+            ],
+          },
+        },
+        # C4351 warns MSVC follows the C++ specification regarding array
+        # initialization in member initializers.  Code that expects the
+        # specified behavior should silence this warning.
+        'msvs_disabled_warnings': [4351],
+      },
+
+      'Dart_Win_Product': {
         'abstract': 1,
         'msvs_settings': {
           'VCCLCompilerTool': {
@@ -96,24 +118,12 @@
             'EnableCOMDATFolding': '2',
             'StackReserveSize': '2097152',
             'AdditionalDependencies': [
-              'advapi32.lib',
-              'shell32.lib',
-              'dbghelp.lib',
+            'advapi32.lib',
+            'shell32.lib',
+            'dbghelp.lib',
             ],
           },
         },
-        'conditions': [
-          ['c_frame_pointers==1', {
-            'msvs_settings': {
-              'VCCLCompilerTool': {
-                'OmitFramePointers': 'false',
-              },
-            },
-            'defines': [
-              'NATIVE_CODE_HAS_FRAME_POINTERS'
-            ],
-          }],
-        ],
         # C4351 warns MSVC follows the C++ specification regarding array
         # initialization in member initializers.  Code that expects the
         # specified behavior should silence this warning.

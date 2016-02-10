@@ -136,9 +136,7 @@ void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args,
                         Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -176,9 +174,7 @@ void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
   } else if (bytes_read == 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(-1));
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -193,15 +189,11 @@ void FUNCTION_NAME(File_WriteByte)(Dart_NativeArguments args) {
     if (success) {
       Dart_SetReturnValue(args, Dart_NewInteger(1));
     } else {
-      Dart_Handle err = DartUtils::NewDartOSError();
-      if (Dart_IsError(err)) Dart_PropagateError(err);
-      Dart_SetReturnValue(args, err);
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     }
   } else {
     OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
   }
 }
 
@@ -216,9 +208,7 @@ void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
     Dart_Handle external_array = IOBuffer::Allocate(length, &buffer);
     int64_t bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
     if (bytes_read < 0) {
-      Dart_Handle err = DartUtils::NewDartOSError();
-      if (Dart_IsError(err)) Dart_PropagateError(err);
-      Dart_SetReturnValue(args, err);
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     } else {
       if (bytes_read < length) {
         const int kNumArgs = 3;
@@ -235,7 +225,6 @@ void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
                         DartUtils::NewString("_makeUint8ListView"),
                         kNumArgs,
                         dart_args);
-        if (Dart_IsError(array_view)) Dart_PropagateError(array_view);
         Dart_SetReturnValue(args, array_view);
       } else {
         Dart_SetReturnValue(args, external_array);
@@ -243,9 +232,7 @@ void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
     }
   } else {
     OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
   }
 }
 
@@ -273,14 +260,12 @@ void FUNCTION_NAME(File_ReadInto)(Dart_NativeArguments args) {
   if (bytes_read >= 0) {
     result = Dart_ListSetAsBytes(buffer_obj, start, buffer, bytes_read);
     if (Dart_IsError(result)) {
-      delete[] buffer;
-      Dart_PropagateError(result);
+      Dart_SetReturnValue(args, result);
+    } else {
+      Dart_SetReturnValue(args, Dart_NewInteger(bytes_read));
     }
-    Dart_SetReturnValue(args, Dart_NewInteger(bytes_read));
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
   delete[] buffer;
 }
@@ -323,9 +308,7 @@ void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
   if (Dart_IsError(result)) Dart_PropagateError(result);
 
   if (!success) {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   } else {
     Dart_SetReturnValue(args, Dart_Null());
   }
@@ -339,9 +322,7 @@ void FUNCTION_NAME(File_Position)(Dart_NativeArguments args) {
   if (return_value >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(return_value));
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -354,15 +335,11 @@ void FUNCTION_NAME(File_SetPosition)(Dart_NativeArguments args) {
     if (file->SetPosition(position)) {
       Dart_SetReturnValue(args, Dart_True());
     } else {
-      Dart_Handle err = DartUtils::NewDartOSError();
-      if (Dart_IsError(err)) Dart_PropagateError(err);
-      Dart_SetReturnValue(args, err);
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     }
   } else {
     OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
   }
 }
 
@@ -375,15 +352,11 @@ void FUNCTION_NAME(File_Truncate)(Dart_NativeArguments args) {
     if (file->Truncate(length)) {
       Dart_SetReturnValue(args, Dart_True());
     } else {
-      Dart_Handle err = DartUtils::NewDartOSError();
-      if (Dart_IsError(err)) Dart_PropagateError(err);
-      Dart_SetReturnValue(args, err);
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     }
   } else {
     OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
   }
 }
 
@@ -395,9 +368,7 @@ void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
   if (return_value >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(return_value));
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -409,9 +380,7 @@ void FUNCTION_NAME(File_LengthFromPath)(Dart_NativeArguments args) {
   if (return_value >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(return_value));
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -423,9 +392,7 @@ void FUNCTION_NAME(File_LastModified)(Dart_NativeArguments args) {
   if (return_value >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(return_value * kMSPerSecond));
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -436,9 +403,7 @@ void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
   if (file->Flush()) {
     Dart_SetReturnValue(args, Dart_True());
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -457,18 +422,13 @@ void FUNCTION_NAME(File_Lock)(Dart_NativeArguments args) {
       if (file->Lock(static_cast<File::LockType>(lock), start, end)) {
         Dart_SetReturnValue(args, Dart_True());
       } else {
-        Dart_Handle err = DartUtils::NewDartOSError();
-        if (Dart_IsError(err)) Dart_PropagateError(err);
-        Dart_SetReturnValue(args, err);
+        Dart_SetReturnValue(args, DartUtils::NewDartOSError());
       }
       return;
     }
   }
-
   OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-  Dart_Handle err = DartUtils::NewDartOSError(&os_error);
-  if (Dart_IsError(err)) Dart_PropagateError(err);
-  Dart_SetReturnValue(args, err);
+  Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
 }
 
 
@@ -479,9 +439,7 @@ void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
   if (result) {
     Dart_SetReturnValue(args, Dart_NewBoolean(result));
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -494,14 +452,11 @@ void FUNCTION_NAME(File_CreateLink)(Dart_NativeArguments args) {
     const char* target =
         DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
     if (!File::CreateLink(name, target)) {
-      Dart_Handle err = DartUtils::NewDartOSError();
-      if (Dart_IsError(err)) Dart_PropagateError(err);
-      Dart_SetReturnValue(args, err);
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     }
   } else  {
     Dart_Handle err = DartUtils::NewDartArgumentError(
         "Non-string argument to Link.create");
-    if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
 }
@@ -513,9 +468,7 @@ void FUNCTION_NAME(File_LinkTarget)(Dart_NativeArguments args) {
         DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
     char* target = File::LinkTarget(name);
     if (target == NULL) {
-      Dart_Handle err = DartUtils::NewDartOSError();
-      if (Dart_IsError(err)) Dart_PropagateError(err);
-      Dart_SetReturnValue(args, err);
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     } else {
       Dart_SetReturnValue(args, DartUtils::NewString(target));
       free(target);
@@ -523,7 +476,6 @@ void FUNCTION_NAME(File_LinkTarget)(Dart_NativeArguments args) {
   } else {
     Dart_Handle err = DartUtils::NewDartArgumentError(
         "Non-string argument to Link.target");
-    if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
 }
@@ -536,9 +488,7 @@ void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
   if (result) {
     Dart_SetReturnValue(args, Dart_NewBoolean(result));
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -550,9 +500,7 @@ void FUNCTION_NAME(File_DeleteLink)(Dart_NativeArguments args) {
   if (result) {
     Dart_SetReturnValue(args, Dart_NewBoolean(result));
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -566,9 +514,7 @@ void FUNCTION_NAME(File_Rename)(Dart_NativeArguments args) {
   if (result) {
     Dart_SetReturnValue(args, Dart_NewBoolean(result));
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -582,9 +528,7 @@ void FUNCTION_NAME(File_RenameLink)(Dart_NativeArguments args) {
   if (result) {
     Dart_SetReturnValue(args, Dart_NewBoolean(result));
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -598,9 +542,7 @@ void FUNCTION_NAME(File_Copy)(Dart_NativeArguments args) {
   if (result) {
     Dart_SetReturnValue(args, Dart_NewBoolean(result));
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -613,9 +555,7 @@ void FUNCTION_NAME(File_ResolveSymbolicLinks)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, DartUtils::NewString(path));
     free(path);
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -648,7 +588,6 @@ void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {
   } else  {
     Dart_Handle err = DartUtils::NewDartArgumentError(
         "Non-string argument to FileSystemEntity.type");
-    if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
 }
@@ -662,9 +601,7 @@ void FUNCTION_NAME(File_Stat)(Dart_NativeArguments args) {
     int64_t stat_data[File::kStatSize];
     File::Stat(path, stat_data);
     if (stat_data[File::kType] == File::kDoesNotExist) {
-      Dart_Handle err = DartUtils::NewDartOSError();
-      if (Dart_IsError(err)) Dart_PropagateError(err);
-      Dart_SetReturnValue(args, err);
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     } else {
       Dart_Handle returned_data = Dart_NewTypedData(Dart_TypedData_kInt64,
                                                     File::kStatSize);
@@ -685,7 +622,6 @@ void FUNCTION_NAME(File_Stat)(Dart_NativeArguments args) {
   } else {
     Dart_Handle err = DartUtils::NewDartArgumentError(
         "Non-string argument to FileSystemEntity.stat");
-    if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
 }
@@ -700,16 +636,13 @@ void FUNCTION_NAME(File_AreIdentical)(Dart_NativeArguments args) {
         DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
     File::Identical result = File::AreIdentical(path_1, path_2);
     if (result == File::kError) {
-      Dart_Handle err = DartUtils::NewDartOSError();
-      if (Dart_IsError(err)) Dart_PropagateError(err);
-      Dart_SetReturnValue(args, err);
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     } else {
       Dart_SetReturnValue(args, Dart_NewBoolean(result == File::kIdentical));
     }
   } else  {
     Dart_Handle err = DartUtils::NewDartArgumentError(
         "Non-string argument to FileSystemEntity.identical");
-    if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
 }

@@ -138,7 +138,7 @@ DeoptContext::~DeoptContext() {
   delete[] deferred_objects_;
   deferred_objects_ = NULL;
   deferred_objects_count_ = 0;
-  if (deopt_start_micros_ != 0) {
+  if (FLAG_support_timeline && (deopt_start_micros_ != 0)) {
     Isolate* isolate = Isolate::Current();
     TimelineStream* compiler_stream = isolate->GetCompilerStream();
     ASSERT(compiler_stream != NULL);

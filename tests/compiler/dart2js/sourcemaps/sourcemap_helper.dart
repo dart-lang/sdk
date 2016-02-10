@@ -5,6 +5,7 @@
 library sourcemap.helper;
 
 import 'dart:async';
+import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/apiimpl.dart' as api;
 import 'package:compiler/src/null_compiler_output.dart' show NullSink;
@@ -303,10 +304,11 @@ class SourceMapProcessor {
   }
 
   /// Computes the [SourceMapInfo] for the compiled elements.
-  Future<List<SourceMapInfo>> process(
+  Future<SourceMaps> process(
       List<String> options,
       {bool verbose: true,
-       bool perElement: true}) async {
+       bool perElement: true,
+       bool forMain: false}) async {
     OutputProvider outputProvider = outputToFile
         ? new CloningOutputProvider(targetUri, sourceMapFileUri)
         : new OutputProvider();
@@ -335,7 +337,9 @@ class SourceMapProcessor {
     backend.sourceInformationStrategy = strategy;
     await compiler.run(inputUri);
 
-    List<SourceMapInfo> infoList = <SourceMapInfo>[];
+    SourceMapInfo mainSourceMapInfo;
+    Map<Element, SourceMapInfo> elementSourceMapInfos =
+        <Element, SourceMapInfo>{};
     if (perElement) {
       backend.generatedCode.forEach((Element element, js.Expression node) {
         RecordedSourceInformationProcess subProcess =
@@ -351,15 +355,18 @@ class SourceMapProcessor {
         CodePositionRecorder codePositions = subProcess.codePositions;
         CodePointComputer visitor =
             new CodePointComputer(sourceFileManager, code, nodeMap);
-        visitor.apply(node);
+        new JavaScriptTracer(codePositions, [visitor]).apply(node);
         List<CodePoint> codePoints = visitor.codePoints;
-        infoList.add(new SourceMapInfo(
-            element, code, node,
+        elementSourceMapInfos[element] = new SourceMapInfo(
+            element,
+            code,
+            node,
             codePoints,
-            codePositions/*strategy.codePositions*/,
-            nodeMap));
+            codePositions,
+            nodeMap);
       });
-    } else {
+    }
+    if (forMain) {
       // TODO(johnniwinther): Supported multiple output units.
       RecordedSourceInformationProcess process = strategy.processMap.keys.first;
       js.Node node = strategy.processMap[process];
@@ -371,17 +378,30 @@ class SourceMapProcessor {
       codePositions = process.codePositions;
       CodePointComputer visitor =
           new CodePointComputer(sourceFileManager, code, nodeMap);
-      visitor.apply(node);
+      new JavaScriptTracer(codePositions, [visitor]).apply(node);
       List<CodePoint> codePoints = visitor.codePoints;
-      infoList.add(new SourceMapInfo(
+      mainSourceMapInfo = new SourceMapInfo(
           null, code, node,
           codePoints,
           codePositions,
-          nodeMap));
+          nodeMap);
     }
 
-    return infoList;
+    return new SourceMaps(
+        sourceFileManager, mainSourceMapInfo, elementSourceMapInfos);
   }
+}
+
+class SourceMaps {
+  final SourceFileManager sourceFileManager;
+  // TODO(johnniwinther): Supported multiple output units.
+  final SourceMapInfo mainSourceMapInfo;
+  final Map<Element, SourceMapInfo> elementSourceMapInfos;
+
+  SourceMaps(
+      this.sourceFileManager,
+      this.mainSourceMapInfo,
+          this.elementSourceMapInfos);
 }
 
 /// Source mapping information for the JavaScript code of an [Element].
@@ -457,7 +477,7 @@ class _FilteredLocationMap implements LocationMap {
 
 
 /// Visitor that computes the [CodePoint]s for source mapping locations.
-class CodePointComputer extends js.BaseVisitor {
+class CodePointComputer extends TraceListener {
   final SourceFileManager sourceFileManager;
   final String code;
   final LocationMap nodeMap;
@@ -483,11 +503,20 @@ class CodePointComputer extends js.BaseVisitor {
     return line;
   }
 
+  /// Called when [node] defines a step of the given [kind] at the given
+  /// [offset] when the generated JavaScript code.
+  void onStep(js.Node node, Offset offset, StepKind kind) {
+    register('$kind', node);
+  }
+
   void register(String kind, js.Node node, {bool expectInfo: true}) {
 
     String dartCodeFromSourceLocation(SourceLocation sourceLocation) {
       SourceFile sourceFile =
            sourceFileManager.getSourceFile(sourceLocation.sourceUri);
+      if (sourceFile == null) {
+        return sourceLocation.shortText;
+      }
       return sourceFile.getLineText(sourceLocation.line)
           .substring(sourceLocation.column).trim();
     }
@@ -523,57 +552,6 @@ class CodePointComputer extends js.BaseVisitor {
       });
     }
   }
-
-  void apply(js.Node node) {
-    node.accept(this);
-  }
-
-  void visitNode(js.Node node) {
-    register('${node.runtimeType}', node, expectInfo: false);
-    super.visitNode(node);
-  }
-
-  @override
-  void visitNew(js.New node) {
-    node.arguments.forEach(apply);
-    register('New', node);
-  }
-
-  @override
-  void visitReturn(js.Return node) {
-    if (node.value != null) {
-      apply(node.value);
-    }
-    register('Return', node);
-  }
-
-  @override
-  void visitCall(js.Call node) {
-    apply(node.target);
-    node.arguments.forEach(apply);
-    register('Call (${node.target.runtimeType})', node);
-  }
-
-  @override
-  void visitFun(js.Fun node) {
-    node.visitChildren(this);
-    register('Fun', node);
-  }
-
-  @override
-  visitExpressionStatement(js.ExpressionStatement node) {
-    node.visitChildren(this);
-  }
-
-  @override
-  visitBinary(js.Binary node) {
-    node.visitChildren(this);
-  }
-
-  @override
-  visitAccess(js.PropertyAccess node) {
-    node.visitChildren(this);
-  }
 }
 
 /// A JavaScript code point and its mapped dart source location.
@@ -594,5 +572,26 @@ class CodePoint {
   String toString() {
     return 'CodePoint[kind=$kind,js=$jsCode,dart=$dartCode,'
                      'location=$sourceLocation]';
+  }
+}
+
+class IOSourceFileManager implements SourceFileManager {
+  final Uri base;
+
+  Map<Uri, SourceFile> sourceFiles = <Uri, SourceFile>{};
+
+  IOSourceFileManager(this.base);
+
+  SourceFile getSourceFile(var uri) {
+    Uri absoluteUri;
+    if (uri is Uri) {
+      absoluteUri = base.resolveUri(uri);
+    } else {
+      absoluteUri = base.resolve(uri);
+    }
+    return sourceFiles.putIfAbsent(absoluteUri, () {
+      String text = new File.fromUri(absoluteUri).readAsStringSync();
+      return new StringSourceFile.fromUri(absoluteUri, text);
+    });
   }
 }

@@ -29,6 +29,14 @@ IGNORE_PATTERNS = shutil.ignore_patterns(
 
 usage = """observatory_tool.py [options]"""
 
+def CreateTimestampFile(options):
+  if options.stamp != '':
+    dir_name = os.path.dirname(options.stamp)
+    if dir_name != '':
+      if not os.path.exists(dir_name):
+        os.mkdir(dir_name)
+    open(options.stamp, 'w').close()
+
 def BuildArguments():
   result = argparse.ArgumentParser(usage=usage)
   result.add_argument("--package-root", help="package root", default=None)
@@ -38,6 +46,7 @@ def BuildArguments():
   result.add_argument("--command", help="[get, build, deploy]", default=None)
   result.add_argument("--silent", help="silence all output", default=None)
   result.add_argument("--sdk", help="Use prebuilt sdk", default=None)
+  result.add_argument("--stamp", help="Write a stamp file", default='')
   return result
 
 def ProcessOptions(options, args):
@@ -201,11 +210,17 @@ def main():
     options.pub_executable = os.path.abspath(options.pub_executable)
   if (options.pub_snapshot != None):
     options.pub_snapshot = os.path.abspath(options.pub_snapshot)
+  if (options.stamp != ''):
+    options.stamp = os.path.abspath(options.stamp)
   if len(args) == 1:
     args[0] = os.path.abspath(args[0])
   # Pub must be run from the project's root directory.
   ChangeDirectory(options.directory)
-  return ExecuteCommand(options, args)
+  result = ExecuteCommand(options, args)
+  if result == 0:
+    CreateTimestampFile(options)
+  return result
+
 
 if __name__ == '__main__':
   sys.exit(main());

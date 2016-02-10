@@ -39,10 +39,10 @@ class CompilationUnitBuilder {
         return null;
       }
       ElementHolder holder = new ElementHolder();
-      ElementBuilder builder = new ElementBuilder(holder);
-      unit.accept(builder);
       CompilationUnitElementImpl element =
           new CompilationUnitElementImpl(source.shortName);
+      ElementBuilder builder = new ElementBuilder(holder, element);
+      unit.accept(builder);
       element.accessors = holder.accessors;
       element.enums = holder.enums;
       element.functions = holder.functions;
@@ -167,6 +167,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
       LibraryElement exportedLibrary = exportLibraryMap[exportedSource];
       if (exportedLibrary != null) {
         ExportElementImpl exportElement = new ExportElementImpl(node.offset);
+        exportElement.metadata = _getElementAnnotations(node.metadata);
         StringLiteral uriLiteral = node.uri;
         if (uriLiteral != null) {
           exportElement.uriOffset = uriLiteral.offset;
@@ -207,6 +208,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
           explicitlyImportsCore = true;
         }
         ImportElementImpl importElement = new ImportElementImpl(node.offset);
+        importElement.metadata = _getElementAnnotations(node.metadata);
         StringLiteral uriLiteral = node.uri;
         if (uriLiteral != null) {
           importElement.uriOffset = uriLiteral.offset;
@@ -243,6 +245,32 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
+  Object visitLibraryDirective(LibraryDirective node) {
+    (node.element as LibraryElementImpl)?.metadata =
+        _getElementAnnotations(node.metadata);
+    return null;
+  }
+
+  @override
+  Object visitPartDirective(PartDirective node) {
+    (node.element as CompilationUnitElementImpl)?.metadata =
+        _getElementAnnotations(node.metadata);
+    return null;
+  }
+
+  /**
+   * Gather a list of the [ElementAnnotation]s referred to by the [Annotation]s
+   * in [metadata].
+   */
+  List<ElementAnnotation> _getElementAnnotations(
+      NodeList<Annotation> metadata) {
+    if (metadata.isEmpty) {
+      return ElementAnnotation.EMPTY_LIST;
+    }
+    return metadata.map((Annotation a) => a.elementAnnotation).toList();
+  }
+
   /**
    * If the given [node] has a documentation comment, remember its content
    * and range into the given [element].
@@ -277,6 +305,12 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
  */
 class ElementBuilder extends RecursiveAstVisitor<Object> {
   /**
+   * The compilation unit element into which the elements being built will be
+   * stored.
+   */
+  final CompilationUnitElement compilationUnitElement;
+
+  /**
    * The element holder associated with the element that is currently being built.
    */
   ElementHolder _currentHolder;
@@ -310,7 +344,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
    *
    * @param initialHolder the element holder associated with the compilation unit being built
    */
-  ElementBuilder(ElementHolder initialHolder) {
+  ElementBuilder(ElementHolder initialHolder, this.compilationUnitElement) {
     _currentHolder = initialHolder;
   }
 
@@ -374,6 +408,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     }
     SimpleIdentifier className = node.name;
     ClassElementImpl element = new ClassElementImpl.forNode(className);
+    element.metadata = _createElementAnnotations(node.metadata);
     List<TypeParameterElement> typeParameters = holder.typeParameters;
     List<DartType> typeArguments = _createTypeParameterTypes(typeParameters);
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
@@ -422,6 +457,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _visitChildren(holder, node);
     SimpleIdentifier className = node.name;
     ClassElementImpl element = new ClassElementImpl.forNode(className);
+    element.metadata = _createElementAnnotations(node.metadata);
     element.abstract = node.abstractKeyword != null;
     element.mixinApplication = true;
     List<TypeParameterElement> typeParameters = holder.typeParameters;
@@ -451,6 +487,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier constructorName = node.name;
     ConstructorElementImpl element =
         new ConstructorElementImpl.forNode(constructorName);
+    element.metadata = _createElementAnnotations(node.metadata);
     _setDoc(element, node);
     if (node.externalKeyword != null) {
       element.external = true;
@@ -491,6 +528,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier variableName = node.identifier;
     LocalVariableElementImpl element =
         new LocalVariableElementImpl.forNode(variableName);
+    element.metadata = _createElementAnnotations(node.metadata);
     ForEachStatement statement = node.parent as ForEachStatement;
     int declarationEnd = node.offset + node.length;
     int statementEnd = statement.offset + statement.length;
@@ -512,14 +550,15 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier parameterName = normalParameter.identifier;
     ParameterElementImpl parameter;
     if (normalParameter is FieldFormalParameter) {
-      parameter = new DefaultFieldFormalParameterElementImpl(parameterName);
+      parameter =
+          new DefaultFieldFormalParameterElementImpl.forNode(parameterName);
       FieldElement field =
           _fieldMap == null ? null : _fieldMap[parameterName.name];
       if (field != null) {
         (parameter as DefaultFieldFormalParameterElementImpl).field = field;
       }
     } else {
-      parameter = new DefaultParameterElementImpl(parameterName);
+      parameter = new DefaultParameterElementImpl.forNode(parameterName);
     }
     parameter.const3 = node.isConst;
     parameter.final2 = node.isFinal;
@@ -555,6 +594,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitEnumDeclaration(EnumDeclaration node) {
     SimpleIdentifier enumName = node.name;
     ClassElementImpl enumElement = new ClassElementImpl.forNode(enumName);
+    enumElement.metadata = _createElementAnnotations(node.metadata);
     enumElement.enum2 = true;
     _setDoc(enumElement, node);
     InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
@@ -567,6 +607,12 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _currentHolder.addEnum(enumElement);
     enumName.staticElement = enumElement;
     return super.visitEnumDeclaration(node);
+  }
+
+  @override
+  Object visitExportDirective(ExportDirective node) {
+    _createElementAnnotations(node.metadata);
+    return super.visitExportDirective(node);
   }
 
   @override
@@ -588,7 +634,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       FieldElement field =
           _fieldMap == null ? null : _fieldMap[parameterName.name];
       FieldFormalParameterElementImpl parameter =
-          new FieldFormalParameterElementImpl(parameterName);
+          new FieldFormalParameterElementImpl.forNode(parameterName);
       parameter.const3 = node.isConst;
       parameter.final2 = node.isFinal;
       parameter.parameterKind = node.kind;
@@ -605,6 +651,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
     ParameterElementImpl element = node.element;
+    element.metadata = _createElementAnnotations(node.metadata);
     element.parameters = holder.parameters;
     element.typeParameters = holder.typeParameters;
     holder.validate();
@@ -629,6 +676,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         SimpleIdentifier functionName = node.name;
         FunctionElementImpl element =
             new FunctionElementImpl.forNode(functionName);
+        element.metadata = _createElementAnnotations(node.metadata);
         _setDoc(element, node);
         if (node.externalKeyword != null) {
           element.external = true;
@@ -676,6 +724,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          getter.metadata = _createElementAnnotations(node.metadata);
           _setDoc(getter, node);
           if (node.externalKeyword != null) {
             getter.external = true;
@@ -702,6 +751,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          setter.metadata = _createElementAnnotations(node.metadata);
           _setDoc(setter, node);
           if (node.externalKeyword != null) {
             setter.external = true;
@@ -792,6 +842,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     List<TypeParameterElement> typeParameters = holder.typeParameters;
     FunctionTypeAliasElementImpl element =
         new FunctionTypeAliasElementImpl.forNode(aliasName);
+    element.metadata = _createElementAnnotations(node.metadata);
     _setDoc(element, node);
     element.parameters = parameters;
     element.typeParameters = typeParameters;
@@ -821,10 +872,17 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
     ParameterElementImpl element = node.element;
+    element.metadata = _createElementAnnotations(node.metadata);
     element.parameters = holder.parameters;
     element.typeParameters = holder.typeParameters;
     holder.validate();
     return null;
+  }
+
+  @override
+  Object visitImportDirective(ImportDirective node) {
+    _createElementAnnotations(node.metadata);
+    return super.visitImportDirective(node);
   }
 
   @override
@@ -838,6 +896,12 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       labelName.staticElement = element;
     }
     return super.visitLabeledStatement(node);
+  }
+
+  @override
+  Object visitLibraryDirective(LibraryDirective node) {
+    _createElementAnnotations(node.metadata);
+    return super.visitLibraryDirective(node);
   }
 
   @override
@@ -863,6 +927,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         }
         MethodElementImpl element =
             new MethodElementImpl(nameOfMethod, methodName.offset);
+        element.metadata = _createElementAnnotations(node.metadata);
         _setDoc(element, node);
         element.abstract = node.isAbstract;
         if (node.externalKeyword != null) {
@@ -900,6 +965,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          getter.metadata = _createElementAnnotations(node.metadata);
           _setDoc(getter, node);
           if (node.externalKeyword != null) {
             getter.external = true;
@@ -926,6 +992,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          setter.metadata = _createElementAnnotations(node.metadata);
           _setDoc(setter, node);
           if (node.externalKeyword != null) {
             setter.external = true;
@@ -992,6 +1059,12 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitPartDirective(PartDirective node) {
+    _createElementAnnotations(node.metadata);
+    return super.visitPartDirective(node);
+  }
+
+  @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
@@ -1007,7 +1080,10 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       _currentHolder.addParameter(parameter);
       parameterName.staticElement = parameter;
     }
-    return super.visitSimpleFormalParameter(node);
+    super.visitSimpleFormalParameter(node);
+    (node.element as ElementImpl).metadata =
+        _createElementAnnotations(node.metadata);
+    return null;
   }
 
   @override
@@ -1037,6 +1113,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier parameterName = node.name;
     TypeParameterElementImpl typeParameter =
         new TypeParameterElementImpl.forNode(parameterName);
+    typeParameter.metadata = _createElementAnnotations(node.metadata);
     TypeParameterTypeImpl typeParameterType =
         new TypeParameterTypeImpl(typeParameter);
     typeParameter.type = typeParameterType;
@@ -1153,6 +1230,26 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  @override
+  Object visitVariableDeclarationList(VariableDeclarationList node) {
+    super.visitVariableDeclarationList(node);
+    AstNode parent = node.parent;
+    List<ElementAnnotation> elementAnnotations;
+    if (parent is FieldDeclaration) {
+      elementAnnotations = _createElementAnnotations(parent.metadata);
+    } else if (parent is TopLevelVariableDeclaration) {
+      elementAnnotations = _createElementAnnotations(parent.metadata);
+    } else {
+      // Local variable declaration
+      elementAnnotations = _createElementAnnotations(node.metadata);
+    }
+    for (VariableDeclaration variableDeclaration in node.variables) {
+      (variableDeclaration.element as ElementImpl).metadata =
+          elementAnnotations;
+    }
+    return null;
+  }
+
   /**
    * Build the table mapping field names to field elements for the fields defined in the current
    * class.
@@ -1183,6 +1280,23 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     constructor.enclosingElement = definingClass;
     constructor.type = new FunctionTypeImpl(constructor);
     return <ConstructorElement>[constructor];
+  }
+
+  /**
+   * For each [Annotation] found in [annotations], create a new
+   * [ElementAnnotation] object and set the [Annotation] to point to it.
+   */
+  List<ElementAnnotation> _createElementAnnotations(
+      NodeList<Annotation> annotations) {
+    if (annotations.isEmpty) {
+      return ElementAnnotation.EMPTY_LIST;
+    }
+    return annotations.map((Annotation a) {
+      ElementAnnotationImpl elementAnnotation =
+          new ElementAnnotationImpl(compilationUnitElement);
+      a.elementAnnotation = elementAnnotation;
+      return elementAnnotation;
+    }).toList();
   }
 
   /**

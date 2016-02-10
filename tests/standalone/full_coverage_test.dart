@@ -220,8 +220,11 @@ main() {
   tearDown(() => destroyEnv(testingDirectory));
 
   test('CoverageTests', () {
+    print('Generating coverage data...');
     generateCoverage(testingDirectory);
+    print('Done Generating coverage data.');
 
+    print('Running tests...');
     coverageTests.forEach((cTest) {
       String programDir = path.join(testingDirectory, cTest['name']);
       String programPath = path.join(programDir, "${cTest['name']}.dart");

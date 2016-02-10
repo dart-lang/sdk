@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 
 /**
@@ -195,7 +196,7 @@ class _Prelinker {
             Map<String, _Meaning> namespace = <String, _Meaning>{};
             name.constMembers.forEach((executable) {
               namespace[executable.name] = new _Meaning(unitNum,
-                  executable.kind, dependency, executable.numTypeParameters);
+                  executable.kind, 0, executable.numTypeParameters);
             });
             return new _ClassMeaning(
                 unitNum, dependency, name.numTypeParameters, namespace);

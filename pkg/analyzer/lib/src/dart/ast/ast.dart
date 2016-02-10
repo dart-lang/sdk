@@ -1957,6 +1957,14 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
       _name != null ? (_name.staticElement as ClassElement) : null;
 
   @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (abstractKeyword != null) {
+      return abstractKeyword;
+    }
+    return typedefKeyword;
+  }
+
+  @override
   ImplementsClause get implementsClause => _implementsClause;
 
   @override

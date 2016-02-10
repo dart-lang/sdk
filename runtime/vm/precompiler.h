@@ -18,6 +18,7 @@ class Field;
 class Function;
 class GrowableObjectArray;
 class RawError;
+class SequenceNode;
 class String;
 
 class SymbolKeyValueTrait {
@@ -96,6 +97,29 @@ class ArrayKeyValueTrait {
 typedef DirectChainedHashMap<ArrayKeyValueTrait> ArraySet;
 
 
+class InstructionsKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Instructions* Key;
+  typedef const Instructions* Value;
+  typedef const Instructions* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->size();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->Equals(*key);
+  }
+};
+
+typedef DirectChainedHashMap<InstructionsKeyValueTrait> InstructionsSet;
+
+
 class FunctionKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -158,8 +182,16 @@ class Precompiler : public ValueObject {
                                      const String& fname,
                                      Object* function);
 
+  static RawError* CompileFunction(Thread* thread, const Function& function);
+
+  static RawObject* EvaluateStaticInitializer(const Field& field);
+  static RawObject* ExecuteOnce(SequenceNode* fragment);
+
  private:
   Precompiler(Thread* thread, bool reset_fields);
+
+
+  static RawFunction* CompileStaticInitializer(const Field& field);
 
   void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
   void ClearAllCode();
@@ -179,13 +211,15 @@ class Precompiler : public ValueObject {
   void ProcessFunction(const Function& function);
   void CheckForNewDynamicFunctions();
 
-  void DropUncompiledFunctions();
+  void DropFunctions();
   void DropFields();
-  void CollectDynamicFunctionNames();
   void BindStaticCalls();
   void DedupStackmaps();
   void DedupStackmapLists();
+  void DedupInstructions();
   void ResetPrecompilerState();
+
+  void CollectDynamicFunctionNames();
 
   class FunctionVisitor : public ValueObject {
    public:

@@ -546,11 +546,12 @@ abstract class Future<T> {
    * If this future does not complete before `timeLimit` has passed,
    * the [onTimeout] action is executed instead, and its result (whether it
    * returns or throws) is used as the result of the returned future.
+   * The [onTimeout] function must return a [T] or a `Future<T>`.
    *
    * If `onTimeout` is omitted, a timeout will cause the returned future to
    * complete with a [TimeoutException].
    */
-  Future timeout(Duration timeLimit, {onTimeout()});
+  Future<T> timeout(Duration timeLimit, {onTimeout()});
 }
 
 /**

@@ -546,6 +546,9 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
 
 void Scavenger::IterateObjectIdTable(Isolate* isolate,
                                      ScavengerVisitor* visitor) {
+  if (!FLAG_support_service) {
+    return;
+  }
   ObjectIdRing* ring = isolate->object_id_ring();
   if (ring == NULL) {
     // --gc_at_alloc can get us here before the ring has been initialized.
@@ -834,6 +837,9 @@ void Scavenger::WriteProtect(bool read_only) {
 
 
 void Scavenger::PrintToJSONObject(JSONObject* object) const {
+  if (!FLAG_support_service) {
+    return;
+  }
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   JSONObject space(object, "new");

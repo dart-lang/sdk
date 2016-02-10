@@ -1033,7 +1033,8 @@ class CorrectionUtils {
    * Fills [librariesToImport] with [LibraryElement]s whose elements are
    * used by the generated source, but not imported.
    */
-  String getTypeSource(DartType type, Set<LibraryElement> librariesToImport) {
+  String getTypeSource(DartType type, Set<LibraryElement> librariesToImport,
+      {StringBuffer parametersBuffer}) {
     StringBuffer sb = new StringBuffer();
     // type parameter
     if (!_isTypeVisible(type)) {
@@ -1041,7 +1042,21 @@ class CorrectionUtils {
     }
     // just a Function, not FunctionTypeAliasElement
     if (type is FunctionType && type.element is! FunctionTypeAliasElement) {
-      return "Function";
+      if (parametersBuffer == null) {
+        return "Function";
+      }
+      parametersBuffer.write('(');
+      for (ParameterElement parameter in type.parameters) {
+        String parameterType = getTypeSource(parameter.type, librariesToImport);
+        if (parametersBuffer.length != 1) {
+          parametersBuffer.write(', ');
+        }
+        parametersBuffer.write(parameterType);
+        parametersBuffer.write(' ');
+        parametersBuffer.write(parameter.name);
+      }
+      parametersBuffer.write(')');
+      return getTypeSource(type.returnType, librariesToImport);
     }
     // BottomType
     if (type.isBottom) {

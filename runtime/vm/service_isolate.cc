@@ -302,8 +302,10 @@ class RunServiceTask : public ThreadPool::Task {
  public:
   virtual void Run() {
     ASSERT(Isolate::Current() == NULL);
+#ifndef PRODUCT
     TimelineDurationScope tds(Timeline::GetVMStream(),
                               "ServiceIsolateStartup");
+#endif  // !PRODUCT
     char* error = NULL;
     Isolate* isolate = NULL;
 
@@ -367,7 +369,7 @@ class RunServiceTask : public ThreadPool::Task {
       StackZone zone(T);
       HandleScope handle_scope(T);
       Error& error = Error::Handle(Z);
-      error = I->object_store()->sticky_error();
+      error = T->sticky_error();
       if (!error.IsNull() && !error.IsUnwindError()) {
         OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
       }

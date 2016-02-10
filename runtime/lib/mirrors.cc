@@ -783,7 +783,7 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
       TypeArguments::Handle(instantiator.arguments());
   Error& bound_error = Error::Handle();
   AbstractType& result = AbstractType::Handle(
-      type.InstantiateFrom(type_args, &bound_error, NULL, Heap::kOld));
+      type.InstantiateFrom(type_args, &bound_error, NULL, NULL, Heap::kOld));
   if (!bound_error.IsNull()) {
     Exceptions::PropagateError(bound_error);
     UNREACHABLE();
@@ -1675,7 +1675,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
       // type arguments of the type reflected by the class mirror.
       Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, &bound_error, NULL, Heap::kOld);
+          type_arguments, &bound_error, NULL, NULL, Heap::kOld);
       if (!bound_error.IsNull()) {
         Exceptions::PropagateError(bound_error);
         UNREACHABLE();

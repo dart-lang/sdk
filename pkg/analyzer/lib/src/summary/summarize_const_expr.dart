@@ -7,12 +7,47 @@ library serialization.summarize_const_expr;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
+
+/**
+ * Serialize the given constructor initializer [node].
+ */
+UnlinkedConstructorInitializer serializeConstructorInitializer(
+    ConstructorInitializer node,
+    UnlinkedConstBuilder serializeConstExpr(Expression expr)) {
+  if (node is ConstructorFieldInitializer) {
+    return new UnlinkedConstructorInitializerBuilder(
+        kind: UnlinkedConstructorInitializerKind.field,
+        name: node.fieldName.name,
+        expression: serializeConstExpr(node.expression));
+  }
+  if (node is RedirectingConstructorInvocation) {
+    return new UnlinkedConstructorInitializerBuilder(
+        kind: UnlinkedConstructorInitializerKind.thisInvocation,
+        name: node?.constructorName?.name,
+        arguments:
+            node.argumentList.arguments.map(serializeConstExpr).toList());
+  }
+  if (node is SuperConstructorInvocation) {
+    return new UnlinkedConstructorInitializerBuilder(
+        kind: UnlinkedConstructorInitializerKind.superInvocation,
+        name: node?.constructorName?.name,
+        arguments:
+            node.argumentList.arguments.map(serializeConstExpr).toList());
+  }
+  throw new StateError('Unexpected initializer type ${node.runtimeType}');
+}
 
 /**
  * Instances of this class keep track of intermediate state during
  * serialization of a single constant [Expression].
  */
 abstract class AbstractConstExprSerializer {
+  /**
+   * See [UnlinkedConstBuilder.isInvalid].
+   */
+  bool isInvalid = false;
+
   /**
    * See [UnlinkedConstBuilder.operations].
    */
@@ -39,83 +74,60 @@ abstract class AbstractConstExprSerializer {
   final List<EntityRefBuilder> references = <EntityRefBuilder>[];
 
   /**
+   * Return `true` if a constructor initializer expression is being serialized
+   * and the given [name] is a constructor parameter reference.
+   */
+  bool isConstructorParameterName(String name);
+
+  /**
    * Serialize the given [expr] expression into this serializer state.
    */
   void serialize(Expression expr) {
-    if (expr is IntegerLiteral) {
-      _pushInt(expr.value);
-    } else if (expr is DoubleLiteral) {
-      operations.add(UnlinkedConstOperation.pushDouble);
-      doubles.add(expr.value);
-    } else if (expr is BooleanLiteral) {
-      if (expr.value) {
-        operations.add(UnlinkedConstOperation.pushTrue);
-      } else {
-        operations.add(UnlinkedConstOperation.pushFalse);
-      }
-    } else if (expr is StringLiteral) {
-      _serializeString(expr);
-    } else if (expr is SymbolLiteral) {
-      strings.add(expr.components.map((token) => token.lexeme).join('.'));
-      operations.add(UnlinkedConstOperation.makeSymbol);
-    } else if (expr is NullLiteral) {
-      operations.add(UnlinkedConstOperation.pushNull);
-    } else if (expr is Identifier) {
-      references.add(serializeIdentifier(expr));
-      operations.add(UnlinkedConstOperation.pushReference);
-    } else if (expr is InstanceCreationExpression) {
-      _serializeInstanceCreation(expr);
-    } else if (expr is ListLiteral) {
-      _serializeListLiteral(expr);
-    } else if (expr is MapLiteral) {
-      _serializeMapLiteral(expr);
-    } else if (expr is MethodInvocation) {
-      String name = expr.methodName.name;
-      if (name != 'identical') {
-        throw new _ConstExprSerializationError(
-            'Only "identity" function invocation is allowed.');
-      }
-      if (expr.argumentList == null ||
-          expr.argumentList.arguments.length != 2) {
-        throw new _ConstExprSerializationError(
-            'The function "identity" requires exactly 2 arguments.');
-      }
-      expr.argumentList.arguments.forEach(serialize);
-      operations.add(UnlinkedConstOperation.identical);
-    } else if (expr is BinaryExpression) {
-      _serializeBinaryExpression(expr);
-    } else if (expr is ConditionalExpression) {
-      serialize(expr.condition);
-      serialize(expr.thenExpression);
-      serialize(expr.elseExpression);
-      operations.add(UnlinkedConstOperation.conditional);
-    } else if (expr is PrefixExpression) {
-      _serializePrefixExpression(expr);
-    } else if (expr is PropertyAccess) {
-      if (expr.target is! PrefixedIdentifier &&
-          expr.propertyName.name == 'length') {
-        serialize(expr.target);
-        operations.add(UnlinkedConstOperation.length);
-      } else {
-        references.add(serializePropertyAccess(expr));
-        operations.add(UnlinkedConstOperation.pushReference);
-      }
-    } else if (expr is ParenthesizedExpression) {
-      serialize(expr.expression);
-    } else {
-      throw new _ConstExprSerializationError('Unknown expression type: $expr');
+    try {
+      _serialize(expr);
+    } on StateError {
+      isInvalid = true;
     }
   }
 
   /**
-   * Return [EntityRefBuilder] that corresponds to the given [constructor].
+   * Serialize the given [annotation] into this serializer state.
    */
-  EntityRefBuilder serializeConstructorName(ConstructorName constructor);
+  void serializeAnnotation(Annotation annotation);
+
+  /**
+   * Return [EntityRefBuilder] that corresponds to the constructor having name
+   * [name] in the class identified by [type].
+   */
+  EntityRefBuilder serializeConstructorName(
+      TypeName type, SimpleIdentifier name);
 
   /**
    * Return [EntityRefBuilder] that corresponds to the given [identifier].
    */
   EntityRefBuilder serializeIdentifier(Identifier identifier);
+
+  void serializeInstanceCreation(
+      EntityRefBuilder constructor, ArgumentList argumentList) {
+    List<Expression> arguments = argumentList.arguments;
+    // Serialize the arguments.
+    List<String> argumentNames = <String>[];
+    arguments.forEach((arg) {
+      if (arg is NamedExpression) {
+        argumentNames.add(arg.name.label.name);
+        _serialize(arg.expression);
+      } else {
+        _serialize(arg);
+      }
+    });
+    // Add the op-code and numbers of named and positional arguments.
+    operations.add(UnlinkedConstOperation.invokeConstructor);
+    ints.add(argumentNames.length);
+    strings.addAll(argumentNames);
+    ints.add(arguments.length - argumentNames.length);
+    // Serialize the reference.
+    references.add(constructor);
+  }
 
   /**
    * Return [EntityRefBuilder] that corresponds to the given [access].
@@ -132,6 +144,9 @@ abstract class AbstractConstExprSerializer {
    * serializer.
    */
   UnlinkedConstBuilder toBuilder() {
+    if (isInvalid) {
+      return new UnlinkedConstBuilder(isInvalid: true);
+    }
     return new UnlinkedConstBuilder(
         operations: operations,
         ints: ints,
@@ -161,9 +176,85 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
+  /**
+   * Serialize the given [expr] expression into this serializer state.
+   */
+  void _serialize(Expression expr) {
+    if (expr is IntegerLiteral) {
+      _pushInt(expr.value);
+    } else if (expr is DoubleLiteral) {
+      operations.add(UnlinkedConstOperation.pushDouble);
+      doubles.add(expr.value);
+    } else if (expr is BooleanLiteral) {
+      if (expr.value) {
+        operations.add(UnlinkedConstOperation.pushTrue);
+      } else {
+        operations.add(UnlinkedConstOperation.pushFalse);
+      }
+    } else if (expr is StringLiteral) {
+      _serializeString(expr);
+    } else if (expr is SymbolLiteral) {
+      strings.add(expr.components.map((token) => token.lexeme).join('.'));
+      operations.add(UnlinkedConstOperation.makeSymbol);
+    } else if (expr is NullLiteral) {
+      operations.add(UnlinkedConstOperation.pushNull);
+    } else if (expr is Identifier) {
+      if (expr is SimpleIdentifier && isConstructorParameterName(expr.name)) {
+        strings.add(expr.name);
+        operations.add(UnlinkedConstOperation.pushConstructorParameter);
+      } else {
+        references.add(serializeIdentifier(expr));
+        operations.add(UnlinkedConstOperation.pushReference);
+      }
+    } else if (expr is InstanceCreationExpression) {
+      serializeInstanceCreation(
+          serializeConstructorName(
+              expr.constructorName.type, expr.constructorName.name),
+          expr.argumentList);
+    } else if (expr is ListLiteral) {
+      _serializeListLiteral(expr);
+    } else if (expr is MapLiteral) {
+      _serializeMapLiteral(expr);
+    } else if (expr is MethodInvocation) {
+      String name = expr.methodName.name;
+      if (name != 'identical') {
+        throw new StateError('Only "identity" function invocation is allowed.');
+      }
+      if (expr.argumentList == null ||
+          expr.argumentList.arguments.length != 2) {
+        throw new StateError(
+            'The function "identity" requires exactly 2 arguments.');
+      }
+      expr.argumentList.arguments.forEach(_serialize);
+      operations.add(UnlinkedConstOperation.identical);
+    } else if (expr is BinaryExpression) {
+      _serializeBinaryExpression(expr);
+    } else if (expr is ConditionalExpression) {
+      _serialize(expr.condition);
+      _serialize(expr.thenExpression);
+      _serialize(expr.elseExpression);
+      operations.add(UnlinkedConstOperation.conditional);
+    } else if (expr is PrefixExpression) {
+      _serializePrefixExpression(expr);
+    } else if (expr is PropertyAccess) {
+      if (expr.target is! PrefixedIdentifier &&
+          expr.propertyName.name == 'length') {
+        _serialize(expr.target);
+        operations.add(UnlinkedConstOperation.length);
+      } else {
+        references.add(serializePropertyAccess(expr));
+        operations.add(UnlinkedConstOperation.pushReference);
+      }
+    } else if (expr is ParenthesizedExpression) {
+      _serialize(expr.expression);
+    } else {
+      throw new StateError('Unknown expression type: $expr');
+    }
+  }
+
   void _serializeBinaryExpression(BinaryExpression expr) {
-    serialize(expr.leftOperand);
-    serialize(expr.rightOperand);
+    _serialize(expr.leftOperand);
+    _serialize(expr.rightOperand);
     TokenType operator = expr.operator.type;
     if (operator == TokenType.EQ_EQ) {
       operations.add(UnlinkedConstOperation.equal);
@@ -204,35 +295,13 @@ abstract class AbstractConstExprSerializer {
     } else if (operator == TokenType.PERCENT) {
       operations.add(UnlinkedConstOperation.modulo);
     } else {
-      throw new _ConstExprSerializationError('Unknown operator: $operator');
+      throw new StateError('Unknown operator: $operator');
     }
-  }
-
-  void _serializeInstanceCreation(InstanceCreationExpression expr) {
-    ConstructorName constructor = expr.constructorName;
-    List<Expression> arguments = expr.argumentList.arguments;
-    // Serialize the arguments.
-    List<String> argumentNames = <String>[];
-    arguments.forEach((arg) {
-      if (arg is NamedExpression) {
-        argumentNames.add(arg.name.label.name);
-        serialize(arg.expression);
-      } else {
-        serialize(arg);
-      }
-    });
-    // Add the op-code and numbers of named and positional arguments.
-    operations.add(UnlinkedConstOperation.invokeConstructor);
-    ints.add(argumentNames.length);
-    strings.addAll(argumentNames);
-    ints.add(arguments.length - argumentNames.length);
-    // Serialize the reference.
-    references.add(serializeConstructorName(constructor));
   }
 
   void _serializeListLiteral(ListLiteral expr) {
     List<Expression> elements = expr.elements;
-    elements.forEach(serialize);
+    elements.forEach(_serialize);
     ints.add(elements.length);
     if (expr.typeArguments != null &&
         expr.typeArguments.arguments.length == 1) {
@@ -245,8 +314,8 @@ abstract class AbstractConstExprSerializer {
 
   void _serializeMapLiteral(MapLiteral expr) {
     for (MapLiteralEntry entry in expr.entries) {
-      serialize(entry.key);
-      serialize(entry.value);
+      _serialize(entry.key);
+      _serialize(entry.value);
     }
     ints.add(expr.entries.length);
     if (expr.typeArguments != null &&
@@ -260,7 +329,7 @@ abstract class AbstractConstExprSerializer {
   }
 
   void _serializePrefixExpression(PrefixExpression expr) {
-    serialize(expr.operand);
+    _serialize(expr.operand);
     TokenType operator = expr.operator.type;
     if (operator == TokenType.BANG) {
       operations.add(UnlinkedConstOperation.not);
@@ -269,7 +338,7 @@ abstract class AbstractConstExprSerializer {
     } else if (operator == TokenType.TILDE) {
       operations.add(UnlinkedConstOperation.complement);
     } else {
-      throw new _ConstExprSerializationError('Unknown operator: $operator');
+      throw new StateError('Unknown operator: $operator');
     }
   }
 
@@ -293,23 +362,11 @@ abstract class AbstractConstExprSerializer {
           operations.add(UnlinkedConstOperation.pushString);
           strings.add(element.value);
         } else {
-          serialize((element as InterpolationExpression).expression);
+          _serialize((element as InterpolationExpression).expression);
         }
       }
       operations.add(UnlinkedConstOperation.concatenate);
       ints.add(interpolation.elements.length);
     }
   }
-}
-
-/**
- * Error that describes a problem during a constant expression serialization.
- */
-class _ConstExprSerializationError {
-  final String message;
-
-  _ConstExprSerializationError(this.message);
-
-  @override
-  String toString() => message;
 }

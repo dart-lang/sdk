@@ -597,11 +597,15 @@ class CompilerImpl extends Compiler {
     if (!name.startsWith(dartLibraryEnvironmentPrefix)) return null;
 
     String libraryName = name.substring(dartLibraryEnvironmentPrefix.length);
+
+    // Private libraries are not exposed to the users.
+    if (libraryName.startsWith("_")) return null;
+
     if (sdkLibraries.containsKey(libraryName)) {
       // Dart2js always "supports" importing 'dart:mirrors' but will abort
       // the compilation at a later point if the backend doesn't support
       // mirrors. In this case 'mirrors' should not be in the environment.
-      if (name == dartLibraryEnvironmentPrefix + 'mirrors') {
+      if (libraryName == 'mirrors') {
         return backend.supportsReflection ? "true" : null;
       }
       return "true";

@@ -8,6 +8,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 static RawObject* ExecuteScript(const char* script) {
   TransitionVMToNative transition(Thread::Current());
   Dart_Handle h_lib = TestCase::LoadTestScript(script, NULL);
@@ -136,5 +138,7 @@ VM_TEST_CASE(Coverage_FilterFunction) {
       "\"_kind\":\"script\"},\"hits\":[6,0]}", lib.index());
   EXPECT_SUBSTRING(buf, js.ToCString());
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

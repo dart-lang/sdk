@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
 
@@ -221,6 +222,7 @@ class _CompilationUnitSerializer {
         unlinkedUnit.libraryNameLength = libraryElement.nameLength;
         unlinkedUnit.libraryDocumentationComment =
             serializeDocumentation(libraryElement);
+        unlinkedUnit.libraryAnnotations = serializeAnnotations(libraryElement);
       }
       unlinkedUnit.publicNamespace = new UnlinkedPublicNamespaceBuilder(
           exports: libraryElement.exports.map(serializeExportPublic).toList(),
@@ -233,8 +235,10 @@ class _CompilationUnitSerializer {
       unlinkedUnit.imports =
           libraryElement.imports.map(serializeImport).toList();
       unlinkedUnit.parts = libraryElement.parts
-          .map((CompilationUnitElement e) =>
-              new UnlinkedPartBuilder(uriOffset: e.uriOffset, uriEnd: e.uriEnd))
+          .map((CompilationUnitElement e) => new UnlinkedPartBuilder(
+              uriOffset: e.uriOffset,
+              uriEnd: e.uriEnd,
+              annotations: serializeAnnotations(e)))
           .toList();
     } else {
       // TODO(paulberry): we need to figure out a way to record library, part,
@@ -331,6 +335,21 @@ class _CompilationUnitSerializer {
   }
 
   /**
+   * Serialize annotations from the given [element].  If [element] has no
+   * annotations, the empty list is returned.
+   */
+  List<UnlinkedConstBuilder> serializeAnnotations(Element element) {
+    if (element.metadata.isEmpty) {
+      return const <UnlinkedConstBuilder>[];
+    }
+    return element.metadata.map((ElementAnnotationImpl a) {
+      _ConstExprSerializer serializer = new _ConstExprSerializer(this, null);
+      serializer.serializeAnnotation(a.annotationAst);
+      return serializer.toBuilder();
+    }).toList();
+  }
+
+  /**
    * Serialize the given [classElement], creating an [UnlinkedClass].
    */
   UnlinkedClassBuilder serializeClass(ClassElement classElement) {
@@ -375,6 +394,7 @@ class _CompilationUnitSerializer {
     b.isAbstract = classElement.isAbstract;
     b.isMixinApplication = classElement.isMixinApplication;
     b.documentationComment = serializeDocumentation(classElement);
+    b.annotations = serializeAnnotations(classElement);
     return b;
   }
 
@@ -435,8 +455,10 @@ class _CompilationUnitSerializer {
   /**
    * Serialize the given [expression], creating an [UnlinkedConstBuilder].
    */
-  UnlinkedConstBuilder serializeConstExpr(Expression expression) {
-    _ConstExprSerializer serializer = new _ConstExprSerializer(this);
+  UnlinkedConstBuilder serializeConstExpr(Expression expression,
+      [Set<String> constructorParameterNames]) {
+    _ConstExprSerializer serializer =
+        new _ConstExprSerializer(this, constructorParameterNames);
     serializer.serialize(expression);
     return serializer.toBuilder();
   }
@@ -475,6 +497,7 @@ class _CompilationUnitSerializer {
     }
     b.values = values;
     b.documentationComment = serializeDocumentation(enumElement);
+    b.annotations = serializeAnnotations(enumElement);
     return b;
   }
 
@@ -505,10 +528,22 @@ class _CompilationUnitSerializer {
       } else {
         b.kind = UnlinkedExecutableKind.setter;
       }
-    } else if (executableElement is ConstructorElement) {
+    } else if (executableElement is ConstructorElementImpl) {
       b.kind = UnlinkedExecutableKind.constructor;
       b.isConst = executableElement.isConst;
       b.isFactory = executableElement.isFactory;
+      if (executableElement.isConst &&
+          executableElement.constantInitializers != null) {
+        Set<String> constructorParameterNames =
+            executableElement.parameters.map((p) => p.name).toSet();
+        b.constantInitializers = executableElement.constantInitializers
+            .map((ConstructorInitializer initializer) =>
+                serializeConstructorInitializer(
+                    initializer,
+                    (expr) =>
+                        serializeConstExpr(expr, constructorParameterNames)))
+            .toList();
+      }
     } else {
       b.kind = UnlinkedExecutableKind.functionOrMethod;
     }
@@ -517,6 +552,7 @@ class _CompilationUnitSerializer {
         executableElement.enclosingElement is ClassElement;
     b.isExternal = executableElement.isExternal;
     b.documentationComment = serializeDocumentation(executableElement);
+    b.annotations = serializeAnnotations(executableElement);
     return b;
   }
 
@@ -529,6 +565,7 @@ class _CompilationUnitSerializer {
     b.offset = exportElement.nameOffset;
     b.uriOffset = exportElement.uriOffset;
     b.uriEnd = exportElement.uriEnd;
+    b.annotations = serializeAnnotations(exportElement);
     return b;
   }
 
@@ -549,6 +586,7 @@ class _CompilationUnitSerializer {
    */
   UnlinkedImportBuilder serializeImport(ImportElement importElement) {
     UnlinkedImportBuilder b = new UnlinkedImportBuilder();
+    b.annotations = serializeAnnotations(importElement);
     b.isDeferred = importElement.isDeferred;
     b.combinators = importElement.combinators.map(serializeCombinator).toList();
     if (importElement.prefix != null) {
@@ -586,6 +624,7 @@ class _CompilationUnitSerializer {
         b.kind = UnlinkedParamKind.named;
         break;
     }
+    b.annotations = serializeAnnotations(parameter);
     b.isInitializingFormal = parameter.isInitializingFormal;
     DartType type = parameter.type;
     if (parameter.hasImplicitType) {
@@ -605,6 +644,13 @@ class _CompilationUnitSerializer {
             .toList();
       } else {
         b.type = serializeTypeRef(type, context);
+      }
+    }
+    if (parameter is ConstVariableElement) {
+      ConstVariableElement constParameter = parameter as ConstVariableElement;
+      Expression initializer = constParameter.constantInitializer;
+      if (initializer != null) {
+        b.defaultValue = serializeConstExpr(initializer);
       }
     }
     return b;
@@ -657,6 +703,7 @@ class _CompilationUnitSerializer {
     b.returnType = serializeTypeRef(typedefElement.returnType, typedefElement);
     b.parameters = typedefElement.parameters.map(serializeParam).toList();
     b.documentationComment = serializeDocumentation(typedefElement);
+    b.annotations = serializeAnnotations(typedefElement);
     return b;
   }
 
@@ -671,6 +718,7 @@ class _CompilationUnitSerializer {
     if (typeParameter.bound != null) {
       b.bound = serializeTypeRef(typeParameter.bound, typeParameter);
     }
+    b.annotations = serializeAnnotations(typeParameter);
     return b;
   }
 
@@ -776,7 +824,8 @@ class _CompilationUnitSerializer {
     b.isFinal = variable.isFinal;
     b.isConst = variable.isConst;
     b.documentationComment = serializeDocumentation(variable);
-    if (variable.isConst && variable is ConstVariableElement) {
+    b.annotations = serializeAnnotations(variable);
+    if (variable is ConstVariableElement) {
       ConstVariableElement constVariable = variable as ConstVariableElement;
       Expression initializer = constVariable.constantInitializer;
       if (initializer != null) {
@@ -830,11 +879,15 @@ class _CompilationUnitSerializer {
 
   int _getElementReferenceId(Element element, {bool linked: false}) {
     return referenceMap.putIfAbsent(element, () {
-      LibraryElement dependentLibrary = element?.library;
+      LibraryElement dependentLibrary;
+      if (element != null) {
+        Element enclosingElement = element.enclosingElement;
+        if (enclosingElement is CompilationUnitElement) {
+          dependentLibrary = enclosingElement.library;
+        }
+      }
       int unit;
       if (dependentLibrary == null) {
-        assert(element == librarySerializer.typeProvider.dynamicType.element ||
-            element == null);
         unit = 0;
         dependentLibrary = librarySerializer.libraryElement;
       } else {
@@ -904,24 +957,59 @@ class _CompilationUnitSerializer {
 class _ConstExprSerializer extends AbstractConstExprSerializer {
   final _CompilationUnitSerializer serializer;
 
-  _ConstExprSerializer(this.serializer);
+  /**
+   * If a constructor initializer expression is being serialized, the names of
+   * the constructor parameters.  Otherwise `null`.
+   */
+  final Set<String> constructorParameterNames;
+
+  _ConstExprSerializer(this.serializer, this.constructorParameterNames);
 
   @override
-  EntityRefBuilder serializeConstructorName(ConstructorName constructor) {
-    DartType type = constructor.type.type;
-    EntityRefBuilder typeRef = serializer.serializeTypeRef(type, null);
-    if (constructor.name == null) {
+  bool isConstructorParameterName(String name) {
+    return constructorParameterNames?.contains(name) ?? false;
+  }
+
+  @override
+  void serializeAnnotation(Annotation annotation) {
+    if (annotation.arguments == null) {
+      assert(annotation.constructorName == null);
+      serialize(annotation.name);
+    } else {
+      Identifier name = annotation.name;
+      Element nameElement = name.staticElement;
+      EntityRefBuilder constructor;
+      if (nameElement is ConstructorElement && name is PrefixedIdentifier) {
+        assert(annotation.constructorName == null);
+        constructor = serializeConstructorName(
+            new TypeName(name.prefix, null)..type = nameElement.returnType,
+            name.identifier);
+      } else if (nameElement is TypeDefiningElement) {
+        constructor = serializeConstructorName(
+            new TypeName(annotation.name, null)..type = nameElement.type,
+            annotation.constructorName);
+      } else {
+        throw new StateError('Unexpected annotation nameElement type:'
+            ' ${nameElement.runtimeType}');
+      }
+      serializeInstanceCreation(constructor, annotation.arguments);
+    }
+  }
+
+  @override
+  EntityRefBuilder serializeConstructorName(
+      TypeName type, SimpleIdentifier name) {
+    EntityRefBuilder typeRef = serializer.serializeTypeRef(type.type, null);
+    if (name == null) {
       return typeRef;
     } else {
       int typeId = typeRef.reference;
       LinkedReference typeLinkedRef = serializer.linkedReferences[typeId];
       serializer.unlinkedReferences.add(new UnlinkedReferenceBuilder(
-          name: constructor.name.name, prefixReference: typeId));
+          name: name.name, prefixReference: typeId));
       int refId = serializer.linkedReferences.length;
       serializer.linkedReferences.add(new LinkedReferenceBuilder(
-          kind: ReferenceKind.constructor,
-          dependency: typeLinkedRef.dependency,
-          unit: typeLinkedRef.unit));
+          kind: ReferenceKind.constructor, unit: typeLinkedRef.unit));
       return new EntityRefBuilder(
           reference: refId, typeArguments: typeRef.typeArguments);
     }
@@ -934,11 +1022,16 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     if (identifier is PrefixedIdentifier &&
         element is PropertyAccessorElement &&
         !element.isStatic) {
-      assert(element.name == 'length');
+      if (element.name != 'length') {
+        throw new StateError('Only "length" property is allowed in constants.');
+      }
       Element prefixElement = identifier.prefix.staticElement;
       int prefixRef = serializer._getElementReferenceId(prefixElement);
       int lengthRef = serializer._getLengthPropertyReference(prefixRef);
       return new EntityRefBuilder(reference: lengthRef);
+    }
+    if (element is TypeParameterElement) {
+      throw new StateError('Constants may not refer to type parameters.');
     }
     return new EntityRefBuilder(
         reference: serializer._getElementReferenceId(element));

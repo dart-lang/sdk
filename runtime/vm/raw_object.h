@@ -637,6 +637,7 @@ class RawObject {
   friend class Instance;  // StorePointer
   friend class StackFrame;  // GetCodeObject assertion.
   friend class CodeLookupTableBuilder;  // profiler
+  friend class NativeEntry;  // GetClassId
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);

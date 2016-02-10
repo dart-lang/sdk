@@ -490,6 +490,7 @@ void Parser::ParseCompilationUnit(const Library& library,
   ASSERT(thread->long_jump_base()->IsSafeToJump());
   CSTAT_TIMER_SCOPE(thread, parser_timer);
   VMTagScope tagScope(thread, VMTag::kCompileTopLevelTagId);
+#ifndef PRODUCT
   TimelineDurationScope tds(thread,
                             thread->isolate()->GetCompilerStream(),
                             "CompileTopLevel");
@@ -497,6 +498,7 @@ void Parser::ParseCompilationUnit(const Library& library,
     tds.SetNumArguments(1);
     tds.CopyArgument(0, "script", String::Handle(script.url()).ToCString());
   }
+#endif
 
   Parser parser(script, library, TokenPosition::kMinSource);
   parser.ParseTopLevel();
@@ -854,6 +856,7 @@ void Parser::ParseClass(const Class& cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const int64_t num_tokes_before = STAT_VALUE(thread, num_tokens_consumed);
+#ifndef PRODUCT
   TimelineDurationScope tds(thread,
                             thread->isolate()->GetCompilerStream(),
                             "ParseClass");
@@ -861,6 +864,7 @@ void Parser::ParseClass(const Class& cls) {
     tds.SetNumArguments(1);
     tds.CopyArgument(0, "class", String::Handle(cls.Name()).ToCString());
   }
+#endif
   if (!cls.is_synthesized_class()) {
     ASSERT(thread->long_jump_base()->IsSafeToJump());
     CSTAT_TIMER_SCOPE(thread, parser_timer);
@@ -919,10 +923,9 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
     return param_descriptor.raw();
   } else {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
     Error& error = Error::Handle();
-    error = isolate->object_store()->sticky_error();
-    isolate->object_store()->clear_sticky_error();
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
     return error.raw();
   }
   UNREACHABLE();
@@ -953,7 +956,7 @@ bool Parser::ParseFormalParameters(const Function& func, ParamList* params) {
     parser.ParseFormalParameterList(true, true, params);
     return true;
   } else {
-    Thread::Current()->isolate()->object_store()->clear_sticky_error();
+    Thread::Current()->clear_sticky_error();
     params->Clear();
     return false;
   }
@@ -970,18 +973,22 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   INC_STAT(thread, num_functions_parsed, 1);
   VMTagScope tagScope(thread, VMTag::kCompileParseFunctionTagId,
                       FLAG_profile_vm);
+#ifndef PRODUCT
   TimelineDurationScope tds(thread,
                             thread->isolate()->GetCompilerStream(),
                             "ParseFunction");
+#endif  // !PRODUCT
   ASSERT(thread->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
   const Script& script = Script::Handle(zone, func.script());
   Parser parser(script, parsed_function, func.token_pos());
+#ifndef PRODUCT
   if (tds.enabled()) {
     tds.SetNumArguments(1);
     tds.CopyArgument(0, "function", String::Handle(func.name()).ToCString());
   }
+#endif  // !PRODUCT
   SequenceNode* node_sequence = NULL;
   switch (func.kind()) {
     case RawFunction::kClosureFunction:
@@ -1101,12 +1108,11 @@ RawObject* Parser::ParseMetadata(const Field& meta_data) {
     return metadata;
   } else {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
     StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();
     Error& error = Error::Handle(zone);
-    error = isolate->object_store()->sticky_error();
-    isolate->object_store()->clear_sticky_error();
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
     return error.raw();
   }
   UNREACHABLE();
@@ -13223,7 +13229,11 @@ void Parser::ParseConstructorClosurization(Function* constructor,
       ASSERT(!type.IsMalformedOrMalbounded());
       if (!type.IsInstantiated()) {
         Error& error = Error::Handle(Z);
-        type ^= type.InstantiateFrom(*type_arguments, &error, NULL, Heap::kOld);
+        type ^= type.InstantiateFrom(*type_arguments,
+                                     &error,
+                                     NULL,  // instantiation_trail
+                                     NULL,  // bound_trail
+                                     Heap::kOld);
         ASSERT(error.IsNull());
       }
       *type_arguments = type.arguments();
@@ -13387,7 +13397,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         redirect_type ^= redirect_type.InstantiateFrom(
             type_arguments,
             &error,
-            NULL,  // trail
+            NULL,  // instantiation_trail
+            NULL,  // bound_trail
             Heap::kOld);
         if (!error.IsNull()) {
           redirect_type = ClassFinalizer::NewFinalizedMalformedType(
@@ -13427,7 +13438,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }
       if (I->flags().type_checks() &&
-              !redirect_type.IsSubtypeOf(type, NULL, Heap::kOld)) {
+              !redirect_type.IsSubtypeOf(type, NULL, NULL, Heap::kOld)) {
         // Additional type checking of the result is necessary.
         type_bound = type.raw();
       }

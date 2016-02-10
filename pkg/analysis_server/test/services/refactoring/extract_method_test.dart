@@ -175,9 +175,9 @@ class B extends A {
   test_bad_doWhile_body() {
     indexTestUnit('''
 main() {
-  do 
+  do
 // start
-  { 
+  {
   }
 // end
   while (true);
@@ -204,10 +204,10 @@ main() {
   test_bad_forLoop_conditionAndUpdaters() {
     indexTestUnit('''
 main() {
-  for ( 
+  for (
     int i = 0;
 // start
-    i < 10; 
+    i < 10;
     i++
 // end
   ) {}
@@ -221,7 +221,7 @@ main() {
   test_bad_forLoop_init() {
     indexTestUnit('''
 main() {
-  for ( 
+  for (
 // start
     int i = 0
 // end
@@ -238,7 +238,7 @@ main() {
   test_bad_forLoop_initAndCondition() {
     indexTestUnit('''
 main() {
-  for ( 
+  for (
 // start
     int i = 0;
     i < 10;
@@ -255,7 +255,7 @@ main() {
   test_bad_forLoop_updaters() {
     indexTestUnit('''
 main() {
-  for ( 
+  for (
     int i = 0;
     i < 10;
 // start
@@ -272,7 +272,7 @@ main() {
   test_bad_forLoop_updatersAndBody() {
     indexTestUnit('''
 main() {
-  for ( 
+  for (
     int i = 0;
     i < 10;
 // start
@@ -349,10 +349,10 @@ main() {
   test_bad_notSameParent() {
     indexTestUnit('''
 main() {
-  while (false) 
+  while (false)
 // start
-  { 
-  } 
+  {
+  }
   print(0);
 // end
 }
@@ -507,7 +507,7 @@ main() {
   test_bad_switchCase() {
     indexTestUnit('''
 main() {
-  switch (1) { 
+  switch (1) {
 // start
     case 0: break;
 // end
@@ -552,7 +552,7 @@ main() {
     indexTestUnit('''
 main() {
   try
-  {} 
+  {}
   catch (e)
 // start
   {}
@@ -569,7 +569,7 @@ main() {
     indexTestUnit('''
 main() {
   try
-  {} 
+  {}
 // start
   catch (e)
   {}
@@ -586,7 +586,7 @@ main() {
     indexTestUnit('''
 main() {
   try {
-  } catch ( 
+  } catch (
 // start
   e
 // end
@@ -603,7 +603,7 @@ main() {
     indexTestUnit('''
 main() {
   try
-  {} 
+  {}
   finally
 // start
   {}
@@ -621,7 +621,7 @@ main() {
 main() {
   try
 // start
-  {} 
+  {}
 // end
   finally
   {}
@@ -646,7 +646,7 @@ main() {
   test_bad_variableDeclarationFragment() {
     indexTestUnit('''
 main() {
-  int 
+  int
 // start
     a = 1
 // end
@@ -661,11 +661,11 @@ main() {
   test_bad_while_conditionAndBody() {
     indexTestUnit('''
 main() {
-  while 
+  while
 // start
-    (false) 
-  { 
-  } 
+    (false)
+  {
+  }
 // end
 }
 ''');
@@ -2465,6 +2465,41 @@ void res(Future<int> v) {
   print(v);
 }
 ''');
+  }
+
+  test_statements_parameters_localFunction() {
+    _addLibraryReturningAsync();
+    indexTestUnit('''
+class C {
+  int f(int a) {
+    int callback(int x, int y) => x + a;
+    int b = a + 1;
+// start
+    int c = callback(b, 2);
+// end
+    int d = c + 1;
+    return d;
+  }
+}''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+class C {
+  int f(int a) {
+    int callback(int x, int y) => x + a;
+    int b = a + 1;
+// start
+    int c = res(callback, b);
+// end
+    int d = c + 1;
+    return d;
+  }
+
+  int res(int callback(int x, int y), int b) {
+    int c = callback(b, 2);
+    return c;
+  }
+}''');
   }
 
   test_statements_parameters_noLocalVariableConflict() async {

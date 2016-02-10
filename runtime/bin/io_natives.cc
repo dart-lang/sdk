@@ -109,8 +109,8 @@ namespace bin {
   V(SecurityContext_Allocate, 1)                                               \
   V(SecurityContext_UsePrivateKeyBytes, 3)                                     \
   V(SecurityContext_SetAlpnProtocols, 3)                                       \
-  V(SecurityContext_SetClientAuthorities, 2)                                   \
-  V(SecurityContext_SetTrustedCertificates, 3)                                 \
+  V(SecurityContext_SetClientAuthoritiesBytes, 2)                              \
+  V(SecurityContext_SetTrustedCertificatesBytes, 2)                            \
   V(SecurityContext_TrustBuiltinRoots, 1)                                      \
   V(SecurityContext_UseCertificateChainBytes, 2)                               \
   V(ServerSocket_Accept, 2)                                                    \

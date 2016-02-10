@@ -7,19 +7,13 @@ import 'dart:async';
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/src/diagnostics/messages.dart' show
     MessageKind,
-    MessageTemplate,
-    SharedMessageKind;
+    MessageTemplate;
 
 import 'message_kind_helper.dart';
 
 main(List<String> arguments) {
   List<MessageTemplate> examples = <MessageTemplate>[];
-  List allMessageKinds = []
-      ..addAll(MessageKind.values)
-      ..addAll(SharedMessageKind.values);
-  for (var kind in allMessageKinds) {
-    if (kind == SharedMessageKind.exampleMessage) continue;
-
+  for (var kind in MessageKind.values) {
     MessageTemplate template = MessageTemplate.TEMPLATES[kind];
     Expect.isNotNull(template, "No template for $kind.");
     Expect.equals(kind, template.kind,

@@ -61,7 +61,6 @@ abstract class CompilerConfiguration {
     bool useSdk = configuration['use_sdk'];
     bool isCsp = configuration['csp'];
     bool useCps = configuration['cps_ir'];
-    bool useNoopt = configuration['noopt'];
 
     switch (compiler) {
       case 'dart2analyzer':
@@ -80,7 +79,7 @@ abstract class CompilerConfiguration {
       case 'none':
         return new NoneCompilerConfiguration(
             isDebug: isDebug, isChecked: isChecked,
-            isHostChecked: isHostChecked, useSdk: useSdk, useNoopt: useNoopt);
+            isHostChecked: isHostChecked, useSdk: useSdk);
       default:
         throw "Unknown compiler '$compiler'";
     }
@@ -142,17 +141,15 @@ abstract class CompilerConfiguration {
 
 /// The "none" compiler.
 class NoneCompilerConfiguration extends CompilerConfiguration {
-  final bool useNoopt;
 
   NoneCompilerConfiguration({
       bool isDebug,
       bool isChecked,
       bool isHostChecked,
-      bool useSdk,
-      bool useNoopt})
+      bool useSdk})
       : super._subclass(
           isDebug: isDebug, isChecked: isChecked,
-          isHostChecked: isHostChecked, useSdk: useSdk), useNoopt = useNoopt;
+          isHostChecked: isHostChecked, useSdk: useSdk);
 
   bool get hasCompiler => false;
 
@@ -168,9 +165,6 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
     if (isChecked) {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
-    }
-    if (useNoopt) {
-      args.add('--noopt');
     }
     return args
         ..addAll(vmOptions)
@@ -220,11 +214,22 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
     arguments = new List.from(arguments);
     arguments.add('--out=$outputFileName');
 
+    // We want all dart2js compilers to run the vm with the
+    // --abort-on-assertion-errors flag.
+    // We have allowed constant maps as environmentOverrides,
+    // so we modify a new map.
+    var newOverrides = {'DART_VM_OPTIONS': '--abort-on-assertion-errors'};
+    if (environmentOverrides != null) {
+      newOverrides.addAll(environmentOverrides);
+      if (environmentOverrides.containsKey('DART_VM_OPTIONS')) {
+        newOverrides['DART_VM_OPTIONS'] += ' --abort-on-assertion-errors';
+      }
+    }
     return commandBuilder.getCompilationCommand(
         moniker, outputFileName, !useSdk,
         bootstrapDependencies(buildDir),
         computeCompilerPath(buildDir),
-        arguments, environmentOverrides);
+        arguments, newOverrides);
   }
 
   List<Uri> bootstrapDependencies(String buildDir) {

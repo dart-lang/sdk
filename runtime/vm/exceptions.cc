@@ -489,10 +489,12 @@ void Exceptions::Throw(Thread* thread, const Instance& exception) {
   // Do not notify debugger on stack overflow and out of memory exceptions.
   // The VM would crash when the debugger calls back into the VM to
   // get values of variables.
-  Isolate* isolate = thread->isolate();
-  if (exception.raw() != isolate->object_store()->out_of_memory() &&
-      exception.raw() != isolate->object_store()->stack_overflow()) {
-    isolate->debugger()->SignalExceptionThrown(exception);
+  if (FLAG_support_debugger) {
+    Isolate* isolate = thread->isolate();
+    if (exception.raw() != isolate->object_store()->out_of_memory() &&
+        exception.raw() != isolate->object_store()->stack_overflow()) {
+      isolate->debugger()->SignalExceptionThrown(exception);
+    }
   }
   // Null object is a valid exception object.
   ThrowExceptionHelper(thread, exception,

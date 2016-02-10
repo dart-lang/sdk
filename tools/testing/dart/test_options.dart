@@ -50,7 +50,7 @@ class TestOptionsParser {
               'mode',
               'Mode in which to run the tests',
               ['-m', '--mode'],
-              ['all', 'debug', 'release'],
+              ['all', 'debug', 'release', 'product'],
               'debug'),
           new _TestOptionSpecification(
               'compiler',
@@ -692,7 +692,7 @@ Note: currently only implemented for dart2js.''',
       configuration['arch'] = 'ia32,x64,simarm,simarm64,simmips';
     }
     if (configuration['mode'] == 'all') {
-      configuration['mode'] = 'debug,release';
+      configuration['mode'] = 'debug,release,product';
     }
 
     if (configuration['report_in_json']) {
@@ -808,7 +808,7 @@ Note: currently only implemented for dart2js.''',
           new CompilerConfiguration(configuration).computeTimeoutMultiplier();
       int runtimeMultiplier =
           new RuntimeConfiguration(configuration).computeTimeoutMultiplier(
-              isDebug: configuration['mode'] == 'debug',
+              mode: configuration['mode'],
               isChecked: configuration['checked'],
               arch: configuration['arch']);
       configuration['timeout'] = 60 * compilerMulitiplier * runtimeMultiplier;

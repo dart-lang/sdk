@@ -1261,7 +1261,7 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   @override
-  Statement visitNullCheck(NullCheck node) {
+  Statement visitReceiverCheck(ReceiverCheck node) {
     inEmptyEnvironment(() {
       node.next = visitStatement(node.next);
     });

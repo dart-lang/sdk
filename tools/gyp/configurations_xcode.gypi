@@ -55,19 +55,6 @@
           'GCC_ENABLE_TRIGRAPHS': 'NO',
           'COMBINE_HIDPI_IMAGES': 'YES',
         },
-        'conditions': [
-          ['c_frame_pointers==1', {
-            'xcode_settings': {
-              'OTHER_CFLAGS': [
-                '-fno-omit-frame-pointer',
-                '-mno-omit-leaf-frame-pointer',
-              ],
-            },
-            'defines': [
-              'NATIVE_CODE_HAS_FRAME_POINTERS',
-            ],
-          }],
-        ],
       },
       'Dart_Macos_ia32_Base': {
         'abstract': 1,
@@ -92,9 +79,30 @@
       },
       'Dart_Macos_Debug': {
         'abstract': 1,
+        'xcode_settings': {
+          'OTHER_CFLAGS': [
+            '-fno-omit-frame-pointer',
+            '-mno-omit-leaf-frame-pointer',
+          ],
+        },
       },
       'Dart_Macos_Release': {
         'abstract': 1,
+        'xcode_settings': {
+          'OTHER_CFLAGS': [
+            '-fno-omit-frame-pointer',
+            '-mno-omit-leaf-frame-pointer',
+          ],
+        },
+      },
+      'Dart_Macos_Product': {
+        'abstract': 1,
+        'xcode_settings': {
+          'OTHER_CFLAGS': [
+            '-fomit-frame-pointer',
+            '-momit-leaf-frame-pointer',
+          ],
+        },
       },
     },
   },

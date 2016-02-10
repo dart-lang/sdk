@@ -212,7 +212,7 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass
 /// After lifting LetConts in the main pass above, parameter objects can have
 /// multiple bindings. Each reference implicitly refers to the binding that
 /// is currently in scope.
-/// 
+///
 /// This returns the IR to its normal form after redundant joins have been
 /// eliminated.
 class AlphaRenamer extends TrampolineRecursiveVisitor {

@@ -123,8 +123,7 @@ bool ClassFinalizer::ProcessPendingClasses() {
   ASSERT(isolate != NULL);
   HANDLESCOPE(thread);
   ObjectStore* object_store = isolate->object_store();
-  const Error& error =
-      Error::Handle(thread->zone(), object_store->sticky_error());
+  const Error& error = Error::Handle(thread->zone(), thread->sticky_error());
   if (!error.IsNull()) {
     return false;
   }
@@ -242,7 +241,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   // by Object::Init().
   if (!ProcessPendingClasses()) {
     // TODO(srdjan): Exit like a real VM instead.
-    const Error& err = Error::Handle(object_store->sticky_error());
+    const Error& err = Error::Handle(Thread::Current()->sticky_error());
     OS::PrintErr("Could not verify bootstrap classes : %s\n",
                  err.ToErrorCString());
     OS::Exit(255);
@@ -441,7 +440,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
       const TypeArguments& type_args = TypeArguments::Handle(type.arguments());
       Error& bound_error = Error::Handle();
       target_type ^= target_type.InstantiateFrom(
-          type_args, &bound_error, NULL, Heap::kOld);
+          type_args, &bound_error, NULL, NULL, Heap::kOld);
       if (bound_error.IsNull()) {
         target_type ^= FinalizeType(cls, target_type, kCanonicalize);
       } else {
@@ -625,13 +624,14 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
   TypeArguments& pending_arguments = TypeArguments::Handle(zone);
   const intptr_t num_pending_types = pending_types->length();
   for (intptr_t i = num_pending_types - 1; i >= 0; i--) {
-    const Type& pending_type = Type::Cast(pending_types->At(i));
+    const AbstractType& pending_type = pending_types->At(i);
     if (FLAG_trace_type_finalization) {
       THR_Print("  Comparing with pending type '%s': %s\n",
                 String::Handle(pending_type.Name()).ToCString(),
                 pending_type.ToCString());
     }
     if ((pending_type.raw() != type.raw()) &&
+        pending_type.IsType() &&
         (pending_type.type_class() == type_cls.raw())) {
       pending_arguments = pending_type.arguments();
       if (!pending_arguments.IsSubvectorEquivalent(arguments,
@@ -742,10 +742,10 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
         }
       }
       if (offset > 0) {
-        TrailPtr trail = new Trail(Z, 4);
-        Error& bound_error = Error::Handle();
+        TrailPtr instantiation_trail = new Trail(Z, 4);
+        Error& bound_error = Error::Handle(Z);
         FinalizeTypeArguments(type_class, full_arguments, offset,
-                              &bound_error, pending_types, trail);
+                              &bound_error, pending_types, instantiation_trail);
       }
       if (full_arguments.IsRaw(0, num_type_arguments)) {
         // The parameterized_type is raw. Set its argument vector to null, which
@@ -762,6 +762,11 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
   if (!type.IsFinalized()) {
     ASSERT(full_arguments.IsNull() ||
            !full_arguments.IsRaw(0, num_type_arguments));
+    if (FLAG_trace_type_finalization) {
+      THR_Print("Marking type '%s' as finalized for class '%s'\n",
+                String::Handle(Z, type.Name()).ToCString(),
+                String::Handle(Z, cls.Name()).ToCString());
+    }
     // Mark the type as finalized.
     type.SetIsFinalized();
     // Do not yet remove the type from the pending_types array.
@@ -809,7 +814,7 @@ void ClassFinalizer::FinalizeTypeArguments(
     intptr_t num_uninitialized_arguments,
     Error* bound_error,
     PendingTypes* pending_types,
-    TrailPtr trail) {
+    TrailPtr instantiation_trail) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   if (!cls.is_type_finalized()) {
     FinalizeTypeParameters(cls, pending_types);
@@ -869,7 +874,7 @@ void ClassFinalizer::FinalizeTypeArguments(
           }
           Error& error = Error::Handle();
           super_type_arg = super_type_arg.InstantiateFrom(
-              arguments, &error, trail, Heap::kOld);
+              arguments, &error, instantiation_trail, NULL, Heap::kOld);
           if (!error.IsNull()) {
             // InstantiateFrom does not report an error if the type is still
             // uninstantiated. Instead, it will return a new BoundedType so
@@ -896,7 +901,7 @@ void ClassFinalizer::FinalizeTypeArguments(
                 cls.NumTypeArguments() - cls.NumTypeParameters(),
                 bound_error,
                 pending_types,
-                trail);
+                instantiation_trail);
             Type::Cast(super_type_arg).SetIsFinalized();
           }
         }
@@ -904,7 +909,7 @@ void ClassFinalizer::FinalizeTypeArguments(
       arguments.SetTypeAt(i, super_type_arg);
     }
     FinalizeTypeArguments(super_class, arguments, super_offset,
-                          bound_error, pending_types, trail);
+                          bound_error, pending_types, instantiation_trail);
   }
 }
 
@@ -919,7 +924,7 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
                                              Error* bound_error) {
   if (!cls.is_type_finalized()) {
     FinalizeTypeParameters(cls);
-    FinalizeUpperBounds(cls);
+    FinalizeUpperBounds(cls, kFinalize);  // No canonicalization yet.
   }
   // Note that when finalizing a type, we need to verify the bounds in both
   // production mode and checked mode, because the finalized type may be written
@@ -971,8 +976,8 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
       if (declared_bound.IsInstantiated()) {
         instantiated_bound = declared_bound.raw();
       } else {
-        instantiated_bound =
-            declared_bound.InstantiateFrom(arguments, &error, NULL, Heap::kOld);
+        instantiated_bound = declared_bound.InstantiateFrom(
+            arguments, &error, NULL, NULL, Heap::kOld);
       }
       if (!instantiated_bound.IsFinalized()) {
         // The bound refers to type parameters, creating a cycle; postpone
@@ -1002,7 +1007,8 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
         // This may be called only if type needs to be finalized, therefore
         // seems OK to allocate finalized types in old space.
         if (!type_param.CheckBound(type_arg, instantiated_bound,
-                &error, Heap::kOld) && error.IsNull()) {
+                                   &error, NULL, Heap::kOld) &&
+            error.IsNull()) {
           // The bound cannot be checked at compile time; postpone to run time.
           type_arg = BoundedType::New(type_arg, instantiated_bound, type_param);
           arguments.SetTypeAt(offset + i, type_arg);
@@ -1023,31 +1029,46 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
 
 void ClassFinalizer::CheckTypeBounds(const Class& cls,
                                      const AbstractType& type) {
+  Zone* Z = Thread::Current()->zone();
   ASSERT(type.IsType() || type.IsFunctionType());
   ASSERT(type.IsFinalized());
-  TypeArguments& arguments = TypeArguments::Handle(type.arguments());
+  ASSERT(!type.IsCanonical());
+  TypeArguments& arguments = TypeArguments::Handle(Z, type.arguments());
   if (arguments.IsNull()) {
     return;
   }
-  const Class& type_class = Class::Handle(type.type_class());
-  Error& bound_error = Error::Handle();
+  if (FLAG_trace_type_finalization) {
+    THR_Print("Checking bounds of type '%s' for class '%s'\n",
+              String::Handle(Z, type.Name()).ToCString(),
+              String::Handle(Z, cls.Name()).ToCString());
+  }
+  const Class& type_class = Class::Handle(Z, type.type_class());
+  Error& bound_error = Error::Handle(Z);
   CheckTypeArgumentBounds(type_class, arguments, &bound_error);
-  type.set_arguments(arguments);
-  // If a bound error occurred, mark the type as malbounded.
-  // The bound error will be ignored in production mode.
-  if (!bound_error.IsNull()) {
-    // No compile-time error during finalization.
-    const String& type_name = String::Handle(type.UserVisibleName());
-    FinalizeMalboundedType(bound_error,
-                           Script::Handle(cls.script()),
-                           type,
-                           "type '%s' has an out of bound type argument",
-                           type_name.ToCString());
-    if (FLAG_trace_type_finalization) {
-      THR_Print("Marking type '%s' as malbounded: %s\n",
-                String::Handle(type.Name()).ToCString(),
-                bound_error.ToCString());
+  // CheckTypeArgumentBounds may have indirectly canonicalized this type.
+  if (!type.IsCanonical()) {
+    type.set_arguments(arguments);
+    // If a bound error occurred, mark the type as malbounded.
+    // The bound error will be ignored in production mode.
+    if (!bound_error.IsNull()) {
+      // No compile-time error during finalization.
+      const String& type_name = String::Handle(Z, type.UserVisibleName());
+      FinalizeMalboundedType(bound_error,
+                             Script::Handle(Z, cls.script()),
+                             type,
+                             "type '%s' has an out of bound type argument",
+                             type_name.ToCString());
+      if (FLAG_trace_type_finalization) {
+        THR_Print("Marking type '%s' as malbounded: %s\n",
+                  String::Handle(Z, type.Name()).ToCString(),
+                  bound_error.ToCString());
+      }
     }
+  }
+  if (FLAG_trace_type_finalization) {
+    THR_Print("Done checking bounds of type '%s': %s\n",
+              String::Handle(Z, type.Name()).ToCString(),
+              type.ToCString());
   }
 }
 
@@ -1063,7 +1084,11 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   if (type.IsFinalized()) {
     // Ensure type is canonical if canonicalization is requested, unless type is
     // malformed.
-    if ((finalization >= kCanonicalize) && !type.IsMalformed()) {
+    if ((finalization >= kCanonicalize) &&
+        !type.IsMalformed() &&
+        !type.IsCanonical() &&
+        (type.IsType() || type.IsFunctionType())) {
+      CheckTypeBounds(cls, type);
       return type.Canonicalize();
     }
     return type.raw();
@@ -1092,7 +1117,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   if (FLAG_trace_type_finalization) {
     THR_Print("Finalizing type '%s' for class '%s'\n",
               String::Handle(Z, resolved_type.Name()).ToCString(),
-              cls.ToCString());
+              String::Handle(Z, cls.Name()).ToCString());
   }
 
   if (resolved_type.IsTypeParameter()) {
@@ -1143,11 +1168,9 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   // bounds.
   if (is_root_type) {
     for (intptr_t i = pending_types->length() - 1; i >= 0; i--) {
-      CheckTypeBounds(cls, pending_types->At(i));
-      if (FLAG_trace_type_finalization && resolved_type.IsRecursive()) {
-        THR_Print("Done finalizing recursive type '%s': %s\n",
-                  String::Handle(Z, resolved_type.Name()).ToCString(),
-                  resolved_type.ToCString());
+      const AbstractType& type = pending_types->At(i);
+      if (!type.IsMalformed() && !type.IsCanonical()) {
+        CheckTypeBounds(cls, type);
       }
     }
   }
@@ -1179,13 +1202,14 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   }
 
   if (finalization >= kCanonicalize) {
-    if (FLAG_trace_type_finalization && resolved_type.IsRecursive()) {
-      AbstractType& recursive_type =
+    if (FLAG_trace_type_finalization) {
+      THR_Print("Canonicalizing type '%s'\n",
+                String::Handle(Z, resolved_type.Name()).ToCString());
+      AbstractType& canonical_type =
           AbstractType::Handle(Z, resolved_type.Canonicalize());
-      THR_Print("Done canonicalizing recursive type '%s': %s\n",
-                String::Handle(Z, recursive_type.Name()).ToCString(),
-                recursive_type.ToCString());
-      return recursive_type.raw();
+      THR_Print("Done canonicalizing type '%s'\n",
+                String::Handle(Z, canonical_type.Name()).ToCString());
+      return canonical_type.raw();
     }
     return resolved_type.Canonicalize();
   } else {
@@ -1309,7 +1333,8 @@ void ClassFinalizer::ResolveUpperBounds(const Class& cls) {
 
 
 // Finalize the upper bounds of the type parameters of class cls.
-void ClassFinalizer::FinalizeUpperBounds(const Class& cls) {
+void ClassFinalizer::FinalizeUpperBounds(const Class& cls,
+                                         FinalizationKind finalization) {
   const intptr_t num_type_params = cls.NumTypeParameters();
   TypeParameter& type_param = TypeParameter::Handle();
   AbstractType& bound = AbstractType::Handle();
@@ -1325,7 +1350,7 @@ void ClassFinalizer::FinalizeUpperBounds(const Class& cls) {
       // A bound involved in F-bounded quantification may form a cycle.
       continue;
     }
-    bound = FinalizeType(cls, bound, kCanonicalize);
+    bound = FinalizeType(cls, bound, finalization);
     type_param.set_bound(bound);
   }
 }
@@ -1767,7 +1792,7 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
               param.set_bound(param_bound);  // In case part of recursive type.
             }
             param_bound = param_bound.InstantiateFrom(
-                instantiator, &bound_error, NULL, Heap::kOld);
+                instantiator, &bound_error, NULL, NULL, Heap::kOld);
             // The instantiator contains only TypeParameter objects and no
             // BoundedType objects, so no bound error may occur.
             ASSERT(!param_bound.IsBoundedType());
@@ -2001,20 +2026,20 @@ void ClassFinalizer::ApplyMixinAppAlias(const Class& mixin_app_class,
         if (type.IsBoundedType()) {
           bounded_type = BoundedType::Cast(type).type();
           bounded_type = bounded_type.InstantiateFrom(
-              instantiator, &bound_error, NULL, Heap::kOld);
+              instantiator, &bound_error, NULL, NULL, Heap::kOld);
           // The instantiator contains only TypeParameter objects and no
           // BoundedType objects, so no bound error may occur.
           ASSERT(bound_error.IsNull());
           upper_bound = BoundedType::Cast(type).bound();
           upper_bound = upper_bound.InstantiateFrom(
-              instantiator, &bound_error, NULL, Heap::kOld);
+              instantiator, &bound_error, NULL, NULL, Heap::kOld);
           ASSERT(bound_error.IsNull());
           type_parameter = BoundedType::Cast(type).type_parameter();
           // The type parameter that declared the bound does not change.
           type = BoundedType::New(bounded_type, upper_bound, type_parameter);
         } else {
           type = type.InstantiateFrom(
-              instantiator, &bound_error, NULL, Heap::kOld);
+              instantiator, &bound_error, NULL, NULL, Heap::kOld);
           ASSERT(bound_error.IsNull());
         }
       }
@@ -2313,7 +2338,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   // unfinalized bounds. It is more efficient to finalize them early.
   // Finalize bounds even if running in production mode, so that a snapshot
   // contains them.
-  FinalizeUpperBounds(cls);
+  FinalizeUpperBounds(cls, kCanonicalizeWellFormed);
   // Finalize super type.
   AbstractType& super_type = AbstractType::Handle(cls.super_type());
   if (!super_type.IsNull()) {

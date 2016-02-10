@@ -12,6 +12,12 @@ main() {
   Expect.isTrue(const bool.fromEnvironment("dart.library.convert"));
   Expect.isTrue(const bool.fromEnvironment("dart.library.core"));
   Expect.isTrue(const bool.fromEnvironment("dart.library.typed_data"));
+  Expect.isTrue(const bool.fromEnvironment("dart.library.developer"));
+
+  // Internal libraries should not be exposed.
+  Expect.equals(NOT_PRESENT,
+      const bool.fromEnvironment("dart.library._internal",
+          defaultValue: NOT_PRESENT));
 
 
   bool hasHtmlSupport;
@@ -46,14 +52,12 @@ main() {
   hasIoSupport = false;  /// has_no_io_support: ok
 
   if (hasIoSupport != null) {
-    bool expectedResult = hasIoSupport ? true : NOT_PRESENT;
-
-    Expect.equals(expectedResult,
+    // Dartium overrides 'dart.library.io' to return "false".
+    // We don't test for the non-existance, but just make sure that
+    // dart.library.io is not set to true.
+    Expect.equals(hasIoSupport,
         const bool.fromEnvironment("dart.library.io",
-            defaultValue: NOT_PRESENT));
-    Expect.equals(expectedResult,
-        const bool.fromEnvironment("dart.library.developer",
-            defaultValue: NOT_PRESENT));
+            defaultValue: false));
   }
 
   bool hasMirrorSupport;

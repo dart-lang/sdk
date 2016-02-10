@@ -49,6 +49,8 @@ DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 DECLARE_FLAG(bool, precompilation);
 
 
+#ifndef PRODUCT
+
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
 
 
@@ -324,7 +326,7 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
   if (ServiceNeedsDebuggerEvent(event->type()) && event->IsPauseEvent()) {
     // If we were paused, notify the service that we have resumed.
     const Error& error =
-        Error::Handle(isolate_->object_store()->sticky_error());
+        Error::Handle(Thread::Current()->sticky_error());
     ASSERT(error.IsNull() || error.IsUnwindError());
 
     // Only send a resume event when the isolate is not unwinding.
@@ -365,10 +367,9 @@ RawError* Debugger::SignalIsolateInterrupted() {
   }
 
   // If any error occurred while in the debug message loop, return it here.
-  const Error& error =
-      Error::Handle(isolate_->object_store()->sticky_error());
+  const Error& error = Error::Handle(Thread::Current()->sticky_error());
   ASSERT(error.IsNull() || error.IsUnwindError());
-  isolate_->object_store()->clear_sticky_error();
+  Thread::Current()->clear_sticky_error();
   return error.raw();
 }
 
@@ -2129,7 +2130,7 @@ RawError* Debugger::OneTimeBreakAtEntry(const Function& target_function) {
     SetBreakpointAtEntry(target_function, true);
     return Error::null();
   } else {
-    return isolate_->object_store()->sticky_error();
+    return Thread::Current()->sticky_error();
   }
 }
 
@@ -2323,7 +2324,7 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
     args.SetAt(0, object);
     result = DartEntry::InvokeFunction(getter_func, args);
   } else {
-    result = isolate_->object_store()->sticky_error();
+    result = Thread::Current()->sticky_error();
   }
   ignore_breakpoints_ = saved_ignore_flag;
   return result.raw();
@@ -2357,7 +2358,7 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   if (setjmp(*jump.Set()) == 0) {
     result = DartEntry::InvokeFunction(getter_func, Object::empty_array());
   } else {
-    result = isolate_->object_store()->sticky_error();
+    result = Thread::Current()->sticky_error();
   }
   ignore_breakpoints_ = saved_ignore_flag;
   return result.raw();
@@ -2695,9 +2696,8 @@ RawError* Debugger::DebuggerStepCallback() {
   stack_trace_ = NULL;
 
   // If any error occurred while in the debug message loop, return it here.
-  const Error& error =
-      Error::Handle(isolate_->object_store()->sticky_error());
-  isolate_->object_store()->clear_sticky_error();
+  const Error& error = Error::Handle(Thread::Current()->sticky_error());
+  Thread::Current()->clear_sticky_error();
   return error.raw();
 }
 
@@ -2786,9 +2786,8 @@ RawError* Debugger::SignalBpReached() {
   }
 
   // If any error occurred while in the debug message loop, return it here.
-  const Error& error =
-      Error::Handle(isolate_->object_store()->sticky_error());
-  isolate_->object_store()->clear_sticky_error();
+  const Error& error = Error::Handle(Thread::Current()->sticky_error());
+  Thread::Current()->clear_sticky_error();
   return error.raw();
 }
 
@@ -3278,5 +3277,7 @@ void Debugger::RegisterCodeBreakpoint(CodeBreakpoint* bpt) {
   bpt->set_next(code_breakpoints_);
   code_breakpoints_ = bpt;
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

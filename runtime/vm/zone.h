@@ -13,8 +13,6 @@
 
 namespace dart {
 
-DECLARE_DEBUG_FLAG(bool, trace_zones);
-
 // Zones support very fast allocation of small chunks of memory. The
 // chunks cannot be deallocated individually, but instead zones
 // support deallocating all chunks in one fast operation.
@@ -86,11 +84,9 @@ class Zone {
   }
 
   ~Zone() {  // Delete all memory associated with the zone.
-#if defined(DEBUG)
     if (FLAG_trace_zones) {
       DumpZoneSizes();
     }
-#endif
     DeleteAll();
   }
 
@@ -134,10 +130,8 @@ class Zone {
 #endif
   }
 
-#if defined(DEBUG)
   // Dump the current allocated sizes in the zone object.
   void DumpZoneSizes();
-#endif
 
   // Overflow check (FATAL) for array length.
   template <class ElementType>
@@ -186,13 +180,11 @@ class StackZone : public StackResource {
  public:
   // Create an empty zone and set is at the current zone for the Thread.
   explicit StackZone(Thread* thread) : StackResource(thread), zone_() {
-#ifdef DEBUG
     if (FLAG_trace_zones) {
       OS::PrintErr("*** Starting a new Stack zone 0x%" Px "(0x%" Px ")\n",
                    reinterpret_cast<intptr_t>(this),
                    reinterpret_cast<intptr_t>(&zone_));
     }
-#endif
     zone_.Link(thread->zone());
     thread->set_zone(&zone_);
   }
@@ -201,13 +193,11 @@ class StackZone : public StackResource {
   ~StackZone() {
     ASSERT(thread()->zone() == &zone_);
     thread()->set_zone(zone_.previous_);
-#ifdef DEBUG
     if (FLAG_trace_zones) {
       OS::PrintErr("*** Deleting Stack zone 0x%" Px "(0x%" Px ")\n",
                    reinterpret_cast<intptr_t>(this),
                    reinterpret_cast<intptr_t>(&zone_));
     }
-#endif
   }
 
   // Compute the total size of this zone. This includes wasted space that is

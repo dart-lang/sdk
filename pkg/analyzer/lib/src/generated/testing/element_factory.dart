@@ -118,6 +118,9 @@ class ElementFactory {
     constructor.returnType = type;
     constructor.enclosingElement = definingClass;
     constructor.type = new FunctionTypeImpl(constructor);
+    if (!constructor.isSynthetic) {
+      constructor.constantInitializers = <ConstructorInitializer>[];
+    }
     return constructor;
   }
 
@@ -234,7 +237,7 @@ class ElementFactory {
 
   static FieldFormalParameterElementImpl fieldFormalParameter(
           Identifier name) =>
-      new FieldFormalParameterElementImpl(name);
+      new FieldFormalParameterElementImpl.forNode(name);
 
   static FunctionElementImpl functionElement(String functionName) =>
       functionElement4(functionName, null, null, null, null);

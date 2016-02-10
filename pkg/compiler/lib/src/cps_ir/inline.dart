@@ -246,15 +246,19 @@ class SizeVisitor extends TrampolineRecursiveVisitor {
   // Inlining a function incurs a cost equal to the number of primitives and
   // non-jump tail expressions.
   // TODO(kmillikin): Tune the size computation and size bound.
-  processLetPrim(LetPrim node) {
-    if (node.primitive is! Refinement) {
-      ++size;
-    }
-  }
+  processLetPrim(LetPrim node) => ++size;
   processLetMutable(LetMutable node) => ++size;
   processBranch(Branch node) => ++size;
   processThrow(Throw nose) => ++size;
   processRethrow(Rethrow node) => ++size;
+
+  // Discount primitives that do not generate code.
+  processRefinement(Refinement node) => --size;
+  processBoundsCheck(BoundsCheck node) {
+    if (node.hasNoChecks) {
+      --size;
+    }
+  }
 }
 
 class InliningVisitor extends TrampolineRecursiveVisitor {
@@ -405,6 +409,14 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       return null;
     }
 
+    if (isBlacklisted(target)) return null;
+
+    if (invoke.callingConvention == CallingConvention.OneShotIntercepted) {
+      // One-shot interceptor calls with a known target are only inserted on
+      // uncommon code paths, so they should not be inlined.
+      return null;
+    }
+
     Reference<Primitive> dartReceiver = invoke.dartReceiverReference;
     TypeMask abstractReceiver =
         dartReceiver == null ? null : abstractType(dartReceiver);
@@ -512,7 +524,9 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
                               CpsFragment fragment,
                               Primitive dartReceiver,
                               TypeMask abstractReceiver) {
-    Selector selector = invoke is InvokeMethod ? invoke.selector : null;
+    if (invoke is! InvokeMethod) return dartReceiver;
+    InvokeMethod invokeMethod = invoke;
+    Selector selector = invokeMethod.selector;
     if (typeSystem.isDefinitelyNum(abstractReceiver, allowNull: true)) {
       Primitive condition = _fragment.letPrim(
           new ApplyBuiltinOperator(BuiltinOperator.IsNotNumber,
@@ -520,15 +534,16 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
                                    invoke.sourceInformation));
       condition.type = typeSystem.boolType;
       Primitive check = _fragment.letPrim(
-          new NullCheck.guarded(
-              condition, dartReceiver, selector, invoke.sourceInformation));
+          new ReceiverCheck.nullCheck(dartReceiver, selector,
+              invoke.sourceInformation,
+              condition: condition));
       check.type = abstractReceiver.nonNullable();
       return check;
     }
 
     Primitive check = _fragment.letPrim(
-        new NullCheck(dartReceiver, invoke.sourceInformation,
-                      selector: selector));
+        new ReceiverCheck.nullCheck(dartReceiver, selector,
+            invoke.sourceInformation));
     check.type = abstractReceiver.nonNullable();
     return check;
   }
@@ -570,5 +585,17 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       if (generic.typeArguments.any((DartType t) => !t.isDynamic)) return null;
     }
     return tryInlining(node, node.target, null);
+  }
+
+  bool isBlacklisted(FunctionElement target) {
+    ClassElement enclosingClass = target.enclosingClass;
+    if (target.isOperator &&
+        (enclosingClass == backend.helpers.jsNumberClass ||
+         enclosingClass == backend.helpers.jsDoubleClass ||
+         enclosingClass == backend.helpers.jsIntClass)) {
+      // These should be handled by operator specialization.
+      return true;
+    }
+    return false;
   }
 }

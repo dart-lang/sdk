@@ -17,13 +17,63 @@ class BackgroundCompilationQueue;
 class Class;
 class Code;
 class CompilationWorkQueue;
+class FlowGraph;
 class Function;
+class IndirectGotoInstr;
 class Library;
 class ParsedFunction;
 class QueueElement;
 class RawInstance;
 class Script;
 class SequenceNode;
+
+
+class CompilationPipeline : public ZoneAllocated {
+ public:
+  static CompilationPipeline* New(Zone* zone, const Function& function);
+
+  virtual void ParseFunction(ParsedFunction* parsed_function) = 0;
+  virtual FlowGraph* BuildFlowGraph(
+      Zone* zone,
+      ParsedFunction* parsed_function,
+      const ZoneGrowableArray<const ICData*>& ic_data_array,
+      intptr_t osr_id) = 0;
+  virtual void FinalizeCompilation() = 0;
+  virtual ~CompilationPipeline() { }
+};
+
+
+class DartCompilationPipeline : public CompilationPipeline {
+ public:
+  virtual void ParseFunction(ParsedFunction* parsed_function);
+
+  virtual FlowGraph* BuildFlowGraph(
+      Zone* zone,
+      ParsedFunction* parsed_function,
+      const ZoneGrowableArray<const ICData*>& ic_data_array,
+      intptr_t osr_id);
+
+  virtual void FinalizeCompilation();
+};
+
+
+class IrregexpCompilationPipeline : public CompilationPipeline {
+ public:
+  IrregexpCompilationPipeline() : backtrack_goto_(NULL) { }
+
+  virtual void ParseFunction(ParsedFunction* parsed_function);
+
+  virtual FlowGraph* BuildFlowGraph(
+      Zone* zone,
+      ParsedFunction* parsed_function,
+      const ZoneGrowableArray<const ICData*>& ic_data_array,
+      intptr_t osr_id);
+
+  virtual void FinalizeCompilation();
+
+ private:
+  IndirectGotoInstr* backtrack_goto_;
+};
 
 
 class Compiler : public AllStatic {
@@ -82,7 +132,6 @@ class Compiler : public AllStatic {
   // The return value is either a RawInstance on success or a RawError
   // on compilation failure.
   static RawObject* EvaluateStaticInitializer(const Field& field);
-  static void CompileStaticInitializer(const Field& field);
 
   // Generates local var descriptors and sets it in 'code'. Do not call if the
   // local var descriptor already exists.
@@ -93,7 +142,11 @@ class Compiler : public AllStatic {
   // Returns Error::null() if there is no compilation error.
   static RawError* CompileAllFunctions(const Class& cls);
 
-  static bool always_optimize();
+  // Notify the compiler that background (optimized) compilation has failed
+  // because the mutator thread changed the state (e.g., deoptimization,
+  // deferred loading). The background compilation may retry to compile
+  // the same function later.
+  static void AbortBackgroundCompilation(intptr_t deopt_id);
 };
 
 

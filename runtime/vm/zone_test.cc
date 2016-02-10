@@ -10,8 +10,6 @@
 
 namespace dart {
 
-DECLARE_DEBUG_FLAG(bool, trace_zones);
-
 UNIT_TEST_CASE(AllocateZone) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;

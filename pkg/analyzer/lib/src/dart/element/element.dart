@@ -16,7 +16,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine, AnalysisException;
+    show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -1460,9 +1460,17 @@ class DefaultFieldFormalParameterElementImpl
   EvaluationResultImpl _result;
 
   /**
+   * Initialize a newly created parameter element to have the given [name] and
+   * [nameOffset].
+   */
+  DefaultFieldFormalParameterElementImpl(String name, int nameOffset)
+      : super(name, nameOffset);
+
+  /**
    * Initialize a newly created parameter element to have the given [name].
    */
-  DefaultFieldFormalParameterElementImpl(Identifier name) : super(name);
+  DefaultFieldFormalParameterElementImpl.forNode(Identifier name)
+      : super.forNode(name);
 
   @override
   DartObject get constantValue => _result.value;
@@ -1487,9 +1495,16 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   EvaluationResultImpl _result;
 
   /**
+   * Initialize a newly created parameter element to have the given [name] and
+   * [nameOffset].
+   */
+  DefaultParameterElementImpl(String name, int nameOffset)
+      : super(name, nameOffset);
+
+  /**
    * Initialize a newly created parameter element to have the given [name].
    */
-  DefaultParameterElementImpl(Identifier name) : super.forNode(name);
+  DefaultParameterElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
   DartObject get constantValue => _result.value;
@@ -1568,7 +1583,18 @@ class ElementAnnotationImpl implements ElementAnnotation {
    * The element representing the field, variable, or constructor being used as
    * an annotation.
    */
-  final Element element;
+  Element element;
+
+  /**
+   * The compliation unit in which this annotation appears.
+   */
+  final CompilationUnitElementImpl compilationUnit;
+
+  /**
+   * The AST of the annotation itself, cloned from the resolved AST for the
+   * source code.
+   */
+  Annotation annotationAst;
 
   /**
    * The result of evaluating this annotation as a compile-time constant
@@ -1578,14 +1604,16 @@ class ElementAnnotationImpl implements ElementAnnotation {
   EvaluationResultImpl evaluationResult;
 
   /**
-   * Initialize a newly created annotation. The given [element] is the element
-   * representing the field, variable, or constructor being used as an
-   * annotation.
+   * Initialize a newly created annotation. The given [compilationUnit] is the
+   * compilation unit in which the annotation appears.
    */
-  ElementAnnotationImpl(this.element);
+  ElementAnnotationImpl(this.compilationUnit);
 
   @override
   DartObject get constantValue => evaluationResult.value;
+
+  @override
+  AnalysisContext get context => compilationUnit.library.context;
 
   @override
   bool get isDeprecated {
@@ -1634,6 +1662,14 @@ class ElementAnnotationImpl implements ElementAnnotation {
     }
     return false;
   }
+
+  /**
+   * Get the library containing this annotation.
+   */
+  Source get librarySource => compilationUnit.librarySource;
+
+  @override
+  Source get source => compilationUnit.source;
 
   @override
   String toString() => '@$element';
@@ -1765,13 +1801,7 @@ abstract class ElementImpl implements Element {
     // TODO: We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
     if (_cachedHashCode == null) {
-      int hashIdentifier = identifier.hashCode;
-      Element enclosing = enclosingElement;
-      if (enclosing != null) {
-        _cachedHashCode = hashIdentifier + enclosing.hashCode;
-      } else {
-        _cachedHashCode = hashIdentifier;
-      }
+      _cachedHashCode = location.hashCode;
     }
     return _cachedHashCode;
   }
@@ -2524,16 +2554,17 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   FieldElement field;
 
   /**
-   * Initialize a newly created parameter element to have the given [name].
+   * Initialize a newly created parameter element to have the given [name] and
+   * [nameOffset].
    */
-  FieldFormalParameterElementImpl(Identifier name) : super.forNode(name);
+  FieldFormalParameterElementImpl(String name, int nameOffset)
+      : super(name, nameOffset);
 
   /**
-   * Initialize a newly created parameter element to have the given [name] and
-   * [offset].
+   * Initialize a newly created parameter element to have the given [name].
    */
-  FieldFormalParameterElementImpl.forNameAndOffset(String name, int nameOffset)
-      : super(name, nameOffset);
+  FieldFormalParameterElementImpl.forNode(Identifier name)
+      : super.forNode(name);
 
   @override
   bool get isInitializingFormal => true;
@@ -4095,7 +4126,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   /**
    * Initialize a newly created parameter element to have the given [name] and
-   * [offset].
+   * [nameOffset].
    */
   ParameterElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
@@ -4107,8 +4138,8 @@ class ParameterElementImpl extends VariableElementImpl
   /**
    * Creates a synthetic parameter with [name], [type] and [kind].
    */
-  factory ParameterElementImpl.synthetic(String name, DartType type,
-      ParameterKind kind) {
+  factory ParameterElementImpl.synthetic(
+      String name, DartType type, ParameterKind kind) {
     ParameterElementImpl element = new ParameterElementImpl(name, -1);
     element.type = type;
     element.synthetic = true;

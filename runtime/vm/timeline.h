@@ -344,6 +344,7 @@ class TimelineStream {
   const bool* globally_enabled_;
 };
 
+#ifndef PRODUCT
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, suffix, function)       \
   TimelineDurationScope tds(thread,                                            \
                             thread->isolate()->GetCompilerStream(),            \
@@ -355,7 +356,10 @@ class TimelineStream {
         "function",                                                            \
         function.ToLibNamePrefixedQualifiedCString());                         \
   }
-
+#else
+#define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, suffix, function)       \
+  do { } while (false);
+#endif  // !PRODUCT
 
 // See |TimelineDurationScope| and |TimelineBeginEndScope|.
 class TimelineEventScope : public StackResource {

@@ -293,9 +293,7 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
     }
   } else {
     OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
   }
 }
 
@@ -362,7 +360,6 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
                   DartUtils::NewString("_makeDatagram"),
                   kNumArgs,
                   dart_args);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
   Dart_SetReturnValue(args, result);
 }
 
@@ -566,9 +563,7 @@ void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
   } else if (new_socket == ServerSocket::kTemporaryFailure) {
     Dart_SetReturnValue(args, Dart_False());
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 

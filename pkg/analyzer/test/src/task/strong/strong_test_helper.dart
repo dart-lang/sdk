@@ -22,18 +22,113 @@ import 'package:logging/logging.dart';
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
 
-const String GREEN_COLOR = '\u001b[32m';
 
-const String NO_COLOR = '\u001b[0m';
+MemoryResourceProvider files;
+bool _checkCalled;
 
-const String _CYAN_COLOR = '\u001b[36m';
+initStrongModeTests() {
+  setUp(() {
+    AnalysisEngine.instance.processRequiredPlugins();
+    files = new MemoryResourceProvider();
+    _checkCalled = false;
+  });
 
-const String _MAGENTA_COLOR = '\u001b[35m';
+  tearDown(() {
+    // This is a sanity check, in case only addFile is called.
+    expect(_checkCalled, true, reason: 'must call check() method in test case');
+    files = null;
+  });
+}
 
-const String _RED_COLOR = '\u001b[31m';
+/// Adds a file using [addFile] and calls [check].
+void checkFile(String content) {
+  addFile(content);
+  check();
+}
+
+/// Adds a file to check. The file should contain:
+///
+///   * all expected failures are listed in the source code using comments
+///     immediately in front of the AST node that should contain the error.
+///
+///   * errors are formatted as a token `level:Type`, where `level` is the
+///     logging level were the error would be reported at, and `Type` is the
+///     concrete subclass of [StaticInfo] that denotes the error.
+///
+/// For example to check that an assignment produces a type error, you can
+/// create a file like:
+///
+///     addFile('''
+///       String x = /*severe:STATIC_TYPE_ERROR*/3;
+///     ''');
+///     check();
+///
+/// For a single file, you may also use [checkFile].
+void addFile(String content, {String name: '/main.dart'}) {
+  name = name.replaceFirst('^package:', '/packages/');
+  files.newFile(name, content);
+}
+
+/// Run the checker on a program, staring from '/main.dart', and verifies that
+/// errors/warnings/hints match the expected value.
+///
+/// See [addFile] for more information about how to encode expectations in
+/// the file text.
+void check() {
+  _checkCalled = true;
+
+  expect(files.getFile('/main.dart').exists, true,
+      reason: '`/main.dart` is missing');
+
+  var uriResolver = new TestUriResolver(files);
+  // Enable task model strong mode
+  var context = AnalysisEngine.instance.createAnalysisContext();
+  context.analysisOptions.strongMode = true;
+  context.analysisOptions.strongModeHints = true;
+  context.sourceFactory = new SourceFactory([
+    new MockDartSdk(_mockSdkSources, reportMissing: true).resolver,
+    uriResolver
+  ]);
+
+  // Run the checker on /main.dart.
+  Source mainSource = uriResolver.resolveAbsolute(new Uri.file('/main.dart'));
+  var initialLibrary =
+      context.resolveCompilationUnit2(mainSource, mainSource);
+
+  var collector = new _ErrorCollector();
+  var checker = new CodeChecker(
+      context.typeProvider, new StrongTypeSystemImpl(), collector,
+      hints: true);
+
+  // Extract expectations from the comments in the test files, and
+  // check that all errors we emit are included in the expected map.
+  var allLibraries = reachableLibraries(initialLibrary.element.library);
+  for (var lib in allLibraries) {
+    for (var unit in lib.units) {
+      var errors = <AnalysisError>[];
+      collector.errors = errors;
+
+      var source = unit.source;
+      if (source.uri.scheme == 'dart') continue;
+
+      var librarySource = context.getLibrariesContaining(source).single;
+      var resolved = context.resolveCompilationUnit2(source, librarySource);
+      var analyzerErrors = context
+          .getErrors(source)
+          .errors
+          .where((error) =>
+              error.errorCode.name.startsWith('STRONG_MODE_INFERRED_TYPE'))
+          .toList();
+      errors.addAll(analyzerErrors);
+      checker.visitCompilationUnit(resolved);
+
+      new _ExpectedErrorVisitor(errors).validate(resolved);
+    }
+  }
+}
 
 /// Sample mock SDK sources.
-final Map<String, String> mockSdkSources = {
+final Map<String, String> _mockSdkSources = {
   // The list of types below is derived from:
   //   * types we use via our smoke queries, including HtmlElement and
   //     types from `_typeHandlers` (deserialize.dart)
@@ -128,19 +223,6 @@ final Map<String, String> mockSdkSources = {
   '''
 };
 
-/// Returns an ANSII color escape sequence corresponding to [levelName]. Colors
-/// are defined for: severe, error, warning, or info. Returns null if the level
-/// name is not recognized.
-String colorOf(String levelName) {
-  levelName = levelName.toLowerCase();
-  if (levelName == 'shout' || levelName == 'severe' || levelName == 'error') {
-    return _RED_COLOR;
-  }
-  if (levelName == 'warning') return _MAGENTA_COLOR;
-  if (levelName == 'info') return _CYAN_COLOR;
-  return null;
-}
-
 SourceSpanWithContext createSpanHelper(
     LineInfo lineInfo, int start, int end, Source source, String content) {
   var startLoc = locationForOffset(lineInfo, source.uri, start);
@@ -193,93 +275,6 @@ List<LibraryElement> reachableLibraries(LibraryElement start) {
   }
   find(start);
   return results;
-}
-
-/// Run the checker on a program with files contents as indicated in
-/// [testFiles].
-///
-/// This function makes several assumptions to make it easier to describe error
-/// expectations:
-///
-///   * a file named `/main.dart` exists in [testFiles].
-///   * all expected failures are listed in the source code using comments
-///   immediately in front of the AST node that should contain the error.
-///   * errors are formatted as a token `level:Type`, where `level` is the
-///   logging level were the error would be reported at, and `Type` is the
-///   concrete subclass of [StaticInfo] that denotes the error.
-///
-/// For example, to check that an assignment produces a warning about a boxing
-/// conversion, you can describe the test as follows:
-///
-///     testChecker({
-///       '/main.dart': '''
-///           testMethod() {
-///             dynamic x = /*warning:Box*/3;
-///           }
-///       '''
-///     });
-///
-void testChecker(String name, Map<String, String> testFiles) {
-  test(name, () {
-    AnalysisEngine.instance.processRequiredPlugins();
-    expect(testFiles.containsKey('/main.dart'), isTrue,
-        reason: '`/main.dart` is missing in testFiles');
-
-    var provider = new MemoryResourceProvider();
-    testFiles.forEach((key, value) {
-      var scheme = 'package:';
-      if (key.startsWith(scheme)) {
-        key = '/packages/${key.substring(scheme.length)}';
-      }
-      provider.newFile(key, value);
-    });
-    var uriResolver = new TestUriResolver(provider);
-    // Enable task model strong mode
-    var context = AnalysisEngine.instance.createAnalysisContext();
-    context.analysisOptions.strongMode = true;
-    context.analysisOptions.strongModeHints = true;
-
-    context.sourceFactory = new SourceFactory([
-      new MockDartSdk(mockSdkSources, reportMissing: true).resolver,
-      uriResolver
-    ]);
-
-    // Run the checker on /main.dart.
-    Source mainSource = uriResolver.resolveAbsolute(new Uri.file('/main.dart'));
-    var initialLibrary =
-        context.resolveCompilationUnit2(mainSource, mainSource);
-
-    var collector = new _ErrorCollector();
-    var checker = new CodeChecker(
-        context.typeProvider, new StrongTypeSystemImpl(), collector,
-        hints: true);
-
-    // Extract expectations from the comments in the test files, and
-    // check that all errors we emit are included in the expected map.
-    var allLibraries = reachableLibraries(initialLibrary.element.library);
-    for (var lib in allLibraries) {
-      for (var unit in lib.units) {
-        var errors = <AnalysisError>[];
-        collector.errors = errors;
-
-        var source = unit.source;
-        if (source.uri.scheme == 'dart') continue;
-
-        var librarySource = context.getLibrariesContaining(source).single;
-        var resolved = context.resolveCompilationUnit2(source, librarySource);
-        var analyzerErrors = context
-            .getErrors(source)
-            .errors
-            .where((error) =>
-                error.errorCode.name.startsWith('STRONG_MODE_INFERRED_TYPE'))
-            .toList();
-        errors.addAll(analyzerErrors);
-        checker.visitCompilationUnit(resolved);
-
-        new _ExpectedErrorVisitor(errors).validate(resolved);
-      }
-    }
-  });
 }
 
 /// Dart SDK which contains a mock implementation of the SDK libraries. May be
@@ -485,15 +480,33 @@ class _ExpectedErrorVisitor extends UnifyingAstVisitor {
 
     var span = _createSpan(node.offset, node.length);
     var levelName = expected.level.name.toLowerCase();
-    var msg = span.message(expected.typeName, color: colorOf(levelName));
+    var msg = span.message(expected.typeName, color: _colorOf(levelName));
     fail('expected error was not reported at:\n\n$levelName: $msg');
   }
 
   String _formatActualError(AnalysisError actual) {
     var span = _createSpan(actual.offset, actual.length);
     var levelName = _actualErrorLevel(actual).name.toLowerCase();
-    var msg = span.message(actual.message, color: colorOf(levelName));
+    var msg = span.message(actual.message, color: _colorOf(levelName));
     return '$levelName: [${errorCodeName(actual.errorCode)}] $msg';
+  }
+
+  /// Returns an ANSII color escape sequence corresponding to [levelName].
+  ///
+  /// Colors are defined for: severe, error, warning, or info.
+  /// Returns null if the level name is not recognized.
+  String _colorOf(String levelName) {
+    const String CYAN_COLOR = '\u001b[36m';
+    const String MAGENTA_COLOR = '\u001b[35m';
+    const String RED_COLOR = '\u001b[31m';
+
+    levelName = levelName.toLowerCase();
+    if (levelName == 'shout' || levelName == 'severe' || levelName == 'error') {
+      return RED_COLOR;
+    }
+    if (levelName == 'warning') return MAGENTA_COLOR;
+    if (levelName == 'info') return CYAN_COLOR;
+    return null;
   }
 }
 

@@ -162,6 +162,11 @@ class Api : AllStatic {
     return (ClassId(handle) >= kInstanceCid);
   }
 
+  // Returns true if the handle holds an Error.
+  static bool IsError(Dart_Handle handle) {
+    return RawObject::IsErrorClassId(ClassId(handle));
+  }
+
   // Returns the value of a Smi.
   static intptr_t SmiValue(Dart_Handle handle) {
     // TODO(turnidge): Assumes RawObject* is at offset zero.  Fix.

@@ -2,6 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Defines AST visitors that support useful patterns for visiting the nodes in
+ * an [AST structure](ast.dart).
+ *
+ * Dart is an evolving language, and the AST structure must evolved with it.
+ * When the AST structure changes, the visitor interface will sometimes change
+ * as well. If it is desirable to get a compilation error when the structure of
+ * the AST has been modified, then you should consider implementing the
+ * interface [AstVisitor] directly. Doing so will ensure that changes that
+ * introduce new classes of nodes will be flagged. (Of course, not all changes
+ * to the AST structure require the addition of a new class of node, and hence
+ * cannot be caught this way.)
+ *
+ * But if automatic detection of these kinds of changes is not necessary then
+ * you will probably want to extend one of the classes in this library because
+ * doing so will simplify the task of writing your visitor and guard against
+ * future changes to the AST structure. For example, the [RecursiveAstVisitor]
+ * automates the process of visiting all of the descendants of a node.
+ */
 library analyzer.dart.ast.visitor;
 
 import 'dart:collection';

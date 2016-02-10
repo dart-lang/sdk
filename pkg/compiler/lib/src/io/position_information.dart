@@ -10,11 +10,13 @@ library dart2js.source_information.position;
 import '../common.dart';
 import '../elements/elements.dart' show
     AstElement,
+    FieldElement,
     LocalElement;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
 import '../js/js_debug.dart';
 import '../tree/tree.dart' show
+    FunctionExpression,
     Node,
     Send;
 
@@ -147,9 +149,11 @@ class SourceMappedMarker extends SourceInformation {
 class PositionSourceInformationBuilder implements SourceInformationBuilder {
   final SourceFile sourceFile;
   final String name;
+  final AstElement element;
 
   PositionSourceInformationBuilder(AstElement element)
-      : sourceFile = element.implementation.compilationUnit.script.file,
+      : this.element = element,
+        sourceFile = element.implementation.compilationUnit.script.file,
         name = computeElementNameForSourceMaps(element);
 
   SourceInformation buildDeclaration(AstElement element) {
@@ -239,6 +243,23 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
 
   @override
   SourceInformation buildAssignment(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildVariableDeclaration() {
+    if (element.hasNode) {
+      Node node = element.node;
+      if (node is FunctionExpression) {
+        return buildBegin(node.body);
+      } else if (element.isField) {
+        FieldElement field = element;
+        if (field.initializer != null) {
+          return buildBegin(field.initializer);
+        }
+      }
+      // TODO(johnniwinther): Are there other cases?
+    }
+    return null;
+  }
 
   @override
   SourceInformationBuilder forContext(AstElement element) {
@@ -409,15 +430,75 @@ class PositionSourceInformationProcessor implements SourceInformationProcessor {
   }
 }
 
+/// Visitor that computes [SourceInformation] for a [js.Node] using information
+/// attached to the node itself or alternatively from child nodes.
+class NodeSourceInformation extends js.BaseVisitor<SourceInformation> {
+  const NodeSourceInformation();
+
+  SourceInformation visit(js.Node node) => node?.accept(this);
+
+  @override
+  SourceInformation visitNode(js.Node node) => node.sourceInformation;
+
+  @override
+  SourceInformation visitExpressionStatement(js.ExpressionStatement node) {
+    if (node.sourceInformation != null) {
+      return node.sourceInformation;
+    }
+    return visit(node.expression);
+  }
+
+  @override
+  SourceInformation visitVariableDeclarationList(
+      js.VariableDeclarationList node) {
+    if (node.sourceInformation != null) {
+      return node.sourceInformation;
+    }
+    for (js.Node declaration in node.declarations) {
+      SourceInformation sourceInformation = visit(declaration);
+      if (sourceInformation != null) {
+        return sourceInformation;
+      }
+    }
+    return null;
+  }
+
+  @override
+  SourceInformation visitVariableInitialization(
+      js.VariableInitialization node) {
+    if (node.sourceInformation != null) {
+      return node.sourceInformation;
+    }
+    return visit(node.value);
+  }
+
+  @override
+  SourceInformation visitAssignment(js.Assignment node) {
+    if (node.sourceInformation != null) {
+      return node.sourceInformation;
+    }
+    return visit(node.value);
+  }
+
+}
+
+/// Mixin that add support for computing [SourceInformation] for a [js.Node].
+class NodeToSourceInformationMixin {
+  SourceInformation computeSourceInformation(js.Node node) {
+    return const NodeSourceInformation().visit(node);
+  }
+}
+
 /// [TraceListener] that register [SourceLocation]s with a [SourceMapper].
-class PositionTraceListener extends TraceListener {
+class PositionTraceListener extends TraceListener with
+    NodeToSourceInformationMixin {
   final SourceMapper sourceMapper;
 
   PositionTraceListener(this.sourceMapper);
 
   @override
   void onStep(js.Node node, Offset offset, StepKind kind) {
-    SourceInformation sourceInformation = node.sourceInformation;
+    SourceInformation sourceInformation = computeSourceInformation(node);
     if (sourceInformation == null) return;
 
     SourcePositionKind sourcePositionKind = SourcePositionKind.START;
@@ -752,6 +833,8 @@ class JavaScriptTracer extends js.BaseVisitor  {
       notifyStep(parent,
           getOffsetForNode(parent, offsetPosition),
           kind);
+      // The [offsetPosition] should only be used by the first subexpression.
+      offsetPosition = null;
     }
     steps = oldSteps;
   }
@@ -782,6 +865,7 @@ class JavaScriptTracer extends js.BaseVisitor  {
     int callOffset = getSyntaxOffset(
         positionNode, kind: callPosition.codePositionKind);
     if (offsetPosition == null) {
+      // Use the call offset if this is not the first subexpression.
       offsetPosition = callOffset;
     }
     Offset offset = getOffsetForNode(positionNode, offsetPosition);
@@ -794,8 +878,12 @@ class JavaScriptTracer extends js.BaseVisitor  {
   visitNew(js.New node) {
     visit(node.target);
     visitList(node.arguments);
+    if (offsetPosition == null) {
+      // Use the syntax offset if this is not the first subexpression.
+      offsetPosition = getSyntaxOffset(node);
+    }
     notifyStep(
-        node, getOffsetForNode(node, getSyntaxOffset(node)), StepKind.NEW);
+        node, getOffsetForNode(node, offsetPosition), StepKind.NEW);
     steps.add(node);
     offsetPosition = null;
   }
@@ -885,7 +973,7 @@ class JavaScriptTracer extends js.BaseVisitor  {
   visitWhile(js.While node) {
     statementOffset = getSyntaxOffset(node);
     if (node.condition != null) {
-      visitSubexpression(node, node.condition, getSyntaxOffset(node.condition),
+      visitSubexpression(node, node.condition, getSyntaxOffset(node),
           StepKind.WHILE_CONDITION);
     }
     statementOffset = null;
@@ -928,6 +1016,8 @@ class JavaScriptTracer extends js.BaseVisitor  {
   @override
   visitThrow(js.Throw node) {
     statementOffset = getSyntaxOffset(node);
+    // Do not use [offsetPosition] for the subexpression.
+    offsetPosition = null;
     visit(node.expression);
     notifyStep(
         node, getOffsetForNode(node, getSyntaxOffset(node)), StepKind.THROW);
@@ -1099,7 +1189,7 @@ class Coverage {
     StringBuffer sb = new StringBuffer();
     int total = _nodesWithInfoCount + _nodesWithoutInfoCount;
     if (total > 0) {
-      sb.write(_nodesWithoutInfoCount);
+      sb.write(_nodesWithInfoCount);
       sb.write('/');
       sb.write(total);
       sb.write(' (');
@@ -1121,7 +1211,14 @@ class Coverage {
       sb.write('\nNodes without info (');
       sb.write(_nodesWithoutInfoCount);
       sb.write(') by runtime type:');
-      _nodesWithoutInfoCountByType.forEach((Type type, int count) {
+      List<Type> types = _nodesWithoutInfoCountByType.keys.toList();
+      types.sort((a, b) {
+        return -_nodesWithoutInfoCountByType[a].compareTo(
+            _nodesWithoutInfoCountByType[b]);
+      });
+
+      types.forEach((Type type) {
+        int count = _nodesWithoutInfoCountByType[type];
         sb.write('\n ');
         sb.write(count);
         sb.write(' ');
@@ -1140,14 +1237,14 @@ class Coverage {
 }
 
 /// [TraceListener] that registers [onStep] callbacks with [coverage].
-class CoverageListener extends TraceListener {
+class CoverageListener extends TraceListener with NodeToSourceInformationMixin {
   final Coverage coverage;
 
   CoverageListener(this.coverage);
 
   @override
   void onStep(js.Node node, Offset offset, StepKind kind) {
-    SourceInformation sourceInformation = node.sourceInformation;
+    SourceInformation sourceInformation = computeSourceInformation(node);
     if (sourceInformation != null) {
       coverage.registerNodeWithInfo(node);
     } else {

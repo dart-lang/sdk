@@ -562,6 +562,9 @@ class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
 
 
 void GCMarker::ProcessObjectIdTable(Isolate* isolate) {
+  if (!FLAG_support_service) {
+    return;
+  }
   ObjectIdRingClearPointerVisitor visitor(isolate);
   ObjectIdRing* ring = isolate->object_id_ring();
   ASSERT(ring != NULL);

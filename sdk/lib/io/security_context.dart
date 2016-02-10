@@ -18,6 +18,14 @@ part of dart.io;
  * "-----BEGIN CERTIFICATE -----" and "-----END CERTIFICATE-----".
  * Distinguished encoding rules (DER) is a canonical binary serialization
  * of ASN1 objects into an octet string.
+ *
+ * [usePrivateKey], [setTrustedCertificates], [useCertificateChain], and
+ * [setClientAuthorities] are deprecated. They have been renamed
+ * [usePrivateKeySync], [setTrustedCertificatesSync], [useCertificateChainSync],
+ * and [setClientAuthoritiesSync] to reflect the fact that they do blocking
+ * IO. Async-friendly versions have been added in [usePrivateKeyBytes],
+ * [setTrustedCertificatesBytes], [useCertificateChainBytes], and
+ * [setClientAuthoritiesBytes].
  */
 abstract class SecurityContext {
   external factory SecurityContext();
@@ -41,11 +49,15 @@ abstract class SecurityContext {
    * [keyFile] is a PEM file containing an encrypted
    * private key, encrypted with [password].  An unencrypted file can be
    * used, but this is not usual.
-   *
-   * The function returns a [Future] that completes when the key has been added
-   * to the context.
    */
-  Future usePrivateKey(String keyFile, {String password});
+  void usePrivateKeySync(String keyFile, {String password});
+
+  /**
+   * [usePrivateKey] is deprecated. Use [usePrivateKeySync] or
+   * [usePrivateKeyBytes].
+   */
+  @deprecated
+  void usePrivateKey(String keyFile, {String password});
 
   /**
    * Sets the private key for a server certificate or client certificate.
@@ -62,20 +74,26 @@ abstract class SecurityContext {
    * Sets the set of trusted X509 certificates used by [SecureSocket]
    * client connections, when connecting to a secure server.
    *
-   * There are two ways to set a set of trusted certificates, with a single
-   * PEM file, or with a directory containing individual PEM files for
-   * certificates.
-   *
-   * [file] is an optional PEM file containing X509 certificates, usually
+   * [file] is the path to a PEM file containing X509 certificates, usually
    * root certificates from certificate authorities.
-   *
-   * [directory] is an optional directory containing PEM files.  The directory
-   * must also have filesystem links added, which link extra filenames based
-   * on the hash of a certificate's distinguished name (DN) to the file
-   * containing that certificate. OpenSSL contains a tool called c_rehash
-   * to create these links in a directory.
    */
-  void setTrustedCertificates({String file, String directory});
+  void setTrustedCertificatesSync(String file);
+
+  /**
+   * [setTrustedCertificates] is deprecated. Use [setTrustedCertificatesSync]
+   * or [setTrustedCertificatesBytes].
+   */
+  @deprecated
+  void setTrustedCertificates(String file);
+
+  /**
+   * Sets the set of trusted X509 certificates used by [SecureSocket]
+   * client connections, when connecting to a secure server.
+   *
+   * [file] is the contents of a PEM file containing X509 certificates, usually
+   * root certificates from certificate authorities.
+   */
+  void setTrustedCertificatesBytes(List<int> certBytes);
 
   /**
    * Sets the chain of X509 certificates served by [SecureServer]
@@ -85,11 +103,15 @@ abstract class SecurityContext {
    * the root authority and intermediate authorities forming the signed
    * chain to the server certificate, and ending with the server certificate.
    * The private key for the server certificate is set by [usePrivateKey].
-   *
-   * The function returns a [Future] that completes when the certificate chain
-   * has been set.
    */
-  Future useCertificateChain(String file);
+  void useCertificateChainSync(String file);
+
+  /**
+   * [useCertificateChain] is deprecated. Use [useCertificateChainSync]
+   * or [useCertificateChainBytes].
+   */
+  @deprecated
+  void useCertificateChain({String file, String directory});
 
   /**
    * Sets the chain of X509 certificates served by [SecureServer]
@@ -109,7 +131,23 @@ abstract class SecurityContext {
    * client.  [file] is a PEM file containing the accepted signing authority
    * certificates - the authority names are extracted from the certificates.
    */
+  void setClientAuthoritiesSync(String file);
+
+  /**
+   * [setClientAuthorities] is deprecated. Use [setClientAuthoritiesSync]
+   * or [setClientAuthoritiesBytes].
+   */
+  @deprecated
   void setClientAuthorities(String file);
+
+  /**
+   * Sets the list of authority names that a [SecureServer] will advertise
+   * as accepted, when requesting a client certificate from a connecting
+   * client.  [authCertBytes] is the contents of a PEM file containing the
+   * accepted signing authority certificates - the authority names are extracted
+   * from the certificates.
+   */
+  void setClientAuthoritiesBytes(List<int> authCertBytes);
 
   /**
    * Sets the list of application-level protocols supported by a client

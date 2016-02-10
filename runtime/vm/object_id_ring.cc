@@ -9,6 +9,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 void ObjectIdRing::Init(Isolate* isolate, int32_t capacity) {
   ObjectIdRing* ring = new ObjectIdRing(isolate, capacity);
   isolate->set_object_id_ring(ring);
@@ -252,5 +254,7 @@ bool ObjectIdRing::IsValidId(int32_t id) {
   ASSERT(wrapped_ == false);
   return IsValidContiguous(id);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

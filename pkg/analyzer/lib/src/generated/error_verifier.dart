@@ -4642,6 +4642,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       stringMembersArrayListSet.add(newStrMember);
     }
     List<String> stringMembersArray = new List.from(stringMembersArrayListSet);
+    stringMembersArray.sort();
     AnalysisErrorWithProperties analysisError;
     if (stringMembersArray.length == 1) {
       analysisError = _errorReporter.newErrorWithProperties(

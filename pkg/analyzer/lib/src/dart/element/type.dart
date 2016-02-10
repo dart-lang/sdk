@@ -11,7 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine, AnalysisException;
+    show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart' show Keyword;
 import 'package:analyzer/src/generated/type_system.dart';
@@ -29,12 +29,7 @@ class BottomTypeImpl extends TypeImpl {
   /**
    * The unique instance of this class.
    */
-  static BottomTypeImpl _INSTANCE = new BottomTypeImpl._();
-
-  /**
-   * Return the unique instance of this class.
-   */
-  static BottomTypeImpl get instance => _INSTANCE;
+  static final BottomTypeImpl instance = new BottomTypeImpl._();
 
   /**
    * Prevent the creation of instances of this class.
@@ -136,12 +131,7 @@ class DynamicTypeImpl extends TypeImpl {
   /**
    * The unique instance of this class.
    */
-  static DynamicTypeImpl _INSTANCE = new DynamicTypeImpl._();
-
-  /**
-   * Return the unique instance of this class.
-   */
-  static DynamicTypeImpl get instance => _INSTANCE;
+  static final DynamicTypeImpl instance = new DynamicTypeImpl._();
 
   /**
    * Prevent the creation of instances of this class.
@@ -155,7 +145,7 @@ class DynamicTypeImpl extends TypeImpl {
    * Constructor used by [CircularTypeImpl].
    */
   DynamicTypeImpl._circular()
-      : super(_INSTANCE.element, Keyword.DYNAMIC.syntax);
+      : super(instance.element, Keyword.DYNAMIC.syntax);
 
   @override
   int get hashCode => 1;
@@ -378,28 +368,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   Map<String, DartType> get namedParameterTypes {
-    LinkedHashMap<String, DartType> namedParameterTypes =
-        new LinkedHashMap<String, DartType>();
-    List<ParameterElement> parameters = baseParameters;
-    if (parameters.length == 0) {
-      return namedParameterTypes;
-    }
-    List<DartType> typeParameters =
-        TypeParameterTypeImpl.getTypes(this.typeParameters);
-    for (ParameterElement parameter in parameters) {
-      if (parameter.parameterKind == ParameterKind.NAMED) {
-        DartType type = parameter.type;
-        if (typeArguments.length != 0 &&
-            typeArguments.length == typeParameters.length) {
-          type = (type as TypeImpl)
-              .substitute2(typeArguments, typeParameters, newPrune);
-        } else {
-          type = (type as TypeImpl).pruned(newPrune);
-        }
-        namedParameterTypes[parameter.name] = type;
-      }
-    }
-    return namedParameterTypes;
+    Map<String, DartType> types = <String, DartType>{};
+    _forEachParameterType(ParameterKind.NAMED, (name, type) {
+      types[name] = type;
+    });
+    return types;
   }
 
   /**
@@ -425,26 +398,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   List<DartType> get normalParameterTypes {
-    List<ParameterElement> parameters = baseParameters;
-    if (parameters.length == 0) {
-      return DartType.EMPTY_LIST;
-    }
-    List<DartType> typeParameters =
-        TypeParameterTypeImpl.getTypes(this.typeParameters);
-    List<DartType> types = new List<DartType>();
-    for (ParameterElement parameter in parameters) {
-      if (parameter.parameterKind == ParameterKind.REQUIRED) {
-        DartType type = parameter.type;
-        if (typeArguments.length != 0 &&
-            typeArguments.length == typeParameters.length) {
-          type = (type as TypeImpl)
-              .substitute2(typeArguments, typeParameters, newPrune);
-        } else {
-          type = (type as TypeImpl).pruned(newPrune);
-        }
-        types.add(type);
-      }
-    }
+    List<DartType> types = <DartType>[];
+    _forEachParameterType(ParameterKind.REQUIRED, (name, type) {
+      types.add(type);
+    });
     return types;
   }
 
@@ -458,26 +415,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   List<DartType> get optionalParameterTypes {
-    List<ParameterElement> parameters = baseParameters;
-    if (parameters.length == 0) {
-      return DartType.EMPTY_LIST;
-    }
-    List<DartType> typeParameters =
-        TypeParameterTypeImpl.getTypes(this.typeParameters);
-    List<DartType> types = new List<DartType>();
-    for (ParameterElement parameter in parameters) {
-      if (parameter.parameterKind == ParameterKind.POSITIONAL) {
-        DartType type = parameter.type;
-        if (typeArguments.length != 0 &&
-            typeArguments.length == typeParameters.length) {
-          type = (type as TypeImpl)
-              .substitute2(typeArguments, typeParameters, newPrune);
-        } else {
-          type = (type as TypeImpl).pruned(newPrune);
-        }
-        types.add(type);
-      }
-    }
+    List<DartType> types = <DartType>[];
+    _forEachParameterType(ParameterKind.POSITIONAL, (name, type) {
+      types.add(type);
+    });
     return types;
   }
 
@@ -776,225 +717,135 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       [bool withDynamic = false, Set<Element> visitedElements]) {
     // Note: visitedElements is only used for breaking recursion in the type
     // hierarchy; we don't use it when recursing into the function type.
+    bool relation = _trivialFunctionRelation(type);
+    if (relation != null) {
+      return relation;
+    }
 
-    // trivial base cases
-    if (type == null) {
-      return false;
-    } else if (identical(this, type) ||
-        type.isDynamic ||
-        type.isDartCoreFunction ||
-        type.isObject) {
-      return true;
-    } else if (type is! FunctionType) {
-      return false;
-    } else if (this == type) {
-      return true;
-    }
-    FunctionType t = this;
-    FunctionType s = type as FunctionType;
-    List<DartType> tTypes = t.normalParameterTypes;
-    List<DartType> tOpTypes = t.optionalParameterTypes;
-    List<DartType> sTypes = s.normalParameterTypes;
-    List<DartType> sOpTypes = s.optionalParameterTypes;
-    // If one function has positional and the other has named parameters,
-    // return false.
-    if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) ||
-        (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
-      return false;
-    }
-    // named parameters case
-    if (t.namedParameterTypes.length > 0) {
-      // check that the number of required parameters are equal, and check that
-      // every t_i is more specific than every s_i
-      if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
-        return false;
-      } else if (t.normalParameterTypes.length > 0) {
-        for (int i = 0; i < tTypes.length; i++) {
-          if (!(tTypes[i] as TypeImpl)
-              .isMoreSpecificThan(sTypes[i], withDynamic)) {
-            return false;
-          }
-        }
-      }
-      Map<String, DartType> namedTypesT = t.namedParameterTypes;
-      Map<String, DartType> namedTypesS = s.namedParameterTypes;
-      // if k >= m is false, return false: the passed function type has more
-      // named parameter types than this
-      if (namedTypesT.length < namedTypesS.length) {
-        return false;
-      }
-      // Loop through each element in S verifying that T has a matching
-      // parameter name and that the corresponding type is more specific then
-      // the type in S.
-      for (String keyS in namedTypesS.keys) {
-        DartType typeT = namedTypesT[keyS];
-        if (typeT == null) {
-          return false;
-        }
-        if (!(typeT as TypeImpl)
-            .isMoreSpecificThan(namedTypesS[keyS], withDynamic)) {
-          return false;
-        }
-      }
-    } else if (s.namedParameterTypes.length > 0) {
-      return false;
-    } else {
-      // positional parameter case
-      int tArgLength = tTypes.length + tOpTypes.length;
-      int sArgLength = sTypes.length + sOpTypes.length;
-      // Check that the total number of parameters in t is greater than or equal
-      // to the number of parameters in s and that the number of required
-      // parameters in s is greater than or equal to the number of required
-      // parameters in t.
-      if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
-        return false;
-      }
-      if (tOpTypes.length == 0 && sOpTypes.length == 0) {
-        // No positional arguments, don't copy contents to new array
-        for (int i = 0; i < sTypes.length; i++) {
-          if (!(tTypes[i] as TypeImpl)
-              .isMoreSpecificThan(sTypes[i], withDynamic)) {
-            return false;
-          }
-        }
-      } else {
-        // Else, we do have positional parameters, copy required and positional
-        // parameter types into arrays to do the compare (for loop below).
-        List<DartType> tAllTypes = new List<DartType>(sArgLength);
-        for (int i = 0; i < tTypes.length; i++) {
-          tAllTypes[i] = tTypes[i];
-        }
-        for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
-          tAllTypes[i] = tOpTypes[j];
-        }
-        List<DartType> sAllTypes = new List<DartType>(sArgLength);
-        for (int i = 0; i < sTypes.length; i++) {
-          sAllTypes[i] = sTypes[i];
-        }
-        for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
-          sAllTypes[i] = sOpTypes[j];
-        }
-        for (int i = 0; i < sAllTypes.length; i++) {
-          if (!(tAllTypes[i] as TypeImpl)
-              .isMoreSpecificThan(sAllTypes[i], withDynamic)) {
-            return false;
-          }
-        }
-      }
-    }
-    DartType tRetType = t.returnType;
-    DartType sRetType = s.returnType;
-    return sRetType.isVoid ||
-        (tRetType as TypeImpl).isMoreSpecificThan(sRetType, withDynamic);
+    return structuralCompare(this, type,
+        (TypeImpl t, TypeImpl s) => t.isMoreSpecificThan(s, withDynamic));
   }
 
   @override
   bool isSubtypeOf(DartType type) {
-    // trivial base cases
-    if (type == null) {
+    bool relation = _trivialFunctionRelation(type);
+    if (relation != null) {
+      return relation;
+    }
+
+    return structuralCompare(
+        this, type, (TypeImpl t, TypeImpl s) => t.isAssignableTo(s));
+  }
+
+  /**
+   * Tests if [other] meets any of the easy relation cases for [isSubtypeOf]
+   * and [isMoreSpecificThan].
+   *
+   * Returns `true` if the relation is known to hold, `false` if it isn't, or
+   * `null` if it's unknown and a deeper structural comparison is needed.
+   */
+  bool _trivialFunctionRelation(DartType other) {
+    // Trivial base cases.
+    if (other == null) {
       return false;
-    } else if (identical(this, type) ||
-        type.isDynamic ||
-        type.isDartCoreFunction ||
-        type.isObject) {
+    } else if (identical(this, other) ||
+        other.isDynamic ||
+        other.isDartCoreFunction ||
+        other.isObject) {
       return true;
-    } else if (type is! FunctionType) {
+    } else if (other is! FunctionType) {
       return false;
-    } else if (this == type) {
+    } else if (this == other) {
       return true;
     }
-    FunctionType t = this;
-    FunctionType s = type as FunctionType;
-    List<DartType> tTypes = t.normalParameterTypes;
-    List<DartType> tOpTypes = t.optionalParameterTypes;
-    List<DartType> sTypes = s.normalParameterTypes;
-    List<DartType> sOpTypes = s.optionalParameterTypes;
-    // If one function has positional and the other has named parameters,
-    // return false.
-    if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) ||
-        (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
-      return false;
-    }
-    // named parameters case
-    if (t.namedParameterTypes.length > 0) {
-      // check that the number of required parameters are equal,
-      // and check that every t_i is assignable to every s_i
-      if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
-        return false;
-      } else if (t.normalParameterTypes.length > 0) {
-        for (int i = 0; i < tTypes.length; i++) {
-          if (!(tTypes[i] as TypeImpl).isAssignableTo(sTypes[i])) {
-            return false;
-          }
-        }
-      }
-      Map<String, DartType> namedTypesT = t.namedParameterTypes;
-      Map<String, DartType> namedTypesS = s.namedParameterTypes;
-      // if k >= m is false, return false: the passed function type has more
-      // named parameter types than this
-      if (namedTypesT.length < namedTypesS.length) {
-        return false;
-      }
-      // Loop through each element in S verifying that T has a matching
-      // parameter name and that the corresponding type is assignable to the
-      // type in S.
-      for (String keyS in namedTypesS.keys) {
-        DartType typeT = namedTypesT[keyS];
-        if (typeT == null) {
-          return false;
-        }
-        if (!(typeT as TypeImpl).isAssignableTo(namedTypesS[keyS])) {
-          return false;
-        }
-      }
-    } else if (s.namedParameterTypes.length > 0) {
-      return false;
-    } else {
-      // positional parameter case
-      int tArgLength = tTypes.length + tOpTypes.length;
-      int sArgLength = sTypes.length + sOpTypes.length;
-      // Check that the total number of parameters in t is greater than or
-      // equal to the number of parameters in s and that the number of
-      // required parameters in s is greater than or equal to the number of
-      // required parameters in t.
-      if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
-        return false;
-      }
-      if (tOpTypes.length == 0 && sOpTypes.length == 0) {
-        // No positional arguments, don't copy contents to new array
-        for (int i = 0; i < sTypes.length; i++) {
-          if (!(tTypes[i] as TypeImpl).isAssignableTo(sTypes[i])) {
-            return false;
-          }
-        }
-      } else {
-        // Else, we do have positional parameters, copy required and
-        // positional parameter types into arrays to do the compare (for loop
-        // below).
-        List<DartType> tAllTypes = new List<DartType>(sArgLength);
-        for (int i = 0; i < tTypes.length; i++) {
-          tAllTypes[i] = tTypes[i];
-        }
-        for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
-          tAllTypes[i] = tOpTypes[j];
-        }
-        List<DartType> sAllTypes = new List<DartType>(sArgLength);
-        for (int i = 0; i < sTypes.length; i++) {
-          sAllTypes[i] = sTypes[i];
-        }
-        for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
-          sAllTypes[i] = sOpTypes[j];
-        }
-        for (int i = 0; i < sAllTypes.length; i++) {
-          if (!(tAllTypes[i] as TypeImpl).isAssignableTo(sAllTypes[i])) {
-            return false;
-          }
-        }
-      }
-    }
-    DartType tRetType = t.returnType;
+
+    return null;
+  }
+
+  /**
+   * Compares two function types [t] and [s] to see if their corresponding
+   * parameter types match [parameterRelation] and their return types match
+   * [returnRelation].
+   *
+   * Used for the various relations on function types which have the same
+   * structural rules for handling optional parameters and arity, but use their
+   * own relation for comparing corresponding paramaters or return types.
+   *
+   * If [returnRelation] is omitted, uses [parameterRelation] for both.
+   */
+  static bool structuralCompare(FunctionType t, FunctionType s,
+      bool parameterRelation(DartType t, DartType s),
+      [bool returnRelation(DartType t, DartType s)]) {
+    // Test the return types.
+    returnRelation ??= parameterRelation;
     DartType sRetType = s.returnType;
-    return sRetType.isVoid || (tRetType as TypeImpl).isAssignableTo(sRetType);
+    if (!sRetType.isVoid && !returnRelation(t.returnType, sRetType)) {
+      return false;
+    }
+
+    // Test the parameter types.
+    List<DartType> tRequired = t.normalParameterTypes;
+    List<DartType> sRequired = s.normalParameterTypes;
+    List<DartType> tOptional = t.optionalParameterTypes;
+    List<DartType> sOptional = s.optionalParameterTypes;
+    Map<String, DartType> tNamed = t.namedParameterTypes;
+    Map<String, DartType> sNamed = s.namedParameterTypes;
+
+    // If one function has positional and the other has named parameters,
+    // they don't relate.
+    if (sOptional.isNotEmpty && tNamed.isNotEmpty ||
+        tOptional.isNotEmpty && sNamed.isNotEmpty) {
+      return false;
+    }
+
+    // If the passed function includes more named parameters than we do, we
+    // don't relate.
+    if (tNamed.length < sNamed.length) {
+      return false;
+    }
+
+    // For each named parameter in s, make sure we have a corresponding one
+    // that relates.
+    for (String key in sNamed.keys) {
+      var tParamType = tNamed[key];
+      if (tParamType == null) {
+        return false;
+      }
+      if (!parameterRelation(tParamType, sNamed[key])) {
+        return false;
+      }
+    }
+
+    // Make sure all of the positional parameters (both required and optional)
+    // relate to each other.
+    List<DartType> tPositional = tRequired;
+    List<DartType> sPositional = sRequired;
+
+    if (tOptional.isNotEmpty) {
+      tPositional = tPositional.toList()..addAll(tOptional);
+    }
+
+    if (sOptional.isNotEmpty) {
+      sPositional = sPositional.toList()..addAll(sOptional);
+    }
+
+    // Check that s has enough required parameters.
+    if (sRequired.length < tRequired.length) {
+      return false;
+    }
+
+    // Check that s does not include more positional parameters than we do.
+    if (tPositional.length < sPositional.length) {
+      return false;
+    }
+
+    for (int i = 0; i < sPositional.length; i++) {
+      if (!parameterRelation(tPositional[i], sPositional[i])) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   @override
@@ -1109,6 +960,33 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     return true;
   }
+
+  /**
+   * Invokes [callback] for each parameter of [kind] with the parameter's [name]
+   * and [type] after any type parameters have been applied.
+   */
+  void _forEachParameterType(
+      ParameterKind kind, callback(String name, DartType type)) {
+    if (baseParameters.isEmpty) {
+      return;
+    }
+
+    List<DartType> typeParameters =
+        TypeParameterTypeImpl.getTypes(this.typeParameters);
+    for (ParameterElement parameter in baseParameters) {
+      if (parameter.parameterKind == kind) {
+        TypeImpl type = parameter.type;
+        if (typeArguments.length != 0 &&
+            typeArguments.length == typeParameters.length) {
+          type = type.substitute2(typeArguments, typeParameters, newPrune);
+        } else {
+          type = type.pruned(newPrune);
+        }
+
+        callback(parameter.name, type);
+      }
+    }
+  }
 }
 
 /**
@@ -1134,7 +1012,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   /**
    * Initialize a newly created type to be declared by the given [element],
-   * with the given [name] and [typeArguents].
+   * with the given [name] and [typeArguments].
    */
   InterfaceTypeImpl.elementWithNameAndArgs(
       ClassElement element, String name, List<DartType> typeArguments)
@@ -2472,12 +2350,7 @@ class UndefinedTypeImpl extends TypeImpl {
   /**
    * The unique instance of this class.
    */
-  static UndefinedTypeImpl _INSTANCE = new UndefinedTypeImpl._();
-
-  /**
-   * Return the unique instance of this class.
-   */
-  static UndefinedTypeImpl get instance => _INSTANCE;
+  static final UndefinedTypeImpl instance = new UndefinedTypeImpl._();
 
   /**
    * Prevent the creation of instances of this class.
@@ -2547,17 +2420,12 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   /**
    * The unique instance of this class.
    */
-  static VoidTypeImpl _INSTANCE = new VoidTypeImpl();
-
-  /**
-   * Return the unique instance of this class.
-   */
-  static VoidTypeImpl get instance => _INSTANCE;
+  static final VoidTypeImpl instance = new VoidTypeImpl._();
 
   /**
    * Prevent the creation of instances of this class.
    */
-  VoidTypeImpl() : super(null, Keyword.VOID.syntax);
+  VoidTypeImpl._() : super(null, Keyword.VOID.syntax);
 
   @override
   int get hashCode => 2;

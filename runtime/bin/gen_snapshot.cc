@@ -256,12 +256,8 @@ static Dart_Handle ResolveUriInWorkingDirectory(const char* script_uri) {
 
     // Run DartUtils::ResolveUriInWorkingDirectory in context of uri resolver
     // isolate.
-    Dart_Handle builtin_lib =
-        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    CHECK_RESULT(builtin_lib);
-
     Dart_Handle result = DartUtils::ResolveUriInWorkingDirectory(
-        DartUtils::NewString(script_uri), builtin_lib);
+        DartUtils::NewString(script_uri));
     if (Dart_IsError(result)) {
       failed = true;
       result_string = strdup(Dart_GetError(result));
@@ -285,12 +281,8 @@ static Dart_Handle FilePathFromUri(const char* script_uri) {
     UriResolverIsolateScope scope;
 
     // Run DartUtils::FilePathFromUri in context of uri resolver isolate.
-    Dart_Handle builtin_lib =
-        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    CHECK_RESULT(builtin_lib);
-
     Dart_Handle result = DartUtils::FilePathFromUri(
-        DartUtils::NewString(script_uri), builtin_lib);
+        DartUtils::NewString(script_uri));
     if (Dart_IsError(result)) {
       failed = true;
       result_string = strdup(Dart_GetError(result));
@@ -314,14 +306,8 @@ static Dart_Handle ResolveUri(const char* library_uri, const char* uri) {
     UriResolverIsolateScope scope;
 
     // Run DartUtils::ResolveUri in context of uri resolver isolate.
-    Dart_Handle builtin_lib =
-        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    CHECK_RESULT(builtin_lib);
-
     Dart_Handle result = DartUtils::ResolveUri(
-        DartUtils::NewString(library_uri),
-        DartUtils::NewString(uri),
-        builtin_lib);
+        DartUtils::NewString(library_uri), DartUtils::NewString(uri));
     if (Dart_IsError(result)) {
       failed = true;
       result_string = strdup(Dart_GetError(result));
@@ -959,12 +945,15 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
                                          Dart_IsolateFlags* flags,
                                          void* data,
                                          char** error) {
+  IsolateData* isolate_data = new IsolateData(script_uri,
+                                              package_root,
+                                              package_config);
   Dart_Isolate isolate = NULL;
   isolate = Dart_CreateIsolate(script_uri,
                                main,
                                NULL,
                                NULL,
-                               NULL,
+                               isolate_data,
                                error);
 
   if (isolate == NULL) {
@@ -1022,9 +1011,6 @@ int main(int argc, char** argv) {
   EventHandler::Start();
 
   vm_options.AddArgument("--load_deferred_eagerly");
-  // Workaround until issue 21620 is fixed.
-  // (https://github.com/dart-lang/sdk/issues/21620)
-  vm_options.AddArgument("--no-concurrent_sweep");
 
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
@@ -1058,8 +1044,9 @@ int main(int argc, char** argv) {
     return 255;
   }
 
+  IsolateData* isolate_data = new IsolateData(NULL, NULL, NULL);
   Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, NULL, NULL, NULL, &error);
+      NULL, NULL, NULL, NULL, isolate_data, &error);
   if (isolate == NULL) {
     Log::PrintErr("Error: %s", error);
     free(error);
@@ -1081,24 +1068,21 @@ int main(int argc, char** argv) {
 
     SetupForUriResolution();
 
-    // Get handle to builtin library.
-    Dart_Handle builtin_lib =
-        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    CHECK_RESULT(builtin_lib);
-
-    // Ensure that we mark all libraries as loaded.
-    result = Dart_FinalizeLoading(false);
+    // Prepare builtin and its dependent libraries for use to resolve URIs.
+    // Set up various closures, e.g: printing, timers etc.
+    // Set up 'package root' for URI resolution.
+    result = DartUtils::PrepareForScriptLoading(false, false);
     CHECK_RESULT(result);
 
-    // Prepare for script loading by setting up the 'print' and 'timer'
-    // closures and setting up 'package root' for URI resolution.
-    result =
-        DartUtils::PrepareForScriptLoading(package_root,
-                                           NULL,
-                                           false,
-                                           false,
-                                           builtin_lib);
+    // Set up the load port provided by the service isolate so that we can
+    // load scripts.
+    result = DartUtils::SetupServiceLoadPort();
     CHECK_RESULT(result);
+
+    // Setup package root if specified.
+    result = DartUtils::SetupPackageRoot(package_root, NULL);
+    CHECK_RESULT(result);
+
     Dart_ExitScope();
     Dart_ExitIsolate();
 
@@ -1106,7 +1090,9 @@ int main(int argc, char** argv) {
 
     // Now we create an isolate into which we load all the code that needs to
     // be in the snapshot.
-    if (Dart_CreateIsolate(NULL, NULL, NULL, NULL, NULL, &error) == NULL) {
+    isolate_data = new IsolateData(NULL, NULL, NULL);
+    if (Dart_CreateIsolate(
+            NULL, NULL, NULL, NULL, isolate_data, &error) == NULL) {
       fprintf(stderr, "%s", error);
       free(error);
       exit(255);

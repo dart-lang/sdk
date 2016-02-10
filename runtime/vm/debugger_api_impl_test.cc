@@ -15,6 +15,8 @@ DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_osr);
 
+#ifndef PRODUCT
+
 static bool breakpoint_hit = false;
 static int  breakpoint_hit_counter = 0;
 static Dart_Handle script_lib = NULL;
@@ -2326,5 +2328,7 @@ TEST_CASE(Debug_ScriptGetTokenInfo_MultiLineInterpolation) {
       " null, 9, 29, 1]",
       tokens_cstr);
 }
+
+#endif
 
 }  // namespace dart

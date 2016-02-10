@@ -678,7 +678,7 @@ class Printer implements NodeVisitor {
 
   @override
   visitAssignment(Assignment assignment) {
-    visitNestedExpression(assignment.leftHandSide, LEFT_HAND_SIDE,
+    visitNestedExpression(assignment.leftHandSide, CALL,
                           newInForInit: inForInit,
                           newAtStatementBegin: atStatementBegin);
     if (assignment.value != null) {
@@ -719,7 +719,7 @@ class Printer implements NodeVisitor {
   @override
   visitNew(New node) {
     out("new ");
-    visitNestedExpression(node.target, CALL,
+    visitNestedExpression(node.target, LEFT_HAND_SIDE,
                           newInForInit: inForInit, newAtStatementBegin: false);
     out("(");
     visitCommaSeparated(node.arguments, ASSIGNMENT,
@@ -729,7 +729,7 @@ class Printer implements NodeVisitor {
 
   @override
   visitCall(Call call) {
-    visitNestedExpression(call.target, LEFT_HAND_SIDE,
+    visitNestedExpression(call.target, CALL,
                           newInForInit: inForInit,
                           newAtStatementBegin: atStatementBegin);
     out("(");
@@ -872,7 +872,7 @@ class Printer implements NodeVisitor {
 
   @override
   void visitPostfix(Postfix postfix) {
-    visitNestedExpression(postfix.argument, LEFT_HAND_SIDE,
+    visitNestedExpression(postfix.argument, CALL,
                           newInForInit: inForInit,
                           newAtStatementBegin: atStatementBegin);
     out(postfix.op);

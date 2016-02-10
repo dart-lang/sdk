@@ -13,6 +13,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 UNIT_TEST_CASE(Metric_Simple) {
   Dart_CreateIsolate(
       NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
@@ -68,5 +70,7 @@ UNIT_TEST_CASE(Metric_OnDemand) {
   }
   Dart_ShutdownIsolate();
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

@@ -60,6 +60,9 @@ void CodeCoverage::CompileAndAdd(const Function& function,
                                  const JSONArray& hits_or_sites,
                                  const GrowableArray<intptr_t>& pos_to_line,
                                  bool as_call_sites) {
+  if (!FLAG_support_coverage) {
+    return;
+  }
   // If the function should not be compiled for coverage analysis, then just
   // skip this method.
   // TODO(iposva): Maybe we should skip synthesized methods in general too.
@@ -146,6 +149,9 @@ void CodeCoverage::PrintClass(const Library& lib,
                               const JSONArray& jsarr,
                               CoverageFilter* filter,
                               bool as_call_sites) {
+  if (!FLAG_support_coverage) {
+    return;
+  }
   Thread* thread = Thread::Current();
   if (cls.EnsureIsFinalized(thread) != Error::null()) {
     // Only classes that have been finalized do have a meaningful list of
@@ -240,6 +246,9 @@ void CodeCoverage::PrintClass(const Library& lib,
 
 
 void CodeCoverage::Write(Thread* thread) {
+  if (!FLAG_support_coverage) {
+    return;
+  }
   if (FLAG_coverage_dir == NULL) {
     return;
   }
@@ -272,6 +281,9 @@ void CodeCoverage::PrintJSON(Thread* thread,
                              JSONStream* stream,
                              CoverageFilter* filter,
                              bool as_call_sites) {
+  if (!FLAG_support_coverage) {
+    return;
+  }
   CoverageFilterAll default_filter;
   if (filter == NULL) {
     filter = &default_filter;

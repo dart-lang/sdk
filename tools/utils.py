@@ -215,6 +215,7 @@ def ListDartArgCallback(option, value, parser):
 BUILD_MODES = {
   'debug': 'Debug',
   'release': 'Release',
+  'product': 'Product',
 }
 
 

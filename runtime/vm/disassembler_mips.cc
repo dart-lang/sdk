@@ -10,6 +10,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 class MIPSDecoder : public ValueObject {
  public:
   MIPSDecoder(char* buffer, size_t buffer_size)
@@ -773,6 +775,8 @@ void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
     *out_instr_len = Instr::kInstrSize;
   }
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart
 

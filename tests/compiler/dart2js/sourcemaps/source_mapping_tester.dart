@@ -95,12 +95,12 @@ Future<TestResult> runTests(
     List<String> options,
     {bool verbose: true}) async {
   SourceMapProcessor processor = new SourceMapProcessor(filename);
-  List<SourceMapInfo> infoList = await processor.process(
+  SourceMaps sourceMaps = await processor.process(
       ['--csp', '--disable-inlining']
       ..addAll(options),
       verbose: verbose);
   TestResult result = new TestResult(config, filename, processor);
-  for (SourceMapInfo info in infoList) {
+  for (SourceMapInfo info in sourceMaps.elementSourceMapInfos.values) {
     if (info.element.library.isPlatformLibrary) continue;
     result.userInfoList.add(info);
     Iterable<CodePoint> missingCodePoints =

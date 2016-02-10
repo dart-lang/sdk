@@ -5,6 +5,7 @@
 #include "vm/disassembler.h"
 
 #include "vm/assembler.h"
+#include "vm/deopt_instructions.h"
 #include "vm/globals.h"
 #include "vm/il_printer.h"
 #include "vm/instructions.h"
@@ -15,6 +16,10 @@
 
 
 namespace dart {
+
+#ifndef PRODUCT
+
+DECLARE_FLAG(bool, trace_inlining_intervals);
 
 void DisassembleToStdout::ConsumeInstruction(const Code& code,
                                              char* hex_buffer,
@@ -178,5 +183,148 @@ void Disassembler::Disassemble(uword start,
     pc += instruction_length;
   }
 }
+
+
+void Disassembler::DisassembleCode(const Function& function, bool optimized) {
+  const char* function_fullname = function.ToFullyQualifiedCString();
+  THR_Print("Code for %sfunction '%s' {\n",
+            optimized ? "optimized " : "",
+            function_fullname);
+  const Code& code = Code::Handle(function.CurrentCode());
+  code.Disassemble();
+  THR_Print("}\n");
+
+  THR_Print("Pointer offsets for function: {\n");
+  // Pointer offsets are stored in descending order.
+  Object& obj = Object::Handle();
+  for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
+    const uword addr = code.GetPointerOffsetAt(i) + code.EntryPoint();
+    obj = *reinterpret_cast<RawObject**>(addr);
+    THR_Print(" %d : %#" Px " '%s'\n",
+              code.GetPointerOffsetAt(i), addr, obj.ToCString());
+  }
+  THR_Print("}\n");
+
+  THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
+  PcDescriptors::PrintHeaderString();
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(code.pc_descriptors());
+  THR_Print("%s}\n", descriptors.ToCString());
+
+  uword start = Instructions::Handle(code.instructions()).EntryPoint();
+  const Array& deopt_table = Array::Handle(code.deopt_info_array());
+  intptr_t deopt_table_length = DeoptTable::GetLength(deopt_table);
+  if (deopt_table_length > 0) {
+    THR_Print("DeoptInfo: {\n");
+    Smi& offset = Smi::Handle();
+    TypedData& info = TypedData::Handle();
+    Smi& reason_and_flags = Smi::Handle();
+    for (intptr_t i = 0; i < deopt_table_length; ++i) {
+      DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason_and_flags);
+      const intptr_t reason =
+          DeoptTable::ReasonField::decode(reason_and_flags.Value());
+      ASSERT((0 <= reason) && (reason < ICData::kDeoptNumReasons));
+      THR_Print("%4" Pd ": 0x%" Px "  %s  (%s)\n",
+                i,
+                start + offset.Value(),
+                DeoptInfo::ToCString(deopt_table, info),
+                DeoptReasonToCString(
+                    static_cast<ICData::DeoptReasonId>(reason)));
+    }
+    THR_Print("}\n");
+  }
+
+  const ObjectPool& object_pool = ObjectPool::Handle(code.GetObjectPool());
+  object_pool.DebugPrint();
+
+  THR_Print("Stackmaps for function '%s' {\n", function_fullname);
+  if (code.stackmaps() != Array::null()) {
+    const Array& stackmap_table = Array::Handle(code.stackmaps());
+    Stackmap& map = Stackmap::Handle();
+    for (intptr_t i = 0; i < stackmap_table.Length(); ++i) {
+      map ^= stackmap_table.At(i);
+      THR_Print("%s\n", map.ToCString());
+    }
+  }
+  THR_Print("}\n");
+
+  THR_Print("Variable Descriptors for function '%s' {\n",
+            function_fullname);
+  const LocalVarDescriptors& var_descriptors =
+      LocalVarDescriptors::Handle(code.GetLocalVarDescriptors());
+  intptr_t var_desc_length =
+      var_descriptors.IsNull() ? 0 : var_descriptors.Length();
+  String& var_name = String::Handle();
+  for (intptr_t i = 0; i < var_desc_length; i++) {
+    var_name = var_descriptors.GetName(i);
+    RawLocalVarDescriptors::VarInfo var_info;
+    var_descriptors.GetInfo(i, &var_info);
+    const int8_t kind = var_info.kind();
+    if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
+      THR_Print("  saved current CTX reg offset %d\n", var_info.index());
+    } else {
+      if (kind == RawLocalVarDescriptors::kContextLevel) {
+        THR_Print("  context level %d scope %d", var_info.index(),
+            var_info.scope_id);
+      } else if (kind == RawLocalVarDescriptors::kStackVar) {
+        THR_Print("  stack var '%s' offset %d",
+          var_name.ToCString(), var_info.index());
+      } else {
+        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+        THR_Print("  context var '%s' level %d offset %d",
+            var_name.ToCString(), var_info.scope_id, var_info.index());
+      }
+      THR_Print(" (valid %s-%s)\n", var_info.begin_pos.ToCString(),
+                                    var_info.end_pos.ToCString());
+    }
+  }
+  THR_Print("}\n");
+
+  THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
+  const ExceptionHandlers& handlers =
+        ExceptionHandlers::Handle(code.exception_handlers());
+  THR_Print("%s}\n", handlers.ToCString());
+
+  {
+    THR_Print("Static call target functions {\n");
+    const Array& table = Array::Handle(code.static_calls_target_table());
+    Smi& offset = Smi::Handle();
+    Function& function = Function::Handle();
+    Code& code = Code::Handle();
+    for (intptr_t i = 0; i < table.Length();
+        i += Code::kSCallTableEntryLength) {
+      offset ^= table.At(i + Code::kSCallTableOffsetEntry);
+      function ^= table.At(i + Code::kSCallTableFunctionEntry);
+      code ^= table.At(i + Code::kSCallTableCodeEntry);
+      if (function.IsNull()) {
+        Class& cls = Class::Handle();
+        cls ^= code.owner();
+        if (cls.IsNull()) {
+          const String& code_name = String::Handle(code.Name());
+          THR_Print("  0x%" Px ": %s, %p\n",
+              start + offset.Value(),
+              code_name.ToCString(),
+              code.raw());
+        } else {
+          THR_Print("  0x%" Px ": allocation stub for %s, %p\n",
+              start + offset.Value(),
+              cls.ToCString(),
+              code.raw());
+        }
+      } else {
+        THR_Print("  0x%" Px ": %s, %p\n",
+            start + offset.Value(),
+            function.ToFullyQualifiedCString(),
+            code.raw());
+      }
+    }
+    THR_Print("}\n");
+  }
+  if (optimized && FLAG_trace_inlining_intervals) {
+    code.DumpInlinedIntervals();
+  }
+}
+
+#endif  // !PRODUCT
 
 }  // namespace dart

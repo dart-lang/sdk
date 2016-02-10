@@ -365,15 +365,6 @@ class ObjectStore {
     return error_listeners_;
   }
 
-  RawError* sticky_error() const { return sticky_error_; }
-  void set_sticky_error(const Error& value) {
-    // TODO(asiva): Move sticky_error_ into thread specific area.
-    ASSERT(Thread::Current()->IsMutatorThread());
-    ASSERT(!value.IsNull());
-    sticky_error_ = value.raw();
-  }
-  void clear_sticky_error() { sticky_error_ = Error::null(); }
-
   RawContext* empty_context() const { return empty_context_; }
   void set_empty_context(const Context& value) {
     empty_context_ = value.raw();
@@ -488,7 +479,7 @@ class ObjectStore {
 
   // Called to initialize objects required by the vm but which invoke
   // dart code.  If an error occurs then false is returned and error
-  // information is stored in sticky_error().
+  // information is stored in Thread::sticky_error().
   bool PreallocateObjects();
 
   void InitKnownObjects();
@@ -563,7 +554,6 @@ class ObjectStore {
   RawGrowableObjectArray* resume_capabilities_;
   RawGrowableObjectArray* exit_listeners_;
   RawGrowableObjectArray* error_listeners_;
-  RawError* sticky_error_;
   RawContext* empty_context_;
   RawInstance* stack_overflow_;
   RawInstance* out_of_memory_;

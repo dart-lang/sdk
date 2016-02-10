@@ -26,9 +26,11 @@ class J extends D implements I {}
 class K {}
 class M extends K with A {}
 
+class N extends H with I {}
+
 main() {
   print([new A(), new B(), new C(), new D(), new E(), new F(), new G(),
-      new H(), new I(), new J(), new K(), new M()]);
+      new H(), new I(), new J(), new K(), new M(), new N()]);
 }
 """;
 
@@ -79,6 +81,7 @@ main() {
     check('A!<', 'E!<');
     check('A!<', 'H!<');
     check('D!<', 'I!<');
+    check('H!<', 'I!*', areDisjoint: false);
 
     // Subclass with subtype
     check('A!<', 'A!*', areDisjoint: false);

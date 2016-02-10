@@ -96,6 +96,7 @@ main(args) {
   runTest('constructor_12.dart', update: true);
   runTest('constructor_13.dart', update: true);
   runTest('constructor_14.dart', update: true);
+  runTest('constructor_15.dart', update: true);
   runTest('constructor_2.dart', update: true);
   runTest('constructor_3.dart', update: true);
   runTest('constructor_4.dart', update: true);

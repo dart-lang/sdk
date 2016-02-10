@@ -14,6 +14,7 @@
 #include "vm/handles.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/message_handler.h"
 #include "vm/metrics.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -36,6 +37,8 @@ namespace dart {
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, trace_time_all);
+DECLARE_FLAG(bool, pause_isolates_on_start);
+DECLARE_FLAG(bool, pause_isolates_on_exit);
 DEFINE_FLAG(bool, keep_code, false,
             "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, shutdown, true, "Do a clean shutdown of the VM");
@@ -89,16 +92,22 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   OS::InitOnce();
   VirtualMemory::InitOnce();
   OSThread::InitOnce();
-  Timeline::InitOnce();
+  if (FLAG_support_timeline) {
+    Timeline::InitOnce();
+  }
+#ifndef PRODUCT
   TimelineDurationScope tds(Timeline::GetVMStream(),
                             "Dart::InitOnce");
+#endif
   Isolate::InitOnce();
   PortMap::InitOnce();
   FreeListElement::InitOnce();
   Api::InitOnce();
   CodeObservers::InitOnce();
-  ThreadInterrupter::InitOnce();
-  Profiler::InitOnce();
+  if (FLAG_profiler) {
+    ThreadInterrupter::InitOnce();
+    Profiler::InitOnce();
+  }
   SemiSpace::InitOnce();
   Metric::InitOnce();
   StoreBuffer::InitOnce();
@@ -197,7 +206,10 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Isolate::SetCreateCallback(create);
   Isolate::SetShutdownCallback(shutdown);
 
-  Service::SetGetServiceAssetsCallback(get_service_assets);
+  if (FLAG_support_service) {
+    Service::SetGetServiceAssetsCallback(get_service_assets);
+  }
+
   ServiceIsolate::Run();
 
   return NULL;
@@ -222,8 +234,11 @@ const char* Dart::Cleanup() {
     return "VM already terminated.";
   }
 
-  // Shut down profiling.
-  Profiler::Shutdown();
+  if (FLAG_profiler) {
+    // Shut down profiling.
+    Profiler::Shutdown();
+  }
+
 
   {
     // Set the VM isolate as current isolate when shutting down
@@ -286,7 +301,9 @@ const char* Dart::Cleanup() {
   }
 
   CodeObservers::DeleteAll();
-  Timeline::Shutdown();
+  if (FLAG_support_timeline) {
+    Timeline::Shutdown();
+  }
 
   return NULL;
 }
@@ -304,15 +321,18 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
+#ifndef PRODUCT
   TimelineDurationScope tds(T, I->GetIsolateStream(), "InitializeIsolate");
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
-
+#endif  // !PRODUCT
   ASSERT(I != NULL);
   StackZone zone(T);
   HandleScope handle_scope(T);
   {
+#ifndef PRODUCT
     TimelineDurationScope tds(T, I->GetIsolateStream(), "ObjectStore::Init");
+#endif  // !PRODUCT
     ObjectStore::Init(I);
   }
 
@@ -322,8 +342,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   }
   if (snapshot_buffer != NULL) {
     // Read the snapshot and setup the initial state.
+#ifndef PRODUCT
     TimelineDurationScope tds(
         T, I->GetIsolateStream(), "IsolateSnapshotReader");
+#endif  // !PRODUCT
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     if (snapshot == NULL) {
@@ -361,7 +383,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 #endif
 
   {
+#ifndef PRODUCT
     TimelineDurationScope tds(T, I->GetIsolateStream(), "StubCode::Init");
+#endif  // !PRODUCT
     StubCode::Init(I);
   }
 
@@ -376,7 +400,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 
   if (snapshot_buffer == NULL) {
     if (!I->object_store()->PreallocateObjects()) {
-      return I->object_store()->sticky_error();
+      return T->sticky_error();
     }
   }
 
@@ -388,10 +412,16 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   }
 
   ServiceIsolate::MaybeMakeServiceIsolate(I);
-
+  if (!ServiceIsolate::IsServiceIsolate(I)) {
+    I->message_handler()->set_should_pause_on_start(
+        FLAG_pause_isolates_on_start);
+    I->message_handler()->set_should_pause_on_exit(
+        FLAG_pause_isolates_on_exit);
+  }
   ServiceIsolate::SendIsolateStartupMessage();
-  I->debugger()->NotifyIsolateCreated();
-
+  if (FLAG_support_debugger) {
+    I->debugger()->NotifyIsolateCreated();
+  }
   // Create tag table.
   I->set_tag_table(GrowableObjectArray::Handle(GrowableObjectArray::New()));
   // Set up default UserTag.

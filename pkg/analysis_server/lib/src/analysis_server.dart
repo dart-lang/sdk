@@ -23,6 +23,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
@@ -302,13 +303,18 @@ class AnalysisServer {
       this.defaultSdk,
       this.instrumentationService,
       {ResolverProvider packageResolverProvider: null,
+      EmbeddedResolverProvider embeddedResolverProvider: null,
       this.rethrowExceptions: true})
       : index = _index,
         searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
     operationQueue = new ServerOperationQueue();
-    contextManager = new ContextManagerImpl(resourceProvider,
-        packageResolverProvider, packageMapProvider, instrumentationService);
+    contextManager = new ContextManagerImpl(
+        resourceProvider,
+        packageResolverProvider,
+        embeddedResolverProvider,
+        packageMapProvider,
+        instrumentationService);
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
@@ -1459,7 +1465,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
     _locateEmbedderYamls(context, disposition);
-    context.sourceFactory = _createSourceFactory(context, disposition);
+    context.sourceFactory = _createSourceFactory(context, disposition, folder);
     context.analysisOptions =
         new AnalysisOptionsImpl.from(analysisServer.defaultContextOptions);
     analysisServer._onContextsChangedController
@@ -1530,7 +1536,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void updateContextPackageUriResolver(
       Folder contextFolder, FolderDisposition disposition) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
-    context.sourceFactory = _createSourceFactory(context, disposition);
+    context.sourceFactory =
+        _createSourceFactory(context, disposition, contextFolder);
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
@@ -1548,12 +1555,26 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
    * Set up a [SourceFactory] that resolves packages as appropriate for the
    * given [disposition].
    */
-  SourceFactory _createSourceFactory(
-      InternalAnalysisContext context, FolderDisposition disposition) {
+  SourceFactory _createSourceFactory(InternalAnalysisContext context,
+      FolderDisposition disposition, Folder folder) {
     List<UriResolver> resolvers = [];
     List<UriResolver> packageUriResolvers =
         disposition.createPackageUriResolvers(resourceProvider);
-    EmbedderUriResolver embedderUriResolver =
+
+    EmbedderUriResolver embedderUriResolver;
+
+    // First check for a resolver provider.
+    ContextManager contextManager = analysisServer.contextManager;
+    if (contextManager is ContextManagerImpl) {
+      EmbeddedResolverProvider resolverProvider =
+          contextManager.embeddedUriResolverProvider;
+      if (resolverProvider != null) {
+        embedderUriResolver = resolverProvider(folder);
+      }
+    }
+
+    // If no embedded URI resolver was provided, defer to a locator-backed one.
+    embedderUriResolver ??=
         new EmbedderUriResolver(context.embedderYamlLocator.embedderYamls);
     if (embedderUriResolver.length == 0) {
       // The embedder uri resolver has no mappings. Use the default Dart SDK
@@ -1564,6 +1585,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       // Dart SDK uri resolver.
       resolvers.add(embedderUriResolver);
     }
+
     resolvers.addAll(packageUriResolvers);
     resolvers.add(new ResourceUriResolver(resourceProvider));
     return new SourceFactory(resolvers, disposition.packages);

@@ -379,9 +379,7 @@ class NonExistingSource extends Source {
   }
 
   @override
-  String get encoding {
-    throw new UnsupportedOperationException('$fullName does not exist.');
-  }
+  String get encoding => uri.toString();
 
   @override
   int get hashCode => fullName.hashCode;

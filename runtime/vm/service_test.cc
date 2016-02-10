@@ -21,6 +21,8 @@ namespace dart {
 // This flag is used in the Service_Flags test below.
 DEFINE_FLAG(bool, service_testing_flag, false, "Comment");
 
+#ifndef PRODUCT
+
 class ServiceTestMessageHandler : public MessageHandler {
  public:
   ServiceTestMessageHandler() : _msg(NULL) {}
@@ -643,5 +645,7 @@ TEST_CASE(Service_Profile) {
 }
 
 #endif  // !defined(TARGET_ARCH_ARM64)
+
+#endif  // !PRODUCT
 
 }  // namespace dart

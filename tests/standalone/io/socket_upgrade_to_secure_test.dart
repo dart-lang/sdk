@@ -18,12 +18,12 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 List<int> readLocalFile(path) => (new File(localFile(path))).readAsBytesSync();
 
 SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChainBytes(readLocalFile('certificates/server_chain.pem'))
-  ..usePrivateKeyBytes(readLocalFile('certificates/server_key.pem'),
-                         password: 'dartdart');
+  ..useCertificateChainSync(localFile('certificates/server_chain.pem'))
+  ..usePrivateKeySync(localFile('certificates/server_key.pem'),
+                      password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+  ..setTrustedCertificatesSync(localFile('certificates/trusted_certs.pem'));
 
 // This test creates a server and a client connects. After connecting
 // and an optional initial handshake the connection is secured by

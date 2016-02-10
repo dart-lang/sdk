@@ -111,14 +111,14 @@ bool SourceReport::ScriptIsLoadedByLibrary(const Script& script,
 
 
 void SourceReport::PrintCallSitesData(JSONObject* jsobj,
-                                      const Function& func,
+                                      const Function& function,
                                       const Code& code) {
-  const TokenPosition begin_pos = func.token_pos();
-  const TokenPosition end_pos = func.end_token_pos();
+  const TokenPosition begin_pos = function.token_pos();
+  const TokenPosition end_pos = function.end_token_pos();
 
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new(zone()) ZoneGrowableArray<const ICData*>();
-  func.RestoreICDataMap(ic_data_array, false /* clone descriptors */);
+  function.RestoreICDataMap(ic_data_array, false /* clone descriptors */);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       zone(), code.pc_descriptors());
 
@@ -143,14 +143,14 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
 }
 
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
-                                     const Function& func,
+                                     const Function& function,
                                      const Code& code) {
-  const TokenPosition begin_pos = func.token_pos();
-  const TokenPosition end_pos = func.end_token_pos();
+  const TokenPosition begin_pos = function.token_pos();
+  const TokenPosition end_pos = function.end_token_pos();
 
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new(zone()) ZoneGrowableArray<const ICData*>();
-  func.RestoreICDataMap(ic_data_array, false /* clone descriptors */);
+  function.RestoreICDataMap(ic_data_array, false /* clone descriptors */);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       zone(), code.pc_descriptors());
 

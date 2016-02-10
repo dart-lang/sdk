@@ -485,7 +485,10 @@ class DeoptInfoBuilder : public ValueObject {
   intptr_t CalculateStackIndex(const Location& source_loc) const;
 
   intptr_t FrameSize() const {
-    return instructions_.length() - frame_start_;
+    ASSERT(frame_start_ != -1);
+    const intptr_t frame_size = instructions_.length() - frame_start_;
+    ASSERT(frame_size >= 0);
+    return frame_size;
   }
 
   void AddConstant(const Object& obj, intptr_t dest_index);

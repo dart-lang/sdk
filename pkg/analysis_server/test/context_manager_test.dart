@@ -72,6 +72,8 @@ class AbstractContextManagerTest {
 
   UriResolver packageResolver = null;
 
+  UriResolver embeddedUriResolver = null;
+
   String projPath = '/my/proj';
 
   AnalysisError missing_return =
@@ -127,16 +129,20 @@ class AbstractContextManagerTest {
     manager.processPlugins(plugins);
   }
 
-  UriResolver providePackageResolver(Folder folder) {
-    return packageResolver;
-  }
+  UriResolver provideEmbeddedUriResolver(Folder folder) => embeddedUriResolver;
+
+  UriResolver providePackageResolver(Folder folder) => packageResolver;
 
   void setUp() {
     processRequiredPlugins();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
-    manager = new ContextManagerImpl(resourceProvider, providePackageResolver,
-        packageMapProvider, InstrumentationService.NULL_SERVICE);
+    manager = new ContextManagerImpl(
+        resourceProvider,
+        providePackageResolver,
+        provideEmbeddedUriResolver,
+        packageMapProvider,
+        InstrumentationService.NULL_SERVICE);
     callbacks = new TestContextManagerCallbacks(resourceProvider);
     manager.callbacks = callbacks;
     resourceProvider.newFolder(projPath);
@@ -278,6 +284,59 @@ linter:
     expect(contexts, hasLength(2));
     expect(contexts, contains(projContextInfo.context));
     expect(contexts, contains(subProjContextInfo.context));
+  }
+
+  test_embedder_added() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    newFile([libPath, 'nope.dart']);
+    String embedderPath = newFolder([projPath, 'embedder']);
+    newFile([embedderPath, 'entry.dart']);
+    String embedderSrcPath = newFolder([projPath, 'embedder', 'src']);
+    newFile([embedderSrcPath, 'part.dart']);
+
+    // Setup _embedder.yaml.
+    newFile(
+        [libPath, '_embedder.yaml'],
+        r'''
+embedded_libs:
+  "dart:foobar": "../embedder/entry.dart"
+  "dart:typed_data": "../embedder/src/part"
+  ''');
+
+    Folder projectFolder = resourceProvider.newFolder(projPath);
+
+    // NOTE that this is Not in our package path yet.
+
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+    // Confirm that one context was created.
+    List<AnalysisContext> contexts =
+        manager.contextsInAnalysisRoot(projectFolder);
+    expect(contexts, isNotNull);
+    expect(contexts, hasLength(1));
+
+    // No embedded libs yet.
+    expect(contexts.first.sourceFactory.forUri('dart:typed_data'), isNull);
+
+    // Add .packages file that introduces a dependency with embedded libs.
+    newFile(
+        [projPath, '.packages'],
+        r'''
+test_pack:lib/''');
+
+    await pumpEventQueue();
+
+    contexts = manager.contextsInAnalysisRoot(projectFolder);
+
+    // Confirm that we still have just one context.
+    expect(contexts, isNotNull);
+    expect(contexts, hasLength(1));
+
+    // Embedded lib should be defined now.
+    expect(contexts.first.sourceFactory.forUri('dart:typed_data'), isNotNull);
   }
 
   test_embedder_options() async {
@@ -1292,8 +1351,8 @@ analyzer:
   exclude:
     - 'example'
 ''');
-    manager.setRoots(
-        <String>[project, example], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[project, example], <String>[], <String, String>{});
     // verify
     {
       ContextInfo rootInfo = manager.rootInfo;
@@ -1356,8 +1415,8 @@ analyzer:
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFile(examplePubspec, 'name: example');
-    manager.setRoots(
-        <String>[example, project], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[example, project], <String>[], <String, String>{});
     // verify
     {
       ContextInfo rootInfo = manager.rootInfo;
@@ -1384,8 +1443,8 @@ analyzer:
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFolder(example);
-    manager.setRoots(
-        <String>[project, example], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[project, example], <String>[], <String, String>{});
     // verify
     {
       ContextInfo rootInfo = manager.rootInfo;
@@ -1408,8 +1467,8 @@ analyzer:
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFile(examplePubspec, 'name: example');
-    manager.setRoots(
-        <String>[project, example], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[project, example], <String>[], <String, String>{});
     // verify
     {
       ContextInfo rootInfo = manager.rootInfo;
@@ -1555,8 +1614,8 @@ analyzer:
     resourceProvider.newFile(subProjectA_file, '// sub-a');
     resourceProvider.newFile(subProjectB_file, '// sub-b');
     // set roots
-    manager.setRoots(
-        <String>[projectA, projectB], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[projectA, projectB], <String>[], <String, String>{});
     callbacks
         .assertContextPaths([projectA, subProjectA, projectB, subProjectB]);
     callbacks.assertContextFiles(projectA, [projectA_file]);
@@ -1603,8 +1662,8 @@ analyzer:
     resourceProvider.newFile(subProjectA_file, '// sub-a');
     resourceProvider.newFile(subProjectB_file, '// sub-b');
     // set roots
-    manager.setRoots(
-        <String>[projectA, projectB], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[projectA, projectB], <String>[], <String, String>{});
     callbacks
         .assertContextPaths([projectA, subProjectA, projectB, subProjectB]);
     callbacks.assertContextFiles(projectA, [projectA_file]);

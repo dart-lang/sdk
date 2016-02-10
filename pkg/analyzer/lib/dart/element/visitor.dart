@@ -2,6 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Defines element visitors that support useful patterns for visiting the
+ * elements in an [element model](element.dart).
+ *
+ * Dart is an evolving language, and the element model must evolved with it.
+ * When the element model changes, the visitor interface will sometimes change
+ * as well. If it is desirable to get a compilation error when the structure of
+ * the element model has been modified, then you should consider implementing
+ * the interface [ElementVisitor] directly. Doing so will ensure that changes
+ * that introduce new classes of elements will be flagged. (Of course, not all
+ * changes to the element model require the addition of a new class of element,
+ * and hence cannot be caught this way.)
+ *
+ * But if automatic detection of these kinds of changes is not necessary then
+ * you will probably want to extend one of the classes in this library because
+ * doing so will simplify the task of writing your visitor and guard against
+ * future changes to the element model. For example, the
+ * [RecursiveElementVisitor] automates the process of visiting all of the
+ * descendants of an element.
+ */
 library analyzer.dart.element.visitor;
 
 import 'package:analyzer/dart/element/element.dart';

@@ -17,6 +17,15 @@ import 'package:compiler/src/js/js.dart' as js;
 import 'colors.dart';
 import 'sourcemap_helper.dart';
 import 'sourcemap_html_templates.dart';
+import 'html_parts.dart';
+
+/// Truncate [input] to [length], adding '...' if truncated.
+String truncate(String input, int length) {
+  if (input.length > length) {
+    return '${input.substring(0, length - 3)}...';
+  }
+  return input;
+}
 
 /// Returns the [index]th color for visualization.
 HSV toColor(int index) {
@@ -43,12 +52,13 @@ String toPattern(int index) {
 
 /// Return the html for the [index] line number. If [width] is provided, shorter
 /// line numbers will be prefixed with spaces to match the width.
-String lineNumber(int index, [int width]) {
+String lineNumber(int index, {int width, bool useNbsp: false}) {
   String text = '${index + 1}';
+  String padding = useNbsp ? '&nbsp;' : ' ';
   if (width != null && text.length < width) {
-    text = (' ' * (width - text.length)) + text;
+    text = (padding * (width - text.length)) + text;
   }
-  return '<span class="lineNumber">$text </span>';
+  return '<span class="lineNumber">$text$padding</span>';
 }
 
 /// Return the html escaped [text].
@@ -277,8 +287,9 @@ String convertAnnotatedCodeToHtml(
   if (lines.isNotEmpty) {
     lineNoWidth = '${lines.last.lineNo + 1}'.length;
   }
+  HtmlPrintContext context = new HtmlPrintContext(lineNoWidth: lineNoWidth);
   for (CodeLine line in lines) {
-    line.printHtmlOn(htmlBuffer, lineNoWidth);
+    line.printHtmlOn(htmlBuffer, context);
   }
   return htmlBuffer.toString();
 }
@@ -298,20 +309,20 @@ List<CodeLine> convertAnnotatedCodeToCodeLines(
   int lastLine;
   bool pendingSourceLocationsEnd = false;
 
-  void write(String code, String html) {
+  void write(String code, HtmlPart html) {
     if (currentLine != null) {
       currentLine.codeBuffer.write(code);
       currentLine.htmlParts.add(html);
     }
   }
 
-  void startLine() {
-    lines.add(currentLine = new CodeLine(lines.length));
+  void startLine(int currentOffset) {
+    lines.add(currentLine = new CodeLine(lines.length, currentOffset));
   }
 
   void endCurrentLocation() {
     if (pendingSourceLocationsEnd) {
-      write('', '</a>');
+      write('', const ConstHtmlPart('</a>'));
     }
     pendingSourceLocationsEnd = false;
   }
@@ -321,38 +332,40 @@ List<CodeLine> convertAnnotatedCodeToCodeLines(
     if (offset >= code.length) return;
 
     String substring = code.substring(offset, until);
-    offset = until;
     bool first = true;
 
     if (isLast) {
       lastLine = lineIndex;
     }
+    int localOffset = 0;
     if (isFirst) {
-      startLine();
+      startLine(offset + localOffset);
     }
     for (String line in substring.split('\n')) {
       if (!first) {
         endCurrentLocation();
-        write('', '\n');
+        write('', const NewLine());
         lineIndex++;
-        startLine();
+        startLine(offset + localOffset);
       }
       if (pendingSourceLocationsEnd && !colorScheme.showLocationAsSpan) {
         if (line.isNotEmpty) {
           String before = line.substring(0, 1);
-          write(before, escape(before));
+          write(before, new HtmlText(before));
           endCurrentLocation();
           String after = line.substring(1);
-          write(after, escape(after));
+          write(after, new HtmlText(after));
         }
       } else {
-        write(line, escape(line));
+        write(line, new HtmlText(line));
       }
       first = false;
+      localOffset += line.length + 1;
     }
     if (isFirst) {
       firstLine = lineIndex;
     }
+    offset = until;
   }
 
   void insertAnnotations(List<Annotation> annotations) {
@@ -384,29 +397,17 @@ List<CodeLine> convertAnnotatedCodeToCodeLines(
       String onclick = elementScheme.onClick(id, ids);
       String onmouseover = elementScheme.onMouseOver(id, ids);
       String onmouseout = elementScheme.onMouseOut(id, ids);
-      write('', '<a');
-      if (href != null) {
-        write('', ' href="${href}"');
-      }
-      if (name != null) {
-        write('', ' name="${name}"');
-      }
-      if (title != null) {
-        write('', ' title="${escape(title)}"');
-      }
-      write('', ' style="${color}"');
-      if (onclick != null) {
-        write('', ' onclick="${onclick}"');
-      }
-      if (onmouseover != null) {
-        write('', ' onmouseover="${onmouseover}"');
-      }
-      if (onmouseout != null) {
-        write('', ' onmouseout="${onmouseout}"');
-      }
-      write('', '>');
+      write('', new AnchorHtmlPart(
+          color: color,
+          name: name,
+          href: href,
+          title: title,
+          onclick: onclick,
+          onmouseover: onmouseover,
+          onmouseout: onmouseout));
       pendingSourceLocationsEnd = true;
     }
+    currentLine.annotations.addAll(annotations);
     if (annotations.last == null) {
       endCurrentLocation();
     }
@@ -437,30 +438,6 @@ List<CodeLine> convertAnnotatedCodeToCodeLines(
   }
   return lines.sublist(start, end);
 }
-
-class CodeLine {
-  final int lineNo;
-  final StringBuffer codeBuffer = new StringBuffer();
-  final List<String> htmlParts = <String>[];
-  String _code;
-
-  CodeLine(this.lineNo);
-
-  String get code {
-    if (_code == null) {
-      _code = codeBuffer.toString();
-    }
-    return _code;
-  }
-
-  void printHtmlOn(StringBuffer htmlBuffer, [int lineNoWidth]) {
-    htmlBuffer.write(lineNumber(lineNo, lineNoWidth));
-    for (String part in htmlParts) {
-      htmlBuffer.write(part);
-    }
-  }
-}
-
 
 /// Computes the HTML representation for a collection of JavaScript code blocks.
 String computeJsHtml(Iterable<SourceMapHtmlInfo> infoList) {
@@ -508,7 +485,6 @@ SourceMapHtmlInfo createHtmlInfo(SourceLocationCollection collection,
   SourceLocationCollection subcollection =
       new SourceLocationCollection(collection);
   CodeProcessor codeProcessor = new CodeProcessor(name, subcollection);
-  //print('${info.element}:${info.nodeMap.nodes.length}');
   for (js.Node node in info.nodeMap.nodes) {
     info.nodeMap[node].forEach(
         (int targetOffset, List<SourceLocation> sourceLocations) {
@@ -573,6 +549,7 @@ String computeDartHtmlPart(String name,
   });
   sourceLocationMap.forEach((Uri uri, Map<int, List<SourceLocation>> uriMap) {
     SourceFile sourceFile = sourceFileManager.getSourceFile(uri);
+    if (sourceFile == null) return;
     StringBuffer codeBuffer = new StringBuffer();
 
     int firstLineIndex;
@@ -595,7 +572,7 @@ String computeDartHtmlPart(String name,
              line < firstLineIndex;
              line++) {
           if (line >= 0) {
-            dartCodeBuffer.write(lineNumber(line, lineNoWidth));
+            dartCodeBuffer.write(lineNumber(line, width: lineNoWidth));
             dartCodeBuffer.write(sourceFile.getLineText(line));
           }
         }
@@ -604,7 +581,7 @@ String computeDartHtmlPart(String name,
              line <= lastLineIndex + windowSize;
              line++) {
           if (line < sourceFile.lines) {
-            dartCodeBuffer.write(lineNumber(line, lineNoWidth));
+            dartCodeBuffer.write(lineNumber(line, width: lineNoWidth));
             dartCodeBuffer.write(sourceFile.getLineText(line));
           }
         }
@@ -625,7 +602,7 @@ String computeDartHtmlPart(String name,
         firstLineIndex = lineIndex;
       } else {
         for (int line = lastLineIndex + 1; line < lineIndex; line++) {
-          codeBuffer.write(lineNumber(line, lineNoWidth));
+          codeBuffer.write(lineNumber(line, width: lineNoWidth));
           codeBuffer.write(sourceFile.getLineText(line));
         }
       }
@@ -640,7 +617,7 @@ String computeDartHtmlPart(String name,
           end = locations[i + 1].column;
         }
         if (i == 0) {
-          codeBuffer.write(lineNumber(lineIndex, lineNoWidth));
+          codeBuffer.write(lineNumber(lineIndex, width: lineNoWidth));
           codeBuffer.write(line.substring(0, start));
         }
         codeBuffer.write(
@@ -673,7 +650,7 @@ String computeJsTraceHtmlPart(List<CodePoint> codePoints,
       '<tr><th>Node kind</th><th>JS code @ offset</th>'
       '<th>Dart code @ mapped location</th><th>file:position:name</th></tr>');
   codePoints.forEach((CodePoint codePoint) {
-    String jsCode = codePoint.jsCode;
+    String jsCode = truncate(codePoint.jsCode, 50);
     if (codePoint.sourceLocation != null) {
       int index = collection.getIndex(codePoint.sourceLocation);
       if (index != null) {
@@ -700,7 +677,8 @@ String computeJsTraceHtmlPart(List<CodePoint> codePoints,
     if (codePoint.sourceLocation == null) {
       //buffer.write('<td></td>');
     } else {
-      buffer.write('<td class="code">${codePoint.dartCode}</td>');
+      String dartCode = truncate(codePoint.dartCode, 50);
+      buffer.write('<td class="code">${dartCode}</td>');
       buffer.write('<td>${escape(codePoint.sourceLocation.shortText)}</td>');
     }
     buffer.write('</tr>');

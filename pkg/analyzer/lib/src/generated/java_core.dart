@@ -250,7 +250,7 @@ class JavaArrays {
 
 class JavaException implements Exception {
   final String message;
-  final Exception cause;
+  final Object cause;
   JavaException([this.message = "", this.cause = null]);
   JavaException.withCause(this.cause) : message = null;
   String toString() => "$runtimeType: $message $cause";

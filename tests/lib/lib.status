@@ -348,6 +348,9 @@ mirrors/typedef_library_test: Crash # Assertion failure: typedef(G) has not been
 [ $compiler != dart2js ]
 async/dart2js_uncaught_error_test: Skip  # JS-integration only test
 
+[ $noopt && $arch == simarm64 ]
+async/slow_consumer2_test: Pass, RuntimeError # Issue 25726
+
 [ ($noopt || $compiler == precompiler) ]
 mirrors/*: SkipByDesign
 convert/chunked_conversion_utf88_test: Pass, Timeout

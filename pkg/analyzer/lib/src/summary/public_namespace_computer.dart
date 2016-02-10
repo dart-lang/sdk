@@ -6,6 +6,7 @@ library analyzer.src.summary.public_namespace_visitor;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 
 /**
  * Compute the public namespace portion of the summary for the given [unit],

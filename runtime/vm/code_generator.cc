@@ -13,6 +13,7 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
 #include "vm/object_store.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
@@ -205,7 +206,8 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 2) {
   ASSERT(!type.IsNull() && !type.IsInstantiated());
   ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
   Error& bound_error = Error::Handle();
-  type = type.InstantiateFrom(instantiator, &bound_error, NULL, Heap::kOld);
+  type =
+      type.InstantiateFrom(instantiator, &bound_error, NULL, NULL, Heap::kOld);
   if (!bound_error.IsNull()) {
     // Throw a dynamic type error.
     const TokenPosition location = GetCallerLocation();
@@ -705,6 +707,10 @@ static void CheckResultError(const Object& result) {
 // Gets called from debug stub when code reaches a breakpoint
 // set on a runtime stub call.
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
+  if (!FLAG_support_debugger) {
+    UNREACHABLE();
+    return;
+  }
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
@@ -720,6 +726,10 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
+  if (!FLAG_support_debugger) {
+    UNREACHABLE();
+    return;
+  }
   const Error& error =
       Error::Handle(isolate->debugger()->DebuggerStepCallback());
   if (!error.IsNull()) {
@@ -1242,13 +1252,15 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
 
 
 static bool CanOptimizeFunction(const Function& function, Thread* thread) {
-  Isolate* isolate = thread->isolate();
-  if (isolate->debugger()->IsStepping() ||
-      isolate->debugger()->HasBreakpoint(function, thread->zone())) {
-    // We cannot set breakpoints and single step in optimized code,
-    // so do not optimize the function.
-    function.set_usage_counter(0);
-    return false;
+  if (FLAG_support_debugger) {
+    Isolate* isolate = thread->isolate();
+    if (isolate->debugger()->IsStepping() ||
+        isolate->debugger()->HasBreakpoint(function, thread->zone())) {
+      // We cannot set breakpoints and single step in optimized code,
+      // so do not optimize the function.
+      function.set_usage_counter(0);
+      return false;
+    }
   }
   if (function.deoptimization_counter() >=
       FLAG_max_deoptimization_counter_threshold) {
@@ -1371,7 +1383,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // TODO(turnidge): Consider using DeoptimizeAt instead.
     DeoptimizeFunctionsOnStack();
   }
-  if (do_stacktrace) {
+  if (FLAG_support_debugger && do_stacktrace) {
     String& var_name = String::Handle();
     Instance& var_value = Instance::Handle();
     DebuggerStackTrace* stack = isolate->debugger()->StackTrace();

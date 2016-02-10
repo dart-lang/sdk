@@ -151,7 +151,8 @@ class ClassFinalizer : public AllStatic {
                                       const TypeArguments& arguments,
                                       Error* bound_error);
   static void ResolveUpperBounds(const Class& cls);
-  static void FinalizeUpperBounds(const Class& cls);
+  static void FinalizeUpperBounds(const Class& cls,
+                                  FinalizationKind finalization);
   static void ResolveSignature(const Class& cls, const Function& function);
   static void FinalizeSignature(const Class& cls, const Function& function);
   static void ResolveAndFinalizeMemberTypes(const Class& cls);

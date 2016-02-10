@@ -116,6 +116,7 @@ class SocketServerTest {
         DirectoryBasedDartSdk.defaultSdk,
         InstrumentationService.NULL_SERVICE,
         serverPlugin,
+        null,
         null);
   }
 }

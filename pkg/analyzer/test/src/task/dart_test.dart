@@ -185,8 +185,7 @@ f() {
       unitElement.types[0].fields[0],
       unitElement.functions[0].localVariables[0],
       unitElement.types[0].constructors[0],
-      new ConstantEvaluationTarget_Annotation(
-          context, source, source, annotation),
+      annotation.elementAnnotation,
       unitElement.types[0].constructors[0].parameters[0]
     ];
     expect(
@@ -242,6 +241,22 @@ class B = Object with A;
 
 @reflectiveTest
 class BuildDirectiveElementsTaskTest extends _AbstractDartTaskTest {
+  /**
+   * Verify that the given [element] has exactly one annotation, and that its
+   * [ElementAnnotationImpl] is unresolved and points back to [element].
+   *
+   * The compilation unit stored in the [ElementAnnotationImpl] should be
+   * [compilationUnit].
+   */
+  void checkMetadata(Element element, CompilationUnitElement compilationUnit) {
+    expect(element.metadata, hasLength(1));
+    expect(element.metadata[0], new isInstanceOf<ElementAnnotationImpl>());
+    ElementAnnotationImpl elementAnnotation = element.metadata[0];
+    expect(elementAnnotation.element, isNull); // Not yet resolved
+    expect(elementAnnotation.compilationUnit, isNotNull);
+    expect(elementAnnotation.compilationUnit, compilationUnit);
+  }
+
   test_perform() {
     List<Source> sources = newSources({
       '/libA.dart': '''
@@ -467,6 +482,58 @@ library libC;
     ImportElement importElementC = importNodeC.element;
     expect(prefixNodeC.staticElement, prefixElement);
     expect(importElementC.prefix, prefixElement);
+  }
+
+  test_perform_metadata() {
+    List<Source> sources = newSources({
+      '/libA.dart': '''
+@a library libA;
+@b import 'libB.dart';
+@c export 'libC.dart';
+@d part 'part.dart';''',
+      '/libB.dart': 'library libB;',
+      '/libC.dart': 'library libC;',
+      '/part.dart': 'part of libA;'
+    });
+    Source sourceA = sources[0];
+    // perform task
+    computeResult(sourceA, LIBRARY_ELEMENT2,
+        matcher: isBuildDirectiveElementsTask);
+    // Get outputs
+    LibraryElement libraryA =
+        context.getCacheEntry(sourceA).getValue(LIBRARY_ELEMENT2);
+    // Validate metadata
+    checkMetadata(libraryA, libraryA.definingCompilationUnit);
+    checkMetadata(libraryA.imports[0], libraryA.definingCompilationUnit);
+    checkMetadata(libraryA.exports[0], libraryA.definingCompilationUnit);
+    checkMetadata(libraryA.parts[0], libraryA.definingCompilationUnit);
+  }
+
+  test_perform_metadata_partOf() {
+    // We don't record annotations on `part of` directives because the element
+    // associated with a `part of` directive is the library, and the convention
+    // is to annotate the library at the site of the `library` declaration.
+    List<Source> sources = newSources({
+      '/libA.dart': '''
+library libA;
+part 'part.dart';''',
+      '/part.dart': '@a part of libA;'
+    });
+    Source sourceA = sources[0];
+    Source sourcePart = sources[1];
+    // perform task
+    computeResult(sourceA, LIBRARY_ELEMENT2,
+        matcher: isBuildDirectiveElementsTask);
+    // Get outputs
+    LibraryElement libraryA =
+        context.getCacheEntry(sourceA).getValue(LIBRARY_ELEMENT2);
+    CompilationUnit part = context
+        .getCacheEntry(new LibrarySpecificUnit(sourceA, sourcePart))
+        .getValue(RESOLVED_UNIT1);
+    // Validate metadata
+    expect(part.directives[0], new isInstanceOf<PartOfDirective>());
+    expect(part.directives[0].element, same(libraryA));
+    expect(part.directives[0].element.metadata, isEmpty);
   }
 
   void _assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
@@ -1072,10 +1139,7 @@ class D { const D(value); }
     // Now compute the dependencies for the annotation, and check that it is
     // the set [x, constructorForD].
     // TODO(paulberry): test librarySource != source
-    computeResult(
-        new ConstantEvaluationTarget_Annotation(
-            context, source, source, annotation),
-        CONSTANT_DEPENDENCIES,
+    computeResult(annotation.elementAnnotation, CONSTANT_DEPENDENCIES,
         matcher: isComputeConstantDependenciesTask);
     expect(
         outputs[CONSTANT_DEPENDENCIES].toSet(), [x, constructorForD].toSet());
@@ -1102,10 +1166,7 @@ const x = 1;
     Annotation annotation = findClassAnnotation(unit, 'C');
     // Now compute the dependencies for the annotation, and check that it is
     // the list [x].
-    computeResult(
-        new ConstantEvaluationTarget_Annotation(
-            context, source, source, annotation),
-        CONSTANT_DEPENDENCIES,
+    computeResult(annotation.elementAnnotation, CONSTANT_DEPENDENCIES,
         matcher: isComputeConstantDependenciesTask);
     expect(outputs[CONSTANT_DEPENDENCIES], [x]);
   }
@@ -1169,9 +1230,7 @@ class ComputeConstantValueTaskTest extends _AbstractDartTaskTest {
       if (member is ClassDeclaration && member.name.name == className) {
         expect(member.metadata, hasLength(1));
         Annotation annotation = member.metadata[0];
-        ConstantEvaluationTarget_Annotation target =
-            new ConstantEvaluationTarget_Annotation(
-                context, source, source, annotation);
+        ElementAnnotationImpl target = annotation.elementAnnotation;
         computeResult(target, CONSTANT_VALUE,
             matcher: isComputeConstantValueTask);
         expect(outputs[CONSTANT_VALUE], same(target));

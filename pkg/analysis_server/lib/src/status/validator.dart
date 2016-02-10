@@ -24,6 +24,7 @@ import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' as html;
+import 'package:analyzer/src/dart/element/element.dart';
 
 /**
  * A class used to compare two element models for equality.
@@ -1193,11 +1194,11 @@ class ValidationResults {
     //
     // Handle special cases.
     //
-    if (first is ConstantEvaluationTarget_Annotation &&
-        second is ConstantEvaluationTarget_Annotation) {
+    if (first is ElementAnnotationImpl &&
+        second is ElementAnnotationImpl) {
       return _equal(first.source, second.source) &&
           _equal(first.librarySource, second.librarySource) &&
-          _equal(first.annotation, second.annotation);
+          _equal(first.annotationAst, second.annotationAst);
     } else if (first is AstNode && second is AstNode) {
       return first.runtimeType == second.runtimeType &&
           first.offset == second.offset &&
@@ -1216,7 +1217,7 @@ class ValidationResults {
     //
     // Handle special cases.
     //
-    if (object is ConstantEvaluationTarget_Annotation) {
+    if (object is ElementAnnotation) {
       return object.source.hashCode;
     } else if (object is AstNode) {
       return object.offset;
@@ -1308,17 +1309,17 @@ class ValueComparison {
 
   bool _compareConstantEvaluationTargets(ConstantEvaluationTarget expected,
       ConstantEvaluationTarget actual, StringBuffer buffer) {
-    if (actual is ConstantEvaluationTarget_Annotation) {
-      ConstantEvaluationTarget_Annotation expectedAnnotation = expected;
-      ConstantEvaluationTarget_Annotation actualAnnotation = actual;
+    if (actual is ElementAnnotation) {
+      ElementAnnotationImpl expectedAnnotation = expected;
+      ElementAnnotationImpl actualAnnotation = actual;
       if (actualAnnotation.source == expectedAnnotation.source &&
           actualAnnotation.librarySource == expectedAnnotation.librarySource &&
-          actualAnnotation.annotation == expectedAnnotation.annotation) {
+          actualAnnotation.annotationAst == expectedAnnotation.annotationAst) {
         return true;
       }
       if (buffer != null) {
-        void write(ConstantEvaluationTarget_Annotation target) {
-          Annotation annotation = target.annotation;
+        void write(ElementAnnotationImpl target) {
+          Annotation annotation = target.annotationAst;
           buffer.write(annotation);
           buffer.write(' at ');
           buffer.write(annotation.offset);

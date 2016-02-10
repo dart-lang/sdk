@@ -196,10 +196,16 @@ VM_TEST_CASE(GenerateExactSource) {
   "  static fly() { return 5; }\n"
   "  void catcher(x) {\n"
   "    try {\n"
-  "      if (x) {\n"
-  "        fly();\n"
+  "      if (x is! List) {\n"
+  "        for (int i = 0; i < x; i++) {\n"
+  "          fly();\n"
+  "          ++i;\n"
+  "        }\n"
   "      } else {\n"
-  "        !fly();\n"
+  "        for (int i = 0; i < x; i--) {\n"
+  "          !fly();\n"
+  "          --i;\n"
+  "        }\n"
   "      }\n"
   "    } on Blah catch (a) {\n"
   "      _print(17);\n"
@@ -4033,6 +4039,9 @@ TEST_CASE(FunctionSourceFingerprint) {
 
 
 TEST_CASE(FunctionWithBreakpointNotInlined) {
+  if (!FLAG_support_debugger) {
+    return;
+  }
   const char* kScriptChars =
       "class A {\n"
       "  a() {\n"
@@ -4100,6 +4109,9 @@ VM_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
 }
+
+
+#ifndef PRODUCT
 
 
 class ObjectAccumulator : public ObjectVisitor {
@@ -4428,6 +4440,9 @@ VM_TEST_CASE(PrintJSONPrimitives) {
         buffer);
   }
 }
+
+
+#endif  // !PRODUCT
 
 
 TEST_CASE(InstanceEquality) {

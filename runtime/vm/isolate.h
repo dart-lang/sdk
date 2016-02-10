@@ -81,6 +81,16 @@ class IsolateVisitor {
 };
 
 
+// Disallow OOB message handling within this scope.
+class NoOOBMessageScope : public StackResource {
+ public:
+  explicit NoOOBMessageScope(Thread* thread);
+  ~NoOOBMessageScope();
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NoOOBMessageScope);
+};
+
+
 class Isolate : public BaseIsolate {
  public:
   // Keep both these enums in sync with isolate_patch.dart.
@@ -304,6 +314,9 @@ class Isolate : public BaseIsolate {
   Mutex* mutex() const { return mutex_; }
 
   Debugger* debugger() const {
+    if (!FLAG_support_debugger) {
+      return NULL;
+    }
     ASSERT(debugger_ != NULL);
     return debugger_;
   }
@@ -353,8 +366,8 @@ class Isolate : public BaseIsolate {
 
   const Flags& flags() const { return flags_; }
 
-  // Requests that the debugger resume execution.
-  void Resume() {
+  // Lets the embedder know that a service message resulted in a resume request.
+  void SetResumeRequest() {
     resume_request_ = true;
     set_last_resume_timestamp();
   }
@@ -554,10 +567,17 @@ class Isolate : public BaseIsolate {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
 #undef ISOLATE_METRIC_ACCESSOR
 
+#ifndef PRODUCT
 #define ISOLATE_TIMELINE_STREAM_ACCESSOR(name, not_used)                       \
   TimelineStream* Get##name##Stream() { return &stream_##name##_; }
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_ACCESSOR)
 #undef ISOLATE_TIMELINE_STREAM_ACCESSOR
+#else
+#define ISOLATE_TIMELINE_STREAM_ACCESSOR(name, not_used)                       \
+  TimelineStream* Get##name##Stream() { return NULL; }
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_ACCESSOR)
+#undef ISOLATE_TIMELINE_STREAM_ACCESSOR
+#endif  // !PRODUCT
 
   static intptr_t IsolateListLength();
 
@@ -655,6 +675,7 @@ class Isolate : public BaseIsolate {
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
+  friend class NoOOBMessageScope;
 
   explicit Isolate(const Dart_IsolateFlags& api_flags);
 
@@ -680,6 +701,9 @@ class Isolate : public BaseIsolate {
   void set_user_tag(uword tag) {
     user_tag_ = tag;
   }
+
+  void DeferOOBMessageInterrupts();
+  void RestoreOOBMessageInterrupts();
 
   RawGrowableObjectArray* GetAndClearPendingServiceExtensionCalls();
   RawGrowableObjectArray* pending_service_extension_calls() const {
@@ -744,6 +768,8 @@ class Isolate : public BaseIsolate {
   Simulator* simulator_;
   Mutex* mutex_;  // protects stack_limit_, saved_stack_limit_, compiler stats.
   uword saved_stack_limit_;
+  uword deferred_interrupts_mask_;
+  uword deferred_interrupts_;
   uword stack_overflow_flags_;
   int32_t stack_overflow_count_;
   MessageHandler* message_handler_;
@@ -828,10 +854,12 @@ class Isolate : public BaseIsolate {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
+#ifndef PRODUCT
 #define ISOLATE_TIMELINE_STREAM_VARIABLE(name, not_used)                       \
   TimelineStream stream_##name##_;
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_VARIABLE)
 #undef ISOLATE_TIMELINE_STREAM_VARIABLE
+#endif  // !PRODUCT
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
@@ -864,6 +892,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
   friend class ServiceIsolate;
   friend class Thread;
   friend class Timeline;
+  friend class IsolateTestHelper;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

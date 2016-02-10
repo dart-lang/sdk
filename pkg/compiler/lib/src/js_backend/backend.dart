@@ -559,8 +559,18 @@ class JavaScriptBackend extends Backend {
     return constantCompilerTask.jsConstantCompiler;
   }
 
-  FunctionElement resolveExternalFunction(FunctionElement element) {
-    if (isForeign(element) || isJsInterop(element)) return element;
+  MethodElement resolveExternalFunction(MethodElement element) {
+    if (isForeign(element)) {
+      return element;
+    }
+    if (isJsInterop(element))  {
+      if (element.memberName == const PublicName('[]') ||
+          element.memberName == const PublicName('[]=')) {
+        reporter.reportErrorMessage(element,
+            MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED);
+      }
+      return element;
+    }
     return patchResolverTask.measure(() {
       return patchResolverTask.resolveExternalFunction(element);
     });

@@ -12,8 +12,10 @@ import 'package:unittest/unittest.dart';
 import 'strong_test_helper.dart';
 
 void main() {
-  testChecker('ternary operator', {
-    '/main.dart': '''
+  initStrongModeTests();
+
+  test('ternary operator', () {
+    checkFile('''
         abstract class Comparable<T> {
           int compareTo(T other);
           static int compare(Comparable a, Comparable b) => a.compareTo(b);
@@ -51,11 +53,11 @@ void main() {
           print((/*info:DOWN_CAST_IMPLICIT*/obj) ? false : true);
           print((/*info:DYNAMIC_CAST*/dyn) ? false : true);
         }
-      '''
+      ''');
   });
 
-  testChecker('if/for/do/while statements use boolean conversion', {
-    '/main.dart': '''
+  test('if/for/do/while statements use boolean conversion', () {
+    checkFile('''
       main() {
         dynamic d = 42;
         Object obj = 42;
@@ -82,11 +84,11 @@ void main() {
         for (;/*info:DOWN_CAST_IMPLICIT*/obj;) {}
         for (;/*severe:STATIC_TYPE_ERROR*/i;) {}
       }
-    '''
+    ''');
   });
 
-  testChecker('dynamic invocation', {
-    '/main.dart': '''
+  test('dynamic invocation', () {
+    checkFile('''
 
       class A {
         dynamic call(dynamic x) => x;
@@ -139,15 +141,17 @@ void main() {
           (/*info:DYNAMIC_INVOKE*/f.x);
         }
       }
-    '''
+    ''');
   });
 
-  testChecker('conversion and dynamic invoke', {
-    '/helper.dart': '''
+  test('conversion and dynamic invoke', () {
+    addFile(
+        '''
       dynamic toString = (int x) => x + 42;
       dynamic hashCode = "hello";
       ''',
-    '/main.dart': '''
+        name: '/helper.dart');
+    checkFile('''
       import 'helper.dart' as helper;
 
       class A {
@@ -219,11 +223,11 @@ void main() {
         baz().toString();
         baz().hashCode;
       }
-    '''
+    ''');
   });
 
-  testChecker('Constructors', {
-    '/main.dart': '''
+  test('Constructors', () {
+    checkFile('''
       const num z = 25;
       Object obj = "world";
 
@@ -253,38 +257,39 @@ void main() {
          A a = new A.c2(/*info:DOWN_CAST_IMPLICIT*/z, /*severe:STATIC_TYPE_ERROR*/z);
          var b = new B.c2(/*severe:STATIC_TYPE_ERROR*/"hello", /*info:DOWN_CAST_IMPLICIT*/obj);
       }
-   '''
+   ''');
   });
 
-  testChecker('Unbound variable', {
-    '/main.dart': '''
+  test('Unbound variable', () {
+    checkFile('''
       void main() {
          dynamic y = /*pass should be severe:STATIC_TYPE_ERROR*/unboundVariable;
       }
-   '''
+   ''');
   });
 
-  testChecker('Unbound type name', {
-    '/main.dart': '''
+  test('Unbound type name', () {
+    checkFile('''
       void main() {
          /*pass should be severe:STATIC_TYPE_ERROR*/AToB y;
       }
-   '''
+   ''');
   });
 
   // Regression test for https://github.com/dart-lang/sdk/issues/25069
-  testChecker('Void subtyping', {
-    '/main.dart': '''
+  test('Void subtyping', () {
+    checkFile('''
       typedef int Foo();
       void foo() {}
       void main () {
         Foo x = /*severe:STATIC_TYPE_ERROR*/foo();
       }
-   '''
+   ''');
   });
 
-  testChecker('Ground type subtyping: dynamic is top', {
-    '/main.dart': '''
+  group('Ground type subtyping:', () {
+    test('dynamic is top', () {
+      checkFile('''
 
       class A {}
       class B extends A {}
@@ -304,11 +309,11 @@ void main() {
          y = a;
          y = b;
       }
-   '''
-  });
+   ''');
+    });
 
-  testChecker('Ground type subtyping: dynamic downcasts', {
-    '/main.dart': '''
+    test('dynamic downcasts', () {
+      checkFile('''
 
       class A {}
       class B extends A {}
@@ -328,11 +333,11 @@ void main() {
          a = /*info:DYNAMIC_CAST*/y;
          b = /*info:DYNAMIC_CAST*/y;
       }
-   '''
-  });
+   ''');
+    });
 
-  testChecker('Ground type subtyping: assigning a class', {
-    '/main.dart': '''
+    test('assigning a class', () {
+      checkFile('''
 
       class A {}
       class B extends A {}
@@ -353,11 +358,11 @@ void main() {
          a = a;
          b = /*info:DOWN_CAST_IMPLICIT*/a;
       }
-   '''
-  });
+   ''');
+    });
 
-  testChecker('Ground type subtyping: assigning a subclass', {
-    '/main.dart': '''
+    test('assigning a subclass', () {
+      checkFile('''
 
       class A {}
       class B extends A {}
@@ -381,11 +386,11 @@ void main() {
          b = b;
          c = /*severe:STATIC_TYPE_ERROR*/b;
       }
-   '''
-  });
+   ''');
+    });
 
-  testChecker('Ground type subtyping: interfaces', {
-    '/main.dart': '''
+    test('interfaces', () {
+      checkFile('''
 
       class A {}
       class B extends A {}
@@ -422,11 +427,13 @@ void main() {
            bot = bot;
          }
       }
-   '''
+   ''');
+    });
   });
 
-  testChecker('Function typing and subtyping: int and object', {
-    '/main.dart': '''
+  group('Function typing and subtyping:', () {
+    test('int and object', () {
+      checkFile('''
 
       typedef Object Top(int x);      // Top of the lattice
       typedef int Left(int x);        // Left branch
@@ -434,13 +441,20 @@ void main() {
       typedef Object Right(Object x); // Right branch
       typedef int Bot(Object x);      // Bottom of the lattice
 
-      Object top(int x) => x;
-      int left(int x) => x;
-      Object right(Object x) => x;
+      Object globalTop(int x) => x;
+      int globalLeft(int x) => x;
+      Object globalRight(Object x) => x;
       int _bot(Object x) => /*info:DOWN_CAST_IMPLICIT*/x;
-      int bot(Object x) => x as int;
+      int globalBot(Object x) => x as int;
 
       void main() {
+        // Note: use locals so we only know the type, not that it's a specific
+        // function declaration. (we can issue better errors in that case.)
+        var top = globalTop;
+        var left = globalLeft;
+        var right = globalRight;
+        var bot = globalBot;
+
         { // Check typedef equality
           Left f = left;
           Left2 g = f;
@@ -474,11 +488,11 @@ void main() {
           f = bot;
         }
       }
-   '''
-  });
+   ''');
+    });
 
-  testChecker('Function typing and subtyping: classes', {
-    '/main.dart': '''
+    test('classes', () {
+      checkFile('''
 
       class A {}
       class B extends A {}
@@ -509,31 +523,31 @@ void main() {
         }
         {
           Left f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
           f = left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/right; // Should we reject this?
+          f = /*severe:STATIC_TYPE_ERROR*/right;
           f = bot;
         }
         {
           Right f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left; // Should we reject this?
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
           f = right;
           f = bot;
         }
         {
           Bot f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/right;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/right;
           f = bot;
         }
       }
-   '''
-  });
+   ''');
+    });
 
-  testChecker('Function typing and subtyping: dynamic', {
-    '/main.dart': '''
+    test('dynamic', () {
+      checkFile('''
 
       class A {}
 
@@ -557,31 +571,31 @@ void main() {
         }
         {
           Left f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
           f = left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/right;
+          f = /*severe:STATIC_TYPE_ERROR*/right;
           f = bot;
         }
         {
           Right f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
           f = right;
           f = bot;
         }
         {
           Bottom f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/right;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/right;
           f = bot;
         }
       }
-   '''
-  });
+   ''');
+    });
 
-  testChecker('Function typing and subtyping: function literal variance', {
-    '/main.dart': '''
+    test('function literal variance', () {
+      checkFile('''
 
       class A {}
       class B extends A {}
@@ -603,31 +617,31 @@ void main() {
         }
         {
           Function2<B, B> f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
           f = left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/right; // Should we reject this?
+          f = /*severe:STATIC_TYPE_ERROR*/right;
           f = bot;
         }
         {
           Function2<A, A> f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left; // Should we reject this?
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
           f = right;
           f = bot;
         }
         {
           Function2<A, B> f;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/right;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/right;
           f = bot;
         }
       }
-   '''
-  });
+   ''');
+    });
 
-  testChecker('Function typing and subtyping: function variable variance', {
-    '/main.dart': '''
+    test('function variable variance', () {
+      checkFile('''
 
       class A {}
       class B extends A {}
@@ -662,11 +676,108 @@ void main() {
           bot = bot;
         }
       }
-   '''
-  });
+   ''');
+    });
 
-  testChecker('Function typing and subtyping: higher order function literals', {
-    '/main.dart': '''
+    test('static method variance', () {
+      checkFile('''
+
+      class A {}
+      class B extends A {}
+
+      class C {
+        static A top(B x) => x;
+        static B left(B x) => x;
+        static A right(A x) => x;
+        static B bot(A x) => x as B;
+      }
+
+      typedef T Function2<S, T>(S z);
+
+      void main() {
+        {
+          Function2<B, A> f;
+          f = C.top;
+          f = C.left;
+          f = C.right;
+          f = C.bot;
+        }
+        {
+          Function2<B, B> f;
+          f = /*severe:STATIC_TYPE_ERROR*/C.top;
+          f = C.left;
+          f = /*severe:STATIC_TYPE_ERROR*/C.right;
+          f = C.bot;
+        }
+        {
+          Function2<A, A> f;
+          f = /*severe:STATIC_TYPE_ERROR*/C.top;
+          f = /*severe:STATIC_TYPE_ERROR*/C.left;
+          f = C.right;
+          f = C.bot;
+        }
+        {
+          Function2<A, B> f;
+          f = /*severe:STATIC_TYPE_ERROR*/C.top;
+          f = /*severe:STATIC_TYPE_ERROR*/C.left;
+          f = /*severe:STATIC_TYPE_ERROR*/C.right;
+          f = C.bot;
+        }
+      }
+   ''');
+    });
+
+    test('instance method variance', () {
+      checkFile('''
+
+      class A {}
+      class B extends A {}
+
+      class C {
+        A top(B x) => x;
+        B left(B x) => x;
+        A right(A x) => x;
+        B bot(A x) => x as B;
+      }
+
+      typedef T Function2<S, T>(S z);
+
+      void main() {
+        C c = new C();
+        {
+          Function2<B, A> f;
+          f = c.top;
+          f = c.left;
+          f = c.right;
+          f = c.bot;
+        }
+        {
+          Function2<B, B> f;
+          f = /*warning:DOWN_CAST_COMPOSITE*/c.top;
+          f = c.left;
+          f = /*warning:DOWN_CAST_COMPOSITE*/c.right;
+          f = c.bot;
+        }
+        {
+          Function2<A, A> f;
+          f = /*warning:DOWN_CAST_COMPOSITE*/c.top;
+          f = /*warning:DOWN_CAST_COMPOSITE*/c.left;
+          f = c.right;
+          f = c.bot;
+        }
+        {
+          Function2<A, B> f;
+          f = /*warning:DOWN_CAST_COMPOSITE*/c.top;
+          f = /*warning:DOWN_CAST_COMPOSITE*/c.left;
+          f = /*warning:DOWN_CAST_COMPOSITE*/c.right;
+          f = c.bot;
+        }
+      }
+   ''');
+    });
+
+    test('higher order function literals 1', () {
+      checkFile('''
 
       class A {}
       class B extends A {}
@@ -682,12 +793,99 @@ void main() {
       AToB _bot(BToA f) => /*warning:DOWN_CAST_COMPOSITE*/f;
       AToB bot(BToA f) => f as AToB;
 
+      void main() {
+        {
+          Function2<AToB, BToA> f; // Top
+          f = top;
+          f = left;
+          f = right;
+          f = bot;
+        }
+        {
+          Function2<AToB, AToB> f; // Left
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = left;
+          f = /*severe:STATIC_TYPE_ERROR*/right;
+          f = bot;
+        }
+        {
+          Function2<BToA, BToA> f; // Right
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = right;
+          f = bot;
+        }
+        {
+          Function2<BToA, AToB> f; // Bot
+          f = bot;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+        }
+      }
+   ''');
+    });
+
+    test('higher order function literals 2', () {
+      checkFile('''
+
+      class A {}
+      class B extends A {}
+
+      typedef T Function2<S, T>(S z);
+
+      typedef A BToA(B x);  // Top of the base lattice
+      typedef B AToB(A x);  // Bot of the base lattice
+
       Function2<B, A> top(AToB f) => f;
       Function2<A, B> left(AToB f) => f;
       Function2<B, A> right(BToA f) => f;
       Function2<A, B> _bot(BToA f) => /*warning:DOWN_CAST_COMPOSITE*/f;
       Function2<A, B> bot(BToA f) => f as Function2<A, B>;
 
+      void main() {
+        {
+          Function2<AToB, BToA> f; // Top
+          f = top;
+          f = left;
+          f = right;
+          f = bot;
+        }
+        {
+          Function2<AToB, AToB> f; // Left
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = left;
+          f = /*severe:STATIC_TYPE_ERROR*/right;
+          f = bot;
+        }
+        {
+          Function2<BToA, BToA> f; // Right
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = right;
+          f = bot;
+        }
+        {
+          Function2<BToA, AToB> f; // Bot
+          f = bot;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+        }
+      }
+   ''');
+    });
+
+    test('higher order function literals 3', () {
+      checkFile('''
+
+      class A {}
+      class B extends A {}
+
+      typedef T Function2<S, T>(S z);
+
+      typedef A BToA(B x);  // Top of the base lattice
+      typedef B AToB(A x);  // Bot of the base lattice
 
       BToA top(Function2<A, B> f) => f;
       AToB left(Function2<A, B> f) => f;
@@ -705,32 +903,31 @@ void main() {
         }
         {
           Function2<AToB, AToB> f; // Left
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
           f = left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/right; // Should we reject this?
+          f = /*severe:STATIC_TYPE_ERROR*/right;
           f = bot;
         }
         {
           Function2<BToA, BToA> f; // Right
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left; // Should we reject this?
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
           f = right;
           f = bot;
         }
         {
           Function2<BToA, AToB> f; // Bot
           f = bot;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left;
-          f = /*warning:DOWN_CAST_COMPOSITE*/top;
-          f = /*warning:DOWN_CAST_COMPOSITE*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*severe:STATIC_TYPE_ERROR*/left;
         }
       }
-   '''
-  });
+   ''');
+    });
 
-  testChecker(
-      'Function typing and subtyping: higher order function variables', {
-    '/main.dart': '''
+    test('higher order function variables', () {
+      checkFile('''
 
     class A {}
     class B extends A {}
@@ -767,11 +964,11 @@ void main() {
         bot = bot;
       }
     }
-   '''
-  });
+   ''');
+    });
 
-  testChecker('Function typing and subtyping: named and optional parameters', {
-    '/main.dart': '''
+    test('named and optional parameters', () {
+      checkFile('''
 
       class A {}
 
@@ -886,11 +1083,11 @@ void main() {
          nnn = /*warning:DOWN_CAST_COMPOSITE*/nn;
          nnn = nnn;
       }
-   '''
-  });
+   ''');
+    });
 
-  testChecker('Function subtyping: objects with call methods', {
-    '/main.dart': '''
+    test('Function subtyping: objects with call methods', () {
+      checkFile('''
 
       typedef int I2I(int x);
       typedef num N2N(num x);
@@ -908,7 +1105,7 @@ void main() {
            f = new A();
            f = /*severe:STATIC_TYPE_ERROR*/new B();
            f = i2i;
-           f = /*warning:DOWN_CAST_COMPOSITE*/n2n;
+           f = /*severe:STATIC_TYPE_ERROR*/n2n;
            f = /*warning:DOWN_CAST_COMPOSITE*/i2i as Object;
            f = /*warning:DOWN_CAST_COMPOSITE*/n2n as Function;
          }
@@ -916,7 +1113,7 @@ void main() {
            N2N f;
            f = /*severe:STATIC_TYPE_ERROR*/new A();
            f = new B();
-           f = /*warning:DOWN_CAST_COMPOSITE*/i2i;
+           f = /*severe:STATIC_TYPE_ERROR*/i2i;
            f = n2n;
            f = /*warning:DOWN_CAST_COMPOSITE*/i2i as Object;
            f = /*warning:DOWN_CAST_COMPOSITE*/n2n as Function;
@@ -949,31 +1146,32 @@ void main() {
            f = (n2n as Function);
          }
       }
-   '''
-  });
+   ''');
+    });
 
-  testChecker('Function typing and subtyping: void', {
-    '/main.dart': '''
+    test('void', () {
+      checkFile('''
 
       class A {
         void bar() => null;
         void foo() => bar; // allowed
       }
-   '''
-  });
+   ''');
+    });
 
-  testChecker('Function subtyping: uninferred closure', {
-    '/main.dart': '''
+    test('uninferred closure', () {
+      checkFile('''
       typedef num Num2Num(num x);
       void main() {
         Num2Num g = /*info:INFERRED_TYPE_CLOSURE,severe:STATIC_TYPE_ERROR*/(int x) { return x; };
         print(g(42));
       }
-    '''
+    ''');
+    });
   });
 
-  testChecker('Relaxed casts', {
-    '/main.dart': '''
+  test('Relaxed casts', () {
+    checkFile('''
 
       class A {}
 
@@ -1047,11 +1245,11 @@ void main() {
         }
 
       }
-   '''
+   ''');
   });
 
-  testChecker('Type checking literals', {
-    '/main.dart': '''
+  test('Type checking literals', () {
+    checkFile('''
           test() {
             num n = 3;
             int i = 3;
@@ -1090,11 +1288,11 @@ void main() {
                     s: s};
             }
           }
-   '''
+   ''');
   });
 
-  testChecker('casts in constant contexts', {
-    '/main.dart': '''
+  test('casts in constant contexts', () {
+    checkFile('''
           class A {
             static const num n = 3.0;
             static const int i = /*info:ASSIGNMENT_CAST*/n;
@@ -1107,11 +1305,11 @@ void main() {
           void foo(Object o) {
             var a = const A(/*info:DOWN_CAST_IMPLICIT*/o);
           }
-     '''
+     ''');
   });
 
-  testChecker('casts in conditionals', {
-    '/main.dart': '''
+  test('casts in conditionals', () {
+    checkFile('''
           main() {
             bool b = true;
             num x = b ? 1 : 2.3;
@@ -1119,38 +1317,38 @@ void main() {
             String z = !b ? "hello" : null;
             z = b ? null : "hello";
           }
-      '''
+      ''');
   });
 
   // This is a regression test for https://github.com/dart-lang/sdk/issues/25071
-  testChecker('unbound redirecting constructor', {
-    '/main.dart': '''
+  test('unbound redirecting constructor', () {
+    checkFile('''
       class Foo {
         Foo() : this.init();
       }
-       '''
+       ''');
   });
 
-  testChecker('redirecting constructor', {
-    '/main.dart': '''
+  test('redirecting constructor', () {
+    checkFile('''
           class A {
             A(A x) {}
             A.two() : this(/*severe:STATIC_TYPE_ERROR*/3);
           }
-       '''
+       ''');
   });
 
-  testChecker('super constructor', {
-    '/main.dart': '''
+  test('super constructor', () {
+    checkFile('''
           class A { A(A x) {} }
           class B extends A {
             B() : super(/*severe:STATIC_TYPE_ERROR*/3);
           }
-       '''
+       ''');
   });
 
-  testChecker('factory constructor downcast', {
-    '/main.dart': r'''
+  test('factory constructor downcast', () {
+    checkFile(r'''
         class Animal {
           Animal();
           factory Animal.cat() => return new Cat();
@@ -1161,11 +1359,11 @@ void main() {
         void main() {
           Cat c = /*info:ASSIGNMENT_CAST*/new Animal.cat();
           c = /*severe:STATIC_TYPE_ERROR*/new Animal();
-        }'''
+        }''');
   });
 
-  testChecker('field/field override', {
-    '/main.dart': '''
+  test('field/field override', () {
+    checkFile('''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1190,11 +1388,12 @@ void main() {
             var f3;
             /*severe:INVALID_METHOD_OVERRIDE,severe:INVALID_METHOD_OVERRIDE*/dynamic f4;
           }
-       '''
+       ''');
   });
 
-  testChecker('private override', {
-    '/helper.dart': '''
+  test('private override', () {
+    addFile(
+        '''
           import 'main.dart' as main;
 
           class Base {
@@ -1214,7 +1413,8 @@ void main() {
             /*severe:INVALID_METHOD_OVERRIDE*/String _m1();
           }
     ''',
-    '/main.dart': '''
+        name: '/helper.dart');
+    checkFile('''
           import 'helper.dart' as helper;
 
           class Child extends helper.Base {
@@ -1224,11 +1424,11 @@ void main() {
 
             String _m1();
           }
-    '''
+    ''');
   });
 
-  testChecker('getter/getter override', {
-    '/main.dart': '''
+  test('getter/getter override', () {
+    checkFile('''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1246,11 +1446,11 @@ void main() {
             get f3 => null;
             /*severe:INVALID_METHOD_OVERRIDE*/dynamic get f4 => null;
           }
-       '''
+       ''');
   });
 
-  testChecker('field/getter override', {
-    '/main.dart': '''
+  test('field/getter override', () {
+    checkFile('''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1275,11 +1475,11 @@ void main() {
             get f3 => null;
             /*severe:INVALID_METHOD_OVERRIDE*/dynamic get f4 => null;
           }
-       '''
+       ''');
   });
 
-  testChecker('setter/setter override', {
-    '/main.dart': '''
+  test('setter/setter override', () {
+    checkFile('''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1299,11 +1499,11 @@ void main() {
             /*severe:INVALID_METHOD_OVERRIDE*/void set f4(dynamic value) {}
             set f5(B value) {}
           }
-       '''
+       ''');
   });
 
-  testChecker('field/setter override', {
-    '/main.dart': '''
+  test('field/setter override', () {
+    checkFile('''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1343,11 +1543,11 @@ void main() {
             /*severe:INVALID_METHOD_OVERRIDE*/void set f4(dynamic value) {}
             set f5(B value) {}
           }
-       '''
+       ''');
   });
 
-  testChecker('method override', {
-    '/main.dart': '''
+  test('method override', () {
+    checkFile('''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1369,11 +1569,11 @@ void main() {
             m5(value) {}
             /*severe:INVALID_METHOD_OVERRIDE*/dynamic m6(dynamic value) {}
           }
-       '''
+       ''');
   });
 
-  testChecker('generic class method override', {
-    '/main.dart': '''
+  test('generic class method override', () {
+    checkFile('''
           class A {}
           class B extends A {}
 
@@ -1388,11 +1588,11 @@ void main() {
           class Derived2<S extends B> extends Base<B> {
             S foo() => null;
           }
-       '''
+       ''');
   });
 
-  testChecker('generic method override', {
-    '/main.dart': '''
+  test('generic method override', () {
+    checkFile('''
           class Future<T> {
             /*=S*/ then/*<S>*/(/*=S*/ onValue(T t)) => null;
           }
@@ -1412,11 +1612,11 @@ void main() {
           class DerivedFuture4<A> extends Future<A> {
             /*=B*/ then/*<B>*/(Object onValue(A a)) => null;
           }
-      '''
+      ''');
   });
 
-  testChecker('generic function wrong number of arguments', {
-      '/main.dart': r'''
+  test('generic function wrong number of arguments', () {
+    checkFile(r'''
           /*=T*/ foo/*<T>*/(/*=T*/ x, /*=T*/ y) => x;
           /*=T*/ bar/*<T>*/({/*=T*/ x, /*=T*/ y}) => x;
 
@@ -1437,11 +1637,11 @@ void main() {
             x = /*severe:STATIC_TYPE_ERROR*/bar(y: 1, x: 2, z: 3);
             x = /*severe:STATIC_TYPE_ERROR*/bar(x: 1);
           }
-      '''
+      ''');
   });
 
-  testChecker('type promotion from dynamic', {
-    '/main.dart': r'''
+  test('type promotion from dynamic', () {
+    checkFile(r'''
           f() {
             dynamic x;
             if (x is int) {
@@ -1456,11 +1656,11 @@ void main() {
               String z = /*severe:STATIC_TYPE_ERROR*/x;
             }
           }
-    '''
+    ''');
   });
 
-  testChecker('unary operators', {
-    '/main.dart': '''
+  test('unary operators', () {
+    checkFile('''
       class A {
         A operator ~() {}
         A operator +(int x) {}
@@ -1492,11 +1692,11 @@ void main() {
         a--;
         (/*info:DYNAMIC_INVOKE*/d++);
         (/*info:DYNAMIC_INVOKE*/d--);
-      }'''
+      }''');
   });
 
-  testChecker('binary and index operators', {
-    '/main.dart': '''
+  test('binary and index operators', () {
+    checkFile('''
           class A {
             A operator *(B b) {}
             A operator /(B b) {}
@@ -1557,11 +1757,11 @@ void main() {
             c = (/*info:DYNAMIC_INVOKE*/c[b]);
             a[/*severe:STATIC_TYPE_ERROR*/y];
           }
-       '''
+       ''');
   });
 
-  testChecker('null coalescing operator', {
-    '/main.dart': '''
+  test('null coalescing operator', () {
+    checkFile('''
           class A {}
           class C<T> {}
           main() {
@@ -1574,11 +1774,11 @@ void main() {
             c ??= /*info:INFERRED_TYPE_ALLOCATION*/new C();
             d = d ?? /*info:INFERRED_TYPE_ALLOCATION*/new C();
           }
-       '''
+       ''');
   });
 
-  testChecker('compound assignments', {
-    '/main.dart': '''
+  test('compound assignments', () {
+    checkFile('''
           class A {
             A operator *(B b) {}
             A operator /(B b) {}
@@ -1656,11 +1856,11 @@ void main() {
             a[b] += /*severe:STATIC_TYPE_ERROR*/z;
             (/*info:DYNAMIC_INVOKE*/(/*info:DYNAMIC_INVOKE*/c[b]) += d);
           }
-       '''
+       ''');
   });
 
-  testChecker('super call placement', {
-    '/main.dart': '''
+  test('super call placement', () {
+    checkFile('''
           class Base {
             var x;
             Base() : x = print('Base.1') { print('Base.2'); }
@@ -1691,11 +1891,11 @@ void main() {
           }
 
           main() => new Derived();
-       '''
+       ''');
   });
 
-  testChecker('for loop variable', {
-    '/main.dart': '''
+  test('for loop variable', () {
+    checkFile('''
           foo() {
             for (int i = 0; i < 10; i++) {
               i = /*severe:STATIC_TYPE_ERROR*/"hi";
@@ -1706,21 +1906,21 @@ void main() {
               int j = i + 1;
             }
           }
-        '''
+        ''');
   });
 
-  testChecker('loadLibrary', {
-    '/lib1.dart': '''library lib1;''',
-    '/main.dart': r'''
+  test('loadLibrary', () {
+    addFile('''library lib1;''', name: '/lib1.dart');
+    checkFile(r'''
         import 'lib1.dart' deferred as lib1;
         main() {
           Future f = lib1.loadLibrary();
-        }'''
+        }''');
   });
 
   group('invalid overrides', () {
-    testChecker('child override', {
-      '/main.dart': '''
+    test('child override', () {
+      checkFile('''
             class A {}
             class B {}
 
@@ -1759,11 +1959,11 @@ void main() {
               // two: one for the getter one for the setter.
               /*severe:INVALID_METHOD_OVERRIDE,severe:INVALID_METHOD_OVERRIDE*/B f;
             }
-         '''
+         ''');
     });
 
-    testChecker('child override 2', {
-      '/main.dart': '''
+    test('child override 2', () {
+      checkFile('''
             class A {}
             class B {}
 
@@ -1774,10 +1974,10 @@ void main() {
             class Test extends Base {
                 /*severe:INVALID_METHOD_OVERRIDE*/m(B a) {}
             }
-         '''
+         ''');
     });
-    testChecker('grandchild override', {
-      '/main.dart': '''
+    test('grandchild override', () {
+      checkFile('''
             class A {}
             class B {}
 
@@ -1792,11 +1992,11 @@ void main() {
                 /*severe:INVALID_METHOD_OVERRIDE*/m(B a) {}
                 /*severe:INVALID_FIELD_OVERRIDE*/int x;
             }
-         '''
+         ''');
     });
 
-    testChecker('double override', {
-      '/main.dart': '''
+    test('double override', () {
+      checkFile('''
             class A {}
             class B {}
 
@@ -1811,11 +2011,11 @@ void main() {
                 // Reported only once
                 /*severe:INVALID_METHOD_OVERRIDE*/m(B a) {}
             }
-         '''
+         ''');
     });
 
-    testChecker('double override 2', {
-      '/main.dart': '''
+    test('double override 2', () {
+      checkFile('''
             class A {}
             class B {}
 
@@ -1829,11 +2029,11 @@ void main() {
             class Test extends Parent {
                 m(B a) {}
             }
-         '''
+         ''');
     });
 
-    testChecker('mixin override to base', {
-      '/main.dart': '''
+    test('mixin override to base', () {
+      checkFile('''
             class A {}
             class B {}
 
@@ -1853,11 +2053,11 @@ void main() {
             class T1 extends Base with /*severe:INVALID_METHOD_OVERRIDE*/M1 {}
             class T2 extends Base with /*severe:INVALID_METHOD_OVERRIDE*/M1, /*severe:INVALID_FIELD_OVERRIDE*/M2 {}
             class T3 extends Base with /*severe:INVALID_FIELD_OVERRIDE*/M2, /*severe:INVALID_METHOD_OVERRIDE*/M1 {}
-         '''
+         ''');
     });
 
-    testChecker('mixin override to mixin', {
-      '/main.dart': '''
+    test('mixin override to mixin', () {
+      checkFile('''
             class A {}
             class B {}
 
@@ -1875,14 +2075,14 @@ void main() {
             }
 
             class T1 extends Base with M1, /*severe:INVALID_METHOD_OVERRIDE,severe:INVALID_FIELD_OVERRIDE*/M2 {}
-         '''
+         ''');
     });
 
     // This is a regression test for a bug in an earlier implementation were
     // names were hiding errors if the first mixin override looked correct,
     // but subsequent ones did not.
-    testChecker('no duplicate mixin override', {
-      '/main.dart': '''
+    test('no duplicate mixin override', () {
+      checkFile('''
             class A {}
             class B {}
 
@@ -1904,11 +2104,11 @@ void main() {
 
             class T1 extends Base
                 with M1, /*severe:INVALID_METHOD_OVERRIDE*/M2, M3 {}
-         '''
+         ''');
     });
 
-    testChecker('class override of interface', {
-      '/main.dart': '''
+    test('class override of interface', () {
+      checkFile('''
             class A {}
             class B {}
 
@@ -1919,11 +2119,11 @@ void main() {
             class T1 implements I {
                 /*severe:INVALID_METHOD_OVERRIDE*/m(B a) {}
             }
-         '''
+         ''');
     });
 
-    testChecker('base class override to child interface', {
-      '/main.dart': '''
+    test('base class override to child interface', () {
+      checkFile('''
             class A {}
             class B {}
 
@@ -1938,11 +2138,11 @@ void main() {
 
             class T1 /*severe:INVALID_METHOD_OVERRIDE*/extends Base implements I {
             }
-         '''
+         ''');
     });
 
-    testChecker('mixin override of interface', {
-      '/main.dart': '''
+    test('mixin override of interface', () {
+      checkFile('''
             class A {}
             class B {}
 
@@ -1956,14 +2156,13 @@ void main() {
 
             class T1 extends Object with /*severe:INVALID_METHOD_OVERRIDE*/M
                implements I {}
-         '''
+         ''');
     });
 
     // This is a case were it is incorrect to say that the base class
     // incorrectly overrides the interface.
-    testChecker(
-        'no errors if subclass correctly overrides base and interface', {
-      '/main.dart': '''
+    test('no errors if subclass correctly overrides base and interface', () {
+      checkFile('''
             class A {}
             class B {}
 
@@ -1988,13 +2187,13 @@ void main() {
             class T4 extends Object with Base implements I1 {
                 /*severe:INVALID_METHOD_OVERRIDE,severe:INVALID_METHOD_OVERRIDE*/m(a) {}
             }
-         '''
+         ''');
     });
   });
 
   group('class override of grand interface', () {
-    testChecker('interface of interface of child', {
-      '/main.dart': '''
+    test('interface of interface of child', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2006,10 +2205,10 @@ void main() {
               class T1 implements I2 {
                   /*severe:INVALID_METHOD_OVERRIDE*/m(B a) {}
               }
-           '''
+           ''');
     });
-    testChecker('superclass of interface of child', {
-      '/main.dart': '''
+    test('superclass of interface of child', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2021,10 +2220,10 @@ void main() {
               class T1 implements I2 {
                   /*severe:INVALID_METHOD_OVERRIDE*/m(B a) {}
               }
-           '''
+           ''');
     });
-    testChecker('mixin of interface of child', {
-      '/main.dart': '''
+    test('mixin of interface of child', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2036,10 +2235,10 @@ void main() {
               class T1 implements I2 {
                   /*severe:INVALID_METHOD_OVERRIDE*/m(B a) {}
               }
-           '''
+           ''');
     });
-    testChecker('interface of abstract superclass', {
-      '/main.dart': '''
+    test('interface of abstract superclass', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2051,10 +2250,10 @@ void main() {
               class T1 extends Base {
                   /*severe:INVALID_METHOD_OVERRIDE*/m(B a) {}
               }
-           '''
+           ''');
     });
-    testChecker('interface of concrete superclass', {
-      '/main.dart': '''
+    test('interface of concrete superclass', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2072,13 +2271,13 @@ void main() {
                   // sufficient to check overrides against it.
                   m(B a) {}
               }
-           '''
+           ''');
     });
   });
 
   group('mixin override of grand interface', () {
-    testChecker('interface of interface of child', {
-      '/main.dart': '''
+    test('interface of interface of child', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2094,10 +2293,10 @@ void main() {
               class T1 extends Object with /*severe:INVALID_METHOD_OVERRIDE*/M
                   implements I2 {
               }
-           '''
+           ''');
     });
-    testChecker('superclass of interface of child', {
-      '/main.dart': '''
+    test('superclass of interface of child', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2113,10 +2312,10 @@ void main() {
               class T1 extends Object with /*severe:INVALID_METHOD_OVERRIDE*/M
                   implements I2 {
               }
-           '''
+           ''');
     });
-    testChecker('mixin of interface of child', {
-      '/main.dart': '''
+    test('mixin of interface of child', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2132,10 +2331,10 @@ void main() {
               class T1 extends Object with /*severe:INVALID_METHOD_OVERRIDE*/M
                   implements I2 {
               }
-           '''
+           ''');
     });
-    testChecker('interface of abstract superclass', {
-      '/main.dart': '''
+    test('interface of abstract superclass', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2150,10 +2349,10 @@ void main() {
 
               class T1 extends Base with /*severe:INVALID_METHOD_OVERRIDE*/M {
               }
-           '''
+           ''');
     });
-    testChecker('interface of concrete superclass', {
-      '/main.dart': '''
+    test('interface of concrete superclass', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2171,13 +2370,13 @@ void main() {
 
               class T1 extends Base with M {
               }
-           '''
+           ''');
     });
   });
 
   group('superclass override of grand interface', () {
-    testChecker('interface of interface of child', {
-      '/main.dart': '''
+    test('interface of interface of child', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2193,10 +2392,10 @@ void main() {
               class T1 /*severe:INVALID_METHOD_OVERRIDE*/extends Base
                   implements I2 {
               }
-           '''
+           ''');
     });
-    testChecker('superclass of interface of child', {
-      '/main.dart': '''
+    test('superclass of interface of child', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2212,10 +2411,10 @@ void main() {
               class T1 /*severe:INVALID_METHOD_OVERRIDE*/extends Base
                   implements I2 {
               }
-           '''
+           ''');
     });
-    testChecker('mixin of interface of child', {
-      '/main.dart': '''
+    test('mixin of interface of child', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2231,10 +2430,10 @@ void main() {
               class T1 /*severe:INVALID_METHOD_OVERRIDE*/extends Base
                   implements I2 {
               }
-           '''
+           ''');
     });
-    testChecker('interface of abstract superclass', {
-      '/main.dart': '''
+    test('interface of abstract superclass', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2254,10 +2453,10 @@ void main() {
                   // reported.
                   /*severe:INVALID_METHOD_OVERRIDE*/m(B a) {}
               }
-           '''
+           ''');
     });
-    testChecker('interface of concrete superclass', {
-      '/main.dart': '''
+    test('interface of concrete superclass', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2272,13 +2471,13 @@ void main() {
               class T1 extends Base {
                   m(B a) {}
               }
-           '''
+           ''');
     });
   });
 
   group('no duplicate reports from overriding interfaces', () {
-    testChecker('type overrides same method in multiple interfaces', {
-      '/main.dart': '''
+    test('type overrides same method in multiple interfaces', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2295,11 +2494,11 @@ void main() {
               class T1 implements I2 {
                 /*severe:INVALID_METHOD_OVERRIDE*/m(B a) {}
               }
-           '''
+           ''');
     });
 
-    testChecker('type and base type override same method in interface', {
-      '/main.dart': '''
+    test('type and base type override same method in interface', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2322,11 +2521,11 @@ void main() {
               class T2 /*severe:INVALID_METHOD_OVERRIDE*/extends Base
                   implements I1 {
               }
-           '''
+           ''');
     });
 
-    testChecker('type and mixin override same method in interface', {
-      '/main.dart': '''
+    test('type and mixin override same method in interface', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2345,11 +2544,11 @@ void main() {
               class T2 extends Object with /*severe:INVALID_METHOD_OVERRIDE*/M
                   implements I1 {
               }
-           '''
+           ''');
     });
 
-    testChecker('two grand types override same method in interface', {
-      '/main.dart': '''
+    test('two grand types override same method in interface', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2374,11 +2573,11 @@ void main() {
               class T2 /*severe:INVALID_METHOD_OVERRIDE*/extends Parent2
                   implements I1 {
               }
-           '''
+           ''');
     });
 
-    testChecker('two mixins override same method in interface', {
-      '/main.dart': '''
+    test('two mixins override same method in interface', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2402,11 +2601,11 @@ void main() {
                   with /*severe:INVALID_METHOD_OVERRIDE*/M2
                   implements I1 {
               }
-           '''
+           ''');
     });
 
-    testChecker('base type and mixin override same method in interface', {
-      '/main.dart': '''
+    test('base type and mixin override same method in interface', () {
+      checkFile('''
               class A {}
               class B {}
 
@@ -2429,12 +2628,12 @@ void main() {
                   with /*severe:INVALID_METHOD_OVERRIDE*/M
                   implements I1 {
               }
-           '''
+           ''');
     });
   });
 
-  testChecker('invalid runtime checks', {
-    '/main.dart': '''
+  test('invalid runtime checks', () {
+    checkFile('''
           typedef int I2I(int x);
           typedef int D2I(x);
           typedef int II2I(int x, int y);
@@ -2484,12 +2683,12 @@ void main() {
             f = bar as ID2D;
             f = bar as DD2D;
           }
-      '''
+      ''');
   });
 
   group('function modifiers', () {
-    testChecker('async', {
-      '/main.dart': '''
+    test('async', () {
+      checkFile('''
         import 'dart:async';
         import 'dart:math' show Random;
 
@@ -2525,11 +2724,11 @@ void main() {
             return new Future<bool>.value(false);
           }
         }
-    '''
+    ''');
     });
 
-    testChecker('async*', {
-      '/main.dart': '''
+    test('async*', () {
+      checkFile('''
         import 'dart:async';
 
         dynamic x;
@@ -2544,11 +2743,11 @@ void main() {
         Stream<int> baz3() async* { yield* (/*warning:DOWN_CAST_COMPOSITE*/x); }
         Stream<int> baz4() async* { yield* new Stream<int>(); }
         Stream<int> baz5() async* { yield* (/*info:INFERRED_TYPE_ALLOCATION*/new Stream()); }
-    '''
+    ''');
     });
 
-    testChecker('sync*', {
-      '/main.dart': '''
+    test('sync*', () {
+      checkFile('''
         import 'dart:async';
 
         dynamic x;
@@ -2563,7 +2762,7 @@ void main() {
         Iterable<int> baz3() sync* { yield* (/*warning:DOWN_CAST_COMPOSITE*/x); }
         Iterable<int> baz4() sync* { yield* new Iterable<int>(); }
         Iterable<int> baz5() sync* { yield* (/*info:INFERRED_TYPE_ALLOCATION*/new Iterable()); }
-    '''
+    ''');
     });
   });
 }

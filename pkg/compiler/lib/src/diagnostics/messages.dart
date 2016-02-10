@@ -74,8 +74,6 @@ import 'spannable.dart' show
 
 import 'generated/shared_messages.dart' as shared_messages;
 
-export 'generated/shared_messages.dart' show SharedMessageKind;
-
 const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
 
 /// Keys for the [MessageTemplate]s.
@@ -146,7 +144,7 @@ enum MessageKind {
   CONSIDER_ANALYZE_ALL,
   CONST_CALLS_NON_CONST,
   CONST_CALLS_NON_CONST_FOR_IMPLICIT,
-  CONST_CONSTRUCTOR_HAS_BODY,
+  CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD,
@@ -290,8 +288,9 @@ enum MessageKind {
   INVALID_YIELD,
   JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
-  JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
+  JS_INTEROP_INDEX_NOT_SUPPORTED,
   JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
+  JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
   JS_PLACEHOLDER_CAPTURE,
   LIBRARY_NAME_MISMATCH,
   LIBRARY_NOT_FOUND,
@@ -978,17 +977,6 @@ main() {}"""},
       MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY:
         const MessageTemplate(MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY,
           "Redirecting constructor can't have a body."),
-
-      MessageKind.CONST_CONSTRUCTOR_HAS_BODY:
-        const MessageTemplate(MessageKind.CONST_CONSTRUCTOR_HAS_BODY,
-          "Const constructor or factory can't have a body.",
-          howToFix: "Remove the 'const' keyword or the body",
-          examples: const ["""
-class C {
-  const C() {}
-}
-
-main() => new C();"""]),
 
       MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER:
         const MessageTemplate(
@@ -2336,6 +2324,36 @@ main() => A.A = 1;
                 new Foo().bar(4, baz: 5);
               }
               """]),
+      MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED:
+        const MessageTemplate(
+           MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED,
+           "Js-interop does not support [] and []= operator methods.",
+           howToFix: "Try replacing [] and []= operator methods with normal "
+                     "methods.",
+           examples: const [
+               """
+        import 'package:js/js.dart';
+
+        @JS()
+        class Foo {
+          external operator [](arg);
+        }
+
+        main() {
+          new Foo()[0];
+        }
+        """, """
+        import 'package:js/js.dart';
+
+        @JS()
+        class Foo {
+          external operator []=(arg, value);
+        }
+
+        main() {
+          new Foo()[0] = 1;
+        }
+        """]),
 
       MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS:
         const MessageTemplate(

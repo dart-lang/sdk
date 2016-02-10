@@ -33,6 +33,9 @@ class _TestLauncher {
     assert(pause_on_start != null);
     assert(pause_on_exit != null);
     assert(trace_service != null);
+    // TODO(turnidge): I have temporarily turned on service tracing for
+    // all tests to help diagnose flaky tests.
+    trace_service = true;
     String dartExecutable = Platform.executable;
     var fullArgs = [];
     if (trace_service) {
@@ -280,39 +283,8 @@ Future<Isolate> hasStoppedWithUnhandledException(Isolate isolate) {
 }
 
 Future<Isolate> hasPausedAtStart(Isolate isolate) {
-  // Set up a listener to wait for breakpoint events.
-  Completer completer = new Completer();
-  isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
-    var subscription;
-    subscription = stream.listen((ServiceEvent event) {
-        if (event.kind == ServiceEvent.kPauseStart) {
-          print('Paused at isolate start');
-          subscription.cancel();
-          if (completer != null) {
-            // Reload to update isolate.pauseEvent.
-            completer.complete(isolate.reload());
-            completer = null;
-          }
-        }
-    });
-
-    // Pause may have happened before we subscribed.
-    isolate.reload().then((_) {
-      if ((isolate.pauseEvent != null) &&
-         (isolate.pauseEvent.kind == ServiceEvent.kPauseStart)) {
-        print('Paused at isolate start');
-        subscription.cancel();
-        if (completer != null) {
-          completer.complete(isolate);
-          completer = null;
-        }
-      }
-    });
-  });
-
-  return completer.future;
+  return hasPausedFor(isolate, ServiceEvent.kPauseStart);
 }
-
 
 // Currying is your friend.
 IsolateTest setBreakpointAtLine(int line) {

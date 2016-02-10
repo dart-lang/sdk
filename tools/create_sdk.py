@@ -44,6 +44,8 @@
 # ......dart_shared.platform
 # ......dart2dart.platform
 # ......_internal/
+# ......analysis_server/
+# ......analyzer/
 # ......async/
 # ......collection/
 # ......convert/
@@ -137,7 +139,13 @@ def CopySnapshots(snapshots, sdk_root):
     copyfile(join(snapshots, snapshot),
              join(sdk_root, 'bin', 'snapshots', snapshot))
 
-def CopyDartdocResources(home,sdk_root):
+def CopyAnalyzerSources(home, lib_dir):
+  for library in ['analyzer', 'analysis_server']:
+    copytree(join(home, 'pkg', library), join(lib_dir, library),
+             ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh',
+                                    '.gitignore'))
+
+def CopyDartdocResources(home, sdk_root):
   RESOURCE_DIR = join(sdk_root, 'bin', 'snapshots', 'resources')
   DARTDOC = join(RESOURCE_DIR, 'dartdoc')
 
@@ -282,8 +290,10 @@ def Main():
 
   # Copy dart2js/pub.
   CopyDartScripts(HOME, SDK_tmp)
+  
   CopySnapshots(SNAPSHOT, SDK_tmp)
   CopyDartdocResources(HOME, SDK_tmp)
+  CopyAnalyzerSources(HOME, LIB)
 
   # Write the 'version' file
   version = utils.GetVersion()

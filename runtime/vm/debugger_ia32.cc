@@ -17,6 +17,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 RawCode* CodeBreakpoint::OrigStubAddress() const {
   return saved_value_;
 }
@@ -69,6 +71,8 @@ void CodeBreakpoint::RestoreCode() {
   }
   is_enabled_ = false;
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart
 

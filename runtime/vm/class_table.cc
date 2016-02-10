@@ -224,6 +224,9 @@ void ClassTable::Print() {
 
 
 void ClassTable::PrintToJSONObject(JSONObject* object) {
+  if (!FLAG_support_service) {
+    return;
+  }
   Class& cls = Class::Handle();
   object->AddProperty("type", "ClassList");
   {
@@ -317,6 +320,9 @@ void ClassHeapStats::UpdatePromotedAfterNewGC() {
 
 void ClassHeapStats::PrintToJSONObject(const Class& cls,
                                        JSONObject* obj) const {
+  if (!FLAG_support_service) {
+    return;
+  }
   obj->AddProperty("type", "ClassHeapStats");
   obj->AddProperty("class", cls);
   {
@@ -472,6 +478,9 @@ intptr_t ClassTable::SizeOffsetFor(intptr_t cid, bool is_new_space) {
 
 
 void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
+  if (!FLAG_support_service) {
+    return;
+  }
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   Heap* heap = isolate->heap();

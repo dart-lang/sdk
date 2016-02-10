@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
 
@@ -26,16 +27,47 @@ UnlinkedUnitBuilder serializeAstUnlinked(CompilationUnit compilationUnit) {
 class _ConstExprSerializer extends AbstractConstExprSerializer {
   final _SummarizeAstVisitor visitor;
 
-  _ConstExprSerializer(this.visitor);
+  /**
+   * If a constructor initializer expression is being serialized, the names of
+   * the constructor parameters.  Otherwise `null`.
+   */
+  final Set<String> constructorParameterNames;
+
+  _ConstExprSerializer(this.visitor, this.constructorParameterNames);
 
   @override
-  EntityRefBuilder serializeConstructorName(ConstructorName constructor) {
-    EntityRefBuilder typeBuilder = serializeType(constructor.type);
-    if (constructor.name == null) {
+  bool isConstructorParameterName(String name) {
+    return constructorParameterNames?.contains(name) ?? false;
+  }
+
+  @override
+  void serializeAnnotation(Annotation annotation) {
+    if (annotation.arguments == null) {
+      assert(annotation.constructorName == null);
+      serialize(annotation.name);
+    } else {
+      Identifier name = annotation.name;
+      EntityRefBuilder constructor;
+      if (name is PrefixedIdentifier && annotation.constructorName == null) {
+        constructor = serializeConstructorName(
+            new TypeName(name.prefix, null), name.identifier);
+      } else {
+        constructor = serializeConstructorName(
+            new TypeName(annotation.name, null), annotation.constructorName);
+      }
+      serializeInstanceCreation(constructor, annotation.arguments);
+    }
+  }
+
+  @override
+  EntityRefBuilder serializeConstructorName(
+      TypeName type, SimpleIdentifier name) {
+    EntityRefBuilder typeBuilder = serializeType(type);
+    if (name == null) {
       return typeBuilder;
     } else {
-      String name = constructor.name.name;
-      int nameRef = visitor.serializeReference(typeBuilder.reference, name);
+      int nameRef =
+          visitor.serializeReference(typeBuilder.reference, name.name);
       return new EntityRefBuilder(
           reference: nameRef, typeArguments: typeBuilder.typeArguments);
     }
@@ -44,9 +76,9 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   EntityRefBuilder serializeIdentifier(Identifier identifier) {
     EntityRefBuilder b = new EntityRefBuilder();
     if (identifier is SimpleIdentifier) {
-      b.reference = visitor.serializeReference(null, identifier.name);
+      b.reference = visitor.serializeSimpleReference(identifier.name);
     } else if (identifier is PrefixedIdentifier) {
-      int prefix = visitor.serializeReference(null, identifier.prefix.name);
+      int prefix = visitor.serializeSimpleReference(identifier.prefix.name);
       b.reference =
           visitor.serializeReference(prefix, identifier.identifier.name);
     } else {
@@ -77,19 +109,6 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
 }
 
 /**
- * An [_OtherScopedEntity] is a [_ScopedEntity] that does not refer to a type
- * parameter.  Since we don't need to track any special information about these
- * types of scoped entities, it is a singleton class.
- */
-class _OtherScopedEntity extends _ScopedEntity {
-  static final _OtherScopedEntity _instance = new _OtherScopedEntity._();
-
-  factory _OtherScopedEntity() => _instance;
-
-  _OtherScopedEntity._();
-}
-
-/**
  * A [_Scope] represents a set of name/value pairs defined locally within a
  * limited span of a compilation unit.  (Note that the spec also uses the term
  * "scope" to refer to the set of names defined at top level within a
@@ -113,6 +132,18 @@ class _Scope {
   void operator []=(String name, _ScopedEntity entity) {
     _definedNames[name] = entity;
   }
+}
+
+/**
+ * A [_ScopedClassMember] is a [_ScopedEntity] refers to a member of a class.
+ */
+class _ScopedClassMember extends _ScopedEntity {
+  /**
+   * The name of the class.
+   */
+  final String className;
+
+  _ScopedClassMember(this.className);
 }
 
 /**
@@ -199,7 +230,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
 
   /**
    * List of [_Scope]s currently in effect.  This is used to resolve type names
-   * to type parameters within classes, typedefs, and executables.
+   * to type parameters within classes, typedefs, and executables, as well as
+   * references to class members.
    */
   final List<_Scope> scopes = <_Scope>[];
 
@@ -242,9 +274,21 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   UnlinkedDocumentationCommentBuilder libraryDocumentationComment;
 
   /**
+   * If the library has a library directive, the annotations for it (if any).
+   * Otherwise `null`.
+   */
+  List<UnlinkedConst> libraryAnnotations = const <UnlinkedConstBuilder>[];
+
+  /**
    * The number of slot ids which have been assigned to this compilation unit.
    */
   int numSlots = 0;
+
+  /**
+   * A flag indicating whether a variable declaration is in the context of a
+   * field declaration.
+   */
+  bool inFieldContext = false;
 
   /**
    * Create a slot id for storing a propagated or inferred type.
@@ -255,7 +299,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
    * Build a [_Scope] object containing the names defined within the body of a
    * class declaration.
    */
-  _Scope buildClassMemberScope(NodeList<ClassMember> members) {
+  _Scope buildClassMemberScope(
+      String className, NodeList<ClassMember> members) {
     _Scope scope = new _Scope();
     for (ClassMember member in members) {
       // TODO(paulbery): consider replacing these if-tests with dynamic method
@@ -263,20 +308,36 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       if (member is MethodDeclaration) {
         if (member.isSetter || member.isOperator) {
           // We don't have to handle setters or operators because the only
-          // thing we look up is type names.
+          // things we look up are type names and identifiers.
         } else {
-          scope[member.name.name] = new _OtherScopedEntity();
+          scope[member.name.name] = new _ScopedClassMember(className);
         }
       } else if (member is FieldDeclaration) {
         for (VariableDeclaration field in member.fields.variables) {
           // A field declaration introduces two names, one with a trailing `=`.
           // We don't have to worry about the one with a trailing `=` because
-          // the only thing we look up is type names.
-          scope[field.name.name] = new _OtherScopedEntity();
+          // the only things we look up are type names and identifiers.
+          scope[field.name.name] = new _ScopedClassMember(className);
         }
       }
     }
     return scope;
+  }
+
+  /**
+   * Serialize the given list of [annotations].  If there are no annotations,
+   * the empty list is returned.
+   */
+  List<UnlinkedConstBuilder> serializeAnnotations(
+      NodeList<Annotation> annotations) {
+    if (annotations.isEmpty) {
+      return const <UnlinkedConstBuilder>[];
+    }
+    return annotations.map((Annotation a) {
+      _ConstExprSerializer serializer = new _ConstExprSerializer(this, null);
+      serializer.serializeAnnotation(a);
+      return serializer.toBuilder();
+    }).toList();
   }
 
   /**
@@ -293,7 +354,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       ImplementsClause implementsClause,
       NodeList<ClassMember> members,
       bool isMixinApplication,
-      Comment documentationComment) {
+      Comment documentationComment,
+      NodeList<Annotation> annotations) {
     int oldScopesLength = scopes.length;
     List<UnlinkedExecutableBuilder> oldExecutables = executables;
     executables = <UnlinkedExecutableBuilder>[];
@@ -318,7 +380,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
           implementsClause.interfaces.map(serializeTypeName).toList();
     }
     if (members != null) {
-      scopes.add(buildClassMemberScope(members));
+      scopes.add(buildClassMemberScope(name, members));
       for (ClassMember member in members) {
         member.accept(this);
       }
@@ -328,6 +390,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
     b.fields = variables;
     b.isAbstract = abstractKeyword != null;
     b.documentationComment = serializeDocumentation(documentationComment);
+    b.annotations = serializeAnnotations(annotations);
     classes.add(b);
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
@@ -368,6 +431,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
     b.libraryNameOffset = libraryNameOffset;
     b.libraryNameLength = libraryNameLength;
     b.libraryDocumentationComment = libraryDocumentationComment;
+    b.libraryAnnotations = libraryAnnotations;
     b.classes = classes;
     b.enums = enums;
     b.executables = executables;
@@ -384,8 +448,10 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   /**
    * Serialize the given [expression], creating an [UnlinkedConstBuilder].
    */
-  UnlinkedConstBuilder serializeConstExpr(Expression expression) {
-    _ConstExprSerializer serializer = new _ConstExprSerializer(this);
+  UnlinkedConstBuilder serializeConstExpr(Expression expression,
+      [Set<String> constructorParameterNames]) {
+    _ConstExprSerializer serializer =
+        new _ConstExprSerializer(this, constructorParameterNames);
     serializer.serialize(expression);
     return serializer.toBuilder();
   }
@@ -422,6 +488,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       bool isTopLevel,
       bool isDeclaredStatic,
       Comment documentationComment,
+      NodeList<Annotation> annotations,
       TypeParameterList typeParameters,
       bool isExternal) {
     int oldScopesLength = scopes.length;
@@ -462,6 +529,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       }
     }
     b.documentationComment = serializeDocumentation(documentationComment);
+    b.annotations = serializeAnnotations(annotations);
     if (returnType == null && !isSemanticallyStatic) {
       b.inferredReturnTypeSlot = assignTypeSlot();
     }
@@ -493,6 +561,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
     UnlinkedParamBuilder b = new UnlinkedParamBuilder();
     b.name = node.identifier.name;
     b.nameOffset = node.identifier.offset;
+    b.annotations = serializeAnnotations(node.metadata);
     switch (node.kind) {
       case ParameterKind.REQUIRED:
         b.kind = UnlinkedParamKind.required;
@@ -523,6 +592,30 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
             prefixReference: prefixIndex, name: name));
         return index;
       });
+
+  /**
+   * Serialize a reference to a name declared either at top level or in a
+   * nested scope.
+   */
+  int serializeSimpleReference(String name) {
+    for (int i = scopes.length - 1; i >= 0; i--) {
+      _Scope scope = scopes[i];
+      _ScopedEntity entity = scope[name];
+      if (entity != null) {
+        if (entity is _ScopedClassMember) {
+          return serializeReference(
+              serializeReference(null, entity.className), name);
+        } else {
+          // Invalid reference to a type parameter.  Should never happen in
+          // legal Dart code.
+          // TODO(paulberry): could this exception ever be uncaught in illegal
+          // code?
+          throw new StateError('Invalid identifier reference');
+        }
+      }
+    }
+    return serializeReference(null, name);
+  }
 
   /**
    * Serialize a type name (which might be defined in a nested scope, at top
@@ -561,7 +654,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
         b.reference = serializeReference(null, name);
       } else if (identifier is PrefixedIdentifier) {
         int prefixIndex = prefixIndices.putIfAbsent(identifier.prefix.name,
-            () => serializeReference(null, identifier.prefix.name));
+            () => serializeSimpleReference(identifier.prefix.name));
         b.reference =
             serializeReference(prefixIndex, identifier.identifier.name);
       } else {
@@ -610,8 +703,12 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
    * Serialize the given [variables] into [UnlinkedVariable]s, and store them
    * in [this.variables].
    */
-  void serializeVariables(VariableDeclarationList variables,
-      bool isDeclaredStatic, Comment documentationComment, bool isField) {
+  void serializeVariables(
+      VariableDeclarationList variables,
+      bool isDeclaredStatic,
+      Comment documentationComment,
+      NodeList<Annotation> annotations,
+      bool isField) {
     for (VariableDeclaration variable in variables.variables) {
       UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
       b.isFinal = variables.isFinal;
@@ -621,7 +718,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       b.nameOffset = variable.name.offset;
       b.type = serializeTypeName(variables.type);
       b.documentationComment = serializeDocumentation(documentationComment);
-      if (variable.isConst) {
+      b.annotations = serializeAnnotations(annotations);
+      if (variable.isConst || variable.isFinal && inFieldContext) {
         Expression initializer = variable.initializer;
         if (initializer != null) {
           b.constExpr = serializeConstExpr(initializer);
@@ -654,7 +752,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
         node.implementsClause,
         node.members,
         false,
-        node.documentationComment);
+        node.documentationComment,
+        node.metadata);
   }
 
   @override
@@ -669,7 +768,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
         node.implementsClause,
         null,
         true,
-        node.documentationComment);
+        node.documentationComment,
+        node.metadata);
   }
 
   @override
@@ -689,13 +789,28 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
     b.isConst = node.constKeyword != null;
     b.isExternal = node.externalKeyword != null;
     b.documentationComment = serializeDocumentation(node.documentationComment);
+    b.annotations = serializeAnnotations(node.metadata);
+    if (node.constKeyword != null) {
+      Set<String> constructorParameterNames =
+          node.parameters.parameters.map((p) => p.identifier.name).toSet();
+      b.constantInitializers = node.initializers
+          .map((ConstructorInitializer initializer) =>
+              serializeConstructorInitializer(initializer, (Expression expr) {
+                return serializeConstExpr(expr, constructorParameterNames);
+              }))
+          .toList();
+    }
     executables.add(b);
   }
 
   @override
   UnlinkedParamBuilder visitDefaultFormalParameter(
       DefaultFormalParameter node) {
-    return node.parameter.accept(this);
+    UnlinkedParamBuilder b = node.parameter.accept(this);
+    if (node.defaultValue != null) {
+      b.defaultValue = serializeConstExpr(node.defaultValue);
+    }
+    return b;
   }
 
   @override
@@ -708,6 +823,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
             name: value.name.name, nameOffset: value.name.offset))
         .toList();
     b.documentationComment = serializeDocumentation(node.documentationComment);
+    b.annotations = serializeAnnotations(node.metadata);
     enums.add(b);
   }
 
@@ -715,13 +831,19 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   void visitExportDirective(ExportDirective node) {
     UnlinkedExportNonPublicBuilder b = new UnlinkedExportNonPublicBuilder(
         uriOffset: node.uri.offset, uriEnd: node.uri.end, offset: node.offset);
+    b.annotations = serializeAnnotations(node.metadata);
     exports.add(b);
   }
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    serializeVariables(node.fields, node.staticKeyword != null,
-        node.documentationComment, true);
+    try {
+      inFieldContext = true;
+      serializeVariables(node.fields, node.staticKeyword != null,
+          node.documentationComment, node.metadata, true);
+    } finally {
+      inFieldContext = false;
+    }
   }
 
   @override
@@ -751,6 +873,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
         true,
         false,
         node.documentationComment,
+        node.metadata,
         node.functionExpression.typeParameters,
         node.externalKeyword != null));
   }
@@ -773,6 +896,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
         .map((FormalParameter p) => p.accept(this))
         .toList();
     b.documentationComment = serializeDocumentation(node.documentationComment);
+    b.annotations = serializeAnnotations(node.metadata);
     typedefs.add(b);
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
@@ -790,6 +914,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   @override
   void visitImportDirective(ImportDirective node) {
     UnlinkedImportBuilder b = new UnlinkedImportBuilder();
+    b.annotations = serializeAnnotations(node.metadata);
     if (node.uri.stringValue == 'dart:core') {
       hasCoreBeenImported = true;
     }
@@ -814,6 +939,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
     libraryNameLength = node.name.length;
     libraryDocumentationComment =
         serializeDocumentation(node.documentationComment);
+    libraryAnnotations = serializeAnnotations(node.metadata);
   }
 
   @override
@@ -828,6 +954,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
         false,
         node.isStatic,
         node.documentationComment,
+        node.metadata,
         node.typeParameters,
         node.externalKeyword != null));
   }
@@ -835,7 +962,9 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   @override
   void visitPartDirective(PartDirective node) {
     parts.add(new UnlinkedPartBuilder(
-        uriOffset: node.uri.offset, uriEnd: node.uri.end));
+        uriOffset: node.uri.offset,
+        uriEnd: node.uri.end,
+        annotations: serializeAnnotations(node.metadata)));
   }
 
   @override
@@ -850,7 +979,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    serializeVariables(node.variables, false, node.documentationComment, false);
+    serializeVariables(
+        node.variables, false, node.documentationComment, node.metadata, false);
   }
 
   @override
@@ -861,6 +991,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
     if (node.bound != null) {
       b.bound = serializeTypeName(node.bound);
     }
+    b.annotations = serializeAnnotations(node.metadata);
     return b;
   }
 

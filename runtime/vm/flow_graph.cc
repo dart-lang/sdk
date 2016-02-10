@@ -52,6 +52,43 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
 }
 
 
+void FlowGraph::EnsureSSATempIndex(Definition* defn,
+                                   Definition* replacement) {
+  if ((replacement->ssa_temp_index() == -1) &&
+      (defn->ssa_temp_index() != -1)) {
+    AllocateSSAIndexes(replacement);
+  }
+}
+
+
+void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
+                                          Instruction* current,
+                                          Instruction* replacement) {
+  Definition* current_defn = current->AsDefinition();
+  if ((replacement != NULL) && (current_defn != NULL)) {
+    Definition* replacement_defn = replacement->AsDefinition();
+    ASSERT(replacement_defn != NULL);
+    current_defn->ReplaceUsesWith(replacement_defn);
+    EnsureSSATempIndex(current_defn, replacement_defn);
+
+    if (FLAG_trace_optimization) {
+      THR_Print("Replacing v%" Pd " with v%" Pd "\n",
+                current_defn->ssa_temp_index(),
+                replacement_defn->ssa_temp_index());
+    }
+  } else if (FLAG_trace_optimization) {
+    if (current_defn == NULL) {
+      THR_Print("Removing %s\n", current->DebugName());
+    } else {
+      ASSERT(!current_defn->HasUses());
+      THR_Print("Removing v%" Pd ".\n", current_defn->ssa_temp_index());
+    }
+  }
+  iterator->RemoveCurrentFromGraph();
+}
+
+
+
 void FlowGraph::AddToGuardedFields(
     ZoneGrowableArray<const Field*>* array,
     const Field* field) {

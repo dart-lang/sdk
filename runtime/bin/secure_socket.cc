@@ -376,16 +376,78 @@ void CheckStatus(int status,
 }
 
 
+// Where the argument to the constructor is the handle for an object
+// implementing List<int>, this class creates a scope in which a memory-backed
+// BIO is allocated. Leaving the scope cleans up the BIO and the buffer that
+// was used to create it.
+//
+// Do not make Dart_ API calls while in a MemBIOScope.
+// Do not call Dart_PropagateError while in a MemBIOScope.
+class MemBIOScope {
+ public:
+  explicit MemBIOScope(Dart_Handle object) {
+    if (!Dart_IsTypedData(object) && !Dart_IsList(object)) {
+      Dart_ThrowException(DartUtils::NewDartArgumentError(
+          "Argument is not a List<int>"));
+    }
+
+    uint8_t* bytes = NULL;
+    intptr_t bytes_len = 0;
+    bool is_typed_data = false;
+    if (Dart_IsTypedData(object)) {
+      is_typed_data = true;
+      Dart_TypedData_Type typ;
+      ThrowIfError(Dart_TypedDataAcquireData(
+          object,
+          &typ,
+          reinterpret_cast<void**>(&bytes),
+          &bytes_len));
+    } else {
+      ASSERT(Dart_IsList(object));
+      ThrowIfError(Dart_ListLength(object, &bytes_len));
+      bytes = Dart_ScopeAllocate(bytes_len);
+      ASSERT(bytes != NULL);
+      ThrowIfError(Dart_ListGetAsBytes(object, 0, bytes, bytes_len));
+    }
+
+    object_ = object;
+    bytes_ = bytes;
+    bytes_len_ = bytes_len;
+    bio_ = BIO_new_mem_buf(bytes, bytes_len);
+    ASSERT(bio_ != NULL);
+    is_typed_data_ = is_typed_data;
+  }
+
+  ~MemBIOScope() {
+    ASSERT(bio_ != NULL);
+    if (is_typed_data_) {
+      BIO_free(bio_);
+      ThrowIfError(Dart_TypedDataReleaseData(object_));
+    } else {
+      BIO_free(bio_);
+    }
+  }
+
+  BIO* bio() {
+    ASSERT(bio_ != NULL);
+    return bio_;
+  }
+
+ private:
+  Dart_Handle object_;
+  uint8_t* bytes_;
+  intptr_t bytes_len_;
+  BIO* bio_;
+  bool is_typed_data_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(MemBIOScope);
+};
+
+
 void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
     Dart_NativeArguments args) {
   SSL_CTX* context = GetSecurityContext(args);
-
-  Dart_Handle key_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
-  if (!Dart_IsTypedData(key_object) && !Dart_IsList(key_object)) {
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "keyBytes argument to SecurityContext.usePrivateKeyBytes "
-        "is not a List<int>"));
-  }
 
   Dart_Handle password_object = ThrowIfError(Dart_GetNativeArgument(args, 2));
   const char* password = NULL;
@@ -403,39 +465,12 @@ void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
         "SecurityContext.usePrivateKey password is not a String or null"));
   }
 
-  uint8_t* key_bytes = NULL;
-  intptr_t key_bytes_len = 0;
-  bool is_typed_data = false;
-  if (Dart_IsTypedData(key_object)) {
-    is_typed_data = true;
-    Dart_TypedData_Type typ;
-    ThrowIfError(Dart_TypedDataAcquireData(
-        key_object,
-        &typ,
-        reinterpret_cast<void**>(&key_bytes),
-        &key_bytes_len));
-  } else {
-    ASSERT(Dart_IsList(key_object));
-    ThrowIfError(Dart_ListLength(key_object, &key_bytes_len));
-    key_bytes = new uint8_t[key_bytes_len];
-    Dart_Handle err =
-        Dart_ListGetAsBytes(key_object, 0, key_bytes, key_bytes_len);
-    if (Dart_IsError(err)) {
-      delete[] key_bytes;
-      Dart_PropagateError(err);
-    }
-  }
-  ASSERT(key_bytes != NULL);
-
-  BIO* bio = BIO_new_mem_buf(key_bytes, key_bytes_len);
-  EVP_PKEY *key = PEM_read_bio_PrivateKey(
-      bio, NULL, PasswordCallback, const_cast<char*>(password));
-  int status = SSL_CTX_use_PrivateKey(context, key);
-  BIO_free(bio);
-  if (is_typed_data) {
-    ThrowIfError(Dart_TypedDataReleaseData(key_object));
-  } else {
-    delete[] key_bytes;
+  int status;
+  {
+    MemBIOScope bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
+    EVP_PKEY *key = PEM_read_bio_PrivateKey(
+        bio.bio(), NULL, PasswordCallback, const_cast<char*>(password));
+    status = SSL_CTX_use_PrivateKey(context, key);
   }
 
   // TODO(24184): Handle different expected errors here - file missing,
@@ -445,29 +480,44 @@ void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
 }
 
 
-void FUNCTION_NAME(SecurityContext_SetTrustedCertificates)(
-    Dart_NativeArguments args) {
-  SSL_CTX* context = GetSecurityContext(args);
-  Dart_Handle filename_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
-  const char* filename = NULL;
-  if (Dart_IsString(filename_object)) {
-    ThrowIfError(Dart_StringToCString(filename_object, &filename));
-  }
-  Dart_Handle directory_object = ThrowIfError(Dart_GetNativeArgument(args, 2));
-  const char* directory = NULL;
-  if (Dart_IsString(directory_object)) {
-    ThrowIfError(Dart_StringToCString(directory_object, &directory));
-  } else if (Dart_IsNull(directory_object)) {
-    directory = NULL;
-  } else {
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "Directory argument to SecurityContext.setTrustedCertificates is not "
-        "a String or null"));
+static int SetTrustedCertificatesBytes(SSL_CTX* context, BIO* bio) {
+  X509_STORE* store = SSL_CTX_get_cert_store(context);
+
+  int status = 0;
+  X509* cert = NULL;
+  while ((cert = PEM_read_bio_X509(bio, NULL, NULL, NULL)) != NULL) {
+    status = X509_STORE_add_cert(store, cert);
+    if (status == 0) {
+      X509_free(cert);
+      return status;
+    }
   }
 
-  int status = SSL_CTX_load_verify_locations(context, filename, directory);
-  CheckStatus(
-      status, "TlsException", "SSL_CTX_load_verify_locations");
+  uint32_t err = ERR_peek_last_error();
+  if ((ERR_GET_LIB(err) == ERR_LIB_PEM) &&
+      (ERR_GET_REASON(err) == PEM_R_NO_START_LINE)) {
+    // Reached the end of the buffer.
+    ERR_clear_error();
+  } else {
+    // Some real error happened.
+    status = 0;
+  }
+
+  return status;
+}
+
+
+void FUNCTION_NAME(SecurityContext_SetTrustedCertificatesBytes)(
+    Dart_NativeArguments args) {
+  SSL_CTX* context = GetSecurityContext(args);
+  int status;
+  {
+    MemBIOScope bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
+    status = SetTrustedCertificatesBytes(context, bio.bio());
+  }
+  CheckStatus(status,
+              "TlsException",
+              "Failure in setTrustedCertificatesBytes");
 }
 
 
@@ -489,17 +539,10 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
 }
 
 
-static int UseChainBytes(
-    SSL_CTX* context, uint8_t* chain_bytes, intptr_t chain_bytes_len) {
+static int UseChainBytes(SSL_CTX* context, BIO* bio) {
   int status = 0;
-  BIO* bio = BIO_new_mem_buf(chain_bytes, chain_bytes_len);
-  if (bio == NULL) {
-    return 0;
-  }
-
   X509* x509 = PEM_read_bio_X509_AUX(bio, NULL, NULL, NULL);
   if (x509 == NULL) {
-    BIO_free(bio);
     return 0;
   }
 
@@ -510,7 +553,6 @@ static int UseChainBytes(
   }
   if (status == 0) {
     X509_free(x509);
-    BIO_free(bio);
     return status;
   }
 
@@ -525,7 +567,6 @@ static int UseChainBytes(
     if (status == 0) {
       X509_free(ca);
       X509_free(x509);
-      BIO_free(bio);
       return status;
     }
     // Note that we must not free `ca` if it was successfully added to the
@@ -544,7 +585,6 @@ static int UseChainBytes(
   }
 
   X509_free(x509);
-  BIO_free(bio);
   return status;
 }
 
@@ -552,44 +592,10 @@ static int UseChainBytes(
 void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
     Dart_NativeArguments args) {
   SSL_CTX* context = GetSecurityContext(args);
-
-  Dart_Handle chain_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
-  if (!Dart_IsTypedData(chain_object) && !Dart_IsList(chain_object)) {
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "chainBytes argument to SecurityContext.useCertificateChainBytes "
-        "is not a List<int>"));
-  }
-
-  uint8_t* chain_bytes = NULL;
-  intptr_t chain_bytes_len = 0;
-  bool is_typed_data = false;
-  if (Dart_IsTypedData(chain_object)) {
-    is_typed_data = true;
-    Dart_TypedData_Type typ;
-    ThrowIfError(Dart_TypedDataAcquireData(
-        chain_object,
-        &typ,
-        reinterpret_cast<void**>(&chain_bytes),
-        &chain_bytes_len));
-  } else {
-    ASSERT(Dart_IsList(chain_object));
-    ThrowIfError(Dart_ListLength(chain_object, &chain_bytes_len));
-    chain_bytes = new uint8_t[chain_bytes_len];
-    Dart_Handle err =
-        Dart_ListGetAsBytes(chain_object, 0, chain_bytes, chain_bytes_len);
-    if (Dart_IsError(err)) {
-      delete[] chain_bytes;
-      Dart_PropagateError(err);
-    }
-  }
-  ASSERT(chain_bytes != NULL);
-
-  int status = UseChainBytes(context, chain_bytes, chain_bytes_len);
-
-  if (is_typed_data) {
-    ThrowIfError(Dart_TypedDataReleaseData(chain_object));
-  } else {
-    delete[] chain_bytes;
+  int status;
+  {
+    MemBIOScope bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
+    status = UseChainBytes(context, bio.bio());
   }
   CheckStatus(status,
               "TlsException",
@@ -597,20 +603,50 @@ void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
 }
 
 
-void FUNCTION_NAME(SecurityContext_SetClientAuthorities)(
+static STACK_OF(X509_NAME)* GetCertificateNames(BIO* bio) {
+  STACK_OF(X509_NAME)* result = sk_X509_NAME_new_null();
+  if (result == NULL) {
+    return NULL;
+  }
+
+  while (true) {
+    X509* x509 = PEM_read_bio_X509(bio, NULL, NULL, NULL);
+    if (x509 == NULL) {
+      break;
+    }
+
+    X509_NAME* x509_name = X509_get_subject_name(x509);
+    if (x509_name == NULL) {
+      sk_X509_NAME_pop_free(result, X509_NAME_free);
+      X509_free(x509);
+      return NULL;
+    }
+
+    // Duplicate the name to put it on the stack.
+    x509_name = X509_NAME_dup(x509_name);
+    if (x509_name == NULL) {
+      sk_X509_NAME_pop_free(result, X509_NAME_free);
+      X509_free(x509);
+      return NULL;
+    }
+    sk_X509_NAME_push(result, x509_name);
+    X509_free(x509);
+  }
+
+  return result;
+}
+
+
+void FUNCTION_NAME(SecurityContext_SetClientAuthoritiesBytes)(
     Dart_NativeArguments args) {
   SSL_CTX* context = GetSecurityContext(args);
-  Dart_Handle filename_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
-  const char* filename = NULL;
-  if (Dart_IsString(filename_object)) {
-    ThrowIfError(Dart_StringToCString(filename_object, &filename));
-  } else {
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-         "file argument in SecurityContext.setClientAuthorities"
-         " is not a String"));
-  }
   STACK_OF(X509_NAME)* certificate_names;
-  certificate_names = SSL_load_client_CA_file(filename);
+
+  {
+    MemBIOScope bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
+    certificate_names = GetCertificateNames(bio.bio());
+  }
+
   if (certificate_names != NULL) {
     SSL_CTX_set_client_CA_list(context, certificate_names);
   } else {

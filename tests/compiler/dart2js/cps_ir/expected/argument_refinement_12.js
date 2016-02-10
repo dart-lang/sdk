@@ -13,7 +13,9 @@ function() {
   var x = P.int_parse("1233", null, null), y = P.int_parse("1234", null, null);
   P.print(typeof x === "number");
   P.print(typeof y === "number");
-  P.print(J.$ge$n(x, y));
+  if (typeof x !== "number" || typeof y !== "number")
+    return J.$ge$n(x, y);
+  P.print(x >= y);
   P.print(true);
   P.print(true);
 }
