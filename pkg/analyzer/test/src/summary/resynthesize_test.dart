@@ -131,6 +131,33 @@ class ResynthTest extends ResolverTestCase {
     }
   }
 
+  void checkPossibleMember(
+      Element resynthesized, Element original, String desc) {
+    Element resynthesizedNonHandle = resynthesized is ElementHandle
+        ? resynthesized.actualElement
+        : resynthesized;
+    if (original is Member) {
+      expect(resynthesizedNonHandle, new isInstanceOf<Member>(), reason: desc);
+      if (resynthesizedNonHandle is Member) {
+        List<DartType> resynthesizedTypeArguments =
+            resynthesizedNonHandle.definingType.typeArguments;
+        List<DartType> originalTypeArguments =
+            original.definingType.typeArguments;
+        expect(
+            resynthesizedTypeArguments, hasLength(originalTypeArguments.length),
+            reason: desc);
+        for (int i = 0; i < originalTypeArguments.length; i++) {
+          compareTypeImpls(resynthesizedTypeArguments[i],
+              originalTypeArguments[i], '$desc type argument $i');
+        }
+      }
+    } else {
+      expect(
+          resynthesizedNonHandle, isNot(new isInstanceOf<ConstructorMember>()),
+          reason: desc);
+    }
+  }
+
   void compareClassElements(
       ClassElementImpl resynthesized, ClassElementImpl original, String desc) {
     compareElements(resynthesized, original, desc);
@@ -372,7 +399,7 @@ class ResynthTest extends ResolverTestCase {
         ConstructorName rConstructor = r.constructorName;
         expect(oConstructor, isNotNull, reason: desc);
         expect(rConstructor, isNotNull, reason: desc);
-        compareElements(
+        compareConstructorElements(
             rConstructor.staticElement, oConstructor.staticElement, desc);
         TypeName oType = oConstructor.type;
         TypeName rType = rConstructor.type;
@@ -441,31 +468,7 @@ class ResynthTest extends ResolverTestCase {
       compareConstructorElements(resynthesized.redirectedConstructor,
           original.redirectedConstructor, '$desc redirectedConstructor');
     }
-    ConstructorElement resynthesizedNonHandle =
-        resynthesized is ConstructorElementHandle
-            ? resynthesized.actualElement
-            : resynthesized;
-    if (original is ConstructorMember) {
-      expect(resynthesizedNonHandle, new isInstanceOf<ConstructorMember>(),
-          reason: desc);
-      if (resynthesizedNonHandle is ConstructorMember) {
-        List<DartType> resynthesizedTypeArguments =
-            resynthesizedNonHandle.definingType.typeArguments;
-        List<DartType> originalTypeArguments =
-            original.definingType.typeArguments;
-        expect(
-            resynthesizedTypeArguments, hasLength(originalTypeArguments.length),
-            reason: desc);
-        for (int i = 0; i < originalTypeArguments.length; i++) {
-          compareTypeImpls(resynthesizedTypeArguments[i],
-              originalTypeArguments[i], '$desc type argument $i');
-        }
-      }
-    } else {
-      expect(
-          resynthesizedNonHandle, isNot(new isInstanceOf<ConstructorMember>()),
-          reason: desc);
-    }
+    checkPossibleMember(resynthesized, original, desc);
   }
 
   void compareElementAnnotations(ElementAnnotationImpl resynthesized,
@@ -643,8 +646,8 @@ class ResynthTest extends ResolverTestCase {
     }
   }
 
-  void compareParameterElements(ParameterElementImpl resynthesized,
-      ParameterElementImpl original, String desc) {
+  void compareParameterElements(
+      ParameterElement resynthesized, ParameterElement original, String desc) {
     compareVariableElements(resynthesized, original, desc);
     expect(resynthesized.parameters.length, original.parameters.length);
     for (int i = 0; i < resynthesized.parameters.length; i++) {
@@ -800,18 +803,22 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.uriEnd, original.uriEnd, reason: desc);
   }
 
-  void compareVariableElements(VariableElementImpl resynthesized,
-      VariableElementImpl original, String desc) {
+  void compareVariableElements(
+      VariableElement resynthesized, VariableElement original, String desc) {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
-    if (original is ConstVariableElement) {
-      Expression initializer = resynthesized.constantInitializer;
+    VariableElementImpl originalActual = getActualElement(original, desc);
+    if (originalActual is ConstVariableElement) {
+      VariableElementImpl resynthesizedActual =
+          getActualElement(resynthesized, desc);
+      Expression initializer = resynthesizedActual.constantInitializer;
       if (constantInitializersAreInvalid) {
         _assertUnresolvedIdentifier(initializer, desc);
       } else {
-        compareConstAsts(initializer, original.constantInitializer, desc);
+        compareConstAsts(initializer, originalActual.constantInitializer, desc);
       }
     }
+    checkPossibleMember(resynthesized, original, desc);
   }
 
   /**
