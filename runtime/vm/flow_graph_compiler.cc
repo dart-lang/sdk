@@ -55,7 +55,6 @@ DECLARE_FLAG(int, deoptimize_every);
 DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, fields_may_be_reset);
-DECLARE_FLAG(bool, guess_icdata_cid);
 DECLARE_FLAG(bool, ic_range_profiling);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, load_deferred_eagerly);

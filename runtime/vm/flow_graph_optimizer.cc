@@ -49,10 +49,8 @@ DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 
 DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, polymorphic_with_deopt);
-DECLARE_FLAG(bool, source_lines);
 DECLARE_FLAG(bool, trace_cha);
 DECLARE_FLAG(bool, trace_field_guards);
-DECLARE_FLAG(bool, trace_type_check_elimination);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 // Quick access to the current isolate and zone.
@@ -415,28 +413,6 @@ void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
         Thread::kNoDeoptId);  // BIT_AND cannot deoptimize.
     bit_and_instr->ReplaceWith(smi_op, current_iterator());
   }
-}
-
-
-
-// Used by TryMergeDivMod.
-// Inserts a load-indexed instruction between a TRUNCDIV or MOD instruction,
-// and the using instruction. This is an intermediate step before merging.
-void FlowGraphOptimizer::AppendLoadIndexedForMerged(Definition* instr,
-                                                    intptr_t ix,
-                                                    intptr_t cid) {
-  const intptr_t index_scale = Instance::ElementSizeFor(cid);
-  ConstantInstr* index_instr =
-      flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(ix)));
-  LoadIndexedInstr* load =
-      new(Z) LoadIndexedInstr(new(Z) Value(instr),
-                                      new(Z) Value(index_instr),
-                                      index_scale,
-                                      cid,
-                                      Thread::kNoDeoptId,
-                                      instr->token_pos());
-  instr->ReplaceUsesWith(load);
-  flow_graph()->InsertAfter(instr, load, NULL, FlowGraph::kValue);
 }
 
 
@@ -1514,113 +1490,113 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
     case MethodRecognizer::kByteArrayBaseGetInt8:
       return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataInt8ArrayCid,
-                                     ic_data, entry, last);
+                                     entry, last);
     case MethodRecognizer::kByteArrayBaseGetUint8:
       return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataUint8ArrayCid,
-                                     ic_data, entry, last);
+                                     entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt16:
       return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataInt16ArrayCid,
-                                     ic_data, entry, last);
+                                     entry, last);
     case MethodRecognizer::kByteArrayBaseGetUint16:
       return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataUint16ArrayCid,
-                                     ic_data, entry, last);
+                                     entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt32:
       if (!CanUnboxInt32()) {
         return false;
       }
       return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataInt32ArrayCid,
-                                     ic_data, entry, last);
+                                     entry, last);
     case MethodRecognizer::kByteArrayBaseGetUint32:
       if (!CanUnboxInt32()) {
         return false;
       }
       return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataUint32ArrayCid,
-                                     ic_data, entry, last);
+                                     entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat32:
       if (!CanUnboxDouble()) {
         return false;
       }
       return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat32ArrayCid,
-                                     ic_data, entry, last);
+                                     entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat64:
       if (!CanUnboxDouble()) {
         return false;
       }
       return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat64ArrayCid,
-                                     ic_data, entry, last);
+                                     entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat32x4:
       if (!ShouldInlineSimd()) {
         return false;
       }
       return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat32x4ArrayCid,
-                                     ic_data, entry, last);
+                                     entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt32x4:
       if (!ShouldInlineSimd()) {
         return false;
       }
       return InlineByteArrayBaseLoad(call, receiver, receiver_cid,
                                      kTypedDataInt32x4ArrayCid,
-                                     ic_data, entry, last);
+                                     entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt8:
       return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataInt8ArrayCid,
-                                      ic_data, entry, last);
+                                      entry, last);
     case MethodRecognizer::kByteArrayBaseSetUint8:
       return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataUint8ArrayCid,
-                                      ic_data, entry, last);
+                                      entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt16:
       return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataInt16ArrayCid,
-                                      ic_data, entry, last);
+                                      entry, last);
     case MethodRecognizer::kByteArrayBaseSetUint16:
       return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataUint16ArrayCid,
-                                      ic_data, entry, last);
+                                      entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt32:
       return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataInt32ArrayCid,
-                                      ic_data, entry, last);
+                                      entry, last);
     case MethodRecognizer::kByteArrayBaseSetUint32:
       return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataUint32ArrayCid,
-                                      ic_data, entry, last);
+                                      entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat32:
       if (!CanUnboxDouble()) {
         return false;
       }
       return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataFloat32ArrayCid,
-                                      ic_data, entry, last);
+                                      entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat64:
       if (!CanUnboxDouble()) {
         return false;
       }
       return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataFloat64ArrayCid,
-                                      ic_data, entry, last);
+                                      entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat32x4:
       if (!ShouldInlineSimd()) {
         return false;
       }
       return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataFloat32x4ArrayCid,
-                                      ic_data, entry, last);
+                                      entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt32x4:
       if (!ShouldInlineSimd()) {
         return false;
       }
       return InlineByteArrayBaseStore(target, call, receiver, receiver_cid,
                                       kTypedDataInt32x4ArrayCid,
-                                      ic_data, entry, last);
+                                      entry, last);
     case MethodRecognizer::kStringBaseCodeUnitAt:
       return InlineStringCodeUnitAt(call, receiver_cid, entry, last);
     case MethodRecognizer::kStringBaseCharAt:
@@ -3549,7 +3525,6 @@ bool FlowGraphOptimizer::InlineByteArrayBaseLoad(Instruction* call,
                                                  Definition* receiver,
                                                  intptr_t array_cid,
                                                  intptr_t view_cid,
-                                                 const ICData& ic_data,
                                                  TargetEntryInstr** entry,
                                                  Definition** last) {
   ASSERT(array_cid != kIllegalCid);
@@ -3602,7 +3577,6 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
                                                   Definition* receiver,
                                                   intptr_t array_cid,
                                                   intptr_t view_cid,
-                                                  const ICData& ic_data,
                                                   TargetEntryInstr** entry,
                                                   Definition** last) {
   ASSERT(array_cid != kIllegalCid);
@@ -5031,11 +5005,6 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
   // save enough range information in the ICData to drive this decision.
 }
 #endif
-
-void FlowGraphOptimizer::InferIntRanges() {
-  RangeAnalysis range_analysis(flow_graph_);
-  range_analysis.Analyze();
-}
 
 
 void FlowGraphOptimizer::EliminateEnvironments() {

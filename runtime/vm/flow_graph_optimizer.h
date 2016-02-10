@@ -54,12 +54,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void WidenSmiToInt32();
 
-  void InferIntRanges();
-
-  void SelectIntegerInstructions();
-
-  void AnalyzeTryCatch();
-
   bool TryInlineRecognizedMethod(intptr_t receiver_cid,
                                  const Function& target,
                                  Instruction* call,
@@ -169,7 +163,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                Definition* receiver,
                                intptr_t array_cid,
                                intptr_t view_cid,
-                               const ICData& ic_data,
                                TargetEntryInstr** entry,
                                Definition** last);
 
@@ -178,7 +171,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                 Definition* receiver,
                                 intptr_t array_cid,
                                 intptr_t view_cid,
-                                const ICData& ic_data,
                                 TargetEntryInstr** entry,
                                 Definition** last);
 
@@ -256,7 +248,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void TryMergeTruncDivMod(GrowableArray<BinarySmiOpInstr*>* merge_candidates);
   void TryMergeMathUnary(GrowableArray<MathUnaryInstr*>* merge_candidates);
 
-  void AppendLoadIndexedForMerged(Definition* instr, intptr_t ix, intptr_t cid);
   void AppendExtractNthOutputForMerged(Definition* instr, intptr_t ix,
                                        Representation rep, intptr_t cid);
   bool TryStringLengthOneEquality(InstanceCallInstr* call, Token::Kind op_kind);

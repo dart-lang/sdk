@@ -22,6 +22,7 @@
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_inliner.h"
 #include "vm/flow_graph_optimizer.h"
+#include "vm/flow_graph_range_analysis.h"
 #include "vm/flow_graph_type_propagator.h"
 #include "vm/hash_table.h"
 #include "vm/il_printer.h"
@@ -1917,7 +1918,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // We have to perform range analysis after LICM because it
           // optimistically moves CheckSmi through phis into loop preheaders
           // making some phis smi.
-          optimizer.InferIntRanges();
+          RangeAnalysis range_analysis(flow_graph);
+          range_analysis.Analyze();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 
