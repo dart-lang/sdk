@@ -575,7 +575,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   // longjmp from the ARM or MIPS assemblers. In all other paths through this
   // while loop, done is set to true. use_far_branches is always false on ia32
   // and x64.
-  bool done = false;
+  volatile bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
   volatile bool use_far_branches = false;
   const bool use_speculative_inlining = false;
