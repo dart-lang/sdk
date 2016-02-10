@@ -374,6 +374,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     Primitive result = cps.invokeMethod(thisParameter, newSelector, node.mask,
         arguments, node.callingConvention);
     result.type = typeSystem.getInvokeReturnType(node.selector, node.mask);
+    returnContinuation.parameters.single.type = result.type;
     cps.invokeContinuation(returnContinuation, <Primitive>[result]);
     return new FunctionDefinition(target, thisParameter, parameters,
         returnContinuation,
