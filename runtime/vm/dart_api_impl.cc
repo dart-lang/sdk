@@ -5131,6 +5131,10 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
   NoHeapGrowthControlScope no_growth_control;
 
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  if (snapshot == NULL) {
+    return Api::NewError("%s expects parameter 'buffer' to be a script type"
+                         " snapshot with a valid length.", CURRENT_FUNC);
+  }
   if (!snapshot->IsScriptSnapshot()) {
     return Api::NewError("%s expects parameter 'buffer' to be a script type"
                          " snapshot.", CURRENT_FUNC);
