@@ -1186,6 +1186,7 @@ class Class : public Object {
   RawFunction* ImplicitClosureFunctionFromIndex(intptr_t idx) const;
 
   RawFunction* LookupDynamicFunction(const String& name) const;
+  RawFunction* LookupDynamicFunctionAllowAbstract(const String& name) const;
   RawFunction* LookupDynamicFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupStaticFunction(const String& name) const;
   RawFunction* LookupStaticFunctionAllowPrivate(const String& name) const;
@@ -1373,6 +1374,7 @@ class Class : public Object {
     kAny = 0,
     kStatic,
     kInstance,
+    kInstanceAllowAbstract,
     kConstructor,
     kFactory,
   };
@@ -2315,8 +2317,8 @@ class Function : public Object {
   bool IsFactory() const {
     return (kind() == RawFunction::kConstructor) && is_static();
   }
-  bool IsDynamicFunction() const {
-    if (is_static() || is_abstract()) {
+  bool IsDynamicFunction(bool allow_abstract = false) const {
+    if (is_static() || (!allow_abstract && is_abstract())) {
       return false;
     }
     switch (kind()) {

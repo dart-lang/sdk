@@ -3690,13 +3690,13 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     if (other.IsFunctionClass()) {
       // Check if type S has a call() method.
-      Function& function =
-          Function::Handle(zone, thsi.LookupDynamicFunction(Symbols::Call()));
+      Function& function = Function::Handle(zone,
+          thsi.LookupDynamicFunctionAllowAbstract(Symbols::Call()));
       if (function.IsNull()) {
         // Walk up the super_class chain.
         Class& cls = Class::Handle(zone, thsi.SuperClass());
         while (!cls.IsNull() && function.IsNull()) {
-          function = cls.LookupDynamicFunction(Symbols::Call());
+          function = cls.LookupDynamicFunctionAllowAbstract(Symbols::Call());
           cls = cls.SuperClass();
         }
       }
@@ -3819,6 +3819,12 @@ RawFunction* Class::LookupDynamicFunction(const String& name) const {
 }
 
 
+RawFunction* Class::LookupDynamicFunctionAllowAbstract(
+    const String& name) const {
+  return LookupFunction(name, kInstanceAllowAbstract);
+}
+
+
 RawFunction* Class::LookupDynamicFunctionAllowPrivate(
     const String& name) const {
   return LookupFunctionAllowPrivate(name, kInstance);
@@ -3891,8 +3897,8 @@ static bool MatchesAccessorName(const String& name,
 
 
 RawFunction* Class::CheckFunctionType(const Function& func, MemberKind kind) {
-  if (kind == kInstance) {
-    if (func.IsDynamicFunction()) {
+  if ((kind == kInstance) || (kind == kInstanceAllowAbstract)) {
+    if (func.IsDynamicFunction(kind == kInstanceAllowAbstract)) {
       return func.raw();
     }
   } else if (kind == kStatic) {
@@ -14289,13 +14295,13 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   const bool other_is_dart_function = instantiated_other.IsDartFunctionType();
   if (other_is_dart_function || instantiated_other.IsFunctionType()) {
     // Check if this instance understands a call() method of a compatible type.
-    Function& call =
-        Function::Handle(zone, cls.LookupDynamicFunction(Symbols::Call()));
+    Function& call = Function::Handle(zone,
+        cls.LookupDynamicFunctionAllowAbstract(Symbols::Call()));
     if (call.IsNull()) {
       // Walk up the super_class chain.
       Class& super_cls = Class::Handle(zone, cls.SuperClass());
       while (!super_cls.IsNull() && call.IsNull()) {
-        call = super_cls.LookupDynamicFunction(Symbols::Call());
+        call = super_cls.LookupDynamicFunctionAllowAbstract(Symbols::Call());
         super_cls = super_cls.SuperClass();
       }
     }
@@ -15056,13 +15062,13 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                           space);
     }
     // Check if type S has a call() method of function type T.
-    Function& function =
-        Function::Handle(zone, type_cls.LookupDynamicFunction(Symbols::Call()));
+    Function& function = Function::Handle(zone,
+        type_cls.LookupDynamicFunctionAllowAbstract(Symbols::Call()));
     if (function.IsNull()) {
       // Walk up the super_class chain.
       Class& cls = Class::Handle(zone, type_cls.SuperClass());
       while (!cls.IsNull() && function.IsNull()) {
-        function = cls.LookupDynamicFunction(Symbols::Call());
+        function = cls.LookupDynamicFunctionAllowAbstract(Symbols::Call());
         cls = cls.SuperClass();
       }
     }
