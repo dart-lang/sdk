@@ -279,6 +279,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
   unit_test_flags = [flag for flag in flags if flag.startswith('--shard')]
   # Run the unit tests in checked mode (the VM's checked mode).
   unit_test_flags.append('--checked')
+  unit_test_flags.append('--vm-options=--abort-on-assertion-errors')
   if runtime == 'd8':
     # The dart2js compiler isn't self-hosted (yet) so we run its
     # unit tests on the VM. We avoid doing this on the builders
