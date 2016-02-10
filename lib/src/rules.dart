@@ -10,6 +10,7 @@ import 'package:linter/src/config.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/rules/always_declare_return_types.dart';
 import 'package:linter/src/rules/always_specify_types.dart';
+import 'package:linter/src/rules/annotate_overrides.dart';
 import 'package:linter/src/rules/avoid_as.dart';
 import 'package:linter/src/rules/avoid_empty_else.dart';
 import 'package:linter/src/rules/avoid_init_to_null.dart';
@@ -36,6 +37,7 @@ import 'package:linter/src/rules/unnecessary_getters_setters.dart';
 final Registry ruleRegistry = new Registry()
   ..register(new AlwaysDeclareReturnTypes())
   ..register(new AlwaysSpecifyTypes())
+  ..register(new AnnotateOverrides())
   ..register(new AvoidAs())
   ..register(new AvoidEmptyElse())
   ..register(new AvoidReturnTypesOnSetters())

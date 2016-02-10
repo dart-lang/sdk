@@ -1,0 +1,102 @@
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library linter.src.rules.annotate_overrides;
+
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:linter/src/linter.dart';
+
+const desc = r'Annotate overridden methods';
+
+const details = r'''
+**DO** annotate overridden methods and fields.
+
+**GOOD:**
+```
+abstract class Dog {
+  String get breed;
+  void bark() {}
+}
+
+class Husky extends Dog {
+  @override
+  final String breed = 'Husky';
+  @override
+  void bark() {}
+}
+```
+
+**BAD:**
+```
+class Cat {
+  int get lives => 9;
+}
+
+class Lucky extends Cat {
+  final int lives = 14;
+}
+```
+''';
+
+class AnnotateOverrides extends LintRule {
+  AnnotateOverrides()
+      : super(
+            name: 'annotate_overrides',
+            description: desc,
+            details: details,
+            group: Group.style);
+
+  @override
+  AstVisitor getVisitor() => new Visitor(this);
+}
+
+class Visitor extends SimpleAstVisitor {
+  InheritanceManager manager;
+
+  final LintRule rule;
+  Visitor(this.rule);
+
+  ExecutableElement getOverriddenMember(Element member) {
+    if (member == null || manager == null) {
+      return null;
+    }
+
+    ClassElement classElement =
+        member.getAncestor((element) => element is ClassElement);
+    if (classElement == null) {
+      return null;
+    }
+    return manager.lookupInheritance(classElement, member.name);
+  }
+
+  @override
+  visitCompilationUnit(CompilationUnit node) {
+    LibraryElement library = node?.element?.library;
+    manager = library == null ? null : new InheritanceManager(library);
+  }
+
+  @override
+  visitFieldDeclaration(FieldDeclaration node) {
+    for (VariableDeclaration field in node.fields.variables) {
+      if (field?.element != null && !field.element.isOverride) {
+        ExecutableElement member = getOverriddenMember(field.element);
+        if (member != null) {
+          rule.reportLint(field);
+        }
+      }
+    }
+  }
+
+  @override
+  visitMethodDeclaration(MethodDeclaration node) {
+    if (node?.element != null && !node.element.isOverride) {
+      ExecutableElement member = getOverriddenMember(node.element);
+      if (member != null) {
+        rule.reportLint(node.name);
+      }
+    }
+  }
+}

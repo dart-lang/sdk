@@ -102,7 +102,6 @@ String _generateStub(String libName, String className) => """
 library linter.src.rules.$libName;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:linter/src/linter.dart';
 
 const desc = r' ';
