@@ -4,21 +4,38 @@
 
 part of dart.developer;
 
+/// A response to a service protocol extension RPC.
+///
+/// If the RPC was successful, use [ServiceExtensionResponse.result], otherwise
+/// use [ServiceExtensionResponse.error].
 class ServiceExtensionResponse {
   final String _result;
   final int _errorCode;
   final String _errorDetail;
 
-  ServiceExtensionResponse.result(this._result)
-      : _errorCode = null,
+  /// Creates a successful to a service protocol extension RPC.
+  ///
+  /// Requires [result] to be a JSON object encoded as a string. When forming
+  /// the JSON-RPC message [result] will be inlined directly.
+  ServiceExtensionResponse.result(String result)
+      : _result = result,
+        _errorCode = null,
         _errorDetail = null {
     if (_result is! String) {
       throw new ArgumentError.value(_result, "result", "Must be a String");
     }
   }
 
-  ServiceExtensionResponse.error(this._errorCode, this._errorDetail)
-      : _result = null {
+  /// Creates an error response to a service protocol extension RPC.
+  ///
+  /// Requires [errorCode] to be [invalidParams] or between [extensionErrorMin]
+  /// and [extensionErrorMax]. Requires [errorDetail] to be a JSON object
+  /// encoded as a string. When forming the JSON-RPC message [errorDetail] will
+  /// be inlined directly.
+  ServiceExtensionResponse.error(int errorCode, String errorDetail)
+      : _result = null,
+        _errorCode = errorCode,
+        _errorDetail = errorDetail {
     _validateErrorCode(_errorCode);
     if (_errorDetail is! String) {
       throw new ArgumentError.value(_errorDetail,
@@ -58,11 +75,11 @@ class ServiceExtensionResponse {
     if (errorCode is! int) {
       throw new ArgumentError.value(errorCode, "errorCode", "Must be an int");
     }
-    if (errorCode == kInvalidParams) {
+    if (errorCode == invalidParams) {
       return;
     }
-    if ((errorCode >= kExtensionErrorMin) &&
-        (errorCode <= kExtensionErrorMax)) {
+    if ((errorCode >= extensionErrorMin) &&
+        (errorCode <= extensionErrorMax)) {
       return;
     }
     throw new ArgumentError.value(errorCode, "errorCode", "Out of range");
