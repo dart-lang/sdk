@@ -25,5 +25,8 @@ test/codegen/language/*_multi.dart
 # Created by ./tool/build_sdk.sh
 tool/generated_sdk/
 
+# Created by ./tool/dependency_overrides.sh
+dependency_overrides/
+
 # Include when developing application packages.
 pubspec.lock
