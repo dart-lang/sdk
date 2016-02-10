@@ -28,13 +28,23 @@ class ServiceExtensionResponse {
   }
 
   /// Invalid method parameter(s) error code.
-  static const kInvalidParams = -32602;
+  @deprecated static const kInvalidParams = invalidParams;
   /// Generic extension error code.
-  static const kExtensionError = -32000;
+  @deprecated static const kExtensionError = extensionError;
   /// Maximum extension provided error code.
-  static const kExtensionErrorMax = -32000;
+  @deprecated static const kExtensionErrorMax = extensionErrorMax;
   /// Minimum extension provided error code.
-  static const kExtensionErrorMin = -32016;
+  @deprecated static const kExtensionErrorMin = extensionErrorMin;
+
+  /// Invalid method parameter(s) error code.
+  static const invalidParams = -32602;
+  /// Generic extension error code.
+  static const extensionError = -32000;
+  /// Maximum extension provided error code.
+  static const extensionErrorMax = -32000;
+  /// Minimum extension provided error code.
+  static const extensionErrorMin = -32016;
+
 
   static String _errorCodeMessage(int errorCode) {
     _validateErrorCode(errorCode);
@@ -90,13 +100,26 @@ typedef Future<ServiceExtensionResponse>
 
 /// Register a [ServiceExtensionHandler] that will be invoked in this isolate
 /// for [method]. *NOTE*: Service protocol extensions must be registered
-/// in each isolate and users of extensions must always specify a target
-/// isolate.
+/// in each isolate.
+///
+/// *NOTE*: [method] must begin with 'ext.' and you should use the following
+/// structure to avoid conflicts with other packages: 'ext.package.command'.
+/// That is, immediately following the 'ext.' prefix, should be the registering
+/// package name followed by another period ('.') and then the command name.
+/// For example: 'ext.dart.io.getOpenFiles'.
+///
+/// Because service extensions are isolate specific, clients using extensions
+/// must always include an 'isolateId' parameter with each RPC.
 void registerExtension(String method, ServiceExtensionHandler handler) {
   if (method is! String) {
     throw new ArgumentError.value(method,
                                   'method',
                                   'Must be a String');
+  }
+  if (!method.startsWith('ext.')) {
+    throw new ArgumentError.value(method,
+                                  'method',
+                                  'Must begin with ext.');
   }
   if (_lookupExtension(method) != null) {
     throw new ArgumentError('Extension already registered: $method');

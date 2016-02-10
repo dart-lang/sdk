@@ -188,9 +188,9 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
                bool runInShell,
                ProcessStartMode mode) : super() {
     if (!connectedResourceHandler) {
-      registerExtension('__getProcesses',
+      registerExtension('ext.dart.io.getProcesses',
                         _ProcessResourceInfo.getStartedProcesses);
-      registerExtension('__getProcessById',
+      registerExtension('ext.dart.io.getProcessById',
                         _ProcessResourceInfo.getProcessInfoMapById);
       connectedResourceHandler = true;
     }
