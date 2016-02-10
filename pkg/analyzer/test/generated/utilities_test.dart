@@ -278,6 +278,13 @@ class AstClonerTest extends EngineTestCase {
     _assertCloneUnit('library l;  var a;');
   }
 
+  void test_visitCompilationUnit_directive_withComment() {
+    _assertCloneUnit(r'''
+/// aaa
+/// bbb
+library l;''');
+  }
+
   void test_visitCompilationUnit_empty() {
     _assertCloneUnit('');
   }

@@ -216,17 +216,17 @@ class AstCloner implements AstVisitor<AstNode> {
   ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) {
     cloneToken(node.abstractKeyword);
     return new ClassTypeAlias(
-      cloneNode(node.documentationComment),
-      cloneNodeList(node.metadata),
-      cloneToken(node.typedefKeyword),
-      cloneNode(node.name),
-      cloneNode(node.typeParameters),
-      cloneToken(node.equals),
-      cloneToken(node.abstractKeyword),
-      cloneNode(node.superclass),
-      cloneNode(node.withClause),
-      cloneNode(node.implementsClause),
-      cloneToken(node.semicolon));
+        cloneNode(node.documentationComment),
+        cloneNodeList(node.metadata),
+        cloneToken(node.typedefKeyword),
+        cloneNode(node.name),
+        cloneNode(node.typeParameters),
+        cloneToken(node.equals),
+        cloneToken(node.abstractKeyword),
+        cloneNode(node.superclass),
+        cloneNode(node.withClause),
+        cloneNode(node.implementsClause),
+        cloneToken(node.semicolon));
   }
 
   @override
@@ -247,16 +247,12 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    ScriptTag scriptTag = cloneNode(node.scriptTag);
-    List<Directive> directives = cloneNodeList(node.directives);
-    List<CompilationUnitMember> declarations = cloneNodeList(node.declarations);
-    Token endToken = cloneToken(node.endToken);
-    Token beginToken = scriptTag?.beginToken ??
-        (directives.isEmpty ? null : directives.first.beginToken) ??
-        (declarations.isEmpty ? null : declarations.first.beginToken) ??
-        endToken;
     CompilationUnit clone = new CompilationUnit(
-        beginToken, scriptTag, directives, declarations, endToken);
+        cloneToken(node.beginToken),
+        cloneNode(node.scriptTag),
+        cloneNodeList(node.directives),
+        cloneNodeList(node.declarations),
+        cloneToken(node.endToken));
     clone.lineInfo = node.lineInfo;
     return clone;
   }
