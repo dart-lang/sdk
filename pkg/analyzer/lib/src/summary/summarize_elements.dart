@@ -543,7 +543,7 @@ class _CompilationUnitSerializer {
         if (executableElement.isFactory) {
           EntityRefBuilder typeRef = serializeTypeRef(
               executableElement.redirectedConstructor.enclosingElement.type,
-              executableElement);
+              executableElement.redirectedConstructor.enclosingElement);
           if (executableElement.redirectedConstructor.name.isNotEmpty) {
             String name = executableElement.redirectedConstructor.name;
             int typeId = typeRef.reference;

@@ -3187,6 +3187,30 @@ class D extends C {
         ]);
   }
 
+  test_constructor_redirected_factory_named_generic() {
+    String text = '''
+class C<T, U> {
+  factory C() = D<U, T>.named;
+  C._();
+}
+class D<T, U> extends C<U, T> {
+  D.named() : super._();
+}
+''';
+    UnlinkedExecutable executable =
+        serializeClassText(text, className: 'C').executables[0];
+    expect(executable.isRedirectedConstructor, isTrue);
+    expect(executable.isFactory, isTrue);
+    expect(executable.redirectedConstructorName, isEmpty);
+    checkTypeRef(executable.redirectedConstructor, null, null, 'named',
+        expectedKind: ReferenceKind.constructor,
+        prefixExpectations: [
+          new _PrefixExpectation(ReferenceKind.classOrEnum, 'D',
+              numTypeParameters: 2)
+        ],
+        allowTypeParameters: true);
+  }
+
   test_constructor_redirected_factory_unnamed() {
     String text = '''
 class C {
@@ -3203,6 +3227,25 @@ class D extends C {
     expect(executable.isFactory, isTrue);
     expect(executable.redirectedConstructorName, isEmpty);
     checkTypeRef(executable.redirectedConstructor, null, null, 'D');
+  }
+
+  test_constructor_redirected_factory_unnamed_generic() {
+    String text = '''
+class C<T, U> {
+  factory C() = D<U, T>;
+  C._();
+}
+class D<T, U> extends C<U, T> {
+  D() : super._();
+}
+''';
+    UnlinkedExecutable executable =
+        serializeClassText(text, className: 'C').executables[0];
+    expect(executable.isRedirectedConstructor, isTrue);
+    expect(executable.isFactory, isTrue);
+    expect(executable.redirectedConstructorName, isEmpty);
+    checkTypeRef(executable.redirectedConstructor, null, null, 'D',
+        allowTypeParameters: true, numTypeParameters: 2);
   }
 
   test_constructor_redirected_thisInvocation_named() {

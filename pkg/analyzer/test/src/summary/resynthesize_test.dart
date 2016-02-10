@@ -1915,6 +1915,18 @@ class D extends C {
 ''');
   }
 
+  test_constructor_redirected_factory_named_generic() {
+    checkLibrary('''
+class C<T, U> {
+  factory C() = D<U, T>.named;
+  C._();
+}
+class D<T, U> extends C<U, T> {
+  D.named() : super._();
+}
+''');
+  }
+
   test_constructor_redirected_factory_named_imported() {
     addLibrarySource(
         '/foo.dart',
@@ -1928,6 +1940,24 @@ class D extends C {
 import 'foo.dart';
 class C {
   factory C() = D.named;
+  C._();
+}
+''');
+  }
+
+  test_constructor_redirected_factory_named_imported_generic() {
+    addLibrarySource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D<T, U> extends C<U, T> {
+  D.named() : super._();
+}
+''');
+    checkLibrary('''
+import 'foo.dart';
+class C<T, U> {
+  factory C() = D<U, T>.named;
   C._();
 }
 ''');
@@ -1951,6 +1981,24 @@ class C {
 ''');
   }
 
+  test_constructor_redirected_factory_named_prefixed_generic() {
+    addLibrarySource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D<T, U> extends C<U, T> {
+  D.named() : super._();
+}
+''');
+    checkLibrary('''
+import 'foo.dart' as foo;
+class C<T, U> {
+  factory C() = foo.D<U, T>.named;
+  C._();
+}
+''');
+  }
+
   test_constructor_redirected_factory_unnamed() {
     checkLibrary('''
 class C {
@@ -1958,6 +2006,18 @@ class C {
   C._();
 }
 class D extends C {
+  D() : super._();
+}
+''');
+  }
+
+  test_constructor_redirected_factory_unnamed_generic() {
+    checkLibrary('''
+class C<T, U> {
+  factory C() = D<U, T>;
+  C._();
+}
+class D<T, U> extends C<U, T> {
   D() : super._();
 }
 ''');
@@ -1981,6 +2041,24 @@ class C {
 ''');
   }
 
+  test_constructor_redirected_factory_unnamed_imported_generic() {
+    addLibrarySource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D<T, U> extends C<U, T> {
+  D() : super._();
+}
+''');
+    checkLibrary('''
+import 'foo.dart';
+class C<T, U> {
+  factory C() = D<U, T>;
+  C._();
+}
+''');
+  }
+
   test_constructor_redirected_factory_unnamed_prefixed() {
     addLibrarySource(
         '/foo.dart',
@@ -1994,6 +2072,24 @@ class D extends C {
 import 'foo.dart' as foo;
 class C {
   factory C() = foo.D;
+  C._();
+}
+''');
+  }
+
+  test_constructor_redirected_factory_unnamed_prefixed_generic() {
+    addLibrarySource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D<T, U> extends C<U, T> {
+  D() : super._();
+}
+''');
+    checkLibrary('''
+import 'foo.dart' as foo;
+class C<T, U> {
+  factory C() = foo.D<U, T>;
   C._();
 }
 ''');
