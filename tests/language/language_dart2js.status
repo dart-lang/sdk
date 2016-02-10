@@ -34,8 +34,6 @@ library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
 library_env_test/has_no_mirror_support: RuntimeError, OK
 
-accessor_conflict_export2_test: Crash # Issue 25626
-accessor_conflict_export_test: Crash # Issue 25626
 accessor_conflict_import2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
@@ -238,6 +236,8 @@ cha_deopt*: Pass,RuntimeError # Issue 17458
 regress_22443_test: Pass,RuntimeError # Issue 17458
 
 [ $compiler == dart2js && $cps_ir == false ]
+accessor_conflict_export2_test: Crash # Issue 25626
+accessor_conflict_export_test: Crash # Issue 25626
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
 many_method_calls_test: Crash # Stack overflow in HGraphVisitor.visitPostDominatorTree.visitBasicBlockAndSuccessors
