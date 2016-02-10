@@ -2577,6 +2577,7 @@ class JavaScriptBackend extends Backend {
   @override
   bool enableCodegenWithErrorsIfSupported(Spannable node) {
     if (compiler.useCpsIr) {
+      // TODO(25747): Support code generation with compile-time errors.
       reporter.reportHintMessage(
           node,
           MessageKind.GENERIC,

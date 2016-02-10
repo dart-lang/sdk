@@ -249,6 +249,8 @@ super_no_such_method5_test/01: RuntimeError # Issue 25716
 issue23244_test: RuntimeError # 23244
 
 [ $compiler == dart2js && $cps_ir ]
+accessor_conflict_export2_test: CompileTimeError # Issue 25747
+accessor_conflict_export_test: CompileTimeError # Issue 25747
 async_await_syntax_test/a03a: Crash # (a03a()async*{}): cannot handle sync*/async* functions
 async_await_syntax_test/a03b: Crash # (a03b()async*{}): cannot handle sync*/async* functions
 async_await_syntax_test/a06a: Crash # (await for(var o in st){}): await for
@@ -294,7 +296,6 @@ await_for_cancel_test: Crash # (await for(var x in controller.stream){for(int j=
 await_for_test: Crash # (await for(var x in infiniteStream()){i++ ;if(i>10)break;t4.record(x);}): await for
 await_for_use_local_test: Crash # (await for(var v in s){accum+= v;}): await for
 call_closurization_test: RuntimeError # Bad type inference for ".call" tear-off.
-deferred_super_dependency_test/01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 field3a_negative_test: Fail # Bogus result from type inference in case of invalid program.
 gc_test: Crash # Internal Error: Pending statics (see above).
 if_null_assignment_static_test/29: Crash # Pending statics: JSArray
@@ -304,9 +305,11 @@ if_null_assignment_static_test/33: Crash # Pending statics: JSArray
 if_null_assignment_static_test/35: Crash # Pending statics: JSArray
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
 regress_23500_test/01: Crash # (await for(var c in new Stream.fromIterable([] )){}): await for
+regress_24935_test/01: Crash # bailout: (await for(var s1 in S()){await for(var s2 in S()){continue L;}}): await for
+regress_24935_test/none: Crash # bailout: (await for(var s1 in S()){await for(var s2 in S()){continue L;}}): await for
 savannah_test: RuntimeError # Success depends on the variable hints.
 super_call4_test: RuntimeError # Please triage this failure.
-super_getter_setter_test: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
+super_getter_setter_test: RuntimeError # Expect.equals(expected: <42>, actual: <null>) fails.
 super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet
