@@ -149,8 +149,8 @@ var tests = [
           'developer_extension_test.dart',
           'semicolon expected']));
     }
-
   },
 ];
 
-main(args) async => runIsolateTests(args, tests, testeeConcurrent:test);
+main(args) async => runIsolateTests(args, tests, testeeConcurrent:test,
+                                    trace_compiler: true);
