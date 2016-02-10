@@ -513,8 +513,10 @@ class _ConstExprBuilder {
       throw new StateError('Unsupported element for invokeConstructor '
           '${info.element?.runtimeType}');
     }
-    _DeferredConstructorElement constructorElement =
-        resynthesizer._createConstructorElement(info, ref.typeArguments);
+    InterfaceType definingType =
+        resynthesizer._createConstructorDefiningType(info, ref.typeArguments);
+    ConstructorElement constructorElement =
+        resynthesizer._createConstructorElement(definingType, info);
     // prepare arguments
     List<Expression> arguments;
     {
@@ -530,7 +532,7 @@ class _ConstExprBuilder {
       }
     }
     // create TypeName
-    TypeName typeNode = _buildTypeAst(constructorElement._definingType);
+    TypeName typeNode = _buildTypeAst(definingType);
     // create ConstructorName
     ConstructorName constructorNode;
     if (constructorName != null) {
@@ -600,33 +602,19 @@ class _DeferredConstructorElement extends ConstructorElementHandle {
    */
   final String name;
 
-  /**
-   * Indicates whether the deferred element is a [ConstructorMember] or simply
-   * a [ConstructorElement].
-   */
-  final bool _isMember;
-
   factory _DeferredConstructorElement(InterfaceType definingType, String name) {
     List<String> components = definingType.element.location.components.toList();
     components.add(name);
     ElementLocationImpl location = new ElementLocationImpl.con3(components);
-    return new _DeferredConstructorElement._(
-        definingType, name, location, true);
+    return new _DeferredConstructorElement._(definingType, name, location);
   }
 
   _DeferredConstructorElement._(
-      this._definingType, this.name, ElementLocation location, this._isMember)
+      this._definingType, this.name, ElementLocation location)
       : super(null, location);
 
   @override
-  Element get actualElement {
-    ConstructorElement element = enclosingElement.getNamedConstructor(name);
-    if (_isMember && _definingType.typeArguments.isNotEmpty) {
-      return new ConstructorMember(element, _definingType);
-    } else {
-      return element;
-    }
-  }
+  Element get actualElement => enclosingElement.getNamedConstructor(name);
 
   @override
   AnalysisContext get context => _definingType.element.context;
@@ -941,9 +929,10 @@ class _LibraryResynthesizer {
       if (serializedExecutable.isFactory) {
         EntityRef redirectedConstructor =
             serializedExecutable.redirectedConstructor;
+        _ReferenceInfo info = referenceInfos[redirectedConstructor.reference];
+        List<EntityRef> typeArguments = redirectedConstructor.typeArguments;
         currentConstructor.redirectedConstructor = _createConstructorElement(
-            referenceInfos[redirectedConstructor.reference],
-            redirectedConstructor.typeArguments);
+            _createConstructorDefiningType(info, typeArguments), info);
       } else {
         List<String> locationComponents =
             currentCompilationUnit.location.components.toList();
@@ -953,8 +942,7 @@ class _LibraryResynthesizer {
             new _DeferredConstructorElement._(
                 classType,
                 serializedExecutable.redirectedConstructorName,
-                new ElementLocationImpl.con3(locationComponents),
-                false);
+                new ElementLocationImpl.con3(locationComponents));
       }
     }
     holder.addConstructor(currentConstructor);
@@ -1905,24 +1893,40 @@ class _LibraryResynthesizer {
               <String>['dart:core', 'dart:core', 'String', 'length?']));
 
   /**
-   * Return the [ConstructorElement] by applying [typeArgumentRefs] to the
-   * given linked [info].  Both cases when [info] is a [ClassElement] and
-   * [ConstructorElement] are supported.
+   * Return the defining type for a [ConstructorElement] by applying
+   * [typeArgumentRefs] to the given linked [info].
    */
-  _DeferredConstructorElement _createConstructorElement(
+  InterfaceType _createConstructorDefiningType(
       _ReferenceInfo info, List<EntityRef> typeArgumentRefs) {
     bool isClass = info.element is ClassElement;
     _ReferenceInfo classInfo = isClass ? info : info.enclosing;
     List<DartType> typeArguments = typeArgumentRefs.map(buildType).toList();
-    InterfaceType classType = classInfo.buildType((i) {
+    return classInfo.buildType((i) {
       if (i < typeArguments.length) {
         return typeArguments[i];
       } else {
         return DynamicTypeImpl.instance;
       }
     }, const <int>[]);
+  }
+
+  /**
+   * Return the [ConstructorElement] corresponding to the given linked [info],
+   * using the [classType] which has already been computed (e.g. by
+   * [_createConstructorDefiningType]).  Both cases when [info] is a
+   * [ClassElement] and [ConstructorElement] are supported.
+   */
+  ConstructorElement _createConstructorElement(
+      InterfaceType classType, _ReferenceInfo info) {
+    bool isClass = info.element is ClassElement;
     String name = isClass ? '' : info.name;
-    return new _DeferredConstructorElement(classType, name);
+    _DeferredConstructorElement element =
+        new _DeferredConstructorElement(classType, name);
+    if (info.numTypeParameters != 0) {
+      return new ConstructorMember(element, classType);
+    } else {
+      return element;
+    }
   }
 
   /**

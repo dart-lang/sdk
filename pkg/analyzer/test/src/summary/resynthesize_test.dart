@@ -788,8 +788,8 @@ class ResynthTest extends ResolverTestCase {
     } else if (resynthesized is VoidTypeImpl && original is VoidTypeImpl) {
       expect(resynthesized, same(original));
     } else if (resynthesized.runtimeType != original.runtimeType) {
-      fail(
-          'Type mismatch: expected ${original.runtimeType}, got ${resynthesized.runtimeType}');
+      fail('Type mismatch: expected ${original.runtimeType},'
+          ' got ${resynthesized.runtimeType} ($desc)');
     } else {
       fail('Unimplemented comparison for ${original.runtimeType}');
     }
@@ -815,7 +815,8 @@ class ResynthTest extends ResolverTestCase {
       if (constantInitializersAreInvalid) {
         _assertUnresolvedIdentifier(initializer, desc);
       } else {
-        compareConstAsts(initializer, originalActual.constantInitializer, desc);
+        compareConstAsts(initializer, originalActual.constantInitializer,
+            '$desc initializer');
       }
     }
     checkPossibleMember(resynthesized, original, desc);
@@ -890,7 +891,11 @@ class ResynthTest extends ResolverTestCase {
     if (element is ElementImpl) {
       return element;
     } else if (element is ElementHandle) {
-      return getActualElement(element.actualElement, desc);
+      Element actualElement = element.actualElement;
+      // A handle should never point to a member, because if it did, then
+      // "is Member" checks on the handle would produce the wrong result.
+      expect(actualElement, isNot(new isInstanceOf<Member>()), reason: desc);
+      return getActualElement(actualElement, desc);
     } else if (element is Member) {
       return getActualElement(element.baseElement, desc);
     } else {

@@ -128,8 +128,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
  * type parameters are known.
  */
 abstract class ExecutableMember extends Member implements ExecutableElement {
-  @override
-  final FunctionType type;
+  FunctionType _type;
 
   /**
    * Initialize a newly created element to represent a callable element (like a
@@ -139,9 +138,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
    */
   ExecutableMember(ExecutableElement baseElement, InterfaceType definingType,
       [FunctionType type])
-      : type = type ??
-            baseElement.type.substitute2(definingType.typeArguments,
-                TypeParameterTypeImpl.getTypes(definingType.typeParameters)),
+      : _type = type,
         super(baseElement, definingType);
 
   @override
@@ -199,6 +196,12 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   @override
   DartType get returnType => type.returnType;
+
+  @override
+  FunctionType get type {
+    return _type ??= baseElement.type.substitute2(definingType.typeArguments,
+        TypeParameterTypeImpl.getTypes(definingType.typeParameters));
+  }
 
   @override
   List<TypeParameterElement> get typeParameters => baseElement.typeParameters;
