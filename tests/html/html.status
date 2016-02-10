@@ -18,13 +18,13 @@ js_test/JsArray: RuntimeError # Dartium JSInterop failure
 native_gc_test: Skip # Dartium JSInterop failure
 transferables_test: RuntimeError # Dartium JSInterop failure
 
-blob_constructor_test: RuntimeError # Dartium 45 roll
-crypto_test/functional: RuntimeError # Dartium 45 roll
-element_animate_test/omit_timing: RuntimeError # Dartium 45 roll
-element_animate_test/simple_timing: RuntimeError # Dartium 45 roll
-element_animate_test/timing_dict: RuntimeError # Dartium 45 roll
-svgelement_test/constructors: RuntimeError # Dartium 45 roll
-url_test: RuntimeError # Dartium 45 roll
+blob_constructor_test: RuntimeError # Dartium 45 roll. Issue 25754
+crypto_test/functional: RuntimeError # Dartium 45 roll. Issue 25754
+element_animate_test/omit_timing: RuntimeError # Dartium 45 roll. Issue 25754
+element_animate_test/simple_timing: RuntimeError # Dartium 45 roll. Issue 25754
+element_animate_test/timing_dict: RuntimeError # Dartium 45 roll. Issue 25754
+svgelement_test/constructors: RuntimeError # Dartium 45 roll. Issue 25754
+url_test: RuntimeError # Dartium 45 roll. Issue 25754
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) ]
 worker_api_test: Fail # Issue 10223
