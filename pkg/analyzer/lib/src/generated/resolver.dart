@@ -4073,7 +4073,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
   visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
     if (node.inDeclarationContext()) {
-      definedElements.add(element);
+      if (element != null) {
+        definedElements.add(element);
+      }
       return;
     }
     bool isIdentifierRead = _isReadIdentifier(node);

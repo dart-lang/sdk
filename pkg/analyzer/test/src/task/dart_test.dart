@@ -2240,6 +2240,8 @@ main() {
 
 @reflectiveTest
 class GatherUsedLocalElementsTaskTest extends _AbstractDartTaskTest {
+  List<Element> definedElements;
+  Set<String> definedElementNames;
   UsedLocalElements usedElements;
   Set<String> usedElementNames;
 
@@ -2304,6 +2306,7 @@ main() {
 }''');
     _computeUsedElements(source);
     // validate
+    expect(definedElementNames, unorderedEquals(['main', 'v1', 'v2']));
     expect(usedElementNames, unorderedEquals(['v2']));
   }
 
@@ -2323,14 +2326,30 @@ main(A a, p) {
 ''');
     _computeUsedElements(source);
     // validate
+    expect(definedElementNames,
+        unorderedEquals(['A', '_m1', '_m2', 'main', 'a', 'p']));
     expect(usedElementNames, unorderedEquals(['A', 'a', 'p', '_m2']));
     expect(usedElements.members, unorderedEquals(['_m2', '_m3']));
+  }
+
+  test_perform_unresolvedImportWithPrefix() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+import 'x' as p;
+''');
+    _computeUsedElements(source);
+    // validate
+    expect(definedElementNames, isEmpty);
+    expect(usedElementNames, isEmpty);
   }
 
   void _computeUsedElements(Source source) {
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     computeResult(target, USED_LOCAL_ELEMENTS,
         matcher: isGatherUsedLocalElementsTask);
+    definedElements = outputs[DEFINED_ELEMENTS];
+    definedElementNames = definedElements.map((e) => e.name).toSet();
     usedElements = outputs[USED_LOCAL_ELEMENTS];
     usedElementNames = usedElements.elements.map((e) => e.name).toSet();
   }
