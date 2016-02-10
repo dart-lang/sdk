@@ -110,6 +110,12 @@ class Builder {
 
   _VTable _currentVTable;
 
+  /**
+   * Map containing all strings that have been written so far.  This allows us
+   * to avoid duplicating strings.
+   */
+  Map<String, Offset<String>> _strings = <String, Offset<String>>{};
+
   Builder({this.initialSize: 1024}) {
     reset();
   }
@@ -387,17 +393,19 @@ class Builder {
           'Cannot write a non-scalar value while writing a table.');
     }
     if (value != def) {
-      // TODO(scheglov) optimize for ASCII strings
-      List<int> bytes = UTF8.encode(value);
-      int length = bytes.length;
-      _prepare(4, 1, additionalBytes: length);
-      Offset<String> result = new Offset(_tail);
-      _setUint32AtTail(_buf, _tail, length);
-      int offset = _buf.lengthInBytes - _tail + 4;
-      for (int i = 0; i < length; i++) {
-        _buf.setUint8(offset++, bytes[i]);
-      }
-      return result;
+      return _strings.putIfAbsent(value, () {
+        // TODO(scheglov) optimize for ASCII strings
+        List<int> bytes = UTF8.encode(value);
+        int length = bytes.length;
+        _prepare(4, 1, additionalBytes: length);
+        Offset<String> result = new Offset(_tail);
+        _setUint32AtTail(_buf, _tail, length);
+        int offset = _buf.lengthInBytes - _tail + 4;
+        for (int i = 0; i < length; i++) {
+          _buf.setUint8(offset++, bytes[i]);
+        }
+        return result;
+      });
     }
     return null;
   }
