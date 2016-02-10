@@ -327,7 +327,7 @@ abstract class SummaryTest {
       int numTypeParameters: 0}) {
     if (strongMode) {
       checkLinkedTypeSlot(slotId, absoluteUri, relativeUri, expectedName,
-          allowTypeParameters: allowTypeParameters,
+          allowTypeArguments: allowTypeParameters,
           expectedKind: expectedKind,
           expectedTargetUnit: expectedTargetUnit,
           linkedSourceUnit: linkedSourceUnit,
@@ -363,8 +363,8 @@ abstract class SummaryTest {
   /**
    * Verify that the given [typeRef] represents a reference to a type declared
    * in a file reachable via [absoluteUri] and [relativeUri], having name
-   * [expectedName].  If [allowTypeParameters] is true, allow the type
-   * reference to supply type parameters.  [expectedKind] is the kind of object
+   * [expectedName].  If [allowTypeArguments] is true, allow the type
+   * reference to supply type arguments.  [expectedKind] is the kind of object
    * referenced.  [linkedSourceUnit] and [unlinkedSourceUnit] refer to the
    * compilation unit within which the [typeRef] appears; if not specified they
    * are assumed to refer to the defining compilation unit.
@@ -375,7 +375,7 @@ abstract class SummaryTest {
    */
   void checkLinkedTypeRef(EntityRef typeRef, String absoluteUri,
       String relativeUri, String expectedName,
-      {bool allowTypeParameters: false,
+      {bool allowTypeArguments: false,
       ReferenceKind expectedKind: ReferenceKind.classOrEnum,
       int expectedTargetUnit: 0,
       LinkedUnit linkedSourceUnit,
@@ -386,7 +386,7 @@ abstract class SummaryTest {
         reason: 'No entry in linkedSourceUnit.types matching slotId');
     expect(typeRef.paramReference, 0);
     int index = typeRef.reference;
-    if (!allowTypeParameters) {
+    if (!allowTypeArguments) {
       expect(typeRef.typeArguments, isEmpty);
     }
     checkReferenceIndex(index, absoluteUri, relativeUri, expectedName,
@@ -400,8 +400,8 @@ abstract class SummaryTest {
   /**
    * Verify that the given [slotId] represents a reference to a type declared
    * in a file reachable via [absoluteUri] and [relativeUri], having name
-   * [expectedName].  If [allowTypeParameters] is true, allow the type
-   * reference to supply type parameters.  [expectedKind] is the kind of object
+   * [expectedName].  If [allowTypeArguments] is true, allow the type
+   * reference to supply type arguments.  [expectedKind] is the kind of object
    * referenced.  [linkedSourceUnit] and [unlinkedSourceUnit] refer to the
    * compilation unit within which the [typeRef] appears; if not specified they
    * are assumed to refer to the defining compilation unit.
@@ -412,7 +412,7 @@ abstract class SummaryTest {
    */
   void checkLinkedTypeSlot(
       int slotId, String absoluteUri, String relativeUri, String expectedName,
-      {bool allowTypeParameters: false,
+      {bool allowTypeArguments: false,
       ReferenceKind expectedKind: ReferenceKind.classOrEnum,
       int expectedTargetUnit: 0,
       LinkedUnit linkedSourceUnit,
@@ -429,7 +429,7 @@ abstract class SummaryTest {
         absoluteUri,
         relativeUri,
         expectedName,
-        allowTypeParameters: allowTypeParameters,
+        allowTypeArguments: allowTypeArguments,
         expectedKind: expectedKind,
         expectedTargetUnit: expectedTargetUnit,
         linkedSourceUnit: linkedSourceUnit,
@@ -4699,7 +4699,7 @@ p.B b;
     EntityRef type = getTypeRefForSlot(cls.fields[0].inferredTypeSlot);
     // Check that v has inferred type Map<T, int>.
     checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'Map',
-        allowTypeParameters: true, numTypeParameters: 2);
+        allowTypeArguments: true, numTypeParameters: 2);
     checkParamTypeRef(type.typeArguments[0], 1);
     checkLinkedTypeRef(type.typeArguments[1], 'dart:core', 'dart:core', 'int');
   }
@@ -6020,7 +6020,7 @@ var v;''';
     UnlinkedVariable v = serializeVariableText('final v = <int, dynamic>{};');
     EntityRef type = getTypeRefForSlot(v.propagatedTypeSlot);
     checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'Map',
-        allowTypeParameters: true, numTypeParameters: 2);
+        allowTypeArguments: true, numTypeParameters: 2);
     expect(type.typeArguments, hasLength(1));
     checkLinkedTypeRef(type.typeArguments[0], 'dart:core', 'dart:core', 'int');
   }
