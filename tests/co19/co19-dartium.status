@@ -1250,7 +1250,6 @@ LayoutTests/fast/canvas/webgl/uninitialized-test_t01: RuntimeError # Please tria
 LayoutTests/fast/canvas/webgl/viewport-unchanged-upon-resize_t01: RuntimeError # Issue 25653
 LayoutTests/fast/canvas/webgl/webgl-depth-texture_t01: RuntimeError # Please triage this failure
 
-[ $compiler == none && $runtime == dartium && $system != macos ]
 LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/attrib-location-length-limits_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/buffer-bind-test_t01: RuntimeError # Issue 22026
