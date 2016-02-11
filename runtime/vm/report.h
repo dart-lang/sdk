@@ -22,7 +22,6 @@ class Report : AllStatic {
  public:
   enum Kind {
     kWarning,
-    kJSWarning,
     kError,
     kMalformedType,
     kMalboundedType,
@@ -55,23 +54,6 @@ class Report : AllStatic {
                        bool report_after_token,
                        const char* format, va_list args);
 
-  // Support to report Javascript compatibility warnings. Note that a
-  // JavascriptCompatibilityError is thrown if --warning_as_error is specified.
-  // If a warning is issued by the various JSWarning calls, the warning is also
-  // emitted in the trace buffer of the current isolate.
-
-  // Report a Javascript compatibility warning at the call site given by
-  // ic_data, unless one has already been emitted at that location.
-  static void JSWarningFromIC(const ICData& ic_data, const char* msg);
-
-  // Report a Javascript compatibility warning at the current native call,
-  // unless one has already been emitted at that location.
-  static void JSWarningFromNative(bool is_static_native, const char* msg);
-
-  // Report a Javascript compatibility warning at the call site given by
-  // caller_frame.
-  static void JSWarningFromFrame(StackFrame* caller_frame, const char* msg);
-
   // Prepend a source snippet to the message.
   // A null script means no source and a negative token_pos means no position.
   static RawString* PrependSnippet(Kind kind,
@@ -81,11 +63,6 @@ class Report : AllStatic {
                                    const String& message);
 
  private:
-  // Emit a Javascript compatibility warning to the current trace buffer.
-  static void TraceJSWarning(const Script& script,
-                             TokenPosition token_pos,
-                             const String& message);
-
   DISALLOW_COPY_AND_ASSIGN(Report);
 };
 

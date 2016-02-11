@@ -307,8 +307,6 @@ class ObjectPointerVisitor;
   V(OutOfMemoryError, "OutOfMemoryError")                                      \
   V(NullThrownError, "NullThrownError")                                        \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
-  V(JavascriptIntegerOverflowError, "_JavascriptIntegerOverflowError")         \
-  V(JavascriptCompatibilityError, "_JavascriptCompatibilityError")             \
   V(BooleanExpression, "boolean expression")                                   \
   V(Malformed, "malformed")                                                    \
   V(Malbounded, "malbounded")                                                  \

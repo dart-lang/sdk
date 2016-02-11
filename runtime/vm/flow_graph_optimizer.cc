@@ -52,7 +52,6 @@ DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, polymorphic_with_deopt);
 DECLARE_FLAG(bool, trace_cha);
 DECLARE_FLAG(bool, trace_field_guards);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 // Quick access to the current isolate and zone.
 #define I (isolate())
@@ -163,14 +162,6 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     // This occurs when an instance call has too many checks, will be converted
     // to megamorphic call.
     return false;
-  }
-  if (FLAG_warn_on_javascript_compatibility) {
-    // Do not make the instance call megamorphic if the callee needs to decode
-    // the calling code sequence to lookup the ic data and verify if a warning
-    // has already been issued or not.
-    if (call->ic_data()->MayCheckForJSWarning()) {
-      return false;
-    }
   }
   GrowableArray<intptr_t> class_ids(call->ic_data()->NumArgsTested());
   ASSERT(call->ic_data()->NumArgsTested() <= call->ArgumentCount());
@@ -2980,15 +2971,6 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   }
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
-  if (FLAG_warn_on_javascript_compatibility &&
-      !unary_checks.IssuedJSWarning() &&
-      (type.IsIntType() || type.IsDoubleType() || !type.IsInstantiated())) {
-    // No warning was reported yet for this type check, either because it has
-    // not been executed yet, or because no problematic combinations of instance
-    // type and test type have been encountered so far. A warning may still be
-    // reported, so do not replace the instance call.
-    return;
-  }
   if ((unary_checks.NumberOfChecks() > 0) &&
       (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
     ZoneGrowableArray<intptr_t>* results =
@@ -3070,15 +3052,6 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ASSERT(!type.IsMalformedOrMalbounded());
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
-  if (FLAG_warn_on_javascript_compatibility &&
-      !unary_checks.IssuedJSWarning() &&
-      (type.IsIntType() || type.IsDoubleType() || !type.IsInstantiated())) {
-    // No warning was reported yet for this type check, either because it has
-    // not been executed yet, or because no problematic combinations of instance
-    // type and test type have been encountered so far. A warning may still be
-    // reported, so do not replace the instance call.
-    return;
-  }
   if ((unary_checks.NumberOfChecks() > 0) &&
       (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
     ZoneGrowableArray<intptr_t>* results =

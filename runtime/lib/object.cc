@@ -17,7 +17,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, trace_type_checks);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 // Helper function in stacktrace.cc.
 void _printCurrentStacktrace();
@@ -121,40 +120,6 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
 }
 
 
-static void WarnOnJSIntegralNumTypeTest(
-    const Instance& instance,
-    const TypeArguments& instantiator_type_arguments,
-    const AbstractType& type) {
-  const bool instance_is_int = instance.IsInteger();
-  const bool instance_is_double = instance.IsDouble();
-  if (!(instance_is_int || instance_is_double)) {
-    return;
-  }
-  AbstractType& instantiated_type = AbstractType::Handle(type.raw());
-  if (!type.IsInstantiated()) {
-    instantiated_type = type.InstantiateFrom(instantiator_type_arguments, NULL);
-  }
-  if (instance_is_double) {
-    if (instantiated_type.IsIntType()) {
-      const double value = Double::Cast(instance).value();
-      if (floor(value) == value) {
-        Report::JSWarningFromNative(
-            false,  // Object_instanceOf and Object_as are not static calls.
-            "integral value of type 'double' is also considered to be "
-            "of type 'int'");
-      }
-    }
-  } else {
-    ASSERT(instance_is_int);
-    if (instantiated_type.IsDoubleType()) {
-      Report::JSWarningFromNative(
-          false,  // Object_instanceOf and Object_as are not static calls.
-          "integer value is also considered to be of type 'double'");
-    }
-  }
-}
-
-
 DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
@@ -166,12 +131,6 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
-
-  // Check for javascript compatibility.
-  if (FLAG_warn_on_javascript_compatibility) {
-    WarnOnJSIntegralNumTypeTest(instance, instantiator_type_arguments, type);
-  }
-
   Error& bound_error = Error::Handle(zone, Error::null());
   const bool is_instance_of = instance.IsInstanceOf(type,
                                                     instantiator_type_arguments,
@@ -278,12 +237,6 @@ DEFINE_NATIVE_ENTRY(Object_as, 3) {
   if (instance.IsNull()) {
     return instance.raw();
   }
-
-  // Check for javascript compatibility.
-  if (FLAG_warn_on_javascript_compatibility) {
-    WarnOnJSIntegralNumTypeTest(instance, instantiator_type_arguments, type);
-  }
-
   const bool is_instance_of = instance.IsInstanceOf(type,
                                                     instantiator_type_arguments,
                                                     &bound_error);

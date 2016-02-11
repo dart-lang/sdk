@@ -59,8 +59,6 @@ DEFINE_FLAG(bool, await_is_keyword, false,
 DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, profile_vm);
-DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 // Quick access to the current thread, isolate and zone.
 #define T (thread())
@@ -538,14 +536,6 @@ RawInteger* Parser::CurrentIntegerLiteral() const {
   literal_token_ ^= tokens_iterator_.CurrentToken();
   ASSERT(literal_token_.kind() == Token::kINTEGER);
   RawInteger* ri = Integer::RawCast(literal_token_.value());
-  if (FLAG_throw_on_javascript_int_overflow) {
-    const Integer& i = Integer::Handle(Z, ri);
-    if (i.CheckJavascriptIntegerOverflow()) {
-      ReportError(TokenPos(),
-                  "Integer literal does not fit in a Javascript integer: %s.",
-                  i.ToCString());
-    }
-  }
   return ri;
 }
 
@@ -11116,36 +11106,32 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
       (cls.library() == Library::CoreLibrary()) &&
       (func.name() == Symbols::Identical().raw())) {
     // This is the predefined toplevel function identical(a,b).
-    // Create a comparison node instead of a static call to the function, unless
-    // javascript warnings are desired and identical is not invoked from a patch
-    // source.
-    if (!FLAG_warn_on_javascript_compatibility || is_patch_source()) {
-      ASSERT(num_arguments == 2);
+    // Create a comparison node instead of a static call to the function.
+    ASSERT(num_arguments == 2);
 
-      // If both arguments are constant expressions of type string,
-      // evaluate and canonicalize them.
-      // This guarantees that identical("ab", "a"+"b") is true.
-      // An alternative way to guarantee this would be to introduce
-      // an AST node that canonicalizes a value.
-      AstNode* arg0 = arguments->NodeAt(0);
-      const Instance* val0 = arg0->EvalConstExpr();
-      if ((val0 != NULL) && (val0->IsString())) {
-        AstNode* arg1 = arguments->NodeAt(1);
-        const Instance* val1 = arg1->EvalConstExpr();
-        if ((val1 != NULL) && (val1->IsString())) {
-          arguments->SetNodeAt(0,
-              new(Z) LiteralNode(arg0->token_pos(),
-                                 EvaluateConstExpr(arg0->token_pos(), arg0)));
-          arguments->SetNodeAt(1,
-              new(Z) LiteralNode(arg1->token_pos(),
-                                 EvaluateConstExpr(arg1->token_pos(), arg1)));
-        }
+    // If both arguments are constant expressions of type string,
+    // evaluate and canonicalize them.
+    // This guarantees that identical("ab", "a"+"b") is true.
+    // An alternative way to guarantee this would be to introduce
+    // an AST node that canonicalizes a value.
+    AstNode* arg0 = arguments->NodeAt(0);
+    const Instance* val0 = arg0->EvalConstExpr();
+    if ((val0 != NULL) && (val0->IsString())) {
+      AstNode* arg1 = arguments->NodeAt(1);
+      const Instance* val1 = arg1->EvalConstExpr();
+      if ((val1 != NULL) && (val1->IsString())) {
+        arguments->SetNodeAt(0,
+            new(Z) LiteralNode(arg0->token_pos(),
+                               EvaluateConstExpr(arg0->token_pos(), arg0)));
+        arguments->SetNodeAt(1,
+            new(Z) LiteralNode(arg1->token_pos(),
+                               EvaluateConstExpr(arg1->token_pos(), arg1)));
       }
-      return new(Z) ComparisonNode(ident_pos,
-                                   Token::kEQ_STRICT,
-                                   arguments->NodeAt(0),
-                                   arguments->NodeAt(1));
     }
+    return new(Z) ComparisonNode(ident_pos,
+                                 Token::kEQ_STRICT,
+                                 arguments->NodeAt(0),
+                                 arguments->NodeAt(1));
   }
   return new(Z) StaticCallNode(ident_pos, func, arguments);
 }

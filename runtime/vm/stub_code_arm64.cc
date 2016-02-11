@@ -1293,10 +1293,6 @@ static void EmitFastSmiOp(Assembler* assembler,
                           Label* not_smi_or_overflow,
                           bool should_update_result_range) {
   __ Comment("Fast Smi op");
-  if (FLAG_throw_on_javascript_int_overflow) {
-    // The overflow check is more complex than implemented below.
-    return;
-  }
   __ ldr(R0, Address(SP, + 0 * kWordSize));  // Right.
   __ ldr(R1, Address(SP, + 1 * kWordSize));  // Left.
   __ orr(TMP, R0, Operand(R1));

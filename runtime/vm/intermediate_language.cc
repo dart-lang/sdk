@@ -43,7 +43,6 @@ DEFINE_FLAG(bool, fields_may_be_reset, false,
             "Don't optimize away static field initialization");
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
-DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 Definition::Definition(intptr_t deopt_id)
     : Instruction(deopt_id),
@@ -1323,11 +1322,6 @@ bool BinaryInt32OpInstr::CanDeoptimize() const {
 
 
 bool BinarySmiOpInstr::CanDeoptimize() const {
-  if (FLAG_throw_on_javascript_int_overflow && (Smi::kBits > 32)) {
-    // If Smi's are bigger than 32-bits, then the instruction could deoptimize
-    // if the result is too big.
-    return true;
-  }
   switch (op_kind()) {
     case Token::kBIT_AND:
     case Token::kBIT_OR:

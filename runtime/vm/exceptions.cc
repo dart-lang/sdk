@@ -635,14 +635,6 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::IsolateLibrary();
       class_name = &Symbols::IsolateSpawnException();
       break;
-    case kJavascriptIntegerOverflowError:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::JavascriptIntegerOverflowError();
-      break;
-    case kJavascriptCompatibilityError:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::JavascriptCompatibilityError();
-      break;
     case kAssertion:
       library = Library::CoreLibrary();
       class_name = &Symbols::AssertionError();
@@ -677,15 +669,6 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
                                           *class_name,
                                           *constructor_name,
                                           arguments);
-}
-
-
-// Throw JavascriptCompatibilityError exception.
-void Exceptions::ThrowJavascriptCompatibilityError(const char* msg) {
-  const Array& exc_args = Array::Handle(Array::New(1));
-  const String& msg_str = String::Handle(String::New(msg));
-  exc_args.SetAt(0, msg_str);
-  Exceptions::ThrowByType(Exceptions::kJavascriptCompatibilityError, exc_args);
 }
 
 

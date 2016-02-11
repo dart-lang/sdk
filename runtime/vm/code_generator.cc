@@ -68,7 +68,6 @@ DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_field_guards);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(int, max_polymorphic_checks);
 DECLARE_FLAG(bool, precompilation);
 
@@ -891,18 +890,6 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   GrowableArray<const Instance*> args(1);
   args.Add(&receiver);
-  if (FLAG_warn_on_javascript_compatibility) {
-    if (receiver.IsDouble() &&
-        String::Handle(ic_data.target_name()).Equals(Symbols::toString())) {
-      const double value = Double::Cast(receiver).value();
-      if (floor(value) == value) {
-        Report::JSWarningFromIC(ic_data,
-                                "string representation of an integral value "
-                                "of type 'double' has no decimal mark and "
-                                "no fractional part");
-      }
-    }
-  }
   const Function& result =
       Function::Handle(InlineCacheMissHandler(args, ic_data));
   arguments.SetReturn(result);

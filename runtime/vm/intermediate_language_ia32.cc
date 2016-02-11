@@ -25,7 +25,6 @@ namespace dart {
 
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, use_osr);
 
 // Generic summary for call instructions that have all arguments pushed
@@ -438,27 +437,6 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     __ cmpl(left.reg(), right.reg());
   }
   return true_condition;
-}
-
-
-static void EmitJavascriptIntOverflowCheck(FlowGraphCompiler* compiler,
-                                           Label* overflow,
-                                           Register result_lo,
-                                           Register result_hi) {
-  // Compare upper half.
-  Label check_lower;
-  __ cmpl(result_hi, Immediate(0x00200000));
-  __ j(GREATER, overflow);
-  __ j(NOT_EQUAL, &check_lower);
-
-  __ cmpl(result_lo, Immediate(0));
-  __ j(ABOVE, overflow);
-
-  __ Bind(&check_lower);
-  __ cmpl(result_hi, Immediate(-0x00200000));
-  __ j(LESS, overflow);
-  // Anything in the lower part would make the number bigger than the lower
-  // bound, so we are done.
 }
 
 
@@ -6035,9 +6013,6 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
   }
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptIntOverflowCheck(compiler, deopt, left_lo, left_hi);
-  }
 }
 
 
@@ -6237,9 +6212,6 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     __ Bind(&done);
   }
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptIntOverflowCheck(compiler, deopt, left_lo, left_hi);
-  }
 }
 
 
@@ -6252,9 +6224,6 @@ LocationSummary* UnaryMintOpInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
   summary->set_out(0, Location::SameAsFirstInput());
-  if (FLAG_throw_on_javascript_int_overflow) {
-    summary->set_temp(0, Location::RequiresRegister());
-  }
   return summary;
 }
 
@@ -6269,18 +6238,8 @@ void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register out_hi = out_pair->At(1).reg();
   ASSERT(out_lo == left_lo);
   ASSERT(out_hi == left_hi);
-
-  Label* deopt = NULL;
-  if (FLAG_throw_on_javascript_int_overflow) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnaryMintOp);
-  }
-
   __ notl(left_lo);
   __ notl(left_hi);
-
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptIntOverflowCheck(compiler, deopt, left_lo, left_hi);
-  }
 }
 
 

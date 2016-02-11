@@ -16,9 +16,7 @@ namespace dart {
 // Native implementations for the dart:developer library.
 
 DEFINE_NATIVE_ENTRY(Timeline_getIsolateNum, 0) {
-  return Integer::New(static_cast<int64_t>(isolate->main_port()),
-                      Heap::kOld,
-                      true);
+  return Integer::New(static_cast<int64_t>(isolate->main_port()), Heap::kOld);
 }
 
 
@@ -35,7 +33,7 @@ DEFINE_NATIVE_ENTRY(Timeline_getNextAsyncId, 0) {
 
 
 DEFINE_NATIVE_ENTRY(Timeline_getTraceClock, 0) {
-  return Integer::New(OS::GetCurrentMonotonicMicros(), Heap::kNew, true);
+  return Integer::New(OS::GetCurrentMonotonicMicros(), Heap::kNew);
 }
 
 

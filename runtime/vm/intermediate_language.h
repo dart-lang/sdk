@@ -17,8 +17,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
-
 class BitVector;
 class BlockEntryInstr;
 class BoxIntegerInstr;
@@ -6829,7 +6827,7 @@ class UnaryMintOpInstr : public UnaryIntegerOpInstr {
   }
 
   virtual bool CanDeoptimize() const {
-    return FLAG_throw_on_javascript_int_overflow;
+    return false;
   }
 
   virtual CompileType ComputeType() const;
@@ -7089,8 +7087,7 @@ class BinaryMintOpInstr : public BinaryIntegerOpInstr {
   }
 
   virtual bool CanDeoptimize() const {
-    return FLAG_throw_on_javascript_int_overflow
-        || (can_overflow() && ((op_kind() == Token::kADD) ||
+    return (can_overflow() && ((op_kind() == Token::kADD) ||
                                (op_kind() == Token::kSUB)))
         || (op_kind() == Token::kMUL);  // Deopt if inputs are not int32.
   }
@@ -7125,8 +7122,7 @@ class ShiftMintOpInstr : public BinaryIntegerOpInstr {
   }
 
   virtual bool CanDeoptimize() const {
-    return FLAG_throw_on_javascript_int_overflow
-        || has_shift_count_check()
+    return  has_shift_count_check()
         || (can_overflow() && (op_kind() == Token::kSHL));
   }
 

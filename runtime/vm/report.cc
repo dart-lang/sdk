@@ -14,14 +14,8 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, stacktrace_depth_on_warning, 5,
-            "Maximal number of stack frames to print after a runtime warning.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
-DEFINE_FLAG(bool, warn_on_javascript_compatibility, false,
-            "Warn on incompatibilities between vm and dart2js.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
-
-DECLARE_FLAG(bool, always_megamorphic_calls);
 
 RawString* Report::PrependSnippet(Kind kind,
                                   const Script& script,
@@ -31,7 +25,6 @@ RawString* Report::PrependSnippet(Kind kind,
   const char* message_header;
   switch (kind) {
     case kWarning: message_header = "warning"; break;
-    case kJSWarning: message_header = "javascript compatibility warning"; break;
     case kError: message_header = "error"; break;
     case kMalformedType: message_header = "malformed type"; break;
     case kMalboundedType: message_header = "malbounded type"; break;
@@ -159,17 +152,6 @@ void Report::MessageV(Kind kind,
       const String& snippet_msg = String::Handle(
           PrependSnippet(kind, script, token_pos, report_after_token, msg));
       OS::Print("%s", snippet_msg.ToCString());
-      if (kind == kJSWarning) {
-        TraceJSWarning(script, token_pos, msg);
-        // Do not print stacktrace if we have not executed Dart code yet.
-        if (Thread::Current()->top_exit_frame_info() != 0) {
-          const Stacktrace& stacktrace =
-              Stacktrace::Handle(Exceptions::CurrentStacktrace());
-          intptr_t idx = 0;
-          OS::Print("%s", stacktrace.ToCStringInternal(
-              &idx, FLAG_stacktrace_depth_on_warning));
-        }
-      }
       return;
     }
   }
@@ -179,95 +161,8 @@ void Report::MessageV(Kind kind,
                                    script, token_pos, report_after_token,
                                    kind, Heap::kNew,
                                    format, args));
-  if (kind == kJSWarning) {
-    Exceptions::ThrowJavascriptCompatibilityError(error.ToErrorCString());
-    UNREACHABLE();
-  }
   LongJump(error);
   UNREACHABLE();
-}
-
-
-void Report::JSWarningFromNative(bool is_static_native, const char* msg) {
-  DartFrameIterator iterator;
-  iterator.NextFrame();  // Skip native call.
-  StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
-  const Code& caller_code = Code::Handle(caller_frame->LookupDartCode());
-  ASSERT(!caller_code.IsNull());
-  const uword caller_pc = caller_frame->pc();
-  ICData& ic_data = ICData::Handle();
-  if (is_static_native) {
-    // Assume an unoptimized static call. Optimization was prevented.
-    CodePatcher::GetUnoptimizedStaticCallAt(caller_pc, caller_code, &ic_data);
-  } else {
-    if (FLAG_always_megamorphic_calls) {
-      Report::JSWarningFromFrame(caller_frame, msg);
-      return;
-    } else {
-      // Assume an instance call.
-      CodePatcher::GetInstanceCallAt(caller_pc, caller_code, &ic_data);
-    }
-  }
-  ASSERT(!ic_data.IsNull());
-  // Report warning only if not already reported at this location.
-  if (!ic_data.IssuedJSWarning()) {
-    ic_data.SetIssuedJSWarning();
-    Report::JSWarningFromFrame(caller_frame, msg);
-  }
-}
-
-
-void Report::JSWarningFromIC(const ICData& ic_data, const char* msg) {
-  DartFrameIterator iterator;
-  StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
-  // Report warning only if not already reported at this location.
-  if (!ic_data.IssuedJSWarning()) {
-    ic_data.SetIssuedJSWarning();
-    JSWarningFromFrame(caller_frame, msg);
-  }
-}
-
-
-void Report::JSWarningFromFrame(StackFrame* caller_frame, const char* msg) {
-  ASSERT(caller_frame != NULL);
-  ASSERT(FLAG_warn_on_javascript_compatibility);
-  if (FLAG_silent_warnings) return;
-  Zone* zone = Thread::Current()->zone();
-  const Code& caller_code = Code::Handle(zone,
-                                         caller_frame->LookupDartCode());
-  ASSERT(!caller_code.IsNull());
-  const uword caller_pc = caller_frame->pc();
-  const TokenPosition token_pos = caller_code.GetTokenIndexOfPC(caller_pc);
-  const Function& caller = Function::Handle(zone, caller_code.function());
-  const Script& script = Script::Handle(zone, caller.script());
-  MessageF(kJSWarning, script, token_pos, Report::AtLocation, "%s", msg);
-}
-
-
-void Report::TraceJSWarning(const Script& script,
-                            TokenPosition token_pos,
-                            const String& message) {
-  if (!FLAG_support_service) {
-    return;
-  }
-  const int64_t micros = OS::GetCurrentTimeMicros();
-  Isolate* isolate = Isolate::Current();
-  TraceBuffer* trace_buffer = isolate->trace_buffer();
-  if (trace_buffer == NULL) {
-    TraceBuffer::Init(isolate);
-    trace_buffer = isolate->trace_buffer();
-  }
-  JSONStream js;
-  {
-    JSONObject trace_warning(&js);
-    trace_warning.AddProperty("type", "JSCompatibilityWarning");
-    trace_warning.AddProperty("script", script);
-    trace_warning.AddProperty("tokenPos", token_pos);
-    trace_warning.AddProperty("message", message);
-  }
-  trace_buffer->Trace(micros, js.ToCString(), true);  // Already escaped.
 }
 
 }  // namespace dart

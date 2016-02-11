@@ -1841,13 +1841,6 @@ class ICData : public Object {
   bool HasDeoptReason(ICData::DeoptReasonId reason) const;
   void AddDeoptReason(ICData::DeoptReasonId reason) const;
 
-  bool IssuedJSWarning() const;
-  void SetIssuedJSWarning() const;
-
-  // Return true if the target function of this IC data may check for (and
-  // possibly issue) a Javascript compatibility warning.
-  bool MayCheckForJSWarning() const;
-
   intptr_t NumberOfChecks() const;
 
   // Discounts any checks with usage of zero.
@@ -2036,7 +2029,7 @@ class ICData : public Object {
     }
   }
 
-  // It is only meaningful to interptret range feedback stored in the ICData
+  // It is only meaningful to interpret range feedback stored in the ICData
   // when all checks are Mint or Smi.
   bool HasRangeFeedback() const;
   RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
@@ -2075,8 +2068,7 @@ class ICData : public Object {
     kNumArgsTestedSize = 2,
     kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
     kDeoptReasonSize = kLastRecordedDeoptReason + 1,
-    kIssuedJSWarningBit = kDeoptReasonPos + kDeoptReasonSize,
-    kRangeFeedbackPos = kIssuedJSWarningBit + 1,
+    kRangeFeedbackPos = kDeoptReasonPos + kDeoptReasonSize,
     kRangeFeedbackSize = kBitsPerRangeFeedback * kRangeFeedbackSlots
   };
 
@@ -2088,8 +2080,6 @@ class ICData : public Object {
                                           uint32_t,
                                           ICData::kDeoptReasonPos,
                                           ICData::kDeoptReasonSize> {};
-  class IssuedJSWarningBit :
-      public BitField<uint32_t, bool, kIssuedJSWarningBit, 1> {};
   class RangeFeedbackBits : public BitField<uint32_t,
                                             uint32_t,
                                             ICData::kRangeFeedbackPos,
@@ -5967,10 +5957,7 @@ class Integer : public Number {
   // Returns a canonical Integer object allocated in the old gen space.
   static RawInteger* NewCanonical(const String& str);
 
-  // Do not throw JavascriptIntegerOverflow if 'silent' is true.
-  static RawInteger* New(int64_t value,
-                         Heap::Space space = Heap::kNew,
-                         const bool silent = false);
+  static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
 
   virtual bool OperatorEquals(const Instance& other) const {
     return Equals(other);
@@ -6007,9 +5994,6 @@ class Integer : public Number {
   RawInteger* BitOp(Token::Kind operation,
                     const Integer& other,
                     Heap::Space space = Heap::kNew) const;
-
-  // Returns true if the Integer does not fit in a Javascript integer.
-  bool CheckJavascriptIntegerOverflow() const;
 
  private:
   OBJECT_IMPLEMENTATION(Integer, Number);
@@ -6067,8 +6051,7 @@ class Smi : public Integer {
 
   RawInteger* ShiftOp(Token::Kind kind,
                       const Smi& other,
-                      Heap::Space space = Heap::kNew,
-                      const bool silent = false) const;
+                      Heap::Space space = Heap::kNew) const;
 
   void operator=(RawSmi* value) {
     raw_ = value;

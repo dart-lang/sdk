@@ -21,7 +21,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, intrinsify, true, "Instrinsify when possible");
-DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -201,15 +200,10 @@ void Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     default:
       break;
   }
-  // Integer intrinsics are in the core library, but we don't want to
-  // intrinsify when Smi > 32 bits if we are looking for javascript integer
-  // overflow.
-  if (!(FLAG_throw_on_javascript_int_overflow && (Smi::kBits >= 32))) {
-    switch (function.recognized_kind()) {
-      CORE_INTEGER_LIB_INTRINSIC_LIST(EMIT_CASE)
-      default:
-        break;
-    }
+  switch (function.recognized_kind()) {
+    CORE_INTEGER_LIB_INTRINSIC_LIST(EMIT_CASE)
+    default:
+      break;
   }
 #undef EMIT_INTRINSIC
 }

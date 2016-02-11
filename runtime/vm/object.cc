@@ -56,9 +56,6 @@ DEFINE_FLAG(bool, overlap_type_arguments, true,
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
-DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
-    "Throw an exception when the result of an integer calculation will not "
-    "fit into a javascript integer.");
 DEFINE_FLAG(bool, trace_cha, false, "Trace CHA operations");
 DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
@@ -11745,35 +11742,6 @@ void ICData::AddDeoptReason(DeoptReasonId reason) const {
 }
 
 
-bool ICData::IssuedJSWarning() const {
-  return IssuedJSWarningBit::decode(raw_ptr()->state_bits_);
-}
-
-
-void ICData::SetIssuedJSWarning() const {
-  StoreNonPointer(&raw_ptr()->state_bits_,
-                  IssuedJSWarningBit::update(true, raw_ptr()->state_bits_));
-}
-
-
-bool ICData::MayCheckForJSWarning() const {
-  const String& name = String::Handle(target_name());
-  // Warning issued from native code.
-  // Calling sequence is decoded to obtain ic data in order to check if a
-  // warning has already been issued.
-  if (name.Equals(Library::PrivateCoreLibName(Symbols::_instanceOf())) ||
-      name.Equals(Library::PrivateCoreLibName(Symbols::_as()))) {
-    return true;
-  }
-  // Warning issued in ic miss handler.
-  // No decoding necessary, so allow optimization if warning already issued.
-  if (name.Equals(Symbols::toString()) && !IssuedJSWarning()) {
-    return true;
-  }
-  return false;
-}
-
-
 void ICData::set_state_bits(uint32_t bits) const {
   StoreNonPointer(&raw_ptr()->state_bits_, bits);
 }
@@ -16911,16 +16879,6 @@ const char* Integer::ToCString() const {
 }
 
 
-// Throw JavascriptIntegerOverflow exception.
-static void ThrowJavascriptIntegerOverflow(const Integer& i) {
-  const Array& exc_args = Array::Handle(Array::New(1));
-  const String& i_str = String::Handle(String::New(i.ToCString()));
-  exc_args.SetAt(0, i_str);
-  Exceptions::ThrowByType(Exceptions::kJavascriptIntegerOverflowError,
-      exc_args);
-}
-
-
 RawInteger* Integer::New(const String& str, Heap::Space space) {
   // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
@@ -16930,19 +16888,12 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
         Bigint::NewFromCString(str.ToCString(), space));
     ASSERT(!big.FitsIntoSmi());
     ASSERT(!big.FitsIntoInt64());
-    if (FLAG_throw_on_javascript_int_overflow) {
-      ThrowJavascriptIntegerOverflow(big);
-    }
     return big.raw();
   }
   return Integer::New(value, space);
 }
 
 
-// This is called from LiteralToken::New() in the parser, so we can't
-// raise an exception for javascript overflow here. Instead we do it in
-// Parser::CurrentIntegerLiteral(), which is the point in the parser where
-// integer literals escape, so we can call Parser::ErrorMsg().
 RawInteger* Integer::NewCanonical(const String& str) {
   // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
@@ -16960,16 +16911,8 @@ RawInteger* Integer::NewCanonical(const String& str) {
 }
 
 
-RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
+RawInteger* Integer::New(int64_t value, Heap::Space space) {
   const bool is_smi = Smi::IsValid(value);
-  if (!silent &&
-      FLAG_throw_on_javascript_int_overflow &&
-      !Utils::IsJavascriptInt(value)) {
-    const Integer& i = is_smi ?
-        Integer::Handle(Smi::New(static_cast<intptr_t>(value))) :
-        Integer::Handle(Mint::New(value, space));
-    ThrowJavascriptIntegerOverflow(i);
-  }
   if (is_smi) {
     return Smi::New(static_cast<intptr_t>(value));
   }
@@ -16979,10 +16922,6 @@ RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
 
 RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
   if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
-    if (FLAG_throw_on_javascript_int_overflow) {
-      const Integer &i = Integer::Handle(Bigint::NewFromUint64(value, space));
-      ThrowJavascriptIntegerOverflow(i);
-    }
     return Bigint::NewFromUint64(value, space);
   } else {
     return Integer::New(value, space);
@@ -17046,31 +16985,7 @@ int Integer::CompareWith(const Integer& other) const {
 }
 
 
-// Returns true if the signed Integer does not fit into a
-// Javascript integer.
-bool Integer::CheckJavascriptIntegerOverflow() const {
-  // Always overflow if the value doesn't fit into an int64_t.
-  int64_t value = 1ULL << 63;
-  if (IsSmi()) {
-    value = AsInt64Value();
-  } else if (IsMint()) {
-    Mint& mint = Mint::Handle();
-    mint ^= raw();
-    value = mint.value();
-  } else {
-    if (Bigint::Cast(*this).FitsIntoInt64()) {
-      value = AsInt64Value();
-    }
-  }
-  return !Utils::IsJavascriptInt(value);
-}
-
-
 RawInteger* Integer::AsValidInteger() const {
-  if (FLAG_throw_on_javascript_int_overflow &&
-      CheckJavascriptIntegerOverflow()) {
-    ThrowJavascriptIntegerOverflow(*this);
-  }
   if (IsSmi()) return raw();
   if (IsMint()) {
     Mint& mint = Mint::Handle();
@@ -17240,8 +17155,7 @@ RawInteger* Integer::BitOp(
 // TODO(srdjan): Clarify handling of negative right operand in a shift op.
 RawInteger* Smi::ShiftOp(Token::Kind kind,
                          const Smi& other,
-                         Heap::Space space,
-                         const bool silent) const {
+                         Heap::Space space) const {
   intptr_t result = 0;
   const intptr_t left_value = Value();
   const intptr_t right_value = other.Value();
@@ -17258,7 +17172,7 @@ RawInteger* Smi::ShiftOp(Token::Kind kind,
             return Bigint::NewFromShiftedInt64(left_value, right_value, space);
           } else {
             int64_t left_64 = left_value;
-            return Integer::New(left_64 << right_value, space, silent);
+            return Integer::New(left_64 << right_value, space);
           }
         }
       }

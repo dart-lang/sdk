@@ -18,8 +18,6 @@ full_coverage_test: Pass, Slow
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 
-javascript_compatibility_errors_test/none: Fail, OK  # Not possible to exclude or annotate with '/// none:'
-
 [ ($runtime != vm && $runtime != dart_precompiled) && ($runtime != drt || $compiler != none)) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
 
@@ -27,9 +25,6 @@ no_assert_test: Fail, OK # This is testing a vm flag.
 package/package_isolate_test: Fail # Issue 12474
 io/observatory_test: Fail
 package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
-javascript_int_overflow_test: Skip  # Fails if the bot's uptime becomes too high.
-javascript_int_overflow_literal_test: Skip  # Fails if the bot's uptime becomes too high.
-
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $checked ]
 # These tests have type errors on purpose.
@@ -68,8 +63,6 @@ full_coverage_test: Skip
 http_launch_test: Skip
 vmservice/*: SkipByDesign # Do not run standalone vm service tests in browser.
 issue14236_test: Skip # Issue 14236 Script snapshots do not work in the browser.
-javascript_compatibility_errors_test: Skip
-javascript_compatibility_warnings_test: Skip
 oom_error_stacktrace_test: Skip
 out_of_memory_test: Skip
 verbose_gc_to_bmu_test: Skip
@@ -78,7 +71,6 @@ precompilation_dart2js_test: Skip # Standalone only test.
 noopt_test: Skip # Standalone only test.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-javascript_int_overflow_literal_test/01: Fail, OK
 issue14236_test: Skip # Analyzer can't handle Script snapshots.
 
 # test issue https://code.google.com/p/dart/issues/detail?id=11518
@@ -109,13 +101,9 @@ left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.
 pow_test: Skip # Precision > 53 bits.
 double_smi_comparison_test: Skip # Precision > 53 bits.
 http_launch_test: Skip
-javascript_int_overflow_test: Skip
-javascript_int_overflow_literal_test: Skip
 oom_error_stacktrace_test: RuntimeError, OK # (OOM on JS may produce a stacktrace).
 vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 issue14236_test: Skip # dart2js does not deal with Script snapshots.
-javascript_compatibility_errors_test: Skip
-javascript_compatibility_warnings_test: Skip
 unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
 precompilation_test: Skip # Standalone only test.
@@ -156,9 +144,6 @@ oom_error_stacktrace_test: Pass # The test only fails at runtime.
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
-[ $arch == simmips || $arch == mips ]
-javascript_int_overflow_test: Skip # --throw_on_javascript_int_overflow not supported on MIPS.
-
 [ $arch == mips ]
 io/signals_test: Fail # Issue 17440
 io/file_stat_test: Fail # Issue 17440
@@ -175,10 +160,6 @@ io/http_client_stays_alive_test: Skip # Timing dependent test, MIPS machine too 
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
 assert_test: Fail # Issue 14651.
-
-[ ($compiler == none || $compiler == precompiler) && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
-javascript_int_overflow_literal_test/01: Fail # Issue 14651.
-javascript_int_overflow_test: Fail # Issue 14651.
 
 [ $compiler == none && $runtime == drt ]
 map_literal_oom_test: RuntimeError # Issue 24571
@@ -197,8 +178,6 @@ package/scenarios/both_dir_and_file/prefers_packages_file_test: StaticWarning
 package/scenarios/packages_file_in_parent/sub/packages_file_in_parent_test: StaticWarning
 typed_data_test: StaticWarning
 typed_data_view_test: StaticWarning
-javascript_compatibility_errors_test: Skip
-javascript_compatibility_warnings_test: Skip
 
 [ $compiler == dart2analyzer ]
 package/package1_test: CompileTimeError
@@ -236,7 +215,6 @@ io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection 
 
 [ ($noopt || $compiler == precompiler) ]
 map_literal_oom_test: Pass, Crash # Issue 24678
-javascript*: SkipByDesign # JS overflow flag unsupported
 io/web_socket_test: Pass, RuntimeError # Issue 24674
 assert_test: RuntimeError # Expects line and column numbers
 precompilation_test: Skip # Platform.executable

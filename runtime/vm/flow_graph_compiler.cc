@@ -67,7 +67,6 @@ DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(bool, use_field_guards);
 DECLARE_FLAG(bool, use_cha_deopt);
 DECLARE_FLAG(bool, use_osr);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(bool, print_stop_message);
 DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, interpret_irregexp);
@@ -1172,12 +1171,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     return;
   }
 
-  if (is_optimizing() &&
-      // Do not make the instance call megamorphic if the callee needs to decode
-      // the calling code sequence to lookup the ic data and verify if a JS
-      // warning has already been issued or not.
-      (!FLAG_warn_on_javascript_compatibility ||
-       !ic_data.MayCheckForJSWarning())) {
+  if (is_optimizing()) {
     EmitMegamorphicInstanceCall(ic_data, argument_count,
                                 deopt_id, token_pos, locs);
     return;
@@ -1212,12 +1206,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
       ic_data.IsNull() ? ArgumentsDescriptor::New(argument_count,
                                                   argument_names)
                        : ic_data.arguments_descriptor());
-  // Proper reporting of Javascript incompatibilities requires icdata and
-  // may therefore prevent the optimization of some static calls.
-  if (is_optimizing() &&
-      !(FLAG_warn_on_javascript_compatibility &&
-        (MethodRecognizer::RecognizeKind(function) ==
-         MethodRecognizer::kObjectIdentical))) {
+  if (is_optimizing()) {
     EmitOptimizedStaticCall(function, arguments_descriptor,
                             argument_count, deopt_id, token_pos, locs);
   } else {
