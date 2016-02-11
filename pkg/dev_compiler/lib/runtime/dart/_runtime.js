@@ -265,7 +265,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
       return onValue();
     });
   }
-  const _AsyncStarStreamController = class _AsyncStarStreamController {
+  class _AsyncStarStreamController {
     constructor(generator, T, args) {
       this.isAdding = false;
       this.isWaiting = false;
@@ -367,7 +367,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
       if (!this.controller.hasListener) return;
       this.controller.addError(error, stackTrace);
     }
-  };
+  }
   function asyncStar(gen, T, ...args) {
     return new _AsyncStarStreamController(gen, T, args).controller.stream;
   }
@@ -631,7 +631,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     }
     return obj.noSuchMethod(invocation);
   }
-  const JsIterator = class JsIterator {
+  class JsIterator {
     constructor(dartIterator) {
       this.dartIterator = dartIterator;
     }
@@ -640,7 +640,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
       let done = !i.moveNext();
       return {done: done, value: done ? void 0 : i.current};
     }
-  };
+  }
   function fn(closure, ...args) {
     if (args.length == 1) {
       defineLazyProperty(closure, _runtimeType, {get: args[0]});
@@ -733,36 +733,36 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   const implements_ = Symbol("implements");
   const metadata = Symbol("metadata");
   const _TypeRepBase = LazyTagged(() => core.Type);
-  const TypeRep = class TypeRep extends _TypeRepBase {
+  class TypeRep extends _TypeRepBase {
     get name() {
       return this.toString();
     }
-  };
-  const Dynamic = class Dynamic extends TypeRep {
+  }
+  class Dynamic extends TypeRep {
     toString() {
       return "dynamic";
     }
-  };
+  }
   const dynamicR = new Dynamic();
-  const Void = class Void extends TypeRep {
+  class Void extends TypeRep {
     toString() {
       return "void";
     }
-  };
+  }
   const voidR = new Void();
-  const Bottom = class Bottom extends TypeRep {
+  class Bottom extends TypeRep {
     toString() {
       return "bottom";
     }
-  };
+  }
   const bottom = new Bottom();
-  const JSObject = class JSObject extends TypeRep {
+  class JSObject extends TypeRep {
     toString() {
       return "NativeJavaScriptObject";
     }
-  };
+  }
   const jsobject = new JSObject();
-  const AbstractFunctionType = class AbstractFunctionType extends TypeRep {
+  class AbstractFunctionType extends TypeRep {
     constructor() {
       super();
       this._stringValue = null;
@@ -805,8 +805,8 @@ dart_library.library('dart/_runtime', null, /* Imports */[
       this._stringValue = buffer;
       return buffer;
     }
-  };
-  const FunctionType = class FunctionType extends AbstractFunctionType {
+  }
+  class FunctionType extends AbstractFunctionType {
     constructor(definite, returnType, args, optionals, named) {
       super();
       this.definite = definite;
@@ -850,8 +850,8 @@ dart_library.library('dart/_runtime', null, /* Imports */[
         this.named = r;
       }
     }
-  };
-  const Typedef = class Typedef extends AbstractFunctionType {
+  }
+  class Typedef extends AbstractFunctionType {
     constructor(name, closure) {
       super();
       this._name = name;
@@ -885,7 +885,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     get metadata() {
       return this.functionType.metadata;
     }
-  };
+  }
   function _functionType(definite, returnType, args, extra) {
     let optionals;
     let named;

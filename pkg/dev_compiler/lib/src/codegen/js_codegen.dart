@@ -2401,6 +2401,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
       if (isPublic(fieldName)) _addExport(fieldName, exportName);
       var declKeyword = field.isConst || field.isFinal ? 'const' : 'let';
+      if (isJSTopLevel && jsInit is JS.ClassExpression) {
+        return new JS.ClassDeclaration(jsInit);
+      }
       return js.statement('#;', [
         annotate(
             new JS.VariableDeclarationList(declKeyword, [
