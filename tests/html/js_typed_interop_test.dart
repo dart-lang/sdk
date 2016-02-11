@@ -124,6 +124,7 @@ class Foo {
   external callClosureWithArg1(Function closure, arg1);
   external callClosureWithArg2(Function closure, arg1, arg2);
   external Bar getBar();
+
   external static num multiplyDefault2(num a, [num b]);
 }
 
@@ -277,14 +278,26 @@ main() {
     });
   });
 
-  group('static method', () {
-    test('call from dart', () {
+  group('static_method_call', () {
+    test('call directly from dart', () {
       expect(Foo.multiplyDefault2(6, 7), equals(42));
       expect(Foo.multiplyDefault2(6), equals(12));
+    });
+  });
+
+  // Note: these extra groups are added to be able to mark each test
+  // individually in status files. This should be split as separate test files.
+  group('static_method_tearoff_1', () {
+    test('call tearoff from dart', () {
       MultiplyWithDefault tearOffMethod = Foo.multiplyDefault2;
       expect(tearOffMethod(6, 6), equals(36));
+    });
+  });
+
+  group('static_method_tearoff_2', () {
+    test('call tearoff from dart', () {
+      MultiplyWithDefault tearOffMethod = Foo.multiplyDefault2;
       expect(tearOffMethod(6), equals(12));
-      Function untypedTearOff = Foo.multiplyDefault2;
     });
   });
 

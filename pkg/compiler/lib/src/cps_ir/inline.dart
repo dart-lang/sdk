@@ -395,6 +395,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     // AST node, targets that are asynchronous or generator functions, or
     // targets containing a try statement.
     if (!target.hasNode) return null;
+    if (backend.isJsInterop(target)) return null;
     if (target.asyncMarker != AsyncMarker.SYNC) return null;
     // V8 does not optimize functions containing a try statement.  Inlining
     // code containing a try statement will make the optimizable calling code

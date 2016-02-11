@@ -796,7 +796,10 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
   /// Creates a primitive for the default value of [parameter].
   ir.Primitive translateDefaultValue(ParameterElement parameter) {
-    if (parameter.initializer == null) {
+    if (parameter.initializer == null ||
+        // TODO(sigmund): JS doesn't support default values, so this should be
+        // reported as an error earlier (Issue #25759).
+        backend.isJsInterop(parameter.functionDeclaration)) {
       return irBuilder.buildNullConstant();
     } else {
       return inlineConstant(parameter.executableContext, parameter.initializer);
@@ -4018,4 +4021,22 @@ class GlobalProgramInformation {
   void addNativeMethod(FunctionElement function) {
     _backend.emitter.nativeEmitter.nativeMethods.add(function);
   }
+
+  bool get trustJSInteropTypeAnnotations =>
+      _compiler.trustJSInteropTypeAnnotations;
+
+  bool isNative(ClassElement element) => _backend.isNative(element);
+
+  bool isJsInterop(FunctionElement element) => _backend.isJsInterop(element);
+
+  bool isJsInteropAnonymous(FunctionElement element) =>
+    _backend.jsInteropAnalysis.hasAnonymousAnnotation(element.contextClass);
+
+  String getJsInteropTargetPath(FunctionElement element) {
+    return '${_backend.namer.fixedBackendPath(element)}.'
+      '${_backend.getFixedBackendName(element)}';
+  }
+
+  DartType get jsJavascriptObjectType =>
+    _backend.helpers.jsJavaScriptObjectClass.thisType;
 }
