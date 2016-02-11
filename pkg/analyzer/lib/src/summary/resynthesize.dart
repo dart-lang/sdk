@@ -1117,6 +1117,10 @@ class _LibraryResynthesizer {
     buildDocumentation(
         executableElement, serializedExecutable.documentationComment);
     buildAnnotations(executableElement, serializedExecutable.annotations);
+    executableElement.functions =
+        serializedExecutable.localFunctions.map(buildLocalFunction).toList();
+    executableElement.localVariables =
+        serializedExecutable.localVariables.map(buildLocalVariable).toList();
   }
 
   /**
@@ -1415,6 +1419,44 @@ class _LibraryResynthesizer {
   }
 
   /**
+   * Resynthesize a local [FunctionElement].
+   */
+  FunctionElement buildLocalFunction(UnlinkedExecutable serializedExecutable) {
+    FunctionElementImpl element = new FunctionElementImpl(
+        serializedExecutable.name, serializedExecutable.nameOffset);
+    if (serializedExecutable.visibleOffset != 0) {
+      element.setVisibleRange(serializedExecutable.visibleOffset,
+          serializedExecutable.visibleLength);
+    }
+    buildExecutableCommonParts(element, serializedExecutable);
+    return element;
+  }
+
+  /**
+   * Resynthesize a [LocalVariableElement].
+   */
+  LocalVariableElement buildLocalVariable(UnlinkedVariable serializedVariable) {
+    LocalVariableElementImpl element;
+    if (serializedVariable.constExpr != null) {
+      ConstLocalVariableElementImpl constElement =
+          new ConstLocalVariableElementImpl(
+              serializedVariable.name, serializedVariable.nameOffset);
+      element = constElement;
+      constElement.constantInitializer =
+          _buildConstExpression(serializedVariable.constExpr);
+    } else {
+      element = new LocalVariableElementImpl(
+          serializedVariable.name, serializedVariable.nameOffset);
+    }
+    if (serializedVariable.visibleOffset != 0) {
+      element.setVisibleRange(
+          serializedVariable.visibleOffset, serializedVariable.visibleLength);
+    }
+    buildVariableCommonParts(element, serializedVariable);
+    return element;
+  }
+
+  /**
    * Resynthesize a [ParameterElement].
    */
   ParameterElement buildParameter(UnlinkedParam serializedParameter) {
@@ -1503,6 +1545,17 @@ class _LibraryResynthesizer {
     partUnit.uri = uri;
     buildAnnotations(partUnit, partDecl.annotations);
     return partUnit;
+  }
+
+  /**
+   * Handle the parts that are common to top level variables and fields.
+   */
+  void buildPropertyIntroducingElementCommonParts(
+      PropertyInducingElementImpl element,
+      UnlinkedVariable serializedVariable) {
+    buildVariableCommonParts(element, serializedVariable);
+    element.propagatedType =
+        buildLinkedType(serializedVariable.propagatedTypeSlot);
   }
 
   /**
@@ -1604,7 +1657,7 @@ class _LibraryResynthesizer {
         element = new TopLevelVariableElementImpl(
             serializedVariable.name, serializedVariable.nameOffset);
       }
-      buildVariableCommonParts(element, serializedVariable);
+      buildPropertyIntroducingElementCommonParts(element, serializedVariable);
       unitHolder.addTopLevelVariable(element);
       buildImplicitAccessors(element, unitHolder);
     } else {
@@ -1619,7 +1672,7 @@ class _LibraryResynthesizer {
         element = new FieldElementImpl(
             serializedVariable.name, serializedVariable.nameOffset);
       }
-      buildVariableCommonParts(element, serializedVariable);
+      buildPropertyIntroducingElementCommonParts(element, serializedVariable);
       element.static = serializedVariable.isStatic;
       holder.addField(element);
       buildImplicitAccessors(element, holder);
@@ -1628,17 +1681,15 @@ class _LibraryResynthesizer {
   }
 
   /**
-   * Handle the parts that are common to top level variables and fields.
+   * Handle the parts that are common to variables.
    */
-  void buildVariableCommonParts(PropertyInducingElementImpl element,
-      UnlinkedVariable serializedVariable) {
+  void buildVariableCommonParts(
+      VariableElementImpl element, UnlinkedVariable serializedVariable) {
     element.type = buildLinkedType(serializedVariable.inferredTypeSlot) ??
         buildType(serializedVariable.type);
     element.const3 = serializedVariable.isConst;
     element.final2 = serializedVariable.isFinal;
     element.hasImplicitType = serializedVariable.type == null;
-    element.propagatedType =
-        buildLinkedType(serializedVariable.propagatedTypeSlot);
     buildDocumentation(element, serializedVariable.documentationComment);
     buildAnnotations(element, serializedVariable.annotations);
   }

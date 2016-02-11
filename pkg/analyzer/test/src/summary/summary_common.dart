@@ -3971,8 +3971,8 @@ f() { // 1
   test_executable_localVariables_inTopLevelGetter() {
     String code = r'''
 get g { // 1
-    int v;
-    f() {}
+  int v;
+  f() {}
 } // 2
 ''';
     UnlinkedExecutable executable = serializeExecutableText(code, 'g');

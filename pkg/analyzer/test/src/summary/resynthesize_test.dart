@@ -131,6 +131,22 @@ class ResynthTest extends ResolverTestCase {
     }
   }
 
+  void checkPossibleLocalElements(Element resynthesized, Element original) {
+    if (original is! LocalElement && resynthesized is! LocalElement) {
+      return;
+    }
+    // TODO(scheglov) add support for parameters
+    if (original is ParameterElement && resynthesized is ParameterElement) {
+      return;
+    }
+    if (original is LocalElement && resynthesized is LocalElement) {
+      expect(resynthesized.visibleRange, original.visibleRange);
+    } else {
+      fail('Incompatible local elements '
+          '${resynthesized.runtimeType} vs. ${original.runtimeType}');
+    }
+  }
+
   void checkPossibleMember(
       Element resynthesized, Element original, String desc) {
     Element resynthesizedNonHandle = resynthesized is ElementHandle
@@ -534,6 +550,24 @@ class ResynthTest extends ResolverTestCase {
           original.typeParameters[i],
           '$desc type parameter ${original.typeParameters[i].name}');
     }
+    if (original is! Member) {
+      List<FunctionElement> rFunctions = resynthesized.functions;
+      List<FunctionElement> oFunctions = original.functions;
+      expect(rFunctions, hasLength(oFunctions.length));
+      for (int i = 0; i < oFunctions.length; i++) {
+        compareFunctionElements(rFunctions[i], oFunctions[i],
+            '$desc local function ${oFunctions[i].name}');
+      }
+    }
+    if (original is! Member) {
+      List<LocalVariableElement> rVariables = resynthesized.localVariables;
+      List<LocalVariableElement> oVariables = original.localVariables;
+      expect(rVariables, hasLength(oVariables.length));
+      for (int i = 0; i < oVariables.length; i++) {
+        compareVariableElements(rVariables[i], oVariables[i],
+            '$desc local variable ${oVariables[i].name}');
+      }
+    }
   }
 
   void compareExportElements(ExportElementImpl resynthesized,
@@ -556,6 +590,7 @@ class ResynthTest extends ResolverTestCase {
   void compareFunctionElements(
       FunctionElement resynthesized, FunctionElement original, String desc) {
     compareExecutableElements(resynthesized, original, desc);
+    checkPossibleLocalElements(resynthesized, original);
   }
 
   void compareFunctionTypeAliasElements(
@@ -820,6 +855,7 @@ class ResynthTest extends ResolverTestCase {
       }
     }
     checkPossibleMember(resynthesized, original, desc);
+    checkPossibleLocalElements(resynthesized, original);
   }
 
   /**
@@ -2287,15 +2323,15 @@ class C {
         ' abstract class D { int get v; }');
   }
 
-  test_field_inferred_type_nonstatic_explicit_initialized() {
+  test_field_inferred_type_nonStatic_explicit_initialized() {
     checkLibrary('class C { num v = 0; }');
   }
 
-  test_field_inferred_type_nonstatic_implicit_initialized() {
+  test_field_inferred_type_nonStatic_implicit_initialized() {
     checkLibrary('class C { var v = 0; }');
   }
 
-  test_field_inferred_type_nonstatic_implicit_uninitialized() {
+  test_field_inferred_type_nonStatic_implicit_uninitialized() {
     checkLibrary(
         'class C extends D { var v; } abstract class D { int get v; }');
   }
@@ -2510,7 +2546,7 @@ get x => null;''');
     checkLibrary('external int get x;');
   }
 
-  test_getter_inferred_type_nonstatic_implicit_return() {
+  test_getter_inferred_type_nonStatic_implicit_return() {
     checkLibrary(
         'class C extends D { get f => null; } abstract class D { int get f; }');
   }
@@ -2611,6 +2647,102 @@ library foo;''');
 
   test_library_named() {
     checkLibrary('library foo.bar;');
+  }
+
+  test_localFunctions() {
+    checkLibrary(r'''
+f() {
+  f1() {}
+  {
+    f2() {}
+  }
+}
+''');
+  }
+
+  test_localFunctions_inConstructor() {
+    checkLibrary(r'''
+class C {
+  C() {
+    f() {}
+  }
+}
+''');
+  }
+
+  test_localFunctions_inMethod() {
+    checkLibrary(r'''
+class C {
+  m() {
+    f() {}
+  }
+}
+''');
+  }
+
+  test_localFunctions_inTopLevelGetter() {
+    checkLibrary(r'''
+get g {
+  f() {}
+}
+''');
+  }
+
+  test_localVariables_inConstructor() {
+    checkLibrary(r'''
+class C {
+  C() {
+    int v;
+    f() {}
+  }
+}
+''');
+  }
+
+  test_localVariables_inLocalFunction() {
+    checkLibrary(r'''
+f() {
+  f1() {
+    int v1 = 1;
+  } // 2
+  f2() {
+    int v1 = 1;
+    f3() {
+      int v2 = 1;
+    }
+  }
+}
+''');
+  }
+
+  test_localVariables_inMethod() {
+    checkLibrary(r'''
+class C {
+  m() {
+    int v;
+  }
+}
+''');
+  }
+
+  test_localVariables_inTopLevelFunction() {
+    checkLibrary(r'''
+main() {
+  int v1 = 1;
+  {
+    const String v2 = 'bbb';
+  }
+  Map<int, List<double>> v3;
+}
+''');
+  }
+
+  test_localVariables_inTopLevelGetter() {
+    checkLibrary(r'''
+get g {
+  int v;
+}
+''');
   }
 
   test_main_class() {
@@ -2812,12 +2944,12 @@ class C {
 }''');
   }
 
-  test_method_inferred_type_nonstatic_implicit_param() {
+  test_method_inferred_type_nonStatic_implicit_param() {
     checkLibrary('class C extends D { void f(value) {} }'
         ' abstract class D { void f(int value); }');
   }
 
-  test_method_inferred_type_nonstatic_implicit_return() {
+  test_method_inferred_type_nonStatic_implicit_return() {
     checkLibrary(
         'class C extends D { f() => null; } abstract class D { int f(); }');
   }
@@ -2900,7 +3032,7 @@ void set x(value) {}''');
     checkLibrary('external void set x(int value);');
   }
 
-  test_setter_inferred_type_nonstatic_implicit_param() {
+  test_setter_inferred_type_nonStatic_implicit_param() {
     checkLibrary('class C extends D { void set f(value) {} }'
         ' abstract class D { void set f(int value); }');
   }
