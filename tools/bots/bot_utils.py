@@ -12,6 +12,13 @@ import string
 import subprocess
 import sys
 
+# The resource package does not exist on Windows but its functionality is not
+# used there, either.
+try:
+  import resource
+except ImportError:
+  resource = None;
+
 DART_DIR = os.path.abspath(
     os.path.normpath(os.path.join(__file__, '..', '..', '..')))
 
@@ -365,3 +372,14 @@ def GetChannelFromName(name):
   if channel_name in Channel.ALL_CHANNELS:
     return channel_name
   return Channel.BLEEDING_EDGE
+
+class CoredumpEnabler(object):
+  def __init__(self):
+    self._old_limits = None
+
+  def __enter__(self):
+    self._old_limits = resource.getrlimit(resource.RLIMIT_CORE)
+    resource.setrlimit(resource.RLIMIT_CORE, (-1, -1))
+
+  def __exit__(self, *_):
+    resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)

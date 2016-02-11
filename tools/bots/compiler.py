@@ -20,6 +20,7 @@ import subprocess
 import sys
 
 import bot
+import bot_utils
 
 DARTIUM_BUILDER = r'none-dartium-(linux|mac|windows)'
 DART2JS_BUILDER = (
@@ -284,8 +285,9 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
     # The dart2js compiler isn't self-hosted (yet) so we run its
     # unit tests on the VM. We avoid doing this on the builders
     # that run the browser tests to cut down on the cycle time.
-    TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js', 'try'],
-             unit_test_flags, arch)
+    with bot_utils.CoredumpEnabler():
+      TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js', 'try'],
+               unit_test_flags, arch)
 
   if compiler == 'dart2js' and runtime == 'drt':
     # Ensure that we run the "try" tests on Content Shell.
