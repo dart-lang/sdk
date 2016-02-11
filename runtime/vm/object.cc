@@ -17629,8 +17629,10 @@ RawBigint* Bigint::New(bool neg, intptr_t used, const TypedData& digits,
     --used;
   }
   if (used > 0) {
-    if ((used & 1) != 0) {
-      // Set leading zero for 64-bit processing of digit pairs.
+    if (((used & 1) != 0) && (digits.GetUint32(used << 2) != 0)) {
+      // Set leading zero for 64-bit processing of digit pairs if not set.
+      // The check above ensures that we avoid a write access to a possibly
+      // reused digits array that could be marked read only.
       digits.SetUint32(used << 2, 0);
     }
     result.set_digits(digits);
