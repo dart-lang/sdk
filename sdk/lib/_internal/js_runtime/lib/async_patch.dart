@@ -255,7 +255,7 @@ _WrappedAsyncBody _wrapJsFunctionForAsync(dynamic /* js function */ function) {
 /// is done, schedules [asyncBody] again.
 ///
 /// If the async* function wants to do an await it calls this function with
-/// [object] not and [IterationMarker].
+/// [object] not an [IterationMarker].
 ///
 /// If [object] is not a [Future], it is wrapped in a `Future.value`.
 /// The [asyncBody] is called on completion of the future (see [asyncHelper].
