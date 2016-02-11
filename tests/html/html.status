@@ -429,6 +429,7 @@ typed_arrays_range_checks_test: StaticWarning
 typing_test: StaticWarning
 webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
+js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 
 [ $compiler == dart2js && $cps_ir && $browser ]
 # Custom element support:

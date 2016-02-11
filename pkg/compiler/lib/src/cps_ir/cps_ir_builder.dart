@@ -21,6 +21,7 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js show
     js,
     objectLiteral,
+    Expression,
     LiteralStatement,
     Template,
     InterpolatedExpression,
@@ -2072,7 +2073,7 @@ class IrBuilder {
   }
 
   static _isNotNull(ir.Primitive value) =>
-      value is! ir.Constant || !value.value.isNull;
+      !(value is ir.Constant && value.value.isNull);
 
   /// Builds a call to a resolved js-interop element.
   ir.Primitive buildInvokeJsInteropMember(FunctionElement element,
