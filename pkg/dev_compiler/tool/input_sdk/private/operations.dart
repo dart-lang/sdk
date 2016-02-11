@@ -165,7 +165,8 @@ _ignoreTypeFailure(actual, type) => JS('', '''(() => {
 
 strongInstanceOf(obj, type, ignoreFromWhiteList) => JS('', '''(() => {
   let actual = $realRuntimeType($obj);
-  if ($isSubtype(actual, $type) || actual == $jsobject) return true;
+  if ($isSubtype(actual, $type) || actual == $jsobject ||
+      actual == $int && type == $double) return true;
   if ($ignoreFromWhiteList == void 0) return false;
   if ($isGroundType($type)) return false;
   if ($_ignoreTypeFailure(actual, $type)) return true;

@@ -10,6 +10,7 @@ import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/scanner.dart'
     show StringToken, Token, TokenType;
@@ -218,10 +219,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     // String scriptTag = null;
     // if (library.library.scriptTag != null) scriptTag = '/usr/bin/env $jsBin';
     return moduleBuilder.build(
-        currentModuleName,
-        _jsModuleValue,
-        _exportsVar,
-        items);
+        currentModuleName, _jsModuleValue, _exportsVar, items);
   }
 
   void _emitModuleItem(AstNode node) {
@@ -439,9 +437,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     String jsPeerName;
     var jsPeer = findAnnotation(classElem, isJsPeerInterface);
+    // Only look at "Native" annotations on registered extension types.
+    // E.g., we're current ignoring the ones in dart:html.
+    if (jsPeer == null && _extensionTypes.contains(classElem)) {
+      jsPeer = findAnnotation(classElem, isNativeAnnotation);
+    }
     if (jsPeer != null) {
       jsPeerName =
           getConstantField(jsPeer, 'name', types.stringType)?.toStringValue();
+      if (jsPeerName.contains(',')) {
+        jsPeerName = jsPeerName.split(',')[0];
+      }
     }
 
     var body = _finishClassMembers(classElem, classExpr, ctors, fields,
@@ -1322,17 +1328,49 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
   }
 
+  JS.Fun _emitNativeFunctionBody(
+      List<JS.Parameter> params, MethodDeclaration node) {
+    if (node.isStatic) {
+      // TODO(vsm): Do we need to handle this case?
+      return null;
+    }
+
+    String name = node.name.name;
+    var annotation = findAnnotation(node.element, isJsName);
+    if (annotation != null) {
+      name = getConstantField(annotation, 'name', types.stringType)
+          ?.toStringValue();
+    }
+    if (node.isGetter) {
+      return new JS.Fun(params, js.statement('{ return this.#; }', [name]));
+    } else if (node.isSetter) {
+      return new JS.Fun(
+          params, js.statement('{ this.# = #; }', [name, params.last]));
+    } else {
+      return new JS.Fun(
+          params, js.statement('{ return this.#(#); }', [name, params]));
+    }
+  }
+
   JS.Method _emitMethodDeclaration(DartType type, MethodDeclaration node) {
-    if (node.isAbstract || _externalOrNative(node)) {
+    if (node.isAbstract) {
       return null;
     }
 
     var params = _visit(node.parameters) as List<JS.Parameter>;
     if (params == null) params = <JS.Parameter>[];
 
-    var typeParams = _emitTypeParams(node.element).toList();
-    var returnType = emitTypeRef(node.element.returnType);
-    JS.Fun fn = _emitFunctionBody(params, node.body, typeParams, returnType);
+    JS.Fun fn;
+    if (_externalOrNative(node)) {
+      fn = _emitNativeFunctionBody(params, node);
+      // TODO(vsm): Remove if / when we handle the static case above.
+      if (fn == null) return null;
+    } else {
+      var typeParams = _emitTypeParams(node.element).toList();
+      var returnType = emitTypeRef(node.element.returnType);
+      fn = _emitFunctionBody(params, node.body, typeParams, returnType);
+    }
+
     if (node.operatorKeyword != null &&
         node.name.name == '[]=' &&
         params.isNotEmpty) {
@@ -2931,7 +2969,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     if (!_isObjectProperty(memberName)) {
       return false;
     }
-    if (!type.isObject && !_isJSBuiltinType(type) && !_isNullable(target)) {
+    if (!type.isObject &&
+        !_isJSBuiltinType(type) &&
+        !_extensionTypes.contains(type.element) &&
+        !_isNullable(target)) {
       return false;
     }
     return true;
@@ -3625,27 +3666,18 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   }
 }
 
-class JSGenerator extends CodeGenerator {
-  final _extensionTypes = new HashSet<ClassElement>();
+class _ExtensionFinder extends GeneralizingElementVisitor {
+  final AnalysisContext _context;
+  final HashSet<ClassElement> _extensionTypes;
   final TypeProvider _types;
-  JSGenerator(AbstractCompiler compiler)
-      : _types = compiler.context.typeProvider,
-        super(compiler) {
-    // TODO(jacobr): determine the the set of types with extension methods from
-    // the annotations rather than hard coding the list once the analyzer
-    // supports summaries.
-    var context = compiler.context;
-    var src = context.sourceFactory.forUri('dart:_interceptors');
-    var interceptors = context.computeLibraryElement(src);
-    for (var t in ['JSArray', 'JSString', 'JSNumber', 'JSBool']) {
-      _addExtensionType(interceptors.getType(t).type);
+
+  _ExtensionFinder(this._context, this._extensionTypes, this._types);
+
+  visitClassElement(ClassElement element) {
+    if (findAnnotation(element, isJsPeerInterface) != null ||
+        findAnnotation(element, isNativeAnnotation) != null) {
+      _addExtensionType(element.type);
     }
-    // TODO(jmesserly): manually add `int` and `double`
-    // Unfortunately our current analyzer rejects "implements int".
-    // Fix was landed, so we can remove this hack once we're updated:
-    // https://github.com/dart-lang/sdk/commit/d7cd11f86a02f55269fc8d9843e7758ebeeb81c8
-    _addExtensionType(_types.intType);
-    _addExtensionType(_types.doubleType);
   }
 
   void _addExtensionType(InterfaceType t) {
@@ -3654,6 +3686,35 @@ class JSGenerator extends CodeGenerator {
     t.interfaces.forEach(_addExtensionType);
     t.mixins.forEach(_addExtensionType);
     _addExtensionType(t.superclass);
+  }
+
+  void _addExtensionTypes(String libraryUri) {
+    var sourceFactory = _context.sourceFactory.forUri(libraryUri);
+    var library = _context.computeLibraryElement(sourceFactory);
+    visitLibraryElement(library);
+  }
+}
+
+class JSGenerator extends CodeGenerator {
+  final _extensionTypes = new HashSet<ClassElement>();
+  final TypeProvider _types;
+
+  JSGenerator(AbstractCompiler compiler)
+      : _types = compiler.context.typeProvider,
+        super(compiler) {
+    // TODO(vsm): Eventually, we want to make this extensible - i.e., find
+    // annotations in user code as well.  It would need to be summarized in
+    // the element model - not searched this way on every compile.
+    var finder = new _ExtensionFinder(context, _extensionTypes, _types);
+    finder._addExtensionTypes('dart:_interceptors');
+    finder._addExtensionTypes('dart:_native_typed_data');
+
+    // TODO(vsm): If we're analyzing against the main SDK, those
+    // types are not explicitly annotated.
+    finder._addExtensionType(_types.intType);
+    finder._addExtensionType(_types.doubleType);
+    finder._addExtensionType(_types.boolType);
+    finder._addExtensionType(_types.stringType);
   }
 
   String generateLibrary(LibraryUnit unit) {

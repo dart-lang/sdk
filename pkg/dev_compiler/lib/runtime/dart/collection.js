@@ -1556,514 +1556,15 @@ dart_library.library('dart/collection', null, /* Imports */[
   });
   let LinkedListEntry = LinkedListEntry$();
   const ListMixin$ = dart.generic(function(E) {
-    class ListMixin extends core.Object {
-      get iterator() {
-        return new (_internal.ListIterator$(E))(this);
-      }
-      [Symbol.iterator]() {
-        return new dart.JsIterator(this.iterator);
-      }
-      elementAt(index) {
-        return this.get(index);
-      }
-      forEach(action) {
-        dart.as(action, dart.functionType(dart.void, [E]));
-        let length = this.length;
-        for (let i = 0; i < dart.notNull(length); i++) {
-          action(this.get(i));
-          if (length != this.length) {
-            dart.throw(new core.ConcurrentModificationError(this));
-          }
-        }
-      }
-      get isEmpty() {
-        return this[dartx.length] == 0;
-      }
-      get isNotEmpty() {
-        return !dart.notNull(this.isEmpty);
-      }
-      get first() {
-        if (this[dartx.length] == 0) dart.throw(_internal.IterableElementError.noElement());
-        return this.get(0);
-      }
-      get last() {
-        if (this[dartx.length] == 0) dart.throw(_internal.IterableElementError.noElement());
-        return this.get(dart.notNull(this[dartx.length]) - 1);
-      }
-      get single() {
-        if (this[dartx.length] == 0) dart.throw(_internal.IterableElementError.noElement());
-        if (dart.notNull(this[dartx.length]) > 1) dart.throw(_internal.IterableElementError.tooMany());
-        return this.get(0);
-      }
-      contains(element) {
-        let length = this.length;
-        for (let i = 0; i < dart.notNull(this.length); i++) {
-          if (dart.equals(this.get(i), element)) return true;
-          if (length != this.length) {
-            dart.throw(new core.ConcurrentModificationError(this));
-          }
-        }
-        return false;
-      }
-      every(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        let length = this.length;
-        for (let i = 0; i < dart.notNull(length); i++) {
-          if (!dart.notNull(test(this.get(i)))) return false;
-          if (length != this.length) {
-            dart.throw(new core.ConcurrentModificationError(this));
-          }
-        }
-        return true;
-      }
-      any(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        let length = this.length;
-        for (let i = 0; i < dart.notNull(length); i++) {
-          if (dart.notNull(test(this.get(i)))) return true;
-          if (length != this.length) {
-            dart.throw(new core.ConcurrentModificationError(this));
-          }
-        }
-        return false;
-      }
-      firstWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
-        dart.as(orElse, dart.functionType(E, []));
-        let length = this.length;
-        for (let i = 0; i < dart.notNull(length); i++) {
-          let element = this.get(i);
-          if (dart.notNull(test(element))) return element;
-          if (length != this.length) {
-            dart.throw(new core.ConcurrentModificationError(this));
-          }
-        }
-        if (orElse != null) return orElse();
-        dart.throw(_internal.IterableElementError.noElement());
-      }
-      lastWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
-        dart.as(orElse, dart.functionType(E, []));
-        let length = this.length;
-        for (let i = dart.notNull(length) - 1; i >= 0; i--) {
-          let element = this.get(i);
-          if (dart.notNull(test(element))) return element;
-          if (length != this.length) {
-            dart.throw(new core.ConcurrentModificationError(this));
-          }
-        }
-        if (orElse != null) return orElse();
-        dart.throw(_internal.IterableElementError.noElement());
-      }
-      singleWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        let length = this.length;
-        let match = null;
-        let matchFound = false;
-        for (let i = 0; i < dart.notNull(length); i++) {
-          let element = this.get(i);
-          if (dart.notNull(test(element))) {
-            if (matchFound) {
-              dart.throw(_internal.IterableElementError.tooMany());
-            }
-            matchFound = true;
-            match = element;
-          }
-          if (length != this.length) {
-            dart.throw(new core.ConcurrentModificationError(this));
-          }
-        }
-        if (matchFound) return match;
-        dart.throw(_internal.IterableElementError.noElement());
-      }
-      join(separator) {
-        if (separator === void 0) separator = "";
-        if (this[dartx.length] == 0) return "";
-        let buffer = new core.StringBuffer();
-        buffer.writeAll(this, separator);
-        return dart.toString(buffer);
-      }
-      where(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        return new (_internal.WhereIterable$(E))(this, test);
-      }
-      map(f) {
-        dart.as(f, dart.functionType(dart.dynamic, [E]));
-        return new (_internal.MappedListIterable$(E, dart.dynamic))(this, f);
-      }
-      expand(f) {
-        dart.as(f, dart.functionType(core.Iterable, [E]));
-        return new (_internal.ExpandIterable$(E, dart.dynamic))(this, f);
-      }
-      reduce(combine) {
-        dart.as(combine, dart.functionType(E, [E, E]));
-        let length = this.length;
-        if (length == 0) dart.throw(_internal.IterableElementError.noElement());
-        let value = this.get(0);
-        for (let i = 1; i < dart.notNull(length); i++) {
-          value = combine(value, this.get(i));
-          if (length != this.length) {
-            dart.throw(new core.ConcurrentModificationError(this));
-          }
-        }
-        return value;
-      }
-      fold(initialValue, combine) {
-        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
-        let value = initialValue;
-        let length = this.length;
-        for (let i = 0; i < dart.notNull(length); i++) {
-          value = combine(value, this.get(i));
-          if (length != this.length) {
-            dart.throw(new core.ConcurrentModificationError(this));
-          }
-        }
-        return value;
-      }
-      skip(count) {
-        return new (_internal.SubListIterable$(E))(this, count, null);
-      }
-      skipWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        return new (_internal.SkipWhileIterable$(E))(this, test);
-      }
-      take(count) {
-        return new (_internal.SubListIterable$(E))(this, 0, count);
-      }
-      takeWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        return new (_internal.TakeWhileIterable$(E))(this, test);
-      }
-      toList(opts) {
-        let growable = opts && 'growable' in opts ? opts.growable : true;
-        let result = null;
-        if (dart.notNull(growable)) {
-          result = core.List$(E).new();
-          result[dartx.length] = this[dartx.length];
-        } else {
-          result = core.List$(E).new(this[dartx.length]);
-        }
-        for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
-          result[dartx.set](i, this.get(i));
-        }
-        return result;
-      }
-      toSet() {
-        let result = core.Set$(E).new();
-        for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
-          result.add(this.get(i));
-        }
-        return result;
-      }
-      add(element) {
-        dart.as(element, E);
-        this.set((() => {
-          let x = this.length;
-          this.length = dart.notNull(x) + 1;
-          return x;
-        })(), element);
-      }
-      addAll(iterable) {
-        dart.as(iterable, core.Iterable$(E));
-        for (let element of iterable) {
-          this.set((() => {
-            let x = this.length;
-            this.length = dart.notNull(x) + 1;
-            return x;
-          })(), element);
-        }
-      }
-      remove(element) {
-        for (let i = 0; i < dart.notNull(this.length); i++) {
-          if (dart.equals(this.get(i), element)) {
-            this.setRange(i, dart.notNull(this.length) - 1, this, i + 1);
-            this.length = dart.notNull(this.length) - 1;
-            return true;
-          }
-        }
-        return false;
-      }
-      removeWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        ListMixin$()._filter(this, test, false);
-      }
-      retainWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        ListMixin$()._filter(this, test, true);
-      }
-      static _filter(source, test, retainMatching) {
-        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
-        let retained = [];
-        let length = source[dartx.length];
-        for (let i = 0; i < dart.notNull(length); i++) {
-          let element = source[dartx.get](i);
-          if (dart.dcall(test, element) == retainMatching) {
-            retained[dartx.add](element);
-          }
-          if (length != source[dartx.length]) {
-            dart.throw(new core.ConcurrentModificationError(source));
-          }
-        }
-        if (retained[dartx.length] != source[dartx.length]) {
-          source[dartx.setRange](0, retained[dartx.length], retained);
-          source[dartx.length] = retained[dartx.length];
-        }
-      }
-      clear() {
-        this.length = 0;
-      }
-      removeLast() {
-        if (this[dartx.length] == 0) {
-          dart.throw(_internal.IterableElementError.noElement());
-        }
-        let result = this.get(dart.notNull(this[dartx.length]) - 1);
-        this[dartx.length] = dart.notNull(this[dartx.length]) - 1;
-        return result;
-      }
-      sort(compare) {
-        if (compare === void 0) compare = null;
-        dart.as(compare, dart.functionType(core.int, [E, E]));
-        _internal.Sort.sort(this, dart.as(compare == null ? core.Comparable.compare : compare, __CastType0));
-      }
-      shuffle(random) {
-        if (random === void 0) random = null;
-        if (random == null) random = math.Random.new();
-        let length = this.length;
-        while (dart.notNull(length) > 1) {
-          let pos = random.nextInt(length);
-          length = dart.notNull(length) - 1;
-          let tmp = this.get(length);
-          this.set(length, this.get(pos));
-          this.set(pos, tmp);
-        }
-      }
-      asMap() {
-        return new (_internal.ListMapView$(E))(this);
-      }
-      sublist(start, end) {
-        if (end === void 0) end = null;
-        let listLength = this.length;
-        if (end == null) end = listLength;
-        core.RangeError.checkValidRange(start, end, listLength);
-        let length = dart.notNull(end) - dart.notNull(start);
-        let result = core.List$(E).new();
-        result[dartx.length] = length;
-        for (let i = 0; i < length; i++) {
-          result[dartx.set](i, this.get(dart.notNull(start) + i));
-        }
-        return result;
-      }
-      getRange(start, end) {
-        core.RangeError.checkValidRange(start, end, this.length);
-        return new (_internal.SubListIterable$(E))(this, start, end);
-      }
-      removeRange(start, end) {
-        core.RangeError.checkValidRange(start, end, this.length);
-        let length = dart.notNull(end) - dart.notNull(start);
-        this.setRange(start, dart.notNull(this.length) - length, this, end);
-        this.length = dart.notNull(this.length) - length;
-      }
-      fillRange(start, end, fill) {
-        if (fill === void 0) fill = null;
-        dart.as(fill, E);
-        core.RangeError.checkValidRange(start, end, this.length);
-        for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-          this.set(i, fill);
-        }
-      }
-      setRange(start, end, iterable, skipCount) {
-        dart.as(iterable, core.Iterable$(E));
-        if (skipCount === void 0) skipCount = 0;
-        core.RangeError.checkValidRange(start, end, this.length);
-        let length = dart.notNull(end) - dart.notNull(start);
-        if (length == 0) return;
-        core.RangeError.checkNotNegative(skipCount, "skipCount");
-        let otherList = null;
-        let otherStart = null;
-        if (dart.is(iterable, core.List)) {
-          otherList = dart.as(iterable, core.List);
-          otherStart = skipCount;
-        } else {
-          otherList = iterable[dartx.skip](skipCount)[dartx.toList]({growable: false});
-          otherStart = 0;
-        }
-        if (dart.notNull(otherStart) + length > dart.notNull(otherList[dartx.length])) {
-          dart.throw(_internal.IterableElementError.tooFew());
-        }
-        if (dart.notNull(otherStart) < dart.notNull(start)) {
-          for (let i = length - 1; i >= 0; i--) {
-            this.set(dart.notNull(start) + i, dart.as(otherList[dartx.get](dart.notNull(otherStart) + i), E));
-          }
-        } else {
-          for (let i = 0; i < length; i++) {
-            this.set(dart.notNull(start) + i, dart.as(otherList[dartx.get](dart.notNull(otherStart) + i), E));
-          }
-        }
-      }
-      replaceRange(start, end, newContents) {
-        dart.as(newContents, core.Iterable$(E));
-        core.RangeError.checkValidRange(start, end, this.length);
-        if (!dart.is(newContents, _internal.EfficientLength)) {
-          newContents = newContents[dartx.toList]();
-        }
-        let removeLength = dart.notNull(end) - dart.notNull(start);
-        let insertLength = newContents[dartx.length];
-        if (removeLength >= dart.notNull(insertLength)) {
-          let delta = removeLength - dart.notNull(insertLength);
-          let insertEnd = dart.notNull(start) + dart.notNull(insertLength);
-          let newLength = dart.notNull(this.length) - delta;
-          this.setRange(start, insertEnd, newContents);
-          if (delta != 0) {
-            this.setRange(insertEnd, newLength, this, end);
-            this.length = newLength;
-          }
-        } else {
-          let delta = dart.notNull(insertLength) - removeLength;
-          let newLength = dart.notNull(this.length) + delta;
-          let insertEnd = dart.notNull(start) + dart.notNull(insertLength);
-          this.length = newLength;
-          this.setRange(insertEnd, newLength, this, end);
-          this.setRange(start, insertEnd, newContents);
-        }
-      }
-      indexOf(element, startIndex) {
-        if (startIndex === void 0) startIndex = 0;
-        if (dart.notNull(startIndex) >= dart.notNull(this.length)) {
-          return -1;
-        }
-        if (dart.notNull(startIndex) < 0) {
-          startIndex = 0;
-        }
-        for (let i = startIndex; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
-          if (dart.equals(this.get(i), element)) {
-            return i;
-          }
-        }
-        return -1;
-      }
-      lastIndexOf(element, startIndex) {
-        if (startIndex === void 0) startIndex = null;
-        if (startIndex == null) {
-          startIndex = dart.notNull(this.length) - 1;
-        } else {
-          if (dart.notNull(startIndex) < 0) {
-            return -1;
-          }
-          if (dart.notNull(startIndex) >= dart.notNull(this.length)) {
-            startIndex = dart.notNull(this.length) - 1;
-          }
-        }
-        for (let i = startIndex; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
-          if (dart.equals(this.get(i), element)) {
-            return i;
-          }
-        }
-        return -1;
-      }
-      insert(index, element) {
-        dart.as(element, E);
-        core.RangeError.checkValueInInterval(index, 0, this[dartx.length], "index");
-        if (index == this.length) {
-          this.add(element);
-          return;
-        }
-        if (!(typeof index == 'number')) dart.throw(new core.ArgumentError(index));
-        this.length = dart.notNull(this.length) + 1;
-        this.setRange(dart.notNull(index) + 1, this.length, this, index);
-        this.set(index, element);
-      }
-      removeAt(index) {
-        let result = this.get(index);
-        this.setRange(index, dart.notNull(this.length) - 1, this, dart.notNull(index) + 1);
-        this[dartx.length] = dart.notNull(this[dartx.length]) - 1;
-        return result;
-      }
-      insertAll(index, iterable) {
-        dart.as(iterable, core.Iterable$(E));
-        core.RangeError.checkValueInInterval(index, 0, this[dartx.length], "index");
-        if (dart.is(iterable, _internal.EfficientLength)) {
-          iterable = iterable[dartx.toList]();
-        }
-        let insertionLength = iterable[dartx.length];
-        this.length = dart.notNull(this.length) + dart.notNull(insertionLength);
-        this.setRange(dart.notNull(index) + dart.notNull(insertionLength), this.length, this, index);
-        this.setAll(index, iterable);
-      }
-      setAll(index, iterable) {
-        dart.as(iterable, core.Iterable$(E));
-        if (dart.is(iterable, core.List)) {
-          this.setRange(index, dart.notNull(index) + dart.notNull(iterable[dartx.length]), iterable);
-        } else {
-          for (let element of iterable) {
-            this.set((() => {
-              let x = index;
-              index = dart.notNull(x) + 1;
-              return x;
-            })(), element);
-          }
-        }
-      }
-      get reversed() {
-        return new (_internal.ReversedListIterable$(E))(this);
-      }
-      toString() {
-        return IterableBase.iterableToFullString(this, '[', ']');
-      }
-    }
-    ListMixin[dart.implements] = () => [core.List$(E)];
-    dart.setSignature(ListMixin, {
-      methods: () => ({
-        elementAt: [E, [core.int]],
-        forEach: [dart.void, [dart.functionType(dart.void, [E])]],
-        contains: [core.bool, [core.Object]],
-        every: [core.bool, [dart.functionType(core.bool, [E])]],
-        any: [core.bool, [dart.functionType(core.bool, [E])]],
-        firstWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        singleWhere: [E, [dart.functionType(core.bool, [E])]],
-        join: [core.String, [], [core.String]],
-        where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        map: [core.Iterable, [dart.functionType(dart.dynamic, [E])]],
-        expand: [core.Iterable, [dart.functionType(core.Iterable, [E])]],
-        reduce: [E, [dart.functionType(E, [E, E])]],
-        fold: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
-        skip: [core.Iterable$(E), [core.int]],
-        skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        take: [core.Iterable$(E), [core.int]],
-        takeWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        toList: [core.List$(E), [], {growable: core.bool}],
-        toSet: [core.Set$(E), []],
-        add: [dart.void, [E]],
-        addAll: [dart.void, [core.Iterable$(E)]],
-        remove: [core.bool, [core.Object]],
-        removeWhere: [dart.void, [dart.functionType(core.bool, [E])]],
-        retainWhere: [dart.void, [dart.functionType(core.bool, [E])]],
-        clear: [dart.void, []],
-        removeLast: [E, []],
-        sort: [dart.void, [], [dart.functionType(core.int, [E, E])]],
-        shuffle: [dart.void, [], [math.Random]],
-        asMap: [core.Map$(core.int, E), []],
-        sublist: [core.List$(E), [core.int], [core.int]],
-        getRange: [core.Iterable$(E), [core.int, core.int]],
-        removeRange: [dart.void, [core.int, core.int]],
-        fillRange: [dart.void, [core.int, core.int], [E]],
-        setRange: [dart.void, [core.int, core.int, core.Iterable$(E)], [core.int]],
-        replaceRange: [dart.void, [core.int, core.int, core.Iterable$(E)]],
-        indexOf: [core.int, [core.Object], [core.int]],
-        lastIndexOf: [core.int, [core.Object], [core.int]],
-        insert: [dart.void, [core.int, E]],
-        removeAt: [E, [core.int]],
-        insertAll: [dart.void, [core.int, core.Iterable$(E)]],
-        setAll: [dart.void, [core.int, core.Iterable$(E)]]
-      }),
-      statics: () => ({_filter: [dart.void, [core.List, dart.functionType(core.bool, [dart.dynamic]), core.bool]]}),
-      names: ['_filter']
-    });
-    dart.defineExtensionMembers(ListMixin, [
+    dart.defineExtensionNames([
+      'iterator',
       'elementAt',
       'forEach',
+      'isEmpty',
+      'isNotEmpty',
+      'first',
+      'last',
+      'single',
       'contains',
       'every',
       'any',
@@ -2104,14 +1605,514 @@ dart_library.library('dart/collection', null, /* Imports */[
       'removeAt',
       'insertAll',
       'setAll',
-      'iterator',
-      'isEmpty',
-      'isNotEmpty',
-      'first',
-      'last',
-      'single',
-      'reversed'
+      'reversed',
+      'toString'
     ]);
+    class ListMixin extends core.Object {
+      get [dartx.iterator]() {
+        return new (_internal.ListIterator$(E))(this);
+      }
+      [Symbol.iterator]() {
+        return new dart.JsIterator(this[dartx.iterator]);
+      }
+      [dartx.elementAt](index) {
+        return this[dartx.get](index);
+      }
+      [dartx.forEach](action) {
+        dart.as(action, dart.functionType(dart.void, [E]));
+        let length = this[dartx.length];
+        for (let i = 0; i < dart.notNull(length); i++) {
+          action(this[dartx.get](i));
+          if (length != this[dartx.length]) {
+            dart.throw(new core.ConcurrentModificationError(this));
+          }
+        }
+      }
+      get [dartx.isEmpty]() {
+        return this[dartx.length] == 0;
+      }
+      get [dartx.isNotEmpty]() {
+        return !dart.notNull(this[dartx.isEmpty]);
+      }
+      get [dartx.first]() {
+        if (this[dartx.length] == 0) dart.throw(_internal.IterableElementError.noElement());
+        return this[dartx.get](0);
+      }
+      get [dartx.last]() {
+        if (this[dartx.length] == 0) dart.throw(_internal.IterableElementError.noElement());
+        return this[dartx.get](dart.notNull(this[dartx.length]) - 1);
+      }
+      get [dartx.single]() {
+        if (this[dartx.length] == 0) dart.throw(_internal.IterableElementError.noElement());
+        if (dart.notNull(this[dartx.length]) > 1) dart.throw(_internal.IterableElementError.tooMany());
+        return this[dartx.get](0);
+      }
+      [dartx.contains](element) {
+        let length = this[dartx.length];
+        for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
+          if (dart.equals(this[dartx.get](i), element)) return true;
+          if (length != this[dartx.length]) {
+            dart.throw(new core.ConcurrentModificationError(this));
+          }
+        }
+        return false;
+      }
+      [dartx.every](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        let length = this[dartx.length];
+        for (let i = 0; i < dart.notNull(length); i++) {
+          if (!dart.notNull(test(this[dartx.get](i)))) return false;
+          if (length != this[dartx.length]) {
+            dart.throw(new core.ConcurrentModificationError(this));
+          }
+        }
+        return true;
+      }
+      [dartx.any](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        let length = this[dartx.length];
+        for (let i = 0; i < dart.notNull(length); i++) {
+          if (dart.notNull(test(this[dartx.get](i)))) return true;
+          if (length != this[dartx.length]) {
+            dart.throw(new core.ConcurrentModificationError(this));
+          }
+        }
+        return false;
+      }
+      [dartx.firstWhere](test, opts) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
+        dart.as(orElse, dart.functionType(E, []));
+        let length = this[dartx.length];
+        for (let i = 0; i < dart.notNull(length); i++) {
+          let element = this[dartx.get](i);
+          if (dart.notNull(test(element))) return element;
+          if (length != this[dartx.length]) {
+            dart.throw(new core.ConcurrentModificationError(this));
+          }
+        }
+        if (orElse != null) return orElse();
+        dart.throw(_internal.IterableElementError.noElement());
+      }
+      [dartx.lastWhere](test, opts) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
+        dart.as(orElse, dart.functionType(E, []));
+        let length = this[dartx.length];
+        for (let i = dart.notNull(length) - 1; i >= 0; i--) {
+          let element = this[dartx.get](i);
+          if (dart.notNull(test(element))) return element;
+          if (length != this[dartx.length]) {
+            dart.throw(new core.ConcurrentModificationError(this));
+          }
+        }
+        if (orElse != null) return orElse();
+        dart.throw(_internal.IterableElementError.noElement());
+      }
+      [dartx.singleWhere](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        let length = this[dartx.length];
+        let match = null;
+        let matchFound = false;
+        for (let i = 0; i < dart.notNull(length); i++) {
+          let element = this[dartx.get](i);
+          if (dart.notNull(test(element))) {
+            if (matchFound) {
+              dart.throw(_internal.IterableElementError.tooMany());
+            }
+            matchFound = true;
+            match = element;
+          }
+          if (length != this[dartx.length]) {
+            dart.throw(new core.ConcurrentModificationError(this));
+          }
+        }
+        if (matchFound) return match;
+        dart.throw(_internal.IterableElementError.noElement());
+      }
+      [dartx.join](separator) {
+        if (separator === void 0) separator = "";
+        if (this[dartx.length] == 0) return "";
+        let buffer = new core.StringBuffer();
+        buffer.writeAll(this, separator);
+        return dart.toString(buffer);
+      }
+      [dartx.where](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        return new (_internal.WhereIterable$(E))(this, test);
+      }
+      [dartx.map](f) {
+        dart.as(f, dart.functionType(dart.dynamic, [E]));
+        return new (_internal.MappedListIterable$(E, dart.dynamic))(this, f);
+      }
+      [dartx.expand](f) {
+        dart.as(f, dart.functionType(core.Iterable, [E]));
+        return new (_internal.ExpandIterable$(E, dart.dynamic))(this, f);
+      }
+      [dartx.reduce](combine) {
+        dart.as(combine, dart.functionType(E, [E, E]));
+        let length = this[dartx.length];
+        if (length == 0) dart.throw(_internal.IterableElementError.noElement());
+        let value = this[dartx.get](0);
+        for (let i = 1; i < dart.notNull(length); i++) {
+          value = combine(value, this[dartx.get](i));
+          if (length != this[dartx.length]) {
+            dart.throw(new core.ConcurrentModificationError(this));
+          }
+        }
+        return value;
+      }
+      [dartx.fold](initialValue, combine) {
+        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
+        let value = initialValue;
+        let length = this[dartx.length];
+        for (let i = 0; i < dart.notNull(length); i++) {
+          value = combine(value, this[dartx.get](i));
+          if (length != this[dartx.length]) {
+            dart.throw(new core.ConcurrentModificationError(this));
+          }
+        }
+        return value;
+      }
+      [dartx.skip](count) {
+        return new (_internal.SubListIterable$(E))(this, count, null);
+      }
+      [dartx.skipWhile](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        return new (_internal.SkipWhileIterable$(E))(this, test);
+      }
+      [dartx.take](count) {
+        return new (_internal.SubListIterable$(E))(this, 0, count);
+      }
+      [dartx.takeWhile](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        return new (_internal.TakeWhileIterable$(E))(this, test);
+      }
+      [dartx.toList](opts) {
+        let growable = opts && 'growable' in opts ? opts.growable : true;
+        let result = null;
+        if (dart.notNull(growable)) {
+          result = core.List$(E).new();
+          result[dartx.length] = this[dartx.length];
+        } else {
+          result = core.List$(E).new(this[dartx.length]);
+        }
+        for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
+          result[dartx.set](i, this[dartx.get](i));
+        }
+        return result;
+      }
+      [dartx.toSet]() {
+        let result = core.Set$(E).new();
+        for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
+          result.add(this[dartx.get](i));
+        }
+        return result;
+      }
+      [dartx.add](element) {
+        dart.as(element, E);
+        this[dartx.set]((() => {
+          let x = this[dartx.length];
+          this[dartx.length] = dart.notNull(x) + 1;
+          return x;
+        })(), element);
+      }
+      [dartx.addAll](iterable) {
+        dart.as(iterable, core.Iterable$(E));
+        for (let element of iterable) {
+          this[dartx.set]((() => {
+            let x = this[dartx.length];
+            this[dartx.length] = dart.notNull(x) + 1;
+            return x;
+          })(), element);
+        }
+      }
+      [dartx.remove](element) {
+        for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
+          if (dart.equals(this[dartx.get](i), element)) {
+            this[dartx.setRange](i, dart.notNull(this[dartx.length]) - 1, this, i + 1);
+            this[dartx.length] = dart.notNull(this[dartx.length]) - 1;
+            return true;
+          }
+        }
+        return false;
+      }
+      [dartx.removeWhere](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        ListMixin$()._filter(this, test, false);
+      }
+      [dartx.retainWhere](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        ListMixin$()._filter(this, test, true);
+      }
+      static _filter(source, test, retainMatching) {
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
+        let retained = [];
+        let length = source[dartx.length];
+        for (let i = 0; i < dart.notNull(length); i++) {
+          let element = source[dartx.get](i);
+          if (dart.dcall(test, element) == retainMatching) {
+            retained[dartx.add](element);
+          }
+          if (length != source[dartx.length]) {
+            dart.throw(new core.ConcurrentModificationError(source));
+          }
+        }
+        if (retained[dartx.length] != source[dartx.length]) {
+          source[dartx.setRange](0, retained[dartx.length], retained);
+          source[dartx.length] = retained[dartx.length];
+        }
+      }
+      [dartx.clear]() {
+        this[dartx.length] = 0;
+      }
+      [dartx.removeLast]() {
+        if (this[dartx.length] == 0) {
+          dart.throw(_internal.IterableElementError.noElement());
+        }
+        let result = this[dartx.get](dart.notNull(this[dartx.length]) - 1);
+        this[dartx.length] = dart.notNull(this[dartx.length]) - 1;
+        return result;
+      }
+      [dartx.sort](compare) {
+        if (compare === void 0) compare = null;
+        dart.as(compare, dart.functionType(core.int, [E, E]));
+        _internal.Sort.sort(this, dart.as(compare == null ? core.Comparable.compare : compare, __CastType0));
+      }
+      [dartx.shuffle](random) {
+        if (random === void 0) random = null;
+        if (random == null) random = math.Random.new();
+        let length = this[dartx.length];
+        while (dart.notNull(length) > 1) {
+          let pos = random.nextInt(length);
+          length = dart.notNull(length) - 1;
+          let tmp = this[dartx.get](length);
+          this[dartx.set](length, this[dartx.get](pos));
+          this[dartx.set](pos, tmp);
+        }
+      }
+      [dartx.asMap]() {
+        return new (_internal.ListMapView$(E))(this);
+      }
+      [dartx.sublist](start, end) {
+        if (end === void 0) end = null;
+        let listLength = this[dartx.length];
+        if (end == null) end = listLength;
+        core.RangeError.checkValidRange(start, end, listLength);
+        let length = dart.notNull(end) - dart.notNull(start);
+        let result = core.List$(E).new();
+        result[dartx.length] = length;
+        for (let i = 0; i < length; i++) {
+          result[dartx.set](i, this[dartx.get](dart.notNull(start) + i));
+        }
+        return result;
+      }
+      [dartx.getRange](start, end) {
+        core.RangeError.checkValidRange(start, end, this[dartx.length]);
+        return new (_internal.SubListIterable$(E))(this, start, end);
+      }
+      [dartx.removeRange](start, end) {
+        core.RangeError.checkValidRange(start, end, this[dartx.length]);
+        let length = dart.notNull(end) - dart.notNull(start);
+        this[dartx.setRange](start, dart.notNull(this[dartx.length]) - length, this, end);
+        this[dartx.length] = dart.notNull(this[dartx.length]) - length;
+      }
+      [dartx.fillRange](start, end, fill) {
+        if (fill === void 0) fill = null;
+        dart.as(fill, E);
+        core.RangeError.checkValidRange(start, end, this[dartx.length]);
+        for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
+          this[dartx.set](i, fill);
+        }
+      }
+      [dartx.setRange](start, end, iterable, skipCount) {
+        dart.as(iterable, core.Iterable$(E));
+        if (skipCount === void 0) skipCount = 0;
+        core.RangeError.checkValidRange(start, end, this[dartx.length]);
+        let length = dart.notNull(end) - dart.notNull(start);
+        if (length == 0) return;
+        core.RangeError.checkNotNegative(skipCount, "skipCount");
+        let otherList = null;
+        let otherStart = null;
+        if (dart.is(iterable, core.List)) {
+          otherList = dart.as(iterable, core.List);
+          otherStart = skipCount;
+        } else {
+          otherList = iterable[dartx.skip](skipCount)[dartx.toList]({growable: false});
+          otherStart = 0;
+        }
+        if (dart.notNull(otherStart) + length > dart.notNull(otherList[dartx.length])) {
+          dart.throw(_internal.IterableElementError.tooFew());
+        }
+        if (dart.notNull(otherStart) < dart.notNull(start)) {
+          for (let i = length - 1; i >= 0; i--) {
+            this[dartx.set](dart.notNull(start) + i, dart.as(otherList[dartx.get](dart.notNull(otherStart) + i), E));
+          }
+        } else {
+          for (let i = 0; i < length; i++) {
+            this[dartx.set](dart.notNull(start) + i, dart.as(otherList[dartx.get](dart.notNull(otherStart) + i), E));
+          }
+        }
+      }
+      [dartx.replaceRange](start, end, newContents) {
+        dart.as(newContents, core.Iterable$(E));
+        core.RangeError.checkValidRange(start, end, this[dartx.length]);
+        if (!dart.is(newContents, _internal.EfficientLength)) {
+          newContents = newContents[dartx.toList]();
+        }
+        let removeLength = dart.notNull(end) - dart.notNull(start);
+        let insertLength = newContents[dartx.length];
+        if (removeLength >= dart.notNull(insertLength)) {
+          let delta = removeLength - dart.notNull(insertLength);
+          let insertEnd = dart.notNull(start) + dart.notNull(insertLength);
+          let newLength = dart.notNull(this[dartx.length]) - delta;
+          this[dartx.setRange](start, insertEnd, newContents);
+          if (delta != 0) {
+            this[dartx.setRange](insertEnd, newLength, this, end);
+            this[dartx.length] = newLength;
+          }
+        } else {
+          let delta = dart.notNull(insertLength) - removeLength;
+          let newLength = dart.notNull(this[dartx.length]) + delta;
+          let insertEnd = dart.notNull(start) + dart.notNull(insertLength);
+          this[dartx.length] = newLength;
+          this[dartx.setRange](insertEnd, newLength, this, end);
+          this[dartx.setRange](start, insertEnd, newContents);
+        }
+      }
+      [dartx.indexOf](element, startIndex) {
+        if (startIndex === void 0) startIndex = 0;
+        if (dart.notNull(startIndex) >= dart.notNull(this[dartx.length])) {
+          return -1;
+        }
+        if (dart.notNull(startIndex) < 0) {
+          startIndex = 0;
+        }
+        for (let i = startIndex; dart.notNull(i) < dart.notNull(this[dartx.length]); i = dart.notNull(i) + 1) {
+          if (dart.equals(this[dartx.get](i), element)) {
+            return i;
+          }
+        }
+        return -1;
+      }
+      [dartx.lastIndexOf](element, startIndex) {
+        if (startIndex === void 0) startIndex = null;
+        if (startIndex == null) {
+          startIndex = dart.notNull(this[dartx.length]) - 1;
+        } else {
+          if (dart.notNull(startIndex) < 0) {
+            return -1;
+          }
+          if (dart.notNull(startIndex) >= dart.notNull(this[dartx.length])) {
+            startIndex = dart.notNull(this[dartx.length]) - 1;
+          }
+        }
+        for (let i = startIndex; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
+          if (dart.equals(this[dartx.get](i), element)) {
+            return i;
+          }
+        }
+        return -1;
+      }
+      [dartx.insert](index, element) {
+        dart.as(element, E);
+        core.RangeError.checkValueInInterval(index, 0, this[dartx.length], "index");
+        if (index == this[dartx.length]) {
+          this[dartx.add](element);
+          return;
+        }
+        if (!(typeof index == 'number')) dart.throw(new core.ArgumentError(index));
+        this[dartx.length] = dart.notNull(this[dartx.length]) + 1;
+        this[dartx.setRange](dart.notNull(index) + 1, this[dartx.length], this, index);
+        this[dartx.set](index, element);
+      }
+      [dartx.removeAt](index) {
+        let result = this[dartx.get](index);
+        this[dartx.setRange](index, dart.notNull(this[dartx.length]) - 1, this, dart.notNull(index) + 1);
+        this[dartx.length] = dart.notNull(this[dartx.length]) - 1;
+        return result;
+      }
+      [dartx.insertAll](index, iterable) {
+        dart.as(iterable, core.Iterable$(E));
+        core.RangeError.checkValueInInterval(index, 0, this[dartx.length], "index");
+        if (dart.is(iterable, _internal.EfficientLength)) {
+          iterable = iterable[dartx.toList]();
+        }
+        let insertionLength = iterable[dartx.length];
+        this[dartx.length] = dart.notNull(this[dartx.length]) + dart.notNull(insertionLength);
+        this[dartx.setRange](dart.notNull(index) + dart.notNull(insertionLength), this[dartx.length], this, index);
+        this[dartx.setAll](index, iterable);
+      }
+      [dartx.setAll](index, iterable) {
+        dart.as(iterable, core.Iterable$(E));
+        if (dart.is(iterable, core.List)) {
+          this[dartx.setRange](index, dart.notNull(index) + dart.notNull(iterable[dartx.length]), iterable);
+        } else {
+          for (let element of iterable) {
+            this[dartx.set]((() => {
+              let x = index;
+              index = dart.notNull(x) + 1;
+              return x;
+            })(), element);
+          }
+        }
+      }
+      get [dartx.reversed]() {
+        return new (_internal.ReversedListIterable$(E))(this);
+      }
+      toString() {
+        return IterableBase.iterableToFullString(this, '[', ']');
+      }
+    }
+    ListMixin[dart.implements] = () => [core.List$(E)];
+    dart.setSignature(ListMixin, {
+      methods: () => ({
+        [dartx.elementAt]: [E, [core.int]],
+        [dartx.forEach]: [dart.void, [dart.functionType(dart.void, [E])]],
+        [dartx.contains]: [core.bool, [core.Object]],
+        [dartx.every]: [core.bool, [dart.functionType(core.bool, [E])]],
+        [dartx.any]: [core.bool, [dart.functionType(core.bool, [E])]],
+        [dartx.firstWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        [dartx.lastWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        [dartx.singleWhere]: [E, [dart.functionType(core.bool, [E])]],
+        [dartx.join]: [core.String, [], [core.String]],
+        [dartx.where]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        [dartx.map]: [core.Iterable, [dart.functionType(dart.dynamic, [E])]],
+        [dartx.expand]: [core.Iterable, [dart.functionType(core.Iterable, [E])]],
+        [dartx.reduce]: [E, [dart.functionType(E, [E, E])]],
+        [dartx.fold]: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
+        [dartx.skip]: [core.Iterable$(E), [core.int]],
+        [dartx.skipWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        [dartx.take]: [core.Iterable$(E), [core.int]],
+        [dartx.takeWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        [dartx.toList]: [core.List$(E), [], {growable: core.bool}],
+        [dartx.toSet]: [core.Set$(E), []],
+        [dartx.add]: [dart.void, [E]],
+        [dartx.addAll]: [dart.void, [core.Iterable$(E)]],
+        [dartx.remove]: [core.bool, [core.Object]],
+        [dartx.removeWhere]: [dart.void, [dart.functionType(core.bool, [E])]],
+        [dartx.retainWhere]: [dart.void, [dart.functionType(core.bool, [E])]],
+        [dartx.clear]: [dart.void, []],
+        [dartx.removeLast]: [E, []],
+        [dartx.sort]: [dart.void, [], [dart.functionType(core.int, [E, E])]],
+        [dartx.shuffle]: [dart.void, [], [math.Random]],
+        [dartx.asMap]: [core.Map$(core.int, E), []],
+        [dartx.sublist]: [core.List$(E), [core.int], [core.int]],
+        [dartx.getRange]: [core.Iterable$(E), [core.int, core.int]],
+        [dartx.removeRange]: [dart.void, [core.int, core.int]],
+        [dartx.fillRange]: [dart.void, [core.int, core.int], [E]],
+        [dartx.setRange]: [dart.void, [core.int, core.int, core.Iterable$(E)], [core.int]],
+        [dartx.replaceRange]: [dart.void, [core.int, core.int, core.Iterable$(E)]],
+        [dartx.indexOf]: [core.int, [core.Object], [core.int]],
+        [dartx.lastIndexOf]: [core.int, [core.Object], [core.int]],
+        [dartx.insert]: [dart.void, [core.int, E]],
+        [dartx.removeAt]: [E, [core.int]],
+        [dartx.insertAll]: [dart.void, [core.int, core.Iterable$(E)]],
+        [dartx.setAll]: [dart.void, [core.int, core.Iterable$(E)]]
+      }),
+      statics: () => ({_filter: [dart.void, [core.List, dart.functionType(core.bool, [dart.dynamic]), core.bool]]}),
+      names: ['_filter']
+    });
     return ListMixin;
   });
   let ListMixin = ListMixin$();

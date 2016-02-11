@@ -917,9 +917,9 @@ dart_library.library('dart/convert', null, /* Imports */[
     convert(object) {
       let bytes = dart.list([], core.List$(core.int));
       function addChunk(chunk, start, end) {
-        if (dart.notNull(start) > 0 || dart.notNull(end) < dart.notNull(chunk.length)) {
+        if (dart.notNull(start) > 0 || dart.notNull(end) < dart.notNull(chunk[dartx.length])) {
           let length = dart.notNull(end) - dart.notNull(start);
-          chunk = typed_data.Uint8List.view(chunk.buffer, dart.notNull(chunk.offsetInBytes) + dart.notNull(start), length);
+          chunk = typed_data.Uint8List.view(chunk[dartx.buffer], dart.notNull(chunk[dartx.offsetInBytes]) + dart.notNull(start), length);
         }
         bytes[dartx.add](chunk);
       }
@@ -934,7 +934,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       for (let i = 0, offset = 0; i < dart.notNull(bytes[dartx.length]); i++) {
         let byteList = bytes[dartx.get](i);
         let end = offset + dart.notNull(byteList[dartx.length]);
-        result.setRange(offset, end, byteList);
+        result[dartx.setRange](offset, end, byteList);
         offset = end;
       }
       return result;
@@ -1459,12 +1459,12 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
     writeByte(byte) {
       dart.assert(dart.notNull(byte) <= 255);
-      if (this.index == this.buffer.length) {
+      if (this.index == this.buffer[dartx.length]) {
         dart.dcall(this.addChunk, this.buffer, 0, this.index);
         this.buffer = typed_data.Uint8List.new(this.bufferSize);
         this.index = 0;
       }
-      this.buffer.set((() => {
+      this.buffer[dartx.set]((() => {
         let x = this.index;
         this.index = dart.notNull(x) + 1;
         return x;
@@ -1506,8 +1506,8 @@ dart_library.library('dart/convert', null, /* Imports */[
       while (dart.notNull(count) > 0) {
         count = dart.notNull(count) - 1;
         let end = dart.notNull(this.index) + dart.notNull(indentLength);
-        if (end <= dart.notNull(this.buffer.length)) {
-          this.buffer.setRange(this.index, end, indent);
+        if (end <= dart.notNull(this.buffer[dartx.length])) {
+          this.buffer[dartx.setRange](this.index, end, indent);
           this.index = end;
         } else {
           for (let i = 0; i < dart.notNull(indentLength); i++) {

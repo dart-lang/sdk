@@ -17,7 +17,11 @@ dart_library.library('dom/dom', window, /* Imports */[
   dart.setSignature(CustomEvent, {
     constructors: () => ({CustomEvent: [CustomEvent, [core.String], {detail: dart.dynamic, bubbles: dart.dynamic, cancelable: dart.dynamic}]})
   });
-  class HTMLCollection extends core.Object {}
+  class HTMLCollection extends core.Object {
+    get(index) {
+      return this["[]"](index);
+    }
+  }
   dart.setSignature(HTMLCollection, {
     methods: () => ({get: [Element, [core.num]]})
   });

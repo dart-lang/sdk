@@ -26,7 +26,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       return dart.const(new Endianness._(true));
     },
     get HOST_ENDIAN() {
-      return ByteData.view(Uint16List.fromList(dart.list([1], core.int)).buffer).getInt8(0) == 1 ? Endianness.LITTLE_ENDIAN : Endianness.BIG_ENDIAN;
+      return ByteData.view(Uint16List.fromList(dart.list([1], core.int))[dartx.buffer])[dartx.getInt8](0) == 1 ? Endianness.LITTLE_ENDIAN : Endianness.BIG_ENDIAN;
     }
   });
   class ByteData extends core.Object {
@@ -36,7 +36,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asByteData(offsetInBytes, length);
+      return buffer[dartx.asByteData](offsetInBytes, length);
     }
   }
   ByteData[dart.implements] = () => [TypedData];
@@ -56,7 +56,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asInt8List(offsetInBytes, length);
+      return buffer[dartx.asInt8List](offsetInBytes, length);
     }
   }
   Int8List[dart.implements] = () => [core.List$(core.int), TypedData];
@@ -78,7 +78,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asUint8List(offsetInBytes, length);
+      return buffer[dartx.asUint8List](offsetInBytes, length);
     }
   }
   Uint8List[dart.implements] = () => [core.List$(core.int), TypedData];
@@ -100,7 +100,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asUint8ClampedList(offsetInBytes, length);
+      return buffer[dartx.asUint8ClampedList](offsetInBytes, length);
     }
   }
   Uint8ClampedList[dart.implements] = () => [core.List$(core.int), TypedData];
@@ -122,7 +122,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asInt16List(offsetInBytes, length);
+      return buffer[dartx.asInt16List](offsetInBytes, length);
     }
   }
   Int16List[dart.implements] = () => [core.List$(core.int), TypedData];
@@ -144,7 +144,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asUint16List(offsetInBytes, length);
+      return buffer[dartx.asUint16List](offsetInBytes, length);
     }
   }
   Uint16List[dart.implements] = () => [core.List$(core.int), TypedData];
@@ -166,7 +166,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asInt32List(offsetInBytes, length);
+      return buffer[dartx.asInt32List](offsetInBytes, length);
     }
   }
   Int32List[dart.implements] = () => [core.List$(core.int), TypedData];
@@ -188,7 +188,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asUint32List(offsetInBytes, length);
+      return buffer[dartx.asUint32List](offsetInBytes, length);
     }
   }
   Uint32List[dart.implements] = () => [core.List$(core.int), TypedData];
@@ -210,7 +210,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asInt64List(offsetInBytes, length);
+      return buffer[dartx.asInt64List](offsetInBytes, length);
     }
   }
   Int64List[dart.implements] = () => [core.List$(core.int), TypedData];
@@ -232,7 +232,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asUint64List(offsetInBytes, length);
+      return buffer[dartx.asUint64List](offsetInBytes, length);
     }
   }
   Uint64List[dart.implements] = () => [core.List$(core.int), TypedData];
@@ -254,7 +254,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asFloat32List(offsetInBytes, length);
+      return buffer[dartx.asFloat32List](offsetInBytes, length);
     }
   }
   Float32List[dart.implements] = () => [core.List$(core.double), TypedData];
@@ -276,7 +276,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asFloat64List(offsetInBytes, length);
+      return buffer[dartx.asFloat64List](offsetInBytes, length);
     }
   }
   Float64List[dart.implements] = () => [core.List$(core.double), TypedData];
@@ -298,7 +298,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asFloat32x4List(offsetInBytes, length);
+      return buffer[dartx.asFloat32x4List](offsetInBytes, length);
     }
   }
   Float32x4List[dart.implements] = () => [core.List$(Float32x4), TypedData];
@@ -320,7 +320,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asInt32x4List(offsetInBytes, length);
+      return buffer[dartx.asInt32x4List](offsetInBytes, length);
     }
   }
   Int32x4List[dart.implements] = () => [core.List$(Int32x4), TypedData];
@@ -342,7 +342,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
       if (length === void 0) length = null;
-      return buffer.asFloat64x2List(offsetInBytes, length);
+      return buffer[dartx.asFloat64x2List](offsetInBytes, length);
     }
   }
   Float64x2List[dart.implements] = () => [core.List$(Float64x2), TypedData];

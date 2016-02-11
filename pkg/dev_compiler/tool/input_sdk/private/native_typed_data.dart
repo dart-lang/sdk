@@ -416,7 +416,6 @@ class NativeFloat64x2List
   }
 }
 
-@Native("ArrayBufferView")
 class NativeTypedData implements TypedData {
   /**
    * Returns the byte buffer associated with this object.

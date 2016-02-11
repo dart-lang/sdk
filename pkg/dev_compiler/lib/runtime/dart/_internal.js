@@ -1525,68 +1525,83 @@ dart_library.library('dart/_internal', null, /* Imports */[
   });
   let __CastType2 = __CastType2$();
   const FixedLengthListMixin$ = dart.generic(function(E) {
+    dart.defineExtensionNames([
+      'length',
+      'add',
+      'insert',
+      'insertAll',
+      'addAll',
+      'remove',
+      'removeWhere',
+      'retainWhere',
+      'clear',
+      'removeAt',
+      'removeLast',
+      'removeRange',
+      'replaceRange'
+    ]);
     class FixedLengthListMixin extends core.Object {
-      set length(newLength) {
+      set [dartx.length](newLength) {
         dart.throw(new core.UnsupportedError("Cannot change the length of a fixed-length list"));
       }
-      add(value) {
+      [dartx.add](value) {
         dart.as(value, E);
         dart.throw(new core.UnsupportedError("Cannot add to a fixed-length list"));
       }
-      insert(index, value) {
+      [dartx.insert](index, value) {
         dart.as(value, E);
         dart.throw(new core.UnsupportedError("Cannot add to a fixed-length list"));
       }
-      insertAll(at, iterable) {
+      [dartx.insertAll](at, iterable) {
         dart.as(iterable, core.Iterable$(E));
         dart.throw(new core.UnsupportedError("Cannot add to a fixed-length list"));
       }
-      addAll(iterable) {
+      [dartx.addAll](iterable) {
         dart.as(iterable, core.Iterable$(E));
         dart.throw(new core.UnsupportedError("Cannot add to a fixed-length list"));
       }
-      remove(element) {
+      [dartx.remove](element) {
         dart.throw(new core.UnsupportedError("Cannot remove from a fixed-length list"));
       }
-      removeWhere(test) {
+      [dartx.removeWhere](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
         dart.throw(new core.UnsupportedError("Cannot remove from a fixed-length list"));
       }
-      retainWhere(test) {
+      [dartx.retainWhere](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
         dart.throw(new core.UnsupportedError("Cannot remove from a fixed-length list"));
       }
-      clear() {
+      [dartx.clear]() {
         dart.throw(new core.UnsupportedError("Cannot clear a fixed-length list"));
       }
-      removeAt(index) {
+      [dartx.removeAt](index) {
         dart.throw(new core.UnsupportedError("Cannot remove from a fixed-length list"));
       }
-      removeLast() {
+      [dartx.removeLast]() {
         dart.throw(new core.UnsupportedError("Cannot remove from a fixed-length list"));
       }
-      removeRange(start, end) {
+      [dartx.removeRange](start, end) {
         dart.throw(new core.UnsupportedError("Cannot remove from a fixed-length list"));
       }
-      replaceRange(start, end, iterable) {
+      [dartx.replaceRange](start, end, iterable) {
         dart.as(iterable, core.Iterable$(E));
         dart.throw(new core.UnsupportedError("Cannot remove from a fixed-length list"));
       }
     }
     dart.setSignature(FixedLengthListMixin, {
       methods: () => ({
-        add: [dart.void, [E]],
-        insert: [dart.void, [core.int, E]],
-        insertAll: [dart.void, [core.int, core.Iterable$(E)]],
-        addAll: [dart.void, [core.Iterable$(E)]],
-        remove: [core.bool, [core.Object]],
-        removeWhere: [dart.void, [dart.functionType(core.bool, [E])]],
-        retainWhere: [dart.void, [dart.functionType(core.bool, [E])]],
-        clear: [dart.void, []],
-        removeAt: [E, [core.int]],
-        removeLast: [E, []],
-        removeRange: [dart.void, [core.int, core.int]],
-        replaceRange: [dart.void, [core.int, core.int, core.Iterable$(E)]]
+        [dartx.add]: [dart.void, [E]],
+        [dartx.insert]: [dart.void, [core.int, E]],
+        [dartx.insertAll]: [dart.void, [core.int, core.Iterable$(E)]],
+        [dartx.addAll]: [dart.void, [core.Iterable$(E)]],
+        [dartx.remove]: [core.bool, [core.Object]],
+        [dartx.removeWhere]: [dart.void, [dart.functionType(core.bool, [E])]],
+        [dartx.retainWhere]: [dart.void, [dart.functionType(core.bool, [E])]],
+        [dartx.clear]: [dart.void, []],
+        [dartx.removeAt]: [E, [core.int]],
+        [dartx.removeLast]: [E, []],
+        [dartx.removeRange]: [dart.void, [core.int, core.int]],
+        [dartx.replaceRange]: [dart.void, [core.int, core.int, core.Iterable$(E)]]
       })
     });
     return FixedLengthListMixin;

@@ -259,6 +259,8 @@ defineNamedConstructor(clazz, name) => JS('', '''(() => {
 
 final _extensionType = JS('', 'Symbol("extensionType")');
 
+getExtensionType(obj) => JS('', '$obj[$_extensionType]');
+
 final dartx = JS('', '{}');
 
 getExtensionSymbol(name) => JS('', '''(() => {
@@ -268,6 +270,15 @@ getExtensionSymbol(name) => JS('', '''(() => {
 })()''');
 
 defineExtensionNames(names) => JS('', '$names.forEach($getExtensionSymbol)');
+
+// Install properties in prototype order.  Properties / descriptors from
+// more specific types should overwrite ones from less specific types.
+_installProperties(jsProto, extProto) => JS('', '''(() => {
+  if (extProto !== $Object.prototype && extProto !== jsProto) {
+    $_installProperties(jsProto, extProto.__proto__);
+  }
+  $copyTheseProperties(jsProto, extProto, $getOwnPropertySymbols(extProto));
+})()''');
 
 ///
 /// Copy symbols from the prototype of the source to destination.
@@ -280,13 +291,8 @@ registerExtension(jsType, dartExtType) => JS('', '''(() => {
 
   // Mark the JS type's instances so we can easily check for extensions.
   $assert_(jsProto[$_extensionType] === void 0);
-  jsProto[$_extensionType] = extProto;
-
-  let dartObjProto = $Object.prototype;
-  while (extProto !== dartObjProto && extProto !== jsProto) {
-    $copyTheseProperties(jsProto, extProto, $getOwnPropertySymbols(extProto));
-    extProto = extProto.__proto__;
-  }
+  jsProto[$_extensionType] = $dartExtType;
+  $_installProperties(jsProto, extProto);
   let originalSigFn = $getOwnPropertyDescriptor($dartExtType, $_methodSig).get;
   $assert_(originalSigFn);
   $defineMemoizedGetter($jsType, $_methodSig, originalSigFn);
@@ -345,6 +351,9 @@ canonicalMember(obj, name) => JS('', '''(() => {
 /// Sets the type of `obj` to be `type`
 setType(obj, type) => JS('', '''(() => {
   $obj.__proto__ = $type.prototype;
+  // TODO(vsm): This should be set in registerExtension, but that is only
+  // invoked on the generic type (e.g., JSArray<dynamic>, not JSArray<int>).
+  $obj.__proto__[$_extensionType] = $type;
   return $obj;
 })()''');
 

@@ -155,8 +155,7 @@ class ES6ModuleBuilder extends ModuleBuilder {
             .add(js.statement('#.# = #;', [exportsVar, exportName, name]));
       });
     }
-    moduleStatements
-        .add(new JS.ExportDeclaration(exportsVar, isDefault: true));
+    moduleStatements.add(new JS.ExportDeclaration(exportsVar, isDefault: true));
     // TODO(ochafik): What to do with jsModuleValue?
     return new JS.Program(moduleStatements);
   }

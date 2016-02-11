@@ -5273,7 +5273,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return value;
     }
     get iterator() {
-      return this.toList()[dartx.iterator];
+      return this[dartx.toList]()[dartx.iterator];
     }
     addAll(iterable) {
       if (dart.is(iterable, _ChildNodeListLazy)) {

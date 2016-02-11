@@ -55079,6 +55079,9 @@ dart_library.library('language/external_test_10_multi', null, /* Imports */[
     Foo() {
       this.x = 0;
     }
+    f10() {
+      return this.f10();
+    }
   }
   dart.setSignature(Foo, {
     constructors: () => ({Foo: [Foo, []]}),
@@ -119493,10 +119496,10 @@ dart_library.library('language/nan_identical_test', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   function uint64toDouble(i) {
-    let buffer = typed_data.Uint8List.new(8).buffer;
+    let buffer = typed_data.Uint8List.new(8)[dartx.buffer];
     let bdata = typed_data.ByteData.view(buffer);
-    bdata.setUint64(0, i);
-    return bdata.getFloat64(0);
+    bdata[dartx.setUint64](0, i);
+    return bdata[dartx.getFloat64](0);
   }
   dart.fn(uint64toDouble, core.double, [core.int]);
   function createOtherNAN() {
@@ -120602,10 +120605,10 @@ dart_library.library('language/number_identity2_test', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   function uint64toDouble(i) {
-    let buffer = typed_data.Uint8List.new(8).buffer;
+    let buffer = typed_data.Uint8List.new(8)[dartx.buffer];
     let bdata = typed_data.ByteData.view(buffer);
-    bdata.setUint64(0, i);
-    return bdata.getFloat64(0);
+    bdata[dartx.setUint64](0, i);
+    return bdata[dartx.getFloat64](0);
   }
   dart.fn(uint64toDouble, core.double, [core.int]);
   function testNumberIdentity() {

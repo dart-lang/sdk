@@ -14,7 +14,7 @@
     'language': {
       expectedFailures: new Set([
         'arithmetic2_test',
-	'assert_with_type_test_or_cast_test',
+        'assert_with_type_test_or_cast_test',
         'assertion_test',
         'async_star_await_pauses_test',
         'async_star_cancel_while_paused_test',
@@ -326,40 +326,27 @@
     },
     'lib/typed_data': {
       expectedFailures: new Set([
-        'byte_data_test',
-	'constructor_checks_test',
-	'endianness_test',
-	'float32x4_clamp_test',
-	'float32x4_cross_test',
-	'float32x4_list_test',
-	'float32x4_shuffle_test',
-	'float32x4_sign_mask_test',
-	'float32x4_transpose_test',
-	'float32x4_two_arg_shuffle_test',
-	'float32x4_unbox_phi_test',
-	'float32x4_unbox_regress_test',
-	'float64x2_typed_list_test',
-	'int32x4_arithmetic_test',
-	'int32x4_bigint_test',
-	'int32x4_list_test',
-	'int32x4_shuffle_test',
-	'int32x4_sign_mask_test',
-	'int64_list_load_store_test',
-	'native_interceptor_no_own_method_to_intercept_test',
-	'setRange_1_test',
-	'setRange_2_test',
-	'setRange_3_test',
-	'setRange_4_test',
-	'setRange_5_test',
-	'simd_store_to_load_forward_test',
-	'typed_data_from_list_test',
-	'typed_data_hierarchy_int64_test',
-	'typed_data_hierarchy_test',
-	'typed_data_list_test',
-	'typed_data_load2_test',
-	'typed_data_load_test',
-	'typed_data_sublist_type_test',
-	'typed_list_iterable_test',
+        // TODO(vsm): Right shift should not propagate sign
+        // https://github.com/dart-lang/dev_compiler/issues/446
+        'float32x4_sign_mask_test',
+        'int32x4_sign_mask_test',
+
+        // No bigint or int64 support
+        'int32x4_bigint_test',
+        'int64_list_load_store_test',
+        'typed_data_hierarchy_int64_test',
+
+        // TODO(vsm): List.toString is different in DDC
+        // https://github.com/dart-lang/dev_compiler/issues/445
+        'setRange_1_test',
+        'setRange_2_test',
+        'setRange_3_test',
+        'setRange_4_test',
+        'setRange_5_test',
+
+        // TODO(vsm): Triage further
+        // exports._GeneratorIterable$ is not a function
+        'typed_data_list_test',
       ]),
       helpers: new Set([
       ])

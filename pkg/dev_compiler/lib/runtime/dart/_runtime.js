@@ -173,6 +173,9 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     defineProperty(clazz, name, {value: ctor, configurable: true});
   }
   const _extensionType = Symbol("extensionType");
+  function getExtensionType(obj) {
+    return obj[_extensionType];
+  }
   const dartx = {};
   function getExtensionSymbol(name) {
     let sym = dartx[name];
@@ -182,16 +185,18 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   function defineExtensionNames(names) {
     return names.forEach(getExtensionSymbol);
   }
+  function _installProperties(jsProto, extProto) {
+    if (extProto !== core.Object.prototype && extProto !== jsProto) {
+      _installProperties(jsProto, extProto.__proto__);
+    }
+    copyTheseProperties(jsProto, extProto, getOwnPropertySymbols(extProto));
+  }
   function registerExtension(jsType, dartExtType) {
     let extProto = dartExtType.prototype;
     let jsProto = jsType.prototype;
     assert_(jsProto[_extensionType] === void 0);
-    jsProto[_extensionType] = extProto;
-    let dartObjProto = core.Object.prototype;
-    while (extProto !== dartObjProto && extProto !== jsProto) {
-      copyTheseProperties(jsProto, extProto, getOwnPropertySymbols(extProto));
-      extProto = extProto.__proto__;
-    }
+    jsProto[_extensionType] = dartExtType;
+    _installProperties(jsProto, extProto);
     let originalSigFn = getOwnPropertyDescriptor(dartExtType, _methodSig).get;
     assert_(originalSigFn);
     defineMemoizedGetter(jsType, _methodSig, originalSigFn);
@@ -220,6 +225,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   }
   function setType(obj, type) {
     obj.__proto__ = type.prototype;
+    obj.__proto__[_extensionType] = type;
     return obj;
   }
   function list(obj, elementType) {
@@ -476,7 +482,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   }
   function strongInstanceOf(obj, type, ignoreFromWhiteList) {
     let actual = realRuntimeType(obj);
-    if (isSubtype(actual, type) || actual == jsobject) return true;
+    if (isSubtype(actual, type) || actual == jsobject || actual == core.int && type == core.double) return true;
     if (ignoreFromWhiteList == void 0) return false;
     if (isGroundType(type)) return false;
     if (_ignoreTypeFailure(actual, type)) return true;
@@ -685,7 +691,9 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   function runtimeType(obj) {
     let result = checkPrimitiveType(obj);
     if (result !== null) return result;
-    return obj.runtimeType;
+    result = obj.runtimeType;
+    if (result) return result;
+    return _nonPrimitiveRuntimeType(obj);
   }
   function getFunctionType(obj) {
     let args = Array(obj.length).fill(dynamicR);
@@ -694,7 +702,12 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   function realRuntimeType(obj) {
     let result = checkPrimitiveType(obj);
     if (result !== null) return result;
-    result = obj[_runtimeType];
+    return _nonPrimitiveRuntimeType(obj);
+  }
+  function _nonPrimitiveRuntimeType(obj) {
+    let result = obj[_runtimeType];
+    if (result) return result;
+    result = obj[_extensionType];
     if (result) return result;
     result = obj.constructor;
     if (result == Function) {
@@ -1199,6 +1212,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   exports.hasMethod = hasMethod;
   exports.virtualField = virtualField;
   exports.defineNamedConstructor = defineNamedConstructor;
+  exports.getExtensionType = getExtensionType;
   exports.dartx = dartx;
   exports.getExtensionSymbol = getExtensionSymbol;
   exports.defineExtensionNames = defineExtensionNames;

@@ -93,9 +93,15 @@ checkPrimitiveType(obj) => JS('', '''(() => {
 })()''');
 
 runtimeType(obj) => JS('', '''(() => {
+  // Lookup primitive (int/double/string)
   let result = $checkPrimitiveType($obj);
   if (result !== null) return result;
-  return $obj.runtimeType;
+
+  // Lookup recorded type
+  result = $obj.runtimeType;
+  if (result) return result;
+
+  return $_nonPrimitiveRuntimeType(obj);
 })()''');
 
 getFunctionType(obj) => JS('', '''(() => {
@@ -111,12 +117,25 @@ getFunctionType(obj) => JS('', '''(() => {
 /// Currently this will return null for non-Dart objects.
 ///
 realRuntimeType(obj) => JS('', '''(() => {
+  // Lookup primitive type
   let result = $checkPrimitiveType($obj);
   if (result !== null) return result;
+
+  return $_nonPrimitiveRuntimeType(obj);
+})()''');
+
+_nonPrimitiveRuntimeType(obj) => JS('', '''(() => {
+  // Lookup recorded *real* type (not user definable runtimeType)
   // TODO(vsm): Should we treat Dart and JS objects differently here?
   // E.g., we can check if obj instanceof core.Object to differentiate.
-  result = $obj[$_runtimeType];
+  let result = $obj[$_runtimeType];
   if (result) return result;
+
+  // Lookup extension type
+  result = $obj[$_extensionType];
+  if (result) return result;
+
+  // Fallback on constructor for class types
   result = $obj.constructor;
   if (result == Function) {
     // An undecorated Function should have come from
