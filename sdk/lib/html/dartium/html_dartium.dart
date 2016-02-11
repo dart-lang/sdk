@@ -48429,8 +48429,7 @@ class _Utils {
     return [
         "inspect",
         (o) {
-          host.callMethod("inspect", [o]);
-          return o;
+          return host.callMethod("_inspect", [unwrap_jso(o)]);
         },
         "dir",
         window().console.dir,

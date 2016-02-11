@@ -774,7 +774,7 @@ class _Utils {
     return [
         "inspect",
         (o) {
-          host.callMethod("inspect", [o]);
+          host.callMethod("_inspect", [unwrap_jso(o)]);
           return o;
         },
         "dir",
