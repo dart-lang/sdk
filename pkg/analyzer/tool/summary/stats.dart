@@ -9,6 +9,7 @@
 library analyzer.tool.summary.stats;
 
 import 'dart:io';
+import 'dart:mirrors';
 
 import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -80,7 +81,8 @@ class Stats {
           value == 0 ||
           value == false ||
           value == '' ||
-          value is List && value.isEmpty) {
+          value is List && value.isEmpty ||
+          reflect(value).type.isEnum && (value as dynamic).index == 0) {
         return;
       }
       if (!typeCounts.containsKey(key)) {
