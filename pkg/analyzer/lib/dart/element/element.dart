@@ -1464,14 +1464,12 @@ abstract class LocalElement implements Element {
    * which the name of this element is visible, or `null` if there is no single
    * range of characters within which the element name is visible.
    *
-   * * For a local variable, this includes everything from the end of the
-   *   variable's initializer to the end of the block that encloses the variable
-   *   declaration.
+   * * For a local variable, this is the source range of the block that
+   *   encloses the variable declaration.
    * * For a parameter, this includes the body of the method or function that
    *   declares the parameter.
-   * * For a local function, this includes everything from the beginning of the
-   *   function's body to the end of the block that encloses the function
-   *   declaration.
+   * * For a local function, this is the source range of the block that
+   *   encloses the variable declaration.
    * * For top-level functions, `null` will be returned because they are
    *   potentially visible in multiple sources.
    */

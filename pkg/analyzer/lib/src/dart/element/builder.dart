@@ -695,9 +695,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (_inFunction) {
           Block enclosingBlock = node.getAncestor((node) => node is Block);
           if (enclosingBlock != null) {
-            int functionEnd = node.offset + node.length;
-            int blockEnd = enclosingBlock.offset + enclosingBlock.length;
-            element.setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
+            element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
           }
         }
         if (node.returnType == null) {
@@ -816,9 +814,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     if (_inFunction) {
       Block enclosingBlock = node.getAncestor((node) => node is Block);
       if (enclosingBlock != null) {
-        int functionEnd = node.offset + node.length;
-        int blockEnd = enclosingBlock.offset + enclosingBlock.length;
-        element.setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
+        element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
       }
     }
     if (_functionTypesToFix != null) {
