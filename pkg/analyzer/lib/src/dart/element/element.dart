@@ -4600,6 +4600,14 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterElementImpl(String name, int offset) : super(name, offset);
 
   /**
+   * Initialize a newly created synthetic type parameter element to have the
+   * given [name], and with [synthetic] set to true.
+   */
+  TypeParameterElementImpl.synthetic(String name) : super(name, -1) {
+    synthetic = true;
+  }
+
+  /**
    * Initialize a newly created type parameter element to have the given [name].
    */
   TypeParameterElementImpl.forNode(Identifier name) : super.forNode(name);

@@ -546,28 +546,13 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // To test this, we instantiate both types with the same (unique) type
     // variables, and see if the result is equal.
     if (typeFormals.isNotEmpty) {
-      List<DartType> instantiateTypeArgs = new List<DartType>();
-      List<DartType> variablesThis = new List<DartType>();
-      List<DartType> variablesOther = new List<DartType>();
-      for (int i = 0; i < typeFormals.length; i++) {
-        TypeParameterElement pThis = typeFormals[i];
-        TypeParameterElement pOther = otherType.typeFormals[i];
-        TypeParameterTypeImpl pFresh = new TypeParameterTypeImpl(
-            new TypeParameterElementImpl(pThis.name, -1));
-        instantiateTypeArgs.add(pFresh);
-        variablesThis.add(pThis.type);
-        variablesOther.add(pOther.type);
-        // Check that the bounds are equal after equating the previous
-        // bound variables.
-        if (pThis.bound?.substitute2(instantiateTypeArgs, variablesThis) !=
-            pOther.bound?.substitute2(instantiateTypeArgs, variablesOther)) {
-          return false;
-        }
+      List<DartType> freshVariables =
+          relateTypeFormals(this, otherType, (t, s) => t == s);
+      if (freshVariables == null) {
+        return false;
       }
-      // After instantiation, they will no longer have typeFormals,
-      // so we will continue below.
-      return this.instantiate(instantiateTypeArgs) ==
-          otherType.instantiate(instantiateTypeArgs);
+      return instantiate(freshVariables) ==
+          otherType.instantiate(freshVariables);
     }
 
     return returnType == otherType.returnType &&
@@ -593,8 +578,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         }
       }
 
-      List<DartType> instantiateTypeArgs = new List<DartType>();
-      List<DartType> variables = new List<DartType>();
+      List<DartType> instantiateTypeArgs = <DartType>[];
+      List<DartType> variables = <DartType>[];
       buffer.write("<");
       for (TypeParameterElement e in typeFormals) {
         if (e != typeFormals[0]) {
@@ -729,49 +714,71 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       [bool withDynamic = false, Set<Element> visitedElements]) {
     // Note: visitedElements is only used for breaking recursion in the type
     // hierarchy; we don't use it when recursing into the function type.
-    bool relation = _trivialFunctionRelation(type);
-    if (relation != null) {
-      return relation;
-    }
-
-    return structuralCompare(this, type,
-        (TypeImpl t, TypeImpl s) => t.isMoreSpecificThan(s, withDynamic));
+    return relate(
+        this,
+        type,
+        (DartType t, DartType s) =>
+            (t as TypeImpl).isMoreSpecificThan(s, withDynamic),
+        new TypeSystemImpl().instantiateToBounds);
   }
 
   @override
   bool isSubtypeOf(DartType type) {
-    bool relation = _trivialFunctionRelation(type);
-    if (relation != null) {
-      return relation;
-    }
-
-    return structuralCompare(
-        this, type, (TypeImpl t, TypeImpl s) => t.isAssignableTo(s));
+    return relate(
+        this,
+        type,
+        (DartType t, DartType s) => t.isAssignableTo(s),
+        new TypeSystemImpl().instantiateToBounds);
   }
 
   /**
-   * Tests if [other] meets any of the easy relation cases for [isSubtypeOf]
-   * and [isMoreSpecificThan].
+   * Given two functions [f1] and [f2] where f1 and f2 are known to be
+   * generic function types (both have type formals), this checks that they
+   * have the same number of formals, and that those formals have bounds
+   * (e.g. `<T extends LowerBound>`) that satisfy [relation].
    *
-   * Returns `true` if the relation is known to hold, `false` if it isn't, or
-   * `null` if it's unknown and a deeper structural comparison is needed.
+   * The return value will be a new list of fresh type variables, that can be
+   * used to instantiate both function types, allowing further comparison.
+   * For example, given `<T>T -> T` and `<U>U -> U` we can instantiate them with
+   * `F` to get `F -> F` and `F -> F`, which we can see are equal.
    */
-  bool _trivialFunctionRelation(DartType other) {
-    // Trivial base cases.
-    if (other == null) {
-      return false;
-    } else if (identical(this, other) ||
-        other.isDynamic ||
-        other.isDartCoreFunction ||
-        other.isObject) {
-      return true;
-    } else if (other is! FunctionType) {
-      return false;
-    } else if (this == other) {
-      return true;
+  static List<DartType> relateTypeFormals(
+      FunctionType f1, FunctionType f2, bool relation(DartType t, DartType s)) {
+    List<TypeParameterElement> params1 = f1.typeFormals;
+    List<TypeParameterElement> params2 = f2.typeFormals;
+    int count = params1.length;
+    if (params2.length != count) {
+      return null;
     }
+    // We build up a substitution matching up the type parameters
+    // from the two types, {variablesFresh/variables1} and
+    // {variablesFresh/variables2}
+    List<DartType> variables1 = <DartType>[];
+    List<DartType> variables2 = <DartType>[];
+    List<DartType> variablesFresh = <DartType>[];
+    for (int i = 0; i < count; i++) {
+      TypeParameterElement p1 = params1[i];
+      TypeParameterElement p2 = params2[i];
+      TypeParameterElementImpl pFresh =
+          new TypeParameterElementImpl.synthetic(p2.name);
 
-    return null;
+      DartType variable1 = p1.type;
+      DartType variable2 = p2.type;
+      DartType variableFresh = new TypeParameterTypeImpl(pFresh);
+
+      variables1.add(variable1);
+      variables2.add(variable2);
+      variablesFresh.add(variableFresh);
+      DartType bound1 = p1.bound ?? DynamicTypeImpl.instance;
+      DartType bound2 = p2.bound ?? DynamicTypeImpl.instance;
+      bound1 = bound1.substitute2(variablesFresh, variables1);
+      bound2 = bound2.substitute2(variablesFresh, variables2);
+      pFresh.bound = bound2;
+      if (!relation(bound2, bound1)) {
+        return null;
+      }
+    }
+    return variablesFresh;
   }
 
   /**
@@ -785,11 +792,45 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    *
    * If [returnRelation] is omitted, uses [parameterRelation] for both.
    */
-  static bool structuralCompare(FunctionType t, FunctionType s,
+  static bool relate(
+      FunctionType t,
+      DartType other,
       bool parameterRelation(DartType t, DartType s),
-      [bool returnRelation(DartType t, DartType s)]) {
-    // Test the return types.
+      FunctionType instantiateToBounds(FunctionType t),
+      {bool returnRelation(DartType t, DartType s)}) {
+
     returnRelation ??= parameterRelation;
+
+    // Trivial base cases.
+    if (other == null) {
+      return false;
+    } else if (identical(t, other) ||
+        other.isDynamic ||
+        other.isDartCoreFunction ||
+        other.isObject) {
+      return true;
+    } else if (other is! FunctionType) {
+      return false;
+    }
+
+    // This type cast is safe, because we checked it above.
+    FunctionType s = other as FunctionType;
+    if (t.typeFormals.isNotEmpty) {
+      if (s.typeFormals.isEmpty) {
+        t = instantiateToBounds(t);
+      } else {
+        List<DartType> freshVariables = relateTypeFormals(t, s, returnRelation);
+        if (freshVariables == null) {
+          return false;
+        }
+        t = t.instantiate(freshVariables);
+        s = s.instantiate(freshVariables);
+      }
+    } else if (s.typeFormals.isNotEmpty) {
+      return false;
+    }
+
+    // Test the return types.
     DartType sRetType = s.returnType;
     if (!sRetType.isVoid && !returnRelation(t.returnType, sRetType)) {
       return false;

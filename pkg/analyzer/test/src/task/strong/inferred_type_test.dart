@@ -1491,6 +1491,75 @@ main() {
       ''');
   });
 
+  test('downwards inference on generic function expressions', () {
+    checkFile('''
+      void main () {
+        {
+          String f/*<S>*/(int x) => null;
+          var v = f;
+          v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(int x) => null;
+          v = /*<T>*/(int x) => "hello";
+          v = /*severe:STATIC_TYPE_ERROR*//*<T>*/(String x) => "hello";
+          v = /*severe:STATIC_TYPE_ERROR*//*<T>*/(int x) => 3;
+          v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(int x) {return /*severe:STATIC_TYPE_ERROR*/3;};
+        }
+        {
+          String f/*<S>*/(int x) => null;
+          var v = f;
+          v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => null;
+          v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => "hello";
+          v = /*info:INFERRED_TYPE_CLOSURE, severe:STATIC_TYPE_ERROR*//*<T>*/(x) => 3;
+          v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) {return /*severe:STATIC_TYPE_ERROR*/3;};
+          v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) {return /*severe:STATIC_TYPE_ERROR*/x;};
+        }
+        {
+          List<String> f/*<S>*/(int x) => null;
+          var v = f;
+          v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(int x) => null;
+          v = /*<T>*/(int x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
+          v = /*severe:STATIC_TYPE_ERROR*//*<T>*/(String x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
+          v = /*<T>*/(int x) => /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/3];
+          v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(int x) {return /*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/3];};
+        }
+        {
+          int int2int/*<S>*/(int x) => null;
+          String int2String/*<T>*/(int x) => null;
+          String string2String/*<T>*/(String x) => null;
+          var x = int2int;
+          x = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => x;
+          x = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => x+1;
+          var y = int2String;
+          y = /*info:INFERRED_TYPE_CLOSURE, severe:STATIC_TYPE_ERROR*//*<T>*/(x) => x;
+          y = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/x.substring(3);
+          var z = string2String;
+          z = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => x.substring(3);
+        }
+      }
+      ''');
+  });
+
+  test('downwards inference on function<T> using the T', () {
+    checkFile('''
+      void main () {
+        {
+          /*=T*/ f/*<T>*/(/*=T*/ x) => null;
+          var v1 = f;
+          v1 = /*info:INFERRED_TYPE_CLOSURE*//*<S>*/(x) => x;
+        }
+        {
+          /*=List<T>*/ f/*<T>*/(/*=T*/ x) => null;
+          var v2 = f;
+          v2 = /*info:INFERRED_TYPE_CLOSURE*//*<S>*/(x) => /*info:INFERRED_TYPE_LITERAL*/[x];
+          Iterable<int> r = v2(42);
+          Iterable<String> s = v2('hello');
+          Iterable<List<int>> t = v2(<int>[]);
+          Iterable<num> u = v2(42);
+          Iterable<num> v = v2/*<num>*/(42);
+        }
+      }
+    ''');
+  });
+
   test('downwards inference initializing formal, default formal', () {
     checkFile('''
       typedef T Function2<S, T>([S x]);
@@ -1500,7 +1569,7 @@ main() {
         Foo.named([List<int> x = /*info:INFERRED_TYPE_LITERAL*/const [1]]);
       }
       void f([List<int> l = /*info:INFERRED_TYPE_LITERAL*/const [1]]) {}
-// We do this inference in an early task but don't preserve the infos.
+      // We do this inference in an early task but don't preserve the infos.
       Function2<List<int>, String> g = /*pass should be info:INFERRED_TYPE_CLOSURE*/([llll = /*info:INFERRED_TYPE_LITERAL*/const [1]]) => "hello";
 ''');
   });
@@ -1696,14 +1765,23 @@ main() {
   takeIIO(new C().m);
   takeDDO(new C().m);
 
-  takeOOI(/*severe:STATIC_TYPE_ERROR*/new C().m);
-  takeIDI(/*severe:STATIC_TYPE_ERROR*/new C().m);
-  takeDID(/*severe:STATIC_TYPE_ERROR*/new C().m);
-
   // Note: this is a warning because a downcast of a method tear-off could work
-  // (derived method can be a subtype).
+  // (derived method can be a subtype):
+  //
+  //     class D extends C {
+  //       S m<S extends num>(Object x, Object y);
+  //     }
+  //
+  // That's legal because we're loosening parameter types.
+  //
   takeOON(/*warning:DOWN_CAST_COMPOSITE*/new C().m);
   takeOOO(/*warning:DOWN_CAST_COMPOSITE*/new C().m);
+
+  // Note: this is a warning because a downcast of a method tear-off could work
+  // in "normal" Dart, due to bivariance.
+  takeOOI(/*warning:DOWN_CAST_COMPOSITE*/new C().m);
+  takeIDI(/*warning:DOWN_CAST_COMPOSITE*/new C().m);
+  takeDID(/*warning:DOWN_CAST_COMPOSITE*/new C().m);
 }
 
 void takeIII(int fn(int a, int b)) {}

@@ -477,11 +477,16 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
 
       DartType functionType = InferenceContext.getType(node);
       if (functionType is FunctionType) {
-        DartType returnType = functionType.returnType;
-        if (computedType.isDynamic &&
-            !(returnType.isDynamic || returnType.isBottom)) {
-          computedType = returnType;
-          _resolver.inferenceContext.recordInference(node, functionType);
+        functionType = _resolver.matchFunctionTypeParameters(
+            node.typeParameters, functionType);
+
+        if (functionType is FunctionType) {
+          DartType returnType = functionType.returnType;
+          if (computedType.isDynamic &&
+              !(returnType.isDynamic || returnType.isBottom)) {
+            computedType = returnType;
+            _resolver.inferenceContext.recordInference(node, functionType);
+          }
         }
       }
     }

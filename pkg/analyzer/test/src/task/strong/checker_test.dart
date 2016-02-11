@@ -1161,12 +1161,47 @@ void main() {
 
     test('uninferred closure', () {
       checkFile('''
-      typedef num Num2Num(num x);
-      void main() {
-        Num2Num g = /*info:INFERRED_TYPE_CLOSURE,severe:STATIC_TYPE_ERROR*/(int x) { return x; };
-        print(g(42));
-      }
-    ''');
+        typedef num Num2Num(num x);
+        void main() {
+          Num2Num g = /*info:INFERRED_TYPE_CLOSURE,severe:STATIC_TYPE_ERROR*/(int x) { return x; };
+          print(g(42));
+        }
+      ''');
+    });
+
+    test('subtype of universal type', () {
+      checkFile('''
+        void main() {
+          nonGenericFn(x) => null;
+          {
+            /*=R*/ f/*<P, R>*/(/*=P*/ p) => null;
+            /*=T*/ g/*<S, T>*/(/*=S*/ s) => null;
+
+            var local = f;
+            local = g; // valid
+
+            // Non-generic function cannot subtype a generic one.
+            local = /*severe:STATIC_TYPE_ERROR*/(x) => null;
+            local = /*severe:STATIC_TYPE_ERROR*/nonGenericFn;
+          }
+          {
+            Iterable/*<R>*/ f/*<P, R>*/(List/*<P>*/ p) => null;
+            List/*<T>*/ g/*<S, T>*/(Iterable/*<S>*/ s) => null;
+
+            var local = f;
+            local = g; // valid
+
+            var local2 = g;
+            local = local2;
+            local2 = /*severe:STATIC_TYPE_ERROR*/f;
+            local2 = /*warning:DOWN_CAST_COMPOSITE*/local;
+
+            // Non-generic function cannot subtype a generic one.
+            local = /*severe:STATIC_TYPE_ERROR*/(x) => null;
+            local = /*severe:STATIC_TYPE_ERROR*/nonGenericFn;
+          }
+        }
+      ''');
     });
   });
 
@@ -2597,8 +2632,8 @@ void main() {
               // different.
               // TODO(sigmund): should we merge these as well?
               class T1 extends Object
-                  with /*severe:INVALID_METHOD_OVERRIDE*/M1
-                  with /*severe:INVALID_METHOD_OVERRIDE*/M2
+                  with /*severe:INVALID_METHOD_OVERRIDE*/M1,
+                  /*severe:INVALID_METHOD_OVERRIDE*/M2
                   implements I1 {
               }
            ''');

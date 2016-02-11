@@ -7297,6 +7297,48 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * Given a downward inference type [fnType], and the declared
+   * [typeParameterList] for a function expression, determines if we can enable
+   * downward inference and if so, returns the function type to use for
+   * inference.
+   *
+   * This will return null if inference is not possible. This happens when
+   * there is no way we can find a subtype of the function type, given the
+   * provided type parameter list.
+   */
+  FunctionType matchFunctionTypeParameters(
+      TypeParameterList typeParameterList, FunctionType fnType) {
+    if (typeParameterList == null) {
+      if (fnType.typeFormals.isEmpty) {
+        return fnType;
+      }
+
+      // A non-generic function cannot be a subtype of a generic one.
+      return null;
+    }
+
+    NodeList<TypeParameter> typeParameters = typeParameterList.typeParameters;
+    if (fnType.typeFormals.isEmpty) {
+      // TODO(jmesserly): this is a legal subtype. We don't currently infer
+      // here, but we could.  This is similar to
+      // StrongTypeSystemImpl.inferFunctionTypeInstantiation, but we don't
+      // have the FunctionType yet for the current node, so it's not quite
+      // straightforward to apply.
+      return null;
+    }
+
+    if (fnType.typeFormals.length != typeParameters.length) {
+      // A subtype cannot have different number of type formals.
+      return null;
+    }
+
+    // Same number of type formals. Instantiate the function type so its
+    // parameter and return type are in terms of the surrounding context.
+    return fnType.instantiate(
+        typeParameters.map((t) => t.name.staticElement.type).toList());
+  }
+
+  /**
    * If it is appropriate to do so, override the current type of the static and propagated elements
    * associated with the given expression with the given type. Generally speaking, it is appropriate
    * if the given type is more specific than the current type.
@@ -8080,12 +8122,16 @@ class ResolverVisitor extends ScopedVisitor {
       try {
         DartType functionType = InferenceContext.getType(node);
         if (functionType is FunctionType) {
-          _inferFormalParameterList(node.parameters, functionType);
-          DartType returnType = _computeReturnOrYieldType(
-              functionType.returnType,
-              _enclosingFunction.isGenerator,
-              _enclosingFunction.isAsynchronous);
-          InferenceContext.setType(node.body, returnType);
+          functionType =
+              matchFunctionTypeParameters(node.typeParameters, functionType);
+          if (functionType is FunctionType) {
+            _inferFormalParameterList(node.parameters, functionType);
+            DartType returnType = _computeReturnOrYieldType(
+                functionType.returnType,
+                _enclosingFunction.isGenerator,
+                _enclosingFunction.isAsynchronous);
+            InferenceContext.setType(node.body, returnType);
+          }
         }
         super.visitFunctionExpression(node);
       } finally {
