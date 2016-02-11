@@ -243,7 +243,7 @@ class _EntityRefImpl extends Object with _EntityRefMixin implements idl.EntityRe
 
   @override
   List<int> get implicitFunctionTypeIndices {
-    _implicitFunctionTypeIndices ??= const fb.ListReader<int>(const fb.Uint32Reader()).vTableGet(_bp, 0, const <int>[]);
+    _implicitFunctionTypeIndices ??= const fb.Uint32ListReader().vTableGet(_bp, 0, const <int>[]);
     return _implicitFunctionTypeIndices;
   }
 
@@ -696,7 +696,7 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.
 
   @override
   List<int> get importDependencies {
-    _importDependencies ??= const fb.ListReader<int>(const fb.Uint32Reader()).vTableGet(_bp, 2, const <int>[]);
+    _importDependencies ??= const fb.Uint32ListReader().vTableGet(_bp, 2, const <int>[]);
     return _importDependencies;
   }
 
@@ -1827,7 +1827,7 @@ class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements idl.
 
   @override
   List<int> get ints {
-    _ints ??= const fb.ListReader<int>(const fb.Uint32Reader()).vTableGet(_bp, 1, const <int>[]);
+    _ints ??= const fb.Uint32ListReader().vTableGet(_bp, 1, const <int>[]);
     return _ints;
   }
 

@@ -519,7 +519,7 @@ class ListReader<E> extends Reader<List<E>> {
 
   @override
   List<E> read(BufferPointer bp) =>
-      new _FbInt32List<E>(_elementReader, bp.derefObject());
+      new _FbGenericList<E>(_elementReader, bp.derefObject());
 }
 
 /**
@@ -606,6 +606,21 @@ abstract class TableReader<T> extends Reader<T> {
 }
 
 /**
+ * Reader of lists of 32-bit float values.
+ *
+ * The returned unmodifiable lists lazily read values on access.
+ */
+class Uint32ListReader extends Reader<List<int>> {
+  const Uint32ListReader();
+
+  @override
+  int get size => 4;
+
+  @override
+  List<int> read(BufferPointer bp) => new _FbUint32List(bp.derefObject());
+}
+
+/**
  * The reader of unsigned 32-bit integers.
  */
 class Uint32Reader extends Reader<int> {
@@ -622,18 +637,9 @@ class Uint32Reader extends Reader<int> {
  * The list backed by 64-bit values - Uint64 length and Float64.
  */
 class _FbFloat64List extends _FbList<double> {
-  final BufferPointer bp;
-
-  int _length;
   List<double> _items;
 
-  _FbFloat64List(this.bp);
-
-  @override
-  int get length {
-    _length ??= bp._getUint32();
-    return _length;
-  }
+  _FbFloat64List(BufferPointer bp) : super(bp);
 
   @override
   double operator [](int i) {
@@ -649,29 +655,21 @@ class _FbFloat64List extends _FbList<double> {
 }
 
 /**
- * The list backed by 32-bit values - offsets or integers.
+ * List backed by a generic object which may have any size.
  */
-class _FbInt32List<E> extends _FbList<E> {
+class _FbGenericList<E> extends _FbList<E> {
   final Reader<E> elementReader;
-  final BufferPointer bp;
 
-  int _length;
   List<E> _items;
 
-  _FbInt32List(this.elementReader, this.bp);
-
-  @override
-  int get length {
-    _length ??= bp._getUint32();
-    return _length;
-  }
+  _FbGenericList(this.elementReader, BufferPointer bp) : super(bp);
 
   @override
   E operator [](int i) {
     _items ??= new List<E>(length);
     E item = _items[i];
     if (item == null) {
-      BufferPointer ref = bp._advance(4 + 4 * i);
+      BufferPointer ref = bp._advance(4 + elementReader.size * i);
       item = elementReader.read(ref);
       _items[i] = item;
     }
@@ -683,6 +681,17 @@ class _FbInt32List<E> extends _FbList<E> {
  * The base class for immutable lists read from flat buffers.
  */
 abstract class _FbList<E> extends Object with ListMixin<E> implements List<E> {
+  final BufferPointer bp;
+  int _length;
+
+  _FbList(this.bp);
+
+  @override
+  int get length {
+    _length ??= bp._getUint32();
+    return _length;
+  }
+
   @override
   void set length(int i) =>
       throw new StateError('Attempt to modify immutable list');
@@ -690,6 +699,26 @@ abstract class _FbList<E> extends Object with ListMixin<E> implements List<E> {
   @override
   void operator []=(int i, E e) =>
       throw new StateError('Attempt to modify immutable list');
+}
+
+/**
+ * List backed by 32-bit unsigned integers.
+ */
+class _FbUint32List extends _FbList<int> {
+  List<int> _items;
+
+  _FbUint32List(BufferPointer bp) : super(bp);
+
+  @override
+  int operator [](int i) {
+    _items ??= new List<int>(length);
+    int item = _items[i];
+    if (item == null) {
+      item = bp._getUint32(4 + 4 * i);
+      _items[i] = item;
+    }
+    return item;
+  }
 }
 
 /**

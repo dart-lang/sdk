@@ -146,6 +146,22 @@ class BuilderTest {
     expect(const Uint32Reader().vTableGet(object, 5), 0x9ABCDEF0);
   }
 
+  void test_writeList_of_Uint32() {
+    List<int> values = <int>[10, 100, 12345, 0x9abcdef0];
+    // write
+    List<int> byteList;
+    {
+      Builder builder = new Builder(initialSize: 0);
+      Offset offset = builder.writeListUint32(values);
+      byteList = builder.finish(offset);
+    }
+    // read and verify
+    BufferPointer root = new BufferPointer.fromBytes(byteList);
+    List<int> items = const Uint32ListReader().read(root);
+    expect(items, hasLength(4));
+    expect(items, orderedEquals(values));
+  }
+
   void test_writeList_ofFloat64() {
     List<double> values = <double>[-1.234567, 3.4E+9, -5.6E-13, 7.8, 12.13];
     // write

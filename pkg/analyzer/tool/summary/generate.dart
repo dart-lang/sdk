@@ -545,8 +545,7 @@ class _CodeGenerator {
         String def = defaultValue(type, false);
         if (type.isList) {
           if (typeName == 'int') {
-            String itemCode = 'const fb.Uint32Reader()';
-            readCode = 'const fb.ListReader<int>($itemCode)';
+            readCode = 'const fb.Uint32ListReader()';
           } else if (typeName == 'double') {
             readCode = 'const fb.Float64ListReader()';
           } else if (typeName == 'String') {
