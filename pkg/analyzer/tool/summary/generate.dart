@@ -82,6 +82,7 @@ class _CodeGenerator {
    */
   void checkIdl() {
     _idl.classes.forEach((String name, idlModel.ClassDeclaration cls) {
+      Map<int, String> idsUsed = <int, String>{};
       for (idlModel.FieldDeclaration field in cls.fields) {
         String fieldName = field.name;
         idlModel.FieldType type = field.type;
@@ -100,6 +101,16 @@ class _CodeGenerator {
             throw new Exception(
                 '$name.$fieldName: illegal type (list of ${type.typeName})');
           }
+        }
+        if (idsUsed.containsKey(field.id)) {
+          throw new Exception('$name.$fieldName: id ${field.id} already used by'
+              ' ${idsUsed[field.id]}');
+        }
+        idsUsed[field.id] = fieldName;
+      }
+      for (int i = 0; i < idsUsed.length; i++) {
+        if (!idsUsed.containsKey(i)) {
+          throw new Exception('$name: no field uses id $i');
         }
       }
     });
@@ -193,9 +204,10 @@ class _CodeGenerator {
         }
         for (ClassMember classMember in decl.members) {
           if (classMember is MethodDeclaration && classMember.isGetter) {
+            String desc = '${cls.name}.${classMember.name.name}';
             TypeName type = classMember.returnType;
             if (type == null) {
-              throw new Exception('Class member needs a type: $classMember');
+              throw new Exception('Class member needs a type: $desc');
             }
             bool isList = false;
             if (type.name.name == 'List' &&
@@ -207,11 +219,34 @@ class _CodeGenerator {
             if (type.typeArguments != null) {
               throw new Exception('Cannot handle type arguments in `$type`');
             }
+            int id;
+            for (Annotation annotation in classMember.metadata) {
+              if (annotation.name.name == 'Id') {
+                if (id != null) {
+                  throw new Exception(
+                      'Duplicate @id annotation ($classMember)');
+                }
+                if (annotation.arguments.arguments.length != 1) {
+                  throw new Exception(
+                      '@Id must be passed exactly one argument ($desc)');
+                }
+                Expression expression = annotation.arguments.arguments[0];
+                if (expression is IntegerLiteral) {
+                  id = expression.value;
+                } else {
+                  throw new Exception(
+                      '@Id parameter must be an integer literal ($desc)');
+                }
+              }
+            }
+            if (id == null) {
+              throw new Exception('Missing @id annotation ($desc)');
+            }
             String doc = _getNodeDoc(lineInfo, classMember);
             idlModel.FieldType fieldType =
                 new idlModel.FieldType(type.name.name, isList);
             cls.fields.add(new idlModel.FieldDeclaration(
-                doc, classMember.name.name, fieldType));
+                doc, classMember.name.name, fieldType, id));
           } else if (classMember is ConstructorDeclaration &&
               classMember.name.name == 'fromBuffer') {
             // Ignore `fromBuffer` declarations; they simply forward to the
@@ -404,7 +439,7 @@ class _CodeGenerator {
         out('assert(!_finished);');
         out('_finished = true;');
         // Write objects and remember Offset(s).
-        cls.fields.asMap().forEach((index, idlModel.FieldDeclaration field) {
+        for (idlModel.FieldDeclaration field in cls.fields) {
           idlModel.FieldType fieldType = field.type;
           String offsetName = 'offset_' + field.name;
           if (fieldType.isList ||
@@ -412,8 +447,8 @@ class _CodeGenerator {
               _idl.classes.containsKey(fieldType.typeName)) {
             out('fb.Offset $offsetName;');
           }
-        });
-        cls.fields.asMap().forEach((index, idlModel.FieldDeclaration field) {
+        }
+        for (idlModel.FieldDeclaration field in cls.fields) {
           idlModel.FieldType fieldType = field.type;
           String valueName = '_' + field.name;
           String offsetName = 'offset_' + field.name;
@@ -457,10 +492,11 @@ class _CodeGenerator {
             });
             out('}');
           }
-        });
+        }
         // Write the table.
         out('fbBuilder.startTable();');
-        cls.fields.asMap().forEach((index, idlModel.FieldDeclaration field) {
+        for (idlModel.FieldDeclaration field in cls.fields) {
+          int index = field.id;
           idlModel.FieldType fieldType = field.type;
           String valueName = '_' + field.name;
           String condition = '$valueName != null';
@@ -489,7 +525,7 @@ class _CodeGenerator {
             out(writeCode);
           });
           out('}');
-        });
+        }
         out('return fbBuilder.endTable();');
       });
       out('}');
@@ -536,7 +572,8 @@ class _CodeGenerator {
         out('$returnType _$fieldName;');
       }
       // Write getters.
-      cls.fields.asMap().forEach((index, field) {
+      for (idlModel.FieldDeclaration field in cls.fields) {
+        int index = field.id;
         String fieldName = field.name;
         idlModel.FieldType type = field.type;
         String typeName = type.typeName;
@@ -582,7 +619,7 @@ class _CodeGenerator {
           out('return _$fieldName;');
         });
         out('}');
-      });
+      }
     });
     out('}');
   }
