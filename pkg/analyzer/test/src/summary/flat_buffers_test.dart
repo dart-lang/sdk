@@ -4,6 +4,8 @@
 
 library test.src.summary.flat_buffers_test;
 
+import 'dart:typed_data';
+
 import 'package:analyzer/src/summary/flat_buffers.dart';
 import 'package:unittest/unittest.dart';
 
@@ -84,6 +86,39 @@ class BuilderTest {
     expect(const Int32Reader().vTableGet(object, 0, 15), 15);
     // has the written value
     expect(const Int32Reader().vTableGet(object, 1, 15), 20);
+  }
+
+  void test_table_format() {
+    Uint8List byteList;
+    {
+      Builder builder = new Builder(initialSize: 0);
+      builder.startTable();
+      builder.addInt32(0, 10);
+      builder.addInt32(1, 20);
+      builder.addInt32(2, 30);
+      byteList = builder.finish(builder.endTable());
+    }
+    // Convert byteList to a ByteData so that we can read data from it.
+    ByteData byteData = byteList.buffer.asByteData(byteList.offsetInBytes);
+    // First 4 bytes are an offset to the table data.
+    int tableDataLoc = byteData.getUint32(0, Endianness.LITTLE_ENDIAN);
+    // First 4 bytes of the table data are a backwards offset to the vtable.
+    int vTableLoc = tableDataLoc -
+        byteData.getInt32(tableDataLoc, Endianness.LITTLE_ENDIAN);
+    // First 2 bytes of the vtable are the size of the vtable in bytes, which
+    // should be 10.
+    expect(byteData.getUint16(vTableLoc, Endianness.LITTLE_ENDIAN), 10);
+    // Next 2 bytes are the size of the object in bytes (including the vtable
+    // pointer), which should be 16.
+    expect(byteData.getUint16(vTableLoc + 2, Endianness.LITTLE_ENDIAN), 16);
+    // Remaining 6 bytes are the offsets within the object where the ints are
+    // located.
+    for (int i = 0; i < 3; i++) {
+      int offset =
+          byteData.getUint16(vTableLoc + 4 + 2 * i, Endianness.LITTLE_ENDIAN);
+      expect(byteData.getInt32(tableDataLoc + offset, Endianness.LITTLE_ENDIAN),
+          10 + 10 * i);
+    }
   }
 
   void test_table_types() {

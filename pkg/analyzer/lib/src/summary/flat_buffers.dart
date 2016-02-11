@@ -206,11 +206,11 @@ class Builder {
     if (_currentVTable == null) {
       throw new StateError('Start a table before ending it.');
     }
-    // Prepare the size of the current table.
-    _currentVTable.tableSize = _tail - _currentTableEndTail;
     // Prepare for writing the VTable.
     _prepare(4, 1);
     int tableTail = _tail;
+    // Prepare the size of the current table.
+    _currentVTable.tableSize = tableTail - _currentTableEndTail;
     // Prepare the VTable to use for the current table.
     int vTableTail;
     {
