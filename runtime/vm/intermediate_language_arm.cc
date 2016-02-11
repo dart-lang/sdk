@@ -2883,10 +2883,15 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       const Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
-      ASSERT(FLAG_allow_absolute_addresses);
-      __ LoadImmediate(IP, flags_address);
-      __ LoadImmediate(value, Isolate::kOsrRequest);
-      __ str(value, Address(IP));
+      if (FLAG_allow_absolute_addresses) {
+        __ LoadImmediate(IP, flags_address);
+        __ LoadImmediate(value, Isolate::kOsrRequest);
+        __ str(value, Address(IP));
+      } else {
+        __ LoadIsolate(IP);
+        __ LoadImmediate(value, Isolate::kOsrRequest);
+        __ str(value, Address(IP, Isolate::stack_overflow_flags_offset()));
+      }
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());

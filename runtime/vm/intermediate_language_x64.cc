@@ -2612,9 +2612,14 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       Register temp = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
-      ASSERT(FLAG_allow_absolute_addresses);
-      __ LoadImmediate(temp, Immediate(flags_address));
-      __ movq(Address(temp, 0), Immediate(Isolate::kOsrRequest));
+      if (FLAG_allow_absolute_addresses) {
+        __ LoadImmediate(temp, Immediate(flags_address));
+        __ movq(Address(temp, 0), Immediate(Isolate::kOsrRequest));
+      } else {
+        __ LoadIsolate(TMP);
+        __ movq(Address(TMP, Isolate::stack_overflow_flags_offset()),
+                Immediate(Isolate::kOsrRequest));
+      }
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());

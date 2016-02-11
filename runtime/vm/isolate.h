@@ -275,6 +275,9 @@ class Isolate : public BaseIsolate {
   uword stack_overflow_flags_address() const {
     return reinterpret_cast<uword>(&stack_overflow_flags_);
   }
+  static intptr_t stack_overflow_flags_offset() {
+    return OFFSET_OF(Isolate, stack_overflow_flags_);
+  }
 
   int32_t IncrementAndGetStackOverflowCount() {
     return ++stack_overflow_count_;

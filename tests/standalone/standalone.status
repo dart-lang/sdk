@@ -213,6 +213,10 @@ io/https_client_certificate_test: RuntimeError # Issue 24070
 io/secure_socket_renegotiate_test: RuntimeError
 io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection just puts a READ_CLOSED on the stream, rather than signaling an error on the stream.
 
+[ $arch == ia32 ]
+no_allow_absolute_addresses_test: SkipByDesign # Not supported.
+link_natives_lazily_test: SkipByDesign # Not supported.
+
 [ ($noopt || $compiler == precompiler) ]
 map_literal_oom_test: Pass, Crash # Issue 24678
 io/web_socket_test: Pass, RuntimeError # Issue 24674
