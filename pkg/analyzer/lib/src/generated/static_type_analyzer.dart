@@ -1535,14 +1535,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   // TODO(vsm): Use leafp's matchType here?
   DartType _findIteratedType(DartType type, DartType targetType) {
     // Set by _find if match is found
-    DartType result = null;
+    DartType result;
     // Elements we've already visited on a given inheritance path.
-    HashSet<ClassElement> visitedClasses = null;
+    HashSet<ClassElement> visitedClasses;
 
-    while (type is TypeParameterType) {
-      TypeParameterElement element = type.element;
-      type = element.bound;
-    }
+    type = type.resolveToBound(_typeProvider.objectType);
 
     bool _find(InterfaceType type) {
       ClassElement element = type.element;

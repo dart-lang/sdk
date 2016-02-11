@@ -150,6 +150,15 @@ abstract class DartType {
    */
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes);
+
+  /**
+   * If this type is a [TypeParameterType], returns its bound if it has one, or
+   * [objectType] otherwise.
+   *
+   * For any other type, returns `this`. Applies recursively -- if the bound is
+   * itself a type parameter, that is resolved too.
+   */
+  DartType resolveToBound(DartType objectType);
 }
 
 /**

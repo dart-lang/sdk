@@ -622,26 +622,12 @@ class TypeSystemImpl implements TypeSystem {
     if (type2.isBottom) {
       return type1;
     }
+
     // Let U be a type variable with upper bound B.  The least upper bound of U
     // and a type T is the least upper bound of B and T.
-    while (type1 is TypeParameterType) {
-      // TODO(paulberry): is this correct in the complex of F-bounded
-      // polymorphism?
-      DartType bound = (type1 as TypeParameterType).element.bound;
-      if (bound == null) {
-        bound = typeProvider.objectType;
-      }
-      type1 = bound;
-    }
-    while (type2 is TypeParameterType) {
-      // TODO(paulberry): is this correct in the context of F-bounded
-      // polymorphism?
-      DartType bound = (type2 as TypeParameterType).element.bound;
-      if (bound == null) {
-        bound = typeProvider.objectType;
-      }
-      type2 = bound;
-    }
+    type1 = type1.resolveToBound(typeProvider.objectType);
+    type2 = type2.resolveToBound(typeProvider.objectType);
+
     // The least upper bound of a function type and an interface type T is the
     // least upper bound of Function and T.
     if (type1 is FunctionType && type2 is InterfaceType) {

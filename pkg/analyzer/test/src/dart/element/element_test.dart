@@ -1857,6 +1857,14 @@ class FunctionTypeImplTest extends EngineTestCase {
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
+  void test_resolveToBound() {
+    FunctionElementImpl f = ElementFactory.functionElement('f');
+    FunctionTypeImpl type = f.type;
+
+    // Returns this.
+    expect(type.resolveToBound(null), same(type));
+  }
+
   void test_returnType_pruned_no_type_arguments() {
     FunctionTypeAliasElementImpl f =
         ElementFactory.functionTypeAliasElement('f');
@@ -3392,6 +3400,14 @@ class InterfaceTypeImplTest extends EngineTestCase {
     expect(typeA.lookUpSetter("s", library), isNull);
   }
 
+  void test_resolveToBound() {
+    InterfaceTypeImpl type =
+        ElementFactory.classElement2("A").type as InterfaceTypeImpl;
+
+    // Returns this.
+    expect(type.resolveToBound(null), same(type));
+  }
+
   void test_setTypeArguments() {
     InterfaceTypeImpl type =
         ElementFactory.classElement2("A").type as InterfaceTypeImpl;
@@ -3936,6 +3952,36 @@ class TypeParameterTypeImplTest extends EngineTestCase {
     expect(typeParameterTypeT.isMoreSpecificThan(classS.type), isTrue);
   }
 
+  void test_resolveToBound_unbound() {
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(
+        new TypeParameterElementImpl.forNode(AstFactory.identifier3("E")));
+    // Returns whatever type is passed to resolveToBound().
+    expect(type.resolveToBound(VoidTypeImpl.instance),
+        same(VoidTypeImpl.instance));
+  }
+
+  void test_resolveToBound_bound() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+    new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
+    element.bound = classS.type;
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    expect(type.resolveToBound(null), same(classS.type));
+  }
+
+  void test_resolveToBound_nestedBound() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl elementE =
+    new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
+    elementE.bound = classS.type;
+    TypeParameterTypeImpl typeE = new TypeParameterTypeImpl(elementE);
+    TypeParameterElementImpl elementF =
+    new TypeParameterElementImpl.forNode(AstFactory.identifier3("F"));
+    elementF.bound = typeE;
+    TypeParameterTypeImpl typeF = new TypeParameterTypeImpl(elementE);
+    expect(typeF.resolveToBound(null), same(classS.type));
+  }
+
   void test_substitute_equal() {
     TypeParameterElementImpl element =
         new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
@@ -3994,6 +4040,11 @@ class VoidTypeImplTest extends EngineTestCase {
 
   void test_isVoid() {
     expect(_voidType.isVoid, isTrue);
+  }
+
+  void test_resolveToBound() {
+    // Returns this.
+    expect(_voidType.resolveToBound(null), same(_voidType));
   }
 }
 

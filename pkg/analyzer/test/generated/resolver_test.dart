@@ -14002,6 +14002,18 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
+  void test_genericMethod_nestedBound() {
+    String code = r'''
+class Foo<T extends num> {
+  void method/*<U extends T>*/(dynamic/*=U*/ u) {
+    u.abs();
+  }
+}
+''';
+    // Just validate that there is no warning on the call to `.abs()`.
+    _resolveTestUnit(code);
+  }
+
   void test_genericMethod_then_propagatedType() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25482.
     String code = r'''

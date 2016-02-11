@@ -2172,6 +2172,9 @@ abstract class TypeImpl implements DartType {
       [List<FunctionTypeAliasElement> prune]);
 
   @override
+  DartType resolveToBound(DartType objectType) => this;
+
+  @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
     appendTo(buffer);
@@ -2336,6 +2339,15 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       types[i] = typeParameters[i].type;
     }
     return types;
+  }
+
+  @override
+  DartType resolveToBound(DartType objectType) {
+    if (element.bound == null) {
+      return objectType;
+    }
+
+    return element.bound.resolveToBound(objectType);
   }
 }
 

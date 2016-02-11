@@ -2425,26 +2425,15 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * If the given [type] is a type parameter, resolve it to the type that should
    * be used when looking up members. Otherwise, return the original type.
    */
-  DartType _resolveTypeParameter(DartType type) {
-    if (type is TypeParameterType) {
-      DartType bound = type.element.bound;
-      if (bound == null) {
-        return _resolver.typeProvider.objectType;
-      }
-      return bound;
-    }
-    return type;
-  }
+  DartType _resolveTypeParameter(DartType type) =>
+      type?.resolveToBound(_resolver.typeProvider.objectType);
 
   /**
    * Return `true` if we should report an error as a result of looking up a
    * [member] in the given [type] and not finding any member.
    */
   bool _shouldReportMissingMember(DartType type, Element member) {
-    if (member != null || type == null || type.isDynamic || type.isBottom) {
-      return false;
-    }
-    return true;
+    return member == null && type != null && !type.isDynamic && !type.isBottom;
   }
 
   /**
