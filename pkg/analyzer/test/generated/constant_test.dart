@@ -622,10 +622,10 @@ class ConstantFinderTest {
     return new List<Annotation>.from(annotations);
   }
 
-  Set<ConstantEvaluationTarget> _findConstants() {
+  List<ConstantEvaluationTarget> _findConstants() {
     ConstantFinder finder = new ConstantFinder(_context, _source, _source);
     _node.accept(finder);
-    Set<ConstantEvaluationTarget> constants = finder.constantsToCompute;
+    List<ConstantEvaluationTarget> constants = finder.constantsToCompute;
     expect(constants, isNotNull);
     return constants;
   }

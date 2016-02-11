@@ -1248,8 +1248,8 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   /**
    * The elements and AST nodes whose constant values need to be computed.
    */
-  HashSet<ConstantEvaluationTarget> constantsToCompute =
-      new HashSet<ConstantEvaluationTarget>();
+  List<ConstantEvaluationTarget> constantsToCompute =
+      <ConstantEvaluationTarget>[];
 
   /**
    * True if instance variables marked as "final" should be treated as "const".
