@@ -32,7 +32,7 @@ import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 import '../../utils.dart';
 import '../context/abstract_context.dart';
-import '../mock_sdk.dart';
+import '../context/mock_sdk.dart';
 
 main() {
   initializeTestEnvironment();

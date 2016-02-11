@@ -1,5 +1,4 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
-
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,17 +10,17 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/context/context.dart' show SdkAnalysisContext;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:logging/logging.dart';
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
+
+import '../../context/mock_sdk.dart';
 
 MemoryResourceProvider files;
 bool _checkCalled;
@@ -80,13 +79,13 @@ void check() {
   expect(files.getFile('/main.dart').exists, true,
       reason: '`/main.dart` is missing');
 
-  var uriResolver = new TestUriResolver(files);
+  var uriResolver = new _TestUriResolver(files);
   // Enable task model strong mode
   var context = AnalysisEngine.instance.createAnalysisContext();
   context.analysisOptions.strongMode = true;
   context.analysisOptions.strongModeHints = true;
   context.sourceFactory = new SourceFactory([
-    new MockDartSdk(_mockSdkSources, reportMissing: true).resolver,
+    new DartUriResolver(new MockSdk()),
     uriResolver
   ]);
 
@@ -120,102 +119,6 @@ void check() {
     }
   }
 }
-
-/// Sample mock SDK sources.
-final Map<String, String> _mockSdkSources = {
-  // The list of types below is derived from:
-  //   * types we use via our smoke queries, including HtmlElement and
-  //     types from `_typeHandlers` (deserialize.dart)
-  //   * types that are used internally by the resolver (see
-  //   _initializeFrom in resolver.dart).
-  'dart:core': '''
-        library dart.core;
-
-        void print(Object o) {}
-
-        class Object {
-          int get hashCode {}
-          Type get runtimeType {}
-          String toString(){}
-          bool ==(other){}
-        }
-        class Function {}
-        class StackTrace {}
-        class Symbol {}
-        class Type {}
-
-        class String {
-          String operator +(String other) {}
-          String substring(int len) {}
-        }
-        class bool {}
-        class num {
-          num operator +(num other) {}
-        }
-        class int extends num {
-          bool operator<(num other) {}
-          int operator-() {}
-        }
-        class double extends num {}
-        class DateTime {}
-        class Null {}
-
-        class Deprecated {
-          final String expires;
-          const Deprecated(this.expires);
-        }
-        const Object deprecated = const Deprecated("next release");
-        class _Override { const _Override(); }
-        const Object override = const _Override();
-        class _Proxy { const _Proxy(); }
-        const Object proxy = const _Proxy();
-
-        class Iterable<E> {
-          Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e));
-
-          /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
-              /*=R*/ combine(/*=R*/ previousValue, E element));
-        }
-        class List<E> implements Iterable<E> {
-          List([int length]);
-          List.filled(int length, E fill);
-        }
-        class Map<K, V> {
-          Iterable<K> get keys {}
-        }
-        ''',
-  'dart:async': '''
-        library dart.async;
-        class Future<T> {
-          Future(computation()) {}
-          Future.value(T t) {}
-          static Future<List/*<T>*/> wait/*<T>*/(
-              Iterable<Future/*<T>*/> futures) => null;
-          Future/*<R>*/ then/*<R>*/(/*=R*/ onValue(T value)) => null;
-        }
-        class Stream<T> {}
-  ''',
-  'dart:html': '''
-        library dart.html;
-        class HtmlElement {}
-        ''',
-  'dart:math': '''
-        library dart.math;
-        class Random {
-          bool nextBool() {}
-        }
-        num/*=T*/ min/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) => null;
-        num/*=T*/ max/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) => null;
-        ''',
-
-  'dart:_foreign_helper': '''
-  library dart._foreign_helper;
-
-  JS(String typeDescription, String codeTemplate,
-    [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11])
-  {}
-  '''
-};
 
 SourceSpanWithContext createSpanHelper(
     LineInfo lineInfo, int start, Source source, String content,
@@ -277,65 +180,9 @@ List<LibraryElement> reachableLibraries(LibraryElement start) {
   return results;
 }
 
-/// Dart SDK which contains a mock implementation of the SDK libraries. May be
-/// used to speed up execution when most of the core libraries is not needed.
-class MockDartSdk implements DartSdk {
-  final Map<Uri, _MockSdkSource> _sources = {};
-  final bool reportMissing;
-  final Map<String, SdkLibrary> _libs = {};
-  final String sdkVersion = '0';
-  final AnalysisContext context = new SdkAnalysisContext();
-  DartUriResolver _resolver;
-
-  MockDartSdk(Map<String, String> sources, {this.reportMissing}) {
-    sources.forEach((uriString, contents) {
-      var uri = Uri.parse(uriString);
-      _sources[uri] = new _MockSdkSource(uri, contents);
-      _libs[uriString] = new SdkLibraryImpl(uri.path)
-        ..setDart2JsLibrary()
-        ..setVmLibrary();
-    });
-    _resolver = new DartUriResolver(this);
-    context.sourceFactory = new SourceFactory([_resolver]);
-  }
-
-  DartUriResolver get resolver => _resolver;
-
-  List<SdkLibrary> get sdkLibraries => _libs.values.toList();
-
-  List<String> get uris => _sources.keys.map((uri) => '$uri').toList();
-
-  Source fromEncoding(UriKind kind, Uri uri) {
-    if (kind != UriKind.DART_URI) {
-      throw new UnsupportedError('expected dart: uri kind, got $kind.');
-    }
-    return _getSource(uri);
-  }
-
-  @override
-  Source fromFileUri(Uri uri) {
-    throw new UnsupportedError('MockDartSdk.fromFileUri');
-  }
-
-  SdkLibrary getSdkLibrary(String dartUri) => _libs[dartUri];
-
-  Source mapDartUri(String dartUri) => _getSource(Uri.parse(dartUri));
-
-  Source _getSource(Uri uri) {
-    var src = _sources[uri];
-    if (src == null) {
-      if (reportMissing) print('warning: missing mock for $uri.');
-      _sources[uri] =
-          src = new _MockSdkSource(uri, 'library dart.${uri.path};');
-    }
-    return src;
-  }
-}
-
-class TestUriResolver extends ResourceUriResolver {
+class _TestUriResolver extends ResourceUriResolver {
   final MemoryResourceProvider provider;
-
-  TestUriResolver(provider)
+  _TestUriResolver(provider)
       : provider = provider,
         super(provider);
 
@@ -524,39 +371,4 @@ Level _actualErrorLevel(AnalysisError actual) {
     ErrorSeverity.WARNING: Level.WARNING,
     ErrorSeverity.INFO: Level.INFO
   }[actual.errorCode.errorSeverity];
-}
-
-class _MockSdkSource implements Source {
-  /// Absolute URI which this source can be imported from.
-  final Uri uri;
-  final String _contents;
-
-  final int modificationStamp = 1;
-
-  _MockSdkSource(this.uri, this._contents);
-
-  TimestampedData<String> get contents =>
-      new TimestampedData(modificationStamp, _contents);
-
-  String get encoding => "${uriKind.encoding}$uri";
-
-  String get fullName => shortName;
-
-  int get hashCode => uri.hashCode;
-
-  bool get isInSystemLibrary => true;
-
-  String get shortName => uri.path;
-
-  Source get source => this;
-
-  UriKind get uriKind => UriKind.DART_URI;
-
-  bool exists() => true;
-
-  Source resolveRelative(Uri relativeUri) =>
-      throw new UnsupportedError('not expecting relative urls in dart: mocks');
-
-  Uri resolveRelativeUri(Uri relativeUri) =>
-      throw new UnsupportedError('not expecting relative urls in dart: mocks');
 }

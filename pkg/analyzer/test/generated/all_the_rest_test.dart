@@ -3971,32 +3971,6 @@ class FileUriResolverTest {
   }
 }
 
-/**
- * Instances of the class `MockDartSdk` implement a [DartSdk].
- */
-class MockDartSdk implements DartSdk {
-  @override
-  AnalysisContext get context => null;
-
-  @override
-  List<SdkLibrary> get sdkLibraries => null;
-
-  @override
-  String get sdkVersion => null;
-
-  @override
-  List<String> get uris => null;
-
-  @override
-  Source fromFileUri(Uri uri) => null;
-
-  @override
-  SdkLibrary getSdkLibrary(String dartUri) => null;
-
-  @override
-  Source mapDartUri(String dartUri) => null;
-}
-
 @reflectiveTest
 class SDKLibrariesReaderTest extends EngineTestCase {
   void test_readFrom_dart2js() {

@@ -25,23 +25,23 @@ abstract class DartSdk {
   /**
    * The short name of the dart SDK 'async' library.
    */
-  static final String DART_ASYNC = "dart:async";
+  static const String DART_ASYNC = "dart:async";
 
   /**
    * The short name of the dart SDK 'core' library.
    */
-  static final String DART_CORE = "dart:core";
+  static const String DART_CORE = "dart:core";
 
   /**
    * The short name of the dart SDK 'html' library.
    */
-  static final String DART_HTML = "dart:html";
+  static const String DART_HTML = "dart:html";
 
   /**
    * The version number that is returned when the real version number could not
    * be determined.
    */
-  static final String DEFAULT_VERSION = "0";
+  static const String DEFAULT_VERSION = "0";
 
   /**
    * Return the analysis context used for all of the sources in this [DartSdk].
@@ -280,7 +280,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
             library.category =
                 convertCategories((expression as StringLiteral).stringValue);
           } else if (name == _IMPLEMENTATION) {
-            library.implementation = (expression as BooleanLiteral).value;
+            library._implementation = (expression as BooleanLiteral).value;
           } else if (name == _DOCUMENTED) {
             library.documented = (expression as BooleanLiteral).value;
           } else if (name == _PLATFORMS) {
@@ -420,13 +420,6 @@ class SdkLibraryImpl implements SdkLibrary {
     this._documented = documented;
   }
 
-  /**
-   * Set whether the library is an implementation library.
-   */
-  void set implementation(bool implementation) {
-    this._implementation = implementation;
-  }
-
   @override
   bool get isDart2JsLibrary => (_platforms & DART2JS_PLATFORM) != 0;
 
@@ -437,7 +430,7 @@ class SdkLibraryImpl implements SdkLibrary {
   bool get isImplementation => _implementation;
 
   @override
-  bool get isInternal => "Internal" == category;
+  bool get isInternal => category == "Internal";
 
   @override
   bool get isShared => category == "Shared";
