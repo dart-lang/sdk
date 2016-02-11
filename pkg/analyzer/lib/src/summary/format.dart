@@ -2433,6 +2433,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   bool _isRedirectedConstructor;
   bool _isStatic;
   idl.UnlinkedExecutableKind _kind;
+  List<UnlinkedExecutableBuilder> _localFunctions;
+  List<UnlinkedVariableBuilder> _localVariables;
   String _name;
   int _nameOffset;
   List<UnlinkedParamBuilder> _parameters;
@@ -2440,6 +2442,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   String _redirectedConstructorName;
   EntityRefBuilder _returnType;
   List<UnlinkedTypeParamBuilder> _typeParameters;
+  int _visibleLength;
+  int _visibleOffset;
 
   @override
   List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
@@ -2575,6 +2579,28 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
+  List<UnlinkedExecutableBuilder> get localFunctions => _localFunctions ??= <UnlinkedExecutableBuilder>[];
+
+  /**
+   * The list of local functions.
+   */
+  void set localFunctions(List<UnlinkedExecutableBuilder> _value) {
+    assert(!_finished);
+    _localFunctions = _value;
+  }
+
+  @override
+  List<UnlinkedVariableBuilder> get localVariables => _localVariables ??= <UnlinkedVariableBuilder>[];
+
+  /**
+   * The list of local variables.
+   */
+  void set localVariables(List<UnlinkedVariableBuilder> _value) {
+    assert(!_finished);
+    _localVariables = _value;
+  }
+
+  @override
   String get name => _name ??= '';
 
   /**
@@ -2664,7 +2690,31 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _typeParameters = _value;
   }
 
-  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedConstructorInitializerBuilder> constantInitializers, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters})
+  @override
+  int get visibleLength => _visibleLength ??= 0;
+
+  /**
+   * If a local function, the length of the visible range; zero otherwise.
+   */
+  void set visibleLength(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _visibleLength = _value;
+  }
+
+  @override
+  int get visibleOffset => _visibleOffset ??= 0;
+
+  /**
+   * If a local function, the beginning of the visible range; zero otherwise.
+   */
+  void set visibleOffset(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _visibleOffset = _value;
+  }
+
+  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedConstructorInitializerBuilder> constantInitializers, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedVariableBuilder> localVariables, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _constantInitializers = constantInitializers,
       _documentationComment = documentationComment,
@@ -2676,13 +2726,17 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       _isRedirectedConstructor = isRedirectedConstructor,
       _isStatic = isStatic,
       _kind = kind,
+      _localFunctions = localFunctions,
+      _localVariables = localVariables,
       _name = name,
       _nameOffset = nameOffset,
       _parameters = parameters,
       _redirectedConstructor = redirectedConstructor,
       _redirectedConstructorName = redirectedConstructorName,
       _returnType = returnType,
-      _typeParameters = typeParameters;
+      _typeParameters = typeParameters,
+      _visibleLength = visibleLength,
+      _visibleOffset = visibleOffset;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -2690,6 +2744,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     fb.Offset offset_annotations;
     fb.Offset offset_constantInitializers;
     fb.Offset offset_documentationComment;
+    fb.Offset offset_localFunctions;
+    fb.Offset offset_localVariables;
     fb.Offset offset_name;
     fb.Offset offset_parameters;
     fb.Offset offset_redirectedConstructor;
@@ -2704,6 +2760,12 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     }
     if (_documentationComment != null) {
       offset_documentationComment = _documentationComment.finish(fbBuilder);
+    }
+    if (!(_localFunctions == null || _localFunctions.isEmpty)) {
+      offset_localFunctions = fbBuilder.writeList(_localFunctions.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_localVariables == null || _localVariables.isEmpty)) {
+      offset_localVariables = fbBuilder.writeList(_localVariables.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
@@ -2757,26 +2819,38 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     if (_kind != null && _kind != idl.UnlinkedExecutableKind.functionOrMethod) {
       fbBuilder.addUint32(10, _kind.index);
     }
+    if (offset_localFunctions != null) {
+      fbBuilder.addOffset(11, offset_localFunctions);
+    }
+    if (offset_localVariables != null) {
+      fbBuilder.addOffset(12, offset_localVariables);
+    }
     if (offset_name != null) {
-      fbBuilder.addOffset(11, offset_name);
+      fbBuilder.addOffset(13, offset_name);
     }
     if (_nameOffset != null && _nameOffset != 0) {
-      fbBuilder.addUint32(12, _nameOffset);
+      fbBuilder.addUint32(14, _nameOffset);
     }
     if (offset_parameters != null) {
-      fbBuilder.addOffset(13, offset_parameters);
+      fbBuilder.addOffset(15, offset_parameters);
     }
     if (offset_redirectedConstructor != null) {
-      fbBuilder.addOffset(14, offset_redirectedConstructor);
+      fbBuilder.addOffset(16, offset_redirectedConstructor);
     }
     if (offset_redirectedConstructorName != null) {
-      fbBuilder.addOffset(15, offset_redirectedConstructorName);
+      fbBuilder.addOffset(17, offset_redirectedConstructorName);
     }
     if (offset_returnType != null) {
-      fbBuilder.addOffset(16, offset_returnType);
+      fbBuilder.addOffset(18, offset_returnType);
     }
     if (offset_typeParameters != null) {
-      fbBuilder.addOffset(17, offset_typeParameters);
+      fbBuilder.addOffset(19, offset_typeParameters);
+    }
+    if (_visibleLength != null && _visibleLength != 0) {
+      fbBuilder.addUint32(20, _visibleLength);
+    }
+    if (_visibleOffset != null && _visibleOffset != 0) {
+      fbBuilder.addUint32(21, _visibleOffset);
     }
     return fbBuilder.endTable();
   }
@@ -2805,6 +2879,8 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   bool _isRedirectedConstructor;
   bool _isStatic;
   idl.UnlinkedExecutableKind _kind;
+  List<idl.UnlinkedExecutable> _localFunctions;
+  List<idl.UnlinkedVariable> _localVariables;
   String _name;
   int _nameOffset;
   List<idl.UnlinkedParam> _parameters;
@@ -2812,6 +2888,8 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   String _redirectedConstructorName;
   idl.EntityRef _returnType;
   List<idl.UnlinkedTypeParam> _typeParameters;
+  int _visibleLength;
+  int _visibleOffset;
 
   @override
   List<idl.UnlinkedConst> get annotations {
@@ -2880,45 +2958,69 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   }
 
   @override
+  List<idl.UnlinkedExecutable> get localFunctions {
+    _localFunctions ??= const fb.ListReader<idl.UnlinkedExecutable>(const _UnlinkedExecutableReader()).vTableGet(_bp, 11, const <idl.UnlinkedExecutable>[]);
+    return _localFunctions;
+  }
+
+  @override
+  List<idl.UnlinkedVariable> get localVariables {
+    _localVariables ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bp, 12, const <idl.UnlinkedVariable>[]);
+    return _localVariables;
+  }
+
+  @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 11, '');
+    _name ??= const fb.StringReader().vTableGet(_bp, 13, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 12, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 14, 0);
     return _nameOffset;
   }
 
   @override
   List<idl.UnlinkedParam> get parameters {
-    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 13, const <idl.UnlinkedParam>[]);
+    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 15, const <idl.UnlinkedParam>[]);
     return _parameters;
   }
 
   @override
   idl.EntityRef get redirectedConstructor {
-    _redirectedConstructor ??= const _EntityRefReader().vTableGet(_bp, 14, null);
+    _redirectedConstructor ??= const _EntityRefReader().vTableGet(_bp, 16, null);
     return _redirectedConstructor;
   }
 
   @override
   String get redirectedConstructorName {
-    _redirectedConstructorName ??= const fb.StringReader().vTableGet(_bp, 15, '');
+    _redirectedConstructorName ??= const fb.StringReader().vTableGet(_bp, 17, '');
     return _redirectedConstructorName;
   }
 
   @override
   idl.EntityRef get returnType {
-    _returnType ??= const _EntityRefReader().vTableGet(_bp, 16, null);
+    _returnType ??= const _EntityRefReader().vTableGet(_bp, 18, null);
     return _returnType;
   }
 
   @override
   List<idl.UnlinkedTypeParam> get typeParameters {
-    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bp, 17, const <idl.UnlinkedTypeParam>[]);
+    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bp, 19, const <idl.UnlinkedTypeParam>[]);
     return _typeParameters;
+  }
+
+  @override
+  int get visibleLength {
+    _visibleLength ??= const fb.Uint32Reader().vTableGet(_bp, 20, 0);
+    return _visibleLength;
+  }
+
+  @override
+  int get visibleOffset {
+    _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bp, 21, 0);
+    return _visibleOffset;
   }
 }
 
@@ -2936,6 +3038,8 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     "isRedirectedConstructor": isRedirectedConstructor,
     "isStatic": isStatic,
     "kind": kind,
+    "localFunctions": localFunctions,
+    "localVariables": localVariables,
     "name": name,
     "nameOffset": nameOffset,
     "parameters": parameters,
@@ -2943,6 +3047,8 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     "redirectedConstructorName": redirectedConstructorName,
     "returnType": returnType,
     "typeParameters": typeParameters,
+    "visibleLength": visibleLength,
+    "visibleOffset": visibleOffset,
   };
 }
 
@@ -5118,6 +5224,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   int _nameOffset;
   int _propagatedTypeSlot;
   EntityRefBuilder _type;
+  int _visibleLength;
+  int _visibleOffset;
 
   @override
   List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
@@ -5258,7 +5366,31 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _type = _value;
   }
 
-  UnlinkedVariableBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder constExpr, UnlinkedDocumentationCommentBuilder documentationComment, int inferredTypeSlot, bool isConst, bool isFinal, bool isStatic, String name, int nameOffset, int propagatedTypeSlot, EntityRefBuilder type})
+  @override
+  int get visibleLength => _visibleLength ??= 0;
+
+  /**
+   * If a local variable, the length of the visible range; zero otherwise.
+   */
+  void set visibleLength(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _visibleLength = _value;
+  }
+
+  @override
+  int get visibleOffset => _visibleOffset ??= 0;
+
+  /**
+   * If a local variable, the beginning of the visible range; zero otherwise.
+   */
+  void set visibleOffset(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _visibleOffset = _value;
+  }
+
+  UnlinkedVariableBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder constExpr, UnlinkedDocumentationCommentBuilder documentationComment, int inferredTypeSlot, bool isConst, bool isFinal, bool isStatic, String name, int nameOffset, int propagatedTypeSlot, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _constExpr = constExpr,
       _documentationComment = documentationComment,
@@ -5269,7 +5401,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
       _name = name,
       _nameOffset = nameOffset,
       _propagatedTypeSlot = propagatedTypeSlot,
-      _type = type;
+      _type = type,
+      _visibleLength = visibleLength,
+      _visibleOffset = visibleOffset;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -5328,6 +5462,12 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     if (offset_type != null) {
       fbBuilder.addOffset(10, offset_type);
     }
+    if (_visibleLength != null && _visibleLength != 0) {
+      fbBuilder.addUint32(11, _visibleLength);
+    }
+    if (_visibleOffset != null && _visibleOffset != 0) {
+      fbBuilder.addUint32(12, _visibleOffset);
+    }
     return fbBuilder.endTable();
   }
 }
@@ -5355,6 +5495,8 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   int _nameOffset;
   int _propagatedTypeSlot;
   idl.EntityRef _type;
+  int _visibleLength;
+  int _visibleOffset;
 
   @override
   List<idl.UnlinkedConst> get annotations {
@@ -5421,6 +5563,18 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
     _type ??= const _EntityRefReader().vTableGet(_bp, 10, null);
     return _type;
   }
+
+  @override
+  int get visibleLength {
+    _visibleLength ??= const fb.Uint32Reader().vTableGet(_bp, 11, 0);
+    return _visibleLength;
+  }
+
+  @override
+  int get visibleOffset {
+    _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bp, 12, 0);
+    return _visibleOffset;
+  }
 }
 
 abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
@@ -5437,6 +5591,8 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
     "nameOffset": nameOffset,
     "propagatedTypeSlot": propagatedTypeSlot,
     "type": type,
+    "visibleLength": visibleLength,
+    "visibleOffset": visibleOffset,
   };
 }
 

@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -586,6 +587,17 @@ class _CompilationUnitSerializer {
     b.isExternal = executableElement.isExternal;
     b.documentationComment = serializeDocumentation(executableElement);
     b.annotations = serializeAnnotations(executableElement);
+    if (executableElement is FunctionElement) {
+      SourceRange visibleRange = executableElement.visibleRange;
+      if (visibleRange != null) {
+        b.visibleOffset = visibleRange.offset;
+        b.visibleLength = visibleRange.length;
+      }
+    }
+    b.localFunctions =
+        executableElement.functions.map(serializeExecutable).toList();
+    b.localVariables =
+        executableElement.localVariables.map(serializeVariable).toList();
     return b;
   }
 
@@ -853,7 +865,7 @@ class _CompilationUnitSerializer {
   /**
    * Serialize the given [variable], creating an [UnlinkedVariable].
    */
-  UnlinkedVariableBuilder serializeVariable(PropertyInducingElement variable) {
+  UnlinkedVariableBuilder serializeVariable(VariableElement variable) {
     UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
     b.name = variable.name;
     b.nameOffset = variable.nameOffset;
@@ -872,15 +884,25 @@ class _CompilationUnitSerializer {
         b.constExpr = serializeConstExpr(initializer);
       }
     }
-    if (b.isFinal || b.isConst) {
-      b.propagatedTypeSlot = storeLinkedType(variable.propagatedType, variable);
-    } else {
-      // Variable is not propagable.
-      assert(variable.propagatedType == null);
+    if (variable is PropertyInducingElement) {
+      if (b.isFinal || b.isConst) {
+        b.propagatedTypeSlot =
+            storeLinkedType(variable.propagatedType, variable);
+      } else {
+        // Variable is not propagable.
+        assert(variable.propagatedType == null);
+      }
     }
     if (variable.hasImplicitType &&
         (variable.initializer != null || !variable.isStatic)) {
       b.inferredTypeSlot = storeInferredType(variable.type, variable);
+    }
+    if (variable is LocalVariableElement) {
+      SourceRange visibleRange = variable.visibleRange;
+      if (visibleRange != null) {
+        b.visibleOffset = visibleRange.offset;
+        b.visibleLength = visibleRange.length;
+      }
     }
     return b;
   }

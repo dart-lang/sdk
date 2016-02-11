@@ -1040,6 +1040,16 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   UnlinkedExecutableKind get kind;
 
   /**
+   * The list of local functions.
+   */
+  List<UnlinkedExecutable> get localFunctions;
+
+  /**
+   * The list of local variables.
+   */
+  List<UnlinkedVariable> get localVariables;
+
+  /**
    * Name of the executable.  For setters, this includes the trailing "=".  For
    * named constructors, this excludes the class name and excludes the ".".
    * For unnamed constructors, this is the empty string.
@@ -1086,6 +1096,16 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    * method syntax is disabled.
    */
   List<UnlinkedTypeParam> get typeParameters;
+
+  /**
+   * If a local function, the length of the visible range; zero otherwise.
+   */
+  int get visibleLength;
+
+  /**
+   * If a local function, the beginning of the visible range; zero otherwise.
+   */
+  int get visibleOffset;
 }
 
 /**
@@ -1668,4 +1688,14 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * Declared type of the variable.  Absent if the type is implicit.
    */
   EntityRef get type;
+
+  /**
+   * If a local variable, the length of the visible range; zero otherwise.
+   */
+  int get visibleLength;
+
+  /**
+   * If a local variable, the beginning of the visible range; zero otherwise.
+   */
+  int get visibleOffset;
 }

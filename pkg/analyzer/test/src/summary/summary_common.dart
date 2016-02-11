@@ -2749,6 +2749,8 @@ class C<T> {
     expect(executable.isRedirectedConstructor, isFalse);
     expect(executable.redirectedConstructor, isNull);
     expect(executable.redirectedConstructorName, isEmpty);
+    expect(executable.visibleOffset, 0);
+    expect(executable.visibleLength, 0);
   }
 
   test_constructor_anonymous() {
@@ -3746,6 +3748,8 @@ enum E { v }''';
     expect(executable.returnType, isNull);
     expect(executable.isExternal, isFalse);
     expect(executable.nameOffset, text.indexOf('f'));
+    expect(executable.visibleOffset, 0);
+    expect(executable.visibleLength, 0);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         ReferenceKind.topLevelFunction);
@@ -3807,12 +3811,194 @@ enum E { v }''';
     expect(executable.parameters, isEmpty);
   }
 
+  test_executable_localFunctions() {
+    String code = r'''
+f() { // 1
+  f1() {}
+  { // 2
+    f2() {}
+  } // 3
+} // 4
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedExecutable> functions = executable.localFunctions;
+    expect(functions, hasLength(2));
+    {
+      UnlinkedExecutable f1 = functions.singleWhere((v) => v.name == 'f1');
+      _assertExecutableVisible(code, f1, '{ // 1', '} // 4');
+    }
+    {
+      UnlinkedExecutable f2 = functions.singleWhere((v) => v.name == 'f2');
+      _assertExecutableVisible(code, f2, '{ // 2', '} // 3');
+    }
+  }
+
+  test_executable_localVariables_empty() {
+    UnlinkedExecutable executable = serializeExecutableText(r'''
+f() {
+}
+''');
+    expect(executable.localVariables, isEmpty);
+  }
+
+  test_executable_localVariables_inConstructor() {
+    String code = r'''
+class C {
+  C() { // 1
+    int v;
+  } // 2
+}
+''';
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(code).executables);
+    List<UnlinkedVariable> variables = executable.localVariables;
+    expect(variables, hasLength(1));
+    {
+      UnlinkedVariable v = variables.singleWhere((v) => v.name == 'v');
+      _assertVariableVisible(code, v, '{ // 1', '} // 2');
+      checkTypeRef(v.type, 'dart:core', 'dart:core', 'int');
+    }
+  }
+
+  test_executable_localVariables_inLocalFunctions() {
+    String code = r'''
+f() {
+  f1() { // 1
+    int v1 = 1;
+  } // 2
+  f2() { // 3
+    int v1 = 1;
+    f3() { // 4
+      int v2 = 1;
+    } // 5
+  } // 6
+} // 7
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedExecutable> functions = executable.localFunctions;
+    expect(functions, hasLength(2));
+    // f - f1
+    {
+      UnlinkedExecutable f1 = functions.singleWhere((v) => v.name == 'f1');
+      List<UnlinkedVariable> variables = f1.localVariables;
+      expect(variables, hasLength(1));
+      // f1 - v1
+      UnlinkedVariable v1 = variables.singleWhere((v) => v.name == 'v1');
+      _assertVariableVisible(code, v1, '{ // 1', '} // 2');
+      checkTypeRef(v1.type, 'dart:core', 'dart:core', 'int');
+    }
+    // f - f2
+    {
+      UnlinkedExecutable f2 = functions.singleWhere((v) => v.name == 'f2');
+      List<UnlinkedVariable> variables2 = f2.localVariables;
+      List<UnlinkedExecutable> functions2 = f2.localFunctions;
+      expect(variables2, hasLength(1));
+      expect(functions2, hasLength(1));
+      // f - f2 - v1
+      UnlinkedVariable v1 = variables2.singleWhere((v) => v.name == 'v1');
+      _assertVariableVisible(code, v1, '{ // 3', '} // 6');
+      checkTypeRef(v1.type, 'dart:core', 'dart:core', 'int');
+      // f - f2 - f3
+      UnlinkedExecutable f3 = functions2.singleWhere((v) => v.name == 'f3');
+      _assertExecutableVisible(code, f3, '{ // 3', '} // 6');
+      List<UnlinkedVariable> variables3 = f3.localVariables;
+      List<UnlinkedExecutable> functions3 = f3.localFunctions;
+      expect(variables3, hasLength(1));
+      expect(functions3, hasLength(0));
+      // f - f3 - v2
+      UnlinkedVariable v2 = variables3.singleWhere((v) => v.name == 'v2');
+      _assertVariableVisible(code, v2, '{ // 4', '} // 5');
+      checkTypeRef(v2.type, 'dart:core', 'dart:core', 'int');
+    }
+  }
+
+  test_executable_localVariables_inMethod() {
+    String code = r'''
+class C {
+  m() { // 1
+    int v;
+    f() {}
+  } // 2
+}
+''';
+    UnlinkedExecutable executable =
+        findExecutable('m', executables: serializeClassText(code).executables);
+    {
+      List<UnlinkedExecutable> functions = executable.localFunctions;
+      expect(functions, hasLength(1));
+      UnlinkedExecutable f = functions.singleWhere((v) => v.name == 'f');
+      _assertExecutableVisible(code, f, '{ // 1', '} // 2');
+    }
+    {
+      List<UnlinkedVariable> variables = executable.localVariables;
+      expect(variables, hasLength(1));
+      UnlinkedVariable v = variables.singleWhere((v) => v.name == 'v');
+      _assertVariableVisible(code, v, '{ // 1', '} // 2');
+      checkTypeRef(v.type, 'dart:core', 'dart:core', 'int');
+    }
+  }
+
+  test_executable_localVariables_inTopLevelFunction() {
+    String code = r'''
+f() { // 1
+  int v1 = 1;
+  { // 2
+    int v2 = 2;
+  } // 3
+  var v3 = 3;
+} // 4
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedVariable> variables = executable.localVariables;
+    expect(variables, hasLength(3));
+    {
+      UnlinkedVariable v1 = variables.singleWhere((v) => v.name == 'v1');
+      _assertVariableVisible(code, v1, '{ // 1', '} // 4');
+      checkTypeRef(v1.type, 'dart:core', 'dart:core', 'int');
+    }
+    {
+      UnlinkedVariable v2 = variables.singleWhere((v) => v.name == 'v2');
+      _assertVariableVisible(code, v2, '{ // 2', '} // 3');
+      checkTypeRef(v2.type, 'dart:core', 'dart:core', 'int');
+    }
+    {
+      UnlinkedVariable v3 = variables.singleWhere((v) => v.name == 'v3');
+      _assertVariableVisible(code, v3, '{ // 1', '} // 4');
+      expect(v3.type, isNull);
+    }
+  }
+
+  test_executable_localVariables_inTopLevelGetter() {
+    String code = r'''
+get g { // 1
+    int v;
+    f() {}
+} // 2
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code, 'g');
+    {
+      List<UnlinkedExecutable> functions = executable.localFunctions;
+      expect(functions, hasLength(1));
+      UnlinkedExecutable f = functions.singleWhere((v) => v.name == 'f');
+      _assertExecutableVisible(code, f, '{ // 1', '} // 2');
+    }
+    {
+      List<UnlinkedVariable> variables = executable.localVariables;
+      expect(variables, hasLength(1));
+      UnlinkedVariable v = variables.singleWhere((v) => v.name == 'v');
+      _assertVariableVisible(code, v, '{ // 1', '} // 2');
+      checkTypeRef(v.type, 'dart:core', 'dart:core', 'int');
+    }
+  }
+
   test_executable_member_function() {
     UnlinkedExecutable executable = findExecutable('f',
         executables: serializeClassText('class C { f() {} }').executables);
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.returnType, isNull);
     expect(executable.isExternal, isFalse);
+    expect(executable.visibleOffset, 0);
+    expect(executable.visibleLength, 0);
   }
 
   test_executable_member_function_explicit_return() {
@@ -6329,6 +6515,15 @@ var v;''';
     }
   }
 
+  void _assertExecutableVisible(String code, UnlinkedExecutable f,
+      String visibleBegin, String visibleEnd) {
+    int expectedVisibleOffset = code.indexOf(visibleBegin);
+    int expectedVisibleLength =
+        code.indexOf(visibleEnd) - expectedVisibleOffset + 1;
+    expect(f.visibleOffset, expectedVisibleOffset);
+    expect(f.visibleLength, expectedVisibleLength);
+  }
+
   void _assertUnlinkedConst(UnlinkedConst constExpr,
       {bool isInvalid: false,
       List<UnlinkedConstOperation> operators: const <UnlinkedConstOperation>[],
@@ -6347,6 +6542,15 @@ var v;''';
     for (int i = 0; i < referenceValidators.length; i++) {
       referenceValidators[i](constExpr.references[i]);
     }
+  }
+
+  void _assertVariableVisible(
+      String code, UnlinkedVariable v, String visibleBegin, String visibleEnd) {
+    int expectedVisibleOffset = code.indexOf(visibleBegin);
+    int expectedVisibleLength =
+        code.indexOf(visibleEnd) - expectedVisibleOffset + 1;
+    expect(v.visibleOffset, expectedVisibleOffset);
+    expect(v.visibleLength, expectedVisibleLength);
   }
 }
 
