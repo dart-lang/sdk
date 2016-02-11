@@ -389,16 +389,17 @@ request_animation_frame_test: Skip # Async test hangs.
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 # Note: these tests are all injecting scripts by design.  This is not allowed under CSP.
-event_customevent_test: Fail        # Test cannot run under CSP restrictions.
-js_interop_1_test: Skip             # Test cannot run under CSP restrictions (times out).
-js_test: Skip                       # Test cannot run under CSP restrictions (times out).
-js_array_test: Skip                 # Test cannot run under CSP restrictions.
-js_typed_interop_test: Skip         # Test cannot run under CSP restrictions.
-js_function_getter_test: Skip       # Test cannot run under CSP restrictions.
-js_function_getter_trust_types_test: Skip  # Test cannot run under CSP restrictions.
-js_dart_to_string_test: Skip        # Test cannot run under CSP restrictions.
-mirrors_js_typed_interop_test: Skip # Test cannot run under CSP restrictions.
-postmessage_structured_test: Skip   # Test cannot run under CSP restrictions (times out).
+event_customevent_test: SkipByDesign
+js_interop_1_test: SkipByDesign
+js_test: SkipByDesign
+js_array_test: SkipByDesign
+js_typed_interop_test: SkipByDesign
+js_typed_interop_default_arg_test: SkipByDesign
+js_function_getter_test: SkipByDesign
+js_function_getter_trust_types_test: SkipByDesign
+js_dart_to_string_test: SkipByDesign
+mirrors_js_typed_interop_test: SkipByDesign
+postmessage_structured_test: SkipByDesign
 
 [ $compiler == dart2js &&  $runtime == chrome]
 svgelement_test/supported_altGlyph: RuntimeError # Issue 23144
