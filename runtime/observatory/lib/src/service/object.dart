@@ -1590,11 +1590,13 @@ class Isolate extends ServiceObjectOwner {
   /// result[kSecondResume] completes after the second resume. Tests should
   /// wait on this future to avoid confusing the pause event at the
   /// state-machine switch with the pause event after the state-machine switch.
-  List<Future> asyncStepOver() {
-    Completer firstResume = new Completer();
-    Completer secondResume = new Completer();
-    var subscription;
+  Future<List<Future>> asyncStepOver() async {
+    final Completer firstResume = new Completer();
+    final Completer secondResume = new Completer();
+    final List<Future> result = [firstResume.future, secondResume.future];
+    StreamSubscription subscription;
 
+    // Inner error handling function.
     handleError(error) {
       if (subscription != null) {
         subscription.cancel();
@@ -1611,35 +1613,56 @@ class Isolate extends ServiceObjectOwner {
     } else {
       Instance continuation = pauseEvent.asyncContinuation;
       assert(continuation.isClosure);
-      addBreakOnActivation(continuation).then((Breakpoint continuationBpt) {
-        vm.getEventStream(VM.kDebugStream).then((stream) {
-          var onResume = firstResume;
-          subscription = stream.listen((ServiceEvent event) {
-            if ((event.kind == ServiceEvent.kPauseBreakpoint) &&
-                (event.breakpoint == continuationBpt)) {
-              // We are stopped before state-machine dispatch; step-over to
-              // reach user code.
-              removeBreakpoint(continuationBpt).then((_) {
-                onResume = secondResume;
-                stepOver().catchError(handleError);
-              });
-            } else if (event.kind == ServiceEvent.kResume) {
-              if (onResume == secondResume) {
-                subscription.cancel();
-                subscription = null;
-              }
-              if (onResume != null) {
-                onResume.complete(this);
-                onResume = null;
-              }
-            }
-          });
-          resume().catchError(handleError);
-        }).catchError(handleError);
-      }).catchError(handleError);
-    }
 
-    return [firstResume.future, secondResume.future];
+      // Add breakpoint at continuation.
+      Breakpoint continuationBpt;
+      try {
+        continuationBpt = await addBreakOnActivation(continuation);
+      } catch (e) {
+        handleError(e);
+        return result;
+      }
+
+      // Subscribe to the debugger event stream.
+      Stream stream;
+      try {
+        stream = await vm.getEventStream(VM.kDebugStream);
+      } catch (e) {
+        handleError(e);
+        return result;
+      }
+
+      Completer onResume = firstResume;
+      subscription = stream.listen((ServiceEvent event) async {
+        if ((event.kind == ServiceEvent.kPauseBreakpoint) &&
+            (event.breakpoint == continuationBpt)) {
+          // We are stopped before state-machine dispatch:
+          // 1) Remove the continuation breakpoint.
+          // 2) step over.
+          // reach user code.
+          await removeBreakpoint(continuationBpt);
+          onResume = secondResume;
+          stepOver().catchError(handleError);
+        } else if (event.kind == ServiceEvent.kResume) {
+          // We've resumed.
+          if (onResume == secondResume) {
+            // This is our second resume, cancel our subscription to the debug
+            // stream.
+            subscription.cancel();
+            subscription = null;
+          }
+          // Complete onResume and clear it.
+          if (onResume != null) {
+            onResume.complete(this);
+            onResume = null;
+          }
+        }
+      });
+
+      // Call resume, which will eventually cause us to hit continuationBpt.
+      resume().catchError(handleError);
+    }
+    return result;
   }
 
   Future setName(String newName) {
@@ -2416,7 +2439,7 @@ class Instance extends HeapObject {
     elements = map['elements'];
     associations = map['associations'];
     if (map['bytes'] != null) {
-      var bytes = BASE64.decode(map['bytes']);
+      Uint8List bytes = BASE64.decode(map['bytes']);
       switch (map['kind']) {
         case "Uint8ClampedList":
           typedElements = bytes.buffer.asUint8ClampedList(); break;
@@ -3634,7 +3657,7 @@ class Code extends HeapObject {
 
   @observable bool hasDisassembly = false;
 
-  void _processDisassembly(List<String> disassembly){
+  void _processDisassembly(List disassembly) {
     assert(disassembly != null);
     instructions.clear();
     instructionsByAddressOffset = new List(endAddress - startAddress);

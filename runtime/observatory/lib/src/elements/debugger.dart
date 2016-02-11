@@ -1826,7 +1826,8 @@ class ObservatoryDebugger extends Debugger {
       if (event.asyncContinuation == null) {
         console.print("No async continuation at this location");
       } else {
-        return isolate.asyncStepOver()[Isolate.kFirstResume];
+        List<Future> asyncStepFutures = await isolate.asyncStepOver();
+        return asyncStepFutures[Isolate.kFirstResume];
       }
     } else {
       console.print('The program is already running');
