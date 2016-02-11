@@ -217,10 +217,10 @@ class ModuleItemLoadOrder {
       if (!_isDartUri(_currentLibrary)) return true;
 
       // Compute the order of both SDK libraries. If unknown, assume it's after.
-      var order = corelibOrder.indexOf(library.name);
+      var order = corelibOrder.indexOf(library.source.uri);
       if (order == -1) order = corelibOrder.length;
 
-      var currentOrder = corelibOrder.indexOf(_currentLibrary.name);
+      var currentOrder = corelibOrder.indexOf(_currentLibrary.source.uri);
       if (currentOrder == -1) currentOrder = corelibOrder.length;
 
       // If the dart:* library we are currently compiling is loaded after the

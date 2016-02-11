@@ -2,15 +2,15 @@ dart_library.library('dart/html', null, /* Imports */[
   'dart/_runtime',
   'dart/math',
   'dart/core',
+  'dart/_metadata',
   'dart/_js_helper',
   'dart/collection',
   'dart/async',
   'dart/_foreign_helper',
   'dart/isolate'
 ], /* Lazy imports */[
-  'dart/_metadata',
   'dart/html_common'
-], function(exports, dart, math, core, _js_helper, collection, async, _foreign_helper, isolate, _metadata, html_common) {
+], function(exports, dart, math, core, _metadata, _js_helper, collection, async, _foreign_helper, isolate, html_common) {
   'use strict';
   let dartx = dart.dartx;
   dart.export(exports, math, ['Rectangle', 'Point'], []);

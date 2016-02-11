@@ -186,14 +186,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     _exports.forEach(moduleBuilder.addExport);
 
+    var currentModuleName = compiler.getModuleName(currentLibrary.source.uri);
     var items = <JS.ModuleItem>[];
     if (!_isDartRuntime) {
       if (currentLibrary.source.isInSystemLibrary) {
         // Force the import order of runtime libs.
         // TODO(ochafik): Reduce this to a minimum.
-        for (var lib in corelibOrder.reversed) {
-          // TODO(ochafik): Use uris instead in corelibOrder.
-          moduleBuilder.addImport(getCorelibModuleName(lib), null);
+        for (var libUri in corelibOrder.reversed) {
+          var moduleName = compiler.getModuleName(libUri);
+          if (moduleName == currentModuleName) continue;
+          moduleBuilder.addImport(moduleName, null);
         }
       }
       moduleBuilder.addImport('dart/_runtime', _runtimeLibVar);
@@ -216,7 +218,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     // String scriptTag = null;
     // if (library.library.scriptTag != null) scriptTag = '/usr/bin/env $jsBin';
     return moduleBuilder.build(
-        compiler.getModuleName(currentLibrary.source.uri),
+        currentModuleName,
         _jsModuleValue,
         _exportsVar,
         items);

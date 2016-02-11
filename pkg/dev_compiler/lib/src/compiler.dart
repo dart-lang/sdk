@@ -489,61 +489,40 @@ AnalysisErrorListener createErrorReporter(
 // TODO(jmesserly): find a better home for these.
 /// Curated order to minimize lazy classes needed by dart:core and its
 /// transitive SDK imports.
-const corelibOrder = const [
-  'dart.core',
-  'dart.collection',
-  'dart._internal',
-  'dart.math',
-  'dart._interceptors',
-  'dart.async',
-  'dart._foreign_helper',
-  'dart._js_embedded_names',
-  'dart._js_helper',
-  'dart.isolate',
-  'dart.typed_data',
-  'dart._native_typed_data',
-  'dart._isolate_helper',
-  'dart._js_primitives',
-  'dart.convert',
+final corelibOrder = [
+  'dart:core',
+  'dart:collection',
+  'dart:_internal',
+  'dart:math',
+  'dart:_interceptors',
+  'dart:async',
+  'dart:_foreign_helper',
+  'dart:_js_embedded_names',
+  'dart:_js_helper',
+  'dart:isolate',
+  'dart:typed_data',
+  'dart:_native_typed_data',
+  'dart:_isolate_helper',
+  'dart:_js_primitives',
+  'dart:convert',
   // TODO(jmesserly): these are not part of corelib library cycle, and shouldn't
   // be listed here. Instead, their source should be copied on demand if they
   // are actually used by the application.
-  'dart.mirrors',
-  'dart._js_mirrors',
-  'dart.js',
-  'dart._metadata',
-  'dart.dom.html',
-  'dart.dom.html_common',
-  'dart._debugger'
+  'dart:mirrors',
+  'dart:_js_mirrors',
+  'dart:js',
+  'dart:_metadata',
+  'dart:html',
+  'dart:html_common',
+  'dart:_debugger'
   // _foreign_helper is not included, as it only defines the JS builtin that
   // the compiler handles at compile time.
-];
-
-/// Returns the JS module name corresponding to a core library name (must be
-/// from the [corelibOrder] list).
-String getCorelibModuleName(String lib) {
-  assert(corelibOrder.contains(lib));
-  switch (lib) {
-    case 'dart.dom.html_common':
-      return 'dart/html_common';
-    case 'dart.dom.html':
-      return 'dart/html';
-    default:
-      return lib.replaceAll('dart.', 'dart/');
-  }
-}
+].map(Uri.parse).toList();
 
 /// Runtime files added to all applications when running the compiler in the
 /// command line.
 final defaultRuntimeFiles = () {
-  String coreToFile(String name) {
-    var parts = name.split('.');
-    var length = parts.length;
-    if (length > 1) {
-      name = parts[0] + '/' + parts[length - 1];
-    }
-    return name + '.js';
-  }
+  String coreToFile(Uri uri) => uri.toString().replaceAll(':', '/') + '.js';
 
   var files = [
     'harmony_feature_check.js',
