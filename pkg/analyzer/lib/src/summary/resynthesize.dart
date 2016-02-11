@@ -994,6 +994,7 @@ class _LibraryResynthesizer {
     for (UnlinkedEnumValue serializedEnumValue in serializedEnum.values) {
       ConstFieldElementImpl valueField = new ConstFieldElementImpl(
           serializedEnumValue.name, serializedEnumValue.nameOffset);
+      buildDocumentation(valueField, serializedEnumValue.documentationComment);
       valueField.const3 = true;
       valueField.static = true;
       valueField.type = enumType;

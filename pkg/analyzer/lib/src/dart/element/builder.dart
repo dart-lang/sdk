@@ -176,7 +176,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
         exportElement.uri = node.uriContent;
         exportElement.combinators = _buildCombinators(node);
         exportElement.exportedLibrary = exportedLibrary;
-        _setDoc(exportElement, node);
+        setElementDocumentationComment(exportElement, node);
         node.element = exportElement;
         exports.add(exportElement);
         if (exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
@@ -218,7 +218,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
         importElement.deferred = node.deferredKeyword != null;
         importElement.combinators = _buildCombinators(node);
         importElement.importedLibrary = importedLibrary;
-        _setDoc(importElement, node);
+        setElementDocumentationComment(importElement, node);
         SimpleIdentifier prefixNode = node.prefix;
         if (prefixNode != null) {
           importElement.prefixOffset = prefixNode.offset;
@@ -269,19 +269,6 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
       return ElementAnnotation.EMPTY_LIST;
     }
     return metadata.map((Annotation a) => a.elementAnnotation).toList();
-  }
-
-  /**
-   * If the given [node] has a documentation comment, remember its content
-   * and range into the given [element].
-   */
-  void _setDoc(ElementImpl element, AnnotatedNode node) {
-    Comment comment = node.documentationComment;
-    if (comment != null && comment.isDocumentation) {
-      element.documentationComment =
-          comment.tokens.map((Token t) => t.lexeme).join('\n');
-      element.setDocRange(comment.offset, comment.length);
-    }
   }
 
   /**
@@ -415,7 +402,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     interfaceType.typeArguments = typeArguments;
     element.type = interfaceType;
     element.typeParameters = typeParameters;
-    _setDoc(element, node);
+    setElementDocumentationComment(element, node);
     element.abstract = node.isAbstract;
     element.accessors = holder.accessors;
     List<ConstructorElement> constructors = holder.constructors;
@@ -466,7 +453,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
     interfaceType.typeArguments = typeArguments;
     element.type = interfaceType;
-    _setDoc(element, node);
+    setElementDocumentationComment(element, node);
     _currentHolder.addType(element);
     className.staticElement = element;
     holder.validate();
@@ -488,7 +475,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ConstructorElementImpl element =
         new ConstructorElementImpl.forNode(constructorName);
     element.metadata = _createElementAnnotations(node.metadata);
-    _setDoc(element, node);
+    setElementDocumentationComment(element, node);
     if (node.externalKeyword != null) {
       element.external = true;
     }
@@ -596,7 +583,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ClassElementImpl enumElement = new ClassElementImpl.forNode(enumName);
     enumElement.metadata = _createElementAnnotations(node.metadata);
     enumElement.enum2 = true;
-    _setDoc(enumElement, node);
+    setElementDocumentationComment(enumElement, node);
     InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
     enumElement.type = enumType;
     // The equivalent code for enums in the spec shows a single constructor,
@@ -677,7 +664,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         FunctionElementImpl element =
             new FunctionElementImpl.forNode(functionName);
         element.metadata = _createElementAnnotations(node.metadata);
-        _setDoc(element, node);
+        setElementDocumentationComment(element, node);
         if (node.externalKeyword != null) {
           element.external = true;
         }
@@ -724,7 +711,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
           getter.metadata = _createElementAnnotations(node.metadata);
-          _setDoc(getter, node);
+          setElementDocumentationComment(getter, node);
           if (node.externalKeyword != null) {
             getter.external = true;
           }
@@ -751,7 +738,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
           setter.metadata = _createElementAnnotations(node.metadata);
-          _setDoc(setter, node);
+          setElementDocumentationComment(setter, node);
           if (node.externalKeyword != null) {
             setter.external = true;
           }
@@ -840,7 +827,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     FunctionTypeAliasElementImpl element =
         new FunctionTypeAliasElementImpl.forNode(aliasName);
     element.metadata = _createElementAnnotations(node.metadata);
-    _setDoc(element, node);
+    setElementDocumentationComment(element, node);
     element.parameters = parameters;
     element.typeParameters = typeParameters;
     _createTypeParameterTypes(typeParameters);
@@ -925,7 +912,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         MethodElementImpl element =
             new MethodElementImpl(nameOfMethod, methodName.offset);
         element.metadata = _createElementAnnotations(node.metadata);
-        _setDoc(element, node);
+        setElementDocumentationComment(element, node);
         element.abstract = node.isAbstract;
         if (node.externalKeyword != null) {
           element.external = true;
@@ -963,7 +950,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
           getter.metadata = _createElementAnnotations(node.metadata);
-          _setDoc(getter, node);
+          setElementDocumentationComment(getter, node);
           if (node.externalKeyword != null) {
             getter.external = true;
           }
@@ -990,7 +977,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
           setter.metadata = _createElementAnnotations(node.metadata);
-          _setDoc(setter, node);
+          setElementDocumentationComment(setter, node);
           if (node.externalKeyword != null) {
             setter.external = true;
           }
@@ -1135,7 +1122,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       }
       element = field;
       if (node.parent.parent is FieldDeclaration) {
-        _setDoc(element, node.parent.parent);
+        setElementDocumentationComment(element, node.parent.parent);
       }
       if ((node.parent as VariableDeclarationList).type == null) {
         field.hasImplicitType = true;
@@ -1170,7 +1157,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       }
       element = variable;
       if (node.parent.parent is TopLevelVariableDeclaration) {
-        _setDoc(element, node.parent.parent);
+        setElementDocumentationComment(element, node.parent.parent);
       }
       if ((node.parent as VariableDeclarationList).type == null) {
         variable.hasImplicitType = true;
@@ -1332,19 +1319,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       return parent.body;
     }
     return null;
-  }
-
-  /**
-   * If the given [node] has a documentation comment, remember its content
-   * and range into the given [element].
-   */
-  void _setDoc(ElementImpl element, AnnotatedNode node) {
-    Comment comment = node.documentationComment;
-    if (comment != null && comment.isDocumentation) {
-      element.documentationComment =
-          comment.tokens.map((Token t) => t.lexeme).join('\n');
-      element.setDocRange(comment.offset, comment.length);
-    }
   }
 
   /**

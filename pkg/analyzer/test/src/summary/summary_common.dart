@@ -614,20 +614,6 @@ abstract class SummaryTest {
     checkTypeRef(typeRef, null, null, 'void');
   }
 
-  fail_enum_value_documented() {
-    // TODO(paulberry): currently broken because of dartbug.com/25385
-    String text = '''
-enum E {
-  /**
-   * Docs
-   */
-  v
-}''';
-    UnlinkedEnumValue value = serializeEnumText(text).values[0];
-    expect(value.documentationComment, isNotNull);
-    checkDocumentationComment(value.documentationComment, text);
-  }
-
   /**
    * Find the class with the given [className] in the summary, and return its
    * [UnlinkedClass] data structure.  If [unit] is not given, the class is
@@ -3727,6 +3713,19 @@ enum E { v }''';
   test_enum_private() {
     serializeEnumText('enum _E { v1 }', '_E');
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
+  }
+
+  test_enum_value_documented() {
+    String text = '''
+enum E {
+  /**
+   * Docs
+   */
+  v
+}''';
+    UnlinkedEnumValue value = serializeEnumText(text).values[0];
+    expect(value.documentationComment, isNotNull);
+    checkDocumentationComment(value.documentationComment, text);
   }
 
   test_executable_abstract() {

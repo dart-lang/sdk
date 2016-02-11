@@ -869,7 +869,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.nameOffset = node.name.offset;
     b.values = node.constants
         .map((EnumConstantDeclaration value) => new UnlinkedEnumValueBuilder(
-            name: value.name.name, nameOffset: value.name.offset))
+            documentationComment:
+                serializeDocumentation(value.documentationComment),
+            name: value.name.name,
+            nameOffset: value.name.offset))
         .toList();
     b.documentationComment = serializeDocumentation(node.documentationComment);
     b.annotations = serializeAnnotations(node.metadata);

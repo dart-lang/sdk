@@ -3270,12 +3270,14 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     List<DartObjectImpl> constantValues = new List<DartObjectImpl>();
     int constantCount = constants.length;
     for (int i = 0; i < constantCount; i++) {
-      SimpleIdentifier constantName = constants[i].name;
+      EnumConstantDeclaration constant = constants[i];
+      SimpleIdentifier constantName = constant.name;
       FieldElementImpl constantField =
           new ConstFieldElementImpl.forNode(constantName);
       constantField.static = true;
       constantField.const3 = true;
       constantField.type = enumType;
+      setElementDocumentationComment(constantField, constant);
       //
       // Create a value for the constant.
       //

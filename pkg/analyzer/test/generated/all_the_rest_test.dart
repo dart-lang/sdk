@@ -606,6 +606,7 @@ class C {
     expect(type.isAbstract, isFalse);
     expect(type.isMixinApplication, isFalse);
     expect(type.isSynthetic, isFalse);
+    expect(type.documentationComment, '/// aaa');
     _assertHasDocRange(type, 50, 7);
   }
 
@@ -849,6 +850,7 @@ class C {
     expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
     expect(constructor, isNotNull);
+    expect(constructor.documentationComment, '/// aaa');
     _assertHasDocRange(constructor, 50, 7);
     expect(constructor.isExternal, isFalse);
     expect(constructor.isFactory, isFalse);
@@ -1034,6 +1036,7 @@ class C {
     expect(enums, hasLength(1));
     ClassElement enumElement = enums[0];
     expect(enumElement, isNotNull);
+    expect(enumElement.documentationComment, '/// aaa');
     _assertHasDocRange(enumElement, 50, 7);
     expect(enumElement.name, enumName);
   }
@@ -1057,6 +1060,7 @@ class C {
 
     FieldElement firstField = fields[0];
     expect(firstField, isNotNull);
+    expect(firstField.documentationComment, '/// aaa');
     _assertHasDocRange(firstField, 50, 7);
     expect(firstField.name, firstFieldName);
     expect(firstField.initializer, isNull);
@@ -1066,6 +1070,7 @@ class C {
 
     FieldElement secondField = fields[1];
     expect(secondField, isNotNull);
+    expect(secondField.documentationComment, '/// aaa');
     _assertHasDocRange(secondField, 50, 7);
     expect(secondField.name, secondFieldName);
     expect(secondField.initializer, isNull);
@@ -1181,6 +1186,7 @@ class C {
     expect(accessors, hasLength(1));
     PropertyAccessorElement accessor = accessors[0];
     expect(accessor, isNotNull);
+    expect(accessor.documentationComment, '/// aaa');
     _assertHasDocRange(accessor, 50, 7);
     expect(accessor.name, functionName);
     expect(declaration.element, same(accessor));
@@ -1216,6 +1222,7 @@ class C {
     expect(functions, hasLength(1));
     FunctionElement function = functions[0];
     expect(function, isNotNull);
+    expect(function.documentationComment, '/// aaa');
     _assertHasDocRange(function, 50, 7);
     expect(function.hasImplicitReturnType, isFalse);
     expect(function.name, functionName);
@@ -1245,6 +1252,7 @@ class C {
     expect(accessors, hasLength(1));
     PropertyAccessorElement accessor = accessors[0];
     expect(accessor, isNotNull);
+    expect(accessor.documentationComment, '/// aaa');
     _assertHasDocRange(accessor, 50, 7);
     expect(accessor.hasImplicitReturnType, isTrue);
     expect(accessor.name, "$functionName=");
@@ -1323,6 +1331,7 @@ class C {
     expect(aliases, hasLength(1));
     FunctionTypeAliasElement alias = aliases[0];
     expect(alias, isNotNull);
+    expect(alias.documentationComment, '/// aaa');
     _assertHasDocRange(alias, 50, 7);
     expect(alias.name, aliasName);
     expect(alias.parameters, hasLength(0));
@@ -1488,6 +1497,7 @@ class C {
     expect(field.setter, isNull);
     PropertyAccessorElement getter = field.getter;
     expect(getter, isNotNull);
+    expect(getter.documentationComment, '/// aaa');
     _assertHasDocRange(getter, 50, 7);
     expect(getter.hasImplicitReturnType, isTrue);
     expect(getter.isAbstract, isFalse);
@@ -1598,6 +1608,7 @@ class C {
     expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
+    expect(method.documentationComment, '/// aaa');
     _assertHasDocRange(method, 50, 7);
     expect(method.hasImplicitReturnType, isFalse);
     expect(method.name, methodName);
@@ -1672,6 +1683,7 @@ class C {
 
     PropertyAccessorElement setter = field.setter;
     expect(setter, isNotNull);
+    expect(setter.documentationComment, '/// aaa');
     _assertHasDocRange(setter, 50, 7);
     expect(setter.hasImplicitReturnType, isTrue);
     expect(setter.isAbstract, isFalse);
@@ -2235,10 +2247,12 @@ class C {
 
     TopLevelVariableElement variable1 = variables[0];
     expect(variable1, isNotNull);
+    expect(variable1.documentationComment, '/// aaa');
     _assertHasDocRange(variable1, 50, 7);
 
     TopLevelVariableElement variable2 = variables[1];
     expect(variable2, isNotNull);
+    expect(variable2.documentationComment, '/// aaa');
     _assertHasDocRange(variable2, 50, 7);
   }
 
@@ -2782,6 +2796,9 @@ class EnumMemberBuilderTest extends EngineTestCase {
     String firstName = "ONE";
     EnumDeclaration enumDeclaration =
         AstFactory.enumDeclaration2("E", [firstName]);
+    enumDeclaration.constants[0].documentationComment = AstFactory
+        .documentationComment(
+            [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
 
     ClassElement enumElement = _buildElement(enumDeclaration);
     List<FieldElement> fields = enumElement.fields;
@@ -2807,6 +2824,9 @@ class EnumMemberBuilderTest extends EngineTestCase {
     expect(constant.name, firstName);
     expect(constant.isStatic, isTrue);
     expect((constant as FieldElementImpl).evaluationResult, isNotNull);
+    expect(constant.documentationComment, '/// aaa');
+    expect(constant.docRange.offset, 50);
+    expect(constant.docRange.length, 7);
     _assertGetter(constant);
   }
 

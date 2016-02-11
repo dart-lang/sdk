@@ -39,6 +39,7 @@ import 'package:analyzer/src/task/strong_mode.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * The [ResultCachingPolicy] for ASTs.
@@ -1365,7 +1366,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     // set the library documentation to the docs associated with the first
     // directive in the compilation unit.
     if (definingCompilationUnit.directives.isNotEmpty) {
-      _setDoc(libraryElement, definingCompilationUnit.directives.first);
+      setElementDocumentationComment(
+          libraryElement, definingCompilationUnit.directives.first);
     }
 
     //
@@ -1405,19 +1407,6 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       }
     }
     return null;
-  }
-
-  /**
-   * If the given [node] has a documentation comment, remember its content
-   * and range into the given [element].
-   */
-  void _setDoc(ElementImpl element, AnnotatedNode node) {
-    Comment comment = node.documentationComment;
-    if (comment != null && comment.isDocumentation) {
-      element.documentationComment =
-          comment.tokens.map((Token t) => t.lexeme).join('\n');
-      element.setDocRange(comment.offset, comment.length);
-    }
   }
 
   /**

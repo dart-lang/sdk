@@ -4,7 +4,23 @@
 
 library analyzer.src.generated.utilities_dart;
 
+import 'package:analyzer/dart/ast/ast.dart' show AnnotatedNode, Comment;
+import 'package:analyzer/dart/ast/token.dart' show Token;
+import 'package:analyzer/src/generated/element.dart' show ElementImpl;
 import 'package:analyzer/src/generated/java_core.dart';
+
+/**
+ * If the given [node] has a documentation comment, remember its content
+ * and range into the given [element].
+ */
+void setElementDocumentationComment(ElementImpl element, AnnotatedNode node) {
+  Comment comment = node.documentationComment;
+  if (comment != null && comment.isDocumentation) {
+    element.documentationComment =
+        comment.tokens.map((Token t) => t.lexeme).join('\n');
+    element.setDocRange(comment.offset, comment.length);
+  }
+}
 
 /**
  * Check whether [uri1] starts with (or 'is prefixed by') [uri2] by checking
