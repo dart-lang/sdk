@@ -3213,6 +3213,134 @@ class D<T, U> extends C<U, T> {
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[1], 2);
   }
 
+  test_constructor_redirected_factory_named_imported() {
+    addNamedSource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D extends C {
+  D.named() : super._();
+}
+''');
+    String text = '''
+import 'foo.dart';
+class C {
+  factory C() = D.named;
+  C._();
+}
+''';
+    UnlinkedExecutable executable =
+        serializeClassText(text, className: 'C').executables[0];
+    expect(executable.isRedirectedConstructor, isTrue);
+    expect(executable.isFactory, isTrue);
+    expect(executable.redirectedConstructorName, isEmpty);
+    checkTypeRef(executable.redirectedConstructor, null, null, 'named',
+        expectedKind: ReferenceKind.constructor,
+        prefixExpectations: [
+          new _PrefixExpectation(ReferenceKind.classOrEnum, 'D',
+              absoluteUri: absUri('/foo.dart'), relativeUri: 'foo.dart')
+        ]);
+  }
+
+  test_constructor_redirected_factory_named_imported_generic() {
+    addNamedSource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D<T, U> extends C<U, T> {
+  D.named() : super._();
+}
+''');
+    String text = '''
+import 'foo.dart';
+class C<T, U> {
+  factory C() = D<U, T>.named;
+  C._();
+}
+''';
+    UnlinkedExecutable executable =
+        serializeClassText(text, className: 'C').executables[0];
+    expect(executable.isRedirectedConstructor, isTrue);
+    expect(executable.isFactory, isTrue);
+    expect(executable.redirectedConstructorName, isEmpty);
+    checkTypeRef(executable.redirectedConstructor, null, null, 'named',
+        expectedKind: ReferenceKind.constructor,
+        prefixExpectations: [
+          new _PrefixExpectation(ReferenceKind.classOrEnum, 'D',
+              numTypeParameters: 2,
+              absoluteUri: absUri('/foo.dart'),
+              relativeUri: 'foo.dart')
+        ],
+        allowTypeParameters: true);
+    checkParamTypeRef(executable.redirectedConstructor.typeArguments[0], 1);
+    checkParamTypeRef(executable.redirectedConstructor.typeArguments[1], 2);
+  }
+
+  test_constructor_redirected_factory_named_prefixed() {
+    addNamedSource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D extends C {
+  D.named() : super._();
+}
+''');
+    String text = '''
+import 'foo.dart' as foo;
+class C {
+  factory C() = foo.D.named;
+  C._();
+}
+''';
+    UnlinkedExecutable executable =
+        serializeClassText(text, className: 'C').executables[0];
+    expect(executable.isRedirectedConstructor, isTrue);
+    expect(executable.isFactory, isTrue);
+    expect(executable.redirectedConstructorName, isEmpty);
+    checkTypeRef(executable.redirectedConstructor, null, null, 'named',
+        expectedKind: ReferenceKind.constructor,
+        prefixExpectations: [
+          new _PrefixExpectation(ReferenceKind.classOrEnum, 'D',
+              absoluteUri: absUri('/foo.dart'), relativeUri: 'foo.dart'),
+          new _PrefixExpectation(ReferenceKind.prefix, 'foo')
+        ]);
+  }
+
+  test_constructor_redirected_factory_named_prefixed_generic() {
+    addNamedSource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D<T, U> extends C<U, T> {
+  D.named() : super._();
+}
+''');
+    String text = '''
+import 'foo.dart' as foo;
+class C<T, U> {
+  factory C() = foo.D<U, T>.named;
+  C._();
+}
+''';
+    UnlinkedExecutable executable =
+        serializeClassText(text, className: 'C').executables[0];
+    expect(executable.isRedirectedConstructor, isTrue);
+    expect(executable.isFactory, isTrue);
+    expect(executable.redirectedConstructorName, isEmpty);
+    checkTypeRef(executable.redirectedConstructor, null, null, 'named',
+        expectedKind: ReferenceKind.constructor,
+        prefixExpectations: [
+          new _PrefixExpectation(ReferenceKind.classOrEnum, 'D',
+              numTypeParameters: 2,
+              absoluteUri: absUri('/foo.dart'),
+              relativeUri: 'foo.dart'),
+          new _PrefixExpectation(ReferenceKind.prefix, 'foo')
+        ],
+        allowTypeParameters: true);
+    checkParamTypeRef(executable.redirectedConstructor.typeArguments[0], 1);
+    checkParamTypeRef(executable.redirectedConstructor.typeArguments[1], 2);
+  }
+
   test_constructor_redirected_factory_unnamed() {
     String text = '''
 class C {
@@ -3248,6 +3376,113 @@ class D<T, U> extends C<U, T> {
     expect(executable.redirectedConstructorName, isEmpty);
     checkTypeRef(executable.redirectedConstructor, null, null, 'D',
         allowTypeParameters: true, numTypeParameters: 2);
+    checkParamTypeRef(executable.redirectedConstructor.typeArguments[0], 1);
+    checkParamTypeRef(executable.redirectedConstructor.typeArguments[1], 2);
+  }
+
+  test_constructor_redirected_factory_unnamed_imported() {
+    addNamedSource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D extends C {
+  D() : super._();
+}
+''');
+    String text = '''
+import 'foo.dart';
+class C {
+  factory C() = D;
+  C._();
+}
+''';
+    UnlinkedExecutable executable =
+        serializeClassText(text, className: 'C').executables[0];
+    expect(executable.isRedirectedConstructor, isTrue);
+    expect(executable.isFactory, isTrue);
+    expect(executable.redirectedConstructorName, isEmpty);
+    checkTypeRef(
+        executable.redirectedConstructor, absUri('/foo.dart'), 'foo.dart', 'D');
+  }
+
+  test_constructor_redirected_factory_unnamed_imported_generic() {
+    addNamedSource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D<T, U> extends C<U, T> {
+  D() : super._();
+}
+''');
+    String text = '''
+import 'foo.dart';
+class C<T, U> {
+  factory C() = D<U, T>;
+  C._();
+}
+''';
+    UnlinkedExecutable executable =
+        serializeClassText(text, className: 'C').executables[0];
+    expect(executable.isRedirectedConstructor, isTrue);
+    expect(executable.isFactory, isTrue);
+    expect(executable.redirectedConstructorName, isEmpty);
+    checkTypeRef(
+        executable.redirectedConstructor, absUri('/foo.dart'), 'foo.dart', 'D',
+        allowTypeParameters: true, numTypeParameters: 2);
+    checkParamTypeRef(executable.redirectedConstructor.typeArguments[0], 1);
+    checkParamTypeRef(executable.redirectedConstructor.typeArguments[1], 2);
+  }
+
+  test_constructor_redirected_factory_unnamed_prefixed() {
+    addNamedSource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D extends C {
+  D() : super._();
+}
+''');
+    String text = '''
+import 'foo.dart' as foo;
+class C {
+  factory C() = foo.D;
+  C._();
+}
+''';
+    UnlinkedExecutable executable =
+        serializeClassText(text, className: 'C').executables[0];
+    expect(executable.isRedirectedConstructor, isTrue);
+    expect(executable.isFactory, isTrue);
+    expect(executable.redirectedConstructorName, isEmpty);
+    checkTypeRef(
+        executable.redirectedConstructor, absUri('/foo.dart'), 'foo.dart', 'D',
+        expectedPrefix: 'foo');
+  }
+
+  test_constructor_redirected_factory_unnamed_prefixed_generic() {
+    addNamedSource(
+        '/foo.dart',
+        '''
+import 'test.dart';
+class D<T, U> extends C<U, T> {
+  D() : super._();
+}
+''');
+    String text = '''
+import 'foo.dart' as foo;
+class C<T, U> {
+  factory C() = foo.D<U, T>;
+  C._();
+}
+''';
+    UnlinkedExecutable executable =
+        serializeClassText(text, className: 'C').executables[0];
+    expect(executable.isRedirectedConstructor, isTrue);
+    expect(executable.isFactory, isTrue);
+    expect(executable.redirectedConstructorName, isEmpty);
+    checkTypeRef(
+        executable.redirectedConstructor, absUri('/foo.dart'), 'foo.dart', 'D',
+        allowTypeParameters: true, numTypeParameters: 2, expectedPrefix: 'foo');
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[0], 1);
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[1], 2);
   }
