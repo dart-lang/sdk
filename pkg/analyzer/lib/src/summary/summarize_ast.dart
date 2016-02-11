@@ -544,6 +544,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   }
 
   void serializeFunctionBody(UnlinkedExecutableBuilder b, FunctionBody body) {
+    if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
+      for (UnlinkedParamBuilder parameter in b.parameters) {
+        parameter.visibleOffset = body.offset;
+        parameter.visibleLength = body.length;
+      }
+    }
     List<UnlinkedExecutableBuilder> oldExecutables = executables;
     List<UnlinkedVariableBuilder> oldVariables = variables;
     executables = <UnlinkedExecutableBuilder>[];

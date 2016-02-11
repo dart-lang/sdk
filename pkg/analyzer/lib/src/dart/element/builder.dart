@@ -695,7 +695,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (_inFunction) {
           Block enclosingBlock = node.getAncestor((node) => node is Block);
           if (enclosingBlock != null) {
-            element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
+            element.setVisibleRange(
+                enclosingBlock.offset, enclosingBlock.length);
           }
         }
         if (node.returnType == null) {
@@ -1318,23 +1319,17 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Return the body of the function that contains the given parameter, or `null` if no
-   * function body could be found.
-   *
-   * @param node the parameter contained in the function whose body is to be returned
-   * @return the body of the function that contains the given parameter
+   * Return the body of the function that contains the given [parameter], or
+   * `null` if no function body could be found.
    */
-  FunctionBody _getFunctionBody(FormalParameter node) {
-    AstNode parent = node.parent;
-    while (parent != null) {
-      if (parent is ConstructorDeclaration) {
-        return parent.body;
-      } else if (parent is FunctionExpression) {
-        return parent.body;
-      } else if (parent is MethodDeclaration) {
-        return parent.body;
-      }
-      parent = parent.parent;
+  FunctionBody _getFunctionBody(FormalParameter parameter) {
+    AstNode parent = parameter?.parent?.parent;
+    if (parent is ConstructorDeclaration) {
+      return parent.body;
+    } else if (parent is FunctionExpression) {
+      return parent.body;
+    } else if (parent is MethodDeclaration) {
+      return parent.body;
     }
     return null;
   }
@@ -1358,7 +1353,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   void _setParameterVisibleRange(
       FormalParameter node, ParameterElementImpl element) {
     FunctionBody body = _getFunctionBody(node);
-    if (body != null) {
+    if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
       element.setVisibleRange(body.offset, body.length);
     }
   }

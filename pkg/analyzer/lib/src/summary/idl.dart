@@ -1313,6 +1313,16 @@ abstract class UnlinkedParam extends base.SummaryClass {
    * implicit.
    */
   EntityRef get type;
+
+  /**
+   * The length of the visible range.
+   */
+  int get visibleLength;
+
+  /**
+   * The beginning of the visible range.
+   */
+  int get visibleOffset;
 }
 
 /**

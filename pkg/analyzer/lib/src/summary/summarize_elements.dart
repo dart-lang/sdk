@@ -698,6 +698,13 @@ class _CompilationUnitSerializer {
         b.defaultValue = serializeConstExpr(initializer);
       }
     }
+    {
+      SourceRange visibleRange = parameter.visibleRange;
+      if (visibleRange != null) {
+        b.visibleOffset = visibleRange.offset;
+        b.visibleLength = visibleRange.length;
+      }
+    }
     return b;
   }
 

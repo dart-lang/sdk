@@ -5729,6 +5729,56 @@ class C {
     expect(f.inferredReturnTypeSlot, 0);
   }
 
+  test_parameter_visibleRange_abstractMethod() {
+    UnlinkedExecutable m = findExecutable('m',
+        executables:
+            serializeClassText('abstract class C { m(p); }').executables,
+        failIfAbsent: true);
+    _assertParameterZeroVisibleRange(m.parameters[0]);
+  }
+
+  test_parameter_visibleRange_function_blockBody() {
+    String text = r'''
+f(x) { // 1
+  f2(y) { // 2
+  } // 3
+} // 4
+''';
+    UnlinkedExecutable f = serializeExecutableText(text);
+    UnlinkedExecutable f2 = f.localFunctions[0];
+    _assertParameterVisible(text, f.parameters[0], '{ // 1', '} // 4');
+    _assertParameterVisible(text, f2.parameters[0], '{ // 2', '} // 3');
+  }
+
+  test_parameter_visibleRange_function_emptyBody() {
+    UnlinkedExecutable f = serializeExecutableText('external f(x);');
+    _assertParameterZeroVisibleRange(f.parameters[0]);
+  }
+
+  test_parameter_visibleRange_function_expressionBody() {
+    String text = r'''
+f(x) => 42;
+''';
+    UnlinkedExecutable f = serializeExecutableText(text);
+    _assertParameterVisible(text, f.parameters[0], '=>', ';');
+  }
+
+  test_parameter_visibleRange_inFunctionTypedParameter() {
+    String text = 'f(g(p)) {}';
+    UnlinkedExecutable f = serializeExecutableText(text);
+    UnlinkedParam g = f.parameters[0];
+    UnlinkedParam p = g.parameters[0];
+    expect(g.name, 'g');
+    expect(p.name, 'p');
+    _assertParameterVisible(text, g, '{', '}');
+    _assertParameterZeroVisibleRange(p);
+  }
+
+  test_parameter_visibleRange_typedef() {
+    UnlinkedTypedef type = serializeTypedefText('typedef F(x);');
+    _assertParameterZeroVisibleRange(type.parameters[0]);
+  }
+
   test_part_declaration() {
     addNamedSource('/a.dart', 'part of my.lib;');
     String text = 'library my.lib; part "a.dart"; // <-part';
@@ -6522,6 +6572,20 @@ var v;''';
         code.indexOf(visibleEnd) - expectedVisibleOffset + 1;
     expect(f.visibleOffset, expectedVisibleOffset);
     expect(f.visibleLength, expectedVisibleLength);
+  }
+
+  void _assertParameterVisible(
+      String code, UnlinkedParam p, String visibleBegin, String visibleEnd) {
+    int expectedVisibleOffset = code.indexOf(visibleBegin);
+    int expectedVisibleLength =
+        code.indexOf(visibleEnd) - expectedVisibleOffset + 1;
+    expect(p.visibleOffset, expectedVisibleOffset);
+    expect(p.visibleLength, expectedVisibleLength);
+  }
+
+  void _assertParameterZeroVisibleRange(UnlinkedParam p) {
+    expect(p.visibleOffset, isZero);
+    expect(p.visibleLength, isZero);
   }
 
   void _assertUnlinkedConst(UnlinkedConst constExpr,

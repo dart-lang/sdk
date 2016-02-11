@@ -3592,6 +3592,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   int _nameOffset;
   List<UnlinkedParamBuilder> _parameters;
   EntityRefBuilder _type;
+  int _visibleLength;
+  int _visibleOffset;
 
   @override
   List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
@@ -3718,7 +3720,31 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     _type = _value;
   }
 
-  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder defaultValue, int inferredTypeSlot, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type})
+  @override
+  int get visibleLength => _visibleLength ??= 0;
+
+  /**
+   * The length of the visible range.
+   */
+  void set visibleLength(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _visibleLength = _value;
+  }
+
+  @override
+  int get visibleOffset => _visibleOffset ??= 0;
+
+  /**
+   * The beginning of the visible range.
+   */
+  void set visibleOffset(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _visibleOffset = _value;
+  }
+
+  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder defaultValue, int inferredTypeSlot, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _defaultValue = defaultValue,
       _inferredTypeSlot = inferredTypeSlot,
@@ -3728,7 +3754,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
       _name = name,
       _nameOffset = nameOffset,
       _parameters = parameters,
-      _type = type;
+      _type = type,
+      _visibleLength = visibleLength,
+      _visibleOffset = visibleOffset;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -3784,6 +3812,12 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     if (offset_type != null) {
       fbBuilder.addOffset(9, offset_type);
     }
+    if (_visibleLength != null && _visibleLength != 0) {
+      fbBuilder.addUint32(10, _visibleLength);
+    }
+    if (_visibleOffset != null && _visibleOffset != 0) {
+      fbBuilder.addUint32(11, _visibleOffset);
+    }
     return fbBuilder.endTable();
   }
 }
@@ -3810,6 +3844,8 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   int _nameOffset;
   List<idl.UnlinkedParam> _parameters;
   idl.EntityRef _type;
+  int _visibleLength;
+  int _visibleOffset;
 
   @override
   List<idl.UnlinkedConst> get annotations {
@@ -3870,6 +3906,18 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
     _type ??= const _EntityRefReader().vTableGet(_bp, 9, null);
     return _type;
   }
+
+  @override
+  int get visibleLength {
+    _visibleLength ??= const fb.Uint32Reader().vTableGet(_bp, 10, 0);
+    return _visibleLength;
+  }
+
+  @override
+  int get visibleOffset {
+    _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bp, 11, 0);
+    return _visibleOffset;
+  }
 }
 
 abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
@@ -3885,6 +3933,8 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     "nameOffset": nameOffset,
     "parameters": parameters,
     "type": type,
+    "visibleLength": visibleLength,
+    "visibleOffset": visibleOffset,
   };
 }
 
