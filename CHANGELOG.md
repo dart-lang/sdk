@@ -18,6 +18,11 @@
     the trusted certificates.
   * Added support to SecurityContext for PKCS12 certificate and key containers.
 
+## 1.14.2 - 2016-02-09
+
+* Fixes a bug where pub would download packages from pub.dartlang.org even when
+  a different hosted URL was specified.
+
 ## 1.14.1 - 2016-02-04
 
 Patch release, resolves one issue:
