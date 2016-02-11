@@ -144,8 +144,7 @@ class DynamicTypeImpl extends TypeImpl {
   /**
    * Constructor used by [CircularTypeImpl].
    */
-  DynamicTypeImpl._circular()
-      : super(instance.element, Keyword.DYNAMIC.syntax);
+  DynamicTypeImpl._circular() : super(instance.element, Keyword.DYNAMIC.syntax);
 
   @override
   int get hashCode => 1;
@@ -487,11 +486,24 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   List<TypeParameterElement> get typeFormals {
-    if (_isInstantiated) {
+    if (_isInstantiated || element == null) {
       return TypeParameterElement.EMPTY_LIST;
-    } else {
-      return element?.typeParameters ?? TypeParameterElement.EMPTY_LIST;
     }
+    List<TypeParameterElement> baseTypeFormals = element.typeParameters;
+    int formalCount = baseTypeFormals.length;
+    if (formalCount == 0) {
+      return TypeParameterElement.EMPTY_LIST;
+    }
+
+    // Create type formals with specialized bounds.
+    // For example `<U extends T>` where T comes from an outer scope.
+    List<TypeParameterElement> result =
+        new List<TypeParameterElement>(formalCount);
+
+    for (int i = 0; i < formalCount; i++) {
+      result[i] = TypeParameterMember.from(baseTypeFormals[i], this);
+    }
+    return result;
   }
 
   @override

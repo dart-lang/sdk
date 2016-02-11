@@ -901,6 +901,68 @@ class PropertyAccessorMember extends ExecutableMember
 }
 
 /**
+ * A type parameter defined inside of another parameterized type, where the
+ * values of the enclosing type parameters are known.
+ *
+ * For example:
+ *
+ *     class C<T> {
+ *       S m<S extends T>(S s);
+ *     }
+ *
+ * If we have `C<num>.m` and we ask for the type parameter "S", we should get
+ * `<S extends num>` instead of `<S extends T>`. This is how the parameter
+ * and return types work, see: [FunctionType.parameters],
+ * [FunctionType.returnType], and [ParameterMember].
+ */
+class TypeParameterMember extends Member implements TypeParameterElement {
+  @override
+  final DartType bound;
+
+  TypeParameterMember(
+      TypeParameterElement baseElement, DartType definingType, this.bound)
+      : super(baseElement, definingType);
+
+  @override
+  TypeParameterElement get baseElement =>
+      super.baseElement as TypeParameterElement;
+
+  @override
+  Element get enclosingElement => baseElement.enclosingElement;
+
+  @override
+  TypeParameterType get type => baseElement.type;
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitTypeParameterElement(this);
+
+  /**
+   * If the given [parameter]'s type is different when any type parameters from
+   * the defining type's declaration are replaced with the actual type
+   * arguments from the [definingType], create a parameter member representing
+   * the given parameter. Return the member that was created, or the base
+   * parameter if no member was created.
+   */
+  static TypeParameterElement from(
+      TypeParameterElement parameter, ParameterizedType definingType) {
+    if (parameter?.bound == null || definingType.typeArguments.isEmpty) {
+      return parameter;
+    }
+
+    DartType bound = parameter.bound;
+    List<DartType> argumentTypes = definingType.typeArguments;
+    List<DartType> parameterTypes =
+        TypeParameterTypeImpl.getTypes(definingType.typeParameters);
+    DartType substitutedBound =
+        bound.substitute2(argumentTypes, parameterTypes);
+    if (bound == substitutedBound) {
+      return parameter;
+    }
+    return new TypeParameterMember(parameter, definingType, substitutedBound);
+  }
+}
+
+/**
  * A variable element defined in a parameterized type where the values of the
  * type parameters are known.
  */

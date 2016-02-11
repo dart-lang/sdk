@@ -1722,6 +1722,55 @@ void takeIIO(Object fn(int a, int b)) {}
 void takeDDO(Object fn(double a, double b)) {}
   ''');
     });
+
+    // Regression test for https://github.com/dart-lang/sdk/issues/25668
+    test('infer generic method type', () {
+      checkFile('''
+class C {
+  /*=T*/ m/*<T>*/(/*=T*/ x) => x;
+}
+class D extends C {
+  m/*<S>*/(x) => x;
+}
+main() {
+  int y = new D().m/*<int>*/(42);
+  print(y);
+}
+    ''');
+    });
+
+    test('do not infer invalid override of generic method', () {
+      checkFile('''
+class C {
+  /*=T*/ m/*<T>*/(/*=T*/ x) => x;
+}
+class D extends C {
+  /*severe:INVALID_METHOD_OVERRIDE*/m(x) => x;
+}
+main() {
+  int y = /*info:DYNAMIC_CAST*/new D().m/*<int>*/(42);
+  print(y);
+}
+    ''');
+    });
+
+    test('correctly recognize generic upper bound', () {
+      // Regression test for https://github.com/dart-lang/sdk/issues/25740.
+      checkFile('''
+class Foo<T extends Pattern> {
+  void method/*<U extends T>*/(dynamic/*=U*/ u) {}
+}
+main() {
+  new Foo().method/*<String>*/("str");
+  new Foo();
+
+  new Foo<String>().method("str");
+  new Foo().method("str");
+
+  new Foo<String>().method(/*severe:STATIC_TYPE_ERROR*/42);
+}
+      ''');
+    });
   });
 
   // Regression test for https://github.com/dart-lang/dev_compiler/issues/47
@@ -1747,34 +1796,4 @@ void takeDDO(Object fn(double a, double b)) {}
   ''');
   });
 
-  // Regression test for https://github.com/dart-lang/sdk/issues/25668
-  test('infer generic method type', () {
-    checkFile('''
-class C {
-  /*=T*/ m/*<T>*/(/*=T*/ x) => x;
-}
-class D extends C {
-  m/*<S>*/(x) => x;
-}
-main() {
-  int y = new D().m/*<int>*/(42);
-  print(y);
-}
-    ''');
-  });
-
-  test('do not infer invalid override of generic method', () {
-    checkFile('''
-class C {
-  /*=T*/ m/*<T>*/(/*=T*/ x) => x;
-}
-class D extends C {
-  /*severe:INVALID_METHOD_OVERRIDE*/m(x) => x;
-}
-main() {
-  int y = /*info:DYNAMIC_CAST*/new D().m/*<int>*/(42);
-  print(y);
-}
-    ''');
-  });
 }
