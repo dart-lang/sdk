@@ -881,8 +881,8 @@ class AnalysisEngine {
     if (fileName == null) {
       return false;
     }
-    return javaStringEqualsIgnoreCase(
-        FileNameUtilities.getExtension(fileName), SUFFIX_DART);
+    String extension = FileNameUtilities.getExtension(fileName).toLowerCase();
+    return extension == SUFFIX_DART;
   }
 
   /**
@@ -892,9 +892,8 @@ class AnalysisEngine {
     if (fileName == null) {
       return false;
     }
-    String extension = FileNameUtilities.getExtension(fileName);
-    return javaStringEqualsIgnoreCase(extension, SUFFIX_HTML) ||
-        javaStringEqualsIgnoreCase(extension, SUFFIX_HTM);
+    String extension = FileNameUtilities.getExtension(fileName).toLowerCase();
+    return extension == SUFFIX_HTML || extension == SUFFIX_HTM;
   }
 }
 

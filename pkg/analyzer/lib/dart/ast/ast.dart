@@ -40,7 +40,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart' show AuxiliaryElements;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
@@ -4500,10 +4499,10 @@ abstract class ImportDirective extends NamespaceDirective {
       return allShows1.length - allShows2.length;
     }
     // next ensure that the lists are equivalent
-    if (!javaCollectionContainsAll(allHides1, allHides2)) {
+    if (!allHides1.toSet().containsAll(allHides2)) {
       return -1;
     }
-    if (!javaCollectionContainsAll(allShows1, allShows2)) {
+    if (!allShows1.toSet().containsAll(allShows2)) {
       return -1;
     }
     return 0;

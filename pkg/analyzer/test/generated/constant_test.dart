@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -29,6 +28,8 @@ import '../utils.dart';
 import 'engine_test.dart';
 import 'resolver_test.dart';
 import 'test_support.dart';
+
+const int LONG_MAX_VALUE = 0x7fffffffffffffff;
 
 main() {
   initializeTestEnvironment();
@@ -4213,7 +4214,7 @@ class DartObjectImplTest extends EngineTestCase {
    *
    * @param expected the expected result of the operation
    * @param leftOperand the left operand to the operation
-   * @param rightOperand the left operand to the operation
+   * @param rightOperand the right operand to the operation
    * @throws EvaluationException if the result is an exception when it should not be
    */
   void _assertShiftRight(DartObjectImpl expected, DartObjectImpl leftOperand,

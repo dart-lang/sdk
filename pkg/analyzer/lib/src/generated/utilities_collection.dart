@@ -11,6 +11,29 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart' show Token;
 
 /**
+ * Returns `true` if a and b contain equal elements in the same order.
+ */
+bool listsEqual(List a, List b) {
+  // TODO(rnystrom): package:collection also implements this, and analyzer
+  // already transitively depends on that package. Consider using it instead.
+  if (identical(a, b)) {
+    return true;
+  }
+
+  if (a.length != b.length) {
+    return false;
+  }
+
+  for (int i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * The class `BooleanArray` defines methods for operating on integers as if they were arrays
  * of booleans. These arrays can be indexed by either integers or by enumeration constants.
  */

@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart' show Keyword;
 import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
@@ -1697,7 +1698,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     List<DartType> newTypeArguments = TypeImpl.substitute(
         typeArguments, argumentTypes, parameterTypes, prune);
-    if (JavaArrays.equals(newTypeArguments, typeArguments)) {
+    if (listsEqual(newTypeArguments, typeArguments)) {
       return this;
     }
 
