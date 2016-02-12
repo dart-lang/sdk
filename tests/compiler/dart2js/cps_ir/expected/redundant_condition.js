@@ -27,7 +27,7 @@
 
 function() {
   var a = V.nextNumber();
-  if (!(typeof a === "number" && Math.floor(a) === a))
+  if (typeof a !== "number" || Math.floor(a) !== a)
     throw H.wrapException("error 1");
   a += 5;
   V.action(a);

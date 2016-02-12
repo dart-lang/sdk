@@ -1433,6 +1433,26 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
   }
 
+  /// Similar to [makeBoundsCheck], but also creates a check to validate that
+  /// [index] is an integer.
+  Primitive makeTypeAndBoundsCheck(CpsFragment cps,
+      Primitive list, Primitive index,
+      [int checkKind = BoundsCheck.BOTH_BOUNDS]) {
+    if (compiler.trustPrimitives) {
+      return cps.letPrim(new BoundsCheck.noCheck(list, cps.sourceInformation));
+    } else {
+      GetLength length = cps.letPrim(new GetLength(list));
+      list = cps.refine(list, typeSystem.nonNullType);
+      cps.ifFalsy(cps.letPrim(new TypeTest(
+              index, dartTypes.coreTypes.intType, const [])))
+         .invokeStaticThrower(helpers.throwIllegalArgumentException, [index]);
+      index = cps.refine(index,
+          new TypeMask.nonNullSubclass(helpers.jsIntClass, classWorld));
+      return cps.letPrim(new BoundsCheck(list, index, length, checkKind,
+          cps.sourceInformation));
+    }
+  }
+
   /// Create a check that throws if the length of [list] is not equal to
   /// [originalLength].
   ///
@@ -1468,10 +1488,14 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
       case '[]':
         Primitive index = node.dartArgument(0);
-        // TODO(asgerf): Consider inserting a guard and specialize anyway.
-        if (!lattice.isDefinitelyInt(getValue(index))) return null;
         CpsFragment cps = new CpsFragment(node.sourceInformation);
-        receiver = makeBoundsCheck(cps, receiver, index);
+        if (compiler.trustPrimitives ||
+            lattice.isDefinitelyInt(getValue(index))) {
+          receiver = makeBoundsCheck(cps, receiver, index);
+        } else {
+          // Insert a guard and specialize anyways.
+          receiver = makeTypeAndBoundsCheck(cps, receiver, index);
+        }
         GetIndex get = cps.letPrim(new GetIndex(receiver, index));
         node.replaceUsesWith(get);
         // TODO(asgerf): Make replaceUsesWith set the hint?
@@ -1485,9 +1509,14 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         }
         Primitive index = node.dartArgument(0);
         Primitive value = node.dartArgument(1);
-        if (!lattice.isDefinitelyInt(getValue(index))) return null;
         CpsFragment cps = new CpsFragment(node.sourceInformation);
-        receiver = makeBoundsCheck(cps, receiver, index);
+        if (compiler.trustPrimitives ||
+            lattice.isDefinitelyInt(getValue(index))) {
+          receiver = makeBoundsCheck(cps, receiver, index);
+        } else {
+          // Insert a guard and specialize anyways.
+          receiver = makeTypeAndBoundsCheck(cps, receiver, index);
+        }
         cps.letPrim(new SetIndex(receiver, index, value));
         assert(node.hasNoUses);
         return cps;
@@ -2245,7 +2274,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         return unaryBuiltinOperator(BuiltinOperator.IsNumber);
       }
       return new ApplyBuiltinOperator(
-          BuiltinOperator.IsNumberAndFloor,
+          BuiltinOperator.IsInteger,
           <Primitive>[prim, prim, prim],
           node.sourceInformation);
     }
@@ -2888,8 +2917,9 @@ class TypePropagationVisitor implements Visitor {
       case BuiltinOperator.IsFalsy:
       case BuiltinOperator.IsNumber:
       case BuiltinOperator.IsNotNumber:
+      case BuiltinOperator.IsNotInteger:
       case BuiltinOperator.IsFloor:
-      case BuiltinOperator.IsNumberAndFloor:
+      case BuiltinOperator.IsInteger:
         setValue(node, nonConstant(typeSystem.boolType));
         break;
 
