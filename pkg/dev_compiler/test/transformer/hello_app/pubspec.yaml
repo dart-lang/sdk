@@ -10,7 +10,6 @@ dev_dependencies:
 transformers:
 - dev_compiler:
     args:
-      - --closure
       - --destructure-named-params
 - $dart2js:
     $exclude: '**'

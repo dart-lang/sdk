@@ -33,6 +33,7 @@ dev_dependencies:
   dart_style: 0.2.2
   test: ^0.12.0
   transformer_test: ^0.1.0
+  webdriver: ^0.8.8
 
 environment:
   sdk: ">=1.12.0 <2.0.0"

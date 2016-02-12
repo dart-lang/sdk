@@ -6,7 +6,6 @@ cache:
     - $HOME/.npm
     - $HOME/.nvm
     - $HOME/.pub-cache/hosted
-    - $HOME/.chrome/canary
     - node_modules
 before_install:
   - pub global activate dart_coveralls
