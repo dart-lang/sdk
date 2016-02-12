@@ -42,6 +42,8 @@ accessor_conflict_import_test: RuntimeError # Issue 25626
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
+async_star_no_cancel_test: RuntimeError # Need triage
+async_star_no_cancel2_test: RuntimeError # Need triage
 
 [ $compiler == dart2js && $browser ]
 config_import_test: Fail # Test flag is not passed to the compiler.
@@ -274,6 +276,8 @@ async_return_types_test/wrongReturnType: Crash # cannot handle sync*/async* func
 async_return_types_test/wrongTypeParameter: Crash # cannot handle sync*/async* functions
 async_star_cancel_and_throw_in_finally_test: Crash # (foo()async*{try {in...  cannot handle sync*/async* functions
 async_star_cancel_while_paused_test: Crash # (f()async*{list.add(...  cannot handle sync*/async* functions
+async_star_no_cancel_test: Crash # (foo()async*{try {in...  cannot handle sync*/async* functions
+async_star_no_cancel2_test: Crash # (foo()async*{try {in...  cannot handle sync*/async* functions
 async_star_regression_2238_test: Crash # (f()async*{label1:label2:yield 0;}): cannot handle sync*/async* functions
 async_star_regression_23116_test: Crash # (Stream<int> foo(Com...  cannot handle sync*/async* functions
 async_star_regression_fisk_test: Crash # (fisk()async*{res.ad...  cannot handle sync*/async* functions
