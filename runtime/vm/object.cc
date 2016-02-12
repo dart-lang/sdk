@@ -6033,26 +6033,29 @@ bool Function::TypeTest(TypeTestKind test_kind,
   AbstractType& other_res_type = AbstractType::Handle(other.result_type());
   if (!other_res_type.IsInstantiated()) {
     other_res_type = other_res_type.InstantiateFrom(other_type_arguments,
-                                                    bound_error);
+                                                    bound_error,
+                                                    NULL, NULL, space);
     ASSERT((bound_error == NULL) || bound_error->IsNull());
   }
   if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
     AbstractType& res_type = AbstractType::Handle(result_type());
     if (!res_type.IsInstantiated()) {
-      res_type = res_type.InstantiateFrom(type_arguments, bound_error);
+      res_type = res_type.InstantiateFrom(type_arguments, bound_error,
+                                          NULL, NULL, space);
       ASSERT((bound_error == NULL) || bound_error->IsNull());
     }
     if (res_type.IsVoidType()) {
       return false;
     }
     if (test_kind == kIsSubtypeOf) {
-      if (!res_type.IsSubtypeOf(other_res_type, bound_error) &&
-          !other_res_type.IsSubtypeOf(res_type, bound_error)) {
+      if (!res_type.IsSubtypeOf(other_res_type, bound_error, NULL, space) &&
+          !other_res_type.IsSubtypeOf(res_type, bound_error, NULL, space)) {
         return false;
       }
     } else {
       ASSERT(test_kind == kIsMoreSpecificThan);
-      if (!res_type.IsMoreSpecificThan(other_res_type, bound_error)) {
+      if (!res_type.IsMoreSpecificThan(other_res_type, bound_error,
+                                       NULL, space)) {
         return false;
       }
     }
@@ -6421,7 +6424,8 @@ void Function::BuildSignatureParameters(
     if (instantiate &&
         param_type.IsFinalized() &&
         !param_type.IsInstantiated()) {
-      param_type = param_type.InstantiateFrom(instantiator, NULL);
+      param_type = param_type.InstantiateFrom(instantiator, NULL,
+                                              NULL, NULL, Heap::kNew);
     }
     name = param_type.BuildName(name_visibility);
     pieces->Add(name);
@@ -6448,7 +6452,8 @@ void Function::BuildSignatureParameters(
       if (instantiate &&
           param_type.IsFinalized() &&
           !param_type.IsInstantiated()) {
-        param_type = param_type.InstantiateFrom(instantiator, NULL);
+        param_type = param_type.InstantiateFrom(instantiator, NULL,
+                                                NULL, NULL, Heap::kNew);
       }
       ASSERT(!param_type.IsNull());
       name = param_type.BuildName(name_visibility);
@@ -6546,7 +6551,8 @@ RawString* Function::BuildSignature(bool instantiate,
   pieces.Add(Symbols::RParenArrow());
   AbstractType& res_type = AbstractType::Handle(zone, result_type());
   if (instantiate && res_type.IsFinalized() && !res_type.IsInstantiated()) {
-    res_type = res_type.InstantiateFrom(instantiator, NULL);
+    res_type = res_type.InstantiateFrom(instantiator, NULL,
+                                        NULL, NULL, Heap::kNew);
   }
   name = res_type.BuildName(name_visibility);
   pieces.Add(name);
@@ -14195,7 +14201,8 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     // Note that we may encounter a bound error in checked mode.
     if (!other.IsInstantiated()) {
       const AbstractType& instantiated_other = AbstractType::Handle(
-          zone, other.InstantiateFrom(other_instantiator, bound_error));
+          zone, other.InstantiateFrom(other_instantiator, bound_error,
+                                      NULL, NULL, Heap::kOld));
       if ((bound_error != NULL) && !bound_error->IsNull()) {
         ASSERT(Isolate::Current()->flags().type_checks());
         return false;
@@ -14247,7 +14254,8 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   AbstractType& instantiated_other = AbstractType::Handle(zone, other.raw());
   // Note that we may encounter a bound error in checked mode.
   if (!other.IsInstantiated()) {
-    instantiated_other = other.InstantiateFrom(other_instantiator, bound_error);
+    instantiated_other = other.InstantiateFrom(other_instantiator, bound_error,
+                                               NULL, NULL, Heap::kOld);
     if ((bound_error != NULL) && !bound_error->IsNull()) {
       ASSERT(Isolate::Current()->flags().type_checks());
       return false;
@@ -15001,7 +15009,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     }
     // The current bound_trail cannot be used, because operands are swapped and
     // the test is different anyway (more specific vs. subtype).
-    if (bound.IsMoreSpecificThan(other, bound_error, NULL)) {
+    if (bound.IsMoreSpecificThan(other, bound_error, NULL, space)) {
       return true;
     }
     return false;  // TODO(regis): We should return "maybe after instantiation".
@@ -16702,7 +16710,8 @@ RawAbstractType* BoundedType::InstantiateFrom(
           (!type_param.CheckBound(instantiated_bounded_type,
                                   instantiated_upper_bound,
                                   bound_error,
-                                  bound_trail) &&
+                                  bound_trail,
+                                  space) &&
            bound_error->IsNull())) {
         // We cannot determine yet whether the bounded_type is below the
         // upper_bound, because one or both of them is still being finalized or

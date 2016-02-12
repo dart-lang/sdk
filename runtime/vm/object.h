@@ -1132,8 +1132,8 @@ class Class : public Object {
                    const Class& other,
                    const TypeArguments& other_type_arguments,
                    Error* bound_error,
-                   TrailPtr bound_trail = NULL,
-                   Heap::Space space = Heap::kNew) const {
+                   TrailPtr bound_trail,
+                   Heap::Space space) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
                     other,
@@ -1148,8 +1148,8 @@ class Class : public Object {
                           const Class& other,
                           const TypeArguments& other_type_arguments,
                           Error* bound_error,
-                          TrailPtr bound_trail = NULL,
-                          Heap::Space space = Heap::kNew) const {
+                          TrailPtr bound_trail,
+                          Heap::Space space) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
                     other,
@@ -1584,8 +1584,8 @@ class TypeArguments : public Object {
                    intptr_t from_index,
                    intptr_t len,
                    Error* bound_error,
-                   TrailPtr bound_trail = NULL,
-                   Heap::Space space = Heap::kNew) const {
+                   TrailPtr bound_trail,
+                   Heap::Space space) const {
     return TypeTest(kIsSubtypeOf, other, from_index, len,
                     bound_error, bound_trail, space);
   }
@@ -1596,8 +1596,8 @@ class TypeArguments : public Object {
                           intptr_t from_index,
                           intptr_t len,
                           Error* bound_error,
-                          TrailPtr bound_trail = NULL,
-                          Heap::Space space = Heap::kNew) const {
+                          TrailPtr bound_trail,
+                          Heap::Space space) const {
     return TypeTest(kIsMoreSpecificThan, other, from_index, len,
                     bound_error, bound_trail, space);
   }
@@ -1655,9 +1655,9 @@ class TypeArguments : public Object {
   RawTypeArguments* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr instantiation_trail = NULL,
-      TrailPtr bound_trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
 
   // Runtime instantiation with canonicalization. Not to be used during type
   // finalization at compile time.
@@ -2493,7 +2493,7 @@ class Function : public Object {
                    const Function& other,
                    const TypeArguments& other_type_arguments,
                    Error* bound_error,
-                   Heap::Space space = Heap::kNew) const {
+                   Heap::Space space) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
                     other,
@@ -2508,7 +2508,7 @@ class Function : public Object {
                           const Function& other,
                           const TypeArguments& other_type_arguments,
                           Error* bound_error,
-                          Heap::Space space = Heap::kNew) const {
+                          Heap::Space space) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
                     other,
@@ -5275,9 +5275,9 @@ class AbstractType : public Instance {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr instantiation_trail = NULL,
-      TrailPtr bound_trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
 
   // Return a clone of this unfinalized type or the type itself if it is
   // already finalized. Apply recursively to type arguments, i.e. finalized
@@ -5390,16 +5390,16 @@ class AbstractType : public Instance {
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other,
                    Error* bound_error,
-                   TrailPtr bound_trail = NULL,
-                   Heap::Space space = Heap::kNew) const {
+                   TrailPtr bound_trail,
+                   Heap::Space space) const {
     return TypeTest(kIsSubtypeOf, other, bound_error, bound_trail, space);
   }
 
   // Check the 'more specific' relationship.
   bool IsMoreSpecificThan(const AbstractType& other,
                           Error* bound_error,
-                          TrailPtr bound_trail = NULL,
-                          Heap::Space space = Heap::kNew) const {
+                          TrailPtr bound_trail,
+                          Heap::Space space) const {
     return TypeTest(kIsMoreSpecificThan, other,
                     bound_error, bound_trail, space);
   }
@@ -5468,9 +5468,9 @@ class Type : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr instantiation_trail = NULL,
-      TrailPtr bound_trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner,
@@ -5616,9 +5616,9 @@ class FunctionType : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* malformed_error,
-      TrailPtr instantiation_trail = NULL,
-      TrailPtr bound_trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner,
@@ -5693,9 +5693,9 @@ class TypeRef : public AbstractType {
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr instantiation_trail = NULL,
-      TrailPtr bound_trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
   virtual RawTypeRef* CloneUninstantiated(
       const Class& new_owner,
       TrailPtr trail = NULL) const;
@@ -5755,8 +5755,8 @@ class TypeParameter : public AbstractType {
   bool CheckBound(const AbstractType& bounded_type,
                   const AbstractType& upper_bound,
                   Error* bound_error,
-                  TrailPtr bound_trail = NULL,
-                  Heap::Space space = Heap::kNew) const;
+                  TrailPtr bound_trail,
+                  Heap::Space space) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const {
     return false;
@@ -5766,9 +5766,9 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr instantiation_trail = NULL,
-      TrailPtr bound_trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner, TrailPtr trail = NULL) const;
@@ -5852,9 +5852,9 @@ class BoundedType : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr instantiation_trail = NULL,
-      TrailPtr bound_trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner, TrailPtr trail = NULL) const;

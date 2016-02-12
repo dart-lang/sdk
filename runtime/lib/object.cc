@@ -265,7 +265,8 @@ DEFINE_NATIVE_ENTRY(Object_as, 3) {
     if (!type.IsInstantiated()) {
       // Instantiate type before reporting the error.
       const AbstractType& instantiated_type = AbstractType::Handle(
-          type.InstantiateFrom(instantiator_type_arguments, NULL));
+          type.InstantiateFrom(instantiator_type_arguments, NULL,
+                               NULL, NULL, Heap::kNew));
       // Note that instantiated_type may be malformed.
       type_name = instantiated_type.UserVisibleName();
     } else {

@@ -323,7 +323,8 @@ static void PrintTypeCheck(
     // Instantiate type before printing.
     Error& bound_error = Error::Handle();
     const AbstractType& instantiated_type = AbstractType::Handle(
-        type.InstantiateFrom(instantiator_type_arguments, &bound_error));
+        type.InstantiateFrom(instantiator_type_arguments, &bound_error,
+                             NULL, NULL, Heap::kOld));
     OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
                  message,
                  String::Handle(instance_type.Name()).ToCString(),
@@ -423,7 +424,8 @@ static void UpdateTypeTestCache(
     if (!test_type.IsInstantiated()) {
       Error& bound_error = Error::Handle();
       test_type = type.InstantiateFrom(instantiator_type_arguments,
-                                       &bound_error);
+                                       &bound_error,
+                                       NULL, NULL, Heap::kNew);
       ASSERT(bound_error.IsNull());  // Malbounded types are not optimized.
     }
     OS::PrintErr("  Updated test cache %p ix: %" Pd " with "
@@ -538,7 +540,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
       const AbstractType& instantiated_dst_type = AbstractType::Handle(
-          dst_type.InstantiateFrom(instantiator_type_arguments, NULL));
+          dst_type.InstantiateFrom(instantiator_type_arguments, NULL,
+                                   NULL, NULL, Heap::kNew));
       // Note that instantiated_dst_type may be malbounded.
       dst_type_name = instantiated_dst_type.UserVisibleName();
       dst_type_lib =

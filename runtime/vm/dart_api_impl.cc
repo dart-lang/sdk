@@ -150,7 +150,9 @@ static RawInstance* GetListInstance(Zone* zone, const Object& obj) {
     if (obj_class.IsSubtypeOf(Object::null_type_arguments(),
                               list_class,
                               Object::null_type_arguments(),
-                              &malformed_type_error)) {
+                              &malformed_type_error,
+                              NULL,
+                              Heap::kNew)) {
       ASSERT(malformed_type_error.IsNull());  // Type is a raw List.
       return instance.raw();
     }
@@ -170,7 +172,9 @@ static RawInstance* GetMapInstance(Zone* zone, const Object& obj) {
     if (obj_class.IsSubtypeOf(Object::null_type_arguments(),
                               map_class,
                               Object::null_type_arguments(),
-                              &malformed_type_error)) {
+                              &malformed_type_error,
+                              NULL,
+                              Heap::kNew)) {
       ASSERT(malformed_type_error.IsNull());  // Type is a raw Map.
       return instance.raw();
     }
@@ -2016,7 +2020,9 @@ DART_EXPORT bool Dart_IsFuture(Dart_Handle handle) {
     bool is_future = obj_class.IsSubtypeOf(Object::null_type_arguments(),
                                            future_class,
                                            Object::null_type_arguments(),
-                                           &malformed_type_error);
+                                           &malformed_type_error,
+                                           NULL,
+                                           Heap::kNew);
     ASSERT(malformed_type_error.IsNull());  // Type is a raw Future.
     return is_future;
   }
@@ -3798,7 +3804,8 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
       // type arguments of the type argument.
       Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(type_arguments,
-                                                     &bound_error);
+                                                     &bound_error,
+                                                     NULL, NULL, Heap::kNew);
       if (!bound_error.IsNull()) {
         return Api::NewHandle(T, bound_error.raw());
       }
