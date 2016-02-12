@@ -6784,7 +6784,7 @@ void Function::SaveICDataMap(
 
 void Function::RestoreICDataMap(
     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
-    bool clone_descriptors) const {
+    bool clone_ic_data) const {
   ASSERT(deopt_id_to_ic_data->is_empty());
   Zone* zone = Thread::Current()->zone();
   const Array& saved_ic_data = Array::Handle(zone, ic_data_array());
@@ -6804,9 +6804,9 @@ void Function::RestoreICDataMap(
     for (intptr_t i = 1; i < saved_length; i++) {
       ICData& ic_data = ICData::ZoneHandle(zone);
       ic_data ^= saved_ic_data.At(i);
-      if (clone_descriptors) {
-        ICData& original_ic_data = ICData::Handle(zone, ic_data.raw());
-        ic_data = ICData::CloneDescriptor(ic_data);
+      if (clone_ic_data) {
+        const ICData& original_ic_data = ICData::Handle(zone, ic_data.raw());
+        ic_data = ICData::Clone(ic_data);
         ic_data.SetOriginal(original_ic_data);
       }
       (*deopt_id_to_ic_data)[ic_data.deopt_id()] = &ic_data;
@@ -12306,7 +12306,7 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
 }
 
 
-RawICData* ICData::CloneDescriptor(const ICData& from) {
+RawICData* ICData::Clone(const ICData& from) {
   Zone* zone = Thread::Current()->zone();
   const ICData& result = ICData::Handle(ICData::NewDescriptor(
       zone,
@@ -12315,8 +12315,17 @@ RawICData* ICData::CloneDescriptor(const ICData& from) {
       Array::Handle(zone, from.arguments_descriptor()),
       from.deopt_id(),
       from.NumArgsTested()));
-  // Preserve entry array.
-  result.set_ic_data_array(Array::Handle(zone, from.ic_data()));
+  // Clone entry array.
+  const Array& from_array = Array::Handle(zone, from.ic_data());
+  const intptr_t len = from_array.Length();
+  const Array& cloned_array =
+      Array::Handle(zone, Array::New(len, Heap::kOld));
+  Object& obj = Object::Handle(zone);
+  for (intptr_t i = 0; i < len; i++) {
+    obj = from_array.At(i);
+    cloned_array.SetAt(i, obj);
+  }
+  result.set_ic_data_array(cloned_array);
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
   return result.raw();

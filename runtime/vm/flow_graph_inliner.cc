@@ -706,8 +706,8 @@ class CallSiteInliner : public ValueObject {
         // Load IC data for the callee.
         ZoneGrowableArray<const ICData*>* ic_data_array =
               new(Z) ZoneGrowableArray<const ICData*>();
-        const bool clone_descriptors = Compiler::IsBackgroundCompilation();
-        function.RestoreICDataMap(ic_data_array, clone_descriptors);
+        const bool clone_ic_data = Compiler::IsBackgroundCompilation();
+        function.RestoreICDataMap(ic_data_array, clone_ic_data);
         if (Compiler::IsBackgroundCompilation() &&
             (function.ic_data_array() == Array::null())) {
           Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);

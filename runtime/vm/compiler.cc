@@ -606,8 +606,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
           // 'Freeze' ICData in background compilation so that it does not
           // change while compiling.
-          const bool clone_descriptors = Compiler::IsBackgroundCompilation();
-          function.RestoreICDataMap(ic_data_array, clone_descriptors);
+          const bool clone_ic_data = Compiler::IsBackgroundCompilation();
+          function.RestoreICDataMap(ic_data_array, clone_ic_data);
 
           if (Compiler::IsBackgroundCompilation() &&
               (function.ic_data_array() == Array::null())) {
