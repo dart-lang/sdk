@@ -1478,16 +1478,18 @@ class _LibraryResynthesizer {
       parameterElement = initializingParameter;
       initializingParameter.field = fields[serializedParameter.name];
     } else {
-      if (serializedParameter.defaultValue != null) {
+      if (serializedParameter.kind == UnlinkedParamKind.required) {
+        parameterElement = new ParameterElementImpl(
+            serializedParameter.name, serializedParameter.nameOffset);
+      } else {
         DefaultParameterElementImpl defaultParameter =
             new DefaultParameterElementImpl(
                 serializedParameter.name, serializedParameter.nameOffset);
         parameterElement = defaultParameter;
-        defaultParameter.constantInitializer =
-            _buildConstExpression(serializedParameter.defaultValue);
-      } else {
-        parameterElement = new ParameterElementImpl(
-            serializedParameter.name, serializedParameter.nameOffset);
+        if (serializedParameter.defaultValue != null) {
+          defaultParameter.constantInitializer =
+              _buildConstExpression(serializedParameter.defaultValue);
+        }
       }
     }
     buildAnnotations(parameterElement, serializedParameter.annotations);

@@ -1582,7 +1582,9 @@ class C {
   const C.positional([p = 1 + 2]);
   const C.named({p: 1 + 2});
   void methodPositional([p = 1 + 2]) {}
+  void methodPositionalWithoutDefault([p]) {}
   void methodNamed({p: 1 + 2}) {}
+  void methodNamedWithoutDefault({p}) {}
 }
 ''');
   }
