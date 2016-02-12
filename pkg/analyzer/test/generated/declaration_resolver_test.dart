@@ -302,6 +302,18 @@ main() {
     expect(setterName.staticElement, same(setterElement));
   }
 
+  void test_visitFunctionExpression() {
+    String code = r'''
+main(List<String> items) {
+  items.forEach((item) {});
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
   void test_visitMethodDeclaration_getter_duplicate() {
     String code = r'''
 class C {

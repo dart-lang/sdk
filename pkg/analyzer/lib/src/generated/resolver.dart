@@ -2302,6 +2302,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (node.parent is! FunctionDeclaration) {
       FunctionElement element = _findAtOffset(
           _enclosingExecutable.functions, node, node.beginToken.offset);
+      _expectedElements.remove(element);
       node.element = element;
     }
     ExecutableElement outerExecutable = _enclosingExecutable;
