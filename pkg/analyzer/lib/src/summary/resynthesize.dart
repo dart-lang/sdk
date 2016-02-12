@@ -813,76 +813,72 @@ class _LibraryResynthesizer {
    * Resynthesize a [ClassElement] and place it in [unitHolder].
    */
   void buildClass(UnlinkedClass serializedClass) {
-    try {
-      ClassElementImpl classElement = new ClassElementImpl(
-          serializedClass.name, serializedClass.nameOffset);
-      classElement.typeParameters =
-          buildTypeParameters(serializedClass.typeParameters);
-      classElement.abstract = serializedClass.isAbstract;
-      classElement.mixinApplication = serializedClass.isMixinApplication;
-      InterfaceTypeImpl correspondingType = new InterfaceTypeImpl(classElement);
-      if (serializedClass.supertype != null) {
-        classElement.supertype = buildType(serializedClass.supertype);
-      } else if (!serializedClass.hasNoSupertype) {
-        if (isCoreLibrary) {
-          delayedObjectSubclasses.add(classElement);
-        } else {
-          classElement.supertype = summaryResynthesizer.typeProvider.objectType;
-        }
+    ClassElementImpl classElement =
+        new ClassElementImpl(serializedClass.name, serializedClass.nameOffset);
+    classElement.typeParameters =
+        buildTypeParameters(serializedClass.typeParameters);
+    classElement.abstract = serializedClass.isAbstract;
+    classElement.mixinApplication = serializedClass.isMixinApplication;
+    InterfaceTypeImpl correspondingType = new InterfaceTypeImpl(classElement);
+    if (serializedClass.supertype != null) {
+      classElement.supertype = buildType(serializedClass.supertype);
+    } else if (!serializedClass.hasNoSupertype) {
+      if (isCoreLibrary) {
+        delayedObjectSubclasses.add(classElement);
+      } else {
+        classElement.supertype = summaryResynthesizer.typeProvider.objectType;
       }
-      classElement.interfaces =
-          serializedClass.interfaces.map(buildType).toList();
-      classElement.mixins = serializedClass.mixins.map(buildType).toList();
-      ElementHolder memberHolder = new ElementHolder();
-      fields = <String, FieldElementImpl>{};
-      for (UnlinkedVariable serializedVariable in serializedClass.fields) {
-        buildVariable(serializedVariable, memberHolder);
-      }
-      bool constructorFound = false;
-      constructors = <String, ConstructorElementImpl>{};
-      for (UnlinkedExecutable serializedExecutable
-          in serializedClass.executables) {
-        switch (serializedExecutable.kind) {
-          case UnlinkedExecutableKind.constructor:
-            constructorFound = true;
-            buildConstructor(
-                serializedExecutable, memberHolder, correspondingType);
-            break;
-          case UnlinkedExecutableKind.functionOrMethod:
-          case UnlinkedExecutableKind.getter:
-          case UnlinkedExecutableKind.setter:
-            buildExecutable(serializedExecutable, memberHolder);
-            break;
-        }
-      }
-      if (!serializedClass.isMixinApplication) {
-        if (!constructorFound) {
-          // Synthesize implicit constructors.
-          ConstructorElementImpl constructor =
-              new ConstructorElementImpl('', -1);
-          constructor.synthetic = true;
-          constructor.returnType = correspondingType;
-          constructor.type = new FunctionTypeImpl.elementWithNameAndArgs(
-              constructor, null, getCurrentTypeArguments(), false);
-          memberHolder.addConstructor(constructor);
-        }
-        classElement.constructors = memberHolder.constructors;
-      }
-      classElement.accessors = memberHolder.accessors;
-      classElement.fields = memberHolder.fields;
-      classElement.methods = memberHolder.methods;
-      correspondingType.typeArguments = getCurrentTypeArguments();
-      classElement.type = correspondingType;
-      buildDocumentation(classElement, serializedClass.documentationComment);
-      buildAnnotations(classElement, serializedClass.annotations);
-      resolveConstructorInitializers(classElement);
-      unitHolder.addType(classElement);
-    } finally {
-      currentTypeParameters.removeLast();
-      assert(currentTypeParameters.isEmpty);
-      fields = null;
-      constructors = null;
     }
+    classElement.interfaces =
+        serializedClass.interfaces.map(buildType).toList();
+    classElement.mixins = serializedClass.mixins.map(buildType).toList();
+    ElementHolder memberHolder = new ElementHolder();
+    fields = <String, FieldElementImpl>{};
+    for (UnlinkedVariable serializedVariable in serializedClass.fields) {
+      buildVariable(serializedVariable, memberHolder);
+    }
+    bool constructorFound = false;
+    constructors = <String, ConstructorElementImpl>{};
+    for (UnlinkedExecutable serializedExecutable
+        in serializedClass.executables) {
+      switch (serializedExecutable.kind) {
+        case UnlinkedExecutableKind.constructor:
+          constructorFound = true;
+          buildConstructor(
+              serializedExecutable, memberHolder, correspondingType);
+          break;
+        case UnlinkedExecutableKind.functionOrMethod:
+        case UnlinkedExecutableKind.getter:
+        case UnlinkedExecutableKind.setter:
+          buildExecutable(serializedExecutable, memberHolder);
+          break;
+      }
+    }
+    if (!serializedClass.isMixinApplication) {
+      if (!constructorFound) {
+        // Synthesize implicit constructors.
+        ConstructorElementImpl constructor = new ConstructorElementImpl('', -1);
+        constructor.synthetic = true;
+        constructor.returnType = correspondingType;
+        constructor.type = new FunctionTypeImpl.elementWithNameAndArgs(
+            constructor, null, getCurrentTypeArguments(), false);
+        memberHolder.addConstructor(constructor);
+      }
+      classElement.constructors = memberHolder.constructors;
+    }
+    classElement.accessors = memberHolder.accessors;
+    classElement.fields = memberHolder.fields;
+    classElement.methods = memberHolder.methods;
+    correspondingType.typeArguments = getCurrentTypeArguments();
+    classElement.type = correspondingType;
+    buildDocumentation(classElement, serializedClass.documentationComment);
+    buildAnnotations(classElement, serializedClass.annotations);
+    resolveConstructorInitializers(classElement);
+    unitHolder.addType(classElement);
+    currentTypeParameters.removeLast();
+    assert(currentTypeParameters.isEmpty);
+    fields = null;
+    constructors = null;
   }
 
   /**
@@ -1611,26 +1607,23 @@ class _LibraryResynthesizer {
    * [unitHolder].
    */
   void buildTypedef(UnlinkedTypedef serializedTypedef) {
-    try {
-      FunctionTypeAliasElementImpl functionTypeAliasElement =
-          new FunctionTypeAliasElementImpl(
-              serializedTypedef.name, serializedTypedef.nameOffset);
-      functionTypeAliasElement.typeParameters =
-          buildTypeParameters(serializedTypedef.typeParameters);
-      functionTypeAliasElement.parameters =
-          serializedTypedef.parameters.map(buildParameter).toList();
-      functionTypeAliasElement.returnType =
-          buildType(serializedTypedef.returnType);
-      functionTypeAliasElement.type =
-          new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
-      buildDocumentation(
-          functionTypeAliasElement, serializedTypedef.documentationComment);
-      buildAnnotations(functionTypeAliasElement, serializedTypedef.annotations);
-      unitHolder.addTypeAlias(functionTypeAliasElement);
-    } finally {
-      currentTypeParameters.removeLast();
-      assert(currentTypeParameters.isEmpty);
-    }
+    FunctionTypeAliasElementImpl functionTypeAliasElement =
+        new FunctionTypeAliasElementImpl(
+            serializedTypedef.name, serializedTypedef.nameOffset);
+    functionTypeAliasElement.typeParameters =
+        buildTypeParameters(serializedTypedef.typeParameters);
+    functionTypeAliasElement.parameters =
+        serializedTypedef.parameters.map(buildParameter).toList();
+    functionTypeAliasElement.returnType =
+        buildType(serializedTypedef.returnType);
+    functionTypeAliasElement.type =
+        new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
+    buildDocumentation(
+        functionTypeAliasElement, serializedTypedef.documentationComment);
+    buildAnnotations(functionTypeAliasElement, serializedTypedef.annotations);
+    unitHolder.addTypeAlias(functionTypeAliasElement);
+    currentTypeParameters.removeLast();
+    assert(currentTypeParameters.isEmpty);
   }
 
   /**
