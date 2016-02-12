@@ -1121,6 +1121,22 @@ class E {
     checkLibrary('class C { var x; C(this.x); }');
   }
 
+  test_class_constructor_fieldFormal_named_noDefault() {
+    checkLibrary('class C { int x; C({this.x}); }');
+  }
+
+  test_class_constructor_fieldFormal_named_withDefault() {
+    checkLibrary('class C { int x; C({this.x: 42}); }');
+  }
+
+  test_class_constructor_fieldFormal_optional_noDefault() {
+    checkLibrary('class C { int x; C([this.x]); }');
+  }
+
+  test_class_constructor_fieldFormal_optional_withDefault() {
+    checkLibrary('class C { int x; C([this.x = 42]); }');
+  }
+
   test_class_constructor_implicit() {
     checkLibrary('class C {}');
   }

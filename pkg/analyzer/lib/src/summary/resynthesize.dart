@@ -1475,16 +1475,18 @@ class _LibraryResynthesizer {
     ParameterElementImpl parameterElement;
     if (serializedParameter.isInitializingFormal) {
       FieldFormalParameterElementImpl initializingParameter;
-      if (serializedParameter.defaultValue != null) {
+      if (serializedParameter.kind == UnlinkedParamKind.required) {
+        initializingParameter = new FieldFormalParameterElementImpl(
+            serializedParameter.name, serializedParameter.nameOffset);
+      } else {
         DefaultFieldFormalParameterElementImpl defaultParameter =
             new DefaultFieldFormalParameterElementImpl(
                 serializedParameter.name, serializedParameter.nameOffset);
         initializingParameter = defaultParameter;
-        defaultParameter.constantInitializer =
-            _buildConstExpression(serializedParameter.defaultValue);
-      } else {
-        initializingParameter = new FieldFormalParameterElementImpl(
-            serializedParameter.name, serializedParameter.nameOffset);
+        if (serializedParameter.defaultValue != null) {
+          defaultParameter.constantInitializer =
+              _buildConstExpression(serializedParameter.defaultValue);
+        }
       }
       parameterElement = initializingParameter;
       initializingParameter.field = fields[serializedParameter.name];
