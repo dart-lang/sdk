@@ -2542,6 +2542,14 @@ f() {}''');
     comparePropertyAccessorElements(resynthesized, original, 'C.setter f');
   }
 
+  test_getElement_unit() {
+    Source source = addSource('class C { f() {} }');
+    CompilationUnitElement original = resolve2(source).definingCompilationUnit;
+    expect(original, isNotNull);
+    CompilationUnitElement resynthesized = validateGetElement(original);
+    compareCompilationUnitElements(resynthesized, original);
+  }
+
   test_getter_documented() {
     checkLibrary('''
 // Extra comment so doc comment offset != 0

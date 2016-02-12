@@ -57,6 +57,14 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   final bool strongMode;
 
   /**
+   * Map of compilation units resynthesized from summaries.  The two map keys
+   * are the first two elements of the element's location (the library URI and
+   * the compilation unit URI).
+   */
+  final Map<String, Map<String, CompilationUnitElement>> _resynthesizedUnits =
+      <String, Map<String, CompilationUnitElement>>{};
+
+  /**
    * Map of top level elements resynthesized from summaries.  The three map
    * keys are the first three elements of the element's location (the library
    * URI, the compilation unit URI, and the name of the top level declaration).
@@ -101,6 +109,20 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
     // Resynthesize locally.
     if (components.length == 1) {
       return getLibraryElement(libraryUri);
+    } else if (components.length == 2) {
+      Map<String, CompilationUnitElement> libraryMap =
+          _resynthesizedUnits[libraryUri];
+      if (libraryMap == null) {
+        getLibraryElement(libraryUri);
+        libraryMap = _resynthesizedUnits[libraryUri];
+        assert(libraryMap != null);
+      }
+      String unitUri = components[1];
+      CompilationUnitElement element = libraryMap[unitUri];
+      if (element == null) {
+        throw new Exception('Unit element not found in summary: $location');
+      }
+      return element;
     } else if (components.length == 3 || components.length == 4) {
       Map<String, Map<String, Element>> libraryMap =
           _resynthesizedElements[libraryUri];
@@ -169,7 +191,8 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
       _LibraryResynthesizer libraryResynthesizer = new _LibraryResynthesizer(
           this, serializedLibrary, serializedUnits, librarySource);
       LibraryElement library = libraryResynthesizer.buildLibrary();
-      _resynthesizedElements[uri] = libraryResynthesizer.resummarizedElements;
+      _resynthesizedUnits[uri] = libraryResynthesizer.resynthesizedUnits;
+      _resynthesizedElements[uri] = libraryResynthesizer.resynthesizedElements;
       return library;
     });
   }
@@ -700,11 +723,18 @@ class _LibraryResynthesizer {
   ConstructorElementImpl currentConstructor;
 
   /**
+   * Map of compilation unit elements that have been resynthesized so far.  The
+   * key is the URI of the compilation unit.
+   */
+  final Map<String, CompilationUnitElement> resynthesizedUnits =
+      <String, CompilationUnitElement>{};
+
+  /**
    * Map of top level elements that have been resynthesized so far.  The first
    * key is the URI of the compilation unit; the second is the name of the top
    * level element.
    */
-  final Map<String, Map<String, Element>> resummarizedElements =
+  final Map<String, Map<String, Element>> resynthesizedElements =
       <String, Map<String, Element>>{};
 
   /**
@@ -1887,7 +1917,8 @@ class _LibraryResynthesizer {
     for (PropertyAccessorElementImpl accessor in unit.accessors) {
       elementMap[accessor.identifier] = accessor;
     }
-    resummarizedElements[absoluteUri] = elementMap;
+    resynthesizedUnits[absoluteUri] = unit;
+    resynthesizedElements[absoluteUri] = elementMap;
   }
 
   /**
