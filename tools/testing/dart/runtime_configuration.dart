@@ -247,7 +247,9 @@ class DartProductRuntimeConfiguration extends DartVmRuntimeConfiguration {
     augmentedArgs.addAll(arguments);
 
     return <Command>[commandBuilder.getVmCommand(
-          suite.dartVmBinaryFileName, augmentedArgs, environmentOverrides)];
+          suite.dartVmProductBinaryFileName,
+          augmentedArgs,
+          environmentOverrides)];
   }
 }
 
