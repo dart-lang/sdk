@@ -1495,7 +1495,7 @@ abstract class EventSink<T> implements Sink<T> {
 class StreamView<T> extends Stream<T> {
   final Stream<T> _stream;
 
-  StreamView(this._stream);
+  const StreamView(Stream<T> stream) : _stream = stream, super._internal();
 
   bool get isBroadcast => _stream.isBroadcast;
 

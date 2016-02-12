@@ -17,6 +17,8 @@
     The method now only supports one argument for the PEM file name containing
     the trusted certificates.
   * Added support to SecurityContext for PKCS12 certificate and key containers.
+* `dart:async`
+  * Made `StreamView` class a `const` class.
 
 ## 1.14.2 - 2016-02-09
 
