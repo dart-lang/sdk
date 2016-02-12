@@ -289,12 +289,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   Block enclosingBlock = null;
 
   /**
-   * A flag indicating whether a variable declaration is in the context of a
-   * field declaration.
-   */
-  bool inFieldContext = false;
-
-  /**
    * Create a slot id for storing a propagated or inferred type.
    */
   int assignTypeSlot() => ++numSlots;
@@ -742,7 +736,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.type = serializeTypeName(variables.type);
       b.documentationComment = serializeDocumentation(documentationComment);
       b.annotations = serializeAnnotations(annotations);
-      if (variable.isConst || variable.isFinal && inFieldContext) {
+      if (variable.isConst ||
+          variable.isFinal && isField && !isDeclaredStatic) {
         Expression initializer = variable.initializer;
         if (initializer != null) {
           b.constExpr = serializeConstExpr(initializer);
@@ -889,13 +884,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    try {
-      inFieldContext = true;
-      serializeVariables(node.fields, node.staticKeyword != null,
-          node.documentationComment, node.metadata, true);
-    } finally {
-      inFieldContext = false;
-    }
+    serializeVariables(node.fields, node.staticKeyword != null,
+        node.documentationComment, node.metadata, true);
   }
 
   @override

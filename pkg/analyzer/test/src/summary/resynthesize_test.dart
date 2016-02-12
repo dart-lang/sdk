@@ -373,7 +373,14 @@ class ResynthTest extends ResolverTestCase {
       } else if (o is IntegerLiteral && r is IntegerLiteral) {
         expect(r.value, o.value, reason: desc);
       } else if (o is DoubleLiteral && r is DoubleLiteral) {
-        expect(r.value, o.value, reason: desc);
+        if (r.value != null &&
+            r.value.isNaN &&
+            o.value != null &&
+            o.value.isNaN) {
+          // NaN is not comparable.
+        } else {
+          expect(r.value, o.value, reason: desc);
+        }
       } else if (o is StringInterpolation && r is StringInterpolation) {
         compareConstAstLists(r.elements, o.elements, desc);
       } else if (o is StringLiteral && r is StringLiteral) {
@@ -502,6 +509,9 @@ class ResynthTest extends ResolverTestCase {
   }
 
   void compareElements(Element resynthesized, Element original, String desc) {
+    ElementImpl rImpl = getActualElement(resynthesized, desc);
+    ElementImpl oImpl = getActualElement(original, desc);
+    expect(rImpl.runtimeType, oImpl.runtimeType);
     expect(resynthesized, isNotNull);
     expect(resynthesized.kind, original.kind);
     expect(resynthesized.location, original.location, reason: desc);
@@ -513,20 +523,17 @@ class ResynthTest extends ResolverTestCase {
     compareMetadata(resynthesized.metadata, original.metadata, desc);
     // Modifiers are a pain to test via handles.  So just test them via the
     // actual element.
-    ElementImpl actualResynthesized = getActualElement(resynthesized, desc);
-    ElementImpl actualOriginal = getActualElement(original, desc);
     for (Modifier modifier in Modifier.values) {
-      bool got = actualResynthesized.hasModifier(modifier);
-      bool want = actualOriginal.hasModifier(modifier);
+      bool got = rImpl.hasModifier(modifier);
+      bool want = oImpl.hasModifier(modifier);
       expect(got, want,
           reason: 'Mismatch in $desc.$modifier: got $got, want $want');
     }
     // Validate members.
-    if (actualOriginal is Member) {
-      expect(actualResynthesized, new isInstanceOf<Member>(), reason: desc);
+    if (oImpl is Member) {
+      expect(rImpl, new isInstanceOf<Member>(), reason: desc);
     } else {
-      expect(actualResynthesized, isNot(new isInstanceOf<Member>()),
-          reason: desc);
+      expect(rImpl, isNot(new isInstanceOf<Member>()), reason: desc);
     }
   }
 

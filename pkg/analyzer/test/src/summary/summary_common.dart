@@ -4767,6 +4767,15 @@ class C {
     UnlinkedVariable variable =
         serializeClassText('class C { static int i; }').fields[0];
     expect(variable.isStatic, isTrue);
+    expect(variable.constExpr, isNull);
+  }
+
+  test_field_static_final() {
+    UnlinkedVariable variable =
+        serializeClassText('class C { static final int i = 0; }').fields[0];
+    expect(variable.isStatic, isTrue);
+    expect(variable.isFinal, isTrue);
+    expect(variable.constExpr, isNull);
   }
 
   test_fully_linked_references_follow_other_references() {
