@@ -1096,7 +1096,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
       // Reading from a mutable double box requires allocating a fresh double.
       if (load_node.field().guarded_cid() == kDynamicCid) {
         GenerateInlinedGetter(load_node.field().Offset());
-        return true;
+        return !FLAG_use_field_guards;
       }
       return false;
     }
@@ -1111,7 +1111,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
           *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
       if (store_node.field().guarded_cid() == kDynamicCid) {
         GenerateInlinedSetter(store_node.field().Offset());
-        return true;
+        return !FLAG_use_field_guards;
       }
     }
   }
