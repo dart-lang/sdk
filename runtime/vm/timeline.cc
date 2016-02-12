@@ -29,8 +29,8 @@ DEFINE_FLAG(charp, timeline_dir, NULL,
             "into specified directory.");
 DEFINE_FLAG(charp, timeline_streams, NULL,
             "Comma separated list of timeline streams to record. "
-            "Valid values: all, api, compiler, dart, debugger, embedder, "
-            "gc, isolate, and vm.");
+            "Valid values: all, API, Compiler, Dart, Debugger, Embedder, "
+            "GC, Isolate, and VM.");
 
 // Implementation notes:
 //
@@ -115,8 +115,8 @@ static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
   }
   for (intptr_t i = 0; i < streams->length(); i++) {
     const char* checked_stream = (*streams)[i];
-    if ((strcasestr(checked_stream, "all") != NULL) ||
-        (strcasestr(checked_stream, stream) != NULL)) {
+    if ((strstr(checked_stream, "all") != NULL) ||
+        (strstr(checked_stream, stream) != NULL)) {
       return true;
     }
   }
@@ -181,6 +181,9 @@ TimelineEventRecorder* Timeline::recorder() {
 
 
 void Timeline::SetupIsolateStreams(Isolate* isolate) {
+  if (!FLAG_support_timeline) {
+    return;
+  }
 #define ISOLATE_TIMELINE_STREAM_INIT(name, enabled_by_default)                 \
   isolate->Get##name##Stream()->Init(                                          \
       #name,                                                                   \

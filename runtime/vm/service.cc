@@ -2878,8 +2878,8 @@ static const MethodParameter* set_vm_timeline_flags_params[] = {
 
 static bool HasStream(const char** recorded_streams, const char* stream) {
   while (*recorded_streams != NULL) {
-    if ((strcasestr(*recorded_streams, "all") != NULL) ||
-        (strcasestr(*recorded_streams, stream) != NULL)) {
+    if ((strstr(*recorded_streams, "all") != NULL) ||
+        (strstr(*recorded_streams, stream) != NULL)) {
       return true;
     }
     recorded_streams++;
@@ -2889,6 +2889,10 @@ static bool HasStream(const char** recorded_streams, const char* stream) {
 
 
 static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
+  if (!FLAG_support_timeline) {
+    PrintSuccess(js);
+    return true;
+  }
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
@@ -2919,6 +2923,11 @@ static const MethodParameter* get_vm_timeline_flags_params[] = {
 
 
 static bool GetVMTimelineFlags(Thread* thread, JSONStream* js) {
+  if (!FLAG_support_timeline) {
+    JSONObject obj(js);
+    obj.AddProperty("type", "TimelineFlags");
+    return true;
+  }
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
