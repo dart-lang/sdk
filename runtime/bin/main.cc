@@ -1109,15 +1109,19 @@ static void ReadSnapshotFile(const char* snapshot_directory,
 
   void* file = DartUtils::OpenFile(qualified_filename, false);
   if (file == NULL) {
-    ErrorExit(kErrorExitCode,
-              "Error: Unable to open file %s for reading snapshot\n",
-              qualified_filename);
+    fprintf(stderr,
+            "Error: Unable to open file %s for reading snapshot\n",
+            qualified_filename);
+    fflush(stderr);
+    Platform::Exit(kErrorExitCode);
   }
   intptr_t len = -1;
   DartUtils::ReadFile(buffer, &len, file);
   if (*buffer == NULL || len == -1) {
-    ErrorExit(kErrorExitCode,
-              "Error: Unable to read snapshot file %s\n", qualified_filename);
+    fprintf(stderr,
+            "Error: Unable to read snapshot file %s\n", qualified_filename);
+    fflush(stderr);
+    Platform::Exit(kErrorExitCode);
   }
   DartUtils::CloseFile(file);
   if (concat != NULL) {
@@ -1382,12 +1386,14 @@ bool RunMainIsolate(const char* script_name,
 
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();
-      CHECK_RESULT(result);
-
       // Generate a full snapshot after execution if specified.
       if (generate_full_snapshot_after_run) {
-        GenerateFullSnapshot();
+        if (!Dart_IsCompilationError(result) &&
+            !Dart_IsVMRestartRequest(result)) {
+          GenerateFullSnapshot();
+        }
       }
+      CHECK_RESULT(result);
     }
   }
 
@@ -1536,7 +1542,9 @@ void main(int argc, char** argv) {
     Platform::Exit(kErrorExitCode);
   }
 
-  if (generate_script_snapshot || generate_full_snapshot_after_run) {
+  if (generate_script_snapshot ||
+      generate_full_snapshot_after_run ||
+      run_full_snapshot) {
     vm_options.AddArgument("--load_deferred_eagerly");
   }
 
