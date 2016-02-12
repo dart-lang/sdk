@@ -1,5 +1,10 @@
 # dev_compiler changelog
 
+## 0.1.18
+- dart:typed_data support
+- preliminary TS / Closure output support
+- various runtime typing fixes
+
 ## 0.1.17
 - preliminary node module support
 - support for compiling / serving multiple html files
