@@ -295,6 +295,7 @@ class _CompilationUnitSerializer {
    * parameter [type].
    */
   int findTypeParameterIndex(TypeParameterType type, Element context) {
+    Element originalContext = context;
     int index = 0;
     while (context != null) {
       List<TypeParameterElement> typeParameters;
@@ -316,7 +317,8 @@ class _CompilationUnitSerializer {
       }
       context = context.enclosingElement;
     }
-    throw new StateError('Unbound type parameter $type');
+    throw new StateError(
+        'Unbound type parameter $type (${originalContext?.location})');
   }
 
   /**
