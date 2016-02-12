@@ -16,6 +16,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, trace_shutdown);
+
 static void native_echo(Dart_NativeArguments args);
 static void CustomIsolateImpl_start(Dart_NativeArguments args);
 static Dart_NativeFunction NativeLookup(Dart_Handle name,
@@ -316,6 +318,8 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
 
 
 UNIT_TEST_CASE(CustomIsolates) {
+  bool saved_flag = FLAG_trace_shutdown;
+  FLAG_trace_shutdown = true;
   FLAG_verify_handles = true;
   FLAG_verify_on_transition = true;
   event_queue = new EventQueue();
@@ -355,6 +359,7 @@ UNIT_TEST_CASE(CustomIsolates) {
 
   delete event_queue;
   event_queue = NULL;
+  FLAG_trace_shutdown = saved_flag;
 }
 
 }  // namespace dart

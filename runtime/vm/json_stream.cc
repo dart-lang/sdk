@@ -80,9 +80,8 @@ void JSONStream::Setup(Zone* zone,
     ASSERT(isolate != NULL);
     const char* isolate_name = isolate->name();
     setup_time_micros_ = OS::GetCurrentTimeMicros();
-    int64_t timestamp = setup_time_micros_ - Dart::vm_isolate()->start_time();
-    OS::Print("[@%" Pd64 "] Isolate %s processing service request %s\n",
-              timestamp, isolate_name, method_);
+    OS::Print("[+%" Pd64 "ms] Isolate %s processing service request %s\n",
+              Dart::timestamp(), isolate_name, method_);
   }
   buffer_.Printf("{\"jsonrpc\":\"2.0\", \"result\":");
 }
@@ -203,17 +202,15 @@ void JSONStream::PostReply() {
     Isolate* isolate = Isolate::Current();
     ASSERT(isolate != NULL);
     const char* isolate_name = isolate->name();
-    int64_t current_time = OS::GetCurrentTimeMicros();
-    int64_t process_delta_micros = current_time - setup_time_micros_;
-    int64_t timestamp = current_time - Dart::vm_isolate()->start_time();
+    int64_t total_time = OS::GetCurrentTimeMicros() - setup_time_micros_;
     if (result) {
-      OS::Print("[@%" Pd64 "] Isolate %s processed service request %s "
+      OS::Print("[+%" Pd64 "ms] Isolate %s processed service request %s "
                 "(%" Pd64 "us)\n",
-                timestamp, isolate_name, method_, process_delta_micros);
+                Dart::timestamp(), isolate_name, method_, total_time);
     } else {
-      OS::Print("[@%" Pd64 "] Isolate %s processed service request %s "
+      OS::Print("[+%" Pd64 "ms] Isolate %s processed service request %s "
                 "(%" Pd64 "us) FAILED\n",
-                timestamp, isolate_name, method_, process_delta_micros);
+                Dart::timestamp(), isolate_name, method_, total_time);
     }
   }
 }
