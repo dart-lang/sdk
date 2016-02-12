@@ -647,7 +647,6 @@ class EnumListParameter : public MethodParameter {
   // Returns number of elements in the list.  -1 on parse error.
   intptr_t ElementCount(const char* value) const {
     const char* kJsonWhitespaceChars = " \t\r\n";
-
     if (value == NULL) {
       return -1;
     }
@@ -2408,13 +2407,9 @@ static const char* const report_enum_names[] = {
 };
 
 
-static const EnumListParameter* reports_parameter =
-    new EnumListParameter("reports", true, report_enum_names);
-
-
 static const MethodParameter* get_source_report_params[] = {
   RUNNABLE_ISOLATE_PARAMETER,
-  reports_parameter,
+  new EnumListParameter("reports", true, report_enum_names),
   new IdParameter("scriptId", false),
   new UIntParameter("tokenPos", false),
   new UIntParameter("endTokenPos", false),
@@ -2425,6 +2420,8 @@ static const MethodParameter* get_source_report_params[] = {
 
 static bool GetSourceReport(Thread* thread, JSONStream* js) {
   const char* reports_str = js->LookupParam("reports");
+  const EnumListParameter* reports_parameter =
+      static_cast<const EnumListParameter*>(get_source_report_params[1]);
   const char** reports = reports_parameter->Parse(thread->zone(), reports_str);
   intptr_t report_set = 0;
   while (*reports != NULL) {
@@ -2860,27 +2857,54 @@ static bool GetVMMetric(Thread* thread, JSONStream* js) {
   return false;
 }
 
+static const char* const timeline_streams_enum_names[] = {
+  "all",
+#define DEFINE_NAME(name, unused)                                              \
+  #name,
+ISOLATE_TIMELINE_STREAM_LIST(DEFINE_NAME)
+#undef DEFINE_NAME
+  "VM",
+  NULL
+};
 
-static const MethodParameter* set_vm_timeline_flag_params[] = {
+static const MethodParameter* set_vm_timeline_flags_params[] = {
   NO_ISOLATE_PARAMETER,
-  new MethodParameter("_record", true),
+  new EnumListParameter("recordedStreams",
+                        false,
+                        timeline_streams_enum_names),
   NULL,
 };
 
 
-static bool SetVMTimelineFlag(Thread* thread, JSONStream* js) {
+static bool HasStream(const char** recorded_streams, const char* stream) {
+  while (*recorded_streams != NULL) {
+    if ((strcasestr(*recorded_streams, "all") != NULL) ||
+        (strcasestr(*recorded_streams, stream) != NULL)) {
+      return true;
+    }
+    recorded_streams++;
+  }
+  return false;
+}
+
+
+static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
 
-  bool recording = strcmp(js->LookupParam("_record"), "all") == 0;
-  Timeline::SetStreamAPIEnabled(recording);
-  Timeline::SetStreamCompilerEnabled(recording);
-  Timeline::SetStreamDartEnabled(recording);
-  Timeline::SetStreamDebuggerEnabled(recording);
-  Timeline::SetStreamEmbedderEnabled(recording);
-  Timeline::SetStreamGCEnabled(recording);
-  Timeline::SetStreamIsolateEnabled(recording);
+  const EnumListParameter* recorded_streams_param =
+      static_cast<const EnumListParameter*>(set_vm_timeline_flags_params[1]);
+
+  const char* recorded_streams_str = js->LookupParam("recordedStreams");
+  const char** recorded_streams =
+      recorded_streams_param->Parse(thread->zone(), recorded_streams_str);
+
+#define SET_ENABLE_STREAM(name, unused)                                        \
+  Timeline::SetStream##name##Enabled(HasStream(recorded_streams, #name));
+ISOLATE_TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
+#undef SET_ENABLE_STREAM
+  Timeline::SetVMStreamEnabled(HasStream(recorded_streams, "VM"));
 
   PrintSuccess(js);
 
@@ -2888,19 +2912,17 @@ static bool SetVMTimelineFlag(Thread* thread, JSONStream* js) {
 }
 
 
-static const MethodParameter* get_vm_timeline_flag_params[] = {
+static const MethodParameter* get_vm_timeline_flags_params[] = {
   NO_ISOLATE_PARAMETER,
-  new MethodParameter("_record", false),
   NULL,
 };
 
 
-static bool GetVMTimelineFlag(Thread* thread, JSONStream* js) {
+static bool GetVMTimelineFlags(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
-
-  js->PrintError(kFeatureDisabled, "TODO(johnmccutchan)");
+  Timeline::PrintFlagsToJSON(js);
   return true;
 }
 
@@ -3918,8 +3940,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_vm_metric_list_params },
   { "_getVMTimeline", GetVMTimeline,
     get_vm_timeline_params },
-  { "_getVMTimelineFlag", GetVMTimelineFlag,
-    get_vm_timeline_flag_params },
+  { "_getVMTimelineFlags", GetVMTimelineFlags,
+    get_vm_timeline_flags_params },
   { "pause", Pause,
     pause_params },
   { "removeBreakpoint", RemoveBreakpoint,
@@ -3942,8 +3964,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_trace_class_allocation_params },
   { "setVMName", SetVMName,
     set_vm_name_params },
-  { "_setVMTimelineFlag", SetVMTimelineFlag,
-    set_vm_timeline_flag_params },
+  { "_setVMTimelineFlags", SetVMTimelineFlags,
+    set_vm_timeline_flags_params },
 };
 
 

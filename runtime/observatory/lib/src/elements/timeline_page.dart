@@ -57,14 +57,14 @@ class TimelinePageElement extends ObservatoryElement {
   }
 
   Future recordOn() async {
-    return app.vm.invokeRpc('_setVMTimelineFlag', {
-      '_record': 'all',
+    return app.vm.invokeRpc('_setVMTimelineFlags', {
+      'recordedStreams': ['all'],
     });
   }
 
   Future recordOff() async {
-    return app.vm.invokeRpc('_setVMTimelineFlag', {
-      '_record': 'none',
+    return app.vm.invokeRpc('_setVMTimelineFlags', {
+      'recordedStreams': [],
     });
   }
 
