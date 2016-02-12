@@ -88,8 +88,8 @@ Future<ChildServerProcess> _startSelenium() async {
     throw new StateError('Webdriver update failed: ${result.stderr}');
   }
   return ChildServerProcess.build(
-    (host, port) => Process.start(
-        _webDriverManagerPath, ['start', '--seleniumPort=$port'],
-        mode: ProcessStartMode.DETACHED_WITH_STDIO),
-    defaultPort: 4444);
+      (host, port) => Process.start(
+          _webDriverManagerPath, ['start', '--seleniumPort=$port'],
+          mode: ProcessStartMode.DETACHED_WITH_STDIO),
+      defaultPort: 4444);
 }
