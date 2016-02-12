@@ -505,6 +505,16 @@ class C {
         BinaryExpression, expression.leftOperand);
   }
 
+  void test_topLevelFunction_nestedGenericFunction() {
+    enableGenericMethods = true;
+    parseCompilationUnitWithOptions('''
+void f() {
+  void g<T>() {
+  }
+}
+''');
+  }
+
   void _validate_assignableExpression_arguments_normal_chain_typeArguments(
       String code) {
     PropertyAccess propertyAccess1 = parseExpression(code);
@@ -2869,6 +2879,30 @@ class ParserTestCase extends EngineTestCase {
   Object parse4(String methodName, String source,
           [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) =>
       parse3(methodName, _EMPTY_ARGUMENTS, source, errorCodes);
+
+  /**
+   * Parse the given [source] as a compilation unit. Throw an exception if the
+   * source could not be parsed, if the compilation errors in the source do not
+   * match those that are expected, or if the result would have been `null`.
+   */
+  CompilationUnit parseCompilationUnitWithOptions(String source,
+      [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scanner scanner =
+        new Scanner(null, new CharSequenceReader(source), listener);
+    listener.setLineInfo(new TestSource(), scanner.lineStarts);
+    Token token = scanner.tokenize();
+    Parser parser = createParser(listener);
+    parser.parseAsync = parseAsync;
+    parser.parseFunctionBodies = parseFunctionBodies;
+    parser.parseConditionalDirectives = enableConditionalDirectives;
+    parser.parseGenericMethods = enableGenericMethods;
+    parser.parseGenericMethodComments = enableGenericMethodComments;
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    expect(unit, isNotNull);
+    listener.assertErrorsWithCodes(errorCodes);
+    return unit;
+  }
 
   /**
    * Parse the given source as an expression.

@@ -7049,7 +7049,8 @@ class Parser {
             _peek().matchesAny([
               TokenType.OPEN_PAREN,
               TokenType.OPEN_CURLY_BRACKET,
-              TokenType.FUNCTION
+              TokenType.FUNCTION,
+              TokenType.LT
             ])) {
           return _parseFunctionDeclarationStatementAfterReturnType(
               commentAndMetadata, returnType);
