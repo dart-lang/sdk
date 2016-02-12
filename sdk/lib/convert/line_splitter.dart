@@ -57,6 +57,8 @@ class LineSplitter extends Converter<String, List<String>> {
     }
     return new _LineSplitterSink(sink);
   }
+
+  Stream<String> bind(Stream<String> stream) => super.bind(stream);
 }
 
 // TODO(floitsch): deal with utf8.
