@@ -9795,7 +9795,8 @@ AstNode* Parser::ParseYieldStatement() {
     AstNode* store_current =
         new(Z) InstanceSetterNode(TokenPosition::kNoSource,
                                   iterator,
-                                  String::ZoneHandle(Symbols::Current().raw()),
+                                  Library::PrivateCoreLibName(
+                                      Symbols::_current()),
                                   expr);
     yield->AddNode(store_current);
     if (is_yield_each) {

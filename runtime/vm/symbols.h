@@ -34,6 +34,7 @@ class ObjectPointerVisitor;
   V(Other, "other")                                                            \
   V(Call, "call")                                                              \
   V(Current, "current")                                                        \
+  V(_current, "_current")                                                      \
   V(MoveNext, "moveNext")                                                      \
   V(IsYieldEach, "isYieldEach")                                                \
   V(Value, "value")                                                            \
