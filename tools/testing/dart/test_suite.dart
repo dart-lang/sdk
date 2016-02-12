@@ -1807,8 +1807,9 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none', 'precompiler'];
-    var RUNTIMES = const ['none', 'dart_precompiled', 'vm', 'drt', 'dartium',
+    var COMPILERS = const ['none', 'precompiler', 'dart2app'];
+    var RUNTIMES = const ['none', 'dart_precompiled', 'dart_product', 'vm',
+                          'drt', 'dartium',
                           'ContentShellOnAndroid', 'DartiumOnAndroid'];
     var needsVmOptions = COMPILERS.contains(configuration['compiler']) &&
                          RUNTIMES.contains(configuration['runtime']);
