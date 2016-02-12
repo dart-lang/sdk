@@ -5737,6 +5737,63 @@ class C {
     expect(f.inferredReturnTypeSlot, 0);
   }
 
+  test_nested_generic_functions() {
+    UnlinkedExecutable executable = serializeExecutableText('''
+void f<T, U>() {
+  void g<V, W>() {
+    void h<X, Y>() {
+      T t;
+      U u;
+      V v;
+      W w;
+      X x;
+      Y y;
+    }
+  }
+}
+''');
+    expect(executable.typeParameters, hasLength(2));
+    expect(executable.localFunctions[0].typeParameters, hasLength(2));
+    expect(executable.localFunctions[0].localFunctions[0].typeParameters,
+        hasLength(2));
+    List<UnlinkedVariable> localVariables =
+        executable.localFunctions[0].localFunctions[0].localVariables;
+    checkParamTypeRef(findVariable('t', variables: localVariables).type, 6);
+    checkParamTypeRef(findVariable('u', variables: localVariables).type, 5);
+    checkParamTypeRef(findVariable('v', variables: localVariables).type, 4);
+    checkParamTypeRef(findVariable('w', variables: localVariables).type, 3);
+    checkParamTypeRef(findVariable('x', variables: localVariables).type, 2);
+    checkParamTypeRef(findVariable('y', variables: localVariables).type, 1);
+  }
+
+  test_nested_generic_functions_in_generic_class() {
+    UnlinkedClass cls = serializeClassText('''
+class C<T, U> {
+  void g<V, W>() {
+    void h<X, Y>() {
+      T t;
+      U u;
+      V v;
+      W w;
+      X x;
+      Y y;
+    }
+  }
+}
+''');
+    expect(cls.typeParameters, hasLength(2));
+    expect(cls.executables[0].typeParameters, hasLength(2));
+    expect(cls.executables[0].localFunctions[0].typeParameters, hasLength(2));
+    List<UnlinkedVariable> localVariables =
+        cls.executables[0].localFunctions[0].localVariables;
+    checkParamTypeRef(findVariable('t', variables: localVariables).type, 6);
+    checkParamTypeRef(findVariable('u', variables: localVariables).type, 5);
+    checkParamTypeRef(findVariable('v', variables: localVariables).type, 4);
+    checkParamTypeRef(findVariable('w', variables: localVariables).type, 3);
+    checkParamTypeRef(findVariable('x', variables: localVariables).type, 2);
+    checkParamTypeRef(findVariable('y', variables: localVariables).type, 1);
+  }
+
   test_parameter_visibleRange_abstractMethod() {
     UnlinkedExecutable m = findExecutable('m',
         executables:

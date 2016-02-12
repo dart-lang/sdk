@@ -739,14 +739,16 @@ class _LibraryResynthesizer {
 
   /**
    * Type parameters for the generic class, typedef, or executable currently
-   * being resynthesized, if any.  If multiple entities with type parameters
-   * are nested (e.g. a generic executable inside a generic class), this is the
-   * concatenation of all type parameters from all declarations currently in
-   * force, with the outermost declaration appearing first.  If there are no
-   * type parameters, or we are not currently resynthesizing a class, typedef,
-   * or executable, then this is an empty list.
+   * being resynthesized, if any.  This is a list of lists; if multiple
+   * entities with type parameters are nested (e.g. a generic executable inside
+   * a generic class), then the zeroth element of [currentTypeParameters]
+   * contains the type parameters for the outermost nested entity, and further
+   * elements contain the type parameters for entities that are more deeply
+   * nested.  If we are not currently resynthesizing a class, typedef, or
+   * executable, then this is an empty list.
    */
-  List<TypeParameterElement> currentTypeParameters = <TypeParameterElement>[];
+  final List<List<TypeParameterElement>> currentTypeParameters =
+      <List<TypeParameterElement>>[];
 
   /**
    * If a class is currently being resynthesized, map from field name to the
@@ -772,13 +774,6 @@ class _LibraryResynthesizer {
       this.unlinkedUnits, this.librarySource) {
     isCoreLibrary = librarySource.uri.toString() == 'dart:core';
   }
-
-  /**
-   * Return a list of type arguments corresponding to [currentTypeParameters].
-   */
-  List<TypeParameterType> get currentTypeArguments => currentTypeParameters
-      ?.map((TypeParameterElement param) => param.type)
-      ?.toList();
 
   /**
    * Build the annotations for the given [element].
@@ -819,14 +814,10 @@ class _LibraryResynthesizer {
    */
   void buildClass(UnlinkedClass serializedClass) {
     try {
-      currentTypeParameters =
-          serializedClass.typeParameters.map(buildTypeParameter).toList();
-      for (int i = 0; i < serializedClass.typeParameters.length; i++) {
-        finishTypeParameter(
-            serializedClass.typeParameters[i], currentTypeParameters[i]);
-      }
       ClassElementImpl classElement = new ClassElementImpl(
           serializedClass.name, serializedClass.nameOffset);
+      classElement.typeParameters =
+          buildTypeParameters(serializedClass.typeParameters);
       classElement.abstract = serializedClass.isAbstract;
       classElement.mixinApplication = serializedClass.isMixinApplication;
       InterfaceTypeImpl correspondingType = new InterfaceTypeImpl(classElement);
@@ -842,7 +833,6 @@ class _LibraryResynthesizer {
       classElement.interfaces =
           serializedClass.interfaces.map(buildType).toList();
       classElement.mixins = serializedClass.mixins.map(buildType).toList();
-      classElement.typeParameters = currentTypeParameters;
       ElementHolder memberHolder = new ElementHolder();
       fields = <String, FieldElementImpl>{};
       for (UnlinkedVariable serializedVariable in serializedClass.fields) {
@@ -873,7 +863,7 @@ class _LibraryResynthesizer {
           constructor.synthetic = true;
           constructor.returnType = correspondingType;
           constructor.type = new FunctionTypeImpl.elementWithNameAndArgs(
-              constructor, null, currentTypeArguments, false);
+              constructor, null, getCurrentTypeArguments(), false);
           memberHolder.addConstructor(constructor);
         }
         classElement.constructors = memberHolder.constructors;
@@ -881,14 +871,15 @@ class _LibraryResynthesizer {
       classElement.accessors = memberHolder.accessors;
       classElement.fields = memberHolder.fields;
       classElement.methods = memberHolder.methods;
-      correspondingType.typeArguments = currentTypeArguments;
+      correspondingType.typeArguments = getCurrentTypeArguments();
       classElement.type = correspondingType;
       buildDocumentation(classElement, serializedClass.documentationComment);
       buildAnnotations(classElement, serializedClass.annotations);
       resolveConstructorInitializers(classElement);
       unitHolder.addType(classElement);
     } finally {
-      currentTypeParameters = <TypeParameterElement>[];
+      currentTypeParameters.removeLast();
+      assert(currentTypeParameters.isEmpty);
       fields = null;
       constructors = null;
     }
@@ -1118,13 +1109,8 @@ class _LibraryResynthesizer {
    */
   void buildExecutableCommonParts(ExecutableElementImpl executableElement,
       UnlinkedExecutable serializedExecutable) {
-    List<TypeParameterType> oldTypeArguments = currentTypeArguments;
-    int oldTypeParametersLength = currentTypeParameters.length;
-    if (serializedExecutable.typeParameters.isNotEmpty) {
-      executableElement.typeParameters =
-          serializedExecutable.typeParameters.map(buildTypeParameter).toList();
-      currentTypeParameters.addAll(executableElement.typeParameters);
-    }
+    executableElement.typeParameters =
+        buildTypeParameters(serializedExecutable.typeParameters);
     executableElement.parameters =
         serializedExecutable.parameters.map(buildParameter).toList();
     if (serializedExecutable.kind == UnlinkedExecutableKind.constructor) {
@@ -1141,10 +1127,8 @@ class _LibraryResynthesizer {
           serializedExecutable.returnType == null;
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
-        executableElement, null, oldTypeArguments, false);
+        executableElement, null, getCurrentTypeArguments(skipLevels: 1), false);
     executableElement.external = serializedExecutable.isExternal;
-    currentTypeParameters.removeRange(
-        oldTypeParametersLength, currentTypeParameters.length);
     buildDocumentation(
         executableElement, serializedExecutable.documentationComment);
     buildAnnotations(executableElement, serializedExecutable.annotations);
@@ -1152,6 +1136,7 @@ class _LibraryResynthesizer {
         serializedExecutable.localFunctions.map(buildLocalFunction).toList();
     executableElement.localVariables =
         serializedExecutable.localVariables.map(buildLocalVariable).toList();
+    currentTypeParameters.removeLast();
   }
 
   /**
@@ -1533,7 +1518,7 @@ class _LibraryResynthesizer {
       parameterTypeElement.shareParameters(parameterElement.parameters);
       parameterTypeElement.returnType = buildType(serializedParameter.type);
       parameterElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
-          parameterTypeElement, null, currentTypeArguments, false);
+          parameterTypeElement, null, getCurrentTypeArguments(), false);
     } else {
       if (serializedParameter.isInitializingFormal &&
           serializedParameter.type == null) {
@@ -1606,9 +1591,7 @@ class _LibraryResynthesizer {
       }
     }
     if (type.paramReference != 0) {
-      return currentTypeParameters[
-              currentTypeParameters.length - type.paramReference]
-          .type;
+      return getTypeParameterFromScope(type.paramReference);
     } else {
       DartType getTypeArgument(int i) {
         if (i < type.typeArguments.length) {
@@ -1629,28 +1612,24 @@ class _LibraryResynthesizer {
    */
   void buildTypedef(UnlinkedTypedef serializedTypedef) {
     try {
-      currentTypeParameters =
-          serializedTypedef.typeParameters.map(buildTypeParameter).toList();
-      for (int i = 0; i < serializedTypedef.typeParameters.length; i++) {
-        finishTypeParameter(
-            serializedTypedef.typeParameters[i], currentTypeParameters[i]);
-      }
       FunctionTypeAliasElementImpl functionTypeAliasElement =
           new FunctionTypeAliasElementImpl(
               serializedTypedef.name, serializedTypedef.nameOffset);
+      functionTypeAliasElement.typeParameters =
+          buildTypeParameters(serializedTypedef.typeParameters);
       functionTypeAliasElement.parameters =
           serializedTypedef.parameters.map(buildParameter).toList();
       functionTypeAliasElement.returnType =
           buildType(serializedTypedef.returnType);
       functionTypeAliasElement.type =
           new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
-      functionTypeAliasElement.typeParameters = currentTypeParameters;
       buildDocumentation(
           functionTypeAliasElement, serializedTypedef.documentationComment);
       buildAnnotations(functionTypeAliasElement, serializedTypedef.annotations);
       unitHolder.addTypeAlias(functionTypeAliasElement);
     } finally {
-      currentTypeParameters = <TypeParameterElement>[];
+      currentTypeParameters.removeLast();
+      assert(currentTypeParameters.isEmpty);
     }
   }
 
@@ -1670,6 +1649,22 @@ class _LibraryResynthesizer {
     typeParameterElement.type = new TypeParameterTypeImpl(typeParameterElement);
     buildAnnotations(typeParameterElement, serializedTypeParameter.annotations);
     return typeParameterElement;
+  }
+
+  /**
+   * Build [TypeParameterElements] corresponding to the type parameters in
+   * [serializedTypeParameters] and store them in [currentTypeParameters].
+   * Also return them.
+   */
+  List<TypeParameterElement> buildTypeParameters(
+      List<UnlinkedTypeParam> serializedTypeParameters) {
+    List<TypeParameterElement> typeParameters =
+        serializedTypeParameters.map(buildTypeParameter).toList();
+    currentTypeParameters.add(typeParameters);
+    for (int i = 0; i < serializedTypeParameters.length; i++) {
+      finishTypeParameter(serializedTypeParameters[i], typeParameters[i]);
+    }
+    return typeParameters;
   }
 
   /**
@@ -1751,6 +1746,25 @@ class _LibraryResynthesizer {
   }
 
   /**
+   * Return a list of type arguments corresponding to [currentTypeParameters],
+   * skipping the innermost [skipLevels] nesting levels.
+   *
+   * Type parameters are listed in nesting order from innermost to outermost,
+   * and then in declaration order.  So for instance if we are resynthesizing a
+   * method declared as `class C<T, U> { void m<V, W>() { ... } }`, then the
+   * type parameters will be returned in the order `[V, W, T, U]`.
+   */
+  List<TypeParameterType> getCurrentTypeArguments({int skipLevels: 0}) {
+    assert(currentTypeParameters.length >= skipLevels);
+    List<TypeParameterType> result = <TypeParameterType>[];
+    for (int i = currentTypeParameters.length - 1 - skipLevels; i >= 0; i--) {
+      result.addAll(currentTypeParameters[i]
+          .map((TypeParameterElement param) => param.type));
+    }
+    return result;
+  }
+
+  /**
    * Build the components of an [ElementLocationImpl] for the entity in the
    * given [unit] of the dependency located at [dependencyIndex], and having
    * the given [name].
@@ -1784,6 +1798,24 @@ class _LibraryResynthesizer {
       partUri = referencedLibraryUri;
     }
     return <String>[referencedLibraryUri, partUri, name];
+  }
+
+  /**
+   * Get the type parameter from the surrounding scope whose De Bruijn index is
+   * [index].
+   */
+  DartType getTypeParameterFromScope(int index) {
+    for (int i = currentTypeParameters.length - 1; i >= 0; i--) {
+      List<TypeParameterElement> paramsAtThisNestingLevel =
+          currentTypeParameters[i];
+      int numParamsAtThisNestingLevel = paramsAtThisNestingLevel.length;
+      if (index <= numParamsAtThisNestingLevel) {
+        return paramsAtThisNestingLevel[numParamsAtThisNestingLevel - index]
+            .type;
+      }
+      index -= numParamsAtThisNestingLevel;
+    }
+    throw new StateError('Type parameter not found');
   }
 
   /**
@@ -1919,6 +1951,7 @@ class _LibraryResynthesizer {
     }
     resynthesizedUnits[absoluteUri] = unit;
     resynthesizedElements[absoluteUri] = elementMap;
+    assert(currentTypeParameters.isEmpty);
   }
 
   /**

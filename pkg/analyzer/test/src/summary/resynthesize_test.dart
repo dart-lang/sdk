@@ -3002,6 +3002,62 @@ class C {
     checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
   }
 
+  test_nested_generic_functions_in_generic_class_with_function_typed_params() {
+    checkLibrary('''
+class C<T, U> {
+  void g<V, W>() {
+    void h<X, Y>(void p(T t, U u, V v, W w, X x, Y y)) {
+    }
+  }
+}
+''');
+  }
+
+  test_nested_generic_functions_in_generic_class_with_local_variables() {
+    checkLibrary('''
+class C<T, U> {
+  void g<V, W>() {
+    void h<X, Y>() {
+      T t;
+      U u;
+      V v;
+      W w;
+      X x;
+      Y y;
+    }
+  }
+}
+''');
+  }
+
+  test_nested_generic_functions_with_function_typed_param() {
+    checkLibrary('''
+void f<T, U>() {
+  void g<V, W>() {
+    void h<X, Y>(void p(T t, U u, V v, W w, X x, Y y)) {
+    }
+  }
+}
+''');
+  }
+
+  test_nested_generic_functions_with_local_variables() {
+    checkLibrary('''
+void f<T, U>() {
+  void g<V, W>() {
+    void h<X, Y>() {
+      T t;
+      U u;
+      V v;
+      W w;
+      X x;
+      Y y;
+    }
+  }
+}
+''');
+  }
+
   test_operator() {
     checkLibrary('class C { C operator+(C other) => null; }');
   }
