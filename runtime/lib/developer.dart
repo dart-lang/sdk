@@ -67,7 +67,8 @@ _runExtension(ServiceExtensionHandler handler,
               List<String> parameterKeys,
               List<String> parameterValues,
               SendPort replyPort,
-              Object id) {
+              Object id,
+              bool trace_service) {
   var parameters = {};
   for (var i = 0; i < parameterKeys.length; i++) {
     parameters[parameterKeys[i]] = parameterValues[i];
@@ -80,14 +81,14 @@ _runExtension(ServiceExtensionHandler handler,
     response = new ServiceExtensionResponse.error(
         ServiceExtensionResponse.kExtensionError,
         errorDetails);
-    _postResponse(replyPort, id, response);
+    _postResponse(replyPort, id, response, trace_service);
     return;
   }
   if (response is! Future) {
     response = new ServiceExtensionResponse.error(
           ServiceExtensionResponse.kExtensionError,
           "Extension handler must return a Future");
-    _postResponse(replyPort, id, response);
+    _postResponse(replyPort, id, response, trace_service);
     return;
   }
   response.catchError((e, st) {
@@ -104,7 +105,7 @@ _runExtension(ServiceExtensionHandler handler,
           ServiceExtensionResponse.kExtensionError,
           "Extension handler must complete to a ServiceExtensionResponse");
     }
-    _postResponse(replyPort, id, response);
+    _postResponse(replyPort, id, response, trace_service);
   }).catchError((e, st) {
     // We do not expect any errors to occur in the .then or .catchError blocks
     // but, suppress them just in case.
@@ -114,9 +115,13 @@ _runExtension(ServiceExtensionHandler handler,
 // This code is only invoked by _runExtension.
 _postResponse(SendPort replyPort,
               Object id,
-              ServiceExtensionResponse response) {
+              ServiceExtensionResponse response,
+              bool trace_service) {
   assert(replyPort != null);
   if (id == null) {
+    if (trace_service) {
+      print("vm-service: posting no response for request");
+    }
     // No id -> no response.
     replyPort.send(null);
     return;
@@ -125,8 +130,14 @@ _postResponse(SendPort replyPort,
   StringBuffer sb = new StringBuffer();
   sb.write('{"jsonrpc":"2.0",');
   if (response._isError()) {
+    if (trace_service) {
+      print("vm-service: posting error response for request $id");
+    }
     sb.write('"error":');
   } else {
+    if (trace_service) {
+      print("vm-service: posting response for request $id");
+    }
     sb.write('"result":');
   }
   sb.write('${response._toString()},');

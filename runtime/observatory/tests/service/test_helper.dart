@@ -41,6 +41,7 @@ class _TestLauncher {
     var fullArgs = [];
     if (trace_service) {
       fullArgs.add('--trace-service');
+      fullArgs.add('--trace-service-verbose');
     }
     if (trace_compiler) {
       fullArgs.add('--trace-compiler');

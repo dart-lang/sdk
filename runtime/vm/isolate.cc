@@ -52,6 +52,7 @@ namespace dart {
 DECLARE_FLAG(bool, print_metrics);
 DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
+DECLARE_FLAG(bool, trace_service_verbose);
 
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
@@ -1519,6 +1520,10 @@ void Isolate::DeferOOBMessageInterrupts() {
       stack_limit_ = saved_stack_limit_;
     }
   }
+  if (FLAG_trace_service && FLAG_trace_service_verbose) {
+    OS::Print("[+%" Pd64 "ms] Isolate %s deferring OOB interrupts\n",
+              Dart::timestamp(), name());
+  }
 }
 
 
@@ -1532,6 +1537,10 @@ void Isolate::RestoreOOBMessageInterrupts() {
     }
     stack_limit_ |= deferred_interrupts_;
     deferred_interrupts_ = 0;
+  }
+  if (FLAG_trace_service && FLAG_trace_service_verbose) {
+    OS::Print("[+%" Pd64 "ms] Isolate %s restoring OOB interrupts\n",
+              Dart::timestamp(), name());
   }
 }
 
@@ -2099,7 +2108,7 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
   ASSERT(!run_extension.IsNull());
 
   const Array& arguments =
-      Array::Handle(Array::New(kPendingEntrySize, Heap::kNew));
+      Array::Handle(Array::New(kPendingEntrySize + 1, Heap::kNew));
   Object& result = Object::Handle();
   String& method_name = String::Handle();
   Instance& closure = Instance::Handle();
@@ -2126,8 +2135,19 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
     arguments.SetAt(kPendingReplyPortIndex, reply_port);
     id ^= calls.At(i + kPendingIdIndex);
     arguments.SetAt(kPendingIdIndex, id);
+    arguments.SetAt(kPendingEntrySize, Bool::Get(FLAG_trace_service));
 
+    if (FLAG_trace_service) {
+      OS::Print(
+          "[+%" Pd64 "ms] Isolate %s invoking _runExtension for %s\n",
+          Dart::timestamp(), name(), method_name.ToCString());
+    }
     result = DartEntry::InvokeFunction(run_extension, arguments);
+    if (FLAG_trace_service) {
+      OS::Print(
+          "[+%" Pd64 "ms] Isolate %s : _runExtension complete for %s\n",
+          Dart::timestamp(), name(), method_name.ToCString());
+    }
     if (result.IsError()) {
       if (result.IsUnwindError()) {
         // Propagate the unwind error. Remaining service extension calls
@@ -2165,6 +2185,11 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
                                          const Array& parameter_values,
                                          const Instance& reply_port,
                                          const Instance& id) {
+  if (FLAG_trace_service) {
+    OS::Print(
+        "[+%" Pd64 "ms] Isolate %s ENQUEUING request for extension %s\n",
+        Dart::timestamp(), name(), method_name.ToCString());
+  }
   GrowableObjectArray& calls =
       GrowableObjectArray::Handle(pending_service_extension_calls());
   if (calls.IsNull()) {

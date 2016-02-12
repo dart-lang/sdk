@@ -30,6 +30,8 @@ DECLARE_FLAG(bool, shutdown);
 DEFINE_FLAG(bool, trace_service, false, "Trace VM service requests.");
 DEFINE_FLAG(bool, trace_service_pause_events, false,
             "Trace VM service isolate pause events.");
+DEFINE_FLAG(bool, trace_service_verbose, false,
+            "Provide extra service tracing information.");
 
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
