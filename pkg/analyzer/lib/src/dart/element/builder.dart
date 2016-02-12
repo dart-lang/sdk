@@ -303,11 +303,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   ElementHolder _currentHolder;
 
   /**
-   * A flag indicating whether a variable declaration is in the context of a field declaration.
-   */
-  bool _inFieldContext = false;
-
-  /**
    * A flag indicating whether a variable declaration is within the body of a method or function.
    */
   bool _inFunction = false;
@@ -333,18 +328,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
    */
   ElementBuilder(ElementHolder initialHolder, this.compilationUnitElement) {
     _currentHolder = initialHolder;
-  }
-
-  @override
-  Object visitBlock(Block node) {
-    bool wasInField = _inFieldContext;
-    _inFieldContext = false;
-    try {
-      node.visitChildren(this);
-    } finally {
-      _inFieldContext = wasInField;
-    }
-    return null;
   }
 
   @override
@@ -600,18 +583,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitExportDirective(ExportDirective node) {
     _createElementAnnotations(node.metadata);
     return super.visitExportDirective(node);
-  }
-
-  @override
-  Object visitFieldDeclaration(FieldDeclaration node) {
-    bool wasInField = _inFieldContext;
-    _inFieldContext = true;
-    try {
-      node.visitChildren(this);
-    } finally {
-      _inFieldContext = wasInField;
-    }
-    return null;
   }
 
   @override
@@ -1111,22 +1082,22 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     bool isConst = node.isConst;
     bool isFinal = node.isFinal;
     bool hasInitializer = node.initializer != null;
+    VariableDeclarationList varList = node.parent;
+    FieldDeclaration fieldNode =
+        varList.parent is FieldDeclaration ? varList.parent : null;
     VariableElementImpl element;
-    if (_inFieldContext) {
+    if (fieldNode != null) {
       SimpleIdentifier fieldName = node.name;
       FieldElementImpl field;
-      if ((isConst || isFinal) && hasInitializer) {
+      if ((isConst || isFinal && !fieldNode.isStatic) && hasInitializer) {
         field = new ConstFieldElementImpl.forNode(fieldName);
       } else {
         field = new FieldElementImpl.forNode(fieldName);
       }
       element = field;
-      if (node.parent.parent is FieldDeclaration) {
-        setElementDocumentationComment(element, node.parent.parent);
-      }
-      if ((node.parent as VariableDeclarationList).type == null) {
-        field.hasImplicitType = true;
-      }
+      field.static = fieldNode.isStatic;
+      setElementDocumentationComment(element, fieldNode);
+      field.hasImplicitType = varList.type == null;
       _currentHolder.addField(field);
       fieldName.staticElement = field;
     } else if (_inFunction) {
@@ -1142,9 +1113,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       // TODO(brianwilkerson) This isn't right for variables declared in a for
       // loop.
       variable.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
-      if ((node.parent as VariableDeclarationList).type == null) {
-        variable.hasImplicitType = true;
-      }
+      variable.hasImplicitType = varList.type == null;
       _currentHolder.addLocalVariable(variable);
       variableName.staticElement = element;
     } else {
@@ -1156,12 +1125,10 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         variable = new TopLevelVariableElementImpl.forNode(variableName);
       }
       element = variable;
-      if (node.parent.parent is TopLevelVariableDeclaration) {
-        setElementDocumentationComment(element, node.parent.parent);
+      if (varList.parent is TopLevelVariableDeclaration) {
+        setElementDocumentationComment(element, varList.parent);
       }
-      if ((node.parent as VariableDeclarationList).type == null) {
-        variable.hasImplicitType = true;
-      }
+      variable.hasImplicitType = varList.type == null;
       _currentHolder.addTopLevelVariable(variable);
       variableName.staticElement = element;
     }
@@ -1169,13 +1136,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.final2 = isFinal;
     if (hasInitializer) {
       ElementHolder holder = new ElementHolder();
-      bool wasInFieldContext = _inFieldContext;
-      _inFieldContext = false;
-      try {
-        _visit(holder, node.initializer);
-      } finally {
-        _inFieldContext = wasInFieldContext;
-      }
+      _visit(holder, node.initializer);
       FunctionElementImpl initializer =
           new FunctionElementImpl.forOffset(node.initializer.beginToken.offset);
       initializer.functions = holder.functions;
@@ -1186,10 +1147,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       holder.validate();
     }
     if (element is PropertyInducingElementImpl) {
-      if (_inFieldContext) {
-        (element as FieldElementImpl).static =
-            (node.parent.parent as FieldDeclaration).isStatic;
-      }
       PropertyAccessorElementImpl getter =
           new PropertyAccessorElementImpl.forVariable(element);
       getter.getter = true;
