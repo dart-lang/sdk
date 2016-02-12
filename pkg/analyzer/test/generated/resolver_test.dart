@@ -10225,6 +10225,56 @@ main(p) {
       expect(type.name, 'Foo');
     }
   }
+
+  void test_staticMethods_classTypeParameters() {
+    String code = r'''
+class C<T> {
+  static void m() => null;
+}
+main() {
+  print(C.m);
+}
+''';
+    _resolveTestUnit(code);
+    SimpleIdentifier identifier = _findIdentifier('m);');
+    FunctionTypeImpl type = identifier.staticType;
+    expect(type.toString(), '() → void');
+    expect(type.typeParameters, isEmpty,
+        reason: 'static methods should not have type parameters');
+    expect(type.typeArguments, isEmpty,
+        reason: 'static methods should not have type arguments');
+    expect(type.typeFormals, isEmpty,
+        reason: 'this static method is not generic');
+  }
+
+  void test_staticMethods_classTypeParameters_genericMethod() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableGenericMethods = true;
+    resetWithOptions(options);
+    String code = r'''
+class C<T> {
+  static void m<S>(S s) => null;
+}
+main() {
+  print(C.m);
+}
+''';
+    _resolveTestUnit(code);
+    SimpleIdentifier identifier = _findIdentifier('m);');
+    FunctionTypeImpl type = identifier.staticType;
+    expect(type.toString(), '<S>(S) → void');
+    expect(type.typeParameters, isEmpty,
+        reason: 'static methods should not have type parameters');
+    expect(type.typeArguments, isEmpty,
+        reason: 'static methods should not have type arguments');
+    expect(type.typeFormals.toString(), '[S]');
+
+    type = type.instantiate([DynamicTypeImpl.instance]);
+    expect(type.toString(), '(dynamic) → void');
+    expect(type.typeParameters.toString(), '[S]');
+    expect(type.typeArguments, [DynamicTypeImpl.instance]);
+    expect(type.typeFormals, isEmpty);
+  }
 }
 
 @reflectiveTest
@@ -13388,11 +13438,8 @@ class C<E> {
     MethodElementImpl e = f.staticElement;
     expect(e.typeParameters.toString(), '[T]');
     expect(e.type.typeFormals.toString(), '[T]');
-    // TODO(jmesserly): we could get rid of this {E/E} substitution, but it's
-    // probably harmless, as E won't be used in the function (error verifier
-    // checks this), and {E/E} is a no-op anyway.
-    expect(e.type.typeParameters.toString(), '[E]');
-    expect(e.type.typeArguments.toString(), '[E]');
+    expect(e.type.typeParameters.toString(), '[]');
+    expect(e.type.typeArguments.toString(), '[]');
     expect(e.type.toString(), '<T>(T) → T');
 
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
@@ -13779,6 +13826,18 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
+  void test_genericMethod_nestedBound() {
+    String code = r'''
+class Foo<T extends num> {
+  void method/*<U extends T>*/(dynamic/*=U*/ u) {
+    u.abs();
+  }
+}
+''';
+    // Just validate that there is no warning on the call to `.abs()`.
+    _resolveTestUnit(code);
+  }
+
   void test_genericMethod_nestedCapture() {
     _resolveTestUnit(r'''
 class C<T> {
@@ -14000,18 +14059,6 @@ main() {
 
     expect(declaration.initializer.staticType.toString(), "Future<String>");
     expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_genericMethod_nestedBound() {
-    String code = r'''
-class Foo<T extends num> {
-  void method/*<U extends T>*/(dynamic/*=U*/ u) {
-    u.abs();
-  }
-}
-''';
-    // Just validate that there is no warning on the call to `.abs()`.
-    _resolveTestUnit(code);
   }
 
   void test_genericMethod_then_propagatedType() {

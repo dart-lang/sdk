@@ -513,13 +513,21 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       // for this generic function's type variables. Those variables are
       // tracked in [boundTypeParameters].
       _typeParameters = <TypeParameterElement>[];
-      Element e = element?.enclosingElement;
+
+      Element e = element;
+      bool isStaticMethod = e is MethodElement && e.isStatic;
+      e = e?.enclosingElement;
+
       while (e != null) {
         if (e is TypeParameterizedElement) {
-          _typeParameters.addAll(e.typeParameters);
+          // Class type parameters are not in scope in static methods.
+          if (!isStaticMethod || e is! ClassElement) {
+            _typeParameters.addAll(e.typeParameters);
+          }
         }
         e = e.enclosingElement;
       }
+
       if (_isInstantiated) {
         // Once the type has been instantiated, type parameters defined at the
         // site of the declaration of the method are no longer considered part
