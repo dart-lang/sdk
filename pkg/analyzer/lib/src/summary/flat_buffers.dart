@@ -63,6 +63,8 @@ class BufferPointer {
   int _getUint32([int delta = 0]) =>
       _buffer.getUint32(_offset + delta, Endianness.LITTLE_ENDIAN);
 
+  int _getUint8([int delta = 0]) => _buffer.getUint8(_offset + delta);
+
   /**
    * If the [byteList] is already a [Uint8List] return it.
    * Otherwise return a [Uint8List] copy of the [byteList].
@@ -126,9 +128,7 @@ class Builder {
    * `0` for `false` and `1` for `true`.
    */
   void addBool(int field, bool value, [bool def]) {
-    if (_currentVTable == null) {
-      throw new StateError('Start a table before adding values.');
-    }
+    _ensureCurrentVTable();
     if (value != null && value != def) {
       int size = 1;
       _prepare(size, 1);
@@ -142,9 +142,7 @@ class Builder {
    * not added if the [value] is equal to [def].
    */
   void addInt32(int field, int value, [int def]) {
-    if (_currentVTable == null) {
-      throw new StateError('Start a table before adding values.');
-    }
+    _ensureCurrentVTable();
     if (value != null && value != def) {
       int size = 4;
       _prepare(size, 1);
@@ -158,9 +156,7 @@ class Builder {
    * not added if the [value] is equal to [def].
    */
   void addInt8(int field, int value, [int def]) {
-    if (_currentVTable == null) {
-      throw new StateError('Start a table before adding values.');
-    }
+    _ensureCurrentVTable();
     if (value != null && value != def) {
       int size = 1;
       _prepare(size, 1);
@@ -173,9 +169,7 @@ class Builder {
    * Add the [field] referencing an object with the given [offset].
    */
   void addOffset(int field, Offset offset) {
-    if (_currentVTable == null) {
-      throw new StateError('Start a table before adding values.');
-    }
+    _ensureCurrentVTable();
     if (offset != null) {
       _prepare(4, 1);
       _trackField(field);
@@ -188,14 +182,26 @@ class Builder {
    * is not added if the [value] is equal to [def].
    */
   void addUint32(int field, int value, [int def]) {
-    if (_currentVTable == null) {
-      throw new StateError('Start a table before adding values.');
-    }
+    _ensureCurrentVTable();
     if (value != null && value != def) {
       int size = 4;
       _prepare(size, 1);
       _trackField(field);
       _setUint32AtTail(_buf, _tail, value);
+    }
+  }
+
+  /**
+   * Add the [field] with the given 8-bit unsigned integer [value].  The field
+   * is not added if the [value] is equal to [def].
+   */
+  void addUint8(int field, int value, [int def]) {
+    _ensureCurrentVTable();
+    if (value != null && value != def) {
+      int size = 1;
+      _prepare(size, 1);
+      _trackField(field);
+      _setUint8AtTail(_buf, _tail, value);
     }
   }
 
@@ -307,10 +313,7 @@ class Builder {
    * Write the given list of [values].
    */
   Offset writeList(List<Offset> values) {
-    if (_currentVTable != null) {
-      throw new StateError(
-          'Cannot write a non-scalar value while writing a table.');
-    }
+    _ensureNoVTable();
     _prepare(4, 1 + values.length);
     Offset result = new Offset(_tail);
     int tail = _tail;
@@ -327,10 +330,7 @@ class Builder {
    * Write the given list of 64-bit float [values].
    */
   Offset writeListFloat64(List<double> values) {
-    if (_currentVTable != null) {
-      throw new StateError(
-          'Cannot write a non-scalar value while writing a table.');
-    }
+    _ensureNoVTable();
     _prepare(8, 1 + values.length);
     Offset result = new Offset(_tail);
     int tail = _tail;
@@ -347,10 +347,7 @@ class Builder {
    * Write the given list of signed 32-bit integer [values].
    */
   Offset writeListInt32(List<int> values) {
-    if (_currentVTable != null) {
-      throw new StateError(
-          'Cannot write a non-scalar value while writing a table.');
-    }
+    _ensureNoVTable();
     _prepare(4, 1 + values.length);
     Offset result = new Offset(_tail);
     int tail = _tail;
@@ -367,10 +364,7 @@ class Builder {
    * Write the given list of unsigned 32-bit integer [values].
    */
   Offset writeListUint32(List<int> values) {
-    if (_currentVTable != null) {
-      throw new StateError(
-          'Cannot write a non-scalar value while writing a table.');
-    }
+    _ensureNoVTable();
     _prepare(4, 1 + values.length);
     Offset result = new Offset(_tail);
     int tail = _tail;
@@ -384,14 +378,28 @@ class Builder {
   }
 
   /**
+   * Write the given list of unsigned 8-bit integer [values].
+   */
+  Offset writeListUint8(List<int> values) {
+    _ensureNoVTable();
+    _prepare(4, 1, additionalBytes: values.length);
+    Offset result = new Offset(_tail);
+    int tail = _tail;
+    _setUint32AtTail(_buf, tail, values.length);
+    tail -= 4;
+    for (int value in values) {
+      _setUint8AtTail(_buf, tail, value);
+      tail -= 1;
+    }
+    return result;
+  }
+
+  /**
    * Write the given string [value] and return its [Offset], or `null` if
    * the [value] is equal to [def].
    */
   Offset<String> writeString(String value, [String def]) {
-    if (_currentVTable != null) {
-      throw new StateError(
-          'Cannot write a non-scalar value while writing a table.');
-    }
+    _ensureNoVTable();
     if (value != def) {
       return _strings.putIfAbsent(value, () {
         // TODO(scheglov) optimize for ASCII strings
@@ -408,6 +416,25 @@ class Builder {
       });
     }
     return null;
+  }
+
+  /**
+   * Throw an exception if there is not currently a vtable.
+   */
+  void _ensureCurrentVTable() {
+    if (_currentVTable == null) {
+      throw new StateError('Start a table before adding values.');
+    }
+  }
+
+  /**
+   * Throw an exception if there is currently a vtable.
+   */
+  void _ensureNoVTable() {
+    if (_currentVTable != null) {
+      throw new StateError(
+          'Cannot write a non-scalar value while writing a table.');
+    }
   }
 
   /**
@@ -460,6 +487,10 @@ class Builder {
 
   static void _setUint32AtTail(ByteData _buf, int tail, int x) {
     _buf.setUint32(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+  }
+
+  static void _setUint8AtTail(ByteData _buf, int tail, int x) {
+    _buf.setUint8(_buf.lengthInBytes - tail, x);
   }
 }
 
@@ -631,6 +662,19 @@ class Uint32Reader extends Reader<int> {
 
   @override
   int read(BufferPointer bp) => bp._getUint32();
+}
+
+/**
+ * The reader of unsigned 8-bit integers.
+ */
+class Uint8Reader extends Reader<int> {
+  const Uint8Reader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  int read(BufferPointer bp) => bp._getUint8();
 }
 
 /**

@@ -463,7 +463,7 @@ class _CodeGenerator {
             } else if (_idl.enums.containsKey(fieldType.typeName)) {
               String itemCode = 'b.index';
               String listCode = '$valueName.map((b) => $itemCode).toList()';
-              writeCode = '$offsetName = fbBuilder.writeListUint32($listCode);';
+              writeCode = '$offsetName = fbBuilder.writeListUint8($listCode);';
             } else if (fieldType.typeName == 'int') {
               writeCode =
                   '$offsetName = fbBuilder.writeListUint32($valueName);';
@@ -515,7 +515,7 @@ class _CodeGenerator {
             writeCode = 'fbBuilder.addUint32($index, $valueName);';
           } else if (_idl.enums.containsKey(fieldType.typeName)) {
             condition += ' && $valueName != ${defaultValue(fieldType, true)}';
-            writeCode = 'fbBuilder.addUint32($index, $valueName.index);';
+            writeCode = 'fbBuilder.addUint8($index, $valueName.index);';
           }
           if (writeCode == null) {
             throw new UnimplementedError('Writing type ${fieldType.typeName}');
@@ -541,12 +541,12 @@ class _CodeGenerator {
       out('const $readerName() : super();');
       out();
       out('@override');
-      out('int get size => 4;');
+      out('int get size => 1;');
       out();
       out('@override');
       out('${idlPrefix(name)} read(fb.BufferPointer bp) {');
       indent(() {
-        out('int index = const fb.Uint32Reader().read(bp);');
+        out('int index = const fb.Uint8Reader().read(bp);');
         out('return ${idlPrefix(name)}.values[index];');
       });
       out('}');

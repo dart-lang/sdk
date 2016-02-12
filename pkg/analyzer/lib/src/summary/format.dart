@@ -14,11 +14,11 @@ class _ReferenceKindReader extends fb.Reader<idl.ReferenceKind> {
   const _ReferenceKindReader() : super();
 
   @override
-  int get size => 4;
+  int get size => 1;
 
   @override
   idl.ReferenceKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint32Reader().read(bp);
+    int index = const fb.Uint8Reader().read(bp);
     return idl.ReferenceKind.values[index];
   }
 }
@@ -27,11 +27,11 @@ class _UnlinkedConstOperationReader extends fb.Reader<idl.UnlinkedConstOperation
   const _UnlinkedConstOperationReader() : super();
 
   @override
-  int get size => 4;
+  int get size => 1;
 
   @override
   idl.UnlinkedConstOperation read(fb.BufferPointer bp) {
-    int index = const fb.Uint32Reader().read(bp);
+    int index = const fb.Uint8Reader().read(bp);
     return idl.UnlinkedConstOperation.values[index];
   }
 }
@@ -40,11 +40,11 @@ class _UnlinkedConstructorInitializerKindReader extends fb.Reader<idl.UnlinkedCo
   const _UnlinkedConstructorInitializerKindReader() : super();
 
   @override
-  int get size => 4;
+  int get size => 1;
 
   @override
   idl.UnlinkedConstructorInitializerKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint32Reader().read(bp);
+    int index = const fb.Uint8Reader().read(bp);
     return idl.UnlinkedConstructorInitializerKind.values[index];
   }
 }
@@ -53,11 +53,11 @@ class _UnlinkedExecutableKindReader extends fb.Reader<idl.UnlinkedExecutableKind
   const _UnlinkedExecutableKindReader() : super();
 
   @override
-  int get size => 4;
+  int get size => 1;
 
   @override
   idl.UnlinkedExecutableKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint32Reader().read(bp);
+    int index = const fb.Uint8Reader().read(bp);
     return idl.UnlinkedExecutableKind.values[index];
   }
 }
@@ -66,11 +66,11 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
   const _UnlinkedParamKindReader() : super();
 
   @override
-  int get size => 4;
+  int get size => 1;
 
   @override
   idl.UnlinkedParamKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint32Reader().read(bp);
+    int index = const fb.Uint8Reader().read(bp);
     return idl.UnlinkedParamKind.values[index];
   }
 }
@@ -455,7 +455,7 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
       fbBuilder.addUint32(0, _dependency);
     }
     if (_kind != null && _kind != idl.ReferenceKind.classOrEnum) {
-      fbBuilder.addUint32(3, _kind.index);
+      fbBuilder.addUint8(3, _kind.index);
     }
     if (offset_name != null) {
       fbBuilder.addOffset(1, offset_name);
@@ -849,7 +849,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
       fbBuilder.addUint32(1, _dependency);
     }
     if (_kind != null && _kind != idl.ReferenceKind.classOrEnum) {
-      fbBuilder.addUint32(2, _kind.index);
+      fbBuilder.addUint8(2, _kind.index);
     }
     if (offset_name != null) {
       fbBuilder.addOffset(3, offset_name);
@@ -1769,7 +1769,7 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
       offset_ints = fbBuilder.writeListUint32(_ints);
     }
     if (!(_operations == null || _operations.isEmpty)) {
-      offset_operations = fbBuilder.writeListUint32(_operations.map((b) => b.index).toList());
+      offset_operations = fbBuilder.writeListUint8(_operations.map((b) => b.index).toList());
     }
     if (!(_references == null || _references.isEmpty)) {
       offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
@@ -1954,7 +1954,7 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
       fbBuilder.addOffset(1, offset_expression);
     }
     if (_kind != null && _kind != idl.UnlinkedConstructorInitializerKind.field) {
-      fbBuilder.addUint32(2, _kind.index);
+      fbBuilder.addUint8(2, _kind.index);
     }
     if (offset_name != null) {
       fbBuilder.addOffset(0, offset_name);
@@ -2817,7 +2817,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       fbBuilder.addBool(9, true);
     }
     if (_kind != null && _kind != idl.UnlinkedExecutableKind.functionOrMethod) {
-      fbBuilder.addUint32(4, _kind.index);
+      fbBuilder.addUint8(4, _kind.index);
     }
     if (offset_localFunctions != null) {
       fbBuilder.addOffset(18, offset_localFunctions);
@@ -3798,7 +3798,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
       fbBuilder.addBool(6, true);
     }
     if (_kind != null && _kind != idl.UnlinkedParamKind.required) {
-      fbBuilder.addUint32(4, _kind.index);
+      fbBuilder.addUint8(4, _kind.index);
     }
     if (offset_name != null) {
       fbBuilder.addOffset(0, offset_name);
@@ -4130,7 +4130,7 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
     }
     fbBuilder.startTable();
     if (_kind != null && _kind != idl.ReferenceKind.classOrEnum) {
-      fbBuilder.addUint32(1, _kind.index);
+      fbBuilder.addUint8(1, _kind.index);
     }
     if (offset_members != null) {
       fbBuilder.addOffset(2, offset_members);
