@@ -508,6 +508,18 @@ typedef ScopedSSLStackType<STACK_OF(X509), X509, X509_free> ScopedX509Stack;
 typedef ScopedSSLStackType<STACK_OF(X509_NAME), X509_NAME, X509_NAME_free>
     ScopedX509NAMEStack;
 
+
+// We try reading data as PKCS12 only if reading as PEM was unsuccessful and
+// if there is no indication that the data is malformed PEM. We assume the data
+// is malformed PEM if it contains the start line, i.e. a line with ----- BEGIN.
+static bool TryPKCS12(bool pem_success) {
+  uint32_t last_error = ERR_peek_last_error();
+  return !pem_success &&
+      (ERR_GET_LIB(last_error) == ERR_LIB_PEM) &&
+      (ERR_GET_REASON(last_error) == PEM_R_NO_START_LINE);
+}
+
+
 static EVP_PKEY* GetPrivateKeyPKCS12(BIO* bio, const char* password) {
   ScopedPKCS12 p12(d2i_PKCS12_bio(bio, NULL));
   if (p12.get() == NULL) {
@@ -532,12 +544,7 @@ static EVP_PKEY* GetPrivateKeyPKCS12(BIO* bio, const char* password) {
 static EVP_PKEY* GetPrivateKey(BIO* bio, const char* password) {
   EVP_PKEY *key = PEM_read_bio_PrivateKey(
       bio, NULL, PasswordCallback, const_cast<char*>(password));
-
-  // If the data doesn't contain the PEM start line, try reading as PKCS12.
-  uint32_t err = ERR_peek_last_error();
-  if ((key == NULL) &&
-      (ERR_GET_LIB(err) == ERR_LIB_PEM) &&
-      (ERR_GET_REASON(err) == PEM_R_NO_START_LINE)) {
+  if (TryPKCS12(key != NULL)) {
     // Reset the bio, and clear the error from trying to read as PEM.
     ERR_clear_error();
     BIO_reset(bio);
@@ -641,10 +648,13 @@ static int SetTrustedCertificatesBytesPEM(SSL_CTX* context, BIO* bio) {
     }
   }
 
+  // If bio does not contain PEM data, the first call to PEM_read_bio_X509 will
+  // return NULL, and the while-loop will exit while status is still 0.
   uint32_t err = ERR_peek_last_error();
   if ((ERR_GET_LIB(err) != ERR_LIB_PEM) ||
       (ERR_GET_REASON(err) != PEM_R_NO_START_LINE)) {
-    // Some real error happened.
+    // If bio contains data that is trying to be PEM but is malformed, then
+    // this case will be triggered.
     status = 0;
   }
 
@@ -654,10 +664,7 @@ static int SetTrustedCertificatesBytesPEM(SSL_CTX* context, BIO* bio) {
 
 static int SetTrustedCertificatesBytes(SSL_CTX* context, BIO* bio) {
   int status = SetTrustedCertificatesBytesPEM(context, bio);
-  uint32_t err = ERR_peek_last_error();
-  if ((status == 0) &&
-      (ERR_GET_LIB(err) == ERR_LIB_PEM) &&
-      (ERR_GET_REASON(err) == PEM_R_NO_START_LINE)) {
+  if (TryPKCS12(status != 0)) {
     ERR_clear_error();
     BIO_reset(bio);
     status = SetTrustedCertificatesBytesPKCS12(context, bio);
@@ -780,10 +787,13 @@ static int UseChainBytesPEM(SSL_CTX* context, BIO* bio) {
     // count is increased by SSL_CTX_use_certificate.
   }
 
+  // If bio does not contain PEM data, the first call to PEM_read_bio_X509 will
+  // return NULL, and the while-loop will exit while status is still 0.
   uint32_t err = ERR_peek_last_error();
   if ((ERR_GET_LIB(err) != ERR_LIB_PEM) ||
       (ERR_GET_REASON(err) != PEM_R_NO_START_LINE)) {
-    // Some real error happened.
+    // If bio contains data that is trying to be PEM but is malformed, then
+    // this case will be triggered.
     status = 0;
   }
 
@@ -793,15 +803,12 @@ static int UseChainBytesPEM(SSL_CTX* context, BIO* bio) {
 
 static int UseChainBytes(SSL_CTX* context, BIO* bio) {
   int status = UseChainBytesPEM(context, bio);
-  uint32_t err = ERR_peek_last_error();
-  if ((status == 0) &&
-      (ERR_GET_LIB(err) == ERR_LIB_PEM) &&
-      (ERR_GET_REASON(err) == PEM_R_NO_START_LINE)) {
+  if (TryPKCS12(status != 0)) {
     ERR_clear_error();
     BIO_reset(bio);
     status = UseChainBytesPKCS12(context, bio);
   } else if (status != 0) {
-    // The PEM file was successfully parsed.
+    // The PEM file was successfully read.
     ERR_clear_error();
   }
   return status;
@@ -912,10 +919,15 @@ static STACK_OF(X509_NAME)* GetCertificateNamesPEM(BIO* bio) {
     sk_X509_NAME_push(result.get(), x509_name);
   }
 
+  if (sk_X509_NAME_num(result.get()) == 0) {
+    // The data was not PEM.
+    return NULL;
+  }
+
   uint32_t err = ERR_peek_last_error();
   if ((ERR_GET_LIB(err) != ERR_LIB_PEM) ||
       (ERR_GET_REASON(err) != PEM_R_NO_START_LINE)) {
-    // Some real error happened.
+    // The data was trying to be PEM, but was malformed.
     return NULL;
   }
 
@@ -925,10 +937,7 @@ static STACK_OF(X509_NAME)* GetCertificateNamesPEM(BIO* bio) {
 
 static STACK_OF(X509_NAME)* GetCertificateNames(BIO* bio) {
   STACK_OF(X509_NAME)* result = GetCertificateNamesPEM(bio);
-  uint32_t err = ERR_peek_last_error();
-  if ((result == NULL) &&
-      (ERR_GET_LIB(err) == ERR_LIB_PEM) &&
-      (ERR_GET_REASON(err) == PEM_R_NO_START_LINE)) {
+  if (TryPKCS12(result != NULL)) {
     ERR_clear_error();
     BIO_reset(bio);
     result = GetCertificateNamesPKCS12(bio);

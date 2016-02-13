@@ -35,6 +35,13 @@ void testUsePrivateKeyArguments() {
         localFile('certificates/server_key.pem'), password: 3),
         argumentOrTypeError);
 
+    // Empty data.
+    Expect.throws(() => c.usePrivateKeyBytes([], password: 'dartdart'),
+        tlsException);
+    Expect.throws(() => c.setTrustedCertificatesBytes([]), tlsException);
+    Expect.throws(() => c.useCertificateChainBytes([]), tlsException);
+    Expect.throws(() => c.setClientAuthoritiesBytes([]), argumentError);
+
     // Malformed PEM certs.
     Expect.throws(() => c.usePrivateKeySync(
         localFile('certificates/client1_key_malformed.pem'),
