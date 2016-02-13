@@ -2495,6 +2495,16 @@ f() {}''');
     checkLibrary('f() {} g() {}');
   }
 
+  test_generic_gClass_gMethodStatic() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    checkLibrary('''
+class C<T, U> {
+  static void m<V, W>(V v, W w) {
+  }
+}
+''');
+  }
+
   test_getElement_constructor_named() {
     ConstructorElement original = resolve2(addSource('class C { C.named(); }'))
         .getType('C')

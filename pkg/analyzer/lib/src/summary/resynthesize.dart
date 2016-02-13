@@ -850,7 +850,13 @@ class _LibraryResynthesizer {
         case UnlinkedExecutableKind.functionOrMethod:
         case UnlinkedExecutableKind.getter:
         case UnlinkedExecutableKind.setter:
+          if (serializedExecutable.isStatic) {
+            currentTypeParameters.removeLast();
+          }
           buildExecutable(serializedExecutable, memberHolder);
+          if (serializedExecutable.isStatic) {
+            currentTypeParameters.add(classElement.typeParameters);
+          }
           break;
       }
     }
@@ -1647,7 +1653,7 @@ class _LibraryResynthesizer {
   }
 
   /**
-   * Build [TypeParameterElements] corresponding to the type parameters in
+   * Build [TypeParameterElement]s corresponding to the type parameters in
    * [serializedTypeParameters] and store them in [currentTypeParameters].
    * Also return them.
    */

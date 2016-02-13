@@ -4818,6 +4818,18 @@ f() {}''';
     expect(f.inferredReturnTypeSlot, 0);
   }
 
+  test_generic_gClass_gMethodStatic() {
+    UnlinkedClass cls = serializeClassText('''
+class C<T, U> {
+  static void m<V, W>(V v, W w) {
+  }
+}
+''');
+    List<UnlinkedParam> params = cls.executables[0].parameters;
+    checkParamTypeRef(params[0].type, 2);
+    checkParamTypeRef(params[1].type, 1);
+  }
+
   test_generic_method_in_generic_class() {
     UnlinkedClass cls = serializeClassText(
         'class C<T, U> { void m<V, W>(T t, U u, V v, W w) {} }');
