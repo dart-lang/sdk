@@ -569,15 +569,7 @@ class CodeChecker extends RecursiveAstVisitor {
     final Coercion c = _coerceTo(fromT, toT);
     if (c is Identity) return null;
     if (c is CoercionError) return new StaticTypeError(rules, expr, toT);
-    var reason = null;
-
-    var errors = <String>[];
-
-    var ok = _inferExpression(expr, toT, errors);
-    if (ok) return InferredType.create(rules, expr, toT);
-    reason = (errors.isNotEmpty) ? errors.first : null;
-
-    if (c is Cast) return DownCast.create(rules, expr, c, reason: reason);
+    if (c is Cast) return DownCast.create(rules, expr, c);
     assert(false);
     return null;
   }
@@ -798,17 +790,6 @@ class CodeChecker extends RecursiveAstVisitor {
     }
     if (t is FunctionType) return t;
     return null;
-  }
-
-  /// Checks if we can perform downwards inference on [e] tp get type [t].
-  /// If it is not possible, this will add a message to [errors].
-  bool _inferExpression(Expression e, DartType t, List<String> errors) {
-    DartType staticType = e.staticType ?? DynamicTypeImpl.instance;
-    if (rules.isSubtypeOf(staticType, t)) {
-      return true;
-    }
-    errors.add("$e cannot be typed as $t");
-    return false;
   }
 
   /// Returns `true` if the expression is a dynamic function call or method
