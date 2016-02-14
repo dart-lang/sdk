@@ -139,6 +139,12 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
    */
   InterfaceType _objectType;
 
+  /**
+   * The resolved [CompilationUnitElement]s comprising the library
+   * or `null` if not computed.
+   */
+  List<CompilationUnitElement> _resolvedUnits;
+
   OpType _opType;
 
   final CompletionRequest _originalRequest;
@@ -267,6 +273,33 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     _updateTargets(resolvedUnit);
   }
 
+  @override
+  Future<List<CompilationUnitElement>> resolveUnits() async {
+    checkAborted();
+    if (_resolvedUnits != null) {
+      return _resolvedUnits;
+    }
+    LibraryElement libElem = libraryElement;
+    if (libElem == null) {
+      return null;
+    }
+    _resolvedUnits = <CompilationUnitElement>[];
+    for (CompilationUnitElement unresolvedUnit in libElem.units) {
+      CompilationUnit unit = await _computeAsync(
+          this,
+          new LibrarySpecificUnit(libElem.source, unresolvedUnit.source),
+          RESOLVED_UNIT3,
+          performance,
+          'resolve library unit');
+      checkAborted();
+      CompilationUnitElement resolvedUnit = unit?.element;
+      if (resolvedUnit != null) {
+        _resolvedUnits.add(resolvedUnit);
+      }
+    }
+    return _resolvedUnits;
+  }
+
   /**
    * Update the completion [target] and [dotTarget] based on the given [unit].
    */
@@ -365,8 +398,12 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     return dartRequest;
   }
 
-  static Future _computeAsync(CompletionRequest request, AnalysisTarget target,
-      ResultDescriptor descriptor, CompletionPerformance performance, String perfTag) async {
+  static Future _computeAsync(
+      CompletionRequest request,
+      AnalysisTarget target,
+      ResultDescriptor descriptor,
+      CompletionPerformance performance,
+      String perfTag) async {
     request.checkAborted();
     performance.logStartTime(perfTag);
     var result;

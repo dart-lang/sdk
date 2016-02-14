@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show createSuggestion, ElementSuggestionBuilder;
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 import '../../../protocol_server.dart'
@@ -30,23 +29,17 @@ class LocalLibraryContributor extends DartCompletionContributor {
       return EMPTY_LIST;
     }
 
-    List<Directive> directives = await request.resolveDirectives();
-    if (directives == null) {
+    List<CompilationUnitElement> libraryUnits = await request.resolveUnits();
+    if (libraryUnits == null) {
       return EMPTY_LIST;
     }
 
     OpType optype = (request as DartCompletionRequestImpl).opType;
     LibraryElementSuggestionBuilder visitor =
         new LibraryElementSuggestionBuilder(request, optype);
-    if (request.librarySource != request.source) {
-      request.libraryElement.definingCompilationUnit.accept(visitor);
-    }
-    for (Directive directive in directives) {
-      if (directive is PartDirective) {
-        CompilationUnitElement partElem = directive.element;
-        if (partElem != null && partElem.source != request.source) {
-          partElem.accept(visitor);
-        }
+    for (CompilationUnitElement unit in libraryUnits) {
+      if (unit != null && unit.source != request.source) {
+        unit.accept(visitor);
       }
     }
     return visitor.suggestions;
