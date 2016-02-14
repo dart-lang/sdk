@@ -51,6 +51,7 @@ class BeginTokenWithComment extends BeginToken {
     _setCommentParent(_precedingComment);
   }
 
+  @override
   CommentToken get precedingComments => _precedingComment;
 
   void set precedingComments(CommentToken comment) {
@@ -164,6 +165,7 @@ class KeywordTokenWithComment extends KeywordToken {
     _setCommentParent(_precedingComment);
   }
 
+  @override
   CommentToken get precedingComments => _precedingComment;
 
   void set precedingComments(CommentToken comment) {
@@ -194,17 +196,20 @@ class SimpleToken implements Token {
   /**
    * The type of the token.
    */
+  @override
   final TokenType type;
 
   /**
    * The offset from the beginning of the file to the first character in the
    * token.
    */
+  @override
   int offset = 0;
 
   /**
    * The previous token in the token stream.
    */
+  @override
   Token previous;
 
   /**
@@ -217,73 +222,39 @@ class SimpleToken implements Token {
    */
   SimpleToken(this.type, this.offset);
 
-  /**
-   * Return the offset from the beginning of the file to the character after the
-   * last character of the token.
-   */
+  @override
   int get end => offset + length;
 
-  /**
-   * Return `true` if this token represents an operator.
-   */
+  @override
   bool get isOperator => type.isOperator;
 
-  /**
-   * Return `true` if this token is a synthetic token. A synthetic token is a
-   * token that was introduced by the parser in order to recover from an error
-   * in the code.
-   */
+  @override
   bool get isSynthetic => length == 0;
 
-  /**
-   * Return `true` if this token represents an operator that can be defined by
-   * users.
-   */
+  @override
   bool get isUserDefinableOperator => type.isUserDefinableOperator;
 
-  /**
-   * Return the number of characters in the node's source range.
-   */
+  @override
   int get length => lexeme.length;
 
-  /**
-   * Return the lexeme that represents this token.
-   */
+  @override
   String get lexeme => type.lexeme;
 
-  /**
-   * Return the next token in the token stream.
-   */
+  @override
   Token get next => _next;
 
-  /**
-   * Return the first comment in the list of comments that precede this token,
-   * or `null` if there are no comments preceding this token. Additional
-   * comments can be reached by following the token stream using [next] until
-   * `null` is returned.
-   *
-   * For example, if the original contents were `/* one */ /* two */ id`, then
-   * the first preceding comment token will have a lexeme of `/* one */` and
-   * the next comment token will have a lexeme of `/* two */`.
-   */
+  @override
   CommentToken get precedingComments => null;
 
-  /**
-   * Apply (add) the given [delta] to this token's offset.
-   */
+  @override
   void applyDelta(int delta) {
     offset += delta;
   }
 
-  /**
-   * Return a newly created token that is a copy of this token but that is not a
-   * part of any token stream.
-   */
+  @override
   Token copy() => new Token(type, offset);
 
-  /**
-   * Copy a linked list of comment tokens identical to the given comment tokens.
-   */
+  @override
   Token copyComments(Token token) {
     if (token == null) {
       return null;
@@ -298,9 +269,7 @@ class SimpleToken implements Token {
     return head;
   }
 
-  /**
-   * Return `true` if this token has any one of the given [types].
-   */
+  @override
   bool matchesAny(List<TokenType> types) {
     for (TokenType type in types) {
       if (this.type == type) {
@@ -310,22 +279,14 @@ class SimpleToken implements Token {
     return false;
   }
 
-  /**
-   * Set the next token in the token stream to the given [token]. This has the
-   * side-effect of setting this token to be the previous token for the given
-   * token. Return the token that was passed in.
-   */
+  @override
   Token setNext(Token token) {
     _next = token;
     token.previous = this;
     return token;
   }
 
-  /**
-   * Set the next token in the token stream to the given token without changing
-   * which token is the previous token for the given token. Return the token
-   * that was passed in.
-   */
+  @override
   Token setNextWithoutSettingPrevious(Token token) {
     _next = token;
     return token;
@@ -334,11 +295,7 @@ class SimpleToken implements Token {
   @override
   String toString() => lexeme;
 
-  /**
-   * Return the value of this token. For keyword tokens, this is the keyword
-   * associated with the token, for other tokens it is the lexeme associated
-   * with the token.
-   */
+  @override
   Object value() => type.lexeme;
 
   /**
@@ -400,6 +357,7 @@ class StringTokenWithComment extends StringToken {
     _setCommentParent(_precedingComment);
   }
 
+  @override
   CommentToken get precedingComments => _precedingComment;
 
   void set precedingComments(CommentToken comment) {
@@ -583,6 +541,7 @@ class TokenWithComment extends SimpleToken {
     _setCommentParent(_precedingComment);
   }
 
+  @override
   CommentToken get precedingComments => _precedingComment;
 
   void set precedingComments(CommentToken comment) {

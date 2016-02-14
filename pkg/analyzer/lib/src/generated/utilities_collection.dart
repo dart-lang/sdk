@@ -7,8 +7,8 @@ library analyzer.src.generated.utilities_collection;
 import 'dart:collection';
 import "dart:math" as math;
 
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/scanner.dart' show Token;
 
 /**
  * Returns `true` if a and b contain equal elements in the same order.

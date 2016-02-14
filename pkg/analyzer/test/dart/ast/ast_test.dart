@@ -5,7 +5,8 @@
 library analyzer.test.dart.ast.ast_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:unittest/unittest.dart';

@@ -7,6 +7,7 @@ library analyzer.src.generated.static_type_analyzer;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -14,8 +15,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
-import 'package:analyzer/src/generated/scanner.dart' as sc;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
@@ -238,8 +237,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
-    sc.TokenType operator = node.operator.type;
-    if (operator == sc.TokenType.EQ) {
+    TokenType operator = node.operator.type;
+    if (operator == TokenType.EQ) {
       Expression rightHandSide = node.rightHandSide;
       DartType staticType = _getStaticType(rightHandSide);
       _recordStaticType(node, staticType);
@@ -250,7 +249,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         overrideType = propagatedType;
       }
       _resolver.overrideExpression(node.leftHandSide, overrideType, true, true);
-    } else if (operator == sc.TokenType.QUESTION_QUESTION_EQ) {
+    } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
       // The static type of a compound assignment using ??= is the least upper
       // bound of the static types of the LHS and RHS.
       _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide);
@@ -973,9 +972,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   Object visitPostfixExpression(PostfixExpression node) {
     Expression operand = node.operand;
     DartType staticType = _getStaticType(operand);
-    sc.TokenType operator = node.operator.type;
-    if (operator == sc.TokenType.MINUS_MINUS ||
-        operator == sc.TokenType.PLUS_PLUS) {
+    TokenType operator = node.operator.type;
+    if (operator == TokenType.MINUS_MINUS || operator == TokenType.PLUS_PLUS) {
       DartType intType = _typeProvider.intType;
       if (identical(_getStaticType(node.operand), intType)) {
         staticType = intType;
@@ -1075,15 +1073,15 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   @override
   Object visitPrefixExpression(PrefixExpression node) {
-    sc.TokenType operator = node.operator.type;
-    if (operator == sc.TokenType.BANG) {
+    TokenType operator = node.operator.type;
+    if (operator == TokenType.BANG) {
       _recordStaticType(node, _typeProvider.boolType);
     } else {
       // The other cases are equivalent to invoking a method.
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
-      if (operator == sc.TokenType.MINUS_MINUS ||
-          operator == sc.TokenType.PLUS_PLUS) {
+      if (operator == TokenType.MINUS_MINUS ||
+          operator == TokenType.PLUS_PLUS) {
         DartType intType = _typeProvider.intType;
         if (identical(_getStaticType(node.operand), intType)) {
           staticType = intType;
@@ -1819,6 +1817,21 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     return false;
   }
 
+  /**
+   * Given an uninstantiated generic type, try to infer the instantiated generic
+   * type from the surrounding context.
+   */
+  DartType _inferGenericInstantiationFromContext(
+      DartType context, DartType type) {
+    TypeSystem ts = _typeSystem;
+    if (context is FunctionType &&
+        type is FunctionType &&
+        ts is StrongTypeSystemImpl) {
+      return ts.inferFunctionTypeInstantiation(_typeProvider, context, type);
+    }
+    return type;
+  }
+
   FunctionType _inferGenericInvoke(FunctionType invokeType, FunctionType fnType,
       TypeArgumentList typeArguments, ArgumentList argumentList) {
     TypeSystem ts = _typeSystem;
@@ -1894,21 +1907,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
     }
     return false;
-  }
-
-  /**
-   * Given an uninstantiated generic type, try to infer the instantiated generic
-   * type from the surrounding context.
-   */
-  DartType _inferGenericInstantiationFromContext(
-      DartType context, DartType type) {
-    TypeSystem ts = _typeSystem;
-    if (context is FunctionType &&
-        type is FunctionType &&
-        ts is StrongTypeSystemImpl) {
-      return ts.inferFunctionTypeInstantiation(_typeProvider, context, type);
-    }
-    return type;
   }
 
   /**
@@ -2121,32 +2119,32 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   DartType _refineBinaryExpressionType(
       BinaryExpression expression, DartType currentType,
       [DartType typeAccessor(Expression node)]) {
-    sc.TokenType operator = expression.operator.type;
+    TokenType operator = expression.operator.type;
     // bool
-    if (operator == sc.TokenType.AMPERSAND_AMPERSAND ||
-        operator == sc.TokenType.BAR_BAR ||
-        operator == sc.TokenType.EQ_EQ ||
-        operator == sc.TokenType.BANG_EQ) {
+    if (operator == TokenType.AMPERSAND_AMPERSAND ||
+        operator == TokenType.BAR_BAR ||
+        operator == TokenType.EQ_EQ ||
+        operator == TokenType.BANG_EQ) {
       return _typeProvider.boolType;
     }
     DartType intType = _typeProvider.intType;
     if (typeAccessor(expression.leftOperand) == intType) {
       // int op double
-      if (operator == sc.TokenType.MINUS ||
-          operator == sc.TokenType.PERCENT ||
-          operator == sc.TokenType.PLUS ||
-          operator == sc.TokenType.STAR) {
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR) {
         DartType doubleType = _typeProvider.doubleType;
         if (typeAccessor(expression.rightOperand) == doubleType) {
           return doubleType;
         }
       }
       // int op int
-      if (operator == sc.TokenType.MINUS ||
-          operator == sc.TokenType.PERCENT ||
-          operator == sc.TokenType.PLUS ||
-          operator == sc.TokenType.STAR ||
-          operator == sc.TokenType.TILDE_SLASH) {
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR ||
+          operator == TokenType.TILDE_SLASH) {
         if (typeAccessor(expression.rightOperand) == intType) {
           return intType;
         }

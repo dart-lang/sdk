@@ -7,9 +7,9 @@ library services.src.refactoring.organize_directives;
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide AnalysisError, Element;
 import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * Organizer of directives in the [unit].

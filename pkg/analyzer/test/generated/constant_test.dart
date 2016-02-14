@@ -5,14 +5,15 @@
 library analyzer.test.constant_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
@@ -29,8 +30,6 @@ import 'engine_test.dart';
 import 'resolver_test.dart';
 import 'test_support.dart';
 
-const int LONG_MAX_VALUE = 0x7fffffffffffffff;
-
 main() {
   initializeTestEnvironment();
   runReflectiveTests(ConstantEvaluatorTest);
@@ -41,6 +40,8 @@ main() {
   runReflectiveTests(DeclaredVariablesTest);
   runReflectiveTests(ReferenceFinderTest);
 }
+
+const int LONG_MAX_VALUE = 0x7fffffffffffffff;
 
 /**
  * Implementation of [ConstantEvaluationValidator] used during unit tests;

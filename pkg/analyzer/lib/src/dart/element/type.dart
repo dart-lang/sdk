@@ -6,6 +6,7 @@ library analyzer.src.dart.element.type;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -13,7 +14,6 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/scanner.dart' show Keyword;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -397,15 +397,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  List<DartType> get normalParameterTypes {
-    List<DartType> types = <DartType>[];
-    _forEachParameterType(ParameterKind.REQUIRED, (name, type) {
-      types.add(type);
-    });
-    return types;
-  }
-
-  @override
   List<String> get normalParameterNames {
     return baseParameters
         .where((parameter) => parameter.parameterKind == ParameterKind.REQUIRED)
@@ -414,9 +405,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  List<DartType> get optionalParameterTypes {
+  List<DartType> get normalParameterTypes {
     List<DartType> types = <DartType>[];
-    _forEachParameterType(ParameterKind.POSITIONAL, (name, type) {
+    _forEachParameterType(ParameterKind.REQUIRED, (name, type) {
       types.add(type);
     });
     return types;
@@ -429,6 +420,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
             (parameter) => parameter.parameterKind == ParameterKind.POSITIONAL)
         .map((parameter) => parameter.name)
         .toList();
+  }
+
+  @override
+  List<DartType> get optionalParameterTypes {
+    List<DartType> types = <DartType>[];
+    _forEachParameterType(ParameterKind.POSITIONAL, (name, type) {
+      types.add(type);
+    });
+    return types;
   }
 
   @override
@@ -740,6 +740,121 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         new TypeSystemImpl().instantiateToBounds);
   }
 
+  @override
+  TypeImpl pruned(List<FunctionTypeAliasElement> prune) {
+    if (prune == null) {
+      return this;
+    } else if (prune.contains(element)) {
+      // Circularity found.  Prune the type declaration.
+      return new CircularTypeImpl();
+    } else {
+      // There should never be a reason to prune a type that has already been
+      // pruned, since pruning is only done when expanding a function type
+      // alias, and function type aliases are always expanded by starting with
+      // base types.
+      assert(this.prunedTypedefs == null);
+      List<DartType> typeArgs = typeArguments
+          .map((TypeImpl t) => t.pruned(prune))
+          .toList(growable: false);
+      return new FunctionTypeImpl._(
+          element, name, prune, typeArgs, _isInstantiated);
+    }
+  }
+
+  @override
+  DartType substitute2(
+      List<DartType> argumentTypes, List<DartType> parameterTypes,
+      [List<FunctionTypeAliasElement> prune]) {
+    // Pruned types should only ever result from performing type variable
+    // substitution, and it doesn't make sense to substitute again after
+    // substituting once.
+    assert(this.prunedTypedefs == null);
+    if (argumentTypes.length != parameterTypes.length) {
+      throw new IllegalArgumentException(
+          "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
+    }
+    Element element = this.element;
+    if (prune != null && prune.contains(element)) {
+      // Circularity found.  Prune the type declaration.
+      return new CircularTypeImpl();
+    }
+    if (argumentTypes.length == 0) {
+      return this.pruned(prune);
+    }
+    List<DartType> typeArgs =
+        TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
+    return new FunctionTypeImpl._(
+        element, name, prune, typeArgs, _isInstantiated);
+  }
+
+  @override
+  FunctionTypeImpl substitute3(List<DartType> argumentTypes) =>
+      substitute2(argumentTypes, typeArguments);
+
+  /**
+   * Invokes [callback] for each parameter of [kind] with the parameter's [name]
+   * and [type] after any type parameters have been applied.
+   */
+  void _forEachParameterType(
+      ParameterKind kind, callback(String name, DartType type)) {
+    if (baseParameters.isEmpty) {
+      return;
+    }
+
+    List<DartType> typeParameters =
+        TypeParameterTypeImpl.getTypes(this.typeParameters);
+    for (ParameterElement parameter in baseParameters) {
+      if (parameter.parameterKind == kind) {
+        TypeImpl type = parameter.type;
+        if (typeArguments.length != 0 &&
+            typeArguments.length == typeParameters.length) {
+          type = type.substitute2(typeArguments, typeParameters, newPrune);
+        } else {
+          type = type.pruned(newPrune);
+        }
+
+        callback(parameter.name, type);
+      }
+    }
+  }
+
+  void _freeVariablesInFunctionType(
+      FunctionType type, Set<TypeParameterType> free) {
+    // Make some fresh variables to avoid capture.
+    List<DartType> typeArgs = DartType.EMPTY_LIST;
+    if (type.typeFormals.isNotEmpty) {
+      typeArgs = new List<DartType>.from(type.typeFormals.map((e) =>
+          new TypeParameterTypeImpl(new TypeParameterElementImpl(e.name, -1))));
+
+      type = type.instantiate(typeArgs);
+    }
+
+    for (ParameterElement p in type.parameters) {
+      _freeVariablesInType(p.type, free);
+    }
+    _freeVariablesInType(type.returnType, free);
+
+    // Remove all of our bound variables.
+    free.removeAll(typeArgs);
+  }
+
+  void _freeVariablesInInterfaceType(
+      InterfaceType type, Set<TypeParameterType> free) {
+    for (DartType typeArg in type.typeArguments) {
+      _freeVariablesInType(typeArg, free);
+    }
+  }
+
+  void _freeVariablesInType(DartType type, Set<TypeParameterType> free) {
+    if (type is TypeParameterType) {
+      free.add(type);
+    } else if (type is FunctionType) {
+      _freeVariablesInFunctionType(type, free);
+    } else if (type is InterfaceType) {
+      _freeVariablesInInterfaceType(type, free);
+    }
+  }
+
   /**
    * Given two functions [f1] and [f2] where f1 and f2 are known to be
    * generic function types (both have type formals), this checks that they
@@ -910,94 +1025,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return true;
   }
 
-  @override
-  TypeImpl pruned(List<FunctionTypeAliasElement> prune) {
-    if (prune == null) {
-      return this;
-    } else if (prune.contains(element)) {
-      // Circularity found.  Prune the type declaration.
-      return new CircularTypeImpl();
-    } else {
-      // There should never be a reason to prune a type that has already been
-      // pruned, since pruning is only done when expanding a function type
-      // alias, and function type aliases are always expanded by starting with
-      // base types.
-      assert(this.prunedTypedefs == null);
-      List<DartType> typeArgs = typeArguments
-          .map((TypeImpl t) => t.pruned(prune))
-          .toList(growable: false);
-      return new FunctionTypeImpl._(
-          element, name, prune, typeArgs, _isInstantiated);
-    }
-  }
-
-  @override
-  DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes,
-      [List<FunctionTypeAliasElement> prune]) {
-    // Pruned types should only ever result from performing type variable
-    // substitution, and it doesn't make sense to substitute again after
-    // substituting once.
-    assert(this.prunedTypedefs == null);
-    if (argumentTypes.length != parameterTypes.length) {
-      throw new IllegalArgumentException(
-          "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
-    }
-    Element element = this.element;
-    if (prune != null && prune.contains(element)) {
-      // Circularity found.  Prune the type declaration.
-      return new CircularTypeImpl();
-    }
-    if (argumentTypes.length == 0) {
-      return this.pruned(prune);
-    }
-    List<DartType> typeArgs =
-        TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
-    return new FunctionTypeImpl._(
-        element, name, prune, typeArgs, _isInstantiated);
-  }
-
-  @override
-  FunctionTypeImpl substitute3(List<DartType> argumentTypes) =>
-      substitute2(argumentTypes, typeArguments);
-
-  void _freeVariablesInFunctionType(
-      FunctionType type, Set<TypeParameterType> free) {
-    // Make some fresh variables to avoid capture.
-    List<DartType> typeArgs = DartType.EMPTY_LIST;
-    if (type.typeFormals.isNotEmpty) {
-      typeArgs = new List<DartType>.from(type.typeFormals.map((e) =>
-          new TypeParameterTypeImpl(new TypeParameterElementImpl(e.name, -1))));
-
-      type = type.instantiate(typeArgs);
-    }
-
-    for (ParameterElement p in type.parameters) {
-      _freeVariablesInType(p.type, free);
-    }
-    _freeVariablesInType(type.returnType, free);
-
-    // Remove all of our bound variables.
-    free.removeAll(typeArgs);
-  }
-
-  void _freeVariablesInInterfaceType(
-      InterfaceType type, Set<TypeParameterType> free) {
-    for (DartType typeArg in type.typeArguments) {
-      _freeVariablesInType(typeArg, free);
-    }
-  }
-
-  void _freeVariablesInType(DartType type, Set<TypeParameterType> free) {
-    if (type is TypeParameterType) {
-      free.add(type);
-    } else if (type is FunctionType) {
-      _freeVariablesInFunctionType(type, free);
-    } else if (type is InterfaceType) {
-      _freeVariablesInInterfaceType(type, free);
-    }
-  }
-
   /**
    * Return `true` if all of the name/type pairs in the first map ([firstTypes])
    * are equal to the corresponding name/type pairs in the second map
@@ -1021,33 +1048,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
     }
     return true;
-  }
-
-  /**
-   * Invokes [callback] for each parameter of [kind] with the parameter's [name]
-   * and [type] after any type parameters have been applied.
-   */
-  void _forEachParameterType(
-      ParameterKind kind, callback(String name, DartType type)) {
-    if (baseParameters.isEmpty) {
-      return;
-    }
-
-    List<DartType> typeParameters =
-        TypeParameterTypeImpl.getTypes(this.typeParameters);
-    for (ParameterElement parameter in baseParameters) {
-      if (parameter.parameterKind == kind) {
-        TypeImpl type = parameter.type;
-        if (typeArguments.length != 0 &&
-            typeArguments.length == typeParameters.length) {
-          type = type.substitute2(typeArguments, typeParameters, newPrune);
-        } else {
-          type = type.pruned(newPrune);
-        }
-
-        callback(parameter.name, type);
-      }
-    }
   }
 }
 

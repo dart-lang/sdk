@@ -367,10 +367,12 @@ abstract class Token {
 
 /**
  * The types of tokens that can be returned by the scanner.
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class TokenType {
   /**
-   * The type of the token that marks the end of the input.
+   * The type of the token that marks the start or end of the input.
    */
   static const TokenType EOF = const _EndOfFileTokenType();
 
@@ -598,6 +600,10 @@ class TokenType {
    */
   final String lexeme;
 
+  /**
+   * Initialize a newly created token type to have the given [name],
+   * [_tokenClass] and [lexeme].
+   */
   const TokenType._(this.name,
       [this._tokenClass = TokenClass.NO_CLASS, this.lexeme = null]);
 

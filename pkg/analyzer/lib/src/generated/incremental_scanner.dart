@@ -6,9 +6,11 @@ library analyzer.src.generated.incremental_scanner;
 
 import "dart:math" as math;
 
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 
@@ -203,8 +205,8 @@ class IncrementalScanner {
    */
   bool _equalTokens(Token oldToken, Token newToken) =>
       oldToken.type == newToken.type &&
-          oldToken.length == newToken.length &&
-          oldToken.lexeme == newToken.lexeme;
+      oldToken.length == newToken.length &&
+      oldToken.lexeme == newToken.lexeme;
 
   /**
    * Given a [token], return the EOF token that follows the token.

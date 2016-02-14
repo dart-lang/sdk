@@ -7,13 +7,13 @@ library analyzer.src.generated.error;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart' show AstNode;
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:analyzer/src/generated/scanner.dart'
-    show ScannerErrorCode, Token;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
@@ -5640,7 +5640,8 @@ class StaticWarningCode extends ErrorCode {
    * 0: the name of the constant that is missing
    */
   static const StaticWarningCode MISSING_ENUM_CONSTANT_IN_SWITCH =
-      const StaticWarningCode('MISSING_ENUM_CONSTANT_IN_SWITCH',
+      const StaticWarningCode(
+          'MISSING_ENUM_CONSTANT_IN_SWITCH',
           "Missing case clause for '{0}'",
           "Add a case clause for the missing constant or add a default clause.");
 

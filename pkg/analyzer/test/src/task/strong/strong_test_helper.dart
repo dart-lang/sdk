@@ -7,12 +7,13 @@
 library analyzer.test.src.task.strong.strong_test_helper;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
@@ -24,26 +25,6 @@ import '../../context/mock_sdk.dart';
 
 MemoryResourceProvider files;
 bool _checkCalled;
-
-initStrongModeTests() {
-  setUp(() {
-    AnalysisEngine.instance.processRequiredPlugins();
-    files = new MemoryResourceProvider();
-    _checkCalled = false;
-  });
-
-  tearDown(() {
-    // This is a sanity check, in case only addFile is called.
-    expect(_checkCalled, true, reason: 'must call check() method in test case');
-    files = null;
-  });
-}
-
-/// Adds a file using [addFile] and calls [check].
-void checkFile(String content) {
-  addFile(content);
-  check();
-}
 
 /// Adds a file to check. The file should contain:
 ///
@@ -84,10 +65,8 @@ void check() {
   var context = AnalysisEngine.instance.createAnalysisContext();
   context.analysisOptions.strongMode = true;
   context.analysisOptions.strongModeHints = true;
-  context.sourceFactory = new SourceFactory([
-    new DartUriResolver(new MockSdk()),
-    uriResolver
-  ]);
+  context.sourceFactory =
+      new SourceFactory([new DartUriResolver(new MockSdk()), uriResolver]);
 
   // Run the checker on /main.dart.
   Source mainSource = uriResolver.resolveAbsolute(new Uri.file('/main.dart'));
@@ -118,6 +97,12 @@ void check() {
       _expectErrors(resolved, errors);
     }
   }
+}
+
+/// Adds a file using [addFile] and calls [check].
+void checkFile(String content) {
+  addFile(content);
+  check();
 }
 
 SourceSpanWithContext createSpanHelper(
@@ -158,6 +143,20 @@ String errorCodeName(ErrorCode errorCode) {
   }
 }
 
+initStrongModeTests() {
+  setUp(() {
+    AnalysisEngine.instance.processRequiredPlugins();
+    files = new MemoryResourceProvider();
+    _checkCalled = false;
+  });
+
+  tearDown(() {
+    // This is a sanity check, in case only addFile is called.
+    expect(_checkCalled, true, reason: 'must call check() method in test case');
+    files = null;
+  });
+}
+
 // TODO(jmesserly): can we reuse the same mock SDK as Analyzer tests?
 SourceLocation locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
   var loc = lineInfo.getLocation(offset);
@@ -180,85 +179,12 @@ List<LibraryElement> reachableLibraries(LibraryElement start) {
   return results;
 }
 
-class _TestUriResolver extends ResourceUriResolver {
-  final MemoryResourceProvider provider;
-  _TestUriResolver(provider)
-      : provider = provider,
-        super(provider);
-
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    if (uri.scheme == 'package') {
-      return (provider.getResource('/packages/' + uri.path) as File)
-          .createSource(uri);
-    }
-    return super.resolveAbsolute(uri, actualUri);
-  }
-}
-
-class _ErrorCollector implements AnalysisErrorListener {
-  List<AnalysisError> errors;
-  final bool hints;
-
-  _ErrorCollector({this.hints: true});
-
-  void onError(AnalysisError error) {
-    // Unless DDC hints are requested, filter them out.
-    var HINT = ErrorSeverity.INFO.ordinal;
-    if (hints || error.errorCode.errorSeverity.ordinal > HINT) {
-      errors.add(error);
-    }
-  }
-}
-
-/// Describes an expected message that should be produced by the checker.
-class _ErrorExpectation {
-  final int offset;
-  final Level level;
-  final String typeName;
-
-  _ErrorExpectation(this.offset, this.level, this.typeName);
-
-  String toString() =>
-      '@$offset ${level.toString().toLowerCase()}: [$typeName]';
-
-  static _ErrorExpectation parse(int offset, String descriptor) {
-    descriptor = descriptor.trim();
-    var tokens = descriptor.split(' ');
-    if (tokens.length == 1) return _parse(offset, tokens[0]);
-    expect(tokens.length, 4, reason: 'invalid error descriptor');
-    expect(tokens[1], "should", reason: 'invalid error descriptor');
-    expect(tokens[2], "be", reason: 'invalid error descriptor');
-    if (tokens[0] == "pass") return null;
-    // TODO(leafp) For now, we just use whatever the current expectation is,
-    // eventually we could do more automated reporting here.
-    return _parse(offset, tokens[0]);
-  }
-
-  static _ErrorExpectation _parse(offset, String descriptor) {
-    var tokens = descriptor.split(':');
-    expect(tokens.length, 2, reason: 'invalid error descriptor');
-    var name = tokens[0].toUpperCase();
-    var typeName = tokens[1];
-
-    var level =
-        Level.LEVELS.firstWhere((l) => l.name == name, orElse: () => null);
-    expect(level, isNotNull,
-        reason: 'invalid level in error descriptor: `${tokens[0]}`');
-    expect(typeName, isNotNull,
-        reason: 'invalid type in error descriptor: ${tokens[1]}');
-    return new _ErrorExpectation(offset, level, typeName);
-  }
-
-  AnalysisError _removeMatchingActual(List<AnalysisError> actualErrors) {
-    for (var actual in actualErrors) {
-      if (actual.offset == offset) {
-        actualErrors.remove(actual);
-        return actual;
-      }
-    }
-    return null;
-  }
+Level _actualErrorLevel(AnalysisError actual) {
+  return const <ErrorSeverity, Level>{
+    ErrorSeverity.ERROR: Level.SEVERE,
+    ErrorSeverity.WARNING: Level.WARNING,
+    ErrorSeverity.INFO: Level.INFO
+  }[actual.errorCode.errorSeverity];
 }
 
 void _expectErrors(CompilationUnit unit, List<AnalysisError> actualErrors) {
@@ -288,12 +214,37 @@ void _expectErrors(CompilationUnit unit, List<AnalysisError> actualErrors) {
   }
 }
 
+List<_ErrorExpectation> _findExpectedErrors(Token beginToken) {
+  var expectedErrors = <_ErrorExpectation>[];
+
+  // Collect expectations like "severe:STATIC_TYPE_ERROR" from comment tokens.
+  for (Token t = beginToken; t.type != TokenType.EOF; t = t.next) {
+    for (CommentToken c = t.precedingComments; c != null; c = c.next) {
+      if (c.type == TokenType.MULTI_LINE_COMMENT) {
+        String value = c.lexeme.substring(2, c.lexeme.length - 2);
+        if (value.contains(':')) {
+          var offset = c.end;
+          if (c.next?.type == TokenType.GENERIC_METHOD_TYPE_LIST) {
+            offset += 2;
+          }
+          for (var expectCode in value.split(',')) {
+            var expected = _ErrorExpectation.parse(offset, expectCode);
+            if (expected != null) {
+              expectedErrors.add(expected);
+            }
+          }
+        }
+      }
+    }
+  }
+  return expectedErrors;
+}
+
 void _reportFailure(
     CompilationUnit unit,
     List<_ErrorExpectation> unreported,
     List<AnalysisError> unexpected,
     Map<_ErrorExpectation, AnalysisError> different) {
-
   // Get the source code. This reads the data again, but it's safe because
   // all tests use memory file system.
   var sourceCode = unit.element.source.contents.data;
@@ -339,36 +290,83 @@ void _reportFailure(
   fail('Checker errors do not match expected errors:\n\n$message');
 }
 
-List<_ErrorExpectation> _findExpectedErrors(Token beginToken) {
-  var expectedErrors = <_ErrorExpectation>[];
+class _ErrorCollector implements AnalysisErrorListener {
+  List<AnalysisError> errors;
+  final bool hints;
 
-  // Collect expectations like "severe:STATIC_TYPE_ERROR" from comment tokens.
-  for (Token t = beginToken; t.type != TokenType.EOF; t = t.next) {
-    for (CommentToken c = t.precedingComments; c != null; c = c.next) {
-      if (c.type == TokenType.MULTI_LINE_COMMENT) {
-        String value = c.lexeme.substring(2, c.lexeme.length - 2);
-        if (value.contains(':')) {
-          var offset = c.end;
-          if (c.next?.type == TokenType.GENERIC_METHOD_TYPE_LIST) {
-            offset += 2;
-          }
-          for (var expectCode in value.split(',')) {
-            var expected = _ErrorExpectation.parse(offset, expectCode);
-            if (expected != null) {
-              expectedErrors.add(expected);
-            }
-          }
-        }
-      }
+  _ErrorCollector({this.hints: true});
+
+  void onError(AnalysisError error) {
+    // Unless DDC hints are requested, filter them out.
+    var HINT = ErrorSeverity.INFO.ordinal;
+    if (hints || error.errorCode.errorSeverity.ordinal > HINT) {
+      errors.add(error);
     }
   }
-  return expectedErrors;
 }
 
-Level _actualErrorLevel(AnalysisError actual) {
-  return const <ErrorSeverity, Level>{
-    ErrorSeverity.ERROR: Level.SEVERE,
-    ErrorSeverity.WARNING: Level.WARNING,
-    ErrorSeverity.INFO: Level.INFO
-  }[actual.errorCode.errorSeverity];
+/// Describes an expected message that should be produced by the checker.
+class _ErrorExpectation {
+  final int offset;
+  final Level level;
+  final String typeName;
+
+  _ErrorExpectation(this.offset, this.level, this.typeName);
+
+  String toString() =>
+      '@$offset ${level.toString().toLowerCase()}: [$typeName]';
+
+  AnalysisError _removeMatchingActual(List<AnalysisError> actualErrors) {
+    for (var actual in actualErrors) {
+      if (actual.offset == offset) {
+        actualErrors.remove(actual);
+        return actual;
+      }
+    }
+    return null;
+  }
+
+  static _ErrorExpectation parse(int offset, String descriptor) {
+    descriptor = descriptor.trim();
+    var tokens = descriptor.split(' ');
+    if (tokens.length == 1) return _parse(offset, tokens[0]);
+    expect(tokens.length, 4, reason: 'invalid error descriptor');
+    expect(tokens[1], "should", reason: 'invalid error descriptor');
+    expect(tokens[2], "be", reason: 'invalid error descriptor');
+    if (tokens[0] == "pass") return null;
+    // TODO(leafp) For now, we just use whatever the current expectation is,
+    // eventually we could do more automated reporting here.
+    return _parse(offset, tokens[0]);
+  }
+
+  static _ErrorExpectation _parse(offset, String descriptor) {
+    var tokens = descriptor.split(':');
+    expect(tokens.length, 2, reason: 'invalid error descriptor');
+    var name = tokens[0].toUpperCase();
+    var typeName = tokens[1];
+
+    var level =
+        Level.LEVELS.firstWhere((l) => l.name == name, orElse: () => null);
+    expect(level, isNotNull,
+        reason: 'invalid level in error descriptor: `${tokens[0]}`');
+    expect(typeName, isNotNull,
+        reason: 'invalid type in error descriptor: ${tokens[1]}');
+    return new _ErrorExpectation(offset, level, typeName);
+  }
+}
+
+class _TestUriResolver extends ResourceUriResolver {
+  final MemoryResourceProvider provider;
+  _TestUriResolver(provider)
+      : provider = provider,
+        super(provider);
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    if (uri.scheme == 'package') {
+      return (provider.getResource('/packages/' + uri.path) as File)
+          .createSource(uri);
+    }
+    return super.resolveAbsolute(uri, actualUri);
+  }
 }
