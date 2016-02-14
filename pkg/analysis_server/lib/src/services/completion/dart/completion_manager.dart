@@ -140,6 +140,12 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   InterfaceType _objectType;
 
   /**
+   * A list of resolved [ImportElement]s for the imported libraries
+   * or `null` if not computed.
+   */
+  List<ImportElement> _resolvedImports;
+
+  /**
    * The resolved [CompilationUnitElement]s comprising the library
    * or `null` if not computed.
    */
@@ -218,24 +224,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     _originalRequest.checkAborted();
   }
 
-  // For internal use only
-  @override
-  Future<List<Directive>> resolveDirectives() async {
-    checkAborted();
-
-    CompilationUnit libUnit;
-    if (librarySource != null) {
-      // TODO(danrubel) only resolve the directives
-      libUnit = await _computeAsync(
-          this,
-          new LibrarySpecificUnit(librarySource, librarySource),
-          RESOLVED_UNIT3,
-          performance,
-          'resolve directives');
-    }
-    return libUnit?.directives;
-  }
-
   @override
   Future resolveExpression(Expression expression) async {
     checkAborted();
@@ -271,6 +259,28 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
     // Recompute the target for the newly resolved unit
     _updateTargets(resolvedUnit);
+  }
+
+  @override
+  Future<List<ImportElement>> resolveImports() async {
+    checkAborted();
+    if (_resolvedImports != null) {
+      return _resolvedImports;
+    }
+    LibraryElement libElem = libraryElement;
+    if (libElem == null) {
+      return null;
+    }
+    _resolvedImports = <ImportElement>[];
+    for (ImportElement importElem in libElem.imports) {
+      if (importElem.importedLibrary.exportNamespace == null) {
+        await _computeAsync(this, importElem.importedLibrary.source,
+            LIBRARY_ELEMENT4, performance, 'resolve imported library');
+        checkAborted();
+      }
+      _resolvedImports.add(importElem);
+    }
+    return _resolvedImports;
   }
 
   @override
@@ -334,7 +344,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
    * based on the given [request]. This method will throw [AbortCompletion]
    * if the completion request has been aborted.
    */
-  static Future<DartCompletionRequest> from(CompletionRequest request) async {
+  static Future<DartCompletionRequest> from(CompletionRequest request,
+      {ResultDescriptor resultDescriptor}) async {
     request.checkAborted();
     CompletionPerformance performance =
         (request as CompletionRequestImpl).performance;
@@ -364,7 +375,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       unit = await _computeAsync(
           request,
           new LibrarySpecificUnit(libSource, source),
-          RESOLVED_UNIT3,
+          resultDescriptor ?? RESOLVED_UNIT3,
           performance,
           'resolve declarations');
     }

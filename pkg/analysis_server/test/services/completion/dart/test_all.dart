@@ -9,6 +9,7 @@ import 'package:unittest/unittest.dart';
 import '../../../utils.dart';
 import 'arglist_contributor_test.dart' as arglist_test;
 import 'combinator_contributor_test.dart' as combinator_test;
+import 'completion_manager_test.dart' as completion_manager;
 import 'common_usage_sorter_test.dart' as common_usage_test;
 import 'field_formal_contributor_test.dart' as field_formal_contributor_test;
 import 'imported_reference_contributor_test.dart' as imported_ref_test;
@@ -34,6 +35,7 @@ main() {
   group('dart/completion', () {
     arglist_test.main();
     combinator_test.main();
+    completion_manager.main();
     common_usage_test.main();
     field_formal_contributor_test.main();
     imported_ref_test.main();
