@@ -635,7 +635,7 @@ def CheckedInSdkExecutable():
     elif arch == 'arm':
       name = 'dart-arm'
     elif arch == 'arm64':
-      name = 'dart-arm'
+      name = 'dart-arm64'
   return os.path.join(CheckedInSdkPath(), 'bin', name)
 
 
