@@ -1264,7 +1264,8 @@ void InstructionsWriter::WriteAssembly() {
 #elif defined(TARGET_OS_MACOS)
   stream_.Print(".const\n");
 #else
-#error Unsupported platform
+  // Unsupported platform.
+  UNREACHABLE();
 #endif
   stream_.Print(".globl _kDataSnapshot\n");
   // Start snapshot at page boundary.
