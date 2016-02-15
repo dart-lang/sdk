@@ -1032,6 +1032,7 @@ int main(int argc, char** argv) {
   char* error = Dart_Initialize(
       NULL,
       NULL,
+      NULL,
       CreateServiceIsolate,
       NULL,
       NULL,

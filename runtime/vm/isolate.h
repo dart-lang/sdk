@@ -240,6 +240,8 @@ class Isolate : public BaseIsolate {
 
   void SetupInstructionsSnapshotPage(
       const uint8_t* instructions_snapshot_buffer);
+  void SetupDataSnapshotPage(
+      const uint8_t* instructions_snapshot_buffer);
 
   // Returns true if any of the interrupts specified by 'interrupt_bits' are
   // currently scheduled for this isolate, but leaves them unchanged.

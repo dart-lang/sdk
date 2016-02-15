@@ -6579,6 +6579,7 @@ class String : public Instance {
   friend class ExternalTwoByteString;
   // So that SkippedCodeFunctions can print a debug string from a NoHandleScope.
   friend class SkippedCodeFunctions;
+  friend class RawOneByteString;
 };
 
 

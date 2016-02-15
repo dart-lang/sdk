@@ -99,7 +99,8 @@ static const bool is_noopt = false;
 
 
 extern const char* kPrecompiledLibraryName;
-extern const char* kPrecompiledSymbolName;
+extern const char* kPrecompiledInstructionsSymbolName;
+extern const char* kPrecompiledDataSymbolName;
 static const char* kPrecompiledVmIsolateName = "precompiled.vmisolate";
 static const char* kPrecompiledIsolateName = "precompiled.isolate";
 static const char* kPrecompiledInstructionsName = "precompiled.S";
@@ -1572,15 +1573,21 @@ void main(int argc, char** argv) {
   EventHandler::Start();
 
   const uint8_t* instructions_snapshot = NULL;
+  const uint8_t* data_snapshot = NULL;
   if (run_precompiled_snapshot) {
     instructions_snapshot = reinterpret_cast<const uint8_t*>(
-        LoadLibrarySymbol(kPrecompiledLibraryName, kPrecompiledSymbolName));
+        LoadLibrarySymbol(kPrecompiledLibraryName,
+                          kPrecompiledInstructionsSymbolName));
+    data_snapshot = reinterpret_cast<const uint8_t*>(
+        LoadLibrarySymbol(kPrecompiledLibraryName,
+                          kPrecompiledDataSymbolName));
     ReadSnapshotFile(precompiled_snapshot_directory,
                      kPrecompiledVmIsolateName,
                      &vm_isolate_snapshot_buffer);
     ReadSnapshotFile(precompiled_snapshot_directory,
                      kPrecompiledIsolateName,
                      &isolate_snapshot_buffer);
+
   } else if (run_full_snapshot) {
     char* vm_snapshot_fname;
     char* isolate_snapshot_fname;
@@ -1598,7 +1605,7 @@ void main(int argc, char** argv) {
 
   // Initialize the Dart VM.
   char* error = Dart_Initialize(
-      vm_isolate_snapshot_buffer, instructions_snapshot,
+      vm_isolate_snapshot_buffer, instructions_snapshot, data_snapshot,
       CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
       DartUtils::OpenFile,
       DartUtils::ReadFile,

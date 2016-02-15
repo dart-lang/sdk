@@ -224,6 +224,34 @@ class InstructionsSnapshot : ValueObject {
 };
 
 
+class DataSnapshot : ValueObject {
+ public:
+  explicit DataSnapshot(const void* raw_memory)
+    : raw_memory_(raw_memory) {
+    ASSERT(Utils::IsAligned(raw_memory, 2 * kWordSize));  // kObjectAlignment
+  }
+
+  void* data_start() {
+    return reinterpret_cast<void*>(
+        reinterpret_cast<uword>(raw_memory_) + kHeaderSize);
+  }
+
+  uword data_size() {
+    uword snapshot_size = *reinterpret_cast<const uword*>(raw_memory_);
+    return snapshot_size - kHeaderSize;
+  }
+
+  // Header: data length and padding for alignment. We use the same alignment
+  // as for code for now.
+  static const intptr_t kHeaderSize = OS::kMaxPreferredCodeAlignment;
+
+ private:
+  const void* raw_memory_;  // The symbol kDataSnapshot.
+
+  DISALLOW_COPY_AND_ASSIGN(DataSnapshot);
+};
+
+
 class BaseReader {
  public:
   BaseReader(const uint8_t* buffer, intptr_t size) : stream_(buffer, size) {}
@@ -333,17 +361,22 @@ class BackRefNode : public ValueObject {
 
 class InstructionsReader : public ZoneAllocated {
  public:
-  explicit InstructionsReader(const uint8_t* buffer)
-    : buffer_(buffer) {
-    ASSERT(buffer != NULL);
-    ASSERT(Utils::IsAligned(reinterpret_cast<uword>(buffer),
+  InstructionsReader(const uint8_t* instructions_buffer,
+                     const uint8_t* data_buffer)
+    : instructions_buffer_(instructions_buffer),
+      data_buffer_(data_buffer) {
+    ASSERT(instructions_buffer != NULL);
+    ASSERT(data_buffer != NULL);
+    ASSERT(Utils::IsAligned(reinterpret_cast<uword>(instructions_buffer),
                             OS::PreferredCodeAlignment()));
   }
 
   RawInstructions* GetInstructionsAt(int32_t offset, uword expected_tags);
+  RawObject* GetObjectAt(int32_t offset);
 
  private:
-  const uint8_t* buffer_;
+  const uint8_t* instructions_buffer_;
+  const uint8_t* data_buffer_;
 
   DISALLOW_COPY_AND_ASSIGN(InstructionsReader);
 };
@@ -456,12 +489,18 @@ class SnapshotReader : public BaseReader {
     return instructions_reader_->GetInstructionsAt(offset, expected_tags);
   }
 
+  RawObject* GetObjectAt(int32_t offset) {
+    return instructions_reader_->GetObjectAt(offset);
+  }
+
   const uint8_t* instructions_buffer_;
+  const uint8_t* data_buffer_;
 
  protected:
   SnapshotReader(const uint8_t* buffer,
                  intptr_t size,
                  const uint8_t* instructions_buffer,
+                 const uint8_t* data_buffer,
                  Snapshot::Kind kind,
                  ZoneGrowableArray<BackRefNode>* backward_references,
                  Thread* thread);
@@ -608,6 +647,7 @@ class VmIsolateSnapshotReader : public SnapshotReader {
   VmIsolateSnapshotReader(const uint8_t* buffer,
                           intptr_t size,
                           const uint8_t* instructions_buffer,
+                          const uint8_t* data_buffer,
                           Thread* thread);
   ~VmIsolateSnapshotReader();
 
@@ -623,6 +663,7 @@ class IsolateSnapshotReader : public SnapshotReader {
   IsolateSnapshotReader(const uint8_t* buffer,
                         intptr_t size,
                         const uint8_t* instructions_buffer,
+                        const uint8_t* data_buffer,
                         Thread* thread);
   ~IsolateSnapshotReader();
 
@@ -811,8 +852,10 @@ class InstructionsWriter : public ZoneAllocated {
                      intptr_t initial_size)
     : stream_(buffer, alloc, initial_size),
       next_offset_(InstructionsSnapshot::kHeaderSize),
+      next_object_offset_(DataSnapshot::kHeaderSize),
       binary_size_(0),
-      instructions_() {
+      instructions_(),
+      objects_() {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -823,6 +866,8 @@ class InstructionsWriter : public ZoneAllocated {
   intptr_t binary_size() { return binary_size_; }
 
   int32_t GetOffsetFor(RawInstructions* instructions);
+
+  int32_t GetObjectOffsetFor(RawObject* raw_object);
 
   void SetInstructionsCode(RawInstructions* insns, RawCode* code) {
     for (intptr_t i = 0; i < instructions_.length(); i++) {
@@ -851,6 +896,16 @@ class InstructionsWriter : public ZoneAllocated {
     };
   };
 
+  struct ObjectData {
+    explicit ObjectData(RawObject* raw_obj)
+        : raw_obj_(raw_obj) { }
+
+    union {
+      RawObject* raw_obj_;
+      const Object* obj_;
+    };
+  };
+
   void WriteWordLiteral(uword value) {
     // Padding is helpful for comparing the .S with --disassemble.
 #if defined(ARCH_IS_64_BIT)
@@ -863,8 +918,10 @@ class InstructionsWriter : public ZoneAllocated {
 
   WriteStream stream_;
   intptr_t next_offset_;
+  intptr_t next_object_offset_;
   intptr_t binary_size_;
   GrowableArray<InstructionsData> instructions_;
+  GrowableArray<ObjectData> objects_;
 
   DISALLOW_COPY_AND_ASSIGN(InstructionsWriter);
 };
@@ -918,6 +975,10 @@ class SnapshotWriter : public BaseWriter {
 
   int32_t GetInstructionsId(RawInstructions* instructions) {
     return instructions_writer_->GetOffsetFor(instructions);
+  }
+
+  int32_t GetObjectId(RawObject* raw) {
+    return instructions_writer_->GetObjectOffsetFor(raw);
   }
 
   void SetInstructionsCode(RawInstructions* instructions, RawCode* code) {

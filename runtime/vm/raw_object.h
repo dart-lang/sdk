@@ -436,6 +436,15 @@ class RawObject {
   bool IsString() {
     return IsStringClassId(GetClassId());
   }
+  bool IsStackmap() {
+    return ((GetClassId() == kStackmapCid));
+  }
+  bool IsPcDescriptors() {
+    return ((GetClassId() == kPcDescriptorsCid));
+  }
+  bool IsOneByteString() {
+    return ((GetClassId() == kOneByteStringCid));
+  }
 
   intptr_t Size() const {
     uword tags = ptr()->tags_;

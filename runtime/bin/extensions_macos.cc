@@ -13,7 +13,8 @@ namespace dart {
 namespace bin {
 
 const char* kPrecompiledLibraryName = "libprecompiled.dylib";
-const char* kPrecompiledSymbolName = "kInstructionsSnapshot";
+const char* kPrecompiledInstructionsSymbolName = "kInstructionsSnapshot";
+const char* kPrecompiledDataSymbolName = "kDataSnapshot";
 
 void* Extensions::LoadExtensionLibrary(const char* library_file) {
   return dlopen(library_file, RTLD_LAZY);

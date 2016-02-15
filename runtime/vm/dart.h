@@ -23,6 +23,7 @@ class Dart : public AllStatic {
   static const char* InitOnce(
       const uint8_t* vm_isolate_snapshot,
       const uint8_t* instructions_snapshot,
+      const uint8_t* data_snapshot,
       Dart_IsolateCreateCallback create,
       Dart_IsolateShutdownCallback shutdown,
       Dart_FileOpenCallback file_open,
@@ -68,6 +69,13 @@ class Dart : public AllStatic {
     return instructions_snapshot_buffer_ != NULL;
   }
 
+  static const uint8_t* data_snapshot_buffer() {
+    return data_snapshot_buffer_;
+  }
+  static void set_data_snapshot_buffer(const uint8_t* buffer) {
+    data_snapshot_buffer_ = buffer;
+  }
+
  private:
   static void WaitForIsolateShutdown();
 
@@ -77,6 +85,7 @@ class Dart : public AllStatic {
   static DebugInfo* pprof_symbol_generator_;
   static ReadOnlyHandles* predefined_handles_;
   static const uint8_t* instructions_snapshot_buffer_;
+  static const uint8_t* data_snapshot_buffer_;
 };
 
 }  // namespace dart

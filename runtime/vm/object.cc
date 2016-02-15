@@ -912,9 +912,12 @@ class PremarkingVisitor : public ObjectVisitor {
     if (!obj->IsFreeListElement()) {
       ASSERT(obj->IsVMHeapObject());
       if (obj->IsMarked()) {
-        // Precompiled instructions are loaded pre-marked.
+        // Precompiled objects are loaded pre-marked.
         ASSERT(Dart::IsRunningPrecompiledCode());
-        ASSERT(obj->IsInstructions());
+        ASSERT(obj->IsInstructions() ||
+               obj->IsPcDescriptors() ||
+               obj->IsStackmap() ||
+               obj->IsOneByteString());
       } else {
         obj->SetMarkBitUnsynchronized();
       }

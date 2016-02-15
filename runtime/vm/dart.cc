@@ -50,6 +50,7 @@ ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
 const uint8_t* Dart::instructions_snapshot_buffer_ = NULL;
+const uint8_t* Dart::data_snapshot_buffer_ = NULL;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -77,6 +78,7 @@ class ReadOnlyHandles {
 
 const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                            const uint8_t* instructions_snapshot,
+                           const uint8_t* data_snapshot,
                            Dart_IsolateCreateCallback create,
                            Dart_IsolateShutdownCallback shutdown,
                            Dart_FileOpenCallback file_open,
@@ -158,6 +160,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     if (vm_isolate_snapshot != NULL) {
       if (instructions_snapshot != NULL) {
         vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
+        ASSERT(data_snapshot != NULL);
+        vm_isolate_->SetupDataSnapshotPage(data_snapshot);
       }
       const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
       if (snapshot == NULL) {
@@ -167,6 +171,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       VmIsolateSnapshotReader reader(snapshot->content(),
                                      snapshot->length(),
                                      instructions_snapshot,
+                                     data_snapshot,
                                      T);
       const Error& error = Error::Handle(reader.ReadVmIsolateSnapshot());
       if (!error.IsNull()) {
@@ -427,6 +432,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     IsolateSnapshotReader reader(snapshot->content(),
                                  snapshot->length(),
                                  Dart::instructions_snapshot_buffer(),
+                                 Dart::data_snapshot_buffer(),
                                  T);
     const Error& error = Error::Handle(reader.ReadFullSnapshot());
     if (!error.IsNull()) {

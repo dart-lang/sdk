@@ -1013,9 +1013,27 @@ void Isolate::SetupInstructionsSnapshotPage(
               snapshot.instructions_size());
   }
 #endif
-  heap_->SetupInstructionsSnapshotPage(snapshot.instructions_start(),
-                                       snapshot.instructions_size());
+  heap_->SetupExternalPage(snapshot.instructions_start(),
+                           snapshot.instructions_size(),
+                           /* is_executable = */ true);
 }
+
+
+void Isolate::SetupDataSnapshotPage(const uint8_t* data_snapshot_buffer) {
+  DataSnapshot snapshot(data_snapshot_buffer);
+#if defined(DEBUG)
+  if (FLAG_trace_isolates) {
+    OS::Print("Precompiled rodata are at [0x%" Px ", 0x%" Px ")\n",
+              reinterpret_cast<uword>(snapshot.data_start()),
+              reinterpret_cast<uword>(snapshot.data_start()) +
+              snapshot.data_size());
+  }
+#endif
+  heap_->SetupExternalPage(snapshot.data_start(),
+                           snapshot.data_size(),
+                           /* is_executable = */ false);
+}
+
 
 
 void Isolate::set_debugger_name(const char* name) {
