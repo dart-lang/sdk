@@ -88,9 +88,10 @@ void FlowGraphOptimizer::ApplyICData() {
 
 void FlowGraphOptimizer::PopulateWithICData() {
   ASSERT(current_iterator_ == NULL);
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    BlockEntryInstr* entry = block_order_[i];
-    ForwardInstructionIterator it(entry);
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    ForwardInstructionIterator it(block_it.Current());
     for (; !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
       if (instr->IsInstanceCall()) {
@@ -121,9 +122,10 @@ void FlowGraphOptimizer::PopulateWithICData() {
 // e.g., receiver class id, guarded-cid, or by guessing cid-s.
 void FlowGraphOptimizer::ApplyClassIds() {
   ASSERT(current_iterator_ == NULL);
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    BlockEntryInstr* entry = block_order_[i];
-    ForwardInstructionIterator it(entry);
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    ForwardInstructionIterator it(block_it.Current());
     current_iterator_ = &it;
     for (; !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
@@ -556,12 +558,13 @@ void FlowGraphOptimizer::TryOptimizePatterns() {
   ASSERT(current_iterator_ == NULL);
   GrowableArray<BinarySmiOpInstr*> div_mod_merge;
   GrowableArray<MathUnaryInstr*> sin_cos_merge;
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
     // Merging only per basic-block.
     div_mod_merge.Clear();
     sin_cos_merge.Clear();
-    BlockEntryInstr* entry = block_order_[i];
-    ForwardInstructionIterator it(entry);
+    ForwardInstructionIterator it(block_it.Current());
     current_iterator_ = &it;
     for (; !it.Done(); it.Advance()) {
       if (it.Current()->IsBinarySmiOp()) {
@@ -602,9 +605,13 @@ void FlowGraphOptimizer::TryOptimizePatterns() {
 
 bool FlowGraphOptimizer::Canonicalize() {
   bool changed = false;
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    BlockEntryInstr* entry = block_order_[i];
-    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    for (ForwardInstructionIterator it(block_it.Current());
+         !it.Done();
+         it.Advance()) {
       Instruction* current = it.Current();
       if (current->HasUnmatchedInputRepresentations()) {
         // Can't canonicalize this instruction until all conversions for its
@@ -836,8 +843,10 @@ static void UnboxPhi(PhiInstr* phi) {
 void FlowGraphOptimizer::SelectRepresentations() {
   // Conservatively unbox all phis that were proven to be of Double,
   // Float32x4, or Int32x4 type.
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    JoinEntryInstr* join_entry = block_order_[i]->AsJoinEntry();
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    JoinEntryInstr* join_entry = block_it.Current()->AsJoinEntry();
     if (join_entry != NULL) {
       for (PhiIterator it(join_entry); !it.Done(); it.Advance()) {
         PhiInstr* phi = it.Current();
@@ -847,15 +856,17 @@ void FlowGraphOptimizer::SelectRepresentations() {
   }
 
   // Process all instructions and insert conversions where needed.
-  GraphEntryInstr* graph_entry = block_order_[0]->AsGraphEntry();
+  GraphEntryInstr* graph_entry = flow_graph_->graph_entry();
 
   // Visit incoming parameters and constants.
   for (intptr_t i = 0; i < graph_entry->initial_definitions()->length(); i++) {
     InsertConversionsFor((*graph_entry->initial_definitions())[i]);
   }
 
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    BlockEntryInstr* entry = block_order_[i];
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* entry = block_it.Current();
     JoinEntryInstr* join_entry = entry->AsJoinEntry();
     if (join_entry != NULL) {
       for (PhiIterator it(join_entry); !it.Done(); it.Advance()) {
@@ -3945,8 +3956,10 @@ void FlowGraphOptimizer::EliminateEnvironments() {
   // that can deoptimize.
 
   flow_graph_->disallow_licm();
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    BlockEntryInstr* block = block_order_[i];
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
     block->RemoveEnvironment();
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
