@@ -293,20 +293,6 @@ hooks = [
     "action": ["python", Var("dart_root") + "/tools/gyp_dart.py"],
   },
   {
-    'name': 'checked_in_dart_binaries',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--bucket',
-      'dart-dependencies',
-      '--recursive',
-      '--directory',
-      Var('dart_root') + '/tools/testing/bin',
-    ],
-  },
-  {
     'name': 'd8_testing_binaries',
     'pattern': '.',
     'action': [

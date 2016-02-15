@@ -231,20 +231,6 @@ hooks.append({
       Var('webkit_revision') + "\\n')" ],
 })
 hooks.append({
-  "name": "checked_in_dart_binaries",
-  "pattern": ".",
-  "action": [
-    "download_from_google_storage",
-    "--no_auth",
-    "--no_resume",
-    "--bucket",
-    "dart-dependencies",
-    "--recursive",
-    "--directory",
-    "src/dart/tools/testing/bin",
-  ],
-})
-hooks.append({
   "name": "checked_in_dart_sdks",
   "pattern": ".",
   "action": [

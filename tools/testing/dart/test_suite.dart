@@ -2387,19 +2387,6 @@ class TestUtils {
   }
 
   /**
-   * Returns the path to the dart binary checked into the repo, used for
-   * bootstrapping test.dart.
-   */
-  static Path get dartTestExecutable {
-    var path = '$dartDir/tools/testing/bin/'
-        '${Platform.operatingSystem}/dart';
-    if (Platform.operatingSystem == 'windows') {
-      path = '$path.exe';
-    }
-    return new Path(path);
-  }
-
-  /**
    * Gets extra options under [key] passed to the testing script.
    */
   static List<String> getExtraOptions(Map configuration, String key) {
