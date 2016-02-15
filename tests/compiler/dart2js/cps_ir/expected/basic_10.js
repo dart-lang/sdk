@@ -4,7 +4,7 @@
 // }
 
 function() {
-  var line = Date.now() < Date.now() ? "true" : "false";
+  var line = H.S(Date.now() < Date.now());
   if (typeof dartPrint == "function")
     dartPrint(line);
   else if (typeof console == "object" && typeof console.log != "undefined")

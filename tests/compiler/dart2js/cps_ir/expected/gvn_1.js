@@ -45,7 +45,7 @@ function() {
   for (; k < 10; sum += i + v0[v1], ++k)
     if (v1 < 0 || v1 >= 10)
       return H.ioore(v0, v1);
-  line = sum === 0 ? 1 / sum < 0 ? "-0.0" : "" + sum : "" + sum;
+  line = H.S(sum);
   if (typeof dartPrint == "function")
     dartPrint(line);
   else if (typeof console == "object" && typeof console.log != "undefined")

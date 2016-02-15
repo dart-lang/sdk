@@ -136,6 +136,8 @@ abstract class AbstractValueDomain {
 
   bool isDefinitelyIntercepted(AbstractValue t, {bool allowNull});
 
+  bool isDefinitelySelfInterceptor(AbstractValue t, {bool allowNull: false});
+
   /// Given a class from the interceptor hierarchy, returns an [AbstractValue]
   /// matching all values with that interceptor (or a subtype thereof).
   AbstractValue getInterceptorSubtypes(ClassElement class_);

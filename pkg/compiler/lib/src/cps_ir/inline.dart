@@ -598,6 +598,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       // These should be handled by operator specialization.
       return true;
     }
+    if (target == backend.helpers.stringInterpolationHelper) return true;
     return false;
   }
 }

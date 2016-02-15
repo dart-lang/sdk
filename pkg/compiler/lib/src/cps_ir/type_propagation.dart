@@ -2072,10 +2072,20 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   /// Specialize calls to internal static methods.
   specializeInternalMethodCall(InvokeStatic node) {
     if (node.target == backend.helpers.stringInterpolationHelper) {
-      AbstractConstantValue value = getValue(node.arguments[0].definition);
+      Primitive argument = node.arguments[0].definition;
+      AbstractConstantValue value = getValue(argument);
       if (lattice.isDefinitelyString(value)) {
-        node.replaceUsesWith(node.arguments[0].definition);
+        node.replaceUsesWith(argument);
         return new CpsFragment();
+      } else if (typeSystem.isDefinitelySelfInterceptor(value.type)) {
+        CpsFragment cps = new CpsFragment(node.sourceInformation);
+        Primitive invoke = cps.invokeMethod(argument,
+            Selectors.toString_,
+            value.type,
+            [cps.makeZero()],
+            CallingConvention.DummyIntercepted);
+        node.replaceUsesWith(invoke);
+        return cps;
       }
     } else if (node.target == compiler.identicalFunction) {
       if (node.arguments.length == 2) {

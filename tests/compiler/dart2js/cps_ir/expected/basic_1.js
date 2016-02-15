@@ -19,9 +19,9 @@ function() {
   P.print("()");
   P.print("(true)");
   P.print("(1)");
-  P.print("(" + P.IterableBase_iterableToFullString([1, 2, 3], "[", "]") + ")");
+  P.print("(" + H.S([1, 2, 3]) + ")");
   P.print("(" + P.Maps_mapToString(P.LinkedHashMap__makeLiteral(["s", 1])) + ")");
   P.print("(1)");
-  P.print("(" + P.IterableBase_iterableToFullString(l, "[", "]") + ")");
+  P.print("(" + H.S(l) + ")");
   P.print("(" + P.Maps_mapToString(m) + ")");
 }

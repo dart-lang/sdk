@@ -5,14 +5,13 @@
 // }
 
 function() {
-  var line = "" + 65;
   if (typeof dartPrint == "function")
-    dartPrint(line);
+    dartPrint("65");
   else if (typeof console == "object" && typeof console.log != "undefined")
-    console.log(line);
+    console.log("65");
   else if (!(typeof window == "object")) {
     if (!(typeof print == "function"))
-      throw "Unable to print message: " + String(line);
-    print(line);
+      throw "Unable to print message: " + String("65");
+    print("65");
   }
 }
