@@ -292,7 +292,7 @@ class BrowserTestCommand extends Command {
       retry == other.retry;
 
   String get reproductionCommand {
-    var parts = [Platform.resolvedExecutable,
+    var parts = [io.Platform.resolvedExecutable,
                 'tools/testing/dart/launch_browser.dart',
                 browser,
                 url];
