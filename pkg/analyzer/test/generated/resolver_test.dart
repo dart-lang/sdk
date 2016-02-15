@@ -10253,27 +10253,50 @@ main() {
     resetWithOptions(options);
     String code = r'''
 class C<T> {
-  static void m<S>(S s) => null;
+  static void m<S>(S s) {
+    void f<U>(S s, U u) {}
+    print(f);
+  }
 }
 main() {
   print(C.m);
 }
 ''';
     _resolveTestUnit(code);
-    SimpleIdentifier identifier = _findIdentifier('m);');
-    FunctionTypeImpl type = identifier.staticType;
-    expect(type.toString(), '<S>(S) → void');
-    expect(type.typeParameters, isEmpty,
-        reason: 'static methods should not have type parameters');
-    expect(type.typeArguments, isEmpty,
-        reason: 'static methods should not have type arguments');
-    expect(type.typeFormals.toString(), '[S]');
+    // C - m
+    TypeParameterType typeS;
+    {
+      SimpleIdentifier identifier = _findIdentifier('m);');
+      FunctionTypeImpl type = identifier.staticType;
+      expect(type.toString(), '<S>(S) → void');
+      expect(type.typeParameters, isEmpty,
+          reason: 'static methods should not have type parameters');
+      expect(type.typeArguments, isEmpty,
+          reason: 'static methods should not have type arguments');
+      expect(type.typeFormals.toString(), '[S]');
+      typeS = type.typeFormals[0].type;
 
-    type = type.instantiate([DynamicTypeImpl.instance]);
-    expect(type.toString(), '(dynamic) → void');
-    expect(type.typeParameters.toString(), '[S]');
-    expect(type.typeArguments, [DynamicTypeImpl.instance]);
-    expect(type.typeFormals, isEmpty);
+      type = type.instantiate([DynamicTypeImpl.instance]);
+      expect(type.toString(), '(dynamic) → void');
+      expect(type.typeParameters.toString(), '[S]');
+      expect(type.typeArguments, [DynamicTypeImpl.instance]);
+      expect(type.typeFormals, isEmpty);
+    }
+    // C - m - f
+    {
+      SimpleIdentifier identifier = _findIdentifier('f);');
+      FunctionTypeImpl type = identifier.staticType;
+      expect(type.toString(), '<U>(S, U) → void');
+      expect(type.typeParameters.toString(), '[S]');
+      expect(type.typeArguments.toString(), '[S]');
+      expect(type.typeFormals.toString(), '[U]');
+
+      type = type.instantiate([DynamicTypeImpl.instance]);
+      expect(type.toString(), '(S, dynamic) → void');
+      expect(type.typeParameters.toString(), '[S, U]');
+      expect(type.typeArguments, [typeS, DynamicTypeImpl.instance]);
+      expect(type.typeFormals, isEmpty);
+    }
   }
 }
 

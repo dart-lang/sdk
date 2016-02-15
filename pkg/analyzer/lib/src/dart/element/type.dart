@@ -516,17 +516,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       _typeParameters = <TypeParameterElement>[];
 
       Element e = element;
-      bool isStaticMethod = e is MethodElement && e.isStatic;
-      e = e?.enclosingElement;
-
       while (e != null) {
-        if (e is TypeParameterizedElement) {
-          // Class type parameters are not in scope in static methods.
-          if (!isStaticMethod || e is! ClassElement) {
-            _typeParameters.addAll(e.typeParameters);
-          }
+        // If a static method, skip the enclosing class type parameters.
+        if (e is MethodElement && e.isStatic) {
+          e = e.enclosingElement;
         }
         e = e.enclosingElement;
+        if (e is TypeParameterizedElement) {
+          _typeParameters.addAll(e.typeParameters);
+        }
       }
 
       if (_isInstantiated) {
