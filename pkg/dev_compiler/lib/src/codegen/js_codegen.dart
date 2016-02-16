@@ -1329,7 +1329,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   }
 
   JS.Fun _emitNativeFunctionBody(
-      List<JS.Parameter> params, MethodDeclaration node) {
+      List<JS.Parameter> params, List<JS.Expression> paramRefs,
+      MethodDeclaration node) {
     if (node.isStatic) {
       // TODO(vsm): Do we need to handle this case?
       return null;
@@ -1345,10 +1346,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       return new JS.Fun(params, js.statement('{ return this.#; }', [name]));
     } else if (node.isSetter) {
       return new JS.Fun(
-          params, js.statement('{ this.# = #; }', [name, params.last]));
+          params, js.statement('{ this.# = #; }', [name, paramRefs.last]));
     } else {
       return new JS.Fun(
-          params, js.statement('{ return this.#(#); }', [name, params]));
+          params, js.statement('{ return this.#(#); }', [name, paramRefs]));
     }
   }
 
@@ -1359,16 +1360,18 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     var params = _visit(node.parameters) as List<JS.Parameter>;
     if (params == null) params = <JS.Parameter>[];
+    var paramRefs = _emitParameterReferences(node.parameters);
 
     JS.Fun fn;
     if (_externalOrNative(node)) {
-      fn = _emitNativeFunctionBody(params, node);
+      fn = _emitNativeFunctionBody(params, paramRefs, node);
       // TODO(vsm): Remove if / when we handle the static case above.
       if (fn == null) return null;
     } else {
       var typeParams = _emitTypeParams(node.element).toList();
       var returnType = emitTypeRef(node.element.returnType);
-      fn = _emitFunctionBody(params, node.body, typeParams, returnType);
+      fn = _emitFunctionBody(
+          params, paramRefs, node.body, typeParams, returnType);
     }
 
     if (node.operatorKeyword != null &&
@@ -1547,7 +1550,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     var typeParams = _emitTypeParams(node.element).toList();
     var returnType = emitTypeRef(node.element.returnType);
     if (parent is FunctionDeclaration) {
-      return _emitFunctionBody(params, node.body, typeParams, returnType);
+      var paramRefs = _emitParameterReferences(node.parameters);
+      return _emitFunctionBody(
+          params, paramRefs, node.body, typeParams, returnType);
     } else {
       // Chrome Canary does not accept default values with destructuring in
       // arrow functions yet (e.g. `({a} = {}) => 1`) but happily accepts them
@@ -1559,7 +1564,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       JS.Node jsBody;
       var body = node.body;
       if (body.isGenerator || body.isAsynchronous) {
-        jsBody = _emitGeneratorFunctionBody(params, body, returnType);
+        var paramRefs = _emitParameterReferences(node.parameters);
+        jsBody = _emitGeneratorFunctionBody(
+            params, paramRefs, body, returnType);
       } else if (body is ExpressionFunctionBody) {
         jsBody = _visit(body.expression);
       } else {
@@ -1582,14 +1589,19 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
   }
 
-  JS.Fun _emitFunctionBody(List<JS.Parameter> params, FunctionBody body,
+  JS.Fun _emitFunctionBody(List<JS.Parameter> params,
+      List<JS.Expression> paramRefs, FunctionBody body,
       List<JS.Identifier> typeParams, JS.TypeRef returnType) {
     // sync*, async, async*
     if (body.isAsynchronous || body.isGenerator) {
+      // TODO(ochafik): Refine params: we don't need default values in the
+      // nested function, so we'd need to generate a custom, simpler params
+      // list here.
       return new JS.Fun(
           params,
-          js.statement('{ return #; }',
-              [_emitGeneratorFunctionBody(params, body, returnType)]),
+          js.statement('{ return #; }', [
+            _emitGeneratorFunctionBody(params, paramRefs, body, returnType)
+          ]),
           returnType: returnType);
     }
     // normal function (sync)
@@ -1598,7 +1610,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   }
 
   JS.Expression _emitGeneratorFunctionBody(
-      List<JS.Parameter> params, FunctionBody body, JS.TypeRef returnType) {
+      List<JS.Parameter> params, List<JS.Expression> paramRefs,
+      FunctionBody body, JS.TypeRef returnType) {
     var kind = body.isSynchronous ? 'sync' : 'async';
     if (body.isGenerator) kind += 'Star';
 
@@ -1652,7 +1665,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     var T = _emitTypeName(_getExpectedReturnType(body));
     return js.call('dart.#(#)', [
       kind,
-      [gen, T]..addAll(params)
+      [gen, T]..addAll(paramRefs)
     ]);
   }
 
@@ -2164,6 +2177,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   List<JS.Parameter> visitFormalParameterList(FormalParameterList node) =>
       _emitFormalParameterList(node);
 
+  // TODO(ochafik): Decouple Parameter from Identifier.
+  List<JS.Expression> _emitParameterReferences(FormalParameterList node) =>
+      node == null
+      ? <JS.Expression>[]
+      : _emitFormalParameterList(node, allowDestructuring: false)
+          .map((JS.Parameter p) {
+            if (p is JS.RestParameter) return new JS.Spread(p.parameter);
+            return p as JS.Identifier;
+          })
+          .toList();
+
   List<JS.Parameter> _emitFormalParameterList(FormalParameterList node,
       {bool allowDestructuring: true}) {
     var result = <JS.Parameter>[];
@@ -2198,7 +2222,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       } else {
         var jsParam = _visit(param);
         result.add(
-            param is DefaultFormalParameter && options.destructureNamedParams
+            param is DefaultFormalParameter && destructure
                 ? new JS.DestructuredVariable(
                     name: jsParam, defaultValue: _defaultParamValue(param))
                 : jsParam);
