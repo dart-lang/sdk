@@ -217,22 +217,11 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
     arguments = new List.from(arguments);
     arguments.add('--out=$outputFileName');
 
-    // We want all dart2js compilers to run the vm with the
-    // --abort-on-assertion-errors flag.
-    // We have allowed constant maps as environmentOverrides,
-    // so we modify a new map.
-    var newOverrides = {'DART_VM_OPTIONS': '--abort-on-assertion-errors'};
-    if (environmentOverrides != null) {
-      newOverrides.addAll(environmentOverrides);
-      if (environmentOverrides.containsKey('DART_VM_OPTIONS')) {
-        newOverrides['DART_VM_OPTIONS'] += ' --abort-on-assertion-errors';
-      }
-    }
     return commandBuilder.getCompilationCommand(
         moniker, outputFileName, !useSdk,
         bootstrapDependencies(buildDir),
         computeCompilerPath(buildDir),
-        arguments, newOverrides);
+        arguments, environmentOverrides);
   }
 
   List<Uri> bootstrapDependencies(String buildDir) {
