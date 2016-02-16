@@ -63,7 +63,7 @@ analyze_dart2js_test: Pass, Slow
 analyze_unused_dart2js_test: Pass, Slow
 deferred_mirrors_test: Pass, Slow
 duplicate_library_test: Pass, Slow
-exit_code_test: Skip # Issue 25753, was: Pass, Slow
+exit_code_test: Pass, Slow
 import_mirrors_test: Slow, Pass
 interop_anonymous_unreachable_test: Pass, Slow
 mirror_final_field_inferrer2_test: Pass, Slow

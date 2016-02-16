@@ -10,17 +10,11 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, abort_on_assertion_errors);
-
 // Allocate and throw a new AssertionError.
 // Arg0: index of the first token of the failed assertion.
 // Arg1: index of the first token after the failed assertion.
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
-  if (FLAG_abort_on_assertion_errors) {
-    Exceptions::PrintStackTraceAndAbort("an assertion failure");
-  }
-
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
   const TokenPosition assertion_start =

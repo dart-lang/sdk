@@ -19,10 +19,6 @@
 
 namespace dart {
 
-// TODO(vegorov): Remove --abort_on_assertion_errors flag and associated
-// infrastructure (dartbug.com/25753)
-DEFINE_FLAG(bool, abort_on_assertion_errors, false,
-            "Abort on assertion and typecheck failures");
 DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
             "Prints a stack trace everytime a throw occurs.");
 
@@ -461,7 +457,7 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
 
   // Type errors in the core library may be difficult to diagnose.
   // Print type error information before throwing the error when debugging.
-  if (FLAG_print_stacktrace_at_throw || FLAG_abort_on_assertion_errors) {
+  if (FLAG_print_stacktrace_at_throw) {
     if (!error_msg.IsNull()) {
       OS::Print("%s\n", error_msg.ToCString());
     }
@@ -475,10 +471,6 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
     } else {
       OS::Print("type error.\n");
     }
-  }
-
-  if (FLAG_abort_on_assertion_errors) {
-    PrintStackTraceAndAbort("a type error");
   }
 
   // Throw TypeError or CastError instance.
@@ -671,31 +663,5 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
                                           arguments);
 }
 
-
-static bool IsLikelyInternalDart2JSCrash(const Stacktrace& stacktrace) {
-  Function& function = Function::Handle();
-  String& name = String::Handle();
-  for (intptr_t i = 0, len = stacktrace.Length(); i < len; i++) {
-    function = stacktrace.FunctionAtFrame(i);
-    name = function.QualifiedPrettyName();
-    if (name.Equals("_CompilerDiagnosticReporter.withCurrentElement")) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
-void Exceptions::PrintStackTraceAndAbort(const char* reason) {
-  const Stacktrace& stacktrace = Stacktrace::Handle(CurrentStacktrace());
-  if (!IsLikelyInternalDart2JSCrash(stacktrace)) {
-    return;
-  }
-
-  OS::PrintErr("\n\n\nAborting due to %s. Stacktrace:\n%s\n",
-               reason,
-               stacktrace.ToCString());
-  OS::Abort();
-}
 
 }  // namespace dart
