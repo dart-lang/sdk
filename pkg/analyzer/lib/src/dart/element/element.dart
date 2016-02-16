@@ -1221,7 +1221,7 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   ConstFieldElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1255,7 +1255,7 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
   ConstLocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1414,7 +1414,7 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
       : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1473,7 +1473,7 @@ class DefaultFieldFormalParameterElementImpl
       : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1507,7 +1507,7 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   DefaultParameterElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1610,7 +1610,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   ElementAnnotationImpl(this.compilationUnit);
 
   @override
-  DartObject get constantValue => evaluationResult.value;
+  DartObject get constantValue => evaluationResult?.value;
 
   @override
   AnalysisContext get context => compilationUnit.library.context;
