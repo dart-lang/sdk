@@ -7,6 +7,7 @@ library analyzer.src.task.dart;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -15,6 +16,8 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -23,11 +26,9 @@ import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/visitors.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
@@ -41,7 +42,6 @@ import 'package:analyzer/src/task/strong_mode.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * The [ResultCachingPolicy] for ASTs.
@@ -2224,6 +2224,9 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('DartErrorsTask',
       createTask, buildInputs, <ResultDescriptor>[DART_ERRORS]);
 
+  // Prefix for comments ignoring error codes.
+  static const String _normalizedIgnorePrefix = '//#ignore:';
+
   DartErrorsTask(InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
 
@@ -2248,11 +2251,90 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
         errorLists.add(errors);
       }
     }
+
+    //
+    // Filter ignored errors.
+    //
+    List<AnalysisError> errors =
+        _filterIgnores(AnalysisError.mergeLists(errorLists));
+
     //
     // Record outputs.
     //
-    outputs[DART_ERRORS] = AnalysisError.mergeLists(errorLists);
+    outputs[DART_ERRORS] = errors;
   }
+
+  List<AnalysisError> _filterIgnores(List<AnalysisError> errors) {
+    if (errors.isEmpty) {
+      return errors;
+    }
+
+    List<AnalysisError> filtered = <AnalysisError>[];
+
+    // Sort errors.
+    errors.sort((AnalysisError e1, AnalysisError e2) => e1.offset - e2.offset);
+
+    Source source = target;
+    String contents = context.getContents(source).data;
+    Scanner scanner = new Scanner(source, new CharSequenceReader(contents),
+        AnalysisErrorListener.NULL_LISTENER);
+
+    // Scan.
+    Token token = scanner.tokenize();
+    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+
+    int errorIndex = 0;
+
+    // Step through tokens looking for comments.
+    while (errorIndex < errors.length && token.type != TokenType.EOF) {
+      // Find leading comment.
+      Token comments = token.precedingComments;
+      while (comments?.next != null) {
+        comments = comments.next;
+      }
+
+      // Normalize content.
+      String comment =
+          comments?.lexeme?.toLowerCase()?.replaceAll(new RegExp(r'\s+'), '');
+
+      // Check for ignores.
+      if (comment != null && comment.startsWith(_normalizedIgnorePrefix)) {
+        int affectedLine = lineInfo.getLocation(token.offset).lineNumber;
+
+        // Process all affected errors.
+        while (errorIndex < errors.length) {
+          AnalysisError currentError = errors[errorIndex++];
+          int errorLine = lineInfo.getLocation(currentError.offset).lineNumber;
+          if (errorLine < affectedLine) {
+            filtered.add(currentError);
+          } else if (errorLine == affectedLine) {
+            // Check for an ignore.
+            if (!_isIgnoredBy(currentError, comment)) {
+              filtered.add(currentError);
+            }
+          } else {
+            // Back up index and break.
+            --errorIndex;
+            break;
+          }
+        }
+      }
+
+      token = token.next;
+    }
+
+    // Add remaining errors.
+    if (errorIndex < errors.length) {
+      filtered.addAll(errors.sublist(errorIndex));
+    }
+
+    return filtered;
+  }
+
+  bool _isIgnoredBy(AnalysisError error, String comment) => comment
+      .substring(_normalizedIgnorePrefix.length)
+      .split(',')
+      .contains(error.errorCode.name.toLowerCase());
 
   /**
    * Return a map from the names of the inputs of this kind of task to the task

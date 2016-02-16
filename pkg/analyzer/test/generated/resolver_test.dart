@@ -13942,6 +13942,11 @@ class D extends C {
     // TODO(jmesserly): we can't use assertErrors because STRONG_MODE_* errors
     // from CodeChecker don't have working equality.
     List<AnalysisError> errors = analysisContext2.computeErrors(source);
+
+    // Sort errors by name.
+    errors.sort((AnalysisError e1, AnalysisError e2) =>
+        e1.errorCode.name.compareTo(e2.errorCode.name));
+
     expect(errors.map((e) => e.errorCode.name), [
       'INVALID_METHOD_OVERRIDE_RETURN_TYPE',
       'STRONG_MODE_INVALID_METHOD_OVERRIDE'
