@@ -20,9 +20,6 @@ transferables_test: RuntimeError # Dartium JSInterop failure
 
 blob_constructor_test: RuntimeError # Dartium 45 roll. Issue 25754
 crypto_test/functional: RuntimeError # Dartium 45 roll. Issue 25754
-element_animate_test/omit_timing: RuntimeError # Dartium 45 roll. Issue 25754
-element_animate_test/simple_timing: RuntimeError # Dartium 45 roll. Issue 25754
-element_animate_test/timing_dict: RuntimeError # Dartium 45 roll. Issue 25754
 svgelement_test/constructors: RuntimeError # Dartium 45 roll. Issue 25754
 url_test: RuntimeError # Dartium 45 roll. Issue 25754
 
@@ -130,6 +127,9 @@ request_animation_frame_test: Skip # Times out. Issue 22167
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
+element_animate_test/omit_timing: RuntimeError # Dartium 45 roll. Issue 25786
+element_animate_test/simple_timing: RuntimeError # Dartium 45 roll. Issue 25786
+element_animate_test/timing_dict: RuntimeError # Dartium 45 roll. Issue 25786
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows ]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
@@ -401,8 +401,8 @@ js_dart_to_string_test: SkipByDesign
 mirrors_js_typed_interop_test: SkipByDesign
 postmessage_structured_test: SkipByDesign
 
-[ $compiler == dart2js &&  $runtime == chrome]
-svgelement_test/supported_altGlyph: RuntimeError # Issue 23144
+[ $compiler == dart2js &&  ($runtime == chrome || $runtime == drt) ]
+svgelement_test/supported_altGlyph: RuntimeError # Issue 25787
 
 [ ($runtime == dartium) && ($system == macos || $system == windows || $system == linux)]
 # Desktop operating systems do not support touch events on chrome 34 dartium.
