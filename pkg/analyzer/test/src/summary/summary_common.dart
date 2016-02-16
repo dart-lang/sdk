@@ -4823,12 +4823,19 @@ f() {}''';
     UnlinkedClass cls = serializeClassText('''
 class C<T, U> {
   static void m<V, W>(V v, W w) {
+    void f<X, Y>(V v, W w, X x, Y y) {
+    }
   }
 }
 ''');
-    List<UnlinkedParam> params = cls.executables[0].parameters;
-    checkParamTypeRef(params[0].type, 2);
-    checkParamTypeRef(params[1].type, 1);
+    UnlinkedExecutable m = cls.executables[0];
+    UnlinkedExecutable f = m.localFunctions[0];
+    checkParamTypeRef(m.parameters[0].type, 2);
+    checkParamTypeRef(m.parameters[1].type, 1);
+    checkParamTypeRef(f.parameters[0].type, 4);
+    checkParamTypeRef(f.parameters[1].type, 3);
+    checkParamTypeRef(f.parameters[2].type, 2);
+    checkParamTypeRef(f.parameters[3].type, 1);
   }
 
   test_generic_method_in_generic_class() {

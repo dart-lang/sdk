@@ -2500,6 +2500,8 @@ f() {}''');
     checkLibrary('''
 class C<T, U> {
   static void m<V, W>(V v, W w) {
+    void f<X, Y>(V v, W w, X x, Y y) {
+    }
   }
 }
 ''');
