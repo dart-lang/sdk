@@ -8,12 +8,9 @@ execfile(os.path.join(path, 'src', 'dart', 'tools', 'deps', 'dartium.deps', 'DEP
 # Now we need to override some settings and add some new ones.
 
 vars.update({
-  "chromium_url": "http://src.chromium.org/svn",
-  "dartium_base": "http://src.chromium.org",
   "dartium_chromium_commit": "8df9de5a8f073d9c0feadf8d652408807e4a254e",
+  "dartium_webkit_commit": "1d73225937ba77bba2d4279fe7b23bfb542d35d9",
   "chromium_base_revision": "338390",
-  "dartium_webkit_branch": "/blink/branches/dart/2454_1",
-  "dartium_webkit_revision": "202778",
 
   # We use mirrors of all github repos to guarantee reproducibility and
   # consistency between what users see and what the bots see.
@@ -73,34 +70,14 @@ vars.update({
   "co19_rev": "@3ed795ea02e022ef19c77cf1b6095b7c8f5584d0",
 })
 
-# def massage_deps(deps):
-#   for key, value in deps.items():
-#     if value is None: continue
-#
-#     if value.startswith('/trunk'):
-#       deps[key] = Var("chromium_url") + value
-#       continue
-#
-#     if value.startswith(Var("webkit_trunk")):
-#       path, revision = value.split('@') # and svn revision.
-#       path = path[len(Var("webkit_trunk")):]  # Strip WebKit repo.
-#       value = (Var("dartium_base") + Var("dartium_webkit_branch") + path +
-#                '@' + Var("dartium_webkit_revision"))
-#       deps[key] = value
-#       continue
-#
-# massage_deps(deps)
-# for os_deps in deps_os.values():
-#   massage_deps(os_deps)
-
 deps.update({
   "src":
     Var("chromium_git") + "/dart/dartium/src.git" + "@" +
         Var("dartium_chromium_commit"),
 
   "src/third_party/WebKit":
-    Var("dartium_base") + Var("dartium_webkit_branch") + "@" +
-        Var("dartium_webkit_revision"),
+    Var("chromium_git") + "/dart/dartium/blink.git" + "@" +
+        Var("dartium_webkit_commit"),
 
   "src/dart/third_party/pkg/args":
       (Var("github_mirror") % "args") + Var("args_tag"),
