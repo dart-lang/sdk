@@ -14196,6 +14196,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
                             Error* bound_error) const {
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
+  ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
   ASSERT(!other.IsMalformed());
   ASSERT(!other.IsMalbounded());
   if (other.IsVoidType()) {
@@ -14211,12 +14212,15 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     TypeArguments& other_type_arguments = TypeArguments::Handle(zone);
     // Note that we may encounter a bound error in checked mode.
     if (!other.IsInstantiated()) {
-      const AbstractType& instantiated_other = AbstractType::Handle(
+      AbstractType& instantiated_other = AbstractType::Handle(
           zone, other.InstantiateFrom(other_instantiator, bound_error,
                                       NULL, NULL, Heap::kOld));
       if ((bound_error != NULL) && !bound_error->IsNull()) {
         ASSERT(Isolate::Current()->flags().type_checks());
         return false;
+      }
+      if (instantiated_other.IsTypeRef()) {
+        instantiated_other = TypeRef::Cast(instantiated_other).type();
       }
       if (instantiated_other.IsDynamicType() ||
           instantiated_other.IsObjectType() ||
