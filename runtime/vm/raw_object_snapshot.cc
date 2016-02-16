@@ -1997,8 +1997,11 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
   result.set_state_bits(reader->Read<uint32_t>());
 
   // Set all the object fields.
+  RawObject** toobj = reader->snapshot_code()
+      ? result.raw()->to_precompiled_snapshot()
+      : result.raw()->to();
   READ_OBJECT_FIELDS(result,
-                     result.raw()->from(), result.raw()->to(),
+                     result.raw()->from(), toobj,
                      kAsReference);
 
   return result.raw();
@@ -2023,8 +2026,12 @@ void RawICData::WriteTo(SnapshotWriter* writer,
   writer->Write<uint32_t>(ptr()->state_bits_);
 
   // Write out all the object pointer fields.
+  // In precompiled snapshots, omit the owner field. The owner field may
+  // refer to a function which was always inlined and no longer needed.
   SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
+  RawObject** toobj = writer->snapshot_code() ? to_precompiled_snapshot()
+                                              : to();
+  visitor.VisitPointers(from(), toobj);
 }
 
 

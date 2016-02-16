@@ -11687,7 +11687,6 @@ void ICData::SetOriginal(const ICData& value) const {
 
 
 void ICData::set_owner(const Function& value) const {
-  ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(value.raw()));
 }
 
