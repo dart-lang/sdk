@@ -4067,10 +4067,12 @@ class ResolveVariableReferencesTaskTest extends _AbstractDartTaskTest {
    * Verify that the mutated states of the given [variable] correspond to the
    * [mutatedInClosure] and [mutatedInScope] matchers.
    */
-  void expectMutated(VariableElement variable, Matcher mutatedInClosure,
-      Matcher mutatedInScope) {
+  void expectMutated(FunctionBody body, VariableElement variable,
+      bool mutatedInClosure, bool mutatedInScope) {
     expect(variable.isPotentiallyMutatedInClosure, mutatedInClosure);
     expect(variable.isPotentiallyMutatedInScope, mutatedInScope);
+    expect(body.isPotentiallyMutatedInClosure(variable), mutatedInClosure);
+    expect(body.isPotentiallyMutatedInScope(variable), mutatedInScope);
   }
 
   test_created_resolved_unit() {
@@ -4120,11 +4122,13 @@ main() {
         matcher: isResolveVariableReferencesTask);
     // validate
     CompilationUnit unit = outputs[RESOLVED_UNIT4];
-    FunctionElement main = unit.element.functions[0];
-    expectMutated(main.localVariables[0], isFalse, isFalse);
-    expectMutated(main.localVariables[1], isFalse, isTrue);
-    expectMutated(main.localVariables[2], isTrue, isTrue);
-    expectMutated(main.localVariables[3], isTrue, isTrue);
+    FunctionDeclaration mainDeclaration = unit.declarations[0];
+    FunctionBody body = mainDeclaration.functionExpression.body;
+    FunctionElement main = mainDeclaration.element;
+    expectMutated(body, main.localVariables[0], false, false);
+    expectMutated(body, main.localVariables[1], false, true);
+    expectMutated(body, main.localVariables[2], true, true);
+    expectMutated(body, main.localVariables[3], true, true);
   }
 
   test_perform_parameter() {
@@ -4145,11 +4149,13 @@ main(p1, p2, p3, p4) {
         matcher: isResolveVariableReferencesTask);
     // validate
     CompilationUnit unit = outputs[RESOLVED_UNIT4];
-    FunctionElement main = unit.element.functions[0];
-    expectMutated(main.parameters[0], isFalse, isFalse);
-    expectMutated(main.parameters[1], isFalse, isTrue);
-    expectMutated(main.parameters[2], isTrue, isTrue);
-    expectMutated(main.parameters[3], isTrue, isTrue);
+    FunctionDeclaration mainDeclaration = unit.declarations[0];
+    FunctionBody body = mainDeclaration.functionExpression.body;
+    FunctionElement main = mainDeclaration.element;
+    expectMutated(body, main.parameters[0], false, false);
+    expectMutated(body, main.parameters[1], false, true);
+    expectMutated(body, main.parameters[2], true, true);
+    expectMutated(body, main.parameters[3], true, true);
   }
 }
 

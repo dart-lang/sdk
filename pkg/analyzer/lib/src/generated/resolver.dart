@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -12459,6 +12460,11 @@ class VariableResolverVisitor extends ScopedVisitor {
   ExecutableElement _enclosingFunction;
 
   /**
+   * Information about local variables in the enclosing function or method.
+   */
+  LocalVariableInfo _localVariableInfo;
+
+  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
    * [definingLibrary] is the element for the library containing the node being
@@ -12480,15 +12486,35 @@ class VariableResolverVisitor extends ScopedVisitor {
             nameScope: nameScope);
 
   @override
+  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+    ExecutableElement outerFunction = _enclosingFunction;
+    LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
+    try {
+      _localVariableInfo ??= new LocalVariableInfo();
+      (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
+      _enclosingFunction = node.element;
+      return super.visitConstructorDeclaration(node);
+    } finally {
+      _localVariableInfo = outerLocalVariableInfo;
+      _enclosingFunction = outerFunction;
+    }
+  }
+
+  @override
   Object visitExportDirective(ExportDirective node) => null;
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
+    LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
     try {
+      _localVariableInfo ??= new LocalVariableInfo();
+      (node.functionExpression.body as FunctionBodyImpl).localVariableInfo =
+          _localVariableInfo;
       _enclosingFunction = node.element;
       return super.visitFunctionDeclaration(node);
     } finally {
+      _localVariableInfo = outerLocalVariableInfo;
       _enclosingFunction = outerFunction;
     }
   }
@@ -12497,10 +12523,14 @@ class VariableResolverVisitor extends ScopedVisitor {
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
       ExecutableElement outerFunction = _enclosingFunction;
+      LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
       try {
+        _localVariableInfo ??= new LocalVariableInfo();
+        (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
         _enclosingFunction = node.element;
         return super.visitFunctionExpression(node);
       } finally {
+        _localVariableInfo = outerLocalVariableInfo;
         _enclosingFunction = outerFunction;
       }
     } else {
@@ -12514,10 +12544,14 @@ class VariableResolverVisitor extends ScopedVisitor {
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
+    LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
     try {
+      _localVariableInfo ??= new LocalVariableInfo();
+      (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
       _enclosingFunction = node.element;
       return super.visitMethodDeclaration(node);
     } finally {
+      _localVariableInfo = outerLocalVariableInfo;
       _enclosingFunction = outerFunction;
     }
   }
@@ -12569,8 +12603,10 @@ class VariableResolverVisitor extends ScopedVisitor {
           element as LocalVariableElementImpl;
       if (node.inSetterContext()) {
         variableImpl.markPotentiallyMutatedInScope();
+        _localVariableInfo.potentiallyMutatedInScope.add(element);
         if (element.enclosingElement != _enclosingFunction) {
           variableImpl.markPotentiallyMutatedInClosure();
+          _localVariableInfo.potentiallyMutatedInClosure.add(element);
         }
       }
     } else if (kind == ElementKind.PARAMETER) {
@@ -12578,11 +12614,13 @@ class VariableResolverVisitor extends ScopedVisitor {
       if (node.inSetterContext()) {
         ParameterElementImpl parameterImpl = element as ParameterElementImpl;
         parameterImpl.markPotentiallyMutatedInScope();
+        _localVariableInfo.potentiallyMutatedInScope.add(element);
         // If we are in some closure, check if it is not the same as where
         // variable is declared.
         if (_enclosingFunction != null &&
             (element.enclosingElement != _enclosingFunction)) {
           parameterImpl.markPotentiallyMutatedInClosure();
+          _localVariableInfo.potentiallyMutatedInClosure.add(element);
         }
       }
     }

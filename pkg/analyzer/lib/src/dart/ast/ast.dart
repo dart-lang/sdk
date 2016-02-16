@@ -4722,6 +4722,13 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
  */
 abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   /**
+   * Additional information about local variables and parameters that are
+   * declared within this function body or any enclosing function body.  `null`
+   * if resolution has not yet been performed.
+   */
+  LocalVariableInfo localVariableInfo;
+
+  /**
    * Return `true` if this function body is asynchronous.
    */
   bool get isAsynchronous => false;
@@ -4747,6 +4754,22 @@ abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
    * is no star.
    */
   Token get star => null;
+
+  @override
+  bool isPotentiallyMutatedInClosure(VariableElement variable) {
+    if (localVariableInfo == null) {
+      throw new StateError('Resolution has not yet been performed');
+    }
+    return localVariableInfo.potentiallyMutatedInClosure.contains(variable);
+  }
+
+  @override
+  bool isPotentiallyMutatedInScope(VariableElement variable) {
+    if (localVariableInfo == null) {
+      throw new StateError('Resolution has not yet been performed');
+    }
+    return localVariableInfo.potentiallyMutatedInScope.contains(variable);
+  }
 }
 
 /**
@@ -6554,6 +6577,26 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 abstract class LiteralImpl extends ExpressionImpl implements Literal {
   @override
   int get precedence => 16;
+}
+
+/**
+ * Additional information about local variables within a function or method
+ * produced at resolution time.
+ */
+class LocalVariableInfo {
+  /**
+   * The set of local variables and parameters that are potentially mutated
+   * within a local function other than the function in which they are declared.
+   */
+  final Set<VariableElement> potentiallyMutatedInClosure =
+      new Set<VariableElement>();
+
+  /**
+   * The set of local variables and parameters that are potentiall mutated
+   * within the scope of their declarations.
+   */
+  final Set<VariableElement> potentiallyMutatedInScope =
+      new Set<VariableElement>();
 }
 
 /**
