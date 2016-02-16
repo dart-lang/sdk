@@ -11567,7 +11567,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       if (element is MultiplyDefinedElement) {
         _setElement(typeName, element);
       } else {
-        _setElement(typeName, _dynamicType.element);
+        _setElement(typeName, null);
       }
       typeName.staticType = _undefinedType;
       node.type = _undefinedType;
@@ -11632,7 +11632,7 @@ class TypeResolverVisitor extends ScopedVisitor {
               StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);
         }
       }
-      _setElement(typeName, _dynamicType.element);
+      _setElement(typeName, null);
       typeName.staticType = _dynamicType;
       node.type = _dynamicType;
       return null;
@@ -12134,18 +12134,25 @@ class TypeResolverVisitor extends ScopedVisitor {
     return types;
   }
 
+  /**
+   * If the given [element] is not `null`, set `staticElement` of the
+   * [typeName] to it.  If the [typeName] is a prefixed identifier, and the
+   * prefix can be resolved to a not `null` element, set also the
+   * `staticElement` of the prefix.
+   */
   void _setElement(Identifier typeName, Element element) {
-    if (element != null) {
-      if (typeName is SimpleIdentifier) {
+    if (typeName is SimpleIdentifier) {
+      if (element != null) {
         typeName.staticElement = element;
-      } else if (typeName is PrefixedIdentifier) {
-        PrefixedIdentifier identifier = typeName;
-        identifier.identifier.staticElement = element;
-        SimpleIdentifier prefix = identifier.prefix;
-        Element prefixElement = nameScope.lookup(prefix, definingLibrary);
-        if (prefixElement != null) {
-          prefix.staticElement = prefixElement;
-        }
+      }
+    } else if (typeName is PrefixedIdentifier) {
+      if (element != null) {
+        typeName.identifier.staticElement = element;
+      }
+      SimpleIdentifier prefix = typeName.prefix;
+      Element prefixElement = nameScope.lookup(prefix, definingLibrary);
+      if (prefixElement != null) {
+        prefix.staticElement = prefixElement;
       }
     }
   }

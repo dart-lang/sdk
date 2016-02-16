@@ -7,6 +7,7 @@ library analyzer.test.generated.resolver_test;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -23,7 +24,6 @@ import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -7866,6 +7866,11 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == "void") {
+      return null;
+    }
+    if (node.staticType != null &&
+        node.staticType.isDynamic &&
+        node.staticElement == null) {
       return null;
     }
     AstNode parent = node.parent;
