@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--enable-inlining-annotations --optimization-counter-threshold=10
+// VMOptions=--enable-inlining-annotations --optimization-counter-threshold=10 --no-background-compilation
 
 const AlwaysInline = "AlwaysInline";
 const NeverInline = "NeverInline";

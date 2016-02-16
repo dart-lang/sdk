@@ -144,6 +144,7 @@ void ClassTable::Register(const Class& cls) {
 
 
 void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(index != kIllegalCid);
   ASSERT(index >= kNumPredefinedCids);
   if (index >= capacity_) {

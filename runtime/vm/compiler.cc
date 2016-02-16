@@ -1526,6 +1526,9 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 
 
 void Compiler::AbortBackgroundCompilation(intptr_t deopt_id) {
+  if (FLAG_trace_compiler) {
+    THR_Print("ABORT background compilation.");
+  }
   ASSERT(Compiler::IsBackgroundCompilation());
   Thread::Current()->long_jump_base()->Jump(
       deopt_id, Object::background_compilation_error());
