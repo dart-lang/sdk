@@ -2049,19 +2049,25 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     const TypeArguments& instantiator_type_args =
         TypeArguments::Cast(constant_type_args->value());
     Error& bound_error = Error::Handle();
-    const AbstractType& new_dst_type = AbstractType::Handle(
+    AbstractType& new_dst_type = AbstractType::Handle(
         dst_type().InstantiateFrom(
             instantiator_type_args, &bound_error, NULL, NULL, Heap::kOld));
-    // If dst_type is instantiated to dynamic or Object, skip the test.
-    if (!new_dst_type.IsMalformedOrMalbounded() && bound_error.IsNull() &&
-        (new_dst_type.IsDynamicType() || new_dst_type.IsObjectType())) {
+    if (new_dst_type.IsMalformedOrMalbounded() || !bound_error.IsNull()) {
+      return this;
+    }
+    if (new_dst_type.IsTypeRef()) {
+      new_dst_type = TypeRef::Cast(new_dst_type).type();
+    }
+    new_dst_type = new_dst_type.Canonicalize();
+    set_dst_type(new_dst_type);
+
+    if (new_dst_type.IsDynamicType() ||
+        new_dst_type.IsObjectType() ||
+        (FLAG_eliminate_type_checks &&
+         value()->Type()->IsAssignableTo(new_dst_type))) {
       return value()->definition();
     }
-    set_dst_type(AbstractType::ZoneHandle(new_dst_type.Canonicalize()));
-    if (FLAG_eliminate_type_checks &&
-        value()->Type()->IsAssignableTo(dst_type())) {
-      return value()->definition();
-    }
+
     ConstantInstr* null_constant = flow_graph->constant_null();
     instantiator_type_arguments()->BindTo(null_constant);
   }

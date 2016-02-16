@@ -2641,6 +2641,7 @@ class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
         dst_type_(AbstractType::ZoneHandle(dst_type.raw())),
         dst_name_(dst_name) {
     ASSERT(!dst_type.IsNull());
+    ASSERT(!dst_type.IsTypeRef());
     ASSERT(!dst_name.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
@@ -2656,6 +2657,7 @@ class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   const AbstractType& dst_type() const { return dst_type_; }
   void set_dst_type(const AbstractType& dst_type) {
+    ASSERT(!dst_type.IsTypeRef());
     dst_type_ = dst_type.raw();
   }
   const String& dst_name() const { return dst_name_; }
