@@ -9617,6 +9617,8 @@ WebPlatformTest/webstorage/storage_builtins_t01: RuntimeError # Please triage th
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 
 [ $compiler == dart2js && $cps_ir ]
+Language/Expressions/Strings/String_Interpolation/double_quote_t04: RuntimeError # Expect.throws() fails
+Language/Expressions/Strings/String_Interpolation/single_quote_t03: RuntimeError # Expect.throws() fails
 Language/Types/Interface_Types/subtype_t09: Crash # Pending static: JSArray
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/core/Invocation/isGetter_A01_t01: RuntimeError # Please triage this failure.

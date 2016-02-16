@@ -297,7 +297,9 @@ if_null_assignment_static_test/32: Crash # Pending statics: JSArray
 if_null_assignment_static_test/33: Crash # Pending statics: JSArray
 if_null_assignment_static_test/35: Crash # Pending statics: JSArray
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
-savannah_test: RuntimeError # Success depends on the variable hints.
+many_calls_test: Crash # Internal Error: Pending statics (see above).
+mixin_bound_test: RuntimeError # TypeError: Cannot read property 'toString$0' of undefined
+string_interpolation_and_buffer_test: RuntimeError # Expect.isTrue(false) fails.
 super_call4_test: RuntimeError # Please triage this failure.
 super_getter_setter_test: RuntimeError # Expect.equals(expected: <42>, actual: <null>) fails.
 super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet

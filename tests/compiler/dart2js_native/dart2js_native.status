@@ -21,6 +21,7 @@ optimization_hints_test: Fail, OK # Test relies on unminified names.
 compute_this_script_test: Skip # Issue 17458
 
 [ $compiler == dart2js && $cps_ir ]
+foreign_test: RuntimeError # Expect.equals(expected: <1234567891011>, actual: <1234567891011>) fails.
 native_exception_test: RuntimeError # Issue 24421
 optimization_hints_test: RuntimeError # Please triage this failure.
 subclassing_constructor_2_test: RuntimeError # Please triage this failure.
