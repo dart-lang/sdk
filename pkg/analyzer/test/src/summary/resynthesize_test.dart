@@ -3239,6 +3239,50 @@ void f<T, U>() {
     checkLibrary('class C { bool operator<=(C other) => false; }');
   }
 
+  test_parameterTypeNotInferred_constructor() {
+    // Strong mode doesn't do type inference on constructor parameters, so it's
+    // ok that we don't store inferred type info for them in summaries.
+    checkLibrary('''
+class C {
+  C.positional([x = 1]);
+  C.named({x: 1});
+}
+''');
+  }
+
+  test_parameterTypeNotInferred_initializingFormal() {
+    // Strong mode doesn't do type inference on initializing formals, so it's
+    // ok that we don't store inferred type info for them in summaries.
+    checkLibrary('''
+class C {
+  var x;
+  C.positional([this.x = 1]);
+  C.named({this.x: 1});
+}
+''');
+  }
+
+  test_parameterTypeNotInferred_staticMethod() {
+    // Strong mode doesn't do type inference on parameters of static methods,
+    // so it's ok that we don't store inferred type info for them in summaries.
+    checkLibrary('''
+class C {
+  static void positional([x = 1]) {}
+  static void named({x: 1}) {}
+}
+''');
+  }
+
+  test_parameterTypeNotInferred_topLevelFunction() {
+    // Strong mode doesn't do type inference on parameters of top level
+    // functions, so it's ok that we don't store inferred type info for them in
+    // summaries.
+    checkLibrary('''
+void positional([x = 1]) {}
+void named({x: 1}) {}
+''');
+  }
+
   test_parts() {
     addNamedSource('/a.dart', 'part of my.lib;');
     addNamedSource('/b.dart', 'part of my.lib;');
