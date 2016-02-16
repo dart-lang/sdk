@@ -468,6 +468,9 @@ abstract class SummaryTest {
    * reference, return the [UnlinkedReference] that is used to make the
    * explicit reference.  If the type reference in question is an implicit
    * reference, return `null`.
+   *
+   * TODO(scheglov) remove [checkAstDerivedDataOverride] once elements-based
+   * serializer can record unresolved information.
    */
   UnlinkedReference checkReferenceIndex(int referenceIndex, String absoluteUri,
       String relativeUri, String expectedName,
@@ -475,7 +478,8 @@ abstract class SummaryTest {
       int expectedTargetUnit: 0,
       LinkedUnit linkedSourceUnit,
       UnlinkedUnit unlinkedSourceUnit,
-      int numTypeParameters: 0}) {
+      int numTypeParameters: 0,
+      bool checkAstDerivedDataOverride: false}) {
     linkedSourceUnit ??= definingUnit;
     unlinkedSourceUnit ??= unlinkedUnits[0];
     LinkedReference referenceResolution =
@@ -505,7 +509,9 @@ abstract class SummaryTest {
     } else {
       checkDependency(referenceResolution.dependency, absoluteUri, relativeUri);
     }
-    if (expectedKind == ReferenceKind.unresolved && !checkAstDerivedData) {
+    if (expectedKind == ReferenceKind.unresolved &&
+        !checkAstDerivedData &&
+        !checkAstDerivedDataOverride) {
       // summarize_elements.dart isn't yet able to record the name of
       // unresolved references.  TODO(paulberry): fix this.
       expect(name, '*unresolved*');
@@ -535,6 +541,9 @@ abstract class SummaryTest {
    * target of the [typeRef] is expected to appear; if not specified it is
    * assumed to be the defining compilation unit.  [numTypeParameters] is the
    * number of type parameters of the thing being referred to.
+   *
+   * TODO(scheglov) remove [checkAstDerivedDataOverride] once elements-based
+   * serializer can record unresolved information.
    */
   void checkTypeRef(EntityRef typeRef, String absoluteUri, String relativeUri,
       String expectedName,
@@ -545,7 +554,8 @@ abstract class SummaryTest {
       int expectedTargetUnit: 0,
       LinkedUnit linkedSourceUnit,
       UnlinkedUnit unlinkedSourceUnit,
-      int numTypeParameters: 0}) {
+      int numTypeParameters: 0,
+      bool checkAstDerivedDataOverride: false}) {
     linkedSourceUnit ??= definingUnit;
     expect(typeRef, new isInstanceOf<EntityRef>());
     expect(typeRef.paramReference, 0);
@@ -559,10 +569,13 @@ abstract class SummaryTest {
         expectedTargetUnit: expectedTargetUnit,
         linkedSourceUnit: linkedSourceUnit,
         unlinkedSourceUnit: unlinkedSourceUnit,
-        numTypeParameters: numTypeParameters);
+        numTypeParameters: numTypeParameters,
+        checkAstDerivedDataOverride: checkAstDerivedDataOverride);
     expect(reference, isNotNull,
         reason: 'Unlinked type refs must refer to an explicit reference');
-    if (expectedKind == ReferenceKind.unresolved && !checkAstDerivedData) {
+    if (expectedKind == ReferenceKind.unresolved &&
+        !checkAstDerivedData &&
+        !checkAstDerivedDataOverride) {
       // summarize_elements.dart isn't yet able to record the prefix of
       // unresolved references.  TODO(paulberry): fix this.
       expect(reference.prefixReference, 0);
@@ -2664,6 +2677,67 @@ class C<T> {
     UnlinkedVariable variable =
         serializeClassText(text, allowErrors: true).fields[0];
     _assertUnlinkedConst(variable.constExpr, isInvalid: true);
+  }
+
+  test_constExpr_pushReference_unresolved_prefix0() {
+    UnlinkedVariable variable = serializeVariableText(
+        '''
+const v = foo;
+''',
+        allowErrors: true);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'foo',
+          expectedKind: ReferenceKind.unresolved,
+          checkAstDerivedDataOverride: true)
+    ]);
+  }
+
+  test_constExpr_pushReference_unresolved_prefix1() {
+    UnlinkedVariable variable = serializeVariableText(
+        '''
+class C {}
+const v = C.foo;
+''',
+        allowErrors: true);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'foo',
+              expectedKind: ReferenceKind.unresolved,
+              checkAstDerivedDataOverride: true,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_unresolved_prefix2() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {}
+''');
+    UnlinkedVariable variable = serializeVariableText(
+        '''
+import 'a.dart' as p;
+const v = p.C.foo;
+''',
+        allowErrors: true);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'foo',
+              expectedKind: ReferenceKind.unresolved,
+              checkAstDerivedDataOverride: true,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p',
+                    inLibraryDefiningUnit: true),
+              ])
+    ]);
   }
 
   test_constExpr_pushString_adjacent() {

@@ -439,13 +439,9 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.pushReference:
           EntityRef ref = uc.references[refPtr++];
           _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
-          if (info.element != null) {
-            SimpleIdentifier node = AstFactory.identifier3(info.name);
-            node.staticElement = info.element;
-            _push(node);
-          } else {
-            throw new StateError('Unsupported reference ${ref.toMap()}');
-          }
+          SimpleIdentifier node = AstFactory.identifier3(info.name);
+          node.staticElement = info.element;
+          _push(node);
           break;
         case UnlinkedConstOperation.invokeConstructor:
           _pushInstanceCreation();
@@ -1844,7 +1840,7 @@ class _LibraryResynthesizer {
       int numTypeParameters = linkedReference.numTypeParameters;
       if (linkedReference.kind == ReferenceKind.unresolved) {
         type = summaryResynthesizer.typeProvider.undefinedType;
-        element = type.element;
+        element = null;
       } else if (name == 'dynamic') {
         type = summaryResynthesizer.typeProvider.dynamicType;
         element = type.element;

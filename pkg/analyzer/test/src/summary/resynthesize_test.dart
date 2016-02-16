@@ -511,8 +511,12 @@ class ResynthTest extends ResolverTestCase {
   void compareElements(Element resynthesized, Element original, String desc) {
     ElementImpl rImpl = getActualElement(resynthesized, desc);
     ElementImpl oImpl = getActualElement(original, desc);
-    expect(rImpl.runtimeType, oImpl.runtimeType);
+    if (oImpl == null && rImpl == null) {
+      return;
+    }
+    expect(original, isNotNull);
     expect(resynthesized, isNotNull);
+    expect(rImpl.runtimeType, oImpl.runtimeType);
     expect(resynthesized.kind, original.kind);
     expect(resynthesized.location, original.location, reason: desc);
     expect(resynthesized.name, original.name);
@@ -931,7 +935,9 @@ class ResynthTest extends ResolverTestCase {
   }
 
   ElementImpl getActualElement(Element element, String desc) {
-    if (element is ElementImpl) {
+    if (element == null) {
+      return null;
+    } else if (element is ElementImpl) {
       return element;
     } else if (element is ElementHandle) {
       Element actualElement = element.actualElement;
@@ -1794,6 +1800,37 @@ const vClass = p.C;
 const vEnum = p.E;
 const vFunctionTypeAlias = p.F;
 ''');
+  }
+
+  test_const_reference_unresolved_prefix0() {
+    checkLibrary(
+        r'''
+const V = foo;
+''',
+        allowErrors: true);
+  }
+
+  test_const_reference_unresolved_prefix1() {
+    checkLibrary(
+        r'''
+class C {}
+const v = C.foo;
+''',
+        allowErrors: true);
+  }
+
+  test_const_reference_unresolved_prefix2() {
+    addLibrarySource(
+        '/foo.dart',
+        '''
+class C {}
+''');
+    checkLibrary(
+        r'''
+import 'foo.dart' as p;
+const v = p.C.foo;
+''',
+        allowErrors: true);
   }
 
   test_const_topLevel_binary() {

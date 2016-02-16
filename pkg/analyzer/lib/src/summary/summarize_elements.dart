@@ -1081,9 +1081,24 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     }
   }
 
-  EntityRefBuilder serializeIdentifier(Identifier identifier) {
+  EntityRefBuilder serializeIdentifier(Identifier identifier,
+      {int prefixReference: 0}) {
     Element element = identifier.staticElement;
-    assert(element != null);
+    // Unresolved identifier.
+    if (element == null) {
+      int reference;
+      if (identifier is PrefixedIdentifier) {
+        int prefix = serializeIdentifier(identifier.prefix).reference;
+        reference = serializer.serializeUnlinkedReference(
+            identifier.identifier.name, ReferenceKind.unresolved,
+            prefixReference: prefix);
+      } else {
+        reference = serializer.serializeUnlinkedReference(
+            identifier.name, ReferenceKind.unresolved,
+            prefixReference: prefixReference);
+      }
+      return new EntityRefBuilder(reference: reference);
+    }
     // The only supported instance property accessor - `length`.
     if (identifier is PrefixedIdentifier &&
         element is PropertyAccessorElement &&
@@ -1106,7 +1121,19 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   @override
   EntityRefBuilder serializePropertyAccess(PropertyAccess access) {
     Element element = access.propertyName.staticElement;
-    assert(element != null);
+    // Unresolved property access.
+    if (element == null) {
+      Expression target = access.target;
+      if (target is Identifier) {
+        EntityRefBuilder targetRef = serializeIdentifier(target);
+        EntityRefBuilder propertyRef = serializeIdentifier(access.propertyName,
+            prefixReference: targetRef.reference);
+        return new EntityRefBuilder(reference: propertyRef.reference);
+      } else {
+        // TODO(scheglov) should we handle other targets in malformed constants?
+        throw new StateError('Unexpected target type: ${target.runtimeType}');
+      }
+    }
     // The only supported instance property accessor - `length`.
     Expression target = access.target;
     if (target is Identifier &&
