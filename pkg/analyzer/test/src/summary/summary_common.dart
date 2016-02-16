@@ -594,6 +594,7 @@ abstract class SummaryTest {
                 : expectation.relativeUri ?? relativeUri,
             expectation.name,
             expectedKind: expectation.kind,
+            checkAstDerivedDataOverride: checkAstDerivedDataOverride,
             expectedTargetUnit: expectedTargetUnit,
             linkedSourceUnit: linkedSourceUnit,
             unlinkedSourceUnit: unlinkedSourceUnit,
@@ -1966,6 +1967,123 @@ const v = const p.C();
                 new _PrefixExpectation(ReferenceKind.prefix, 'p',
                     inLibraryDefiningUnit: true)
               ])
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_unresolved_named() {
+    UnlinkedVariable variable = serializeVariableText(
+        '''
+class C {}
+const v = const C.foo();
+''',
+        allowErrors: true);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'foo',
+              expectedKind: ReferenceKind.unresolved,
+              checkAstDerivedDataOverride: true,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_unresolved_named2() {
+    UnlinkedVariable variable = serializeVariableText(
+        '''
+const v = const C.foo();
+''',
+        allowErrors: true);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'foo',
+              expectedKind: ReferenceKind.unresolved,
+              checkAstDerivedDataOverride: true,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.unresolved, 'C')
+              ])
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_unresolved_named_prefixed() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+}
+''');
+    UnlinkedVariable variable = serializeVariableText(
+        '''
+import 'a.dart' as p;
+const v = const p.C.foo();
+''',
+        allowErrors: true);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'foo',
+              expectedKind: ReferenceKind.unresolved,
+              checkAstDerivedDataOverride: true,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p',
+                    inLibraryDefiningUnit: true)
+              ])
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_unresolved_named_prefixed2() {
+    addNamedSource('/a.dart', '');
+    UnlinkedVariable variable = serializeVariableText(
+        '''
+import 'a.dart' as p;
+const v = const p.C.foo();
+''',
+        allowErrors: true);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'foo',
+              expectedKind: ReferenceKind.unresolved,
+              checkAstDerivedDataOverride: true,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.unresolved, 'C'),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p',
+                    inLibraryDefiningUnit: true)
+              ])
+    ]);
+  }
+
+  test_constExpr_invokeConstructor_unresolved_unnamed() {
+    UnlinkedVariable variable = serializeVariableText(
+        '''
+const v = const Foo();
+''',
+        allowErrors: true);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'Foo',
+          expectedKind: ReferenceKind.unresolved,
+          checkAstDerivedDataOverride: true)
     ]);
   }
 

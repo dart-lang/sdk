@@ -1067,15 +1067,19 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   @override
   EntityRefBuilder serializeConstructorName(
       TypeName type, SimpleIdentifier name) {
-    EntityRefBuilder typeRef = serializer.serializeTypeRef(type.type, null);
+    EntityRefBuilder typeRef = serializeType(type);
     if (name == null) {
       return typeRef;
     } else {
       LinkedReference typeLinkedRef =
           serializer.linkedReferences[typeRef.reference];
       int refId = serializer.serializeUnlinkedReference(
-          name.name, ReferenceKind.constructor,
-          prefixReference: typeRef.reference, unit: typeLinkedRef.unit);
+          name.name,
+          name.staticElement != null
+              ? ReferenceKind.constructor
+              : ReferenceKind.unresolved,
+          prefixReference: typeRef.reference,
+          unit: typeLinkedRef.unit);
       return new EntityRefBuilder(
           reference: refId, typeArguments: typeRef.typeArguments);
     }
@@ -1151,6 +1155,12 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
 
   @override
   EntityRefBuilder serializeType(TypeName typeName) {
+    if (typeName != null) {
+      DartType type = typeName.type;
+      if (type == null || type.isUndefined) {
+        return serializeIdentifier(typeName.name);
+      }
+    }
     DartType type = typeName != null ? typeName.type : DynamicTypeImpl.instance;
     return serializer.serializeTypeRef(type, null);
   }

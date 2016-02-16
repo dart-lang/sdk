@@ -423,6 +423,11 @@ class _Prelinker {
             continue;
           }
         }
+        // Anything prefixed with 'unresolved' is unresolved.
+        if (references[reference.prefixReference].kind ==
+            ReferenceKind.unresolved) {
+          namespace = const <String, _Meaning>{};
+        }
         // Prefix references must always point to proper prefixes.
         assert(namespace != null);
       }

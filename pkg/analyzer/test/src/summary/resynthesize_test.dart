@@ -477,6 +477,9 @@ class ResynthTest extends ResolverTestCase {
 
   void compareConstructorElements(ConstructorElement resynthesized,
       ConstructorElement original, String desc) {
+    if (original == null && resynthesized == null) {
+      return;
+    }
     compareExecutableElements(resynthesized, original, desc);
     if (original.isConst) {
       ConstructorElementImpl resynthesizedImpl =
@@ -512,6 +515,10 @@ class ResynthTest extends ResolverTestCase {
     ElementImpl rImpl = getActualElement(resynthesized, desc);
     ElementImpl oImpl = getActualElement(original, desc);
     if (oImpl == null && rImpl == null) {
+      return;
+    }
+    if (oImpl is PrefixElement) {
+      // TODO(scheglov) prefixes cannot be resynthesized
       return;
     }
     expect(original, isNotNull);
@@ -833,6 +840,11 @@ class ResynthTest extends ResolverTestCase {
       }
     } else if (resynthesized is VoidTypeImpl && original is VoidTypeImpl) {
       expect(resynthesized, same(original));
+    } else if (resynthesized is DynamicTypeImpl &&
+        original is UndefinedTypeImpl) {
+      // TODO(scheglov) In the strong mode constant variable like
+      //  `var V = new Unresolved()` gets `UndefinedTypeImpl`, and it gets
+      // `DynamicTypeImpl` in the spec mode.
     } else if (resynthesized.runtimeType != original.runtimeType) {
       fail('Type mismatch: expected ${original.runtimeType},'
           ' got ${resynthesized.runtimeType} ($desc)');
@@ -1457,6 +1469,56 @@ const V = const p.C.named();
 ''');
   }
 
+  test_const_invokeConstructor_named_unresolved() {
+    checkLibrary(
+        r'''
+class C {}
+const V = const C.named();
+''',
+        allowErrors: true);
+  }
+
+  test_const_invokeConstructor_named_unresolved2() {
+    checkLibrary(
+        r'''
+const V = const C.named();
+''',
+        allowErrors: true);
+  }
+
+  test_const_invokeConstructor_named_unresolved3() {
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C {
+}
+''');
+    checkLibrary(
+        r'''
+import 'a.dart' as p;
+const V = const p.C.named();
+''',
+        allowErrors: true);
+  }
+
+  test_const_invokeConstructor_named_unresolved4() {
+    addLibrarySource('/a.dart', '');
+    checkLibrary(
+        r'''
+import 'a.dart' as p;
+const V = const p.C.named();
+''',
+        allowErrors: true);
+  }
+
+  test_const_invokeConstructor_named_unresolved5() {
+    checkLibrary(
+        r'''
+const V = const p.C.named();
+''',
+        allowErrors: true);
+  }
+
   test_const_invokeConstructor_unnamed() {
     checkLibrary(r'''
 class C {
@@ -1492,6 +1554,32 @@ class C {
 import 'a.dart' as p;
 const V = const p.C();
 ''');
+  }
+
+  test_const_invokeConstructor_unnamed_unresolved() {
+    checkLibrary(
+        r'''
+const V = const C();
+''',
+        allowErrors: true);
+  }
+
+  test_const_invokeConstructor_unnamed_unresolved2() {
+    addLibrarySource('/a.dart', '');
+    checkLibrary(
+        r'''
+import 'a.dart' as p;
+const V = const p.C();
+''',
+        allowErrors: true);
+  }
+
+  test_const_invokeConstructor_unnamed_unresolved3() {
+    checkLibrary(
+        r'''
+const V = const p.C();
+''',
+        allowErrors: true);
   }
 
   test_const_length_ofClassConstField() {

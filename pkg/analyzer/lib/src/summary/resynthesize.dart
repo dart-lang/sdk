@@ -523,19 +523,51 @@ class _ConstExprBuilder {
     EntityRef ref = uc.references[refPtr++];
     _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
     // prepare ConstructorElement
+    TypeName typeNode;
     String constructorName;
-    if (info.element is ConstructorElement) {
-      constructorName = info.name;
-    } else if (info.element is ClassElement) {
-      constructorName = null;
+    ConstructorElement constructorElement;
+    if (info.element != null) {
+      if (info.element is ConstructorElement) {
+        constructorName = info.name;
+      } else if (info.element is ClassElement) {
+        constructorName = null;
+      } else {
+        throw new StateError('Unsupported element for invokeConstructor '
+            '${info.element?.runtimeType}');
+      }
+      InterfaceType definingType =
+          resynthesizer._createConstructorDefiningType(info, ref.typeArguments);
+      constructorElement =
+          resynthesizer._createConstructorElement(definingType, info);
+      typeNode = _buildTypeAst(definingType);
     } else {
-      throw new StateError('Unsupported element for invokeConstructor '
-          '${info.element?.runtimeType}');
+      if (info.enclosing != null) {
+        if (info.enclosing.enclosing != null) {
+          PrefixedIdentifier typeName = AstFactory.identifier5(
+              info.enclosing.enclosing.name, info.enclosing.name);
+          typeName.prefix.staticElement = info.enclosing.enclosing.element;
+          typeName.identifier.staticElement = info.enclosing.element;
+          typeName.identifier.staticType = info.enclosing.type;
+          typeNode = AstFactory.typeName3(typeName);
+          typeNode.type = info.enclosing.type;
+          constructorName = info.name;
+        } else if (info.enclosing.element != null) {
+          SimpleIdentifier typeName =
+              AstFactory.identifier3(info.enclosing.name);
+          typeName.staticElement = info.enclosing.element;
+          typeName.staticType = info.enclosing.type;
+          typeNode = AstFactory.typeName3(typeName);
+          typeNode.type = info.enclosing.type;
+          constructorName = info.name;
+        } else {
+          typeNode = AstFactory.typeName3(
+              AstFactory.identifier5(info.enclosing.name, info.name));
+          constructorName = null;
+        }
+      } else {
+        typeNode = AstFactory.typeName4(info.name);
+      }
     }
-    InterfaceType definingType =
-        resynthesizer._createConstructorDefiningType(info, ref.typeArguments);
-    ConstructorElement constructorElement =
-        resynthesizer._createConstructorElement(definingType, info);
     // prepare arguments
     List<Expression> arguments;
     {
@@ -550,8 +582,6 @@ class _ConstExprBuilder {
         arguments[index] = AstFactory.namedExpression2(name, arguments[index]);
       }
     }
-    // create TypeName
-    TypeName typeNode = _buildTypeAst(definingType);
     // create ConstructorName
     ConstructorName constructorNode;
     if (constructorName != null) {
@@ -1825,7 +1855,6 @@ class _LibraryResynthesizer {
     referenceInfos = new List<_ReferenceInfo>(numLinkedReferences);
     for (int i = 0; i < numLinkedReferences; i++) {
       LinkedReference linkedReference = linkedUnit.references[i];
-      _ReferenceInfo enclosingInfo = null;
       String name;
       int containingReference;
       if (i < numUnlinkedReferences) {
@@ -1835,6 +1864,8 @@ class _LibraryResynthesizer {
         name = linkedUnit.references[i].name;
         containingReference = linkedUnit.references[i].containingReference;
       }
+      _ReferenceInfo enclosingInfo =
+          containingReference != 0 ? referenceInfos[containingReference] : null;
       Element element;
       DartType type;
       int numTypeParameters = linkedReference.numTypeParameters;
@@ -1849,10 +1880,8 @@ class _LibraryResynthesizer {
         element = type.element;
       } else {
         List<String> locationComponents;
-        if (containingReference != 0 &&
-            referenceInfos[containingReference].element is ClassElement) {
+        if (enclosingInfo != null && enclosingInfo.element is ClassElement) {
           String identifier = _getElementIdentifier(name, linkedReference.kind);
-          enclosingInfo = referenceInfos[containingReference];
           locationComponents =
               enclosingInfo.element.location.components.toList();
           locationComponents.add(identifier);
