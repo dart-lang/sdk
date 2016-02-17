@@ -31,11 +31,11 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
 
 ConstructorElementImpl _getConstructorImpl(ConstructorElement constructor) {
-  if (constructor is ConstructorElementHandle) {
-    constructor = (constructor as ConstructorElementHandle).actualElement;
-  }
   while (constructor is ConstructorMember) {
     constructor = (constructor as ConstructorMember).baseElement;
+  }
+  if (constructor is ConstructorElementHandle) {
+    constructor = (constructor as ConstructorElementHandle).actualElement;
   }
   return constructor;
 }
