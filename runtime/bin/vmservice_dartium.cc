@@ -62,8 +62,6 @@ Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
   Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
   Builtin::SetNativeResolver(Builtin::kIOLibrary);
 
-  Dart_Handle result;
-
   ASSERT(Dart_IsServiceIsolate(isolate));
   if (!VmService::Setup(DEFAULT_VM_SERVICE_SERVER_IP,
                         DEFAULT_VM_SERVICE_SERVER_PORT,
