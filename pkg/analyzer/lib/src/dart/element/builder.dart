@@ -562,6 +562,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       initializer.localVariables = holder.localVariables;
       initializer.parameters = holder.parameters;
       initializer.synthetic = true;
+      initializer.type = new FunctionTypeImpl(initializer);
       parameter.initializer = initializer;
       parameter.defaultValueCode = defaultValue.toSource();
     }
@@ -1161,6 +1162,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       initializer.labels = holder.labels;
       initializer.localVariables = holder.localVariables;
       initializer.synthetic = true;
+      initializer.type = new FunctionTypeImpl(initializer);
       element.initializer = initializer;
       holder.validate();
     }

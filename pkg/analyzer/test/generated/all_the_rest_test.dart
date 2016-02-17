@@ -1026,6 +1026,8 @@ class C {
     expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
     expect(parameter.hasImplicitType, isTrue);
+    expect(parameter.initializer, isNotNull);
+    expect(parameter.initializer.type, isNotNull);
     expect(parameter.isConst, isFalse);
     expect(parameter.isDeprecated, isFalse);
     expect(parameter.isFinal, isFalse);
@@ -1052,6 +1054,8 @@ class C {
     expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
     expect(parameter.hasImplicitType, isFalse);
+    expect(parameter.initializer, isNotNull);
+    expect(parameter.initializer.type, isNotNull);
     expect(parameter.isConst, isFalse);
     expect(parameter.isDeprecated, isFalse);
     expect(parameter.isFinal, isFalse);
@@ -2257,6 +2261,7 @@ class C {
     TopLevelVariableElement variable = variables[0];
     expect(variable, new isInstanceOf<ConstTopLevelVariableElementImpl>());
     expect(variable.initializer, isNotNull);
+    expect(variable.initializer.type, isNotNull);
     expect(variable.name, variableName);
     expect(variable.hasImplicitType, isTrue);
     expect(variable.isConst, isTrue);

@@ -7108,7 +7108,7 @@ class ResolverVisitor extends ScopedVisitor {
    */
   StaticTypeAnalyzer typeAnalyzer;
 
-  /*
+  /**
    * The type system in use during resolution.
    */
   TypeSystem typeSystem;
