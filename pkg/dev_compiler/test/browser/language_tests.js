@@ -402,6 +402,8 @@
   }
 
   dart_library.import('language/async_await_test_none_multi').main();
-  dart_library.import('language/async_star_test_none_multi').main();
+  // TODO(vsm): Re-enable.
+  // See https://github.com/dart-lang/dev_compiler/issues/456
+  // dart_library.import('language/async_star_test_none_multi').main();
 
 })();

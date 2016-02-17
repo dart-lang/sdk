@@ -174,7 +174,7 @@ dart_library.library('dart/js', null, /* Imports */[
       from(other) {
         super._fromJs((() => {
           let _ = [];
-          _[dartx.addAll](other[dartx.map](dart.as(_convertToJS, __CastType0)));
+          _[dartx.addAll](other[dartx.map](_convertToJS));
           return _;
         })());
       }
@@ -402,11 +402,6 @@ dart_library.library('dart/js', null, /* Imports */[
     return ret;
   }
   dart.fn(allowInteropCaptureThis, core.Function, [core.Function]);
-  const __CastType0$ = dart.generic(function(E) {
-    const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [E]));
-    return __CastType0;
-  });
-  let __CastType0 = __CastType0$();
   // Exports:
   exports.JsObject = JsObject;
   exports.JsFunction = JsFunction;

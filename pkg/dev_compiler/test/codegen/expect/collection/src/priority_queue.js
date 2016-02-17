@@ -31,7 +31,7 @@ dart_library.library('collection/src/priority_queue', null, /* Imports */[
       HeapPriorityQueue(comparison) {
         if (comparison === void 0) comparison = null;
         this[_queue] = core.List$(E).new(HeapPriorityQueue$()._INITIAL_CAPACITY);
-        this.comparison = dart.as(comparison != null ? comparison : core.Comparable.compare, core.Comparator);
+        this.comparison = comparison != null ? comparison : core.Comparable.compare;
         this[_length] = 0;
       }
       add(element) {

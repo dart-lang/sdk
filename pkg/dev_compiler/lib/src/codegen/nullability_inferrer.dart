@@ -7,8 +7,7 @@ library dev_compiler.src.codegen.nullability_inferrer;
 import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/scanner.dart'
-    show StringToken, Token, TokenType;
+import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 
 import 'assignments_index.dart';
 import 'js_codegen.dart' show TemporaryVariableElement;

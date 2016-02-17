@@ -907,7 +907,7 @@ dart_library.library('dart/async', null, /* Imports */[
       }
       onData(handleData) {
         dart.as(handleData, dart.functionType(dart.void, [T]));
-        if (handleData == null) handleData = dart.as(_nullDataHandler, __CastType18);
+        if (handleData == null) handleData = _nullDataHandler;
         this[_onData] = dart.as(this[_zone].registerUnaryCallback(handleData), _DataHandler$(T));
       }
       onError(handleError) {
@@ -1079,9 +1079,9 @@ dart_library.library('dart/async', null, /* Imports */[
           if (dart.notNull(this[_isCanceled]) && !dart.notNull(this[_waitsForCancel])) return;
           this[_state] = dart.notNull(this[_state]) | dart.notNull(_BufferingStreamSubscription$()._STATE_IN_CALLBACK);
           if (dart.is(this[_onError], ZoneBinaryCallback)) {
-            this[_zone].runBinaryGuarded(dart.as(this[_onError], __CastType20), error, stackTrace);
+            this[_zone].runBinaryGuarded(dart.as(this[_onError], __CastType18), error, stackTrace);
           } else {
-            this[_zone].runUnaryGuarded(dart.as(this[_onError], __CastType23), error);
+            this[_zone].runUnaryGuarded(dart.as(this[_onError], __CastType21), error);
           }
           this[_state] = dart.notNull(this[_state]) & ~dart.notNull(_BufferingStreamSubscription$()._STATE_IN_CALLBACK);
         }).bind(this);
@@ -1832,7 +1832,6 @@ dart_library.library('dart/async', null, /* Imports */[
       static wait(futures, opts) {
         let eagerError = opts && 'eagerError' in opts ? opts.eagerError : false;
         let cleanUp = opts && 'cleanUp' in opts ? opts.cleanUp : null;
-        dart.as(cleanUp, dart.functionType(dart.void, [dart.dynamic]));
         let result = new (_Future$(core.List))();
         let values = null;
         let remaining = 0;
@@ -1890,7 +1889,6 @@ dart_library.library('dart/async', null, /* Imports */[
         return result;
       }
       static forEach(input, f) {
-        dart.as(f, dart.functionType(dart.dynamic, [dart.dynamic]));
         let iterator = input[dartx.iterator];
         return Future$().doWhile(dart.fn(() => {
           if (!dart.notNull(iterator.moveNext())) return false;
@@ -1898,7 +1896,6 @@ dart_library.library('dart/async', null, /* Imports */[
         }));
       }
       static doWhile(f) {
-        dart.as(f, dart.functionType(dart.dynamic, []));
         let doneSignal = new _Future();
         let nextIteration = null;
         nextIteration = Zone.current.bindUnaryCallback(dart.fn(keepGoing => {
@@ -4048,13 +4045,8 @@ dart_library.library('dart/async', null, /* Imports */[
     return _StreamIteratorImpl;
   });
   let _StreamIteratorImpl = _StreamIteratorImpl$();
-  const __CastType18$ = dart.generic(function(T) {
-    const __CastType18 = dart.typedef('__CastType18', () => dart.functionType(dart.void, [T]));
-    return __CastType18;
-  });
-  let __CastType18 = __CastType18$();
-  const __CastType20 = dart.typedef('__CastType20', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
-  const __CastType23 = dart.typedef('__CastType23', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  const __CastType18 = dart.typedef('__CastType18', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
+  const __CastType21 = dart.typedef('__CastType21', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   function _runUserCode(userCode, onSuccess, onError) {
     try {
       dart.dcall(onSuccess, userCode());
@@ -4772,8 +4764,8 @@ dart_library.library('dart/async', null, /* Imports */[
         let handleDone = opts && 'handleDone' in opts ? opts.handleDone : null;
         super._StreamSinkTransformer(dart.fn(outputSink => {
           dart.as(outputSink, EventSink$(T));
-          if (handleData == null) handleData = dart.as(_StreamHandlerTransformer$()._defaultHandleData, __CastType25);
-          if (handleError == null) handleError = dart.as(_StreamHandlerTransformer$()._defaultHandleError, __CastType28);
+          if (handleData == null) handleData = _StreamHandlerTransformer$()._defaultHandleData;
+          if (handleError == null) handleError = _StreamHandlerTransformer$()._defaultHandleError;
           if (handleDone == null) handleDone = _StreamHandlerTransformer$()._defaultHandleDone;
           return new (_HandlerEventSink$(S, T))(handleData, handleError, handleDone, outputSink);
         }, EventSink$(S), [EventSink$(T)]));
@@ -4857,16 +4849,6 @@ dart_library.library('dart/async', null, /* Imports */[
     return _BoundSubscriptionStream;
   });
   let _BoundSubscriptionStream = _BoundSubscriptionStream$();
-  const __CastType25$ = dart.generic(function(S, T) {
-    const __CastType25 = dart.typedef('__CastType25', () => dart.functionType(dart.void, [S, EventSink$(T)]));
-    return __CastType25;
-  });
-  let __CastType25 = __CastType25$();
-  const __CastType28$ = dart.generic(function(T) {
-    const __CastType28 = dart.typedef('__CastType28', () => dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]));
-    return __CastType28;
-  });
-  let __CastType28 = __CastType28$();
   class Timer extends core.Object {
     static new(duration, callback) {
       if (dart.equals(Zone.current, Zone.ROOT)) {
@@ -4878,7 +4860,7 @@ dart_library.library('dart/async', null, /* Imports */[
       if (dart.equals(Zone.current, Zone.ROOT)) {
         return Zone.current.createPeriodicTimer(duration, callback);
       }
-      return Zone.current.createPeriodicTimer(duration, dart.as(Zone.current.bindUnaryCallback(callback, {runGuarded: true}), __CastType32));
+      return Zone.current.createPeriodicTimer(duration, dart.as(Zone.current.bindUnaryCallback(callback, {runGuarded: true}), __CastType23));
     }
     static run(callback) {
       Timer.new(core.Duration.ZERO, callback);
@@ -4906,7 +4888,7 @@ dart_library.library('dart/async', null, /* Imports */[
     }),
     names: ['run', '_createTimer', '_createPeriodicTimer']
   });
-  const __CastType32 = dart.typedef('__CastType32', () => dart.functionType(dart.void, [Timer]));
+  const __CastType23 = dart.typedef('__CastType23', () => dart.functionType(dart.void, [Timer]));
   const ZoneCallback = dart.typedef('ZoneCallback', () => dart.functionType(dart.dynamic, []));
   const ZoneUnaryCallback = dart.typedef('ZoneUnaryCallback', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   const ZoneBinaryCallback = dart.typedef('ZoneBinaryCallback', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
@@ -4950,7 +4932,7 @@ dart_library.library('dart/async', null, /* Imports */[
       let createPeriodicTimer = opts && 'createPeriodicTimer' in opts ? opts.createPeriodicTimer : null;
       let print = opts && 'print' in opts ? opts.print : null;
       let fork = opts && 'fork' in opts ? opts.fork : null;
-      return ZoneSpecification.new({handleUncaughtError: dart.as(handleUncaughtError != null ? handleUncaughtError : other.handleUncaughtError, __CastType34), run: dart.as(run != null ? run : other.run, __CastType40), runUnary: dart.as(runUnary != null ? runUnary : other.runUnary, __CastType45), runBinary: dart.as(runBinary != null ? runBinary : other.runBinary, __CastType52), registerCallback: dart.as(registerCallback != null ? registerCallback : other.registerCallback, __CastType61), registerUnaryCallback: dart.as(registerUnaryCallback != null ? registerUnaryCallback : other.registerUnaryCallback, __CastType66), registerBinaryCallback: dart.as(registerBinaryCallback != null ? registerBinaryCallback : other.registerBinaryCallback, __CastType72), errorCallback: dart.as(errorCallback != null ? errorCallback : other.errorCallback, __CastType79), scheduleMicrotask: dart.as(scheduleMicrotask != null ? scheduleMicrotask : other.scheduleMicrotask, __CastType85), createTimer: dart.as(createTimer != null ? createTimer : other.createTimer, __CastType90), createPeriodicTimer: dart.as(createPeriodicTimer != null ? createPeriodicTimer : other.createPeriodicTimer, __CastType96), print: dart.as(print != null ? print : other.print, __CastType103), fork: dart.as(fork != null ? fork : other.fork, __CastType108)});
+      return ZoneSpecification.new({handleUncaughtError: handleUncaughtError != null ? handleUncaughtError : other.handleUncaughtError, run: run != null ? run : other.run, runUnary: runUnary != null ? runUnary : other.runUnary, runBinary: runBinary != null ? runBinary : other.runBinary, registerCallback: registerCallback != null ? registerCallback : other.registerCallback, registerUnaryCallback: registerUnaryCallback != null ? registerUnaryCallback : other.registerUnaryCallback, registerBinaryCallback: registerBinaryCallback != null ? registerBinaryCallback : other.registerBinaryCallback, errorCallback: errorCallback != null ? errorCallback : other.errorCallback, scheduleMicrotask: scheduleMicrotask != null ? scheduleMicrotask : other.scheduleMicrotask, createTimer: createTimer != null ? createTimer : other.createTimer, createPeriodicTimer: createPeriodicTimer != null ? createPeriodicTimer : other.createPeriodicTimer, print: print != null ? print : other.print, fork: fork != null ? fork : other.fork});
     }
   }
   dart.setSignature(ZoneSpecification, {
@@ -5439,7 +5421,7 @@ dart_library.library('dart/async', null, /* Imports */[
   dart.fn(_rootCreateTimer, Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [])]);
   function _rootCreatePeriodicTimer(self, parent, zone, duration, callback) {
     if (!dart.notNull(core.identical(_ROOT_ZONE, zone))) {
-      callback = dart.as(zone.bindUnaryCallback(callback), __CastType114);
+      callback = dart.as(zone.bindUnaryCallback(callback), __CastType25);
     }
     return Timer._createPeriodicTimer(duration, callback);
   }
@@ -5722,7 +5704,7 @@ dart_library.library('dart/async', null, /* Imports */[
           if (dart.is(onError, ZoneBinaryCallback)) {
             return self.parent.runBinary(onError, error, stackTrace);
           }
-          return self.parent.runUnary(dart.as(onError, __CastType116), error);
+          return self.parent.runUnary(dart.as(onError, __CastType27), error);
         } catch (e) {
           let s = dart.stackTrace(e);
           if (dart.notNull(core.identical(e, error))) {
@@ -5747,21 +5729,8 @@ dart_library.library('dart/async', null, /* Imports */[
     }
   }
   dart.fn(runZoned, dart.dynamic, [dart.functionType(dart.dynamic, [])], {zoneValues: core.Map, zoneSpecification: ZoneSpecification, onError: core.Function});
-  const __CastType34 = dart.typedef('__CastType34', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.dynamic, core.StackTrace]));
-  const __CastType40 = dart.typedef('__CastType40', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
-  const __CastType45 = dart.typedef('__CastType45', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic]), dart.dynamic]));
-  const __CastType52 = dart.typedef('__CastType52', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]), dart.dynamic, dart.dynamic]));
-  const __CastType61 = dart.typedef('__CastType61', () => dart.functionType(ZoneCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
-  const __CastType66 = dart.typedef('__CastType66', () => dart.functionType(ZoneUnaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic])]));
-  const __CastType72 = dart.typedef('__CastType72', () => dart.functionType(ZoneBinaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]));
-  const __CastType79 = dart.typedef('__CastType79', () => dart.functionType(AsyncError, [Zone, ZoneDelegate, Zone, core.Object, core.StackTrace]));
-  const __CastType85 = dart.typedef('__CastType85', () => dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
-  const __CastType90 = dart.typedef('__CastType90', () => dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [])]));
-  const __CastType96 = dart.typedef('__CastType96', () => dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [Timer])]));
-  const __CastType103 = dart.typedef('__CastType103', () => dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, core.String]));
-  const __CastType108 = dart.typedef('__CastType108', () => dart.functionType(Zone, [Zone, ZoneDelegate, Zone, ZoneSpecification, core.Map]));
-  const __CastType114 = dart.typedef('__CastType114', () => dart.functionType(dart.void, [Timer]));
-  const __CastType116 = dart.typedef('__CastType116', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  const __CastType25 = dart.typedef('__CastType25', () => dart.functionType(dart.void, [Timer]));
+  const __CastType27 = dart.typedef('__CastType27', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   dart.copyProperties(exports, {
     get _hasDocument() {
       return typeof document == 'object';

@@ -1095,27 +1095,23 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return false;
       }
       static forEach(iterable, f) {
-        dart.as(f, dart.functionType(dart.void, [dart.dynamic]));
         for (let e of iterable) {
           f(e);
         }
       }
       static any(iterable, f) {
-        dart.as(f, dart.functionType(core.bool, [dart.dynamic]));
         for (let e of iterable) {
           if (dart.notNull(f(e))) return true;
         }
         return false;
       }
       static every(iterable, f) {
-        dart.as(f, dart.functionType(core.bool, [dart.dynamic]));
         for (let e of iterable) {
           if (!dart.notNull(f(e))) return false;
         }
         return true;
       }
       static reduce(iterable, combine) {
-        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
         let iterator = iterable[dartx.iterator];
         if (!dart.notNull(iterator.moveNext())) dart.throw(IterableElementError.noElement());
         let value = iterator.current;
@@ -1125,14 +1121,12 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return value;
       }
       static fold(iterable, initialValue, combine) {
-        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
         for (let element of iterable) {
           initialValue = combine(initialValue, element);
         }
         return initialValue;
       }
       static removeWhereList(list, test) {
-        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         let retained = dart.list([], dart.dynamic);
         let length = list[dartx.length];
         for (let i = 0; i < dart.notNull(length); i++) {
@@ -1179,8 +1173,6 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return result;
       }
       static firstWhere(iterable, test, orElse) {
-        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
-        dart.as(orElse, dart.functionType(dart.dynamic, []));
         for (let element of iterable) {
           if (dart.notNull(test(element))) return element;
         }
@@ -1188,8 +1180,6 @@ dart_library.library('dart/_internal', null, /* Imports */[
         dart.throw(IterableElementError.noElement());
       }
       static lastWhere(iterable, test, orElse) {
-        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
-        dart.as(orElse, dart.functionType(dart.dynamic, []));
         let result = null;
         let foundMatching = false;
         for (let element of iterable) {
@@ -1203,8 +1193,6 @@ dart_library.library('dart/_internal', null, /* Imports */[
         dart.throw(IterableElementError.noElement());
       }
       static lastWhereList(list, test, orElse) {
-        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
-        dart.as(orElse, dart.functionType(dart.dynamic, []));
         for (let i = dart.notNull(list[dartx.length]) - 1; i >= 0; i--) {
           let element = list[dartx.get](i);
           if (dart.notNull(test(element))) return element;
@@ -1213,7 +1201,6 @@ dart_library.library('dart/_internal', null, /* Imports */[
         dart.throw(IterableElementError.noElement());
       }
       static singleWhere(iterable, test) {
-        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         let result = null;
         let foundMatching = false;
         for (let element of iterable) {
@@ -1268,15 +1255,12 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return new (WhereIterable$(T))(iterable, f);
       }
       static map(iterable, f) {
-        dart.as(f, dart.functionType(dart.dynamic, [dart.dynamic]));
         return MappedIterable.new(iterable, f);
       }
       static mapList(list, f) {
-        dart.as(f, dart.functionType(dart.dynamic, [dart.dynamic]));
         return new MappedListIterable(list, f);
       }
       static expand(iterable, f) {
-        dart.as(f, dart.functionType(core.Iterable, [dart.dynamic]));
         return new ExpandIterable(iterable, f);
       }
       takeList(list, n) {
@@ -1297,7 +1281,6 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return new (ReversedListIterable$(T))(dart.as(list, core.Iterable$(T)));
       }
       static sortList(list, compare) {
-        dart.as(compare, dart.functionType(core.int, [dart.dynamic, dart.dynamic]));
         if (compare == null) compare = core.Comparable.compare;
         Sort.sort(list, compare);
       }

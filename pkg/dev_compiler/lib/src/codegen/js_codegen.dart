@@ -7,12 +7,13 @@ library js_codegen;
 import 'dart:collection' show HashSet, HashMap, SplayTreeSet;
 
 import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:analyzer/src/generated/scanner.dart'
+import 'package:analyzer/src/dart/ast/token.dart'
     show StringToken, Token, TokenType;
 import 'package:analyzer/src/generated/type_system.dart'
     show StrongTypeSystemImpl;
@@ -1328,9 +1329,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
   }
 
-  JS.Fun _emitNativeFunctionBody(
-      List<JS.Parameter> params, List<JS.Expression> paramRefs,
-      MethodDeclaration node) {
+  JS.Fun _emitNativeFunctionBody(List<JS.Parameter> params,
+      List<JS.Expression> paramRefs, MethodDeclaration node) {
     if (node.isStatic) {
       // TODO(vsm): Do we need to handle this case?
       return null;
@@ -1565,8 +1565,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       var body = node.body;
       if (body.isGenerator || body.isAsynchronous) {
         var paramRefs = _emitParameterReferences(node.parameters);
-        jsBody = _emitGeneratorFunctionBody(
-            params, paramRefs, body, returnType);
+        jsBody =
+            _emitGeneratorFunctionBody(params, paramRefs, body, returnType);
       } else if (body is ExpressionFunctionBody) {
         jsBody = _visit(body.expression);
       } else {
@@ -1589,9 +1589,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
   }
 
-  JS.Fun _emitFunctionBody(List<JS.Parameter> params,
-      List<JS.Expression> paramRefs, FunctionBody body,
-      List<JS.Identifier> typeParams, JS.TypeRef returnType) {
+  JS.Fun _emitFunctionBody(
+      List<JS.Parameter> params,
+      List<JS.Expression> paramRefs,
+      FunctionBody body,
+      List<JS.Identifier> typeParams,
+      JS.TypeRef returnType) {
     // sync*, async, async*
     if (body.isAsynchronous || body.isGenerator) {
       // TODO(ochafik): Refine params: we don't need default values in the
@@ -1609,9 +1612,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         typeParams: typeParams, returnType: returnType);
   }
 
-  JS.Expression _emitGeneratorFunctionBody(
-      List<JS.Parameter> params, List<JS.Expression> paramRefs,
-      FunctionBody body, JS.TypeRef returnType) {
+  JS.Expression _emitGeneratorFunctionBody(List<JS.Parameter> params,
+      List<JS.Expression> paramRefs, FunctionBody body, JS.TypeRef returnType) {
     var kind = body.isSynchronous ? 'sync' : 'async';
     if (body.isGenerator) kind += 'Star';
 
@@ -2180,13 +2182,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   // TODO(ochafik): Decouple Parameter from Identifier.
   List<JS.Expression> _emitParameterReferences(FormalParameterList node) =>
       node == null
-      ? <JS.Expression>[]
-      : _emitFormalParameterList(node, allowDestructuring: false)
-          .map((JS.Parameter p) {
-            if (p is JS.RestParameter) return new JS.Spread(p.parameter);
-            return p as JS.Identifier;
-          })
-          .toList();
+          ? <JS.Expression>[]
+          : _emitFormalParameterList(node, allowDestructuring: false)
+              .map((JS.Parameter p) {
+              if (p is JS.RestParameter) return new JS.Spread(p.parameter);
+              return p as JS.Identifier;
+            }).toList();
 
   List<JS.Parameter> _emitFormalParameterList(FormalParameterList node,
       {bool allowDestructuring: true}) {
@@ -2221,11 +2222,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         }
       } else {
         var jsParam = _visit(param);
-        result.add(
-            param is DefaultFormalParameter && destructure
-                ? new JS.DestructuredVariable(
-                    name: jsParam, defaultValue: _defaultParamValue(param))
-                : jsParam);
+        result.add(param is DefaultFormalParameter && destructure
+            ? new JS.DestructuredVariable(
+                name: jsParam, defaultValue: _defaultParamValue(param))
+            : jsParam);
       }
     }
 
