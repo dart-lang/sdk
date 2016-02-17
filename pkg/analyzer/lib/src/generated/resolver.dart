@@ -12048,8 +12048,6 @@ class TypeResolverVisitor extends ScopedVisitor {
           CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
       if (classElement != null) {
         classElement.mixins = mixinTypes;
-        classElement.withClauseRange =
-            new SourceRange(withClause.offset, withClause.length);
       }
     }
     if (implementsClause != null) {

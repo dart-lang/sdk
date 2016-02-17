@@ -114,11 +114,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
 
   /**
-   * The [SourceRange] of the `with` clause, `null` if there is no one.
-   */
-  SourceRange withClauseRange;
-
-  /**
    * A flag indicating whether the types associated with the instance members of
    * this class have been inferred.
    */
