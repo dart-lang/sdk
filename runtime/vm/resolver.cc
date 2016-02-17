@@ -7,6 +7,7 @@
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
+#include "vm/log.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/symbols.h"
@@ -44,12 +45,13 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
     // Return a null function to signal to the upper levels to dispatch to
     // "noSuchMethod" function.
     if (FLAG_trace_resolving) {
-      String& error_message = String::Handle(String::New("function not found"));
+      String& error_message =
+          String::Handle(Symbols::New("function not found"));
       if (!function.IsNull()) {
         // Obtain more detailed error message.
         function.AreValidArguments(args_desc, &error_message);
       }
-      OS::Print("ResolveDynamic error '%s': %s.\n",
+      THR_Print("ResolveDynamic error '%s': %s.\n",
                 function_name.ToCString(),
                 error_message.ToCString());
     }
@@ -64,7 +66,7 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(
     const String& function_name) {
   Class& cls = Class::Handle(receiver_class.raw());
   if (FLAG_trace_resolving) {
-    OS::Print("ResolveDynamic '%s' for class %s\n",
+    THR_Print("ResolveDynamic '%s' for class %s\n",
               function_name.ToCString(),
               String::Handle(cls.Name()).ToCString());
   }
@@ -159,7 +161,7 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
           function.AreValidArguments(num_arguments,
                                      argument_names,
                                      &error_message);
-          OS::Print("ResolveStatic error '%s': %s.\n",
+          THR_Print("ResolveStatic error '%s': %s.\n",
                     function_name.ToCString(),
                     error_message.ToCString());
         }
@@ -167,7 +169,7 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
       }
     } else {
       if (FLAG_trace_resolving) {
-        OS::Print("ResolveStatic error: function '%s' not found.\n",
+        THR_Print("ResolveStatic error: function '%s' not found.\n",
                   function_name.ToCString());
       }
     }
@@ -183,7 +185,7 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
                                argument_names);
     }
     if (FLAG_trace_resolving && function.IsNull()) {
-      OS::Print("ResolveStatic error: function '%s.%s' not found.\n",
+      THR_Print("ResolveStatic error: function '%s.%s' not found.\n",
                 class_name.ToCString(),
                 function_name.ToCString());
     }
@@ -198,7 +200,7 @@ RawFunction* Resolver::ResolveStatic(const Class&  cls,
                                      const Array& argument_names) {
   ASSERT(!cls.IsNull());
   if (FLAG_trace_resolving) {
-    OS::Print("ResolveStatic '%s'\n", function_name.ToCString());
+    THR_Print("ResolveStatic '%s'\n", function_name.ToCString());
   }
   const Function& function =
       Function::Handle(cls.LookupStaticFunction(function_name));
@@ -214,7 +216,7 @@ RawFunction* Resolver::ResolveStatic(const Class&  cls,
                                    argument_names,
                                    &error_message);
       }
-      OS::Print("ResolveStatic error '%s': %s.\n",
+      THR_Print("ResolveStatic error '%s': %s.\n",
                 function_name.ToCString(),
                 error_message.ToCString());
     }
@@ -230,7 +232,7 @@ RawFunction* Resolver::ResolveStaticAllowPrivate(const Class&  cls,
                                                  const Array& argument_names) {
   ASSERT(!cls.IsNull());
   if (FLAG_trace_resolving) {
-    OS::Print("ResolveStaticAllowPrivate '%s'\n", function_name.ToCString());
+    THR_Print("ResolveStaticAllowPrivate '%s'\n", function_name.ToCString());
   }
   const Function& function =
       Function::Handle(cls.LookupStaticFunctionAllowPrivate(function_name));
@@ -246,7 +248,7 @@ RawFunction* Resolver::ResolveStaticAllowPrivate(const Class&  cls,
                                    argument_names,
                                    &error_message);
       }
-      OS::Print("ResolveStaticAllowPrivate error '%s': %s.\n",
+      THR_Print("ResolveStaticAllowPrivate error '%s': %s.\n",
                 function_name.ToCString(),
                 error_message.ToCString());
     }
