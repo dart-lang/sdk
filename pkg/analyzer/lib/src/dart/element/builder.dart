@@ -331,6 +331,24 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitAnnotation(Annotation node) {
+    // Although it isn't valid to do so because closures are not constant
+    // expressions, it's possible for one of the arguments to the constructor to
+    // contain a closure. Wrapping the processing of the annotation this way
+    // prevents these closures from being added to the list of functions in the
+    // annotated declaration.
+    ElementHolder holder = new ElementHolder();
+    ElementHolder previousHolder = _currentHolder;
+    _currentHolder = holder;
+    try {
+      super.visitAnnotation(node);
+    } finally {
+      _currentHolder = previousHolder;
+    }
+    return null;
+  }
+
+  @override
   Object visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {

@@ -275,11 +275,19 @@ class ElementBuilderTest extends ParserTestCase {
    * resulting [ElementHolder].
    */
   ElementHolder buildElementsForText(String code) {
-    compilationUnit = ParserTestCase.parseCompilationUnit(code);
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder, compilationUnitElement);
-    compilationUnit.accept(builder);
-    return holder;
+    TestLogger logger = new TestLogger();
+    AnalysisEngine.instance.logger = logger;
+    try {
+      compilationUnit = ParserTestCase.parseCompilationUnit(code);
+      ElementHolder holder = new ElementHolder();
+      ElementBuilder builder =
+          new ElementBuilder(holder, compilationUnitElement);
+      compilationUnit.accept(builder);
+      return holder;
+    } finally {
+      expect(logger.log, hasLength(0));
+      AnalysisEngine.instance.logger = Logger.NULL;
+    }
   }
 
   /**
@@ -585,6 +593,38 @@ class C {
     expect(type.isAbstract, isTrue);
     expect(type.isMixinApplication, isFalse);
     expect(type.isSynthetic, isFalse);
+  }
+
+  void test_visitClassDeclaration_invalidFunctionInAnnotation_class() {
+    // https://github.com/dart-lang/sdk/issues/25696
+    String code = r'''
+class A {
+  const A({f});
+}
+
+@A(f: () {})
+class C {}
+''';
+    buildElementsForText(code);
+  }
+
+  void test_visitClassDeclaration_invalidFunctionInAnnotation_method() {
+    String code = r'''
+class A {
+  const A({f});
+}
+
+class C {
+  @A(f: () {})
+  void m() {}
+}
+''';
+    ElementHolder holder = buildElementsForText(code);
+    ClassElement elementC = holder.types[1];
+    expect(elementC, isNotNull);
+    MethodElement methodM = elementC.methods[0];
+    expect(methodM, isNotNull);
+    expect(methodM.functions, isEmpty);
   }
 
   void test_visitClassDeclaration_minimal() {
