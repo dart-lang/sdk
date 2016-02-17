@@ -73,6 +73,14 @@ class UpdateRefinements extends TrampolineRecursiveVisitor implements Pass {
     });
   }
 
+  visitBoundsCheck(BoundsCheck node) {
+    super.visitBoundsCheck(node);
+    if (node.hasIntegerCheck &&
+        typeSystem.isDefinitelyInt(node.index.definition.type)) {
+      node.checks &= ~BoundsCheck.INTEGER;
+    }
+  }
+
   processReference(Reference ref) {
     refine(ref);
   }

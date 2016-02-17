@@ -36,10 +36,8 @@
 // }
 
 function(data, x) {
-  var v0 = J.$add$ns(x, 1), v1 = data.arr, v2 = v1.length;
-  if (typeof x !== "number" || Math.floor(x) !== x)
-    return H.iae(x);
-  if (x < 0 || x >= v2)
+  var v0 = J.$add$ns(x, 1), v1 = data.arr;
+  if (x >>> 0 !== x || x >= v1.length)
     return H.ioore(v1, x);
   data.$indexSet(0, v0, v1[x]);
 }

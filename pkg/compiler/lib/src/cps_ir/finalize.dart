@@ -42,9 +42,14 @@ class Finalize extends TrampolineRecursiveVisitor implements Pass {
       return cps;
     }
     Continuation fail = cps.letCont();
-    if (node.hasLowerBoundCheck) {
+    Primitive index = node.index.definition;
+    if (node.hasIntegerCheck) {
+      cps.ifTruthy(cps.applyBuiltin(BuiltinOperator.IsNotUnsigned32BitInteger,
+          [index, index]))
+          .invokeContinuation(fail);
+    } else if (node.hasLowerBoundCheck) {
       cps.ifTruthy(cps.applyBuiltin(BuiltinOperator.NumLt,
-          [node.index.definition, cps.makeZero()]))
+          [index, cps.makeZero()]))
           .invokeContinuation(fail);
     }
     if (node.hasUpperBoundCheck) {
@@ -59,7 +64,7 @@ class Finalize extends TrampolineRecursiveVisitor implements Pass {
         cps.letPrim(length);
       }
       cps.ifTruthy(cps.applyBuiltin(BuiltinOperator.NumGe,
-          [node.index.definition, length]))
+          [index, length]))
           .invokeContinuation(fail);
     }
     if (node.hasEmptinessCheck) {
@@ -69,7 +74,7 @@ class Finalize extends TrampolineRecursiveVisitor implements Pass {
     }
     cps.insideContinuation(fail).invokeStaticThrower(
           helpers.throwIndexOutOfRangeException,
-          [node.object.definition, node.index.definition]);
+          [node.object.definition, index]);
     node..replaceUsesWith(node.object.definition)..destroy();
     return cps;
   }

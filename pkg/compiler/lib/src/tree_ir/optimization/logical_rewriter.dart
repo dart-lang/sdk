@@ -376,6 +376,10 @@ class LogicalRewriter extends RecursiveTransformer
       case BuiltinOperator.IsNotNumber: return BuiltinOperator.IsNumber;
       case BuiltinOperator.IsInteger: return BuiltinOperator.IsNotInteger;
       case BuiltinOperator.IsNotInteger: return BuiltinOperator.IsInteger;
+      case BuiltinOperator.IsUnsigned32BitInteger:
+        return BuiltinOperator.IsNotUnsigned32BitInteger;
+      case BuiltinOperator.IsNotUnsigned32BitInteger:
+        return BuiltinOperator.IsUnsigned32BitInteger;
 
       // Because of NaN, these do not have a negated form.
       case BuiltinOperator.NumLt:

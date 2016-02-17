@@ -142,6 +142,20 @@ enum BuiltinOperator {
   /// Compiles to `typeof x !== 'number' || Math.floor(x) !== x`
   IsNotInteger,
 
+  /// Returns true if `x` is an unsigned 32-bit integer.
+  ///
+  /// The argument must be repeated 2 times.
+  ///
+  /// Compiles to `x >>> 0 === x`
+  IsUnsigned32BitInteger,
+
+  /// Returns false if `x` is an unsigned 32-bit integer.
+  ///
+  /// The argument must be repeated 2 times.
+  ///
+  /// Compiles to `x >>> 0 !== x`
+  IsNotUnsigned32BitInteger,
+
   /// Returns true if the argument is a fixed length Array.
   ///
   /// Uses one argument.

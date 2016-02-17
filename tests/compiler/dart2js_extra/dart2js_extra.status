@@ -69,6 +69,3 @@ big_allocation_expression_test: Crash # Issue 24635
 
 [ $compiler == dart2js && $cps_ir ]
 async_stacktrace_test/asyncStar: Crash # (foo()async*{try {tr...  cannot handle sync*/async* functions
-consistent_index_error_string_test: RuntimeError # Expect.equals(at index 16: Expected <...ument (index): ...>, Found: <...ument: "a">) fails.
-consistent_index_error_array_test: RuntimeError # Expect.equals(at index 16: Expected <...ument (index): ...>, Found: <...ument: "a">, '
-consistent_index_error_typed_list_test: RuntimeError # Expect.equals(at index 16: Expected <...ument (index): ...>, Found: <...ument: "a">, '

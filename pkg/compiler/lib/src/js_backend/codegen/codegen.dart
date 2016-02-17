@@ -1127,6 +1127,10 @@ class CodeGenerator extends tree_ir.StatementVisitor
         return js.js('typeof # === "number" && Math.floor(#) === #', args);
       case BuiltinOperator.IsNotInteger:
         return js.js('typeof # !== "number" || Math.floor(#) !== #', args);
+      case BuiltinOperator.IsUnsigned32BitInteger:
+        return js.js('# >>> 0 === #', args);
+      case BuiltinOperator.IsNotUnsigned32BitInteger:
+        return js.js('# >>> 0 !== #', args);
       case BuiltinOperator.IsFixedLengthJSArray:
         // TODO(sra): Remove boolify (i.e. !!).
         return js.js(r'!!#.fixed$length', args);

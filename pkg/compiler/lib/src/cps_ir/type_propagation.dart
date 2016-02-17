@@ -1420,36 +1420,24 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   /// Returns a CPS fragment whose context is the branch where no error
   /// was thrown.
   Primitive makeBoundsCheck(CpsFragment cps,
-                            Primitive list,
-                            Primitive index,
-                            [int checkKind = BoundsCheck.BOTH_BOUNDS]) {
+        Primitive list,
+        Primitive index,
+        [int checkKind = BoundsCheck.BOTH_BOUNDS | BoundsCheck.INTEGER]) {
     if (compiler.trustPrimitives) {
       return cps.letPrim(new BoundsCheck.noCheck(list, cps.sourceInformation));
     } else {
       GetLength length = cps.letPrim(new GetLength(list));
       list = cps.refine(list, typeSystem.nonNullType);
-      return cps.letPrim(new BoundsCheck(list, index, length, checkKind,
-          cps.sourceInformation));
-    }
-  }
-
-  /// Similar to [makeBoundsCheck], but also creates a check to validate that
-  /// [index] is an integer.
-  Primitive makeTypeAndBoundsCheck(CpsFragment cps,
-      Primitive list, Primitive index,
-      [int checkKind = BoundsCheck.BOTH_BOUNDS]) {
-    if (compiler.trustPrimitives) {
-      return cps.letPrim(new BoundsCheck.noCheck(list, cps.sourceInformation));
-    } else {
-      GetLength length = cps.letPrim(new GetLength(list));
-      list = cps.refine(list, typeSystem.nonNullType);
-      cps.ifFalsy(cps.letPrim(new TypeTest(
-              index, dartTypes.coreTypes.intType, const [])))
-         .invokeStaticThrower(helpers.throwIllegalArgumentException, [index]);
-      index = cps.refine(index,
-          new TypeMask.nonNullSubclass(helpers.jsIntClass, classWorld));
-      return cps.letPrim(new BoundsCheck(list, index, length, checkKind,
-          cps.sourceInformation));
+      BoundsCheck check = cps.letPrim(new BoundsCheck(list, index, length,
+          checkKind, cps.sourceInformation));
+      if (check.hasIntegerCheck) {
+        if (typeSystem.isDefinitelyInt(index.type)) {
+          check.checks &= ~BoundsCheck.INTEGER;
+        } else {
+          cps.refine(index, typeSystem.uint32Type);
+        }
+      }
+      return check;
     }
   }
 
@@ -1489,13 +1477,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       case '[]':
         Primitive index = node.dartArgument(0);
         CpsFragment cps = new CpsFragment(node.sourceInformation);
-        if (compiler.trustPrimitives ||
-            lattice.isDefinitelyInt(getValue(index))) {
-          receiver = makeBoundsCheck(cps, receiver, index);
-        } else {
-          // Insert a guard and specialize anyways.
-          receiver = makeTypeAndBoundsCheck(cps, receiver, index);
-        }
+        receiver = makeBoundsCheck(cps, receiver, index);
         GetIndex get = cps.letPrim(new GetIndex(receiver, index));
         node.replaceUsesWith(get);
         // TODO(asgerf): Make replaceUsesWith set the hint?
@@ -1510,13 +1492,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         Primitive index = node.dartArgument(0);
         Primitive value = node.dartArgument(1);
         CpsFragment cps = new CpsFragment(node.sourceInformation);
-        if (compiler.trustPrimitives ||
-            lattice.isDefinitelyInt(getValue(index))) {
-          receiver = makeBoundsCheck(cps, receiver, index);
-        } else {
-          // Insert a guard and specialize anyways.
-          receiver = makeTypeAndBoundsCheck(cps, receiver, index);
-        }
+        receiver = makeBoundsCheck(cps, receiver, index);
         cps.letPrim(new SetIndex(receiver, index, value));
         assert(node.hasNoUses);
         return cps;
@@ -2360,7 +2336,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     // The [BoundsChecker] pass does not try to eliminate checks that could be
     // eliminated by constant folding.
     if (node.hasNoChecks) return;
-    int index = lattice.intValue(getValue(node.index.definition));
+    Primitive indexPrim = node.index.definition;
+    int index = lattice.intValue(getValue(indexPrim));
     int length = node.length == null
         ? null
         : lattice.intValue(getValue(node.length.definition));
@@ -2372,6 +2349,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
     if (length != null && length > 0) {
       node.checks &= ~BoundsCheck.EMPTINESS;
+    }
+    if (typeSystem.isDefinitelyInt(indexPrim.type)) {
+      node.checks &= ~BoundsCheck.INTEGER;
     }
     if (!node.lengthUsedInCheck && node.length != null) {
       node..length.unlink()..length = null;
@@ -2930,6 +2910,8 @@ class TypePropagationVisitor implements Visitor {
       case BuiltinOperator.IsNotInteger:
       case BuiltinOperator.IsFloor:
       case BuiltinOperator.IsInteger:
+      case BuiltinOperator.IsUnsigned32BitInteger:
+      case BuiltinOperator.IsNotUnsigned32BitInteger:
         setValue(node, nonConstant(typeSystem.boolType));
         break;
 

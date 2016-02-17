@@ -781,14 +781,21 @@ class Refinement extends Primitive {
 
 /// Checks that [index] is a valid index on a given indexable [object].
 ///
-/// Compiles to the following, with a subset of the conditions in the `if`:
+/// In the simplest form, compiles to the following:
 ///
-///     if (index < 0 || index >= object.length || object.length === 0)
+///     if (index < 0 || index >= object.length)
 ///         ThrowIndexOutOfRangeException(object, index);
 ///
-/// [index] must be an integer, and [object] must refer to null or an indexable
-/// object, and [length] must be the length of [object] at the time of the
-/// check.
+/// In the general form, any of the following conditions can be checked:
+///
+///  Lower bound: `index >= 0`
+///  Upper bound: `index < object.length`
+///  Emptiness:   `object.length !== 0`
+///  Integerness: `index >>> 0 === index`
+///
+/// [index] must be an integer unless integerness is checked, and [object] must
+/// refer to null or an indexable object, and [length] must be the length of
+/// [object] at the time of the check.
 ///
 /// Returns [object] so the bounds check can be used to restrict code motion.
 /// It is possible to have a bounds check node that performs no checks but
@@ -825,6 +832,9 @@ class BoundsCheck extends Primitive {
   /// because that corresponds to `object.length - 1` in the error case.
   bool get hasEmptinessCheck => checks & EMPTINESS != 0;
 
+  /// If true, check that `index` is an integer.
+  bool get hasIntegerCheck => checks & INTEGER != 0;
+
   /// True if the [length] is needed to perform the check.
   bool get lengthUsedInCheck => checks & (UPPER_BOUND | EMPTINESS) != 0;
 
@@ -833,6 +843,7 @@ class BoundsCheck extends Primitive {
   static const int UPPER_BOUND = 1 << 0;
   static const int LOWER_BOUND = 1 << 1;
   static const int EMPTINESS = 1 << 2; // See [hasEmptinessCheck].
+  static const int INTEGER = 1 << 3; // Check if index is an int.
   static const int BOTH_BOUNDS = UPPER_BOUND | LOWER_BOUND;
   static const int NONE = 0;
 
@@ -859,17 +870,13 @@ class BoundsCheck extends Primitive {
   }
 
   String get checkString {
-    if (hasUpperBoundCheck && hasLowerBoundCheck) {
-      return 'upper-lower-checks';
-    } else if (hasUpperBoundCheck) {
-      return 'upper-check';
-    } else if (hasLowerBoundCheck) {
-      return 'lower-check';
-    } else if (hasEmptinessCheck) {
-      return 'emptiness-check';
-    } else {
-      return 'no-check';
-    }
+    if (hasNoChecks) return 'no-check';
+    return [hasUpperBoundCheck ? 'upper' : null,
+        hasLowerBoundCheck ? 'lower' : null,
+        hasEmptinessCheck ? 'emptiness' : null,
+        hasIntegerCheck ? 'integer' : null,
+        'check']
+        .where((x) => x != null).join('-');
   }
 
   bool get isSafeForElimination => checks == NONE;
