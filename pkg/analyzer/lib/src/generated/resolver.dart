@@ -7160,6 +7160,11 @@ class ResolverVisitor extends ScopedVisitor {
   bool resolveOnlyCommentInFunctionBody = false;
 
   /**
+   * Body of the function currently being analyzed, if any.
+   */
+  FunctionBody _currentFunctionBody;
+
+  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
    * The [definingLibrary] is the element for the library containing the node
@@ -7845,12 +7850,15 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
+    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
+      _currentFunctionBody = node.body;
       _enclosingFunction = node.element;
       FunctionType type = _enclosingFunction.type;
       InferenceContext.setType(node.body, type.returnType);
       super.visitConstructorDeclaration(node);
     } finally {
+      _currentFunctionBody = outerFunctionBody;
       _enclosingFunction = outerFunction;
     }
     ConstructorElementImpl constructor = node.element;
@@ -8094,13 +8102,16 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
+    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
       SimpleIdentifier functionName = node.name;
+      _currentFunctionBody = node.functionExpression.body;
       _enclosingFunction = functionName.staticElement as ExecutableElement;
       InferenceContext.setType(
           node.functionExpression, _enclosingFunction.type);
       super.visitFunctionDeclaration(node);
     } finally {
+      _currentFunctionBody = outerFunctionBody;
       _enclosingFunction = outerFunction;
     }
     return null;
@@ -8115,7 +8126,9 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitFunctionExpression(FunctionExpression node) {
     ExecutableElement outerFunction = _enclosingFunction;
+    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
+      _currentFunctionBody = node.body;
       _enclosingFunction = node.element;
       _overrideManager.enterScope();
       try {
@@ -8137,6 +8150,7 @@ class ResolverVisitor extends ScopedVisitor {
         _overrideManager.exitScope();
       }
     } finally {
+      _currentFunctionBody = outerFunctionBody;
       _enclosingFunction = outerFunction;
     }
     return null;
@@ -8333,7 +8347,9 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
+    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
+      _currentFunctionBody = node.body;
       _enclosingFunction = node.element;
       DartType returnType = _computeReturnOrYieldType(
           _enclosingFunction.type?.returnType,
@@ -8342,6 +8358,7 @@ class ResolverVisitor extends ScopedVisitor {
       InferenceContext.setType(node.body, returnType);
       super.visitMethodDeclaration(node);
     } finally {
+      _currentFunctionBody = outerFunctionBody;
       _enclosingFunction = outerFunction;
     }
     return null;
@@ -8587,7 +8604,7 @@ class ResolverVisitor extends ScopedVisitor {
   void _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
       AstNode target) {
     for (Element element in _promoteManager.promotedElements) {
-      if ((element as VariableElementImpl).isPotentiallyMutatedInScope) {
+      if (_currentFunctionBody.isPotentiallyMutatedInScope(element)) {
         if (_isVariableAccessedInClosure(element, target)) {
           _promoteManager.setType(element, null);
         }
@@ -8880,7 +8897,7 @@ class ResolverVisitor extends ScopedVisitor {
     VariableElement element = getPromotionStaticElement(expression);
     if (element != null) {
       // may be mutated somewhere in closure
-      if (element.isPotentiallyMutatedInClosure) {
+      if (_currentFunctionBody.isPotentiallyMutatedInClosure(element)) {
         return;
       }
       // prepare current variable type
