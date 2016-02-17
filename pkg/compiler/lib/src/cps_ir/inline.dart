@@ -18,6 +18,7 @@ import '../types/types.dart' show
     FlatTypeMask, ForwardingTypeMask, TypeMask, UnionTypeMask;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
+import 'package:js_ast/js_ast.dart' as js;
 
 /// Inlining stack entries.
 ///
@@ -259,7 +260,31 @@ class SizeVisitor extends TrampolineRecursiveVisitor {
       --size;
     }
   }
+
+  processForeignCode(ForeignCode node) {
+    // Count the number of nodes in the JS fragment, and discount the size
+    // originally added by LetPrim.
+    JsSizeVisitor visitor = new JsSizeVisitor();
+    node.codeTemplate.ast.accept(visitor);
+    size += visitor.size - 1;
+  }
 }
+
+class JsSizeVisitor extends js.BaseVisitor {
+  int size = 0;
+
+  visitNode(js.Node node) {
+    ++size;
+    return super.visitNode(node);
+  }
+
+  visitInterpolatedExpression(js.InterpolatedExpression node) {
+    // Suppress call to visitNode.  Placeholders should not be counted, because
+    // the argument has already been counted, and will in most cases be inserted
+    // directly in the placeholder.
+  }
+}
+
 
 class InliningVisitor extends TrampolineRecursiveVisitor {
   final Inliner _inliner;
