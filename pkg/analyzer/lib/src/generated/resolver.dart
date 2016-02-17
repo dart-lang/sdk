@@ -12486,6 +12486,12 @@ class VariableResolverVisitor extends ScopedVisitor {
             nameScope: nameScope);
 
   @override
+  Object visitBlockFunctionBody(BlockFunctionBody node) {
+    assert(_localVariableInfo != null);
+    return super.visitBlockFunctionBody(node);
+  }
+
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
@@ -12502,6 +12508,12 @@ class VariableResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitExportDirective(ExportDirective node) => null;
+
+  @override
+  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    assert(_localVariableInfo != null);
+    return super.visitExpressionFunctionBody(node);
+  }
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
