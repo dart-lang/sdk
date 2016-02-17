@@ -1781,9 +1781,9 @@ class _LibraryResynthesizer {
    * method declared as `class C<T, U> { void m<V, W>() { ... } }`, then the
    * type parameters will be returned in the order `[V, W, T, U]`.
    */
-  List<TypeParameterType> getCurrentTypeArguments({int skipLevels: 0}) {
+  List<DartType> getCurrentTypeArguments({int skipLevels: 0}) {
     assert(currentTypeParameters.length >= skipLevels);
-    List<TypeParameterType> result = <TypeParameterType>[];
+    List<DartType> result = <DartType>[];
     for (int i = currentTypeParameters.length - 1 - skipLevels; i >= 0; i--) {
       result.addAll(currentTypeParameters[i]
           .map((TypeParameterElement param) => param.type));
