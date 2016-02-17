@@ -63,6 +63,10 @@ class DiagnosticDomainHandler implements RequestHandler {
           AnalysisTarget target = iterator.key;
           if (countedTargets.add(target)) {
             CacheEntry cacheEntry = iterator.value;
+            if (cacheEntry == null) {
+              throw new StateError(
+                  "mutated cache key detected: $target (${target.runtimeType})");
+            }
             if (target is Source) {
               if (cacheEntry.explicitlyAdded) {
                 explicitFiles++;
