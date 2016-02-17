@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.2
+# Dart VM Service Protocol 3.3
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.2_ of the Dart VM Service Protocol. This
+This document describes of _version 3.3_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1924,8 +1924,9 @@ class Isolate extends Response {
   // The current pause on exception mode for this isolate.
   ExceptionPauseMode exceptionPauseMode;
 
-  // The list of service extension RPCs that are registered for this isolate.
-  string[] extensionRPCs;
+  // The list of service extension RPCs that are registered for this isolate,
+  // if any.
+  string[] extensionRPCs [optional];
 }
 ```
 
