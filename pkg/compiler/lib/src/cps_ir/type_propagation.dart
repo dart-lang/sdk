@@ -1270,6 +1270,22 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       return cps;
     }
 
+    Selector renameToOptimizedSelector(String name) {
+      return new Selector.call(
+          new Name(name, backend.helpers.interceptorsLibrary),
+          node.selector.callStructure);
+    }
+
+    /// Replaces the call with a call to [name] with the same inputs.
+    InvokeMethod makeRenamedInvoke(String name) {
+      return new InvokeMethod(node.receiver.definition,
+          renameToOptimizedSelector(name),
+          node.mask,
+          node.arguments.map((ref) => ref.definition).toList(),
+          sourceInformation: node.sourceInformation,
+          callingConvention: node.callingConvention);
+    }
+
     TypeMask successType =
         typeSystem.receiverTypeFor(node.selector, node.dartReceiver.type);
 
@@ -1326,10 +1342,20 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           // Try to insert a shift-right operator. JavaScript's right shift is
           // consistent with Dart's only for left operands in the unsigned
           // 32-bit range.
-          if (opname == '>>' &&
-              lattice.isDefinitelyUint32(left, allowNull: true) &&
-              lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
-            return makeBinary(BuiltinOperator.NumShr, guard: checkIsNumber);
+          if (opname == '>>') {
+            if (lattice.isDefinitelyUint32(left, allowNull: true) &&
+                lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
+              return makeBinary(BuiltinOperator.NumShr, guard: checkIsNumber);
+            } else if (lattice.isDefinitelyUint(left) &&
+                       lattice.isDefinitelyUint(right)) {
+              return makeRenamedInvoke('_shrBothPositive');
+            } else if (lattice.isDefinitelyUint(left) &&
+                       lattice.isDefinitelyNum(right)) {
+              return makeRenamedInvoke('_shrReceiverPositive');
+            } else if (lattice.isDefinitelyNum(left) &&
+                       lattice.isDefinitelyUint(right)) {
+              return makeRenamedInvoke('_shrOtherPositive');
+            }
           }
           // Try to use remainder for '%'. Both operands must be non-negative
           // and the divisor must be non-zero.
