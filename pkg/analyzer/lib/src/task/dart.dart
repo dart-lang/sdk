@@ -2224,6 +2224,16 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('DartErrorsTask',
       createTask, buildInputs, <ResultDescriptor>[DART_ERRORS]);
 
+  /**
+   * The name of the [LINE_INFO_INPUT] input.
+   */
+  static const String LINE_INFO_INPUT = 'LINE_INFO_INPUT';
+
+  /**
+   * The name of the [PARSED_UNIT_INPUT] input.
+   */
+  static const String PARSED_UNIT_INPUT = 'PARSED_UNIT_INPUT';
+
   // Prefix for comments ignoring error codes.
   static const String _normalizedIgnorePrefix = '//#ignore:';
 
@@ -2274,14 +2284,9 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
     // Sort errors.
     errors.sort((AnalysisError e1, AnalysisError e2) => e1.offset - e2.offset);
 
-    Source source = target;
-    String contents = context.getContents(source).data;
-    Scanner scanner = new Scanner(source, new CharSequenceReader(contents),
-        AnalysisErrorListener.NULL_LISTENER);
-
-    // Scan.
-    Token token = scanner.tokenize();
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+    CompilationUnit cu = getRequiredInput(PARSED_UNIT_INPUT);
+    Token token = cu.beginToken;
+    LineInfo lineInfo = getRequiredInput(LINE_INFO_INPUT);
 
     int errorIndex = 0;
 
@@ -2344,6 +2349,8 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
     Map<String, TaskInput> inputs = <String, TaskInput>{};
+    inputs[LINE_INFO_INPUT] = LINE_INFO.of(source);
+    inputs[PARSED_UNIT_INPUT] = PARSED_UNIT.of(source);
     EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
     // for Source
     for (ResultDescriptor result in enginePlugin.dartErrorsForSource) {
