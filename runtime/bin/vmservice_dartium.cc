@@ -64,11 +64,6 @@ Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
 
   Dart_Handle result;
 
-  // Prepare for script loading by setting up the 'print' and 'timer'
-  // closures and setting up 'package root' for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(true, false);
-  CHECK_RESULT(result);
-
   ASSERT(Dart_IsServiceIsolate(isolate));
   if (!VmService::Setup(DEFAULT_VM_SERVICE_SERVER_IP,
                         DEFAULT_VM_SERVICE_SERVER_PORT,
