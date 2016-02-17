@@ -2383,9 +2383,7 @@ C toSpan(dynamic element) {
   }
   return null;
 }''');
-    SimpleIdentifier y = _findIdentifier('y = ');
-    expect(y.staticType.toString(), 'dynamic');
-    expect(y.propagatedType.toString(), 'List<dynamic>');
+    _expectIdentifierType('y = ', 'dynamic', 'List<dynamic>');
   }
 }
 
@@ -10146,11 +10144,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.isDynamic, isTrue);
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'dynamic', isNull);
   }
 
   void test_FunctionExpressionInvocation_curried() {
@@ -10162,11 +10156,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'int', isNull);
   }
 
   void test_FunctionExpressionInvocation_expression() {
@@ -10176,11 +10166,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'int', isNull);
   }
 
   void test_MethodInvocation_nameType_localVariable() {
@@ -10193,9 +10179,7 @@ main() {
 """;
     _resolveTestUnit(code);
     // "foo" should be resolved to the "Foo" type
-    SimpleIdentifier identifier = _findIdentifier("foo();");
-    DartType type = identifier.staticType;
-    expect(type, new isInstanceOf<FunctionType>());
+    _expectIdentifierType("foo();", new isInstanceOf<FunctionType>());
   }
 
   void test_MethodInvocation_nameType_parameter_FunctionTypeAlias() {
@@ -10207,9 +10191,7 @@ main(Foo foo) {
 """;
     _resolveTestUnit(code);
     // "foo" should be resolved to the "Foo" type
-    SimpleIdentifier identifier = _findIdentifier("foo();");
-    DartType type = identifier.staticType;
-    expect(type, new isInstanceOf<FunctionType>());
+    _expectIdentifierType("foo();", new isInstanceOf<FunctionType>());
   }
 
   void test_MethodInvocation_nameType_parameter_propagatedType() {
@@ -10222,13 +10204,8 @@ main(p) {
 }
 """;
     _resolveTestUnit(code);
-    SimpleIdentifier identifier = _findIdentifier("p()");
-    expect(identifier.staticType, DynamicTypeImpl.instance);
-    {
-      FunctionType type = identifier.propagatedType;
-      expect(type, isNotNull);
-      expect(type.name, 'Foo');
-    }
+    _expectIdentifierType("p()", DynamicTypeImpl.instance,
+        predicate((type) => type.name == 'Foo'));
   }
 
   void test_staticMethods_classTypeParameters() {
@@ -10241,15 +10218,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-    SimpleIdentifier identifier = _findIdentifier('m);');
-    FunctionTypeImpl type = identifier.staticType;
-    expect(type.toString(), '() → void');
-    expect(type.typeParameters, isEmpty,
-        reason: 'static methods should not have type parameters');
-    expect(type.typeArguments, isEmpty,
-        reason: 'static methods should not have type arguments');
-    expect(type.typeFormals, isEmpty,
-        reason: 'this static method is not generic');
+    _expectFunctionType('m);', '() → void');
   }
 
   void test_staticMethods_classTypeParameters_genericMethod() {
@@ -10271,16 +10240,11 @@ main() {
     // C - m
     TypeParameterType typeS;
     {
-      SimpleIdentifier identifier = _findIdentifier('m);');
-      FunctionTypeImpl type = identifier.staticType;
-      expect(type.toString(), '<S>(S) → void');
-      expect(type.typeParameters, isEmpty,
-          reason: 'static methods should not have type parameters');
-      expect(type.typeArguments, isEmpty,
-          reason: 'static methods should not have type arguments');
-      expect(type.typeFormals.toString(), '[S]');
-      typeS = type.typeFormals[0].type;
+      _expectFunctionType('m);', '<S>(S) → void',
+          elementTypeParams: '[S]', typeFormals: '[S]');
 
+      FunctionTypeImpl type = _findIdentifier('m);').staticType;
+      typeS = type.typeFormals[0].type;
       type = type.instantiate([DynamicTypeImpl.instance]);
       expect(type.toString(), '(dynamic) → void');
       expect(type.typeParameters.toString(), '[S]');
@@ -10289,13 +10253,13 @@ main() {
     }
     // C - m - f
     {
-      SimpleIdentifier identifier = _findIdentifier('f);');
-      FunctionTypeImpl type = identifier.staticType;
-      expect(type.toString(), '<U>(S, U) → void');
-      expect(type.typeParameters.toString(), '[S]');
-      expect(type.typeArguments.toString(), '[S]');
-      expect(type.typeFormals.toString(), '[U]');
+      _expectFunctionType('f);', '<U>(S, U) → void',
+          elementTypeParams: '[U]',
+          typeParams: '[S]',
+          typeArgs: '[S]',
+          typeFormals: '[U]');
 
+      FunctionTypeImpl type = _findIdentifier('f);').staticType;
       type = type.instantiate([DynamicTypeImpl.instance]);
       expect(type.toString(), '(S, dynamic) → void');
       expect(type.typeParameters.toString(), '[S, U]');
@@ -13364,20 +13328,13 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var paramTearOffInst = pf/*<int>*/;
 }
 ''');
-    expect(_findIdentifier('methodTearOffInst').staticType.toString(),
-        "(int) → int");
-    expect(_findIdentifier('staticTearOffInst').staticType.toString(),
-        "(int) → int");
-    expect(_findIdentifier('staticFieldTearOffInst').staticType.toString(),
-        "(int) → int");
-    expect(_findIdentifier('topFunTearOffInst').staticType.toString(),
-        "(int) → int");
-    expect(_findIdentifier('topFieldTearOffInst').staticType.toString(),
-        "(int) → int");
-    expect(_findIdentifier('localTearOffInst').staticType.toString(),
-        "(int) → int");
-    expect(_findIdentifier('paramTearOffInst').staticType.toString(),
-        "(int) → int");
+    _expectIdentifierType('methodTearOffInst', "(int) → int");
+    _expectIdentifierType('staticTearOffInst', "(int) → int");
+    _expectIdentifierType('staticFieldTearOffInst', "(int) → int");
+    _expectIdentifierType('topFunTearOffInst', "(int) → int");
+    _expectIdentifierType('topFieldTearOffInst', "(int) → int");
+    _expectIdentifierType('localTearOffInst', "(int) → int");
+    _expectIdentifierType('paramTearOffInst', "(int) → int");
   }
 
   void setUp() {
@@ -13395,12 +13352,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'int', isNull);
   }
 
   void test_dynamicObjectMethod_toString() {
@@ -13411,47 +13363,34 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'String');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'String', isNull);
   }
 
   void test_genericFunction() {
     _resolveTestUnit(r'/*=T*/ f/*<T>*/(/*=T*/ x) => null;');
+    _expectFunctionType('f', '<T>(T) → T',
+        elementTypeParams: '[T]', typeFormals: '[T]');
     SimpleIdentifier f = _findIdentifier('f');
     FunctionElementImpl e = f.staticElement;
-    expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.typeFormals.toString(), '[T]');
-    expect(e.type.typeParameters.toString(), '[]');
-    expect(e.type.toString(), '<T>(T) → T');
-
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
     expect(ft.toString(), '(String) → String');
   }
 
   void test_genericFunction_bounds() {
     _resolveTestUnit(r'/*=T*/ f/*<T extends num>*/(/*=T*/ x) => null;');
-    SimpleIdentifier f = _findIdentifier('f');
-    FunctionElementImpl e = f.staticElement;
-    expect(e.typeParameters.toString(), '[T extends num]');
-    expect(e.type.typeFormals.toString(), '[T extends num]');
-    expect(e.type.typeParameters.toString(), '[]');
-    expect(e.type.toString(), '<T extends num>(T) → T');
+    _expectFunctionType('f', '<T extends num>(T) → T',
+        elementTypeParams: '[T extends num]', typeFormals: '[T extends num]');
   }
 
   void test_genericFunction_parameter() {
     _resolveTestUnit(r'''
 void g(/*=T*/ f/*<T>*/(/*=T*/ x)) {}
 ''');
+    _expectFunctionType('f', '<T>(T) → T',
+        elementTypeParams: '[T]', typeFormals: '[T]');
     SimpleIdentifier f = _findIdentifier('f');
     ParameterElementImpl e = f.staticElement;
     FunctionType type = e.type;
-    expect(e.typeParameters.toString(), '[T]');
-    expect(type.typeFormals.toString(), '[T]');
-    expect(type.toString(), '<T>(T) → T');
     FunctionType ft = type.instantiate([typeProvider.stringType]);
     expect(ft.toString(), '(String) → String');
   }
@@ -13462,14 +13401,10 @@ class C<E> {
   static /*=T*/ f/*<T>*/(/*=T*/ x) => null;
 }
 ''');
+    _expectFunctionType('f', '<T>(T) → T',
+        elementTypeParams: '[T]', typeFormals: '[T]');
     SimpleIdentifier f = _findIdentifier('f');
     MethodElementImpl e = f.staticElement;
-    expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.typeFormals.toString(), '[T]');
-    expect(e.type.typeParameters.toString(), '[]');
-    expect(e.type.typeArguments.toString(), '[]');
-    expect(e.type.toString(), '<T>(T) → T');
-
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
     expect(ft.toString(), '(String) → String');
   }
@@ -13507,46 +13442,18 @@ class D<S> {
 ''';
     _resolveTestUnit(code);
 
-    {
+    checkBody(String className) {
       List<Statement> statements =
-          AstFinder.getStatementsInMethod(testUnit, "C", "g");
+          AstFinder.getStatementsInMethod(testUnit, className, "g");
 
-      ExpressionStatement exps0 = statements[1];
-      ExpressionStatement exps1 = statements[2];
-      ExpressionStatement exps2 = statements[3];
-      ExpressionStatement exps3 = statements[4];
-      ExpressionStatement exps4 = statements[5];
-      Expression exp0 = exps0.expression;
-      Expression exp1 = exps1.expression;
-      Expression exp2 = exps2.expression;
-      Expression exp3 = exps3.expression;
-      Expression exp4 = exps4.expression;
-      expect(exp0.staticType, typeProvider.dynamicType);
-      expect(exp1.staticType, typeProvider.dynamicType);
-      expect(exp2.staticType, typeProvider.dynamicType);
-      expect(exp3.staticType, typeProvider.dynamicType);
-      expect(exp4.staticType, typeProvider.dynamicType);
+      for (int i = 1; i <= 5; i++) {
+        Expression exp = (statements[i] as ExpressionStatement).expression;
+        expect(exp.staticType, typeProvider.dynamicType);
+      }
     }
-    {
-      List<Statement> statements =
-          AstFinder.getStatementsInMethod(testUnit, "D", "g");
 
-      ExpressionStatement exps0 = statements[1];
-      ExpressionStatement exps1 = statements[2];
-      ExpressionStatement exps2 = statements[3];
-      ExpressionStatement exps3 = statements[4];
-      ExpressionStatement exps4 = statements[5];
-      Expression exp0 = exps0.expression;
-      Expression exp1 = exps1.expression;
-      Expression exp2 = exps2.expression;
-      Expression exp3 = exps3.expression;
-      Expression exp4 = exps4.expression;
-      expect(exp0.staticType, typeProvider.dynamicType);
-      expect(exp1.staticType, typeProvider.dynamicType);
-      expect(exp2.staticType, typeProvider.dynamicType);
-      expect(exp3.staticType, typeProvider.dynamicType);
-      expect(exp4.staticType, typeProvider.dynamicType);
-    }
+    checkBody("C");
+    checkBody("D");
   }
 
   void test_genericMethod() {
@@ -13558,14 +13465,11 @@ main() {
   C<String> cOfString;
 }
 ''');
-    SimpleIdentifier f = _findIdentifier('f');
-    MethodElementImpl e = f.staticElement;
-    expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.typeFormals.toString(), '[T]');
-    expect(e.type.typeParameters.toString(), '[E]');
-    expect(e.type.typeArguments.toString(), '[E]');
-    expect(e.type.toString(), '<T>(E) → List<T>');
-
+    _expectFunctionType('f', '<T>(E) → List<T>',
+        elementTypeParams: '[T]',
+        typeParams: '[E]',
+        typeArgs: '[E]',
+        typeFormals: '[T]');
     SimpleIdentifier c = _findIdentifier('cOfString');
     FunctionType ft = (c.staticType as InterfaceType).getMethod('f').type;
     expect(ft.toString(), '<T>(String) → List<T>');
@@ -13618,14 +13522,14 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var paramCall = (pf)/*<int>*/(3);
 }
 ''');
-    expect(_findIdentifier('methodCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('localCall').staticType.toString(), "int");
-    expect(_findIdentifier('paramCall').staticType.toString(), "int");
-    expect(_findIdentifier('lambdaCall').staticType.toString(), "int");
+    _expectIdentifierType('methodCall', "int");
+    _expectIdentifierType('staticCall', "int");
+    _expectIdentifierType('staticFieldCall', "int");
+    _expectIdentifierType('topFunCall', "int");
+    _expectIdentifierType('topFieldCall', "int");
+    _expectIdentifierType('localCall', "int");
+    _expectIdentifierType('paramCall', "int");
+    _expectIdentifierType('lambdaCall', "int");
   }
 
   void test_genericMethod_functionExpressionInvocation_inferred() {
@@ -13652,14 +13556,14 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var paramCall = (pf)(3);
 }
 ''');
-    expect(_findIdentifier('methodCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('localCall').staticType.toString(), "int");
-    expect(_findIdentifier('paramCall').staticType.toString(), "int");
-    expect(_findIdentifier('lambdaCall').staticType.toString(), "int");
+    _expectIdentifierType('methodCall', "int");
+    _expectIdentifierType('staticCall', "int");
+    _expectIdentifierType('staticFieldCall', "int");
+    _expectIdentifierType('topFunCall', "int");
+    _expectIdentifierType('topFieldCall', "int");
+    _expectIdentifierType('localCall', "int");
+    _expectIdentifierType('paramCall', "int");
+    _expectIdentifierType('lambdaCall', "int");
   }
 
   void test_genericMethod_functionInvocation_explicit() {
@@ -13684,13 +13588,13 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var paramCall = pf/*<int>*/(3);
 }
 ''');
-    expect(_findIdentifier('methodCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('localCall').staticType.toString(), "int");
-    expect(_findIdentifier('paramCall').staticType.toString(), "int");
+    _expectIdentifierType('methodCall', "int");
+    _expectIdentifierType('staticCall', "int");
+    _expectIdentifierType('staticFieldCall', "int");
+    _expectIdentifierType('topFunCall', "int");
+    _expectIdentifierType('topFieldCall', "int");
+    _expectIdentifierType('localCall', "int");
+    _expectIdentifierType('paramCall', "int");
   }
 
   void test_genericMethod_functionInvocation_inferred() {
@@ -13715,13 +13619,13 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var paramCall = pf(3);
 }
 ''');
-    expect(_findIdentifier('methodCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('localCall').staticType.toString(), "int");
-    expect(_findIdentifier('paramCall').staticType.toString(), "int");
+    _expectIdentifierType('methodCall', "int");
+    _expectIdentifierType('staticCall', "int");
+    _expectIdentifierType('staticFieldCall', "int");
+    _expectIdentifierType('topFunCall', "int");
+    _expectIdentifierType('topFieldCall', "int");
+    _expectIdentifierType('localCall', "int");
+    _expectIdentifierType('paramCall', "int");
   }
 
   void test_genericMethod_functionTypedParameter() {
@@ -13733,13 +13637,11 @@ main() {
   C<String> cOfString;
 }
 ''');
-    SimpleIdentifier f = _findIdentifier('f');
-    MethodElementImpl e = f.staticElement;
-    expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.typeFormals.toString(), '[T]');
-    expect(e.type.typeParameters.toString(), '[E]');
-    expect(e.type.typeArguments.toString(), '[E]');
-    expect(e.type.toString(), '<T>((E) → T) → List<T>');
+    _expectFunctionType('f', '<T>((E) → T) → List<T>',
+        elementTypeParams: '[T]',
+        typeParams: '[E]',
+        typeArgs: '[E]',
+        typeFormals: '[T]');
 
     SimpleIdentifier c = _findIdentifier('cOfString');
     FunctionType ft = (c.staticType as InterfaceType).getMethod('f').type;
@@ -13761,17 +13663,13 @@ void foo() {
   list.map((e) => e);
   list.map((e) => 3);
 }''');
+    _expectIdentifierType('map((e) => e);', '<T>((dynamic) → T) → T', isNull);
+    _expectIdentifierType('map((e) => 3);', '<T>((dynamic) → T) → T', isNull);
 
-    SimpleIdentifier map1 = _findIdentifier('map((e) => e);');
-    MethodInvocation m1 = map1.parent;
+    MethodInvocation m1 = _findIdentifier('map((e) => e);').parent;
     expect(m1.staticInvokeType.toString(), '((dynamic) → dynamic) → dynamic');
-    expect(map1.staticType.toString(), '<T>((dynamic) → T) → T');
-    expect(map1.propagatedType, isNull);
-    SimpleIdentifier map2 = _findIdentifier('map((e) => 3);');
-    MethodInvocation m2 = map2.parent;
+    MethodInvocation m2 = _findIdentifier('map((e) => 3);').parent;
     expect(m2.staticInvokeType.toString(), '((dynamic) → int) → int');
-    expect(map2.staticType.toString(), '<T>((dynamic) → T) → T');
-    expect(map2.propagatedType, isNull);
   }
 
   void test_genericMethod_max_doubleDouble() {
@@ -13782,12 +13680,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'double');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'double', isNull);
   }
 
   void test_genericMethod_max_doubleDouble_prefixed() {
@@ -13798,12 +13691,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'double');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'double', isNull);
   }
 
   void test_genericMethod_max_doubleInt() {
@@ -13814,12 +13702,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'num');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'num', isNull);
   }
 
   void test_genericMethod_max_intDouble() {
@@ -13830,12 +13713,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'num');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'num', isNull);
   }
 
   void test_genericMethod_max_intInt() {
@@ -13846,12 +13724,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'int', isNull);
   }
 
   void test_genericMethod_nestedBound() {
@@ -13881,8 +13754,7 @@ class C<T> {
     FunctionType ft = f.staticInvokeType;
     expect('${ft.typeArguments}/${ft.typeParameters}', '[S, int]/[T, S]');
 
-    SimpleIdentifier f2 = _findIdentifier('f;');
-    expect(f2.staticType.toString(), '<S₀>(S₀) → S');
+    _expectIdentifierType('f;', '<S₀>(S₀) → S');
   }
 
   void test_genericMethod_nestedFunctions() {
@@ -13892,10 +13764,8 @@ class C<T> {
   return null;
 }
 ''');
-    SimpleIdentifier g = _findIdentifier('f');
-    expect(g.staticType.toString(), '<S>(S) → S');
-    SimpleIdentifier f = _findIdentifier('g');
-    expect(f.staticType.toString(), '<S>(S) → dynamic');
+    _expectIdentifierType('f', '<S>(S) → S');
+    _expectIdentifierType('g', '<S>(S) → dynamic');
   }
 
   void test_genericMethod_override() {
@@ -13907,13 +13777,11 @@ class D extends C {
   /*=T*/ f/*<T>*/(/*=T*/ x) => null; // from D
 }
 ''');
+    _expectFunctionType('f/*<T>*/(/*=T*/ x) => null; // from D', '<T>(T) → T',
+        elementTypeParams: '[T]', typeFormals: '[T]');
     SimpleIdentifier f =
         _findIdentifier('f/*<T>*/(/*=T*/ x) => null; // from D');
     MethodElementImpl e = f.staticElement;
-    expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.typeFormals.toString(), '[T]');
-    expect(e.type.toString(), '<T>(T) → T');
-
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
     expect(ft.toString(), '(String) → String');
   }
@@ -14015,9 +13883,7 @@ C toSpan(dynamic element) {
   }
   return null;
 }''');
-    SimpleIdentifier y = _findIdentifier('y = ');
-    expect(y.staticType.toString(), 'List<C>');
-    expect(y.propagatedType, isNull);
+    _expectIdentifierType('y = ', 'List<C>', isNull);
   }
 
   void test_genericMethod_tearoff() {
@@ -14042,18 +13908,13 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var paramTearOff = pf;
 }
 ''');
-    expect(
-        _findIdentifier('methodTearOff').staticType.toString(), "<T>(int) → T");
-    expect(
-        _findIdentifier('staticTearOff').staticType.toString(), "<T>(T) → T");
-    expect(_findIdentifier('staticFieldTearOff').staticType.toString(),
-        "<T>(T) → T");
-    expect(
-        _findIdentifier('topFunTearOff').staticType.toString(), "<T>(T) → T");
-    expect(
-        _findIdentifier('topFieldTearOff').staticType.toString(), "<T>(T) → T");
-    expect(_findIdentifier('localTearOff').staticType.toString(), "<T>(T) → T");
-    expect(_findIdentifier('paramTearOff').staticType.toString(), "<T>(T) → T");
+    _expectIdentifierType('methodTearOff', "<T>(int) → T");
+    _expectIdentifierType('staticTearOff', "<T>(T) → T");
+    _expectIdentifierType('staticFieldTearOff', "<T>(T) → T");
+    _expectIdentifierType('topFunTearOff', "<T>(T) → T");
+    _expectIdentifierType('topFieldTearOff', "<T>(T) → T");
+    _expectIdentifierType('localTearOff', "<T>(T) → T");
+    _expectIdentifierType('paramTearOff', "<T>(T) → T");
   }
 
   void test_genericMethod_then() {
@@ -14066,13 +13927,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-
-    expect(declaration.initializer.staticType.toString(), "Future<String>");
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'Future<String>', isNull);
   }
 
   void test_genericMethod_then_prefixed() {
@@ -14085,13 +13940,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-
-    expect(declaration.initializer.staticType.toString(), "Future<String>");
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'Future<String>', isNull);
   }
 
   void test_genericMethod_then_propagatedType() {
@@ -14105,9 +13954,7 @@ void main() {
 ''';
     // This should produce no hints or warnings.
     _resolveTestUnit(code);
-    VariableDeclaration foo = _findIdentifier('foo').parent;
-    expect(foo.initializer.staticType.toString(), "Future<String>");
-    expect(foo.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'Future<String>', isNull);
   }
 
   void test_setterWithDynamicTypeIsError() {
@@ -14190,12 +14037,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'int', isNull);
   }
 
   void test_ternaryOperator_null_right() {
@@ -14205,12 +14047,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'int', isNull);
   }
 }
 
@@ -17124,6 +16961,81 @@ class _StaticTypeAnalyzer2TestShared extends ResolverTestCase {
     SimpleIdentifier identifier = EngineTestCase.findNode(
         testUnit, testCode, search, (node) => node is SimpleIdentifier);
     return identifier;
+  }
+
+  /**
+   * Looks up the identifier with [name] and validates its static [type].
+   *
+   * If [type] is a string, validates that the identifier's static type
+   * stringifies to that text. Otherwise, [type] is used directly a [Matcher]
+   * to match the type.
+   *
+   * If [propagatedType] is given, also validate's the identifier's propagated
+   * type.
+   */
+  void _expectIdentifierType(String name, type, [propagatedType]) {
+    SimpleIdentifier identifier = _findIdentifier(name);
+    _expectType(identifier.staticType, type);
+    if (propagatedType != null) {
+      _expectType(identifier.propagatedType, propagatedType);
+    }
+  }
+
+  /**
+   * Looks up the initializer for the declaration containing [identifier] and
+   * validates its static [type].
+   *
+   * If [type] is a string, validates that the identifier's static type
+   * stringifies to that text. Otherwise, [type] is used directly a [Matcher]
+   * to match the type.
+   *
+   * If [propagatedType] is given, also validate's the identifier's propagated
+   * type.
+   */
+  void _expectInitializerType(String name, type, [propagatedType]) {
+    SimpleIdentifier identifier = _findIdentifier(name);
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    Expression initializer = declaration.initializer;
+    _expectType(initializer.staticType, type);
+    if (propagatedType != null) {
+      _expectType(initializer.propagatedType, propagatedType);
+    }
+  }
+
+  /**
+   * Looks up the identifier with [name] and validates that its type type
+   * stringifies to [type] and that its generics match the given stringified
+   * output.
+   */
+  _expectFunctionType(String name, String type,
+      {String elementTypeParams: '[]',
+      String typeParams: '[]',
+      String typeArgs: '[]',
+      String typeFormals: '[]'}) {
+    SimpleIdentifier identifier = _findIdentifier(name);
+    // Element is either ExecutableElement or ParameterElement.
+    var element = identifier.staticElement;
+    FunctionTypeImpl functionType = identifier.staticType;
+    expect(functionType.toString(), type);
+    expect(element.typeParameters.toString(), elementTypeParams);
+    expect(functionType.typeParameters.toString(), typeParams);
+    expect(functionType.typeArguments.toString(), typeArgs);
+    expect(functionType.typeFormals.toString(), typeFormals);
+  }
+
+  /**
+   * Validates that [type] matches [expected].
+   *
+   * If [expected] is a string, validates that the type stringifies to that
+   * text. Otherwise, [expected] is used directly a [Matcher] to match the type.
+   */
+  _expectType(DartType type, expected) {
+    if (expected is String) {
+      expect(type.toString(), expected);
+    } else {
+      expect(type, expected);
+    }
   }
 
   void _resolveTestUnit(String code) {
