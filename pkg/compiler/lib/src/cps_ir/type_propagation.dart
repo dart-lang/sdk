@@ -2054,14 +2054,18 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         node.replaceUsesWith(argument);
         return new CpsFragment();
       } else if (typeSystem.isDefinitelySelfInterceptor(value.type)) {
-        CpsFragment cps = new CpsFragment(node.sourceInformation);
-        Primitive invoke = cps.invokeMethod(argument,
-            Selectors.toString_,
-            value.type,
-            [cps.makeZero()],
-            CallingConvention.DummyIntercepted);
-        node.replaceUsesWith(invoke);
-        return cps;
+        TypeMask toStringReturn = typeSystem.getInvokeReturnType(
+            Selectors.toString_, value.type);
+        if (typeSystem.isDefinitelyString(toStringReturn)) {
+          CpsFragment cps = new CpsFragment(node.sourceInformation);
+          Primitive invoke = cps.invokeMethod(argument,
+              Selectors.toString_,
+              value.type,
+              [cps.makeZero()],
+              CallingConvention.DummyIntercepted);
+          node.replaceUsesWith(invoke);
+          return cps;
+        }
       }
     } else if (node.target == compiler.identicalFunction) {
       if (node.arguments.length == 2) {
