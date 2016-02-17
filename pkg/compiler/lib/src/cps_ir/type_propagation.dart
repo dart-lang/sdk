@@ -44,7 +44,10 @@ class ConstantPropagationLattice {
   final ConstantSystem constantSystem;
   final types.DartTypes dartTypes;
   final AbstractConstantValue anything;
+  final AbstractConstantValue nothing = new AbstractConstantValue.nothing();
   final AbstractConstantValue nullValue;
+  final AbstractConstantValue trueValue;
+  final AbstractConstantValue falseValue;
 
   ConstantPropagationLattice(CpsFunctionCompiler functionCompiler)
     : typeSystem = functionCompiler.typeSystem,
@@ -53,9 +56,11 @@ class ConstantPropagationLattice {
       anything = new AbstractConstantValue.nonConstant(
           functionCompiler.typeSystem.dynamicType),
       nullValue = new AbstractConstantValue.constantValue(
-          new NullConstantValue(), new TypeMask.empty());
-
-  final AbstractConstantValue nothing = new AbstractConstantValue.nothing();
+          new NullConstantValue(), new TypeMask.empty()),
+      trueValue = new AbstractConstantValue.constantValue(
+          new TrueConstantValue(), functionCompiler.typeSystem.boolType),
+      falseValue = new AbstractConstantValue.constantValue(
+          new FalseConstantValue(), functionCompiler.typeSystem.boolType);
 
   AbstractConstantValue constant(ConstantValue value, [TypeMask type]) {
     if (type == null) type = typeSystem.getTypeOf(value);
@@ -559,21 +564,41 @@ class ConstantPropagationLattice {
 
   AbstractConstantValue lessSpecial(AbstractConstantValue left,
                                     AbstractConstantValue right) {
+    if (isDefinitelyUint(left) && right.isZeroOrNegativeConstant) {
+      return falseValue; // "uint < 0" is false.
+    } else if (left.isNegativeConstant && isDefinitelyUint(right)) {
+      return trueValue; // "-1 < uint" is true.
+    }
     return foldBinary(constantSystem.less, left, right);
   }
 
   AbstractConstantValue lessEqualSpecial(AbstractConstantValue left,
                                          AbstractConstantValue right) {
+    if (isDefinitelyUint(left) && right.isNegativeConstant) {
+      return falseValue; // "uint <= -1" is false.
+    } else if (left.isZeroOrNegativeConstant && isDefinitelyUint(right)) {
+      return trueValue; // "0 <= uint" is true.
+    }
     return foldBinary(constantSystem.lessEqual, left, right);
   }
 
   AbstractConstantValue greaterSpecial(AbstractConstantValue left,
                                        AbstractConstantValue right) {
+    if (left.isZeroOrNegativeConstant && isDefinitelyUint(right)) {
+      return falseValue; // "0 > uint" is false
+    } else if (isDefinitelyUint(left) && right.isNegativeConstant) {
+      return trueValue; // "uint > -1" is true
+    }
     return foldBinary(constantSystem.greater, left, right);
   }
 
   AbstractConstantValue greaterEqualSpecial(AbstractConstantValue left,
                                             AbstractConstantValue right) {
+    if (left.isNegativeConstant && isDefinitelyUint(right)) {
+      return falseValue; // "-1 >= uint" is false
+    } else if (isDefinitelyUint(left) && right.isZeroOrNegativeConstant) {
+      return trueValue; // "uint >= 0" is true
+    }
     return foldBinary(constantSystem.greaterEqual, left, right);
   }
 
@@ -3299,6 +3324,17 @@ class AbstractConstantValue {
   bool get isNullConstant => kind == CONSTANT && constant.isNull;
   bool get isTrueConstant => kind == CONSTANT && constant.isTrue;
   bool get isFalseConstant => kind == CONSTANT && constant.isFalse;
+  bool get isZeroConstant => kind == CONSTANT && constant.isZero;
+  bool get isZeroOrNegativeConstant {
+    if (kind != CONSTANT || !constant.isNum) return false;
+    PrimitiveConstantValue value = constant;
+    return value.primitiveValue <= 0;
+  }
+  bool get isNegativeConstant {
+    if (kind != CONSTANT || !constant.isNum) return false;
+    PrimitiveConstantValue value = constant;
+    return value.primitiveValue < 0;
+  }
 
   bool get isNullable => kind != NOTHING && type.isNullable;
   bool get isDefinitelyNotNull => kind == NOTHING || !type.isNullable;
