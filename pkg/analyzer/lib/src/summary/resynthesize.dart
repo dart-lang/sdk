@@ -1215,6 +1215,7 @@ class _LibraryResynthesizer {
         return new PropertyAccessorElementHandle(
             summaryResynthesizer, location);
       case ReferenceKind.constructor:
+      case ReferenceKind.function:
       case ReferenceKind.propertyAccessor:
       case ReferenceKind.method:
       case ReferenceKind.length:
@@ -1562,6 +1563,10 @@ class _LibraryResynthesizer {
       }
       parameterElement.hasImplicitType = serializedParameter.type == null;
     }
+    if (serializedParameter.initializer != null) {
+      parameterElement.initializer =
+          buildLocalFunction(serializedParameter.initializer);
+    }
     switch (serializedParameter.kind) {
       case UnlinkedParamKind.named:
         parameterElement.parameterKind = ParameterKind.NAMED;
@@ -1745,6 +1750,9 @@ class _LibraryResynthesizer {
     element.const3 = serializedVariable.isConst;
     element.final2 = serializedVariable.isFinal;
     element.hasImplicitType = serializedVariable.type == null;
+    if (serializedVariable.initializer != null) {
+      element.initializer = buildLocalFunction(serializedVariable.initializer);
+    }
     buildDocumentation(element, serializedVariable.documentationComment);
     buildAnnotations(element, serializedVariable.annotations);
   }
@@ -1926,6 +1934,7 @@ class _LibraryResynthesizer {
             element = new FunctionTypeAliasElementHandle(
                 summaryResynthesizer, location);
             break;
+          case ReferenceKind.function:
           case ReferenceKind.prefix:
           case ReferenceKind.unresolved:
             break;

@@ -38,7 +38,10 @@ ReferenceKind _getReferenceKind(Element element) {
   } else if (element is ConstructorElement) {
     return ReferenceKind.constructor;
   } else if (element is FunctionElement) {
-    return ReferenceKind.topLevelFunction;
+    if (element.enclosingElement is CompilationUnitElement) {
+      return ReferenceKind.topLevelFunction;
+    }
+    return ReferenceKind.function;
   } else if (element is FunctionTypeAliasElement) {
     return ReferenceKind.typedef;
   } else if (element is PropertyAccessorElement) {
@@ -519,7 +522,10 @@ class _CompilationUnitSerializer {
     UnlinkedExecutableBuilder b = new UnlinkedExecutableBuilder();
     b.name = executableElement.name;
     b.nameOffset = executableElement.nameOffset;
-    if (executableElement is! ConstructorElement) {
+    if (executableElement.enclosingElement is VariableElement) {
+      // TODO(scheglov) remove this check and serialize initializer types
+      // Note that for code like `var v = null` w need to support Bottom.
+    } else if (executableElement is! ConstructorElement) {
       if (!executableElement.hasImplicitReturnType) {
         b.returnType = serializeTypeRef(
             executableElement.type.returnType, executableElement);
@@ -699,6 +705,10 @@ class _CompilationUnitSerializer {
       if (initializer != null) {
         b.defaultValue = serializeConstExpr(initializer);
       }
+    }
+    // TODO(scheglov) VariableMember.initializer is not implemented
+    if (parameter is! VariableMember && parameter.initializer != null) {
+      b.initializer = serializeExecutable(parameter.initializer);
     }
     {
       SourceRange visibleRange = parameter.visibleRange;
@@ -912,6 +922,10 @@ class _CompilationUnitSerializer {
         b.visibleOffset = visibleRange.offset;
         b.visibleLength = visibleRange.length;
       }
+    }
+    // TODO(scheglov) VariableMember.initializer is not implemented
+    if (variable is! VariableMember && variable.initializer != null) {
+      b.initializer = serializeExecutable(variable.initializer);
     }
     return b;
   }

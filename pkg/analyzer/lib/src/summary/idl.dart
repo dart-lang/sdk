@@ -380,6 +380,11 @@ enum ReferenceKind {
   typedef,
 
   /**
+   * The entity is a local function.
+   */
+  function,
+
+  /**
    * The entity is a top level function.
    */
   topLevelFunction,
@@ -1382,6 +1387,13 @@ abstract class UnlinkedParam extends base.SummaryClass {
   int get inferredTypeSlot;
 
   /**
+   * The synthetic initializer function of the parameter.  Absent if the variable
+   * does not have an initializer.
+   */
+  @Id(12)
+  UnlinkedExecutable get initializer;
+
+  /**
    * Indicates whether this is a function-typed parameter.
    */
   @Id(5)
@@ -1810,6 +1822,13 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    */
   @Id(9)
   int get inferredTypeSlot;
+
+  /**
+   * The synthetic initializer function of the variable.  Absent if the variable
+   * does not have an initializer.
+   */
+  @Id(13)
+  UnlinkedExecutable get initializer;
 
   /**
    * Indicates whether the variable is declared using the `const` keyword.

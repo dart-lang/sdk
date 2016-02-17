@@ -3585,6 +3585,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   List<UnlinkedConstBuilder> _annotations;
   UnlinkedConstBuilder _defaultValue;
   int _inferredTypeSlot;
+  UnlinkedExecutableBuilder _initializer;
   bool _isFunctionTyped;
   bool _isInitializingFormal;
   idl.UnlinkedParamKind _kind;
@@ -3637,6 +3638,18 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     assert(!_finished);
     assert(_value == null || _value >= 0);
     _inferredTypeSlot = _value;
+  }
+
+  @override
+  UnlinkedExecutableBuilder get initializer => _initializer;
+
+  /**
+   * The synthetic initializer function of the parameter.  Absent if the variable
+   * does not have an initializer.
+   */
+  void set initializer(UnlinkedExecutableBuilder _value) {
+    assert(!_finished);
+    _initializer = _value;
   }
 
   @override
@@ -3744,10 +3757,11 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     _visibleOffset = _value;
   }
 
-  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder defaultValue, int inferredTypeSlot, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
+  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder defaultValue, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _defaultValue = defaultValue,
       _inferredTypeSlot = inferredTypeSlot,
+      _initializer = initializer,
       _isFunctionTyped = isFunctionTyped,
       _isInitializingFormal = isInitializingFormal,
       _kind = kind,
@@ -3763,6 +3777,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     _finished = true;
     fb.Offset offset_annotations;
     fb.Offset offset_defaultValue;
+    fb.Offset offset_initializer;
     fb.Offset offset_name;
     fb.Offset offset_parameters;
     fb.Offset offset_type;
@@ -3771,6 +3786,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     }
     if (_defaultValue != null) {
       offset_defaultValue = _defaultValue.finish(fbBuilder);
+    }
+    if (_initializer != null) {
+      offset_initializer = _initializer.finish(fbBuilder);
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
@@ -3790,6 +3808,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     }
     if (_inferredTypeSlot != null && _inferredTypeSlot != 0) {
       fbBuilder.addUint32(2, _inferredTypeSlot);
+    }
+    if (offset_initializer != null) {
+      fbBuilder.addOffset(12, offset_initializer);
     }
     if (_isFunctionTyped == true) {
       fbBuilder.addBool(5, true);
@@ -3837,6 +3858,7 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   List<idl.UnlinkedConst> _annotations;
   idl.UnlinkedConst _defaultValue;
   int _inferredTypeSlot;
+  idl.UnlinkedExecutable _initializer;
   bool _isFunctionTyped;
   bool _isInitializingFormal;
   idl.UnlinkedParamKind _kind;
@@ -3863,6 +3885,12 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   int get inferredTypeSlot {
     _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
     return _inferredTypeSlot;
+  }
+
+  @override
+  idl.UnlinkedExecutable get initializer {
+    _initializer ??= const _UnlinkedExecutableReader().vTableGet(_bp, 12, null);
+    return _initializer;
   }
 
   @override
@@ -3926,6 +3954,7 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     "annotations": annotations,
     "defaultValue": defaultValue,
     "inferredTypeSlot": inferredTypeSlot,
+    "initializer": initializer,
     "isFunctionTyped": isFunctionTyped,
     "isInitializingFormal": isInitializingFormal,
     "kind": kind,
@@ -5267,6 +5296,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   UnlinkedConstBuilder _constExpr;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   int _inferredTypeSlot;
+  UnlinkedExecutableBuilder _initializer;
   bool _isConst;
   bool _isFinal;
   bool _isStatic;
@@ -5326,6 +5356,18 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     assert(!_finished);
     assert(_value == null || _value >= 0);
     _inferredTypeSlot = _value;
+  }
+
+  @override
+  UnlinkedExecutableBuilder get initializer => _initializer;
+
+  /**
+   * The synthetic initializer function of the variable.  Absent if the variable
+   * does not have an initializer.
+   */
+  void set initializer(UnlinkedExecutableBuilder _value) {
+    assert(!_finished);
+    _initializer = _value;
   }
 
   @override
@@ -5440,11 +5482,12 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _visibleOffset = _value;
   }
 
-  UnlinkedVariableBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder constExpr, UnlinkedDocumentationCommentBuilder documentationComment, int inferredTypeSlot, bool isConst, bool isFinal, bool isStatic, String name, int nameOffset, int propagatedTypeSlot, EntityRefBuilder type, int visibleLength, int visibleOffset})
+  UnlinkedVariableBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder constExpr, UnlinkedDocumentationCommentBuilder documentationComment, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isConst, bool isFinal, bool isStatic, String name, int nameOffset, int propagatedTypeSlot, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _constExpr = constExpr,
       _documentationComment = documentationComment,
       _inferredTypeSlot = inferredTypeSlot,
+      _initializer = initializer,
       _isConst = isConst,
       _isFinal = isFinal,
       _isStatic = isStatic,
@@ -5461,6 +5504,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     fb.Offset offset_annotations;
     fb.Offset offset_constExpr;
     fb.Offset offset_documentationComment;
+    fb.Offset offset_initializer;
     fb.Offset offset_name;
     fb.Offset offset_type;
     if (!(_annotations == null || _annotations.isEmpty)) {
@@ -5471,6 +5515,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     }
     if (_documentationComment != null) {
       offset_documentationComment = _documentationComment.finish(fbBuilder);
+    }
+    if (_initializer != null) {
+      offset_initializer = _initializer.finish(fbBuilder);
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
@@ -5490,6 +5537,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     }
     if (_inferredTypeSlot != null && _inferredTypeSlot != 0) {
       fbBuilder.addUint32(9, _inferredTypeSlot);
+    }
+    if (offset_initializer != null) {
+      fbBuilder.addOffset(13, offset_initializer);
     }
     if (_isConst == true) {
       fbBuilder.addBool(6, true);
@@ -5538,6 +5588,7 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   idl.UnlinkedConst _constExpr;
   idl.UnlinkedDocumentationComment _documentationComment;
   int _inferredTypeSlot;
+  idl.UnlinkedExecutable _initializer;
   bool _isConst;
   bool _isFinal;
   bool _isStatic;
@@ -5570,6 +5621,12 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   int get inferredTypeSlot {
     _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 9, 0);
     return _inferredTypeSlot;
+  }
+
+  @override
+  idl.UnlinkedExecutable get initializer {
+    _initializer ??= const _UnlinkedExecutableReader().vTableGet(_bp, 13, null);
+    return _initializer;
   }
 
   @override
@@ -5634,6 +5691,7 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
     "constExpr": constExpr,
     "documentationComment": documentationComment,
     "inferredTypeSlot": inferredTypeSlot,
+    "initializer": initializer,
     "isConst": isConst,
     "isFinal": isFinal,
     "isStatic": isStatic,

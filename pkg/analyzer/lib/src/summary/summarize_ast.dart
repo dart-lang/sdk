@@ -475,7 +475,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * [UnlinkedExecutable].
    */
   UnlinkedExecutableBuilder serializeExecutable(
-      SimpleIdentifier name,
+      String name,
+      int nameOffset,
       bool isGetter,
       bool isSetter,
       TypeName returnType,
@@ -491,7 +492,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     _TypeParameterScope typeParameterScope = new _TypeParameterScope();
     scopes.add(typeParameterScope);
     UnlinkedExecutableBuilder b = new UnlinkedExecutableBuilder();
-    String nameString = name.name;
+    String nameString = name;
     if (isGetter) {
       b.kind = UnlinkedExecutableKind.getter;
     } else if (isSetter) {
@@ -502,7 +503,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     b.isAbstract = body is EmptyFunctionBody;
     b.name = nameString;
-    b.nameOffset = name.offset;
+    b.nameOffset = nameOffset;
     b.typeParameters =
         serializeTypeParameters(typeParameters, typeParameterScope);
     if (!isTopLevel) {
@@ -537,7 +538,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return b;
   }
 
-  void serializeFunctionBody(UnlinkedExecutableBuilder b, FunctionBody body) {
+  /**
+   * Record local functions and variables into the given executable. The given
+   * [body] is usually an actual [FunctionBody], but may be an [Expression]
+   * when we process a synthetic variable initializer function.
+   */
+  void serializeFunctionBody(UnlinkedExecutableBuilder b, AstNode body) {
     if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
       for (UnlinkedParamBuilder parameter in b.parameters) {
         parameter.visibleOffset = body.offset;
@@ -568,6 +574,21 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.parameters = parameters.parameters
         .map((FormalParameter p) => p.accept(this))
         .toList();
+  }
+
+  /**
+   * If the given [expression] is not `null`, serialize it as an
+   * [UnlinkedExecutableBuilder], otherwise return `null`.
+   */
+  UnlinkedExecutableBuilder serializeInitializerFunction(
+      Expression expression) {
+    if (expression == null) {
+      return null;
+    }
+    UnlinkedExecutableBuilder initializer =
+        new UnlinkedExecutableBuilder(nameOffset: expression.offset);
+    serializeFunctionBody(initializer, expression);
+    return initializer;
   }
 
   /**
@@ -754,6 +775,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
       b.visibleOffset = enclosingBlock?.offset;
       b.visibleLength = enclosingBlock?.length;
+      b.initializer = serializeInitializerFunction(variable.initializer);
       this.variables.add(b);
     }
   }
@@ -854,6 +876,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     if (node.defaultValue != null) {
       b.defaultValue = serializeConstExpr(node.defaultValue);
     }
+    b.initializer = serializeInitializerFunction(node.defaultValue);
     return b;
   }
 
@@ -906,7 +929,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     executables.add(serializeExecutable(
-        node.name,
+        node.name.name,
+        node.name.offset,
         node.isGetter,
         node.isSetter,
         node.returnType,
@@ -918,6 +942,26 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         node.metadata,
         node.functionExpression.typeParameters,
         node.externalKeyword != null));
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is! FunctionDeclaration) {
+      executables.add(serializeExecutable(
+          null,
+          node.offset,
+          false,
+          false,
+          null,
+          node.parameters,
+          node.body,
+          false,
+          false,
+          null,
+          null,
+          node.typeParameters,
+          false));
+    }
   }
 
   @override
@@ -987,7 +1031,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     executables.add(serializeExecutable(
-        node.name,
+        node.name.name,
+        node.name.offset,
         node.isGetter,
         node.isSetter,
         node.returnType,

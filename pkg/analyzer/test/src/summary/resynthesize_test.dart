@@ -865,6 +865,11 @@ class ResynthTest extends ResolverTestCase {
       VariableElement resynthesized, VariableElement original, String desc) {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
+    // TODO(scheglov) VariableMember.initializer is not implemented
+    if (original is! VariableMember) {
+      compareVariableInitializers(
+          resynthesized.initializer, original.initializer, desc);
+    }
     VariableElementImpl originalActual = getActualElement(original, desc);
     if (originalActual is ConstVariableElement) {
       VariableElementImpl resynthesizedActual =
@@ -879,6 +884,18 @@ class ResynthTest extends ResolverTestCase {
     }
     checkPossibleMember(resynthesized, original, desc);
     checkPossibleLocalElements(resynthesized, original);
+  }
+
+  void compareVariableInitializers(
+      FunctionElement resynthesized, FunctionElement original, String desc) {
+    if (original == null && resynthesized == null) {
+      return;
+    }
+    expect(resynthesized, isNotNull, reason: desc);
+    expect(resynthesized.nameOffset, original.nameOffset, reason: desc);
+    expect(resynthesized.name, original.name, reason: desc);
+    // TODO(scheglov) replace this method with compareFunctionElements()
+    // once we resynthesize initializers return types.
   }
 
   /**

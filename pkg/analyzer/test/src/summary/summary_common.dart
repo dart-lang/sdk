@@ -3249,6 +3249,7 @@ int foo() => 0;
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.named);
+    expect(parameter.initializer, isNotNull);
     _assertUnlinkedConst(parameter.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -3277,6 +3278,7 @@ int foo() => 0;
                 .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.positional);
+    expect(parameter.initializer, isNotNull);
     _assertUnlinkedConst(parameter.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -4418,6 +4420,7 @@ int foo(int a, String b) => 0;
 ''');
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.initializer, isNotNull);
     _assertUnlinkedConst(param.defaultValue, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
@@ -4430,6 +4433,7 @@ int foo(int a, String b) => 0;
     UnlinkedExecutable executable = serializeExecutableText('f({x}) {}');
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.named);
+    expect(param.initializer, isNull);
     expect(param.defaultValue, isNull);
   }
 
@@ -4437,6 +4441,7 @@ int foo(int a, String b) => 0;
     UnlinkedExecutable executable = serializeExecutableText('f({x: 42}) {}');
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.named);
+    expect(param.initializer, isNotNull);
     _assertUnlinkedConst(param.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -4445,6 +4450,7 @@ int foo(int a, String b) => 0;
     UnlinkedExecutable executable = serializeExecutableText('f([x]) {}');
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.initializer, isNull);
     expect(param.defaultValue, isNull);
   }
 
@@ -4452,6 +4458,7 @@ int foo(int a, String b) => 0;
     UnlinkedExecutable executable = serializeExecutableText('f([x = 42]) {}');
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.initializer, isNotNull);
     _assertUnlinkedConst(param.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -4460,6 +4467,7 @@ int foo(int a, String b) => 0;
     UnlinkedExecutable executable = serializeExecutableText('f(x) {}');
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.required);
+    expect(param.initializer, isNull);
     expect(param.defaultValue, isNull);
   }
 
@@ -6695,6 +6703,60 @@ var v;''';
   test_variable_inferred_type_implicit_uninitialized() {
     UnlinkedVariable v = serializeVariableText('var v;');
     expect(v.inferredTypeSlot, 0);
+  }
+
+  test_variable_initializer_literal() {
+    UnlinkedVariable variable = serializeVariableText('var v = 42;');
+    UnlinkedExecutable initializer = variable.initializer;
+    expect(initializer, isNotNull);
+    expect(initializer.nameOffset, 8);
+    expect(initializer.name, isEmpty);
+    expect(initializer.localFunctions, isEmpty);
+    expect(initializer.localVariables, isEmpty);
+  }
+
+  test_variable_initializer_noInitializer() {
+    UnlinkedVariable variable = serializeVariableText('var v;');
+    expect(variable.initializer, isNull);
+  }
+
+  test_variable_initializer_withLocals() {
+    String text =
+        'var v = {"1": () { f1() {} var v1; }, "2": () { f2() {} var v2; }};';
+    UnlinkedVariable variable = serializeVariableText(text);
+    UnlinkedExecutable initializer = variable.initializer;
+    expect(initializer, isNotNull);
+    expect(initializer.nameOffset, text.indexOf('{"1'));
+    expect(initializer.name, isEmpty);
+    expect(initializer.localFunctions, hasLength(2));
+    // closure: () { f1() {} var v1; }
+    {
+      UnlinkedExecutable closure = initializer.localFunctions[0];
+      expect(closure.nameOffset, text.indexOf('() { f1()'));
+      expect(closure.name, isEmpty);
+      // closure - f1
+      expect(closure.localFunctions, hasLength(1));
+      expect(closure.localFunctions[0].name, 'f1');
+      expect(closure.localFunctions[0].nameOffset, text.indexOf('f1()'));
+      // closure - v1
+      expect(closure.localVariables, hasLength(1));
+      expect(closure.localVariables[0].name, 'v1');
+      expect(closure.localVariables[0].nameOffset, text.indexOf('v1;'));
+    }
+    // closure: () { f2() {} var v2; }
+    {
+      UnlinkedExecutable closure = initializer.localFunctions[1];
+      expect(closure.nameOffset, text.indexOf('() { f2()'));
+      expect(closure.name, isEmpty);
+      // closure - f1
+      expect(closure.localFunctions, hasLength(1));
+      expect(closure.localFunctions[0].name, 'f2');
+      expect(closure.localFunctions[0].nameOffset, text.indexOf('f2()'));
+      // closure - v1
+      expect(closure.localVariables, hasLength(1));
+      expect(closure.localVariables[0].name, 'v2');
+      expect(closure.localVariables[0].nameOffset, text.indexOf('v2;'));
+    }
   }
 
   test_variable_name() {
