@@ -261,6 +261,7 @@ void main() {
         name: '/c.dart');
     addFile(
         '''
+          library e;
           import 'a.dart';
           part 'e2.dart';
 
@@ -281,6 +282,7 @@ void main() {
         name: '/f.dart');
     addFile(
         '''
+          part of e;
           class F {
             static final f1 = 1;
             final f2 = 1;
@@ -334,8 +336,8 @@ void main() {
         class B extends A { B(ignore); }
         var a = new A();
         // Note: it doesn't matter that some of these refer to 'x'.
-        var b = new B(x);       // allocations
-        var c1 = [x];           // list literals
+        var b = new B(/*warning:UNDEFINED_IDENTIFIER*/x);  // allocations
+        var c1 = [/*warning:UNDEFINED_IDENTIFIER*/x];      // list literals
         var c2 = const [];
         var d = {'a': 'b'};     // map literals
         var e = new A()..x = 3; // cascades
@@ -344,7 +346,7 @@ void main() {
                                 // conected component.
         var g = -3;
         var h = new A() + 3;
-        var i = - new A();
+        var i = /*warning:UNDEFINED_OPERATOR*/- new A();
         var j = null as B;
 
         test1() {
@@ -365,9 +367,9 @@ void main() {
           g = 1;
           g = /*severe:STATIC_TYPE_ERROR*/false;
           h = /*severe:STATIC_TYPE_ERROR*/false;
-          h = new B();
+          h = new B('b');
           i = false;
-          j = new B();
+          j = new B('b');
           j = /*severe:STATIC_TYPE_ERROR*/false;
           j = /*severe:STATIC_TYPE_ERROR*/[];
         }
@@ -683,12 +685,12 @@ main() {
     test('5', () {
       checkFile('''
         abstract class I<E> {
-          String m(a, String f(v, T e));
+          String m(a, String f(v, E e));
         }
 
         abstract class A<E> implements I<E> {
           const A();
-          String m(a, String f(v, T e));
+          String m(a, String f(v, E e));
         }
 
         abstract class M {
@@ -699,7 +701,7 @@ main() {
           const B();
           int get y => 0;
 
-          m(a, f(v, T e)) {}
+          m(a, f(v, E e)) {}
         }
 
         foo () {
@@ -728,7 +730,7 @@ main() {
         }
         foo () {
           int y = new C().x;
-          String y = /*severe:STATIC_TYPE_ERROR*/new C().x;
+          String z = /*severe:STATIC_TYPE_ERROR*/new C().x;
         }
     ''');
   });
@@ -987,7 +989,7 @@ main() {
         const a1 = 3;
         const a2 = 4;
         class A {
-          a3;
+          static const a3 = null;
         }
       ''',
         name: '/a.dart');
@@ -1203,7 +1205,7 @@ Asserter<DartType> _isString;
 
 abstract class C {
   static AsserterBuilder<List<Asserter<DartType>>, DartType> assertBOf;
-  static AsserterBuilder<List<Asserter<DartType>>, DartType> get assertCOf;
+  static AsserterBuilder<List<Asserter<DartType>>, DartType> get assertCOf => null;
 
   AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf;
   AsserterBuilder<List<Asserter<DartType>>, DartType> get assertDOf;
@@ -1230,7 +1232,7 @@ abstract class G<T> {
 }
 
 AsserterBuilder<List<Asserter<DartType>>, DartType> assertBOf;
-AsserterBuilder<List<Asserter<DartType>>, DartType> get assertCOf;
+AsserterBuilder<List<Asserter<DartType>>, DartType> get assertCOf => null;
 
 main() {
   AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf;
@@ -1255,11 +1257,11 @@ main() {
   group('downwards inference on function arguments', () {
     test('infer downwards', () {
       checkFile('''
-      void f0(List<int> a) {};
-      void f1({List<int> a}) {};
-      void f2(Iterable<int> a) {};
-      void f3(Iterable<Iterable<int>> a) {};
-      void f4({Iterable<Iterable<int>> a}) {};
+      void f0(List<int> a) {}
+      void f1({List<int> a}) {}
+      void f2(Iterable<int> a) {}
+      void f3(Iterable<Iterable<int>> a) {}
+      void f4({Iterable<Iterable<int>> a}) {}
       void main() {
         f0(/*info:INFERRED_TYPE_LITERAL*/[]);
         f0(/*info:INFERRED_TYPE_LITERAL*/[3]);
@@ -1294,19 +1296,19 @@ main() {
     test('infer downwards', () {
       checkFile('''
       class F0 {
-        F0(List<int> a) {};
+        F0(List<int> a) {}
       }
       class F1 {
-        F1({List<int> a}) {};
+        F1({List<int> a}) {}
       }
       class F2 {
-        F2(Iterable<int> a) {};
+        F2(Iterable<int> a) {}
       }
       class F3 {
-        F3(Iterable<Iterable<int>> a) {};
+        F3(Iterable<Iterable<int>> a) {}
       }
       class F4 {
-        F4({Iterable<Iterable<int>> a}) {};
+        F4({Iterable<Iterable<int>> a}) {}
       }
       void main() {
         new F0(/*info:INFERRED_TYPE_LITERAL*/[]);
@@ -1345,19 +1347,19 @@ main() {
     test('infer downwards', () {
       checkFile('''
       class F0<T> {
-        F0(List<T> a) {};
+        F0(List<T> a) {}
       }
       class F1<T> {
-        F1({List<T> a}) {};
+        F1({List<T> a}) {}
       }
       class F2<T> {
-        F2(Iterable<T> a) {};
+        F2(Iterable<T> a) {}
       }
       class F3<T> {
-        F3(Iterable<Iterable<T>> a) {};
+        F3(Iterable<Iterable<T>> a) {}
       }
       class F4<T> {
-        F4({Iterable<Iterable<T>> a}) {};
+        F4({Iterable<Iterable<T>> a}) {}
       }
       void main() {
         new F0<int>(/*info:INFERRED_TYPE_LITERAL*/[]);
@@ -1406,7 +1408,7 @@ main() {
     test('infer downwards', () {
       checkFile('''
       void foo([Map<int, String> m1 = /*info:INFERRED_TYPE_LITERAL*/const {1: "hello"},
-        Map<int, String> m1 = /*info:INFERRED_TYPE_LITERAL*/const {(/*severe:STATIC_TYPE_ERROR*/"hello"): "world"}]) {
+        Map<int, String> m2 = /*info:INFERRED_TYPE_LITERAL*/const {(/*severe:STATIC_TYPE_ERROR*/"hello"): "world"}]) {
       }
       void main() {
         {
@@ -1530,7 +1532,7 @@ main() {
           x = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => x+1;
           var y = int2String;
           y = /*info:INFERRED_TYPE_CLOSURE, severe:STATIC_TYPE_ERROR*//*<T>*/(x) => x;
-          y = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/x.substring(3);
+          y = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/x.substring(3);
           var z = string2String;
           z = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => x.substring(3);
         }
@@ -1571,7 +1573,7 @@ main() {
       void f([List<int> l = /*info:INFERRED_TYPE_LITERAL*/const [1]]) {}
       // We do this inference in an early task but don't preserve the infos.
       Function2<List<int>, String> g = /*pass should be info:INFERRED_TYPE_CLOSURE*/([llll = /*info:INFERRED_TYPE_LITERAL*/const [1]]) => "hello";
-''');
+    ''');
   });
 
   test('downwards inference async/await', () {
@@ -1580,19 +1582,20 @@ main() {
       Future<int> test() async {
         List<int> l0 = /*warning:DOWN_CAST_COMPOSITE should be pass*/await /*pass should be info:INFERRED_TYPE_LITERAL*/[3];
         List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*info:INFERRED_TYPE_LITERAL*/[3]);
-        ''');
+      }
+    ''');
   });
 
   test('downwards inference foreach', () {
     checkFile('''
       import 'dart:async';
-      void main() {
+      Future main() async {
         for(int x in /*info:INFERRED_TYPE_LITERAL*/[1, 2, 3]) {
         }
         await for(int x in /*info:INFERRED_TYPE_ALLOCATION*/new Stream()) {
         }
       }
-        ''');
+    ''');
   });
 
   test('downwards inference yield/yield*', () {
@@ -1826,7 +1829,7 @@ class D extends C {
   /*severe:INVALID_METHOD_OVERRIDE*/m(x) => x;
 }
 main() {
-  int y = /*info:DYNAMIC_CAST*/new D().m/*<int>*/(42);
+  int y = /*info:DYNAMIC_CAST*/new D()./*warning:WRONG_NUMBER_OF_TYPE_ARGUMENTS*/m/*<int>*/(42);
   print(y);
 }
     ''');

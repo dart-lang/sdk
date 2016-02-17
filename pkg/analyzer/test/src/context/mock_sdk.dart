@@ -36,7 +36,8 @@ abstract class Comparable<T> {
   int compareTo(T other);
 }
 
-abstract class String implements Comparable<String> {
+abstract class Pattern {}
+abstract class String implements Comparable<String>, Pattern {
   external factory String.fromCharCodes(Iterable<int> charCodes,
                                         [int start = 0, int end]);
   String operator +(String other) => null;

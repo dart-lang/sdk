@@ -33,10 +33,10 @@ void main() {
           // because we're using the spec's LUB on function types, which isn't
           // sound.
           SplayTreeMap([int compare(K key1, K key2),
-                        bool isValidKey(potentialKey)]) {
+                        bool isValidKey(potentialKey)])
             : _comparator = (compare == null) ? Comparable.compare : compare,
-              _validKey = (isValidKey != null) ? isValidKey : ((v) => true);
-             _Predicate<Object> v = /*warning:DOWN_CAST_COMPOSITE*/(isValidKey != null)
+              _validKey = (isValidKey != null) ? isValidKey : ((v) => true) {
+            _Predicate<Object> v = /*warning:DOWN_CAST_COMPOSITE*/(isValidKey != null)
                                     ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
 
             v = (isValidKey != null)
@@ -59,7 +59,7 @@ void main() {
   test('if/for/do/while statements use boolean conversion', () {
     checkFile('''
       main() {
-        dynamic d = 42;
+        dynamic dyn = 42;
         Object obj = 42;
         int i = 42;
         bool b = false;
@@ -133,12 +133,12 @@ void main() {
           (/*info:DYNAMIC_INVOKE*/g.call(32.0));
           (/*info:DYNAMIC_INVOKE*/g.col(42.0));
           (/*info:DYNAMIC_INVOKE*/g.foo(42.0));
-          (/*info:DYNAMIC_INVOKE*/g.x);
+          (/*info:DYNAMIC_INVOKE*/g./*info:UNDEFINED_GETTER*/x);
           A f = new B();
           f.call(32.0);
           (/*info:DYNAMIC_INVOKE*/f.col(42.0));
           (/*info:DYNAMIC_INVOKE*/f.foo(42.0));
-          (/*info:DYNAMIC_INVOKE*/f.x);
+          (/*info:DYNAMIC_INVOKE*/f./*warning:UNDEFINED_GETTER*/x);
         }
       }
     ''');
@@ -203,7 +203,7 @@ void main() {
         (/*info:DYNAMIC_INVOKE*/b2("hello"));
 
         dynamic a1 = new B();
-        (/*info:DYNAMIC_INVOKE*/a1.x);
+        (/*info:DYNAMIC_INVOKE*/a1./*info:UNDEFINED_GETTER*/x);
         a1.toString();
         (/*info:DYNAMIC_INVOKE*/a1.toString(42));
         var toStringClosure = a1.toString;
@@ -263,7 +263,7 @@ void main() {
   test('Unbound variable', () {
     checkFile('''
       void main() {
-         dynamic y = /*pass should be severe:STATIC_TYPE_ERROR*/unboundVariable;
+         dynamic y = /*warning:UNDEFINED_IDENTIFIER should be error*/unboundVariable;
       }
    ''');
   });
@@ -271,7 +271,7 @@ void main() {
   test('Unbound type name', () {
     checkFile('''
       void main() {
-         /*pass should be severe:STATIC_TYPE_ERROR*/AToB y;
+         /*warning:UNDEFINED_CLASS should be error*/AToB y;
       }
    ''');
   });
@@ -1010,7 +1010,7 @@ void main() {
          o = /*severe:STATIC_TYPE_ERROR*/ro;
          o = /*severe:STATIC_TYPE_ERROR*/rn;
          o = oo;
-         o = /*severe:STATIC_TYPE_ERROR*/nn
+         o = /*severe:STATIC_TYPE_ERROR*/nn;
          o = /*severe:STATIC_TYPE_ERROR*/nnn;
 
          n = /*severe:STATIC_TYPE_ERROR*/r;
@@ -1386,7 +1386,7 @@ void main() {
     checkFile(r'''
         class Animal {
           Animal();
-          factory Animal.cat() => return new Cat();
+          factory Animal.cat() => new Cat();
         }
 
         class Cat extends Animal {}
@@ -1656,20 +1656,21 @@ void main() {
           /*=T*/ bar/*<T>*/({/*=T*/ x, /*=T*/ y}) => x;
 
           main() {
-            // resolving thses shouldn't crash.
-            foo(1, 2, 3);
-            String x = foo('1', '2', '3');
-            foo(1);
-            String x = foo('1');
-            x = /*severe:STATIC_TYPE_ERROR*/foo(1, 2, 3);
-            x = /*severe:STATIC_TYPE_ERROR*/foo(1);
+            String x;
+            // resolving these shouldn't crash.
+            foo/*warning:EXTRA_POSITIONAL_ARGUMENTS*/(1, 2, 3);
+            x = foo/*warning:EXTRA_POSITIONAL_ARGUMENTS*/('1', '2', '3');
+            foo/*warning:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(1);
+            x = foo/*warning:NOT_ENOUGH_REQUIRED_ARGUMENTS*/('1');
+            x = /*severe:STATIC_TYPE_ERROR*/foo/*warning:EXTRA_POSITIONAL_ARGUMENTS*/(1, 2, 3);
+            x = /*severe:STATIC_TYPE_ERROR*/foo/*warning:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(1);
 
             // named arguments
-            bar(y: 1, x: 2, z: 3);
-            String x = bar(z: '1', x: '2', y: '3');
+            bar(y: 1, x: 2, /*warning:UNDEFINED_NAMED_PARAMETER*/z: 3);
+            x = bar(/*warning:UNDEFINED_NAMED_PARAMETER*/z: '1', x: '2', y: '3');
             bar(y: 1);
-            x = bar(x: '1', z: 42);
-            x = /*severe:STATIC_TYPE_ERROR*/bar(y: 1, x: 2, z: 3);
+            x = bar(x: '1', /*warning:UNDEFINED_NAMED_PARAMETER*/z: 42);
+            x = /*severe:STATIC_TYPE_ERROR*/bar(y: 1, x: 2, /*warning:UNDEFINED_NAMED_PARAMETER*/z: 3);
             x = /*severe:STATIC_TYPE_ERROR*/bar(x: 1);
           }
       ''');
@@ -1708,6 +1709,7 @@ void main() {
       test() {
         A a = new A();
         var c = foo();
+        dynamic d;
 
         ~a;
         (/*info:DYNAMIC_INVOKE*/~d);
@@ -1889,7 +1891,7 @@ void main() {
             a[/*severe:STATIC_TYPE_ERROR*/z] += d;
             a[b] += /*info:DYNAMIC_CAST*/c;
             a[b] += /*severe:STATIC_TYPE_ERROR*/z;
-            (/*info:DYNAMIC_INVOKE*/(/*info:DYNAMIC_INVOKE*/c[b]) += d);
+            /*info:DYNAMIC_INVOKE,info:DYNAMIC_INVOKE*/c[b] += d;
           }
        ''');
   });
@@ -1948,6 +1950,7 @@ void main() {
     addFile('''library lib1;''', name: '/lib1.dart');
     checkFile(r'''
         import 'lib1.dart' deferred as lib1;
+        import 'dart:async' show Future;
         main() {
           Future f = lib1.loadLibrary();
         }''');
@@ -1964,11 +1967,11 @@ void main() {
             }
 
             class T1 extends Base {
-              /*severe:INVALID_FIELD_OVERRIDE,severe:INVALID_METHOD_OVERRIDE*/B get f => null;
+              /*severe:INVALID_METHOD_OVERRIDE,severe:INVALID_FIELD_OVERRIDE*/B get f => null;
             }
 
             class T2 extends Base {
-              /*severe:INVALID_FIELD_OVERRIDE,severe:INVALID_METHOD_OVERRIDE*/set f(B b) => null;
+              /*severe:INVALID_METHOD_OVERRIDE,severe:INVALID_FIELD_OVERRIDE*/set f(B b) => null;
             }
 
             class T3 extends Base {

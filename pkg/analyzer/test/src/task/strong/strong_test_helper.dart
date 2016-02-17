@@ -15,8 +15,6 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/type_system.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:logging/logging.dart';
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
@@ -64,7 +62,7 @@ void check() {
   // Enable task model strong mode
   var context = AnalysisEngine.instance.createAnalysisContext();
   context.analysisOptions.strongMode = true;
-  context.analysisOptions.strongModeHints = true;
+  (context.analysisOptions as AnalysisOptionsImpl).strongModeHints = true;
   context.sourceFactory =
       new SourceFactory([new DartUriResolver(new MockSdk()), uriResolver]);
 
@@ -73,9 +71,6 @@ void check() {
   var initialLibrary = context.resolveCompilationUnit2(mainSource, mainSource);
 
   var collector = new _ErrorCollector();
-  var checker = new CodeChecker(
-      context.typeProvider, new StrongTypeSystemImpl(), collector,
-      hints: true);
 
   // Extract expectations from the comments in the test files, and
   // check that all errors we emit are included in the expected map.
@@ -90,9 +85,10 @@ void check() {
 
       var librarySource = context.getLibrariesContaining(source).single;
       var resolved = context.resolveCompilationUnit2(source, librarySource);
-      errors.addAll(context.getErrors(source).errors.where((error) =>
-          error.errorCode.name.startsWith('STRONG_MODE_INFERRED_TYPE')));
-      checker.visitCompilationUnit(resolved);
+      errors.addAll(context.getErrors(source).errors.where((e) =>
+          e.errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
+          // TODO(jmesserly): these are usually intentional dynamic calls.
+          e.errorCode.name != 'UNDEFINED_METHOD'));
 
       _expectErrors(resolved, errors);
     }
@@ -131,15 +127,13 @@ SourceSpanWithContext createSpanHelper(
   return new SourceSpanWithContext(startLoc, endLoc, text, lineText);
 }
 
-String errorCodeName(ErrorCode errorCode) {
+String _errorCodeName(ErrorCode errorCode) {
   var name = errorCode.name;
   final prefix = 'STRONG_MODE_';
   if (name.startsWith(prefix)) {
     return name.substring(prefix.length);
   } else {
-    // TODO(jmesserly): this is for backwards compat, but not sure it's very
-    // useful to log this.
-    return 'AnalyzerMessage';
+    return name;
   }
 }
 
@@ -190,6 +184,26 @@ Level _actualErrorLevel(AnalysisError actual) {
 void _expectErrors(CompilationUnit unit, List<AnalysisError> actualErrors) {
   var expectedErrors = _findExpectedErrors(unit.beginToken);
 
+  // Sort both lists: by offset, then level, then name.
+  actualErrors.sort((x, y) {
+    int delta = x.offset.compareTo(y.offset);
+    if (delta != 0) return delta;
+
+    delta = x.errorCode.errorSeverity.compareTo(y.errorCode.errorSeverity);
+    if (delta != 0) return delta;
+
+    return _errorCodeName(x.errorCode).compareTo(_errorCodeName(y.errorCode));
+  });
+  expectedErrors.sort((x, y) {
+    int delta = x.offset.compareTo(y.offset);
+    if (delta != 0) return delta;
+
+    delta = x.level.compareTo(y.level);
+    if (delta != 0) return delta;
+
+    return x.typeName.compareTo(y.typeName);
+  });
+
   // Categorize the differences, if any.
   var unreported = <_ErrorExpectation>[];
   var different = <_ErrorExpectation, AnalysisError>{};
@@ -198,7 +212,7 @@ void _expectErrors(CompilationUnit unit, List<AnalysisError> actualErrors) {
     AnalysisError actual = expected._removeMatchingActual(actualErrors);
     if (actual != null) {
       if (_actualErrorLevel(actual) != expected.level ||
-          errorCodeName(actual.errorCode) != expected.typeName) {
+          _errorCodeName(actual.errorCode) != expected.typeName) {
         different[expected] = actual;
       }
     } else {
@@ -256,7 +270,7 @@ void _reportFailure(
         unit.lineInfo, offset, unit.element.source, sourceCode,
         end: offset + length);
     var levelName = _actualErrorLevel(error).name.toLowerCase();
-    return '@$offset $levelName: [${errorCodeName(error.errorCode)}]\n' +
+    return '@$offset $levelName:${_errorCodeName(error.errorCode)}\n' +
         span.message(error.message);
   }
 
@@ -265,7 +279,7 @@ void _reportFailure(
     var span = createSpanHelper(
         unit.lineInfo, offset, unit.element.source, sourceCode);
     var levelName = error.level.toString().toLowerCase();
-    return '@$offset $levelName: [${error.typeName}]\n' + span.message('');
+    return '@$offset $levelName:${error.typeName}\n' + span.message('');
   }
 
   var message = new StringBuffer();
