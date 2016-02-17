@@ -2,17 +2,17 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ ($runtime == vm || $runtime == dart_precompiled) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
 browser/*: SkipByDesign  # Browser specific tests
 isolate_stress_test: Fail # Issue 12588: This should be able to pass when we have wrapper-less tests.
 
 [ $runtime != vm ]
 checked_test: Skip # Unsupported.
 
-[ ($runtime == vm || $runtime == dart_precompiled) && $arch == mips && $mode == debug ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == mips && $mode == debug ]
 mandel_isolate_test: Skip # Uses 600 MB Ram on our 1 GB test device.
 
-[ ($compiler == none || $compiler == precompiler) ]
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) ]
 compile_time_error_test/01: Skip # Issue 12587
 ping_test: Skip           # Resolve test issues
 ping_pause_test: Skip     # Resolve test issues
@@ -172,7 +172,7 @@ stacktrace_message_test: CompileTimeError
 static_function_test: CompileTimeError
 unresolved_ports_test: CompileTimeError
 
-[ $runtime == dart_precompiled ]
+[ $runtime == dart_precompiled || $runtime == dart_product ]
 deferred_in_isolate_test: Skip # Isolate.spawnUri
 deferred_in_isolate2_test: Skip # Isolate.spawnUri
 exit_at_spawnuri_test: Skip # Isolate.spawnUri

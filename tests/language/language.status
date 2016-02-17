@@ -5,7 +5,7 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
-[ ($compiler == none || $compiler == precompiler) ]
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) ]
 tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
 
 # These tests are skipped in the VM because it has "--supermixin"
@@ -25,6 +25,9 @@ field_initialization_order_test: Fail, OK
 example_constructor_test: Fail, OK
 constructor3_test: Fail, OK
 constructor2_test: Fail, OK
+
+dynamic_prefix_core_test/01: RuntimeError # Issue 12478
+multiline_strings_test: Fail # Issue 23020
 
 # Regular bugs which should be fixed.
 duplicate_export_negative_test: Fail # Issue 6134
@@ -49,7 +52,7 @@ accessor_conflict_import2_test: RuntimeError # Issue 25625
 accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25625
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25625
 
-[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) ]
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
 
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
@@ -59,15 +62,11 @@ try_catch_optimized1_test: Skip # Srdjan investigating
 [ ($compiler == none || $compiler == precompiler) && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
 
-[ ($compiler == none || $compiler == precompiler) ]
-dynamic_prefix_core_test/01: RuntimeError # Issue 12478
-multiline_strings_test: Fail # Issue 23020
-
-[ ($compiler == none || $compiler == precompiler) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && (($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) || $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 dynamic_prefix_core_test/none: Fail # Issue 12478
 export_ambiguous_main_negative_test: Fail # Issue 14763
 
-[ ($compiler == none || $compiler == precompiler) && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
+[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
 assertion_test: Fail # Issue 14651.
 generic_test: Fail # Issue 14651.
 list_literal4_test: Fail # Issue 14651.
@@ -80,7 +79,7 @@ positional_parameters_type_test/02: Fail # Issue 14651.
 type_checks_in_factory_method_test: Fail # Issue 14651.
 vm/type_vm_test: Fail # Issue 14651.
 
-[ ($compiler == none || $compiler == precompiler) && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
+[ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 issue13474_test: Pass, Fail # Issue 14651.
 config_import_test: Fail # Issue 14651.
 vm/optimized_guarded_field_isolates_test: RuntimeError, OK  # Uses Isolate.spawn.
@@ -93,33 +92,33 @@ main_test/42: Fail # Issue 20028
 mirror_in_static_init_test: Fail # Issue 22071
 vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
 
-[ ($compiler == none || $compiler == precompiler) && $runtime == dartium && $system == linux && $arch != x64 ]
+[ $compiler == none && $runtime == dartium && $system == linux && $arch != x64 ]
 issue_22780_test/01 : Pass, Timeout # Issue 24473
 
-[ ($compiler == none || $compiler == precompiler) && $runtime == drt ]
+[ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122
 
-[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && $arch == mips && $checked ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == mips && $checked ]
 generic_instanceof3_test: Pass, Crash # Issue 17440.
 
-[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && $arch == mips && $mode == debug ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == mips && $mode == debug ]
 stack_overflow_test: Skip # Crashes. Issue 17440.
 stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
-[ ($compiler == none || $compiler == precompiler) && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) && $mode == debug ]
+[ $compiler == none && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) && $mode == debug ]
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
-[ ($compiler == none || $compiler == precompiler) && $runtime == ContentShellOnAndroid ]
+[ $compiler == none && $runtime == ContentShellOnAndroid ]
 gc_test: SkipSlow # Times out flakily. Issue 20956
 
-[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ( $arch == simarm || $arch == arm || $arch == simarmv6 || $arch == armv6 || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && ( $arch == simarm || $arch == arm || $arch == simarmv6 || $arch == armv6 || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 
-[ ($compiler == none || $compiler == precompiler) && ($runtime == dartium || $runtime == drt) ]
+[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 issue23244_test: Fail # Issue 23244
 
-[ ($compiler == none || $compiler == precompiler) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium) && $arch == ia32 ]
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && (($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) || $runtime == drt || $runtime == dartium) && $arch == ia32 ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
 
 [ ($noopt || $compiler == precompiler) ]
@@ -144,21 +143,30 @@ super_call4_test: CompileTimeError
 super_getter_setter_test: CompileTimeError
 vm/reflect_core_vm_test: CompileTimeError
 redirecting_factory_reflection_test: CompileTimeError
-deferred_constraints_constants_test: Skip # multitest gets confused
-vm/type_vm_test: RuntimeError # Expects line and column numbers
 
+[ ($noopt || $compiler == precompiler || $compiler == dart2app) ]
 # Deferred loading happens eagerly
 regress_23408_test: RuntimeError
-deferred_global_test: RuntimeError
 deferred_inheritance_constraints_test: Skip
 deferred_load_constants_test: Skip # multitest gets confused
-
-deopt_inlined_function_lazy_test: Pass, Crash # Incompatible flag: --deoptimize-alot
 tearoff_basic_test: RuntimeError, Crash # Conflicting flag.
+
+vm/type_vm_test: RuntimeError # Expects line and column numbers
 vm/type_cast_vm_test: RuntimeError # Line number mismatch.
 
 [ $runtime == dart_precompiled ]
+deferred_global_test: RuntimeError # Tries to produce a stack trace.
 ct_const2_test: Pass, Crash # Incompatible flag --compile_all
 hello_dart_test: Pass, Crash # Incompatible flag --compile_all
 
 implicit_closure_test: Pass, Crash # --use_slow_path
+
+deferred_constraints_constants_test: Skip # multitest gets confused
+
+deopt_inlined_function_lazy_test: Pass, Crash # Incompatible flag: --deoptimize-alot
+
+[ $runtime == dart_product ]
+# Deferred loading happens eagerly (not sure why this works on precompiled code).
+deferred_static_seperate_test: Skip
+deferred_constraints_type_annotation_test/new_before_load: Skip
+regress_22443_test: Skip

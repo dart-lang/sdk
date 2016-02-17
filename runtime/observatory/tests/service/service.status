@@ -30,3 +30,7 @@ coverage_test: Pass, Slow
 # Service protocol is not supported in product mode.
 [ $mode == product ]
 *: SkipByDesign
+
+# Service protocol is not supported when running a full application snapshot.
+[ ($runtime == dart_product) ]
+*: SkipByDesign
