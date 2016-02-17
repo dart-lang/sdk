@@ -12,32 +12,40 @@ InternetAddress HOST;
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
-SecurityContext serverContext(String certType) => new SecurityContext()
-  ..useCertificateChainSync(localFile('certificates/server_chain.$certType'))
-  ..usePrivateKeySync(localFile('certificates/server_key.$certType'),
-                      password: 'dartdart')
+SecurityContext serverContext(String certType, String password) =>
+  new SecurityContext()
+  ..useCertificateChainSync(
+      localFile('certificates/server_chain.$certType'), password: password)
+  ..usePrivateKeySync(
+      localFile('certificates/server_key.$certType'), password: password)
   ..setTrustedCertificatesSync(localFile(
-      'certificates/client_authority.$certType'))
+      'certificates/client_authority.$certType'), password: password)
   ..setClientAuthoritiesSync(localFile(
-      'certificates/client_authority.$certType'));
+      'certificates/client_authority.$certType'), password: password);
 
-SecurityContext clientCertContext(String certType) => new SecurityContext()
-  ..setTrustedCertificatesSync(localFile(
-      'certificates/trusted_certs.$certType'))
-  ..useCertificateChainSync(localFile('certificates/client1.$certType'))
-  ..usePrivateKeySync(localFile('certificates/client1_key.$certType'),
-                                password: 'dartdart');
+SecurityContext clientCertContext(String certType, String password) =>
+  new SecurityContext()
+  ..setTrustedCertificatesSync(
+      localFile('certificates/trusted_certs.$certType'), password: password)
+  ..useCertificateChainSync(
+      localFile('certificates/client1.$certType'), password: password)
+  ..usePrivateKeySync(
+      localFile('certificates/client1_key.$certType'), password: password);
 
-SecurityContext clientNoCertContext(String certType) => new SecurityContext()
+SecurityContext clientNoCertContext(String certType, String password) =>
+  new SecurityContext()
   ..setTrustedCertificatesSync(localFile(
-      'certificates/trusted_certs.$certType'));
+      'certificates/trusted_certs.$certType'), password: password);
 
 Future testClientCertificate(
-    {bool required, bool sendCert, String certType}) async {
-  var server = await SecureServerSocket.bind(HOST, 0, serverContext(certType),
-      requestClientCertificate: true, requireClientCertificate: required);
-  var clientContext =
-      sendCert ? clientCertContext(certType) : clientNoCertContext(certType);
+    {bool required, bool sendCert, String certType, String password}) async {
+  var server = await SecureServerSocket.bind(HOST, 0,
+      serverContext(certType, password),
+      requestClientCertificate: true,
+      requireClientCertificate: required);
+  var clientContext = sendCert ?
+      clientCertContext(certType, password) :
+      clientNoCertContext(certType, password);
   var clientEndFuture =
       SecureSocket.connect(HOST, server.port, context: clientContext);
   if (required && !sendCert) {
@@ -74,16 +82,22 @@ Future testClientCertificate(
 main() async {
   asyncStart();
   HOST = (await InternetAddress.lookup("localhost")).first;
-  await testClientCertificate(required: false, sendCert: true, certType: 'pem');
-  await testClientCertificate(required: true, sendCert: true, certType: 'pem');
   await testClientCertificate(
-      required: false, sendCert: false, certType: 'pem');
-  await testClientCertificate(required: true, sendCert: false, certType: 'pem');
+      required: false, sendCert: true, certType: 'pem', password: 'dartdart');
+  await testClientCertificate(
+      required: true, sendCert: true, certType: 'pem', password: 'dartdart');
+  await testClientCertificate(
+      required: false, sendCert: false, certType: 'pem', password: 'dartdart');
+  await testClientCertificate(
+      required: true, sendCert: false, certType: 'pem', password: 'dartdart');
 
-  await testClientCertificate(required: false, sendCert: true, certType: 'p12');
-  await testClientCertificate(required: true, sendCert: true, certType: 'p12');
   await testClientCertificate(
-      required: false, sendCert: false, certType: 'p12');
-  await testClientCertificate(required: true, sendCert: false, certType: 'p12');
+      required: false, sendCert: true, certType: 'p12', password: 'dartdart');
+  await testClientCertificate(
+      required: true, sendCert: true, certType: 'p12', password: 'dartdart');
+  await testClientCertificate(
+      required: false, sendCert: false, certType: 'p12', password: 'dartdart');
+  await testClientCertificate(
+      required: true, sendCert: false, certType: 'p12', password: 'dartdart');
   asyncEnd();
 }

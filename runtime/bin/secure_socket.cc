@@ -282,7 +282,9 @@ void FUNCTION_NAME(SecureSocket_FilterPointer)(Dart_NativeArguments args) {
 
 
 static Dart_Handle WrappedX509Certificate(X509* certificate) {
-  if (certificate == NULL) return Dart_Null();
+  if (certificate == NULL) {
+    return Dart_Null();
+  }
   Dart_Handle x509_type =
       DartUtils::GetDartType(DartUtils::kIOLibURL, "X509Certificate");
   if (Dart_IsError(x509_type)) {
@@ -307,7 +309,9 @@ static Dart_Handle WrappedX509Certificate(X509* certificate) {
 
 
 int CertificateCallback(int preverify_ok, X509_STORE_CTX* store_ctx) {
-  if (preverify_ok == 1) return 1;
+  if (preverify_ok == 1) {
+    return 1;
+  }
   Dart_Isolate isolate = Dart_CurrentIsolate();
   if (isolate == NULL) {
     FATAL("CertificateCallback called with no current isolate\n");
@@ -319,7 +323,9 @@ int CertificateCallback(int preverify_ok, X509_STORE_CTX* store_ctx) {
   SSLFilter* filter = static_cast<SSLFilter*>(
       SSL_get_ex_data(ssl, SSLFilter::filter_ssl_index));
   Dart_Handle callback = filter->bad_certificate_callback();
-  if (Dart_IsNull(callback)) return 0;
+  if (Dart_IsNull(callback)) {
+    return 0;
+  }
   Dart_Handle args[1];
   args[0] = WrappedX509Certificate(certificate);
   if (Dart_IsError(args[0])) {
@@ -360,12 +366,12 @@ int PasswordCallback(char* buf, int size, int rwflag, void* userdata) {
 }
 
 
-void CheckStatus(int status,
-                 const char* type,
-                 const char* message) {
+void CheckStatus(int status, const char* type, const char* message) {
   // TODO(24183): Take appropriate action on failed calls,
   // throw exception that includes all messages from the error stack.
-  if (status == 1) return;
+  if (status == 1) {
+    return;
+  }
   if (SSL_LOG_STATUS) {
     int error = ERR_get_error();
     Log::PrintErr("Failed: %s status %d", message, status);
@@ -556,25 +562,31 @@ static EVP_PKEY* GetPrivateKey(BIO* bio, const char* password) {
 }
 
 
-void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
-    Dart_NativeArguments args) {
-  SSL_CTX* context = GetSecurityContext(args);
-
-  Dart_Handle password_object = ThrowIfError(Dart_GetNativeArgument(args, 2));
+static const char* GetPasswordArgument(Dart_NativeArguments args,
+                                       intptr_t index) {
+  Dart_Handle password_object =
+      ThrowIfError(Dart_GetNativeArgument(args, index));
   const char* password = NULL;
   if (Dart_IsString(password_object)) {
     ThrowIfError(Dart_StringToCString(password_object, &password));
     if (strlen(password) > PEM_BUFSIZE - 1) {
       Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "SecurityContext.usePrivateKey password length is greater than"
-        " 1023 (PEM_BUFSIZE)"));
+        "Password length is greater than 1023 (PEM_BUFSIZE)"));
     }
   } else if (Dart_IsNull(password_object)) {
     password = "";
   } else {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "SecurityContext.usePrivateKey password is not a String or null"));
+        "Password is not a String or null"));
   }
+  return password;
+}
+
+
+void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
+    Dart_NativeArguments args) {
+  SSL_CTX* context = GetSecurityContext(args);
+  const char* password = GetPasswordArgument(args, 2);
 
   int status;
   {
@@ -590,7 +602,9 @@ void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
 }
 
 
-static int SetTrustedCertificatesBytesPKCS12(SSL_CTX* context, BIO* bio) {
+static int SetTrustedCertificatesBytesPKCS12(SSL_CTX* context,
+                                             BIO* bio,
+                                             const char* password) {
   ScopedPKCS12 p12(d2i_PKCS12_bio(bio, NULL));
   if (p12.get() == NULL) {
     return NULL;
@@ -599,22 +613,12 @@ static int SetTrustedCertificatesBytesPKCS12(SSL_CTX* context, BIO* bio) {
   EVP_PKEY* key = NULL;
   X509 *cert = NULL;
   STACK_OF(X509) *ca_certs = NULL;
-  // There should be no private keys in this file, so we hardcode the password
-  // to "".
-  // TODO(zra): Allow passing a password anyway.
-  int status = PKCS12_parse(p12.get(), "", &key, &cert, &ca_certs);
+  int status = PKCS12_parse(p12.get(), password, &key, &cert, &ca_certs);
   if (status == 0) {
     return status;
   }
 
   ScopedX509Stack cert_stack(ca_certs);
-
-  // There should be no private key.
-  if (key != NULL) {
-    X509_free(cert);
-    return 0;
-  }
-
   X509_STORE* store = SSL_CTX_get_cert_store(context);
   status = X509_STORE_add_cert(store, cert);
   if (status == 0) {
@@ -662,12 +666,14 @@ static int SetTrustedCertificatesBytesPEM(SSL_CTX* context, BIO* bio) {
 }
 
 
-static int SetTrustedCertificatesBytes(SSL_CTX* context, BIO* bio) {
+static int SetTrustedCertificatesBytes(SSL_CTX* context,
+                                       BIO* bio,
+                                       const char* password) {
   int status = SetTrustedCertificatesBytesPEM(context, bio);
   if (TryPKCS12(status != 0)) {
     ERR_clear_error();
     BIO_reset(bio);
-    status = SetTrustedCertificatesBytesPKCS12(context, bio);
+    status = SetTrustedCertificatesBytesPKCS12(context, bio, password);
   } else if (status != 0) {
     // The PEM file was successfully parsed.
     ERR_clear_error();
@@ -679,10 +685,11 @@ static int SetTrustedCertificatesBytes(SSL_CTX* context, BIO* bio) {
 void FUNCTION_NAME(SecurityContext_SetTrustedCertificatesBytes)(
     Dart_NativeArguments args) {
   SSL_CTX* context = GetSecurityContext(args);
+  const char* password = GetPasswordArgument(args, 2);
   int status;
   {
     ScopedMemBIO bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
-    status = SetTrustedCertificatesBytes(context, bio.bio());
+    status = SetTrustedCertificatesBytes(context, bio.bio(), password);
   }
   CheckStatus(status,
               "TlsException",
@@ -708,7 +715,9 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
 }
 
 
-static int UseChainBytesPKCS12(SSL_CTX* context, BIO* bio) {
+static int UseChainBytesPKCS12(SSL_CTX* context,
+                               BIO* bio,
+                               const char* password) {
   ScopedPKCS12 p12(d2i_PKCS12_bio(bio, NULL));
   if (p12.get() == NULL) {
     return NULL;
@@ -717,22 +726,13 @@ static int UseChainBytesPKCS12(SSL_CTX* context, BIO* bio) {
   EVP_PKEY* key = NULL;
   X509 *cert = NULL;
   STACK_OF(X509) *ca_certs = NULL;
-  // There should be no private keys in this file, so we hardcode the password
-  // to "".
-  // TODO(zra): Allow passing a password anyway.
-  int status = PKCS12_parse(p12.get(), "", &key, &cert, &ca_certs);
+  int status = PKCS12_parse(p12.get(), password, &key, &cert, &ca_certs);
   if (status == 0) {
     return status;
   }
 
   ScopedX509 x509(cert);
   ScopedX509Stack certs(ca_certs);
-
-  // There should be no private key.
-  if (key != NULL) {
-    return 0;
-  }
-
   status = SSL_CTX_use_certificate(context, x509.get());
   if (ERR_peek_error() != 0) {
     // Key/certificate mismatch doesn't imply status is 0.
@@ -801,12 +801,12 @@ static int UseChainBytesPEM(SSL_CTX* context, BIO* bio) {
 }
 
 
-static int UseChainBytes(SSL_CTX* context, BIO* bio) {
+static int UseChainBytes(SSL_CTX* context, BIO* bio, const char* password) {
   int status = UseChainBytesPEM(context, bio);
   if (TryPKCS12(status != 0)) {
     ERR_clear_error();
     BIO_reset(bio);
-    status = UseChainBytesPKCS12(context, bio);
+    status = UseChainBytesPKCS12(context, bio, password);
   } else if (status != 0) {
     // The PEM file was successfully read.
     ERR_clear_error();
@@ -818,10 +818,11 @@ static int UseChainBytes(SSL_CTX* context, BIO* bio) {
 void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
     Dart_NativeArguments args) {
   SSL_CTX* context = GetSecurityContext(args);
+  const char* password = GetPasswordArgument(args, 2);
   int status;
   {
     ScopedMemBIO bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
-    status = UseChainBytes(context, bio.bio());
+    status = UseChainBytes(context, bio.bio(), password);
   }
   CheckStatus(status,
               "TlsException",
@@ -829,7 +830,8 @@ void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
 }
 
 
-static STACK_OF(X509_NAME)* GetCertificateNamesPKCS12(BIO* bio) {
+static STACK_OF(X509_NAME)* GetCertificateNamesPKCS12(BIO* bio,
+                                                      const char* password) {
   ScopedPKCS12 p12(d2i_PKCS12_bio(bio, NULL));
   if (p12.get() == NULL) {
     return NULL;
@@ -843,22 +845,13 @@ static STACK_OF(X509_NAME)* GetCertificateNamesPKCS12(BIO* bio) {
   EVP_PKEY* key = NULL;
   X509 *cert = NULL;
   STACK_OF(X509) *ca_certs = NULL;
-  // There should be no private keys in this file, so we hardcode the password
-  // to "".
-  // TODO(zra): Allow passing a password anyway.
-  int status = PKCS12_parse(p12.get(), "", &key, &cert, &ca_certs);
+  int status = PKCS12_parse(p12.get(), password, &key, &cert, &ca_certs);
   if (status == 0) {
     return NULL;
   }
 
   ScopedX509 x509(cert);
   ScopedX509Stack certs(ca_certs);
-
-  // There should be no private key.
-  if (key != NULL) {
-    return NULL;
-  }
-
   X509_NAME* x509_name = X509_get_subject_name(x509.get());
   if (x509_name == NULL) {
     return NULL;
@@ -935,12 +928,13 @@ static STACK_OF(X509_NAME)* GetCertificateNamesPEM(BIO* bio) {
 }
 
 
-static STACK_OF(X509_NAME)* GetCertificateNames(BIO* bio) {
+static STACK_OF(X509_NAME)* GetCertificateNames(BIO* bio,
+                                                const char* password) {
   STACK_OF(X509_NAME)* result = GetCertificateNamesPEM(bio);
   if (TryPKCS12(result != NULL)) {
     ERR_clear_error();
     BIO_reset(bio);
-    result = GetCertificateNamesPKCS12(bio);
+    result = GetCertificateNamesPKCS12(bio, password);
   } else if (result != NULL) {
     // The PEM file was successfully parsed.
     ERR_clear_error();
@@ -952,11 +946,12 @@ static STACK_OF(X509_NAME)* GetCertificateNames(BIO* bio) {
 void FUNCTION_NAME(SecurityContext_SetClientAuthoritiesBytes)(
     Dart_NativeArguments args) {
   SSL_CTX* context = GetSecurityContext(args);
+  const char* password = GetPasswordArgument(args, 2);
   STACK_OF(X509_NAME)* certificate_names;
 
   {
     ScopedMemBIO bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
-    certificate_names = GetCertificateNames(bio.bio());
+    certificate_names = GetCertificateNames(bio.bio(), password);
   }
 
   if (certificate_names != NULL) {

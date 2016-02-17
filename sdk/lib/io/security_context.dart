@@ -12,12 +12,8 @@ part of dart.io;
  * The [SecureSocket]  and [SecureServer] classes take a SecurityContext
  * as an argument to their connect and bind methods.
  *
- * Certificates and keys can be added to a SecurityContext from PEM files
- * on the disk.  A PEM file contains one or more base-64 encoded DER-serialized
- * ASN1 objects, surrounded with delimiter strings like
- * "-----BEGIN CERTIFICATE -----" and "-----END CERTIFICATE-----".
- * Distinguished encoding rules (DER) is a canonical binary serialization
- * of ASN1 objects into an octet string.
+ * Certificates and keys can be added to a SecurityContext from either PEM
+ * or PKCS12 containers.
  *
  * [usePrivateKey], [setTrustedCertificates], [useCertificateChain], and
  * [setClientAuthorities] are deprecated. They have been renamed
@@ -46,7 +42,7 @@ abstract class SecurityContext {
    *
    * A secure connection using this SecurityContext will use this key with
    * the server or client certificate to sign and decrypt messages.
-   * [keyFile] is a PEM or PKCS12 file containing an encrypted
+   * [keyFile] is the path to a PEM or PKCS12 file containing an encrypted
    * private key, encrypted with [password].  An unencrypted file can be
    * used, but this is not usual.
    */
@@ -71,18 +67,18 @@ abstract class SecurityContext {
    * client connections, when connecting to a secure server.
    *
    * [file] is the path to a PEM or PKCS12 file containing X509 certificates,
-   * usually root certificates from certificate authorities. When using a
-   * PKCS12 file, it should not contain a private key, and the password should
-   * be the empty string.
+   * usually root certificates from certificate authorities. For PKCS12 files,
+   * [password] is the password for the file. For PEM files, [password] is
+   * ignored.
    */
-  void setTrustedCertificatesSync(String file);
+  void setTrustedCertificatesSync(String file, {String password});
 
   /**
    * [setTrustedCertificates] is deprecated. Use [setTrustedCertificatesSync]
    * or [setTrustedCertificatesBytes].
    */
   @deprecated
-  void setTrustedCertificates(String file);
+  void setTrustedCertificates(String file, {String password});
 
   /**
    * Sets the set of trusted X509 certificates used by [SecureSocket]
@@ -90,7 +86,7 @@ abstract class SecurityContext {
    *
    * Like [setTrustedCertificatesSync] but takes the contents of the file.
    */
-  void setTrustedCertificatesBytes(List<int> certBytes);
+  void setTrustedCertificatesBytes(List<int> certBytes,{String password});
 
   /**
    * Sets the chain of X509 certificates served by [SecureServer]
@@ -99,18 +95,18 @@ abstract class SecurityContext {
    * [file] is a PEM or PKCS12 file containing X509 certificates, starting with
    * the root authority and intermediate authorities forming the signed
    * chain to the server certificate, and ending with the server certificate.
-   * The private key for the server certificate is set by [usePrivateKey]. When
-   * using a PKCS12 file, it should not contain a private key, and the password
-   * should be the empty string.
+   * The private key for the server certificate is set by [usePrivateKey]. For
+   * PKCS12 files, [password] is the password for the file. For PEM files,
+   * [password] is ignored.
    */
-  void useCertificateChainSync(String file);
+  void useCertificateChainSync(String file, {String password});
 
   /**
    * [useCertificateChain] is deprecated. Use [useCertificateChainSync]
    * or [useCertificateChainBytes].
    */
   @deprecated
-  void useCertificateChain({String file, String directory});
+  void useCertificateChain({String file, String directory, String password});
 
   /**
    * Sets the chain of X509 certificates served by [SecureServer]
@@ -118,7 +114,7 @@ abstract class SecurityContext {
    *
    * Like [useCertificateChainSync] but takes the contents of the file.
    */
-  void useCertificateChainBytes(List<int> chainBytes);
+  void useCertificateChainBytes(List<int> chainBytes, {String password});
 
   /**
    * Sets the list of authority names that a [SecureServer] will advertise
@@ -127,17 +123,17 @@ abstract class SecurityContext {
    *
    * [file] is a PEM or PKCS12 file containing the accepted signing
    * authority certificates - the authority names are extracted from the
-   * certificates. When using a PKCS12 file, it should not contain a private
-   * key, and the password should be the empty string.
+   * certificates. For PKCS12 files, [password] is the password for the file.
+   * For PEM files, [password] is ignored.
    */
-  void setClientAuthoritiesSync(String file);
+  void setClientAuthoritiesSync(String file, {String password});
 
   /**
    * [setClientAuthorities] is deprecated. Use [setClientAuthoritiesSync]
    * or [setClientAuthoritiesBytes].
    */
   @deprecated
-  void setClientAuthorities(String file);
+  void setClientAuthorities(String file, {String password});
 
   /**
    * Sets the list of authority names that a [SecureServer] will advertise
@@ -146,7 +142,7 @@ abstract class SecurityContext {
    *
    * Like [setClientAuthoritySync] but takes the contents of the file.
    */
-  void setClientAuthoritiesBytes(List<int> authCertBytes);
+  void setClientAuthoritiesBytes(List<int> authCertBytes, {String password});
 
   /**
    * Sets the list of application-level protocols supported by a client
