@@ -1153,9 +1153,10 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     if (trace_compiler) {
       const intptr_t token_size = function.end_token_pos().Pos() -
                                   function.token_pos().Pos();
-      THR_Print("Compiling %s%sfunction: '%s' @ token %s, size %" Pd "\n",
+      THR_Print("Compiling %s%sfunction %s: '%s' @ token %s, size %" Pd "\n",
                 (osr_id == Compiler::kNoOSRDeoptId ? "" : "osr "),
                 (optimized ? "optimized " : ""),
+                (Compiler::IsBackgroundCompilation() ? "(background)" : ""),
                 function.ToFullyQualifiedCString(),
                 function.token_pos().ToCString(),
                 token_size);
