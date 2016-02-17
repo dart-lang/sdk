@@ -3557,12 +3557,10 @@ class LocalVariableElementImpl extends VariableElementImpl
   }
 
   @override
-  bool get isPotentiallyMutatedInClosure =>
-      hasModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT);
+  bool get isPotentiallyMutatedInClosure => true;
 
   @override
-  bool get isPotentiallyMutatedInScope =>
-      hasModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE);
+  bool get isPotentiallyMutatedInScope => true;
 
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
@@ -3588,20 +3586,6 @@ class LocalVariableElementImpl extends VariableElementImpl
   @override
   VariableDeclaration computeNode() =>
       getNodeMatching((node) => node is VariableDeclaration);
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in closure.
-   */
-  void markPotentiallyMutatedInClosure() {
-    setModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT, true);
-  }
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in its scope.
-   */
-  void markPotentiallyMutatedInScope() {
-    setModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE, true);
-  }
 
   /**
    * Set the visible range for this element to the range starting at the given
@@ -3778,34 +3762,20 @@ class Modifier extends Enum<Modifier> {
       const Modifier('MIXIN_APPLICATION', 12);
 
   /**
-   * Indicates that the value of a parameter or local variable might be mutated
-   * within the context.
-   */
-  static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT =
-      const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 13);
-
-  /**
-   * Indicates that the value of a parameter or local variable might be mutated
-   * within the scope.
-   */
-  static const Modifier POTENTIALLY_MUTATED_IN_SCOPE =
-      const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 14);
-
-  /**
    * Indicates that a class contains an explicit reference to 'super'.
    */
   static const Modifier REFERENCES_SUPER =
-      const Modifier('REFERENCES_SUPER', 15);
+      const Modifier('REFERENCES_SUPER', 13);
 
   /**
    * Indicates that the pseudo-modifier 'set' was applied to the element.
    */
-  static const Modifier SETTER = const Modifier('SETTER', 16);
+  static const Modifier SETTER = const Modifier('SETTER', 14);
 
   /**
    * Indicates that the modifier 'static' was applied to the element.
    */
-  static const Modifier STATIC = const Modifier('STATIC', 17);
+  static const Modifier STATIC = const Modifier('STATIC', 15);
 
   /**
    * Indicates that the element does not appear in the source code but was
@@ -3813,7 +3783,7 @@ class Modifier extends Enum<Modifier> {
    * constructors, an implicit zero-argument constructor will be created and it
    * will be marked as being synthetic.
    */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 18);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 16);
 
   static const List<Modifier> values = const [
     ABSTRACT,
@@ -3829,8 +3799,6 @@ class Modifier extends Enum<Modifier> {
     HAS_EXT_URI,
     IMPLICIT_TYPE,
     MIXIN_APPLICATION,
-    POTENTIALLY_MUTATED_IN_CONTEXT,
-    POTENTIALLY_MUTATED_IN_SCOPE,
     REFERENCES_SUPER,
     SETTER,
     STATIC,
@@ -4161,12 +4129,10 @@ class ParameterElementImpl extends VariableElementImpl
   bool get isInitializingFormal => false;
 
   @override
-  bool get isPotentiallyMutatedInClosure =>
-      hasModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT);
+  bool get isPotentiallyMutatedInClosure => true;
 
   @override
-  bool get isPotentiallyMutatedInScope =>
-      hasModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE);
+  bool get isPotentiallyMutatedInScope => true;
 
   @override
   ElementKind get kind => ElementKind.PARAMETER;
@@ -4241,20 +4207,6 @@ class ParameterElementImpl extends VariableElementImpl
       }
     }
     return null;
-  }
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in closure.
-   */
-  void markPotentiallyMutatedInClosure() {
-    setModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT, true);
-  }
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in its scope.
-   */
-  void markPotentiallyMutatedInScope() {
-    setModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE, true);
   }
 
   /**

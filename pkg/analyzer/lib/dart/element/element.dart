@@ -1911,7 +1911,12 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
    * closure. This information is only available for local variables (including
    * parameters) and only after the compilation unit containing the variable has
    * been resolved.
+   *
+   * This getter is deprecated--it now returns `true` for all local variables
+   * and parameters.  Please use [FunctionBody.isPotentiallyMutatedInClosure]
+   * instead.
    */
+  @deprecated
   bool get isPotentiallyMutatedInClosure;
 
   /**
@@ -1919,7 +1924,12 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
    * scope. This information is only available for local variables (including
    * parameters) and only after the compilation unit containing the variable has
    * been resolved.
+   *
+   * This getter is deprecated--it now returns `true` for all local variables
+   * and parameters.  Please use [FunctionBody.isPotentiallyMutatedInClosure]
+   * instead.
    */
+  @deprecated
   bool get isPotentiallyMutatedInScope;
 
   /**

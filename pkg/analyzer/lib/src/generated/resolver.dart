@@ -12620,29 +12620,11 @@ class VariableResolverVisitor extends ScopedVisitor {
     }
     // Must be local or parameter.
     ElementKind kind = element.kind;
-    if (kind == ElementKind.LOCAL_VARIABLE) {
+    if (kind == ElementKind.LOCAL_VARIABLE || kind == ElementKind.PARAMETER) {
       node.staticElement = element;
-      LocalVariableElementImpl variableImpl =
-          element as LocalVariableElementImpl;
       if (node.inSetterContext()) {
-        variableImpl.markPotentiallyMutatedInScope();
         _localVariableInfo.potentiallyMutatedInScope.add(element);
         if (element.enclosingElement != _enclosingFunction) {
-          variableImpl.markPotentiallyMutatedInClosure();
-          _localVariableInfo.potentiallyMutatedInClosure.add(element);
-        }
-      }
-    } else if (kind == ElementKind.PARAMETER) {
-      node.staticElement = element;
-      if (node.inSetterContext()) {
-        ParameterElementImpl parameterImpl = element as ParameterElementImpl;
-        parameterImpl.markPotentiallyMutatedInScope();
-        _localVariableInfo.potentiallyMutatedInScope.add(element);
-        // If we are in some closure, check if it is not the same as where
-        // variable is declared.
-        if (_enclosingFunction != null &&
-            (element.enclosingElement != _enclosingFunction)) {
-          parameterImpl.markPotentiallyMutatedInClosure();
           _localVariableInfo.potentiallyMutatedInClosure.add(element);
         }
       }

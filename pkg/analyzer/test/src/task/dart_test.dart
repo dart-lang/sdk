@@ -4069,8 +4069,6 @@ class ResolveVariableReferencesTaskTest extends _AbstractDartTaskTest {
    */
   void expectMutated(FunctionBody body, VariableElement variable,
       bool mutatedInClosure, bool mutatedInScope) {
-    expect(variable.isPotentiallyMutatedInClosure, mutatedInClosure);
-    expect(variable.isPotentiallyMutatedInScope, mutatedInScope);
     expect(body.isPotentiallyMutatedInClosure(variable), mutatedInClosure);
     expect(body.isPotentiallyMutatedInScope(variable), mutatedInScope);
   }
