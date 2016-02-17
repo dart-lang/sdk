@@ -385,18 +385,20 @@ final Map<String, Message> MESSAGES = {
       ]),
 
   'CLASS_IN_CLASS': new Message(
+      // Dart2js currently reports this as an EXTRANEOUS_MODIFIER error.
+      // TODO(floitsch): make dart2js use this error instead.
       id: 'DOTHQH',
       category: Category.parserError,
       template: "Classes can't be declared inside other classes.",
       howToFix: "Try moving the class to the top-level.",
       usedBy: [analyzer],
-      examples: const ["class A { class B {} } main() {}",]),
+      examples: const ["class A { class B {} } main() { new A(); }",]),
 
   'CONSTRUCTOR_WITH_RETURN_TYPE': new Message(
       id: 'VOJBWY',
       category: Category.parserError,
       template: "Constructors can't have a return type",
       howToFix: "Try removing the return type.",
-      usedBy: [analyzer],
-      examples: const ["class A { int A() {} } main() {}",]),
+      usedBy: [analyzer, dart2js],
+      examples: const ["class A { int A() {} } main() { new A(); }",]),
 };

@@ -65,4 +65,12 @@ const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageT
       "external foo; main(){}",
     ]
   ),  // Generated. Don't edit.
+  MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE: const MessageTemplate(
+    MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE,
+    "Constructors can't have a return type",
+    howToFix: "Try removing the return type.",
+    examples: const [
+      "class A { int A() {} } main() { new A(); }",
+    ]
+  ),  // Generated. Don't edit.
 };

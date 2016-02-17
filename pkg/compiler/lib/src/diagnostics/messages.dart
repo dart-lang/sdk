@@ -1847,10 +1847,6 @@ main() {
         const MessageTemplate(MessageKind.OPERATOR_NAMED_PARAMETERS,
           "Operator '#{operatorName}' cannot have named parameters."),
 
-      MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE:
-        const MessageTemplate(MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE,
-          "Cannot have return type for constructor."),
-
       MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR:
         const MessageTemplate(MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR,
           "Constructors can't return values.",
