@@ -9,6 +9,7 @@ Messages are maintained in `lib/shared_messages.dart` of that same package.
 After any change to that file, run `bin/publish.dart` to generate a new version
 of the json, dart2js and analyzer representations.
 */
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 
 const ParserErrorCode CONST_CONSTRUCTOR_WITH_BODY = const ParserErrorCode(
@@ -19,4 +20,44 @@ const ParserErrorCode CONST_CONSTRUCTOR_WITH_BODY = const ParserErrorCode(
 const ParserErrorCode CONST_FACTORY = const ParserErrorCode(
     'CONST_FACTORY',
     "Only redirecting factory constructors can be declared to be 'const'.",
-    "Try removing the 'const' keyword or replacing the body with '=' followed by a valid target");  // Generated. Don't edit.
+    "Try removing the 'const' keyword or replacing the body with '=' followed by a valid target.");  // Generated. Don't edit.
+
+const ParserErrorCode CONST_CLASS = const ParserErrorCode(
+    'CONST_CLASS',
+    "Classes can't be declared to be 'const'",
+    "Try removing the 'const' keyword or moving to the class' constructor(s).");  // Generated. Don't edit.
+
+const ParserErrorCode CONST_METHOD = const ParserErrorCode(
+    'CONST_METHOD',
+    "Getters, setters and methods can't be declared to be 'const'",
+    "Try removing the 'const' keyword.");  // Generated. Don't edit.
+
+const ParserErrorCode CONST_ENUM = const ParserErrorCode(
+    'CONST_ENUM',
+    "Enums can't be declared to be 'const'",
+    "Try removing the 'const' keyword.");  // Generated. Don't edit.
+
+const ParserErrorCode CONST_TYPEDEF = const ParserErrorCode(
+    'CONST_TYPEDEF',
+    "Type aliases can't be declared to be 'const'",
+    "Try removing the 'const' keyword.");  // Generated. Don't edit.
+
+const ParserErrorCode CONST_AND_FINAL = const ParserErrorCode(
+    'CONST_AND_FINAL',
+    "Members can't be declared to be both 'const' and 'final'",
+    "Try removing either the 'const' or 'final' keyword.");  // Generated. Don't edit.
+
+const ParserErrorCode CONST_AND_VAR = const ParserErrorCode(
+    'CONST_AND_VAR',
+    "Members can't be declared to be both 'const' and 'var'",
+    "Try removing either the 'const' or 'var' keyword.");  // Generated. Don't edit.
+
+const ParserErrorCode CLASS_IN_CLASS = const ParserErrorCode(
+    'CLASS_IN_CLASS',
+    "Classes can't be declared inside other classes.",
+    "Try moving the class to the top-level.");  // Generated. Don't edit.
+
+const ParserErrorCode CONSTRUCTOR_WITH_RETURN_TYPE = const ParserErrorCode(
+    'CONSTRUCTOR_WITH_RETURN_TYPE',
+    "Constructors can't have a return type",
+    "Try removing the return type.");  // Generated. Don't edit.

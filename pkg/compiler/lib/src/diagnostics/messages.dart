@@ -476,7 +476,7 @@ enum MessageKind {
 // TODO(johnnniwinther): For Infos, consider adding a reference to the
 // error/warning/hint that they belong to.
 class MessageTemplate {
-  final dynamic/*MessageKind | SharedMessageKind*/ kind;
+  final MessageKind kind;
 
   /// Should describe what is wrong and why.
   final String template;
@@ -2594,42 +2594,6 @@ main() {}
           // Don't know how to fix since the underlying error is unknown.
           howToFix: DONT_KNOW_HOW_TO_FIX),
 
-      MessageKind.EXTRANEOUS_MODIFIER:
-        const MessageTemplate(MessageKind.EXTRANEOUS_MODIFIER,
-          "Can't have modifier '#{modifier}' here.",
-          howToFix: "Try removing '#{modifier}'.",
-          examples: const [
-              "var String foo; main(){}",
-              // "var get foo; main(){}",
-              "var set foo; main(){}",
-              "var final foo; main(){}",
-              "var var foo; main(){}",
-              "var const foo; main(){}",
-              "var abstract foo; main(){}",
-              "var static foo; main(){}",
-              "var external foo; main(){}",
-              "get var foo; main(){}",
-              "set var foo; main(){}",
-              "final var foo; main(){}",
-              "var var foo; main(){}",
-              "const var foo; main(){}",
-              "abstract var foo; main(){}",
-              "static var foo; main(){}",
-              "external var foo; main(){}"]),
-
-      MessageKind.EXTRANEOUS_MODIFIER_REPLACE:
-        const MessageTemplate(MessageKind.EXTRANEOUS_MODIFIER_REPLACE,
-          "Can't have modifier '#{modifier}' here.",
-          howToFix:
-            "Try replacing modifier '#{modifier}' with 'var', 'final', "
-            "or a type.",
-          examples: const [
-              // "get foo; main(){}",
-              "set foo; main(){}",
-              "abstract foo; main(){}",
-              "static foo; main(){}",
-              "external foo; main(){}"]),
-
       MessageKind.ABSTRACT_CLASS_INSTANTIATION:
         const MessageTemplate(MessageKind.ABSTRACT_CLASS_INSTANTIATION,
           "Can't instantiate abstract class.",
@@ -3706,7 +3670,7 @@ class Message {
     assert(() { computeMessage(); return true; });
   }
 
-  dynamic/*MessageKind | SharedMessageKind*/ get kind => template.kind;
+  MessageKind get kind => template.kind;
 
   String computeMessage() {
     if (message == null) {

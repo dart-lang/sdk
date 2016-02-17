@@ -9398,41 +9398,31 @@ class ParserErrorCode extends ErrorCode {
       'BREAK_OUTSIDE_OF_LOOP',
       "A break statement cannot be used outside of a loop or switch statement");
 
-  static const ParserErrorCode CLASS_IN_CLASS = const ParserErrorCode(
-      'CLASS_IN_CLASS', "Classes cannot be declared inside other classes");
+  static const ParserErrorCode CLASS_IN_CLASS = shared_messages.CLASS_IN_CLASS;
 
   static const ParserErrorCode COLON_IN_PLACE_OF_IN = const ParserErrorCode(
       'COLON_IN_PLACE_OF_IN', "For-in loops use 'in' rather than a colon");
 
-  static const ParserErrorCode CONST_AND_FINAL = const ParserErrorCode(
-      'CONST_AND_FINAL',
-      "Members cannot be declared to be both 'const' and 'final'");
+  static const ParserErrorCode CONST_AND_FINAL =
+      shared_messages.CONST_AND_FINAL;
 
-  static const ParserErrorCode CONST_AND_VAR = const ParserErrorCode(
-      'CONST_AND_VAR',
-      "Members cannot be declared to be both 'const' and 'var'");
+  static const ParserErrorCode CONST_AND_VAR = shared_messages.CONST_AND_VAR;
 
-  static const ParserErrorCode CONST_CLASS = const ParserErrorCode(
-      'CONST_CLASS', "Classes cannot be declared to be 'const'");
+  static const ParserErrorCode CONST_CLASS = shared_messages.CONST_CLASS;
 
   static const ParserErrorCode CONST_CONSTRUCTOR_WITH_BODY =
       shared_messages.CONST_CONSTRUCTOR_WITH_BODY;
 
-  static const ParserErrorCode CONST_ENUM = const ParserErrorCode(
-      'CONST_ENUM', "Enums cannot be declared to be 'const'");
+  static const ParserErrorCode CONST_ENUM = shared_messages.CONST_ENUM;
 
   static const ParserErrorCode CONST_FACTORY = shared_messages.CONST_FACTORY;
 
-  static const ParserErrorCode CONST_METHOD = const ParserErrorCode(
-      'CONST_METHOD',
-      "Getters, setters and methods cannot be declared to be 'const'");
+  static const ParserErrorCode CONST_METHOD = shared_messages.CONST_METHOD;
 
-  static const ParserErrorCode CONST_TYPEDEF = const ParserErrorCode(
-      'CONST_TYPEDEF', "Type aliases cannot be declared to be 'const'");
+  static const ParserErrorCode CONST_TYPEDEF = shared_messages.CONST_TYPEDEF;
 
   static const ParserErrorCode CONSTRUCTOR_WITH_RETURN_TYPE =
-      const ParserErrorCode('CONSTRUCTOR_WITH_RETURN_TYPE',
-          "Constructors cannot have a return type");
+      shared_messages.CONSTRUCTOR_WITH_RETURN_TYPE;
 
   static const ParserErrorCode CONTINUE_OUTSIDE_OF_LOOP = const ParserErrorCode(
       'CONTINUE_OUTSIDE_OF_LOOP',

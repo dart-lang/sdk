@@ -17,18 +17,52 @@ const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageT
     "Const constructor or factory can't have a body.",
     howToFix: "Remove the 'const' keyword or the body.",
     examples: const [
-      r'''
+      r"""
          class C {
            const C() {}
          }
 
-         main() => new C();''',
-      r'''
+         main() => new C();""",
+      r"""
          class C {
            const factory C() {}
          }
 
-         main() => new C();''',
+         main() => new C();""",
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.EXTRANEOUS_MODIFIER: const MessageTemplate(
+    MessageKind.EXTRANEOUS_MODIFIER,
+    "Can't have modifier '#{modifier}' here.",
+    howToFix: "Try removing '#{modifier}'.",
+    examples: const [
+      "var String foo; main(){}",
+      "var set foo; main(){}",
+      "var final foo; main(){}",
+      "var var foo; main(){}",
+      "var const foo; main(){}",
+      "var abstract foo; main(){}",
+      "var static foo; main(){}",
+      "var external foo; main(){}",
+      "get var foo; main(){}",
+      "set var foo; main(){}",
+      "final var foo; main(){}",
+      "var var foo; main(){}",
+      "const var foo; main(){}",
+      "abstract var foo; main(){}",
+      "static var foo; main(){}",
+      "external var foo; main(){}",
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.EXTRANEOUS_MODIFIER_REPLACE: const MessageTemplate(
+    MessageKind.EXTRANEOUS_MODIFIER_REPLACE,
+    "Can't have modifier '#{modifier}' here.",
+    howToFix: "Try replacing modifier '#{modifier}' with 'var', 'final', or a type.",
+    examples: const [
+      "set foo; main(){}",
+      "abstract foo; main(){}",
+      "static foo; main(){}",
+      "external foo; main(){}",
     ]
   ),  // Generated. Don't edit.
 };

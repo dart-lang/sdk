@@ -80,15 +80,33 @@ class Category {
   Category(this.name);
 }
 
-enum Platform {
-  dart2js, analyzer,
-}
+enum Platform { dart2js, analyzer, }
 const dart2js = Platform.dart2js;
 const analyzer = Platform.analyzer;
 
 class Message {
+  /// Generic id for this message.
+  ///
+  /// This id should be shared by all errors that fall into the same category.
+  /// In particular, we want errors of the same category to share the same
+  /// explanation page, and want to disable warnings of the same category
+  /// with just one line.
   final String id;
+
+  /// The sub-id of the error.
+  ///
+  /// This id just needs to be unique within the same [id].
   final int subId;
+
+  /// The error sub-id of which this message is a specialization.
+  ///
+  /// For example, "Const is not allowed on getters" may be a specialization of
+  /// "The 'const' keyword is not allowed here".
+  ///
+  /// Examples of the specialized message, should trigger for the more generic
+  /// message, when the platform doesn't support the more specialized message.
+  final int specializationOf;
+
   final Category category;
   final String template;
   // The analyzer fills holes positionally (and not named). The following field
@@ -107,6 +125,7 @@ class Message {
   Message(
       {this.id,
       this.subId: 0,
+      this.specializationOf: -1,
       this.category,
       this.template,
       this.templateHoleOrder,
@@ -162,7 +181,9 @@ final Map<String, Message> MESSAGES = {
       category: Category.parserError,
       template: "Const constructor or factory can't have a body.",
       howToFix: "Remove the 'const' keyword or the body.",
-      usedBy: [dart2js],
+      usedBy: [
+        dart2js
+      ],
       examples: const [
         r"""
          class C {
@@ -181,10 +202,13 @@ final Map<String, Message> MESSAGES = {
   'CONST_CONSTRUCTOR_WITH_BODY': new Message(
       id: 'LGJGHW',
       subId: 1,
+      specializationOf: 0,
       category: Category.parserError,
       template: "Const constructor can't have a body.",
       howToFix: "Try removing the 'const' keyword or the body.",
-      usedBy: [analyzer],
+      usedBy: [
+        analyzer
+      ],
       examples: const [
         r"""
          class C {
@@ -197,12 +221,15 @@ final Map<String, Message> MESSAGES = {
   'CONST_FACTORY': new Message(
       id: 'LGJGHW',
       subId: 2,
+      specializationOf: 0,
       category: Category.parserError,
       template: "Only redirecting factory constructors can be declared to "
           "be 'const'.",
       howToFix: "Try removing the 'const' keyword or replacing the body with "
-          "'=' followed by a valid target",
-      usedBy: [analyzer],
+          "'=' followed by a valid target.",
+      usedBy: [
+        analyzer
+      ],
       examples: const [
         r"""
          class C {
@@ -211,4 +238,165 @@ final Map<String, Message> MESSAGES = {
 
          main() => new C();"""
       ]),
+
+  'EXTRANEOUS_MODIFIER': new Message(
+      id: 'GRKIQE',
+      subId: 0,
+      category: Category.parserError,
+      template: "Can't have modifier '#{modifier}' here.",
+      howToFix: "Try removing '#{modifier}'.",
+      usedBy: [
+        dart2js
+      ],
+      examples: const [
+        "var String foo; main(){}",
+        // "var get foo; main(){}",
+        "var set foo; main(){}",
+        "var final foo; main(){}",
+        "var var foo; main(){}",
+        "var const foo; main(){}",
+        "var abstract foo; main(){}",
+        "var static foo; main(){}",
+        "var external foo; main(){}",
+        "get var foo; main(){}",
+        "set var foo; main(){}",
+        "final var foo; main(){}",
+        "var var foo; main(){}",
+        "const var foo; main(){}",
+        "abstract var foo; main(){}",
+        "static var foo; main(){}",
+        "external var foo; main(){}"
+      ]),
+
+  'EXTRANEOUS_MODIFIER_REPLACE': new Message(
+      id: 'GRKIQE',
+      subId: 1,
+      category: Category.parserError,
+      template: "Can't have modifier '#{modifier}' here.",
+      howToFix: "Try replacing modifier '#{modifier}' with 'var', 'final', "
+          "or a type.",
+      usedBy: [
+        dart2js
+      ],
+      examples: const [
+        // "get foo; main(){}",
+        "set foo; main(){}",
+        "abstract foo; main(){}",
+        "static foo; main(){}",
+        "external foo; main(){}"
+      ]),
+
+  'CONST_CLASS': new Message(
+      id: 'GRKIQE',
+      subId: 2,
+      // The specialization could also be 1, but the example below triggers 0.
+      specializationOf: 0,
+      category: Category.parserError,
+      template: "Classes can't be declared to be 'const'",
+      howToFix: "Try removing the 'const' keyword or moving to the class'"
+          " constructor(s).",
+      usedBy: [
+        analyzer
+      ],
+      examples: const [
+        r"""
+        const class C {}
+
+        main() => new C();
+        """
+      ]),
+
+  'CONST_METHOD': new Message(
+      id: 'GRKIQE',
+      subId: 3,
+      // The specialization could also be 1, but the example below triggers 0.
+      specializationOf: 0,
+      category: Category.parserError,
+      template: "Getters, setters and methods can't be declared to be 'const'",
+      howToFix: "Try removing the 'const' keyword.",
+      usedBy: [
+        analyzer
+      ],
+      examples: const [
+        "const int foo() => 499; main() {}",
+        "const int get foo => 499; main() {}",
+        "const set foo(v) => 499; main() {}",
+        "class A { const int foo() => 499; } main() { new A(); }",
+        "class A { const int get foo => 499; } main() { new A(); }",
+        "class A { const set foo(v) => 499; } main() { new A(); }",
+      ]),
+
+  'CONST_ENUM': new Message(
+      id: 'GRKIQE',
+      subId: 4,
+      // The specialization could also be 1, but the example below triggers 0.
+      specializationOf: 0,
+      category: Category.parserError,
+      template: "Enums can't be declared to be 'const'",
+      howToFix: "Try removing the 'const' keyword.",
+      usedBy: [analyzer],
+      examples: const ["const enum Foo { x } main() {}",]),
+
+  'CONST_TYPEDEF': new Message(
+      id: 'GRKIQE',
+      subId: 5,
+      // The specialization could also be 1, but the example below triggers 0.
+      specializationOf: 0,
+      category: Category.parserError,
+      template: "Type aliases can't be declared to be 'const'",
+      howToFix: "Try removing the 'const' keyword.",
+      usedBy: [analyzer],
+      examples: const ["const typedef void Foo(); main() {}",]),
+
+  'CONST_AND_FINAL': new Message(
+      id: 'GRKIQE',
+      subId: 6,
+      // The specialization could also be 1, but the example below triggers 0.
+      specializationOf: 0,
+      category: Category.parserError,
+      template: "Members can't be declared to be both 'const' and 'final'",
+      howToFix: "Try removing either the 'const' or 'final' keyword.",
+      usedBy: [
+        analyzer
+      ],
+      examples: const [
+        "final const int x = 499; main() {}",
+        "const final int x = 499; main() {}",
+        "class A { static final const int x = 499; } main() {}",
+        "class A { static const final int x = 499; } main() {}",
+      ]),
+
+  'CONST_AND_VAR': new Message(
+      id: 'GRKIQE',
+      subId: 7,
+      // The specialization could also be 1, but the example below triggers 0.
+      specializationOf: 0,
+      category: Category.parserError,
+      template: "Members can't be declared to be both 'const' and 'var'",
+      howToFix: "Try removing either the 'const' or 'var' keyword.",
+      usedBy: [
+        analyzer
+      ],
+      examples: const [
+        "var const x = 499; main() {}",
+        "const var x = 499; main() {}",
+        "class A { var const x = 499; } main() {}",
+        "class A { const var x = 499; } main() {}",
+      ]),
+
+  'CLASS_IN_CLASS': new Message(
+      id: 'DOTHQH',
+      category: Category.parserError,
+      template: "Classes can't be declared inside other classes.",
+      howToFix: "Try moving the class to the top-level.",
+      usedBy: [analyzer],
+      examples: const ["class A { class B {} } main() {}",]),
+
+  'CONSTRUCTOR_WITH_RETURN_TYPE': new Message(
+      id: 'VOJBWY',
+      category: Category.parserError,
+      template: "Constructors can't have a return type",
+      howToFix: "Try removing the return type.",
+      usedBy: [analyzer],
+      examples: const ["class A { int A() {} } main() {}",]),
 };
