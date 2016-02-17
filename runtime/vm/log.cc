@@ -141,16 +141,26 @@ Log* Log::NoOpLog() {
 
 
 void Log::TerminateString() {
+  if (this == NoOpLog()) {
+    return;
+  }
   buffer_.Add('\0');
 }
 
 
 void Log::EnableManualFlush() {
+  if (this == NoOpLog()) {
+    return;
+  }
   manual_flush_++;
 }
 
 
 void Log::DisableManualFlush() {
+  if (this == NoOpLog()) {
+    return;
+  }
+
   manual_flush_--;
   ASSERT(manual_flush_ >= 0);
   if (manual_flush_ == 0) {

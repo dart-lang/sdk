@@ -53,7 +53,7 @@ main() {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        new MockSdk(),
+        () => new MockSdk(),
         InstrumentationService.NULL_SERVICE);
     handler = new DiagnosticDomainHandler(server);
   });

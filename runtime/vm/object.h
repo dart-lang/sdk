@@ -1132,8 +1132,8 @@ class Class : public Object {
                    const Class& other,
                    const TypeArguments& other_type_arguments,
                    Error* bound_error,
-                   TrailPtr bound_trail = NULL,
-                   Heap::Space space = Heap::kNew) const {
+                   TrailPtr bound_trail,
+                   Heap::Space space) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
                     other,
@@ -1148,8 +1148,8 @@ class Class : public Object {
                           const Class& other,
                           const TypeArguments& other_type_arguments,
                           Error* bound_error,
-                          TrailPtr bound_trail = NULL,
-                          Heap::Space space = Heap::kNew) const {
+                          TrailPtr bound_trail,
+                          Heap::Space space) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
                     other,
@@ -1186,6 +1186,7 @@ class Class : public Object {
   RawFunction* ImplicitClosureFunctionFromIndex(intptr_t idx) const;
 
   RawFunction* LookupDynamicFunction(const String& name) const;
+  RawFunction* LookupDynamicFunctionAllowAbstract(const String& name) const;
   RawFunction* LookupDynamicFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupStaticFunction(const String& name) const;
   RawFunction* LookupStaticFunctionAllowPrivate(const String& name) const;
@@ -1373,6 +1374,7 @@ class Class : public Object {
     kAny = 0,
     kStatic,
     kInstance,
+    kInstanceAllowAbstract,
     kConstructor,
     kFactory,
   };
@@ -1582,8 +1584,8 @@ class TypeArguments : public Object {
                    intptr_t from_index,
                    intptr_t len,
                    Error* bound_error,
-                   TrailPtr bound_trail = NULL,
-                   Heap::Space space = Heap::kNew) const {
+                   TrailPtr bound_trail,
+                   Heap::Space space) const {
     return TypeTest(kIsSubtypeOf, other, from_index, len,
                     bound_error, bound_trail, space);
   }
@@ -1594,8 +1596,8 @@ class TypeArguments : public Object {
                           intptr_t from_index,
                           intptr_t len,
                           Error* bound_error,
-                          TrailPtr bound_trail = NULL,
-                          Heap::Space space = Heap::kNew) const {
+                          TrailPtr bound_trail,
+                          Heap::Space space) const {
     return TypeTest(kIsMoreSpecificThan, other, from_index, len,
                     bound_error, bound_trail, space);
   }
@@ -1653,9 +1655,9 @@ class TypeArguments : public Object {
   RawTypeArguments* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr instantiation_trail = NULL,
-      TrailPtr bound_trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
 
   // Runtime instantiation with canonicalization. Not to be used during type
   // finalization at compile time.
@@ -1839,13 +1841,6 @@ class ICData : public Object {
   bool HasDeoptReason(ICData::DeoptReasonId reason) const;
   void AddDeoptReason(ICData::DeoptReasonId reason) const;
 
-  bool IssuedJSWarning() const;
-  void SetIssuedJSWarning() const;
-
-  // Return true if the target function of this IC data may check for (and
-  // possibly issue) a Javascript compatibility warning.
-  bool MayCheckForJSWarning() const;
-
   intptr_t NumberOfChecks() const;
 
   // Discounts any checks with usage of zero.
@@ -1946,11 +1941,8 @@ class ICData : public Object {
                         intptr_t num_args_tested);
   static RawICData* NewFrom(const ICData& from, intptr_t num_args_tested);
 
-  // Generates a new ICData with descriptor data copied (shallow clone).
-  // Entry array of the result is the same as in 'from'. Once entry array is
-  // created, it can only change the 'count', all other properties are invariant
-  // (target, cids, number of checks).
-  static RawICData* CloneDescriptor(const ICData& from);
+  // Generates a new ICData with descriptor and data array copied (deep clone).
+  static RawICData* Clone(const ICData& from);
 
   static intptr_t TestEntryLengthFor(intptr_t num_args);
 
@@ -2034,7 +2026,7 @@ class ICData : public Object {
     }
   }
 
-  // It is only meaningful to interptret range feedback stored in the ICData
+  // It is only meaningful to interpret range feedback stored in the ICData
   // when all checks are Mint or Smi.
   bool HasRangeFeedback() const;
   RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
@@ -2073,8 +2065,7 @@ class ICData : public Object {
     kNumArgsTestedSize = 2,
     kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
     kDeoptReasonSize = kLastRecordedDeoptReason + 1,
-    kIssuedJSWarningBit = kDeoptReasonPos + kDeoptReasonSize,
-    kRangeFeedbackPos = kIssuedJSWarningBit + 1,
+    kRangeFeedbackPos = kDeoptReasonPos + kDeoptReasonSize,
     kRangeFeedbackSize = kBitsPerRangeFeedback * kRangeFeedbackSlots
   };
 
@@ -2086,8 +2077,6 @@ class ICData : public Object {
                                           uint32_t,
                                           ICData::kDeoptReasonPos,
                                           ICData::kDeoptReasonSize> {};
-  class IssuedJSWarningBit :
-      public BitField<uint32_t, bool, kIssuedJSWarningBit, 1> {};
   class RangeFeedbackBits : public BitField<uint32_t,
                                             uint32_t,
                                             ICData::kRangeFeedbackPos,
@@ -2315,8 +2304,8 @@ class Function : public Object {
   bool IsFactory() const {
     return (kind() == RawFunction::kConstructor) && is_static();
   }
-  bool IsDynamicFunction() const {
-    if (is_static() || is_abstract()) {
+  bool IsDynamicFunction(bool allow_abstract = false) const {
+    if (is_static() || (!allow_abstract && is_abstract())) {
       return false;
     }
     switch (kind()) {
@@ -2501,7 +2490,7 @@ class Function : public Object {
                    const Function& other,
                    const TypeArguments& other_type_arguments,
                    Error* bound_error,
-                   Heap::Space space = Heap::kNew) const {
+                   Heap::Space space) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
                     other,
@@ -2516,7 +2505,7 @@ class Function : public Object {
                           const Function& other,
                           const TypeArguments& other_type_arguments,
                           Error* bound_error,
-                          Heap::Space space = Heap::kNew) const {
+                          Heap::Space space) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
                     other,
@@ -2689,9 +2678,9 @@ class Function : public Object {
       const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
       const Array& edge_counters_array) const;
   // Uses 'ic_data_array' to populate the table 'deopt_id_to_ic_data'. Clone
-  // descriptors if 'clone_descriptors' true.
+  // ic_data (array and descriptor) if 'clone_ic_data' is true.
   void RestoreICDataMap(ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
-                        bool clone_descriptors) const;
+                        bool clone_ic_data) const;
 
   RawArray* ic_data_array() const;
   void ClearICDataArray() const;
@@ -5283,9 +5272,9 @@ class AbstractType : public Instance {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr instantiation_trail = NULL,
-      TrailPtr bound_trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
 
   // Return a clone of this unfinalized type or the type itself if it is
   // already finalized. Apply recursively to type arguments, i.e. finalized
@@ -5398,16 +5387,16 @@ class AbstractType : public Instance {
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other,
                    Error* bound_error,
-                   TrailPtr bound_trail = NULL,
-                   Heap::Space space = Heap::kNew) const {
+                   TrailPtr bound_trail,
+                   Heap::Space space) const {
     return TypeTest(kIsSubtypeOf, other, bound_error, bound_trail, space);
   }
 
   // Check the 'more specific' relationship.
   bool IsMoreSpecificThan(const AbstractType& other,
                           Error* bound_error,
-                          TrailPtr bound_trail = NULL,
-                          Heap::Space space = Heap::kNew) const {
+                          TrailPtr bound_trail,
+                          Heap::Space space) const {
     return TypeTest(kIsMoreSpecificThan, other,
                     bound_error, bound_trail, space);
   }
@@ -5476,9 +5465,9 @@ class Type : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr instantiation_trail = NULL,
-      TrailPtr bound_trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner,
@@ -5624,9 +5613,9 @@ class FunctionType : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* malformed_error,
-      TrailPtr instantiation_trail = NULL,
-      TrailPtr bound_trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner,
@@ -5701,9 +5690,9 @@ class TypeRef : public AbstractType {
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr instantiation_trail = NULL,
-      TrailPtr bound_trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
   virtual RawTypeRef* CloneUninstantiated(
       const Class& new_owner,
       TrailPtr trail = NULL) const;
@@ -5763,8 +5752,8 @@ class TypeParameter : public AbstractType {
   bool CheckBound(const AbstractType& bounded_type,
                   const AbstractType& upper_bound,
                   Error* bound_error,
-                  TrailPtr bound_trail = NULL,
-                  Heap::Space space = Heap::kNew) const;
+                  TrailPtr bound_trail,
+                  Heap::Space space) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const {
     return false;
@@ -5774,9 +5763,9 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr instantiation_trail = NULL,
-      TrailPtr bound_trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner, TrailPtr trail = NULL) const;
@@ -5860,9 +5849,9 @@ class BoundedType : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr instantiation_trail = NULL,
-      TrailPtr bound_trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner, TrailPtr trail = NULL) const;
@@ -5965,10 +5954,7 @@ class Integer : public Number {
   // Returns a canonical Integer object allocated in the old gen space.
   static RawInteger* NewCanonical(const String& str);
 
-  // Do not throw JavascriptIntegerOverflow if 'silent' is true.
-  static RawInteger* New(int64_t value,
-                         Heap::Space space = Heap::kNew,
-                         const bool silent = false);
+  static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
 
   virtual bool OperatorEquals(const Instance& other) const {
     return Equals(other);
@@ -6005,9 +5991,6 @@ class Integer : public Number {
   RawInteger* BitOp(Token::Kind operation,
                     const Integer& other,
                     Heap::Space space = Heap::kNew) const;
-
-  // Returns true if the Integer does not fit in a Javascript integer.
-  bool CheckJavascriptIntegerOverflow() const;
 
  private:
   OBJECT_IMPLEMENTATION(Integer, Number);
@@ -6065,8 +6048,7 @@ class Smi : public Integer {
 
   RawInteger* ShiftOp(Token::Kind kind,
                       const Smi& other,
-                      Heap::Space space = Heap::kNew,
-                      const bool silent = false) const;
+                      Heap::Space space = Heap::kNew) const;
 
   void operator=(RawSmi* value) {
     raw_ = value;
@@ -6597,6 +6579,7 @@ class String : public Instance {
   friend class ExternalTwoByteString;
   // So that SkippedCodeFunctions can print a debug string from a NoHandleScope.
   friend class SkippedCodeFunctions;
+  friend class RawOneByteString;
 };
 
 

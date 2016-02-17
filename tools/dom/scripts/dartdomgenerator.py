@@ -45,6 +45,7 @@ import subprocess
 import time
 from dartmetadata import DartMetadata
 from generator import TypeRegistry
+from generate_blink_file import Generate_Blink
 from htmleventgenerator import HtmlEventGenerator
 from htmlrenamer import HtmlRenamer
 from systemhtml import DartLibraryEmitter, Dart2JSBackend,\
@@ -78,8 +79,9 @@ def LoadDatabase(database_dir, use_database_cache):
     common_database.Load()
   return common_database
 
-def GenerateFromDatabase(common_database, dart2js_output_dir,
-                         dartium_output_dir, update_dom_metadata=False,
+def GenerateFromDatabase(common_database,
+                         dart2js_output_dir, dartium_output_dir, blink_output_dir,
+                         update_dom_metadata=False,
                          logging_level=logging.WARNING, dart_js_interop=False):
   print '\n ----- Accessing DOM using %s -----\n' % ('dart:js' if dart_js_interop else 'C++')
 
@@ -194,6 +196,14 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
         webkit_database, dartium_output_dir, type_registry, renamer)
     emitters.Flush()
 
+  if blink_output_dir:
+    print '\nGenerating _blink:\n'
+    start_time = time.time()
+
+    Generate_Blink(blink_output_dir, webkit_database, type_registry)
+
+    print 'Generated _blink in %s seconds' % round(time.time() - start_time, 2)
+
   if update_dom_metadata:
     metadata.Flush()
 
@@ -222,8 +232,8 @@ def main():
                     help='Use fremontcut in parallel mode.')
   parser.add_option('--systems', dest='systems',
                     action='store', type='string',
-                    default='htmldart2js,htmldartium',
-                    help='Systems to generate (htmldart2js, htmldartium)')
+                    default='htmldart2js,htmldartium,_blink',
+                    help='Systems to generate (htmldart2js, htmldartium, _blink)')
   parser.add_option('--output-dir', dest='output_dir',
                     action='store', type='string',
                     default=None,
@@ -267,6 +277,9 @@ def main():
   dartium_output_dir = None
   if 'htmldartium' in systems:
     dartium_output_dir = os.path.join(output_dir, 'dartium')
+  blink_output_dir = None
+  if '_blink' in systems:
+    blink_output_dir = os.path.join(output_dir, 'dartium')
 
   logging_level = options.logging_level \
     if options.logging == logging.NOTSET else options.logging
@@ -278,8 +291,13 @@ def main():
   # Parse the IDL and create the database.
   database = fremontcutbuilder.main(options.parallel, logging_level=logging_level, examine_idls=options.examine_idls)
 
-  GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir,
-      options.update_dom_metadata, logging_level, options.dart_js_interop)
+  GenerateFromDatabase(database,
+                       dart2js_output_dir,
+                       dartium_output_dir,
+                       blink_output_dir,
+                       options.update_dom_metadata,
+                       logging_level,
+                       options.dart_js_interop)
 
   file_generation_start_time = time.time()
 
@@ -299,6 +317,14 @@ def main():
       GenerateSingleFile(
           os.path.join(dartium_output_dir, '%s_dartium.dart' % library_name),
           os.path.join('..', '..', '..', 'sdk', 'lib', library_name, 'dartium'))
+
+  if '_blink' in systems:
+    _logger.info('Generating dartium _blink file.')
+    file_generation_start_time = time.time()
+
+    GenerateSingleFile(
+        os.path.join(dartium_output_dir, '%s_dartium.dart' % '_blink'),
+        os.path.join('..', '..', '..', 'sdk', 'lib', '_blink', 'dartium'))
 
   print '\nGenerating single file %s seconds' % round(time.time() - file_generation_start_time, 2)
 

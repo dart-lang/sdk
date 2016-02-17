@@ -407,7 +407,11 @@ void SimulatorDebugger::Debug() {
       if (Simulator::IsIllegalAddress(last_pc)) {
         OS::Print("pc is out of bounds: 0x%" Px "\n", last_pc);
       } else {
-        Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+        if (FLAG_support_disassembler) {
+          Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+        } else {
+          OS::Print("Disassembler not supported in this mode.\n");
+        }
       }
     }
     char* line = ReadLine("sim> ");
@@ -546,7 +550,11 @@ void SimulatorDebugger::Debug() {
           }
         }
         if ((start > 0) && (end > start)) {
-          Disassembler::Disassemble(start, end);
+          if (FLAG_support_disassembler) {
+            Disassembler::Disassemble(start, end);
+          } else {
+            OS::Print("Disassembler not supported in this mode.\n");
+          }
         } else {
           OS::Print("disasm [<address> [<number_of_instructions>]]\n");
         }
@@ -3603,7 +3611,11 @@ void Simulator::InstructionDecode(Instr* instr) {
     OS::Print("%" Pu64 " ", icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
-    Disassembler::Disassemble(start, end);
+    if (FLAG_support_disassembler) {
+      Disassembler::Disassemble(start, end);
+    } else {
+      OS::Print("Disassembler not supported in this mode.\n");
+    }
   }
   if (instr->ConditionField() == kSpecialCondition) {
     if (instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) {

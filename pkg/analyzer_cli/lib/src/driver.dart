@@ -290,7 +290,9 @@ class Driver implements CommandLineStarter {
       packagesRequiringFullParse = null;
     }
     return (Source source) {
-      if (source.uri.scheme == 'dart') {
+      if (options.sourceFiles.contains(source.fullName)) {
+        return true;
+      } else if (source.uri.scheme == 'dart') {
         return options.showSdkWarnings;
       } else if (source.uri.scheme == 'package') {
         if (packagesRequiringFullParse == null) {

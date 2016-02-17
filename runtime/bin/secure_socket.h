@@ -116,7 +116,6 @@ class SSLFilter {
   bool in_handshake_;
   bool is_server_;
   char* hostname_;
-  X509_VERIFY_PARAM* certificate_checking_parameters_;
 
   static bool isBufferEncrypted(int i) {
     return static_cast<BufferIndex>(i) >= kFirstEncrypted;

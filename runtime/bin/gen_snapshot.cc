@@ -435,7 +435,11 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
   if (Dart_IsError(source)) {
     return source;
   }
-  return Dart_LoadLibrary(resolved_script_uri, source, 0, 0);
+  if (IsSnapshottingForPrecompilation()) {
+    return Dart_LoadScript(resolved_script_uri, source, 0, 0);
+  } else {
+    return Dart_LoadLibrary(resolved_script_uri, source, 0, 0);
+  }
 }
 
 
@@ -1026,6 +1030,7 @@ int main(int argc, char** argv) {
   // Note: We don't expect isolates to be created from dart code during
   // snapshot generation.
   char* error = Dart_Initialize(
+      NULL,
       NULL,
       NULL,
       CreateServiceIsolate,

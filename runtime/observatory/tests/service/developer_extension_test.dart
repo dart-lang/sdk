@@ -16,7 +16,7 @@ Future<ServiceExtensionResponse> Handler(String method,
                                          Map paremeters) {
   print('Invoked extension: $method');
   switch (method) {
-    case '__delay':
+    case 'ext..delay':
       Completer c = new Completer();
       new Timer(new Duration(seconds: 1), () {
         c.complete(new ServiceExtensionResponse.result(JSON.encode({
@@ -26,23 +26,23 @@ Future<ServiceExtensionResponse> Handler(String method,
           })));
       });
       return c.future;
-    case '__error':
+    case 'ext..error':
       return new Future.value(
               new ServiceExtensionResponse.error(
-                  ServiceExtensionResponse.kExtensionErrorMin,
+                  ServiceExtensionResponse.extensionErrorMin,
                   'My error detail.'));
-    case '__exception':
+    case 'ext..exception':
       throw "I always throw!";
-    case '__success':
+    case 'ext..success':
       return new Future.value(
           new ServiceExtensionResponse.result(JSON.encode({
               'type': '_extensionType',
               'method': method,
               'parameters': paremeters,
           })));
-    case '__null':
+    case 'ext..null':
       return null;
-    case '__nullFuture':
+    case 'ext..nullFuture':
       return new Future.value(null);
   }
 }
@@ -54,25 +54,25 @@ Future<ServiceExtensionResponse> LanguageErrorHandler(String method,
 }
 
 void test() {
-  registerExtension('__delay', Handler);
+  registerExtension('ext..delay', Handler);
   debugger();
   postEvent('ALPHA', {
     'cat': 'dog'
   });
   debugger();
-  registerExtension('__error', Handler);
-  registerExtension('__exception', Handler);
-  registerExtension('__null', Handler);
-  registerExtension('__nullFuture', Handler);
-  registerExtension('__success', Handler);
+  registerExtension('ext..error', Handler);
+  registerExtension('ext..exception', Handler);
+  registerExtension('ext..null', Handler);
+  registerExtension('ext..nullFuture', Handler);
+  registerExtension('ext..success', Handler);
   bool exceptionThrown = false;
   try {
-    registerExtension('__delay', Handler);
+    registerExtension('ext..delay', Handler);
   } catch (e) {
     exceptionThrown = true;
   }
   expect(exceptionThrown, isTrue);
-  registerExtension('__languageError', LanguageErrorHandler);
+  registerExtension('ext..languageError', LanguageErrorHandler);
 }
 
 var tests = [
@@ -80,7 +80,7 @@ var tests = [
   (Isolate isolate) async {
     await isolate.load();
     expect(isolate.extensionRPCs.length, 1);
-    expect(isolate.extensionRPCs[0], equals('__delay'));
+    expect(isolate.extensionRPCs[0], equals('ext..delay'));
   },
   resumeIsolateAndAwaitEvent(Isolate.kExtensionStream, (ServiceEvent event) {
     expect(event.kind, equals(ServiceEvent.kExtension));
@@ -92,65 +92,65 @@ var tests = [
   resumeIsolateAndAwaitEvent(VM.kIsolateStream, (ServiceEvent event) {
     // Check that we received an event when '__error' was registered.
     expect(event.kind, equals(ServiceEvent.kServiceExtensionAdded));
-    expect(event.extensionRPC, equals('__error'));
+    expect(event.extensionRPC, equals('ext..error'));
   }),
   // Initial.
   (Isolate isolate) async {
     var result;
 
-    result = await isolate.invokeRpcNoUpgrade('__delay', {});
+    result = await isolate.invokeRpcNoUpgrade('ext..delay', {});
     expect(result['type'], equals('_delayedType'));
-    expect(result['method'], equals('__delay'));
+    expect(result['method'], equals('ext..delay'));
     expect(result['parameters']['isolateId'], isNotNull);
 
     try {
-      await isolate.invokeRpcNoUpgrade('__error', {});
+      await isolate.invokeRpcNoUpgrade('ext..error', {});
     } on ServerRpcException catch (e, st) {
-      expect(e.code, equals(ServiceExtensionResponse.kExtensionErrorMin));
+      expect(e.code, equals(ServiceExtensionResponse.extensionErrorMin));
       expect(e.message, equals('My error detail.'));
     }
 
     try {
-      await isolate.invokeRpcNoUpgrade('__exception', {});
+      await isolate.invokeRpcNoUpgrade('ext..exception', {});
     } on ServerRpcException catch (e, st) {
-      expect(e.code, equals(ServiceExtensionResponse.kExtensionError));
+      expect(e.code, equals(ServiceExtensionResponse.extensionError));
       expect(e.message.startsWith('I always throw!\n'), isTrue);
     }
 
     try {
-      await isolate.invokeRpcNoUpgrade('__null', {});
+      await isolate.invokeRpcNoUpgrade('ext..null', {});
     } on ServerRpcException catch (e, st) {
-      expect(e.code, equals(ServiceExtensionResponse.kExtensionError));
+      expect(e.code, equals(ServiceExtensionResponse.extensionError));
       expect(e.message, equals('Extension handler must return a Future'));
     }
 
     try {
-      await isolate.invokeRpcNoUpgrade('__nullFuture', {});
+      await isolate.invokeRpcNoUpgrade('ext..nullFuture', {});
     } on ServerRpcException catch (e, st) {
-      expect(e.code, equals(ServiceExtensionResponse.kExtensionError));
+      expect(e.code, equals(ServiceExtensionResponse.extensionError));
       expect(e.message, equals('Extension handler must complete to a '
                                'ServiceExtensionResponse'));
     }
 
-    result = await isolate.invokeRpcNoUpgrade('__success',
+    result = await isolate.invokeRpcNoUpgrade('ext..success',
                                               {'apple': 'banana'});
     expect(result['type'], equals('_extensionType'));
-    expect(result['method'], equals('__success'));
+    expect(result['method'], equals('ext..success'));
     expect(result['parameters']['isolateId'], isNotNull);
     expect(result['parameters']['apple'], equals('banana'));
 
 
     try {
-      result = await isolate.invokeRpcNoUpgrade('__languageError', {});
+      result = await isolate.invokeRpcNoUpgrade('ext..languageError', {});
     } on ServerRpcException catch (e, st) {
-      expect(e.code, equals(ServiceExtensionResponse.kExtensionError));
+      expect(e.code, equals(ServiceExtensionResponse.extensionError));
       expect(e.message, stringContainsInOrder([
-          'Error in extension `__languageError`:',
+          'Error in extension `ext..languageError`:',
           'developer_extension_test.dart',
           'semicolon expected']));
     }
-
   },
 ];
 
-main(args) async => runIsolateTests(args, tests, testeeConcurrent:test);
+main(args) async => runIsolateTests(args, tests, testeeConcurrent:test,
+                                    trace_compiler: true);

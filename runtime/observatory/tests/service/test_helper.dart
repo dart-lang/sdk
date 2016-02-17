@@ -29,7 +29,8 @@ class _TestLauncher {
   Future<int> launch(bool pause_on_start,
                      bool pause_on_exit,
                      bool pause_on_unhandled_exceptions,
-                     bool trace_service) {
+                     bool trace_service,
+                     bool trace_compiler) {
     assert(pause_on_start != null);
     assert(pause_on_exit != null);
     assert(trace_service != null);
@@ -40,6 +41,10 @@ class _TestLauncher {
     var fullArgs = [];
     if (trace_service) {
       fullArgs.add('--trace-service');
+      fullArgs.add('--trace-service-verbose');
+    }
+    if (trace_compiler) {
+      fullArgs.add('--trace-compiler');
     }
     if (pause_on_start) {
       fullArgs.add('--pause-isolates-on-start');
@@ -119,6 +124,7 @@ Future runIsolateTests(List<String> mainArgs,
                         bool pause_on_start: false,
                         bool pause_on_exit: false,
                         bool trace_service: false,
+                        bool trace_compiler: false,
                         bool verbose_vm: false,
                         bool pause_on_unhandled_exceptions: false}) async {
   assert(!pause_on_start || testeeBefore == null);
@@ -142,7 +148,8 @@ Future runIsolateTests(List<String> mainArgs,
   } else {
     var process = new _TestLauncher();
     process.launch(pause_on_start, pause_on_exit,
-                   pause_on_unhandled_exceptions, trace_service).then((port) {
+                   pause_on_unhandled_exceptions,
+                   trace_service, trace_compiler).then((port) {
       if (mainArgs.contains("--gdb")) {
         port = 8181;
       }
@@ -190,6 +197,7 @@ void runIsolateTestsSynchronous(List<String> mainArgs,
                                  bool pause_on_start: false,
                                  bool pause_on_exit: false,
                                  bool trace_service: false,
+                                 bool trace_compiler: false,
                                  bool verbose_vm: false,
                                  bool pause_on_unhandled_exceptions: false}) {
   assert(!pause_on_start || testeeBefore == null);
@@ -210,7 +218,8 @@ void runIsolateTestsSynchronous(List<String> mainArgs,
   } else {
     var process = new _TestLauncher();
     process.launch(pause_on_start, pause_on_exit,
-                   pause_on_unhandled_exceptions, trace_service).then((port) {
+                   pause_on_unhandled_exceptions,
+                   trace_service, trace_compiler).then((port) {
       if (mainArgs.contains("--gdb")) {
         port = 8181;
       }
@@ -400,6 +409,7 @@ Future runVMTests(List<String> mainArgs,
                    bool pause_on_start: false,
                    bool pause_on_exit: false,
                    bool trace_service: false,
+                   bool trace_compiler: false,
                    bool verbose_vm: false,
                    bool pause_on_unhandled_exceptions: false}) async {
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
@@ -421,7 +431,7 @@ Future runVMTests(List<String> mainArgs,
     process.launch(pause_on_start,
                    pause_on_exit,
                    pause_on_unhandled_exceptions,
-                   trace_service).then((port) async {
+                   trace_service, trace_compiler).then((port) async {
       if (mainArgs.contains("--gdb")) {
         port = 8181;
       }

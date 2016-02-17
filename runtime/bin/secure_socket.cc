@@ -12,6 +12,7 @@
 
 #include <openssl/bio.h>
 #include <openssl/err.h>
+#include <openssl/pkcs12.h>
 #include <openssl/safestack.h>
 #include <openssl/ssl.h>
 #include <openssl/tls1.h>
@@ -381,11 +382,11 @@ void CheckStatus(int status,
 // BIO is allocated. Leaving the scope cleans up the BIO and the buffer that
 // was used to create it.
 //
-// Do not make Dart_ API calls while in a MemBIOScope.
-// Do not call Dart_PropagateError while in a MemBIOScope.
-class MemBIOScope {
+// Do not make Dart_ API calls while in a ScopedMemBIO.
+// Do not call Dart_PropagateError while in a ScopedMemBIO.
+class ScopedMemBIO {
  public:
-  explicit MemBIOScope(Dart_Handle object) {
+  explicit ScopedMemBIO(Dart_Handle object) {
     if (!Dart_IsTypedData(object) && !Dart_IsList(object)) {
       Dart_ThrowException(DartUtils::NewDartArgumentError(
           "Argument is not a List<int>"));
@@ -418,7 +419,7 @@ class MemBIOScope {
     is_typed_data_ = is_typed_data;
   }
 
-  ~MemBIOScope() {
+  ~ScopedMemBIO() {
     ASSERT(bio_ != NULL);
     if (is_typed_data_) {
       BIO_free(bio_);
@@ -441,8 +442,118 @@ class MemBIOScope {
   bool is_typed_data_;
 
   DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(MemBIOScope);
+  DISALLOW_COPY_AND_ASSIGN(ScopedMemBIO);
 };
+
+
+template<typename T, void (*free_func)(T*)>
+class ScopedSSLType {
+ public:
+  explicit ScopedSSLType(T* obj) : obj_(obj) {}
+
+  ~ScopedSSLType() {
+    if (obj_ != NULL) {
+      free_func(obj_);
+    }
+  }
+
+  T* get() { return obj_; }
+  const T* get() const { return obj_; }
+
+  T* release() {
+    T* result = obj_;
+    obj_ = NULL;
+    return result;
+  }
+
+ private:
+  T* obj_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(ScopedSSLType);
+};
+
+template<typename T, typename E, void (*func)(E*)>
+class ScopedSSLStackType {
+ public:
+  explicit ScopedSSLStackType(T* obj) : obj_(obj) {}
+
+  ~ScopedSSLStackType() {
+    if (obj_ != NULL) {
+      sk_pop_free(reinterpret_cast<_STACK*>(obj_),
+                  reinterpret_cast<void (*)(void *)>(func));
+    }
+  }
+
+  T* get() { return obj_; }
+  const T* get() const { return obj_; }
+
+  T* release() {
+    T* result = obj_;
+    obj_ = NULL;
+    return result;
+  }
+
+ private:
+  T* obj_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(ScopedSSLStackType);
+};
+
+typedef ScopedSSLType<PKCS12, PKCS12_free> ScopedPKCS12;
+typedef ScopedSSLType<X509, X509_free> ScopedX509;
+
+typedef ScopedSSLStackType<STACK_OF(X509), X509, X509_free> ScopedX509Stack;
+typedef ScopedSSLStackType<STACK_OF(X509_NAME), X509_NAME, X509_NAME_free>
+    ScopedX509NAMEStack;
+
+
+// We try reading data as PKCS12 only if reading as PEM was unsuccessful and
+// if there is no indication that the data is malformed PEM. We assume the data
+// is malformed PEM if it contains the start line, i.e. a line with ----- BEGIN.
+static bool TryPKCS12(bool pem_success) {
+  uint32_t last_error = ERR_peek_last_error();
+  return !pem_success &&
+      (ERR_GET_LIB(last_error) == ERR_LIB_PEM) &&
+      (ERR_GET_REASON(last_error) == PEM_R_NO_START_LINE);
+}
+
+
+static EVP_PKEY* GetPrivateKeyPKCS12(BIO* bio, const char* password) {
+  ScopedPKCS12 p12(d2i_PKCS12_bio(bio, NULL));
+  if (p12.get() == NULL) {
+    return NULL;
+  }
+
+  EVP_PKEY* key = NULL;
+  X509 *cert = NULL;
+  STACK_OF(X509) *ca_certs = NULL;
+  int status = PKCS12_parse(p12.get(), password, &key, &cert, &ca_certs);
+  if (status == 0) {
+    return NULL;
+  }
+
+  // We only care about the private key.
+  ScopedX509 delete_cert(cert);
+  ScopedX509Stack delete_ca_certs(ca_certs);
+  return key;
+}
+
+
+static EVP_PKEY* GetPrivateKey(BIO* bio, const char* password) {
+  EVP_PKEY *key = PEM_read_bio_PrivateKey(
+      bio, NULL, PasswordCallback, const_cast<char*>(password));
+  if (TryPKCS12(key != NULL)) {
+    // Reset the bio, and clear the error from trying to read as PEM.
+    ERR_clear_error();
+    BIO_reset(bio);
+
+    // Try to decode as PKCS12
+    key = GetPrivateKeyPKCS12(bio, password);
+  }
+  return key;
+}
 
 
 void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
@@ -467,9 +578,8 @@ void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
 
   int status;
   {
-    MemBIOScope bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
-    EVP_PKEY *key = PEM_read_bio_PrivateKey(
-        bio.bio(), NULL, PasswordCallback, const_cast<char*>(password));
+    ScopedMemBIO bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
+    EVP_PKEY *key = GetPrivateKey(bio.bio(), password);
     status = SSL_CTX_use_PrivateKey(context, key);
   }
 
@@ -480,7 +590,52 @@ void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
 }
 
 
-static int SetTrustedCertificatesBytes(SSL_CTX* context, BIO* bio) {
+static int SetTrustedCertificatesBytesPKCS12(SSL_CTX* context, BIO* bio) {
+  ScopedPKCS12 p12(d2i_PKCS12_bio(bio, NULL));
+  if (p12.get() == NULL) {
+    return NULL;
+  }
+
+  EVP_PKEY* key = NULL;
+  X509 *cert = NULL;
+  STACK_OF(X509) *ca_certs = NULL;
+  // There should be no private keys in this file, so we hardcode the password
+  // to "".
+  // TODO(zra): Allow passing a password anyway.
+  int status = PKCS12_parse(p12.get(), "", &key, &cert, &ca_certs);
+  if (status == 0) {
+    return status;
+  }
+
+  ScopedX509Stack cert_stack(ca_certs);
+
+  // There should be no private key.
+  if (key != NULL) {
+    X509_free(cert);
+    return 0;
+  }
+
+  X509_STORE* store = SSL_CTX_get_cert_store(context);
+  status = X509_STORE_add_cert(store, cert);
+  if (status == 0) {
+    X509_free(cert);
+    return status;
+  }
+
+  X509* ca;
+  while ((ca = sk_X509_shift(cert_stack.get())) != NULL) {
+    status = X509_STORE_add_cert(store, ca);
+    if (status == 0) {
+      X509_free(ca);
+      return status;
+    }
+  }
+
+  return status;
+}
+
+
+static int SetTrustedCertificatesBytesPEM(SSL_CTX* context, BIO* bio) {
   X509_STORE* store = SSL_CTX_get_cert_store(context);
 
   int status = 0;
@@ -493,16 +648,30 @@ static int SetTrustedCertificatesBytes(SSL_CTX* context, BIO* bio) {
     }
   }
 
+  // If bio does not contain PEM data, the first call to PEM_read_bio_X509 will
+  // return NULL, and the while-loop will exit while status is still 0.
   uint32_t err = ERR_peek_last_error();
-  if ((ERR_GET_LIB(err) == ERR_LIB_PEM) &&
-      (ERR_GET_REASON(err) == PEM_R_NO_START_LINE)) {
-    // Reached the end of the buffer.
-    ERR_clear_error();
-  } else {
-    // Some real error happened.
+  if ((ERR_GET_LIB(err) != ERR_LIB_PEM) ||
+      (ERR_GET_REASON(err) != PEM_R_NO_START_LINE)) {
+    // If bio contains data that is trying to be PEM but is malformed, then
+    // this case will be triggered.
     status = 0;
   }
 
+  return status;
+}
+
+
+static int SetTrustedCertificatesBytes(SSL_CTX* context, BIO* bio) {
+  int status = SetTrustedCertificatesBytesPEM(context, bio);
+  if (TryPKCS12(status != 0)) {
+    ERR_clear_error();
+    BIO_reset(bio);
+    status = SetTrustedCertificatesBytesPKCS12(context, bio);
+  } else if (status != 0) {
+    // The PEM file was successfully parsed.
+    ERR_clear_error();
+  }
   return status;
 }
 
@@ -512,7 +681,7 @@ void FUNCTION_NAME(SecurityContext_SetTrustedCertificatesBytes)(
   SSL_CTX* context = GetSecurityContext(args);
   int status;
   {
-    MemBIOScope bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
+    ScopedMemBIO bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
     status = SetTrustedCertificatesBytes(context, bio.bio());
   }
   CheckStatus(status,
@@ -539,34 +708,78 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
 }
 
 
-static int UseChainBytes(SSL_CTX* context, BIO* bio) {
-  int status = 0;
-  X509* x509 = PEM_read_bio_X509_AUX(bio, NULL, NULL, NULL);
-  if (x509 == NULL) {
+static int UseChainBytesPKCS12(SSL_CTX* context, BIO* bio) {
+  ScopedPKCS12 p12(d2i_PKCS12_bio(bio, NULL));
+  if (p12.get() == NULL) {
+    return NULL;
+  }
+
+  EVP_PKEY* key = NULL;
+  X509 *cert = NULL;
+  STACK_OF(X509) *ca_certs = NULL;
+  // There should be no private keys in this file, so we hardcode the password
+  // to "".
+  // TODO(zra): Allow passing a password anyway.
+  int status = PKCS12_parse(p12.get(), "", &key, &cert, &ca_certs);
+  if (status == 0) {
+    return status;
+  }
+
+  ScopedX509 x509(cert);
+  ScopedX509Stack certs(ca_certs);
+
+  // There should be no private key.
+  if (key != NULL) {
     return 0;
   }
 
-  status = SSL_CTX_use_certificate(context, x509);
+  status = SSL_CTX_use_certificate(context, x509.get());
   if (ERR_peek_error() != 0) {
     // Key/certificate mismatch doesn't imply status is 0.
     status = 0;
   }
   if (status == 0) {
-    X509_free(x509);
     return status;
   }
 
   SSL_CTX_clear_chain_certs(context);
 
-  while (true) {
-    X509* ca = PEM_read_bio_X509(bio, NULL, NULL, NULL);
-    if (ca == NULL) {
-      break;
-    }
+  X509* ca;
+  while ((ca = sk_X509_shift(certs.get())) != NULL) {
     status = SSL_CTX_add0_chain_cert(context, ca);
     if (status == 0) {
       X509_free(ca);
-      X509_free(x509);
+      return status;
+    }
+  }
+
+  return status;
+}
+
+
+static int UseChainBytesPEM(SSL_CTX* context, BIO* bio) {
+  int status = 0;
+  ScopedX509 x509(PEM_read_bio_X509_AUX(bio, NULL, NULL, NULL));
+  if (x509.get() == NULL) {
+    return 0;
+  }
+
+  status = SSL_CTX_use_certificate(context, x509.get());
+  if (ERR_peek_error() != 0) {
+    // Key/certificate mismatch doesn't imply status is 0.
+    status = 0;
+  }
+  if (status == 0) {
+    return status;
+  }
+
+  SSL_CTX_clear_chain_certs(context);
+
+  X509* ca;
+  while ((ca = PEM_read_bio_X509(bio, NULL, NULL, NULL)) != NULL) {
+    status = SSL_CTX_add0_chain_cert(context, ca);
+    if (status == 0) {
+      X509_free(ca);
       return status;
     }
     // Note that we must not free `ca` if it was successfully added to the
@@ -574,17 +787,30 @@ static int UseChainBytes(SSL_CTX* context, BIO* bio) {
     // count is increased by SSL_CTX_use_certificate.
   }
 
+  // If bio does not contain PEM data, the first call to PEM_read_bio_X509 will
+  // return NULL, and the while-loop will exit while status is still 0.
   uint32_t err = ERR_peek_last_error();
-  if ((ERR_GET_LIB(err) == ERR_LIB_PEM) &&
-      (ERR_GET_REASON(err) == PEM_R_NO_START_LINE)) {
-    // Reached the end of the buffer.
-    ERR_clear_error();
-  } else {
-    // Some real error happened.
+  if ((ERR_GET_LIB(err) != ERR_LIB_PEM) ||
+      (ERR_GET_REASON(err) != PEM_R_NO_START_LINE)) {
+    // If bio contains data that is trying to be PEM but is malformed, then
+    // this case will be triggered.
     status = 0;
   }
 
-  X509_free(x509);
+  return status;
+}
+
+
+static int UseChainBytes(SSL_CTX* context, BIO* bio) {
+  int status = UseChainBytesPEM(context, bio);
+  if (TryPKCS12(status != 0)) {
+    ERR_clear_error();
+    BIO_reset(bio);
+    status = UseChainBytesPKCS12(context, bio);
+  } else if (status != 0) {
+    // The PEM file was successfully read.
+    ERR_clear_error();
+  }
   return status;
 }
 
@@ -594,7 +820,7 @@ void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
   SSL_CTX* context = GetSecurityContext(args);
   int status;
   {
-    MemBIOScope bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
+    ScopedMemBIO bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
     status = UseChainBytes(context, bio.bio());
   }
   CheckStatus(status,
@@ -603,36 +829,122 @@ void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
 }
 
 
-static STACK_OF(X509_NAME)* GetCertificateNames(BIO* bio) {
-  STACK_OF(X509_NAME)* result = sk_X509_NAME_new_null();
-  if (result == NULL) {
+static STACK_OF(X509_NAME)* GetCertificateNamesPKCS12(BIO* bio) {
+  ScopedPKCS12 p12(d2i_PKCS12_bio(bio, NULL));
+  if (p12.get() == NULL) {
+    return NULL;
+  }
+
+  ScopedX509NAMEStack result(sk_X509_NAME_new_null());
+  if (result.get() == NULL) {
+    return NULL;
+  }
+
+  EVP_PKEY* key = NULL;
+  X509 *cert = NULL;
+  STACK_OF(X509) *ca_certs = NULL;
+  // There should be no private keys in this file, so we hardcode the password
+  // to "".
+  // TODO(zra): Allow passing a password anyway.
+  int status = PKCS12_parse(p12.get(), "", &key, &cert, &ca_certs);
+  if (status == 0) {
+    return NULL;
+  }
+
+  ScopedX509 x509(cert);
+  ScopedX509Stack certs(ca_certs);
+
+  // There should be no private key.
+  if (key != NULL) {
+    return NULL;
+  }
+
+  X509_NAME* x509_name = X509_get_subject_name(x509.get());
+  if (x509_name == NULL) {
+    return NULL;
+  }
+
+  x509_name = X509_NAME_dup(x509_name);
+  if (x509_name == NULL) {
+    return NULL;
+  }
+
+  sk_X509_NAME_push(result.get(), x509_name);
+
+  while (true) {
+    ScopedX509 ca(sk_X509_shift(certs.get()));
+    if (ca.get() == NULL) {
+      break;
+    }
+
+    X509_NAME* x509_name = X509_get_subject_name(ca.get());
+    if (x509_name == NULL) {
+      return NULL;
+    }
+
+    x509_name = X509_NAME_dup(x509_name);
+    if (x509_name == NULL) {
+      return NULL;
+    }
+
+    sk_X509_NAME_push(result.get(), x509_name);
+  }
+
+  return result.release();
+}
+
+
+static STACK_OF(X509_NAME)* GetCertificateNamesPEM(BIO* bio) {
+  ScopedX509NAMEStack result(sk_X509_NAME_new_null());
+  if (result.get() == NULL) {
     return NULL;
   }
 
   while (true) {
-    X509* x509 = PEM_read_bio_X509(bio, NULL, NULL, NULL);
-    if (x509 == NULL) {
+    ScopedX509 x509(PEM_read_bio_X509(bio, NULL, NULL, NULL));
+    if (x509.get() == NULL) {
       break;
     }
 
-    X509_NAME* x509_name = X509_get_subject_name(x509);
+    X509_NAME* x509_name = X509_get_subject_name(x509.get());
     if (x509_name == NULL) {
-      sk_X509_NAME_pop_free(result, X509_NAME_free);
-      X509_free(x509);
       return NULL;
     }
 
     // Duplicate the name to put it on the stack.
     x509_name = X509_NAME_dup(x509_name);
     if (x509_name == NULL) {
-      sk_X509_NAME_pop_free(result, X509_NAME_free);
-      X509_free(x509);
       return NULL;
     }
-    sk_X509_NAME_push(result, x509_name);
-    X509_free(x509);
+    sk_X509_NAME_push(result.get(), x509_name);
   }
 
+  if (sk_X509_NAME_num(result.get()) == 0) {
+    // The data was not PEM.
+    return NULL;
+  }
+
+  uint32_t err = ERR_peek_last_error();
+  if ((ERR_GET_LIB(err) != ERR_LIB_PEM) ||
+      (ERR_GET_REASON(err) != PEM_R_NO_START_LINE)) {
+    // The data was trying to be PEM, but was malformed.
+    return NULL;
+  }
+
+  return result.release();
+}
+
+
+static STACK_OF(X509_NAME)* GetCertificateNames(BIO* bio) {
+  STACK_OF(X509_NAME)* result = GetCertificateNamesPEM(bio);
+  if (TryPKCS12(result != NULL)) {
+    ERR_clear_error();
+    BIO_reset(bio);
+    result = GetCertificateNamesPKCS12(bio);
+  } else if (result != NULL) {
+    // The PEM file was successfully parsed.
+    ERR_clear_error();
+  }
   return result;
 }
 
@@ -643,7 +955,7 @@ void FUNCTION_NAME(SecurityContext_SetClientAuthoritiesBytes)(
   STACK_OF(X509_NAME)* certificate_names;
 
   {
-    MemBIOScope bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
+    ScopedMemBIO bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
     certificate_names = GetCertificateNames(bio.bio());
   }
 

@@ -59,11 +59,13 @@ LibTest/math/MutableRectangle/MutableRectangle.fromPoints_A01_t01: Pass, Runtime
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && $mode == debug ]
 LibTest/core/List/List_class_A01_t02: Pass, Slow
 
-[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ($arch != x64 && $arch != simarm64) ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ($arch != x64 && $arch != simarm64 && $arch != arm64) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
-[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && $arch == mips ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ($arch == mips) ]
 LibTest/core/double/toInt_A01_t01: Fail
+
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ($arch == mips || $arch == arm64) ]
 # These tests take too much memory (300 MB) for our 1 GB test machine.
 # co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
 LibTest/core/List/List_class_A01_t02: Skip # co19 issue 673

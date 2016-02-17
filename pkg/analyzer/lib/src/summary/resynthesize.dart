@@ -7,6 +7,7 @@ library summary_resynthesizer;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -15,7 +16,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
@@ -55,6 +55,14 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
    * semantics.
    */
   final bool strongMode;
+
+  /**
+   * Map of compilation units resynthesized from summaries.  The two map keys
+   * are the first two elements of the element's location (the library URI and
+   * the compilation unit URI).
+   */
+  final Map<String, Map<String, CompilationUnitElement>> _resynthesizedUnits =
+      <String, Map<String, CompilationUnitElement>>{};
 
   /**
    * Map of top level elements resynthesized from summaries.  The three map
@@ -101,6 +109,20 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
     // Resynthesize locally.
     if (components.length == 1) {
       return getLibraryElement(libraryUri);
+    } else if (components.length == 2) {
+      Map<String, CompilationUnitElement> libraryMap =
+          _resynthesizedUnits[libraryUri];
+      if (libraryMap == null) {
+        getLibraryElement(libraryUri);
+        libraryMap = _resynthesizedUnits[libraryUri];
+        assert(libraryMap != null);
+      }
+      String unitUri = components[1];
+      CompilationUnitElement element = libraryMap[unitUri];
+      if (element == null) {
+        throw new Exception('Unit element not found in summary: $location');
+      }
+      return element;
     } else if (components.length == 3 || components.length == 4) {
       Map<String, Map<String, Element>> libraryMap =
           _resynthesizedElements[libraryUri];
@@ -169,7 +191,8 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
       _LibraryResynthesizer libraryResynthesizer = new _LibraryResynthesizer(
           this, serializedLibrary, serializedUnits, librarySource);
       LibraryElement library = libraryResynthesizer.buildLibrary();
-      _resynthesizedElements[uri] = libraryResynthesizer.resummarizedElements;
+      _resynthesizedUnits[uri] = libraryResynthesizer.resynthesizedUnits;
+      _resynthesizedElements[uri] = libraryResynthesizer.resynthesizedElements;
       return library;
     });
   }
@@ -416,13 +439,9 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.pushReference:
           EntityRef ref = uc.references[refPtr++];
           _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
-          if (info.element != null) {
-            SimpleIdentifier node = AstFactory.identifier3(info.name);
-            node.staticElement = info.element;
-            _push(node);
-          } else {
-            throw new StateError('Unsupported reference ${ref.toMap()}');
-          }
+          SimpleIdentifier node = AstFactory.identifier3(info.name);
+          node.staticElement = info.element;
+          _push(node);
           break;
         case UnlinkedConstOperation.invokeConstructor:
           _pushInstanceCreation();
@@ -467,28 +486,6 @@ class _ConstExprBuilder {
     throw new StateError('Unsupported type $type');
   }
 
-  /**
-   * Return the [ConstructorElement] by applying [typeArgumentRefs] to the
-   * given linked [info].  Both cases when [info] is a [ClassElement] and
-   * [ConstructorElement] are supported.
-   */
-  _DeferredConstructorElement _createConstructorElement(
-      _ReferenceInfo info, List<EntityRef> typeArgumentRefs) {
-    bool isClass = info.element is ClassElement;
-    _ReferenceInfo classInfo = isClass ? info : info.enclosing;
-    List<DartType> typeArguments =
-        typeArgumentRefs.map(resynthesizer.buildType).toList();
-    InterfaceType classType = classInfo.buildType((i) {
-      if (i < typeArguments.length) {
-        return typeArguments[i];
-      } else {
-        return DynamicTypeImpl.instance;
-      }
-    }, const <int>[]);
-    String name = isClass ? '' : info.name;
-    return new _DeferredConstructorElement(classType, name);
-  }
-
   InterpolationElement _newInterpolationElement(Expression expr) {
     if (expr is SimpleStringLiteral) {
       return new InterpolationString(expr.literal, expr.value);
@@ -526,17 +523,51 @@ class _ConstExprBuilder {
     EntityRef ref = uc.references[refPtr++];
     _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
     // prepare ConstructorElement
+    TypeName typeNode;
     String constructorName;
-    if (info.element is ConstructorElement) {
-      constructorName = info.name;
-    } else if (info.element is ClassElement) {
-      constructorName = null;
+    ConstructorElement constructorElement;
+    if (info.element != null) {
+      if (info.element is ConstructorElement) {
+        constructorName = info.name;
+      } else if (info.element is ClassElement) {
+        constructorName = null;
+      } else {
+        throw new StateError('Unsupported element for invokeConstructor '
+            '${info.element?.runtimeType}');
+      }
+      InterfaceType definingType =
+          resynthesizer._createConstructorDefiningType(info, ref.typeArguments);
+      constructorElement =
+          resynthesizer._createConstructorElement(definingType, info);
+      typeNode = _buildTypeAst(definingType);
     } else {
-      throw new StateError('Unsupported element for invokeConstructor '
-          '${info.element?.runtimeType}');
+      if (info.enclosing != null) {
+        if (info.enclosing.enclosing != null) {
+          PrefixedIdentifier typeName = AstFactory.identifier5(
+              info.enclosing.enclosing.name, info.enclosing.name);
+          typeName.prefix.staticElement = info.enclosing.enclosing.element;
+          typeName.identifier.staticElement = info.enclosing.element;
+          typeName.identifier.staticType = info.enclosing.type;
+          typeNode = AstFactory.typeName3(typeName);
+          typeNode.type = info.enclosing.type;
+          constructorName = info.name;
+        } else if (info.enclosing.element != null) {
+          SimpleIdentifier typeName =
+              AstFactory.identifier3(info.enclosing.name);
+          typeName.staticElement = info.enclosing.element;
+          typeName.staticType = info.enclosing.type;
+          typeNode = AstFactory.typeName3(typeName);
+          typeNode.type = info.enclosing.type;
+          constructorName = info.name;
+        } else {
+          typeNode = AstFactory.typeName3(
+              AstFactory.identifier5(info.enclosing.name, info.name));
+          constructorName = null;
+        }
+      } else {
+        typeNode = AstFactory.typeName4(info.name);
+      }
     }
-    _DeferredConstructorElement constructorElement =
-        _createConstructorElement(info, ref.typeArguments);
     // prepare arguments
     List<Expression> arguments;
     {
@@ -551,8 +582,6 @@ class _ConstExprBuilder {
         arguments[index] = AstFactory.namedExpression2(name, arguments[index]);
       }
     }
-    // create TypeName
-    TypeName typeNode = _buildTypeAst(constructorElement.definingType);
     // create ConstructorName
     ConstructorName constructorNode;
     if (constructorName != null) {
@@ -606,11 +635,20 @@ class _ConstExprBuilder {
 /**
  * The constructor element that has been resynthesized from a summary.  The
  * actual element won't be constructed until it is requested.  But properties
- * [definingType], [displayName], [enclosingElement] and [name] can be used
- * without creating the actual element.
+ * [displayName], [enclosingElement] and [name] can be used without creating
+ * the actual element.
  */
 class _DeferredConstructorElement extends ConstructorElementHandle {
-  final InterfaceType definingType;
+  /**
+   * The type defining this constructor element.  If [_isMember] is `false`,
+   * then the type parameters of [_definingType] are not guaranteed to be
+   * valid.
+   */
+  final InterfaceType _definingType;
+
+  /**
+   * The constructor name.
+   */
   final String name;
 
   factory _DeferredConstructorElement(InterfaceType definingType, String name) {
@@ -621,24 +659,21 @@ class _DeferredConstructorElement extends ConstructorElementHandle {
   }
 
   _DeferredConstructorElement._(
-      this.definingType, this.name, ElementLocation location)
+      this._definingType, this.name, ElementLocation location)
       : super(null, location);
 
   @override
-  Element get actualElement {
-    ConstructorElement element = enclosingElement.getNamedConstructor(name);
-    return new ConstructorMember(element, definingType);
-  }
+  Element get actualElement => enclosingElement.getNamedConstructor(name);
 
   @override
-  AnalysisContext get context => definingType.element.context;
+  AnalysisContext get context => _definingType.element.context;
 
   @override
   String get displayName => name;
 
   @override
   ClassElement get enclosingElement {
-    return definingType.element;
+    return _definingType.element;
   }
 }
 
@@ -714,23 +749,32 @@ class _LibraryResynthesizer {
   ConstructorElementImpl currentConstructor;
 
   /**
+   * Map of compilation unit elements that have been resynthesized so far.  The
+   * key is the URI of the compilation unit.
+   */
+  final Map<String, CompilationUnitElement> resynthesizedUnits =
+      <String, CompilationUnitElement>{};
+
+  /**
    * Map of top level elements that have been resynthesized so far.  The first
    * key is the URI of the compilation unit; the second is the name of the top
    * level element.
    */
-  final Map<String, Map<String, Element>> resummarizedElements =
+  final Map<String, Map<String, Element>> resynthesizedElements =
       <String, Map<String, Element>>{};
 
   /**
    * Type parameters for the generic class, typedef, or executable currently
-   * being resynthesized, if any.  If multiple entities with type parameters
-   * are nested (e.g. a generic executable inside a generic class), this is the
-   * concatenation of all type parameters from all declarations currently in
-   * force, with the outermost declaration appearing first.  If there are no
-   * type parameters, or we are not currently resynthesizing a class, typedef,
-   * or executable, then this is an empty list.
+   * being resynthesized, if any.  This is a list of lists; if multiple
+   * entities with type parameters are nested (e.g. a generic executable inside
+   * a generic class), then the zeroth element of [currentTypeParameters]
+   * contains the type parameters for the outermost nested entity, and further
+   * elements contain the type parameters for entities that are more deeply
+   * nested.  If we are not currently resynthesizing a class, typedef, or
+   * executable, then this is an empty list.
    */
-  List<TypeParameterElement> currentTypeParameters = <TypeParameterElement>[];
+  final List<List<TypeParameterElement>> currentTypeParameters =
+      <List<TypeParameterElement>>[];
 
   /**
    * If a class is currently being resynthesized, map from field name to the
@@ -756,13 +800,6 @@ class _LibraryResynthesizer {
       this.unlinkedUnits, this.librarySource) {
     isCoreLibrary = librarySource.uri.toString() == 'dart:core';
   }
-
-  /**
-   * Return a list of type arguments corresponding to [currentTypeParameters].
-   */
-  List<TypeParameterType> get currentTypeArguments => currentTypeParameters
-      ?.map((TypeParameterElement param) => param.type)
-      ?.toList();
 
   /**
    * Build the annotations for the given [element].
@@ -802,80 +839,78 @@ class _LibraryResynthesizer {
    * Resynthesize a [ClassElement] and place it in [unitHolder].
    */
   void buildClass(UnlinkedClass serializedClass) {
-    try {
-      currentTypeParameters =
-          serializedClass.typeParameters.map(buildTypeParameter).toList();
-      for (int i = 0; i < serializedClass.typeParameters.length; i++) {
-        finishTypeParameter(
-            serializedClass.typeParameters[i], currentTypeParameters[i]);
+    ClassElementImpl classElement =
+        new ClassElementImpl(serializedClass.name, serializedClass.nameOffset);
+    classElement.typeParameters =
+        buildTypeParameters(serializedClass.typeParameters);
+    classElement.abstract = serializedClass.isAbstract;
+    classElement.mixinApplication = serializedClass.isMixinApplication;
+    InterfaceTypeImpl correspondingType = new InterfaceTypeImpl(classElement);
+    if (serializedClass.supertype != null) {
+      classElement.supertype = buildType(serializedClass.supertype);
+    } else if (!serializedClass.hasNoSupertype) {
+      if (isCoreLibrary) {
+        delayedObjectSubclasses.add(classElement);
+      } else {
+        classElement.supertype = summaryResynthesizer.typeProvider.objectType;
       }
-      ClassElementImpl classElement = new ClassElementImpl(
-          serializedClass.name, serializedClass.nameOffset);
-      classElement.abstract = serializedClass.isAbstract;
-      classElement.mixinApplication = serializedClass.isMixinApplication;
-      InterfaceTypeImpl correspondingType = new InterfaceTypeImpl(classElement);
-      if (serializedClass.supertype != null) {
-        classElement.supertype = buildType(serializedClass.supertype);
-      } else if (!serializedClass.hasNoSupertype) {
-        if (isCoreLibrary) {
-          delayedObjectSubclasses.add(classElement);
-        } else {
-          classElement.supertype = summaryResynthesizer.typeProvider.objectType;
-        }
-      }
-      classElement.interfaces =
-          serializedClass.interfaces.map(buildType).toList();
-      classElement.mixins = serializedClass.mixins.map(buildType).toList();
-      classElement.typeParameters = currentTypeParameters;
-      ElementHolder memberHolder = new ElementHolder();
-      fields = <String, FieldElementImpl>{};
-      for (UnlinkedVariable serializedVariable in serializedClass.fields) {
-        buildVariable(serializedVariable, memberHolder);
-      }
-      bool constructorFound = false;
-      constructors = <String, ConstructorElementImpl>{};
-      for (UnlinkedExecutable serializedExecutable
-          in serializedClass.executables) {
-        switch (serializedExecutable.kind) {
-          case UnlinkedExecutableKind.constructor:
-            constructorFound = true;
-            buildConstructor(
-                serializedExecutable, memberHolder, correspondingType);
-            break;
-          case UnlinkedExecutableKind.functionOrMethod:
-          case UnlinkedExecutableKind.getter:
-          case UnlinkedExecutableKind.setter:
-            buildExecutable(serializedExecutable, memberHolder);
-            break;
-        }
-      }
-      if (!serializedClass.isMixinApplication) {
-        if (!constructorFound) {
-          // Synthesize implicit constructors.
-          ConstructorElementImpl constructor =
-              new ConstructorElementImpl('', -1);
-          constructor.synthetic = true;
-          constructor.returnType = correspondingType;
-          constructor.type = new FunctionTypeImpl.elementWithNameAndArgs(
-              constructor, null, currentTypeArguments, false);
-          memberHolder.addConstructor(constructor);
-        }
-        classElement.constructors = memberHolder.constructors;
-      }
-      classElement.accessors = memberHolder.accessors;
-      classElement.fields = memberHolder.fields;
-      classElement.methods = memberHolder.methods;
-      correspondingType.typeArguments = currentTypeArguments;
-      classElement.type = correspondingType;
-      buildDocumentation(classElement, serializedClass.documentationComment);
-      buildAnnotations(classElement, serializedClass.annotations);
-      resolveConstructorInitializers(classElement);
-      unitHolder.addType(classElement);
-    } finally {
-      currentTypeParameters = <TypeParameterElement>[];
-      fields = null;
-      constructors = null;
     }
+    classElement.interfaces =
+        serializedClass.interfaces.map(buildType).toList();
+    classElement.mixins = serializedClass.mixins.map(buildType).toList();
+    ElementHolder memberHolder = new ElementHolder();
+    fields = <String, FieldElementImpl>{};
+    for (UnlinkedVariable serializedVariable in serializedClass.fields) {
+      buildVariable(serializedVariable, memberHolder);
+    }
+    bool constructorFound = false;
+    constructors = <String, ConstructorElementImpl>{};
+    for (UnlinkedExecutable serializedExecutable
+        in serializedClass.executables) {
+      switch (serializedExecutable.kind) {
+        case UnlinkedExecutableKind.constructor:
+          constructorFound = true;
+          buildConstructor(
+              serializedExecutable, memberHolder, correspondingType);
+          break;
+        case UnlinkedExecutableKind.functionOrMethod:
+        case UnlinkedExecutableKind.getter:
+        case UnlinkedExecutableKind.setter:
+          if (serializedExecutable.isStatic) {
+            currentTypeParameters.removeLast();
+          }
+          buildExecutable(serializedExecutable, memberHolder);
+          if (serializedExecutable.isStatic) {
+            currentTypeParameters.add(classElement.typeParameters);
+          }
+          break;
+      }
+    }
+    if (!serializedClass.isMixinApplication) {
+      if (!constructorFound) {
+        // Synthesize implicit constructors.
+        ConstructorElementImpl constructor = new ConstructorElementImpl('', -1);
+        constructor.synthetic = true;
+        constructor.returnType = correspondingType;
+        constructor.type = new FunctionTypeImpl.elementWithNameAndArgs(
+            constructor, null, getCurrentTypeArguments(), false);
+        memberHolder.addConstructor(constructor);
+      }
+      classElement.constructors = memberHolder.constructors;
+    }
+    classElement.accessors = memberHolder.accessors;
+    classElement.fields = memberHolder.fields;
+    classElement.methods = memberHolder.methods;
+    correspondingType.typeArguments = getCurrentTypeArguments();
+    classElement.type = correspondingType;
+    buildDocumentation(classElement, serializedClass.documentationComment);
+    buildAnnotations(classElement, serializedClass.annotations);
+    resolveConstructorInitializers(classElement);
+    unitHolder.addType(classElement);
+    currentTypeParameters.removeLast();
+    assert(currentTypeParameters.isEmpty);
+    fields = null;
+    constructors = null;
   }
 
   /**
@@ -939,6 +974,26 @@ class _LibraryResynthesizer {
         .constantInitializers
         .map(buildConstantInitializer)
         .toList();
+    if (serializedExecutable.isRedirectedConstructor) {
+      if (serializedExecutable.isFactory) {
+        EntityRef redirectedConstructor =
+            serializedExecutable.redirectedConstructor;
+        _ReferenceInfo info = referenceInfos[redirectedConstructor.reference];
+        List<EntityRef> typeArguments = redirectedConstructor.typeArguments;
+        currentConstructor.redirectedConstructor = _createConstructorElement(
+            _createConstructorDefiningType(info, typeArguments), info);
+      } else {
+        List<String> locationComponents =
+            currentCompilationUnit.location.components.toList();
+        locationComponents.add(classType.name);
+        locationComponents.add(serializedExecutable.redirectedConstructorName);
+        currentConstructor.redirectedConstructor =
+            new _DeferredConstructorElement._(
+                classType,
+                serializedExecutable.redirectedConstructorName,
+                new ElementLocationImpl.con3(locationComponents));
+      }
+    }
     holder.addConstructor(currentConstructor);
     currentConstructor = null;
   }
@@ -988,6 +1043,7 @@ class _LibraryResynthesizer {
     for (UnlinkedEnumValue serializedEnumValue in serializedEnum.values) {
       ConstFieldElementImpl valueField = new ConstFieldElementImpl(
           serializedEnumValue.name, serializedEnumValue.nameOffset);
+      buildDocumentation(valueField, serializedEnumValue.documentationComment);
       valueField.const3 = true;
       valueField.static = true;
       valueField.type = enumType;
@@ -1052,9 +1108,6 @@ class _LibraryResynthesizer {
           type = executableElement.parameters[0].type;
         }
         holder.addAccessor(executableElement);
-        // TODO(paulberry): consider removing implicit variables from the
-        // element model; the spec doesn't call for them, and they cause
-        // trouble when getters/setters exist in different parts.
         PropertyInducingElementImpl implicitVariable;
         if (isTopLevel) {
           implicitVariable = buildImplicitTopLevelVariable(name, kind, holder);
@@ -1084,13 +1137,8 @@ class _LibraryResynthesizer {
    */
   void buildExecutableCommonParts(ExecutableElementImpl executableElement,
       UnlinkedExecutable serializedExecutable) {
-    List<TypeParameterType> oldTypeArguments = currentTypeArguments;
-    int oldTypeParametersLength = currentTypeParameters.length;
-    if (serializedExecutable.typeParameters.isNotEmpty) {
-      executableElement.typeParameters =
-          serializedExecutable.typeParameters.map(buildTypeParameter).toList();
-      currentTypeParameters.addAll(executableElement.typeParameters);
-    }
+    executableElement.typeParameters =
+        buildTypeParameters(serializedExecutable.typeParameters);
     executableElement.parameters =
         serializedExecutable.parameters.map(buildParameter).toList();
     if (serializedExecutable.kind == UnlinkedExecutableKind.constructor) {
@@ -1107,13 +1155,16 @@ class _LibraryResynthesizer {
           serializedExecutable.returnType == null;
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
-        executableElement, null, oldTypeArguments, false);
+        executableElement, null, getCurrentTypeArguments(skipLevels: 1), false);
     executableElement.external = serializedExecutable.isExternal;
-    currentTypeParameters.removeRange(
-        oldTypeParametersLength, currentTypeParameters.length);
     buildDocumentation(
         executableElement, serializedExecutable.documentationComment);
     buildAnnotations(executableElement, serializedExecutable.annotations);
+    executableElement.functions =
+        serializedExecutable.localFunctions.map(buildLocalFunction).toList();
+    executableElement.localVariables =
+        serializedExecutable.localVariables.map(buildLocalVariable).toList();
+    currentTypeParameters.removeLast();
   }
 
   /**
@@ -1412,36 +1463,78 @@ class _LibraryResynthesizer {
   }
 
   /**
+   * Resynthesize a local [FunctionElement].
+   */
+  FunctionElement buildLocalFunction(UnlinkedExecutable serializedExecutable) {
+    FunctionElementImpl element = new FunctionElementImpl(
+        serializedExecutable.name, serializedExecutable.nameOffset);
+    if (serializedExecutable.visibleOffset != 0) {
+      element.setVisibleRange(serializedExecutable.visibleOffset,
+          serializedExecutable.visibleLength);
+    }
+    buildExecutableCommonParts(element, serializedExecutable);
+    return element;
+  }
+
+  /**
+   * Resynthesize a [LocalVariableElement].
+   */
+  LocalVariableElement buildLocalVariable(UnlinkedVariable serializedVariable) {
+    LocalVariableElementImpl element;
+    if (serializedVariable.constExpr != null) {
+      ConstLocalVariableElementImpl constElement =
+          new ConstLocalVariableElementImpl(
+              serializedVariable.name, serializedVariable.nameOffset);
+      element = constElement;
+      constElement.constantInitializer =
+          _buildConstExpression(serializedVariable.constExpr);
+    } else {
+      element = new LocalVariableElementImpl(
+          serializedVariable.name, serializedVariable.nameOffset);
+    }
+    if (serializedVariable.visibleOffset != 0) {
+      element.setVisibleRange(
+          serializedVariable.visibleOffset, serializedVariable.visibleLength);
+    }
+    buildVariableCommonParts(element, serializedVariable);
+    return element;
+  }
+
+  /**
    * Resynthesize a [ParameterElement].
    */
   ParameterElement buildParameter(UnlinkedParam serializedParameter) {
     ParameterElementImpl parameterElement;
     if (serializedParameter.isInitializingFormal) {
       FieldFormalParameterElementImpl initializingParameter;
-      if (serializedParameter.defaultValue != null) {
+      if (serializedParameter.kind == UnlinkedParamKind.required) {
+        initializingParameter = new FieldFormalParameterElementImpl(
+            serializedParameter.name, serializedParameter.nameOffset);
+      } else {
         DefaultFieldFormalParameterElementImpl defaultParameter =
             new DefaultFieldFormalParameterElementImpl(
                 serializedParameter.name, serializedParameter.nameOffset);
         initializingParameter = defaultParameter;
-        defaultParameter.constantInitializer =
-            _buildConstExpression(serializedParameter.defaultValue);
-      } else {
-        initializingParameter = new FieldFormalParameterElementImpl(
-            serializedParameter.name, serializedParameter.nameOffset);
+        if (serializedParameter.defaultValue != null) {
+          defaultParameter.constantInitializer =
+              _buildConstExpression(serializedParameter.defaultValue);
+        }
       }
       parameterElement = initializingParameter;
       initializingParameter.field = fields[serializedParameter.name];
     } else {
-      if (serializedParameter.defaultValue != null) {
+      if (serializedParameter.kind == UnlinkedParamKind.required) {
+        parameterElement = new ParameterElementImpl(
+            serializedParameter.name, serializedParameter.nameOffset);
+      } else {
         DefaultParameterElementImpl defaultParameter =
             new DefaultParameterElementImpl(
                 serializedParameter.name, serializedParameter.nameOffset);
         parameterElement = defaultParameter;
-        defaultParameter.constantInitializer =
-            _buildConstExpression(serializedParameter.defaultValue);
-      } else {
-        parameterElement = new ParameterElementImpl(
-            serializedParameter.name, serializedParameter.nameOffset);
+        if (serializedParameter.defaultValue != null) {
+          defaultParameter.constantInitializer =
+              _buildConstExpression(serializedParameter.defaultValue);
+        }
       }
     }
     buildAnnotations(parameterElement, serializedParameter.annotations);
@@ -1455,7 +1548,7 @@ class _LibraryResynthesizer {
       parameterTypeElement.shareParameters(parameterElement.parameters);
       parameterTypeElement.returnType = buildType(serializedParameter.type);
       parameterElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
-          parameterTypeElement, null, currentTypeArguments, false);
+          parameterTypeElement, null, getCurrentTypeArguments(), false);
     } else {
       if (serializedParameter.isInitializingFormal &&
           serializedParameter.type == null) {
@@ -1503,6 +1596,17 @@ class _LibraryResynthesizer {
   }
 
   /**
+   * Handle the parts that are common to top level variables and fields.
+   */
+  void buildPropertyIntroducingElementCommonParts(
+      PropertyInducingElementImpl element,
+      UnlinkedVariable serializedVariable) {
+    buildVariableCommonParts(element, serializedVariable);
+    element.propagatedType =
+        buildLinkedType(serializedVariable.propagatedTypeSlot);
+  }
+
+  /**
    * Build a [DartType] object based on a [EntityRef].  This [DartType]
    * may refer to elements in other libraries than the library being
    * deserialized, so handles are used to avoid having to deserialize other
@@ -1517,10 +1621,7 @@ class _LibraryResynthesizer {
       }
     }
     if (type.paramReference != 0) {
-      // TODO(paulberry): make this work for generic methods.
-      return currentTypeParameters[
-              currentTypeParameters.length - type.paramReference]
-          .type;
+      return getTypeParameterFromScope(type.paramReference);
     } else {
       DartType getTypeArgument(int i) {
         if (i < type.typeArguments.length) {
@@ -1540,30 +1641,23 @@ class _LibraryResynthesizer {
    * [unitHolder].
    */
   void buildTypedef(UnlinkedTypedef serializedTypedef) {
-    try {
-      currentTypeParameters =
-          serializedTypedef.typeParameters.map(buildTypeParameter).toList();
-      for (int i = 0; i < serializedTypedef.typeParameters.length; i++) {
-        finishTypeParameter(
-            serializedTypedef.typeParameters[i], currentTypeParameters[i]);
-      }
-      FunctionTypeAliasElementImpl functionTypeAliasElement =
-          new FunctionTypeAliasElementImpl(
-              serializedTypedef.name, serializedTypedef.nameOffset);
-      functionTypeAliasElement.parameters =
-          serializedTypedef.parameters.map(buildParameter).toList();
-      functionTypeAliasElement.returnType =
-          buildType(serializedTypedef.returnType);
-      functionTypeAliasElement.type =
-          new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
-      functionTypeAliasElement.typeParameters = currentTypeParameters;
-      buildDocumentation(
-          functionTypeAliasElement, serializedTypedef.documentationComment);
-      buildAnnotations(functionTypeAliasElement, serializedTypedef.annotations);
-      unitHolder.addTypeAlias(functionTypeAliasElement);
-    } finally {
-      currentTypeParameters = <TypeParameterElement>[];
-    }
+    FunctionTypeAliasElementImpl functionTypeAliasElement =
+        new FunctionTypeAliasElementImpl(
+            serializedTypedef.name, serializedTypedef.nameOffset);
+    functionTypeAliasElement.typeParameters =
+        buildTypeParameters(serializedTypedef.typeParameters);
+    functionTypeAliasElement.parameters =
+        serializedTypedef.parameters.map(buildParameter).toList();
+    functionTypeAliasElement.returnType =
+        buildType(serializedTypedef.returnType);
+    functionTypeAliasElement.type =
+        new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
+    buildDocumentation(
+        functionTypeAliasElement, serializedTypedef.documentationComment);
+    buildAnnotations(functionTypeAliasElement, serializedTypedef.annotations);
+    unitHolder.addTypeAlias(functionTypeAliasElement);
+    currentTypeParameters.removeLast();
+    assert(currentTypeParameters.isEmpty);
   }
 
   /**
@@ -1585,6 +1679,22 @@ class _LibraryResynthesizer {
   }
 
   /**
+   * Build [TypeParameterElement]s corresponding to the type parameters in
+   * [serializedTypeParameters] and store them in [currentTypeParameters].
+   * Also return them.
+   */
+  List<TypeParameterElement> buildTypeParameters(
+      List<UnlinkedTypeParam> serializedTypeParameters) {
+    List<TypeParameterElement> typeParameters =
+        serializedTypeParameters.map(buildTypeParameter).toList();
+    currentTypeParameters.add(typeParameters);
+    for (int i = 0; i < serializedTypeParameters.length; i++) {
+      finishTypeParameter(serializedTypeParameters[i], typeParameters[i]);
+    }
+    return typeParameters;
+  }
+
+  /**
    * Resynthesize a [TopLevelVariableElement] or [FieldElement].
    */
   void buildVariable(UnlinkedVariable serializedVariable,
@@ -1602,7 +1712,7 @@ class _LibraryResynthesizer {
         element = new TopLevelVariableElementImpl(
             serializedVariable.name, serializedVariable.nameOffset);
       }
-      buildVariableCommonParts(element, serializedVariable);
+      buildPropertyIntroducingElementCommonParts(element, serializedVariable);
       unitHolder.addTopLevelVariable(element);
       buildImplicitAccessors(element, unitHolder);
     } else {
@@ -1617,7 +1727,7 @@ class _LibraryResynthesizer {
         element = new FieldElementImpl(
             serializedVariable.name, serializedVariable.nameOffset);
       }
-      buildVariableCommonParts(element, serializedVariable);
+      buildPropertyIntroducingElementCommonParts(element, serializedVariable);
       element.static = serializedVariable.isStatic;
       holder.addField(element);
       buildImplicitAccessors(element, holder);
@@ -1626,17 +1736,15 @@ class _LibraryResynthesizer {
   }
 
   /**
-   * Handle the parts that are common to top level variables and fields.
+   * Handle the parts that are common to variables.
    */
-  void buildVariableCommonParts(PropertyInducingElementImpl element,
-      UnlinkedVariable serializedVariable) {
+  void buildVariableCommonParts(
+      VariableElementImpl element, UnlinkedVariable serializedVariable) {
     element.type = buildLinkedType(serializedVariable.inferredTypeSlot) ??
         buildType(serializedVariable.type);
     element.const3 = serializedVariable.isConst;
     element.final2 = serializedVariable.isFinal;
     element.hasImplicitType = serializedVariable.type == null;
-    element.propagatedType =
-        buildLinkedType(serializedVariable.propagatedTypeSlot);
     buildDocumentation(element, serializedVariable.documentationComment);
     buildAnnotations(element, serializedVariable.annotations);
   }
@@ -1662,6 +1770,25 @@ class _LibraryResynthesizer {
     linkedTypeMap = null;
     referenceInfos = null;
     currentCompilationUnit = null;
+  }
+
+  /**
+   * Return a list of type arguments corresponding to [currentTypeParameters],
+   * skipping the innermost [skipLevels] nesting levels.
+   *
+   * Type parameters are listed in nesting order from innermost to outermost,
+   * and then in declaration order.  So for instance if we are resynthesizing a
+   * method declared as `class C<T, U> { void m<V, W>() { ... } }`, then the
+   * type parameters will be returned in the order `[V, W, T, U]`.
+   */
+  List<DartType> getCurrentTypeArguments({int skipLevels: 0}) {
+    assert(currentTypeParameters.length >= skipLevels);
+    List<DartType> result = <DartType>[];
+    for (int i = currentTypeParameters.length - 1 - skipLevels; i >= 0; i--) {
+      result.addAll(currentTypeParameters[i]
+          .map((TypeParameterElement param) => param.type));
+    }
+    return result;
   }
 
   /**
@@ -1701,6 +1828,24 @@ class _LibraryResynthesizer {
   }
 
   /**
+   * Get the type parameter from the surrounding scope whose De Bruijn index is
+   * [index].
+   */
+  DartType getTypeParameterFromScope(int index) {
+    for (int i = currentTypeParameters.length - 1; i >= 0; i--) {
+      List<TypeParameterElement> paramsAtThisNestingLevel =
+          currentTypeParameters[i];
+      int numParamsAtThisNestingLevel = paramsAtThisNestingLevel.length;
+      if (index <= numParamsAtThisNestingLevel) {
+        return paramsAtThisNestingLevel[numParamsAtThisNestingLevel - index]
+            .type;
+      }
+      index -= numParamsAtThisNestingLevel;
+    }
+    throw new StateError('Type parameter not found');
+  }
+
+  /**
    * Populate [referenceInfos] with the correct information for the current
    * compilation unit.
    */
@@ -1710,7 +1855,6 @@ class _LibraryResynthesizer {
     referenceInfos = new List<_ReferenceInfo>(numLinkedReferences);
     for (int i = 0; i < numLinkedReferences; i++) {
       LinkedReference linkedReference = linkedUnit.references[i];
-      _ReferenceInfo enclosingInfo = null;
       String name;
       int containingReference;
       if (i < numUnlinkedReferences) {
@@ -1720,12 +1864,14 @@ class _LibraryResynthesizer {
         name = linkedUnit.references[i].name;
         containingReference = linkedUnit.references[i].containingReference;
       }
+      _ReferenceInfo enclosingInfo =
+          containingReference != 0 ? referenceInfos[containingReference] : null;
       Element element;
       DartType type;
       int numTypeParameters = linkedReference.numTypeParameters;
       if (linkedReference.kind == ReferenceKind.unresolved) {
         type = summaryResynthesizer.typeProvider.undefinedType;
-        element = type.element;
+        element = null;
       } else if (name == 'dynamic') {
         type = summaryResynthesizer.typeProvider.dynamicType;
         element = type.element;
@@ -1734,10 +1880,8 @@ class _LibraryResynthesizer {
         element = type.element;
       } else {
         List<String> locationComponents;
-        if (containingReference != 0 &&
-            referenceInfos[containingReference].element is ClassElement) {
+        if (enclosingInfo != null && enclosingInfo.element is ClassElement) {
           String identifier = _getElementIdentifier(name, linkedReference.kind);
-          enclosingInfo = referenceInfos[containingReference];
           locationComponents =
               enclosingInfo.element.location.components.toList();
           locationComponents.add(identifier);
@@ -1831,7 +1975,9 @@ class _LibraryResynthesizer {
     for (PropertyAccessorElementImpl accessor in unit.accessors) {
       elementMap[accessor.identifier] = accessor;
     }
-    resummarizedElements[absoluteUri] = elementMap;
+    resynthesizedUnits[absoluteUri] = unit;
+    resynthesizedElements[absoluteUri] = elementMap;
+    assert(currentTypeParameters.isEmpty);
   }
 
   /**
@@ -1889,6 +2035,43 @@ class _LibraryResynthesizer {
           summaryResynthesizer,
           new ElementLocationImpl.con3(
               <String>['dart:core', 'dart:core', 'String', 'length?']));
+
+  /**
+   * Return the defining type for a [ConstructorElement] by applying
+   * [typeArgumentRefs] to the given linked [info].
+   */
+  InterfaceType _createConstructorDefiningType(
+      _ReferenceInfo info, List<EntityRef> typeArgumentRefs) {
+    bool isClass = info.element is ClassElement;
+    _ReferenceInfo classInfo = isClass ? info : info.enclosing;
+    List<DartType> typeArguments = typeArgumentRefs.map(buildType).toList();
+    return classInfo.buildType((i) {
+      if (i < typeArguments.length) {
+        return typeArguments[i];
+      } else {
+        return DynamicTypeImpl.instance;
+      }
+    }, const <int>[]);
+  }
+
+  /**
+   * Return the [ConstructorElement] corresponding to the given linked [info],
+   * using the [classType] which has already been computed (e.g. by
+   * [_createConstructorDefiningType]).  Both cases when [info] is a
+   * [ClassElement] and [ConstructorElement] are supported.
+   */
+  ConstructorElement _createConstructorElement(
+      InterfaceType classType, _ReferenceInfo info) {
+    bool isClass = info.element is ClassElement;
+    String name = isClass ? '' : info.name;
+    _DeferredConstructorElement element =
+        new _DeferredConstructorElement(classType, name);
+    if (info.numTypeParameters != 0) {
+      return new ConstructorMember(element, classType);
+    } else {
+      return element;
+    }
+  }
 
   /**
    * If the given [kind] is a top-level or class member property accessor, and

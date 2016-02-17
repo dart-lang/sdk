@@ -2883,10 +2883,15 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       const Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
-      ASSERT(FLAG_allow_absolute_addresses);
-      __ LoadImmediate(IP, flags_address);
-      __ LoadImmediate(value, Isolate::kOsrRequest);
-      __ str(value, Address(IP));
+      if (FLAG_allow_absolute_addresses) {
+        __ LoadImmediate(IP, flags_address);
+        __ LoadImmediate(value, Isolate::kOsrRequest);
+        __ str(value, Address(IP));
+      } else {
+        __ LoadIsolate(IP);
+        __ LoadImmediate(value, Isolate::kOsrRequest);
+        __ str(value, Address(IP, Isolate::stack_overflow_flags_offset()));
+      }
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
@@ -6069,27 +6074,6 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static void EmitJavascriptIntOverflowCheck(FlowGraphCompiler* compiler,
-                                           Label* overflow,
-                                           Register result_lo,
-                                           Register result_hi) {
-  // Compare upper half.
-  Label check_lower;
-  __ CompareImmediate(result_hi, 0x00200000);
-  __ b(overflow, GT);
-  __ b(&check_lower, NE);
-
-  __ CompareImmediate(result_lo, 0);
-  __ b(overflow, HI);
-
-  __ Bind(&check_lower);
-  __ CompareImmediate(result_hi, -0x00200000);
-  __ b(overflow, LT);
-  // Anything in the lower part would make the number bigger than the lower
-  // bound, so we are done.
-}
-
-
 LocationSummary* BinaryMintOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -6166,9 +6150,6 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     default:
       UNREACHABLE();
-  }
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptIntOverflowCheck(compiler, deopt, out_lo, out_hi);
   }
 }
 
@@ -6315,10 +6296,6 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNREACHABLE();
     }
   }
-
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptIntOverflowCheck(compiler, deopt, out_lo, out_hi);
-  }
 }
 
 
@@ -6345,17 +6322,8 @@ void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* out_pair = locs()->out(0).AsPairLocation();
   Register out_lo = out_pair->At(0).reg();
   Register out_hi = out_pair->At(1).reg();
-
-  Label* deopt = NULL;
-
-  if (FLAG_throw_on_javascript_int_overflow) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnaryMintOp);
-  }
   __ mvn(out_lo, Operand(left_lo));
   __ mvn(out_hi, Operand(left_hi));
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptIntOverflowCheck(compiler, deopt, out_lo, out_hi);
-  }
 }
 
 

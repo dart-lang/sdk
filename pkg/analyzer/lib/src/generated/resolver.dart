@@ -7,10 +7,13 @@ library analyzer.src.generated.resolver;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -23,7 +26,6 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/type_system.dart';
@@ -2302,6 +2304,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (node.parent is! FunctionDeclaration) {
       FunctionElement element = _findAtOffset(
           _enclosingExecutable.functions, node, node.beginToken.offset);
+      _expectedElements.remove(element);
       node.element = element;
     }
     ExecutableElement outerExecutable = _enclosingExecutable;
@@ -3270,12 +3273,14 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     List<DartObjectImpl> constantValues = new List<DartObjectImpl>();
     int constantCount = constants.length;
     for (int i = 0; i < constantCount; i++) {
-      SimpleIdentifier constantName = constants[i].name;
+      EnumConstantDeclaration constant = constants[i];
+      SimpleIdentifier constantName = constant.name;
       FieldElementImpl constantField =
           new ConstFieldElementImpl.forNode(constantName);
       constantField.static = true;
       constantField.const3 = true;
       constantField.type = enumType;
+      setElementDocumentationComment(constantField, constant);
       //
       // Create a value for the constant.
       //
@@ -4001,6 +4006,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
  * An [AstVisitor] that fills [UsedLocalElements].
  */
 class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
+  final List<Element> definedElements = <Element>[];
   final UsedLocalElements usedElements = new UsedLocalElements();
 
   final LibraryElement _enclosingLibrary;
@@ -4070,10 +4076,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
+    Element element = node.staticElement;
     if (node.inDeclarationContext()) {
+      if (element != null) {
+        definedElements.add(element);
+      }
       return;
     }
-    Element element = node.staticElement;
     bool isIdentifierRead = _isReadIdentifier(node);
     if (element is LocalVariableElement) {
       if (isIdentifierRead) {
@@ -7293,6 +7302,48 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * Given a downward inference type [fnType], and the declared
+   * [typeParameterList] for a function expression, determines if we can enable
+   * downward inference and if so, returns the function type to use for
+   * inference.
+   *
+   * This will return null if inference is not possible. This happens when
+   * there is no way we can find a subtype of the function type, given the
+   * provided type parameter list.
+   */
+  FunctionType matchFunctionTypeParameters(
+      TypeParameterList typeParameterList, FunctionType fnType) {
+    if (typeParameterList == null) {
+      if (fnType.typeFormals.isEmpty) {
+        return fnType;
+      }
+
+      // A non-generic function cannot be a subtype of a generic one.
+      return null;
+    }
+
+    NodeList<TypeParameter> typeParameters = typeParameterList.typeParameters;
+    if (fnType.typeFormals.isEmpty) {
+      // TODO(jmesserly): this is a legal subtype. We don't currently infer
+      // here, but we could.  This is similar to
+      // StrongTypeSystemImpl.inferFunctionTypeInstantiation, but we don't
+      // have the FunctionType yet for the current node, so it's not quite
+      // straightforward to apply.
+      return null;
+    }
+
+    if (fnType.typeFormals.length != typeParameters.length) {
+      // A subtype cannot have different number of type formals.
+      return null;
+    }
+
+    // Same number of type formals. Instantiate the function type so its
+    // parameter and return type are in terms of the surrounding context.
+    return fnType.instantiate(
+        typeParameters.map((t) => t.name.staticElement.type).toList());
+  }
+
+  /**
    * If it is appropriate to do so, override the current type of the static and propagated elements
    * associated with the given expression with the given type. Generally speaking, it is appropriate
    * if the given type is more specific than the current type.
@@ -8076,12 +8127,16 @@ class ResolverVisitor extends ScopedVisitor {
       try {
         DartType functionType = InferenceContext.getType(node);
         if (functionType is FunctionType) {
-          _inferFormalParameterList(node.parameters, functionType);
-          DartType returnType = _computeReturnOrYieldType(
-              functionType.returnType,
-              _enclosingFunction.isGenerator,
-              _enclosingFunction.isAsynchronous);
-          InferenceContext.setType(node.body, returnType);
+          functionType =
+              matchFunctionTypeParameters(node.typeParameters, functionType);
+          if (functionType is FunctionType) {
+            _inferFormalParameterList(node.parameters, functionType);
+            DartType returnType = _computeReturnOrYieldType(
+                functionType.returnType,
+                _enclosingFunction.isGenerator,
+                _enclosingFunction.isAsynchronous);
+            InferenceContext.setType(node.body, returnType);
+          }
         }
         super.visitFunctionExpression(node);
       } finally {
@@ -11513,7 +11568,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       if (element is MultiplyDefinedElement) {
         _setElement(typeName, element);
       } else {
-        _setElement(typeName, _dynamicType.element);
+        _setElement(typeName, null);
       }
       typeName.staticType = _undefinedType;
       node.type = _undefinedType;
@@ -11578,7 +11633,7 @@ class TypeResolverVisitor extends ScopedVisitor {
               StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);
         }
       }
-      _setElement(typeName, _dynamicType.element);
+      _setElement(typeName, null);
       typeName.staticType = _dynamicType;
       node.type = _dynamicType;
       return null;
@@ -12080,18 +12135,25 @@ class TypeResolverVisitor extends ScopedVisitor {
     return types;
   }
 
+  /**
+   * If the given [element] is not `null`, set `staticElement` of the
+   * [typeName] to it.  If the [typeName] is a prefixed identifier, and the
+   * prefix can be resolved to a not `null` element, set also the
+   * `staticElement` of the prefix.
+   */
   void _setElement(Identifier typeName, Element element) {
-    if (element != null) {
-      if (typeName is SimpleIdentifier) {
+    if (typeName is SimpleIdentifier) {
+      if (element != null) {
         typeName.staticElement = element;
-      } else if (typeName is PrefixedIdentifier) {
-        PrefixedIdentifier identifier = typeName;
-        identifier.identifier.staticElement = element;
-        SimpleIdentifier prefix = identifier.prefix;
-        Element prefixElement = nameScope.lookup(prefix, definingLibrary);
-        if (prefixElement != null) {
-          prefix.staticElement = prefixElement;
-        }
+      }
+    } else if (typeName is PrefixedIdentifier) {
+      if (element != null) {
+        typeName.identifier.staticElement = element;
+      }
+      SimpleIdentifier prefix = typeName.prefix;
+      Element prefixElement = nameScope.lookup(prefix, definingLibrary);
+      if (prefixElement != null) {
+        prefix.staticElement = prefixElement;
       }
     }
   }
@@ -12148,7 +12210,7 @@ class TypeResolverVisitor extends ScopedVisitor {
  * structure looking for cases of [HintCode.UNUSED_ELEMENT],
  * [HintCode.UNUSED_FIELD], [HintCode.UNUSED_LOCAL_VARIABLE], etc.
  */
-class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
+class UnusedLocalElementsVerifier extends SimpleElementVisitor {
   /**
    * The error listener to which errors will be reported.
    */
@@ -12398,6 +12460,11 @@ class VariableResolverVisitor extends ScopedVisitor {
   ExecutableElement _enclosingFunction;
 
   /**
+   * Information about local variables in the enclosing function or method.
+   */
+  LocalVariableInfo _localVariableInfo;
+
+  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
    * [definingLibrary] is the element for the library containing the node being
@@ -12419,15 +12486,35 @@ class VariableResolverVisitor extends ScopedVisitor {
             nameScope: nameScope);
 
   @override
+  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+    ExecutableElement outerFunction = _enclosingFunction;
+    LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
+    try {
+      _localVariableInfo ??= new LocalVariableInfo();
+      (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
+      _enclosingFunction = node.element;
+      return super.visitConstructorDeclaration(node);
+    } finally {
+      _localVariableInfo = outerLocalVariableInfo;
+      _enclosingFunction = outerFunction;
+    }
+  }
+
+  @override
   Object visitExportDirective(ExportDirective node) => null;
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
+    LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
     try {
+      _localVariableInfo ??= new LocalVariableInfo();
+      (node.functionExpression.body as FunctionBodyImpl).localVariableInfo =
+          _localVariableInfo;
       _enclosingFunction = node.element;
       return super.visitFunctionDeclaration(node);
     } finally {
+      _localVariableInfo = outerLocalVariableInfo;
       _enclosingFunction = outerFunction;
     }
   }
@@ -12436,10 +12523,14 @@ class VariableResolverVisitor extends ScopedVisitor {
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
       ExecutableElement outerFunction = _enclosingFunction;
+      LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
       try {
+        _localVariableInfo ??= new LocalVariableInfo();
+        (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
         _enclosingFunction = node.element;
         return super.visitFunctionExpression(node);
       } finally {
+        _localVariableInfo = outerLocalVariableInfo;
         _enclosingFunction = outerFunction;
       }
     } else {
@@ -12453,10 +12544,14 @@ class VariableResolverVisitor extends ScopedVisitor {
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
+    LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
     try {
+      _localVariableInfo ??= new LocalVariableInfo();
+      (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
       _enclosingFunction = node.element;
       return super.visitMethodDeclaration(node);
     } finally {
+      _localVariableInfo = outerLocalVariableInfo;
       _enclosingFunction = outerFunction;
     }
   }
@@ -12508,8 +12603,10 @@ class VariableResolverVisitor extends ScopedVisitor {
           element as LocalVariableElementImpl;
       if (node.inSetterContext()) {
         variableImpl.markPotentiallyMutatedInScope();
+        _localVariableInfo.potentiallyMutatedInScope.add(element);
         if (element.enclosingElement != _enclosingFunction) {
           variableImpl.markPotentiallyMutatedInClosure();
+          _localVariableInfo.potentiallyMutatedInClosure.add(element);
         }
       }
     } else if (kind == ElementKind.PARAMETER) {
@@ -12517,11 +12614,13 @@ class VariableResolverVisitor extends ScopedVisitor {
       if (node.inSetterContext()) {
         ParameterElementImpl parameterImpl = element as ParameterElementImpl;
         parameterImpl.markPotentiallyMutatedInScope();
+        _localVariableInfo.potentiallyMutatedInScope.add(element);
         // If we are in some closure, check if it is not the same as where
         // variable is declared.
         if (_enclosingFunction != null &&
             (element.enclosingElement != _enclosingFunction)) {
           parameterImpl.markPotentiallyMutatedInClosure();
+          _localVariableInfo.potentiallyMutatedInClosure.add(element);
         }
       }
     }

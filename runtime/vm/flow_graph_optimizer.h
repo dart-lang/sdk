@@ -54,21 +54,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void WidenSmiToInt32();
 
-  void InferIntRanges();
-
-  void SelectIntegerInstructions();
-
-  void AnalyzeTryCatch();
-
-  bool TryInlineRecognizedMethod(intptr_t receiver_cid,
-                                 const Function& target,
-                                 Instruction* call,
-                                 Definition* receiver,
-                                 TokenPosition token_pos,
-                                 const ICData& ic_data,
-                                 TargetEntryInstr** entry,
-                                 Definition** last);
-
   // Remove environments from the instructions which do not deoptimize.
   void EliminateEnvironments();
 
@@ -93,24 +78,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void SpecializePolymorphicInstanceCall(PolymorphicInstanceCallInstr* call);
 
   bool TryReplaceWithIndexedOp(InstanceCallInstr* call);
-  bool InlineSetIndexed(MethodRecognizer::Kind kind,
-                        const Function& target,
-                        Instruction* call,
-                        Definition* receiver,
-                        TokenPosition token_pos,
-                        const ICData& value_check,
-                        TargetEntryInstr** entry,
-                        Definition** last);
-  bool InlineGetIndexed(MethodRecognizer::Kind kind,
-                        Instruction* call,
-                        Definition* receiver,
-                        TargetEntryInstr** entry,
-                        Definition** last);
-  intptr_t PrepareInlineIndexedOp(Instruction* call,
-                                  intptr_t array_cid,
-                                  Definition** array,
-                                  Definition* index,
-                                  Instruction** cursor);
 
 
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
@@ -143,51 +110,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void ReplaceWithTypeCast(InstanceCallInstr* instr);
 
   bool TryReplaceInstanceCallWithInline(InstanceCallInstr* call);
-
-  Definition* PrepareInlineStringIndexOp(Instruction* call,
-                                         intptr_t cid,
-                                         Definition* str,
-                                         Definition* index,
-                                         Instruction* cursor);
-
-  bool InlineStringCodeUnitAt(Instruction* call,
-                              intptr_t cid,
-                              TargetEntryInstr** entry,
-                              Definition** last);
-
-  bool InlineStringBaseCharAt(Instruction* call,
-                              intptr_t cid,
-                              TargetEntryInstr** entry,
-                              Definition** last);
-
-  bool InlineDoubleOp(Token::Kind op_kind,
-                      Instruction* call,
-                      TargetEntryInstr** entry,
-                      Definition** last);
-
-  bool InlineByteArrayBaseLoad(Instruction* call,
-                               Definition* receiver,
-                               intptr_t array_cid,
-                               intptr_t view_cid,
-                               const ICData& ic_data,
-                               TargetEntryInstr** entry,
-                               Definition** last);
-
-  bool InlineByteArrayBaseStore(const Function& target,
-                                Instruction* call,
-                                Definition* receiver,
-                                intptr_t array_cid,
-                                intptr_t view_cid,
-                                const ICData& ic_data,
-                                TargetEntryInstr** entry,
-                                Definition** last);
-
-  intptr_t PrepareInlineByteArrayBaseOp(Instruction* call,
-                                        intptr_t array_cid,
-                                        intptr_t view_cid,
-                                        Definition** array,
-                                        Definition* index,
-                                        Instruction** cursor);
 
   // Insert a check of 'to_check' determined by 'unary_checks'.  If the
   // check fails it will deoptimize to 'deopt_id' using the deoptimization
@@ -256,7 +178,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void TryMergeTruncDivMod(GrowableArray<BinarySmiOpInstr*>* merge_candidates);
   void TryMergeMathUnary(GrowableArray<MathUnaryInstr*>* merge_candidates);
 
-  void AppendLoadIndexedForMerged(Definition* instr, intptr_t ix, intptr_t cid);
   void AppendExtractNthOutputForMerged(Definition* instr, intptr_t ix,
                                        Representation rep, intptr_t cid);
   bool TryStringLengthOneEquality(InstanceCallInstr* call, Token::Kind op_kind);

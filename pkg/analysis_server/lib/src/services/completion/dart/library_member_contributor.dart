@@ -34,14 +34,13 @@ class LibraryMemberContributor extends DartCompletionContributor {
     Expression targetId = request.dotTarget;
     if (targetId is SimpleIdentifier && !request.target.isCascade) {
       Element elem = targetId.bestElement;
-      if (elem is PrefixElement) {
-        List<Directive> directives = await request.resolveDirectives();
+      if (elem is PrefixElement && !elem.isSynthetic) {
+        List<ImportElement> imports = await request.resolveImports();
         LibraryElement containingLibrary = request.libraryElement;
         // Gracefully degrade if the library or directives
         // could not be determined (e.g. detached part file or source change)
-        if (containingLibrary != null && directives != null) {
-          return _buildSuggestions(
-              request, elem, containingLibrary, directives);
+        if (containingLibrary != null && imports != null) {
+          return _buildSuggestions(request, elem, containingLibrary, imports);
         }
       }
     }
@@ -52,36 +51,27 @@ class LibraryMemberContributor extends DartCompletionContributor {
       DartCompletionRequest request,
       PrefixElement elem,
       LibraryElement containingLibrary,
-      List<Directive> directives) {
+      List<ImportElement> imports) {
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
-    for (Directive directive in directives) {
-      if (directive is ImportDirective) {
-        if (directive.prefix != null) {
-          if (directive.prefix.name == elem.name) {
-            LibraryElement library = directive.uriElement;
+    for (ImportElement importElem in imports) {
+      if (importElem.prefix?.name == elem.name) {
+        LibraryElement library = importElem.importedLibrary;
 
-            // Suggest elements from the imported library
-            if (library != null) {
-              AstNode parent = request.target.containingNode.parent;
-              bool isConstructor = parent.parent is ConstructorName;
-              bool typesOnly = parent is TypeName;
-              bool instCreation = typesOnly && isConstructor;
-              LibraryElementSuggestionBuilder builder =
-                  new LibraryElementSuggestionBuilder(
-                      containingLibrary,
-                      CompletionSuggestionKind.INVOCATION,
-                      typesOnly,
-                      instCreation);
-              library.visitChildren(builder);
-              suggestions.addAll(builder.suggestions);
+        // Suggest elements from the imported library
+        AstNode parent = request.target.containingNode.parent;
+        bool isConstructor = parent.parent is ConstructorName;
+        bool typesOnly = parent is TypeName;
+        bool instCreation = typesOnly && isConstructor;
+        LibraryElementSuggestionBuilder builder =
+            new LibraryElementSuggestionBuilder(containingLibrary,
+                CompletionSuggestionKind.INVOCATION, typesOnly, instCreation);
+        library.visitChildren(builder);
+        suggestions.addAll(builder.suggestions);
 
-              // If the import is 'deferred' then suggest 'loadLibrary'
-              if (directive.deferredKeyword != null) {
-                FunctionElement loadLibFunct = library.loadLibraryFunction;
-                suggestions.add(createSuggestion(loadLibFunct));
-              }
-            }
-          }
+        // If the import is 'deferred' then suggest 'loadLibrary'
+        if (importElem.isDeferred) {
+          FunctionElement loadLibFunct = library.loadLibraryFunction;
+          suggestions.add(createSuggestion(loadLibFunct));
         }
       }
     }

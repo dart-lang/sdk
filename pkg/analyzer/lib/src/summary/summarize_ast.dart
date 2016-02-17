@@ -5,8 +5,8 @@
 library serialization.summarize_ast;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -93,9 +93,8 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     Expression target = access.target;
     if (target is Identifier) {
       EntityRefBuilder targetRef = serializeIdentifier(target);
-      return new EntityRefBuilder(
-          reference: visitor.serializeReference(
-              targetRef.reference, access.propertyName.name));
+      return new EntityRefBuilder(reference: visitor.serializeReference(
+          targetRef.reference, access.propertyName.name));
     } else {
       // TODO(scheglov) should we handle other targets in malformed constants?
       throw new StateError('Unexpected target type: ${target.runtimeType}');
@@ -170,7 +169,7 @@ class _ScopedTypeParameter extends _ScopedEntity {
 /**
  * Visitor used to create a summary from an AST.
  */
-class _SummarizeAstVisitor extends SimpleAstVisitor {
+class _SummarizeAstVisitor extends RecursiveAstVisitor {
   /**
    * List of objects which should be written to [UnlinkedUnit.classes].
    */
@@ -182,8 +181,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   final List<UnlinkedEnumBuilder> enums = <UnlinkedEnumBuilder>[];
 
   /**
-   * List of objects which should be written to [UnlinkedUnit.executables]
-   * or [UnlinkedClass.executables].
+   * List of objects which should be written to [UnlinkedUnit.executables],
+   * [UnlinkedClass.executables] or [UnlinkedExecutable.localFunctions].
    */
   List<UnlinkedExecutableBuilder> executables = <UnlinkedExecutableBuilder>[];
 
@@ -204,8 +203,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   final List<UnlinkedTypedefBuilder> typedefs = <UnlinkedTypedefBuilder>[];
 
   /**
-   * List of objects which should be written to [UnlinkedUnit.variables] or
-   * [UnlinkedClass.fields].
+   * List of objects which should be written to [UnlinkedUnit.variables],
+   * [UnlinkedClass.fields] or [UnlinkedExecutable.localVariables].
    */
   List<UnlinkedVariableBuilder> variables = <UnlinkedVariableBuilder>[];
 
@@ -285,10 +284,9 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
   int numSlots = 0;
 
   /**
-   * A flag indicating whether a variable declaration is in the context of a
-   * field declaration.
+   * The [Block] that is being visited now, or `null` for non-local contexts.
    */
-  bool inFieldContext = false;
+  Block enclosingBlock = null;
 
   /**
    * Create a slot id for storing a propagated or inferred type.
@@ -303,8 +301,6 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       String className, NodeList<ClassMember> members) {
     _Scope scope = new _Scope();
     for (ClassMember member in members) {
-      // TODO(paulbery): consider replacing these if-tests with dynamic method
-      // dispatch.
       if (member is MethodDeclaration) {
         if (member.isSetter || member.isOperator) {
           // We don't have to handle setters or operators because the only
@@ -330,7 +326,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
    */
   List<UnlinkedConstBuilder> serializeAnnotations(
       NodeList<Annotation> annotations) {
-    if (annotations.isEmpty) {
+    if (annotations == null || annotations.isEmpty) {
       return const <UnlinkedConstBuilder>[];
     }
     return annotations.map((Annotation a) {
@@ -533,9 +529,30 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
     if (returnType == null && !isSemanticallyStatic) {
       b.inferredReturnTypeSlot = assignTypeSlot();
     }
+    b.visibleOffset = enclosingBlock?.offset;
+    b.visibleLength = enclosingBlock?.length;
+    serializeFunctionBody(b, body);
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
     return b;
+  }
+
+  void serializeFunctionBody(UnlinkedExecutableBuilder b, FunctionBody body) {
+    if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
+      for (UnlinkedParamBuilder parameter in b.parameters) {
+        parameter.visibleOffset = body.offset;
+        parameter.visibleLength = body.length;
+      }
+    }
+    List<UnlinkedExecutableBuilder> oldExecutables = executables;
+    List<UnlinkedVariableBuilder> oldVariables = variables;
+    executables = <UnlinkedExecutableBuilder>[];
+    variables = <UnlinkedVariableBuilder>[];
+    body.accept(this);
+    b.localFunctions = executables;
+    b.localVariables = variables;
+    executables = oldExecutables;
+    variables = oldVariables;
   }
 
   /**
@@ -719,7 +736,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
       b.type = serializeTypeName(variables.type);
       b.documentationComment = serializeDocumentation(documentationComment);
       b.annotations = serializeAnnotations(annotations);
-      if (variable.isConst || variable.isFinal && inFieldContext) {
+      if (variable.isConst ||
+          variable.isFinal && isField && !isDeclaredStatic) {
         Expression initializer = variable.initializer;
         if (initializer != null) {
           b.constExpr = serializeConstExpr(initializer);
@@ -734,8 +752,18 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
           (variable.initializer != null || !isSemanticallyStatic)) {
         b.inferredTypeSlot = assignTypeSlot();
       }
+      b.visibleOffset = enclosingBlock?.offset;
+      b.visibleLength = enclosingBlock?.length;
       this.variables.add(b);
     }
+  }
+
+  @override
+  void visitBlock(Block node) {
+    Block oldBlock = enclosingBlock;
+    enclosingBlock = node;
+    super.visitBlock(node);
+    enclosingBlock = oldBlock;
   }
 
   @override
@@ -785,7 +813,22 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
         .map((FormalParameter p) => p.accept(this))
         .toList();
     b.kind = UnlinkedExecutableKind.constructor;
-    b.isFactory = node.factoryKeyword != null;
+    if (node.factoryKeyword != null) {
+      b.isFactory = true;
+      if (node.redirectedConstructor != null) {
+        b.isRedirectedConstructor = true;
+        b.redirectedConstructor = new _ConstExprSerializer(this, null)
+            .serializeConstructorName(node.redirectedConstructor.type,
+                node.redirectedConstructor.name);
+      }
+    } else {
+      for (ConstructorInitializer initializer in node.initializers) {
+        if (initializer is RedirectingConstructorInvocation) {
+          b.isRedirectedConstructor = true;
+          b.redirectedConstructorName = initializer.constructorName?.name;
+        }
+      }
+    }
     b.isConst = node.constKeyword != null;
     b.isExternal = node.externalKeyword != null;
     b.documentationComment = serializeDocumentation(node.documentationComment);
@@ -800,6 +843,7 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
               }))
           .toList();
     }
+    serializeFunctionBody(b, node.body);
     executables.add(b);
   }
 
@@ -820,7 +864,10 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
     b.nameOffset = node.name.offset;
     b.values = node.constants
         .map((EnumConstantDeclaration value) => new UnlinkedEnumValueBuilder(
-            name: value.name.name, nameOffset: value.name.offset))
+            documentationComment:
+                serializeDocumentation(value.documentationComment),
+            name: value.name.name,
+            nameOffset: value.name.offset))
         .toList();
     b.documentationComment = serializeDocumentation(node.documentationComment);
     b.annotations = serializeAnnotations(node.metadata);
@@ -837,13 +884,8 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    try {
-      inFieldContext = true;
-      serializeVariables(node.fields, node.staticKeyword != null,
-          node.documentationComment, node.metadata, true);
-    } finally {
-      inFieldContext = false;
-    }
+    serializeVariables(node.fields, node.staticKeyword != null,
+        node.documentationComment, node.metadata, true);
   }
 
   @override
@@ -993,6 +1035,11 @@ class _SummarizeAstVisitor extends SimpleAstVisitor {
     }
     b.annotations = serializeAnnotations(node.metadata);
     return b;
+  }
+
+  @override
+  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    serializeVariables(node.variables, false, null, null, false);
   }
 
   /**

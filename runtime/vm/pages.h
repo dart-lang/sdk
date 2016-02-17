@@ -31,6 +31,7 @@ class HeapPage {
   enum PageType {
     kData = 0,
     kExecutable,
+    kReadOnlyData,
     kNumPageTypes
   };
 
@@ -49,7 +50,7 @@ class HeapPage {
   }
 
   PageType type() const {
-    return executable_ ? kExecutable : kData;
+    return type_;
   }
 
   void VisitObjects(ObjectVisitor* visitor) const;
@@ -80,7 +81,7 @@ class HeapPage {
   VirtualMemory* memory_;
   HeapPage* next_;
   uword object_end_;
-  bool executable_;
+  PageType type_;
 
   friend class PageSpace;
 
@@ -346,7 +347,7 @@ class PageSpace {
   static intptr_t top_offset() { return OFFSET_OF(PageSpace, bump_top_); }
   static intptr_t end_offset() { return OFFSET_OF(PageSpace, bump_end_); }
 
-  void SetupInstructionsSnapshotPage(void* pointer, uword size);
+  void SetupExternalPage(void* pointer, uword size, bool is_executable);
 
  private:
   // Ids for time and data records in Heap::GCStats.

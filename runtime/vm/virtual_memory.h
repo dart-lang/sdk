@@ -71,7 +71,7 @@ class VirtualMemory {
 
   bool embedder_allocated() const { return embedder_allocated_; }
 
-  static VirtualMemory* ForInstructionsSnapshot(void* pointer, uword size);
+  static VirtualMemory* ForExternalPage(void* pointer, uword size);
 
  private:
   static VirtualMemory* ReserveInternal(intptr_t size);

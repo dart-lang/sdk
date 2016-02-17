@@ -932,9 +932,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       eventPort = new RawReceivePort(multiplex);
     }
     if (!connectedResourceHandler) {
-      registerExtension('__getOpenSockets',
+      registerExtension('ext.dart.io.getOpenSockets',
                         _SocketResourceInfo.getOpenSockets);
-      registerExtension('__getSocketByID',
+      registerExtension('ext.dart.io.getSocketByID',
                         _SocketResourceInfo.getSocketInfoMapByID);
 
       connectedResourceHandler = true;

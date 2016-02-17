@@ -126,7 +126,7 @@ class AbstractAnalysisTest {
         index,
         serverPlugin,
         new AnalysisServerOptions(),
-        new MockSdk(),
+        () => new MockSdk(),
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -171,7 +171,7 @@ class AbstractAnalysisTest {
    */
   Response handleSuccessfulRequest(Request request) {
     Response response = handler.handleRequest(request);
-    expect(response, isResponseSuccess('0'));
+    expect(response, isResponseSuccess(request.id));
     return response;
   }
 

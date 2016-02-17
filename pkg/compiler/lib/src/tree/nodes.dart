@@ -147,6 +147,12 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
 
   Token getBeginToken();
 
+  /// Returns the token that ends the 'prefix' of this node.
+  ///
+  /// For instance the end of the parameters in a [FunctionExpression] or the
+  /// last token before the start of a class body for a [ClassNode].
+  Token getPrefixEndToken() => getEndToken();
+
   Token getEndToken();
 
   Assert asAssert() => null;
@@ -262,6 +268,25 @@ class ClassNode extends Node {
   }
 
   Token getBeginToken() => beginToken;
+
+  @override
+  Token getPrefixEndToken() {
+    Token token;
+    if (interfaces != null) {
+      token = interfaces.getEndToken();
+    }
+    if (token == null && superclass != null) {
+      token = superclass.getEndToken();
+    }
+    if (token == null && typeParameters != null) {
+      token == typeParameters.getEndToken();
+    }
+    if (token == null) {
+      token = name.getEndToken();
+    }
+    assert(invariant(beginToken, token != null));
+    return token;
+  }
 
   Token getEndToken() => endToken;
 }
@@ -738,6 +763,10 @@ class FunctionDeclaration extends Statement {
   visitChildren(Visitor visitor) => function.accept(visitor);
 
   Token getBeginToken() => function.getBeginToken();
+
+  @override
+  Token getPrefixEndToken() => function.getPrefixEndToken();
+
   Token getEndToken() => function.getEndToken();
 }
 
@@ -824,6 +853,11 @@ class FunctionExpression extends Expression with StoredTreeElementMixin {
     if (token != null) return token;
     if (getOrSet != null) return getOrSet;
     return firstBeginToken(name, parameters);
+  }
+
+  @override
+  Token getPrefixEndToken() {
+    return parameters != null ? parameters.getEndToken() : name.getEndToken();
   }
 
   Token getEndToken() {
@@ -1300,7 +1334,10 @@ class TypeAnnotation extends Node {
 
   Token getBeginToken() => typeName.getBeginToken();
 
-  Token getEndToken() => typeName.getEndToken();
+  Token getEndToken() {
+    if (typeArguments != null) return typeArguments.getEndToken();
+    return typeName.getEndToken();
+  }
 }
 
 class TypeVariable extends Node {

@@ -25,7 +25,8 @@ Future setupUDP() async {
 var udpTests = [
   // Initial.
   (Isolate isolate) async {
-    var result = await isolate.invokeRpcNoUpgrade('__getOpenSockets', {});
+    var result =
+        await isolate.invokeRpcNoUpgrade('ext.dart.io.getOpenSockets', {});
     expect(result['type'], equals('_opensockets'));
     // We expect 2 sockets to be open (in this order):
     //   The server socket accepting connections, on port X
@@ -38,7 +39,7 @@ var udpTests = [
     expect(result['data'][1]['name'].startsWith('127.0.0.1:'), isTrue);
 
     var server = await isolate.invokeRpcNoUpgrade(
-        '__getSocketByID', { 'id' : result['data'][0]['id'] });
+        'ext.dart.io.getSocketByID', { 'id' : result['data'][0]['id'] });
     expect(server['id'], equals(result['data'][0]['id']));
     expect(server['remotePort'], equals('NA'));
     expect(server['remoteHost'], equals('NA'));
@@ -58,7 +59,7 @@ var udpTests = [
     expect(server['readCount'], greaterThanOrEqualTo(1));
 
     var client = await isolate.invokeRpcNoUpgrade(
-        '__getSocketByID', { 'id' : result['data'][1]['id'] });
+        'ext.dart.io.getSocketByID', { 'id' : result['data'][1]['id'] });
     expect(client['id'], equals(result['data'][1]['id']));
     expect(client['remotePort'], equals('NA'));
     expect(client['remoteHost'], equals('NA'));

@@ -7,6 +7,7 @@ library analyzer.src.task.dart;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -15,6 +16,8 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -23,9 +26,9 @@ import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/visitors.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
@@ -266,6 +269,13 @@ final ResultDescriptor<bool> CREATED_RESOLVED_UNIT8 =
  */
 final ResultDescriptor<bool> CREATED_RESOLVED_UNIT9 =
     new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT9', false);
+
+/**
+ * The [Element]s defined in a [LibrarySpecificUnit].
+ */
+final ListResultDescriptor<Element> DEFINED_ELEMENTS =
+    new ListResultDescriptor<Element>('DEFINED_ELEMENTS', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
  * The sources representing the export closure of a library.
@@ -1358,7 +1368,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     // set the library documentation to the docs associated with the first
     // directive in the compilation unit.
     if (definingCompilationUnit.directives.isNotEmpty) {
-      _setDoc(libraryElement, definingCompilationUnit.directives.first);
+      setElementDocumentationComment(
+          libraryElement, definingCompilationUnit.directives.first);
     }
 
     //
@@ -1398,19 +1409,6 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       }
     }
     return null;
-  }
-
-  /**
-   * If the given [node] has a documentation comment, remember its content
-   * and range into the given [element].
-   */
-  void _setDoc(ElementImpl element, AnnotatedNode node) {
-    Comment comment = node.documentationComment;
-    if (comment != null && comment.isDocumentation) {
-      element.documentationComment =
-          comment.tokens.map((Token t) => t.lexeme).join('\n');
-      element.setDocRange(comment.offset, comment.length);
-    }
   }
 
   /**
@@ -2226,6 +2224,9 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('DartErrorsTask',
       createTask, buildInputs, <ResultDescriptor>[DART_ERRORS]);
 
+  // Prefix for comments ignoring error codes.
+  static const String _normalizedIgnorePrefix = '//#ignore:';
+
   DartErrorsTask(InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
 
@@ -2250,11 +2251,90 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
         errorLists.add(errors);
       }
     }
+
+    //
+    // Filter ignored errors.
+    //
+    List<AnalysisError> errors =
+        _filterIgnores(AnalysisError.mergeLists(errorLists));
+
     //
     // Record outputs.
     //
-    outputs[DART_ERRORS] = AnalysisError.mergeLists(errorLists);
+    outputs[DART_ERRORS] = errors;
   }
+
+  List<AnalysisError> _filterIgnores(List<AnalysisError> errors) {
+    if (errors.isEmpty) {
+      return errors;
+    }
+
+    List<AnalysisError> filtered = <AnalysisError>[];
+
+    // Sort errors.
+    errors.sort((AnalysisError e1, AnalysisError e2) => e1.offset - e2.offset);
+
+    Source source = target;
+    String contents = context.getContents(source).data;
+    Scanner scanner = new Scanner(source, new CharSequenceReader(contents),
+        AnalysisErrorListener.NULL_LISTENER);
+
+    // Scan.
+    Token token = scanner.tokenize();
+    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+
+    int errorIndex = 0;
+
+    // Step through tokens looking for comments.
+    while (errorIndex < errors.length && token.type != TokenType.EOF) {
+      // Find leading comment.
+      Token comments = token.precedingComments;
+      while (comments?.next != null) {
+        comments = comments.next;
+      }
+
+      // Normalize content.
+      String comment =
+          comments?.lexeme?.toLowerCase()?.replaceAll(new RegExp(r'\s+'), '');
+
+      // Check for ignores.
+      if (comment != null && comment.startsWith(_normalizedIgnorePrefix)) {
+        int affectedLine = lineInfo.getLocation(token.offset).lineNumber;
+
+        // Process all affected errors.
+        while (errorIndex < errors.length) {
+          AnalysisError currentError = errors[errorIndex++];
+          int errorLine = lineInfo.getLocation(currentError.offset).lineNumber;
+          if (errorLine < affectedLine) {
+            filtered.add(currentError);
+          } else if (errorLine == affectedLine) {
+            // Check for an ignore.
+            if (!_isIgnoredBy(currentError, comment)) {
+              filtered.add(currentError);
+            }
+          } else {
+            // Back up index and break.
+            --errorIndex;
+            break;
+          }
+        }
+      }
+
+      token = token.next;
+    }
+
+    // Add remaining errors.
+    if (errorIndex < errors.length) {
+      filtered.addAll(errors.sublist(errorIndex));
+    }
+
+    return filtered;
+  }
+
+  bool _isIgnoredBy(AnalysisError error, String comment) => comment
+      .substring(_normalizedIgnorePrefix.length)
+      .split(',')
+      .contains(error.errorCode.name.toLowerCase());
 
   /**
    * Return a map from the names of the inputs of this kind of task to the task
@@ -2538,7 +2618,7 @@ class GatherUsedLocalElementsTask extends SourceBasedAnalysisTask {
       'GatherUsedLocalElementsTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[USED_LOCAL_ELEMENTS]);
+      <ResultDescriptor>[DEFINED_ELEMENTS, USED_LOCAL_ELEMENTS]);
 
   GatherUsedLocalElementsTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -2553,7 +2633,7 @@ class GatherUsedLocalElementsTask extends SourceBasedAnalysisTask {
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
     //
-    // Prepare used local elements.
+    // Prepare defined and used local elements.
     //
     GatherUsedLocalElementsVisitor visitor =
         new GatherUsedLocalElementsVisitor(libraryElement);
@@ -2561,6 +2641,7 @@ class GatherUsedLocalElementsTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
+    outputs[DEFINED_ELEMENTS] = visitor.definedElements;
     outputs[USED_LOCAL_ELEMENTS] = visitor.usedElements;
   }
 
@@ -2592,6 +2673,11 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
    * The name of the [RESOLVED_UNIT10] input.
    */
   static const String RESOLVED_UNIT_INPUT = 'RESOLVED_UNIT';
+
+  /**
+   * The name of a list of [DEFINED_ELEMENTS] for each library unit input.
+   */
+  static const String DEFINED_ELEMENTS_INPUT = 'DEFINED_ELEMENTS';
 
   /**
    * The name of a list of [USED_LOCAL_ELEMENTS] for each library unit input.
@@ -2639,6 +2725,8 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     CompilationUnit unit = getRequiredInput(RESOLVED_UNIT_INPUT);
     List<UsedImportedElements> usedImportedElementsList =
         getRequiredInput(USED_IMPORTED_ELEMENTS_INPUT);
+    List<List<Element>> definedElementsList =
+        getRequiredInput(DEFINED_ELEMENTS_INPUT);
     List<UsedLocalElements> usedLocalElementsList =
         getRequiredInput(USED_LOCAL_ELEMENTS_INPUT);
     CompilationUnitElement unitElement = unit.element;
@@ -2663,7 +2751,11 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
           new UsedLocalElements.merge(usedLocalElementsList);
       UnusedLocalElementsVerifier visitor =
           new UnusedLocalElementsVerifier(errorListener, usedElements);
-      unitElement.accept(visitor);
+      for (List<Element> definedElements in definedElementsList) {
+        for (Element element in definedElements) {
+          element.accept(visitor);
+        }
+      }
     }
     // Dart2js analysis.
     if (analysisOptions.dart2jsHint) {
@@ -2695,6 +2787,8 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     Source libSource = unit.library;
     return <String, TaskInput>{
       RESOLVED_UNIT_INPUT: RESOLVED_UNIT.of(unit),
+      DEFINED_ELEMENTS_INPUT:
+          LIBRARY_SPECIFIC_UNITS.of(libSource).toListOf(DEFINED_ELEMENTS),
       USED_LOCAL_ELEMENTS_INPUT:
           LIBRARY_SPECIFIC_UNITS.of(libSource).toListOf(USED_LOCAL_ELEMENTS),
       USED_IMPORTED_ELEMENTS_INPUT:

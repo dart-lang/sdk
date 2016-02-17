@@ -25,7 +25,7 @@ class CollectedMessage {
   CollectedMessage(
       this.message, this.uri, this.begin, this.end, this.text, this.kind);
 
-  MessageKind get messageKind => message.kind;
+  MessageKind get messageKind => message?.kind;
 
   String toString() {
     return '${message != null ? message.kind : ''}'

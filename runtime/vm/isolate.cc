@@ -52,6 +52,7 @@ namespace dart {
 DECLARE_FLAG(bool, print_metrics);
 DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
+DECLARE_FLAG(bool, trace_service_verbose);
 
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
@@ -764,6 +765,8 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
 #define REUSABLE_HANDLE_INITIALIZERS(object)                                   \
   object##_handle_(NULL),
 
+// TODO(srdjan): Some Isolate monitors can be shared. Replace their usage with
+// that shared monitor.
 Isolate::Isolate(const Dart_IsolateFlags& api_flags)
   :   stack_limit_(0),
       store_buffer_(new StoreBuffer()),
@@ -831,6 +834,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       cha_invalidation_gen_(kInvalidGen),
       field_invalidation_gen_(kInvalidGen),
       prefix_invalidation_gen_(kInvalidGen),
+      boxed_field_list_monitor_(new Monitor()),
+      boxed_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(new Monitor()),
       spawn_count_(0) {
   flags_.CopyFrom(api_flags);
@@ -868,6 +873,8 @@ Isolate::~Isolate() {
   object_id_ring_ = NULL;
   delete pause_loop_monitor_;
   pause_loop_monitor_ = NULL;
+  delete boxed_field_list_monitor_;
+  boxed_field_list_monitor_ = NULL;
   ASSERT(spawn_count_ == 0);
   delete spawn_count_monitor_;
   if (compiler_stats_ != NULL) {
@@ -901,12 +908,7 @@ Isolate* Isolate::Init(const char* name_prefix,
 
 #ifndef PRODUCT
   // Initialize Timeline streams.
-#define ISOLATE_TIMELINE_STREAM_INIT(name, enabled_by_default)                 \
-  result->stream_##name##_.Init(#name,                                         \
-                                enabled_by_default,                            \
-                                Timeline::Stream##name##EnabledFlag());
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
-#undef ISOLATE_TIMELINE_STREAM_INIT
+  Timeline::SetupIsolateStreams(result);
 #endif  // !PRODUCT
 
   Heap::Init(result,
@@ -1011,9 +1013,27 @@ void Isolate::SetupInstructionsSnapshotPage(
               snapshot.instructions_size());
   }
 #endif
-  heap_->SetupInstructionsSnapshotPage(snapshot.instructions_start(),
-                                       snapshot.instructions_size());
+  heap_->SetupExternalPage(snapshot.instructions_start(),
+                           snapshot.instructions_size(),
+                           /* is_executable = */ true);
 }
+
+
+void Isolate::SetupDataSnapshotPage(const uint8_t* data_snapshot_buffer) {
+  DataSnapshot snapshot(data_snapshot_buffer);
+#if defined(DEBUG)
+  if (FLAG_trace_isolates) {
+    OS::Print("Precompiled rodata are at [0x%" Px ", 0x%" Px ")\n",
+              reinterpret_cast<uword>(snapshot.data_start()),
+              reinterpret_cast<uword>(snapshot.data_start()) +
+              snapshot.data_size());
+  }
+#endif
+  heap_->SetupExternalPage(snapshot.data_start(),
+                           snapshot.data_size(),
+                           /* is_executable = */ false);
+}
+
 
 
 void Isolate::set_debugger_name(const char* name) {
@@ -1518,6 +1538,10 @@ void Isolate::DeferOOBMessageInterrupts() {
       stack_limit_ = saved_stack_limit_;
     }
   }
+  if (FLAG_trace_service && FLAG_trace_service_verbose) {
+    OS::Print("[+%" Pd64 "ms] Isolate %s deferring OOB interrupts\n",
+              Dart::timestamp(), name());
+  }
 }
 
 
@@ -1531,6 +1555,10 @@ void Isolate::RestoreOOBMessageInterrupts() {
     }
     stack_limit_ |= deferred_interrupts_;
     deferred_interrupts_ = 0;
+  }
+  if (FLAG_trace_service && FLAG_trace_service_verbose) {
+    OS::Print("[+%" Pd64 "ms] Isolate %s restoring OOB interrupts\n",
+              Dart::timestamp(), name());
   }
 }
 
@@ -1846,6 +1874,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&registered_service_extension_handlers_));
 
+  // Visit the boxed_field_list.
+  // 'boxed_field_list_' access via mutator and background compilation threads
+  // is guarded with a monitor. This means that we can visit it only
+  // when at safepoint or the boxed_field_list_monitor_ lock has been taken.
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&boxed_field_list_));
+
   // Visit objects in the debugger.
   if (FLAG_support_debugger) {
     debugger()->VisitObjectPointers(visitor);
@@ -2050,6 +2084,31 @@ void Isolate::set_registered_service_extension_handlers(
 }
 
 
+void Isolate::AddDeoptimizingBoxedField(const Field& field) {
+  MonitorLocker ml(boxed_field_list_monitor_);
+  if (boxed_field_list_ == GrowableObjectArray::null()) {
+    boxed_field_list_ = GrowableObjectArray::New(Heap::kOld);
+  }
+  const GrowableObjectArray& array =
+      GrowableObjectArray::Handle(boxed_field_list_);
+  array.Add(field, Heap::kOld);
+}
+
+
+RawField* Isolate::GetDeoptimizingBoxedField() {
+  MonitorLocker ml(boxed_field_list_monitor_);
+  if (boxed_field_list_ == GrowableObjectArray::null()) {
+    return Field::null();
+  }
+  const GrowableObjectArray& array =
+      GrowableObjectArray::Handle(boxed_field_list_);
+  if (array.Length() == 0) {
+    return Field::null();
+  }
+  return Field::RawCast(array.RemoveLast());
+}
+
+
 RawObject* Isolate::InvokePendingServiceExtensionCalls() {
   if (!FLAG_support_service) {
     return Object::null();
@@ -2067,7 +2126,7 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
   ASSERT(!run_extension.IsNull());
 
   const Array& arguments =
-      Array::Handle(Array::New(kPendingEntrySize, Heap::kNew));
+      Array::Handle(Array::New(kPendingEntrySize + 1, Heap::kNew));
   Object& result = Object::Handle();
   String& method_name = String::Handle();
   Instance& closure = Instance::Handle();
@@ -2094,8 +2153,19 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
     arguments.SetAt(kPendingReplyPortIndex, reply_port);
     id ^= calls.At(i + kPendingIdIndex);
     arguments.SetAt(kPendingIdIndex, id);
+    arguments.SetAt(kPendingEntrySize, Bool::Get(FLAG_trace_service));
 
+    if (FLAG_trace_service) {
+      OS::Print(
+          "[+%" Pd64 "ms] Isolate %s invoking _runExtension for %s\n",
+          Dart::timestamp(), name(), method_name.ToCString());
+    }
     result = DartEntry::InvokeFunction(run_extension, arguments);
+    if (FLAG_trace_service) {
+      OS::Print(
+          "[+%" Pd64 "ms] Isolate %s : _runExtension complete for %s\n",
+          Dart::timestamp(), name(), method_name.ToCString());
+    }
     if (result.IsError()) {
       if (result.IsUnwindError()) {
         // Propagate the unwind error. Remaining service extension calls
@@ -2133,6 +2203,11 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
                                          const Array& parameter_values,
                                          const Instance& reply_port,
                                          const Instance& id) {
+  if (FLAG_trace_service) {
+    OS::Print(
+        "[+%" Pd64 "ms] Isolate %s ENQUEUING request for extension %s\n",
+        Dart::timestamp(), name(), method_name.ToCString());
+  }
   GrowableObjectArray& calls =
       GrowableObjectArray::Handle(pending_service_extension_calls());
   if (calls.IsNull()) {

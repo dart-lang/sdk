@@ -12,6 +12,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
@@ -111,9 +112,12 @@ class SocketServerTest {
     ServerPlugin serverPlugin = new ServerPlugin();
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins([serverPlugin]);
+    SdkCreator sdkCreator = () =>
+        new DirectoryBasedDartSdk(DirectoryBasedDartSdk.defaultSdkDirectory);
     return new SocketServer(
         new AnalysisServerOptions(),
-        DirectoryBasedDartSdk.defaultSdk,
+        sdkCreator,
+        sdkCreator(),
         InstrumentationService.NULL_SERVICE,
         serverPlugin,
         null,

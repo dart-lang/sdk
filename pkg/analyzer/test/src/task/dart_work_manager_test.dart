@@ -6,6 +6,7 @@ library analyzer.test.src.task.dart_work_manager_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/generated/engine.dart'
     show
         AnalysisErrorInfo,
@@ -15,7 +16,6 @@ import 'package:analyzer/src/generated/engine.dart'
         InternalAnalysisContext;
 import 'package:analyzer/src/generated/error.dart' show AnalysisError;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
-import 'package:analyzer/src/generated/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';

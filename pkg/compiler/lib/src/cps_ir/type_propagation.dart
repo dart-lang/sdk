@@ -1420,16 +1420,24 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   /// Returns a CPS fragment whose context is the branch where no error
   /// was thrown.
   Primitive makeBoundsCheck(CpsFragment cps,
-                            Primitive list,
-                            Primitive index,
-                            [int checkKind = BoundsCheck.BOTH_BOUNDS]) {
+        Primitive list,
+        Primitive index,
+        [int checkKind = BoundsCheck.BOTH_BOUNDS | BoundsCheck.INTEGER]) {
     if (compiler.trustPrimitives) {
       return cps.letPrim(new BoundsCheck.noCheck(list, cps.sourceInformation));
     } else {
       GetLength length = cps.letPrim(new GetLength(list));
       list = cps.refine(list, typeSystem.nonNullType);
-      return cps.letPrim(new BoundsCheck(list, index, length, checkKind,
-          cps.sourceInformation));
+      BoundsCheck check = cps.letPrim(new BoundsCheck(list, index, length,
+          checkKind, cps.sourceInformation));
+      if (check.hasIntegerCheck) {
+        if (typeSystem.isDefinitelyInt(index.type)) {
+          check.checks &= ~BoundsCheck.INTEGER;
+        } else {
+          cps.refine(index, typeSystem.uint32Type);
+        }
+      }
+      return check;
     }
   }
 
@@ -1468,8 +1476,6 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
       case '[]':
         Primitive index = node.dartArgument(0);
-        // TODO(asgerf): Consider inserting a guard and specialize anyway.
-        if (!lattice.isDefinitelyInt(getValue(index))) return null;
         CpsFragment cps = new CpsFragment(node.sourceInformation);
         receiver = makeBoundsCheck(cps, receiver, index);
         GetIndex get = cps.letPrim(new GetIndex(receiver, index));
@@ -1485,7 +1491,6 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         }
         Primitive index = node.dartArgument(0);
         Primitive value = node.dartArgument(1);
-        if (!lattice.isDefinitelyInt(getValue(index))) return null;
         CpsFragment cps = new CpsFragment(node.sourceInformation);
         receiver = makeBoundsCheck(cps, receiver, index);
         cps.letPrim(new SetIndex(receiver, index, value));
@@ -2043,10 +2048,24 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   /// Specialize calls to internal static methods.
   specializeInternalMethodCall(InvokeStatic node) {
     if (node.target == backend.helpers.stringInterpolationHelper) {
-      AbstractConstantValue value = getValue(node.arguments[0].definition);
+      Primitive argument = node.arguments[0].definition;
+      AbstractConstantValue value = getValue(argument);
       if (lattice.isDefinitelyString(value)) {
-        node.replaceUsesWith(node.arguments[0].definition);
+        node.replaceUsesWith(argument);
         return new CpsFragment();
+      } else if (typeSystem.isDefinitelySelfInterceptor(value.type)) {
+        TypeMask toStringReturn = typeSystem.getInvokeReturnType(
+            Selectors.toString_, value.type);
+        if (typeSystem.isDefinitelyString(toStringReturn)) {
+          CpsFragment cps = new CpsFragment(node.sourceInformation);
+          Primitive invoke = cps.invokeMethod(argument,
+              Selectors.toString_,
+              value.type,
+              [cps.makeZero()],
+              CallingConvention.DummyIntercepted);
+          node.replaceUsesWith(invoke);
+          return cps;
+        }
       }
     } else if (node.target == compiler.identicalFunction) {
       if (node.arguments.length == 2) {
@@ -2245,7 +2264,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         return unaryBuiltinOperator(BuiltinOperator.IsNumber);
       }
       return new ApplyBuiltinOperator(
-          BuiltinOperator.IsNumberAndFloor,
+          BuiltinOperator.IsInteger,
           <Primitive>[prim, prim, prim],
           node.sourceInformation);
     }
@@ -2321,7 +2340,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     // The [BoundsChecker] pass does not try to eliminate checks that could be
     // eliminated by constant folding.
     if (node.hasNoChecks) return;
-    int index = lattice.intValue(getValue(node.index.definition));
+    Primitive indexPrim = node.index.definition;
+    int index = lattice.intValue(getValue(indexPrim));
     int length = node.length == null
         ? null
         : lattice.intValue(getValue(node.length.definition));
@@ -2333,6 +2353,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
     if (length != null && length > 0) {
       node.checks &= ~BoundsCheck.EMPTINESS;
+    }
+    if (typeSystem.isDefinitelyInt(indexPrim.type)) {
+      node.checks &= ~BoundsCheck.INTEGER;
     }
     if (!node.lengthUsedInCheck && node.length != null) {
       node..length.unlink()..length = null;
@@ -2888,8 +2911,11 @@ class TypePropagationVisitor implements Visitor {
       case BuiltinOperator.IsFalsy:
       case BuiltinOperator.IsNumber:
       case BuiltinOperator.IsNotNumber:
+      case BuiltinOperator.IsNotInteger:
       case BuiltinOperator.IsFloor:
-      case BuiltinOperator.IsNumberAndFloor:
+      case BuiltinOperator.IsInteger:
+      case BuiltinOperator.IsUnsigned32BitInteger:
+      case BuiltinOperator.IsNotUnsigned32BitInteger:
         setValue(node, nonConstant(typeSystem.boolType));
         break;
 

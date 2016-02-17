@@ -5,13 +5,16 @@
 // // This example illustrates a case we wish to do better in terms of inlining and
 // // code generation.
 // //
-// // Today this function is compiled without inlining Wrapper.[], JSArray.[] and
-// // Wrapper.[]= because:
+// // Naively this function would be compiled without inlining Wrapper.[],
+// // JSArray.[] and Wrapper.[]= because:
 // // JSArray.[] is too big (14 nodes)
 // // Wrapper.[] is too big if we force inlining of JSArray (15 nodes)
 // // Wrapper.[]= is even bigger (46 nodes)
 // //
-// // See #25478 for ideas on how to make this better.
+// // We now do specialization of [] and []= by adding guards and injecting builtin
+// // operators. This made it possible to inline []. We still don't see []= inlined
+// // yet, that might require that we improve the inlining counting heuristics a
+// // bit.
 // @NoInline()
 // test(data, x) {
 //   data[x + 1] = data[x];
@@ -33,5 +36,8 @@
 // }
 
 function(data, x) {
-  data.$indexSet(0, J.$add$ns(x, 1), C.JSArray_methods.$index(data.arr, x));
+  var v0 = J.$add$ns(x, 1), v1 = data.arr;
+  if (x >>> 0 !== x || x >= v1.length)
+    return H.ioore(v1, x);
+  data.$indexSet(0, v0, v1[x]);
 }

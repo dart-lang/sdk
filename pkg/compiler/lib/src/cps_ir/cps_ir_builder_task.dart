@@ -796,7 +796,10 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
   /// Creates a primitive for the default value of [parameter].
   ir.Primitive translateDefaultValue(ParameterElement parameter) {
-    if (parameter.initializer == null) {
+    if (parameter.initializer == null ||
+        // TODO(sigmund): JS doesn't support default values, so this should be
+        // reported as an error earlier (Issue #25759).
+        backend.isJsInterop(parameter.functionDeclaration)) {
       return irBuilder.buildNullConstant();
     } else {
       return inlineConstant(parameter.executableContext, parameter.initializer);
@@ -1111,8 +1114,105 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   visitAsyncForIn(ast.AsyncForIn node) {
-    // await for is not yet implemented.
-    return giveup(node, 'await for');
+    // Translate await for into a loop over a StreamIterator.  The source
+    // statement:
+    //
+    // await for (<decl> in <stream>) <body>
+    //
+    // is translated as if it were:
+    //
+    // var iterator = new StreamIterator(<stream>);
+    // try {
+    //   while (await iterator.hasNext()) {
+    //     <decl> = await iterator.current;
+    //     <body>
+    //   }
+    // } finally {
+    //   await iterator.cancel();
+    // }
+    ir.Primitive stream = visit(node.expression);
+    ir.Primitive dummyTypeArgument = irBuilder.buildNullConstant();
+    ConstructorElement constructor = helpers.streamIteratorConstructor;
+    ir.Primitive iterator = irBuilder.addPrimitive(new ir.InvokeConstructor(
+        constructor.enclosingClass.thisType,
+        constructor,
+        new Selector.callConstructor(constructor.memberName, 1),
+        <ir.Primitive>[stream, dummyTypeArgument],
+        sourceInformationBuilder.buildGeneric(node)));
+
+    ir.Node buildTryBody(IrBuilder builder) {
+      ir.Node buildLoopCondition(IrBuilder builder) {
+        ir.Primitive moveNext = builder.buildDynamicInvocation(
+            iterator,
+            Selectors.moveNext,
+            elements.getMoveNextTypeMask(node),
+            <ir.Primitive>[]);
+        return builder.addPrimitive(new ir.Await(moveNext));
+      }
+
+      ir.Node buildLoopBody(IrBuilder builder) {
+        return withBuilder(builder, () {
+          ir.Primitive current = irBuilder.buildDynamicInvocation(
+              iterator,
+              Selectors.current,
+              elements.getCurrentTypeMask(node),
+              <ir.Primitive>[]);
+          Element variable = elements.getForInVariable(node);
+          if (Elements.isLocal(variable)) {
+            if (node.declaredIdentifier.asVariableDefinitions() != null) {
+              irBuilder.declareLocalVariable(variable);
+            }
+            irBuilder.buildLocalVariableSet(variable, current);
+          } else if (Elements.isError(variable) ||
+                     Elements.isMalformed(variable)) {
+            Selector selector =
+                new Selector.setter(new Name(variable.name, variable.library));
+            List<ir.Primitive> args = <ir.Primitive>[current];
+            // Note the comparison below.  It can be the case that an element
+            // isError and isMalformed.
+            if (Elements.isError(variable)) {
+              irBuilder.buildStaticNoSuchMethod(selector, args);
+            } else {
+              irBuilder.buildErroneousInvocation(variable, selector, args);
+            }
+          } else if (Elements.isStaticOrTopLevel(variable)) {
+            if (variable.isField) {
+              irBuilder.addPrimitive(new ir.SetStatic(variable, current));
+            } else {
+              irBuilder.buildStaticSetterSet(variable, current);
+            }
+          } else {
+            ir.Primitive receiver = irBuilder.buildThis();
+            ast.Node identifier = node.declaredIdentifier;
+            irBuilder.buildDynamicSet(
+                receiver,
+                elements.getSelector(identifier),
+                elements.getTypeMask(identifier),
+                current);
+          }
+          visit(node.body);
+        });
+      }
+
+      builder.buildWhile(
+          buildCondition: buildLoopCondition,
+          buildBody: buildLoopBody,
+          target: elements.getTargetDefinition(node),
+          closureScope: getClosureScopeForNode(node));
+    }
+
+    ir.Node buildFinallyBody(IrBuilder builder) {
+      ir.Primitive cancellation = builder.buildDynamicInvocation(
+          iterator,
+          Selectors.cancel,
+          backend.dynamicType,
+          <ir.Primitive>[],
+          sourceInformation: sourceInformationBuilder.buildGeneric(node));
+      return builder.addPrimitive(new ir.Await(cancellation));
+    }
+
+    irBuilder.buildTryFinally(new TryStatementInfo(), buildTryBody,
+        buildFinallyBody);
   }
 
   visitAwait(ast.Await node) {
@@ -3921,4 +4021,22 @@ class GlobalProgramInformation {
   void addNativeMethod(FunctionElement function) {
     _backend.emitter.nativeEmitter.nativeMethods.add(function);
   }
+
+  bool get trustJSInteropTypeAnnotations =>
+      _compiler.trustJSInteropTypeAnnotations;
+
+  bool isNative(ClassElement element) => _backend.isNative(element);
+
+  bool isJsInterop(FunctionElement element) => _backend.isJsInterop(element);
+
+  bool isJsInteropAnonymous(FunctionElement element) =>
+    _backend.jsInteropAnalysis.hasAnonymousAnnotation(element.contextClass);
+
+  String getJsInteropTargetPath(FunctionElement element) {
+    return '${_backend.namer.fixedBackendPath(element)}.'
+      '${_backend.getFixedBackendName(element)}';
+  }
+
+  DartType get jsJavascriptObjectType =>
+    _backend.helpers.jsJavaScriptObjectClass.thisType;
 }

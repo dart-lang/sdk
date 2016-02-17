@@ -8,6 +8,21 @@
 library analyzer.src.summary.base;
 
 /**
+ * Annotation used in the summary IDL to indicate the id of a field.  The set
+ * of ids used by a class must cover the contiguous range from 0 to N-1, where
+ * N is the number of fields.
+ *
+ * In order to preserve forwards and backwards compatibility, id numbers must
+ * be stable between releases.  So when new fields are added they should take
+ * the next available id without renumbering other fields.
+ */
+class Id {
+  final int value;
+
+  const Id(this.value);
+}
+
+/**
  * Instances of this class represent data that has been read from a summary.
  */
 abstract class SummaryClass {

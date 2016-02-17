@@ -36,13 +36,12 @@
  */
 library analyzer.dart.ast.ast;
 
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart' show AuxiliaryElements;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -537,7 +536,7 @@ abstract class AstNode {
    * (either AST nodes or tokens) that make up the contents of this node,
    * including doc comments but excluding other comments.
    */
-  Iterable/*<AstNode | Token>*/ get childEntities;
+  Iterable /*<AstNode | Token>*/ get childEntities;
 
   /**
    * Return the offset of the character immediately following the last character
@@ -592,7 +591,7 @@ abstract class AstNode {
    * Use the given [visitor] to visit this node. Return the value returned by
    * the visitor as a result of visiting this node.
    */
-  dynamic /* =E */ accept/*<E>*/(AstVisitor/*<E>*/ visitor);
+  dynamic /* =E */ accept /*<E>*/ (AstVisitor /*<E>*/ visitor);
 
   /**
    * Return the most immediate ancestor of this node for which the [predicate]
@@ -3781,6 +3780,32 @@ abstract class FunctionBody extends AstNode {
    * is no star.
    */
   Token get star;
+
+  /**
+   * If [variable] is a local variable or parameter declared anywhere within
+   * the top level function or method containing this [FunctionBody], return a
+   * boolean indicating whether [variable] is potentially mutated within a
+   * local function other than the function in which it is declared.
+   *
+   * If [variable] is not a local variable or parameter declared within the top
+   * level function or method containing this [FunctionBody], return `false`.
+   *
+   * Throws an exception if resolution has not yet been performed.
+   */
+  bool isPotentiallyMutatedInClosure(VariableElement variable);
+
+  /**
+   * If [variable] is a local variable or parameter declared anywhere within
+   * the top level function or method containing this [FunctionBody], return a
+   * boolean indicating whether [variable] is potentially mutated within the
+   * scope of its declaration.
+   *
+   * If [variable] is not a local variable or parameter declared within the top
+   * level function or method containing this [FunctionBody], return `false`.
+   *
+   * Throws an exception if resolution has not yet been performed.
+   */
+  bool isPotentiallyMutatedInScope(VariableElement variable);
 }
 
 /**
@@ -4500,10 +4525,10 @@ abstract class ImportDirective extends NamespaceDirective {
       return allShows1.length - allShows2.length;
     }
     // next ensure that the lists are equivalent
-    if (!javaCollectionContainsAll(allHides1, allHides2)) {
+    if (!allHides1.toSet().containsAll(allHides2)) {
       return -1;
     }
-    if (!javaCollectionContainsAll(allShows1, allShows2)) {
+    if (!allShows1.toSet().containsAll(allShows2)) {
       return -1;
     }
     return 0;

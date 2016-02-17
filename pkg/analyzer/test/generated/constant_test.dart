@@ -5,15 +5,15 @@
 library analyzer.test.constant_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
@@ -40,6 +40,8 @@ main() {
   runReflectiveTests(DeclaredVariablesTest);
   runReflectiveTests(ReferenceFinderTest);
 }
+
+const int LONG_MAX_VALUE = 0x7fffffffffffffff;
 
 /**
  * Implementation of [ConstantEvaluationValidator] used during unit tests;
@@ -622,10 +624,10 @@ class ConstantFinderTest {
     return new List<Annotation>.from(annotations);
   }
 
-  Set<ConstantEvaluationTarget> _findConstants() {
+  List<ConstantEvaluationTarget> _findConstants() {
     ConstantFinder finder = new ConstantFinder(_context, _source, _source);
     _node.accept(finder);
-    Set<ConstantEvaluationTarget> constants = finder.constantsToCompute;
+    List<ConstantEvaluationTarget> constants = finder.constantsToCompute;
     expect(constants, isNotNull);
     return constants;
   }
@@ -4213,7 +4215,7 @@ class DartObjectImplTest extends EngineTestCase {
    *
    * @param expected the expected result of the operation
    * @param leftOperand the left operand to the operation
-   * @param rightOperand the left operand to the operation
+   * @param rightOperand the right operand to the operation
    * @throws EvaluationException if the result is an exception when it should not be
    */
   void _assertShiftRight(DartObjectImpl expected, DartObjectImpl leftOperand,

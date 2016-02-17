@@ -10,15 +10,14 @@
 // }
 
 function() {
-  var line = "" + 6;
   V.Foo$();
   if (typeof dartPrint == "function")
-    dartPrint(line);
+    dartPrint("6");
   else if (typeof console == "object" && typeof console.log != "undefined")
-    console.log(line);
+    console.log("6");
   else if (!(typeof window == "object")) {
     if (!(typeof print == "function"))
-      throw "Unable to print message: " + String(line);
-    print(line);
+      throw "Unable to print message: " + String("6");
+    print("6");
   }
 }

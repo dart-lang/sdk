@@ -24,6 +24,15 @@ namespace dart {
 Thread::~Thread() {
   // We should cleanly exit any isolate before destruction.
   ASSERT(isolate_ == NULL);
+  // There should be no top api scopes at this point.
+  ASSERT(api_top_scope() == NULL);
+  // Delete the resusable api scope if there is one.
+  if (api_reusable_scope_) {
+    delete api_reusable_scope_;
+    api_reusable_scope_ = NULL;
+  }
+  delete thread_lock_;
+  thread_lock_ = NULL;
 }
 
 

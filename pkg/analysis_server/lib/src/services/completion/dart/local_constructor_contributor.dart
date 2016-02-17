@@ -15,9 +15,10 @@ import 'package:analysis_server/src/services/completion/dart/local_declaration_v
     show LocalDeclarationVisitor;
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 import '../../../protocol_server.dart'

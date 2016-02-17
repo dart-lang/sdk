@@ -345,12 +345,12 @@ TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
   TimelineTestHelper::FakeThreadEvent(block_1_2, 1, "B2");
   TimelineTestHelper::FakeThreadEvent(block_1_2, 1, "B3");
   // Sleep to ensure timestamps differ.
-  OS::Sleep(1);
+  OS::Sleep(32);
   TimelineTestHelper::FakeThreadEvent(block_1_0, 1, "A1");
-  OS::Sleep(1);
+  OS::Sleep(32);
   TimelineTestHelper::FakeThreadEvent(block_1_1, 1, "C1");
   TimelineTestHelper::FakeThreadEvent(block_1_1, 1, "C2");
-  OS::Sleep(1);
+  OS::Sleep(32);
 
   // Add events to each block for thread 2.
   TimelineTestHelper::FakeThreadEvent(block_2_0, 2, "A");
@@ -455,7 +455,7 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
 
   // Emit the earlier event into block_1.
   TimelineTestHelper::FakeThreadEvent(block_1, 2, "Alpha", &stream);
-  OS::Sleep(1);
+  OS::Sleep(32);
   // Emit the later event into block_0.
   TimelineTestHelper::FakeThreadEvent(block_0, 2, "Beta", &stream);
 

@@ -8,9 +8,15 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart'
     show ContentCache, Source, UriKind;
+
+/**
+ * A function used to create a new DartSdk
+ */
+typedef DartSdk SdkCreator();
 
 /**
  * A Dart SDK installed in a specified location.
@@ -19,23 +25,23 @@ abstract class DartSdk {
   /**
    * The short name of the dart SDK 'async' library.
    */
-  static final String DART_ASYNC = "dart:async";
+  static const String DART_ASYNC = "dart:async";
 
   /**
    * The short name of the dart SDK 'core' library.
    */
-  static final String DART_CORE = "dart:core";
+  static const String DART_CORE = "dart:core";
 
   /**
    * The short name of the dart SDK 'html' library.
    */
-  static final String DART_HTML = "dart:html";
+  static const String DART_HTML = "dart:html";
 
   /**
    * The version number that is returned when the real version number could not
    * be determined.
    */
-  static final String DEFAULT_VERSION = "0";
+  static const String DEFAULT_VERSION = "0";
 
   /**
    * Return the analysis context used for all of the sources in this [DartSdk].
@@ -76,6 +82,56 @@ abstract class DartSdk {
    * `null` if the given URI does not denote a library in this SDK.
    */
   Source mapDartUri(String uri);
+}
+
+/**
+ * Manages the DartSdk's that have been created. Clients need to create multiple
+ * SDKs when the analysis options associated with those SDK's contexts will
+ * produce different analysis results.
+ */
+class DartSdkManager {
+  /**
+   * The function used to create new SDK's.
+   */
+  final SdkCreator sdkCreator;
+
+  /**
+   * A table mapping (an encoding of) analysis options to the SDK that has been
+   * configured with those options.
+   */
+  Map<int, DartSdk> sdkMap = new HashMap<int, DartSdk>();
+
+  /**
+   * Initialize a newly created manager.
+   */
+  DartSdkManager(this.sdkCreator);
+
+  /**
+   * Return any SDK that has been created, or `null` if no SDKs have been
+   * created.
+   */
+  DartSdk get anySdk {
+    if (sdkMap.isEmpty) {
+      return null;
+    }
+    return sdkMap.values.first;
+  }
+
+  /**
+   * Return the Dart SDK that is appropriate for the given analysis [options].
+   * If such an SDK has not yet been created, then the [sdkCreator] will be
+   * invoked to create it.
+   */
+  DartSdk getSdkForOptions(AnalysisOptions options) {
+    int encoding = options.encodeCrossContextOptions();
+    DartSdk sdk = sdkMap[encoding];
+    if (sdk == null) {
+      sdk = sdkCreator();
+      sdkMap[encoding] = sdk;
+      sdk.context.analysisOptions.setCrossContextOptionsFrom(options);
+    }
+    return sdk;
+  }
 }
 
 /**
@@ -224,7 +280,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
             library.category =
                 convertCategories((expression as StringLiteral).stringValue);
           } else if (name == _IMPLEMENTATION) {
-            library.implementation = (expression as BooleanLiteral).value;
+            library._implementation = (expression as BooleanLiteral).value;
           } else if (name == _DOCUMENTED) {
             library.documented = (expression as BooleanLiteral).value;
           } else if (name == _PLATFORMS) {
@@ -364,13 +420,6 @@ class SdkLibraryImpl implements SdkLibrary {
     this._documented = documented;
   }
 
-  /**
-   * Set whether the library is an implementation library.
-   */
-  void set implementation(bool implementation) {
-    this._implementation = implementation;
-  }
-
   @override
   bool get isDart2JsLibrary => (_platforms & DART2JS_PLATFORM) != 0;
 
@@ -381,7 +430,7 @@ class SdkLibraryImpl implements SdkLibrary {
   bool get isImplementation => _implementation;
 
   @override
-  bool get isInternal => "Internal" == category;
+  bool get isInternal => category == "Internal";
 
   @override
   bool get isShared => category == "Shared";

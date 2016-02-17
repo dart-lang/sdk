@@ -6,17 +6,17 @@ library analysis_server.src.status.validator;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisResult, CacheState, ChangeSet;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -24,7 +24,6 @@ import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' as html;
-import 'package:analyzer/src/dart/element/element.dart';
 
 /**
  * A class used to compare two element models for equality.
@@ -757,8 +756,8 @@ class ElementComparator {
    * Write a simple message explaining that the [expected] and [actual] values
    * were different, using the [describe] function to describe the values.
    */
-  void _writeMismatch /*<E>*/ (Object /*=E*/ expected, Object /*=E*/ actual,
-      String describe(Object /*=E*/ value)) {
+  void _writeMismatch/*<E>*/(Object/*=E*/ expected, Object/*=E*/ actual,
+      String describe(Object/*=E*/ value)) {
     _write('Expected ');
     _write(describe(expected));
     _write('; found ');
@@ -1194,8 +1193,7 @@ class ValidationResults {
     //
     // Handle special cases.
     //
-    if (first is ElementAnnotationImpl &&
-        second is ElementAnnotationImpl) {
+    if (first is ElementAnnotationImpl && second is ElementAnnotationImpl) {
       return _equal(first.source, second.source) &&
           _equal(first.librarySource, second.librarySource) &&
           _equal(first.annotationAst, second.annotationAst);

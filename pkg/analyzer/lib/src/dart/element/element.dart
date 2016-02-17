@@ -8,6 +8,7 @@ import 'dart:collection';
 import 'dart:math' show min;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -20,7 +21,6 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart' show Keyword;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -1221,7 +1221,7 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   ConstFieldElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1255,7 +1255,7 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
   ConstLocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1414,7 +1414,7 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
       : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1473,7 +1473,7 @@ class DefaultFieldFormalParameterElementImpl
       : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1507,7 +1507,7 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   DefaultParameterElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1610,7 +1610,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   ElementAnnotationImpl(this.compilationUnit);
 
   @override
-  DartObject get constantValue => evaluationResult.value;
+  DartObject get constantValue => evaluationResult?.value;
 
   @override
   AnalysisContext get context => compilationUnit.library.context;
@@ -4300,11 +4300,6 @@ abstract class ParameterElementMixin implements ParameterElement {
  */
 class PrefixElementImpl extends ElementImpl implements PrefixElement {
   /**
-   * A list containing all of the libraries that are imported using this prefix.
-   */
-  List<LibraryElement> _importedLibraries = LibraryElement.EMPTY_LIST;
-
-  /**
    * Initialize a newly created method element to have the given [name] and
    * [offset].
    */
@@ -4323,18 +4318,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   String get identifier => "_${super.identifier}";
 
   @override
-  List<LibraryElement> get importedLibraries => _importedLibraries;
-
-  /**
-   * Set the libraries that are imported using this prefix to the given
-   * [libraries].
-   */
-  void set importedLibraries(List<LibraryElement> libraries) {
-    for (LibraryElement library in libraries) {
-      (library as LibraryElementImpl).enclosingElement = this;
-    }
-    _importedLibraries = libraries;
-  }
+  List<LibraryElement> get importedLibraries => LibraryElement.EMPTY_LIST;
 
   @override
   ElementKind get kind => ElementKind.PREFIX;
@@ -4614,6 +4598,14 @@ class TypeParameterElementImpl extends ElementImpl
    * [offset].
    */
   TypeParameterElementImpl(String name, int offset) : super(name, offset);
+
+  /**
+   * Initialize a newly created synthetic type parameter element to have the
+   * given [name], and with [synthetic] set to true.
+   */
+  TypeParameterElementImpl.synthetic(String name) : super(name, -1) {
+    synthetic = true;
+  }
 
   /**
    * Initialize a newly created type parameter element to have the given [name].

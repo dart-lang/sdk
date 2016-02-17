@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
 
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
@@ -26,26 +25,22 @@ class LibraryPrefixContributor extends DartCompletionContributor {
       return EMPTY_LIST;
     }
 
-    List<Directive> directives = await request.resolveDirectives();
-    if (directives == null) {
+    List<ImportElement> imports = await request.resolveImports();
+    if (imports == null) {
       return EMPTY_LIST;
     }
 
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
-    for (Directive directive in directives) {
-      if (directive is ImportDirective) {
-        SimpleIdentifier prefix = directive.prefix;
-        ImportElement element = directive.element;
-        if (prefix != null && element != null) {
-          String completion = prefix.name;
-          LibraryElement libElem = element.importedLibrary;
-          if (completion != null && completion.length > 0 && libElem != null) {
-            CompletionSuggestion suggestion = createSuggestion(libElem,
-                completion: completion,
-                kind: CompletionSuggestionKind.IDENTIFIER);
-            if (suggestion != null) {
-              suggestions.add(suggestion);
-            }
+    for (ImportElement element in imports) {
+      String completion = element.prefix?.name;
+      if (completion != null && completion.length > 0) {
+        LibraryElement libElem = element.importedLibrary;
+        if (libElem != null) {
+          CompletionSuggestion suggestion = createSuggestion(libElem,
+              completion: completion,
+              kind: CompletionSuggestionKind.IDENTIFIER);
+          if (suggestion != null) {
+            suggestions.add(suggestion);
           }
         }
       }

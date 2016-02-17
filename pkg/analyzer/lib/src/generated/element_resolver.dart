@@ -7,6 +7,7 @@ library analyzer.src.generated.element_resolver;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -17,7 +18,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart' as sc;
 
 /**
  * An object used by instances of [ResolverVisitor] to resolve references within
@@ -149,10 +149,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
-    sc.Token operator = node.operator;
-    sc.TokenType operatorType = operator.type;
-    if (operatorType != sc.TokenType.EQ &&
-        operatorType != sc.TokenType.QUESTION_QUESTION_EQ) {
+    Token operator = node.operator;
+    TokenType operatorType = operator.type;
+    if (operatorType != TokenType.EQ &&
+        operatorType != TokenType.QUESTION_QUESTION_EQ) {
       operatorType = _operatorFromCompoundAssignment(operatorType);
       Expression leftHandSide = node.leftHandSide;
       if (leftHandSide != null) {
@@ -188,11 +188,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
-    sc.Token operator = node.operator;
+    Token operator = node.operator;
     if (operator.isUserDefinableOperator) {
       _resolveBinaryExpression(node, operator.lexeme);
-    } else if (operator.type == sc.TokenType.BANG_EQ) {
-      _resolveBinaryExpression(node, sc.TokenType.EQ_EQ.lexeme);
+    } else if (operator.type == TokenType.BANG_EQ) {
+      _resolveBinaryExpression(node, TokenType.EQ_EQ.lexeme);
     }
     return null;
   }
@@ -494,8 +494,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     Expression target = node.realTarget;
     DartType staticType = _getStaticType(target);
     DartType propagatedType = _getPropagatedType(target);
-    String getterMethodName = sc.TokenType.INDEX.lexeme;
-    String setterMethodName = sc.TokenType.INDEX_EQ.lexeme;
+    String getterMethodName = TokenType.INDEX.lexeme;
+    String setterMethodName = TokenType.INDEX_EQ.lexeme;
     bool isInGetterContext = node.inGetterContext();
     bool isInSetterContext = node.inSetterContext();
     if (isInGetterContext && isInSetterContext) {
@@ -612,7 +612,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       propagatedElement = null;
     } else if (methodName.name == FunctionElement.LOAD_LIBRARY_NAME &&
         _isDeferredPrefix(target)) {
-      if (node.operator.type == sc.TokenType.QUESTION_PERIOD) {
+      if (node.operator.type == TokenType.QUESTION_PERIOD) {
         _resolver.reportErrorForNode(
             CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
             target,
@@ -630,7 +630,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       // hierarchy, instead we just look for the member in the type only.  This
       // does not apply to conditional method invocation (i.e. 'C?.m(...)').
       //
-      bool isConditional = node.operator.type == sc.TokenType.QUESTION_PERIOD;
+      bool isConditional = node.operator.type == TokenType.QUESTION_PERIOD;
       ClassElementImpl typeReference = getTypeReference(target);
       if (typeReference != null) {
         if (node.isCascaded) {
@@ -934,11 +934,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitPrefixExpression(PrefixExpression node) {
-    sc.Token operator = node.operator;
-    sc.TokenType operatorType = operator.type;
+    Token operator = node.operator;
+    TokenType operatorType = operator.type;
     if (operatorType.isUserDefinableOperator ||
-        operatorType == sc.TokenType.PLUS_PLUS ||
-        operatorType == sc.TokenType.MINUS_MINUS) {
+        operatorType == TokenType.PLUS_PLUS ||
+        operatorType == TokenType.MINUS_MINUS) {
       Expression operand = node.operand;
       String methodName = _getPrefixOperator(node);
       DartType staticType = _getStaticType(operand);
@@ -1300,8 +1300,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
                 propagatedType.element, methodName, true, false);
     if (shouldReportMissingMember_static ||
         shouldReportMissingMember_propagated) {
-      sc.Token leftBracket = expression.leftBracket;
-      sc.Token rightBracket = expression.rightBracket;
+      Token leftBracket = expression.leftBracket;
+      Token rightBracket = expression.rightBracket;
       ErrorCode errorCode;
       if (shouldReportMissingMember_static) {
         if (target is SuperExpression) {
@@ -1451,21 +1451,21 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * Return the name of the method invoked by the given postfix [expression].
    */
   String _getPostfixOperator(PostfixExpression expression) =>
-      (expression.operator.type == sc.TokenType.PLUS_PLUS)
-          ? sc.TokenType.PLUS.lexeme
-          : sc.TokenType.MINUS.lexeme;
+      (expression.operator.type == TokenType.PLUS_PLUS)
+          ? TokenType.PLUS.lexeme
+          : TokenType.MINUS.lexeme;
 
   /**
    * Return the name of the method invoked by the given postfix [expression].
    */
   String _getPrefixOperator(PrefixExpression expression) {
-    sc.Token operator = expression.operator;
-    sc.TokenType operatorType = operator.type;
-    if (operatorType == sc.TokenType.PLUS_PLUS) {
-      return sc.TokenType.PLUS.lexeme;
-    } else if (operatorType == sc.TokenType.MINUS_MINUS) {
-      return sc.TokenType.MINUS.lexeme;
-    } else if (operatorType == sc.TokenType.MINUS) {
+    Token operator = expression.operator;
+    TokenType operatorType = operator.type;
+    if (operatorType == TokenType.PLUS_PLUS) {
+      return TokenType.PLUS.lexeme;
+    } else if (operatorType == TokenType.MINUS_MINUS) {
+      return TokenType.MINUS.lexeme;
+    } else if (operatorType == TokenType.MINUS) {
       return "unary-";
     } else {
       return operator.lexeme;
@@ -1519,12 +1519,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
       NodeList<TypeName> arguments = typeArguments?.arguments;
       if (arguments != null && arguments.length != parameters.length) {
-        // Wrong number of type arguments. Ignore them
-        arguments = null;
         _resolver.reportErrorForNode(
             StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
             node,
             [type, parameters.length, arguments?.length ?? 0]);
+
+        // Wrong number of type arguments. Ignore them.
+        arguments = null;
       }
       if (parameters.isNotEmpty) {
         if (arguments == null) {
@@ -1746,30 +1747,30 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * Return the binary operator that is invoked by the given compound assignment
    * [operator].
    */
-  sc.TokenType _operatorFromCompoundAssignment(sc.TokenType operator) {
+  TokenType _operatorFromCompoundAssignment(TokenType operator) {
     while (true) {
-      if (operator == sc.TokenType.AMPERSAND_EQ) {
-        return sc.TokenType.AMPERSAND;
-      } else if (operator == sc.TokenType.BAR_EQ) {
-        return sc.TokenType.BAR;
-      } else if (operator == sc.TokenType.CARET_EQ) {
-        return sc.TokenType.CARET;
-      } else if (operator == sc.TokenType.GT_GT_EQ) {
-        return sc.TokenType.GT_GT;
-      } else if (operator == sc.TokenType.LT_LT_EQ) {
-        return sc.TokenType.LT_LT;
-      } else if (operator == sc.TokenType.MINUS_EQ) {
-        return sc.TokenType.MINUS;
-      } else if (operator == sc.TokenType.PERCENT_EQ) {
-        return sc.TokenType.PERCENT;
-      } else if (operator == sc.TokenType.PLUS_EQ) {
-        return sc.TokenType.PLUS;
-      } else if (operator == sc.TokenType.SLASH_EQ) {
-        return sc.TokenType.SLASH;
-      } else if (operator == sc.TokenType.STAR_EQ) {
-        return sc.TokenType.STAR;
-      } else if (operator == sc.TokenType.TILDE_SLASH_EQ) {
-        return sc.TokenType.TILDE_SLASH;
+      if (operator == TokenType.AMPERSAND_EQ) {
+        return TokenType.AMPERSAND;
+      } else if (operator == TokenType.BAR_EQ) {
+        return TokenType.BAR;
+      } else if (operator == TokenType.CARET_EQ) {
+        return TokenType.CARET;
+      } else if (operator == TokenType.GT_GT_EQ) {
+        return TokenType.GT_GT;
+      } else if (operator == TokenType.LT_LT_EQ) {
+        return TokenType.LT_LT;
+      } else if (operator == TokenType.MINUS_EQ) {
+        return TokenType.MINUS;
+      } else if (operator == TokenType.PERCENT_EQ) {
+        return TokenType.PERCENT;
+      } else if (operator == TokenType.PLUS_EQ) {
+        return TokenType.PLUS;
+      } else if (operator == TokenType.SLASH_EQ) {
+        return TokenType.SLASH;
+      } else if (operator == TokenType.STAR_EQ) {
+        return TokenType.STAR;
+      } else if (operator == TokenType.TILDE_SLASH_EQ) {
+        return TokenType.TILDE_SLASH;
       } else {
         // Internal error: Unmapped assignment operator.
         AnalysisEngine.instance.logger.logError(
@@ -1837,7 +1838,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * message.
    */
   void _recordUndefinedToken(Element declaringElement, ErrorCode errorCode,
-      sc.Token token, List<Object> arguments) {
+      Token token, List<Object> arguments) {
     if (_doesntHaveProxy(declaringElement)) {
       _resolver.reportErrorForToken(errorCode, token, arguments);
     }
@@ -2424,26 +2425,15 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * If the given [type] is a type parameter, resolve it to the type that should
    * be used when looking up members. Otherwise, return the original type.
    */
-  DartType _resolveTypeParameter(DartType type) {
-    if (type is TypeParameterType) {
-      DartType bound = type.element.bound;
-      if (bound == null) {
-        return _resolver.typeProvider.objectType;
-      }
-      return bound;
-    }
-    return type;
-  }
+  DartType _resolveTypeParameter(DartType type) =>
+      type?.resolveToBound(_resolver.typeProvider.objectType);
 
   /**
    * Return `true` if we should report an error as a result of looking up a
    * [member] in the given [type] and not finding any member.
    */
   bool _shouldReportMissingMember(DartType type, Element member) {
-    if (member != null || type == null || type.isDynamic || type.isBottom) {
-      return false;
-    }
-    return true;
+    return member == null && type != null && !type.isDynamic && !type.isBottom;
   }
 
   /**
@@ -2563,7 +2553,7 @@ class SyntheticIdentifier extends IdentifierImpl {
   SyntheticIdentifier(this.name, this.targetIdentifier);
 
   @override
-  sc.Token get beginToken => null;
+  Token get beginToken => null;
 
   @override
   Element get bestElement => null;
@@ -2577,7 +2567,7 @@ class SyntheticIdentifier extends IdentifierImpl {
   }
 
   @override
-  sc.Token get endToken => null;
+  Token get endToken => null;
 
   @override
   int get length => targetIdentifier.length;

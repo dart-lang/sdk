@@ -55,7 +55,6 @@ DECLARE_FLAG(int, deoptimize_every);
 DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, fields_may_be_reset);
-DECLARE_FLAG(bool, guess_icdata_cid);
 DECLARE_FLAG(bool, ic_range_profiling);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, load_deferred_eagerly);
@@ -68,7 +67,6 @@ DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(bool, use_field_guards);
 DECLARE_FLAG(bool, use_cha_deopt);
 DECLARE_FLAG(bool, use_osr);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(bool, print_stop_message);
 DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, interpret_irregexp);
@@ -1098,7 +1096,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
       // Reading from a mutable double box requires allocating a fresh double.
       if (load_node.field().guarded_cid() == kDynamicCid) {
         GenerateInlinedGetter(load_node.field().Offset());
-        return true;
+        return !FLAG_use_field_guards;
       }
       return false;
     }
@@ -1113,7 +1111,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
           *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
       if (store_node.field().guarded_cid() == kDynamicCid) {
         GenerateInlinedSetter(store_node.field().Offset());
-        return true;
+        return !FLAG_use_field_guards;
       }
     }
   }
@@ -1173,12 +1171,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     return;
   }
 
-  if (is_optimizing() &&
-      // Do not make the instance call megamorphic if the callee needs to decode
-      // the calling code sequence to lookup the ic data and verify if a JS
-      // warning has already been issued or not.
-      (!FLAG_warn_on_javascript_compatibility ||
-       !ic_data.MayCheckForJSWarning())) {
+  if (is_optimizing()) {
     EmitMegamorphicInstanceCall(ic_data, argument_count,
                                 deopt_id, token_pos, locs);
     return;
@@ -1213,12 +1206,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
       ic_data.IsNull() ? ArgumentsDescriptor::New(argument_count,
                                                   argument_names)
                        : ic_data.arguments_descriptor());
-  // Proper reporting of Javascript incompatibilities requires icdata and
-  // may therefore prevent the optimization of some static calls.
-  if (is_optimizing() &&
-      !(FLAG_warn_on_javascript_compatibility &&
-        (MethodRecognizer::RecognizeKind(function) ==
-         MethodRecognizer::kObjectIdentical))) {
+  if (is_optimizing()) {
     EmitOptimizedStaticCall(function, arguments_descriptor,
                             argument_count, deopt_id, token_pos, locs);
   } else {

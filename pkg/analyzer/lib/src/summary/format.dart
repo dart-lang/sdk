@@ -14,11 +14,11 @@ class _ReferenceKindReader extends fb.Reader<idl.ReferenceKind> {
   const _ReferenceKindReader() : super();
 
   @override
-  int get size => 4;
+  int get size => 1;
 
   @override
   idl.ReferenceKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint32Reader().read(bp);
+    int index = const fb.Uint8Reader().read(bp);
     return idl.ReferenceKind.values[index];
   }
 }
@@ -27,11 +27,11 @@ class _UnlinkedConstOperationReader extends fb.Reader<idl.UnlinkedConstOperation
   const _UnlinkedConstOperationReader() : super();
 
   @override
-  int get size => 4;
+  int get size => 1;
 
   @override
   idl.UnlinkedConstOperation read(fb.BufferPointer bp) {
-    int index = const fb.Uint32Reader().read(bp);
+    int index = const fb.Uint8Reader().read(bp);
     return idl.UnlinkedConstOperation.values[index];
   }
 }
@@ -40,11 +40,11 @@ class _UnlinkedConstructorInitializerKindReader extends fb.Reader<idl.UnlinkedCo
   const _UnlinkedConstructorInitializerKindReader() : super();
 
   @override
-  int get size => 4;
+  int get size => 1;
 
   @override
   idl.UnlinkedConstructorInitializerKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint32Reader().read(bp);
+    int index = const fb.Uint8Reader().read(bp);
     return idl.UnlinkedConstructorInitializerKind.values[index];
   }
 }
@@ -53,11 +53,11 @@ class _UnlinkedExecutableKindReader extends fb.Reader<idl.UnlinkedExecutableKind
   const _UnlinkedExecutableKindReader() : super();
 
   @override
-  int get size => 4;
+  int get size => 1;
 
   @override
   idl.UnlinkedExecutableKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint32Reader().read(bp);
+    int index = const fb.Uint8Reader().read(bp);
     return idl.UnlinkedExecutableKind.values[index];
   }
 }
@@ -66,11 +66,11 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
   const _UnlinkedParamKindReader() : super();
 
   @override
-  int get size => 4;
+  int get size => 1;
 
   @override
   idl.UnlinkedParamKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint32Reader().read(bp);
+    int index = const fb.Uint8Reader().read(bp);
     return idl.UnlinkedParamKind.values[index];
   }
 }
@@ -205,19 +205,19 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
     }
     fbBuilder.startTable();
     if (offset_implicitFunctionTypeIndices != null) {
-      fbBuilder.addOffset(0, offset_implicitFunctionTypeIndices);
+      fbBuilder.addOffset(4, offset_implicitFunctionTypeIndices);
     }
     if (_paramReference != null && _paramReference != 0) {
-      fbBuilder.addUint32(1, _paramReference);
+      fbBuilder.addUint32(3, _paramReference);
     }
     if (_reference != null && _reference != 0) {
-      fbBuilder.addUint32(2, _reference);
+      fbBuilder.addUint32(0, _reference);
     }
     if (_slot != null && _slot != 0) {
-      fbBuilder.addUint32(3, _slot);
+      fbBuilder.addUint32(2, _slot);
     }
     if (offset_typeArguments != null) {
-      fbBuilder.addOffset(4, offset_typeArguments);
+      fbBuilder.addOffset(1, offset_typeArguments);
     }
     return fbBuilder.endTable();
   }
@@ -243,31 +243,31 @@ class _EntityRefImpl extends Object with _EntityRefMixin implements idl.EntityRe
 
   @override
   List<int> get implicitFunctionTypeIndices {
-    _implicitFunctionTypeIndices ??= const fb.ListReader<int>(const fb.Uint32Reader()).vTableGet(_bp, 0, const <int>[]);
+    _implicitFunctionTypeIndices ??= const fb.Uint32ListReader().vTableGet(_bp, 4, const <int>[]);
     return _implicitFunctionTypeIndices;
   }
 
   @override
   int get paramReference {
-    _paramReference ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _paramReference ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
     return _paramReference;
   }
 
   @override
   int get reference {
-    _reference ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    _reference ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
     return _reference;
   }
 
   @override
   int get slot {
-    _slot ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
+    _slot ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
     return _slot;
   }
 
   @override
   List<idl.EntityRef> get typeArguments {
-    _typeArguments ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 4, const <idl.EntityRef>[]);
+    _typeArguments ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 1, const <idl.EntityRef>[]);
     return _typeArguments;
   }
 }
@@ -333,10 +333,10 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
     }
     fbBuilder.startTable();
     if (offset_parts != null) {
-      fbBuilder.addOffset(0, offset_parts);
+      fbBuilder.addOffset(1, offset_parts);
     }
     if (offset_uri != null) {
-      fbBuilder.addOffset(1, offset_uri);
+      fbBuilder.addOffset(0, offset_uri);
     }
     return fbBuilder.endTable();
   }
@@ -359,13 +359,13 @@ class _LinkedDependencyImpl extends Object with _LinkedDependencyMixin implement
 
   @override
   List<String> get parts {
-    _parts ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 0, const <String>[]);
+    _parts ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 1, const <String>[]);
     return _parts;
   }
 
   @override
   String get uri {
-    _uri ??= const fb.StringReader().vTableGet(_bp, 1, '');
+    _uri ??= const fb.StringReader().vTableGet(_bp, 0, '');
     return _uri;
   }
 }
@@ -455,13 +455,13 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
       fbBuilder.addUint32(0, _dependency);
     }
     if (_kind != null && _kind != idl.ReferenceKind.classOrEnum) {
-      fbBuilder.addUint32(1, _kind.index);
+      fbBuilder.addUint8(3, _kind.index);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(2, offset_name);
+      fbBuilder.addOffset(1, offset_name);
     }
     if (_unit != null && _unit != 0) {
-      fbBuilder.addUint32(3, _unit);
+      fbBuilder.addUint32(2, _unit);
     }
     return fbBuilder.endTable();
   }
@@ -492,19 +492,19 @@ class _LinkedExportNameImpl extends Object with _LinkedExportNameMixin implement
 
   @override
   idl.ReferenceKind get kind {
-    _kind ??= const _ReferenceKindReader().vTableGet(_bp, 1, idl.ReferenceKind.classOrEnum);
+    _kind ??= const _ReferenceKindReader().vTableGet(_bp, 3, idl.ReferenceKind.classOrEnum);
     return _kind;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 2, '');
+    _name ??= const fb.StringReader().vTableGet(_bp, 1, '');
     return _name;
   }
 
   @override
   int get unit {
-    _unit ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
+    _unit ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
     return _unit;
   }
 }
@@ -644,16 +644,16 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
       fbBuilder.addOffset(0, offset_dependencies);
     }
     if (offset_exportNames != null) {
-      fbBuilder.addOffset(1, offset_exportNames);
+      fbBuilder.addOffset(4, offset_exportNames);
     }
     if (offset_importDependencies != null) {
-      fbBuilder.addOffset(2, offset_importDependencies);
+      fbBuilder.addOffset(1, offset_importDependencies);
     }
     if (_numPrelinkedDependencies != null && _numPrelinkedDependencies != 0) {
-      fbBuilder.addUint32(3, _numPrelinkedDependencies);
+      fbBuilder.addUint32(2, _numPrelinkedDependencies);
     }
     if (offset_units != null) {
-      fbBuilder.addOffset(4, offset_units);
+      fbBuilder.addOffset(3, offset_units);
     }
     return fbBuilder.endTable();
   }
@@ -690,25 +690,25 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.
 
   @override
   List<idl.LinkedExportName> get exportNames {
-    _exportNames ??= const fb.ListReader<idl.LinkedExportName>(const _LinkedExportNameReader()).vTableGet(_bp, 1, const <idl.LinkedExportName>[]);
+    _exportNames ??= const fb.ListReader<idl.LinkedExportName>(const _LinkedExportNameReader()).vTableGet(_bp, 4, const <idl.LinkedExportName>[]);
     return _exportNames;
   }
 
   @override
   List<int> get importDependencies {
-    _importDependencies ??= const fb.ListReader<int>(const fb.Uint32Reader()).vTableGet(_bp, 2, const <int>[]);
+    _importDependencies ??= const fb.Uint32ListReader().vTableGet(_bp, 1, const <int>[]);
     return _importDependencies;
   }
 
   @override
   int get numPrelinkedDependencies {
-    _numPrelinkedDependencies ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
+    _numPrelinkedDependencies ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
     return _numPrelinkedDependencies;
   }
 
   @override
   List<idl.LinkedUnit> get units {
-    _units ??= const fb.ListReader<idl.LinkedUnit>(const _LinkedUnitReader()).vTableGet(_bp, 4, const <idl.LinkedUnit>[]);
+    _units ??= const fb.ListReader<idl.LinkedUnit>(const _LinkedUnitReader()).vTableGet(_bp, 3, const <idl.LinkedUnit>[]);
     return _units;
   }
 }
@@ -843,13 +843,13 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
     }
     fbBuilder.startTable();
     if (_containingReference != null && _containingReference != 0) {
-      fbBuilder.addUint32(0, _containingReference);
+      fbBuilder.addUint32(5, _containingReference);
     }
     if (_dependency != null && _dependency != 0) {
       fbBuilder.addUint32(1, _dependency);
     }
     if (_kind != null && _kind != idl.ReferenceKind.classOrEnum) {
-      fbBuilder.addUint32(2, _kind.index);
+      fbBuilder.addUint8(2, _kind.index);
     }
     if (offset_name != null) {
       fbBuilder.addOffset(3, offset_name);
@@ -858,7 +858,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
       fbBuilder.addUint32(4, _numTypeParameters);
     }
     if (_unit != null && _unit != 0) {
-      fbBuilder.addUint32(5, _unit);
+      fbBuilder.addUint32(0, _unit);
     }
     return fbBuilder.endTable();
   }
@@ -885,7 +885,7 @@ class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements 
 
   @override
   int get containingReference {
-    _containingReference ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    _containingReference ??= const fb.Uint32Reader().vTableGet(_bp, 5, 0);
     return _containingReference;
   }
 
@@ -915,7 +915,7 @@ class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements 
 
   @override
   int get unit {
-    _unit ??= const fb.Uint32Reader().vTableGet(_bp, 5, 0);
+    _unit ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
     return _unit;
   }
 }
@@ -1405,43 +1405,43 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
-      fbBuilder.addOffset(0, offset_annotations);
+      fbBuilder.addOffset(5, offset_annotations);
     }
     if (offset_documentationComment != null) {
-      fbBuilder.addOffset(1, offset_documentationComment);
+      fbBuilder.addOffset(6, offset_documentationComment);
     }
     if (offset_executables != null) {
       fbBuilder.addOffset(2, offset_executables);
     }
     if (offset_fields != null) {
-      fbBuilder.addOffset(3, offset_fields);
+      fbBuilder.addOffset(4, offset_fields);
     }
     if (_hasNoSupertype == true) {
-      fbBuilder.addBool(4, true);
+      fbBuilder.addBool(12, true);
     }
     if (offset_interfaces != null) {
-      fbBuilder.addOffset(5, offset_interfaces);
+      fbBuilder.addOffset(7, offset_interfaces);
     }
     if (_isAbstract == true) {
-      fbBuilder.addBool(6, true);
+      fbBuilder.addBool(8, true);
     }
     if (_isMixinApplication == true) {
-      fbBuilder.addBool(7, true);
+      fbBuilder.addBool(11, true);
     }
     if (offset_mixins != null) {
-      fbBuilder.addOffset(8, offset_mixins);
+      fbBuilder.addOffset(10, offset_mixins);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(9, offset_name);
+      fbBuilder.addOffset(0, offset_name);
     }
     if (_nameOffset != null && _nameOffset != 0) {
-      fbBuilder.addUint32(10, _nameOffset);
+      fbBuilder.addUint32(1, _nameOffset);
     }
     if (offset_supertype != null) {
-      fbBuilder.addOffset(11, offset_supertype);
+      fbBuilder.addOffset(3, offset_supertype);
     }
     if (offset_typeParameters != null) {
-      fbBuilder.addOffset(12, offset_typeParameters);
+      fbBuilder.addOffset(9, offset_typeParameters);
     }
     return fbBuilder.endTable();
   }
@@ -1475,13 +1475,13 @@ class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements idl.
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 0, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 5, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 1, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 6, null);
     return _documentationComment;
   }
 
@@ -1493,61 +1493,61 @@ class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements idl.
 
   @override
   List<idl.UnlinkedVariable> get fields {
-    _fields ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bp, 3, const <idl.UnlinkedVariable>[]);
+    _fields ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bp, 4, const <idl.UnlinkedVariable>[]);
     return _fields;
   }
 
   @override
   bool get hasNoSupertype {
-    _hasNoSupertype ??= const fb.BoolReader().vTableGet(_bp, 4, false);
+    _hasNoSupertype ??= const fb.BoolReader().vTableGet(_bp, 12, false);
     return _hasNoSupertype;
   }
 
   @override
   List<idl.EntityRef> get interfaces {
-    _interfaces ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 5, const <idl.EntityRef>[]);
+    _interfaces ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 7, const <idl.EntityRef>[]);
     return _interfaces;
   }
 
   @override
   bool get isAbstract {
-    _isAbstract ??= const fb.BoolReader().vTableGet(_bp, 6, false);
+    _isAbstract ??= const fb.BoolReader().vTableGet(_bp, 8, false);
     return _isAbstract;
   }
 
   @override
   bool get isMixinApplication {
-    _isMixinApplication ??= const fb.BoolReader().vTableGet(_bp, 7, false);
+    _isMixinApplication ??= const fb.BoolReader().vTableGet(_bp, 11, false);
     return _isMixinApplication;
   }
 
   @override
   List<idl.EntityRef> get mixins {
-    _mixins ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 8, const <idl.EntityRef>[]);
+    _mixins ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 10, const <idl.EntityRef>[]);
     return _mixins;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 9, '');
+    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 10, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
     return _nameOffset;
   }
 
   @override
   idl.EntityRef get supertype {
-    _supertype ??= const _EntityRefReader().vTableGet(_bp, 11, null);
+    _supertype ??= const _EntityRefReader().vTableGet(_bp, 3, null);
     return _supertype;
   }
 
   @override
   List<idl.UnlinkedTypeParam> get typeParameters {
-    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bp, 12, const <idl.UnlinkedTypeParam>[]);
+    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bp, 9, const <idl.UnlinkedTypeParam>[]);
     return _typeParameters;
   }
 }
@@ -1616,10 +1616,10 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
     }
     fbBuilder.startTable();
     if (offset_hides != null) {
-      fbBuilder.addOffset(0, offset_hides);
+      fbBuilder.addOffset(1, offset_hides);
     }
     if (offset_shows != null) {
-      fbBuilder.addOffset(1, offset_shows);
+      fbBuilder.addOffset(0, offset_shows);
     }
     return fbBuilder.endTable();
   }
@@ -1642,13 +1642,13 @@ class _UnlinkedCombinatorImpl extends Object with _UnlinkedCombinatorMixin imple
 
   @override
   List<String> get hides {
-    _hides ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 0, const <String>[]);
+    _hides ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 1, const <String>[]);
     return _hides;
   }
 
   @override
   List<String> get shows {
-    _shows ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 1, const <String>[]);
+    _shows ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 0, const <String>[]);
     return _shows;
   }
 }
@@ -1769,7 +1769,7 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
       offset_ints = fbBuilder.writeListUint32(_ints);
     }
     if (!(_operations == null || _operations.isEmpty)) {
-      offset_operations = fbBuilder.writeListUint32(_operations.map((b) => b.index).toList());
+      offset_operations = fbBuilder.writeListUint8(_operations.map((b) => b.index).toList());
     }
     if (!(_references == null || _references.isEmpty)) {
       offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
@@ -1779,22 +1779,22 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
     }
     fbBuilder.startTable();
     if (offset_doubles != null) {
-      fbBuilder.addOffset(0, offset_doubles);
+      fbBuilder.addOffset(4, offset_doubles);
     }
     if (offset_ints != null) {
       fbBuilder.addOffset(1, offset_ints);
     }
     if (_isInvalid == true) {
-      fbBuilder.addBool(2, true);
+      fbBuilder.addBool(5, true);
     }
     if (offset_operations != null) {
-      fbBuilder.addOffset(3, offset_operations);
+      fbBuilder.addOffset(0, offset_operations);
     }
     if (offset_references != null) {
-      fbBuilder.addOffset(4, offset_references);
+      fbBuilder.addOffset(2, offset_references);
     }
     if (offset_strings != null) {
-      fbBuilder.addOffset(5, offset_strings);
+      fbBuilder.addOffset(3, offset_strings);
     }
     return fbBuilder.endTable();
   }
@@ -1821,37 +1821,37 @@ class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements idl.
 
   @override
   List<double> get doubles {
-    _doubles ??= const fb.Float64ListReader().vTableGet(_bp, 0, const <double>[]);
+    _doubles ??= const fb.Float64ListReader().vTableGet(_bp, 4, const <double>[]);
     return _doubles;
   }
 
   @override
   List<int> get ints {
-    _ints ??= const fb.ListReader<int>(const fb.Uint32Reader()).vTableGet(_bp, 1, const <int>[]);
+    _ints ??= const fb.Uint32ListReader().vTableGet(_bp, 1, const <int>[]);
     return _ints;
   }
 
   @override
   bool get isInvalid {
-    _isInvalid ??= const fb.BoolReader().vTableGet(_bp, 2, false);
+    _isInvalid ??= const fb.BoolReader().vTableGet(_bp, 5, false);
     return _isInvalid;
   }
 
   @override
   List<idl.UnlinkedConstOperation> get operations {
-    _operations ??= const fb.ListReader<idl.UnlinkedConstOperation>(const _UnlinkedConstOperationReader()).vTableGet(_bp, 3, const <idl.UnlinkedConstOperation>[]);
+    _operations ??= const fb.ListReader<idl.UnlinkedConstOperation>(const _UnlinkedConstOperationReader()).vTableGet(_bp, 0, const <idl.UnlinkedConstOperation>[]);
     return _operations;
   }
 
   @override
   List<idl.EntityRef> get references {
-    _references ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 4, const <idl.EntityRef>[]);
+    _references ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 2, const <idl.EntityRef>[]);
     return _references;
   }
 
   @override
   List<String> get strings {
-    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 5, const <String>[]);
+    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 3, const <String>[]);
     return _strings;
   }
 }
@@ -1948,16 +1948,16 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
     }
     fbBuilder.startTable();
     if (offset_arguments != null) {
-      fbBuilder.addOffset(0, offset_arguments);
+      fbBuilder.addOffset(3, offset_arguments);
     }
     if (offset_expression != null) {
       fbBuilder.addOffset(1, offset_expression);
     }
     if (_kind != null && _kind != idl.UnlinkedConstructorInitializerKind.field) {
-      fbBuilder.addUint32(2, _kind.index);
+      fbBuilder.addUint8(2, _kind.index);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(3, offset_name);
+      fbBuilder.addOffset(0, offset_name);
     }
     return fbBuilder.endTable();
   }
@@ -1982,7 +1982,7 @@ class _UnlinkedConstructorInitializerImpl extends Object with _UnlinkedConstruct
 
   @override
   List<idl.UnlinkedConst> get arguments {
-    _arguments ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 0, const <idl.UnlinkedConst>[]);
+    _arguments ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 3, const <idl.UnlinkedConst>[]);
     return _arguments;
   }
 
@@ -2000,7 +2000,7 @@ class _UnlinkedConstructorInitializerImpl extends Object with _UnlinkedConstruct
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 3, '');
+    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
     return _name;
   }
 }
@@ -2078,10 +2078,10 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
       fbBuilder.addUint32(0, _length);
     }
     if (_offset != null && _offset != 0) {
-      fbBuilder.addUint32(1, _offset);
+      fbBuilder.addUint32(2, _offset);
     }
     if (offset_text != null) {
-      fbBuilder.addOffset(2, offset_text);
+      fbBuilder.addOffset(1, offset_text);
     }
     return fbBuilder.endTable();
   }
@@ -2111,13 +2111,13 @@ class _UnlinkedDocumentationCommentImpl extends Object with _UnlinkedDocumentati
 
   @override
   int get offset {
-    _offset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _offset ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
     return _offset;
   }
 
   @override
   String get text {
-    _text ??= const fb.StringReader().vTableGet(_bp, 2, '');
+    _text ??= const fb.StringReader().vTableGet(_bp, 1, '');
     return _text;
   }
 }
@@ -2225,19 +2225,19 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
-      fbBuilder.addOffset(0, offset_annotations);
+      fbBuilder.addOffset(4, offset_annotations);
     }
     if (offset_documentationComment != null) {
-      fbBuilder.addOffset(1, offset_documentationComment);
+      fbBuilder.addOffset(3, offset_documentationComment);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(2, offset_name);
+      fbBuilder.addOffset(0, offset_name);
     }
     if (_nameOffset != null && _nameOffset != 0) {
-      fbBuilder.addUint32(3, _nameOffset);
+      fbBuilder.addUint32(1, _nameOffset);
     }
     if (offset_values != null) {
-      fbBuilder.addOffset(4, offset_values);
+      fbBuilder.addOffset(2, offset_values);
     }
     return fbBuilder.endTable();
   }
@@ -2263,31 +2263,31 @@ class _UnlinkedEnumImpl extends Object with _UnlinkedEnumMixin implements idl.Un
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 0, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 4, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 1, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 3, null);
     return _documentationComment;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 2, '');
+    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
     return _nameOffset;
   }
 
   @override
   List<idl.UnlinkedEnumValue> get values {
-    _values ??= const fb.ListReader<idl.UnlinkedEnumValue>(const _UnlinkedEnumValueReader()).vTableGet(_bp, 4, const <idl.UnlinkedEnumValue>[]);
+    _values ??= const fb.ListReader<idl.UnlinkedEnumValue>(const _UnlinkedEnumValueReader()).vTableGet(_bp, 2, const <idl.UnlinkedEnumValue>[]);
     return _values;
   }
 }
@@ -2363,13 +2363,13 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
     }
     fbBuilder.startTable();
     if (offset_documentationComment != null) {
-      fbBuilder.addOffset(0, offset_documentationComment);
+      fbBuilder.addOffset(2, offset_documentationComment);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(1, offset_name);
+      fbBuilder.addOffset(0, offset_name);
     }
     if (_nameOffset != null && _nameOffset != 0) {
-      fbBuilder.addUint32(2, _nameOffset);
+      fbBuilder.addUint32(1, _nameOffset);
     }
     return fbBuilder.endTable();
   }
@@ -2393,19 +2393,19 @@ class _UnlinkedEnumValueImpl extends Object with _UnlinkedEnumValueMixin impleme
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 0, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 2, null);
     return _documentationComment;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 1, '');
+    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
     return _nameOffset;
   }
 }
@@ -2430,13 +2430,20 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   bool _isConst;
   bool _isExternal;
   bool _isFactory;
+  bool _isRedirectedConstructor;
   bool _isStatic;
   idl.UnlinkedExecutableKind _kind;
+  List<UnlinkedExecutableBuilder> _localFunctions;
+  List<UnlinkedVariableBuilder> _localVariables;
   String _name;
   int _nameOffset;
   List<UnlinkedParamBuilder> _parameters;
+  EntityRefBuilder _redirectedConstructor;
+  String _redirectedConstructorName;
   EntityRefBuilder _returnType;
   List<UnlinkedTypeParamBuilder> _typeParameters;
+  int _visibleLength;
+  int _visibleOffset;
 
   @override
   List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
@@ -2534,6 +2541,17 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
+  bool get isRedirectedConstructor => _isRedirectedConstructor ??= false;
+
+  /**
+   * Indicates whether the executable is a redirected constructor.
+   */
+  void set isRedirectedConstructor(bool _value) {
+    assert(!_finished);
+    _isRedirectedConstructor = _value;
+  }
+
+  @override
   bool get isStatic => _isStatic ??= false;
 
   /**
@@ -2558,6 +2576,28 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   void set kind(idl.UnlinkedExecutableKind _value) {
     assert(!_finished);
     _kind = _value;
+  }
+
+  @override
+  List<UnlinkedExecutableBuilder> get localFunctions => _localFunctions ??= <UnlinkedExecutableBuilder>[];
+
+  /**
+   * The list of local functions.
+   */
+  void set localFunctions(List<UnlinkedExecutableBuilder> _value) {
+    assert(!_finished);
+    _localFunctions = _value;
+  }
+
+  @override
+  List<UnlinkedVariableBuilder> get localVariables => _localVariables ??= <UnlinkedVariableBuilder>[];
+
+  /**
+   * The list of local variables.
+   */
+  void set localVariables(List<UnlinkedVariableBuilder> _value) {
+    assert(!_finished);
+    _localVariables = _value;
   }
 
   @override
@@ -2602,6 +2642,31 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
+  EntityRefBuilder get redirectedConstructor => _redirectedConstructor;
+
+  /**
+   * If [isRedirectedConstructor] and [isFactory] are both `true`, the
+   * constructor to which this constructor redirects; otherwise empty.
+   */
+  void set redirectedConstructor(EntityRefBuilder _value) {
+    assert(!_finished);
+    _redirectedConstructor = _value;
+  }
+
+  @override
+  String get redirectedConstructorName => _redirectedConstructorName ??= '';
+
+  /**
+   * If [isRedirectedConstructor] is `true` and [isFactory] is `false`, the
+   * name of the constructor that this constructor redirects to; otherwise
+   * empty.
+   */
+  void set redirectedConstructorName(String _value) {
+    assert(!_finished);
+    _redirectedConstructorName = _value;
+  }
+
+  @override
   EntityRefBuilder get returnType => _returnType;
 
   /**
@@ -2625,7 +2690,31 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _typeParameters = _value;
   }
 
-  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedConstructorInitializerBuilder> constantInitializers, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isStatic, idl.UnlinkedExecutableKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters})
+  @override
+  int get visibleLength => _visibleLength ??= 0;
+
+  /**
+   * If a local function, the length of the visible range; zero otherwise.
+   */
+  void set visibleLength(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _visibleLength = _value;
+  }
+
+  @override
+  int get visibleOffset => _visibleOffset ??= 0;
+
+  /**
+   * If a local function, the beginning of the visible range; zero otherwise.
+   */
+  void set visibleOffset(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _visibleOffset = _value;
+  }
+
+  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedConstructorInitializerBuilder> constantInitializers, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedVariableBuilder> localVariables, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _constantInitializers = constantInitializers,
       _documentationComment = documentationComment,
@@ -2634,13 +2723,20 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       _isConst = isConst,
       _isExternal = isExternal,
       _isFactory = isFactory,
+      _isRedirectedConstructor = isRedirectedConstructor,
       _isStatic = isStatic,
       _kind = kind,
+      _localFunctions = localFunctions,
+      _localVariables = localVariables,
       _name = name,
       _nameOffset = nameOffset,
       _parameters = parameters,
+      _redirectedConstructor = redirectedConstructor,
+      _redirectedConstructorName = redirectedConstructorName,
       _returnType = returnType,
-      _typeParameters = typeParameters;
+      _typeParameters = typeParameters,
+      _visibleLength = visibleLength,
+      _visibleOffset = visibleOffset;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -2648,8 +2744,12 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     fb.Offset offset_annotations;
     fb.Offset offset_constantInitializers;
     fb.Offset offset_documentationComment;
+    fb.Offset offset_localFunctions;
+    fb.Offset offset_localVariables;
     fb.Offset offset_name;
     fb.Offset offset_parameters;
+    fb.Offset offset_redirectedConstructor;
+    fb.Offset offset_redirectedConstructorName;
     fb.Offset offset_returnType;
     fb.Offset offset_typeParameters;
     if (!(_annotations == null || _annotations.isEmpty)) {
@@ -2661,11 +2761,23 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     if (_documentationComment != null) {
       offset_documentationComment = _documentationComment.finish(fbBuilder);
     }
+    if (!(_localFunctions == null || _localFunctions.isEmpty)) {
+      offset_localFunctions = fbBuilder.writeList(_localFunctions.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_localVariables == null || _localVariables.isEmpty)) {
+      offset_localVariables = fbBuilder.writeList(_localVariables.map((b) => b.finish(fbBuilder)).toList());
+    }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
     }
     if (!(_parameters == null || _parameters.isEmpty)) {
       offset_parameters = fbBuilder.writeList(_parameters.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_redirectedConstructor != null) {
+      offset_redirectedConstructor = _redirectedConstructor.finish(fbBuilder);
+    }
+    if (_redirectedConstructorName != null) {
+      offset_redirectedConstructorName = fbBuilder.writeString(_redirectedConstructorName);
     }
     if (_returnType != null) {
       offset_returnType = _returnType.finish(fbBuilder);
@@ -2675,49 +2787,70 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
-      fbBuilder.addOffset(0, offset_annotations);
+      fbBuilder.addOffset(6, offset_annotations);
     }
     if (offset_constantInitializers != null) {
-      fbBuilder.addOffset(1, offset_constantInitializers);
+      fbBuilder.addOffset(14, offset_constantInitializers);
     }
     if (offset_documentationComment != null) {
-      fbBuilder.addOffset(2, offset_documentationComment);
+      fbBuilder.addOffset(7, offset_documentationComment);
     }
     if (_inferredReturnTypeSlot != null && _inferredReturnTypeSlot != 0) {
-      fbBuilder.addUint32(3, _inferredReturnTypeSlot);
+      fbBuilder.addUint32(5, _inferredReturnTypeSlot);
     }
     if (_isAbstract == true) {
-      fbBuilder.addBool(4, true);
+      fbBuilder.addBool(10, true);
     }
     if (_isConst == true) {
-      fbBuilder.addBool(5, true);
+      fbBuilder.addBool(12, true);
     }
     if (_isExternal == true) {
-      fbBuilder.addBool(6, true);
+      fbBuilder.addBool(11, true);
     }
     if (_isFactory == true) {
-      fbBuilder.addBool(7, true);
-    }
-    if (_isStatic == true) {
       fbBuilder.addBool(8, true);
     }
+    if (_isRedirectedConstructor == true) {
+      fbBuilder.addBool(13, true);
+    }
+    if (_isStatic == true) {
+      fbBuilder.addBool(9, true);
+    }
     if (_kind != null && _kind != idl.UnlinkedExecutableKind.functionOrMethod) {
-      fbBuilder.addUint32(9, _kind.index);
+      fbBuilder.addUint8(4, _kind.index);
+    }
+    if (offset_localFunctions != null) {
+      fbBuilder.addOffset(18, offset_localFunctions);
+    }
+    if (offset_localVariables != null) {
+      fbBuilder.addOffset(19, offset_localVariables);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(10, offset_name);
+      fbBuilder.addOffset(1, offset_name);
     }
     if (_nameOffset != null && _nameOffset != 0) {
-      fbBuilder.addUint32(11, _nameOffset);
+      fbBuilder.addUint32(0, _nameOffset);
     }
     if (offset_parameters != null) {
-      fbBuilder.addOffset(12, offset_parameters);
+      fbBuilder.addOffset(2, offset_parameters);
+    }
+    if (offset_redirectedConstructor != null) {
+      fbBuilder.addOffset(15, offset_redirectedConstructor);
+    }
+    if (offset_redirectedConstructorName != null) {
+      fbBuilder.addOffset(17, offset_redirectedConstructorName);
     }
     if (offset_returnType != null) {
-      fbBuilder.addOffset(13, offset_returnType);
+      fbBuilder.addOffset(3, offset_returnType);
     }
     if (offset_typeParameters != null) {
-      fbBuilder.addOffset(14, offset_typeParameters);
+      fbBuilder.addOffset(16, offset_typeParameters);
+    }
+    if (_visibleLength != null && _visibleLength != 0) {
+      fbBuilder.addUint32(20, _visibleLength);
+    }
+    if (_visibleOffset != null && _visibleOffset != 0) {
+      fbBuilder.addUint32(21, _visibleOffset);
     }
     return fbBuilder.endTable();
   }
@@ -2743,102 +2876,151 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   bool _isConst;
   bool _isExternal;
   bool _isFactory;
+  bool _isRedirectedConstructor;
   bool _isStatic;
   idl.UnlinkedExecutableKind _kind;
+  List<idl.UnlinkedExecutable> _localFunctions;
+  List<idl.UnlinkedVariable> _localVariables;
   String _name;
   int _nameOffset;
   List<idl.UnlinkedParam> _parameters;
+  idl.EntityRef _redirectedConstructor;
+  String _redirectedConstructorName;
   idl.EntityRef _returnType;
   List<idl.UnlinkedTypeParam> _typeParameters;
+  int _visibleLength;
+  int _visibleOffset;
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 0, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 6, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   List<idl.UnlinkedConstructorInitializer> get constantInitializers {
-    _constantInitializers ??= const fb.ListReader<idl.UnlinkedConstructorInitializer>(const _UnlinkedConstructorInitializerReader()).vTableGet(_bp, 1, const <idl.UnlinkedConstructorInitializer>[]);
+    _constantInitializers ??= const fb.ListReader<idl.UnlinkedConstructorInitializer>(const _UnlinkedConstructorInitializerReader()).vTableGet(_bp, 14, const <idl.UnlinkedConstructorInitializer>[]);
     return _constantInitializers;
   }
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 2, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 7, null);
     return _documentationComment;
   }
 
   @override
   int get inferredReturnTypeSlot {
-    _inferredReturnTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
+    _inferredReturnTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 5, 0);
     return _inferredReturnTypeSlot;
   }
 
   @override
   bool get isAbstract {
-    _isAbstract ??= const fb.BoolReader().vTableGet(_bp, 4, false);
+    _isAbstract ??= const fb.BoolReader().vTableGet(_bp, 10, false);
     return _isAbstract;
   }
 
   @override
   bool get isConst {
-    _isConst ??= const fb.BoolReader().vTableGet(_bp, 5, false);
+    _isConst ??= const fb.BoolReader().vTableGet(_bp, 12, false);
     return _isConst;
   }
 
   @override
   bool get isExternal {
-    _isExternal ??= const fb.BoolReader().vTableGet(_bp, 6, false);
+    _isExternal ??= const fb.BoolReader().vTableGet(_bp, 11, false);
     return _isExternal;
   }
 
   @override
   bool get isFactory {
-    _isFactory ??= const fb.BoolReader().vTableGet(_bp, 7, false);
+    _isFactory ??= const fb.BoolReader().vTableGet(_bp, 8, false);
     return _isFactory;
   }
 
   @override
+  bool get isRedirectedConstructor {
+    _isRedirectedConstructor ??= const fb.BoolReader().vTableGet(_bp, 13, false);
+    return _isRedirectedConstructor;
+  }
+
+  @override
   bool get isStatic {
-    _isStatic ??= const fb.BoolReader().vTableGet(_bp, 8, false);
+    _isStatic ??= const fb.BoolReader().vTableGet(_bp, 9, false);
     return _isStatic;
   }
 
   @override
   idl.UnlinkedExecutableKind get kind {
-    _kind ??= const _UnlinkedExecutableKindReader().vTableGet(_bp, 9, idl.UnlinkedExecutableKind.functionOrMethod);
+    _kind ??= const _UnlinkedExecutableKindReader().vTableGet(_bp, 4, idl.UnlinkedExecutableKind.functionOrMethod);
     return _kind;
   }
 
   @override
+  List<idl.UnlinkedExecutable> get localFunctions {
+    _localFunctions ??= const fb.ListReader<idl.UnlinkedExecutable>(const _UnlinkedExecutableReader()).vTableGet(_bp, 18, const <idl.UnlinkedExecutable>[]);
+    return _localFunctions;
+  }
+
+  @override
+  List<idl.UnlinkedVariable> get localVariables {
+    _localVariables ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bp, 19, const <idl.UnlinkedVariable>[]);
+    return _localVariables;
+  }
+
+  @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 10, '');
+    _name ??= const fb.StringReader().vTableGet(_bp, 1, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 11, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
     return _nameOffset;
   }
 
   @override
   List<idl.UnlinkedParam> get parameters {
-    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 12, const <idl.UnlinkedParam>[]);
+    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 2, const <idl.UnlinkedParam>[]);
     return _parameters;
   }
 
   @override
+  idl.EntityRef get redirectedConstructor {
+    _redirectedConstructor ??= const _EntityRefReader().vTableGet(_bp, 15, null);
+    return _redirectedConstructor;
+  }
+
+  @override
+  String get redirectedConstructorName {
+    _redirectedConstructorName ??= const fb.StringReader().vTableGet(_bp, 17, '');
+    return _redirectedConstructorName;
+  }
+
+  @override
   idl.EntityRef get returnType {
-    _returnType ??= const _EntityRefReader().vTableGet(_bp, 13, null);
+    _returnType ??= const _EntityRefReader().vTableGet(_bp, 3, null);
     return _returnType;
   }
 
   @override
   List<idl.UnlinkedTypeParam> get typeParameters {
-    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bp, 14, const <idl.UnlinkedTypeParam>[]);
+    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bp, 16, const <idl.UnlinkedTypeParam>[]);
     return _typeParameters;
+  }
+
+  @override
+  int get visibleLength {
+    _visibleLength ??= const fb.Uint32Reader().vTableGet(_bp, 20, 0);
+    return _visibleLength;
+  }
+
+  @override
+  int get visibleOffset {
+    _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bp, 21, 0);
+    return _visibleOffset;
   }
 }
 
@@ -2853,13 +3035,20 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     "isConst": isConst,
     "isExternal": isExternal,
     "isFactory": isFactory,
+    "isRedirectedConstructor": isRedirectedConstructor,
     "isStatic": isStatic,
     "kind": kind,
+    "localFunctions": localFunctions,
+    "localVariables": localVariables,
     "name": name,
     "nameOffset": nameOffset,
     "parameters": parameters,
+    "redirectedConstructor": redirectedConstructor,
+    "redirectedConstructorName": redirectedConstructorName,
     "returnType": returnType,
     "typeParameters": typeParameters,
+    "visibleLength": visibleLength,
+    "visibleOffset": visibleOffset,
   };
 }
 
@@ -2935,16 +3124,16 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
-      fbBuilder.addOffset(0, offset_annotations);
+      fbBuilder.addOffset(3, offset_annotations);
     }
     if (_offset != null && _offset != 0) {
-      fbBuilder.addUint32(1, _offset);
+      fbBuilder.addUint32(0, _offset);
     }
     if (_uriEnd != null && _uriEnd != 0) {
-      fbBuilder.addUint32(2, _uriEnd);
+      fbBuilder.addUint32(1, _uriEnd);
     }
     if (_uriOffset != null && _uriOffset != 0) {
-      fbBuilder.addUint32(3, _uriOffset);
+      fbBuilder.addUint32(2, _uriOffset);
     }
     return fbBuilder.endTable();
   }
@@ -2969,25 +3158,25 @@ class _UnlinkedExportNonPublicImpl extends Object with _UnlinkedExportNonPublicM
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 0, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 3, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   int get offset {
-    _offset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _offset ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
     return _offset;
   }
 
   @override
   int get uriEnd {
-    _uriEnd ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    _uriEnd ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
     return _uriEnd;
   }
 
   @override
   int get uriOffset {
-    _uriOffset ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
+    _uriOffset ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
     return _uriOffset;
   }
 }
@@ -3047,10 +3236,10 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
     }
     fbBuilder.startTable();
     if (offset_combinators != null) {
-      fbBuilder.addOffset(0, offset_combinators);
+      fbBuilder.addOffset(1, offset_combinators);
     }
     if (offset_uri != null) {
-      fbBuilder.addOffset(1, offset_uri);
+      fbBuilder.addOffset(0, offset_uri);
     }
     return fbBuilder.endTable();
   }
@@ -3073,13 +3262,13 @@ class _UnlinkedExportPublicImpl extends Object with _UnlinkedExportPublicMixin i
 
   @override
   List<idl.UnlinkedCombinator> get combinators {
-    _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bp, 0, const <idl.UnlinkedCombinator>[]);
+    _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bp, 1, const <idl.UnlinkedCombinator>[]);
     return _combinators;
   }
 
   @override
   String get uri {
-    _uri ??= const fb.StringReader().vTableGet(_bp, 1, '');
+    _uri ??= const fb.StringReader().vTableGet(_bp, 0, '');
     return _uri;
   }
 }
@@ -3257,34 +3446,34 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
-      fbBuilder.addOffset(0, offset_annotations);
+      fbBuilder.addOffset(8, offset_annotations);
     }
     if (offset_combinators != null) {
-      fbBuilder.addOffset(1, offset_combinators);
+      fbBuilder.addOffset(4, offset_combinators);
     }
     if (_isDeferred == true) {
-      fbBuilder.addBool(2, true);
+      fbBuilder.addBool(9, true);
     }
     if (_isImplicit == true) {
-      fbBuilder.addBool(3, true);
+      fbBuilder.addBool(5, true);
     }
     if (_offset != null && _offset != 0) {
-      fbBuilder.addUint32(4, _offset);
+      fbBuilder.addUint32(0, _offset);
     }
     if (_prefixOffset != null && _prefixOffset != 0) {
-      fbBuilder.addUint32(5, _prefixOffset);
+      fbBuilder.addUint32(6, _prefixOffset);
     }
     if (_prefixReference != null && _prefixReference != 0) {
-      fbBuilder.addUint32(6, _prefixReference);
+      fbBuilder.addUint32(7, _prefixReference);
     }
     if (offset_uri != null) {
-      fbBuilder.addOffset(7, offset_uri);
+      fbBuilder.addOffset(1, offset_uri);
     }
     if (_uriEnd != null && _uriEnd != 0) {
-      fbBuilder.addUint32(8, _uriEnd);
+      fbBuilder.addUint32(2, _uriEnd);
     }
     if (_uriOffset != null && _uriOffset != 0) {
-      fbBuilder.addUint32(9, _uriOffset);
+      fbBuilder.addUint32(3, _uriOffset);
     }
     return fbBuilder.endTable();
   }
@@ -3315,61 +3504,61 @@ class _UnlinkedImportImpl extends Object with _UnlinkedImportMixin implements id
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 0, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 8, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   List<idl.UnlinkedCombinator> get combinators {
-    _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bp, 1, const <idl.UnlinkedCombinator>[]);
+    _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bp, 4, const <idl.UnlinkedCombinator>[]);
     return _combinators;
   }
 
   @override
   bool get isDeferred {
-    _isDeferred ??= const fb.BoolReader().vTableGet(_bp, 2, false);
+    _isDeferred ??= const fb.BoolReader().vTableGet(_bp, 9, false);
     return _isDeferred;
   }
 
   @override
   bool get isImplicit {
-    _isImplicit ??= const fb.BoolReader().vTableGet(_bp, 3, false);
+    _isImplicit ??= const fb.BoolReader().vTableGet(_bp, 5, false);
     return _isImplicit;
   }
 
   @override
   int get offset {
-    _offset ??= const fb.Uint32Reader().vTableGet(_bp, 4, 0);
+    _offset ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
     return _offset;
   }
 
   @override
   int get prefixOffset {
-    _prefixOffset ??= const fb.Uint32Reader().vTableGet(_bp, 5, 0);
+    _prefixOffset ??= const fb.Uint32Reader().vTableGet(_bp, 6, 0);
     return _prefixOffset;
   }
 
   @override
   int get prefixReference {
-    _prefixReference ??= const fb.Uint32Reader().vTableGet(_bp, 6, 0);
+    _prefixReference ??= const fb.Uint32Reader().vTableGet(_bp, 7, 0);
     return _prefixReference;
   }
 
   @override
   String get uri {
-    _uri ??= const fb.StringReader().vTableGet(_bp, 7, '');
+    _uri ??= const fb.StringReader().vTableGet(_bp, 1, '');
     return _uri;
   }
 
   @override
   int get uriEnd {
-    _uriEnd ??= const fb.Uint32Reader().vTableGet(_bp, 8, 0);
+    _uriEnd ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
     return _uriEnd;
   }
 
   @override
   int get uriOffset {
-    _uriOffset ??= const fb.Uint32Reader().vTableGet(_bp, 9, 0);
+    _uriOffset ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
     return _uriOffset;
   }
 }
@@ -3403,6 +3592,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   int _nameOffset;
   List<UnlinkedParamBuilder> _parameters;
   EntityRefBuilder _type;
+  int _visibleLength;
+  int _visibleOffset;
 
   @override
   List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
@@ -3529,7 +3720,31 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     _type = _value;
   }
 
-  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder defaultValue, int inferredTypeSlot, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type})
+  @override
+  int get visibleLength => _visibleLength ??= 0;
+
+  /**
+   * The length of the visible range.
+   */
+  void set visibleLength(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _visibleLength = _value;
+  }
+
+  @override
+  int get visibleOffset => _visibleOffset ??= 0;
+
+  /**
+   * The beginning of the visible range.
+   */
+  void set visibleOffset(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _visibleOffset = _value;
+  }
+
+  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder defaultValue, int inferredTypeSlot, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _defaultValue = defaultValue,
       _inferredTypeSlot = inferredTypeSlot,
@@ -3539,7 +3754,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
       _name = name,
       _nameOffset = nameOffset,
       _parameters = parameters,
-      _type = type;
+      _type = type,
+      _visibleLength = visibleLength,
+      _visibleOffset = visibleOffset;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -3566,34 +3783,40 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
-      fbBuilder.addOffset(0, offset_annotations);
+      fbBuilder.addOffset(9, offset_annotations);
     }
     if (offset_defaultValue != null) {
-      fbBuilder.addOffset(1, offset_defaultValue);
+      fbBuilder.addOffset(7, offset_defaultValue);
     }
     if (_inferredTypeSlot != null && _inferredTypeSlot != 0) {
       fbBuilder.addUint32(2, _inferredTypeSlot);
     }
     if (_isFunctionTyped == true) {
-      fbBuilder.addBool(3, true);
+      fbBuilder.addBool(5, true);
     }
     if (_isInitializingFormal == true) {
-      fbBuilder.addBool(4, true);
+      fbBuilder.addBool(6, true);
     }
     if (_kind != null && _kind != idl.UnlinkedParamKind.required) {
-      fbBuilder.addUint32(5, _kind.index);
+      fbBuilder.addUint8(4, _kind.index);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(6, offset_name);
+      fbBuilder.addOffset(0, offset_name);
     }
     if (_nameOffset != null && _nameOffset != 0) {
-      fbBuilder.addUint32(7, _nameOffset);
+      fbBuilder.addUint32(1, _nameOffset);
     }
     if (offset_parameters != null) {
       fbBuilder.addOffset(8, offset_parameters);
     }
     if (offset_type != null) {
-      fbBuilder.addOffset(9, offset_type);
+      fbBuilder.addOffset(3, offset_type);
+    }
+    if (_visibleLength != null && _visibleLength != 0) {
+      fbBuilder.addUint32(10, _visibleLength);
+    }
+    if (_visibleOffset != null && _visibleOffset != 0) {
+      fbBuilder.addUint32(11, _visibleOffset);
     }
     return fbBuilder.endTable();
   }
@@ -3621,16 +3844,18 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   int _nameOffset;
   List<idl.UnlinkedParam> _parameters;
   idl.EntityRef _type;
+  int _visibleLength;
+  int _visibleOffset;
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 0, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 9, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   idl.UnlinkedConst get defaultValue {
-    _defaultValue ??= const _UnlinkedConstReader().vTableGet(_bp, 1, null);
+    _defaultValue ??= const _UnlinkedConstReader().vTableGet(_bp, 7, null);
     return _defaultValue;
   }
 
@@ -3642,31 +3867,31 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
 
   @override
   bool get isFunctionTyped {
-    _isFunctionTyped ??= const fb.BoolReader().vTableGet(_bp, 3, false);
+    _isFunctionTyped ??= const fb.BoolReader().vTableGet(_bp, 5, false);
     return _isFunctionTyped;
   }
 
   @override
   bool get isInitializingFormal {
-    _isInitializingFormal ??= const fb.BoolReader().vTableGet(_bp, 4, false);
+    _isInitializingFormal ??= const fb.BoolReader().vTableGet(_bp, 6, false);
     return _isInitializingFormal;
   }
 
   @override
   idl.UnlinkedParamKind get kind {
-    _kind ??= const _UnlinkedParamKindReader().vTableGet(_bp, 5, idl.UnlinkedParamKind.required);
+    _kind ??= const _UnlinkedParamKindReader().vTableGet(_bp, 4, idl.UnlinkedParamKind.required);
     return _kind;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 6, '');
+    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 7, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
     return _nameOffset;
   }
 
@@ -3678,8 +3903,20 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
 
   @override
   idl.EntityRef get type {
-    _type ??= const _EntityRefReader().vTableGet(_bp, 9, null);
+    _type ??= const _EntityRefReader().vTableGet(_bp, 3, null);
     return _type;
+  }
+
+  @override
+  int get visibleLength {
+    _visibleLength ??= const fb.Uint32Reader().vTableGet(_bp, 10, 0);
+    return _visibleLength;
+  }
+
+  @override
+  int get visibleOffset {
+    _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bp, 11, 0);
+    return _visibleOffset;
   }
 }
 
@@ -3696,6 +3933,8 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     "nameOffset": nameOffset,
     "parameters": parameters,
     "type": type,
+    "visibleLength": visibleLength,
+    "visibleOffset": visibleOffset,
   };
 }
 
@@ -3757,13 +3996,13 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
-      fbBuilder.addOffset(0, offset_annotations);
+      fbBuilder.addOffset(2, offset_annotations);
     }
     if (_uriEnd != null && _uriEnd != 0) {
-      fbBuilder.addUint32(1, _uriEnd);
+      fbBuilder.addUint32(0, _uriEnd);
     }
     if (_uriOffset != null && _uriOffset != 0) {
-      fbBuilder.addUint32(2, _uriOffset);
+      fbBuilder.addUint32(1, _uriOffset);
     }
     return fbBuilder.endTable();
   }
@@ -3787,19 +4026,19 @@ class _UnlinkedPartImpl extends Object with _UnlinkedPartMixin implements idl.Un
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 0, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 2, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   int get uriEnd {
-    _uriEnd ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _uriEnd ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
     return _uriEnd;
   }
 
   @override
   int get uriOffset {
-    _uriOffset ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    _uriOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
     return _uriOffset;
   }
 }
@@ -3816,23 +4055,10 @@ abstract class _UnlinkedPartMixin implements idl.UnlinkedPart {
 class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin implements idl.UnlinkedPublicName {
   bool _finished = false;
 
-  List<UnlinkedPublicNameBuilder> _constMembers;
   idl.ReferenceKind _kind;
+  List<UnlinkedPublicNameBuilder> _members;
   String _name;
   int _numTypeParameters;
-
-  @override
-  List<UnlinkedPublicNameBuilder> get constMembers => _constMembers ??= <UnlinkedPublicNameBuilder>[];
-
-  /**
-   * If this [UnlinkedPublicName] is a class, the list of members which can be
-   * referenced from constants - static constant fields, static methods, and
-   * constructors.  Otherwise empty.
-   */
-  void set constMembers(List<UnlinkedPublicNameBuilder> _value) {
-    assert(!_finished);
-    _constMembers = _value;
-  }
 
   @override
   idl.ReferenceKind get kind => _kind ??= idl.ReferenceKind.classOrEnum;
@@ -3843,6 +4069,22 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   void set kind(idl.ReferenceKind _value) {
     assert(!_finished);
     _kind = _value;
+  }
+
+  @override
+  List<UnlinkedPublicNameBuilder> get members => _members ??= <UnlinkedPublicNameBuilder>[];
+
+  /**
+   * If this [UnlinkedPublicName] is a class, the list of members which can be
+   * referenced from constants or factory redirects - static constant fields,
+   * static methods, and constructors.  Otherwise empty.
+   *
+   * Unnamed constructors are not included since they do not constitute a
+   * separate name added to any namespace.
+   */
+  void set members(List<UnlinkedPublicNameBuilder> _value) {
+    assert(!_finished);
+    _members = _value;
   }
 
   @override
@@ -3869,32 +4111,32 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
     _numTypeParameters = _value;
   }
 
-  UnlinkedPublicNameBuilder({List<UnlinkedPublicNameBuilder> constMembers, idl.ReferenceKind kind, String name, int numTypeParameters})
-    : _constMembers = constMembers,
-      _kind = kind,
+  UnlinkedPublicNameBuilder({idl.ReferenceKind kind, List<UnlinkedPublicNameBuilder> members, String name, int numTypeParameters})
+    : _kind = kind,
+      _members = members,
       _name = name,
       _numTypeParameters = numTypeParameters;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
-    fb.Offset offset_constMembers;
+    fb.Offset offset_members;
     fb.Offset offset_name;
-    if (!(_constMembers == null || _constMembers.isEmpty)) {
-      offset_constMembers = fbBuilder.writeList(_constMembers.map((b) => b.finish(fbBuilder)).toList());
+    if (!(_members == null || _members.isEmpty)) {
+      offset_members = fbBuilder.writeList(_members.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
     }
     fbBuilder.startTable();
-    if (offset_constMembers != null) {
-      fbBuilder.addOffset(0, offset_constMembers);
-    }
     if (_kind != null && _kind != idl.ReferenceKind.classOrEnum) {
-      fbBuilder.addUint32(1, _kind.index);
+      fbBuilder.addUint8(1, _kind.index);
+    }
+    if (offset_members != null) {
+      fbBuilder.addOffset(2, offset_members);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(2, offset_name);
+      fbBuilder.addOffset(0, offset_name);
     }
     if (_numTypeParameters != null && _numTypeParameters != 0) {
       fbBuilder.addUint32(3, _numTypeParameters);
@@ -3915,16 +4157,10 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
 
   _UnlinkedPublicNameImpl(this._bp);
 
-  List<idl.UnlinkedPublicName> _constMembers;
   idl.ReferenceKind _kind;
+  List<idl.UnlinkedPublicName> _members;
   String _name;
   int _numTypeParameters;
-
-  @override
-  List<idl.UnlinkedPublicName> get constMembers {
-    _constMembers ??= const fb.ListReader<idl.UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bp, 0, const <idl.UnlinkedPublicName>[]);
-    return _constMembers;
-  }
 
   @override
   idl.ReferenceKind get kind {
@@ -3933,8 +4169,14 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
   }
 
   @override
+  List<idl.UnlinkedPublicName> get members {
+    _members ??= const fb.ListReader<idl.UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bp, 2, const <idl.UnlinkedPublicName>[]);
+    return _members;
+  }
+
+  @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 2, '');
+    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
     return _name;
   }
 
@@ -3948,8 +4190,8 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
 abstract class _UnlinkedPublicNameMixin implements idl.UnlinkedPublicName {
   @override
   Map<String, Object> toMap() => {
-    "constMembers": constMembers,
     "kind": kind,
+    "members": members,
     "name": name,
     "numTypeParameters": numTypeParameters,
   };
@@ -4025,13 +4267,13 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
     }
     fbBuilder.startTable();
     if (offset_exports != null) {
-      fbBuilder.addOffset(0, offset_exports);
+      fbBuilder.addOffset(2, offset_exports);
     }
     if (offset_names != null) {
-      fbBuilder.addOffset(1, offset_names);
+      fbBuilder.addOffset(0, offset_names);
     }
     if (offset_parts != null) {
-      fbBuilder.addOffset(2, offset_parts);
+      fbBuilder.addOffset(1, offset_parts);
     }
     return fbBuilder.endTable();
   }
@@ -4060,19 +4302,19 @@ class _UnlinkedPublicNamespaceImpl extends Object with _UnlinkedPublicNamespaceM
 
   @override
   List<idl.UnlinkedExportPublic> get exports {
-    _exports ??= const fb.ListReader<idl.UnlinkedExportPublic>(const _UnlinkedExportPublicReader()).vTableGet(_bp, 0, const <idl.UnlinkedExportPublic>[]);
+    _exports ??= const fb.ListReader<idl.UnlinkedExportPublic>(const _UnlinkedExportPublicReader()).vTableGet(_bp, 2, const <idl.UnlinkedExportPublic>[]);
     return _exports;
   }
 
   @override
   List<idl.UnlinkedPublicName> get names {
-    _names ??= const fb.ListReader<idl.UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bp, 1, const <idl.UnlinkedPublicName>[]);
+    _names ??= const fb.ListReader<idl.UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bp, 0, const <idl.UnlinkedPublicName>[]);
     return _names;
   }
 
   @override
   List<String> get parts {
-    _parts ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 2, const <String>[]);
+    _parts ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 1, const <String>[]);
     return _parts;
   }
 }
@@ -4307,25 +4549,25 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
-      fbBuilder.addOffset(0, offset_annotations);
+      fbBuilder.addOffset(4, offset_annotations);
     }
     if (offset_documentationComment != null) {
-      fbBuilder.addOffset(1, offset_documentationComment);
+      fbBuilder.addOffset(6, offset_documentationComment);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(2, offset_name);
+      fbBuilder.addOffset(0, offset_name);
     }
     if (_nameOffset != null && _nameOffset != 0) {
-      fbBuilder.addUint32(3, _nameOffset);
+      fbBuilder.addUint32(1, _nameOffset);
     }
     if (offset_parameters != null) {
-      fbBuilder.addOffset(4, offset_parameters);
+      fbBuilder.addOffset(3, offset_parameters);
     }
     if (offset_returnType != null) {
-      fbBuilder.addOffset(5, offset_returnType);
+      fbBuilder.addOffset(2, offset_returnType);
     }
     if (offset_typeParameters != null) {
-      fbBuilder.addOffset(6, offset_typeParameters);
+      fbBuilder.addOffset(5, offset_typeParameters);
     }
     return fbBuilder.endTable();
   }
@@ -4353,43 +4595,43 @@ class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements 
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 0, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 4, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 1, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 6, null);
     return _documentationComment;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 2, '');
+    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
     return _nameOffset;
   }
 
   @override
   List<idl.UnlinkedParam> get parameters {
-    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 4, const <idl.UnlinkedParam>[]);
+    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 3, const <idl.UnlinkedParam>[]);
     return _parameters;
   }
 
   @override
   idl.EntityRef get returnType {
-    _returnType ??= const _EntityRefReader().vTableGet(_bp, 5, null);
+    _returnType ??= const _EntityRefReader().vTableGet(_bp, 2, null);
     return _returnType;
   }
 
   @override
   List<idl.UnlinkedTypeParam> get typeParameters {
-    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bp, 6, const <idl.UnlinkedTypeParam>[]);
+    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bp, 5, const <idl.UnlinkedTypeParam>[]);
     return _typeParameters;
   }
 }
@@ -4484,16 +4726,16 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
-      fbBuilder.addOffset(0, offset_annotations);
+      fbBuilder.addOffset(3, offset_annotations);
     }
     if (offset_bound != null) {
-      fbBuilder.addOffset(1, offset_bound);
+      fbBuilder.addOffset(2, offset_bound);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(2, offset_name);
+      fbBuilder.addOffset(0, offset_name);
     }
     if (_nameOffset != null && _nameOffset != 0) {
-      fbBuilder.addUint32(3, _nameOffset);
+      fbBuilder.addUint32(1, _nameOffset);
     }
     return fbBuilder.endTable();
   }
@@ -4518,25 +4760,25 @@ class _UnlinkedTypeParamImpl extends Object with _UnlinkedTypeParamMixin impleme
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 0, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 3, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   idl.EntityRef get bound {
-    _bound ??= const _EntityRefReader().vTableGet(_bp, 1, null);
+    _bound ??= const _EntityRefReader().vTableGet(_bp, 2, null);
     return _bound;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 2, '');
+    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
     return _nameOffset;
   }
 }
@@ -4825,49 +5067,49 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     }
     fbBuilder.startTable();
     if (offset_classes != null) {
-      fbBuilder.addOffset(0, offset_classes);
+      fbBuilder.addOffset(2, offset_classes);
     }
     if (offset_enums != null) {
-      fbBuilder.addOffset(1, offset_enums);
+      fbBuilder.addOffset(12, offset_enums);
     }
     if (offset_executables != null) {
-      fbBuilder.addOffset(2, offset_executables);
+      fbBuilder.addOffset(4, offset_executables);
     }
     if (offset_exports != null) {
-      fbBuilder.addOffset(3, offset_exports);
+      fbBuilder.addOffset(13, offset_exports);
     }
     if (offset_imports != null) {
-      fbBuilder.addOffset(4, offset_imports);
+      fbBuilder.addOffset(5, offset_imports);
     }
     if (offset_libraryAnnotations != null) {
-      fbBuilder.addOffset(5, offset_libraryAnnotations);
+      fbBuilder.addOffset(14, offset_libraryAnnotations);
     }
     if (offset_libraryDocumentationComment != null) {
-      fbBuilder.addOffset(6, offset_libraryDocumentationComment);
+      fbBuilder.addOffset(9, offset_libraryDocumentationComment);
     }
     if (offset_libraryName != null) {
-      fbBuilder.addOffset(7, offset_libraryName);
+      fbBuilder.addOffset(6, offset_libraryName);
     }
     if (_libraryNameLength != null && _libraryNameLength != 0) {
-      fbBuilder.addUint32(8, _libraryNameLength);
+      fbBuilder.addUint32(7, _libraryNameLength);
     }
     if (_libraryNameOffset != null && _libraryNameOffset != 0) {
-      fbBuilder.addUint32(9, _libraryNameOffset);
+      fbBuilder.addUint32(8, _libraryNameOffset);
     }
     if (offset_parts != null) {
-      fbBuilder.addOffset(10, offset_parts);
+      fbBuilder.addOffset(11, offset_parts);
     }
     if (offset_publicNamespace != null) {
-      fbBuilder.addOffset(11, offset_publicNamespace);
+      fbBuilder.addOffset(0, offset_publicNamespace);
     }
     if (offset_references != null) {
-      fbBuilder.addOffset(12, offset_references);
+      fbBuilder.addOffset(1, offset_references);
     }
     if (offset_typedefs != null) {
-      fbBuilder.addOffset(13, offset_typedefs);
+      fbBuilder.addOffset(10, offset_typedefs);
     }
     if (offset_variables != null) {
-      fbBuilder.addOffset(14, offset_variables);
+      fbBuilder.addOffset(3, offset_variables);
     }
     return fbBuilder.endTable();
   }
@@ -4908,91 +5150,91 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
 
   @override
   List<idl.UnlinkedClass> get classes {
-    _classes ??= const fb.ListReader<idl.UnlinkedClass>(const _UnlinkedClassReader()).vTableGet(_bp, 0, const <idl.UnlinkedClass>[]);
+    _classes ??= const fb.ListReader<idl.UnlinkedClass>(const _UnlinkedClassReader()).vTableGet(_bp, 2, const <idl.UnlinkedClass>[]);
     return _classes;
   }
 
   @override
   List<idl.UnlinkedEnum> get enums {
-    _enums ??= const fb.ListReader<idl.UnlinkedEnum>(const _UnlinkedEnumReader()).vTableGet(_bp, 1, const <idl.UnlinkedEnum>[]);
+    _enums ??= const fb.ListReader<idl.UnlinkedEnum>(const _UnlinkedEnumReader()).vTableGet(_bp, 12, const <idl.UnlinkedEnum>[]);
     return _enums;
   }
 
   @override
   List<idl.UnlinkedExecutable> get executables {
-    _executables ??= const fb.ListReader<idl.UnlinkedExecutable>(const _UnlinkedExecutableReader()).vTableGet(_bp, 2, const <idl.UnlinkedExecutable>[]);
+    _executables ??= const fb.ListReader<idl.UnlinkedExecutable>(const _UnlinkedExecutableReader()).vTableGet(_bp, 4, const <idl.UnlinkedExecutable>[]);
     return _executables;
   }
 
   @override
   List<idl.UnlinkedExportNonPublic> get exports {
-    _exports ??= const fb.ListReader<idl.UnlinkedExportNonPublic>(const _UnlinkedExportNonPublicReader()).vTableGet(_bp, 3, const <idl.UnlinkedExportNonPublic>[]);
+    _exports ??= const fb.ListReader<idl.UnlinkedExportNonPublic>(const _UnlinkedExportNonPublicReader()).vTableGet(_bp, 13, const <idl.UnlinkedExportNonPublic>[]);
     return _exports;
   }
 
   @override
   List<idl.UnlinkedImport> get imports {
-    _imports ??= const fb.ListReader<idl.UnlinkedImport>(const _UnlinkedImportReader()).vTableGet(_bp, 4, const <idl.UnlinkedImport>[]);
+    _imports ??= const fb.ListReader<idl.UnlinkedImport>(const _UnlinkedImportReader()).vTableGet(_bp, 5, const <idl.UnlinkedImport>[]);
     return _imports;
   }
 
   @override
   List<idl.UnlinkedConst> get libraryAnnotations {
-    _libraryAnnotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 5, const <idl.UnlinkedConst>[]);
+    _libraryAnnotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 14, const <idl.UnlinkedConst>[]);
     return _libraryAnnotations;
   }
 
   @override
   idl.UnlinkedDocumentationComment get libraryDocumentationComment {
-    _libraryDocumentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 6, null);
+    _libraryDocumentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 9, null);
     return _libraryDocumentationComment;
   }
 
   @override
   String get libraryName {
-    _libraryName ??= const fb.StringReader().vTableGet(_bp, 7, '');
+    _libraryName ??= const fb.StringReader().vTableGet(_bp, 6, '');
     return _libraryName;
   }
 
   @override
   int get libraryNameLength {
-    _libraryNameLength ??= const fb.Uint32Reader().vTableGet(_bp, 8, 0);
+    _libraryNameLength ??= const fb.Uint32Reader().vTableGet(_bp, 7, 0);
     return _libraryNameLength;
   }
 
   @override
   int get libraryNameOffset {
-    _libraryNameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 9, 0);
+    _libraryNameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 8, 0);
     return _libraryNameOffset;
   }
 
   @override
   List<idl.UnlinkedPart> get parts {
-    _parts ??= const fb.ListReader<idl.UnlinkedPart>(const _UnlinkedPartReader()).vTableGet(_bp, 10, const <idl.UnlinkedPart>[]);
+    _parts ??= const fb.ListReader<idl.UnlinkedPart>(const _UnlinkedPartReader()).vTableGet(_bp, 11, const <idl.UnlinkedPart>[]);
     return _parts;
   }
 
   @override
   idl.UnlinkedPublicNamespace get publicNamespace {
-    _publicNamespace ??= const _UnlinkedPublicNamespaceReader().vTableGet(_bp, 11, null);
+    _publicNamespace ??= const _UnlinkedPublicNamespaceReader().vTableGet(_bp, 0, null);
     return _publicNamespace;
   }
 
   @override
   List<idl.UnlinkedReference> get references {
-    _references ??= const fb.ListReader<idl.UnlinkedReference>(const _UnlinkedReferenceReader()).vTableGet(_bp, 12, const <idl.UnlinkedReference>[]);
+    _references ??= const fb.ListReader<idl.UnlinkedReference>(const _UnlinkedReferenceReader()).vTableGet(_bp, 1, const <idl.UnlinkedReference>[]);
     return _references;
   }
 
   @override
   List<idl.UnlinkedTypedef> get typedefs {
-    _typedefs ??= const fb.ListReader<idl.UnlinkedTypedef>(const _UnlinkedTypedefReader()).vTableGet(_bp, 13, const <idl.UnlinkedTypedef>[]);
+    _typedefs ??= const fb.ListReader<idl.UnlinkedTypedef>(const _UnlinkedTypedefReader()).vTableGet(_bp, 10, const <idl.UnlinkedTypedef>[]);
     return _typedefs;
   }
 
   @override
   List<idl.UnlinkedVariable> get variables {
-    _variables ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bp, 14, const <idl.UnlinkedVariable>[]);
+    _variables ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bp, 3, const <idl.UnlinkedVariable>[]);
     return _variables;
   }
 }
@@ -5032,6 +5274,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   int _nameOffset;
   int _propagatedTypeSlot;
   EntityRefBuilder _type;
+  int _visibleLength;
+  int _visibleOffset;
 
   @override
   List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
@@ -5172,7 +5416,31 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _type = _value;
   }
 
-  UnlinkedVariableBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder constExpr, UnlinkedDocumentationCommentBuilder documentationComment, int inferredTypeSlot, bool isConst, bool isFinal, bool isStatic, String name, int nameOffset, int propagatedTypeSlot, EntityRefBuilder type})
+  @override
+  int get visibleLength => _visibleLength ??= 0;
+
+  /**
+   * If a local variable, the length of the visible range; zero otherwise.
+   */
+  void set visibleLength(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _visibleLength = _value;
+  }
+
+  @override
+  int get visibleOffset => _visibleOffset ??= 0;
+
+  /**
+   * If a local variable, the beginning of the visible range; zero otherwise.
+   */
+  void set visibleOffset(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _visibleOffset = _value;
+  }
+
+  UnlinkedVariableBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder constExpr, UnlinkedDocumentationCommentBuilder documentationComment, int inferredTypeSlot, bool isConst, bool isFinal, bool isStatic, String name, int nameOffset, int propagatedTypeSlot, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _constExpr = constExpr,
       _documentationComment = documentationComment,
@@ -5183,7 +5451,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
       _name = name,
       _nameOffset = nameOffset,
       _propagatedTypeSlot = propagatedTypeSlot,
-      _type = type;
+      _type = type,
+      _visibleLength = visibleLength,
+      _visibleOffset = visibleOffset;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -5210,37 +5480,43 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
-      fbBuilder.addOffset(0, offset_annotations);
+      fbBuilder.addOffset(8, offset_annotations);
     }
     if (offset_constExpr != null) {
-      fbBuilder.addOffset(1, offset_constExpr);
+      fbBuilder.addOffset(5, offset_constExpr);
     }
     if (offset_documentationComment != null) {
-      fbBuilder.addOffset(2, offset_documentationComment);
+      fbBuilder.addOffset(10, offset_documentationComment);
     }
     if (_inferredTypeSlot != null && _inferredTypeSlot != 0) {
-      fbBuilder.addUint32(3, _inferredTypeSlot);
+      fbBuilder.addUint32(9, _inferredTypeSlot);
     }
     if (_isConst == true) {
-      fbBuilder.addBool(4, true);
-    }
-    if (_isFinal == true) {
-      fbBuilder.addBool(5, true);
-    }
-    if (_isStatic == true) {
       fbBuilder.addBool(6, true);
     }
+    if (_isFinal == true) {
+      fbBuilder.addBool(7, true);
+    }
+    if (_isStatic == true) {
+      fbBuilder.addBool(4, true);
+    }
     if (offset_name != null) {
-      fbBuilder.addOffset(7, offset_name);
+      fbBuilder.addOffset(0, offset_name);
     }
     if (_nameOffset != null && _nameOffset != 0) {
-      fbBuilder.addUint32(8, _nameOffset);
+      fbBuilder.addUint32(1, _nameOffset);
     }
     if (_propagatedTypeSlot != null && _propagatedTypeSlot != 0) {
-      fbBuilder.addUint32(9, _propagatedTypeSlot);
+      fbBuilder.addUint32(2, _propagatedTypeSlot);
     }
     if (offset_type != null) {
-      fbBuilder.addOffset(10, offset_type);
+      fbBuilder.addOffset(3, offset_type);
+    }
+    if (_visibleLength != null && _visibleLength != 0) {
+      fbBuilder.addUint32(11, _visibleLength);
+    }
+    if (_visibleOffset != null && _visibleOffset != 0) {
+      fbBuilder.addUint32(12, _visibleOffset);
     }
     return fbBuilder.endTable();
   }
@@ -5269,71 +5545,85 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   int _nameOffset;
   int _propagatedTypeSlot;
   idl.EntityRef _type;
+  int _visibleLength;
+  int _visibleOffset;
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 0, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 8, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   idl.UnlinkedConst get constExpr {
-    _constExpr ??= const _UnlinkedConstReader().vTableGet(_bp, 1, null);
+    _constExpr ??= const _UnlinkedConstReader().vTableGet(_bp, 5, null);
     return _constExpr;
   }
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 2, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 10, null);
     return _documentationComment;
   }
 
   @override
   int get inferredTypeSlot {
-    _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
+    _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 9, 0);
     return _inferredTypeSlot;
   }
 
   @override
   bool get isConst {
-    _isConst ??= const fb.BoolReader().vTableGet(_bp, 4, false);
+    _isConst ??= const fb.BoolReader().vTableGet(_bp, 6, false);
     return _isConst;
   }
 
   @override
   bool get isFinal {
-    _isFinal ??= const fb.BoolReader().vTableGet(_bp, 5, false);
+    _isFinal ??= const fb.BoolReader().vTableGet(_bp, 7, false);
     return _isFinal;
   }
 
   @override
   bool get isStatic {
-    _isStatic ??= const fb.BoolReader().vTableGet(_bp, 6, false);
+    _isStatic ??= const fb.BoolReader().vTableGet(_bp, 4, false);
     return _isStatic;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 7, '');
+    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 8, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
     return _nameOffset;
   }
 
   @override
   int get propagatedTypeSlot {
-    _propagatedTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 9, 0);
+    _propagatedTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
     return _propagatedTypeSlot;
   }
 
   @override
   idl.EntityRef get type {
-    _type ??= const _EntityRefReader().vTableGet(_bp, 10, null);
+    _type ??= const _EntityRefReader().vTableGet(_bp, 3, null);
     return _type;
+  }
+
+  @override
+  int get visibleLength {
+    _visibleLength ??= const fb.Uint32Reader().vTableGet(_bp, 11, 0);
+    return _visibleLength;
+  }
+
+  @override
+  int get visibleOffset {
+    _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bp, 12, 0);
+    return _visibleOffset;
   }
 }
 
@@ -5351,6 +5641,8 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
     "nameOffset": nameOffset,
     "propagatedTypeSlot": propagatedTypeSlot,
     "type": type,
+    "visibleLength": visibleLength,
+    "visibleOffset": visibleOffset,
   };
 }
 

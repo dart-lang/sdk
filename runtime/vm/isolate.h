@@ -53,6 +53,7 @@ class RawMint;
 class RawObject;
 class RawInteger;
 class RawError;
+class RawField;
 class RawFloat32x4;
 class RawInt32x4;
 class RawUserTag;
@@ -239,6 +240,8 @@ class Isolate : public BaseIsolate {
 
   void SetupInstructionsSnapshotPage(
       const uint8_t* instructions_snapshot_buffer);
+  void SetupDataSnapshotPage(
+      const uint8_t* instructions_snapshot_buffer);
 
   // Returns true if any of the interrupts specified by 'interrupt_bits' are
   // currently scheduled for this isolate, but leaves them unchanged.
@@ -273,6 +276,9 @@ class Isolate : public BaseIsolate {
 
   uword stack_overflow_flags_address() const {
     return reinterpret_cast<uword>(&stack_overflow_flags_);
+  }
+  static intptr_t stack_overflow_flags_offset() {
+    return OFFSET_OF(Isolate, stack_overflow_flags_);
   }
 
   int32_t IncrementAndGetStackOverflowCount() {
@@ -642,6 +648,12 @@ class Isolate : public BaseIsolate {
   void ResetPrefixInvalidationGen() { prefix_invalidation_gen_ = kInvalidGen; }
   uint32_t prefix_invalidation_gen() const { return prefix_invalidation_gen_; }
 
+  // Used by background compiler which field became boxed and must trigger
+  // deoptimization in the mutator thread.
+  void AddDeoptimizingBoxedField(const Field& field);
+  // Returns Field::null() if none available in the list.
+  RawField* GetDeoptimizingBoxedField();
+
   RawObject* InvokePendingServiceExtensionCalls();
   void AppendServiceExtensionCall(const Instance& closure,
                            const String& method_name,
@@ -843,6 +855,11 @@ class Isolate : public BaseIsolate {
   uint32_t cha_invalidation_gen_;
   uint32_t field_invalidation_gen_;
   uint32_t prefix_invalidation_gen_;
+
+  // Protect access to boxed_field_list_.
+  Monitor* boxed_field_list_monitor_;
+  // List of fields that became boxed and that trigger deoptimization.
+  RawGrowableObjectArray* boxed_field_list_;
 
   // This guards spawn_count_. An isolate cannot complete shutdown and be
   // destroyed while there are child isolates in the midst of a spawn.

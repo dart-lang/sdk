@@ -148,7 +148,7 @@ def start_test_server(port, build_directory):
   print('Browse tests at '
       '\033[94mhttp://localhost:%d/root_build/generated_tests/\033[0m' % port)
   return call([
-    utils.DartBinary(),
+    utils.CheckedInSdkExecutable(),
     os.path.join('tools', 'testing', 'dart', 'http_server.dart'),
     '--port=%d' % port,
     '--crossOriginPort=%d' % (port + 1),

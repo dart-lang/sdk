@@ -99,7 +99,8 @@ static const bool is_noopt = false;
 
 
 extern const char* kPrecompiledLibraryName;
-extern const char* kPrecompiledSymbolName;
+extern const char* kPrecompiledInstructionsSymbolName;
+extern const char* kPrecompiledDataSymbolName;
 static const char* kPrecompiledVmIsolateName = "precompiled.vmisolate";
 static const char* kPrecompiledIsolateName = "precompiled.isolate";
 static const char* kPrecompiledInstructionsName = "precompiled.S";
@@ -407,12 +408,10 @@ static bool ProcessFullSnapshotAfterRunOption(
 
 static bool ProcessRunFullSnapshotOption(
     const char* filename, CommandLineOptions* vm_options) {
-  // Ensure that we are not running 'dart_no_snapshot'.
-  if (isolate_snapshot_buffer == NULL) {
-    Log::PrintErr("Full Application snapshots cannot be run with"
-                  " dart_no_snapshot\n");
-    return false;
-  }
+#ifndef DART_PRODUCT_BINARY
+  Log::PrintErr("Full Application snapshots can only be be run with"
+                " dart_product\n");
+#endif
   return ProcessSnapshotOptionHelper(filename, &run_full_snapshot);
 }
 
@@ -742,8 +741,15 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 char** error,
                                                 int* exit_code) {
   ASSERT(script_uri != NULL);
+#if defined(DART_PRODUCT_BINARY)
+  if (strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0) {
+    // No service isolate support.
+    return NULL;
+  }
+#endif  // defined(DART_PRODUCT_BINARY)
+
   if (run_full_snapshot &&
-      !strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME)) {
+      (strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0)) {
     // We do not create a service isolate when running a full application
     // snapshot.
     return NULL;
@@ -777,6 +783,9 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
   CHECK_RESULT(result);
 
+#if defined(DART_PRODUCT_BINARY)
+  ASSERT(!Dart_IsServiceIsolate(isolate));
+#else
   if (Dart_IsServiceIsolate(isolate)) {
     // If this is the service isolate, load embedder specific bits and return.
     if (!VmService::Setup(vm_service_server_ip,
@@ -793,6 +802,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     Dart_ExitIsolate();
     return isolate;
   }
+#endif  // defined(DART_PRODUCT_BINARY)
 
   // Prepare builtin and other core libraries for use to resolve URIs.
   // Set up various closures, e.g: printing, timers etc.
@@ -1109,15 +1119,19 @@ static void ReadSnapshotFile(const char* snapshot_directory,
 
   void* file = DartUtils::OpenFile(qualified_filename, false);
   if (file == NULL) {
-    ErrorExit(kErrorExitCode,
-              "Error: Unable to open file %s for reading snapshot\n",
-              qualified_filename);
+    fprintf(stderr,
+            "Error: Unable to open file %s for reading snapshot\n",
+            qualified_filename);
+    fflush(stderr);
+    Platform::Exit(kErrorExitCode);
   }
   intptr_t len = -1;
   DartUtils::ReadFile(buffer, &len, file);
   if (*buffer == NULL || len == -1) {
-    ErrorExit(kErrorExitCode,
-              "Error: Unable to read snapshot file %s\n", qualified_filename);
+    fprintf(stderr,
+            "Error: Unable to read snapshot file %s\n", qualified_filename);
+    fflush(stderr);
+    Platform::Exit(kErrorExitCode);
   }
   DartUtils::CloseFile(file);
   if (concat != NULL) {
@@ -1268,6 +1282,7 @@ bool RunMainIsolate(const char* script_name,
         reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
     result = Dart_LibraryImportLibrary(
         isolate_data->builtin_lib(), root_lib, Dart_Null());
+#ifndef DART_PRODUCT_BINARY
     if (is_noopt || gen_precompiled_snapshot) {
       // Load the embedder's portion of the VM service's Dart code so it will
       // be included in the precompiled snapshot.
@@ -1279,6 +1294,7 @@ bool RunMainIsolate(const char* script_name,
         exit(kErrorExitCode);
       }
     }
+#endif  // !DART_PRODUCT_BINARY
 
     if (compile_all) {
       result = Dart_CompileAll();
@@ -1382,12 +1398,14 @@ bool RunMainIsolate(const char* script_name,
 
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();
-      CHECK_RESULT(result);
-
       // Generate a full snapshot after execution if specified.
       if (generate_full_snapshot_after_run) {
-        GenerateFullSnapshot();
+        if (!Dart_IsCompilationError(result) &&
+            !Dart_IsVMRestartRequest(result)) {
+          GenerateFullSnapshot();
+        }
       }
+      CHECK_RESULT(result);
     }
   }
 
@@ -1536,7 +1554,9 @@ void main(int argc, char** argv) {
     Platform::Exit(kErrorExitCode);
   }
 
-  if (generate_script_snapshot || generate_full_snapshot_after_run) {
+  if (generate_script_snapshot ||
+      generate_full_snapshot_after_run ||
+      run_full_snapshot) {
     vm_options.AddArgument("--load_deferred_eagerly");
   }
 
@@ -1553,15 +1573,21 @@ void main(int argc, char** argv) {
   EventHandler::Start();
 
   const uint8_t* instructions_snapshot = NULL;
+  const uint8_t* data_snapshot = NULL;
   if (run_precompiled_snapshot) {
     instructions_snapshot = reinterpret_cast<const uint8_t*>(
-        LoadLibrarySymbol(kPrecompiledLibraryName, kPrecompiledSymbolName));
+        LoadLibrarySymbol(kPrecompiledLibraryName,
+                          kPrecompiledInstructionsSymbolName));
+    data_snapshot = reinterpret_cast<const uint8_t*>(
+        LoadLibrarySymbol(kPrecompiledLibraryName,
+                          kPrecompiledDataSymbolName));
     ReadSnapshotFile(precompiled_snapshot_directory,
                      kPrecompiledVmIsolateName,
                      &vm_isolate_snapshot_buffer);
     ReadSnapshotFile(precompiled_snapshot_directory,
                      kPrecompiledIsolateName,
                      &isolate_snapshot_buffer);
+
   } else if (run_full_snapshot) {
     char* vm_snapshot_fname;
     char* isolate_snapshot_fname;
@@ -1579,7 +1605,7 @@ void main(int argc, char** argv) {
 
   // Initialize the Dart VM.
   char* error = Dart_Initialize(
-      vm_isolate_snapshot_buffer, instructions_snapshot,
+      vm_isolate_snapshot_buffer, instructions_snapshot, data_snapshot,
       CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
       DartUtils::OpenFile,
       DartUtils::ReadFile,

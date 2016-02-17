@@ -2115,14 +2115,7 @@ abstract class FunctionElementX extends BaseFunctionElementX
     if (span != null && hasNode) {
       FunctionExpression functionExpression = node.asFunctionExpression();
       if (functionExpression != null) {
-        Token begin = functionExpression.getBeginToken();
-        Token end;
-        if (functionExpression.parameters != null) {
-          end = functionExpression.parameters.getEndToken();
-        } else {
-          end = functionExpression.name.getEndToken();
-        }
-        span = new SourceSpan.fromTokens(span.uri, begin, end);
+        span = new SourceSpan.fromNode(span.uri, functionExpression);
       }
     }
     return span;

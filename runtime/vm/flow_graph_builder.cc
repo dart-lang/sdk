@@ -41,7 +41,6 @@ DEFINE_FLAG(bool, trace_type_check_elimination, false,
 
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, profile_vm);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(bool, use_field_guards);
 
 // Quick access to the locally defined zone() method.
@@ -1594,30 +1593,6 @@ Value* EffectGraphVisitor::BuildAssignableValue(TokenPosition token_pos,
 }
 
 
-bool FlowGraphBuilder::WarnOnJSIntegralNumTypeTest(
-    AstNode* node, const AbstractType& type) const {
-  if (!(node->IsLiteralNode() && (type.IsIntType() || type.IsDoubleType()))) {
-    return false;
-  }
-  const Instance& instance = node->AsLiteralNode()->literal();
-  if (type.IsIntType()) {
-    if (instance.IsDouble()) {
-      const Double& double_instance = Double::Cast(instance);
-      double value = double_instance.value();
-      if (floor(value) == value) {
-        return true;
-      }
-    }
-  } else {
-    ASSERT(type.IsDoubleType());
-    if (instance.IsInteger()) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
 void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ASSERT(Token::IsTypeTestOperator(node->kind()));
   const AbstractType& type = node->right()->AsTypeNode()->type();
@@ -1638,41 +1613,39 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
 
-  if (!FLAG_warn_on_javascript_compatibility) {
-    if (type.IsNumberType() || type.IsIntType() || type.IsDoubleType() ||
-        type.IsSmiType() || type.IsStringType()) {
-      String& method_name = String::ZoneHandle(Z);
-      if (type.IsNumberType()) {
-        method_name = Symbols::_instanceOfNum().raw();
-      } else if (type.IsIntType()) {
-        method_name = Symbols::_instanceOfInt().raw();
-      } else if (type.IsDoubleType()) {
-        method_name = Symbols::_instanceOfDouble().raw();
-      } else if (type.IsSmiType()) {
-        method_name = Symbols::_instanceOfSmi().raw();
-      } else if (type.IsStringType()) {
-        method_name = Symbols::_instanceOfString().raw();
-      }
-      ASSERT(!method_name.IsNull());
-      PushArgumentInstr* push_left = PushArgument(for_left_value.value());
-      ZoneGrowableArray<PushArgumentInstr*>* arguments =
-          new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
-      arguments->Add(push_left);
-      const Bool& negate = Bool::Get(node->kind() == Token::kISNOT);
-      Value* negate_arg = Bind(new(Z) ConstantInstr(negate));
-      arguments->Add(PushArgument(negate_arg));
-      const intptr_t kNumArgsChecked = 1;
-      InstanceCallInstr* call = new(Z) InstanceCallInstr(
-          node->token_pos(),
-          Library::PrivateCoreLibName(method_name),
-          node->kind(),
-          arguments,
-          Object::null_array(),  // No argument names.
-          kNumArgsChecked,
-          owner()->ic_data_array());
-      ReturnDefinition(call);
-      return;
+  if (type.IsNumberType() || type.IsIntType() || type.IsDoubleType() ||
+      type.IsSmiType() || type.IsStringType()) {
+    String& method_name = String::ZoneHandle(Z);
+    if (type.IsNumberType()) {
+      method_name = Symbols::_instanceOfNum().raw();
+    } else if (type.IsIntType()) {
+      method_name = Symbols::_instanceOfInt().raw();
+    } else if (type.IsDoubleType()) {
+      method_name = Symbols::_instanceOfDouble().raw();
+    } else if (type.IsSmiType()) {
+      method_name = Symbols::_instanceOfSmi().raw();
+    } else if (type.IsStringType()) {
+      method_name = Symbols::_instanceOfString().raw();
     }
+    ASSERT(!method_name.IsNull());
+    PushArgumentInstr* push_left = PushArgument(for_left_value.value());
+    ZoneGrowableArray<PushArgumentInstr*>* arguments =
+        new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
+    arguments->Add(push_left);
+    const Bool& negate = Bool::Get(node->kind() == Token::kISNOT);
+    Value* negate_arg = Bind(new(Z) ConstantInstr(negate));
+    arguments->Add(PushArgument(negate_arg));
+    const intptr_t kNumArgsChecked = 1;
+    InstanceCallInstr* call = new(Z) InstanceCallInstr(
+        node->token_pos(),
+        Library::PrivateCoreLibName(method_name),
+        node->kind(),
+        arguments,
+        Object::null_array(),  // No argument names.
+        kNumArgsChecked,
+        owner()->ic_data_array());
+    ReturnDefinition(call);
+    return;
   }
 
   PushArgumentInstr* push_left = PushArgument(for_left_value.value());
@@ -1719,13 +1692,8 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
                        for_value.value(),
                        type,
                        dst_name)) {
-    // Check for javascript compatibility.
-    // Do not skip type check if javascript compatibility warning is required.
-    if (!FLAG_warn_on_javascript_compatibility ||
-        !owner()->WarnOnJSIntegralNumTypeTest(node->left(), type)) {
-      ReturnValue(for_value.value());
-      return;
-    }
+    ReturnValue(for_value.value());
+    return;
   }
   PushArgumentInstr* push_left = PushArgument(for_value.value());
   PushArgumentInstr* push_type_args = NULL;
@@ -4442,8 +4410,23 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
                                          *method_arguments,
                                          temp,
                                          is_super_invocation);
-  const Function& no_such_method_func = Function::ZoneHandle(Z,
-      Resolver::ResolveDynamicAnyArgs(target_class, Symbols::NoSuchMethod()));
+  // Make sure we resolve to a compatible noSuchMethod, otherwise call
+  // noSuchMethod of class Object.
+  const int kNumArguments = 2;
+  ArgumentsDescriptor args_desc(
+      Array::ZoneHandle(Z, ArgumentsDescriptor::New(kNumArguments)));
+  Function& no_such_method_func = Function::ZoneHandle(Z,
+      Resolver::ResolveDynamicForReceiverClass(target_class,
+                                               Symbols::NoSuchMethod(),
+                                               args_desc));
+  if (no_such_method_func.IsNull()) {
+    const Class& object_class =
+        Class::ZoneHandle(Z, isolate()->object_store()->object_class());
+    no_such_method_func =
+        Resolver::ResolveDynamicForReceiverClass(object_class,
+                                                 Symbols::NoSuchMethod(),
+                                                 args_desc);
+  }
   // We are guaranteed to find noSuchMethod of class Object.
   ASSERT(!no_such_method_func.IsNull());
   ZoneGrowableArray<PushArgumentInstr*>* push_arguments =

@@ -595,9 +595,9 @@ class _RandomAccessFile
       // We need to make sure that these are always awailable from the
       // observatory even if no files (or sockets for the socket ones) are
       // open.
-      registerExtension('__getOpenFiles',
+      registerExtension('ext.dart.io.getOpenFiles',
                         _FileResourceInfo.getOpenFiles);
-      registerExtension('__getFileByID',
+      registerExtension('ext.dart.io.getFileByID',
                         _FileResourceInfo.getFileInfoMapByID);
       _connectedResourceHandler = true;
     }

@@ -52,7 +52,7 @@ vars = {
   "intl_rev": "@a8b480b9c436f6c0ec16730804c914bdb4e30d53",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@1.1.1",
-  "linter_rev": "@5a599fd32d3b6ef00ffa7c330d1f32bbad287228",
+  "linter_rev": "@87f066f9243b36540c33186e742a798b87e76f8e",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
   "matcher_tag": "@0.12.0",
@@ -91,7 +91,7 @@ vars = {
   "when_tag": "@0.2.0+2",
   "which_tag": "@0.1.3+1",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
-  "WebCore_rev": "@4f90b41b0165f23f412cecdba07b7d81d3fbb5b5",
+  "WebCore_rev": "@5ecb723fd9ffcc0d108f5e0e24d12b8b3df7b200",
   "yaml_tag": "@2.1.5",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "barback-0.13.0_rev": "@34853",
@@ -291,20 +291,6 @@ hooks = [
   {
     "pattern": ".",
     "action": ["python", Var("dart_root") + "/tools/gyp_dart.py"],
-  },
-  {
-    'name': 'checked_in_dart_binaries',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--bucket',
-      'dart-dependencies',
-      '--recursive',
-      '--directory',
-      Var('dart_root') + '/tools/testing/bin',
-    ],
   },
   {
     'name': 'd8_testing_binaries',

@@ -7,6 +7,7 @@ library analyzer.src.dart.element.builder;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -16,7 +17,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -176,7 +176,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
         exportElement.uri = node.uriContent;
         exportElement.combinators = _buildCombinators(node);
         exportElement.exportedLibrary = exportedLibrary;
-        _setDoc(exportElement, node);
+        setElementDocumentationComment(exportElement, node);
         node.element = exportElement;
         exports.add(exportElement);
         if (exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
@@ -218,7 +218,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
         importElement.deferred = node.deferredKeyword != null;
         importElement.combinators = _buildCombinators(node);
         importElement.importedLibrary = importedLibrary;
-        _setDoc(importElement, node);
+        setElementDocumentationComment(importElement, node);
         SimpleIdentifier prefixNode = node.prefix;
         if (prefixNode != null) {
           importElement.prefixOffset = prefixNode.offset;
@@ -272,19 +272,6 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * If the given [node] has a documentation comment, remember its content
-   * and range into the given [element].
-   */
-  void _setDoc(ElementImpl element, AnnotatedNode node) {
-    Comment comment = node.documentationComment;
-    if (comment != null && comment.isDocumentation) {
-      element.documentationComment =
-          comment.tokens.map((Token t) => t.lexeme).join('\n');
-      element.setDocRange(comment.offset, comment.length);
-    }
-  }
-
-  /**
    * Build the element model representing the combinators declared by
    * the given [directive].
    */
@@ -316,11 +303,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   ElementHolder _currentHolder;
 
   /**
-   * A flag indicating whether a variable declaration is in the context of a field declaration.
-   */
-  bool _inFieldContext = false;
-
-  /**
    * A flag indicating whether a variable declaration is within the body of a method or function.
    */
   bool _inFunction = false;
@@ -346,18 +328,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
    */
   ElementBuilder(ElementHolder initialHolder, this.compilationUnitElement) {
     _currentHolder = initialHolder;
-  }
-
-  @override
-  Object visitBlock(Block node) {
-    bool wasInField = _inFieldContext;
-    _inFieldContext = false;
-    try {
-      node.visitChildren(this);
-    } finally {
-      _inFieldContext = wasInField;
-    }
-    return null;
   }
 
   @override
@@ -415,7 +385,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     interfaceType.typeArguments = typeArguments;
     element.type = interfaceType;
     element.typeParameters = typeParameters;
-    _setDoc(element, node);
+    setElementDocumentationComment(element, node);
     element.abstract = node.isAbstract;
     element.accessors = holder.accessors;
     List<ConstructorElement> constructors = holder.constructors;
@@ -466,7 +436,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
     interfaceType.typeArguments = typeArguments;
     element.type = interfaceType;
-    _setDoc(element, node);
+    setElementDocumentationComment(element, node);
     _currentHolder.addType(element);
     className.staticElement = element;
     holder.validate();
@@ -488,7 +458,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ConstructorElementImpl element =
         new ConstructorElementImpl.forNode(constructorName);
     element.metadata = _createElementAnnotations(node.metadata);
-    _setDoc(element, node);
+    setElementDocumentationComment(element, node);
     if (node.externalKeyword != null) {
       element.external = true;
     }
@@ -596,7 +566,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ClassElementImpl enumElement = new ClassElementImpl.forNode(enumName);
     enumElement.metadata = _createElementAnnotations(node.metadata);
     enumElement.enum2 = true;
-    _setDoc(enumElement, node);
+    setElementDocumentationComment(enumElement, node);
     InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
     enumElement.type = enumType;
     // The equivalent code for enums in the spec shows a single constructor,
@@ -613,18 +583,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitExportDirective(ExportDirective node) {
     _createElementAnnotations(node.metadata);
     return super.visitExportDirective(node);
-  }
-
-  @override
-  Object visitFieldDeclaration(FieldDeclaration node) {
-    bool wasInField = _inFieldContext;
-    _inFieldContext = true;
-    try {
-      node.visitChildren(this);
-    } finally {
-      _inFieldContext = wasInField;
-    }
-    return null;
   }
 
   @override
@@ -677,7 +635,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         FunctionElementImpl element =
             new FunctionElementImpl.forNode(functionName);
         element.metadata = _createElementAnnotations(node.metadata);
-        _setDoc(element, node);
+        setElementDocumentationComment(element, node);
         if (node.externalKeyword != null) {
           element.external = true;
         }
@@ -695,9 +653,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (_inFunction) {
           Block enclosingBlock = node.getAncestor((node) => node is Block);
           if (enclosingBlock != null) {
-            int functionEnd = node.offset + node.length;
-            int blockEnd = enclosingBlock.offset + enclosingBlock.length;
-            element.setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
+            element.setVisibleRange(
+                enclosingBlock.offset, enclosingBlock.length);
           }
         }
         if (node.returnType == null) {
@@ -725,7 +682,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
           getter.metadata = _createElementAnnotations(node.metadata);
-          _setDoc(getter, node);
+          setElementDocumentationComment(getter, node);
           if (node.externalKeyword != null) {
             getter.external = true;
           }
@@ -752,7 +709,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
           setter.metadata = _createElementAnnotations(node.metadata);
-          _setDoc(setter, node);
+          setElementDocumentationComment(setter, node);
           if (node.externalKeyword != null) {
             setter.external = true;
           }
@@ -816,9 +773,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     if (_inFunction) {
       Block enclosingBlock = node.getAncestor((node) => node is Block);
       if (enclosingBlock != null) {
-        int functionEnd = node.offset + node.length;
-        int blockEnd = enclosingBlock.offset + enclosingBlock.length;
-        element.setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
+        element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
       }
     }
     if (_functionTypesToFix != null) {
@@ -843,7 +798,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     FunctionTypeAliasElementImpl element =
         new FunctionTypeAliasElementImpl.forNode(aliasName);
     element.metadata = _createElementAnnotations(node.metadata);
-    _setDoc(element, node);
+    setElementDocumentationComment(element, node);
     element.parameters = parameters;
     element.typeParameters = typeParameters;
     _createTypeParameterTypes(typeParameters);
@@ -928,7 +883,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         MethodElementImpl element =
             new MethodElementImpl(nameOfMethod, methodName.offset);
         element.metadata = _createElementAnnotations(node.metadata);
-        _setDoc(element, node);
+        setElementDocumentationComment(element, node);
         element.abstract = node.isAbstract;
         if (node.externalKeyword != null) {
           element.external = true;
@@ -966,7 +921,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
           getter.metadata = _createElementAnnotations(node.metadata);
-          _setDoc(getter, node);
+          setElementDocumentationComment(getter, node);
           if (node.externalKeyword != null) {
             getter.external = true;
           }
@@ -993,7 +948,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
           setter.metadata = _createElementAnnotations(node.metadata);
-          _setDoc(setter, node);
+          setElementDocumentationComment(setter, node);
           if (node.externalKeyword != null) {
             setter.external = true;
           }
@@ -1127,22 +1082,22 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     bool isConst = node.isConst;
     bool isFinal = node.isFinal;
     bool hasInitializer = node.initializer != null;
+    VariableDeclarationList varList = node.parent;
+    FieldDeclaration fieldNode =
+        varList.parent is FieldDeclaration ? varList.parent : null;
     VariableElementImpl element;
-    if (_inFieldContext) {
+    if (fieldNode != null) {
       SimpleIdentifier fieldName = node.name;
       FieldElementImpl field;
-      if ((isConst || isFinal) && hasInitializer) {
+      if ((isConst || isFinal && !fieldNode.isStatic) && hasInitializer) {
         field = new ConstFieldElementImpl.forNode(fieldName);
       } else {
         field = new FieldElementImpl.forNode(fieldName);
       }
       element = field;
-      if (node.parent.parent is FieldDeclaration) {
-        _setDoc(element, node.parent.parent);
-      }
-      if ((node.parent as VariableDeclarationList).type == null) {
-        field.hasImplicitType = true;
-      }
+      field.static = fieldNode.isStatic;
+      setElementDocumentationComment(element, fieldNode);
+      field.hasImplicitType = varList.type == null;
       _currentHolder.addField(field);
       fieldName.staticElement = field;
     } else if (_inFunction) {
@@ -1158,9 +1113,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       // TODO(brianwilkerson) This isn't right for variables declared in a for
       // loop.
       variable.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
-      if ((node.parent as VariableDeclarationList).type == null) {
-        variable.hasImplicitType = true;
-      }
+      variable.hasImplicitType = varList.type == null;
       _currentHolder.addLocalVariable(variable);
       variableName.staticElement = element;
     } else {
@@ -1172,12 +1125,10 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         variable = new TopLevelVariableElementImpl.forNode(variableName);
       }
       element = variable;
-      if (node.parent.parent is TopLevelVariableDeclaration) {
-        _setDoc(element, node.parent.parent);
+      if (varList.parent is TopLevelVariableDeclaration) {
+        setElementDocumentationComment(element, varList.parent);
       }
-      if ((node.parent as VariableDeclarationList).type == null) {
-        variable.hasImplicitType = true;
-      }
+      variable.hasImplicitType = varList.type == null;
       _currentHolder.addTopLevelVariable(variable);
       variableName.staticElement = element;
     }
@@ -1185,13 +1136,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.final2 = isFinal;
     if (hasInitializer) {
       ElementHolder holder = new ElementHolder();
-      bool wasInFieldContext = _inFieldContext;
-      _inFieldContext = false;
-      try {
-        _visit(holder, node.initializer);
-      } finally {
-        _inFieldContext = wasInFieldContext;
-      }
+      _visit(holder, node.initializer);
       FunctionElementImpl initializer =
           new FunctionElementImpl.forOffset(node.initializer.beginToken.offset);
       initializer.functions = holder.functions;
@@ -1202,10 +1147,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       holder.validate();
     }
     if (element is PropertyInducingElementImpl) {
-      if (_inFieldContext) {
-        (element as FieldElementImpl).static =
-            (node.parent.parent as FieldDeclaration).isStatic;
-      }
       PropertyAccessorElementImpl getter =
           new PropertyAccessorElementImpl.forVariable(element);
       getter.getter = true;
@@ -1322,38 +1263,19 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Return the body of the function that contains the given parameter, or `null` if no
-   * function body could be found.
-   *
-   * @param node the parameter contained in the function whose body is to be returned
-   * @return the body of the function that contains the given parameter
+   * Return the body of the function that contains the given [parameter], or
+   * `null` if no function body could be found.
    */
-  FunctionBody _getFunctionBody(FormalParameter node) {
-    AstNode parent = node.parent;
-    while (parent != null) {
-      if (parent is ConstructorDeclaration) {
-        return parent.body;
-      } else if (parent is FunctionExpression) {
-        return parent.body;
-      } else if (parent is MethodDeclaration) {
-        return parent.body;
-      }
-      parent = parent.parent;
+  FunctionBody _getFunctionBody(FormalParameter parameter) {
+    AstNode parent = parameter?.parent?.parent;
+    if (parent is ConstructorDeclaration) {
+      return parent.body;
+    } else if (parent is FunctionExpression) {
+      return parent.body;
+    } else if (parent is MethodDeclaration) {
+      return parent.body;
     }
     return null;
-  }
-
-  /**
-   * If the given [node] has a documentation comment, remember its content
-   * and range into the given [element].
-   */
-  void _setDoc(ElementImpl element, AnnotatedNode node) {
-    Comment comment = node.documentationComment;
-    if (comment != null && comment.isDocumentation) {
-      element.documentationComment =
-          comment.tokens.map((Token t) => t.lexeme).join('\n');
-      element.setDocRange(comment.offset, comment.length);
-    }
   }
 
   /**
@@ -1362,7 +1284,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   void _setParameterVisibleRange(
       FormalParameter node, ParameterElementImpl element) {
     FunctionBody body = _getFunctionBody(node);
-    if (body != null) {
+    if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
       element.setVisibleRange(body.offset, body.length);
     }
   }

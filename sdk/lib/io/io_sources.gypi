@@ -4,6 +4,8 @@
 
 {
   'sources': [
+    'io.dart',
+    # The above file needs to be first if additional parts are added to the lib.
     'bytes_builder.dart',
     'common.dart',
     'crypto.dart',

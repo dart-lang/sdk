@@ -116,6 +116,7 @@ class _Random implements Random {
   //   _state[_kSTATE_HI] = state >> 32;
   // This is a native to prevent 64-bit operations in Dart, which
   // fail with --throw_on_javascript_int_overflow.
+  // TODO(regis): Implement in Dart and remove Random_nextState in math.cc.
   void _nextState() native "Random_nextState";
 
   int nextInt(int max) {
@@ -160,6 +161,7 @@ class _Random implements Random {
 
   // This is a native to prevent 64-bit operations in Dart, which
   // fail with --throw_on_javascript_int_overflow.
+  // TODO(regis): Implement here in Dart and remove native in math.cc.
   static Uint32List _setupSeed(int seed) native "Random_setupSeed";
   // Get a seed from the VM's random number provider.
   static Uint32List _initialSeed() native "Random_initialSeed";

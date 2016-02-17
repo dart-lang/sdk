@@ -8,9 +8,13 @@ import 'dart:collection';
 import "dart:math" as math;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/error.dart';
@@ -18,7 +22,6 @@ import 'package:analyzer/src/generated/generated/shared_messages.dart'
     as shared_messages;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -7049,7 +7052,8 @@ class Parser {
             _peek().matchesAny([
               TokenType.OPEN_PAREN,
               TokenType.OPEN_CURLY_BRACKET,
-              TokenType.FUNCTION
+              TokenType.FUNCTION,
+              TokenType.LT
             ])) {
           return _parseFunctionDeclarationStatementAfterReturnType(
               commentAndMetadata, returnType);

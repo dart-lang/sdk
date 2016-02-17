@@ -450,6 +450,13 @@ class TypeMaskSystem implements AbstractValueDomain {
     return interceptedTypes.containsMask(t.nonNullable(), classWorld);
   }
 
+  @override
+  bool isDefinitelySelfInterceptor(TypeMask t, {bool allowNull: false}) {
+    assert(allowNull != null);
+    if (!allowNull && t.isNullable) return false;
+    return areDisjoint(t, interceptorType);
+  }
+
   /// Given a class from the interceptor hierarchy, returns a [TypeMask]
   /// matching all values with that interceptor (or a subtype thereof).
   @override

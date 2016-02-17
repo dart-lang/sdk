@@ -5,10 +5,10 @@
 library computer.highlights2;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * A computer for [HighlightRegion]s in a Dart [CompilationUnit].

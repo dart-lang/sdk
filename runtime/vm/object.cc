@@ -56,9 +56,6 @@ DEFINE_FLAG(bool, overlap_type_arguments, true,
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
-DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
-    "Throw an exception when the result of an integer calculation will not "
-    "fit into a javascript integer.");
 DEFINE_FLAG(bool, trace_cha, false, "Trace CHA operations");
 DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
@@ -915,9 +912,12 @@ class PremarkingVisitor : public ObjectVisitor {
     if (!obj->IsFreeListElement()) {
       ASSERT(obj->IsVMHeapObject());
       if (obj->IsMarked()) {
-        // Precompiled instructions are loaded pre-marked.
+        // Precompiled objects are loaded pre-marked.
         ASSERT(Dart::IsRunningPrecompiledCode());
-        ASSERT(obj->IsInstructions());
+        ASSERT(obj->IsInstructions() ||
+               obj->IsPcDescriptors() ||
+               obj->IsStackmap() ||
+               obj->IsOneByteString());
       } else {
         obj->SetMarkBitUnsynchronized();
       }
@@ -3690,13 +3690,13 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     if (other.IsFunctionClass()) {
       // Check if type S has a call() method.
-      Function& function =
-          Function::Handle(zone, thsi.LookupDynamicFunction(Symbols::Call()));
+      Function& function = Function::Handle(zone,
+          thsi.LookupDynamicFunctionAllowAbstract(Symbols::Call()));
       if (function.IsNull()) {
         // Walk up the super_class chain.
         Class& cls = Class::Handle(zone, thsi.SuperClass());
         while (!cls.IsNull() && function.IsNull()) {
-          function = cls.LookupDynamicFunction(Symbols::Call());
+          function = cls.LookupDynamicFunctionAllowAbstract(Symbols::Call());
           cls = cls.SuperClass();
         }
       }
@@ -3819,6 +3819,12 @@ RawFunction* Class::LookupDynamicFunction(const String& name) const {
 }
 
 
+RawFunction* Class::LookupDynamicFunctionAllowAbstract(
+    const String& name) const {
+  return LookupFunction(name, kInstanceAllowAbstract);
+}
+
+
 RawFunction* Class::LookupDynamicFunctionAllowPrivate(
     const String& name) const {
   return LookupFunctionAllowPrivate(name, kInstance);
@@ -3891,8 +3897,8 @@ static bool MatchesAccessorName(const String& name,
 
 
 RawFunction* Class::CheckFunctionType(const Function& func, MemberKind kind) {
-  if (kind == kInstance) {
-    if (func.IsDynamicFunction()) {
+  if ((kind == kInstance) || (kind == kInstanceAllowAbstract)) {
+    if (func.IsDynamicFunction(kind == kInstanceAllowAbstract)) {
       return func.raw();
     }
   } else if (kind == kStatic) {
@@ -6030,26 +6036,29 @@ bool Function::TypeTest(TypeTestKind test_kind,
   AbstractType& other_res_type = AbstractType::Handle(other.result_type());
   if (!other_res_type.IsInstantiated()) {
     other_res_type = other_res_type.InstantiateFrom(other_type_arguments,
-                                                    bound_error);
+                                                    bound_error,
+                                                    NULL, NULL, space);
     ASSERT((bound_error == NULL) || bound_error->IsNull());
   }
   if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
     AbstractType& res_type = AbstractType::Handle(result_type());
     if (!res_type.IsInstantiated()) {
-      res_type = res_type.InstantiateFrom(type_arguments, bound_error);
+      res_type = res_type.InstantiateFrom(type_arguments, bound_error,
+                                          NULL, NULL, space);
       ASSERT((bound_error == NULL) || bound_error->IsNull());
     }
     if (res_type.IsVoidType()) {
       return false;
     }
     if (test_kind == kIsSubtypeOf) {
-      if (!res_type.IsSubtypeOf(other_res_type, bound_error) &&
-          !other_res_type.IsSubtypeOf(res_type, bound_error)) {
+      if (!res_type.IsSubtypeOf(other_res_type, bound_error, NULL, space) &&
+          !other_res_type.IsSubtypeOf(res_type, bound_error, NULL, space)) {
         return false;
       }
     } else {
       ASSERT(test_kind == kIsMoreSpecificThan);
-      if (!res_type.IsMoreSpecificThan(other_res_type, bound_error)) {
+      if (!res_type.IsMoreSpecificThan(other_res_type, bound_error,
+                                       NULL, space)) {
         return false;
       }
     }
@@ -6418,7 +6427,8 @@ void Function::BuildSignatureParameters(
     if (instantiate &&
         param_type.IsFinalized() &&
         !param_type.IsInstantiated()) {
-      param_type = param_type.InstantiateFrom(instantiator, NULL);
+      param_type = param_type.InstantiateFrom(instantiator, NULL,
+                                              NULL, NULL, Heap::kNew);
     }
     name = param_type.BuildName(name_visibility);
     pieces->Add(name);
@@ -6445,7 +6455,8 @@ void Function::BuildSignatureParameters(
       if (instantiate &&
           param_type.IsFinalized() &&
           !param_type.IsInstantiated()) {
-        param_type = param_type.InstantiateFrom(instantiator, NULL);
+        param_type = param_type.InstantiateFrom(instantiator, NULL,
+                                                NULL, NULL, Heap::kNew);
       }
       ASSERT(!param_type.IsNull());
       name = param_type.BuildName(name_visibility);
@@ -6543,7 +6554,8 @@ RawString* Function::BuildSignature(bool instantiate,
   pieces.Add(Symbols::RParenArrow());
   AbstractType& res_type = AbstractType::Handle(zone, result_type());
   if (instantiate && res_type.IsFinalized() && !res_type.IsInstantiated()) {
-    res_type = res_type.InstantiateFrom(instantiator, NULL);
+    res_type = res_type.InstantiateFrom(instantiator, NULL,
+                                        NULL, NULL, Heap::kNew);
   }
   name = res_type.BuildName(name_visibility);
   pieces.Add(name);
@@ -6775,7 +6787,7 @@ void Function::SaveICDataMap(
 
 void Function::RestoreICDataMap(
     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
-    bool clone_descriptors) const {
+    bool clone_ic_data) const {
   ASSERT(deopt_id_to_ic_data->is_empty());
   Zone* zone = Thread::Current()->zone();
   const Array& saved_ic_data = Array::Handle(zone, ic_data_array());
@@ -6795,9 +6807,9 @@ void Function::RestoreICDataMap(
     for (intptr_t i = 1; i < saved_length; i++) {
       ICData& ic_data = ICData::ZoneHandle(zone);
       ic_data ^= saved_ic_data.At(i);
-      if (clone_descriptors) {
-        ICData& original_ic_data = ICData::Handle(zone, ic_data.raw());
-        ic_data = ICData::CloneDescriptor(ic_data);
+      if (clone_ic_data) {
+        const ICData& original_ic_data = ICData::Handle(zone, ic_data.raw());
+        ic_data = ICData::Clone(ic_data);
         ic_data.SetOriginal(original_ic_data);
       }
       (*deopt_id_to_ic_data)[ic_data.deopt_id()] = &ic_data;
@@ -11675,7 +11687,6 @@ void ICData::SetOriginal(const ICData& value) const {
 
 
 void ICData::set_owner(const Function& value) const {
-  ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(value.raw()));
 }
 
@@ -11736,35 +11747,6 @@ void ICData::AddDeoptReason(DeoptReasonId reason) const {
   if (reason <= kLastRecordedDeoptReason) {
     SetDeoptReasons(DeoptReasons() | (1 << reason));
   }
-}
-
-
-bool ICData::IssuedJSWarning() const {
-  return IssuedJSWarningBit::decode(raw_ptr()->state_bits_);
-}
-
-
-void ICData::SetIssuedJSWarning() const {
-  StoreNonPointer(&raw_ptr()->state_bits_,
-                  IssuedJSWarningBit::update(true, raw_ptr()->state_bits_));
-}
-
-
-bool ICData::MayCheckForJSWarning() const {
-  const String& name = String::Handle(target_name());
-  // Warning issued from native code.
-  // Calling sequence is decoded to obtain ic data in order to check if a
-  // warning has already been issued.
-  if (name.Equals(Library::PrivateCoreLibName(Symbols::_instanceOf())) ||
-      name.Equals(Library::PrivateCoreLibName(Symbols::_as()))) {
-    return true;
-  }
-  // Warning issued in ic miss handler.
-  // No decoding necessary, so allow optimization if warning already issued.
-  if (name.Equals(Symbols::toString()) && !IssuedJSWarning()) {
-    return true;
-  }
-  return false;
 }
 
 
@@ -12326,7 +12308,7 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
 }
 
 
-RawICData* ICData::CloneDescriptor(const ICData& from) {
+RawICData* ICData::Clone(const ICData& from) {
   Zone* zone = Thread::Current()->zone();
   const ICData& result = ICData::Handle(ICData::NewDescriptor(
       zone,
@@ -12335,8 +12317,17 @@ RawICData* ICData::CloneDescriptor(const ICData& from) {
       Array::Handle(zone, from.arguments_descriptor()),
       from.deopt_id(),
       from.NumArgsTested()));
-  // Preserve entry array.
-  result.set_ic_data_array(Array::Handle(zone, from.ic_data()));
+  // Clone entry array.
+  const Array& from_array = Array::Handle(zone, from.ic_data());
+  const intptr_t len = from_array.Length();
+  const Array& cloned_array =
+      Array::Handle(zone, Array::New(len, Heap::kOld));
+  Object& obj = Object::Handle(zone);
+  for (intptr_t i = 0; i < len; i++) {
+    obj = from_array.At(i);
+    cloned_array.SetAt(i, obj);
+  }
+  result.set_ic_data_array(cloned_array);
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
   return result.raw();
@@ -14205,6 +14196,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
                             Error* bound_error) const {
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
+  ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
   ASSERT(!other.IsMalformed());
   ASSERT(!other.IsMalbounded());
   if (other.IsVoidType()) {
@@ -14220,11 +14212,15 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     TypeArguments& other_type_arguments = TypeArguments::Handle(zone);
     // Note that we may encounter a bound error in checked mode.
     if (!other.IsInstantiated()) {
-      const AbstractType& instantiated_other = AbstractType::Handle(
-          zone, other.InstantiateFrom(other_instantiator, bound_error));
+      AbstractType& instantiated_other = AbstractType::Handle(
+          zone, other.InstantiateFrom(other_instantiator, bound_error,
+                                      NULL, NULL, Heap::kOld));
       if ((bound_error != NULL) && !bound_error->IsNull()) {
         ASSERT(Isolate::Current()->flags().type_checks());
         return false;
+      }
+      if (instantiated_other.IsTypeRef()) {
+        instantiated_other = TypeRef::Cast(instantiated_other).type();
       }
       if (instantiated_other.IsDynamicType() ||
           instantiated_other.IsObjectType() ||
@@ -14273,7 +14269,8 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   AbstractType& instantiated_other = AbstractType::Handle(zone, other.raw());
   // Note that we may encounter a bound error in checked mode.
   if (!other.IsInstantiated()) {
-    instantiated_other = other.InstantiateFrom(other_instantiator, bound_error);
+    instantiated_other = other.InstantiateFrom(other_instantiator, bound_error,
+                                               NULL, NULL, Heap::kOld);
     if ((bound_error != NULL) && !bound_error->IsNull()) {
       ASSERT(Isolate::Current()->flags().type_checks());
       return false;
@@ -14289,13 +14286,13 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   const bool other_is_dart_function = instantiated_other.IsDartFunctionType();
   if (other_is_dart_function || instantiated_other.IsFunctionType()) {
     // Check if this instance understands a call() method of a compatible type.
-    Function& call =
-        Function::Handle(zone, cls.LookupDynamicFunction(Symbols::Call()));
+    Function& call = Function::Handle(zone,
+        cls.LookupDynamicFunctionAllowAbstract(Symbols::Call()));
     if (call.IsNull()) {
       // Walk up the super_class chain.
       Class& super_cls = Class::Handle(zone, cls.SuperClass());
       while (!super_cls.IsNull() && call.IsNull()) {
-        call = super_cls.LookupDynamicFunction(Symbols::Call());
+        call = super_cls.LookupDynamicFunctionAllowAbstract(Symbols::Call());
         super_cls = super_cls.SuperClass();
       }
     }
@@ -15027,7 +15024,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     }
     // The current bound_trail cannot be used, because operands are swapped and
     // the test is different anyway (more specific vs. subtype).
-    if (bound.IsMoreSpecificThan(other, bound_error, NULL)) {
+    if (bound.IsMoreSpecificThan(other, bound_error, NULL, space)) {
       return true;
     }
     return false;  // TODO(regis): We should return "maybe after instantiation".
@@ -15056,13 +15053,13 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                           space);
     }
     // Check if type S has a call() method of function type T.
-    Function& function =
-        Function::Handle(zone, type_cls.LookupDynamicFunction(Symbols::Call()));
+    Function& function = Function::Handle(zone,
+        type_cls.LookupDynamicFunctionAllowAbstract(Symbols::Call()));
     if (function.IsNull()) {
       // Walk up the super_class chain.
       Class& cls = Class::Handle(zone, type_cls.SuperClass());
       while (!cls.IsNull() && function.IsNull()) {
-        function = cls.LookupDynamicFunction(Symbols::Call());
+        function = cls.LookupDynamicFunctionAllowAbstract(Symbols::Call());
         cls = cls.SuperClass();
       }
     }
@@ -16728,7 +16725,8 @@ RawAbstractType* BoundedType::InstantiateFrom(
           (!type_param.CheckBound(instantiated_bounded_type,
                                   instantiated_upper_bound,
                                   bound_error,
-                                  bound_trail) &&
+                                  bound_trail,
+                                  space) &&
            bound_error->IsNull())) {
         // We cannot determine yet whether the bounded_type is below the
         // upper_bound, because one or both of them is still being finalized or
@@ -16905,16 +16903,6 @@ const char* Integer::ToCString() const {
 }
 
 
-// Throw JavascriptIntegerOverflow exception.
-static void ThrowJavascriptIntegerOverflow(const Integer& i) {
-  const Array& exc_args = Array::Handle(Array::New(1));
-  const String& i_str = String::Handle(String::New(i.ToCString()));
-  exc_args.SetAt(0, i_str);
-  Exceptions::ThrowByType(Exceptions::kJavascriptIntegerOverflowError,
-      exc_args);
-}
-
-
 RawInteger* Integer::New(const String& str, Heap::Space space) {
   // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
@@ -16924,19 +16912,12 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
         Bigint::NewFromCString(str.ToCString(), space));
     ASSERT(!big.FitsIntoSmi());
     ASSERT(!big.FitsIntoInt64());
-    if (FLAG_throw_on_javascript_int_overflow) {
-      ThrowJavascriptIntegerOverflow(big);
-    }
     return big.raw();
   }
   return Integer::New(value, space);
 }
 
 
-// This is called from LiteralToken::New() in the parser, so we can't
-// raise an exception for javascript overflow here. Instead we do it in
-// Parser::CurrentIntegerLiteral(), which is the point in the parser where
-// integer literals escape, so we can call Parser::ErrorMsg().
 RawInteger* Integer::NewCanonical(const String& str) {
   // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
@@ -16954,16 +16935,8 @@ RawInteger* Integer::NewCanonical(const String& str) {
 }
 
 
-RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
+RawInteger* Integer::New(int64_t value, Heap::Space space) {
   const bool is_smi = Smi::IsValid(value);
-  if (!silent &&
-      FLAG_throw_on_javascript_int_overflow &&
-      !Utils::IsJavascriptInt(value)) {
-    const Integer& i = is_smi ?
-        Integer::Handle(Smi::New(static_cast<intptr_t>(value))) :
-        Integer::Handle(Mint::New(value, space));
-    ThrowJavascriptIntegerOverflow(i);
-  }
   if (is_smi) {
     return Smi::New(static_cast<intptr_t>(value));
   }
@@ -16973,10 +16946,6 @@ RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
 
 RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
   if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
-    if (FLAG_throw_on_javascript_int_overflow) {
-      const Integer &i = Integer::Handle(Bigint::NewFromUint64(value, space));
-      ThrowJavascriptIntegerOverflow(i);
-    }
     return Bigint::NewFromUint64(value, space);
   } else {
     return Integer::New(value, space);
@@ -17040,31 +17009,7 @@ int Integer::CompareWith(const Integer& other) const {
 }
 
 
-// Returns true if the signed Integer does not fit into a
-// Javascript integer.
-bool Integer::CheckJavascriptIntegerOverflow() const {
-  // Always overflow if the value doesn't fit into an int64_t.
-  int64_t value = 1ULL << 63;
-  if (IsSmi()) {
-    value = AsInt64Value();
-  } else if (IsMint()) {
-    Mint& mint = Mint::Handle();
-    mint ^= raw();
-    value = mint.value();
-  } else {
-    if (Bigint::Cast(*this).FitsIntoInt64()) {
-      value = AsInt64Value();
-    }
-  }
-  return !Utils::IsJavascriptInt(value);
-}
-
-
 RawInteger* Integer::AsValidInteger() const {
-  if (FLAG_throw_on_javascript_int_overflow &&
-      CheckJavascriptIntegerOverflow()) {
-    ThrowJavascriptIntegerOverflow(*this);
-  }
   if (IsSmi()) return raw();
   if (IsMint()) {
     Mint& mint = Mint::Handle();
@@ -17234,8 +17179,7 @@ RawInteger* Integer::BitOp(
 // TODO(srdjan): Clarify handling of negative right operand in a shift op.
 RawInteger* Smi::ShiftOp(Token::Kind kind,
                          const Smi& other,
-                         Heap::Space space,
-                         const bool silent) const {
+                         Heap::Space space) const {
   intptr_t result = 0;
   const intptr_t left_value = Value();
   const intptr_t right_value = other.Value();
@@ -17252,7 +17196,7 @@ RawInteger* Smi::ShiftOp(Token::Kind kind,
             return Bigint::NewFromShiftedInt64(left_value, right_value, space);
           } else {
             int64_t left_64 = left_value;
-            return Integer::New(left_64 << right_value, space, silent);
+            return Integer::New(left_64 << right_value, space);
           }
         }
       }
@@ -17709,8 +17653,10 @@ RawBigint* Bigint::New(bool neg, intptr_t used, const TypedData& digits,
     --used;
   }
   if (used > 0) {
-    if ((used & 1) != 0) {
-      // Set leading zero for 64-bit processing of digit pairs.
+    if (((used & 1) != 0) && (digits.GetUint32(used << 2) != 0)) {
+      // Set leading zero for 64-bit processing of digit pairs if not set.
+      // The check above ensures that we avoid a write access to a possibly
+      // reused digits array that could be marked read only.
       digits.SetUint32(used << 2, 0);
     }
     result.set_digits(digits);

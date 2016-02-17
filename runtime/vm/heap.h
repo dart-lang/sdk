@@ -246,8 +246,8 @@ class Heap {
 
   bool ShouldPretenure(intptr_t class_id) const;
 
-  void SetupInstructionsSnapshotPage(void* pointer, uword size) {
-    old_space_.SetupInstructionsSnapshotPage(pointer, size);
+  void SetupExternalPage(void* pointer, uword size, bool is_executable) {
+    old_space_.SetupExternalPage(pointer, size, is_executable);
   }
 
  private:

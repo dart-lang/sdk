@@ -5,6 +5,7 @@
 library analyzer.test.src.task.dart_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -15,7 +16,6 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptions, AnalysisOptionsImpl, CacheState;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
@@ -32,7 +32,7 @@ import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 import '../../utils.dart';
 import '../context/abstract_context.dart';
-import '../mock_sdk.dart';
+import '../context/mock_sdk.dart';
 
 main() {
   initializeTestEnvironment();
@@ -2240,6 +2240,8 @@ main() {
 
 @reflectiveTest
 class GatherUsedLocalElementsTaskTest extends _AbstractDartTaskTest {
+  List<Element> definedElements;
+  Set<String> definedElementNames;
   UsedLocalElements usedElements;
   Set<String> usedElementNames;
 
@@ -2304,6 +2306,7 @@ main() {
 }''');
     _computeUsedElements(source);
     // validate
+    expect(definedElementNames, unorderedEquals(['main', 'v1', 'v2']));
     expect(usedElementNames, unorderedEquals(['v2']));
   }
 
@@ -2323,14 +2326,30 @@ main(A a, p) {
 ''');
     _computeUsedElements(source);
     // validate
+    expect(definedElementNames,
+        unorderedEquals(['A', '_m1', '_m2', 'main', 'a', 'p']));
     expect(usedElementNames, unorderedEquals(['A', 'a', 'p', '_m2']));
     expect(usedElements.members, unorderedEquals(['_m2', '_m3']));
+  }
+
+  test_perform_unresolvedImportWithPrefix() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+import 'x' as p;
+''');
+    _computeUsedElements(source);
+    // validate
+    expect(definedElementNames, isEmpty);
+    expect(usedElementNames, isEmpty);
   }
 
   void _computeUsedElements(Source source) {
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     computeResult(target, USED_LOCAL_ELEMENTS,
         matcher: isGatherUsedLocalElementsTask);
+    definedElements = outputs[DEFINED_ELEMENTS];
+    definedElementNames = definedElements.map((e) => e.name).toSet();
     usedElements = outputs[USED_LOCAL_ELEMENTS];
     usedElementNames = usedElements.elements.map((e) => e.name).toSet();
   }
@@ -4048,10 +4067,12 @@ class ResolveVariableReferencesTaskTest extends _AbstractDartTaskTest {
    * Verify that the mutated states of the given [variable] correspond to the
    * [mutatedInClosure] and [mutatedInScope] matchers.
    */
-  void expectMutated(VariableElement variable, Matcher mutatedInClosure,
-      Matcher mutatedInScope) {
+  void expectMutated(FunctionBody body, VariableElement variable,
+      bool mutatedInClosure, bool mutatedInScope) {
     expect(variable.isPotentiallyMutatedInClosure, mutatedInClosure);
     expect(variable.isPotentiallyMutatedInScope, mutatedInScope);
+    expect(body.isPotentiallyMutatedInClosure(variable), mutatedInClosure);
+    expect(body.isPotentiallyMutatedInScope(variable), mutatedInScope);
   }
 
   test_created_resolved_unit() {
@@ -4101,11 +4122,13 @@ main() {
         matcher: isResolveVariableReferencesTask);
     // validate
     CompilationUnit unit = outputs[RESOLVED_UNIT4];
-    FunctionElement main = unit.element.functions[0];
-    expectMutated(main.localVariables[0], isFalse, isFalse);
-    expectMutated(main.localVariables[1], isFalse, isTrue);
-    expectMutated(main.localVariables[2], isTrue, isTrue);
-    expectMutated(main.localVariables[3], isTrue, isTrue);
+    FunctionDeclaration mainDeclaration = unit.declarations[0];
+    FunctionBody body = mainDeclaration.functionExpression.body;
+    FunctionElement main = mainDeclaration.element;
+    expectMutated(body, main.localVariables[0], false, false);
+    expectMutated(body, main.localVariables[1], false, true);
+    expectMutated(body, main.localVariables[2], true, true);
+    expectMutated(body, main.localVariables[3], true, true);
   }
 
   test_perform_parameter() {
@@ -4126,11 +4149,13 @@ main(p1, p2, p3, p4) {
         matcher: isResolveVariableReferencesTask);
     // validate
     CompilationUnit unit = outputs[RESOLVED_UNIT4];
-    FunctionElement main = unit.element.functions[0];
-    expectMutated(main.parameters[0], isFalse, isFalse);
-    expectMutated(main.parameters[1], isFalse, isTrue);
-    expectMutated(main.parameters[2], isTrue, isTrue);
-    expectMutated(main.parameters[3], isTrue, isTrue);
+    FunctionDeclaration mainDeclaration = unit.declarations[0];
+    FunctionBody body = mainDeclaration.functionExpression.body;
+    FunctionElement main = mainDeclaration.element;
+    expectMutated(body, main.parameters[0], false, false);
+    expectMutated(body, main.parameters[1], false, true);
+    expectMutated(body, main.parameters[2], true, true);
+    expectMutated(body, main.parameters[3], true, true);
   }
 }
 

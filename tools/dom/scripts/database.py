@@ -44,6 +44,8 @@ class Database(object):
     self._interfaces_to_delete = []
     self._enums = {}
     self._all_dictionaries = {}
+    # TODO(terry): Hack to remember all typedef unions.
+    self._all_type_defs = {}
 
   def Clone(self):
     new_database = Database(self._root_dir)
@@ -52,6 +54,7 @@ class Database(object):
         self._interfaces_to_delete)
     new_database._enums = copy.deepcopy(self._enums)
     new_database._all_dictionaries = copy.deepcopy(self._all_dictionaries)
+    new_database._all_type_defs = copy.deepcopy(self._all_type_defs)
 
     return new_database
 
@@ -281,6 +284,29 @@ class Database(object):
     for _, dictionary in sorted(self._all_dictionaries.items()):
       res.append(dictionary)
     return res
+
+  def HasTypeDef(self, type_def_name):
+    """Returns True if the typedef is in memory"""
+    return type_def_name in self._all_type_defs
+
+  def GetTypeDef(self, type_def_name):
+    """Returns an IDLTypeDef corresponding to the type_def_name
+    from memory.
+
+    Args:
+      type_def_name -- the name of the typedef.
+    """
+    if type_def_name not in self._all_type_defs:
+      raise RuntimeError('Typedef %s is not loaded' % type_def_name)
+    return self._all_type_defs[type_def_name]
+
+  def AddTypeDef(self, type_def):
+    """Add only a typedef that a unions they map to any (no type)."""
+    type_def_name = type_def.id
+    if type_def_name in self._all_type_defs:
+      raise RuntimeError('Typedef %s already exists' % type_def_name)
+    self._all_type_defs[type_def_name] = type_def
+    print '  Added typedef %s' % type_def_name
 
   def TransitiveSecondaryParents(self, interface, propagate_event_target):
     """Returns a list of all non-primary parents.

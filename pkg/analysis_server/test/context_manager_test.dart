@@ -2363,7 +2363,11 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   Iterable<String> get currentContextPaths => currentContextTimestamps.keys;
 
   @override
-  AnalysisContext addContext(Folder folder, FolderDisposition disposition) {
+  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
+
+  @override
+  AnalysisContext addContext(
+      Folder folder, AnalysisOptions options, FolderDisposition disposition) {
     String path = folder.path;
     expect(currentContextPaths, isNot(contains(path)));
     currentContextTimestamps[path] = now;
@@ -2386,6 +2390,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     }
     resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
     resolvers.add(new FileUriResolver());
+    currentContext.analysisOptions = options;
     currentContext.sourceFactory =
         new SourceFactory(resolvers, disposition.packages);
     return currentContext;

@@ -74,7 +74,12 @@ class FieldDeclaration extends Declaration {
    */
   final FieldType type;
 
-  FieldDeclaration(String documentation, String name, this.type)
+  /**
+   * The id of the field.
+   */
+  final int id;
+
+  FieldDeclaration(String documentation, String name, this.type, this.id)
       : super(documentation, name);
 }
 

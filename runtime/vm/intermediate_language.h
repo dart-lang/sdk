@@ -17,8 +17,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
-
 class BitVector;
 class BlockEntryInstr;
 class BoxIntegerInstr;
@@ -2643,6 +2641,7 @@ class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
         dst_type_(AbstractType::ZoneHandle(dst_type.raw())),
         dst_name_(dst_name) {
     ASSERT(!dst_type.IsNull());
+    ASSERT(!dst_type.IsTypeRef());
     ASSERT(!dst_name.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
@@ -2658,6 +2657,7 @@ class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   const AbstractType& dst_type() const { return dst_type_; }
   void set_dst_type(const AbstractType& dst_type) {
+    ASSERT(!dst_type.IsTypeRef());
     dst_type_ = dst_type.raw();
   }
   const String& dst_name() const { return dst_name_; }
@@ -6829,7 +6829,7 @@ class UnaryMintOpInstr : public UnaryIntegerOpInstr {
   }
 
   virtual bool CanDeoptimize() const {
-    return FLAG_throw_on_javascript_int_overflow;
+    return false;
   }
 
   virtual CompileType ComputeType() const;
@@ -7089,8 +7089,7 @@ class BinaryMintOpInstr : public BinaryIntegerOpInstr {
   }
 
   virtual bool CanDeoptimize() const {
-    return FLAG_throw_on_javascript_int_overflow
-        || (can_overflow() && ((op_kind() == Token::kADD) ||
+    return (can_overflow() && ((op_kind() == Token::kADD) ||
                                (op_kind() == Token::kSUB)))
         || (op_kind() == Token::kMUL);  // Deopt if inputs are not int32.
   }
@@ -7125,8 +7124,7 @@ class ShiftMintOpInstr : public BinaryIntegerOpInstr {
   }
 
   virtual bool CanDeoptimize() const {
-    return FLAG_throw_on_javascript_int_overflow
-        || has_shift_count_check()
+    return  has_shift_count_check()
         || (can_overflow() && (op_kind() == Token::kSHL));
   }
 
@@ -8177,7 +8175,7 @@ class Environment : public ZoneAllocated {
 class FlowGraphVisitor : public ValueObject {
  public:
   explicit FlowGraphVisitor(const GrowableArray<BlockEntryInstr*>& block_order)
-      : block_order_(block_order), current_iterator_(NULL) { }
+      : current_iterator_(NULL), block_order_(block_order) { }
   virtual ~FlowGraphVisitor() { }
 
   ForwardInstructionIterator* current_iterator() const {
@@ -8198,10 +8196,10 @@ class FlowGraphVisitor : public ValueObject {
 #undef DECLARE_VISIT_INSTRUCTION
 
  protected:
-  const GrowableArray<BlockEntryInstr*>& block_order_;
   ForwardInstructionIterator* current_iterator_;
 
  private:
+  const GrowableArray<BlockEntryInstr*>& block_order_;
   DISALLOW_COPY_AND_ASSIGN(FlowGraphVisitor);
 };
 

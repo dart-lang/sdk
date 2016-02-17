@@ -7,6 +7,7 @@ library analyzer.src.generated.testing.element_factory;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -15,7 +16,6 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -202,7 +202,8 @@ class ElementFactory {
   }
 
   static FieldElementImpl fieldElement(
-      String name, bool isStatic, bool isFinal, bool isConst, DartType type) {
+      String name, bool isStatic, bool isFinal, bool isConst, DartType type,
+      {Expression initializer}) {
     FieldElementImpl field = isConst
         ? new ConstFieldElementImpl(name, 0)
         : new FieldElementImpl(name, 0);
@@ -210,6 +211,9 @@ class ElementFactory {
     field.final2 = isFinal;
     field.static = isStatic;
     field.type = type;
+    if (isConst) {
+      (field as ConstFieldElementImpl).constantInitializer = initializer;
+    }
     PropertyAccessorElementImpl getter =
         new PropertyAccessorElementImpl.forVariable(field);
     getter.getter = true;
@@ -493,6 +497,16 @@ class ElementFactory {
     ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED;
     parameter.type = type;
+    return parameter;
+  }
+
+  static ParameterElementImpl namedParameter3(String name,
+      {DartType type, Expression initializer}) {
+    DefaultParameterElementImpl parameter =
+        new DefaultParameterElementImpl(name, 0);
+    parameter.parameterKind = ParameterKind.NAMED;
+    parameter.type = type;
+    parameter.constantInitializer = initializer;
     return parameter;
   }
 

@@ -2086,7 +2086,7 @@ DEFINE_NATIVE_ENTRY(VariableMirror_type, 2) {
 DEFINE_NATIVE_ENTRY(TypeMirror_subtypeTest, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, a, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, b, arguments->NativeArgAt(1));
-  return Bool::Get(a.IsSubtypeOf(b, NULL)).raw();
+  return Bool::Get(a.IsSubtypeOf(b, NULL, NULL, Heap::kNew)).raw();
 }
 
 

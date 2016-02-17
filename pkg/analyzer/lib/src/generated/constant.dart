@@ -7,6 +7,7 @@ library analyzer.src.generated.constant;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -21,7 +22,6 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:analyzer/src/generated/scanner.dart' show Token, TokenType;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/type_system.dart'
     show TypeSystem, TypeSystemImpl;
@@ -31,11 +31,11 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
 
 ConstructorElementImpl _getConstructorImpl(ConstructorElement constructor) {
-  if (constructor is ConstructorElementHandle) {
-    constructor = (constructor as ConstructorElementHandle).actualElement;
-  }
   while (constructor is ConstructorMember) {
     constructor = (constructor as ConstructorMember).baseElement;
+  }
+  if (constructor is ConstructorElementHandle) {
+    constructor = (constructor as ConstructorElementHandle).actualElement;
   }
   return constructor;
 }
@@ -1248,8 +1248,8 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   /**
    * The elements and AST nodes whose constant values need to be computed.
    */
-  HashSet<ConstantEvaluationTarget> constantsToCompute =
-      new HashSet<ConstantEvaluationTarget>();
+  List<ConstantEvaluationTarget> constantsToCompute =
+      <ConstantEvaluationTarget>[];
 
   /**
    * True if instance variables marked as "final" should be treated as "const".

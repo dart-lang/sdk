@@ -76,17 +76,18 @@ gen_library_src_path("generate_builtin_cc_file") {
 }
 
 
-iolib_sources_gypi =
+sdk_io_sources_gypi =
     exec_script("../../tools/gypi_to_gn.py",
-                [rebase_path("../../sdk/lib/io/iolib_sources.gypi")],
+                [rebase_path("../../sdk/lib/io/io_sources.gypi")],
                 "scope",
-                ["../../sdk/lib/io/iolib_sources.gypi"])
-iolib_sources = rebase_path(iolib_sources_gypi.sources, ".", "../../sdk/lib/io")
+                ["../../sdk/lib/io/io_sources.gypi"])
+sdk_io_sources =
+    rebase_path(sdk_io_sources_gypi.sources, ".", "../../sdk/lib/io")
 
 gen_library_src_path("generate_io_cc_file") {
   name = "io"
   kind = "source"
-  sources = ["../../sdk/lib/io/io.dart"] + iolib_sources
+  sources = ["../../sdk/lib/io/io.dart"] + sdk_io_sources
   output = "$target_gen_dir/io_gen.cc"
 }
 

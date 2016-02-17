@@ -5,8 +5,8 @@
 library analyzer.test.dart.ast.ast_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:unittest/unittest.dart';
@@ -502,7 +502,7 @@ class NodeListTest extends EngineTestCase {
     list.addAll(nodes);
     expect(list, hasLength(3));
     AstNode fourthNode = AstFactory.integer(0);
-    expect(javaListSet(list, 1, fourthNode), same(secondNode));
+    list[1] = fourthNode;
     expect(list, hasLength(3));
     expect(list[0], same(firstNode));
     expect(list[1], same(fourthNode));
@@ -513,7 +513,7 @@ class NodeListTest extends EngineTestCase {
     AstNode node = AstFactory.booleanLiteral(true);
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList());
     try {
-      javaListSet(list, -1, node);
+      list[-1] = node;
       fail("Expected IndexOutOfBoundsException");
     } on RangeError {
       // Expected
@@ -524,7 +524,7 @@ class NodeListTest extends EngineTestCase {
     AstNode node = AstFactory.booleanLiteral(true);
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList());
     try {
-      javaListSet(list, 1, node);
+      list[1] = node;
       fail("Expected IndexOutOfBoundsException");
     } on RangeError {
       // Expected

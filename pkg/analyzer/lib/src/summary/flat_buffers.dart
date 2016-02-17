@@ -63,6 +63,8 @@ class BufferPointer {
   int _getUint32([int delta = 0]) =>
       _buffer.getUint32(_offset + delta, Endianness.LITTLE_ENDIAN);
 
+  int _getUint8([int delta = 0]) => _buffer.getUint8(_offset + delta);
+
   /**
    * If the [byteList] is already a [Uint8List] return it.
    * Otherwise return a [Uint8List] copy of the [byteList].
@@ -110,6 +112,12 @@ class Builder {
 
   _VTable _currentVTable;
 
+  /**
+   * Map containing all strings that have been written so far.  This allows us
+   * to avoid duplicating strings.
+   */
+  Map<String, Offset<String>> _strings = <String, Offset<String>>{};
+
   Builder({this.initialSize: 1024}) {
     reset();
   }
@@ -120,9 +128,7 @@ class Builder {
    * `0` for `false` and `1` for `true`.
    */
   void addBool(int field, bool value, [bool def]) {
-    if (_currentVTable == null) {
-      throw new StateError('Start a table before adding values.');
-    }
+    _ensureCurrentVTable();
     if (value != null && value != def) {
       int size = 1;
       _prepare(size, 1);
@@ -136,9 +142,7 @@ class Builder {
    * not added if the [value] is equal to [def].
    */
   void addInt32(int field, int value, [int def]) {
-    if (_currentVTable == null) {
-      throw new StateError('Start a table before adding values.');
-    }
+    _ensureCurrentVTable();
     if (value != null && value != def) {
       int size = 4;
       _prepare(size, 1);
@@ -152,9 +156,7 @@ class Builder {
    * not added if the [value] is equal to [def].
    */
   void addInt8(int field, int value, [int def]) {
-    if (_currentVTable == null) {
-      throw new StateError('Start a table before adding values.');
-    }
+    _ensureCurrentVTable();
     if (value != null && value != def) {
       int size = 1;
       _prepare(size, 1);
@@ -167,9 +169,7 @@ class Builder {
    * Add the [field] referencing an object with the given [offset].
    */
   void addOffset(int field, Offset offset) {
-    if (_currentVTable == null) {
-      throw new StateError('Start a table before adding values.');
-    }
+    _ensureCurrentVTable();
     if (offset != null) {
       _prepare(4, 1);
       _trackField(field);
@@ -182,14 +182,26 @@ class Builder {
    * is not added if the [value] is equal to [def].
    */
   void addUint32(int field, int value, [int def]) {
-    if (_currentVTable == null) {
-      throw new StateError('Start a table before adding values.');
-    }
+    _ensureCurrentVTable();
     if (value != null && value != def) {
       int size = 4;
       _prepare(size, 1);
       _trackField(field);
       _setUint32AtTail(_buf, _tail, value);
+    }
+  }
+
+  /**
+   * Add the [field] with the given 8-bit unsigned integer [value].  The field
+   * is not added if the [value] is equal to [def].
+   */
+  void addUint8(int field, int value, [int def]) {
+    _ensureCurrentVTable();
+    if (value != null && value != def) {
+      int size = 1;
+      _prepare(size, 1);
+      _trackField(field);
+      _setUint8AtTail(_buf, _tail, value);
     }
   }
 
@@ -200,11 +212,11 @@ class Builder {
     if (_currentVTable == null) {
       throw new StateError('Start a table before ending it.');
     }
-    // Prepare the size of the current table.
-    _currentVTable.tableSize = _tail - _currentTableEndTail;
     // Prepare for writing the VTable.
     _prepare(4, 1);
     int tableTail = _tail;
+    // Prepare the size of the current table.
+    _currentVTable.tableSize = tableTail - _currentTableEndTail;
     // Prepare the VTable to use for the current table.
     int vTableTail;
     {
@@ -301,10 +313,7 @@ class Builder {
    * Write the given list of [values].
    */
   Offset writeList(List<Offset> values) {
-    if (_currentVTable != null) {
-      throw new StateError(
-          'Cannot write a non-scalar value while writing a table.');
-    }
+    _ensureNoVTable();
     _prepare(4, 1 + values.length);
     Offset result = new Offset(_tail);
     int tail = _tail;
@@ -321,10 +330,7 @@ class Builder {
    * Write the given list of 64-bit float [values].
    */
   Offset writeListFloat64(List<double> values) {
-    if (_currentVTable != null) {
-      throw new StateError(
-          'Cannot write a non-scalar value while writing a table.');
-    }
+    _ensureNoVTable();
     _prepare(8, 1 + values.length);
     Offset result = new Offset(_tail);
     int tail = _tail;
@@ -341,10 +347,7 @@ class Builder {
    * Write the given list of signed 32-bit integer [values].
    */
   Offset writeListInt32(List<int> values) {
-    if (_currentVTable != null) {
-      throw new StateError(
-          'Cannot write a non-scalar value while writing a table.');
-    }
+    _ensureNoVTable();
     _prepare(4, 1 + values.length);
     Offset result = new Offset(_tail);
     int tail = _tail;
@@ -361,10 +364,7 @@ class Builder {
    * Write the given list of unsigned 32-bit integer [values].
    */
   Offset writeListUint32(List<int> values) {
-    if (_currentVTable != null) {
-      throw new StateError(
-          'Cannot write a non-scalar value while writing a table.');
-    }
+    _ensureNoVTable();
     _prepare(4, 1 + values.length);
     Offset result = new Offset(_tail);
     int tail = _tail;
@@ -378,28 +378,63 @@ class Builder {
   }
 
   /**
+   * Write the given list of unsigned 8-bit integer [values].
+   */
+  Offset writeListUint8(List<int> values) {
+    _ensureNoVTable();
+    _prepare(4, 1, additionalBytes: values.length);
+    Offset result = new Offset(_tail);
+    int tail = _tail;
+    _setUint32AtTail(_buf, tail, values.length);
+    tail -= 4;
+    for (int value in values) {
+      _setUint8AtTail(_buf, tail, value);
+      tail -= 1;
+    }
+    return result;
+  }
+
+  /**
    * Write the given string [value] and return its [Offset], or `null` if
    * the [value] is equal to [def].
    */
   Offset<String> writeString(String value, [String def]) {
+    _ensureNoVTable();
+    if (value != def) {
+      return _strings.putIfAbsent(value, () {
+        // TODO(scheglov) optimize for ASCII strings
+        List<int> bytes = UTF8.encode(value);
+        int length = bytes.length;
+        _prepare(4, 1, additionalBytes: length);
+        Offset<String> result = new Offset(_tail);
+        _setUint32AtTail(_buf, _tail, length);
+        int offset = _buf.lengthInBytes - _tail + 4;
+        for (int i = 0; i < length; i++) {
+          _buf.setUint8(offset++, bytes[i]);
+        }
+        return result;
+      });
+    }
+    return null;
+  }
+
+  /**
+   * Throw an exception if there is not currently a vtable.
+   */
+  void _ensureCurrentVTable() {
+    if (_currentVTable == null) {
+      throw new StateError('Start a table before adding values.');
+    }
+  }
+
+  /**
+   * Throw an exception if there is currently a vtable.
+   */
+  void _ensureNoVTable() {
     if (_currentVTable != null) {
       throw new StateError(
           'Cannot write a non-scalar value while writing a table.');
     }
-    if (value != def) {
-      // TODO(scheglov) optimize for ASCII strings
-      List<int> bytes = UTF8.encode(value);
-      int length = bytes.length;
-      _prepare(4, 1, additionalBytes: length);
-      Offset<String> result = new Offset(_tail);
-      _setUint32AtTail(_buf, _tail, length);
-      int offset = _buf.lengthInBytes - _tail + 4;
-      for (int i = 0; i < length; i++) {
-        _buf.setUint8(offset++, bytes[i]);
-      }
-      return result;
-    }
-    return null;
   }
 
   /**
@@ -452,6 +487,10 @@ class Builder {
 
   static void _setUint32AtTail(ByteData _buf, int tail, int x) {
     _buf.setUint32(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+  }
+
+  static void _setUint8AtTail(ByteData _buf, int tail, int x) {
+    _buf.setUint8(_buf.lengthInBytes - tail, x);
   }
 }
 
@@ -511,7 +550,7 @@ class ListReader<E> extends Reader<List<E>> {
 
   @override
   List<E> read(BufferPointer bp) =>
-      new _FbInt32List<E>(_elementReader, bp.derefObject());
+      new _FbGenericList<E>(_elementReader, bp.derefObject());
 }
 
 /**
@@ -598,6 +637,21 @@ abstract class TableReader<T> extends Reader<T> {
 }
 
 /**
+ * Reader of lists of 32-bit float values.
+ *
+ * The returned unmodifiable lists lazily read values on access.
+ */
+class Uint32ListReader extends Reader<List<int>> {
+  const Uint32ListReader();
+
+  @override
+  int get size => 4;
+
+  @override
+  List<int> read(BufferPointer bp) => new _FbUint32List(bp.derefObject());
+}
+
+/**
  * The reader of unsigned 32-bit integers.
  */
 class Uint32Reader extends Reader<int> {
@@ -611,21 +665,25 @@ class Uint32Reader extends Reader<int> {
 }
 
 /**
+ * The reader of unsigned 8-bit integers.
+ */
+class Uint8Reader extends Reader<int> {
+  const Uint8Reader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  int read(BufferPointer bp) => bp._getUint8();
+}
+
+/**
  * The list backed by 64-bit values - Uint64 length and Float64.
  */
 class _FbFloat64List extends _FbList<double> {
-  final BufferPointer bp;
-
-  int _length;
   List<double> _items;
 
-  _FbFloat64List(this.bp);
-
-  @override
-  int get length {
-    _length ??= bp._getUint32();
-    return _length;
-  }
+  _FbFloat64List(BufferPointer bp) : super(bp);
 
   @override
   double operator [](int i) {
@@ -641,29 +699,21 @@ class _FbFloat64List extends _FbList<double> {
 }
 
 /**
- * The list backed by 32-bit values - offsets or integers.
+ * List backed by a generic object which may have any size.
  */
-class _FbInt32List<E> extends _FbList<E> {
+class _FbGenericList<E> extends _FbList<E> {
   final Reader<E> elementReader;
-  final BufferPointer bp;
 
-  int _length;
   List<E> _items;
 
-  _FbInt32List(this.elementReader, this.bp);
-
-  @override
-  int get length {
-    _length ??= bp._getUint32();
-    return _length;
-  }
+  _FbGenericList(this.elementReader, BufferPointer bp) : super(bp);
 
   @override
   E operator [](int i) {
     _items ??= new List<E>(length);
     E item = _items[i];
     if (item == null) {
-      BufferPointer ref = bp._advance(4 + 4 * i);
+      BufferPointer ref = bp._advance(4 + elementReader.size * i);
       item = elementReader.read(ref);
       _items[i] = item;
     }
@@ -675,6 +725,17 @@ class _FbInt32List<E> extends _FbList<E> {
  * The base class for immutable lists read from flat buffers.
  */
 abstract class _FbList<E> extends Object with ListMixin<E> implements List<E> {
+  final BufferPointer bp;
+  int _length;
+
+  _FbList(this.bp);
+
+  @override
+  int get length {
+    _length ??= bp._getUint32();
+    return _length;
+  }
+
   @override
   void set length(int i) =>
       throw new StateError('Attempt to modify immutable list');
@@ -682,6 +743,26 @@ abstract class _FbList<E> extends Object with ListMixin<E> implements List<E> {
   @override
   void operator []=(int i, E e) =>
       throw new StateError('Attempt to modify immutable list');
+}
+
+/**
+ * List backed by 32-bit unsigned integers.
+ */
+class _FbUint32List extends _FbList<int> {
+  List<int> _items;
+
+  _FbUint32List(BufferPointer bp) : super(bp);
+
+  @override
+  int operator [](int i) {
+    _items ??= new List<int>(length);
+    int item = _items[i];
+    if (item == null) {
+      item = bp._getUint32(4 + 4 * i);
+      _items[i] = item;
+    }
+    return item;
+  }
 }
 
 /**

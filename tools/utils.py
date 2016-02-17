@@ -573,38 +573,6 @@ def ExecuteCommand(cmd):
   return pipe.returncode, output
 
 
-def DartBinary():
-  # TODO(24311): Replace all uses of this with CheckedInSdk[Fix]Executable().
-  tools_dir = os.path.dirname(os.path.realpath(__file__))
-  dart_binary_prefix = os.path.join(tools_dir, 'testing', 'bin')
-  if IsWindows():
-    return os.path.join(dart_binary_prefix, 'windows', 'dart.exe')
-  else:
-    arch = GuessArchitecture()
-    system = GuessOS()
-    if arch == 'armv5te':
-      # TODO(zra): This binary does not exist, yet. Check one in once we have
-      # sufficient stability.
-      return os.path.join(dart_binary_prefix, system, 'dart-armv5te')
-    elif arch == 'armv6':
-      # TODO(zra): Ditto.
-      return os.path.join(dart_binary_prefix, system, 'dart-armv6')
-    elif arch == 'arm':
-      return os.path.join(dart_binary_prefix, system, 'dart-arm')
-    elif arch == 'arm64':
-      return os.path.join(dart_binary_prefix, system, 'dart-arm64')
-    elif arch == 'mips':
-      return os.path.join(dart_binary_prefix, system, 'dart-mips')
-    else:
-      return os.path.join(dart_binary_prefix, system, 'dart')
-
-
-def DartSdkBinary():
-  tools_dir = os.path.dirname(os.path.realpath(__file__))
-  dart_binary_prefix = os.path.join(tools_dir, '..', 'sdk' , 'bin')
-  return os.path.join(dart_binary_prefix, 'dart')
-
-
 # The checked-in SDKs are documented at
 #     https://github.com/dart-lang/sdk/wiki/The-checked-in-SDK-in-tools
 def CheckedInSdkPath():
@@ -635,7 +603,14 @@ def CheckedInSdkExecutable():
     elif arch == 'arm':
       name = 'dart-arm'
     elif arch == 'arm64':
-      name = 'dart-arm'
+      name = 'dart-arm64'
+    elif arch == 'armv5te':
+      # TODO(zra): This binary does not exist, yet. Check one in once we have
+      # sufficient stability.
+      name = 'dart-armv5te'
+    elif arch == 'armv6':
+      # TODO(zra): Ditto.
+      name = 'dart-armv6'
   return os.path.join(CheckedInSdkPath(), 'bin', name)
 
 

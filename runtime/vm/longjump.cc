@@ -29,7 +29,10 @@ bool LongJumpScope::IsSafeToJump() {
   uword jumpbuf_addr = Isolate::GetCurrentStackPointer();
 #if defined(USING_SIMULATOR)
   Simulator* sim = Simulator::Current();
-  uword top_exit_frame_info = sim->top_exit_frame_info();
+  // When using simulator, only mutator thread should refer to Simulator
+  // since there can be only one per isolate.
+  uword top_exit_frame_info = thread->IsMutatorThread() ?
+      sim->top_exit_frame_info() : 0;
 #else
   uword top_exit_frame_info = thread->top_exit_frame_info();
 #endif

@@ -13,11 +13,10 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-class MockSdk implements DartSdk {
-  static const _MockSdkLibrary LIB_CORE = const _MockSdkLibrary(
-      'dart:core',
-      '/lib/core/core.dart',
-      '''
+const _MockSdkLibrary _LIB_CORE = const _MockSdkLibrary(
+    'dart:core',
+    '/lib/core/core.dart',
+    '''
 library dart.core;
 
 import 'dart:async';
@@ -40,9 +39,11 @@ abstract class Comparable<T> {
 abstract class String implements Comparable<String> {
   external factory String.fromCharCodes(Iterable<int> charCodes,
                                         [int start = 0, int end]);
+  String operator +(String other) => null;
   bool get isEmpty => false;
   bool get isNotEmpty => false;
   int get length => 0;
+  String substring(int len) => null;
   String toUpperCase();
   List<int> get codeUnits;
 }
@@ -115,10 +116,10 @@ class _Override {
 const Object override = const _Override();
 ''');
 
-  static const _MockSdkLibrary LIB_ASYNC = const _MockSdkLibrary(
-      'dart:async',
-      '/lib/async/async.dart',
-      '''
+const _MockSdkLibrary _LIB_ASYNC = const _MockSdkLibrary(
+    'dart:async',
+    '/lib/async/async.dart',
+    '''
 library dart.async;
 
 import 'dart:math';
@@ -126,37 +127,36 @@ import 'dart:math';
 part 'stream.dart';
 
 class Future<T> {
+  factory Future(computation()) => null;
   factory Future.delayed(Duration duration, [T computation()]) => null;
-  factory Future.value([value]) => null;
+  factory Future.value([T value]) => null;
 
-  static Future<List</*<T>*/> wait/*<T>*/(
+  static Future<List/*<T>*/> wait/*<T>*/(
       Iterable<Future/*<T>*/> futures) => null;
   Future/*<R>*/ then/*<R>*/(/*=R*/ onValue(T value)) => null;
 }
 ''',
-      const <_MockSdkFile>[
-    const _MockSdkFile(
-        '/lib/async/stream.dart',
-        r'''
+    const <String, String>{
+      '/lib/async/stream.dart': r'''
 part of dart.async;
 class Stream<T> {}
 abstract class StreamTransformer<S, T> {}
-''')
-  ]);
+'''
+    });
 
-  static const _MockSdkLibrary LIB_COLLECTION = const _MockSdkLibrary(
-      'dart:collection',
-      '/lib/collection/collection.dart',
-      '''
+const _MockSdkLibrary _LIB_COLLECTION = const _MockSdkLibrary(
+    'dart:collection',
+    '/lib/collection/collection.dart',
+    '''
 library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {}
 ''');
 
-  static const _MockSdkLibrary LIB_CONVERT = const _MockSdkLibrary(
-      'dart:convert',
-      '/lib/convert/convert.dart',
-      '''
+const _MockSdkLibrary _LIB_CONVERT = const _MockSdkLibrary(
+    'dart:convert',
+    '/lib/convert/convert.dart',
+    '''
 library dart.convert;
 
 import 'dart:async';
@@ -165,10 +165,21 @@ abstract class Converter<S, T> implements StreamTransformer {}
 class JsonDecoder extends Converter<String, Object> {}
 ''');
 
-  static const _MockSdkLibrary LIB_MATH = const _MockSdkLibrary(
-      'dart:math',
-      '/lib/math/math.dart',
-      '''
+const _MockSdkLibrary _LIB_FOREIGN_HELPER = const _MockSdkLibrary(
+    'dart:_foreign_helper',
+    '/lib/_foreign_helper/_foreign_helper.dart',
+    '''
+library dart._foreign_helper;
+
+JS(String typeDescription, String codeTemplate,
+  [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11])
+{}
+''');
+
+const _MockSdkLibrary _LIB_MATH = const _MockSdkLibrary(
+    'dart:math',
+    '/lib/math/math.dart',
+    '''
 library dart.math;
 
 const double E = 2.718281828459045;
@@ -188,23 +199,25 @@ class Random {
 }
 ''');
 
-  static const _MockSdkLibrary LIB_HTML = const _MockSdkLibrary(
-      'dart:html',
-      '/lib/html/dartium/html_dartium.dart',
-      '''
+const _MockSdkLibrary _LIB_HTML = const _MockSdkLibrary(
+    'dart:html',
+    '/lib/html/dartium/html_dartium.dart',
+    '''
 library dart.html;
 class HtmlElement {}
 ''');
 
-  static const List<SdkLibrary> LIBRARIES = const [
-    LIB_CORE,
-    LIB_ASYNC,
-    LIB_COLLECTION,
-    LIB_CONVERT,
-    LIB_MATH,
-    LIB_HTML,
-  ];
+const List<SdkLibrary> _LIBRARIES = const [
+  _LIB_CORE,
+  _LIB_ASYNC,
+  _LIB_COLLECTION,
+  _LIB_CONVERT,
+  _LIB_FOREIGN_HELPER,
+  _LIB_MATH,
+  _LIB_HTML,
+];
 
+class MockSdk implements DartSdk {
   final resource.MemoryResourceProvider provider =
       new resource.MemoryResourceProvider();
 
@@ -213,13 +226,14 @@ class HtmlElement {}
    */
   AnalysisContextImpl _analysisContext;
 
-  MockSdk() {
-    LIBRARIES.forEach((_MockSdkLibrary library) {
+  MockSdk({bool dartAsync: true})
+      : sdkLibraries = dartAsync ? _LIBRARIES : [_LIB_CORE] {
+    for (_MockSdkLibrary library in sdkLibraries) {
       provider.newFile(library.path, library.content);
-      library.parts.forEach((file) {
-        provider.newFile(file.path, file.content);
+      library.parts.forEach((String path, String content) {
+        provider.newFile(path, content);
       });
-    });
+    }
   }
 
   @override
@@ -233,21 +247,14 @@ class HtmlElement {}
   }
 
   @override
-  List<SdkLibrary> get sdkLibraries => LIBRARIES;
+  final List<SdkLibrary> sdkLibraries;
 
   @override
-  String get sdkVersion => throw unimplemented;
-
-  UnimplementedError get unimplemented => new UnimplementedError();
+  String get sdkVersion => throw new UnimplementedError();
 
   @override
-  List<String> get uris {
-    List<String> uris = <String>[];
-    for (SdkLibrary library in LIBRARIES) {
-      uris.add(library.shortName);
-    }
-    return uris;
-  }
+  List<String> get uris =>
+      sdkLibraries.map((SdkLibrary library) => library.shortName).toList();
 
   @override
   Source fromFileUri(Uri uri) {
@@ -256,7 +263,7 @@ class HtmlElement {}
     if (!filePath.startsWith("$libPath/")) {
       return null;
     }
-    for (SdkLibrary library in LIBRARIES) {
+    for (SdkLibrary library in sdkLibraries) {
       String libraryPath = library.path;
       if (filePath.replaceAll('\\', '/') == libraryPath) {
         try {
@@ -299,6 +306,7 @@ class HtmlElement {}
       "dart:async/stream.dart": "/lib/async/stream.dart",
       "dart:collection": "/lib/collection/collection.dart",
       "dart:convert": "/lib/convert/convert.dart",
+      "dart:_foreign_helper": "/lib/_foreign_helper/_foreign_helper.dart",
       "dart:math": "/lib/math/math.dart"
     };
 
@@ -315,44 +323,35 @@ class HtmlElement {}
   }
 }
 
-class _MockSdkFile {
-  final String path;
-  final String content;
-
-  const _MockSdkFile(this.path, this.content);
-}
-
 class _MockSdkLibrary implements SdkLibrary {
   final String shortName;
   final String path;
   final String content;
-  final List<_MockSdkFile> parts;
+  final Map<String, String> parts;
 
   const _MockSdkLibrary(this.shortName, this.path, this.content,
-      [this.parts = const <_MockSdkFile>[]]);
+      [this.parts = const <String, String>{}]);
 
   @override
-  String get category => throw unimplemented;
+  String get category => throw new UnimplementedError();
 
   @override
-  bool get isDart2JsLibrary => throw unimplemented;
+  bool get isDart2JsLibrary => throw new UnimplementedError();
 
   @override
-  bool get isDocumented => throw unimplemented;
+  bool get isDocumented => throw new UnimplementedError();
 
   @override
-  bool get isImplementation => throw unimplemented;
+  bool get isImplementation => throw new UnimplementedError();
 
   @override
-  bool get isInternal => throw unimplemented;
+  bool get isInternal => throw new UnimplementedError();
 
   @override
-  bool get isShared => throw unimplemented;
+  bool get isShared => throw new UnimplementedError();
 
   @override
-  bool get isVmLibrary => throw unimplemented;
-
-  UnimplementedError get unimplemented => new UnimplementedError();
+  bool get isVmLibrary => throw new UnimplementedError();
 }
 
 /**

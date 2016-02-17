@@ -9619,12 +9619,6 @@ WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Ti
 [ $compiler == dart2js && $cps_ir ]
 Language/Types/Interface_Types/subtype_t09: Crash # Pending static: JSArray
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
-LibTest/core/Invocation/isAccessor_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/isGetter_A01_t01: RuntimeError # Please triage this failure.
-LibTest/core/Invocation/isGetter_A01_t02: RuntimeError # Please triage this failure.
-LibTest/core/Invocation/isMethod_A01_t02: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
-LibTest/core/Invocation/isSetter_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/isSetter_A01_t02: RuntimeError # Please triage this failure.
-LibTest/core/Invocation/memberName_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
-LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError # Please triage this failure.
-LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # Please triage this failure.
+LibTest/core/Invocation/memberName_A01_t01: RuntimeError # Expect.equals(expected: <Symbol("bar=")>, actual: <Symbol("bar")>) fails.

@@ -11,7 +11,7 @@
  * co19.
  *
  * Usage:
- * [: ./tools/testing/bin/$OS/dart tools/testing/dart/co19_test.dart :]
+ * [: dart tools/testing/dart/co19_test.dart :]
  */
 
 library co19_test;

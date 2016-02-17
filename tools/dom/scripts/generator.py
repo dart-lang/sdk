@@ -457,7 +457,14 @@ class OperationInfo(object):
         parameter declaration.
     """
     def FormatParam(param):
-      dart_type = rename_type(param.type_id) if param.type_id else 'dynamic'
+      # Is the type a typedef if so it's a union so it's dynamic.
+      # TODO(terry): This may have to change for dart2js for code shaking the
+      #              return types (unions) needs to be emitted with @create
+      #              annotations and/or with JS('type1|type2',...)
+      if hasattr(rename_type, 'im_self') and rename_type.im_self._database.HasTypeDef(param.type_id):
+        dart_type = 'dynamic'
+      else:
+        dart_type = rename_type(param.type_id) if param.type_id else 'dynamic'
       return (TypeOrNothing(dart_type, param.type_id), param.name)
     required = []
     optional = []
@@ -1367,6 +1374,9 @@ class TypeRegistry(object):
   def HasInterface(self, type_name):
     return self._database.HasInterface(type_name)
 
+  def HasTypeDef(self, type_def_name):
+    return self._database.HasTypeDef(type_def_name)
+
   def TypeInfo(self, type_name):
     if not type_name in self._cache:
       self._cache[type_name] = self._TypeInfo(type_name)
@@ -1379,7 +1389,11 @@ class TypeRegistry(object):
     match = re.match(r'(?:sequence<([\w ]+)>|(\w+)\[\])$', type_name)
     if match:
       type_data = TypeData('Sequence')
-      item_info = self.TypeInfo(match.group(1) or match.group(2))
+      if self.HasTypeDef(match.group(1) or match.group(2)):
+        # It's a typedef (union)
+        item_info = self.TypeInfo('any')
+      else:
+        item_info = self.TypeInfo(match.group(1) or match.group(2))
       # TODO(vsm): Generalize this code.
       if 'SourceInfo' in type_name:
         type_data.native_type = 'const Vector<RefPtr<SourceInfo> >& '
@@ -1393,8 +1407,23 @@ class TypeRegistry(object):
 
       if self._database.HasInterface(type_name):
         interface = self._database.GetInterface(type_name)
-      else:
+      elif self._database.HasDictionary(type_name):
         interface = self._database.GetDictionary(type_name)
+      elif type_name.startswith('sequence<('):
+        if type_name.find(' or ') != -1:
+          # Union type of sequence is an any type (no type).
+          type_data = TypeData('Sequence')
+          item_info = self.TypeInfo('any')
+          return SequenceIDLTypeInfo(type_name, type_data, item_info)
+      elif type_name.startswith('sequence<sequence<'):
+        # TODO(terry): Cleanup up list of list, etc.
+        type_data = TypeData('Sequence')
+        item_info = self.TypeInfo('any')
+        return SequenceIDLTypeInfo(type_name, type_data, item_info)
+      elif self.HasTypeDef(type_name):
+        # It's a typedef (implied union)
+        return self.TypeInfo('any')
+
       if 'Callback' in interface.ext_attrs:
         return CallbackIDLTypeInfo(type_name, TypeData('Callback',
             self._renamer.DartifyTypeName(type_name)))

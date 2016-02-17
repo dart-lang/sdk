@@ -25,6 +25,7 @@
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_inliner.h"
 #include "vm/flow_graph_optimizer.h"
+#include "vm/flow_graph_range_analysis.h"
 #include "vm/flow_graph_type_propagator.h"
 #include "vm/il_printer.h"
 #include "vm/longjump.h"
@@ -518,18 +519,8 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
     }
 
     // Register code with the classes it depends on because of CHA and
-    // fields it depends on because of store guards.
-    // Deoptimize field dependent code first, before registering
-    // this yet uninstalled code as dependent on a field.
-    // TODO(srdjan): Debugging dart2js crashes;
-    // FlowGraphOptimizer::VisitStoreInstanceField populates
-    // deoptimize_dependent_code() list, currently disabled.
-    for (intptr_t i = 0;
-         i < flow_graph->deoptimize_dependent_code().length();
-         i++) {
-      const Field* field = flow_graph->deoptimize_dependent_code()[i];
-      field->DeoptimizeDependentCode();
-    }
+    // fields it depends on because of store guards, unless we cannot
+    // deopt.
     for (intptr_t i = 0;
          i < thread()->cha()->leaf_classes().length();
          ++i) {
@@ -584,7 +575,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   // longjmp from the ARM or MIPS assemblers. In all other paths through this
   // while loop, done is set to true. use_far_branches is always false on ia32
   // and x64.
-  bool done = false;
+  volatile bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
   volatile bool use_far_branches = false;
   const bool use_speculative_inlining = false;
@@ -615,8 +606,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
           // 'Freeze' ICData in background compilation so that it does not
           // change while compiling.
-          const bool clone_descriptors = Compiler::IsBackgroundCompilation();
-          function.RestoreICDataMap(ic_data_array, clone_descriptors);
+          const bool clone_ic_data = Compiler::IsBackgroundCompilation();
+          function.RestoreICDataMap(ic_data_array, clone_ic_data);
 
           if (Compiler::IsBackgroundCompilation() &&
               (function.ic_data_array() == Array::null())) {
@@ -895,7 +886,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // We have to perform range analysis after LICM because it
           // optimistically moves CheckSmi through phis into loop preheaders
           // making some phis smi.
-          optimizer.InferIntRanges();
+          RangeAnalysis range_analysis(flow_graph);
+          range_analysis.Analyze();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 
@@ -1325,8 +1317,11 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
 
   // Optimization must happen in non-mutator/Dart thread if background
   // compilation is on. OSR compilation still occurs in the main thread.
+  // TODO(Srdjan): Remove assert allowance for regular expression functions
+  // once they can be compiled in background.
   ASSERT((osr_id != kNoOSRDeoptId) || !FLAG_background_compilation ||
-         !thread->IsMutatorThread());
+         !thread->IsMutatorThread() ||
+         function.IsIrregexpFunction());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline,
@@ -1531,6 +1526,9 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 
 
 void Compiler::AbortBackgroundCompilation(intptr_t deopt_id) {
+  if (FLAG_trace_compiler) {
+    THR_Print("ABORT background compilation.");
+  }
   ASSERT(Compiler::IsBackgroundCompilation());
   Thread::Current()->long_jump_base()->Jump(
       deopt_id, Object::background_compilation_error());

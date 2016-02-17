@@ -41,8 +41,9 @@ from time import strptime
 ########################################################################
 
 BRANCH_CURRENT="dart/dartium"
-BRANCH_NEXT="dart/dartium"
-BRANCH_MULTIVM="dart/multivm"
+BRANCH_NEXT="dart/2454_1"
+
+# (repo_name, deps_dir, repo_branch, prefix, repos, branch)
 
 TARGETS = {
   'dartium': (
@@ -56,9 +57,9 @@ TARGETS = {
     ),
   'integration': (
     # TODO(jacobr): what is the git repo for integration if any?
-    'https://dart.googlecode.com/svn/branches/dartium_integration/deps/dartium.deps',
+    'git@github.com:dart-lang/sdk.git',
     'tools/deps/dartium.deps',
-    'origin/master',
+    'origin/integration',
     'dartium',
     # TODO(vsm): Reenable 'chromium'
     ['webkit'],

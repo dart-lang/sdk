@@ -8,6 +8,8 @@ import 'dart:collection';
 import "dart:math" as math;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -22,7 +24,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart'
     show Parser, ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart' as sc;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -328,11 +329,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
-    sc.TokenType operatorType = node.operator.type;
+    TokenType operatorType = node.operator.type;
     Expression lhs = node.leftHandSide;
     Expression rhs = node.rightHandSide;
-    if (operatorType == sc.TokenType.EQ ||
-        operatorType == sc.TokenType.QUESTION_QUESTION_EQ) {
+    if (operatorType == TokenType.EQ ||
+        operatorType == TokenType.QUESTION_QUESTION_EQ) {
       _checkForInvalidAssignment(lhs, rhs);
     } else {
       _checkForInvalidCompoundAssignment(node, lhs, rhs);
@@ -353,10 +354,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
-    sc.Token operator = node.operator;
-    sc.TokenType type = operator.type;
-    if (type == sc.TokenType.AMPERSAND_AMPERSAND ||
-        type == sc.TokenType.BAR_BAR) {
+    Token operator = node.operator;
+    TokenType type = operator.type;
+    if (type == TokenType.AMPERSAND_AMPERSAND ||
+        type == TokenType.BAR_BAR) {
       String lexeme = operator.lexeme;
       _checkForAssignability(node.leftOperand, _boolType,
           StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
@@ -947,9 +948,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPrefixExpression(PrefixExpression node) {
-    sc.TokenType operatorType = node.operator.type;
+    TokenType operatorType = node.operator.type;
     Expression operand = node.operand;
-    if (operatorType == sc.TokenType.BANG) {
+    if (operatorType == TokenType.BANG) {
       _checkForNonBoolNegationExpression(operand);
     } else if (operatorType.isIncrementOperator) {
       _checkForAssignmentToFinal(operand);
@@ -2169,8 +2170,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForBuiltInIdentifierAsName(
       SimpleIdentifier identifier, ErrorCode errorCode) {
-    sc.Token token = identifier.token;
-    if (token.type == sc.TokenType.KEYWORD) {
+    Token token = identifier.token;
+    if (token.type == TokenType.KEYWORD) {
       _errorReporter
           .reportErrorForNode(errorCode, identifier, [identifier.name]);
       return true;
@@ -2831,8 +2832,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (type.element.isAbstract) {
       ConstructorElement element = expression.staticElement;
       if (element != null && !element.isFactory) {
-        if ((expression.keyword as sc.KeywordToken).keyword ==
-            sc.Keyword.CONST) {
+        if ((expression.keyword as KeywordToken).keyword ==
+            Keyword.CONST) {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName);
         } else {
@@ -3981,7 +3982,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForInvalidModifierOnBody(
       FunctionBody body, CompileTimeErrorCode errorCode) {
-    sc.Token keyword = body.keyword;
+    Token keyword = body.keyword;
     if (keyword != null) {
       _errorReporter.reportErrorForToken(errorCode, keyword, [keyword.lexeme]);
       return true;
@@ -5852,7 +5853,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     int count = directives.length;
     if (count > 1) {
       for (int i = 0; i < count; i++) {
-        sc.Token deferredToken = directives[i].deferredKeyword;
+        Token deferredToken = directives[i].deferredKeyword;
         if (deferredToken != null) {
           _errorReporter.reportErrorForToken(
               CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, deferredToken);

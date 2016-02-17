@@ -8,9 +8,7 @@ import sys
 
 import idl_definitions
 from idl_types import IdlType, IdlNullableType, IdlUnionType, IdlArrayOrSequenceType
-
-from compute_interfaces_info_overall import interfaces_info
-
+import dependency
 
 new_asts = {}
 
@@ -363,7 +361,7 @@ class IDLFile(IDLNode):
           # Special handling for dart.idl we need to remember the interface,
           # since we could have many (not one interface / file). Then build up
           # the IDLImplementsStatement for any implements in dart.idl.
-          interface_info = interfaces_info['__dart_idl___'];
+          interface_info = dependency.get_interfaces_info()['__dart_idl___'];
 
           self.implementsStatements = []
 
@@ -377,10 +375,10 @@ class IDLFile(IDLNode):
                                                                   implemented_name)
 
             self.implementsStatements.append(implement_statement)
-        elif interface.id in interfaces_info:
-          interface_info = interfaces_info[interface.id]
+        elif interface.id in dependency.get_interfaces_info():
+          interface_info = dependency.get_interfaces_info()[interface.id]
 
-          implements = interface_info['implements_interfaces']
+          implements = interface_info['implements_interfaces'] if interface_info.has_key('implements_interfaces') else []
           if not(blink_interface.is_partial) and len(implements) > 0:
             implementor = new_asts[interface.id].interfaces.get(interface.id)
 
@@ -399,6 +397,15 @@ class IDLFile(IDLNode):
 
     # No reason to handle typedef they're already aliased in Blink's AST.
     self.typeDefs = [] if is_blink else self._convert_all(ast, 'TypeDef', IDLTypeDef)
+
+    # Hack to record typedefs that are unions.
+    for typedefName in ast.typedefs:
+      typedef_type = ast.typedefs[typedefName]
+      if isinstance(typedef_type.idl_type, IdlUnionType):
+        self.typeDefs.append(IDLTypeDef(typedef_type))
+      elif typedef_type.idl_type.base_type == 'Dictionary':
+        dictionary = IDLDictionary(typedef_type, True)
+        self.dictionaries.append(dictionary)
 
     self.enums = self._convert_all(ast, 'Enum', IDLEnum)
 
@@ -433,7 +440,7 @@ class IDLModule(IDLNode):
       # implements is handled by the interface merging step (see the function
       # merge_interface_dependencies).
       for interface in self.interfaces:
-        interface_info = interfaces_info[interface.id]
+        interface_info = get_interfaces_info()[interface.id]
         # TODO(terry): Same handling for implementsStatements as in IDLFile?
         self.implementsStatements = interface_info['implements_interfaces']
     else:
@@ -567,13 +574,12 @@ class IDLType(IDLNode):
       if isinstance(ast, IdlType) or isinstance(ast, IdlArrayOrSequenceType) or \
          isinstance(ast, IdlNullableType):
         type_name = str(ast)
-
         # TODO(terry): For now don't handle unrestricted types see
         #              https://code.google.com/p/chromium/issues/detail?id=354298
         type_name = type_name.replace('unrestricted ', '', 1);
 
-        # TODO(terry): Handled ScalarValueString as a DOMString.
-        type_name = type_name.replace('ScalarValueString', 'DOMString', 1)
+        # TODO(terry): Handled USVString as a DOMString.
+        type_name = type_name.replace('USVString', 'DOMString', 1)
 
         self.id = type_name
       else:
@@ -635,13 +641,16 @@ class IDLDictionary(IDLNode):
   """IDLDictionary node contains members,
   as well as parent references."""
 
-  def __init__(self, ast):
+  def __init__(self, ast, typedefDictionary=False):
     IDLNode.__init__(self, ast)
 
     self.javascript_binding_name = self.id
-    self._convert_ext_attrs(ast)
-    self._convert_constants(ast, self.id)
-
+    if (typedefDictionary):
+        # Dictionary is a typedef to a union.
+        self._convert_ext_attrs(None)
+    else:
+        self._convert_ext_attrs(ast)
+        self._convert_constants(ast, self.id)
 
 class IDLDictionaryMembers(IDLDictNode):
   """IDLDictionaryMembers specialization for a list of FremontCut dictionary values."""
@@ -754,6 +763,8 @@ class IDLOperation(IDLMember):
           # Handling __propertyQuery__ the extended attribute is:
           # [Custom=PropertyQuery] getter boolean (DOMString name);
           self.id = '__propertyQuery__'
+        elif self.ext_attrs.get('ImplementedAs'):
+          self.id = self.ext_attrs.get('ImplementedAs')
         else:
           self.id = '__getter__'
       elif self.specials == ['setter']:

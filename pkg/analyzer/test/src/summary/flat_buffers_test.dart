@@ -4,6 +4,8 @@
 
 library test.src.summary.flat_buffers_test;
 
+import 'dart:typed_data';
+
 import 'package:analyzer/src/summary/flat_buffers.dart';
 import 'package:unittest/unittest.dart';
 
@@ -86,6 +88,39 @@ class BuilderTest {
     expect(const Int32Reader().vTableGet(object, 1, 15), 20);
   }
 
+  void test_table_format() {
+    Uint8List byteList;
+    {
+      Builder builder = new Builder(initialSize: 0);
+      builder.startTable();
+      builder.addInt32(0, 10);
+      builder.addInt32(1, 20);
+      builder.addInt32(2, 30);
+      byteList = builder.finish(builder.endTable());
+    }
+    // Convert byteList to a ByteData so that we can read data from it.
+    ByteData byteData = byteList.buffer.asByteData(byteList.offsetInBytes);
+    // First 4 bytes are an offset to the table data.
+    int tableDataLoc = byteData.getUint32(0, Endianness.LITTLE_ENDIAN);
+    // First 4 bytes of the table data are a backwards offset to the vtable.
+    int vTableLoc = tableDataLoc -
+        byteData.getInt32(tableDataLoc, Endianness.LITTLE_ENDIAN);
+    // First 2 bytes of the vtable are the size of the vtable in bytes, which
+    // should be 10.
+    expect(byteData.getUint16(vTableLoc, Endianness.LITTLE_ENDIAN), 10);
+    // Next 2 bytes are the size of the object in bytes (including the vtable
+    // pointer), which should be 16.
+    expect(byteData.getUint16(vTableLoc + 2, Endianness.LITTLE_ENDIAN), 16);
+    // Remaining 6 bytes are the offsets within the object where the ints are
+    // located.
+    for (int i = 0; i < 3; i++) {
+      int offset =
+          byteData.getUint16(vTableLoc + 4 + 2 * i, Endianness.LITTLE_ENDIAN);
+      expect(byteData.getInt32(tableDataLoc + offset, Endianness.LITTLE_ENDIAN),
+          10 + 10 * i);
+    }
+  }
+
   void test_table_types() {
     List<int> byteList;
     {
@@ -98,6 +133,7 @@ class BuilderTest {
       builder.addOffset(3, stringOffset);
       builder.addInt32(4, 40);
       builder.addUint32(5, 0x9ABCDEF0);
+      builder.addUint8(6, 0x9A);
       Offset offset = builder.endTable();
       byteList = builder.finish(offset);
     }
@@ -109,6 +145,23 @@ class BuilderTest {
     expect(const StringReader().vTableGet(object, 3), '12345');
     expect(const Int32Reader().vTableGet(object, 4), 40);
     expect(const Uint32Reader().vTableGet(object, 5), 0x9ABCDEF0);
+    expect(const Uint8Reader().vTableGet(object, 6), 0x9A);
+  }
+
+  void test_writeList_of_Uint32() {
+    List<int> values = <int>[10, 100, 12345, 0x9abcdef0];
+    // write
+    List<int> byteList;
+    {
+      Builder builder = new Builder(initialSize: 0);
+      Offset offset = builder.writeListUint32(values);
+      byteList = builder.finish(offset);
+    }
+    // read and verify
+    BufferPointer root = new BufferPointer.fromBytes(byteList);
+    List<int> items = const Uint32ListReader().read(root);
+    expect(items, hasLength(4));
+    expect(items, orderedEquals(values));
   }
 
   void test_writeList_ofFloat64() {
@@ -226,6 +279,20 @@ class BuilderTest {
     List<int> items = const ListReader<int>(const Uint32Reader()).read(root);
     expect(items, hasLength(3));
     expect(items, orderedEquals(<int>[1, 2, 0x9ABCDEF0]));
+  }
+
+  void test_writeList_ofUint8() {
+    List<int> byteList;
+    {
+      Builder builder = new Builder(initialSize: 0);
+      Offset offset = builder.writeListUint8(<int>[1, 2, 0x9A]);
+      byteList = builder.finish(offset);
+    }
+    // read and verify
+    BufferPointer root = new BufferPointer.fromBytes(byteList);
+    List<int> items = const ListReader<int>(const Uint8Reader()).read(root);
+    expect(items, hasLength(3));
+    expect(items, orderedEquals(<int>[1, 2, 0x9A]));
   }
 }
 

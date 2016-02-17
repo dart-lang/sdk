@@ -2593,10 +2593,15 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       const Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
-      ASSERT(FLAG_allow_absolute_addresses);
-      __ LoadImmediate(TMP, flags_address);
-      __ LoadImmediate(value, Isolate::kOsrRequest);
-      __ str(value, Address(TMP));
+      if (FLAG_allow_absolute_addresses) {
+        __ LoadImmediate(TMP, flags_address);
+        __ LoadImmediate(value, Isolate::kOsrRequest);
+        __ str(value, Address(TMP));
+      } else {
+        __ LoadIsolate(TMP);
+        __ LoadImmediate(value, Isolate::kOsrRequest);
+        __ str(value, Address(TMP, Isolate::stack_overflow_flags_offset()));
+      }
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
@@ -2667,20 +2672,6 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static void EmitJavascriptOverflowCheck(FlowGraphCompiler* compiler,
-                                        Range* range,
-                                        Label* overflow,
-                                        Register result) {
-  if (!RangeUtils::IsWithin(range, -0x20000000000000LL, 0x20000000000000LL)) {
-    ASSERT(overflow != NULL);
-    __ LoadImmediate(TMP, 0x20000000000000LL);
-    __ add(TMP2, result, Operand(TMP));
-    __ cmp(TMP2, Operand(TMP, LSL, 1));
-    __ b(overflow, HI);
-  }
-}
-
-
 static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
                              BinarySmiOpInstr* shift_left) {
   const LocationSummary& locs = *shift_left->locs();
@@ -2704,9 +2695,6 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     }
     // Shift for result now we know there is no overflow.
     __ LslImmediate(result, left, value);
-    if (FLAG_throw_on_javascript_int_overflow) {
-      EmitJavascriptOverflowCheck(compiler, shift_left->range(), deopt, result);
-    }
     return;
   }
 
@@ -2735,9 +2723,6 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       }
       __ SmiUntag(TMP, right);
       __ lslv(result, left, TMP);
-    }
-    if (FLAG_throw_on_javascript_int_overflow) {
-      EmitJavascriptOverflowCheck(compiler, shift_left->range(), deopt, result);
     }
     return;
   }
@@ -2782,9 +2767,6 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     __ b(deopt, NE);  // Overflow.
     // Shift for result now we know there is no overflow.
     __ lslv(result, left, TMP);
-  }
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptOverflowCheck(compiler, shift_left->range(), deopt, result);
   }
 }
 
@@ -2920,9 +2902,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       default:
         UNREACHABLE();
         break;
-    }
-    if (FLAG_throw_on_javascript_int_overflow) {
-      EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
     }
     return;
   }
@@ -3065,9 +3044,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
       break;
-  }
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
   }
 }
 
@@ -4527,9 +4503,6 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnaryOp);
       __ subs(result, ZR, Operand(value));
       __ b(deopt, VS);
-      if (FLAG_throw_on_javascript_int_overflow) {
-        EmitJavascriptOverflowCheck(compiler, range(), deopt, value);
-      }
       break;
     }
     case Token::kBIT_NOT:
@@ -4645,9 +4618,6 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ CompareImmediate(result, 0xC000000000000000);
   __ b(&do_call, MI);
   __ SmiTag(result);
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptOverflowCheck(compiler, range(), &do_call, result);
-  }
   __ b(&done);
   __ Bind(&do_call);
   __ Push(value_obj);
@@ -4695,9 +4665,6 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ CompareImmediate(result, 0xC000000000000000);
   __ b(deopt, MI);
   __ SmiTag(result);
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
-  }
 }
 
 
@@ -5011,9 +4978,6 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ add(TMP, result_mod, Operand(right));
     __ csel(result_mod, TMP, TMP2, GE);
     __ Bind(&done);
-    // FLAG_throw_on_javascript_int_overflow: not needed.
-    // Note that the result of an integer division/modulo of two
-    // in-range arguments, cannot create out-of-range result.
     return;
   }
   if (kind() == MergedMathInstr::kSinCos) {

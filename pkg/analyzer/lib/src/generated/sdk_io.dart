@@ -9,6 +9,8 @@ import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -16,7 +18,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/idl.dart' show SdkBundle;
@@ -207,6 +208,11 @@ class DirectoryBasedDartSdk implements DartSdk {
   JavaFile _libraryDirectory;
 
   /**
+   * The flag that specifies whether SDK summary should be used.
+   */
+  bool _useSummary = false;
+
+  /**
    * The revision number of this SDK, or `"0"` if the revision number cannot be
    * discovered.
    */
@@ -259,10 +265,12 @@ class DirectoryBasedDartSdk implements DartSdk {
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
       // Try to use summaries.
-      SdkBundle sdkBundle = _getSummarySdkBundle();
-      if (sdkBundle != null) {
-        _analysisContext.resultProvider =
-            new SdkSummaryResultProvider(_analysisContext, sdkBundle);
+      if (_useSummary) {
+        SdkBundle sdkBundle = _getSummarySdkBundle();
+        if (sdkBundle != null) {
+          _analysisContext.resultProvider =
+              new SdkSummaryResultProvider(_analysisContext, sdkBundle);
+        }
       }
     }
     return _analysisContext;
@@ -388,6 +396,17 @@ class DirectoryBasedDartSdk implements DartSdk {
 
   @override
   List<String> get uris => _libraryMap.uris;
+
+  /**
+   * Specify whether SDK summary should be used.  This property can only be set
+   * before [context] is invoked.
+   */
+  void set useSummary(bool use) {
+    if (_analysisContext != null) {
+      throw new StateError('SDK analysis context has been already created.');
+    }
+    _useSummary = use;
+  }
 
   /**
    * Return the name of the file containing the VM executable.
@@ -538,7 +557,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    */
   SdkBundle _getSummarySdkBundle() {
     String rootPath = directory.getAbsolutePath();
-    String path = pathos.join(rootPath, 'lib', '_internal', 'analysis_summary');
+    String path = pathos.join(rootPath, 'lib', '_internal', 'spec.sum');
     try {
       File file = new File(path);
       if (file.existsSync()) {

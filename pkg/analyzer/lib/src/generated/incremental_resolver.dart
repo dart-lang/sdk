@@ -8,14 +8,18 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -25,7 +29,6 @@ import 'package:analyzer/src/generated/incremental_logger.dart'
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -2049,9 +2052,9 @@ class _DeclarationMismatchException {}
 /**
  * Adjusts the location of each Element that moved.
  *
- * Since operator== and hashCode of an Element are based
- * on the element location, we also need to remove each
- * moved element from the cache to avoid a memory leak.
+ * Since `==` and `hashCode` of a local variable or function Element are based
+ * on the element name offsets, we also need to remove these elements from the
+ * cache to avoid a memory leak. TODO(scheglov) fix and remove this
  */
 class _ElementOffsetUpdater extends GeneralizingElementVisitor {
   final int updateOffset;
@@ -2065,7 +2068,13 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
     // name offset
     int nameOffset = element.nameOffset;
     if (nameOffset > updateOffset) {
-      cache.remove(element);
+      // TODO(scheglov) make sure that we don't put local variables
+      // and functions into the cache at all.
+      if (element is LocalVariableElement ||
+          element is FunctionElement &&
+              element.enclosingElement is ExecutableElement) {
+        cache.remove(element);
+      }
       (element as ElementImpl).nameOffset = nameOffset + updateDelta;
       if (element is ConstVariableElement) {
         ConstVariableElement constVariable = element as ConstVariableElement;

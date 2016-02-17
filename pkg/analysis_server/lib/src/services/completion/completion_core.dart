@@ -21,6 +21,14 @@ class CompletionRequestImpl implements CompletionRequest {
   @override
   final Source source;
 
+  /**
+   * The content cache modification stamp of the associated [source],
+   * or `null` if the content cache does not override the [source] content.
+   * This is used to determine if the [source] contents have been modified
+   * after the completion request was made.
+   */
+  final int sourceModificationStamp;
+
   @override
   final int offset;
 
@@ -48,16 +56,21 @@ class CompletionRequestImpl implements CompletionRequest {
   @override
   final SearchEngine searchEngine;
 
+  bool _aborted = false;
+
   final CompletionPerformance performance;
 
   /**
    * Initialize a newly created completion request based on the given arguments.
    */
-  CompletionRequestImpl(this.context, this.resourceProvider, this.searchEngine,
-      this.source, this.offset, this.performance) {
-    replacementOffset = offset;
-    replacementLength = 0;
-  }
+  CompletionRequestImpl(AnalysisContext context, this.resourceProvider,
+      this.searchEngine, Source source, int offset, this.performance)
+      : this.context = context,
+        this.source = source,
+        this.offset = offset,
+        replacementOffset = offset,
+        replacementLength = 0,
+        sourceModificationStamp = context.getModificationStamp(source);
 
   /**
    * Return the original text from the [replacementOffset] to the [offset]
@@ -68,5 +81,23 @@ class CompletionRequestImpl implements CompletionRequest {
         .getContents(source)
         .data
         .substring(replacementOffset, offset);
+  }
+
+  /**
+   * Abort the current completion request.
+   */
+  void abort() {
+    _aborted = true;
+  }
+
+  @override
+  void checkAborted() {
+    if (_aborted) {
+      throw new AbortCompletion();
+    }
+    if (sourceModificationStamp != context.getModificationStamp(source)) {
+      _aborted = true;
+      throw new AbortCompletion();
+    }
   }
 }

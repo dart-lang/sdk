@@ -42,12 +42,15 @@ DECLARE_FLAG(bool, pause_isolates_on_exit);
 DEFINE_FLAG(bool, keep_code, false,
             "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, shutdown, true, "Do a clean shutdown of the VM");
+DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
 
 Isolate* Dart::vm_isolate_ = NULL;
+int64_t Dart::start_time_ = 0;
 ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
 const uint8_t* Dart::instructions_snapshot_buffer_ = NULL;
+const uint8_t* Dart::data_snapshot_buffer_ = NULL;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -75,6 +78,7 @@ class ReadOnlyHandles {
 
 const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                            const uint8_t* instructions_snapshot,
+                           const uint8_t* data_snapshot,
                            Dart_IsolateCreateCallback create,
                            Dart_IsolateShutdownCallback shutdown,
                            Dart_FileOpenCallback file_open,
@@ -133,6 +137,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     Dart_IsolateFlags api_flags;
     vm_flags.CopyTo(&api_flags);
     vm_isolate_ = Isolate::Init("vm-isolate", api_flags, is_vm_isolate);
+    start_time_ = vm_isolate_->start_time();
     vm_isolate_->set_compilation_allowed(!precompiled);
     // Verify assumptions about executing in the VM isolate.
     ASSERT(vm_isolate_ == Isolate::Current());
@@ -155,6 +160,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     if (vm_isolate_snapshot != NULL) {
       if (instructions_snapshot != NULL) {
         vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
+        ASSERT(data_snapshot != NULL);
+        vm_isolate_->SetupDataSnapshotPage(data_snapshot);
       }
       const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
       if (snapshot == NULL) {
@@ -164,6 +171,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       VmIsolateSnapshotReader reader(snapshot->content(),
                                      snapshot->length(),
                                      instructions_snapshot,
+                                     data_snapshot,
                                      T);
       const Error& error = Error::Handle(reader.ReadVmIsolateSnapshot());
       if (!error.IsNull()) {
@@ -234,8 +242,17 @@ const char* Dart::Cleanup() {
     return "VM already terminated.";
   }
 
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Starting shutdown\n",
+                 timestamp());
+  }
+
   if (FLAG_profiler) {
     // Shut down profiling.
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down profiling\n",
+                   timestamp());
+    }
     Profiler::Shutdown();
   }
 
@@ -243,6 +260,10 @@ const char* Dart::Cleanup() {
   {
     // Set the VM isolate as current isolate when shutting down
     // Metrics so that we can use a StackZone.
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Entering vm isolate\n",
+                   timestamp());
+    }
     bool result = Thread::EnterIsolate(vm_isolate_);
     ASSERT(result);
     Metric::Cleanup();
@@ -251,19 +272,39 @@ const char* Dart::Cleanup() {
 
   if (FLAG_shutdown) {
     // Disable the creation of new isolates.
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Disabling isolate creation\n",
+                   timestamp());
+    }
     Isolate::DisableIsolateCreation();
 
     // Send the OOB Kill message to all remaining application isolates.
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Killing all app isolates\n",
+                   timestamp());
+    }
     Isolate::KillAllIsolates(Isolate::kInternalKillMsg);
 
     // Shutdown the service isolate.
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down service isolate\n",
+                   timestamp());
+    }
     ServiceIsolate::Shutdown();
 
     // Wait for all application isolates and the service isolate to shutdown
     // before shutting down the thread pool.
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Waiting for isolate shutdown\n",
+                   timestamp());
+    }
     WaitForIsolateShutdown();
 
     // Shutdown the thread pool. On return, all thread pool threads have exited.
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
+                   timestamp());
+    }
     delete thread_pool_;
     thread_pool_ = NULL;
 
@@ -273,9 +314,17 @@ const char* Dart::Cleanup() {
     // This must come after deletion of the thread pool to avoid a race in which
     // a thread spawned by the thread pool does not exit through the thread
     // pool, messing up its bookkeeping.
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Disabling OS Thread creation\n",
+                   timestamp());
+    }
     OSThread::DisableOSThreadCreation();
 
     // Set the VM isolate as current isolate.
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Cleaning up vm isolate\n",
+                   timestamp());
+    }
     bool result = Thread::EnterIsolate(vm_isolate_);
     ASSERT(result);
 
@@ -292,17 +341,40 @@ const char* Dart::Cleanup() {
     OSThread* os_thread = OSThread::Current();
     OSThread::SetCurrent(NULL);
     delete os_thread;
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleted os_thread\n",
+                   timestamp());
+    }
   } else {
     // Shutdown the service isolate.
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down service isolate\n",
+                   timestamp());
+    }
     ServiceIsolate::Shutdown();
 
     // Disable thread creation.
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Disabling OS Thread creation\n",
+                   timestamp());
+    }
     OSThread::DisableOSThreadCreation();
   }
 
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting code observers\n",
+                 timestamp());
+  }
   CodeObservers::DeleteAll();
   if (FLAG_support_timeline) {
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down timeline\n",
+                   timestamp());
+    }
     Timeline::Shutdown();
+  }
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done\n", timestamp());
   }
 
   return NULL;
@@ -360,6 +432,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     IsolateSnapshotReader reader(snapshot->content(),
                                  snapshot->length(),
                                  Dart::instructions_snapshot_buffer(),
+                                 Dart::data_snapshot_buffer(),
                                  T);
     const Error& error = Error::Handle(reader.ReadFullSnapshot());
     if (!error.IsNull()) {
@@ -463,6 +536,12 @@ void Dart::ShutdownIsolate() {
   Isolate* isolate = Isolate::Current();
   isolate->Shutdown();
   delete isolate;
+}
+
+
+int64_t Dart::timestamp() {
+  return ((OS::GetCurrentTimeMicros() - Dart::start_time_) /
+          kMillisecondsPerSecond);
 }
 
 

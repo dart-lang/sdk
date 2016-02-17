@@ -112,7 +112,7 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
   }
 
   static Future<ServiceExtensionResponse> getOpenFiles(function, params) {
-    assert(function == '__getOpenFiles');
+    assert(function == 'ext.dart.io.getOpenFiles');
     var data = {'type': '_openfiles', 'data': getOpenFilesList()};
     var json = JSON.encode(data);
     return new Future.value(new ServiceExtensionResponse.result(json));
@@ -182,7 +182,7 @@ class _ProcessResourceInfo extends _IOResourceInfo{
 
   static Future<ServiceExtensionResponse> getStartedProcesses(
       String function, Map<String, String> params) {
-    assert(function == '__getProcesses');
+    assert(function == 'ext.dart.io.getProcesses');
     var data = {'type': '_startedprocesses', 'data': getStartedProcessesList()};
     var json = JSON.encode(data);
     return new Future.value(new ServiceExtensionResponse.result(json));
@@ -264,7 +264,7 @@ class _SocketResourceInfo extends _ReadWriteResourceInfo {
   }
 
   static Future<ServiceExtensionResponse> getOpenSockets(function, params) {
-    assert(function == '__getOpenSockets');
+    assert(function == 'ext.dart.io.getOpenSockets');
     var data = {'type': '_opensockets', 'data': getOpenSocketsList()};
     var json = JSON.encode(data);
     return new Future.value(new ServiceExtensionResponse.result(json));

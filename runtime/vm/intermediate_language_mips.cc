@@ -2711,10 +2711,15 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
-      ASSERT(FLAG_allow_absolute_addresses);
-      __ LoadImmediate(TMP, flags_address);
-      __ LoadImmediate(value, Isolate::kOsrRequest);
-      __ sw(value, Address(TMP));
+      if (FLAG_allow_absolute_addresses) {
+        __ LoadImmediate(TMP, flags_address);
+        __ LoadImmediate(value, Isolate::kOsrRequest);
+        __ sw(value, Address(TMP));
+      } else {
+        __ LoadIsolate(TMP);
+        __ LoadImmediate(value, Isolate::kOsrRequest);
+        __ sw(value, Address(TMP, Isolate::stack_overflow_flags_offset()));
+      }
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());

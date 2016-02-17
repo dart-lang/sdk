@@ -285,10 +285,6 @@ class FlowGraph : public ZoneAllocated {
     return guarded_fields_;
   }
 
-  GrowableArray<const Field*>& deoptimize_dependent_code() {
-    return deoptimize_dependent_code_;
-  }
-
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes() const {
     return deferred_prefixes_;
   }
@@ -373,7 +369,6 @@ class FlowGraph : public ZoneAllocated {
   ZoneGrowableArray<BlockEntryInstr*>* loop_headers_;
   ZoneGrowableArray<BitVector*>* loop_invariant_loads_;
   ZoneGrowableArray<const Field*>* guarded_fields_;
-  GrowableArray<const Field*> deoptimize_dependent_code_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
   DirectChainedHashMap<ConstantPoolTrait> constant_instr_pool_;
   BitVector* captured_parameters_;

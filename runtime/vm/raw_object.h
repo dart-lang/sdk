@@ -436,6 +436,15 @@ class RawObject {
   bool IsString() {
     return IsStringClassId(GetClassId());
   }
+  bool IsStackmap() {
+    return ((GetClassId() == kStackmapCid));
+  }
+  bool IsPcDescriptors() {
+    return ((GetClassId() == kPcDescriptorsCid));
+  }
+  bool IsOneByteString() {
+    return ((GetClassId() == kOneByteStringCid));
+  }
 
   intptr_t Size() const {
     uword tags = ptr()->tags_;
@@ -1428,14 +1437,17 @@ class RawICData : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->owner_);
+    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
   }
-  RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
+  RawArray* ic_data_;  // Contains class-ids, target and count.
   RawString* target_name_;  // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
-  RawArray* ic_data_;  // Contains class-ids, target and count.
+  RawObject** to_precompiled_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
+  }
+  RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
+    return reinterpret_cast<RawObject**>(&ptr()->owner_);
   }
   int32_t deopt_id_;     // Deoptimization id corresponding to this IC.
   uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons,

@@ -3,7 +3,7 @@
 // main() { print(foo); }
 
 function() {
-  var v0 = $.foo, line = v0 === 0 ? 1 / v0 < 0 ? "-0.0" : "" + v0 : "" + v0;
+  var line = H.S($.foo);
   if (typeof dartPrint == "function")
     dartPrint(line);
   else if (typeof console == "object" && typeof console.log != "undefined")

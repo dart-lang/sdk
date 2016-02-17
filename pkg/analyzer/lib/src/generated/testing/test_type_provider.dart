@@ -5,6 +5,7 @@
 library analyzer.src.generated.testing.test_type_provider;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -12,7 +13,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
@@ -170,7 +170,8 @@ class TestTypeProvider implements TypeProvider {
           .constructorElement(boolElement, "fromEnvironment", true);
       fromEnvironment.parameters = <ParameterElement>[
         ElementFactory.requiredParameter2("name", stringType),
-        ElementFactory.namedParameter2("defaultValue", _boolType)
+        ElementFactory.namedParameter3("defaultValue",
+            type: _boolType, initializer: AstFactory.booleanLiteral(false))
       ];
       fromEnvironment.factory = true;
       fromEnvironment.isCycleFree = true;
@@ -195,7 +196,9 @@ class TestTypeProvider implements TypeProvider {
       FieldElementImpl expiresField = ElementFactory.fieldElement(
           'expires', false, true, false, stringType);
       deprecatedElement.fields = <FieldElement>[expiresField];
-      deprecatedElement.accessors = <PropertyAccessorElement>[expiresField.getter];
+      deprecatedElement.accessors = <PropertyAccessorElement>[
+        expiresField.getter
+      ];
       ConstructorElementImpl constructor = ElementFactory
           .constructorElement(deprecatedElement, '', true, [stringType]);
       (constructor.parameters[0] as ParameterElementImpl).name = 'expires';
@@ -492,7 +495,7 @@ class TestTypeProvider implements TypeProvider {
           .constructorElement(stringElement, "fromEnvironment", true);
       fromEnvironment.parameters = <ParameterElement>[
         ElementFactory.requiredParameter2("name", stringType),
-        ElementFactory.namedParameter2("defaultValue", _stringType)
+        ElementFactory.namedParameter3("defaultValue", type: _stringType)
       ];
       fromEnvironment.factory = true;
       fromEnvironment.isCycleFree = true;
@@ -610,7 +613,7 @@ class TestTypeProvider implements TypeProvider {
         ElementFactory.constructorElement(intElement, "fromEnvironment", true);
     fromEnvironment.parameters = <ParameterElement>[
       ElementFactory.requiredParameter2("name", stringType),
-      ElementFactory.namedParameter2("defaultValue", _intType)
+      ElementFactory.namedParameter3("defaultValue", type: _intType)
     ];
     fromEnvironment.factory = true;
     fromEnvironment.isCycleFree = true;
@@ -623,18 +626,23 @@ class TestTypeProvider implements TypeProvider {
       ElementFactory.constructorElement(doubleElement, null, false)
         ..synthetic = true
     ];
-    ConstFieldElementImpl varINFINITY =
-        ElementFactory.fieldElement("INFINITY", true, false, true, _doubleType);
+    ConstFieldElementImpl varINFINITY = ElementFactory.fieldElement(
+        "INFINITY", true, false, true, _doubleType,
+        initializer: AstFactory.doubleLiteral(double.INFINITY));
     varINFINITY.constantInitializer = AstFactory.binaryExpression(
         AstFactory.integer(1), TokenType.SLASH, AstFactory.integer(0));
     List<FieldElement> fields = <FieldElement>[
-      ElementFactory.fieldElement("NAN", true, false, true, _doubleType),
+      ElementFactory.fieldElement("NAN", true, false, true, _doubleType,
+          initializer: AstFactory.doubleLiteral(double.NAN)),
       varINFINITY,
       ElementFactory.fieldElement(
-          "NEGATIVE_INFINITY", true, false, true, _doubleType),
+          "NEGATIVE_INFINITY", true, false, true, _doubleType,
+          initializer: AstFactory.doubleLiteral(double.NEGATIVE_INFINITY)),
       ElementFactory.fieldElement(
-          "MIN_POSITIVE", true, false, true, _doubleType),
-      ElementFactory.fieldElement("MAX_FINITE", true, false, true, _doubleType)
+          "MIN_POSITIVE", true, false, true, _doubleType,
+          initializer: AstFactory.doubleLiteral(double.MIN_POSITIVE)),
+      ElementFactory.fieldElement("MAX_FINITE", true, false, true, _doubleType,
+          initializer: AstFactory.doubleLiteral(double.MAX_FINITE))
     ];
     doubleElement.fields = fields;
     int fieldCount = fields.length;

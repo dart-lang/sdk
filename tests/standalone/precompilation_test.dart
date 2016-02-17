@@ -74,7 +74,7 @@ main(List args) {
 
     result = Process.runSync(
         cc,
-        [shared, cc_flags, "-o", libname, "precompiled.S"],
+        [shared, cc_flags, "-nostartfiles", "-o", libname, "precompiled.S"],
         workingDirectory: tmp.path);
     if (result.exitCode != 0) {
       print(result.stdout);

@@ -40,6 +40,10 @@ DEFINE_FLAG(int, optimization_counter_threshold, 30000,
 DEFINE_FLAG(int, regexp_optimization_counter_threshold, 1000,
     "RegExp's usage-counter value before it is optimized, -1 means never");
 DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
+// TODO(srdjan): Remove this flag once background compilation of regular
+// expressions is possible.
+DEFINE_FLAG(bool, regexp_opt_in_background, false,
+    "Optimize reg-exp functions in background");
 DEFINE_FLAG(int, reoptimization_counter_threshold, 4000,
     "Counter threshold before a function gets reoptimized.");
 DEFINE_FLAG(bool, stop_on_excessive_deoptimization, false,
@@ -61,8 +65,9 @@ DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(bool, trace_compiler);
+DECLARE_FLAG(bool, trace_field_guards);
+DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(int, max_polymorphic_checks);
 DECLARE_FLAG(bool, precompilation);
 
@@ -318,7 +323,8 @@ static void PrintTypeCheck(
     // Instantiate type before printing.
     Error& bound_error = Error::Handle();
     const AbstractType& instantiated_type = AbstractType::Handle(
-        type.InstantiateFrom(instantiator_type_arguments, &bound_error));
+        type.InstantiateFrom(instantiator_type_arguments, &bound_error,
+                             NULL, NULL, Heap::kOld));
     OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
                  message,
                  String::Handle(instance_type.Name()).ToCString(),
@@ -418,7 +424,8 @@ static void UpdateTypeTestCache(
     if (!test_type.IsInstantiated()) {
       Error& bound_error = Error::Handle();
       test_type = type.InstantiateFrom(instantiator_type_arguments,
-                                       &bound_error);
+                                       &bound_error,
+                                       NULL, NULL, Heap::kNew);
       ASSERT(bound_error.IsNull());  // Malbounded types are not optimized.
     }
     OS::PrintErr("  Updated test cache %p ix: %" Pd " with "
@@ -533,7 +540,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
       const AbstractType& instantiated_dst_type = AbstractType::Handle(
-          dst_type.InstantiateFrom(instantiator_type_arguments, NULL));
+          dst_type.InstantiateFrom(instantiator_type_arguments, NULL,
+                                   NULL, NULL, Heap::kNew));
       // Note that instantiated_dst_type may be malbounded.
       dst_type_name = instantiated_dst_type.UserVisibleName();
       dst_type_lib =
@@ -885,18 +893,6 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   GrowableArray<const Instance*> args(1);
   args.Add(&receiver);
-  if (FLAG_warn_on_javascript_compatibility) {
-    if (receiver.IsDouble() &&
-        String::Handle(ic_data.target_name()).Equals(Symbols::toString())) {
-      const double value = Double::Cast(receiver).value();
-      if (floor(value) == value) {
-        Report::JSWarningFromIC(ic_data,
-                                "string representation of an integral value "
-                                "of type 'double' has no decimal mark and "
-                                "no fractional part");
-      }
-    }
-  }
   const Function& result =
       Function::Handle(InlineCacheMissHandler(args, ic_data));
   arguments.SetReturn(result);
@@ -1491,6 +1487,20 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 
   if (CanOptimizeFunction(function, thread)) {
     if (FLAG_background_compilation) {
+      Field& field = Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
+      while (!field.IsNull()) {
+        if (FLAG_trace_optimization || FLAG_trace_field_guards) {
+          THR_Print("Lazy disabling unboxing of %s\n", field.ToCString());
+        }
+        field.set_is_unboxing_candidate(false);
+        field.DeoptimizeDependentCode();
+        // Get next field.
+        field = isolate->GetDeoptimizingBoxedField();
+      }
+    }
+    // TODO(srdjan): Fix background compilation of regular expressions.
+    if (FLAG_background_compilation &&
+        (!function.IsIrregexpFunction() || FLAG_regexp_opt_in_background)) {
       if (FLAG_enable_inlining_annotations) {
         FATAL("Cannot enable inlining annotations and background compilation");
       }

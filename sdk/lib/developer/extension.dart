@@ -4,21 +4,38 @@
 
 part of dart.developer;
 
+/// A response to a service protocol extension RPC.
+///
+/// If the RPC was successful, use [ServiceExtensionResponse.result], otherwise
+/// use [ServiceExtensionResponse.error].
 class ServiceExtensionResponse {
   final String _result;
   final int _errorCode;
   final String _errorDetail;
 
-  ServiceExtensionResponse.result(this._result)
-      : _errorCode = null,
+  /// Creates a successful to a service protocol extension RPC.
+  ///
+  /// Requires [result] to be a JSON object encoded as a string. When forming
+  /// the JSON-RPC message [result] will be inlined directly.
+  ServiceExtensionResponse.result(String result)
+      : _result = result,
+        _errorCode = null,
         _errorDetail = null {
     if (_result is! String) {
       throw new ArgumentError.value(_result, "result", "Must be a String");
     }
   }
 
-  ServiceExtensionResponse.error(this._errorCode, this._errorDetail)
-      : _result = null {
+  /// Creates an error response to a service protocol extension RPC.
+  ///
+  /// Requires [errorCode] to be [invalidParams] or between [extensionErrorMin]
+  /// and [extensionErrorMax]. Requires [errorDetail] to be a JSON object
+  /// encoded as a string. When forming the JSON-RPC message [errorDetail] will
+  /// be inlined directly.
+  ServiceExtensionResponse.error(int errorCode, String errorDetail)
+      : _result = null,
+        _errorCode = errorCode,
+        _errorDetail = errorDetail {
     _validateErrorCode(_errorCode);
     if (_errorDetail is! String) {
       throw new ArgumentError.value(_errorDetail,
@@ -28,13 +45,23 @@ class ServiceExtensionResponse {
   }
 
   /// Invalid method parameter(s) error code.
-  static const kInvalidParams = -32602;
+  @deprecated static const kInvalidParams = invalidParams;
   /// Generic extension error code.
-  static const kExtensionError = -32000;
+  @deprecated static const kExtensionError = extensionError;
   /// Maximum extension provided error code.
-  static const kExtensionErrorMax = -32000;
+  @deprecated static const kExtensionErrorMax = extensionErrorMax;
   /// Minimum extension provided error code.
-  static const kExtensionErrorMin = -32016;
+  @deprecated static const kExtensionErrorMin = extensionErrorMin;
+
+  /// Invalid method parameter(s) error code.
+  static const invalidParams = -32602;
+  /// Generic extension error code.
+  static const extensionError = -32000;
+  /// Maximum extension provided error code.
+  static const extensionErrorMax = -32000;
+  /// Minimum extension provided error code.
+  static const extensionErrorMin = -32016;
+
 
   static String _errorCodeMessage(int errorCode) {
     _validateErrorCode(errorCode);
@@ -48,11 +75,11 @@ class ServiceExtensionResponse {
     if (errorCode is! int) {
       throw new ArgumentError.value(errorCode, "errorCode", "Must be an int");
     }
-    if (errorCode == kInvalidParams) {
+    if (errorCode == invalidParams) {
       return;
     }
-    if ((errorCode >= kExtensionErrorMin) &&
-        (errorCode <= kExtensionErrorMax)) {
+    if ((errorCode >= extensionErrorMin) &&
+        (errorCode <= extensionErrorMax)) {
       return;
     }
     throw new ArgumentError.value(errorCode, "errorCode", "Out of range");
@@ -90,13 +117,26 @@ typedef Future<ServiceExtensionResponse>
 
 /// Register a [ServiceExtensionHandler] that will be invoked in this isolate
 /// for [method]. *NOTE*: Service protocol extensions must be registered
-/// in each isolate and users of extensions must always specify a target
-/// isolate.
+/// in each isolate.
+///
+/// *NOTE*: [method] must begin with 'ext.' and you should use the following
+/// structure to avoid conflicts with other packages: 'ext.package.command'.
+/// That is, immediately following the 'ext.' prefix, should be the registering
+/// package name followed by another period ('.') and then the command name.
+/// For example: 'ext.dart.io.getOpenFiles'.
+///
+/// Because service extensions are isolate specific, clients using extensions
+/// must always include an 'isolateId' parameter with each RPC.
 void registerExtension(String method, ServiceExtensionHandler handler) {
   if (method is! String) {
     throw new ArgumentError.value(method,
                                   'method',
                                   'Must be a String');
+  }
+  if (!method.startsWith('ext.')) {
+    throw new ArgumentError.value(method,
+                                  'method',
+                                  'Must begin with ext.');
   }
   if (_lookupExtension(method) != null) {
     throw new ArgumentError('Extension already registered: $method');

@@ -20,8 +20,11 @@ import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js show
     js,
+    objectLiteral,
+    Expression,
     LiteralStatement,
     Template,
+    InterpolatedExpression,
     isIdentityTemplate;
 import '../native/native.dart' show
     NativeBehavior;
@@ -691,6 +694,9 @@ class IrBuilder {
     assert(!element.isLocal);
     assert(!element.isInstanceMember);
     assert(isOpen);
+    if (program.isJsInterop(element)) {
+      return buildInvokeJsInteropMember(element, arguments);
+    }
     return addPrimitive(
         new ir.InvokeStatic(element, selector, arguments, sourceInformation));
   }
@@ -1401,8 +1407,8 @@ class IrBuilder {
       Selector selector = new Selector.setter(
           new Name(variableElement.name, variableElement.library));
       List<ir.Primitive> value = <ir.Primitive>[currentValue];
-      // Note the order of the comparisons below.  It can be the case that an
-      // element isError and isMalformed.
+      // Note the comparison below.  It can be the case that an element isError
+      // and isMalformed.
       if (Elements.isError(variableElement)) {
         bodyBuilder.buildStaticNoSuchMethod(selector, value);
       } else {
@@ -2066,6 +2072,86 @@ class IrBuilder {
     buildReturn(value: value, sourceInformation: source);
   }
 
+  static _isNotNull(ir.Primitive value) =>
+      !(value is ir.Constant && value.value.isNull);
+
+  /// Builds a call to a resolved js-interop element.
+  ir.Primitive buildInvokeJsInteropMember(FunctionElement element,
+      List<ir.Primitive> arguments) {
+    program.addNativeMethod(element);
+    String target = program.getJsInteropTargetPath(element);
+    // Strip off trailing arguments that were not specified.
+    // TODO(jacobr,sigmund): assert that the trailing arguments are all null.
+    // TODO(jacobr): rewrite named arguments to an object literal matching
+    // the factory constructor case.
+    var inputs = arguments.where(_isNotNull).toList();
+
+    var behavior = new NativeBehavior()..sideEffects.setAllSideEffects();
+    DartType type = element.isConstructor ?
+        element.enclosingClass.thisType : element.type.returnType;
+    // Native behavior effects here are similar to native/behavior.dart.
+    // The return type is dynamic if we don't trust js-interop type
+    // declarations.
+    behavior.typesReturned.add(
+        program.trustJSInteropTypeAnnotations ? type : const DynamicType());
+
+    // The allocation effects include the declared type if it is native (which
+    // includes js interop types).
+    if (type.element != null && program.isNative(type.element)) {
+      behavior.typesInstantiated.add(type);
+    }
+
+    // It also includes any other JS interop type if we don't trust the
+    // annotation or if is declared too broad.
+    if (!program.trustJSInteropTypeAnnotations || type.isObject ||
+        type.isDynamic) {
+      behavior.typesInstantiated.add(program.jsJavascriptObjectType);
+    }
+
+    String code;
+    if (element.isGetter) {
+      code = target;
+    } else if (element.isSetter) {
+      code = "$target = #";
+    } else {
+      var args = new List.filled(inputs.length, '#').join(',');
+      code = element.isConstructor ? "new $target($args)" : "$target($args)";
+    }
+    return buildForeignCode(js.js.parseForeignJS(code), inputs, behavior);
+    // TODO(sigmund): should we record the source-information here?
+  }
+
+  /// Builds an object literal that results from invoking a factory constructor
+  /// of a js-interop anonymous type.
+  ir.Primitive buildJsInteropObjectLiteral(ConstructorElement constructor,
+      List<ir.Primitive> arguments, {SourceInformation source}) {
+    assert(program.isJsInteropAnonymous(constructor));
+    program.addNativeMethod(constructor);
+    FunctionSignature params = constructor.functionSignature;
+    int i = 0;
+    var filteredArguments = <ir.Primitive>[];
+    var entries = new Map<String, js.Expression>();
+    params.orderedForEachParameter((ParameterElement parameter) {
+      // TODO(jacobr): throw if parameter names do not match names of property
+      // names in the class.
+      assert (parameter.isNamed);
+      ir.Primitive argument = arguments[i++];
+      if (_isNotNull(argument)) {
+        filteredArguments.add(argument);
+        entries[parameter.name] =
+            new js.InterpolatedExpression(filteredArguments.length - 1);
+      }
+    });
+    var code = new js.Template(null, js.objectLiteral(entries));
+    var behavior = new NativeBehavior();
+    if (program.trustJSInteropTypeAnnotations) {
+      behavior.typesReturned.add(constructor.enclosingClass.thisType);
+    }
+
+    // TODO(sigmund): should we record the source-information here?
+    return buildForeignCode(code, filteredArguments, behavior);
+  }
+
   /// Create a blocks of [statements] by applying [build] to all reachable
   /// statements. The first statement is assumed to be reachable.
   // TODO(johnniwinther): Type [statements] as `Iterable` when `NodeList` uses
@@ -2551,6 +2637,13 @@ class IrBuilder {
     Selector selector =
         new Selector(SelectorKind.CALL, element.memberName, callStructure);
     ClassElement cls = element.enclosingClass;
+    if (program.isJsInterop(element)) {
+      if (program.isJsInteropAnonymous(element)) {
+        return buildJsInteropObjectLiteral(element, arguments,
+            source: sourceInformation);
+      }
+      return buildInvokeJsInteropMember(element, arguments);
+    }
     if (program.requiresRuntimeTypesFor(cls)) {
       InterfaceType interface = type;
       Iterable<ir.Primitive> typeArguments =

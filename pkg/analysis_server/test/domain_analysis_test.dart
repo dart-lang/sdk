@@ -47,7 +47,7 @@ main() {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        new MockSdk(),
+        () => new MockSdk(),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
   });
@@ -474,7 +474,7 @@ class AnalysisTestHelper {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        new MockSdk(),
+        () => new MockSdk(),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
     // listen for notifications

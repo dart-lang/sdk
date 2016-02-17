@@ -4,9 +4,11 @@
 
 library analyzer.test.generated.incremental_scanner_test;
 
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_scanner.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 

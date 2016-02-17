@@ -374,6 +374,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     Primitive result = cps.invokeMethod(thisParameter, newSelector, node.mask,
         arguments, node.callingConvention);
     result.type = typeSystem.getInvokeReturnType(node.selector, node.mask);
+    returnContinuation.parameters.single.type = result.type;
     cps.invokeContinuation(returnContinuation, <Primitive>[result]);
     return new FunctionDefinition(target, thisParameter, parameters,
         returnContinuation,
@@ -394,6 +395,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     // AST node, targets that are asynchronous or generator functions, or
     // targets containing a try statement.
     if (!target.hasNode) return null;
+    if (backend.isJsInterop(target)) return null;
     if (target.asyncMarker != AsyncMarker.SYNC) return null;
     // V8 does not optimize functions containing a try statement.  Inlining
     // code containing a try statement will make the optimizable calling code
@@ -596,6 +598,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       // These should be handled by operator specialization.
       return true;
     }
+    if (target == backend.helpers.stringInterpolationHelper) return true;
     return false;
   }
 }

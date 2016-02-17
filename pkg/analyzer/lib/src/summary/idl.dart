@@ -42,27 +42,15 @@
 library analyzer.tool.summary.idl;
 
 import 'base.dart' as base;
+import 'base.dart' show Id;
 import 'format.dart' as generated;
 
 /**
  * Annotation describing information which is not part of Dart semantics; in
  * other words, if this information (or any information it refers to) changes,
  * static analysis and runtime behavior of the library are unaffected.
- *
- * TODO(paulberry): some informative information is currently missing from the
- * summary format.
  */
 const informative = null;
-
-/**
- * Annotation describing information which is not part of the public API to a
- * library; in other words, if this information (or any information it refers
- * to) changes, libraries outside this one are unaffected.
- *
- * TODO(paulberry): currently the summary format does not contain private
- * information.
- */
-const private = null;
 
 /**
  * Annotation describing a class which can be the top level object in an
@@ -97,6 +85,7 @@ abstract class EntityRef extends base.SummaryClass {
    * generic class, then the type arguments in [typeArguments] are applied
    * first to the class and then to the method.
    */
+  @Id(4)
   List<int> get implicitFunctionTypeIndices;
 
   /**
@@ -118,12 +107,14 @@ abstract class EntityRef extends base.SummaryClass {
    * If the type being referred to is not a type parameter, [paramReference] is
    * zero.
    */
+  @Id(3)
   int get paramReference;
 
   /**
    * Index into [UnlinkedUnit.references] for the entity being referred to, or
    * zero if this is a reference to a type parameter.
    */
+  @Id(0)
   int get reference;
 
   /**
@@ -133,6 +124,7 @@ abstract class EntityRef extends base.SummaryClass {
    *
    * Otherwise zero.
    */
+  @Id(2)
   int get slot;
 
   /**
@@ -140,6 +132,7 @@ abstract class EntityRef extends base.SummaryClass {
    * type arguments used to instantiate it.  Trailing type arguments of type
    * `dynamic` are omitted.
    */
+  @Id(1)
   List<EntityRef> get typeArguments;
 }
 
@@ -152,6 +145,7 @@ abstract class LinkedDependency extends base.SummaryClass {
    * URI for the compilation units listed in the library's `part` declarations.
    * These URIs are relative to the importing library.
    */
+  @Id(1)
   List<String> get parts;
 
   /**
@@ -161,6 +155,7 @@ abstract class LinkedDependency extends base.SummaryClass {
    * `d/e.dart`, the URI listed for `a.dart`'s dependency on `e.dart` will be
    * `b/d/e.dart`.
    */
+  @Id(0)
   String get uri;
 }
 
@@ -173,17 +168,20 @@ abstract class LinkedExportName extends base.SummaryClass {
    * Index into [LinkedLibrary.dependencies] for the library in which the
    * entity is defined.
    */
+  @Id(0)
   int get dependency;
 
   /**
    * The kind of the entity being referred to.
    */
+  @Id(3)
   ReferenceKind get kind;
 
   /**
    * Name of the exported entity.  For an exported setter, this name includes
    * the trailing '='.
    */
+  @Id(1)
   String get name;
 
   /**
@@ -192,6 +190,7 @@ abstract class LinkedExportName extends base.SummaryClass {
    * zero represents the defining compilation unit, and nonzero values
    * represent parts in the order of the corresponding `part` declarations.
    */
+  @Id(2)
   int get unit;
 }
 
@@ -219,6 +218,7 @@ abstract class LinkedLibrary extends base.SummaryClass {
    * anti-dependency (e.g. the result of type propagation or type inference
    * depends on the lack of a certain declaration in the library).
    */
+  @Id(0)
   List<LinkedDependency> get dependencies;
 
   /**
@@ -228,12 +228,14 @@ abstract class LinkedLibrary extends base.SummaryClass {
    *
    * Sorted by name.
    */
+  @Id(4)
   List<LinkedExportName> get exportNames;
 
   /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
    * of the library being imported.
    */
+  @Id(1)
   List<int> get importDependencies;
 
   /**
@@ -241,6 +243,7 @@ abstract class LinkedLibrary extends base.SummaryClass {
    * dependencies (that is, the number of libraries in the direct imports plus
    * the transitive closure of exports, plus the library itself).
    */
+  @Id(2)
   int get numPrelinkedDependencies;
 
   /**
@@ -249,6 +252,7 @@ abstract class LinkedLibrary extends base.SummaryClass {
    * followed by the summary of each part, in the order of the `part`
    * declarations in the defining compilation unit.
    */
+  @Id(3)
   List<LinkedUnit> get units;
 }
 
@@ -267,6 +271,7 @@ abstract class LinkedReference extends base.SummaryClass {
    * LinkedUnit.references[i].containingReference != 0, then
    * LinkedUnit.references[i].containingReference < i.
    */
+  @Id(5)
   int get containingReference;
 
   /**
@@ -276,12 +281,14 @@ abstract class LinkedReference extends base.SummaryClass {
    * Zero if this entity is contained within another entity (e.g. a class
    * member), or if [kind] is [ReferenceKind.prefix].
    */
+  @Id(1)
   int get dependency;
 
   /**
    * The kind of the entity being referred to.  For the pseudo-types `dynamic`
    * and `void`, the kind is [ReferenceKind.classOrEnum].
    */
+  @Id(2)
   ReferenceKind get kind;
 
   /**
@@ -289,12 +296,14 @@ abstract class LinkedReference extends base.SummaryClass {
    * name of the entity being referred to.  For the pseudo-type `dynamic`, the
    * string is "dynamic".  For the pseudo-type `void`, the string is "void".
    */
+  @Id(3)
   String get name;
 
   /**
    * If the entity being referred to is generic, the number of type parameters
    * it accepts.  Otherwise zero.
    */
+  @Id(4)
   int get numTypeParameters;
 
   /**
@@ -306,6 +315,7 @@ abstract class LinkedReference extends base.SummaryClass {
    * Zero if this entity is contained within another entity (e.g. a class
    * member).
    */
+  @Id(0)
   int get unit;
 }
 
@@ -321,12 +331,14 @@ abstract class LinkedUnit extends base.SummaryClass {
    * additional elements are references that are only referred to implicitly
    * (e.g. elements involved in inferred or propagated types).
    */
+  @Id(0)
   List<LinkedReference> get references;
 
   /**
    * List associating slot ids found inside the unlinked summary for the
    * compilation unit with propagated and inferred types.
    */
+  @Id(1)
   List<EntityRef> get types;
 }
 
@@ -399,21 +411,25 @@ abstract class SdkBundle extends base.SummaryClass {
   /**
    * Linked libraries.
    */
+  @Id(0)
   List<LinkedLibrary> get linkedLibraries;
 
   /**
    * The list of URIs of items in [linkedLibraries], e.g. `dart:core`.
    */
+  @Id(1)
   List<String> get linkedLibraryUris;
 
   /**
    * Unlinked information for the compilation units constituting the SDK.
    */
+  @Id(2)
   List<UnlinkedUnit> get unlinkedUnits;
 
   /**
    * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
    */
+  @Id(3)
   List<String> get unlinkedUnitUris;
 }
 
@@ -424,6 +440,7 @@ abstract class UnlinkedClass extends base.SummaryClass {
   /**
    * Annotations for this class.
    */
+  @Id(5)
   List<UnlinkedConst> get annotations;
 
   /**
@@ -431,53 +448,63 @@ abstract class UnlinkedClass extends base.SummaryClass {
    * documentation comment.
    */
   @informative
+  @Id(6)
   UnlinkedDocumentationComment get documentationComment;
 
   /**
    * Executable objects (methods, getters, and setters) contained in the class.
    */
+  @Id(2)
   List<UnlinkedExecutable> get executables;
 
   /**
    * Field declarations contained in the class.
    */
+  @Id(4)
   List<UnlinkedVariable> get fields;
 
   /**
    * Indicates whether this class is the core "Object" class (and hence has no
    * supertype)
    */
+  @Id(12)
   bool get hasNoSupertype;
 
   /**
    * Interfaces appearing in an `implements` clause, if any.
    */
+  @Id(7)
   List<EntityRef> get interfaces;
 
   /**
    * Indicates whether the class is declared with the `abstract` keyword.
    */
+  @Id(8)
   bool get isAbstract;
 
   /**
    * Indicates whether the class is declared using mixin application syntax.
    */
+  @Id(11)
   bool get isMixinApplication;
 
   /**
    * Mixins appearing in a `with` clause, if any.
    */
+  @Id(10)
   List<EntityRef> get mixins;
 
   /**
    * Name of the class.
    */
+  @Id(0)
   String get name;
 
   /**
    * Offset of the class name relative to the beginning of the file.
    */
   @informative
+  @Id(1)
   int get nameOffset;
 
   /**
@@ -485,11 +512,13 @@ abstract class UnlinkedClass extends base.SummaryClass {
    * explicitly declare a supertype (and hence has supertype `Object`), or (b)
    * the class *is* `Object` (and hence has no supertype).
    */
+  @Id(3)
   EntityRef get supertype;
 
   /**
    * Type parameters of the class, if any.
    */
+  @Id(9)
   List<UnlinkedTypeParam> get typeParameters;
 }
 
@@ -501,11 +530,13 @@ abstract class UnlinkedCombinator extends base.SummaryClass {
   /**
    * List of names which are hidden.  Empty if this is a `show` combinator.
    */
+  @Id(1)
   List<String> get hides;
 
   /**
    * List of names which are shown.  Empty if this is a `hide` combinator.
    */
+  @Id(0)
   List<String> get shows;
 }
 
@@ -523,6 +554,7 @@ abstract class UnlinkedConst extends base.SummaryClass {
   /**
    * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
    */
+  @Id(4)
   List<double> get doubles;
 
   /**
@@ -530,18 +562,21 @@ abstract class UnlinkedConst extends base.SummaryClass {
    * `pushArgument`, `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`,
    * `makeList`, and `makeMap`.
    */
+  @Id(1)
   List<int> get ints;
 
   /**
    * Indicates whether the expression is not a valid potentially constant
    * expression.
    */
+  @Id(5)
   bool get isInvalid;
 
   /**
    * Sequence of operations to execute (starting with an empty stack) to form
    * the constant value.
    */
+  @Id(0)
   List<UnlinkedConstOperation> get operations;
 
   /**
@@ -550,12 +585,14 @@ abstract class UnlinkedConst extends base.SummaryClass {
    * that in the case of `pushReference` (and sometimes `invokeConstructor` the
    * actual entity being referred to may be something other than a type.
    */
+  @Id(2)
   List<EntityRef> get references;
 
   /**
    * Sequence of strings consumed by the operations `pushString` and
    * `invokeConstructor`.
    */
+  @Id(3)
   List<String> get strings;
 }
 
@@ -857,17 +894,20 @@ abstract class UnlinkedConstructorInitializer extends base.SummaryClass {
    * If [kind] is `thisInvocation` or `superInvocation`, the arguments of the
    * invocation.  Otherwise empty.
    */
+  @Id(3)
   List<UnlinkedConst> get arguments;
 
   /**
    * If [kind] is `field`, the expression of the field initializer.
    * Otherwise `null`.
    */
+  @Id(1)
   UnlinkedConst get expression;
 
   /**
    * The kind of the constructor initializer (field, redirect, super).
    */
+  @Id(2)
   UnlinkedConstructorInitializerKind get kind;
 
   /**
@@ -876,6 +916,7 @@ abstract class UnlinkedConstructorInitializer extends base.SummaryClass {
    * class, to redirect to.  If [kind] is `superInvocation`, the name of the
    * constructor, declared in the superclass, to invoke.
    */
+  @Id(0)
   String get name;
 }
 
@@ -906,12 +947,14 @@ abstract class UnlinkedDocumentationComment extends base.SummaryClass {
   /**
    * Length of the documentation comment (prior to replacing '\r\n' with '\n').
    */
+  @Id(0)
   int get length;
 
   /**
    * Offset of the beginning of the documentation comment relative to the
    * beginning of the file.
    */
+  @Id(2)
   int get offset;
 
   /**
@@ -920,6 +963,7 @@ abstract class UnlinkedDocumentationComment extends base.SummaryClass {
    * References appearing within the doc comment in square brackets are not
    * specially encoded.
    */
+  @Id(1)
   String get text;
 }
 
@@ -930,6 +974,7 @@ abstract class UnlinkedEnum extends base.SummaryClass {
   /**
    * Annotations for this enum.
    */
+  @Id(4)
   List<UnlinkedConst> get annotations;
 
   /**
@@ -937,22 +982,26 @@ abstract class UnlinkedEnum extends base.SummaryClass {
    * comment.
    */
   @informative
+  @Id(3)
   UnlinkedDocumentationComment get documentationComment;
 
   /**
    * Name of the enum type.
    */
+  @Id(0)
   String get name;
 
   /**
    * Offset of the enum name relative to the beginning of the file.
    */
   @informative
+  @Id(1)
   int get nameOffset;
 
   /**
    * Values listed in the enum declaration, in declaration order.
    */
+  @Id(2)
   List<UnlinkedEnumValue> get values;
 }
 
@@ -966,17 +1015,20 @@ abstract class UnlinkedEnumValue extends base.SummaryClass {
    * documentation comment.
    */
   @informative
+  @Id(2)
   UnlinkedDocumentationComment get documentationComment;
 
   /**
    * Name of the enumerated value.
    */
+  @Id(0)
   String get name;
 
   /**
    * Offset of the enum value name relative to the beginning of the file.
    */
   @informative
+  @Id(1)
   int get nameOffset;
 }
 
@@ -988,12 +1040,14 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   /**
    * Annotations for this executable.
    */
+  @Id(6)
   List<UnlinkedConst> get annotations;
 
   /**
    * If a constant [UnlinkedExecutableKind.constructor], the constructor
    * initializers.  Otherwise empty.
    */
+  @Id(14)
   List<UnlinkedConstructorInitializer> get constantInitializers;
 
   /**
@@ -1001,6 +1055,7 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    * documentation comment.
    */
   @informative
+  @Id(7)
   UnlinkedDocumentationComment get documentationComment;
 
   /**
@@ -1010,27 +1065,38 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    * no return type was inferred for this variable, so its static type is
    * `dynamic`.
    */
+  @Id(5)
   int get inferredReturnTypeSlot;
 
   /**
    * Indicates whether the executable is declared using the `abstract` keyword.
    */
+  @Id(10)
   bool get isAbstract;
 
   /**
    * Indicates whether the executable is declared using the `const` keyword.
    */
+  @Id(12)
   bool get isConst;
 
   /**
    * Indicates whether the executable is declared using the `external` keyword.
    */
+  @Id(11)
   bool get isExternal;
 
   /**
    * Indicates whether the executable is declared using the `factory` keyword.
    */
+  @Id(8)
   bool get isFactory;
+
+  /**
+   * Indicates whether the executable is a redirected constructor.
+   */
+  @Id(13)
+  bool get isRedirectedConstructor;
 
   /**
    * Indicates whether the executable is declared using the `static` keyword.
@@ -1039,19 +1105,34 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    * not declared using the `static` keyword (even though they are considered
    * static for semantic purposes).
    */
+  @Id(9)
   bool get isStatic;
 
   /**
    * The kind of the executable (function/method, getter, setter, or
    * constructor).
    */
+  @Id(4)
   UnlinkedExecutableKind get kind;
+
+  /**
+   * The list of local functions.
+   */
+  @Id(18)
+  List<UnlinkedExecutable> get localFunctions;
+
+  /**
+   * The list of local variables.
+   */
+  @Id(19)
+  List<UnlinkedVariable> get localVariables;
 
   /**
    * Name of the executable.  For setters, this includes the trailing "=".  For
    * named constructors, this excludes the class name and excludes the ".".
    * For unnamed constructors, this is the empty string.
    */
+  @Id(1)
   String get name;
 
   /**
@@ -1061,6 +1142,7 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    * offset of the second "C" in "class C { C(); }").
    */
   @informative
+  @Id(0)
   int get nameOffset;
 
   /**
@@ -1068,19 +1150,49 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    * parameters (hence this will be the empty list), and setters have a single
    * parameter.
    */
+  @Id(2)
   List<UnlinkedParam> get parameters;
+
+  /**
+   * If [isRedirectedConstructor] and [isFactory] are both `true`, the
+   * constructor to which this constructor redirects; otherwise empty.
+   */
+  @Id(15)
+  EntityRef get redirectedConstructor;
+
+  /**
+   * If [isRedirectedConstructor] is `true` and [isFactory] is `false`, the
+   * name of the constructor that this constructor redirects to; otherwise
+   * empty.
+   */
+  @Id(17)
+  String get redirectedConstructorName;
 
   /**
    * Declared return type of the executable.  Absent if the executable is a
    * constructor or the return type is implicit.
    */
+  @Id(3)
   EntityRef get returnType;
 
   /**
    * Type parameters of the executable, if any.  Empty if support for generic
    * method syntax is disabled.
    */
+  @Id(16)
   List<UnlinkedTypeParam> get typeParameters;
+
+  /**
+   * If a local function, the length of the visible range; zero otherwise.
+   */
+  @Id(20)
+  int get visibleLength;
+
+  /**
+   * If a local function, the beginning of the visible range; zero otherwise.
+   */
+  @Id(21)
+  int get visibleOffset;
 }
 
 /**
@@ -1116,12 +1228,14 @@ abstract class UnlinkedExportNonPublic extends base.SummaryClass {
   /**
    * Annotations for this export directive.
    */
+  @Id(3)
   List<UnlinkedConst> get annotations;
 
   /**
    * Offset of the "export" keyword.
    */
   @informative
+  @Id(0)
   int get offset;
 
   /**
@@ -1129,6 +1243,7 @@ abstract class UnlinkedExportNonPublic extends base.SummaryClass {
    * file.
    */
   @informative
+  @Id(1)
   int get uriEnd;
 
   /**
@@ -1136,6 +1251,7 @@ abstract class UnlinkedExportNonPublic extends base.SummaryClass {
    * the file.
    */
   @informative
+  @Id(2)
   int get uriOffset;
 }
 
@@ -1147,11 +1263,13 @@ abstract class UnlinkedExportPublic extends base.SummaryClass {
   /**
    * Combinators contained in this import declaration.
    */
+  @Id(1)
   List<UnlinkedCombinator> get combinators;
 
   /**
    * URI used in the source code to reference the exported library.
    */
+  @Id(0)
   String get uri;
 }
 
@@ -1162,21 +1280,25 @@ abstract class UnlinkedImport extends base.SummaryClass {
   /**
    * Annotations for this import declaration.
    */
+  @Id(8)
   List<UnlinkedConst> get annotations;
 
   /**
    * Combinators contained in this import declaration.
    */
+  @Id(4)
   List<UnlinkedCombinator> get combinators;
 
   /**
    * Indicates whether the import declaration uses the `deferred` keyword.
    */
+  @Id(9)
   bool get isDeferred;
 
   /**
    * Indicates whether the import declaration is implicit.
    */
+  @Id(5)
   bool get isImplicit;
 
   /**
@@ -1184,6 +1306,7 @@ abstract class UnlinkedImport extends base.SummaryClass {
    * is true, zero.
    */
   @informative
+  @Id(0)
   int get offset;
 
   /**
@@ -1191,6 +1314,7 @@ abstract class UnlinkedImport extends base.SummaryClass {
    * if there is no prefix.
    */
   @informative
+  @Id(6)
   int get prefixOffset;
 
   /**
@@ -1199,11 +1323,13 @@ abstract class UnlinkedImport extends base.SummaryClass {
    *
    * Note that multiple imports can declare the same prefix.
    */
+  @Id(7)
   int get prefixReference;
 
   /**
    * URI used in the source code to reference the imported library.
    */
+  @Id(1)
   String get uri;
 
   /**
@@ -1211,6 +1337,7 @@ abstract class UnlinkedImport extends base.SummaryClass {
    * file.  If [isImplicit] is true, zero.
    */
   @informative
+  @Id(2)
   int get uriEnd;
 
   /**
@@ -1218,6 +1345,7 @@ abstract class UnlinkedImport extends base.SummaryClass {
    * the file.  If [isImplicit] is true, zero.
    */
   @informative
+  @Id(3)
   int get uriOffset;
 }
 
@@ -1228,6 +1356,7 @@ abstract class UnlinkedParam extends base.SummaryClass {
   /**
    * Annotations for this parameter.
    */
+  @Id(9)
   List<UnlinkedConst> get annotations;
 
   /**
@@ -1235,6 +1364,7 @@ abstract class UnlinkedParam extends base.SummaryClass {
    * default value.  Note that the presence of this expression does not mean
    * that it is a valid, check [UnlinkedConst.isInvalid].
    */
+  @Id(7)
   UnlinkedConst get defaultValue;
 
   /**
@@ -1248,38 +1378,45 @@ abstract class UnlinkedParam extends base.SummaryClass {
    * not specified, they always inherit the static type of the corresponding
    * field.
    */
+  @Id(2)
   int get inferredTypeSlot;
 
   /**
    * Indicates whether this is a function-typed parameter.
    */
+  @Id(5)
   bool get isFunctionTyped;
 
   /**
    * Indicates whether this is an initializing formal parameter (i.e. it is
    * declared using `this.` syntax).
    */
+  @Id(6)
   bool get isInitializingFormal;
 
   /**
    * Kind of the parameter.
    */
+  @Id(4)
   UnlinkedParamKind get kind;
 
   /**
    * Name of the parameter.
    */
+  @Id(0)
   String get name;
 
   /**
    * Offset of the parameter name relative to the beginning of the file.
    */
   @informative
+  @Id(1)
   int get nameOffset;
 
   /**
    * If [isFunctionTyped] is `true`, the parameters of the function type.
    */
+  @Id(8)
   List<UnlinkedParam> get parameters;
 
   /**
@@ -1287,7 +1424,20 @@ abstract class UnlinkedParam extends base.SummaryClass {
    * [isFunctionTyped] is `false`, the declared type.  Absent if the type is
    * implicit.
    */
+  @Id(3)
   EntityRef get type;
+
+  /**
+   * The length of the visible range.
+   */
+  @Id(10)
+  int get visibleLength;
+
+  /**
+   * The beginning of the visible range.
+   */
+  @Id(11)
+  int get visibleOffset;
 }
 
 /**
@@ -1317,6 +1467,7 @@ abstract class UnlinkedPart extends base.SummaryClass {
   /**
    * Annotations for this part declaration.
    */
+  @Id(2)
   List<UnlinkedConst> get annotations;
 
   /**
@@ -1324,6 +1475,7 @@ abstract class UnlinkedPart extends base.SummaryClass {
    * file.
    */
   @informative
+  @Id(0)
   int get uriEnd;
 
   /**
@@ -1331,6 +1483,7 @@ abstract class UnlinkedPart extends base.SummaryClass {
    * the file.
    */
   @informative
+  @Id(1)
   int get uriOffset;
 }
 
@@ -1344,26 +1497,33 @@ abstract class UnlinkedPart extends base.SummaryClass {
  */
 abstract class UnlinkedPublicName extends base.SummaryClass {
   /**
-   * If this [UnlinkedPublicName] is a class, the list of members which can be
-   * referenced from constants - static constant fields, static methods, and
-   * constructors.  Otherwise empty.
-   */
-  List<UnlinkedPublicName> get constMembers;
-
-  /**
    * The kind of object referred to by the name.
    */
+  @Id(1)
   ReferenceKind get kind;
+
+  /**
+   * If this [UnlinkedPublicName] is a class, the list of members which can be
+   * referenced from constants or factory redirects - static constant fields,
+   * static methods, and constructors.  Otherwise empty.
+   *
+   * Unnamed constructors are not included since they do not constitute a
+   * separate name added to any namespace.
+   */
+  @Id(2)
+  List<UnlinkedPublicName> get members;
 
   /**
    * The name itself.
    */
+  @Id(0)
   String get name;
 
   /**
    * If the entity being referred to is generic, the number of type parameters
    * it accepts.  Otherwise zero.
    */
+  @Id(3)
   int get numTypeParameters;
 }
 
@@ -1380,6 +1540,7 @@ abstract class UnlinkedPublicNamespace extends base.SummaryClass {
   /**
    * Export declarations in the compilation unit.
    */
+  @Id(2)
   List<UnlinkedExportPublic> get exports;
 
   /**
@@ -1388,11 +1549,13 @@ abstract class UnlinkedPublicNamespace extends base.SummaryClass {
    * TODO(paulberry): consider sorting these names to reduce unnecessary
    * relinking.
    */
+  @Id(0)
   List<UnlinkedPublicName> get names;
 
   /**
    * URIs referenced by part declarations in the compilation unit.
    */
+  @Id(1)
   List<String> get parts;
 }
 
@@ -1405,6 +1568,7 @@ abstract class UnlinkedReference extends base.SummaryClass {
    * Name of the entity being referred to.  For the pseudo-type `dynamic`, the
    * string is "dynamic".  For the pseudo-type `void`, the string is "void".
    */
+  @Id(0)
   String get name;
 
   /**
@@ -1415,6 +1579,7 @@ abstract class UnlinkedReference extends base.SummaryClass {
    * UnlinkedUnit.references[i].prefixReference != 0, then
    * UnlinkedUnit.references[i].prefixReference < i.
    */
+  @Id(1)
   int get prefixReference;
 }
 
@@ -1425,6 +1590,7 @@ abstract class UnlinkedTypedef extends base.SummaryClass {
   /**
    * Annotations for this typedef.
    */
+  @Id(4)
   List<UnlinkedConst> get annotations;
 
   /**
@@ -1432,32 +1598,38 @@ abstract class UnlinkedTypedef extends base.SummaryClass {
    * documentation comment.
    */
   @informative
+  @Id(6)
   UnlinkedDocumentationComment get documentationComment;
 
   /**
    * Name of the typedef.
    */
+  @Id(0)
   String get name;
 
   /**
    * Offset of the typedef name relative to the beginning of the file.
    */
   @informative
+  @Id(1)
   int get nameOffset;
 
   /**
    * Parameters of the executable, if any.
    */
+  @Id(3)
   List<UnlinkedParam> get parameters;
 
   /**
    * Return type of the typedef.
    */
+  @Id(2)
   EntityRef get returnType;
 
   /**
    * Type parameters of the typedef, if any.
    */
+  @Id(5)
   List<UnlinkedTypeParam> get typeParameters;
 }
 
@@ -1468,23 +1640,27 @@ abstract class UnlinkedTypeParam extends base.SummaryClass {
   /**
    * Annotations for this type parameter.
    */
+  @Id(3)
   List<UnlinkedConst> get annotations;
 
   /**
    * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
    * null.
    */
+  @Id(2)
   EntityRef get bound;
 
   /**
    * Name of the type parameter.
    */
+  @Id(0)
   String get name;
 
   /**
    * Offset of the type parameter name relative to the beginning of the file.
    */
   @informative
+  @Id(1)
   int get nameOffset;
 }
 
@@ -1499,33 +1675,39 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   /**
    * Classes declared in the compilation unit.
    */
+  @Id(2)
   List<UnlinkedClass> get classes;
 
   /**
    * Enums declared in the compilation unit.
    */
+  @Id(12)
   List<UnlinkedEnum> get enums;
 
   /**
    * Top level executable objects (functions, getters, and setters) declared in
    * the compilation unit.
    */
+  @Id(4)
   List<UnlinkedExecutable> get executables;
 
   /**
    * Export declarations in the compilation unit.
    */
+  @Id(13)
   List<UnlinkedExportNonPublic> get exports;
 
   /**
    * Import declarations in the compilation unit.
    */
+  @Id(5)
   List<UnlinkedImport> get imports;
 
   /**
    * Annotations for the library declaration, or the empty list if there is no
    * library declaration.
    */
+  @Id(14)
   List<UnlinkedConst> get libraryAnnotations;
 
   /**
@@ -1533,11 +1715,13 @@ abstract class UnlinkedUnit extends base.SummaryClass {
    * documentation comment.
    */
   @informative
+  @Id(9)
   UnlinkedDocumentationComment get libraryDocumentationComment;
 
   /**
    * Name of the library (from a "library" declaration, if present).
    */
+  @Id(6)
   String get libraryName;
 
   /**
@@ -1545,6 +1729,7 @@ abstract class UnlinkedUnit extends base.SummaryClass {
    * library has no name).
    */
   @informative
+  @Id(7)
   int get libraryNameLength;
 
   /**
@@ -1552,16 +1737,19 @@ abstract class UnlinkedUnit extends base.SummaryClass {
    * the library has no name).
    */
   @informative
+  @Id(8)
   int get libraryNameOffset;
 
   /**
    * Part declarations in the compilation unit.
    */
+  @Id(11)
   List<UnlinkedPart> get parts;
 
   /**
    * Unlinked public namespace of this compilation unit.
    */
+  @Id(0)
   UnlinkedPublicNamespace get publicNamespace;
 
   /**
@@ -1571,16 +1759,19 @@ abstract class UnlinkedUnit extends base.SummaryClass {
    * example [UnlinkedReference.prefixReference or
    * UnlinkedImport.prefixReference]).
    */
+  @Id(1)
   List<UnlinkedReference> get references;
 
   /**
    * Typedefs declared in the compilation unit.
    */
+  @Id(10)
   List<UnlinkedTypedef> get typedefs;
 
   /**
    * Top level variables declared in the compilation unit.
    */
+  @Id(3)
   List<UnlinkedVariable> get variables;
 }
 
@@ -1592,6 +1783,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
   /**
    * Annotations for this variable.
    */
+  @Id(8)
   List<UnlinkedConst> get annotations;
 
   /**
@@ -1599,6 +1791,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * expression in the initializer.  Note that the presence of this expression
    * does not mean that it is a valid, check [UnlinkedConst.isInvalid].
    */
+  @Id(5)
   UnlinkedConst get constExpr;
 
   /**
@@ -1606,6 +1799,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * documentation comment.
    */
   @informative
+  @Id(10)
   UnlinkedDocumentationComment get documentationComment;
 
   /**
@@ -1614,16 +1808,19 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * there is no matching entry in [LinkedLibrary.types], then no type was
    * inferred for this variable, so its static type is `dynamic`.
    */
+  @Id(9)
   int get inferredTypeSlot;
 
   /**
    * Indicates whether the variable is declared using the `const` keyword.
    */
+  @Id(6)
   bool get isConst;
 
   /**
    * Indicates whether the variable is declared using the `final` keyword.
    */
+  @Id(7)
   bool get isFinal;
 
   /**
@@ -1633,17 +1830,20 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * declared using the `static` keyword (even though they are considered
    * static for semantic purposes).
    */
+  @Id(4)
   bool get isStatic;
 
   /**
    * Name of the variable.
    */
+  @Id(0)
   String get name;
 
   /**
    * Offset of the variable name relative to the beginning of the file.
    */
   @informative
+  @Id(1)
   int get nameOffset;
 
   /**
@@ -1654,10 +1854,24 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    *
    * Non-propagable variables have a [propagatedTypeSlot] of zero.
    */
+  @Id(2)
   int get propagatedTypeSlot;
 
   /**
    * Declared type of the variable.  Absent if the type is implicit.
    */
+  @Id(3)
   EntityRef get type;
+
+  /**
+   * If a local variable, the length of the visible range; zero otherwise.
+   */
+  @Id(11)
+  int get visibleLength;
+
+  /**
+   * If a local variable, the beginning of the visible range; zero otherwise.
+   */
+  @Id(12)
+  int get visibleOffset;
 }

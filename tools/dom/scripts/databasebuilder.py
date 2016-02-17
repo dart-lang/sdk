@@ -20,9 +20,7 @@ import idl_validator
 
 import compiler
 import compute_interfaces_info_individual
-from compute_interfaces_info_individual import compute_info_individual, info_individual
-import compute_interfaces_info_overall
-from compute_interfaces_info_overall import compute_interfaces_info_overall, interfaces_info
+from compute_interfaces_info_individual import InterfaceInfoCollector
 import idl_definitions
 
 from idlnode import *
@@ -132,7 +130,7 @@ class Build():
         # Create compiler.
         self.idl_compiler = compiler.IdlCompilerDart(self.output_directory,
                                             attrib_file,
-                                            interfaces_info=interfaces_info,
+                                            interfaces_info=provider._info_collector.interfaces_info,
                                             only_if_changed=True)
 
     def format_exception(self, e):
@@ -168,13 +166,15 @@ class DatabaseBuilder(object):
   def __init__(self, database):
     """DatabaseBuilder is used for importing and merging interfaces into
     the Database"""
+    self._info_collector = InterfaceInfoCollector()
+
     self._database = database
     self._imported_interfaces = []
     self._impl_stmts = []
     self.conditionals_met = set()
 
     # Spin up the new IDL parser.
-    self.build = Build(None)
+    self.build = Build(self)
 
     # Global typedef to mapping.
     self.global_type_defs = monitored.Dict('databasebuilder.global_type_defs', {
@@ -186,13 +186,21 @@ class DatabaseBuilder(object):
   #              a type name.
   def _resolve_type_defs(self, idl_file):
     for type_node in idl_file.all(IDLType):
+      resolved = False
       type_name = type_node.id
       for typedef in self.global_type_defs:
         seq_name_typedef = 'sequence<%s>' % typedef
         if type_name == typedef:
           type_node.id = self.global_type_defs[typedef]
+          resolved = True
         elif type_name == seq_name_typedef:
           type_node.id = 'sequence<%s>' % self.global_type_defs[typedef]
+          resolved = True
+      if not(resolved):
+        for typedef in idl_file.typeDefs:
+          if type_name == typedef.id:
+            type_node.id = typedef.type.id
+            resolved = True
 
   def _strip_ext_attributes(self, idl_file):
     """Strips unuseful extended attributes."""
@@ -559,11 +567,11 @@ class DatabaseBuilder(object):
     if not(is_dart_idl):
       start_time = time.time()
 
-      # 2-stage computation: individual, then overall
+    # Compute information for individual files
+    # Information is stored in global variables interfaces_info and
+    # partial_interface_files.
       for file_path in file_paths:
-        compute_info_individual(file_path)
-      info_individuals = [info_individual()]
-      compute_interfaces_info_overall(info_individuals)
+        self._info_collector.collect_info(file_path)
 
       end_time = time.time()
       print 'Compute dependencies %s seconds' % round((end_time - start_time), 2)
@@ -572,7 +580,7 @@ class DatabaseBuilder(object):
       # file is special in that more than one interface can exist in this file.
       implement_pairs = self._compute_dart_idl_implements(file_paths[0])
 
-      interfaces_info['__dart_idl___'] = {
+      self._info_collector.interfaces_info['__dart_idl___'] = {
         'implement_pairs': implement_pairs,
       }
 
@@ -645,6 +653,10 @@ class DatabaseBuilder(object):
     for dictionary in idl_file.dictionaries:
       self._database.AddDictionary(dictionary)
 
+    # TODO(terry): Hack to remember all typedef unions they're mapped to any
+    #              - no type.
+    for typedef in idl_file.typeDefs:
+      self._database.AddTypeDef(typedef)
 
   def _is_node_enabled(self, node, idl_defines):
     if not 'Conditional' in node.ext_attrs:

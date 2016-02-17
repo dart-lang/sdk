@@ -27,6 +27,10 @@ DEFINE_FLAG(bool, timing, false,
 DEFINE_FLAG(charp, timeline_dir, NULL,
             "Enable all timeline trace streams and output VM global trace "
             "into specified directory.");
+DEFINE_FLAG(charp, timeline_streams, NULL,
+            "Comma separated list of timeline streams to record. "
+            "Valid values: all, API, Compiler, Dart, Debugger, Embedder, "
+            "GC, Isolate, and VM.");
 
 // Implementation notes:
 //
@@ -70,6 +74,56 @@ DEFINE_FLAG(charp, timeline_dir, NULL,
 //       |TimelineEventRecorder::lock_|
 //
 
+
+// Returns a caller freed array of stream names in FLAG_timeline_streams.
+static MallocGrowableArray<char*>* GetEnabledByDefaultTimelineStreams() {
+  MallocGrowableArray<char*>* result = new MallocGrowableArray<char*>();
+  if (FLAG_timeline_streams == NULL) {
+    // Nothing set.
+    return result;
+  }
+  char* save_ptr;  // Needed for strtok_r.
+  // strtok modifies arg 1 so we make a copy of it.
+  char* streams = strdup(FLAG_timeline_streams);
+  char* token = strtok_r(streams, ",", &save_ptr);
+  while (token != NULL) {
+    result->Add(strdup(token));
+    token = strtok_r(NULL, ",", &save_ptr);
+  }
+  free(streams);
+  return result;
+}
+
+
+// Frees the result of |GetEnabledByDefaultTimelineStreams|.
+static void FreeEnabledByDefaultTimelineStreams(
+    MallocGrowableArray<char*>* streams) {
+  if (streams == NULL) {
+    return;
+  }
+  for (intptr_t i = 0; i < streams->length(); i++) {
+    free((*streams)[i]);
+  }
+  delete streams;
+}
+
+
+// Returns true if |streams| contains |stream| or "all". Not case sensitive.
+static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
+  if ((FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline) {
+    return true;
+  }
+  for (intptr_t i = 0; i < streams->length(); i++) {
+    const char* checked_stream = (*streams)[i];
+    if ((strstr(checked_stream, "all") != NULL) ||
+        (strstr(checked_stream, stream) != NULL)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 void Timeline::InitOnce() {
   ASSERT(recorder_ == NULL);
   // Default to ring recorder being enabled.
@@ -82,15 +136,21 @@ void Timeline::InitOnce() {
   } else if (use_ring_recorder) {
     recorder_ = new TimelineEventRingRecorder();
   }
-  vm_stream_.Init("VM", EnableStreamByDefault("VM"), NULL);
+  enabled_streams_ = GetEnabledByDefaultTimelineStreams();
+  vm_stream_.Init("VM", HasStream(enabled_streams_, "VM"), NULL);
   vm_api_stream_.Init("API",
-                      EnableStreamByDefault("API"),
+                      HasStream(enabled_streams_, "API"),
                       &stream_API_enabled_);
   // Global overrides.
 #define ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT(name, not_used)                   \
-  stream_##name##_enabled_ = EnableStreamByDefault(#name);
+  stream_##name##_enabled_ = HasStream(enabled_streams_, #name);
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT)
 #undef ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT
+}
+
+
+void Timeline::SetVMStreamEnabled(bool enabled) {
+  vm_stream_.set_enabled(enabled);
 }
 
 
@@ -108,6 +168,10 @@ void Timeline::Shutdown() {
 #undef ISOLATE_TIMELINE_STREAM_DISABLE
   delete recorder_;
   recorder_ = NULL;
+  if (enabled_streams_ != NULL) {
+    FreeEnabledByDefaultTimelineStreams(enabled_streams_);
+    enabled_streams_ = NULL;
+  }
 }
 
 
@@ -116,9 +180,17 @@ TimelineEventRecorder* Timeline::recorder() {
 }
 
 
-bool Timeline::EnableStreamByDefault(const char* stream_name) {
-  // TODO(johnmccutchan): Allow for command line control over streams.
-  return (FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline;
+void Timeline::SetupIsolateStreams(Isolate* isolate) {
+  if (!FLAG_support_timeline) {
+    return;
+  }
+#define ISOLATE_TIMELINE_STREAM_INIT(name, enabled_by_default)                 \
+  isolate->Get##name##Stream()->Init(                                          \
+      #name,                                                                   \
+      (enabled_by_default || HasStream(enabled_streams_, #name)),              \
+      Timeline::Stream##name##EnabledFlag());
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
+#undef ISOLATE_TIMELINE_STREAM_INIT
 }
 
 
@@ -154,6 +226,38 @@ void Timeline::ReclaimCachedBlocksFromThreads() {
 }
 
 
+void Timeline::PrintFlagsToJSON(JSONStream* js) {
+  JSONObject obj(js);
+  obj.AddProperty("type", "TimelineFlags");
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder == NULL) {
+    obj.AddProperty("recorderName", "null");
+  } else {
+    obj.AddProperty("recorderName", recorder->name());
+  }
+  {
+    JSONArray availableStreams(&obj, "availableStreams");
+#define ADD_STREAM_NAME(name, not_used)                                        \
+    availableStreams.AddValue(#name);
+ISOLATE_TIMELINE_STREAM_LIST(ADD_STREAM_NAME);
+#undef ADD_STREAM_NAME
+    availableStreams.AddValue("VM");
+  }
+  {
+    JSONArray recordedStreams(&obj, "recordedStreams");
+#define ADD_RECORDED_STREAM_NAME(name, not_used)                               \
+    if (stream_##name##_enabled_) {                                            \
+      recordedStreams.AddValue(#name);                                         \
+    }
+ISOLATE_TIMELINE_STREAM_LIST(ADD_RECORDED_STREAM_NAME);
+#undef ADD_RECORDED_STREAM_NAME
+    if (vm_stream_.enabled()) {
+      recordedStreams.AddValue("VM");
+    }
+  }
+}
+
+
 void Timeline::Clear() {
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (recorder == NULL) {
@@ -167,6 +271,7 @@ void Timeline::Clear() {
 TimelineEventRecorder* Timeline::recorder_ = NULL;
 TimelineStream Timeline::vm_stream_;
 TimelineStream Timeline::vm_api_stream_;
+MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
 
 #define ISOLATE_TIMELINE_STREAM_DEFINE_FLAG(name, enabled_by_default)          \
   bool Timeline::stream_##name##_enabled_ = enabled_by_default;

@@ -113,11 +113,6 @@ class FlowGraphBuilder : public ValueObject {
     return ic_data_array_;
   }
 
-  // Return true if a Javascript compatibility warning should be emitted at
-  // runtime for this type test.
-  bool WarnOnJSIntegralNumTypeTest(AstNode* node,
-                                   const AbstractType& type) const;
-
   void Bailout(const char* reason) const;
 
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }

@@ -59,7 +59,7 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   ASSERT(result != NULL);
   result->memory_ = memory;
   result->next_ = NULL;
-  result->executable_ = is_executable;
+  result->type_ = type;
   return result;
 }
 
@@ -132,7 +132,7 @@ RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
 void HeapPage::WriteProtect(bool read_only) {
   VirtualMemory::Protection prot;
   if (read_only) {
-    if (executable_) {
+    if (type_ == kExecutable) {
       prot = VirtualMemory::kReadExecute;
     } else {
       prot = VirtualMemory::kReadOnly;
@@ -665,7 +665,9 @@ void PageSpace::WriteProtect(bool read_only, bool include_code_pages) {
     AbandonBumpAllocation();
   }
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    if ((it.page()->type() != HeapPage::kExecutable) || include_code_pages) {
+    HeapPage::PageType page_type = it.page()->type();
+    if ((page_type != HeapPage::kReadOnlyData) &&
+        ((page_type != HeapPage::kExecutable) || include_code_pages)) {
       it.page()->WriteProtect(read_only);
     }
   }
@@ -1071,7 +1073,9 @@ uword PageSpace::TryAllocateSmiInitializedLocked(intptr_t size,
 }
 
 
-void PageSpace::SetupInstructionsSnapshotPage(void* pointer, uword size) {
+void PageSpace::SetupExternalPage(void* pointer,
+                                  uword size,
+                                  bool is_executable) {
   // Setup a HeapPage so precompiled Instructions can be traversed.
   // Instructions are contiguous at [pointer, pointer + size). HeapPage
   // expects to find objects at [memory->start() + ObjectStartOffset,
@@ -1080,23 +1084,31 @@ void PageSpace::SetupInstructionsSnapshotPage(void* pointer, uword size) {
   pointer = reinterpret_cast<void*>(reinterpret_cast<uword>(pointer) - offset);
   size += offset;
 
-  ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
-
-  VirtualMemory* memory = VirtualMemory::ForInstructionsSnapshot(pointer, size);
+  VirtualMemory* memory = VirtualMemory::ForExternalPage(pointer, size);
   ASSERT(memory != NULL);
   HeapPage* page = reinterpret_cast<HeapPage*>(malloc(sizeof(HeapPage)));
   page->memory_ = memory;
   page->next_ = NULL;
   page->object_end_ = memory->end();
-  page->executable_ = true;
 
   MutexLocker ml(pages_lock_);
-  if (exec_pages_ == NULL) {
-    exec_pages_ = page;
+  HeapPage** first, **tail;
+  if (is_executable) {
+    ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
+    page->type_ = HeapPage::kExecutable;
+    first = &exec_pages_;
+    tail = &exec_pages_tail_;
   } else {
-    exec_pages_tail_->set_next(page);
+    page->type_ = HeapPage::kReadOnlyData;
+    first = &pages_;
+    tail = &pages_tail_;
   }
-  exec_pages_tail_ = page;
+  if (*first == NULL) {
+    *first = page;
+  } else {
+    (*tail)->set_next(page);
+  }
+  (*tail) = page;
 }
 
 

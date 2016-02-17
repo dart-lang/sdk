@@ -34,6 +34,7 @@ class ObjectPointerVisitor;
   V(Other, "other")                                                            \
   V(Call, "call")                                                              \
   V(Current, "current")                                                        \
+  V(_current, "_current")                                                      \
   V(MoveNext, "moveNext")                                                      \
   V(IsYieldEach, "isYieldEach")                                                \
   V(Value, "value")                                                            \
@@ -307,8 +308,6 @@ class ObjectPointerVisitor;
   V(OutOfMemoryError, "OutOfMemoryError")                                      \
   V(NullThrownError, "NullThrownError")                                        \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
-  V(JavascriptIntegerOverflowError, "_JavascriptIntegerOverflowError")         \
-  V(JavascriptCompatibilityError, "_JavascriptCompatibilityError")             \
   V(BooleanExpression, "boolean expression")                                   \
   V(Malformed, "malformed")                                                    \
   V(Malbounded, "malbounded")                                                  \

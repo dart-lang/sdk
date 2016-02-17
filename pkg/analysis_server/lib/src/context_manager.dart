@@ -307,10 +307,18 @@ abstract class ContextManager {
  */
 abstract class ContextManagerCallbacks {
   /**
-   * Create and return a new analysis context, allowing [disposition] to govern
-   * details of how the context is to be created.
+   * Return the default analysis options to be used when creating an analysis
+   * context.
    */
-  AnalysisContext addContext(Folder folder, FolderDisposition disposition);
+  AnalysisOptions get defaultAnalysisOptions;
+
+  /**
+   * Create and return a new analysis context rooted at the given [folder], with
+   * the given analysis [options], allowing [disposition] to govern details of
+   * how the context is to be created.
+   */
+  AnalysisContext addContext(
+      Folder folder, AnalysisOptions options, FolderDisposition disposition);
 
   /**
    * Called when the set of files associated with a context have changed (or
@@ -550,15 +558,8 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Process [options] for the given context [info].
    */
-  void processOptionsForContext(ContextInfo info, Folder folder,
+  void processOptionsForContext(ContextInfo info, Map<String, Object> options,
       {bool optionsRemoved: false}) {
-    Map<String, Object> options;
-    try {
-      options = analysisOptionsProvider.getOptions(folder);
-    } catch (_) {
-      // Parse errors are reported by GenerateOptionsErrorsTask.
-    }
-
     if (options == null && !optionsRemoved) {
       return;
     }
@@ -611,6 +612,20 @@ class ContextManagerImpl implements ContextManager {
     if (exclude != null) {
       setIgnorePatternsForContext(info, exclude);
     }
+  }
+
+  /**
+   * Return the options from the analysis options file in the given [folder], or
+   * `null` if there is no file in the folder or if the contents of the file are
+   * not valid YAML.
+   */
+  Map<String, Object> readOptions(Folder folder) {
+    try {
+      return analysisOptionsProvider.getOptions(folder);
+    } catch (_) {
+      // Parse errors are reported by GenerateOptionsErrorsTask.
+    }
+    return null;
   }
 
   @override
@@ -835,7 +850,11 @@ class ContextManagerImpl implements ContextManager {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
       var analysisContext = info.context;
       if (analysisContext is context.AnalysisContextImpl) {
-        processOptionsForContext(info, info.folder,
+        // TODO(brianwilkerson) This doesn't correctly update the source factory
+        // if the changes necessitate it (such as by changing the setting of the
+        // strong-mode option).
+        Map<String, Object> options = readOptions(info.folder);
+        processOptionsForContext(info, options,
             optionsRemoved: changeType == ChangeType.REMOVE);
         analysisContext.invalidateCachedResults();
         callbacks.applyChangesToContext(info.folder, new ChangeSet());
@@ -1019,11 +1038,16 @@ class ContextManagerImpl implements ContextManager {
           _computeFolderDisposition(folder, dependencies.add, packagespecFile);
     }
 
+    Map<String, Object> optionMap = readOptions(info.folder);
+    AnalysisOptions options =
+        new AnalysisOptionsImpl.from(callbacks.defaultAnalysisOptions);
+    applyToAnalysisOptions(options, optionMap);
+
     info.setDependencies(dependencies);
-    info.context = callbacks.addContext(folder, disposition);
+    info.context = callbacks.addContext(folder, options, disposition);
     info.context.name = folder.path;
 
-    processOptionsForContext(info, folder);
+    processOptionsForContext(info, optionMap);
 
     return info;
   }

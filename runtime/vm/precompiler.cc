@@ -22,6 +22,7 @@
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_inliner.h"
 #include "vm/flow_graph_optimizer.h"
+#include "vm/flow_graph_range_analysis.h"
 #include "vm/flow_graph_type_propagator.h"
 #include "vm/hash_table.h"
 #include "vm/il_printer.h"
@@ -347,10 +348,6 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     { "dart:core", "_CastError", "_CastError._create" },
     { "dart:core", "_InternalError", "_InternalError." },
     { "dart:core", "_InvocationMirror", "_allocateInvocationMirror" },
-    { "dart:core", "_JavascriptCompatibilityError",
-                   "_JavascriptCompatibilityError." },
-    { "dart:core", "_JavascriptIntegerOverflowError",
-                   "_JavascriptIntegerOverflowError." },
     { "dart:core", "_TypeError", "_TypeError._create" },
     { "dart:isolate", "IsolateSpawnException", "IsolateSpawnException." },
     { "dart:isolate", "::", "_getIsolateScheduleImmediateClosure" },
@@ -1917,7 +1914,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // We have to perform range analysis after LICM because it
           // optimistically moves CheckSmi through phis into loop preheaders
           // making some phis smi.
-          optimizer.InferIntRanges();
+          RangeAnalysis range_analysis(flow_graph);
+          range_analysis.Analyze();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 

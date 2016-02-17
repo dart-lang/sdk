@@ -12,6 +12,7 @@ import 'compile_time_error_code_test.dart' as compile_time_error_code_test;
 import 'constant_test.dart' as constant_test;
 import 'declaration_resolver_test.dart' as declaration_resolver_test;
 import 'engine_test.dart' as engine_test;
+import 'error_suppression_test.dart' as error_suppression_test;
 import 'incremental_resolver_test.dart' as incremental_resolver_test;
 import 'incremental_scanner_test.dart' as incremental_scanner_test;
 import 'java_core_test.dart' as java_core_test;
@@ -35,6 +36,7 @@ main() {
     constant_test.main();
     declaration_resolver_test.main();
     engine_test.main();
+    error_suppression_test.main();
     incremental_resolver_test.main();
     incremental_scanner_test.main();
     java_core_test.main();

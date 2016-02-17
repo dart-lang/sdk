@@ -177,11 +177,13 @@ SnapshotReader::SnapshotReader(
     const uint8_t* buffer,
     intptr_t size,
     const uint8_t* instructions_buffer,
+    const uint8_t* data_buffer,
     Snapshot::Kind kind,
     ZoneGrowableArray<BackRefNode>* backward_refs,
     Thread* thread)
     : BaseReader(buffer, size),
       instructions_buffer_(instructions_buffer),
+      data_buffer_(data_buffer),
       kind_(kind),
       snapshot_code_(instructions_buffer != NULL),
       thread_(thread),
@@ -211,7 +213,8 @@ SnapshotReader::SnapshotReader(
       backward_references_(backward_refs),
       instructions_reader_(NULL) {
   if (instructions_buffer != NULL) {
-    instructions_reader_ = new InstructionsReader(instructions_buffer);
+    instructions_reader_ =
+        new InstructionsReader(instructions_buffer, data_buffer);
   }
 }
 
@@ -1133,6 +1136,15 @@ int32_t InstructionsWriter::GetOffsetFor(RawInstructions* instructions) {
 }
 
 
+int32_t InstructionsWriter::GetObjectOffsetFor(RawObject* raw_object) {
+  intptr_t heap_size = raw_object->Size();
+  intptr_t offset = next_object_offset_;
+  next_object_offset_ += heap_size;
+  objects_.Add(ObjectData(raw_object));
+  return offset;
+}
+
+
 static void EnsureIdentifier(char* label) {
   for (char c = *label; c != '\0'; c = *++label) {
     if (((c >= 'a') && (c <= 'z')) ||
@@ -1156,10 +1168,16 @@ void InstructionsWriter::WriteAssembly() {
     ASSERT(data.raw_code_ != NULL);
     data.code_ = &Code::Handle(Z, data.raw_code_);
   }
+  for (intptr_t i = 0; i < objects_.length(); i++) {
+    ObjectData& data = objects_[i];
+    data.obj_ = &Object::Handle(Z, data.raw_obj_);
+  }
 
   stream_.Print(".text\n");
   stream_.Print(".globl _kInstructionsSnapshot\n");
-  stream_.Print(".balign %" Pd ", 0\n", OS::kMaxPreferredCodeAlignment);
+  // Start snapshot at page boundary.
+  ASSERT(VirtualMemory::PageSize() >= OS::kMaxPreferredCodeAlignment);
+  stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
   stream_.Print("_kInstructionsSnapshot:\n");
 
   // This head also provides the gap to make the instructions snapshot
@@ -1241,6 +1259,42 @@ void InstructionsWriter::WriteAssembly() {
       }
     }
   }
+#if defined(TARGET_OS_LINUX)
+  stream_.Print(".section .rodata\n");
+#elif defined(TARGET_OS_MACOS)
+  stream_.Print(".const\n");
+#else
+  // Unsupported platform.
+  UNREACHABLE();
+#endif
+  stream_.Print(".globl _kDataSnapshot\n");
+  // Start snapshot at page boundary.
+  stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
+  stream_.Print("_kDataSnapshot:\n");
+  WriteWordLiteral(next_object_offset_);  // Data length.
+  COMPILE_ASSERT(OS::kMaxPreferredCodeAlignment >= kObjectAlignment);
+  stream_.Print(".balign %" Pd ", 0\n", OS::kMaxPreferredCodeAlignment);
+
+  for (intptr_t i = 0; i < objects_.length(); i++) {
+    const Object& obj = *objects_[i].obj_;
+    stream_.Print("Precompiled_Obj_%d:\n", i);
+
+    NoSafepointScope no_safepoint;
+    uword start = reinterpret_cast<uword>(obj.raw()) - kHeapObjectTag;
+    uword end = start + obj.raw()->Size();
+
+    // Write object header with the mark and VM heap bits set.
+    uword marked_tags = obj.raw()->ptr()->tags_;
+    marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
+    marked_tags = RawObject::MarkBit::update(true, marked_tags);
+    WriteWordLiteral(marked_tags);
+    start += sizeof(uword);
+    for (uword* cursor = reinterpret_cast<uword*>(start);
+         cursor < reinterpret_cast<uword*>(end);
+         cursor++) {
+      WriteWordLiteral(*cursor);
+    }
+  }
 }
 
 
@@ -1250,15 +1304,30 @@ RawInstructions* InstructionsReader::GetInstructionsAt(int32_t offset,
 
   RawInstructions* result =
       reinterpret_cast<RawInstructions*>(
-          reinterpret_cast<uword>(buffer_) + offset + kHeapObjectTag);
+          reinterpret_cast<uword>(instructions_buffer_) +
+          offset + kHeapObjectTag);
 
+#ifdef DEBUG
   uword actual_tags = result->ptr()->tags_;
   if (actual_tags != expected_tags) {
     FATAL2("Instructions tag mismatch: expected %" Pd ", saw %" Pd,
            expected_tags,
            actual_tags);
   }
+#endif
 
+  ASSERT(result->IsMarked());
+
+  return result;
+}
+
+
+RawObject* InstructionsReader::GetObjectAt(int32_t offset) {
+  ASSERT(Utils::IsAligned(offset, kWordSize));
+
+  RawObject* result =
+      reinterpret_cast<RawObject*>(
+          reinterpret_cast<uword>(data_buffer_) + offset + kHeapObjectTag);
   ASSERT(result->IsMarked());
 
   return result;
@@ -1489,10 +1558,12 @@ VmIsolateSnapshotReader::VmIsolateSnapshotReader(
     const uint8_t* buffer,
     intptr_t size,
     const uint8_t* instructions_buffer,
+    const uint8_t* data_buffer,
     Thread* thread)
       : SnapshotReader(buffer,
                        size,
                        instructions_buffer,
+                       data_buffer,
                        Snapshot::kFull,
                        new ZoneGrowableArray<BackRefNode>(
                            kNumVmIsolateSnapshotReferences),
@@ -1510,6 +1581,7 @@ VmIsolateSnapshotReader::~VmIsolateSnapshotReader() {
   }
   ResetBackwardReferenceTable();
   Dart::set_instructions_snapshot_buffer(instructions_buffer_);
+  Dart::set_data_snapshot_buffer(data_buffer_);
 }
 
 
@@ -1561,10 +1633,12 @@ RawApiError* VmIsolateSnapshotReader::ReadVmIsolateSnapshot() {
 IsolateSnapshotReader::IsolateSnapshotReader(const uint8_t* buffer,
                                              intptr_t size,
                                              const uint8_t* instructions_buffer,
+                                             const uint8_t* data_buffer,
                                              Thread* thread)
     : SnapshotReader(buffer,
                      size,
                      instructions_buffer,
+                     data_buffer,
                      Snapshot::kFull,
                      new ZoneGrowableArray<BackRefNode>(
                          kNumInitialReferencesInFullSnapshot),
@@ -1584,6 +1658,7 @@ ScriptSnapshotReader::ScriptSnapshotReader(const uint8_t* buffer,
     : SnapshotReader(buffer,
                      size,
                      NULL, /* instructions_buffer */
+                     NULL, /* data_buffer */
                      Snapshot::kScript,
                      new ZoneGrowableArray<BackRefNode>(kNumInitialReferences),
                      thread) {
@@ -1601,6 +1676,7 @@ MessageSnapshotReader::MessageSnapshotReader(const uint8_t* buffer,
     : SnapshotReader(buffer,
                      size,
                      NULL, /* instructions_buffer */
+                     NULL, /* data_buffer */
                      Snapshot::kMessage,
                      new ZoneGrowableArray<BackRefNode>(kNumInitialReferences),
                      thread) {

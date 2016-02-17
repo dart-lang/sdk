@@ -61,8 +61,6 @@ class Exceptions : AllStatic {
     kOutOfMemory,
     kNullThrown,
     kIsolateSpawn,
-    kJavascriptIntegerOverflowError,
-    kJavascriptCompatibilityError,
     kAssertion,
     kCast,
     kType,
@@ -81,13 +79,10 @@ class Exceptions : AllStatic {
                               const Integer& argument_value,
                               intptr_t expected_from,
                               intptr_t expected_to);
-  static void ThrowJavascriptCompatibilityError(const char* msg);
 
   // Returns a RawInstance if the exception is successfully created,
   // otherwise returns a RawError.
   static RawObject* Create(ExceptionType type, const Array& arguments);
-
-  static void PrintStackTraceAndAbort(const char* reason);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Exceptions);

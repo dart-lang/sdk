@@ -10,9 +10,12 @@
 
 namespace dart {
 
+class Definition;
 class Field;
 class FlowGraph;
 class Function;
+class Instruction;
+class TargetEntryInstr;
 
 class FlowGraphInliner : ValueObject {
  public:
@@ -35,6 +38,16 @@ class FlowGraphInliner : ValueObject {
   intptr_t NextInlineId(const Function& function, intptr_t caller_id);
 
   bool trace_inlining() const { return trace_inlining_; }
+
+  static bool TryInlineRecognizedMethod(FlowGraph* flow_graph,
+                                        intptr_t receiver_cid,
+                                        const Function& target,
+                                        Instruction* call,
+                                        Definition* receiver,
+                                        TokenPosition token_pos,
+                                        const ICData& ic_data,
+                                        TargetEntryInstr** entry,
+                                        Definition** last);
 
  private:
   friend class CallSiteInliner;

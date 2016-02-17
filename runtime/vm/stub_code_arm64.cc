@@ -26,7 +26,6 @@ DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, support_debugger);
 DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
@@ -1294,10 +1293,6 @@ static void EmitFastSmiOp(Assembler* assembler,
                           Label* not_smi_or_overflow,
                           bool should_update_result_range) {
   __ Comment("Fast Smi op");
-  if (FLAG_throw_on_javascript_int_overflow) {
-    // The overflow check is more complex than implemented below.
-    return;
-  }
   __ ldr(R0, Address(SP, + 0 * kWordSize));  // Right.
   __ ldr(R1, Address(SP, + 1 * kWordSize));  // Left.
   __ orr(TMP, R0, Operand(R1));

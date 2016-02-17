@@ -10,12 +10,11 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
-import 'package:analyzer/src/generated/resolver.dart';
 
 /**
  * A contributor for calculating suggestions for imported top level members.
@@ -31,29 +30,23 @@ class ImportedReferenceContributor extends DartCompletionContributor {
       return EMPTY_LIST;
     }
 
-    List<Directive> directives = await request.resolveDirectives();
-    if (directives == null) {
+    List<ImportElement> imports = await request.resolveImports();
+    if (imports == null) {
       return EMPTY_LIST;
     }
 
     this.request = request;
     this.optype = (request as DartCompletionRequestImpl).opType;
+    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
-    // Traverse dart:core
-    List<CompletionSuggestion> suggestions =
-        _buildSuggestions(request.coreLib.exportNamespace);
-
-    // Traverse imports
-    for (Directive directive in directives) {
-      if (directive is ImportDirective) {
-        ImportElement importElem = directive.element;
-        LibraryElement libElem = importElem?.importedLibrary;
-        if (libElem != null) {
-          suggestions.addAll(_buildSuggestions(libElem.exportNamespace,
-              prefix: importElem.prefix?.name,
-              showNames: showNamesIn(importElem),
-              hiddenNames: hiddenNamesIn(importElem)));
-        }
+    // Traverse imports including dart:core
+    for (ImportElement importElem in imports) {
+      LibraryElement libElem = importElem?.importedLibrary;
+      if (libElem != null) {
+        suggestions.addAll(_buildSuggestions(libElem.exportNamespace,
+            prefix: importElem.prefix?.name,
+            showNames: showNamesIn(importElem),
+            hiddenNames: hiddenNamesIn(importElem)));
       }
     }
 

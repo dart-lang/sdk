@@ -8,8 +8,6 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
-import 'package:logging/logging.dart';
-
 class _JenkinsSmiHash {
   static int combine(int hash, int value) {
     hash = 0x1fffffff & (hash + value);
@@ -499,7 +497,7 @@ class ObjectGraph {
         if (childId != null) {
           succs[edge] = childId;
           edge++;
-        } else { 
+        } else {
           // Reference into VM isolate's heap.
         }
         stream.readUnsigned();
@@ -519,7 +517,6 @@ class ObjectGraph {
 
   void _dfs() {
     var N = _N;
-    var E = _E;
     var firstSuccs = _firstSuccs;
     var succs = _succs;
 
@@ -531,7 +528,6 @@ class ObjectGraph {
     var parent = new Uint32List(N + 1);
     var dfsNumber = 0;
 
-    var dfsCount = 0;
     var stackTop = 0;
     var root = 1;
 

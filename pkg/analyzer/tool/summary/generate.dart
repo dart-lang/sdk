@@ -23,11 +23,13 @@ import 'dart:convert';
 import 'dart:io' hide File;
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/codegen/tools.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart';
 
@@ -82,6 +84,7 @@ class _CodeGenerator {
    */
   void checkIdl() {
     _idl.classes.forEach((String name, idlModel.ClassDeclaration cls) {
+      Map<int, String> idsUsed = <int, String>{};
       for (idlModel.FieldDeclaration field in cls.fields) {
         String fieldName = field.name;
         idlModel.FieldType type = field.type;
@@ -100,6 +103,16 @@ class _CodeGenerator {
             throw new Exception(
                 '$name.$fieldName: illegal type (list of ${type.typeName})');
           }
+        }
+        if (idsUsed.containsKey(field.id)) {
+          throw new Exception('$name.$fieldName: id ${field.id} already used by'
+              ' ${idsUsed[field.id]}');
+        }
+        idsUsed[field.id] = fieldName;
+      }
+      for (int i = 0; i < idsUsed.length; i++) {
+        if (!idsUsed.containsKey(i)) {
+          throw new Exception('$name: no field uses id $i');
         }
       }
     });
@@ -193,9 +206,10 @@ class _CodeGenerator {
         }
         for (ClassMember classMember in decl.members) {
           if (classMember is MethodDeclaration && classMember.isGetter) {
+            String desc = '${cls.name}.${classMember.name.name}';
             TypeName type = classMember.returnType;
             if (type == null) {
-              throw new Exception('Class member needs a type: $classMember');
+              throw new Exception('Class member needs a type: $desc');
             }
             bool isList = false;
             if (type.name.name == 'List' &&
@@ -207,11 +221,34 @@ class _CodeGenerator {
             if (type.typeArguments != null) {
               throw new Exception('Cannot handle type arguments in `$type`');
             }
+            int id;
+            for (Annotation annotation in classMember.metadata) {
+              if (annotation.name.name == 'Id') {
+                if (id != null) {
+                  throw new Exception(
+                      'Duplicate @id annotation ($classMember)');
+                }
+                if (annotation.arguments.arguments.length != 1) {
+                  throw new Exception(
+                      '@Id must be passed exactly one argument ($desc)');
+                }
+                Expression expression = annotation.arguments.arguments[0];
+                if (expression is IntegerLiteral) {
+                  id = expression.value;
+                } else {
+                  throw new Exception(
+                      '@Id parameter must be an integer literal ($desc)');
+                }
+              }
+            }
+            if (id == null) {
+              throw new Exception('Missing @id annotation ($desc)');
+            }
             String doc = _getNodeDoc(lineInfo, classMember);
             idlModel.FieldType fieldType =
                 new idlModel.FieldType(type.name.name, isList);
             cls.fields.add(new idlModel.FieldDeclaration(
-                doc, classMember.name.name, fieldType));
+                doc, classMember.name.name, fieldType, id));
           } else if (classMember is ConstructorDeclaration &&
               classMember.name.name == 'fromBuffer') {
             // Ignore `fromBuffer` declarations; they simply forward to the
@@ -404,7 +441,7 @@ class _CodeGenerator {
         out('assert(!_finished);');
         out('_finished = true;');
         // Write objects and remember Offset(s).
-        cls.fields.asMap().forEach((index, idlModel.FieldDeclaration field) {
+        for (idlModel.FieldDeclaration field in cls.fields) {
           idlModel.FieldType fieldType = field.type;
           String offsetName = 'offset_' + field.name;
           if (fieldType.isList ||
@@ -412,8 +449,8 @@ class _CodeGenerator {
               _idl.classes.containsKey(fieldType.typeName)) {
             out('fb.Offset $offsetName;');
           }
-        });
-        cls.fields.asMap().forEach((index, idlModel.FieldDeclaration field) {
+        }
+        for (idlModel.FieldDeclaration field in cls.fields) {
           idlModel.FieldType fieldType = field.type;
           String valueName = '_' + field.name;
           String offsetName = 'offset_' + field.name;
@@ -428,7 +465,7 @@ class _CodeGenerator {
             } else if (_idl.enums.containsKey(fieldType.typeName)) {
               String itemCode = 'b.index';
               String listCode = '$valueName.map((b) => $itemCode).toList()';
-              writeCode = '$offsetName = fbBuilder.writeListUint32($listCode);';
+              writeCode = '$offsetName = fbBuilder.writeListUint8($listCode);';
             } else if (fieldType.typeName == 'int') {
               writeCode =
                   '$offsetName = fbBuilder.writeListUint32($valueName);';
@@ -457,10 +494,11 @@ class _CodeGenerator {
             });
             out('}');
           }
-        });
+        }
         // Write the table.
         out('fbBuilder.startTable();');
-        cls.fields.asMap().forEach((index, idlModel.FieldDeclaration field) {
+        for (idlModel.FieldDeclaration field in cls.fields) {
+          int index = field.id;
           idlModel.FieldType fieldType = field.type;
           String valueName = '_' + field.name;
           String condition = '$valueName != null';
@@ -479,7 +517,7 @@ class _CodeGenerator {
             writeCode = 'fbBuilder.addUint32($index, $valueName);';
           } else if (_idl.enums.containsKey(fieldType.typeName)) {
             condition += ' && $valueName != ${defaultValue(fieldType, true)}';
-            writeCode = 'fbBuilder.addUint32($index, $valueName.index);';
+            writeCode = 'fbBuilder.addUint8($index, $valueName.index);';
           }
           if (writeCode == null) {
             throw new UnimplementedError('Writing type ${fieldType.typeName}');
@@ -489,7 +527,7 @@ class _CodeGenerator {
             out(writeCode);
           });
           out('}');
-        });
+        }
         out('return fbBuilder.endTable();');
       });
       out('}');
@@ -505,12 +543,12 @@ class _CodeGenerator {
       out('const $readerName() : super();');
       out();
       out('@override');
-      out('int get size => 4;');
+      out('int get size => 1;');
       out();
       out('@override');
       out('${idlPrefix(name)} read(fb.BufferPointer bp) {');
       indent(() {
-        out('int index = const fb.Uint32Reader().read(bp);');
+        out('int index = const fb.Uint8Reader().read(bp);');
         out('return ${idlPrefix(name)}.values[index];');
       });
       out('}');
@@ -536,7 +574,8 @@ class _CodeGenerator {
         out('$returnType _$fieldName;');
       }
       // Write getters.
-      cls.fields.asMap().forEach((index, field) {
+      for (idlModel.FieldDeclaration field in cls.fields) {
+        int index = field.id;
         String fieldName = field.name;
         idlModel.FieldType type = field.type;
         String typeName = type.typeName;
@@ -545,8 +584,7 @@ class _CodeGenerator {
         String def = defaultValue(type, false);
         if (type.isList) {
           if (typeName == 'int') {
-            String itemCode = 'const fb.Uint32Reader()';
-            readCode = 'const fb.ListReader<int>($itemCode)';
+            readCode = 'const fb.Uint32ListReader()';
           } else if (typeName == 'double') {
             readCode = 'const fb.Float64ListReader()';
           } else if (typeName == 'String') {
@@ -583,7 +621,7 @@ class _CodeGenerator {
           out('return _$fieldName;');
         });
         out('}');
-      });
+      }
     });
     out('}');
   }

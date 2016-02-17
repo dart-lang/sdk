@@ -143,7 +143,7 @@ def CopyAnalyzerSources(home, lib_dir):
   for library in ['analyzer', 'analysis_server']:
     copytree(join(home, 'pkg', library), join(lib_dir, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh',
-                                    '.gitignore'))
+                                    '.gitignore', 'packages'))
 
 def CopyDartdocResources(home, sdk_root):
   RESOURCE_DIR = join(sdk_root, 'bin', 'snapshots', 'resources')

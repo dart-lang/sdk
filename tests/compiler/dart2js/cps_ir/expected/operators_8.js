@@ -6,16 +6,16 @@
 // }
 
 function() {
-  var list = [1, 2, 3], res;
+  var list = [1, 2, 3], line;
   list[1] = 6;
-  res = P.IterableBase_iterableToFullString(list, "[", "]");
+  line = H.S(list);
   if (typeof dartPrint == "function")
-    dartPrint(res);
+    dartPrint(line);
   else if (typeof console == "object" && typeof console.log != "undefined")
-    console.log(res);
+    console.log(line);
   else if (!(typeof window == "object")) {
     if (!(typeof print == "function"))
-      throw "Unable to print message: " + String(res);
-    print(res);
+      throw "Unable to print message: " + String(line);
+    print(line);
   }
 }

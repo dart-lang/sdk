@@ -183,8 +183,7 @@ def main():
     'arch': options.arch,
   }
 
-  test_script = os.path.join(srcpath, 'webkit', 'tools', 'layout_tests',
-                             'run_webkit_tests.py')
+  test_script = os.path.join(srcpath, 'third_party', 'WebKit', 'Tools', 'Scripts', 'run-webkit-tests')
 
   errors = False
   for component in components:

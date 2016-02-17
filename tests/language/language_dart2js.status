@@ -34,8 +34,6 @@ library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
 library_env_test/has_no_mirror_support: RuntimeError, OK
 
-accessor_conflict_export2_test: Crash # Issue 25626
-accessor_conflict_export_test: Crash # Issue 25626
 accessor_conflict_import2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
@@ -44,6 +42,8 @@ accessor_conflict_import_test: RuntimeError # Issue 25626
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
+async_star_no_cancel_test: RuntimeError # Need triage
+async_star_no_cancel2_test: RuntimeError # Need triage
 
 [ $compiler == dart2js && $browser ]
 config_import_test: Fail # Test flag is not passed to the compiler.
@@ -238,6 +238,8 @@ cha_deopt*: Pass,RuntimeError # Issue 17458
 regress_22443_test: Pass,RuntimeError # Issue 17458
 
 [ $compiler == dart2js && $cps_ir == false ]
+accessor_conflict_export2_test: Crash # Issue 25626
+accessor_conflict_export_test: Crash # Issue 25626
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
 many_method_calls_test: Crash # Stack overflow in HGraphVisitor.visitPostDominatorTree.visitBasicBlockAndSuccessors
@@ -249,37 +251,33 @@ super_no_such_method5_test/01: RuntimeError # Issue 25716
 issue23244_test: RuntimeError # 23244
 
 [ $compiler == dart2js && $cps_ir ]
+accessor_conflict_export_test: CompileTimeError # Issue 25747
+accessor_conflict_export2_test: CompileTimeError # Issue 25747
 async_await_syntax_test/a03a: Crash # (a03a()async*{}): cannot handle sync*/async* functions
 async_await_syntax_test/a03b: Crash # (a03b()async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/a06a: Crash # (await for(var o in st){}): await for
 async_await_syntax_test/a09a: Crash # (a09a()async*{yield 0;}): cannot handle sync*/async* functions
 async_await_syntax_test/a10a: Crash # (a10a()async*{yield* [] ;}): cannot handle sync*/async* functions
 async_await_syntax_test/a11d: Crash # (get async async*{}): cannot handle sync*/async* functions
 async_await_syntax_test/b03a: Crash # (b03a()async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/b06a: Crash # (await for(var o in st){}): await for
 async_await_syntax_test/b09a: Crash # (b09a()async*{yield 0;}): cannot handle sync*/async* functions
 async_await_syntax_test/b10a: Crash # (b10a()async*{yield* [] ;}): cannot handle sync*/async* functions
 async_await_syntax_test/b11d: Crash # (get async async*{}): cannot handle sync*/async* functions
 async_await_syntax_test/c03a: Crash # (c03a()async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/c06a: Crash # (await for(var o in st){}): await for
 async_await_syntax_test/c09a: Crash # (c09a()async*{yield 0;}): cannot handle sync*/async* functions
 async_await_syntax_test/c10a: Crash # (c10a()async*{yield* [] ;}): cannot handle sync*/async* functions
 async_await_syntax_test/d03a: Crash # (()async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/d06a: Crash # (await for(var o in st){}): await for
 async_await_syntax_test/d09a: Crash # (()async*{yield 0;}): cannot handle sync*/async* functions
 async_await_syntax_test/d10a: Crash # (()async*{yield* [] ;}): cannot handle sync*/async* functions
-async_await_test/02: Crash # bailout: (await for
-async_await_test/03: Crash # bailout: (await for
-async_await_test/none: Crash # bailout: (await for
 async_or_generator_return_type_stacktrace_test/02: Crash # (void badReturnTypeAsyncStar()async*{}): cannot handle sync*/async* functions
 async_return_types_test/nestedFuture: Crash #  cannot handle sync*/async* functions
 async_return_types_test/none: Crash # cannot handle sync*/async* functions
 async_return_types_test/tooManyTypeParameters: Crash # cannot handle sync*/async* functions
 async_return_types_test/wrongReturnType: Crash # cannot handle sync*/async* functions
 async_return_types_test/wrongTypeParameter: Crash # cannot handle sync*/async* functions
-async_star_await_pauses_test: Crash # (await for(var i in ...  await for
 async_star_cancel_and_throw_in_finally_test: Crash # (foo()async*{try {in...  cannot handle sync*/async* functions
 async_star_cancel_while_paused_test: Crash # (f()async*{list.add(...  cannot handle sync*/async* functions
+async_star_no_cancel_test: Crash # (foo()async*{try {in...  cannot handle sync*/async* functions
+async_star_no_cancel2_test: Crash # (foo()async*{try {in...  cannot handle sync*/async* functions
 async_star_regression_2238_test: Crash # (f()async*{label1:label2:yield 0;}): cannot handle sync*/async* functions
 async_star_regression_23116_test: Crash # (Stream<int> foo(Com...  cannot handle sync*/async* functions
 async_star_regression_fisk_test: Crash # (fisk()async*{res.ad...  cannot handle sync*/async* functions
@@ -290,11 +288,7 @@ asyncstar_concat_test: Crash # (concat(a,b)async*{yield* a;yield* b;}): cannot h
 asyncstar_throw_in_catch_test: Crash # (foo4(Tracer tracer)...  cannot handle sync*/async* functions
 asyncstar_yield_test: Crash # (Stream<int> foo4()a...  cannot handle sync*/async* functions
 asyncstar_yieldstar_test: Crash # (foo2(Stream subStream)async*{yield* subStream;}): cannot handle sync*/async* functions
-await_for_cancel_test: Crash # (await for(var x in controller.stream){for(int j=0;j<10;j++ ){if(j==5)continue outer;}}): await for
-await_for_test: Crash # (await for(var x in infiniteStream()){i++ ;if(i>10)break;t4.record(x);}): await for
-await_for_use_local_test: Crash # (await for(var v in s){accum+= v;}): await for
 call_closurization_test: RuntimeError # Bad type inference for ".call" tear-off.
-deferred_super_dependency_test/01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 field3a_negative_test: Fail # Bogus result from type inference in case of invalid program.
 gc_test: Crash # Internal Error: Pending statics (see above).
 if_null_assignment_static_test/29: Crash # Pending statics: JSArray
@@ -303,10 +297,10 @@ if_null_assignment_static_test/32: Crash # Pending statics: JSArray
 if_null_assignment_static_test/33: Crash # Pending statics: JSArray
 if_null_assignment_static_test/35: Crash # Pending statics: JSArray
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
-regress_23500_test/01: Crash # (await for(var c in new Stream.fromIterable([] )){}): await for
-savannah_test: RuntimeError # Success depends on the variable hints.
+many_calls_test: Crash # Internal Error: Pending statics (see above).
+mixin_bound_test: RuntimeError # TypeError: Cannot read property 'toString$0' of undefined
 super_call4_test: RuntimeError # Please triage this failure.
-super_getter_setter_test: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
+super_getter_setter_test: RuntimeError # Expect.equals(expected: <42>, actual: <null>) fails.
 super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet

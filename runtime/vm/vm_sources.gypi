@@ -376,7 +376,6 @@
     'regexp_test.cc',
     'report.cc',
     'report.h',
-    'report_test.cc',
     'resolver.cc',
     'resolver.h',
     'resolver_test.cc',

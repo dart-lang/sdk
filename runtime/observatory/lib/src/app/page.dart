@@ -122,6 +122,8 @@ class VMPage extends SimplePage {
       }
     }).catchError((e, stack) {
       Logger.root.severe('VMPage visit error: $e');
+      // Reroute to vm-connect.
+      app.locationManager.go(app.locationManager.makeLink('/vm-connect'));
     });
   }
 }

@@ -7,10 +7,11 @@ library analyzer;
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/error.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:path/path.dart' as pathos;

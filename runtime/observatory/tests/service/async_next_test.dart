@@ -26,7 +26,8 @@ testMain() {
 
 asyncNext(Isolate isolate) async {
   print('asyncNext');
-  return isolate.asyncStepOver()[Isolate.kSecondResume];
+  List asyncStepFutures = await isolate.asyncStepOver();
+  return asyncStepFutures[Isolate.kSecondResume];
 }
 
 var tests = [

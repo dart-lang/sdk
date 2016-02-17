@@ -7,6 +7,7 @@ library analyzer.test.generated.resolver_test;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -23,7 +24,6 @@ import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -7868,6 +7868,11 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     if (node.name == "void") {
       return null;
     }
+    if (node.staticType != null &&
+        node.staticType.isDynamic &&
+        node.staticElement == null) {
+      return null;
+    }
     AstNode parent = node.parent;
     if (parent is MethodInvocation) {
       MethodInvocation invocation = parent;
@@ -10223,6 +10228,79 @@ main(p) {
       FunctionType type = identifier.propagatedType;
       expect(type, isNotNull);
       expect(type.name, 'Foo');
+    }
+  }
+
+  void test_staticMethods_classTypeParameters() {
+    String code = r'''
+class C<T> {
+  static void m() => null;
+}
+main() {
+  print(C.m);
+}
+''';
+    _resolveTestUnit(code);
+    SimpleIdentifier identifier = _findIdentifier('m);');
+    FunctionTypeImpl type = identifier.staticType;
+    expect(type.toString(), '() → void');
+    expect(type.typeParameters, isEmpty,
+        reason: 'static methods should not have type parameters');
+    expect(type.typeArguments, isEmpty,
+        reason: 'static methods should not have type arguments');
+    expect(type.typeFormals, isEmpty,
+        reason: 'this static method is not generic');
+  }
+
+  void test_staticMethods_classTypeParameters_genericMethod() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableGenericMethods = true;
+    resetWithOptions(options);
+    String code = r'''
+class C<T> {
+  static void m<S>(S s) {
+    void f<U>(S s, U u) {}
+    print(f);
+  }
+}
+main() {
+  print(C.m);
+}
+''';
+    _resolveTestUnit(code);
+    // C - m
+    TypeParameterType typeS;
+    {
+      SimpleIdentifier identifier = _findIdentifier('m);');
+      FunctionTypeImpl type = identifier.staticType;
+      expect(type.toString(), '<S>(S) → void');
+      expect(type.typeParameters, isEmpty,
+          reason: 'static methods should not have type parameters');
+      expect(type.typeArguments, isEmpty,
+          reason: 'static methods should not have type arguments');
+      expect(type.typeFormals.toString(), '[S]');
+      typeS = type.typeFormals[0].type;
+
+      type = type.instantiate([DynamicTypeImpl.instance]);
+      expect(type.toString(), '(dynamic) → void');
+      expect(type.typeParameters.toString(), '[S]');
+      expect(type.typeArguments, [DynamicTypeImpl.instance]);
+      expect(type.typeFormals, isEmpty);
+    }
+    // C - m - f
+    {
+      SimpleIdentifier identifier = _findIdentifier('f);');
+      FunctionTypeImpl type = identifier.staticType;
+      expect(type.toString(), '<U>(S, U) → void');
+      expect(type.typeParameters.toString(), '[S]');
+      expect(type.typeArguments.toString(), '[S]');
+      expect(type.typeFormals.toString(), '[U]');
+
+      type = type.instantiate([DynamicTypeImpl.instance]);
+      expect(type.toString(), '(S, dynamic) → void');
+      expect(type.typeParameters.toString(), '[S, U]');
+      expect(type.typeArguments, [typeS, DynamicTypeImpl.instance]);
+      expect(type.typeFormals, isEmpty);
     }
   }
 }
@@ -13388,11 +13466,8 @@ class C<E> {
     MethodElementImpl e = f.staticElement;
     expect(e.typeParameters.toString(), '[T]');
     expect(e.type.typeFormals.toString(), '[T]');
-    // TODO(jmesserly): we could get rid of this {E/E} substitution, but it's
-    // probably harmless, as E won't be used in the function (error verifier
-    // checks this), and {E/E} is a no-op anyway.
-    expect(e.type.typeParameters.toString(), '[E]');
-    expect(e.type.typeArguments.toString(), '[E]');
+    expect(e.type.typeParameters.toString(), '[]');
+    expect(e.type.typeArguments.toString(), '[]');
     expect(e.type.toString(), '<T>(T) → T');
 
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
@@ -13779,6 +13854,18 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
+  void test_genericMethod_nestedBound() {
+    String code = r'''
+class Foo<T extends num> {
+  void method/*<U extends T>*/(dynamic/*=U*/ u) {
+    u.abs();
+  }
+}
+''';
+    // Just validate that there is no warning on the call to `.abs()`.
+    _resolveTestUnit(code);
+  }
+
   void test_genericMethod_nestedCapture() {
     _resolveTestUnit(r'''
 class C<T> {
@@ -13855,6 +13942,11 @@ class D extends C {
     // TODO(jmesserly): we can't use assertErrors because STRONG_MODE_* errors
     // from CodeChecker don't have working equality.
     List<AnalysisError> errors = analysisContext2.computeErrors(source);
+
+    // Sort errors by name.
+    errors.sort((AnalysisError e1, AnalysisError e2) =>
+        e1.errorCode.name.compareTo(e2.errorCode.name));
+
     expect(errors.map((e) => e.errorCode.name), [
       'INVALID_METHOD_OVERRIDE_RETURN_TYPE',
       'STRONG_MODE_INVALID_METHOD_OVERRIDE'

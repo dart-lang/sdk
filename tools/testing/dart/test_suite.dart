@@ -240,6 +240,21 @@ abstract class TestSuite {
     return dartExecutable;
   }
 
+  String get dartVmProductBinaryFileName {
+    // Controlled by user with the option "--dart".
+    String dartExecutable = configuration['dart'];
+
+    if (dartExecutable == '') {
+      String suffix = executableBinarySuffix;
+      dartExecutable = useSdk
+          ? '$buildDir/dart-sdk/bin/dart_product$suffix'
+          : '$buildDir/dart_product$suffix';
+    }
+
+    TestUtils.ensureExists(dartExecutable, configuration);
+    return dartExecutable;
+  }
+
   String get d8FileName {
     var suffix = getExecutableSuffix('d8');
     var d8Dir = TestUtils.dartDir.append('third_party/d8');
@@ -1807,8 +1822,9 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none', 'precompiler'];
-    var RUNTIMES = const ['none', 'dart_precompiled', 'vm', 'drt', 'dartium',
+    var COMPILERS = const ['none', 'precompiler', 'dart2app'];
+    var RUNTIMES = const ['none', 'dart_precompiled', 'dart_product', 'vm',
+                          'drt', 'dartium',
                           'ContentShellOnAndroid', 'DartiumOnAndroid'];
     var needsVmOptions = COMPILERS.contains(configuration['compiler']) &&
                          RUNTIMES.contains(configuration['runtime']);
@@ -2368,19 +2384,6 @@ class TestUtils {
       return cross;
     }
     return normal;
-  }
-
-  /**
-   * Returns the path to the dart binary checked into the repo, used for
-   * bootstrapping test.dart.
-   */
-  static Path get dartTestExecutable {
-    var path = '$dartDir/tools/testing/bin/'
-        '${Platform.operatingSystem}/dart';
-    if (Platform.operatingSystem == 'windows') {
-      path = '$path.exe';
-    }
-    return new Path(path);
   }
 
   /**
