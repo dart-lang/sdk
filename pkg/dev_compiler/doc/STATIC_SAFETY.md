@@ -254,7 +254,20 @@ where `List` is equivalent to `List<dynamic>`.  This introduces circularity - e.
 
 From a programmer’s perspective, this means that, at compile-time, values that are statically typed `List<int>` may later be typed `List<String>` and vice versa.  At runtime, a plain `List` can interchangeably act as a `List<int>` or a `List<String>` regardless of its actual values.
 
-Our running example exploits this.  A `MyList` may be passed to the `info` function as it’s a subtype of the expected type:
+The example taken from [here](https://github.com/dart-lang/dev_compiler/blob/strong/STRONG_MODE.md#motivation) exploits this:
+
+```dart
+class MyList extends ListBase<int> implements List {
+   Object length;
+
+   MyList(this.length);
+
+   operator[](index) => "world";
+   operator[]=(index, value) {}
+}
+```
+
+A `MyList` may masquerade as a `List<int>` as it is transitively a subtype:
 
 `MyList` <:<sub>D</sub> `List` <:<sub>D</sub>`List<int>`
 
@@ -266,7 +279,7 @@ but that this is not:
 
 `List<int>` ~~<:<sub>S</sub> `List`~~
 
-Our running example fails in strong mode:
+The example above fails in strong mode:
 
 `MyList` <:<sub>S</sub> `List` ~~<:<sub>S</sub> `List<int>`~~
 
