@@ -269,7 +269,6 @@ class DevServer {
         serveFilesOutsidePath: true);
     // TODO(vsm): Is there a better builtin way to compose these handlers?
     var topLevelHandler = (shelf.Request request) {
-      var path = request.url.path;
       // Prefer generated code
       var response = generatedHandler(request);
       if (response.statusCode == 404) {
