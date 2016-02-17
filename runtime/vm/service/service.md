@@ -921,7 +921,7 @@ class Breakpoint extends Object {
 
   // Is this a breakpoint that was added synthetically as part of a step
   // OverAsyncSuspension resume command?
-  bool isSyntheticAsyncContinuation [optional].
+  bool isSyntheticAsyncContinuation [optional];
 
   // SourceLocation when breakpoint is resolved, UnresolvedSourceLocation
   // when a breakpoint is not resolved.
@@ -1218,7 +1218,7 @@ class Event extends Response {
   // This is provided for the event kinds:
   //   PauseBreakpoint
   //   PauseInterrupted
-  bool atAsyncSuspension [optional]
+  bool atAsyncSuspension [optional];
 }
 ```
 
