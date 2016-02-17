@@ -1951,30 +1951,32 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("livePorts", message_handler()->live_ports());
   jsobj.AddProperty("pauseOnExit", message_handler()->should_pause_on_exit());
 
-  if (message_handler()->is_paused_on_start()) {
-    ASSERT(debugger()->PauseEvent() == NULL);
-    ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
-    jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if (message_handler()->is_paused_on_exit()) {
-    ASSERT(debugger()->PauseEvent() == NULL);
-    ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
-    jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if (debugger()->PauseEvent() != NULL && !resume_request_) {
-    ServiceEvent pause_event(debugger()->PauseEvent());
-    jsobj.AddProperty("pauseEvent", &pause_event);
-  } else {
-    ServiceEvent pause_event(this, ServiceEvent::kResume);
+  if (debugger() != NULL) {
+    if (message_handler()->is_paused_on_start()) {
+      ASSERT(debugger()->PauseEvent() == NULL);
+      ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
+      jsobj.AddProperty("pauseEvent", &pause_event);
+    } else if (message_handler()->is_paused_on_exit()) {
+      ASSERT(debugger()->PauseEvent() == NULL);
+      ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
+      jsobj.AddProperty("pauseEvent", &pause_event);
+    } else if (debugger()->PauseEvent() != NULL && !resume_request_) {
+      ServiceEvent pause_event(debugger()->PauseEvent());
+      jsobj.AddProperty("pauseEvent", &pause_event);
+    } else {
+      ServiceEvent pause_event(this, ServiceEvent::kResume);
 
-    // TODO(turnidge): Don't compute a full stack trace.
-    DebuggerStackTrace* stack = debugger()->StackTrace();
-    if (stack->Length() > 0) {
-      pause_event.set_top_frame(stack->FrameAt(0));
+      // TODO(turnidge): Don't compute a full stack trace.
+      DebuggerStackTrace* stack = debugger()->StackTrace();
+      if (stack->Length() > 0) {
+        pause_event.set_top_frame(stack->FrameAt(0));
+      }
+      jsobj.AddProperty("pauseEvent", &pause_event);
     }
-    jsobj.AddProperty("pauseEvent", &pause_event);
-  }
 
-  jsobj.AddProperty("exceptionPauseMode",
-      ExceptionPauseInfoToServiceEnum(debugger()->GetExceptionPauseInfo()));
+    jsobj.AddProperty("exceptionPauseMode",
+        ExceptionPauseInfoToServiceEnum(debugger()->GetExceptionPauseInfo()));
+  }
 
   const Library& lib =
       Library::Handle(object_store()->root_library());
@@ -2005,14 +2007,17 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
       lib_array.AddValue(lib);
     }
   }
-  {
-    JSONArray breakpoints(&jsobj, "breakpoints");
-    debugger()->PrintBreakpointsToJSONArray(&breakpoints);
-  }
 
-  {
-    JSONObject jssettings(&jsobj, "_debuggerSettings");
-    debugger()->PrintSettingsToJSONObject(&jssettings);
+  if (debugger() != NULL) {
+    {
+      JSONArray breakpoints(&jsobj, "breakpoints");
+      debugger()->PrintBreakpointsToJSONArray(&breakpoints);
+    }
+
+    {
+      JSONObject jssettings(&jsobj, "_debuggerSettings");
+      debugger()->PrintSettingsToJSONObject(&jssettings);
+    }
   }
 
   {

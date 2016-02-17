@@ -2419,6 +2419,11 @@ static const MethodParameter* get_source_report_params[] = {
 
 
 static bool GetSourceReport(Thread* thread, JSONStream* js) {
+  if (!thread->isolate()->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot get source report when running a precompiled program.");
+    return true;
+  }
   const char* reports_str = js->LookupParam("reports");
   const EnumListParameter* reports_parameter =
       static_cast<const EnumListParameter*>(get_source_report_params[1]);
