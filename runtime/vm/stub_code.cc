@@ -124,8 +124,11 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 
     if (thread->IsMutatorThread()) {
       stub ^= Code::FinalizeCode(name, &assembler, false /* optimized */);
-      stub.set_owner(cls);
-      cls.set_allocation_stub(stub);
+      // Check if background compilation thread has not already added the stub.
+      if (cls.allocation_stub() == Code::null()) {
+        stub.set_owner(cls);
+        cls.set_allocation_stub(stub);
+      }
     } else {
       // This part of stub code generation must be at a safepoint.
       // Stop mutator thread before creating the instruction object and
@@ -136,6 +139,11 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
       // executable).
       {
         SafepointOperationScope safepoint_scope(thread);
+        stub = cls.allocation_stub();
+        // Check if stub was already generated.
+        if (!stub.IsNull()) {
+          return stub.raw();
+        }
         // Do not Garbage collect during this stage and instead allow the
         // heap to grow.
         NoHeapGrowthControlScope no_growth_control;

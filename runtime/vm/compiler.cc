@@ -601,8 +601,12 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         if (optimized()) {
           // Extract type feedback before the graph is built, as the graph
           // builder uses it to attach it to nodes.
-          ASSERT(function.deoptimization_counter() <
-                 FLAG_max_deoptimization_counter_threshold);
+
+          // In background compilation the deoptimization counter may have
+          // already reached the limit.
+          ASSERT(Compiler::IsBackgroundCompilation() ||
+                 (function.deoptimization_counter() <
+                     FLAG_max_deoptimization_counter_threshold));
 
           // 'Freeze' ICData in background compilation so that it does not
           // change while compiling.
