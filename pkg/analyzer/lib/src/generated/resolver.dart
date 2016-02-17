@@ -7291,13 +7291,7 @@ class ResolverVisitor extends ScopedVisitor {
   /**
    * Prepares this [ResolverVisitor] to using it for incremental resolution.
    */
-  void initForIncrementalResolution([Declaration declaration = null]) {
-    if (declaration != null) {
-      Element element = declaration.element;
-      if (element is ExecutableElement) {
-        _enclosingFunction = element;
-      }
-    }
+  void initForIncrementalResolution() {
     _overrideManager.enterScope();
   }
 
