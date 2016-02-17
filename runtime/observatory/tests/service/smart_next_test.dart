@@ -45,10 +45,9 @@ stepOverAwaitingResume(Isolate isolate) async {
 }
 
 smartNext(Isolate isolate) async {
-  if (isolate.pauseEvent.atAsyncJump) {
+  if (isolate.pauseEvent.atAsyncSuspension) {
     print("next-async");
-    List asyncStepFutures = await isolate.asyncStepOver();
-    return asyncStepFutures[Isolate.kSecondResume];
+    return asyncStepOver(isolate);
   } else {
     print("next-sync");
     return stepOverAwaitingResume(isolate);

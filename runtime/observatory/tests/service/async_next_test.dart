@@ -26,16 +26,17 @@ testMain() {
 
 asyncNext(Isolate isolate) async {
   print('asyncNext');
-  List asyncStepFutures = await isolate.asyncStepOver();
-  return asyncStepFutures[Isolate.kSecondResume];
+  return asyncStepOver(isolate);
 }
 
 var tests = [
   hasStoppedAtBreakpoint,
   stoppedAtLine(14),
+  stepOver, // foo()
   asyncNext,
   hasStoppedAtBreakpoint,
   stoppedAtLine(15),
+  stepOver, // foo()
   asyncNext,
   hasStoppedAtBreakpoint,
   stoppedAtLine(16),

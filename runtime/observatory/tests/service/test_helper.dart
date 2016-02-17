@@ -248,6 +248,76 @@ void runIsolateTestsSynchronous(List<String> mainArgs,
   }
 }
 
+Future asyncStepOver(Isolate isolate) async {
+  final Completer pausedAtSyntheticBreakpoint = new Completer();
+  StreamSubscription subscription;
+
+  // Cancel the subscription.
+  cancelSubscription() {
+    if (subscription != null) {
+      subscription.cancel();
+      subscription = null;
+    }
+  }
+
+  // Complete futures with with error.
+  completeError(error) {
+    if (!pausedAtSyntheticBreakpoint.isCompleted) {
+      pausedAtSyntheticBreakpoint.completeError(error);
+    }
+  }
+
+  // Subscribe to the debugger event stream.
+  Stream stream;
+  try {
+    stream = await isolate.vm.getEventStream(VM.kDebugStream);
+  } catch (e) {
+    completeError(e);
+    return pausedAtSyntheticBreakpoint.future;
+  }
+
+  Breakpoint syntheticBreakpoint;
+
+  subscription = stream.listen((ServiceEvent event) async {
+    // Synthetic breakpoint add event. This is the first event we will
+    // receive.
+    bool isAdd = (event.kind == ServiceEvent.kBreakpointAdded) &&
+                 (event.breakpoint.isSyntheticAsyncContinuation) &&
+                 (event.owner == isolate);
+    // Resume after synthetic breakpoint added. This is the second event
+    // we will recieve.
+    bool isResume = (event.kind == ServiceEvent.kResume) &&
+                    (syntheticBreakpoint != null) &&
+                    (event.owner == isolate);
+    // Paused at synthetic breakpoint. This is the third event we will
+    // receive.
+    bool isPaused = (event.kind == ServiceEvent.kPauseBreakpoint) &&
+                    (syntheticBreakpoint != null) &&
+                    (event.breakpoint == syntheticBreakpoint);
+    if (isAdd) {
+      syntheticBreakpoint = event.breakpoint;
+    } else if (isResume) {
+    } else if (isPaused) {
+      pausedAtSyntheticBreakpoint.complete(isolate);
+      syntheticBreakpoint = null;
+      cancelSubscription();
+    }
+  });
+
+  // Issue the step OverAwait command.
+  try {
+    await isolate.stepOverAsyncSuspension();
+  } catch (e) {
+    // This can fail when another client issued the same resume command
+    // or another client has moved the isolate forward.
+    cancelSubscription();
+    completeError(e);
+  }
+
+  return pausedAtSyntheticBreakpoint.future;
+}
+
+
 Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
@@ -374,6 +444,11 @@ IsolateTest resumeIsolateAndAwaitEvent(stream, onEvent) {
       resumeAndAwaitEvent(isolate, stream, onEvent);
 }
 
+
+Future<Isolate> stepOver(Isolate isolate) async {
+  await isolate.stepOver();
+  return hasStoppedAtBreakpoint(isolate);
+}
 
 Future<Class> getClassFromRootLib(Isolate isolate, String className) async {
   Library rootLib = await isolate.rootLibrary.load();

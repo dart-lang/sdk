@@ -60,6 +60,7 @@ var tests = [
     // Confirm that only Dart is being recorded.
     expect(flags['recordedStreams'].length, equals(1));
     expect(flags['recordedStreams'].contains('Dart'), isTrue);
+    print(flags);
   },
   resumeIsolate,
   (Isolate isolate) async {
@@ -67,6 +68,7 @@ var tests = [
     Map result = await isolate.vm.invokeRpcNoUpgrade('_getVMTimeline', {});
     expect(result['type'], equals('_Timeline'));
     expect(result['traceEvents'], new isInstanceOf<List>());
+    print(result['traceEvents']);
     // Confirm that Dart events are added.
     expect(filterEvents(result['traceEvents'], isDart).length, greaterThan(0));
     // Confirm that zero non-Dart events are added.

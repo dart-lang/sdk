@@ -2629,7 +2629,7 @@ static bool AddBreakpointAtActivation(Thread* thread, JSONStream* js) {
   }
   const Instance& closure = Instance::Cast(obj);
   Breakpoint* bpt =
-      thread->isolate()->debugger()->SetBreakpointAtActivation(closure);
+      thread->isolate()->debugger()->SetBreakpointAtActivation(closure, false);
   if (bpt == NULL) {
     js->PrintError(kCannotAddBreakpoint,
                    "%s: Cannot add breakpoint at activation",
@@ -3020,6 +3020,12 @@ static bool Resume(Thread* thread, JSONStream* js) {
         isolate->debugger()->SetStepOver();
       } else if (strcmp(step_param, "Out") == 0) {
         isolate->debugger()->SetStepOut();
+      } else if (strcmp(step_param, "OverAsyncSuspension") == 0) {
+        if (!isolate->debugger()->SetupStepOverAsyncSuspension()) {
+          js->PrintError(kInvalidParams,
+                         "Isolate must be paused at an async suspension point");
+          return true;
+        }
       } else {
         PrintInvalidParamError(js, "step");
         return true;
@@ -3605,7 +3611,7 @@ static bool GetVersion(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
   jsobj.AddProperty("major", static_cast<intptr_t>(3));
-  jsobj.AddProperty("minor", static_cast<intptr_t>(2));
+  jsobj.AddProperty("minor", static_cast<intptr_t>(3));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
   return true;
