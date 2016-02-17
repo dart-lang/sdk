@@ -556,12 +556,11 @@ void main() {
       typedef A Right(dynamic x);         // Right branch
       typedef A Bottom(A x);              // Bottom of the lattice
 
-      dynamic left(A x) => x;
-      A bot(A x) => x;
-      dynamic top(dynamic x) => x;
-      A right(dynamic x) => /*info:DYNAMIC_CAST*/x;
-
       void main() {
+        Top top;
+        Left left;
+        Right right;
+        Bottom bot;
         {
           Top f;
           f = top;
@@ -571,27 +570,104 @@ void main() {
         }
         {
           Left f;
-          f = /*severe:STATIC_TYPE_ERROR*/top;
+          f = /*warning:DOWN_CAST_COMPOSITE*/top;
           f = left;
-          f = /*severe:STATIC_TYPE_ERROR*/right;
+          f = /*warning:DOWN_CAST_COMPOSITE*/right;
           f = bot;
         }
         {
           Right f;
-          f = /*severe:STATIC_TYPE_ERROR*/top;
-          f = /*severe:STATIC_TYPE_ERROR*/left;
+          f = /*warning:DOWN_CAST_COMPOSITE*/top;
+          f = /*warning:DOWN_CAST_COMPOSITE*/left;
           f = right;
           f = bot;
         }
         {
           Bottom f;
-          f = /*severe:STATIC_TYPE_ERROR*/top;
-          f = /*severe:STATIC_TYPE_ERROR*/left;
-          f = /*severe:STATIC_TYPE_ERROR*/right;
+          f = /*warning:DOWN_CAST_COMPOSITE*/top;
+          f = /*warning:DOWN_CAST_COMPOSITE*/left;
+          f = /*warning:DOWN_CAST_COMPOSITE*/right;
           f = bot;
         }
       }
    ''');
+    });
+
+    test('dynamic - known functions', () {
+
+      // Our lattice should look like this:
+      //
+      //
+      //           Bot -> Top
+      //          /        \
+      //      A -> Top    Bot -> A
+      //       /     \      /
+      // Top -> Top   A -> A
+      //         \      /
+      //         Top -> A
+      //
+      checkFile('''
+        class A {}
+
+        typedef dynamic BotTop(dynamic x);
+        typedef dynamic ATop(A x);
+        typedef A BotA(dynamic x);
+        typedef A AA(A x);
+        typedef A TopA(Object x);
+        typedef dynamic TopTop(Object x);
+
+        dynamic aTop(A x) => x;
+        A aa(A x) => x;
+        dynamic topTop(dynamic x) => x;
+        A topA(dynamic x) => /*info:DYNAMIC_CAST*/x;
+
+        void main() {
+          BotTop botTop;
+          BotA botA;
+          {
+            BotTop f;
+            f = topTop;
+            f = aTop;
+            f = topA;
+            f = aa;
+          }
+          {
+            ATop f;
+            f = topTop;
+            f = aTop;
+            f = topA;
+            f = aa;
+          }
+          {
+            BotA f;
+            f = /*severe:STATIC_TYPE_ERROR*/topTop;
+            f = /*severe:STATIC_TYPE_ERROR*/aTop;
+            f = topA;
+            f = aa;
+          }
+          {
+            AA f;
+            f = /*severe:STATIC_TYPE_ERROR*/topTop;
+            f = /*severe:STATIC_TYPE_ERROR*/aTop;
+            f = topA;
+            f = aa;
+          }
+          {
+            TopTop f;
+            f = topTop;
+            f = /*severe:STATIC_TYPE_ERROR*/aTop;
+            f = topA;
+            f = /*severe:STATIC_TYPE_ERROR*/aa;
+          }
+          {
+            TopA f;
+            f = /*severe:STATIC_TYPE_ERROR*/topTop;
+            f = /*severe:STATIC_TYPE_ERROR*/aTop;
+            f = topA;
+            f = /*severe:STATIC_TYPE_ERROR*/aa;
+          }
+        }
+     ''');
     });
 
     test('function literal variance', () {

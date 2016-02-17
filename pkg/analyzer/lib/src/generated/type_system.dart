@@ -284,18 +284,15 @@ class StrongTypeSystemImpl implements TypeSystem {
   /**
    * Check that [f1] is a subtype of [f2].
    *
-   * [fuzzyArrows] indicates whether or not the f1 and f2 should be
-   * treated as fuzzy arrow types (and hence dynamic parameters to f2 treated
-   * as bottom).
+   * This will always assume function types use fuzzy arrows, in other words
+   * that dynamic parameters of f1 and f2 are treated as bottom.
    */
-  bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2,
-      {bool fuzzyArrows: true}) {
-
+  bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2) {
     return FunctionTypeImpl.relate(
         f1,
         f2,
         (DartType t1, DartType t2) =>
-            _isSubtypeOf(t2, t1, null, dynamicIsBottom: fuzzyArrows),
+            _isSubtypeOf(t2, t1, null, dynamicIsBottom: true),
         instantiateToBounds,
         returnRelation: isSubtypeOf);
   }
