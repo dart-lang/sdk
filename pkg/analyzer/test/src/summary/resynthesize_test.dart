@@ -2405,6 +2405,13 @@ enum E {
     checkLibrary('enum E1 { v1 } enum E2 { v2 }');
   }
 
+  test_executable_parameter_type_typedef() {
+    checkLibrary(r'''
+typedef F(int p);
+main(F f) {}
+''');
+  }
+
   test_export_class() {
     addLibrarySource('/a.dart', 'class C {}');
     checkLibrary('export "a.dart";');

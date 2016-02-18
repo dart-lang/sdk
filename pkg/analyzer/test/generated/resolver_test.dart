@@ -220,6 +220,7 @@ class AnalysisContextFactory {
       }
       FunctionElementImpl thenOnValue = ElementFactory.functionElement3(
           'onValue', futureThenR, [futureElement.typeParameters[0]], null);
+      thenOnValue.synthetic = true;
 
       DartType futureRType = futureElement.type.substitute4([futureThenR.type]);
       MethodElementImpl thenMethod = ElementFactory
@@ -256,12 +257,13 @@ class AnalysisContextFactory {
       ];
       DartType returnType = streamSubscriptionElement.type
           .substitute4(streamElement.type.typeArguments);
-      List<DartType> parameterTypes = <DartType>[
-        ElementFactory
-            .functionElement3('onData', VoidTypeImpl.instance.element,
-                <TypeDefiningElement>[streamElement.typeParameters[0]], null)
-            .type,
-      ];
+      FunctionElementImpl listenOnData = ElementFactory.functionElement3(
+          'onData',
+          VoidTypeImpl.instance.element,
+          <TypeDefiningElement>[streamElement.typeParameters[0]],
+          null);
+      listenOnData.synthetic = true;
+      List<DartType> parameterTypes = <DartType>[listenOnData.type,];
       // TODO(brianwilkerson) This is missing the optional parameters.
       MethodElementImpl listenMethod =
           ElementFactory.methodElement('listen', returnType, parameterTypes);
@@ -16957,10 +16959,25 @@ class _StaticTypeAnalyzer2TestShared extends ResolverTestCase {
   Source testSource;
   CompilationUnit testUnit;
 
-  SimpleIdentifier _findIdentifier(String search) {
-    SimpleIdentifier identifier = EngineTestCase.findNode(
-        testUnit, testCode, search, (node) => node is SimpleIdentifier);
-    return identifier;
+  /**
+   * Looks up the identifier with [name] and validates that its type type
+   * stringifies to [type] and that its generics match the given stringified
+   * output.
+   */
+  _expectFunctionType(String name, String type,
+      {String elementTypeParams: '[]',
+      String typeParams: '[]',
+      String typeArgs: '[]',
+      String typeFormals: '[]'}) {
+    SimpleIdentifier identifier = _findIdentifier(name);
+    // Element is either ExecutableElement or ParameterElement.
+    var element = identifier.staticElement;
+    FunctionTypeImpl functionType = identifier.staticType;
+    expect(functionType.toString(), type);
+    expect(element.typeParameters.toString(), elementTypeParams);
+    expect(functionType.typeParameters.toString(), typeParams);
+    expect(functionType.typeArguments.toString(), typeArgs);
+    expect(functionType.typeFormals.toString(), typeFormals);
   }
 
   /**
@@ -17004,27 +17021,6 @@ class _StaticTypeAnalyzer2TestShared extends ResolverTestCase {
   }
 
   /**
-   * Looks up the identifier with [name] and validates that its type type
-   * stringifies to [type] and that its generics match the given stringified
-   * output.
-   */
-  _expectFunctionType(String name, String type,
-      {String elementTypeParams: '[]',
-      String typeParams: '[]',
-      String typeArgs: '[]',
-      String typeFormals: '[]'}) {
-    SimpleIdentifier identifier = _findIdentifier(name);
-    // Element is either ExecutableElement or ParameterElement.
-    var element = identifier.staticElement;
-    FunctionTypeImpl functionType = identifier.staticType;
-    expect(functionType.toString(), type);
-    expect(element.typeParameters.toString(), elementTypeParams);
-    expect(functionType.typeParameters.toString(), typeParams);
-    expect(functionType.typeArguments.toString(), typeArgs);
-    expect(functionType.typeFormals.toString(), typeFormals);
-  }
-
-  /**
    * Validates that [type] matches [expected].
    *
    * If [expected] is a string, validates that the type stringifies to that
@@ -17036,6 +17032,12 @@ class _StaticTypeAnalyzer2TestShared extends ResolverTestCase {
     } else {
       expect(type, expected);
     }
+  }
+
+  SimpleIdentifier _findIdentifier(String search) {
+    SimpleIdentifier identifier = EngineTestCase.findNode(
+        testUnit, testCode, search, (node) => node is SimpleIdentifier);
+    return identifier;
   }
 
   void _resolveTestUnit(String code) {

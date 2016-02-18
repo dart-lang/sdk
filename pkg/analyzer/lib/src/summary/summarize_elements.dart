@@ -689,7 +689,7 @@ class _CompilationUnitSerializer {
         b.inferredTypeSlot = storeInferredType(type, context);
       }
     } else {
-      if (type is FunctionType) {
+      if (type is FunctionType && type.element.isSynthetic) {
         b.isFunctionTyped = true;
         b.type = serializeTypeRef(type.returnType, parameter);
         b.parameters = type.parameters

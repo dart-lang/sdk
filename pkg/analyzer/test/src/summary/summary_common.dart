@@ -4399,7 +4399,7 @@ get g { // 1
   test_executable_param_function_typed_return_type_implicit() {
     if (!checkAstDerivedData) {
       // TODO(paulberry): this test fails when building the summary from the
-      // element model because the elment model doesn't record whether a
+      // element model because the element model doesn't record whether a
       // function-typed parameter's return type is implicit.
       return;
     }
@@ -4510,6 +4510,16 @@ int foo(int a, String b) => 0;
   test_executable_param_type_implicit() {
     UnlinkedExecutable executable = serializeExecutableText('f(x) {}');
     expect(executable.parameters[0].type, isNull);
+  }
+
+  test_executable_param_type_typedef() {
+    UnlinkedExecutable executable = serializeExecutableText(r'''
+typedef MyFunction(int p);
+f(MyFunction myFunction) {}
+''');
+    expect(executable.parameters[0].isFunctionTyped, isFalse);
+    checkTypeRef(executable.parameters[0].type, null, null, 'MyFunction',
+        expectedKind: ReferenceKind.typedef);
   }
 
   test_executable_return_type() {
