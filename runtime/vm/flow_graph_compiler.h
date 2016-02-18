@@ -311,6 +311,7 @@ class FlowGraphCompiler : public ValueObject {
   static bool SupportsSinCos();
   static bool SupportsUnboxedSimd128();
   static bool SupportsHardwareDivision();
+  static bool CanConvertUnboxedMintToDouble();
 
   static bool IsUnboxedField(const Field& field);
   static bool IsPotentialUnboxedField(const Field& field);

@@ -6,6 +6,8 @@
 
 #include "vm/bit_vector.h"
 #include "vm/flow_graph_builder.h"
+#include "vm/flow_graph_compiler.h"
+#include "vm/flow_graph_range_analysis.h"
 #include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
 #include "vm/growable_array.h"
@@ -14,6 +16,9 @@
 
 namespace dart {
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
+DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
+#endif
 DEFINE_FLAG(bool, prune_dead_locals, true, "optimize dead locals away");
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, reorder_basic_blocks);
@@ -1432,5 +1437,567 @@ bool BlockEffects::IsSideEffectFreePath(BlockEntryInstr* from,
   return available_at_[to->postorder_number()]->Contains(
       from->postorder_number());
 }
+
+
+// Quick access to the current zone.
+#define Z (zone())
+
+
+void FlowGraph::ConvertUse(Value* use, Representation from_rep) {
+  const Representation to_rep =
+      use->instruction()->RequiredInputRepresentation(use->use_index());
+  if (from_rep == to_rep || to_rep == kNoRepresentation) {
+    return;
+  }
+  InsertConversion(from_rep, to_rep, use, /*is_environment_use=*/ false);
+}
+
+
+static bool IsUnboxedInteger(Representation rep) {
+  return (rep == kUnboxedInt32) ||
+         (rep == kUnboxedUint32) ||
+         (rep == kUnboxedMint);
+}
+
+
+static bool ShouldInlineSimd() {
+  return FlowGraphCompiler::SupportsUnboxedSimd128();
+}
+
+
+static bool CanUnboxDouble() {
+  return FlowGraphCompiler::SupportsUnboxedDoubles();
+}
+
+
+static bool CanConvertUnboxedMintToDouble() {
+  return FlowGraphCompiler::CanConvertUnboxedMintToDouble();
+}
+
+
+void FlowGraph::InsertConversion(Representation from,
+                                 Representation to,
+                                 Value* use,
+                                 bool is_environment_use) {
+  Instruction* insert_before;
+  Instruction* deopt_target;
+  PhiInstr* phi = use->instruction()->AsPhi();
+  if (phi != NULL) {
+    ASSERT(phi->is_alive());
+    // For phis conversions have to be inserted in the predecessor.
+    insert_before =
+        phi->block()->PredecessorAt(use->use_index())->last_instruction();
+    deopt_target = NULL;
+  } else {
+    deopt_target = insert_before = use->instruction();
+  }
+
+  Definition* converted = NULL;
+  if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
+    const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != NULL) ?
+      deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
+    converted = new(Z) UnboxedIntConverterInstr(from,
+                                                to,
+                                                use->CopyWithType(),
+                                                deopt_id);
+  } else if ((from == kUnboxedInt32) && (to == kUnboxedDouble)) {
+    converted = new Int32ToDoubleInstr(use->CopyWithType());
+  } else if ((from == kUnboxedMint) &&
+             (to == kUnboxedDouble) &&
+             CanConvertUnboxedMintToDouble()) {
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
+    ASSERT(CanUnboxDouble());
+    converted = new MintToDoubleInstr(use->CopyWithType(), deopt_id);
+  } else if ((from == kTagged) && Boxing::Supports(to)) {
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
+    converted = UnboxInstr::Create(to, use->CopyWithType(), deopt_id);
+  } else if ((to == kTagged) && Boxing::Supports(from)) {
+    converted = BoxInstr::Create(from, use->CopyWithType());
+  } else {
+    // We have failed to find a suitable conversion instruction.
+    // Insert two "dummy" conversion instructions with the correct
+    // "from" and "to" representation. The inserted instructions will
+    // trigger a deoptimization if executed. See #12417 for a discussion.
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
+    ASSERT(Boxing::Supports(from));
+    ASSERT(Boxing::Supports(to));
+    Definition* boxed = BoxInstr::Create(from, use->CopyWithType());
+    use->BindTo(boxed);
+    InsertBefore(insert_before, boxed, NULL, FlowGraph::kValue);
+    converted = UnboxInstr::Create(to, new(Z) Value(boxed), deopt_id);
+  }
+  ASSERT(converted != NULL);
+  InsertBefore(insert_before, converted, use->instruction()->env(),
+               FlowGraph::kValue);
+  if (is_environment_use) {
+    use->BindToEnvironment(converted);
+  } else {
+    use->BindTo(converted);
+  }
+
+  if ((to == kUnboxedInt32) && (phi != NULL)) {
+    // Int32 phis are unboxed optimistically. Ensure that unboxing
+    // has deoptimization target attached from the goto instruction.
+    CopyDeoptTarget(converted, insert_before);
+  }
+}
+
+
+void FlowGraph::ConvertEnvironmentUse(Value* use, Representation from_rep) {
+  const Representation to_rep = kTagged;
+  if (from_rep == to_rep) {
+    return;
+  }
+  InsertConversion(from_rep, to_rep, use, /*is_environment_use=*/ true);
+}
+
+
+void FlowGraph::InsertConversionsFor(Definition* def) {
+  const Representation from_rep = def->representation();
+
+  for (Value::Iterator it(def->input_use_list());
+       !it.Done();
+       it.Advance()) {
+    ConvertUse(it.Current(), from_rep);
+  }
+
+  if (graph_entry()->SuccessorCount() > 1) {
+    for (Value::Iterator it(def->env_use_list());
+         !it.Done();
+         it.Advance()) {
+      Value* use = it.Current();
+      if (use->instruction()->MayThrow() &&
+          use->instruction()->GetBlock()->InsideTryBlock()) {
+        // Environment uses at calls inside try-blocks must be converted to
+        // tagged representation.
+        ConvertEnvironmentUse(it.Current(), from_rep);
+      }
+    }
+  }
+}
+
+
+static void UnboxPhi(PhiInstr* phi) {
+  Representation unboxed = phi->representation();
+
+  switch (phi->Type()->ToCid()) {
+    case kDoubleCid:
+      if (CanUnboxDouble()) {
+        unboxed = kUnboxedDouble;
+      }
+      break;
+    case kFloat32x4Cid:
+      if (ShouldInlineSimd()) {
+        unboxed = kUnboxedFloat32x4;
+      }
+      break;
+    case kInt32x4Cid:
+      if (ShouldInlineSimd()) {
+        unboxed = kUnboxedInt32x4;
+      }
+      break;
+    case kFloat64x2Cid:
+      if (ShouldInlineSimd()) {
+        unboxed = kUnboxedFloat64x2;
+      }
+      break;
+  }
+
+  if ((kSmiBits < 32) &&
+      (unboxed == kTagged) &&
+      phi->Type()->IsInt() &&
+      RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt64)) {
+    // On 32-bit platforms conservatively unbox phis that:
+    //   - are proven to be of type Int;
+    //   - fit into 64bits range;
+    //   - have either constants or Box() operations as inputs;
+    //   - have at least one Box() operation as an input;
+    //   - are used in at least 1 Unbox() operation.
+    bool should_unbox = false;
+    for (intptr_t i = 0; i < phi->InputCount(); i++) {
+      Definition* input = phi->InputAt(i)->definition();
+      if (input->IsBox() &&
+          RangeUtils::Fits(input->range(),
+                           RangeBoundary::kRangeBoundaryInt64)) {
+        should_unbox = true;
+      } else if (!input->IsConstant()) {
+        should_unbox = false;
+        break;
+      }
+    }
+
+    if (should_unbox) {
+      // We checked inputs. Check if phi is used in at least one unbox
+      // operation.
+      bool has_unboxed_use = false;
+      for (Value* use = phi->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        Instruction* instr = use->instruction();
+        if (instr->IsUnbox()) {
+          has_unboxed_use = true;
+          break;
+        } else if (IsUnboxedInteger(
+            instr->RequiredInputRepresentation(use->use_index()))) {
+          has_unboxed_use = true;
+          break;
+        }
+      }
+
+      if (!has_unboxed_use) {
+        should_unbox = false;
+      }
+    }
+
+    if (should_unbox) {
+      unboxed =
+          RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
+          ? kUnboxedInt32 : kUnboxedMint;
+    }
+  }
+
+  phi->set_representation(unboxed);
+}
+
+
+void FlowGraph::SelectRepresentations() {
+  // Conservatively unbox all phis that were proven to be of Double,
+  // Float32x4, or Int32x4 type.
+  for (BlockIterator block_it = reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    JoinEntryInstr* join_entry = block_it.Current()->AsJoinEntry();
+    if (join_entry != NULL) {
+      for (PhiIterator it(join_entry); !it.Done(); it.Advance()) {
+        PhiInstr* phi = it.Current();
+        UnboxPhi(phi);
+      }
+    }
+  }
+
+  // Process all instructions and insert conversions where needed.
+  // Visit incoming parameters and constants.
+  for (intptr_t i = 0;
+       i < graph_entry()->initial_definitions()->length();
+       i++) {
+    InsertConversionsFor((*graph_entry()->initial_definitions())[i]);
+  }
+
+  for (BlockIterator block_it = reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* entry = block_it.Current();
+    JoinEntryInstr* join_entry = entry->AsJoinEntry();
+    if (join_entry != NULL) {
+      for (PhiIterator it(join_entry); !it.Done(); it.Advance()) {
+        PhiInstr* phi = it.Current();
+        ASSERT(phi != NULL);
+        ASSERT(phi->is_alive());
+        InsertConversionsFor(phi);
+      }
+    }
+    CatchBlockEntryInstr* catch_entry = entry->AsCatchBlockEntry();
+    if (catch_entry != NULL) {
+      for (intptr_t i = 0;
+           i < catch_entry->initial_definitions()->length();
+           i++) {
+        InsertConversionsFor((*catch_entry->initial_definitions())[i]);
+      }
+    }
+    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      Definition* def = it.Current()->AsDefinition();
+      if (def != NULL) {
+        InsertConversionsFor(def);
+      }
+    }
+  }
+}
+
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
+// Smi widening pass is only meaningful on platforms where Smi
+// is smaller than 32bit. For now only support it on ARM and ia32.
+static bool CanBeWidened(BinarySmiOpInstr* smi_op) {
+  return BinaryInt32OpInstr::IsSupported(smi_op->op_kind(),
+                                         smi_op->left(),
+                                         smi_op->right());
+}
+
+
+static bool BenefitsFromWidening(BinarySmiOpInstr* smi_op) {
+  // TODO(vegorov): when shifts with non-constants shift count are supported
+  // add them here as we save untagging for the count.
+  switch (smi_op->op_kind()) {
+    case Token::kMUL:
+    case Token::kSHR:
+      // For kMUL we save untagging of the argument for kSHR
+      // we save tagging of the result.
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+
+void FlowGraph::WidenSmiToInt32() {
+  GrowableArray<BinarySmiOpInstr*> candidates;
+
+  // Step 1. Collect all instructions that potentially benefit from widening of
+  // their operands (or their result) into int32 range.
+  for (BlockIterator block_it = reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    for (ForwardInstructionIterator instr_it(block_it.Current());
+         !instr_it.Done();
+         instr_it.Advance()) {
+      BinarySmiOpInstr* smi_op = instr_it.Current()->AsBinarySmiOp();
+      if ((smi_op != NULL) &&
+          smi_op->HasSSATemp() &&
+          BenefitsFromWidening(smi_op) &&
+          CanBeWidened(smi_op)) {
+        candidates.Add(smi_op);
+      }
+    }
+  }
+
+  if (candidates.is_empty()) {
+    return;
+  }
+
+  // Step 2. For each block in the graph compute which loop it belongs to.
+  // We will use this information later during computation of the widening's
+  // gain: we are going to assume that only conversion occuring inside the
+  // same loop should be counted against the gain, all other conversions
+  // can be hoisted and thus cost nothing compared to the loop cost itself.
+  const ZoneGrowableArray<BlockEntryInstr*>& loop_headers = LoopHeaders();
+
+  GrowableArray<intptr_t> loops(preorder().length());
+  for (intptr_t i = 0; i < preorder().length(); i++) {
+    loops.Add(-1);
+  }
+
+  for (intptr_t loop_id = 0; loop_id < loop_headers.length(); ++loop_id) {
+    for (BitVector::Iterator loop_it(loop_headers[loop_id]->loop_info());
+         !loop_it.Done();
+         loop_it.Advance()) {
+      loops[loop_it.Current()] = loop_id;
+    }
+  }
+
+  // Step 3. For each candidate transitively collect all other BinarySmiOpInstr
+  // and PhiInstr that depend on it and that it depends on and count amount of
+  // untagging operations that we save in assumption that this whole graph of
+  // values is using kUnboxedInt32 representation instead of kTagged.
+  // Convert those graphs that have positive gain to kUnboxedInt32.
+
+  // BitVector containing SSA indexes of all processed definitions. Used to skip
+  // those candidates that belong to dependency graph of another candidate.
+  BitVector* processed =
+      new(Z) BitVector(Z, current_ssa_temp_index());
+
+  // Worklist used to collect dependency graph.
+  DefinitionWorklist worklist(this, candidates.length());
+  for (intptr_t i = 0; i < candidates.length(); i++) {
+    BinarySmiOpInstr* op = candidates[i];
+    if (op->WasEliminated() || processed->Contains(op->ssa_temp_index())) {
+      continue;
+    }
+
+    if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
+      THR_Print("analysing candidate: %s\n", op->ToCString());
+    }
+    worklist.Clear();
+    worklist.Add(op);
+
+    // Collect dependency graph. Note: more items are added to worklist
+    // inside this loop.
+    intptr_t gain = 0;
+    for (intptr_t j = 0; j < worklist.definitions().length(); j++) {
+      Definition* defn = worklist.definitions()[j];
+
+      if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
+        THR_Print("> %s\n", defn->ToCString());
+      }
+
+      if (defn->IsBinarySmiOp() &&
+          BenefitsFromWidening(defn->AsBinarySmiOp())) {
+        gain++;
+        if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
+          THR_Print("^ [%" Pd "] (o) %s\n", gain, defn->ToCString());
+        }
+      }
+
+      const intptr_t defn_loop = loops[defn->GetBlock()->preorder_number()];
+
+      // Process all inputs.
+      for (intptr_t k = 0; k < defn->InputCount(); k++) {
+        Definition* input = defn->InputAt(k)->definition();
+        if (input->IsBinarySmiOp() &&
+            CanBeWidened(input->AsBinarySmiOp())) {
+          worklist.Add(input);
+        } else if (input->IsPhi() && (input->Type()->ToCid() == kSmiCid)) {
+          worklist.Add(input);
+        } else if (input->IsBinaryMintOp()) {
+          // Mint operation produces untagged result. We avoid tagging.
+          gain++;
+          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
+            THR_Print("^ [%" Pd "] (i) %s\n", gain, input->ToCString());
+          }
+        } else if (defn_loop == loops[input->GetBlock()->preorder_number()] &&
+                   (input->Type()->ToCid() == kSmiCid)) {
+          // Input comes from the same loop, is known to be smi and requires
+          // untagging.
+          // TODO(vegorov) this heuristic assumes that values that are not
+          // known to be smi have to be checked and this check can be
+          // coalesced with untagging. Start coalescing them.
+          gain--;
+          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
+            THR_Print("v [%" Pd "] (i) %s\n", gain, input->ToCString());
+          }
+        }
+      }
+
+      // Process all uses.
+      for (Value* use = defn->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        Instruction* instr = use->instruction();
+        Definition* use_defn = instr->AsDefinition();
+        if (use_defn == NULL) {
+          // We assume that tagging before returning or pushing argument costs
+          // very little compared to the cost of the return/call itself.
+          if (!instr->IsReturn() && !instr->IsPushArgument()) {
+            gain--;
+            if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
+              THR_Print("v [%" Pd "] (u) %s\n",
+                        gain,
+                        use->instruction()->ToCString());
+            }
+          }
+          continue;
+        } else if (use_defn->IsBinarySmiOp() &&
+                   CanBeWidened(use_defn->AsBinarySmiOp())) {
+          worklist.Add(use_defn);
+        } else if (use_defn->IsPhi() &&
+                   use_defn->AsPhi()->Type()->ToCid() == kSmiCid) {
+          worklist.Add(use_defn);
+        } else if (use_defn->IsBinaryMintOp()) {
+          // BinaryMintOp requires untagging of its inputs.
+          // Converting kUnboxedInt32 to kUnboxedMint is essentially zero cost
+          // sign extension operation.
+          gain++;
+          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
+            THR_Print("^ [%" Pd "] (u) %s\n",
+                      gain,
+                      use->instruction()->ToCString());
+          }
+        } else if (defn_loop == loops[instr->GetBlock()->preorder_number()]) {
+          gain--;
+          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
+            THR_Print("v [%" Pd "] (u) %s\n",
+                      gain,
+                      use->instruction()->ToCString());
+          }
+        }
+      }
+    }
+
+    processed->AddAll(worklist.contains_vector());
+
+    if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
+      THR_Print("~ %s gain %" Pd "\n", op->ToCString(), gain);
+    }
+
+    if (gain > 0) {
+      // We have positive gain from widening. Convert all BinarySmiOpInstr into
+      // BinaryInt32OpInstr and set representation of all phis to kUnboxedInt32.
+      for (intptr_t j = 0; j < worklist.definitions().length(); j++) {
+        Definition* defn = worklist.definitions()[j];
+        ASSERT(defn->IsPhi() || defn->IsBinarySmiOp());
+
+        if (defn->IsBinarySmiOp()) {
+          BinarySmiOpInstr* smi_op = defn->AsBinarySmiOp();
+          BinaryInt32OpInstr* int32_op = new(Z) BinaryInt32OpInstr(
+            smi_op->op_kind(),
+            smi_op->left()->CopyWithType(),
+            smi_op->right()->CopyWithType(),
+            smi_op->DeoptimizationTarget());
+
+          smi_op->ReplaceWith(int32_op, NULL);
+        } else if (defn->IsPhi()) {
+          defn->AsPhi()->set_representation(kUnboxedInt32);
+          ASSERT(defn->Type()->IsInt());
+        }
+      }
+    }
+  }
+}
+#else
+void FlowGraph::WidenSmiToInt32() {
+  // TODO(vegorov) ideally on 64-bit platforms we would like to narrow smi
+  // operations to 32-bit where it saves tagging and untagging and allows
+  // to use shorted (and faster) instructions. But we currently don't
+  // save enough range information in the ICData to drive this decision.
+}
+#endif
+
+
+void FlowGraph::EliminateEnvironments() {
+  // After this pass we can no longer perform LICM and hoist instructions
+  // that can deoptimize.
+
+  disallow_licm();
+  for (BlockIterator block_it = reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    block->RemoveEnvironment();
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      if (!current->CanDeoptimize()) {
+        // TODO(srdjan): --source-lines needs deopt environments to get at
+        // the code for this instruction, however, leaving the environment
+        // changes code.
+        current->RemoveEnvironment();
+      }
+    }
+  }
+}
+
+
+bool FlowGraph::Canonicalize() {
+  bool changed = false;
+
+  for (BlockIterator block_it = reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    for (ForwardInstructionIterator it(block_it.Current());
+         !it.Done();
+         it.Advance()) {
+      Instruction* current = it.Current();
+      if (current->HasUnmatchedInputRepresentations()) {
+        // Can't canonicalize this instruction until all conversions for its
+        // inputs are inserted.
+        continue;
+      }
+
+      Instruction* replacement = current->Canonicalize(this);
+
+      if (replacement != current) {
+        // For non-definitions Canonicalize should return either NULL or
+        // this.
+        ASSERT((replacement == NULL) || current->IsDefinition());
+        ReplaceCurrentInstruction(&it, current, replacement);
+        changed = true;
+      }
+    }
+  }
+  return changed;
+}
+
 
 }  // namespace dart

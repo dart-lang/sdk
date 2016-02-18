@@ -296,6 +296,16 @@ class FlowGraph : public ZoneAllocated {
   intptr_t inlining_id() const { return inlining_id_; }
   void set_inlining_id(intptr_t value) { inlining_id_ = value; }
 
+  // Returns true if any instructions were canonicalized away.
+  bool Canonicalize();
+
+  void SelectRepresentations();
+
+  void WidenSmiToInt32();
+
+  // Remove environments from the instructions which do not deoptimize.
+  void EliminateEnvironments();
+
  private:
   friend class IfConverter;
   friend class BranchSimplifier;
@@ -339,6 +349,14 @@ class FlowGraph : public ZoneAllocated {
   // Returns a BitVector indexed by block pre-order number where each bit
   // indicates membership in the loop.
   BitVector* FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) const;
+
+  void InsertConversionsFor(Definition* def);
+  void ConvertUse(Value* use, Representation from);
+  void ConvertEnvironmentUse(Value* use, Representation from);
+  void InsertConversion(Representation from,
+                        Representation to,
+                        Value* use,
+                        bool is_environment_use);
 
   Thread* thread_;
 

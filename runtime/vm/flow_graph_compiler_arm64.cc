@@ -70,6 +70,13 @@ bool FlowGraphCompiler::SupportsSinCos() {
 }
 
 
+bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
+  // ARM does not have a short instruction sequence for converting int64 to
+  // double.
+  return false;
+}
+
+
 bool FlowGraphCompiler::SupportsHardwareDivision() {
   return true;
 }

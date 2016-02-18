@@ -45,18 +45,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   // Merge instructions (only per basic-block).
   void TryOptimizePatterns();
 
-  // Returns true if any instructions were canonicalized away.
-  bool Canonicalize();
-
-  void EliminateDeadPhis();
-
-  void SelectRepresentations();
-
-  void WidenSmiToInt32();
-
-  // Remove environments from the instructions which do not deoptimize.
-  void EliminateEnvironments();
-
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
   virtual void VisitStoreInstanceField(StoreInstanceFieldInstr* instr);
@@ -138,15 +126,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void ReplaceCall(Definition* call, Definition* replacement);
 
-  void InsertConversionsFor(Definition* def);
-
-  void ConvertUse(Value* use, Representation from);
-  void ConvertEnvironmentUse(Value* use, Representation from);
-
-  void InsertConversion(Representation from,
-                        Representation to,
-                        Value* use,
-                        bool is_environment_use);
 
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call,
                                    RawFunction::Kind kind) const;

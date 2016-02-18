@@ -1781,10 +1781,10 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Do optimizations that depend on the propagated type information.
-        if (optimizer.Canonicalize()) {
+        if (flow_graph->Canonicalize()) {
           // Invoke Canonicalize twice in order to fully canonicalize patterns
           // like "if (a & const == 0) { }".
-          optimizer.Canonicalize();
+          flow_graph->Canonicalize();
         }
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
@@ -1810,7 +1810,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           ConstantPropagator::Optimize(flow_graph);
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
           // A canonicalization pass to remove e.g. smi checks on smi constants.
-          optimizer.Canonicalize();
+          flow_graph->Canonicalize();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
           // Canonicalization introduced more opportunities for constant
           // propagation.
@@ -1840,12 +1840,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 #endif  // !PRODUCT
           // Where beneficial convert Smi operations into Int32 operations.
           // Only meanigful for 32bit platforms right now.
-          optimizer.WidenSmiToInt32();
+          flow_graph->WidenSmiToInt32();
 
           // Unbox doubles. Performed after constant propagation to minimize
           // interference from phis merging double values and tagged
           // values coming from dead paths.
-          optimizer.SelectRepresentations();
+          flow_graph->SelectRepresentations();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 
@@ -1863,12 +1863,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           if (FLAG_common_subexpression_elimination) {
             if (DominatorBasedCSE::Optimize(flow_graph)) {
               DEBUG_ASSERT(flow_graph->VerifyUseLists());
-              optimizer.Canonicalize();
+              flow_graph->Canonicalize();
               // Do another round of CSE to take secondary effects into account:
               // e.g. when eliminating dependent loads (a.x[0] + a.x[0])
               // TODO(fschneider): Change to a one-pass optimization pass.
               if (DominatorBasedCSE::Optimize(flow_graph)) {
-                optimizer.Canonicalize();
+                flow_graph->Canonicalize();
               }
               DEBUG_ASSERT(flow_graph->VerifyUseLists());
             }
@@ -1950,7 +1950,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // Detach environments from the instructions that can't deoptimize.
         // Do it before we attempt to perform allocation sinking to minimize
         // amount of materializations it has to perform.
-        optimizer.EliminateEnvironments();
+        flow_graph->EliminateEnvironments();
 
         {
 #ifndef PRODUCT
@@ -1962,8 +1962,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 
-        if (optimizer.Canonicalize()) {
-          optimizer.Canonicalize();
+        if (flow_graph->Canonicalize()) {
+          flow_graph->Canonicalize();
         }
 
         // Attempt to sink allocations of temporary non-escaping objects to
@@ -1996,16 +1996,16 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 #endif  // !PRODUCT
           // Ensure that all phis inserted by optimization passes have
           // consistent representations.
-          optimizer.SelectRepresentations();
+          flow_graph->SelectRepresentations();
         }
 
-        if (optimizer.Canonicalize()) {
+        if (flow_graph->Canonicalize()) {
           // To fully remove redundant boxing (e.g. BoxDouble used only in
           // environments and UnboxDouble instructions) instruction we
           // first need to replace all their uses and then fold them away.
           // For now we just repeat Canonicalize twice to do that.
           // TODO(vegorov): implement a separate representation folding pass.
-          optimizer.Canonicalize();
+          flow_graph->Canonicalize();
         }
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
