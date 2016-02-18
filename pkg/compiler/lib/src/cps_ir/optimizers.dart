@@ -25,7 +25,7 @@ export 'gvn.dart' show GVN;
 export 'inline.dart' show Inliner;
 export 'eagerly_load_statics.dart' show EagerlyLoadStatics;
 export 'loop_invariant_branch.dart' show LoopInvariantBranchMotion;
-export 'duplicate_branch.dart' show PathBasedOptimizer;
+export 'path_based_optimizer.dart' show PathBasedOptimizer;
 export 'use_field_initializers.dart' show UseFieldInitializers;
 export 'parent_visitor.dart' show ParentVisitor;
 
