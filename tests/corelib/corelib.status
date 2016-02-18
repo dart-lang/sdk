@@ -165,10 +165,12 @@ regexp/*: Skip
 regexp/global_test: Skip # Timeout. Issue 21709 and 21708
 
 [ $runtime != vm && $compiler != dart2analyzer]
-package_resource_test: RuntimeError # Issue 23825 (not implemented yet).
 data_resource_test: RuntimeError # Issue 23825 (not implemented yet).
 file_resource_test: Skip, OK # VM specific test, uses dart:io.
 http_resource_test: Skip, OK # VM specific test, uses dart:io.
+
+[ $runtime != vm && $compiler != dart2analyzer && $cps_ir == false ]
+package_resource_test: RuntimeError # Issue 23825 (not implemented yet).
 
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
@@ -178,8 +180,7 @@ int_parse_radix_test/*: Pass, Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == dart2js && $cps_ir ]
-data_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
-package_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
+package_resource_test: Crash # Surprisingly null object in type propagation.
 regexp/pcre_test: Crash # Stack Overflow in LoopHierarchy.
 core_runtime_types_test: Pass, RuntimeError # Issue 25795.
 
