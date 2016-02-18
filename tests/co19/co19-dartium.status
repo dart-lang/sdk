@@ -35,6 +35,17 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Pass, F
 LayoutTests/fast/css/style-scoped/style-scoped-scoping-nodes-different-order_t01: RuntimeError # Dartium JSInterop failure
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
+Language/Classes/Constructors/Generative_Constructors/execution_t03: Fail, OK
+Language/Expressions/Instance_Creation/New/execution_t04: Fail, OK
+Language/Expressions/Instance_Creation/New/execution_t06: Fail, OK
+Language/Statements/Switch/syntax_t02: fail # Dart issue 12908
+Language/Statements/Labels/syntax_t03: fail # Dart issue 2238
+Language/Statements/Assert/execution_t02: skip # co19 issue 734
+Language/Statements/Assert/execution_t03: skip # co19 issue 734
+Language/Statements/Assert/type_t02: skip # co19 issue 734
+Language/Statements/Assert/type_t05: skip # co19 issue 734
+Language/Libraries_and_Scripts/Exports/reexport_t01: fail # Dart issue 12916
+Language/Libraries_and_Scripts/Exports/reexport_t02: fail # Dart issue 12916
 Language/Classes/Constructors/Generative_Constructors/final_variables_t01: Pass, Fail #: Please triage this failure.
 Language/Classes/Getters/type_object_t01: RuntimeError # Please triage this failure.
 Language/Classes/Getters/type_object_t02: RuntimeError # Please triage this failure.
@@ -707,6 +718,17 @@ LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # co19-roll r7
 LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/xpath/reverse-axes_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/xsl/default-html_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LibTest/core/DateTime/parse_A01_t02: Skip # Times out. Please triage this failure.
+LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
+LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue 22200
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue 22200
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Issue 22200
+LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
+LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
+LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Dart issue 15617
+LibTest/isolate/Isolate/spawnUri_A02_t02: Skip # Dart issue 15974
+LibTest/isolate/Isolate/spawnUri_A02_t03: Skip # Dart issue 15974
 LibTest/async/Completer/completeError_A02_t01: Pass, Fail # Please triage this failure.
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/async/Timer/Timer_A01_t01: RuntimeError, Pass # Issue 16475
@@ -1185,7 +1207,6 @@ LayoutTests/fast/text-autosizing/text-removal_t01: RuntimeError #  Please triage
 LayoutTests/fast/text/international/listbox-width-rtl_t01: RuntimeError #  Please triage this failure.
 LayoutTests/fast/transforms/scrollIntoView-transformed_t01: RuntimeError #  Please triage this failure.
 LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # Times out flakily. Issue 20956
-LibTest/core/DateTime/parse_A01_t02: Skip # Times out. Please triage this failure.
 LibTest/core/List/List_class_A01_t02: Skip # Times out flakily. Issue 20956
 LibTest/html/Element/getBoundingClientRect_A01_t02: RuntimeError # Issue 19127.
 LibTest/html/Window/animationFrame_A01_t01: Skip # Times out.  Please triage this failure.
