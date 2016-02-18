@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/constant.dart' show DartObject;
 import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart'
@@ -497,6 +498,58 @@ class ResynthTest extends ResolverTestCase {
     checkPossibleMember(resynthesized, original, desc);
   }
 
+  void compareConstValues(
+      DartObject resynthesized, DartObject original, String desc) {
+    if (original == null) {
+      expect(resynthesized, isNull, reason: desc);
+    } else {
+      expect(resynthesized, isNotNull, reason: desc);
+      compareTypes(resynthesized.type, original.type, desc);
+      expect(resynthesized.hasKnownValue, original.hasKnownValue, reason: desc);
+      if (original.isNull) {
+        expect(resynthesized.isNull, isTrue, reason: desc);
+      } else if (original.toBoolValue() != null) {
+        expect(resynthesized.toBoolValue(), original.toBoolValue(),
+            reason: desc);
+      } else if (original.toIntValue() != null) {
+        expect(resynthesized.toIntValue(), original.toIntValue(), reason: desc);
+      } else if (original.toDoubleValue() != null) {
+        expect(resynthesized.toDoubleValue(), original.toDoubleValue(),
+            reason: desc);
+      } else if (original.toListValue() != null) {
+        List<DartObject> resynthesizedList = resynthesized.toListValue();
+        List<DartObject> originalList = original.toListValue();
+        expect(resynthesizedList, hasLength(originalList.length));
+        for (int i = 0; i < originalList.length; i++) {
+          compareConstValues(resynthesizedList[i], originalList[i], desc);
+        }
+      } else if (original.toMapValue() != null) {
+        Map<DartObject, DartObject> resynthesizedMap =
+            resynthesized.toMapValue();
+        Map<DartObject, DartObject> originalMap = original.toMapValue();
+        expect(resynthesizedMap, hasLength(originalMap.length));
+        List<DartObject> resynthesizedKeys = resynthesizedMap.keys.toList();
+        List<DartObject> originalKeys = originalMap.keys.toList();
+        for (int i = 0; i < originalKeys.length; i++) {
+          DartObject resynthesizedKey = resynthesizedKeys[i];
+          DartObject originalKey = originalKeys[i];
+          compareConstValues(resynthesizedKey, originalKey, desc);
+          DartObject resynthesizedValue = resynthesizedMap[resynthesizedKey];
+          DartObject originalValue = originalMap[originalKey];
+          compareConstValues(resynthesizedValue, originalValue, desc);
+        }
+      } else if (original.toStringValue() != null) {
+        expect(resynthesized.toStringValue(), original.toStringValue(),
+            reason: desc);
+      } else if (original.toSymbolValue() != null) {
+        expect(resynthesized.toSymbolValue(), original.toSymbolValue(),
+            reason: desc);
+      } else if (original.toTypeValue() != null) {
+        fail('Not implemented');
+      }
+    }
+  }
+
   void compareElementAnnotations(ElementAnnotationImpl resynthesized,
       ElementAnnotationImpl original, String desc) {
     expect(resynthesized.element, isNotNull, reason: desc);
@@ -894,14 +947,20 @@ class ResynthTest extends ResolverTestCase {
     }
     VariableElementImpl originalActual = getActualElement(original, desc);
     if (originalActual is ConstVariableElement) {
-      VariableElementImpl resynthesizedActual =
-          getActualElement(resynthesized, desc);
-      Expression initializer = resynthesizedActual.constantInitializer;
-      if (constantInitializersAreInvalid) {
-        _assertUnresolvedIdentifier(initializer, desc);
+      Element oEnclosing = original.enclosingElement;
+      if (oEnclosing is ClassElement && oEnclosing.isEnum) {
+        compareConstValues(
+            resynthesized.constantValue, original.constantValue, desc);
       } else {
-        compareConstAsts(initializer, originalActual.constantInitializer,
-            '$desc initializer');
+        VariableElementImpl resynthesizedActual =
+            getActualElement(resynthesized, desc);
+        Expression initializer = resynthesizedActual.constantInitializer;
+        if (constantInitializersAreInvalid) {
+          _assertUnresolvedIdentifier(initializer, desc);
+        } else {
+          compareConstAsts(initializer, originalActual.constantInitializer,
+              '$desc initializer');
+        }
       }
     }
     checkPossibleMember(resynthesized, original, desc);

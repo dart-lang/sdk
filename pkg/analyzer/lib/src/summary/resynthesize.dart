@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -1026,12 +1027,14 @@ class _LibraryResynthesizer {
     buildDocumentation(classElement, serializedEnum.documentationComment);
     buildAnnotations(classElement, serializedEnum.annotations);
     ElementHolder memberHolder = new ElementHolder();
+    // Build the 'index' field.
     FieldElementImpl indexField = new FieldElementImpl('index', -1);
     indexField.final2 = true;
     indexField.synthetic = true;
     indexField.type = summaryResynthesizer.typeProvider.intType;
     memberHolder.addField(indexField);
     buildImplicitAccessors(indexField, memberHolder);
+    // Build the 'values' field.
     FieldElementImpl valuesField = new ConstFieldElementImpl('values', -1);
     valuesField.synthetic = true;
     valuesField.const3 = true;
@@ -1040,16 +1043,34 @@ class _LibraryResynthesizer {
         .substitute4(<DartType>[enumType]);
     memberHolder.addField(valuesField);
     buildImplicitAccessors(valuesField, memberHolder);
-    for (UnlinkedEnumValue serializedEnumValue in serializedEnum.values) {
-      ConstFieldElementImpl valueField = new ConstFieldElementImpl(
-          serializedEnumValue.name, serializedEnumValue.nameOffset);
-      buildDocumentation(valueField, serializedEnumValue.documentationComment);
-      valueField.const3 = true;
-      valueField.static = true;
-      valueField.type = enumType;
-      memberHolder.addField(valueField);
-      buildImplicitAccessors(valueField, memberHolder);
+    // Build fields for all enum constants.
+    List<DartObjectImpl> constantValues = <DartObjectImpl>[];
+    for (int i = 0; i < serializedEnum.values.length; i++) {
+      UnlinkedEnumValue serializedEnumValue = serializedEnum.values[i];
+      String fieldName = serializedEnumValue.name;
+      ConstFieldElementImpl field =
+          new ConstFieldElementImpl(fieldName, serializedEnumValue.nameOffset);
+      buildDocumentation(field, serializedEnumValue.documentationComment);
+      field.const3 = true;
+      field.static = true;
+      field.type = enumType;
+      // Create a value for the constant.
+      Map<String, DartObjectImpl> fieldMap = <String, DartObjectImpl>{
+        fieldName: new DartObjectImpl(
+            summaryResynthesizer.typeProvider.intType, new IntState(i))
+      };
+      DartObjectImpl value =
+          new DartObjectImpl(enumType, new GenericState(fieldMap));
+      constantValues.add(value);
+      field.evaluationResult = new EvaluationResultImpl(value);
+      // Add the field.
+      memberHolder.addField(field);
+      buildImplicitAccessors(field, memberHolder);
     }
+    // Build the value of the 'values' field.
+    valuesField.evaluationResult = new EvaluationResultImpl(
+        new DartObjectImpl(valuesField.type, new ListState(constantValues)));
+    // done
     classElement.fields = memberHolder.fields;
     classElement.accessors = memberHolder.accessors;
     classElement.constructors = <ConstructorElement>[];
