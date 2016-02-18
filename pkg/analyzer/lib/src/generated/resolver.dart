@@ -2394,8 +2394,11 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       SimpleIdentifier methodName = node.name;
       String nameOfMethod = methodName.name;
       if (property == null) {
+        String elementName = nameOfMethod == '-' &&
+            node.parameters != null &&
+            node.parameters.parameters.isEmpty ? 'unary-' : nameOfMethod;
         _enclosingExecutable = _findWithNameAndOffset(_enclosingClass.methods,
-            methodName, nameOfMethod, methodName.offset);
+            methodName, elementName, methodName.offset);
         _expectedElements.remove(_enclosingExecutable);
         methodName.staticElement = _enclosingExecutable;
       } else {
@@ -2404,7 +2407,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
           accessor = _findIdentifier(_enclosingClass.accessors, methodName);
         } else if ((property as KeywordToken).keyword == Keyword.SET) {
           accessor = _findWithNameAndOffset(_enclosingClass.accessors,
-              methodName, methodName.name + '=', methodName.offset);
+              methodName, nameOfMethod + '=', methodName.offset);
           _expectedElements.remove(accessor);
           methodName.staticElement = accessor;
         }

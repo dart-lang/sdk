@@ -314,6 +314,19 @@ main(List<String> items) {
     // no other validations than built into DeclarationResolver
   }
 
+  void test_visitMethodDeclaration_unaryMinus() {
+    String code = r'''
+class C {
+  C operator -() => null;
+  C operator -(C other) => null;
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
   void test_visitMethodDeclaration_getter_duplicate() {
     String code = r'''
 class C {
