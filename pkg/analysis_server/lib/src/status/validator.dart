@@ -708,24 +708,6 @@ class ElementComparator {
           (VariableElement element) =>
               element.isFinal ? 'a final $kind' : 'a non-final $kind');
     }
-    if (expected.isPotentiallyMutatedInClosure !=
-        actual.isPotentiallyMutatedInClosure) {
-      _writeMismatch(
-          expected,
-          actual,
-          (VariableElement element) => element.isPotentiallyMutatedInClosure
-              ? 'a $kind that is potentially mutated in a closure'
-              : 'a $kind that is not mutated in a closure');
-    }
-    if (expected.isPotentiallyMutatedInScope !=
-        actual.isPotentiallyMutatedInScope) {
-      _writeMismatch(
-          expected,
-          actual,
-          (VariableElement element) => element.isPotentiallyMutatedInScope
-              ? 'a $kind that is potentially mutated in its scope'
-              : 'a $kind that is not mutated in its scope');
-    }
     if (expected.isStatic != actual.isStatic) {
       _writeMismatch(
           expected,
