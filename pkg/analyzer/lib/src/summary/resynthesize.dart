@@ -1764,6 +1764,11 @@ class _LibraryResynthesizer {
     }
     FunctionElementImpl initializerElement =
         buildLocalFunction(serializedInitializer);
+    // TODO(scheglov) The flag `hasImplicitReturnType` is `true` now because we
+    // don't serialize the return type. But once we do, the next two statements
+    // can be removed.
+    assert(initializerElement.hasImplicitReturnType == true);
+    initializerElement.hasImplicitReturnType = false;
     initializerElement.synthetic = true;
     variable.initializer = initializerElement;
   }

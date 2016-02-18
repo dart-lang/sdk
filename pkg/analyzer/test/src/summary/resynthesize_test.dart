@@ -548,18 +548,17 @@ class ResynthTest extends ResolverTestCase {
     }
   }
 
-  void compareExecutableElements(ExecutableElement resynthesized,
-      ExecutableElement original, String desc) {
+  void compareExecutableElements(
+      ExecutableElement resynthesized, ExecutableElement original, String desc,
+      {bool compareReturnTypes: true}) {
     compareElements(resynthesized, original, desc);
-    expect(resynthesized.parameters.length, original.parameters.length);
-    for (int i = 0; i < resynthesized.parameters.length; i++) {
-      compareParameterElements(
-          resynthesized.parameters[i],
-          original.parameters[i],
-          '$desc parameter ${original.parameters[i].name}');
+    compareParameterElementLists(
+        resynthesized.parameters, original.parameters, desc);
+    // TODO(scheglov) remove the condition once initializers have return types.
+    if (compareReturnTypes) {
+      compareTypes(
+          resynthesized.returnType, original.returnType, '$desc return type');
     }
-    compareTypes(
-        resynthesized.returnType, original.returnType, '$desc return type');
     compareTypes(resynthesized.type, original.type, desc);
     expect(resynthesized.typeParameters.length, original.typeParameters.length);
     for (int i = 0; i < resynthesized.typeParameters.length; i++) {
@@ -606,8 +605,14 @@ class ResynthTest extends ResolverTestCase {
   }
 
   void compareFunctionElements(
-      FunctionElement resynthesized, FunctionElement original, String desc) {
-    compareExecutableElements(resynthesized, original, desc);
+      FunctionElement resynthesized, FunctionElement original, String desc,
+      {bool compareReturnTypes: true}) {
+    if (original == null && resynthesized == null) {
+      return;
+    }
+    expect(resynthesized, isNotNull, reason: desc);
+    compareExecutableElements(resynthesized, original, desc,
+        compareReturnTypes: compareReturnTypes);
     checkPossibleLocalElements(resynthesized, original);
   }
 
@@ -616,13 +621,8 @@ class ResynthTest extends ResolverTestCase {
       FunctionTypeAliasElementImpl original,
       String desc) {
     compareElements(resynthesized, original, desc);
-    expect(resynthesized.parameters.length, original.parameters.length);
-    for (int i = 0; i < resynthesized.parameters.length; i++) {
-      compareParameterElements(
-          resynthesized.parameters[i],
-          original.parameters[i],
-          '$desc parameter ${original.parameters[i].name}');
-    }
+    compareParameterElementLists(
+        resynthesized.parameters, original.parameters, desc);
     compareTypes(
         resynthesized.returnType, original.returnType, '$desc return type');
     compareTypes(resynthesized.type, original.type, desc);
@@ -699,16 +699,24 @@ class ResynthTest extends ResolverTestCase {
     }
   }
 
+  void compareParameterElementLists(
+      List<ParameterElement> resynthesizedParameters,
+      List<ParameterElement> originalParameters,
+      String desc) {
+    expect(resynthesizedParameters.length, originalParameters.length);
+    for (int i = 0; i < resynthesizedParameters.length; i++) {
+      compareParameterElements(
+          resynthesizedParameters[i],
+          originalParameters[i],
+          '$desc parameter ${originalParameters[i].name}');
+    }
+  }
+
   void compareParameterElements(
       ParameterElement resynthesized, ParameterElement original, String desc) {
     compareVariableElements(resynthesized, original, desc);
-    expect(resynthesized.parameters.length, original.parameters.length);
-    for (int i = 0; i < resynthesized.parameters.length; i++) {
-      compareParameterElements(
-          resynthesized.parameters[i],
-          original.parameters[i],
-          '$desc parameter ${original.parameters[i].name}');
-    }
+    compareParameterElementLists(
+        resynthesized.parameters, original.parameters, desc);
     expect(resynthesized.parameterKind, original.parameterKind);
     expect(resynthesized.isInitializingFormal, original.isInitializingFormal,
         reason: desc);
@@ -867,8 +875,9 @@ class ResynthTest extends ResolverTestCase {
     compareTypes(resynthesized.type, original.type, desc);
     // TODO(scheglov) VariableMember.initializer is not implemented
     if (original is! VariableMember) {
-      compareVariableInitializers(
-          resynthesized.initializer, original.initializer, desc);
+      compareFunctionElements(
+          resynthesized.initializer, original.initializer, desc,
+          compareReturnTypes: false);
     }
     VariableElementImpl originalActual = getActualElement(original, desc);
     if (originalActual is ConstVariableElement) {
@@ -884,19 +893,6 @@ class ResynthTest extends ResolverTestCase {
     }
     checkPossibleMember(resynthesized, original, desc);
     checkPossibleLocalElements(resynthesized, original);
-  }
-
-  void compareVariableInitializers(
-      FunctionElement resynthesized, FunctionElement original, String desc) {
-    if (original == null && resynthesized == null) {
-      return;
-    }
-    expect(resynthesized, isNotNull, reason: desc);
-    expect(resynthesized.nameOffset, original.nameOffset, reason: desc);
-    expect(resynthesized.name, original.name, reason: desc);
-    expect(resynthesized.isSynthetic, original.isSynthetic, reason: desc);
-    // TODO(scheglov) replace this method with compareFunctionElements()
-    // once we resynthesize initializers return types.
   }
 
   /**
