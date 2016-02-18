@@ -529,6 +529,7 @@ def Main():
   print "GuessVisualStudioPath() -> ", GuessVisualStudioPath()
   print "GetGitRevision() -> ", GetGitRevision()
   print "GetVersionFileContent() -> ", GetVersionFileContent()
+  print "GetGitNumber() -> ", GetGitNumber()
 
 class Error(Exception):
   pass
