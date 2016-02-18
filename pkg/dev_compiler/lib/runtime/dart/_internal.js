@@ -1829,6 +1829,22 @@ dart_library.library('dart/_internal', null, /* Imports */[
         addAll: [dart.void, [core.Map$(core.int, E)]]
       })
     });
+    dart.defineExtensionMembers(ListMapView, [
+      'get',
+      'containsValue',
+      'containsKey',
+      'forEach',
+      'set',
+      'putIfAbsent',
+      'remove',
+      'clear',
+      'addAll',
+      'length',
+      'values',
+      'keys',
+      'isEmpty',
+      'isNotEmpty'
+    ]);
     return ListMapView;
   });
   let ListMapView = ListMapView$();

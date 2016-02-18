@@ -53,7 +53,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     static getByName(name) {
       if (name == null) return null;
       name = name[dartx.toLowerCase]();
-      return Encoding._nameToEncoding.get(name);
+      return Encoding._nameToEncoding[dartx.get](name);
     }
   }
   dart.setSignature(Encoding, {
@@ -1218,7 +1218,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     writeMap(map) {
       this.writeString('{');
       let separator = '"';
-      map.forEach(dart.fn((key, value) => {
+      map[dartx.forEach](dart.fn((key, value) => {
         this.writeString(separator);
         separator = ',"';
         this.writeStringContent(key);
@@ -1281,13 +1281,13 @@ dart_library.library('dart/convert', null, /* Imports */[
       }
     }
     writeMap(map) {
-      if (dart.notNull(map.isEmpty)) {
+      if (dart.notNull(map[dartx.isEmpty])) {
         this.writeString('{}');
       } else {
         this.writeString('{\n');
         this[_indentLevel] = dart.notNull(this[_indentLevel]) + 1;
         let first = true;
-        map.forEach(dart.fn((key, value) => {
+        map[dartx.forEach](dart.fn((key, value) => {
           if (!first) {
             this.writeString(",\n");
           }
@@ -2552,7 +2552,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
     get(key) {
       if (dart.notNull(this[_isUpgraded])) {
-        return this[_upgradedMap].get(key);
+        return this[_upgradedMap][dartx.get](key);
       } else if (!(typeof key == 'string')) {
         return null;
       } else {
@@ -2562,7 +2562,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       }
     }
     get length() {
-      return dart.notNull(this[_isUpgraded]) ? this[_upgradedMap].length : this[_computeKeys]()[dartx.length];
+      return dart.notNull(this[_isUpgraded]) ? this[_upgradedMap][dartx.length] : this[_computeKeys]()[dartx.length];
     }
     get isEmpty() {
       return this.length == 0;
@@ -2571,16 +2571,16 @@ dart_library.library('dart/convert', null, /* Imports */[
       return dart.notNull(this.length) > 0;
     }
     get keys() {
-      if (dart.notNull(this[_isUpgraded])) return this[_upgradedMap].keys;
+      if (dart.notNull(this[_isUpgraded])) return this[_upgradedMap][dartx.keys];
       return new _JsonMapKeyIterable(this);
     }
     get values() {
-      if (dart.notNull(this[_isUpgraded])) return this[_upgradedMap].values;
+      if (dart.notNull(this[_isUpgraded])) return this[_upgradedMap][dartx.values];
       return _internal.MappedIterable.new(this[_computeKeys](), dart.fn(each => this.get(each)));
     }
     set(key, value) {
       if (dart.notNull(this[_isUpgraded])) {
-        this[_upgradedMap].set(key, value);
+        this[_upgradedMap][dartx.set](key, value);
       } else if (dart.notNull(this.containsKey(key))) {
         let processed = this[_processed];
         _JsonMap._setProperty(processed, dart.as(key, core.String), value);
@@ -2589,17 +2589,17 @@ dart_library.library('dart/convert', null, /* Imports */[
           _JsonMap._setProperty(original, dart.as(key, core.String), null);
         }
       } else {
-        this[_upgrade]().set(key, value);
+        this[_upgrade]()[dartx.set](key, value);
       }
       return value;
     }
     addAll(other) {
-      other.forEach(dart.fn((key, value) => {
+      other[dartx.forEach](dart.fn((key, value) => {
         this.set(key, value);
       }, dart.void, [dart.dynamic, dart.dynamic]));
     }
     containsValue(value) {
-      if (dart.notNull(this[_isUpgraded])) return this[_upgradedMap].containsValue(value);
+      if (dart.notNull(this[_isUpgraded])) return this[_upgradedMap][dartx.containsValue](value);
       let keys = this[_computeKeys]();
       for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
         let key = keys[dartx.get](i);
@@ -2608,7 +2608,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       return false;
     }
     containsKey(key) {
-      if (dart.notNull(this[_isUpgraded])) return this[_upgradedMap].containsKey(key);
+      if (dart.notNull(this[_isUpgraded])) return this[_upgradedMap][dartx.containsKey](key);
       if (!(typeof key == 'string')) return false;
       return _JsonMap._hasProperty(this[_original], dart.as(key, core.String));
     }
@@ -2620,11 +2620,11 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
     remove(key) {
       if (!dart.notNull(this[_isUpgraded]) && !dart.notNull(this.containsKey(key))) return null;
-      return this[_upgrade]().remove(key);
+      return this[_upgrade]()[dartx.remove](key);
     }
     clear() {
       if (dart.notNull(this[_isUpgraded])) {
-        this[_upgradedMap].clear();
+        this[_upgradedMap][dartx.clear]();
       } else {
         if (this[_data] != null) {
           dart.dsend(this[_data], 'clear');
@@ -2634,7 +2634,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       }
     }
     forEach(f) {
-      if (dart.notNull(this[_isUpgraded])) return this[_upgradedMap].forEach(f);
+      if (dart.notNull(this[_isUpgraded])) return this[_upgradedMap][dartx.forEach](f);
       let keys = this[_computeKeys]();
       for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
         let key = keys[dartx.get](i);
@@ -2673,7 +2673,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       let keys = this[_computeKeys]();
       for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
         let key = keys[dartx.get](i);
-        result.set(key, this.get(key));
+        result[dartx.set](key, this.get(key));
       }
       if (dart.notNull(keys[dartx.isEmpty])) {
         keys[dartx.add](null);
@@ -2736,6 +2736,22 @@ dart_library.library('dart/convert', null, /* Imports */[
     }),
     names: ['_hasProperty', '_getProperty', '_setProperty', '_getPropertyNames', '_isUnprocessed', '_newJavaScriptObject']
   });
+  dart.defineExtensionMembers(_JsonMap, [
+    'get',
+    'set',
+    'addAll',
+    'containsValue',
+    'containsKey',
+    'putIfAbsent',
+    'remove',
+    'clear',
+    'forEach',
+    'length',
+    'isEmpty',
+    'isNotEmpty',
+    'keys',
+    'values'
+  ]);
   const _parent = Symbol('_parent');
   class _JsonMapKeyIterable extends _internal.ListIterable {
     _JsonMapKeyIterable(parent) {

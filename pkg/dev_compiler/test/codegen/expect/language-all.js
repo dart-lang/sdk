@@ -16962,7 +16962,7 @@ dart_library.library('language/bailout7_test', null, /* Imports */[
         return [2];
       } else {
         let map = core.Map.new();
-        map.set(0, 2);
+        map[dartx.set](0, 2);
         return map;
       }
     }
@@ -20131,8 +20131,8 @@ dart_library.library('language/cascade_in_expression_function_test', null, /* Im
   function makeMap() {
     return (() => {
       let _ = core.Map.new();
-      _.set(3, 4);
-      _.set(0, 11);
+      _[dartx.set](3, 4);
+      _[dartx.set](0, 11);
       return _;
     })();
   }
@@ -28969,7 +28969,7 @@ dart_library.library('language/closure_in_field_initializer_test', null, /* Impo
   }
   function main() {
     let closures = new Foo().closures;
-    expect.Expect.equals(6, dart.dcall(closures.get('a'), 4, 2));
+    expect.Expect.equals(6, dart.dcall(closures[dartx.get]('a'), 4, 2));
   }
   dart.fn(main);
   // Exports:
@@ -30521,104 +30521,104 @@ dart_library.library('language/compile_time_constant_a_test', null, /* Imports *
   }
   dart.fn(isUnsupportedError, core.bool, [dart.dynamic]);
   function main() {
-    expect.Expect.equals(499, m1.get('a'));
-    expect.Expect.equals(null, m1.get('b'));
-    expect.Expect.listEquals(['a'], m1.keys[dartx.toList]());
-    expect.Expect.listEquals([499], m1.values[dartx.toList]());
-    expect.Expect.isTrue(m1.containsKey('a'));
-    expect.Expect.isFalse(m1.containsKey('toString'));
-    expect.Expect.isTrue(m1.containsValue(499));
-    expect.Expect.isFalse(m1.containsValue(42));
-    expect.Expect.isFalse(m1.containsValue(null));
+    expect.Expect.equals(499, m1[dartx.get]('a'));
+    expect.Expect.equals(null, m1[dartx.get]('b'));
+    expect.Expect.listEquals(['a'], m1[dartx.keys][dartx.toList]());
+    expect.Expect.listEquals([499], m1[dartx.values][dartx.toList]());
+    expect.Expect.isTrue(m1[dartx.containsKey]('a'));
+    expect.Expect.isFalse(m1[dartx.containsKey]('toString'));
+    expect.Expect.isTrue(m1[dartx.containsValue](499));
+    expect.Expect.isFalse(m1[dartx.containsValue](42));
+    expect.Expect.isFalse(m1[dartx.containsValue](null));
     let seenKeys = [];
     let seenValues = [];
-    m1.forEach(dart.fn((key, value) => {
+    m1[dartx.forEach](dart.fn((key, value) => {
       seenKeys[dartx.add](key);
       seenValues[dartx.add](value);
     }, dart.void, [dart.dynamic, dart.dynamic]));
     expect.Expect.listEquals(['a'], seenKeys);
     expect.Expect.listEquals([499], seenValues);
-    expect.Expect.isFalse(m1.isEmpty);
-    expect.Expect.equals(1, m1.length);
-    expect.Expect.throws(dart.fn(() => m1.remove('a'), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m1.remove('b'), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m1.clear(), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m1.set('b', 42), core.int, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m1.set('a', 499), core.int, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m1.putIfAbsent('a', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m1.putIfAbsent('z', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
-    expect.Expect.equals(499, m2.get('a'));
-    expect.Expect.equals(42, m2.get('b'));
-    expect.Expect.equals(null, m2.get('c'));
-    expect.Expect.listEquals(['a', 'b'], m2.keys[dartx.toList]());
-    expect.Expect.listEquals([499, 42], m2.values[dartx.toList]());
-    expect.Expect.isTrue(m2.containsKey('a'));
-    expect.Expect.isTrue(m2.containsKey('b'));
-    expect.Expect.isFalse(m2.containsKey('toString'));
-    expect.Expect.isTrue(m2.containsValue(499));
-    expect.Expect.isTrue(m2.containsValue(42));
-    expect.Expect.isFalse(m2.containsValue(99));
-    expect.Expect.isFalse(m2.containsValue(null));
+    expect.Expect.isFalse(m1[dartx.isEmpty]);
+    expect.Expect.equals(1, m1[dartx.length]);
+    expect.Expect.throws(dart.fn(() => m1[dartx.remove]('a'), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m1[dartx.remove]('b'), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m1[dartx.clear](), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m1[dartx.set]('b', 42), core.int, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m1[dartx.set]('a', 499), core.int, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m1[dartx.putIfAbsent]('a', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m1[dartx.putIfAbsent]('z', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
+    expect.Expect.equals(499, m2[dartx.get]('a'));
+    expect.Expect.equals(42, m2[dartx.get]('b'));
+    expect.Expect.equals(null, m2[dartx.get]('c'));
+    expect.Expect.listEquals(['a', 'b'], m2[dartx.keys][dartx.toList]());
+    expect.Expect.listEquals([499, 42], m2[dartx.values][dartx.toList]());
+    expect.Expect.isTrue(m2[dartx.containsKey]('a'));
+    expect.Expect.isTrue(m2[dartx.containsKey]('b'));
+    expect.Expect.isFalse(m2[dartx.containsKey]('toString'));
+    expect.Expect.isTrue(m2[dartx.containsValue](499));
+    expect.Expect.isTrue(m2[dartx.containsValue](42));
+    expect.Expect.isFalse(m2[dartx.containsValue](99));
+    expect.Expect.isFalse(m2[dartx.containsValue](null));
     seenKeys = [];
     seenValues = [];
-    m2.forEach(dart.fn((key, value) => {
+    m2[dartx.forEach](dart.fn((key, value) => {
       seenKeys[dartx.add](key);
       seenValues[dartx.add](value);
     }, dart.void, [dart.dynamic, dart.dynamic]));
     expect.Expect.listEquals(['a', 'b'], seenKeys);
     expect.Expect.listEquals([499, 42], seenValues);
-    expect.Expect.isFalse(m2.isEmpty);
-    expect.Expect.equals(2, m2.length);
-    expect.Expect.throws(dart.fn(() => m2.remove('a'), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.remove('b'), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.remove('c'), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.clear(), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.set('a', 499), core.int, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.set('b', 42), core.int, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.set('c', 499), core.int, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.putIfAbsent('a', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.putIfAbsent('z', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.set('a', 499), core.int, []), isUnsupportedError);
-    expect.Expect.identical(m3.get('m1'), m1);
-    expect.Expect.identical(m3.get('m2'), m2);
-    expect.Expect.listEquals(['z', 'a', 'm'], m4.keys[dartx.toList]());
-    expect.Expect.listEquals([9, 8, 7], m4.values[dartx.toList]());
+    expect.Expect.isFalse(m2[dartx.isEmpty]);
+    expect.Expect.equals(2, m2[dartx.length]);
+    expect.Expect.throws(dart.fn(() => m2[dartx.remove]('a'), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.remove]('b'), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.remove]('c'), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.clear](), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.set]('a', 499), core.int, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.set]('b', 42), core.int, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.set]('c', 499), core.int, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.putIfAbsent]('a', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.putIfAbsent]('z', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.set]('a', 499), core.int, []), isUnsupportedError);
+    expect.Expect.identical(m3[dartx.get]('m1'), m1);
+    expect.Expect.identical(m3[dartx.get]('m2'), m2);
+    expect.Expect.listEquals(['z', 'a', 'm'], m4[dartx.keys][dartx.toList]());
+    expect.Expect.listEquals([9, 8, 7], m4[dartx.values][dartx.toList]());
     seenKeys = [];
     seenValues = [];
-    m4.forEach(dart.fn((key, value) => {
+    m4[dartx.forEach](dart.fn((key, value) => {
       seenKeys[dartx.add](key);
       seenValues[dartx.add](value);
     }, dart.void, [dart.dynamic, dart.dynamic]));
     expect.Expect.listEquals(['z', 'a', 'm'], seenKeys);
     expect.Expect.listEquals([9, 8, 7], seenValues);
-    expect.Expect.equals(499, m5.get(''));
-    expect.Expect.isTrue(m5.containsKey(''));
-    expect.Expect.equals(1, m5.length);
+    expect.Expect.equals(499, m5[dartx.get](''));
+    expect.Expect.isTrue(m5[dartx.containsKey](''));
+    expect.Expect.equals(1, m5[dartx.length]);
     expect.Expect.identical(m1, m6);
-    expect.Expect.isTrue(m7.isEmpty);
-    expect.Expect.equals(0, m7.length);
-    expect.Expect.equals(null, m7.get('b'));
-    expect.Expect.listEquals([], m7.keys[dartx.toList]());
-    expect.Expect.listEquals([], m7.values[dartx.toList]());
-    expect.Expect.isFalse(m7.containsKey('a'));
-    expect.Expect.isFalse(m7.containsKey('toString'));
-    expect.Expect.isFalse(m7.containsValue(499));
-    expect.Expect.isFalse(m7.containsValue(null));
+    expect.Expect.isTrue(m7[dartx.isEmpty]);
+    expect.Expect.equals(0, m7[dartx.length]);
+    expect.Expect.equals(null, m7[dartx.get]('b'));
+    expect.Expect.listEquals([], m7[dartx.keys][dartx.toList]());
+    expect.Expect.listEquals([], m7[dartx.values][dartx.toList]());
+    expect.Expect.isFalse(m7[dartx.containsKey]('a'));
+    expect.Expect.isFalse(m7[dartx.containsKey]('toString'));
+    expect.Expect.isFalse(m7[dartx.containsValue](499));
+    expect.Expect.isFalse(m7[dartx.containsValue](null));
     seenKeys = [];
     seenValues = [];
-    m7.forEach(dart.fn((key, value) => {
+    m7[dartx.forEach](dart.fn((key, value) => {
       seenKeys[dartx.add](key);
       seenValues[dartx.add](value);
     }, dart.void, [dart.dynamic, dart.dynamic]));
     expect.Expect.listEquals([], seenKeys);
     expect.Expect.listEquals([], seenValues);
-    expect.Expect.throws(dart.fn(() => m7.remove('a'), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m7.remove('b'), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m7.clear(), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m7.set('b', 42), core.int, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m7.set('a', 499), core.int, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m7.putIfAbsent('a', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m7.putIfAbsent('z', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m7[dartx.remove]('a'), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m7[dartx.remove]('b'), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m7[dartx.clear](), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m7[dartx.set]('b', 42), core.int, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m7[dartx.set]('a', 499), core.int, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m7[dartx.putIfAbsent]('a', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m7[dartx.putIfAbsent]('z', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
   }
   dart.fn(main);
   // Exports:
@@ -30685,64 +30685,64 @@ dart_library.library('language/compile_time_constant_b_test', null, /* Imports *
   }
   dart.fn(isUnsupportedError, core.bool, [dart.dynamic]);
   function main() {
-    expect.Expect.equals(499, m1.get('__proto__'));
-    expect.Expect.equals(null, m1.get('b'));
-    expect.Expect.listEquals(['__proto__'], m1.keys[dartx.toList]());
-    expect.Expect.listEquals([499], m1.values[dartx.toList]());
-    expect.Expect.isTrue(m1.containsKey('__proto__'));
-    expect.Expect.isFalse(m1.containsKey('toString'));
-    expect.Expect.isTrue(m1.containsValue(499));
-    expect.Expect.isFalse(m1.containsValue(null));
+    expect.Expect.equals(499, m1[dartx.get]('__proto__'));
+    expect.Expect.equals(null, m1[dartx.get]('b'));
+    expect.Expect.listEquals(['__proto__'], m1[dartx.keys][dartx.toList]());
+    expect.Expect.listEquals([499], m1[dartx.values][dartx.toList]());
+    expect.Expect.isTrue(m1[dartx.containsKey]('__proto__'));
+    expect.Expect.isFalse(m1[dartx.containsKey]('toString'));
+    expect.Expect.isTrue(m1[dartx.containsValue](499));
+    expect.Expect.isFalse(m1[dartx.containsValue](null));
     let seenKeys = [];
     let seenValues = [];
-    m1.forEach(dart.fn((key, value) => {
+    m1[dartx.forEach](dart.fn((key, value) => {
       seenKeys[dartx.add](key);
       seenValues[dartx.add](value);
     }, dart.void, [dart.dynamic, dart.dynamic]));
     expect.Expect.listEquals(['__proto__'], seenKeys);
     expect.Expect.listEquals([499], seenValues);
-    expect.Expect.isFalse(m1.isEmpty);
-    expect.Expect.equals(1, m1.length);
-    expect.Expect.throws(dart.fn(() => m1.remove('__proto__'), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m1.remove('b'), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m1.clear(), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m1.set('b', 42), core.int, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m1.set('__proto__', 499), core.int, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m1.putIfAbsent('__proto__', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m1.putIfAbsent('z', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
-    expect.Expect.equals(499, m2.get('a'));
-    expect.Expect.equals(42, m2.get('b'));
-    expect.Expect.equals(null, m2.get('c'));
-    expect.Expect.equals(null, m2.get('__proto__'));
-    expect.Expect.listEquals(['a', 'b'], m2.keys[dartx.toList]());
-    expect.Expect.listEquals([499, 42], m2.values[dartx.toList]());
-    expect.Expect.isTrue(m2.containsKey('a'));
-    expect.Expect.isTrue(m2.containsKey('b'));
-    expect.Expect.isFalse(m2.containsKey('toString'));
-    expect.Expect.isFalse(m2.containsKey('__proto__'));
-    expect.Expect.isTrue(m2.containsValue(499));
-    expect.Expect.isTrue(m2.containsValue(42));
-    expect.Expect.isFalse(m2.containsValue(null));
+    expect.Expect.isFalse(m1[dartx.isEmpty]);
+    expect.Expect.equals(1, m1[dartx.length]);
+    expect.Expect.throws(dart.fn(() => m1[dartx.remove]('__proto__'), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m1[dartx.remove]('b'), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m1[dartx.clear](), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m1[dartx.set]('b', 42), core.int, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m1[dartx.set]('__proto__', 499), core.int, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m1[dartx.putIfAbsent]('__proto__', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m1[dartx.putIfAbsent]('z', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
+    expect.Expect.equals(499, m2[dartx.get]('a'));
+    expect.Expect.equals(42, m2[dartx.get]('b'));
+    expect.Expect.equals(null, m2[dartx.get]('c'));
+    expect.Expect.equals(null, m2[dartx.get]('__proto__'));
+    expect.Expect.listEquals(['a', 'b'], m2[dartx.keys][dartx.toList]());
+    expect.Expect.listEquals([499, 42], m2[dartx.values][dartx.toList]());
+    expect.Expect.isTrue(m2[dartx.containsKey]('a'));
+    expect.Expect.isTrue(m2[dartx.containsKey]('b'));
+    expect.Expect.isFalse(m2[dartx.containsKey]('toString'));
+    expect.Expect.isFalse(m2[dartx.containsKey]('__proto__'));
+    expect.Expect.isTrue(m2[dartx.containsValue](499));
+    expect.Expect.isTrue(m2[dartx.containsValue](42));
+    expect.Expect.isFalse(m2[dartx.containsValue](null));
     seenKeys = [];
     seenValues = [];
-    m2.forEach(dart.fn((key, value) => {
+    m2[dartx.forEach](dart.fn((key, value) => {
       seenKeys[dartx.add](key);
       seenValues[dartx.add](value);
     }, dart.void, [dart.dynamic, dart.dynamic]));
     expect.Expect.listEquals(['a', 'b'], seenKeys);
     expect.Expect.listEquals([499, 42], seenValues);
-    expect.Expect.isFalse(m2.isEmpty);
-    expect.Expect.equals(2, m2.length);
-    expect.Expect.throws(dart.fn(() => m2.remove('a'), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.remove('b'), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.remove('__proto__'), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.clear(), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.set('a', 499), core.int, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.set('b', 42), core.int, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.set('__proto__', 499), core.int, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.putIfAbsent('a', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.putIfAbsent('__proto__', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
-    expect.Expect.throws(dart.fn(() => m2.set('a', 499), core.int, []), isUnsupportedError);
+    expect.Expect.isFalse(m2[dartx.isEmpty]);
+    expect.Expect.equals(2, m2[dartx.length]);
+    expect.Expect.throws(dart.fn(() => m2[dartx.remove]('a'), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.remove]('b'), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.remove]('__proto__'), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.clear](), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.set]('a', 499), core.int, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.set]('b', 42), core.int, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.set]('__proto__', 499), core.int, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.putIfAbsent]('a', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.putIfAbsent]('__proto__', dart.fn(() => 499, core.int, [])), dart.void, []), isUnsupportedError);
+    expect.Expect.throws(dart.fn(() => m2[dartx.set]('a', 499), core.int, []), isUnsupportedError);
     expect.Expect.isTrue(core.identical(m1, m3));
   }
   dart.fn(main);
@@ -31909,14 +31909,14 @@ dart_library.library('language/compile_time_constant_o_test_none_multi', null, /
   const mm3 = dart.const(dart.map({["a" + `${str}` + "#" + "foo"]: 499}));
   const mm4 = dart.const(dart.map({[`a${str}` + `#${str}`]: 499}));
   function main() {
-    expect.Expect.equals(1, m1.length);
-    expect.Expect.equals(499, m1.get("foo"));
+    expect.Expect.equals(1, m1[dartx.length]);
+    expect.Expect.equals(499, m1[dartx.get]("foo"));
     expect.Expect.identical(m1, m2);
     expect.Expect.identical(m1, m3);
     expect.Expect.identical(m1, m4);
     expect.Expect.identical(m1, m5);
-    expect.Expect.equals(1, mm1.length);
-    expect.Expect.equals(499, mm1.get("afoo#foo"));
+    expect.Expect.equals(1, mm1[dartx.length]);
+    expect.Expect.equals(499, mm1[dartx.get]("afoo#foo"));
     expect.Expect.identical(mm1, mm2);
     expect.Expect.identical(mm1, mm3);
     expect.Expect.identical(mm1, mm4);
@@ -36973,7 +36973,7 @@ dart_library.library('language/const_dynamic_type_literal_test_03_multi', null, 
   const d = dart.dynamic;
   const i = core.int;
   function main() {
-    expect.Expect.equals(2, dart.const(dart.map([d, 1, i, 2])).length);
+    expect.Expect.equals(2, dart.const(dart.map([d, 1, i, 2]))[dartx.length]);
   }
   dart.fn(main, dart.void, []);
   // Exports:
@@ -37497,9 +37497,9 @@ dart_library.library('language/const_map2_test_none_multi', null, /* Imports */[
   dart.fn(confuse);
   function main() {
     let m = dart.const(dart.map([dart.const(A.new()), 42]));
-    expect.Expect.equals(42, m.get(confuse(dart.const(new B()))));
+    expect.Expect.equals(42, m[dartx.get](confuse(dart.const(new B()))));
     m = dart.const(dart.map(["foo", 99, dart.const(A.new()), 499]));
-    expect.Expect.equals(499, m.get(confuse(dart.const(new B()))));
+    expect.Expect.equals(499, m[dartx.get](confuse(dart.const(new B()))));
   }
   dart.fn(main);
   // Exports:
@@ -37532,9 +37532,9 @@ dart_library.library('language/const_map3_test_none_multi', null, /* Imports */[
   });
   function main() {
     let m = dart.const(dart.map([A.b, 42]));
-    expect.Expect.equals(42, m.get(dart.const(new B())));
+    expect.Expect.equals(42, m[dartx.get](dart.const(new B())));
     m = dart.const(dart.map(["foo", 99, A.b, 499]));
-    expect.Expect.equals(499, m.get(dart.const(new B())));
+    expect.Expect.equals(499, m[dartx.get](dart.const(new B())));
   }
   dart.fn(main);
   // Exports:
@@ -37583,8 +37583,8 @@ dart_library.library('language/const_map_test', null, /* Imports */[
   dart.fn(confuse);
   function main() {
     let m = dart.const(dart.map([1, 42, "foo", 499]));
-    expect.Expect.equals(42, m.get(confuse(1.0)));
-    expect.Expect.equals(499, m.get(confuse(core.String.fromCharCodes("foo"[dartx.runes]))));
+    expect.Expect.equals(42, m[dartx.get](confuse(1.0)));
+    expect.Expect.equals(499, m[dartx.get](confuse(core.String.fromCharCodes("foo"[dartx.runes]))));
   }
   dart.fn(main);
   // Exports:
@@ -40092,13 +40092,13 @@ dart_library.library('language/ct_const_test', null, /* Imports */[
       let c11dItaly = dart.const(dart.map({green: 1, red: 3, white: 2}));
       expect.Expect.equals(true, core.identical(c11dItaly, dart.const(dart.map({green: 1, red: 3, white: 2}))));
       expect.Expect.equals(true, core.identical(c11dItaly, Roman.VivaItalia));
-      expect.Expect.equals(3, c11dItaly.length);
-      expect.Expect.equals(3, c11dItaly.keys[dartx.length]);
-      expect.Expect.equals(true, c11dItaly.containsKey("white"));
-      expect.Expect.equals(false, c11dItaly.containsKey("black"));
+      expect.Expect.equals(3, c11dItaly[dartx.length]);
+      expect.Expect.equals(3, c11dItaly[dartx.keys][dartx.length]);
+      expect.Expect.equals(true, c11dItaly[dartx.containsKey]("white"));
+      expect.Expect.equals(false, c11dItaly[dartx.containsKey]("black"));
       let caughtException = false;
       try {
-        c11dItaly.set("green", 0);
+        c11dItaly[dartx.set]("green", 0);
       } catch (e) {
         if (dart.is(e, core.UnsupportedError)) {
           caughtException = true;
@@ -40107,10 +40107,10 @@ dart_library.library('language/ct_const_test', null, /* Imports */[
       }
 
       expect.Expect.equals(true, caughtException);
-      expect.Expect.equals(1, c11dItaly.get("green"));
+      expect.Expect.equals(1, c11dItaly[dartx.get]("green"));
       caughtException = false;
       try {
-        c11dItaly.clear();
+        c11dItaly[dartx.clear]();
       } catch (e) {
         if (dart.is(e, core.UnsupportedError)) {
           caughtException = true;
@@ -40119,10 +40119,10 @@ dart_library.library('language/ct_const_test', null, /* Imports */[
       }
 
       expect.Expect.equals(true, caughtException);
-      expect.Expect.equals(1, c11dItaly.get("green"));
+      expect.Expect.equals(1, c11dItaly[dartx.get]("green"));
       caughtException = false;
       try {
-        c11dItaly.remove("orange");
+        c11dItaly[dartx.remove]("orange");
       } catch (e) {
         if (dart.is(e, core.UnsupportedError)) {
           caughtException = true;
@@ -40131,7 +40131,7 @@ dart_library.library('language/ct_const_test', null, /* Imports */[
       }
 
       expect.Expect.equals(true, caughtException);
-      expect.Expect.equals(1, c11dItaly.get("green"));
+      expect.Expect.equals(1, c11dItaly[dartx.get]("green"));
       expect.Expect.equals(true, null == CTConstTest.naught);
     }
   }
@@ -44777,7 +44777,7 @@ dart_library.library('language/emit_const_fields_test', null, /* Imports */[
   Guide.EARTH = dart.const(dart.map({Sector: "ZZ9 Plural Z Alpha", Status: dart.const(["Scheduled for demolition", "1978-03-08"]), Description: "Mostly harmless"}));
   function main() {
     expect.Expect.isTrue(42 == Guide.LTUAE);
-    expect.Expect.isTrue(dart.equals("1978-03-08", dart.dindex(Guide.EARTH.get("Status"), 1)));
+    expect.Expect.isTrue(dart.equals("1978-03-08", dart.dindex(Guide.EARTH[dartx.get]("Status"), 1)));
   }
   dart.fn(main);
   // Exports:
@@ -49969,7 +49969,7 @@ dart_library.library('language/first_class_types_literals_test_01_multi', null, 
     [core.int][dartx.length];
     dart.map([1, core.int]);
     foo(dart.map([1, core.int]));
-    dart.map([1, core.int]).keys;
+    dart.map([1, core.int])[dartx.keys];
     expect.Expect.equals(core.int, core.int);
     expect.Expect.notEquals(core.int, core.num);
     expect.Expect.equals(Foo, Foo);
@@ -50022,7 +50022,7 @@ dart_library.library('language/first_class_types_literals_test_02_multi', null, 
     [core.int][dartx.length];
     dart.map([1, core.int]);
     foo(dart.map([1, core.int]));
-    dart.map([1, core.int]).keys;
+    dart.map([1, core.int])[dartx.keys];
     expect.Expect.equals(core.int, core.int);
     expect.Expect.notEquals(core.int, core.num);
     expect.Expect.equals(Foo, Foo);
@@ -50075,7 +50075,7 @@ dart_library.library('language/first_class_types_literals_test_none_multi', null
     [core.int][dartx.length];
     dart.map([1, core.int]);
     foo(dart.map([1, core.int]));
-    dart.map([1, core.int]).keys;
+    dart.map([1, core.int])[dartx.keys];
     expect.Expect.equals(core.int, core.int);
     expect.Expect.notEquals(core.int, core.num);
     expect.Expect.equals(Foo, Foo);
@@ -57394,10 +57394,10 @@ dart_library.library('language/function_syntax_test_none_multi', null, /* Import
     cb3() {
       this.fn = dart.map({x: dart.fn(() => {
           return 48;
-        })}).get('x');
+        })})[dartx.get]('x');
     }
     ca3() {
-      this.fn = dart.map({x: dart.fn(() => 49, core.int, [])}).get('x');
+      this.fn = dart.map({x: dart.fn(() => 49, core.int, [])})[dartx.get]('x');
     }
     nb0() {
       this.fn = dart.fn(() => {
@@ -57426,10 +57426,10 @@ dart_library.library('language/function_syntax_test_none_multi', null, /* Import
     nb3() {
       this.fn = dart.map({x: dart.fn(() => {
           return 58;
-        })}).get('x');
+        })})[dartx.get]('x');
     }
     na3() {
-      this.fn = dart.map({x: dart.fn(() => 59, core.int, [])}).get('x');
+      this.fn = dart.map({x: dart.fn(() => 59, core.int, [])})[dartx.get]('x');
     }
     rb0() {
       this.fn = dart.fn(() => {
@@ -57458,10 +57458,10 @@ dart_library.library('language/function_syntax_test_none_multi', null, /* Import
     rb3() {
       this.fn = dart.map({x: dart.fn(() => {
           return 68;
-        })}).get('x');
+        })})[dartx.get]('x');
     }
     ra3() {
-      this.fn = dart.map({x: dart.fn(() => 69, core.int, [])}).get('x');
+      this.fn = dart.map({x: dart.fn(() => 69, core.int, [])})[dartx.get]('x');
     }
     static wrap(fn) {
       return fn;
@@ -60265,10 +60265,10 @@ dart_library.library('language/hash_map_null_key_foreach_test', null, /* Imports
   let dartx = dart.dartx;
   function main() {
     let x = core.Map$(core.int, core.int).new();
-    x.set(1, 2);
-    x.set(null, 1);
+    x[dartx.set](1, 2);
+    x[dartx.set](null, 1);
     let c = 0;
-    x.forEach(dart.fn((i, j) => {
+    x[dartx.forEach](dart.fn((i, j) => {
       c++;
       expect.Expect.isTrue(i == null || typeof i == 'number', 'int or null expected');
     }, dart.void, [core.int, core.int]));
@@ -70790,7 +70790,7 @@ dart_library.library('language/issue10204_test', null, /* Imports */[
       this.isCallOnInterceptor = false;
     }
     getDartReceiver() {
-      return dart.notNull(this.isCallOnInterceptor) ? this.inputs.get("a") : this.inputs.get("b");
+      return dart.notNull(this.isCallOnInterceptor) ? this.inputs[dartx.get]("a") : this.inputs[dartx.get]("b");
     }
   }
   dart.setSignature(Node, {
@@ -70982,7 +70982,7 @@ dart_library.library('language/issue10721_test', null, /* Imports */[
   function useParameterInClosure(arg1, opts) {
     let arg2 = opts && 'arg2' in opts ? opts.arg2 : null;
     if (dart.is(arg1, core.Map)) {
-      return dart.as(arg1.keys[dartx.map](dart.fn(key => arg1.get(key)))[dartx.first], core.String);
+      return dart.as(arg1[dartx.keys][dartx.map](dart.fn(key => arg1[dartx.get](key)))[dartx.first], core.String);
     } else {
       return '';
     }
@@ -71527,9 +71527,9 @@ dart_library.library('language/issue14242_test', null, /* Imports */[
   }
   function main() {
     let a = new A();
-    a.foo.set(core.Object, 54);
+    a.foo[dartx.set](core.Object, 54);
     a.bar = 42;
-    if (!dart.is(a.foo.keys[dartx.first], core.Type)) {
+    if (!dart.is(a.foo[dartx.keys][dartx.first], core.Type)) {
       dart.throw('Test failed');
     }
   }
@@ -71802,8 +71802,8 @@ dart_library.library('language/issue23244_test', null, /* Imports */[
   dart.fn(isolate2, dart.dynamic, [isolate.SendPort]);
   function isolate3(port) {
     let x = core.Map$(core.int, Fisk).new();
-    x.set(0, Fisk.torsk);
-    x.set(1, Fisk.torsk);
+    x[dartx.set](0, Fisk.torsk);
+    x[dartx.set](1, Fisk.torsk);
     port.send(x);
   }
   dart.fn(isolate3, dart.dynamic, [isolate.SendPort]);
@@ -92597,7 +92597,7 @@ dart_library.library('language/lazy_map_test', null, /* Imports */[
     set data(_) {}
   });
   function main() {
-    expect.Expect.equals('a', exports.data.get('a'));
+    expect.Expect.equals('a', exports.data[dartx.get]('a'));
   }
   dart.fn(main);
   // Exports:
@@ -96397,7 +96397,7 @@ dart_library.library('language/list_tracer_in_map_test', null, /* Imports */[
     set a(_) {}
   });
   function main() {
-    dart.dsend(exports.a.get('foo'), 'clear');
+    dart.dsend(exports.a[dartx.get]('foo'), 'clear');
     if (exports.b[dartx.length] != 0) dart.throw('Test failed');
   }
   dart.fn(main);
@@ -104403,7 +104403,7 @@ dart_library.library('language/many_named_arguments_test', null, /* Imports */[
   function main() {
     let method = dart.bind(new Fisk(), 'method');
     let namedArguments = core.Map.new();
-    namedArguments.set(dart.const(core.Symbol.new('a')), 'a');
+    namedArguments[dartx.set](dart.const(core.Symbol.new('a')), 'a');
     expect.Expect.stringEquals(EXPECTED_RESULT, dart.as(core.Function.apply(method, [], dart.as(namedArguments, core.Map$(core.Symbol, dart.dynamic))), core.String));
     expect.Expect.stringEquals(EXPECTED_RESULT, dart.as(new Fisk().method({a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h', i: 'i', j: 'j', k: 'k', l: 'l', m: 'm', n: 'n', o: 'o', p: 'p', q: 'q', r: 'r', s: 's', t: 't', u: 'u', v: 'v', w: 'w', x: 'x', y: 'y', z: 'z'}), core.String));
   }
@@ -104423,29 +104423,29 @@ dart_library.library('language/map_literal10_test', null, /* Imports */[
   let dartx = dart.dartx;
   function main() {
     let m1 = dart.const(dart.map(["__proto__", 0, 1, 1]));
-    expect.Expect.isTrue(m1.containsKey("__proto__"));
-    expect.Expect.equals(0, m1.get("__proto__"));
-    expect.Expect.isTrue(m1.containsKey(1));
-    expect.Expect.equals(1, m1.get(1));
-    expect.Expect.listEquals(["__proto__", 1], m1.keys[dartx.toList]());
+    expect.Expect.isTrue(m1[dartx.containsKey]("__proto__"));
+    expect.Expect.equals(0, m1[dartx.get]("__proto__"));
+    expect.Expect.isTrue(m1[dartx.containsKey](1));
+    expect.Expect.equals(1, m1[dartx.get](1));
+    expect.Expect.listEquals(["__proto__", 1], m1[dartx.keys][dartx.toList]());
     let m2 = dart.const(dart.map([1, 0, "__proto__", 1]));
-    expect.Expect.isTrue(m2.containsKey(1));
-    expect.Expect.equals(0, m2.get(1));
-    expect.Expect.isTrue(m2.containsKey("__proto__"));
-    expect.Expect.equals(1, m2.get("__proto__"));
-    expect.Expect.listEquals([1, "__proto__"], m2.keys[dartx.toList]());
+    expect.Expect.isTrue(m2[dartx.containsKey](1));
+    expect.Expect.equals(0, m2[dartx.get](1));
+    expect.Expect.isTrue(m2[dartx.containsKey]("__proto__"));
+    expect.Expect.equals(1, m2[dartx.get]("__proto__"));
+    expect.Expect.listEquals([1, "__proto__"], m2[dartx.keys][dartx.toList]());
     let m3 = dart.const(dart.map({"1": 0, __proto__: 1}));
-    expect.Expect.isTrue(m3.containsKey("1"));
-    expect.Expect.equals(0, m3.get("1"));
-    expect.Expect.isTrue(m3.containsKey("__proto__"));
-    expect.Expect.equals(1, m3.get("__proto__"));
-    expect.Expect.listEquals(["1", "__proto__"], m3.keys[dartx.toList]());
+    expect.Expect.isTrue(m3[dartx.containsKey]("1"));
+    expect.Expect.equals(0, m3[dartx.get]("1"));
+    expect.Expect.isTrue(m3[dartx.containsKey]("__proto__"));
+    expect.Expect.equals(1, m3[dartx.get]("__proto__"));
+    expect.Expect.listEquals(["1", "__proto__"], m3[dartx.keys][dartx.toList]());
     let m4 = dart.const(dart.map({__proto__: 1, "1": 2}));
-    expect.Expect.isTrue(m4.containsKey("1"));
-    expect.Expect.equals(2, m4.get("1"));
-    expect.Expect.isTrue(m4.containsKey("__proto__"));
-    expect.Expect.equals(1, m4.get("__proto__"));
-    expect.Expect.listEquals(["__proto__", "1"], m4.keys[dartx.toList]());
+    expect.Expect.isTrue(m4[dartx.containsKey]("1"));
+    expect.Expect.equals(2, m4[dartx.get]("1"));
+    expect.Expect.isTrue(m4[dartx.containsKey]("__proto__"));
+    expect.Expect.equals(1, m4[dartx.get]("__proto__"));
+    expect.Expect.listEquals(["__proto__", "1"], m4[dartx.keys][dartx.toList]());
   }
   dart.fn(main, dart.void, []);
   // Exports:
@@ -104482,10 +104482,10 @@ dart_library.library('language/map_literal2_test', null, /* Imports */[
   function main() {
     exports.nextValCtr = 0;
     let map = dart.map({[`a${exports.nextVal}`]: "Grey", [`a${exports.nextVal}`]: "Poupon"});
-    expect.Expect.equals(true, map.containsKey("a0"));
-    expect.Expect.equals(true, map.containsKey("a1"));
-    expect.Expect.equals("Grey", map.get("a0"));
-    expect.Expect.equals("Poupon", map.get("a1"));
+    expect.Expect.equals(true, map[dartx.containsKey]("a0"));
+    expect.Expect.equals(true, map[dartx.containsKey]("a1"));
+    expect.Expect.equals("Grey", map[dartx.get]("a0"));
+    expect.Expect.equals("Poupon", map[dartx.get]("a1"));
   }
   dart.fn(main);
   // Exports:
@@ -104576,15 +104576,15 @@ dart_library.library('language/map_literal9_test', null, /* Imports */[
   let dartx = dart.dartx;
   function main() {
     let m1 = dart.const(dart.map({"[object Object]": 0, "1": 1}));
-    expect.Expect.isFalse(m1.containsKey(new core.Object()));
-    expect.Expect.isNull(m1.get(new core.Object()));
-    expect.Expect.isFalse(m1.containsKey(1));
-    expect.Expect.isNull(m1.get(1));
+    expect.Expect.isFalse(m1[dartx.containsKey](new core.Object()));
+    expect.Expect.isNull(m1[dartx.get](new core.Object()));
+    expect.Expect.isFalse(m1[dartx.containsKey](1));
+    expect.Expect.isNull(m1[dartx.get](1));
     let m2 = dart.const(dart.map({"[object Object]": 0, "1": 1, __proto__: 2}));
-    expect.Expect.isFalse(m2.containsKey(new core.Object()));
-    expect.Expect.isNull(m2.get(new core.Object()));
-    expect.Expect.isFalse(m2.containsKey(1));
-    expect.Expect.isNull(m2.get(1));
+    expect.Expect.isFalse(m2[dartx.containsKey](new core.Object()));
+    expect.Expect.isNull(m2[dartx.get](new core.Object()));
+    expect.Expect.isFalse(m2[dartx.containsKey](1));
+    expect.Expect.isNull(m2[dartx.get](1));
   }
   dart.fn(main, dart.void, []);
   // Exports:
@@ -104647,10 +104647,10 @@ dart_library.library('language/map_literal_test', null, /* Imports */[
     testLocalInit() {
       let map1 = dart.map({a: 1, b: 2});
       let map2 = dart.map({"1": 1, "2": 2});
-      expect.Expect.equals(1, map1.get("a"));
-      expect.Expect.equals(2, map1.get("b"));
-      expect.Expect.equals(1, map2.get("1"));
-      expect.Expect.equals(2, map2.get("2"));
+      expect.Expect.equals(1, map1[dartx.get]("a"));
+      expect.Expect.equals(2, map1[dartx.get]("b"));
+      expect.Expect.equals(1, map2[dartx.get]("1"));
+      expect.Expect.equals(2, map2[dartx.get]("2"));
     }
   }
   dart.setSignature(MapLiteralTest, {
@@ -104667,10 +104667,10 @@ dart_library.library('language/map_literal_test', null, /* Imports */[
     StaticInit() {
     }
     test() {
-      expect.Expect.equals(1, StaticInit.map1.get("a"));
-      expect.Expect.equals(2, StaticInit.map1.get("b"));
-      expect.Expect.equals(1, StaticInit.map2.get("1"));
-      expect.Expect.equals(2, StaticInit.map2.get("2"));
+      expect.Expect.equals(1, StaticInit.map1[dartx.get]("a"));
+      expect.Expect.equals(2, StaticInit.map1[dartx.get]("b"));
+      expect.Expect.equals(1, StaticInit.map2[dartx.get]("1"));
+      expect.Expect.equals(2, StaticInit.map2[dartx.get]("2"));
     }
   }
   dart.setSignature(StaticInit, {
@@ -104715,32 +104715,32 @@ dart_library.library('language/map_test', null, /* Imports */[
   let dartx = dart.dartx;
   class MapTest extends core.Object {
     static testDeletedElement(map) {
-      map.clear();
+      map[dartx.clear]();
       for (let i = 0; i < 100; i++) {
-        map.set(1, 2);
-        expect.Expect.equals(1, map.length);
-        let x = dart.as(map.remove(1), core.int);
+        map[dartx.set](1, 2);
+        expect.Expect.equals(1, map[dartx.length]);
+        let x = dart.as(map[dartx.remove](1), core.int);
         expect.Expect.equals(2, x);
-        expect.Expect.equals(0, map.length);
+        expect.Expect.equals(0, map[dartx.length]);
       }
-      expect.Expect.equals(0, map.length);
+      expect.Expect.equals(0, map[dartx.length]);
       for (let i = 0; i < 100; i++) {
-        map.set(i, 2);
-        expect.Expect.equals(1, map.length);
-        let x = dart.as(map.remove(105), core.int);
+        map[dartx.set](i, 2);
+        expect.Expect.equals(1, map[dartx.length]);
+        let x = dart.as(map[dartx.remove](105), core.int);
         expect.Expect.equals(null, x);
-        expect.Expect.equals(1, map.length);
-        x = dart.as(map.remove(i), core.int);
+        expect.Expect.equals(1, map[dartx.length]);
+        x = dart.as(map[dartx.remove](i), core.int);
         expect.Expect.equals(2, x);
-        expect.Expect.equals(0, map.length);
+        expect.Expect.equals(0, map[dartx.length]);
       }
-      expect.Expect.equals(0, map.length);
-      map.remove(105);
+      expect.Expect.equals(0, map[dartx.length]);
+      map[dartx.remove](105);
     }
     static test(map) {
       MapTest.testDeletedElement(map);
       MapTest.testMap(map, 1, 2, 3, 4, 5, 6, 7, 8);
-      map.clear();
+      map[dartx.clear]();
       MapTest.testMap(map, "value1", "value2", "value3", "value4", "value5", "value6", "value7", "value8");
     }
     static testMap(map, key1, key2, key3, key4, key5, key6, key7, key8) {
@@ -104752,147 +104752,147 @@ dart_library.library('language/map_test', null, /* Imports */[
       let value6 = 60;
       let value7 = 70;
       let value8 = 80;
-      expect.Expect.equals(0, map.length);
-      map.set(key1, value1);
-      expect.Expect.equals(value1, map.get(key1));
-      map.set(key1, value2);
-      expect.Expect.equals(false, map.containsKey(key2));
-      expect.Expect.equals(1, map.length);
-      map.set(key1, value1);
-      expect.Expect.equals(value1, map.get(key1));
-      map.set(key2, value2);
-      expect.Expect.equals(value2, map.get(key2));
-      expect.Expect.equals(2, map.length);
-      map.set(key3, value3);
-      expect.Expect.equals(value2, map.get(key2));
-      expect.Expect.equals(value3, map.get(key3));
-      map.set(key4, value4);
-      expect.Expect.equals(value3, map.get(key3));
-      expect.Expect.equals(value4, map.get(key4));
-      map.set(key5, value5);
-      expect.Expect.equals(value4, map.get(key4));
-      expect.Expect.equals(value5, map.get(key5));
-      map.set(key6, value6);
-      expect.Expect.equals(value5, map.get(key5));
-      expect.Expect.equals(value6, map.get(key6));
-      map.set(key7, value7);
-      expect.Expect.equals(value6, map.get(key6));
-      expect.Expect.equals(value7, map.get(key7));
-      map.set(key8, value8);
-      expect.Expect.equals(value1, map.get(key1));
-      expect.Expect.equals(value2, map.get(key2));
-      expect.Expect.equals(value3, map.get(key3));
-      expect.Expect.equals(value4, map.get(key4));
-      expect.Expect.equals(value5, map.get(key5));
-      expect.Expect.equals(value6, map.get(key6));
-      expect.Expect.equals(value7, map.get(key7));
-      expect.Expect.equals(value8, map.get(key8));
-      expect.Expect.equals(8, map.length);
-      map.remove(key4);
-      expect.Expect.equals(false, map.containsKey(key4));
-      expect.Expect.equals(7, map.length);
-      map.clear();
-      expect.Expect.equals(0, map.length);
-      expect.Expect.equals(false, map.containsKey(key1));
-      expect.Expect.equals(false, map.containsKey(key2));
-      expect.Expect.equals(false, map.containsKey(key3));
-      expect.Expect.equals(false, map.containsKey(key4));
-      expect.Expect.equals(false, map.containsKey(key5));
-      expect.Expect.equals(false, map.containsKey(key6));
-      expect.Expect.equals(false, map.containsKey(key7));
-      expect.Expect.equals(false, map.containsKey(key8));
-      map.set(key1, value1);
-      expect.Expect.equals(value1, map.get(key1));
-      expect.Expect.equals(1, map.length);
-      map.set(key2, value2);
-      expect.Expect.equals(value2, map.get(key2));
-      expect.Expect.equals(2, map.length);
-      map.set(key3, value3);
-      expect.Expect.equals(value3, map.get(key3));
-      map.remove(key3);
-      expect.Expect.equals(2, map.length);
-      map.set(key4, value4);
-      expect.Expect.equals(value4, map.get(key4));
-      map.remove(key4);
-      expect.Expect.equals(2, map.length);
-      map.set(key5, value5);
-      expect.Expect.equals(value5, map.get(key5));
-      map.remove(key5);
-      expect.Expect.equals(2, map.length);
-      map.set(key6, value6);
-      expect.Expect.equals(value6, map.get(key6));
-      map.remove(key6);
-      expect.Expect.equals(2, map.length);
-      map.set(key7, value7);
-      expect.Expect.equals(value7, map.get(key7));
-      map.remove(key7);
-      expect.Expect.equals(2, map.length);
-      map.set(key8, value8);
-      expect.Expect.equals(value8, map.get(key8));
-      map.remove(key8);
-      expect.Expect.equals(2, map.length);
-      expect.Expect.equals(true, map.containsKey(key1));
-      expect.Expect.equals(true, map.containsValue(value1));
+      expect.Expect.equals(0, map[dartx.length]);
+      map[dartx.set](key1, value1);
+      expect.Expect.equals(value1, map[dartx.get](key1));
+      map[dartx.set](key1, value2);
+      expect.Expect.equals(false, map[dartx.containsKey](key2));
+      expect.Expect.equals(1, map[dartx.length]);
+      map[dartx.set](key1, value1);
+      expect.Expect.equals(value1, map[dartx.get](key1));
+      map[dartx.set](key2, value2);
+      expect.Expect.equals(value2, map[dartx.get](key2));
+      expect.Expect.equals(2, map[dartx.length]);
+      map[dartx.set](key3, value3);
+      expect.Expect.equals(value2, map[dartx.get](key2));
+      expect.Expect.equals(value3, map[dartx.get](key3));
+      map[dartx.set](key4, value4);
+      expect.Expect.equals(value3, map[dartx.get](key3));
+      expect.Expect.equals(value4, map[dartx.get](key4));
+      map[dartx.set](key5, value5);
+      expect.Expect.equals(value4, map[dartx.get](key4));
+      expect.Expect.equals(value5, map[dartx.get](key5));
+      map[dartx.set](key6, value6);
+      expect.Expect.equals(value5, map[dartx.get](key5));
+      expect.Expect.equals(value6, map[dartx.get](key6));
+      map[dartx.set](key7, value7);
+      expect.Expect.equals(value6, map[dartx.get](key6));
+      expect.Expect.equals(value7, map[dartx.get](key7));
+      map[dartx.set](key8, value8);
+      expect.Expect.equals(value1, map[dartx.get](key1));
+      expect.Expect.equals(value2, map[dartx.get](key2));
+      expect.Expect.equals(value3, map[dartx.get](key3));
+      expect.Expect.equals(value4, map[dartx.get](key4));
+      expect.Expect.equals(value5, map[dartx.get](key5));
+      expect.Expect.equals(value6, map[dartx.get](key6));
+      expect.Expect.equals(value7, map[dartx.get](key7));
+      expect.Expect.equals(value8, map[dartx.get](key8));
+      expect.Expect.equals(8, map[dartx.length]);
+      map[dartx.remove](key4);
+      expect.Expect.equals(false, map[dartx.containsKey](key4));
+      expect.Expect.equals(7, map[dartx.length]);
+      map[dartx.clear]();
+      expect.Expect.equals(0, map[dartx.length]);
+      expect.Expect.equals(false, map[dartx.containsKey](key1));
+      expect.Expect.equals(false, map[dartx.containsKey](key2));
+      expect.Expect.equals(false, map[dartx.containsKey](key3));
+      expect.Expect.equals(false, map[dartx.containsKey](key4));
+      expect.Expect.equals(false, map[dartx.containsKey](key5));
+      expect.Expect.equals(false, map[dartx.containsKey](key6));
+      expect.Expect.equals(false, map[dartx.containsKey](key7));
+      expect.Expect.equals(false, map[dartx.containsKey](key8));
+      map[dartx.set](key1, value1);
+      expect.Expect.equals(value1, map[dartx.get](key1));
+      expect.Expect.equals(1, map[dartx.length]);
+      map[dartx.set](key2, value2);
+      expect.Expect.equals(value2, map[dartx.get](key2));
+      expect.Expect.equals(2, map[dartx.length]);
+      map[dartx.set](key3, value3);
+      expect.Expect.equals(value3, map[dartx.get](key3));
+      map[dartx.remove](key3);
+      expect.Expect.equals(2, map[dartx.length]);
+      map[dartx.set](key4, value4);
+      expect.Expect.equals(value4, map[dartx.get](key4));
+      map[dartx.remove](key4);
+      expect.Expect.equals(2, map[dartx.length]);
+      map[dartx.set](key5, value5);
+      expect.Expect.equals(value5, map[dartx.get](key5));
+      map[dartx.remove](key5);
+      expect.Expect.equals(2, map[dartx.length]);
+      map[dartx.set](key6, value6);
+      expect.Expect.equals(value6, map[dartx.get](key6));
+      map[dartx.remove](key6);
+      expect.Expect.equals(2, map[dartx.length]);
+      map[dartx.set](key7, value7);
+      expect.Expect.equals(value7, map[dartx.get](key7));
+      map[dartx.remove](key7);
+      expect.Expect.equals(2, map[dartx.length]);
+      map[dartx.set](key8, value8);
+      expect.Expect.equals(value8, map[dartx.get](key8));
+      map[dartx.remove](key8);
+      expect.Expect.equals(2, map[dartx.length]);
+      expect.Expect.equals(true, map[dartx.containsKey](key1));
+      expect.Expect.equals(true, map[dartx.containsValue](value1));
       let other_map = core.Map.new();
       function testForEachMap(key, value) {
-        other_map.set(key, value);
+        other_map[dartx.set](key, value);
       }
       dart.fn(testForEachMap, dart.void, [dart.dynamic, dart.dynamic]);
-      map.forEach(testForEachMap);
-      expect.Expect.equals(true, other_map.containsKey(key1));
-      expect.Expect.equals(true, other_map.containsKey(key2));
-      expect.Expect.equals(true, other_map.containsValue(value1));
-      expect.Expect.equals(true, other_map.containsValue(value2));
-      expect.Expect.equals(2, other_map.length);
-      other_map.clear();
-      expect.Expect.equals(0, other_map.length);
+      map[dartx.forEach](testForEachMap);
+      expect.Expect.equals(true, other_map[dartx.containsKey](key1));
+      expect.Expect.equals(true, other_map[dartx.containsKey](key2));
+      expect.Expect.equals(true, other_map[dartx.containsValue](value1));
+      expect.Expect.equals(true, other_map[dartx.containsValue](value2));
+      expect.Expect.equals(2, other_map[dartx.length]);
+      other_map[dartx.clear]();
+      expect.Expect.equals(0, other_map[dartx.length]);
       function testForEachCollection(value) {
-        other_map.set(value, value);
+        other_map[dartx.set](value, value);
       }
       dart.fn(testForEachCollection, dart.void, [dart.dynamic]);
-      let keys = map.keys;
+      let keys = map[dartx.keys];
       keys[dartx.forEach](testForEachCollection);
-      expect.Expect.equals(true, other_map.containsKey(key1));
-      expect.Expect.equals(true, other_map.containsKey(key2));
-      expect.Expect.equals(true, other_map.containsValue(key1));
-      expect.Expect.equals(true, other_map.containsValue(key2));
-      expect.Expect.equals(true, !dart.notNull(other_map.containsKey(value1)));
-      expect.Expect.equals(true, !dart.notNull(other_map.containsKey(value2)));
-      expect.Expect.equals(true, !dart.notNull(other_map.containsValue(value1)));
-      expect.Expect.equals(true, !dart.notNull(other_map.containsValue(value2)));
-      expect.Expect.equals(2, other_map.length);
-      other_map.clear();
-      expect.Expect.equals(0, other_map.length);
-      let values = map.values;
+      expect.Expect.equals(true, other_map[dartx.containsKey](key1));
+      expect.Expect.equals(true, other_map[dartx.containsKey](key2));
+      expect.Expect.equals(true, other_map[dartx.containsValue](key1));
+      expect.Expect.equals(true, other_map[dartx.containsValue](key2));
+      expect.Expect.equals(true, !dart.notNull(other_map[dartx.containsKey](value1)));
+      expect.Expect.equals(true, !dart.notNull(other_map[dartx.containsKey](value2)));
+      expect.Expect.equals(true, !dart.notNull(other_map[dartx.containsValue](value1)));
+      expect.Expect.equals(true, !dart.notNull(other_map[dartx.containsValue](value2)));
+      expect.Expect.equals(2, other_map[dartx.length]);
+      other_map[dartx.clear]();
+      expect.Expect.equals(0, other_map[dartx.length]);
+      let values = map[dartx.values];
       values[dartx.forEach](testForEachCollection);
-      expect.Expect.equals(true, !dart.notNull(other_map.containsKey(key1)));
-      expect.Expect.equals(true, !dart.notNull(other_map.containsKey(key2)));
-      expect.Expect.equals(true, !dart.notNull(other_map.containsValue(key1)));
-      expect.Expect.equals(true, !dart.notNull(other_map.containsValue(key2)));
-      expect.Expect.equals(true, other_map.containsKey(value1));
-      expect.Expect.equals(true, other_map.containsKey(value2));
-      expect.Expect.equals(true, other_map.containsValue(value1));
-      expect.Expect.equals(true, other_map.containsValue(value2));
-      expect.Expect.equals(2, other_map.length);
-      other_map.clear();
-      expect.Expect.equals(0, other_map.length);
-      map.clear();
-      expect.Expect.equals(false, map.containsKey(key1));
-      map.putIfAbsent(key1, dart.fn(() => 10, core.int, []));
-      expect.Expect.equals(true, map.containsKey(key1));
-      expect.Expect.equals(10, map.get(key1));
-      expect.Expect.equals(10, map.putIfAbsent(key1, dart.fn(() => 11, core.int, [])));
+      expect.Expect.equals(true, !dart.notNull(other_map[dartx.containsKey](key1)));
+      expect.Expect.equals(true, !dart.notNull(other_map[dartx.containsKey](key2)));
+      expect.Expect.equals(true, !dart.notNull(other_map[dartx.containsValue](key1)));
+      expect.Expect.equals(true, !dart.notNull(other_map[dartx.containsValue](key2)));
+      expect.Expect.equals(true, other_map[dartx.containsKey](value1));
+      expect.Expect.equals(true, other_map[dartx.containsKey](value2));
+      expect.Expect.equals(true, other_map[dartx.containsValue](value1));
+      expect.Expect.equals(true, other_map[dartx.containsValue](value2));
+      expect.Expect.equals(2, other_map[dartx.length]);
+      other_map[dartx.clear]();
+      expect.Expect.equals(0, other_map[dartx.length]);
+      map[dartx.clear]();
+      expect.Expect.equals(false, map[dartx.containsKey](key1));
+      map[dartx.putIfAbsent](key1, dart.fn(() => 10, core.int, []));
+      expect.Expect.equals(true, map[dartx.containsKey](key1));
+      expect.Expect.equals(10, map[dartx.get](key1));
+      expect.Expect.equals(10, map[dartx.putIfAbsent](key1, dart.fn(() => 11, core.int, [])));
     }
     static testKeys(map) {
-      map.set(1, 101);
-      map.set(2, 102);
-      let k = map.keys;
+      map[dartx.set](1, 101);
+      map[dartx.set](2, 102);
+      let k = map[dartx.keys];
       expect.Expect.equals(2, k[dartx.length]);
-      let v = map.values;
+      let v = map[dartx.values];
       expect.Expect.equals(2, v[dartx.length]);
-      expect.Expect.equals(true, map.containsValue(101));
-      expect.Expect.equals(true, map.containsValue(102));
-      expect.Expect.equals(false, map.containsValue(103));
+      expect.Expect.equals(true, map[dartx.containsValue](101));
+      expect.Expect.equals(true, map[dartx.containsValue](102));
+      expect.Expect.equals(false, map[dartx.containsValue](103));
     }
     static testMain() {
       MapTest.test(core.Map.new());
@@ -106184,8 +106184,8 @@ dart_library.library('language/methods_as_constants_test', null, /* Imports */[
     expect.Expect.equals('t', A.staticFieldForTopLevelMethod());
     expect.Expect.equals('s', A.staticFieldForStaticMethod());
     let map = dart.const(dart.map({t: topLevelMethod, s: A.staticMethod}));
-    expect.Expect.equals('t', dart.dcall(map.get('t')));
-    expect.Expect.equals('s', dart.dcall(map.get('s')));
+    expect.Expect.equals('t', dart.dcall(map[dartx.get]('t')));
+    expect.Expect.equals('s', dart.dcall(map[dartx.get]('s')));
   }
   dart.fn(main);
   // Exports:
@@ -120554,7 +120554,7 @@ dart_library.library('language/regress_23046_test', null, /* Imports */[
   const m = dart.const(dart.map([x, 0, y, 1]));
   function main() {
     expect.Expect.equals(x, 'foo"');
-    expect.Expect.equals(m.length, 2);
+    expect.Expect.equals(m[dartx.length], 2);
   }
   dart.fn(main);
   // Exports:
@@ -122963,30 +122963,30 @@ dart_library.library('language/savannah_test', null, /* Imports */[
       let savannah = core.Map$(BigGame, core.String).new();
       let giraffe1 = new Giraffe("Tony");
       let giraffe2 = new Giraffe("Rose");
-      savannah.set(giraffe1, giraffe1.name);
-      savannah.set(giraffe2, giraffe2.name);
+      savannah[dartx.set](giraffe1, giraffe1.name);
+      savannah[dartx.set](giraffe2, giraffe2.name);
       core.print(`giraffe1 hash: ${dart.hashCode(giraffe1)}`);
       core.print(`giraffe2 hash: ${dart.hashCode(giraffe2)}`);
-      let count = savannah.length;
+      let count = savannah[dartx.length];
       core.print(`getCount is ${count}`);
       expect.Expect.equals(2, count);
-      core.print(`giraffe1: ${savannah.get(giraffe1)}`);
-      core.print(`giraffe2: ${savannah.get(giraffe2)}`);
-      expect.Expect.equals("Tony", savannah.get(giraffe1));
-      expect.Expect.equals("Rose", savannah.get(giraffe2));
+      core.print(`giraffe1: ${savannah[dartx.get](giraffe1)}`);
+      core.print(`giraffe2: ${savannah[dartx.get](giraffe2)}`);
+      expect.Expect.equals("Tony", savannah[dartx.get](giraffe1));
+      expect.Expect.equals("Rose", savannah[dartx.get](giraffe2));
       let zebra1 = new Zebra("Paolo");
       let zebra2 = new Zebra("Zeeta");
-      savannah.set(zebra1, zebra1.name);
-      savannah.set(zebra2, zebra2.name);
+      savannah[dartx.set](zebra1, zebra1.name);
+      savannah[dartx.set](zebra2, zebra2.name);
       core.print(`zebra1 hash: ${dart.hashCode(zebra1)}`);
       core.print(`zebra2 hash: ${dart.hashCode(zebra2)}`);
-      count = savannah.length;
+      count = savannah[dartx.length];
       core.print(`getCount is ${count}`);
       expect.Expect.equals(4, count);
-      core.print(`zebra1: ${savannah.get(zebra1)}`);
-      core.print(`zebra2: ${savannah.get(zebra2)}`);
-      expect.Expect.equals("Paolo", savannah.get(zebra1));
-      expect.Expect.equals("Zeeta", savannah.get(zebra2));
+      core.print(`zebra1: ${savannah[dartx.get](zebra1)}`);
+      core.print(`zebra2: ${savannah[dartx.get](zebra2)}`);
+      expect.Expect.equals("Paolo", savannah[dartx.get](zebra1));
+      expect.Expect.equals("Zeeta", savannah[dartx.get](zebra2));
     }
   }
   dart.setSignature(SavannahTest, {
@@ -125808,7 +125808,7 @@ dart_library.library('language/static_const_field_test', null, /* Imports */[
       expect.Expect.equals(true, Spain.SD == "Salvador Dali");
       expect.Expect.equals(true, A.artist2 == "Alberto Giacometti");
       expect.Expect.equals(true, A.architect1 == "Antoni Gaudi");
-      expect.Expect.equals(2, A.map1.get("Tuesday"));
+      expect.Expect.equals(2, A.map1[dartx.get]("Tuesday"));
     }
   }
   dart.setSignature(StaticFinalFieldTest, {
@@ -126642,7 +126642,7 @@ dart_library.library('language/string_interpolate2_test', null, /* Imports */[
       expect.Expect.equals("8", `${fib[dartx.length]}`);
       expect.Expect.equals("8", `${fib[dartx.length]}`);
       let map = dart.map({red: 1, green: 2, blue: 3});
-      s = `green has value ${map.get("green")}`;
+      s = `green has value ${map[dartx.get]("green")}`;
       expect.Expect.equals("green has value 2", s);
       i = 0;
       function b() {
@@ -127820,11 +127820,11 @@ dart_library.library('language/super_operator_index2_test', null, /* Imports */[
       this.map = core.Map.new();
     }
     set(a, b) {
-      this.map.set(a, b);
+      this.map[dartx.set](a, b);
       return b;
     }
     get(a) {
-      return this.map.get(a);
+      return this.map[dartx.get](a);
     }
   }
   dart.setSignature(A, {
@@ -128726,7 +128726,7 @@ dart_library.library('language/symbol_literal_test_none_multi', null, /* Imports
     dart.dcall(exports.check, dart.const(core.Symbol.new("a.toString")), dart.const(new core.Symbol('a.toString')));
     expect.Expect.equals(1, testSwitch(dart.const(new core.Symbol('abc'))));
     let m = dart.const(dart.map([dart.const(new core.Symbol('A')), 0, dart.const(new core.Symbol('B')), 1], core.Symbol, core.int));
-    expect.Expect.equals(1, m.get(dart.const(new core.Symbol('B'))));
+    expect.Expect.equals(1, m[dartx.get](dart.const(new core.Symbol('B'))));
   }
   dart.fn(main);
   // Exports:

@@ -24,8 +24,3 @@ part 'conversions_dart2js.dart';
 part 'device.dart';
 part 'filtered_element_list.dart';
 part 'lists.dart';
-
-class DartHtmlObject {
-  // FIXME(vsm): Make this final at least.  Private?
-  dynamic raw;
-}

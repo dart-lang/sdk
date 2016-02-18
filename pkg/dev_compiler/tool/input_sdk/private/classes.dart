@@ -186,6 +186,8 @@ _setStaticSignature(f, sigF) =>
 // Set the lazily computed runtime type field on static methods
 _setStaticTypes(f, names) => JS('', '''(() => {
   for (let name of $names) {
+    // TODO(vsm): Need to generate static methods.
+    if (!$f[name]) continue;
     $tagMemoized($f[name], function() {
       let parts = $f[$_staticSig][name];
       return $definiteFunctionType.apply(null, parts);
@@ -236,7 +238,7 @@ virtualField(subclass, fieldName) => JS('', '''(() => {
   let prop = $getOwnPropertyDescriptor($subclass.prototype, $fieldName);
   if (prop) return;
 
-  let symbol = Symbol($subclass.name + '.' + $fieldName);
+  let symbol = Symbol($subclass.name + '.' + $fieldName.toString());
   $defineProperty($subclass.prototype, $fieldName, {
     get: function() { return this[symbol]; },
     set: function(x) { this[symbol] = x; }
@@ -265,7 +267,7 @@ final dartx = JS('', '{}');
 
 getExtensionSymbol(name) => JS('', '''(() => {
   let sym = $dartx[$name];
-  if (!sym) $dartx[$name] = sym = Symbol('dartx.' + $name);
+  if (!sym) $dartx[$name] = sym = Symbol('dartx.' + $name.toString());
   return sym;
 })()''');
 
@@ -286,11 +288,13 @@ _installProperties(jsProto, extProto) => JS('', '''(() => {
 /// JavaScript class.
 ///
 registerExtension(jsType, dartExtType) => JS('', '''(() => {
+  // TODO(vsm): Not all registered js types are real.
+  if (!jsType) return;
+
   let extProto = $dartExtType.prototype;
   let jsProto = $jsType.prototype;
 
   // Mark the JS type's instances so we can easily check for extensions.
-  $assert_(jsProto[$_extensionType] === void 0);
   jsProto[$_extensionType] = $dartExtType;
   $_installProperties(jsProto, extProto);
   let originalSigFn = $getOwnPropertyDescriptor($dartExtType, $_methodSig).get;
@@ -321,6 +325,11 @@ defineExtensionMembers(type, methodNames) => JS('', '''(() => {
   let proto = $type.prototype;
   for (let name of $methodNames) {
     let method = $getOwnPropertyDescriptor(proto, name);
+    // TODO(vsm): We should be able to generate code to avoid this case.
+    // The method may be null if this type implements a potentially native
+    // interface but isn't native itself.  For a field on this type, we're not
+    // generating a corresponding getter/setter method - it's just a field.
+    if (!method) continue;
     $defineProperty(proto, $getExtensionSymbol(name), method);
   }
   // Ensure the signature is available too.

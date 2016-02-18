@@ -88,12 +88,13 @@ Future convertNativePromiseToDartFuture(promise) {
   var completer = new Completer();
   var then = convertDartClosureToJS((result) => completer.complete(result), 1);
   var error = convertDartClosureToJS((result) => completer.completeError(result), 1);
-  var newPromise = JS('', '#.then(#).catch(#)', promise, then, error);
+  var newPromise = JS('', '#.then(#)["catch"](#)', promise, then, error);
   return completer.future;
 }
 
+// TODO(vsm,jacobr): We shouldn't need to expose these.
 /// Wrap a JS object with an instance of the matching dart:html class. Used only in Dartium.
-//wrap_jso(jsObject) => jsObject;
+wrap_jso(jsObject) => jsObject;
 
 /// Find the underlying JS object for a dart:html Dart object.
-//unwrap_jso(dartClass_instance) => dartClass_instance;
+unwrap_jso(dartClass_instance) => dartClass_instance;

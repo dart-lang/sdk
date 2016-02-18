@@ -514,7 +514,13 @@ final corelibOrder = [
   'dart:_metadata',
   'dart:html',
   'dart:html_common',
+  'dart:indexed_db',
+  'dart:svg',
+  'dart:web_audio',
+  'dart:web_gl',
+  'dart:web_sql',
   'dart:_debugger'
+
   // _foreign_helper is not included, as it only defines the JS builtin that
   // the compiler handles at compile time.
 ].map(Uri.parse).toList();

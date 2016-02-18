@@ -99,88 +99,122 @@ dart_library.library('dart/math', null, /* Imports */[
     constructors: () => ({new: [Random, [], [core.int]]})
   });
   const _RectangleBase$ = dart.generic(function(T) {
+    dart.defineExtensionNames([
+      'right',
+      'bottom',
+      'toString',
+      '==',
+      'hashCode',
+      'intersection',
+      'intersects',
+      'boundingBox',
+      'containsRectangle',
+      'containsPoint',
+      'topLeft',
+      'topRight',
+      'bottomRight',
+      'bottomLeft'
+    ]);
     class _RectangleBase extends core.Object {
       _RectangleBase() {
       }
-      get right() {
-        return dart.notNull(this.left) + dart.notNull(this.width);
+      get [dartx.right]() {
+        return dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]);
       }
-      get bottom() {
-        return dart.notNull(this.top) + dart.notNull(this.height);
+      get [dartx.bottom]() {
+        return dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]);
       }
       toString() {
-        return `Rectangle (${this.left}, ${this.top}) ${this.width} x ${this.height}`;
+        return `Rectangle (${this[dartx.left]}, ${this[dartx.top]}) ${this[dartx.width]} x ${this[dartx.height]}`;
       }
       ['=='](other) {
         if (!dart.is(other, Rectangle)) return false;
-        return dart.equals(this.left, dart.dload(other, 'left')) && dart.equals(this.top, dart.dload(other, 'top')) && dart.equals(this.right, dart.dload(other, 'right')) && dart.equals(this.bottom, dart.dload(other, 'bottom'));
+        return dart.equals(this[dartx.left], dart.dload(other, 'left')) && dart.equals(this[dartx.top], dart.dload(other, 'top')) && dart.equals(this[dartx.right], dart.dload(other, 'right')) && dart.equals(this[dartx.bottom], dart.dload(other, 'bottom'));
       }
       get hashCode() {
-        return _JenkinsSmiHash.hash4(dart.hashCode(this.left), dart.hashCode(this.top), dart.hashCode(this.right), dart.hashCode(this.bottom));
+        return _JenkinsSmiHash.hash4(dart.hashCode(this[dartx.left]), dart.hashCode(this[dartx.top]), dart.hashCode(this[dartx.right]), dart.hashCode(this[dartx.bottom]));
       }
-      intersection(other) {
+      [dartx.intersection](other) {
         dart.as(other, Rectangle$(T));
-        let x0 = max(this.left, other.left);
-        let x1 = min(dart.notNull(this.left) + dart.notNull(this.width), dart.notNull(other.left) + dart.notNull(other.width));
+        let x0 = max(this[dartx.left], other[dartx.left]);
+        let x1 = min(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
         if (dart.notNull(x0) <= dart.notNull(x1)) {
-          let y0 = max(this.top, other.top);
-          let y1 = min(dart.notNull(this.top) + dart.notNull(this.height), dart.notNull(other.top) + dart.notNull(other.height));
+          let y0 = max(this[dartx.top], other[dartx.top]);
+          let y1 = min(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
           if (dart.notNull(y0) <= dart.notNull(y1)) {
             return new (Rectangle$(T))(x0, y0, dart.notNull(x1) - dart.notNull(x0), dart.notNull(y1) - dart.notNull(y0));
           }
         }
         return null;
       }
-      intersects(other) {
-        return dart.notNull(this.left) <= dart.notNull(other.left) + dart.notNull(other.width) && dart.notNull(other.left) <= dart.notNull(this.left) + dart.notNull(this.width) && dart.notNull(this.top) <= dart.notNull(other.top) + dart.notNull(other.height) && dart.notNull(other.top) <= dart.notNull(this.top) + dart.notNull(this.height);
+      [dartx.intersects](other) {
+        return dart.notNull(this[dartx.left]) <= dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]) && dart.notNull(other[dartx.left]) <= dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]) && dart.notNull(this[dartx.top]) <= dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]) && dart.notNull(other[dartx.top]) <= dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]);
       }
-      boundingBox(other) {
+      [dartx.boundingBox](other) {
         dart.as(other, Rectangle$(T));
-        let right = max(dart.notNull(this.left) + dart.notNull(this.width), dart.notNull(other.left) + dart.notNull(other.width));
-        let bottom = max(dart.notNull(this.top) + dart.notNull(this.height), dart.notNull(other.top) + dart.notNull(other.height));
-        let left = min(this.left, other.left);
-        let top = min(this.top, other.top);
+        let right = max(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+        let bottom = max(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+        let left = min(this[dartx.left], other[dartx.left]);
+        let top = min(this[dartx.top], other[dartx.top]);
         return new (Rectangle$(T))(left, top, dart.notNull(right) - dart.notNull(left), dart.notNull(bottom) - dart.notNull(top));
       }
-      containsRectangle(another) {
-        return dart.notNull(this.left) <= dart.notNull(another.left) && dart.notNull(this.left) + dart.notNull(this.width) >= dart.notNull(another.left) + dart.notNull(another.width) && dart.notNull(this.top) <= dart.notNull(another.top) && dart.notNull(this.top) + dart.notNull(this.height) >= dart.notNull(another.top) + dart.notNull(another.height);
+      [dartx.containsRectangle](another) {
+        return dart.notNull(this[dartx.left]) <= dart.notNull(another[dartx.left]) && dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]) >= dart.notNull(another[dartx.left]) + dart.notNull(another[dartx.width]) && dart.notNull(this[dartx.top]) <= dart.notNull(another[dartx.top]) && dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]) >= dart.notNull(another[dartx.top]) + dart.notNull(another[dartx.height]);
       }
-      containsPoint(another) {
-        return dart.notNull(another.x) >= dart.notNull(this.left) && dart.notNull(another.x) <= dart.notNull(this.left) + dart.notNull(this.width) && dart.notNull(another.y) >= dart.notNull(this.top) && dart.notNull(another.y) <= dart.notNull(this.top) + dart.notNull(this.height);
+      [dartx.containsPoint](another) {
+        return dart.notNull(another.x) >= dart.notNull(this[dartx.left]) && dart.notNull(another.x) <= dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]) && dart.notNull(another.y) >= dart.notNull(this[dartx.top]) && dart.notNull(another.y) <= dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]);
       }
-      get topLeft() {
-        return new (Point$(T))(this.left, this.top);
+      get [dartx.topLeft]() {
+        return new (Point$(T))(this[dartx.left], this[dartx.top]);
       }
-      get topRight() {
-        return new (Point$(T))(dart.notNull(this.left) + dart.notNull(this.width), this.top);
+      get [dartx.topRight]() {
+        return new (Point$(T))(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), this[dartx.top]);
       }
-      get bottomRight() {
-        return new (Point$(T))(dart.notNull(this.left) + dart.notNull(this.width), dart.notNull(this.top) + dart.notNull(this.height));
+      get [dartx.bottomRight]() {
+        return new (Point$(T))(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
       }
-      get bottomLeft() {
-        return new (Point$(T))(this.left, dart.notNull(this.top) + dart.notNull(this.height));
+      get [dartx.bottomLeft]() {
+        return new (Point$(T))(this[dartx.left], dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
       }
     }
     dart.setSignature(_RectangleBase, {
       constructors: () => ({_RectangleBase: [_RectangleBase$(T), []]}),
       methods: () => ({
-        intersection: [Rectangle$(T), [Rectangle$(T)]],
-        intersects: [core.bool, [Rectangle$(core.num)]],
-        boundingBox: [Rectangle$(T), [Rectangle$(T)]],
-        containsRectangle: [core.bool, [Rectangle$(core.num)]],
-        containsPoint: [core.bool, [Point$(core.num)]]
+        [dartx.intersection]: [Rectangle$(T), [Rectangle$(T)]],
+        [dartx.intersects]: [core.bool, [Rectangle$(core.num)]],
+        [dartx.boundingBox]: [Rectangle$(T), [Rectangle$(T)]],
+        [dartx.containsRectangle]: [core.bool, [Rectangle$(core.num)]],
+        [dartx.containsPoint]: [core.bool, [Point$(core.num)]]
       })
     });
     return _RectangleBase;
   });
   let _RectangleBase = _RectangleBase$();
   const Rectangle$ = dart.generic(function(T) {
+    dart.defineExtensionNames([
+      'left',
+      'top',
+      'width',
+      'height'
+    ]);
     class Rectangle extends _RectangleBase$(T) {
+      get [dartx.left]() {
+        return this.left;
+      }
+      get [dartx.top]() {
+        return this.top;
+      }
+      get [dartx.width]() {
+        return this.width;
+      }
+      get [dartx.height]() {
+        return this.height;
+      }
       Rectangle(left, top, width, height) {
-        this.left = left;
-        this.top = top;
-        this.width = dart.notNull(width) < 0 ? -dart.notNull(width) * 0 : width;
-        this.height = dart.notNull(height) < 0 ? -dart.notNull(height) * 0 : height;
+        this[dartx.left] = left;
+        this[dartx.top] = top;
+        this[dartx.width] = dart.notNull(width) < 0 ? -dart.notNull(width) * 0 : width;
+        this[dartx.height] = dart.notNull(height) < 0 ? -dart.notNull(height) * 0 : height;
         super._RectangleBase();
       }
       static fromPoints(a, b) {
@@ -191,6 +225,10 @@ dart_library.library('dart/math', null, /* Imports */[
         return new (Rectangle$(T))(left, top, width, height);
       }
     }
+    dart.virtualField(Rectangle, dartx.left);
+    dart.virtualField(Rectangle, dartx.top);
+    dart.virtualField(Rectangle, dartx.width);
+    dart.virtualField(Rectangle, dartx.height);
     dart.setSignature(Rectangle, {
       constructors: () => ({
         Rectangle: [Rectangle$(T), [T, T, T, T]],
@@ -236,12 +274,15 @@ dart_library.library('dart/math', null, /* Imports */[
       }
     }
     MutableRectangle[dart.implements] = () => [Rectangle$(T)];
+    dart.virtualField(MutableRectangle, 'left');
+    dart.virtualField(MutableRectangle, 'top');
     dart.setSignature(MutableRectangle, {
       constructors: () => ({
         MutableRectangle: [MutableRectangle$(T), [T, T, T, T]],
         fromPoints: [MutableRectangle$(T), [Point$(T), Point$(T)]]
       })
     });
+    dart.defineExtensionMembers(MutableRectangle, ['left', 'top', 'width', 'height']);
     return MutableRectangle;
   });
   let MutableRectangle = MutableRectangle$();

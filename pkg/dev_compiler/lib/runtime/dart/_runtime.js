@@ -130,6 +130,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   }
   function _setStaticTypes(f, names) {
     for (let name of names) {
+      if (!f[name]) continue;
       tagMemoized(f[name], function() {
         let parts = f[_staticSig][name];
         return definiteFunctionType.apply(null, parts);
@@ -153,7 +154,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   function virtualField(subclass, fieldName) {
     let prop = getOwnPropertyDescriptor(subclass.prototype, fieldName);
     if (prop) return;
-    let symbol = Symbol(subclass.name + '.' + fieldName);
+    let symbol = Symbol(subclass.name + '.' + fieldName.toString());
     defineProperty(subclass.prototype, fieldName, {
       get: function() {
         return this[symbol];
@@ -179,7 +180,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   const dartx = {};
   function getExtensionSymbol(name) {
     let sym = dartx[name];
-    if (!sym) dartx[name] = sym = Symbol('dartx.' + name);
+    if (!sym) dartx[name] = sym = Symbol('dartx.' + name.toString());
     return sym;
   }
   function defineExtensionNames(names) {
@@ -192,9 +193,9 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     copyTheseProperties(jsProto, extProto, getOwnPropertySymbols(extProto));
   }
   function registerExtension(jsType, dartExtType) {
+    if (!jsType) return;
     let extProto = dartExtType.prototype;
     let jsProto = jsType.prototype;
-    assert_(jsProto[_extensionType] === void 0);
     jsProto[_extensionType] = dartExtType;
     _installProperties(jsProto, extProto);
     let originalSigFn = getOwnPropertyDescriptor(dartExtType, _methodSig).get;
@@ -205,6 +206,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     let proto = type.prototype;
     for (let name of methodNames) {
       let method = getOwnPropertyDescriptor(proto, name);
+      if (!method) continue;
       defineProperty(proto, getExtensionSymbol(name), method);
     }
     let originalSigFn = getOwnPropertyDescriptor(type, _methodSig).get;

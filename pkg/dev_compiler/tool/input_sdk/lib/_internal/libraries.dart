@@ -54,19 +54,19 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       dart2jsPatchPath: "_internal/compiler/js_lib/core_patch.dart"),
 
   "html": const LibraryInfo(
-      "html/ddc/html_ddc.dart",
+      "html/dart2js/html_dart2js.dart",
       category: "Client",
       maturity: Maturity.WEB_STABLE),
 
   "html_common": const LibraryInfo(
-      "html/html_common/html_common_ddc.dart",
+      "html/html_common/html_common_dart2js.dart",
       category: "Client",
       maturity: Maturity.WEB_STABLE,
       documented: false,
       implementation: true),
 
   "indexed_db": const LibraryInfo(
-      "indexed_db/ddc/indexed_db_ddc.dart",
+      "indexed_db/dart2js/indexed_db_dart2js.dart",
       category: "Client",
       maturity: Maturity.WEB_STABLE),
 
@@ -121,22 +121,22 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       platforms: DART2JS_PLATFORM),
 
   "svg": const LibraryInfo(
-      "svg/ddc/svg_ddc.dart",
+      "svg/dart2js/svg_dart2js.dart",
       category: "Client",
       maturity: Maturity.WEB_STABLE),
 
   "web_audio": const LibraryInfo(
-      "web_audio/ddc/web_audio_ddc.dart",
+      "web_audio/dart2js/web_audio_dart2js.dart",
       category: "Client",
       maturity: Maturity.WEB_STABLE),
 
   "web_gl": const LibraryInfo(
-      "web_gl/ddc/web_gl_ddc.dart",
+      "web_gl/dart2js/web_gl_dart2js.dart",
       category: "Client",
       maturity: Maturity.WEB_STABLE),
 
   "web_sql": const LibraryInfo(
-      "web_sql/ddc/web_sql_ddc.dart",
+      "web_sql/dart2js/web_sql_dart2js.dart",
       category: "Client",
       maturity: Maturity.WEB_STABLE),
 

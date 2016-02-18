@@ -31,10 +31,10 @@ dart_library.library('opassign', null, /* Imports */[
     let f = dart.map([0, 40]);
     core.print('should only call "index" 2 times:');
     let i = exports.index;
-    f.set(i, dart.dsend(f.get(i), '+', 1));
+    f[dartx.set](i, dart.dsend(f[dartx.get](i), '+', 1));
     forcePostfix((() => {
-      let i = exports.index, x = f.get(i);
-      f.set(i, dart.dsend(x, '+', 1));
+      let i = exports.index, x = f[dartx.get](i);
+      f[dartx.set](i, dart.dsend(x, '+', 1));
       return x;
     })());
     core.print('should only call "foo" 2 times:');
@@ -47,7 +47,7 @@ dart_library.library('opassign', null, /* Imports */[
     })());
     core.print('op assign test, should only call "index" twice:');
     let i$ = exports.index;
-    f.set(i$, dart.dsend(f.get(i$), '+', f.get(exports.index)));
+    f[dartx.set](i$, dart.dsend(f[dartx.get](i$), '+', f[dartx.get](exports.index)));
   }
   dart.fn(main);
   function forcePostfix(x) {

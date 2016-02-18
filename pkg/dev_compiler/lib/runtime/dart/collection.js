@@ -82,7 +82,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       static from(other) {
         let result = HashMap$(K, V).new();
-        other.forEach(dart.fn((k, v) => {
+        other[dartx.forEach](dart.fn((k, v) => {
           result.set(dart.as(k, K), dart.as(v, V));
         }, dart.void, [dart.dynamic, dart.dynamic]));
         return result;
@@ -1242,7 +1242,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       static from(other) {
         let result = LinkedHashMap$(K, V).new();
-        other.forEach(dart.fn((k, v) => {
+        other[dartx.forEach](dart.fn((k, v) => {
           result.set(dart.as(k, K), dart.as(v, V));
         }, dart.void, [dart.dynamic, dart.dynamic]));
         return result;
@@ -2138,8 +2138,8 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
-        for (let key of other.keys) {
-          this.set(key, other.get(key));
+        for (let key of other[dartx.keys]) {
+          this.set(key, other[dartx.get](key));
         }
       }
       containsValue(value) {
@@ -2185,6 +2185,17 @@ dart_library.library('dart/collection', null, /* Imports */[
         containsKey: [core.bool, [core.Object]]
       })
     });
+    dart.defineExtensionMembers(MapMixin, [
+      'forEach',
+      'addAll',
+      'containsValue',
+      'putIfAbsent',
+      'containsKey',
+      'length',
+      'isEmpty',
+      'isNotEmpty',
+      'values'
+    ]);
     return MapMixin;
   });
   let MapMixin = MapMixin$();
@@ -2227,6 +2238,13 @@ dart_library.library('dart/collection', null, /* Imports */[
         putIfAbsent: [V, [K, dart.functionType(V, [])]]
       })
     });
+    dart.defineExtensionMembers(_UnmodifiableMapMixin, [
+      'set',
+      'addAll',
+      'clear',
+      'remove',
+      'putIfAbsent'
+    ]);
     return _UnmodifiableMapMixin;
   });
   let _UnmodifiableMapMixin = _UnmodifiableMapMixin$();
@@ -2247,22 +2265,22 @@ dart_library.library('dart/collection', null, /* Imports */[
         super.IterableBase();
       }
       get length() {
-        return this[_map].length;
+        return this[_map][dartx.length];
       }
       get isEmpty() {
-        return this[_map].isEmpty;
+        return this[_map][dartx.isEmpty];
       }
       get isNotEmpty() {
-        return this[_map].isNotEmpty;
+        return this[_map][dartx.isNotEmpty];
       }
       get first() {
-        return dart.as(this[_map].get(this[_map].keys[dartx.first]), V);
+        return dart.as(this[_map][dartx.get](this[_map][dartx.keys][dartx.first]), V);
       }
       get single() {
-        return dart.as(this[_map].get(this[_map].keys[dartx.single]), V);
+        return dart.as(this[_map][dartx.get](this[_map][dartx.keys][dartx.single]), V);
       }
       get last() {
-        return dart.as(this[_map].get(this[_map].keys[dartx.last]), V);
+        return dart.as(this[_map][dartx.get](this[_map][dartx.keys][dartx.last]), V);
       }
       get iterator() {
         return new (_MapBaseValueIterator$(V))(this[_map]);
@@ -2289,12 +2307,12 @@ dart_library.library('dart/collection', null, /* Imports */[
     class _MapBaseValueIterator extends core.Object {
       _MapBaseValueIterator(map) {
         this[_map] = map;
-        this[_keys] = map.keys[dartx.iterator];
+        this[_keys] = map[dartx.keys][dartx.iterator];
         this[_current] = null;
       }
       moveNext() {
         if (dart.notNull(this[_keys].moveNext())) {
-          this[_current] = dart.as(this[_map].get(this[_keys].current), V);
+          this[_current] = dart.as(this[_map][dartx.get](this[_keys].current), V);
           return true;
         }
         this[_current] = null;
@@ -2318,56 +2336,56 @@ dart_library.library('dart/collection', null, /* Imports */[
         this[_map] = map;
       }
       get(key) {
-        return this[_map].get(key);
+        return this[_map][dartx.get](key);
       }
       set(key, value) {
         dart.as(key, K);
         dart.as(value, V);
-        this[_map].set(key, value);
+        this[_map][dartx.set](key, value);
         return value;
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
-        this[_map].addAll(other);
+        this[_map][dartx.addAll](other);
       }
       clear() {
-        this[_map].clear();
+        this[_map][dartx.clear]();
       }
       putIfAbsent(key, ifAbsent) {
         dart.as(key, K);
         dart.as(ifAbsent, dart.functionType(V, []));
-        return this[_map].putIfAbsent(key, ifAbsent);
+        return this[_map][dartx.putIfAbsent](key, ifAbsent);
       }
       containsKey(key) {
-        return this[_map].containsKey(key);
+        return this[_map][dartx.containsKey](key);
       }
       containsValue(value) {
-        return this[_map].containsValue(value);
+        return this[_map][dartx.containsValue](value);
       }
       forEach(action) {
         dart.as(action, dart.functionType(dart.void, [K, V]));
-        this[_map].forEach(action);
+        this[_map][dartx.forEach](action);
       }
       get isEmpty() {
-        return this[_map].isEmpty;
+        return this[_map][dartx.isEmpty];
       }
       get isNotEmpty() {
-        return this[_map].isNotEmpty;
+        return this[_map][dartx.isNotEmpty];
       }
       get length() {
-        return this[_map].length;
+        return this[_map][dartx.length];
       }
       get keys() {
-        return this[_map].keys;
+        return this[_map][dartx.keys];
       }
       remove(key) {
-        return this[_map].remove(key);
+        return this[_map][dartx.remove](key);
       }
       toString() {
         return dart.toString(this[_map]);
       }
       get values() {
-        return this[_map].values;
+        return this[_map][dartx.values];
       }
     }
     MapView[dart.implements] = () => [core.Map$(K, V)];
@@ -2385,6 +2403,22 @@ dart_library.library('dart/collection', null, /* Imports */[
         remove: [V, [core.Object]]
       })
     });
+    dart.defineExtensionMembers(MapView, [
+      'get',
+      'set',
+      'addAll',
+      'clear',
+      'putIfAbsent',
+      'containsKey',
+      'containsValue',
+      'forEach',
+      'remove',
+      'isEmpty',
+      'isNotEmpty',
+      'length',
+      'keys',
+      'values'
+    ]);
     return MapView;
   });
   let MapView = MapView$();
@@ -2399,7 +2433,7 @@ dart_library.library('dart/collection', null, /* Imports */[
   let UnmodifiableMapView = UnmodifiableMapView$();
   class Maps extends core.Object {
     static containsValue(map, value) {
-      for (let v of map.values) {
+      for (let v of map[dartx.values]) {
         if (dart.equals(value, v)) {
           return true;
         }
@@ -2407,7 +2441,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       return false;
     }
     static containsKey(map, key) {
-      for (let k of map.keys) {
+      for (let k of map[dartx.keys]) {
         if (dart.equals(key, k)) {
           return true;
         }
@@ -2415,34 +2449,34 @@ dart_library.library('dart/collection', null, /* Imports */[
       return false;
     }
     static putIfAbsent(map, key, ifAbsent) {
-      if (dart.notNull(map.containsKey(key))) {
-        return map.get(key);
+      if (dart.notNull(map[dartx.containsKey](key))) {
+        return map[dartx.get](key);
       }
       let v = ifAbsent();
-      map.set(key, v);
+      map[dartx.set](key, v);
       return v;
     }
     static clear(map) {
-      for (let k of map.keys[dartx.toList]()) {
-        map.remove(k);
+      for (let k of map[dartx.keys][dartx.toList]()) {
+        map[dartx.remove](k);
       }
     }
     static forEach(map, f) {
-      for (let k of map.keys) {
-        dart.dcall(f, k, map.get(k));
+      for (let k of map[dartx.keys]) {
+        dart.dcall(f, k, map[dartx.get](k));
       }
     }
     static getValues(map) {
-      return map.keys[dartx.map](dart.fn(key => map.get(key)));
+      return map[dartx.keys][dartx.map](dart.fn(key => map[dartx.get](key)));
     }
     static length(map) {
-      return map.keys[dartx.length];
+      return map[dartx.keys][dartx.length];
     }
     static isEmpty(map) {
-      return map.keys[dartx.isEmpty];
+      return map[dartx.keys][dartx.isEmpty];
     }
     static isNotEmpty(map) {
-      return map.keys[dartx.isNotEmpty];
+      return map[dartx.keys][dartx.isNotEmpty];
     }
     static mapToString(m) {
       if (dart.notNull(IterableBase._isToStringVisiting(m))) {
@@ -2453,7 +2487,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         IterableBase._toStringVisiting[dartx.add](m);
         result.write('{');
         let first = true;
-        m.forEach(dart.fn((k, v) => {
+        m[dartx.forEach](dart.fn((k, v) => {
           if (!first) {
             result.write(', ');
           }
@@ -2476,7 +2510,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       if (key == null) key = Maps._id;
       if (value == null) value = Maps._id;
       for (let element of iterable) {
-        map.set(dart.dcall(key, element), dart.dcall(value, element));
+        map[dartx.set](dart.dcall(key, element), dart.dcall(value, element));
       }
     }
     static _fillMapWithIterables(map, keys, values) {
@@ -2485,7 +2519,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       let hasNextKey = keyIterator.moveNext();
       let hasNextValue = valueIterator.moveNext();
       while (dart.notNull(hasNextKey) && dart.notNull(hasNextValue)) {
-        map.set(keyIterator.current, valueIterator.current);
+        map[dartx.set](keyIterator.current, valueIterator.current);
         hasNextKey = keyIterator.moveNext();
         hasNextValue = valueIterator.moveNext();
       }
@@ -3391,7 +3425,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         if (compare === void 0) compare = null;
         if (isValidKey === void 0) isValidKey = null;
         let result = new (SplayTreeMap$(K, V))();
-        other.forEach(dart.fn((k, v) => {
+        other[dartx.forEach](dart.fn((k, v) => {
           result.set(dart.as(k, K), dart.as(v, V));
         }, dart.void, [dart.dynamic, dart.dynamic]));
         return result;
@@ -3479,7 +3513,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
-        other.forEach(dart.fn((key, value) => {
+        other[dartx.forEach](dart.fn((key, value) => {
           dart.as(key, K);
           dart.as(value, V);
           this.set(key, value);
@@ -3596,6 +3630,22 @@ dart_library.library('dart/collection', null, /* Imports */[
         firstKeyAfter: [K, [K]]
       })
     });
+    dart.defineExtensionMembers(SplayTreeMap, [
+      'get',
+      'remove',
+      'set',
+      'putIfAbsent',
+      'addAll',
+      'forEach',
+      'clear',
+      'containsKey',
+      'containsValue',
+      'isEmpty',
+      'isNotEmpty',
+      'length',
+      'keys',
+      'values'
+    ]);
     return SplayTreeMap;
   });
   let SplayTreeMap = SplayTreeMap$();
@@ -4029,7 +4079,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
-        other.forEach(dart.fn((key, value) => {
+        other[dartx.forEach](dart.fn((key, value) => {
           dart.as(key, K);
           dart.as(value, V);
           this.set(key, value);
@@ -4279,6 +4329,22 @@ dart_library.library('dart/collection', null, /* Imports */[
       }),
       names: ['_isStringKey', '_isNumericKey', '_hasTableEntry', '_getTableEntry', '_setTableEntry', '_deleteTableEntry', '_newHashTable']
     });
+    dart.defineExtensionMembers(_HashMap, [
+      'containsKey',
+      'containsValue',
+      'addAll',
+      'get',
+      'set',
+      'putIfAbsent',
+      'remove',
+      'clear',
+      'forEach',
+      'length',
+      'isEmpty',
+      'isNotEmpty',
+      'keys',
+      'values'
+    ]);
     return _HashMap;
   });
   let _HashMap = _HashMap$();
@@ -4353,6 +4419,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         remove: [V, [core.Object]]
       })
     });
+    dart.defineExtensionMembers(_CustomHashMap, ['get', 'set', 'containsKey', 'remove']);
     return _CustomHashMap;
   });
   let _CustomHashMap = _CustomHashMap$();
@@ -4493,7 +4560,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
-        other.forEach(dart.fn((key, value) => {
+        other[dartx.forEach](dart.fn((key, value) => {
           dart.as(key, K);
           dart.as(value, V);
           this.set(key, value);
@@ -4739,6 +4806,22 @@ dart_library.library('dart/collection', null, /* Imports */[
       }),
       names: ['_isStringKey', '_isNumericKey', '_getTableEntry', '_setTableEntry', '_deleteTableEntry', '_newHashTable']
     });
+    dart.defineExtensionMembers(_LinkedHashMap, [
+      'containsKey',
+      'containsValue',
+      'addAll',
+      'get',
+      'set',
+      'putIfAbsent',
+      'remove',
+      'clear',
+      'forEach',
+      'length',
+      'isEmpty',
+      'isNotEmpty',
+      'keys',
+      'values'
+    ]);
     return _LinkedHashMap;
   });
   let _LinkedHashMap = _LinkedHashMap$();
@@ -4810,6 +4893,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         remove: [V, [core.Object]]
       })
     });
+    dart.defineExtensionMembers(_LinkedCustomHashMap, ['get', 'set', 'containsKey', 'remove']);
     return _LinkedCustomHashMap;
   });
   let _LinkedCustomHashMap = _LinkedCustomHashMap$();

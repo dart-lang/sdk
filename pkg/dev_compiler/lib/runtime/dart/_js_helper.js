@@ -972,7 +972,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     while (index < dart.notNull(length)) {
       let key = getIndex(keyValuePairs, index++);
       let value = getIndex(keyValuePairs, index++);
-      result.set(key, value);
+      result[dartx.set](key, value);
     }
     return result;
   }

@@ -644,6 +644,45 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     return heritage;
   }
 
+  /// Provide Dart getters and setters that forward to the underlying native
+  /// field.  Note that the Dart names are always symbolized to avoid
+  /// conflicts.  They will be installed as extension methods on the underlying
+  /// native type.
+  List<JS.Method> _emitNativeFieldAccessors(FieldDeclaration node) {
+    // TODO(vsm): Can this by meta-programmed?
+    // E.g., dart.nativeField(symbol, jsName)
+    // Alternatively, perhaps it could be meta-programmed directly in
+    // dart.registerExtensions?
+    var jsMethods = <JS.Method>[];
+    if (!node.isStatic) {
+      for (var decl in node.fields.variables) {
+        var field = decl.element;
+        var name = decl.name.name;
+        var annotation = findAnnotation(field, isJsName);
+        if (annotation != null) {
+          name = getConstantField(annotation, 'name', types.stringType)
+              ?.toStringValue();
+        }
+        // Generate getter
+        var fn = new JS.Fun([], js.statement('{ return this.#; }', [name]));
+        var method =
+            new JS.Method(_elementMemberName(field.getter), fn, isGetter: true);
+        jsMethods.add(method);
+
+        // Generate setter
+        if (!decl.isFinal) {
+          var value = new JS.TemporaryId('value');
+          fn = new JS.Fun(
+              [value], js.statement('{ this.# = #; }', [name, value]));
+          method = new JS.Method(_elementMemberName(field.setter), fn,
+              isSetter: true);
+          jsMethods.add(method);
+        }
+      }
+    }
+    return jsMethods;
+  }
+
   List<JS.Method> _emitClassMethods(ClassDeclaration node,
       List<ConstructorDeclaration> ctors, List<FieldDeclaration> fields) {
     var element = node.element;
@@ -670,6 +709,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
           hasIterator = true;
           jsMethods.add(_emitIterable(type));
         }
+      } else if (m is FieldDeclaration && _extensionTypes.contains(element)) {
+        jsMethods.addAll(_emitNativeFieldAccessors(m));
       }
     }
 
@@ -768,6 +809,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       for (var m in methods) {
         if (!m.isAbstract && !m.isStatic && m.element.isPublic) {
           dartxNames.add(_elementMemberName(m.element, allowExtensions: false));
+        }
+      }
+      for (var f in fields) {
+        if (!f.isStatic) {
+          for (var d in f.fields.variables) {
+            if (d.element.isPublic) {
+              dartxNames.add(
+                  _elementMemberName(d.element.getter, allowExtensions: false));
+            }
+          }
         }
       }
       if (dartxNames.isNotEmpty) {
@@ -2993,13 +3044,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     if (!_isObjectProperty(memberName)) {
       return false;
     }
-    if (!type.isObject &&
-        !_isJSBuiltinType(type) &&
-        !_extensionTypes.contains(type.element) &&
-        !_isNullable(target)) {
-      return false;
-    }
-    return true;
+
+    // If the target could be `null`, we need static dispatch.
+    // If the target may be an extension type, we also use static dispatch
+    // as we don't symbolize object properties like hashCode.
+    return _isNullable(target) ||
+        (_extensionTypes.contains(type.element) && target is! SuperExpression);
   }
 
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
@@ -3586,6 +3636,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       baseType = baseType.element.bound;
     }
     if (allowExtensions &&
+        baseType != null &&
         _extensionTypes.contains(baseType.element) &&
         !_isObjectProperty(name)) {
       return js.call('dartx.#', _propertyName(name));
@@ -3732,6 +3783,12 @@ class JSGenerator extends CodeGenerator {
     var finder = new _ExtensionFinder(context, _extensionTypes, _types);
     finder._addExtensionTypes('dart:_interceptors');
     finder._addExtensionTypes('dart:_native_typed_data');
+    finder._addExtensionTypes('dart:html');
+    finder._addExtensionTypes('dart:indexed_db');
+    finder._addExtensionTypes('dart:svg');
+    finder._addExtensionTypes('dart:web_audio');
+    finder._addExtensionTypes('dart:web_gl');
+    finder._addExtensionTypes('dart:web_sql');
 
     // TODO(vsm): If we're analyzing against the main SDK, those
     // types are not explicitly annotated.

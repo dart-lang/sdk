@@ -10,7 +10,8 @@ dart_library.library('dart/html_common', null, /* Imports */[
   'dart/collection',
   'dart/_internal'
 ], /* Lazy imports */[
-], function(exports, dart, _metadata, core, html, typed_data, _js_helper, _native_typed_data, async, collection, _internal) {
+  'dart/web_gl'
+], function(exports, dart, _metadata, core, html, typed_data, _js_helper, _native_typed_data, async, collection, _internal, web_gl) {
   'use strict';
   let dartx = dart.dartx;
   dart.export(exports, _metadata);
@@ -304,10 +305,10 @@ dart_library.library('dart/html_common', null, /* Imports */[
       if (dart.is(e, core.RegExp)) {
         dart.throw(new core.UnimplementedError('structured clone of RegExp'));
       }
-      if (dart.is(e, dart.dynamic)) return e;
-      if (dart.is(e, dart.dynamic)) return e;
-      if (dart.is(e, dart.dynamic)) return e;
-      if (dart.is(e, dart.dynamic)) return e;
+      if (dart.is(e, html.File)) return e;
+      if (dart.is(e, html.Blob)) return e;
+      if (dart.is(e, html.FileList)) return e;
+      if (dart.is(e, html.ImageData)) return e;
       if (dart.notNull(this.cloneNotRequired(e))) return e;
       if (dart.is(e, core.Map)) {
         let slot = this.findSlot(e);
@@ -315,7 +316,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
         if (copy != null) return copy;
         copy = this.newJsMap();
         this.writeSlot(slot, copy);
-        e.forEach(dart.fn((key, value) => {
+        e[dartx.forEach](dart.fn((key, value) => {
           this.putIntoMap(copy, key, this.walk(value));
         }, dart.void, [dart.dynamic, dart.dynamic]));
         return copy;
@@ -441,16 +442,33 @@ dart_library.library('dart/html_common', null, /* Imports */[
       this.stencil = stencil;
     }
   }
+  _TypedContextAttributes[dart.implements] = () => [web_gl.ContextAttributes];
   dart.setSignature(_TypedContextAttributes, {
     constructors: () => ({_TypedContextAttributes: [_TypedContextAttributes, [core.bool, core.bool, core.bool, core.bool, core.bool, core.bool, core.bool]]})
   });
+  dart.defineExtensionMembers(_TypedContextAttributes, [
+    'alpha',
+    'alpha',
+    'antialias',
+    'antialias',
+    'depth',
+    'depth',
+    'premultipliedAlpha',
+    'premultipliedAlpha',
+    'preserveDrawingBuffer',
+    'preserveDrawingBuffer',
+    'stencil',
+    'stencil',
+    'failIfMajorPerformanceCaveat',
+    'failIfMajorPerformanceCaveat'
+  ]);
   function convertNativeToDart_ContextAttributes(nativeContextAttributes) {
-    if (dart.is(nativeContextAttributes, dart.dynamic)) {
+    if (dart.is(nativeContextAttributes, web_gl.ContextAttributes)) {
       return nativeContextAttributes;
     }
     return new _TypedContextAttributes(dart.as(nativeContextAttributes.alpha, core.bool), dart.as(nativeContextAttributes.antialias, core.bool), dart.as(nativeContextAttributes.depth, core.bool), dart.as(nativeContextAttributes.failIfMajorPerformanceCaveat, core.bool), dart.as(nativeContextAttributes.premultipliedAlpha, core.bool), dart.as(nativeContextAttributes.preserveDrawingBuffer, core.bool), dart.as(nativeContextAttributes.stencil, core.bool));
   }
-  dart.fn(convertNativeToDart_ContextAttributes);
+  dart.fn(convertNativeToDart_ContextAttributes, () => dart.definiteFunctionType(web_gl.ContextAttributes, [dart.dynamic]));
   class _TypedImageData extends core.Object {
     _TypedImageData(data, height, width) {
       this.data = data;
@@ -458,13 +476,15 @@ dart_library.library('dart/html_common', null, /* Imports */[
       this.width = width;
     }
   }
+  _TypedImageData[dart.implements] = () => [html.ImageData];
   dart.setSignature(_TypedImageData, {
     constructors: () => ({_TypedImageData: [_TypedImageData, [typed_data.Uint8ClampedList, core.int, core.int]]})
   });
+  dart.defineExtensionMembers(_TypedImageData, ['data', 'height', 'width']);
   function convertNativeToDart_ImageData(nativeImageData) {
     0;
-    if (dart.is(nativeImageData, dart.dynamic)) {
-      let data = dart.dload(nativeImageData, 'data');
+    if (dart.is(nativeImageData, html.ImageData)) {
+      let data = nativeImageData[dartx.data];
       if (data.constructor === Array) {
         if (typeof CanvasPixelArray !== "undefined") {
           data.constructor = CanvasPixelArray;
@@ -475,14 +495,14 @@ dart_library.library('dart/html_common', null, /* Imports */[
     }
     return new _TypedImageData(dart.as(nativeImageData.data, typed_data.Uint8ClampedList), dart.as(nativeImageData.height, core.int), dart.as(nativeImageData.width, core.int));
   }
-  dart.fn(convertNativeToDart_ImageData);
+  dart.fn(convertNativeToDart_ImageData, html.ImageData, [dart.dynamic]);
   function convertDartToNative_ImageData(imageData) {
     if (dart.is(imageData, _TypedImageData)) {
       return {data: imageData.data, height: imageData.height, width: imageData.width};
     }
     return imageData;
   }
-  dart.fn(convertDartToNative_ImageData);
+  dart.fn(convertDartToNative_ImageData, dart.dynamic, [html.ImageData]);
   const _serializedScriptValue = 'num|String|bool|' + 'JSExtendableArray|=Object|' + 'Blob|File|NativeByteBuffer|NativeTypedData';
   const annotation_Creates_SerializedScriptValue = dart.const(new _js_helper.Creates(_serializedScriptValue));
   const annotation_Returns_SerializedScriptValue = dart.const(new _js_helper.Returns(_serializedScriptValue));
@@ -491,7 +511,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
     let dict = dart.map();
     let keys = Object.getOwnPropertyNames(object);
     for (let key of dart.as(keys, core.Iterable)) {
-      dict.set(key, object[key]);
+      dict[dartx.set](key, object[key]);
     }
     return dict;
   }
@@ -503,7 +523,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
     if (postCreate != null) {
       dart.dcall(postCreate, object);
     }
-    dict.forEach(dart.fn((key, value) => {
+    dict[dartx.forEach](dart.fn((key, value) => {
       object[key] = value;
     }, dart.void, [core.String, dart.dynamic]));
     return object;
@@ -616,9 +636,17 @@ dart_library.library('dart/html_common', null, /* Imports */[
     return completer.future;
   }
   dart.fn(convertNativePromiseToDartFuture, async.Future, [dart.dynamic]);
+  function wrap_jso(jsObject) {
+    return jsObject;
+  }
+  dart.fn(wrap_jso);
+  function unwrap_jso(dartClass_instance) {
+    return dartClass_instance;
+  }
+  dart.fn(unwrap_jso);
   class Device extends core.Object {
     static get userAgent() {
-      return dart.as(dart.dload(html.window.navigator.raw, 'userAgent'), core.String);
+      return html.window[dartx.navigator][dartx.userAgent];
     }
     static get isOpera() {
       if (Device._isOpera == null) {
@@ -698,7 +726,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
   const _filtered = Symbol('_filtered');
   class FilteredElementList extends collection.ListBase$(html.Element) {
     FilteredElementList(node) {
-      this[_childNodes] = node.nodes;
+      this[_childNodes] = node[dartx.nodes];
       this[_node] = node;
     }
     get [_iterable]() {
@@ -711,7 +739,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
       this[_filtered][dartx.forEach](f);
     }
     set(index, value) {
-      this.get(index).replaceWith(value);
+      this.get(index)[dartx.replaceWith](value);
       return value;
     }
     set length(newLength) {
@@ -734,7 +762,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
     contains(needle) {
       if (!dart.is(needle, html.Element)) return false;
       let element = dart.as(needle, html.Element);
-      return dart.equals(element.parentNode, this[_node]);
+      return dart.equals(element[dartx.parentNode], this[_node]);
     }
     get reversed() {
       return this[_filtered][dartx.reversed];
@@ -763,7 +791,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
     removeLast() {
       let result = this[_iterable][dartx.last];
       if (result != null) {
-        result.remove();
+        result[dartx.remove]();
       }
       return result;
     }
@@ -772,7 +800,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
         this.add(value);
       } else {
         let element = this[_iterable][dartx.elementAt](index);
-        element.parentNode.insertBefore(value, element);
+        element[dartx.parentNode][dartx.insertBefore](value, element);
       }
     }
     insertAll(index, iterable) {
@@ -780,18 +808,18 @@ dart_library.library('dart/html_common', null, /* Imports */[
         this.addAll(iterable);
       } else {
         let element = this[_iterable][dartx.elementAt](index);
-        element.parentNode.insertAllBefore(iterable, element);
+        element[dartx.parentNode][dartx.insertAllBefore](iterable, element);
       }
     }
     removeAt(index) {
       let result = this.get(index);
-      result.remove();
+      result[dartx.remove]();
       return result;
     }
     remove(element) {
       if (!dart.is(element, html.Element)) return false;
       if (dart.notNull(this.contains(element))) {
-        dart.as(element, html.Element).remove();
+        dart.as(element, html.Element)[dartx.remove]();
         return true;
       } else {
         return false;
@@ -807,7 +835,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
       return this[_filtered][dartx.iterator];
     }
     get rawList() {
-      return this[_node].childNodes;
+      return this[_node][dartx.childNodes];
     }
   }
   FilteredElementList[dart.implements] = () => [NodeListWrapper];
@@ -923,6 +951,8 @@ dart_library.library('dart/html_common', null, /* Imports */[
   exports.isImmutableJavaScriptArray = isImmutableJavaScriptArray;
   exports.isJavaScriptPromise = isJavaScriptPromise;
   exports.convertNativePromiseToDartFuture = convertNativePromiseToDartFuture;
+  exports.wrap_jso = wrap_jso;
+  exports.unwrap_jso = unwrap_jso;
   exports.Device = Device;
   exports.FilteredElementList = FilteredElementList;
   exports.Lists = Lists;

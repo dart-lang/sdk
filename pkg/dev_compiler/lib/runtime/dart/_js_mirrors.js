@@ -77,7 +77,7 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
     }
     [_toJsMap](map) {
       let obj = {};
-      map.forEach(dart.fn((key, value) => {
+      map[dartx.forEach](dart.fn((key, value) => {
         obj[getName(key)] = value;
       }, dart.void, [core.Symbol, dart.dynamic]));
       return obj;
@@ -113,12 +113,12 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
       let fn = this[_cls][dart.metadata];
       this[_metadata] = fn == null ? dart.list([], mirrors.InstanceMirror) : core.List$(mirrors.InstanceMirror).from(dart.as(dart.dsend(dart.dcall(fn), 'map', dart.fn(i => new JsInstanceMirror._(i), JsInstanceMirror, [dart.dynamic])), core.Iterable));
       this[_declarations] = core.Map$(core.Symbol, mirrors.MethodMirror).new();
-      this[_declarations].set(this.simpleName, new JsMethodMirror._(this, this[_cls]));
+      this[_declarations][dartx.set](this.simpleName, new JsMethodMirror._(this, this[_cls]));
     }
     newInstance(constructorName, args, namedArgs) {
       if (namedArgs === void 0) namedArgs = null;
       dart.assert(getName(constructorName) == "");
-      dart.assert(namedArgs == null || dart.notNull(namedArgs.isEmpty));
+      dart.assert(namedArgs == null || dart.notNull(namedArgs[dartx.isEmpty]));
       let instance = new this[_cls](...args);
       return new JsInstanceMirror._(instance);
     }

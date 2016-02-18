@@ -384,13 +384,13 @@ dart_library.library('dart/_debugger', null, /* Imports */[
     }
     preview(object) {
       let map = dart.as(object, core.Map);
-      return `${getObjectTypeName(map)} length ${map.length}`;
+      return `${getObjectTypeName(map)} length ${map[dartx.length]}`;
     }
     children(object) {
       let map = dart.as(object, core.Map);
-      let keys = map.keys[dartx.toList]();
+      let keys = map[dartx.keys][dartx.toList]();
       let entries = dart.list([], NameValuePair);
-      map.forEach(dart.fn((key, value) => {
+      map[dartx.forEach](dart.fn((key, value) => {
         let entryWrapper = new MapEntry({key: dart.as(key, core.String), value: value});
         entries[dartx.add](new NameValuePair({name: dart.toString(entries[dartx.length]), value: entryWrapper}));
       }, dart.void, [dart.dynamic, dart.dynamic]));

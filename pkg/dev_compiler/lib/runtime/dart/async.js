@@ -5232,12 +5232,12 @@ dart_library.library('dart/async', null, /* Imports */[
       }
     }
     get(key) {
-      let result = this[_map].get(key);
-      if (result != null || dart.notNull(this[_map].containsKey(key))) return result;
+      let result = this[_map][dartx.get](key);
+      if (result != null || dart.notNull(this[_map][dartx.containsKey](key))) return result;
       if (this.parent != null) {
         let value = this.parent.get(key);
         if (value != null) {
-          this[_map].set(key, value);
+          this[_map][dartx.set](key, value);
         }
         return value;
       }

@@ -41,10 +41,10 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
     serialize(x) {
       if (dart.notNull(this.isPrimitive(x))) return this.serializePrimitive(x);
-      let serializationId = this.serializedObjectIds.get(x);
+      let serializationId = this.serializedObjectIds[dartx.get](x);
       if (serializationId != null) return this.makeRef(serializationId);
-      serializationId = this.serializedObjectIds.length;
-      this.serializedObjectIds.set(x, serializationId);
+      serializationId = this.serializedObjectIds[dartx.length];
+      this.serializedObjectIds[dartx.set](x, serializationId);
       if (dart.is(x, _native_typed_data.NativeByteBuffer)) return this.serializeByteBuffer(x);
       if (dart.is(x, _native_typed_data.NativeTypedData)) return this.serializeTypedData(x);
       if (dart.is(x, _interceptors.JSIndexable)) return this.serializeJSIndexable(x);
@@ -105,7 +105,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
     serializeMap(x) {
       let serializeTearOff = dart.bind(this, 'serialize');
-      return ['map', x.keys[dartx.map](dart.as(serializeTearOff, __CastType0))[dartx.toList](), x.values[dartx.map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[dartx.toList]()];
+      return ['map', x[dartx.keys][dartx.map](dart.as(serializeTearOff, __CastType0))[dartx.toList](), x[dartx.values][dartx.map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[dartx.toList]()];
     }
     serializeJSObject(x) {
       if (!!x.constructor && x.constructor !== Object) {
@@ -302,7 +302,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       this.deserializedObjects[dartx.add](result);
       keys = keys[dartx.map](dart.bind(this, 'deserialize'))[dartx.toList]();
       for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
-        result.set(keys[dartx.get](i), this.deserialize(values[dartx.get](i)));
+        result[dartx.set](keys[dartx.get](i), this.deserialize(values[dartx.get](i)));
       }
       return result;
     }
@@ -313,7 +313,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       let receivePortId = dart.as(dart.dindex(x, 3), core.int);
       let result = null;
       if (managerId == exports._globalState.currentManagerId) {
-        let isolate = exports._globalState.isolates.get(isolateId);
+        let isolate = exports._globalState.isolates[dartx.get](isolateId);
         if (isolate == null) return null;
         let receivePort = isolate.lookup(receivePortId);
         if (receivePort == null) return null;
@@ -499,7 +499,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       return _serializeMessage(dart.map({command: "print", msg: object}));
     }
     maybeCloseWorker() {
-      if (dart.notNull(this.isWorker) && dart.notNull(this.isolates.isEmpty) && this.topEventLoop[_activeJsAsyncCount] == 0) {
+      if (dart.notNull(this.isWorker) && dart.notNull(this.isolates[dartx.isEmpty]) && this.topEventLoop[_activeJsAsyncCount] == 0) {
         this.mainManager.postMessage(_serializeMessage(dart.map({command: 'close'})));
       }
     }
@@ -722,13 +722,13 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       }
     }
     lookup(portId) {
-      return this.ports.get(portId);
+      return this.ports[dartx.get](portId);
     }
     [_addRegistration](portId, port) {
-      if (dart.notNull(this.ports.containsKey(portId))) {
+      if (dart.notNull(this.ports[dartx.containsKey](portId))) {
         dart.throw(core.Exception.new("Registry: ports must be registered only once."));
       }
-      this.ports.set(portId, port);
+      this.ports[dartx.set](portId, port);
     }
     register(portId, port) {
       this[_addRegistration](portId, port);
@@ -739,8 +739,8 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       this[_addRegistration](portId, port);
     }
     [_updateGlobalState]() {
-      if (dart.notNull(this.ports.length) - dart.notNull(this.weakPorts.length) > 0 || dart.notNull(this.isPaused) || !dart.notNull(this.initialized)) {
-        exports._globalState.isolates.set(this.id, this);
+      if (dart.notNull(this.ports[dartx.length]) - dart.notNull(this.weakPorts.length) > 0 || dart.notNull(this.isPaused) || !dart.notNull(this.initialized)) {
+        exports._globalState.isolates[dartx.set](this.id, this);
       } else {
         this.kill();
       }
@@ -749,12 +749,12 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       if (this[_scheduledControlEvents] != null) {
         dart.dsend(this[_scheduledControlEvents], 'clear');
       }
-      for (let port of this.ports.values) {
+      for (let port of this.ports[dartx.values]) {
         port[_close]();
       }
-      this.ports.clear();
+      this.ports[dartx.clear]();
       this.weakPorts.clear();
-      exports._globalState.isolates.remove(this.id);
+      exports._globalState.isolates[dartx.remove](this.id);
       this.errorPorts.clear();
       if (this.doneHandlers != null) {
         for (let port of dart.as(this.doneHandlers, core.Iterable$(isolate.SendPort))) {
@@ -764,7 +764,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       }
     }
     unregister(portId) {
-      this.ports.remove(portId);
+      this.ports[dartx.remove](portId);
       this.weakPorts.remove(portId);
       this[_updateGlobalState]();
     }
@@ -812,7 +812,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       return this.events.removeFirst();
     }
     checkOpenReceivePortsFromCommandLine() {
-      if (exports._globalState.rootContext != null && dart.notNull(exports._globalState.isolates.containsKey(exports._globalState.rootContext.id)) && dart.notNull(exports._globalState.fromCommandLine) && dart.notNull(exports._globalState.rootContext.ports.isEmpty)) {
+      if (exports._globalState.rootContext != null && dart.notNull(exports._globalState.isolates[dartx.containsKey](exports._globalState.rootContext.id)) && dart.notNull(exports._globalState.fromCommandLine) && dart.notNull(exports._globalState.rootContext.ports[dartx.isEmpty])) {
         dart.throw(core.Exception.new("Program exited with open ReceivePorts."));
       }
     }
@@ -989,7 +989,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         }
         case 'close':
         {
-          exports._globalState.managers.remove(IsolateNatives.workerIds.get(sender));
+          exports._globalState.managers[dartx.remove](IsolateNatives.workerIds.get(sender));
           sender.terminate();
           exports._globalState.topEventLoop.run();
           break;
@@ -1153,7 +1153,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       let workerId = o.nextManagerId;
       o.nextManagerId = dart.notNull(workerId) + 1;
       IsolateNatives.workerIds.set(worker, workerId);
-      exports._globalState.managers.set(workerId, worker);
+      exports._globalState.managers[dartx.set](workerId, worker);
       worker.postMessage(_serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _serializeMessage(replyPort), args: args, msg: _serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName})));
     }
     static workerOnError(event, uri, onError) {
@@ -1227,7 +1227,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       super._BaseSendPort(isolateId);
     }
     send(message) {
-      let isolate = exports._globalState.isolates.get(this[_isolateId]);
+      let isolate = exports._globalState.isolates[dartx.get](this[_isolateId]);
       if (isolate == null) return;
       if (dart.notNull(this[_receivePort][_isClosed])) return;
       let msg = _clone(message);
@@ -1264,7 +1264,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       if (dart.notNull(exports._globalState.isWorker)) {
         exports._globalState.mainManager.postMessage(workerMessage);
       } else {
-        let manager = exports._globalState.managers.get(this[_workerId]);
+        let manager = exports._globalState.managers[dartx.get](this[_workerId]);
         if (manager != null) {
           manager.postMessage(workerMessage);
         }

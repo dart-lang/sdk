@@ -48,8 +48,8 @@ dart_library.library('dart/js', null, /* Imports */[
         if (dart.is(o, core.Map)) {
           let convertedMap = {};
           _convertedObjects.set(o, convertedMap);
-          for (let key of o.keys) {
-            convertedMap[key] = _convert(o.get(key));
+          for (let key of o[dartx.keys]) {
+            convertedMap[key] = _convert(o[dartx.get](key));
           }
           return convertedMap;
         } else if (dart.is(o, core.Iterable)) {

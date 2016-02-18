@@ -28,7 +28,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
       }
       get(key) {
         if (!dart.notNull(this[_isValidKey](key))) return null;
-        let pair = this[_base].get(dart.dcall(this[_canonicalize], key));
+        let pair = this[_base][dartx.get](dart.dcall(this[_canonicalize], key));
         return pair == null ? null : pair.last;
       }
       set(key, value) {
@@ -36,52 +36,52 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
           dart.as(key, K);
           dart.as(value, V);
           if (!dart.notNull(this[_isValidKey](key))) return;
-          this[_base].set(dart.as(dart.dcall(this[_canonicalize], key), C), new (utils.Pair$(K, V))(key, value));
+          this[_base][dartx.set](dart.as(dart.dcall(this[_canonicalize], key), C), new (utils.Pair$(K, V))(key, value));
         })();
         return value;
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
-        other.forEach(dart.fn((key, value) => this.set(key, value), V, [K, V]));
+        other[dartx.forEach](dart.fn((key, value) => this.set(key, value), V, [K, V]));
       }
       clear() {
-        this[_base].clear();
+        this[_base][dartx.clear]();
       }
       containsKey(key) {
         if (!dart.notNull(this[_isValidKey](key))) return false;
-        return this[_base].containsKey(dart.dcall(this[_canonicalize], key));
+        return this[_base][dartx.containsKey](dart.dcall(this[_canonicalize], key));
       }
       containsValue(value) {
-        return this[_base].values[dartx.any](dart.fn(pair => dart.equals(pair.last, value), core.bool, [utils.Pair$(K, V)]));
+        return this[_base][dartx.values][dartx.any](dart.fn(pair => dart.equals(pair.last, value), core.bool, [utils.Pair$(K, V)]));
       }
       forEach(f) {
         dart.as(f, dart.functionType(dart.void, [K, V]));
-        this[_base].forEach(dart.fn((key, pair) => f(pair.first, pair.last), dart.void, [C, utils.Pair$(K, V)]));
+        this[_base][dartx.forEach](dart.fn((key, pair) => f(pair.first, pair.last), dart.void, [C, utils.Pair$(K, V)]));
       }
       get isEmpty() {
-        return this[_base].isEmpty;
+        return this[_base][dartx.isEmpty];
       }
       get isNotEmpty() {
-        return this[_base].isNotEmpty;
+        return this[_base][dartx.isNotEmpty];
       }
       get keys() {
-        return this[_base].values[dartx.map](dart.fn(pair => pair.first, K, [utils.Pair$(K, V)]));
+        return this[_base][dartx.values][dartx.map](dart.fn(pair => pair.first, K, [utils.Pair$(K, V)]));
       }
       get length() {
-        return this[_base].length;
+        return this[_base][dartx.length];
       }
       putIfAbsent(key, ifAbsent) {
         dart.as(key, K);
         dart.as(ifAbsent, dart.functionType(V, []));
-        return this[_base].putIfAbsent(dart.as(dart.dcall(this[_canonicalize], key), C), dart.fn(() => new (utils.Pair$(K, V))(key, ifAbsent()), utils.Pair$(K, V), [])).last;
+        return this[_base][dartx.putIfAbsent](dart.as(dart.dcall(this[_canonicalize], key), C), dart.fn(() => new (utils.Pair$(K, V))(key, ifAbsent()), utils.Pair$(K, V), [])).last;
       }
       remove(key) {
         if (!dart.notNull(this[_isValidKey](key))) return null;
-        let pair = this[_base].remove(dart.dcall(this[_canonicalize], key));
+        let pair = this[_base][dartx.remove](dart.dcall(this[_canonicalize], key));
         return pair == null ? null : pair.last;
       }
       get values() {
-        return this[_base].values[dartx.map](dart.fn(pair => pair.last, V, [utils.Pair$(K, V)]));
+        return this[_base][dartx.values][dartx.map](dart.fn(pair => pair.last, V, [utils.Pair$(K, V)]));
       }
       toString() {
         return collection.Maps.mapToString(this);
@@ -110,6 +110,22 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         [_isValidKey]: [core.bool, [core.Object]]
       })
     });
+    dart.defineExtensionMembers(CanonicalizedMap, [
+      'get',
+      'set',
+      'addAll',
+      'clear',
+      'containsKey',
+      'containsValue',
+      'forEach',
+      'putIfAbsent',
+      'remove',
+      'isEmpty',
+      'isNotEmpty',
+      'keys',
+      'length',
+      'values'
+    ]);
     return CanonicalizedMap;
   });
   let CanonicalizedMap = CanonicalizedMap$();

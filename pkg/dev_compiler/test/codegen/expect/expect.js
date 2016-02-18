@@ -128,14 +128,14 @@ dart_library.library('expect', null, /* Imports */[
     static mapEquals(expected, actual, reason) {
       if (reason === void 0) reason = null;
       let msg = Expect._getMessage(reason);
-      for (let key of expected.keys) {
-        if (!dart.notNull(actual.containsKey(key))) {
+      for (let key of expected[dartx.keys]) {
+        if (!dart.notNull(actual[dartx.containsKey](key))) {
           Expect._fail(`Expect.mapEquals(missing expected key: <${key}>${msg}) fails`);
         }
-        Expect.equals(expected.get(key), actual.get(key));
+        Expect.equals(expected[dartx.get](key), actual[dartx.get](key));
       }
-      for (let key of actual.keys) {
-        if (!dart.notNull(expected.containsKey(key))) {
+      for (let key of actual[dartx.keys]) {
+        if (!dart.notNull(expected[dartx.containsKey](key))) {
           Expect._fail(`Expect.mapEquals(unexpected key: <${key}>${msg}) fails`);
         }
       }

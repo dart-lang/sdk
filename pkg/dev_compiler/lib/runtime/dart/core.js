@@ -861,7 +861,7 @@ dart_library.library('dart/core', null, /* Imports */[
         }
       }
       if (this[_namedArguments] != null) {
-        this[_namedArguments].forEach(dart.fn((key, value) => {
+        this[_namedArguments][dartx.forEach](dart.fn((key, value) => {
           if (i > 0) {
             sb.write(", ");
           }
@@ -1166,8 +1166,8 @@ dart_library.library('dart/core', null, /* Imports */[
     }
     static _toMangledNames(namedArguments) {
       let result = dart.map();
-      namedArguments.forEach(dart.fn((symbol, value) => {
-        result.set(_symbolToString(symbol), value);
+      namedArguments[dartx.forEach](dart.fn((symbol, value) => {
+        result[dartx.set](_symbolToString(symbol), value);
       }, dart.void, [Symbol, dart.dynamic]));
       return result;
     }
@@ -2473,7 +2473,7 @@ dart_library.library('dart/core', null, /* Imports */[
       if (query != null) return Uri._normalize(query, start, end, dart.as(Uri._queryCharTable, List$(int)));
       let result = new StringBuffer();
       let first = true;
-      queryParameters.forEach(dart.fn((key, value) => {
+      queryParameters[dartx.forEach](dart.fn((key, value) => {
         if (!first) {
           result.write("&");
         }

@@ -219,7 +219,7 @@ class DevServer {
   final String _entryPath;
 
   factory DevServer(CompilerOptions options) {
-    assert(options.inputs.length == 1);
+    assert(options.inputs.isNotEmpty);
 
     var fileResolvers = createFileResolvers(options.sourceOptions);
     if (options.sourceOptions.useImplicitHtml) {

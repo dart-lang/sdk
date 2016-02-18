@@ -8,7 +8,7 @@ dart_library.library('dart/mirrors', null, /* Imports */[
   let dartx = dart.dartx;
   class MirrorSystem extends core.Object {
     findLibrary(libraryName) {
-      return this.libraries.values[dartx.singleWhere](dart.fn(library => dart.equals(library.simpleName, libraryName), core.bool, [LibraryMirror]));
+      return this.libraries[dartx.values][dartx.singleWhere](dart.fn(library => dart.equals(library.simpleName, libraryName), core.bool, [LibraryMirror]));
     }
     static getName(symbol) {
       return _js_mirrors.getName(symbol);
