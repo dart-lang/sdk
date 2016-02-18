@@ -4074,6 +4074,90 @@ f() { // 1
     }
   }
 
+  test_executable_localLabels_inMethod() {
+    String code = r'''
+class C {
+  m() {
+    aaa: while (true) {}
+    bbb: while (true) {}
+  }
+}
+''';
+    UnlinkedExecutable executable =
+        findExecutable('m', executables: serializeClassText(code).executables);
+    List<UnlinkedLabel> labels = executable.localLabels;
+    expect(labels, hasLength(2));
+    {
+      UnlinkedLabel aaa = labels.singleWhere((l) => l.name == 'aaa');
+      expect(aaa, isNotNull);
+      expect(aaa.isOnSwitchMember, isFalse);
+      expect(aaa.isOnSwitchStatement, isFalse);
+    }
+    {
+      UnlinkedLabel bbb = labels.singleWhere((l) => l.name == 'bbb');
+      expect(bbb, isNotNull);
+      expect(bbb.isOnSwitchMember, isFalse);
+      expect(bbb.isOnSwitchStatement, isFalse);
+    }
+  }
+
+  test_executable_localLabels_inTopLevelFunction() {
+    String code = r'''
+f() {
+  aaa: while (true) {}
+  bbb: switch (42) {
+    ccc: case 0:
+      break;
+  }
+}
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedLabel> labels = executable.localLabels;
+    expect(labels, hasLength(3));
+    {
+      UnlinkedLabel aaa = labels.singleWhere((l) => l.name == 'aaa');
+      expect(aaa, isNotNull);
+      expect(aaa.isOnSwitchMember, isFalse);
+      expect(aaa.isOnSwitchStatement, isFalse);
+    }
+    {
+      UnlinkedLabel bbb = labels.singleWhere((l) => l.name == 'bbb');
+      expect(bbb, isNotNull);
+      expect(bbb.isOnSwitchMember, isFalse);
+      expect(bbb.isOnSwitchStatement, isTrue);
+    }
+    {
+      UnlinkedLabel ccc = labels.singleWhere((l) => l.name == 'ccc');
+      expect(ccc, isNotNull);
+      expect(ccc.isOnSwitchMember, isTrue);
+      expect(ccc.isOnSwitchStatement, isFalse);
+    }
+  }
+
+  test_executable_localLabels_inTopLevelGetter() {
+    String code = r'''
+get g {
+  aaa: while (true) {}
+  bbb: while (true) {}
+}
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code, 'g');
+    List<UnlinkedLabel> labels = executable.localLabels;
+    expect(labels, hasLength(2));
+    {
+      UnlinkedLabel aaa = labels.singleWhere((l) => l.name == 'aaa');
+      expect(aaa, isNotNull);
+      expect(aaa.isOnSwitchMember, isFalse);
+      expect(aaa.isOnSwitchStatement, isFalse);
+    }
+    {
+      UnlinkedLabel bbb = labels.singleWhere((l) => l.name == 'bbb');
+      expect(bbb, isNotNull);
+      expect(bbb.isOnSwitchMember, isFalse);
+      expect(bbb.isOnSwitchStatement, isFalse);
+    }
+  }
+
   test_executable_localVariables_empty() {
     UnlinkedExecutable executable = serializeExecutableText(r'''
 f() {

@@ -194,6 +194,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       <UnlinkedExportNonPublicBuilder>[];
 
   /**
+   * List of objects which should be written to
+   * [UnlinkedExecutable.localLabels].
+   */
+  List<UnlinkedLabelBuilder> labels = <UnlinkedLabelBuilder>[];
+
+  /**
    * List of objects which should be written to [UnlinkedUnit.parts].
    */
   final List<UnlinkedPartBuilder> parts = <UnlinkedPartBuilder>[];
@@ -552,13 +558,17 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
     }
     List<UnlinkedExecutableBuilder> oldExecutables = executables;
+    List<UnlinkedLabelBuilder> oldLabels = labels;
     List<UnlinkedVariableBuilder> oldVariables = variables;
     executables = <UnlinkedExecutableBuilder>[];
+    labels = <UnlinkedLabelBuilder>[];
     variables = <UnlinkedVariableBuilder>[];
     body.accept(this);
     b.localFunctions = executables;
+    b.localLabels = labels;
     b.localVariables = variables;
     executables = oldExecutables;
+    labels = oldLabels;
     variables = oldVariables;
   }
 
@@ -1017,6 +1027,17 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.uriOffset = node.uri.offset;
     b.uriEnd = node.uri.end;
     unlinkedImports.add(b);
+  }
+
+  @override
+  void visitLabel(Label node) {
+    AstNode parent = node.parent;
+    labels.add(new UnlinkedLabelBuilder(
+        name: node.label.name,
+        nameOffset: node.offset,
+        isOnSwitchMember: parent is SwitchMember,
+        isOnSwitchStatement:
+            parent is LabeledStatement && parent.statement is SwitchStatement));
   }
 
   @override

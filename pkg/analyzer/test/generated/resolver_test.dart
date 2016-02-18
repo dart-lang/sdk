@@ -1492,7 +1492,7 @@ class ElementResolverTest extends EngineTestCase {
     // }
     String label = "loop";
     LabelElementImpl labelElement =
-        new LabelElementImpl(AstFactory.identifier3(label), false, false);
+        new LabelElementImpl.forNode(AstFactory.identifier3(label), false, false);
     BreakStatement breakStatement = AstFactory.breakStatement2(label);
     Expression condition = AstFactory.booleanLiteral(true);
     WhileStatement whileStatement =
@@ -1582,7 +1582,7 @@ class ElementResolverTest extends EngineTestCase {
     // }
     String label = "loop";
     LabelElementImpl labelElement =
-        new LabelElementImpl(AstFactory.identifier3(label), false, false);
+        new LabelElementImpl.forNode(AstFactory.identifier3(label), false, false);
     ContinueStatement continueStatement = AstFactory.continueStatement(label);
     Expression condition = AstFactory.booleanLiteral(true);
     WhileStatement whileStatement =

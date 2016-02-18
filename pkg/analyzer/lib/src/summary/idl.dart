@@ -1127,6 +1127,12 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   List<UnlinkedExecutable> get localFunctions;
 
   /**
+   * The list of local labels.
+   */
+  @Id(22)
+  List<UnlinkedLabel> get localLabels;
+
+  /**
    * The list of local variables.
    */
   @Id(19)
@@ -1355,6 +1361,37 @@ abstract class UnlinkedImport extends base.SummaryClass {
   @informative
   @Id(3)
   int get uriOffset;
+}
+
+/**
+ * Unlinked summary information about a label.
+ */
+abstract class UnlinkedLabel extends base.SummaryClass {
+  /**
+   * Return `true` if this label is associated with a `switch` member (`case` or
+   * `default`).
+   */
+  @Id(2)
+  bool get isOnSwitchMember;
+
+  /**
+   * Return `true` if this label is associated with a `switch` statement.
+   */
+  @Id(3)
+  bool get isOnSwitchStatement;
+
+  /**
+   * Name of the label.
+   */
+  @Id(0)
+  String get name;
+
+  /**
+   * Offset of the label relative to the beginning of the file.
+   */
+  @informative
+  @Id(1)
+  int get nameOffset;
 }
 
 /**

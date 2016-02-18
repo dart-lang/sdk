@@ -2434,6 +2434,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   bool _isStatic;
   idl.UnlinkedExecutableKind _kind;
   List<UnlinkedExecutableBuilder> _localFunctions;
+  List<UnlinkedLabelBuilder> _localLabels;
   List<UnlinkedVariableBuilder> _localVariables;
   String _name;
   int _nameOffset;
@@ -2590,6 +2591,17 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
+  List<UnlinkedLabelBuilder> get localLabels => _localLabels ??= <UnlinkedLabelBuilder>[];
+
+  /**
+   * The list of local labels.
+   */
+  void set localLabels(List<UnlinkedLabelBuilder> _value) {
+    assert(!_finished);
+    _localLabels = _value;
+  }
+
+  @override
   List<UnlinkedVariableBuilder> get localVariables => _localVariables ??= <UnlinkedVariableBuilder>[];
 
   /**
@@ -2717,7 +2729,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _visibleOffset = _value;
   }
 
-  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedConstructorInitializerBuilder> constantInitializers, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedVariableBuilder> localVariables, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset})
+  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedConstructorInitializerBuilder> constantInitializers, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedLabelBuilder> localLabels, List<UnlinkedVariableBuilder> localVariables, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _constantInitializers = constantInitializers,
       _documentationComment = documentationComment,
@@ -2730,6 +2742,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       _isStatic = isStatic,
       _kind = kind,
       _localFunctions = localFunctions,
+      _localLabels = localLabels,
       _localVariables = localVariables,
       _name = name,
       _nameOffset = nameOffset,
@@ -2748,6 +2761,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     fb.Offset offset_constantInitializers;
     fb.Offset offset_documentationComment;
     fb.Offset offset_localFunctions;
+    fb.Offset offset_localLabels;
     fb.Offset offset_localVariables;
     fb.Offset offset_name;
     fb.Offset offset_parameters;
@@ -2766,6 +2780,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     }
     if (!(_localFunctions == null || _localFunctions.isEmpty)) {
       offset_localFunctions = fbBuilder.writeList(_localFunctions.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_localLabels == null || _localLabels.isEmpty)) {
+      offset_localLabels = fbBuilder.writeList(_localLabels.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_localVariables == null || _localVariables.isEmpty)) {
       offset_localVariables = fbBuilder.writeList(_localVariables.map((b) => b.finish(fbBuilder)).toList());
@@ -2825,6 +2842,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     if (offset_localFunctions != null) {
       fbBuilder.addOffset(18, offset_localFunctions);
     }
+    if (offset_localLabels != null) {
+      fbBuilder.addOffset(22, offset_localLabels);
+    }
     if (offset_localVariables != null) {
       fbBuilder.addOffset(19, offset_localVariables);
     }
@@ -2883,6 +2903,7 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   bool _isStatic;
   idl.UnlinkedExecutableKind _kind;
   List<idl.UnlinkedExecutable> _localFunctions;
+  List<idl.UnlinkedLabel> _localLabels;
   List<idl.UnlinkedVariable> _localVariables;
   String _name;
   int _nameOffset;
@@ -2967,6 +2988,12 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   }
 
   @override
+  List<idl.UnlinkedLabel> get localLabels {
+    _localLabels ??= const fb.ListReader<idl.UnlinkedLabel>(const _UnlinkedLabelReader()).vTableGet(_bp, 22, const <idl.UnlinkedLabel>[]);
+    return _localLabels;
+  }
+
+  @override
   List<idl.UnlinkedVariable> get localVariables {
     _localVariables ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bp, 19, const <idl.UnlinkedVariable>[]);
     return _localVariables;
@@ -3042,6 +3069,7 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     "isStatic": isStatic,
     "kind": kind,
     "localFunctions": localFunctions,
+    "localLabels": localLabels,
     "localVariables": localVariables,
     "name": name,
     "nameOffset": nameOffset,
@@ -3579,6 +3607,142 @@ abstract class _UnlinkedImportMixin implements idl.UnlinkedImport {
     "uri": uri,
     "uriEnd": uriEnd,
     "uriOffset": uriOffset,
+  };
+}
+
+class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements idl.UnlinkedLabel {
+  bool _finished = false;
+
+  bool _isOnSwitchMember;
+  bool _isOnSwitchStatement;
+  String _name;
+  int _nameOffset;
+
+  @override
+  bool get isOnSwitchMember => _isOnSwitchMember ??= false;
+
+  /**
+   * Return `true` if this label is associated with a `switch` member (`case` or
+   * `default`).
+   */
+  void set isOnSwitchMember(bool _value) {
+    assert(!_finished);
+    _isOnSwitchMember = _value;
+  }
+
+  @override
+  bool get isOnSwitchStatement => _isOnSwitchStatement ??= false;
+
+  /**
+   * Return `true` if this label is associated with a `switch` statement.
+   */
+  void set isOnSwitchStatement(bool _value) {
+    assert(!_finished);
+    _isOnSwitchStatement = _value;
+  }
+
+  @override
+  String get name => _name ??= '';
+
+  /**
+   * Name of the label.
+   */
+  void set name(String _value) {
+    assert(!_finished);
+    _name = _value;
+  }
+
+  @override
+  int get nameOffset => _nameOffset ??= 0;
+
+  /**
+   * Offset of the label relative to the beginning of the file.
+   */
+  void set nameOffset(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _nameOffset = _value;
+  }
+
+  UnlinkedLabelBuilder({bool isOnSwitchMember, bool isOnSwitchStatement, String name, int nameOffset})
+    : _isOnSwitchMember = isOnSwitchMember,
+      _isOnSwitchStatement = isOnSwitchStatement,
+      _name = name,
+      _nameOffset = nameOffset;
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    assert(!_finished);
+    _finished = true;
+    fb.Offset offset_name;
+    if (_name != null) {
+      offset_name = fbBuilder.writeString(_name);
+    }
+    fbBuilder.startTable();
+    if (_isOnSwitchMember == true) {
+      fbBuilder.addBool(2, true);
+    }
+    if (_isOnSwitchStatement == true) {
+      fbBuilder.addBool(3, true);
+    }
+    if (offset_name != null) {
+      fbBuilder.addOffset(0, offset_name);
+    }
+    if (_nameOffset != null && _nameOffset != 0) {
+      fbBuilder.addUint32(1, _nameOffset);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _UnlinkedLabelReader extends fb.TableReader<_UnlinkedLabelImpl> {
+  const _UnlinkedLabelReader();
+
+  @override
+  _UnlinkedLabelImpl createObject(fb.BufferPointer bp) => new _UnlinkedLabelImpl(bp);
+}
+
+class _UnlinkedLabelImpl extends Object with _UnlinkedLabelMixin implements idl.UnlinkedLabel {
+  final fb.BufferPointer _bp;
+
+  _UnlinkedLabelImpl(this._bp);
+
+  bool _isOnSwitchMember;
+  bool _isOnSwitchStatement;
+  String _name;
+  int _nameOffset;
+
+  @override
+  bool get isOnSwitchMember {
+    _isOnSwitchMember ??= const fb.BoolReader().vTableGet(_bp, 2, false);
+    return _isOnSwitchMember;
+  }
+
+  @override
+  bool get isOnSwitchStatement {
+    _isOnSwitchStatement ??= const fb.BoolReader().vTableGet(_bp, 3, false);
+    return _isOnSwitchStatement;
+  }
+
+  @override
+  String get name {
+    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    return _name;
+  }
+
+  @override
+  int get nameOffset {
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    return _nameOffset;
+  }
+}
+
+abstract class _UnlinkedLabelMixin implements idl.UnlinkedLabel {
+  @override
+  Map<String, Object> toMap() => {
+    "isOnSwitchMember": isOnSwitchMember,
+    "isOnSwitchStatement": isOnSwitchStatement,
+    "name": name,
+    "nameOffset": nameOffset,
   };
 }
 

@@ -625,6 +625,7 @@ class _CompilationUnitSerializer {
     }
     b.localFunctions =
         executableElement.functions.map(serializeExecutable).toList();
+    b.localLabels = executableElement.labels.map(serializeLabel).toList();
     b.localVariables =
         executableElement.localVariables.map(serializeVariable).toList();
     return b;
@@ -675,6 +676,18 @@ class _CompilationUnitSerializer {
       b.uriOffset = importElement.uriOffset;
       b.uriEnd = importElement.uriEnd;
     }
+    return b;
+  }
+
+  /**
+   * Serialize the given [label], creating an [UnlinkedLabelBuilder].
+   */
+  UnlinkedLabelBuilder serializeLabel(LabelElementImpl label) {
+    UnlinkedLabelBuilder b = new UnlinkedLabelBuilder();
+    b.name = label.name;
+    b.nameOffset = label.nameOffset;
+    b.isOnSwitchMember = label.isOnSwitchMember;
+    b.isOnSwitchStatement = label.isOnSwitchStatement;
     return b;
   }
 

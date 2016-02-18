@@ -573,6 +573,15 @@ class ResynthTest extends ResolverTestCase {
       }
     }
     if (original is! Member) {
+      List<LabelElement> rLabels = resynthesized.labels;
+      List<LabelElement> oLabels = original.labels;
+      expect(rLabels, hasLength(oLabels.length));
+      for (int i = 0; i < oLabels.length; i++) {
+        compareLabelElements(
+            rLabels[i], oLabels[i], '$desc label ${oLabels[i].name}');
+      }
+    }
+    if (original is! Member) {
       List<LocalVariableElement> rVariables = resynthesized.localVariables;
       List<LocalVariableElement> oVariables = original.localVariables;
       expect(rVariables, hasLength(oVariables.length));
@@ -646,6 +655,15 @@ class ResynthTest extends ResolverTestCase {
       compareNamespaceCombinators(
           resynthesized.combinators[i], original.combinators[i]);
     }
+  }
+
+  void compareLabelElements(
+      LabelElementImpl resynthesized, LabelElementImpl original, String desc) {
+    expect(resynthesized.isOnSwitchMember, original.isOnSwitchMember,
+        reason: desc);
+    expect(resynthesized.isOnSwitchStatement, original.isOnSwitchStatement,
+        reason: desc);
+    compareElements(resynthesized, original, desc);
   }
 
   void compareMetadata(List<ElementAnnotation> resynthesized,
@@ -2870,6 +2888,46 @@ class C {
     checkLibrary(r'''
 get g {
   f() {}
+}
+''');
+  }
+
+  test_localLabels_inConstructor() {
+    checkLibrary(r'''
+class C {
+  C() {
+    aaa: while (true) {}
+    bbb: switch (42) {
+      ccc: case 0:
+        break;
+    }
+  }
+}
+''');
+  }
+
+  test_localLabels_inMethod() {
+    checkLibrary(r'''
+class C {
+  m() {
+    aaa: while (true) {}
+    bbb: switch (42) {
+      ccc: case 0:
+        break;
+    }
+  }
+}
+''');
+  }
+
+  test_localLabels_inTopLevelFunction() {
+    checkLibrary(r'''
+main() {
+  aaa: while (true) {}
+  bbb: switch (42) {
+    ccc: case 0:
+      break;
+  }
 }
 ''');
   }

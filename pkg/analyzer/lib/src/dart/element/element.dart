@@ -2929,7 +2929,17 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
    * `switch` statement and [onSwitchMember] should be `true` if this label is
    * associated with a `switch` member.
    */
-  LabelElementImpl(
+  LabelElementImpl(String name, int nameOffset, this._onSwitchStatement,
+      this._onSwitchMember)
+      : super(name, nameOffset);
+
+  /**
+   * Initialize a newly created label element to have the given [name].
+   * [onSwitchStatement] should be `true` if this label is associated with a
+   * `switch` statement and [onSwitchMember] should be `true` if this label is
+   * associated with a `switch` member.
+   */
+  LabelElementImpl.forNode(
       Identifier name, this._onSwitchStatement, this._onSwitchMember)
       : super.forNode(name);
 

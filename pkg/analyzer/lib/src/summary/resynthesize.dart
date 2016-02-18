@@ -1162,6 +1162,8 @@ class _LibraryResynthesizer {
     buildAnnotations(executableElement, serializedExecutable.annotations);
     executableElement.functions =
         serializedExecutable.localFunctions.map(buildLocalFunction).toList();
+    executableElement.labels =
+        serializedExecutable.localLabels.map(buildLocalLabel).toList();
     executableElement.localVariables =
         serializedExecutable.localVariables.map(buildLocalVariable).toList();
     currentTypeParameters.removeLast();
@@ -1476,6 +1478,17 @@ class _LibraryResynthesizer {
     }
     buildExecutableCommonParts(element, serializedExecutable);
     return element;
+  }
+
+  /**
+   * Resynthesize a [LabelElement].
+   */
+  LabelElement buildLocalLabel(UnlinkedLabel serializedLabel) {
+    return new LabelElementImpl(
+        serializedLabel.name,
+        serializedLabel.nameOffset,
+        serializedLabel.isOnSwitchStatement,
+        serializedLabel.isOnSwitchMember);
   }
 
   /**
