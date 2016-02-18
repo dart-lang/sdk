@@ -557,6 +557,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       _visit(holder, defaultValue);
       FunctionElementImpl initializer =
           new FunctionElementImpl.forOffset(defaultValue.beginToken.offset);
+      initializer.hasImplicitReturnType = true;
       initializer.functions = holder.functions;
       initializer.labels = holder.labels;
       initializer.localVariables = holder.localVariables;
@@ -1158,6 +1159,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       _visit(holder, node.initializer);
       FunctionElementImpl initializer =
           new FunctionElementImpl.forOffset(node.initializer.beginToken.offset);
+      initializer.hasImplicitReturnType = true;
       initializer.functions = holder.functions;
       initializer.labels = holder.labels;
       initializer.localVariables = holder.localVariables;

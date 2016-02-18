@@ -1028,6 +1028,7 @@ class C {
     expect(parameter.hasImplicitType, isTrue);
     expect(parameter.initializer, isNotNull);
     expect(parameter.initializer.type, isNotNull);
+    expect(parameter.initializer.hasImplicitReturnType, isTrue);
     expect(parameter.isConst, isFalse);
     expect(parameter.isDeprecated, isFalse);
     expect(parameter.isFinal, isFalse);
@@ -1056,6 +1057,7 @@ class C {
     expect(parameter.hasImplicitType, isFalse);
     expect(parameter.initializer, isNotNull);
     expect(parameter.initializer.type, isNotNull);
+    expect(parameter.initializer.hasImplicitReturnType, isTrue);
     expect(parameter.isConst, isFalse);
     expect(parameter.isDeprecated, isFalse);
     expect(parameter.isFinal, isFalse);
@@ -1975,6 +1977,7 @@ class C {
     FunctionElement initializer = parameter.initializer;
     expect(initializer, isNotNull);
     expect(initializer.isSynthetic, isTrue);
+    expect(initializer.hasImplicitReturnType, isTrue);
   }
 
   void test_visitSimpleFormalParameter_noType() {
@@ -2209,6 +2212,7 @@ class C {
     expect(fieldElement, isNotNull);
     FunctionElement initializerElement = fieldElement.initializer;
     expect(initializerElement, isNotNull);
+    expect(initializerElement.hasImplicitReturnType, isTrue);
     List<FunctionElement> functionElements = initializerElement.functions;
     expect(functionElements, hasLength(1));
     List<LocalVariableElement> variableElements =
@@ -2262,6 +2266,7 @@ class C {
     expect(variable, new isInstanceOf<ConstTopLevelVariableElementImpl>());
     expect(variable.initializer, isNotNull);
     expect(variable.initializer.type, isNotNull);
+    expect(variable.initializer.hasImplicitReturnType, isTrue);
     expect(variable.name, variableName);
     expect(variable.hasImplicitType, isTrue);
     expect(variable.isConst, isTrue);
