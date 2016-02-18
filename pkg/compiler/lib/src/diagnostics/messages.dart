@@ -428,7 +428,7 @@ enum MessageKind {
   THIS_IS_THE_METHOD,
   THIS_IS_THE_PART_OF_TAG,
   THIS_PROPERTY,
-  THROW_WITHOUT_EXPRESSION,
+  RETHROW_OUTSIDE_CATCH,
   TOP_LEVEL_VARIABLE_DECLARED_STATIC,
   TYPE_ARGUMENT_COUNT_MISMATCH,
   TYPE_VARIABLE_IN_CONSTANT,
@@ -453,7 +453,7 @@ enum MessageKind {
   UNSUPPORTED_EQ_EQ_EQ,
   UNSUPPORTED_LITERAL_SYMBOL,
   UNSUPPORTED_PREFIX_PLUS,
-  UNSUPPORTED_THROW_WITHOUT_EXP,
+  MISSING_EXPRESSION_IN_THROW,
   UNTERMINATED_COMMENT,
   UNTERMINATED_STRING,
   UNTERMINATED_TOKEN,
@@ -1148,11 +1148,6 @@ main() => new C(0);"""]),
       MessageKind.OPTIONAL_PARAMETER_IN_CATCH:
         const MessageTemplate(MessageKind.OPTIONAL_PARAMETER_IN_CATCH,
           "Cannot use optional parameters in catch."),
-
-      MessageKind.THROW_WITHOUT_EXPRESSION:
-        const MessageTemplate(MessageKind.THROW_WITHOUT_EXPRESSION,
-          "Cannot use re-throw outside of catch block "
-          "(expression expected after 'throw')."),
 
       MessageKind.UNBOUND_LABEL:
         const MessageTemplate(MessageKind.UNBOUND_LABEL,
@@ -2396,11 +2391,6 @@ main() => A.A = 1;
           examples: const [
               "main() => +2;  // No longer a valid way to write '2'"
           ]),
-
-      MessageKind.UNSUPPORTED_THROW_WITHOUT_EXP:
-        const MessageTemplate(MessageKind.UNSUPPORTED_THROW_WITHOUT_EXP,
-          "No expression after 'throw'. "
-          "Did you mean 'rethrow'?"),
 
       MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX:
         const MessageTemplate(MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX,

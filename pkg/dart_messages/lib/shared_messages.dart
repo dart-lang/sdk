@@ -404,6 +404,34 @@ final Map<String, Message> MESSAGES = {
       usedBy: [analyzer, dart2js],
       examples: const ["class A { int A() {} } main() { new A(); }",]),
 
+  'MISSING_EXPRESSION_IN_THROW': new Message(
+      id: 'FTGGMJ',
+      subId: 0,
+      category: Category.parserError,
+      template: "Missing expression after 'throw'.",
+      howToFix: "Did you mean 'rethrow'?",
+      usedBy: [
+        analyzer,
+        dart2js
+      ],
+      examples: const [
+        'main() { throw; }',
+        'main() { try { throw 0; } catch(e) { throw; } }'
+      ]),
+
+  /**
+   * 12.8.1 Rethrow: It is a compile-time error if an expression of the form
+   * <i>rethrow;</i> is not enclosed within a on-catch clause.
+   */
+  'RETHROW_OUTSIDE_CATCH': new Message(
+      id: 'MWETLC',
+      category: Category.compileTimeError,
+      template: 'Rethrow must be inside of catch clause',
+      howToFix: "Try moving the expression into a catch clause, or "
+          "using a 'throw' expression.",
+      usedBy: [analyzer, dart2js],
+      examples: const ["main() { rethrow; }"]),
+
   /**
    * 13.12 Return: It is a compile-time error if a return statement of the form
    * <i>return e;</i> appears in a generative constructor.

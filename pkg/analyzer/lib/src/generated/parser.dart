@@ -9682,8 +9682,7 @@ class ParserErrorCode extends ErrorCode {
           "Expected an expression after the assignment operator");
 
   static const ParserErrorCode MISSING_EXPRESSION_IN_THROW =
-      const ParserErrorCode('MISSING_EXPRESSION_IN_THROW',
-          "Throw expressions must compute the object to be thrown");
+      shared_messages.MISSING_EXPRESSION_IN_THROW;
 
   static const ParserErrorCode MISSING_FUNCTION_BODY = const ParserErrorCode(
       'MISSING_FUNCTION_BODY', "A function body must be provided");

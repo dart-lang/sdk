@@ -73,6 +73,23 @@ const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageT
       "class A { int A() {} } main() { new A(); }",
     ]
   ),  // Generated. Don't edit.
+  MessageKind.MISSING_EXPRESSION_IN_THROW: const MessageTemplate(
+    MessageKind.MISSING_EXPRESSION_IN_THROW,
+    "Missing expression after 'throw'.",
+    howToFix: "Did you mean 'rethrow'?",
+    examples: const [
+      "main() { throw; }",
+      "main() { try { throw 0; } catch(e) { throw; } }",
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.RETHROW_OUTSIDE_CATCH: const MessageTemplate(
+    MessageKind.RETHROW_OUTSIDE_CATCH,
+    "Rethrow must be inside of catch clause",
+    howToFix: "Try moving the expression into a catch clause, or using a 'throw' expression.",
+    examples: const [
+      "main() { rethrow; }",
+    ]
+  ),  // Generated. Don't edit.
   MessageKind.RETURN_IN_GENERATIVE_CONSTRUCTOR: const MessageTemplate(
     MessageKind.RETURN_IN_GENERATIVE_CONSTRUCTOR,
     "Constructors can't return values.",

@@ -62,6 +62,16 @@ const ParserErrorCode CONSTRUCTOR_WITH_RETURN_TYPE = const ParserErrorCode(
     "Constructors can't have a return type",
     "Try removing the return type.");  // Generated. Don't edit.
 
+const ParserErrorCode MISSING_EXPRESSION_IN_THROW = const ParserErrorCode(
+    'MISSING_EXPRESSION_IN_THROW',
+    "Missing expression after 'throw'.",
+    "Did you mean 'rethrow'?");  // Generated. Don't edit.
+
+const CompileTimeErrorCode RETHROW_OUTSIDE_CATCH = const CompileTimeErrorCode(
+    'RETHROW_OUTSIDE_CATCH',
+    "Rethrow must be inside of catch clause",
+    "Try moving the expression into a catch clause, or using a 'throw' expression.");  // Generated. Don't edit.
+
 const CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR = const CompileTimeErrorCode(
     'RETURN_IN_GENERATIVE_CONSTRUCTOR',
     "Constructors can't return values.",

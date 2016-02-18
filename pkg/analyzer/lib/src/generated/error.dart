@@ -2222,8 +2222,7 @@ class CompileTimeErrorCode extends ErrorCode {
    * <i>rethrow;</i> is not enclosed within a on-catch clause.
    */
   static const CompileTimeErrorCode RETHROW_OUTSIDE_CATCH =
-      const CompileTimeErrorCode(
-          'RETHROW_OUTSIDE_CATCH', "rethrow must be inside of a catch clause");
+      shared_messages.RETHROW_OUTSIDE_CATCH;
 
   /**
    * 13.12 Return: It is a compile-time error if a return statement of the form

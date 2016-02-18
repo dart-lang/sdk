@@ -3658,9 +3658,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitRethrow(Rethrow node) {
-    if (!inCatchBlock) {
+    if (!inCatchBlock && node.throwToken.stringValue == 'rethrow') {
       reporter.reportErrorMessage(
-          node, MessageKind.THROW_WITHOUT_EXPRESSION);
+          node, MessageKind.RETHROW_OUTSIDE_CATCH);
     }
     return const NoneResult();
   }
