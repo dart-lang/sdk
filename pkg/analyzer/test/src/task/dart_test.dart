@@ -1145,6 +1145,33 @@ class D { const D(value); }
         outputs[CONSTANT_DEPENDENCIES].toSet(), [x, constructorForD].toSet());
   }
 
+  test_annotation_with_nonConstArg() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+class A {
+  const A(x);
+}
+class C {
+  @A(const [(_) => null])
+  String s;
+}
+''');
+    // First compute the resolved unit for the source.
+    LibrarySpecificUnit librarySpecificUnit =
+        new LibrarySpecificUnit(source, source);
+    computeResult(librarySpecificUnit, RESOLVED_UNIT1);
+    CompilationUnit unit = outputs[RESOLVED_UNIT1];
+    // Find the annotation on the field.
+    ClassDeclaration classC = unit.declarations[1];
+    Annotation annotation = classC.members[0].metadata[0];
+    // Now compute the dependencies for the annotation, and check that it is
+    // the right size.
+    computeResult(annotation.elementAnnotation, CONSTANT_DEPENDENCIES,
+        matcher: isComputeConstantDependenciesTask);
+    expect(outputs[CONSTANT_DEPENDENCIES], hasLength(1));
+  }
+
   test_annotation_without_args() {
     Source source = newSource(
         '/test.dart',
