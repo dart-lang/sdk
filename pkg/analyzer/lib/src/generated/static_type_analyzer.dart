@@ -1600,6 +1600,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
       ClassElement returnType = library.getType(elementName);
       if (returnType != null) {
+        if (returnType.typeParameters.isNotEmpty) {
+          // Caller can't deal with unbound type parameters, so substitute
+          // `dynamic`.
+          return returnType.type.substitute4(
+              returnType.typeParameters.map((_) => _dynamicType).toList());
+        }
         return returnType.type;
       }
     }
