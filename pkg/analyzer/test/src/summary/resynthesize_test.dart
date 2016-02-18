@@ -894,6 +894,7 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized, isNotNull, reason: desc);
     expect(resynthesized.nameOffset, original.nameOffset, reason: desc);
     expect(resynthesized.name, original.name, reason: desc);
+    expect(resynthesized.isSynthetic, original.isSynthetic, reason: desc);
     // TODO(scheglov) replace this method with compareFunctionElements()
     // once we resynthesize initializers return types.
   }

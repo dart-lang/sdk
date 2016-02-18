@@ -1466,7 +1466,8 @@ class _LibraryResynthesizer {
   /**
    * Resynthesize a local [FunctionElement].
    */
-  FunctionElement buildLocalFunction(UnlinkedExecutable serializedExecutable) {
+  FunctionElementImpl buildLocalFunction(
+      UnlinkedExecutable serializedExecutable) {
     FunctionElementImpl element = new FunctionElementImpl(
         serializedExecutable.name, serializedExecutable.nameOffset);
     if (serializedExecutable.visibleOffset != 0) {
@@ -1563,10 +1564,7 @@ class _LibraryResynthesizer {
       }
       parameterElement.hasImplicitType = serializedParameter.type == null;
     }
-    if (serializedParameter.initializer != null) {
-      parameterElement.initializer =
-          buildLocalFunction(serializedParameter.initializer);
-    }
+    buildVariableInitializer(parameterElement, serializedParameter.initializer);
     switch (serializedParameter.kind) {
       case UnlinkedParamKind.named:
         parameterElement.parameterKind = ParameterKind.NAMED;
@@ -1750,11 +1748,24 @@ class _LibraryResynthesizer {
     element.const3 = serializedVariable.isConst;
     element.final2 = serializedVariable.isFinal;
     element.hasImplicitType = serializedVariable.type == null;
-    if (serializedVariable.initializer != null) {
-      element.initializer = buildLocalFunction(serializedVariable.initializer);
-    }
+    buildVariableInitializer(element, serializedVariable.initializer);
     buildDocumentation(element, serializedVariable.documentationComment);
     buildAnnotations(element, serializedVariable.annotations);
+  }
+
+  /**
+   * If the given [serializedInitializer] is not `null`, create the
+   * corresponding [FunctionElementImpl] and set it for the [variable].
+   */
+  void buildVariableInitializer(
+      VariableElementImpl variable, UnlinkedExecutable serializedInitializer) {
+    if (serializedInitializer == null) {
+      return null;
+    }
+    FunctionElementImpl initializerElement =
+        buildLocalFunction(serializedInitializer);
+    initializerElement.synthetic = true;
+    variable.initializer = initializerElement;
   }
 
   /**
