@@ -480,7 +480,8 @@ abstract class SummaryTest {
       LinkedUnit linkedSourceUnit,
       UnlinkedUnit unlinkedSourceUnit,
       int numTypeParameters: 0,
-      bool checkAstDerivedDataOverride: false}) {
+      bool checkAstDerivedDataOverride: false,
+      int localIndex: 0}) {
     linkedSourceUnit ??= definingUnit;
     unlinkedSourceUnit ??= unlinkedUnits[0];
     LinkedReference referenceResolution =
@@ -526,6 +527,7 @@ abstract class SummaryTest {
     expect(referenceResolution.kind, expectedKind);
     expect(referenceResolution.unit, expectedTargetUnit);
     expect(referenceResolution.numTypeParameters, numTypeParameters);
+    expect(referenceResolution.localIndex, localIndex);
     return reference;
   }
 
@@ -776,8 +778,8 @@ abstract class SummaryTest {
    * executable with the given [executableName].
    */
   UnlinkedExecutable serializeExecutableText(String text,
-      [String executableName = 'f']) {
-    serializeLibraryText(text);
+      {String executableName: 'f', bool allowErrors: false}) {
+    serializeLibraryText(text, allowErrors: allowErrors);
     return findExecutable(executableName, failIfAbsent: true);
   }
 
@@ -1357,6 +1359,35 @@ class E {}
         absUri('/a.dart'), 'a.dart', 'D',
         onlyInStrongMode: false);
     checkHasDependency(absUri('/a.dart'), 'a.dart', fullyLinked: false);
+  }
+
+  test_closure_executable_with_return_type_from_closure() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    // The closure has type `() => () => int`, where the `() => int` part refers
+    // to the nested closure.
+    UnlinkedExecutable executable = serializeExecutableText('''
+f() {
+  print(() {}); // force the closure below to have index 1
+  print(() => () => 0);
+}
+''');
+    expect(executable.localFunctions, hasLength(2));
+    EntityRef closureType =
+        getTypeRefForSlot(executable.localFunctions[1].inferredReturnTypeSlot);
+    checkLinkedTypeRef(closureType, null, null, '',
+        expectedKind: ReferenceKind.function);
+    int outerClosureIndex =
+        definingUnit.references[closureType.reference].containingReference;
+    checkReferenceIndex(outerClosureIndex, null, null, '',
+        expectedKind: ReferenceKind.function, localIndex: 1);
+    int topLevelFunctionIndex =
+        definingUnit.references[outerClosureIndex].containingReference;
+    checkReferenceIndex(topLevelFunctionIndex, null, null, 'f',
+        expectedKind: ReferenceKind.topLevelFunction);
+    expect(
+        definingUnit.references[topLevelFunctionIndex].containingReference, 0);
   }
 
   test_closure_executable_with_unimported_return_type() {
@@ -4010,7 +4041,7 @@ enum E {
   }
 
   test_executable_function_private() {
-    serializeExecutableText('_f() {}', '_f');
+    serializeExecutableText('_f() {}', executableName: '_f');
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 
@@ -4036,7 +4067,7 @@ enum E {
   }
 
   test_executable_getter_private() {
-    serializeExecutableText('int get _f => 1;', '_f');
+    serializeExecutableText('int get _f => 1;', executableName: '_f');
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 
@@ -4141,7 +4172,8 @@ get g {
   bbb: while (true) {}
 }
 ''';
-    UnlinkedExecutable executable = serializeExecutableText(code, 'g');
+    UnlinkedExecutable executable =
+        serializeExecutableText(code, executableName: 'g');
     List<UnlinkedLabel> labels = executable.localLabels;
     expect(labels, hasLength(2));
     {
@@ -4300,7 +4332,8 @@ get g { // 1
   f() {}
 } // 2
 ''';
-    UnlinkedExecutable executable = serializeExecutableText(code, 'g');
+    UnlinkedExecutable executable =
+        serializeExecutableText(code, executableName: 'g');
     {
       List<UnlinkedExecutable> functions = executable.localFunctions;
       expect(functions, hasLength(1));
@@ -4670,7 +4703,8 @@ f(MyFunction myFunction) {}
 
   test_executable_setter() {
     String text = 'void set f(value) {}';
-    UnlinkedExecutable executable = serializeExecutableText(text, 'f=');
+    UnlinkedExecutable executable =
+        serializeExecutableText(text, executableName: 'f=');
     expect(executable.kind, UnlinkedExecutableKind.setter);
     expect(executable.returnType, isNotNull);
     expect(executable.isExternal, isFalse);
@@ -4684,25 +4718,27 @@ f(MyFunction myFunction) {}
   }
 
   test_executable_setter_external() {
-    UnlinkedExecutable executable =
-        serializeExecutableText('external void set f(value);', 'f=');
+    UnlinkedExecutable executable = serializeExecutableText(
+        'external void set f(value);',
+        executableName: 'f=');
     expect(executable.isExternal, isTrue);
   }
 
   test_executable_setter_implicit_return() {
     UnlinkedExecutable executable =
-        serializeExecutableText('set f(value) {}', 'f=');
+        serializeExecutableText('set f(value) {}', executableName: 'f=');
     expect(executable.returnType, isNull);
   }
 
   test_executable_setter_private() {
-    serializeExecutableText('void set _f(value) {}', '_f=');
+    serializeExecutableText('void set _f(value) {}', executableName: '_f=');
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 
   test_executable_setter_type() {
-    UnlinkedExecutable executable =
-        serializeExecutableText('void set f(int value) {}', 'f=');
+    UnlinkedExecutable executable = serializeExecutableText(
+        'void set f(int value) {}',
+        executableName: 'f=');
     checkVoidTypeRef(executable.returnType);
     expect(executable.parameters, hasLength(1));
     expect(executable.parameters[0].name, 'value');
@@ -5639,6 +5675,100 @@ p.B b;
     checkHasDependency(absUri('/a.dart'), 'a.dart', fullyLinked: false);
   }
 
+  test_initializer_executable_with_return_type_from_closure() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    // The synthetic executable for `v` has type `() => () => int`, where the
+    // `() => int` part refers to the closure declared inside the initializer
+    // for v.  Note: `v` is mis-typed as `int` to prevent type propagation,
+    // which would complicate the test.
+    UnlinkedVariable variable =
+        serializeVariableText('int v = () => 0;', allowErrors: true);
+    EntityRef closureType =
+        getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
+    checkLinkedTypeRef(closureType, null, null, '',
+        expectedKind: ReferenceKind.function);
+    int initializerIndex =
+        definingUnit.references[closureType.reference].containingReference;
+    checkReferenceIndex(initializerIndex, null, null, '',
+        expectedKind: ReferenceKind.function);
+    int variableIndex =
+        definingUnit.references[initializerIndex].containingReference;
+    checkReferenceIndex(variableIndex, null, null, 'v',
+        expectedKind: ReferenceKind.topLevelPropertyAccessor);
+    expect(definingUnit.references[variableIndex].containingReference, 0);
+  }
+
+  test_initializer_executable_with_return_type_from_closure_field() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    // The synthetic executable for `v` has type `() => () => int`, where the
+    // `() => int` part refers to the closure declared inside the initializer
+    // for v.  Note: `v` is mis-typed as `int` to prevent type propagation,
+    // which would complicate the test.
+    UnlinkedClass cls = serializeClassText(
+        '''
+class C {
+  int v = () => 0;
+}
+''',
+        allowErrors: true);
+    UnlinkedVariable variable = cls.fields[0];
+    EntityRef closureType =
+        getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
+    checkLinkedTypeRef(closureType, null, null, '',
+        expectedKind: ReferenceKind.function);
+    int initializerIndex =
+        definingUnit.references[closureType.reference].containingReference;
+    checkReferenceIndex(initializerIndex, null, null, '',
+        expectedKind: ReferenceKind.function);
+    int variableIndex =
+        definingUnit.references[initializerIndex].containingReference;
+    checkReferenceIndex(variableIndex, null, null, 'v',
+        expectedKind: ReferenceKind.propertyAccessor);
+    int classIndex = definingUnit.references[variableIndex].containingReference;
+    checkReferenceIndex(classIndex, null, null, 'C');
+    expect(definingUnit.references[classIndex].containingReference, 0);
+  }
+
+  test_initializer_executable_with_return_type_from_closure_local() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    // The synthetic executable for `v` has type `() => () => int`, where the
+    // `() => int` part refers to the closure declared inside the initializer
+    // for v.  Note: `v` is mis-typed as `int` to prevent type propagation,
+    // which would complicate the test.
+    UnlinkedExecutable executable = serializeExecutableText(
+        '''
+void f() {
+  int u = 0; // force the variable below to have index 1
+  int v = () => 0;
+}''',
+        allowErrors: true);
+    UnlinkedVariable variable = executable.localVariables[1];
+    EntityRef closureType =
+        getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
+    checkLinkedTypeRef(closureType, null, null, '',
+        expectedKind: ReferenceKind.function);
+    int initializerIndex =
+        definingUnit.references[closureType.reference].containingReference;
+    checkReferenceIndex(initializerIndex, null, null, '',
+        expectedKind: ReferenceKind.function);
+    int variableIndex =
+        definingUnit.references[initializerIndex].containingReference;
+    checkReferenceIndex(variableIndex, null, null, 'v',
+        expectedKind: ReferenceKind.variable, localIndex: 1);
+    int topLevelFunctionIndex =
+        definingUnit.references[variableIndex].containingReference;
+    checkReferenceIndex(topLevelFunctionIndex, null, null, 'f',
+        expectedKind: ReferenceKind.topLevelFunction);
+    expect(
+        definingUnit.references[topLevelFunctionIndex].containingReference, 0);
+  }
+
   test_initializer_executable_with_unimported_return_type() {
     addNamedSource('/a.dart', 'import "b.dart"; class C { D d; }');
     addNamedSource('/b.dart', 'class D {}');
@@ -5935,9 +6065,10 @@ D d;''');
   }
 
   test_metadata_functionDeclaration_setter() {
-    checkAnnotationA(
-        serializeExecutableText('const a = null; @a set f(value) {}', 'f=')
-            .annotations);
+    checkAnnotationA(serializeExecutableText(
+            'const a = null; @a set f(value) {}',
+            executableName: 'f=')
+        .annotations);
   }
 
   test_metadata_functionTypeAlias() {
@@ -6289,7 +6420,8 @@ f(x) => 42;
  * Docs
  */
 void set f(value) {}''';
-    UnlinkedExecutable executable = serializeExecutableText(text, 'f=');
+    UnlinkedExecutable executable =
+        serializeExecutableText(text, executableName: 'f=');
     expect(executable.documentationComment, isNotNull);
     checkDocumentationComment(executable.documentationComment, text);
   }
@@ -6344,12 +6476,13 @@ void set f(value) {}''';
 
   test_setter_inferred_type_top_level_implicit_param() {
     UnlinkedExecutable f =
-        serializeExecutableText('void set f(value) {}', 'f=');
+        serializeExecutableText('void set f(value) {}', executableName: 'f=');
     expect(f.parameters[0].inferredTypeSlot, 0);
   }
 
   test_setter_inferred_type_top_level_implicit_return() {
-    UnlinkedExecutable f = serializeExecutableText('set f(int value) {}', 'f=');
+    UnlinkedExecutable f =
+        serializeExecutableText('set f(int value) {}', executableName: 'f=');
     expect(f.inferredReturnTypeSlot, 0);
   }
 

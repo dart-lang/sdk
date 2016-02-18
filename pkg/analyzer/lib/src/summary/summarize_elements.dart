@@ -51,6 +51,16 @@ ReferenceKind _getReferenceKind(Element element) {
     return ReferenceKind.topLevelPropertyAccessor;
   } else if (element is MethodElement) {
     return ReferenceKind.method;
+  } else if (element is TopLevelVariableElement) {
+    // Summaries don't need to distinguish between references to a variable and
+    // references to its getter.
+    return ReferenceKind.topLevelPropertyAccessor;
+  } else if (element is LocalVariableElement) {
+    return ReferenceKind.variable;
+  } else if (element is FieldElement) {
+    // Summaries don't need to distinguish between references to a field and
+    // references to its getter.
+    return ReferenceKind.propertyAccessor;
   } else {
     throw new Exception('Unexpected element kind: ${element.runtimeType}');
   }
@@ -1022,10 +1032,29 @@ class _CompilationUnitSerializer {
         linkedReference =
             new LinkedReferenceBuilder(kind: kind, unit: unit, name: name);
         Element enclosing = element?.enclosingElement;
-        if (enclosing is ClassElement) {
+        if (enclosing != null && enclosing is! CompilationUnitElement) {
           linkedReference.containingReference =
               _getElementReferenceId(enclosing, linked: linked);
-          linkedReference.numTypeParameters = enclosing.typeParameters.length;
+          if (enclosing is ClassElement) {
+            linkedReference.numTypeParameters = enclosing.typeParameters.length;
+          } else if (enclosing is ExecutableElement) {
+            if (element is FunctionElement) {
+              assert(enclosing.functions.contains(element));
+              linkedReference.localIndex = enclosing.functions.indexOf(element);
+            } else if (element is LocalVariableElement) {
+              assert(enclosing.localVariables.contains(element));
+              linkedReference.localIndex =
+                  enclosing.localVariables.indexOf(element);
+            } else {
+              throw new StateError(
+                  'Unexpected enclosed element type: ${element.runtimeType}');
+            }
+          } else if (enclosing is VariableElement) {
+            assert(identical(enclosing.initializer, element));
+          } else {
+            throw new StateError(
+                'Unexpected enclosing element type: ${enclosing.runtimeType}');
+          }
         }
         index = linkedReferences.length;
         linkedReferences.add(linkedReference);

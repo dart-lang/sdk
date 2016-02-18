@@ -1401,6 +1401,15 @@ class E {}''');
     checkLibrary('class C {} class D {}');
   }
 
+  test_closure_executable_with_return_type_from_closure() {
+    checkLibrary('''
+f() {
+  print(() {});
+  print(() => () => 0);
+}
+''');
+  }
+
   test_const_invalid_field_const() {
     constantInitializersAreInvalid = true;
     checkLibrary(
@@ -2891,6 +2900,27 @@ get x => null;''');
         ' abstract class D { void set f(int g(String s)); }');
   }
 
+  test_initializer_executable_with_return_type_from_closure() {
+    checkLibrary('var v = () => 0;');
+  }
+
+  test_initializer_executable_with_return_type_from_closure_field() {
+    checkLibrary('''
+class C {
+  var v = () => 0;
+}
+''');
+  }
+
+  test_initializer_executable_with_return_type_from_closure_local() {
+    checkLibrary('''
+void f() {
+  int u = 0;
+  var v = () => 0;
+}
+''');
+  }
+
   test_library() {
     checkLibrary('');
   }
@@ -3420,6 +3450,15 @@ void named({x: 1}) {}
     addNamedSource('/a.dart', 'part of my.lib;');
     addNamedSource('/b.dart', 'part of my.lib;');
     checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+  }
+
+  test_propagated_type_refers_to_closure() {
+    checkLibrary('''
+void f() {
+  var x = () => 0;
+  var y = x;
+}
+''');
   }
 
   test_setter_documented() {

@@ -730,6 +730,7 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
   int _containingReference;
   int _dependency;
   idl.ReferenceKind _kind;
+  int _localIndex;
   String _name;
   int _numTypeParameters;
   int _unit;
@@ -783,6 +784,22 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
   }
 
   @override
+  int get localIndex => _localIndex ??= 0;
+
+  /**
+   * If [kind] is [ReferenceKind.function] (that is, the entity being referred
+   * to is a local function), the index of the function within
+   * [UnlinkedExecutable.localFunctions].  If [kind] is
+   * [ReferenceKind.variable], the index of the variable within
+   * [UnlinkedExecutable.localVariables].  Otherwise zero.
+   */
+  void set localIndex(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _localIndex = _value;
+  }
+
+  @override
   String get name => _name ??= '';
 
   /**
@@ -826,10 +843,11 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
     _unit = _value;
   }
 
-  LinkedReferenceBuilder({int containingReference, int dependency, idl.ReferenceKind kind, String name, int numTypeParameters, int unit})
+  LinkedReferenceBuilder({int containingReference, int dependency, idl.ReferenceKind kind, int localIndex, String name, int numTypeParameters, int unit})
     : _containingReference = containingReference,
       _dependency = dependency,
       _kind = kind,
+      _localIndex = localIndex,
       _name = name,
       _numTypeParameters = numTypeParameters,
       _unit = unit;
@@ -850,6 +868,9 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
     }
     if (_kind != null && _kind != idl.ReferenceKind.classOrEnum) {
       fbBuilder.addUint8(2, _kind.index);
+    }
+    if (_localIndex != null && _localIndex != 0) {
+      fbBuilder.addUint32(6, _localIndex);
     }
     if (offset_name != null) {
       fbBuilder.addOffset(3, offset_name);
@@ -879,6 +900,7 @@ class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements 
   int _containingReference;
   int _dependency;
   idl.ReferenceKind _kind;
+  int _localIndex;
   String _name;
   int _numTypeParameters;
   int _unit;
@@ -899,6 +921,12 @@ class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements 
   idl.ReferenceKind get kind {
     _kind ??= const _ReferenceKindReader().vTableGet(_bp, 2, idl.ReferenceKind.classOrEnum);
     return _kind;
+  }
+
+  @override
+  int get localIndex {
+    _localIndex ??= const fb.Uint32Reader().vTableGet(_bp, 6, 0);
+    return _localIndex;
   }
 
   @override
@@ -926,6 +954,7 @@ abstract class _LinkedReferenceMixin implements idl.LinkedReference {
     "containingReference": containingReference,
     "dependency": dependency,
     "kind": kind,
+    "localIndex": localIndex,
     "name": name,
     "numTypeParameters": numTypeParameters,
     "unit": unit,

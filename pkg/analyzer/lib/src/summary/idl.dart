@@ -292,6 +292,16 @@ abstract class LinkedReference extends base.SummaryClass {
   ReferenceKind get kind;
 
   /**
+   * If [kind] is [ReferenceKind.function] (that is, the entity being referred
+   * to is a local function), the index of the function within
+   * [UnlinkedExecutable.localFunctions].  If [kind] is
+   * [ReferenceKind.variable], the index of the variable within
+   * [UnlinkedExecutable.localVariables].  Otherwise zero.
+   */
+  @Id(6)
+  int get localIndex;
+
+  /**
    * If this [LinkedReference] doesn't have an associated [UnlinkedReference],
    * name of the entity being referred to.  For the pseudo-type `dynamic`, the
    * string is "dynamic".  For the pseudo-type `void`, the string is "void".
@@ -383,6 +393,11 @@ enum ReferenceKind {
    * The entity is a local function.
    */
   function,
+
+  /**
+   * The entity is a local variable.
+   */
+  variable,
 
   /**
    * The entity is a top level function.

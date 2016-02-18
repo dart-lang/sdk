@@ -679,6 +679,102 @@ class _DeferredConstructorElement extends ConstructorElementHandle {
 }
 
 /**
+ * Local function element representing the intializer for a variable that has
+ * been resynthesized from a summary.  The actual element won't be constructed
+ * until it is requested.  But properties [context] and [enclosingElement] can
+ * be used without creating the actual element.
+ */
+class _DeferredInitializerElement extends FunctionElementHandle {
+  /**
+   * The variable element containing this element.
+   */
+  @override
+  final VariableElement enclosingElement;
+
+  _DeferredInitializerElement(this.enclosingElement) : super(null, null);
+
+  @override
+  FunctionElement get actualElement => enclosingElement.initializer;
+
+  @override
+  AnalysisContext get context => enclosingElement.context;
+
+  @override
+  ElementLocation get location => actualElement.location;
+}
+
+/**
+ * Local function element that has been resynthesized from a summary.  The
+ * actual element won't be constructed until it is requested.  But properties
+ * [context] and [enclosingElement] can be used without creating the actual
+ * element.
+ */
+class _DeferredLocalFunctionElement extends FunctionElementHandle {
+  /**
+   * The executable element containing this element.
+   */
+  @override
+  final ExecutableElement enclosingElement;
+
+  /**
+   * The index of this function within [ExecutableElement.functions].
+   */
+  final int _localIndex;
+
+  _DeferredLocalFunctionElement(this.enclosingElement, this._localIndex)
+      : super(null, null);
+
+  @override
+  FunctionElement get actualElement {
+    ExecutableElement enclosingElement = this.enclosingElement;
+    if (enclosingElement is PropertyAccessorElement &&
+        enclosingElement.isSynthetic) {
+      return enclosingElement.variable.initializer;
+    } else {
+      return enclosingElement.functions[_localIndex];
+    }
+  }
+
+  @override
+  AnalysisContext get context => enclosingElement.context;
+
+  @override
+  ElementLocation get location => actualElement.location;
+}
+
+/**
+ * Local variable element that has been resynthesized from a summary.  The
+ * actual element won't be constructed until it is requested.  But properties
+ * [context] and [enclosingElement] can be used without creating the actual
+ * element.
+ */
+class _DeferredLocalVariableElement extends LocalVariableElementHandle {
+  /**
+   * The executable element containing this element.
+   */
+  @override
+  final ExecutableElement enclosingElement;
+
+  /**
+   * The index of this variable within [ExecutableElement.localVariables].
+   */
+  final int _localIndex;
+
+  _DeferredLocalVariableElement(this.enclosingElement, this._localIndex)
+      : super(null, null);
+
+  @override
+  LocalVariableElement get actualElement =>
+      enclosingElement.localVariables[_localIndex];
+
+  @override
+  AnalysisContext get context => enclosingElement.context;
+
+  @override
+  ElementLocation get location => actualElement.location;
+}
+
+/**
  * An instance of [_LibraryResynthesizer] is responsible for resynthesizing the
  * elements in a single library from that library's summary.
  */
@@ -1244,6 +1340,7 @@ class _LibraryResynthesizer {
       case ReferenceKind.length:
       case ReferenceKind.prefix:
       case ReferenceKind.unresolved:
+      case ReferenceKind.variable:
         // Should never happen.  Exported names never refer to import prefixes,
         // and they always refer to defined top-level entities.
         throw new StateError('Unexpected export name kind: ${exportName.kind}');
@@ -1982,7 +2079,28 @@ class _LibraryResynthesizer {
             element = new FunctionTypeAliasElementHandle(
                 summaryResynthesizer, location);
             break;
+          case ReferenceKind.variable:
+            Element enclosingElement = enclosingInfo.element;
+            if (enclosingElement is ExecutableElement) {
+              element = new _DeferredLocalVariableElement(
+                  enclosingElement, linkedReference.localIndex);
+            } else {
+              throw new StateError('Unexpected element enclosing variable:'
+                  ' ${enclosingElement.runtimeType}');
+            }
+            break;
           case ReferenceKind.function:
+            Element enclosingElement = enclosingInfo.element;
+            if (enclosingElement is VariableElement) {
+              element = new _DeferredInitializerElement(enclosingElement);
+            } else if (enclosingElement is ExecutableElement) {
+              element = new _DeferredLocalFunctionElement(
+                  enclosingElement, linkedReference.localIndex);
+            } else {
+              throw new StateError('Unexpected element enclosing function:'
+                  ' ${enclosingElement.runtimeType}');
+            }
+            break;
           case ReferenceKind.prefix:
           case ReferenceKind.unresolved:
             break;
