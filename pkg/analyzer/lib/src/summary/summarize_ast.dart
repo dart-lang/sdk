@@ -93,8 +93,9 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     Expression target = access.target;
     if (target is Identifier) {
       EntityRefBuilder targetRef = serializeIdentifier(target);
-      return new EntityRefBuilder(reference: visitor.serializeReference(
-          targetRef.reference, access.propertyName.name));
+      return new EntityRefBuilder(
+          reference: visitor.serializeReference(
+              targetRef.reference, access.propertyName.name));
     } else {
       // TODO(scheglov) should we handle other targets in malformed constants?
       throw new StateError('Unexpected target type: ${target.runtimeType}');
@@ -588,6 +589,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     UnlinkedExecutableBuilder initializer =
         new UnlinkedExecutableBuilder(nameOffset: expression.offset);
     serializeFunctionBody(initializer, expression);
+    initializer.inferredReturnTypeSlot = assignTypeSlot();
     return initializer;
   }
 

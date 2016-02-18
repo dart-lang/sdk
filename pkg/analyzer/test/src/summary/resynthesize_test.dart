@@ -548,17 +548,13 @@ class ResynthTest extends ResolverTestCase {
     }
   }
 
-  void compareExecutableElements(
-      ExecutableElement resynthesized, ExecutableElement original, String desc,
-      {bool compareReturnTypes: true}) {
+  void compareExecutableElements(ExecutableElement resynthesized,
+      ExecutableElement original, String desc) {
     compareElements(resynthesized, original, desc);
     compareParameterElementLists(
         resynthesized.parameters, original.parameters, desc);
-    // TODO(scheglov) remove the condition once initializers have return types.
-    if (compareReturnTypes) {
-      compareTypes(
-          resynthesized.returnType, original.returnType, '$desc return type');
-    }
+    compareTypes(
+        resynthesized.returnType, original.returnType, '$desc return type');
     compareTypes(resynthesized.type, original.type, desc);
     expect(resynthesized.typeParameters.length, original.typeParameters.length);
     for (int i = 0; i < resynthesized.typeParameters.length; i++) {
@@ -605,14 +601,12 @@ class ResynthTest extends ResolverTestCase {
   }
 
   void compareFunctionElements(
-      FunctionElement resynthesized, FunctionElement original, String desc,
-      {bool compareReturnTypes: true}) {
+      FunctionElement resynthesized, FunctionElement original, String desc) {
     if (original == null && resynthesized == null) {
       return;
     }
     expect(resynthesized, isNotNull, reason: desc);
-    compareExecutableElements(resynthesized, original, desc,
-        compareReturnTypes: compareReturnTypes);
+    compareExecutableElements(resynthesized, original, desc);
     checkPossibleLocalElements(resynthesized, original);
   }
 
@@ -853,6 +847,8 @@ class ResynthTest extends ResolverTestCase {
       // TODO(scheglov) In the strong mode constant variable like
       //  `var V = new Unresolved()` gets `UndefinedTypeImpl`, and it gets
       // `DynamicTypeImpl` in the spec mode.
+    } else if (resynthesized is BottomTypeImpl && original is BottomTypeImpl) {
+      expect(resynthesized, same(original));
     } else if (resynthesized.runtimeType != original.runtimeType) {
       fail('Type mismatch: expected ${original.runtimeType},'
           ' got ${resynthesized.runtimeType} ($desc)');
@@ -876,8 +872,7 @@ class ResynthTest extends ResolverTestCase {
     // TODO(scheglov) VariableMember.initializer is not implemented
     if (original is! VariableMember) {
       compareFunctionElements(
-          resynthesized.initializer, original.initializer, desc,
-          compareReturnTypes: false);
+          resynthesized.initializer, original.initializer, desc);
     }
     VariableElementImpl originalActual = getActualElement(original, desc);
     if (originalActual is ConstVariableElement) {

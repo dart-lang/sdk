@@ -1175,7 +1175,10 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
 
   /**
    * Declared return type of the executable.  Absent if the executable is a
-   * constructor or the return type is implicit.
+   * constructor or the return type is implicit.  Absent for executables
+   * associated with variable initializers and closures, since these
+   * executables may have return types that are not accessible via direct
+   * imports.
    */
   @Id(3)
   EntityRef get returnType;
@@ -1579,6 +1582,7 @@ abstract class UnlinkedReference extends base.SummaryClass {
   /**
    * Name of the entity being referred to.  For the pseudo-type `dynamic`, the
    * string is "dynamic".  For the pseudo-type `void`, the string is "void".
+   * For the pseudo-type `bottom`, the string is "*bottom*".
    */
   @Id(0)
   String get name;

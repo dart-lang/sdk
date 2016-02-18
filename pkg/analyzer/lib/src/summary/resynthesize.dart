@@ -1897,6 +1897,9 @@ class _LibraryResynthesizer {
       } else if (name == 'void') {
         type = VoidTypeImpl.instance;
         element = type.element;
+      } else if (name == '*bottom*') {
+        type = BottomTypeImpl.instance;
+        element = null;
       } else {
         List<String> locationComponents;
         if (enclosingInfo != null && enclosingInfo.element is ClassElement) {

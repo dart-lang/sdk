@@ -161,6 +161,13 @@ class _CompilationUnitSerializer {
    */
   int unresolvedReferenceIndex = null;
 
+  /**
+   * Index into the "references table" representing the "bottom" type, if such
+   * an index exists.  `null` if no such entry has been made in the references
+   * table yet.
+   */
+  int bottomReferenceIndex = null;
+
   _CompilationUnitSerializer(
       this.librarySerializer, this.compilationUnit, this.unitNum);
 
@@ -357,6 +364,23 @@ class _CompilationUnitSerializer {
   }
 
   /**
+   * Return the index of the entry in the references table
+   * ([LinkedLibrary.references]) used for the "bottom" type.  A new entry is
+   * added to the table if necessary to satisfy the request.
+   */
+  int serializeBottomReference() {
+    if (bottomReferenceIndex == null) {
+      // References to the "bottom" type are always implicit, since there is no
+      // way to explicitly refer to the "bottom" type.  Therefore they should
+      // be stored only in the linked references table.
+      bottomReferenceIndex = linkedReferences.length;
+      linkedReferences.add(new LinkedReferenceBuilder(
+          name: '*bottom*', kind: ReferenceKind.classOrEnum));
+    }
+    return bottomReferenceIndex;
+  }
+
+  /**
    * Serialize the given [classElement], creating an [UnlinkedClass].
    */
   UnlinkedClassBuilder serializeClass(ClassElement classElement) {
@@ -522,10 +546,7 @@ class _CompilationUnitSerializer {
     UnlinkedExecutableBuilder b = new UnlinkedExecutableBuilder();
     b.name = executableElement.name;
     b.nameOffset = executableElement.nameOffset;
-    if (executableElement.enclosingElement is VariableElement) {
-      // TODO(scheglov) remove this check and serialize initializer types
-      // Note that for code like `var v = null` w need to support Bottom.
-    } else if (executableElement is! ConstructorElement) {
+    if (executableElement is! ConstructorElement) {
       if (!executableElement.hasImplicitReturnType) {
         b.returnType = serializeTypeRef(
             executableElement.type.returnType, executableElement);
@@ -738,6 +759,13 @@ class _CompilationUnitSerializer {
     Element element = type.element;
     LibraryElement dependentLibrary = element?.library;
     if (dependentLibrary == null) {
+      if (type.isBottom) {
+        // References to the "bottom" type are always implicit, since there is
+        // no way to explicitly refer to the "bottom" type.  Therefore they
+        // should always be linked.
+        assert(linked);
+        return serializeBottomReference();
+      }
       assert(type.isDynamic || type.isVoid);
       if (type is UndefinedTypeImpl) {
         return serializeUnresolvedReference();
@@ -875,8 +903,8 @@ class _CompilationUnitSerializer {
     // the element model.  For the moment we use a name that can't possibly
     // ever exist.
     if (unresolvedReferenceIndex == null) {
-      return serializeUnlinkedReference(
-          '*unresolved*', ReferenceKind.unresolved);
+      unresolvedReferenceIndex =
+          serializeUnlinkedReference('*unresolved*', ReferenceKind.unresolved);
     }
     return unresolvedReferenceIndex;
   }
@@ -932,16 +960,15 @@ class _CompilationUnitSerializer {
 
   /**
    * Create a slot id for the given [type] (which is an inferred type).  If
-   * strong mode is enabled and [type] is not `dynamic`, it is stored in
-   * [linkedTypes] so that once the compilation unit has been fully visited, it
-   * will be serialized into [LinkedUnit.types].
+   * [type] is not `dynamic`, it is stored in [linkedTypes] so that once the
+   * compilation unit has been fully visited, it will be serialized into
+   * [LinkedUnit.types].
    *
    * [context] is the element within which the slot id will appear; this is
    * used to serialize type parameters.
    */
   int storeInferredType(DartType type, Element context) {
-    return storeLinkedType(
-        librarySerializer.strongMode && !type.isDynamic ? type : null, context);
+    return storeLinkedType(type.isDynamic ? null : type, context);
   }
 
   /**

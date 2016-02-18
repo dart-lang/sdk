@@ -314,9 +314,9 @@ abstract class SummaryTest {
   }
 
   /**
-   * Test an inferred type.  If strong mode is disabled, verify that the given
-   * [slotId] exists and has no associated type.  Otherwise, behave as in
-   * [checkLinkedTypeSlot].
+   * Test an inferred type.  If [onlyInStrongMode] is `true` (the default) and
+   * strong mode is disabled, verify that the given [slotId] exists and has no
+   * associated type.  Otherwise, behave as in [checkLinkedTypeSlot].
    */
   void checkInferredTypeSlot(
       int slotId, String absoluteUri, String relativeUri, String expectedName,
@@ -325,8 +325,9 @@ abstract class SummaryTest {
       int expectedTargetUnit: 0,
       LinkedUnit linkedSourceUnit,
       UnlinkedUnit unlinkedSourceUnit,
-      int numTypeParameters: 0}) {
-    if (strongMode) {
+      int numTypeParameters: 0,
+      bool onlyInStrongMode: true}) {
+    if (strongMode || !onlyInStrongMode) {
       checkLinkedTypeSlot(slotId, absoluteUri, relativeUri, expectedName,
           allowTypeArguments: allowTypeParameters,
           expectedKind: expectedKind,
@@ -838,6 +839,20 @@ abstract class SummaryTest {
     return findVariable(variableName, failIfAbsent: true);
   }
 
+  test_bottom_reference_shared() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    // The synthetic executables for both `x` and `y` have type `() => `Bottom`.
+    // Verify that they both use the same reference to `Bottom`.
+    serializeLibraryText('int x = null; int y = null;');
+    EntityRef xInitializerReturnType =
+        getTypeRefForSlot(findVariable('x').initializer.inferredReturnTypeSlot);
+    EntityRef yInitializerReturnType =
+        getTypeRefForSlot(findVariable('y').initializer.inferredReturnTypeSlot);
+    expect(xInitializerReturnType.reference, yInitializerReturnType.reference);
+  }
+
   test_cascaded_export_hide_hide() {
     addNamedSource('/lib1.dart', 'export "lib2.dart" hide C hide B, C;');
     addNamedSource('/lib2.dart', 'class A {} class B {} class C {}');
@@ -1315,6 +1330,57 @@ class E {}
     expect(cls.typeParameters[0].nameOffset, text.indexOf('T'));
     expect(cls.typeParameters[0].bound, isNull);
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 1);
+  }
+
+  test_closure_executable_with_bottom_return_type() {
+    UnlinkedExecutable executable =
+        serializeExecutableText('f() { print((() => null)()); }');
+    expect(executable.localFunctions, hasLength(1));
+    expect(executable.localFunctions[0].returnType, isNull);
+    if (strongMode) {
+      // Strong mode infers a type for the closure of `() => dynamic`, so the
+      // inferred return type slot should be empty.
+      expect(
+          getTypeRefForSlot(
+              executable.localFunctions[0].inferredReturnTypeSlot),
+          isNull);
+    } else {
+      // Spec mode infers a type for the closure of `() => Bottom`.
+      checkInferredTypeSlot(executable.localFunctions[0].inferredReturnTypeSlot,
+          null, null, '*bottom*',
+          onlyInStrongMode: false);
+    }
+  }
+
+  test_closure_executable_with_imported_return_type() {
+    addNamedSource('/a.dart', 'class C { D d; } class D {}');
+    // The closure has type `() => D`; `D` is defined in a library that is
+    // imported.
+    UnlinkedExecutable executable = serializeExecutableText(
+        'import "a.dart"; f() { print((() => new C().d)()); }');
+    expect(executable.localFunctions, hasLength(1));
+    expect(executable.localFunctions[0].returnType, isNull);
+    checkInferredTypeSlot(executable.localFunctions[0].inferredReturnTypeSlot,
+        absUri('/a.dart'), 'a.dart', 'D',
+        onlyInStrongMode: false);
+    checkHasDependency(absUri('/a.dart'), 'a.dart', fullyLinked: false);
+  }
+
+  test_closure_executable_with_unimported_return_type() {
+    addNamedSource('/a.dart', 'import "b.dart"; class C { D d; }');
+    addNamedSource('/b.dart', 'class D {}');
+    // The closure has type `() => D`; `D` is defined in a library that is not
+    // imported.
+    UnlinkedExecutable executable = serializeExecutableText(
+        'import "a.dart"; f() { print((() => new C().d)()); }');
+    expect(executable.localFunctions, hasLength(1));
+    expect(executable.localFunctions[0].returnType, isNull);
+    checkInferredTypeSlot(executable.localFunctions[0].inferredReturnTypeSlot,
+        absUri('/b.dart'), 'b.dart', 'D',
+        onlyInStrongMode: false);
+    if (!skipFullyLinkedData) {
+      checkHasDependency(absUri('/b.dart'), 'b.dart', fullyLinked: true);
+    }
   }
 
   test_constExpr_binary_add() {
@@ -5484,6 +5550,48 @@ p.B b;
     checkReferenceIndex(linkedReference.containingReference, null, null, 'D');
   }
 
+  test_initializer_executable_with_bottom_return_type() {
+    // The synthetic executable for `v` has type `() => Bottom`.
+    UnlinkedVariable variable = serializeVariableText('int v = null;');
+    expect(variable.initializer.returnType, isNull);
+    checkInferredTypeSlot(
+        variable.initializer.inferredReturnTypeSlot, null, null, '*bottom*',
+        onlyInStrongMode: false);
+  }
+
+  test_initializer_executable_with_imported_return_type() {
+    addNamedSource('/a.dart', 'class C { D d; } class D {}');
+    // The synthetic executable for `v` has type `() => D`; `D` is defined in
+    // a library that is imported.  Note: `v` is mis-typed as `int` to prevent
+    // type propagation, which would complicate the test.
+    UnlinkedVariable variable = serializeVariableText(
+        'import "a.dart"; int v = new C().d;',
+        allowErrors: true);
+    expect(variable.initializer.returnType, isNull);
+    checkInferredTypeSlot(variable.initializer.inferredReturnTypeSlot,
+        absUri('/a.dart'), 'a.dart', 'D',
+        onlyInStrongMode: false);
+    checkHasDependency(absUri('/a.dart'), 'a.dart', fullyLinked: false);
+  }
+
+  test_initializer_executable_with_unimported_return_type() {
+    addNamedSource('/a.dart', 'import "b.dart"; class C { D d; }');
+    addNamedSource('/b.dart', 'class D {}');
+    // The synthetic executable for `v` has type `() => D`; `D` is defined in
+    // a library that is not imported.  Note: `v` is mis-typed as `int` to
+    // prevent type propagation, which would complicate the test.
+    UnlinkedVariable variable = serializeVariableText(
+        'import "a.dart"; int v = new C().d;',
+        allowErrors: true);
+    expect(variable.initializer.returnType, isNull);
+    checkInferredTypeSlot(variable.initializer.inferredReturnTypeSlot,
+        absUri('/b.dart'), 'b.dart', 'D',
+        onlyInStrongMode: false);
+    if (!skipFullyLinkedData) {
+      checkHasDependency(absUri('/b.dart'), 'b.dart', fullyLinked: true);
+    }
+  }
+
   test_invalid_prefix_dynamic() {
     if (checkAstDerivedData) {
       // TODO(paulberry): get this to work properly.
@@ -6646,6 +6754,15 @@ typedef F();''';
         unlinkedUnits[1].variables[1].type, null, 'Unresolved',
         linkedSourceUnit: linked.units[1],
         unlinkedSourceUnit: unlinkedUnits[1]);
+  }
+
+  test_unresolved_reference_shared() {
+    // Both `x` and `y` use unresolved identifier `C` as their type.  Verify
+    // that they both use the same unresolved reference.
+    serializeLibraryText('C x; C y;', allowErrors: true);
+    EntityRef xType = findVariable('x').type;
+    EntityRef yType = findVariable('y').type;
+    expect(xType.reference, yType.reference);
   }
 
   test_variable() {
