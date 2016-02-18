@@ -152,7 +152,7 @@ String get messagesAsJson {
       'examples': message.examples,
     };
   });
-  return JSON.encode(jsonified);
+  return new JsonEncoder.withIndent('  ').convert(jsonified);
 }
 
 final Map<String, Message> MESSAGES = {
