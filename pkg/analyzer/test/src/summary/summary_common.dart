@@ -585,15 +585,8 @@ abstract class SummaryTest {
     } else if (prefixExpectations != null) {
       for (_PrefixExpectation expectation in prefixExpectations) {
         expect(reference.prefixReference, isNot(0));
-        reference = checkReferenceIndex(
-            reference.prefixReference,
-            expectation.inLibraryDefiningUnit
-                ? null
-                : expectation.absoluteUri ?? absoluteUri,
-            expectation.inLibraryDefiningUnit
-                ? null
-                : expectation.relativeUri ?? relativeUri,
-            expectation.name,
+        reference = checkReferenceIndex(reference.prefixReference,
+            expectation.absoluteUri, expectation.relativeUri, expectation.name,
             expectedKind: expectation.kind,
             checkAstDerivedDataOverride: checkAstDerivedDataOverride,
             expectedTargetUnit: expectedTargetUnit,
@@ -1772,8 +1765,7 @@ const v = const p.C<int, String>.named();
                   absoluteUri: absUri('/a.dart'),
                   relativeUri: 'a.dart',
                   numTypeParameters: 2),
-              new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                  inLibraryDefiningUnit: true)
+              new _PrefixExpectation(ReferenceKind.prefix, 'p')
             ],
             allowTypeParameters: true);
         checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
@@ -1859,8 +1851,7 @@ const v = const p.C<int, String>();
             numTypeParameters: 2,
             allowTypeParameters: true,
             prefixExpectations: [
-              new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                  inLibraryDefiningUnit: true)
+              new _PrefixExpectation(ReferenceKind.prefix, 'p')
             ]);
         checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
         checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
@@ -1939,8 +1930,7 @@ const v = const p.C.named();
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2030,8 +2020,7 @@ const v = const p.C();
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
               expectedKind: ReferenceKind.classOrEnum,
               prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2104,8 +2093,7 @@ const v = const p.C.foo();
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2129,8 +2117,7 @@ const v = const p.C.foo();
               checkAstDerivedDataOverride: true,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.unresolved, 'C'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2191,8 +2178,7 @@ const int v = p.C.length;
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2275,8 +2261,7 @@ const int v = p.a.length;
                 new _PrefixExpectation(
                     ReferenceKind.topLevelPropertyAccessor, 'a',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2645,8 +2630,7 @@ const v = p.C.F;
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p'),
               ])
     ]);
   }
@@ -2731,8 +2715,7 @@ const v = p.C.m;
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2802,8 +2785,7 @@ const v = p.f;
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'f',
               expectedKind: ReferenceKind.topLevelFunction,
               prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2918,8 +2900,7 @@ const v = p.C.foo;
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p'),
               ])
     ]);
   }
@@ -7090,14 +7071,10 @@ var v;''';
 class _PrefixExpectation {
   final ReferenceKind kind;
   final String name;
-  final bool inLibraryDefiningUnit;
   final String absoluteUri;
   final String relativeUri;
   final int numTypeParameters;
 
   _PrefixExpectation(this.kind, this.name,
-      {this.inLibraryDefiningUnit: false,
-      this.absoluteUri,
-      this.relativeUri,
-      this.numTypeParameters: 0});
+      {this.absoluteUri, this.relativeUri, this.numTypeParameters: 0});
 }
