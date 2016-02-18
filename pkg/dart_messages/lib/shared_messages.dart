@@ -75,6 +75,8 @@ class Category {
 
   static final parserError = new Category("ParserError");
 
+  static final compileTimeError = new Category("CompileTimeError");
+
   final String name;
 
   Category(this.name);
@@ -401,4 +403,56 @@ final Map<String, Message> MESSAGES = {
       howToFix: "Try removing the return type.",
       usedBy: [analyzer, dart2js],
       examples: const ["class A { int A() {} } main() { new A(); }",]),
+
+  /**
+   * 13.12 Return: It is a compile-time error if a return statement of the form
+   * <i>return e;</i> appears in a generative constructor.
+   */
+  'RETURN_IN_GENERATIVE_CONSTRUCTOR': new Message(
+      id: 'UOTDQH',
+      category: Category.compileTimeError,
+      template: "Constructors can't return values.",
+      howToFix:
+          "Try removing the return statement or using a factory constructor.",
+      usedBy: [
+        analyzer,
+        dart2js
+      ],
+      examples: const [
+        """
+        class C {
+          C() {
+            return 1;
+          }
+        }
+
+        main() => new C();"""
+      ]),
+
+  /**
+   * 13.12 Return: It is a compile-time error if a return statement of the form
+   * <i>return e;</i> appears in a generator function.
+   */
+  'RETURN_IN_GENERATOR': new Message(
+      id: 'JRUTUQ',
+      subId: 0,
+      category: Category.compileTimeError,
+      template: "Can't return a value from a generator function "
+          "(using the '#{modifier}' modifier).",
+      howToFix: "Try removing the value, replacing 'return' with 'yield' or"
+          " changing the method body modifier",
+      usedBy: [
+        analyzer,
+        dart2js
+      ],
+      examples: const [
+        """
+        foo() async* { return 0; }
+        main() => foo();
+        """,
+        """
+        foo() sync* { return 0; }
+        main() => foo();
+        """
+      ]),
 };

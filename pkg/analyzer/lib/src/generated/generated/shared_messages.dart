@@ -61,3 +61,13 @@ const ParserErrorCode CONSTRUCTOR_WITH_RETURN_TYPE = const ParserErrorCode(
     'CONSTRUCTOR_WITH_RETURN_TYPE',
     "Constructors can't have a return type",
     "Try removing the return type.");  // Generated. Don't edit.
+
+const CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR = const CompileTimeErrorCode(
+    'RETURN_IN_GENERATIVE_CONSTRUCTOR',
+    "Constructors can't return values.",
+    "Try removing the return statement or using a factory constructor.");  // Generated. Don't edit.
+
+const CompileTimeErrorCode RETURN_IN_GENERATOR = const CompileTimeErrorCode(
+    'RETURN_IN_GENERATOR',
+    "Can't return a value from a generator function (using the '{0}' modifier).",
+    "Try removing the value, replacing 'return' with 'yield' or changing the method body modifier");  // Generated. Don't edit.

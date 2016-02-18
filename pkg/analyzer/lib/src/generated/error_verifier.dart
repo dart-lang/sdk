@@ -1928,7 +1928,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else if (_inGenerator) {
       // RETURN_IN_GENERATOR
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_IN_GENERATOR, statement);
+          CompileTimeErrorCode.RETURN_IN_GENERATOR,
+          statement,
+          [_inAsync ? "async*" : "sync*"]);
     }
     // RETURN_OF_INVALID_TYPE
     return _checkForReturnOfInvalidType(returnExpression, expectedReturnType);

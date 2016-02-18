@@ -73,4 +73,34 @@ const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageT
       "class A { int A() {} } main() { new A(); }",
     ]
   ),  // Generated. Don't edit.
+  MessageKind.RETURN_IN_GENERATIVE_CONSTRUCTOR: const MessageTemplate(
+    MessageKind.RETURN_IN_GENERATIVE_CONSTRUCTOR,
+    "Constructors can't return values.",
+    howToFix: "Try removing the return statement or using a factory constructor.",
+    examples: const [
+      r"""
+        class C {
+          C() {
+            return 1;
+          }
+        }
+
+        main() => new C();""",
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.RETURN_IN_GENERATOR: const MessageTemplate(
+    MessageKind.RETURN_IN_GENERATOR,
+    "Can't return a value from a generator function (using the '#{modifier}' modifier).",
+    howToFix: "Try removing the value, replacing 'return' with 'yield' or changing the method body modifier",
+    examples: const [
+      r"""
+        foo() async* { return 0; }
+        main() => foo();
+        """,
+      r"""
+        foo() sync* { return 0; }
+        main() => foo();
+        """,
+    ]
+  ),  // Generated. Don't edit.
 };

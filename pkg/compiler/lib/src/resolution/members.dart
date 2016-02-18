@@ -3674,7 +3674,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // Specification 13.12.)
         reporter.reportErrorMessage(
             expression,
-            MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR);
+            MessageKind.RETURN_IN_GENERATIVE_CONSTRUCTOR);
       } else if (!node.isArrowBody && currentAsyncMarker.isYielding) {
         reporter.reportErrorMessage(
             node,

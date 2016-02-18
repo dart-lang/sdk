@@ -136,7 +136,7 @@ enum MessageKind {
   CANNOT_RESOLVE_IN_INITIALIZER,
   CANNOT_RESOLVE_SETTER,
   CANNOT_RESOLVE_TYPE,
-  CANNOT_RETURN_FROM_CONSTRUCTOR,
+  RETURN_IN_GENERATIVE_CONSTRUCTOR,
   CLASS_NAME_EXPECTED,
   COMPILER_CRASHED,
   COMPLEX_RETURNING_NSM,
@@ -1847,19 +1847,6 @@ main() {
         const MessageTemplate(MessageKind.OPERATOR_NAMED_PARAMETERS,
           "Operator '#{operatorName}' cannot have named parameters."),
 
-      MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR:
-        const MessageTemplate(MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR,
-          "Constructors can't return values.",
-          howToFix: "Remove the return statement or use a factory constructor.",
-          examples: const ["""
-class C {
-  C() {
-    return 1;
-  }
-}
-
-main() => new C();"""]),
-
       MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER:
         const MessageTemplate(MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER,
           "Cannot have final modifier on method."),
@@ -3313,23 +3300,6 @@ main() async* {
 main() sync* {
  var yield;
 }"""]),
-
-      MessageKind.RETURN_IN_GENERATOR:
-        const MessageTemplate(MessageKind.RETURN_IN_GENERATOR,
-          "'return' with a value is not allowed in a method body using the "
-          "'#{modifier}' modifier.",
-          howToFix: "Try removing the value, replacing 'return' with 'yield' "
-                    "or changing the method body modifier.",
-          examples: const [
-"""
-foo() async* { return 0; }
-main() => foo();
-""",
-
-"""
-foo() sync* { return 0; }
-main() => foo();
-"""]),
 
       MessageKind.NATIVE_NOT_SUPPORTED:
         const MessageTemplate(MessageKind.NATIVE_NOT_SUPPORTED,
