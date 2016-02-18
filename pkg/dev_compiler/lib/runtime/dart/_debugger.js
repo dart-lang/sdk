@@ -532,7 +532,7 @@ dart_library.library('dart/_debugger', null, /* Imports */[
   });
   function registerDevtoolsFormatter() {
     let formatters = [exports._devtoolsFormatter];
-    window.devtoolsFormatters = formatters;
+    dart.global.devtoolsFormatters = formatters;
   }
   dart.fn(registerDevtoolsFormatter);
   // Exports:

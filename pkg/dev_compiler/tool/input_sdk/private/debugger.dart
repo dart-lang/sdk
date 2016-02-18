@@ -536,5 +536,5 @@ class HeritageClauseFormatter implements Formatter {
 /// Dart Dev Compiler
 registerDevtoolsFormatter() {
   var formatters = [_devtoolsFormatter];
-  JS('', 'window.devtoolsFormatters = #', formatters);
+  JS('', 'dart.global.devtoolsFormatters = #', formatters);
 }
