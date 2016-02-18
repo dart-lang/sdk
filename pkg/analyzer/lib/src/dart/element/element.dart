@@ -705,7 +705,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
           new ConstructorElementImpl(superclassConstructor.name, -1);
       implicitConstructor.synthetic = true;
       implicitConstructor.redirectedConstructor = superclassConstructor;
-      implicitConstructor.const2 = superclassConstructor.isConst;
       implicitConstructor.returnType = type;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
@@ -4547,17 +4546,17 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterElementImpl(String name, int offset) : super(name, offset);
 
   /**
+   * Initialize a newly created type parameter element to have the given [name].
+   */
+  TypeParameterElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
    * Initialize a newly created synthetic type parameter element to have the
    * given [name], and with [synthetic] set to true.
    */
   TypeParameterElementImpl.synthetic(String name) : super(name, -1) {
     synthetic = true;
   }
-
-  /**
-   * Initialize a newly created type parameter element to have the given [name].
-   */
-  TypeParameterElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
