@@ -181,6 +181,7 @@ big_integer_parsed_mul_div_vm_test: Pass, Slow
 data_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
 package_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
 regexp/pcre_test: Crash # Stack Overflow in LoopHierarchy.
+core_runtime_types_test: Pass, RuntimeError # Issue 25795.
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 regexp/pcre_test: Crash # Stack Overflow
