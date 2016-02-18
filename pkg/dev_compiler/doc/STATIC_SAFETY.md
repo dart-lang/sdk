@@ -277,7 +277,7 @@ In strong mode, we introduce a stricter subtyping rule <:<sub>S</sub> to disallo
 
 but that this is not:
 
-`List<int>` ~~<:<sub>S</sub> `List`~~
+`List` ~~<:<sub>S</sub> `List<int>`~~
 
 The example above fails in strong mode:
 
