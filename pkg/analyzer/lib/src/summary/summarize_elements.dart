@@ -991,22 +991,15 @@ class _CompilationUnitSerializer {
 
   int _getElementReferenceId(Element element, {bool linked: false}) {
     return referenceMap.putIfAbsent(element, () {
-      LibraryElement dependentLibrary;
+      LibraryElement dependentLibrary = librarySerializer.libraryElement;
+      int unit = 0;
       if (element != null) {
         Element enclosingElement = element.enclosingElement;
         if (enclosingElement is CompilationUnitElement) {
           dependentLibrary = enclosingElement.library;
+          unit = dependentLibrary.units.indexOf(enclosingElement);
+          assert(unit != -1);
         }
-      }
-      int unit;
-      if (dependentLibrary == null) {
-        unit = 0;
-        dependentLibrary = librarySerializer.libraryElement;
-      } else {
-        CompilationUnitElement unitElement =
-            element.getAncestor((Element e) => e is CompilationUnitElement);
-        unit = dependentLibrary.units.indexOf(unitElement);
-        assert(unit != -1);
       }
       ReferenceKind kind = _getReferenceKind(element);
       String name = element == null ? 'void' : element.name;
