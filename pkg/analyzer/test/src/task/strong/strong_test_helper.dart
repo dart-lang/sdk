@@ -74,7 +74,7 @@ void check() {
 
   // Extract expectations from the comments in the test files, and
   // check that all errors we emit are included in the expected map.
-  var allLibraries = reachableLibraries(initialLibrary.element.library);
+  var allLibraries = _reachableLibraries(initialLibrary.element.library);
   for (var lib in allLibraries) {
     for (var unit in lib.units) {
       var errors = <AnalysisError>[];
@@ -101,11 +101,11 @@ void checkFile(String content) {
   check();
 }
 
-SourceSpanWithContext createSpanHelper(
+SourceSpanWithContext _createSpanHelper(
     LineInfo lineInfo, int start, Source source, String content,
     {int end}) {
-  var startLoc = locationForOffset(lineInfo, source.uri, start);
-  var endLoc = locationForOffset(lineInfo, source.uri, end ?? start);
+  var startLoc = _locationForOffset(lineInfo, source.uri, start);
+  var endLoc = _locationForOffset(lineInfo, source.uri, end ?? start);
 
   var lineStart = startLoc.offset - startLoc.column;
   // Find the end of the line. This is not exposed directly on LineInfo, but
@@ -119,7 +119,7 @@ SourceSpanWithContext createSpanHelper(
 
   if (end == null) {
     end = lineEnd;
-    endLoc = locationForOffset(lineInfo, source.uri, lineEnd);
+    endLoc = _locationForOffset(lineInfo, source.uri, lineEnd);
   }
 
   var text = content.substring(start, end);
@@ -137,7 +137,7 @@ String _errorCodeName(ErrorCode errorCode) {
   }
 }
 
-initStrongModeTests() {
+void initStrongModeTests() {
   setUp(() {
     AnalysisEngine.instance.processRequiredPlugins();
     files = new MemoryResourceProvider();
@@ -151,15 +151,14 @@ initStrongModeTests() {
   });
 }
 
-// TODO(jmesserly): can we reuse the same mock SDK as Analyzer tests?
-SourceLocation locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
+SourceLocation _locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
   var loc = lineInfo.getLocation(offset);
   return new SourceLocation(offset,
       sourceUrl: uri, line: loc.lineNumber - 1, column: loc.columnNumber - 1);
 }
 
 /// Returns all libraries transitively imported or exported from [start].
-List<LibraryElement> reachableLibraries(LibraryElement start) {
+List<LibraryElement> _reachableLibraries(LibraryElement start) {
   var results = <LibraryElement>[];
   var seen = new Set();
   void find(LibraryElement lib) {
@@ -237,9 +236,11 @@ List<_ErrorExpectation> _findExpectedErrors(Token beginToken) {
       if (c.type == TokenType.MULTI_LINE_COMMENT) {
         String value = c.lexeme.substring(2, c.lexeme.length - 2);
         if (value.contains(':')) {
-          var offset = c.end;
-          if (c.next?.type == TokenType.GENERIC_METHOD_TYPE_LIST) {
-            offset += 2;
+          int offset = t.offset;
+          Token previous = t.previous;
+          while (previous != null && previous.offset > c.offset) {
+            offset = previous.offset;
+            previous = previous.previous;
           }
           for (var expectCode in value.split(',')) {
             var expected = _ErrorExpectation.parse(offset, expectCode);
@@ -266,7 +267,7 @@ void _reportFailure(
   String formatActualError(AnalysisError error) {
     int offset = error.offset;
     int length = error.length;
-    var span = createSpanHelper(
+    var span = _createSpanHelper(
         unit.lineInfo, offset, unit.element.source, sourceCode,
         end: offset + length);
     var levelName = _actualErrorLevel(error).name.toLowerCase();
@@ -276,7 +277,7 @@ void _reportFailure(
 
   String formatExpectedError(_ErrorExpectation error) {
     int offset = error.offset;
-    var span = createSpanHelper(
+    var span = _createSpanHelper(
         unit.lineInfo, offset, unit.element.source, sourceCode);
     var levelName = error.level.toString().toLowerCase();
     return '@$offset $levelName:${error.typeName}\n' + span.message('');

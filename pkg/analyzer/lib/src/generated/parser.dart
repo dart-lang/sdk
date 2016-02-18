@@ -3951,6 +3951,8 @@ class Parser {
           String comment = t.lexeme.substring(prefixLen, t.lexeme.length - 2);
           Token list = _scanGenericMethodComment(comment, t.offset + prefixLen);
           if (list != null) {
+            // Remove the token from the comment stream.
+            t.remove();
             // Insert the tokens into the stream.
             _injectTokenList(list);
             return true;

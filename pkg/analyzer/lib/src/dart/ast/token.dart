@@ -35,7 +35,7 @@ class BeginToken extends SimpleToken {
 /**
  * A begin token that is preceded by comments.
  */
-class BeginTokenWithComment extends BeginToken {
+class BeginTokenWithComment extends BeginToken implements TokenWithComment {
   /**
    * The first comment in the list of comments that precede this token.
    */
@@ -79,9 +79,9 @@ class BeginTokenWithComment extends BeginToken {
  */
 class CommentToken extends StringToken {
   /**
-   * The [Token] that contains this comment.
+   * The token that contains this comment.
    */
-  Token parent;
+  TokenWithComment parent;
 
   /**
    * Initialize a newly created token to represent a token of the given [type]
@@ -92,6 +92,21 @@ class CommentToken extends StringToken {
 
   @override
   CommentToken copy() => new CommentToken(type, _value, offset);
+
+  /**
+   * Remove this comment token from the list.
+   *
+   * This is used when we decide to interpret the comment as syntax.
+   */
+  void remove() {
+    if (previous != null) {
+      previous.setNextWithoutSettingPrevious(next);
+      next?.previous = previous;
+    } else {
+      assert(parent.precedingComments == this);
+      parent.precedingComments = next;
+    }
+  }
 }
 
 /**
@@ -149,7 +164,7 @@ class KeywordToken extends SimpleToken {
 /**
  * A keyword token that is preceded by comments.
  */
-class KeywordTokenWithComment extends KeywordToken {
+class KeywordTokenWithComment extends KeywordToken implements TokenWithComment {
   /**
    * The first comment in the list of comments that precede this token.
    */
@@ -340,7 +355,7 @@ class StringToken extends SimpleToken {
 /**
  * A string token that is preceded by comments.
  */
-class StringTokenWithComment extends StringToken {
+class StringTokenWithComment extends StringToken implements TokenWithComment {
   /**
    * The first comment in the list of comments that precede this token.
    */

@@ -1531,6 +1531,50 @@ class Foo {
         reason: 'parser recovers what it can');
   }
 
+  void test_method_invalidTypeParameterExtends() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/25739.
+
+    // TODO(jmesserly): ideally we'd be better at parser recovery here.
+    enableGenericMethods = true;
+    MethodDeclaration method = parse3(
+        "parseClassMember",
+        <Object>["C"],
+        "f<E>(E extends num p);",
+        [
+          ParserErrorCode.MISSING_IDENTIFIER, // `extends` is a keyword
+          ParserErrorCode.EXPECTED_TOKEN, // comma
+          ParserErrorCode.EXPECTED_TOKEN, // close paren
+          ParserErrorCode.MISSING_FUNCTION_BODY
+        ]);
+    expect(method.parameters.toString(), '(E, extends)',
+        reason: 'parser recovers what it can');
+  }
+
+
+  void test_method_invalidTypeParameterExtendsComment() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/25739.
+
+    // TODO(jmesserly): ideally we'd be better at parser recovery here.
+    // Also, this behavior is slightly different from how we would parse a
+    // normal generic method, because we "discover" the comment at a different
+    // point in the parser. This has a slight effect on the AST that results
+    // from error recovery.
+    enableGenericMethodComments = true;
+    MethodDeclaration method = parse3(
+        "parseClassMember",
+        <Object>["C"],
+        "f/*<E>*/(dynamic/*=E extends num*/p);",
+        [
+          ParserErrorCode.MISSING_IDENTIFIER, // `extends` is a keyword
+          ParserErrorCode.EXPECTED_TOKEN, // comma
+          ParserErrorCode.MISSING_IDENTIFIER, // `extends` is a keyword
+          ParserErrorCode.EXPECTED_TOKEN, // close paren
+          ParserErrorCode.MISSING_FUNCTION_BODY
+        ]);
+    expect(method.parameters.toString(), '(E extends, extends)',
+        reason: 'parser recovers what it can');
+  }
+
   void test_missingAssignableSelector_identifiersAssigned() {
     parseExpression("x.y = y;");
   }
