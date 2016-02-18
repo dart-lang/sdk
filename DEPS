@@ -38,7 +38,7 @@ vars = {
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
   "dart2js_info_rev" : "@0a221eaf16aec3879c45719de656680ccb80d8a1",
-  "dartdoc_tag" : "@v0.8.5",
+  "dartdoc_tag" : "@v0.9.0",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.4",
   "dev_compiler_rev": "@0.1.9",
@@ -71,6 +71,7 @@ vars = {
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
+  "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
   "root_certificates_rev": "@c3a41df63afacec62fcb8135196177e35fe72f71",
   "scheduled_test_tag": "@0.12.4+2",
   "shelf_tag": "@0.6.4+3",
@@ -224,6 +225,8 @@ deps = {
       Var("chromium_git")
       + "/external/github.com/google/quiver-dart.git"
       + Var("quiver_tag"),
+  Var("dart_root") + "/third_party/pkg/resource":
+    "https://github.com/dart-lang/resource.git" + Var("resource_rev"),
   Var("dart_root") + "/third_party/pkg/scheduled_test":
       (Var("github_mirror") % "scheduled_test") + Var("scheduled_test_tag"),
   Var("dart_root") + "/third_party/pkg/shelf":
