@@ -934,6 +934,10 @@ class AstCloner implements AstVisitor<AstNode> {
     if (token is CommentToken) {
       token = (token as CommentToken).parent;
     }
+    if (_lastCloned == null) {
+      _lastCloned = new Token(TokenType.EOF, -1);
+      _lastCloned.setNext(_lastCloned);
+    }
     while (token != null) {
       Token clone = token.copy();
       {
@@ -952,7 +956,7 @@ class AstCloner implements AstVisitor<AstNode> {
         }
       }
       _clonedTokens[token] = clone;
-      _lastCloned?.setNext(clone);
+      _lastCloned.setNext(clone);
       _lastCloned = clone;
       if (token.type == TokenType.EOF) {
         break;

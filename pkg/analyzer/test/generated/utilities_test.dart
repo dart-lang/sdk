@@ -1194,6 +1194,10 @@ library l;''');
   static void _assertEqualTokens(AstNode cloneNode, AstNode originalNode) {
     Token clone = cloneNode.beginToken;
     Token original = originalNode.beginToken;
+    if (original is! CommentToken) {
+      _assertHasPrevious(original);
+      _assertHasPrevious(clone);
+    }
     Token stopOriginalToken = originalNode.endToken.next;
     Token skipCloneComment = null;
     Token skipOriginalComment = null;
@@ -1229,6 +1233,26 @@ library l;''');
         clone = clone.next;
         original = original.next;
       }
+    }
+  }
+
+  /**
+   * Assert that the [token] has `previous` set, and if it `EOF`, then it
+   * points itself.
+   */
+  static void _assertHasPrevious(Token token) {
+    expect(token, isNotNull);
+    if (token.type == TokenType.EOF) {
+      return;
+    }
+    while (token != null) {
+      Token previous = token.previous;
+      expect(previous, isNotNull);
+      if (token.type == TokenType.EOF) {
+        expect(previous, same(token));
+        break;
+      }
+      token = previous;
     }
   }
 }
