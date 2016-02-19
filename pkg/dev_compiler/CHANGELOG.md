@@ -1,5 +1,8 @@
 # dev_compiler changelog
 
+## 0.1.19
+- support for dom libraries (dart:html, etc)
+
 ## 0.1.18
 - dart:typed_data support
 - preliminary TS / Closure output support
