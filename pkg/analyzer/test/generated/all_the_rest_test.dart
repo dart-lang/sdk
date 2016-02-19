@@ -176,6 +176,18 @@ class DirectoryBasedDartSdkTest {
     expect(source.uri.toString(), "dart:core");
   }
 
+  void test_fromFile_library_firstExact() {
+    DirectoryBasedDartSdk sdk = _createDartSdk();
+    JavaFile dirHtml = new JavaFile.relative(sdk.libraryDirectory, "html");
+    JavaFile dirDartium = new JavaFile.relative(dirHtml, "dartium");
+    JavaFile file = new JavaFile.relative(dirDartium, "html_dartium.dart");
+    expect(file.isFile(), isTrue);
+    Source source = sdk.fromFileUri(file.toURI());
+    expect(source, isNotNull);
+    expect(source.isInSystemLibrary, isTrue);
+    expect(source.uri.toString(), "dart:html");
+  }
+
   void test_fromFile_part() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     Source source = sdk.fromFileUri(new JavaFile.relative(
