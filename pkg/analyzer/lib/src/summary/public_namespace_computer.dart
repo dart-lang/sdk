@@ -32,7 +32,10 @@ class _CombinatorEncoder extends SimpleAstVisitor<UnlinkedCombinatorBuilder> {
 
   @override
   UnlinkedCombinatorBuilder visitShowCombinator(ShowCombinator node) {
-    return new UnlinkedCombinatorBuilder(shows: encodeNames(node.shownNames));
+    return new UnlinkedCombinatorBuilder(
+        shows: encodeNames(node.shownNames),
+        offset: node.offset,
+        end: node.end);
   }
 }
 
@@ -92,8 +95,7 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
                     member.typeParameters?.typeParameters?.length ?? 0));
           }
         }
-        if (member is ConstructorDeclaration &&
-            member.name != null) {
+        if (member is ConstructorDeclaration && member.name != null) {
           String name = member.name.name;
           if (isPublic(name)) {
             cls.members.add(new UnlinkedPublicNameBuilder(

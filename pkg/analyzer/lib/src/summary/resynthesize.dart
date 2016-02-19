@@ -1019,6 +1019,8 @@ class _LibraryResynthesizer {
       // Note: we call toList() so that we don't retain a reference to the
       // deserialized data structure.
       combinator.shownNames = serializedCombinator.shows.toList();
+      combinator.offset = serializedCombinator.offset;
+      combinator.end = serializedCombinator.end;
       return combinator;
     } else {
       HideElementCombinatorImpl combinator = new HideElementCombinatorImpl();

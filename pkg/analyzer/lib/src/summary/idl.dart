@@ -549,10 +549,26 @@ abstract class UnlinkedClass extends base.SummaryClass {
  */
 abstract class UnlinkedCombinator extends base.SummaryClass {
   /**
+   * If this is a `show` combinator, offset of the end of the list of shown
+   * names.  Otherwise zero.
+   */
+  @informative
+  @Id(3)
+  int get end;
+
+  /**
    * List of names which are hidden.  Empty if this is a `show` combinator.
    */
   @Id(1)
   List<String> get hides;
+
+  /**
+   * If this is a `show` combinator, offset of the `show` keyword.  Otherwise
+   * zero.
+   */
+  @informative
+  @Id(2)
+  int get offset;
 
   /**
    * List of names which are shown.  Empty if this is a `hide` combinator.

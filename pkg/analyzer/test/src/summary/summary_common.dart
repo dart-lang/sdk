@@ -4889,6 +4889,9 @@ f(MyFunction myFunction) {}
         'Future');
     expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides[1],
         'Stream');
+    expect(
+        unlinkedUnits[0].publicNamespace.exports[0].combinators[0].offset, 0);
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].end, 0);
     expect(linked.exportNames, isNotEmpty);
   }
 
@@ -4981,7 +4984,8 @@ f(MyFunction myFunction) {}
   }
 
   test_export_show_order() {
-    serializeLibraryText('export "dart:async" show Future, Stream;');
+    String libraryText = 'export "dart:async" show Future, Stream;';
+    serializeLibraryText(libraryText);
     expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
     expect(
         unlinkedUnits[0].publicNamespace.exports[0].combinators, hasLength(1));
@@ -4993,6 +4997,10 @@ f(MyFunction myFunction) {}
         'Future');
     expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].shows[1],
         'Stream');
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].offset,
+        libraryText.indexOf('show'));
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].end,
+        libraryText.indexOf(';'));
   }
 
   test_export_typedef() {
@@ -5327,6 +5335,8 @@ get f => null;''';
     expect(unlinkedUnits[0].imports[0].combinators[0].hides, hasLength(2));
     expect(unlinkedUnits[0].imports[0].combinators[0].hides[0], 'Future');
     expect(unlinkedUnits[0].imports[0].combinators[0].hides[1], 'Stream');
+    expect(unlinkedUnits[0].imports[0].combinators[0].offset, 0);
+    expect(unlinkedUnits[0].imports[0].combinators[0].end, 0);
   }
 
   test_import_implicit() {
@@ -5519,6 +5529,10 @@ p.B b;
     expect(unlinkedUnits[0].imports[0].combinators[0].hides, isEmpty);
     expect(unlinkedUnits[0].imports[0].combinators[0].shows[0], 'Future');
     expect(unlinkedUnits[0].imports[0].combinators[0].shows[1], 'Stream');
+    expect(unlinkedUnits[0].imports[0].combinators[0].offset,
+        libraryText.indexOf('show'));
+    expect(unlinkedUnits[0].imports[0].combinators[0].end,
+        libraryText.indexOf('; Future'));
   }
 
   test_import_uri() {

@@ -409,6 +409,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     if (combinator is ShowCombinator) {
       b.shows =
           combinator.shownNames.map((SimpleIdentifier id) => id.name).toList();
+      b.offset = combinator.offset;
+      b.end = combinator.end;
     } else if (combinator is HideCombinator) {
       b.hides =
           combinator.hiddenNames.map((SimpleIdentifier id) => id.name).toList();

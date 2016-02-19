@@ -1719,8 +1719,23 @@ abstract class _UnlinkedClassMixin implements idl.UnlinkedClass {
 class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
   bool _finished = false;
 
+  int _end;
   List<String> _hides;
+  int _offset;
   List<String> _shows;
+
+  @override
+  int get end => _end ??= 0;
+
+  /**
+   * If this is a `show` combinator, offset of the end of the list of shown
+   * names.  Otherwise zero.
+   */
+  void set end(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _end = _value;
+  }
 
   @override
   List<String> get hides => _hides ??= <String>[];
@@ -1734,6 +1749,19 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
   }
 
   @override
+  int get offset => _offset ??= 0;
+
+  /**
+   * If this is a `show` combinator, offset of the `show` keyword.  Otherwise
+   * zero.
+   */
+  void set offset(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _offset = _value;
+  }
+
+  @override
   List<String> get shows => _shows ??= <String>[];
 
   /**
@@ -1744,8 +1772,10 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
     _shows = _value;
   }
 
-  UnlinkedCombinatorBuilder({List<String> hides, List<String> shows})
-    : _hides = hides,
+  UnlinkedCombinatorBuilder({int end, List<String> hides, int offset, List<String> shows})
+    : _end = end,
+      _hides = hides,
+      _offset = offset,
       _shows = shows;
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -1760,8 +1790,14 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
       offset_shows = fbBuilder.writeList(_shows.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
+    if (_end != null && _end != 0) {
+      fbBuilder.addUint32(3, _end);
+    }
     if (offset_hides != null) {
       fbBuilder.addOffset(1, offset_hides);
+    }
+    if (_offset != null && _offset != 0) {
+      fbBuilder.addUint32(2, _offset);
     }
     if (offset_shows != null) {
       fbBuilder.addOffset(0, offset_shows);
@@ -1782,13 +1818,27 @@ class _UnlinkedCombinatorImpl extends Object with _UnlinkedCombinatorMixin imple
 
   _UnlinkedCombinatorImpl(this._bp);
 
+  int _end;
   List<String> _hides;
+  int _offset;
   List<String> _shows;
+
+  @override
+  int get end {
+    _end ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
+    return _end;
+  }
 
   @override
   List<String> get hides {
     _hides ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 1, const <String>[]);
     return _hides;
+  }
+
+  @override
+  int get offset {
+    _offset ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    return _offset;
   }
 
   @override
@@ -1802,14 +1852,18 @@ abstract class _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (end != 0) _result["end"] = end;
     if (hides.isNotEmpty) _result["hides"] = hides;
+    if (offset != 0) _result["offset"] = offset;
     if (shows.isNotEmpty) _result["shows"] = shows;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
+    "end": end,
     "hides": hides,
+    "offset": offset,
     "shows": shows,
   };
 

@@ -745,6 +745,8 @@ class ResynthTest extends ResolverTestCase {
     if (original is ShowElementCombinatorImpl &&
         resynthesized is ShowElementCombinatorImpl) {
       expect(resynthesized.shownNames, original.shownNames);
+      expect(resynthesized.offset, original.offset);
+      expect(resynthesized.end, original.end);
     } else if (original is HideElementCombinatorImpl &&
         resynthesized is HideElementCombinatorImpl) {
       expect(resynthesized.hiddenNames, original.hiddenNames);

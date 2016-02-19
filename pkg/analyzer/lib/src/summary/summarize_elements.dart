@@ -493,6 +493,8 @@ class _CompilationUnitSerializer {
     UnlinkedCombinatorBuilder b = new UnlinkedCombinatorBuilder();
     if (combinator is ShowElementCombinator) {
       b.shows = combinator.shownNames;
+      b.offset = combinator.offset;
+      b.end = combinator.end;
     } else if (combinator is HideElementCombinator) {
       b.hides = combinator.hiddenNames;
     }
