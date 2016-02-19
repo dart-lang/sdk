@@ -50,7 +50,6 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
     if (target.source == null || !target.source.isInSystemLibrary) {
       return false;
     }
-//    print('SummarySdkAnalysisContext: $result of $target');
     // Constant expressions are always resolved in summaries.
     if (result == CONSTANT_EXPRESSION_RESOLVED &&
         target is ConstantEvaluationTarget) {
@@ -91,11 +90,14 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
       }
     }
     if (target is LibrarySpecificUnit) {
+      if (target.library == null || !target.library.isInSystemLibrary) {
+        return false;
+      }
       if (result == COMPILATION_UNIT_ELEMENT) {
-        String uri1 = target.library.uri.toString();
-        String uri2 = target.unit.uri.toString();
-        CompilationUnitElement unit = resynthesizer
-            .getElement(new ElementLocationImpl.con3(<String>[uri1, uri2]));
+        String libraryUri = target.library.uri.toString();
+        String unitUri = target.unit.uri.toString();
+        CompilationUnitElement unit = resynthesizer.getElement(
+            new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
         if (unit != null) {
           entry.setValue(result, unit, TargetedResult.EMPTY_LIST);
           return true;
