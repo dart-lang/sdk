@@ -1711,6 +1711,10 @@ class _LibraryResynthesizer {
         parameterElement.parameterKind = ParameterKind.REQUIRED;
         break;
     }
+    if (serializedParameter.visibleOffset != 0) {
+      parameterElement.setVisibleRange(
+          serializedParameter.visibleOffset, serializedParameter.visibleLength);
+    }
     return parameterElement;
   }
 

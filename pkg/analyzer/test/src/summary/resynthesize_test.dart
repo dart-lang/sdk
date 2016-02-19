@@ -136,10 +136,6 @@ class ResynthTest extends ResolverTestCase {
     if (original is! LocalElement && resynthesized is! LocalElement) {
       return;
     }
-    // TODO(scheglov) add support for parameters
-    if (original is ParameterElement && resynthesized is ParameterElement) {
-      return;
-    }
     if (original is LocalElement && resynthesized is LocalElement) {
       expect(resynthesized.visibleRange, original.visibleRange);
     } else {
