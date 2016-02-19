@@ -960,10 +960,10 @@ class ContextManagerImpl implements ContextManager {
     if (packageRoot != null) {
       // TODO(paulberry): We shouldn't be using JavaFile here because it
       // makes the code untestable (see dartbug.com/23909).
-      JavaFile packagesDir = new JavaFile(packageRoot);
+      JavaFile packagesDirOrFile = new JavaFile(packageRoot);
       Map<String, List<Folder>> packageMap = new Map<String, List<Folder>>();
-      if (packagesDir.isDirectory()) {
-        for (JavaFile file in packagesDir.listFiles()) {
+      if (packagesDirOrFile.isDirectory()) {
+        for (JavaFile file in packagesDirOrFile.listFiles()) {
           // Ensure symlinks in packages directory are canonicalized
           // to prevent 'type X cannot be assigned to type X' warnings
           String path;
@@ -980,6 +980,12 @@ class ContextManagerImpl implements ContextManager {
           }
         }
         return new PackageMapDisposition(packageMap, packageRoot: packageRoot);
+      } else if (packagesDirOrFile.isFile()) {
+        File packageSpecFile = resourceProvider.getFile(packageRoot);
+        Packages packages = _readPackagespec(packageSpecFile);
+        if (packages != null) {
+          return new PackagesFileDisposition(packages);
+        }
       }
       // The package root does not exist (or is not a folder).  Since
       // [setRoots] ignores any package roots that don't exist (or aren't
