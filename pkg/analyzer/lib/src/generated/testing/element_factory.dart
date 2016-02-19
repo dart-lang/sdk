@@ -501,12 +501,13 @@ class ElementFactory {
   }
 
   static ParameterElementImpl namedParameter3(String name,
-      {DartType type, Expression initializer}) {
+      {DartType type, Expression initializer, String initializerCode}) {
     DefaultParameterElementImpl parameter =
         new DefaultParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED;
     parameter.type = type;
     parameter.constantInitializer = initializer;
+    parameter.defaultValueCode = initializerCode;
     return parameter;
   }
 

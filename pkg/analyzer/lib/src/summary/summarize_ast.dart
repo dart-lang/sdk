@@ -887,6 +887,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     UnlinkedParamBuilder b = node.parameter.accept(this);
     if (node.defaultValue != null) {
       b.defaultValue = serializeConstExpr(node.defaultValue);
+      b.defaultValueCode = node.defaultValue.toSource();
     }
     b.initializer = serializeInitializerFunction(node.defaultValue);
     return b;

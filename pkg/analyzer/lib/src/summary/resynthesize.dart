@@ -1651,6 +1651,8 @@ class _LibraryResynthesizer {
         if (serializedParameter.defaultValue != null) {
           defaultParameter.constantInitializer =
               _buildConstExpression(serializedParameter.defaultValue);
+          defaultParameter.defaultValueCode =
+              serializedParameter.defaultValueCode;
         }
       }
       parameterElement = initializingParameter;
@@ -1667,6 +1669,8 @@ class _LibraryResynthesizer {
         if (serializedParameter.defaultValue != null) {
           defaultParameter.constantInitializer =
               _buildConstExpression(serializedParameter.defaultValue);
+          defaultParameter.defaultValueCode =
+              serializedParameter.defaultValueCode;
         }
       }
     }

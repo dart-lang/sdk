@@ -1482,6 +1482,14 @@ abstract class UnlinkedParam extends base.SummaryClass {
   int get nameOffset;
 
   /**
+   * If the parameter has a default value, the source text of the constant
+   * expression in the default value.  Otherwise the empty string.
+   */
+  @informative
+  @Id(13)
+  String get defaultValueCode;
+
+  /**
    * If [isFunctionTyped] is `true`, the parameters of the function type.
    */
   @Id(8)

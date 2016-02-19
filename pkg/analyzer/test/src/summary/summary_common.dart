@@ -3286,6 +3286,7 @@ int foo() => 0;
     UnlinkedParam param = executable.parameters[0];
     expect(param.isFunctionTyped, isTrue);
     expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.defaultValueCode, 'foo');
     _assertUnlinkedConst(param.defaultValue, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
@@ -3319,6 +3320,7 @@ int foo() => 0;
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.named);
     expect(parameter.defaultValue, isNull);
+    expect(parameter.defaultValueCode, isEmpty);
   }
 
   test_constructor_initializing_formal_named_withDefault() {
@@ -3328,6 +3330,7 @@ int foo() => 0;
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.named);
     expect(parameter.initializer, isNotNull);
+    expect(parameter.defaultValueCode, '42');
     _assertUnlinkedConst(parameter.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -3347,6 +3350,7 @@ int foo() => 0;
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.positional);
     expect(parameter.defaultValue, isNull);
+    expect(parameter.defaultValueCode, isEmpty);
   }
 
   test_constructor_initializing_formal_positional_withDefault() {
@@ -3357,6 +3361,7 @@ int foo() => 0;
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.positional);
     expect(parameter.initializer, isNotNull);
+    expect(parameter.defaultValueCode, '42');
     _assertUnlinkedConst(parameter.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -3388,6 +3393,7 @@ class C {
 }''').executables);
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.defaultValueCode, '42');
     _assertUnlinkedConst(param.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -4585,6 +4591,7 @@ int foo(int a, String b) => 0;
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.initializer, isNotNull);
+    expect(param.defaultValueCode, 'foo');
     _assertUnlinkedConst(param.defaultValue, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
@@ -4599,6 +4606,7 @@ int foo(int a, String b) => 0;
     expect(param.kind, UnlinkedParamKind.named);
     expect(param.initializer, isNull);
     expect(param.defaultValue, isNull);
+    expect(param.defaultValueCode, isEmpty);
   }
 
   test_executable_param_kind_named_withDefault() {
@@ -4606,6 +4614,7 @@ int foo(int a, String b) => 0;
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.named);
     expect(param.initializer, isNotNull);
+    expect(param.defaultValueCode, '42');
     _assertUnlinkedConst(param.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -4616,6 +4625,7 @@ int foo(int a, String b) => 0;
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.initializer, isNull);
     expect(param.defaultValue, isNull);
+    expect(param.defaultValueCode, isEmpty);
   }
 
   test_executable_param_kind_positional_withDefault() {
@@ -4623,6 +4633,7 @@ int foo(int a, String b) => 0;
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.initializer, isNotNull);
+    expect(param.defaultValueCode, '42');
     _assertUnlinkedConst(param.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -4633,6 +4644,7 @@ int foo(int a, String b) => 0;
     expect(param.kind, UnlinkedParamKind.required);
     expect(param.initializer, isNull);
     expect(param.defaultValue, isNull);
+    expect(param.defaultValueCode, isEmpty);
   }
 
   test_executable_param_name() {

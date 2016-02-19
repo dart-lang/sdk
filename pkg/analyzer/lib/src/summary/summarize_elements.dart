@@ -748,6 +748,7 @@ class _CompilationUnitSerializer {
       Expression initializer = constParameter.constantInitializer;
       if (initializer != null) {
         b.defaultValue = serializeConstExpr(initializer);
+        b.defaultValueCode = parameter.defaultValueCode;
       }
     }
     // TODO(scheglov) VariableMember.initializer is not implemented

@@ -804,6 +804,8 @@ class ResynthTest extends ResolverTestCase {
             resynthesized.field, original.field, '$desc field');
       }
     }
+    expect(resynthesized.defaultValueCode, original.defaultValueCode,
+        reason: desc);
   }
 
   void comparePrefixElements(PrefixElementImpl resynthesized,
