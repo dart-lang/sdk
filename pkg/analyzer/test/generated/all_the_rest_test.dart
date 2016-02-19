@@ -188,6 +188,19 @@ class DirectoryBasedDartSdkTest {
     expect(source.uri.toString(), "dart:html");
   }
 
+  void test_fromFile_library_html_common_dart2js() {
+    DirectoryBasedDartSdk sdk = _createDartSdk();
+    JavaFile dirHtml = new JavaFile.relative(sdk.libraryDirectory, "html");
+    JavaFile dirCommon = new JavaFile.relative(dirHtml, "html_common");
+    JavaFile file =
+        new JavaFile.relative(dirCommon, "html_common_dart2js.dart");
+    expect(file.isFile(), isTrue);
+    Source source = sdk.fromFileUri(file.toURI());
+    expect(source, isNotNull);
+    expect(source.isInSystemLibrary, isTrue);
+    expect(source.uri.toString(), "dart:html_common/html_common_dart2js.dart");
+  }
+
   void test_fromFile_part() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     Source source = sdk.fromFileUri(new JavaFile.relative(

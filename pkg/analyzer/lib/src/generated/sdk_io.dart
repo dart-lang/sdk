@@ -470,9 +470,7 @@ class DirectoryBasedDartSdk implements DartSdk {
           return null;
         }
       }
-    }
-    for (SdkLibrary library in _libraryMap.sdkLibraries) {
-      String libraryPath = new JavaFile(library.path).getParent();
+      libraryPath = new JavaFile(library.path).getParent();
       if (filePath.startsWith("$libraryPath${JavaFile.separator}")) {
         String path =
             "${library.shortName}/${filePath.substring(libraryPath.length + 1)}";
