@@ -1168,8 +1168,8 @@ class BuildExportNamespaceTask extends SourceBasedAnalysisTask {
     //
     // Compute export namespace.
     //
-    ExportNamespaceBuilder builder = new ExportNamespaceBuilder();
-    Namespace namespace = builder.build(library);
+    NamespaceBuilder builder = new NamespaceBuilder();
+    Namespace namespace = builder.createExportNamespaceForLibrary(library);
     library.exportNamespace = namespace;
     //
     // Update entry point.
@@ -1465,7 +1465,8 @@ class BuildPublicNamespaceTask extends SourceBasedAnalysisTask {
   @override
   void internalPerform() {
     LibraryElementImpl library = getRequiredInput(LIBRARY_INPUT);
-    library.publicNamespace = new PublicNamespaceBuilder().build(library);
+    NamespaceBuilder builder = new NamespaceBuilder();
+    library.publicNamespace = builder.createPublicNamespaceForLibrary(library);
     outputs[LIBRARY_ELEMENT3] = library;
   }
 
@@ -2448,109 +2449,6 @@ class EvaluateUnitConstantsTask extends SourceBasedAnalysisTask {
   static EvaluateUnitConstantsTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new EvaluateUnitConstantsTask(context, target);
-  }
-}
-
-/**
- * The helper for building the export [Namespace] of a [LibraryElement].
- */
-class ExportNamespaceBuilder {
-  /**
-   * Build the export [Namespace] of the given [LibraryElement].
-   */
-  Namespace build(LibraryElement library) {
-    return new Namespace(
-        _createExportMapping(library, new HashSet<LibraryElement>()));
-  }
-
-  /**
-   * Create a mapping table representing the export namespace of the given
-   * [library].
-   *
-   * The given [visitedElements] a set of libraries that do not need to be
-   * visited when processing the export directives of the given library because
-   * all of the names defined by them will be added by another library.
-   */
-  HashMap<String, Element> _createExportMapping(
-      LibraryElement library, HashSet<LibraryElement> visitedElements) {
-    visitedElements.add(library);
-    try {
-      HashMap<String, Element> definedNames = new HashMap<String, Element>();
-      // Add names of the export directives.
-      for (ExportElement element in library.exports) {
-        LibraryElement exportedLibrary = element.exportedLibrary;
-        if (exportedLibrary != null &&
-            !visitedElements.contains(exportedLibrary)) {
-          //
-          // The exported library will be null if the URI does not reference a
-          // valid library.
-          //
-          HashMap<String, Element> exportedNames =
-              _createExportMapping(exportedLibrary, visitedElements);
-          exportedNames = _applyCombinators(exportedNames, element.combinators);
-          definedNames.addAll(exportedNames);
-        }
-      }
-      // Add names of the public namespace.
-      {
-        Namespace publicNamespace = library.publicNamespace;
-        if (publicNamespace != null) {
-          definedNames.addAll(publicNamespace.definedNames);
-        }
-      }
-      return definedNames;
-    } finally {
-      visitedElements.remove(library);
-    }
-  }
-
-  /**
-   * Apply the given [combinators] to all of the names in [definedNames].
-   */
-  static HashMap<String, Element> _applyCombinators(
-      HashMap<String, Element> definedNames,
-      List<NamespaceCombinator> combinators) {
-    for (NamespaceCombinator combinator in combinators) {
-      if (combinator is HideElementCombinator) {
-        _hide(definedNames, combinator.hiddenNames);
-      } else if (combinator is ShowElementCombinator) {
-        definedNames = _show(definedNames, combinator.shownNames);
-      }
-    }
-    return definedNames;
-  }
-
-  /**
-   * Hide all of the [hiddenNames] by removing them from the given
-   * [definedNames].
-   */
-  static void _hide(
-      HashMap<String, Element> definedNames, List<String> hiddenNames) {
-    for (String name in hiddenNames) {
-      definedNames.remove(name);
-      definedNames.remove('$name=');
-    }
-  }
-
-  /**
-   * Show only the given [shownNames] by removing all other names from the given
-   * [definedNames].
-   */
-  static HashMap<String, Element> _show(
-      HashMap<String, Element> definedNames, List<String> shownNames) {
-    HashMap<String, Element> newNames = new HashMap<String, Element>();
-    for (String name in shownNames) {
-      Element element = definedNames[name];
-      if (element != null) {
-        newNames[name] = element;
-      }
-      String setterName = '$name=';
-      element = definedNames[setterName];
-      if (element != null) {
-        newNames[setterName] = element;
-      }
-    }
-    return newNames;
   }
 }
 
@@ -3978,45 +3876,6 @@ class PropagateVariableTypeTask extends InferStaticVariableTask {
   static PropagateVariableTypeTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new PropagateVariableTypeTask(context, target);
-  }
-}
-
-/**
- * The helper for building the public [Namespace] of a [LibraryElement].
- */
-class PublicNamespaceBuilder {
-  final HashMap<String, Element> definedNames = new HashMap<String, Element>();
-
-  /**
-   * Build a public [Namespace] of the given [library].
-   */
-  Namespace build(LibraryElement library) {
-    definedNames.clear();
-    _addPublicNames(library.definingCompilationUnit);
-    library.parts.forEach(_addPublicNames);
-    return new Namespace(definedNames);
-  }
-
-  /**
-   * Add the given [element] if it has a publicly visible name.
-   */
-  void _addIfPublic(Element element) {
-    String name = element.name;
-    if (name != null && !Scope.isPrivateName(name)) {
-      definedNames[name] = element;
-    }
-  }
-
-  /**
-   * Add all of the public top-level names that are defined in the given
-   * [compilationUnit].
-   */
-  void _addPublicNames(CompilationUnitElement compilationUnit) {
-    compilationUnit.accessors.forEach(_addIfPublic);
-    compilationUnit.enums.forEach(_addIfPublic);
-    compilationUnit.functions.forEach(_addIfPublic);
-    compilationUnit.functionTypeAliases.forEach(_addIfPublic);
-    compilationUnit.types.forEach(_addIfPublic);
   }
 }
 

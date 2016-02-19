@@ -33,7 +33,6 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -428,8 +427,10 @@ class AnalysisContextFactory {
     // core library so public and export namespaces are the same.
     //
     for (LibraryElementImpl library in elementMap.values) {
-      library.exportNamespace =
-          library.publicNamespace = new PublicNamespaceBuilder().build(library);
+      Namespace namespace =
+          new NamespaceBuilder().createPublicNamespaceForLibrary(library);
+      library.exportNamespace = namespace;
+      library.publicNamespace = namespace;
     }
     context.recordLibraryElements(elementMap);
     // Create the synthetic element for `loadLibrary`.
@@ -1491,8 +1492,8 @@ class ElementResolverTest extends EngineTestCase {
     //   break loop;
     // }
     String label = "loop";
-    LabelElementImpl labelElement =
-        new LabelElementImpl.forNode(AstFactory.identifier3(label), false, false);
+    LabelElementImpl labelElement = new LabelElementImpl.forNode(
+        AstFactory.identifier3(label), false, false);
     BreakStatement breakStatement = AstFactory.breakStatement2(label);
     Expression condition = AstFactory.booleanLiteral(true);
     WhileStatement whileStatement =
@@ -1581,8 +1582,8 @@ class ElementResolverTest extends EngineTestCase {
     //   continue loop;
     // }
     String label = "loop";
-    LabelElementImpl labelElement =
-        new LabelElementImpl.forNode(AstFactory.identifier3(label), false, false);
+    LabelElementImpl labelElement = new LabelElementImpl.forNode(
+        AstFactory.identifier3(label), false, false);
     ContinueStatement continueStatement = AstFactory.continueStatement(label);
     Expression condition = AstFactory.booleanLiteral(true);
     WhileStatement whileStatement =
