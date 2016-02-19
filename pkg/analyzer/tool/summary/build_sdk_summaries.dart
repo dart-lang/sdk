@@ -92,10 +92,18 @@ class _Builder {
     context.analysisOptions = new AnalysisOptionsImpl()
       ..strongMode = strongMode;
     //
+    // Prepare 'dart:' URIs to serialize.
+    //
+    Set<String> uriSet = sdk.sdkLibraries
+        .map((SdkLibrary library) => library.shortName)
+        .toSet();
+    uriSet.add('dart:html/nativewrappers.dart');
+    uriSet.add('dart:html_common/html_common_dart2js.dart');
+    //
     // Serialize each SDK library.
     //
-    for (SdkLibrary lib in sdk.sdkLibraries) {
-      Source libSource = sdk.mapDartUri(lib.shortName);
+    for (String uri in uriSet) {
+      Source libSource = sdk.mapDartUri(uri);
       _serializeLibrary(libSource);
     }
     //

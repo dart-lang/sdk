@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart' show CacheEntry;
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -87,6 +88,18 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
         return false;
       } else {
 //        throw new UnimplementedError('$result of $target');
+      }
+    }
+    if (target is LibrarySpecificUnit) {
+      if (result == COMPILATION_UNIT_ELEMENT) {
+        String uri1 = target.library.uri.toString();
+        String uri2 = target.unit.uri.toString();
+        CompilationUnitElement unit = resynthesizer
+            .getElement(new ElementLocationImpl.con3(<String>[uri1, uri2]));
+        if (unit != null) {
+          entry.setValue(result, unit, TargetedResult.EMPTY_LIST);
+          return true;
+        }
       }
     }
     return false;

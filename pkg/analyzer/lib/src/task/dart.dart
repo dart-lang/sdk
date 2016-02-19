@@ -877,13 +877,24 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     Source source = getRequiredSource();
     CompilationUnit unit = getRequiredInput(PARSED_UNIT_INPUT_NAME);
     //
+    // Try to get the existing CompilationUnitElement.
+    //
+    CompilationUnitElement element;
+    {
+      InternalAnalysisContext internalContext =
+          context as InternalAnalysisContext;
+      AnalysisCache analysisCache = internalContext.analysisCache;
+      CacheEntry cacheEntry = internalContext.getCacheEntry(target);
+      element = analysisCache.getValue(target, COMPILATION_UNIT_ELEMENT);
+      if (element == null &&
+          internalContext.aboutToComputeResult(
+              cacheEntry, COMPILATION_UNIT_ELEMENT)) {
+        element = analysisCache.getValue(target, COMPILATION_UNIT_ELEMENT);
+      }
+    }
+    //
     // Build or reuse CompilationUnitElement.
     //
-//    unit = AstCloner.clone(unit);
-    AnalysisCache analysisCache =
-        (context as InternalAnalysisContext).analysisCache;
-    CompilationUnitElement element =
-        analysisCache.getValue(target, COMPILATION_UNIT_ELEMENT);
     if (element == null) {
       CompilationUnitBuilder builder = new CompilationUnitBuilder();
       element = builder.buildCompilationUnit(
@@ -1356,22 +1367,41 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       InternalAnalysisContext internalContext = context;
       owningContext = internalContext.getContextFor(librarySource);
     }
-    LibraryElementImpl libraryElement =
-        new LibraryElementImpl.forNode(owningContext, libraryNameNode);
-    libraryElement.definingCompilationUnit = definingCompilationUnitElement;
-    libraryElement.entryPoint = entryPoint;
-    libraryElement.parts = sourcedCompilationUnits;
-    for (Directive directive in directivesToResolve) {
-      directive.element = libraryElement;
+    //
+    // Try to get the existing LibraryElement.
+    //
+    LibraryElementImpl libraryElement;
+    {
+      InternalAnalysisContext internalContext =
+          context as InternalAnalysisContext;
+      AnalysisCache analysisCache = internalContext.analysisCache;
+      CacheEntry cacheEntry = internalContext.getCacheEntry(target);
+      libraryElement = analysisCache.getValue(target, LIBRARY_ELEMENT1);
+      if (libraryElement == null &&
+          internalContext.aboutToComputeResult(cacheEntry, LIBRARY_ELEMENT1)) {
+        libraryElement = analysisCache.getValue(target, LIBRARY_ELEMENT1);
+      }
     }
-    BuildLibraryElementUtils.patchTopLevelAccessors(libraryElement);
-    // set the library documentation to the docs associated with the first
-    // directive in the compilation unit.
-    if (definingCompilationUnit.directives.isNotEmpty) {
-      setElementDocumentationComment(
-          libraryElement, definingCompilationUnit.directives.first);
+    //
+    // Create a new LibraryElement.
+    //
+    if (libraryElement == null) {
+      libraryElement =
+          new LibraryElementImpl.forNode(owningContext, libraryNameNode);
+      libraryElement.definingCompilationUnit = definingCompilationUnitElement;
+      libraryElement.entryPoint = entryPoint;
+      libraryElement.parts = sourcedCompilationUnits;
+      for (Directive directive in directivesToResolve) {
+        directive.element = libraryElement;
+      }
+      BuildLibraryElementUtils.patchTopLevelAccessors(libraryElement);
+      // set the library documentation to the docs associated with the first
+      // directive in the compilation unit.
+      if (definingCompilationUnit.directives.isNotEmpty) {
+        setElementDocumentationComment(
+            libraryElement, definingCompilationUnit.directives.first);
+      }
     }
-
     //
     // Record outputs.
     //
