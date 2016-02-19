@@ -1,3 +1,15 @@
+# 0.1.11
+
+* Doc generation improvements (now with options samples).
+* Lint to sort unnamed constructors first (#187).
+* Lint to ensure public members have API docs (#188).
+* Lint to ensure constructors are sorted first (#186).
+* Lint for `hashCode` and `==` (#168).
+* Lint to detect un-annotated overrides (#167).
+* Fix to ignore underscores in public APIs (#153).
+* Lint to check for return types on setters (#122).
+* Lint to flag missing type params (#156).
+* Lint to avoid inits to `null` (#160).
 
 # 0.1.10
 
