@@ -1016,8 +1016,9 @@ class _CompilationUnitSerializer {
     return referenceMap.putIfAbsent(element, () {
       LibraryElement dependentLibrary = librarySerializer.libraryElement;
       int unit = 0;
+      Element enclosingElement;
       if (element != null) {
-        Element enclosingElement = element.enclosingElement;
+        enclosingElement = element.enclosingElement;
         if (enclosingElement is CompilationUnitElement) {
           dependentLibrary = enclosingElement.library;
           unit = dependentLibrary.units.indexOf(enclosingElement);
@@ -1031,29 +1032,31 @@ class _CompilationUnitSerializer {
       if (linked) {
         linkedReference =
             new LinkedReferenceBuilder(kind: kind, unit: unit, name: name);
-        Element enclosing = element?.enclosingElement;
-        if (enclosing != null && enclosing is! CompilationUnitElement) {
+        if (enclosingElement != null &&
+            enclosingElement is! CompilationUnitElement) {
           linkedReference.containingReference =
-              _getElementReferenceId(enclosing, linked: linked);
-          if (enclosing is ClassElement) {
-            linkedReference.numTypeParameters = enclosing.typeParameters.length;
-          } else if (enclosing is ExecutableElement) {
+              _getElementReferenceId(enclosingElement, linked: linked);
+          if (enclosingElement is ClassElement) {
+            linkedReference.numTypeParameters =
+                enclosingElement.typeParameters.length;
+          } else if (enclosingElement is ExecutableElement) {
             if (element is FunctionElement) {
-              assert(enclosing.functions.contains(element));
-              linkedReference.localIndex = enclosing.functions.indexOf(element);
-            } else if (element is LocalVariableElement) {
-              assert(enclosing.localVariables.contains(element));
+              assert(enclosingElement.functions.contains(element));
               linkedReference.localIndex =
-                  enclosing.localVariables.indexOf(element);
+                  enclosingElement.functions.indexOf(element);
+            } else if (element is LocalVariableElement) {
+              assert(enclosingElement.localVariables.contains(element));
+              linkedReference.localIndex =
+                  enclosingElement.localVariables.indexOf(element);
             } else {
               throw new StateError(
                   'Unexpected enclosed element type: ${element.runtimeType}');
             }
-          } else if (enclosing is VariableElement) {
-            assert(identical(enclosing.initializer, element));
+          } else if (enclosingElement is VariableElement) {
+            assert(identical(enclosingElement.initializer, element));
           } else {
             throw new StateError(
-                'Unexpected enclosing element type: ${enclosing.runtimeType}');
+                'Unexpected enclosing element type: ${enclosingElement.runtimeType}');
           }
         }
         index = linkedReferences.length;
