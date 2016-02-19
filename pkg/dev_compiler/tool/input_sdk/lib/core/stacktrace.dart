@@ -15,6 +15,18 @@ part of dart.core;
  */
 abstract class StackTrace {
   /**
+   * Returns a representation of the current stack trace.
+   *
+   * This is similar to what can be achieved by doing:
+   *
+   *     try { throw 0; } catch (_, stack) { return stack; }
+   *
+   * The getter achieves this without throwing, except on platforms that
+   * have no other way to get a stack trace.
+   */
+  external static StackTrace get current;
+
+  /**
    * Returns a [String] representation of the stack trace.
    *
    * The string represents the full stack trace starting from

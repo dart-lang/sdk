@@ -452,3 +452,24 @@ class Uri {
     throw new UnsupportedError("'Uri.base' is not supported");
   }
 }
+
+@patch
+class StackTrace {
+  @patch
+  @NoInline()
+  static StackTrace get current {
+    var error = JS('', 'new Error()');
+    var stack = JS('String|Null', '#.stack', error);
+    if (stack is String) return new StackTrace.fromString(stack);
+    if (JS('', 'Error.captureStackTrace') != null) {
+      JS('void', 'Error.captureStackTrace(#)', error);
+      var stack = JS('String|Null', '#.stack', error);
+      if (stack is String) return new StackTrace.fromString(stack);
+    }
+    try {
+      throw 0;
+    } catch (_, stackTrace) {
+      return stackTrace;
+    }
+  }
+}

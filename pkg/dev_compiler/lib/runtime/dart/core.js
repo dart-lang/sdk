@@ -1501,7 +1501,25 @@ dart_library.library('dart/core', null, /* Imports */[
     return Sink;
   });
   let Sink = Sink$();
-  class StackTrace extends Object {}
+  class StackTrace extends Object {
+    static get current() {
+      let error = new Error();
+      let stack = error.stack;
+      if (typeof stack == 'string') return new StackTrace.fromString(stack);
+      if (Error.captureStackTrace != null) {
+        Error.captureStackTrace(error);
+        let stack = error.stack;
+        if (typeof stack == 'string') return new StackTrace.fromString(stack);
+      }
+      try {
+        dart.throw(0);
+      } catch (_) {
+        let stackTrace = dart.stackTrace(_);
+        return stackTrace;
+      }
+
+    }
+  }
   const _stop = dart.JsSymbol('_stop');
   class Stopwatch extends Object {
     get frequency() {

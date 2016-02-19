@@ -1,7 +1,4 @@
 // Messages from compiling queue_list.dart
-severe: [INVALID_METHOD_OVERRIDE] Mixin introduces an invalid override. The type of ListMixin.expand (((E) → Iterable<dynamic>) → Iterable<dynamic>) is not a subtype of Iterable<E>.expand (<T>((E) → Iterable<T>) → Iterable<T>). (package:collection/src/queue_list.dart, line 12, col 40)
-severe: [INVALID_METHOD_OVERRIDE] Mixin introduces an invalid override. The type of ListMixin.fold ((dynamic, (dynamic, E) → dynamic) → dynamic) is not a subtype of Iterable<E>.fold (<T>(T, (T, E) → T) → T). (package:collection/src/queue_list.dart, line 12, col 40)
-severe: [INVALID_METHOD_OVERRIDE] Mixin introduces an invalid override. The type of ListMixin.map (((E) → dynamic) → Iterable<dynamic>) is not a subtype of Iterable<E>.map (<T>((E) → T) → Iterable<T>). (package:collection/src/queue_list.dart, line 12, col 40)
 warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from Iterable<E> to List<dynamic> (package:collection/src/queue_list.dart, line 38, col 25)
 warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from List<dynamic> to Iterable<E> (package:collection/src/queue_list.dart, line 39, col 40)
 warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from Iterable<E> to List<dynamic> (package:collection/src/queue_list.dart, line 55, col 19)
