@@ -3751,10 +3751,14 @@ class NodeReplacerTest extends EngineTestCase {
   void test_variableDeclarationList() {
     VariableDeclarationList node = AstFactory.variableDeclarationList(
         null, AstFactory.typeName4("T"), [AstFactory.variableDeclaration("a")]);
+    node.documentationComment =
+        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_variableDeclarationList());
     _assertReplace(
         node, new ListGetter_NodeReplacerTest_test_variableDeclarationList(0));
+    _testAnnotatedNode(node);
   }
 
   void test_variableDeclarationStatement() {

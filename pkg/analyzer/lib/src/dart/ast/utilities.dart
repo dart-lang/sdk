@@ -4950,7 +4950,7 @@ class NodeReplacer implements AstVisitor<bool> {
     } else if (_replaceInList(node.variables)) {
       return true;
     }
-    return visitNode(node);
+    return visitAnnotatedNode(node);
   }
 
   @override
