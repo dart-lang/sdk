@@ -314,15 +314,11 @@ class Object {
 
   bool IsNew() const { return raw()->IsNewObject(); }
   bool IsOld() const { return raw()->IsOldObject(); }
-  bool InVMHeap() const {
 #if defined(DEBUG)
-    if (raw()->IsVMHeapObject()) {
-      Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-      ASSERT(vm_isolate_heap->Contains(RawObject::ToAddr(raw())));
-    }
-#endif
-    return raw()->IsVMHeapObject();
-  }
+  bool InVMHeap() const;
+#else
+  bool InVMHeap() const { return raw()->IsVMHeapObject(); }
+#endif  // DEBUG
 
   // Print the object on stdout for debugging.
   void Print() const;

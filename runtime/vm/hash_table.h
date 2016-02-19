@@ -99,7 +99,9 @@ class HashTable : public ValueObject {
         key_handle_(Object::Handle(zone_)),
         smi_handle_(Smi::Handle(zone_)),
         data_(&Array::Handle(zone_, data)),
-        released_data_(NULL) {}
+        released_data_(NULL) {
+    ASSERT(!data_->IsNull());
+  }
 
   // Returns the final table. The handle is cleared when this HashTable is
   // destroyed.
@@ -296,6 +298,7 @@ class HashTable : public ValueObject {
   }
 
   intptr_t GetSmiValueAt(intptr_t index) const {
+    ASSERT(!data_->IsNull());
     ASSERT(Object::Handle(zone(), data_->At(index)).IsSmi());
     return Smi::Value(Smi::RawCast(data_->At(index)));
   }
@@ -689,7 +692,9 @@ template<typename KeyTraits>
 class UnorderedHashSet : public HashSet<UnorderedHashTable<KeyTraits, 0> > {
  public:
   typedef HashSet<UnorderedHashTable<KeyTraits, 0> > BaseSet;
-  explicit UnorderedHashSet(RawArray* data) : BaseSet(data) {}
+  explicit UnorderedHashSet(RawArray* data) : BaseSet(data) {
+    ASSERT(data != Array::null());
+  }
   UnorderedHashSet(Zone* zone, RawArray* data) : BaseSet(zone, data) {}
 };
 

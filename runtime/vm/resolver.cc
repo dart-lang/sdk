@@ -35,10 +35,11 @@ RawFunction* Resolver::ResolveDynamic(const Instance& receiver,
 RawFunction* Resolver::ResolveDynamicForReceiverClass(
     const Class& receiver_class,
     const String& function_name,
-    const ArgumentsDescriptor& args_desc) {
+    const ArgumentsDescriptor& args_desc,
+    bool allow_add) {
 
-  Function& function =
-      Function::Handle(ResolveDynamicAnyArgs(receiver_class, function_name));
+  Function& function = Function::Handle(
+      ResolveDynamicAnyArgs(receiver_class, function_name, allow_add));
 
   if (function.IsNull() ||
       !function.AreValidArguments(args_desc, NULL)) {
@@ -63,7 +64,8 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
 
 RawFunction* Resolver::ResolveDynamicAnyArgs(
     const Class& receiver_class,
-    const String& function_name) {
+    const String& function_name,
+    bool allow_add) {
   Class& cls = Class::Handle(receiver_class.raw());
   if (FLAG_trace_resolving) {
     THR_Print("ResolveDynamic '%s' for class %s\n",
@@ -126,7 +128,7 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(
     if (FLAG_lazy_dispatchers) {
       if (is_getter && function.IsNull()) {
         function ^= cls.LookupDynamicFunction(field_name);
-        if (!function.IsNull()) {
+        if (!function.IsNull() && allow_add) {
           // We were looking for the getter but found a method with the same
           // name. Create a method extractor and return it.
           // The extractor does not exist yet, so using GetMethodExtractor is

@@ -196,7 +196,8 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
         Resolver::ResolveDynamicForReceiverClass(
             receiver_class,
             call->function_name(),
-            args_desc));
+            args_desc,
+            false /* allow add */));
     if (function.IsNull()) {
       return false;
     }
@@ -255,7 +256,8 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
       const Function& function = Function::Handle(Z,
           Resolver::ResolveDynamicForReceiverClass(owner_class,
                                                    call->function_name(),
-                                                   args_desc));
+                                                   args_desc,
+                                                   false /* allow_add */));
       if (!function.IsNull()) {
         const ICData& ic_data = ICData::ZoneHandle(Z,
             ICData::NewFrom(*call->ic_data(), class_ids.length()));

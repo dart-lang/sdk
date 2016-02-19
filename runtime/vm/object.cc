@@ -1737,6 +1737,17 @@ RawError* Object::Init(Isolate* isolate) {
 }
 
 
+#if defined(DEBUG)
+bool Object:: InVMHeap() const {
+  if (FLAG_verify_handles && raw()->IsVMHeapObject()) {
+    Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+    ASSERT(vm_isolate_heap->Contains(RawObject::ToAddr(raw())));
+  }
+  return raw()->IsVMHeapObject();
+}
+#endif  // DEBUG
+
+
 void Object::Print() const {
   THR_Print("%s\n", ToCString());
 }
@@ -2110,6 +2121,7 @@ typedef UnorderedHashSet<ClassFunctionsTraits> ClassFunctionsSet;
 
 
 void Class::SetFunctions(const Array& value) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->functions_, value.raw());
   const intptr_t len = value.Length();
@@ -2130,6 +2142,7 @@ void Class::SetFunctions(const Array& value) const {
 
 
 void Class::AddFunction(const Function& function) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   const Array& arr = Array::Handle(functions());
   const Array& new_arr =
       Array::Handle(Array::Grow(arr, arr.Length() + 1, Heap::kOld));
@@ -2149,6 +2162,7 @@ void Class::AddFunction(const Function& function) const {
 
 
 void Class::RemoveFunction(const Function& function) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   const Array& arr = Array::Handle(functions());
   StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->functions_hash_table_, Array::null());
@@ -3935,13 +3949,18 @@ RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
   const intptr_t len = funcs.Length();
   Function& function = thread->FunctionHandle();
   if (len >= kFunctionLookupHashTreshold) {
-    ClassFunctionsSet set(raw_ptr()->functions_hash_table_);
-    REUSABLE_STRING_HANDLESCOPE(thread);
-    function ^= set.GetOrNull(FunctionName(name, &(thread->StringHandle())));
-    // No mutations.
-    ASSERT(set.Release().raw() == raw_ptr()->functions_hash_table_);
-    return function.IsNull() ? Function::null()
-                             : CheckFunctionType(function, kind);
+    // Cache functions hash table to allow multi threaded access.
+    const Array& hash_table = Array::Handle(thread->zone(),
+                                            raw_ptr()->functions_hash_table_);
+    if (!hash_table.IsNull()) {
+      ClassFunctionsSet set(hash_table.raw());
+      REUSABLE_STRING_HANDLESCOPE(thread);
+      function ^= set.GetOrNull(FunctionName(name, &(thread->StringHandle())));
+      // No mutations.
+      ASSERT(set.Release().raw() == hash_table.raw());
+      return function.IsNull() ? Function::null()
+                               : CheckFunctionType(function, kind);
+    }
   }
   if (name.IsSymbol()) {
     // Quick Symbol compare.
