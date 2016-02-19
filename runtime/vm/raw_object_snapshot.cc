@@ -643,6 +643,10 @@ RawClosure* Closure::ReadFrom(SnapshotReader* reader,
                      closure.raw()->from(), closure.raw()->to(),
                      kAsReference);
 
+  // Set the canonical bit.
+  if (RawObject::IsCanonical(tags)) {
+    closure.SetCanonical();
+  }
   return closure.raw();
 }
 
@@ -3250,6 +3254,21 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
       break;
     default:
       UNREACHABLE();
+  }
+  // If it is a canonical constant make it one.
+  // When reading a full snapshot we don't need to canonicalize the object
+  // as it would already be a canonical object.
+  // When reading a script snapshot or a message snapshot we always have
+  // to canonicalize the object.
+  if (RawObject::IsCanonical(tags)) {
+    if (kind == Snapshot::kFull) {
+      // Set the canonical bit.
+      result.SetCanonical();
+    } else {
+      result ^= result.CheckAndCanonicalize(NULL);
+      ASSERT(!result.IsNull());
+      ASSERT(result.IsCanonical());
+    }
   }
   return result.raw();
 }
