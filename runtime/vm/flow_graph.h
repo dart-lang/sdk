@@ -277,13 +277,7 @@ class FlowGraph : public ZoneAllocated {
 
   bool IsCompiledForOsr() const { return graph_entry()->IsCompiledForOsr(); }
 
-  static void AddToGuardedFields(ZoneGrowableArray<const Field*>* array,
-                                 const Field* field);
   void AddToDeferredPrefixes(ZoneGrowableArray<const LibraryPrefix*>* from);
-
-  ZoneGrowableArray<const Field*>* guarded_fields() const {
-    return guarded_fields_;
-  }
 
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes() const {
     return deferred_prefixes_;
@@ -386,7 +380,6 @@ class FlowGraph : public ZoneAllocated {
 
   ZoneGrowableArray<BlockEntryInstr*>* loop_headers_;
   ZoneGrowableArray<BitVector*>* loop_invariant_loads_;
-  ZoneGrowableArray<const Field*>* guarded_fields_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
   DirectChainedHashMap<ConstantPoolTrait> constant_instr_pool_;
   BitVector* captured_parameters_;

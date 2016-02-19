@@ -160,6 +160,20 @@ static RawTypeArguments* NewTypeArguments(
 }
 
 
+void ParsedFunction::AddToGuardedFields(const Field* field) const {
+  if ((field->guarded_cid() == kDynamicCid) ||
+      (field->guarded_cid() == kIllegalCid)) {
+    return;
+  }
+  for (intptr_t j = 0; j < guarded_fields_->length(); j++) {
+    if ((*guarded_fields_)[j]->raw() == field->raw()) {
+      return;
+    }
+  }
+  guarded_fields_->Add(field);
+}
+
+
 LocalVariable* ParsedFunction::EnsureExpressionTemp() {
   if (!has_expression_temp_var()) {
     LocalVariable* temp =
@@ -14340,6 +14354,12 @@ DEFINE_FLAG(bool, enable_mirrors, true,
 DEFINE_FLAG(bool, load_deferred_eagerly, false,
     "Load deferred libraries eagerly.");
 DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
+
+
+void ParsedFunction::AddToGuardedFields(const Field* field) const {
+  UNREACHABLE();
+}
+
 
 LocalVariable* ParsedFunction::EnsureExpressionTemp() {
   UNREACHABLE();

@@ -489,7 +489,7 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
           }
         }
       }
-      if (!flow_graph->guarded_fields()->is_empty()) {
+      if (!flow_graph->parsed_function().guarded_fields()->is_empty()) {
         if (field_invalidation_gen_at_start() !=
             isolate()->field_invalidation_gen()) {
           code_is_valid = false;
@@ -526,10 +526,10 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
          ++i) {
       thread()->cha()->leaf_classes()[i]->RegisterCHACode(code);
     }
-    for (intptr_t i = 0;
-         i < flow_graph->guarded_fields()->length();
-         i++) {
-      const Field* field = (*flow_graph->guarded_fields())[i];
+    const ZoneGrowableArray<const Field*>& guarded_fields =
+        *flow_graph->parsed_function().guarded_fields();
+    for (intptr_t i = 0; i < guarded_fields.length(); i++) {
+      const Field* field = guarded_fields[i];
       field->RegisterDependentCode(code);
     }
   } else {  // not optimized.

@@ -166,6 +166,10 @@ class ParsedFunction : public ZoneAllocated {
   Isolate* isolate() const { return thread_->isolate(); }
   Zone* zone() const { return thread_->zone(); }
 
+  // Adds only relevant fields: field must be unique and its guarded_cid()
+  // relevant.
+  void AddToGuardedFields(const Field* field) const;
+
  private:
   Thread* thread_;
   const Function& function_;

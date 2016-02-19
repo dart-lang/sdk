@@ -48,7 +48,6 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
     licm_allowed_(true),
     loop_headers_(NULL),
     loop_invariant_loads_(NULL),
-    guarded_fields_(parsed_function.guarded_fields()),
     deferred_prefixes_(parsed_function.deferred_prefixes()),
     captured_parameters_(new(zone()) BitVector(zone(), variable_count())),
     inlining_id_(-1) {
@@ -89,23 +88,6 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
     }
   }
   iterator->RemoveCurrentFromGraph();
-}
-
-
-
-void FlowGraph::AddToGuardedFields(
-    ZoneGrowableArray<const Field*>* array,
-    const Field* field) {
-  if ((field->guarded_cid() == kDynamicCid) ||
-      (field->guarded_cid() == kIllegalCid)) {
-    return;
-  }
-  for (intptr_t j = 0; j < array->length(); j++) {
-    if ((*array)[j]->raw() == field->raw()) {
-      return;
-    }
-  }
-  array->Add(field);
 }
 
 

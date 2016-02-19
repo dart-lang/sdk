@@ -153,10 +153,6 @@ class FlowGraphBuilder : public ValueObject {
   bool IsInlining() const { return (exit_collector_ != NULL); }
   InlineExitCollector* exit_collector() const { return exit_collector_; }
 
-  ZoneGrowableArray<const Field*>* guarded_fields() const {
-    return parsed_function_.guarded_fields();
-  }
-
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes() const {
     return parsed_function_.deferred_prefixes();
   }

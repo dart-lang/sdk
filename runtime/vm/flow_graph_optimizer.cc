@@ -1417,7 +1417,7 @@ bool FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
     if (!field.is_nullable() || (field.guarded_cid() == kNullCid)) {
       load->set_result_cid(field.guarded_cid());
     }
-    FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
+    flow_graph()->parsed_function().AddToGuardedFields(&field);
   }
 
   // Discard the environment from the original instruction because the load
@@ -3277,7 +3277,7 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
       field.set_is_unboxing_candidate(false);
       field.DeoptimizeDependentCode();
     } else {
-      FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
+      flow_graph()->parsed_function().AddToGuardedFields(&field);
     }
   }
 }
@@ -3403,7 +3403,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       instr->token_pos());
 
   if (store->IsUnboxedStore()) {
-    FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
+    flow_graph()->parsed_function().AddToGuardedFields(&field);
   }
 
   // Discard the environment from the original instruction because the store

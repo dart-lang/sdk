@@ -881,11 +881,11 @@ class CallSiteInliner : public ValueObject {
 
         // When inlined, we add the guarded fields of the callee to the caller's
         // list of guarded fields.
-        for (intptr_t i = 0;
-             i < callee_graph->guarded_fields()->length();
-             ++i) {
-          FlowGraph::AddToGuardedFields(caller_graph_->guarded_fields(),
-                                        (*callee_graph->guarded_fields())[i]);
+        const ZoneGrowableArray<const Field*>& callee_guarded_fields =
+            *callee_graph->parsed_function().guarded_fields();
+        for (intptr_t i = 0; i < callee_guarded_fields.length(); ++i) {
+          caller_graph()->
+              parsed_function().AddToGuardedFields(callee_guarded_fields[i]);
         }
         // When inlined, we add the deferred prefixes of the callee to the
         // caller's list of deferred prefixes.
