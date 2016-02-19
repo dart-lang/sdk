@@ -171,6 +171,17 @@ abstract class AnalysisTask {
   bool get handlesDependencyCycles => false;
 
   /**
+   * Return the value of the input with the given [name], or `null` if the input
+   * value is not defined.
+   */
+  Object getOptionalInput(String name) {
+    if (inputs == null || !inputs.containsKey(name)) {
+      return null;
+    }
+    return inputs[name];
+  }
+
+  /**
    * Return the value of the input with the given [name]. Throw an exception if
    * the input value is not defined.
    */

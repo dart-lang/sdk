@@ -13,6 +13,55 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 
+const _MockSdkLibrary _LIB_ASYNC = const _MockSdkLibrary(
+    'dart:async',
+    '/lib/async/async.dart',
+    '''
+library dart.async;
+
+import 'dart:math';
+
+part 'stream.dart';
+
+class Future<T> {
+  factory Future(computation()) => null;
+  factory Future.delayed(Duration duration, [T computation()]) => null;
+  factory Future.value([T value]) => null;
+
+  static Future<List/*<T>*/> wait/*<T>*/(
+      Iterable<Future/*<T>*/> futures) => null;
+  Future/*<R>*/ then/*<R>*/(/*=R*/ onValue(T value)) => null;
+}
+''',
+    const <String, String>{
+      '/lib/async/stream.dart': r'''
+part of dart.async;
+class Stream<T> {}
+abstract class StreamTransformer<S, T> {}
+'''
+    });
+
+const _MockSdkLibrary _LIB_COLLECTION = const _MockSdkLibrary(
+    'dart:collection',
+    '/lib/collection/collection.dart',
+    '''
+library dart.collection;
+
+abstract class HashMap<K, V> implements Map<K, V> {}
+''');
+
+const _MockSdkLibrary _LIB_CONVERT = const _MockSdkLibrary(
+    'dart:convert',
+    '/lib/convert/convert.dart',
+    '''
+library dart.convert;
+
+import 'dart:async';
+
+abstract class Converter<S, T> implements StreamTransformer {}
+class JsonDecoder extends Converter<String, Object> {}
+''');
+
 const _MockSdkLibrary _LIB_CORE = const _MockSdkLibrary(
     'dart:core',
     '/lib/core/core.dart',
@@ -117,55 +166,6 @@ class _Override {
 const Object override = const _Override();
 ''');
 
-const _MockSdkLibrary _LIB_ASYNC = const _MockSdkLibrary(
-    'dart:async',
-    '/lib/async/async.dart',
-    '''
-library dart.async;
-
-import 'dart:math';
-
-part 'stream.dart';
-
-class Future<T> {
-  factory Future(computation()) => null;
-  factory Future.delayed(Duration duration, [T computation()]) => null;
-  factory Future.value([T value]) => null;
-
-  static Future<List/*<T>*/> wait/*<T>*/(
-      Iterable<Future/*<T>*/> futures) => null;
-  Future/*<R>*/ then/*<R>*/(/*=R*/ onValue(T value)) => null;
-}
-''',
-    const <String, String>{
-      '/lib/async/stream.dart': r'''
-part of dart.async;
-class Stream<T> {}
-abstract class StreamTransformer<S, T> {}
-'''
-    });
-
-const _MockSdkLibrary _LIB_COLLECTION = const _MockSdkLibrary(
-    'dart:collection',
-    '/lib/collection/collection.dart',
-    '''
-library dart.collection;
-
-abstract class HashMap<K, V> implements Map<K, V> {}
-''');
-
-const _MockSdkLibrary _LIB_CONVERT = const _MockSdkLibrary(
-    'dart:convert',
-    '/lib/convert/convert.dart',
-    '''
-library dart.convert;
-
-import 'dart:async';
-
-abstract class Converter<S, T> implements StreamTransformer {}
-class JsonDecoder extends Converter<String, Object> {}
-''');
-
 const _MockSdkLibrary _LIB_FOREIGN_HELPER = const _MockSdkLibrary(
     'dart:_foreign_helper',
     '/lib/_foreign_helper/_foreign_helper.dart',
@@ -175,6 +175,14 @@ library dart._foreign_helper;
 JS(String typeDescription, String codeTemplate,
   [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11])
 {}
+''');
+
+const _MockSdkLibrary _LIB_HTML = const _MockSdkLibrary(
+    'dart:html',
+    '/lib/html/dartium/html_dartium.dart',
+    '''
+library dart.html;
+class HtmlElement {}
 ''');
 
 const _MockSdkLibrary _LIB_MATH = const _MockSdkLibrary(
@@ -200,14 +208,6 @@ class Random {
 }
 ''');
 
-const _MockSdkLibrary _LIB_HTML = const _MockSdkLibrary(
-    'dart:html',
-    '/lib/html/dartium/html_dartium.dart',
-    '''
-library dart.html;
-class HtmlElement {}
-''');
-
 const List<SdkLibrary> _LIBRARIES = const [
   _LIB_CORE,
   _LIB_ASYNC,
@@ -219,16 +219,37 @@ const List<SdkLibrary> _LIBRARIES = const [
 ];
 
 class MockSdk implements DartSdk {
+  static const Map<String, String> FULL_URI_MAP = const {
+    "dart:core": "/lib/core/core.dart",
+    "dart:html": "/lib/html/dartium/html_dartium.dart",
+    "dart:async": "/lib/async/async.dart",
+    "dart:async/stream.dart": "/lib/async/stream.dart",
+    "dart:collection": "/lib/collection/collection.dart",
+    "dart:convert": "/lib/convert/convert.dart",
+    "dart:_foreign_helper": "/lib/_foreign_helper/_foreign_helper.dart",
+    "dart:math": "/lib/math/math.dart"
+  };
+
+  static const Map<String, String> NO_ASYNC_URI_MAP = const {
+    "dart:core": "/lib/core/core.dart",
+  };
+
   final resource.MemoryResourceProvider provider =
       new resource.MemoryResourceProvider();
+
+  final Map<String, String> uriMap;
 
   /**
    * The [AnalysisContextImpl] which is used for all of the sources.
    */
   AnalysisContextImpl _analysisContext;
 
+  @override
+  final List<SdkLibrary> sdkLibraries;
+
   MockSdk({bool dartAsync: true})
-      : sdkLibraries = dartAsync ? _LIBRARIES : [_LIB_CORE] {
+      : sdkLibraries = dartAsync ? _LIBRARIES : [_LIB_CORE],
+        uriMap = dartAsync ? FULL_URI_MAP : NO_ASYNC_URI_MAP {
     for (_MockSdkLibrary library in sdkLibraries) {
       provider.newFile(library.path, library.content);
       library.parts.forEach((String path, String content) {
@@ -246,9 +267,6 @@ class MockSdk implements DartSdk {
     }
     return _analysisContext;
   }
-
-  @override
-  final List<SdkLibrary> sdkLibraries;
 
   @override
   String get sdkVersion => throw new UnimplementedError();
@@ -300,18 +318,7 @@ class MockSdk implements DartSdk {
 
   @override
   Source mapDartUri(String dartUri) {
-    const Map<String, String> uriToPath = const {
-      "dart:core": "/lib/core/core.dart",
-      "dart:html": "/lib/html/dartium/html_dartium.dart",
-      "dart:async": "/lib/async/async.dart",
-      "dart:async/stream.dart": "/lib/async/stream.dart",
-      "dart:collection": "/lib/collection/collection.dart",
-      "dart:convert": "/lib/convert/convert.dart",
-      "dart:_foreign_helper": "/lib/_foreign_helper/_foreign_helper.dart",
-      "dart:math": "/lib/math/math.dart"
-    };
-
-    String path = uriToPath[dartUri];
+    String path = uriMap[dartUri];
     if (path != null) {
       resource.File file = provider.getResource(path);
       Uri uri = new Uri(scheme: 'dart', path: dartUri.substring(5));

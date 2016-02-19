@@ -1578,7 +1578,11 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
   @override
   void internalPerform() {
     LibraryElement coreLibrary = getRequiredInput(CORE_INPUT);
-    LibraryElement asyncLibrary = getRequiredInput(ASYNC_INPUT);
+    LibraryElement asyncLibrary = getOptionalInput(ASYNC_INPUT);
+    if (asyncLibrary == null) {
+      asyncLibrary =
+          (context as AnalysisContextImpl).createMockAsyncLib(coreLibrary);
+    }
     Namespace coreNamespace = coreLibrary.publicNamespace;
     Namespace asyncNamespace = asyncLibrary.publicNamespace;
     //
@@ -1600,6 +1604,9 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
     SourceFactory sourceFactory = contextTarget.context.sourceFactory;
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
+    if (asyncSource == null) {
+      return <String, TaskInput>{CORE_INPUT: LIBRARY_ELEMENT3.of(coreSource)};
+    }
     return <String, TaskInput>{
       CORE_INPUT: LIBRARY_ELEMENT3.of(coreSource),
       ASYNC_INPUT: LIBRARY_ELEMENT3.of(asyncSource)
