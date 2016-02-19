@@ -5459,9 +5459,12 @@ class Parser {
         if (constKeyword != null) {
           _reportErrorForNode(
               ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, body);
-        } else if (!bodyAllowed) {
+        } else if (externalKeyword != null) {
           _reportErrorForNode(
               ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, body);
+        } else if (!bodyAllowed) {
+          _reportErrorForNode(
+              ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, body);
         }
       }
     }
@@ -9828,6 +9831,10 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode POSITIONAL_PARAMETER_OUTSIDE_GROUP =
       const ParserErrorCode('POSITIONAL_PARAMETER_OUTSIDE_GROUP',
           "Positional parameters must be enclosed in square brackets ('[' and ']')");
+
+  static const ParserErrorCode REDIRECTING_CONSTRUCTOR_WITH_BODY =
+      const ParserErrorCode('REDIRECTING_CONSTRUCTOR_WITH_BODY',
+          "Redirecting constructors cannot have a body");
 
   static const ParserErrorCode REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR =
       const ParserErrorCode('REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR',

@@ -1510,27 +1510,6 @@ class Foo {
         reason: 'parser recovers what it can');
   }
 
-  void test_method_invalidTypeParameters() {
-    // TODO(jmesserly): ideally we'd be better at parser recovery here.
-    // It doesn't try to advance past the invalid token `!` to find the
-    // valid `>`. If it did we'd get less cascading errors, at least for this
-    // particular example.
-    enableGenericMethods = true;
-    MethodDeclaration method = parse3(
-        "parseClassMember",
-        <Object>["C"],
-        "void m<E, hello!>() {}",
-        [
-          ParserErrorCode.EXPECTED_TOKEN /*>*/,
-          ParserErrorCode.MISSING_IDENTIFIER,
-          ParserErrorCode.EXPECTED_TOKEN /*(*/,
-          ParserErrorCode.EXPECTED_TOKEN /*)*/,
-          ParserErrorCode.MISSING_FUNCTION_BODY
-        ]);
-    expect(method.typeParameters.toString(), '<E, hello>',
-        reason: 'parser recovers what it can');
-  }
-
   void test_method_invalidTypeParameterExtends() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25739.
 
@@ -1549,7 +1528,6 @@ class Foo {
     expect(method.parameters.toString(), '(E, extends)',
         reason: 'parser recovers what it can');
   }
-
 
   void test_method_invalidTypeParameterExtendsComment() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25739.
@@ -1572,6 +1550,27 @@ class Foo {
           ParserErrorCode.MISSING_FUNCTION_BODY
         ]);
     expect(method.parameters.toString(), '(E extends, extends)',
+        reason: 'parser recovers what it can');
+  }
+
+  void test_method_invalidTypeParameters() {
+    // TODO(jmesserly): ideally we'd be better at parser recovery here.
+    // It doesn't try to advance past the invalid token `!` to find the
+    // valid `>`. If it did we'd get less cascading errors, at least for this
+    // particular example.
+    enableGenericMethods = true;
+    MethodDeclaration method = parse3(
+        "parseClassMember",
+        <Object>["C"],
+        "void m<E, hello!>() {}",
+        [
+          ParserErrorCode.EXPECTED_TOKEN /*>*/,
+          ParserErrorCode.MISSING_IDENTIFIER,
+          ParserErrorCode.EXPECTED_TOKEN /*(*/,
+          ParserErrorCode.EXPECTED_TOKEN /*)*/,
+          ParserErrorCode.MISSING_FUNCTION_BODY
+        ]);
+    expect(method.typeParameters.toString(), '<E, hello>',
         reason: 'parser recovers what it can');
   }
 
@@ -1946,6 +1945,16 @@ class Foo {
   void test_positionalParameterOutsideGroup() {
     parse4("parseFormalParameterList", "(a, b = 0)",
         [ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP]);
+  }
+
+  void test_redirectingConstructorWithBody_named() {
+    parse3("parseClassMember", <Object>["C"], "C.x() : this() {}",
+        [ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY]);
+  }
+
+  void test_redirectingConstructorWithBody_unnamed() {
+    parse3("parseClassMember", <Object>["C"], "C() : this.x() {}",
+        [ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY]);
   }
 
   void test_redirectionInNonFactoryConstructor() {
