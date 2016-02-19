@@ -2315,7 +2315,7 @@ class _ReferenceInfo {
     if (specialType != null) {
       type = specialType;
     } else {
-      type = _buildType((_) => DynamicTypeImpl.instance, null);
+      type = _buildType((_) => DynamicTypeImpl.instance, const []);
     }
   }
 
@@ -2358,36 +2358,56 @@ class _ReferenceInfo {
    */
   DartType _buildType(
       DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
-    List<DartType> typeArguments = const <DartType>[];
-    if (numTypeParameters != 0) {
-      typeArguments = <DartType>[];
-      for (int i = 0; i < numTypeParameters; i++) {
-        typeArguments.add(getTypeArgument(i));
-      }
-    }
     ElementHandle element = this.element; // To allow type promotion
     if (element is ClassElementHandle) {
-      return new InterfaceTypeImpl.elementWithNameAndArgs(
-          element, name, typeArguments);
+      return new InterfaceTypeImpl.elementWithNameAndArgs(element, name,
+          _buildTypeArguments(numTypeParameters, getTypeArgument));
     } else if (element is FunctionTypeAliasElementHandle) {
       return new FunctionTypeImpl.elementWithNameAndArgs(
-          element, name, typeArguments, typeArguments.isNotEmpty);
+          element,
+          name,
+          _buildTypeArguments(numTypeParameters, getTypeArgument),
+          numTypeParameters != 0);
     } else if (element is FunctionTypedElement) {
-      FunctionTypedElementComputer computer =
-          implicitFunctionTypeIndices != null
-              ? () {
-                  FunctionTypedElement element = this.element;
-                  for (int index in implicitFunctionTypeIndices) {
-                    element = element.parameters[index].type.element;
-                  }
-                  return element;
-                }
-              : () => this.element;
+      int numTypeArguments;
+      FunctionTypedElementComputer computer;
+      if (implicitFunctionTypeIndices.isNotEmpty) {
+        numTypeArguments = numTypeParameters;
+        computer = () {
+          FunctionTypedElement element = this.element;
+          for (int index in implicitFunctionTypeIndices) {
+            element = element.parameters[index].type.element;
+          }
+          return element;
+        };
+      } else {
+        // For a type that refers to a generic executable, the type arguments are
+        // not supposed to include the arguments to the executable itself.
+        numTypeArguments = enclosing == null ? 0 : enclosing.numTypeParameters;
+        computer = () => this.element;
+      }
       // TODO(paulberry): Is it a bug that we have to pass `false` for
       // isInstantiated?
-      return new DeferredFunctionTypeImpl(computer, null, typeArguments, false);
+      return new DeferredFunctionTypeImpl(computer, null,
+          _buildTypeArguments(numTypeArguments, getTypeArgument), false);
     } else {
       return null;
     }
+  }
+
+  /**
+   * Build a list of type arguments having length [numTypeArguments] where each
+   * type argument is obtained by calling [getTypeArgument].
+   */
+  List<DartType> _buildTypeArguments(
+      int numTypeArguments, DartType getTypeArgument(int i)) {
+    List<DartType> typeArguments = const <DartType>[];
+    if (numTypeArguments != 0) {
+      typeArguments = <DartType>[];
+      for (int i = 0; i < numTypeArguments; i++) {
+        typeArguments.add(getTypeArgument(i));
+      }
+    }
+    return typeArguments;
   }
 }

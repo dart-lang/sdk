@@ -2929,6 +2929,44 @@ class C<U, V> {
 ''');
   }
 
+  test_inferred_function_type_in_generic_closure() {
+    if (!options.strongMode) {
+      // The test below uses generic comment syntax because proper generic
+      // method syntax doesn't support generic closures.  So it can only run in
+      // strong mode.
+      // TODO(paulberry): once proper generic method syntax supports generic
+      // closures, rewrite the test below without using generic comment syntax,
+      // and remove this hack.  See dartbug.com/25819
+      return;
+    }
+    // In the code below, `<U, V>() => () => 0` has an inferred return type of
+    // `() => int`, with 3 (unused) type parameters.
+    checkLibrary('''
+f<T>() {
+  print(/*<U, V>*/() => () => 0);
+}
+''');
+  }
+
+  test_inferred_generic_function_type_in_generic_closure() {
+    if (!options.strongMode) {
+      // The test below uses generic comment syntax because proper generic
+      // method syntax doesn't support generic closures.  So it can only run in
+      // strong mode.
+      // TODO(paulberry): once proper generic method syntax supports generic
+      // closures, rewrite the test below without using generic comment syntax,
+      // and remove this hack.  See dartbug.com/25819
+      return;
+    }
+    // In the code below, `<U, V>() => <W, X, Y, Z>() => 0` has an inferred
+    // return type of `() => int`, with 7 (unused) type parameters.
+    checkLibrary('''
+f<T>() {
+  print(/*<U, V>*/() => /*<W, X, Y, Z>*/() => 0);
+}
+''');
+  }
+
   test_inferred_type_is_typedef() {
     checkLibrary('typedef int F(String s);'
         ' class C extends D { var v; }'
