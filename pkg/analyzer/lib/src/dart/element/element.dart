@@ -1783,11 +1783,12 @@ abstract class ElementImpl implements Element {
 
   /**
    * Set the enclosing element of this element to the given [element].
+   *
+   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
    */
   void set enclosingElement(Element element) {
     _enclosingElement = element as ElementImpl;
-    _cachedLocation = null;
-    _cachedHashCode = null;
+    _updateCaches();
   }
 
   @override
@@ -1859,10 +1860,14 @@ abstract class ElementImpl implements Element {
   @override
   String get name => _name;
 
+  /**
+   * Changes the name of this element.
+   *
+   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
+   */
   void set name(String name) {
     this._name = name;
-    _cachedLocation = null;
-    _cachedHashCode = null;
+    _updateCaches();
   }
 
   @override
@@ -1874,11 +1879,12 @@ abstract class ElementImpl implements Element {
   /**
    * Sets the offset of the name of this element in the file that contains the
    * declaration of this element.
+   *
+   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
    */
   void set nameOffset(int offset) {
     _nameOffset = offset;
-    _cachedHashCode = null;
-    _cachedLocation = null;
+    _updateCaches();
   }
 
   @override
@@ -2038,6 +2044,35 @@ abstract class ElementImpl implements Element {
   @override
   void visitChildren(ElementVisitor visitor) {
     // There are no children to visit
+  }
+
+  /**
+   *  Updates cached values after an input changed.
+   *
+   *  Throws [FrozenHashCodeException] if not allowed.
+   */
+  void _updateCaches() {
+    if (!hasModifier(Modifier.CACHE_KEY)) {
+      // Fast path.
+      _cachedLocation = null;
+      _cachedHashCode = null;
+      return;
+    }
+
+    // Save originals.
+    ElementLocation oldLocation = _cachedLocation;
+    int oldHashCode = _cachedHashCode;
+
+    _cachedLocation = null;
+    _cachedHashCode = null;
+
+    if (oldHashCode != hashCode) {
+      // Prevent cache corruption by restoring originals.
+      _cachedLocation = oldLocation;
+      _cachedHashCode = oldHashCode;
+      throw new FrozenHashCodeException(
+          "can't update hashCode for a cache key: $this ($runtimeType)");
+    }
   }
 }
 
@@ -2566,6 +2601,18 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   @override
   accept(ElementVisitor visitor) =>
       visitor.visitFieldFormalParameterElement(this);
+}
+
+/**
+ * Indicates that an ElementImpl's hashCode cannot currently be changed.
+ */
+class FrozenHashCodeException implements Exception {
+  final String _message;
+
+  FrozenHashCodeException(this._message);
+
+  @override
+  String toString() => "FrozenHashCodeException($_message)";
 }
 
 /**
@@ -3789,7 +3836,12 @@ class Modifier extends Enum<Modifier> {
    */
   static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 16);
 
-  static const List<Modifier> values = const [
+  /**
+   * Indicates that this element is being used as an analyzer cache key.
+   */
+  static const Modifier CACHE_KEY = const Modifier('CACHE_KEY', 17);
+
+  static const List<Modifier> persistedValues = const [
     ABSTRACT,
     ASYNCHRONOUS,
     CONST,
@@ -3808,6 +3860,11 @@ class Modifier extends Enum<Modifier> {
     STATIC,
     SYNTHETIC
   ];
+
+  static const List<Modifier> transientValues = const [CACHE_KEY];
+
+  static final values = new List.unmodifiable(
+      []..addAll(persistedValues)..addAll(transientValues));
 
   const Modifier(String name, int ordinal) : super(name, ordinal);
 }

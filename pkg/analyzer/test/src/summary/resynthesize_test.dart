@@ -587,12 +587,19 @@ class ResynthTest extends ResolverTestCase {
     compareMetadata(resynthesized.metadata, original.metadata, desc);
     // Modifiers are a pain to test via handles.  So just test them via the
     // actual element.
-    for (Modifier modifier in Modifier.values) {
+    for (Modifier modifier in Modifier.persistedValues) {
       bool got = rImpl.hasModifier(modifier);
       bool want = oImpl.hasModifier(modifier);
       expect(got, want,
           reason: 'Mismatch in $desc.$modifier: got $got, want $want');
     }
+    for (Modifier modifier in Modifier.transientValues) {
+      bool got = rImpl.hasModifier(modifier);
+      bool want = false;
+      expect(got, false,
+          reason: 'Mismatch in $desc.$modifier: got $got, want $want');
+    }
+
     // Validate members.
     if (oImpl is Member) {
       expect(rImpl, new isInstanceOf<Member>(), reason: desc);
