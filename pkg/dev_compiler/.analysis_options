@@ -6,3 +6,4 @@ analyzer:
     - tool/generated_sdk/**
     - test/codegen/**
     - test/samples/**
+    - test/transformer/hello_app/**
