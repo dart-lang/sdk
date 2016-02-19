@@ -123,6 +123,33 @@ void foo/*<S>*/(/*=S*/ x) {
 }
 ```
 
+You can use the `/*=T*/` syntax to replace any type with a generic type
+parameter, but you will usually want to replace `dynamic`. Otherwise, since the
+original type is used at runtime, it may cause checked mode errors:
+
+```dart
+List/*<T>*/ makeList/*<T extends num>*/() {
+  return new List<num /*=T*/>();
+}
+
+void main() {
+  List<int> list = makeList/*<int>*/(); // <-- Fails here.
+}
+```
+
+This program checks without error in strong mode but fails at runtime in checked
+mode since the list that gets created is a `List<num>`. A better choice is:
+
+```dart
+List/*<T>*/ makeList/*<T extends num>*/() {
+  return new List/*<T>*/();
+}
+
+void main() {
+  List<int> list = makeList/*<int>*/();
+}
+```
+
 ## Instantiating generic classes with generic method parameters
 
 You can use generic method parameters to instantiate generic classes using the
