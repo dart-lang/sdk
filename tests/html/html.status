@@ -381,7 +381,7 @@ websql_test/supported: Fail
 
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
-[ $runtime == vm || $runtime == dart_precompiled ]
+[ $runtime == vm || $runtime == dart_precompiled || $runtime == dart_product ]
 *: Skip
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]

@@ -275,7 +275,7 @@ io/raw_socket_cross_process_test: Skip # Platform.executable
 io/test_extension_test: Skip # Platform.executable
 io/regress_7679_test: Skip # Platform.executable
 io/process_*: Skip # Most use Platform.executable
-
+assert_test: RuntimeError # Expects line and column numbers
 
 # Code coverage is not supported in product mode.
 [ $mode == product ]
@@ -290,3 +290,14 @@ no_support_disassembler_test: SkipByDesign
 no_support_il_printer_test: SkipByDesign
 no_support_service_test: SkipByDesign
 no_support_timeline_test: SkipByDesign
+
+# Following tests are skipped on dart_product as package mapping is not supported.
+[ $runtime == dart_product ]
+package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: Skip
+package/scenarios/packages_file_strange_formatting/empty_lines_test: Skip
+package/scenarios/invalid/invalid_utf8_test: Skip
+package/scenarios/invalid/same_package_twice_test: Skip
+package/scenarios/invalid/non_existent_packages_file_test: Skip
+package/scenarios/empty_packages_file/empty_packages_file_noimports_test: Skip
+package/scenarios/packages_option_only/packages_option_only_noimports_test: Skip
+package/scenarios/packages_option_only/packages_option_only_test: Skip
