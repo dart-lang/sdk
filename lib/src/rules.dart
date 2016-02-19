@@ -28,6 +28,7 @@ import 'package:linter/src/rules/package_api_docs.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/rules/prefer_is_not_empty.dart';
 import 'package:linter/src/rules/pub/package_names.dart';
+import 'package:linter/src/rules/public_member_api_docs.dart';
 import 'package:linter/src/rules/slash_for_doc_comments.dart';
 import 'package:linter/src/rules/sort_constructors_first.dart';
 import 'package:linter/src/rules/super_goes_last.dart';
@@ -56,6 +57,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new OneMemberAbstracts())
   ..register(new PackageApiDocs())
   ..register(new PackagePrefixedLibraryNames())
+  ..register(new PublicMemberApiDocs())
   ..register(new PubPackageNames())
   ..register(new SlashForDocComments())
   ..register(new SortConstructorsFirst())

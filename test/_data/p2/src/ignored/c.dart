@@ -1,1 +1,2 @@
+/// Class c.
 class c {}

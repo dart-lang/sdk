@@ -4,6 +4,7 @@
 
 import 'package:p6/p6_lib.dart';
 
+/// Main.
 void main() {
   p6_lib();
 }
