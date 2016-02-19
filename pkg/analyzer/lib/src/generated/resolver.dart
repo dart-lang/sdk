@@ -2503,6 +2503,12 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
             _findIdentifier(_enclosingAlias.typeParameters, parameterName);
       }
     }
+    if (element == null) {
+      String name = parameterName.name;
+      int offset = parameterName.offset;
+      _mismatch(
+          'Could not find type parameter with name "$name" at $offset', node);
+    }
     super.visitTypeParameter(node);
     _resolveMetadata(node.metadata, element);
     return null;
