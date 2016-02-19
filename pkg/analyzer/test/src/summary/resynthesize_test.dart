@@ -802,6 +802,11 @@ class ResynthTest extends ResolverTestCase {
     }
     expect(resynthesized.defaultValueCode, original.defaultValueCode,
         reason: desc);
+    ParameterElementImpl resynthesizedActual =
+        getActualElement(resynthesized, desc);
+    ParameterElementImpl originalActual = getActualElement(original, desc);
+    compareFunctionElements(
+        resynthesizedActual.initializer, originalActual.initializer, desc);
   }
 
   void comparePrefixElements(PrefixElementImpl resynthesized,
@@ -945,20 +950,17 @@ class ResynthTest extends ResolverTestCase {
       VariableElement resynthesized, VariableElement original, String desc) {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
-    // TODO(scheglov) VariableMember.initializer is not implemented
-    if (original is! VariableMember) {
-      compareFunctionElements(
-          resynthesized.initializer, original.initializer, desc);
-    }
+    VariableElementImpl resynthesizedActual =
+        getActualElement(resynthesized, desc);
     VariableElementImpl originalActual = getActualElement(original, desc);
+    compareFunctionElements(
+        resynthesizedActual.initializer, originalActual.initializer, desc);
     if (originalActual is ConstVariableElement) {
       Element oEnclosing = original.enclosingElement;
       if (oEnclosing is ClassElement && oEnclosing.isEnum) {
         compareConstValues(
             resynthesized.constantValue, original.constantValue, desc);
       } else {
-        VariableElementImpl resynthesizedActual =
-            getActualElement(resynthesized, desc);
         Expression initializer = resynthesizedActual.constantInitializer;
         if (constantInitializersAreInvalid) {
           _assertUnresolvedIdentifier(initializer, desc);
