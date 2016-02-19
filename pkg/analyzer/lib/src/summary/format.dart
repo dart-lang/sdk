@@ -9,6 +9,7 @@ library analyzer.src.summary.format;
 
 import 'flat_buffers.dart' as fb;
 import 'idl.dart' as idl;
+import 'dart:convert' as convert;
 
 class _ReferenceKindReader extends fb.Reader<idl.ReferenceKind> {
   const _ReferenceKindReader() : super();
@@ -274,6 +275,17 @@ class _EntityRefImpl extends Object with _EntityRefMixin implements idl.EntityRe
 
 abstract class _EntityRefMixin implements idl.EntityRef {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (implicitFunctionTypeIndices.isNotEmpty) _result["implicitFunctionTypeIndices"] = implicitFunctionTypeIndices;
+    if (paramReference != 0) _result["paramReference"] = paramReference;
+    if (reference != 0) _result["reference"] = reference;
+    if (slot != 0) _result["slot"] = slot;
+    if (typeArguments.isNotEmpty) _result["typeArguments"] = typeArguments.map((_value) => _value.toJson()).toList();
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "implicitFunctionTypeIndices": implicitFunctionTypeIndices,
     "paramReference": paramReference,
@@ -281,6 +293,9 @@ abstract class _EntityRefMixin implements idl.EntityRef {
     "slot": slot,
     "typeArguments": typeArguments,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin implements idl.LinkedDependency {
@@ -372,10 +387,21 @@ class _LinkedDependencyImpl extends Object with _LinkedDependencyMixin implement
 
 abstract class _LinkedDependencyMixin implements idl.LinkedDependency {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (parts.isNotEmpty) _result["parts"] = parts;
+    if (uri != '') _result["uri"] = uri;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "parts": parts,
     "uri": uri,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin implements idl.LinkedExportName {
@@ -511,12 +537,25 @@ class _LinkedExportNameImpl extends Object with _LinkedExportNameMixin implement
 
 abstract class _LinkedExportNameMixin implements idl.LinkedExportName {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (dependency != 0) _result["dependency"] = dependency;
+    if (kind != idl.ReferenceKind.classOrEnum) _result["kind"] = kind.toString().split('.')[1];
+    if (name != '') _result["name"] = name;
+    if (unit != 0) _result["unit"] = unit;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "dependency": dependency,
     "kind": kind,
     "name": name,
     "unit": unit,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements idl.LinkedLibrary {
@@ -715,6 +754,17 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.
 
 abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (dependencies.isNotEmpty) _result["dependencies"] = dependencies.map((_value) => _value.toJson()).toList();
+    if (exportNames.isNotEmpty) _result["exportNames"] = exportNames.map((_value) => _value.toJson()).toList();
+    if (importDependencies.isNotEmpty) _result["importDependencies"] = importDependencies;
+    if (numPrelinkedDependencies != 0) _result["numPrelinkedDependencies"] = numPrelinkedDependencies;
+    if (units.isNotEmpty) _result["units"] = units.map((_value) => _value.toJson()).toList();
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "dependencies": dependencies,
     "exportNames": exportNames,
@@ -722,6 +772,9 @@ abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
     "numPrelinkedDependencies": numPrelinkedDependencies,
     "units": units,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implements idl.LinkedReference {
@@ -950,6 +1003,19 @@ class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements 
 
 abstract class _LinkedReferenceMixin implements idl.LinkedReference {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (containingReference != 0) _result["containingReference"] = containingReference;
+    if (dependency != 0) _result["dependency"] = dependency;
+    if (kind != idl.ReferenceKind.classOrEnum) _result["kind"] = kind.toString().split('.')[1];
+    if (localIndex != 0) _result["localIndex"] = localIndex;
+    if (name != '') _result["name"] = name;
+    if (numTypeParameters != 0) _result["numTypeParameters"] = numTypeParameters;
+    if (unit != 0) _result["unit"] = unit;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "containingReference": containingReference,
     "dependency": dependency,
@@ -959,6 +1025,9 @@ abstract class _LinkedReferenceMixin implements idl.LinkedReference {
     "numTypeParameters": numTypeParameters,
     "unit": unit,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.LinkedUnit {
@@ -1051,10 +1120,21 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.Linked
 
 abstract class _LinkedUnitMixin implements idl.LinkedUnit {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
+    if (types.isNotEmpty) _result["types"] = types.map((_value) => _value.toJson()).toList();
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "references": references,
     "types": types,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class SdkBundleBuilder extends Object with _SdkBundleMixin implements idl.SdkBundle {
@@ -1205,12 +1285,25 @@ class _SdkBundleImpl extends Object with _SdkBundleMixin implements idl.SdkBundl
 
 abstract class _SdkBundleMixin implements idl.SdkBundle {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (linkedLibraries.isNotEmpty) _result["linkedLibraries"] = linkedLibraries.map((_value) => _value.toJson()).toList();
+    if (linkedLibraryUris.isNotEmpty) _result["linkedLibraryUris"] = linkedLibraryUris;
+    if (unlinkedUnits.isNotEmpty) _result["unlinkedUnits"] = unlinkedUnits.map((_value) => _value.toJson()).toList();
+    if (unlinkedUnitUris.isNotEmpty) _result["unlinkedUnitUris"] = unlinkedUnitUris;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "linkedLibraries": linkedLibraries,
     "linkedLibraryUris": linkedLibraryUris,
     "unlinkedUnits": unlinkedUnits,
     "unlinkedUnitUris": unlinkedUnitUris,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements idl.UnlinkedClass {
@@ -1583,6 +1676,25 @@ class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements idl.
 
 abstract class _UnlinkedClassMixin implements idl.UnlinkedClass {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
+    if (executables.isNotEmpty) _result["executables"] = executables.map((_value) => _value.toJson()).toList();
+    if (fields.isNotEmpty) _result["fields"] = fields.map((_value) => _value.toJson()).toList();
+    if (hasNoSupertype != false) _result["hasNoSupertype"] = hasNoSupertype;
+    if (interfaces.isNotEmpty) _result["interfaces"] = interfaces.map((_value) => _value.toJson()).toList();
+    if (isAbstract != false) _result["isAbstract"] = isAbstract;
+    if (isMixinApplication != false) _result["isMixinApplication"] = isMixinApplication;
+    if (mixins.isNotEmpty) _result["mixins"] = mixins.map((_value) => _value.toJson()).toList();
+    if (name != '') _result["name"] = name;
+    if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    if (supertype != null) _result["supertype"] = supertype.toJson();
+    if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters.map((_value) => _value.toJson()).toList();
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "documentationComment": documentationComment,
@@ -1598,6 +1710,9 @@ abstract class _UnlinkedClassMixin implements idl.UnlinkedClass {
     "supertype": supertype,
     "typeParameters": typeParameters,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
@@ -1684,10 +1799,21 @@ class _UnlinkedCombinatorImpl extends Object with _UnlinkedCombinatorMixin imple
 
 abstract class _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (hides.isNotEmpty) _result["hides"] = hides;
+    if (shows.isNotEmpty) _result["shows"] = shows;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "hides": hides,
     "shows": shows,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements idl.UnlinkedConst {
@@ -1887,6 +2013,18 @@ class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements idl.
 
 abstract class _UnlinkedConstMixin implements idl.UnlinkedConst {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (doubles.isNotEmpty) _result["doubles"] = doubles.map((_value) => _value.isFinite ? _value : _value.toString()).toList();
+    if (ints.isNotEmpty) _result["ints"] = ints;
+    if (isInvalid != false) _result["isInvalid"] = isInvalid;
+    if (operations.isNotEmpty) _result["operations"] = operations.map((_value) => _value.toString().split('.')[1]).toList();
+    if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
+    if (strings.isNotEmpty) _result["strings"] = strings;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "doubles": doubles,
     "ints": ints,
@@ -1895,6 +2033,9 @@ abstract class _UnlinkedConstMixin implements idl.UnlinkedConst {
     "references": references,
     "strings": strings,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConstructorInitializer {
@@ -2036,12 +2177,25 @@ class _UnlinkedConstructorInitializerImpl extends Object with _UnlinkedConstruct
 
 abstract class _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConstructorInitializer {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (arguments.isNotEmpty) _result["arguments"] = arguments.map((_value) => _value.toJson()).toList();
+    if (expression != null) _result["expression"] = expression.toJson();
+    if (kind != idl.UnlinkedConstructorInitializerKind.field) _result["kind"] = kind.toString().split('.')[1];
+    if (name != '') _result["name"] = name;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "arguments": arguments,
     "expression": expression,
     "kind": kind,
     "name": name,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumentationComment {
@@ -2153,11 +2307,23 @@ class _UnlinkedDocumentationCommentImpl extends Object with _UnlinkedDocumentati
 
 abstract class _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumentationComment {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (length != 0) _result["length"] = length;
+    if (offset != 0) _result["offset"] = offset;
+    if (text != '') _result["text"] = text;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "length": length,
     "offset": offset,
     "text": text,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.UnlinkedEnum {
@@ -2323,6 +2489,17 @@ class _UnlinkedEnumImpl extends Object with _UnlinkedEnumMixin implements idl.Un
 
 abstract class _UnlinkedEnumMixin implements idl.UnlinkedEnum {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
+    if (name != '') _result["name"] = name;
+    if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    if (values.isNotEmpty) _result["values"] = values.map((_value) => _value.toJson()).toList();
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "documentationComment": documentationComment,
@@ -2330,6 +2507,9 @@ abstract class _UnlinkedEnumMixin implements idl.UnlinkedEnum {
     "nameOffset": nameOffset,
     "values": values,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin implements idl.UnlinkedEnumValue {
@@ -2441,11 +2621,23 @@ class _UnlinkedEnumValueImpl extends Object with _UnlinkedEnumValueMixin impleme
 
 abstract class _UnlinkedEnumValueMixin implements idl.UnlinkedEnumValue {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
+    if (name != '') _result["name"] = name;
+    if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "documentationComment": documentationComment,
     "name": name,
     "nameOffset": nameOffset,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
@@ -3085,6 +3277,35 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
 
 abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (constantInitializers.isNotEmpty) _result["constantInitializers"] = constantInitializers.map((_value) => _value.toJson()).toList();
+    if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
+    if (inferredReturnTypeSlot != 0) _result["inferredReturnTypeSlot"] = inferredReturnTypeSlot;
+    if (isAbstract != false) _result["isAbstract"] = isAbstract;
+    if (isConst != false) _result["isConst"] = isConst;
+    if (isExternal != false) _result["isExternal"] = isExternal;
+    if (isFactory != false) _result["isFactory"] = isFactory;
+    if (isRedirectedConstructor != false) _result["isRedirectedConstructor"] = isRedirectedConstructor;
+    if (isStatic != false) _result["isStatic"] = isStatic;
+    if (kind != idl.UnlinkedExecutableKind.functionOrMethod) _result["kind"] = kind.toString().split('.')[1];
+    if (localFunctions.isNotEmpty) _result["localFunctions"] = localFunctions.map((_value) => _value.toJson()).toList();
+    if (localLabels.isNotEmpty) _result["localLabels"] = localLabels.map((_value) => _value.toJson()).toList();
+    if (localVariables.isNotEmpty) _result["localVariables"] = localVariables.map((_value) => _value.toJson()).toList();
+    if (name != '') _result["name"] = name;
+    if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    if (parameters.isNotEmpty) _result["parameters"] = parameters.map((_value) => _value.toJson()).toList();
+    if (redirectedConstructor != null) _result["redirectedConstructor"] = redirectedConstructor.toJson();
+    if (redirectedConstructorName != '') _result["redirectedConstructorName"] = redirectedConstructorName;
+    if (returnType != null) _result["returnType"] = returnType.toJson();
+    if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters.map((_value) => _value.toJson()).toList();
+    if (visibleLength != 0) _result["visibleLength"] = visibleLength;
+    if (visibleOffset != 0) _result["visibleOffset"] = visibleOffset;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "constantInitializers": constantInitializers,
@@ -3110,6 +3331,9 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     "visibleLength": visibleLength,
     "visibleOffset": visibleOffset,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPublicMixin implements idl.UnlinkedExportNonPublic {
@@ -3243,12 +3467,25 @@ class _UnlinkedExportNonPublicImpl extends Object with _UnlinkedExportNonPublicM
 
 abstract class _UnlinkedExportNonPublicMixin implements idl.UnlinkedExportNonPublic {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (offset != 0) _result["offset"] = offset;
+    if (uriEnd != 0) _result["uriEnd"] = uriEnd;
+    if (uriOffset != 0) _result["uriOffset"] = uriOffset;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "offset": offset,
     "uriEnd": uriEnd,
     "uriOffset": uriOffset,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
@@ -3335,10 +3572,21 @@ class _UnlinkedExportPublicImpl extends Object with _UnlinkedExportPublicMixin i
 
 abstract class _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (combinators.isNotEmpty) _result["combinators"] = combinators.map((_value) => _value.toJson()).toList();
+    if (uri != '') _result["uri"] = uri;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "combinators": combinators,
     "uri": uri,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements idl.UnlinkedImport {
@@ -3625,6 +3873,22 @@ class _UnlinkedImportImpl extends Object with _UnlinkedImportMixin implements id
 
 abstract class _UnlinkedImportMixin implements idl.UnlinkedImport {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (combinators.isNotEmpty) _result["combinators"] = combinators.map((_value) => _value.toJson()).toList();
+    if (isDeferred != false) _result["isDeferred"] = isDeferred;
+    if (isImplicit != false) _result["isImplicit"] = isImplicit;
+    if (offset != 0) _result["offset"] = offset;
+    if (prefixOffset != 0) _result["prefixOffset"] = prefixOffset;
+    if (prefixReference != 0) _result["prefixReference"] = prefixReference;
+    if (uri != '') _result["uri"] = uri;
+    if (uriEnd != 0) _result["uriEnd"] = uriEnd;
+    if (uriOffset != 0) _result["uriOffset"] = uriOffset;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "combinators": combinators,
@@ -3637,6 +3901,9 @@ abstract class _UnlinkedImportMixin implements idl.UnlinkedImport {
     "uriEnd": uriEnd,
     "uriOffset": uriOffset,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements idl.UnlinkedLabel {
@@ -3767,12 +4034,25 @@ class _UnlinkedLabelImpl extends Object with _UnlinkedLabelMixin implements idl.
 
 abstract class _UnlinkedLabelMixin implements idl.UnlinkedLabel {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (isOnSwitchMember != false) _result["isOnSwitchMember"] = isOnSwitchMember;
+    if (isOnSwitchStatement != false) _result["isOnSwitchStatement"] = isOnSwitchStatement;
+    if (name != '') _result["name"] = name;
+    if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "isOnSwitchMember": isOnSwitchMember,
     "isOnSwitchStatement": isOnSwitchStatement,
     "name": name,
     "nameOffset": nameOffset,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements idl.UnlinkedParam {
@@ -4146,6 +4426,25 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
 
 abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (defaultValue != null) _result["defaultValue"] = defaultValue.toJson();
+    if (inferredTypeSlot != 0) _result["inferredTypeSlot"] = inferredTypeSlot;
+    if (initializer != null) _result["initializer"] = initializer.toJson();
+    if (isFunctionTyped != false) _result["isFunctionTyped"] = isFunctionTyped;
+    if (isInitializingFormal != false) _result["isInitializingFormal"] = isInitializingFormal;
+    if (kind != idl.UnlinkedParamKind.required) _result["kind"] = kind.toString().split('.')[1];
+    if (name != '') _result["name"] = name;
+    if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    if (parameters.isNotEmpty) _result["parameters"] = parameters.map((_value) => _value.toJson()).toList();
+    if (type != null) _result["type"] = type.toJson();
+    if (visibleLength != 0) _result["visibleLength"] = visibleLength;
+    if (visibleOffset != 0) _result["visibleOffset"] = visibleOffset;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "defaultValue": defaultValue,
@@ -4161,6 +4460,9 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     "visibleLength": visibleLength,
     "visibleOffset": visibleOffset,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.UnlinkedPart {
@@ -4270,11 +4572,23 @@ class _UnlinkedPartImpl extends Object with _UnlinkedPartMixin implements idl.Un
 
 abstract class _UnlinkedPartMixin implements idl.UnlinkedPart {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (uriEnd != 0) _result["uriEnd"] = uriEnd;
+    if (uriOffset != 0) _result["uriOffset"] = uriOffset;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "uriEnd": uriEnd,
     "uriOffset": uriOffset,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin implements idl.UnlinkedPublicName {
@@ -4414,12 +4728,25 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
 
 abstract class _UnlinkedPublicNameMixin implements idl.UnlinkedPublicName {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (kind != idl.ReferenceKind.classOrEnum) _result["kind"] = kind.toString().split('.')[1];
+    if (members.isNotEmpty) _result["members"] = members.map((_value) => _value.toJson()).toList();
+    if (name != '') _result["name"] = name;
+    if (numTypeParameters != 0) _result["numTypeParameters"] = numTypeParameters;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "kind": kind,
     "members": members,
     "name": name,
     "numTypeParameters": numTypeParameters,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespaceMixin implements idl.UnlinkedPublicNamespace {
@@ -4546,11 +4873,23 @@ class _UnlinkedPublicNamespaceImpl extends Object with _UnlinkedPublicNamespaceM
 
 abstract class _UnlinkedPublicNamespaceMixin implements idl.UnlinkedPublicNamespace {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (exports.isNotEmpty) _result["exports"] = exports.map((_value) => _value.toJson()).toList();
+    if (names.isNotEmpty) _result["names"] = names.map((_value) => _value.toJson()).toList();
+    if (parts.isNotEmpty) _result["parts"] = parts;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "exports": exports,
     "names": names,
     "parts": parts,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin implements idl.UnlinkedReference {
@@ -4641,10 +4980,21 @@ class _UnlinkedReferenceImpl extends Object with _UnlinkedReferenceMixin impleme
 
 abstract class _UnlinkedReferenceMixin implements idl.UnlinkedReference {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (name != '') _result["name"] = name;
+    if (prefixReference != 0) _result["prefixReference"] = prefixReference;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "name": name,
     "prefixReference": prefixReference,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
@@ -4864,6 +5214,19 @@ class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements 
 
 abstract class _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
+    if (name != '') _result["name"] = name;
+    if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    if (parameters.isNotEmpty) _result["parameters"] = parameters.map((_value) => _value.toJson()).toList();
+    if (returnType != null) _result["returnType"] = returnType.toJson();
+    if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters.map((_value) => _value.toJson()).toList();
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "documentationComment": documentationComment,
@@ -4873,6 +5236,9 @@ abstract class _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
     "returnType": returnType,
     "typeParameters": typeParameters,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
@@ -5011,12 +5377,25 @@ class _UnlinkedTypeParamImpl extends Object with _UnlinkedTypeParamMixin impleme
 
 abstract class _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (bound != null) _result["bound"] = bound.toJson();
+    if (name != '') _result["name"] = name;
+    if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "bound": bound,
     "name": name,
     "nameOffset": nameOffset,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.UnlinkedUnit {
@@ -5467,6 +5846,27 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
 
 abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (classes.isNotEmpty) _result["classes"] = classes.map((_value) => _value.toJson()).toList();
+    if (enums.isNotEmpty) _result["enums"] = enums.map((_value) => _value.toJson()).toList();
+    if (executables.isNotEmpty) _result["executables"] = executables.map((_value) => _value.toJson()).toList();
+    if (exports.isNotEmpty) _result["exports"] = exports.map((_value) => _value.toJson()).toList();
+    if (imports.isNotEmpty) _result["imports"] = imports.map((_value) => _value.toJson()).toList();
+    if (libraryAnnotations.isNotEmpty) _result["libraryAnnotations"] = libraryAnnotations.map((_value) => _value.toJson()).toList();
+    if (libraryDocumentationComment != null) _result["libraryDocumentationComment"] = libraryDocumentationComment.toJson();
+    if (libraryName != '') _result["libraryName"] = libraryName;
+    if (libraryNameLength != 0) _result["libraryNameLength"] = libraryNameLength;
+    if (libraryNameOffset != 0) _result["libraryNameOffset"] = libraryNameOffset;
+    if (parts.isNotEmpty) _result["parts"] = parts.map((_value) => _value.toJson()).toList();
+    if (publicNamespace != null) _result["publicNamespace"] = publicNamespace.toJson();
+    if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
+    if (typedefs.isNotEmpty) _result["typedefs"] = typedefs.map((_value) => _value.toJson()).toList();
+    if (variables.isNotEmpty) _result["variables"] = variables.map((_value) => _value.toJson()).toList();
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "classes": classes,
     "enums": enums,
@@ -5484,6 +5884,9 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     "typedefs": typedefs,
     "variables": variables,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin implements idl.UnlinkedVariable {
@@ -5883,6 +6286,26 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
 
 abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
   @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (constExpr != null) _result["constExpr"] = constExpr.toJson();
+    if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
+    if (inferredTypeSlot != 0) _result["inferredTypeSlot"] = inferredTypeSlot;
+    if (initializer != null) _result["initializer"] = initializer.toJson();
+    if (isConst != false) _result["isConst"] = isConst;
+    if (isFinal != false) _result["isFinal"] = isFinal;
+    if (isStatic != false) _result["isStatic"] = isStatic;
+    if (name != '') _result["name"] = name;
+    if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    if (propagatedTypeSlot != 0) _result["propagatedTypeSlot"] = propagatedTypeSlot;
+    if (type != null) _result["type"] = type.toJson();
+    if (visibleLength != 0) _result["visibleLength"] = visibleLength;
+    if (visibleOffset != 0) _result["visibleOffset"] = visibleOffset;
+    return _result;
+  }
+
+  @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "constExpr": constExpr,
@@ -5899,5 +6322,8 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
     "visibleLength": visibleLength,
     "visibleOffset": visibleOffset,
   };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 

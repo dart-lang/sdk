@@ -33,4 +33,15 @@ abstract class SummaryClass {
    * Intended for testing and debugging only.
    */
   Map<String, Object> toMap();
+
+  /**
+   * Translate the data in this class into a JSON map, whose keys are the names
+   * of fields and whose values are the data stored in those fields,
+   * recursively converted into JSON.
+   *
+   * Fields containing their default value are elided.
+   *
+   * Intended for testing and debugging only.
+   */
+  Map<String, Object> toJson();
 }

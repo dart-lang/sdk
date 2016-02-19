@@ -62,6 +62,8 @@ final GeneratedFile target =
   return codeGenerator._outBuffer.toString();
 });
 
+typedef String _StringToString(String s);
+
 class _CodeGenerator {
   /**
    * Buffer in which generated code is accumulated.
@@ -341,6 +343,7 @@ class _CodeGenerator {
     out();
     out("import 'flat_buffers.dart' as fb;");
     out("import 'idl.dart' as idl;");
+    out("import 'dart:convert' as convert;");
     out();
     for (idlModel.EnumDeclaration enm in _idl.enums.values) {
       _generateEnumReader(enm);
@@ -631,6 +634,45 @@ class _CodeGenerator {
     String mixinName = '_${name}Mixin';
     out('abstract class $mixinName implements ${idlPrefix(name)} {');
     indent(() {
+      // Write toJson().
+      out('@override');
+      out('Map<String, Object> toJson() {');
+      indent(() {
+        out('Map<String, Object> _result = <String, Object>{};');
+        for (idlModel.FieldDeclaration field in cls.fields) {
+          String condition;
+          if (field.type.isList) {
+            condition = '${field.name}.isNotEmpty';
+          } else {
+            condition = '${field.name} != ${defaultValue(field.type, false)}';
+          }
+          _StringToString convertItem;
+          if (_idl.classes.containsKey(field.type.typeName)) {
+            convertItem = (String name) => '$name.toJson()';
+          } else if (_idl.enums.containsKey(field.type.typeName)) {
+            // TODO(paulberry): it would be better to generate a const list of
+            // strings so that we don't have to do this kludge.
+            convertItem = (String name) => "$name.toString().split('.')[1]";
+          } else if (field.type.typeName == 'double') {
+            convertItem =
+                (String name) => '$name.isFinite ? $name : $name.toString()';
+          }
+          String convertField;
+          if (convertItem == null) {
+            convertField = field.name;
+          } else if (field.type.isList) {
+            convertField = '${field.name}.map((_value) =>'
+                ' ${convertItem('_value')}).toList()';
+          } else {
+            convertField = convertItem(field.name);
+          }
+          String storeField = '_result[${quoted(field.name)}] = $convertField';
+          out('if ($condition) $storeField;');
+        }
+        out('return _result;');
+      });
+      out('}');
+      out();
       // Write toMap().
       out('@override');
       out('Map<String, Object> toMap() => {');
@@ -641,6 +683,10 @@ class _CodeGenerator {
         }
       });
       out('};');
+      out();
+      // Write toString().
+      out('@override');
+      out('String toString() => convert.JSON.encode(toJson());');
     });
     out('}');
   }
