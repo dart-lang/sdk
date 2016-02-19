@@ -1,5 +1,8 @@
 # dev_compiler changelog
 
+## 0.1.20
+- support new StackTrace.current method
+
 ## 0.1.19
 - support for dom libraries (dart:html, etc)
 
