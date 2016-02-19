@@ -5554,7 +5554,7 @@ p.B b;
     expect(linkedReference.dependency, 0);
     expect(linkedReference.kind, ReferenceKind.method);
     expect(linkedReference.name, 'f');
-    expect(linkedReference.numTypeParameters, 2);
+    expect(linkedReference.numTypeParameters, 0);
     expect(linkedReference.unit, 0);
     expect(linkedReference.containingReference, isNot(0));
     expect(linkedReference.containingReference, lessThan(type.reference));

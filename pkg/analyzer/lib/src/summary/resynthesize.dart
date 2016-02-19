@@ -2045,6 +2045,9 @@ class _LibraryResynthesizer {
         }
         ElementLocation location =
             new ElementLocationImpl.con3(locationComponents);
+        if (enclosingInfo != null) {
+          numTypeParameters += enclosingInfo.numTypeParameters;
+        }
         switch (linkedReference.kind) {
           case ReferenceKind.classOrEnum:
             element = new ClassElementHandle(summaryResynthesizer, location);
@@ -2053,7 +2056,6 @@ class _LibraryResynthesizer {
             assert(location.components.length == 4);
             element =
                 new ConstructorElementHandle(summaryResynthesizer, location);
-            numTypeParameters = enclosingInfo.numTypeParameters;
             break;
           case ReferenceKind.length:
             element = _buildStringLengthPropertyAccessorElement();

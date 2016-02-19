@@ -2873,6 +2873,62 @@ get x => null;''');
     checkLibrary('import "a.dart"; import "b.dart"; C c; D d;');
   }
 
+  test_inferred_function_type_for_variable_in_generic_function() {
+    // In the code below, `x` has an inferred type of `() => int`, with 2
+    // (unused) type parameters from the enclosing top level function.
+    checkLibrary('''
+f<U, V>() {
+  var x = () => 0;
+}
+''');
+  }
+
+  test_inferred_function_type_in_generic_class_constructor() {
+    // In the code below, `() => () => 0` has an inferred return type of
+    // `() => int`, with 2 (unused) type parameters from the enclosing class.
+    checkLibrary('''
+class C<U, V> {
+  final x;
+  C() : x = (() => () => 0);
+}
+''');
+  }
+
+  test_inferred_function_type_in_generic_class_getter() {
+    // In the code below, `() => () => 0` has an inferred return type of
+    // `() => int`, with 2 (unused) type parameters from the enclosing class.
+    checkLibrary('''
+class C<U, V> {
+  get x => () => () => 0;
+}
+''');
+  }
+
+  test_inferred_function_type_in_generic_class_in_generic_method() {
+    // In the code below, `() => () => 0` has an inferred return type of
+    // `() => int`, with 3 (unused) type parameters from the enclosing class
+    // and method.
+    checkLibrary('''
+class C<T> {
+  f<U, V>() {
+    print(() => () => 0);
+  }
+}
+''');
+  }
+
+  test_inferred_function_type_in_generic_class_setter() {
+    // In the code below, `() => () => 0` has an inferred return type of
+    // `() => int`, with 2 (unused) type parameters from the enclosing class.
+    checkLibrary('''
+class C<U, V> {
+  void set x(value) {
+    print(() => () => 0);
+  }
+}
+''');
+  }
+
   test_inferred_type_is_typedef() {
     checkLibrary('typedef int F(String s);'
         ' class C extends D { var v; }'

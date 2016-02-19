@@ -870,7 +870,8 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
 
   /**
    * If the entity being referred to is generic, the number of type parameters
-   * it accepts.  Otherwise zero.
+   * it declares (does not include type parameters of enclosing entities).
+   * Otherwise zero.
    */
   void set numTypeParameters(int _value) {
     assert(!_finished);

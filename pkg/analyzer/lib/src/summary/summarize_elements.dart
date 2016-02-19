@@ -1037,8 +1037,7 @@ class _CompilationUnitSerializer {
           linkedReference.containingReference =
               _getElementReferenceId(enclosingElement, linked: linked);
           if (enclosingElement is ClassElement) {
-            linkedReference.numTypeParameters =
-                enclosingElement.typeParameters.length;
+            // Nothing to do.
           } else if (enclosingElement is ExecutableElement) {
             if (element is FunctionElement) {
               assert(enclosingElement.functions.contains(element));

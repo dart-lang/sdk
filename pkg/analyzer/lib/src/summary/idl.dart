@@ -311,7 +311,8 @@ abstract class LinkedReference extends base.SummaryClass {
 
   /**
    * If the entity being referred to is generic, the number of type parameters
-   * it accepts.  Otherwise zero.
+   * it declares (does not include type parameters of enclosing entities).
+   * Otherwise zero.
    */
   @Id(4)
   int get numTypeParameters;
