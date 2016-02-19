@@ -556,7 +556,12 @@ class _CompilationUnitSerializer {
     UnlinkedExecutableBuilder b = new UnlinkedExecutableBuilder();
     b.name = executableElement.name;
     b.nameOffset = executableElement.nameOffset;
-    if (executableElement is! ConstructorElement) {
+    if (executableElement is ConstructorElement) {
+      if (executableElement.name.isNotEmpty) {
+        b.nameEnd = executableElement.nameEnd;
+        b.periodOffset = executableElement.periodOffset;
+      }
+    } else {
       if (!executableElement.hasImplicitReturnType) {
         b.returnType = serializeTypeRef(
             executableElement.type.returnType, executableElement);

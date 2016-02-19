@@ -840,6 +840,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     if (node.name != null) {
       b.name = node.name.name;
       b.nameOffset = node.name.offset;
+      b.periodOffset = node.period.offset;
+      b.nameEnd = node.name.end;
     } else {
       b.nameOffset = node.returnType.offset;
     }

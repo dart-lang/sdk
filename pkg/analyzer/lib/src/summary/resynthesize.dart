@@ -1062,6 +1062,13 @@ class _LibraryResynthesizer {
     assert(serializedExecutable.kind == UnlinkedExecutableKind.constructor);
     currentConstructor = new ConstructorElementImpl(
         serializedExecutable.name, serializedExecutable.nameOffset);
+    if (serializedExecutable.name.isEmpty) {
+      currentConstructor.nameEnd =
+          serializedExecutable.nameOffset + classType.name.length;
+    } else {
+      currentConstructor.nameEnd = serializedExecutable.nameEnd;
+      currentConstructor.periodOffset = serializedExecutable.periodOffset;
+    }
     constructors[serializedExecutable.name] = currentConstructor;
     currentConstructor.returnType = classType;
     buildExecutableCommonParts(currentConstructor, serializedExecutable);

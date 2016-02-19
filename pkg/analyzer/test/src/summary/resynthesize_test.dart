@@ -492,6 +492,8 @@ class ResynthTest extends ResolverTestCase {
           original.redirectedConstructor, '$desc redirectedConstructor');
     }
     checkPossibleMember(resynthesized, original, desc);
+    expect(resynthesized.nameEnd, original.nameEnd, reason: desc);
+    expect(resynthesized.periodOffset, original.periodOffset, reason: desc);
   }
 
   void compareConstValues(

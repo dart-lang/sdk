@@ -1163,6 +1163,14 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   String get name;
 
   /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [name] is not empty,
+   * the offset of the end of the constructor name.  Otherwise zero.
+   */
+  @informative
+  @Id(23)
+  int get nameEnd;
+
+  /**
    * Offset of the executable name relative to the beginning of the file.  For
    * named constructors, this excludes the class name and excludes the ".".
    * For unnamed constructors, this is the offset of the class name (i.e. the
@@ -1179,6 +1187,14 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    */
   @Id(2)
   List<UnlinkedParam> get parameters;
+
+  /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [name] is not empty,
+   * the offset of the period before the constructor name.  Otherwise zero.
+   */
+  @informative
+  @Id(24)
+  int get periodOffset;
 
   /**
    * If [isRedirectedConstructor] and [isFactory] are both `true`, the
@@ -1429,6 +1445,14 @@ abstract class UnlinkedParam extends base.SummaryClass {
   UnlinkedConst get defaultValue;
 
   /**
+   * If the parameter has a default value, the source text of the constant
+   * expression in the default value.  Otherwise the empty string.
+   */
+  @informative
+  @Id(13)
+  String get defaultValueCode;
+
+  /**
    * If this parameter's type is inferable, nonzero slot id identifying which
    * entry in [LinkedLibrary.types] contains the inferred type.  If there is no
    * matching entry in [LinkedLibrary.types], then no type was inferred for
@@ -1480,14 +1504,6 @@ abstract class UnlinkedParam extends base.SummaryClass {
   @informative
   @Id(1)
   int get nameOffset;
-
-  /**
-   * If the parameter has a default value, the source text of the constant
-   * expression in the default value.  Otherwise the empty string.
-   */
-  @informative
-  @Id(13)
-  String get defaultValueCode;
 
   /**
    * If [isFunctionTyped] is `true`, the parameters of the function type.

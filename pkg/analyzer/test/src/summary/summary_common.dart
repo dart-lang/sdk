@@ -3003,6 +3003,8 @@ const v = p.C.foo;
     expect(executable.returnType, isNull);
     expect(executable.isExternal, isFalse);
     expect(executable.nameOffset, text.indexOf('C();'));
+    expect(executable.periodOffset, 0);
+    expect(executable.nameEnd, 0);
     expect(executable.isRedirectedConstructor, isFalse);
     expect(executable.redirectedConstructor, isNull);
     expect(executable.redirectedConstructorName, isEmpty);
@@ -3404,6 +3406,8 @@ class C {
         executables: serializeClassText(text).executables);
     expect(executable.name, 'foo');
     expect(executable.nameOffset, text.indexOf('foo'));
+    expect(executable.periodOffset, text.indexOf('.foo'));
+    expect(executable.nameEnd, text.indexOf('()'));
   }
 
   test_constructor_non_const() {

@@ -100,6 +100,14 @@ class ElementFactory {
     ConstructorElementImpl constructor = name == null
         ? new ConstructorElementImpl("", -1)
         : new ConstructorElementImpl(name, 0);
+    if (name != null) {
+      if (name.isEmpty) {
+        constructor.nameEnd = definingClass.name.length;
+      } else {
+        constructor.periodOffset = definingClass.name.length;
+        constructor.nameEnd = definingClass.name.length + name.length + 1;
+      }
+    }
     constructor.synthetic = name == null;
     constructor.const2 = isConst;
     if (argumentTypes != null) {

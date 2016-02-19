@@ -2659,8 +2659,10 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   List<UnlinkedLabelBuilder> _localLabels;
   List<UnlinkedVariableBuilder> _localVariables;
   String _name;
+  int _nameEnd;
   int _nameOffset;
   List<UnlinkedParamBuilder> _parameters;
+  int _periodOffset;
   EntityRefBuilder _redirectedConstructor;
   String _redirectedConstructorName;
   EntityRefBuilder _returnType;
@@ -2848,6 +2850,19 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
+  int get nameEnd => _nameEnd ??= 0;
+
+  /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [name] is not empty,
+   * the offset of the end of the constructor name.  Otherwise zero.
+   */
+  void set nameEnd(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _nameEnd = _value;
+  }
+
+  @override
   int get nameOffset => _nameOffset ??= 0;
 
   /**
@@ -2873,6 +2888,19 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   void set parameters(List<UnlinkedParamBuilder> _value) {
     assert(!_finished);
     _parameters = _value;
+  }
+
+  @override
+  int get periodOffset => _periodOffset ??= 0;
+
+  /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [name] is not empty,
+   * the offset of the period before the constructor name.  Otherwise zero.
+   */
+  void set periodOffset(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _periodOffset = _value;
   }
 
   @override
@@ -2951,7 +2979,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _visibleOffset = _value;
   }
 
-  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedConstructorInitializerBuilder> constantInitializers, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedLabelBuilder> localLabels, List<UnlinkedVariableBuilder> localVariables, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset})
+  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedConstructorInitializerBuilder> constantInitializers, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedLabelBuilder> localLabels, List<UnlinkedVariableBuilder> localVariables, String name, int nameEnd, int nameOffset, List<UnlinkedParamBuilder> parameters, int periodOffset, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _constantInitializers = constantInitializers,
       _documentationComment = documentationComment,
@@ -2967,8 +2995,10 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       _localLabels = localLabels,
       _localVariables = localVariables,
       _name = name,
+      _nameEnd = nameEnd,
       _nameOffset = nameOffset,
       _parameters = parameters,
+      _periodOffset = periodOffset,
       _redirectedConstructor = redirectedConstructor,
       _redirectedConstructorName = redirectedConstructorName,
       _returnType = returnType,
@@ -3073,11 +3103,17 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     if (offset_name != null) {
       fbBuilder.addOffset(1, offset_name);
     }
+    if (_nameEnd != null && _nameEnd != 0) {
+      fbBuilder.addUint32(23, _nameEnd);
+    }
     if (_nameOffset != null && _nameOffset != 0) {
       fbBuilder.addUint32(0, _nameOffset);
     }
     if (offset_parameters != null) {
       fbBuilder.addOffset(2, offset_parameters);
+    }
+    if (_periodOffset != null && _periodOffset != 0) {
+      fbBuilder.addUint32(24, _periodOffset);
     }
     if (offset_redirectedConstructor != null) {
       fbBuilder.addOffset(15, offset_redirectedConstructor);
@@ -3128,8 +3164,10 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   List<idl.UnlinkedLabel> _localLabels;
   List<idl.UnlinkedVariable> _localVariables;
   String _name;
+  int _nameEnd;
   int _nameOffset;
   List<idl.UnlinkedParam> _parameters;
+  int _periodOffset;
   idl.EntityRef _redirectedConstructor;
   String _redirectedConstructorName;
   idl.EntityRef _returnType;
@@ -3228,6 +3266,12 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   }
 
   @override
+  int get nameEnd {
+    _nameEnd ??= const fb.Uint32Reader().vTableGet(_bp, 23, 0);
+    return _nameEnd;
+  }
+
+  @override
   int get nameOffset {
     _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
     return _nameOffset;
@@ -3237,6 +3281,12 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   List<idl.UnlinkedParam> get parameters {
     _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 2, const <idl.UnlinkedParam>[]);
     return _parameters;
+  }
+
+  @override
+  int get periodOffset {
+    _periodOffset ??= const fb.Uint32Reader().vTableGet(_bp, 24, 0);
+    return _periodOffset;
   }
 
   @override
@@ -3295,8 +3345,10 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     if (localLabels.isNotEmpty) _result["localLabels"] = localLabels.map((_value) => _value.toJson()).toList();
     if (localVariables.isNotEmpty) _result["localVariables"] = localVariables.map((_value) => _value.toJson()).toList();
     if (name != '') _result["name"] = name;
+    if (nameEnd != 0) _result["nameEnd"] = nameEnd;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
     if (parameters.isNotEmpty) _result["parameters"] = parameters.map((_value) => _value.toJson()).toList();
+    if (periodOffset != 0) _result["periodOffset"] = periodOffset;
     if (redirectedConstructor != null) _result["redirectedConstructor"] = redirectedConstructor.toJson();
     if (redirectedConstructorName != '') _result["redirectedConstructorName"] = redirectedConstructorName;
     if (returnType != null) _result["returnType"] = returnType.toJson();
@@ -3323,8 +3375,10 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     "localLabels": localLabels,
     "localVariables": localVariables,
     "name": name,
+    "nameEnd": nameEnd,
     "nameOffset": nameOffset,
     "parameters": parameters,
+    "periodOffset": periodOffset,
     "redirectedConstructor": redirectedConstructor,
     "redirectedConstructorName": redirectedConstructorName,
     "returnType": returnType,
@@ -4061,6 +4115,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
 
   List<UnlinkedConstBuilder> _annotations;
   UnlinkedConstBuilder _defaultValue;
+  String _defaultValueCode;
   int _inferredTypeSlot;
   UnlinkedExecutableBuilder _initializer;
   bool _isFunctionTyped;
@@ -4068,7 +4123,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   idl.UnlinkedParamKind _kind;
   String _name;
   int _nameOffset;
-  String _defaultValueCode;
   List<UnlinkedParamBuilder> _parameters;
   EntityRefBuilder _type;
   int _visibleLength;
@@ -4096,6 +4150,18 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   void set defaultValue(UnlinkedConstBuilder _value) {
     assert(!_finished);
     _defaultValue = _value;
+  }
+
+  @override
+  String get defaultValueCode => _defaultValueCode ??= '';
+
+  /**
+   * If the parameter has a default value, the source text of the constant
+   * expression in the default value.  Otherwise the empty string.
+   */
+  void set defaultValueCode(String _value) {
+    assert(!_finished);
+    _defaultValueCode = _value;
   }
 
   @override
@@ -4188,18 +4254,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   }
 
   @override
-  String get defaultValueCode => _defaultValueCode ??= '';
-
-  /**
-   * If the parameter has a default value, the source text of the constant
-   * expression in the default value.  Otherwise the empty string.
-   */
-  void set defaultValueCode(String _value) {
-    assert(!_finished);
-    _defaultValueCode = _value;
-  }
-
-  @override
   List<UnlinkedParamBuilder> get parameters => _parameters ??= <UnlinkedParamBuilder>[];
 
   /**
@@ -4247,9 +4301,10 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     _visibleOffset = _value;
   }
 
-  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder defaultValue, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, String defaultValueCode, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
+  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder defaultValue, String defaultValueCode, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _defaultValue = defaultValue,
+      _defaultValueCode = defaultValueCode,
       _inferredTypeSlot = inferredTypeSlot,
       _initializer = initializer,
       _isFunctionTyped = isFunctionTyped,
@@ -4257,7 +4312,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
       _kind = kind,
       _name = name,
       _nameOffset = nameOffset,
-      _defaultValueCode = defaultValueCode,
       _parameters = parameters,
       _type = type,
       _visibleLength = visibleLength,
@@ -4268,9 +4322,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     _finished = true;
     fb.Offset offset_annotations;
     fb.Offset offset_defaultValue;
+    fb.Offset offset_defaultValueCode;
     fb.Offset offset_initializer;
     fb.Offset offset_name;
-    fb.Offset offset_defaultValueCode;
     fb.Offset offset_parameters;
     fb.Offset offset_type;
     if (!(_annotations == null || _annotations.isEmpty)) {
@@ -4279,14 +4333,14 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     if (_defaultValue != null) {
       offset_defaultValue = _defaultValue.finish(fbBuilder);
     }
+    if (_defaultValueCode != null) {
+      offset_defaultValueCode = fbBuilder.writeString(_defaultValueCode);
+    }
     if (_initializer != null) {
       offset_initializer = _initializer.finish(fbBuilder);
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
-    }
-    if (_defaultValueCode != null) {
-      offset_defaultValueCode = fbBuilder.writeString(_defaultValueCode);
     }
     if (!(_parameters == null || _parameters.isEmpty)) {
       offset_parameters = fbBuilder.writeList(_parameters.map((b) => b.finish(fbBuilder)).toList());
@@ -4300,6 +4354,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     }
     if (offset_defaultValue != null) {
       fbBuilder.addOffset(7, offset_defaultValue);
+    }
+    if (offset_defaultValueCode != null) {
+      fbBuilder.addOffset(13, offset_defaultValueCode);
     }
     if (_inferredTypeSlot != null && _inferredTypeSlot != 0) {
       fbBuilder.addUint32(2, _inferredTypeSlot);
@@ -4321,9 +4378,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     }
     if (_nameOffset != null && _nameOffset != 0) {
       fbBuilder.addUint32(1, _nameOffset);
-    }
-    if (offset_defaultValueCode != null) {
-      fbBuilder.addOffset(13, offset_defaultValueCode);
     }
     if (offset_parameters != null) {
       fbBuilder.addOffset(8, offset_parameters);
@@ -4355,6 +4409,7 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
 
   List<idl.UnlinkedConst> _annotations;
   idl.UnlinkedConst _defaultValue;
+  String _defaultValueCode;
   int _inferredTypeSlot;
   idl.UnlinkedExecutable _initializer;
   bool _isFunctionTyped;
@@ -4362,7 +4417,6 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   idl.UnlinkedParamKind _kind;
   String _name;
   int _nameOffset;
-  String _defaultValueCode;
   List<idl.UnlinkedParam> _parameters;
   idl.EntityRef _type;
   int _visibleLength;
@@ -4378,6 +4432,12 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   idl.UnlinkedConst get defaultValue {
     _defaultValue ??= const _UnlinkedConstReader().vTableGet(_bp, 7, null);
     return _defaultValue;
+  }
+
+  @override
+  String get defaultValueCode {
+    _defaultValueCode ??= const fb.StringReader().vTableGet(_bp, 13, '');
+    return _defaultValueCode;
   }
 
   @override
@@ -4423,12 +4483,6 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   }
 
   @override
-  String get defaultValueCode {
-    _defaultValueCode ??= const fb.StringReader().vTableGet(_bp, 13, '');
-    return _defaultValueCode;
-  }
-
-  @override
   List<idl.UnlinkedParam> get parameters {
     _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 8, const <idl.UnlinkedParam>[]);
     return _parameters;
@@ -4459,6 +4513,7 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     Map<String, Object> _result = <String, Object>{};
     if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
     if (defaultValue != null) _result["defaultValue"] = defaultValue.toJson();
+    if (defaultValueCode != '') _result["defaultValueCode"] = defaultValueCode;
     if (inferredTypeSlot != 0) _result["inferredTypeSlot"] = inferredTypeSlot;
     if (initializer != null) _result["initializer"] = initializer.toJson();
     if (isFunctionTyped != false) _result["isFunctionTyped"] = isFunctionTyped;
@@ -4466,7 +4521,6 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     if (kind != idl.UnlinkedParamKind.required) _result["kind"] = kind.toString().split('.')[1];
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-    if (defaultValueCode != '') _result["defaultValueCode"] = defaultValueCode;
     if (parameters.isNotEmpty) _result["parameters"] = parameters.map((_value) => _value.toJson()).toList();
     if (type != null) _result["type"] = type.toJson();
     if (visibleLength != 0) _result["visibleLength"] = visibleLength;
@@ -4478,6 +4532,7 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "defaultValue": defaultValue,
+    "defaultValueCode": defaultValueCode,
     "inferredTypeSlot": inferredTypeSlot,
     "initializer": initializer,
     "isFunctionTyped": isFunctionTyped,
@@ -4485,7 +4540,6 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     "kind": kind,
     "name": name,
     "nameOffset": nameOffset,
-    "defaultValueCode": defaultValueCode,
     "parameters": parameters,
     "type": type,
     "visibleLength": visibleLength,
