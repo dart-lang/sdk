@@ -178,7 +178,10 @@ defineRuleUnitTests() {
         'foo.bar',
         'foo_bar_baz',
         'foo',
+        'foo_',
         'foo.bar_baz.bang',
+        //See: https://github.com/flutter/flutter/pull/1996
+        'pointycastle.impl.ec_domain_parameters.gostr3410_2001_cryptopro_a',
         'a.b',
         'a.b.c',
         'p2.src.acme'
@@ -189,7 +192,6 @@ defineRuleUnitTests() {
         'Foo',
         'fooBar.',
         '.foo_Bar',
-        'foo_',
         '_f',
         'F_B',
         'JS',
