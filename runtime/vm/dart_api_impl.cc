@@ -5717,9 +5717,9 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
                                                   const char* event_kind,
                                                   const uint8_t* bytes,
                                                   intptr_t bytes_length) {
-#ifdef PRODUCT
+#if defined(PRODUCT)
   return Api::Success();
-#else
+#else  // defined(PRODUCT)
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   if (stream_id == NULL) {
@@ -5738,7 +5738,7 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
   Service::SendEmbedderEvent(I, stream_id, event_kind,
                              bytes, bytes_length);
   return Api::Success();
-#endif  // PRODUCT
+#endif  // defined(PRODUCT)
 }
 
 

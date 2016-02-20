@@ -57,7 +57,7 @@
 #include <inttypes.h>
 #include <stdint.h>
 #include <unistd.h>
-#endif
+#endif  // !defined(_WIN32)
 
 #include <float.h>
 #include <limits.h>
@@ -72,23 +72,30 @@
 #include "platform/c99_support_win.h"
 #include "platform/inttypes_support_win.h"
 #include "platform/floating_point_win.h"
-#endif
+#endif  // defined(_WIN32)
 
 #include "platform/math.h"
 
 #if !defined(_WIN32)
 #include "platform/floating_point.h"
-#endif
+#endif  // !defined(_WIN32)
 
 // Target OS detection.
 // for more information on predefined macros:
 //   - http://msdn.microsoft.com/en-us/library/b0084kay.aspx
 //   - with gcc, run: "echo | gcc -E -dM -"
 #if defined(__ANDROID__)
+
+// Check for Android first, to determine its difference from Linux.
 #define TARGET_OS_ANDROID 1
+
 #elif defined(__linux__) || defined(__FreeBSD__)
+
+// Generic Linux.
 #define TARGET_OS_LINUX 1
+
 #elif defined(__APPLE__)
+
 // Define the flavor of Mac OS we are running on.
 #include <TargetConditionals.h>
 // TODO(iposva): Rename TARGET_OS_MACOS to TARGET_OS_MAC to inherit
@@ -99,10 +106,32 @@
 #endif
 
 #elif defined(_WIN32)
+
+// Windows, both 32- and 64-bit, regardless of the check for _WIN32.
 #define TARGET_OS_WINDOWS 1
+
 #else
 #error Automatic target os detection failed.
 #endif
+
+
+// Setup product, release or debug build related macros.
+#if defined(PRODUCT) && defined(DEBUG)
+#error Both PRODUCT and DEBUG defined.
+#endif  // defined(PRODUCT) && defined(DEBUG)
+
+#if defined(PRODUCT)
+#define NOT_IN_PRODUCT(code)
+#define DEBUG_ONLY(code)
+#else  // defined(PRODUCT)
+#define NOT_IN_PRODUCT(code) code
+#if defined(DEBUG)
+#define DEBUG_ONLY(code) code
+#else  // defined(DEBUG)
+#define DEBUG_ONLY(code)
+#endif  // defined(DEBUG)
+#endif  // defined(PRODUCT)
+
 
 namespace dart {
 

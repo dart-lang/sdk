@@ -15,7 +15,7 @@
 #undef PARITY_EVEN
 #undef PARITY_ODD
 #undef near
-#endif
+#endif  // defined(_WIN32)
 
 // The following #defines are invalidated.
 #undef OVERFLOW  // From math.h conflicts in constants_ia32.h

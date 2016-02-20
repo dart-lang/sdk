@@ -1925,8 +1925,12 @@ RawString* Class::PrettyName() const {
 
 
 RawString* Class::UserVisibleName() const {
+#if defined(PRODUCT)
+  return raw_ptr()->name_;
+#else  // defined(PRODUCT)
   ASSERT(raw_ptr()->user_name_ != String::null());
   return raw_ptr()->user_name_;
+#endif  // defined(PRODUCT)
 }
 
 
@@ -3161,6 +3165,7 @@ RawClass* Class::NewExternalTypedDataClass(intptr_t class_id) {
 void Class::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   StorePointer(&raw_ptr()->name_, value.raw());
+NOT_IN_PRODUCT(
   if (raw_ptr()->user_name_ == String::null()) {
     // TODO(johnmccutchan): Eagerly set user name for VM isolate classes,
     // lazily set user name for the other classes.
@@ -3168,12 +3173,15 @@ void Class::set_name(const String& value) const {
     const String& user_name = String::Handle(GenerateUserVisibleName());
     set_user_name(user_name);
   }
+)
 }
 
 
+NOT_IN_PRODUCT(
 void Class::set_user_name(const String& value) const {
   StorePointer(&raw_ptr()->user_name_, value.raw());
 }
+)
 
 
 RawString* Class::GeneratePrettyName() const {

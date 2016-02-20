@@ -156,3 +156,17 @@ Language/Metadata/*: Skip # Uses dart:mirrors
 
 [ $runtime == dart_precompiled || $runtime == dart_product ]
 LibTest/isolate/Isolate/spawnUri*: RuntimeError # Isolate.spawnUri
+
+[ $runtime == vm && $mode == product ]
+LibTest/typed_data/Float32List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
+LibTest/typed_data/Float32x4List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
+LibTest/typed_data/Float64List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
+LibTest/typed_data/Int16List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
+LibTest/typed_data/Int32List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
+LibTest/typed_data/Int64List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
+LibTest/typed_data/Int8List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
+LibTest/typed_data/Uint16List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
+LibTest/typed_data/Uint32List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
+LibTest/typed_data/Uint64List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
+LibTest/typed_data/Uint8ClampedList/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
+LibTest/typed_data/Uint8List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.

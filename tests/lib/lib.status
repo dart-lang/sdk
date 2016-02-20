@@ -361,3 +361,7 @@ async/slow_consumer2_test: Pass, RuntimeError # Issue 25726
 mirrors/*: SkipByDesign
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
+
+[ $runtime == vm && $mode == product ]
+mirrors/mirrors_reader_test: Fail,OK  # Expects exact type name.
+
