@@ -44,6 +44,7 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '--package-root=<(PRODUCT_DIR)/packages/',
             '../../pkg/analyzer/tool/summary/build_sdk_summaries.dart',
             '<(SHARED_INTERMEDIATE_DIR)',
           ],
