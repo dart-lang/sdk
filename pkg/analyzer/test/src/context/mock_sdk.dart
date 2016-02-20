@@ -97,6 +97,9 @@ abstract class String implements Comparable<String>, Pattern {
   String toUpperCase();
   List<int> get codeUnits;
 }
+abstract class RegExp implements Pattern {
+  external factory RegExp(String source);
+}
 
 class bool extends Object {}
 abstract class num implements Comparable<num> {
@@ -154,6 +157,8 @@ abstract class List<E> implements Iterable<E> {
 
 abstract class Map<K, V> extends Object {
   Iterable<K> get keys;
+  V operator [](K key);
+  void operator []=(K key, V value);
 }
 
 external bool identical(Object a, Object b);

@@ -7077,11 +7077,12 @@ var v;''';
 
   test_variable_initializer_withLocals() {
     String text =
-        'var v = {"1": () { f1() {} var v1; }, "2": () { f2() {} var v2; }};';
+        'var v = <dynamic, dynamic>{"1": () { f1() {} var v1; }, '
+        '"2": () { f2() {} var v2; }};';
     UnlinkedVariable variable = serializeVariableText(text);
     UnlinkedExecutable initializer = variable.initializer;
     expect(initializer, isNotNull);
-    expect(initializer.nameOffset, text.indexOf('{"1'));
+    expect(initializer.nameOffset, text.indexOf('<dynamic, dynamic>{"1'));
     expect(initializer.name, isEmpty);
     expect(initializer.localFunctions, hasLength(2));
     // closure: () { f1() {} var v1; }

@@ -626,14 +626,18 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           staticType = argumentType;
         }
       }
-    } else {
+    } else if (_strongMode) {
       DartType contextType = InferenceContext.getType(node);
-      if (_strongMode &&
-          contextType is InterfaceType &&
+      if (contextType is InterfaceType &&
           contextType.typeArguments.length == 1 &&
           contextType.element == _typeProvider.listType.element) {
         staticType = contextType.typeArguments[0];
         _resolver.inferenceContext.recordInference(node, contextType);
+      } else if (node.elements.isNotEmpty) {
+        // Infer the list type from the arguments.
+        staticType =
+            node.elements.map((e) => e.staticType).reduce(_leastUpperBound);
+        // TODO(jmesserly): record inference here?
       }
     }
     _recordStaticType(
@@ -672,15 +676,22 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           staticValueType = entryValueType;
         }
       }
-    } else {
+    } else if (_strongMode) {
       DartType contextType = InferenceContext.getType(node);
-      if (_strongMode &&
-          contextType is InterfaceType &&
+      if (contextType is InterfaceType &&
           contextType.typeArguments.length == 2 &&
           contextType.element == _typeProvider.mapType.element) {
         staticKeyType = contextType.typeArguments[0] ?? staticKeyType;
         staticValueType = contextType.typeArguments[1] ?? staticValueType;
         _resolver.inferenceContext.recordInference(node, contextType);
+      } else if (node.entries.isNotEmpty) {
+        // Infer the list type from the arguments.
+        staticKeyType =
+            node.entries.map((e) => e.key.staticType).reduce(_leastUpperBound);
+        staticValueType = node.entries
+            .map((e) => e.value.staticType)
+            .reduce(_leastUpperBound);
+        // TODO(jmesserly): record inference here?
       }
     }
     _recordStaticType(
@@ -1535,8 +1546,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
   }
 
-  // TODO(vsm): Use leafp's matchType here?
   DartType _findIteratedType(DartType type, DartType targetType) {
+    // TODO(vsm): Use leafp's matchType here?
     // Set by _find if match is found
     DartType result;
     // Elements we've already visited on a given inheritance path.
@@ -2060,6 +2071,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
             identical(node, parent.target) &&
             parent.operator.type == TokenType.PERIOD);
   }
+
+  /**
+   * Computes the least upper bound between two types.
+   *
+   * See [TypeSystem.getLeastUpperBound].
+   */
+  DartType _leastUpperBound(DartType s, DartType t) =>
+      _typeSystem.getLeastUpperBound(_typeProvider, s, t);
 
   /**
    * Record that the propagated type of the given node is the given type.

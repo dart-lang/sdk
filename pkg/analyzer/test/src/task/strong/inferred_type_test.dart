@@ -339,7 +339,7 @@ void main() {
         var b = new B(/*warning:UNDEFINED_IDENTIFIER*/x);  // allocations
         var c1 = [/*warning:UNDEFINED_IDENTIFIER*/x];      // list literals
         var c2 = const [];
-        var d = {'a': 'b'};     // map literals
+        var d = <dynamic, dynamic>{'a': 'b'};     // map literals
         var e = new A()..x = 3; // cascades
         var f = 2 + 3;          // binary expressions are OK if the left operand
                                 // is from a library in a different strongest
@@ -1580,8 +1580,9 @@ main() {
     checkFile('''
       import 'dart:async';
       Future<int> test() async {
-        List<int> l0 = /*warning:DOWN_CAST_COMPOSITE should be pass*/await /*pass should be info:INFERRED_TYPE_LITERAL*/[3];
-        List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*info:INFERRED_TYPE_LITERAL*/[3]);
+        dynamic d;
+        List<int> l0 = /*warning:DOWN_CAST_COMPOSITE should be pass*/await /*pass should be info:INFERRED_TYPE_LITERAL*/[d];
+        List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*info:INFERRED_TYPE_LITERAL*/[/*info:DYNAMIC_CAST*/d]);
       }
     ''');
   });
@@ -1877,4 +1878,45 @@ main() {
   ''');
   });
 
+  test('list literals', () {
+    checkFile(r'''
+test1() {
+  var x = [1, 2, 3];
+  x.add(/*severe:STATIC_TYPE_ERROR*/'hi');
+  x.add(/*severe:STATIC_TYPE_ERROR*/4.0);
+  x.add(4);
+  List<num> y = x;
+}
+test2() {
+  var x = [1, 2.0, 3];
+  x.add(/*severe:STATIC_TYPE_ERROR*/'hi');
+  x.add(4.0);
+  List<int> y = /*info:ASSIGNMENT_CAST*/x;
+}
+    ''');
+  });
+
+  test('map literals', () {
+    checkFile(r'''
+test1() {
+  var x = { 1: 'x', 2: 'y' };
+  x[3] = 'z';
+  x[/*severe:STATIC_TYPE_ERROR*/'hi'] = 'w';
+  x[/*severe:STATIC_TYPE_ERROR*/4.0] = 'u';
+  x[3] = /*severe:STATIC_TYPE_ERROR*/42;
+  Map<num, String> y = x;
+}
+
+test2() {
+  var x = { 1: 'x', 2: 'y', 3.0: new RegExp('.') };
+  x[3] = 'z';
+  x[/*severe:STATIC_TYPE_ERROR*/'hi'] = 'w';
+  x[4.0] = 'u';
+  x[3] = /*severe:STATIC_TYPE_ERROR*/42;
+  Pattern p = null;
+  x[2] = p;
+  Map<int, String> y = /*info:ASSIGNMENT_CAST*/x;
+}
+    ''');
+  });
 }
