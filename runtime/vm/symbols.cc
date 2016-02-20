@@ -564,6 +564,7 @@ RawString* Symbols::NewSymbol(const StringType& str) {
     table.Release();
   }
   if (symbol.IsNull()) {
+    SafepointMutexLocker ml(isolate->symbols_mutex());
     SymbolTable table(zone, isolate->object_store()->symbol_table());
     symbol ^= table.InsertNewOrGet(str);
     isolate->object_store()->set_symbol_table(table.Release());
@@ -587,6 +588,7 @@ RawString* Symbols::Lookup(const StringType& str) {
     table.Release();
   }
   if (symbol.IsNull()) {
+    SafepointMutexLocker ml(isolate->symbols_mutex());
     SymbolTable table(zone, isolate->object_store()->symbol_table());
     symbol ^= table.GetOrNull(str);
     table.Release();

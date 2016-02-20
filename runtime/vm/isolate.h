@@ -318,6 +318,7 @@ class Isolate : public BaseIsolate {
   void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
 
   Mutex* mutex() const { return mutex_; }
+  Mutex* symbols_mutex() const { return symbols_mutex_; }
 
   Debugger* debugger() const {
     if (!FLAG_support_debugger) {
@@ -779,6 +780,7 @@ class Isolate : public BaseIsolate {
   Random random_;
   Simulator* simulator_;
   Mutex* mutex_;  // protects stack_limit_, saved_stack_limit_, compiler stats.
+  Mutex* symbols_mutex_;  // Protects concurrent access to teh symbol table.
   uword saved_stack_limit_;
   uword deferred_interrupts_mask_;
   uword deferred_interrupts_;

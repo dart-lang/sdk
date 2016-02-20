@@ -34,4 +34,29 @@ Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
 }
 
 
+SafepointMutexLocker::SafepointMutexLocker(Mutex* mutex) : mutex_(mutex) {
+  ASSERT(mutex != NULL);
+  if (!mutex_->TryLock()) {
+    // We did not get the lock and could potentially block, so transition
+    // accordingly.
+    Thread* thread = Thread::Current();
+    thread->set_execution_state(Thread::kThreadInBlockedState);
+    thread->EnterSafepoint();
+    mutex->Lock();
+    // First try a fast update of the thread state to indicate it is not at a
+    // safepoint anymore.
+    uword old_state = Thread::SetAtSafepoint(true, 0);
+    uword addr =
+        reinterpret_cast<uword>(thread) + Thread::safepoint_state_offset();
+    if (AtomicOperations::CompareAndSwapWord(
+            reinterpret_cast<uword*>(addr), old_state, 0) != old_state) {
+      // Fast update failed which means we could potentially be in the middle
+      // of a safepoint operation and need to block for it.
+      SafepointHandler* handler = thread->isolate()->safepoint_handler();
+      handler->ExitSafepointUsingLock(thread);
+    }
+    thread->set_execution_state(Thread::kThreadInVM);
+  }
+}
+
 }  // namespace dart
