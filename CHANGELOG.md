@@ -1,3 +1,7 @@
+# 0.1.12
+
+* Fix to address `LibraryNames` regexp that in pathological cases went exponential.
+
 # 0.1.11
 
 * Doc generation improvements (now with options samples).
