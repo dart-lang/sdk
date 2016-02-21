@@ -20,18 +20,22 @@ class StringSource extends Source {
   final String fullName;
 
   @override
+  final Uri uri;
+
+  @override
   final int modificationStamp;
 
-  StringSource(this._contents, this.fullName)
-      : modificationStamp = new DateTime.now().millisecondsSinceEpoch;
+  StringSource(this._contents, String fullName)
+      : this.fullName = fullName,
+        uri = fullName == null ? null : new Uri.file(fullName),
+        modificationStamp = new DateTime.now().millisecondsSinceEpoch;
 
   @override
   TimestampedData<String> get contents =>
       new TimestampedData(modificationStamp, _contents);
 
   @override
-  String get encoding =>
-      throw new UnsupportedError("StringSource doesn't support encoding.");
+  String get encoding => uri.toString();
 
   @override
   int get hashCode => _contents.hashCode ^ fullName.hashCode;
@@ -43,11 +47,7 @@ class StringSource extends Source {
   String get shortName => fullName;
 
   @override
-  Uri get uri =>
-      throw new UnsupportedError("StringSource doesn't support uri.");
-
-  UriKind get uriKind =>
-      throw new UnsupportedError("StringSource doesn't support uriKind.");
+  UriKind get uriKind => UriKind.FILE_URI;
 
   /**
    * Return `true` if the given [object] is a string source that is equal to
@@ -63,8 +63,7 @@ class StringSource extends Source {
   bool exists() => true;
 
   @override
-  Uri resolveRelativeUri(Uri relativeUri) => throw new UnsupportedError(
-      "StringSource doesn't support resolveRelative.");
+  Uri resolveRelativeUri(Uri relativeUri) => uri.resolveUri(relativeUri);
 
   @override
   String toString() => 'StringSource ($fullName)';
