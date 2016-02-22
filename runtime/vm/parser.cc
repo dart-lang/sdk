@@ -41,8 +41,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
-DEFINE_FLAG(bool, enable_mirrors, true,
-    "Disable to make importing dart:mirrors an error.");
 DEFINE_FLAG(bool, load_deferred_eagerly, false,
     "Load deferred libraries eagerly.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
@@ -14348,8 +14346,6 @@ void Parser::SkipQualIdent() {
 
 namespace dart {
 
-DEFINE_FLAG(bool, enable_mirrors, true,
-    "Disable to make importing dart:mirrors an error.");
 DEFINE_FLAG(bool, load_deferred_eagerly, false,
     "Load deferred libraries eagerly.");
 DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");

@@ -24,6 +24,8 @@ R(disassemble_optimized, false, bool, false,                                   \
   "Disassemble optimized code.")                                               \
 R(dump_symbol_stats, false, bool, false,                                       \
   "Dump symbol table statistics")                                              \
+R(enable_mirrors, false, bool, true,                                           \
+  "Disable to make importing dart:mirrors an error.")                          \
 R(gc_at_alloc, false, bool, false,                                             \
   "GC at every allocation.")                                                   \
 P(new_gen_ext_limit, int, 64,                                                  \

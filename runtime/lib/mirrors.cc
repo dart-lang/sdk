@@ -18,6 +18,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 DECLARE_FLAG(bool, lazy_dispatchers);
 
 #define PROPAGATE_IF_MALFORMED(type)                                           \
@@ -2089,5 +2091,6 @@ DEFINE_NATIVE_ENTRY(TypeMirror_subtypeTest, 2) {
   return Bool::Get(a.IsSubtypeOf(b, NULL, NULL, Heap::kNew)).raw();
 }
 
+#endif  // !PRODUCT
 
 }  // namespace dart

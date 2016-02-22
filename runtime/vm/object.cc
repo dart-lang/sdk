@@ -1365,6 +1365,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   // Pre-register the mirrors library so we can place the vm class
   // MirrorReference there rather than the core library.
+NOT_IN_PRODUCT(
   lib = Library::LookupLibrary(Symbols::DartMirrors());
   if (lib.IsNull()) {
     lib = Library::NewLibraryHelper(Symbols::DartMirrors(), true);
@@ -1376,7 +1377,7 @@ RawError* Object::Init(Isolate* isolate) {
   ASSERT(lib.raw() == Library::MirrorsLibrary());
 
   cls = Class::New<MirrorReference>();
-  RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
+  RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib));
 
   // Pre-register the collection library so we can place the vm class
   // LinkedHashMap there rather than the core library.

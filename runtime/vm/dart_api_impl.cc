@@ -51,7 +51,6 @@ namespace dart {
 #define Z (T->zone())
 
 
-DECLARE_FLAG(bool, enable_mirrors);
 DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, print_class_table);

@@ -316,6 +316,55 @@ namespace dart {
   V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
   V(Isolate_getCurrentRootUriStr, 0)                                           \
   V(Isolate_sendOOB, 2)                                                        \
+  V(GrowableList_allocate, 2)                                                  \
+  V(GrowableList_getIndexed, 2)                                                \
+  V(GrowableList_setIndexed, 3)                                                \
+  V(GrowableList_getLength, 1)                                                 \
+  V(GrowableList_getCapacity, 1)                                               \
+  V(GrowableList_setLength, 2)                                                 \
+  V(GrowableList_setData, 2)                                                   \
+  V(Internal_makeListFixedLength, 1)                                           \
+  V(Internal_makeFixedListUnmodifiable, 1)                                     \
+  V(Internal_inquireIs64Bit, 0)                                                \
+  V(LinkedHashMap_allocate, 1)                                                 \
+  V(LinkedHashMap_getIndex, 1)                                                 \
+  V(LinkedHashMap_setIndex, 2)                                                 \
+  V(LinkedHashMap_getData, 1)                                                  \
+  V(LinkedHashMap_setData, 2)                                                  \
+  V(LinkedHashMap_getHashMask, 1)                                              \
+  V(LinkedHashMap_setHashMask, 2)                                              \
+  V(LinkedHashMap_getUsedData, 1)                                              \
+  V(LinkedHashMap_setUsedData, 2)                                              \
+  V(LinkedHashMap_getDeletedKeys, 1)                                           \
+  V(LinkedHashMap_setDeletedKeys, 2)                                           \
+  V(WeakProperty_new, 2)                                                       \
+  V(WeakProperty_getKey, 1)                                                    \
+  V(WeakProperty_getValue, 1)                                                  \
+  V(WeakProperty_setValue, 2)                                                  \
+  V(Uri_isWindowsPlatform, 0)                                                  \
+  V(LibraryPrefix_load, 1)                                                     \
+  V(LibraryPrefix_invalidateDependentCode, 1)                                  \
+  V(LibraryPrefix_loadError, 1)                                                \
+  V(LibraryPrefix_isLoaded, 1)                                                 \
+  V(UserTag_new, 2)                                                            \
+  V(UserTag_label, 1)                                                          \
+  V(UserTag_defaultTag, 0)                                                     \
+  V(UserTag_makeCurrent, 1)                                                    \
+  V(Profiler_getCurrentTag, 0)                                                 \
+  V(ClassID_getID, 1)                                                          \
+  V(Num_toString, 1)                                                           \
+  V(VMService_SendIsolateServiceMessage, 2)                                    \
+  V(VMService_SendRootServiceMessage, 1)                                       \
+  V(VMService_OnStart, 0)                                                      \
+  V(VMService_OnExit, 0)                                                       \
+  V(VMService_OnServerAddressChange, 1)                                        \
+  V(VMService_ListenStream, 1)                                                 \
+  V(VMService_CancelStream, 1)                                                 \
+  V(VMService_RequestAssets, 0)                                                \
+  V(VMService_DecodeAssets, 1)                                                 \
+
+// List of bootstrap native entry points used in the dart:mirror library.
+#define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \
   V(Mirrors_evalInLibraryWithPrivateKey, 2)                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalTypeMirror, 1)                                            \
@@ -365,52 +414,6 @@ namespace dart {
   V(TypedefMirror_referent, 1)                                                 \
   V(TypedefMirror_declaration, 1)                                              \
   V(VariableMirror_type, 2)                                                    \
-  V(GrowableList_allocate, 2)                                                  \
-  V(GrowableList_getIndexed, 2)                                                \
-  V(GrowableList_setIndexed, 3)                                                \
-  V(GrowableList_getLength, 1)                                                 \
-  V(GrowableList_getCapacity, 1)                                               \
-  V(GrowableList_setLength, 2)                                                 \
-  V(GrowableList_setData, 2)                                                   \
-  V(Internal_makeListFixedLength, 1)                                           \
-  V(Internal_makeFixedListUnmodifiable, 1)                                     \
-  V(Internal_inquireIs64Bit, 0)                                                \
-  V(LinkedHashMap_allocate, 1)                                                 \
-  V(LinkedHashMap_getIndex, 1)                                                 \
-  V(LinkedHashMap_setIndex, 2)                                                 \
-  V(LinkedHashMap_getData, 1)                                                  \
-  V(LinkedHashMap_setData, 2)                                                  \
-  V(LinkedHashMap_getHashMask, 1)                                              \
-  V(LinkedHashMap_setHashMask, 2)                                              \
-  V(LinkedHashMap_getUsedData, 1)                                              \
-  V(LinkedHashMap_setUsedData, 2)                                              \
-  V(LinkedHashMap_getDeletedKeys, 1)                                           \
-  V(LinkedHashMap_setDeletedKeys, 2)                                           \
-  V(WeakProperty_new, 2)                                                       \
-  V(WeakProperty_getKey, 1)                                                    \
-  V(WeakProperty_getValue, 1)                                                  \
-  V(WeakProperty_setValue, 2)                                                  \
-  V(Uri_isWindowsPlatform, 0)                                                  \
-  V(LibraryPrefix_load, 1)                                                     \
-  V(LibraryPrefix_invalidateDependentCode, 1)                                  \
-  V(LibraryPrefix_loadError, 1)                                                \
-  V(LibraryPrefix_isLoaded, 1)                                                 \
-  V(UserTag_new, 2)                                                            \
-  V(UserTag_label, 1)                                                          \
-  V(UserTag_defaultTag, 0)                                                     \
-  V(UserTag_makeCurrent, 1)                                                    \
-  V(Profiler_getCurrentTag, 0)                                                 \
-  V(ClassID_getID, 1)                                                          \
-  V(Num_toString, 1)                                                           \
-  V(VMService_SendIsolateServiceMessage, 2)                                    \
-  V(VMService_SendRootServiceMessage, 1)                                       \
-  V(VMService_OnStart, 0)                                                      \
-  V(VMService_OnExit, 0)                                                       \
-  V(VMService_OnServerAddressChange, 1)                                        \
-  V(VMService_ListenStream, 1)                                                 \
-  V(VMService_CancelStream, 1)                                                 \
-  V(VMService_RequestAssets, 0)                                                \
-  V(VMService_DecodeAssets, 1)                                                 \
 
 class BootstrapNatives : public AllStatic {
  public:
@@ -424,6 +427,9 @@ class BootstrapNatives : public AllStatic {
   static void DN_##name(Dart_NativeArguments args);
 
   BOOTSTRAP_NATIVE_LIST(DECLARE_BOOTSTRAP_NATIVE)
+#ifndef PRODUCT
+  MIRRORS_BOOTSTRAP_NATIVE_LIST(DECLARE_BOOTSTRAP_NATIVE)
+#endif
 
 #undef DECLARE_BOOTSTRAP_NATIVE
 };

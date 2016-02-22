@@ -70,7 +70,6 @@ DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, print_stop_message);
 DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, interpret_irregexp);
-DECLARE_FLAG(bool, enable_mirrors);
 DECLARE_FLAG(bool, link_natives_lazily);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(int, inlining_hotness);
@@ -98,7 +97,7 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_emit_edge_counters = false;
 #ifndef PRODUCT
     FLAG_support_debugger = false;
-#endif
+#endif  // !PRODUCT
     FLAG_ic_range_profiling = false;
     FLAG_collect_code = false;
     FLAG_load_deferred_eagerly = true;
@@ -113,7 +112,9 @@ static void PrecompilationModeHandler(bool value) {
 
     FLAG_lazy_dispatchers = false;
     FLAG_interpret_irregexp = true;
+#ifndef PRODUCT
     FLAG_enable_mirrors = false;
+#endif  // !PRODUCT
     FLAG_link_natives_lazily = true;
     FLAG_fields_may_be_reset = true;
     FLAG_allow_absolute_addresses = false;
