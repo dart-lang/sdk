@@ -85,6 +85,12 @@ dart/byte_array_test: Crash # Incompatible flag --disable_alloc_stubs_after_gc
 dart/redirection_type_shuffling_test: CompileTimeError # Imports dart:mirrors
 dart/optimized_stacktrace_test: RuntimeError # Expects line and column numbers
 
+[ $compiler == dart2app ]
+dart/optimized_stacktrace_test: RuntimeError # Expects line and column numbers
+
+[ $runtime == dart_product ]
+dart/data_uri_spawn_test: Skip # Isolate.spawnUri
+
 [ $runtime == dart_precompiled ]
 dart/inline_stack_frame_test: Fail  # Issue 24783 - inlined frames missing
 dart/data_uri_spawn_test: RuntimeError # Isolate.spawnUri

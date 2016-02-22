@@ -154,8 +154,11 @@ Language/Mixins/declaring_constructor_t01: Pass
 Language/Expressions/Property_Extraction/Named_Constructor_Extraction/deferred_type_t01: Pass
 Language/Metadata/*: Skip # Uses dart:mirrors
 
-[ $runtime == dart_precompiled || $runtime == dart_product ]
+[ $runtime == dart_precompiled ]
 LibTest/isolate/Isolate/spawnUri*: RuntimeError # Isolate.spawnUri
+
+[ $runtime == dart_product ]
+LibTest/isolate/Isolate/spawnUri*: Skip # Isolate.spawnUri
 
 [ $runtime == vm && $mode == product ]
 LibTest/typed_data/Float32List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.

@@ -176,3 +176,7 @@ spawn_uri_multi_test: Skip # Isolate.spawnUri
 spawn_uri_vm_test: Skip # Isolate.spawnUri
 issue_21398_parent_isolate_test: Skip # Isolate.spawnUri
 error_at_spawnuri_test: Skip # Isolate.spawnUri
+
+[ $runtime == dart_product ]
+spawn_uri_missing_from_isolate_test: Skip # SpawnUri in product mode
+spawn_uri_missing_test: Skip # SpawnUri in product mode
