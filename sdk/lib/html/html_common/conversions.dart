@@ -266,7 +266,7 @@ abstract class _AcceptStructuredClone {
 // Conversions for ContextAttributes.
 //
 // On Firefox, the returned ContextAttributes is a plain object.
-class _TypedContextAttributes implements gl.ContextAttributes {
+class _TypedContextAttributes {
   bool alpha;
   bool antialias;
   bool depth;
@@ -280,12 +280,7 @@ class _TypedContextAttributes implements gl.ContextAttributes {
       this.preserveDrawingBuffer, this.stencil);
 }
 
-gl.ContextAttributes convertNativeToDart_ContextAttributes(
-    nativeContextAttributes) {
-  if (nativeContextAttributes is gl.ContextAttributes) {
-    return nativeContextAttributes;
-  }
-
+convertNativeToDart_ContextAttributes(nativeContextAttributes) {
   // On Firefox the above test fails because ContextAttributes is a plain
   // object so we create a _TypedContextAttributes.
 
