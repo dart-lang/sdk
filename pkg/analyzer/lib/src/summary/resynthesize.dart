@@ -440,9 +440,20 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.pushReference:
           EntityRef ref = uc.references[refPtr++];
           _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
-          SimpleIdentifier node = AstFactory.identifier3(info.name);
-          node.staticElement = info.element;
-          _push(node);
+          if (info.enclosing != null &&
+              info.enclosing.element != null &&
+              info.enclosing.element is! ClassElement) {
+            SimpleIdentifier prefix = AstFactory.identifier3(
+                info.enclosing.name)..staticElement = info.enclosing.element;
+            SimpleIdentifier name = AstFactory.identifier3(info.name)
+              ..staticElement = info.element;
+            PrefixedIdentifier node = AstFactory.identifier(prefix, name);
+            _push(node);
+          } else {
+            SimpleIdentifier node = AstFactory.identifier3(info.name);
+            node.staticElement = info.element;
+            _push(node);
+          }
           break;
         case UnlinkedConstOperation.invokeConstructor:
           _pushInstanceCreation();

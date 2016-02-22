@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show Namespace, TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
@@ -348,9 +349,32 @@ class ResynthTest extends ResolverTestCase {
         expect(r.name, o.name, reason: desc);
         compareElements(r.staticElement, o.staticElement, desc);
       } else if (o is PrefixedIdentifier && r is SimpleIdentifier) {
-        // We often don't resynthesize prefixed identifiers.
-        // We use simple identifiers with correct elements.
-        compareConstAsts(r, o.identifier, desc);
+        // We don't resynthesize prefixed identifiers when the prefix refers to
+        // a PrefixElement or a ClassElement.  We use simple identifiers with
+        // correct elements.
+        if (o.prefix.staticElement is PrefixElement ||
+            o.prefix.staticElement is ClassElement) {
+          compareConstAsts(r, o.identifier, desc);
+        } else {
+          fail('Prefix of type ${o.prefix.staticElement.runtimeType} should not'
+              ' have been elided');
+        }
+      } else if (o is PropertyAccess &&
+          o.target is PrefixedIdentifier &&
+          r is PrefixedIdentifier) {
+        // We don't resynthesize prefixed identifiers when the prefix refers to
+        // a PrefixElement or a ClassElement.  Which means that if the original
+        // expression was e.g. `prefix.topLevelVariableName.length`, it will get
+        // resynthesized as `topLevelVariableName.length`
+        PrefixedIdentifier oTarget = o.target;
+        if (oTarget.prefix.staticElement is PrefixElement ||
+            oTarget.prefix.staticElement is ClassElement) {
+          compareConstAsts(r,
+              AstFactory.identifier(oTarget.identifier, o.propertyName), desc);
+        } else {
+          fail('Prefix of type ${oTarget.prefix.staticElement.runtimeType}'
+              ' should not have been elided');
+        }
       } else if (o is PrefixedIdentifier && r is PrefixedIdentifier) {
         compareConstAsts(r.prefix, o.prefix, desc);
         compareConstAsts(r.identifier, o.identifier, desc);
