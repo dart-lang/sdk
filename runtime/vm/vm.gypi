@@ -74,26 +74,7 @@
           'sources/' : [
             ['exclude', 'gdbjit.cc'],
           ],
-       }],
-       ['dart_vtune_support==0', {
-          'sources/' : [
-            ['exclude', 'vtune\\.(cc|h)$'],
-          ],
-       }],
-       ['dart_vtune_support==1', {
-          'include_dirs': ['<(dart_vtune_root)/include'],
-          'defines': ['DART_VTUNE_SUPPORT'],
-          'link_settings': {
-            'conditions': [
-              ['OS=="linux"', {
-                 'libraries': ['-ljitprofiling'],
-              }],
-              ['OS=="win"', {
-                 'libraries': ['-ljitprofiling.lib'],
-              }],
-            ],
-          },
-        }]],
+       }]],
     },
     {
       'target_name': 'libdart_vm_precompiled_runtime',
@@ -137,26 +118,7 @@
           'sources/' : [
             ['exclude', 'gdbjit.cc'],
           ],
-       }],
-       ['dart_vtune_support==0', {
-          'sources/' : [
-            ['exclude', 'vtune\\.(cc|h)$'],
-          ],
-       }],
-       ['dart_vtune_support==1', {
-          'include_dirs': ['<(dart_vtune_root)/include'],
-          'defines': ['DART_VTUNE_SUPPORT'],
-          'link_settings': {
-            'conditions': [
-              ['OS=="linux"', {
-                 'libraries': ['-ljitprofiling'],
-              }],
-              ['OS=="win"', {
-                 'libraries': ['-ljitprofiling.lib'],
-              }],
-            ],
-          },
-        }]],
+       }]],
     },
     {
       'target_name': 'libdart_vm_noopt',
@@ -200,26 +162,7 @@
           'sources/' : [
             ['exclude', 'gdbjit.cc'],
           ],
-       }],
-       ['dart_vtune_support==0', {
-          'sources/' : [
-            ['exclude', 'vtune\\.(cc|h)$'],
-          ],
-       }],
-       ['dart_vtune_support==1', {
-          'include_dirs': ['<(dart_vtune_root)/include'],
-          'defines': ['DART_VTUNE_SUPPORT'],
-          'link_settings': {
-            'conditions': [
-              ['OS=="linux"', {
-                 'libraries': ['-ljitprofiling'],
-              }],
-              ['OS=="win"', {
-                 'libraries': ['-ljitprofiling.lib'],
-              }],
-            ],
-          },
-        }]],
+       }]],
     },
     {
       'target_name': 'libdart_vm_nosnapshot',
@@ -264,26 +207,7 @@
           'sources/' : [
             ['exclude', 'gdbjit.cc'],
           ],
-       }],
-       ['dart_vtune_support==0', {
-          'sources/' : [
-            ['exclude', 'vtune\\.(cc|h)$'],
-          ],
-       }],
-       ['dart_vtune_support==1', {
-          'include_dirs': ['<(dart_vtune_root)/include'],
-          'defines': ['DART_VTUNE_SUPPORT'],
-          'link_settings': {
-            'conditions': [
-              ['OS=="linux"', {
-                 'libraries': ['-ljitprofiling'],
-              }],
-              ['OS=="win"', {
-                 'libraries': ['-ljitprofiling.lib'],
-              }],
-            ],
-          },
-        }]],
+       }]],
     },
     {
       'target_name': 'libdart_lib_nosnapshot',

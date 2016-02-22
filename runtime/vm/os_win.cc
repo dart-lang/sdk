@@ -14,7 +14,6 @@
 #include "platform/utils.h"
 #include "platform/assert.h"
 #include "vm/os_thread.h"
-#include "vm/vtune.h"
 #include "vm/zone.h"
 
 namespace dart {
@@ -365,9 +364,6 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
 
 
 void OS::RegisterCodeObservers() {
-#if defined(DART_VTUNE_SUPPORT)
-  CodeObservers::Register(new VTuneCodeObserver);
-#endif
 }
 
 
