@@ -464,8 +464,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   I->set_ic_miss_code(miss_code);
 
   if (snapshot_buffer == NULL) {
-    if (!I->object_store()->PreallocateObjects()) {
-      return T->sticky_error();
+    const Error& error = Error::Handle(I->object_store()->PreallocateObjects());
+    if (!error.IsNull()) {
+      return error.raw();
     }
   }
 

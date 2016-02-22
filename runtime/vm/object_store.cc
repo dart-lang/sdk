@@ -118,7 +118,7 @@ void ObjectStore::Init(Isolate* isolate) {
 }
 
 
-bool ObjectStore::PreallocateObjects() {
+RawError* ObjectStore::PreallocateObjects() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -126,7 +126,7 @@ bool ObjectStore::PreallocateObjects() {
   if (this->stack_overflow() != Instance::null()) {
     ASSERT(this->out_of_memory() != Instance::null());
     ASSERT(this->preallocated_stack_trace() != Stacktrace::null());
-    return true;
+    return Error::null();
   }
   ASSERT(this->stack_overflow() == Instance::null());
   ASSERT(this->out_of_memory() == Instance::null());
@@ -147,7 +147,7 @@ bool ObjectStore::PreallocateObjects() {
                                             Symbols::Dot(),
                                             Object::empty_array());
   if (result.IsError()) {
-    return false;
+    return Error::Cast(result).raw();
   }
   set_stack_overflow(Instance::Cast(result));
 
@@ -156,7 +156,7 @@ bool ObjectStore::PreallocateObjects() {
                                             Symbols::Dot(),
                                             Object::empty_array());
   if (result.IsError()) {
-    return false;
+    return Error::Cast(result).raw();
   }
   set_out_of_memory(Instance::Cast(result));
 
@@ -178,7 +178,7 @@ bool ObjectStore::PreallocateObjects() {
   stack_trace.set_expand_inlined(false);
   set_preallocated_stack_trace(stack_trace);
 
-  return true;
+  return Error::null();
 }
 
 
