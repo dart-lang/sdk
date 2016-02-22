@@ -20,7 +20,6 @@ transferables_test: RuntimeError # Dartium JSInterop failure
 
 blob_constructor_test: RuntimeError # Dartium 45 roll. Issue 25754
 crypto_test/functional: RuntimeError # Dartium 45 roll. Issue 25754
-svgelement_test/constructors: RuntimeError # Dartium 45 roll. Issue 25754
 url_test: RuntimeError # Dartium 45 roll. Issue 25754
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) ]
