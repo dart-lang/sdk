@@ -16,6 +16,7 @@ import '../compiler.dart'
     show Compiler;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
+import '../core_types.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
@@ -853,7 +854,7 @@ class ClassElementZ extends DeserializedElementZ
   bool get hasLocalScopeMembers => _unsupported('hasLocalScopeMembers');
 
   @override
-  bool implementsFunction(Compiler compiler) {
+  bool implementsFunction(CoreClasses coreClasses) {
     return _unsupported('implementsFunction');
   }
 
