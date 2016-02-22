@@ -25,7 +25,8 @@ dart_library.library('dart/js', null, /* Imports */[
       if (arguments$ == null) {
         return _wrapToDart(new ctor());
       }
-      return _wrapToDart(new ctor(...arguments$));
+      let unwrapped = core.List.from(arguments$[dartx.map](_convertToJS));
+      return _wrapToDart(new ctor(...unwrapped));
     }
     static fromBrowserObject(object) {
       if (typeof object == 'number' || typeof object == 'string' || typeof object == 'boolean' || object == null) {

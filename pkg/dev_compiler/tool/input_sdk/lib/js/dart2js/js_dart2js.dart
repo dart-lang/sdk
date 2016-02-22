@@ -120,7 +120,8 @@ class JsObject {
     if (arguments == null) {
       return _wrapToDart(JS('', 'new #()', ctor));
     }
-    return _wrapToDart(JS('', 'new #(...#)', ctor, arguments));
+    var unwrapped = new List.from(arguments.map(_convertToJS));
+    return _wrapToDart(JS('', 'new #(...#)', ctor, unwrapped));
   }
 
   /**
