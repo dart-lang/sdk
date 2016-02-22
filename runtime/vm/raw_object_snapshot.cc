@@ -115,6 +115,7 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     // Write out all the non object pointer fields.
     // NOTE: cpp_vtable_ is not written.
     classid_t class_id = ptr()->id_;
+    ASSERT(class_id != kIllegalCid);
     writer->Write<classid_t>(class_id);
     if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
       // We don't write the instance size of VM defined classes as they
@@ -1294,6 +1295,7 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
   } else {
     ASSERT((kind == Snapshot::kFull) || !ptr()->is_in_fullsnapshot_);
     // Write out all non object fields.
+    ASSERT(ptr()->index_ != static_cast<classid_t>(-1));
     writer->WriteClassIDValue(ptr()->index_);
     writer->Write<uint16_t>(ptr()->num_imports_);
     writer->Write<int8_t>(ptr()->load_state_);
@@ -1334,9 +1336,18 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   prefix.StoreNonPointer(&prefix.raw_ptr()->is_loaded_, reader->Read<bool>());
 
   // Set all the object fields.
+  RawObject** toobj = reader->snapshot_code()
+      ? prefix.raw()->to_precompiled_snapshot()
+      : prefix.raw()->to();
   READ_OBJECT_FIELDS(prefix,
-                     prefix.raw()->from(), prefix.raw()->to(),
+                     prefix.raw()->from(), toobj,
                      kAsReference);
+  if (reader->snapshot_code()) {
+    prefix.StorePointer(&prefix.raw_ptr()->imports_,
+                        Array::null());
+    prefix.StorePointer(&prefix.raw_ptr()->dependent_code_,
+                        Array::null());
+  }
 
   return prefix.raw();
 }
@@ -1363,7 +1374,9 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
+  RawObject** toobj = writer->snapshot_code() ? to_precompiled_snapshot()
+                                              : to();
+  visitor.VisitPointers(from(), toobj);
 }
 
 
@@ -2007,6 +2020,9 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
   READ_OBJECT_FIELDS(result,
                      result.raw()->from(), toobj,
                      kAsReference);
+  if (reader->snapshot_code()) {
+    result.set_owner(Function::Handle(reader->zone()));
+  }
 
   return result.raw();
 }

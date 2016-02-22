@@ -140,12 +140,19 @@ Precompiler::Precompiler(Thread* thread, bool reset_fields) :
     selector_count_(0),
     dropped_function_count_(0),
     dropped_field_count_(0),
+    dropped_class_count_(0),
+    dropped_typearg_count_(0),
+    dropped_type_count_(0),
+    dropped_library_count_(0),
     libraries_(GrowableObjectArray::Handle(I->object_store()->libraries())),
     pending_functions_(
         GrowableObjectArray::Handle(GrowableObjectArray::New())),
     sent_selectors_(),
     enqueued_functions_(),
     fields_to_retain_(),
+    classes_to_retain_(),
+    typeargs_to_retain_(),
+    types_to_retain_(),
     error_(Error::Handle()) {
 }
 
@@ -166,7 +173,7 @@ void Precompiler::DoCompileAll(
     const intptr_t kPrecompilerRounds = 1;
     for (intptr_t round = 0; round < kPrecompilerRounds; round++) {
       if (FLAG_trace_precompiler) {
-        OS::Print("Precompiler round %" Pd "\n", round);
+        THR_Print("Precompiler round %" Pd "\n", round);
       }
 
       if (round > 0) {
@@ -197,8 +204,11 @@ void Precompiler::DoCompileAll(
 
     DropFunctions();
     DropFields();
-
-    // TODO(rmacnak): DropEmptyClasses();
+    TraceTypesFromRetainedClasses();
+    DropTypes();
+    DropTypeArguments();
+    DropClasses();
+    DropLibraries();
 
     BindStaticCalls();
 
@@ -219,15 +229,17 @@ void Precompiler::DoCompileAll(
   intptr_t dropped_symbols_count = Symbols::Compact(I);
 
   if (FLAG_trace_precompiler) {
-    THR_Print("Precompiled %" Pd " functions, %" Pd " dynamic types,"
-              " %" Pd " dynamic selectors.\n Dropped %" Pd " functions, %" Pd
-              " fields, %" Pd " symbols.\n",
-              function_count_,
-              class_count_,
-              selector_count_,
-              dropped_function_count_,
-              dropped_field_count_,
-              dropped_symbols_count);
+    THR_Print("Precompiled %" Pd " functions,", function_count_);
+    THR_Print(" %" Pd " dynamic types,", class_count_);
+    THR_Print(" %" Pd " dynamic selectors.\n", selector_count_);
+
+    THR_Print("Dropped %" Pd " functions,", dropped_function_count_);
+    THR_Print(" %" Pd " fields,", dropped_field_count_);
+    THR_Print(" %" Pd " symbols,", dropped_symbols_count);
+    THR_Print(" %" Pd " types,", dropped_type_count_);
+    THR_Print(" %" Pd " type arguments,", dropped_typearg_count_);
+    THR_Print(" %" Pd " classes,", dropped_class_count_);
+    THR_Print(" %" Pd " libraries.\n", dropped_library_count_);
   }
 }
 
@@ -236,6 +248,7 @@ void Precompiler::ClearAllCode() {
   class ClearCodeFunctionVisitor : public FunctionVisitor {
     void VisitFunction(const Function& function) {
       function.ClearCode();
+      function.ClearICDataArray();
     }
   };
   ClearCodeFunctionVisitor visitor;
@@ -252,84 +265,25 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   AddSelector(Symbols::Call());  // For speed, not correctness.
 
   // Allocated from C++.
-  static const intptr_t kExternallyAllocatedCids[] = {
-    kBoolCid,
-    kNullCid,
-    kClosureCid,
-
-    kSmiCid,
-    kMintCid,
-    kBigintCid,
-    kDoubleCid,
-
-    kOneByteStringCid,
-    kTwoByteStringCid,
-    kExternalOneByteStringCid,
-    kExternalTwoByteStringCid,
-
-    kArrayCid,
-    kImmutableArrayCid,
-    kGrowableObjectArrayCid,
-    kLinkedHashMapCid,
-
-    kTypedDataUint8ClampedArrayCid,
-    kTypedDataUint8ArrayCid,
-    kTypedDataUint16ArrayCid,
-    kTypedDataUint32ArrayCid,
-    kTypedDataUint64ArrayCid,
-    kTypedDataInt8ArrayCid,
-    kTypedDataInt16ArrayCid,
-    kTypedDataInt32ArrayCid,
-    kTypedDataInt64ArrayCid,
-
-    kExternalTypedDataUint8ArrayCid,
-    kExternalTypedDataUint16ArrayCid,
-    kExternalTypedDataUint32ArrayCid,
-    kExternalTypedDataUint64ArrayCid,
-    kExternalTypedDataInt8ArrayCid,
-    kExternalTypedDataInt16ArrayCid,
-    kExternalTypedDataInt32ArrayCid,
-    kExternalTypedDataInt64ArrayCid,
-
-    kTypedDataFloat32ArrayCid,
-    kTypedDataFloat64ArrayCid,
-
-    kTypedDataFloat32x4ArrayCid,
-    kTypedDataInt32x4ArrayCid,
-    kTypedDataFloat64x2ArrayCid,
-
-    kInt32x4Cid,
-    kFloat32x4Cid,
-    kFloat64x2Cid,
-
-    kTypeCid,
-    kFunctionTypeCid,
-    kTypeRefCid,
-    kTypeParameterCid,
-    kBoundedTypeCid,
-    kLibraryPrefixCid,
-
-    kJSRegExpCid,
-    kUserTagCid,
-    kStacktraceCid,
-    kWeakPropertyCid,
-    kCapabilityCid,
-    ReceivePort::kClassId,
-    SendPort::kClassId,
-
-    kIllegalCid
-  };
-
   Class& cls = Class::Handle(Z);
-  for (intptr_t i = 0; kExternallyAllocatedCids[i] != kIllegalCid; i++) {
-    cls = isolate()->class_table()->At(kExternallyAllocatedCids[i]);
+  for (intptr_t cid = kInstanceCid; cid < kNumPredefinedCids; cid++) {
+    ASSERT(isolate()->class_table()->IsValidIndex(cid));
+    if (!isolate()->class_table()->HasValidClassAt(cid)) {
+      continue;
+    }
+    if ((cid == kDynamicCid) ||
+        (cid == kVoidCid) ||
+        (cid == kFreeListElement)) {
+      continue;
+    }
+    cls = isolate()->class_table()->At(cid);
     AddInstantiatedClass(cls);
   }
 
   Dart_QualifiedFunctionName vm_entry_points[] = {
     // Functions
     { "dart:async", "::", "_setScheduleImmediateClosure" },
-    { "dart:core", "::", "_completeDeferredLoads"},
+    { "dart:core", "::", "_completeDeferredLoads" },
     { "dart:core", "AbstractClassInstantiationError",
                    "AbstractClassInstantiationError._create" },
     { "dart:core", "ArgumentError", "ArgumentError." },
@@ -483,6 +437,8 @@ void Precompiler::ProcessFunction(const Function& function) {
     if (!error_.IsNull()) {
       Jump(error_);
     }
+    // Used in the JIT to save type-feedback across compilations.
+    function.ClearICDataArray();
   } else {
     if (FLAG_trace_precompiler) {
       // This function was compiled from somewhere other than Precompiler,
@@ -510,7 +466,7 @@ void Precompiler::AddCalleesOf(const Function& function) {
   for (intptr_t i = 0; i < table.Length(); i++) {
     entry = table.At(i);
     if (entry.IsFunction()) {
-      target ^= table.At(i);
+      target ^= entry.raw();
       AddFunction(target);
     }
   }
@@ -532,9 +488,8 @@ void Precompiler::AddCalleesOf(const Function& function) {
       entry = pool.ObjectAt(i);
       if (entry.IsICData()) {
         call_site ^= entry.raw();
-        if (call_site.NumberOfChecks() == 1) {
-          // Probably a static call.
-          target = call_site.GetTargetAt(0);
+        for (intptr_t j = 0; j < call_site.NumberOfChecks(); j++) {
+          target = call_site.GetTargetAt(j);
           AddFunction(target);
           if (!target.is_static()) {
             // Super call (should not enqueue selector) or dynamic call with a
@@ -542,7 +497,8 @@ void Precompiler::AddCalleesOf(const Function& function) {
             selector = call_site.target_name();
             AddSelector(selector);
           }
-        } else {
+        }
+        if (call_site.NumberOfChecks() == 0) {
           // A dynamic call.
           selector = call_site.target_name();
           AddSelector(selector);
@@ -563,7 +519,11 @@ void Precompiler::AddCalleesOf(const Function& function) {
       } else if (entry.IsInstance()) {
         // Const object, literal or args descriptor.
         instance ^= entry.raw();
-        AddConstObject(instance);
+        if (entry.IsAbstractType()) {
+          AddType(AbstractType::Cast(entry));
+        } else {
+          AddConstObject(instance);
+        }
       } else if (entry.IsFunction()) {
         // Local closure function.
         target ^= entry.raw();
@@ -574,8 +534,95 @@ void Precompiler::AddCalleesOf(const Function& function) {
           cls ^= target_code.owner();
           AddInstantiatedClass(cls);
         }
+      } else if (entry.IsTypeArguments()) {
+        AddTypeArguments(TypeArguments::Cast(entry));
       }
     }
+  }
+}
+
+
+void Precompiler::AddTypesOf(const Class& cls) {
+  if (cls.IsNull()) return;
+  if (classes_to_retain_.Lookup(&cls) != NULL) return;
+  classes_to_retain_.Insert(&Class::ZoneHandle(Z, cls.raw()));
+
+  Array& interfaces = Array::Handle(Z, cls.interfaces());
+  AbstractType& type = AbstractType::Handle(Z);
+  for (intptr_t i = 0; i < interfaces.Length(); i++) {
+    type ^= interfaces.At(i);
+    AddType(type);
+  }
+
+  AddTypeArguments(TypeArguments::Handle(Z, cls.type_parameters()));
+
+  type = cls.super_type();
+  AddType(type);
+
+  type = cls.mixin();
+  AddType(type);
+
+  if (cls.IsTypedefClass()) {
+    AddTypesOf(Function::Handle(Z, cls.signature_function()));
+  }
+}
+
+
+void Precompiler::AddTypesOf(const Function& function) {
+  AbstractType& type = AbstractType::Handle(Z);
+  type = function.result_type();
+  AddType(type);
+  for (intptr_t i = 0; i < function.NumParameters(); i++) {
+    type = function.ParameterTypeAt(i);
+    AddType(type);
+  }
+}
+
+
+void Precompiler::AddType(const AbstractType& abstype) {
+  if (abstype.IsNull()) return;
+
+  if (types_to_retain_.Lookup(&abstype) != NULL) return;
+  types_to_retain_.Insert(&AbstractType::ZoneHandle(Z, abstype.raw()));
+
+  if (abstype.IsType()) {
+    const Type& type = Type::Cast(abstype);
+    const Class& cls = Class::Handle(Z, type.type_class());
+    AddTypesOf(cls);
+    const TypeArguments& vector = TypeArguments::Handle(Z, abstype.arguments());
+    AddTypeArguments(vector);
+  } else if (abstype.IsFunctionType()) {
+    const FunctionType& func_type = FunctionType::Cast(abstype);
+    const Class& cls = Class::Handle(Z, func_type.scope_class());
+    AddTypesOf(cls);
+    const Function& func = Function::Handle(Z, func_type.signature());
+    AddTypesOf(func);
+    const TypeArguments& vector = TypeArguments::Handle(Z, abstype.arguments());
+    AddTypeArguments(vector);
+  } else if (abstype.IsBoundedType()) {
+    AbstractType& type = AbstractType::Handle(Z);
+    type = BoundedType::Cast(abstype).type();
+    AddType(type);
+    type = BoundedType::Cast(abstype).bound();
+    AddType(type);
+  } else if (abstype.IsTypeRef()) {
+    AbstractType& type = AbstractType::Handle(Z);
+    type = TypeRef::Cast(abstype).type();
+    AddType(type);
+  }
+}
+
+
+void Precompiler::AddTypeArguments(const TypeArguments& args) {
+  if (args.IsNull()) return;
+
+  if (typeargs_to_retain_.Lookup(&args) != NULL) return;
+  typeargs_to_retain_.Insert(&TypeArguments::ZoneHandle(Z, args.raw()));
+
+  AbstractType& arg = AbstractType::Handle(Z);
+  for (intptr_t i = 0; i < args.Length(); i++) {
+    arg = args.TypeAt(i);
+    AddType(arg);
   }
 }
 
@@ -590,6 +637,7 @@ void Precompiler::AddConstObject(const Instance& instance) {
         Function::Handle(Z, Closure::Cast(instance).function());
     ASSERT(func.is_static());
     AddFunction(func);
+    AddTypeArguments(TypeArguments::Handle(Z, instance.GetTypeArguments()));
     return;
   }
 
@@ -599,6 +647,10 @@ void Precompiler::AddConstObject(const Instance& instance) {
   // Some Instances in the ObjectPool aren't const objects, such as
   // argument descriptors.
   if (!instance.IsCanonical()) return;
+
+  if (cls.NumTypeArguments() > 0) {
+    AddTypeArguments(TypeArguments::Handle(Z, instance.GetTypeArguments()));
+  }
 
   class ConstObjectVisitor : public ObjectPointerVisitor {
    public:
@@ -682,7 +734,7 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
   if (field.HasPrecompiledInitializer()) {
     // TODO(rmacnak): Investigate why this happens for _enum_names.
-    OS::Print("Warning: Ignoring repeated request for initializer for %s\n",
+    THR_Print("Warning: Ignoring repeated request for initializer for %s\n",
               field.ToCString());
     return Function::null();
   }
@@ -1142,6 +1194,7 @@ void Precompiler::DropFunctions() {
         if (retain) {
           retained_functions.Add(function);
           function.DropUncompiledImplicitClosureFunction();
+          AddTypesOf(function);
         } else {
           bool top_level = cls.IsTopLevel();
           if (top_level &&
@@ -1173,8 +1226,10 @@ void Precompiler::DropFunctions() {
   retained_functions = GrowableObjectArray::New();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    if (function.HasCode()) {
+    bool retain = function.HasCode();
+    if (retain) {
       retained_functions.Add(function);
+      AddTypesOf(function);
     } else {
       dropped_function_count_++;
       if (FLAG_trace_precompiler) {
@@ -1194,6 +1249,7 @@ void Precompiler::DropFields() {
   Field& field = Field::Handle(Z);
   GrowableObjectArray& retained_fields = GrowableObjectArray::Handle(Z);
   String& name = String::Handle(Z);
+  AbstractType& type = AbstractType::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -1211,6 +1267,8 @@ void Precompiler::DropFields() {
         bool retain = fields_to_retain_.Lookup(&field) != NULL;
         if (retain) {
           retained_fields.Add(field);
+          type = field.type();
+          AddType(type);
         } else {
           bool top_level = cls.IsTopLevel();
           if (top_level) {
@@ -1234,6 +1292,249 @@ void Precompiler::DropFields() {
       }
     }
   }
+}
+
+
+void Precompiler::DropTypes() {
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  Object& obj = Object::Handle(Z);
+  Array& arr = Array::Handle(Z);
+  GrowableObjectArray& retained_types = GrowableObjectArray::Handle(Z);
+  AbstractType& type = AbstractType::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+      obj = cls.canonical_types();
+      if (!obj.IsArray()) {
+        // Class only has one type, keep it.
+      } else {
+        // Class has many types.
+        arr ^= obj.raw();
+        retained_types = GrowableObjectArray::New();
+
+        // Always keep the first one.
+        ASSERT(arr.Length() >= 1);
+        obj = arr.At(0);
+        retained_types.Add(obj);
+
+        for (intptr_t i = 1; i < arr.Length(); i++) {
+          obj = arr.At(i);
+          if (obj.IsNull()) {
+            continue;
+          }
+          type ^= obj.raw();
+          bool retain = types_to_retain_.Lookup(&type) != NULL;
+          if (retain) {
+            retained_types.Add(type);
+          } else {
+            dropped_type_count_++;
+          }
+        }
+        arr = Array::MakeArray(retained_types);
+        cls.set_canonical_types(arr);
+      }
+    }
+  }
+}
+
+
+void Precompiler::DropTypeArguments() {
+  const Array& typeargs_table =
+      Array::Handle(Z, I->object_store()->canonical_type_arguments());
+  GrowableObjectArray& retained_typeargs =
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  TypeArguments& typeargs = TypeArguments::Handle(Z);
+  for (intptr_t i = 0; i < (typeargs_table.Length() - 1); i++) {
+    typeargs ^= typeargs_table.At(i);
+    bool retain = typeargs_to_retain_.Lookup(&typeargs) != NULL;
+    if (retain) {
+      retained_typeargs.Add(typeargs);
+    } else {
+      dropped_typearg_count_++;
+    }
+  }
+
+  const intptr_t dict_size =
+      Utils::RoundUpToPowerOfTwo(retained_typeargs.Length() * 4 / 3);
+  const Array& new_table = Array::Handle(Z, Array::New(dict_size + 1));
+
+  Object& element = Object::Handle(Z);
+  for (intptr_t i = 0; i < retained_typeargs.Length(); i++) {
+    typeargs ^= retained_typeargs.At(i);
+    intptr_t hash = typeargs.Hash();
+    intptr_t index = hash & (dict_size - 1);
+    element = new_table.At(index);
+    while (!element.IsNull()) {
+      index = (index + 1) & (dict_size - 1);
+      element = new_table.At(index);
+    }
+    new_table.SetAt(index, typeargs);
+  }
+
+  const Smi& used = Smi::Handle(Z, Smi::New(retained_typeargs.Length()));
+  new_table.SetAt(dict_size, used);
+
+  I->object_store()->set_canonical_type_arguments(new_table);
+}
+
+
+void Precompiler::TraceTypesFromRetainedClasses() {
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  Array& members = Array::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+
+      // The subclasses array is only needed for CHA.
+      cls.ClearDirectSubclasses();
+
+      bool retain = false;
+      members = cls.fields();
+      if (members.Length() > 0) {
+        retain = true;
+      }
+      members = cls.functions();
+      if (members.Length() > 0) {
+        retain = true;
+      }
+      if (cls.is_allocated()) {
+        retain = true;
+      }
+      if (cls.is_enum_class()) {
+        // Enum classes have live instances, so we cannot unregister
+        // them.
+        retain = true;
+      }
+      members = cls.constants();
+      if (members.Length() > 0) {
+        // --compile_all?
+        retain = true;
+      }
+
+      if (retain) {
+        AddTypesOf(cls);
+      }
+    }
+  }
+}
+
+
+void Precompiler::DropClasses() {
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  Array& members = Array::Handle(Z);
+  String& name = String::Handle(Z);
+
+#if defined(DEBUG)
+  {
+    // Force GC for allocation stats.
+    I->heap()->CollectAllGarbage();
+  }
+#endif
+
+  ClassTable* class_table = I->class_table();
+  intptr_t num_cids = class_table->NumCids();
+
+  for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
+    if (!class_table->IsValidIndex(cid)) continue;
+    if (!class_table->HasValidClassAt(cid)) continue;
+
+    cls = class_table->At(cid);
+    ASSERT(!cls.IsNull());
+
+    if (cls.IsTopLevel()) {
+      // Top-level classes are referenced directly from their library. They
+      // will only be removed as a consequence of an entire library being
+      // removed.
+      continue;
+    }
+    if (cls.is_enum_class()) {
+      // Enum classes have live instances, so we cannot unregister
+      // them.
+      continue;
+    }
+    members = cls.constants();
+    if (members.Length() > 0) {
+      // --compile_all?
+      continue;
+    }
+
+    bool retain = classes_to_retain_.Lookup(&cls) != NULL;
+    if (retain) {
+      continue;
+    }
+
+#if defined(DEBUG)
+    intptr_t instances =
+        class_table->StatsWithUpdatedSize(cid)->post_gc.new_count +
+        class_table->StatsWithUpdatedSize(cid)->post_gc.old_count;
+    if (instances != 0) {
+      FATAL2("Want to drop class %s, but it has %" Pd " instances\n",
+             cls.ToCString(),
+             instances);
+    }
+#endif
+
+    dropped_class_count_++;
+    if (FLAG_trace_precompiler) {
+      THR_Print("Precompilation dropping %" Pd " %s\n", cid, cls.ToCString());
+    }
+
+#if defined(DEBUG)
+    class_table->Unregister(cid);
+#endif
+    cls.set_id(kIllegalCid);  // We check this when serializing.
+
+    lib = cls.library();
+    name = cls.DictionaryName();
+    lib.RemoveObject(cls, name);
+  }
+}
+
+
+void Precompiler::DropLibraries() {
+  const GrowableObjectArray& retained_libraries =
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  Library& lib = Library::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    lib.DropDependencies();
+    intptr_t entries = 0;
+    DictionaryIterator it(lib);
+    while (it.HasNext()) {
+      it.GetNext();
+      entries++;
+    }
+    bool retain = (entries > 0) || lib.is_dart_scheme();
+    if (retain) {
+      lib.set_index(retained_libraries.Length());
+      retained_libraries.Add(lib);
+    } else {
+      dropped_library_count_++;
+      lib.set_index(-1);
+      if (FLAG_trace_precompiler) {
+        THR_Print("Precompilation dropping %s\n", lib.ToCString());
+      }
+    }
+  }
+
+  I->object_store()->set_libraries(retained_libraries);
+  libraries_ = retained_libraries.raw();
 }
 
 

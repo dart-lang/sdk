@@ -1090,6 +1090,7 @@ class Class : public Object {
     return raw_ptr()->direct_subclasses_;
   }
   void AddDirectSubclass(const Class& subclass) const;
+  void ClearDirectSubclasses() const;
 
   // Check if this class represents the class of null.
   bool IsNullClass() const { return id() == kNullCid; }
@@ -3513,6 +3514,8 @@ class Library : public Object {
   RawNamespace* ImportAt(intptr_t index) const;
   RawLibrary* ImportLibraryAt(intptr_t index) const;
   bool ImportsCorelib() const;
+
+  void DropDependencies() const;
 
   // Resolving native methods for script loaded in the library.
   Dart_NativeEntryResolver native_entry_resolver() const {

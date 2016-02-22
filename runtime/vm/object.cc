@@ -3508,6 +3508,11 @@ void Class::AddDirectSubclass(const Class& subclass) const {
 }
 
 
+void Class::ClearDirectSubclasses() const {
+  StorePointer(&raw_ptr()->direct_subclasses_, GrowableObjectArray::null());
+}
+
+
 RawArray* Class::constants() const {
   return raw_ptr()->constants_;
 }
@@ -9718,6 +9723,12 @@ bool Library::ImportsCorelib() const {
     }
   }
   return false;
+}
+
+
+void Library::DropDependencies() const {
+  StorePointer(&raw_ptr()->imports_, Array::null());
+  StorePointer(&raw_ptr()->exports_, Array::null());
 }
 
 

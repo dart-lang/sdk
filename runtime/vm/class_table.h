@@ -171,6 +171,10 @@ class ClassTable {
 
   void RegisterAt(intptr_t index, const Class& cls);
 
+#if defined(DEBUG)
+  void Unregister(intptr_t index);
+#endif
+
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   void Validate();

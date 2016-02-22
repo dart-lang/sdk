@@ -683,8 +683,10 @@ RawApiError* SnapshotReader::VerifyVersion() {
                 kMessageBufferSize,
                 "No full snapshot version found, expected '%s'",
                 Version::SnapshotString());
-    const String& msg = String::Handle(String::New(message_buffer));
-    return ApiError::New(msg);
+    // This can also fail while bringing up the VM isolate, so make sure to
+    // allocate the error message in old space.
+    const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
+    return ApiError::New(msg, Heap::kOld);
   }
 
   const char* version = reinterpret_cast<const char*>(CurrentBufferAddress());
@@ -2163,8 +2165,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
     return true;
   }
 
-  // Now check if it is an object from the VM isolate (NOTE: premarked objects
-  // are considered to be objects in the VM isolate). These objects are shared
+  // Now check if it is an object from the VM isolate. These objects are shared
   // by all isolates.
   if (rawobj->IsVMHeapObject() && HandleVMIsolateObject(rawobj)) {
     return true;

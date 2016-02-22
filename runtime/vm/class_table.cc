@@ -180,6 +180,13 @@ void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
 }
 
 
+#if defined(DEBUG)
+void ClassTable::Unregister(intptr_t index) {
+  table_[index] = 0;
+}
+#endif
+
+
 void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   visitor->VisitPointers(reinterpret_cast<RawObject**>(&table_[0]), top_);
