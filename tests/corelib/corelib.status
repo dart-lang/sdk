@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 bool_from_environment2_test: Skip
 bool_from_environment_test: Skip
 from_environment_const_type_test: Skip
@@ -43,7 +43,7 @@ symbol_reserved_word_test/04: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/07: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/10: MissingCompileTimeError # bug 11669, 19972
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 symbol_reserved_word_test/02: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
 symbol_reserved_word_test/05: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
 symbol_reserved_word_test/04: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
@@ -60,12 +60,9 @@ integer_to_radix_string_test: RuntimeError # issue 22045
 int_modulo_arith_test/bignum: RuntimeError # No bigints.
 int_modulo_arith_test/modPow: RuntimeError # No bigints.
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && $runtime != dartium && $runtime != drt && $runtime != ContentShellOnAndroid ]
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && $runtime != dartium && $runtime != drt ]
 symbol_test/02: MissingCompileTimeError # bug 11669
 symbol_test/03: MissingCompileTimeError # bug 11669
-
-[ $compiler == none && $runtime == ContentShellOnAndroid ]
-core_runtime_types_test: Pass, Fail # Issue 20525
 
 [ $runtime == ff || $runtime == jsshell ]
 unicode_test: Fail

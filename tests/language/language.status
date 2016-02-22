@@ -62,11 +62,11 @@ try_catch_optimized1_test: Skip # Srdjan investigating
 [ ($compiler == none || $compiler == precompiler) && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && (($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) || $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && (($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) || $runtime == drt || $runtime == dartium) ]
 dynamic_prefix_core_test/none: Fail # Issue 12478
 export_ambiguous_main_negative_test: Fail # Issue 14763
 
-[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
+[ $compiler == none && $runtime == dartium && $unchecked ]
 assertion_test: Fail # Issue 14651.
 generic_test: Fail # Issue 14651.
 list_literal4_test: Fail # Issue 14651.
@@ -79,7 +79,7 @@ positional_parameters_type_test/02: Fail # Issue 14651.
 type_checks_in_factory_method_test: Fail # Issue 14651.
 vm/type_vm_test: Fail # Issue 14651.
 
-[ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
+[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 issue13474_test: Pass, Fail # Issue 14651.
 config_import_test: Fail # Issue 14651.
 vm/optimized_guarded_field_isolates_test: RuntimeError, OK  # Uses Isolate.spawn.
@@ -106,11 +106,8 @@ stack_overflow_test: Skip # Crashes. Issue 17440.
 stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
-[ $compiler == none && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) && $mode == debug ]
+[ $compiler == none && ($runtime == dartium || $runtime == drt) && $mode == debug ]
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
-
-[ $compiler == none && $runtime == ContentShellOnAndroid ]
-gc_test: SkipSlow # Times out flakily. Issue 20956
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && ( $arch == simarm || $arch == arm || $arch == simarmv6 || $arch == armv6 || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151

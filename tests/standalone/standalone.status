@@ -53,7 +53,7 @@ io/http_proxy_test: Skip
 io/secure_builtin_roots_test: Skip
 
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 typed_array_test: RuntimeError, OK  # Uses Isolate.spawn
 typed_array_int64_uint64_test: RuntimeError, OK  # Uses Isolate.spawn
 typed_data_isolate_test: SkipByDesign # This test uses dart:io
@@ -158,7 +158,7 @@ io/test_runner_test: Skip # Flakily times out in a subtest. Issue 201351
 full_coverage_test: SkipSlow # Times out. Issue 20352
 io/http_client_stays_alive_test: Skip # Timing dependent test, MIPS machine too slow.
 
-[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
+[ $compiler == none && $runtime == dartium && $unchecked ]
 assert_test: Fail # Issue 14651.
 
 [ $compiler == none && $runtime == drt ]

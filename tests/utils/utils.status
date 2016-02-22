@@ -22,10 +22,5 @@ dart2js_test: SkipByDesign # Uses dart:io.
 [ $compiler == dart2js && $mode == debug ]
 dummy_compiler_test: Slow, Pass
 
-[ $compiler == none && $runtime == ContentShellOnAndroid ]
-dummy_compiler_test: Pass, RuntimeError # Issue 17662
-recursive_import_test: Pass, RuntimeError # Issue 17662
-source_mirrors_test: Pass, RuntimeError # Issue 17662
-
 [ ($noopt || $compiler == precompiler || $compiler == dart2app) ]
 source_mirrors_test: SkipByDesign # Imports dart:mirrors

@@ -208,7 +208,7 @@ async/timer_isActive_test: Fail, Pass, Timeout # Issue 22696
 async/slow_consumer_test: Pass, Timeout # Issue 22696
 async/catch_errors11_test: Pass, Timeout # Issue 22696
 
-[ $runtime == chrome || $runtime == ff || $runtime == ContentShellOnAndroid ]
+[ $runtime == chrome || $runtime == ff ]
 convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
@@ -240,7 +240,7 @@ mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 
-[ $compiler == none && ( $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 async/schedule_microtask6_test: Fail # Issue 10910
 async/timer_test: Fail, Pass # Issue 15487
 async/multiple_timer_test: Fail, Pass # Issue 15487
@@ -259,15 +259,6 @@ async/timer_test: Fail, Pass # See Issue 10982
 
 [ $compiler == none && $runtime == drt && $checked ]
 async/slow_consumer_test: Fail, Pass # Dartium JsInterop failure, dartbug.com/24460
-
-[ $compiler == none && $runtime == ContentShellOnAndroid ]
-async/stream_timeout_test: RuntimeError, Pass # Issue 19127
-async/slow_consumer3_test: SkipSlow # Times out flakily. Issue 20956
-async/slow_consumer2_test: SkipSlow # Times out flakily. Issue 20956
-convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out or passes. Issue 19127
-convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out or passes. Issue 19127
-mirrors/lazy_static_test: SkipSlow # Times out. Issue 19127
-mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 19127
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
