@@ -682,6 +682,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitForStatement(ForStatement node) {
+    if (node.condition != null) {
+      _checkForNonBoolCondition(node.condition);
+    }
+    return super.visitForStatement(node);
+  }
+
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {

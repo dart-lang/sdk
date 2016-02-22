@@ -703,6 +703,16 @@ f() {
     verify([source]);
   }
 
+  void test_nonBoolCondition_for() {
+    Source source = addSource(r'''
+f() {
+  for (;3;) {}
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+    verify([source]);
+  }
+
   void test_nonBoolCondition_if() {
     Source source = addSource(r'''
 f() {
