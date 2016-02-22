@@ -1738,16 +1738,16 @@ void main() {
             x = foo/*warning:EXTRA_POSITIONAL_ARGUMENTS*/('1', '2', '3');
             foo/*warning:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(1);
             x = foo/*warning:NOT_ENOUGH_REQUIRED_ARGUMENTS*/('1');
-            x = /*severe:STATIC_TYPE_ERROR*/foo/*warning:EXTRA_POSITIONAL_ARGUMENTS*/(1, 2, 3);
-            x = /*severe:STATIC_TYPE_ERROR*/foo/*warning:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(1);
+            x = /*info:DYNAMIC_CAST*/foo/*warning:EXTRA_POSITIONAL_ARGUMENTS*/(1, 2, 3);
+            x = /*info:DYNAMIC_CAST*/foo/*warning:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(1);
 
             // named arguments
             bar(y: 1, x: 2, /*warning:UNDEFINED_NAMED_PARAMETER*/z: 3);
             x = bar(/*warning:UNDEFINED_NAMED_PARAMETER*/z: '1', x: '2', y: '3');
             bar(y: 1);
             x = bar(x: '1', /*warning:UNDEFINED_NAMED_PARAMETER*/z: 42);
-            x = /*severe:STATIC_TYPE_ERROR*/bar(y: 1, x: 2, /*warning:UNDEFINED_NAMED_PARAMETER*/z: 3);
-            x = /*severe:STATIC_TYPE_ERROR*/bar(x: 1);
+            x = /*info:DYNAMIC_CAST*/bar(y: 1, x: 2, /*warning:UNDEFINED_NAMED_PARAMETER*/z: 3);
+            x = /*info:DYNAMIC_CAST*/bar(x: 1);
           }
       ''');
   });

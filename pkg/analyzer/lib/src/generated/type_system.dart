@@ -68,11 +68,12 @@ class StrongTypeSystemImpl implements TypeSystem {
   /// As a simplification, we do not actually store all constraints on each type
   /// parameter Tj. Instead we track Uj and Lj where U is the upper bound and
   /// L is the lower bound of that type parameter.
-  FunctionType inferCallFromArguments(
+  FunctionType inferGenericFunctionCall(
       TypeProvider typeProvider,
       FunctionType fnType,
       List<DartType> correspondingParameterTypes,
-      List<DartType> argumentTypes) {
+      List<DartType> argumentTypes,
+      DartType returnContextType) {
     if (fnType.typeFormals.isEmpty) {
       return fnType;
     }
@@ -83,6 +84,10 @@ class StrongTypeSystemImpl implements TypeSystem {
     // are implied by this.
     var inferringTypeSystem =
         new _StrongInferenceTypeSystem(typeProvider, fnType.typeFormals);
+
+    if (returnContextType != null) {
+      inferringTypeSystem.isSubtypeOf(fnType.returnType, returnContextType);
+    }
 
     for (int i = 0; i < argumentTypes.length; i++) {
       // Try to pass each argument to each parameter, recording any type
@@ -105,7 +110,7 @@ class StrongTypeSystemImpl implements TypeSystem {
    * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
    * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
    *
-   * This is similar to [inferCallFromArguments], but the return type is also
+   * This is similar to [inferGenericFunctionCall], but the return type is also
    * considered as part of the solution.
    *
    * If this function is called with a [contextType] that is also

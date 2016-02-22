@@ -8162,7 +8162,7 @@ class ResolverVisitor extends ScopedVisitor {
     safelyVisit(node.function);
     node.accept(elementResolver);
     _inferFunctionExpressionsParametersTypes(node.argumentList);
-    InferenceContext.setType(node.argumentList, node.function.staticType);
+    _inferArgumentTypesFromContext(node);
     safelyVisit(node.argumentList);
     node.accept(typeAnalyzer);
     return null;
@@ -8381,13 +8381,30 @@ class ResolverVisitor extends ScopedVisitor {
     safelyVisit(node.typeArguments);
     node.accept(elementResolver);
     _inferFunctionExpressionsParametersTypes(node.argumentList);
-    DartType contextType = node.staticInvokeType;
-    if (contextType is FunctionType) {
-      InferenceContext.setType(node.argumentList, contextType);
-    }
+    _inferArgumentTypesFromContext(node);
     safelyVisit(node.argumentList);
     node.accept(typeAnalyzer);
     return null;
+  }
+
+  void _inferArgumentTypesFromContext(InvocationExpression node) {
+    DartType contextType = node.staticInvokeType;
+    if (contextType is FunctionType) {
+      DartType originalType = node.function.staticType;
+      DartType returnContextType = InferenceContext.getType(node);
+      TypeSystem ts = typeSystem;
+      if (returnContextType != null &&
+          node.typeArguments == null &&
+          originalType is FunctionType &&
+          originalType.typeFormals.isNotEmpty &&
+          ts is StrongTypeSystemImpl) {
+
+        contextType = ts.inferGenericFunctionCall(typeProvider, originalType,
+            DartType.EMPTY_LIST, DartType.EMPTY_LIST, returnContextType);
+      }
+
+      InferenceContext.setType(node.argumentList, contextType);
+    }
   }
 
   @override

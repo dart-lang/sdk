@@ -1695,7 +1695,7 @@ main() {
           Iterable<Future<int>> list = <int>[1, 2, 3].map(make);
           Future<List<int>> results = Future.wait(list);
           Future<String> results2 = results.then((List<int> list)
-            => list.fold('', (String x, int y) => x + y.toString()));
+            => list.fold('', /*info:INFERRED_TYPE_CLOSURE*/(x, y) => x + y.toString()));
         }
     ''');
     });
@@ -1838,7 +1838,7 @@ main() {
 
     test('correctly recognize generic upper bound', () {
       // Regression test for https://github.com/dart-lang/sdk/issues/25740.
-      checkFile('''
+      checkFile(r'''
 class Foo<T extends Pattern> {
   void method/*<U extends T>*/(dynamic/*=U*/ u) {}
 }
@@ -1853,11 +1853,52 @@ main() {
 }
       ''');
     });
+
+    test('basic downwards inference', () {
+      checkFile(r'''
+/*=T*/ f/*<S, T>*/(/*=S*/ s) => null;
+main() {
+  String x = f(42);
+  String y = (f)(42);
+}
+      ''');
+    });
+
+    test('downwards inference affects arguments', () {
+      checkFile(r'''
+/*=T*/ f/*<T>*/(List/*<T>*/ s) => null;
+main() {
+  String x = f(/*info:INFERRED_TYPE_LITERAL*/['hi']);
+  String y = f(/*info:INFERRED_TYPE_LITERAL*/[/*severe:STATIC_TYPE_ERROR*/42]);
+}
+      ''');
+    });
+
+    test('downwards inference fold', () {
+      // Regression from https://github.com/dart-lang/sdk/issues/25491
+      // The first example works now, but the latter requires a full solution to
+      // https://github.com/dart-lang/sdk/issues/25490
+      checkFile(r'''
+void main() {
+  List<int> o;
+  int y = o.fold(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => x + y);
+  var z = o.fold(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
+  y = /*info:DYNAMIC_CAST*/z;
+}
+void functionExpressionInvocation() {
+  List<int> o;
+  int y = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => x + y);
+  var z = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
+  y = /*info:DYNAMIC_CAST*/z;
+}
+      ''');
+    });
+
   });
 
   // Regression test for https://github.com/dart-lang/dev_compiler/issues/47
   test('null literal should not infer as bottom', () {
-    checkFile('''
+    checkFile(r'''
       var h = null;
       void foo(int f(Object _)) {}
 
