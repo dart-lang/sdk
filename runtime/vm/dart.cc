@@ -105,7 +105,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   PortMap::InitOnce();
   FreeListElement::InitOnce();
   Api::InitOnce();
-  CodeObservers::InitOnce();
+  NOT_IN_PRODUCT(CodeObservers::InitOnce());
   if (FLAG_profiler) {
     ThreadInterrupter::InitOnce();
     Profiler::InitOnce();
@@ -363,7 +363,7 @@ const char* Dart::Cleanup() {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting code observers\n",
                  timestamp());
   }
-  CodeObservers::DeleteAll();
+  NOT_IN_PRODUCT(CodeObservers::DeleteAll());
   if (FLAG_support_timeline) {
     if (FLAG_trace_shutdown) {
       OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down timeline\n",

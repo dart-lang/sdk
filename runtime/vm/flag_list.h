@@ -38,6 +38,8 @@ R(profiler, false, bool, true,                                                 \
   "Enable the profiler.")                                                      \
 R(support_ast_printer, false, bool, true,                                      \
   "Support the AST printer.")                                                  \
+R(support_compiler_stats, false, bool, true,                                   \
+  "Support compiler stats.")                                                   \
 R(support_debugger, false, bool, true,                                         \
   "Support the debugger.")                                                     \
 R(support_disassembler, false, bool, true,                                     \

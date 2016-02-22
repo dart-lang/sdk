@@ -10,7 +10,6 @@
 #include "vm/heap.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
-#include "vm/report.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 

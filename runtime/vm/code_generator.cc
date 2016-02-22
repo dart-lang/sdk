@@ -18,7 +18,6 @@
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/parser.h"
-#include "vm/report.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"

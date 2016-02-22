@@ -31,7 +31,6 @@
 #include "vm/parser.h"
 #include "vm/precompiler.h"
 #include "vm/profiler.h"
-#include "vm/report.h"
 #include "vm/reusable_handles.h"
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
@@ -12848,11 +12847,13 @@ RawCode* Code::FinalizeCode(const char* name,
   CPU::FlushICache(instrs.EntryPoint(), instrs.size());
 
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
+#ifndef PRODUCT
   CodeObservers::NotifyAll(name,
                            instrs.EntryPoint(),
                            assembler->prologue_offset(),
                            instrs.size(),
                            optimized);
+#endif
   {
     NoSafepointScope no_safepoint;
     const ZoneGrowableArray<intptr_t>& pointer_offsets =
@@ -12909,13 +12910,14 @@ RawCode* Code::FinalizeCode(const Function& function,
                             bool optimized) {
   // Calling ToLibNamePrefixedQualifiedCString is very expensive,
   // try to avoid it.
+#ifndef PRODUCT
   if (CodeObservers::AreActive()) {
     return FinalizeCode(function.ToLibNamePrefixedQualifiedCString(),
                         assembler,
                         optimized);
-  } else {
-    return FinalizeCode("", assembler, optimized);
   }
+#endif  // !PRODUCT
+  return FinalizeCode("", assembler, optimized);
 }
 
 

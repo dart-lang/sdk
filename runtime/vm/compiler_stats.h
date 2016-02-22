@@ -72,19 +72,21 @@ class CompilerStats {
 };
 
 #define INC_STAT(thread, counter, incr)                                        \
-  if (FLAG_compiler_stats) {                                                   \
+  if (FLAG_support_compiler_stats && FLAG_compiler_stats) {                    \
     MutexLocker ml((thread)->isolate()->mutex());                              \
     (thread)->isolate()->compiler_stats()->counter += (incr);                  \
   }
 
 #define STAT_VALUE(thread, counter)                                            \
-  ((FLAG_compiler_stats != false) ?                                            \
+  ((FLAG_support_compiler_stats && FLAG_compiler_stats) ?                      \
       (thread)->isolate()->compiler_stats()->counter : 0)
 
 #define CSTAT_TIMER_SCOPE(thr, t)                                              \
-  TimerScope timer(FLAG_compiler_stats,                                        \
-      FLAG_compiler_stats ? &((thr)->isolate()->compiler_stats()->t) : NULL,   \
+  TimerScope timer(FLAG_support_compiler_stats && FLAG_compiler_stats,         \
+      (FLAG_support_compiler_stats && FLAG_compiler_stats) ?                   \
+      &((thr)->isolate()->compiler_stats()->t) : NULL,                         \
       thr);
+
 
 }  // namespace dart
 

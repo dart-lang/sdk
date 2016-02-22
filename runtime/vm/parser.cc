@@ -28,7 +28,6 @@
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/regexp_assembler.h"
-#include "vm/report.h"
 #include "vm/resolver.h"
 #include "vm/safepoint.h"
 #include "vm/scanner.h"

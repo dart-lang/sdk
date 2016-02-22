@@ -22,26 +22,21 @@
 #include "platform/utils.h"
 #include "vm/code_observers.h"
 #include "vm/dart.h"
-#include "vm/debuginfo.h"
+#include "vm/flags.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/os_thread.h"
-#include "vm/vtune.h"
 #include "vm/zone.h"
 
 
 namespace dart {
 
-// Linux CodeObservers.
+#ifndef PRODUCT
 
-DEFINE_FLAG(bool, generate_gdb_symbols, false,
-    "Generate symbols of generated dart functions for debugging with GDB");
 DEFINE_FLAG(bool, generate_perf_events_symbols, false,
     "Generate events symbols for profiling with perf");
-DEFINE_FLAG(bool, generate_perf_jitdump, false,
-    "Writes jitdump data for profiling with perf annotate");
 
-
+// Linux CodeObservers.
 class PerfCodeObserver : public CodeObserver {
  public:
   PerfCodeObserver() : out_file_(NULL) {
@@ -92,249 +87,7 @@ class PerfCodeObserver : public CodeObserver {
 };
 
 
-class GdbCodeObserver : public CodeObserver {
- public:
-  GdbCodeObserver() { }
-
-  virtual bool IsActive() const {
-    return FLAG_generate_gdb_symbols;
-  }
-
-  virtual void Notify(const char* name,
-                      uword base,
-                      uword prologue_offset,
-                      uword size,
-                      bool optimized) {
-    if (prologue_offset > 0) {
-      // In order to ensure that gdb sees the first instruction of a function
-      // as the prologue sequence we register two symbols for the cases when
-      // the prologue sequence is not the first instruction:
-      // <name>_entry is used for code preceding the prologue sequence.
-      // <name> for rest of the code (first instruction is prologue sequence).
-      char* pname = OS::SCreate(Thread::Current()->zone(),
-          "%s_%s", name, "entry");
-      DebugInfo::RegisterSection(pname, base, size);
-      DebugInfo::RegisterSection(name,
-                                 (base + prologue_offset),
-                                 (size - prologue_offset));
-    } else {
-      DebugInfo::RegisterSection(name, base, size);
-    }
-  }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(GdbCodeObserver);
-};
-
-
-#define CLOCKFD 3
-#define FD_TO_CLOCKID(fd)       ((~(clockid_t) (fd) << 3) | CLOCKFD)  // NOLINT
-
-class JitdumpCodeObserver : public CodeObserver {
- public:
-  JitdumpCodeObserver() {
-    ASSERT(FLAG_generate_perf_jitdump);
-    out_file_ = NULL;
-    clock_fd_ = -1;
-    clock_id_ = kInvalidClockId;
-    code_sequence_ = 0;
-    Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
-    Dart_FileCloseCallback file_close = Isolate::file_close_callback();
-    if ((file_open == NULL) || (file_write == NULL) || (file_close == NULL)) {
-      return;
-    }
-    // The Jitdump code observer writes all jitted code into the file
-    // 'perf.jitdump' in the current working directory. We open the file once
-    // on initialization and close it when the VM is going down.
-    {
-      // Open the file.
-      const char* filename = "perf.jitdump";
-      out_file_ = (*file_open)(filename, true);
-      ASSERT(out_file_ != NULL);
-      // Write the jit dump header.
-      WriteHeader();
-    }
-    // perf uses an internal clock and because our output is merged with data
-    // collected by perf our timestamps must be consistent. Using
-    // the posix-clock-module (/dev/trace_clock) as our time source ensures
-    // we are consistent with the perf timestamps.
-    clock_id_ = kInvalidClockId;
-    clock_fd_ = open("/dev/trace_clock", O_RDONLY);
-    if (clock_fd_ >= 0) {
-      clock_id_ = FD_TO_CLOCKID(clock_fd_);
-    }
-  }
-
-  ~JitdumpCodeObserver() {
-    Dart_FileCloseCallback file_close = Isolate::file_close_callback();
-    if (file_close == NULL) {
-      return;
-    }
-    ASSERT(out_file_ != NULL);
-    (*file_close)(out_file_);
-    if (clock_fd_ >= 0) {
-      close(clock_fd_);
-    }
-  }
-
-  virtual bool IsActive() const {
-    return FLAG_generate_perf_jitdump && (out_file_ != NULL);
-  }
-
-  virtual void Notify(const char* name,
-                      uword base,
-                      uword prologue_offset,
-                      uword size,
-                      bool optimized) {
-    WriteCodeLoad(name, base, prologue_offset, size, optimized);
-  }
-
- private:
-  static const uint32_t kJitHeaderMagic = 0x4A695444;
-  static const uint32_t kJitHeaderMagicSw = 0x4454694A;
-  static const uint32_t kJitHeaderVersion = 0x1;
-  static const uint32_t kElfMachIA32 = 3;
-  static const uint32_t kElfMachX64 = 62;
-  static const uint32_t kElfMachARM = 40;
-  // TODO(zra): Find the right ARM64 constant.
-  static const uint32_t kElfMachARM64 = 40;
-  static const uint32_t kElfMachMIPS = 10;
-  static const int kInvalidClockId = -1;
-
-  struct jitheader {
-    uint32_t magic;   /* characters "jItD" */
-    uint32_t version; /* header version */
-    uint32_t total_size;  /* total size of header */
-    uint32_t elf_mach;  /* elf mach target */
-    uint32_t pad1;    /* reserved */
-    uint32_t pid;   /* JIT process id */
-    uint64_t timestamp; /* timestamp */
-  };
-
-  /* record prefix (mandatory in each record) */
-  struct jr_prefix {
-    uint32_t id;
-    uint32_t total_size;
-    uint64_t timestamp;
-  };
-
-  enum jit_record_type {
-    JIT_CODE_LOAD = 0,
-    /* JIT_CODE_MOVE = 1, */
-    /* JIT_CODE_DEBUG_INFO = 2, */
-    /* JIT_CODE_CLOSE = 3, */
-    JIT_CODE_MAX = 4,
-  };
-
-  struct jr_code_load {
-    struct jr_prefix prefix;
-    uint32_t pid;
-    uint32_t tid;
-    uint64_t vma;
-    uint64_t code_addr;
-    uint64_t code_size;
-    uint64_t code_index;
-  };
-
-  const char* GenerateCodeName(const char* name, bool optimized) {
-    const char* marker = optimized ? "*" : "";
-    return OS::SCreate(Thread::Current()->zone(), "%s%s", marker, name);
-  }
-
-  uint32_t GetElfMach() {
-#if defined(TARGET_ARCH_IA32)
-    return kElfMachIA32;
-#elif defined(TARGET_ARCH_X64)
-    return kElfMachX64;
-#elif defined(TARGET_ARCH_ARM)
-    return kElfMachARM;
-#elif defined(TARGET_ARCH_ARM64)
-    return kElfMachARM64;
-#elif defined(TARGET_ARCH_MIPS)
-    return kElfMachMIPS;
-#else
-#error Unknown architecture.
-#endif
-  }
-
-  pid_t gettid() {
-    // libc doesn't wrap the Linux-specific gettid system call.
-    // Note that this thread id is not the same as the posix thread id.
-    return syscall(SYS_gettid);
-  }
-
-  uint64_t GetKernelTimeNanos() {
-    if (clock_id_ != kInvalidClockId) {
-      struct timespec ts;
-      int r = clock_gettime(clock_id_, &ts);
-      ASSERT(r == 0);
-      uint64_t nanos = static_cast<uint64_t>(ts.tv_sec) *
-                       static_cast<uint64_t>(kNanosecondsPerSecond);
-      nanos += static_cast<uint64_t>(ts.tv_nsec);
-      return nanos;
-    } else {
-      return OS::GetCurrentTimeMicros() * kNanosecondsPerMicrosecond;
-    }
-  }
-
-  void WriteHeader() {
-    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
-    ASSERT(file_write != NULL);
-    ASSERT(out_file_ != NULL);
-    jitheader header;
-    header.magic = kJitHeaderMagic;
-    header.version = kJitHeaderVersion;
-    header.total_size = sizeof(jitheader);
-    header.pad1 = 0x0;
-    header.elf_mach = GetElfMach();
-    header.pid = getpid();
-    header.timestamp = GetKernelTimeNanos();
-    {
-      MutexLocker ml(CodeObservers::mutex());
-      (*file_write)(&header, sizeof(header), out_file_);
-    }
-  }
-
-  void WriteCodeLoad(const char* name, uword base, uword prologue_offset,
-                     uword code_size, bool optimized) {
-    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
-    ASSERT(file_write != NULL);
-    ASSERT(out_file_ != NULL);
-
-    const char* code_name = GenerateCodeName(name, optimized);
-    const intptr_t code_name_size = strlen(code_name) + 1;
-    uint8_t* code_pointer = reinterpret_cast<uint8_t*>(base);
-
-    jr_code_load code_load;
-    code_load.prefix.id = JIT_CODE_LOAD;
-    code_load.prefix.total_size =
-        sizeof(code_load) + code_name_size + code_size;
-    code_load.prefix.timestamp = GetKernelTimeNanos();
-    code_load.pid = getpid();
-    code_load.tid = gettid();
-    code_load.vma = 0x0;  //  Our addresses are absolute.
-    code_load.code_addr = base;
-    code_load.code_size = code_size;
-
-    {
-      MutexLocker ml(CodeObservers::mutex());
-      // Set this field under the index.
-      code_load.code_index = code_sequence_++;
-      // Write structures.
-      (*file_write)(&code_load, sizeof(code_load), out_file_);
-      (*file_write)(code_name, code_name_size, out_file_);
-      (*file_write)(code_pointer, code_size, out_file_);
-    }
-  }
-
-  void* out_file_;
-  int clock_fd_;
-  int clock_id_;
-  uint64_t code_sequence_;
-  DISALLOW_COPY_AND_ASSIGN(JitdumpCodeObserver);
-};
-
+#endif  // !PRODUCT
 
 const char* OS::Name() {
   return "linux";
@@ -617,18 +370,11 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
 
 
 void OS::RegisterCodeObservers() {
+#ifndef PRODUCT
   if (FLAG_generate_perf_events_symbols) {
     CodeObservers::Register(new PerfCodeObserver);
   }
-  if (FLAG_generate_gdb_symbols) {
-    CodeObservers::Register(new GdbCodeObserver);
-  }
-  if (FLAG_generate_perf_jitdump) {
-    CodeObservers::Register(new JitdumpCodeObserver);
-  }
-#if defined(DART_VTUNE_SUPPORT)
-  CodeObservers::Register(new VTuneCodeObserver);
-#endif
+#endif  // !PRODUCT
 }
 
 

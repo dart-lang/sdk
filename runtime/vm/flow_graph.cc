@@ -12,7 +12,6 @@
 #include "vm/intermediate_language.h"
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
-#include "vm/report.h"
 
 namespace dart {
 

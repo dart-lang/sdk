@@ -89,6 +89,8 @@ CompilerStats::CompilerStats(Isolate* isolate)
 }
 
 
+#ifndef PRODUCT
+
 // This function is used as a callback in the log object to which the
 // compiler stats are printed. It will be called only once, to print
 // the accumulated text when all of the compiler stats values are
@@ -285,5 +287,7 @@ char* CompilerStats::PrintToZone() {
   text = NULL;
   return stats_text;
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

@@ -5,7 +5,6 @@
 #include "vm/bootstrap_natives.h"
 
 #include "vm/object.h"
-#include "vm/report.h"
 
 namespace dart {
 

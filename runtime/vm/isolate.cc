@@ -18,6 +18,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
+#include "vm/flags.h"
 #include "vm/heap.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
@@ -821,7 +822,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       last_allocationprofile_accumulator_reset_timestamp_(0),
       last_allocationprofile_gc_timestamp_(0),
       object_id_ring_(NULL),
-      trace_buffer_(NULL),
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       background_compiler_(NULL),
@@ -962,9 +962,11 @@ Isolate* Isolate::Init(const char* name_prefix,
     }
   }
 
-  result->compiler_stats_ = new CompilerStats(result);
-  if (FLAG_compiler_benchmark) {
-    result->compiler_stats_->EnableBenchmark();
+  if (FLAG_support_compiler_stats) {
+    result->compiler_stats_ = new CompilerStats(result);
+    if (FLAG_compiler_benchmark) {
+      result->compiler_stats_->EnableBenchmark();
+    }
   }
 
   if (FLAG_support_service) {
@@ -1776,7 +1778,7 @@ void Isolate::Shutdown() {
     }
 
     // Write compiler stats data if enabled.
-    if (FLAG_compiler_stats
+    if (FLAG_support_compiler_stats && FLAG_compiler_stats
         && !ServiceIsolate::IsServiceIsolateDescendant(this)
         && (this != Dart::vm_isolate())) {
       OS::Print("%s", compiler_stats()->PrintToZone());

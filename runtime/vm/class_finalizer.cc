@@ -11,7 +11,6 @@
 #include "vm/longjump.h"
 #include "vm/log.h"
 #include "vm/object_store.h"
-#include "vm/report.h"
 #include "vm/symbols.h"
 
 namespace dart {

@@ -10,6 +10,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 class Mutex;
 
 // Object observing code creation events. Used by external profilers and
@@ -65,6 +67,7 @@ class CodeObservers : public AllStatic {
   static CodeObserver** observers_;
 };
 
+#endif  // !PRODUCT
 
 }  // namespace dart
 
