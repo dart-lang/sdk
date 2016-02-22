@@ -2251,17 +2251,15 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   const intptr_t num_functions = functions.Length();
   for (intptr_t i = 0; i < num_functions; i++) {
     func ^= functions.At(i);
-    if (func.IsFactory() || func.IsGenerativeConstructor()) {
+    if (func.IsGenerativeConstructor()) {
       // A mixin class must not have explicit constructors.
       if (!func.IsImplicitConstructor()) {
-        const char* ctr_kind = func.IsFactory() ? "factory" : "constructor";
         const Script& script = Script::Handle(cls.script());
         const Error& error = Error::Handle(
             LanguageError::NewFormatted(Error::Handle(),
                 script, func.token_pos(), Report::AtLocation,
                 Report::kError, Heap::kNew,
-                "%s '%s' is illegal in mixin class %s",
-                ctr_kind,
+                "constructor '%s' is illegal in mixin class %s",
                 String::Handle(func.PrettyName()).ToCString(),
                 String::Handle(zone, mixin_cls.Name()).ToCString()));
 
