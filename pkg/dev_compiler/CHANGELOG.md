@@ -1,5 +1,8 @@
 # dev_compiler changelog
 
+## 0.1.21
+- bug fix for dart:js constructor invocation
+
 ## 0.1.20
 - support new StackTrace.current method
 
