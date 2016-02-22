@@ -149,6 +149,11 @@ ATTRIBUTE_SETTER = '  %s_Setter_(mthis, __arg_0) => mthis["%s"] = __arg_0;\n\n'
 #(operation_name, operationName)
 OPERATION_0 = '  %s_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "%s", []);\n\n'
 
+# getter, setter, deleter and propertyQuery code
+OPERATION_1 = '  $%s_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "%s", [__arg_0]);\n\n'
+OPERATION_2 = '  $%s_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "%s", [__arg_0, __arg_1]);\n\n'
+OPERATION_PQ = '  $%s_Callback_1_(mthis, __arg_0) => mthis[__arg_0];\n\n'
+
 #(operation_name, argument_count, arguments, operation_name, arguments)
 ARGUMENT_NUM = "__arg_%s"
 OPERATION_ARGS = '  %s_Callback_%s_(mthis, %s) => Blink_JsNative_DomException.callMethod(mthis, "%s", [%s]);\n\n'
@@ -171,6 +176,13 @@ def generate_parameter_entries(param_infos):
     min_arg_count = arg_count - optional_default_args
     lb = min_arg_count - 2 if min_arg_count > 2 else 0
     return (lb, arg_count + 1)
+
+constructor_renames = {
+    'RTCPeerConnection': 'webkitRTCPeerConnection',
+}
+
+def rename_constructor(name):
+  return constructor_renames[name] if name in constructor_renames else name
 
 def Generate_Blink(output_dir, database, type_registry):
   blink_filename = os.path.join(output_dir, '_blink_dartium.dart')
@@ -201,7 +213,7 @@ def Generate_Blink(output_dir, database, type_registry):
       _Emit_Blink_Constructors(blink_file, analyzed_constructors)
     elif 'Constructor' in interface.ext_attrs:
       # Zero parameter constructor.
-      blink_file.write(CONSTRUCTOR_0 % name)
+      blink_file.write(CONSTRUCTOR_0 % rename_constructor(name))
 
     _Process_Attributes(blink_file, interface.attributes)
     _Process_Operations(blink_file, interface, interface.operations)
@@ -225,13 +237,13 @@ def _Emit_Blink_Constructors(blink_file, analyzed_constructors):
 
   for callback_index in range(arg_min_count, arg_max_count):
     if callback_index == 0:
-      blink_file.write(CONSTRUCTOR_0 % (name))
+      blink_file.write(CONSTRUCTOR_0 % (rename_constructor(name)))
     else:
       arguments = []
       for i in range(0, callback_index):
         arguments.append(ARGUMENT_NUM % i)
       argument_list = ', '.join(arguments)
-      blink_file.write(CONSTRUCTOR_ARGS % (callback_index, argument_list, name, argument_list))
+      blink_file.write(CONSTRUCTOR_ARGS % (callback_index, argument_list, rename_constructor(name), argument_list))
 
 def _Process_Attributes(blink_file, attributes):
   # Emit an interface's attributes and operations.
@@ -263,6 +275,25 @@ def _Emit_Blink_Operation(blink_file, interface, analyzeOperations):
   analyzed = AnalyzeOperation(interface, analyzeOperations)
   (arg_min_count, arg_max_count) = generate_parameter_entries(analyzed.param_infos)
   name = analyzed.js_name
+
+  operation = analyzeOperations[0]
+  if (name.startswith('__') and \
+      ('getter' in operation.specials or \
+       'setter' in operation.specials or \
+       'deleter' in operation.specials)):
+    if name == '__propertyQuery__':
+      blink_file.write(OPERATION_PQ % (name))
+    else:
+      arg_min_count = arg_max_count
+      if arg_max_count == 2:
+        blink_file.write(OPERATION_1 % (name, name))
+      elif arg_max_count == 3:
+        blink_file.write(OPERATION_2 % (name, name))
+      else:
+        print "FATAL ERROR: _blink emitter operator %s.%s" % (interface.id, name)
+        exit
+
+    return
 
   for callback_index in range(arg_min_count, arg_max_count):
     if callback_index == 0:

@@ -13,287 +13,12 @@ from htmldartgenerator import *
 from idlnode import IDLArgument, IDLAttribute, IDLEnum, IDLMember
 from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 
-# TODO(vsm): This logic needs to pulled from the source IDL.  These tables are
-# an ugly workaround.
-_cpp_callback_map = {
-  ('DataTransferItem', 'webkitGetAsEntry'): 'DataTransferItemFileSystem',
-  ('Document', 'fonts'): 'DocumentFontFaceSet',
-  ('Document', 'webkitIsFullScreen'): 'DocumentFullscreen',
-  ('Document', 'webkitFullScreenKeyboardInputAllowed'): 'DocumentFullscreen',
-  ('Document', 'webkitCurrentFullScreenElement'): 'DocumentFullscreen',
-  ('Document', 'webkitCancelFullScreen'): 'DocumentFullscreen',
-  ('Document', 'webkitFullscreenEnabled'): 'DocumentFullscreen',
-  ('Document', 'webkitFullscreenElement'): 'DocumentFullscreen',
-  ('Document', 'webkitExitFullscreen'): 'DocumentFullscreen',
-  ('DOMWindow', 'crypto'): 'DOMWindowCrypto',
-  ('DOMWindow', 'indexedDB'): 'DOMWindowIndexedDatabase',
-  ('DOMWindow', 'speechSynthesis'): 'DOMWindowSpeechSynthesis',
-  ('DOMWindow', 'webkitNotifications'): 'DOMWindowNotifications',
-  ('DOMWindow', 'storage'): 'DOMWindowQuota',
-  ('DOMWindow', 'webkitStorageInfo'): 'DOMWindowQuota',
-  ('DOMWindow', 'openDatabase'): 'DOMWindowWebDatabase',
-  ('DOMWindow', 'webkitRequestFileSystem'): 'DOMWindowFileSystem',
-  ('DOMWindow', 'webkitResolveLocalFileSystemURL'): 'DOMWindowFileSystem',
-  ('DOMWindow', 'atob'): 'DOMWindowBase64',
-  ('DOMWindow', 'btoa'): 'DOMWindowBase64',
-  ('DOMWindow', 'clearTimeout'): 'DOMWindowTimers',
-  ('DOMWindow', 'clearInterval'): 'DOMWindowTimers',
-  ('DOMWindow', 'createImageBitmap'): 'ImageBitmapFactories',
-  ('Element', 'animate'): 'ElementAnimation',
-  ('HTMLInputElement', 'webkitEntries'): 'HTMLInputElementFileSystem',
-  ('HTMLVideoElement', 'getVideoPlaybackQuality'): 'HTMLVideoElementMediaSource',
-  ('Navigator', 'doNotTrack'): 'NavigatorDoNotTrack',
-  ('Navigator', 'geolocation'): 'NavigatorGeolocation',
-  ('Navigator', 'webkitPersistentStorage'): 'NavigatorStorageQuota',
-  ('Navigator', 'webkitTemporaryStorage'): 'NavigatorStorageQuota',
-  ('Navigator', 'registerProtocolHandler'): 'NavigatorContentUtils',
-  ('Navigator', 'unregisterProtocolHandler'): 'NavigatorContentUtils',
-  ('Navigator', 'webkitGetUserMedia'): 'NavigatorMediaStream',
-  ('Navigator', 'webkitGetGamepads'): 'NavigatorGamepad',
-  ('Navigator', 'requestMIDIAccess'): 'NavigatorWebMIDI',
-  ('Navigator', 'vibrate'): 'NavigatorVibration',
-  ('Navigator', 'appName'): 'NavigatorID',
-  ('Navigator', 'appVersion'): 'NavigatorID',
-  ('Navigator', 'appCodeName'): 'NavigatorID',
-  ('Navigator', 'platform'): 'NavigatorID',
-  ('Navigator', 'product'): 'NavigatorID',
-  ('Navigator', 'userAgent'): 'NavigatorID',
-  ('Navigator', 'onLine'): 'NavigatorOnLine',
-  ('Navigator', 'registerServiceWorker'): 'NavigatorServiceWorker',
-  ('Navigator', 'unregisterServiceWorker'): 'NavigatorServiceWorker',
-  ('Navigator', 'maxTouchPoints'): 'NavigatorEvents',
-  ('WorkerGlobalScope', 'crypto'): 'WorkerGlobalScopeCrypto',
-  ('WorkerGlobalScope', 'indexedDB'): 'WorkerGlobalScopeIndexedDatabase',
-  ('WorkerGlobalScope', 'webkitNotifications'): 'WorkerGlobalScopeNotifications',
-  ('WorkerGlobalScope', 'openDatabase'): 'WorkerGlobalScopeWebDatabase',
-  ('WorkerGlobalScope', 'openDatabaseSync'): 'WorkerGlobalScopeWebDatabase',
-  ('WorkerGlobalScope', 'performance'): 'WorkerGlobalScopePerformance',
-  ('WorkerGlobalScope', 'webkitRequestFileSystem'): 'WorkerGlobalScopeFileSystem',
-  ('WorkerGlobalScope', 'webkitRequestFileSystemSync'): 'WorkerGlobalScopeFileSystem',
-  ('WorkerGlobalScope', 'webkitResolveLocalFileSystemURL'): 'WorkerGlobalScopeFileSystem',
-  ('WorkerGlobalScope', 'webkitResolveLocalFileSystemSyncURL'): 'WorkerGlobalScopeFileSystem',
-  ('WorkerGlobalScope', 'atob'): 'DOMWindowBase64',
-  ('WorkerGlobalScope', 'btoa'): 'DOMWindowBase64',
-  ('WorkerGlobalScope', 'clearTimeout'): 'DOMWindowTimers',
-  ('WorkerGlobalScope', 'clearInterval'): 'DOMWindowTimers',
-  ('Document', 'rootElement'): 'SVGDocument',
-  ('Document', 'childElementCount'): 'ParentNode',
-  ('Document', 'firstElementChild'): 'ParentNode',
-  ('Document', 'lastElementChild'): 'ParentNode',
-  ('DocumentFragment', 'childElementCount'): 'ParentNode',
-  ('DocumentFragment', 'firstElementChild'): 'ParentNode',
-  ('DocumentFragment', 'lastElementChild'): 'ParentNode',
-  ('CharacterData', 'nextElementSibling'): 'ChildNode',
-  ('CharacterData', 'previousElementSibling'): 'ChildNode',
-  ('Element', 'childElementCount'): 'ParentNode',
-  ('Element', 'firstElementChild'): 'ParentNode',
-  ('Element', 'lastElementChild'): 'ParentNode',
-  ('Element', 'nextElementSibling'): 'ChildNode',
-  ('Element', 'previousElementSibling'): 'ChildNode',
-  ('SVGAnimationElement', 'requiredExtensions'): 'SVGTests',
-  ('SVGAnimationElement', 'requiredFeatures'): 'SVGTests',
-  ('SVGAnimationElement', 'systemLanguage'): 'SVGTests',
-  ('SVGAnimationElement', 'hasExtension'): 'SVGTests',
-  ('SVGGraphicsElement', 'requiredExtensions'): 'SVGTests',
-  ('SVGGraphicsElement', 'requiredFeatures'): 'SVGTests',
-  ('SVGGraphicsElement', 'systemLanguage'): 'SVGTests',
-  ('SVGGraphicsElement', 'hasExtension'): 'SVGTests',
-  ('SVGPatternElement', 'requiredExtensions'): 'SVGTests',
-  ('SVGPatternElement', 'requiredFeatures'): 'SVGTests',
-  ('SVGPatternElement', 'systemLanguage'): 'SVGTests',
-  ('SVGPatternElement', 'hasExtension'): 'SVGTests',
-  ('SVGUseElement', 'requiredExtensions'): 'SVGTests',
-  ('SVGUseElement', 'requiredFeatures'): 'SVGTests',
-  ('SVGUseElement', 'systemLanguage'): 'SVGTests',
-  ('SVGUseElement', 'hasExtension'): 'SVGTests',
-  ('SVGMaskElement', 'requiredExtensions'): 'SVGTests',
-  ('SVGMaskElement', 'requiredFeatures'): 'SVGTests',
-  ('SVGMaskElement', 'systemLanguage'): 'SVGTests',
-  ('SVGMaskElement', 'hasExtension'): 'SVGTests',
-  ('SVGViewSpec', 'zoomAndPan'): 'SVGZoomAndPan',
-  ('SVGViewSpec', 'setZoomAndPan'): 'SVGZoomAndPan',
-  ('SVGViewElement', 'setZoomAndPan'): 'SVGZoomAndPan',
-  ('SVGSVGElement', 'setZoomAndPan'): 'SVGZoomAndPan',
-  ('Screen', 'orientation'): 'ScreenOrientation',
-  ('Screen', 'lockOrientation'): 'ScreenOrientation',
-  ('Screen', 'unlockOrientation'): 'ScreenOrientation',
-  ('Navigator', 'serviceWorker'): 'NavigatorServiceWorker',
-  ('Navigator', 'storageQuota'): 'NavigatorStorageQuota',
-  ('Navigator', 'isProtocolHandlerRegistered'): 'NavigatorContentUtils',
-  ('SharedWorker', 'workerStart'): 'SharedWorkerPerformance',
-}
-
-_cpp_import_map = {
-  'ImageBitmapFactories' : 'modules/imagebitmap/ImageBitmapFactories',
-  'ScreenOrientation' : 'modules/screen_orientation/ScreenOrientation'
-}
-
-_cpp_overloaded_callback_map = {
-  ('DOMURL', 'createObjectUrlFromSourceCallback'): 'URLMediaSource',
-  ('DOMURL', 'createObjectUrlFromStreamCallback'): 'URLMediaStream',
-  ('DOMURL', '_createObjectUrlFromWebKitSourceCallback'): 'URLMediaSource',
-  ('DOMURL', '_createObjectURL_2Callback'): 'URLMediaSource',
-  ('DOMURL', '_createObjectURL_3Callback'): 'URLMediaStream',
-}
-
-_cpp_partial_map = {}
-
-_cpp_no_auto_scope_list = set([
-  ('Document', 'body', 'Getter'),
-  ('Document', 'getElementById', 'Callback'),
-  ('Document', 'getElementsByName', 'Callback'),
-  ('Document', 'getElementsByTagName', 'Callback'),
-  ('Element', 'getAttribute', 'Callback'),
-  ('Element', 'getAttributeNS', 'Callback'),
-  ('Element', 'id', 'Getter'),
-  ('Element', 'id', 'Setter'),
-  ('Element', 'setAttribute', 'Callback'),
-  ('Element', 'setAttributeNS', 'Callback'),
-  ('Node', 'firstChild', 'Getter'),
-  ('Node', 'lastChild', 'Getter'),
-  ('Node', 'nextSibling', 'Getter'),
-  ('Node', 'previousSibling', 'Getter'),
-  ('Node', 'childNodes', 'Getter'),
-  ('Node', 'nodeType', 'Getter'),
-  ('NodeList', 'length', 'Getter'),
-  ('NodeList', 'item', 'Callback'),
-  ('WebGLRenderingContext', 'drawingBufferHeight', 'Getter'),
-  ('WebGLRenderingContext', 'drawingBufferWidth', 'Getter'),
-  ('WebGLRenderingContext', 'activeTexture', 'Callback'),
-  ('WebGLRenderingContext', 'attachShader', 'Callback'),
-  ('WebGLRenderingContext', 'bindAttribLocation', 'Callback'),
-  ('WebGLRenderingContext', 'bindBuffer', 'Callback'),
-  ('WebGLRenderingContext', 'bindFramebuffer', 'Callback'),
-  ('WebGLRenderingContext', 'bindRenderbuffer', 'Callback'),
-  ('WebGLRenderingContext', 'bindTexture', 'Callback'),
-  ('WebGLRenderingContext', 'blendColor', 'Callback'),
-  ('WebGLRenderingContext', 'blendEquation', 'Callback'),
-  ('WebGLRenderingContext', 'blendEquationSeparate', 'Callback'),
-  ('WebGLRenderingContext', 'blendFunc', 'Callback'),
-  ('WebGLRenderingContext', 'blendFuncSeparate', 'Callback'),
-  ('WebGLRenderingContext', 'checkFramebufferStatus', 'Callback'),
-  ('WebGLRenderingContext', 'clear', 'Callback'),
-  ('WebGLRenderingContext', 'clearColor', 'Callback'),
-  ('WebGLRenderingContext', 'clearDepth', 'Callback'),
-  ('WebGLRenderingContext', 'clearStencil', 'Callback'),
-  ('WebGLRenderingContext', 'colorMask', 'Callback'),
-  ('WebGLRenderingContext', 'compileShader', 'Callback'),
-  ('WebGLRenderingContext', 'compressedTexImage2D', 'Callback'),
-  ('WebGLRenderingContext', 'compressedTexSubImage2D', 'Callback'),
-  ('WebGLRenderingContext', 'copyTexImage2D', 'Callback'),
-  ('WebGLRenderingContext', 'copyTexSubImage2D', 'Callback'),
-  ('WebGLRenderingContext', 'cullFace', 'Callback'),
-  ('WebGLRenderingContext', 'deleteBuffer', 'Callback'),
-  ('WebGLRenderingContext', 'deleteFramebuffer', 'Callback'),
-  ('WebGLRenderingContext', 'deleteProgram', 'Callback'),
-  ('WebGLRenderingContext', 'deleteRenderbuffer', 'Callback'),
-  ('WebGLRenderingContext', 'deleteShader', 'Callback'),
-  ('WebGLRenderingContext', 'deleteTexture', 'Callback'),
-  ('WebGLRenderingContext', 'depthFunc', 'Callback'),
-  ('WebGLRenderingContext', 'depthMask', 'Callback'),
-  ('WebGLRenderingContext', 'depthRange', 'Callback'),
-  ('WebGLRenderingContext', 'detachShader', 'Callback'),
-  ('WebGLRenderingContext', 'disable', 'Callback'),
-  ('WebGLRenderingContext', 'disableVertexAttribArray', 'Callback'),
-  ('WebGLRenderingContext', 'drawArrays', 'Callback'),
-  ('WebGLRenderingContext', 'drawElements', 'Callback'),
-  ('WebGLRenderingContext', 'enable', 'Callback'),
-  ('WebGLRenderingContext', 'enableVertexAttribArray', 'Callback'),
-  ('WebGLRenderingContext', 'finish', 'Callback'),
-  ('WebGLRenderingContext', 'flush', 'Callback'),
-  ('WebGLRenderingContext', 'framebufferRenderbuffer', 'Callback'),
-  ('WebGLRenderingContext', 'framebufferTexture2D', 'Callback'),
-  ('WebGLRenderingContext', 'frontFace', 'Callback'),
-  ('WebGLRenderingContext', 'generateMipmap', 'Callback'),
-  ('WebGLRenderingContext', 'getActiveAttrib', 'Callback'),
-  ('WebGLRenderingContext', 'getActiveUniform', 'Callback'),
-  ('WebGLRenderingContext', 'getAttachedShaders', 'Callback'),
-  ('WebGLRenderingContext', 'getAttribLocation', 'Callback'),
-  ('WebGLRenderingContext', 'hint', 'Callback'),
-  ('WebGLRenderingContext', 'isBuffer', 'Callback'),
-  ('WebGLRenderingContext', 'isContextLost', 'Callback'),
-  ('WebGLRenderingContext', 'isEnabled', 'Callback'),
-  ('WebGLRenderingContext', 'isFramebuffer', 'Callback'),
-  ('WebGLRenderingContext', 'isProgram', 'Callback'),
-  ('WebGLRenderingContext', 'isRenderbuffer', 'Callback'),
-  ('WebGLRenderingContext', 'isShader', 'Callback'),
-  ('WebGLRenderingContext', 'isTexture', 'Callback'),
-  ('WebGLRenderingContext', 'lineWidth', 'Callback'),
-  ('WebGLRenderingContext', 'linkProgram', 'Callback'),
-  ('WebGLRenderingContext', 'pixelStorei', 'Callback'),
-  ('WebGLRenderingContext', 'polygonOffset', 'Callback'),
-  ('WebGLRenderingContext', 'scissor', 'Callback'),
-  ('WebGLRenderingContext', 'stencilFunc', 'Callback'),
-  ('WebGLRenderingContext', 'stencilFuncSeparate', 'Callback'),
-  ('WebGLRenderingContext', 'stencilMask', 'Callback'),
-  ('WebGLRenderingContext', 'stencilMaskSeparate', 'Callback'),
-  ('WebGLRenderingContext', 'stencilOp', 'Callback'),
-  ('WebGLRenderingContext', 'stencilOpSeparate', 'Callback'),
-  ('WebGLRenderingContext', 'uniform1f', 'Callback'),
-  ('WebGLRenderingContext', 'uniform1fv', 'Callback'),
-  ('WebGLRenderingContext', 'uniform1i', 'Callback'),
-  ('WebGLRenderingContext', 'uniform1iv', 'Callback'),
-  ('WebGLRenderingContext', 'uniform2f', 'Callback'),
-  ('WebGLRenderingContext', 'uniform2fv', 'Callback'),
-  ('WebGLRenderingContext', 'uniform2i', 'Callback'),
-  ('WebGLRenderingContext', 'uniform2iv', 'Callback'),
-  ('WebGLRenderingContext', 'uniform3f', 'Callback'),
-  ('WebGLRenderingContext', 'uniform3fv', 'Callback'),
-  ('WebGLRenderingContext', 'uniform3i', 'Callback'),
-  ('WebGLRenderingContext', 'uniform3iv', 'Callback'),
-  ('WebGLRenderingContext', 'uniform4f', 'Callback'),
-  ('WebGLRenderingContext', 'uniform4fv', 'Callback'),
-  ('WebGLRenderingContext', 'uniform4i', 'Callback'),
-  ('WebGLRenderingContext', 'uniform4iv', 'Callback'),
-  ('WebGLRenderingContext', 'uniformMatrix2fv', 'Callback'),
-  ('WebGLRenderingContext', 'uniformMatrix3fv', 'Callback'),
-  ('WebGLRenderingContext', 'uniformMatrix4fv', 'Callback'),
-  ('WebGLRenderingContext', 'useProgram', 'Callback'),
-  ('WebGLRenderingContext', 'validateProgram', 'Callback'),
-  ('WebGLRenderingContext', 'vertexAttrib1f', 'Callback'),
-  ('WebGLRenderingContext', 'vertexAttrib1fv', 'Callback'),
-  ('WebGLRenderingContext', 'vertexAttrib2f', 'Callback'),
-  ('WebGLRenderingContext', 'vertexAttrib2fv', 'Callback'),
-  ('WebGLRenderingContext', 'vertexAttrib3f', 'Callback'),
-  ('WebGLRenderingContext', 'vertexAttrib3fv', 'Callback'),
-  ('WebGLRenderingContext', 'vertexAttrib4f', 'Callback'),
-  ('WebGLRenderingContext', 'vertexAttrib4fv', 'Callback'),
-  ('WebGLRenderingContext', 'vertexAttribPointer', 'Callback'),
-  ('WebGLRenderingContext', 'viewport', 'Callback'),
-])
 
 # TODO(vsm): This should be recoverable from IDL, but we appear to not
 # track the necessary info.
 _url_utils = ['hash', 'host', 'hostname', 'origin',
               'password', 'pathname', 'port', 'protocol',
               'search', 'username']
-_cpp_static_call_map = {
-  'DOMURL': _url_utils + ['href', 'toString'],
-  'HTMLAnchorElement': _url_utils,
-  'HTMLAreaElement': _url_utils,
-}
-
-def _GetCPPPartialNames(interface):
-  interface_name = interface.ext_attrs.get('ImplementedAs', interface.id)
-  if not _cpp_partial_map:
-    for (type, member) in _cpp_callback_map.keys():
-      if type not in _cpp_partial_map:
-        _cpp_partial_map[type] = set([])
-
-      name_with_path = _cpp_callback_map[(type, member)]
-      if name_with_path in _cpp_import_map:
-        name_with_path = _cpp_import_map[name_with_path]
-      _cpp_partial_map[type].add(name_with_path)
-
-    for (type, member) in _cpp_overloaded_callback_map.keys():
-      if type not in _cpp_partial_map:
-        _cpp_partial_map[type] = set([])
-      _cpp_partial_map[type].add(_cpp_overloaded_callback_map[(type, member)])
-
-  if interface_name in _cpp_partial_map:
-    return _cpp_partial_map[interface_name]
-  else:
-    return set([])
 
 def array_type(data_type):
     matched = re.match(r'([\w\d_\s]+)\[\]', data_type)
@@ -319,19 +44,6 @@ def TypeIdToBlinkName(interface_id, database):
     return "%s[]" % t
 
   return interface_id
-
-def _GetCPPTypeName(interface_name, callback_name, cpp_name):
-  # TODO(vsm): We need to track the original IDL file name in order to recover
-  # the proper CPP name.
-
-  cpp_tuple = (interface_name, callback_name)
-  if cpp_tuple in _cpp_callback_map:
-    cpp_type_name = _cpp_callback_map[cpp_tuple]
-  elif (interface_name, cpp_name) in _cpp_overloaded_callback_map:
-    cpp_type_name = _cpp_overloaded_callback_map[(interface_name, cpp_name)]
-  else:
-    cpp_type_name = interface_name
-  return cpp_type_name
 
 def DeriveQualifiedName(library_name, name):
     return library_name + "." + name
@@ -398,112 +110,7 @@ class DartiumBackend(HtmlDartGenerator):
     return FindConversion(idl_type, 'set', self._interface.id, member)
 
   def GenerateCallback(self, info):
-    if IsPureInterface(self._interface.id) or IsCustomType(self._interface.id):
-      return
-
-    interface = self._interface
-    if interface.parents:
-      supertype = '%sClassId' % interface.parents[0].type.id
-    else:
-      supertype = '-1'
-
-    cpp_impl_includes = set(['"' + partial + '.h"'
-                             for partial in _GetCPPPartialNames(self._interface)])
-    cpp_header_handlers_emitter = emitter.Emitter()
-    cpp_impl_handlers_emitter = emitter.Emitter()
-    class_name = 'Dart%s' % self._interface.id
-    for operation in self._interface.operations:
-      function_name = operation.id
-      return_type = self.SecureOutputType(operation.type.id)
-      parameters = []
-      arguments = []
-      if operation.ext_attrs.get('CallWith') == 'ThisValue':
-        parameters.append('ScriptValue scriptValue')
-      conversion_includes = []
-      for argument in operation.arguments:
-        argument_type_info = self._TypeInfo(argument.type.id)
-        parameters.append('%s %s' % (argument_type_info.parameter_type(),
-                                     argument.id))
-        arguments.append(argument_type_info.to_dart_conversion(argument.id))
-        conversion_includes.extend(argument_type_info.conversion_includes())
-
-      # FIXME(vsm): Handle ThisValue attribute.
-      if (return_type == 'void'):
-        ret = ''
-      else:
-        ret = '        return 0;\n'
-
-      if operation.ext_attrs.get('CallWith') == 'ThisValue':
-        cpp_header_handlers_emitter.Emit(
-            '\n'
-            '    virtual $RETURN_TYPE $FUNCTION($PARAMETERS) {\n'
-            '        DART_UNIMPLEMENTED();\n'
-            '$RET'
-            '    }\n',
-            RETURN_TYPE=return_type,
-            RET=ret,
-            FUNCTION=function_name,
-            PARAMETERS=', '.join(parameters))
-        continue
-
-      cpp_header_handlers_emitter.Emit(
-          '\n'
-          '    virtual $RETURN_TYPE $FUNCTION($PARAMETERS);\n',
-          RETURN_TYPE=return_type,
-          FUNCTION=function_name,
-          PARAMETERS=', '.join(parameters))
-
-      if _IsCustom(operation):
-        continue
-
-      cpp_impl_includes |= set(conversion_includes)
-      arguments_declaration = 'Dart_Handle arguments[] = { %s }' % ', '.join(arguments)
-      if not len(arguments):
-        arguments_declaration = 'Dart_Handle* arguments = 0'
-      if (return_type == 'void'):
-        ret1 = 'return'
-        ret2 = ''
-      else:
-        ret1 = 'return 0'
-        ret2 = ' return'
-      cpp_impl_handlers_emitter.Emit(
-          '\n'
-          '$RETURN_TYPE $CLASS_NAME::$FUNCTION($PARAMETERS)\n'
-          '{\n'
-          '    if (!m_callback.isIsolateAlive())\n'
-          '        $RET1;\n'
-          '    DartIsolateScope scope(m_callback.isolate());\n'
-          '    DartApiScope apiScope;\n'
-          '    $ARGUMENTS_DECLARATION;\n'
-          '   $RET2 m_callback.handleEvent($ARGUMENT_COUNT, arguments);\n'
-          '}\n',
-          RETURN_TYPE=return_type,
-          RET1=ret1,
-          RET2=ret2,
-          CLASS_NAME=class_name,
-          FUNCTION=function_name,
-          PARAMETERS=', '.join(parameters),
-          ARGUMENTS_DECLARATION=arguments_declaration,
-          ARGUMENT_COUNT=len(arguments))
-
-    cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(
-        self._interface.id,
-        self._renamer.GetLibraryName(self._interface),
-        True)
-    cpp_header_emitter.Emit(
-        self._template_loader.Load('cpp_callback_header.template'),
-        INTERFACE=self._interface.id,
-        HANDLERS=cpp_header_handlers_emitter.Fragments())
-
-    cpp_impl_emitter = self._cpp_library_emitter.CreateSourceEmitter(self._interface.id)
-    cpp_impl_emitter.Emit(
-        self._template_loader.Load('cpp_callback_implementation.template'),
-        INCLUDES=self._GenerateCPPIncludes(cpp_impl_includes),
-        INTERFACE=self._interface.id,
-        SUPER_INTERFACE=supertype,
-        HANDLERS=cpp_impl_handlers_emitter.Fragments(),
-        DART_IMPLEMENTATION_CLASS=self._interface_type_info.implementation_name(),
-        DART_IMPLEMENTATION_LIBRARY_ID='Dart%sLibraryId' % self._renamer.GetLibraryId(self._interface))
+    return None
 
   def ImplementationTemplate(self):
     template = None
@@ -587,10 +194,6 @@ class DartiumBackend(HtmlDartGenerator):
     self._members_emitter = members_emitter
 
     self._cpp_declarations_emitter = emitter.Emitter()
-
-    self._cpp_impl_includes = \
-      set(['"' + partial + '.h"'
-           for partial in _GetCPPPartialNames(self._interface)])
 
     # This is a hack to work around a strange C++ compile error that we weren't
     # able to track down the true cause of.
@@ -704,16 +307,6 @@ class DartiumBackend(HtmlDartGenerator):
     if 'NamedConstructor' in ext_attrs:
       create_function = 'createForJSConstructor'
     function_expression = '%s::%s' % (self._interface_type_info.native_type(), create_function)
-    self._GenerateNativeCallback(
-        constructor_callback_cpp_name,
-        False,
-        function_expression,
-        self._interface,
-        arguments,
-        self._interface.id,
-        False,
-        'ConstructorRaisesException' in ext_attrs or 'RaisesException' in ext_attrs,
-        True)
 
   def HasSupportCheck(self):
     # Need to omit a support check if it is conditional in JS.
@@ -906,7 +499,7 @@ class DartiumBackend(HtmlDartGenerator):
       self._AddSetter(attribute, html_name)
 
   def _GenerateAutoSetupScope(self, idl_name, native_suffix):
-    return (self._interface.id, idl_name, native_suffix) not in _cpp_no_auto_scope_list
+    return None
 
   def _AddGetter(self, attr, html_name, read_only):
     # Temporary hack to force dart:scalarlist clamped array for ImageData.data.
@@ -914,7 +507,14 @@ class DartiumBackend(HtmlDartGenerator):
     if self._interface.id == 'ImageData' and html_name == 'data':
       html_name = '_data'
     type_info = self._TypeInfo(attr.type.id)
+
     return_type = self.SecureOutputType(attr.type.id, False, False if self._dart_use_blink else True)
+    dictionary_returned = False
+    # Return type for dictionary is any (untyped).
+    if attr.type.id == 'Dictionary':
+      return_type = '';
+      dictionary_returned = True;
+
     parameters = []
     dart_declaration = '%s get %s' % (return_type, html_name)
     is_custom = _IsCustom(attr) and (_IsCustomValue(attr, None) or
@@ -946,7 +546,7 @@ class DartiumBackend(HtmlDartGenerator):
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, attr.is_static, return_type, parameters,
         native_suffix, is_custom, auto_scope_setup, native_entry=native_entry,
-        wrap_unwrap_list=wrap_unwrap_list)
+        wrap_unwrap_list=wrap_unwrap_list, dictionary_return=dictionary_returned)
     if is_custom:
       return
 
@@ -972,16 +572,6 @@ class DartiumBackend(HtmlDartGenerator):
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
     raises = ('RaisesException' in attr.ext_attrs and
               attr.ext_attrs['RaisesException'] != 'Setter')
-    self._GenerateNativeCallback(
-        cpp_callback_name,
-        True,
-        function_expression,
-        attr,
-        [],
-        attr.type.id,
-        attr.type.nullable,
-        raises,
-        auto_scope_setup)
 
   def _AddSetter(self, attr, html_name):
     return_type = 'void'
@@ -1032,17 +622,6 @@ class DartiumBackend(HtmlDartGenerator):
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
     raises = ('RaisesException' in attr.ext_attrs and
               attr.ext_attrs['RaisesException'] != 'Getter')
-    self._GenerateNativeCallback(
-        cpp_callback_name,
-        True,
-        function_expression,
-        attr,
-        [attr],
-        'void',
-        False,
-        raises,
-        auto_scope_setup,
-        generate_custom_element_scope_if_needed=True)
 
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
@@ -1184,11 +763,28 @@ class DartiumBackend(HtmlDartGenerator):
       dart_declaration, False, return_type, parameters,
       'Callback', True, False)
 
+  def _ChangePrivateOpMapArgToAny(self, operations):
+    # TODO(terry): Hack to map any operations marked as private to not
+    #              handle converting Map to native (JsObject) the public
+    #              members that call the private method will have done
+    #              conversions.
+    for operation in operations:
+      for arg in operation.arguments:
+        type = arg.type
+        if type.id == 'Dictionary':
+          type.id = 'any'
+
   def EmitOperation(self, info, html_name, dart_js_interop=False):
     """
     Arguments:
       info: An OperationInfo object.
     """
+    if self._renamer.isPrivate(self._interface, info.operations[0].id):
+      # Any private operations with Maps parameters changed to any type.
+      # The public method that delegates to this private operation has already
+      # converted from Map to native (JsObject) e.g., Element.animate.
+      self._ChangePrivateOpMapArgToAny(info.operations)
+
     return_type = self.SecureOutputType(info.type_name, False, False if dart_js_interop else True)
 
     formals = info.ParametersAsDeclaration(self._DartType)
@@ -1197,13 +793,20 @@ class DartiumBackend(HtmlDartGenerator):
                                                   self._type_registry if self._dart_use_blink else None,
                                                   dart_js_interop,
                                                   self)
+
+    operation = info.operations[0]
+
+    dictionary_returned = False
+    # Return type for dictionary is any (untyped).
+    if operation.type.id == 'Dictionary':
+      return_type = '';
+      dictionary_returned = True;
+
     dart_declaration = '%s%s %s(%s)' % (
         'static ' if info.IsStatic() else '',
         return_type,
         html_name,
         formals)
-
-    operation = info.operations[0]
 
     is_custom = _IsCustom(operation)
     has_optional_arguments = any(IsOptional(argument) for argument in operation.arguments)
@@ -1246,7 +849,8 @@ class DartiumBackend(HtmlDartGenerator):
         info.IsStatic(), return_type, parameters,
         native_suffix, is_custom, auto_scope_setup,
         native_entry=native_entry,
-        wrap_unwrap_list=wrap_unwrap_list)
+        wrap_unwrap_list=wrap_unwrap_list,
+        dictionary_return=dictionary_returned)
       if not is_custom:
         self._GenerateOperationNativeCallback(operation, operation.arguments, cpp_callback_name, auto_scope_setup)
     else:
@@ -1317,392 +921,11 @@ class DartiumBackend(HtmlDartGenerator):
     webcore_function_name = operation.ext_attrs.get('ImplementedAs', operation.id)
 
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, operation, cpp_callback_name)
-    self._GenerateNativeCallback(
-        cpp_callback_name,
-        not operation.is_static,
-        function_expression,
-        operation,
-        arguments,
-        operation.type.id,
-        operation.type.nullable,
-        'RaisesException' in operation.ext_attrs,
-        auto_scope_setup,
-        generate_custom_element_scope_if_needed=True)
-
-  def _GenerateNativeCallback(self,
-      callback_name,
-      needs_receiver,
-      function_expression,
-      node,
-      arguments,
-      return_type,
-      return_type_is_nullable,
-      raises_dom_exception,
-      auto_scope_setup=True,
-      generate_custom_element_scope_if_needed=False):
-
-    ext_attrs = node.ext_attrs
-
-    if self._IsStatic(node.id):
-      needs_receiver = True
-
-    cpp_arguments = []
-    runtime_check = None
-    raises_exceptions = raises_dom_exception or arguments or needs_receiver
-    needs_custom_element_callbacks = False
-
-    # TODO(antonm): unify with ScriptState below.
-    call_with = ext_attrs.get('CallWith', [])
-    if not(isinstance(call_with, list)):
-      call_with = [call_with]
-    constructor_with = ext_attrs.get('ConstructorCallWith', [])
-    if not(isinstance(constructor_with, list)):
-      constructor_with = [constructor_with]
-    call_with = call_with + constructor_with
-
-
-    requires_stack_info = 'ScriptArguments' in call_with or 'ScriptState' in call_with
-    if requires_stack_info:
-      raises_exceptions = True
-      cpp_arguments = ['&state', 'scriptArguments.release()']
-      # WebKit uses scriptArguments to reconstruct last argument, so
-      # it's not needed and should be just removed.
-      arguments = arguments[:-1]
-
-    # TODO(antonm): unify with ScriptState below.
-    requires_script_arguments = (ext_attrs.get('CallWith') == 'ScriptArguments' or
-                                 ext_attrs.get('ConstructorCallWith') == 'ScriptArguments')
-    if requires_script_arguments:
-      raises_exceptions = True
-      cpp_arguments = ['scriptArguments.release()']
-      # WebKit uses scriptArguments to reconstruct last argument, so
-      # it's not needed and should be just removed.
-      arguments = arguments[:-1]
-
-    requires_script_execution_context = (ext_attrs.get('CallWith') == 'ExecutionContext' or
-                                         ext_attrs.get('ConstructorCallWith') == 'ExecutionContext')
-
-    # Hack because our parser misses that these IDL members require an execution
-    # context.
-
-    if (self._interface.id == 'FontFace'
-        and callback_name in ['familySetter', 'featureSettingsSetter', 'stretchSetter',
-                              'styleSetter', 'unicodeRangeSetter', 'variantSetter', 'weightSetter']):
-      requires_script_execution_context = True
-
-    requires_document = ext_attrs.get('ConstructorCallWith') == 'Document'
-
-    if requires_script_execution_context:
-      raises_exceptions = True
-      cpp_arguments = ['context']
-
-    requires_script_state = (ext_attrs.get('CallWith') == 'ScriptState' or
-                             ext_attrs.get('ConstructorCallWith') == 'ScriptState')
-    if requires_script_state:
-      raises_exceptions = True
-      cpp_arguments = ['&state']
-
-    requires_dom_window = 'NamedConstructor' in ext_attrs
-    if requires_dom_window or requires_document:
-      raises_exceptions = True
-      cpp_arguments = ['document']
-
-    if 'ImplementedBy' in ext_attrs:
-      assert needs_receiver
-      self._cpp_impl_includes.add('"%s.h"' % ext_attrs['ImplementedBy'])
-      cpp_arguments.append('receiver')
-
-    if 'Reflect' in ext_attrs:
-      cpp_arguments = [self._GenerateWebCoreReflectionAttributeName(node)]
-
-    if generate_custom_element_scope_if_needed and (ext_attrs.get('CustomElementCallbacks', 'None') != 'None' or 'Reflect' in ext_attrs):
-      self._cpp_impl_includes.add('"core/dom/custom/CustomElementCallbackDispatcher.h"')
-      needs_custom_element_callbacks = True
-
-    if return_type_is_nullable:
-      cpp_arguments = ['isNull']
-
-    v8EnabledPerContext = ext_attrs.get('synthesizedV8EnabledPerContext', ext_attrs.get('V8EnabledPerContext'))
-    v8EnabledAtRuntime = ext_attrs.get('synthesizedV8EnabledAtRuntime', ext_attrs.get('V8EnabledAtRuntime'))
-    assert(not (v8EnabledPerContext and v8EnabledAtRuntime))
-
-    if v8EnabledPerContext:
-      raises_exceptions = True
-      self._cpp_impl_includes.add('"ContextFeatures.h"')
-      self._cpp_impl_includes.add('"DOMWindow.h"')
-      runtime_check = emitter.Format(
-          '        if (!ContextFeatures::$(FEATURE)Enabled(DartUtilities::domWindowForCurrentIsolate()->document())) {\n'
-          '            exception = Dart_NewStringFromCString("Feature $FEATURE is not enabled");\n'
-          '            goto fail;\n'
-          '        }',
-          FEATURE=v8EnabledPerContext)
-
-    if v8EnabledAtRuntime:
-      raises_exceptions = True
-      self._cpp_impl_includes.add('"RuntimeEnabledFeatures.h"')
-      runtime_check = emitter.Format(
-          '        if (!RuntimeEnabledFeatures::$(FEATURE)Enabled()) {\n'
-          '            exception = Dart_NewStringFromCString("Feature $FEATURE is not enabled");\n'
-          '            goto fail;\n'
-          '        }',
-          FEATURE=self._ToWebKitName(v8EnabledAtRuntime))
-
-    body_emitter = self._cpp_definitions_emitter.Emit(
-        '\n'
-        'static void $CALLBACK_NAME(Dart_NativeArguments args)\n'
-        '{\n'
-        '$!BODY'
-        '}\n',
-        CALLBACK_NAME=callback_name)
-
-    if raises_exceptions:
-      body_emitter = body_emitter.Emit(
-          '    Dart_Handle exception = 0;\n'
-          '$!BODY'
-          '\n'
-          'fail:\n'
-          '    Dart_ThrowException(exception);\n'
-          '    ASSERT_NOT_REACHED();\n')
-
-    body_emitter = body_emitter.Emit(
-        '    {\n'
-        '$!BODY'
-        '        return;\n'
-        '    }\n')
-
-    if runtime_check:
-      body_emitter.Emit(
-          '$RUNTIME_CHECK\n',
-          RUNTIME_CHECK=runtime_check)
-
-    if requires_script_execution_context:
-      body_emitter.Emit(
-          '        ExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
-          '        if (!context) {\n'
-          '            exception = Dart_NewStringFromCString("Failed to retrieve a context");\n'
-          '            goto fail;\n'
-          '        }\n\n')
-
-    if requires_script_state:
-      body_emitter.Emit(
-          '        ScriptState* currentState = DartUtilities::currentScriptState();\n'
-          '        if (!currentState) {\n'
-          '            exception = Dart_NewStringFromCString("Failed to retrieve a script state");\n'
-          '            goto fail;\n'
-          '        }\n'
-          '        ScriptState& state = *currentState;\n\n')
-
-    if requires_dom_window or requires_document:
-      self._cpp_impl_includes.add('"DOMWindow.h"')
-
-      body_emitter.Emit(
-          '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
-          '        if (!domWindow) {\n'
-          '            exception = Dart_NewStringFromCString("Failed to fetch domWindow");\n'
-          '            goto fail;\n'
-          '        }\n'
-          '        Document& document = *domWindow->document();\n')
-
-    if needs_receiver:
-      body_emitter.Emit(
-        '        $WEBCORE_CLASS_NAME* receiver = '
-        'DartDOMWrapper::receiverChecked<Dart$INTERFACE>(args, exception);\n'
-        '        if (exception)\n'
-        '            goto fail;\n',
-        WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
-        INTERFACE=self._interface.id)
-
-    if requires_stack_info:
-      self._cpp_impl_includes.add('"ScriptArguments.h"')
-      body_emitter.Emit(
-          '\n'
-          '        ScriptState* currentState = DartUtilities::currentScriptState();\n'
-          '        if (!currentState) {\n'
-          '            exception = Dart_NewStringFromCString("Failed to retrieve a script state");\n'
-          '            goto fail;\n'
-          '        }\n'
-          '        ScriptState& state = *currentState;\n'
-          '\n'
-          '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
-          '        RefPtr<ScriptArguments> scriptArguments(DartUtilities::createScriptArguments(customArgument, exception));\n'
-          '        if (!scriptArguments)\n'
-          '            goto fail;\n',
-          INDEX=len(arguments) + 1)
-
-    if requires_script_arguments:
-      self._cpp_impl_includes.add('"ScriptArguments.h"')
-      body_emitter.Emit(
-          '\n'
-          '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
-          '        RefPtr<ScriptArguments> scriptArguments(DartUtilities::createScriptArguments(customArgument, exception));\n'
-          '        if (!scriptArguments)\n'
-          '            goto fail;\n',
-          INDEX=len(arguments) + 1)
-
-    if needs_custom_element_callbacks:
-      body_emitter.Emit('        CustomElementCallbackDispatcher::CallbackDeliveryScope deliveryScope;\n');
-
-    # Emit arguments.
-    start_index = 1 if needs_receiver else 0
-    for i, argument in enumerate(arguments):
-      type_info = self._TypeInfo(argument.type.id)
-      self._cpp_impl_includes |= set(type_info.conversion_includes())
-      argument_expression_template, type, cls, function = \
-          type_info.to_native_info(argument, self._interface.id, callback_name)
-
-      def AllowsNull():
-        # TODO(vsm): HTMLSelectElement's indexed setter treats a null as a remove.
-        # We need to handle that.
-        # assert argument.ext_attrs.get('TreatNullAs', 'NullString') == 'NullString'
-        if argument.ext_attrs.get('TreatNullAs') == 'NullString':
-          return True
-
-        if argument.type.nullable:
-          return True
-
-        if isinstance(argument, IDLAttribute):
-          return (argument.type.id == 'DOMString') and \
-              ('Reflect' in argument.ext_attrs)
-
-        if isinstance(argument, IDLArgument):
-          if IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument):
-            return True
-          # argument default to null (e.g., DOMString arg = null).
-          if argument.default_value_is_null:
-            return True
-          if _IsOptionalStringArgumentInInitEventMethod(self._interface, node, argument):
-            return True
-
-        return False
-
-      if AllowsNull():
-        function += 'WithNullCheck'
-
-      argument_name = DartDomNameOfAttribute(argument)
-      if type_info.pass_native_by_ref():
-        invocation_template =\
-            '        $TYPE $ARGUMENT_NAME;\n'\
-            '        $CLS::$FUNCTION(args, $INDEX, $ARGUMENT_NAME, exception);\n'
-      else:
-        if not auto_scope_setup and type_info.native_type() == 'String':
-          invocation_template =\
-              '        $TYPE $ARGUMENT_NAME = $CLS::$FUNCTION(args, $INDEX, exception, false);\n'
-        else:
-          invocation_template =\
-              '        $TYPE $ARGUMENT_NAME = $CLS::$FUNCTION(args, $INDEX, exception);\n'
-      body_emitter.Emit(
-          '\n' +
-          invocation_template +
-          '        if (exception)\n'
-          '            goto fail;\n',
-          TYPE=type,
-          ARGUMENT_NAME=argument_name,
-          CLS=cls,
-          FUNCTION=function,
-          INDEX=start_index + i)
-      self._cpp_impl_includes.add('"%s.h"' % cls)
-      cpp_arguments.append(argument_expression_template % argument_name)
-
-    body_emitter.Emit('\n')
-
-    if 'NeedsUserGestureCheck' in ext_attrs:
-      cpp_arguments.append('DartUtilities::processingUserGesture')
-
-    invocation_emitter = body_emitter
-    if raises_dom_exception:
-      cpp_arguments.append('es')
-      invocation_emitter = body_emitter.Emit(
-        '        DartExceptionState es;\n'
-        '$!INVOCATION'
-        '        if (es.hadException()) {\n'
-        '            exception = DartDOMWrapper::exceptionCodeToDartException(es);\n'
-        '            goto fail;\n'
-        '        }\n')
-
-
-    interface_name = self._interface_type_info.native_type()
-
-    if needs_receiver:
-      # Hack to determine if this came from the _cpp_callback_map.
-      # In this case, the getter is mapped to a static method.
-      if function_expression.startswith('SVGTests::'):
-          cpp_arguments.insert(0, 'receiver')
-      elif (not function_expression.startswith('receiver->') and
-          not function_expression.startswith(interface_name + '::')):
-        if (interface_name in ['DOMWindow', 'Element', 'Navigator', 'WorkerGlobalScope']
-            or (interface_name in ['SVGViewSpec', 'SVGViewElement', 'SVGSVGElement']
-              and callback_name in ['setZoomAndPan', 'zoomAndPanSetter', 'zoomAndPan'])
-            or (interface_name == 'Screen'
-              and callback_name in ['_lockOrientation_1Callback', '_lockOrientation_2Callback', 'unlockOrientation', 'orientation'])):
-          cpp_arguments.insert(0, 'receiver')
-        else:
-          cpp_arguments.append('receiver')
-      elif self._IsStatic(node.id):
-        cpp_arguments.insert(0, 'receiver')
-
-    if interface_name in ['SVGPropertyTearOff<SVGTransform>', 'SVGPropertyTearOff<SVGAngle>', 'SVGMatrixTearOff'] and function_expression.startswith('receiver->'):
-      # This is a horrible hack. I don't know why this one case has to be
-      # special cased.
-      if not (self._interface.id == 'SVGTransformList' and callback_name == 'createSVGTransformFromMatrixCallback'):
-        function_expression = 'receiver->propertyReference().%s' % (function_expression[len('receiver->'):])
-
-    function_call = '%s(%s)' % (function_expression, ', '.join(cpp_arguments))
-    if return_type == 'void':
-      invocation_emitter.Emit(
-        '        $FUNCTION_CALL;\n',
-        FUNCTION_CALL=function_call)
-    else:
-      return_type_info = self._TypeInfo(return_type)
-      self._cpp_impl_includes |= set(return_type_info.conversion_includes())
-
-      if return_type_is_nullable:
-        invocation_emitter.Emit(
-          '        bool isNull = false;\n'
-          '        $NATIVE_TYPE result = $FUNCTION_CALL;\n'
-          '        if (isNull)\n'
-          '            return;\n',
-          NATIVE_TYPE=return_type_info.parameter_type(),
-          FUNCTION_CALL=function_call)
-        value_expression = 'result'
-      else:
-        value_expression = function_call
-
-      # Generate to Dart conversion of C++ value.
-      if return_type_info.dart_type() == 'bool':
-        set_return_value = 'Dart_SetBooleanReturnValue(args, %s)' % (value_expression)
-      elif return_type_info.dart_type() == 'int':
-        if return_type_info.native_type() == 'unsigned':
-          set_return_value = 'DartUtilities::setDartUnsignedReturnValue(args, %s)' % (value_expression)
-        elif return_type_info.native_type() == 'unsigned long long':
-          set_return_value = 'DartUtilities::setDartUnsignedLongLongReturnValue(args, %s)' % (value_expression)
-        else:
-          assert (return_type_info.native_type() == 'int' or return_type_info.native_type() == 'long long')
-          set_return_value = 'DartUtilities::setDartIntegerReturnValue(args, %s)' % (value_expression)
-      elif return_type_info.dart_type() == 'double':
-        set_return_value = 'Dart_SetDoubleReturnValue(args, %s)' % (value_expression)
-      elif return_type_info.dart_type() == 'String':
-        auto_dart_scope='true' if auto_scope_setup else 'false'
-        if ext_attrs and 'TreatReturnedNullStringAs' in ext_attrs:
-          set_return_value = 'DartUtilities::setDartStringReturnValueWithNullCheck(args, %s, %s)' % (value_expression, auto_dart_scope)
-        else:
-          set_return_value = 'DartUtilities::setDartStringReturnValue(args, %s, %s)' % (value_expression, auto_dart_scope)
-      elif return_type_info.dart_type() == 'num' and return_type_info.native_type() == 'double':
-        set_return_value = 'Dart_SetDoubleReturnValue(args, %s)' % (value_expression)
-      else:
-        return_to_dart_conversion = return_type_info.return_to_dart_conversion(
-            value_expression,
-            auto_scope_setup,
-            self._interface.id,
-            ext_attrs)
-        set_return_value = '%s' % (return_to_dart_conversion)
-      invocation_emitter.Emit(
-        '        $RETURN_VALUE;\n',
-        RETURN_VALUE=set_return_value)
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       static, return_type, parameters, native_suffix, is_custom,
       auto_scope_setup=True, emit_metadata=True, emit_to_native=False,
-      native_entry=None, wrap_unwrap_list=[]):
+      native_entry=None, wrap_unwrap_list=[], dictionary_return=False):
     metadata = []
     if emit_metadata:
       metadata = self._metadata.GetFormattedMetadata(
@@ -1745,14 +968,19 @@ class DartiumBackend(HtmlDartGenerator):
   $METADATA$DART_DECLARATION => $DART_NAME($ACTUALS);
   '''
             if wrap_unwrap_list and wrap_unwrap_list[0]:
-                emit_jso_template = '''
-  $METADATA$DART_DECLARATION => %s($DART_NAME($ACTUALS));
-  '''
                 if return_type == 'Rectangle':
                     jso_util_method = 'make_dart_rectangle'
                 elif wrap_unwrap_list[0]:
                     jso_util_method = 'wrap_jso'
 
+                if dictionary_return:
+                  emit_jso_template = '''
+  $METADATA$DART_DECLARATION => convertNativeDictionaryToDartDictionary(%s($DART_NAME($ACTUALS)));
+  '''
+                else:
+                  emit_jso_template = '''
+  $METADATA$DART_DECLARATION => %s($DART_NAME($ACTUALS));
+  '''
                 emit_template = emit_jso_template % jso_util_method
 
             if caller_emitter:
@@ -1795,22 +1023,10 @@ class DartiumBackend(HtmlDartGenerator):
     return 'WebCore::%s::%sAttr' % (namespace, attribute_name)
 
   def _IsStatic(self, attribute_name):
-    cpp_type_name = self._interface_type_info.native_type()
-    if cpp_type_name in _cpp_static_call_map:
-      return attribute_name in _cpp_static_call_map[cpp_type_name]
     return False
 
   def _GenerateWebCoreFunctionExpression(self, function_name, idl_node, cpp_callback_name=None):
-    if 'ImplementedBy' in idl_node.ext_attrs:
-      return '%s::%s' % (idl_node.ext_attrs['ImplementedBy'], function_name)
-    cpp_type_name = self._interface_type_info.native_type()
-    impl_type_name = _GetCPPTypeName(cpp_type_name, function_name, cpp_callback_name)
-    if idl_node.is_static or self._IsStatic(idl_node.id):
-      return '%s::%s' % (impl_type_name, function_name)
-    if cpp_type_name == impl_type_name:
-      return '%s%s' % (self._interface_type_info.receiver(), function_name)
-    else:
-      return '%s::%s' % (impl_type_name, function_name)
+    return None
 
   def _IsArgumentOptionalInWebCore(self, operation, argument):
     if not IsOptional(argument):
@@ -1826,7 +1042,7 @@ class DartiumBackend(HtmlDartGenerator):
     return True
 
   def _GenerateCPPIncludes(self, includes):
-    return ''.join(['#include %s\n' % include for include in sorted(includes)])
+    return None
 
   def _ToWebKitName(self, name):
     name = name[0].lower() + name[1:]

@@ -126,13 +126,13 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     # addEventListener on the target, so we avoid
     'Event.currentTarget': [
       "@Creates('Null')",
-      "@Returns('EventTarget|=Object|Null')",
+      "@Returns('EventTarget|=Object')",
     ],
 
     # Only nodes in the DOM bubble and have target !== currentTarget.
     'Event.target': [
       "@Creates('Node')",
-      "@Returns('EventTarget|=Object|Null')",
+      "@Returns('EventTarget|=Object')",
     ],
 
     'File.lastModifiedDate': [
@@ -273,7 +273,7 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
 
     'MouseEvent.relatedTarget': [
       "@Creates('Node')",
-      "@Returns('EventTarget|=Object|Null')",
+      "@Returns('EventTarget|=Object')",
     ],
 
     'PopStateEvent.state': [

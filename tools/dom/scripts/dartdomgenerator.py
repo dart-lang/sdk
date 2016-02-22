@@ -106,6 +106,7 @@ def GenerateFromDatabase(common_database,
                              exclude_suppressed = ['WebKit', 'Dart'])
   generator.FixEventTargets(webkit_database)
   generator.AddMissingArguments(webkit_database)
+  generator.HackCleanupTimers(webkit_database)
 
   emitters = multiemitter.MultiEmitter(logging_level)
   metadata = DartMetadata(

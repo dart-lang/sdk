@@ -294,7 +294,6 @@ def AnalyzeOperation(interface, operations):
 
   Returns: An OperationInfo object.
   """
-
   # split operations with optional args into multiple operations
   split_operations = []
   for operation in operations:
@@ -1466,9 +1465,20 @@ class TypeRegistry(object):
     class_name = '%sIDLTypeInfo' % type_data.clazz
     return globals()[class_name](type_name, type_data)
 
+def isList(return_type):
+  return return_type.startswith('List<') if return_type else False
+
+def get_list_type(return_type):
+  # Get the list type NNNN inside of List<NNNN> 
+  return return_type[5:-1] if isList(return_type) else return_type
+
 def wrap_unwrap_list_blink(return_type, type_registry):
-    """Return True if the type is a List<Node>"""
-    return return_type.startswith('List<Node>')
+  """Return True if the type is the list type is a blink know
+     type e.g., List<Node>, List<FontFace>, etc."""
+  if isList(return_type):
+    list_type = get_list_type(return_type)
+    if type_registry.HasInterface(list_type):
+      return True;
 
 def wrap_unwrap_type_blink(return_type, type_registry):
     """Returns True if the type is a blink type that requires wrap_jso or
