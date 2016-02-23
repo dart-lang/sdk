@@ -722,11 +722,12 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     'any set IDBCursor.update': _serialize_SSV,
 
     # postMessage
+    'SerializedScriptValue set': _serialize_SSV,
+    'any set CompositorWorkerGlobalScope.postMessage': _serialize_SSV,
+    'any set DedicatedWorkerGlobalScope.postMessage': _serialize_SSV,
     'any set MessagePort.postMessage': _serialize_SSV,
-    'SerializedScriptValue set Window.postMessage': _serialize_SSV,
-    'SerializedScriptValue set Worker.postMessage': _serialize_SSV,
-    'any set DedicatedWorkerGlobalScope.postMessage' : _serialize_SSV,
-    'SerializedScriptValue set ServiceWorkerClient.postMessage': _serialize_SSV,
+    'any set Window.postMessage': _serialize_SSV,
+    'any set _DOMWindowCrossFrame.postMessage': _serialize_SSV,
 
     '* get CustomEvent.detail':
       Conversion('convertNativeToDart_SerializedScriptValue',
@@ -1469,7 +1470,7 @@ def isList(return_type):
   return return_type.startswith('List<') if return_type else False
 
 def get_list_type(return_type):
-  # Get the list type NNNN inside of List<NNNN> 
+  # Get the list type NNNN inside of List<NNNN>
   return return_type[5:-1] if isList(return_type) else return_type
 
 def wrap_unwrap_list_blink(return_type, type_registry):
