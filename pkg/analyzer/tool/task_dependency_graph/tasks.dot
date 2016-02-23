@@ -76,8 +76,6 @@ digraph G {
   DART_ERRORS [shape=box]
   DART_SCRIPTS -> ScanDartTask
   DART_SCRIPTS [shape=box]
-  DEFINED_ELEMENTS -> GenerateHintsTask
-  DEFINED_ELEMENTS [shape=box]
   DartErrorsTask -> DART_ERRORS
   EXPLICITLY_IMPORTED_LIBRARIES [shape=box]
   EXPORTED_LIBRARIES -> BuildDirectiveElementsTask
@@ -90,7 +88,6 @@ digraph G {
   EvaluateUnitConstantsTask -> CREATED_RESOLVED_UNIT11
   EvaluateUnitConstantsTask -> RESOLVED_UNIT11
   GatherUsedImportedElementsTask -> USED_IMPORTED_ELEMENTS
-  GatherUsedLocalElementsTask -> DEFINED_ELEMENTS
   GatherUsedLocalElementsTask -> USED_LOCAL_ELEMENTS
   GenerateHintsTask -> HINTS
   GenerateLintsTask -> LINTS
