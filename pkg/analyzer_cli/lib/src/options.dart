@@ -74,6 +74,21 @@ class CommandLineOptions {
   /// Whether to use machine format for error display
   final bool machineFormat;
 
+  /// Whether to use the whole package analysis mode.
+  final bool packageMode;
+
+  /// The path of the root folder of the package to analyze.
+  final String packageModePath;
+
+  /// The name of the package being analyzed.
+  final String packageName;
+
+  /// Mapping of package names to package summary file paths.
+  final Map<String, String> packageSummaryInputs;
+
+  /// The path to find the package summary.
+  final String packageSummaryOutput;
+
   /// The path to the package root
   final String packageRootPath;
 
@@ -106,7 +121,7 @@ class CommandLineOptions {
   CommandLineOptions._fromArgs(
       ArgResults args, Map<String, String> definedVariables)
       : dartSdkPath = args['dart-sdk'],
-        this.definedVariables = definedVariables,
+        definedVariables = definedVariables,
         analysisOptionsFile = args['options'],
         disableHints = args['no-hints'],
         displayVersion = args['version'],
@@ -119,6 +134,11 @@ class CommandLineOptions {
         lints = args['lints'],
         log = args['log'],
         machineFormat = args['machine'] || args['format'] == 'machine',
+        packageMode = args['package-mode'],
+        packageModePath = args['package-mode-path'],
+        packageName = args['package-name'],
+        packageSummaryInputs = _parsePackageSummaryInputs(args),
+        packageSummaryOutput = args['package-summary-output'],
         packageConfigPath = args['packages'],
         packageRootPath = args['package-root'],
         perfReport = args['x-perf-report'],
@@ -267,6 +287,33 @@ class CommandLineOptions {
           allowMultiple: true,
           splitCommas: false)
       //
+      // Package analysis mode and summary.
+      //
+      ..addFlag('package-mode',
+          help: 'Enable the whole package analysis mode. '
+              'Exactly one input path must be specified, which must be a path '
+              'to the folder with a Pub package.',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addOption('package-mode-path',
+          help: 'The path of the root folder of the package to analyze.',
+          hide: true)
+      ..addOption('package-name',
+          help: 'The name of the package to analyze, as it is used by clients.',
+          hide: true)
+      ..addOption('package-summary-input',
+          help: '--package-summary-input=packageName,/path/to/package.sum '
+              'specifies the summary file that contains information about '
+              'every library of the specified package.',
+          allowMultiple: true,
+          splitCommas: false,
+          hide: true)
+      ..addOption('package-summary-output',
+          help: 'Specifies the path to the file where the summary information '
+              'about the package should be written to.',
+          hide: true)
+      //
       // Hidden flags.
       //
       ..addFlag('enable-async',
@@ -352,6 +399,27 @@ class CommandLineOptions {
     }
   }
 
+  /// Parse the `--package-summary-input` arguments into a Map of package
+  /// names to summary paths.
+  static Map<String, String> _parsePackageSummaryInputs(ArgResults args) {
+    Map<String, String> result = <String, String>{};
+    List<String> argList = args['package-summary-input'];
+    for (String arg in argList) {
+      int index = arg.indexOf(',');
+      if (index == -1) {
+        errorSink.writeln(
+            'The syntax is --package-summary-input=packageName,/path/to/pkg.sum');
+        errorSink.writeln('No comma found in: $arg');
+        exitHandler(15);
+        return null; // Only reachable in testing.
+      }
+      String packageName = arg.substring(0, index);
+      String summaryPath = arg.substring(index + 1);
+      result[packageName] = summaryPath;
+    }
+    return result;
+  }
+
   static _showUsage(parser) {
     errorSink
         .writeln('Usage: $_binaryName [options...] <libraries to analyze...>');
@@ -409,7 +477,8 @@ class CommandLineParser {
       String defaultsTo,
       void callback(value),
       bool allowMultiple: false,
-      bool splitCommas}) {
+      bool splitCommas,
+      bool hide: false}) {
     _knownFlags.add(name);
     _parser.addOption(name,
         abbr: abbr,
@@ -419,7 +488,8 @@ class CommandLineParser {
         defaultsTo: defaultsTo,
         callback: callback,
         allowMultiple: allowMultiple,
-        splitCommas: splitCommas);
+        splitCommas: splitCommas,
+        hide: hide);
   }
 
   /// Generates a string displaying usage information for the defined options.
