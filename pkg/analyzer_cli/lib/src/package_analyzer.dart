@@ -96,7 +96,7 @@ class FileBasedSummaryResynthesizer extends SummaryResynthesizer {
 }
 
 /**
- * The [ResourceProvider] that provides results from input package summaries.
+ * The [ResultProvider] that provides results from input package summaries.
  */
 class InputPackagesResultProvider extends ResultProvider {
   final InternalAnalysisContext context;
@@ -116,7 +116,7 @@ class InputPackagesResultProvider extends ResultProvider {
         context,
         context.typeProvider,
         context.sourceFactory,
-        false,
+        context.analysisOptions.strongMode,
         packageSummaryInputs.values.toList());
   }
 
@@ -358,12 +358,14 @@ class PackageAnalyzer {
       }),
       new FileUriResolver()
     ]);
-    context.resultProvider =
-        new InputPackagesResultProvider(context, options.packageSummaryInputs);
 
     // Set context options.
     Driver.setAnalysisContextOptions(
         context, options, (AnalysisOptionsImpl contextOptions) {});
+
+    // Set the result provider.
+    context.resultProvider =
+        new InputPackagesResultProvider(context, options.packageSummaryInputs);
   }
 
   /**
