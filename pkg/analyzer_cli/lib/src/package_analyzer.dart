@@ -4,6 +4,7 @@
 
 library analyzer_cli.src.package_analyzer;
 
+import 'dart:convert';
 import 'dart:core' hide Resource;
 import 'dart:io' as io;
 
@@ -31,6 +32,7 @@ import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
+import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as pathos;
 
 /**
@@ -85,7 +87,7 @@ class FileBasedSummaryResynthesizer extends SummaryResynthesizer {
   void _fillMaps(String path) {
     io.File file = new io.File(path);
     List<int> buffer = file.readAsBytesSync();
-    SdkBundle bundle = new SdkBundle.fromBuffer(buffer);
+    PackageBundle bundle = new PackageBundle.fromBuffer(buffer);
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
       unlinkedMap[bundle.unlinkedUnitUris[i]] = bundle.unlinkedUnits[i];
     }
@@ -251,6 +253,7 @@ class PackageAnalyzer {
   final List<LinkedLibraryBuilder> linkedLibraries = <LinkedLibraryBuilder>[];
   final List<String> unlinkedUnitUris = <String>[];
   final List<UnlinkedUnitBuilder> unlinkedUnits = <UnlinkedUnitBuilder>[];
+  final List<String> unlinkedUnitHashes = <String>[];
 
   PackageAnalyzer(this.options);
 
@@ -312,11 +315,12 @@ class PackageAnalyzer {
         }
       }
       // Write the whole package bundle.
-      SdkBundleBuilder sdkBundle = new SdkBundleBuilder(
+      PackageBundleBuilder sdkBundle = new PackageBundleBuilder(
           linkedLibraryUris: linkedLibraryUris,
           linkedLibraries: linkedLibraries,
           unlinkedUnitUris: unlinkedUnitUris,
-          unlinkedUnits: unlinkedUnits);
+          unlinkedUnits: unlinkedUnits,
+          unlinkedUnitHashes: unlinkedUnitHashes);
       io.File file = new io.File(options.packageSummaryOutput);
       file.writeAsBytesSync(sdkBundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
     }
@@ -381,6 +385,15 @@ class PackageAnalyzer {
   }
 
   /**
+   * Compute a hash of the given file contents.
+   */
+  String _hash(String contents) {
+    MD5 md5 = new MD5();
+    md5.add(UTF8.encode(contents));
+    return CryptoUtils.bytesToHex(md5.close());
+  }
+
+  /**
    * Print errors for all explicit sources.
    */
   void _printErrors() {
@@ -407,5 +420,8 @@ class PackageAnalyzer {
     linkedLibraries.add(libraryResult.linked);
     unlinkedUnitUris.addAll(libraryResult.unitUris);
     unlinkedUnits.addAll(libraryResult.unlinkedUnits);
+    for (Source source in libraryResult.unitSources) {
+      unlinkedUnitHashes.add(_hash(source.contents.data));
+    }
   }
 }

@@ -1138,11 +1138,12 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
   String toString() => convert.JSON.encode(toJson());
 }
 
-class SdkBundleBuilder extends Object with _SdkBundleMixin implements idl.SdkBundle {
+class PackageBundleBuilder extends Object with _PackageBundleMixin implements idl.PackageBundle {
   bool _finished = false;
 
   List<LinkedLibraryBuilder> _linkedLibraries;
   List<String> _linkedLibraryUris;
+  List<String> _unlinkedUnitHashes;
   List<UnlinkedUnitBuilder> _unlinkedUnits;
   List<String> _unlinkedUnitUris;
 
@@ -1161,7 +1162,8 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements idl.SdkBun
   List<String> get linkedLibraryUris => _linkedLibraryUris ??= <String>[];
 
   /**
-   * The list of URIs of items in [linkedLibraries], e.g. `dart:core`.
+   * The list of URIs of items in [linkedLibraries], e.g. `dart:core` or
+   * `package:foo/bar.dart`.
    */
   void set linkedLibraryUris(List<String> _value) {
     assert(!_finished);
@@ -1169,10 +1171,22 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements idl.SdkBun
   }
 
   @override
+  List<String> get unlinkedUnitHashes => _unlinkedUnitHashes ??= <String>[];
+
+  /**
+   * List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
+   * is encoded as a hexadecimal string using lower case letters.
+   */
+  void set unlinkedUnitHashes(List<String> _value) {
+    assert(!_finished);
+    _unlinkedUnitHashes = _value;
+  }
+
+  @override
   List<UnlinkedUnitBuilder> get unlinkedUnits => _unlinkedUnits ??= <UnlinkedUnitBuilder>[];
 
   /**
-   * Unlinked information for the compilation units constituting the SDK.
+   * Unlinked information for the compilation units constituting the package.
    */
   void set unlinkedUnits(List<UnlinkedUnitBuilder> _value) {
     assert(!_finished);
@@ -1190,9 +1204,10 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements idl.SdkBun
     _unlinkedUnitUris = _value;
   }
 
-  SdkBundleBuilder({List<LinkedLibraryBuilder> linkedLibraries, List<String> linkedLibraryUris, List<UnlinkedUnitBuilder> unlinkedUnits, List<String> unlinkedUnitUris})
+  PackageBundleBuilder({List<LinkedLibraryBuilder> linkedLibraries, List<String> linkedLibraryUris, List<String> unlinkedUnitHashes, List<UnlinkedUnitBuilder> unlinkedUnits, List<String> unlinkedUnitUris})
     : _linkedLibraries = linkedLibraries,
       _linkedLibraryUris = linkedLibraryUris,
+      _unlinkedUnitHashes = unlinkedUnitHashes,
       _unlinkedUnits = unlinkedUnits,
       _unlinkedUnitUris = unlinkedUnitUris;
 
@@ -1206,6 +1221,7 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements idl.SdkBun
     _finished = true;
     fb.Offset offset_linkedLibraries;
     fb.Offset offset_linkedLibraryUris;
+    fb.Offset offset_unlinkedUnitHashes;
     fb.Offset offset_unlinkedUnits;
     fb.Offset offset_unlinkedUnitUris;
     if (!(_linkedLibraries == null || _linkedLibraries.isEmpty)) {
@@ -1213,6 +1229,9 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements idl.SdkBun
     }
     if (!(_linkedLibraryUris == null || _linkedLibraryUris.isEmpty)) {
       offset_linkedLibraryUris = fbBuilder.writeList(_linkedLibraryUris.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_unlinkedUnitHashes == null || _unlinkedUnitHashes.isEmpty)) {
+      offset_unlinkedUnitHashes = fbBuilder.writeList(_unlinkedUnitHashes.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (!(_unlinkedUnits == null || _unlinkedUnits.isEmpty)) {
       offset_unlinkedUnits = fbBuilder.writeList(_unlinkedUnits.map((b) => b.finish(fbBuilder)).toList());
@@ -1227,6 +1246,9 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements idl.SdkBun
     if (offset_linkedLibraryUris != null) {
       fbBuilder.addOffset(1, offset_linkedLibraryUris);
     }
+    if (offset_unlinkedUnitHashes != null) {
+      fbBuilder.addOffset(4, offset_unlinkedUnitHashes);
+    }
     if (offset_unlinkedUnits != null) {
       fbBuilder.addOffset(2, offset_unlinkedUnits);
     }
@@ -1237,25 +1259,26 @@ class SdkBundleBuilder extends Object with _SdkBundleMixin implements idl.SdkBun
   }
 }
 
-idl.SdkBundle readSdkBundle(List<int> buffer) {
+idl.PackageBundle readPackageBundle(List<int> buffer) {
   fb.BufferPointer rootRef = new fb.BufferPointer.fromBytes(buffer);
-  return const _SdkBundleReader().read(rootRef);
+  return const _PackageBundleReader().read(rootRef);
 }
 
-class _SdkBundleReader extends fb.TableReader<_SdkBundleImpl> {
-  const _SdkBundleReader();
+class _PackageBundleReader extends fb.TableReader<_PackageBundleImpl> {
+  const _PackageBundleReader();
 
   @override
-  _SdkBundleImpl createObject(fb.BufferPointer bp) => new _SdkBundleImpl(bp);
+  _PackageBundleImpl createObject(fb.BufferPointer bp) => new _PackageBundleImpl(bp);
 }
 
-class _SdkBundleImpl extends Object with _SdkBundleMixin implements idl.SdkBundle {
+class _PackageBundleImpl extends Object with _PackageBundleMixin implements idl.PackageBundle {
   final fb.BufferPointer _bp;
 
-  _SdkBundleImpl(this._bp);
+  _PackageBundleImpl(this._bp);
 
   List<idl.LinkedLibrary> _linkedLibraries;
   List<String> _linkedLibraryUris;
+  List<String> _unlinkedUnitHashes;
   List<idl.UnlinkedUnit> _unlinkedUnits;
   List<String> _unlinkedUnitUris;
 
@@ -1272,6 +1295,12 @@ class _SdkBundleImpl extends Object with _SdkBundleMixin implements idl.SdkBundl
   }
 
   @override
+  List<String> get unlinkedUnitHashes {
+    _unlinkedUnitHashes ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 4, const <String>[]);
+    return _unlinkedUnitHashes;
+  }
+
+  @override
   List<idl.UnlinkedUnit> get unlinkedUnits {
     _unlinkedUnits ??= const fb.ListReader<idl.UnlinkedUnit>(const _UnlinkedUnitReader()).vTableGet(_bp, 2, const <idl.UnlinkedUnit>[]);
     return _unlinkedUnits;
@@ -1284,12 +1313,13 @@ class _SdkBundleImpl extends Object with _SdkBundleMixin implements idl.SdkBundl
   }
 }
 
-abstract class _SdkBundleMixin implements idl.SdkBundle {
+abstract class _PackageBundleMixin implements idl.PackageBundle {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (linkedLibraries.isNotEmpty) _result["linkedLibraries"] = linkedLibraries.map((_value) => _value.toJson()).toList();
     if (linkedLibraryUris.isNotEmpty) _result["linkedLibraryUris"] = linkedLibraryUris;
+    if (unlinkedUnitHashes.isNotEmpty) _result["unlinkedUnitHashes"] = unlinkedUnitHashes;
     if (unlinkedUnits.isNotEmpty) _result["unlinkedUnits"] = unlinkedUnits.map((_value) => _value.toJson()).toList();
     if (unlinkedUnitUris.isNotEmpty) _result["unlinkedUnitUris"] = unlinkedUnitUris;
     return _result;
@@ -1299,6 +1329,7 @@ abstract class _SdkBundleMixin implements idl.SdkBundle {
   Map<String, Object> toMap() => {
     "linkedLibraries": linkedLibraries,
     "linkedLibraryUris": linkedLibraryUris,
+    "unlinkedUnitHashes": unlinkedUnitHashes,
     "unlinkedUnits": unlinkedUnits,
     "unlinkedUnitUris": unlinkedUnitUris,
   };

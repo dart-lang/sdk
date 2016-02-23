@@ -20,7 +20,7 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/summary/idl.dart' show SdkBundle;
+import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:path/path.dart' as pathos;
 
@@ -266,7 +266,7 @@ class DirectoryBasedDartSdk implements DartSdk {
       _analysisContext.sourceFactory = factory;
       // Try to use summaries.
       if (_useSummary) {
-        SdkBundle sdkBundle = _getSummarySdkBundle();
+        PackageBundle sdkBundle = _getSummarySdkBundle();
         if (sdkBundle != null) {
           _analysisContext.resultProvider =
               new SdkSummaryResultProvider(_analysisContext, sdkBundle);
@@ -553,16 +553,16 @@ class DirectoryBasedDartSdk implements DartSdk {
   }
 
   /**
-   * Return the [SdkBundle] for this SDK, if it exists, or `null` otherwise.
+   * Return the [PackageBundle] for this SDK, if it exists, or `null` otherwise.
    */
-  SdkBundle _getSummarySdkBundle() {
+  PackageBundle _getSummarySdkBundle() {
     String rootPath = directory.getAbsolutePath();
     String path = pathos.join(rootPath, 'lib', '_internal', 'spec.sum');
     try {
       File file = new File(path);
       if (file.existsSync()) {
         List<int> bytes = file.readAsBytesSync();
-        return new SdkBundle.fromBuffer(bytes);
+        return new PackageBundle.fromBuffer(bytes);
       }
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logError(

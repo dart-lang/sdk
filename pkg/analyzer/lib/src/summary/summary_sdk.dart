@@ -24,7 +24,7 @@ import 'package:analyzer/task/model.dart'
 
 class SdkSummaryResultProvider implements SummaryResultProvider {
   final InternalAnalysisContext context;
-  final SdkBundle bundle;
+  final PackageBundle bundle;
   final SummaryTypeProvider typeProvider = new SummaryTypeProvider();
 
   @override
@@ -135,7 +135,7 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
  * The implementation of [SummaryResynthesizer] for Dart SDK.
  */
 class SdkSummaryResynthesizer extends SummaryResynthesizer {
-  final SdkBundle bundle;
+  final PackageBundle bundle;
   final Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
   final Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{};
 

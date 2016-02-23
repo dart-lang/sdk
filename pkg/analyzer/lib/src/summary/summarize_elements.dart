@@ -26,8 +26,8 @@ LibrarySerializationResult serializeLibrary(
     LibraryElement lib, TypeProvider typeProvider, bool strongMode) {
   var serializer = new _LibrarySerializer(lib, typeProvider, strongMode);
   LinkedLibraryBuilder linked = serializer.serializeLibrary();
-  return new LibrarySerializationResult(
-      linked, serializer.unlinkedUnits, serializer.unitUris);
+  return new LibrarySerializationResult(linked, serializer.unlinkedUnits,
+      serializer.unitUris, serializer.unitSources);
 }
 
 ReferenceKind _getReferenceKind(Element element) {
@@ -95,7 +95,14 @@ class LibrarySerializationResult {
    */
   final List<String> unitUris;
 
-  LibrarySerializationResult(this.linked, this.unlinkedUnits, this.unitUris);
+  /**
+   * Source object corresponding to each compilation unit appearing in the
+   * library.
+   */
+  final List<Source> unitSources;
+
+  LibrarySerializationResult(
+      this.linked, this.unlinkedUnits, this.unitUris, this.unitSources);
 }
 
 /**
@@ -130,9 +137,9 @@ class _CompilationUnitSerializer {
    */
   final UnlinkedUnitBuilder unlinkedUnit = new UnlinkedUnitBuilder();
 
-/**
- * Absolute URI of the compilation unit.
- */
+  /**
+   * Absolute URI of the compilation unit.
+   */
   String unitUri;
 
   /**
@@ -180,6 +187,11 @@ class _CompilationUnitSerializer {
 
   _CompilationUnitSerializer(
       this.librarySerializer, this.compilationUnit, this.unitNum);
+
+  /**
+   * Source object for the compilation unit.
+   */
+  Source get unitSource => compilationUnit.source;
 
   /**
    * Add all classes, enums, typedefs, executables, and top level variables
@@ -1315,6 +1327,13 @@ class _LibrarySerializer {
     dependencies.add(new LinkedDependencyBuilder());
     dependencyMap[libraryElement] = 0;
   }
+
+  /**
+   * Retrieve a list of the Sources for the compilation units in the library.
+   */
+  List<String> get unitSources => compilationUnitSerializers
+      .map((_CompilationUnitSerializer s) => s.unitSource)
+      .toList();
 
   /**
    * Retrieve a list of the URIs for the compilation units in the library.

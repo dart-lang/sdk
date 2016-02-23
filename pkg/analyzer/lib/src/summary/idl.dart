@@ -354,6 +354,47 @@ abstract class LinkedUnit extends base.SummaryClass {
 }
 
 /**
+ * Summary information about a package.
+ */
+@topLevel
+abstract class PackageBundle extends base.SummaryClass {
+  factory PackageBundle.fromBuffer(List<int> buffer) =>
+      generated.readPackageBundle(buffer);
+
+  /**
+   * Linked libraries.
+   */
+  @Id(0)
+  List<LinkedLibrary> get linkedLibraries;
+
+  /**
+   * The list of URIs of items in [linkedLibraries], e.g. `dart:core` or
+   * `package:foo/bar.dart`.
+   */
+  @Id(1)
+  List<String> get linkedLibraryUris;
+
+  /**
+   * List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
+   * is encoded as a hexadecimal string using lower case letters.
+   */
+  @Id(4)
+  List<String> get unlinkedUnitHashes;
+
+  /**
+   * Unlinked information for the compilation units constituting the package.
+   */
+  @Id(2)
+  List<UnlinkedUnit> get unlinkedUnits;
+
+  /**
+   * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
+   */
+  @Id(3)
+  List<String> get unlinkedUnitUris;
+}
+
+/**
  * Enum used to indicate the kind of entity referred to by a
  * [LinkedReference].
  */
@@ -419,39 +460,6 @@ enum ReferenceKind {
    * The entity being referred to does not exist.
    */
   unresolved
-}
-
-/**
- * Information about SDK.
- */
-@topLevel
-abstract class SdkBundle extends base.SummaryClass {
-  factory SdkBundle.fromBuffer(List<int> buffer) =>
-      generated.readSdkBundle(buffer);
-
-  /**
-   * Linked libraries.
-   */
-  @Id(0)
-  List<LinkedLibrary> get linkedLibraries;
-
-  /**
-   * The list of URIs of items in [linkedLibraries], e.g. `dart:core`.
-   */
-  @Id(1)
-  List<String> get linkedLibraryUris;
-
-  /**
-   * Unlinked information for the compilation units constituting the SDK.
-   */
-  @Id(2)
-  List<UnlinkedUnit> get unlinkedUnits;
-
-  /**
-   * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
-   */
-  @Id(3)
-  List<String> get unlinkedUnitUris;
 }
 
 /**
