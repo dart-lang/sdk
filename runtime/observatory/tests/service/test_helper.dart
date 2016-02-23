@@ -28,8 +28,8 @@ bool _isTestee() {
 }
 
 class _SerivceTesteeRunner {
-  Future run({Future testeeBefore(): null,
-              Future testeeConcurrent(): null,
+  Future run({testeeBefore(): null,
+              testeeConcurrent(): null,
               bool pause_on_start: false,
               bool pause_on_exit: false}) async {
     if (!pause_on_start) {
