@@ -1401,9 +1401,6 @@ bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
       call->token_pos());
   load->set_is_immutable(field.is_final());
 
-  // No guarded cid in precompiled mode.
-  ASSERT(field.guarded_cid() == kDynamicCid);
-
   // Discard the environment from the original instruction because the load
   // can't deoptimize.
   call->RemoveEnvironment();
