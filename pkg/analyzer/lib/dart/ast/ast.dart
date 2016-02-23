@@ -4974,28 +4974,6 @@ abstract class InterpolationString extends InterpolationElement {
  */
 abstract class InvocationExpression extends Expression {
   /**
-   * Return the function type of the invocation based on the propagated type
-   * information, or `null` if the AST structure has not been resolved, or if
-   * the invoke could not be resolved.
-   *
-   * This will usually be a [FunctionType], but it can also be an
-   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
-   * interface type that implements `Function`.
-   */
-  DartType propagatedInvokeType;
-
-  /**
-   * Return the function type of the invocation based on the static type
-   * information, or `null` if the AST structure has not been resolved, or if
-   * the invoke could not be resolved.
-   *
-   * This will usually be a [FunctionType], but it can also be an
-   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
-   * interface type that implements `Function`.
-   */
-  DartType staticInvokeType;
-
-  /**
    * Return the list of arguments to the method.
    */
   ArgumentList get argumentList;
@@ -5013,6 +4991,40 @@ abstract class InvocationExpression extends Expression {
    * before applying type arguments `TArgs`.
    */
   Expression get function;
+
+  /**
+   * Return the function type of the invocation based on the propagated type
+   * information, or `null` if the AST structure has not been resolved, or if
+   * the invoke could not be resolved.
+   *
+   * This will usually be a [FunctionType], but it can also be an
+   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
+   * interface type that implements `Function`.
+   */
+  DartType get propagatedInvokeType;
+
+  /**
+   * Sets the function type of the invocation based on the propagated type
+   * information.
+   */
+  void set propagatedInvokeType(DartType value);
+
+  /**
+   * Return the function type of the invocation based on the static type
+   * information, or `null` if the AST structure has not been resolved, or if
+   * the invoke could not be resolved.
+   *
+   * This will usually be a [FunctionType], but it can also be an
+   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
+   * interface type that implements `Function`.
+   */
+  DartType get staticInvokeType;
+
+  /**
+   * Sets the function type of the invocation based on the static type
+   * information.
+   */
+  void set staticInvokeType(DartType value);
 
   /**
    * Return the type arguments to be applied to the method being invoked, or

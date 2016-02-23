@@ -6130,15 +6130,15 @@ class InterpolationStringImpl extends InterpolationElementImpl
 abstract class InvocationExpressionImpl extends ExpressionImpl
     implements InvocationExpression {
   /**
+   * The list of arguments to the function.
+   */
+  ArgumentList _argumentList;
+
+  /**
    * The type arguments to be applied to the method being invoked, or `null` if
    * no type arguments were provided.
    */
   TypeArgumentList _typeArguments;
-
-  /**
-   * The list of arguments to the function.
-   */
-  ArgumentList _argumentList;
 
   @override
   DartType propagatedInvokeType;
