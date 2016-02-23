@@ -1797,9 +1797,8 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
 
         bool sameToken(Token token, Token sought) {
           if (token == sought) return true;
-          if (token.stringValue == '>>' ||
-              token.stringValue == '>>>') {
-            // `>>` and `>>>` are converted to `>` in the parser when needed.
+          if (token.stringValue == '>>') {
+            // `>>` is converted to `>` in the parser when needed.
             return sought.stringValue == '>' &&
                 token.charOffset <= sought.charOffset &&
                 sought.charOffset < token.charEnd;

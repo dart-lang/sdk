@@ -665,8 +665,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (identical(string, '!') ||
           identical(string, '&&') || identical(string, '||') ||
           identical(string, 'is') || identical(string, 'as') ||
-          identical(string, '?') || identical(string, '??') ||
-          identical(string, '>>>')) {
+          identical(string, '?') || identical(string, '??')) {
         return null;
       }
       String op = source;
