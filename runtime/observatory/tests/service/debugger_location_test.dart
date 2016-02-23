@@ -6,15 +6,20 @@
 import 'package:observatory/service_io.dart';
 import 'package:observatory/debugger.dart';
 import 'package:unittest/unittest.dart';
+import 'service_test_common.dart';
 import 'test_helper.dart';
 import 'dart:async';
 import 'dart:developer';
+
+const int LINE_A = 22;
+const int LINE_B = 112;
+const int LINE_C = 12;
 
 void testFunction() {
   int i = 0;
   while (i == 0) {
     debugger();
-    print('loop');
+    print('loop');  // Line A.
     print('loop');
   }
 }
@@ -59,7 +64,7 @@ hasStoppedAtBreakpoint,
   var debugger = await initDebugger(isolate);
   var loc = await DebuggerLocation.parse(debugger, '');
   expect(loc.valid, isTrue);
-  expect(loc.toString(), equals('debugger_location_test.dart:17:5'));
+  expect(loc.toString(), equals('debugger_location_test.dart:$LINE_A:5'));
 },
 
 // Parse line
@@ -236,22 +241,18 @@ hasStoppedAtBreakpoint,
       await DebuggerLocation.complete(debugger,
                                       'debugger_location_test.dart:11');
   expect(completions.toString(), equals(
-      '[debugger_location_test.dart:110 ,'
-      ' debugger_location_test.dart:110:,'
-      ' debugger_location_test.dart:111 ,'
-      ' debugger_location_test.dart:111:,'
-      ' debugger_location_test.dart:112 ,'
-      ' debugger_location_test.dart:112:,'
-      ' debugger_location_test.dart:115 ,'
-      ' debugger_location_test.dart:115:,'
-      ' debugger_location_test.dart:116 ,'
-      ' debugger_location_test.dart:116:,'
-      ' debugger_location_test.dart:117 ,'
-      ' debugger_location_test.dart:117:,'
-      ' debugger_location_test.dart:118 ,'
-      ' debugger_location_test.dart:118:,'
-      ' debugger_location_test.dart:119 ,'
-      ' debugger_location_test.dart:119:]'));
+      '[debugger_location_test.dart:${LINE_B + 0} ,'
+      ' debugger_location_test.dart:${LINE_B + 0}:,'
+      ' debugger_location_test.dart:${LINE_B + 1} ,'
+      ' debugger_location_test.dart:${LINE_B + 1}:,'
+      ' debugger_location_test.dart:${LINE_B + 2} ,'
+      ' debugger_location_test.dart:${LINE_B + 2}:,'
+      ' debugger_location_test.dart:${LINE_B + 3} ,'
+      ' debugger_location_test.dart:${LINE_B + 3}:,'
+      ' debugger_location_test.dart:${LINE_B + 4} ,'
+      ' debugger_location_test.dart:${LINE_B + 4}:,'
+      ' debugger_location_test.dart:${LINE_B + 5} ,'
+      ' debugger_location_test.dart:${LINE_B + 5}:]'));
 },
 
 // Complete script:line:col
@@ -259,27 +260,27 @@ hasStoppedAtBreakpoint,
   var debugger = await initDebugger(isolate);
   var completions =
       await DebuggerLocation.complete(debugger,
-                                      'debugger_location_test.dart:11:2');
+                                      'debugger_location_test.dart:$LINE_C:2');
   expect(completions.toString(), equals(
-      '[debugger_location_test.dart:11:2 ,'
-      ' debugger_location_test.dart:11:20 ,'
-      ' debugger_location_test.dart:11:21 ,'
-      ' debugger_location_test.dart:11:22 ,'
-      ' debugger_location_test.dart:11:23 ,'
-      ' debugger_location_test.dart:11:24 ]'));
+      '[debugger_location_test.dart:$LINE_C:2 ,'
+      ' debugger_location_test.dart:$LINE_C:20 ,'
+      ' debugger_location_test.dart:$LINE_C:21 ,'
+      ' debugger_location_test.dart:$LINE_C:22 ,'
+      ' debugger_location_test.dart:$LINE_C:23 ,'
+      ' debugger_location_test.dart:$LINE_C:24 ]'));
 },
 
 // Complete without the script name.
 (Isolate isolate) async {
   var debugger = await initDebugger(isolate);
-  var completions = await DebuggerLocation.complete(debugger, '11:2');
+  var completions = await DebuggerLocation.complete(debugger, '$LINE_C:2');
   expect(completions.toString(), equals(
-      '[debugger_location_test.dart:11:2 ,'
-      ' debugger_location_test.dart:11:20 ,'
-      ' debugger_location_test.dart:11:21 ,'
-      ' debugger_location_test.dart:11:22 ,'
-      ' debugger_location_test.dart:11:23 ,'
-      ' debugger_location_test.dart:11:24 ]'));
+      '[debugger_location_test.dart:$LINE_C:2 ,'
+      ' debugger_location_test.dart:$LINE_C:20 ,'
+      ' debugger_location_test.dart:$LINE_C:21 ,'
+      ' debugger_location_test.dart:$LINE_C:22 ,'
+      ' debugger_location_test.dart:$LINE_C:23 ,'
+      ' debugger_location_test.dart:$LINE_C:24 ]'));
 },
 
 ];

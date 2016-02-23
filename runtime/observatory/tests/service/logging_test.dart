@@ -6,7 +6,7 @@ import 'dart:developer' as developer;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'package:logging/logging.dart';
-
+import 'service_test_common.dart';
 import 'test_helper.dart';
 
 void init() {

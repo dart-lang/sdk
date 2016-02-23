@@ -5,10 +5,13 @@
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
+import 'service_test_common.dart';
 import 'test_helper.dart';
 import 'dart:developer';
 
-testFunction(flag) {  // Line 11
+const int LINE_A = 14;
+
+testFunction(flag) {  // Line A.
   if (flag) {
     print("Yes");
   } else {
@@ -40,11 +43,11 @@ hasStoppedAtBreakpoint,
 resumeIsolate,
 
 hasStoppedAtBreakpoint,
-stoppedAtLine(11),
+stoppedAtLine(LINE_A),
 resumeIsolate,
 
 hasStoppedAtBreakpoint,
-stoppedAtLine(11),
+stoppedAtLine(LINE_A),
 resumeIsolate,
 
 ];

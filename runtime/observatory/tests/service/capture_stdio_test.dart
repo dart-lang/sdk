@@ -8,6 +8,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
+import 'service_test_common.dart';
 import 'test_helper.dart';
 
 void test() {

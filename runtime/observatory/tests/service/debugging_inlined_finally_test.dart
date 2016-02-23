@@ -5,8 +5,13 @@
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
+import 'service_test_common.dart';
 import 'test_helper.dart';
 import 'dart:developer';
+
+const int LINE_A = 24;
+const int LINE_B = 27;
+const int LINE_C = 30;
 
 testFunction() {
   debugger();
@@ -16,13 +21,13 @@ testFunction() {
     try {
       for (int i = 0; i < 10; i++) {
         var x = () => i + a + b;
-        return x;  // line 19
+        return x;  // LINE_A
       }
     } finally {
-      b = 10;  // line 22
+      b = 10;  // LINE_B
     }
   } finally {
-    a = 1;  // line 25
+    a = 1;  // LINE_C
   }
 }
 
@@ -44,32 +49,35 @@ hasStoppedAtBreakpoint,
 
   // Add 3 breakpoints.
   {
-    var result = await isolate.addBreakpoint(script, 19);
+    var result = await isolate.addBreakpoint(script, LINE_A);
     expect(result is Breakpoint, isTrue);
     Breakpoint bpt = result;
     expect(bpt.type, equals('Breakpoint'));
     expect(bpt.location.script.id, equals(script.id));
-    expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(19));
+    expect(bpt.location.script.tokenToLine(bpt.location.tokenPos),
+           equals(LINE_A));
     expect(isolate.breakpoints.length, equals(1));
   }
 
   {
-    var result = await isolate.addBreakpoint(script, 22);
+    var result = await isolate.addBreakpoint(script, LINE_B);
     expect(result is Breakpoint, isTrue);
     Breakpoint bpt = result;
     expect(bpt.type, equals('Breakpoint'));
     expect(bpt.location.script.id, equals(script.id));
-    expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(22));
+    expect(bpt.location.script.tokenToLine(bpt.location.tokenPos),
+           equals(LINE_B));
     expect(isolate.breakpoints.length, equals(2));
   }
 
   {
-    var result = await isolate.addBreakpoint(script, 25);
+    var result = await isolate.addBreakpoint(script, LINE_C);
     expect(result is Breakpoint, isTrue);
     Breakpoint bpt = result;
     expect(bpt.type, equals('Breakpoint'));
     expect(bpt.location.script.id, equals(script.id));
-    expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(25));
+    expect(bpt.location.script.tokenToLine(bpt.location.tokenPos),
+           equals(LINE_C));
     expect(isolate.breakpoints.length, equals(3));
   }
 
@@ -80,42 +88,45 @@ resumeIsolate,
 
 hasStoppedAtBreakpoint,
 
-// We are at the breakpoint on line 19.
+// We are at the breakpoint on line LINE_A.
 (Isolate isolate) async {
   ServiceMap stack = await isolate.getStack();
   expect(stack.type, equals('Stack'));
   expect(stack['frames'].length, greaterThanOrEqualTo(1));
 
   Script script = stack['frames'][0].location.script;
-  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(19));
+  expect(script.tokenToLine(stack['frames'][0].location.tokenPos),
+         equals(LINE_A));
 },
 
 resumeIsolate,
 
 hasStoppedAtBreakpoint,
 
-// We are at the breakpoint on line 22.
+// We are at the breakpoint on line LINE_B.
 (Isolate isolate) async {
   ServiceMap stack = await isolate.getStack();
   expect(stack.type, equals('Stack'));
   expect(stack['frames'].length, greaterThanOrEqualTo(1));
 
   Script script = stack['frames'][0].location.script;
-  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(22));
+  expect(script.tokenToLine(stack['frames'][0].location.tokenPos),
+         equals(LINE_B));
 },
 
 resumeIsolate,
 
 hasStoppedAtBreakpoint,
 
-// We are at the breakpoint on line 25.
+// We are at the breakpoint on line LINE_C.
 (Isolate isolate) async {
   ServiceMap stack = await isolate.getStack();
   expect(stack.type, equals('Stack'));
   expect(stack['frames'].length, greaterThanOrEqualTo(1));
 
   Script script = stack['frames'][0].location.script;
-  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(25));
+  expect(script.tokenToLine(stack['frames'][0].location.tokenPos),
+         equals(LINE_C));
 },
 
 resumeIsolate,

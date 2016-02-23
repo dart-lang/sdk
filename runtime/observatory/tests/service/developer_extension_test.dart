@@ -9,7 +9,7 @@ import 'dart:developer';
 import 'package:observatory/service_io.dart';
 import 'package:observatory/cpu_profile.dart';
 import 'package:unittest/unittest.dart';
-
+import 'service_test_common.dart';
 import 'test_helper.dart';
 
 Future<ServiceExtensionResponse> Handler(String method,

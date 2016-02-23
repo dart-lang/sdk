@@ -6,11 +6,15 @@
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
+import 'service_test_common.dart';
 import 'dart:async';
 
+const int LINE_A = 16;
+const int LINE_B = 17;
+
 testMain() {
-  var foo;      // line 11
-  foo = 42;     // line 12
+  var foo;      // line A
+  foo = 42;     // line B
   print(foo);
 }
 
@@ -23,10 +27,10 @@ var tests = [
     await rootLib.load();
     var script = rootLib.scripts[0];
 
-    var bpt1 = await isolate.addBreakpoint(script, 11);
-    var bpt2 = await isolate.addBreakpoint(script, 12);
-    expect(await bpt1.location.getLine(), equals(11));
-    expect(await bpt2.location.getLine(), equals(12));
+    var bpt1 = await isolate.addBreakpoint(script, LINE_A);
+    var bpt2 = await isolate.addBreakpoint(script, LINE_B);
+    expect(await bpt1.location.getLine(), equals(LINE_A));
+    expect(await bpt2.location.getLine(), equals(LINE_B));
 
     var stream = await isolate.vm.getEventStream(VM.kDebugStream);
     Completer completer = new Completer();
@@ -52,9 +56,9 @@ var tests = [
           // No breakpoint.
           expect(event.breakpoint, isNull);
 
-          // We expect the next step to take us to line 12.
+          // We expect the next step to take us to line B.
           var stack = await isolate.getStack();
-          expect(await stack['frames'][0].location.getLine(), equals(12));
+          expect(await stack['frames'][0].location.getLine(), equals(LINE_B));
 
           subscription.cancel();
           completer.complete(null);

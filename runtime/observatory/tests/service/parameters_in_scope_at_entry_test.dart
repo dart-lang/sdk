@@ -8,6 +8,11 @@ import 'test_helper.dart';
 import 'dart:developer';
 import 'package:unittest/unittest.dart';
 
+import 'service_test_common.dart';
+
+const int LINE_A = 29;
+const int LINE_B = 33;
+
 foo(param) {
   return param;
 }
@@ -21,16 +26,16 @@ fooClosure() {
 
 testMain() {
   debugger();
-  foo("in-scope");  // Line 24
+  foo("in-scope");  // Line A.
 
   var f = fooClosure();
   debugger();
-  f("in-scope");  // Line 28
+  f("in-scope");  // Line B.
 }
 
 var tests = [
   hasStoppedAtBreakpoint,
-  stoppedAtLine(24),
+  stoppedAtLine(LINE_A),
   (isolate) => isolate.stepInto(),
   hasStoppedAtBreakpoint,
   (isolate) async {
@@ -47,7 +52,7 @@ var tests = [
   resumeIsolate,
 
   hasStoppedAtBreakpoint,
-  stoppedAtLine(28),
+  stoppedAtLine(LINE_B),
   (isolate) => isolate.stepInto(),
   hasStoppedAtBreakpoint,
   (isolate) async {

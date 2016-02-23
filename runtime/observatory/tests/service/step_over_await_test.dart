@@ -7,19 +7,25 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'test_helper.dart';
+import 'service_test_common.dart';
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
+
+const int LINE_A = 24;
+const int LINE_B = 26;
+const int LINE_C = 28;
+const int LINE_D = 29;
 
 // This tests the low level synthetic breakpoint added / paused / removed
 // machinery triggered by the step OverAwait command.
 asyncWithoutAwait() async {
   debugger();
-  print('a');
+  print('a');  // LINE_A
   await new Future.delayed(new Duration(seconds: 2));
-  print('b');
-  debugger();
-  debugger();
+  print('b');  // LINE_B
+  debugger();  // LINE_C
+  debugger();  // LINE_D
 }
 
 testMain() {
@@ -125,7 +131,7 @@ Future<Isolate> testLowLevelAwaitOver(
         handlePauseBreakpoint(event);
         expect(state, 3);
         // Check that we are paused after the await statement.
-        await (stoppedAtLine(20)(isolate));
+        await (stoppedAtLine(LINE_B)(isolate));
         // Resume the isolate so that we trigger the breakpoint removal.
         print('!!!! Triggering synthetic breakpoint removal.');
         isolate.resume();
@@ -150,7 +156,7 @@ Future<Isolate> testLowLevelAwaitOver(
 
 var tests = [
   hasStoppedAtBreakpoint,
-  stoppedAtLine(18),
+  stoppedAtLine(LINE_A),
   stepOver,
   stepOver,
   stepOver,
@@ -160,10 +166,10 @@ var tests = [
   },
   testLowLevelAwaitOver,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(22),
+  stoppedAtLine(LINE_C),
   resumeIsolate,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(23),
+  stoppedAtLine(LINE_D),
   resumeIsolate,
 ];
 
