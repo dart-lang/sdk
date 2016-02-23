@@ -121,7 +121,8 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 [ ($noopt || $compiler == precompiler) ]
 # Imports dart:mirrors
 const_evaluation_test: CompileTimeError
-deferred_constraints_constants_test: CompileTimeError
+deferred_constraints_constants_test/none: CompileTimeError
+deferred_constraints_constants_test/reference_after_load: CompileTimeError
 enum_mirror_test: CompileTimeError
 field_increment_bailout_test: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
@@ -133,13 +134,15 @@ many_overridden_no_such_method_test: CompileTimeError
 no_such_method_test: CompileTimeError
 null_test/none: CompileTimeError
 overridden_no_such_method_test: CompileTimeError
+redirecting_factory_reflection_test: CompileTimeError
 regress_13462_0_test: CompileTimeError
 regress_13462_1_test: CompileTimeError
 regress_18535_test: CompileTimeError
 super_call4_test: CompileTimeError
 super_getter_setter_test: CompileTimeError
 vm/reflect_core_vm_test: CompileTimeError
-redirecting_factory_reflection_test: CompileTimeError
+
+deferred_global_test: RuntimeError # Issue 25845
 
 [ ($noopt || $compiler == precompiler || $compiler == dart2app) ]
 # Deferred loading happens eagerly
@@ -157,8 +160,6 @@ ct_const2_test: Pass, Crash # Incompatible flag --compile_all
 hello_dart_test: Pass, Crash # Incompatible flag --compile_all
 
 implicit_closure_test: Pass, Crash # --use_slow_path
-
-deferred_constraints_constants_test: Skip # multitest gets confused
 
 deopt_inlined_function_lazy_test: Pass, Crash # Incompatible flag: --deoptimize-alot
 
