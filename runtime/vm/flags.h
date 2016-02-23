@@ -111,8 +111,7 @@ class Flags {
 #endif  // defined(DEBUG)
 
 #if defined(PRODUCT) && defined(DART_PRECOMPILED_RUNTIME)
-#define RELEASE_FLAG_MARCO(name, precompiled_value, product_value, type,       \
-                           default_value, comment)                             \
+#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
   const type FLAG_##name = product_value;
 #define PRECOMPILE_FLAG_MARCO(name, precompiled_value, product_value, type,    \
                               default_value, comment)                          \
@@ -123,7 +122,7 @@ class Flags {
   const type FLAG_##name = product_value;
 #define PRECOMPILE_FLAG_MARCO(name, precompiled_value, product_value, type,    \
                               default_value, comment)                          \
-  extern type FLAG_##name;
+  const type FLAG_##name = product_value;
 
 #elif defined(DART_PRECOMPILED_RUNTIME)  // !PRODUCT
 #define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \

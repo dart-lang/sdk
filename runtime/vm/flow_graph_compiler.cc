@@ -128,16 +128,22 @@ static void PrecompilationModeHandler(bool value) {
     // while precompilation has only one.
     FLAG_background_compilation = false;
     FLAG_collect_dynamic_function_names = true;
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
     FLAG_lazy_dispatchers = false;
     FLAG_polymorphic_with_deopt = false;
     // Precompilation finalizes all classes and thus allows CHA optimizations.
     // Do not require CHA triggered deoptimization.
     FLAG_use_cha_deopt = false;
-#else
+#elif defined(DART_PRECOMPILED_RUNTIME)
+    // Precompiled product and release mode.
     COMPILE_ASSERT(!FLAG_lazy_dispatchers);
     COMPILE_ASSERT(!FLAG_polymorphic_with_deopt);
     COMPILE_ASSERT(!FLAG_use_cha_deopt);
+#elif defined(PRODUCT)
+    // Jit product and release mode.
+    COMPILE_ASSERT(FLAG_lazy_dispatchers);
+    COMPILE_ASSERT(FLAG_polymorphic_with_deopt);
+    COMPILE_ASSERT(FLAG_use_cha_deopt);
 #endif
   }
 }

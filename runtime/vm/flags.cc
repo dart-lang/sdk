@@ -40,6 +40,9 @@ DEFINE_FLAG(bool, ignore_unrecognized_flags, false,
 #elif defined(PRODUCT)  // !PRECOMPILED
 // Nothing to be done for the product flag definitions.
 #define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)
+// Nothing to be done for the precompilation flag definitions.
+#define PRECOMPILE_FLAG_MARCO(name, pre_value, product_value, type,            \
+                              default_value, comment)
 
 #elif defined(DART_PRECOMPILED_RUNTIME)  // !PRODUCT
 #define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
