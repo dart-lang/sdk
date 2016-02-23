@@ -10,6 +10,7 @@
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
@@ -19,8 +20,6 @@
 namespace dart {
 
 #ifndef PRODUCT
-
-DECLARE_FLAG(bool, lazy_dispatchers);
 
 #define PROPAGATE_IF_MALFORMED(type)                                           \
   if (type.IsMalformed()) {                                                    \

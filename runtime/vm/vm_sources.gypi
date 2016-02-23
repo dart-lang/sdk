@@ -9,6 +9,8 @@
     'allocation.cc',
     'allocation.h',
     'allocation_test.cc',
+    'aot_optimizer.cc',
+    'aot_optimizer.h',
     'assembler.cc',
     'assembler.h',
     'assembler_arm.cc',

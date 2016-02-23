@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_FLOW_GRAPH_OPTIMIZER_H_
-#define VM_FLOW_GRAPH_OPTIMIZER_H_
+#ifndef VM_AOT_OPTIMIZER_H_
+#define VM_AOT_OPTIMIZER_H_
 
 #include "vm/intermediate_language.h"
 #include "vm/flow_graph.h"
@@ -13,10 +13,11 @@ namespace dart {
 class CSEInstructionMap;
 template <typename T> class GrowableArray;
 class ParsedFunction;
+class RawBool;
 
-class FlowGraphOptimizer : public FlowGraphVisitor {
+class AotOptimizer : public FlowGraphVisitor {
  public:
-  FlowGraphOptimizer(
+  AotOptimizer(
       FlowGraph* flow_graph,
       bool use_speculative_inlining,
       GrowableArray<intptr_t>* inlining_black_list)
@@ -26,9 +27,13 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
         inlining_black_list_(inlining_black_list) {
     ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
   }
-  virtual ~FlowGraphOptimizer() {}
+  virtual ~AotOptimizer() {}
 
   FlowGraph* flow_graph() const { return flow_graph_; }
+
+  // Add ICData to InstanceCalls, so that optimizations can be run on them.
+  // TODO(srdjan): StaticCals as well?
+  void PopulateWithICData();
 
   // Use ICData to optimize, replace or eliminate instructions.
   void ApplyICData();
@@ -43,7 +48,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
-  virtual void VisitStoreInstanceField(StoreInstanceFieldInstr* instr);
   virtual void VisitAllocateContext(AllocateContextInstr* instr);
   virtual void VisitLoadCodeUnits(LoadCodeUnitsInstr* instr);
 
@@ -175,10 +179,10 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   GrowableArray<intptr_t>* inlining_black_list_;
 
-  DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);
+  DISALLOW_COPY_AND_ASSIGN(AotOptimizer);
 };
 
 
 }  // namespace dart
 
-#endif  // VM_FLOW_GRAPH_OPTIMIZER_H_
+#endif  // VM_AOT_OPTIMIZER_H_

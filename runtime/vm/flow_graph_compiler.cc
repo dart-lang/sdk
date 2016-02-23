@@ -13,6 +13,7 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
 #include "vm/flow_graph_allocator.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
@@ -39,9 +40,6 @@ DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
     "The minimum invocation count for a function.");
 DEFINE_FLAG(int, optimization_counter_scale, 2000,
     "The scale of invocation count, by size of the function.");
-DEFINE_FLAG(bool, polymorphic_with_deopt, true,
-    "Polymorphic calls can be generated so that failure either causes "
-    "deoptimization or falls through to a megamorphic call");
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 DEFINE_FLAG(bool, trace_inlining_intervals, false,
     "Inlining interval diagnostics");
@@ -65,10 +63,8 @@ DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(bool, use_field_guards);
-DECLARE_FLAG(bool, use_cha_deopt);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, print_stop_message);
-DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, interpret_irregexp);
 DECLARE_FLAG(bool, link_natives_lazily);
 DECLARE_FLAG(bool, trace_compiler);
@@ -90,7 +86,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_precompilation = true;
 
     FLAG_always_megamorphic_calls = true;
-    FLAG_polymorphic_with_deopt = false;
     FLAG_optimization_counter_threshold = -1;
     FLAG_use_field_guards = false;
     FLAG_use_osr = false;
@@ -103,14 +98,10 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_load_deferred_eagerly = true;
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
-    // Precompilation finalizes all classes and thus allows CHA optimizations.
-    // Do not require CHA triggered deoptimization.
-    FLAG_use_cha_deopt = false;
     // Calling the PrintStopMessage stub is not supported in precompiled code
     // since it is done at places where no pool pointer is loaded.
     FLAG_print_stop_message = false;
 
-    FLAG_lazy_dispatchers = false;
     FLAG_interpret_irregexp = true;
 #ifndef PRODUCT
     FLAG_enable_mirrors = false;
@@ -137,6 +128,17 @@ static void PrecompilationModeHandler(bool value) {
     // while precompilation has only one.
     FLAG_background_compilation = false;
     FLAG_collect_dynamic_function_names = true;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    FLAG_lazy_dispatchers = false;
+    FLAG_polymorphic_with_deopt = false;
+    // Precompilation finalizes all classes and thus allows CHA optimizations.
+    // Do not require CHA triggered deoptimization.
+    FLAG_use_cha_deopt = false;
+#else
+    COMPILE_ASSERT(!FLAG_lazy_dispatchers);
+    COMPILE_ASSERT(!FLAG_polymorphic_with_deopt);
+    COMPILE_ASSERT(!FLAG_use_cha_deopt);
+#endif
   }
 }
 

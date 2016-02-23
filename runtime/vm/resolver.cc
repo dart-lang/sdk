@@ -15,7 +15,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trace_resolving, false, "Trace resolving.");
-DECLARE_FLAG(bool, lazy_dispatchers);
 
 // The actual names of named arguments are not checked by the dynamic resolver,
 // but by the method entry code. It is important that the dynamic resolver

@@ -64,8 +64,6 @@ DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(bool, trace_compiler);
-DECLARE_FLAG(bool, trace_field_guards);
-DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
 DECLARE_FLAG(int, max_polymorphic_checks);
 DECLARE_FLAG(bool, precompilation);
@@ -81,7 +79,6 @@ DEFINE_FLAG(int, deoptimize_every, 0,
             "Deoptimize on every N stack overflow checks");
 DEFINE_FLAG(charp, deoptimize_filter, NULL,
             "Deoptimize in named function on stack overflow checks");
-DEFINE_FLAG(bool, lazy_dispatchers, true, "Lazily generate dispatchers");
 
 #ifdef DEBUG
 DEFINE_FLAG(charp, gc_at_instance_allocation, NULL,

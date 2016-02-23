@@ -4,6 +4,7 @@
 
 #include "vm/precompiler.h"
 
+#include "vm/aot_optimizer.h"
 #include "vm/assembler.h"
 #include "vm/ast_printer.h"
 #include "vm/branch_optimizer.h"
@@ -21,7 +22,6 @@
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_inliner.h"
-#include "vm/flow_graph_optimizer.h"
 #include "vm/flow_graph_range_analysis.h"
 #include "vm/flow_graph_type_propagator.h"
 #include "vm/hash_table.h"
@@ -1027,33 +1027,6 @@ class NameFunctionsTraits {
 typedef UnorderedHashMap<NameFunctionsTraits> Table;
 
 
-class FunctionsTraits {
- public:
-  static bool IsMatch(const Object& a, const Object& b) {
-    Zone* zone = Thread::Current()->zone();
-    String& a_s = String::Handle(zone);
-    String& b_s = String::Handle(zone);
-    a_s = a.IsFunction() ? Function::Cast(a).name() : String::Cast(a).raw();
-    b_s = b.IsFunction() ? Function::Cast(b).name() : String::Cast(b).raw();
-    ASSERT(a_s.IsSymbol() && b_s.IsSymbol());
-    return a_s.raw() == b_s.raw();
-  }
-  static uword Hash(const Object& obj) {
-    if (obj.IsFunction()) {
-      return String::Handle(Function::Cast(obj).name()).Hash();
-    } else {
-      ASSERT(String::Cast(obj).IsSymbol());
-      return String::Cast(obj).Hash();
-    }
-  }
-  static RawObject* NewKey(const Function& function) {
-    return function.raw();
-  }
-};
-
-typedef UnorderedHashSet<FunctionsTraits> UniqueFunctionsSet;
-
-
 static void AddNameToFunctionsTable(Zone* zone,
                                     Table* table,
                                     const String& fname,
@@ -2014,9 +1987,9 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         caller_inline_id.Add(-1);
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
 
-        FlowGraphOptimizer optimizer(flow_graph,
-                                     use_speculative_inlining,
-                                     &inlining_black_list);
+        AotOptimizer optimizer(flow_graph,
+                               use_speculative_inlining,
+                               &inlining_black_list);
         optimizer.PopulateWithICData();
 
         optimizer.ApplyClassIds();

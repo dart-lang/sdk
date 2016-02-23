@@ -55,10 +55,8 @@ DEFINE_FLAG(bool, overlap_type_arguments, true,
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
-DEFINE_FLAG(bool, trace_cha, false, "Trace CHA operations");
 DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
-DEFINE_FLAG(bool, trace_field_guards, false, "Trace changes in field's cids.");
 DEFINE_FLAG(bool, ignore_patch_signature_mismatch, false,
             "Ignore patch file member signature mismatch.");
 

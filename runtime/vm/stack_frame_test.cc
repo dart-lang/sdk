@@ -16,8 +16,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, lazy_dispatchers);
-
 // Unit test for empty stack frame iteration.
 VM_TEST_CASE(EmptyStackFrameIteration) {
   StackFrameIterator iterator(StackFrameIterator::kValidateFrames);

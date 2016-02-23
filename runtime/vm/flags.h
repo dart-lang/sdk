@@ -110,23 +110,47 @@ class Flags {
   const type FLAG_##name = default_value;
 #endif  // defined(DEBUG)
 
-#if defined(PRODUCT)
+#if defined(PRODUCT) && defined(DART_PRECOMPILED_RUNTIME)
+#define RELEASE_FLAG_MARCO(name, precompiled_value, product_value, type,       \
+                           default_value, comment)                             \
+  const type FLAG_##name = product_value;
+#define PRECOMPILE_FLAG_MARCO(name, precompiled_value, product_value, type,    \
+                              default_value, comment)                          \
+  const type FLAG_##name = precompiled_value;
+
+#elif defined(PRODUCT)  // !PRECOMPILED
 #define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
   const type FLAG_##name = product_value;
-
-#else  // defined(PRODUCT)
-
-#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
+#define PRECOMPILE_FLAG_MARCO(name, precompiled_value, product_value, type,    \
+                              default_value, comment)                          \
   extern type FLAG_##name;
 
-#endif  // defined(PRODUCT)
+#elif defined(DART_PRECOMPILED_RUNTIME)  // !PRODUCT
+#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
+  extern type FLAG_##name;
+#define PRECOMPILE_FLAG_MARCO(name, precompiled_value, product_value, type,    \
+                              default_value, comment)                          \
+  const type FLAG_##name = precompiled_value;
+
+#else  // !PRODUCT && !PRECOMPILED
+#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
+  extern type FLAG_##name;
+#define PRECOMPILE_FLAG_MARCO(name, precompiled_value, product_value, type,    \
+                              default_value, comment)                          \
+  extern type FLAG_##name;
+
+#endif
 
 // Now declare all flags here.
-FLAG_LIST(PRODUCT_FLAG_MARCO, RELEASE_FLAG_MARCO, DEBUG_FLAG_MARCO)
+FLAG_LIST(PRODUCT_FLAG_MARCO,
+          RELEASE_FLAG_MARCO,
+          DEBUG_FLAG_MARCO,
+          PRECOMPILE_FLAG_MARCO)
 
 #undef RELEASE_FLAG_MARCO
 #undef DEBUG_FLAG_MARCO
 #undef PRODUCT_FLAG_MARCO
+#undef PRECOMPILE_FLAG_MARCO
 
 }  // namespace dart
 

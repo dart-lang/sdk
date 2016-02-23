@@ -95,7 +95,7 @@
       'target_name': 'libdart_precompiled_runtime',
       'type': 'static_library',
       'dependencies': [
-        'libdart_lib',
+        'libdart_lib_precompiled_runtime',
         'libdart_vm_precompiled_runtime',
         'libdouble_conversion',
         'generate_version_cc_file#host',

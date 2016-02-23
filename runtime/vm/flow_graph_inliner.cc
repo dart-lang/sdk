@@ -4,6 +4,7 @@
 
 #include "vm/flow_graph_inliner.h"
 
+#include "vm/aot_optimizer.h"
 #include "vm/block_scheduler.h"
 #include "vm/branch_optimizer.h"
 #include "vm/compiler.h"
@@ -61,7 +62,6 @@ DEFINE_FLAG(bool, enable_inlining_annotations, false,
 
 DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
-DECLARE_FLAG(bool, polymorphic_with_deopt);
 DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -790,10 +790,10 @@ class CallSiteInliner : public ValueObject {
           CSTAT_TIMER_SCOPE(thread(), graphinliner_opt_timer);
           // TODO(fschneider): Improve suppression of speculative inlining.
           // Deopt-ids overlap between caller and callee.
-          FlowGraphOptimizer optimizer(callee_graph,
-                                       inliner_->use_speculative_inlining_,
-                                       inliner_->inlining_black_list_);
           if (FLAG_precompilation) {
+            AotOptimizer optimizer(callee_graph,
+                                   inliner_->use_speculative_inlining_,
+                                   inliner_->inlining_black_list_);
             optimizer.PopulateWithICData();
 
             optimizer.ApplyClassIds();
@@ -801,14 +801,26 @@ class CallSiteInliner : public ValueObject {
 
             FlowGraphTypePropagator::Propagate(callee_graph);
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
-          }
-          optimizer.ApplyICData();
-          DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
-          // Optimize (a << b) & c patterns, merge instructions. Must occur
-          // before 'SelectRepresentations' which inserts conversion nodes.
-          optimizer.TryOptimizePatterns();
-          DEBUG_ASSERT(callee_graph->VerifyUseLists());
+            optimizer.ApplyICData();
+            DEBUG_ASSERT(callee_graph->VerifyUseLists());
+
+            // Optimize (a << b) & c patterns, merge instructions. Must occur
+            // before 'SelectRepresentations' which inserts conversion nodes.
+            optimizer.TryOptimizePatterns();
+            DEBUG_ASSERT(callee_graph->VerifyUseLists());
+          } else {
+            FlowGraphOptimizer optimizer(callee_graph,
+                                         inliner_->use_speculative_inlining_,
+                                         inliner_->inlining_black_list_);
+            optimizer.ApplyICData();
+            DEBUG_ASSERT(callee_graph->VerifyUseLists());
+
+            // Optimize (a << b) & c patterns, merge instructions. Must occur
+            // before 'SelectRepresentations' which inserts conversion nodes.
+            optimizer.TryOptimizePatterns();
+            DEBUG_ASSERT(callee_graph->VerifyUseLists());
+          }
         }
 
         if (FLAG_support_il_printer && FLAG_trace_inlining &&
@@ -1508,9 +1520,6 @@ static Instruction* AppendInstruction(Instruction* first,
 
 bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                                    const Function& target) {
-  FlowGraphOptimizer optimizer(owner_->caller_graph(),
-                               false,  // Speculative inlining not applicable.
-                               NULL);
   TargetEntryInstr* entry;
   Definition* last;
   // Replace the receiver argument with a redefinition to prevent code from

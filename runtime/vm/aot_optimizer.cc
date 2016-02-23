@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/flow_graph_optimizer.h"
+#include "vm/aot_optimizer.h"
 
 #include "vm/bit_vector.h"
 #include "vm/branch_optimizer.h"
@@ -18,14 +18,18 @@
 #include "vm/hash_map.h"
 #include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
+#include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/precompiler.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
 namespace dart {
+
+DECLARE_FLAG(bool, precompilation);
 
 // Quick access to the current isolate and zone.
 #define I (isolate())
@@ -47,8 +51,36 @@ static bool CanConvertUnboxedMintToDouble() {
 
 
 // Optimize instance calls using ICData.
-void FlowGraphOptimizer::ApplyICData() {
+void AotOptimizer::ApplyICData() {
   VisitBlocks();
+}
+
+
+void AotOptimizer::PopulateWithICData() {
+  ASSERT(current_iterator_ == NULL);
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    ForwardInstructionIterator it(block_it.Current());
+    for (; !it.Done(); it.Advance()) {
+      Instruction* instr = it.Current();
+      if (instr->IsInstanceCall()) {
+        InstanceCallInstr* call = instr->AsInstanceCall();
+        if (!call->HasICData()) {
+          const Array& arguments_descriptor =
+              Array::Handle(zone(),
+                  ArgumentsDescriptor::New(call->ArgumentCount(),
+                                           call->argument_names()));
+          const ICData& ic_data = ICData::ZoneHandle(zone(), ICData::New(
+              function(), call->function_name(),
+              arguments_descriptor, call->deopt_id(),
+              call->checked_argument_count()));
+          call->set_ic_data(&ic_data);
+        }
+      }
+    }
+    current_iterator_ = NULL;
+  }
 }
 
 
@@ -58,7 +90,7 @@ void FlowGraphOptimizer::ApplyICData() {
 // have no runtime type feedback collected.
 // Attempts to convert an instance call (IC call) using propagated class-ids,
 // e.g., receiver class id, guarded-cid, or by guessing cid-s.
-void FlowGraphOptimizer::ApplyClassIds() {
+void AotOptimizer::ApplyClassIds() {
   ASSERT(current_iterator_ == NULL);
   for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
        !block_it.Done();
@@ -89,7 +121,19 @@ static bool IsNumberCid(intptr_t cid) {
 }
 
 
-bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
+static void GetUniqueDynamicTarget(Isolate* isolate,
+                                   const String& fname,
+                                   Object* function) {
+  UniqueFunctionsSet functions_set(
+      isolate->object_store()->unique_dynamic_targets());
+  ASSERT(fname.IsSymbol());
+  *function = functions_set.GetOrNull(fname);
+  ASSERT(functions_set.Release().raw() ==
+      isolate->object_store()->unique_dynamic_targets());
+}
+
+
+bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   if (call->ic_data()->NumberOfUsedChecks() > 0) {
     // This occurs when an instance call has too many checks, will be converted
@@ -145,8 +189,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
         Resolver::ResolveDynamicForReceiverClass(
             receiver_class,
             call->function_name(),
-            args_desc,
-            false /* allow add */));
+            args_desc));
     if (function.IsNull()) {
       return false;
     }
@@ -167,6 +210,25 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     return true;
   }
 
+  if (isolate()->object_store()->unique_dynamic_targets() != Array::null()) {
+    // Check if the target is unique.
+    Function& target_function = Function::Handle(Z);
+    GetUniqueDynamicTarget(isolate(), call->function_name(), &target_function);
+    // Calls with named arguments must be resolved/checked at runtime.
+    String& error_message = String::Handle(Z);
+    if (!target_function.IsNull() &&
+        !target_function.HasOptionalNamedParameters() &&
+        target_function.AreValidArgumentCounts(call->ArgumentCount(), 0,
+                                               &error_message)) {
+      const intptr_t cid = Class::Handle(Z, target_function.Owner()).id();
+      const ICData& ic_data = ICData::ZoneHandle(Z,
+          ICData::NewFrom(*call->ic_data(), 1));
+      ic_data.AddReceiverCheck(cid, target_function);
+      call->set_ic_data(&ic_data);
+      return true;
+    }
+  }
+
   // Check if getter or setter in function's class and class is currently leaf.
   if (FLAG_guess_icdata_cid &&
       ((call->token_kind() == Token::kGET) ||
@@ -182,8 +244,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
       const Function& function = Function::Handle(Z,
           Resolver::ResolveDynamicForReceiverClass(owner_class,
                                                    call->function_name(),
-                                                   args_desc,
-                                                   false /* allow_add */));
+                                                   args_desc));
       if (!function.IsNull()) {
         const ICData& ic_data = ICData::ZoneHandle(Z,
             ICData::NewFrom(*call->ic_data(), class_ids.length()));
@@ -198,7 +259,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
 }
 
 
-const ICData& FlowGraphOptimizer::TrySpecializeICData(const ICData& ic_data,
+const ICData& AotOptimizer::TrySpecializeICData(const ICData& ic_data,
                                                       intptr_t cid) {
   ASSERT(ic_data.NumArgsTested() == 1);
 
@@ -226,7 +287,7 @@ const ICData& FlowGraphOptimizer::TrySpecializeICData(const ICData& ic_data,
 }
 
 
-void FlowGraphOptimizer::SpecializePolymorphicInstanceCall(
+void AotOptimizer::SpecializePolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* call) {
   if (!FLAG_polymorphic_with_deopt) {
     // Specialization adds receiver checks which can lead to deoptimization.
@@ -275,7 +336,7 @@ static bool IsPositiveOrZeroSmiConst(Definition* d) {
 }
 
 
-void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
+void AotOptimizer::OptimizeLeftShiftBitAndSmiOp(
     Definition* bit_and_instr,
     Definition* left_instr,
     Definition* right_instr) {
@@ -313,7 +374,7 @@ void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
 }
 
 
-void FlowGraphOptimizer::AppendExtractNthOutputForMerged(Definition* instr,
+void AotOptimizer::AppendExtractNthOutputForMerged(Definition* instr,
                                                          intptr_t index,
                                                          Representation rep,
                                                          intptr_t cid) {
@@ -341,7 +402,7 @@ void FlowGraphOptimizer::AppendExtractNthOutputForMerged(Definition* instr,
 //  v7 <- +(v5, v6)
 // Because of the environment it is important that merged instruction replaces
 // first original instruction encountered.
-void FlowGraphOptimizer::TryMergeTruncDivMod(
+void AotOptimizer::TryMergeTruncDivMod(
     GrowableArray<BinarySmiOpInstr*>* merge_candidates) {
   if (merge_candidates->length() < 2) {
     // Need at least a TRUNCDIV and a MOD.
@@ -402,7 +463,7 @@ void FlowGraphOptimizer::TryMergeTruncDivMod(
 
 
 // Tries to merge MathUnary operations, in this case sinus and cosinus.
-void FlowGraphOptimizer::TryMergeMathUnary(
+void AotOptimizer::TryMergeMathUnary(
     GrowableArray<MathUnaryInstr*>* merge_candidates) {
   if (!FlowGraphCompiler::SupportsSinCos() || !CanUnboxDouble() ||
       !FLAG_merge_sin_cos) {
@@ -463,7 +524,7 @@ void FlowGraphOptimizer::TryMergeMathUnary(
 // Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the
 // shift can be a truncating Smi shift-left and result is always Smi.
 // Merging occurs only per basic-block.
-void FlowGraphOptimizer::TryOptimizePatterns() {
+void AotOptimizer::TryOptimizePatterns() {
   if (!FLAG_truncating_left_shift) return;
   ASSERT(current_iterator_ == NULL);
   GrowableArray<BinarySmiOpInstr*> div_mod_merge;
@@ -649,7 +710,7 @@ static bool ShouldSpecializeForDouble(const ICData& ic_data) {
 }
 
 
-void FlowGraphOptimizer::ReplaceCall(Definition* call,
+void AotOptimizer::ReplaceCall(Definition* call,
                                      Definition* replacement) {
   // Remove the original push arguments.
   for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
@@ -661,7 +722,7 @@ void FlowGraphOptimizer::ReplaceCall(Definition* call,
 }
 
 
-void FlowGraphOptimizer::AddCheckSmi(Definition* to_check,
+void AotOptimizer::AddCheckSmi(Definition* to_check,
                                      intptr_t deopt_id,
                                      Environment* deopt_environment,
                                      Instruction* insert_before) {
@@ -676,7 +737,7 @@ void FlowGraphOptimizer::AddCheckSmi(Definition* to_check,
 }
 
 
-Instruction* FlowGraphOptimizer::GetCheckClass(Definition* to_check,
+Instruction* AotOptimizer::GetCheckClass(Definition* to_check,
                                                const ICData& unary_checks,
                                                intptr_t deopt_id,
                                                TokenPosition token_pos) {
@@ -691,7 +752,7 @@ Instruction* FlowGraphOptimizer::GetCheckClass(Definition* to_check,
 }
 
 
-void FlowGraphOptimizer::AddCheckClass(Definition* to_check,
+void AotOptimizer::AddCheckClass(Definition* to_check,
                                        const ICData& unary_checks,
                                        intptr_t deopt_id,
                                        Environment* deopt_environment,
@@ -703,7 +764,7 @@ void FlowGraphOptimizer::AddCheckClass(Definition* to_check,
 }
 
 
-void FlowGraphOptimizer::AddReceiverCheck(InstanceCallInstr* call) {
+void AotOptimizer::AddReceiverCheck(InstanceCallInstr* call) {
   AddCheckClass(call->ArgumentAt(0),
                 ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks()),
                 call->deopt_id(),
@@ -729,7 +790,7 @@ static bool ArgIsAlways(intptr_t cid,
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
+bool AotOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
   // Check for monomorphic IC data.
   if (!call->HasICData()) return false;
   const ICData& ic_data =
@@ -761,7 +822,7 @@ static bool IsLengthOneString(Definition* d) {
 // comparison. Conversion is only possible for strings of length one.
 // E.g., detect str[x] == "x"; and use an integer comparison of char-codes.
 // TODO(srdjan): Expand for two-byte and external strings.
-bool FlowGraphOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
+bool AotOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
                                                     Token::Kind op_kind) {
   ASSERT(HasOnlyTwoOf(*call->ic_data(), kOneByteStringCid));
   // Check that left and right are length one strings (either string constants
@@ -848,7 +909,7 @@ bool FlowGraphOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
 
 static bool SmiFitsInDouble() { return kSmiBits < 53; }
 
-bool FlowGraphOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
+bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
                                                   Token::Kind op_kind) {
   const ICData& ic_data = *call->ic_data();
   ASSERT(ic_data.NumArgsTested() == 2);
@@ -957,7 +1018,7 @@ bool FlowGraphOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
+bool AotOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
                                                     Token::Kind op_kind) {
   const ICData& ic_data = *call->ic_data();
   ASSERT(ic_data.NumArgsTested() == 2);
@@ -1019,7 +1080,7 @@ bool FlowGraphOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
+bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                                                 Token::Kind op_kind) {
   intptr_t operands_type = kIllegalCid;
   ASSERT(call->HasICData());
@@ -1228,7 +1289,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
+bool AotOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
                                                Token::Kind op_kind) {
   ASSERT(call->ArgumentCount() == 1);
   Definition* input = call->ArgumentAt(0);
@@ -1263,7 +1324,7 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
 
 
 // Using field class
-RawField* FlowGraphOptimizer::GetField(intptr_t class_id,
+RawField* AotOptimizer::GetField(intptr_t class_id,
                                        const String& field_name) {
   Class& cls = Class::Handle(Z, isolate()->class_table()->At(class_id));
   Field& field = Field::Handle(Z);
@@ -1281,7 +1342,7 @@ RawField* FlowGraphOptimizer::GetField(intptr_t class_id,
 // Use CHA to determine if the call needs a class check: if the callee's
 // receiver is the same as the caller's receiver and there are no overriden
 // callee functions, then no class check is needed.
-bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
+bool AotOptimizer::InstanceCallNeedsClassCheck(
     InstanceCallInstr* call, RawFunction::Kind kind) const {
   if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
     // Even if class or function are private, lazy class finalization
@@ -1312,7 +1373,7 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
 }
 
 
-bool FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
+bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
                                                       bool allow_check) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
@@ -1339,12 +1400,9 @@ bool FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
       AbstractType::ZoneHandle(Z, field.type()),
       call->token_pos());
   load->set_is_immutable(field.is_final());
-  if (field.guarded_cid() != kIllegalCid) {
-    if (!field.is_nullable() || (field.guarded_cid() == kNullCid)) {
-      load->set_result_cid(field.guarded_cid());
-    }
-    flow_graph()->parsed_function().AddToGuardedFields(&field);
-  }
+
+  // No guarded cid in precompiled mode.
+  ASSERT(field.guarded_cid() == kDynamicCid);
 
   // Discard the environment from the original instruction because the load
   // can't deoptimize.
@@ -1363,7 +1421,7 @@ bool FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
+bool AotOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
                                                MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
     return false;
@@ -1438,7 +1496,7 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineFloat64x2Getter(InstanceCallInstr* call,
+bool AotOptimizer::InlineFloat64x2Getter(InstanceCallInstr* call,
                                                MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
     return false;
@@ -1464,7 +1522,7 @@ bool FlowGraphOptimizer::InlineFloat64x2Getter(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineInt32x4Getter(InstanceCallInstr* call,
+bool AotOptimizer::InlineInt32x4Getter(InstanceCallInstr* call,
                                               MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
     return false;
@@ -1539,7 +1597,7 @@ bool FlowGraphOptimizer::InlineInt32x4Getter(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
+bool AotOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
                                                  Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
     return false;
@@ -1572,7 +1630,7 @@ bool FlowGraphOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
+bool AotOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
                                                 Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
     return false;
@@ -1604,7 +1662,7 @@ bool FlowGraphOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
+bool AotOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
                                                  Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
     return false;
@@ -1638,7 +1696,7 @@ bool FlowGraphOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
 
 // Only unique implicit instance getters can be currently handled.
 // Returns false if 'allow_check' is false and a check is needed.
-bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call,
+bool AotOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call,
                                                  bool allow_check) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
@@ -1663,7 +1721,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::TryReplaceInstanceCallWithInline(
+bool AotOptimizer::TryReplaceInstanceCallWithInline(
     InstanceCallInstr* call) {
   Function& target = Function::Handle(Z);
   GrowableArray<intptr_t> class_ids;
@@ -1707,7 +1765,7 @@ bool FlowGraphOptimizer::TryReplaceInstanceCallWithInline(
 }
 
 
-void FlowGraphOptimizer::ReplaceWithMathCFunction(
+void AotOptimizer::ReplaceWithMathCFunction(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   AddReceiverCheck(call);
@@ -1748,7 +1806,7 @@ static bool IsSupportedByteArrayViewCid(intptr_t cid) {
 
 
 // Inline only simple, frequently called core library methods.
-bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
+bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
   if ((ic_data.NumberOfUsedChecks() == 0) || !ic_data.HasOneTarget()) {
@@ -1981,406 +2039,54 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 }
 
 
-bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
+bool AotOptimizer::TryInlineFloat32x4Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  if (recognized_kind == MethodRecognizer::kFloat32x4Zero) {
-    Float32x4ZeroInstr* zero = new(Z) Float32x4ZeroInstr();
-    ReplaceCall(call, zero);
-    return true;
-  } else if (recognized_kind == MethodRecognizer::kFloat32x4Splat) {
-    Float32x4SplatInstr* splat =
-        new(Z) Float32x4SplatInstr(
-            new(Z) Value(call->ArgumentAt(1)), call->deopt_id());
-    ReplaceCall(call, splat);
-    return true;
-  } else if (recognized_kind == MethodRecognizer::kFloat32x4Constructor) {
-    Float32x4ConstructorInstr* con =
-        new(Z) Float32x4ConstructorInstr(
-            new(Z) Value(call->ArgumentAt(1)),
-            new(Z) Value(call->ArgumentAt(2)),
-            new(Z) Value(call->ArgumentAt(3)),
-            new(Z) Value(call->ArgumentAt(4)),
-            call->deopt_id());
-    ReplaceCall(call, con);
-    return true;
-  } else if (recognized_kind == MethodRecognizer::kFloat32x4FromInt32x4Bits) {
-    Int32x4ToFloat32x4Instr* cast =
-        new(Z) Int32x4ToFloat32x4Instr(
-            new(Z) Value(call->ArgumentAt(1)), call->deopt_id());
-    ReplaceCall(call, cast);
-    return true;
-  } else if (recognized_kind == MethodRecognizer::kFloat32x4FromFloat64x2) {
-    Float64x2ToFloat32x4Instr* cast =
-        new(Z) Float64x2ToFloat32x4Instr(
-            new(Z) Value(call->ArgumentAt(1)), call->deopt_id());
-    ReplaceCall(call, cast);
-    return true;
-  }
+  // Cannot handle unboxed instructions.
+  ASSERT(FLAG_precompilation);
   return false;
 }
 
 
-bool FlowGraphOptimizer::TryInlineFloat64x2Constructor(
+bool AotOptimizer::TryInlineFloat64x2Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  if (recognized_kind == MethodRecognizer::kFloat64x2Zero) {
-    Float64x2ZeroInstr* zero = new(Z) Float64x2ZeroInstr();
-    ReplaceCall(call, zero);
-    return true;
-  } else if (recognized_kind == MethodRecognizer::kFloat64x2Splat) {
-    Float64x2SplatInstr* splat =
-        new(Z) Float64x2SplatInstr(
-            new(Z) Value(call->ArgumentAt(1)), call->deopt_id());
-    ReplaceCall(call, splat);
-    return true;
-  } else if (recognized_kind == MethodRecognizer::kFloat64x2Constructor) {
-    Float64x2ConstructorInstr* con =
-        new(Z) Float64x2ConstructorInstr(
-            new(Z) Value(call->ArgumentAt(1)),
-            new(Z) Value(call->ArgumentAt(2)),
-            call->deopt_id());
-    ReplaceCall(call, con);
-    return true;
-  } else if (recognized_kind == MethodRecognizer::kFloat64x2FromFloat32x4) {
-    Float32x4ToFloat64x2Instr* cast =
-        new(Z) Float32x4ToFloat64x2Instr(
-            new(Z) Value(call->ArgumentAt(1)), call->deopt_id());
-    ReplaceCall(call, cast);
-    return true;
-  }
+  // Cannot handle unboxed instructions.
+  ASSERT(FLAG_precompilation);
   return false;
 }
 
 
-bool FlowGraphOptimizer::TryInlineInt32x4Constructor(
+bool AotOptimizer::TryInlineInt32x4Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  if (recognized_kind == MethodRecognizer::kInt32x4BoolConstructor) {
-    Int32x4BoolConstructorInstr* con =
-        new(Z) Int32x4BoolConstructorInstr(
-            new(Z) Value(call->ArgumentAt(1)),
-            new(Z) Value(call->ArgumentAt(2)),
-            new(Z) Value(call->ArgumentAt(3)),
-            new(Z) Value(call->ArgumentAt(4)),
-            call->deopt_id());
-    ReplaceCall(call, con);
-    return true;
-  } else if (recognized_kind == MethodRecognizer::kInt32x4FromFloat32x4Bits) {
-    Float32x4ToInt32x4Instr* cast =
-        new(Z) Float32x4ToInt32x4Instr(
-            new(Z) Value(call->ArgumentAt(1)), call->deopt_id());
-    ReplaceCall(call, cast);
-    return true;
-  } else if (recognized_kind == MethodRecognizer::kInt32x4Constructor) {
-    Int32x4ConstructorInstr* con =
-        new(Z) Int32x4ConstructorInstr(
-            new(Z) Value(call->ArgumentAt(1)),
-            new(Z) Value(call->ArgumentAt(2)),
-            new(Z) Value(call->ArgumentAt(3)),
-            new(Z) Value(call->ArgumentAt(4)),
-            call->deopt_id());
-    ReplaceCall(call, con);
-    return true;
-  }
+  // Cannot handle unboxed instructions.
+  ASSERT(FLAG_precompilation);
   return false;
 }
 
 
-bool FlowGraphOptimizer::TryInlineFloat32x4Method(
+bool AotOptimizer::TryInlineFloat32x4Method(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  ASSERT(call->HasICData());
-  switch (recognized_kind) {
-    case MethodRecognizer::kFloat32x4ShuffleX:
-    case MethodRecognizer::kFloat32x4ShuffleY:
-    case MethodRecognizer::kFloat32x4ShuffleZ:
-    case MethodRecognizer::kFloat32x4ShuffleW:
-    case MethodRecognizer::kFloat32x4GetSignMask:
-      ASSERT(call->ic_data()->HasReceiverClassId(kFloat32x4Cid));
-      ASSERT(call->ic_data()->HasOneTarget());
-      return InlineFloat32x4Getter(call, recognized_kind);
-
-    case MethodRecognizer::kFloat32x4Equal:
-    case MethodRecognizer::kFloat32x4GreaterThan:
-    case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
-    case MethodRecognizer::kFloat32x4LessThan:
-    case MethodRecognizer::kFloat32x4LessThanOrEqual:
-    case MethodRecognizer::kFloat32x4NotEqual: {
-      Definition* left = call->ArgumentAt(0);
-      Definition* right = call->ArgumentAt(1);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
-      // Replace call.
-      Float32x4ComparisonInstr* cmp =
-          new(Z) Float32x4ComparisonInstr(recognized_kind,
-                                          new(Z) Value(left),
-                                          new(Z) Value(right),
-                                          call->deopt_id());
-      ReplaceCall(call, cmp);
-      return true;
-    }
-    case MethodRecognizer::kFloat32x4Min:
-    case MethodRecognizer::kFloat32x4Max: {
-      Definition* left = call->ArgumentAt(0);
-      Definition* right = call->ArgumentAt(1);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
-      Float32x4MinMaxInstr* minmax =
-          new(Z) Float32x4MinMaxInstr(
-              recognized_kind,
-              new(Z) Value(left),
-              new(Z) Value(right),
-              call->deopt_id());
-      ReplaceCall(call, minmax);
-      return true;
-    }
-    case MethodRecognizer::kFloat32x4Scale: {
-      Definition* left = call->ArgumentAt(0);
-      Definition* right = call->ArgumentAt(1);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
-      // Left and right values are swapped when handed to the instruction,
-      // this is done so that the double value is loaded into the output
-      // register and can be destroyed.
-      Float32x4ScaleInstr* scale =
-          new(Z) Float32x4ScaleInstr(recognized_kind,
-                                     new(Z) Value(right),
-                                     new(Z) Value(left),
-                                     call->deopt_id());
-      ReplaceCall(call, scale);
-      return true;
-    }
-    case MethodRecognizer::kFloat32x4Sqrt:
-    case MethodRecognizer::kFloat32x4ReciprocalSqrt:
-    case MethodRecognizer::kFloat32x4Reciprocal: {
-      Definition* left = call->ArgumentAt(0);
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
-      Float32x4SqrtInstr* sqrt =
-          new(Z) Float32x4SqrtInstr(recognized_kind,
-                                    new(Z) Value(left),
-                                    call->deopt_id());
-      ReplaceCall(call, sqrt);
-      return true;
-    }
-    case MethodRecognizer::kFloat32x4WithX:
-    case MethodRecognizer::kFloat32x4WithY:
-    case MethodRecognizer::kFloat32x4WithZ:
-    case MethodRecognizer::kFloat32x4WithW: {
-      Definition* left = call->ArgumentAt(0);
-      Definition* right = call->ArgumentAt(1);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
-      Float32x4WithInstr* with = new(Z) Float32x4WithInstr(recognized_kind,
-                                                           new(Z) Value(left),
-                                                           new(Z) Value(right),
-                                                           call->deopt_id());
-      ReplaceCall(call, with);
-      return true;
-    }
-    case MethodRecognizer::kFloat32x4Absolute:
-    case MethodRecognizer::kFloat32x4Negate: {
-      Definition* left = call->ArgumentAt(0);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
-      Float32x4ZeroArgInstr* zeroArg =
-          new(Z) Float32x4ZeroArgInstr(
-              recognized_kind, new(Z) Value(left), call->deopt_id());
-      ReplaceCall(call, zeroArg);
-      return true;
-    }
-    case MethodRecognizer::kFloat32x4Clamp: {
-      Definition* left = call->ArgumentAt(0);
-      Definition* lower = call->ArgumentAt(1);
-      Definition* upper = call->ArgumentAt(2);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
-      Float32x4ClampInstr* clamp = new(Z) Float32x4ClampInstr(
-          new(Z) Value(left),
-          new(Z) Value(lower),
-          new(Z) Value(upper),
-          call->deopt_id());
-      ReplaceCall(call, clamp);
-      return true;
-    }
-    case MethodRecognizer::kFloat32x4ShuffleMix:
-    case MethodRecognizer::kFloat32x4Shuffle: {
-      return InlineFloat32x4Getter(call, recognized_kind);
-    }
-    default:
-      return false;
-  }
+  // Cannot handle unboxed instructions.
+  return false;
 }
 
 
-bool FlowGraphOptimizer::TryInlineFloat64x2Method(
+bool AotOptimizer::TryInlineFloat64x2Method(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  ASSERT(call->HasICData());
-  switch (recognized_kind) {
-    case MethodRecognizer::kFloat64x2GetX:
-    case MethodRecognizer::kFloat64x2GetY:
-      ASSERT(call->ic_data()->HasReceiverClassId(kFloat64x2Cid));
-      ASSERT(call->ic_data()->HasOneTarget());
-      return InlineFloat64x2Getter(call, recognized_kind);
-    case MethodRecognizer::kFloat64x2Negate:
-    case MethodRecognizer::kFloat64x2Abs:
-    case MethodRecognizer::kFloat64x2Sqrt:
-    case MethodRecognizer::kFloat64x2GetSignMask: {
-      Definition* left = call->ArgumentAt(0);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
-      Float64x2ZeroArgInstr* zeroArg =
-          new(Z) Float64x2ZeroArgInstr(
-              recognized_kind, new(Z) Value(left), call->deopt_id());
-      ReplaceCall(call, zeroArg);
-      return true;
-    }
-    case MethodRecognizer::kFloat64x2Scale:
-    case MethodRecognizer::kFloat64x2WithX:
-    case MethodRecognizer::kFloat64x2WithY:
-    case MethodRecognizer::kFloat64x2Min:
-    case MethodRecognizer::kFloat64x2Max: {
-      Definition* left = call->ArgumentAt(0);
-      Definition* right = call->ArgumentAt(1);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
-      Float64x2OneArgInstr* zeroArg =
-          new(Z) Float64x2OneArgInstr(recognized_kind,
-                                      new(Z) Value(left),
-                                      new(Z) Value(right),
-                                      call->deopt_id());
-      ReplaceCall(call, zeroArg);
-      return true;
-    }
-    default:
-      return false;
-  }
+  // Cannot handle unboxed instructions.
+  return false;
 }
 
 
-bool FlowGraphOptimizer::TryInlineInt32x4Method(
+bool AotOptimizer::TryInlineInt32x4Method(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  ASSERT(call->HasICData());
-  switch (recognized_kind) {
-    case MethodRecognizer::kInt32x4ShuffleMix:
-    case MethodRecognizer::kInt32x4Shuffle:
-    case MethodRecognizer::kInt32x4GetFlagX:
-    case MethodRecognizer::kInt32x4GetFlagY:
-    case MethodRecognizer::kInt32x4GetFlagZ:
-    case MethodRecognizer::kInt32x4GetFlagW:
-    case MethodRecognizer::kInt32x4GetSignMask:
-      ASSERT(call->ic_data()->HasReceiverClassId(kInt32x4Cid));
-      ASSERT(call->ic_data()->HasOneTarget());
-      return InlineInt32x4Getter(call, recognized_kind);
-
-    case MethodRecognizer::kInt32x4Select: {
-      Definition* mask = call->ArgumentAt(0);
-      Definition* trueValue = call->ArgumentAt(1);
-      Definition* falseValue = call->ArgumentAt(2);
-      // Type check left.
-      AddCheckClass(mask,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
-      Int32x4SelectInstr* select = new(Z) Int32x4SelectInstr(
-          new(Z) Value(mask),
-          new(Z) Value(trueValue),
-          new(Z) Value(falseValue),
-          call->deopt_id());
-      ReplaceCall(call, select);
-      return true;
-    }
-    case MethodRecognizer::kInt32x4WithFlagX:
-    case MethodRecognizer::kInt32x4WithFlagY:
-    case MethodRecognizer::kInt32x4WithFlagZ:
-    case MethodRecognizer::kInt32x4WithFlagW: {
-      Definition* left = call->ArgumentAt(0);
-      Definition* flag = call->ArgumentAt(1);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
-      Int32x4SetFlagInstr* setFlag = new(Z) Int32x4SetFlagInstr(
-          recognized_kind,
-          new(Z) Value(left),
-          new(Z) Value(flag),
-          call->deopt_id());
-      ReplaceCall(call, setFlag);
-      return true;
-    }
-    default:
-      return false;
-  }
+  // Cannot handle unboxed instructions.
+  return false;
 }
 
 
@@ -2390,7 +2096,7 @@ bool FlowGraphOptimizer::TryInlineInt32x4Method(
 // If no mapping is possible, 'results' is empty.
 // An instance-of test returning all same results can be converted to a class
 // check.
-RawBool* FlowGraphOptimizer::InstanceOfAsBool(
+RawBool* AotOptimizer::InstanceOfAsBool(
     const ICData& ic_data,
     const AbstractType& type,
     ZoneGrowableArray<intptr_t>* results) const {
@@ -2449,7 +2155,7 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(
 
 
 // Returns true if checking against this type is a direct class id comparison.
-bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
+bool AotOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
   // Requires CHA.
   if (!type.IsInstantiated()) return false;
@@ -2553,7 +2259,7 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
 
 
 // TODO(srdjan): Use ICData to check if always true or false.
-void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
+void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
   Definition* type_args = NULL;
@@ -2661,7 +2367,7 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 
 
 // TODO(srdjan): Apply optimizations as in ReplaceWithInstanceOf (TestCids).
-void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
+void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeCastOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
   Definition* type_args = call->ArgumentAt(1);
@@ -2704,7 +2410,7 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
 }
 
 
-bool FlowGraphOptimizer::IsBlackListedForInlining(intptr_t call_deopt_id) {
+bool AotOptimizer::IsBlackListedForInlining(intptr_t call_deopt_id) {
   for (intptr_t i = 0; i < inlining_black_list_->length(); ++i) {
     if ((*inlining_black_list_)[i] == call_deopt_id) return true;
   }
@@ -2712,7 +2418,7 @@ bool FlowGraphOptimizer::IsBlackListedForInlining(intptr_t call_deopt_id) {
 }
 
 // Special optimizations when running in --noopt mode.
-void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
+void AotOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
   // TODO(srdjan): Investigate other attempts, as they are not allowed to
   // deoptimize.
 
@@ -2851,113 +2557,13 @@ void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
 
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
-void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
-  if (!instr->HasICData() || (instr->ic_data()->NumberOfUsedChecks() == 0)) {
-    return;
-  }
-  const Token::Kind op_kind = instr->token_kind();
-
-  // Type test is special as it always gets converted into inlined code.
-  if (Token::IsTypeTestOperator(op_kind)) {
-    ReplaceWithInstanceOf(instr);
-    return;
-  }
-
-  if (Token::IsTypeCastOperator(op_kind)) {
-    ReplaceWithTypeCast(instr);
-    return;
-  }
-
-  const ICData& unary_checks =
-      ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
-
-  const intptr_t max_checks = (op_kind == Token::kEQ)
-      ? FLAG_max_equality_polymorphic_checks
-      : FLAG_max_polymorphic_checks;
-  if ((unary_checks.NumberOfChecks() > max_checks) &&
-      InstanceCallNeedsClassCheck(instr, RawFunction::kRegularFunction)) {
-    // Too many checks, it will be megamorphic which needs unary checks.
-    instr->set_ic_data(&unary_checks);
-    return;
-  }
-
-  if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithIndexedOp(instr)) {
-    return;
-  }
-  if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
-    return;
-  }
-
-  if (op_kind == Token::kEQ && TryReplaceWithEqualityOp(instr, op_kind)) {
-    return;
-  }
-
-  if (Token::IsRelationalOperator(op_kind) &&
-      TryReplaceWithRelationalOp(instr, op_kind)) {
-    return;
-  }
-
-  if (Token::IsBinaryOperator(op_kind) &&
-      TryReplaceWithBinaryOp(instr, op_kind)) {
-    return;
-  }
-  if (Token::IsUnaryOperator(op_kind) &&
-      TryReplaceWithUnaryOp(instr, op_kind)) {
-    return;
-  }
-  if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr)) {
-    return;
-  }
-  if ((op_kind == Token::kSET) &&
-      TryInlineInstanceSetter(instr, unary_checks)) {
-    return;
-  }
-  if (TryInlineInstanceMethod(instr)) {
-    return;
-  }
-
-  bool has_one_target = unary_checks.HasOneTarget();
-
-  if (has_one_target) {
-    // Check if the single target is a polymorphic target, if it is,
-    // we don't have one target.
-    const Function& target =
-        Function::Handle(Z, unary_checks.GetTargetAt(0));
-    const bool polymorphic_target = MethodRecognizer::PolymorphicTarget(target);
-    has_one_target = !polymorphic_target;
-  }
-
-  if (has_one_target) {
-    RawFunction::Kind function_kind =
-        Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
-    if (!InstanceCallNeedsClassCheck(instr, function_kind)) {
-      PolymorphicInstanceCallInstr* call =
-          new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                              /* call_with_checks = */ false);
-      instr->ReplaceWith(call, current_iterator());
-      return;
-    }
-  }
-
-  if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
-    bool call_with_checks;
-    if (has_one_target && FLAG_polymorphic_with_deopt) {
-      // Type propagation has not run yet, we cannot eliminate the check.
-      AddReceiverCheck(instr);
-      // Call can still deoptimize, do not detach environment from instr.
-      call_with_checks = false;
-    } else {
-      call_with_checks = true;
-    }
-    PolymorphicInstanceCallInstr* call =
-        new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                            call_with_checks);
-    instr->ReplaceWith(call, current_iterator());
-  }
+void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
+  ASSERT(FLAG_precompilation);
+  InstanceCallNoopt(instr);
 }
 
 
-void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
+void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
   if (!CanUnboxDouble()) {
     return;
   }
@@ -2979,13 +2585,11 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
       break;
   }
   if (unary_kind != MathUnaryInstr::kIllegal) {
-    MathUnaryInstr* math_unary =
-        new(Z) MathUnaryInstr(unary_kind,
-                              new(Z) Value(call->ArgumentAt(0)),
-                              call->deopt_id());
-    ReplaceCall(call, math_unary);
+    ASSERT(FLAG_precompilation);
+    // TODO(srdjan): Adapt MathUnaryInstr to allow tagged inputs as well.
     return;
   }
+
   switch (recognized_kind) {
     case MethodRecognizer::kFloat32x4Zero:
     case MethodRecognizer::kFloat32x4Splat:
@@ -3061,20 +2665,9 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
     case MethodRecognizer::kMathAcos:
     case MethodRecognizer::kMathAtan:
     case MethodRecognizer::kMathAtan2: {
-      // InvokeMathCFunctionInstr requires unboxed doubles. UnboxDouble
-      // instructions contain type checks and conversions to double.
-      ZoneGrowableArray<Value*>* args =
-          new(Z) ZoneGrowableArray<Value*>(call->ArgumentCount());
-      for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-        args->Add(new(Z) Value(call->ArgumentAt(i)));
-      }
-      InvokeMathCFunctionInstr* invoke =
-          new(Z) InvokeMathCFunctionInstr(args,
-                                          call->deopt_id(),
-                                          recognized_kind,
-                                          call->token_pos());
-      ReplaceCall(call, invoke);
-      break;
+      ASSERT(FLAG_precompilation);
+      // No UnboxDouble instructions allowed.
+      return;
     }
     case MethodRecognizer::kDoubleFromInteger: {
       if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
@@ -3130,61 +2723,7 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 
-void FlowGraphOptimizer::VisitStoreInstanceField(
-    StoreInstanceFieldInstr* instr) {
-  if (instr->IsUnboxedStore()) {
-    ASSERT(instr->is_potential_unboxed_initialization_);
-    // Determine if this field should be unboxed based on the usage of getter
-    // and setter functions: The heuristic requires that the setter has a
-    // usage count of at least 1/kGetterSetterRatio of the getter usage count.
-    // This is to avoid unboxing fields where the setter is never or rarely
-    // executed.
-    const Field& field = Field::ZoneHandle(Z, instr->field().raw());
-    const String& field_name = String::Handle(Z, field.name());
-    const Class& owner = Class::Handle(Z, field.owner());
-    const Function& getter =
-        Function::Handle(Z, owner.LookupGetterFunction(field_name));
-    const Function& setter =
-        Function::Handle(Z, owner.LookupSetterFunction(field_name));
-    bool unboxed_field = false;
-    if (!getter.IsNull() && !setter.IsNull()) {
-      if (field.is_double_initialized()) {
-        unboxed_field = true;
-      } else if ((setter.usage_counter() > 0) &&
-                 ((FLAG_getter_setter_ratio * setter.usage_counter()) >=
-                   getter.usage_counter())) {
-        unboxed_field = true;
-      }
-    }
-    if (!unboxed_field) {
-      // TODO(srdjan): Instead of aborting pass this field to the mutator thread
-      // so that it can:
-      // - set it to unboxed
-      // - deoptimize dependent code.
-      if (Compiler::IsBackgroundCompilation()) {
-        isolate()->AddDeoptimizingBoxedField(field);
-        Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
-        UNREACHABLE();
-      }
-      if (FLAG_trace_optimization || FLAG_trace_field_guards) {
-        THR_Print("Disabling unboxing of %s\n", field.ToCString());
-        if (!setter.IsNull()) {
-          OS::Print("  setter usage count: %" Pd "\n", setter.usage_counter());
-        }
-        if (!getter.IsNull()) {
-          OS::Print("  getter usage count: %" Pd "\n", getter.usage_counter());
-        }
-      }
-      field.set_is_unboxing_candidate(false);
-      field.DeoptimizeDependentCode();
-    } else {
-      flow_graph()->parsed_function().AddToGuardedFields(&field);
-    }
-  }
-}
-
-
-void FlowGraphOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
+void AotOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
   // Replace generic allocation with a sequence of inlined allocation and
   // explicit initalizing stores.
   AllocateUninitializedContextInstr* replacement =
@@ -3219,7 +2758,7 @@ void FlowGraphOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
 }
 
 
-void FlowGraphOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
+void AotOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
   // TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
   if (!instr->can_pack_into_smi())
@@ -3228,7 +2767,7 @@ void FlowGraphOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
 }
 
 
-bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
+bool AotOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                                  const ICData& unary_ic_data,
                                                  bool allow_checks) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
@@ -3303,9 +2842,8 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       kEmitStoreBarrier,
       instr->token_pos());
 
-  if (store->IsUnboxedStore()) {
-    flow_graph()->parsed_function().AddToGuardedFields(&field);
-  }
+  // No unboxed stores in precompiled code.
+  ASSERT(!store->IsUnboxedStore());
 
   // Discard the environment from the original instruction because the store
   // can't deoptimize.

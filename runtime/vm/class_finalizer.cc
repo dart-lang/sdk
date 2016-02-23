@@ -18,7 +18,6 @@ namespace dart {
 DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
-DECLARE_FLAG(bool, use_cha_deopt);
 
 
 bool ClassFinalizer::AllClassesFinalized() {

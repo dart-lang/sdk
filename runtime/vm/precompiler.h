@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/hash_map.h"
+#include "vm/hash_table.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -341,6 +342,34 @@ class Precompiler : public ValueObject {
   AbstractTypeSet types_to_retain_;
   Error& error_;
 };
+
+
+class FunctionsTraits {
+ public:
+  static bool IsMatch(const Object& a, const Object& b) {
+    Zone* zone = Thread::Current()->zone();
+    String& a_s = String::Handle(zone);
+    String& b_s = String::Handle(zone);
+    a_s = a.IsFunction() ? Function::Cast(a).name() : String::Cast(a).raw();
+    b_s = b.IsFunction() ? Function::Cast(b).name() : String::Cast(b).raw();
+    ASSERT(a_s.IsSymbol() && b_s.IsSymbol());
+    return a_s.raw() == b_s.raw();
+  }
+  static uword Hash(const Object& obj) {
+    if (obj.IsFunction()) {
+      return String::Handle(Function::Cast(obj).name()).Hash();
+    } else {
+      ASSERT(String::Cast(obj).IsSymbol());
+      return String::Cast(obj).Hash();
+    }
+  }
+  static RawObject* NewKey(const Function& function) {
+    return function.raw();
+  }
+};
+
+typedef UnorderedHashSet<FunctionsTraits> UniqueFunctionsSet;
+
 
 }  // namespace dart
 

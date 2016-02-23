@@ -305,6 +305,32 @@
       ],
     },
     {
+      'target_name': 'libdart_lib_precompiled_runtime',
+      'type': 'static_library',
+      'toolsets':['host', 'target'],
+      'includes': [
+        '../lib/async_sources.gypi',
+        '../lib/collection_sources.gypi',
+        '../lib/core_sources.gypi',
+        '../lib/developer_sources.gypi',
+        '../lib/internal_sources.gypi',
+        '../lib/isolate_sources.gypi',
+        '../lib/math_sources.gypi',
+        '../lib/mirrors_sources.gypi',
+        '../lib/typed_data_sources.gypi',
+        '../lib/vmservice_sources.gypi',
+      ],
+      'sources': [
+        'bootstrap_nocore.cc',
+      ],
+      'defines': [
+        'DART_PRECOMPILED_RUNTIME',
+      ],
+      'include_dirs': [
+        '..',
+      ],
+    },
+    {
       'target_name': 'generate_async_cc_file',
       'type': 'none',
       'toolsets':['host'],
