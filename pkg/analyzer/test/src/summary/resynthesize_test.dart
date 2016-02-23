@@ -53,6 +53,17 @@ class ResynthTest extends ResolverTestCase {
     otherLibrarySources.add(addNamedSource(filePath, contents));
   }
 
+  /**
+   * Verify that the given prefix is safe to elide from a resynthesized AST.
+   */
+  void checkElidablePrefix(SimpleIdentifier prefix) {
+    if (prefix.staticElement is! PrefixElement &&
+        prefix.staticElement is! ClassElement) {
+      fail('Prefix of type ${prefix.staticElement.runtimeType}'
+          ' should not have been elided');
+    }
+  }
+
   void checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false}) {
     Source source = addSource(text);
@@ -367,14 +378,9 @@ class ResynthTest extends ResolverTestCase {
         // expression was e.g. `prefix.topLevelVariableName.length`, it will get
         // resynthesized as `topLevelVariableName.length`
         PrefixedIdentifier oTarget = o.target;
-        if (oTarget.prefix.staticElement is PrefixElement ||
-            oTarget.prefix.staticElement is ClassElement) {
-          compareConstAsts(r,
-              AstFactory.identifier(oTarget.identifier, o.propertyName), desc);
-        } else {
-          fail('Prefix of type ${oTarget.prefix.staticElement.runtimeType}'
-              ' should not have been elided');
-        }
+        checkElidablePrefix(oTarget.prefix);
+        compareConstAsts(
+            r, AstFactory.identifier(oTarget.identifier, o.propertyName), desc);
       } else if (o is PrefixedIdentifier && r is PrefixedIdentifier) {
         compareConstAsts(r.prefix, o.prefix, desc);
         compareConstAsts(r.identifier, o.identifier, desc);
@@ -383,9 +389,15 @@ class ResynthTest extends ResolverTestCase {
         expect(r.propertyName.name, o.propertyName.name, reason: desc);
         compareElements(
             r.propertyName.staticElement, o.propertyName.staticElement, desc);
-      } else if (o is PropertyAccess && r is SimpleIdentifier) {
-        // We don't resynthesize property access.
-        // We use simple identifiers with correct elements.
+      } else if (o is PropertyAccess &&
+          o.target is PrefixedIdentifier &&
+          r is SimpleIdentifier) {
+        // We don't resynthesize property access when it takes the form
+        // `prefixName.className.staticMember`.  We just resynthesize a
+        // SimpleIdentifier correctly resolved to the static member.
+        PrefixedIdentifier oTarget = o.target;
+        checkElidablePrefix(oTarget.prefix);
+        checkElidablePrefix(oTarget.identifier);
         compareConstAsts(r, o.propertyName, desc);
       } else if (o is NullLiteral) {
         expect(r, new isInstanceOf<NullLiteral>(), reason: desc);
