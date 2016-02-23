@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_codegen;
-
 import 'dart:collection' show HashSet, HashMap, SplayTreeSet;
 
 import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
@@ -22,7 +20,6 @@ import 'package:analyzer/src/task/dart.dart' show PublicNamespaceBuilder;
 import 'ast_builder.dart' show AstBuilder;
 import 'reify_coercions.dart' show CoercionReifier, Tuple2;
 
-// TODO(jmesserly): import from its own package
 import '../js/js_ast.dart' as JS;
 import '../js/js_ast.dart' show js;
 
@@ -41,11 +38,10 @@ import 'js_metalet.dart' as JS;
 import 'js_module_item_order.dart';
 import 'js_names.dart';
 import 'js_printer.dart' show writeJsLibrary;
+import 'js_typeref_codegen.dart';
 import 'module_builder.dart';
 import 'nullability_inferrer.dart';
 import 'side_effect_analysis.dart';
-
-part 'js_typeref_codegen.dart';
 
 // Various dynamic helpers we call.
 // If renaming these, make sure to check other places like the
@@ -99,7 +95,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   final _dartxVar = new JS.Identifier('dartx');
   final _exportsVar = new JS.TemporaryId('exports');
   final _runtimeLibVar = new JS.Identifier('dart');
-  final _namedArgTemp = new JS.TemporaryId('opts');
+  final namedArgumentTemp = new JS.TemporaryId('opts');
 
   final TypeProvider _types;
 
@@ -246,12 +242,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     // we have support for modules.
   }
 
-  @override void visitPartDirective(PartDirective node) {}
-  @override void visitPartOfDirective(PartOfDirective node) {}
+  @override
+  void visitPartDirective(PartDirective node) {}
+  @override
+  void visitPartOfDirective(PartOfDirective node) {}
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var exportName = _libraryName(node.uriElement);
+    var exportName = emitLibraryName(node.uriElement);
 
     var currentLibNames = currentLibrary.publicNamespace.definedNames;
 
@@ -1340,10 +1338,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
           // TODO(ochafik): Fix `'prop' in obj` to please Closure's renaming.
           body.add(js.statement('let # = # && # in # ? #.# : #;', [
             jsParam,
-            _namedArgTemp,
+            namedArgumentTemp,
             paramName,
-            _namedArgTemp,
-            _namedArgTemp,
+            namedArgumentTemp,
+            namedArgumentTemp,
             paramName,
             _defaultParamValue(param),
           ]));
@@ -1454,17 +1452,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         node.element);
   }
 
-  /// Returns the name value of the `JSExportName` annotation (when compiling
-  /// the SDK), or `null` if there's none. This is used to control the name
-  /// under which functions are compiled and exported.
-  String _getJSExportName(Element e) {
-    if (!e.source.isInSystemLibrary) {
-      return null;
-    }
-    var jsName = findAnnotation(e, isJSExportNameAnnotation);
-    return getConstantField(jsName, 'name', types.stringType)?.toStringValue();
-  }
-
   @override
   JS.Statement visitFunctionDeclaration(FunctionDeclaration node) {
     assert(node.parent is CompilationUnit);
@@ -1497,7 +1484,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
 
     if (isPublic(name)) {
-      _addExport(name, _getJSExportName(node.element) ?? name);
+      _addExport(name, getJSExportName(node.element, types) ?? name);
     }
     return _statement(body);
   }
@@ -1962,7 +1949,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   }
 
   JS.Expression _emitTopLevelName(Element e, {String suffix: ''}) {
-    var libName = _libraryName(e.library);
+    var libName = emitLibraryName(e.library);
 
     // Always qualify:
     // * mutable top-level fields
@@ -1973,7 +1960,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     bool fromAnotherLibrary = e.library != currentLibrary;
     var nameExpr;
     if (fromAnotherLibrary) {
-      nameExpr = _propertyName((_getJSExportName(e) ?? e.name) + suffix);
+      nameExpr = _propertyName((getJSExportName(e, types) ?? e.name) + suffix);
     } else {
       nameExpr = _propertyName(e.name + suffix);
     }
@@ -2281,7 +2268,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
 
     if (needsOpts) {
-      result.add(_namedArgTemp);
+      result.add(namedArgumentTemp);
     } else if (namedVars.isNotEmpty) {
       // Note: `var {valueOf} = {}` extracts `Object.prototype.valueOf`, so
       // in case there are conflicting names we create an object without
@@ -2504,7 +2491,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     var fieldName = field.name.name;
     var exportName = fieldName;
     if (element is TopLevelVariableElement) {
-      exportName = _getJSExportName(element) ?? fieldName;
+      exportName = getJSExportName(element, types) ?? fieldName;
     }
     if ((field.isConst && eagerInit && element is TopLevelVariableElement) ||
         isJSTopLevel) {
@@ -2575,7 +2562,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     if (target is ClassElement) {
       objExpr = new JS.Identifier(target.type.name);
     } else {
-      objExpr = _libraryName(target);
+      objExpr = emitLibraryName(target);
     }
 
     return js
@@ -3526,7 +3513,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   // TODO(jmesserly): this will need to be a generic method, if we ever want to
   // self-host strong mode.
-  List /*<T>*/ _visitList /*<T>*/ (Iterable<AstNode> nodes) {
+  List/*<T>*/ _visitList/*<T>*/(Iterable<AstNode> nodes) {
     if (nodes == null) return null;
     var result = /*<T>*/ [];
     for (var node in nodes) result.add(_visit(node));
@@ -3654,7 +3641,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   /// Choose a canonical name from the library element.
   /// This never uses the library's name (the identifier in the `library`
   /// declaration) as it doesn't have any meaningful rules enforced.
-  JS.Identifier _libraryName(LibraryElement library) {
+  JS.Identifier emitLibraryName(LibraryElement library) {
     if (library == currentLibrary) return _exportsVar;
     if (library.name == 'dart._runtime') return _runtimeLibVar;
     return _imports.putIfAbsent(
@@ -3666,8 +3653,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   JS.Node annotate(JS.Node node, AstNode original, [Element element]) {
     if (options.closure && element != null) {
-      node = node.withClosureAnnotation(
-          closureAnnotationFor(node, original, element, _namedArgTemp.name));
+      node = node.withClosureAnnotation(closureAnnotationFor(
+          node, original, element, namedArgumentTemp.name));
     }
     return node..sourceInformation = original;
   }

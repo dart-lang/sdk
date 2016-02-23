@@ -3,8 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+
+import '../utils.dart';
 
 bool _isJsLibType(String expectedName, Element e) =>
     e?.name == expectedName && _isJsLib(e.library);
@@ -57,3 +60,14 @@ bool isJsPeerInterface(DartObjectImpl value) =>
 
 bool isNativeAnnotation(DartObjectImpl value) =>
     _isBuiltinAnnotation(value, '_js_helper', 'Native');
+
+/// Returns the name value of the `JSExportName` annotation (when compiling
+/// the SDK), or `null` if there's none. This is used to control the name
+/// under which functions are compiled and exported.
+String getJSExportName(Element e, TypeProvider types) {
+  if (!e.source.isInSystemLibrary) {
+    return null;
+  }
+  var jsName = findAnnotation(e, isJSExportNameAnnotation);
+  return getConstantField(jsName, 'name', types.stringType)?.toStringValue();
+}

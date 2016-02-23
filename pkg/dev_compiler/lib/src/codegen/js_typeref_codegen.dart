@@ -2,7 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_codegen;
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/generated/utilities_dart.dart';
+
+import '../js/js_ast.dart' as JS;
+import '../options.dart';
+import 'js_interop.dart';
 
 /// Mixin with logic to generate [TypeRef]s out of [DartType]s.
 abstract class JsTypeRefCodegen {
@@ -11,10 +17,9 @@ abstract class JsTypeRefCodegen {
   // Mixin dependencies:
   CodegenOptions get options;
   TypeProvider get types;
-  JS.Identifier get _namedArgTemp;
+  JS.Identifier get namedArgumentTemp;
   LibraryElement get currentLibrary;
-  JS.Identifier _libraryName(LibraryElement e);
-  String _getJSExportName(Element e);
+  JS.Identifier emitLibraryName(LibraryElement e);
 
   /// Finds the qualified path to the type.
   JS.TypeRef _emitTopLevelTypeRef(DartType type) {
@@ -23,8 +28,8 @@ abstract class JsTypeRefCodegen {
       return new JS.TypeRef.named(type.name);
     } else {
       return new JS.TypeRef.qualified([
-        _libraryName(e.library),
-        new JS.Identifier(_getJSExportName(e) ?? type.name)
+        emitLibraryName(e.library),
+        new JS.Identifier(getJSExportName(e, types) ?? type.name)
       ]);
     }
   }
@@ -57,7 +62,7 @@ abstract class JsTypeRefCodegen {
           }
           var namedParamType = emitNamedParamsArgType(type.parameters);
           if (namedParamType != null) {
-            args[_namedArgTemp] = namedParamType.toOptional();
+            args[namedArgumentTemp] = namedParamType.toOptional();
           }
 
           rawType = new JS.TypeRef.function(emitTypeRef(type.returnType), args);
