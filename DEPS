@@ -292,10 +292,6 @@ deps_os = {
 # without the runtime being available.
 hooks = [
   {
-    "pattern": ".",
-    "action": ["python", Var("dart_root") + "/tools/gyp_dart.py"],
-  },
-  {
     'name': 'd8_testing_binaries',
     'pattern': '.',
     'action': [
@@ -428,5 +424,9 @@ hooks = [
       "-s",
       Var('dart_root') + "/third_party/clang.tar.gz.sha1",
     ],
+  },
+  {
+    "pattern": ".",
+    "action": ["python", Var("dart_root") + "/tools/gyp_dart.py"],
   },
 ]
