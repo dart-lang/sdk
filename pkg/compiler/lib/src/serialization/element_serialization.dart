@@ -381,7 +381,6 @@ class TypeVariableSerializer implements ElementSerializer {
     encoder.setElement(Key.TYPE_DECLARATION, element.typeDeclaration);
     encoder.setString(Key.NAME, element.name);
     SerializerUtil.serializePosition(element, encoder);
-    TypeDeclarationElement typeDeclaration = element.typeDeclaration;
     encoder.setType(Key.TYPE, element.type);
     encoder.setInt(Key.INDEX, element.index);
     encoder.setType(Key.BOUND, element.bound);
