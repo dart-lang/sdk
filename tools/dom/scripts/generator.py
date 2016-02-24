@@ -141,7 +141,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
         'ApplicationCache,DOMApplicationCache,OfflineResourceList',
 
     'Event':
-        'Event,InputEvent,ClipboardEvent',
+        'Event,InputEvent',
 
     'HTMLTableCellElement':
         'HTMLTableCellElement,HTMLTableDataCellElement,HTMLTableHeaderCellElement',
@@ -151,7 +151,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'IDBOpenDBRequest':
         'IDBOpenDBRequest,IDBVersionChangeRequest',
 
-    'MouseEvent': 'MouseEvent,DragEvent,PointerEvent,MSPointerEvent',
+    'MouseEvent': 'MouseEvent,DragEvent',
 
     'MutationObserver': 'MutationObserver,WebKitMutationObserver',
 
