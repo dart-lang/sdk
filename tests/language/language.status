@@ -106,6 +106,9 @@ stack_overflow_test: Skip # Crashes. Issue 17440.
 stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == arm64 ]
+large_class_declaration_test: SkipSlow # Uses too much memory.
+
 [ $compiler == none && ($runtime == dartium || $runtime == drt) && $mode == debug ]
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
 

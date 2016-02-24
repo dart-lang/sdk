@@ -113,14 +113,11 @@ regress_25335_test: Skip # Int64List not supported.
 precompilation_dart2js_test: Pass, Slow
 
 [ ($runtime == vm || $runtime == dart_product) && $arch == ia32 ]
-precompilation_test: Skip # Not expected to pass on ia32.
-precompilation_dart2js_test: Skip # Not expected to pass on ia32.
+precompilation_test: SkipByDesign # Not expected to pass on ia32.
+precompilation_dart2js_test: SkipByDesign # Not expected to pass on ia32.
 
-[ ($runtime == vm || $runtime == dart_product) && $arch == arm ]
-precompilation_test: Skip # Issue 24427
-precompilation_dart2js_test: Skip # Issue 24427
-
-[ ($runtime == vm || $runtime == dart_product) && $arch == mips ]
+[ ($runtime == vm || $runtime == dart_product) && ($arch == mips || $arch == arm || $arch == arm64) ]
+precompilation_test: SkipSlow
 precompilation_dart2js_test: SkipSlow
 
 [ $compiler == dart2js && $jscl ]
