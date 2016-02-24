@@ -268,6 +268,10 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Element.scrollTop',
   'Element.scrollWidth',
   'Element.scrollHeight',
+  'Element.clientLeft',
+  'Element.clientTop',
+  'Element.clientWidth',
+  'Element.clientHeight',
 
   'Event.initEvent',
   'EventTarget.addEventListener',
