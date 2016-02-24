@@ -4,6 +4,8 @@
 
 library serialization.elements;
 
+import 'dart:convert';
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -17,6 +19,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
+import 'package:crypto/crypto.dart';
 
 /**
  * Serialize all the elements in [lib] to a summary using [ctx] as the context
@@ -24,7 +27,8 @@ import 'package:analyzer/src/summary/summarize_const_expr.dart';
  */
 LibrarySerializationResult serializeLibrary(
     LibraryElement lib, TypeProvider typeProvider, bool strongMode) {
-  var serializer = new _LibrarySerializer(lib, typeProvider, strongMode);
+  _LibrarySerializer serializer =
+      new _LibrarySerializer(lib, typeProvider, strongMode);
   LinkedLibraryBuilder linked = serializer.serializeLibrary();
   return new LibrarySerializationResult(linked, serializer.unlinkedUnits,
       serializer.unitUris, serializer.unitSources);
@@ -103,6 +107,57 @@ class LibrarySerializationResult {
 
   LibrarySerializationResult(
       this.linked, this.unlinkedUnits, this.unitUris, this.unitSources);
+}
+
+/**
+ * Object that gathers information uses it to assemble a new
+ * [PackageBundleBuilder].
+ */
+class PackageBundleAssembler {
+  final List<String> _linkedLibraryUris = <String>[];
+  final List<LinkedLibraryBuilder> _linkedLibraries = <LinkedLibraryBuilder>[];
+  final List<String> _unlinkedUnitUris = <String>[];
+  final List<UnlinkedUnitBuilder> _unlinkedUnits = <UnlinkedUnitBuilder>[];
+  final List<String> _unlinkedUnitHashes = <String>[];
+
+  /**
+   * Assemble a new [PackageBundleBuilder] using the gathered information.
+   */
+  PackageBundleBuilder assemble() {
+    return new PackageBundleBuilder(
+        linkedLibraryUris: _linkedLibraryUris,
+        linkedLibraries: _linkedLibraries,
+        unlinkedUnitUris: _unlinkedUnitUris,
+        unlinkedUnits: _unlinkedUnits,
+        unlinkedUnitHashes: _unlinkedUnitHashes);
+  }
+
+  /**
+   * Serialize the library with the given [element].
+   */
+  void serializeLibraryElement(LibraryElement element) {
+    String uri = element.source.uri.toString();
+    LibrarySerializationResult libraryResult = serializeLibrary(
+        element,
+        element.context.typeProvider,
+        element.context.analysisOptions.strongMode);
+    _linkedLibraryUris.add(uri);
+    _linkedLibraries.add(libraryResult.linked);
+    _unlinkedUnitUris.addAll(libraryResult.unitUris);
+    _unlinkedUnits.addAll(libraryResult.unlinkedUnits);
+    for (Source source in libraryResult.unitSources) {
+      _unlinkedUnitHashes.add(_hash(source.contents.data));
+    }
+  }
+
+  /**
+   * Compute a hash of the given file contents.
+   */
+  String _hash(String contents) {
+    MD5 md5 = new MD5();
+    md5.add(UTF8.encode(contents));
+    return CryptoUtils.bytesToHex(md5.close());
+  }
 }
 
 /**
@@ -1331,7 +1386,7 @@ class _LibrarySerializer {
   /**
    * Retrieve a list of the Sources for the compilation units in the library.
    */
-  List<String> get unitSources => compilationUnitSerializers
+  List<Source> get unitSources => compilationUnitSerializers
       .map((_CompilationUnitSerializer s) => s.unitSource)
       .toList();
 

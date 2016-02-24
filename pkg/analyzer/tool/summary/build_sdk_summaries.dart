@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/element/element.dart';
@@ -9,7 +8,6 @@ import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
-import 'package:crypto/crypto.dart';
 import 'package:path/path.dart';
 
 main(List<String> args) {
@@ -71,11 +69,7 @@ class _Builder {
   AnalysisContext context;
   final Set<Source> processedSources = new Set<Source>();
 
-  final List<String> linkedLibraryUris = <String>[];
-  final List<LinkedLibraryBuilder> linkedLibraries = <LinkedLibraryBuilder>[];
-  final List<String> unlinkedUnitUris = <String>[];
-  final List<UnlinkedUnitBuilder> unlinkedUnits = <UnlinkedUnitBuilder>[];
-  final List<String> unlinkedUnitHashes = <String>[];
+  final PackageBundleAssembler assembler = new PackageBundleAssembler();
 
   _Builder(this.sdkPath, this.outputDirectoryPath, this.strongMode);
 
@@ -111,12 +105,7 @@ class _Builder {
     //
     // Write the whole SDK bundle.
     //
-    PackageBundleBuilder sdkBundle = new PackageBundleBuilder(
-        linkedLibraryUris: linkedLibraryUris,
-        linkedLibraries: linkedLibraries,
-        unlinkedUnitUris: unlinkedUnitUris,
-        unlinkedUnits: unlinkedUnits,
-        unlinkedUnitHashes: unlinkedUnitHashes);
+    PackageBundleBuilder sdkBundle = assembler.assemble();
     String outputFilePath =
         join(outputDirectoryPath, strongMode ? 'strong.sum' : 'spec.sum');
     File file = new File(outputFilePath);
@@ -128,15 +117,6 @@ class _Builder {
   }
 
   /**
-   * Compute a hash of the given file contents.
-   */
-  String _hash(String contents) {
-    MD5 md5 = new MD5();
-    md5.add(UTF8.encode(contents));
-    return CryptoUtils.bytesToHex(md5.close());
-  }
-
-  /**
    * Serialize the library with the given [source] and all its direct or
    * indirect imports and exports.
    */
@@ -145,24 +125,8 @@ class _Builder {
       return;
     }
     LibraryElement element = context.computeLibraryElement(source);
-    _serializeSingleLibrary(element);
+    assembler.serializeLibraryElement(element);
     element.importedLibraries.forEach((e) => _serializeLibrary(e.source));
     element.exportedLibraries.forEach((e) => _serializeLibrary(e.source));
-  }
-
-  /**
-   * Serialize the library with the given [element].
-   */
-  void _serializeSingleLibrary(LibraryElement element) {
-    String uri = element.source.uri.toString();
-    LibrarySerializationResult libraryResult =
-        serializeLibrary(element, context.typeProvider, strongMode);
-    linkedLibraryUris.add(uri);
-    linkedLibraries.add(libraryResult.linked);
-    unlinkedUnitUris.addAll(libraryResult.unitUris);
-    unlinkedUnits.addAll(libraryResult.unlinkedUnits);
-    for (Source source in libraryResult.unitSources) {
-      unlinkedUnitHashes.add(_hash(source.contents.data));
-    }
   }
 }

@@ -4,7 +4,6 @@
 
 library analyzer_cli.src.package_analyzer;
 
-import 'dart:convert';
 import 'dart:core' hide Resource;
 import 'dart:io' as io;
 
@@ -32,7 +31,6 @@ import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
-import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as pathos;
 
 /**
@@ -256,12 +254,6 @@ class PackageAnalyzer {
   InternalAnalysisContext context;
   final List<Source> explicitSources = <Source>[];
 
-  final List<String> linkedLibraryUris = <String>[];
-  final List<LinkedLibraryBuilder> linkedLibraries = <LinkedLibraryBuilder>[];
-  final List<String> unlinkedUnitUris = <String>[];
-  final List<UnlinkedUnitBuilder> unlinkedUnits = <UnlinkedUnitBuilder>[];
-  final List<String> unlinkedUnitHashes = <String>[];
-
   PackageAnalyzer(this.options);
 
   /**
@@ -313,21 +305,17 @@ class PackageAnalyzer {
 
     // Write summary for Dart libraries.
     if (options.packageSummaryOutput != null) {
+      PackageBundleAssembler assembler = new PackageBundleAssembler();
       for (Source source in context.librarySources) {
         if (pathos.isWithin(packageLibPath, source.fullName)) {
           LibraryElement libraryElement = context.getLibraryElement(source);
           if (libraryElement != null) {
-            _serializeSingleLibrary(libraryElement);
+            assembler.serializeLibraryElement(libraryElement);
           }
         }
       }
       // Write the whole package bundle.
-      PackageBundleBuilder sdkBundle = new PackageBundleBuilder(
-          linkedLibraryUris: linkedLibraryUris,
-          linkedLibraries: linkedLibraries,
-          unlinkedUnitUris: unlinkedUnitUris,
-          unlinkedUnits: unlinkedUnits,
-          unlinkedUnitHashes: unlinkedUnitHashes);
+      PackageBundleBuilder sdkBundle = assembler.assemble();
       io.File file = new io.File(options.packageSummaryOutput);
       file.writeAsBytesSync(sdkBundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
     }
@@ -392,15 +380,6 @@ class PackageAnalyzer {
   }
 
   /**
-   * Compute a hash of the given file contents.
-   */
-  String _hash(String contents) {
-    MD5 md5 = new MD5();
-    md5.add(UTF8.encode(contents));
-    return CryptoUtils.bytesToHex(md5.close());
-  }
-
-  /**
    * Print errors for all explicit sources.
    */
   void _printErrors() {
@@ -413,22 +392,6 @@ class PackageAnalyzer {
     for (Source source in explicitSources) {
       AnalysisErrorInfo errorInfo = context.getErrors(source);
       formatter.formatErrors([errorInfo]);
-    }
-  }
-
-  /**
-   * Serialize the library with the given [element].
-   */
-  void _serializeSingleLibrary(LibraryElement element) {
-    String uri = element.source.uri.toString();
-    LibrarySerializationResult libraryResult =
-        serializeLibrary(element, context.typeProvider, options.strongMode);
-    linkedLibraryUris.add(uri);
-    linkedLibraries.add(libraryResult.linked);
-    unlinkedUnitUris.addAll(libraryResult.unitUris);
-    unlinkedUnits.addAll(libraryResult.unlinkedUnits);
-    for (Source source in libraryResult.unitSources) {
-      unlinkedUnitHashes.add(_hash(source.contents.data));
     }
   }
 }
