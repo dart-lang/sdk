@@ -536,7 +536,7 @@ abstract class AstNode {
    * (either AST nodes or tokens) that make up the contents of this node,
    * including doc comments but excluding other comments.
    */
-  Iterable /*<AstNode | Token>*/ get childEntities;
+  Iterable/*<AstNode | Token>*/ get childEntities;
 
   /**
    * Return the offset of the character immediately following the last character
@@ -591,7 +591,7 @@ abstract class AstNode {
    * Use the given [visitor] to visit this node. Return the value returned by
    * the visitor as a result of visiting this node.
    */
-  dynamic /* =E */ accept /*<E>*/ (AstVisitor /*<E>*/ visitor);
+  dynamic /* =E */ accept/*<E>*/(AstVisitor/*<E>*/ visitor);
 
   /**
    * Return the most immediate ancestor of this node for which the [predicate]
@@ -3994,7 +3994,7 @@ abstract class FunctionExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FunctionExpressionInvocation extends Expression {
+abstract class FunctionExpressionInvocation extends InvocationExpression {
   /**
    * Initialize a newly created function expression invocation.
    */
@@ -4002,11 +4002,6 @@ abstract class FunctionExpressionInvocation extends Expression {
       Expression function,
       TypeArgumentList typeArguments,
       ArgumentList argumentList) = FunctionExpressionInvocationImpl;
-
-  /**
-   * Return the list of arguments to the method.
-   */
-  ArgumentList get argumentList;
 
   /**
    * Set the list of arguments to the method to the given [argumentList].
@@ -4092,12 +4087,6 @@ abstract class FunctionExpressionInvocation extends Expression {
    * information to the given [type].
    */
   void set staticInvokeType(DartType type);
-
-  /**
-   * Return the type arguments to be applied to the method being invoked, or
-   * `null` if no type arguments were provided.
-   */
-  TypeArgumentList get typeArguments;
 
   /**
    * Set the type arguments to be applied to the method being invoked to the
@@ -4978,6 +4967,73 @@ abstract class InterpolationString extends InterpolationElement {
 }
 
 /**
+ * The invocation of a function or method; either a
+ * [FunctionExpressionInvocation] or a [MethodInvocation].
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class InvocationExpression extends Expression {
+  /**
+   * Return the list of arguments to the method.
+   */
+  ArgumentList get argumentList;
+
+  /**
+   * The expression that identifies the function or method being invoked.
+   * For example:
+   *
+   *     (o.m)<TArgs>(args); // target will be `o.m`
+   *     o.m<TArgs>(args);   // target will be `m`
+   *
+   * In either case, the [function.staticType] will be the
+   * [staticInvokeType] before applying type arguments `TArgs`. Similarly,
+   * [function.propagatedType] will be the [propagatedInvokeType]
+   * before applying type arguments `TArgs`.
+   */
+  Expression get function;
+
+  /**
+   * Return the function type of the invocation based on the propagated type
+   * information, or `null` if the AST structure has not been resolved, or if
+   * the invoke could not be resolved.
+   *
+   * This will usually be a [FunctionType], but it can also be an
+   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
+   * interface type that implements `Function`.
+   */
+  DartType get propagatedInvokeType;
+
+  /**
+   * Sets the function type of the invocation based on the propagated type
+   * information.
+   */
+  void set propagatedInvokeType(DartType value);
+
+  /**
+   * Return the function type of the invocation based on the static type
+   * information, or `null` if the AST structure has not been resolved, or if
+   * the invoke could not be resolved.
+   *
+   * This will usually be a [FunctionType], but it can also be an
+   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
+   * interface type that implements `Function`.
+   */
+  DartType get staticInvokeType;
+
+  /**
+   * Sets the function type of the invocation based on the static type
+   * information.
+   */
+  void set staticInvokeType(DartType value);
+
+  /**
+   * Return the type arguments to be applied to the method being invoked, or
+   * `null` if no type arguments were provided.
+   */
+  TypeArgumentList get typeArguments;
+}
+
+/**
  * An is expression.
  *
  * > isExpression ::=
@@ -5519,7 +5575,7 @@ abstract class MethodDeclaration extends ClassMember {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class MethodInvocation extends Expression {
+abstract class MethodInvocation extends InvocationExpression {
   /**
    * Initialize a newly created method invocation. The [target] and [operator]
    * can be `null` if there is no target.
@@ -5530,11 +5586,6 @@ abstract class MethodInvocation extends Expression {
       SimpleIdentifier methodName,
       TypeArgumentList typeArguments,
       ArgumentList argumentList) = MethodInvocationImpl;
-
-  /**
-   * Return the list of arguments to the method.
-   */
-  ArgumentList get argumentList;
 
   /**
    * Set the list of arguments to the method to the given [argumentList].
@@ -5629,12 +5680,6 @@ abstract class MethodInvocation extends Expression {
    * the given [expression].
    */
   void set target(Expression expression);
-
-  /**
-   * Return the type arguments to be applied to the method being invoked, or
-   * `null` if no type arguments were provided.
-   */
-  TypeArgumentList get typeArguments;
 
   /**
    * Set the type arguments to be applied to the method being invoked to the

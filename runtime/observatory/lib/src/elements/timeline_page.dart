@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 import 'observatory_element.dart';
-import 'package:observatory/app.dart';
 import 'package:observatory/service_html.dart';
 import 'package:polymer/polymer.dart';
 

@@ -411,8 +411,10 @@ static bool ProcessRunFullSnapshotOption(
 #ifndef DART_PRODUCT_BINARY
   Log::PrintErr("Full Application snapshots can only be be run with"
                 " dart_product\n");
-#endif
+  return false;
+#else
   return ProcessSnapshotOptionHelper(filename, &run_full_snapshot);
+#endif  // defined(DART_PRODUCT_BINARY)
 }
 
 

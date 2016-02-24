@@ -28,14 +28,18 @@ class Resolver : public AllStatic {
                                      const String& function_name,
                                      const ArgumentsDescriptor& args_desc);
 
+  // If 'allow_add' is true we may add a function to the class during lookup.
   static RawFunction* ResolveDynamicForReceiverClass(
       const Class& receiver_class,
       const String& function_name,
-      const ArgumentsDescriptor& args_desc);
+      const ArgumentsDescriptor& args_desc,
+      bool allow_add = true);
 
+  // If 'allow_add' is true we may add a function to the class during lookup.
   static RawFunction* ResolveDynamicAnyArgs(
       const Class& receiver_class,
-      const String& function_name);
+      const String& function_name,
+      bool allow_add = true);
 
   // Resolve specified dart static function. If library.IsNull, use
   // either application library or core library if no application library

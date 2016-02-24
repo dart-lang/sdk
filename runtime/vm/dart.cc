@@ -99,15 +99,13 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   if (FLAG_support_timeline) {
     Timeline::InitOnce();
   }
-#ifndef PRODUCT
-  TimelineDurationScope tds(Timeline::GetVMStream(),
-                            "Dart::InitOnce");
-#endif
+  NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
+                                           "Dart::InitOnce"));
   Isolate::InitOnce();
   PortMap::InitOnce();
   FreeListElement::InitOnce();
   Api::InitOnce();
-  CodeObservers::InitOnce();
+  NOT_IN_PRODUCT(CodeObservers::InitOnce());
   if (FLAG_profiler) {
     ThreadInterrupter::InitOnce();
     Profiler::InitOnce();
@@ -365,7 +363,7 @@ const char* Dart::Cleanup() {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting code observers\n",
                  timestamp());
   }
-  CodeObservers::DeleteAll();
+  NOT_IN_PRODUCT(CodeObservers::DeleteAll());
   if (FLAG_support_timeline) {
     if (FLAG_trace_shutdown) {
       OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down timeline\n",
@@ -393,18 +391,17 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
-#ifndef PRODUCT
-  TimelineDurationScope tds(T, I->GetIsolateStream(), "InitializeIsolate");
-  tds.SetNumArguments(1);
-  tds.CopyArgument(0, "isolateName", I->name());
-#endif  // !PRODUCT
+  NOT_IN_PRODUCT(
+    TimelineDurationScope tds(T, I->GetIsolateStream(), "InitializeIsolate");
+    tds.SetNumArguments(1);
+    tds.CopyArgument(0, "isolateName", I->name());
+  )
   ASSERT(I != NULL);
   StackZone zone(T);
   HandleScope handle_scope(T);
   {
-#ifndef PRODUCT
-    TimelineDurationScope tds(T, I->GetIsolateStream(), "ObjectStore::Init");
-#endif  // !PRODUCT
+    NOT_IN_PRODUCT(TimelineDurationScope tds(T,
+        I->GetIsolateStream(), "ObjectStore::Init"));
     ObjectStore::Init(I);
   }
 
@@ -414,10 +411,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   }
   if (snapshot_buffer != NULL) {
     // Read the snapshot and setup the initial state.
-#ifndef PRODUCT
-    TimelineDurationScope tds(
-        T, I->GetIsolateStream(), "IsolateSnapshotReader");
-#endif  // !PRODUCT
+    NOT_IN_PRODUCT(TimelineDurationScope tds(T,
+        I->GetIsolateStream(), "IsolateSnapshotReader"));
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     if (snapshot == NULL) {
@@ -451,14 +446,11 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   }
 
   Object::VerifyBuiltinVtables();
-#if defined(DEBUG)
-  I->heap()->Verify(kForbidMarked);
-#endif
+  DEBUG_ONLY(I->heap()->Verify(kForbidMarked));
 
   {
-#ifndef PRODUCT
-    TimelineDurationScope tds(T, I->GetIsolateStream(), "StubCode::Init");
-#endif  // !PRODUCT
+    NOT_IN_PRODUCT(TimelineDurationScope tds(T,
+        I->GetIsolateStream(), "StubCode::Init"));
     StubCode::Init(I);
   }
 
@@ -472,8 +464,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   I->set_ic_miss_code(miss_code);
 
   if (snapshot_buffer == NULL) {
-    if (!I->object_store()->PreallocateObjects()) {
-      return T->sticky_error();
+    const Error& error = Error::Handle(I->object_store()->PreallocateObjects());
+    if (!error.IsNull()) {
+      return error.raw();
     }
   }
 

@@ -14,7 +14,7 @@
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 mutation_observer: Skip # Issue 21149
 unittest/*: Skip # Issue 21949
 lookup_map/*: SkipByDesign

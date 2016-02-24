@@ -114,11 +114,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
 
   /**
-   * The [SourceRange] of the `with` clause, `null` if there is no one.
-   */
-  SourceRange withClauseRange;
-
-  /**
    * A flag indicating whether the types associated with the instance members of
    * this class have been inferred.
    */
@@ -710,7 +705,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
           new ConstructorElementImpl(superclassConstructor.name, -1);
       implicitConstructor.synthetic = true;
       implicitConstructor.redirectedConstructor = superclassConstructor;
-      implicitConstructor.const2 = superclassConstructor.isConst;
       implicitConstructor.returnType = type;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
@@ -1789,11 +1783,12 @@ abstract class ElementImpl implements Element {
 
   /**
    * Set the enclosing element of this element to the given [element].
+   *
+   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
    */
   void set enclosingElement(Element element) {
     _enclosingElement = element as ElementImpl;
-    _cachedLocation = null;
-    _cachedHashCode = null;
+    _updateCaches();
   }
 
   @override
@@ -1865,10 +1860,14 @@ abstract class ElementImpl implements Element {
   @override
   String get name => _name;
 
+  /**
+   * Changes the name of this element.
+   *
+   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
+   */
   void set name(String name) {
     this._name = name;
-    _cachedLocation = null;
-    _cachedHashCode = null;
+    _updateCaches();
   }
 
   @override
@@ -1880,11 +1879,12 @@ abstract class ElementImpl implements Element {
   /**
    * Sets the offset of the name of this element in the file that contains the
    * declaration of this element.
+   *
+   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
    */
   void set nameOffset(int offset) {
     _nameOffset = offset;
-    _cachedHashCode = null;
-    _cachedLocation = null;
+    _updateCaches();
   }
 
   @override
@@ -2044,6 +2044,35 @@ abstract class ElementImpl implements Element {
   @override
   void visitChildren(ElementVisitor visitor) {
     // There are no children to visit
+  }
+
+  /**
+   *  Updates cached values after an input changed.
+   *
+   *  Throws [FrozenHashCodeException] if not allowed.
+   */
+  void _updateCaches() {
+    if (!hasModifier(Modifier.CACHE_KEY)) {
+      // Fast path.
+      _cachedLocation = null;
+      _cachedHashCode = null;
+      return;
+    }
+
+    // Save originals.
+    ElementLocation oldLocation = _cachedLocation;
+    int oldHashCode = _cachedHashCode;
+
+    _cachedLocation = null;
+    _cachedHashCode = null;
+
+    if (oldHashCode != hashCode) {
+      // Prevent cache corruption by restoring originals.
+      _cachedLocation = oldLocation;
+      _cachedHashCode = oldHashCode;
+      throw new FrozenHashCodeException(
+          "can't update hashCode for a cache key: $this ($runtimeType)");
+    }
   }
 }
 
@@ -2575,6 +2604,18 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 }
 
 /**
+ * Indicates that an ElementImpl's hashCode cannot currently be changed.
+ */
+class FrozenHashCodeException implements Exception {
+  final String _message;
+
+  FrozenHashCodeException(this._message);
+
+  @override
+  String toString() => "FrozenHashCodeException($_message)";
+}
+
+/**
  * A concrete implementation of a [FunctionElement].
  */
 class FunctionElementImpl extends ExecutableElementImpl
@@ -2935,7 +2976,17 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
    * `switch` statement and [onSwitchMember] should be `true` if this label is
    * associated with a `switch` member.
    */
-  LabelElementImpl(
+  LabelElementImpl(String name, int nameOffset, this._onSwitchStatement,
+      this._onSwitchMember)
+      : super(name, nameOffset);
+
+  /**
+   * Initialize a newly created label element to have the given [name].
+   * [onSwitchStatement] should be `true` if this label is associated with a
+   * `switch` statement and [onSwitchMember] should be `true` if this label is
+   * associated with a `switch` member.
+   */
+  LabelElementImpl.forNode(
       Identifier name, this._onSwitchStatement, this._onSwitchMember)
       : super.forNode(name);
 
@@ -3557,12 +3608,10 @@ class LocalVariableElementImpl extends VariableElementImpl
   }
 
   @override
-  bool get isPotentiallyMutatedInClosure =>
-      hasModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT);
+  bool get isPotentiallyMutatedInClosure => true;
 
   @override
-  bool get isPotentiallyMutatedInScope =>
-      hasModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE);
+  bool get isPotentiallyMutatedInScope => true;
 
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
@@ -3588,20 +3637,6 @@ class LocalVariableElementImpl extends VariableElementImpl
   @override
   VariableDeclaration computeNode() =>
       getNodeMatching((node) => node is VariableDeclaration);
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in closure.
-   */
-  void markPotentiallyMutatedInClosure() {
-    setModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT, true);
-  }
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in its scope.
-   */
-  void markPotentiallyMutatedInScope() {
-    setModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE, true);
-  }
 
   /**
    * Set the visible range for this element to the range starting at the given
@@ -3778,34 +3813,20 @@ class Modifier extends Enum<Modifier> {
       const Modifier('MIXIN_APPLICATION', 12);
 
   /**
-   * Indicates that the value of a parameter or local variable might be mutated
-   * within the context.
-   */
-  static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT =
-      const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 13);
-
-  /**
-   * Indicates that the value of a parameter or local variable might be mutated
-   * within the scope.
-   */
-  static const Modifier POTENTIALLY_MUTATED_IN_SCOPE =
-      const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 14);
-
-  /**
    * Indicates that a class contains an explicit reference to 'super'.
    */
   static const Modifier REFERENCES_SUPER =
-      const Modifier('REFERENCES_SUPER', 15);
+      const Modifier('REFERENCES_SUPER', 13);
 
   /**
    * Indicates that the pseudo-modifier 'set' was applied to the element.
    */
-  static const Modifier SETTER = const Modifier('SETTER', 16);
+  static const Modifier SETTER = const Modifier('SETTER', 14);
 
   /**
    * Indicates that the modifier 'static' was applied to the element.
    */
-  static const Modifier STATIC = const Modifier('STATIC', 17);
+  static const Modifier STATIC = const Modifier('STATIC', 15);
 
   /**
    * Indicates that the element does not appear in the source code but was
@@ -3813,9 +3834,14 @@ class Modifier extends Enum<Modifier> {
    * constructors, an implicit zero-argument constructor will be created and it
    * will be marked as being synthetic.
    */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 18);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 16);
 
-  static const List<Modifier> values = const [
+  /**
+   * Indicates that this element is being used as an analyzer cache key.
+   */
+  static const Modifier CACHE_KEY = const Modifier('CACHE_KEY', 17);
+
+  static const List<Modifier> persistedValues = const [
     ABSTRACT,
     ASYNCHRONOUS,
     CONST,
@@ -3829,13 +3855,16 @@ class Modifier extends Enum<Modifier> {
     HAS_EXT_URI,
     IMPLICIT_TYPE,
     MIXIN_APPLICATION,
-    POTENTIALLY_MUTATED_IN_CONTEXT,
-    POTENTIALLY_MUTATED_IN_SCOPE,
     REFERENCES_SUPER,
     SETTER,
     STATIC,
     SYNTHETIC
   ];
+
+  static const List<Modifier> transientValues = const [CACHE_KEY];
+
+  static final values = new List.unmodifiable(
+      []..addAll(persistedValues)..addAll(transientValues));
 
   const Modifier(String name, int ordinal) : super(name, ordinal);
 }
@@ -4161,12 +4190,10 @@ class ParameterElementImpl extends VariableElementImpl
   bool get isInitializingFormal => false;
 
   @override
-  bool get isPotentiallyMutatedInClosure =>
-      hasModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT);
+  bool get isPotentiallyMutatedInClosure => true;
 
   @override
-  bool get isPotentiallyMutatedInScope =>
-      hasModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE);
+  bool get isPotentiallyMutatedInScope => true;
 
   @override
   ElementKind get kind => ElementKind.PARAMETER;
@@ -4241,20 +4268,6 @@ class ParameterElementImpl extends VariableElementImpl
       }
     }
     return null;
-  }
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in closure.
-   */
-  void markPotentiallyMutatedInClosure() {
-    setModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT, true);
-  }
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in its scope.
-   */
-  void markPotentiallyMutatedInScope() {
-    setModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE, true);
   }
 
   /**
@@ -4600,17 +4613,17 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterElementImpl(String name, int offset) : super(name, offset);
 
   /**
+   * Initialize a newly created type parameter element to have the given [name].
+   */
+  TypeParameterElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
    * Initialize a newly created synthetic type parameter element to have the
    * given [name], and with [synthetic] set to true.
    */
   TypeParameterElementImpl.synthetic(String name) : super(name, -1) {
     synthetic = true;
   }
-
-  /**
-   * Initialize a newly created type parameter element to have the given [name].
-   */
-  TypeParameterElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;

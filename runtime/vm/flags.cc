@@ -30,24 +30,55 @@ DEFINE_FLAG(bool, ignore_unrecognized_flags, false,
 #define DEBUG_FLAG_MARCO(name, type, default_value, comment)
 #endif  // defined(DEBUG)
 
-#if defined(PRODUCT)
+#if defined(PRODUCT) && defined(DART_PRECOMPILED_RUNTIME)
 // Nothing to be done for the product flag definitions.
 #define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)
-#else  // defined(PRODUCT)
+// Nothing to be done for the precompilation flag definitions.
+#define PRECOMPILE_FLAG_MARCO(name, pre_value, product_value, type,            \
+                              default_value, comment)
+
+#elif defined(PRODUCT)  // !PRECOMPILED
+// Nothing to be done for the product flag definitions.
+#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)
+// Nothing to be done for the precompilation flag definitions.
+#define PRECOMPILE_FLAG_MARCO(name, pre_value, product_value, type,            \
+                              default_value, comment)
+
+#elif defined(DART_PRECOMPILED_RUNTIME)  // !PRODUCT
 #define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
   type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
                                             #name,                             \
                                             default_value,                     \
                                             comment);
-#endif  // defined(PRODUCT)
+// Nothing to be done for the precompilation flag definitions.
+#define PRECOMPILE_FLAG_MARCO(name, pre_value, product_value, type,            \
+                              default_value, comment)
+
+#else  // !PRODUCT && !PRECOMPILED
+#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
+  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
+                                            #name,                             \
+                                            default_value,                     \
+                                            comment);
+#define PRECOMPILE_FLAG_MARCO(name, pre_value, product_value, type,            \
+                              default_value, comment)                          \
+  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
+                                            #name,                             \
+                                            default_value,                     \
+                                            comment);
+#endif
+
 
 // Define all of the non-product flags here.
-FLAG_LIST(PRODUCT_FLAG_MARCO, RELEASE_FLAG_MARCO, DEBUG_FLAG_MARCO)
+FLAG_LIST(PRODUCT_FLAG_MARCO,
+          RELEASE_FLAG_MARCO,
+          DEBUG_FLAG_MARCO,
+          PRECOMPILE_FLAG_MARCO)
 
 #undef RELEASE_FLAG_MARCO
 #undef DEBUG_FLAG_MARCO
 #undef PRODUCT_FLAG_MARCO
-
+#undef PRECOMPILE_FLAG_MARCO
 
 bool Flags::initialized_ = false;
 

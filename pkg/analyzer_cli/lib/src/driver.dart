@@ -34,6 +34,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/options.dart';
+import 'package:analyzer_cli/src/package_analyzer.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
@@ -113,7 +114,13 @@ class Driver implements CommandLineStarter {
     _setupEnv(options);
 
     // Do analysis.
-    if (_isBatch) {
+    if (options.packageMode) {
+      ErrorSeverity severity = _analyzePackage(options);
+      // In case of error propagate exit code.
+      if (severity == ErrorSeverity.ERROR) {
+        exitCode = severity.ordinal;
+      }
+    } else if (_isBatch) {
       _BatchRunner.runAsBatch(args, (List<String> args) {
         CommandLineOptions options = CommandLineOptions.parse(args);
         return _analyzeAll(options);
@@ -213,6 +220,13 @@ class Driver implements CommandLineStarter {
     }
 
     return allResult;
+  }
+
+  /// Perform package analysis according to the given [options].
+  ErrorSeverity _analyzePackage(CommandLineOptions options) {
+    return _analyzeAllTag.makeCurrentWhile(() {
+      return new PackageAnalyzer(options).analyze();
+    });
   }
 
   /// Determine whether the context created during a previous call to
@@ -461,6 +475,7 @@ class Driver implements CommandLineStarter {
 
     // Create a context.
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    _context = context;
 
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
@@ -471,34 +486,10 @@ class Driver implements CommandLineStarter {
 
     context.sourceFactory = sourceFactory;
 
-    Map<String, String> definedVariables = options.definedVariables;
-    if (!definedVariables.isEmpty) {
-      DeclaredVariables declaredVariables = context.declaredVariables;
-      definedVariables.forEach((String variableName, String value) {
-        declaredVariables.define(variableName, value);
-      });
-    }
-
-    if (options.log) {
-      AnalysisEngine.instance.logger = new StdLogger();
-    }
-
-    // Set context options.
-    AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
-    contextOptions.hint = !options.disableHints;
-    contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
-    contextOptions.enableSuperMixins = options.enableSuperMixins;
-    contextOptions.analyzeFunctionBodiesPredicate = dietParsingPolicy;
-    contextOptions.generateImplicitErrors = options.showPackageWarnings;
-    contextOptions.generateSdkErrors = options.showSdkWarnings;
-    contextOptions.lint = options.lints;
-    contextOptions.strongMode = options.strongMode;
-    context.analysisOptions = contextOptions;
-    sourceFactory.dartSdk.context.analysisOptions = contextOptions;
-    _context = context;
-
-    // Process analysis options file (and notify all interested parties).
-    _processAnalysisOptions(options, context);
+    setAnalysisContextOptions(_context, options,
+        (AnalysisOptionsImpl contextOptions) {
+      contextOptions.analyzeFunctionBodiesPredicate = dietParsingPolicy;
+    });
   }
 
   /// Return discovered packagespec, or `null` if none is found.
@@ -515,22 +506,6 @@ class Driver implements CommandLineStarter {
     return null;
   }
 
-  fileSystem.File _getOptionsFile(CommandLineOptions options) {
-    fileSystem.File file;
-    String filePath = options.analysisOptionsFile;
-    if (filePath != null) {
-      file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
-      if (!file.exists) {
-        printAndFail('Options file not found: $filePath',
-            exitCode: ErrorSeverity.ERROR.ordinal);
-      }
-    } else {
-      filePath = AnalysisEngine.ANALYSIS_OPTIONS_FILE;
-      file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
-    }
-    return file;
-  }
-
   Map<String, List<fileSystem.Folder>> _getPackageMap(Packages packages) {
     if (packages == null) {
       return null;
@@ -544,34 +519,6 @@ class Driver implements CommandLineStarter {
       ];
     });
     return folderMap;
-  }
-
-  void _processAnalysisOptions(
-      CommandLineOptions options, AnalysisContext context) {
-    fileSystem.File file = _getOptionsFile(options);
-    List<OptionsProcessor> optionsProcessors =
-        AnalysisEngine.instance.optionsPlugin.optionsProcessors;
-    try {
-      AnalysisOptionsProvider analysisOptionsProvider =
-          new AnalysisOptionsProvider();
-      Map<String, YamlNode> optionMap =
-          analysisOptionsProvider.getOptionsFromFile(file);
-      optionsProcessors.forEach(
-          (OptionsProcessor p) => p.optionsProcessed(context, optionMap));
-
-      // Fill in lint rule defaults in case lints are enabled and rules are
-      // not specified in an options file.
-      if (options.lints && !containsLintRuleEntry(optionMap)) {
-        setLints(context, linterPlugin.contributedRules);
-      }
-
-      // Ask engine to further process options.
-      if (optionMap != null) {
-        configureContextOptions(context, optionMap);
-      }
-    } on Exception catch (e) {
-      optionsProcessors.forEach((OptionsProcessor p) => p.onError(e));
-    }
   }
 
   void _processPlugins() {
@@ -611,6 +558,41 @@ class Driver implements CommandLineStarter {
     _isBatch = options.shouldBatch;
   }
 
+  static void setAnalysisContextOptions(
+      AnalysisContext context,
+      CommandLineOptions options,
+      void configureContextOptions(AnalysisOptionsImpl contextOptions)) {
+    Map<String, String> definedVariables = options.definedVariables;
+    if (!definedVariables.isEmpty) {
+      DeclaredVariables declaredVariables = context.declaredVariables;
+      definedVariables.forEach((String variableName, String value) {
+        declaredVariables.define(variableName, value);
+      });
+    }
+
+    if (options.log) {
+      AnalysisEngine.instance.logger = new StdLogger();
+    }
+
+    // Prepare context options.
+    AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
+    contextOptions.hint = !options.disableHints;
+    contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
+    contextOptions.enableSuperMixins = options.enableSuperMixins;
+    contextOptions.generateImplicitErrors = options.showPackageWarnings;
+    contextOptions.generateSdkErrors = options.showSdkWarnings;
+    contextOptions.lint = options.lints;
+    contextOptions.strongMode = options.strongMode;
+    configureContextOptions(contextOptions);
+
+    // Set context options.
+    context.analysisOptions = contextOptions;
+    context.sourceFactory.dartSdk.context.analysisOptions = contextOptions;
+
+    // Process analysis options file (and notify all interested parties).
+    _processAnalysisOptions(context, options);
+  }
+
   /// Perform a deep comparison of two string maps.
   static bool _equalMaps(Map<String, String> m1, Map<String, String> m2) {
     if (m1.length != m2.length) {
@@ -624,9 +606,53 @@ class Driver implements CommandLineStarter {
     return true;
   }
 
+  static fileSystem.File _getOptionsFile(CommandLineOptions options) {
+    fileSystem.File file;
+    String filePath = options.analysisOptionsFile;
+    if (filePath != null) {
+      file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+      if (!file.exists) {
+        printAndFail('Options file not found: $filePath',
+            exitCode: ErrorSeverity.ERROR.ordinal);
+      }
+    } else {
+      filePath = AnalysisEngine.ANALYSIS_OPTIONS_FILE;
+      file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+    }
+    return file;
+  }
+
   /// Convert [sourcePath] into an absolute path.
   static String _normalizeSourcePath(String sourcePath) =>
       path.normalize(new File(sourcePath).absolute.path);
+
+  static void _processAnalysisOptions(
+      AnalysisContext context, CommandLineOptions options) {
+    fileSystem.File file = _getOptionsFile(options);
+    List<OptionsProcessor> optionsProcessors =
+        AnalysisEngine.instance.optionsPlugin.optionsProcessors;
+    try {
+      AnalysisOptionsProvider analysisOptionsProvider =
+          new AnalysisOptionsProvider();
+      Map<String, YamlNode> optionMap =
+          analysisOptionsProvider.getOptionsFromFile(file);
+      optionsProcessors.forEach(
+          (OptionsProcessor p) => p.optionsProcessed(context, optionMap));
+
+      // Fill in lint rule defaults in case lints are enabled and rules are
+      // not specified in an options file.
+      if (options.lints && !containsLintRuleEntry(optionMap)) {
+        setLints(context, linterPlugin.contributedRules);
+      }
+
+      // Ask engine to further process options.
+      if (optionMap != null) {
+        configureContextOptions(context, optionMap);
+      }
+    } on Exception catch (e) {
+      optionsProcessors.forEach((OptionsProcessor p) => p.onError(e));
+    }
+  }
 }
 
 /// Provides a framework to read command line options from stdin and feed them

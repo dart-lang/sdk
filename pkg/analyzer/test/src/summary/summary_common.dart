@@ -314,9 +314,9 @@ abstract class SummaryTest {
   }
 
   /**
-   * Test an inferred type.  If strong mode is disabled, verify that the given
-   * [slotId] exists and has no associated type.  Otherwise, behave as in
-   * [checkLinkedTypeSlot].
+   * Test an inferred type.  If [onlyInStrongMode] is `true` (the default) and
+   * strong mode is disabled, verify that the given [slotId] exists and has no
+   * associated type.  Otherwise, behave as in [checkLinkedTypeSlot].
    */
   void checkInferredTypeSlot(
       int slotId, String absoluteUri, String relativeUri, String expectedName,
@@ -325,8 +325,9 @@ abstract class SummaryTest {
       int expectedTargetUnit: 0,
       LinkedUnit linkedSourceUnit,
       UnlinkedUnit unlinkedSourceUnit,
-      int numTypeParameters: 0}) {
-    if (strongMode) {
+      int numTypeParameters: 0,
+      bool onlyInStrongMode: true}) {
+    if (strongMode || !onlyInStrongMode) {
       checkLinkedTypeSlot(slotId, absoluteUri, relativeUri, expectedName,
           allowTypeArguments: allowTypeParameters,
           expectedKind: expectedKind,
@@ -479,7 +480,8 @@ abstract class SummaryTest {
       LinkedUnit linkedSourceUnit,
       UnlinkedUnit unlinkedSourceUnit,
       int numTypeParameters: 0,
-      bool checkAstDerivedDataOverride: false}) {
+      bool checkAstDerivedDataOverride: false,
+      int localIndex: 0}) {
     linkedSourceUnit ??= definingUnit;
     unlinkedSourceUnit ??= unlinkedUnits[0];
     LinkedReference referenceResolution =
@@ -525,6 +527,7 @@ abstract class SummaryTest {
     expect(referenceResolution.kind, expectedKind);
     expect(referenceResolution.unit, expectedTargetUnit);
     expect(referenceResolution.numTypeParameters, numTypeParameters);
+    expect(referenceResolution.localIndex, localIndex);
     return reference;
   }
 
@@ -584,15 +587,8 @@ abstract class SummaryTest {
     } else if (prefixExpectations != null) {
       for (_PrefixExpectation expectation in prefixExpectations) {
         expect(reference.prefixReference, isNot(0));
-        reference = checkReferenceIndex(
-            reference.prefixReference,
-            expectation.inLibraryDefiningUnit
-                ? null
-                : expectation.absoluteUri ?? absoluteUri,
-            expectation.inLibraryDefiningUnit
-                ? null
-                : expectation.relativeUri ?? relativeUri,
-            expectation.name,
+        reference = checkReferenceIndex(reference.prefixReference,
+            expectation.absoluteUri, expectation.relativeUri, expectation.name,
             expectedKind: expectation.kind,
             checkAstDerivedDataOverride: checkAstDerivedDataOverride,
             expectedTargetUnit: expectedTargetUnit,
@@ -782,8 +778,8 @@ abstract class SummaryTest {
    * executable with the given [executableName].
    */
   UnlinkedExecutable serializeExecutableText(String text,
-      [String executableName = 'f']) {
-    serializeLibraryText(text);
+      {String executableName: 'f', bool allowErrors: false}) {
+    serializeLibraryText(text, allowErrors: allowErrors);
     return findExecutable(executableName, failIfAbsent: true);
   }
 
@@ -836,6 +832,20 @@ abstract class SummaryTest {
       {String variableName: 'v', bool allowErrors: false}) {
     serializeLibraryText(text, allowErrors: allowErrors);
     return findVariable(variableName, failIfAbsent: true);
+  }
+
+  test_bottom_reference_shared() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    // The synthetic executables for both `x` and `y` have type `() => `Bottom`.
+    // Verify that they both use the same reference to `Bottom`.
+    serializeLibraryText('int x = null; int y = null;');
+    EntityRef xInitializerReturnType =
+        getTypeRefForSlot(findVariable('x').initializer.inferredReturnTypeSlot);
+    EntityRef yInitializerReturnType =
+        getTypeRefForSlot(findVariable('y').initializer.inferredReturnTypeSlot);
+    expect(xInitializerReturnType.reference, yInitializerReturnType.reference);
   }
 
   test_cascaded_export_hide_hide() {
@@ -1317,6 +1327,86 @@ class E {}
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 1);
   }
 
+  test_closure_executable_with_bottom_return_type() {
+    UnlinkedExecutable executable =
+        serializeExecutableText('f() { print((() => null)()); }');
+    expect(executable.localFunctions, hasLength(1));
+    expect(executable.localFunctions[0].returnType, isNull);
+    if (strongMode) {
+      // Strong mode infers a type for the closure of `() => dynamic`, so the
+      // inferred return type slot should be empty.
+      expect(
+          getTypeRefForSlot(
+              executable.localFunctions[0].inferredReturnTypeSlot),
+          isNull);
+    } else {
+      // Spec mode infers a type for the closure of `() => Bottom`.
+      checkInferredTypeSlot(executable.localFunctions[0].inferredReturnTypeSlot,
+          null, null, '*bottom*',
+          onlyInStrongMode: false);
+    }
+  }
+
+  test_closure_executable_with_imported_return_type() {
+    addNamedSource('/a.dart', 'class C { D d; } class D {}');
+    // The closure has type `() => D`; `D` is defined in a library that is
+    // imported.
+    UnlinkedExecutable executable = serializeExecutableText(
+        'import "a.dart"; f() { print((() => new C().d)()); }');
+    expect(executable.localFunctions, hasLength(1));
+    expect(executable.localFunctions[0].returnType, isNull);
+    checkInferredTypeSlot(executable.localFunctions[0].inferredReturnTypeSlot,
+        absUri('/a.dart'), 'a.dart', 'D',
+        onlyInStrongMode: false);
+    checkHasDependency(absUri('/a.dart'), 'a.dart', fullyLinked: false);
+  }
+
+  test_closure_executable_with_return_type_from_closure() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    // The closure has type `() => () => int`, where the `() => int` part refers
+    // to the nested closure.
+    UnlinkedExecutable executable = serializeExecutableText('''
+f() {
+  print(() {}); // force the closure below to have index 1
+  print(() => () => 0);
+}
+''');
+    expect(executable.localFunctions, hasLength(2));
+    EntityRef closureType =
+        getTypeRefForSlot(executable.localFunctions[1].inferredReturnTypeSlot);
+    checkLinkedTypeRef(closureType, null, null, '',
+        expectedKind: ReferenceKind.function);
+    int outerClosureIndex =
+        definingUnit.references[closureType.reference].containingReference;
+    checkReferenceIndex(outerClosureIndex, null, null, '',
+        expectedKind: ReferenceKind.function, localIndex: 1);
+    int topLevelFunctionIndex =
+        definingUnit.references[outerClosureIndex].containingReference;
+    checkReferenceIndex(topLevelFunctionIndex, null, null, 'f',
+        expectedKind: ReferenceKind.topLevelFunction);
+    expect(
+        definingUnit.references[topLevelFunctionIndex].containingReference, 0);
+  }
+
+  test_closure_executable_with_unimported_return_type() {
+    addNamedSource('/a.dart', 'import "b.dart"; class C { D d; }');
+    addNamedSource('/b.dart', 'class D {}');
+    // The closure has type `() => D`; `D` is defined in a library that is not
+    // imported.
+    UnlinkedExecutable executable = serializeExecutableText(
+        'import "a.dart"; f() { print((() => new C().d)()); }');
+    expect(executable.localFunctions, hasLength(1));
+    expect(executable.localFunctions[0].returnType, isNull);
+    checkInferredTypeSlot(executable.localFunctions[0].inferredReturnTypeSlot,
+        absUri('/b.dart'), 'b.dart', 'D',
+        onlyInStrongMode: false);
+    if (!skipFullyLinkedData) {
+      checkHasDependency(absUri('/b.dart'), 'b.dart', fullyLinked: true);
+    }
+  }
+
   test_constExpr_binary_add() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 + 2;');
     _assertUnlinkedConst(variable.constExpr, operators: [
@@ -1706,8 +1796,7 @@ const v = const p.C<int, String>.named();
                   absoluteUri: absUri('/a.dart'),
                   relativeUri: 'a.dart',
                   numTypeParameters: 2),
-              new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                  inLibraryDefiningUnit: true)
+              new _PrefixExpectation(ReferenceKind.prefix, 'p')
             ],
             allowTypeParameters: true);
         checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
@@ -1793,8 +1882,7 @@ const v = const p.C<int, String>();
             numTypeParameters: 2,
             allowTypeParameters: true,
             prefixExpectations: [
-              new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                  inLibraryDefiningUnit: true)
+              new _PrefixExpectation(ReferenceKind.prefix, 'p')
             ]);
         checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
         checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
@@ -1873,8 +1961,7 @@ const v = const p.C.named();
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -1964,8 +2051,7 @@ const v = const p.C();
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
               expectedKind: ReferenceKind.classOrEnum,
               prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2038,8 +2124,7 @@ const v = const p.C.foo();
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2063,8 +2148,7 @@ const v = const p.C.foo();
               checkAstDerivedDataOverride: true,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.unresolved, 'C'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2125,8 +2209,7 @@ const int v = p.C.length;
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2209,8 +2292,7 @@ const int v = p.a.length;
                 new _PrefixExpectation(
                     ReferenceKind.topLevelPropertyAccessor, 'a',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2579,8 +2661,7 @@ const v = p.C.F;
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p'),
               ])
     ]);
   }
@@ -2665,8 +2746,7 @@ const v = p.C.m;
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2736,8 +2816,7 @@ const v = p.f;
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'f',
               expectedKind: ReferenceKind.topLevelFunction,
               prefixExpectations: [
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true)
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
     ]);
   }
@@ -2852,8 +2931,7 @@ const v = p.C.foo;
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                     absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
-                new _PrefixExpectation(ReferenceKind.prefix, 'p',
-                    inLibraryDefiningUnit: true),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p'),
               ])
     ]);
   }
@@ -2925,6 +3003,8 @@ const v = p.C.foo;
     expect(executable.returnType, isNull);
     expect(executable.isExternal, isFalse);
     expect(executable.nameOffset, text.indexOf('C();'));
+    expect(executable.periodOffset, 0);
+    expect(executable.nameEnd, 0);
     expect(executable.isRedirectedConstructor, isFalse);
     expect(executable.redirectedConstructor, isNull);
     expect(executable.redirectedConstructorName, isEmpty);
@@ -3208,6 +3288,7 @@ int foo() => 0;
     UnlinkedParam param = executable.parameters[0];
     expect(param.isFunctionTyped, isTrue);
     expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.defaultValueCode, 'foo');
     _assertUnlinkedConst(param.defaultValue, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
@@ -3241,6 +3322,7 @@ int foo() => 0;
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.named);
     expect(parameter.defaultValue, isNull);
+    expect(parameter.defaultValueCode, isEmpty);
   }
 
   test_constructor_initializing_formal_named_withDefault() {
@@ -3249,6 +3331,8 @@ int foo() => 0;
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.named);
+    expect(parameter.initializer, isNotNull);
+    expect(parameter.defaultValueCode, '42');
     _assertUnlinkedConst(parameter.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -3268,6 +3352,7 @@ int foo() => 0;
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.positional);
     expect(parameter.defaultValue, isNull);
+    expect(parameter.defaultValueCode, isEmpty);
   }
 
   test_constructor_initializing_formal_positional_withDefault() {
@@ -3277,6 +3362,8 @@ int foo() => 0;
                 .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.positional);
+    expect(parameter.initializer, isNotNull);
+    expect(parameter.defaultValueCode, '42');
     _assertUnlinkedConst(parameter.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -3308,6 +3395,7 @@ class C {
 }''').executables);
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.defaultValueCode, '42');
     _assertUnlinkedConst(param.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -3318,6 +3406,8 @@ class C {
         executables: serializeClassText(text).executables);
     expect(executable.name, 'foo');
     expect(executable.nameOffset, text.indexOf('foo'));
+    expect(executable.periodOffset, text.indexOf('.foo'));
+    expect(executable.nameEnd, text.indexOf('()'));
   }
 
   test_constructor_non_const() {
@@ -3961,7 +4051,7 @@ enum E {
   }
 
   test_executable_function_private() {
-    serializeExecutableText('_f() {}', '_f');
+    serializeExecutableText('_f() {}', executableName: '_f');
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 
@@ -3987,7 +4077,7 @@ enum E {
   }
 
   test_executable_getter_private() {
-    serializeExecutableText('int get _f => 1;', '_f');
+    serializeExecutableText('int get _f => 1;', executableName: '_f');
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 
@@ -4022,6 +4112,91 @@ f() { // 1
     {
       UnlinkedExecutable f2 = functions.singleWhere((v) => v.name == 'f2');
       _assertExecutableVisible(code, f2, '{ // 2', '} // 3');
+    }
+  }
+
+  test_executable_localLabels_inMethod() {
+    String code = r'''
+class C {
+  m() {
+    aaa: while (true) {}
+    bbb: while (true) {}
+  }
+}
+''';
+    UnlinkedExecutable executable =
+        findExecutable('m', executables: serializeClassText(code).executables);
+    List<UnlinkedLabel> labels = executable.localLabels;
+    expect(labels, hasLength(2));
+    {
+      UnlinkedLabel aaa = labels.singleWhere((l) => l.name == 'aaa');
+      expect(aaa, isNotNull);
+      expect(aaa.isOnSwitchMember, isFalse);
+      expect(aaa.isOnSwitchStatement, isFalse);
+    }
+    {
+      UnlinkedLabel bbb = labels.singleWhere((l) => l.name == 'bbb');
+      expect(bbb, isNotNull);
+      expect(bbb.isOnSwitchMember, isFalse);
+      expect(bbb.isOnSwitchStatement, isFalse);
+    }
+  }
+
+  test_executable_localLabels_inTopLevelFunction() {
+    String code = r'''
+f() {
+  aaa: while (true) {}
+  bbb: switch (42) {
+    ccc: case 0:
+      break;
+  }
+}
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedLabel> labels = executable.localLabels;
+    expect(labels, hasLength(3));
+    {
+      UnlinkedLabel aaa = labels.singleWhere((l) => l.name == 'aaa');
+      expect(aaa, isNotNull);
+      expect(aaa.isOnSwitchMember, isFalse);
+      expect(aaa.isOnSwitchStatement, isFalse);
+    }
+    {
+      UnlinkedLabel bbb = labels.singleWhere((l) => l.name == 'bbb');
+      expect(bbb, isNotNull);
+      expect(bbb.isOnSwitchMember, isFalse);
+      expect(bbb.isOnSwitchStatement, isTrue);
+    }
+    {
+      UnlinkedLabel ccc = labels.singleWhere((l) => l.name == 'ccc');
+      expect(ccc, isNotNull);
+      expect(ccc.isOnSwitchMember, isTrue);
+      expect(ccc.isOnSwitchStatement, isFalse);
+    }
+  }
+
+  test_executable_localLabels_inTopLevelGetter() {
+    String code = r'''
+get g {
+  aaa: while (true) {}
+  bbb: while (true) {}
+}
+''';
+    UnlinkedExecutable executable =
+        serializeExecutableText(code, executableName: 'g');
+    List<UnlinkedLabel> labels = executable.localLabels;
+    expect(labels, hasLength(2));
+    {
+      UnlinkedLabel aaa = labels.singleWhere((l) => l.name == 'aaa');
+      expect(aaa, isNotNull);
+      expect(aaa.isOnSwitchMember, isFalse);
+      expect(aaa.isOnSwitchStatement, isFalse);
+    }
+    {
+      UnlinkedLabel bbb = labels.singleWhere((l) => l.name == 'bbb');
+      expect(bbb, isNotNull);
+      expect(bbb.isOnSwitchMember, isFalse);
+      expect(bbb.isOnSwitchStatement, isFalse);
     }
   }
 
@@ -4167,7 +4342,8 @@ get g { // 1
   f() {}
 } // 2
 ''';
-    UnlinkedExecutable executable = serializeExecutableText(code, 'g');
+    UnlinkedExecutable executable =
+        serializeExecutableText(code, executableName: 'g');
     {
       List<UnlinkedExecutable> functions = executable.localFunctions;
       expect(functions, hasLength(1));
@@ -4397,7 +4573,7 @@ get g { // 1
   test_executable_param_function_typed_return_type_implicit() {
     if (!checkAstDerivedData) {
       // TODO(paulberry): this test fails when building the summary from the
-      // element model because the elment model doesn't record whether a
+      // element model because the element model doesn't record whether a
       // function-typed parameter's return type is implicit.
       return;
     }
@@ -4418,6 +4594,8 @@ int foo(int a, String b) => 0;
 ''');
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.initializer, isNotNull);
+    expect(param.defaultValueCode, 'foo');
     _assertUnlinkedConst(param.defaultValue, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
@@ -4430,13 +4608,17 @@ int foo(int a, String b) => 0;
     UnlinkedExecutable executable = serializeExecutableText('f({x}) {}');
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.named);
+    expect(param.initializer, isNull);
     expect(param.defaultValue, isNull);
+    expect(param.defaultValueCode, isEmpty);
   }
 
   test_executable_param_kind_named_withDefault() {
     UnlinkedExecutable executable = serializeExecutableText('f({x: 42}) {}');
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.named);
+    expect(param.initializer, isNotNull);
+    expect(param.defaultValueCode, '42');
     _assertUnlinkedConst(param.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -4445,13 +4627,17 @@ int foo(int a, String b) => 0;
     UnlinkedExecutable executable = serializeExecutableText('f([x]) {}');
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.initializer, isNull);
     expect(param.defaultValue, isNull);
+    expect(param.defaultValueCode, isEmpty);
   }
 
   test_executable_param_kind_positional_withDefault() {
     UnlinkedExecutable executable = serializeExecutableText('f([x = 42]) {}');
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.initializer, isNotNull);
+    expect(param.defaultValueCode, '42');
     _assertUnlinkedConst(param.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -4460,7 +4646,9 @@ int foo(int a, String b) => 0;
     UnlinkedExecutable executable = serializeExecutableText('f(x) {}');
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.required);
+    expect(param.initializer, isNull);
     expect(param.defaultValue, isNull);
+    expect(param.defaultValueCode, isEmpty);
   }
 
   test_executable_param_name() {
@@ -4504,6 +4692,16 @@ int foo(int a, String b) => 0;
     expect(executable.parameters[0].type, isNull);
   }
 
+  test_executable_param_type_typedef() {
+    UnlinkedExecutable executable = serializeExecutableText(r'''
+typedef MyFunction(int p);
+f(MyFunction myFunction) {}
+''');
+    expect(executable.parameters[0].isFunctionTyped, isFalse);
+    checkTypeRef(executable.parameters[0].type, null, null, 'MyFunction',
+        expectedKind: ReferenceKind.typedef);
+  }
+
   test_executable_return_type() {
     UnlinkedExecutable executable = serializeExecutableText('int f() => 1;');
     checkTypeRef(executable.returnType, 'dart:core', 'dart:core', 'int');
@@ -4521,7 +4719,8 @@ int foo(int a, String b) => 0;
 
   test_executable_setter() {
     String text = 'void set f(value) {}';
-    UnlinkedExecutable executable = serializeExecutableText(text, 'f=');
+    UnlinkedExecutable executable =
+        serializeExecutableText(text, executableName: 'f=');
     expect(executable.kind, UnlinkedExecutableKind.setter);
     expect(executable.returnType, isNotNull);
     expect(executable.isExternal, isFalse);
@@ -4535,25 +4734,27 @@ int foo(int a, String b) => 0;
   }
 
   test_executable_setter_external() {
-    UnlinkedExecutable executable =
-        serializeExecutableText('external void set f(value);', 'f=');
+    UnlinkedExecutable executable = serializeExecutableText(
+        'external void set f(value);',
+        executableName: 'f=');
     expect(executable.isExternal, isTrue);
   }
 
   test_executable_setter_implicit_return() {
     UnlinkedExecutable executable =
-        serializeExecutableText('set f(value) {}', 'f=');
+        serializeExecutableText('set f(value) {}', executableName: 'f=');
     expect(executable.returnType, isNull);
   }
 
   test_executable_setter_private() {
-    serializeExecutableText('void set _f(value) {}', '_f=');
+    serializeExecutableText('void set _f(value) {}', executableName: '_f=');
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 
   test_executable_setter_type() {
-    UnlinkedExecutable executable =
-        serializeExecutableText('void set f(int value) {}', 'f=');
+    UnlinkedExecutable executable = serializeExecutableText(
+        'void set f(int value) {}',
+        executableName: 'f=');
     checkVoidTypeRef(executable.returnType);
     expect(executable.parameters, hasLength(1));
     expect(executable.parameters[0].name, 'value');
@@ -4688,6 +4889,9 @@ int foo(int a, String b) => 0;
         'Future');
     expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides[1],
         'Stream');
+    expect(
+        unlinkedUnits[0].publicNamespace.exports[0].combinators[0].offset, 0);
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].end, 0);
     expect(linked.exportNames, isNotEmpty);
   }
 
@@ -4780,7 +4984,8 @@ int foo(int a, String b) => 0;
   }
 
   test_export_show_order() {
-    serializeLibraryText('export "dart:async" show Future, Stream;');
+    String libraryText = 'export "dart:async" show Future, Stream;';
+    serializeLibraryText(libraryText);
     expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
     expect(
         unlinkedUnits[0].publicNamespace.exports[0].combinators, hasLength(1));
@@ -4792,6 +4997,10 @@ int foo(int a, String b) => 0;
         'Future');
     expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].shows[1],
         'Stream');
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].offset,
+        libraryText.indexOf('show'));
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].end,
+        libraryText.indexOf(';'));
   }
 
   test_export_typedef() {
@@ -5126,6 +5335,8 @@ get f => null;''';
     expect(unlinkedUnits[0].imports[0].combinators[0].hides, hasLength(2));
     expect(unlinkedUnits[0].imports[0].combinators[0].hides[0], 'Future');
     expect(unlinkedUnits[0].imports[0].combinators[0].hides[1], 'Stream');
+    expect(unlinkedUnits[0].imports[0].combinators[0].offset, 0);
+    expect(unlinkedUnits[0].imports[0].combinators[0].end, 0);
   }
 
   test_import_implicit() {
@@ -5318,6 +5529,10 @@ p.B b;
     expect(unlinkedUnits[0].imports[0].combinators[0].hides, isEmpty);
     expect(unlinkedUnits[0].imports[0].combinators[0].shows[0], 'Future');
     expect(unlinkedUnits[0].imports[0].combinators[0].shows[1], 'Stream');
+    expect(unlinkedUnits[0].imports[0].combinators[0].offset,
+        libraryText.indexOf('show'));
+    expect(unlinkedUnits[0].imports[0].combinators[0].end,
+        libraryText.indexOf('; Future'));
   }
 
   test_import_uri() {
@@ -5369,7 +5584,7 @@ p.B b;
     expect(linkedReference.dependency, 0);
     expect(linkedReference.kind, ReferenceKind.method);
     expect(linkedReference.name, 'f');
-    expect(linkedReference.numTypeParameters, 2);
+    expect(linkedReference.numTypeParameters, 0);
     expect(linkedReference.unit, 0);
     expect(linkedReference.containingReference, isNot(0));
     expect(linkedReference.containingReference, lessThan(type.reference));
@@ -5464,6 +5679,142 @@ p.B b;
     expect(linkedReference.containingReference, isNot(0));
     expect(linkedReference.containingReference, lessThan(type.reference));
     checkReferenceIndex(linkedReference.containingReference, null, null, 'D');
+  }
+
+  test_initializer_executable_with_bottom_return_type() {
+    // The synthetic executable for `v` has type `() => Bottom`.
+    UnlinkedVariable variable = serializeVariableText('int v = null;');
+    expect(variable.initializer.returnType, isNull);
+    checkInferredTypeSlot(
+        variable.initializer.inferredReturnTypeSlot, null, null, '*bottom*',
+        onlyInStrongMode: false);
+  }
+
+  test_initializer_executable_with_imported_return_type() {
+    addNamedSource('/a.dart', 'class C { D d; } class D {}');
+    // The synthetic executable for `v` has type `() => D`; `D` is defined in
+    // a library that is imported.  Note: `v` is mis-typed as `int` to prevent
+    // type propagation, which would complicate the test.
+    UnlinkedVariable variable = serializeVariableText(
+        'import "a.dart"; int v = new C().d;',
+        allowErrors: true);
+    expect(variable.initializer.returnType, isNull);
+    checkInferredTypeSlot(variable.initializer.inferredReturnTypeSlot,
+        absUri('/a.dart'), 'a.dart', 'D',
+        onlyInStrongMode: false);
+    checkHasDependency(absUri('/a.dart'), 'a.dart', fullyLinked: false);
+  }
+
+  test_initializer_executable_with_return_type_from_closure() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    // The synthetic executable for `v` has type `() => () => int`, where the
+    // `() => int` part refers to the closure declared inside the initializer
+    // for v.  Note: `v` is mis-typed as `int` to prevent type propagation,
+    // which would complicate the test.
+    UnlinkedVariable variable =
+        serializeVariableText('int v = () => 0;', allowErrors: true);
+    EntityRef closureType =
+        getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
+    checkLinkedTypeRef(closureType, null, null, '',
+        expectedKind: ReferenceKind.function);
+    int initializerIndex =
+        definingUnit.references[closureType.reference].containingReference;
+    checkReferenceIndex(initializerIndex, null, null, '',
+        expectedKind: ReferenceKind.function);
+    int variableIndex =
+        definingUnit.references[initializerIndex].containingReference;
+    checkReferenceIndex(variableIndex, null, null, 'v',
+        expectedKind: ReferenceKind.topLevelPropertyAccessor);
+    expect(definingUnit.references[variableIndex].containingReference, 0);
+  }
+
+  test_initializer_executable_with_return_type_from_closure_field() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    // The synthetic executable for `v` has type `() => () => int`, where the
+    // `() => int` part refers to the closure declared inside the initializer
+    // for v.  Note: `v` is mis-typed as `int` to prevent type propagation,
+    // which would complicate the test.
+    UnlinkedClass cls = serializeClassText(
+        '''
+class C {
+  int v = () => 0;
+}
+''',
+        allowErrors: true);
+    UnlinkedVariable variable = cls.fields[0];
+    EntityRef closureType =
+        getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
+    checkLinkedTypeRef(closureType, null, null, '',
+        expectedKind: ReferenceKind.function);
+    int initializerIndex =
+        definingUnit.references[closureType.reference].containingReference;
+    checkReferenceIndex(initializerIndex, null, null, '',
+        expectedKind: ReferenceKind.function);
+    int variableIndex =
+        definingUnit.references[initializerIndex].containingReference;
+    checkReferenceIndex(variableIndex, null, null, 'v',
+        expectedKind: ReferenceKind.propertyAccessor);
+    int classIndex = definingUnit.references[variableIndex].containingReference;
+    checkReferenceIndex(classIndex, null, null, 'C');
+    expect(definingUnit.references[classIndex].containingReference, 0);
+  }
+
+  test_initializer_executable_with_return_type_from_closure_local() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    // The synthetic executable for `v` has type `() => () => int`, where the
+    // `() => int` part refers to the closure declared inside the initializer
+    // for v.  Note: `v` is mis-typed as `int` to prevent type propagation,
+    // which would complicate the test.
+    UnlinkedExecutable executable = serializeExecutableText(
+        '''
+void f() {
+  int u = 0; // force the variable below to have index 1
+  int v = () => 0;
+}''',
+        allowErrors: true);
+    UnlinkedVariable variable = executable.localVariables[1];
+    EntityRef closureType =
+        getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
+    checkLinkedTypeRef(closureType, null, null, '',
+        expectedKind: ReferenceKind.function);
+    int initializerIndex =
+        definingUnit.references[closureType.reference].containingReference;
+    checkReferenceIndex(initializerIndex, null, null, '',
+        expectedKind: ReferenceKind.function);
+    int variableIndex =
+        definingUnit.references[initializerIndex].containingReference;
+    checkReferenceIndex(variableIndex, null, null, 'v',
+        expectedKind: ReferenceKind.variable, localIndex: 1);
+    int topLevelFunctionIndex =
+        definingUnit.references[variableIndex].containingReference;
+    checkReferenceIndex(topLevelFunctionIndex, null, null, 'f',
+        expectedKind: ReferenceKind.topLevelFunction);
+    expect(
+        definingUnit.references[topLevelFunctionIndex].containingReference, 0);
+  }
+
+  test_initializer_executable_with_unimported_return_type() {
+    addNamedSource('/a.dart', 'import "b.dart"; class C { D d; }');
+    addNamedSource('/b.dart', 'class D {}');
+    // The synthetic executable for `v` has type `() => D`; `D` is defined in
+    // a library that is not imported.  Note: `v` is mis-typed as `int` to
+    // prevent type propagation, which would complicate the test.
+    UnlinkedVariable variable = serializeVariableText(
+        'import "a.dart"; int v = new C().d;',
+        allowErrors: true);
+    expect(variable.initializer.returnType, isNull);
+    checkInferredTypeSlot(variable.initializer.inferredReturnTypeSlot,
+        absUri('/b.dart'), 'b.dart', 'D',
+        onlyInStrongMode: false);
+    if (!skipFullyLinkedData) {
+      checkHasDependency(absUri('/b.dart'), 'b.dart', fullyLinked: true);
+    }
   }
 
   test_invalid_prefix_dynamic() {
@@ -5744,9 +6095,10 @@ D d;''');
   }
 
   test_metadata_functionDeclaration_setter() {
-    checkAnnotationA(
-        serializeExecutableText('const a = null; @a set f(value) {}', 'f=')
-            .annotations);
+    checkAnnotationA(serializeExecutableText(
+            'const a = null; @a set f(value) {}',
+            executableName: 'f=')
+        .annotations);
   }
 
   test_metadata_functionTypeAlias() {
@@ -6098,7 +6450,8 @@ f(x) => 42;
  * Docs
  */
 void set f(value) {}''';
-    UnlinkedExecutable executable = serializeExecutableText(text, 'f=');
+    UnlinkedExecutable executable =
+        serializeExecutableText(text, executableName: 'f=');
     expect(executable.documentationComment, isNotNull);
     checkDocumentationComment(executable.documentationComment, text);
   }
@@ -6153,12 +6506,13 @@ void set f(value) {}''';
 
   test_setter_inferred_type_top_level_implicit_param() {
     UnlinkedExecutable f =
-        serializeExecutableText('void set f(value) {}', 'f=');
+        serializeExecutableText('void set f(value) {}', executableName: 'f=');
     expect(f.parameters[0].inferredTypeSlot, 0);
   }
 
   test_setter_inferred_type_top_level_implicit_return() {
-    UnlinkedExecutable f = serializeExecutableText('set f(int value) {}', 'f=');
+    UnlinkedExecutable f =
+        serializeExecutableText('set f(int value) {}', executableName: 'f=');
     expect(f.inferredReturnTypeSlot, 0);
   }
 
@@ -6630,6 +6984,15 @@ typedef F();''';
         unlinkedSourceUnit: unlinkedUnits[1]);
   }
 
+  test_unresolved_reference_shared() {
+    // Both `x` and `y` use unresolved identifier `C` as their type.  Verify
+    // that they both use the same unresolved reference.
+    serializeLibraryText('C x; C y;', allowErrors: true);
+    EntityRef xType = findVariable('x').type;
+    EntityRef yType = findVariable('y').type;
+    expect(xType.reference, yType.reference);
+  }
+
   test_variable() {
     String text = 'int i;';
     UnlinkedVariable v = serializeVariableText(text, variableName: 'i');
@@ -6695,6 +7058,61 @@ var v;''';
   test_variable_inferred_type_implicit_uninitialized() {
     UnlinkedVariable v = serializeVariableText('var v;');
     expect(v.inferredTypeSlot, 0);
+  }
+
+  test_variable_initializer_literal() {
+    UnlinkedVariable variable = serializeVariableText('var v = 42;');
+    UnlinkedExecutable initializer = variable.initializer;
+    expect(initializer, isNotNull);
+    expect(initializer.nameOffset, 8);
+    expect(initializer.name, isEmpty);
+    expect(initializer.localFunctions, isEmpty);
+    expect(initializer.localVariables, isEmpty);
+  }
+
+  test_variable_initializer_noInitializer() {
+    UnlinkedVariable variable = serializeVariableText('var v;');
+    expect(variable.initializer, isNull);
+  }
+
+  test_variable_initializer_withLocals() {
+    String text =
+        'var v = <dynamic, dynamic>{"1": () { f1() {} var v1; }, '
+        '"2": () { f2() {} var v2; }};';
+    UnlinkedVariable variable = serializeVariableText(text);
+    UnlinkedExecutable initializer = variable.initializer;
+    expect(initializer, isNotNull);
+    expect(initializer.nameOffset, text.indexOf('<dynamic, dynamic>{"1'));
+    expect(initializer.name, isEmpty);
+    expect(initializer.localFunctions, hasLength(2));
+    // closure: () { f1() {} var v1; }
+    {
+      UnlinkedExecutable closure = initializer.localFunctions[0];
+      expect(closure.nameOffset, text.indexOf('() { f1()'));
+      expect(closure.name, isEmpty);
+      // closure - f1
+      expect(closure.localFunctions, hasLength(1));
+      expect(closure.localFunctions[0].name, 'f1');
+      expect(closure.localFunctions[0].nameOffset, text.indexOf('f1()'));
+      // closure - v1
+      expect(closure.localVariables, hasLength(1));
+      expect(closure.localVariables[0].name, 'v1');
+      expect(closure.localVariables[0].nameOffset, text.indexOf('v1;'));
+    }
+    // closure: () { f2() {} var v2; }
+    {
+      UnlinkedExecutable closure = initializer.localFunctions[1];
+      expect(closure.nameOffset, text.indexOf('() { f2()'));
+      expect(closure.name, isEmpty);
+      // closure - f1
+      expect(closure.localFunctions, hasLength(1));
+      expect(closure.localFunctions[0].name, 'f2');
+      expect(closure.localFunctions[0].nameOffset, text.indexOf('f2()'));
+      // closure - v1
+      expect(closure.localVariables, hasLength(1));
+      expect(closure.localVariables[0].name, 'v2');
+      expect(closure.localVariables[0].nameOffset, text.indexOf('v2;'));
+    }
   }
 
   test_variable_name() {
@@ -6901,14 +7319,10 @@ var v;''';
 class _PrefixExpectation {
   final ReferenceKind kind;
   final String name;
-  final bool inLibraryDefiningUnit;
   final String absoluteUri;
   final String relativeUri;
   final int numTypeParameters;
 
   _PrefixExpectation(this.kind, this.name,
-      {this.inLibraryDefiningUnit: false,
-      this.absoluteUri,
-      this.relativeUri,
-      this.numTypeParameters: 0});
+      {this.absoluteUri, this.relativeUri, this.numTypeParameters: 0});
 }

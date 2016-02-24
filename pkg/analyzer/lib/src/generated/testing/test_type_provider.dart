@@ -171,7 +171,9 @@ class TestTypeProvider implements TypeProvider {
       fromEnvironment.parameters = <ParameterElement>[
         ElementFactory.requiredParameter2("name", stringType),
         ElementFactory.namedParameter3("defaultValue",
-            type: _boolType, initializer: AstFactory.booleanLiteral(false))
+            type: _boolType,
+            initializer: AstFactory.booleanLiteral(false),
+            initializerCode: 'false')
       ];
       fromEnvironment.factory = true;
       fromEnvironment.isCycleFree = true;

@@ -467,6 +467,27 @@ class StrongGenericFunctionInferenceTest {
         [intType]);
   }
 
+  void test_returnTypeFromContext() {
+    // <T>() -> T
+    var t = TypeBuilder.variable('T');
+    var f = TypeBuilder.function(types: [t], required: [], result: t);
+    expect(_inferCall(f, [], stringType), [stringType]);
+  }
+
+  void test_returnTypeWithBoundFromContext() {
+    // <T extends num>() -> T
+    var t = TypeBuilder.variable('T', bound: numType);
+    var f = TypeBuilder.function(types: [t], required: [], result: t);
+    expect(_inferCall(f, [], doubleType), [doubleType]);
+  }
+
+  void test_returnTypeWithBoundFromInvalidContext() {
+    // <T extends num>() -> T
+    var t = TypeBuilder.variable('T', bound: numType);
+    var f = TypeBuilder.function(types: [t], required: [], result: t);
+    expect(_inferCall(f, [], stringType), [numType]);
+  }
+
   void test_unifyParametersToFunctionParam() {
     // <T>(f(T t), g(T t)) -> T
     var t = TypeBuilder.variable('T');
@@ -498,9 +519,10 @@ class StrongGenericFunctionInferenceTest {
     expect(_inferCall(f, []), [numType]);
   }
 
-  List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments) {
-    FunctionType inferred = typeSystem.inferCallFromArguments(
-        typeProvider, ft, ft.parameters.map((p) => p.type).toList(), arguments);
+  List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments,
+      [DartType returnType]) {
+    FunctionType inferred = typeSystem.inferGenericFunctionCall(typeProvider,
+        ft, ft.parameters.map((p) => p.type).toList(), arguments, returnType);
     return inferred.typeArguments;
   }
 }
@@ -1314,7 +1336,7 @@ class LeastUpperBoundTest {
     if (returns == null) {
       returns = voidType;
     }
-    
+
     return ElementFactory
         .functionElement8(required, returns, optional: optional, named: named)
         .type;

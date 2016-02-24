@@ -8,6 +8,8 @@ The certificates are created by running ../create_sample_certificates.sh
 in a bash or sh shell, with the openssl tools installed.  Run the script
 twice to create the untrusted_* files.
 
+PEM files:
+
 server_chain.pem:
   Contains the chain of certificates, from the self-signed
 test certificate authority, through the intermediate CA, to the server
@@ -29,6 +31,40 @@ certificate, used on the server side of a test connection that is intended
 to fail because the client does not accept this certificate authority
 
 untrusted_server_key.pem:
-  Contains the private key for the untrusted server certificate 
+  Contains the private key for the untrusted server certificate
 in untrusted_server_chain.pem
 
+*_malformed.pem:
+  Truncated PEM formatted certificates used to test error handling.
+
+PKCS12 files:
+
+server_key.12:
+  Created with:
+  $ openssl pkcs12 -export -inkey server_key.pem -out server_key.p12 -nocerts
+  with password 'dartdart'
+
+server_chain.p12:
+  Created with:
+  $ openssl pkcs12 -export -in server_chain.pem -out server_chain.p12 -nokeys
+  with password 'dartdart'
+
+client1_key.p12:
+  Created with:
+  $ openssl pkcs12 -export -inkey client1_key.pem -out client1_key.p12 -nocerts
+  with password 'dartdart'
+
+client1.p12:
+  Created with:
+  $ openssl pkcs12 -export -in client1.pem -out client1.p12 -nokeys
+  with password 'dartdart'
+
+trusted_certs.p12:
+  Created with:
+  $ openssl pkcs12 -export -in trusted_certs.pem -out trusted_certs.p12 -nokeys
+  with password 'dartdart'
+
+client_authority.p12:
+  Created with:
+  $ openssl pkcs12 -export -in client_authority.pem -out client_authority.p12 -nokeys
+  with password 'dartdart'

@@ -478,9 +478,9 @@ class ObjectStore {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   // Called to initialize objects required by the vm but which invoke
-  // dart code.  If an error occurs then false is returned and error
-  // information is stored in Thread::sticky_error().
-  bool PreallocateObjects();
+  // dart code.  If an error occurs the error object is returned otherwise
+  // a null object is returned.
+  RawError* PreallocateObjects();
 
   void InitKnownObjects();
 

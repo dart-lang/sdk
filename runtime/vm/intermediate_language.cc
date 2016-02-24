@@ -42,7 +42,6 @@ DEFINE_FLAG(bool, unbox_numeric_fields, true,
 DEFINE_FLAG(bool, fields_may_be_reset, false,
             "Don't optimize away static field initialization");
 DECLARE_FLAG(bool, eliminate_type_checks);
-DECLARE_FLAG(bool, trace_optimization);
 
 Definition::Definition(intptr_t deopt_id)
     : Instruction(deopt_id),

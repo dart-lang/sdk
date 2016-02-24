@@ -2144,6 +2144,7 @@ class A {
 }
 
 class B implements A {
+  @override
   var f;
 }
 ''');
@@ -2336,8 +2337,10 @@ class A {
 }
 
 class B implements A {
+  @override
   int ma;
 
+  @override
   double mc;
 
   @override

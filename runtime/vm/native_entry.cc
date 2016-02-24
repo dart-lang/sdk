@@ -24,6 +24,13 @@ DEFINE_FLAG(bool, trace_natives, false,
             "Trace invocation of natives (debug mode only)");
 
 
+void DartNativeThrowArgumentException(const Instance& instance) {
+  const Array& __args__ = Array::Handle(Array::New(1));
+  __args__.SetAt(0, instance);
+  Exceptions::ThrowByType(Exceptions::kArgument, __args__);
+}
+
+
 NativeFunction NativeEntry::ResolveNative(const Library& library,
                                           const String& function_name,
                                           int number_of_arguments,

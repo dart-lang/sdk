@@ -10,6 +10,7 @@
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
@@ -18,7 +19,7 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, lazy_dispatchers);
+#ifndef PRODUCT
 
 #define PROPAGATE_IF_MALFORMED(type)                                           \
   if (type.IsMalformed()) {                                                    \
@@ -2089,5 +2090,6 @@ DEFINE_NATIVE_ENTRY(TypeMirror_subtypeTest, 2) {
   return Bool::Get(a.IsSubtypeOf(b, NULL, NULL, Heap::kNew)).raw();
 }
 
+#endif  // !PRODUCT
 
 }  // namespace dart

@@ -1194,6 +1194,10 @@ library l;''');
   static void _assertEqualTokens(AstNode cloneNode, AstNode originalNode) {
     Token clone = cloneNode.beginToken;
     Token original = originalNode.beginToken;
+    if (original is! CommentToken) {
+      _assertHasPrevious(original);
+      _assertHasPrevious(clone);
+    }
     Token stopOriginalToken = originalNode.endToken.next;
     Token skipCloneComment = null;
     Token skipOriginalComment = null;
@@ -1229,6 +1233,26 @@ library l;''');
         clone = clone.next;
         original = original.next;
       }
+    }
+  }
+
+  /**
+   * Assert that the [token] has `previous` set, and if it `EOF`, then it
+   * points itself.
+   */
+  static void _assertHasPrevious(Token token) {
+    expect(token, isNotNull);
+    if (token.type == TokenType.EOF) {
+      return;
+    }
+    while (token != null) {
+      Token previous = token.previous;
+      expect(previous, isNotNull);
+      if (token.type == TokenType.EOF) {
+        expect(previous, same(token));
+        break;
+      }
+      token = previous;
     }
   }
 }
@@ -3727,10 +3751,14 @@ class NodeReplacerTest extends EngineTestCase {
   void test_variableDeclarationList() {
     VariableDeclarationList node = AstFactory.variableDeclarationList(
         null, AstFactory.typeName4("T"), [AstFactory.variableDeclaration("a")]);
+    node.documentationComment =
+        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_variableDeclarationList());
     _assertReplace(
         node, new ListGetter_NodeReplacerTest_test_variableDeclarationList(0));
+    _testAnnotatedNode(node);
   }
 
   void test_variableDeclarationStatement() {

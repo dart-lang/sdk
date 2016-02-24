@@ -292,6 +292,16 @@ abstract class LinkedReference extends base.SummaryClass {
   ReferenceKind get kind;
 
   /**
+   * If [kind] is [ReferenceKind.function] (that is, the entity being referred
+   * to is a local function), the index of the function within
+   * [UnlinkedExecutable.localFunctions].  If [kind] is
+   * [ReferenceKind.variable], the index of the variable within
+   * [UnlinkedExecutable.localVariables].  Otherwise zero.
+   */
+  @Id(6)
+  int get localIndex;
+
+  /**
    * If this [LinkedReference] doesn't have an associated [UnlinkedReference],
    * name of the entity being referred to.  For the pseudo-type `dynamic`, the
    * string is "dynamic".  For the pseudo-type `void`, the string is "void".
@@ -301,7 +311,8 @@ abstract class LinkedReference extends base.SummaryClass {
 
   /**
    * If the entity being referred to is generic, the number of type parameters
-   * it accepts.  Otherwise zero.
+   * it declares (does not include type parameters of enclosing entities).
+   * Otherwise zero.
    */
   @Id(4)
   int get numTypeParameters;
@@ -343,6 +354,47 @@ abstract class LinkedUnit extends base.SummaryClass {
 }
 
 /**
+ * Summary information about a package.
+ */
+@topLevel
+abstract class PackageBundle extends base.SummaryClass {
+  factory PackageBundle.fromBuffer(List<int> buffer) =>
+      generated.readPackageBundle(buffer);
+
+  /**
+   * Linked libraries.
+   */
+  @Id(0)
+  List<LinkedLibrary> get linkedLibraries;
+
+  /**
+   * The list of URIs of items in [linkedLibraries], e.g. `dart:core` or
+   * `package:foo/bar.dart`.
+   */
+  @Id(1)
+  List<String> get linkedLibraryUris;
+
+  /**
+   * List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
+   * is encoded as a hexadecimal string using lower case letters.
+   */
+  @Id(4)
+  List<String> get unlinkedUnitHashes;
+
+  /**
+   * Unlinked information for the compilation units constituting the package.
+   */
+  @Id(2)
+  List<UnlinkedUnit> get unlinkedUnits;
+
+  /**
+   * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
+   */
+  @Id(3)
+  List<String> get unlinkedUnitUris;
+}
+
+/**
  * Enum used to indicate the kind of entity referred to by a
  * [LinkedReference].
  */
@@ -380,6 +432,16 @@ enum ReferenceKind {
   typedef,
 
   /**
+   * The entity is a local function.
+   */
+  function,
+
+  /**
+   * The entity is a local variable.
+   */
+  variable,
+
+  /**
    * The entity is a top level function.
    */
   topLevelFunction,
@@ -398,39 +460,6 @@ enum ReferenceKind {
    * The entity being referred to does not exist.
    */
   unresolved
-}
-
-/**
- * Information about SDK.
- */
-@topLevel
-abstract class SdkBundle extends base.SummaryClass {
-  factory SdkBundle.fromBuffer(List<int> buffer) =>
-      generated.readSdkBundle(buffer);
-
-  /**
-   * Linked libraries.
-   */
-  @Id(0)
-  List<LinkedLibrary> get linkedLibraries;
-
-  /**
-   * The list of URIs of items in [linkedLibraries], e.g. `dart:core`.
-   */
-  @Id(1)
-  List<String> get linkedLibraryUris;
-
-  /**
-   * Unlinked information for the compilation units constituting the SDK.
-   */
-  @Id(2)
-  List<UnlinkedUnit> get unlinkedUnits;
-
-  /**
-   * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
-   */
-  @Id(3)
-  List<String> get unlinkedUnitUris;
 }
 
 /**
@@ -528,10 +557,26 @@ abstract class UnlinkedClass extends base.SummaryClass {
  */
 abstract class UnlinkedCombinator extends base.SummaryClass {
   /**
+   * If this is a `show` combinator, offset of the end of the list of shown
+   * names.  Otherwise zero.
+   */
+  @informative
+  @Id(3)
+  int get end;
+
+  /**
    * List of names which are hidden.  Empty if this is a `show` combinator.
    */
   @Id(1)
   List<String> get hides;
+
+  /**
+   * If this is a `show` combinator, offset of the `show` keyword.  Otherwise
+   * zero.
+   */
+  @informative
+  @Id(2)
+  int get offset;
 
   /**
    * List of names which are shown.  Empty if this is a `hide` combinator.
@@ -1122,6 +1167,12 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   List<UnlinkedExecutable> get localFunctions;
 
   /**
+   * The list of local labels.
+   */
+  @Id(22)
+  List<UnlinkedLabel> get localLabels;
+
+  /**
    * The list of local variables.
    */
   @Id(19)
@@ -1134,6 +1185,14 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    */
   @Id(1)
   String get name;
+
+  /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [name] is not empty,
+   * the offset of the end of the constructor name.  Otherwise zero.
+   */
+  @informative
+  @Id(23)
+  int get nameEnd;
 
   /**
    * Offset of the executable name relative to the beginning of the file.  For
@@ -1154,6 +1213,14 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   List<UnlinkedParam> get parameters;
 
   /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [name] is not empty,
+   * the offset of the period before the constructor name.  Otherwise zero.
+   */
+  @informative
+  @Id(24)
+  int get periodOffset;
+
+  /**
    * If [isRedirectedConstructor] and [isFactory] are both `true`, the
    * constructor to which this constructor redirects; otherwise empty.
    */
@@ -1170,7 +1237,10 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
 
   /**
    * Declared return type of the executable.  Absent if the executable is a
-   * constructor or the return type is implicit.
+   * constructor or the return type is implicit.  Absent for executables
+   * associated with variable initializers and closures, since these
+   * executables may have return types that are not accessible via direct
+   * imports.
    */
   @Id(3)
   EntityRef get returnType;
@@ -1350,6 +1420,37 @@ abstract class UnlinkedImport extends base.SummaryClass {
 }
 
 /**
+ * Unlinked summary information about a label.
+ */
+abstract class UnlinkedLabel extends base.SummaryClass {
+  /**
+   * Return `true` if this label is associated with a `switch` member (`case` or
+   * `default`).
+   */
+  @Id(2)
+  bool get isOnSwitchMember;
+
+  /**
+   * Return `true` if this label is associated with a `switch` statement.
+   */
+  @Id(3)
+  bool get isOnSwitchStatement;
+
+  /**
+   * Name of the label.
+   */
+  @Id(0)
+  String get name;
+
+  /**
+   * Offset of the label relative to the beginning of the file.
+   */
+  @informative
+  @Id(1)
+  int get nameOffset;
+}
+
+/**
  * Unlinked summary information about a function parameter.
  */
 abstract class UnlinkedParam extends base.SummaryClass {
@@ -1368,6 +1469,14 @@ abstract class UnlinkedParam extends base.SummaryClass {
   UnlinkedConst get defaultValue;
 
   /**
+   * If the parameter has a default value, the source text of the constant
+   * expression in the default value.  Otherwise the empty string.
+   */
+  @informative
+  @Id(13)
+  String get defaultValueCode;
+
+  /**
    * If this parameter's type is inferable, nonzero slot id identifying which
    * entry in [LinkedLibrary.types] contains the inferred type.  If there is no
    * matching entry in [LinkedLibrary.types], then no type was inferred for
@@ -1380,6 +1489,13 @@ abstract class UnlinkedParam extends base.SummaryClass {
    */
   @Id(2)
   int get inferredTypeSlot;
+
+  /**
+   * The synthetic initializer function of the parameter.  Absent if the variable
+   * does not have an initializer.
+   */
+  @Id(12)
+  UnlinkedExecutable get initializer;
 
   /**
    * Indicates whether this is a function-typed parameter.
@@ -1567,6 +1683,7 @@ abstract class UnlinkedReference extends base.SummaryClass {
   /**
    * Name of the entity being referred to.  For the pseudo-type `dynamic`, the
    * string is "dynamic".  For the pseudo-type `void`, the string is "void".
+   * For the pseudo-type `bottom`, the string is "*bottom*".
    */
   @Id(0)
   String get name;
@@ -1810,6 +1927,13 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    */
   @Id(9)
   int get inferredTypeSlot;
+
+  /**
+   * The synthetic initializer function of the variable.  Absent if the variable
+   * does not have an initializer.
+   */
+  @Id(13)
+  UnlinkedExecutable get initializer;
 
   /**
    * Indicates whether the variable is declared using the `const` keyword.

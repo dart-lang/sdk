@@ -73,6 +73,13 @@ bool FlowGraphCompiler::SupportsHardwareDivision() {
 }
 
 
+bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
+  // TODO(johnmccutchan): Investigate possibility on MIPS once
+  // mints are implemented there.
+  return false;
+}
+
+
 void FlowGraphCompiler::EnterIntrinsicMode() {
   ASSERT(!intrinsic_mode());
   intrinsic_mode_ = true;

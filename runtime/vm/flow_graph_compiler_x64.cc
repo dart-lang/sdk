@@ -77,6 +77,11 @@ bool FlowGraphCompiler::SupportsHardwareDivision() {
 }
 
 
+bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
+  return false;
+}
+
+
 void FlowGraphCompiler::EnterIntrinsicMode() {
   ASSERT(!intrinsic_mode());
   intrinsic_mode_ = true;

@@ -682,6 +682,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitForStatement(ForStatement node) {
+    if (node.condition != null) {
+      _checkForNonBoolCondition(node.condition);
+    }
+    return super.visitForStatement(node);
+  }
+
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -1928,7 +1936,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else if (_inGenerator) {
       // RETURN_IN_GENERATOR
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_IN_GENERATOR, statement);
+          CompileTimeErrorCode.RETURN_IN_GENERATOR,
+          statement,
+          [_inAsync ? "async*" : "sync*"]);
     }
     // RETURN_OF_INVALID_TYPE
     return _checkForReturnOfInvalidType(returnExpression, expectedReturnType);

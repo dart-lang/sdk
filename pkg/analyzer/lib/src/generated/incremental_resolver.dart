@@ -118,12 +118,14 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       _gatherElements(element);
       node.accept(this);
     } on _DeclarationMismatchException {
+      logger.log("mismatched");
       return DeclarationMatchKind.MISMATCH;
     } finally {
       logger.exit();
     }
     // no API changes
     if (_removedElements.isEmpty && _addedElements.isEmpty) {
+      logger.log("no API changes");
       return DeclarationMatchKind.MATCH;
     }
     // simple API change
@@ -2070,12 +2072,12 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
     if (nameOffset > updateOffset) {
       // TODO(scheglov) make sure that we don't put local variables
       // and functions into the cache at all.
-      if (element is LocalVariableElement ||
-          element is FunctionElement &&
-              element.enclosingElement is ExecutableElement) {
+      try {
+        (element as ElementImpl).nameOffset = nameOffset + updateDelta;
+      } on FrozenHashCodeException {
         cache.remove(element);
+        (element as ElementImpl).nameOffset = nameOffset + updateDelta;
       }
-      (element as ElementImpl).nameOffset = nameOffset + updateDelta;
       if (element is ConstVariableElement) {
         ConstVariableElement constVariable = element as ConstVariableElement;
         Expression initializer = constVariable.constantInitializer;

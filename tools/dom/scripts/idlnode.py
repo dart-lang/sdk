@@ -573,15 +573,25 @@ class IDLType(IDLNode):
     elif ast.__module__ == "idl_types":
       if isinstance(ast, IdlType) or isinstance(ast, IdlArrayOrSequenceType) or \
          isinstance(ast, IdlNullableType):
-        type_name = str(ast)
-        # TODO(terry): For now don't handle unrestricted types see
-        #              https://code.google.com/p/chromium/issues/detail?id=354298
-        type_name = type_name.replace('unrestricted ', '', 1);
+        if isinstance(ast, IdlNullableType) and ast.inner_type.is_union_type:
+          print 'WARNING type %s is union mapped to \'any\'' % self.id
+          # TODO(terry): For union types use any otherwise type is unionType is
+          #              not found and is removed during merging.
+          self.id = 'any'
+        else:
+          type_name = str(ast)
+          # TODO(terry): For now don't handle unrestricted types see
+          #              https://code.google.com/p/chromium/issues/detail?id=354298
+          type_name = type_name.replace('unrestricted ', '', 1);
 
-        # TODO(terry): Handled USVString as a DOMString.
-        type_name = type_name.replace('USVString', 'DOMString', 1)
+          # TODO(terry): Handled USVString as a DOMString.
+          type_name = type_name.replace('USVString', 'DOMString', 1)
 
-        self.id = type_name
+          # TODO(terry); WindowTimers setInterval/setTimeout overloads with a
+          #              Function type - map to any until the IDL uses union.
+          type_name = type_name.replace('Function', 'any', 1)
+
+          self.id = type_name
       else:
         # IdlUnionType
         if ast.is_union_type:

@@ -112,17 +112,25 @@ void emitDart2js() {
     }
     if (message.examples != null) {
       out.writeln(",\n    examples: const [");
+
+      String escapeExampleContent(String content) {
+        if (content.contains("\n") || content.contains('"')) {
+          return 'r"""\n$content"""';
+        } else if (content.contains("\\")) {
+          return 'r"$content"';
+        }
+        return '"$content"';
+      }
       for (var example in message.examples) {
         if (example is String) {
-          out.writeln("      r'''");
-          out.write(example);
-          out.write("'''");
+          out.write("      ");
+          out.write(escapeExampleContent(example));
         } else if (example is Map) {
           out.writeln("      const {");
           example.forEach((String fileName, String content) {
-            out.writeln("      '$fileName': r'''");
-            out.write(content);
-            out.writeln("''',");
+            out.writeln("      '$fileName': ");
+            out.write(escapeExampleContent(content));
+            out.writeln(",");
           });
           out.write("      }");
         }
@@ -147,9 +155,12 @@ String convertToAnalyzerTemplate(String template, holeOrder) {
     }
   }
   int seenHoles = 0;
-  return template.replaceAllMapped(new RegExp(r"#\w+"), (Match match) {
+  return template.replaceAllMapped(new RegExp(r"#\w+|#{\w+}"), (Match match) {
     if (holeMap != null) {
-      String holeName = match[0].substring(1);
+      String matchedString = match[0];
+      String holeName = matchedString.startsWith("#{")
+          ? matchedString.substring(2, matchedString.length - 1)
+          : matchedString.substring(1);
       int index = holeMap[holeName];
       if (index == null) {
         throw "Couldn't find hole-position for $holeName $holeMap";

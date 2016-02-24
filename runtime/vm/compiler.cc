@@ -275,7 +275,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
 
   Thread* const thread = Thread::Current();
   StackZone zone(thread);
-#ifndef PRODUCT
+NOT_IN_PRODUCT(
   VMTagScope tagScope(thread, VMTag::kCompileClassTagId);
   TimelineDurationScope tds(thread,
                             thread->isolate()->GetCompilerStream(),
@@ -284,7 +284,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
     tds.SetNumArguments(1);
     tds.CopyArgument(0, "class", cls.ToCString());
   }
-#endif  // !PRODUCT
+)  // !PRODUCT
 
   // We remember all the classes that are being compiled in these lists. This
   // also allows us to reset the marked_for_parsing state in case we see an
@@ -489,7 +489,7 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
           }
         }
       }
-      if (!flow_graph->guarded_fields()->is_empty()) {
+      if (!flow_graph->parsed_function().guarded_fields()->is_empty()) {
         if (field_invalidation_gen_at_start() !=
             isolate()->field_invalidation_gen()) {
           code_is_valid = false;
@@ -526,10 +526,10 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
          ++i) {
       thread()->cha()->leaf_classes()[i]->RegisterCHACode(code);
     }
-    for (intptr_t i = 0;
-         i < flow_graph->guarded_fields()->length();
-         i++) {
-      const Field* field = (*flow_graph->guarded_fields())[i];
+    const ZoneGrowableArray<const Field*>& guarded_fields =
+        *flow_graph->parsed_function().guarded_fields();
+    for (intptr_t i = 0; i < guarded_fields.length(); i++) {
+      const Field* field = guarded_fields[i];
       field->RegisterDependentCode(code);
     }
   } else {  // not optimized.
@@ -563,9 +563,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   }
   bool is_compiled = false;
   Zone* const zone = thread()->zone();
-#ifndef PRODUCT
-  TimelineStream* compiler_timeline = isolate()->GetCompilerStream();
-#endif
+  NOT_IN_PRODUCT(
+      TimelineStream* compiler_timeline = isolate()->GetCompilerStream());
   CSTAT_TIMER_SCOPE(thread(), codegen_timer);
   HANDLESCOPE(thread());
 
@@ -601,8 +600,12 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         if (optimized()) {
           // Extract type feedback before the graph is built, as the graph
           // builder uses it to attach it to nodes.
-          ASSERT(function.deoptimization_counter() <
-                 FLAG_max_deoptimization_counter_threshold);
+
+          // In background compilation the deoptimization counter may have
+          // already reached the limit.
+          ASSERT(Compiler::IsBackgroundCompilation() ||
+                 (function.deoptimization_counter() <
+                     FLAG_max_deoptimization_counter_threshold));
 
           // 'Freeze' ICData in background compilation so that it does not
           // change while compiling.
@@ -623,11 +626,9 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           }
         }
 
-#ifndef PRODUCT
-        TimelineDurationScope tds(thread(),
-                                  compiler_timeline,
-                                  "BuildFlowGraph");
-#endif  // !PRODUCT
+        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
+                                                 compiler_timeline,
+                                                 "BuildFlowGraph");)
         flow_graph = pipeline->BuildFlowGraph(zone,
                                               parsed_function(),
                                               *ic_data_array,
@@ -651,20 +652,15 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       const bool reorder_blocks =
           FlowGraph::ShouldReorderBlocks(function, optimized());
       if (reorder_blocks) {
-#ifndef PRODUCT
-        TimelineDurationScope tds(thread(),
-                                  compiler_timeline,
-                                  "BlockScheduler::AssignEdgeWeights");
-#endif  // !PRODUCT
+        NOT_IN_PRODUCT(TimelineDurationScope tds(
+            thread(), compiler_timeline, "BlockScheduler::AssignEdgeWeights"));
         block_scheduler.AssignEdgeWeights();
       }
 
       if (optimized()) {
-#ifndef PRODUCT
-        TimelineDurationScope tds(thread(),
-                                  compiler_timeline,
-                                  "ComputeSSA");
-#endif  // !PRODUCT
+        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
+                                                 compiler_timeline,
+                                                 "ComputeSSA"));
         CSTAT_TIMER_SCOPE(thread(), ssa_timer);
         // Transform to SSA (virtual register 0 and no inlining arguments).
         flow_graph->ComputeSSA(0, NULL);
@@ -683,11 +679,9 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // have non-generic type feedback attached to them that can
       // potentially affect optimizations.
       if (optimized()) {
-#ifndef PRODUCT
-        TimelineDurationScope tds(thread(),
-                                  compiler_timeline,
-                                  "OptimizationPasses");
-#endif  // !PRODUCT
+        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
+                                                 compiler_timeline,
+                                                 "OptimizationPasses"));
         inline_id_to_function.Add(&function);
         // Top scope function has no caller (-1).
         caller_inline_id.Add(-1);
@@ -708,11 +702,9 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
         // Inlining (mutates the flow graph)
         if (FLAG_use_inlining) {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(thread(),
-                                     compiler_timeline,
-                                     "Inlining");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
+                                                    compiler_timeline,
+                                                    "Inlining"));
           CSTAT_TIMER_SCOPE(thread(), graphinliner_timer);
           // Propagate types to create more inlining opportunities.
           FlowGraphTypePropagator::Propagate(flow_graph);
@@ -737,11 +729,9 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(thread(),
-                                     compiler_timeline,
-                                     "ApplyClassIds");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
+                                                    compiler_timeline,
+                                                    "ApplyClassIds"));
           // Use propagated class-ids to optimize further.
           optimizer.ApplyClassIds();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -753,19 +743,17 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Do optimizations that depend on the propagated type information.
-        if (optimizer.Canonicalize()) {
+        if (flow_graph->Canonicalize()) {
           // Invoke Canonicalize twice in order to fully canonicalize patterns
           // like "if (a & const == 0) { }".
-          optimizer.Canonicalize();
+          flow_graph->Canonicalize();
         }
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(thread(),
-                                     compiler_timeline,
-                                     "BranchSimplifier");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
+                                                    compiler_timeline,
+                                                    "BranchSimplifier"));
           BranchSimplifier::Simplify(flow_graph);
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
@@ -774,15 +762,13 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         }
 
         if (FLAG_constant_propagation) {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(thread(),
-                                     compiler_timeline,
-                                     "ConstantPropagation");
-#endif  // !PRODUCT
-          ConstantPropagator::Optimize(flow_graph);
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
+                                                    compiler_timeline,
+                                                    "ConstantPropagation");
+          ConstantPropagator::Optimize(flow_graph));
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
           // A canonicalization pass to remove e.g. smi checks on smi constants.
-          optimizer.Canonicalize();
+          flow_graph->Canonicalize();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
           // Canonicalization introduced more opportunities for constant
           // propagation.
@@ -805,28 +791,23 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(thread(),
-                                     compiler_timeline,
-                                     "SelectRepresentations");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
+                                                    compiler_timeline,
+                                                    "SelectRepresentations"));
           // Where beneficial convert Smi operations into Int32 operations.
           // Only meanigful for 32bit platforms right now.
-          optimizer.WidenSmiToInt32();
+          flow_graph->WidenSmiToInt32();
 
           // Unbox doubles. Performed after constant propagation to minimize
           // interference from phis merging double values and tagged
           // values coming from dead paths.
-          optimizer.SelectRepresentations();
+          flow_graph->SelectRepresentations();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 
         {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(thread(),
-                                     compiler_timeline,
-                                     "CommonSubexpressionElinination");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(
+              thread(), compiler_timeline, "CommonSubexpressionElinination"));
           if (FLAG_common_subexpression_elimination ||
               FLAG_loop_invariant_code_motion) {
             flow_graph->ComputeBlockEffects();
@@ -835,12 +816,12 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           if (FLAG_common_subexpression_elimination) {
             if (DominatorBasedCSE::Optimize(flow_graph)) {
               DEBUG_ASSERT(flow_graph->VerifyUseLists());
-              optimizer.Canonicalize();
+              flow_graph->Canonicalize();
               // Do another round of CSE to take secondary effects into account:
               // e.g. when eliminating dependent loads (a.x[0] + a.x[0])
               // TODO(fschneider): Change to a one-pass optimization pass.
               if (DominatorBasedCSE::Optimize(flow_graph)) {
-                optimizer.Canonicalize();
+                flow_graph->Canonicalize();
               }
               DEBUG_ASSERT(flow_graph->VerifyUseLists());
             }
@@ -864,20 +845,16 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(thread(),
-                                     compiler_timeline,
-                                     "DeadStoreElimination");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
+                                                    compiler_timeline,
+                                                    "DeadStoreElimination"));
           DeadStoreElimination::Optimize(flow_graph);
         }
 
         if (FLAG_range_analysis) {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(thread(),
-                                     compiler_timeline,
-                                     "RangeAnalysis");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
+                                                    compiler_timeline,
+                                                    "RangeAnalysis"));
           // Propagate types after store-load-forwarding. Some phis may have
           // become smi phis that can be processed by range analysis.
           FlowGraphTypePropagator::Propagate(flow_graph);
@@ -892,11 +869,9 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         }
 
         if (FLAG_constant_propagation) {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(thread(),
-                                     compiler_timeline,
-                                     "ConstantPropagator::OptimizeBranches");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(
+              thread(), compiler_timeline,
+              "ConstantPropagator::OptimizeBranches"));
           // Constant propagation can use information from range analysis to
           // find unreachable branch targets and eliminate branches that have
           // the same true- and false-target.
@@ -910,11 +885,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(thread(),
-                                     compiler_timeline,
-                                     "TryCatchAnalyzer::Optimize");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(
+              thread(), compiler_timeline, "TryCatchAnalyzer::Optimize"));
           // Optimize try-blocks.
           TryCatchAnalyzer::Optimize(flow_graph);
         }
@@ -922,20 +894,18 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // Detach environments from the instructions that can't deoptimize.
         // Do it before we attempt to perform allocation sinking to minimize
         // amount of materializations it has to perform.
-        optimizer.EliminateEnvironments();
+        flow_graph->EliminateEnvironments();
 
         {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(thread(),
-                                     compiler_timeline,
-                                     "EliminateDeadPhis");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
+                                                    compiler_timeline,
+                                                    "EliminateDeadPhis"));
           DeadCodeElimination::EliminateDeadPhis(flow_graph);
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 
-        if (optimizer.Canonicalize()) {
-          optimizer.Canonicalize();
+        if (flow_graph->Canonicalize()) {
+          flow_graph->Canonicalize();
         }
 
         // Attempt to sink allocations of temporary non-escaping objects to
@@ -943,11 +913,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         AllocationSinking* sinking = NULL;
         if (FLAG_allocation_sinking &&
             (flow_graph->graph_entry()->SuccessorCount()  == 1)) {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(thread(),
-                                     compiler_timeline,
-                                     "AllocationSinking::Optimize");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(
+              thread(), compiler_timeline, "AllocationSinking::Optimize"));
           // TODO(fschneider): Support allocation sinking with try-catch.
           sinking = new AllocationSinking(flow_graph);
           sinking->Optimize();
@@ -961,33 +928,28 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(thread(),
-                                     compiler_timeline,
-                                     "SelectRepresentations");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
+                                                    compiler_timeline,
+                                                    "SelectRepresentations"));
           // Ensure that all phis inserted by optimization passes have
           // consistent representations.
-          optimizer.SelectRepresentations();
+          flow_graph->SelectRepresentations();
         }
 
-        if (optimizer.Canonicalize()) {
+        if (flow_graph->Canonicalize()) {
           // To fully remove redundant boxing (e.g. BoxDouble used only in
           // environments and UnboxDouble instructions) instruction we
           // first need to replace all their uses and then fold them away.
           // For now we just repeat Canonicalize twice to do that.
           // TODO(vegorov): implement a separate representation folding pass.
-          optimizer.Canonicalize();
+          flow_graph->Canonicalize();
         }
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         if (sinking != NULL) {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(
-              thread(),
-              compiler_timeline,
-              "AllocationSinking::DetachMaterializations");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(
+              thread(), compiler_timeline,
+              "AllocationSinking::DetachMaterializations"));
           // Remove all MaterializeObject instructions inserted by allocation
           // sinking from the flow graph and let them float on the side
           // referenced only from environments. Register allocator will consider
@@ -1000,22 +962,17 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         FlowGraphInliner::CollectGraphInfo(flow_graph, true);
 
         {
-#ifndef PRODUCT
-          TimelineDurationScope tds2(thread(),
-                                     compiler_timeline,
-                                     "AllocateRegisters");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
+                                                    compiler_timeline,
+                                                    "AllocateRegisters"));
           // Perform register allocation on the SSA graph.
           FlowGraphAllocator allocator(*flow_graph);
           allocator.AllocateRegisters();
         }
 
         if (reorder_blocks) {
-#ifndef PRODUCT
-          TimelineDurationScope tds(thread(),
-                                    compiler_timeline,
-                                    "BlockScheduler::ReorderBlocks");
-#endif  // !PRODUCT
+          NOT_IN_PRODUCT(TimelineDurationScope tds(
+              thread(), compiler_timeline, "BlockScheduler::ReorderBlocks"));
           block_scheduler.ReorderBlocks();
         }
 
@@ -1032,20 +989,16 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                        caller_inline_id);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
-#ifndef PRODUCT
-        TimelineDurationScope tds(thread(),
-                                  compiler_timeline,
-                                  "CompileGraph");
-#endif  // !PRODUCT
+        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
+                                                 compiler_timeline,
+                                                 "CompileGraph"));
         graph_compiler.CompileGraph();
         pipeline->FinalizeCompilation();
       }
       {
-#ifndef PRODUCT
-        TimelineDurationScope tds(thread(),
-                                  compiler_timeline,
-                                  "FinalizeCompilation");
-#endif  // !PRODUCT
+        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
+                                                 compiler_timeline,
+                                                 "FinalizeCompilation"));
         if (thread()->IsMutatorThread()) {
           FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
         } else {
@@ -1110,7 +1063,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 }
 
 
-#if defined(DEBUG)
+DEBUG_ONLY(
 // Verifies that the inliner is always in the list of inlined functions.
 // If this fails run with --trace-inlining-intervals to get more information.
 static void CheckInliningIntervals(const Function& function) {
@@ -1128,8 +1081,7 @@ static void CheckInliningIntervals(const Function& function) {
            function.raw());
   }
 }
-#endif
-
+)
 
 static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
@@ -1153,9 +1105,10 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     if (trace_compiler) {
       const intptr_t token_size = function.end_token_pos().Pos() -
                                   function.token_pos().Pos();
-      THR_Print("Compiling %s%sfunction: '%s' @ token %s, size %" Pd "\n",
+      THR_Print("Compiling %s%sfunction %s: '%s' @ token %s, size %" Pd "\n",
                 (osr_id == Compiler::kNoOSRDeoptId ? "" : "osr "),
                 (optimized ? "optimized " : ""),
+                (Compiler::IsBackgroundCompilation() ? "(background)" : ""),
                 function.ToFullyQualifiedCString(),
                 function.token_pos().ToCString(),
                 token_size);
@@ -1224,9 +1177,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
       Disassembler::DisassembleCode(function, true);
       THR_Print("*** END CODE\n");
     }
-#if defined(DEBUG)
-    CheckInliningIntervals(function);
-#endif
+    DEBUG_ONLY(CheckInliningIntervals(function));
     return Error::null();
   } else {
     Thread* const thread = Thread::Current();

@@ -93,8 +93,9 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     Expression target = access.target;
     if (target is Identifier) {
       EntityRefBuilder targetRef = serializeIdentifier(target);
-      return new EntityRefBuilder(reference: visitor.serializeReference(
-          targetRef.reference, access.propertyName.name));
+      return new EntityRefBuilder(
+          reference: visitor.serializeReference(
+              targetRef.reference, access.propertyName.name));
     } else {
       // TODO(scheglov) should we handle other targets in malformed constants?
       throw new StateError('Unexpected target type: ${target.runtimeType}');
@@ -191,6 +192,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    */
   final List<UnlinkedExportNonPublicBuilder> exports =
       <UnlinkedExportNonPublicBuilder>[];
+
+  /**
+   * List of objects which should be written to
+   * [UnlinkedExecutable.localLabels].
+   */
+  List<UnlinkedLabelBuilder> labels = <UnlinkedLabelBuilder>[];
 
   /**
    * List of objects which should be written to [UnlinkedUnit.parts].
@@ -402,6 +409,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     if (combinator is ShowCombinator) {
       b.shows =
           combinator.shownNames.map((SimpleIdentifier id) => id.name).toList();
+      b.offset = combinator.offset;
+      b.end = combinator.end;
     } else if (combinator is HideCombinator) {
       b.hides =
           combinator.hiddenNames.map((SimpleIdentifier id) => id.name).toList();
@@ -475,7 +484,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * [UnlinkedExecutable].
    */
   UnlinkedExecutableBuilder serializeExecutable(
-      SimpleIdentifier name,
+      String name,
+      int nameOffset,
       bool isGetter,
       bool isSetter,
       TypeName returnType,
@@ -491,7 +501,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     _TypeParameterScope typeParameterScope = new _TypeParameterScope();
     scopes.add(typeParameterScope);
     UnlinkedExecutableBuilder b = new UnlinkedExecutableBuilder();
-    String nameString = name.name;
+    String nameString = name;
     if (isGetter) {
       b.kind = UnlinkedExecutableKind.getter;
     } else if (isSetter) {
@@ -502,7 +512,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     b.isAbstract = body is EmptyFunctionBody;
     b.name = nameString;
-    b.nameOffset = name.offset;
+    b.nameOffset = nameOffset;
     b.typeParameters =
         serializeTypeParameters(typeParameters, typeParameterScope);
     if (!isTopLevel) {
@@ -537,7 +547,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return b;
   }
 
-  void serializeFunctionBody(UnlinkedExecutableBuilder b, FunctionBody body) {
+  /**
+   * Record local functions and variables into the given executable. The given
+   * [body] is usually an actual [FunctionBody], but may be an [Expression]
+   * when we process a synthetic variable initializer function.
+   */
+  void serializeFunctionBody(UnlinkedExecutableBuilder b, AstNode body) {
     if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
       for (UnlinkedParamBuilder parameter in b.parameters) {
         parameter.visibleOffset = body.offset;
@@ -545,13 +560,17 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
     }
     List<UnlinkedExecutableBuilder> oldExecutables = executables;
+    List<UnlinkedLabelBuilder> oldLabels = labels;
     List<UnlinkedVariableBuilder> oldVariables = variables;
     executables = <UnlinkedExecutableBuilder>[];
+    labels = <UnlinkedLabelBuilder>[];
     variables = <UnlinkedVariableBuilder>[];
     body.accept(this);
     b.localFunctions = executables;
+    b.localLabels = labels;
     b.localVariables = variables;
     executables = oldExecutables;
+    labels = oldLabels;
     variables = oldVariables;
   }
 
@@ -568,6 +587,22 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.parameters = parameters.parameters
         .map((FormalParameter p) => p.accept(this))
         .toList();
+  }
+
+  /**
+   * If the given [expression] is not `null`, serialize it as an
+   * [UnlinkedExecutableBuilder], otherwise return `null`.
+   */
+  UnlinkedExecutableBuilder serializeInitializerFunction(
+      Expression expression) {
+    if (expression == null) {
+      return null;
+    }
+    UnlinkedExecutableBuilder initializer =
+        new UnlinkedExecutableBuilder(nameOffset: expression.offset);
+    serializeFunctionBody(initializer, expression);
+    initializer.inferredReturnTypeSlot = assignTypeSlot();
+    return initializer;
   }
 
   /**
@@ -754,6 +789,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
       b.visibleOffset = enclosingBlock?.offset;
       b.visibleLength = enclosingBlock?.length;
+      b.initializer = serializeInitializerFunction(variable.initializer);
       this.variables.add(b);
     }
   }
@@ -806,6 +842,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     if (node.name != null) {
       b.name = node.name.name;
       b.nameOffset = node.name.offset;
+      b.periodOffset = node.period.offset;
+      b.nameEnd = node.name.end;
     } else {
       b.nameOffset = node.returnType.offset;
     }
@@ -853,7 +891,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     UnlinkedParamBuilder b = node.parameter.accept(this);
     if (node.defaultValue != null) {
       b.defaultValue = serializeConstExpr(node.defaultValue);
+      b.defaultValueCode = node.defaultValue.toSource();
     }
+    b.initializer = serializeInitializerFunction(node.defaultValue);
     return b;
   }
 
@@ -906,7 +946,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     executables.add(serializeExecutable(
-        node.name,
+        node.name.name,
+        node.name.offset,
         node.isGetter,
         node.isSetter,
         node.returnType,
@@ -918,6 +959,26 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         node.metadata,
         node.functionExpression.typeParameters,
         node.externalKeyword != null));
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is! FunctionDeclaration) {
+      executables.add(serializeExecutable(
+          null,
+          node.offset,
+          false,
+          false,
+          null,
+          node.parameters,
+          node.body,
+          false,
+          false,
+          null,
+          null,
+          node.typeParameters,
+          false));
+    }
   }
 
   @override
@@ -974,6 +1035,17 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  void visitLabel(Label node) {
+    AstNode parent = node.parent;
+    labels.add(new UnlinkedLabelBuilder(
+        name: node.label.name,
+        nameOffset: node.offset,
+        isOnSwitchMember: parent is SwitchMember,
+        isOnSwitchStatement:
+            parent is LabeledStatement && parent.statement is SwitchStatement));
+  }
+
+  @override
   void visitLibraryDirective(LibraryDirective node) {
     libraryName =
         node.name.components.map((SimpleIdentifier id) => id.name).join('.');
@@ -987,7 +1059,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     executables.add(serializeExecutable(
-        node.name,
+        node.name.name,
+        node.name.offset,
         node.isGetter,
         node.isSetter,
         node.returnType,

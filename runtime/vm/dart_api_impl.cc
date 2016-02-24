@@ -16,7 +16,6 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
-#include "vm/debuginfo.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -52,7 +51,6 @@ namespace dart {
 #define Z (T->zone())
 
 
-DECLARE_FLAG(bool, enable_mirrors);
 DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, print_class_table);
@@ -5717,9 +5715,9 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
                                                   const char* event_kind,
                                                   const uint8_t* bytes,
                                                   intptr_t bytes_length) {
-#ifdef PRODUCT
+#if defined(PRODUCT)
   return Api::Success();
-#else
+#else  // defined(PRODUCT)
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   if (stream_id == NULL) {
@@ -5738,7 +5736,7 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
   Service::SendEmbedderEvent(I, stream_id, event_kind,
                              bytes, bytes_length);
   return Api::Success();
-#endif  // PRODUCT
+#endif  // defined(PRODUCT)
 }
 
 

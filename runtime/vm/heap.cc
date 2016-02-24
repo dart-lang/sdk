@@ -31,6 +31,8 @@ Heap::Heap(Isolate* isolate,
            intptr_t max_old_gen_words,
            intptr_t max_external_words)
     : isolate_(isolate),
+      barrier_(new Monitor()),
+      barrier_done_(new Monitor()),
       new_space_(this, max_new_gen_semi_words, kNewObjectAlignmentOffset),
       old_space_(this, max_old_gen_words, max_external_words),
       read_only_(false),
@@ -48,6 +50,9 @@ Heap::Heap(Isolate* isolate,
 
 
 Heap::~Heap() {
+  delete barrier_;
+  delete barrier_done_;
+
   for (int sel = 0;
        sel < kNumWeakSelectors;
        sel++) {

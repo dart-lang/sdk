@@ -1239,6 +1239,7 @@ class FixProcessor {
       isFirst = false;
     }
     // merge getter/setter pairs into fields
+    String prefix = utils.getIndent(1);
     for (int i = 0; i < elements.length; i++) {
       ExecutableElement element = elements[i];
       if (element.kind == ElementKind.GETTER && i + 1 < elements.length) {
@@ -1249,9 +1250,16 @@ class FixProcessor {
           elements.removeAt(i);
           i--;
           numElements--;
-          // add field
+          // separator
           addEolIfNotFirst();
-          sb.append(utils.getIndent(1));
+          // @override
+          {
+            sb.append(prefix);
+            sb.append('@override');
+            sb.append(eol);
+          }
+          // add field
+          sb.append(prefix);
           _appendType(sb, element.type.returnType, orVar: true);
           sb.append(element.name);
           sb.append(';');

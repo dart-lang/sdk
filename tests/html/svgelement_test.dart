@@ -70,12 +70,6 @@ main() {
   });
 
   // Unfortunately, because the filtering mechanism in unitttest is a regex done
-  group('supported_altGlyph', () {
-    test('supported', () {
-      expect(svg.AltGlyphElement.supported, true);
-    });
-  });
-
   group('supported_animate', () {
     test('supported', () {
       expect(svg.AnimateElement.supported, true);
@@ -277,8 +271,6 @@ main() {
       testConstructor('use', (e) => e is svg.UseElement);
       testConstructor('view', (e) => e is svg.ViewElement);
       // TODO(alanknight): Issue 23144
-      testConstructor('altGlyph', (e) => e is svg.AltGlyphElement,
-          svg.AltGlyphElement.supported, false);
       testConstructor('animate', (e) => e is svg.AnimateElement,
           svg.AnimateElement.supported);
       testConstructor('animateMotion', (e) => e is svg.AnimateMotionElement,

@@ -31,7 +31,6 @@
 #include "vm/parser.h"
 #include "vm/precompiler.h"
 #include "vm/profiler.h"
-#include "vm/report.h"
 #include "vm/reusable_handles.h"
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
@@ -56,10 +55,8 @@ DEFINE_FLAG(bool, overlap_type_arguments, true,
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
-DEFINE_FLAG(bool, trace_cha, false, "Trace CHA operations");
 DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
-DEFINE_FLAG(bool, trace_field_guards, false, "Trace changes in field's cids.");
 DEFINE_FLAG(bool, ignore_patch_signature_mismatch, false,
             "Ignore patch file member signature mismatch.");
 
@@ -1366,6 +1363,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   // Pre-register the mirrors library so we can place the vm class
   // MirrorReference there rather than the core library.
+NOT_IN_PRODUCT(
   lib = Library::LookupLibrary(Symbols::DartMirrors());
   if (lib.IsNull()) {
     lib = Library::NewLibraryHelper(Symbols::DartMirrors(), true);
@@ -1377,7 +1375,7 @@ RawError* Object::Init(Isolate* isolate) {
   ASSERT(lib.raw() == Library::MirrorsLibrary());
 
   cls = Class::New<MirrorReference>();
-  RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
+  RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib));
 
   // Pre-register the collection library so we can place the vm class
   // LinkedHashMap there rather than the core library.
@@ -1737,6 +1735,17 @@ RawError* Object::Init(Isolate* isolate) {
 }
 
 
+#if defined(DEBUG)
+bool Object:: InVMHeap() const {
+  if (FLAG_verify_handles && raw()->IsVMHeapObject()) {
+    Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+    ASSERT(vm_isolate_heap->Contains(RawObject::ToAddr(raw())));
+  }
+  return raw()->IsVMHeapObject();
+}
+#endif  // DEBUG
+
+
 void Object::Print() const {
   THR_Print("%s\n", ToCString());
 }
@@ -1914,8 +1923,12 @@ RawString* Class::PrettyName() const {
 
 
 RawString* Class::UserVisibleName() const {
+#if defined(PRODUCT)
+  return raw_ptr()->name_;
+#else  // defined(PRODUCT)
   ASSERT(raw_ptr()->user_name_ != String::null());
   return raw_ptr()->user_name_;
+#endif  // defined(PRODUCT)
 }
 
 
@@ -2110,6 +2123,7 @@ typedef UnorderedHashSet<ClassFunctionsTraits> ClassFunctionsSet;
 
 
 void Class::SetFunctions(const Array& value) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->functions_, value.raw());
   const intptr_t len = value.Length();
@@ -2130,6 +2144,7 @@ void Class::SetFunctions(const Array& value) const {
 
 
 void Class::AddFunction(const Function& function) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   const Array& arr = Array::Handle(functions());
   const Array& new_arr =
       Array::Handle(Array::Grow(arr, arr.Length() + 1, Heap::kOld));
@@ -2149,6 +2164,7 @@ void Class::AddFunction(const Function& function) const {
 
 
 void Class::RemoveFunction(const Function& function) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   const Array& arr = Array::Handle(functions());
   StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->functions_hash_table_, Array::null());
@@ -3147,6 +3163,7 @@ RawClass* Class::NewExternalTypedDataClass(intptr_t class_id) {
 void Class::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   StorePointer(&raw_ptr()->name_, value.raw());
+NOT_IN_PRODUCT(
   if (raw_ptr()->user_name_ == String::null()) {
     // TODO(johnmccutchan): Eagerly set user name for VM isolate classes,
     // lazily set user name for the other classes.
@@ -3154,12 +3171,15 @@ void Class::set_name(const String& value) const {
     const String& user_name = String::Handle(GenerateUserVisibleName());
     set_user_name(user_name);
   }
+)
 }
 
 
+NOT_IN_PRODUCT(
 void Class::set_user_name(const String& value) const {
   StorePointer(&raw_ptr()->user_name_, value.raw());
 }
+)
 
 
 RawString* Class::GeneratePrettyName() const {
@@ -3483,6 +3503,11 @@ void Class::AddDirectSubclass(const Class& subclass) const {
   }
 #endif
   direct_subclasses.Add(subclass, Heap::kOld);
+}
+
+
+void Class::ClearDirectSubclasses() const {
+  StorePointer(&raw_ptr()->direct_subclasses_, GrowableObjectArray::null());
 }
 
 
@@ -3935,13 +3960,18 @@ RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
   const intptr_t len = funcs.Length();
   Function& function = thread->FunctionHandle();
   if (len >= kFunctionLookupHashTreshold) {
-    ClassFunctionsSet set(raw_ptr()->functions_hash_table_);
-    REUSABLE_STRING_HANDLESCOPE(thread);
-    function ^= set.GetOrNull(FunctionName(name, &(thread->StringHandle())));
-    // No mutations.
-    ASSERT(set.Release().raw() == raw_ptr()->functions_hash_table_);
-    return function.IsNull() ? Function::null()
-                             : CheckFunctionType(function, kind);
+    // Cache functions hash table to allow multi threaded access.
+    const Array& hash_table = Array::Handle(thread->zone(),
+                                            raw_ptr()->functions_hash_table_);
+    if (!hash_table.IsNull()) {
+      ClassFunctionsSet set(hash_table.raw());
+      REUSABLE_STRING_HANDLESCOPE(thread);
+      function ^= set.GetOrNull(FunctionName(name, &(thread->StringHandle())));
+      // No mutations.
+      ASSERT(set.Release().raw() == hash_table.raw());
+      return function.IsNull() ? Function::null()
+                               : CheckFunctionType(function, kind);
+    }
   }
   if (name.IsSymbol()) {
     // Quick Symbol compare.
@@ -9694,6 +9724,12 @@ bool Library::ImportsCorelib() const {
 }
 
 
+void Library::DropDependencies() const {
+  StorePointer(&raw_ptr()->imports_, Array::null());
+  StorePointer(&raw_ptr()->exports_, Array::null());
+}
+
+
 void Library::AddImport(const Namespace& ns) const {
   Array& imports = Array::Handle(this->imports());
   intptr_t capacity = imports.Length();
@@ -12821,11 +12857,13 @@ RawCode* Code::FinalizeCode(const char* name,
   CPU::FlushICache(instrs.EntryPoint(), instrs.size());
 
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
+#ifndef PRODUCT
   CodeObservers::NotifyAll(name,
                            instrs.EntryPoint(),
                            assembler->prologue_offset(),
                            instrs.size(),
                            optimized);
+#endif
   {
     NoSafepointScope no_safepoint;
     const ZoneGrowableArray<intptr_t>& pointer_offsets =
@@ -12882,13 +12920,14 @@ RawCode* Code::FinalizeCode(const Function& function,
                             bool optimized) {
   // Calling ToLibNamePrefixedQualifiedCString is very expensive,
   // try to avoid it.
+#ifndef PRODUCT
   if (CodeObservers::AreActive()) {
     return FinalizeCode(function.ToLibNamePrefixedQualifiedCString(),
                         assembler,
                         optimized);
-  } else {
-    return FinalizeCode("", assembler, optimized);
   }
+#endif  // !PRODUCT
+  return FinalizeCode("", assembler, optimized);
 }
 
 

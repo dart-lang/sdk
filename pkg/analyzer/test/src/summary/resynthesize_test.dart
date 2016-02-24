@@ -13,11 +13,13 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/constant.dart' show DartObject;
 import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show Namespace, TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
@@ -49,6 +51,17 @@ class ResynthTest extends ResolverTestCase {
 
   void addLibrarySource(String filePath, String contents) {
     otherLibrarySources.add(addNamedSource(filePath, contents));
+  }
+
+  /**
+   * Verify that the given prefix is safe to elide from a resynthesized AST.
+   */
+  void checkElidablePrefix(SimpleIdentifier prefix) {
+    if (prefix.staticElement is! PrefixElement &&
+        prefix.staticElement is! ClassElement) {
+      fail('Prefix of type ${prefix.staticElement.runtimeType}'
+          ' should not have been elided');
+    }
   }
 
   void checkLibrary(String text,
@@ -133,10 +146,6 @@ class ResynthTest extends ResolverTestCase {
 
   void checkPossibleLocalElements(Element resynthesized, Element original) {
     if (original is! LocalElement && resynthesized is! LocalElement) {
-      return;
-    }
-    // TODO(scheglov) add support for parameters
-    if (original is ParameterElement && resynthesized is ParameterElement) {
       return;
     }
     if (original is LocalElement && resynthesized is LocalElement) {
@@ -351,9 +360,27 @@ class ResynthTest extends ResolverTestCase {
         expect(r.name, o.name, reason: desc);
         compareElements(r.staticElement, o.staticElement, desc);
       } else if (o is PrefixedIdentifier && r is SimpleIdentifier) {
-        // We often don't resynthesize prefixed identifiers.
-        // We use simple identifiers with correct elements.
-        compareConstAsts(r, o.identifier, desc);
+        // We don't resynthesize prefixed identifiers when the prefix refers to
+        // a PrefixElement or a ClassElement.  We use simple identifiers with
+        // correct elements.
+        if (o.prefix.staticElement is PrefixElement ||
+            o.prefix.staticElement is ClassElement) {
+          compareConstAsts(r, o.identifier, desc);
+        } else {
+          fail('Prefix of type ${o.prefix.staticElement.runtimeType} should not'
+              ' have been elided');
+        }
+      } else if (o is PropertyAccess &&
+          o.target is PrefixedIdentifier &&
+          r is PrefixedIdentifier) {
+        // We don't resynthesize prefixed identifiers when the prefix refers to
+        // a PrefixElement or a ClassElement.  Which means that if the original
+        // expression was e.g. `prefix.topLevelVariableName.length`, it will get
+        // resynthesized as `topLevelVariableName.length`
+        PrefixedIdentifier oTarget = o.target;
+        checkElidablePrefix(oTarget.prefix);
+        compareConstAsts(
+            r, AstFactory.identifier(oTarget.identifier, o.propertyName), desc);
       } else if (o is PrefixedIdentifier && r is PrefixedIdentifier) {
         compareConstAsts(r.prefix, o.prefix, desc);
         compareConstAsts(r.identifier, o.identifier, desc);
@@ -362,9 +389,15 @@ class ResynthTest extends ResolverTestCase {
         expect(r.propertyName.name, o.propertyName.name, reason: desc);
         compareElements(
             r.propertyName.staticElement, o.propertyName.staticElement, desc);
-      } else if (o is PropertyAccess && r is SimpleIdentifier) {
-        // We don't resynthesize property access.
-        // We use simple identifiers with correct elements.
+      } else if (o is PropertyAccess &&
+          o.target is PrefixedIdentifier &&
+          r is SimpleIdentifier) {
+        // We don't resynthesize property access when it takes the form
+        // `prefixName.className.staticMember`.  We just resynthesize a
+        // SimpleIdentifier correctly resolved to the static member.
+        PrefixedIdentifier oTarget = o.target;
+        checkElidablePrefix(oTarget.prefix);
+        checkElidablePrefix(oTarget.identifier);
         compareConstAsts(r, o.propertyName, desc);
       } else if (o is NullLiteral) {
         expect(r, new isInstanceOf<NullLiteral>(), reason: desc);
@@ -495,6 +528,60 @@ class ResynthTest extends ResolverTestCase {
           original.redirectedConstructor, '$desc redirectedConstructor');
     }
     checkPossibleMember(resynthesized, original, desc);
+    expect(resynthesized.nameEnd, original.nameEnd, reason: desc);
+    expect(resynthesized.periodOffset, original.periodOffset, reason: desc);
+  }
+
+  void compareConstValues(
+      DartObject resynthesized, DartObject original, String desc) {
+    if (original == null) {
+      expect(resynthesized, isNull, reason: desc);
+    } else {
+      expect(resynthesized, isNotNull, reason: desc);
+      compareTypes(resynthesized.type, original.type, desc);
+      expect(resynthesized.hasKnownValue, original.hasKnownValue, reason: desc);
+      if (original.isNull) {
+        expect(resynthesized.isNull, isTrue, reason: desc);
+      } else if (original.toBoolValue() != null) {
+        expect(resynthesized.toBoolValue(), original.toBoolValue(),
+            reason: desc);
+      } else if (original.toIntValue() != null) {
+        expect(resynthesized.toIntValue(), original.toIntValue(), reason: desc);
+      } else if (original.toDoubleValue() != null) {
+        expect(resynthesized.toDoubleValue(), original.toDoubleValue(),
+            reason: desc);
+      } else if (original.toListValue() != null) {
+        List<DartObject> resynthesizedList = resynthesized.toListValue();
+        List<DartObject> originalList = original.toListValue();
+        expect(resynthesizedList, hasLength(originalList.length));
+        for (int i = 0; i < originalList.length; i++) {
+          compareConstValues(resynthesizedList[i], originalList[i], desc);
+        }
+      } else if (original.toMapValue() != null) {
+        Map<DartObject, DartObject> resynthesizedMap =
+            resynthesized.toMapValue();
+        Map<DartObject, DartObject> originalMap = original.toMapValue();
+        expect(resynthesizedMap, hasLength(originalMap.length));
+        List<DartObject> resynthesizedKeys = resynthesizedMap.keys.toList();
+        List<DartObject> originalKeys = originalMap.keys.toList();
+        for (int i = 0; i < originalKeys.length; i++) {
+          DartObject resynthesizedKey = resynthesizedKeys[i];
+          DartObject originalKey = originalKeys[i];
+          compareConstValues(resynthesizedKey, originalKey, desc);
+          DartObject resynthesizedValue = resynthesizedMap[resynthesizedKey];
+          DartObject originalValue = originalMap[originalKey];
+          compareConstValues(resynthesizedValue, originalValue, desc);
+        }
+      } else if (original.toStringValue() != null) {
+        expect(resynthesized.toStringValue(), original.toStringValue(),
+            reason: desc);
+      } else if (original.toSymbolValue() != null) {
+        expect(resynthesized.toSymbolValue(), original.toSymbolValue(),
+            reason: desc);
+      } else if (original.toTypeValue() != null) {
+        fail('Not implemented');
+      }
+    }
   }
 
   void compareElementAnnotations(ElementAnnotationImpl resynthesized,
@@ -534,12 +621,19 @@ class ResynthTest extends ResolverTestCase {
     compareMetadata(resynthesized.metadata, original.metadata, desc);
     // Modifiers are a pain to test via handles.  So just test them via the
     // actual element.
-    for (Modifier modifier in Modifier.values) {
+    for (Modifier modifier in Modifier.persistedValues) {
       bool got = rImpl.hasModifier(modifier);
       bool want = oImpl.hasModifier(modifier);
       expect(got, want,
           reason: 'Mismatch in $desc.$modifier: got $got, want $want');
     }
+    for (Modifier modifier in Modifier.transientValues) {
+      bool got = rImpl.hasModifier(modifier);
+      bool want = false;
+      expect(got, false,
+          reason: 'Mismatch in $desc.$modifier: got $got, want $want');
+    }
+
     // Validate members.
     if (oImpl is Member) {
       expect(rImpl, new isInstanceOf<Member>(), reason: desc);
@@ -551,13 +645,8 @@ class ResynthTest extends ResolverTestCase {
   void compareExecutableElements(ExecutableElement resynthesized,
       ExecutableElement original, String desc) {
     compareElements(resynthesized, original, desc);
-    expect(resynthesized.parameters.length, original.parameters.length);
-    for (int i = 0; i < resynthesized.parameters.length; i++) {
-      compareParameterElements(
-          resynthesized.parameters[i],
-          original.parameters[i],
-          '$desc parameter ${original.parameters[i].name}');
-    }
+    compareParameterElementLists(
+        resynthesized.parameters, original.parameters, desc);
     compareTypes(
         resynthesized.returnType, original.returnType, '$desc return type');
     compareTypes(resynthesized.type, original.type, desc);
@@ -575,6 +664,15 @@ class ResynthTest extends ResolverTestCase {
       for (int i = 0; i < oFunctions.length; i++) {
         compareFunctionElements(rFunctions[i], oFunctions[i],
             '$desc local function ${oFunctions[i].name}');
+      }
+    }
+    if (original is! Member) {
+      List<LabelElement> rLabels = resynthesized.labels;
+      List<LabelElement> oLabels = original.labels;
+      expect(rLabels, hasLength(oLabels.length));
+      for (int i = 0; i < oLabels.length; i++) {
+        compareLabelElements(
+            rLabels[i], oLabels[i], '$desc label ${oLabels[i].name}');
       }
     }
     if (original is! Member) {
@@ -607,6 +705,10 @@ class ResynthTest extends ResolverTestCase {
 
   void compareFunctionElements(
       FunctionElement resynthesized, FunctionElement original, String desc) {
+    if (original == null && resynthesized == null) {
+      return;
+    }
+    expect(resynthesized, isNotNull, reason: desc);
     compareExecutableElements(resynthesized, original, desc);
     checkPossibleLocalElements(resynthesized, original);
   }
@@ -616,13 +718,8 @@ class ResynthTest extends ResolverTestCase {
       FunctionTypeAliasElementImpl original,
       String desc) {
     compareElements(resynthesized, original, desc);
-    expect(resynthesized.parameters.length, original.parameters.length);
-    for (int i = 0; i < resynthesized.parameters.length; i++) {
-      compareParameterElements(
-          resynthesized.parameters[i],
-          original.parameters[i],
-          '$desc parameter ${original.parameters[i].name}');
-    }
+    compareParameterElementLists(
+        resynthesized.parameters, original.parameters, desc);
     compareTypes(
         resynthesized.returnType, original.returnType, '$desc return type');
     compareTypes(resynthesized.type, original.type, desc);
@@ -654,6 +751,15 @@ class ResynthTest extends ResolverTestCase {
     }
   }
 
+  void compareLabelElements(
+      LabelElementImpl resynthesized, LabelElementImpl original, String desc) {
+    expect(resynthesized.isOnSwitchMember, original.isOnSwitchMember,
+        reason: desc);
+    expect(resynthesized.isOnSwitchStatement, original.isOnSwitchStatement,
+        reason: desc);
+    compareElements(resynthesized, original, desc);
+  }
+
   void compareMetadata(List<ElementAnnotation> resynthesized,
       List<ElementAnnotation> original, String desc) {
     expect(resynthesized, hasLength(original.length), reason: desc);
@@ -675,6 +781,8 @@ class ResynthTest extends ResolverTestCase {
     if (original is ShowElementCombinatorImpl &&
         resynthesized is ShowElementCombinatorImpl) {
       expect(resynthesized.shownNames, original.shownNames);
+      expect(resynthesized.offset, original.offset);
+      expect(resynthesized.end, original.end);
     } else if (original is HideElementCombinatorImpl &&
         resynthesized is HideElementCombinatorImpl) {
       expect(resynthesized.hiddenNames, original.hiddenNames);
@@ -699,16 +807,24 @@ class ResynthTest extends ResolverTestCase {
     }
   }
 
+  void compareParameterElementLists(
+      List<ParameterElement> resynthesizedParameters,
+      List<ParameterElement> originalParameters,
+      String desc) {
+    expect(resynthesizedParameters.length, originalParameters.length);
+    for (int i = 0; i < resynthesizedParameters.length; i++) {
+      compareParameterElements(
+          resynthesizedParameters[i],
+          originalParameters[i],
+          '$desc parameter ${originalParameters[i].name}');
+    }
+  }
+
   void compareParameterElements(
       ParameterElement resynthesized, ParameterElement original, String desc) {
     compareVariableElements(resynthesized, original, desc);
-    expect(resynthesized.parameters.length, original.parameters.length);
-    for (int i = 0; i < resynthesized.parameters.length; i++) {
-      compareParameterElements(
-          resynthesized.parameters[i],
-          original.parameters[i],
-          '$desc parameter ${original.parameters[i].name}');
-    }
+    compareParameterElementLists(
+        resynthesized.parameters, original.parameters, desc);
     expect(resynthesized.parameterKind, original.parameterKind);
     expect(resynthesized.isInitializingFormal, original.isInitializingFormal,
         reason: desc);
@@ -724,6 +840,13 @@ class ResynthTest extends ResolverTestCase {
             resynthesized.field, original.field, '$desc field');
       }
     }
+    expect(resynthesized.defaultValueCode, original.defaultValueCode,
+        reason: desc);
+    ParameterElementImpl resynthesizedActual =
+        getActualElement(resynthesized, desc);
+    ParameterElementImpl originalActual = getActualElement(original, desc);
+    compareFunctionElements(
+        resynthesizedActual.initializer, originalActual.initializer, desc);
   }
 
   void comparePrefixElements(PrefixElementImpl resynthesized,
@@ -845,6 +968,8 @@ class ResynthTest extends ResolverTestCase {
       // TODO(scheglov) In the strong mode constant variable like
       //  `var V = new Unresolved()` gets `UndefinedTypeImpl`, and it gets
       // `DynamicTypeImpl` in the spec mode.
+    } else if (resynthesized is BottomTypeImpl && original is BottomTypeImpl) {
+      expect(resynthesized, same(original));
     } else if (resynthesized.runtimeType != original.runtimeType) {
       fail('Type mismatch: expected ${original.runtimeType},'
           ' got ${resynthesized.runtimeType} ($desc)');
@@ -865,16 +990,24 @@ class ResynthTest extends ResolverTestCase {
       VariableElement resynthesized, VariableElement original, String desc) {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
+    VariableElementImpl resynthesizedActual =
+        getActualElement(resynthesized, desc);
     VariableElementImpl originalActual = getActualElement(original, desc);
+    compareFunctionElements(
+        resynthesizedActual.initializer, originalActual.initializer, desc);
     if (originalActual is ConstVariableElement) {
-      VariableElementImpl resynthesizedActual =
-          getActualElement(resynthesized, desc);
-      Expression initializer = resynthesizedActual.constantInitializer;
-      if (constantInitializersAreInvalid) {
-        _assertUnresolvedIdentifier(initializer, desc);
+      Element oEnclosing = original.enclosingElement;
+      if (oEnclosing is ClassElement && oEnclosing.isEnum) {
+        compareConstValues(
+            resynthesized.constantValue, original.constantValue, desc);
       } else {
-        compareConstAsts(initializer, originalActual.constantInitializer,
-            '$desc initializer');
+        Expression initializer = resynthesizedActual.constantInitializer;
+        if (constantInitializersAreInvalid) {
+          _assertUnresolvedIdentifier(initializer, desc);
+        } else {
+          compareConstAsts(initializer, originalActual.constantInitializer,
+              '$desc initializer');
+        }
       }
     }
     checkPossibleMember(resynthesized, original, desc);
@@ -1313,6 +1446,15 @@ class E {}''');
 
   test_classes() {
     checkLibrary('class C {} class D {}');
+  }
+
+  test_closure_executable_with_return_type_from_closure() {
+    checkLibrary('''
+f() {
+  print(() {});
+  print(() => () => 0);
+}
+''');
   }
 
   test_const_invalid_field_const() {
@@ -2391,6 +2533,13 @@ enum E {
     checkLibrary('enum E1 { v1 } enum E2 { v2 }');
   }
 
+  test_executable_parameter_type_typedef() {
+    checkLibrary(r'''
+typedef F(int p);
+main(F f) {}
+''');
+  }
+
   test_export_class() {
     addLibrarySource('/a.dart', 'class C {}');
     checkLibrary('export "a.dart";');
@@ -2764,6 +2913,100 @@ get x => null;''');
     checkLibrary('import "a.dart"; import "b.dart"; C c; D d;');
   }
 
+  test_inferred_function_type_for_variable_in_generic_function() {
+    // In the code below, `x` has an inferred type of `() => int`, with 2
+    // (unused) type parameters from the enclosing top level function.
+    checkLibrary('''
+f<U, V>() {
+  var x = () => 0;
+}
+''');
+  }
+
+  test_inferred_function_type_in_generic_class_constructor() {
+    // In the code below, `() => () => 0` has an inferred return type of
+    // `() => int`, with 2 (unused) type parameters from the enclosing class.
+    checkLibrary('''
+class C<U, V> {
+  final x;
+  C() : x = (() => () => 0);
+}
+''');
+  }
+
+  test_inferred_function_type_in_generic_class_getter() {
+    // In the code below, `() => () => 0` has an inferred return type of
+    // `() => int`, with 2 (unused) type parameters from the enclosing class.
+    checkLibrary('''
+class C<U, V> {
+  get x => () => () => 0;
+}
+''');
+  }
+
+  test_inferred_function_type_in_generic_class_in_generic_method() {
+    // In the code below, `() => () => 0` has an inferred return type of
+    // `() => int`, with 3 (unused) type parameters from the enclosing class
+    // and method.
+    checkLibrary('''
+class C<T> {
+  f<U, V>() {
+    print(() => () => 0);
+  }
+}
+''');
+  }
+
+  test_inferred_function_type_in_generic_class_setter() {
+    // In the code below, `() => () => 0` has an inferred return type of
+    // `() => int`, with 2 (unused) type parameters from the enclosing class.
+    checkLibrary('''
+class C<U, V> {
+  void set x(value) {
+    print(() => () => 0);
+  }
+}
+''');
+  }
+
+  test_inferred_function_type_in_generic_closure() {
+    if (!options.strongMode) {
+      // The test below uses generic comment syntax because proper generic
+      // method syntax doesn't support generic closures.  So it can only run in
+      // strong mode.
+      // TODO(paulberry): once proper generic method syntax supports generic
+      // closures, rewrite the test below without using generic comment syntax,
+      // and remove this hack.  See dartbug.com/25819
+      return;
+    }
+    // In the code below, `<U, V>() => () => 0` has an inferred return type of
+    // `() => int`, with 3 (unused) type parameters.
+    checkLibrary('''
+f<T>() {
+  print(/*<U, V>*/() => () => 0);
+}
+''');
+  }
+
+  test_inferred_generic_function_type_in_generic_closure() {
+    if (!options.strongMode) {
+      // The test below uses generic comment syntax because proper generic
+      // method syntax doesn't support generic closures.  So it can only run in
+      // strong mode.
+      // TODO(paulberry): once proper generic method syntax supports generic
+      // closures, rewrite the test below without using generic comment syntax,
+      // and remove this hack.  See dartbug.com/25819
+      return;
+    }
+    // In the code below, `<U, V>() => <W, X, Y, Z>() => 0` has an inferred
+    // return type of `() => int`, with 7 (unused) type parameters.
+    checkLibrary('''
+f<T>() {
+  print(/*<U, V>*/() => /*<W, X, Y, Z>*/() => 0);
+}
+''');
+  }
+
   test_inferred_type_is_typedef() {
     checkLibrary('typedef int F(String s);'
         ' class C extends D { var v; }'
@@ -2796,6 +3039,27 @@ get x => null;''');
   test_inferred_type_refers_to_setter_function_typed_parameter_type() {
     checkLibrary('class C extends D { void set f(g) {} }'
         ' abstract class D { void set f(int g(String s)); }');
+  }
+
+  test_initializer_executable_with_return_type_from_closure() {
+    checkLibrary('var v = () => 0;');
+  }
+
+  test_initializer_executable_with_return_type_from_closure_field() {
+    checkLibrary('''
+class C {
+  var v = () => 0;
+}
+''');
+  }
+
+  test_initializer_executable_with_return_type_from_closure_local() {
+    checkLibrary('''
+void f() {
+  int u = 0;
+  var v = () => 0;
+}
+''');
   }
 
   test_library() {
@@ -2854,6 +3118,46 @@ class C {
     checkLibrary(r'''
 get g {
   f() {}
+}
+''');
+  }
+
+  test_localLabels_inConstructor() {
+    checkLibrary(r'''
+class C {
+  C() {
+    aaa: while (true) {}
+    bbb: switch (42) {
+      ccc: case 0:
+        break;
+    }
+  }
+}
+''');
+  }
+
+  test_localLabels_inMethod() {
+    checkLibrary(r'''
+class C {
+  m() {
+    aaa: while (true) {}
+    bbb: switch (42) {
+      ccc: case 0:
+        break;
+    }
+  }
+}
+''');
+  }
+
+  test_localLabels_inTopLevelFunction() {
+    checkLibrary(r'''
+main() {
+  aaa: while (true) {}
+  bbb: switch (42) {
+    ccc: case 0:
+      break;
+  }
 }
 ''');
   }
@@ -3287,6 +3591,15 @@ void named({x: 1}) {}
     addNamedSource('/a.dart', 'part of my.lib;');
     addNamedSource('/b.dart', 'part of my.lib;');
     checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+  }
+
+  test_propagated_type_refers_to_closure() {
+    checkLibrary('''
+void f() {
+  var x = () => 0;
+  var y = x;
+}
+''');
   }
 
   test_setter_documented() {

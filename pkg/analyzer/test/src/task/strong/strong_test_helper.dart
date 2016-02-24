@@ -15,8 +15,6 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/type_system.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:logging/logging.dart';
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
@@ -64,7 +62,7 @@ void check() {
   // Enable task model strong mode
   var context = AnalysisEngine.instance.createAnalysisContext();
   context.analysisOptions.strongMode = true;
-  context.analysisOptions.strongModeHints = true;
+  (context.analysisOptions as AnalysisOptionsImpl).strongModeHints = true;
   context.sourceFactory =
       new SourceFactory([new DartUriResolver(new MockSdk()), uriResolver]);
 
@@ -73,13 +71,10 @@ void check() {
   var initialLibrary = context.resolveCompilationUnit2(mainSource, mainSource);
 
   var collector = new _ErrorCollector();
-  var checker = new CodeChecker(
-      context.typeProvider, new StrongTypeSystemImpl(), collector,
-      hints: true);
 
   // Extract expectations from the comments in the test files, and
   // check that all errors we emit are included in the expected map.
-  var allLibraries = reachableLibraries(initialLibrary.element.library);
+  var allLibraries = _reachableLibraries(initialLibrary.element.library);
   for (var lib in allLibraries) {
     for (var unit in lib.units) {
       var errors = <AnalysisError>[];
@@ -90,9 +85,10 @@ void check() {
 
       var librarySource = context.getLibrariesContaining(source).single;
       var resolved = context.resolveCompilationUnit2(source, librarySource);
-      errors.addAll(context.getErrors(source).errors.where((error) =>
-          error.errorCode.name.startsWith('STRONG_MODE_INFERRED_TYPE')));
-      checker.visitCompilationUnit(resolved);
+      errors.addAll(context.getErrors(source).errors.where((e) =>
+          e.errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
+          // TODO(jmesserly): these are usually intentional dynamic calls.
+          e.errorCode.name != 'UNDEFINED_METHOD'));
 
       _expectErrors(resolved, errors);
     }
@@ -105,11 +101,11 @@ void checkFile(String content) {
   check();
 }
 
-SourceSpanWithContext createSpanHelper(
+SourceSpanWithContext _createSpanHelper(
     LineInfo lineInfo, int start, Source source, String content,
     {int end}) {
-  var startLoc = locationForOffset(lineInfo, source.uri, start);
-  var endLoc = locationForOffset(lineInfo, source.uri, end ?? start);
+  var startLoc = _locationForOffset(lineInfo, source.uri, start);
+  var endLoc = _locationForOffset(lineInfo, source.uri, end ?? start);
 
   var lineStart = startLoc.offset - startLoc.column;
   // Find the end of the line. This is not exposed directly on LineInfo, but
@@ -123,7 +119,7 @@ SourceSpanWithContext createSpanHelper(
 
   if (end == null) {
     end = lineEnd;
-    endLoc = locationForOffset(lineInfo, source.uri, lineEnd);
+    endLoc = _locationForOffset(lineInfo, source.uri, lineEnd);
   }
 
   var text = content.substring(start, end);
@@ -131,19 +127,17 @@ SourceSpanWithContext createSpanHelper(
   return new SourceSpanWithContext(startLoc, endLoc, text, lineText);
 }
 
-String errorCodeName(ErrorCode errorCode) {
+String _errorCodeName(ErrorCode errorCode) {
   var name = errorCode.name;
   final prefix = 'STRONG_MODE_';
   if (name.startsWith(prefix)) {
     return name.substring(prefix.length);
   } else {
-    // TODO(jmesserly): this is for backwards compat, but not sure it's very
-    // useful to log this.
-    return 'AnalyzerMessage';
+    return name;
   }
 }
 
-initStrongModeTests() {
+void initStrongModeTests() {
   setUp(() {
     AnalysisEngine.instance.processRequiredPlugins();
     files = new MemoryResourceProvider();
@@ -157,15 +151,14 @@ initStrongModeTests() {
   });
 }
 
-// TODO(jmesserly): can we reuse the same mock SDK as Analyzer tests?
-SourceLocation locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
+SourceLocation _locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
   var loc = lineInfo.getLocation(offset);
   return new SourceLocation(offset,
       sourceUrl: uri, line: loc.lineNumber - 1, column: loc.columnNumber - 1);
 }
 
 /// Returns all libraries transitively imported or exported from [start].
-List<LibraryElement> reachableLibraries(LibraryElement start) {
+List<LibraryElement> _reachableLibraries(LibraryElement start) {
   var results = <LibraryElement>[];
   var seen = new Set();
   void find(LibraryElement lib) {
@@ -190,6 +183,26 @@ Level _actualErrorLevel(AnalysisError actual) {
 void _expectErrors(CompilationUnit unit, List<AnalysisError> actualErrors) {
   var expectedErrors = _findExpectedErrors(unit.beginToken);
 
+  // Sort both lists: by offset, then level, then name.
+  actualErrors.sort((x, y) {
+    int delta = x.offset.compareTo(y.offset);
+    if (delta != 0) return delta;
+
+    delta = x.errorCode.errorSeverity.compareTo(y.errorCode.errorSeverity);
+    if (delta != 0) return delta;
+
+    return _errorCodeName(x.errorCode).compareTo(_errorCodeName(y.errorCode));
+  });
+  expectedErrors.sort((x, y) {
+    int delta = x.offset.compareTo(y.offset);
+    if (delta != 0) return delta;
+
+    delta = x.level.compareTo(y.level);
+    if (delta != 0) return delta;
+
+    return x.typeName.compareTo(y.typeName);
+  });
+
   // Categorize the differences, if any.
   var unreported = <_ErrorExpectation>[];
   var different = <_ErrorExpectation, AnalysisError>{};
@@ -198,7 +211,7 @@ void _expectErrors(CompilationUnit unit, List<AnalysisError> actualErrors) {
     AnalysisError actual = expected._removeMatchingActual(actualErrors);
     if (actual != null) {
       if (_actualErrorLevel(actual) != expected.level ||
-          errorCodeName(actual.errorCode) != expected.typeName) {
+          _errorCodeName(actual.errorCode) != expected.typeName) {
         different[expected] = actual;
       }
     } else {
@@ -223,9 +236,11 @@ List<_ErrorExpectation> _findExpectedErrors(Token beginToken) {
       if (c.type == TokenType.MULTI_LINE_COMMENT) {
         String value = c.lexeme.substring(2, c.lexeme.length - 2);
         if (value.contains(':')) {
-          var offset = c.end;
-          if (c.next?.type == TokenType.GENERIC_METHOD_TYPE_LIST) {
-            offset += 2;
+          int offset = t.offset;
+          Token previous = t.previous;
+          while (previous != null && previous.offset > c.offset) {
+            offset = previous.offset;
+            previous = previous.previous;
           }
           for (var expectCode in value.split(',')) {
             var expected = _ErrorExpectation.parse(offset, expectCode);
@@ -252,20 +267,20 @@ void _reportFailure(
   String formatActualError(AnalysisError error) {
     int offset = error.offset;
     int length = error.length;
-    var span = createSpanHelper(
+    var span = _createSpanHelper(
         unit.lineInfo, offset, unit.element.source, sourceCode,
         end: offset + length);
     var levelName = _actualErrorLevel(error).name.toLowerCase();
-    return '@$offset $levelName: [${errorCodeName(error.errorCode)}]\n' +
+    return '@$offset $levelName:${_errorCodeName(error.errorCode)}\n' +
         span.message(error.message);
   }
 
   String formatExpectedError(_ErrorExpectation error) {
     int offset = error.offset;
-    var span = createSpanHelper(
+    var span = _createSpanHelper(
         unit.lineInfo, offset, unit.element.source, sourceCode);
     var levelName = error.level.toString().toLowerCase();
-    return '@$offset $levelName: [${error.typeName}]\n' + span.message('');
+    return '@$offset $levelName:${error.typeName}\n' + span.message('');
   }
 
   var message = new StringBuffer();

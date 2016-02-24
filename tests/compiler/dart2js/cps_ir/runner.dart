@@ -28,8 +28,13 @@ runTest(String filename, {bool update: false}) {
       .readAsStringSync();
   var expectedFile =
       new File.fromUri(Platform.script.resolve('expected/$outputname'));
-  String expected = expectedFile.existsSync()
-    ? expectedFile.readAsStringSync() : '';
+  String expected = '';
+  if (expectedFile.existsSync()) {
+    expected = expectedFile.readAsStringSync()
+      .replaceAll(new RegExp('^//.*\n', multiLine: true), '')
+      .trim();
+  }
+
   var match = elementNameRegExp.firstMatch(source);
   var elementName = match?.group(1);
 
@@ -58,14 +63,9 @@ runTest(String filename, {bool update: false}) {
       Expect.isTrue(result.isSuccess);
       CompilerImpl compiler = result.compiler;
       if (expected != null) {
-        String output = elementName == null
+        found = elementName == null
             ? _getCodeForMain(compiler)
             : _getCodeForMethod(compiler, elementName);
-        // Include the input in a comment of the expected file to make it easier
-        // to see the relation between input and output in code reviews.
-        found = '// Expectation for test: \n'
-            '// ${source.trim().replaceAll('\n', '\n// ')}\n\n'
-            '$output\n';
       }
     } catch (e, st) {
       print(e);
@@ -81,12 +81,16 @@ runTest(String filename, {bool update: false}) {
     }
     if (expected != found) {
       if (update) {
-        expectedFile.writeAsStringSync(found);
+        // Include the input in a comment of the expected file to make it easier
+        // to see the relation between input and output in code reviews.
+        String comment = source.trim().replaceAll('\n', '\n// ');
+        expectedFile.writeAsStringSync('// Expectation for test: \n'
+            '// ${comment}\n\n${found}\n');
         print('INFO: $expectedFile was updated');
       } else {
         Expect.fail('Unexpected output for test:\n  '
             '${_formatTest(files).replaceAll('\n', '\n  ')}\n'
-            'Expected:\n  ${expected.replaceAll('\n', '\n  ')}\n'
+            'Expected:\n  ${expected.replaceAll('\n', '\n  ')}\n\n'
             'but found:\n  ${found?.replaceAll('\n', '\n  ')}\n'
             '$regenerateCommand');
       }

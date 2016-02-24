@@ -666,13 +666,12 @@ class RawClass : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
-  RawString* user_name_;
+  NOT_IN_PRODUCT(RawString* user_name_);
   RawArray* functions_;
   RawArray* functions_hash_table_;
   RawArray* fields_;
   RawArray* offset_in_words_to_field_;
   RawArray* interfaces_;  // Array of AbstractType.
-  RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
   RawScript* script_;
   RawLibrary* library_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
@@ -683,10 +682,11 @@ class RawClass : public RawObject {
   RawObject* canonical_types_;  // An array of canonicalized types of this class
                                 // or the canonical type.
   RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
-  RawArray* cha_codes_;  // CHA optimized codes.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
+  RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
+  RawArray* cha_codes_;  // CHA optimized codes.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->allocation_stub_);
+    return reinterpret_cast<RawObject**>(&ptr()->cha_codes_);
   }
 
   cpp_vtable handle_vtable_;
@@ -1555,8 +1555,11 @@ class RawLibraryPrefix : public RawInstance {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;               // Library prefix name.
-  RawArray* imports_;             // Libraries imported with this prefix.
   RawLibrary* importer_;          // Library which declares this prefix.
+  RawObject** to_precompiled_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->importer_);
+  }
+  RawArray* imports_;             // Libraries imported with this prefix.
   RawArray* dependent_code_;      // Code that refers to deferred, unloaded
                                   // library prefix.
   RawObject** to() {

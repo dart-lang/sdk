@@ -362,8 +362,7 @@ class TimelineStream {
         function.ToLibNamePrefixedQualifiedCString());                         \
   }
 #else
-#define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, suffix, function)       \
-  do { } while (false);
+#define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, suffix, function)
 #endif  // !PRODUCT
 
 // See |TimelineDurationScope| and |TimelineBeginEndScope|.

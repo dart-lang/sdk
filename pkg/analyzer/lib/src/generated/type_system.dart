@@ -68,11 +68,12 @@ class StrongTypeSystemImpl implements TypeSystem {
   /// As a simplification, we do not actually store all constraints on each type
   /// parameter Tj. Instead we track Uj and Lj where U is the upper bound and
   /// L is the lower bound of that type parameter.
-  FunctionType inferCallFromArguments(
+  FunctionType inferGenericFunctionCall(
       TypeProvider typeProvider,
       FunctionType fnType,
       List<DartType> correspondingParameterTypes,
-      List<DartType> argumentTypes) {
+      List<DartType> argumentTypes,
+      DartType returnContextType) {
     if (fnType.typeFormals.isEmpty) {
       return fnType;
     }
@@ -83,6 +84,10 @@ class StrongTypeSystemImpl implements TypeSystem {
     // are implied by this.
     var inferringTypeSystem =
         new _StrongInferenceTypeSystem(typeProvider, fnType.typeFormals);
+
+    if (returnContextType != null) {
+      inferringTypeSystem.isSubtypeOf(fnType.returnType, returnContextType);
+    }
 
     for (int i = 0; i < argumentTypes.length; i++) {
       // Try to pass each argument to each parameter, recording any type
@@ -105,7 +110,7 @@ class StrongTypeSystemImpl implements TypeSystem {
    * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
    * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
    *
-   * This is similar to [inferCallFromArguments], but the return type is also
+   * This is similar to [inferGenericFunctionCall], but the return type is also
    * considered as part of the solution.
    *
    * If this function is called with a [contextType] that is also
@@ -284,18 +289,15 @@ class StrongTypeSystemImpl implements TypeSystem {
   /**
    * Check that [f1] is a subtype of [f2].
    *
-   * [fuzzyArrows] indicates whether or not the f1 and f2 should be
-   * treated as fuzzy arrow types (and hence dynamic parameters to f2 treated
-   * as bottom).
+   * This will always assume function types use fuzzy arrows, in other words
+   * that dynamic parameters of f1 and f2 are treated as bottom.
    */
-  bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2,
-      {bool fuzzyArrows: true}) {
-
+  bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2) {
     return FunctionTypeImpl.relate(
         f1,
         f2,
         (DartType t1, DartType t2) =>
-            _isSubtypeOf(t2, t1, null, dynamicIsBottom: fuzzyArrows),
+            _isSubtypeOf(t2, t1, null, dynamicIsBottom: true),
         instantiateToBounds,
         returnRelation: isSubtypeOf);
   }

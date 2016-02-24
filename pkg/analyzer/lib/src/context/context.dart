@@ -725,7 +725,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     LibraryElementImpl mockLib = new LibraryElementImpl.forNode(
         this, AstFactory.libraryIdentifier2(["dart.async"]));
     mockLib.definingCompilationUnit = asyncUnit;
-    mockLib.publicNamespace = new PublicNamespaceBuilder().build(mockLib);
+    mockLib.publicNamespace =
+        new NamespaceBuilder().createPublicNamespaceForLibrary(mockLib);
     return mockLib;
   }
 

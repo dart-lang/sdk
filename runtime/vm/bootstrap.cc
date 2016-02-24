@@ -295,6 +295,11 @@ RawError* Bootstrap::LoadandCompileScripts() {
   for (intptr_t i = 0;
        bootstrap_libraries[i].index_ != ObjectStore::kNone;
        ++i) {
+#ifdef PRODUCT
+    if (bootstrap_libraries[i].index_ == ObjectStore::kMirrors) {
+      continue;
+    }
+#endif  // !PRODUCT
     uri = Symbols::New(bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     if (lib.IsNull()) {
@@ -310,6 +315,11 @@ RawError* Bootstrap::LoadandCompileScripts() {
   for (intptr_t i = 0;
        bootstrap_libraries[i].index_ != ObjectStore::kNone;
        ++i) {
+#ifdef PRODUCT
+    if (bootstrap_libraries[i].index_ == ObjectStore::kMirrors) {
+      continue;
+    }
+#endif  // PRODUCT
     uri = Symbols::New(bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     ASSERT(!lib.IsNull());

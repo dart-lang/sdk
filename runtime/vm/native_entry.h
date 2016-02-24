@@ -71,15 +71,16 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
                                     NativeArguments* arguments)
 
 
+// Helper that throws an argument exception.
+void DartNativeThrowArgumentException(const Instance& instance);
+
 // Natives should throw an exception if an illegal argument or null is passed.
 // type name = value.
 #define GET_NON_NULL_NATIVE_ARGUMENT(type, name, value)                        \
   const Instance& __##name##_instance__ =                                      \
       Instance::CheckedHandle(zone, value);                                    \
   if (!__##name##_instance__.Is##type()) {                                     \
-    const Array& __args__ = Array::Handle(Array::New(1));                      \
-    __args__.SetAt(0, __##name##_instance__);                                  \
-    Exceptions::ThrowByType(Exceptions::kArgument, __args__);                  \
+    DartNativeThrowArgumentException(__##name##_instance__);                   \
   }                                                                            \
   const type& name = type::Cast(__##name##_instance__);
 
@@ -92,9 +93,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
   type& name = type::Handle(zone);                                             \
   if (!__##name##_instance__.IsNull()) {                                       \
     if (!__##name##_instance__.Is##type()) {                                   \
-      const Array& __args__ = Array::Handle(Array::New(1));                    \
-      __args__.SetAt(0, __##name##_instance__);                                \
-      Exceptions::ThrowByType(Exceptions::kArgument, __args__);                \
+      DartNativeThrowArgumentException(__##name##_instance__);                 \
     }                                                                          \
   }                                                                            \
   name ^= value;

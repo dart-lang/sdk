@@ -30,10 +30,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   FlowGraph* flow_graph() const { return flow_graph_; }
 
-  // Add ICData to InstanceCalls, so that optimizations can be run on them.
-  // TODO(srdjan): StaticCals as well?
-  void PopulateWithICData();
-
   // Use ICData to optimize, replace or eliminate instructions.
   void ApplyICData();
 
@@ -44,18 +40,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   // shift can be a truncating Smi shift-left and result is always Smi.
   // Merge instructions (only per basic-block).
   void TryOptimizePatterns();
-
-  // Returns true if any instructions were canonicalized away.
-  bool Canonicalize();
-
-  void EliminateDeadPhis();
-
-  void SelectRepresentations();
-
-  void WidenSmiToInt32();
-
-  // Remove environments from the instructions which do not deoptimize.
-  void EliminateEnvironments();
 
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
@@ -138,15 +122,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void ReplaceCall(Definition* call, Definition* replacement);
 
-  void InsertConversionsFor(Definition* def);
-
-  void ConvertUse(Value* use, Representation from);
-  void ConvertEnvironmentUse(Value* use, Representation from);
-
-  void InsertConversion(Representation from,
-                        Representation to,
-                        Value* use,
-                        bool is_environment_use);
 
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call,
                                    RawFunction::Kind kind) const;

@@ -24,8 +24,8 @@ main(List<String> args) {
   String inputFilePath = args[0];
 
   // Read the input.
-  SdkBundle bundle =
-      new SdkBundle.fromBuffer(new File(inputFilePath).readAsBytesSync());
+  PackageBundle bundle =
+      new PackageBundle.fromBuffer(new File(inputFilePath).readAsBytesSync());
 
   // Compute and output stats.
   Stats stats = new Stats();

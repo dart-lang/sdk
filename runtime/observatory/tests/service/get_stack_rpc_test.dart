@@ -5,13 +5,14 @@
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
+import 'service_test_common.dart';
 import 'test_helper.dart';
 import 'dart:async';
 import 'dart:isolate' as isolate;
 import 'dart:developer' as developer;
 
 int counter = 0;
-const stoppedAtLine = 23;
+const stoppedAtLine = 24;
 var port = new isolate.RawReceivePort(msgHandler);
 
 // This name is used in a test below.

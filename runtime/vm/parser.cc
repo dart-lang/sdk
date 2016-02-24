@@ -28,7 +28,6 @@
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/regexp_assembler.h"
-#include "vm/report.h"
 #include "vm/resolver.h"
 #include "vm/safepoint.h"
 #include "vm/scanner.h"
@@ -42,8 +41,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
-DEFINE_FLAG(bool, enable_mirrors, true,
-    "Disable to make importing dart:mirrors an error.");
 DEFINE_FLAG(bool, load_deferred_eagerly, false,
     "Load deferred libraries eagerly.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
@@ -56,7 +53,6 @@ DEFINE_FLAG(bool, warn_super, false,
 DEFINE_FLAG(bool, await_is_keyword, false,
     "await and yield are treated as proper keywords in synchronous code.");
 
-DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, profile_vm);
 
@@ -157,6 +153,20 @@ static RawTypeArguments* NewTypeArguments(
   // Cannot canonicalize TypeArgument yet as its types may not have been
   // finalized yet.
   return a.raw();
+}
+
+
+void ParsedFunction::AddToGuardedFields(const Field* field) const {
+  if ((field->guarded_cid() == kDynamicCid) ||
+      (field->guarded_cid() == kIllegalCid)) {
+    return;
+  }
+  for (intptr_t j = 0; j < guarded_fields_->length(); j++) {
+    if ((*guarded_fields_)[j]->raw() == field->raw()) {
+      return;
+    }
+  }
+  guarded_fields_->Add(field);
 }
 
 
@@ -14335,11 +14345,15 @@ void Parser::SkipQualIdent() {
 
 namespace dart {
 
-DEFINE_FLAG(bool, enable_mirrors, true,
-    "Disable to make importing dart:mirrors an error.");
 DEFINE_FLAG(bool, load_deferred_eagerly, false,
     "Load deferred libraries eagerly.");
 DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
+
+
+void ParsedFunction::AddToGuardedFields(const Field* field) const {
+  UNREACHABLE();
+}
+
 
 LocalVariable* ParsedFunction::EnsureExpressionTemp() {
   UNREACHABLE();

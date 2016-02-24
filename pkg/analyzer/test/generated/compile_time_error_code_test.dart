@@ -1462,6 +1462,23 @@ f() { return const T(0, 1, c: 2, d: 3); }''');
     verify([source]);
   }
 
+  void test_constWithNonConst_with() {
+    Source source = addSource(r'''
+class B {
+  const B();
+}
+class C = B with M;
+class M {}
+const x = const C();
+main() {
+  print(x);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.CONST_WITH_NON_CONST]);
+    verify([source]);
+  }
+
   void test_constWithNonConstantArgument_annotation() {
     Source source = addSource(r'''
 class A {
@@ -1669,24 +1686,6 @@ class A {}''');
     verify([librarySource, sourceA, sourceB]);
   }
 
-  void test_duplicateDefinition_inPart() {
-    Source librarySource = addNamedSource(
-        "/lib.dart",
-        r'''
-library test;
-part 'a.dart';
-class A {}''');
-    Source sourceA = addNamedSource(
-        "/a.dart",
-        r'''
-part of test;
-class A {}''');
-    computeLibrarySourceErrors(librarySource);
-    assertErrors(sourceA, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    assertNoErrors(librarySource);
-    verify([librarySource, sourceA]);
-  }
-
   void test_duplicateDefinition_catch() {
     Source source = addSource(r'''
 main() {
@@ -1728,6 +1727,24 @@ class A {
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
     verify([source]);
+  }
+
+  void test_duplicateDefinition_inPart() {
+    Source librarySource = addNamedSource(
+        "/lib.dart",
+        r'''
+library test;
+part 'a.dart';
+class A {}''');
+    Source sourceA = addNamedSource(
+        "/a.dart",
+        r'''
+part of test;
+class A {}''');
+    computeLibrarySourceErrors(librarySource);
+    assertErrors(sourceA, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertNoErrors(librarySource);
+    verify([librarySource, sourceA]);
   }
 
   void test_duplicateDefinition_locals_inCase() {

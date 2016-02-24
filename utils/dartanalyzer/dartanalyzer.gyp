@@ -30,6 +30,25 @@
             '../../pkg/analyzer_cli/bin/analyzer.dart',
           ],
         },
+        {
+          'action_name': 'generate_summaries',
+          'inputs': [
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
+            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../pkg/analyzer"])',
+          ],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/spec.sum',
+            '<(SHARED_INTERMEDIATE_DIR)/strong.sum',
+          ],
+          'action': [
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '--package-root=<(PRODUCT_DIR)/packages/',
+            '../../pkg/analyzer/tool/summary/build_sdk_summaries.dart',
+            '<(SHARED_INTERMEDIATE_DIR)',
+          ],
+        },
       ],
     },
   ],

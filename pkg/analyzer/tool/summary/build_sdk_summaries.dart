@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/element/element.dart';
@@ -8,6 +9,7 @@ import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:crypto/crypto.dart';
 import 'package:path/path.dart';
 
 main(List<String> args) {
@@ -73,6 +75,7 @@ class _Builder {
   final List<LinkedLibraryBuilder> linkedLibraries = <LinkedLibraryBuilder>[];
   final List<String> unlinkedUnitUris = <String>[];
   final List<UnlinkedUnitBuilder> unlinkedUnits = <UnlinkedUnitBuilder>[];
+  final List<String> unlinkedUnitHashes = <String>[];
 
   _Builder(this.sdkPath, this.outputDirectoryPath, this.strongMode);
 
@@ -92,20 +95,28 @@ class _Builder {
     context.analysisOptions = new AnalysisOptionsImpl()
       ..strongMode = strongMode;
     //
+    // Prepare 'dart:' URIs to serialize.
+    //
+    Set<String> uriSet =
+        sdk.sdkLibraries.map((SdkLibrary library) => library.shortName).toSet();
+    uriSet.add('dart:html/nativewrappers.dart');
+    uriSet.add('dart:html_common/html_common_dart2js.dart');
+    //
     // Serialize each SDK library.
     //
-    for (SdkLibrary lib in sdk.sdkLibraries) {
-      Source libSource = sdk.mapDartUri(lib.shortName);
+    for (String uri in uriSet) {
+      Source libSource = sdk.mapDartUri(uri);
       _serializeLibrary(libSource);
     }
     //
     // Write the whole SDK bundle.
     //
-    SdkBundleBuilder sdkBundle = new SdkBundleBuilder(
+    PackageBundleBuilder sdkBundle = new PackageBundleBuilder(
         linkedLibraryUris: linkedLibraryUris,
         linkedLibraries: linkedLibraries,
         unlinkedUnitUris: unlinkedUnitUris,
-        unlinkedUnits: unlinkedUnits);
+        unlinkedUnits: unlinkedUnits,
+        unlinkedUnitHashes: unlinkedUnitHashes);
     String outputFilePath =
         join(outputDirectoryPath, strongMode ? 'strong.sum' : 'spec.sum');
     File file = new File(outputFilePath);
@@ -114,6 +125,15 @@ class _Builder {
     // Done.
     //
     print('\tDone in ${sw.elapsedMilliseconds} ms.');
+  }
+
+  /**
+   * Compute a hash of the given file contents.
+   */
+  String _hash(String contents) {
+    MD5 md5 = new MD5();
+    md5.add(UTF8.encode(contents));
+    return CryptoUtils.bytesToHex(md5.close());
   }
 
   /**
@@ -141,5 +161,8 @@ class _Builder {
     linkedLibraries.add(libraryResult.linked);
     unlinkedUnitUris.addAll(libraryResult.unitUris);
     unlinkedUnits.addAll(libraryResult.unlinkedUnits);
+    for (Source source in libraryResult.unitSources) {
+      unlinkedUnitHashes.add(_hash(source.contents.data));
+    }
   }
 }

@@ -21,7 +21,6 @@ DEFINE_FLAG(bool, trace_load_optimization, false,
 
 DECLARE_FLAG(bool, fields_may_be_reset);
 DECLARE_FLAG(bool, precompilation);
-DECLARE_FLAG(bool, trace_optimization);
 
 // Quick access to the current zone.
 #define Z (zone())

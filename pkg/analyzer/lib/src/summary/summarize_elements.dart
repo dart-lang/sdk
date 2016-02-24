@@ -26,8 +26,8 @@ LibrarySerializationResult serializeLibrary(
     LibraryElement lib, TypeProvider typeProvider, bool strongMode) {
   var serializer = new _LibrarySerializer(lib, typeProvider, strongMode);
   LinkedLibraryBuilder linked = serializer.serializeLibrary();
-  return new LibrarySerializationResult(
-      linked, serializer.unlinkedUnits, serializer.unitUris);
+  return new LibrarySerializationResult(linked, serializer.unlinkedUnits,
+      serializer.unitUris, serializer.unitSources);
 }
 
 ReferenceKind _getReferenceKind(Element element) {
@@ -38,7 +38,10 @@ ReferenceKind _getReferenceKind(Element element) {
   } else if (element is ConstructorElement) {
     return ReferenceKind.constructor;
   } else if (element is FunctionElement) {
-    return ReferenceKind.topLevelFunction;
+    if (element.enclosingElement is CompilationUnitElement) {
+      return ReferenceKind.topLevelFunction;
+    }
+    return ReferenceKind.function;
   } else if (element is FunctionTypeAliasElement) {
     return ReferenceKind.typedef;
   } else if (element is PropertyAccessorElement) {
@@ -48,6 +51,16 @@ ReferenceKind _getReferenceKind(Element element) {
     return ReferenceKind.topLevelPropertyAccessor;
   } else if (element is MethodElement) {
     return ReferenceKind.method;
+  } else if (element is TopLevelVariableElement) {
+    // Summaries don't need to distinguish between references to a variable and
+    // references to its getter.
+    return ReferenceKind.topLevelPropertyAccessor;
+  } else if (element is LocalVariableElement) {
+    return ReferenceKind.variable;
+  } else if (element is FieldElement) {
+    // Summaries don't need to distinguish between references to a field and
+    // references to its getter.
+    return ReferenceKind.propertyAccessor;
   } else {
     throw new Exception('Unexpected element kind: ${element.runtimeType}');
   }
@@ -82,7 +95,14 @@ class LibrarySerializationResult {
    */
   final List<String> unitUris;
 
-  LibrarySerializationResult(this.linked, this.unlinkedUnits, this.unitUris);
+  /**
+   * Source object corresponding to each compilation unit appearing in the
+   * library.
+   */
+  final List<Source> unitSources;
+
+  LibrarySerializationResult(
+      this.linked, this.unlinkedUnits, this.unitUris, this.unitSources);
 }
 
 /**
@@ -117,9 +137,9 @@ class _CompilationUnitSerializer {
    */
   final UnlinkedUnitBuilder unlinkedUnit = new UnlinkedUnitBuilder();
 
-/**
- * Absolute URI of the compilation unit.
- */
+  /**
+   * Absolute URI of the compilation unit.
+   */
   String unitUri;
 
   /**
@@ -158,8 +178,20 @@ class _CompilationUnitSerializer {
    */
   int unresolvedReferenceIndex = null;
 
+  /**
+   * Index into the "references table" representing the "bottom" type, if such
+   * an index exists.  `null` if no such entry has been made in the references
+   * table yet.
+   */
+  int bottomReferenceIndex = null;
+
   _CompilationUnitSerializer(
       this.librarySerializer, this.compilationUnit, this.unitNum);
+
+  /**
+   * Source object for the compilation unit.
+   */
+  Source get unitSource => compilationUnit.source;
 
   /**
    * Add all classes, enums, typedefs, executables, and top level variables
@@ -354,6 +386,23 @@ class _CompilationUnitSerializer {
   }
 
   /**
+   * Return the index of the entry in the references table
+   * ([LinkedLibrary.references]) used for the "bottom" type.  A new entry is
+   * added to the table if necessary to satisfy the request.
+   */
+  int serializeBottomReference() {
+    if (bottomReferenceIndex == null) {
+      // References to the "bottom" type are always implicit, since there is no
+      // way to explicitly refer to the "bottom" type.  Therefore they should
+      // be stored only in the linked references table.
+      bottomReferenceIndex = linkedReferences.length;
+      linkedReferences.add(new LinkedReferenceBuilder(
+          name: '*bottom*', kind: ReferenceKind.classOrEnum));
+    }
+    return bottomReferenceIndex;
+  }
+
+  /**
    * Serialize the given [classElement], creating an [UnlinkedClass].
    */
   UnlinkedClassBuilder serializeClass(ClassElement classElement) {
@@ -456,6 +505,8 @@ class _CompilationUnitSerializer {
     UnlinkedCombinatorBuilder b = new UnlinkedCombinatorBuilder();
     if (combinator is ShowElementCombinator) {
       b.shows = combinator.shownNames;
+      b.offset = combinator.offset;
+      b.end = combinator.end;
     } else if (combinator is HideElementCombinator) {
       b.hides = combinator.hiddenNames;
     }
@@ -519,7 +570,12 @@ class _CompilationUnitSerializer {
     UnlinkedExecutableBuilder b = new UnlinkedExecutableBuilder();
     b.name = executableElement.name;
     b.nameOffset = executableElement.nameOffset;
-    if (executableElement is! ConstructorElement) {
+    if (executableElement is ConstructorElement) {
+      if (executableElement.name.isNotEmpty) {
+        b.nameEnd = executableElement.nameEnd;
+        b.periodOffset = executableElement.periodOffset;
+      }
+    } else {
       if (!executableElement.hasImplicitReturnType) {
         b.returnType = serializeTypeRef(
             executableElement.type.returnType, executableElement);
@@ -598,6 +654,7 @@ class _CompilationUnitSerializer {
     }
     b.localFunctions =
         executableElement.functions.map(serializeExecutable).toList();
+    b.localLabels = executableElement.labels.map(serializeLabel).toList();
     b.localVariables =
         executableElement.localVariables.map(serializeVariable).toList();
     return b;
@@ -652,6 +709,18 @@ class _CompilationUnitSerializer {
   }
 
   /**
+   * Serialize the given [label], creating an [UnlinkedLabelBuilder].
+   */
+  UnlinkedLabelBuilder serializeLabel(LabelElementImpl label) {
+    UnlinkedLabelBuilder b = new UnlinkedLabelBuilder();
+    b.name = label.name;
+    b.nameOffset = label.nameOffset;
+    b.isOnSwitchMember = label.isOnSwitchMember;
+    b.isOnSwitchStatement = label.isOnSwitchStatement;
+    return b;
+  }
+
+  /**
    * Serialize the given [parameter] into an [UnlinkedParam].
    */
   UnlinkedParamBuilder serializeParam(ParameterElement parameter,
@@ -683,7 +752,7 @@ class _CompilationUnitSerializer {
         b.inferredTypeSlot = storeInferredType(type, context);
       }
     } else {
-      if (type is FunctionType) {
+      if (type is FunctionType && type.element.isSynthetic) {
         b.isFunctionTyped = true;
         b.type = serializeTypeRef(type.returnType, parameter);
         b.parameters = type.parameters
@@ -698,7 +767,12 @@ class _CompilationUnitSerializer {
       Expression initializer = constParameter.constantInitializer;
       if (initializer != null) {
         b.defaultValue = serializeConstExpr(initializer);
+        b.defaultValueCode = parameter.defaultValueCode;
       }
+    }
+    // TODO(scheglov) VariableMember.initializer is not implemented
+    if (parameter is! VariableMember && parameter.initializer != null) {
+      b.initializer = serializeExecutable(parameter.initializer);
     }
     {
       SourceRange visibleRange = parameter.visibleRange;
@@ -728,6 +802,13 @@ class _CompilationUnitSerializer {
     Element element = type.element;
     LibraryElement dependentLibrary = element?.library;
     if (dependentLibrary == null) {
+      if (type.isBottom) {
+        // References to the "bottom" type are always implicit, since there is
+        // no way to explicitly refer to the "bottom" type.  Therefore they
+        // should always be linked.
+        assert(linked);
+        return serializeBottomReference();
+      }
       assert(type.isDynamic || type.isVoid);
       if (type is UndefinedTypeImpl) {
         return serializeUnresolvedReference();
@@ -865,8 +946,8 @@ class _CompilationUnitSerializer {
     // the element model.  For the moment we use a name that can't possibly
     // ever exist.
     if (unresolvedReferenceIndex == null) {
-      return serializeUnlinkedReference(
-          '*unresolved*', ReferenceKind.unresolved);
+      unresolvedReferenceIndex =
+          serializeUnlinkedReference('*unresolved*', ReferenceKind.unresolved);
     }
     return unresolvedReferenceIndex;
   }
@@ -913,21 +994,24 @@ class _CompilationUnitSerializer {
         b.visibleLength = visibleRange.length;
       }
     }
+    // TODO(scheglov) VariableMember.initializer is not implemented
+    if (variable is! VariableMember && variable.initializer != null) {
+      b.initializer = serializeExecutable(variable.initializer);
+    }
     return b;
   }
 
   /**
    * Create a slot id for the given [type] (which is an inferred type).  If
-   * strong mode is enabled and [type] is not `dynamic`, it is stored in
-   * [linkedTypes] so that once the compilation unit has been fully visited, it
-   * will be serialized into [LinkedUnit.types].
+   * [type] is not `dynamic`, it is stored in [linkedTypes] so that once the
+   * compilation unit has been fully visited, it will be serialized into
+   * [LinkedUnit.types].
    *
    * [context] is the element within which the slot id will appear; this is
    * used to serialize type parameters.
    */
   int storeInferredType(DartType type, Element context) {
-    return storeLinkedType(
-        librarySerializer.strongMode && !type.isDynamic ? type : null, context);
+    return storeLinkedType(type.isDynamic ? null : type, context);
   }
 
   /**
@@ -950,22 +1034,16 @@ class _CompilationUnitSerializer {
 
   int _getElementReferenceId(Element element, {bool linked: false}) {
     return referenceMap.putIfAbsent(element, () {
-      LibraryElement dependentLibrary;
+      LibraryElement dependentLibrary = librarySerializer.libraryElement;
+      int unit = 0;
+      Element enclosingElement;
       if (element != null) {
-        Element enclosingElement = element.enclosingElement;
+        enclosingElement = element.enclosingElement;
         if (enclosingElement is CompilationUnitElement) {
           dependentLibrary = enclosingElement.library;
+          unit = dependentLibrary.units.indexOf(enclosingElement);
+          assert(unit != -1);
         }
-      }
-      int unit;
-      if (dependentLibrary == null) {
-        unit = 0;
-        dependentLibrary = librarySerializer.libraryElement;
-      } else {
-        CompilationUnitElement unitElement =
-            element.getAncestor((Element e) => e is CompilationUnitElement);
-        unit = dependentLibrary.units.indexOf(unitElement);
-        assert(unit != -1);
       }
       ReferenceKind kind = _getReferenceKind(element);
       String name = element == null ? 'void' : element.name;
@@ -974,11 +1052,31 @@ class _CompilationUnitSerializer {
       if (linked) {
         linkedReference =
             new LinkedReferenceBuilder(kind: kind, unit: unit, name: name);
-        Element enclosing = element?.enclosingElement;
-        if (enclosing is ClassElement) {
+        if (enclosingElement != null &&
+            enclosingElement is! CompilationUnitElement) {
           linkedReference.containingReference =
-              _getElementReferenceId(enclosing, linked: linked);
-          linkedReference.numTypeParameters = enclosing.typeParameters.length;
+              _getElementReferenceId(enclosingElement, linked: linked);
+          if (enclosingElement is ClassElement) {
+            // Nothing to do.
+          } else if (enclosingElement is ExecutableElement) {
+            if (element is FunctionElement) {
+              assert(enclosingElement.functions.contains(element));
+              linkedReference.localIndex =
+                  enclosingElement.functions.indexOf(element);
+            } else if (element is LocalVariableElement) {
+              assert(enclosingElement.localVariables.contains(element));
+              linkedReference.localIndex =
+                  enclosingElement.localVariables.indexOf(element);
+            } else {
+              throw new StateError(
+                  'Unexpected enclosed element type: ${element.runtimeType}');
+            }
+          } else if (enclosingElement is VariableElement) {
+            assert(identical(enclosingElement.initializer, element));
+          } else {
+            throw new StateError(
+                'Unexpected enclosing element type: ${enclosingElement.runtimeType}');
+          }
         }
         index = linkedReferences.length;
         linkedReferences.add(linkedReference);
@@ -1229,6 +1327,13 @@ class _LibrarySerializer {
     dependencies.add(new LinkedDependencyBuilder());
     dependencyMap[libraryElement] = 0;
   }
+
+  /**
+   * Retrieve a list of the Sources for the compilation units in the library.
+   */
+  List<String> get unitSources => compilationUnitSerializers
+      .map((_CompilationUnitSerializer s) => s.unitSource)
+      .toList();
 
   /**
    * Retrieve a list of the URIs for the compilation units in the library.

@@ -113,13 +113,26 @@ class _GrowableList<T> extends ListBase<T> {
   factory _GrowableList.withData(_List data)
     native "GrowableList_allocate";
 
-  int get length native "GrowableList_getLength";
-
   int get _capacity native "GrowableList_getCapacity";
 
+  int get length native "GrowableList_getLength";
+
   void set length(int new_length) {
-    if (new_length > _capacity) {
-      _grow(new_length);
+    int new_capacity = (new_length == 0) ? _kDefaultCapacity : new_length;
+    if (new_capacity > _capacity) {
+      _grow(new_capacity);
+      _setLength(new_length);
+      return;
+    }
+    // We are shrinking. Pick the method which has fewer writes.
+    // In the shrink-to-fit path, we write |new_capacity + new_length| words
+    // (null init + copy).
+    // In the non-shrink-to-fit path, we write |length - new_length| words
+    // (null overwrite).
+    final bool shouldShrinkToFit =
+        (new_capacity + new_length) < (length - new_length);
+    if (shouldShrinkToFit) {
+      _shrink(new_capacity, new_length);
     } else {
       for (int i = new_length; i < length; i++) {
         this[i] = null;
@@ -217,9 +230,17 @@ class _GrowableList<T> extends ListBase<T> {
     throw IterableElementError.tooMany();;
   }
 
-  void _grow(int new_length) {
-    var new_data = new _List(new_length);
+  void _grow(int new_capacity) {
+    var new_data = new _List(new_capacity);
     for (int i = 0; i < length; i++) {
+      new_data[i] = this[i];
+    }
+    _setData(new_data);
+  }
+
+  void _shrink(int new_capacity, int new_length) {
+    var new_data = new _List(new_capacity);
+    for (int i = 0; i < new_length; i++) {
       new_data[i] = this[i];
     }
     _setData(new_data);

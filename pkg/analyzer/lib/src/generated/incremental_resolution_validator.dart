@@ -28,10 +28,15 @@ void assertSameResolution(CompilationUnit actual, CompilationUnit expected,
 class IncrementalResolutionMismatch {
   final String message;
   IncrementalResolutionMismatch(this.message);
+
+  @override
+  String toString() => "IncrementalResolutionMismatch: $message";
 }
 
 class _SameResolutionValidator implements AstVisitor {
   final bool validateTypes;
+
+  /// The expected node to compare with the visted node.
   AstNode other;
 
   _SameResolutionValidator(this.validateTypes, this.other);
@@ -887,11 +892,11 @@ class _SameResolutionValidator implements AstVisitor {
     _assertNode(a, b);
   }
 
-  void _visitList(NodeList nodeList, NodeList otherList) {
+  void _visitList(NodeList nodeList, NodeList expected) {
     int length = nodeList.length;
-    _expectLength(otherList, length);
+    _expectLength(nodeList, expected.length);
     for (int i = 0; i < length; i++) {
-      _visitNode(nodeList[i], otherList[i]);
+      _visitNode(nodeList[i], expected[i]);
     }
   }
 

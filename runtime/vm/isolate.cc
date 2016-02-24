@@ -18,6 +18,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
+#include "vm/flags.h"
 #include "vm/heap.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
@@ -801,6 +802,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       random_(),
       simulator_(NULL),
       mutex_(new Mutex()),
+      symbols_mutex_(new Mutex()),
       saved_stack_limit_(0),
       deferred_interrupts_mask_(0),
       deferred_interrupts_(0),
@@ -820,7 +822,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       last_allocationprofile_accumulator_reset_timestamp_(0),
       last_allocationprofile_gc_timestamp_(0),
       object_id_ring_(NULL),
-      trace_buffer_(NULL),
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       background_compiler_(NULL),
@@ -863,6 +864,8 @@ Isolate::~Isolate() {
 #endif
   delete mutex_;
   mutex_ = NULL;  // Fail fast if interrupts are scheduled on a dead isolate.
+  delete symbols_mutex_;
+  symbols_mutex_ = NULL;
   delete message_handler_;
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
@@ -959,9 +962,11 @@ Isolate* Isolate::Init(const char* name_prefix,
     }
   }
 
-  result->compiler_stats_ = new CompilerStats(result);
-  if (FLAG_compiler_benchmark) {
-    result->compiler_stats_->EnableBenchmark();
+  if (FLAG_support_compiler_stats) {
+    result->compiler_stats_ = new CompilerStats(result);
+    if (FLAG_compiler_benchmark) {
+      result->compiler_stats_->EnableBenchmark();
+    }
   }
 
   if (FLAG_support_service) {
@@ -1773,7 +1778,7 @@ void Isolate::Shutdown() {
     }
 
     // Write compiler stats data if enabled.
-    if (FLAG_compiler_stats
+    if (FLAG_support_compiler_stats && FLAG_compiler_stats
         && !ServiceIsolate::IsServiceIsolateDescendant(this)
         && (this != Dart::vm_isolate())) {
       OS::Print("%s", compiler_stats()->PrintToZone());
@@ -1951,30 +1956,32 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("livePorts", message_handler()->live_ports());
   jsobj.AddProperty("pauseOnExit", message_handler()->should_pause_on_exit());
 
-  if (message_handler()->is_paused_on_start()) {
-    ASSERT(debugger()->PauseEvent() == NULL);
-    ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
-    jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if (message_handler()->is_paused_on_exit()) {
-    ASSERT(debugger()->PauseEvent() == NULL);
-    ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
-    jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if (debugger()->PauseEvent() != NULL && !resume_request_) {
-    ServiceEvent pause_event(debugger()->PauseEvent());
-    jsobj.AddProperty("pauseEvent", &pause_event);
-  } else {
-    ServiceEvent pause_event(this, ServiceEvent::kResume);
+  if (debugger() != NULL) {
+    if (message_handler()->is_paused_on_start()) {
+      ASSERT(debugger()->PauseEvent() == NULL);
+      ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
+      jsobj.AddProperty("pauseEvent", &pause_event);
+    } else if (message_handler()->is_paused_on_exit()) {
+      ASSERT(debugger()->PauseEvent() == NULL);
+      ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
+      jsobj.AddProperty("pauseEvent", &pause_event);
+    } else if (debugger()->PauseEvent() != NULL && !resume_request_) {
+      ServiceEvent pause_event(debugger()->PauseEvent());
+      jsobj.AddProperty("pauseEvent", &pause_event);
+    } else {
+      ServiceEvent pause_event(this, ServiceEvent::kResume);
 
-    // TODO(turnidge): Don't compute a full stack trace.
-    DebuggerStackTrace* stack = debugger()->StackTrace();
-    if (stack->Length() > 0) {
-      pause_event.set_top_frame(stack->FrameAt(0));
+      // TODO(turnidge): Don't compute a full stack trace.
+      DebuggerStackTrace* stack = debugger()->StackTrace();
+      if (stack->Length() > 0) {
+        pause_event.set_top_frame(stack->FrameAt(0));
+      }
+      jsobj.AddProperty("pauseEvent", &pause_event);
     }
-    jsobj.AddProperty("pauseEvent", &pause_event);
-  }
 
-  jsobj.AddProperty("exceptionPauseMode",
-      ExceptionPauseInfoToServiceEnum(debugger()->GetExceptionPauseInfo()));
+    jsobj.AddProperty("exceptionPauseMode",
+        ExceptionPauseInfoToServiceEnum(debugger()->GetExceptionPauseInfo()));
+  }
 
   const Library& lib =
       Library::Handle(object_store()->root_library());
@@ -2005,14 +2012,17 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
       lib_array.AddValue(lib);
     }
   }
-  {
-    JSONArray breakpoints(&jsobj, "breakpoints");
-    debugger()->PrintBreakpointsToJSONArray(&breakpoints);
-  }
 
-  {
-    JSONObject jssettings(&jsobj, "_debuggerSettings");
-    debugger()->PrintSettingsToJSONObject(&jssettings);
+  if (debugger() != NULL) {
+    {
+      JSONArray breakpoints(&jsobj, "breakpoints");
+      debugger()->PrintBreakpointsToJSONArray(&breakpoints);
+    }
+
+    {
+      JSONObject jssettings(&jsobj, "_debuggerSettings");
+      debugger()->PrintSettingsToJSONObject(&jssettings);
+    }
   }
 
   {

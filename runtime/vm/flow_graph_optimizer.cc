@@ -20,38 +20,12 @@
 #include "vm/intermediate_language.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
-#include "vm/precompiler.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
 namespace dart {
-
-DEFINE_FLAG(int, getter_setter_ratio, 13,
-    "Ratio of getter/setter usage used for double field unboxing heuristics");
-DEFINE_FLAG(bool, guess_icdata_cid, true,
-    "Artificially create type feedback for arithmetic etc. operations"
-    " by guessing the other unknown argument cid");
-DEFINE_FLAG(int, max_polymorphic_checks, 4,
-    "Maximum number of polymorphic check, otherwise it is megamorphic.");
-DEFINE_FLAG(int, max_equality_polymorphic_checks, 32,
-    "Maximum number of polymorphic checks in equality operator,"
-    " otherwise use megamorphic dispatch.");
-DEFINE_FLAG(bool, merge_sin_cos, false, "Merge sin/cos into sincos");
-DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
-DEFINE_FLAG(bool, truncating_left_shift, true,
-    "Optimize left shift to truncate if possible");
-DEFINE_FLAG(bool, use_cha_deopt, true,
-    "Use class hierarchy analysis even if it can cause deoptimization.");
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
-DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
-#endif
-
-DECLARE_FLAG(bool, precompilation);
-DECLARE_FLAG(bool, polymorphic_with_deopt);
-DECLARE_FLAG(bool, trace_cha);
-DECLARE_FLAG(bool, trace_field_guards);
 
 // Quick access to the current isolate and zone.
 #define I (isolate())
@@ -68,49 +42,13 @@ static bool CanUnboxDouble() {
 
 
 static bool CanConvertUnboxedMintToDouble() {
-#if defined(TARGET_ARCH_IA32)
-  return true;
-#else
-  // ARM does not have a short instruction sequence for converting int64 to
-  // double.
-  // TODO(johnmccutchan): Investigate possibility on MIPS once
-  // mints are implemented there.
-  return false;
-#endif
+  return FlowGraphCompiler::CanConvertUnboxedMintToDouble();
 }
 
 
 // Optimize instance calls using ICData.
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
-}
-
-
-void FlowGraphOptimizer::PopulateWithICData() {
-  ASSERT(current_iterator_ == NULL);
-  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
-       !block_it.Done();
-       block_it.Advance()) {
-    ForwardInstructionIterator it(block_it.Current());
-    for (; !it.Done(); it.Advance()) {
-      Instruction* instr = it.Current();
-      if (instr->IsInstanceCall()) {
-        InstanceCallInstr* call = instr->AsInstanceCall();
-        if (!call->HasICData()) {
-          const Array& arguments_descriptor =
-              Array::Handle(zone(),
-                  ArgumentsDescriptor::New(call->ArgumentCount(),
-                                           call->argument_names()));
-          const ICData& ic_data = ICData::ZoneHandle(zone(), ICData::New(
-              function(), call->function_name(),
-              arguments_descriptor, call->deopt_id(),
-              call->checked_argument_count()));
-          call->set_ic_data(&ic_data);
-        }
-      }
-    }
-    current_iterator_ = NULL;
-  }
 }
 
 
@@ -138,13 +76,6 @@ void FlowGraphOptimizer::ApplyClassIds() {
         }
       } else if (instr->IsPolymorphicInstanceCall()) {
         SpecializePolymorphicInstanceCall(instr->AsPolymorphicInstanceCall());
-      } else if (instr->IsStrictCompare()) {
-        VisitStrictCompare(instr->AsStrictCompare());
-      } else if (instr->IsBranch()) {
-        ComparisonInstr* compare = instr->AsBranch()->comparison();
-        if (compare->IsStrictCompare()) {
-          VisitStrictCompare(compare->AsStrictCompare());
-        }
       }
     }
     current_iterator_ = NULL;
@@ -214,7 +145,8 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
         Resolver::ResolveDynamicForReceiverClass(
             receiver_class,
             call->function_name(),
-            args_desc));
+            args_desc,
+            false /* allow add */));
     if (function.IsNull()) {
       return false;
     }
@@ -235,29 +167,6 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     return true;
   }
 
-#ifdef DART_PRECOMPILER
-  if (FLAG_precompilation &&
-      (isolate()->object_store()->unique_dynamic_targets() != Array::null())) {
-    // Check if the target is unique.
-    Function& target_function = Function::Handle(Z);
-    Precompiler::GetUniqueDynamicTarget(
-        isolate(), call->function_name(), &target_function);
-    // Calls with named arguments must be resolved/checked at runtime.
-    String& error_message = String::Handle(Z);
-    if (!target_function.IsNull() &&
-        !target_function.HasOptionalNamedParameters() &&
-        target_function.AreValidArgumentCounts(call->ArgumentCount(), 0,
-                                               &error_message)) {
-      const intptr_t cid = Class::Handle(Z, target_function.Owner()).id();
-      const ICData& ic_data = ICData::ZoneHandle(Z,
-          ICData::NewFrom(*call->ic_data(), 1));
-      ic_data.AddReceiverCheck(cid, target_function);
-      call->set_ic_data(&ic_data);
-      return true;
-    }
-  }
-#endif
-
   // Check if getter or setter in function's class and class is currently leaf.
   if (FLAG_guess_icdata_cid &&
       ((call->token_kind() == Token::kGET) ||
@@ -273,7 +182,8 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
       const Function& function = Function::Handle(Z,
           Resolver::ResolveDynamicForReceiverClass(owner_class,
                                                    call->function_name(),
-                                                   args_desc));
+                                                   args_desc,
+                                                   false /* allow_add */));
       if (!function.IsNull()) {
         const ICData& ic_data = ICData::ZoneHandle(Z,
             ICData::NewFrom(*call->ic_data(), class_ids.length()));
@@ -599,297 +509,6 @@ void FlowGraphOptimizer::TryOptimizePatterns() {
     TryMergeTruncDivMod(&div_mod_merge);
     TryMergeMathUnary(&sin_cos_merge);
     current_iterator_ = NULL;
-  }
-}
-
-
-bool FlowGraphOptimizer::Canonicalize() {
-  bool changed = false;
-
-  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
-       !block_it.Done();
-       block_it.Advance()) {
-    for (ForwardInstructionIterator it(block_it.Current());
-         !it.Done();
-         it.Advance()) {
-      Instruction* current = it.Current();
-      if (current->HasUnmatchedInputRepresentations()) {
-        // Can't canonicalize this instruction until all conversions for its
-        // inputs are inserted.
-        continue;
-      }
-
-      Instruction* replacement = current->Canonicalize(flow_graph());
-
-      if (replacement != current) {
-        // For non-definitions Canonicalize should return either NULL or
-        // this.
-        ASSERT((replacement == NULL) || current->IsDefinition());
-        flow_graph_->ReplaceCurrentInstruction(&it, current, replacement);
-        changed = true;
-      }
-    }
-  }
-  return changed;
-}
-
-
-static bool IsUnboxedInteger(Representation rep) {
-  return (rep == kUnboxedInt32) ||
-         (rep == kUnboxedUint32) ||
-         (rep == kUnboxedMint);
-}
-
-
-void FlowGraphOptimizer::InsertConversion(Representation from,
-                                          Representation to,
-                                          Value* use,
-                                          bool is_environment_use) {
-  Instruction* insert_before;
-  Instruction* deopt_target;
-  PhiInstr* phi = use->instruction()->AsPhi();
-  if (phi != NULL) {
-    ASSERT(phi->is_alive());
-    // For phis conversions have to be inserted in the predecessor.
-    insert_before =
-        phi->block()->PredecessorAt(use->use_index())->last_instruction();
-    deopt_target = NULL;
-  } else {
-    deopt_target = insert_before = use->instruction();
-  }
-
-  Definition* converted = NULL;
-  if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
-    const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
-    converted = new(Z) UnboxedIntConverterInstr(from,
-                                                to,
-                                                use->CopyWithType(),
-                                                deopt_id);
-  } else if ((from == kUnboxedInt32) && (to == kUnboxedDouble)) {
-    converted = new Int32ToDoubleInstr(use->CopyWithType());
-  } else if ((from == kUnboxedMint) &&
-             (to == kUnboxedDouble) &&
-             CanConvertUnboxedMintToDouble()) {
-    const intptr_t deopt_id = (deopt_target != NULL) ?
-        deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
-    ASSERT(CanUnboxDouble());
-    converted = new MintToDoubleInstr(use->CopyWithType(), deopt_id);
-  } else if ((from == kTagged) && Boxing::Supports(to)) {
-    const intptr_t deopt_id = (deopt_target != NULL) ?
-        deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
-    converted = UnboxInstr::Create(to, use->CopyWithType(), deopt_id);
-  } else if ((to == kTagged) && Boxing::Supports(from)) {
-    converted = BoxInstr::Create(from, use->CopyWithType());
-  } else {
-    // We have failed to find a suitable conversion instruction.
-    // Insert two "dummy" conversion instructions with the correct
-    // "from" and "to" representation. The inserted instructions will
-    // trigger a deoptimization if executed. See #12417 for a discussion.
-    const intptr_t deopt_id = (deopt_target != NULL) ?
-        deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
-    ASSERT(Boxing::Supports(from));
-    ASSERT(Boxing::Supports(to));
-    Definition* boxed = BoxInstr::Create(from, use->CopyWithType());
-    use->BindTo(boxed);
-    InsertBefore(insert_before, boxed, NULL, FlowGraph::kValue);
-    converted = UnboxInstr::Create(to, new(Z) Value(boxed), deopt_id);
-  }
-  ASSERT(converted != NULL);
-  InsertBefore(insert_before, converted, use->instruction()->env(),
-               FlowGraph::kValue);
-  if (is_environment_use) {
-    use->BindToEnvironment(converted);
-  } else {
-    use->BindTo(converted);
-  }
-
-  if ((to == kUnboxedInt32) && (phi != NULL)) {
-    // Int32 phis are unboxed optimistically. Ensure that unboxing
-    // has deoptimization target attached from the goto instruction.
-    flow_graph_->CopyDeoptTarget(converted, insert_before);
-  }
-}
-
-
-void FlowGraphOptimizer::ConvertUse(Value* use, Representation from_rep) {
-  const Representation to_rep =
-      use->instruction()->RequiredInputRepresentation(use->use_index());
-  if (from_rep == to_rep || to_rep == kNoRepresentation) {
-    return;
-  }
-  InsertConversion(from_rep, to_rep, use, /*is_environment_use=*/ false);
-}
-
-
-void FlowGraphOptimizer::ConvertEnvironmentUse(Value* use,
-                                               Representation from_rep) {
-  const Representation to_rep = kTagged;
-  if (from_rep == to_rep) {
-    return;
-  }
-  InsertConversion(from_rep, to_rep, use, /*is_environment_use=*/ true);
-}
-
-
-void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
-  const Representation from_rep = def->representation();
-
-  for (Value::Iterator it(def->input_use_list());
-       !it.Done();
-       it.Advance()) {
-    ConvertUse(it.Current(), from_rep);
-  }
-
-  if (flow_graph()->graph_entry()->SuccessorCount() > 1) {
-    for (Value::Iterator it(def->env_use_list());
-         !it.Done();
-         it.Advance()) {
-      Value* use = it.Current();
-      if (use->instruction()->MayThrow() &&
-          use->instruction()->GetBlock()->InsideTryBlock()) {
-        // Environment uses at calls inside try-blocks must be converted to
-        // tagged representation.
-        ConvertEnvironmentUse(it.Current(), from_rep);
-      }
-    }
-  }
-}
-
-
-static void UnboxPhi(PhiInstr* phi) {
-  Representation unboxed = phi->representation();
-
-  switch (phi->Type()->ToCid()) {
-    case kDoubleCid:
-      if (CanUnboxDouble()) {
-        unboxed = kUnboxedDouble;
-      }
-      break;
-    case kFloat32x4Cid:
-      if (ShouldInlineSimd()) {
-        unboxed = kUnboxedFloat32x4;
-      }
-      break;
-    case kInt32x4Cid:
-      if (ShouldInlineSimd()) {
-        unboxed = kUnboxedInt32x4;
-      }
-      break;
-    case kFloat64x2Cid:
-      if (ShouldInlineSimd()) {
-        unboxed = kUnboxedFloat64x2;
-      }
-      break;
-  }
-
-  if ((kSmiBits < 32) &&
-      (unboxed == kTagged) &&
-      phi->Type()->IsInt() &&
-      RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt64)) {
-    // On 32-bit platforms conservatively unbox phis that:
-    //   - are proven to be of type Int;
-    //   - fit into 64bits range;
-    //   - have either constants or Box() operations as inputs;
-    //   - have at least one Box() operation as an input;
-    //   - are used in at least 1 Unbox() operation.
-    bool should_unbox = false;
-    for (intptr_t i = 0; i < phi->InputCount(); i++) {
-      Definition* input = phi->InputAt(i)->definition();
-      if (input->IsBox() &&
-          RangeUtils::Fits(input->range(),
-                           RangeBoundary::kRangeBoundaryInt64)) {
-        should_unbox = true;
-      } else if (!input->IsConstant()) {
-        should_unbox = false;
-        break;
-      }
-    }
-
-    if (should_unbox) {
-      // We checked inputs. Check if phi is used in at least one unbox
-      // operation.
-      bool has_unboxed_use = false;
-      for (Value* use = phi->input_use_list();
-           use != NULL;
-           use = use->next_use()) {
-        Instruction* instr = use->instruction();
-        if (instr->IsUnbox()) {
-          has_unboxed_use = true;
-          break;
-        } else if (IsUnboxedInteger(
-            instr->RequiredInputRepresentation(use->use_index()))) {
-          has_unboxed_use = true;
-          break;
-        }
-      }
-
-      if (!has_unboxed_use) {
-        should_unbox = false;
-      }
-    }
-
-    if (should_unbox) {
-      unboxed =
-          RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
-          ? kUnboxedInt32 : kUnboxedMint;
-    }
-  }
-
-  phi->set_representation(unboxed);
-}
-
-
-void FlowGraphOptimizer::SelectRepresentations() {
-  // Conservatively unbox all phis that were proven to be of Double,
-  // Float32x4, or Int32x4 type.
-  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
-       !block_it.Done();
-       block_it.Advance()) {
-    JoinEntryInstr* join_entry = block_it.Current()->AsJoinEntry();
-    if (join_entry != NULL) {
-      for (PhiIterator it(join_entry); !it.Done(); it.Advance()) {
-        PhiInstr* phi = it.Current();
-        UnboxPhi(phi);
-      }
-    }
-  }
-
-  // Process all instructions and insert conversions where needed.
-  GraphEntryInstr* graph_entry = flow_graph_->graph_entry();
-
-  // Visit incoming parameters and constants.
-  for (intptr_t i = 0; i < graph_entry->initial_definitions()->length(); i++) {
-    InsertConversionsFor((*graph_entry->initial_definitions())[i]);
-  }
-
-  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
-       !block_it.Done();
-       block_it.Advance()) {
-    BlockEntryInstr* entry = block_it.Current();
-    JoinEntryInstr* join_entry = entry->AsJoinEntry();
-    if (join_entry != NULL) {
-      for (PhiIterator it(join_entry); !it.Done(); it.Advance()) {
-        PhiInstr* phi = it.Current();
-        ASSERT(phi != NULL);
-        ASSERT(phi->is_alive());
-        InsertConversionsFor(phi);
-      }
-    }
-    CatchBlockEntryInstr* catch_entry = entry->AsCatchBlockEntry();
-    if (catch_entry != NULL) {
-      for (intptr_t i = 0;
-           i < catch_entry->initial_definitions()->length();
-           i++) {
-        InsertConversionsFor((*catch_entry->initial_definitions())[i]);
-      }
-    }
-    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      Definition* def = it.Current()->AsDefinition();
-      if (def != NULL) {
-        InsertConversionsFor(def);
-      }
-    }
   }
 }
 
@@ -1724,7 +1343,7 @@ bool FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
     if (!field.is_nullable() || (field.guarded_cid() == kNullCid)) {
       load->set_result_cid(field.guarded_cid());
     }
-    FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
+    flow_graph()->parsed_function().AddToGuardedFields(&field);
   }
 
   // Discard the environment from the original instruction because the load
@@ -2365,10 +1984,6 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
-  if (FLAG_precompilation) {
-    // Cannot handle unboxed instructions.
-    return false;
-  }
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -2412,10 +2027,6 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
 bool FlowGraphOptimizer::TryInlineFloat64x2Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
-  if (FLAG_precompilation) {
-    // Cannot handle unboxed instructions.
-    return false;
-  }
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -2451,10 +2062,6 @@ bool FlowGraphOptimizer::TryInlineFloat64x2Constructor(
 bool FlowGraphOptimizer::TryInlineInt32x4Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
-  if (FLAG_precompilation) {
-    // Cannot handle unboxed instructions.
-    return false;
-  }
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -3245,11 +2852,6 @@ void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
-  if (FLAG_precompilation) {
-    InstanceCallNoopt(instr);
-    return;
-  }
-
   if (!instr->HasICData() || (instr->ic_data()->NumberOfUsedChecks() == 0)) {
     return;
   }
@@ -3377,10 +2979,6 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
       break;
   }
   if (unary_kind != MathUnaryInstr::kIllegal) {
-    if (FLAG_precompilation) {
-      // TODO(srdjan): Adapt MathUnaryInstr to allow tagged inputs as well.
-      return;
-    }
     MathUnaryInstr* math_unary =
         new(Z) MathUnaryInstr(unary_kind,
                               new(Z) Value(call->ArgumentAt(0)),
@@ -3463,10 +3061,6 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
     case MethodRecognizer::kMathAcos:
     case MethodRecognizer::kMathAtan:
     case MethodRecognizer::kMathAtan2: {
-      if (FLAG_precompilation) {
-        // No UnboxDouble instructons allowed.
-        return;
-      }
       // InvokeMathCFunctionInstr requires unboxed doubles. UnboxDouble
       // instructions contain type checks and conversions to double.
       ZoneGrowableArray<Value*>* args =
@@ -3584,7 +3178,7 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
       field.set_is_unboxing_candidate(false);
       field.DeoptimizeDependentCode();
     } else {
-      FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
+      flow_graph()->parsed_function().AddToGuardedFields(&field);
     }
   }
 }
@@ -3710,7 +3304,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       instr->token_pos());
 
   if (store->IsUnboxedStore()) {
-    FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
+    flow_graph()->parsed_function().AddToGuardedFields(&field);
   }
 
   // Discard the environment from the original instruction because the store
@@ -3718,259 +3312,6 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   instr->RemoveEnvironment();
   ReplaceCall(instr, store);
   return true;
-}
-
-
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
-// Smi widening pass is only meaningful on platforms where Smi
-// is smaller than 32bit. For now only support it on ARM and ia32.
-static bool CanBeWidened(BinarySmiOpInstr* smi_op) {
-  return BinaryInt32OpInstr::IsSupported(smi_op->op_kind(),
-                                         smi_op->left(),
-                                         smi_op->right());
-}
-
-
-static bool BenefitsFromWidening(BinarySmiOpInstr* smi_op) {
-  // TODO(vegorov): when shifts with non-constants shift count are supported
-  // add them here as we save untagging for the count.
-  switch (smi_op->op_kind()) {
-    case Token::kMUL:
-    case Token::kSHR:
-      // For kMUL we save untagging of the argument for kSHR
-      // we save tagging of the result.
-      return true;
-
-    default:
-      return false;
-  }
-}
-
-
-void FlowGraphOptimizer::WidenSmiToInt32() {
-  GrowableArray<BinarySmiOpInstr*> candidates;
-
-  // Step 1. Collect all instructions that potentially benefit from widening of
-  // their operands (or their result) into int32 range.
-  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
-       !block_it.Done();
-       block_it.Advance()) {
-    for (ForwardInstructionIterator instr_it(block_it.Current());
-         !instr_it.Done();
-         instr_it.Advance()) {
-      BinarySmiOpInstr* smi_op = instr_it.Current()->AsBinarySmiOp();
-      if ((smi_op != NULL) &&
-          smi_op->HasSSATemp() &&
-          BenefitsFromWidening(smi_op) &&
-          CanBeWidened(smi_op)) {
-        candidates.Add(smi_op);
-      }
-    }
-  }
-
-  if (candidates.is_empty()) {
-    return;
-  }
-
-  // Step 2. For each block in the graph compute which loop it belongs to.
-  // We will use this information later during computation of the widening's
-  // gain: we are going to assume that only conversion occuring inside the
-  // same loop should be counted against the gain, all other conversions
-  // can be hoisted and thus cost nothing compared to the loop cost itself.
-  const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-      flow_graph()->LoopHeaders();
-
-  GrowableArray<intptr_t> loops(flow_graph_->preorder().length());
-  for (intptr_t i = 0; i < flow_graph_->preorder().length(); i++) {
-    loops.Add(-1);
-  }
-
-  for (intptr_t loop_id = 0; loop_id < loop_headers.length(); ++loop_id) {
-    for (BitVector::Iterator loop_it(loop_headers[loop_id]->loop_info());
-         !loop_it.Done();
-         loop_it.Advance()) {
-      loops[loop_it.Current()] = loop_id;
-    }
-  }
-
-  // Step 3. For each candidate transitively collect all other BinarySmiOpInstr
-  // and PhiInstr that depend on it and that it depends on and count amount of
-  // untagging operations that we save in assumption that this whole graph of
-  // values is using kUnboxedInt32 representation instead of kTagged.
-  // Convert those graphs that have positive gain to kUnboxedInt32.
-
-  // BitVector containing SSA indexes of all processed definitions. Used to skip
-  // those candidates that belong to dependency graph of another candidate.
-  BitVector* processed =
-      new(Z) BitVector(Z, flow_graph_->current_ssa_temp_index());
-
-  // Worklist used to collect dependency graph.
-  DefinitionWorklist worklist(flow_graph_, candidates.length());
-  for (intptr_t i = 0; i < candidates.length(); i++) {
-    BinarySmiOpInstr* op = candidates[i];
-    if (op->WasEliminated() || processed->Contains(op->ssa_temp_index())) {
-      continue;
-    }
-
-    if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-      THR_Print("analysing candidate: %s\n", op->ToCString());
-    }
-    worklist.Clear();
-    worklist.Add(op);
-
-    // Collect dependency graph. Note: more items are added to worklist
-    // inside this loop.
-    intptr_t gain = 0;
-    for (intptr_t j = 0; j < worklist.definitions().length(); j++) {
-      Definition* defn = worklist.definitions()[j];
-
-      if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-        THR_Print("> %s\n", defn->ToCString());
-      }
-
-      if (defn->IsBinarySmiOp() &&
-          BenefitsFromWidening(defn->AsBinarySmiOp())) {
-        gain++;
-        if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-          THR_Print("^ [%" Pd "] (o) %s\n", gain, defn->ToCString());
-        }
-      }
-
-      const intptr_t defn_loop = loops[defn->GetBlock()->preorder_number()];
-
-      // Process all inputs.
-      for (intptr_t k = 0; k < defn->InputCount(); k++) {
-        Definition* input = defn->InputAt(k)->definition();
-        if (input->IsBinarySmiOp() &&
-            CanBeWidened(input->AsBinarySmiOp())) {
-          worklist.Add(input);
-        } else if (input->IsPhi() && (input->Type()->ToCid() == kSmiCid)) {
-          worklist.Add(input);
-        } else if (input->IsBinaryMintOp()) {
-          // Mint operation produces untagged result. We avoid tagging.
-          gain++;
-          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-            THR_Print("^ [%" Pd "] (i) %s\n", gain, input->ToCString());
-          }
-        } else if (defn_loop == loops[input->GetBlock()->preorder_number()] &&
-                   (input->Type()->ToCid() == kSmiCid)) {
-          // Input comes from the same loop, is known to be smi and requires
-          // untagging.
-          // TODO(vegorov) this heuristic assumes that values that are not
-          // known to be smi have to be checked and this check can be
-          // coalesced with untagging. Start coalescing them.
-          gain--;
-          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-            THR_Print("v [%" Pd "] (i) %s\n", gain, input->ToCString());
-          }
-        }
-      }
-
-      // Process all uses.
-      for (Value* use = defn->input_use_list();
-           use != NULL;
-           use = use->next_use()) {
-        Instruction* instr = use->instruction();
-        Definition* use_defn = instr->AsDefinition();
-        if (use_defn == NULL) {
-          // We assume that tagging before returning or pushing argument costs
-          // very little compared to the cost of the return/call itself.
-          if (!instr->IsReturn() && !instr->IsPushArgument()) {
-            gain--;
-            if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-              THR_Print("v [%" Pd "] (u) %s\n",
-                        gain,
-                        use->instruction()->ToCString());
-            }
-          }
-          continue;
-        } else if (use_defn->IsBinarySmiOp() &&
-                   CanBeWidened(use_defn->AsBinarySmiOp())) {
-          worklist.Add(use_defn);
-        } else if (use_defn->IsPhi() &&
-                   use_defn->AsPhi()->Type()->ToCid() == kSmiCid) {
-          worklist.Add(use_defn);
-        } else if (use_defn->IsBinaryMintOp()) {
-          // BinaryMintOp requires untagging of its inputs.
-          // Converting kUnboxedInt32 to kUnboxedMint is essentially zero cost
-          // sign extension operation.
-          gain++;
-          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-            THR_Print("^ [%" Pd "] (u) %s\n",
-                      gain,
-                      use->instruction()->ToCString());
-          }
-        } else if (defn_loop == loops[instr->GetBlock()->preorder_number()]) {
-          gain--;
-          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-            THR_Print("v [%" Pd "] (u) %s\n",
-                      gain,
-                      use->instruction()->ToCString());
-          }
-        }
-      }
-    }
-
-    processed->AddAll(worklist.contains_vector());
-
-    if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-      THR_Print("~ %s gain %" Pd "\n", op->ToCString(), gain);
-    }
-
-    if (gain > 0) {
-      // We have positive gain from widening. Convert all BinarySmiOpInstr into
-      // BinaryInt32OpInstr and set representation of all phis to kUnboxedInt32.
-      for (intptr_t j = 0; j < worklist.definitions().length(); j++) {
-        Definition* defn = worklist.definitions()[j];
-        ASSERT(defn->IsPhi() || defn->IsBinarySmiOp());
-
-        if (defn->IsBinarySmiOp()) {
-          BinarySmiOpInstr* smi_op = defn->AsBinarySmiOp();
-          BinaryInt32OpInstr* int32_op = new(Z) BinaryInt32OpInstr(
-            smi_op->op_kind(),
-            smi_op->left()->CopyWithType(),
-            smi_op->right()->CopyWithType(),
-            smi_op->DeoptimizationTarget());
-
-          smi_op->ReplaceWith(int32_op, NULL);
-        } else if (defn->IsPhi()) {
-          defn->AsPhi()->set_representation(kUnboxedInt32);
-          ASSERT(defn->Type()->IsInt());
-        }
-      }
-    }
-  }
-}
-#else
-void FlowGraphOptimizer::WidenSmiToInt32() {
-  // TODO(vegorov) ideally on 64-bit platforms we would like to narrow smi
-  // operations to 32-bit where it saves tagging and untagging and allows
-  // to use shorted (and faster) instructions. But we currently don't
-  // save enough range information in the ICData to drive this decision.
-}
-#endif
-
-
-void FlowGraphOptimizer::EliminateEnvironments() {
-  // After this pass we can no longer perform LICM and hoist instructions
-  // that can deoptimize.
-
-  flow_graph_->disallow_licm();
-  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
-       !block_it.Done();
-       block_it.Advance()) {
-    BlockEntryInstr* block = block_it.Current();
-    block->RemoveEnvironment();
-    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      Instruction* current = it.Current();
-      if (!current->CanDeoptimize()) {
-        // TODO(srdjan): --source-lines needs deopt environments to get at
-        // the code for this instruction, however, leaving the environment
-        // changes code.
-        current->RemoveEnvironment();
-      }
-    }
-  }
 }
 
 

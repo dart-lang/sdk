@@ -3672,7 +3672,7 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
         (node->field().guarded_cid() == kNullCid)) {
       load->set_result_cid(node->field().guarded_cid());
     }
-    FlowGraph::AddToGuardedFields(owner()->guarded_fields(), &node->field());
+    owner()->parsed_function().AddToGuardedFields(&node->field());
   }
   ReturnDefinition(load);
 }

@@ -6,7 +6,7 @@
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
-import 'dart:async';
+import 'service_test_common.dart';
 
 doThrow() {
   throw "TheException"; // Line 13.

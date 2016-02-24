@@ -185,7 +185,7 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 
 # 'js' tests import the dart:js library, so they only make sense in
 # a browser environment.
-[ ($runtime == vm || $runtime == dart_precompiled) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
 js/*: Skip
 
 # 'js' tests import the dart:js library, so they only make sense in
@@ -208,7 +208,7 @@ async/timer_isActive_test: Fail, Pass, Timeout # Issue 22696
 async/slow_consumer_test: Pass, Timeout # Issue 22696
 async/catch_errors11_test: Pass, Timeout # Issue 22696
 
-[ $runtime == chrome || $runtime == ff || $runtime == ContentShellOnAndroid ]
+[ $runtime == chrome || $runtime == ff ]
 convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
@@ -228,19 +228,19 @@ async/multiple_timer_test: Pass, Fail # Probably issue 14734
 # TODO(efortuna): Investigate.
 async/timer_test: Fail, Pass
 
-[ ($runtime == vm || $runtime == dart_precompiled) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 mirrors/deferred_type_test: CompileTimeError, OK # Don't have a multitest marker for dynamic compile time errors.
 
-[ ($compiler == none || $compiler == precompiler) ]
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) ]
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 
-[ ($compiler == none || $compiler == precompiler) && ( $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 async/schedule_microtask6_test: Fail # Issue 10910
 async/timer_test: Fail, Pass # Issue 15487
 async/multiple_timer_test: Fail, Pass # Issue 15487
@@ -253,21 +253,12 @@ mirrors/spawn_function_root_library_test: SkipByDesign # Uses spawnFunction.
 mirrors/local_isolate_test: RuntimeError # Issue 12188
 mirrors/deferred_type_test: RuntimeError, OK # Should be CompileTimeError. Issue 22072
 
-[ ($compiler == none || $compiler == precompiler) && $runtime == drt && $system == windows ]
+[ $compiler == none && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail, Pass # See Issue 10982
 async/timer_test: Fail, Pass # See Issue 10982
 
-[ ($compiler == none || $compiler == precompiler) && $runtime == drt && $checked ]
+[ $compiler == none && $runtime == drt && $checked ]
 async/slow_consumer_test: Fail, Pass # Dartium JsInterop failure, dartbug.com/24460
-
-[($compiler == none || $compiler == precompiler) && $runtime == ContentShellOnAndroid ]
-async/stream_timeout_test: RuntimeError, Pass # Issue 19127
-async/slow_consumer3_test: SkipSlow # Times out flakily. Issue 20956
-async/slow_consumer2_test: SkipSlow # Times out flakily. Issue 20956
-convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out or passes. Issue 19127
-convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out or passes. Issue 19127
-mirrors/lazy_static_test: SkipSlow # Times out. Issue 19127
-mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 19127
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
@@ -307,7 +298,7 @@ mirrors/*deferred*: Skip # Issue 17458
 [ $compiler == dart2js && $mode == debug ]
 mirrors/native_class_test: Pass, Slow
 
-[ ($compiler == none || $compiler == precompiler) && $arch == mips ]
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && $arch == mips ]
 async/timer_regress22626_test: Pass, RuntimeError # Issue 22626
 
 [ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
@@ -327,16 +318,16 @@ convert/utf85_test: Skip # Pass, Slow Issue 20111.
 [ $mode == debug && $arch == ia32 && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
 
-[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $arch == x64 && $system == windows ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $mode == debug && $arch == x64 && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
 
-[ ($runtime == vm || $runtime == dart_precompiled) && $mode == release && $arch == ia32 && $system == windows ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $mode == release && $arch == ia32 && $system == windows ]
 convert/json_test: RuntimeError # Issue 24908
 
 [ $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv6 && $arch != simarmv5te ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
 
-[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $mode == debug && $builder_tag == asan ]
 mirrors/immutable_collections_test: SkipSlow  # Timeout.
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 
@@ -361,3 +352,7 @@ async/slow_consumer2_test: Pass, RuntimeError # Issue 25726
 mirrors/*: SkipByDesign
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
+
+[ $runtime == vm && $mode == product ]
+mirrors/mirrors_reader_test: Fail,OK  # Expects exact type name.
+

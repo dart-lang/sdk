@@ -6,6 +6,7 @@
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
+import 'service_test_common.dart';
 import 'dart:developer';
 
 int globalVar = 100;
@@ -62,10 +63,10 @@ hasStoppedAtBreakpoint,
 
   var expectedRange = {
     'scriptIndex': 0,
-    'startPos': 33,
-    'endPos': 82,
+    'startPos': 38,
+    'endPos': 87,
     'compiled': true,
-    'coverage': {'hits': [48, 66, 76], 'misses': [54]}
+    'coverage': {'hits': [53, 71, 81], 'misses': [59]}
   };
 
   // Full script

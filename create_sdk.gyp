@@ -41,6 +41,8 @@
             '<(SHARED_INTERMEDIATE_DIR)/dartfmt.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/analysis_server.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/dartdoc.dart.snapshot',
+            '<(SHARED_INTERMEDIATE_DIR)/spec.sum',
+            '<(SHARED_INTERMEDIATE_DIR)/strong.sum',
             'tools/VERSION'
           ],
           'outputs': [

@@ -1145,6 +1145,33 @@ class D { const D(value); }
         outputs[CONSTANT_DEPENDENCIES].toSet(), [x, constructorForD].toSet());
   }
 
+  test_annotation_with_nonConstArg() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+class A {
+  const A(x);
+}
+class C {
+  @A(const [(_) => null])
+  String s;
+}
+''');
+    // First compute the resolved unit for the source.
+    LibrarySpecificUnit librarySpecificUnit =
+        new LibrarySpecificUnit(source, source);
+    computeResult(librarySpecificUnit, RESOLVED_UNIT1);
+    CompilationUnit unit = outputs[RESOLVED_UNIT1];
+    // Find the annotation on the field.
+    ClassDeclaration classC = unit.declarations[1];
+    Annotation annotation = classC.members[0].metadata[0];
+    // Now compute the dependencies for the annotation, and check that it is
+    // the right size.
+    computeResult(annotation.elementAnnotation, CONSTANT_DEPENDENCIES,
+        matcher: isComputeConstantDependenciesTask);
+    expect(outputs[CONSTANT_DEPENDENCIES], hasLength(1));
+  }
+
   test_annotation_without_args() {
     Source source = newSource(
         '/test.dart',
@@ -2240,8 +2267,6 @@ main() {
 
 @reflectiveTest
 class GatherUsedLocalElementsTaskTest extends _AbstractDartTaskTest {
-  List<Element> definedElements;
-  Set<String> definedElementNames;
   UsedLocalElements usedElements;
   Set<String> usedElementNames;
 
@@ -2306,7 +2331,6 @@ main() {
 }''');
     _computeUsedElements(source);
     // validate
-    expect(definedElementNames, unorderedEquals(['main', 'v1', 'v2']));
     expect(usedElementNames, unorderedEquals(['v2']));
   }
 
@@ -2326,30 +2350,14 @@ main(A a, p) {
 ''');
     _computeUsedElements(source);
     // validate
-    expect(definedElementNames,
-        unorderedEquals(['A', '_m1', '_m2', 'main', 'a', 'p']));
     expect(usedElementNames, unorderedEquals(['A', 'a', 'p', '_m2']));
     expect(usedElements.members, unorderedEquals(['_m2', '_m3']));
-  }
-
-  test_perform_unresolvedImportWithPrefix() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
-import 'x' as p;
-''');
-    _computeUsedElements(source);
-    // validate
-    expect(definedElementNames, isEmpty);
-    expect(usedElementNames, isEmpty);
   }
 
   void _computeUsedElements(Source source) {
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     computeResult(target, USED_LOCAL_ELEMENTS,
         matcher: isGatherUsedLocalElementsTask);
-    definedElements = outputs[DEFINED_ELEMENTS];
-    definedElementNames = definedElements.map((e) => e.name).toSet();
     usedElements = outputs[USED_LOCAL_ELEMENTS];
     usedElementNames = usedElements.elements.map((e) => e.name).toSet();
   }
@@ -4069,8 +4077,6 @@ class ResolveVariableReferencesTaskTest extends _AbstractDartTaskTest {
    */
   void expectMutated(FunctionBody body, VariableElement variable,
       bool mutatedInClosure, bool mutatedInScope) {
-    expect(variable.isPotentiallyMutatedInClosure, mutatedInClosure);
-    expect(variable.isPotentiallyMutatedInScope, mutatedInScope);
     expect(body.isPotentiallyMutatedInClosure(variable), mutatedInClosure);
     expect(body.isPotentiallyMutatedInScope(variable), mutatedInScope);
   }

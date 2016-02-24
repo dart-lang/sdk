@@ -10,6 +10,7 @@
 #include "vm/disassembler.h"
 #include "vm/flags.h"
 #include "vm/object_store.h"
+#include "vm/safepoint.h"
 #include "vm/snapshot.h"
 #include "vm/virtual_memory.h"
 #include "vm/visitor.h"
@@ -120,9 +121,41 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     Assembler assembler;
     const char* name = cls.ToCString();
     StubCode::GenerateAllocationStubForClass(&assembler, cls);
-    stub ^= Code::FinalizeCode(name, &assembler, false /* optimized */);
-    stub.set_owner(cls);
-    cls.set_allocation_stub(stub);
+
+    if (thread->IsMutatorThread()) {
+      stub ^= Code::FinalizeCode(name, &assembler, false /* optimized */);
+      // Check if background compilation thread has not already added the stub.
+      if (cls.allocation_stub() == Code::null()) {
+        stub.set_owner(cls);
+        cls.set_allocation_stub(stub);
+      }
+    } else {
+      // This part of stub code generation must be at a safepoint.
+      // Stop mutator thread before creating the instruction object and
+      // installing code.
+      // Mutator thread may not run code while we are creating the
+      // instruction object, since the creation of instruction object
+      // changes code page access permissions (makes them temporary not
+      // executable).
+      {
+        SafepointOperationScope safepoint_scope(thread);
+        stub = cls.allocation_stub();
+        // Check if stub was already generated.
+        if (!stub.IsNull()) {
+          return stub.raw();
+        }
+        // Do not Garbage collect during this stage and instead allow the
+        // heap to grow.
+        NoHeapGrowthControlScope no_growth_control;
+        stub ^= Code::FinalizeCode(name, &assembler, false /* optimized */);
+        stub.set_owner(cls);
+        cls.set_allocation_stub(stub);
+      }
+      Isolate* isolate = thread->isolate();
+      if (isolate->heap()->NeedsGarbageCollection()) {
+        isolate->heap()->CollectAllGarbage();
+      }
+    }
     if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
       LogBlock lb;
       THR_Print("Code for allocation stub '%s': {\n", name);

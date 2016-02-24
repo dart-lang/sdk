@@ -2394,8 +2394,11 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       SimpleIdentifier methodName = node.name;
       String nameOfMethod = methodName.name;
       if (property == null) {
+        String elementName = nameOfMethod == '-' &&
+            node.parameters != null &&
+            node.parameters.parameters.isEmpty ? 'unary-' : nameOfMethod;
         _enclosingExecutable = _findWithNameAndOffset(_enclosingClass.methods,
-            methodName, nameOfMethod, methodName.offset);
+            methodName, elementName, methodName.offset);
         _expectedElements.remove(_enclosingExecutable);
         methodName.staticElement = _enclosingExecutable;
       } else {
@@ -2404,7 +2407,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
           accessor = _findIdentifier(_enclosingClass.accessors, methodName);
         } else if ((property as KeywordToken).keyword == Keyword.SET) {
           accessor = _findWithNameAndOffset(_enclosingClass.accessors,
-              methodName, methodName.name + '=', methodName.offset);
+              methodName, nameOfMethod + '=', methodName.offset);
           _expectedElements.remove(accessor);
           methodName.staticElement = accessor;
         }
@@ -2499,6 +2502,12 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         element =
             _findIdentifier(_enclosingAlias.typeParameters, parameterName);
       }
+    }
+    if (element == null) {
+      String name = parameterName.name;
+      int offset = parameterName.offset;
+      _mismatch(
+          'Could not find type parameter with name "$name" at $offset', node);
     }
     super.visitTypeParameter(node);
     _resolveMetadata(node.metadata, element);
@@ -4006,7 +4015,6 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
  * An [AstVisitor] that fills [UsedLocalElements].
  */
 class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
-  final List<Element> definedElements = <Element>[];
   final UsedLocalElements usedElements = new UsedLocalElements();
 
   final LibraryElement _enclosingLibrary;
@@ -4076,13 +4084,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
     if (node.inDeclarationContext()) {
-      if (element != null) {
-        definedElements.add(element);
-      }
       return;
     }
+    Element element = node.staticElement;
     bool isIdentifierRead = _isReadIdentifier(node);
     if (element is LocalVariableElement) {
       if (isIdentifierRead) {
@@ -6571,14 +6576,6 @@ class NamespaceBuilder {
    */
   HashMap<String, Element> _createExportMapping(
       LibraryElement library, HashSet<LibraryElement> visitedElements) {
-    // Check if the export namespace has been already computed.
-    {
-      Namespace exportNamespace = library.exportNamespace;
-      if (exportNamespace != null) {
-        return exportNamespace.definedNames;
-      }
-    }
-    // TODO(scheglov) Remove this after switching to the new task model.
     visitedElements.add(library);
     try {
       HashMap<String, Element> definedNames = new HashMap<String, Element>();
@@ -7108,7 +7105,7 @@ class ResolverVisitor extends ScopedVisitor {
    */
   StaticTypeAnalyzer typeAnalyzer;
 
-  /*
+  /**
    * The type system in use during resolution.
    */
   TypeSystem typeSystem;
@@ -7158,6 +7155,11 @@ class ResolverVisitor extends ScopedVisitor {
    * be built and the comment resolved.
    */
   bool resolveOnlyCommentInFunctionBody = false;
+
+  /**
+   * Body of the function currently being analyzed, if any.
+   */
+  FunctionBody _currentFunctionBody;
 
   /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
@@ -7291,13 +7293,7 @@ class ResolverVisitor extends ScopedVisitor {
   /**
    * Prepares this [ResolverVisitor] to using it for incremental resolution.
    */
-  void initForIncrementalResolution([Declaration declaration = null]) {
-    if (declaration != null) {
-      Element element = declaration.element;
-      if (element is ExecutableElement) {
-        _enclosingFunction = element;
-      }
-    }
+  void initForIncrementalResolution() {
     _overrideManager.enterScope();
   }
 
@@ -7851,12 +7847,15 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
+    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
+      _currentFunctionBody = node.body;
       _enclosingFunction = node.element;
       FunctionType type = _enclosingFunction.type;
       InferenceContext.setType(node.body, type.returnType);
       super.visitConstructorDeclaration(node);
     } finally {
+      _currentFunctionBody = outerFunctionBody;
       _enclosingFunction = outerFunction;
     }
     ConstructorElementImpl constructor = node.element;
@@ -8100,13 +8099,16 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
+    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
       SimpleIdentifier functionName = node.name;
+      _currentFunctionBody = node.functionExpression.body;
       _enclosingFunction = functionName.staticElement as ExecutableElement;
       InferenceContext.setType(
           node.functionExpression, _enclosingFunction.type);
       super.visitFunctionDeclaration(node);
     } finally {
+      _currentFunctionBody = outerFunctionBody;
       _enclosingFunction = outerFunction;
     }
     return null;
@@ -8121,7 +8123,9 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitFunctionExpression(FunctionExpression node) {
     ExecutableElement outerFunction = _enclosingFunction;
+    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
+      _currentFunctionBody = node.body;
       _enclosingFunction = node.element;
       _overrideManager.enterScope();
       try {
@@ -8143,6 +8147,7 @@ class ResolverVisitor extends ScopedVisitor {
         _overrideManager.exitScope();
       }
     } finally {
+      _currentFunctionBody = outerFunctionBody;
       _enclosingFunction = outerFunction;
     }
     return null;
@@ -8153,7 +8158,7 @@ class ResolverVisitor extends ScopedVisitor {
     safelyVisit(node.function);
     node.accept(elementResolver);
     _inferFunctionExpressionsParametersTypes(node.argumentList);
-    InferenceContext.setType(node.argumentList, node.function.staticType);
+    _inferArgumentTypesFromContext(node);
     safelyVisit(node.argumentList);
     node.accept(typeAnalyzer);
     return null;
@@ -8339,7 +8344,9 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
+    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
+      _currentFunctionBody = node.body;
       _enclosingFunction = node.element;
       DartType returnType = _computeReturnOrYieldType(
           _enclosingFunction.type?.returnType,
@@ -8348,6 +8355,7 @@ class ResolverVisitor extends ScopedVisitor {
       InferenceContext.setType(node.body, returnType);
       super.visitMethodDeclaration(node);
     } finally {
+      _currentFunctionBody = outerFunctionBody;
       _enclosingFunction = outerFunction;
     }
     return null;
@@ -8369,13 +8377,30 @@ class ResolverVisitor extends ScopedVisitor {
     safelyVisit(node.typeArguments);
     node.accept(elementResolver);
     _inferFunctionExpressionsParametersTypes(node.argumentList);
-    DartType contextType = node.staticInvokeType;
-    if (contextType is FunctionType) {
-      InferenceContext.setType(node.argumentList, contextType);
-    }
+    _inferArgumentTypesFromContext(node);
     safelyVisit(node.argumentList);
     node.accept(typeAnalyzer);
     return null;
+  }
+
+  void _inferArgumentTypesFromContext(InvocationExpression node) {
+    DartType contextType = node.staticInvokeType;
+    if (contextType is FunctionType) {
+      DartType originalType = node.function.staticType;
+      DartType returnContextType = InferenceContext.getType(node);
+      TypeSystem ts = typeSystem;
+      if (returnContextType != null &&
+          node.typeArguments == null &&
+          originalType is FunctionType &&
+          originalType.typeFormals.isNotEmpty &&
+          ts is StrongTypeSystemImpl) {
+
+        contextType = ts.inferGenericFunctionCall(typeProvider, originalType,
+            DartType.EMPTY_LIST, DartType.EMPTY_LIST, returnContextType);
+      }
+
+      InferenceContext.setType(node.argumentList, contextType);
+    }
   }
 
   @override
@@ -8593,7 +8618,7 @@ class ResolverVisitor extends ScopedVisitor {
   void _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
       AstNode target) {
     for (Element element in _promoteManager.promotedElements) {
-      if ((element as VariableElementImpl).isPotentiallyMutatedInScope) {
+      if (_currentFunctionBody.isPotentiallyMutatedInScope(element)) {
         if (_isVariableAccessedInClosure(element, target)) {
           _promoteManager.setType(element, null);
         }
@@ -8886,7 +8911,7 @@ class ResolverVisitor extends ScopedVisitor {
     VariableElement element = getPromotionStaticElement(expression);
     if (element != null) {
       // may be mutated somewhere in closure
-      if (element.isPotentiallyMutatedInClosure) {
+      if (_currentFunctionBody.isPotentiallyMutatedInClosure(element)) {
         return;
       }
       // prepare current variable type
@@ -12037,8 +12062,6 @@ class TypeResolverVisitor extends ScopedVisitor {
           CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
       if (classElement != null) {
         classElement.mixins = mixinTypes;
-        classElement.withClauseRange =
-            new SourceRange(withClause.offset, withClause.length);
       }
     }
     if (implementsClause != null) {
@@ -12210,7 +12233,7 @@ class TypeResolverVisitor extends ScopedVisitor {
  * structure looking for cases of [HintCode.UNUSED_ELEMENT],
  * [HintCode.UNUSED_FIELD], [HintCode.UNUSED_LOCAL_VARIABLE], etc.
  */
-class UnusedLocalElementsVerifier extends SimpleElementVisitor {
+class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
   /**
    * The error listener to which errors will be reported.
    */
@@ -12486,6 +12509,12 @@ class VariableResolverVisitor extends ScopedVisitor {
             nameScope: nameScope);
 
   @override
+  Object visitBlockFunctionBody(BlockFunctionBody node) {
+    assert(_localVariableInfo != null);
+    return super.visitBlockFunctionBody(node);
+  }
+
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
@@ -12502,6 +12531,12 @@ class VariableResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitExportDirective(ExportDirective node) => null;
+
+  @override
+  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    assert(_localVariableInfo != null);
+    return super.visitExpressionFunctionBody(node);
+  }
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
@@ -12597,29 +12632,11 @@ class VariableResolverVisitor extends ScopedVisitor {
     }
     // Must be local or parameter.
     ElementKind kind = element.kind;
-    if (kind == ElementKind.LOCAL_VARIABLE) {
+    if (kind == ElementKind.LOCAL_VARIABLE || kind == ElementKind.PARAMETER) {
       node.staticElement = element;
-      LocalVariableElementImpl variableImpl =
-          element as LocalVariableElementImpl;
       if (node.inSetterContext()) {
-        variableImpl.markPotentiallyMutatedInScope();
         _localVariableInfo.potentiallyMutatedInScope.add(element);
         if (element.enclosingElement != _enclosingFunction) {
-          variableImpl.markPotentiallyMutatedInClosure();
-          _localVariableInfo.potentiallyMutatedInClosure.add(element);
-        }
-      }
-    } else if (kind == ElementKind.PARAMETER) {
-      node.staticElement = element;
-      if (node.inSetterContext()) {
-        ParameterElementImpl parameterImpl = element as ParameterElementImpl;
-        parameterImpl.markPotentiallyMutatedInScope();
-        _localVariableInfo.potentiallyMutatedInScope.add(element);
-        // If we are in some closure, check if it is not the same as where
-        // variable is declared.
-        if (_enclosingFunction != null &&
-            (element.enclosingElement != _enclosingFunction)) {
-          parameterImpl.markPotentiallyMutatedInClosure();
           _localVariableInfo.potentiallyMutatedInClosure.add(element);
         }
       }

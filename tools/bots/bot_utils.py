@@ -115,6 +115,12 @@ class GCSNamer(object):
     return '/'.join([self.sdk_directory(revision),
       self.sdk_zipfilename(system, arch, mode)])
 
+  def unstripped_filepath(self, revision, system, arch):
+    return '/'.join([self._variant_directory('unstripped', revision),
+                     system,
+                     arch,
+                     self.unstripped_filename(system)])
+
   def dartium_variant_zipfilepath(self, revision, name, system, arch, mode):
     return '/'.join([self.dartium_directory(revision),
       self.dartium_variant_zipfilename(name, system, arch, mode)])
@@ -185,6 +191,9 @@ class GCSNamer(object):
     assert mode in Mode.ALL_MODES
     return 'dartsdk-%s-%s-%s.zip' % (
         SYSTEM_RENAMES[system], ARCH_RENAMES[arch], mode)
+
+  def unstripped_filename(self, system):
+    return 'dart.exe' if system.startswith('win') else 'dart'
 
   def dartium_variant_zipfilename(self, name, system, arch, mode):
     assert name in ['chromedriver', 'dartium', 'content_shell']

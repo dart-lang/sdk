@@ -26,6 +26,73 @@ Benchmark* Benchmark::first_ = NULL;
 Benchmark* Benchmark::tail_ = NULL;
 const char* Benchmark::executable_ = NULL;
 
+
+//
+// Measure compile of all dart2js(compiler) functions.
+//
+static char* ComputeDart2JSPath(const char* arg) {
+  char buffer[2048];
+  char* dart2js_path = strdup(File::GetCanonicalPath(arg));
+  const char* compiler_path =
+      "%s%spkg%scompiler%slib%scompiler.dart";
+  const char* path_separator = File::PathSeparator();
+  ASSERT(path_separator != NULL && strlen(path_separator) == 1);
+  char* ptr = strrchr(dart2js_path, *path_separator);
+  while (ptr != NULL) {
+    *ptr = '\0';
+    OS::SNPrint(buffer, 2048, compiler_path,
+                dart2js_path,
+                path_separator,
+                path_separator,
+                path_separator,
+                path_separator,
+                path_separator);
+    if (File::Exists(buffer)) {
+      break;
+    }
+    ptr = strrchr(dart2js_path, *path_separator);
+  }
+  if (ptr == NULL) {
+    free(dart2js_path);
+    dart2js_path = NULL;
+  }
+  return dart2js_path;
+}
+
+
+static void func(Dart_NativeArguments args) {
+}
+
+
+static Dart_NativeFunction NativeResolver(Dart_Handle name,
+                                          int arg_count,
+                                          bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
+  return &func;
+}
+
+
+static void SetupDart2JSPackagePath() {
+  bool worked = bin::DartUtils::SetOriginalWorkingDirectory();
+  EXPECT(worked);
+
+  Dart_Handle result = bin::DartUtils::PrepareForScriptLoading(false, false);
+  DART_CHECK_VALID(result);
+
+  // Setup package root.
+  char buffer[2048];
+  char* executable_path =
+      strdup(File::GetCanonicalPath(Benchmark::Executable()));
+  const char* packages_path = "%s%s..%spackages";
+  const char* path_separator = File::PathSeparator();
+  OS::SNPrint(buffer, 2048, packages_path,
+              executable_path, path_separator, path_separator);
+  result = bin::DartUtils::SetupPackageRoot(buffer, NULL);
+  DART_CHECK_VALID(result);
+}
+
+
 void Benchmark::RunAll(const char* executable) {
   SetExecutable(executable);
   Benchmark* benchmark = first_;
@@ -66,6 +133,9 @@ BENCHMARK(CorelibCompileAll) {
 }
 
 
+#ifndef PRODUCT
+
+
 BENCHMARK(CorelibCompilerStats) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
@@ -84,6 +154,47 @@ BENCHMARK(CorelibCompilerStats) {
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
 }
+
+
+BENCHMARK(Dart2JSCompilerStats) {
+  bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
+  bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+  SetupDart2JSPackagePath();
+  char* dart_root = ComputeDart2JSPath(Benchmark::Executable());
+  char* script = NULL;
+  if (dart_root != NULL) {
+    HANDLESCOPE(thread);
+    script = OS::SCreate(NULL,
+        "import '%s/pkg/compiler/lib/compiler.dart';", dart_root);
+    Dart_Handle lib = TestCase::LoadTestScript(
+        script,
+        reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
+    EXPECT_VALID(lib);
+  } else {
+    Dart_Handle lib = TestCase::LoadTestScript(
+        "import 'pkg/compiler/lib/compiler.dart';",
+        reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
+    EXPECT_VALID(lib);
+  }
+  CompilerStats* stats = thread->isolate()->compiler_stats();
+  ASSERT(stats != NULL);
+  stats->EnableBenchmark();
+  Timer timer(true, "Compile all of dart2js benchmark");
+  timer.Start();
+  const bool old_flag = FLAG_background_compilation;
+  FLAG_background_compilation = false;
+  Dart_Handle result = Dart_CompileAll();
+  FLAG_background_compilation = old_flag;
+  EXPECT_VALID(result);
+  timer.Stop();
+  int64_t elapsed_time = timer.TotalElapsedTime();
+  benchmark->set_score(elapsed_time);
+  free(dart_root);
+  free(script);
+}
+
+
+#endif  // !PRODUCT
 
 
 //
@@ -254,70 +365,6 @@ BENCHMARK(DartStringAccess) {
 }
 
 
-//
-// Measure compile of all dart2js(compiler) functions.
-//
-static char* ComputeDart2JSPath(const char* arg) {
-  char buffer[2048];
-  char* dart2js_path = strdup(File::GetCanonicalPath(arg));
-  const char* compiler_path =
-      "%s%spkg%scompiler%slib%scompiler.dart";
-  const char* path_separator = File::PathSeparator();
-  ASSERT(path_separator != NULL && strlen(path_separator) == 1);
-  char* ptr = strrchr(dart2js_path, *path_separator);
-  while (ptr != NULL) {
-    *ptr = '\0';
-    OS::SNPrint(buffer, 2048, compiler_path,
-                dart2js_path,
-                path_separator,
-                path_separator,
-                path_separator,
-                path_separator,
-                path_separator);
-    if (File::Exists(buffer)) {
-      break;
-    }
-    ptr = strrchr(dart2js_path, *path_separator);
-  }
-  if (ptr == NULL) {
-    free(dart2js_path);
-    dart2js_path = NULL;
-  }
-  return dart2js_path;
-}
-
-
-static void func(Dart_NativeArguments args) {
-}
-
-
-static Dart_NativeFunction NativeResolver(Dart_Handle name,
-                                          int arg_count,
-                                          bool* auto_setup_scope) {
-  ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = false;
-  return &func;
-}
-
-static void SetupDart2JSPackagePath() {
-  bool worked = bin::DartUtils::SetOriginalWorkingDirectory();
-  EXPECT(worked);
-
-  Dart_Handle result = bin::DartUtils::PrepareForScriptLoading(false, false);
-  DART_CHECK_VALID(result);
-
-  // Setup package root.
-  char buffer[2048];
-  char* executable_path =
-      strdup(File::GetCanonicalPath(Benchmark::Executable()));
-  const char* packages_path = "%s%s..%spackages";
-  const char* path_separator = File::PathSeparator();
-  OS::SNPrint(buffer, 2048, packages_path,
-              executable_path, path_separator, path_separator);
-  result = bin::DartUtils::SetupPackageRoot(buffer, NULL);
-  DART_CHECK_VALID(result);
-}
-
 BENCHMARK(Dart2JSCompileAll) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
@@ -338,44 +385,6 @@ BENCHMARK(Dart2JSCompileAll) {
         reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
     EXPECT_VALID(lib);
   }
-  Timer timer(true, "Compile all of dart2js benchmark");
-  timer.Start();
-  const bool old_flag = FLAG_background_compilation;
-  FLAG_background_compilation = false;
-  Dart_Handle result = Dart_CompileAll();
-  FLAG_background_compilation = old_flag;
-  EXPECT_VALID(result);
-  timer.Stop();
-  int64_t elapsed_time = timer.TotalElapsedTime();
-  benchmark->set_score(elapsed_time);
-  free(dart_root);
-  free(script);
-}
-
-
-BENCHMARK(Dart2JSCompilerStats) {
-  bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
-  bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
-  SetupDart2JSPackagePath();
-  char* dart_root = ComputeDart2JSPath(Benchmark::Executable());
-  char* script = NULL;
-  if (dart_root != NULL) {
-    HANDLESCOPE(thread);
-    script = OS::SCreate(NULL,
-        "import '%s/pkg/compiler/lib/compiler.dart';", dart_root);
-    Dart_Handle lib = TestCase::LoadTestScript(
-        script,
-        reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
-    EXPECT_VALID(lib);
-  } else {
-    Dart_Handle lib = TestCase::LoadTestScript(
-        "import 'pkg/compiler/lib/compiler.dart';",
-        reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
-    EXPECT_VALID(lib);
-  }
-  CompilerStats* stats = thread->isolate()->compiler_stats();
-  ASSERT(stats != NULL);
-  stats->EnableBenchmark();
   Timer timer(true, "Compile all of dart2js benchmark");
   timer.Start();
   const bool old_flag = FLAG_background_compilation;

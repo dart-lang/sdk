@@ -138,16 +138,7 @@ abstract class DownCast extends CoercionInfo {
       }
     }
 
-    Element element = null;
-    if (expression is PropertyAccess) {
-      element = expression.propertyName.staticElement;
-    } else if (expression is Identifier) {
-      element = expression.staticElement;
-    }
-    // First class functions and static methods, where we know the original
-    // declaration, will have an exact type, so we know a downcast will fail.
-    if (element is FunctionElement ||
-        element is MethodElement && element.isStatic) {
+    if (StaticInfo.isKnownFunction(expression)) {
       return new StaticTypeError(rules, expression, toT);
     }
 
@@ -551,6 +542,19 @@ abstract class StaticInfo {
   // TODO(jmesserly): review the usage of error codes. We probably want our own,
   // as well as some DDC specific [ErrorType]s.
   ErrorCode toErrorCode();
+
+  static bool isKnownFunction(Expression expression) {
+    Element element = null;
+    if (expression is PropertyAccess) {
+      element = expression.propertyName.staticElement;
+    } else if (expression is Identifier) {
+      element = expression.staticElement;
+    }
+    // First class functions and static methods, where we know the original
+    // declaration, will have an exact type, so we know a downcast will fail.
+    return element is FunctionElement ||
+        element is MethodElement && element.isStatic;
+  }
 }
 
 class StaticTypeError extends StaticError {

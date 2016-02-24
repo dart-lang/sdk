@@ -71,6 +71,25 @@ class MonitorLocker : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(MonitorLocker);
 };
 
+
+// SafepointMutexLocker objects are used in code where the locks are
+// more coarse grained and a safepoint operation could be potentially
+// triggered while holding this lock. This ensures that other threads
+// which try to acquire the same lock will be marked as being at a
+// safepoint when they are blocked.
+class SafepointMutexLocker : public ValueObject {
+ public:
+  explicit SafepointMutexLocker(Mutex* mutex);
+  virtual ~SafepointMutexLocker() {
+    mutex_->Unlock();
+  }
+
+ private:
+  Mutex* const mutex_;
+
+  DISALLOW_COPY_AND_ASSIGN(SafepointMutexLocker);
+};
+
 }  // namespace dart
 
 

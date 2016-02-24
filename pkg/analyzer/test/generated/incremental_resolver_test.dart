@@ -3501,11 +3501,7 @@ class B {
     }
     _checkCacheEntries(cache);
 
-    try {
-      assertSameResolution(unit, fullNewUnit);
-    } on IncrementalResolutionMismatch catch (mismatch) {
-      fail(mismatch.message);
-    }
+    assertSameResolution(unit, fullNewUnit);
     // errors
     List<AnalysisError> newFullErrors =
         analysisContext.getErrors(source).errors;
@@ -4849,11 +4845,44 @@ class B extends A {}
     }
   }
 
-  void _assertCacheResults({bool expectCachePostConstantsValid: true}) {
+  void test_updateFunctionToForLoop() {
+    _resolveUnit(r'''
+class PlayDrag {
+  final List<num> times = new List<num>();
+
+  PlayDrag.start() {}
+
+  void update(num pos) {
+    fo (int i = times.length - 2; i >= 0; i--) {}
+  }
+}
+''');
+
+    _updateAndValidate(
+        r'''
+class PlayDrag {
+  final List<num> times = new List<num>();
+
+  PlayDrag.start() {}
+
+  void update(num pos) {
+    for (int i = times.length - 2; i >= 0; i--) {}
+  }
+}
+''',
+        expectLibraryUnchanged: false);
+  }
+
+  void _assertCacheResults(
+      {bool expectLibraryUnchanged: true,
+      bool expectCachePostConstantsValid: true}) {
     _assertCacheSourceResult(TOKEN_STREAM);
     _assertCacheSourceResult(SCAN_ERRORS);
     _assertCacheSourceResult(PARSED_UNIT);
     _assertCacheSourceResult(PARSE_ERRORS);
+    if (!expectLibraryUnchanged) {
+      return;
+    }
     _assertCacheSourceResult(LIBRARY_ELEMENT1);
     _assertCacheSourceResult(LIBRARY_ELEMENT2);
     _assertCacheSourceResult(LIBRARY_ELEMENT3);
@@ -4943,6 +4972,7 @@ class B extends A {}
 
   void _updateAndValidate(String newCode,
       {bool expectedSuccess: true,
+      bool expectLibraryUnchanged: true,
       bool expectCachePostConstantsValid: true,
       bool compareWithFull: true,
       bool runTasksBeforeIncremental: true}) {
@@ -4955,7 +4985,7 @@ class B extends A {}
     _resetWithIncremental(true);
     analysisContext2.setContents(source, newCode);
     CompilationUnit newUnit = resolveCompilationUnit(source, oldLibrary);
-    expect(logger.hasError, isFalse);
+    logger.expectNoErrors();
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
     LineInfo newLineInfo = analysisContext.getLineInfo(source);
     // check for expected failure
@@ -4966,6 +4996,7 @@ class B extends A {}
     // The cache must still have enough results to make the incremental
     // resolution useful.
     _assertCacheResults(
+        expectLibraryUnchanged: expectLibraryUnchanged,
         expectCachePostConstantsValid: expectCachePostConstantsValid);
     // The existing CompilationUnit[Element] should be updated.
     expect(newUnit, same(oldUnit));
@@ -5255,7 +5286,14 @@ class _Edit {
 }
 
 class _TestLogger implements logging.Logger {
-  bool hasError = false;
+  Object lastException;
+  Object lastStackTrace;
+
+  void expectNoErrors() {
+    if (lastException != null) {
+      fail("logged an exception:\n$lastException\n$lastStackTrace\n");
+    }
+  }
 
   @override
   void enter(String name) {}
@@ -5268,7 +5306,8 @@ class _TestLogger implements logging.Logger {
 
   @override
   void logException(Object exception, [Object stackTrace]) {
-    hasError = true;
+    lastException = exception;
+    lastStackTrace = stackTrace;
   }
 
   @override

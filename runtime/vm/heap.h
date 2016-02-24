@@ -244,6 +244,9 @@ class Heap {
 
   Isolate* isolate() const { return isolate_; }
 
+  Monitor* barrier() const { return barrier_; }
+  Monitor* barrier_done() const { return barrier_done_; }
+
   bool ShouldPretenure(intptr_t class_id) const;
 
   void SetupExternalPage(void* pointer, uword size, bool is_executable) {
@@ -329,6 +332,8 @@ class Heap {
   void GetMergedAddressRange(uword* start, uword* end) const;
 
   Isolate* isolate_;
+  Monitor* barrier_;
+  Monitor* barrier_done_;
 
   // The different spaces used for allocation.
   Scavenger new_space_;

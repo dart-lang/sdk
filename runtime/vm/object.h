@@ -314,15 +314,11 @@ class Object {
 
   bool IsNew() const { return raw()->IsNewObject(); }
   bool IsOld() const { return raw()->IsOldObject(); }
-  bool InVMHeap() const {
 #if defined(DEBUG)
-    if (raw()->IsVMHeapObject()) {
-      Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-      ASSERT(vm_isolate_heap->Contains(RawObject::ToAddr(raw())));
-    }
-#endif
-    return raw()->IsVMHeapObject();
-  }
+  bool InVMHeap() const;
+#else
+  bool InVMHeap() const { return raw()->IsVMHeapObject(); }
+#endif  // DEBUG
 
   // Print the object on stdout for debugging.
   void Print() const;
@@ -1094,6 +1090,7 @@ class Class : public Object {
     return raw_ptr()->direct_subclasses_;
   }
   void AddDirectSubclass(const Class& subclass) const;
+  void ClearDirectSubclasses() const;
 
   // Check if this class represents the class of null.
   bool IsNullClass() const { return id() == kNullCid; }
@@ -3517,6 +3514,8 @@ class Library : public Object {
   RawNamespace* ImportAt(intptr_t index) const;
   RawLibrary* ImportLibraryAt(intptr_t index) const;
   bool ImportsCorelib() const;
+
+  void DropDependencies() const;
 
   // Resolving native methods for script loaded in the library.
   Dart_NativeEntryResolver native_entry_resolver() const {

@@ -30,7 +30,8 @@ class Breakpoint {
       kind_(Breakpoint::kNone),
       next_(NULL),
       closure_(Instance::null()),
-      bpt_location_(bpt_location) {}
+      bpt_location_(bpt_location),
+      is_synthetic_async_(false) {}
 
   intptr_t id() const { return id_; }
   Breakpoint* next() const { return next_; }
@@ -60,6 +61,14 @@ class Breakpoint {
     closure_ = closure.raw();
   }
 
+  // Mark that this breakpoint is a result of a step OverAwait request.
+  void set_is_synthetic_async(bool is_synthetic_async) {
+    is_synthetic_async_ = is_synthetic_async;
+  }
+  bool is_synthetic_async() const {
+    return is_synthetic_async_;
+  }
+
   void PrintJSON(JSONStream* stream);
 
  private:
@@ -77,6 +86,7 @@ class Breakpoint {
   Breakpoint* next_;
   RawInstance* closure_;
   BreakpointLocation* bpt_location_;
+  bool is_synthetic_async_;
 
   friend class BreakpointLocation;
   DISALLOW_COPY_AND_ASSIGN(Breakpoint);
@@ -128,7 +138,9 @@ class BreakpointLocation {
 
   Breakpoint* AddRepeated(Debugger* dbg);
   Breakpoint* AddSingleShot(Debugger* dbg);
-  Breakpoint* AddPerClosure(Debugger* dbg, const Instance& closure);
+  Breakpoint* AddPerClosure(Debugger* dbg,
+                            const Instance& closure,
+                            bool for_over_await);
 
   bool AnyEnabled() const;
   bool IsResolved() const { return is_resolved_; }
@@ -467,7 +479,8 @@ class Debugger {
   // Set breakpoint at closest location to function entry.
   Breakpoint* SetBreakpointAtEntry(const Function& target_function,
                                    bool single_shot);
-  Breakpoint* SetBreakpointAtActivation(const Instance& closure);
+  Breakpoint* SetBreakpointAtActivation(const Instance& closure,
+                                        bool for_over_await);
   Breakpoint* BreakpointAtActivation(const Instance& closure);
 
   // TODO(turnidge): script_url may no longer be specific enough.
@@ -486,6 +499,8 @@ class Debugger {
   void RemoveBreakpoint(intptr_t bp_id);
   Breakpoint* GetBreakpointById(intptr_t id);
 
+  // Will return false if we are not at an await.
+  bool SetupStepOverAsyncSuspension();
   void SetStepOver();
   void SetSingleStep();
   void SetStepOut();
@@ -587,7 +602,7 @@ class Debugger {
   static bool HasAnyEventHandler();
   static bool HasDebugEventHandler();
   void InvokeEventHandler(DebuggerEvent* event);
-
+  bool IsAtAsyncJump(ActivationFrame* top_frame);
   void FindCompiledFunctions(const Script& script,
                              TokenPosition start_pos,
                              TokenPosition end_pos,
@@ -695,6 +710,11 @@ class Debugger {
   // We use this field to let us skip the next single-step after a
   // breakpoint.
   bool skip_next_step_;
+
+  // We keep this breakpoint alive until after the debugger does the step over
+  // async continuation machinery so that we can report that we've stopped
+  // at the breakpoint.
+  Breakpoint* synthetic_async_breakpoint_;
 
   Dart_ExceptionPauseInfo exc_pause_info_;
 

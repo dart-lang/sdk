@@ -97,6 +97,31 @@ convertDartToNative_Dictionary(Map dict) {
   return jsObject;
 }
 
+// Creates a Dart class to allow members of the Map to be fetched (as if getters exist).
+// TODO(terry): Need to use package:js but that's a problem in dart:html. Talk to
+//              Jacob about how to do this properly using dart:js.
+class _ReturnedDictionary {
+  Map _values;
+
+  noSuchMethod(InvocationMirror invocation) {
+    var key = MirrorSystem.getName(invocation.memberName);
+    if (invocation.isGetter) {
+      return _values[key];
+    } else if (invocation.isSetter && key.endsWith('=')) {
+      key = key.substring(0, key.length-1);
+      _values[key] = invocation.positionalArguments[0];
+    }
+  }
+
+  Map get toMap => _values;
+
+  _ReturnedDictionary(Map value): _values = value;
+}
+
+// Helper function to wrapped a returned dictionary from blink to a Dart looking
+// class.
+convertNativeDictionaryToDartDictionary(Map values) => new _ReturnedDictionary(values);
+
 // Conversion function place holder (currently not used in dart2js or dartium).
 List convertDartToNative_StringArray(List<String> input) => input;
 

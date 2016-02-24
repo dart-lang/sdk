@@ -46,16 +46,20 @@ namespace dart {
 //
 class ThreadBarrier {
  public:
-  explicit ThreadBarrier(intptr_t num_threads)
+  explicit ThreadBarrier(intptr_t num_threads,
+                         Monitor* monitor,
+                         Monitor* done_monitor)
     : num_threads_(num_threads),
+      monitor_(monitor),
       remaining_(num_threads),
       parity_(false),
+      done_monitor_(done_monitor),
       done_(false) {
     ASSERT(remaining_ > 0);
   }
 
   void Sync() {
-    MonitorLocker ml(&monitor_);
+    MonitorLocker ml(monitor_);
     ASSERT(remaining_ > 0);
     if (--remaining_ > 0) {
       // I'm not last to arrive; wait until next round.
@@ -75,13 +79,13 @@ class ThreadBarrier {
   void Exit() {
     bool last = false;
     {
-      MonitorLocker ml(&monitor_);
+      MonitorLocker ml(monitor_);
       ASSERT(remaining_ > 0);
       last = (--remaining_ == 0);
     }
     if (last) {
       // Last one to exit sets done_.
-      MonitorLocker ml(&done_monitor_);
+      MonitorLocker ml(done_monitor_);
       ASSERT(!done_);
       done_ = true;
       // Tell the destructor in case it's already waiting.
@@ -90,7 +94,7 @@ class ThreadBarrier {
   }
 
   ~ThreadBarrier() {
-    MonitorLocker ml(&done_monitor_);
+    MonitorLocker ml(done_monitor_);
     // Wait for everyone to exit before destroying the monitors.
     while (!done_) {
       ml.Wait();
@@ -101,11 +105,11 @@ class ThreadBarrier {
  private:
   const intptr_t num_threads_;
 
-  Monitor monitor_;
+  Monitor* monitor_;
   intptr_t remaining_;
   bool parity_;
 
-  Monitor done_monitor_;  // TODO(koda): Try to optimize this away.
+  Monitor* done_monitor_;  // TODO(koda): Try to optimize this away.
   bool done_;
 
   DISALLOW_COPY_AND_ASSIGN(ThreadBarrier);

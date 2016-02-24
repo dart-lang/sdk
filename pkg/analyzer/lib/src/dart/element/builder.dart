@@ -331,6 +331,24 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitAnnotation(Annotation node) {
+    // Although it isn't valid to do so because closures are not constant
+    // expressions, it's possible for one of the arguments to the constructor to
+    // contain a closure. Wrapping the processing of the annotation this way
+    // prevents these closures from being added to the list of functions in the
+    // annotated declaration.
+    ElementHolder holder = new ElementHolder();
+    ElementHolder previousHolder = _currentHolder;
+    _currentHolder = holder;
+    try {
+      super.visitAnnotation(node);
+    } finally {
+      _currentHolder = previousHolder;
+    }
+    return null;
+  }
+
+  @override
   Object visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
@@ -539,11 +557,13 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       _visit(holder, defaultValue);
       FunctionElementImpl initializer =
           new FunctionElementImpl.forOffset(defaultValue.beginToken.offset);
+      initializer.hasImplicitReturnType = true;
       initializer.functions = holder.functions;
       initializer.labels = holder.labels;
       initializer.localVariables = holder.localVariables;
       initializer.parameters = holder.parameters;
       initializer.synthetic = true;
+      initializer.type = new FunctionTypeImpl(initializer);
       parameter.initializer = initializer;
       parameter.defaultValueCode = defaultValue.toSource();
     }
@@ -846,7 +866,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
       LabelElementImpl element =
-          new LabelElementImpl(labelName, onSwitchStatement, false);
+          new LabelElementImpl.forNode(labelName, onSwitchStatement, false);
       _currentHolder.addLabel(element);
       labelName.staticElement = element;
     }
@@ -1045,7 +1065,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitSwitchCase(SwitchCase node) {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
-      LabelElementImpl element = new LabelElementImpl(labelName, false, true);
+      LabelElementImpl element = new LabelElementImpl.forNode(labelName, false, true);
       _currentHolder.addLabel(element);
       labelName.staticElement = element;
     }
@@ -1056,7 +1076,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitSwitchDefault(SwitchDefault node) {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
-      LabelElementImpl element = new LabelElementImpl(labelName, false, true);
+      LabelElementImpl element = new LabelElementImpl.forNode(labelName, false, true);
       _currentHolder.addLabel(element);
       labelName.staticElement = element;
     }
@@ -1139,10 +1159,12 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       _visit(holder, node.initializer);
       FunctionElementImpl initializer =
           new FunctionElementImpl.forOffset(node.initializer.beginToken.offset);
+      initializer.hasImplicitReturnType = true;
       initializer.functions = holder.functions;
       initializer.labels = holder.labels;
       initializer.localVariables = holder.localVariables;
       initializer.synthetic = true;
+      initializer.type = new FunctionTypeImpl(initializer);
       element.initializer = initializer;
       holder.validate();
     }

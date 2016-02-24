@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart' show CacheEntry;
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -23,7 +24,7 @@ import 'package:analyzer/task/model.dart'
 
 class SdkSummaryResultProvider implements SummaryResultProvider {
   final InternalAnalysisContext context;
-  final SdkBundle bundle;
+  final PackageBundle bundle;
   final SummaryTypeProvider typeProvider = new SummaryTypeProvider();
 
   @override
@@ -49,7 +50,6 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
     if (target.source == null || !target.source.isInSystemLibrary) {
       return false;
     }
-//    print('SummarySdkAnalysisContext: $result of $target');
     // Constant expressions are always resolved in summaries.
     if (result == CONSTANT_EXPRESSION_RESOLVED &&
         target is ConstantEvaluationTarget) {
@@ -89,6 +89,21 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
 //        throw new UnimplementedError('$result of $target');
       }
     }
+    if (target is LibrarySpecificUnit) {
+      if (target.library == null || !target.library.isInSystemLibrary) {
+        return false;
+      }
+      if (result == COMPILATION_UNIT_ELEMENT) {
+        String libraryUri = target.library.uri.toString();
+        String unitUri = target.unit.uri.toString();
+        CompilationUnitElement unit = resynthesizer.getElement(
+            new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
+        if (unit != null) {
+          entry.setValue(result, unit, TargetedResult.EMPTY_LIST);
+          return true;
+        }
+      }
+    }
     return false;
   }
 
@@ -120,7 +135,7 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
  * The implementation of [SummaryResynthesizer] for Dart SDK.
  */
 class SdkSummaryResynthesizer extends SummaryResynthesizer {
-  final SdkBundle bundle;
+  final PackageBundle bundle;
   final Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
   final Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{};
 

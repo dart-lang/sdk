@@ -44,6 +44,8 @@
 # ......dart_shared.platform
 # ......dart2dart.platform
 # ......_internal/
+#.........spec.sum
+#.........strong.sum
 # ......analysis_server/
 # ......analyzer/
 # ......async/
@@ -157,7 +159,13 @@ def CopyDartdocResources(home, sdk_root):
   PACKAGES_FILE = join(DARTDOC, '.packages')
   packages_file = open(PACKAGES_FILE, 'w')
   packages_file.write('dartdoc:.')
-  packages_file.close() 
+  packages_file.close()
+
+def CopyAnalysisSummaries(snapshots, lib):
+  copyfile(join(snapshots, 'spec.sum'),
+           join(lib, '_internal', 'spec.sum'))
+  copyfile(join(snapshots, 'strong.sum'),
+           join(lib, '_internal', 'strong.sum'))
 
 
 def Main():
@@ -290,10 +298,11 @@ def Main():
 
   # Copy dart2js/pub.
   CopyDartScripts(HOME, SDK_tmp)
-  
+
   CopySnapshots(SNAPSHOT, SDK_tmp)
   CopyDartdocResources(HOME, SDK_tmp)
   CopyAnalyzerSources(HOME, LIB)
+  CopyAnalysisSummaries(SNAPSHOT, LIB)
 
   # Write the 'version' file
   version = utils.GetVersion()

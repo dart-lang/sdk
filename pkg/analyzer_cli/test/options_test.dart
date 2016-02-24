@@ -4,8 +4,12 @@
 
 library analyzer_cli.test.options;
 
+import 'dart:io';
+
+import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:args/args.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 main() {
@@ -26,7 +30,9 @@ main() {
         expect(options.ignoreUnrecognizedFlags, isFalse);
         expect(options.log, isFalse);
         expect(options.machineFormat, isFalse);
+        expect(options.packageMode, isFalse);
         expect(options.packageRootPath, isNull);
+        expect(options.packageSummaryInputs, isEmpty);
         expect(options.shouldBatch, isFalse);
         expect(options.showPackageWarnings, isFalse);
         expect(options.showSdkWarnings, isFalse);
@@ -165,8 +171,8 @@ main() {
       });
 
       test('strong mode', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--strong', 'foo.dart']);
+        CommandLineOptions options =
+            CommandLineOptions.parse(['--strong', 'foo.dart']);
         expect(options.strongMode, isTrue);
       });
 
@@ -187,4 +193,85 @@ main() {
       });
     });
   });
+  defineReflectiveTests(CommandLineOptionsTest);
+}
+
+@reflectiveTest
+class AbstractStatusTest {
+  int lastExitHandlerCode;
+  StringBuffer outStringBuffer = new StringBuffer();
+  StringBuffer errorStringBuffer = new StringBuffer();
+
+  StringSink savedOutSink, savedErrorSink;
+  int savedExitCode;
+  ExitHandler savedExitHandler;
+
+  setUp() {
+    savedOutSink = outSink;
+    savedErrorSink = errorSink;
+    savedExitHandler = exitHandler;
+    savedExitCode = exitCode;
+    exitHandler = (int code) {
+      lastExitHandlerCode = code;
+    };
+    outSink = outStringBuffer;
+    errorSink = errorStringBuffer;
+  }
+
+  tearDown() {
+    outSink = savedOutSink;
+    errorSink = savedErrorSink;
+    exitCode = savedExitCode;
+    exitHandler = savedExitHandler;
+  }
+}
+
+@reflectiveTest
+class CommandLineOptionsTest extends AbstractStatusTest {
+  CommandLineOptions options;
+
+  test_packageMode() {
+    _parse(['--package-mode', '/path/to/pkg']);
+    expect(options.packageMode, isTrue);
+    print(options.packageSummaryInputs);
+  }
+
+  test_packageSummaryInput() {
+    _parse([
+      '--package-mode',
+      '--package-summary-input=aaa,/path/to/aaa.sum',
+      '--package-summary-input=long.package.bbb,/path/to/bbb.sum',
+      '/path/to/pkg'
+    ]);
+    expect(options.packageMode, isTrue);
+    Map<String, String> map = options.packageSummaryInputs;
+    expect(map, hasLength(2));
+    expect(map, containsPair('aaa', '/path/to/aaa.sum'));
+    expect(map, containsPair('long.package.bbb', '/path/to/bbb.sum'));
+  }
+
+  test_packageSummaryInput_noComma() {
+    _parse([
+      '--package-mode',
+      '--package-summary-input=noCommaInMapping',
+      '/path/to/pkg'
+    ]);
+    expect(lastExitHandlerCode, 15);
+    expect(errorStringBuffer.toString(), contains('--package-summary-input'));
+    expect(errorStringBuffer.toString(), contains('noCommaInMapping'));
+  }
+
+  test_packageSummaryOutput() {
+    _parse([
+      '--package-mode',
+      '--package-summary-output=/path/to/output.sum',
+      '/path/to/pkg'
+    ]);
+    expect(options.packageMode, isTrue);
+    expect(options.packageSummaryOutput, '/path/to/output.sum');
+  }
+
+  void _parse(List<String> args) {
+    options = CommandLineOptions.parse(args);
+  }
 }

@@ -78,6 +78,13 @@ bool FlowGraphCompiler::SupportsHardwareDivision() {
 }
 
 
+bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
+  // ARM does not have a short instruction sequence for converting int64 to
+  // double.
+  return false;
+}
+
+
 void FlowGraphCompiler::EnterIntrinsicMode() {
   ASSERT(!intrinsic_mode());
   intrinsic_mode_ = true;

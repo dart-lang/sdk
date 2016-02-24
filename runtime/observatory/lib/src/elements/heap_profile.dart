@@ -156,7 +156,6 @@ class HeapProfileElement extends ObservatoryElement {
   static const _FREE_INDEX = 1;
   static const _EXTERNAL_INDEX = 2;
 
-  static const _LABEL_INDEX = 0;
   static const _VALUE_INDEX = 1;
 
   void _initPieChartData(List rows) {

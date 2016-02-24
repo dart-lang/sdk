@@ -69,7 +69,8 @@ class EnumTest {
   }
 
   void test_Modifier() {
-    new EnumTester<Modifier>()
+    new EnumTester<Modifier>(
+        ignoreGetters: ["persistedValues", "transientValues"])
       ..check_getters()
       ..check_explicit_values();
   }

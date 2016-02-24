@@ -28,6 +28,9 @@ static struct NativeEntries {
   int argument_count_;
 } BootStrapEntries[] = {
   BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
+#ifndef PRODUCT
+  MIRRORS_BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
+#endif  // !PRODUCT
 };
 
 
@@ -116,10 +119,11 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
 
+NOT_IN_PRODUCT(
   library = Library::MirrorsLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
-  library.set_native_entry_symbol_resolver(symbol_resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver));
 
   library = Library::ProfilerLibrary();
   ASSERT(!library.IsNull());

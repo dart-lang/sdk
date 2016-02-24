@@ -752,6 +752,9 @@
         '<(resources_cc_file)',
         '<(observatory_assets_cc_file)',
       ],
+      'defines': [
+        'DART_PRECOMPILED_RUNTIME',
+      ],
       'conditions': [
         ['OS=="win"', {
           'link_settings': {

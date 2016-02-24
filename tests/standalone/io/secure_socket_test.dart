@@ -15,20 +15,23 @@ import "dart:io";
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
-SecurityContext serverContext(String certType) => new SecurityContext()
-  ..useCertificateChainSync(localFile('certificates/server_chain.$certType'))
-  ..usePrivateKeySync(localFile('certificates/server_key.$certType'),
-                      password: 'dartdart');
+SecurityContext serverContext(String certType, String password) =>
+    new SecurityContext()
+    ..useCertificateChainSync(localFile('certificates/server_chain.$certType'),
+                              password: password)
+    ..usePrivateKeySync(localFile('certificates/server_key.$certType'),
+                        password: password);
 
-SecurityContext clientContext(String certType) => new SecurityContext()
-  ..setTrustedCertificatesSync(localFile(
-      'certificates/trusted_certs.$certType'));
+SecurityContext clientContext(String certType, String password) =>
+    new SecurityContext()
+    ..setTrustedCertificatesSync(localFile(
+        'certificates/trusted_certs.$certType'), password: password);
 
-Future<HttpServer> startServer(String certType) {
+Future<HttpServer> startServer(String certType, String password) {
   return HttpServer.bindSecure(
       "localhost",
       0,
-      serverContext(certType),
+      serverContext(certType, password),
       backlog: 5).then((server) {
     server.listen((HttpRequest request) {
       request.listen(
@@ -45,11 +48,11 @@ Future<HttpServer> startServer(String certType) {
   });
 }
 
-Future test(String certType) {
+Future test(String certType, String password) {
   List<int> body = <int>[];
-  startServer(certType).then((server) {
+  startServer(certType, password).then((server) {
     SecureSocket.connect(
-        "localhost", server.port, context: clientContext(certType))
+        "localhost", server.port, context: clientContext(certType, password))
     .then((socket) {
       socket.write("GET / HTTP/1.0\r\nHost: localhost\r\n\r\n");
       socket.close();
@@ -74,7 +77,7 @@ Future test(String certType) {
 
 main() async {
   asyncStart();
-  await test('pem');
-  await test('p12');
+  await test('pem', 'dartdart');
+  await test('p12', 'dartdart');
   asyncEnd();
 }

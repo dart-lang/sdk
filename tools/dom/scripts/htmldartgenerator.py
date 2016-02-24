@@ -132,6 +132,13 @@ class HtmlDartGenerator(object):
 
     secondary_parents = self._database.TransitiveSecondaryParents(interface,
                           not self._dart_use_blink)
+    remove_duplicate_parents = list(set(secondary_parents))
+    if len(secondary_parents) != len(remove_duplicate_parents):
+      secondary_parents = remove_duplicate_parents
+      parent_list = ", ".join(["  %s" % (parent.id) for parent in secondary_parents])
+      _logger.warn('Interface %s has duplicate parent interfaces %s - ' \
+                   'ignoring duplicates. Please file a bug with the dart:html team.' % (interface.id, parent_list))
+
     for parent_interface in sorted(secondary_parents):
       if isinstance(parent_interface, str):
         continue

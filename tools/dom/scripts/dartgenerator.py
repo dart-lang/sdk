@@ -244,3 +244,11 @@ class DartGenerator(object):
 
         if 'ScriptArguments' in call_with:
           operation.arguments.append(ARG)
+
+  # TODO(terry): Hack to remove 3rd arguments in setInterval/setTimeout.
+  def HackCleanupTimers(self, database):
+    for interface in database.GetInterfaces():
+      for operation in interface.operations:
+        if ((operation.id == 'setInterval' or operation.id == 'setTimeout') and \
+            operation.arguments[0].type.id == 'any'):
+          operation.arguments.pop(2)

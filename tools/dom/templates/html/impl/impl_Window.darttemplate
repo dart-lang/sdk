@@ -113,7 +113,7 @@ $if DART2JS
    * for the animation to continue.
    */
   @DomName('Window.requestAnimationFrame')
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) {
+  int requestAnimationFrame(FrameRequestCallback callback) {
     _ensureRequestAnimationFrame();
     return _requestAnimationFrame(_wrapZone(callback));
   }
@@ -132,7 +132,7 @@ $if DART2JS
   }
 
   @JSName('requestAnimationFrame')
-  int _requestAnimationFrame(RequestAnimationFrameCallback callback) native;
+  int _requestAnimationFrame(FrameRequestCallback callback) native;
 
   @JSName('cancelAnimationFrame')
   void _cancelAnimationFrame(int id) native;
@@ -200,7 +200,7 @@ $else
    * for the animation to continue.
    */
   @DomName('Window.requestAnimationFrame')
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) {
+  int requestAnimationFrame(FrameRequestCallback callback) {
     return _requestAnimationFrame(_wrapZone(callback));
   }
 $endif

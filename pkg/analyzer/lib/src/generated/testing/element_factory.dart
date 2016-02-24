@@ -100,6 +100,14 @@ class ElementFactory {
     ConstructorElementImpl constructor = name == null
         ? new ConstructorElementImpl("", -1)
         : new ConstructorElementImpl(name, 0);
+    if (name != null) {
+      if (name.isEmpty) {
+        constructor.nameEnd = definingClass.name.length;
+      } else {
+        constructor.periodOffset = definingClass.name.length;
+        constructor.nameEnd = definingClass.name.length + name.length + 1;
+      }
+    }
     constructor.synthetic = name == null;
     constructor.const2 = isConst;
     if (argumentTypes != null) {
@@ -501,12 +509,13 @@ class ElementFactory {
   }
 
   static ParameterElementImpl namedParameter3(String name,
-      {DartType type, Expression initializer}) {
+      {DartType type, Expression initializer, String initializerCode}) {
     DefaultParameterElementImpl parameter =
         new DefaultParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED;
     parameter.type = type;
     parameter.constantInitializer = initializer;
+    parameter.defaultValueCode = initializerCode;
     return parameter;
   }
 

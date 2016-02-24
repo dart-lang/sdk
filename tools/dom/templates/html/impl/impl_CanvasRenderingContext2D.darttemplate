@@ -59,6 +59,14 @@ $else
 $endif
   }
 
+  @DomName('CanvasRenderingContext2D.createPatternFromImage')
+  CanvasPattern createPatternFromImage(ImageElement image, String repetitionType) =>
+$if DART2JS
+    JS('CanvasPattern', '#.createPattern(#, #)', this, image, repetitionType);
+$else
+    createPattern(image, repetitionType);
+$endif
+
   /**
    * Draws an image from a CanvasImageSource to an area of this canvas.
    *

@@ -44,7 +44,10 @@ class ConstantPropagationLattice {
   final ConstantSystem constantSystem;
   final types.DartTypes dartTypes;
   final AbstractConstantValue anything;
+  final AbstractConstantValue nothing = new AbstractConstantValue.nothing();
   final AbstractConstantValue nullValue;
+  final AbstractConstantValue trueValue;
+  final AbstractConstantValue falseValue;
 
   ConstantPropagationLattice(CpsFunctionCompiler functionCompiler)
     : typeSystem = functionCompiler.typeSystem,
@@ -53,9 +56,11 @@ class ConstantPropagationLattice {
       anything = new AbstractConstantValue.nonConstant(
           functionCompiler.typeSystem.dynamicType),
       nullValue = new AbstractConstantValue.constantValue(
-          new NullConstantValue(), new TypeMask.empty());
-
-  final AbstractConstantValue nothing = new AbstractConstantValue.nothing();
+          new NullConstantValue(), new TypeMask.empty()),
+      trueValue = new AbstractConstantValue.constantValue(
+          new TrueConstantValue(), functionCompiler.typeSystem.boolType),
+      falseValue = new AbstractConstantValue.constantValue(
+          new FalseConstantValue(), functionCompiler.typeSystem.boolType);
 
   AbstractConstantValue constant(ConstantValue value, [TypeMask type]) {
     if (type == null) type = typeSystem.getTypeOf(value);
@@ -559,21 +564,41 @@ class ConstantPropagationLattice {
 
   AbstractConstantValue lessSpecial(AbstractConstantValue left,
                                     AbstractConstantValue right) {
+    if (isDefinitelyUint(left) && right.isZeroOrNegativeConstant) {
+      return falseValue; // "uint < 0" is false.
+    } else if (left.isNegativeConstant && isDefinitelyUint(right)) {
+      return trueValue; // "-1 < uint" is true.
+    }
     return foldBinary(constantSystem.less, left, right);
   }
 
   AbstractConstantValue lessEqualSpecial(AbstractConstantValue left,
                                          AbstractConstantValue right) {
+    if (isDefinitelyUint(left) && right.isNegativeConstant) {
+      return falseValue; // "uint <= -1" is false.
+    } else if (left.isZeroOrNegativeConstant && isDefinitelyUint(right)) {
+      return trueValue; // "0 <= uint" is true.
+    }
     return foldBinary(constantSystem.lessEqual, left, right);
   }
 
   AbstractConstantValue greaterSpecial(AbstractConstantValue left,
                                        AbstractConstantValue right) {
+    if (left.isZeroOrNegativeConstant && isDefinitelyUint(right)) {
+      return falseValue; // "0 > uint" is false
+    } else if (isDefinitelyUint(left) && right.isNegativeConstant) {
+      return trueValue; // "uint > -1" is true
+    }
     return foldBinary(constantSystem.greater, left, right);
   }
 
   AbstractConstantValue greaterEqualSpecial(AbstractConstantValue left,
                                             AbstractConstantValue right) {
+    if (left.isNegativeConstant && isDefinitelyUint(right)) {
+      return falseValue; // "-1 >= uint" is false
+    } else if (isDefinitelyUint(left) && right.isZeroOrNegativeConstant) {
+      return trueValue; // "uint >= 0" is true
+    }
     return foldBinary(constantSystem.greaterEqual, left, right);
   }
 
@@ -1245,6 +1270,22 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       return cps;
     }
 
+    Selector renameToOptimizedSelector(String name) {
+      return new Selector.call(
+          new Name(name, backend.helpers.interceptorsLibrary),
+          node.selector.callStructure);
+    }
+
+    /// Replaces the call with a call to [name] with the same inputs.
+    InvokeMethod makeRenamedInvoke(String name) {
+      return new InvokeMethod(node.receiver.definition,
+          renameToOptimizedSelector(name),
+          node.mask,
+          node.arguments.map((ref) => ref.definition).toList(),
+          sourceInformation: node.sourceInformation,
+          callingConvention: node.callingConvention);
+    }
+
     TypeMask successType =
         typeSystem.receiverTypeFor(node.selector, node.dartReceiver.type);
 
@@ -1301,10 +1342,20 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           // Try to insert a shift-right operator. JavaScript's right shift is
           // consistent with Dart's only for left operands in the unsigned
           // 32-bit range.
-          if (opname == '>>' &&
-              lattice.isDefinitelyUint32(left, allowNull: true) &&
-              lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
-            return makeBinary(BuiltinOperator.NumShr, guard: checkIsNumber);
+          if (opname == '>>') {
+            if (lattice.isDefinitelyUint32(left, allowNull: true) &&
+                lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
+              return makeBinary(BuiltinOperator.NumShr, guard: checkIsNumber);
+            } else if (lattice.isDefinitelyUint(left) &&
+                       lattice.isDefinitelyUint(right)) {
+              return makeRenamedInvoke('_shrBothPositive');
+            } else if (lattice.isDefinitelyUint(left) &&
+                       lattice.isDefinitelyNum(right)) {
+              return makeRenamedInvoke('_shrReceiverPositive');
+            } else if (lattice.isDefinitelyNum(left) &&
+                       lattice.isDefinitelyUint(right)) {
+              return makeRenamedInvoke('_shrOtherPositive');
+            }
           }
           // Try to use remainder for '%'. Both operands must be non-negative
           // and the divisor must be non-zero.
@@ -3299,6 +3350,17 @@ class AbstractConstantValue {
   bool get isNullConstant => kind == CONSTANT && constant.isNull;
   bool get isTrueConstant => kind == CONSTANT && constant.isTrue;
   bool get isFalseConstant => kind == CONSTANT && constant.isFalse;
+  bool get isZeroConstant => kind == CONSTANT && constant.isZero;
+  bool get isZeroOrNegativeConstant {
+    if (kind != CONSTANT || !constant.isNum) return false;
+    PrimitiveConstantValue value = constant;
+    return value.primitiveValue <= 0;
+  }
+  bool get isNegativeConstant {
+    if (kind != CONSTANT || !constant.isNum) return false;
+    PrimitiveConstantValue value = constant;
+    return value.primitiveValue < 0;
+  }
 
   bool get isNullable => kind != NOTHING && type.isNullable;
   bool get isDefinitelyNotNull => kind == NOTHING || !type.isNullable;

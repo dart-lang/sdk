@@ -17,8 +17,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, lazy_dispatchers);
-
 // A cache of VM heap allocated arguments descriptors.
 RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
 

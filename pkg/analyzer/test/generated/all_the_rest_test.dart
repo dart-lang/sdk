@@ -176,6 +176,31 @@ class DirectoryBasedDartSdkTest {
     expect(source.uri.toString(), "dart:core");
   }
 
+  void test_fromFile_library_firstExact() {
+    DirectoryBasedDartSdk sdk = _createDartSdk();
+    JavaFile dirHtml = new JavaFile.relative(sdk.libraryDirectory, "html");
+    JavaFile dirDartium = new JavaFile.relative(dirHtml, "dartium");
+    JavaFile file = new JavaFile.relative(dirDartium, "html_dartium.dart");
+    expect(file.isFile(), isTrue);
+    Source source = sdk.fromFileUri(file.toURI());
+    expect(source, isNotNull);
+    expect(source.isInSystemLibrary, isTrue);
+    expect(source.uri.toString(), "dart:html");
+  }
+
+  void test_fromFile_library_html_common_dart2js() {
+    DirectoryBasedDartSdk sdk = _createDartSdk();
+    JavaFile dirHtml = new JavaFile.relative(sdk.libraryDirectory, "html");
+    JavaFile dirCommon = new JavaFile.relative(dirHtml, "html_common");
+    JavaFile file =
+        new JavaFile.relative(dirCommon, "html_common_dart2js.dart");
+    expect(file.isFile(), isTrue);
+    Source source = sdk.fromFileUri(file.toURI());
+    expect(source, isNotNull);
+    expect(source.isInSystemLibrary, isTrue);
+    expect(source.uri.toString(), "dart:html_common/html_common_dart2js.dart");
+  }
+
   void test_fromFile_part() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     Source source = sdk.fromFileUri(new JavaFile.relative(
@@ -275,11 +300,19 @@ class ElementBuilderTest extends ParserTestCase {
    * resulting [ElementHolder].
    */
   ElementHolder buildElementsForText(String code) {
-    compilationUnit = ParserTestCase.parseCompilationUnit(code);
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder, compilationUnitElement);
-    compilationUnit.accept(builder);
-    return holder;
+    TestLogger logger = new TestLogger();
+    AnalysisEngine.instance.logger = logger;
+    try {
+      compilationUnit = ParserTestCase.parseCompilationUnit(code);
+      ElementHolder holder = new ElementHolder();
+      ElementBuilder builder =
+          new ElementBuilder(holder, compilationUnitElement);
+      compilationUnit.accept(builder);
+      return holder;
+    } finally {
+      expect(logger.log, hasLength(0));
+      AnalysisEngine.instance.logger = Logger.NULL;
+    }
   }
 
   /**
@@ -585,6 +618,38 @@ class C {
     expect(type.isAbstract, isTrue);
     expect(type.isMixinApplication, isFalse);
     expect(type.isSynthetic, isFalse);
+  }
+
+  void test_visitClassDeclaration_invalidFunctionInAnnotation_class() {
+    // https://github.com/dart-lang/sdk/issues/25696
+    String code = r'''
+class A {
+  const A({f});
+}
+
+@A(f: () {})
+class C {}
+''';
+    buildElementsForText(code);
+  }
+
+  void test_visitClassDeclaration_invalidFunctionInAnnotation_method() {
+    String code = r'''
+class A {
+  const A({f});
+}
+
+class C {
+  @A(f: () {})
+  void m() {}
+}
+''';
+    ElementHolder holder = buildElementsForText(code);
+    ClassElement elementC = holder.types[1];
+    expect(elementC, isNotNull);
+    MethodElement methodM = elementC.methods[0];
+    expect(methodM, isNotNull);
+    expect(methodM.functions, isEmpty);
   }
 
   void test_visitClassDeclaration_minimal() {
@@ -986,6 +1051,9 @@ class C {
     expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
     expect(parameter.hasImplicitType, isTrue);
+    expect(parameter.initializer, isNotNull);
+    expect(parameter.initializer.type, isNotNull);
+    expect(parameter.initializer.hasImplicitReturnType, isTrue);
     expect(parameter.isConst, isFalse);
     expect(parameter.isDeprecated, isFalse);
     expect(parameter.isFinal, isFalse);
@@ -1012,6 +1080,9 @@ class C {
     expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
     expect(parameter.hasImplicitType, isFalse);
+    expect(parameter.initializer, isNotNull);
+    expect(parameter.initializer.type, isNotNull);
+    expect(parameter.initializer.hasImplicitReturnType, isTrue);
     expect(parameter.isConst, isFalse);
     expect(parameter.isDeprecated, isFalse);
     expect(parameter.isFinal, isFalse);
@@ -1931,6 +2002,7 @@ class C {
     FunctionElement initializer = parameter.initializer;
     expect(initializer, isNotNull);
     expect(initializer.isSynthetic, isTrue);
+    expect(initializer.hasImplicitReturnType, isTrue);
   }
 
   void test_visitSimpleFormalParameter_noType() {
@@ -2165,6 +2237,7 @@ class C {
     expect(fieldElement, isNotNull);
     FunctionElement initializerElement = fieldElement.initializer;
     expect(initializerElement, isNotNull);
+    expect(initializerElement.hasImplicitReturnType, isTrue);
     List<FunctionElement> functionElements = initializerElement.functions;
     expect(functionElements, hasLength(1));
     List<LocalVariableElement> variableElements =
@@ -2217,6 +2290,8 @@ class C {
     TopLevelVariableElement variable = variables[0];
     expect(variable, new isInstanceOf<ConstTopLevelVariableElementImpl>());
     expect(variable.initializer, isNotNull);
+    expect(variable.initializer.type, isNotNull);
+    expect(variable.initializer.hasImplicitReturnType, isTrue);
     expect(variable.name, variableName);
     expect(variable.hasImplicitType, isTrue);
     expect(variable.isConst, isTrue);

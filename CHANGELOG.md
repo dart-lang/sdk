@@ -17,6 +17,10 @@
     The method now only supports one argument for the PEM file name containing
     the trusted certificates.
   * Added support to SecurityContext for PKCS12 certificate and key containers.
+  * All calls in `SecurityContext` that accept certificate data now accept an
+    optional named parameter `password`, similar to
+    `SecurityContext.usePrivateKeyBytes`, for use as the password for PKCS12
+    data.
 * `dart:async`
   * Made `StreamView` class a `const` class.
 

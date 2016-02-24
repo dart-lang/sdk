@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
+import 'service_test_common.dart';
 import 'test_helper.dart';
 
 int count = 0;
@@ -69,7 +70,7 @@ var tests = [
         }
       }
     });
-    
+
     Completer restartCompleter = new Completer();
     var isolateStream = await isolate.vm.getEventStream(VM.kIsolateStream);
     var isolateSub;
@@ -101,5 +102,5 @@ var tests = [
   },
 ];
 
-  
+
 main(args) => runIsolateTests(args, tests, testeeConcurrent: test);

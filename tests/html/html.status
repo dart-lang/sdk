@@ -20,7 +20,6 @@ transferables_test: RuntimeError # Dartium JSInterop failure
 
 blob_constructor_test: RuntimeError # Dartium 45 roll. Issue 25754
 crypto_test/functional: RuntimeError # Dartium 45 roll. Issue 25754
-svgelement_test/constructors: RuntimeError # Dartium 45 roll. Issue 25754
 url_test: RuntimeError # Dartium 45 roll. Issue 25754
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) ]
@@ -125,7 +124,7 @@ element_animate_test/timing_dict: Skip # Timing out on MacOS. Issue 23507
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
 
-[$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
+[$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
 element_animate_test/omit_timing: RuntimeError # Dartium 45 roll. Issue 25786
 element_animate_test/simple_timing: RuntimeError # Dartium 45 roll. Issue 25786
@@ -381,7 +380,7 @@ websql_test/supported: Fail
 
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
-[ $runtime == vm || $runtime == dart_precompiled ]
+[ $runtime == vm || $runtime == dart_precompiled || $runtime == dart_product ]
 *: Skip
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]

@@ -19,7 +19,7 @@
 #include "vm/os_thread.h"
 #include "vm/timeline.h"
 #include "vm/timer.h"
-#include "vm/trace_buffer.h"
+#include "vm/token_position.h"
 
 namespace dart {
 
@@ -318,6 +318,7 @@ class Isolate : public BaseIsolate {
   void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
 
   Mutex* mutex() const { return mutex_; }
+  Mutex* symbols_mutex() const { return symbols_mutex_; }
 
   Debugger* debugger() const {
     if (!FLAG_support_debugger) {
@@ -491,13 +492,6 @@ class Isolate : public BaseIsolate {
   }
   ObjectIdRing* object_id_ring() {
     return object_id_ring_;
-  }
-
-  void set_trace_buffer(TraceBuffer* buffer) {
-    trace_buffer_ = buffer;
-  }
-  TraceBuffer* trace_buffer() {
-    return trace_buffer_;
   }
 
   DeoptContext* deopt_context() const { return deopt_context_; }
@@ -779,6 +773,7 @@ class Isolate : public BaseIsolate {
   Random random_;
   Simulator* simulator_;
   Mutex* mutex_;  // protects stack_limit_, saved_stack_limit_, compiler stats.
+  Mutex* symbols_mutex_;  // Protects concurrent access to teh symbol table.
   uword saved_stack_limit_;
   uword deferred_interrupts_mask_;
   uword deferred_interrupts_;
@@ -806,9 +801,6 @@ class Isolate : public BaseIsolate {
 
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_;
-
-  // Trace buffer support.
-  TraceBuffer* trace_buffer_;
 
   VMTagCounters vm_tag_counters_;
   RawGrowableObjectArray* tag_table_;
