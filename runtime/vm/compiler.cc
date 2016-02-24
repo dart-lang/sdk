@@ -24,10 +24,10 @@
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_inliner.h"
-#include "vm/flow_graph_optimizer.h"
 #include "vm/flow_graph_range_analysis.h"
 #include "vm/flow_graph_type_propagator.h"
 #include "vm/il_printer.h"
+#include "vm/jit_optimizer.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -687,9 +687,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         caller_inline_id.Add(-1);
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
 
-        FlowGraphOptimizer optimizer(flow_graph,
-                                     use_speculative_inlining,
-                                     NULL);
+        JitOptimizer optimizer(flow_graph);
+
         optimizer.ApplyICData();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 

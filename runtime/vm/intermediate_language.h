@@ -2842,7 +2842,7 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
   PRINT_OPERANDS_TO_SUPPORT
 
  protected:
-  friend class FlowGraphOptimizer;
+  friend class JitOptimizer;
   void set_ic_data(ICData* value) { ic_data_ = value; }
 
  private:
@@ -3620,7 +3620,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  friend class FlowGraphOptimizer;  // For ASSERT(initialization_).
+  friend class JitOptimizer;  // For ASSERT(initialization_).
 
   bool CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();

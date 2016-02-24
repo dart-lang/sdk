@@ -12,10 +12,10 @@
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
-#include "vm/flow_graph_optimizer.h"
 #include "vm/flow_graph_type_propagator.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
+#include "vm/jit_optimizer.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -810,9 +810,7 @@ class CallSiteInliner : public ValueObject {
             optimizer.TryOptimizePatterns();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
           } else {
-            FlowGraphOptimizer optimizer(callee_graph,
-                                         inliner_->use_speculative_inlining_,
-                                         inliner_->inlining_black_list_);
+            JitOptimizer optimizer(callee_graph);
             optimizer.ApplyICData();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_FLOW_GRAPH_OPTIMIZER_H_
-#define VM_FLOW_GRAPH_OPTIMIZER_H_
+#ifndef VM_JIT_OPTIMIZER_H_
+#define VM_JIT_OPTIMIZER_H_
 
 #include "vm/intermediate_language.h"
 #include "vm/flow_graph.h"
@@ -14,19 +14,13 @@ class CSEInstructionMap;
 template <typename T> class GrowableArray;
 class ParsedFunction;
 
-class FlowGraphOptimizer : public FlowGraphVisitor {
+class JitOptimizer : public FlowGraphVisitor {
  public:
-  FlowGraphOptimizer(
-      FlowGraph* flow_graph,
-      bool use_speculative_inlining,
-      GrowableArray<intptr_t>* inlining_black_list)
+  explicit JitOptimizer(FlowGraph* flow_graph)
       : FlowGraphVisitor(flow_graph->reverse_postorder()),
-        flow_graph_(flow_graph),
-        use_speculative_inlining_(use_speculative_inlining),
-        inlining_black_list_(inlining_black_list) {
-    ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
-  }
-  virtual ~FlowGraphOptimizer() {}
+        flow_graph_(flow_graph) { }
+
+  virtual ~JitOptimizer() {}
 
   FlowGraph* flow_graph() const { return flow_graph_; }
 
@@ -70,11 +64,9 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryReplaceWithEqualityOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithRelationalOp(InstanceCallInstr* call, Token::Kind op_kind);
 
-  bool TryInlineInstanceGetter(InstanceCallInstr* call,
-                               bool allow_check = true);
+  bool TryInlineInstanceGetter(InstanceCallInstr* call);
   bool TryInlineInstanceSetter(InstanceCallInstr* call,
-                               const ICData& unary_ic_data,
-                               bool allow_check = true);
+                               const ICData& unary_ic_data);
 
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
   bool TryInlineFloat32x4Constructor(StaticCallInstr* call,
@@ -138,7 +130,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                               Token::Kind op_kind);
   bool InlineFloat64x2BinaryOp(InstanceCallInstr* call,
                                Token::Kind op_kind);
-  bool InlineImplicitInstanceGetter(InstanceCallInstr* call, bool allow_check);
+  bool InlineImplicitInstanceGetter(InstanceCallInstr* call);
 
   RawBool* InstanceOfAsBool(const ICData& ic_data,
                             const AbstractType& type,
@@ -157,8 +149,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                        Representation rep, intptr_t cid);
   bool TryStringLengthOneEquality(InstanceCallInstr* call, Token::Kind op_kind);
 
-  void InstanceCallNoopt(InstanceCallInstr* instr);
-
   RawField* GetField(intptr_t class_id, const String& field_name);
 
   Thread* thread() const { return flow_graph_->thread(); }
@@ -167,18 +157,12 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   const Function& function() const { return flow_graph_->function(); }
 
-  bool IsBlackListedForInlining(intptr_t deopt_id);
-
   FlowGraph* flow_graph_;
 
-  const bool use_speculative_inlining_;
-
-  GrowableArray<intptr_t>* inlining_black_list_;
-
-  DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);
+  DISALLOW_COPY_AND_ASSIGN(JitOptimizer);
 };
 
 
 }  // namespace dart
 
-#endif  // VM_FLOW_GRAPH_OPTIMIZER_H_
+#endif  // VM_JIT_OPTIMIZER_H_

@@ -260,7 +260,7 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
 
 
 const ICData& AotOptimizer::TrySpecializeICData(const ICData& ic_data,
-                                                      intptr_t cid) {
+                                                intptr_t cid) {
   ASSERT(ic_data.NumArgsTested() == 1);
 
   if ((ic_data.NumberOfUsedChecks() == 1) && ic_data.HasReceiverClassId(cid)) {
@@ -375,9 +375,9 @@ void AotOptimizer::OptimizeLeftShiftBitAndSmiOp(
 
 
 void AotOptimizer::AppendExtractNthOutputForMerged(Definition* instr,
-                                                         intptr_t index,
-                                                         Representation rep,
-                                                         intptr_t cid) {
+                                                   intptr_t index,
+                                                   Representation rep,
+                                                   intptr_t cid) {
   ExtractNthOutputInstr* extract =
       new(Z) ExtractNthOutputInstr(new(Z) Value(instr), index, rep, cid);
   instr->ReplaceUsesWith(extract);
@@ -711,7 +711,7 @@ static bool ShouldSpecializeForDouble(const ICData& ic_data) {
 
 
 void AotOptimizer::ReplaceCall(Definition* call,
-                                     Definition* replacement) {
+                               Definition* replacement) {
   // Remove the original push arguments.
   for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
     PushArgumentInstr* push = call->PushArgumentAt(i);
@@ -723,9 +723,9 @@ void AotOptimizer::ReplaceCall(Definition* call,
 
 
 void AotOptimizer::AddCheckSmi(Definition* to_check,
-                                     intptr_t deopt_id,
-                                     Environment* deopt_environment,
-                                     Instruction* insert_before) {
+                               intptr_t deopt_id,
+                               Environment* deopt_environment,
+                               Instruction* insert_before) {
   if (to_check->Type()->ToCid() != kSmiCid) {
     InsertBefore(insert_before,
                  new(Z) CheckSmiInstr(new(Z) Value(to_check),
@@ -738,9 +738,9 @@ void AotOptimizer::AddCheckSmi(Definition* to_check,
 
 
 Instruction* AotOptimizer::GetCheckClass(Definition* to_check,
-                                               const ICData& unary_checks,
-                                               intptr_t deopt_id,
-                                               TokenPosition token_pos) {
+                                         const ICData& unary_checks,
+                                         intptr_t deopt_id,
+                                         TokenPosition token_pos) {
   if ((unary_checks.NumberOfUsedChecks() == 1) &&
       unary_checks.HasReceiverClassId(kSmiCid)) {
     return new(Z) CheckSmiInstr(new(Z) Value(to_check),
@@ -753,10 +753,10 @@ Instruction* AotOptimizer::GetCheckClass(Definition* to_check,
 
 
 void AotOptimizer::AddCheckClass(Definition* to_check,
-                                       const ICData& unary_checks,
-                                       intptr_t deopt_id,
-                                       Environment* deopt_environment,
-                                       Instruction* insert_before) {
+                                 const ICData& unary_checks,
+                                 intptr_t deopt_id,
+                                 Environment* deopt_environment,
+                                 Instruction* insert_before) {
   // Type propagation has not run yet, we cannot eliminate the check.
   Instruction* check = GetCheckClass(
       to_check, unary_checks, deopt_id, insert_before->token_pos());
@@ -823,7 +823,7 @@ static bool IsLengthOneString(Definition* d) {
 // E.g., detect str[x] == "x"; and use an integer comparison of char-codes.
 // TODO(srdjan): Expand for two-byte and external strings.
 bool AotOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
-                                                    Token::Kind op_kind) {
+                                              Token::Kind op_kind) {
   ASSERT(HasOnlyTwoOf(*call->ic_data(), kOneByteStringCid));
   // Check that left and right are length one strings (either string constants
   // or results of string-from-char-code.
@@ -910,7 +910,7 @@ bool AotOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
 static bool SmiFitsInDouble() { return kSmiBits < 53; }
 
 bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
-                                                  Token::Kind op_kind) {
+                                            Token::Kind op_kind) {
   const ICData& ic_data = *call->ic_data();
   ASSERT(ic_data.NumArgsTested() == 2);
 
@@ -1019,7 +1019,7 @@ bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
 
 
 bool AotOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
-                                                    Token::Kind op_kind) {
+                                              Token::Kind op_kind) {
   const ICData& ic_data = *call->ic_data();
   ASSERT(ic_data.NumArgsTested() == 2);
 
@@ -1081,7 +1081,7 @@ bool AotOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
 
 
 bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
-                                                Token::Kind op_kind) {
+                                          Token::Kind op_kind) {
   intptr_t operands_type = kIllegalCid;
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
@@ -1290,7 +1290,7 @@ bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
 
 
 bool AotOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
-                                               Token::Kind op_kind) {
+                                         Token::Kind op_kind) {
   ASSERT(call->ArgumentCount() == 1);
   Definition* input = call->ArgumentAt(0);
   Definition* unary_op = NULL;
@@ -1325,7 +1325,7 @@ bool AotOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
 
 // Using field class
 RawField* AotOptimizer::GetField(intptr_t class_id,
-                                       const String& field_name) {
+                                 const String& field_name) {
   Class& cls = Class::Handle(Z, isolate()->class_table()->At(class_id));
   Field& field = Field::Handle(Z);
   while (!cls.IsNull()) {
@@ -1373,8 +1373,7 @@ bool AotOptimizer::InstanceCallNeedsClassCheck(
 }
 
 
-bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
-                                                      bool allow_check) {
+bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
   ASSERT(ic_data.HasOneTarget());
@@ -1389,10 +1388,7 @@ bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
   ASSERT(!field.IsNull());
 
   if (InstanceCallNeedsClassCheck(call, RawFunction::kImplicitGetter)) {
-    if (!allow_check) {
-      return false;
-    }
-    AddReceiverCheck(call);
+    return false;
   }
   LoadFieldInstr* load = new(Z) LoadFieldInstr(
       new(Z) Value(call->ArgumentAt(0)),
@@ -1419,7 +1415,7 @@ bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
 
 
 bool AotOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
-                                               MethodRecognizer::Kind getter) {
+                                         MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -1494,7 +1490,7 @@ bool AotOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
 
 
 bool AotOptimizer::InlineFloat64x2Getter(InstanceCallInstr* call,
-                                               MethodRecognizer::Kind getter) {
+                                         MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -1520,7 +1516,7 @@ bool AotOptimizer::InlineFloat64x2Getter(InstanceCallInstr* call,
 
 
 bool AotOptimizer::InlineInt32x4Getter(InstanceCallInstr* call,
-                                              MethodRecognizer::Kind getter) {
+                                       MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -1595,7 +1591,7 @@ bool AotOptimizer::InlineInt32x4Getter(InstanceCallInstr* call,
 
 
 bool AotOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
-                                                 Token::Kind op_kind) {
+                                           Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -1628,7 +1624,7 @@ bool AotOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
 
 
 bool AotOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
-                                                Token::Kind op_kind) {
+                                         Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -1660,7 +1656,7 @@ bool AotOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
 
 
 bool AotOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
-                                                 Token::Kind op_kind) {
+                                           Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -1692,9 +1688,7 @@ bool AotOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
 
 
 // Only unique implicit instance getters can be currently handled.
-// Returns false if 'allow_check' is false and a check is needed.
-bool AotOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call,
-                                                 bool allow_check) {
+bool AotOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
   if (ic_data.NumberOfUsedChecks() == 0) {
@@ -1714,7 +1708,7 @@ bool AotOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call,
     // inlining in FlowGraphInliner.
     return false;
   }
-  return InlineImplicitInstanceGetter(call, allow_check);
+  return InlineImplicitInstanceGetter(call);
 }
 
 
@@ -2431,14 +2425,14 @@ void AotOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
   }
 
   if ((op_kind == Token::kGET) &&
-      TryInlineInstanceGetter(instr, false /* no checks allowed */)) {
+      TryInlineInstanceGetter(instr)) {
     return;
   }
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
   if ((unary_checks.NumberOfChecks() > 0) &&
       (op_kind == Token::kSET) &&
-      TryInlineInstanceSetter(instr, unary_checks, false /* no checks */)) {
+      TryInlineInstanceSetter(instr, unary_checks)) {
     return;
   }
 
@@ -2765,8 +2759,7 @@ void AotOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
 
 
 bool AotOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
-                                                 const ICData& unary_ic_data,
-                                                 bool allow_checks) {
+                                           const ICData& unary_ic_data) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
       (unary_ic_data.NumArgsTested() == 1));
   if (I->flags().type_checks()) {
@@ -2800,35 +2793,7 @@ bool AotOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   ASSERT(!field.IsNull());
 
   if (InstanceCallNeedsClassCheck(instr, RawFunction::kImplicitSetter)) {
-    if (!allow_checks) {
-      return false;
-    }
-    AddReceiverCheck(instr);
-  }
-  if (field.guarded_cid() != kDynamicCid) {
-    if (!allow_checks) {
-      return false;
-    }
-    InsertBefore(instr,
-                 new(Z) GuardFieldClassInstr(
-                     new(Z) Value(instr->ArgumentAt(1)),
-                      field,
-                      instr->deopt_id()),
-                 instr->env(),
-                 FlowGraph::kEffect);
-  }
-
-  if (field.needs_length_check()) {
-    if (!allow_checks) {
-      return false;
-    }
-    InsertBefore(instr,
-                 new(Z) GuardFieldLengthInstr(
-                     new(Z) Value(instr->ArgumentAt(1)),
-                      field,
-                      instr->deopt_id()),
-                 instr->env(),
-                 FlowGraph::kEffect);
+    return false;
   }
 
   // Field guard was detached.

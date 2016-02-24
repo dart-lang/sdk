@@ -13,7 +13,6 @@
 #include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
-#include "vm/flow_graph_optimizer.h"
 #include "vm/flow_graph_range_analysis.h"
 #include "vm/locations.h"
 #include "vm/method_recognizer.h"

@@ -74,11 +74,9 @@ class AotOptimizer : public FlowGraphVisitor {
   bool TryReplaceWithEqualityOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithRelationalOp(InstanceCallInstr* call, Token::Kind op_kind);
 
-  bool TryInlineInstanceGetter(InstanceCallInstr* call,
-                               bool allow_check = true);
+  bool TryInlineInstanceGetter(InstanceCallInstr* call);
   bool TryInlineInstanceSetter(InstanceCallInstr* call,
-                               const ICData& unary_ic_data,
-                               bool allow_check = true);
+                               const ICData& unary_ic_data);
 
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
   bool TryInlineFloat32x4Constructor(StaticCallInstr* call,
@@ -142,7 +140,7 @@ class AotOptimizer : public FlowGraphVisitor {
                               Token::Kind op_kind);
   bool InlineFloat64x2BinaryOp(InstanceCallInstr* call,
                                Token::Kind op_kind);
-  bool InlineImplicitInstanceGetter(InstanceCallInstr* call, bool allow_check);
+  bool InlineImplicitInstanceGetter(InstanceCallInstr* call);
 
   RawBool* InstanceOfAsBool(const ICData& ic_data,
                             const AbstractType& type,
